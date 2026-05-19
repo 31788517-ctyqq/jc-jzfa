@@ -56,11 +56,14 @@ app.post('/api',function(req,res){
   var a=req.body.action,d=req.body.data||{};
   if(a==='match-list'){
     var date=d.date||'',now=new Date().toISOString().slice(0,10);
+    if(!date) date=now;
     var all=[];
     var seen={};
-    // 先从静态数据加载
-    Object.values(data.m).forEach(function(m){all.push(m);seen[m.matchId]=true});
-    // 再加入 live_scores 中的新比赛
+    // 从静态数据加载并筛选
+    Object.values(data.m).forEach(function(m){
+      if(m.date===date||m.date===liveDate||m.date===now){all.push(m);seen[m.matchId]=true}
+    });
+    // 加入 live_scores 中的新比赛
     Object.keys(liveScores).forEach(function(k){
       if(!seen[k]) all.push({matchId:k,homeName:'',visitName:'',leagueName:'',num:'',startTime:'',date:''});
     });
@@ -71,12 +74,6 @@ app.post('/api',function(req,res){
       var recs=findRecommends(m.matchId);
       return Object.assign({},m,{recommNum:m.recommNum||recs.reduce(function(s,x){return s+(x.num||0)},0)});
     });
-    if(date) all=all.filter(function(m){return m.date===date||m.dateLive===date});
-    if(!date) all=all.filter(function(m){
-      // 无日期时返回今天/昨天/有实时数据的比赛
-      return m.date===now||m.date===liveDate||!!m.dateLive||m.matchStatus>0;
-    });
-    all.sort(function(a,b){
       var order={1:0,0:1,2:2,3:3};
       var oa=order[a.matchStatus]!==undefined?order[a.matchStatus]:99;
       var ob=order[b.matchStatus]!==undefined?order[b.matchStatus]:99;
