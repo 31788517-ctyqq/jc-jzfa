@@ -52,14 +52,14 @@ function findRecommends(matchId){
   return normalizeRecs(raw);
 }
 
-// 竞彩期号日期列表（按num前两字+startTime日期分组）
+// 竞彩期号日期列表（按num前两字+date字段分组，date=期号售卖日）
 function getWeekDates(){
   var list=[],seen={};
   Object.values(data.m).forEach(function(m){
     var w=m.num?m.num.slice(0,2):'';
     if(!w||w.length<2)return;
-    var st=m.startTime||'';
-    var matchDate=st.slice(0,5)||m.date||'';
+    var matchDate=(m.date||'').slice(5)||'';
+    if(!matchDate)return;
     var key=w+'|'+matchDate;
     if(!seen[key]){seen[key]=true;list.push({weekNum:w,matchDate:matchDate,label:matchDate.replace('-','/')+' '+w})}
   });
@@ -81,8 +81,7 @@ app.post('/api',function(req,res){
     if(weekNum){
       Object.values(data.m).forEach(function(m){
         var w=m.num?m.num.slice(0,2):'';
-        var st=m.startTime||'';
-        var md=st.slice(0,5)||m.date||'';
+        var md=(m.date||'').slice(5)||'';
         if(w===weekNum&&md===matchDate){all.push(m);seen[m.matchId]=true}
       });
     }else{
