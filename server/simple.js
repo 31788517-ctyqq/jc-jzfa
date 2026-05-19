@@ -63,8 +63,8 @@ app.post('/api',function(req,res){
     Object.values(data.m).forEach(function(m){
       if(m.date===date){all.push(m);seen[m.matchId]=true}
     });
-    // 加入 live_scores（仅当请求日期=live_date 或请求日期=today 才加入）
-    if(date===liveDate||date===now){
+    // 加入 live_scores（仅当请求日期匹配 live_date，或未指定日期时用today）
+    if(date===liveDate||(!d.date&&date===now)){
       Object.keys(liveScores).forEach(function(k){
         if(!seen[k]) all.push({matchId:k,homeName:'',visitName:'',leagueName:'',num:'',startTime:'',date:''});
       });
