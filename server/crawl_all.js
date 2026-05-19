@@ -58,13 +58,48 @@ async function crawlAll(){
       totalM+=matches.length;
       console.log('  '+dateStr+' - '+matches.length+'场');
 
-      // 存比赛：使用 API 返回的 today/bDate 作为期号日
-      var realDate=dateStr;
-      if(matches.length>0&&matches[0].bDate)realDate=matches[0].bDate.slice(0,10);
-      else if(mr.today)realDate=mr.today.slice(0,10);
+      // 存比赛：每场独立判断date（竞彩售卖日），优先 bDate -> match.date -> 从startTime推断
+      var weekMap={一:1,二:2,三:3,四:4,五:5,六:6,日:0};
+      function getDayOfWeek(ds){return new Date(ds.slice(0,10).replace(/-/g,'/')+' 00:00:00').getDay()}
+      function fmtDate(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
       matches.forEach(function(m){
         var mid=String(m.matchId||m.dataId||'');
-        allM['m_'+mid]={matchId:mid,num:m.num||'',homeName:m.homeName||'',visitName:m.visitName||'',leagueName:m.leagueName||'',startTime:m.startTime||'',matchStatus:m.matchStatus||0,score:m.score||'',halfScore:m.halfScore||'',duration:m.duration||'',yellow:m.yellow||'',red:m.red||'',date:realDate};
+        var md='';
+        // 1. 优先用该场比赛自己的 bDate
+        if(m.bDate&&typeof m.bDate==='string'&&m.bDate.length>=10)md=m.bDate.slice(0,10);
+        // 2. 其次用 m.date（如果长度是10）
+        if((!md||md.length!==10)&&m.date&&typeof m.date==='string'&&m.date.length===10)md=m.date;
+        // 3. 从 startTime 推断竞彩售卖日（上午9点前的比赛属于前一天的批次）
+        if(!md||md.length!==10){
+          var st=(m.startTime||'').replace(/\//g,'-');
+          if(st.length>=5){
+            var nowY=new Date().getFullYear();
+            var stDate=new Date(nowY+'-'+st.slice(0,2)+'-'+st.slice(3,5)+'T'+st.slice(6,11)+':00+08:00');
+            if(!isNaN(stDate.getTime())){
+              if(stDate.getHours()<9)stDate.setDate(stDate.getDate()-1);
+              md=fmtDate(stDate);
+            }
+          }
+        }
+        // 4. 最后fallback到批次日期并fix
+        if(!md||md.length!==10)md=dateStr;
+        // 5. 验证num前缀的星期与date的星期是否一致，不一致则修正
+        var wp=m.num?m.num.slice(0,2):'';
+        var eDay=weekMap[wp[1]]; // 第2个字符: 一/二/三...
+        if(eDay!==undefined&&md.length===10){
+          var aDay=getDayOfWeek(md);
+          if(aDay!==eDay){
+            // 寻找最近匹配日期
+            var d=new Date(md+'T00:00:00+08:00');
+            var best=null,bestD=99;
+            for(var o=-6;o<=6;o++){
+              var dd=new Date(d);dd.setDate(dd.getDate()+o);
+              if(dd.getDay()===eDay){var dist=o<0?-o:o;if(dist<bestD){bestD=dist;best=fmtDate(dd)}}
+            }
+            if(best)md=best;
+          }
+        }
+        allM['m_'+mid]={matchId:mid,num:m.num||'',homeName:m.homeName||'',visitName:m.visitName||'',leagueName:m.leagueName||'',startTime:m.startTime||'',matchStatus:m.matchStatus||0,score:m.score||'',halfScore:m.halfScore||'',duration:m.duration||'',yellow:m.yellow||'',red:m.red||'',date:md};
       });
 
       // 逐场获取推荐（已完成/未开始跳过推荐爬取以加速）

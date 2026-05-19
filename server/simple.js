@@ -9,7 +9,13 @@ try{
   var raw=JSON.parse(fs.readFileSync(path.join(__dirname,'data.json'),'utf8'));
   data.m=raw.m||raw.matches||{};
   data.r=raw.r||raw.recommends||{};
-  console.log('Loaded',Object.keys(data.m).length,'matches',Object.keys(data.r).length,'recGroups')
+  console.log('Loaded',Object.keys(data.m).length,'matches',Object.keys(data.r).length,'recGroups');
+  // 启动时自动修复日期不匹配
+  var fixResult=fixMatchDates(data.m);
+  if(fixResult.fixed>0){
+    try{fs.writeFileSync(path.join(__dirname,'data.json'),JSON.stringify({m:data.m,r:data.r}))}catch(e){}
+    console.log('Auto-fixed:',fixResult.fixed,'matches with wrong dates');
+  }
 }catch(e){console.log('No data.json:',e.message)}
 
 // 实时比分合并
@@ -33,6 +39,39 @@ function mergeLiveScore(m){
 }
 
 app.get('/health',function(req,res){res.json({status:'ok',matches:Object.keys(data.m).length})});
+
+// 修复比赛日期：num前缀（周一~周日）必须与date的星期匹配
+var WEEK_NAMES={周一:1,周二:2,周三:3,周四:4,周五:5,周六:6,周日:0};
+function getDayOfWeek(dateStr){
+  if(!dateStr||dateStr.length<10)return -1;
+  return new Date(dateStr.slice(0,10).replace(/-/g,'/')+' 00:00:00').getDay();
+}
+function fixMatchDates(allM){
+  var fixed=0,skipped=0;
+  function fmtDate(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
+  Object.keys(allM).forEach(function(k){
+    var m=allM[k];
+    if(!m||!m.num||!m.date)return;
+    var wp=m.num.slice(0,2);
+    var eDay=WEEK_NAMES[wp];
+    if(eDay===undefined)return;
+    var aDay=getDayOfWeek(m.date);
+    if(aDay===eDay)return; // already correct
+    if(aDay<0)return;
+    // 寻找最近匹配的日期（正负方向都试）
+    var d=new Date(m.date.slice(0,10)+'T00:00:00+08:00');
+    var best=null,bestD=99;
+    for(var o=-6;o<=6;o++){
+      var dd=new Date(d);dd.setDate(dd.getDate()+o);
+      if(dd.getDay()===eDay){
+        var dist=o<0?-o:o;
+        if(dist<bestD){bestD=dist;best=fmtDate(dd)}
+      }
+    }
+    if(best&&best!==m.date){m.date=best;fixed++}
+  });
+  return {fixed:fixed,skipped:skipped};
+}
 
 // match-detail: try both 'm_ID' and 'ID' as key
 function findMatch(matchId){
@@ -219,6 +258,15 @@ app.post('/api',function(req,res){
     Object.keys(recMap).forEach(function(t){var v=recMap[t];ds.push({direction:t,totalRecommends:v.total,hitCount:v.hit,missCount:v.miss,hitRate:v.total>0?Math.round(v.hit/v.total*1000)/10:0})});
     ds.sort(function(a,b){return b.hitCount-a.hitCount});
     return res.json({code:1,data:{directionStats:ds}});
+  }
+  if(a==='fix-data'){
+    var result=fixMatchDates(data.m);
+    // 回写到 data.json
+    try{
+      fs.writeFileSync(path.join(__dirname,'data.json'),JSON.stringify({m:data.m,r:data.r}));
+      result.saved=true;
+    }catch(e){result.saveError=e.message}
+    return res.json({code:1,data:result,msg:'Fixed '+result.fixed+' matches'});
   }
   res.json({code:0,msg:'Not found'})
 });
