@@ -77,7 +77,7 @@ async function sync() {
     var token = loginRes.data.token;
     var today = (loginRes.data.today || new Date().toISOString()).slice(0, 10);
 
-    // 2. Fetch matches
+    // 2. Fetch today's matches
     var matchRes = await get(CONFIG.MIDOU_BASE + '/score/footballDataList.do', {
       time: Date.now(),
       order: 'status desc, start_datetime asc, data_id asc'
@@ -101,7 +101,30 @@ async function sync() {
       };
     });
 
-    // 3. Write output
+    // 3. 补充已结束/进行中比赛（多天历史数据）
+    var seenIds={};
+    matches.forEach(function(m){seenIds[m.matchId]=true});
+    try {
+      var historyRes = await get(CONFIG.MIDOU_BASE + '/score/footballDataList.do', {
+        time: Date.now() - 86400000,
+        order: 'status desc, start_datetime asc, data_id asc'
+      }, { Cookie: 'token=' + token });
+      if (historyRes.code === 1 && historyRes.data) {
+        (historyRes.data||[]).forEach(function(m){
+          var mid=String(m.matchId||m.dataId||'');
+          if(!seenIds[mid] && m.matchStatus>=1){
+            seenIds[mid]=true;
+            matches.push({
+              matchId:mid,num:m.num||'',homeName:m.homeName||'',visitName:m.visitName||'',
+              leagueName:m.leagueName||'',startTime:m.startTime||'',matchStatus:m.matchStatus,
+              score:m.score||'',homeScore:-1,visitScore:-1,recommNum:m.recommNum||0,date:today
+            });
+          }
+        });
+      }
+    } catch(e) { log('补充历史比赛: ' + e.message); }
+
+    // 4. Write output
     var output = { date: today, matches: matches, updated: new Date().toISOString() };
     fs.writeFileSync(OUTPUT, JSON.stringify(output));
 
