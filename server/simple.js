@@ -64,7 +64,74 @@ app.post('/api',function(req,res){
     return res.json({code:1,data:{lastResult:lastResult,series:[],timeLabels:[]}});
   }
   if(a==='ranking-list'){
-    return res.json({code:1,data:{categories:{},ranking:[],totalMatches:Object.keys(data.m).length}});
+    var filterCat=d.category||null,filterDir=d.direction||null;
+    // 分类函数
+    function classifyType(t){
+      if(t.indexOf('半全场')===0)return '半全场';
+      if(t.indexOf('总进球')===0)return '进球数';
+      if(t.indexOf('、')>=0)return '双选';
+      if(t.indexOf('让')===0)return '让球';
+      if(t==='胜'||t==='平'||t==='负')return '胜平负';
+      return '其他';
+    }
+    // 收集方向统计
+    var dirStats={}; // {type: {totalNum, matches:[]}}
+    Object.keys(data.m).forEach(function(k){
+      var m=data.m[k],mId=m.matchId;
+      var recs=findRecommends(mId);
+      if(!recs.length)return;
+      recs.forEach(function(r){
+        if(!r.type||!r.num)return;
+        if(!dirStats[r.type])dirStats[r.type]={totalNum:0,matches:[]};
+        dirStats[r.type].totalNum+=r.num;
+        dirStats[r.type].matches.push({
+          matchId:mId,homeName:m.homeName,visitName:m.visitName,
+          leagueName:m.leagueName,num:m.num,date:m.date,
+          direction:r.type,expertCount:r.num,matchStatus:m.matchStatus||0
+        });
+      });
+    });
+    // 分类结构
+    var categories={};
+    Object.keys(dirStats).forEach(function(t){
+      var cat=classifyType(t);
+      if(!categories[cat])categories[cat]={directions:[]};
+      categories[cat].directions.push({name:t,totalExpertCount:dirStats[t].totalNum});
+    });
+    Object.keys(categories).forEach(function(c){categories[c].directions.sort(function(a,b){return b.totalExpertCount-a.totalExpertCount})});
+    var CAT_ORDER=['胜平负','让球','进球数','半全场','双选'];
+    var sortedCats={};
+    CAT_ORDER.forEach(function(k){if(categories[k])sortedCats[k]=categories[k]});
+    // 构建排名
+    var list=[];
+    if(filterDir&&dirStats[filterDir]){
+      dirStats[filterDir].matches.forEach(function(x){list.push(x)});
+    }else if(filterCat&&categories[filterCat]){
+      var catDirs={};
+      categories[filterCat].directions.forEach(function(d){catDirs[d.name]=true});
+      Object.keys(data.m).forEach(function(k){
+        var m=data.m[k];
+        var recs=findRecommends(m.matchId).filter(function(r){return catDirs[r.type]&&r.num>0});
+        if(recs.length){
+          var max=recs.reduce(function(a,b){return b.num>a.num?b:a});
+          list.push({matchId:m.matchId,homeName:m.homeName,visitName:m.visitName,leagueName:m.leagueName,num:m.num,date:m.date,direction:max.type,expertCount:max.num,matchStatus:m.matchStatus||0});
+        }
+      });
+    }else{
+      // 综合排名
+      Object.keys(data.m).forEach(function(k){
+        var m=data.m[k];
+        var recs=findRecommends(m.matchId).filter(function(r){return r.num>0});
+        if(recs.length){
+          var max=recs.reduce(function(a,b){return b.num>a.num?b:a});
+          list.push({matchId:m.matchId,homeName:m.homeName,visitName:m.visitName,leagueName:m.leagueName,num:m.num,date:m.date,direction:max.type,expertCount:max.num,matchStatus:m.matchStatus||0});
+        }
+      });
+    }
+    list.sort(function(a,b){return b.expertCount-a.expertCount});
+    list=list.slice(0,100);
+    var ranking=list.map(function(x,i){x.rank=i+1;return x});
+    return res.json({code:1,data:{categories:sortedCats,ranking:ranking,totalMatches:ranking.length}});
   }
   if(a==='hit-rate-stats'){
     var ds=[];
