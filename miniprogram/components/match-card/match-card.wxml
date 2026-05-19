@@ -1,0 +1,22 @@
+<view class="match-card glass-card" bindtap="handleTap" data-match-id="{{matchId}}">
+  <view class="card-header">
+    <text class="league">{{leagueName}}</text>
+    <text wx:if="{{roundDisplay}}" class="round-pill">{{roundDisplay}}</text>
+  </view>
+
+  <view class="score-row">
+    <text class="team home {{homeName.length > 5 ? 'long' : ''}}">{{homeName}}</text>
+    <text class="score">{{scoreDisplay}}</text>
+    <text class="team away {{visitName.length > 5 ? 'long' : ''}}">{{visitName}}</text>
+  </view>
+
+  <view class="card-mid">
+    <text class="recomm-info">{{recommNum}}位专家推荐</text>
+    <text class="match-time">{{displayTime}}</text>
+  </view>
+
+  <view class="card-footer">
+    <view class="status-pill"><view class="clock-dot"></view>{{statusText}}</view>
+    <hit-tag wx:if="{{lastResult !== null}}" result="{{lastResult}}" />
+  </view>
+</view>

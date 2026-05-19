@@ -1,0 +1,14 @@
+{
+  "name": "jc-zjfa-dev-server",
+  "version": "1.0.0",
+  "description": "竞彩推荐监控系统 - 本地开发服务器",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express-rate-limit": "^7.4.0"
+  }
+}

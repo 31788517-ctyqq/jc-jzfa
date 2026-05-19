@@ -1,0 +1,48 @@
+<view class="app-page list-page">
+  <view class="top-actions">
+    <text class="page-title">今日比赛</text>
+    <view class="more-btn">⋮</view>
+  </view>
+
+  <view class="list-hero">
+    <view class="mini-cup"></view>
+    <view class="hero-title-group">
+      <text class="fifa-title">FIFA</text>
+      <text class="fifa-title">WORLD CUP</text>
+      <text class="fifa-year">2026</text>
+      <text class="fifa-sub">UNITED STATES · CANADA · MEXICO</text>
+    </view>
+  </view>
+
+  <view class="date-nav glass-card">
+    <text class="date-btn" bindtap="prevDay">‹ 前一天</text>
+    <text class="date-current">{{currentDate}}</text>
+    <text class="date-btn" bindtap="nextDay">后一天 ›</text>
+  </view>
+
+  <t-pull-down-refresh bind:refresh="onRefresh" refreshing="{{refreshing}}">
+    <view wx:if="{{!loading}}" class="match-list">
+      <view wx:if="{{matchList.length > 0}}">
+        <match-card
+          wx:for="{{matchList}}"
+          wx:key="matchId"
+          matchId="{{item.matchId}}"
+          homeName="{{item.homeName}}"
+          visitName="{{item.visitName}}"
+          leagueName="{{item.leagueName}}"
+          startTime="{{item.startTime}}"
+          matchStatus="{{item.matchStatus}}"
+          score="{{item.score}}"
+          recommNum="{{item.recommNum}}"
+          lastResult="{{item.lastResult}}"
+          num="{{item.num}}"
+          date="{{item.date}}"
+          bind:tap="goDetail"
+        />
+      </view>
+      <t-empty wx:else title="暂无比赛" description="当天没有竞彩比赛数据" />
+    </view>
+  </t-pull-down-refresh>
+
+  <t-loading wx:if="{{loading}}" loading size="40rpx" />
+</view>

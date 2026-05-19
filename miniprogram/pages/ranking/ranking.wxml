@@ -1,0 +1,43 @@
+<view class="app-page ranking-page">
+  <view class="page-head">
+    <text class="page-title">推荐排行榜</text>
+    <view class="more-btn">⋮</view>
+  </view>
+
+  <scroll-view scroll-x class="rank-tabs" show-scrollbar="false">
+    <view class="rank-tab-row">
+      <view
+        wx:for="{{rankTabs}}"
+        wx:key="text"
+        class="rank-chip {{selectedTab === index ? 'active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onChipTap"
+      >{{item.text}}</view>
+    </view>
+  </scroll-view>
+
+  <t-pull-down-refresh bind:refresh="onRefresh" refreshing="{{refreshing}}">
+    <view wx:if="{{!loading}}" class="ranking-list">
+      <view wx:if="{{rankings.length > 0}}">
+        <ranking-card
+          wx:for="{{rankings}}"
+          wx:key="matchId"
+          rank="{{item.rank}}"
+          matchId="{{item.matchId}}"
+          homeName="{{item.homeName}}"
+          visitName="{{item.visitName}}"
+          leagueName="{{item.leagueName}}"
+          num="{{item.num}}"
+          date="{{item.date}}"
+          direction="{{item.direction}}"
+          expertCount="{{item.expertCount}}"
+          maxExpertCount="{{topExpertCount}}"
+          bind:tap="goDetail"
+        />
+      </view>
+      <t-empty wx:else title="暂无排名" description="当日暂无专家推荐数据" />
+    </view>
+  </t-pull-down-refresh>
+
+  <t-loading wx:if="{{loading}}" loading size="40rpx" />
+</view>

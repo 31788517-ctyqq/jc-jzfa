@@ -1,0 +1,206 @@
+.hit-page {
+  padding-top: 82rpx;
+}
+
+.hit-content {
+  position: relative;
+  z-index: 1;
+}
+
+.overview-card {
+  height: 258rpx;
+  overflow: hidden;
+  text-align: center;
+  padding-top: 36rpx;
+  margin-bottom: 26rpx;
+  background:
+    linear-gradient(90deg, rgba(0, 8, 12, 0.22), rgba(0, 8, 12, 0.04) 44%, rgba(0, 8, 12, 0.72)),
+    url('/images/worldcup/pro/trophy_side.png') right center / cover no-repeat,
+    url('/images/worldcup/pro/logo_light.png') center center / cover no-repeat,
+    url('/images/worldcup/design-hero-logo.jpg') center center / cover no-repeat;
+}
+
+.overview-card::after {
+  content: '';
+  position: absolute;
+  left: -8%;
+  right: -8%;
+  bottom: -30rpx;
+  height: 110rpx;
+  background: radial-gradient(ellipse at center, rgba(18, 241, 231, 0.23), rgba(23, 102, 80, 0.20) 44%, transparent 68%);
+  border-radius: 50% 50% 0 0;
+}
+
+.overview-bg-cup {
+  display: none;
+  position: absolute;
+  right: 50rpx;
+  top: 26rpx;
+  width: 88rpx;
+  height: 132rpx;
+  border-radius: 38rpx 38rpx 18rpx 18rpx;
+  background: linear-gradient(120deg, #fff6bc, #ba7418 25%, #ffd46d 55%, #78420f 82%, #fff0a0);
+  opacity: 0.96;
+  box-shadow: 0 0 35rpx rgba(255, 183, 52, 0.36);
+}
+
+.overview-title {
+  position: relative;
+  z-index: 1;
+  display: block;
+  color: var(--color-primary);
+  font-size: 24rpx;
+  font-weight: 800;
+  margin-bottom: 26rpx;
+}
+
+.overview-stats {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  gap: 72rpx;
+}
+
+.stat-item {
+  width: 210rpx;
+  text-align: center;
+}
+
+.stat-item .num {
+  display: block;
+  color: var(--color-primary);
+  font-size: 68rpx;
+  line-height: 1;
+  font-weight: 900;
+  text-shadow: 0 0 22rpx rgba(18, 241, 231, 0.38);
+}
+
+.stat-item .label {
+  display: block;
+  margin-top: 16rpx;
+  color: var(--color-primary);
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.rate-ranking {
+  padding: 28rpx 30rpx 34rpx;
+  margin-bottom: 26rpx;
+}
+
+.block-title {
+  display: block;
+  margin-bottom: 28rpx;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  height: 54rpx;
+  margin-bottom: 15rpx;
+}
+
+.rank-no {
+  width: 44rpx;
+  color: rgba(255,255,255,0.78);
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.rank-no.top {
+  color: #001018;
+  text-align: center;
+  width: 38rpx;
+  height: 38rpx;
+  margin-right: 6rpx;
+  line-height: 38rpx;
+  border-radius: 50%;
+  background: #ffd052;
+}
+
+.bar-name {
+  width: 210rpx;
+  color: rgba(255,255,255,0.72);
+  font-size: 25rpx;
+}
+
+.bar-track {
+  flex: 1;
+  height: 38rpx;
+  margin: 0 18rpx;
+  border-radius: 8rpx;
+  background: rgba(255,255,255,0.05);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 8rpx;
+  background: linear-gradient(90deg, rgba(91, 232, 214, 0.9), rgba(34, 190, 174, 0.92));
+}
+
+.bar-fill.danger {
+  background: linear-gradient(90deg, #ff3c3c, #e31d28);
+}
+
+.bar-value {
+  width: 78rpx;
+  color: rgba(255,255,255,0.86);
+  font-size: 24rpx;
+}
+
+.axis-labels {
+  display: flex;
+  justify-content: flex-end;
+  gap: 28rpx;
+  padding-right: 18rpx;
+  color: rgba(255,255,255,0.74);
+  font-size: 22rpx;
+}
+
+.detail-table {
+  padding: 24rpx 28rpx;
+}
+
+.table-head,
+.table-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.table-head {
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.55);
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.table-row {
+  min-height: 70rpx;
+  color: #fff;
+  font-size: 25rpx;
+  font-weight: 800;
+}
+
+.table-head text,
+.table-row text {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.table-head text:first-child,
+.table-row text:first-child {
+  flex: 1.35;
+  text-align: left;
+}
+
+.danger-text {
+  color: #ff2d35;
+}

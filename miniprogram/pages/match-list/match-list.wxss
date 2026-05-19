@@ -1,0 +1,107 @@
+.list-page {
+  padding-top: 82rpx;
+}
+
+.list-hero {
+  position: relative;
+  z-index: 1;
+  height: 190rpx;
+  margin: -6rpx -26rpx 18rpx;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(0, 8, 12, 0.16), rgba(0, 8, 12, 0.04) 48%, rgba(0, 8, 12, 0.55)),
+    url('/images/worldcup/design-hero-logo.jpg') center center / cover no-repeat;
+}
+
+.list-hero::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background:
+    url('/images/worldcup/pro/logo_gold.png') center center / cover no-repeat,
+    url('/images/worldcup/pro/flags_corner.png') right top / cover no-repeat;
+  opacity: 0.26;
+  pointer-events: none;
+}
+
+.list-hero::after {
+  content: '';
+  position: absolute;
+  left: -8%;
+  right: -8%;
+  bottom: -54rpx;
+  height: 110rpx;
+  border-radius: 50% 50% 0 0;
+  background: radial-gradient(ellipse at center, rgba(18, 241, 231, 0.28), rgba(11, 68, 58, 0.25) 44%, transparent 70%);
+}
+
+.mini-cup {
+  position: absolute;
+  left: 244rpx;
+  top: 18rpx;
+  width: 78rpx;
+  height: 116rpx;
+  border-radius: 35rpx 35rpx 16rpx 16rpx;
+  background: linear-gradient(120deg, #fff6bc, #ba7418 25%, #ffd46d 55%, #78420f 82%, #fff0a0);
+  box-shadow: 0 0 35rpx rgba(255, 183, 52, 0.36);
+}
+
+.hero-title-group {
+  position: absolute;
+  left: 360rpx;
+  top: 24rpx;
+  display: flex;
+  flex-direction: column;
+  line-height: 0.92;
+  font-weight: 900;
+  color: #dda94d;
+}
+
+.fifa-title {
+  font-size: 32rpx;
+  font-style: italic;
+}
+
+.fifa-year {
+  margin-top: 6rpx;
+  font-size: 44rpx;
+  color: var(--color-primary);
+}
+
+.fifa-sub {
+  margin-top: 8rpx;
+  color: #d4a75d;
+  font-size: 15rpx;
+}
+
+.date-nav {
+  height: 70rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.date-current {
+  font-size: 27rpx;
+  font-weight: 800;
+}
+
+.date-btn {
+  color: var(--color-primary);
+  font-size: 24rpx;
+}
+
+.mini-cup,
+.hero-title-group {
+  display: none;
+}
+
+.match-list {
+  position: relative;
+  z-index: 1;
+}

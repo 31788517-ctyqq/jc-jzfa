@@ -1,0 +1,9 @@
+{
+  "name": "竞彩推荐监控",
+  "version": "1.0.0",
+  "private": true,
+  "description": "竞彩足球专家推荐趋势监控系统 - 微信小程序",
+  "dependencies": {
+    "tdesign-miniprogram": "^1.6.0"
+  }
+}

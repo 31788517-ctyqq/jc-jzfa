@@ -1,0 +1,62 @@
+<view class="app-page detail-page">
+  <view class="detail-nav">
+    <view class="nav-round" bindtap="goBack">‹</view>
+    <text class="detail-title text-ellipsis">{{homeName}} vs {{visitName}}</text>
+    <view class="more-btn">⋮</view>
+  </view>
+
+  <view class="match-header glass-card">
+    <view class="header-top">
+      <text class="league">{{leagueName}}</text>
+      <view class="header-top-right">
+        <text wx:if="{{roundDisplay}}" class="round-pill">{{roundDisplay}}</text>
+        <text class="status-pill">{{statusText}}</text>
+      </view>
+    </view>
+    <view class="score-area">
+      <text class="team text-ellipsis">{{homeName}}</text>
+      <text class="score-txt">{{scoreDisplay}}</text>
+      <text class="team text-ellipsis">{{visitName}}</text>
+    </view>
+    <text class="match-time">{{displayTime}}</text>
+  </view>
+
+  <view class="merged-section glass-card">
+    <view class="section-header">
+      <text class="section-title-text">推荐趋势 · 方向分布</text>
+      <text class="section-link">趋势 ›</text>
+    </view>
+
+    <view class="chart-container">
+      <ec-canvas id="trendChart" canvas-id="trendChart" ec="{{chartConfig}}" />
+    </view>
+
+    <view class="legend-row" wx:if="{{series.length > 0}}">
+      <view wx:for="{{series}}" wx:key="name" class="legend-item">
+        <view class="legend-dot" style="background:{{directionColors[item.name] || '#12f1e7'}}"></view>
+        <text>{{item.name}}</text>
+      </view>
+    </view>
+
+    <view class="recomm-list" wx:if="{{recommendations.length > 0}}">
+      <view class="recomm-item" wx:for="{{recommendations}}" wx:key="type">
+        <view class="recomm-left">
+          <text class="direction-name" style="color:{{directionColors[item.type] || '#12f1e7'}}">{{item.type}}</text>
+          <text class="expert-num">{{item.num}}位</text>
+        </view>
+        <hit-tag result="{{item.result}}" />
+      </view>
+    </view>
+
+    <t-empty wx:if="{{recommendations.length === 0 && !loading}}" title="暂无推荐数据" description="比赛推荐尚未发布" />
+  </view>
+
+  <view class="detail-float-tab">
+    <view class="detail-tab-item" data-url="/pages/index/index" bindtap="switchTab"><view class="detail-icon icon-home"><view></view></view></view>
+    <view class="detail-tab-item" data-url="/pages/match-list/match-list" bindtap="switchTab"><view class="detail-icon icon-ball"></view></view>
+    <view class="detail-tab-item active" data-url="/pages/ranking/ranking" bindtap="switchTab"><view class="detail-icon icon-cup"><view></view></view></view>
+    <view class="detail-tab-item" data-url="/pages/hit-rate/hit-rate" bindtap="switchTab"><view class="detail-icon icon-bars"><view></view></view></view>
+  </view>
+
+  <t-loading wx:if="{{loading}}" loading size="40rpx" />
+</view>

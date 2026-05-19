@@ -1,0 +1,8 @@
+<t-tag
+  type="{{ result === 1 ? 'success' : result === 0 ? 'danger' : 'default' }}"
+  size="small"
+>
+  <text wx:if="{{ result === 1 }}">✓ 中</text>
+  <text wx:elif="{{ result === 0 }}">× 未中</text>
+  <text wx:else>待开</text>
+</t-tag>

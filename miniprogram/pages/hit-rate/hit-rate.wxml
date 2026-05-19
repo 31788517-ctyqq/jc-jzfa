@@ -1,0 +1,55 @@
+<view class="app-page hit-page">
+  <view class="page-head">
+    <text class="page-title">命中率统计</text>
+    <view class="more-btn">⋮</view>
+  </view>
+
+  <view wx:if="{{!loading}}" class="hit-content">
+    <view class="overview-card glass-card">
+      <view class="overview-bg-cup"></view>
+      <text class="overview-title">近{{totalDays}}天数据概览</text>
+      <view class="overview-stats">
+        <view class="stat-item">
+          <text class="num">{{directionStats.length}}</text>
+          <text class="label">方向数</text>
+        </view>
+        <view class="stat-item">
+          <text class="num">{{avgHitRate}}%</text>
+          <text class="label">平均命中率</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="rate-ranking glass-card">
+      <text class="block-title">各方向命中场次排名</text>
+      <view class="bar-list">
+        <view wx:for="{{directionStats}}" wx:key="direction" class="bar-row">
+          <view class="rank-no {{item.rankTop ? 'top' : ''}}">{{item.rank}}</view>
+          <text class="bar-name text-ellipsis">{{item.direction}}</text>
+          <view class="bar-track">
+            <view class="bar-fill {{item.isDanger ? 'danger' : ''}}" style="width:{{item.barWidth}}%"></view>
+          </view>
+          <text class="bar-value">{{item.hitRate}}%</text>
+        </view>
+      </view>
+      <view class="axis-labels">
+        <text>0%</text><text>20%</text><text>40%</text><text>60%</text><text>80%</text><text>100%</text>
+      </view>
+    </view>
+
+    <view class="detail-table glass-card" wx:if="{{directionStats.length > 0}}">
+      <view class="table-head">
+        <text>方向</text><text>总次数</text><text>命中</text><text>未中</text><text>命中率</text>
+      </view>
+      <view class="table-row" wx:for="{{topStats}}" wx:key="direction">
+        <text class="text-ellipsis">{{item.direction}}</text>
+        <text>{{item.totalRecommends}}</text>
+        <text class="cyan">{{item.hitCount}}</text>
+        <text class="danger-text">{{item.missCount}}</text>
+        <text class="cyan">{{item.hitRate}}%</text>
+      </view>
+    </view>
+  </view>
+
+  <t-loading wx:if="{{loading}}" loading size="40rpx" />
+</view>

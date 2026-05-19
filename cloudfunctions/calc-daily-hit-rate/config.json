@@ -1,0 +1,12 @@
+{
+  "triggers": [
+    {
+      "name": "daily-hit-rate-calc",
+      "type": "timer",
+      "config": "0 0 2 * * * *"
+    }
+  ],
+  "permissions": {
+    "openapi": []
+  }
+}

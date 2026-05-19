@@ -1,0 +1,12 @@
+{
+  "triggers": [
+    {
+      "name": "every-30min-crawl",
+      "type": "timer",
+      "config": "0 */30 11-23 * * * *"
+    }
+  ],
+  "permissions": {
+    "openapi": []
+  }
+}

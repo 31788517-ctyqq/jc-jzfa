@@ -1,0 +1,62 @@
+<view class="app-page home-page">
+  <view class="home-header fade-in">
+    <view class="brand">
+      <view class="brand-mark"><view></view></view>
+      <text class="brand-title">竞彩推荐监控</text>
+    </view>
+    <view class="more-btn">⋮</view>
+  </view>
+
+  <view class="world-hero fade-in">
+    <view class="cup-art"><view class="cup-stem"></view></view>
+    <view class="flag-line">
+      <view class="flag flag-us"></view>
+      <view class="flag flag-ca"></view>
+      <view class="flag flag-mx"></view>
+    </view>
+    <view class="hero-copy">
+      <text class="hero-fifa">FIFA</text>
+      <text class="hero-world-text">WORLD CUP</text>
+      <text class="hero-year">2026</text>
+      <text class="hero-sub">UNITED STATES · CANADA · MEXICO</text>
+    </view>
+  </view>
+
+  <view class="stat-cards fade-in">
+    <view class="stat-card glass-card" bindtap="goMatchList">
+      <text class="stat-num">{{matchCount}}</text>
+      <text class="stat-label">今日比赛</text>
+    </view>
+    <view class="stat-card glass-card" bindtap="goRanking">
+      <text class="stat-num">{{maxRankCount}}</text>
+      <text class="stat-label">最多推荐</text>
+    </view>
+  </view>
+
+  <view class="entry-list fade-in">
+    <view class="entry-item glass-card" bindtap="goMatchList">
+      <view class="entry-icon entry-cup"><view></view></view>
+      <view class="entry-copy">
+        <text class="entry-title">比赛列表</text>
+        <text class="entry-desc">查看当日所有竞彩比赛</text>
+      </view>
+      <text class="entry-arrow">›</text>
+    </view>
+    <view class="entry-item glass-card" bindtap="goRanking">
+      <view class="entry-icon entry-bars"><view></view></view>
+      <view class="entry-copy">
+        <text class="entry-title">推荐排行榜</text>
+        <text class="entry-desc">各方向专家推荐数据排名</text>
+      </view>
+      <text class="entry-arrow">›</text>
+    </view>
+    <view class="entry-item glass-card" bindtap="goHitRate">
+      <view class="entry-icon entry-target"><view></view></view>
+      <view class="entry-copy">
+        <text class="entry-title">命中率统计</text>
+        <text class="entry-desc">近60天各方向命中率分析</text>
+      </view>
+      <text class="entry-arrow">›</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,44 @@
+.ranking-page {
+  padding-top: 82rpx;
+  background-position: center top;
+}
+
+.rank-tabs {
+  position: relative;
+  z-index: 2;
+  white-space: nowrap;
+  margin: 10rpx -26rpx 28rpx;
+  width: calc(100% + 52rpx);
+}
+
+.rank-tab-row {
+  display: flex;
+  gap: 14rpx;
+  padding: 0 26rpx;
+}
+
+.rank-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48rpx;
+  padding: 0 22rpx;
+  border: 1rpx solid rgba(255,255,255,0.16);
+  border-radius: 28rpx;
+  color: rgba(255,255,255,0.76);
+  background: rgba(255,255,255,0.04);
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.rank-chip.active {
+  border-color: transparent;
+  color: #001018;
+  background: linear-gradient(135deg, #1bf5ed, #46e2d7);
+  box-shadow: 0 8rpx 20rpx rgba(18, 241, 231, 0.22);
+}
+
+.ranking-list {
+  position: relative;
+  z-index: 1;
+}

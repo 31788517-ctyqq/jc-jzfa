@@ -1,0 +1,396 @@
+.home-page {
+  padding-top: 90rpx;
+}
+
+.home-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28rpx;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.brand-title {
+  font-size: 40rpx;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 1rpx;
+}
+
+.brand-mark {
+  position: relative;
+  width: 58rpx;
+  height: 58rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #12f1e7, #0d9d95 48%, #12f1e7);
+  overflow: hidden;
+}
+
+.brand-mark::before,
+.brand-mark::after,
+.brand-mark view {
+  content: '';
+  position: absolute;
+  width: 48rpx;
+  height: 18rpx;
+  border-radius: 20rpx;
+  background: #001018;
+}
+
+.brand-mark::before {
+  left: -8rpx;
+  top: 8rpx;
+  transform: rotate(28deg);
+}
+
+.brand-mark::after {
+  right: -8rpx;
+  top: 28rpx;
+  transform: rotate(28deg);
+}
+
+.brand-mark view {
+  left: 6rpx;
+  bottom: -2rpx;
+  transform: rotate(28deg);
+}
+
+.world-hero {
+  position: relative;
+  z-index: 1;
+  height: 300rpx;
+  margin: 12rpx -4rpx 22rpx;
+  border-radius: 26rpx;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(0, 6, 10, 0.20), rgba(0, 8, 12, 0.06) 46%, rgba(0, 6, 10, 0.40)),
+    url('/images/worldcup/design-hero-flags.jpg') center center / cover no-repeat;
+}
+
+.world-hero::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background:
+    url('/images/worldcup/pro/trophy_front.png') left center / cover no-repeat,
+    url('/images/worldcup/pro/flags_ribbon.png') right top / cover no-repeat,
+    url('/images/worldcup/pro/glow_overlay_strong.png') center center / cover no-repeat;
+  opacity: 0.28;
+  pointer-events: none;
+}
+
+.world-hero::after {
+  content: '';
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: -34rpx;
+  height: 160rpx;
+  background: radial-gradient(ellipse at center, rgba(22, 244, 231, 0.28), rgba(21, 88, 69, 0.25) 42%, transparent 68%);
+  border-radius: 50% 50% 0 0;
+}
+
+.cup-art {
+  position: absolute;
+  left: 48rpx;
+  top: 44rpx;
+  width: 132rpx;
+  height: 196rpx;
+  background: linear-gradient(118deg, #fff7ba 0%, #b66a16 23%, #ffd36c 50%, #78420f 76%, #fff2a6 100%);
+  border-radius: 52rpx 52rpx 24rpx 24rpx;
+  box-shadow: 0 0 42rpx rgba(255, 190, 74, 0.36), inset 12rpx 0 16rpx rgba(255, 255, 255, 0.38);
+}
+
+.cup-art::before,
+.cup-art::after {
+  content: '';
+  position: absolute;
+  top: 46rpx;
+  width: 58rpx;
+  height: 86rpx;
+  border: 12rpx solid #d89832;
+  border-radius: 50%;
+}
+
+.cup-art::before {
+  left: -42rpx;
+  border-right: 0;
+}
+
+.cup-art::after {
+  right: -42rpx;
+  border-left: 0;
+}
+
+.cup-stem {
+  position: absolute;
+  left: 34rpx;
+  bottom: -64rpx;
+  width: 64rpx;
+  height: 78rpx;
+  background: linear-gradient(90deg, #7e4810, #ffd879, #7d430d);
+  border-radius: 0 0 20rpx 20rpx;
+}
+
+.cup-stem::after {
+  content: '';
+  position: absolute;
+  left: -28rpx;
+  bottom: -18rpx;
+  width: 120rpx;
+  height: 28rpx;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #75400d, #ffd36c, #75400d);
+}
+
+.flag-line {
+  position: absolute;
+  right: 28rpx;
+  top: 82rpx;
+  display: flex;
+  gap: 22rpx;
+  transform: rotate(-7deg);
+}
+
+.flag {
+  width: 76rpx;
+  height: 50rpx;
+  border-radius: 4rpx;
+  box-shadow: 0 10rpx 18rpx rgba(0, 0, 0, 0.35);
+  opacity: 0.78;
+}
+
+.flag-us {
+  background: repeating-linear-gradient(180deg, #b21a26 0 7rpx, #fff 7rpx 14rpx);
+}
+
+.flag-ca {
+  background: linear-gradient(90deg, #c7142d 0 26%, #fff 26% 74%, #c7142d 74% 100%);
+}
+
+.flag-mx {
+  background: linear-gradient(90deg, #096b38 0 33%, #fff 33% 66%, #bc1830 66% 100%);
+}
+
+.hero-copy {
+  position: absolute;
+  left: 270rpx;
+  top: 144rpx;
+  display: flex;
+  flex-direction: column;
+  line-height: 0.9;
+  font-weight: 900;
+  color: #e2ad4a;
+}
+
+.hero-fifa,
+.hero-world-text {
+  font-size: 52rpx;
+  font-style: italic;
+}
+
+.hero-year {
+  margin-top: 10rpx;
+  font-size: 64rpx;
+  color: #15d7cf;
+}
+
+.hero-sub {
+  margin-top: 16rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  color: #f3ca75;
+  line-height: 1.2;
+}
+
+.stat-cards {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 22rpx;
+  margin: 12rpx 22rpx 28rpx;
+}
+
+.stat-card {
+  flex: 1;
+  height: 180rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-num {
+  display: block;
+  font-size: 72rpx;
+  line-height: 1;
+  font-weight: 900;
+  color: var(--color-primary);
+  text-shadow: 0 0 22rpx rgba(18, 241, 231, 0.42);
+}
+
+.stat-label {
+  margin-top: 18rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.entry-list {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  margin: 0 20rpx;
+}
+
+.entry-item {
+  height: 132rpx;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 24rpx;
+}
+
+.entry-icon {
+  position: relative;
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 50%;
+  background: rgba(18, 241, 231, 0.10);
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.entry-copy {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.entry-title {
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.entry-desc {
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+}
+
+.entry-arrow {
+  font-size: 58rpx;
+  color: #fff;
+}
+
+.entry-cup::before {
+  content: '';
+  position: absolute;
+  left: 26rpx;
+  top: 18rpx;
+  width: 32rpx;
+  height: 34rpx;
+  border: 5rpx solid currentColor;
+  border-radius: 6rpx 6rpx 18rpx 18rpx;
+}
+
+.entry-cup view {
+  position: absolute;
+  left: 32rpx;
+  bottom: 19rpx;
+  width: 20rpx;
+  height: 5rpx;
+  background: currentColor;
+  box-shadow: 6rpx -7rpx 0 currentColor;
+}
+
+.entry-bars::before,
+.entry-bars::after,
+.entry-bars view {
+  content: '';
+  position: absolute;
+  bottom: 22rpx;
+  width: 10rpx;
+  border-radius: 8rpx;
+  background: currentColor;
+}
+
+.entry-bars::before { left: 24rpx; height: 34rpx; }
+.entry-bars view { left: 38rpx; height: 52rpx; }
+.entry-bars::after { right: 24rpx; height: 66rpx; }
+
+.entry-target::before {
+  content: '';
+  position: absolute;
+  left: 20rpx;
+  top: 20rpx;
+  width: 44rpx;
+  height: 44rpx;
+  border: 5rpx solid currentColor;
+  border-radius: 50%;
+}
+
+.entry-target::after {
+  content: '';
+  position: absolute;
+  left: 35rpx;
+  top: 35rpx;
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.world-hero .cup-art,
+.world-hero .flag-line,
+.world-hero .hero-copy {
+  display: none;
+}
+
+.stat-card:first-child {
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(0, 10, 14, 0.22), rgba(0, 10, 14, 0.82)),
+    url('/images/worldcup/pro/trophy_glow.png') center center / cover no-repeat,
+    url('/images/worldcup/design-trophy-card.jpg') center center / cover no-repeat;
+}
+
+.stat-card:last-child {
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(0, 10, 14, 0.26), rgba(0, 10, 14, 0.84)),
+    url('/images/worldcup/pro/football_outline.png') center center / cover no-repeat,
+    url('/images/worldcup/design-ball-card.jpg') center center / cover no-repeat;
+}
+
+.entry-item:nth-child(1) {
+  background:
+    linear-gradient(90deg, rgba(2, 28, 36, 0.88), rgba(2, 28, 36, 0.66)),
+    url('/images/worldcup/pro/flags_corner.png') right center / cover no-repeat,
+    url('/images/worldcup/design-flags-card.jpg') right center / auto 100% no-repeat;
+}
+
+.entry-item:nth-child(2) {
+  background:
+    linear-gradient(90deg, rgba(2, 28, 36, 0.90), rgba(2, 28, 36, 0.66)),
+    url('/images/worldcup/pro/particle_teal.png') right center / cover no-repeat,
+    url('/images/worldcup/design-light-card.jpg') right center / auto 100% no-repeat;
+}
+
+.entry-item:nth-child(3) {
+  background:
+    linear-gradient(90deg, rgba(2, 28, 36, 0.90), rgba(2, 28, 36, 0.68)),
+    url('/images/worldcup/pro/football_glow.png') right center / cover no-repeat,
+    url('/images/worldcup/design-ball-card.jpg') right center / auto 100% no-repeat;
+}

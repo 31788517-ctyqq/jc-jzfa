@@ -1,0 +1,187 @@
+page {
+  --color-primary: #12f1e7;
+  --color-primary-light: #5ffff6;
+  --color-accent: #ffb21c;
+  --color-danger: #ff2d35;
+  --color-green: #6fe027;
+  --color-blue: #23a8ff;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: rgba(255,255,255,0.68);
+  --color-text-tertiary: rgba(255,255,255,0.48);
+  --color-bg-page: #001018;
+  --color-bg-card: rgba(2, 28, 36, 0.82);
+  --color-border: rgba(37, 242, 232, 0.14);
+  --color-shadow: rgba(0, 0, 0, 0.38);
+  --font-h1: 44rpx;
+  --font-h2: 34rpx;
+  --font-h3: 28rpx;
+  --spacing-xs: 8rpx;
+  --spacing-sm: 16rpx;
+  --spacing-md: 24rpx;
+  --spacing-lg: 32rpx;
+  --spacing-xl: 48rpx;
+
+  min-height: 100vh;
+  background: #001018;
+  color: var(--color-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+  font-size: 26rpx;
+  box-sizing: border-box;
+}
+
+.app-page {
+  min-height: 100vh;
+  padding: 72rpx 26rpx 156rpx;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(0, 6, 10, 0.28) 0%, rgba(0, 10, 14, 0.72) 36%, rgba(0, 6, 10, 0.94) 100%),
+    radial-gradient(circle at 78% 10%, rgba(18, 241, 231, 0.16), transparent 28%),
+    url('/images/worldcup/design-page-bg.jpg') center top / cover no-repeat,
+    #001018;
+}
+
+.app-page::before {
+  content: '';
+  position: absolute;
+  left: -18%;
+  right: -18%;
+  bottom: 58rpx;
+  height: 330rpx;
+  opacity: 0.58;
+  background:
+    linear-gradient(180deg, rgba(0, 10, 12, 0.10), rgba(0, 10, 12, 0.50)),
+    url('/images/worldcup/pro/grass_texture.png') center bottom / cover no-repeat,
+    radial-gradient(ellipse at center bottom, rgba(38, 246, 236, 0.32) 0%, rgba(8, 43, 50, 0.28) 28%, transparent 60%),
+    linear-gradient(170deg, transparent 0 42%, rgba(255, 178, 28, 0.22) 43%, transparent 46%),
+    linear-gradient(8deg, transparent 0 46%, rgba(18, 241, 231, 0.22) 47%, transparent 51%),
+    linear-gradient(180deg, rgba(18, 241, 231, 0.06), rgba(6, 86, 68, 0.2));
+  border-radius: 50% 50% 0 0;
+  pointer-events: none;
+}
+
+.app-page::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 380rpx;
+  background:
+    url('/images/worldcup/pro/particle_gold.png') center top / cover no-repeat,
+    url('/images/worldcup/pro/particle_teal.png') center top / cover no-repeat,
+    url('/images/worldcup/pro/glow_overlay_soft.png') center top / cover no-repeat,
+    linear-gradient(115deg, rgba(255, 54, 54, 0.18) 0 1%, transparent 1.3% 100%),
+    linear-gradient(35deg, rgba(255, 178, 28, 0.18) 0 1%, transparent 1.2% 100%),
+    radial-gradient(circle at 26% 12%, rgba(255, 178, 28, 0.18), transparent 1.2%),
+    radial-gradient(circle at 72% 22%, rgba(18, 241, 231, 0.16), transparent 1.4%);
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.page-padding {
+  padding: 0 var(--spacing-md);
+}
+
+.glass-card,
+.card {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(145deg, rgba(4, 38, 47, 0.86), rgba(1, 18, 26, 0.86));
+  border: 1rpx solid rgba(64, 233, 227, 0.16);
+  border-radius: 28rpx;
+  box-shadow: 0 18rpx 50rpx rgba(0, 0, 0, 0.28), inset 0 1rpx 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18rpx);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  box-sizing: border-box;
+}
+
+.card:active,
+.glass-card:active {
+  transform: scale(0.985);
+  transition: transform 0.12s ease-in-out;
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-head,
+.top-actions,
+.detail-nav {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+
+.page-title {
+  font-size: 42rpx;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 1rpx;
+  text-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.45);
+}
+
+.more-btn,
+.nav-round {
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 46rpx;
+  line-height: 1;
+}
+
+.nav-round {
+  font-size: 56rpx;
+}
+
+.cyan {
+  color: var(--color-primary);
+}
+
+.subtle {
+  color: var(--color-text-secondary);
+}
+
+.section-title {
+  position: relative;
+  z-index: 1;
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #fff;
+  padding: var(--spacing-md) 0 var(--spacing-sm);
+}
+
+.status-pill,
+.round-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 48rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  color: var(--color-primary);
+  background: rgba(18, 241, 231, 0.08);
+  font-weight: 700;
+  font-size: 24rpx;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}

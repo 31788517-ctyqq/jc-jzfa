@@ -1,0 +1,22 @@
+<view class="ranking-card glass-card" bindtap="handleTap" data-match-id="{{matchId}}">
+  <view class="rank-section">
+    <view class="rank-badge {{rankClass}}"><text>{{rank}}</text></view>
+  </view>
+
+  <view class="info-section">
+    <view class="teams">
+      <text class="home text-ellipsis">{{shortHome}}</text>
+      <text class="vs">vs</text>
+      <text class="away text-ellipsis">{{shortAway}}</text>
+    </view>
+    <text class="meta-line">{{metaText}}</text>
+    <view class="direction-row">
+      <text class="category-label">{{categoryText}}</text>
+      <text class="direction-label" style="color:{{directionColor}}">{{direction}}</text>
+      <text class="expert-count"> · {{expertCount}}位专家</text>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width:{{barPercent}}%"></view>
+    </view>
+  </view>
+</view>
