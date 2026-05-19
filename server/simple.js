@@ -61,10 +61,9 @@ function getWeekDates(){
     var st=m.startTime||'';
     var matchDate=st.slice(0,5)||m.date||'';
     var key=w+'|'+matchDate;
-    if(!seen[key]){seen[key]=true;list.push({weekNum:w,matchDate:matchDate,label:w+' '+matchDate.replace('-','/')})}
+    if(!seen[key]){seen[key]=true;list.push({weekNum:w,matchDate:matchDate,label:matchDate.replace('-','/')+' '+w})}
   });
   list.sort(function(a,b){return a.matchDate>b.matchDate?1:-1});
-  // 合并同weekNum+同日期的记录
   return list;
 }
 

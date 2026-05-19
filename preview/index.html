@@ -977,6 +977,7 @@ function updateDateBar() {
   if (w) {
     var today = formatDate(new Date()).slice(5);
     var prefix = w.matchDate === today ? '今天 ' : '';
+    // 如 "今天 05/19 周二" 或 "04/01 周三"
     el.textContent = prefix + w.matchDate.replace('-','/') + ' ' + w.weekNum;
   } else {
     el.textContent = '加载中...';
