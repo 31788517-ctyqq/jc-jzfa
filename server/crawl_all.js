@@ -58,10 +58,13 @@ async function crawlAll(){
       totalM+=matches.length;
       console.log('  '+dateStr+' - '+matches.length+'场');
 
-      // 存比赛
+      // 存比赛：使用 API 返回的 today/bDate 作为期号日
+      var realDate=dateStr;
+      if(matches.length>0&&matches[0].bDate)realDate=matches[0].bDate.slice(0,10);
+      else if(mr.today)realDate=mr.today.slice(0,10);
       matches.forEach(function(m){
         var mid=String(m.matchId||m.dataId||'');
-        allM['m_'+mid]={matchId:mid,num:m.num||'',homeName:m.homeName||'',visitName:m.visitName||'',leagueName:m.leagueName||'',startTime:m.startTime||'',matchStatus:m.matchStatus||0,score:m.score||'',halfScore:m.halfScore||'',duration:m.duration||'',yellow:m.yellow||'',red:m.red||'',date:dateStr};
+        allM['m_'+mid]={matchId:mid,num:m.num||'',homeName:m.homeName||'',visitName:m.visitName||'',leagueName:m.leagueName||'',startTime:m.startTime||'',matchStatus:m.matchStatus||0,score:m.score||'',halfScore:m.halfScore||'',duration:m.duration||'',yellow:m.yellow||'',red:m.red||'',date:realDate};
       });
 
       // 逐场获取推荐（已完成/未开始跳过推荐爬取以加速）
