@@ -325,6 +325,13 @@ body {
   border-radius: 50%;
   background: var(--green);
 }
+.match-score {
+  font-size: var(--fs-xl);
+  font-weight: 900;
+  color: var(--cyan);
+  text-shadow: 0 0 8px rgba(24,224,224,0.4);
+  line-height: 1;
+}
 
 /* 排行榜 */
 .rank-list { display: flex; flex-direction: column; gap: 12px; }
@@ -910,6 +917,14 @@ function loadMatchList() {
       const statusText = { 0: '未开始', 1: '进行中', 2: '已结束', 3: '取消' }[m.matchStatus] || '未知';
       const roundText = m.num || '';
       const timeStr = m.startTime ? m.startTime.slice(5) : '';
+      const isLive = m.matchStatus === 1 || m.matchStatus === 2;
+      const scoreText = m.score || '';
+      // 解析比分（格式可能是 "2:1" 或 "2-1"）
+      var scoreDisplay = '';
+      if (isLive && scoreText) {
+        var parts = scoreText.replace('-',':').split(':');
+        if (parts.length === 2) scoreDisplay = '<span class="match-score">' + parts[0] + ' : ' + parts[1] + '</span>';
+      }
       return `
         <div class="match-card" onclick="goDetail('${m.matchId}')">
           <div class="match-header">
@@ -918,14 +933,14 @@ function loadMatchList() {
           </div>
           <div class="match-teams">
             <span class="team-name">${m.homeName}</span>
-            <span class="vs">VS</span>
+            ${isLive && scoreDisplay ? scoreDisplay : '<span class="vs">VS</span>'}
             <span class="team-name">${m.visitName}</span>
           </div>
           <div class="match-info">
             <span class="match-experts">${m.recommNum}位专家推荐</span>
             <span class="match-time">${timeStr}</span>
           </div>
-          <div class="match-status">${statusText}</div>
+          <div class="match-status" style="color:${m.matchStatus===1?'var(--cyan)':m.matchStatus===2?'var(--green)':m.matchStatus===3?'var(--red)':'var(--text2)'}">${statusText}</div>
         </div>
       `;
     }).join('');
@@ -949,6 +964,13 @@ function goDetail(matchId) {
     const recommends = detail.recommends || [];
     const statusText = { 0: '未开始', 1: '进行中', 2: '已结束' }[match.matchStatus] || '未知';
     const roundText = match.num || '';
+    const isLive = match.matchStatus === 1 || match.matchStatus === 2;
+    const scoreText = match.score || '';
+    var scoreDisplay = '';
+    if (isLive && scoreText) {
+      var parts = scoreText.replace('-',':').split(':');
+      if (parts.length === 2) scoreDisplay = '<span class="match-score">' + parts[0] + ' : ' + parts[1] + '</span>';
+    }
 
     let html = `
       <div class="match-card" style="margin-bottom: 16px;">
@@ -958,7 +980,7 @@ function goDetail(matchId) {
         </div>
         <div class="match-teams">
           <span class="team-name">${match.homeName}</span>
-          <span class="vs">VS</span>
+          ${isLive && scoreDisplay ? scoreDisplay : '<span class="vs">VS</span>'}
           <span class="team-name">${match.visitName}</span>
         </div>
         <div style="text-align: center; font-size: 12px; color: var(--text3);">
