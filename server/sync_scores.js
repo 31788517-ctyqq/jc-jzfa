@@ -85,6 +85,9 @@ async function sync() {
 
     if (matchRes.code !== 1) throw new Error('获取比赛失败: ' + (matchRes.msg || ''));
     var matches = (matchRes.data || []).map(function(m) {
+      var md='';
+      if(m.bDate&&typeof m.bDate==='string'&&m.bDate.length>=10)md=m.bDate.slice(0,10);
+      if(!md)md=today;
       return {
         matchId: String(m.matchId || m.dataId || ''),
         num: m.num || '',
@@ -101,7 +104,7 @@ async function sync() {
         homeScore: m.homeScore !== undefined ? m.homeScore : -1,
         visitScore: m.visitScore !== undefined ? m.visitScore : -1,
         recommNum: m.recommNum || 0,
-        date: today
+        date: md
       };
     });
 
@@ -118,11 +121,14 @@ async function sync() {
           var mid=String(m.matchId||m.dataId||'');
           if(!seenIds[mid] && m.matchStatus>=1){
             seenIds[mid]=true;
+            var hmd='';
+            if(m.bDate&&typeof m.bDate==='string'&&m.bDate.length>=10)hmd=m.bDate.slice(0,10);
+            if(!hmd)hmd=today;
             matches.push({
               matchId:mid,num:m.num||'',homeName:m.homeName||'',visitName:m.visitName||'',
               leagueName:m.leagueName||'',startTime:m.startTime||'',matchStatus:m.matchStatus,
               score:m.score||'',halfScore:m.halfScore||'',duration:m.duration||'',yellow:m.yellow||'',red:m.red||'',
-              homeScore:-1,visitScore:-1,recommNum:m.recommNum||0,date:today
+              homeScore:-1,visitScore:-1,recommNum:m.recommNum||0,date:hmd
             });
           }
         });
