@@ -426,31 +426,38 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 8px 0 12px;
+  gap: 20px;
+  padding: 6px 0 14px;
+  user-select: none;
 }
 .date-current {
   font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text);
-  min-width: 120px;
+  min-width: 130px;
   text-align: center;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background 0.2s;
 }
+.date-current:hover { background: rgba(24,224,224,0.06); }
 .date-arrow {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.08);
+  background: rgba(24,224,224,0.08);
+  border: 1px solid rgba(24,224,224,0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  color: var(--text2);
+  color: var(--cyan);
   cursor: pointer;
   transition: all 0.2s;
-  user-select: none;
 }
-.date-arrow:active { background: var(--cyan); color: var(--bg); }
+.date-arrow svg { width: 16px; height: 16px; }
+.date-arrow:hover { background: rgba(24,224,224,0.18); border-color: rgba(24,224,224,0.3); }
+.date-arrow:active { background: var(--cyan); border-color: var(--cyan); color: var(--bg); }
 
 .filter-row {
   display: flex;
@@ -847,9 +854,9 @@ body {
 <!-- 比赛列表 -->
 <div class="page" id="page-match">
   <div class="date-bar" id="dateBar">
-    <span class="date-arrow" onclick="shiftDate(-1)">&#8249;</span>
-    <span class="date-current" id="dateCurrent"></span>
-    <span class="date-arrow" onclick="shiftDate(1)">&#8250;</span>
+    <span class="date-arrow" onclick="shiftDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+    <span class="date-current" id="dateCurrent" onclick="goToday()"></span>
+    <span class="date-arrow" onclick="shiftDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
   </div>
   <div id="matchList"></div>
 </div>
@@ -949,15 +956,21 @@ function formatDateCN(d) {
 }
 function shiftDate(delta) {
   var d = new Date(selectedMatchDate);
-  d.setDate(d.getDate()+delta);
+  d.setDate(d.getDate() + delta);
   selectedMatchDate = formatDate(d);
+  updateDateBar();
+  loadMatchList();
+}
+function goToday() {
+  selectedMatchDate = formatDate(new Date());
   updateDateBar();
   loadMatchList();
 }
 function updateDateBar() {
   var d = new Date(selectedMatchDate);
   var el = document.getElementById('dateCurrent');
-  if (el) el.textContent = formatDateCN(d);
+  var today = formatDate(new Date());
+  if (el) el.textContent = (selectedMatchDate === today ? '今天 ' : '') + formatDateCN(d);
 }
 function initMatchDate() {
   selectedMatchDate = formatDate(new Date());
