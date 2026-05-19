@@ -332,6 +332,11 @@ body {
   text-shadow: 0 0 8px rgba(24,224,224,0.4);
   line-height: 1;
 }
+.match-half {
+  font-size: var(--fs-xs);
+  color: var(--text3);
+  margin-left: 4px;
+}
 
 /* 排行榜 */
 .rank-list { display: flex; flex-direction: column; gap: 12px; }
@@ -919,11 +924,15 @@ function loadMatchList() {
       const timeStr = m.startTime ? m.startTime.slice(5) : '';
       const isLive = m.matchStatus === 1 || m.matchStatus === 2;
       const scoreText = m.score || '';
-      // 解析比分（格式可能是 "2:1" 或 "2-1"）
+      const halfText = m.halfScore || '';
       var scoreDisplay = '';
+      var halfDisplay = '';
       if (isLive && scoreText) {
         var parts = scoreText.replace('-',':').split(':');
         if (parts.length === 2) scoreDisplay = '<span class="match-score">' + parts[0] + ' : ' + parts[1] + '</span>';
+      }
+      if (isLive && halfText) {
+        halfDisplay = '<span class="match-half">(半 ' + halfText + ')</span>';
       }
       return `
         <div class="match-card" onclick="goDetail('${m.matchId}')">
@@ -937,10 +946,10 @@ function loadMatchList() {
             <span class="team-name">${m.visitName}</span>
           </div>
           <div class="match-info">
-            <span class="match-experts">${m.recommNum}位专家推荐</span>
+            <span class="match-experts">${m.recommNum ? m.recommNum+'位专家推荐' : ''}</span>
             <span class="match-time">${timeStr}</span>
           </div>
-          <div class="match-status" style="color:${m.matchStatus===1?'var(--cyan)':m.matchStatus===2?'var(--green)':m.matchStatus===3?'var(--red)':'var(--text2)'}">${statusText}</div>
+          <div class="match-status" style="color:${m.matchStatus===1?'var(--cyan)':m.matchStatus===2?'var(--green)':m.matchStatus===3?'var(--red)':'var(--text2)'}">${statusText} ${halfDisplay}</div>
         </div>
       `;
     }).join('');
@@ -966,10 +975,15 @@ function goDetail(matchId) {
     const roundText = match.num || '';
     const isLive = match.matchStatus === 1 || match.matchStatus === 2;
     const scoreText = match.score || '';
+    const halfText = match.halfScore || '';
     var scoreDisplay = '';
+    var halfDisplay = '';
     if (isLive && scoreText) {
       var parts = scoreText.replace('-',':').split(':');
       if (parts.length === 2) scoreDisplay = '<span class="match-score">' + parts[0] + ' : ' + parts[1] + '</span>';
+    }
+    if (isLive && halfText) {
+      halfDisplay = '<span class="match-half">(半 ' + halfText + ')</span>';
     }
 
     let html = `
@@ -984,7 +998,7 @@ function goDetail(matchId) {
           <span class="team-name">${match.visitName}</span>
         </div>
         <div style="text-align: center; font-size: 12px; color: var(--text3);">
-          ${match.startTime ? match.startTime.slice(5) : ''} · ${roundText}
+          ${match.startTime ? match.startTime.slice(5) : ''} · ${roundText} ${halfDisplay}
         </div>
       </div>
     `;
