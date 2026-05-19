@@ -52,19 +52,47 @@ function findRecommends(matchId){
   return normalizeRecs(raw);
 }
 
+// 竞彩期号日期列表（按num前两字+startTime日期分组）
+function getWeekDates(){
+  var list=[],seen={};
+  Object.values(data.m).forEach(function(m){
+    var w=m.num?m.num.slice(0,2):'';
+    if(!w||w.length<2)return;
+    var st=m.startTime||'';
+    var matchDate=st.slice(0,5)||m.date||'';
+    var key=w+'|'+matchDate;
+    if(!seen[key]){seen[key]=true;list.push({weekNum:w,matchDate:matchDate,label:w+' '+matchDate.replace('-','/')})}
+  });
+  list.sort(function(a,b){return a.matchDate>b.matchDate?1:-1});
+  // 合并同weekNum+同日期的记录
+  return list;
+}
+
 app.post('/api',function(req,res){
   var a=req.body.action,d=req.body.data||{};
+  if(a==='week-dates'){
+    return res.json({code:1,data:getWeekDates()});
+  }
   if(a==='match-list'){
-    var date=d.date||'',now=new Date().toISOString().slice(0,10);
-    if(!date) date=now;
+    var date=d.date||'',weekNum=d.weekNum||'',matchDate=d.matchDate||'',now=new Date().toISOString().slice(0,10);
+    if(!date&&!weekNum) date=now;
     var all=[];
     var seen={};
-    // 从静态数据严格按日期筛选
-    Object.values(data.m).forEach(function(m){
-      if(m.date===date){all.push(m);seen[m.matchId]=true}
-    });
-    // 加入 live_scores（仅当请求日期匹配 live_date，或未指定日期时用today）
-    if(date===liveDate||(!d.date&&date===now)){
+    // 竞彩期号筛选 or 日期筛选
+    if(weekNum){
+      Object.values(data.m).forEach(function(m){
+        var w=m.num?m.num.slice(0,2):'';
+        var st=m.startTime||'';
+        var md=st.slice(0,5)||m.date||'';
+        if(w===weekNum&&md===matchDate){all.push(m);seen[m.matchId]=true}
+      });
+    }else{
+      Object.values(data.m).forEach(function(m){
+        if(m.date===date){all.push(m);seen[m.matchId]=true}
+      });
+    }
+    // 加入 live_scores（仅当请求日期匹配 live_date 或 weekNum 为空且日期为 today）
+    if((date===liveDate||(!d.date&&!d.weekNum&&date===now))){
       Object.keys(liveScores).forEach(function(k){
         if(!seen[k]) all.push({matchId:k,homeName:'',visitName:'',leagueName:'',num:'',startTime:'',date:''});
       });
