@@ -59,12 +59,11 @@ app.post('/api',function(req,res){
     if(!date) date=now;
     var all=[];
     var seen={};
-    // 从静态数据加载并筛选
+    // 从静态数据严格按日期筛选
     Object.values(data.m).forEach(function(m){
-      var matchDate=m.date||'';
-      if(matchDate===date||(d.date&&(matchDate===liveDate))){all.push(m);seen[m.matchId]=true}
+      if(m.date===date){all.push(m);seen[m.matchId]=true}
     });
-    // 加入 live_scores 中的新比赛（仅当 date 匹配 live_date 时）
+    // 加入 live_scores（仅当请求日期=live_date 或请求日期=today 才加入）
     if(date===liveDate||date===now){
       Object.keys(liveScores).forEach(function(k){
         if(!seen[k]) all.push({matchId:k,homeName:'',visitName:'',leagueName:'',num:'',startTime:'',date:''});
