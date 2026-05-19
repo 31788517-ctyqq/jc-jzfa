@@ -19,7 +19,7 @@ try{
   var live=JSON.parse(fs.readFileSync(path.join(__dirname,'live_scores.json'),'utf8'));
   liveDate=live.date||'';
   (live.matches||[]).forEach(function(m){
-    liveScores[m.matchId]={matchStatus:m.matchStatus,score:m.score,homeScore:m.homeScore,visitScore:m.visitScore,recommNum:m.recommNum,homeName:m.homeName,visitName:m.visitName,leagueName:m.leagueName,num:m.num,startTime:m.startTime,date:m.date};
+    liveScores[m.matchId]={matchStatus:m.matchStatus,score:m.score,halfScore:m.halfScore||'',homeScore:m.homeScore,visitScore:m.visitScore,recommNum:m.recommNum,homeName:m.homeName,visitName:m.visitName,leagueName:m.leagueName,num:m.num,startTime:m.startTime,date:m.date};
   });
   console.log('Live scores loaded:',Object.keys(liveScores).length,'matches date:',liveDate);
 }catch(e){console.log('No live_scores.json')}

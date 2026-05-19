@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>ReferenceError: now is not defined<br> &nbsp; &nbsp;at /var/www/zj.100qiu.com/server/simple.js:77:54<br> &nbsp; &nbsp;at Array.filter (&lt;anonymous&gt;)<br> &nbsp; &nbsp;at /var/www/zj.100qiu.com/server/simple.js:76:23<br> &nbsp; &nbsp;at Layer.handle [as handle_request] (/var/www/zj.100qiu.com/server/node_modules/express/lib/router/layer.js:95:5)<br> &nbsp; &nbsp;at next (/var/www/zj.100qiu.com/server/node_modules/express/lib/router/route.js:149:13)<br> &nbsp; &nbsp;at Route.dispatch (/var/www/zj.100qiu.com/server/node_modules/express/lib/router/route.js:119:3)<br> &nbsp; &nbsp;at Layer.handle [as handle_request] (/var/www/zj.100qiu.com/server/node_modules/express/lib/router/layer.js:95:5)<br> &nbsp; &nbsp;at /var/www/zj.100qiu.com/server/node_modules/express/lib/router/index.js:284:15<br> &nbsp; &nbsp;at Function.process_params (/var/www/zj.100qiu.com/server/node_modules/express/lib/router/index.js:346:12)<br> &nbsp; &nbsp;at next (/var/www/zj.100qiu.com/server/node_modules/express/lib/router/index.js:280:10)</pre>
+</body>
+</html>
