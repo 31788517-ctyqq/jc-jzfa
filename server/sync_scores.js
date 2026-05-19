@@ -95,6 +95,9 @@ async function sync() {
         matchStatus: m.matchStatus !== undefined ? m.matchStatus : 0,
         score: m.score || '',
         halfScore: m.halfScore || '',
+        duration: m.duration || '',
+        yellow: m.yellow || '',
+        red: m.red || '',
         homeScore: m.homeScore !== undefined ? m.homeScore : -1,
         visitScore: m.visitScore !== undefined ? m.visitScore : -1,
         recommNum: m.recommNum || 0,
@@ -118,7 +121,8 @@ async function sync() {
             matches.push({
               matchId:mid,num:m.num||'',homeName:m.homeName||'',visitName:m.visitName||'',
               leagueName:m.leagueName||'',startTime:m.startTime||'',matchStatus:m.matchStatus,
-              score:m.score||'',halfScore:m.halfScore||'',homeScore:-1,visitScore:-1,recommNum:m.recommNum||0,date:today
+              score:m.score||'',halfScore:m.halfScore||'',duration:m.duration||'',yellow:m.yellow||'',red:m.red||'',
+              homeScore:-1,visitScore:-1,recommNum:m.recommNum||0,date:today
             });
           }
         });

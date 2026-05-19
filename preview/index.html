@@ -337,6 +337,28 @@ body {
   color: var(--text3);
   margin-left: 4px;
 }
+.match-dur {
+  font-size: var(--fs-xs);
+  color: var(--cyan);
+  font-weight: 700;
+  margin-left: 4px;
+}
+.match-card-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 4px;
+}
+.match-card-stat .stat-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+}
+.match-card-stat.yellow { background: rgba(251,191,36,0.2); color: var(--amber); }
+.match-card-stat.yellow .stat-dot { background: var(--amber); }
+.match-card-stat.red { background: rgba(239,68,68,0.2); color: var(--red); }
+.match-card-stat.red .stat-dot { background: var(--red); }
 
 /* 排行榜 */
 .rank-list { display: flex; flex-direction: column; gap: 12px; }
@@ -991,14 +1013,28 @@ function loadMatchList() {
       const isLive = m.matchStatus === 1 || m.matchStatus === 2;
       const scoreText = m.score || '';
       const halfText = m.halfScore || '';
+      const durText = m.duration || '';
+      const yellowText = m.yellow || '';
+      const redText = m.red || '';
       var scoreDisplay = '';
-      var halfDisplay = '';
+      var extraInfo = '';
       if (isLive && scoreText) {
         var parts = scoreText.replace('-',':').split(':');
         if (parts.length === 2) scoreDisplay = '<span class="match-score">' + parts[0] + ' : ' + parts[1] + '</span>';
       }
-      if (isLive && halfText) {
-        halfDisplay = '<span class="match-half">(半 ' + halfText + ')</span>';
+      // 进行中比赛：显示进行时间
+      if (m.matchStatus === 1 && durText && durText !== '未') {
+        extraInfo += '<span class="match-dur">' + durText + '</span>';
+      }
+      // 红黄牌
+      if (isLive && yellowText && yellowText !== '-') {
+        extraInfo += '<span class="match-card-stat yellow"><span class="stat-dot"></span>' + yellowText + '</span>';
+      }
+      if (isLive && redText && redText !== '-') {
+        extraInfo += '<span class="match-card-stat red"><span class="stat-dot"></span>' + redText + '</span>';
+      }
+      if (halfText) {
+        extraInfo += '<span class="match-half">(半 ' + halfText + ')</span>';
       }
       return `
         <div class="match-card" onclick="goDetail('${m.matchId}')">
@@ -1015,7 +1051,7 @@ function loadMatchList() {
             <span class="match-experts">${m.recommNum ? m.recommNum+'位专家推荐' : ''}</span>
             <span class="match-time">${timeStr}</span>
           </div>
-          <div class="match-status" style="color:${m.matchStatus===1?'var(--cyan)':m.matchStatus===2?'var(--green)':m.matchStatus===3?'var(--red)':'var(--text2)'}">${statusText} ${halfDisplay}</div>
+          <div class="match-status" style="color:${m.matchStatus===1?'var(--cyan)':m.matchStatus===2?'var(--green)':m.matchStatus===3?'var(--red)':'var(--text2)'}">${statusText} ${extraInfo}</div>
         </div>
       `;
     }).join('');
@@ -1042,14 +1078,26 @@ function goDetail(matchId) {
     const isLive = match.matchStatus === 1 || match.matchStatus === 2;
     const scoreText = match.score || '';
     const halfText = match.halfScore || '';
+    const durText = match.duration || '';
+    const yellowText = match.yellow || '';
+    const redText = match.red || '';
     var scoreDisplay = '';
-    var halfDisplay = '';
+    var extraText = '';
     if (isLive && scoreText) {
       var parts = scoreText.replace('-',':').split(':');
       if (parts.length === 2) scoreDisplay = '<span class="match-score">' + parts[0] + ' : ' + parts[1] + '</span>';
     }
-    if (isLive && halfText) {
-      halfDisplay = '<span class="match-half">(半 ' + halfText + ')</span>';
+    if (match.matchStatus === 1 && durText && durText !== '未') {
+      extraText += '<span class="match-dur">' + durText + '</span>';
+    }
+    if (yellowText && yellowText !== '-') {
+      extraText += '<span class="match-card-stat yellow"><span class="stat-dot"></span>' + yellowText + '</span>';
+    }
+    if (redText && redText !== '-') {
+      extraText += '<span class="match-card-stat red"><span class="stat-dot"></span>' + redText + '</span>';
+    }
+    if (halfText) {
+      extraText += '<span class="match-half">(半 ' + halfText + ')</span>';
     }
 
     let html = `
@@ -1064,7 +1112,7 @@ function goDetail(matchId) {
           <span class="team-name">${match.visitName}</span>
         </div>
         <div style="text-align: center; font-size: 12px; color: var(--text3);">
-          ${match.startTime ? match.startTime.slice(5) : ''} · ${roundText} ${halfDisplay}
+          ${match.startTime ? match.startTime.slice(5) : ''} · ${roundText} ${extraText}
         </div>
       </div>
     `;
