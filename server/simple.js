@@ -61,12 +61,15 @@ app.post('/api',function(req,res){
     var seen={};
     // 从静态数据加载并筛选
     Object.values(data.m).forEach(function(m){
-      if(m.date===date||m.date===liveDate||m.date===now){all.push(m);seen[m.matchId]=true}
+      var matchDate=m.date||'';
+      if(matchDate===date||(d.date&&(matchDate===liveDate))){all.push(m);seen[m.matchId]=true}
     });
-    // 加入 live_scores 中的新比赛
-    Object.keys(liveScores).forEach(function(k){
-      if(!seen[k]) all.push({matchId:k,homeName:'',visitName:'',leagueName:'',num:'',startTime:'',date:''});
-    });
+    // 加入 live_scores 中的新比赛（仅当 date 匹配 live_date 时）
+    if(date===liveDate||date===now){
+      Object.keys(liveScores).forEach(function(k){
+        if(!seen[k]) all.push({matchId:k,homeName:'',visitName:'',leagueName:'',num:'',startTime:'',date:''});
+      });
+    }
     // 合并实时比分
     all=all.map(function(m){return mergeLiveScore(m)});
     // 补充推荐数
