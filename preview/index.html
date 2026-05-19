@@ -964,8 +964,18 @@ function shiftWeek(delta) {
 function goToday() {
   // 找到今天或最近的竞彩期号
   var today = formatDate(new Date()).slice(5);
+  var now = new Date();
+  var todayWeek = WEEK_NAMES[now.getDay()];
   var best = 0;
-  weekDates.forEach(function(w, i) { if (w.matchDate <= today) best = i; });
+  // 首选：matchDate==today 且 weekNum==todayWeek；其次：matchDate<=today 的最大 matchDate
+  weekDates.forEach(function(w,i){
+    if(w.matchDate===today&&w.weekNum===todayWeek){best=i}
+  });
+  if(weekDates[best]&&weekDates[best].matchDate===today&&weekDates[best].weekNum===todayWeek){
+    // 已精确匹配
+  } else {
+    weekDates.forEach(function(w,i){if(w.matchDate<=today)best=i});
+  }
   selectedWeekIdx = best;
   updateDateBar();
   loadMatchList();
