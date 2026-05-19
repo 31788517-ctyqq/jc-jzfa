@@ -386,5 +386,3 @@ if (process.env.NODE_ENV === 'production') {
 
 // 导出供 scheduler 使用
 module.exports = { fetchMatches, fetchRecommends, login };
-  console.log('============================================');
-});
