@@ -74,6 +74,7 @@ app.post('/api',function(req,res){
       var recs=findRecommends(m.matchId);
       return Object.assign({},m,{recommNum:m.recommNum||recs.reduce(function(s,x){return s+(x.num||0)},0)});
     });
+    all.sort(function(a,b){
       var order={1:0,0:1,2:2,3:3};
       var oa=order[a.matchStatus]!==undefined?order[a.matchStatus]:99;
       var ob=order[b.matchStatus]!==undefined?order[b.matchStatus]:99;
