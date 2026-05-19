@@ -892,7 +892,7 @@ function goBack() { switchTab('rank'); }
 // 首页
 function loadHome() {
   Promise.all([
-    api('match-list', { date: '2026-05-18' }),
+    api('match-list', { date: new Date().toISOString().slice(0,10) }),
     api('ranking-list', {})
   ]).then(([matches, rank]) => {
     document.getElementById('matchCount').textContent = matches.length;
@@ -905,7 +905,7 @@ function loadMatchList() {
   const el = document.getElementById('matchList');
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
   
-  api('match-list', { date: '2026-05-18' }).then(matches => {
+  api('match-list', { date: new Date().toISOString().slice(0,10) }).then(matches => {
     el.innerHTML = matches.map(m => {
       const statusText = { 0: '未开始', 1: '进行中', 2: '已结束', 3: '取消' }[m.matchStatus] || '未知';
       const roundText = m.num || '';
