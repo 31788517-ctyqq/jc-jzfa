@@ -399,6 +399,37 @@ body {
 }
 
 /* 筛选器 */
+/* 日期切换栏 */
+.date-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 0 12px;
+}
+.date-current {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--text);
+  min-width: 120px;
+  text-align: center;
+}
+.date-arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.date-arrow:active { background: var(--cyan); color: var(--bg); }
+
 .filter-row {
   display: flex;
   gap: 8px;
@@ -793,6 +824,11 @@ body {
 
 <!-- 比赛列表 -->
 <div class="page" id="page-match">
+  <div class="date-bar" id="dateBar">
+    <span class="date-arrow" onclick="shiftDate(-1)">&#8249;</span>
+    <span class="date-current" id="dateCurrent"></span>
+    <span class="date-arrow" onclick="shiftDate(1)">&#8250;</span>
+  </div>
   <div id="matchList"></div>
 </div>
 
@@ -841,6 +877,7 @@ const WEEK_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', 
 
 let currentPage = 'home', detailMatchId = null;
 let selectedCategory = '', selectedDirection = '';
+let selectedMatchDate = '';
 
 function getWeekDay(dateStr) {
   return WEEK_NAMES[new Date(dateStr).getDay()];
@@ -876,6 +913,35 @@ window.addEventListener('scroll', () => {
   lastScrollY = currentScroll;
 }, { passive: true });
 
+function formatDate(d) {
+  var y = d.getFullYear();
+  var m = (d.getMonth()+1).toString().padStart(2,'0');
+  var day = d.getDate().toString().padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
+function formatDateCN(d) {
+  var m = (d.getMonth()+1).toString().padStart(2,'0');
+  var day = d.getDate().toString().padStart(2,'0');
+  var w = WEEK_NAMES[d.getDay()];
+  return m+'月'+day+'日 '+w;
+}
+function shiftDate(delta) {
+  var d = new Date(selectedMatchDate);
+  d.setDate(d.getDate()+delta);
+  selectedMatchDate = formatDate(d);
+  updateDateBar();
+  loadMatchList();
+}
+function updateDateBar() {
+  var d = new Date(selectedMatchDate);
+  var el = document.getElementById('dateCurrent');
+  if (el) el.textContent = formatDateCN(d);
+}
+function initMatchDate() {
+  selectedMatchDate = formatDate(new Date());
+  updateDateBar();
+}
+
 function switchTab(tab) {
   currentPage = tab;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -894,7 +960,7 @@ function switchTab(tab) {
   document.getElementById('navTitle').textContent = titles[tab] || '竞彩推荐监控';
 
   if (tab === 'home') loadHome();
-  if (tab === 'match') loadMatchList();
+  if (tab === 'match') { initMatchDate(); loadMatchList(); }
   if (tab === 'rank') loadRanking();
   if (tab === 'hit') loadHitRate();
 }
@@ -917,7 +983,7 @@ function loadMatchList() {
   const el = document.getElementById('matchList');
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
   
-  api('match-list', {}).then(matches => {
+  api('match-list', { date: selectedMatchDate }).then(matches => {
     el.innerHTML = matches.map(m => {
       const statusText = { 0: '未开始', 1: '进行中', 2: '已结束', 3: '取消' }[m.matchStatus] || '未知';
       const roundText = m.num || '';
