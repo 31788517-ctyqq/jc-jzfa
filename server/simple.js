@@ -169,11 +169,37 @@ app.post('/api',function(req,res){
   }
   if(a==='ranking-list'){
     var filterCat=d.category||null,filterDir=d.direction||null;
-    // 日期过滤：仅今天和明天
-    var today=new Date().toISOString().slice(0,10);
-    var d2=new Date(Date.now()+86400000);
-    var tomorrow=d2.toISOString().slice(0,10);
-    function inRange(dt){return dt===today||dt===tomorrow}
+    function fmtDate(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
+    // 统计每个竞彩date的推荐总数
+    var dateRecNum={};
+    Object.keys(data.m).forEach(function(k){
+      var m=data.m[k];
+      if(!m.date)return;
+      var total=m.recommNum||0;
+      if(total===0){
+        var recs=findRecommends(m.matchId);
+        recs.forEach(function(r){total+=r.num||0});
+      }
+      if(!dateRecNum[m.date])dateRecNum[m.date]=0;
+      dateRecNum[m.date]+=total;
+    });
+    // 从今天往前找最近一个有推荐的竞彩期号日期
+    var now=new Date();
+    var effectiveDate='';
+    for(var i=0;i<30;i++){
+      var ds=fmtDate(now);
+      if(dateRecNum[ds]&&dateRecNum[ds]>0){effectiveDate=ds;break}
+      now.setDate(now.getDate()-1);
+    }
+    if(!effectiveDate)effectiveDate=fmtDate(new Date());
+    // 该日期的竞彩期号标签（如"周二"）
+    var effectiveWeek='';
+    Object.keys(data.m).forEach(function(k){
+      var m=data.m[k];
+      if(m.date===effectiveDate&&!effectiveWeek){effectiveWeek=m.num?m.num.slice(0,2):''}
+    });
+    var matchDateLabel=effectiveDate.slice(5).replace('-','/')+' '+effectiveWeek;
+    function inRange(dt){return dt===effectiveDate}
     // 分类函数
     function classifyType(t){
       if(t.indexOf('半全场')===0)return '半全场';
@@ -183,10 +209,11 @@ app.post('/api',function(req,res){
       if(t==='胜'||t==='平'||t==='负')return '胜平负';
       return '其他';
     }
-    // 收集方向统计
-    var dirStats={}; // {type: {totalNum, matches:[]}}
+    // 收集方向统计（仅 effectiveDate 的比赛）
+    var dirStats={};
     Object.keys(data.m).forEach(function(k){
       var m=data.m[k],mId=m.matchId;
+      if(m.date!==effectiveDate)return;
       var recs=findRecommends(mId);
       if(!recs.length)return;
       recs.forEach(function(r){
@@ -242,7 +269,7 @@ app.post('/api',function(req,res){
     list.sort(function(a,b){return b.expertCount-a.expertCount});
     list=list.slice(0,100);
     var ranking=list.map(function(x,i){x.rank=i+1;return x});
-    return res.json({code:1,data:{categories:sortedCats,ranking:ranking,totalMatches:ranking.length}});
+    return res.json({code:1,data:{categories:sortedCats,ranking:ranking,totalMatches:ranking.length,effectiveDate:effectiveDate,matchDateLabel:matchDateLabel}});
   }
   if(a==='hit-rate-stats'){
     var ds=[];
