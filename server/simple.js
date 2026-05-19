@@ -55,7 +55,7 @@ function findRecommends(matchId){
 app.post('/api',function(req,res){
   var a=req.body.action,d=req.body.data||{};
   if(a==='match-list'){
-    var date=d.date||'';
+    var date=d.date||'',now=new Date().toISOString().slice(0,10);
     var all=[];
     var seen={};
     // 先从静态数据加载
@@ -72,9 +72,9 @@ app.post('/api',function(req,res){
       return Object.assign({},m,{recommNum:m.recommNum||recs.reduce(function(s,x){return s+(x.num||0)},0)});
     });
     if(date) all=all.filter(function(m){return m.date===date||m.dateLive===date});
-    // 无日期过滤时，保留有实时数据的 + 当天/昨天的
     if(!date) all=all.filter(function(m){
-      return m.dateLive||m.date===liveDate||m.date===now||m.matchStatus>0;
+      // 无日期时返回今天/昨天/有实时数据的比赛
+      return m.date===now||m.date===liveDate||!!m.dateLive||m.matchStatus>0;
     });
     all.sort(function(a,b){
       var order={1:0,0:1,2:2,3:3};
