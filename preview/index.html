@@ -944,7 +944,9 @@ function goDetail(matchId) {
   Promise.all([
     api('match-detail', { matchId }),
     api('recommend-trend', { matchId })
-  ]).then(([match, trend]) => {
+  ]).then(([detail, trend]) => {
+    const match = detail.match || detail;
+    const recommends = detail.recommends || [];
     const statusText = { 0: '未开始', 1: '进行中', 2: '已结束' }[match.matchStatus] || '未知';
     const roundText = match.num || '';
 
@@ -975,15 +977,23 @@ function goDetail(matchId) {
         <div class="dir-list" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.05);">
     `;
     
-    (trend.lastResult || []).sort((a, b) => (b.num || 0) - (a.num || 0)).forEach(r => {
-      if (r.num > 0) {
-        html += `
-          <div class="dir-item">
-            <span class="dir-name">${r.type}</span>
-            <span class="dir-count">${r.num}位</span>
-          </div>
-        `;
-      }
+    let dirItems = (trend.lastResult || []).filter(r => r.num > 0);
+    if (dirItems.length === 0 && recommends.length > 0) {
+      // 回退：从 recommends 按 type 聚合人数
+      const typeMap = {};
+      recommends.forEach(r => {
+        if (!typeMap[r.type]) typeMap[r.type] = 0;
+        typeMap[r.type] += (r.num || 0);
+      });
+      dirItems = Object.keys(typeMap).map(t => ({ type: t, num: typeMap[t] }));
+    }
+    dirItems.sort((a, b) => (b.num || 0) - (a.num || 0)).forEach(r => {
+      html += `
+        <div class="dir-item">
+          <span class="dir-name">${r.type}</span>
+          <span class="dir-count">${r.num}位</span>
+        </div>
+      `;
     });
     html += '</div></div>';
     
