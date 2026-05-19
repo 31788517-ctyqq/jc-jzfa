@@ -12,6 +12,23 @@ try{
   console.log('Loaded',Object.keys(data.m).length,'matches',Object.keys(data.r).length,'recGroups')
 }catch(e){console.log('No data.json:',e.message)}
 
+// 实时比分合并
+var liveScores={};
+try{
+  var live=JSON.parse(fs.readFileSync(path.join(__dirname,'live_scores.json'),'utf8'));
+  (live.matches||[]).forEach(function(m){
+    liveScores[m.matchId]={matchStatus:m.matchStatus,score:m.score,homeScore:m.homeScore,visitScore:m.visitScore,recommNum:m.recommNum};
+  });
+  console.log('Live scores loaded:',Object.keys(liveScores).length,'matches');
+}catch(e){console.log('No live_scores.json')}
+
+function mergeLiveScore(m){
+  var s=liveScores[m.matchId];
+  if(!s)return m;
+  var merged=Object.assign({},m,s);
+  return merged;
+}
+
 app.get('/health',function(req,res){res.json({status:'ok',matches:Object.keys(data.m).length})});
 
 // match-detail: try both 'm_ID' and 'ID' as key
@@ -37,17 +54,27 @@ app.post('/api',function(req,res){
   if(a==='match-list'){
     var date=d.date||'';
     var all=Object.values(data.m);
+    // 合并实时比分
+    var now=new Date().toISOString().slice(0,10);
+    all=all.map(function(m){return mergeLiveScore(m)});
     // 为每场比赛补充专家推荐数量
     all=all.map(function(m){
       var recs=findRecommends(m.matchId);
-      return Object.assign({},m,{recommNum:recs.reduce(function(s,x){return s+(x.num||0)},0)});
+      return Object.assign({},m,{recommNum:m.recommNum||recs.reduce(function(s,x){return s+(x.num||0)},0)});
     });
-    if(date) all=all.filter(function(m){return m.date===date});
-    all.sort(function(a,b){return (a.startTime||'')>(b.startTime||'')?1:-1});
+    if(date) all=all.filter(function(m){return m.date===date||(m.dateEnd&&m.dateEnd===date)});
+    // 按状态排序：进行中 > 未开始 > 已结束
+    all.sort(function(a,b){
+      var order={1:0,0:1,2:2,3:3};
+      var oa=order[a.matchStatus]!==undefined?order[a.matchStatus]:99;
+      var ob=order[b.matchStatus]!==undefined?order[b.matchStatus]:99;
+      if(oa!==ob)return oa-ob;
+      return (a.startTime||'')>(b.startTime||'')?1:-1;
+    });
     return res.json({code:1,data:all});
   }
   if(a==='match-detail'){
-    var m=findMatch(d.matchId)||{};
+    var m=mergeLiveScore(findMatch(d.matchId)||{});
     var r=findRecommends(d.matchId);
     return res.json({code:1,data:{match:m,recommends:r}});
   }
