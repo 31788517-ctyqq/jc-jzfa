@@ -14,18 +14,21 @@ try{
 
 // 实时比分合并
 var liveScores={};
+var liveDate='';
 try{
   var live=JSON.parse(fs.readFileSync(path.join(__dirname,'live_scores.json'),'utf8'));
+  liveDate=live.date||'';
   (live.matches||[]).forEach(function(m){
-    liveScores[m.matchId]={matchStatus:m.matchStatus,score:m.score,homeScore:m.homeScore,visitScore:m.visitScore,recommNum:m.recommNum};
+    liveScores[m.matchId]={matchStatus:m.matchStatus,score:m.score,homeScore:m.homeScore,visitScore:m.visitScore,recommNum:m.recommNum,homeName:m.homeName,visitName:m.visitName,leagueName:m.leagueName,num:m.num,startTime:m.startTime,date:m.date};
   });
-  console.log('Live scores loaded:',Object.keys(liveScores).length,'matches');
+  console.log('Live scores loaded:',Object.keys(liveScores).length,'matches date:',liveDate);
 }catch(e){console.log('No live_scores.json')}
 
 function mergeLiveScore(m){
   var s=liveScores[m.matchId];
   if(!s)return m;
   var merged=Object.assign({},m,s);
+  merged.dateLive=liveDate||s.date||'';
   return merged;
 }
 
@@ -53,17 +56,22 @@ app.post('/api',function(req,res){
   var a=req.body.action,d=req.body.data||{};
   if(a==='match-list'){
     var date=d.date||'';
-    var all=Object.values(data.m);
+    var all=[];
+    var seen={};
+    // 先从静态数据加载
+    Object.values(data.m).forEach(function(m){all.push(m);seen[m.matchId]=true});
+    // 再加入 live_scores 中的新比赛
+    Object.keys(liveScores).forEach(function(k){
+      if(!seen[k]) all.push({matchId:k,homeName:'',visitName:'',leagueName:'',num:'',startTime:'',date:''});
+    });
     // 合并实时比分
-    var now=new Date().toISOString().slice(0,10);
     all=all.map(function(m){return mergeLiveScore(m)});
-    // 为每场比赛补充专家推荐数量
+    // 补充推荐数
     all=all.map(function(m){
       var recs=findRecommends(m.matchId);
       return Object.assign({},m,{recommNum:m.recommNum||recs.reduce(function(s,x){return s+(x.num||0)},0)});
     });
-    if(date) all=all.filter(function(m){return m.date===date||(m.dateEnd&&m.dateEnd===date)});
-    // 按状态排序：进行中 > 未开始 > 已结束
+    if(date) all=all.filter(function(m){return m.date===date||m.dateLive===date});
     all.sort(function(a,b){
       var order={1:0,0:1,2:2,3:3};
       var oa=order[a.matchStatus]!==undefined?order[a.matchStatus]:99;
