@@ -854,9 +854,9 @@ body {
 <!-- 比赛列表 -->
 <div class="page" id="page-match">
   <div class="date-bar" id="dateBar">
-    <span class="date-arrow" onclick="shiftDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+    <span class="date-arrow" onclick="shiftWeek(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
     <span class="date-current" id="dateCurrent" onclick="goToday()"></span>
-    <span class="date-arrow" onclick="shiftDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+    <span class="date-arrow" onclick="shiftWeek(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
   </div>
   <div id="matchList"></div>
 </div>
@@ -942,39 +942,57 @@ window.addEventListener('scroll', () => {
   lastScrollY = currentScroll;
 }, { passive: true });
 
+var weekDates = [];       // [{weekNum, matchDate, label}]
+var selectedWeekIdx = 0;   // 当前竞彩期号在 weekDates 中的索引
+
 function formatDate(d) {
-  var y = d.getFullYear();
-  var m = (d.getMonth()+1).toString().padStart(2,'0');
-  var day = d.getDate().toString().padStart(2,'0');
+  var y = d.getFullYear(), m = (d.getMonth()+1).toString().padStart(2,'0'), day = d.getDate().toString().padStart(2,'0');
   return y+'-'+m+'-'+day;
 }
 function formatDateCN(d) {
-  var m = (d.getMonth()+1).toString().padStart(2,'0');
-  var day = d.getDate().toString().padStart(2,'0');
-  var w = WEEK_NAMES[d.getDay()];
-  return m+'月'+day+'日 '+w;
+  var m = (d.getMonth()+1).toString().padStart(2,'0'), day = d.getDate().toString().padStart(2,'0');
+  return m+'月'+day+'日 '+WEEK_NAMES[d.getDay()];
 }
-function shiftDate(delta) {
-  var d = new Date(selectedMatchDate);
-  d.setDate(d.getDate() + delta);
-  selectedMatchDate = formatDate(d);
+
+function shiftWeek(delta) {
+  var newIdx = selectedWeekIdx + delta;
+  if (newIdx < 0 || newIdx >= weekDates.length) return;
+  selectedWeekIdx = newIdx;
   updateDateBar();
   loadMatchList();
 }
 function goToday() {
-  selectedMatchDate = formatDate(new Date());
+  // 找到今天或最近的竞彩期号
+  var today = formatDate(new Date()).slice(5);
+  var best = 0;
+  weekDates.forEach(function(w, i) { if (w.matchDate <= today) best = i; });
+  selectedWeekIdx = best;
   updateDateBar();
   loadMatchList();
 }
 function updateDateBar() {
-  var d = new Date(selectedMatchDate);
   var el = document.getElementById('dateCurrent');
-  var today = formatDate(new Date());
-  if (el) el.textContent = (selectedMatchDate === today ? '今天 ' : '') + formatDateCN(d);
+  if (!el) return;
+  var w = weekDates[selectedWeekIdx];
+  if (w) {
+    var today = formatDate(new Date()).slice(5);
+    var prefix = w.matchDate === today ? '今天 ' : '';
+    el.textContent = prefix + w.matchDate.replace('-','/') + ' ' + w.weekNum;
+  } else {
+    el.textContent = '加载中...';
+  }
 }
-function initMatchDate() {
-  selectedMatchDate = formatDate(new Date());
-  updateDateBar();
+function initWeekDates() {
+  api('week-dates', {}).then(function(list) {
+    weekDates = list || [];
+    if (weekDates.length) {
+      var today = formatDate(new Date()).slice(5);
+      selectedWeekIdx = 0;
+      weekDates.forEach(function(w, i) { if (w.matchDate <= today) selectedWeekIdx = i; });
+      updateDateBar();
+      loadMatchList();
+    }
+  });
 }
 
 function switchTab(tab) {
@@ -995,7 +1013,7 @@ function switchTab(tab) {
   document.getElementById('navTitle').textContent = titles[tab] || '竞彩推荐监控';
 
   if (tab === 'home') loadHome();
-  if (tab === 'match') { initMatchDate(); loadMatchList(); }
+  if (tab === 'match') { initWeekDates(); }
   if (tab === 'rank') loadRanking();
   if (tab === 'hit') loadHitRate();
 }
@@ -1018,12 +1036,17 @@ function loadMatchList() {
   const el = document.getElementById('matchList');
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
   
-  if (!selectedMatchDate) selectedMatchDate = formatDate(new Date());
-  api('match-list', { date: selectedMatchDate, _t: Date.now() }).then(matches => {
+  var params = { _t: Date.now() };
+  var w = weekDates[selectedWeekIdx];
+  if (w) { params.weekNum = w.weekNum; params.matchDate = w.matchDate; }
+  else { params.date = formatDate(new Date()); }
+  
+  api('match-list', params).then(matches => {
     el.innerHTML = matches.map(m => {
       const statusText = { 0: '未开始', 1: '进行中', 2: '已结束', 3: '取消' }[m.matchStatus] || '未知';
       const roundText = m.num || '';
       const timeStr = m.startTime ? m.startTime.slice(5) : '';
+      const startDate = m.startTime ? m.startTime.slice(0,5) : '';
       const isLive = m.matchStatus === 1 || m.matchStatus === 2;
       const scoreText = m.score || '';
       const halfText = m.halfScore || '';
@@ -1063,7 +1086,7 @@ function loadMatchList() {
           </div>
           <div class="match-info">
             <span class="match-experts">${m.recommNum ? m.recommNum+'位专家推荐' : ''}</span>
-            <span class="match-time">${timeStr}</span>
+            <span class="match-time">${startDate ? startDate.replace('-','/') + ' ' : ''}${timeStr}</span>
           </div>
           <div class="match-status" style="color:${m.matchStatus===1?'var(--cyan)':m.matchStatus===2?'var(--green)':m.matchStatus===3?'var(--red)':'var(--text2)'}">${statusText} ${extraInfo}</div>
         </div>
