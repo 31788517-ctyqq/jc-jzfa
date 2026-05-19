@@ -72,6 +72,10 @@ app.post('/api',function(req,res){
       return Object.assign({},m,{recommNum:m.recommNum||recs.reduce(function(s,x){return s+(x.num||0)},0)});
     });
     if(date) all=all.filter(function(m){return m.date===date||m.dateLive===date});
+    // 无日期过滤时，保留有实时数据的 + 当天/昨天的
+    if(!date) all=all.filter(function(m){
+      return m.dateLive||m.date===liveDate||m.date===now||m.matchStatus>0;
+    });
     all.sort(function(a,b){
       var order={1:0,0:1,2:2,3:3};
       var oa=order[a.matchStatus]!==undefined?order[a.matchStatus]:99;
@@ -79,7 +83,7 @@ app.post('/api',function(req,res){
       if(oa!==ob)return oa-ob;
       return (a.startTime||'')>(b.startTime||'')?1:-1;
     });
-    return res.json({code:1,data:all});
+    return res.json({code:1,data:all,date:liveDate||date});
   }
   if(a==='match-detail'){
     var m=mergeLiveScore(findMatch(d.matchId)||{});
