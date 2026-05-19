@@ -65,6 +65,11 @@ app.post('/api',function(req,res){
   }
   if(a==='ranking-list'){
     var filterCat=d.category||null,filterDir=d.direction||null;
+    // 日期过滤：仅今天和明天
+    var today=new Date().toISOString().slice(0,10);
+    var d2=new Date(Date.now()+86400000);
+    var tomorrow=d2.toISOString().slice(0,10);
+    function inRange(dt){return dt===today||dt===tomorrow}
     // 分类函数
     function classifyType(t){
       if(t.indexOf('半全场')===0)return '半全场';
@@ -105,12 +110,13 @@ app.post('/api',function(req,res){
     // 构建排名
     var list=[];
     if(filterDir&&dirStats[filterDir]){
-      dirStats[filterDir].matches.forEach(function(x){list.push(x)});
+      dirStats[filterDir].matches.forEach(function(x){if(inRange(x.date))list.push(x)});
     }else if(filterCat&&categories[filterCat]){
       var catDirs={};
       categories[filterCat].directions.forEach(function(d){catDirs[d.name]=true});
       Object.keys(data.m).forEach(function(k){
         var m=data.m[k];
+        if(!inRange(m.date))return;
         var recs=findRecommends(m.matchId).filter(function(r){return catDirs[r.type]&&r.num>0});
         if(recs.length){
           var max=recs.reduce(function(a,b){return b.num>a.num?b:a});
@@ -121,6 +127,7 @@ app.post('/api',function(req,res){
       // 综合排名
       Object.keys(data.m).forEach(function(k){
         var m=data.m[k];
+        if(!inRange(m.date))return;
         var recs=findRecommends(m.matchId).filter(function(r){return r.num>0});
         if(recs.length){
           var max=recs.reduce(function(a,b){return b.num>a.num?b:a});
