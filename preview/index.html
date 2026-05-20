@@ -543,6 +543,14 @@ body {
   background: rgba(24, 224, 224, 0.5);
   flex-shrink: 0;
 }
+.hit-flag {
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  margin-right: 2px;
+  flex-shrink: 0;
+}
+.dir-item.hit .dir-name::before { display: none; }
 .dir-count { font-size: var(--fs-sm); color: var(--text3); }
 
 /* 命中率统计 */
@@ -1196,9 +1204,12 @@ function goDetail(matchId) {
         <div class="dir-list" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.05);">
     `;
     
+    // 构建方向命中结果映射
+    var hitMap={};
+    recommends.forEach(function(r){if(r.result===1)hitMap[r.type]=true});
+
     let dirItems = (trend.lastResult || []).filter(r => r.num > 0);
     if (dirItems.length === 0 && recommends.length > 0) {
-      // 回退：从 recommends 按 type 聚合人数
       const typeMap = {};
       recommends.forEach(r => {
         if (!typeMap[r.type]) typeMap[r.type] = 0;
@@ -1206,10 +1217,14 @@ function goDetail(matchId) {
       });
       dirItems = Object.keys(typeMap).map(t => ({ type: t, num: typeMap[t] }));
     }
+    var isFinished=match.matchStatus===2;
     dirItems.sort((a, b) => (b.num || 0) - (a.num || 0)).forEach(r => {
+      var isHit=isFinished&&hitMap[r.type];
+      var hitFlag=isHit?'<img src="/assets/worldcup/flag-hit.png" class="hit-flag" alt="">':'';
+      var hitClass=isHit?' hit':'';
       html += `
-        <div class="dir-item">
-          <span class="dir-name">${r.type}</span>
+        <div class="dir-item${hitClass}">
+          <span class="dir-name">${hitFlag}${r.type}</span>
           <span class="dir-count">${r.num}位</span>
         </div>
       `;
