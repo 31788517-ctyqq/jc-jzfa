@@ -67,7 +67,21 @@ async function syncPeriod(){
   if(matchRes.code!==1||!matchRes.data){log('Match list FAIL');return}
 
   var periodMatches=(matchRes.data||[]).filter(function(m){
-    return m.num&&m.num.indexOf(period.week)===0;
+    // 按竞彩期号前缀 + 日期双重过滤
+    if(!m.num||m.num.indexOf(period.week)!==0)return false;
+    var bd=(m.bDate||'').slice(0,10);
+    if(bd===period.date)return true;
+    // fallback：从startTime推断竞彩售卖日（9点前属于前一天）
+    if(!bd&&m.startTime&&m.startTime.length>=11){
+      var st=m.startTime.replace(/\//g,'-');
+      var y=new Date().getFullYear();
+      var dt=new Date(y+'-'+st.slice(0,2)+'-'+st.slice(3,5)+'T'+st.slice(6,11)+':00+08:00');
+      if(!isNaN(dt.getTime())){
+        if(dt.getHours()<9)dt.setDate(dt.getDate()-1);
+        return fmtLocal(dt)===period.date;
+      }
+    }
+    return false;
   });
 
   if(periodMatches.length===0){
@@ -80,9 +94,8 @@ async function syncPeriod(){
 
   // 检查是否全部结束
   var allDone=periodMatches.every(function(m){return m.matchStatus>=2});
-  if(allDone){
-    log('All matches finished! Full save...');
-  }
+  var statusSummary=periodMatches.map(function(m){return (m.num||'')+':'+(m.matchStatus===0?'未':m.matchStatus===1?'赛中':m.matchStatus===2?'完':'取消')}).join(',');
+  log('Period matches: '+periodMatches.length+' ['+statusSummary+']'+(allDone?' ALL_DONE':''));
 
   // 加载 data.json
   var data={};
@@ -90,9 +103,9 @@ async function syncPeriod(){
   if(!data.m)data.m={};
   if(!data.r)data.r={};
 
-  var newRecs=0;
+  var newRecs=0,updatedMatches=0;
 
-  // 处理每场比赛
+  // 处理每场比赛：赛前/赛中始终全量更新比赛场次+推荐；结束后只补抓推荐最终态
   for(var i=0;i<periodMatches.length;i++){
     var m=periodMatches[i];
     var mid=String(m.matchId||m.dataId||'');
@@ -101,25 +114,17 @@ async function syncPeriod(){
     // 确定日期
     var md=(m.bDate&&typeof m.bDate==='string'&&m.bDate.length>=10)?m.bDate.slice(0,10):period.date;
 
-    // 比赛数据：全量更新（首次 + 全部结束时）
-    var existingMatch=data.m[mkey];
-    if(!existingMatch||allDone){
-      data.m[mkey]={
-        matchId:mid,num:m.num||'',homeName:m.homeName||'',
-        visitName:m.visitName||'',leagueName:m.leagueName||'',
-        startTime:m.startTime||'',matchStatus:m.matchStatus||0,
-        score:m.score||'',halfScore:m.halfScore||'',
-        duration:m.duration||'',yellow:m.yellow||'',red:m.red||'',
-        recommNum:m.recommNum||0,date:md
-      };
-    }else{
-      // 仅更新状态字段
-      existingMatch.matchStatus=m.matchStatus||0;
-      existingMatch.score=m.score||'';
-      existingMatch.halfScore=m.halfScore||'';
-      existingMatch.duration=m.duration||'';
-      existingMatch.recommNum=m.recommNum||0;
-    }
+    // 比赛数据：始终全量更新（每20分钟同步场地、比分、状态等）
+    var oldMatch=data.m[mkey];
+    data.m[mkey]={
+      matchId:mid,num:m.num||'',homeName:m.homeName||'',
+      visitName:m.visitName||'',leagueName:m.leagueName||'',
+      startTime:m.startTime||'',matchStatus:m.matchStatus||0,
+      score:m.score||'',halfScore:m.halfScore||'',
+      duration:m.duration||'',yellow:m.yellow||'',red:m.red||'',
+      recommNum:m.recommNum||0,date:md
+    };
+    if(!oldMatch||oldMatch.matchStatus!==m.matchStatus||oldMatch.score!==(m.score||''))updatedMatches++;
 
     // 推荐数据：每20分钟更新
     try{
@@ -142,7 +147,13 @@ async function syncPeriod(){
   fs.writeFileSync(tmpFile,JSON.stringify(data));
   fs.renameSync(tmpFile,DATA_FILE);
 
-  log('Saved. Matches:'+Object.keys(data.m).length+' Recs:'+Object.keys(data.r).length+' New/updated recs:'+newRecs+(allDone?' [FULL SAVE]':''));
+  log('Saved. Matches:'+Object.keys(data.m).length+' Updated:'+updatedMatches+' Recs:'+Object.keys(data.r).length+' NewRecs:'+newRecs+(allDone?' [FINAL]':''));
+
+  // 通知 simple.js 重载数据
+  var exec=require('child_process').exec;
+  exec('pm2 restart jc-zjfa',{timeout:5000},function(err){
+    if(err)log('Reload notice: jc-zjfa may need manual restart');
+  });
 
   // 全部结束后再补爬一次推荐（最终态）
   if(allDone){
