@@ -102,8 +102,8 @@ async function crawlAll(){
         allM['m_'+mid]={matchId:mid,num:m.num||'',homeName:m.homeName||'',visitName:m.visitName||'',leagueName:m.leagueName||'',startTime:m.startTime||'',matchStatus:m.matchStatus||0,score:m.score||'',halfScore:m.halfScore||'',duration:m.duration||'',yellow:m.yellow||'',red:m.red||'',date:md};
       });
 
-      // 逐场获取推荐（已完成/未开始跳过推荐爬取以加速）
-      var activeMatches=matches.filter(function(m){return m.matchStatus!==0});
+      // 逐场获取推荐（跳过无推荐的未开始比赛以加速）
+      var activeMatches=matches.filter(function(m){return m.matchStatus!==0||m.recommNum>0});
       for(var i=0;i<activeMatches.length;i++){
         var m=activeMatches[i];
         var mid=String(m.matchId||m.dataId||'');
