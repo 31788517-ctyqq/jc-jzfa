@@ -1371,21 +1371,19 @@ function loadHitRate() {
       return;
     }
 
-    const avg = data.directionStats.length > 0
-      ? (data.directionStats.reduce((s, d) => s + d.hitRate, 0) / data.directionStats.length).toFixed(1)
-      : 0;
+    const top3Rate = data.top3HitRate!==undefined ? data.top3HitRate : 0;
 
     let html = `
       <div class="stats-header">
-        <div style="font-size: 11px; color: var(--cyan); margin-bottom: 12px;">近60天数据概览</div>
+        <div style="font-size: 11px; color: var(--cyan); margin-bottom: 12px;">近60天完赛数据概览</div>
         <div class="stats-row">
           <div class="stat-big">
             <div class="stat-big-value">${data.directionStats.length}</div>
             <div class="stat-big-label">方向数</div>
           </div>
           <div class="stat-big">
-            <div class="stat-big-value">${avg}%</div>
-            <div class="stat-big-label">平均命中率</div>
+            <div class="stat-big-value">${top3Rate}%</div>
+            <div class="stat-big-label">场次前三命中率</div>
           </div>
         </div>
       </div>
