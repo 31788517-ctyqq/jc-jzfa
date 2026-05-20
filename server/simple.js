@@ -1,8 +1,10 @@
 var express=require('express'),cors=require('cors'),compression=require('compression'),path=require('path'),fs=require('fs');
 var app=express(),PORT=process.env.PORT||3000;
 app.use(compression());app.use(cors());app.use(express.json());
-app.use('/assets/worldcup',express.static(path.join(__dirname,'../miniprogram/images/worldcup'),{maxAge:'30d',etag:true,immutable:true}));
-app.use(express.static(path.join(__dirname,'../preview'),{maxAge:'1h',etag:true}));
+var staticOpts={maxAge:'30d',etag:true,immutable:true,setHeaders:function(res){res.removeHeader('Accept-Ranges')}};
+app.use('/assets/worldcup',express.static(path.join(__dirname,'../miniprogram/images/worldcup'),staticOpts));
+var previewOpts={maxAge:'1h',etag:true,setHeaders:function(res){res.removeHeader('Accept-Ranges')}};
+app.use(express.static(path.join(__dirname,'../preview'),previewOpts));
 
 var data={m:{},r:{}};
 try{
