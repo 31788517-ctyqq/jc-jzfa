@@ -1047,7 +1047,7 @@ function loadHome() {
     // 基于有效日期加载比赛列表
     api('match-list', { date: effDate }).then(function(matches) {
       document.getElementById('matchCount').textContent = matches.length;
-      document.getElementById('maxRankCount').textContent = rank.totalMatches||0;
+      document.getElementById('maxRankCount').textContent = rank.topExpertCount||0;
     }).catch(function() {
       // match-list 失败时仍显示排名统计
       document.getElementById('matchCount').textContent = '-';
