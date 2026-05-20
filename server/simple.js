@@ -128,10 +128,13 @@ app.post('/api',function(req,res){
         if(m.date===date){all.push(m);seen[m.matchId]=true}
       });
     }
-    // 加入 live_scores（仅当请求日期匹配 live_date 或 weekNum 为空且日期为 today）
+    // 加入 live_scores（仅当请求日期匹配 live_date 或未指定日期）
     if((date===liveDate||(!d.date&&!d.weekNum&&date===now))){
       Object.keys(liveScores).forEach(function(k){
-        if(!seen[k]) all.push({matchId:k,homeName:'',visitName:'',leagueName:'',num:'',startTime:'',date:''});
+        var ls=liveScores[k];
+        // 指定了日期时，只加入日期匹配的 live 条目
+        if(d.date&&ls.date!==d.date)return;
+        if(!seen[k]) all.push({matchId:k,homeName:'',visitName:'',leagueName:'',num:'',startTime:'',date:ls.date||liveDate||''});
       });
     }
     // 合并实时比分
