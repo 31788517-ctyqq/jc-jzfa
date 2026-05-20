@@ -139,6 +139,28 @@ body {
 }
 .tab-icon svg { width: 100%; height: 100%; }
 
+/* 详情页返回按钮 */
+.detail-back {
+  position: fixed;
+  bottom: 120px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(14,24,34,0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0,245,233,0.25);
+  box-shadow: 0 0 14px rgba(0,245,233,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cyan);
+  cursor: pointer;
+  z-index: 50;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.detail-back:active { transform: scale(0.9); box-shadow: 0 0 20px rgba(0,245,233,0.3); }
+
 /* 页面容器 */
 .page { display: none; padding: 0 16px 100px; content-visibility: auto; contain-intrinsic-size: auto 600px; }
 .page.active { display: block; animation: fadeUp 0.35s ease; }
@@ -880,6 +902,9 @@ body {
 <!-- 比赛详情 -->
 <div class="page" id="page-detail">
   <div id="detailContent"></div>
+  <div class="detail-back" onclick="goBack()">
+    <svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M31 36L19 24L31 12" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
 </div>
 
 <!-- 排行榜 -->
