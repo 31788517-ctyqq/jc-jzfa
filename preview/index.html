@@ -1057,7 +1057,10 @@ function switchTab(tab) {
   document.getElementById('navTitle').textContent = titles[tab] || '竞彩推荐监控';
 
   if (tab === 'home') loadHome();
-  if (tab === 'match') { initWeekDates(); }
+  if (tab === 'match') {
+    if (weekDates.length > 0) { updateDateBar(); loadMatchList(); }
+    else initWeekDates();
+  }
   if (tab === 'rank') loadRanking();
   if (tab === 'hit') loadHitRate();
 }
