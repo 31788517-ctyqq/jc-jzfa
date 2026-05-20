@@ -10,6 +10,7 @@ var CONFIG={};
 try{fs.readFileSync(path.join(__dirname,'.env'),'utf8').split('\n').forEach(function(l){var p=l.trim().split('=');if(p.length===2)CONFIG[p[0]]=p[1]})}catch(e){}
 
 var DATA_FILE=path.join(__dirname,'data.json');
+var TREND_FILE=path.join(__dirname,'trends.json');
 var LOG_FILE=path.join(__dirname,'..','logs','period_daemon.log');
 
 function log(msg){
@@ -20,6 +21,25 @@ function log(msg){
 
 function get(url,p,h){return new Promise(function(r,e){var q=p?'?'+Object.keys(p).map(function(k){return k+'='+encodeURIComponent(p[k])}).join('&'):'';var u=require('url').parse(url+q);var req=https.request({hostname:u.hostname,port:443,path:u.pathname+(u.search||''),headers:Object.assign({Accept:'*/*','User-Agent':'Mozilla/5.0'},h||{}),rejectUnauthorized:false},function(res){var c=[];res.on('data',function(d){c.push(d)});res.on('end',function(){var t=Buffer.concat(c).toString();try{r(JSON.parse(t))}catch(ee){r({code:0,msg:t.slice(0,200)})}})});req.on('error',e);req.setTimeout(20000,function(){req.abort()});req.end()})}
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
+
+// 保存推荐趋势快照（每个 matchId 最多保留48条=16小时）
+function saveTrendSnapshot(matchId,recs){
+  try{
+    var trends={};
+    if(fs.existsSync(TREND_FILE))trends=JSON.parse(fs.readFileSync(TREND_FILE,'utf8'));
+    var key='m_'+matchId;
+    if(!trends[key])trends[key]=[];
+    var now=new Date();
+    var t=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    var snap={t:t,ts:now.toISOString()};
+    recs.forEach(function(r){snap[r.type]=r.num});
+    trends[key].push(snap);
+    // 保留最近48条
+    if(trends[key].length>48)trends[key]=trends[key].slice(-48);
+    fs.writeFileSync(TREND_FILE+'.tmp',JSON.stringify(trends));
+    fs.renameSync(TREND_FILE+'.tmp',TREND_FILE);
+  }catch(e){}
+}
 
 var WEEK_NAMES={周一:1,周二:2,周三:3,周四:4,周五:5,周六:6,周日:0};
 function fmtLocal(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
@@ -126,7 +146,7 @@ async function syncPeriod(){
     };
     if(!oldMatch||oldMatch.matchStatus!==m.matchStatus||oldMatch.score!==(m.score||''))updatedMatches++;
 
-    // 推荐数据：每20分钟更新
+    // 推荐数据：每20分钟更新 + 记录趋势快照
     try{
       var recRes=await get('https://midou310.com/mdsj/score/getExpertRecommData.do',{dataId:mid,type:0},{Cookie:'token='+token});
       if(recRes.code===1&&recRes.data&&recRes.data.length){
@@ -135,6 +155,9 @@ async function syncPeriod(){
         var oldLen=(data.r[rk]||[]).length;
         data.r[rk]=recs;
         if(recs.length!==oldLen){newRecs++}
+
+        // 保存趋势快照
+        saveTrendSnapshot(mid,recs);
       }
     }catch(e){
       log('  Rec fetch error '+mid+': '+e.message);

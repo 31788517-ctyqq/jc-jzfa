@@ -168,7 +168,32 @@ app.post('/api',function(req,res){
       typeMap[t].num=x.num||typeMap[t].num;
     });
     Object.keys(typeMap).forEach(function(t){lastResult.push(typeMap[t])});
-    return res.json({code:1,data:{lastResult:lastResult,series:[],timeLabels:[]}});
+
+    // 从 trends.json 读取历史快照构建趋势数据
+    var series=[],timeLabels=[];
+    try{
+      var trendFile=path.join(__dirname,'trends.json');
+      if(fs.existsSync(trendFile)){
+        var trends=JSON.parse(fs.readFileSync(trendFile,'utf8'));
+        var key='m_'+d.matchId;
+        var snaps=(trends[key]||[]);
+        if(snaps.length>0){
+          timeLabels=snaps.map(function(s){return s.t});
+          var allTypes={};
+          snaps.forEach(function(s){Object.keys(s).forEach(function(k){if(k!=='t'&&k!=='ts')allTypes[k]=true})});
+          Object.keys(allTypes).forEach(function(type){
+            series.push({
+              name:type,type:'line',smooth:true,
+              data:snaps.map(function(s){return s[type]||0})
+            });
+          });
+          // 按当前总数排序取top5
+          var top5=Object.keys(typeMap).sort(function(a,b){return(typeMap[b]?typeMap[b].num:0)-(typeMap[a]?typeMap[a].num:0)}).slice(0,5);
+          series=series.filter(function(s){return top5.indexOf(s.name)>=0});
+        }
+      }
+    }catch(e){}
+    return res.json({code:1,data:{lastResult:lastResult,series:series,timeLabels:timeLabels}});
   }
   if(a==='ranking-list'){
     var filterCat=d.category||null,filterDir=d.direction||null;
