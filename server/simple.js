@@ -272,7 +272,8 @@ app.post('/api',function(req,res){
     list.sort(function(a,b){return b.expertCount-a.expertCount});
     list=list.slice(0,100);
     var ranking=list.map(function(x,i){x.rank=i+1;return x});
-    return res.json({code:1,data:{categories:sortedCats,ranking:ranking,totalMatches:ranking.length,effectiveDate:effectiveDate,matchDateLabel:matchDateLabel}});
+    var topExpertCount=list.length>0?list[0].expertCount:0;
+    return res.json({code:1,data:{categories:sortedCats,ranking:ranking,totalMatches:ranking.length,effectiveDate:effectiveDate,matchDateLabel:matchDateLabel,topExpertCount:topExpertCount}});
   }
   if(a==='hit-rate-stats'){
     var ds=[];
