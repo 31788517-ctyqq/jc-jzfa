@@ -301,19 +301,44 @@ app.post('/api',function(req,res){
     return res.json({code:1,data:{categories:sortedCats,ranking:ranking,totalMatches:ranking.length,effectiveDate:effectiveDate,matchDateLabel:matchDateLabel,topExpertCount:topExpertCount}});
   }
   if(a==='hit-rate-stats'){
-    var ds=[];
-    var recMap={};
+    var days=d.days||60;
+    var cutoff=new Date(Date.now()-days*86400000);
+    function fmtDate(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
+    var cutoffStr=fmtDate(cutoff);
+    // 按方向统计（近N天完赛数据）
+    var ds=[],recMap={};
+    // 场次前三统计：对每个 matchId，取 3 个 intros 累加到 matchTop 对象
+    var fieldTopHits = 0;
+    var fieldTopTotal = 0;
+
     Object.keys(data.r).forEach(function(k){
-      normalizeRecs(data.r[k]).forEach(function(x){
-        var t=x.type;if(!recMap[t])recMap[t]={total:0,hit:0,miss:0};
+      var mId=k.replace('m_','');
+      var match=data.m[k]||data.m[mId];
+      if(!match||!match.date||match.date.length<10)return;
+      if(match.date.slice(0,10)<cutoffStr)return;
+      // 该场比赛所有推荐方向排序后去 Top3
+      var recs=normalizeRecs(data.r[k]);
+      recs.sort(function(a,b){return(b.num||0)-(a.num||0)});
+      // 存 Top3 + 累加主统计
+      for(var i=0;i<recs.length;i++){
+        var x=recs[i],t=x.type;
+        if(!recMap[t])recMap[t]={total:0,hit:0,miss:0};
         recMap[t].total++;
         if(x.result===1)recMap[t].hit++;
         else if(x.result===0)recMap[t].miss++;
-      });
+        // Top3 的特殊累加
+        if(i<3){
+          if(x.result===1)fieldTopHits++;
+          else if(x.result===0){/* 未中不算命中 */}
+          fieldTopTotal++;
+        }
+      }
     });
+
     Object.keys(recMap).forEach(function(t){var v=recMap[t];ds.push({direction:t,totalRecommends:v.total,hitCount:v.hit,missCount:v.miss,hitRate:v.total>0?Math.round(v.hit/v.total*1000)/10:0})});
     ds.sort(function(a,b){return b.hitCount-a.hitCount});
-    return res.json({code:1,data:{directionStats:ds}});
+    var top3HitRate=fieldTopTotal>0?Math.round(fieldTopHits/fieldTopTotal*1000)/10:0;
+    return res.json({code:1,data:{directionStats:ds,top3HitRate:top3HitRate,totalMatchFields:fieldTopTotal,top3Hits:fieldTopHits}});
   }
   if(a==='fix-data'){
     var result=fixMatchDates(data.m);
