@@ -1252,8 +1252,20 @@ function goDetail(matchId) {
     el.innerHTML = html;
 
     setTimeout(() => {
-      const chart = echarts.init(document.getElementById('trendChart'));
+      const chartEl = document.getElementById('trendChart');
       const top5 = (trend.lastResult || []).sort((a, b) => b.num - a.num).slice(0, 5);
+
+      // 无趋势数据时展示占位样式
+      if (!trend.timeLabels || trend.timeLabels.length === 0) {
+        chartEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:#64748B;">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 24C5 34.49 13.51 43 24 43V26C24 24.9 24.9 24 26 24H43C43 13.51 34.49 5 24 5 13.51 5 5 13.51 5 24Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/><rect x="30" y="30" width="12" height="12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/></svg>
+          <div style="margin-top:12px;font-size:13px;color:#94A3B8;">趋势数据收集中</div>
+          <div style="margin-top:4px;font-size:11px;color:#4B5563;">每20分钟更新一个数据点</div>
+        </div>`;
+        return;
+      }
+
+      const chart = echarts.init(chartEl);
       const colors = ['#EF4444', '#FBBF24', '#34D399', '#18E0E0', '#A78BFA'];
       
       const series = trend.series
