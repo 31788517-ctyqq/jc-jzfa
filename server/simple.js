@@ -1,8 +1,8 @@
-var express=require('express'),cors=require('cors'),path=require('path'),fs=require('fs');
+var express=require('express'),cors=require('cors'),compression=require('compression'),path=require('path'),fs=require('fs');
 var app=express(),PORT=process.env.PORT||3000;
-app.use(cors());app.use(express.json());
-app.use('/assets/worldcup',express.static(path.join(__dirname,'../miniprogram/images/worldcup')));
-app.use(express.static(path.join(__dirname,'../preview')));
+app.use(compression());app.use(cors());app.use(express.json());
+app.use('/assets/worldcup',express.static(path.join(__dirname,'../miniprogram/images/worldcup'),{maxAge:'30d',etag:true,immutable:true}));
+app.use(express.static(path.join(__dirname,'../preview'),{maxAge:'1h',etag:true}));
 
 var data={m:{},r:{}};
 try{
@@ -39,6 +39,9 @@ function mergeLiveScore(m){
 }
 
 app.get('/health',function(req,res){res.json({status:'ok',matches:Object.keys(data.m).length})});
+
+// 缓存
+var cache={rank:{data:null,time:0,cat:''}};
 
 // 修复比赛日期：num前缀（周一~周日）必须与date的星期匹配
 var WEEK_NAMES={周一:1,周二:2,周三:3,周四:4,周五:5,周六:6,周日:0};
@@ -197,6 +200,11 @@ app.post('/api',function(req,res){
   }
   if(a==='ranking-list'){
     var filterCat=d.category||null,filterDir=d.direction||null;
+    // 30s 缓存
+    var ck=filterCat+'|'+filterDir;
+    if(cache.rank.data&&ck===cache.rank.cat&&Date.now()-cache.rank.time<30000)
+      return res.json(cache.rank.data);
+
     function fmtDate(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
     // 统计每个竞彩date的推荐总数
     var dateRecNum={};
@@ -298,7 +306,9 @@ app.post('/api',function(req,res){
     list=list.slice(0,100);
     var ranking=list.map(function(x,i){x.rank=i+1;return x});
     var topExpertCount=list.length>0?list[0].expertCount:0;
-    return res.json({code:1,data:{categories:sortedCats,ranking:ranking,totalMatches:ranking.length,effectiveDate:effectiveDate,matchDateLabel:matchDateLabel,topExpertCount:topExpertCount}});
+    var respData={code:1,data:{categories:sortedCats,ranking:ranking,totalMatches:ranking.length,effectiveDate:effectiveDate,matchDateLabel:matchDateLabel,topExpertCount:topExpertCount}};
+    cache.rank={data:respData,time:Date.now(),cat:ck};
+    return res.json(respData);
   }
   if(a==='hit-rate-stats'){
     var days=d.days||60;
