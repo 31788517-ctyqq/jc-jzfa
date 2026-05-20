@@ -5,6 +5,7 @@
     "dotenv": "^17.4.2",
     "express-rate-limit": "^8.5.2",
     "iconv-lite": "^0.7.2",
+    "ssh2": "^1.17.0",
     "winston": "^3.19.0"
   }
 }
