@@ -44,31 +44,11 @@ function saveTrendSnapshot(matchId,recs){
 var WEEK_NAMES={周一:1,周二:2,周三:3,周四:4,周五:5,周六:6,周日:0};
 function fmtLocal(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
 
-// 确定当前竞彩期号：从data.json最新日期推断
+// 确定当前竞彩期号：用自然日期推断星期
 function getCurrentPeriod(){
-  try{
-    var d=JSON.parse(fs.readFileSync(DATA_FILE,'utf8'));
-    var dates={};
-    Object.keys(d.m||{}).forEach(function(k){
-      var m=d.m[k];
-      if(!m||!m.date||!m.num)return;
-      if(!dates[m.date])dates[m.date]=m.num.slice(0,2);
-    });
-    // 找最近日期
-    var now=fmtLocal(new Date());
-    var keys=Object.keys(dates).sort().reverse();
-    // 优先今天，其次最近的未来日期
-    var periodDate='',periodWeek='';
-    for(var i=0;i<keys.length;i++){
-      if(keys[i]<=now||i===0){
-        periodDate=keys[i];
-        periodWeek=dates[keys[i]];
-        break;
-      }
-    }
-    if(!periodDate){periodDate=now;periodWeek='';}
-    return {date:periodDate,week:periodWeek};
-  }catch(e){return {date:'',week:''}}
+  var weekMap={0:'周日',1:'周一',2:'周二',3:'周三',4:'周四',5:'周五',6:'周六'};
+  var now=new Date();
+  return {date:fmtLocal(now),week:weekMap[now.getDay()]};
 }
 
 async function syncPeriod(){
