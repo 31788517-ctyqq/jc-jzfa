@@ -1,0 +1,17 @@
+-rw-r--r-- 1 root root 1034528 May 20 06:05 /var/www/zj.100qiu.com/server/data_all.json
+-rw-r--r-- 1 root root 1034528 May 20 06:05 /var/www/zj.100qiu.com/server/data.json
+1034528 /var/www/zj.100qiu.com/server/data.json
+=== 开始全量爬取 Wed May 20 05:58:20 CST 2026 ===
+=== 爬取完成 Wed May 20 06:05:51 CST 2026 ===
+data_all.json 已生成 (1012K)
+data.json 已替换
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [jc-zjfa](ids: 0)
+[PM2] [jc-zjfa](0) ✓
+┌─────┬───────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id  │ name          │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├─────┼───────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0   │ jc-zjfa       │ default     │ 1.0.0   │ fork    │ 29679    │ 0s     │ 37   │ online    │ 0%       │ 4.9mb    │ root     │ disabled │
+│ 1   │ score-sync    │ default     │ 1.0.0   │ fork    │ 14861    │ 43m    │ 1    │ online    │ 0%       │ 26.4mb   │ root     │ disabled │
+└─────┴───────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+服务已重启
