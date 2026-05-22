@@ -429,10 +429,21 @@ app.post('/api',function(req,res){
     // 限制展示条数：全部时间最多60天，指定时间范围则匹配
     var showDays=tr==='all'?60:(parseInt(tr)||30);
     sortedDates=sortedDates.slice(0,showDays);
-    // 构建 dailyMap
+    // 构建 dailyMap（存储每个matchId的全局第一方向和最大值）
     dailyMap={};
-    sortedDates.forEach(function(ds){dailyMap[ds]={matchMax:{},matchHit:{}}});
-    detail.forEach(function(x){if(x.date){var dd=x.date.slice(0,10);if(dailyMap[dd]){if(!dailyMap[dd].matchMax[x.matchId]||dailyMap[dd].matchMax[x.matchId]<x.expertCount)dailyMap[dd].matchMax[x.matchId]=x.expertCount;if(x.result===1)dailyMap[dd].matchHit[x.matchId]=1}}});
+    sortedDates.forEach(function(ds){dailyMap[ds]={matchMax:{},matchDir:{},matchHit:{}}});
+    detail.forEach(function(x){
+      if(x.date){
+        var dd=x.date.slice(0,10);
+        if(dailyMap[dd]){
+          if(!dailyMap[dd].matchMax[x.matchId]||dailyMap[dd].matchMax[x.matchId]<x.expertCount){
+            dailyMap[dd].matchMax[x.matchId]=x.expertCount;
+            dailyMap[dd].matchDir[x.matchId]=x.direction;
+          }
+          if(x.result===1)dailyMap[dd].matchHit[x.matchId]=1;
+        }
+      }
+    });
     var dailyResults=[];
     var isDaily=(rankType==='每天'&&rt>0);var isPerMatch=(rankType==='每场'&&rt>0);
     var totalTc=0,totalHc=0;
@@ -440,8 +451,18 @@ app.post('/api',function(req,res){
       var m=dailyMap[k];
       var selected=[],tm=0,hm=0;
       if(isDaily){
+        // 每天模式：按expertCount排所有比赛，取top rt，再检查方向匹配
         var ranked=Object.keys(m.matchMax).sort(function(a,b){return m.matchMax[b]-m.matchMax[a]});
-        selected=ranked.slice(0,rt);
+        var top=ranked.slice(0,rt);
+        // 对有方向筛选的情况，只保留方向匹配的比赛
+        if(td){
+          top.forEach(function(mid){
+            var dir=m.matchDir[mid]||'';
+            if(td.indexOf(dir)>=0||td.indexOf(ct(dir))>=0)selected.push(mid);
+          });
+        }else{
+          selected=top;
+        }
       }else if(isPerMatch){
         selected=Object.keys(m.matchMax);
       }else{

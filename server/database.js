@@ -463,13 +463,15 @@ function getFilterRate(params) {
   const showDays = timeRange === 'all' ? 60 : (parseInt(timeRange) || 30);
   sortedDates = sortedDates.slice(0, showDays);
   const dailyMap = {};
-  sortedDates.forEach(ds => { dailyMap[ds] = { matchMax: {}, matchHit: {} }; });
+  sortedDates.forEach(ds => { dailyMap[ds] = { matchMax: {}, matchDir: {}, matchHit: {} }; });
   detailRows.forEach(r => {
     if (r.date) {
       const dd = r.date.slice(0, 10);
       if (dailyMap[dd]) {
-        if (!dailyMap[dd].matchMax[r.matchId] || dailyMap[dd].matchMax[r.matchId] < (r.expertCount || 0))
+        if (!dailyMap[dd].matchMax[r.matchId] || dailyMap[dd].matchMax[r.matchId] < (r.expertCount || 0)) {
           dailyMap[dd].matchMax[r.matchId] = r.expertCount || 0;
+          dailyMap[dd].matchDir[r.matchId] = r.direction || '';
+        }
         if (r.result === 1) dailyMap[dd].matchHit[r.matchId] = 1;
       }
     }
@@ -482,7 +484,12 @@ function getFilterRate(params) {
     let selected = [];
     if (isDaily) {
       const ranked = Object.keys(m.matchMax).sort((a, b) => m.matchMax[b] - m.matchMax[a]);
-      selected = ranked.slice(0, rankTop);
+      const top = ranked.slice(0, rankTop);
+      if (dirList.length > 0) {
+        top.forEach(mid => { if (dirList.includes(m.matchDir[mid]||'')) selected.push(mid); });
+      } else {
+        selected = top;
+      }
     } else if (isPerMatch) {
       selected = Object.keys(m.matchMax);
     } else {
