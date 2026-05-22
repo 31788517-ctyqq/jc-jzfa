@@ -397,6 +397,35 @@ app.post('/api',function(req,res){
     if(rt>0){var rl=['','第一名','前二名','前三名','前四名','前五名','前六名'];p.push(rl[rt]||'前'+rt+'名')}
     return res.json({code:1,data:{hitCount:hc,totalCount:tc,hitRate:hr,conditionSummary:p.length?p.join(' | '):'全部条件',detailList:detail}})
   }
+  // ========== AI 预测 ==========
+  // 加载 AI 缓存
+  var aiCache={};
+  try{aiCache=JSON.parse(fs.readFileSync(path.join(__dirname,'ai_cache.json'),'utf8'))}catch(e){}
+  
+  if(a==='ai-predict'){
+    var mid=d.matchId;if(!mid)return res.json({code:0,msg:'缺少 matchId'});
+    // 如果有缓存直接返回
+    if(aiCache[mid]&&aiCache[mid].content)return res.json({code:1,data:{matchId:mid,content:aiCache[mid].content,confidence:aiCache[mid].confidence||0,fromCache:true}});
+    // 无缓存时异步触发生成（不阻塞响应）
+    try{var ds=require('./deepseek');var m=data.m['m_'+mid]||data.m[mid];if(m){
+      res.json({code:0,msg:'分析未就绪，正在后台生成中，请稍后刷新',pending:true});
+      ds.generateAnalysis({matchId:mid,homeName:m.homeName||'',visitName:m.visitName||'',leagueName:m.leagueName||'',date:m.date||'',num:m.num||''}).then(function(r){
+        if(r.content){aiCache[mid]={content:r.content,confidence:(r.content&&r.content.confidence)||0,updatedAt:new Date().toISOString()};fs.writeFileSync(path.join(__dirname,'ai_cache.json'),JSON.stringify(aiCache));console.log('[ai] 缓存已写入',mid)}
+      }).catch(function(e){console.error('[ai] 生成失败',mid,e.message)});
+      return;
+    }}catch(e){}
+    return res.json({code:0,msg:'分析未就绪'});
+  }
+  if(a==='ai-predict-status'){
+    var td=new Date().toISOString().slice(0,10);
+    var tm=0,fm=0;
+    Object.keys(data.m).forEach(function(k){var m=data.m[k];if(m&&m.date&&m.date.slice(0,10)===td){tm++;if(m.matchStatus>=3)fm++}});
+    return res.json({code:1,data:{todayDate:td,totalMatches:tm,finishedMatches:fm,unfinishedMatches:tm-fm,canShowCards:(tm-fm)>0}});
+  }
+  if(a==='ai-batch-generate'){
+    var daemon=require('./ai_daemon');daemon.dailyBatch();
+    return res.json({code:1,data:{message:'AI批量生成已启动，将在后台运行'}});
+  }
   if(a==='fix-data'){
     var result=fixMatchDates(data.m);
     // 回写到 data.json

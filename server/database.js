@@ -56,10 +56,27 @@ function initDatabase() {
       createdAt TEXT DEFAULT (datetime('now','localtime'))
     );
 
+    CREATE TABLE IF NOT EXISTS ai_predictions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      matchId TEXT NOT NULL UNIQUE,
+      leagueName TEXT,
+      homeName TEXT,
+      visitName TEXT,
+      matchDate TEXT,
+      content TEXT,
+      confidence REAL DEFAULT 0,
+      rawPrompt TEXT,
+      rawResponse TEXT,
+      tokenUsage INTEGER DEFAULT 0,
+      createdAt TEXT DEFAULT (datetime('now','localtime')),
+      updatedAt TEXT DEFAULT (datetime('now','localtime'))
+    );
+
     CREATE INDEX IF NOT EXISTS idx_matches_date ON matches(date);
     CREATE INDEX IF NOT EXISTS idx_matches_status ON matches(matchStatus);
     CREATE INDEX IF NOT EXISTS idx_recommends_matchId ON recommends(matchId);
     CREATE INDEX IF NOT EXISTS idx_recommends_fetchDate ON recommends(fetchDate);
+    CREATE INDEX IF NOT EXISTS idx_ai_predictions_matchId ON ai_predictions(matchId);
   `);
 
   console.log('[db] 数据库初始化完成:', DB_PATH);
@@ -446,6 +463,81 @@ function getFilterRate(params) {
   };
 }
 
+// ========== AI 预测存储 ==========
+
+/**
+ * 保存或更新 AI 五维分析
+ */
+function upsertAIPrediction(matchId, data) {
+  const stmt = db.prepare(`
+    INSERT INTO ai_predictions (matchId, leagueName, homeName, visitName, matchDate, content, confidence, rawPrompt, rawResponse, tokenUsage, updatedAt)
+    VALUES (@matchId, @leagueName, @homeName, @visitName, @matchDate, @content, @confidence, @rawPrompt, @rawResponse, @tokenUsage, datetime('now','localtime'))
+    ON CONFLICT(matchId) DO UPDATE SET
+      leagueName = @leagueName,
+      homeName = @homeName,
+      visitName = @visitName,
+      matchDate = @matchDate,
+      content = @content,
+      confidence = @confidence,
+      rawPrompt = @rawPrompt,
+      rawResponse = @rawResponse,
+      tokenUsage = @tokenUsage,
+      updatedAt = datetime('now','localtime')
+  `);
+  return stmt.run({
+    matchId: matchId,
+    leagueName: data.leagueName || '',
+    homeName: data.homeName || '',
+    visitName: data.visitName || '',
+    matchDate: data.matchDate || '',
+    content: typeof data.content === 'string' ? data.content : JSON.stringify(data.content || {}),
+    confidence: data.confidence || 0,
+    rawPrompt: data.rawPrompt || '',
+    rawResponse: data.rawResponse || '',
+    tokenUsage: data.tokenUsage || 0
+  });
+}
+
+/**
+ * 获取单场比赛的 AI 预测
+ */
+function getAIPrediction(matchId) {
+  const row = db.prepare('SELECT * FROM ai_predictions WHERE matchId = ?').get(matchId);
+  if (!row) return null;
+  try { row.content = JSON.parse(row.content); } catch (e) { /* keep raw */ }
+  return row;
+}
+
+/**
+ * 获取今日所有未结束的比赛（用于 AI 定时任务）
+ */
+function getTodayUnfinishedMatches() {
+  const today = new Date().toISOString().slice(0, 10);
+  const rows = db.prepare(`
+    SELECT matchId, homeName, visitName, leagueName, date, num, matchStatus, startTime
+    FROM matches
+    WHERE date = ? AND matchStatus < 3
+    ORDER BY startTime ASC
+  `).all(today);
+  return rows;
+}
+
+/**
+ * 获取今日比赛汇总状态（前端卡片入口控制）
+ */
+function getTodayMatchSummary() {
+  const today = new Date().toISOString().slice(0, 10);
+  const total = db.prepare('SELECT COUNT(*) as cnt FROM matches WHERE date = ?').get(today);
+  const finished = db.prepare('SELECT COUNT(*) as cnt FROM matches WHERE date = ? AND matchStatus = 3').get(today);
+  return {
+    todayDate: today,
+    totalMatches: total ? total.cnt : 0,
+    finishedMatches: finished ? finished.cnt : 0,
+    unfinishedMatches: (total ? total.cnt : 0) - (finished ? finished.cnt : 0),
+    canShowCards: ((total ? total.cnt : 0) - (finished ? finished.cnt : 0)) > 0
+  };
+}
+
 /**
  * 关闭数据库连接
  */
@@ -472,5 +564,9 @@ module.exports = {
   updateRecommendResult,
   getFilterStats,
   getFilterRate,
+  upsertAIPrediction,
+  getAIPrediction,
+  getTodayUnfinishedMatches,
+  getTodayMatchSummary,
   closeDatabase
 };
