@@ -2370,11 +2370,10 @@ function renderAIContent(content, homeTeam, awayTeam) {
   var varRemind = esc(highlight['变数提醒'] || c['变数提醒'] || '');
   html += '<div class="ai-core-view"><div class="ai-core-header"><span class="ai-core-icon">💡</span><span class="ai-core-title">AI核心观点</span><span class="ai-confidence">信心指数: ' + conf + '%</span></div>';
   html += '<div class="ai-core-content">' + coreView + '</div><div class="ai-core-desc">' + varRemind + '</div><div class="ai-predict-row">';
-  var icons = ['⚽','🎯','📊'];
   preds.forEach(function(p, i) {
     var val = esc(p['建议方向'] || '');
     var isHome = val.indexOf('主') >= 0 || val.indexOf('胜') >= 0 || val.indexOf(homeTeam[0]) >= 0;
-    html += '<div class="ai-predict-item"><div class="ai-predict-label"><span style="font-size:14px">' + (icons[i] || '') + '</span> ' + esc(p['玩法'] || '') + '</div><div class="ai-predict-value' + (isHome ? ' ai-predict-green' : '') + '">' + val + '</div><div class="ai-predict-sub">' + esc(p['核心逻辑'] || '') + '</div></div>';
+    html += '<div class="ai-predict-item"><div class="ai-predict-label">' + esc(p['玩法'] || '') + '</div><div class="ai-predict-value' + (isHome ? ' ai-predict-green' : '') + '">' + val + '</div><div class="ai-predict-sub">' + esc(p['核心逻辑'] || '') + '</div></div>';
   });
   html += '</div></div>';
 
