@@ -455,28 +455,34 @@ function getFilterRate(params) {
   }
   const conditionSummary = parts.length > 0 ? parts.join(' | ') : '全部条件';
 
-  // 生成近15天 dailyResults
-  const dailyMap = {};
-  const now = new Date();
-  for (let i = 0; i < 15; i++) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
+  // 生成 dailyResults：按天+matchId去重统计命中率
+  // 近30天（不含今天），取最近15条展示
+  const dailyMatchSet = {}, dailyHitSet = {};
+  const today = new Date();
+  const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i - 1);
     const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-    dailyMap[ds] = { totalMatch: 0, hitMatch: 0 };
+    dailyMatchSet[ds] = new Set();
+    dailyHitSet[ds] = new Set();
   }
   detailRows.forEach(r => {
-    if (r.date && dailyMap[r.date.slice(0, 10)]) {
-      dailyMap[r.date.slice(0, 10)].totalMatch++;
-      if (r.result === 1) dailyMap[r.date.slice(0, 10)].hitMatch++;
+    if (r.date) {
+      const dd = r.date.slice(0, 10);
+      if (dailyMatchSet[dd]) {
+        dailyMatchSet[dd].add(r.matchId);
+        if (r.result === 1) dailyHitSet[dd].add(r.matchId);
+      }
     }
   });
-  const dailyResults = Object.keys(dailyMap).sort().reverse().map(k => {
-    const v = dailyMap[k];
+  const dailyResults = Object.keys(dailyMatchSet).sort().reverse().slice(0, 15).map(k => {
+    const tm = dailyMatchSet[k].size, hm = dailyHitSet[k].size;
     return {
       date: k.replace(/-/g, '/'),
-      totalMatch: v.totalMatch,
-      hitMatch: v.hitMatch,
-      hitRate: v.totalMatch > 0 ? Math.round(v.hitMatch / v.totalMatch * 1000) / 10 : 0
+      totalMatch: tm,
+      hitMatch: hm,
+      hitRate: tm > 0 ? Math.round(hm / tm * 1000) / 10 : 0
     };
   });
 
