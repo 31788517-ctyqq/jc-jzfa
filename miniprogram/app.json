@@ -4,7 +4,8 @@
     "pages/match-list/match-list",
     "pages/match-detail/match-detail",
     "pages/ranking/ranking",
-    "pages/hit-rate/hit-rate"
+    "pages/hit-rate/hit-rate",
+    "pages/filter/filter"
   ],
   "window": {
     "navigationStyle": "custom",

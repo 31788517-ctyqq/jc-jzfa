@@ -40,11 +40,21 @@ function getMatchDetail(matchId) {
   return request('match-detail', { matchId });
 }
 
+function getFilterData(params) {
+  return request('hit-rate-filter', params);
+}
+
+function getFilterLeagues() {
+  return request('filter-leagues');
+}
+
 module.exports = {
   request,
   getMatchList,
   getRecommendTrend,
   getHitRateStats,
   getRankingList,
-  getMatchDetail
+  getMatchDetail,
+  getFilterData,
+  getFilterLeagues
 };

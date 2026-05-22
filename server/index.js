@@ -343,6 +343,69 @@ app.post('/api', async (req, res) => {
         return res.json({ code: 1, data: stats });
       }
 
+      case 'hit-rate-filter': {
+        const { league, timeRange, directionType, direction, rankTop } = data;
+        try {
+          const result = database.getFilterRate({
+            league: league || '',
+            timeRange: timeRange || 'all',
+            directionType: directionType || '',
+            direction: direction || '',
+            rankTop: rankTop || 0
+          });
+          return res.json({ code: 1, data: result });
+        } catch (dbErr) {
+          return res.json({ code: 0, msg: '查询失败: ' + dbErr.message });
+        }
+      }
+
+      case 'filter-leagues': {
+        try {
+          const leagues = database.getAllLeagues();
+          return res.json({ code: 1, data: leagues });
+        } catch (dbErr) {
+          return res.json({ code: 0, msg: '获取联赛列表失败: ' + dbErr.message });
+        }
+      }
+
+      case 'backfill-results': {
+        // 兜底回填：补查完赛但缺失结果的推荐数据
+        const backfill = require('./backfill_results');
+        database.initDatabase();
+        backfill.main()
+          .then(r => { console.log('[api] backfill done:', JSON.stringify(r)); })
+          .catch(err => console.error('[api] backfill error:', err));
+        return res.json({
+          code: 1,
+          data: {
+            message: '结果回填已启动，正在后台执行。几分钟后完赛推荐命中数据将更新。',
+            hint: '可稍后重新查询筛选结果。也可运行: node backfill_results.js'
+          }
+        });
+      }
+
+      case 'backfill-status': {
+        const stale = database.getStaleRecommendations();
+        const matchCount = new Set(stale.map(r => r.matchId)).size;
+        return res.json({
+          code: 1,
+          data: { staleCount: stale.length, staleMatches: matchCount, needBackfill: stale.length > 0 }
+        });
+      }
+
+      case 'filter-stats': {
+        try {
+          const stats = database.getFilterStats();
+          const leagues = database.getAllLeagues();
+          const stale = database.getStaleRecommendations();
+          stats.leagues = leagues;
+          stats.staleCount = stale ? stale.length : 0;
+          return res.json({ code: 1, data: stats });
+        } catch (dbErr) {
+          return res.json({ code: 0, msg: '获取统计失败: ' + dbErr.message });
+        }
+      }
+
       default:
         return res.json({ code: 0, msg: `未知 action: ${action}` });
     }

@@ -38,7 +38,7 @@
 body {
   font-family: var(--font);
   font-size: var(--fs-base);
-  background: var(--bg);
+  background: linear-gradient(180deg, #08131c 0%, var(--bg) 100%);
   color: var(--text);
   max-width: 420px;
   margin: 0 auto;
@@ -46,9 +46,6 @@ body {
   padding-top: 96px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-image: 
-    radial-gradient(800px 500px at 50% 0%, rgba(34, 211, 238, 0.08), transparent 60%),
-    linear-gradient(180deg, rgba(10, 15, 30, 0.9) 0%, var(--bg) 100%);
 }
 
 /* 导航栏 */
@@ -153,7 +150,7 @@ body {
 .tab-icon svg { width: 100%; height: 100%; }
 
 /* 页面容器 */
-.page { display: none; padding: 0 16px 100px; content-visibility: auto; contain-intrinsic-size: auto 600px; }
+.page { display: none; padding: 0 16px 100px; }
 .page.active { display: block; animation: fadeUp 0.35s ease; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -697,23 +694,7 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 body {
-  background:
-    /* 暗角遮罩 — 更平滑的三段过渡 */
-    linear-gradient(180deg, 
-      rgba(0,0,0,0) 0%, 
-      rgba(0,0,0,0) 15%,
-      rgba(0,0,0,0.2) 35%, 
-      rgba(0,0,0,0.55) 60%,
-      rgba(0,0,0,0.82) 100%
-    ),
-    /* 顶部青蓝辉光氛围 */
-    radial-gradient(ellipse at 50% 0%, rgba(24,224,224,0.08) 0%, transparent 50%),
-    /* 彩带粒子 */
-    url('/assets/worldcup/pro/particle_teal.png') center top / 100% 200px no-repeat,
-    /* 球场底图 */
-    url('/assets/worldcup/design-stadium-wide.jpg') center top / cover fixed no-repeat,
-    /* 纯黑底色 */
-    #02070B;
+  background: linear-gradient(180deg, #06131B 0%, #02070B 100%);
 }
 .navbar {
   background: linear-gradient(180deg, rgba(0,16,24,0.86), rgba(0,16,24,0));
@@ -727,10 +708,8 @@ body {
   padding: 0;
   overflow: hidden;
   text-align: left;
-  background:
-    /* 仅微光叠加，不遮挡 banner */
-    radial-gradient(ellipse at 40% 30%, rgba(24,224,224,0.1) 0%, transparent 60%),
-    /* Banner 原图完整铺满 */
+  background: 
+    linear-gradient(180deg, rgba(0,16,24,0.3) 0%, rgba(10,25,40,0.6) 100%),
     url('/assets/worldcup/hero-banner.png') center center / cover no-repeat;
 }
 
@@ -743,7 +722,6 @@ body {
 .chart-box,
 .stats-header {
   background: rgba(14,24,34,0.72);
-  backdrop-filter: blur(14px);
   border: 1px solid rgba(0,245,233,0.18);
   border-radius: 22px;
   box-shadow: 0 0 14px rgba(0,245,233,0.06), 0 8px 28px rgba(0,0,0,0.4);
@@ -762,57 +740,312 @@ body {
 .match-card {
   min-height: 150px;
   padding: 18px;
-  background:
-    linear-gradient(180deg, rgba(1,10,14,.42), rgba(1,12,18,.88)),
-    url('/assets/worldcup/pro/stadium_bg_02.png') center center / cover no-repeat,
-    url('/assets/worldcup/design-stadium-wide.jpg') center center / cover no-repeat;
+  background: linear-gradient(180deg, rgba(8,20,32,.85), rgba(4,14,24,.92));
 }
 .rank-card {
-  background:
-    linear-gradient(90deg, rgba(1,10,14,.88), rgba(1,12,18,.64) 58%, rgba(1,10,14,.94)),
-    url('/assets/worldcup/pro/grid_hex.png') center center / cover no-repeat,
-    url('/assets/worldcup/design-light-card.jpg') center center / cover no-repeat;
+  background: linear-gradient(135deg, rgba(8,20,32,.88), rgba(4,14,24,.92));
 }
 .stats-header {
-  background:
-    linear-gradient(90deg, rgba(0,8,12,.22), rgba(0,8,12,.04) 44%, rgba(0,8,12,.72)),
-    url('/assets/worldcup/pro/trophy_side.png') right center / cover no-repeat,
-    url('/assets/worldcup/pro/logo_light.png') center center / cover no-repeat,
-    url('/assets/worldcup/hero-banner.png') center center / cover no-repeat;
+  background: linear-gradient(135deg, rgba(6,18,28,.88), rgba(4,14,24,.90));
 }
 .match-league, .match-experts, .filter-tag.active, .rank-direction { color: var(--cyan); }
 .vs { color: #fff; font-size: var(--fs-2xl); text-transform: uppercase; }
 .filter-tag.active { background: var(--cyan); color: #001018; }
 .stats-grid .stat-box:first-child {
-  background:
-    linear-gradient(180deg, rgba(0,10,14,.22), rgba(0,10,14,.82)),
-    url('/assets/worldcup/pro/trophy_glow.png') center center / cover no-repeat,
-    url('/assets/worldcup/design-trophy-card.jpg') center center / cover no-repeat;
+  background: linear-gradient(180deg, rgba(6,18,28,.88), rgba(4,14,24,.92));
 }
 .stats-grid .stat-box:last-child {
-  background:
-    linear-gradient(180deg, rgba(0,10,14,.26), rgba(0,10,14,.84)),
-    url('/assets/worldcup/pro/football_outline.png') center center / cover no-repeat,
-    url('/assets/worldcup/design-ball-card.jpg') center center / cover no-repeat;
+  background: linear-gradient(180deg, rgba(8,22,34,.88), rgba(4,14,24,.92));
 }
 .quick-menu .menu-item:nth-child(1) {
-  background:
-    linear-gradient(90deg, rgba(2,28,36,.90), rgba(2,28,36,.66)),
-    url('/assets/worldcup/pro/flags_corner.png') right center / cover no-repeat,
-    url('/assets/worldcup/design-flags-card.jpg') right center / auto 100% no-repeat;
+  background: linear-gradient(90deg, rgba(8,22,34,.88), rgba(4,14,24,.85));
 }
 .quick-menu .menu-item:nth-child(2) {
-  background:
-    linear-gradient(90deg, rgba(2,28,36,.92), rgba(2,28,36,.68)),
-    url('/assets/worldcup/pro/particle_teal.png') right center / cover no-repeat,
-    url('/assets/worldcup/design-light-card.jpg') right center / auto 100% no-repeat;
+  background: linear-gradient(90deg, rgba(8,22,34,.90), rgba(4,14,24,.88));
 }
 .quick-menu .menu-item:nth-child(3) {
-  background:
-    linear-gradient(90deg, rgba(2,28,36,.92), rgba(2,28,36,.70)),
-    url('/assets/worldcup/pro/football_glow.png') right center / cover no-repeat,
-    url('/assets/worldcup/design-ball-card.jpg') right center / auto 100% no-repeat;
+  background: linear-gradient(90deg, rgba(8,22,34,.92), rgba(4,14,24,.90));
 }
+
+/* ========== 筛选页样式 ========== */
+/* 数据概览统计卡片 */
+.filter-stats-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 22px;
+  padding: 16px 22px;
+  margin-bottom: 14px;
+}
+.stats-subtitle {
+  font-size: var(--fs-xs);
+  color: var(--cyan);
+  margin-bottom: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+.filter-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+.filter-stat-item {
+  flex: 1;
+  text-align: center;
+}
+.filter-stat-value {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--cyan);
+  text-shadow: 0 0 12px rgba(24,224,224,0.18);
+  line-height: 1.1;
+}
+.filter-stat-label {
+  font-size: var(--fs-xs);
+  color: #64748B;
+  margin-top: 4px;
+}
+.filter-stat-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(24,224,224,0.10);
+  flex-shrink: 0;
+}
+
+.filter-section-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 22px;
+  padding: 20px 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 0 14px rgba(0,245,233,0.06);
+}
+.filter-head {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 16px;
+}
+.filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 54px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.filter-row:last-of-type { border-bottom: none; }
+.filter-label {
+  font-size: var(--fs-md);
+  color: #9AA6B2;
+  font-weight: 600;
+  flex-shrink: 0;
+  min-width: 48px;
+  margin-right: 14px;
+}
+.filter-row-inline {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+}
+.filter-row-inline .filter-dd {
+  flex: 1;
+}
+
+/* 自定义下拉 */
+.filter-dd {
+  flex: 1;
+  position: relative;
+  user-select: none;
+}
+.filter-dd-trigger {
+  height: 44px;
+  padding: 0 36px 0 16px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.filter-dd.open .filter-dd-trigger {
+  background-color: rgba(0,245,233,0.10);
+  border-color: rgba(0,245,233,0.50);
+  box-shadow: 0 0 0 4px rgba(0,245,233,0.07), 0 0 18px rgba(0,245,233,0.15);
+}
+.filter-dd-text {
+  color: var(--cyan);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.filter-dd.open .filter-dd-text { color: #fff; }
+.filter-dd-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--cyan);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s ease;
+}
+.filter-dd.open .filter-dd-arrow { transform: translateY(-50%) rotate(180deg); }
+.filter-dd-menu {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  background: #0a1a24;
+  border: 1px solid rgba(0,245,233,0.50);
+  border-radius: 12px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 6px 0;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.45), 0 0 12px rgba(0,245,233,0.10);
+}
+.filter-dd.open .filter-dd-menu {
+  display: block;
+}
+.filter-dd.open {
+  z-index: 999;
+  position: relative;
+}
+.filter-dd-option {
+  position: relative;
+  padding: 11px 36px 11px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.80);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.filter-dd-option:hover { background: rgba(0,245,233,0.08); color: #fff; }
+.filter-dd-option.selected {
+  color: var(--cyan);
+  font-weight: 600;
+  background: rgba(0,245,233,0.10);
+}
+.filter-dd-option.selected::after {
+  content: '✓';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cyan);
+}
+.filter-btn-wrap {
+  margin-top: 18px;
+}
+.filter-submit-btn {
+  width: 100%;
+  height: 46px;
+  background: linear-gradient(135deg, rgba(24,224,224,0.25), rgba(24,224,224,0.40));
+  border: 1px solid rgba(24,224,224,0.35);
+  border-radius: 23px;
+  color: var(--cyan);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(24,224,224,0.12);
+}
+.filter-submit-btn:active {
+  background: linear-gradient(135deg, rgba(24,224,224,0.36), rgba(24,224,224,0.52));
+  transform: scale(0.97);
+}
+
+/* 筛选结果 */
+.filter-result-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 22px;
+  padding: 20px 18px;
+  margin-bottom: 14px;
+}
+.filter-result-head {
+  font-size: var(--fs-xs);
+  color: var(--cyan);
+  margin-bottom: 10px;
+  font-weight: 600;
+  text-align: center;
+}
+.filter-cond-tags {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  font-size: var(--fs-xs);
+  color: rgba(255,255,255,0.45);
+}
+.filter-cond-pipe {
+  color: rgba(255,255,255,0.15);
+}
+.filter-result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+.filter-result-side {
+  text-align: center;
+  flex: 1;
+}
+.filter-result-num {
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--cyan);
+  text-shadow: 0 0 11px rgba(24,224,224,0.18);
+  line-height: 1.1;
+}
+.filter-result-label {
+  font-size: var(--fs-xs);
+  color: #64748B;
+  margin-top: 4px;
+}
+/* 环形图 */
+.filter-ring-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.filter-ring-svg {
+  width: 80px;
+  height: 80px;
+  transform: rotate(-90deg);
+}
+.filter-ring-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.06);
+  stroke-width: 6;
+}
+.filter-ring-fill {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+.filter-ring-pct {
+  font-size: 18px;
+  font-weight: 900;
+  fill: currentColor;
+}
+
+.hint-box { text-align: center; padding: 80px 0; color: var(--text3); font-size: var(--fs-md); }
 </style>
 </head>
 <body>
@@ -856,11 +1089,11 @@ body {
       </div>
       <div class="menu-arrow">›</div>
     </div>
-    <div class="menu-item" onclick="switchTab('hit')">
+    <div class="menu-item" onclick="switchTab('filter')">
       <div class="menu-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="20" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="32" cy="32" r="10" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="32" cy="32" r="3" fill="currentColor"/></svg></div>
       <div class="menu-content">
-        <div class="menu-title">命中率统计</div>
-        <div class="menu-desc">近60天各方向命中率分析</div>
+        <div class="menu-title">命中率筛选</div>
+        <div class="menu-desc">通过设置条件查看命中率</div>
       </div>
       <div class="menu-arrow">›</div>
     </div>
@@ -893,6 +1126,92 @@ body {
 <!-- 命中率 -->
 <div class="page" id="page-hit">
   <div id="hitContent"></div>
+</div>
+
+<!-- 命中率筛选 -->
+<div class="page" id="page-filter">
+  <!-- 数据概览统计卡片 -->
+  <div class="filter-stats-card">
+    <div class="stats-subtitle">数据概览</div>
+    <div class="filter-stats-row">
+      <div class="filter-stat-item">
+        <div class="filter-stat-value" id="statMatches">-</div>
+        <div class="filter-stat-label">比赛场次</div>
+      </div>
+      <div class="filter-stat-divider"></div>
+      <div class="filter-stat-item">
+        <div class="filter-stat-value" id="statLeagues">-</div>
+        <div class="filter-stat-label">联赛数</div>
+      </div>
+      <div class="filter-stat-divider"></div>
+      <div class="filter-stat-item">
+        <div class="filter-stat-value" id="statDirs">-</div>
+        <div class="filter-stat-label">方向数</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="filter-section-card">
+    <div class="filter-head">筛选条件</div>
+    <div class="filter-row">
+      <span class="filter-label">联赛</span>
+      <div class="filter-dd" id="dd-league" data-val="">
+        <div class="filter-dd-trigger" onclick="toggleDD('dd-league')"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+        <ul class="filter-dd-menu"></ul>
+      </div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">时间</span>
+      <div class="filter-dd" id="dd-time" data-val="all">
+        <div class="filter-dd-trigger" onclick="toggleDD('dd-time')"><span class="filter-dd-text">全部时间</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+        <ul class="filter-dd-menu">
+          <li data-val="all" class="filter-dd-option selected" onclick="selectDD('dd-time','all','全部时间')">全部时间</li>
+          <li data-val="30" class="filter-dd-option" onclick="selectDD('dd-time','30','近一个月')">近一个月</li>
+          <li data-val="60" class="filter-dd-option" onclick="selectDD('dd-time','60','近两个月')">近两个月</li>
+          <li data-val="90" class="filter-dd-option" onclick="selectDD('dd-time','90','近三个月')">近三个月</li>
+        </ul>
+      </div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">方向</span>
+      <div class="filter-row-inline">
+        <div class="filter-dd" id="dd-dirType" data-val="">
+          <div class="filter-dd-trigger" onclick="toggleDD('dd-dirType')"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+          <ul class="filter-dd-menu">
+            <li data-val="" class="filter-dd-option selected" onclick="selectDD('dd-dirType','','全部');onDDTypeChange()">全部</li>
+            <li data-val="胜平负" class="filter-dd-option" onclick="selectDD('dd-dirType','胜平负','胜平负');onDDTypeChange()">胜平负</li>
+            <li data-val="让球" class="filter-dd-option" onclick="selectDD('dd-dirType','让球','让球');onDDTypeChange()">让球</li>
+            <li data-val="进球数" class="filter-dd-option" onclick="selectDD('dd-dirType','进球数','进球数');onDDTypeChange()">进球数</li>
+            <li data-val="双选" class="filter-dd-option" onclick="selectDD('dd-dirType','双选','双选');onDDTypeChange()">双选</li>
+            <li data-val="半全场" class="filter-dd-option" onclick="selectDD('dd-dirType','半全场','半全场');onDDTypeChange()">半全场</li>
+          </ul>
+        </div>
+        <div class="filter-dd" id="dd-dir" data-val="" style="display:none">
+          <div class="filter-dd-trigger" onclick="toggleDD('dd-dir')"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+          <ul class="filter-dd-menu"></ul>
+        </div>
+      </div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">排名</span>
+      <div class="filter-dd" id="dd-rank" data-val="0">
+        <div class="filter-dd-trigger" onclick="toggleDD('dd-rank')"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+        <ul class="filter-dd-menu">
+          <li data-val="0" class="filter-dd-option selected" onclick="selectDD('dd-rank','0','全部')">全部</li>
+          <li data-val="1" class="filter-dd-option" onclick="selectDD('dd-rank','1','第一名')">第一名</li>
+          <li data-val="2" class="filter-dd-option" onclick="selectDD('dd-rank','2','前二名')">前二名</li>
+          <li data-val="3" class="filter-dd-option" onclick="selectDD('dd-rank','3','前三名')">前三名</li>
+          <li data-val="4" class="filter-dd-option" onclick="selectDD('dd-rank','4','前四名')">前四名</li>
+          <li data-val="5" class="filter-dd-option" onclick="selectDD('dd-rank','5','前五名')">前五名</li>
+          <li data-val="6" class="filter-dd-option" onclick="selectDD('dd-rank','6','前六名')">前六名</li>
+        </ul>
+      </div>
+    </div>
+    <div class="filter-btn-wrap">
+      <button class="filter-submit-btn" onclick="doFilterQuery()">查询</button>
+    </div>
+  </div>
+  <div id="filterResult"></div>
 </div>
 
 <!-- TabBar -->
@@ -1030,15 +1349,16 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
   const tabEl = document.getElementById('tab-' + (tab === 'detail' ? 'rank' : tab));
   if (tabEl) tabEl.classList.add('active');
-  // 详情页显示返回按钮
-  document.getElementById('navBack').style.display = (tab === 'detail') ? 'flex' : 'none';
+  // 详情页和筛选页显示返回按钮
+  document.getElementById('navBack').style.display = (tab === 'detail' || tab === 'filter') ? 'flex' : 'none';
 
   const titles = {
     home: '竞彩推荐监控',
     match: '今日比赛',
     detail: '比赛详情',
     rank: '推荐排行榜',
-    hit: '命中率统计'
+    hit: '命中率统计',
+    filter: '命中率筛选'
   };
   document.getElementById('navTitle').textContent = titles[tab] || '竞彩推荐监控';
 
@@ -1049,6 +1369,7 @@ function switchTab(tab) {
   }
   if (tab === 'rank') loadRanking();
   if (tab === 'hit') loadHitRate();
+  if (tab === 'filter') { loadFilterLeagues(); resetFilterResult(); }
 }
 
 var lastPage='home';
@@ -1489,6 +1810,154 @@ function loadHitRate() {
     });
   }).catch(e => {
     el.innerHTML = `<div class="loading">${e.message}</div>`;
+  });
+}
+
+// ========== 命中率筛选 ==========
+const filterDirMap = {
+  '胜平负': ['全部', '胜', '平', '负'],
+  '让球':   ['全部', '让胜', '让平', '让负'],
+  '进球数': ['全部', '1,2', '2,3', '3,4', '1,2,3', '2,3,4', '3,4,5'],
+  '双选':   ['全部', '平,让平', '让胜,让平', '让平,让负', '胜,平', '平,负'],
+  '半全场': ['全部', '胜胜', '负负']
+};
+
+// 自定义下拉
+function toggleDD(id) {
+  var dd = document.getElementById(id);
+  var wasOpen = dd.classList.contains('open');
+  closeAllDD();
+  if (!wasOpen) {
+    dd.classList.add('open');
+    // 用 fixed 定位，彻底脱离父容器裁剪
+    var menu = dd.querySelector('.filter-dd-menu');
+    var trigger = dd.querySelector('.filter-dd-trigger');
+    var rect = trigger.getBoundingClientRect();
+    menu.style.position = 'fixed';
+    menu.style.top = (rect.bottom + 6) + 'px';
+    menu.style.left = rect.left + 'px';
+    menu.style.width = rect.width + 'px';
+    menu.style.right = 'auto';
+  }
+}
+function selectDD(id, val, text) {
+  var dd = document.getElementById(id);
+  dd.setAttribute('data-val', val);
+  dd.querySelector('.filter-dd-text').textContent = text;
+  dd.querySelectorAll('.filter-dd-option').forEach(function(o) {
+    o.classList.toggle('selected', o.getAttribute('data-val') === val);
+  });
+  closeAllDD();
+}
+function getDDVal(id) {
+  return document.getElementById(id).getAttribute('data-val') || '';
+}
+function closeAllDD() {
+  document.querySelectorAll('.filter-dd.open').forEach(function(d) { d.classList.remove('open'); });
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.filter-dd')) closeAllDD();
+});
+
+function resetFilterResult() {
+  document.getElementById('filterResult').innerHTML = '<div class="hint-box">选择筛选条件后点击"查询"按钮</div>';
+}
+
+function loadFilterLeagues() {
+  api('filter-stats', {}).then(function(stats) {
+    document.getElementById('statMatches').textContent = stats.matchCount || 0;
+    document.getElementById('statLeagues').textContent = stats.leagueCount || 0;
+    document.getElementById('statDirs').textContent = stats.directionCount || 0;
+    // 填充联赛下拉
+    var menu = document.querySelector('#dd-league .filter-dd-menu');
+    var html = '<li data-val="" class="filter-dd-option selected" onclick="selectDD(\'dd-league\',\'\',\'全部\')">全部</li>';
+    (stats.leagues || []).forEach(function(l) {
+      html += '<li data-val="' + l + '" class="filter-dd-option" onclick="selectDD(\'dd-league\',\'' + l + '\',\'' + l + '\')">' + l + '</li>';
+    });
+    menu.innerHTML = html;
+    // 如有待回填数据，展示提示
+    if (stats.staleCount > 0) {
+      document.getElementById('filterResult').innerHTML =
+        '<div class="hint-box" style="color:var(--amber);font-size:12px;">' +
+        '⚠ ' + stats.staleCount + ' 条推荐结果尚未确定，可能需要回填。<br>' +
+        '<span style="color:var(--text3);">运行 <code>node backfill_results.js</code> 补全数据</span></div>';
+    }
+  }).catch(function() {
+    document.getElementById('statMatches').textContent = '-';
+    document.getElementById('statLeagues').textContent = '-';
+    document.getElementById('statDirs').textContent = '-';
+  });
+}
+
+function onDDTypeChange() {
+  var type = getDDVal('dd-dirType');
+  var ddDir = document.getElementById('dd-dir');
+  if (!type) { ddDir.style.display = 'none'; return; }
+  var options = filterDirMap[type] || [];
+  var menu = ddDir.querySelector('.filter-dd-menu');
+  var html = '<li data-val="" class="filter-dd-option selected" onclick="selectDD(\'dd-dir\',\'\',\'全部\')">全部</li>';
+  options.forEach(function(d) {
+    html += '<li data-val="' + d + '" class="filter-dd-option" onclick="selectDD(\'dd-dir\',\'' + d + '\',\'' + d + '\')">' + d + '</li>';
+  });
+  menu.innerHTML = html;
+  ddDir.setAttribute('data-val', '');
+  ddDir.querySelector('.filter-dd-text').textContent = '全部';
+  ddDir.style.display = 'block';
+}
+
+function doFilterQuery() {
+  var league = getDDVal('dd-league');
+  var timeRange = getDDVal('dd-time');
+  var directionType = getDDVal('dd-dirType');
+  var ddDir = document.getElementById('dd-dir');
+  var direction = (ddDir.style.display !== 'none') ? getDDVal('dd-dir') : '';
+  if (direction === '全部') direction = '';
+  var rankTop = parseInt(getDDVal('dd-rank')) || 0;
+
+  var resultEl = document.getElementById('filterResult');
+  resultEl.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
+
+  api('hit-rate-filter', {
+    league: league,
+    timeRange: timeRange,
+    directionType: directionType,
+    direction: direction,
+    rankTop: rankTop
+  }).then(function(data) {
+    if (!data || data.totalCount === 0) {
+      resultEl.innerHTML = '<div class="loading">暂无符合条件的数据</div>';
+      return;
+    }
+    var rateVal = parseFloat(data.hitRate) || 0;
+    var ringColor = rateVal >= 50 ? '#34D399' : rateVal >= 40 ? '#FBBF24' : '#EF4444';
+    var r = 36, c = 2 * Math.PI * r;
+    var dashVal = c * (1 - rateVal / 100);
+
+    var condTags = data.conditionSummary.split(' | ');
+    var condHtml = '<div class="filter-cond-tags">';
+    for (var i = 0; i < condTags.length; i++) {
+      if (i > 0) condHtml += '<span class="filter-cond-pipe">|</span>';
+      condHtml += '<span>' + condTags[i] + '</span>';
+    }
+    condHtml += '</div>';
+
+    var html = '<div class="filter-result-card">';
+    html += '<div class="filter-result-head">筛选结果</div>';
+    html += condHtml;
+    html += '<div class="filter-result-row">';
+    html += '<div class="filter-result-side"><div class="filter-result-num">' + data.hitCount + '</div><div class="filter-result-label">命中场次</div></div>';
+    html += '<div class="filter-ring-wrap">';
+    html += '<svg class="filter-ring-svg" viewBox="0 0 80 80">';
+    html += '<circle class="filter-ring-bg" cx="40" cy="40" r="' + r + '"/>';
+    html += '<circle class="filter-ring-fill" cx="40" cy="40" r="' + r + '" stroke="' + ringColor + '" stroke-dasharray="' + c + '" stroke-dashoffset="' + dashVal + '"/>';
+    html += '<text class="filter-ring-pct" x="40" y="40" text-anchor="middle" dominant-baseline="central" fill="' + ringColor + '" transform="rotate(90,40,40)">' + rateVal + '%</text>';
+    html += '</svg></div>';
+    html += '<div class="filter-result-side"><div class="filter-result-num">' + data.totalCount + '</div><div class="filter-result-label">符合条件场次</div></div>';
+    html += '</div></div>';
+
+    resultEl.innerHTML = html;
+  }).catch(function(e) {
+    resultEl.innerHTML = '<div class="loading">' + e.message + '</div>';
   });
 }
 
