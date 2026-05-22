@@ -361,7 +361,7 @@ app.post('/api',function(req,res){
       if(r.length){ms.add(k.replace('m_',''));if(m.leagueName)ls.add(m.leagueName);r.forEach(function(x){ds.add(x.type)})}
     });
     var lg=Array.from(ls).sort();
-    var sl=0;Object.keys(data.r).forEach(function(k){sl+=normalizeRecs(data.r[k]).filter(function(x){return x.result===null}).length});
+    var sl=0;Object.keys(data.r).forEach(function(k){var mId=k.replace('m_','');var m=data.m[k]||data.m[mId];if(!m||m.matchStatus<2)return;sl+=normalizeRecs(data.r[k]).filter(function(x){return x.result===null}).length});
     return res.json({code:1,data:{matchCount:ms.size,leagueCount:ls.size,directionCount:ds.size,leagues:lg,staleCount:sl}})
   }
   if(a==='filter-leagues'){
