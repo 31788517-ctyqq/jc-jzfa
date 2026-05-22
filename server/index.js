@@ -359,13 +359,14 @@ app.post('/api', async (req, res) => {
       }
 
       case 'hit-rate-filter': {
-        const { league, timeRange, directionType, direction, rankTop } = data;
+        const { league, timeRange, directionType, direction, rankType, rankTop } = data;
         try {
           const result = database.getFilterRate({
             league: league || '',
             timeRange: timeRange || 'all',
             directionType: directionType || '',
             direction: direction || '',
+            rankType: rankType || '全部',
             rankTop: rankTop || 0
           });
           return res.json({ code: 1, data: result });

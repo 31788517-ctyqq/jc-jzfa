@@ -595,9 +595,9 @@ function loadHitRate() {
 const filterDirMap = {
   '胜平负': ['全部', '胜', '平', '负'],
   '让球':   ['全部', '让胜', '让平', '让负'],
-  '进球数': ['全部', '1,2', '2,3', '3,4', '1,2,3', '2,3,4', '3,4,5'],
-  '双选':   ['全部', '平,让平', '让胜,让平', '让平,让负', '胜,平', '平,负'],
-  '半全场': ['全部', '胜胜', '负负']
+  '进球数': ['全部', '总进球-1、2球', '总进球-2、3球', '总进球-3、4球', '总进球-1、2、3球', '总进球-2、3、4球', '总进球-3、4、5球'],
+  '双选':   ['全部', '平、让平', '让胜、让平', '让平、让负', '胜、平', '平、负'],
+  '半全场': ['全部', '半全场-胜胜', '半全场-负负']
 };
 
 // 自定义下拉
@@ -700,7 +700,8 @@ function loadFilterLeagues() {
 function onDDTypeChange() {
   var type = getDDVal('dd-dirType');
   var ddDir = document.getElementById('dd-dir');
-  if (!type) { ddDir.style.display = 'none'; return; }
+  // 综合排名没有二级选项
+  if (!type || type === '综合排名') { ddDir.style.display = 'none'; return; }
   var options = filterDirMap[type] || [];
   var menu = ddDir.querySelector('.filter-dd-menu');
   var html = '<li data-val="" class="filter-dd-option selected" onclick="selectDD(\'dd-dir\',\'\',\'全部\')">全部</li>';
@@ -713,6 +714,15 @@ function onDDTypeChange() {
   ddDir.style.display = 'block';
 }
 
+function onRankTypeChange() {
+  var type = getDDVal('dd-rankType');
+  var ddRank = document.getElementById('dd-rank');
+  if (type === '全部') { ddRank.style.display = 'none'; return; }
+  ddRank.style.display = 'block';
+  ddRank.setAttribute('data-val', '0');
+  ddRank.querySelector('.filter-dd-text').textContent = '全部';
+}
+
 function doFilterQuery() {
   var league = getDDVal('dd-league');
   var timeRange = getDDVal('dd-time');
@@ -720,7 +730,9 @@ function doFilterQuery() {
   var ddDir = document.getElementById('dd-dir');
   var direction = (ddDir.style.display !== 'none') ? getDDVal('dd-dir') : '';
   if (direction === '全部') direction = '';
-  var rankTop = parseInt(getDDVal('dd-rank')) || 0;
+  var rankType = getDDVal('dd-rankType') || '全部';
+  var rankTop = 0;
+  if (rankType !== '全部') { rankTop = parseInt(getDDVal('dd-rank')) || 0; }
 
   var resultEl = document.getElementById('filterResult');
   resultEl.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
@@ -730,6 +742,7 @@ function doFilterQuery() {
     timeRange: timeRange,
     directionType: directionType,
     direction: direction,
+    rankType: rankType,
     rankTop: rankTop
   }).then(function(data) {
     if (!data || data.totalCount === 0) {
@@ -762,6 +775,18 @@ function doFilterQuery() {
     html += '</svg></div>';
     html += '<div class="filter-result-side"><div class="filter-result-num">' + data.totalCount + '</div><div class="filter-result-label">符合条件场次</div></div>';
     html += '</div></div>';
+
+    // 结果详情卡片：近15天数据
+    if (data.dailyResults && data.dailyResults.length > 0) {
+      html += '<div class="filter-detail-card">';
+      html += '<div class="filter-detail-head">结果详情</div>';
+      html += '<div class="filter-detail-header-row"><span>近15天</span><span>符合场次/命中场次</span><span>命中率</span></div>';
+      data.dailyResults.forEach(function(d) {
+        var dr = parseFloat(d.hitRate) || 0;
+        html += '<div class="filter-detail-row"><span>' + d.date + '</span><span>' + d.totalMatch + '/' + d.hitMatch + '</span><span>' + dr.toFixed(1) + '%</span></div>';
+      });
+      html += '</div>';
+    }
 
     resultEl.innerHTML = html;
   }).catch(function(e) {
