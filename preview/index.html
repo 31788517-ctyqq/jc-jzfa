@@ -873,6 +873,8 @@ body {
   display: flex;
   align-items: center;
   position: relative;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .filter-dd.open .filter-dd-trigger {
   background-color: rgba(0,245,233,0.10);
@@ -912,6 +914,9 @@ body {
   overflow-y: auto;
   padding: 6px 0;
   box-shadow: 0 8px 30px rgba(0,0,0,0.45), 0 0 12px rgba(0,245,233,0.10);
+  -webkit-overflow-scrolling: touch;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 .filter-dd.open .filter-dd-menu {
   display: block;
@@ -928,6 +933,8 @@ body {
   color: rgba(255,255,255,0.80);
   cursor: pointer;
   transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .filter-dd-option:hover { background: rgba(0,245,233,0.08); color: #fff; }
 .filter-dd-option.selected {
@@ -2167,6 +2174,7 @@ const filterDirMap = {
 // 自定义下拉
 function toggleDD(id) {
   var dd = document.getElementById(id);
+  if (!dd) return;
   var wasOpen = dd.classList.contains('open');
   closeAllDD();
   if (!wasOpen) {
@@ -2174,16 +2182,34 @@ function toggleDD(id) {
     // 用 fixed 定位，彻底脱离父容器裁剪
     var menu = dd.querySelector('.filter-dd-menu');
     var trigger = dd.querySelector('.filter-dd-trigger');
+    if (!menu || !trigger) return;
     var rect = trigger.getBoundingClientRect();
+    var vh = window.innerHeight;
+    var menuH = Math.min(menu.scrollHeight || 220, 220);
+    // 智能定位：下方空间不足时，菜单向上展开
+    var spaceBelow = vh - rect.bottom - 6;
+    var spaceAbove = rect.top - 6;
     menu.style.position = 'fixed';
-    menu.style.top = (rect.bottom + 6) + 'px';
     menu.style.left = rect.left + 'px';
     menu.style.width = rect.width + 'px';
     menu.style.right = 'auto';
+    menu.style.maxHeight = menuH + 'px';
+    menu.style.overflowY = 'auto';
+    menu.style.WebkitOverflowScrolling = 'touch';
+    if (spaceBelow >= menuH || spaceBelow >= spaceAbove) {
+      // 向下展开
+      menu.style.top = (rect.bottom + 6) + 'px';
+      menu.style.bottom = 'auto';
+    } else {
+      // 向上展开
+      menu.style.bottom = (vh - rect.top + 6) + 'px';
+      menu.style.top = 'auto';
+    }
   }
 }
 function selectDD(id, val, text) {
   var dd = document.getElementById(id);
+  if (!dd) return;
   dd.setAttribute('data-val', val);
   dd.querySelector('.filter-dd-text').textContent = text;
   dd.querySelectorAll('.filter-dd-option').forEach(function(o) {
@@ -2192,13 +2218,21 @@ function selectDD(id, val, text) {
   closeAllDD();
 }
 function getDDVal(id) {
-  return document.getElementById(id).getAttribute('data-val') || '';
+  var el = document.getElementById(id);
+  return el ? (el.getAttribute('data-val') || '') : '';
 }
 function closeAllDD() {
   document.querySelectorAll('.filter-dd.open').forEach(function(d) { d.classList.remove('open'); });
 }
+// 监听 click 和 touchend 以兼容移动端
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.filter-dd')) closeAllDD();
+});
+document.addEventListener('touchend', function(e) {
+  // 延迟检查，避免与 click 事件冲突
+  setTimeout(function() {
+    if (!e.target.closest('.filter-dd')) closeAllDD();
+  }, 10);
 });
 
 function resetFilterResult() {
