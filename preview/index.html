@@ -2362,7 +2362,7 @@ function renderAIContent(content, homeTeam, awayTeam) {
   preds.forEach(function(p) { var val = esc(p['建议方向'] || ''); var isHome = val.indexOf('主') >= 0 || val.indexOf('胜') >= 0 || val.indexOf(homeTeam[0]) >= 0; html += '<div class="ai-predict-item"><div class="ai-predict-label">' + esc(p['玩法'] || '') + '</div><div class="ai-predict-value' + (isHome ? ' ai-predict-green' : '') + '">' + val + '</div><div class="ai-predict-sub">' + esc(p['核心逻辑'] || '') + '</div></div>'; });
   html += '</div></div>';
 
-  html += '<div class="ai-nav"><div class="ai-nav-item active" onclick="document.getElementById(\'ai-sec-01\').scrollIntoView({behavior:\'smooth\'})">基础面</div><div class="ai-nav-item" onclick="document.getElementById(\'ai-sec-02\').scrollIntoView({behavior:\'smooth\'})">状态面</div><div class="ai-nav-item" onclick="document.getElementById(\'ai-sec-03\').scrollIntoView({behavior:\'smooth\'})">动机面</div><div class="ai-nav-item" onclick="document.getElementById(\'ai-sec-04\').scrollIntoView({behavior:\'smooth\'})">对位面</div><div class="ai-nav-item" onclick="document.getElementById(\'ai-sec-05\').scrollIntoView({behavior:\'smooth\'})">市场面</div><div class="ai-nav-item hl" onclick="document.getElementById(\'ai-sec-06\').scrollIntoView({behavior:\'smooth\'})">核心看点</div></div>';
+  html += '<div class="ai-nav"><div class="ai-nav-item active" onclick="navToSec(1)">基础面</div><div class="ai-nav-item" onclick="navToSec(2)">状态面</div><div class="ai-nav-item" onclick="navToSec(3)">动机面</div><div class="ai-nav-item" onclick="navToSec(4)">对位面</div><div class="ai-nav-item" onclick="navToSec(5)">市场面</div><div class="ai-nav-item hl" onclick="navToSec(6)">核心看点</div></div>';
 
   html += '<div id="ai-sec-01" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">01</span><span class="ai-sec-name">基础面</span>'; if (baseStr['概括']) html += '<span class="ai-sec-desc">' + esc(baseStr['概括']) + '</span>'; html += '</div>';
   if (baseStr['积分排名']) html += '<div class="ai-item"><div class="ai-item-label">积分排名</div><div class="ai-item-text">' + esc(baseStr['积分排名']) + '</div></div>';
@@ -2416,6 +2416,11 @@ function renderAIContent(content, homeTeam, awayTeam) {
   document.getElementById('aiModal').innerHTML = html;
 }
 \n
+function navToSec(n) {
+  var el = document.getElementById('ai-sec-0' + n);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
 function closeAI() {
   document.getElementById('aiOverlay').classList.remove('active');
   document.body.style.overflow = '';
