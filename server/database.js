@@ -459,7 +459,8 @@ function getFilterRate(params) {
   // "每天"模式：每天只取 top rt 场比赛（按 expertCount 排序）
   const dailyMap = {};
   const today0 = new Date();
-  for (let i = 0; i < 30; i++) {
+  const daysCount = timeRange === 'all' ? 30 : (parseInt(timeRange) || 30);
+  for (let i = 0; i < daysCount; i++) {
     const d = new Date(today0);
     d.setDate(d.getDate() - i - 1);
     const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -477,7 +478,7 @@ function getFilterRate(params) {
   });
   const isDaily = (rankType === '每天' && rankTop > 0);
   const isPerMatch = (rankType === '每场' && rankTop > 0);
-  const dailyResults = Object.keys(dailyMap).sort().reverse().slice(0, 15).map(k => {
+  const dailyResults = Object.keys(dailyMap).sort().reverse().slice(0, 30).map(k => {
     const m = dailyMap[k];
     let selected = [];
     if (isDaily) {
