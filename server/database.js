@@ -409,31 +409,33 @@ function getFilterRate(params) {
 
   const whereStr = conditions.length > 0 ? 'AND ' + conditions.join(' AND ') : '';
 
-  // 主查询：带排名
+  // 主查询：只保留全局排名第一且类型匹配的行
   const sql = `
-    WITH ranked AS (
+    WITH all_ranked AS (
       SELECT r.matchId, r.type, r.num, r.result,
-             m.homeName, m.visitName, m.leagueName, m.num as matchNum, m.date,
-             ROW_NUMBER() OVER (PARTITION BY r.matchId ORDER BY r.num DESC) as rn
+             m.homeName, m.visitName, m.leagueName, m.num as matchNum, m.date
       FROM recommends r
       JOIN matches m ON r.matchId = m.matchId
       WHERE r.result IS NOT NULL
         ${whereStr}
-        ${dirCondition}
     ),
-    filtered AS (
-      SELECT *
-      FROM ranked
-      WHERE @rankTop = 0 OR rn <= @rankTop
+    global_max AS (
+      SELECT matchId, MAX(num) as maxNum FROM all_ranked GROUP BY matchId
+    ),
+    type_matched AS (
+      SELECT a.*
+      FROM all_ranked a
+      JOIN global_max g ON a.matchId = g.matchId
+      WHERE a.num = g.maxNum
+        ${dirCondition}
     )
     SELECT 
       matchId, type as direction, num as expertCount, result,
-      homeName, visitName, leagueName, matchNum, date, rn as rank
-    FROM filtered
-    ORDER BY date DESC, rn ASC
+      homeName, visitName, leagueName, matchNum, date,
+      ROW_NUMBER() OVER (PARTITION BY matchId ORDER BY num DESC) as rank
+    FROM type_matched
+    ORDER BY date DESC, rank ASC
   `;
-
-  bindParams.rankTop = rankTop;
 
   const detailRows = db.prepare(sql).all(bindParams);
   const hitCount = detailRows.filter(r => r.result === 1).length;
