@@ -473,7 +473,7 @@ function getFilterRate(params) {
   const dailyResults = Object.keys(dailyMap).sort().reverse().map(k => {
     const v = dailyMap[k];
     return {
-      date: k.substring(5),
+      date: k.replace(/-/g, '/'),
       totalMatch: v.totalMatch,
       hitMatch: v.hitMatch,
       hitRate: v.totalMatch > 0 ? Math.round(v.hitMatch / v.totalMatch * 1000) / 10 : 0
