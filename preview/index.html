@@ -1706,24 +1706,13 @@ function goBack() { switchTab(lastPage); }
 
 // 首页
 function loadHome() {
-  // 先获取排行榜数据，得到回退后的有效日期，首页统计遵循排行榜规则
-  api('ranking-list', {}).then(function(rank) {
-    var effDate = rank.effectiveDate || new Date().toISOString().slice(0,10);
-    // 基于有效日期加载比赛列表
-    api('match-list', { date: effDate }).then(function(matches) {
-      document.getElementById('matchCount').textContent = matches.length;
-      document.getElementById('maxRankCount').textContent = rank.topExpertCount||0;
-    }).catch(function() {
-      // match-list 失败时仍显示排名统计
-      document.getElementById('matchCount').textContent = '-';
-      document.getElementById('maxRankCount').textContent = rank.topExpertCount||0;
-    });
-  }).catch(function() {
-    // 完全失败时回退到今日数据
-    api('match-list', { date: new Date().toISOString().slice(0,10) }).then(function(matches) {
-      document.getElementById('matchCount').textContent = matches.length;
-      document.getElementById('maxRankCount').textContent = '-';
-    });
+  // 首页：ranking-list + match-list 同时发起，用 Promise.all 减少等待
+  var rankP = api('ranking-list', {}).catch(function() { return {}; });
+  var matchP = api('match-list', { date: new Date().toISOString().slice(0,10) }).catch(function() { return []; });
+  Promise.all([rankP, matchP]).then(function(r) {
+    var rank = r[0], matches = r[1];
+    document.getElementById('matchCount').textContent = matches.length || '-';
+    document.getElementById('maxRankCount').textContent = rank.topExpertCount||0;
   });
 }
 
@@ -1901,13 +1890,15 @@ function goDetail(matchId) {
     
     el.innerHTML = html;
 
-    // 检查是否显示 AI 核心看点卡片（当天最后一场结束后隐藏）
-    api('ai-predict-status', {}).then(function(status) {
-      if (!status || !status.canShowCards) {
-        var aiCard = document.getElementById('detailContent').querySelector('.ai-card');
-        if (aiCard) aiCard.style.display = 'none';
-      }
-    }).catch(function() { /* 忽略检查失败，保持卡片可见 */ });
+    // 延迟检查 AI 核心看点卡片（不阻塞详情页渲染）
+    setTimeout(function() {
+      api('ai-predict-status', {}).then(function(status) {
+        if (!status || !status.canShowCards) {
+          var aiCard = document.getElementById('detailContent').querySelector('.ai-card');
+          if (aiCard) aiCard.style.display = 'none';
+        }
+      }).catch(function() {});
+    }, 100);
 
     setTimeout(() => {
       const chartEl = document.getElementById('trendChart');
