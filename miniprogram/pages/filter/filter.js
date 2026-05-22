@@ -7,7 +7,7 @@ Page({
     leagueIndex: 0,
 
     // 时间选项
-    timeOptions: ['全部时间', '近一个月', '近两个月', '近三个月'],
+    timeOptions: ['全部时间', '近30天', '近60天', '近90天'],
     timeIndex: 0,
 
     // 方向类型（一级）
