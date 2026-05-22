@@ -424,10 +424,22 @@ app.post('/api',function(req,res){
     detail.forEach(function(x){if(x.date){var dd=x.date.slice(0,10);if(dailyMap[dd]){if(!dailyMap[dd].matchMax[x.matchId]||dailyMap[dd].matchMax[x.matchId]<x.expertCount)dailyMap[dd].matchMax[x.matchId]=x.expertCount;if(x.result===1)dailyMap[dd].matchHit[x.matchId]=1}}});
     var dailyResults=[];
     Object.keys(dailyMap).sort().reverse().slice(0,15).forEach(function(k){
-      var m=dailyMap[k];var ranked=Object.keys(m.matchMax).sort(function(a,b){return m.matchMax[b]-m.matchMax[a]});
+      var m=dailyMap[k];
       var isDaily=(rankType==='每天'&&rt>0);
-      var selected=isDaily?ranked.slice(0,rt):ranked;
-      var tm=0,hm=0;
+      var isPerMatch=(rankType==='每场'&&rt>0);
+      var selected=[],tm=0,hm=0;
+      if(isDaily){
+        // 每天模式：所有比赛混在一起按expertCount排序，取top rt场
+        var ranked=Object.keys(m.matchMax).sort(function(a,b){return m.matchMax[b]-m.matchMax[a]});
+        selected=ranked.slice(0,rt);
+      }else if(isPerMatch){
+        // 每场模式：每场比赛取该方向推荐数第一名（已天然是每场比赛的最大值）
+        // 所以直接取所有比赛的matchMax即可，每场贡献1场
+        selected=Object.keys(m.matchMax);
+      }else{
+        // 全部模式：所有比赛都取
+        selected=Object.keys(m.matchMax);
+      }
       selected.forEach(function(mid){tm++;if(m.matchHit[mid])hm++});
       dailyResults.push({date:k.replace(/-/g,'/'),totalMatch:tm,hitMatch:hm,hitRate:tm>0?Math.round(hm/tm*1000)/10:0});
     });

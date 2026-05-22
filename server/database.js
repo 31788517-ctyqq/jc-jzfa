@@ -476,10 +476,20 @@ function getFilterRate(params) {
     }
   });
   const isDaily = (rankType === '每天' && rankTop > 0);
+  const isPerMatch = (rankType === '每场' && rankTop > 0);
   const dailyResults = Object.keys(dailyMap).sort().reverse().slice(0, 15).map(k => {
     const m = dailyMap[k];
-    const ranked = Object.keys(m.matchMax).sort((a, b) => m.matchMax[b] - m.matchMax[a]);
-    const selected = isDaily ? ranked.slice(0, rankTop) : ranked;
+    let selected = [];
+    if (isDaily) {
+      // 每天模式：所有比赛混排取 top rt
+      const ranked = Object.keys(m.matchMax).sort((a, b) => m.matchMax[b] - m.matchMax[a]);
+      selected = ranked.slice(0, rankTop);
+    } else if (isPerMatch) {
+      // 每场模式：每场比赛取第一名(已天然是每场比赛最大值)，每天0~N场
+      selected = Object.keys(m.matchMax);
+    } else {
+      selected = Object.keys(m.matchMax);
+    }
     let tm = 0, hm = 0;
     selected.forEach(mid => { tm++; if (m.matchHit[mid]) hm++; });
     return {
