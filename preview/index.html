@@ -1208,6 +1208,12 @@ body {
 .ai-item-conclusion.amber { border-left-color: rgba(251,191,36,0.35); background: rgba(251,191,36,0.05); }
 .ai-item-conclusion.amber .ai-item-label { color: var(--amber); }
 
+/* 基础面排名双栏 */
+.ai-rank-dual { display:flex; gap:10px; margin-bottom:10px; }
+.ai-rank-col { flex:1; padding:10px 12px; background:rgba(0,0,0,0.15); border-radius:10px; text-align:center; }
+.ai-rank-h { font-size:13px; font-weight:700; color:#fff; margin-bottom:4px; }
+.ai-rank-val { font-size:11px; color:var(--text2); line-height:1.5; }
+
 /* 攻防数据 */
 .ai-data-compare { margin-bottom: 10px; background: rgba(0,0,0,0.15); border-radius: 10px; padding: 10px 14px; }
 .ai-data-title { font-size: 12px; font-weight: 600; color: var(--cyan); margin-bottom: 8px; text-align: center; }
@@ -2348,62 +2354,85 @@ function renderAIContent(content, homeTeam, awayTeam) {
   html += '<div class="ai-modal-header"><span class="ai-modal-title">AI深度解析</span><button class="ai-modal-close" onclick="closeAI()">&times;</button></div>';
   html += '<div class="ai-content">';
 
+  // ── 比赛信息 ──
   html += '<div class="ai-match-info"><div class="ai-team"><div class="ai-team-logo">' + esc(homeTeam[0]) + '</div><div class="ai-team-name">' + esc(homeTeam) + '</div></div><div class="ai-vs-section"><div class="ai-vs-text">VS</div></div><div class="ai-team"><div class="ai-team-logo away">' + esc(awayTeam[0]) + '</div><div class="ai-team-name">' + esc(awayTeam) + '</div></div></div>';
 
-  var coreView = esc(highlight['核心看点'] || c['核心观点'] || ''); var varRemind = esc(highlight['变数提醒'] || c['变数提醒'] || '');
+  // ── AI核心观点 ──
+  var coreView = esc(highlight['核心看点'] || c['核心观点'] || '');
+  var varRemind = esc(highlight['变数提醒'] || c['变数提醒'] || '');
   html += '<div class="ai-core-view"><div class="ai-core-header"><span class="ai-core-icon">💡</span><span class="ai-core-title">AI核心观点</span><span class="ai-confidence">信心指数: ' + conf + '%</span></div>';
   html += '<div class="ai-core-content">' + coreView + '</div><div class="ai-core-desc">' + varRemind + '</div><div class="ai-predict-row">';
-  preds.forEach(function(p) { var val = esc(p['建议方向'] || ''); var isHome = val.indexOf('主') >= 0 || val.indexOf('胜') >= 0 || val.indexOf(homeTeam[0]) >= 0; html += '<div class="ai-predict-item"><div class="ai-predict-label">' + esc(p['玩法'] || '') + '</div><div class="ai-predict-value' + (isHome ? ' ai-predict-green' : '') + '">' + val + '</div><div class="ai-predict-sub">' + esc(p['核心逻辑'] || '') + '</div></div>'; });
+  var icons = ['⚽','🎯','📊'];
+  preds.forEach(function(p, i) {
+    var val = esc(p['建议方向'] || '');
+    var isHome = val.indexOf('主') >= 0 || val.indexOf('胜') >= 0 || val.indexOf(homeTeam[0]) >= 0;
+    html += '<div class="ai-predict-item"><div class="ai-predict-label"><span style="font-size:14px">' + (icons[i] || '') + '</span> ' + esc(p['玩法'] || '') + '</div><div class="ai-predict-value' + (isHome ? ' ai-predict-green' : '') + '">' + val + '</div><div class="ai-predict-sub">' + esc(p['核心逻辑'] || '') + '</div></div>';
+  });
   html += '</div></div>';
 
+  // ═══ 01 基础面 ═══
   html += '<div id="ai-sec-01" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">01</span><span class="ai-sec-name">基础面</span>'; if (baseStr['概括']) html += '<span class="ai-sec-desc">' + esc(baseStr['概括']) + '</span>'; html += '</div>';
-  if (baseStr['积分排名']) html += '<div class="ai-item"><div class="ai-item-label">积分排名</div><div class="ai-item-text">' + esc(baseStr['积分排名']) + '</div></div>';
-  if (baseTable && baseTable.rows && baseTable.rows.length >= 3) { html += '<div class="ai-data-compare"><div class="ai-data-title">攻防数据对比（赛季/场均）</div>';
+  if (baseStr['积分排名']) {
+    // 双栏排名
+    html += '<div class="ai-rank-dual"><div class="ai-rank-col"><div class="ai-rank-h">' + esc(homeTeam) + '</div><div class="ai-rank-val">' + esc(baseStr['积分排名']).substring(0,40) + '</div></div><div class="ai-rank-col"><div class="ai-rank-h">' + esc(awayTeam) + '</div><div class="ai-rank-val">' + esc(baseStr['积分排名']).substring(40,80) + '</div></div></div>';
+  }
+  if (baseTable && baseTable.rows && baseTable.rows.length >= 3) {
+    html += '<div class="ai-data-compare"><div class="ai-data-title">攻防数据对比</div>';
     baseTable.rows.forEach(function(row) { if (row.length < 3) return; var label = row[0], hv = row[1], av = row[2]; var hn = parseFloat(hv), an = parseFloat(av); var hp = isNaN(hn) || isNaN(an) ? 50 : Math.round(hn / (hn + an) * 100); html += '<div class="ai-data-row"><span class="ai-data-label">' + esc(label) + '</span><span class="ai-data-home">' + esc(hv) + '</span><div class="ai-progress-bar"><div class="ai-progress" style="width:' + hp + '%"></div></div><span class="ai-data-away">' + esc(av) + '</span></div>'; });
-    html += '</div>'; }
+    html += '</div>';
+  }
   if (baseStr['核心结论']) html += '<div class="ai-item-conclusion"><div class="ai-item-label">核心结论</div><div class="ai-item-text">' + esc(baseStr['核心结论']) + '</div></div>';
   html += '</div>';
 
+  // ═══ 02 状态面 ═══
   html += '<div id="ai-sec-02" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">02</span><span class="ai-sec-name">状态面</span></div>';
   var hf = (stateStr['主队近况'] || '').match(/(\d+)胜(\d+)平(\d+)负/), af = (stateStr['客队近况'] || '').match(/(\d+)胜(\d+)平(\d+)负/);
-  html += '<div class="ai-form-title">近6场战绩对比</div>';
+  html += '<div class="ai-form-title">近期战绩对比</div>';
   if (hf) { html += '<div class="ai-form-row"><span class="ai-form-label">' + esc(homeTeam) + '</span>'; for (var i = 0; i < parseInt(hf[1]); i++) html += '<span class="ai-form-dot w">W</span>'; for (i = 0; i < parseInt(hf[2]); i++) html += '<span class="ai-form-dot d">D</span>'; for (i = 0; i < parseInt(hf[3]); i++) html += '<span class="ai-form-dot l">L</span>'; html += '<span class="ai-form-summary">' + hf[1] + 'W ' + hf[2] + 'D ' + hf[3] + 'L</span></div>'; }
   if (af) { html += '<div class="ai-form-row"><span class="ai-form-label">' + esc(awayTeam) + '</span>'; for (var i = 0; i < parseInt(af[1]); i++) html += '<span class="ai-form-dot w">W</span>'; for (i = 0; i < parseInt(af[2]); i++) html += '<span class="ai-form-dot d">D</span>'; for (i = 0; i < parseInt(af[3]); i++) html += '<span class="ai-form-dot l">L</span>'; html += '<span class="ai-form-summary">' + af[1] + 'W ' + af[2] + 'D ' + af[3] + 'L</span></div>'; }
-  if (stateStr['历史对阵']) html += '<div class="ai-item"><div class="ai-item-label">历史对阵</div><div class="ai-item-text">' + esc(stateStr['历史对阵']) + '</div></div>';
+  if (stateStr['历史对阵']) html += '<div class="ai-item"><div class="ai-item-label">历史交锋</div><div class="ai-item-text">' + esc(stateStr['历史对阵']) + '</div></div>';
   var injTable = stateStr['伤病影响'];
-  if (injTable && injTable.rows && injTable.rows.length) { html += '<div class="ai-injury-title">伤停关键对比</div>'; injTable.rows.forEach(function(row) { if (row.length < 3) return; html += '<div class="ai-injury-row"><span class="ai-injury-team">' + esc(row[0]) + '</span><span class="ai-injury-player">' + esc(row[1]) + '</span><span class="ai-injury-status ' + (row[2].indexOf('缺') >= 0 || row[2].indexOf('停') >= 0 ? 'out' : 'doubt') + '">' + esc(row[2]) + '</span>'; if (row[3]) html += '<span class="ai-injury-effect ' + (row[3].indexOf('高') >= 0 ? 'high' : 'low') + '">' + esc(row[3]) + '</span>'; html += '</div>'; }); }
+  if (injTable && injTable.rows && injTable.rows.length) { html += '<div class="ai-injury-title">伤停对比</div>'; injTable.rows.forEach(function(row) { if (row.length < 3) return; html += '<div class="ai-injury-row"><span class="ai-injury-team">' + esc(row[0]) + '</span><span class="ai-injury-player">' + esc(row[1]) + '</span><span class="ai-injury-status ' + (row[2].indexOf('缺') >= 0 || row[2].indexOf('停') >= 0 ? 'out' : 'doubt') + '">' + esc(row[2]) + '</span>'; if (row[3]) html += '<span class="ai-injury-effect ' + (row[3].indexOf('高') >= 0 ? 'high' : 'low') + '">' + esc(row[3]) + '</span>'; html += '</div>'; }); }
   if (stateStr['核心结论']) html += '<div class="ai-item-conclusion"><div class="ai-item-label">核心结论</div><div class="ai-item-text">' + esc(stateStr['核心结论']) + '</div></div>';
   html += '</div>';
 
-  html += '<div id="ai-sec-03" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">03</span><span class="ai-sec-name">动机面</span>'; if (motiStr['概括']) html += '<span class="ai-sec-desc">' + esc(motiStr['概括']) + '</span>'; html += '</div>';
+  // ═══ 03 动机面 ═══
+  html += '<div id="ai-sec-03" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">03</span><span class="ai-sec-name">动机面</span></div>';
   var hs = Math.min(5, Math.max(1, Math.round(Math.random() * 2 + 3))), as = Math.min(5, Math.max(1, Math.round(Math.random() * 2 + 2)));
   html += '<div class="ai-star-row"><span class="ai-star-team">' + esc(homeTeam) + '</span><div class="ai-star-bar"><div class="ai-star-fill" style="width:' + (hs * 20) + '%;background:' + (hs >= 4 ? '#34D399' : '#FBBF24') + '">' + '\u2605'.repeat(hs) + '</div></div><span class="ai-star-rating home">' + hs + '/5</span></div>';
   html += '<div class="ai-star-row"><span class="ai-star-team">' + esc(awayTeam) + '</span><div class="ai-star-bar"><div class="ai-star-fill" style="width:' + (as * 20) + '%;background:' + (as >= 4 ? '#34D399' : '#FBBF24') + '">' + '\u2605'.repeat(as) + '</div></div><span class="ai-star-rating away">' + as + '/5</span></div>';
-  if (motiStr['战意强度']) html += '<div class="ai-item" style="margin-top:8px"><div class="ai-item-text">' + esc(motiStr['战意强度']) + '</div></div>';
+  if (motiStr['战意强度']) html += '<div class="ai-item" style="margin-top:8px"><div class="ai-item-label">战意强度</div><div class="ai-item-text">' + esc(motiStr['战意强度']) + '</div></div>';
   html += '</div>';
 
+  // ═══ 04 对位面 ═══
   html += '<div id="ai-sec-04" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">04</span><span class="ai-sec-name">对位面</span></div>';
   html += '<div class="ai-swp-grid"><div class="ai-swp-col"><div class="ai-swp-title good">\u25b2 主队优势</div>';
-  if (posStr['攻防博弈']) html += '<div class="ai-swp-item">' + esc(posStr['攻防博弈']).substring(0, 70) + '</div>';
-  if (posStr['节奏控制']) html += '<div class="ai-swp-item">' + esc(posStr['节奏控制']).substring(0, 70) + '</div>';
-  html += '</div><div class="ai-swp-col"><div class="ai-swp-title bad">\u25bc 客队弱点</div>';
-  if (posStr['主场氛围']) html += '<div class="ai-swp-item">' + esc(posStr['主场氛围']).substring(0, 70) + '</div>';
-  if (posStr['战术与教练风格']) html += '<div class="ai-swp-item">' + esc(posStr['战术与教练风格']).substring(0, 70) + '</div>';
+  if (posStr['攻防博弈']) html += '<div class="ai-swp-item">' + esc(posStr['攻防博弈']).substring(0, 80) + '</div>';
+  if (posStr['节奏控制']) html += '<div class="ai-swp-item">' + esc(posStr['节奏控制']).substring(0, 80) + '</div>';
+  html += '</div><div class="ai-swp-col"><div class="ai-swp-title bad">\u25bc 客队隐患</div>';
+  if (posStr['主场氛围']) html += '<div class="ai-swp-item">' + esc(posStr['主场氛围']).substring(0, 80) + '</div>';
+  if (posStr['战术与教练风格']) html += '<div class="ai-swp-item">' + esc(posStr['战术与教练风格']).substring(0, 80) + '</div>';
   html += '</div></div>';
-  if (posStr['核心结论']) html += '<div class="ai-item-conclusion amber"><div class="ai-item-label">核心结论</div><div class="ai-item-text">' + esc(posStr['核心结论']) + '</div></div>';
+  if (posStr['核心结论']) html += '<div class="ai-item-conclusion amber"><div class="ai-item-label">综合判断</div><div class="ai-item-text">' + esc(posStr['核心结论']) + '</div></div>';
   html += '</div>';
 
+  // ═══ 05 市场面 ═══
   html += '<div id="ai-sec-05" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">05</span><span class="ai-sec-name">市场面</span></div>';
   var hpct = 41, dpct = 32, apct = 27;
   var pie = 'conic-gradient(' + (hpct ? '#34D399 0deg ' + (hpct * 3.6) + 'deg' : '') + (dpct ? ', #FBBF24 ' + (hpct * 3.6) + 'deg ' + ((hpct + dpct) * 3.6) + 'deg' : '') + (apct ? ', #64748B ' + ((hpct + dpct) * 3.6) + 'deg 360deg' : '') + ')';
-  html += '<div class="ai-pie-wrap"><div class="ai-pie-cir" style="background:' + pie + '"></div><div class="ai-pie-leg"><div class="ai-pie-dot"><span class="ai-pie-c" style="background:#34D399"></span><span style="color:#fff;font-size:12px">主胜</span><span style="color:#94A3B8;margin-left:auto">' + hpct + '%</span></div><div class="ai-pie-dot"><span class="ai-pie-c" style="background:#FBBF24"></span><span style="color:#fff;font-size:12px">平局</span><span style="color:#94A3B8;margin-left:auto">' + dpct + '%</span></div><div class="ai-pie-dot"><span class="ai-pie-c" style="background:#64748B"></span><span style="color:#fff;font-size:12px">客胜</span><span style="color:#94A3B8;margin-left:auto">' + apct + '%</span></div></div></div>';
-  ['盘口与赔率', '大小球', '数据变化解读'].forEach(function(k) { if (mktStr[k]) html += '<div class="ai-item"><div class="ai-item-label">' + esc(k) + '</div><div class="ai-item-text">' + esc(mktStr[k]) + '</div></div>'; });
-  if (mktStr['核心结论']) html += '<div class="ai-item-conclusion amber"><div class="ai-item-label">核心结论</div><div class="ai-item-text">' + esc(mktStr['核心结论']) + '</div></div>';
+  html += '<div class="ai-pie-wrap"><div class="ai-pie-cir" style="background:' + pie + '"></div><div class="ai-pie-leg"><div class="ai-pie-dot"><span class="ai-pie-c" style="background:#34D399"></span><span style="color:#fff">主胜</span><span style="color:var(--text3);margin-left:auto">' + hpct + '%</span></div><div class="ai-pie-dot"><span class="ai-pie-c" style="background:#FBBF24"></span><span style="color:#fff">平局</span><span style="color:var(--text3);margin-left:auto">' + dpct + '%</span></div><div class="ai-pie-dot"><span class="ai-pie-c" style="background:#64748B"></span><span style="color:#fff">客胜</span><span style="color:var(--text3);margin-left:auto">' + apct + '%</span></div></div></div>';
+  ['盘口与赔率', '大小球'].forEach(function(k) { if (mktStr[k]) html += '<div class="ai-item"><div class="ai-item-label">' + esc(k) + '</div><div class="ai-item-text">' + esc(mktStr[k]) + '</div></div>'; });
+  if (mktStr['核心结论']) html += '<div class="ai-item-conclusion amber"><div class="ai-item-label">市场解读</div><div class="ai-item-text">' + esc(mktStr['核心结论']) + '</div></div>';
   html += '</div>';
 
-  html += '<div id="ai-sec-06" class="ai-final-predict"><div class="ai-sec-title"><span class="ai-sec-num">06</span><span class="ai-sec-name">预测建议</span></div><div class="ai-predict-table">';
-  preds.forEach(function(p) { html += '<div class="ai-predict-tr"><span class="ai-predict-td type">' + esc(p['玩法'] || '') + '</span><span class="ai-predict-td suggest">' + esc(p['建议方向'] || '') + '</span><span class="ai-predict-td logic">' + esc(p['核心逻辑'] || '') + '</span><span class="ai-predict-td check">\u2713</span></div>'; });
-  html += '</div><div class="ai-disclaimer">本分析为AI生成，仅供参考，请理性对待</div></div>';
+  // ═══ 06 预测建议 ═══
+  html += '<div id="ai-sec-06" class="ai-section-content" style="border-left-color:rgba(52,211,153,0.3)"><div class="ai-sec-title"><span class="ai-sec-num">06</span><span class="ai-sec-name">预测建议</span></div><div class="ai-predict-table">';
+  preds.forEach(function(p) {
+    html += '<div class="ai-predict-tr"><span class="ai-predict-td type">' + esc(p['玩法'] || '') + '</span><span class="ai-predict-td suggest">' + esc(p['建议方向'] || '') + '</span><span class="ai-predict-td logic">' + esc(p['核心逻辑'] || '') + '</span><span class="ai-predict-td check">\u2713</span></div>';
+  });
+  html += '</div></div>';
+  html += '<div class="ai-disclaimer">本分析为AI生成，仅供参考，请理性对待</div>';
+
   html += '</div>';
   document.getElementById('aiModal').innerHTML = html;
 }
