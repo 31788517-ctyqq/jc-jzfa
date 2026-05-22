@@ -38,5 +38,9 @@ Page({
 
   goHitRate() {
     wx.switchTab({ url: '/pages/hit-rate/hit-rate' });
+  },
+
+  goFilter() {
+    wx.navigateTo({ url: '/pages/filter/filter' });
   }
 });

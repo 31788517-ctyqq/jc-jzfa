@@ -245,6 +245,208 @@ function getDailyTrend(days = 60) {
 }
 
 /**
+ * 获取所有联赛名称列表
+ */
+function getAllLeagues() {
+  const rows = db.prepare('SELECT DISTINCT leagueName FROM matches WHERE leagueName IS NOT NULL AND leagueName != \'\' ORDER BY leagueName').all();
+  return rows.map(r => r.leagueName).filter(Boolean);
+}
+
+/**
+ * 查找已完赛但推荐结果为 null 的比赛（需要回填）
+ * @returns {Array} [{matchId, fetchDate, type}] 需要回填的推荐记录
+ */
+function getStaleRecommendations() {
+  const rows = db.prepare(`
+    SELECT r.matchId, r.fetchDate, r.type, m.matchStatus, m.date as matchDate
+    FROM recommends r
+    JOIN matches m ON r.matchId = m.matchId
+    WHERE r.result IS NULL
+      AND (m.matchStatus >= 2 OR m.date < date('now','localtime','-2 days'))
+    LIMIT 500
+  `).all();
+  return rows;
+}
+
+/**
+ * 更新单条推荐结果
+ */
+function updateRecommendResult(matchId, type, fetchDate, result) {
+  const stmt = db.prepare(`
+    UPDATE recommends SET result = ? WHERE matchId = ? AND type = ? AND fetchDate = ?
+  `);
+  return stmt.run(result, matchId, type, fetchDate);
+}
+
+/**
+ * 获取筛选页顶部统计卡片数据
+ */
+function getFilterStats() {
+  // 完赛场次（有 result 的推荐所关联的去重比赛数）
+  const matchRow = db.prepare(`
+    SELECT COUNT(DISTINCT r.matchId) as cnt
+    FROM recommends r
+    WHERE r.result IS NOT NULL
+  `).get();
+
+  // 完赛涉及的联赛数
+  const leagueRow = db.prepare(`
+    SELECT COUNT(DISTINCT m.leagueName) as cnt
+    FROM matches m
+    INNER JOIN recommends r ON r.matchId = m.matchId
+    WHERE r.result IS NOT NULL AND m.leagueName IS NOT NULL AND m.leagueName != ''
+  `).get();
+
+  // 方向数
+  const dirRow = db.prepare(`
+    SELECT COUNT(DISTINCT r.type) as cnt
+    FROM recommends r
+    WHERE r.result IS NOT NULL
+  `).get();
+
+  return {
+    matchCount: matchRow ? matchRow.cnt : 0,
+    leagueCount: leagueRow ? leagueRow.cnt : 0,
+    directionCount: dirRow ? dirRow.cnt : 0
+  };
+}
+
+/**
+ * 方向类型分类
+ */
+function classifyDirType(type) {
+  if (!type) return '其他';
+  if (['胜', '平', '负'].includes(type)) return '胜平负';
+  if (type.startsWith('让')) return '让球';
+  if (['胜胜', '负负'].includes(type) || type.startsWith('半全场')) return '半全场';
+  if (/^[\d,、]+$/.test(type)) return '进球数';
+  if (type.startsWith('总进球')) return '进球数';
+  if (/[平胜负让球]/.test(type) && (type.includes(',') || type.includes('、'))) return '双选';
+  return '其他';
+}
+
+/**
+ * 获取某一类型的子方向列表
+ */
+function getDirectionsByType(dirType) {
+  const map = {
+    '胜平负': ['胜', '平', '负'],
+    '让球': ['让胜', '让平', '让负'],
+    '进球数': ['1,2', '2,3', '3,4', '1,2,3', '2,3,4', '3,4,5'],
+    '双选': ['平,让平', '让胜,让平', '让平,让负', '胜,平', '平,负'],
+    '半全场': ['胜胜', '负负']
+  };
+  return map[dirType] || [];
+}
+
+/**
+ * 命中率筛选查询
+ * @param {Object} params
+ * @param {string} params.league - 联赛名，空串=全部
+ * @param {string} params.timeRange - 'all'|'30'|'60'|'90'
+ * @param {string} params.directionType - '胜平负'|'让球'|'进球数'|'双选'|'半全场'|''
+ * @param {string} params.direction - 具体方向，空串=该类型全部
+ * @param {number} params.rankTop - 0=全部, 1=第一名, 2=前二名...
+ */
+function getFilterRate(params) {
+  const { league = '', timeRange = 'all', directionType = '', direction = '', rankTop = 0 } = params;
+
+  let conditions = [];
+  let bindParams = {};
+
+  // 时间筛选
+  if (timeRange !== 'all') {
+    const days = parseInt(timeRange, 10);
+    conditions.push("m.date >= date('now','localtime','-' || @days || ' days')");
+    bindParams.days = days;
+  }
+
+  // 联赛筛选
+  if (league) {
+    conditions.push('m.leagueName = @league');
+    bindParams.league = league;
+  }
+
+  // 方向筛选
+  let dirList = [];
+  if (directionType) {
+    if (direction) {
+      // 指定了具体方向
+      dirList = [direction];
+    } else {
+      // 仅指定类型，取该类型下所有子方向
+      dirList = getDirectionsByType(directionType);
+    }
+  }
+
+  // 构建方向过滤条件
+  let dirCondition = '';
+  if (dirList.length > 0) {
+    const placeholders = dirList.map((d, i) => {
+      const key = `dir_${i}`;
+      bindParams[key] = d;
+      return `@${key}`;
+    }).join(',');
+    dirCondition = `AND r.type IN (${placeholders})`;
+  }
+
+  const whereStr = conditions.length > 0 ? 'AND ' + conditions.join(' AND ') : '';
+
+  // 主查询：带排名
+  const sql = `
+    WITH ranked AS (
+      SELECT r.matchId, r.type, r.num, r.result,
+             m.homeName, m.visitName, m.leagueName, m.num as matchNum, m.date,
+             ROW_NUMBER() OVER (PARTITION BY r.matchId ORDER BY r.num DESC) as rn
+      FROM recommends r
+      JOIN matches m ON r.matchId = m.matchId
+      WHERE r.result IS NOT NULL
+        ${whereStr}
+        ${dirCondition}
+    ),
+    filtered AS (
+      SELECT *
+      FROM ranked
+      WHERE @rankTop = 0 OR rn <= @rankTop
+    )
+    SELECT 
+      matchId, type as direction, num as expertCount, result,
+      homeName, visitName, leagueName, matchNum, date, rn as rank
+    FROM filtered
+    ORDER BY date DESC, rn ASC
+  `;
+
+  bindParams.rankTop = rankTop;
+
+  const detailRows = db.prepare(sql).all(bindParams);
+  const hitCount = detailRows.filter(r => r.result === 1).length;
+  const totalCount = detailRows.length;
+  const hitRate = totalCount > 0 ? Math.round(hitCount / totalCount * 1000) / 10 : 0;
+
+  // 构建条件摘要
+  const parts = [];
+  if (league) parts.push(league);
+  if (timeRange === '30') parts.push('近一个月');
+  else if (timeRange === '60') parts.push('近两个月');
+  else if (timeRange === '90') parts.push('近三个月');
+  if (direction && directionType) parts.push(direction);
+  else if (directionType) parts.push(directionType);
+  if (rankTop > 0) {
+    const rankLabels = ['', '第一名', '前二名', '前三名', '前四名', '前五名', '前六名'];
+    parts.push(rankLabels[rankTop] || `前${rankTop}名`);
+  }
+  const conditionSummary = parts.length > 0 ? parts.join(' | ') : '全部条件';
+
+  return {
+    hitCount,
+    totalCount,
+    hitRate,
+    conditionSummary,
+    detailList: detailRows
+  };
+}
+
+/**
  * 关闭数据库连接
  */
 function closeDatabase() {
@@ -265,5 +467,10 @@ module.exports = {
   getAllMatches,
   getHitRateStats,
   getDailyTrend,
+  getAllLeagues,
+  getStaleRecommendations,
+  updateRecommendResult,
+  getFilterStats,
+  getFilterRate,
   closeDatabase
 };

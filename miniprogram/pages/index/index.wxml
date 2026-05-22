@@ -50,11 +50,11 @@
       </view>
       <text class="entry-arrow">›</text>
     </view>
-    <view class="entry-item glass-card" bindtap="goHitRate">
+    <view class="entry-item glass-card" bindtap="goFilter">
       <view class="entry-icon entry-target"><view></view></view>
       <view class="entry-copy">
-        <text class="entry-title">命中率统计</text>
-        <text class="entry-desc">近60天各方向命中率分析</text>
+        <text class="entry-title">命中率筛选</text>
+        <text class="entry-desc">通过设置条件查看命中率</text>
       </view>
       <text class="entry-arrow">›</text>
     </view>

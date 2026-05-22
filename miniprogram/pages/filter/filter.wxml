@@ -1,0 +1,128 @@
+<view class="app-page filter-page">
+  <!-- 导航栏 -->
+  <view class="page-head">
+    <view class="nav-round" bindtap="goBack">←</view>
+    <text class="page-title">命中率筛选</text>
+    <view class="nav-round"></view>
+  </view>
+
+  <!-- 筛选条件区 -->
+  <view class="filter-section glass-card">
+    <text class="section-label">筛选条件</text>
+
+    <!-- 联赛 -->
+    <view class="filter-row">
+      <text class="filter-label">联赛</text>
+      <picker class="filter-picker" mode="selector" range="{{leagueOptions}}" value="{{leagueIndex}}" bindchange="onLeagueChange">
+        <view class="picker-value">{{leagueOptions[leagueIndex] || '全部'}}</view>
+        <t-icon name="chevron-down" size="32rpx" color="rgba(255,255,255,0.6)" />
+      </picker>
+    </view>
+
+    <!-- 时间 -->
+    <view class="filter-row">
+      <text class="filter-label">时间</text>
+      <picker class="filter-picker" mode="selector" range="{{timeOptions}}" value="{{timeIndex}}" bindchange="onTimeChange">
+        <view class="picker-value">{{timeOptions[timeIndex] || '全部时间'}}</view>
+        <t-icon name="chevron-down" size="32rpx" color="rgba(255,255,255,0.6)" />
+      </picker>
+    </view>
+
+    <!-- 方向 - 两级 -->
+    <view class="filter-row">
+      <text class="filter-label">方向</text>
+      <view class="direction-selector">
+        <picker class="filter-picker direction-picker" mode="selector" range="{{directionTypeOptions}}" value="{{directionTypeIndex}}" bindchange="onDirectionTypeChange">
+          <view class="picker-value">{{directionTypeOptions[directionTypeIndex] || '全部'}}</view>
+          <t-icon name="chevron-down" size="32rpx" color="rgba(255,255,255,0.6)" />
+        </picker>
+        <picker wx:if="{{showDirection}}" class="filter-picker direction-picker" mode="selector" range="{{directionOptions}}" value="{{directionIndex}}" bindchange="onDirectionChange">
+          <view class="picker-value">{{directionOptions[directionIndex] || '全部'}}</view>
+          <t-icon name="chevron-down" size="32rpx" color="rgba(255,255,255,0.6)" />
+        </picker>
+      </view>
+    </view>
+
+    <!-- 排名 -->
+    <view class="filter-row">
+      <text class="filter-label">排名</text>
+      <picker class="filter-picker" mode="selector" range="{{rankOptions}}" value="{{rankIndex}}" bindchange="onRankChange">
+        <view class="picker-value">{{rankOptions[rankIndex] || '全部'}}</view>
+        <t-icon name="chevron-down" size="32rpx" color="rgba(255,255,255,0.6)" />
+      </picker>
+    </view>
+
+    <!-- 查询按钮 -->
+    <view class="filter-btn" bindtap="doQuery">
+      <text>查询</text>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-wrap">
+    <t-loading loading size="40rpx" />
+  </view>
+
+  <!-- 结果区域 -->
+  <block wx:elif="{{queried}}">
+    <!-- 空结果 -->
+    <view wx:if="{{totalCount === 0}}" class="empty-wrap">
+      <t-empty description="暂无符合条件的数据" />
+    </view>
+
+    <!-- 结果卡片 + 列表 -->
+    <block wx:else>
+      <!-- 结果摘要卡片 -->
+      <view class="result-card glass-card fade-in">
+        <view class="condition-summary">{{conditionSummary}}</view>
+        <view class="result-stats">
+          <view class="result-main">
+            <text class="hit-num">{{hitCount}}</text>
+            <text class="result-divider">/</text>
+            <text class="total-num">{{totalCount}}</text>
+          </view>
+          <view class="result-labels">
+            <text class="result-label">命中场次 / 符合条件场次</text>
+          </view>
+        </view>
+        <view class="hit-rate-display">
+          <view class="rate-circle {{hitRate >= 50 ? 'good' : hitRate >= 40 ? 'normal' : 'low'}}">
+            <text class="rate-val">{{hitRate}}%</text>
+          </view>
+          <text class="rate-title">命中率</text>
+        </view>
+      </view>
+
+      <!-- 详情列表 -->
+      <view class="detail-section glass-card" wx:if="{{detailList.length > 0}}">
+        <text class="block-title">比赛详情 ({{detailList.length}}条)</text>
+        <scroll-view scroll-y="true" class="detail-scroll" enhanced show-scrollbar="{{false}}">
+          <view class="detail-item" wx:for="{{detailList}}" wx:key="matchId">
+            <view class="detail-head">
+              <text class="detail-num">{{item.num}}</text>
+              <text class="detail-league">{{item.leagueName}}</text>
+              <view class="detail-result {{item.result === 1 ? 'hit' : 'miss'}}">
+                {{item.result === 1 ? '中' : '错'}}
+              </view>
+            </view>
+            <view class="detail-main">
+              <text class="detail-teams">{{item.homeName}} vs {{item.visitName}}</text>
+            </view>
+            <view class="detail-meta">
+              <text class="detail-date">{{item.date}}</text>
+              <text class="detail-dir">方向: {{item.direction}}</text>
+              <text class="detail-experts">{{item.expertCount}}位专家</text>
+              <text class="detail-rank" wx:if="{{item.rank}}">第{{item.rank}}名</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+    </block>
+  </block>
+
+  <!-- 初始状态提示 -->
+  <view wx:if="{{!loading && !queried}}" class="hint-wrap">
+    <text class="hint-emoji">🔍</text>
+    <text class="hint-text">选择筛选条件后点击"查询"按钮</text>
+  </view>
+</view>
