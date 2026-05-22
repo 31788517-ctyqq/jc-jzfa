@@ -4,8 +4,102 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>竞彩推荐监控</title>
-<script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="preconnect" href="https://zj.100qiu.com">
+<link rel="preload" href="/style.css?v=5" as="style">
+<link rel="preload" href="/app.js?v=5" as="script">
+<style>
+:root {
+  --cyan: #18E0E0;
+  --cyan-glow: rgba(24, 224, 224, 0.25);
+  --cyan-subtle: rgba(24, 224, 224, 0.1);
+  --green: #34D399;
+  --red: #EF4444;
+  --amber: #FBBF24;
+  --bg: #06131B;
+  --bg2: #091720;
+  --card: rgba(8, 22, 32, 0.88);
+  --card-border: rgba(24, 224, 224, 0.15);
+  --text: #F1F5F9;
+  --text2: #94A3B8;
+  --text3: #64748B;
+  --radius: 16px;
+  --radius-sm: 12px;
+  --safe-bottom: env(safe-area-inset-bottom, 0);
+  --font: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  /* 字号层级 */
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-base: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 18px;
+  --fs-2xl: 20px;
+  --fs-num: 34px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font);
+  font-size: var(--fs-base);
+  background: linear-gradient(180deg, #08131c 0%, var(--bg) 100%);
+  color: var(--text);
+  max-width: 420px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-top: 96px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 导航栏 */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  width: 100%;
+  max-width: 420px;
+  z-index: 100;
+  padding: 48px 16px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  transition: transform 0.3s ease;
+}
+.nav-logo {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-logo svg { width: 100%; height: 100%; }
+.navbar.hidden { transform: translateX(-50%) translateY(-100%); }
+.nav-title {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-align: left;
+}
+.nav-back {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0,245,233,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cyan);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.back-btn { font-size: 20px; color: var(--text); }
+.menu-btn
+</style>
+<link rel="stylesheet" href="style.css?v=5" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="style.css?v=5"></noscript>
 </head>
 <body>
 
@@ -195,6 +289,7 @@
 </div>
 
 
-<script src="app.js?v=4"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js" defer></script>
+<script src="app.js?v=5" defer></script>
 </body>
 </html>
