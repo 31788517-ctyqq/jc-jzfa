@@ -1180,7 +1180,6 @@ body {
 .ai-predict-icon { font-size: 16px; flex-shrink: 0; }
 .ai-predict-name { font-size: 11px; color: #7A8B9A; font-weight: 600; }
 .ai-predict-value { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 6px; }
-.ai-predict-green { color: #34D399; }
 .ai-predict-line { height: 1px; background: rgba(255,255,255,0.06); margin: 0 0 6px; }
 .ai-predict-sub { font-size: 10px; color: #7A8B9A; line-height: 1.4; }
 
@@ -2379,10 +2378,9 @@ function renderAIContent(content, homeTeam, awayTeam) {
   html += '<div class="ai-predict-row">';
   preds.forEach(function(p, i) {
     var val = esc(p['建议方向'] || '');
-    var isHome = val.indexOf('主') >= 0 || val.indexOf('胜') >= 0 || val.indexOf(homeTeam[0]) >= 0;
     html += '<div class="ai-predict-card">';
     html += '<div class="ai-predict-head"><span class="ai-predict-icon">' + (icons[i] || '●') + '</span><span class="ai-predict-name">' + esc(p['玩法'] || '') + '</span></div>';
-    html += '<div class="ai-predict-value' + (isHome ? ' ai-predict-green' : '') + '">' + val + '</div>';
+    html += '<div class="ai-predict-value">' + val + '</div>';
     html += '<div class="ai-predict-line"></div>';
     html += '<div class="ai-predict-sub">' + clip(esc(p['核心逻辑'] || ''), 50) + '</div>';
     html += '</div>';
