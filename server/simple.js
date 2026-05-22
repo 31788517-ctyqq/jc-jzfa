@@ -415,7 +415,7 @@ app.post('/api',function(req,res){
     if(tr=='30')p.push('近30天');else if(tr=='60')p.push('近60天');else if(tr=='90')p.push('近90天');
     if(dt==='综合排名')p.push('综合排名');
     if(dir&&dt)p.push(dir);else if(dt&&dt!=='综合排名')p.push(dt);
-    if(rankType!=='全部'&&rt>0){var rl=['','第一名','前二名','前三名','前四名','前五名','前六名'];p.push(rankType+'-'+rl[rt])}
+    if(rankType!=='全部'&&rt>0){var rl=['','第一名','前二名','前三名','前四名','前五名','前六名'];var rkName=rankType==='每场'?'当天所有场次':rankType;p.push(rkName+'-'+rl[rt])}
     // 生成 dailyResults：与筛选时间范围同步
     var daysCount=tr==='all'?30:(parseInt(tr)||30);dailyMap={};today=new Date(),todayStr=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
     for(var i=0;i<daysCount;i++){var dt2=new Date(today);dt2.setDate(dt2.getDate()-i-1);var ds=dt2.getFullYear()+'-'+String(dt2.getMonth()+1).padStart(2,'0')+'-'+String(dt2.getDate()).padStart(2,'0');dailyMap[ds]={matchMax:{},matchHit:{}}}

@@ -451,7 +451,8 @@ function getFilterRate(params) {
   else if (directionType && directionType !== '综合排名') parts.push(directionType);
   if (rankType !== '全部' && rankTop > 0) {
     const rankLabels = ['', '第一名', '前二名', '前三名', '前四名', '前五名', '前六名'];
-    parts.push(rankType + '-' + rankLabels[rankTop]);
+    const rkName = rankType === '每场' ? '当天所有场次' : rankType;
+    parts.push(rkName + '-' + rankLabels[rankTop]);
   }
   const conditionSummary = parts.length > 0 ? parts.join(' | ') : '全部条件';
 
