@@ -423,14 +423,20 @@ app.post('/api',function(req,res){
       recs.forEach(function(x,i){detail.push({matchId:mid,num:match.num||'',homeName:match.homeName||'',visitName:match.visitName||'',leagueName:match.leagueName||'',date:match.date||'',direction:x.type,expertCount:x.num||0,result:x.result,rank:i+1})})
     });
     detail.sort(function(a,b){return a.date>b.date?-1:a.date<b.date?1:a.rank-b.rank});
-    // 生成 dailyResults：与筛选时间范围同步
-    var daysCount=tr==='all'?30:(parseInt(tr)||30);dailyMap={};today=new Date(),todayStr=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
-    for(var i=0;i<daysCount;i++){var dt2=new Date(today);dt2.setDate(dt2.getDate()-i-1);var ds=dt2.getFullYear()+'-'+String(dt2.getMonth()+1).padStart(2,'0')+'-'+String(dt2.getDate()).padStart(2,'0');dailyMap[ds]={matchMax:{},matchHit:{}}}
+    // 生成 dailyResults：从 detail 中收集实际日期
+    var dateSet={};detail.forEach(function(x){if(x.date){dateSet[x.date.slice(0,10)]=true}});
+    var sortedDates=Object.keys(dateSet).sort().reverse();
+    // 限制展示条数：全部时间最多60天，指定时间范围则匹配
+    var showDays=tr==='all'?60:(parseInt(tr)||30);
+    sortedDates=sortedDates.slice(0,showDays);
+    // 构建 dailyMap
+    dailyMap={};
+    sortedDates.forEach(function(ds){dailyMap[ds]={matchMax:{},matchHit:{}}});
     detail.forEach(function(x){if(x.date){var dd=x.date.slice(0,10);if(dailyMap[dd]){if(!dailyMap[dd].matchMax[x.matchId]||dailyMap[dd].matchMax[x.matchId]<x.expertCount)dailyMap[dd].matchMax[x.matchId]=x.expertCount;if(x.result===1)dailyMap[dd].matchHit[x.matchId]=1}}});
     var dailyResults=[];
     var isDaily=(rankType==='每天'&&rt>0);var isPerMatch=(rankType==='每场'&&rt>0);
     var totalTc=0,totalHc=0;
-    Object.keys(dailyMap).sort().reverse().slice(0,30).forEach(function(k){
+    sortedDates.forEach(function(k){
       var m=dailyMap[k];
       var selected=[],tm=0,hm=0;
       if(isDaily){
