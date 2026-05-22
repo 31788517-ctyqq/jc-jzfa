@@ -393,6 +393,37 @@ app.post('/api', async (req, res) => {
         });
       }
 
+      // ========== AI 预测 ==========
+      case 'ai-predict': {
+        const mid = data.matchId;
+        if (!mid) return res.json({ code: 0, msg: '缺少 matchId' });
+        try {
+          const cached = database.getAIPrediction(mid);
+          if (cached && cached.content) return res.json({ code: 1, data: { matchId: mid, content: cached.content, confidence: cached.confidence || 0, fromCache: true } });
+          // 无缓存，异步生成
+          const m = database.getRecommendsByMatchId(mid);
+          const matchInfo = { matchId: mid, homeName: (m && m.homeName) || '', visitName: (m && m.visitName) || '', leagueName: (m && m.leagueName) || '', date: (m && m.date) || '', num: (m && m.num) || '' };
+          res.json({ code: 0, msg: '分析未就绪，正在后台生成中，请稍后刷新', pending: true });
+          const ds = require('./deepseek');
+          ds.generateAnalysis(matchInfo).then(r => {
+            if (r.content) {
+              database.upsertAIPrediction(mid, { ...matchInfo, content: r.content, confidence: (r.content && r.content.confidence) || 0, rawResponse: r.rawResponse || '', tokenUsage: r.tokenUsage || 0 });
+            }
+          }).catch(e => console.error('[ai] index.js 生成失败', mid, e.message));
+          return;
+        } catch (e) { return res.json({ code: 0, msg: '查询失败: ' + e.message }); }
+      }
+      case 'ai-predict-status': {
+        try {
+          const summary = database.getTodayMatchSummary();
+          return res.json({ code: 1, data: summary });
+        } catch (e) { return res.json({ code: 0, msg: e.message }); }
+      }
+      case 'ai-batch-generate': {
+        const daemon = require('./ai_daemon'); daemon.dailyBatch();
+        return res.json({ code: 1, data: { message: 'AI批量生成已启动' } });
+      }
+
       case 'filter-stats': {
         try {
           const stats = database.getFilterStats();

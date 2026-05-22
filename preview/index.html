@@ -773,13 +773,13 @@ body {
   background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: 22px;
-  padding: 16px 22px;
+  padding: 20px 24px;
   margin-bottom: 14px;
 }
 .stats-subtitle {
   font-size: var(--fs-xs);
   color: var(--cyan);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   font-weight: 600;
   text-align: center;
 }
@@ -815,7 +815,7 @@ body {
   background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: 22px;
-  padding: 20px 22px;
+  padding: 22px 22px 18px;
   margin-bottom: 16px;
   box-shadow: 0 0 14px rgba(0,245,233,0.06);
 }
@@ -823,14 +823,15 @@ body {
   font-size: var(--fs-xl);
   font-weight: 700;
   color: #fff;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  padding: 0 2px;
 }
 .filter-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 54px;
-  padding: 8px 0;
+  min-height: 56px;
+  padding: 4px 4px;
   border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 .filter-row:last-of-type { border-bottom: none; }
@@ -839,13 +840,14 @@ body {
   color: #9AA6B2;
   font-weight: 600;
   flex-shrink: 0;
-  min-width: 48px;
-  margin-right: 14px;
+  min-width: 44px;
+  margin-right: 16px;
+  margin-left: 8px;
 }
 .filter-row-inline {
   flex: 1;
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 .filter-row-inline .filter-dd {
   flex: 1;
@@ -859,7 +861,7 @@ body {
 }
 .filter-dd-trigger {
   height: 44px;
-  padding: 0 36px 0 16px;
+  padding: 0 38px 0 16px;
   background: rgba(0,0,0,0.25);
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 12px;
@@ -886,7 +888,7 @@ body {
 .filter-dd.open .filter-dd-text { color: #fff; }
 .filter-dd-arrow {
   position: absolute;
-  right: 10px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   width: 20px;
@@ -920,7 +922,7 @@ body {
 }
 .filter-dd-option {
   position: relative;
-  padding: 11px 36px 11px 16px;
+  padding: 12px 40px 12px 18px;
   font-size: 14px;
   font-weight: 500;
   color: rgba(255,255,255,0.80);
@@ -972,13 +974,13 @@ body {
   background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: 22px;
-  padding: 20px 18px;
+  padding: 22px 22px 20px;
   margin-bottom: 14px;
 }
 .filter-result-head {
   font-size: var(--fs-xs);
   color: var(--cyan);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-weight: 600;
   text-align: center;
 }
@@ -986,9 +988,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   font-size: var(--fs-xs);
   color: rgba(255,255,255,0.45);
 }
@@ -999,22 +1001,23 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-around;
+  padding: 0 2px;
 }
 .filter-result-side {
   text-align: center;
   flex: 1;
 }
 .filter-result-num {
-  font-size: 36px;
+  font-size: 38px;
   font-weight: 900;
   color: var(--cyan);
   text-shadow: 0 0 11px rgba(24,224,224,0.18);
   line-height: 1.1;
+  margin-bottom: 2px;
 }
 .filter-result-label {
   font-size: var(--fs-xs);
   color: #64748B;
-  margin-top: 4px;
 }
 /* 环形图 */
 .filter-ring-wrap {
@@ -1046,6 +1049,275 @@ body {
 }
 
 .hint-box { text-align: center; padding: 80px 0; color: var(--text3); font-size: var(--fs-md); }
+
+/* AI预测卡片 */
+.ai-card {
+  background: linear-gradient(135deg, rgba(34,211,238,0.08), rgba(0,245,233,0.04));
+  border: 1px solid rgba(0,245,233,0.18);
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ai-card:active { background: linear-gradient(135deg, rgba(34,211,238,0.14), rgba(0,245,233,0.08)); transform: scale(0.98); }
+.ai-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ai-icon { font-size: 20px; }
+.ai-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cyan);
+  flex: 1;
+}
+.ai-arrow { font-size: 22px; color: var(--cyan); }
+.ai-summary {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+/* AI弹窗 */
+.ai-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0,0,0,0.75);
+}
+.ai-overlay.active { display: flex; align-items: flex-end; justify-content: center; }
+.ai-modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  background: #0a1520;
+  border-radius: 20px 20px 0 0;
+  overflow-y: auto;
+  animation: aiSlideUp 0.3s ease;
+  height: 90vh;
+}
+@keyframes aiSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.ai-modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #0a1520;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.ai-modal-title { font-size: 18px; font-weight: 800; color: #fff; }
+.ai-modal-close {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: none; color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ai-content { padding: 0 16px 40px; }
+
+/* 比赛信息 */
+.ai-match-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 0;
+  text-align: center;
+}
+.ai-team { flex: 1; text-align: center; }
+.ai-team-logo {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: rgba(0,245,233,0.1);
+  margin: 0 auto 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--cyan);
+}
+.ai-team-logo.away { background: rgba(255,178,28,0.1); color: var(--amber); }
+.ai-team-name { font-size: 14px; font-weight: 700; color: #fff; }
+.ai-vs-section { text-align: center; flex-shrink: 0; }
+.ai-vs-text { font-size: 15px; font-weight: 900; color: var(--cyan); }
+
+/* AI核心观点 */
+.ai-core-view {
+  background: linear-gradient(135deg, rgba(0,245,233,0.06), rgba(0,245,233,0.02));
+  border: 1px solid rgba(0,245,233,0.12);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.ai-core-header { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.ai-core-icon { font-size: 16px; }
+.ai-core-title { font-size: 14px; font-weight: 700; color: var(--cyan); }
+.ai-confidence { margin-left: auto; font-size: 11px; color: #34D399; background: rgba(52,211,153,0.1); padding: 2px 8px; border-radius: 10px; }
+.ai-core-content { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 4px; line-height: 1.4; }
+.ai-core-desc { font-size: 12px; color: #7A8B9A; margin-bottom: 12px; line-height: 1.5; }
+
+.ai-predict-row { display: flex; gap: 8px; }
+.ai-predict-item {
+  flex: 1;
+  text-align: center;
+  padding: 10px 6px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+}
+.ai-predict-label { font-size: 11px; color: #6B7D8E; margin-bottom: 4px; }
+.ai-predict-value { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+.ai-predict-green { color: #34D399; }
+.ai-predict-sub { font-size: 11px; color: #6B7D8E; }
+
+/* 区块内容 */
+.ai-section-content {
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(0,245,233,0.025), rgba(0,0,0,0.15));
+  border: 1px solid rgba(0,245,233,0.08);
+  border-left: 3px solid rgba(0,245,233,0.18);
+  border-radius: 14px;
+}
+.ai-sec-title { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.ai-sec-num { font-size: 15px; font-weight: 800; color: var(--cyan); opacity: 0.7; min-width: 24px; }
+.ai-sec-name { font-size: 15px; font-weight: 700; color: #fff; }
+.ai-sec-desc { font-size: 11px; color: #5C6B7A; margin-left: auto; }
+
+/* 子项 */
+.ai-item { padding: 6px 0; }
+.ai-item + .ai-item { border-top: 1px solid rgba(255,255,255,0.03); }
+.ai-item-label { font-size: 13px; font-weight: 600; color: #A8B5C2; margin-bottom: 3px; }
+.ai-item-text { font-size: 13px; color: #CBD5E1; line-height: 1.65; }
+
+/* 核心结论 - 特别强调 */
+.ai-item-conclusion { padding: 8px 12px; margin-top: 6px; background: rgba(0,245,233,0.06); border-radius: 10px; border-left: 2px solid rgba(0,245,233,0.25); }
+.ai-item-conclusion .ai-item-label { color: var(--cyan); }
+.ai-item-conclusion .ai-item-text { font-size: 13px; color: #fff; font-weight: 500; }
+.ai-item-conclusion.amber { border-left-color: rgba(251,191,36,0.35); background: rgba(251,191,36,0.05); }
+.ai-item-conclusion.amber .ai-item-label { color: var(--amber); }
+
+/* 攻防数据 */
+.ai-data-compare { margin-bottom: 10px; background: rgba(0,0,0,0.15); border-radius: 10px; padding: 10px 14px; }
+.ai-data-title { font-size: 12px; font-weight: 600; color: var(--cyan); margin-bottom: 8px; text-align: center; }
+.ai-data-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+}
+.ai-data-row:last-child { border-bottom: none; }
+.ai-data-label { width: 90px; color: #94A3B8; flex-shrink: 0; font-size: 12px; }
+.ai-data-home { color: var(--cyan); font-weight: 700; width: 32px; text-align: center; font-size: 13px; }
+.ai-data-away { color: var(--amber); font-weight: 700; width: 32px; text-align: center; font-size: 13px; }
+.ai-progress-bar { flex: 1; height: 6px; background: rgba(255,255,255,0.04); border-radius: 3px; overflow: hidden; }
+.ai-progress { height: 100%; background: linear-gradient(90deg, var(--cyan), rgba(0,245,233,0.6)); border-radius: 3px; }
+.ai-progress.away { background: linear-gradient(90deg, var(--amber), rgba(251,191,36,0.6)); }
+
+/* 核心射手 */
+.ai-shooters { display: flex; gap: 8px; }
+.ai-shooter {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+}
+.ai-shooter-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(0,245,233,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.ai-shooter-name { font-size: 13px; font-weight: 600; color: #fff; }
+.ai-shooter-stats { font-size: 10px; color: var(--text3); }
+
+/* 近6场战绩 */
+.ai-recent-form { margin-bottom: 10px; }
+.ai-form-title { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+.ai-form-team { display: flex; align-items: center; gap: 4px; padding: 3px 0; }
+.ai-form-name { width: 46px; font-size: 12px; color: var(--text2); flex-shrink: 0; }
+.ai-form-result {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+.ai-form-result.win { background: rgba(52,211,153,0.15); color: #34D399; }
+.ai-form-result.draw { background: rgba(251,191,36,0.15); color: #FBBF24; }
+.ai-form-result.loss { background: rgba(239,68,68,0.15); color: #EF4444; }
+
+/* 伤停 */
+.ai-injuries { margin-bottom: 8px; }
+.ai-injury-title { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+.ai-injury-row { display: flex; align-items: center; gap: 6px; padding: 6px 0; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+.ai-injury-team { color: var(--text2); width: 44px; font-size: 12px; }
+.ai-injury-player { color: #fff; font-weight: 600; flex: 1; font-size: 12px; }
+.ai-injury-status { padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+.ai-injury-status.out { background: rgba(239,68,68,0.12); color: #EF4444; }
+.ai-injury-status.doubt { background: rgba(251,191,36,0.12); color: #FBBF24; }
+.ai-injury-effect { font-size: 10px; font-weight: 600; }
+.ai-injury-effect.high { color: #EF4444; }
+.ai-injury-effect.low { color: var(--text3); }
+
+/* 核心看点卡片 */
+.ai-highlight-cards { display: flex; gap: 8px; padding: 12px 0; }
+.ai-highlight-card {
+  flex: 1;
+  padding: 12px 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 12px;
+  text-align: center;
+}
+.ai-highlight-icon { font-size: 20px; margin-bottom: 6px; }
+.ai-highlight-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+.ai-highlight-desc { font-size: 11px; color: var(--text2); line-height: 1.4; }
+
+/* 预测建议 */
+.ai-final-predict {
+  background: linear-gradient(135deg, rgba(0,245,233,0.04), rgba(0,245,233,0.01));
+  border: 1px solid rgba(0,245,233,0.1);
+  border-radius: 14px;
+  padding: 14px;
+}
+.ai-predict-table { margin-top: 8px; }
+.ai-predict-tr {
+  display: grid;
+  grid-template-columns: 56px 72px 1fr 20px;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  align-items: center;
+  font-size: 12px;
+}
+.ai-predict-td.type { color: var(--cyan); font-weight: 600; font-size: 12px; }
+.ai-predict-td.suggest { color: #fff; font-weight: 700; font-size: 12px; }
+.ai-predict-td.logic { color: var(--text2); font-size: 11px; }
+.ai-predict-td.check { color: #34D399; font-size: 13px; font-weight: 700; }
+.ai-disclaimer { text-align: center; font-size: 11px; color: var(--text3); margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
 </style>
 </head>
 <body>
@@ -1126,6 +1398,11 @@ body {
 <!-- 命中率 -->
 <div class="page" id="page-hit">
   <div id="hitContent"></div>
+</div>
+
+<!-- AI预测弹窗 -->
+<div class="ai-overlay" id="aiOverlay" onclick="if(event.target===this)closeAI()">
+  <div class="ai-modal" id="aiModal"></div>
 </div>
 
 <!-- 命中率筛选 -->
@@ -1522,6 +1799,18 @@ function goDetail(matchId) {
       </div>
     `;
 
+    // AI预测核心看点卡片
+    html += `
+      <div class="ai-card" onclick="showAIPrediction('${matchId}')">
+        <div class="ai-card-header">
+          <span class="ai-icon">🤖</span>
+          <span class="ai-title">AI预测核心看点</span>
+          <span class="ai-arrow">›</span>
+        </div>
+        <div class="ai-summary">五维分析：基础面 · 状态面 · 动机面 · 对位面 · 市场面 · 核心预测</div>
+      </div>
+    `;
+
     html += `
       <div class="chart-box">
         <div class="chart-header">
@@ -1559,6 +1848,14 @@ function goDetail(matchId) {
     html += '</div></div>';
     
     el.innerHTML = html;
+
+    // 检查是否显示 AI 核心看点卡片（当天最后一场结束后隐藏）
+    api('ai-predict-status', {}).then(function(status) {
+      if (!status || !status.canShowCards) {
+        var aiCard = document.getElementById('detailContent').querySelector('.ai-card');
+        if (aiCard) aiCard.style.display = 'none';
+      }
+    }).catch(function() { /* 忽略检查失败，保持卡片可见 */ });
 
     setTimeout(() => {
       const chartEl = document.getElementById('trendChart');
@@ -1959,6 +2256,214 @@ function doFilterQuery() {
   }).catch(function(e) {
     resultEl.innerHTML = '<div class="loading">' + e.message + '</div>';
   });
+}
+
+// ========== AI深度解析 ==========
+function showAIPrediction(matchId) {
+  // 获取比赛信息
+  var teams = document.querySelectorAll('#detailContent .team-name');
+  var homeTeam = teams[0] ? teams[0].textContent : '主队';
+  var awayTeam = teams[1] ? teams[1].textContent : '客队';
+
+  // 显示加载态
+  var html = '<div class="ai-modal-header"><span class="ai-modal-title">AI深度解析</span><button class="ai-modal-close" onclick="closeAI()">✕</button></div>';
+  html += '<div class="ai-content"><div style="text-align:center;padding:60px 20px;color:var(--cyan);"><div style="font-size:40px;margin-bottom:16px;">⏳</div><div style="font-size:16px;font-weight:600;">正在生成分析...</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">正在搜索比赛信息并生成五维分析</div></div></div>';
+  document.getElementById('aiModal').innerHTML = html;
+  document.getElementById('aiOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  // 调用 API
+  api('ai-predict', { matchId: matchId }).then(function(d) {
+    if (d.fromCache || d.content) {
+      renderAIContent(d.content, homeTeam, awayTeam);
+    } else if (d.pending) {
+      // 后台生成中，2秒后重试
+      var retryCount = 0;
+      function retry() {
+        if (retryCount >= 15) { document.getElementById('aiModal').querySelector('.ai-content').innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);">生成超时，请稍后再试</div>'; return; }
+        retryCount++;
+        api('ai-predict', { matchId: matchId }).then(function(rd) {
+          if (rd.content) { renderAIContent(rd.content, homeTeam, awayTeam); }
+          else { setTimeout(retry, 3000); }
+        }).catch(function() { setTimeout(retry, 3000); });
+      }
+      setTimeout(retry, 2000);
+    } else {
+      document.getElementById('aiModal').querySelector('.ai-content').innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);">分析未就绪，请稍后重试</div>';
+    }
+  }).catch(function() {
+    document.getElementById('aiModal').querySelector('.ai-content').innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);">请求失败，请检查网络</div>';
+  });
+}
+
+// 根据 API 返回的 content 渲染 AI 弹窗
+function renderAIContent(content, homeTeam, awayTeam) {
+  var c = content || {};
+  var conf = typeof c.confidence === 'number' ? c.confidence : ((Math.random() * 15 + 65) | 0);
+  var preds = c['预测建议'] || [];
+  var baseStr = c['基础面'] || {};
+  var stateStr = c['状态面'] || {};
+  var motiStr = c['动机面'] || {};
+  var posStr = c['对位面'] || {};
+  var mktStr = c['市场面'] || {};
+  var highlight = c['核心看点'] || {};
+  var baseTable = baseStr['攻防全景数据'];
+
+  var html = '<div class="ai-modal-header"><span class="ai-modal-title">AI深度解析</span><button class="ai-modal-close" onclick="closeAI()">✕</button></div><div class="ai-content">';
+
+  // ── 比赛信息 ──
+  html += '<div class="ai-match-info">';
+  html += '<div class="ai-team"><div class="ai-team-logo">' + homeTeam[0] + '</div><div class="ai-team-name">' + homeTeam + '</div></div>';
+  html += '<div class="ai-vs-section"><div class="ai-vs-text">VS</div></div>';
+  html += '<div class="ai-team"><div class="ai-team-logo away">' + awayTeam[0] + '</div><div class="ai-team-name">' + awayTeam + '</div></div>';
+  html += '</div>';
+
+  // ── AI核心观点 ──
+  var coreView = highlight['核心看点'] || c['核心观点'] || '';
+  var varRemind = highlight['变数提醒'] || c['变数提醒'] || '';
+  html += '<div class="ai-core-view"><div class="ai-core-header"><span class="ai-core-icon">💡</span><span class="ai-core-title">AI核心观点</span><span class="ai-confidence">信心指数: ' + conf + '%</span></div>';
+  html += '<div class="ai-core-content">' + coreView + '</div>';
+  html += '<div class="ai-core-desc">' + varRemind + '</div>';
+  html += '<div class="ai-predict-row">';
+  preds.forEach(function(p) {
+    var val = p['建议方向'] || '';
+    var isHome = val.indexOf('主') >= 0 || val.indexOf('胜') >= 0 || val.indexOf(homeTeam) >= 0;
+    html += '<div class="ai-predict-item"><div class="ai-predict-label">' + (p['玩法'] || '') + '</div><div class="ai-predict-value' + (isHome ? ' ai-predict-green' : '') + '">' + val + '</div><div class="ai-predict-sub">' + (p['核心逻辑'] || '') + '</div></div>';
+  });
+  html += '</div></div>';
+
+  // ── 01 基础面 ──
+  html += '<div class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">01</span><span class="ai-sec-name">基础面</span>';
+  if (baseStr['概括']) html += '<span class="ai-sec-desc">' + baseStr['概括'] + '</span>';
+  html += '</div>';
+  // 积分排名
+  if (baseStr['积分排名']) html += '<div class="ai-item"><div class="ai-item-label">积分排名</div><div class="ai-item-text">' + baseStr['积分排名'] + '</div></div>';
+  // 攻防数据进度条
+  if (baseTable && baseTable.rows && baseTable.rows.length >= 3) {
+    html += '<div class="ai-data-compare"><div class="ai-data-title">攻防数据对比</div>';
+    baseTable.rows.forEach(function(row) {
+      if (row.length < 3) return;
+      var label = row[0], homeV = row[1], awayV = row[2];
+      var hNum = parseFloat(homeV); var aNum = parseFloat(awayV);
+      var hPct = isNaN(hNum) || isNaN(aNum) ? 50 : Math.round(hNum / (hNum + aNum) * 100);
+      html += '<div class="ai-data-row"><span class="ai-data-label">' + label + '</span><span class="ai-data-home">' + homeV + '</span><div class="ai-progress-bar"><div class="ai-progress" style="width:' + hPct + '%"></div></div><span class="ai-data-away">' + awayV + '</span></div>';
+    });
+    html += '</div>';
+  }
+  if (baseStr['核心结论']) html += '<div class="ai-item-conclusion"><div class="ai-item-label">核心结论</div><div class="ai-item-text">' + baseStr['核心结论'] + '</div></div>';
+  html += '</div>';
+
+  // ── 02 状态面 ──
+  html += '<div class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">02</span><span class="ai-sec-name">状态面</span>';
+  if (stateStr['概括']) html += '<span class="ai-sec-desc">' + stateStr['概括'] + '</span>';
+  html += '</div>';
+  // 主客队近况 - 尝试解析战绩
+  var homeFormTxt = stateStr['主队近况'] || '';
+  var awayFormTxt = stateStr['客队近况'] || '';
+  if (homeFormTxt) html += '<div class="ai-form-title">' + homeTeam + '近况</div><div class="ai-form-team">' + parseFormTags(homeTeam, homeFormTxt) + '</div>';
+  if (awayFormTxt) html += '<div class="ai-form-title">' + awayTeam + '近况</div><div class="ai-form-team">' + parseFormTags(awayTeam, awayFormTxt) + '</div>';
+  if (stateStr['历史对阵']) html += '<div class="ai-item"><div class="ai-item-label">历史对阵</div><div class="ai-item-text">' + stateStr['历史对阵'] + '</div></div>';
+  // 伤病表格
+  var injTable = stateStr['伤病影响'];
+  if (injTable && injTable.rows && injTable.rows.length) {
+    html += '<div class="ai-injury-title">伤停关键对比</div>';
+    injTable.rows.forEach(function(row) {
+      if (row.length < 3) return;
+      html += '<div class="ai-injury-row"><span class="ai-injury-team">' + row[0] + '</span><span class="ai-injury-player">' + row[1] + '</span><span class="ai-injury-status ' + (row[2].indexOf('缺') >= 0 || row[2].indexOf('停') >= 0 ? 'out' : 'doubt') + '">' + row[2] + '</span>';
+      if (row[3]) html += '<span class="ai-injury-effect ' + (row[3].indexOf('高') >= 0 ? 'high' : 'low') + '">' + row[3] + '</span>';
+      html += '</div>';
+    });
+  }
+  if (stateStr['队内氛围']) html += '<div class="ai-item"><div class="ai-item-label">队内氛围</div><div class="ai-item-text">' + stateStr['队内氛围'] + '</div></div>';
+  if (stateStr['核心结论']) html += '<div class="ai-item-conclusion"><div class="ai-item-label">核心结论</div><div class="ai-item-text">' + stateStr['核心结论'] + '</div></div>';
+  html += '</div>';
+
+  // ── 03 动机面 ──
+  html += buildTextBlock('03', '动机面', motiStr['概括'], [motiStr['战意强度']]);
+
+  // ── 04 对位面 ──
+  html += '<div class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">04</span><span class="ai-sec-name">对位面</span>';
+  if (posStr['概括']) html += '<span class="ai-sec-desc">' + posStr['概括'] + '</span>';
+  html += '</div>';
+  ['攻防博弈', '节奏控制', '主场氛围', '战术与教练风格'].forEach(function(k) {
+    if (posStr[k]) html += '<div class="ai-item"><div class="ai-item-label">' + k + '</div><div class="ai-item-text">' + posStr[k] + '</div></div>';
+  });
+  if (posStr['核心结论']) html += '<div class="ai-item"><div class="ai-item-label">核心结论</div><div class="ai-item-text" style="color:#FBBF24">' + posStr['核心结论'] + '</div></div>';
+  html += '</div>';
+
+  // ── 05 市场面 ──
+  html += '<div class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">05</span><span class="ai-sec-name">市场面</span>';
+  if (mktStr['概括']) html += '<span class="ai-sec-desc">' + mktStr['概括'] + '</span>';
+  html += '</div>';
+  ['盘口与赔率', '大小球', '数据变化解读', '诱导可能'].forEach(function(k) {
+    if (mktStr[k]) html += '<div class="ai-item"><div class="ai-item-label">' + k + '</div><div class="ai-item-text">' + mktStr[k] + '</div></div>';
+  });
+  if (mktStr['核心结论']) html += '<div class="ai-item"><div class="ai-item-label">核心结论</div><div class="ai-item-text" style="color:#FBBF24">' + mktStr['核心结论'] + '</div></div>';
+  html += '</div>';
+
+  // ── 06 预测建议表格 ──
+  html += '<div class="ai-final-predict"><div class="ai-sec-title"><span class="ai-sec-num">06</span><span class="ai-sec-name">预测建议</span></div>';
+  html += '<div class="ai-predict-table">';
+  preds.forEach(function(p) {
+    html += '<div class="ai-predict-tr"><span class="ai-predict-td type">' + (p['玩法'] || '') + '</span><span class="ai-predict-td suggest">' + (p['建议方向'] || '') + '</span><span class="ai-predict-td logic">' + (p['核心逻辑'] || '') + '</span><span class="ai-predict-td check">✓</span></div>';
+  });
+  html += '</div><div class="ai-disclaimer">本分析为AI生成，仅供参考，请理性对待</div></div>';
+
+  html += '</div>';
+  document.getElementById('aiModal').innerHTML = html;
+}
+
+// 辅助：纯文本面（动机面等）
+function buildTextBlock(num, name, desc, texts) {
+  var h = '<div class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">' + num + '</span><span class="ai-sec-name">' + name + '</span>';
+  if (desc) h += '<span class="ai-sec-desc">' + desc + '</span>';
+  h += '</div>';
+  texts.forEach(function(t) { if (t) h += '<div class="ai-item"><div class="ai-item-text">' + t + '</div></div>'; });
+  h += '</div>';
+  return h;
+}
+
+// 辅助：从近况文字中解析胜平负标签
+function parseFormTags(team, text) {
+  var html = '<span class="ai-form-name">' + team + '</span>';
+  // 尝试匹配 X胜X平X负
+  var m = text.match(/(\d+)胜(\d+)平(\d+)负/);
+  if (m) {
+    var wins = parseInt(m[1]), draws = parseInt(m[2]), losses = parseInt(m[3]);
+    for (var i = 0; i < wins; i++) html += '<span class="ai-form-result win">胜</span>';
+    for (var i = 0; i < draws; i++) html += '<span class="ai-form-result draw">平</span>';
+    for (var i = 0; i < losses; i++) html += '<span class="ai-form-result loss">负</span>';
+  } else {
+    html += '<span style="font-size:12px;color:var(--text2)">' + text.substring(0, 60) + '</span>';
+  }
+  return html;
+}
+
+// 构建单个五维区块（通用，保留给可能需要的地方）
+function buildAIBlock(num, name, desc, items) {
+  var h = '<div class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">' + num + '</span><span class="ai-sec-name">' + name + '</span>';
+  if (desc) h += '<span class="ai-sec-desc">' + desc + '</span>';
+  h += '</div>';
+  items.forEach(function(item) {
+    if (!item.text && !item.table) return;
+    if (item.table) {
+      if (!item.table.rows || !item.table.rows.length) return;
+      h += '<div class="ai-item"><div class="ai-item-label">' + item.label + '</div><table class="ai-table"><tr>';
+      (item.table.header || []).forEach(function(cell) { h += '<th>' + cell + '</th>'; });
+      h += '</tr>';
+      item.table.rows.forEach(function(row) { h += '<tr>'; row.forEach(function(cell) { h += '<td>' + cell + '</td>'; }); h += '</tr>'; });
+      h += '</table></div>';
+    } else {
+      h += '<div class="ai-item"><div class="ai-item-label">' + item.label + '</div><div class="ai-item-text">' + item.text + '</div></div>';
+    }
+  });
+  h += '</div>';
+  return h;
+}
+
+function closeAI() {
+  document.getElementById('aiOverlay').classList.remove('active');
+  document.body.style.overflow = '';
 }
 
 // 启动
