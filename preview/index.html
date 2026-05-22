@@ -1155,31 +1155,34 @@ body {
 
 /* AI核心观点 */
 .ai-core-view {
-  background: linear-gradient(135deg, rgba(0,245,233,0.06), rgba(0,245,233,0.02));
+  background: linear-gradient(135deg, rgba(0,245,233,0.06), rgba(0,245,233,0.01));
   border: 1px solid rgba(0,245,233,0.12);
-  border-radius: 14px;
-  padding: 16px;
+  border-radius: 16px;
+  padding: 16px 16px 14px;
   margin-bottom: 14px;
 }
-.ai-core-header { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
-.ai-core-icon { font-size: 16px; }
-.ai-core-title { font-size: 14px; font-weight: 700; color: var(--cyan); }
-.ai-confidence { margin-left: auto; font-size: 11px; color: #34D399; background: rgba(52,211,153,0.1); padding: 2px 8px; border-radius: 10px; }
-.ai-core-content { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 4px; line-height: 1.4; }
-.ai-core-desc { font-size: 12px; color: #7A8B9A; margin-bottom: 12px; line-height: 1.5; }
+.ai-core-header { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+.ai-core-icon { font-size: 18px; }
+.ai-core-title { font-size: 15px; font-weight: 700; color: var(--cyan); }
+.ai-core-content { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; line-height: 1.5; }
+.ai-core-desc { font-size: 12px; color: #7A8B9A; margin-bottom: 14px; line-height: 1.5; }
 
 .ai-predict-row { display: flex; gap: 8px; }
-.ai-predict-item {
+.ai-predict-card {
   flex: 1;
   text-align: center;
-  padding: 10px 6px;
+  padding: 12px 8px 10px;
   background: rgba(255,255,255,0.03);
-  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
 }
-.ai-predict-label { font-size: 11px; color: #6B7D8E; margin-bottom: 4px; }
-.ai-predict-value { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+.ai-predict-head { display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 6px; }
+.ai-predict-icon { font-size: 16px; flex-shrink: 0; }
+.ai-predict-name { font-size: 11px; color: #7A8B9A; font-weight: 600; }
+.ai-predict-value { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 6px; }
 .ai-predict-green { color: #34D399; }
-.ai-predict-sub { font-size: 11px; color: #6B7D8E; }
+.ai-predict-line { height: 1px; background: rgba(255,255,255,0.06); margin: 0 0 6px; }
+.ai-predict-sub { font-size: 10px; color: #7A8B9A; line-height: 1.4; }
 
 /* 区块内容 */
 .ai-section-content {
@@ -2368,12 +2371,21 @@ function renderAIContent(content, homeTeam, awayTeam) {
   // ── AI核心观点 ──
   var coreView = esc(highlight['核心看点'] || c['核心观点'] || '');
   var varRemind = esc(highlight['变数提醒'] || c['变数提醒'] || '');
-  html += '<div class="ai-core-view"><div class="ai-core-header"><span class="ai-core-icon">💡</span><span class="ai-core-title">AI核心观点</span><span class="ai-confidence">信心指数: ' + conf + '%</span></div>';
-  html += '<div class="ai-core-content">' + coreView + '</div><div class="ai-core-desc">' + varRemind + '</div><div class="ai-predict-row">';
+  var icons = ['🏆', '⚽', '📊'];
+  html += '<div class="ai-core-view">';
+  html += '<div class="ai-core-header"><span class="ai-core-icon">💡</span><span class="ai-core-title">AI核心观点</span></div>';
+  html += '<div class="ai-core-content">' + clip(coreView, 120) + '</div>';
+  if (varRemind) html += '<div class="ai-core-desc">' + clip(varRemind, 80) + '</div>';
+  html += '<div class="ai-predict-row">';
   preds.forEach(function(p, i) {
     var val = esc(p['建议方向'] || '');
     var isHome = val.indexOf('主') >= 0 || val.indexOf('胜') >= 0 || val.indexOf(homeTeam[0]) >= 0;
-    html += '<div class="ai-predict-item"><div class="ai-predict-label">' + esc(p['玩法'] || '') + '</div><div class="ai-predict-value' + (isHome ? ' ai-predict-green' : '') + '">' + val + '</div><div class="ai-predict-sub">' + esc(p['核心逻辑'] || '') + '</div></div>';
+    html += '<div class="ai-predict-card">';
+    html += '<div class="ai-predict-head"><span class="ai-predict-icon">' + (icons[i] || '●') + '</span><span class="ai-predict-name">' + esc(p['玩法'] || '') + '</span></div>';
+    html += '<div class="ai-predict-value' + (isHome ? ' ai-predict-green' : '') + '">' + val + '</div>';
+    html += '<div class="ai-predict-line"></div>';
+    html += '<div class="ai-predict-sub">' + clip(esc(p['核心逻辑'] || ''), 50) + '</div>';
+    html += '</div>';
   });
   html += '</div></div>';
 
