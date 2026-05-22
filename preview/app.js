@@ -745,38 +745,45 @@ function doFilterQuery() {
     rankType: rankType,
     rankTop: rankTop
   }).then(function(data) {
-    if (!data || data.totalCount === 0) {
-      resultEl.innerHTML = '<div class="loading">暂无符合条件的数据</div>';
+    if (!data) {
+      resultEl.innerHTML = '<div class="loading">查询失败</div>';
       return;
     }
-    var rateVal = parseFloat(data.hitRate) || 0;
-    var ringColor = rateVal >= 50 ? '#34D399' : rateVal >= 40 ? '#FBBF24' : '#EF4444';
-    var r = 36, c = 2 * Math.PI * r;
-    var dashVal = c * (1 - rateVal / 100);
 
-    var condTags = data.conditionSummary.split(' | ');
-    var condHtml = '<div class="filter-cond-tags">';
-    for (var i = 0; i < condTags.length; i++) {
-      if (i > 0) condHtml += '<span class="filter-cond-pipe">|</span>';
-      condHtml += '<span>' + condTags[i] + '</span>';
+    var html = '';
+
+    if (data.totalCount === 0) {
+      html += '<div class="loading" style="padding:20px;color:var(--text2)">暂无符合条件的数据</div>';
+    } else {
+      var rateVal = parseFloat(data.hitRate) || 0;
+      var ringColor = rateVal >= 50 ? '#34D399' : rateVal >= 40 ? '#FBBF24' : '#EF4444';
+      var r = 36, c = 2 * Math.PI * r;
+      var dashVal = c * (1 - rateVal / 100);
+
+      var condTags = data.conditionSummary.split(' | ');
+      var condHtml = '<div class="filter-cond-tags">';
+      for (var i = 0; i < condTags.length; i++) {
+        if (i > 0) condHtml += '<span class="filter-cond-pipe">|</span>';
+        condHtml += '<span>' + condTags[i] + '</span>';
+      }
+      condHtml += '</div>';
+
+      html += '<div class="filter-result-card">';
+      html += '<div class="filter-result-head">筛选结果</div>';
+      html += condHtml;
+      html += '<div class="filter-result-row">';
+      html += '<div class="filter-result-side"><div class="filter-result-num">' + data.hitCount + '</div><div class="filter-result-label">命中场次</div></div>';
+      html += '<div class="filter-ring-wrap">';
+      html += '<svg class="filter-ring-svg" viewBox="0 0 80 80">';
+      html += '<circle class="filter-ring-bg" cx="40" cy="40" r="' + r + '"/>';
+      html += '<circle class="filter-ring-fill" cx="40" cy="40" r="' + r + '" stroke="' + ringColor + '" stroke-dasharray="' + c + '" stroke-dashoffset="' + dashVal + '"/>';
+      html += '<text class="filter-ring-pct" x="40" y="40" text-anchor="middle" dominant-baseline="central" fill="' + ringColor + '" transform="rotate(90,40,40)">' + rateVal + '%</text>';
+      html += '</svg></div>';
+      html += '<div class="filter-result-side"><div class="filter-result-num">' + data.totalCount + '</div><div class="filter-result-label">符合条件场次</div></div>';
+      html += '</div></div>';
     }
-    condHtml += '</div>';
 
-    var html = '<div class="filter-result-card">';
-    html += '<div class="filter-result-head">筛选结果</div>';
-    html += condHtml;
-    html += '<div class="filter-result-row">';
-    html += '<div class="filter-result-side"><div class="filter-result-num">' + data.hitCount + '</div><div class="filter-result-label">命中场次</div></div>';
-    html += '<div class="filter-ring-wrap">';
-    html += '<svg class="filter-ring-svg" viewBox="0 0 80 80">';
-    html += '<circle class="filter-ring-bg" cx="40" cy="40" r="' + r + '"/>';
-    html += '<circle class="filter-ring-fill" cx="40" cy="40" r="' + r + '" stroke="' + ringColor + '" stroke-dasharray="' + c + '" stroke-dashoffset="' + dashVal + '"/>';
-    html += '<text class="filter-ring-pct" x="40" y="40" text-anchor="middle" dominant-baseline="central" fill="' + ringColor + '" transform="rotate(90,40,40)">' + rateVal + '%</text>';
-    html += '</svg></div>';
-    html += '<div class="filter-result-side"><div class="filter-result-num">' + data.totalCount + '</div><div class="filter-result-label">符合条件场次</div></div>';
-    html += '</div></div>';
-
-    // 结果详情卡片：近15天数据
+    // 结果详情卡片：近15天数据（无论是否有结果都显示）
     if (data.dailyResults && data.dailyResults.length > 0) {
       html += '<div class="filter-detail-card">';
       html += '<div class="filter-detail-head">结果详情</div>';

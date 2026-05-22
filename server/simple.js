@@ -420,7 +420,7 @@ app.post('/api',function(req,res){
     var dailyMap={},today=new Date();
     for(var i=0;i<15;i++){var dt2=new Date(today);dt2.setDate(dt2.getDate()-i);var ds=dt2.getFullYear()+'-'+String(dt2.getMonth()+1).padStart(2,'0')+'-'+String(dt2.getDate()).padStart(2,'0');dailyMap[ds]={totalMatch:0,hitMatch:0}}
     detail.forEach(function(x){if(x.date&&dailyMap[x.date.slice(0,10)]){dailyMap[x.date.slice(0,10)].totalMatch++;if(x.result===1)dailyMap[x.date.slice(0,10)].hitMatch++}});
-    var dailyResults=Object.keys(dailyMap).sort().reverse().map(function(k){var v=dailyMap[k];return{date:k.substring(5),totalMatch:v.totalMatch,hitMatch:v.hitMatch,hitRate:v.totalMatch>0?Math.round(v.hitMatch/v.totalMatch*1000)/10:0}});
+    var dailyResults=Object.keys(dailyMap).sort().reverse().map(function(k){var v=dailyMap[k];return{date:k.replace(/-/g,'/'),totalMatch:v.totalMatch,hitMatch:v.hitMatch,hitRate:v.totalMatch>0?Math.round(v.hitMatch/v.totalMatch*1000)/10:0}});
     return res.json({code:1,data:{hitCount:hc,totalCount:tc,hitRate:hr,conditionSummary:p.length?p.join(' | '):'全部条件',detailList:detail,dailyResults:dailyResults}})
   }
   // ========== AI 预测 ==========
