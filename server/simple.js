@@ -394,7 +394,7 @@ app.post('/api',function(req,res){
     // 方向分类：兼容 "总进球-" 前缀和 "、" 分隔符
     function ct(t){if(!t)return'other';t=String(t);if(t=='胜'||t=='平'||t=='负')return'胜平负';if(t[0]=='让')return'让球';if(t=='胜胜'||t=='负负'||t.slice(0,4)=='半全场-')return'半全场';if(t.slice(0,4)=='总进球-')return'进球数';if(/^[\d,\u3001]+$/.test(t))return'进球数';if(/[平胜负让球]/.test(t)&&(t.indexOf(',')>=0||t.indexOf('\u3001')>=0))return'双选';return'other'}
     function gd(dt){var m={};m['胜平负']=['胜','平','负'];m['让球']=['让胜','让平','让负'];m['进球数']=['总进球-1、2球','总进球-2、3球','总进球-3、4球','总进球-1、2、3球','总进球-2、3、4球','总进球-3、4、5球'];m['双选']=['平、让平','让胜、让平','让平、让负','胜、平','平、负'];m['半全场']=['半全场-胜胜','半全场-负负'];return m[dt]||[]}
-    var td=null;if(dt){if(dir)td=[dir];else td=gd(dt)}
+    var td=null;if(dt&&dt!=='综合排名'){if(dir)td=[dir];else td=gd(dt)}
     var MR={},detail=[];
     Object.keys(data.r).forEach(function(k){
       var mid=k.replace('m_',''),match=data.m[k]||data.m[mid];if(!match)return;
@@ -416,11 +416,12 @@ app.post('/api',function(req,res){
     if(dt==='综合排名')p.push('综合排名');
     if(dir&&dt)p.push(dir);else if(dt&&dt!=='综合排名')p.push(dt);
     if(rankType!=='全部'&&rt>0){var rl=['','第一名','前二名','前三名','前四名','前五名','前六名'];p.push(rankType+'-'+rl[rt])}
-    // 生成近15天 dailyResults
-    var dailyMap={},today=new Date();
-    for(var i=0;i<15;i++){var dt2=new Date(today);dt2.setDate(dt2.getDate()-i);var ds=dt2.getFullYear()+'-'+String(dt2.getMonth()+1).padStart(2,'0')+'-'+String(dt2.getDate()).padStart(2,'0');dailyMap[ds]={totalMatch:0,hitMatch:0}}
-    detail.forEach(function(x){if(x.date&&dailyMap[x.date.slice(0,10)]){dailyMap[x.date.slice(0,10)].totalMatch++;if(x.result===1)dailyMap[x.date.slice(0,10)].hitMatch++}});
-    var dailyResults=Object.keys(dailyMap).sort().reverse().map(function(k){var v=dailyMap[k];return{date:k.replace(/-/g,'/'),totalMatch:v.totalMatch,hitMatch:v.hitMatch,hitRate:v.totalMatch>0?Math.round(v.hitMatch/v.totalMatch*1000)/10:0}});
+    // 生成 dailyResults：按天+比赛去重统计命中率
+    // 近30天（不含今天），取最近15条展示
+    var dailyMatchSet={},dailyHitSet={},today=new Date(),todayStr=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+    for(var i=0;i<30;i++){var dt2=new Date(today);dt2.setDate(dt2.getDate()-i-1);var ds=dt2.getFullYear()+'-'+String(dt2.getMonth()+1).padStart(2,'0')+'-'+String(dt2.getDate()).padStart(2,'0');dailyMatchSet[ds]=new Set();dailyHitSet[ds]=new Set()}
+    detail.forEach(function(x){if(x.date){var dd=x.date.slice(0,10);if(dailyMatchSet[dd]){dailyMatchSet[dd].add(x.matchId);if(x.result===1)dailyHitSet[dd].add(x.matchId)}}});
+    var dailyResults=Object.keys(dailyMatchSet).sort().reverse().slice(0,15).map(function(k){var tm=dailyMatchSet[k].size,hm=dailyHitSet[k].size;return{date:k.replace(/-/g,'/'),totalMatch:tm,hitMatch:hm,hitRate:tm>0?Math.round(hm/tm*1000)/10:0}});
     return res.json({code:1,data:{hitCount:hc,totalCount:tc,hitRate:hr,conditionSummary:p.length?p.join(' | '):'全部条件',detailList:detail,dailyResults:dailyResults}})
   }
   // ========== AI 预测 ==========
