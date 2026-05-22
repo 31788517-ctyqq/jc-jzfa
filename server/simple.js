@@ -423,37 +423,35 @@ app.post('/api',function(req,res){
       recs.forEach(function(x,i){detail.push({matchId:mid,num:match.num||'',homeName:match.homeName||'',visitName:match.visitName||'',leagueName:match.leagueName||'',date:match.date||'',direction:x.type,expertCount:x.num||0,result:x.result,rank:i+1})})
     });
     detail.sort(function(a,b){return a.date>b.date?-1:a.date<b.date?1:a.rank-b.rank});
-    var hc=detail.filter(function(x){return x.result===1}).length,tc=detail.length,hr=tc>0?Math.round(hc/tc*1000)/10:0;
-    var p=[];if(league)p.push(league);
-    if(tr=='30')p.push('近30天');else if(tr=='60')p.push('近60天');else if(tr=='90')p.push('近90天');
-    if(dt==='综合排名')p.push('综合排名');
-    if(dir&&dt)p.push(dir);else if(dt&&dt!=='综合排名')p.push(dt);
-    if(rankType!=='全部'&&rt>0){var rl=['','第一名','前二名','前三名','前四名','前五名','前六名'];var rkName=rankType==='每场'?'当天所有场次':rankType;p.push(rkName+'-'+rl[rt])}
     // 生成 dailyResults：与筛选时间范围同步
     var daysCount=tr==='all'?30:(parseInt(tr)||30);dailyMap={};today=new Date(),todayStr=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
     for(var i=0;i<daysCount;i++){var dt2=new Date(today);dt2.setDate(dt2.getDate()-i-1);var ds=dt2.getFullYear()+'-'+String(dt2.getMonth()+1).padStart(2,'0')+'-'+String(dt2.getDate()).padStart(2,'0');dailyMap[ds]={matchMax:{},matchHit:{}}}
     detail.forEach(function(x){if(x.date){var dd=x.date.slice(0,10);if(dailyMap[dd]){if(!dailyMap[dd].matchMax[x.matchId]||dailyMap[dd].matchMax[x.matchId]<x.expertCount)dailyMap[dd].matchMax[x.matchId]=x.expertCount;if(x.result===1)dailyMap[dd].matchHit[x.matchId]=1}}});
     var dailyResults=[];
+    var isDaily=(rankType==='每天'&&rt>0);var isPerMatch=(rankType==='每场'&&rt>0);
+    var totalTc=0,totalHc=0;
     Object.keys(dailyMap).sort().reverse().slice(0,30).forEach(function(k){
       var m=dailyMap[k];
-      var isDaily=(rankType==='每天'&&rt>0);
-      var isPerMatch=(rankType==='每场'&&rt>0);
       var selected=[],tm=0,hm=0;
       if(isDaily){
-        // 每天模式：所有比赛混在一起按expertCount排序，取top rt场
         var ranked=Object.keys(m.matchMax).sort(function(a,b){return m.matchMax[b]-m.matchMax[a]});
         selected=ranked.slice(0,rt);
       }else if(isPerMatch){
-        // 每场模式：每场比赛取该方向推荐数第一名（已天然是每场比赛的最大值）
-        // 所以直接取所有比赛的matchMax即可，每场贡献1场
         selected=Object.keys(m.matchMax);
       }else{
-        // 全部模式：所有比赛都取
         selected=Object.keys(m.matchMax);
       }
       selected.forEach(function(mid){tm++;if(m.matchHit[mid])hm++});
+      totalTc+=tm;totalHc+=hm;
       dailyResults.push({date:k.replace(/-/g,'/'),totalMatch:tm,hitMatch:hm,hitRate:tm>0?Math.round(hm/tm*1000)/10:0});
     });
+    // 筛选结果统计 = dailyResults 汇总，确保与详情一致
+    var hc=totalHc,tc=totalTc,hr=tc>0?Math.round(totalHc/totalTc*1000)/10:0;
+    var p=[];if(league)p.push(league);
+    if(tr=='30')p.push('近30天');else if(tr=='60')p.push('近60天');else if(tr=='90')p.push('近90天');
+    if(dt==='综合排名')p.push('综合排名');
+    if(dir&&dt)p.push(dir);else if(dt&&dt!=='综合排名')p.push(dt);
+    if(rankType!=='全部'&&rt>0){var rl=['','第一名','前二名','前三名','前四名','前五名','前六名'];var rkName=rankType==='每场'?'当天所有场次':rankType;p.push(rkName+'-'+rl[rt])}
     return res.json({code:1,data:{hitCount:hc,totalCount:tc,hitRate:hr,conditionSummary:p.length?p.join(' | '):'全部条件',detailList:detail,dailyResults:dailyResults}})
   }
   // ========== AI 预测 ==========

@@ -438,9 +438,6 @@ function getFilterRate(params) {
   `;
 
   const detailRows = db.prepare(sql).all(bindParams);
-  const hitCount = detailRows.filter(r => r.result === 1).length;
-  const totalCount = detailRows.length;
-  const hitRate = totalCount > 0 ? Math.round(hitCount / totalCount * 1000) / 10 : 0;
 
   // 构建条件摘要
   const parts = [];
@@ -458,8 +455,7 @@ function getFilterRate(params) {
   }
   const conditionSummary = parts.length > 0 ? parts.join(' | ') : '全部条件';
 
-  // 生成 dailyResults：按天统计命中率
-  // "每天"模式：每天只取 top rt 场比赛（按 expertCount 排序）
+  // 生成 dailyResults + 筛选结果统计（汇总一致性）
   const dailyMap = {};
   const today0 = new Date();
   const daysCount = timeRange === 'all' ? 30 : (parseInt(timeRange) || 30);
@@ -481,17 +477,32 @@ function getFilterRate(params) {
   });
   const isDaily = (rankType === '每天' && rankTop > 0);
   const isPerMatch = (rankType === '每场' && rankTop > 0);
+  let totalTc = 0, totalHc = 0;
   const dailyResults = Object.keys(dailyMap).sort().reverse().slice(0, 30).map(k => {
     const m = dailyMap[k];
     let selected = [];
     if (isDaily) {
-      // 每天模式：所有比赛混排取 top rt
       const ranked = Object.keys(m.matchMax).sort((a, b) => m.matchMax[b] - m.matchMax[a]);
       selected = ranked.slice(0, rankTop);
     } else if (isPerMatch) {
-      // 每场模式：每场比赛取第一名(已天然是每场比赛最大值)，每天0~N场
       selected = Object.keys(m.matchMax);
     } else {
+      selected = Object.keys(m.matchMax);
+    }
+    let tm = 0, hm = 0;
+    selected.forEach(mid => { tm++; if (m.matchHit[mid]) hm++; });
+    totalTc += tm; totalHc += hm;
+    return {
+      date: k.replace(/-/g, '/'),
+      totalMatch: tm,
+      hitMatch: hm,
+      hitRate: tm > 0 ? Math.round(hm / tm * 1000) / 10 : 0
+    };
+  });
+  // 筛选结果 = dailyResults 汇总
+  const hitCount = totalHc;
+  const totalCount = totalTc;
+  const hitRate = totalCount > 0 ? Math.round(hitCount / totalCount * 1000) / 10 : 0;
       selected = Object.keys(m.matchMax);
     }
     let tm = 0, hm = 0;
