@@ -3,6 +3,21 @@ var app=express(),PORT=process.env.PORT||3000;
 app.use(compression());app.use(cors());app.use(express.json());
 var staticOpts={maxAge:'30d',etag:true,immutable:true,setHeaders:function(res){res.removeHeader('Accept-Ranges')}};
 app.use('/assets/worldcup',express.static(path.join(__dirname,'../miniprogram/images/worldcup'),staticOpts));
+// 首页内存缓存：避免每次读磁盘
+var homeCache=null,homeCacheTime=0,homeCacheMaxAge=60000;
+var hp=path.join(__dirname,'../preview/index.html');
+function getHomeHTML(cb){
+  var now=Date.now();
+  if(homeCache&&(now-homeCacheTime<homeCacheMaxAge))return cb(null,homeCache);
+  fs.readFile(hp,'utf8',function(err,html){
+    if(!err){homeCache=html;homeCacheTime=now}
+    cb(err,html||homeCache);
+  });
+}
+app.get('/',function(req,res){
+  res.set('Cache-Control','public, max-age=60');
+  getHomeHTML(function(err,html){res.type('html').send(html)});
+});
 var previewOpts={maxAge:'1h',etag:true,setHeaders:function(res){res.removeHeader('Accept-Ranges')}};
 app.use(express.static(path.join(__dirname,'../preview'),previewOpts));
 

@@ -27,6 +27,21 @@ app.use('/api', apiLimiter);
 // 静态资源缓存
 const staticOpts = { maxAge: '7d', etag: true, lastModified: true };
 app.use('/assets/worldcup', express.static(path.join(__dirname, '../miniprogram/images/worldcup'), staticOpts));
+// 首页内存缓存
+let homeCache = null, homeCacheTime = 0;
+const hp = path.join(__dirname, '../preview/index.html');
+function getHomeHTML(cb) {
+  const now = Date.now();
+  if (homeCache && (now - homeCacheTime < 60000)) return cb(null, homeCache);
+  fs.readFile(hp, 'utf8', (err, html) => {
+    if (!err) { homeCache = html; homeCacheTime = now; }
+    cb(err, html || homeCache);
+  });
+}
+app.get('/', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=60');
+  getHomeHTML((err, html) => res.type('html').send(html));
+});
 app.use(express.static(path.join(__dirname, '../preview'), { maxAge: '1h' }));
 
 // ==================== 健康检查 ====================
