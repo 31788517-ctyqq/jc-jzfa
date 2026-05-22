@@ -401,9 +401,22 @@ app.post('/api',function(req,res){
       if(league&&match.leagueName!==league)return;
       if(cutoff&&match.date&&match.date.slice(0,10)<cutoff)return;
       var r=normalizeRecs(data.r[k]).filter(function(x){return x.result!==null});
-      if(td)r=r.filter(function(x){return td.indexOf(x.type)>=0||td.indexOf(ct(x.type))>=0});
       if(!r.length)return;
-      r.sort(function(a,b){return b.num-a.num});if(rt>0)r=r.slice(0,rt);MR[mid]=r
+      // 按方向分类，找全局第一名
+      r.sort(function(a,b){return b.num-a.num});
+      var globalMax=r[0].num;
+      // 只保留全局排名前 rt 的且类型匹配的条目
+      var keep=[];
+      if(td){
+        r.forEach(function(x){
+          if((td.indexOf(x.type)>=0||td.indexOf(ct(x.type))>=0)&&x.num===globalMax)
+            keep.push(x);
+        });
+      }else{
+        keep=rt>0?r.slice(0,rt):r.slice();
+      }
+      if(!keep.length)return;
+      MR[mid]=keep
     });
     Object.keys(MR).forEach(function(mid){
       var match=data.m['m_'+mid]||data.m[mid],recs=MR[mid];
