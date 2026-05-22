@@ -352,6 +352,51 @@ app.post('/api',function(req,res){
     var top3HitRate=fieldTopTotal>0?Math.round(fieldTopHits/fieldTopTotal*1000)/10:0;
     return res.json({code:1,data:{directionStats:ds,top3HitRate:top3HitRate,totalMatchFields:fieldTopTotal,top3Hits:fieldTopHits}});
   }
+  if(a==='filter-stats'){
+    var ls=new Set(),ds=new Set(),ms=new Set();
+    Object.keys(data.r).forEach(function(k){
+      var m=data.m[k]||data.m[k.replace('m_','')];
+      if(!m)return;
+      var r=normalizeRecs(data.r[k]).filter(function(x){return x.result!==null});
+      if(r.length){ms.add(k.replace('m_',''));if(m.leagueName)ls.add(m.leagueName);r.forEach(function(x){ds.add(x.type)})}
+    });
+    var lg=Array.from(ls).sort();
+    var sl=0;Object.keys(data.r).forEach(function(k){sl+=normalizeRecs(data.r[k]).filter(function(x){return x.result===null}).length});
+    return res.json({code:1,data:{matchCount:ms.size,leagueCount:ls.size,directionCount:ds.size,leagues:lg,staleCount:sl}})
+  }
+  if(a==='filter-leagues'){
+    var ls=new Set();
+    Object.keys(data.m).forEach(function(k){var m=data.m[k];if(m&&m.leagueName)ls.add(m.leagueName)});
+    return res.json({code:1,data:Array.from(ls).sort()})
+  }
+  if(a==='hit-rate-filter'){
+    var league=d.league||'',tr=d.timeRange||'all',dt=d.directionType||'',dir=d.direction||'',rt=parseInt(d.rankTop)||0,cutoff=null;
+    if(tr!=='all'){var cd=new Date(Date.now()-parseInt(tr)*86400000);cutoff=cd.getFullYear()+'-'+String(cd.getMonth()+1).padStart(2,'0')+'-'+String(cd.getDate()).padStart(2,'0')}
+    function ct(t){if(!t)return'other';if(t=='胜'||t=='平'||t=='负')return'胜平负';if(t[0]=='让')return'让球';if(t=='胜胜'||t=='负负'||t.slice(0,3)=='半全场')return'半全场';if(t.slice(0,3)=='总进球')return'进球数';if(/^[\\d,]+$/.test(t))return'进球数';if(/[平胜负让球]/.test(t)&&(t.indexOf(',')>=0||t.indexOf('、')>=0))return'双选';return'other'}
+    function gd(dt){var m={};m['胜平负']=['胜','平','负'];m['让球']=['让胜','让平','让负'];m['进球数']=['1,2','2,3','3,4','1,2,3','2,3,4','3,4,5'];m['双选']=['平,让平','让胜,让平','让平,让负','胜,平','平,负'];m['半全场']=['胜胜','负负'];return m[dt]||[]}
+    var td=null;if(dt){if(dir)td=[dir];else td=gd(dt)}
+    var MR={},detail=[];
+    Object.keys(data.r).forEach(function(k){
+      var mid=k.replace('m_',''),match=data.m[k]||data.m[mid];if(!match)return;
+      if(league&&match.leagueName!==league)return;
+      if(cutoff&&match.date&&match.date.slice(0,10)<cutoff)return;
+      var r=normalizeRecs(data.r[k]).filter(function(x){return x.result!==null});
+      if(td)r=r.filter(function(x){return td.indexOf(x.type)>=0||td.indexOf(ct(x.type))>=0});
+      if(!r.length)return;
+      r.sort(function(a,b){return b.num-a.num});if(rt>0)r=r.slice(0,rt);MR[mid]=r
+    });
+    Object.keys(MR).forEach(function(mid){
+      var match=data.m['m_'+mid]||data.m[mid],recs=MR[mid];
+      recs.forEach(function(x,i){detail.push({matchId:mid,num:match.num||'',homeName:match.homeName||'',visitName:match.visitName||'',leagueName:match.leagueName||'',date:match.date||'',direction:x.type,expertCount:x.num||0,result:x.result,rank:i+1})})
+    });
+    detail.sort(function(a,b){return a.date>b.date?-1:a.date<b.date?1:a.rank-b.rank});
+    var hc=detail.filter(function(x){return x.result===1}).length,tc=detail.length,hr=tc>0?Math.round(hc/tc*1000)/10:0;
+    var p=[];if(league)p.push(league);
+    if(tr=='30')p.push('近一个月');else if(tr=='60')p.push('近两个月');else if(tr=='90')p.push('近三个月');
+    if(dir&&dt)p.push(dir);else if(dt)p.push(dt);
+    if(rt>0){var rl=['','第一名','前二名','前三名','前四名','前五名','前六名'];p.push(rl[rt]||'前'+rt+'名')}
+    return res.json({code:1,data:{hitCount:hc,totalCount:tc,hitRate:hr,conditionSummary:p.length?p.join(' | '):'全部条件',detailList:detail}})
+  }
   if(a==='fix-data'){
     var result=fixMatchDates(data.m);
     // 回写到 data.json
