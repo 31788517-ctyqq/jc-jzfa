@@ -443,9 +443,9 @@ function getFilterRate(params) {
   // 构建条件摘要
   const parts = [];
   if (league) parts.push(league);
-  if (timeRange === '30') parts.push('近一个月');
-  else if (timeRange === '60') parts.push('近两个月');
-  else if (timeRange === '90') parts.push('近三个月');
+  if (timeRange === '30') parts.push('近30天');
+  else if (timeRange === '60') parts.push('近60天');
+  else if (timeRange === '90') parts.push('近90天');
   if (directionType === '综合排名') parts.push('综合排名');
   if (direction && directionType && directionType !== '综合排名') parts.push(direction);
   else if (directionType && directionType !== '综合排名') parts.push(directionType);

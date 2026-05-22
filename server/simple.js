@@ -412,7 +412,7 @@ app.post('/api',function(req,res){
     detail.sort(function(a,b){return a.date>b.date?-1:a.date<b.date?1:a.rank-b.rank});
     var hc=detail.filter(function(x){return x.result===1}).length,tc=detail.length,hr=tc>0?Math.round(hc/tc*1000)/10:0;
     var p=[];if(league)p.push(league);
-    if(tr=='30')p.push('近一个月');else if(tr=='60')p.push('近两个月');else if(tr=='90')p.push('近三个月');
+    if(tr=='30')p.push('近30天');else if(tr=='60')p.push('近60天');else if(tr=='90')p.push('近90天');
     if(dt==='综合排名')p.push('综合排名');
     if(dir&&dt)p.push(dir);else if(dt&&dt!=='综合排名')p.push(dt);
     if(rankType!=='全部'&&rt>0){var rl=['','第一名','前二名','前三名','前四名','前五名','前六名'];p.push(rankType+'-'+rl[rt])}
