@@ -456,15 +456,14 @@ function getFilterRate(params) {
   const conditionSummary = parts.length > 0 ? parts.join(' | ') : '全部条件';
 
   // 生成 dailyResults + 筛选结果统计（汇总一致性）
+  // 从 detailRows 中收集实际日期
+  const dateSet = {};
+  detailRows.forEach(r => { if (r.date) { dateSet[r.date.slice(0, 10)] = true; } });
+  let sortedDates = Object.keys(dateSet).sort().reverse();
+  const showDays = timeRange === 'all' ? 60 : (parseInt(timeRange) || 30);
+  sortedDates = sortedDates.slice(0, showDays);
   const dailyMap = {};
-  const today0 = new Date();
-  const daysCount = timeRange === 'all' ? 30 : (parseInt(timeRange) || 30);
-  for (let i = 0; i < daysCount; i++) {
-    const d = new Date(today0);
-    d.setDate(d.getDate() - i - 1);
-    const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-    dailyMap[ds] = { matchMax: {}, matchHit: {} };
-  }
+  sortedDates.forEach(ds => { dailyMap[ds] = { matchMax: {}, matchHit: {} }; });
   detailRows.forEach(r => {
     if (r.date) {
       const dd = r.date.slice(0, 10);
@@ -478,7 +477,7 @@ function getFilterRate(params) {
   const isDaily = (rankType === '每天' && rankTop > 0);
   const isPerMatch = (rankType === '每场' && rankTop > 0);
   let totalTc = 0, totalHc = 0;
-  const dailyResults = Object.keys(dailyMap).sort().reverse().slice(0, 30).map(k => {
+  const dailyResults = sortedDates.map(k => {
     const m = dailyMap[k];
     let selected = [];
     if (isDaily) {
