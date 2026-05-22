@@ -416,14 +416,12 @@ app.post('/api',function(req,res){
     if(dt==='综合排名')p.push('综合排名');
     if(dir&&dt)p.push(dir);else if(dt&&dt!=='综合排名')p.push(dt);
     if(rankType!=='全部'&&rt>0){var rl=['','第一名','前二名','前三名','前四名','前五名','前六名'];p.push(rankType+'-'+rl[rt])}
-    // 生成 dailyResults：按天统计命中率
-    // "每天"模式：每天只取 top rt 场比赛（按 expertCount 排序）
-    // 近30天（不含今天），取最近15条展示
-    var dailyMap={},today=new Date(),todayStr=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
-    for(var i=0;i<30;i++){var dt2=new Date(today);dt2.setDate(dt2.getDate()-i-1);var ds=dt2.getFullYear()+'-'+String(dt2.getMonth()+1).padStart(2,'0')+'-'+String(dt2.getDate()).padStart(2,'0');dailyMap[ds]={matchMax:{},matchHit:{}}}
+    // 生成 dailyResults：与筛选时间范围同步
+    var daysCount=tr==='all'?30:(parseInt(tr)||30);dailyMap={};today=new Date(),todayStr=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+    for(var i=0;i<daysCount;i++){var dt2=new Date(today);dt2.setDate(dt2.getDate()-i-1);var ds=dt2.getFullYear()+'-'+String(dt2.getMonth()+1).padStart(2,'0')+'-'+String(dt2.getDate()).padStart(2,'0');dailyMap[ds]={matchMax:{},matchHit:{}}}
     detail.forEach(function(x){if(x.date){var dd=x.date.slice(0,10);if(dailyMap[dd]){if(!dailyMap[dd].matchMax[x.matchId]||dailyMap[dd].matchMax[x.matchId]<x.expertCount)dailyMap[dd].matchMax[x.matchId]=x.expertCount;if(x.result===1)dailyMap[dd].matchHit[x.matchId]=1}}});
     var dailyResults=[];
-    Object.keys(dailyMap).sort().reverse().slice(0,15).forEach(function(k){
+    Object.keys(dailyMap).sort().reverse().slice(0,30).forEach(function(k){
       var m=dailyMap[k];
       var isDaily=(rankType==='每天'&&rt>0);
       var isPerMatch=(rankType==='每场'&&rt>0);
