@@ -1209,10 +1209,12 @@ body {
 .ai-item-conclusion.amber .ai-item-label { color: var(--amber); }
 
 /* 基础面排名双栏 */
-.ai-rank-dual { display:flex; gap:10px; margin-bottom:10px; }
-.ai-rank-col { flex:1; padding:10px 12px; background:rgba(0,0,0,0.15); border-radius:10px; text-align:center; }
-.ai-rank-h { font-size:13px; font-weight:700; color:#fff; margin-bottom:4px; }
-.ai-rank-val { font-size:11px; color:var(--text2); line-height:1.5; }
+.ai-rank-dual { display:flex; gap:10px; margin-bottom:10px; align-items:stretch; }
+.ai-rank-col { flex:1; padding:12px 14px; background:rgba(0,0,0,0.15); border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60px; }
+.ai-rank-h { font-size:14px; font-weight:700; color:#fff; margin-bottom:6px; }
+.ai-rank-vs { font-size:20px; font-weight:900; color:var(--cyan); margin:0 6px; align-self:center; flex-shrink:0; }
+.ai-rank-val { font-size:11px; color:var(--text2); line-height:1.6; text-align:center; }
+
 
 /* 攻防数据 */
 .ai-data-compare { margin-bottom: 10px; background: rgba(0,0,0,0.15); border-radius: 10px; padding: 10px 14px; }
@@ -2382,7 +2384,19 @@ function renderAIContent(content, homeTeam, awayTeam) {
   if (bHasRank || bHasTable || bHasBaseCon) {
     html += '<div id="ai-sec-01" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">01</span><span class="ai-sec-name">基础面</span>'; if (baseStr['概括']) html += '<span class="ai-sec-desc">' + clip(esc(baseStr['概括']), 20) + '</span>'; html += '</div>';
     if (bHasRank) {
-      html += '<div class="ai-rank-dual"><div class="ai-rank-col"><div class="ai-rank-h">' + esc(homeTeam) + '</div><div class="ai-rank-val">' + clip(esc(bRank), 60) + '</div></div><div class="ai-rank-col"><div class="ai-rank-h">' + esc(awayTeam) + '</div><div class="ai-rank-val">' + clip(esc(bRank.substring(60)), 60) + '</div></div></div>';
+      // 智能拆分主客队排名描述
+      var rankHome = clip(esc(bRank), 60), rankAway = '';
+      var idxH = bRank.indexOf(homeTeam); var idxA = bRank.indexOf(awayTeam);
+      if (idxH >= 0 && idxA >= 0 && idxA > idxH) {
+        rankHome = clip(esc(bRank.substring(0, idxA)), 60);
+        rankAway = clip(esc(bRank.substring(idxA)), 60);
+      } else if (idxA >= 0 && idxH >= 0 && idxH > idxA) {
+        rankAway = clip(esc(bRank.substring(0, idxH)), 60);
+        rankHome = clip(esc(bRank.substring(idxH)), 60);
+      } else if (bRank.length > 60) {
+        rankAway = clip(esc(bRank.substring(60)), 60);
+      }
+      html += '<div class="ai-rank-dual"><div class="ai-rank-col"><div class="ai-rank-h">' + esc(homeTeam) + '</div><div class="ai-rank-val">' + rankHome + '</div></div><div class="ai-rank-col"><div class="ai-rank-h">' + esc(awayTeam) + '</div><div class="ai-rank-val">' + (rankAway || '\u2014') + '</div></div></div>';
     }
     if (bHasTable) {
       html += '<div class="ai-data-compare"><div class="ai-data-title">攻防数据对比</div>';
