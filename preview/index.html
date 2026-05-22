@@ -1319,12 +1319,6 @@ body {
 .ai-predict-td.check { color: #34D399; font-size: 13px; font-weight: 700; }
 .ai-disclaimer { text-align: center; font-size: 11px; color: var(--text3); margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
 
-/* 底部快捷导航 */
-.ai-nav { display:flex; gap:6px; overflow-x:auto; padding:0 0 14px; margin-bottom:4px; }
-.ai-nav-item { padding:6px 12px; border-radius:14px; font-size:11px; font-weight:600; color:var(--text2); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.05); white-space:nowrap; flex-shrink:0; cursor:pointer; }
-.ai-nav-item.active { background:rgba(0,245,233,0.1); border-color:rgba(0,245,233,0.22); color:var(--cyan); }
-.ai-nav-item.hl { background:rgba(255,178,28,0.1); border-color:rgba(255,178,28,0.2); color:var(--amber); }
-
 /* 02 战绩条 */
 .ai-form-row { display:flex; align-items:center; gap:6px; padding:5px 0; }
 .ai-form-label { width:44px; font-size:12px; color:var(--text2); }
@@ -2362,8 +2356,6 @@ function renderAIContent(content, homeTeam, awayTeam) {
   preds.forEach(function(p) { var val = esc(p['建议方向'] || ''); var isHome = val.indexOf('主') >= 0 || val.indexOf('胜') >= 0 || val.indexOf(homeTeam[0]) >= 0; html += '<div class="ai-predict-item"><div class="ai-predict-label">' + esc(p['玩法'] || '') + '</div><div class="ai-predict-value' + (isHome ? ' ai-predict-green' : '') + '">' + val + '</div><div class="ai-predict-sub">' + esc(p['核心逻辑'] || '') + '</div></div>'; });
   html += '</div></div>';
 
-  html += '<div class="ai-nav"><div class="ai-nav-item active" onclick="navToSec(1)">基础面</div><div class="ai-nav-item" onclick="navToSec(2)">状态面</div><div class="ai-nav-item" onclick="navToSec(3)">动机面</div><div class="ai-nav-item" onclick="navToSec(4)">对位面</div><div class="ai-nav-item" onclick="navToSec(5)">市场面</div><div class="ai-nav-item hl" onclick="navToSec(6)">核心看点</div></div>';
-
   html += '<div id="ai-sec-01" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">01</span><span class="ai-sec-name">基础面</span>'; if (baseStr['概括']) html += '<span class="ai-sec-desc">' + esc(baseStr['概括']) + '</span>'; html += '</div>';
   if (baseStr['积分排名']) html += '<div class="ai-item"><div class="ai-item-label">积分排名</div><div class="ai-item-text">' + esc(baseStr['积分排名']) + '</div></div>';
   if (baseTable && baseTable.rows && baseTable.rows.length >= 3) { html += '<div class="ai-data-compare"><div class="ai-data-title">攻防数据对比（赛季/场均）</div>';
@@ -2414,11 +2406,6 @@ function renderAIContent(content, homeTeam, awayTeam) {
   html += '</div><div class="ai-disclaimer">本分析为AI生成，仅供参考，请理性对待</div></div>';
   html += '</div>';
   document.getElementById('aiModal').innerHTML = html;
-}
-
-function navToSec(n) {
-  var el = document.getElementById('ai-sec-0' + n);
-  if (el) el.scrollIntoView({ behavior: 'smooth' });
 }
 
 function closeAI() {
