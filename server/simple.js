@@ -18,7 +18,11 @@ app.get('/',function(req,res){
   res.set('Cache-Control','public, max-age=60');
   getHomeHTML(function(err,html){res.type('html').send(html)});
 });
-var previewOpts={maxAge:'1h',etag:true,setHeaders:function(res){res.removeHeader('Accept-Ranges')}};
+var previewOpts={maxAge:'1h',etag:true,setHeaders:function(res,fp){
+  res.removeHeader('Accept-Ranges');
+  // CSS/JS 长缓存30天，HTML 短缓存1h
+  if(fp.endsWith('.css')||fp.endsWith('.js')){res.setHeader('Cache-Control','public, max-age=2592000')}
+}};
 app.use(express.static(path.join(__dirname,'../preview'),previewOpts));
 
 var data={m:{},r:{}};
