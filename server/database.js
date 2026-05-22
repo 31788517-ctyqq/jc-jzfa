@@ -455,29 +455,33 @@ function getFilterRate(params) {
   }
   const conditionSummary = parts.length > 0 ? parts.join(' | ') : '全部条件';
 
-  // 生成 dailyResults：按天+matchId去重统计命中率
-  // 近30天（不含今天），取最近15条展示
-  const dailyMatchSet = {}, dailyHitSet = {};
-  const today = new Date();
-  const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+  // 生成 dailyResults：按天统计命中率
+  // "每天"模式：每天只取 top rt 场比赛（按 expertCount 排序）
+  const dailyMap = {};
+  const today0 = new Date();
   for (let i = 0; i < 30; i++) {
-    const d = new Date(today);
+    const d = new Date(today0);
     d.setDate(d.getDate() - i - 1);
     const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-    dailyMatchSet[ds] = new Set();
-    dailyHitSet[ds] = new Set();
+    dailyMap[ds] = { matchMax: {}, matchHit: {} };
   }
   detailRows.forEach(r => {
     if (r.date) {
       const dd = r.date.slice(0, 10);
-      if (dailyMatchSet[dd]) {
-        dailyMatchSet[dd].add(r.matchId);
-        if (r.result === 1) dailyHitSet[dd].add(r.matchId);
+      if (dailyMap[dd]) {
+        if (!dailyMap[dd].matchMax[r.matchId] || dailyMap[dd].matchMax[r.matchId] < (r.expertCount || 0))
+          dailyMap[dd].matchMax[r.matchId] = r.expertCount || 0;
+        if (r.result === 1) dailyMap[dd].matchHit[r.matchId] = 1;
       }
     }
   });
-  const dailyResults = Object.keys(dailyMatchSet).sort().reverse().slice(0, 15).map(k => {
-    const tm = dailyMatchSet[k].size, hm = dailyHitSet[k].size;
+  const isDaily = (rankType === '每天' && rankTop > 0);
+  const dailyResults = Object.keys(dailyMap).sort().reverse().slice(0, 15).map(k => {
+    const m = dailyMap[k];
+    const ranked = Object.keys(m.matchMax).sort((a, b) => m.matchMax[b] - m.matchMax[a]);
+    const selected = isDaily ? ranked.slice(0, rankTop) : ranked;
+    let tm = 0, hm = 0;
+    selected.forEach(mid => { tm++; if (m.matchHit[mid]) hm++; });
     return {
       date: k.replace(/-/g, '/'),
       totalMatch: tm,
