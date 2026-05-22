@@ -1056,6 +1056,45 @@ body {
   fill: currentColor;
 }
 
+/* 结果详情卡片 */
+.filter-detail-card {
+  background: rgba(14,24,34,0.72);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(24,224,224,0.12);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 14px;
+}
+.filter-detail-head {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.filter-detail-header-row {
+  display: flex;
+  font-size: 11px;
+  color: var(--text3);
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.filter-detail-header-row span:nth-child(1) { width: 90px; flex-shrink: 0; }
+.filter-detail-header-row span:nth-child(2) { flex: 1; text-align: center; }
+.filter-detail-header-row span:nth-child(3) { width: 70px; text-align: right; flex-shrink: 0; }
+.filter-detail-row {
+  display: flex;
+  font-size: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+  color: var(--text2);
+}
+.filter-detail-row:last-child { border-bottom: none; }
+.filter-detail-row span:nth-child(1) { width: 90px; flex-shrink: 0; color: var(--text3); }
+.filter-detail-row span:nth-child(2) { flex: 1; text-align: center; font-weight: 600; color: #fff; }
+.filter-detail-row span:nth-child(3) { width: 70px; text-align: right; flex-shrink: 0; font-weight: 700; color: var(--cyan); }
+
 .hint-box { text-align: center; padding: 80px 0; color: var(--text3); font-size: var(--fs-md); }
 
 /* AI预测卡片 */
@@ -1516,6 +1555,7 @@ body {
             <li data-val="进球数" class="filter-dd-option" onclick="selectDD('dd-dirType','进球数','进球数');onDDTypeChange()">进球数</li>
             <li data-val="双选" class="filter-dd-option" onclick="selectDD('dd-dirType','双选','双选');onDDTypeChange()">双选</li>
             <li data-val="半全场" class="filter-dd-option" onclick="selectDD('dd-dirType','半全场','半全场');onDDTypeChange()">半全场</li>
+            <li data-val="综合排名" class="filter-dd-option" onclick="selectDD('dd-dirType','综合排名','综合排名');onDDTypeChange()">综合排名</li>
           </ul>
         </div>
         <div class="filter-dd" id="dd-dir" data-val="" style="display:none">
@@ -1526,17 +1566,27 @@ body {
     </div>
     <div class="filter-row">
       <span class="filter-label">排名</span>
-      <div class="filter-dd" id="dd-rank" data-val="0">
-        <div class="filter-dd-trigger" onclick="toggleDD('dd-rank', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
-        <ul class="filter-dd-menu">
-          <li data-val="0" class="filter-dd-option selected" onclick="selectDD('dd-rank','0','全部')">全部</li>
-          <li data-val="1" class="filter-dd-option" onclick="selectDD('dd-rank','1','第一名')">第一名</li>
-          <li data-val="2" class="filter-dd-option" onclick="selectDD('dd-rank','2','前二名')">前二名</li>
-          <li data-val="3" class="filter-dd-option" onclick="selectDD('dd-rank','3','前三名')">前三名</li>
-          <li data-val="4" class="filter-dd-option" onclick="selectDD('dd-rank','4','前四名')">前四名</li>
-          <li data-val="5" class="filter-dd-option" onclick="selectDD('dd-rank','5','前五名')">前五名</li>
-          <li data-val="6" class="filter-dd-option" onclick="selectDD('dd-rank','6','前六名')">前六名</li>
-        </ul>
+      <div class="filter-row-inline">
+        <div class="filter-dd" id="dd-rankType" data-val="全部">
+          <div class="filter-dd-trigger" onclick="toggleDD('dd-rankType', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+          <ul class="filter-dd-menu">
+            <li data-val="全部" class="filter-dd-option selected" onclick="selectDD('dd-rankType','全部','全部');onRankTypeChange()">全部</li>
+            <li data-val="每天" class="filter-dd-option" onclick="selectDD('dd-rankType','每天','每天');onRankTypeChange()">每天</li>
+            <li data-val="每场" class="filter-dd-option" onclick="selectDD('dd-rankType','每场','每场');onRankTypeChange()">每场</li>
+          </ul>
+        </div>
+        <div class="filter-dd" id="dd-rank" data-val="0" style="display:none">
+          <div class="filter-dd-trigger" onclick="toggleDD('dd-rank', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+          <ul class="filter-dd-menu">
+            <li data-val="0" class="filter-dd-option selected" onclick="selectDD('dd-rank','0','全部')">全部</li>
+            <li data-val="1" class="filter-dd-option" onclick="selectDD('dd-rank','1','第一名')">第一名</li>
+            <li data-val="2" class="filter-dd-option" onclick="selectDD('dd-rank','2','前二名')">前二名</li>
+            <li data-val="3" class="filter-dd-option" onclick="selectDD('dd-rank','3','前三名')">前三名</li>
+            <li data-val="4" class="filter-dd-option" onclick="selectDD('dd-rank','4','前四名')">前四名</li>
+            <li data-val="5" class="filter-dd-option" onclick="selectDD('dd-rank','5','前五名')">前五名</li>
+            <li data-val="6" class="filter-dd-option" onclick="selectDD('dd-rank','6','前六名')">前六名</li>
+          </ul>
+        </div>
       </div>
     </div>
     <div class="filter-btn-wrap">

@@ -349,9 +349,9 @@ function getDirectionsByType(dirType) {
   const map = {
     '胜平负': ['胜', '平', '负'],
     '让球': ['让胜', '让平', '让负'],
-    '进球数': ['1,2', '2,3', '3,4', '1,2,3', '2,3,4', '3,4,5'],
-    '双选': ['平,让平', '让胜,让平', '让平,让负', '胜,平', '平,负'],
-    '半全场': ['胜胜', '负负']
+    '进球数': ['总进球-1、2球','总进球-2、3球','总进球-3、4球','总进球-1、2、3球','总进球-2、3、4球','总进球-3、4、5球'],
+    '双选': ['平、让平', '让胜、让平', '让平、让负', '胜、平', '平、负'],
+    '半全场': ['半全场-胜胜', '半全场-负负']
   };
   return map[dirType] || [];
 }
@@ -366,7 +366,7 @@ function getDirectionsByType(dirType) {
  * @param {number} params.rankTop - 0=全部, 1=第一名, 2=前二名...
  */
 function getFilterRate(params) {
-  const { league = '', timeRange = 'all', directionType = '', direction = '', rankTop = 0 } = params;
+  const { league = '', timeRange = 'all', directionType = '', direction = '', rankType = '全部', rankTop = 0 } = params;
 
   let conditions = [];
   let bindParams = {};
@@ -446,20 +446,47 @@ function getFilterRate(params) {
   if (timeRange === '30') parts.push('近一个月');
   else if (timeRange === '60') parts.push('近两个月');
   else if (timeRange === '90') parts.push('近三个月');
-  if (direction && directionType) parts.push(direction);
-  else if (directionType) parts.push(directionType);
-  if (rankTop > 0) {
+  if (directionType === '综合排名') parts.push('综合排名');
+  if (direction && directionType && directionType !== '综合排名') parts.push(direction);
+  else if (directionType && directionType !== '综合排名') parts.push(directionType);
+  if (rankType !== '全部' && rankTop > 0) {
     const rankLabels = ['', '第一名', '前二名', '前三名', '前四名', '前五名', '前六名'];
-    parts.push(rankLabels[rankTop] || `前${rankTop}名`);
+    parts.push(rankType + '-' + rankLabels[rankTop]);
   }
   const conditionSummary = parts.length > 0 ? parts.join(' | ') : '全部条件';
+
+  // 生成近15天 dailyResults
+  const dailyMap = {};
+  const now = new Date();
+  for (let i = 0; i < 15; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    dailyMap[ds] = { totalMatch: 0, hitMatch: 0 };
+  }
+  detailRows.forEach(r => {
+    if (r.date && dailyMap[r.date.slice(0, 10)]) {
+      dailyMap[r.date.slice(0, 10)].totalMatch++;
+      if (r.result === 1) dailyMap[r.date.slice(0, 10)].hitMatch++;
+    }
+  });
+  const dailyResults = Object.keys(dailyMap).sort().reverse().map(k => {
+    const v = dailyMap[k];
+    return {
+      date: k.substring(5),
+      totalMatch: v.totalMatch,
+      hitMatch: v.hitMatch,
+      hitRate: v.totalMatch > 0 ? Math.round(v.hitMatch / v.totalMatch * 1000) / 10 : 0
+    };
+  });
 
   return {
     hitCount,
     totalCount,
     hitRate,
     conditionSummary,
-    detailList: detailRows
+    detailList: detailRows,
+    dailyResults
   };
 }
 
