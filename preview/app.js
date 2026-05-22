@@ -1,3 +1,4 @@
+const API = '/api';
 const DIR_COLORS = {
   '胜': '#EF4444', '平': '#FBBF24', '负': '#60A5FA',
   '胜平': '#34D399', '平负': '#F472B6', '胜负': '#A78BFA',
