@@ -1485,14 +1485,14 @@ body {
     <div class="filter-row">
       <span class="filter-label">联赛</span>
       <div class="filter-dd" id="dd-league" data-val="">
-        <div class="filter-dd-trigger" onclick="toggleDD('dd-league')"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+        <div class="filter-dd-trigger" onclick="toggleDD('dd-league', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
         <ul class="filter-dd-menu"></ul>
       </div>
     </div>
     <div class="filter-row">
       <span class="filter-label">时间</span>
       <div class="filter-dd" id="dd-time" data-val="all">
-        <div class="filter-dd-trigger" onclick="toggleDD('dd-time')"><span class="filter-dd-text">全部时间</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+        <div class="filter-dd-trigger" onclick="toggleDD('dd-time', event)"><span class="filter-dd-text">全部时间</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
         <ul class="filter-dd-menu">
           <li data-val="all" class="filter-dd-option selected" onclick="selectDD('dd-time','all','全部时间')">全部时间</li>
           <li data-val="30" class="filter-dd-option" onclick="selectDD('dd-time','30','近一个月')">近一个月</li>
@@ -1505,7 +1505,7 @@ body {
       <span class="filter-label">方向</span>
       <div class="filter-row-inline">
         <div class="filter-dd" id="dd-dirType" data-val="">
-          <div class="filter-dd-trigger" onclick="toggleDD('dd-dirType')"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+          <div class="filter-dd-trigger" onclick="toggleDD('dd-dirType', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
           <ul class="filter-dd-menu">
             <li data-val="" class="filter-dd-option selected" onclick="selectDD('dd-dirType','','全部');onDDTypeChange()">全部</li>
             <li data-val="胜平负" class="filter-dd-option" onclick="selectDD('dd-dirType','胜平负','胜平负');onDDTypeChange()">胜平负</li>
@@ -1516,7 +1516,7 @@ body {
           </ul>
         </div>
         <div class="filter-dd" id="dd-dir" data-val="" style="display:none">
-          <div class="filter-dd-trigger" onclick="toggleDD('dd-dir')"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+          <div class="filter-dd-trigger" onclick="toggleDD('dd-dir', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
           <ul class="filter-dd-menu"></ul>
         </div>
       </div>
@@ -1524,7 +1524,7 @@ body {
     <div class="filter-row">
       <span class="filter-label">排名</span>
       <div class="filter-dd" id="dd-rank" data-val="0">
-        <div class="filter-dd-trigger" onclick="toggleDD('dd-rank')"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+        <div class="filter-dd-trigger" onclick="toggleDD('dd-rank', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
         <ul class="filter-dd-menu">
           <li data-val="0" class="filter-dd-option selected" onclick="selectDD('dd-rank','0','全部')">全部</li>
           <li data-val="1" class="filter-dd-option" onclick="selectDD('dd-rank','1','第一名')">第一名</li>
@@ -2172,7 +2172,9 @@ const filterDirMap = {
 };
 
 // 自定义下拉
-function toggleDD(id) {
+function toggleDD(id, evt) {
+  // 阻止事件冒泡到 document，避免被全局监听器立即关闭
+  if (evt) { evt.stopPropagation(); evt.preventDefault(); }
   var dd = document.getElementById(id);
   if (!dd) return;
   var wasOpen = dd.classList.contains('open');
@@ -2224,15 +2226,16 @@ function getDDVal(id) {
 function closeAllDD() {
   document.querySelectorAll('.filter-dd.open').forEach(function(d) { d.classList.remove('open'); });
 }
-// 监听 click 和 touchend 以兼容移动端
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.filter-dd')) closeAllDD();
-});
+// 监听 click/touchend 关闭下拉（兼容移动端）
+function handleDocClose(e) {
+  if (!e.target) return;
+  var inDD = e.target.closest('.filter-dd');
+  if (!inDD) closeAllDD();
+}
+document.addEventListener('click', handleDocClose);
 document.addEventListener('touchend', function(e) {
-  // 延迟检查，避免与 click 事件冲突
-  setTimeout(function() {
-    if (!e.target.closest('.filter-dd')) closeAllDD();
-  }, 10);
+  // mobile touchend 300ms later to avoid immediate close
+  setTimeout(function() { handleDocClose(e); }, 50);
 });
 
 function resetFilterResult() {
