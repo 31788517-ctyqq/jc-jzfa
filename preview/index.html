@@ -1353,12 +1353,14 @@ body {
 .ai-swp-title.bad { color:#EF4444; }
 .ai-swp-item { padding:6px 8px; margin-bottom:4px; background:rgba(255,255,255,0.03); border-radius:6px; font-size:11px; color:var(--text2); line-height:1.4; }
 
-/* 市场饼图 */
-.ai-pie-wrap { display:flex; align-items:center; gap:16px; padding:10px 0; }
-.ai-pie-cir { width:72px; height:72px; border-radius:50%; flex-shrink:0; }
-.ai-pie-leg { display:flex; flex-direction:column; gap:6px; }
-.ai-pie-dot { display:flex; align-items:center; gap:6px; font-size:11px; }
-.ai-pie-c { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+/* 市场进度条 */
+.ai-bar-wrap { display:flex; flex-direction:column; gap:8px; padding:8px 0; margin-bottom:4px; }
+.ai-bar-row { display:flex; align-items:center; gap:8px; }
+.ai-bar-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.ai-bar-label { font-size:12px; color:#fff; width:32px; flex-shrink:0; }
+.ai-bar-bg { flex:1; height:8px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; }
+.ai-bar-fill { height:100%; border-radius:4px; transition:width .4s ease; }
+.ai-bar-pct { font-size:12px; font-weight:700; color:var(--text2); width:34px; text-align:right; flex-shrink:0; }
 </style>
 </head>
 <body>
@@ -2452,8 +2454,10 @@ function renderAIContent(content, homeTeam, awayTeam) {
   if (hasOdds || hasMktCon) {
     html += '<div id="ai-sec-05" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">05</span><span class="ai-sec-name">市场面</span></div>';
     var hpct = 41, dpct = 32, apct = 27;
-    var pie = 'conic-gradient(' + (hpct ? '#34D399 0deg ' + (hpct * 3.6) + 'deg' : '') + (dpct ? ', #FBBF24 ' + (hpct * 3.6) + 'deg ' + ((hpct + dpct) * 3.6) + 'deg' : '') + (apct ? ', #64748B ' + ((hpct + dpct) * 3.6) + 'deg 360deg' : '') + ')';
-    html += '<div class="ai-pie-wrap"><div class="ai-pie-cir" style="background:' + pie + '"></div><div class="ai-pie-leg"><div class="ai-pie-dot"><span class="ai-pie-c" style="background:#34D399"></span><span style="color:#fff">主胜</span><span style="color:var(--text3);margin-left:auto">' + hpct + '%</span></div><div class="ai-pie-dot"><span class="ai-pie-c" style="background:#FBBF24"></span><span style="color:#fff">平局</span><span style="color:var(--text3);margin-left:auto">' + dpct + '%</span></div><div class="ai-pie-dot"><span class="ai-pie-c" style="background:#64748B"></span><span style="color:#fff">客胜</span><span style="color:var(--text3);margin-left:auto">' + apct + '%</span></div></div></div>';
+    // 进度条形式
+    html += '<div class="ai-bar-wrap"><div class="ai-bar-row"><span class="ai-bar-dot" style="background:#34D399"></span><span class="ai-bar-label">主胜</span><div class="ai-bar-bg"><div class="ai-bar-fill" style="width:' + hpct + '%;background:#34D399"></div></div><span class="ai-bar-pct">' + hpct + '%</span></div>';
+    html += '<div class="ai-bar-row"><span class="ai-bar-dot" style="background:#FBBF24"></span><span class="ai-bar-label">平局</span><div class="ai-bar-bg"><div class="ai-bar-fill" style="width:' + dpct + '%;background:#FBBF24"></div></div><span class="ai-bar-pct">' + dpct + '%</span></div>';
+    html += '<div class="ai-bar-row"><span class="ai-bar-dot" style="background:#64748B"></span><span class="ai-bar-label">客胜</span><div class="ai-bar-bg"><div class="ai-bar-fill" style="width:' + apct + '%;background:#64748B"></div></div><span class="ai-bar-pct">' + apct + '%</span></div></div>';
     if (has(mktStr['盘口与赔率'])) html += '<div class="ai-item"><div class="ai-item-label">盘口与赔率</div><div class="ai-item-text">' + clip(esc(mktStr['盘口与赔率']), 120) + '</div></div>';
     if (has(mktStr['大小球'])) html += '<div class="ai-item"><div class="ai-item-label">大小球</div><div class="ai-item-text">' + clip(esc(mktStr['大小球']), 120) + '</div></div>';
     if (hasMktCon) html += '<div class="ai-item-conclusion amber"><div class="ai-item-label">市场解读</div><div class="ai-item-text">' + clip(esc(mktStr['核心结论']), 120) + '</div></div>';
