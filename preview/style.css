@@ -206,8 +206,11 @@
 .ai-injury-row { padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03); }
 .ai-injury-row:last-child { border-bottom:none; }
 .ai-injury-head { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
-.ai-injury-team { color:var(--text2); font-size:var(--fs-sm); font-weight:600; min-width:44px; }
-.ai-injury-detail { font-size:var(--fs-xs); color:var(--text); line-height:1.6; padding-left:52px; }
+.ai-injury-badge { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+.ai-injury-badge.home { background:rgba(0,245,233,0.12); color:var(--cyan); }
+.ai-injury-badge.away { background:rgba(255,178,28,0.12); color:var(--amber); }
+.ai-injury-team { color:var(--text2); font-size:var(--fs-sm); font-weight:600; }
+.ai-injury-detail { font-size:var(--fs-xs); color:var(--text); line-height:1.6; padding-left:32px; }
 .ai-injury-status { padding:2px 8px; border-radius:6px; font-size:var(--fs-xs); font-weight:600; white-space:nowrap; }
 .ai-injury-status.out { background:rgba(239,68,68,0.12); color:var(--red); }
 .ai-injury-status.doubt { background:rgba(251,191,36,0.12); color:var(--amber); }
