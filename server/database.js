@@ -456,26 +456,42 @@ function getFilterRate(params) {
   const conditionSummary = parts.length > 0 ? parts.join(' | ') : '全部条件';
 
   // 生成 dailyResults + 筛选结果统计（汇总一致性）
-  // 从 detailRows 中收集实际日期
   const dateSet = {};
   detailRows.forEach(r => { if (r.date) { dateSet[r.date.slice(0, 10)] = true; } });
   let sortedDates = Object.keys(dateSet).sort().reverse();
   const showDays = timeRange === 'all' ? 60 : (parseInt(timeRange) || 30);
   sortedDates = sortedDates.slice(0, showDays);
   const dailyMap = {};
-  sortedDates.forEach(ds => { dailyMap[ds] = { matchMax: {}, matchDir: {}, matchHit: {} }; });
+  sortedDates.forEach(ds => { dailyMap[ds] = { matchMax: {}, matchHit: {} }; });
   detailRows.forEach(r => {
     if (r.date) {
       const dd = r.date.slice(0, 10);
       if (dailyMap[dd]) {
-        if (!dailyMap[dd].matchMax[r.matchId] || dailyMap[dd].matchMax[r.matchId] < (r.expertCount || 0)) {
+        if (!dailyMap[dd].matchMax[r.matchId] || dailyMap[dd].matchMax[r.matchId] < (r.expertCount || 0))
           dailyMap[dd].matchMax[r.matchId] = r.expertCount || 0;
-          dailyMap[dd].matchDir[r.matchId] = r.direction || '';
-        }
         if (r.result === 1) dailyMap[dd].matchHit[r.matchId] = 1;
       }
     }
   });
+
+  // 查询每天全局最大值（所有方向，不限过滤）
+  // 全局最大值查询（只用联赛+时间过滤，不用方向过滤）
+  const globalMaxConditions = [];
+  const globalMaxParams = {};
+  if (league) { globalMaxConditions.push('m.leagueName = @gmlg'); globalMaxParams['gmlg'] = league; }
+  if (timeRange !== 'all') { globalMaxConditions.push("m.date >= date('now','localtime','-' || @gmd || ' days')"); globalMaxParams['gmd'] = parseInt(timeRange); }
+  const gmWhereStr = globalMaxConditions.length > 0 ? 'AND ' + globalMaxConditions.join(' AND ') : '';
+  const globalMaxSQL = `
+    SELECT substr(m.date,1,10) as dd, MAX(r.num) as maxNum
+    FROM recommends r
+    JOIN matches m ON r.matchId = m.matchId
+    WHERE r.result IS NOT NULL
+      ${gmWhereStr}
+    GROUP BY substr(m.date,1,10)
+  `;
+  const globalMaxRows = db.prepare(globalMaxSQL).all(globalMaxParams);
+  const globalMaxDay = {};
+  globalMaxRows.forEach(r => { globalMaxDay[r.dd] = r.maxNum; });
   const isDaily = (rankType === '每天' && rankTop > 0);
   const isPerMatch = (rankType === '每场' && rankTop > 0);
   let totalTc = 0, totalHc = 0;
@@ -484,11 +500,15 @@ function getFilterRate(params) {
     let selected = [];
     if (isDaily) {
       const ranked = Object.keys(m.matchMax).sort((a, b) => m.matchMax[b] - m.matchMax[a]);
-      const top = ranked.slice(0, rankTop);
-      if (dirList.length > 0) {
-        top.forEach(mid => { if (dirList.includes(m.matchDir[mid]||'')) selected.push(mid); });
+      const gb = globalMaxDay[k] || 0;
+      console.log('[daily-db]', k, 'dirListLen:', dirList.length, 'gb:', gb);
+      if (dirList.length > 0 && gb > 0) {
+        // 有方向筛选：只取该方向值等于当天全局最大值的比赛
+        ranked.forEach((mid, i) => {
+          if (i < rankTop && m.matchMax[mid] === gb) selected.push(mid);
+        });
       } else {
-        selected = top;
+        selected = ranked.slice(0, rankTop);
       }
     } else if (isPerMatch) {
       selected = Object.keys(m.matchMax);

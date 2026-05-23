@@ -395,6 +395,18 @@ app.post('/api',function(req,res){
     function ct(t){if(!t)return'other';t=String(t);if(t=='胜'||t=='平'||t=='负')return'胜平负';if(t[0]=='让')return'让球';if(t=='胜胜'||t=='负负'||t.slice(0,4)=='半全场-')return'半全场';if(t.slice(0,4)=='总进球-')return'进球数';if(/^[\d,\u3001]+$/.test(t))return'进球数';if(/[平胜负让球]/.test(t)&&(t.indexOf(',')>=0||t.indexOf('\u3001')>=0))return'双选';return'other'}
     function gd(dt){var m={};m['胜平负']=['胜','平','负'];m['让球']=['让胜','让平','让负'];m['进球数']=['总进球-1、2球','总进球-2、3球','总进球-3、4球','总进球-1、2、3球','总进球-2、3、4球','总进球-3、4、5球'];m['双选']=['平、让平','让胜、让平','让平、让负','胜、平','平、负'];m['半全场']=['半全场-胜胜','半全场-负负'];return m[dt]||[]}
     var td=null;if(dt&&dt!=='综合排名'){if(dir)td=[dir];else td=gd(dt)}
+    // 预先计算每天全局最大值（直接遍历data.m确保覆盖所有比赛）
+    var globalMaxDay={};
+    Object.keys(data.m).forEach(function(rawKey){
+      var mid=rawKey.replace('m_',''),match=data.m[rawKey];if(!match||!match.date)return;
+      if(league&&match.leagueName!==league)return;
+      if(cutoff&&match.date.slice(0,10)<cutoff)return;
+      var dd=match.date.slice(0,10);if(!dd)return;
+      var recs=findRecommends(mid).filter(function(x){return x.result!==null});
+      if(!recs.length)return;
+      var mx=0;recs.forEach(function(x){if(x.num>mx)mx=x.num});
+      if(mx>(globalMaxDay[dd]||0))globalMaxDay[dd]=mx;
+    });
     var MR={},detail=[];
     Object.keys(data.r).forEach(function(k){
       var mid=k.replace('m_',''),match=data.m[k]||data.m[mid];if(!match)return;
@@ -403,6 +415,9 @@ app.post('/api',function(req,res){
       var r=normalizeRecs(data.r[k]).filter(function(x){return x.result!==null});
       if(!r.length)return;
       r.sort(function(a,b){return b.num-a.num});
+      // 记录全局最大值（不限方向）
+      var dd=match.date?match.date.slice(0,10):'';
+      if(dd&&r[0].num>(globalMaxDay[dd]||0))globalMaxDay[dd]=r[0].num;
       var keep=[];
       if(td){
         // 先按方向过滤，再取该方向内的最大值
@@ -428,17 +443,15 @@ app.post('/api',function(req,res){
     // 限制展示条数：全部时间最多60天，指定时间范围则匹配
     var showDays=tr==='all'?60:(parseInt(tr)||30);
     sortedDates=sortedDates.slice(0,showDays);
-    // 构建 dailyMap（存储每个matchId的全局第一方向和最大值）
+    // 构建 dailyMap（存储每个matchId的该方向最大值）+ 每天全局最大值
     dailyMap={};
-    sortedDates.forEach(function(ds){dailyMap[ds]={matchMax:{},matchDir:{},matchHit:{}}});
+    sortedDates.forEach(function(ds){dailyMap[ds]={matchMax:{},matchHit:{}}});
     detail.forEach(function(x){
       if(x.date){
         var dd=x.date.slice(0,10);
         if(dailyMap[dd]){
-          if(!dailyMap[dd].matchMax[x.matchId]||dailyMap[dd].matchMax[x.matchId]<x.expertCount){
+          if(!dailyMap[dd].matchMax[x.matchId]||dailyMap[dd].matchMax[x.matchId]<x.expertCount)
             dailyMap[dd].matchMax[x.matchId]=x.expertCount;
-            dailyMap[dd].matchDir[x.matchId]=x.direction;
-          }
           if(x.result===1)dailyMap[dd].matchHit[x.matchId]=1;
         }
       }
@@ -450,9 +463,17 @@ app.post('/api',function(req,res){
       var m=dailyMap[k];
       var selected=[],tm=0,hm=0;
       if(isDaily){
-        // 每天模式：该方向expertCount最高的rt场比赛
+        // 每天模式：该方向expertCount最高的比赛，仅当其count等于当天全局最大值时计入
         var ranked=Object.keys(m.matchMax).sort(function(a,b){return m.matchMax[b]-m.matchMax[a]});
-        selected=ranked.slice(0,rt);
+        var gb=globalMaxDay[k]||0;
+        if(td&&gb>0){
+          // 有方向筛选：只取该方向值等于全局最大值的比赛
+          ranked.forEach(function(mid,i){
+            if(i<rt&&m.matchMax[mid]===gb)selected.push(mid);
+          });
+        }else{
+          selected=ranked.slice(0,rt);
+        }
       }else if(isPerMatch){
         selected=Object.keys(m.matchMax);
       }else{
