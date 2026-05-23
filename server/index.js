@@ -471,26 +471,27 @@ let lastBackfillDate = '';
 async function backfillPreviousDayResults() {
   try {
     const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yDate = yesterday.getFullYear() + '-' + String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + String(yesterday.getDate()).padStart(2, '0');
+    const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
     
-    // 每天只回填一次
-    if (lastBackfillDate === yDate) return;
+    if (lastBackfillDate === todayStr) return;
     
-    // 检查前一天是否有完赛比赛
+    // 按日期检查近7天（不依赖matchStatus）
     const db = database.initDatabase();
-    const row = db.prepare(`SELECT COUNT(DISTINCT r.matchId) as cnt FROM recommends r JOIN matches m ON r.matchId=m.matchId WHERE m.date LIKE ? AND m.matchStatus >= 3 AND r.result IS NULL`).get(yDate + '%');
+    const sevenAgo = new Date(today);
+    sevenAgo.setDate(sevenAgo.getDate() - 7);
+    const minDate = sevenAgo.getFullYear() + '-' + String(sevenAgo.getMonth() + 1).padStart(2, '0') + '-' + String(sevenAgo.getDate()).padStart(2, '0');
+    
+    const row = db.prepare(`SELECT COUNT(DISTINCT r.matchId) as cnt FROM recommends r JOIN matches m ON r.matchId=m.matchId WHERE m.date >= ? AND m.date < ? AND r.result IS NULL`).get(minDate, todayStr);
     if (!row || row.cnt === 0) return;
     
-    logger.info('[backfill] 前一天(' + yDate + ')有' + row.cnt + '场比赛结果不全, 开始回填...');
+    logger.info('[backfill] 近7天有' + row.cnt + '场比赛结果不全, 开始回填...');
     
     const stale = db.prepare(`
       SELECT DISTINCT r.matchId, m.homeName, m.visitName
       FROM recommends r JOIN matches m ON r.matchId=m.matchId
-      WHERE m.date LIKE ? AND m.matchStatus >= 3 AND r.result IS NULL
+      WHERE m.date >= ? AND m.date < ? AND r.result IS NULL
       LIMIT 50
-    `).all(yDate + '%');
+    `).all(minDate, todayStr);
     
     if (!stale || stale.length === 0) return;
     
@@ -523,8 +524,8 @@ async function backfillPreviousDayResults() {
       await new Promise(r => setTimeout(r, 200));
     }
     
-    lastBackfillDate = yDate;
-    logger.info('[backfill] 前一天回填完成, 更新' + updated + '场');
+    lastBackfillDate = todayStr;
+    logger.info('[backfill] 近7天回填完成, 更新' + updated + '场');
   } catch(e) { logger.error('[backfill] 回填异常: ' + e.message); }
 }
 
