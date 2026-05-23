@@ -54,6 +54,8 @@ function buildUserPrompt(matchInfo) {
 - 盘口赔率数据
 - 大小球趋势
 
+**重要规则**：在输出的任何字段（尤其是积分排名字段）中引用球队时，必须使用上面给定的全称（${matchInfo.homeName || '主队'}和${matchInfo.visitName || '客队'}），不得使用简称或别称。
+
 请以 JSON 格式输出（以下 JSON 中的值仅为字段类型说明，请基于你的知识库生成真实数据，不要照抄）：
 {
   "confidence": "<整数0-100, 你对本场分析的确信度>",
