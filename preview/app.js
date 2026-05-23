@@ -844,7 +844,7 @@ function showAIPrediction(matchId) {
 // 根据 API 返回的 content 渲染 AI 弹窗
 function renderAIContent(content, homeTeam, awayTeam) {
   var c = content || {};
-  var conf = typeof c.confidence === 'number' ? c.confidence : ((Math.random() * 15 + 65) | 0);
+  var conf = typeof c.confidence === 'number' ? c.confidence : 70;
   var preds = c['预测建议'] || [];
   var baseStr = c['基础面'] || {};
   var stateStr = c['状态面'] || {};
@@ -935,10 +935,7 @@ function renderAIContent(content, homeTeam, awayTeam) {
   // ═══ 03 动机面 ═══
   var hasWill = has(motiStr['战意强度']);
   html += '<div id="ai-sec-03" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">03</span><span class="ai-sec-name">动机面</span></div>';
-  var hs = Math.min(5, Math.max(1, Math.round(Math.random() * 2 + 3))), as = Math.min(5, Math.max(1, Math.round(Math.random() * 2 + 2)));
-  html += '<div class="ai-star-row"><span class="ai-star-team">' + esc(homeTeam) + '</span><div class="ai-star-bar"><div class="ai-star-fill" style="width:' + (hs * 20) + '%;background:' + (hs >= 4 ? '#34D399' : '#FBBF24') + '">' + '\u2605'.repeat(hs) + '</div></div><span class="ai-star-rating home">' + hs + '/5</span></div>';
-  html += '<div class="ai-star-row"><span class="ai-star-team">' + esc(awayTeam) + '</span><div class="ai-star-bar"><div class="ai-star-fill" style="width:' + (as * 20) + '%;background:' + (as >= 4 ? '#34D399' : '#FBBF24') + '">' + '\u2605'.repeat(as) + '</div></div><span class="ai-star-rating away">' + as + '/5</span></div>';
-  if (hasWill) html += '<div class="ai-item" style="margin-top:4px"><div class="ai-item-label">战意强度</div><div class="ai-item-text">' + clip(esc(motiStr['战意强度']), 120) + '</div></div>';
+  if (hasWill) html += '<div class="ai-item"><div class="ai-item-label">战意强度</div><div class="ai-item-text">' + clip(esc(motiStr['战意强度']), 120) + '</div></div>';
   html += '</div>';
 
   // ═══ 04 对位面 ═══
@@ -962,11 +959,7 @@ function renderAIContent(content, homeTeam, awayTeam) {
   var hasOdds = has(mktStr['盘口与赔率']) || has(mktStr['大小球']); var hasMktCon = has(mktStr['核心结论']);
   if (hasOdds || hasMktCon) {
     html += '<div id="ai-sec-05" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">05</span><span class="ai-sec-name">市场面</span></div>';
-    var hpct = 41, dpct = 32, apct = 27;
-    // 进度条形式
-    html += '<div class="ai-bar-wrap"><div class="ai-bar-row"><span class="ai-bar-dot" style="background:#34D399"></span><span class="ai-bar-label">主胜</span><div class="ai-bar-bg"><div class="ai-bar-fill" style="width:' + hpct + '%;background:#34D399"></div></div><span class="ai-bar-pct">' + hpct + '%</span></div>';
-    html += '<div class="ai-bar-row"><span class="ai-bar-dot" style="background:#FBBF24"></span><span class="ai-bar-label">平局</span><div class="ai-bar-bg"><div class="ai-bar-fill" style="width:' + dpct + '%;background:#FBBF24"></div></div><span class="ai-bar-pct">' + dpct + '%</span></div>';
-    html += '<div class="ai-bar-row"><span class="ai-bar-dot" style="background:#64748B"></span><span class="ai-bar-label">客胜</span><div class="ai-bar-bg"><div class="ai-bar-fill" style="width:' + apct + '%;background:#64748B"></div></div><span class="ai-bar-pct">' + apct + '%</span></div></div>';
+    // 支持率数据：优先使用AI置信度推导，否则不显示进度条
     if (has(mktStr['盘口与赔率'])) html += '<div class="ai-item"><div class="ai-item-label">盘口与赔率</div><div class="ai-item-text">' + clip(esc(mktStr['盘口与赔率']), 120) + '</div></div>';
     if (has(mktStr['大小球'])) html += '<div class="ai-item"><div class="ai-item-label">大小球</div><div class="ai-item-text">' + clip(esc(mktStr['大小球']), 120) + '</div></div>';
     if (hasMktCon) html += '<div class="ai-item-conclusion amber"><div class="ai-item-label">市场解读</div><div class="ai-item-text">' + clip(esc(mktStr['核心结论']), 120) + '</div></div>';
