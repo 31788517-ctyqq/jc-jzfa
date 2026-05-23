@@ -186,23 +186,39 @@ app.post('/api', async (req, res) => {
         } catch (dbErr) {
           logger.error('存储推荐数据失败: ' + dbErr.message);
         }
-        // 模拟趋势数据（7 个时间点，最终值取真实值）
-        const times = [];
-        const now = new Date();
-        const hour = now.getHours();
-        for (let i = 6; i >= 0; i--) {
-          const t = new Date(now);
-          t.setHours(Math.max(11, hour - i * 0.5), i % 2 === 0 ? 0 : 30, 0);
-          if (t.getHours() >= 11) times.push(String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0'));
-        }
-        const series = recomms.map(r => {
-          const data = times.map((_, idx) => {
-            if (idx === times.length - 1) return r.num;
-            return Math.max(0, r.num - Math.floor(Math.random() * 3));
+        // 从 trends.json 读取真实趋势快照（period_daemon 每20分钟写入）
+        var timeLabels = [], series = [];
+        try {
+          var trendFile = path.join(__dirname, 'trends.json');
+          if (require('fs').existsSync(trendFile)) {
+            var trends = JSON.parse(require('fs').readFileSync(trendFile, 'utf8'));
+            var key = 'm_' + matchId;
+            var snaps = (trends[key] || []);
+            if (snaps.length > 0) {
+              timeLabels = snaps.map(function(s) { return s.t; });
+              var allTypes = {};
+              snaps.forEach(function(s) { Object.keys(s).forEach(function(k) { if (k !== 't' && k !== 'ts') allTypes[k] = true; }); });
+              Object.keys(allTypes).forEach(function(type) {
+                series.push({
+                  name: type, type: 'line', smooth: true,
+                  data: snaps.map(function(s) { return s[type] || 0; })
+                });
+              });
+            }
+          }
+        } catch(e) { logger.warn('读取趋势快照失败: ' + e.message); }
+
+        // 如果没有历史快照，用当前值生成单点趋势
+        if (series.length === 0) {
+          var now = new Date();
+          var t = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+          timeLabels = [t];
+          series = recomms.map(function(r) {
+            return { name: r.type, type: 'line', smooth: true, data: [r.num] };
           });
-          return { name: r.type, type: 'line', smooth: true, data };
-        });
-        return res.json({ code: 1, data: { matchId, timeLabels: times, series, lastResult: recomms } });
+        }
+
+        return res.json({ code: 1, data: { matchId, timeLabels, series, lastResult: recomms } });
       }
 
       case 'ranking-list': {
