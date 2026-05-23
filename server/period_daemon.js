@@ -51,36 +51,39 @@ function getCurrentPeriod(){
   return {date:fmtLocal(now),week:weekMap[now.getDay()]};
 }
 
-// 回填前一天的命中信息：找到已完赛但结果仍为null的比赛，重新拉取推荐数据
+// 回填历史命中信息：按日期(最近7天)找推荐结果仍为null的比赛，不依赖matchStatus
 async function backfillPreviousDay(token, todayDate){
   try {
-    // 计算前一天日期
     var today = new Date(todayDate + 'T00:00:00+08:00');
-    var yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    var yDate = yesterday.getFullYear() + '-' + String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + String(yesterday.getDate()).padStart(2, '0');
-    
-    // 加载 data.json
+
     var data = {};
     if (fs.existsSync(DATA_FILE)) { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
     if (!data.m) data.m = {}; if (!data.r) data.r = {};
-    
-    // 找前一天完赛但推荐结果不全的比赛
+
+    // 生成最近7天日期集合
+    var dateSet = {};
+    for (var d = 1; d <= 7; d++) {
+      var prev = new Date(today);
+      prev.setDate(prev.getDate() - d);
+      dateSet[prev.getFullYear() + '-' + String(prev.getMonth() + 1).padStart(2, '0') + '-' + String(prev.getDate()).padStart(2, '0')] = true;
+    }
+
+    // 按日期找结果不全的比赛（不依赖matchStatus）
     var needBackfill = [];
     Object.keys(data.r).forEach(function(rk) {
       var mid = rk.replace('m_', '');
       var match = data.m['m_' + mid] || data.m[mid];
       if (!match || !match.date) return;
-      if (match.date.slice(0, 10) !== yDate) return;
-      if (match.matchStatus < 2) return; // 未结束跳过
-      
+      var dd = match.date.slice(0, 10);
+      if (!dateSet[dd]) return;
       var recs = data.r[rk] || [];
-      var nullCount = recs.filter(function(r) { return r.result === null; }).length;
-      if (nullCount > 0) needBackfill.push({ mid: mid, match: match, nullCount: nullCount });
+      // 2=未确定也需要回填
+      var staleCount = recs.filter(function(r) { return r.result === null || r.result === 2; }).length;
+      if (staleCount > 0) needBackfill.push({ mid: mid, match: match, nullCount: staleCount });
     });
     
     if (needBackfill.length === 0) return;
-    log('[backfillPrev] 前一天(' + yDate + ')有' + needBackfill.length + '场完赛比赛结果不全, 开始回填...');
+    log('[backfillPrev] 近7天有' + needBackfill.length + '场比赛结果不全, 开始回填...');
     
     var updated = 0;
     for (var i = 0; i < needBackfill.length; i++) {
@@ -92,10 +95,10 @@ async function backfillPreviousDay(token, todayDate){
             return { type: x.type, num: x.num, result: x.result !== undefined ? x.result : null };
           });
           var rk = 'm_' + item.mid;
-          var oldNulls = (data.r[rk] || []).filter(function(r) { return r.result === null; }).length;
+          var oldStale = (data.r[rk] || []).filter(function(r) { return r.result === null || r.result === 2; }).length;
           data.r[rk] = newRecs;
-          var newNulls = newRecs.filter(function(r) { return r.result === null; }).length;
-          if (newNulls < oldNulls) { updated++; log('[backfillPrev] ' + rk + ' (' + item.match.homeName + ' vs ' + item.match.visitName + ') null:' + oldNulls + '→' + newNulls); }
+          var newStale = newRecs.filter(function(r) { return r.result === null || r.result === 2; }).length;
+          if (newStale < oldStale) { updated++; log('[backfillPrev] ' + rk + ' (' + item.match.homeName + ' vs ' + item.match.visitName + ') stale:' + oldStale + '→' + newStale); }
         }
       } catch(e) { log('[backfillPrev] ' + item.mid + ' 获取失败: ' + e.message); }
       await sleep(200);
