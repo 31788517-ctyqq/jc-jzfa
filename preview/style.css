@@ -222,13 +222,21 @@
 .ai-star-rating.home { color:var(--cyan); }
 .ai-star-rating.away { color:var(--amber); }
 
-/* 对位面 SWOT */
+/* 对位面 双卡片 */
 .ai-swp-grid { display:flex; gap:10px; }
+.ai-swp-card { flex:1; background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.05); border-radius:var(--radius-sm); padding:10px 12px; }
+.ai-swp-card.good { border-top:2px solid var(--green); }
+.ai-swp-card.bad  { border-top:2px solid var(--red); }
+.ai-swp-card-head { display:flex; align-items:center; gap:6px; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.04); }
+.ai-swp-card-icon { font-size:var(--fs-md); line-height:1; }
+.ai-swp-card-icon.good { color:var(--green); transform:rotate(180deg); }
+.ai-swp-card-icon.bad  { color:var(--red); }
+.ai-swp-card-label { font-size:var(--fs-sm); font-weight:700; color:#fff; }
+.ai-swp-card-item { font-size:var(--fs-xs); color:var(--text2); line-height:1.5; padding:5px 0; }
+.ai-swp-card-item + .ai-swp-card-item { border-top:1px solid rgba(255,255,255,0.03); }
+
+/* 旧版对位面（保留兼容） */
 .ai-swp-col { flex:1; }
-.ai-swp-title { font-size:var(--fs-sm); font-weight:700; margin-bottom:6px; text-align:center; }
-.ai-swp-title.good { color:var(--green); }
-.ai-swp-title.bad { color:var(--red); }
-.ai-swp-item { padding:6px 8px; margin-bottom:4px; background:rgba(255,255,255,0.03); border-radius:6px; font-size:var(--fs-xs); color:var(--text2); line-height:1.5; }
 
 /* 市场面-进度条 */
 .ai-bar-wrap { display:flex; flex-direction:column; gap:8px; padding:8px 0; margin-bottom:4px; }
