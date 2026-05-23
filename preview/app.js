@@ -1120,8 +1120,14 @@ function loadPlanList() {
       // 比赛场次信息
       var numText = p.matchNum || '';
       // 开赛日期和时间：MM/DD HH:mm
-      var matchDateShort = p.startTime ? p.startTime.slice(5, 10).replace('-','/') : '';
-      var matchTime = p.startTime ? p.startTime.slice(11, 16) : '';
+      var matchDateShort = '';
+      var matchTime = '';
+      if (p.startTime) {
+        var timeMatch = p.startTime.match(/(\d{2}:\d{2})/);
+        if (timeMatch) matchTime = timeMatch[1];
+        var dateMatch = p.startTime.match(/(\d{2})\/(\d{2})/) || p.startTime.match(/(\d{2})-(\d{2})/);
+        if (dateMatch) matchDateShort = dateMatch[1] + '/' + dateMatch[2];
+      }
       var timeDisplay = matchDateShort || matchTime ? (matchDateShort + ' ' + matchTime).trim() : '';
 
       return '<div class="plan-card">' +
