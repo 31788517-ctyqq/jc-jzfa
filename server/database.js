@@ -529,17 +529,6 @@ function getFilterRate(params) {
   const hitCount = totalHc;
   const totalCount = totalTc;
   const hitRate = totalCount > 0 ? Math.round(hitCount / totalCount * 1000) / 10 : 0;
-      selected = Object.keys(m.matchMax);
-    }
-    let tm = 0, hm = 0;
-    selected.forEach(mid => { tm++; if (m.matchHit[mid]) hm++; });
-    return {
-      date: k.replace(/-/g, '/'),
-      totalMatch: tm,
-      hitMatch: hm,
-      hitRate: tm > 0 ? Math.round(hm / tm * 1000) / 10 : 0
-    };
-  });
 
   return {
     hitCount,

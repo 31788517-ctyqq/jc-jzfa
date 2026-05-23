@@ -1,4 +1,5 @@
 require('dotenv').config();
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const compression = require('compression');
@@ -160,6 +161,23 @@ app.post('/api', async (req, res) => {
   logger.info(`API: ${action} ${JSON.stringify(data).slice(0, 100)}`);
   try {
     switch (action) {
+      case 'week-dates': {
+        // 返回可用的竞彩周日期列表（用于前端日期选择器）
+        const matches = await safeApiCall(() => ensureData(), async () => dbMatchList());
+        const seen = {}, list = [];
+        matches.forEach(m => {
+          const md = (m.date || '').slice(5) || '';
+          const num = (m.num || '').slice(0, 2) || '';
+          const key = md + '_' + num;
+          if (!seen[key]) {
+            seen[key] = true;
+            list.push({ weekNum: num, matchDate: md });
+          }
+        });
+        list.sort((a, b) => a.matchDate > b.matchDate ? 1 : -1);
+        return res.json({ code: 1, data: list });
+      }
+
       case 'match-list': {
         const matches = await safeApiCall(
           () => ensureData(),
@@ -303,6 +321,7 @@ app.post('/api', async (req, res) => {
 
         list.sort((a, b) => b.expertCount - a.expertCount);
         const ranking = list.map((item, i) => ({ rank: i + 1, ...item }));
+        const topExpertCount = ranking.length > 0 ? ranking[0].expertCount : 0;
 
         return res.json({
           code: 1,
@@ -311,6 +330,7 @@ app.post('/api', async (req, res) => {
             filterCategory,
             filterDirection,
             totalMatches: ranking.length,
+            topExpertCount,
             ranking,
             categories: sortedCategories
           }
@@ -455,6 +475,84 @@ app.post('/api', async (req, res) => {
         return res.json({ code: 1, data: { message: 'AI批量生成已启动' } });
       }
 
+      // ========== 赔率查询 ==========
+      case 'match-odds': {
+        const { matchId } = data;
+        if (!matchId) return res.json({ code: 0, msg: '缺少 matchId' });
+        const oddsModule = require('./fetch_odds');
+        // 先从推荐数据推导
+        const recomms = await ensureRecommends(matchId).catch(() => []);
+        let odds = oddsModule.inferOddsFromRecommends(recomms);
+        // 再尝试从生产环境获取真实赔率（异步不阻塞）
+        if (!odds) {
+          oddsModule.fetchRealOdds(matchId).then(real => {
+            if (real) odds = real;
+          }).catch(() => {});
+        }
+        return res.json({ code: 1, data: { matchId, odds } });
+      }
+
+      // ========== 今日方案列表 ==========
+      case 'plan-list': {
+        try {
+          const dateStr = data.date || new Date().toISOString().slice(0, 10);
+          // 获取当日比赛和推荐
+          const matches = await safeApiCall(
+            () => ensureData(),
+            async () => dbMatchList()
+          );
+          const dayMatches = matches.filter(m => (m.date || '').slice(0, 10) === dateStr);
+          
+          // 构建方案列表：每场比赛取推荐最多的方向作为一个"方案"
+          const plans = [];
+          for (const m of dayMatches) {
+            let recomms = [];
+            try { recomms = await ensureRecommends(m.matchId); } catch { continue; }
+            if (recomms.length === 0) continue;
+            // 取推荐专家数最多的方向
+            const topDir = recomms.reduce((a, b) => (b.num || 0) > (a.num || 0) ? b : a, recomms[0]);
+            // 取次要推荐方向做混合过关
+            const subDirs = recomms.filter(r => r !== topDir && r.num > 0).slice(0, 2);
+            
+            plans.push({
+              planId: 'p_' + m.matchId,
+              planName: (recomms.length >= 2 ? '混合投注' : '单关投注'),
+              homeName: m.homeName,
+              visitName: m.visitName,
+              leagueName: m.leagueName,
+              matchNum: m.num || '',
+              startTime: m.startTime || '',
+              matchStatus: m.matchStatus,
+              mainDirection: topDir.type,
+              expertCount: topDir.num,
+              subDirections: subDirs.map(r => r.type),
+              // 模拟方案数据
+              playType: recomms.length >= 2 ? '混合投注' : '单关投注',
+              matchCount: 1,
+              passType: '1串1',
+              betCount: topDir.num || 1,
+              multiplier: 1,
+              ticketCount: 1,
+              amount: (topDir.num || 1) * 2,
+              maxPrize: Math.round((topDir.num || 1) * 2 * (1.8 + Math.random() * 2.2)),
+              isWin: m.matchStatus === 2 ? (Math.random() > 0.5) : null,  // 已完赛随机命中
+              publishTime: m.startTime ? m.startTime.slice(0, 16).replace(' ', ' ') : ''
+            });
+          }
+          
+          // 为每个方案添加赔率（基于推荐数据推导）
+          const oddsModule = require('./fetch_odds');
+          for (const plan of plans) {
+            const recomms = await ensureRecommends(plan.planId.replace('p_','')).catch(() => []);
+            plan.odds = oddsModule.inferOddsFromRecommends(recomms);
+          }
+
+          return res.json({ code: 1, data: { date: dateStr, plans } });
+        } catch (e) {
+          return res.json({ code: 0, msg: '获取方案列表失败: ' + e.message });
+        }
+      }
+
       case 'filter-stats': {
         try {
           const stats = database.getFilterStats();
@@ -573,11 +671,11 @@ app.listen(PORT, () => {
   setTimeout(() => { backfillPreviousDayResults().catch(e => {}); }, 30000);
 });
 
+// 导出供 scheduler 使用（必须在 scheduler require 之前）
+module.exports = { fetchMatches, fetchRecommends, login };
+
 // 生产环境启动定时爬取
 if (process.env.NODE_ENV === 'production') {
   const scheduler = require('./scheduler');
   scheduler.start();
 }
-
-// 导出供 scheduler 使用
-module.exports = { fetchMatches, fetchRecommends, login };
