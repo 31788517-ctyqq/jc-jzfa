@@ -39,10 +39,9 @@ function getHomeHTML(cb) {
   });
 }
 app.get('/', (req, res) => {
-  res.set('Cache-Control', 'public, max-age=60');
-  getHomeHTML((err, html) => res.type('html').send(html));
+  getHomeHTML((err, html) => { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=60' }); res.end(html); });
 });
-app.use(express.static(path.join(__dirname, '../preview'), { maxAge: '1h' }));
+app.use(express.static(path.join(__dirname, '../preview'), { maxAge: '1h', setHeaders: (res, fPath) => { if (fPath.endsWith('.html')) res.setHeader('Content-Type', 'text/html; charset=utf-8'); } }));
 
 // ==================== 健康检查 ====================
 app.get('/health', (req, res) => {
