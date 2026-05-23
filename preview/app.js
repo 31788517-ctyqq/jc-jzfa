@@ -1122,6 +1122,7 @@ function loadPlanList() {
       // 开赛日期和时间：MM/DD HH:mm
       var matchDateShort = p.startTime ? p.startTime.slice(5, 10).replace('-','/') : '';
       var matchTime = p.startTime ? p.startTime.slice(11, 16) : '';
+      var timeDisplay = matchDateShort || matchTime ? (matchDateShort + ' ' + matchTime).trim() : '';
 
       return '<div class="plan-card">' +
         // ═══ 头部 ═══
@@ -1162,6 +1163,7 @@ function loadPlanList() {
             '<div>' + (p.matchCount || 1) + '场' + (p.passType || '1串1') + '</div>' +
             '<div>' + (p.betCount || 1) + '注' + (p.multiplier || 1) + '倍' + (p.ticketCount || 1) + '票</div>' +
           '</div>' +
+          '<div class="plan-adjust-icon"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="10" fill="none" stroke="#00eaff" stroke-width="1.5" opacity="0.55"/><circle cx="18" cy="18" r="4.5" fill="none" stroke="#00eaff" stroke-width="1.5" opacity="0.55"/><line x1="18" y1="5" x2="18" y2="8" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="18" y1="28" x2="18" y2="31" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="5" y1="18" x2="8" y2="18" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="28" y1="18" x2="31" y2="18" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="8.8" y1="8.8" x2="10.9" y2="10.9" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="25.1" y1="25.1" x2="27.2" y2="27.2" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="27.2" y1="8.8" x2="25.1" y2="10.9" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="10.9" y1="25.1" x2="8.8" y2="27.2" stroke="#00eaff" stroke-width="2" opacity="0.55"/></svg></div>' +
         '</div>' +
         // ═══ 比赛表格 ═══
         '<div class="plan-match-section">' +
@@ -1170,7 +1172,7 @@ function loadPlanList() {
           '<tbody><tr>' +
             '<td class="match-info-col">' +
               '<div class="match-num-text">' + numText + '</div>' +
-              (matchDateShort && matchTime ? '<div class="match-time-sub">' + matchDateShort + ' ' + matchTime + '</div>' : '') +
+              (timeDisplay ? '<div class="match-time-sub">' + timeDisplay + '</div>' : '') +
             '</td>' +
             '<td class="team-col">' +
               '<span class="plan-team-home">' + (p.homeName || '') + '</span>' +

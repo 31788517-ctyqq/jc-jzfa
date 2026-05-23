@@ -1477,6 +1477,7 @@ body {
 .plan-info-grid {
   display: flex;
   gap: 0;
+  align-items: stretch;
 }
 .plan-info-left {
   width: 64px;
@@ -1495,6 +1496,19 @@ body {
   font-size: 11px;
   color: #00eaff;
   text-shadow: 0 0 6px rgba(0,234,255,0.15);
+}
+/* 调整中图标 - 右侧垂直居中 */
+.plan-adjust-icon {
+  width: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+}
+.plan-adjust-icon svg {
+  width: 36px;
+  height: 36px;
 }
 /* 比赛表格 */
 .plan-match-section {
@@ -1536,8 +1550,9 @@ body {
   font-weight: 600;
 }
 .plan-match-table .match-time-sub {
-  color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.55);
   font-size: 11px;
+  margin-top: 2px;
 }
 .plan-match-table .team-col {
   text-align: center;
@@ -1556,9 +1571,8 @@ body {
   color: #fff;
 }
 .plan-team-vs {
-  font-size: 10px;
-  color: rgba(255,255,255,0.5);
-  transform: scale(0.9);
+  font-size: 11px;
+  color: rgba(255,255,255,0.55);
 }
 .plan-match-table .odds-col {
   text-align: center;
