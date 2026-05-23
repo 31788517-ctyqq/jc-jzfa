@@ -22,6 +22,8 @@ function api(action, data = {}, retries = 2) {
     body: JSON.stringify({ action, data })
   }).then(r => r.json()).then(d => {
     if (d.code === 1) return d.data;
+    // pending 状态透传（如 AI 后台生成中），不抛异常
+    if (d.pending) return d;
     throw new Error(d.msg || '服务器错误');
   }).catch(err => {
     if (retries > 0) {
