@@ -346,15 +346,14 @@ function goDetail(matchId) {
     
     el.innerHTML = html;
 
-    // 延迟检查 AI 核心看点卡片（不阻塞详情页渲染）
-    setTimeout(function() {
-      api('ai-predict-status', {}).then(function(status) {
-        if (!status || !status.canShowCards) {
-          var aiCard = document.getElementById('detailContent').querySelector('.ai-card');
-          if (aiCard) aiCard.style.display = 'none';
-        }
-      }).catch(function() {});
-    }, 100);
+    // AI 核心看点卡片隐藏逻辑：比赛日期早于今天则隐藏
+    var matchDate = (match.date || '').slice(0, 10);
+    var todayStr = formatDate(new Date());
+    var isPastMatch = matchDate && matchDate < todayStr;
+    if (isPastMatch) {
+      var aiCard = el.querySelector('.ai-card');
+      if (aiCard) aiCard.style.display = 'none';
+    }
 
     setTimeout(() => {
       const chartEl = document.getElementById('trendChart');
