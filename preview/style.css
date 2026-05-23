@@ -171,7 +171,8 @@
 .ai-rank-col { flex:1; padding:12px 14px; background:rgba(0,0,0,0.15); border-radius:var(--radius-sm); display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60px; }
 .ai-rank-h { font-size:var(--fs-md); font-weight:700; color:#fff; margin-bottom:6px; }
 .ai-rank-vs { font-size:var(--fs-xl); font-weight:900; color:var(--cyan); margin:0 6px; align-self:center; flex-shrink:0; }
-.ai-rank-val { font-size:var(--fs-xs); color:var(--text2); line-height:1.6; text-align:center; }
+.ai-rank-val { font-size:var(--fs-xs); color:var(--text2); line-height:1.6; text-align:center; word-break:break-all; }
+.ai-rank-single { padding:12px 14px; background:rgba(0,0,0,0.15); border-radius:var(--radius-sm); text-align:center; }
 
 /* 攻防数据 */
 .ai-data-compare { margin-bottom:10px; background:rgba(0,0,0,0.15); border-radius:var(--radius-sm); padding:10px 14px; }

@@ -895,19 +895,32 @@ function renderAIContent(content, homeTeam, awayTeam) {
   if (bHasRank || bHasTable || bHasBaseCon) {
     html += '<div id="ai-sec-01" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">01</span><span class="ai-sec-name">基础面</span>'; if (baseStr['概括']) html += '<span class="ai-sec-desc">' + clip(esc(baseStr['概括']), 20) + '</span>'; html += '</div>';
     if (bHasRank) {
-      // 智能拆分主客队排名描述
-      var rankHome = clip(esc(bRank), 60), rankAway = '';
-      var idxH = bRank.indexOf(homeTeam); var idxA = bRank.indexOf(awayTeam);
-      if (idxH >= 0 && idxA >= 0 && idxA > idxH) {
-        rankHome = clip(esc(bRank.substring(0, idxA)), 60);
-        rankAway = clip(esc(bRank.substring(idxA)), 60);
-      } else if (idxA >= 0 && idxH >= 0 && idxH > idxA) {
-        rankAway = clip(esc(bRank.substring(0, idxH)), 60);
-        rankHome = clip(esc(bRank.substring(idxH)), 60);
-      } else if (bRank.length > 60) {
-        rankAway = clip(esc(bRank.substring(60)), 60);
+      // 智能拆分主客队排名：尝试用队名首字+全名多级匹配
+      var rankHome = '', rankAway = '';
+      var idxH = -1, idxA = -1;
+      // 1. 全名匹配
+      idxH = bRank.indexOf(homeTeam); idxA = bRank.indexOf(awayTeam);
+      // 2. 队名前两字匹配
+      if (idxH < 0 && homeTeam.length >= 2) idxH = bRank.indexOf(homeTeam.substring(0, 2));
+      if (idxA < 0 && awayTeam.length >= 2) idxA = bRank.indexOf(awayTeam.substring(0, 2));
+      // 3. 队名首字匹配
+      if (idxH < 0) idxH = bRank.indexOf(homeTeam[0]);
+      if (idxA < 0) idxA = bRank.indexOf(awayTeam[0]);
+      // 按找到的位置分段
+      if (idxH >= 0 && idxA >= 0) {
+        if (idxA > idxH) { rankHome = clip(esc(bRank.substring(0, idxA)), 60); rankAway = clip(esc(bRank.substring(idxA)), 60); }
+        else { rankAway = clip(esc(bRank.substring(0, idxH)), 60); rankHome = clip(esc(bRank.substring(idxH)), 60); }
+      } else if (idxH >= 0) {
+        rankHome = clip(esc(bRank), 60);
+      } else if (idxA >= 0) {
+        rankAway = clip(esc(bRank), 60);
       }
-      html += '<div class="ai-rank-dual"><div class="ai-rank-col"><div class="ai-rank-h">' + esc(homeTeam) + '</div><div class="ai-rank-val">' + rankHome + '</div></div><div class="ai-rank-col"><div class="ai-rank-h">' + esc(awayTeam) + '</div><div class="ai-rank-val">' + (rankAway || '\u2014') + '</div></div></div>';
+      if (rankHome || rankAway) {
+        html += '<div class="ai-rank-dual"><div class="ai-rank-col"><div class="ai-rank-h">' + esc(homeTeam) + '</div><div class="ai-rank-val">' + (rankHome || '\u2014') + '</div></div><div class="ai-rank-col"><div class="ai-rank-h">' + esc(awayTeam) + '</div><div class="ai-rank-val">' + (rankAway || '\u2014') + '</div></div></div>';
+      } else {
+        // 无法拆分时单卡片居中
+        html += '<div class="ai-rank-single"><div class="ai-rank-val">' + clip(esc(bRank), 120) + '</div></div>';
+      }
     }
     if (bHasTable) {
       html += '<div class="ai-data-compare"><div class="ai-data-title">攻防数据对比</div>';
