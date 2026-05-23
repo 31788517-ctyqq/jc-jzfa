@@ -51,6 +51,69 @@ function getCurrentPeriod(){
   return {date:fmtLocal(now),week:weekMap[now.getDay()]};
 }
 
+// 回填前一天的命中信息：找到已完赛但结果仍为null的比赛，重新拉取推荐数据
+async function backfillPreviousDay(token, todayDate){
+  try {
+    // 计算前一天日期
+    var today = new Date(todayDate + 'T00:00:00+08:00');
+    var yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    var yDate = yesterday.getFullYear() + '-' + String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + String(yesterday.getDate()).padStart(2, '0');
+    
+    // 加载 data.json
+    var data = {};
+    if (fs.existsSync(DATA_FILE)) { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
+    if (!data.m) data.m = {}; if (!data.r) data.r = {};
+    
+    // 找前一天完赛但推荐结果不全的比赛
+    var needBackfill = [];
+    Object.keys(data.r).forEach(function(rk) {
+      var mid = rk.replace('m_', '');
+      var match = data.m['m_' + mid] || data.m[mid];
+      if (!match || !match.date) return;
+      if (match.date.slice(0, 10) !== yDate) return;
+      if (match.matchStatus < 2) return; // 未结束跳过
+      
+      var recs = data.r[rk] || [];
+      var nullCount = recs.filter(function(r) { return r.result === null; }).length;
+      if (nullCount > 0) needBackfill.push({ mid: mid, match: match, nullCount: nullCount });
+    });
+    
+    if (needBackfill.length === 0) return;
+    log('[backfillPrev] 前一天(' + yDate + ')有' + needBackfill.length + '场完赛比赛结果不全, 开始回填...');
+    
+    var updated = 0;
+    for (var i = 0; i < needBackfill.length; i++) {
+      var item = needBackfill[i];
+      try {
+        var recRes = await get('https://midou310.com/mdsj/score/getExpertRecommData.do', { dataId: item.mid, type: 0 }, { Cookie: 'token=' + token });
+        if (recRes.code === 1 && recRes.data && recRes.data.length) {
+          var newRecs = recRes.data.filter(function(x) { return x && x.type && x.num > 0; }).map(function(x) {
+            return { type: x.type, num: x.num, result: x.result !== undefined ? x.result : null };
+          });
+          var rk = 'm_' + item.mid;
+          var oldNulls = (data.r[rk] || []).filter(function(r) { return r.result === null; }).length;
+          data.r[rk] = newRecs;
+          var newNulls = newRecs.filter(function(r) { return r.result === null; }).length;
+          if (newNulls < oldNulls) { updated++; log('[backfillPrev] ' + rk + ' (' + item.match.homeName + ' vs ' + item.match.visitName + ') null:' + oldNulls + '→' + newNulls); }
+        }
+      } catch(e) { log('[backfillPrev] ' + item.mid + ' 获取失败: ' + e.message); }
+      await sleep(200);
+    }
+    
+    if (updated > 0) {
+      var tmpFile = DATA_FILE + '.tmp';
+      fs.writeFileSync(tmpFile, JSON.stringify(data));
+      fs.renameSync(tmpFile, DATA_FILE);
+      log('[backfillPrev] 完成, 更新了' + updated + '场比赛, 重启服务...');
+      var exec = require('child_process').exec;
+      exec('pm2 restart jc-zjfa', { timeout: 5000 }, function() {});
+    } else {
+      log('[backfillPrev] 无新增命中信息');
+    }
+  } catch(e) { log('[backfillPrev] ERROR: ' + e.message); }
+}
+
 async function syncPeriod(){
   var period=getCurrentPeriod();
   if(!period.date){log('ERROR: cannot determine period');return}
@@ -60,6 +123,9 @@ async function syncPeriod(){
   var loginRes=await get('https://midou310.com/mdsj/gduser/login.do',{mobile:CONFIG.MIDOU_MOBILE,password:CONFIG.MIDOU_PASSWORD});
   if(loginRes.code!==1){log('Login FAIL');return}
   var token=loginRes.data.token;
+
+  // ═══ 回填前一天命中信息 ═══
+  await backfillPreviousDay(token, period.date);
 
   // 获取今日比赛列表
   var timestamp=new Date(period.date+'T00:00:00+08:00').getTime();
