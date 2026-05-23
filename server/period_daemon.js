@@ -33,9 +33,12 @@ function saveTrendSnapshot(matchId,recs){
     var t=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
     var snap={t:t,ts:now.toISOString()};
     recs.forEach(function(r){snap[r.type]=r.num});
-    trends[key].push(snap);
+    // 去重：如果上一条快照时间相同则替换，避免并发产生重复
+    var list=trends[key];
+    if(list.length>0&&list[list.length-1].t===t){list[list.length-1]=snap}
+    else{list.push(snap)}
     // 保留最近48条
-    if(trends[key].length>48)trends[key]=trends[key].slice(-48);
+    if(list.length>48)trends[key]=list.slice(-48);
     fs.writeFileSync(TREND_FILE+'.tmp',JSON.stringify(trends));
     fs.renameSync(TREND_FILE+'.tmp',TREND_FILE);
   }catch(e){}
