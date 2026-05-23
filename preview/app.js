@@ -1147,7 +1147,6 @@ function loadPlanList() {
             '<div class="plan-amount-label">方案状态</div>' +
             '<div class="plan-amount-value">' + (isWon ? '已中奖' : '未开奖') + '</div>' +
           '</div>' +
-          (isWon ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(15,19,19)">中</text></svg></div>' : '') +
         '</div>' +
         // ═══ 分割线 ═══
         '<div class="plan-divider"></div>' +
@@ -1163,7 +1162,7 @@ function loadPlanList() {
             '<div>' + (p.matchCount || 1) + '场' + (p.passType || '1串1') + '</div>' +
             '<div>' + (p.betCount || 1) + '注' + (p.multiplier || 1) + '倍' + (p.ticketCount || 1) + '票</div>' +
           '</div>' +
-          '<div class="plan-adjust-icon"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="10" fill="none" stroke="#00eaff" stroke-width="1.5" opacity="0.55"/><circle cx="18" cy="18" r="4.5" fill="none" stroke="#00eaff" stroke-width="1.5" opacity="0.55"/><line x1="18" y1="5" x2="18" y2="8" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="18" y1="28" x2="18" y2="31" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="5" y1="18" x2="8" y2="18" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="28" y1="18" x2="31" y2="18" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="8.8" y1="8.8" x2="10.9" y2="10.9" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="25.1" y1="25.1" x2="27.2" y2="27.2" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="27.2" y1="8.8" x2="25.1" y2="10.9" stroke="#00eaff" stroke-width="2" opacity="0.55"/><line x1="10.9" y1="25.1" x2="8.8" y2="27.2" stroke="#00eaff" stroke-width="2" opacity="0.55"/></svg></div>' +
+          (isWon ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(15,19,19)">中</text></svg></div>' : '') +
         '</div>' +
         // ═══ 比赛表格 ═══
         '<div class="plan-match-section">' +
