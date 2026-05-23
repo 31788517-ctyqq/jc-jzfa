@@ -10,6 +10,7 @@ const WEEK_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', 
 let currentPage = 'home', detailMatchId = null;
 let selectedCategory = '', selectedDirection = '';
 let selectedMatchDate = '';
+let savedScrollY = 0;
 
 function getWeekDay(dateStr) {
   return WEEK_NAMES[new Date(dateStr).getDay()];
@@ -112,6 +113,8 @@ function initWeekDates() {
 }
 
 function switchTab(tab) {
+  // 保存离开home时的滚动位置
+  if (currentPage === 'home' && tab !== 'home') savedScrollY = window.scrollY;
   currentPage = tab;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + (tab === 'detail' ? 'detail' : tab)).classList.add('active');
@@ -131,7 +134,7 @@ function switchTab(tab) {
   };
   document.getElementById('navTitle').textContent = titles[tab] || '竞彩推荐监控';
 
-  if (tab === 'home') loadHome();
+  if (tab === 'home') { loadHome(); setTimeout(function(){ window.scrollTo(0, savedScrollY); }, 80); }
   if (tab === 'match') {
     if (weekDates.length > 0) { updateDateBar(); loadMatchList(); }
     else initWeekDates();
@@ -142,7 +145,10 @@ function switchTab(tab) {
 }
 
 var lastPage='home';
-function goBack() { switchTab(lastPage); }
+function goBack() {
+  switchTab(lastPage);
+  if (lastPage === 'home') { setTimeout(function(){ window.scrollTo(0, savedScrollY); }, 50); }
+}
 
 // 首页
 function loadHome() {
@@ -224,6 +230,7 @@ function loadMatchList() {
 
 // 比赛详情
 function goDetail(matchId) {
+  if (currentPage === 'home') savedScrollY = window.scrollY;
   lastPage=currentPage;
   detailMatchId = matchId;
   const el = document.getElementById('detailContent');
