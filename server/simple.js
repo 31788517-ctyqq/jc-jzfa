@@ -402,16 +402,15 @@ app.post('/api',function(req,res){
       if(cutoff&&match.date&&match.date.slice(0,10)<cutoff)return;
       var r=normalizeRecs(data.r[k]).filter(function(x){return x.result!==null});
       if(!r.length)return;
-      // 按方向分类，找全局第一名
       r.sort(function(a,b){return b.num-a.num});
-      var globalMax=r[0].num;
-      // 只保留全局排名前 rt 的且类型匹配的条目
       var keep=[];
       if(td){
-        r.forEach(function(x){
-          if((td.indexOf(x.type)>=0||td.indexOf(ct(x.type))>=0)&&x.num===globalMax)
-            keep.push(x);
-        });
+        // 先按方向过滤，再取该方向内的最大值
+        var fr=r.filter(function(x){return td.indexOf(x.type)>=0||td.indexOf(ct(x.type))>=0});
+        if(!fr.length)return;
+        fr.sort(function(a,b){return b.num-a.num});
+        var localMax=fr[0].num;
+        fr.forEach(function(x){if(x.num===localMax)keep.push(x)});
       }else{
         keep=rt>0?r.slice(0,rt):r.slice();
       }
@@ -451,18 +450,9 @@ app.post('/api',function(req,res){
       var m=dailyMap[k];
       var selected=[],tm=0,hm=0;
       if(isDaily){
-        // 每天模式：按expertCount排所有比赛，取top rt，再检查方向匹配
+        // 每天模式：该方向expertCount最高的rt场比赛
         var ranked=Object.keys(m.matchMax).sort(function(a,b){return m.matchMax[b]-m.matchMax[a]});
-        var top=ranked.slice(0,rt);
-        // 对有方向筛选的情况，只保留方向匹配的比赛
-        if(td){
-          top.forEach(function(mid){
-            var dir=m.matchDir[mid]||'';
-            if(td.indexOf(dir)>=0||td.indexOf(ct(dir))>=0)selected.push(mid);
-          });
-        }else{
-          selected=top;
-        }
+        selected=ranked.slice(0,rt);
       }else if(isPerMatch){
         selected=Object.keys(m.matchMax);
       }else{
