@@ -1129,6 +1129,7 @@ body {
   background: rgba(0,0,0,0.75);
 }
 .ai-overlay.active { display: flex; align-items: flex-end; justify-content: center; }
+/* ─── AI弹窗 全局优化 ─── */
 .ai-modal {
   width: 100%;
   max-width: 420px;
@@ -1140,6 +1141,8 @@ body {
   height: 90vh;
 }
 @keyframes aiSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* 标题栏 */
 .ai-modal-header {
   position: sticky;
   top: 0;
@@ -1151,18 +1154,20 @@ body {
   background: #0a1520;
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
-.ai-modal-title { font-size: 18px; font-weight: 800; color: #fff; }
+.ai-modal-title { font-size: var(--fs-xl); font-weight: 800; color: #fff; }
 .ai-modal-close {
   width: 32px; height: 32px;
   border-radius: 50%;
   background: rgba(255,255,255,0.06);
   border: none; color: #fff;
-  font-size: 16px;
+  font-size: var(--fs-lg);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background .2s;
 }
+.ai-modal-close:hover { background: rgba(255,255,255,0.12); }
 .ai-content { padding: 0 16px 40px; }
 
 /* 比赛信息 */
@@ -1183,225 +1188,179 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: var(--fs-2xl);
   font-weight: 800;
   color: var(--cyan);
 }
 .ai-team-logo.away { background: rgba(255,178,28,0.1); color: var(--amber); }
-.ai-team-name { font-size: 14px; font-weight: 700; color: #fff; }
+.ai-team-name { font-size: var(--fs-md); font-weight: 700; color: #fff; }
 .ai-vs-section { text-align: center; flex-shrink: 0; }
-.ai-vs-text { font-size: 15px; font-weight: 900; color: var(--cyan); }
+.ai-vs-text { font-size: var(--fs-md); font-weight: 900; color: var(--cyan); }
 
-/* AI核心观点 */
+/* ── AI核心观点 ── */
 .ai-core-view {
   background: linear-gradient(135deg, rgba(0,245,233,0.06), rgba(0,245,233,0.01));
   border: 1px solid rgba(0,245,233,0.12);
-  border-radius: 16px;
+  border-radius: var(--radius);
   padding: 16px 16px 14px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 .ai-core-header { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
-.ai-core-icon { font-size: 18px; }
-.ai-core-title { font-size: 15px; font-weight: 700; color: var(--cyan); }
-.ai-core-content { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; line-height: 1.5; }
-.ai-core-desc { font-size: 12px; color: #7A8B9A; margin-bottom: 14px; line-height: 1.5; }
+.ai-core-icon { font-size: var(--fs-xl); }
+.ai-core-title { font-size: var(--fs-md); font-weight: 700; color: var(--cyan); }
+.ai-core-content { font-size: var(--fs-base); font-weight: 600; color: #fff; margin-bottom: 4px; line-height: 1.6; }
+.ai-core-desc { font-size: var(--fs-sm); color: var(--text2); margin-bottom: 12px; line-height: 1.6; }
 
+/* 预测卡片 */
 .ai-predict-row { display: flex; gap: 8px; }
 .ai-predict-card {
   flex: 1;
   text-align: center;
   padding: 12px 8px 10px;
   background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-sm);
+  transition: border-color .2s;
 }
+.ai-predict-card:hover { border-color: rgba(255,255,255,0.1); }
 .ai-predict-head { display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 6px; }
-.ai-predict-icon { font-size: 16px; flex-shrink: 0; }
-.ai-predict-name { font-size: 11px; color: #7A8B9A; font-weight: 600; }
-.ai-predict-value { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+.ai-predict-icon { font-size: var(--fs-lg); flex-shrink: 0; }
+.ai-predict-name { font-size: var(--fs-xs); color: var(--text2); font-weight: 600; }
+.ai-predict-value { font-size: var(--fs-md); font-weight: 800; color: #fff; margin-bottom: 6px; }
 .ai-predict-line { height: 1px; background: rgba(255,255,255,0.06); margin: 0 0 6px; }
-.ai-predict-sub { font-size: 10px; color: #7A8B9A; line-height: 1.4; }
+.ai-predict-sub { font-size: var(--fs-xs); color: var(--text3); line-height: 1.5; }
 
-/* 区块内容 */
+/* ── 区块内容（01~06共用） ── */
 .ai-section-content {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   padding: 14px 16px;
   background: linear-gradient(135deg, rgba(0,245,233,0.025), rgba(0,0,0,0.15));
-  border: 1px solid rgba(0,245,233,0.08);
-  border-left: 3px solid rgba(0,245,233,0.18);
-  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-left: 3px solid rgba(0,245,233,0.2);
+  border-radius: var(--radius-sm);
 }
-.ai-sec-title { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.ai-sec-num { font-size: 15px; font-weight: 800; color: var(--cyan); opacity: 0.7; min-width: 24px; }
-.ai-sec-name { font-size: 15px; font-weight: 700; color: #fff; }
-.ai-sec-desc { font-size: 11px; color: #5C6B7A; margin-left: auto; }
+.ai-sec-title { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.ai-sec-num { font-size: var(--fs-md); font-weight: 800; color: var(--cyan); opacity: 0.85; min-width: 24px; }
+.ai-sec-name { font-size: var(--fs-md); font-weight: 700; color: #fff; }
+.ai-sec-desc { font-size: var(--fs-xs); color: var(--text3); margin-left: auto; }
 
 /* 子项 */
 .ai-item { padding: 6px 0; }
-.ai-item + .ai-item { border-top: 1px solid rgba(255,255,255,0.03); }
-.ai-item-label { font-size: 13px; font-weight: 600; color: #A8B5C2; margin-bottom: 3px; }
-.ai-item-text { font-size: 13px; color: #CBD5E1; line-height: 1.65; }
+.ai-item + .ai-item { border-top: 1px solid rgba(255,255,255,0.04); }
+.ai-item-label { font-size: var(--fs-base); font-weight: 600; color: var(--text2); margin-bottom: 3px; }
+.ai-item-text { font-size: var(--fs-base); color: var(--text); line-height: 1.65; }
 
-/* 核心结论 - 特别强调 */
-.ai-item-conclusion { padding: 8px 12px; margin-top: 6px; background: rgba(0,245,233,0.06); border-radius: 10px; border-left: 2px solid rgba(0,245,233,0.25); }
+/* 核心结论 */
+.ai-item-conclusion { padding: 10px 12px; margin-top: 8px; background: rgba(0,245,233,0.06); border-radius: var(--radius-sm); border-left: 2px solid rgba(0,245,233,0.25); }
 .ai-item-conclusion .ai-item-label { color: var(--cyan); }
-.ai-item-conclusion .ai-item-text { font-size: 13px; color: #fff; font-weight: 500; }
+.ai-item-conclusion .ai-item-text { font-size: var(--fs-base); color: #fff; font-weight: 500; }
 .ai-item-conclusion.amber { border-left-color: rgba(251,191,36,0.35); background: rgba(251,191,36,0.05); }
 .ai-item-conclusion.amber .ai-item-label { color: var(--amber); }
 
-/* 基础面排名双栏 */
+/* 基础面-排名双栏 */
 .ai-rank-dual { display:flex; gap:10px; margin-bottom:10px; align-items:stretch; }
-.ai-rank-col { flex:1; padding:12px 14px; background:rgba(0,0,0,0.15); border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60px; }
-.ai-rank-h { font-size:14px; font-weight:700; color:#fff; margin-bottom:6px; }
-.ai-rank-vs { font-size:20px; font-weight:900; color:var(--cyan); margin:0 6px; align-self:center; flex-shrink:0; }
-.ai-rank-val { font-size:11px; color:var(--text2); line-height:1.6; text-align:center; }
-
+.ai-rank-col { flex:1; padding:12px 14px; background:rgba(0,0,0,0.15); border-radius:var(--radius-sm); display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60px; }
+.ai-rank-h { font-size:var(--fs-md); font-weight:700; color:#fff; margin-bottom:6px; }
+.ai-rank-vs { font-size:var(--fs-xl); font-weight:900; color:var(--cyan); margin:0 6px; align-self:center; flex-shrink:0; }
+.ai-rank-val { font-size:var(--fs-xs); color:var(--text2); line-height:1.6; text-align:center; }
 
 /* 攻防数据 */
-.ai-data-compare { margin-bottom: 10px; background: rgba(0,0,0,0.15); border-radius: 10px; padding: 10px 14px; }
-.ai-data-title { font-size: 12px; font-weight: 600; color: var(--cyan); margin-bottom: 8px; text-align: center; }
+.ai-data-compare { margin-bottom:10px; background:rgba(0,0,0,0.15); border-radius:var(--radius-sm); padding:10px 14px; }
+.ai-data-title { font-size:var(--fs-sm); font-weight:600; color:var(--cyan); margin-bottom:8px; text-align:center; }
 .ai-data-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 0;
-  font-size: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.02);
+  display:flex; align-items:center; gap:6px; padding:6px 0;
+  font-size:var(--fs-sm); border-bottom:1px solid rgba(255,255,255,0.03);
 }
-.ai-data-row:last-child { border-bottom: none; }
-.ai-data-label { width: 90px; color: #94A3B8; flex-shrink: 0; font-size: 12px; }
-.ai-data-home { color: var(--cyan); font-weight: 700; width: 32px; text-align: center; font-size: 13px; }
-.ai-data-away { color: var(--amber); font-weight: 700; width: 32px; text-align: center; font-size: 13px; }
-.ai-progress-bar { flex: 1; height: 6px; background: rgba(255,255,255,0.04); border-radius: 3px; overflow: hidden; }
-.ai-progress { height: 100%; background: linear-gradient(90deg, var(--cyan), rgba(0,245,233,0.6)); border-radius: 3px; }
-.ai-progress.away { background: linear-gradient(90deg, var(--amber), rgba(251,191,36,0.6)); }
-
-/* 核心射手 */
-.ai-shooters { display: flex; gap: 8px; }
-.ai-shooter {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px;
-  background: rgba(255,255,255,0.03);
-  border-radius: 10px;
-}
-.ai-shooter-avatar {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  background: rgba(0,245,233,0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-}
-.ai-shooter-name { font-size: 13px; font-weight: 600; color: #fff; }
-.ai-shooter-stats { font-size: 10px; color: var(--text3); }
+.ai-data-row:last-child { border-bottom:none; }
+.ai-data-label { width:90px; color:var(--text2); flex-shrink:0; font-size:var(--fs-sm); }
+.ai-data-home { color:var(--cyan); font-weight:700; width:32px; text-align:center; font-size:var(--fs-base); }
+.ai-data-away { color:var(--amber); font-weight:700; width:32px; text-align:center; font-size:var(--fs-base); }
+.ai-progress-bar { flex:1; height:6px; background:rgba(255,255,255,0.04); border-radius:3px; overflow:hidden; }
+.ai-progress { height:100%; background:linear-gradient(90deg,var(--cyan),rgba(0,245,233,0.6)); border-radius:3px; }
+.ai-progress.away { background:linear-gradient(90deg,var(--amber),rgba(251,191,36,0.6)); }
 
 /* 近6场战绩 */
-.ai-recent-form { margin-bottom: 10px; }
-.ai-form-title { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
-.ai-form-team { display: flex; align-items: center; gap: 4px; padding: 3px 0; }
-.ai-form-name { width: 46px; font-size: 12px; color: var(--text2); flex-shrink: 0; }
-.ai-form-result {
-  width: 22px; height: 22px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-}
-.ai-form-result.win { background: rgba(52,211,153,0.15); color: #34D399; }
-.ai-form-result.draw { background: rgba(251,191,36,0.15); color: #FBBF24; }
-.ai-form-result.loss { background: rgba(239,68,68,0.15); color: #EF4444; }
-
-/* 伤停 */
-.ai-injuries { margin-bottom: 8px; }
-.ai-injury-title { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
-.ai-injury-row { display: flex; align-items: center; gap: 6px; padding: 6px 0; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-.ai-injury-team { color: var(--text2); width: 44px; font-size: 12px; }
-.ai-injury-player { color: #fff; font-weight: 600; flex: 1; font-size: 12px; }
-.ai-injury-status { padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600; }
-.ai-injury-status.out { background: rgba(239,68,68,0.12); color: #EF4444; }
-.ai-injury-status.doubt { background: rgba(251,191,36,0.12); color: #FBBF24; }
-.ai-injury-effect { font-size: 10px; font-weight: 600; }
-.ai-injury-effect.high { color: #EF4444; }
-.ai-injury-effect.low { color: var(--text3); }
-
-/* 核心看点卡片 */
-.ai-highlight-cards { display: flex; gap: 8px; padding: 12px 0; }
-.ai-highlight-card {
-  flex: 1;
-  padding: 12px 10px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.04);
-  border-radius: 12px;
-  text-align: center;
-}
-.ai-highlight-icon { font-size: 20px; margin-bottom: 6px; }
-.ai-highlight-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 3px; }
-.ai-highlight-desc { font-size: 11px; color: var(--text2); line-height: 1.4; }
-
-/* 预测建议 */
-.ai-final-predict {
-  background: linear-gradient(135deg, rgba(0,245,233,0.04), rgba(0,245,233,0.01));
-  border: 1px solid rgba(0,245,233,0.1);
-  border-radius: 14px;
-  padding: 14px;
-}
-.ai-predict-table { margin-top: 8px; }
-.ai-predict-tr {
-  display: grid;
-  grid-template-columns: 56px 72px 1fr 20px;
-  gap: 6px;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  align-items: center;
-  font-size: 12px;
-}
-.ai-predict-td.type { color: var(--cyan); font-weight: 600; font-size: 12px; }
-.ai-predict-td.suggest { color: #fff; font-weight: 700; font-size: 12px; }
-.ai-predict-td.logic { color: var(--text2); font-size: 11px; }
-.ai-predict-td.check { color: #34D399; font-size: 13px; font-weight: 700; }
-.ai-disclaimer { text-align: center; font-size: 11px; color: var(--text3); margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
+.ai-form-row { display:flex; align-items:center; gap:6px; padding:5px 0; }
+.ai-form-label { width:44px; font-size:var(--fs-sm); color:var(--text2); }
+.ai-form-dot { width:20px; height:20px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; }
+.ai-form-dot.w { background:rgba(52,211,153,.15); color:var(--green); }
+.ai-form-dot.d { background:rgba(251,191,36,.15); color:var(--amber); }
+.ai-form-dot.l { background:rgba(239,68,68,.15); color:var(--red); }
+.ai-form-summary { font-size:var(--fs-xs); color:var(--text2); margin-left:auto; }
 
 /* 02 战绩条 */
-.ai-form-row { display:flex; align-items:center; gap:6px; padding:5px 0; }
-.ai-form-label { width:44px; font-size:12px; color:var(--text2); }
-.ai-form-dot { width:20px; height:20px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; }
-.ai-form-dot.w { background:rgba(52,211,153,.15); color:#34D399; }
-.ai-form-dot.d { background:rgba(251,191,36,.15); color:#FBBF24; }
-.ai-form-dot.l { background:rgba(239,68,68,.15); color:#EF4444; }
-.ai-form-summary { font-size:11px; color:#94A3B8; margin-left:auto; }
+.ai-recent-form { margin-bottom:10px; }
+.ai-form-title { font-size:var(--fs-sm); font-weight:600; color:var(--text2); margin-bottom:6px; }
 
-/* 动机面星星评分 */
+/* 伤停 */
+.ai-injury-title { font-size:var(--fs-sm); font-weight:600; color:var(--text2); margin-bottom:6px; }
+.ai-injury-row { display:flex; align-items:center; gap:6px; padding:6px 0; font-size:var(--fs-sm); border-bottom:1px solid rgba(255,255,255,0.03); }
+.ai-injury-team { color:var(--text2); width:44px; font-size:var(--fs-sm); }
+.ai-injury-player { color:#fff; font-weight:600; flex:1; font-size:var(--fs-sm); }
+.ai-injury-status { padding:2px 6px; border-radius:6px; font-size:var(--fs-xs); font-weight:600; }
+.ai-injury-status.out { background:rgba(239,68,68,0.12); color:var(--red); }
+.ai-injury-status.doubt { background:rgba(251,191,36,0.12); color:var(--amber); }
+.ai-injury-effect { font-size:var(--fs-xs); font-weight:600; }
+.ai-injury-effect.high { color:var(--red); }
+.ai-injury-effect.low { color:var(--text3); }
+
+/* 动机面-星星评分 */
 .ai-star-row { display:flex; align-items:center; gap:6px; padding:6px 0; }
-.ai-star-team { width:50px; font-size:12px; font-weight:600; color:#fff; }
+.ai-star-team { width:50px; font-size:var(--fs-sm); font-weight:600; color:#fff; }
 .ai-star-bar { flex:1; height:20px; background:rgba(255,255,255,0.04); border-radius:10px; overflow:hidden; position:relative; }
 .ai-star-fill { height:100%; border-radius:10px; transition:width .4s; display:flex; align-items:center; padding-left:8px; font-size:10px; font-weight:700; color:#fff; }
-.ai-star-rating { font-size:12px; font-weight:700; width:36px; text-align:center; }
+.ai-star-rating { font-size:var(--fs-sm); font-weight:700; width:36px; text-align:center; }
 .ai-star-rating.home { color:var(--cyan); }
 .ai-star-rating.away { color:var(--amber); }
 
 /* 对位面 SWOT */
 .ai-swp-grid { display:flex; gap:10px; }
 .ai-swp-col { flex:1; }
-.ai-swp-title { font-size:12px; font-weight:700; margin-bottom:6px; text-align:center; }
-.ai-swp-title.good { color:#34D399; }
-.ai-swp-title.bad { color:#EF4444; }
-.ai-swp-item { padding:6px 8px; margin-bottom:4px; background:rgba(255,255,255,0.03); border-radius:6px; font-size:11px; color:var(--text2); line-height:1.4; }
+.ai-swp-title { font-size:var(--fs-sm); font-weight:700; margin-bottom:6px; text-align:center; }
+.ai-swp-title.good { color:var(--green); }
+.ai-swp-title.bad { color:var(--red); }
+.ai-swp-item { padding:6px 8px; margin-bottom:4px; background:rgba(255,255,255,0.03); border-radius:6px; font-size:var(--fs-xs); color:var(--text2); line-height:1.5; }
 
-/* 市场进度条 */
+/* 市场面-进度条 */
 .ai-bar-wrap { display:flex; flex-direction:column; gap:8px; padding:8px 0; margin-bottom:4px; }
 .ai-bar-row { display:flex; align-items:center; gap:8px; }
 .ai-bar-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-.ai-bar-label { font-size:12px; color:#fff; width:32px; flex-shrink:0; }
+.ai-bar-label { font-size:var(--fs-sm); color:#fff; width:32px; flex-shrink:0; }
 .ai-bar-bg { flex:1; height:8px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; }
 .ai-bar-fill { height:100%; border-radius:4px; transition:width .4s ease; }
-.ai-bar-pct { font-size:12px; font-weight:700; color:var(--text2); width:34px; text-align:right; flex-shrink:0; }
+.ai-bar-pct { font-size:var(--fs-sm); font-weight:700; color:var(--text2); width:34px; text-align:right; flex-shrink:0; }
+
+/* 预测建议表格 */
+.ai-final-predict {
+  background:linear-gradient(135deg,rgba(0,245,233,0.04),rgba(0,245,233,0.01));
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:var(--radius-sm);
+  padding:14px;
+}
+.ai-predict-table { margin-top:8px; }
+.ai-predict-tr {
+  display:grid; grid-template-columns:56px 72px 1fr 20px;
+  gap:6px; padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  align-items:center; font-size:var(--fs-sm);
+}
+.ai-predict-td.type { color:var(--cyan); font-weight:600; font-size:var(--fs-sm); }
+.ai-predict-td.suggest { color:#fff; font-weight:700; font-size:var(--fs-sm); }
+.ai-predict-td.logic { color:var(--text2); font-size:var(--fs-xs); }
+.ai-predict-td.check { color:var(--green); font-size:var(--fs-base); font-weight:700; }
+.ai-disclaimer { text-align:center; font-size:var(--fs-xs); color:var(--text3); margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); }
+
+/* 旧版核心射手（已弃用，保留兼容） */
+.ai-shooters { display:flex; gap:8px; }
+.ai-shooter { flex:1; display:flex; align-items:center; gap:8px; padding:10px; background:rgba(255,255,255,0.03); border-radius:10px; }
+.ai-shooter-avatar { width:36px; height:36px; border-radius:50%; background:rgba(0,245,233,0.08); display:flex; align-items:center; justify-content:center; font-size:var(--fs-lg); flex-shrink:0; }
+.ai-shooter-name { font-size:var(--fs-base); font-weight:600; color:#fff; }
+.ai-shooter-stats { font-size:var(--fs-xs); color:var(--text3); }
+.ai-highlight-cards { display:flex; gap:8px; padding:12px 0; }
+.ai-highlight-card { flex:1; padding:12px 10px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.04); border-radius:var(--radius-sm); text-align:center; }
+.ai-highlight-icon { font-size:var(--fs-2xl); margin-bottom:6px; }
+.ai-highlight-title { font-size:var(--fs-base); font-weight:700; color:#fff; margin-bottom:3px; }
+.ai-highlight-desc { font-size:var(--fs-xs); color:var(--text2); line-height:1.5; }
 </style>
 </style>
 
