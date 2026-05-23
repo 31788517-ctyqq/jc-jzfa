@@ -944,12 +944,16 @@ function renderAIContent(content, homeTeam, awayTeam) {
   var hasPosCon = has(posStr['核心结论']);
   if (posGood || posBad || hasPosCon) {
     html += '<div id="ai-sec-04" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">04</span><span class="ai-sec-name">对位面</span></div>';
-    html += '<div class="ai-swp-grid"><div class="ai-swp-col"><div class="ai-swp-title good">\u25b2 主队优势</div>';
-    if (has(posStr['攻防博弈'])) html += '<div class="ai-swp-item">' + clip(esc(posStr['攻防博弈']), 70) + '</div>';
-    if (has(posStr['节奏控制'])) html += '<div class="ai-swp-item">' + clip(esc(posStr['节奏控制']), 70) + '</div>';
-    html += '</div><div class="ai-swp-col"><div class="ai-swp-title bad">\u25bc 客队隐患</div>';
-    if (has(posStr['主场氛围'])) html += '<div class="ai-swp-item">' + clip(esc(posStr['主场氛围']), 70) + '</div>';
-    if (has(posStr['战术与教练风格'])) html += '<div class="ai-swp-item">' + clip(esc(posStr['战术与教练风格']), 70) + '</div>';
+    html += '<div class="ai-swp-grid">';
+    // 主队优势
+    html += '<div class="ai-swp-card good"><div class="ai-swp-card-head"><span class="ai-swp-card-icon good">\u25B2</span><span class="ai-swp-card-label">主队优势</span></div>';
+    if (has(posStr['攻防博弈'])) html += '<div class="ai-swp-card-item">' + clip(esc(posStr['攻防博弈']), 70) + '</div>';
+    if (has(posStr['节奏控制'])) html += '<div class="ai-swp-card-item">' + clip(esc(posStr['节奏控制']), 70) + '</div>';
+    html += '</div>';
+    // 客队隐患
+    html += '<div class="ai-swp-card bad"><div class="ai-swp-card-head"><span class="ai-swp-card-icon bad">\u25BC</span><span class="ai-swp-card-label">客队隐患</span></div>';
+    if (has(posStr['主场氛围'])) html += '<div class="ai-swp-card-item">' + clip(esc(posStr['主场氛围']), 70) + '</div>';
+    if (has(posStr['战术与教练风格'])) html += '<div class="ai-swp-card-item">' + clip(esc(posStr['战术与教练风格']), 70) + '</div>';
     html += '</div></div>';
     if (hasPosCon) html += '<div class="ai-item-conclusion amber"><div class="ai-item-label">综合判断</div><div class="ai-item-text">' + clip(esc(posStr['核心结论']), 120) + '</div></div>';
     html += '</div>';
