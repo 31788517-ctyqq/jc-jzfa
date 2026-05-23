@@ -15,11 +15,12 @@ function getHomeHTML(cb){
   });
 }
 app.get('/',function(req,res){
-  res.set('Cache-Control','public, max-age=60');
-  getHomeHTML(function(err,html){res.type('html').send(html)});
+  getHomeHTML(function(err,html){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'public, max-age=60'});res.end(html)});
 });
 var previewOpts={maxAge:'1h',etag:true,setHeaders:function(res,fp){
   res.removeHeader('Accept-Ranges');
+  // 强制 charset 防止手机端乱码
+  if(fp.endsWith('.html'))res.setHeader('Content-Type','text/html; charset=utf-8');
   // CSS/JS 长缓存30天，HTML 短缓存1h
   if(fp.endsWith('.css')||fp.endsWith('.js')){res.setHeader('Cache-Control','public, max-age=2592000')}
 }};
