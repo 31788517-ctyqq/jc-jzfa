@@ -134,7 +134,16 @@ function switchTab(tab) {
   };
   document.getElementById('navTitle').textContent = titles[tab] || '竞彩推荐监控';
 
-  if (tab === 'home') { loadHome(); setTimeout(function(){ window.scrollTo(0, savedScrollY); }, 80); }
+  if (tab === 'home') {
+    var cameBack = savedScrollY > 0;
+    if (!cameBack) loadHome();
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        window.scrollTo(0, savedScrollY);
+        if (cameBack) savedScrollY = 0; // 恢复后清零防止影响后续导航
+      });
+    });
+  }
   if (tab === 'match') {
     if (weekDates.length > 0) { updateDateBar(); loadMatchList(); }
     else initWeekDates();
@@ -147,7 +156,7 @@ function switchTab(tab) {
 var lastPage='home';
 function goBack() {
   switchTab(lastPage);
-  if (lastPage === 'home') { setTimeout(function(){ window.scrollTo(0, savedScrollY); }, 50); }
+  if (lastPage === 'home') { requestAnimationFrame(function(){ requestAnimationFrame(function(){ window.scrollTo(0, savedScrollY); }); }); }
 }
 
 // 首页
