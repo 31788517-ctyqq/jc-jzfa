@@ -465,6 +465,69 @@ app.post('/api', async (req, res) => {
   }
 });
 
+// ==================== 前一天推荐命中信息回填 ====================
+let lastBackfillDate = '';
+
+async function backfillPreviousDayResults() {
+  try {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yDate = yesterday.getFullYear() + '-' + String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + String(yesterday.getDate()).padStart(2, '0');
+    
+    // 每天只回填一次
+    if (lastBackfillDate === yDate) return;
+    
+    // 检查前一天是否有完赛比赛
+    const db = database.initDatabase();
+    const row = db.prepare(`SELECT COUNT(DISTINCT r.matchId) as cnt FROM recommends r JOIN matches m ON r.matchId=m.matchId WHERE m.date LIKE ? AND m.matchStatus >= 3 AND r.result IS NULL`).get(yDate + '%');
+    if (!row || row.cnt === 0) return;
+    
+    logger.info('[backfill] 前一天(' + yDate + ')有' + row.cnt + '场比赛结果不全, 开始回填...');
+    
+    const stale = db.prepare(`
+      SELECT DISTINCT r.matchId, m.homeName, m.visitName
+      FROM recommends r JOIN matches m ON r.matchId=m.matchId
+      WHERE m.date LIKE ? AND m.matchStatus >= 3 AND r.result IS NULL
+      LIMIT 50
+    `).all(yDate + '%');
+    
+    if (!stale || stale.length === 0) return;
+    
+    // 登录 API
+    const { get } = require('./http-utils');
+    const CONFIG = {
+      MIDOU_BASE: 'https://midou310.com/mdsj',
+      MOBILE: process.env.MIDOU_MOBILE,
+      PASSWORD: process.env.MIDOU_PASSWORD
+    };
+    const loginRes = await get(CONFIG.MIDOU_BASE + '/gduser/login.do', { mobile: CONFIG.MIDOU_MOBILE, password: CONFIG.MIDOU_PASSWORD });
+    if (loginRes.code !== 1) { logger.warn('[backfill] 登录失败'); return; }
+    const token = loginRes.data.token;
+    
+    let updated = 0;
+    for (const s of stale) {
+      try {
+        const recRes = await get(CONFIG.MIDOU_BASE + '/score/getExpertRecommData.do', { dataId: s.matchId, type: 0 }, { Cookie: 'token=' + token });
+        if (recRes.code === 1 && recRes.data) {
+          const fetchDate = yDate;
+          const recomms = recRes.data.filter(x => x && x.type && x.num > 0).map(x => ({
+            type: x.type, num: x.num, result: x.result !== undefined ? x.result : null
+          }));
+          database.batchUpsertRecommends(s.matchId, recomms, fetchDate);
+          const nulls = recomms.filter(r => r.result === null).length;
+          if (nulls === 0) updated++;
+          logger.info('[backfill] ' + s.matchId + ' ' + s.homeName + ' vs ' + s.visitName + ' OK');
+        }
+      } catch(e) { logger.warn('[backfill] ' + s.matchId + ' 失败: ' + e.message); }
+      await new Promise(r => setTimeout(r, 200));
+    }
+    
+    lastBackfillDate = yDate;
+    logger.info('[backfill] 前一天回填完成, 更新' + updated + '场');
+  } catch(e) { logger.error('[backfill] 回填异常: ' + e.message); }
+}
+
 // ==================== 启动 ====================
 // 初始化数据库
 try {
@@ -482,9 +545,15 @@ app.listen(PORT, () => {
     `  预览: http://localhost:${PORT}/`,
     `  数据源: 米斗数据`,
     `  定时爬取: ${process.env.NODE_ENV === 'production' ? '已启用(5分钟)' : '开发模式未启用'}`,
+    `  前一天回填: 已启用(10分钟检查)`,
     '============================================'
   ];
   banner.forEach(line => logger.info(line));
+  
+  // 前一天推荐命中信息定时回填（每10分钟检查一次）
+  setInterval(() => { backfillPreviousDayResults().catch(e => {}); }, 10 * 60 * 1000);
+  // 启动时立即执行一次
+  setTimeout(() => { backfillPreviousDayResults().catch(e => {}); }, 30000);
 });
 
 // 生产环境启动定时爬取
