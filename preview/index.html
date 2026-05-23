@@ -703,7 +703,7 @@ body {
   text-align: left;
   background: 
     linear-gradient(180deg, rgba(0,16,24,0.3) 0%, rgba(10,25,40,0.6) 100%),
-    url('/assets/worldcup/hero-banner.png') center center / cover no-repeat;
+    url('/assets/worldcup/design-hero-banner.png') center center / cover no-repeat;
 }
 
 
@@ -1386,6 +1386,187 @@ body {
 .ai-highlight-icon { font-size:var(--fs-2xl); margin-bottom:6px; }
 .ai-highlight-title { font-size:var(--fs-base); font-weight:700; color:#fff; margin-bottom:3px; }
 .ai-highlight-desc { font-size:var(--fs-xs); color:var(--text2); line-height:1.5; }
+
+/* ─── 今日方案卡片 v6（按设计参考重构） ─── */
+.plan-card {
+  position: relative;
+  padding: 18px 16px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(0,34,60,0.95) 0%, rgba(0,16,30,0.96) 100%);
+  border: 1px solid rgba(0,255,255,0.16);
+  margin-bottom: 14px;
+  box-shadow: inset 0 0 20px rgba(0,255,255,0.04), 0 0 24px rgba(0,0,0,0.4);
+  overflow: visible;
+}
+/* 头部 */
+.plan-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.plan-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.plan-soccer-icon {
+  width: 32px; height: 32px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.plan-soccer-icon img { width: 100%; height: 100%; display: block; border-radius: 4px; }
+.plan-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+.plan-pub-time {
+  font-size: 12px;
+  color: rgba(255,255,255,0.65);
+}
+/* 数据行 - 内容在两线之间垂直居中 */
+.plan-amount-row {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  margin-top: 14px;
+  min-height: 46px;
+}
+.plan-amount-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.plan-amount-col + .plan-amount-col {
+  border-left: 1px solid rgba(0,255,255,0.12);
+}
+.plan-amount-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.62);
+  margin-bottom: 2px;
+}
+.plan-amount-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #00eaff;
+  text-shadow: 0 0 8px rgba(0,234,255,0.2);
+}
+.plan-amount-value .unit {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.45);
+  text-shadow: none;
+  margin-left: 1px;
+}
+.plan-win-stamp {
+  width: 38px; height: 38px;
+  margin-left: 6px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.plan-win-stamp svg { width: 100%; height: 100%; }
+/* 分割线 */
+.plan-divider {
+  height: 1px;
+  margin: 12px 0;
+  background: rgba(0,255,255,0.08);
+}
+/* 方案信息：左右分栏 */
+.plan-info-grid {
+  display: flex;
+  gap: 0;
+}
+.plan-info-left {
+  width: 64px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+}
+.plan-info-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 11px;
+  color: #00eaff;
+  text-shadow: 0 0 6px rgba(0,234,255,0.15);
+}
+/* 比赛表格 */
+.plan-match-section {
+  margin-top: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(0,255,255,0.1);
+}
+.plan-match-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.plan-match-table th {
+  height: 34px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.65);
+  background: rgba(0,255,255,0.04);
+}
+.plan-match-table th:first-child { width: 30%; }
+.plan-match-table th:nth-child(2) { width: 38%; }
+.plan-match-table th:last-child { width: 32%; }
+.plan-match-table td {
+  font-size: 11px;
+  padding: 9px 6px;
+  vertical-align: middle;
+  border-top: 1px solid rgba(0,255,255,0.06);
+}
+.plan-match-table .match-info-col {
+  line-height: 1.5;
+  color: rgba(255,255,255,0.75);
+  text-align: center;
+  font-weight: 500;
+  font-size: 11px;
+}
+.plan-match-table .match-num-text {
+  font-size: 11px;
+  font-weight: 600;
+}
+.plan-match-table .match-time-sub {
+  color: rgba(255,255,255,0.45);
+  font-size: 11px;
+}
+.plan-match-table .team-col {
+  text-align: center;
+  color: #fff;
+  font-weight: 500;
+  line-height: 1.5;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.plan-team-home, .plan-team-away {
+  font-size: 11px;
+  color: #fff;
+}
+.plan-team-vs {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  transform: scale(0.9);
+}
+.plan-match-table .odds-col {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ff4d4d;
+  text-shadow: 0 0 6px rgba(255,64,64,0.2);
+}
 </style>
 </style>
 
@@ -1415,11 +1596,11 @@ body {
   </div>
   
   <div class="quick-menu">
-    <div class="menu-item" onclick="switchTab('match')">
-      <div class="menu-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" stroke-width="4"/><polygon points="32,20 24,26 27,36 37,36 40,26" fill="none" stroke="currentColor" stroke-width="3"/></svg></div>
+    <div class="menu-item" onclick="switchTab('plan')">
+      <div class="menu-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="14" y="8" width="36" height="48" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><line x1="22" y1="20" x2="42" y2="20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="22" y1="28" x2="42" y2="28" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="22" y1="36" x2="36" y2="36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="32" cy="48" r="3" fill="currentColor"/></svg></div>
       <div class="menu-content">
-        <div class="menu-title">比赛列表</div>
-        <div class="menu-desc">查看当日所有竞彩比赛</div>
+        <div class="menu-title">方案列表</div>
+        <div class="menu-desc">查看当日竞彩方案</div>
       </div>
       <div class="menu-arrow">›</div>
     </div>
@@ -1450,6 +1631,16 @@ body {
     <span class="date-arrow" onclick="shiftWeek(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
   </div>
   <div id="matchList"></div>
+</div>
+
+<!-- 今日方案 -->
+<div class="page" id="page-plan">
+  <div class="date-bar" id="planDateBar">
+    <span class="date-arrow" onclick="shiftPlanDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+    <span class="date-current" id="planDateCurrent" onclick="goPlanToday()"></span>
+    <span class="date-arrow" onclick="shiftPlanDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+  </div>
+  <div id="planList"></div>
 </div>
 
 <!-- 比赛详情 -->
@@ -1584,6 +1775,9 @@ body {
   </div>
   <div class="tab-item" onclick="switchTab('hit')" id="tab-hit">
     <span class="tab-icon"><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 24C5 34.49 13.51 43 24 43V26C24 24.9 24.9 24 26 24H43C43 13.51 34.49 5 24 5 13.51 5 5 13.51 5 24Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="30" y="30" width="12" height="12" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+  </div>
+  <div class="tab-item" onclick="switchTab('plan')" id="tab-plan">
+    <span class="tab-icon"><svg width="24" height="24" viewBox="0 0 48 48" fill="none"><path d="M20 10H44" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 24H44" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 38H44" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="24" r="4" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="38" r="4" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10L7 13L13 7" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
   </div>
 </div>
 
