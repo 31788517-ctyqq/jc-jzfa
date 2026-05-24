@@ -6,6 +6,8 @@ var {fetchOdds:fetch500Odds}=require('./fetch_500odds');
 var oddsCache={},oddsCacheTime={},oddsCacheTTL=1800000;
 // 按日期缓存500.com全量赔率
 var odds500Cache={},odds500Date='';
+// 方案快照冻结缓存
+var planSnapshots={};
 app.use(compression());app.use(cors());app.use(express.json());
 var staticOpts={maxAge:'30d',etag:true,immutable:true,setHeaders:function(res){res.removeHeader('Accept-Ranges')}};
 app.use('/assets/worldcup',express.static(path.join(__dirname,'../miniprogram/images/worldcup'),staticOpts));
@@ -151,62 +153,139 @@ app.post('/api',function(req,res){
   var a=req.body.action,d=req.body.data||{};
   if(a==='plan-list'){
     var dateStr = d.date || new Date().toISOString().slice(0,10);
-    var CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','二十一','二十二','二十三','二十四','二十五','二十六','二十七','二十八','二十九','三十'];
-    var allM = [];
+
+    // 检查是否有冻结的方案快照
+    var snap = planSnapshots[dateStr];
+    var now = Date.now();
+
+    // 收集当天比赛
+    var mList = [];
     var mKeys = Object.keys(data.m||{});
-    for(var k=0;k<mKeys.length;k++){ var m=data.m[mKeys[k]]; if((m.date||'').slice(0,10)===dateStr) allM.push(m); }
-    var recomm = data.recGroups||data.r||{};
-    var plans = [];
-    for(var i=0;i<allM.length;i++){
-      var m=allM[i];
-      var recs = recomm['m_'+m.matchId]||recomm[m.matchId]||[];
-      if(recs.length===0) continue;
-      var top = recs[0];
-      for(var j=1;j<recs.length;j++){ if(recs[j].num>top.num) top=recs[j]; }
-      // 赔率：优先500.com真实赔率，否则推荐推导
-      var odds=null;
-      var mid=m.matchId;
-      var mNum=m.num||'';
-      // 优先用500.com缓存（传递完整赔率数据含spf/rqspf/totalGoals等）
-      var fiveOdds=odds500Cache[mNum];
-      if(fiveOdds && fiveOdds._t && (Date.now()-fiveOdds._t<oddsCacheTTL)){
-        odds = {
+    for(var k=0;k<mKeys.length;k++){ var m=data.m[mKeys[k]]; if((m.date||'').slice(0,10)===dateStr) mList.push(m); }
+
+    // 计算最早开赛时间，判断是否需要冻结
+    var earliestStart = null;
+    for(var i=0;i<mList.length;i++){ var st=mList[i].startTime; if(st){ var t=new Date(st).getTime(); if(!earliestStart||t<earliestStart) earliestStart=t; } }
+    var shouldFreeze = earliestStart && (now >= earliestStart - 30*60000);
+
+    // 如果有快照且已冻结，直接返回
+    if(snap && snap.frozen){
+      return res.json(snap.data);
+    }
+    // 如果已冻结但无快照，生成后保存
+    // 每天下午4点前未到首次比赛30分钟前不冻结（按当天16:00检查）
+
+    // 异步拉取500.com赔率
+    if(odds500Date!==dateStr && !odds500Cache._fetching){
+      odds500Cache._fetching=true;
+      fetch500Odds(dateStr).then(function(data){
+        Object.keys(data).forEach(function(k){ data[k]._t=now; odds500Cache[k]=data[k]; });
+        odds500Date=dateStr;
+        odds500Cache._fetching=false;
+      }).catch(function(){ odds500Cache._fetching=false; });
+    }
+
+    // 辅助：获取某场比赛某个方向的赔率
+    function getMatchOdds(match, direction){
+      var fiveOdds=odds500Cache[match.num||''];
+      if(fiveOdds && fiveOdds._t && (now-fiveOdds._t<oddsCacheTTL)){
+        return {
           spf: { home: fiveOdds.spf.home, draw: fiveOdds.spf.draw, away: fiveOdds.spf.away },
           rqspf: fiveOdds.rqspf ? { home: fiveOdds.rqspf.home, draw: fiveOdds.rqspf.draw, away: fiveOdds.rqspf.away, handicap: fiveOdds.rqspf.handicap } : null,
           totalGoals: fiveOdds.totalGoals || null,
           halfFull: fiveOdds.halfFull || null,
         };
-      }else{
-        odds=inferOddsFromRecommends(findRecommends(mid));
-        // 异步后台拉取500.com数据（按日期，只触发一次）
-        if(odds500Date!==dateStr && !odds500Cache._fetching){
-          odds500Cache._fetching=true;
-          fetch500Odds(dateStr).then(function(data){
-            Object.keys(data).forEach(function(k){
-              data[k]._t=Date.now();
-              odds500Cache[k]=data[k];
-            });
-            odds500Date=dateStr;
-            odds500Cache._fetching=false;
-          }).catch(function(){
-            odds500Cache._fetching=false;
-          });
+      }
+      return inferOddsFromRecommends(findRecommends(match.matchId));
+    }
+
+    // 辅助：获取每个方向专家数最多的场次
+    function findBestMatchForDirection(directions){
+      var bestMatch=null,bestCount=0;
+      for(var i=0;i<mList.length;i++){
+        var m=mList[i];
+        var recs=findRecommends(m.matchId);
+        var total=0;
+        for(var j=0;j<recs.length;j++){
+          if(directions.indexOf(recs[j].type)>=0) total+=recs[j].num||0;
+        }
+        if(total>bestCount){ bestCount=total; bestMatch=m; }
+      }
+      return bestMatch;
+    }
+
+    // 辅助：构建单个match对象
+    function buildMatchObj(m, direction){
+      var recs=findRecommends(m.matchId);
+      var matchedRec=null;
+      for(var j=0;j<recs.length;j++){ if(recs[j].type===direction){ matchedRec=recs[j]; break; } }
+      if(!matchedRec){
+        // 复合方向如"总进球-2、3球", 找匹配的推荐
+        for(var j=0;j<recs.length;j++){
+          var rt=recs[j].type||'';
+          if(rt.indexOf(direction)>=0 || direction.indexOf(rt)>=0){ matchedRec=recs[j]; break; }
         }
       }
-      plans.push({
-        planId:'p_'+m.matchId, homeName:m.homeName, visitName:m.visitName, leagueName:m.leagueName,
-        matchNum:m.num||'', startTime:m.startTime||'', matchStatus:m.matchStatus,
-        mainDirection:top.type||'', expertCount:top.num||0,
-        playType:recs.length>=2?'混合投注':'单关投注', matchCount:1, passType:'1串1',
-        betCount:top.num||1, multiplier:1, ticketCount:1,
-        amount:(top.num||1)*2, maxPrize:Math.round((top.num||1)*2*(1.8+Math.random()*2.2)),
-        isWin: top.result===1 ? true : (top.result===0 ? false : null),
-        publishTime:(m.startTime||'').slice(0,16).replace(' ',' '),
-        odds: odds,
-        isSingleGame: odds500Cache[m.num] ? odds500Cache[m.num].isSingleGame===true : false
-      });
+      var expertCount=matchedRec?matchedRec.num:0;
+      var isMatchWon=matchedRec?matchedRec.result===1:null;
+      var isMatchLose=matchedRec?matchedRec.result===0:null;
+      return {
+        matchId:m.matchId, homeName:m.homeName, visitName:m.visitName,
+        leagueName:m.leagueName, matchNum:m.num||'', startTime:m.startTime||'',
+        matchStatus:m.matchStatus||0,
+        direction:direction, expertCount:expertCount,
+        isMatchWon:isMatchWon, isMatchLose:isMatchLose,
+        odds:getMatchOdds(m, direction)
+      };
     }
-    return res.json({code:1,data:{date:dateStr,plans:plans}});
+
+    // 生成3个方案
+    function generatePlans(){
+      var plans=[];
+      
+      // 方案一：场次1=平/让平最多专家，场次2=让负最多专家
+      var m1a=findBestMatchForDirection(['平','让平']);
+      var m1b=findBestMatchForDirection(['让负']);
+      
+      // 方案二：场次1=总进球-2、3球最多专家，场次2=让负最多专家
+      var m2a=findBestMatchForDirection(['总进球-2、3球']);
+      var m2b=findBestMatchForDirection(['让负']);
+      
+      // 方案三：场次1=总进球-2、3球最多专家，场次2=让胜最多专家
+      var m3a=findBestMatchForDirection(['总进球-2、3球']);
+      var m3b=findBestMatchForDirection(['让胜']);
+
+      if(m1a&&m1b) plans.push({ planId:'plan_'+dateStr+'_1', planName:'方案一',
+        matches:[buildMatchObj(m1a,'平'),buildMatchObj(m1b,'让负')],
+        amount:1000, playType:'混合投注', matchCount:2, passType:'2串1',
+        betCount:250, ticketCount:10, multiplier:25,
+        maxPrize:Math.round(1000*2.5+Math.random()*2000)
+      });
+      if(m2a&&m2b) plans.push({ planId:'plan_'+dateStr+'_2', planName:'方案二',
+        matches:[buildMatchObj(m2a,'总进球-2、3球'),buildMatchObj(m2b,'让负')],
+        amount:1000, playType:'混合投注', matchCount:2, passType:'2串1',
+        betCount:250, ticketCount:10, multiplier:25,
+        maxPrize:Math.round(1000*2.5+Math.random()*2000)
+      });
+      if(m3a&&m3b) plans.push({ planId:'plan_'+dateStr+'_3', planName:'方案三',
+        matches:[buildMatchObj(m3a,'总进球-2、3球'),buildMatchObj(m3b,'让胜')],
+        amount:1000, playType:'混合投注', matchCount:2, passType:'2串1',
+        betCount:250, ticketCount:10, multiplier:25,
+        maxPrize:Math.round(1000*2.5+Math.random()*2000)
+      });
+      return plans;
+    }
+
+    var plans=generatePlans();
+    var respData={code:1,data:{date:dateStr,plans:plans}};
+
+    // 冻结逻辑：第一场比赛前30分钟
+    if(shouldFreeze && plans.length>0){
+      planSnapshots[dateStr]={ data:respData, frozen:true, time:now };
+      console.log('Plan snapshot frozen for '+dateStr+' ('+plans.length+' plans)');
+    }
+
+    return res.json(respData);
   }
   if(a==='week-dates'){
     return res.json({code:1,data:getWeekDates()});

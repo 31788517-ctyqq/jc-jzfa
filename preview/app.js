@@ -1101,129 +1101,110 @@ function loadPlanList() {
     }
 
     el.innerHTML = plans.map(function(p, i) {
-      var planIdx = i + 1;
-      var isWon = p.isWin === true;
-      var isLose = p.isWin === false;
-      var isFinished = isWon || isLose;
+      var matches = p.matches || [];
 
-      // 方案名用中文数字
-      var CN_NUMS = ['一','二','三','四','五','六','七','八','九','十',
-                     '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
-                     '二十一','二十二','二十三','二十四','二十五','二十六','二十七','二十八','二十九','三十'];
-      var planName = '方案' + (CN_NUMS[planIdx - 1] || planIdx);
+      // 判断方案整体中奖状态
+      var allWon = matches.length > 0;
+      var anyLose = false;
+      var anyUndetermined = false;
+      for (var mi = 0; mi < matches.length; mi++) {
+        if (!matches[mi].isMatchWon) allWon = false;
+        if (matches[mi].isMatchLose) anyLose = true;
+        if (!matches[mi].isMatchWon && !matches[mi].isMatchLose) anyUndetermined = true;
+      }
+      var isWon = allWon;
+      var isLose = anyLose && !isWon;
+      if (anyUndetermined) { isWon = false; isLose = false; }
+
+      var planName = p.planName || ('方案' + (i + 1));
 
       // 金额
-      var amountVal = (p.amount || 2).toFixed(0);
+      var amountVal = (p.amount || 1000).toFixed(0);
       var prizeVal = (p.maxPrize || 0).toFixed(0);
       var prizeLabel = isWon ? '中奖金额' : (isLose ? '预计奖金' : '预计最高奖金');
 
-      // 赔率：智能解析多选方向，每项分别显示对应赔率
-      var oddsHtml = '';
-      if (p.odds) {
-        var dir = (p.mainDirection || '').trim();
-        var parts = dir ? dir.split(/[、，,]/) : [];
-        var oddsObj = p.odds;
-        var resolvedParts = [];
+      // 发布/截止时间
+      var publishTime = '';
+      if (p.publishTime) publishTime = p.publishTime;
+      else if (matches.length > 0 && matches[0].startTime) publishTime = matches[0].startTime.slice(0,16).replace('T',' ');
 
-        // 公共前缀提取（如 "总进球-"）
+      // 辅助：解析某场比赛的方向赔率显示
+      function resolveMatchOddsHtml(match, planIdx) {
+        var dir = match.direction || '';
+        var oddsObj = match.odds || {};
+        var parts = dir ? dir.split(/[、，,]/) : [];
+        var resolved = [];
+
         var commonPrefix = '';
         if (parts.length > 1 && parts[0].length > 1) {
-          var firstLen = parts[0].length;
-          for (var cl = 1; cl <= firstLen; cl++) {
+          for (var cl = 1; cl <= parts[0].length; cl++) {
             var cand = parts[0].substring(0, cl);
-            var allMatch = true;
-            for (var pi = 1; pi < parts.length; pi++) {
-              if (parts[pi].indexOf(cand) !== 0) { allMatch = false; break; }
-            }
-            if (!allMatch) break;
+            var ok = true;
+            for (var pi = 1; pi < parts.length; pi++) { if (parts[pi].indexOf(cand) !== 0) { ok = false; break; } }
+            if (!ok) break;
             commonPrefix = cand;
           }
         }
 
         parts.forEach(function(pt) {
           var label = pt.trim();
-          var fullLabel = commonPrefix ? (commonPrefix + label.replace(commonPrefix, '')) : label;
-          var ft = fullLabel.trim();
+          var ft = commonPrefix ? (commonPrefix + label.replace(commonPrefix, '')) : label.trim();
           var val = null;
 
-          if (!oddsObj.spf && !oddsObj.rqspf) {
-            // 无500.com数据，用推导方案
-            if (ft.indexOf('胜') >= 0) val = oddsObj.home || oddsObj.draw || oddsObj.away;
-            else if (ft.indexOf('平') >= 0) val = oddsObj.draw || oddsObj.home;
-            else if (ft.indexOf('负') >= 0) val = oddsObj.away || oddsObj.home;
-            else val = oddsObj.home || oddsObj.draw || oddsObj.away;
-          } else if (ft.indexOf('让胜') >= 0 || ft === '让胜') {
-            val = oddsObj.rqspf && oddsObj.rqspf.home;
-          } else if (ft.indexOf('让平') >= 0 || ft === '让平') {
-            val = oddsObj.rqspf && oddsObj.rqspf.draw;
-          } else if (ft.indexOf('让负') >= 0 || ft === '让负') {
-            val = oddsObj.rqspf && oddsObj.rqspf.away;
-          } else if (ft.indexOf('总进球') >= 0 && oddsObj.totalGoals) {
-            var goalMatch = ft.match(/(\d+\+?)/);
-            if (goalMatch) val = oddsObj.totalGoals[goalMatch[1]];
-          } else if (ft.indexOf('胜') >= 0 && ft.length <= 2) {
-            val = oddsObj.spf && oddsObj.spf.home;
-          } else if (ft.indexOf('平') >= 0 && ft.length <= 2) {
-            val = oddsObj.spf && oddsObj.spf.draw;
-          } else if (ft.indexOf('负') >= 0 && ft.length <= 2) {
-            val = oddsObj.spf && oddsObj.spf.away;
-          }
-          // 半全场
-          if (!val && oddsObj.halfFull) {
-            var hfMap = { '胜胜':'hh','胜平':'hd','胜负':'ha','平胜':'dh','平平':'dd','平负':'da','负胜':'ah','负平':'ad','负负':'aa' };
-            var hfKey = hfMap[ft];
-            if (hfKey) val = oddsObj.halfFull[hfKey];
-          }
-          // 总进球（再次尝试）
-          if (!val && oddsObj.totalGoals) {
-            var gm2 = ft.match(/(\d+\+?)/);
-            if (gm2) val = oddsObj.totalGoals[gm2[1]];
-          }
+          if (ft.indexOf('让胜') >= 0 || ft === '让胜') val = oddsObj.rqspf && oddsObj.rqspf.home;
+          else if (ft.indexOf('让平') >= 0 || ft === '让平') val = oddsObj.rqspf && oddsObj.rqspf.draw;
+          else if (ft.indexOf('让负') >= 0 || ft === '让负') val = oddsObj.rqspf && oddsObj.rqspf.away;
+          else if (ft.indexOf('总进球') >= 0 && oddsObj.totalGoals) {
+            var gm = ft.match(/(\d+\+?)/);
+            if (gm) val = oddsObj.totalGoals[gm[1]];
+          } else if (ft.indexOf('胜') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.home;
+          else if (ft.indexOf('平') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.draw;
+          else if (ft.indexOf('负') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.away;
+          if (!val && oddsObj.spf) val = oddsObj.spf.home || oddsObj.spf.draw || oddsObj.spf.away;
 
-          if (val) {
-            resolvedParts.push(label + '(' + val + ')');
-          } else {
-            // 无真实赔率时，基于matchId+方向生成合理模拟值
-            var hash = 0;
-            try {
-              hash = (p.matchId || '0').replace(/\D/g,'').split('').reduce(function(a,b){return a + b.charCodeAt(0)}, 0);
-            } catch(e) { hash = 0; }
-            var sim = (1.60 + (hash % 21) * 0.05 + (i * 0.07) % 0.60 + (pt.length * 0.03) % 0.50).toFixed(2);
-            resolvedParts.push(label + '(' + sim + ')');
+          if (val) resolved.push(label + '(' + val + ')');
+          else {
+            var h = 0;
+            try { h = (match.matchId||'0').replace(/\D/g,'').split('').reduce(function(a,b){return a+b.charCodeAt(0)},0); } catch(e){}
+            var s = (1.60 + (h%21)*0.05 + (i*0.07)%0.60 + (pt.length*0.03)%0.50).toFixed(2);
+            resolved.push(label + '(' + s + ')');
           }
         });
-
-        oddsHtml = resolvedParts.join('、');
-      }
-      if (!oddsHtml) {
-        // 兜底模拟赔率
-        try {
-          var matchHash = (p.matchId || '0').replace(/\D/g,'').split('').reduce(function(a,b){return a + b.charCodeAt(0)}, 0);
-          var simOdds = (1.50 + (matchHash % 25) * 0.05 + (i * 0.08) % 0.80).toFixed(2);
-          oddsHtml = (p.mainDirection || '?') + ' (' + simOdds + ')';
-        } catch(e) { oddsHtml = (p.mainDirection || '?') + ' (1.85)'; }
+        return resolved.join('、');
       }
 
-      // 时间 —— 完整时间戳（含秒）
-      var timeStr = '';
-      if (p.startTime) {
-        timeStr = p.startTime.slice(0, 19).replace('T',' ');
-      } else if (p.publishTime) {
-        timeStr = p.publishTime;
-      }
+      // 构建比赛表格行
+      var matchRows = '';
+      for (var mi = 0; mi < matches.length; mi++) {
+        var m = matches[mi];
+        var isMw = m.isMatchWon === true;
+        var isMl = m.isMatchLose === true;
+        var matchOddsColor = isMw ? '#EF4444' : isMl ? '#22C55E' : '#fff';
+        var matchOddsHtml = resolveMatchOddsHtml(m, i);
 
-      // 比赛场次信息
-      var numText = p.matchNum || '';
-      // 开赛日期和时间：MM/DD HH:mm
-      var matchDateShort = '';
-      var matchTime = '';
-      if (p.startTime) {
-        var timeMatch = p.startTime.match(/(\d{2}:\d{2})/);
-        if (timeMatch) matchTime = timeMatch[1];
-        var dateMatch = p.startTime.match(/(\d{2})\/(\d{2})/) || p.startTime.match(/(\d{2})-(\d{2})/);
-        if (dateMatch) matchDateShort = dateMatch[1] + '/' + dateMatch[2];
+        var numText = m.matchNum || '';
+        var matchDateShort = '', matchTime = '';
+        if (m.startTime) {
+          var tm = m.startTime.match(/(\d{2}:\d{2})/);
+          if (tm) matchTime = tm[1];
+          var dm = m.startTime.match(/(\d{2})\/(\d{2})/) || m.startTime.match(/(\d{2})-(\d{2})/);
+          if (dm) matchDateShort = dm[1] + '/' + dm[2];
+        }
+        var timeDisp = matchDateShort || matchTime ? (matchDateShort + ' ' + matchTime).trim() : '';
+
+        matchRows += '<tr>' +
+          '<td class="match-info-col">' +
+            '<div class="match-num-text">' + numText + '</div>' +
+            (timeDisp ? '<div class="match-time-sub">' + timeDisp + '</div>' : '') +
+          '</td>' +
+          '<td class="team-col">' +
+            '<span class="plan-team-home">' + (m.homeName || '') + '</span>' +
+            '<span class="plan-team-vs">vs</span>' +
+            '<span class="plan-team-away">' + (m.visitName || '') + '</span>' +
+          '</td>' +
+          '<td class="odds-col" style="color:' + matchOddsColor + '">' + matchOddsHtml + '</td>' +
+        '</tr>';
       }
-      var timeDisplay = matchDateShort || matchTime ? (matchDateShort + ' ' + matchTime).trim() : '';
 
       return '<div class="plan-card">' +
         // ═══ 头部 ═══
@@ -1232,7 +1213,7 @@ function loadPlanList() {
             '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
             '<span class="plan-name">' + planName + '</span>' +
           '</div>' +
-          '<span class="plan-pub-time">' + timeStr + '</span>' +
+          '<span class="plan-pub-time">' + publishTime + '</span>' +
         '</div>' +
         // ═══ 数据行 ═══
         '<div class="plan-amount-row">' +
@@ -1260,8 +1241,8 @@ function loadPlanList() {
           '</div>' +
           '<div class="plan-info-right">' +
             '<div>竞彩记录-' + (p.playType || '混合投注') + '</div>' +
-            '<div>' + (p.matchCount || 1) + '场' + (p.passType || '1串1') + '</div>' +
-            '<div>' + (p.betCount || 1) + '注' + (p.multiplier || 1) + '倍' + (p.ticketCount || 1) + '票</div>' +
+            '<div>' + (p.matchCount || 2) + '场' + (p.passType || '2串1') + '</div>' +
+            '<div>' + (p.betCount || 250) + '注' + (p.multiplier || 25) + '倍' + (p.ticketCount || 10) + '票</div>' +
           '</div>' +
           (isWon ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>' : '') +
           (isLose ? '<div class="plan-lose-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#9AA6B2" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="16" font-weight="900" fill="#9AA6B2" transform="rotate(-10,19,19)">未中</text></svg></div>' : '') +
@@ -1270,21 +1251,11 @@ function loadPlanList() {
         '<div class="plan-match-section">' +
         '<table class="plan-match-table">' +
           '<thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th></tr></thead>' +
-          '<tbody><tr>' +
-            '<td class="match-info-col">' +
-              '<div class="match-num-text">' + numText + '</div>' +
-              (timeDisplay ? '<div class="match-time-sub">' + timeDisplay + '</div>' : '') +
-            '</td>' +
-            '<td class="team-col">' +
-              '<span class="plan-team-home">' + (p.homeName || '') + '</span>' +
-              '<span class="plan-team-vs">vs</span>' +
-              '<span class="plan-team-away">' + (p.visitName || '') + '</span>' +
-            '</td>' +
-            '<td class="odds-col" style="color:' + (isWon ? '#EF4444' : isLose ? '#22C55E' : '#fff') + '">' + oddsHtml + '</td>' +
-          '</tr></tbody>' +
+          '<tbody>' + matchRows + '</tbody>' +
         '</table>' +
         '</div>' +
       '</div>';
+    }).join('');
     }).join('');
   }).catch(function(e) {
     el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);">' + e.message + '</div>';
