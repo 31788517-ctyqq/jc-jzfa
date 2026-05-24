@@ -237,6 +237,9 @@ app.post('/api',function(req,res){
       for(var i=0;i<mList.length;i++){
         var m=mList[i];
         if(excludeIds && excludeIds.indexOf(m.matchId)>=0) continue;
+        var num=m.num||'';
+        // 跳过没有500.com赔率的比赛
+        if(!loadOddsFromFile(dateStr, num)) continue;
         var recs=findRecommends(m.matchId);
         var total=0;
         for(var j=0;j<recs.length;j++){
@@ -443,6 +446,9 @@ app.post('/api',function(req,res){
         for(var j=0;j<mList.length;j++){
           var mm=mList[j];
           if(excludeIds && excludeIds.indexOf(mm.matchId)>=0) continue;
+          var num=mm.num||'';
+          // 跳过没有500.com赔率的比赛
+          if(!(histOdds&&histOdds[num])) continue;
           var recs=findRecommends(mm.matchId);
           var total=0;
           for(var ri=0;ri<recs.length;ri++){ if(directions.indexOf(recs[ri].type)>=0) total+=recs[ri].num||0; }
