@@ -51,13 +51,12 @@ function parseSegment(segment, matchNum) {
 }
 
 /**
- * 全局扫描 HTML 中的"总进球"段（这些数据在展开行中，不在比赛块内）
+ * 全局扫描 HTML 中的"进球数"段（500.com用"进球数"而非"总进球"）
  */
 function extractTotalGoals(html) {
   const result = {};
   const weekDays = ['周日','周一','周二','周三','周四','周五','周六'];
   
-  // 构建所有匹配号位置列表
   const matchPositions = [];
   const regex = new RegExp('(' + weekDays.join('|') + ')(\\d{3})', 'g');
   let m;
@@ -65,31 +64,32 @@ function extractTotalGoals(html) {
     matchPositions.push({ num: m[1] + m[2], pos: m.index });
   }
   
-  // 扫描"总进球"
-  let tgIdx = 0;
-  while ((tgIdx = html.indexOf('总进球', tgIdx)) !== -1) {
-    // 找到此"总进球"后面的8个赔率值
-    const after = html.substring(tgIdx + 3, Math.min(tgIdx + 600, html.length));
-    const tgNums = (after.match(/(\d{1,3}\.\d{2})/g) || []).map(Number);
-    
-    // 往前查找最近的比赛编号
-    let nearestMatch = null;
-    for (let i = matchPositions.length - 1; i >= 0; i--) {
-      if (matchPositions[i].pos < tgIdx) {
-        nearestMatch = matchPositions[i].num;
-        break;
+  // 同时尝试"进球数"和"总进球"
+  const labels = ['进球数', '总进球'];
+  labels.forEach(function(label) {
+    let tgIdx = 0;
+    while ((tgIdx = html.indexOf(label, tgIdx)) !== -1) {
+      const after = html.substring(tgIdx + label.length, Math.min(tgIdx + 600, html.length));
+      const tgNums = (after.match(/(\d{1,3}\.\d{2})/g) || []).map(Number);
+      
+      let nearestMatch = null, minDist = Infinity;
+      for (let i = 0; i < matchPositions.length; i++) {
+        var dist = tgIdx - matchPositions[i].pos;
+        if (dist > 0 && dist < minDist) {
+          minDist = dist;
+          nearestMatch = matchPositions[i].num;
+        }
       }
+      
+      if (nearestMatch && tgNums.length >= 8 && !result[nearestMatch]) {
+        result[nearestMatch] = {
+          '0': tgNums[0], '1': tgNums[1], '2': tgNums[2], '3': tgNums[3],
+          '4': tgNums[4], '5': tgNums[5], '6': tgNums[6], '7+': tgNums[7],
+        };
+      }
+      tgIdx++;
     }
-    
-    if (nearestMatch && tgNums.length >= 8) {
-      result[nearestMatch] = {
-        '0': tgNums[0], '1': tgNums[1], '2': tgNums[2], '3': tgNums[3],
-        '4': tgNums[4], '5': tgNums[5], '6': tgNums[6], '7+': tgNums[7],
-      };
-    }
-    
-    tgIdx++;
-  }
+  });
   
   return result;
 }
