@@ -138,7 +138,8 @@ function switchTab(tab) {
     detail: '比赛详情',
     rank: '推荐排行榜',
     hit: '命中率统计',
-    filter: '命中率筛选'
+    filter: '命中率筛选',
+    income: '方案收入'
   };
   document.getElementById('navTitle').textContent = titles[tab] || '竞彩推荐监控';
   // 详情页和筛选页显示返回按钮
@@ -169,6 +170,7 @@ function switchTab(tab) {
   if (tab === 'rank') { updateRankDateBar(); loadRanking(); }
   if (tab === 'hit') loadHitRate();
   if (tab === 'filter') { loadFilterLeagues(); resetFilterResult(); }
+  if (tab === 'income') loadIncome();
 }
 
 var lastPage='home';
@@ -823,6 +825,58 @@ function doFilterQuery() {
       html += '</div>';
     }
 
+    resultEl.innerHTML = html;
+  }).catch(function(e) {
+    resultEl.innerHTML = '<div class="loading">' + e.message + '</div>';
+  });
+}
+
+// ========== 方案收入 ==========
+function loadIncome() {
+  var resultEl = document.getElementById('incomeResult');
+  resultEl.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
+
+  var days = getDDVal('dd-incTime') === 'all' ? 0 : parseInt(getDDVal('dd-incTime')) || 0;
+  var plan = getDDVal('dd-incPlan') || 'all';
+
+  api('income-stats', { days: days, plan: plan }).then(function(data) {
+    var s = data.summary || {};
+    document.getElementById('incTotalPlans').textContent = s.totalPlans || 0;
+    document.getElementById('incWinRate').textContent = (s.winRate || 0) + '%';
+    
+    var incomeEl = document.getElementById('incTotalIncome');
+    var income = s.totalIncome || 0;
+    incomeEl.textContent = (income >= 0 ? '+' : '') + income;
+    incomeEl.style.color = income >= 0 ? '#EF4444' : '#22C55E';
+
+    var records = data.records || [];
+    if (records.length === 0) {
+      resultEl.innerHTML = '<div class="hint-box">暂无方案收入数据</div>';
+      return;
+    }
+
+    var html = '<div class="income-list">';
+    html += '<div class="income-header-row"><span>日期</span><span>方案</span><span>场次</span><span>盈利</span></div>';
+    
+    records.forEach(function(r) {
+      var incColor = r.income >= 0 ? '#EF4444' : '#22C55E';
+      var incText = (r.income >= 0 ? '+' : '') + r.income;
+      var matchesText = r.matches.map(function(m) {
+        var mStatus = m.isWon ? '✓' : m.isLose ? '✗' : '-';
+        var mColor = m.isWon ? '#EF4444' : m.isLose ? '#22C55E' : '#888';
+        return '<span style="color:' + mColor + '">' + m.direction + '</span>';
+      }).join(', ');
+      
+      var dateShort = r.date.slice(5).replace('-', '/');
+      
+      html += '<div class="income-row" style="cursor:default">' +
+        '<span class="income-date">' + dateShort + '</span>' +
+        '<span class="income-plan-name">' + r.plan + '</span>' +
+        '<span class="income-matches">' + matchesText + '</span>' +
+        '<span class="income-value" style="color:' + incColor + '">' + incText + '</span>' +
+      '</div>';
+    });
+    html += '</div>';
     resultEl.innerHTML = html;
   }).catch(function(e) {
     resultEl.innerHTML = '<div class="loading">' + e.message + '</div>';
