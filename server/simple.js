@@ -39,6 +39,17 @@ try{
     try{fs.writeFileSync(path.join(__dirname,'data.json'),JSON.stringify({m:data.m,r:data.r}))}catch(e){}
     console.log('Auto-fixed:',fixResult.fixed,'matches with wrong dates');
   }
+  // 根据推荐result自动修正历史比赛的matchStatus（已结束但状态未更新）
+  var statusFixed=0;
+  Object.keys(data.m).forEach(function(k){
+    var m=data.m[k];
+    if(!m||m.matchStatus===2)return;
+    var recs=normalizeRecs(data.r['m_'+m.matchId]||data.r[m.matchId]||[]);
+    if(recs.some(function(r){return r.result!==null})){
+      m.matchStatus=2; statusFixed++;
+    }
+  });
+  if(statusFixed>0) console.log('Status auto-fixed:',statusFixed,'finished matches');
 }catch(e){console.log('No data.json:',e.message)}
 
 // 实时比分合并
