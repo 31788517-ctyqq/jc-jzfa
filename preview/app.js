@@ -1263,7 +1263,7 @@ function loadPlanList() {
             '<div>' + (p.matchCount || 1) + '场' + (p.passType || '1串1') + '</div>' +
             '<div>' + (p.betCount || 1) + '注' + (p.multiplier || 1) + '倍' + (p.ticketCount || 1) + '票</div>' +
           '</div>' +
-          (isWon ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(15,19,19)">中</text></svg></div>' : '') +
+          (isWon ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>' : '') +
           (isLose ? '<div class="plan-lose-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#9AA6B2" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="16" font-weight="900" fill="#9AA6B2" transform="rotate(-10,19,19)">未中</text></svg></div>' : '') +
         '</div>' +
         // ═══ 比赛表格 ═══
