@@ -434,10 +434,31 @@ app.post('/api',function(req,res){
       });
     }
     
+    // 按日期汇总
+    var dateMap={};
+    results.forEach(function(r){
+      if(!dateMap[r.date]) dateMap[r.date]={ won:0, total:0, income:0 };
+      dateMap[r.date].total++;
+      dateMap[r.date].income+=r.income;
+      if(r.status==='won') dateMap[r.date].won++;
+    });
+    
+    var dayRecords=[];
+    Object.keys(dateMap).sort().reverse().forEach(function(ds){
+      var dr=dateMap[ds];
+      dayRecords.push({
+        date:ds,
+        hitCount:dr.won,
+        totalPlans:dr.total,
+        hitRate:dr.total>0?Math.round(dr.won/dr.total*100):0,
+        income:dr.income
+      });
+    });
+    
     var winRate=totalPlans>0?Math.round(totalWon/totalPlans*100):0;
     return res.json({code:1,data:{
       summary:{ totalPlans:totalPlans, totalWon:totalWon, totalIncome:totalIncome, winRate:winRate },
-      records:results.reverse()
+      records:dayRecords
     }});
   }
   if(a==='week-dates'){
