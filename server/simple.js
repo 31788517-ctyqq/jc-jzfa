@@ -718,4 +718,28 @@ app.post('/api',function(req,res){
   }
   res.json({code:0,msg:'Not found'})
 });
+// 启动时加载历史500.com赔率数据
+function loadOddsHistory(){
+  var dir=path.join(__dirname,'odds_history');
+  if(!fs.existsSync(dir)){ console.log('No odds_history directory'); return; }
+  var files=fs.readdirSync(dir).filter(function(f){return f.endsWith('.json')&&f!=='batch_report.json'});
+  var loaded=0;
+  files.forEach(function(f){
+    try{
+      var raw=fs.readFileSync(path.join(dir,f),'utf8');
+      var record=JSON.parse(raw);
+      var dateStr=record.date;
+      var oddsData=record.odds||{};
+      Object.keys(oddsData).forEach(function(k){
+        oddsData[k]._t=Date.now();
+        odds500Cache[k]=oddsData[k];
+      });
+      if(!odds500Date) odds500Date=dateStr;
+      loaded++;
+    }catch(e){}
+  });
+  console.log('Odds history loaded:',loaded,'dates from cache');
+}
+loadOddsHistory();
+
 app.listen(PORT,function(){console.log('Server:'+PORT)});
