@@ -479,16 +479,16 @@ app.post('/api', async (req, res) => {
       case 'match-odds': {
         const { matchId } = data;
         if (!matchId) return res.json({ code: 0, msg: '缺少 matchId' });
-        const oddsModule = require('./fetch_odds');
-        // 先从推荐数据推导
-        const recomms = await ensureRecommends(matchId).catch(() => []);
-        let odds = oddsModule.inferOddsFromRecommends(recomms);
-        // 再尝试从生产环境获取真实赔率（异步不阻塞）
-        if (!odds) {
-          oddsModule.fetchRealOdds(matchId).then(real => {
-            if (real) odds = real;
-          }).catch(() => {});
-        }
+        // 从500.com缓存获取赔率，无数据时返回null
+        const m = dataModule.getMatchById ? dataModule.getMatchById(matchId) : null;
+        const num = m ? m.num : '';
+        const odds500Cache = global.odds500Cache || {};
+        const fiveOdds = odds500Cache[num];
+        const odds = fiveOdds ? {
+          spf: fiveOdds.spf || null,
+          rqspf: fiveOdds.rqspf || null,
+          totalGoals: fiveOdds.totalGoals || null,
+        } : null;
         return res.json({ code: 1, data: { matchId, odds } });
       }
 
@@ -540,11 +540,10 @@ app.post('/api', async (req, res) => {
             });
           }
           
-          // 为每个方案添加赔率（基于推荐数据推导）
-          const oddsModule = require('./fetch_odds');
+          // 赔率从500.com缓存获取，无数据时为null
+          const odds500Cache = global.odds500Cache || {};
           for (const plan of plans) {
-            const recomms = await ensureRecommends(plan.planId.replace('p_','')).catch(() => []);
-            plan.odds = oddsModule.inferOddsFromRecommends(recomms);
+            plan.odds = null;
           }
 
           return res.json({ code: 1, data: { date: dateStr, plans } });
