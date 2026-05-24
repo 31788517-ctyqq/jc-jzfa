@@ -1240,12 +1240,7 @@ function loadPlanList() {
           }
 
           if (val) resolved.push('<span style=\"color:' + subColor + '\">' + label + '(' + val + ')</span>');
-          else {
-            var h = 0;
-            try { h = (match.matchId||'0').replace(/\D/g,'').split('').reduce(function(a,b){return a+b.charCodeAt(0)},0); } catch(e){}
-            var s = (1.60 + (h%21)*0.05 + (i*0.07)%0.60 + (pt.length*0.03)%0.50).toFixed(2);
-            resolved.push('<span style=\"color:' + subColor + '\">' + label + '(' + s + ')</span>');
-          }
+          else resolved.push(label + '(-)');
         });
         return resolved.join('、');
       }
