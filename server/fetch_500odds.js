@@ -5,9 +5,10 @@
 const https = require('https');
 const iconv = require('iconv-lite');
 
-function fetchPage(dateStr) {
+function fetchPage(dateStr, g) {
+  g = g || 2;
   return new Promise((resolve, reject) => {
-    const url = `https://trade.500.com/jczq/?playid=312&g=2&date=${dateStr}`;
+    const url = `https://trade.500.com/jczq/?playid=312&g=${g}&date=${dateStr}`;
     const req = https.request(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -129,7 +130,19 @@ function extractOdds(html) {
 }
 
 function fetchOdds(dateStr) {
-  return fetchPage(dateStr).then(extractOdds).catch(() => ({}));
+  // 前一天可能包含跨天场次（如周一001-003的彩种date是05-19但500.com在05-18页）
+  var prevDate = new Date(dateStr);
+  prevDate.setDate(prevDate.getDate() - 1);
+  var prevStr = prevDate.toISOString().slice(0, 10);
+  
+  return Promise.all([
+    fetchPage(dateStr, 1).then(extractOdds).catch(() => ({})),
+    fetchPage(dateStr, 2).then(extractOdds).catch(() => ({})),
+    fetchPage(prevStr, 1).then(extractOdds).catch(() => ({})),
+    fetchPage(prevStr, 2).then(extractOdds).catch(() => ({}))
+  ]).then(function(results) {
+    return Object.assign({}, results[0], results[1], results[2], results[3]);
+  });
 }
 
 module.exports = { fetchOdds, extractOdds };

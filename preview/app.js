@@ -1212,9 +1212,9 @@ function loadPlanList() {
           var ft = commonPrefix ? (commonPrefix + label.replace(commonPrefix, '')) : label.trim();
           var val = null;
 
-          if (ft.indexOf('让胜') >= 0 || ft === '让胜') val = oddsObj.rqspf && oddsObj.rqspf.home;
-          else if (ft.indexOf('让平') >= 0 || ft === '让平') val = oddsObj.rqspf && oddsObj.rqspf.draw;
-          else if (ft.indexOf('让负') >= 0 || ft === '让负') val = oddsObj.rqspf && oddsObj.rqspf.away;
+          if (ft === '让胜' || ft.indexOf('让胜') >= 0) val = oddsObj.rqspf && oddsObj.rqspf.home;
+          else if (ft === '让平' || ft.indexOf('让平') >= 0) val = oddsObj.rqspf && oddsObj.rqspf.draw;
+          else if (ft === '让负' || ft.indexOf('让负') >= 0) val = oddsObj.rqspf && oddsObj.rqspf.away;
           else if (ft.indexOf('总进球') >= 0 && oddsObj.totalGoals) {
             var gm = ft.match(/(\d+\+?)/);
             if (gm) val = oddsObj.totalGoals[gm[1]];
