@@ -81,10 +81,11 @@ function extractTotalGoals(html) {
         }
       }
       
-      if (nearestMatch && tgNums.length >= 8 && !result[nearestMatch]) {
+      if (nearestMatch && tgNums.length >= 10 && !result[nearestMatch]) {
+        // 偏移2：进球数标题后有2个数值（如头尾标题等），实际0球从索引2开始
         result[nearestMatch] = {
-          '0': tgNums[0], '1': tgNums[1], '2': tgNums[2], '3': tgNums[3],
-          '4': tgNums[4], '5': tgNums[5], '6': tgNums[6], '7+': tgNums[7],
+          '0': tgNums[2], '1': tgNums[3], '2': tgNums[4], '3': tgNums[5],
+          '4': tgNums[6], '5': tgNums[7], '6': tgNums[8], '7+': tgNums[9],
         };
       }
       tgIdx++;
