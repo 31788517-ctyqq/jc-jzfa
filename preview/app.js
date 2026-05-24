@@ -1188,11 +1188,12 @@ function loadPlanList() {
       if (p.publishTime) publishTime = p.publishTime;
       else if (matches.length > 0 && matches[0].startTime) publishTime = matches[0].startTime.slice(0,16).replace('T',' ');
 
-      // 辅助：解析某场比赛的方向赔率显示
+      // 辅助：解析某场比赛的方向赔率显示（含子方向中/未中着色）
       function resolveMatchOddsHtml(match, planIdx) {
         var dir = match.direction || '';
         var oddsObj = match.odds || {};
         var parts = dir ? dir.split(/[、，,]/) : [];
+        var subResults = match.subResults || [];
         var resolved = [];
 
         var commonPrefix = '';
@@ -1222,12 +1223,22 @@ function loadPlanList() {
           else if (ft.indexOf('负') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.away;
           if (!val && oddsObj.spf) val = oddsObj.spf.home || oddsObj.spf.draw || oddsObj.spf.away;
 
-          if (val) resolved.push(label + '(' + val + ')');
+          // 查找此子方向的结果状态
+          var subR = null;
+          for (var si = 0; si < subResults.length; si++) {
+            if (subResults[si].direction === label) { subR = subResults[si]; break; }
+          }
+          var subColor = '#fff';
+          if (subR && subR.result !== null && subR.result !== undefined) {
+            subColor = subR.result === 1 ? '#EF4444' : '#22C55E';
+          }
+
+          if (val) resolved.push('<span style=\"color:' + subColor + '\">' + label + '(' + val + ')</span>');
           else {
             var h = 0;
             try { h = (match.matchId||'0').replace(/\D/g,'').split('').reduce(function(a,b){return a+b.charCodeAt(0)},0); } catch(e){}
             var s = (1.60 + (h%21)*0.05 + (i*0.07)%0.60 + (pt.length*0.03)%0.50).toFixed(2);
-            resolved.push(label + '(' + s + ')');
+            resolved.push('<span style=\"color:' + subColor + '\">' + label + '(' + s + ')</span>');
           }
         });
         return resolved.join('、');
@@ -1239,7 +1250,6 @@ function loadPlanList() {
         var m = matches[mi];
         var isMw = m.isMatchWon === true;
         var isMl = m.isMatchLose === true;
-        var matchOddsColor = isMw ? '#EF4444' : isMl ? '#22C55E' : '#fff';
         var matchOddsHtml = resolveMatchOddsHtml(m, i);
 
         var numText = m.matchNum || '';
@@ -1262,7 +1272,7 @@ function loadPlanList() {
             '<span class="plan-team-vs">vs</span>' +
             '<span class="plan-team-away">' + (m.visitName || '') + '</span>' +
           '</td>' +
-          '<td class="odds-col" style="color:' + matchOddsColor + '">' + matchOddsHtml + '</td>' +
+          '<td class="odds-col">' + matchOddsHtml + '</td>' +
         '</tr>';
       }
 
