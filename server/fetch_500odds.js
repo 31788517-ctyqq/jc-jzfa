@@ -59,11 +59,16 @@ function parseSegment(segment, matchNum) {
     ah: nums[12], ad: nums[13], aa: nums[14],
   } : null;
 
-  // 总进球 (排在比分31个之后, 即位置 15+31=46 开始共8个)
-  // 0,1,2,3,4,5,6,7+
-  const totalGoals = nums.length >= 54 ? {
-    '0': nums[46], '1': nums[47], '2': nums[48], '3': nums[49],
-    '4': nums[50], '5': nums[51], '6': nums[52], '7+': nums[53],
+  // 总进球（最后8个值：0,1,2,3,4,5,6,7+）
+  const totalGoals = nums.length >= 24 ? {
+    '0': nums[nums.length - 8],
+    '1': nums[nums.length - 7],
+    '2': nums[nums.length - 6],
+    '3': nums[nums.length - 5],
+    '4': nums[nums.length - 4],
+    '5': nums[nums.length - 3],
+    '6': nums[nums.length - 2],
+    '7+': nums[nums.length - 1],
   } : null;
 
   return { num: matchNum, homeName, visitName, handicap, spf, rqspf, halfFull, totalGoals, isSingleGame };
