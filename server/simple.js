@@ -33,11 +33,10 @@ try{
   data.m=raw.m||raw.matches||{};
   data.r=raw.r||raw.recommends||{};
   console.log('Loaded',Object.keys(data.m).length,'matches',Object.keys(data.r).length,'recGroups');
-  // 启动时自动修复日期不匹配
+  // 启动时自动修复日期不匹配（仅修正内存，不回写 data.json 避免永久改数据）
   var fixResult=fixMatchDates(data.m);
   if(fixResult.fixed>0){
-    try{fs.writeFileSync(path.join(__dirname,'data.json'),JSON.stringify({m:data.m,r:data.r}))}catch(e){}
-    console.log('Auto-fixed:',fixResult.fixed,'matches with wrong dates');
+    console.log('Auto-fixed (memory only):',fixResult.fixed,'matches with wrong dates');
   }
 }catch(e){console.log('No data.json:',e.message)}
 
@@ -136,13 +135,19 @@ app.post('/api',function(req,res){
   var a=req.body.action,d=req.body.data||{};
   if(a==='plan-list'){
     var dateStr = d.date || new Date().toISOString().slice(0,10);
-    var CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','二十一','二十二','二十三','二十四','二十五','二十六','二十七','二十八','二十九','三十'];
-    var allM = Object.values(data.m||{}).filter(function(m){return (m.date||'').slice(0,10)===dateStr});
-    var recomm = data.recGroups||{};
-    var plans = allM.filter(function(m,i){ return (recomm[m.matchId]||[]).length>0; }).map(function(m,i){
-      var recs = recomm[m.matchId]||[];
-      var top = recs.reduce(function(a,b){return (b.num||0)>(a.num||0)?b:a},recs[0]||{});
-      return {
+    var CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十'];
+    var allM = [];
+    var mKeys = Object.keys(data.m||{});
+    for(var k=0;k<mKeys.length;k++){ var m=data.m[mKeys[k]]; if((m.date||'').slice(0,10)===dateStr) allM.push(m); }
+    var recomm = data.recGroups||data.r||{};
+    var plans = [];
+    for(var i=0;i<allM.length;i++){
+      var m=allM[i];
+      var recs = recomm['m_'+m.matchId]||recomm[m.matchId]||[];
+      if(recs.length===0) continue;
+      var top = recs[0];
+      for(var j=1;j<recs.length;j++){ if(recs[j].num>top.num) top=recs[j]; }
+      plans.push({
         planId:'p_'+m.matchId, homeName:m.homeName, visitName:m.visitName, leagueName:m.leagueName,
         matchNum:m.num||'', startTime:m.startTime||'', matchStatus:m.matchStatus,
         mainDirection:top.type||'', expertCount:top.num||0,
@@ -152,8 +157,8 @@ app.post('/api',function(req,res){
         isWin:m.matchStatus===2?(Math.random()>0.5):null,
         publishTime:(m.startTime||'').slice(0,16).replace(' ',' '),
         odds: inferOddsFromRecommends(recs)
-      };
-    });
+      });
+    }
     return res.json({code:1,data:{date:dateStr,plans:plans}});
   }
   if(a==='week-dates'){
