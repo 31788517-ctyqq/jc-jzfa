@@ -1094,21 +1094,85 @@ function loadPlanList() {
       var prizeVal = (p.maxPrize || 0).toFixed(0);
       var prizeLabel = isWon ? '中奖金额' : '预计最高奖金';
 
-      // 赔率：优先使用真实数据，否则兜底模拟
-      var odds = '';
+      // 赔率：智能解析多选方向，每项分别显示对应赔率
+      var oddsHtml = '';
       if (p.odds) {
-        // 根据推荐方向取对应赔率
-        var dir = p.mainDirection || '';
-        if (dir.indexOf('胜') >= 0 || dir === '胜') odds = p.odds.home;
-        else if (dir.indexOf('平') >= 0 || dir === '平') odds = p.odds.draw;
-        else if (dir.indexOf('负') >= 0 || dir === '负') odds = p.odds.away;
-        if (!odds) odds = p.odds.home || p.odds.draw || p.odds.away;
+        var dir = (p.mainDirection || '').trim();
+        var parts = dir ? dir.split(/[、，,]/) : [];
+        var oddsObj = p.odds;
+        var resolvedParts = [];
+
+        // 公共前缀提取（如 "总进球-"）
+        var commonPrefix = '';
+        if (parts.length > 1 && parts[0].length > 1) {
+          var firstLen = parts[0].length;
+          for (var cl = 1; cl <= firstLen; cl++) {
+            var cand = parts[0].substring(0, cl);
+            var allMatch = true;
+            for (var pi = 1; pi < parts.length; pi++) {
+              if (parts[pi].indexOf(cand) !== 0) { allMatch = false; break; }
+            }
+            if (!allMatch) break;
+            commonPrefix = cand;
+          }
+        }
+
+        parts.forEach(function(pt) {
+          var label = pt.trim();
+          var fullLabel = commonPrefix ? (commonPrefix + label.replace(commonPrefix, '')) : label;
+          var ft = fullLabel.trim();
+          var val = null;
+
+          if (!oddsObj.spf && !oddsObj.rqspf) {
+            // 无500.com数据，用推导方案
+            if (ft.indexOf('胜') >= 0) val = oddsObj.home || oddsObj.draw || oddsObj.away;
+            else if (ft.indexOf('平') >= 0) val = oddsObj.draw || oddsObj.home;
+            else if (ft.indexOf('负') >= 0) val = oddsObj.away || oddsObj.home;
+            else val = oddsObj.home || oddsObj.draw || oddsObj.away;
+          } else if (ft.indexOf('让胜') >= 0 || ft === '让胜') {
+            val = oddsObj.rqspf && oddsObj.rqspf.home;
+          } else if (ft.indexOf('让平') >= 0 || ft === '让平') {
+            val = oddsObj.rqspf && oddsObj.rqspf.draw;
+          } else if (ft.indexOf('让负') >= 0 || ft === '让负') {
+            val = oddsObj.rqspf && oddsObj.rqspf.away;
+          } else if (ft.indexOf('总进球') >= 0 && oddsObj.totalGoals) {
+            var goalMatch = ft.match(/(\d+\+?)/);
+            if (goalMatch) val = oddsObj.totalGoals[goalMatch[1]];
+          } else if (ft.indexOf('胜') >= 0 && ft.length <= 2) {
+            val = oddsObj.spf && oddsObj.spf.home;
+          } else if (ft.indexOf('平') >= 0 && ft.length <= 2) {
+            val = oddsObj.spf && oddsObj.spf.draw;
+          } else if (ft.indexOf('负') >= 0 && ft.length <= 2) {
+            val = oddsObj.spf && oddsObj.spf.away;
+          }
+          // 半全场
+          if (!val && oddsObj.halfFull) {
+            var hfMap = { '胜胜':'hh','胜平':'hd','胜负':'ha','平胜':'dh','平平':'dd','平负':'da','负胜':'ah','负平':'ad','负负':'aa' };
+            var hfKey = hfMap[ft];
+            if (hfKey) val = oddsObj.halfFull[hfKey];
+          }
+          // 总进球（再次尝试）
+          if (!val && oddsObj.totalGoals) {
+            var gm2 = ft.match(/(\d+\+?)/);
+            if (gm2) val = oddsObj.totalGoals[gm2[1]];
+          }
+
+          if (val) {
+            resolvedParts.push(label + '(' + val + ')');
+          } else {
+            resolvedParts.push(label + '(-)');
+          }
+        });
+
+        oddsHtml = resolvedParts.join('、');
       }
-      if (!odds) {
+      if (!oddsHtml) {
+        // 兜底模拟赔率
         try {
           var matchHash = (p.matchId || '0').replace(/\D/g,'').split('').reduce(function(a,b){return a + b.charCodeAt(0)}, 0);
-          odds = (1.50 + (matchHash % 25) * 0.05 + (i * 0.08) % 0.80).toFixed(2);
-        } catch(e) { odds = '1.85'; }
+          var simOdds = (1.50 + (matchHash % 25) * 0.05 + (i * 0.08) % 0.80).toFixed(2);
+          oddsHtml = (p.mainDirection || '?') + ' (' + simOdds + ')';
+        } catch(e) { oddsHtml = (p.mainDirection || '?') + ' (1.85)'; }
       }
 
       // 时间 —— 完整时间戳（含秒）
@@ -1186,7 +1250,7 @@ function loadPlanList() {
               '<span class="plan-team-vs">vs</span>' +
               '<span class="plan-team-away">' + (p.visitName || '') + '</span>' +
             '</td>' +
-            '<td class="odds-col">' + (p.mainDirection || '') + ' (' + odds + ')</td>' +
+            '<td class="odds-col">' + oddsHtml + '</td>' +
           '</tr></tbody>' +
         '</table>' +
         '</div>' +

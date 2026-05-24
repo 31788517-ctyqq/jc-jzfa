@@ -167,10 +167,15 @@ app.post('/api',function(req,res){
       var odds=null;
       var mid=m.matchId;
       var mNum=m.num||'';
-      // 优先用500.com缓存（展平spf结构为 {home, draw, away}）
+      // 优先用500.com缓存（传递完整赔率数据含spf/rqspf/totalGoals等）
       var fiveOdds=odds500Cache[mNum];
       if(fiveOdds && fiveOdds._t && (Date.now()-fiveOdds._t<oddsCacheTTL)){
-        odds=fiveOdds.spf ? {home:fiveOdds.spf.home,draw:fiveOdds.spf.draw,away:fiveOdds.spf.away} : fiveOdds;
+        odds = {
+          spf: { home: fiveOdds.spf.home, draw: fiveOdds.spf.draw, away: fiveOdds.spf.away },
+          rqspf: fiveOdds.rqspf ? { home: fiveOdds.rqspf.home, draw: fiveOdds.rqspf.draw, away: fiveOdds.rqspf.away, handicap: fiveOdds.rqspf.handicap } : null,
+          totalGoals: fiveOdds.totalGoals || null,
+          halfFull: fiveOdds.halfFull || null,
+        };
       }else{
         odds=inferOddsFromRecommends(findRecommends(mid));
         // 异步后台拉取500.com数据（按日期，只触发一次）
