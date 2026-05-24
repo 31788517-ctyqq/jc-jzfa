@@ -200,7 +200,7 @@ app.post('/api',function(req,res){
         playType:recs.length>=2?'混合投注':'单关投注', matchCount:1, passType:'1串1',
         betCount:top.num||1, multiplier:1, ticketCount:1,
         amount:(top.num||1)*2, maxPrize:Math.round((top.num||1)*2*(1.8+Math.random()*2.2)),
-        isWin:m.matchStatus===2?(Math.random()>0.5):null,
+        isWin: top.result===1 ? true : (top.result===0 ? false : null),
         publishTime:(m.startTime||'').slice(0,16).replace(' ',' '),
         odds: odds,
         isSingleGame: odds500Cache[m.num] ? odds500Cache[m.num].isSingleGame===true : false

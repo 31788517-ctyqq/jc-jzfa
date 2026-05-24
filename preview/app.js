@@ -1103,6 +1103,8 @@ function loadPlanList() {
     el.innerHTML = plans.map(function(p, i) {
       var planIdx = i + 1;
       var isWon = p.isWin === true;
+      var isLose = p.isWin === false;
+      var isFinished = isWon || isLose;
 
       // 方案名用中文数字
       var CN_NUMS = ['一','二','三','四','五','六','七','八','九','十',
@@ -1113,7 +1115,7 @@ function loadPlanList() {
       // 金额
       var amountVal = (p.amount || 2).toFixed(0);
       var prizeVal = (p.maxPrize || 0).toFixed(0);
-      var prizeLabel = isWon ? '中奖金额' : '预计最高奖金';
+      var prizeLabel = isWon ? '中奖金额' : (isLose ? '预计奖金' : '预计最高奖金');
 
       // 赔率：智能解析多选方向，每项分别显示对应赔率
       var oddsHtml = '';
@@ -1244,7 +1246,7 @@ function loadPlanList() {
           '</div>' +
           '<div class="plan-amount-col">' +
             '<div class="plan-amount-label">方案状态</div>' +
-            '<div class="plan-amount-value">' + (isWon ? '已中奖' : '未开奖') + '</div>' +
+            '<div class="plan-amount-value">' + (isWon ? '已中奖' : (isLose ? '未中奖' : '未开奖')) + '</div>' +
           '</div>' +
         '</div>' +
         // ═══ 分割线 ═══
@@ -1262,6 +1264,7 @@ function loadPlanList() {
             '<div>' + (p.betCount || 1) + '注' + (p.multiplier || 1) + '倍' + (p.ticketCount || 1) + '票</div>' +
           '</div>' +
           (isWon ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(15,19,19)">中</text></svg></div>' : '') +
+          (isLose ? '<div class="plan-lose-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#9AA6B2" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="16" font-weight="900" fill="#9AA6B2" transform="rotate(-10,19,19)">未中</text></svg></div>' : '') +
         '</div>' +
         // ═══ 比赛表格 ═══
         '<div class="plan-match-section">' +
