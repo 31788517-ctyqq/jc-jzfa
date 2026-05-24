@@ -504,6 +504,7 @@ function loadRanking(cat, dir) {
               <div class="rank-progress-fill" data-width="${pct}"></div>
             </div>
           </div>
+          ${item.isHit ? '<div class="rank-hit-stamp">中</div>' : ''}
         </div>
       `;
     }).join('');

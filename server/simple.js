@@ -382,7 +382,8 @@ app.post('/api',function(req,res){
         dirStats[r.type].matches.push({
           matchId:mId,homeName:m.homeName,visitName:m.visitName,
           leagueName:m.leagueName,num:m.num,date:m.date,
-          direction:r.type,expertCount:r.num,matchStatus:m.matchStatus||0
+          direction:r.type,expertCount:r.num,matchStatus:m.matchStatus||0,
+          isHit: r.result===1
         });
       });
     });
@@ -410,7 +411,7 @@ app.post('/api',function(req,res){
         var recs=findRecommends(m.matchId).filter(function(r){return catDirs[r.type]&&r.num>0});
         if(recs.length){
           var max=recs.reduce(function(a,b){return b.num>a.num?b:a});
-          list.push({matchId:m.matchId,homeName:m.homeName,visitName:m.visitName,leagueName:m.leagueName,num:m.num,date:m.date,direction:max.type,expertCount:max.num,matchStatus:m.matchStatus||0});
+          list.push({matchId:m.matchId,homeName:m.homeName,visitName:m.visitName,leagueName:m.leagueName,num:m.num,date:m.date,direction:max.type,expertCount:max.num,matchStatus:m.matchStatus||0,isHit:max.result===1});
         }
       });
     }else{
@@ -421,7 +422,7 @@ app.post('/api',function(req,res){
         var recs=findRecommends(m.matchId).filter(function(r){return r.num>0});
         if(recs.length){
           var max=recs.reduce(function(a,b){return b.num>a.num?b:a});
-          list.push({matchId:m.matchId,homeName:m.homeName,visitName:m.visitName,leagueName:m.leagueName,num:m.num,date:m.date,direction:max.type,expertCount:max.num,matchStatus:m.matchStatus||0});
+          list.push({matchId:m.matchId,homeName:m.homeName,visitName:m.visitName,leagueName:m.leagueName,num:m.num,date:m.date,direction:max.type,expertCount:max.num,matchStatus:m.matchStatus||0,isHit:max.result===1});
         }
       });
     }
