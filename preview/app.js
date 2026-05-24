@@ -1280,7 +1280,7 @@ function loadPlanList() {
               '<span class="plan-team-vs">vs</span>' +
               '<span class="plan-team-away">' + (p.visitName || '') + '</span>' +
             '</td>' +
-            '<td class="odds-col">' + oddsHtml + '</td>' +
+            '<td class="odds-col" style="color:' + (isWon ? '#EF4444' : isLose ? '#22C55E' : '#fff') + '">' + oddsHtml + '</td>' +
           '</tr></tbody>' +
         '</table>' +
         '</div>' +
