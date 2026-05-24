@@ -220,37 +220,39 @@ app.post('/api',function(req,res){
       var recs=findRecommends(m.matchId);
       var expertCount=0, isMatchWon=null, isMatchLose=null;
       
-      // 方向可能包含多个子方向（如"平、让平"）
       var subDirs = direction.split(/[、,]/);
       var matchedRecs = [];
+      var subResults = [];  // [{direction, result}] 用于前端着色
       
       subDirs.forEach(function(subDir){
         var sd = subDir.trim();
-        recs.forEach(function(r){
-          if(r.type===sd) matchedRecs.push(r);
-        });
+        var found = null;
+        for(var j=0;j<recs.length;j++){ if(recs[j].type===sd){ found=recs[j]; break; } }
+        if(found) matchedRecs.push(found);
+        subResults.push({ direction: sd, result: found ? found.result : null });
       });
       
       if(matchedRecs.length===0){
-        // 模糊匹配（兼容旧逻辑）
         for(var j=0;j<recs.length;j++){
           var rt=recs[j].type||'';
           if(rt.indexOf(direction)>=0 || direction.indexOf(rt)>=0){ matchedRecs.push(recs[j]); }
         }
+        if(matchedRecs.length===0) subResults = [{ direction: direction, result: null }];
       }
       
       expertCount = matchedRecs.reduce(function(s,r){ return s + (r.num||0); }, 0);
       
-      // 胜负判定：所有子方向都命中才算赢，有一个未中就算输
-      var hasWon = matchedRecs.length>0, hasLose = false, hasUnknown = false;
+      // 双选(复合方向): 任何一个子方向命中即为赢
+      var anyWon = false, anyLose = false, anyUnknown = false;
       matchedRecs.forEach(function(r){
-        if(r.result===1){} // pass
-        else if(r.result===0) hasLose=true;
-        else hasUnknown=true;
+        if(r.result===1) anyWon=true;
+        else if(r.result===0) anyLose=true;
+        else anyUnknown=true;
       });
-      if(hasUnknown) hasWon=false;
-      isMatchWon = hasWon && !hasUnknown;
-      isMatchLose = hasLose && !hasUnknown;
+      if(!anyUnknown){
+        isMatchWon = anyWon;
+        isMatchLose = !anyWon && anyLose;
+      }
       
       return {
         matchId:m.matchId, homeName:m.homeName, visitName:m.visitName,
@@ -258,6 +260,7 @@ app.post('/api',function(req,res){
         matchStatus:m.matchStatus||0,
         direction:direction, expertCount:expertCount,
         isMatchWon:isMatchWon, isMatchLose:isMatchLose,
+        subResults: subResults,
         odds:getMatchOdds(m, direction)
       };
     }
@@ -410,22 +413,29 @@ app.post('/api',function(req,res){
         var recs=findRecommends(match.matchId);
         var subDirs = direction.split(/[、,]/);
         var matchedRecs = [];
+        var subResults = [];
         subDirs.forEach(function(sd){
           var s = sd.trim();
-          for(var ri=0;ri<recs.length;ri++){ if(recs[ri].type===s) matchedRecs.push(recs[ri]); }
+          var found = null;
+          for(var ri=0;ri<recs.length;ri++){ if(recs[ri].type===s) found=recs[ri]; }
+          if(found) matchedRecs.push(found);
+          subResults.push({ direction: s, result: found ? found.result : null });
         });
         var isWon=null, isLose=null;
         if(matchedRecs.length>0){
-          var allWon=true, anyLose=false, anyUnknown=false;
+          var anyWon=false, anyLose=false, anyUnknown=false;
           matchedRecs.forEach(function(r){
-            if(r.result===1){} else if(r.result===0) anyLose=true; else anyUnknown=true;
+            if(r.result===1) anyWon=true;
+            else if(r.result===0) anyLose=true;
+            else anyUnknown=true;
           });
-          if(!anyUnknown){ isWon=allWon; isLose=anyLose; }
+          if(!anyUnknown){ isWon=anyWon; isLose=!anyWon && anyLose; }
         }
         return {
           matchId:match.matchId, homeName:match.homeName, visitName:match.visitName,
           matchNum:match.num||'', direction:direction,
           oddsObj:getOddsObj(match),
+          subResults: subResults,
           isWon:isWon, isLose:isLose
         };
       }
@@ -449,20 +459,32 @@ app.post('/api',function(req,res){
           if(!pp.matches[mi].isWon&&!pp.matches[mi].isLose) anyUnknown=true;
         }
         
-        // 计算赔率：odds1 * odds2 (2串1)
-        var odds=[];
+        // 奖金计算: 1000 × odds2 × (sum_odds1) / (2N)  双选公式
+        var effectiveOdds=[];
         var hasAllOdds=true;
         for(var mi=0;mi<pp.matches.length;mi++){
-          var ov=extractOddsVal(pp.matches[mi].oddsObj, pp.matches[mi].direction);
-          if(ov!==null) odds.push(ov); else hasAllOdds=false;
+          var subOdds=[];
+          var subDirs = pp.matches[mi].direction.split(/[、,]/);
+          subDirs.forEach(function(sd){
+            var ov = extractOddsVal(pp.matches[mi].oddsObj, sd.trim());
+            if(ov!==null) subOdds.push(ov);
+          });
+          if(subOdds.length===0){ hasAllOdds=false; continue; }
+          var N = subOdds.length;
+          if(N===1){
+            effectiveOdds.push(subOdds[0]);
+          } else {
+            // 奖金 = 方案金额 × odds_other × Σ(sub_odds) / (2N)
+            var sum = subOdds.reduce(function(a,b){return a+b}, 0);
+            effectiveOdds.push(sum / (2*N));
+          }
         }
         
         var prize=0, dayIncome=0, status='unknown';
         if(!anyUnknown){
           totalPlans++;
           if(allWon){
-            // 盈利公式：中奖金额 - 方案金额；2串1中奖金=方案金额×赔率1×赔率2
-            prize = hasAllOdds && odds.length===2 ? Math.round(AMOUNT * odds[0] * odds[1]) : Math.round(AMOUNT * 3);
+            prize = hasAllOdds && effectiveOdds.length===2 ? Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]) : Math.round(AMOUNT * 3);
             dayIncome = prize - AMOUNT;
             status='won'; totalWon++;
           } else if(anyLose){
