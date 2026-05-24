@@ -81,11 +81,11 @@ function extractTotalGoals(html) {
         }
       }
       
-      if (nearestMatch && tgNums.length >= 10 && !result[nearestMatch]) {
-        // 偏移2：进球数标题后有2个数值（如头尾标题等），实际0球从索引2开始
+      if (nearestMatch && tgNums.length >= 16 && !result[nearestMatch]) {
+        // 进球数赔率：每个值在HTML中出现两次(data属性+可视文本)，取偶数索引
         result[nearestMatch] = {
-          '0': tgNums[2], '1': tgNums[3], '2': tgNums[4], '3': tgNums[5],
-          '4': tgNums[6], '5': tgNums[7], '6': tgNums[8], '7+': tgNums[9],
+          '0': tgNums[0], '1': tgNums[2], '2': tgNums[4], '3': tgNums[6],
+          '4': tgNums[8], '5': tgNums[10], '6': tgNums[12], '7+': tgNums[14],
         };
       }
       tgIdx++;
