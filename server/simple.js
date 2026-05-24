@@ -1019,8 +1019,9 @@ app.post('/api',function(req,res){
 function loadOddsHistory(){
   var dir=path.join(__dirname,'odds_history');
   if(!fs.existsSync(dir)){ console.log('No odds_history directory'); return; }
-  var files=fs.readdirSync(dir).filter(function(f){return f.endsWith('.json')&&f!=='batch_report.json'});
+  var files=fs.readdirSync(dir).filter(function(f){return f.endsWith('.json')&&f!=='batch_report.json'}).sort();
   var loaded=0;
+  var loadedKeys={}; // 防止跨文件重复覆盖
   files.forEach(function(f){
     try{
       var raw=fs.readFileSync(path.join(dir,f),'utf8');
@@ -1028,6 +1029,8 @@ function loadOddsHistory(){
       var dateStr=record.date;
       var oddsData=record.odds||{};
       Object.keys(oddsData).forEach(function(k){
+        if(loadedKeys[k]) return; // 已从更早日期加载，不覆盖
+        loadedKeys[k]=true;
         oddsData[k]._t=Date.now();
         odds500Cache[k]=oddsData[k];
       });
