@@ -33,8 +33,12 @@ try{
   data.m=raw.m||raw.matches||{};
   data.r=raw.r||raw.recommends||{};
   console.log('Loaded',Object.keys(data.m).length,'matches',Object.keys(data.r).length,'recGroups');
-  // fixMatchDates 已禁用：num前缀（如"周五"）可能不反映实际比赛日期（赛程可能调整）
-  // 日期以 API 返回的 bDate/date 字段为准（由 period_daemon 写入 data.json）
+  // 启动时自动修复日期不匹配
+  var fixResult=fixMatchDates(data.m);
+  if(fixResult.fixed>0){
+    try{fs.writeFileSync(path.join(__dirname,'data.json'),JSON.stringify({m:data.m,r:data.r}))}catch(e){}
+    console.log('Auto-fixed:',fixResult.fixed,'matches with wrong dates');
+  }
 }catch(e){console.log('No data.json:',e.message)}
 
 // 实时比分合并
@@ -132,7 +136,7 @@ app.post('/api',function(req,res){
   var a=req.body.action,d=req.body.data||{};
   if(a==='plan-list'){
     var dateStr = d.date || new Date().toISOString().slice(0,10);
-    var CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十'];
+    var CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','二十一','二十二','二十三','二十四','二十五','二十六','二十七','二十八','二十九','三十'];
     var allM = [];
     var mKeys = Object.keys(data.m||{});
     for(var k=0;k<mKeys.length;k++){ var m=data.m[mKeys[k]]; if((m.date||'').slice(0,10)===dateStr) allM.push(m); }
@@ -153,7 +157,7 @@ app.post('/api',function(req,res){
         amount:(top.num||1)*2, maxPrize:Math.round((top.num||1)*2*(1.8+Math.random()*2.2)),
         isWin:m.matchStatus===2?(Math.random()>0.5):null,
         publishTime:(m.startTime||'').slice(0,16).replace(' ',' '),
-        odds: inferOddsFromRecommends(recs)
+        odds: inferOddsFromRecommends(findRecommends(m.matchId))
       });
     }
     return res.json({code:1,data:{date:dateStr,plans:plans}});
