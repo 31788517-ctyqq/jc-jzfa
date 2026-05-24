@@ -287,6 +287,130 @@ app.post('/api',function(req,res){
 
     return res.json(respData);
   }
+  if(a==='income-stats'){
+    var planFilter=d.plan||'all';
+    var daysFilter=d.days||0; // 0=all
+    
+    // 日期范围
+    var days=daysFilter>0?daysFilter:60; // 最多60天
+    var endDate=new Date();
+    var startDate=new Date(endDate.getTime()-days*86400000);
+    var minDate='2026-04-25';
+    if(fmtDate2(startDate)<minDate) startDate=new Date(minDate);
+    
+    function fmtDate2(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
+    
+    // 按日期生成方案并计算收入
+    var results=[];
+    var totalPlans=0,totalWon=0,totalIncome=0;
+    
+    for(var d=new Date(startDate);d<=endDate;d.setDate(d.getDate()+1)){
+      var ds=fmtDate2(d);
+      
+      // 收集当天比赛
+      var mList=[];
+      var mKeys=Object.keys(data.m||{});
+      for(var k=0;k<mKeys.length;k++){ var m=data.m[mKeys[k]]; if((m.date||'').slice(0,10)===ds) mList.push(m); }
+      if(mList.length===0) continue;
+      
+      // 加载历史赔率
+      var oddsFile=path.join(__dirname,'odds_history',ds+'.json');
+      var histOdds=null;
+      if(fs.existsSync(oddsFile)){
+        try{ var raw=JSON.parse(fs.readFileSync(oddsFile,'utf8')); histOdds=raw.odds||{}; }catch(e){}
+      }
+      
+      function findBest(directions){
+        var best=null,bestCount=0;
+        for(var j=0;j<mList.length;j++){
+          var mm=mList[j];
+          var recs=findRecommends(mm.matchId);
+          var total=0;
+          for(var ri=0;ri<recs.length;ri++){ if(directions.indexOf(recs[ri].type)>=0) total+=recs[ri].num||0; }
+          if(total>bestCount){ bestCount=total; best=mm; }
+        }
+        return best;
+      }
+      
+      function getOdds(match, direction){
+        var num=match.num||'';
+        if(histOdds&&histOdds[num]){
+          var od=histOdds[num];
+          return {
+            spf:od.spf?{home:od.spf.home,draw:od.spf.draw,away:od.spf.away}:null,
+            rqspf:od.rqspf?{home:od.rqspf.home,draw:od.rqspf.draw,away:od.rqspf.away}:null,
+            totalGoals:od.totalGoals||null
+          };
+        }
+        var five=odds500Cache[num];
+        if(five&&five._t){
+          return {
+            spf:five.spf?{home:five.spf.home,draw:five.spf.draw,away:five.spf.away}:null,
+            rqspf:five.rqspf?{home:five.rqspf.home,draw:five.rqspf.draw,away:five.rqspf.away}:null,
+            totalGoals:five.totalGoals||null
+          };
+        }
+        return inferOddsFromRecommends(findRecommends(match.matchId));
+      }
+      
+      function buildPlan(match,direction,planName){
+        var recs=findRecommends(match.matchId);
+        var matched=null;
+        for(var ri=0;ri<recs.length;ri++){ if(recs[ri].type===direction){ matched=recs[ri]; break; } }
+        var isWon=matched?matched.result===1:null;
+        var isLose=matched?matched.result===0:null;
+        return { matchId:match.matchId, homeName:match.homeName, visitName:match.visitName, matchNum:match.num||'', direction:direction, odds:getOdds(match,direction), isWon:isWon, isLose:isLose };
+      }
+      
+      // 生成3个方案
+      var m1a=findBest(['平','让平']), m1b=findBest(['让负']);
+      var m2a=findBest(['总进球-2、3球']), m2b=findBest(['让负']);
+      var m3a=findBest(['总进球-2、3球']), m3b=findBest(['让胜']);
+      
+      var dayPlans=[];
+      if(m1a&&m1b) dayPlans.push({name:'plan_1',planName:'方案一',matches:[buildPlan(m1a,'平'),buildPlan(m1b,'让负')]});
+      if(m2a&&m2b) dayPlans.push({name:'plan_2',planName:'方案二',matches:[buildPlan(m2a,'总进球-2、3球'),buildPlan(m2b,'让负')]});
+      if(m3a&&m3b) dayPlans.push({name:'plan_3',planName:'方案三',matches:[buildPlan(m3a,'总进球-2、3球'),buildPlan(m3b,'让胜')]});
+      
+      dayPlans.forEach(function(pp){
+        if(planFilter!=='all' && pp.name!==planFilter) return;
+        
+        var allWon=true,anyLose=false,anyUnknown=false;
+        for(var mi=0;mi<pp.matches.length;mi++){
+          if(!pp.matches[mi].isWon) allWon=false;
+          if(pp.matches[mi].isLose) anyLose=true;
+          if(!pp.matches[mi].isWon&&!pp.matches[mi].isLose) anyUnknown=true;
+        }
+        
+        var amount=1000;
+        var dayIncome=0;
+        var status='unknown';
+        if(!anyUnknown){
+          if(allWon){ dayIncome+=2000; status='won'; totalWon++; } // 2串1约中奖3000，利润2000
+          else if(anyLose){ dayIncome-=amount; status='lose'; }
+          totalPlans++;
+        }
+        totalIncome+=dayIncome;
+        
+        results.push({
+          date:ds, plan:pp.planName, status:status,
+          matches:pp.matches.map(function(mm){
+            return { matchNum:mm.matchNum, home:mm.homeName, visit:mm.visitName, direction:mm.direction, isWon:mm.isWon, isLose:mm.isLose };
+          }),
+          income:dayIncome
+        });
+      });
+    }
+    
+    // 只返回最近N条
+    if(daysFilter===0) results=results.slice(-30);
+    var winRate=totalPlans>0?Math.round(totalWon/totalPlans*100):0;
+    
+    return res.json({code:1,data:{
+      summary:{ totalPlans:totalPlans, totalWon:totalWon, totalIncome:totalIncome, winRate:winRate },
+      records:results.reverse()
+    }});
+  }
   if(a==='week-dates'){
     return res.json({code:1,data:getWeekDates()});
   }

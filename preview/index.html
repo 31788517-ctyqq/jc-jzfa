@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>竞彩推荐监控</title>
 <link rel="preconnect" href="https://zj.100qiu.com">
-<link rel="preload" href="/app.js?v=22" as="script">
+<link rel="preload" href="/app.js?v=23" as="script">
 <style>
 :root {
   --cyan: #18E0E0;
@@ -1110,6 +1110,40 @@ body {
 
 .hint-box { text-align: center; padding: 80px 0; color: var(--text3); font-size: var(--fs-md); }
 
+/* ========== 方案收入样式 ========== */
+.income-list {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+.income-header-row {
+  display: flex;
+  font-size: 11px;
+  color: var(--text3);
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,255,255,0.03);
+}
+.income-header-row span:nth-child(1) { width: 60px; flex-shrink: 0; }
+.income-header-row span:nth-child(2) { width: 52px; flex-shrink: 0; }
+.income-header-row span:nth-child(3) { flex: 1; }
+.income-header-row span:nth-child(4) { width: 70px; text-align: right; flex-shrink: 0; }
+
+.income-row {
+  display: flex;
+  font-size: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  align-items: center;
+}
+.income-row:last-child { border-bottom: none; }
+.income-date { width: 60px; flex-shrink: 0; color: var(--text3); font-size: 11px; }
+.income-plan-name { width: 52px; flex-shrink: 0; color: var(--cyan); font-weight: 600; font-size: 11px; }
+.income-matches { flex: 1; font-size: 11px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.income-value { width: 70px; text-align: right; flex-shrink: 0; font-weight: 700; font-size: 13px; }
+
 /* AI预测卡片 */
 .ai-card {
   background: linear-gradient(135deg, rgba(34,211,238,0.08), rgba(0,245,233,0.04));
@@ -1628,11 +1662,11 @@ body {
   </div>
   
   <div class="quick-menu">
-    <div class="menu-item" onclick="switchTab('plan')">
+    <div class="menu-item" onclick="switchTab('income')">
       <div class="menu-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="14" y="8" width="36" height="48" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><line x1="22" y1="20" x2="42" y2="20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="22" y1="28" x2="42" y2="28" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="22" y1="36" x2="36" y2="36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="32" cy="48" r="3" fill="currentColor"/></svg></div>
       <div class="menu-content">
-        <div class="menu-title">方案列表</div>
-        <div class="menu-desc">查看当日竞彩方案</div>
+        <div class="menu-title">方案收入</div>
+        <div class="menu-desc">查看方案盈利情况</div>
       </div>
       <div class="menu-arrow">›</div>
     </div>
@@ -1798,6 +1832,62 @@ body {
   <div id="filterResult"></div>
 </div>
 
+<!-- 方案收入 -->
+<div class="page" id="page-income">
+  <div class="filter-stats-card">
+    <div class="stats-subtitle">方案收入概览</div>
+    <div class="filter-stats-row">
+      <div class="filter-stat-item">
+        <div class="filter-stat-value" id="incTotalPlans">-</div>
+        <div class="filter-stat-label">执行方案</div>
+      </div>
+      <div class="filter-stat-divider"></div>
+      <div class="filter-stat-item">
+        <div class="filter-stat-value" id="incTotalIncome">-</div>
+        <div class="filter-stat-label">总收入</div>
+      </div>
+      <div class="filter-stat-divider"></div>
+      <div class="filter-stat-item">
+        <div class="filter-stat-value" id="incWinRate">-</div>
+        <div class="filter-stat-label">中奖率</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="filter-section-card">
+    <div class="filter-head">筛选条件</div>
+    <div class="filter-row">
+      <span class="filter-label">时间</span>
+      <div class="filter-dd" id="dd-incTime" data-val="all">
+        <div class="filter-dd-trigger" onclick="toggleDD('dd-incTime', event)"><span class="filter-dd-text">全部时间</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+        <ul class="filter-dd-menu">
+          <li data-val="all" class="filter-dd-option selected" onclick="selectDD('dd-incTime','all','全部时间')">全部时间</li>
+          <li data-val="30" class="filter-dd-option" onclick="selectDD('dd-incTime','30','近30天')">近30天</li>
+          <li data-val="60" class="filter-dd-option" onclick="selectDD('dd-incTime','60','近60天')">近60天</li>
+          <li data-val="90" class="filter-dd-option" onclick="selectDD('dd-incTime','90','近90天')">近90天</li>
+          <li data-val="180" class="filter-dd-option" onclick="selectDD('dd-incTime','180','近180天')">近180天</li>
+        </ul>
+      </div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">方案</span>
+      <div class="filter-dd" id="dd-incPlan" data-val="all">
+        <div class="filter-dd-trigger" onclick="toggleDD('dd-incPlan', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+        <ul class="filter-dd-menu">
+          <li data-val="all" class="filter-dd-option selected" onclick="selectDD('dd-incPlan','all','全部')">全部</li>
+          <li data-val="plan_1" class="filter-dd-option" onclick="selectDD('dd-incPlan','plan_1','方案一')">方案一</li>
+          <li data-val="plan_2" class="filter-dd-option" onclick="selectDD('dd-incPlan','plan_2','方案二')">方案二</li>
+          <li data-val="plan_3" class="filter-dd-option" onclick="selectDD('dd-incPlan','plan_3','方案三')">方案三</li>
+        </ul>
+      </div>
+    </div>
+    <div class="filter-btn-wrap">
+      <button class="filter-submit-btn" onclick="loadIncome()">查询</button>
+    </div>
+  </div>
+  <div id="incomeResult"></div>
+</div>
+
 <!-- TabBar -->
   <div class="tabbar">
   <div class="tab-item active" onclick="switchTab('home')" id="tab-home">
@@ -1812,6 +1902,9 @@ body {
   <div class="tab-item" onclick="switchTab('hit')" id="tab-hit">
     <span class="tab-icon"><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 24C5 34.49 13.51 43 24 43V26C24 24.9 24.9 24 26 24H43C43 13.51 34.49 5 24 5 13.51 5 5 13.51 5 24Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="30" y="30" width="12" height="12" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
   </div>
+  <div class="tab-item" onclick="switchTab('income')" id="tab-income">
+    <span class="tab-icon"><svg width="24" height="24" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="4"/><path d="M24 14V34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M18 28L24 34L30 28" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 20L24 14L18 20" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+  </div>
   <div class="tab-item" onclick="switchTab('plan')" id="tab-plan">
     <span class="tab-icon"><svg width="24" height="24" viewBox="0 0 48 48" fill="none"><path d="M20 10H44" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 24H44" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 38H44" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="24" r="4" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="38" r="4" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10L7 13L13 7" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
   </div>
@@ -1819,6 +1912,6 @@ body {
 
 
 <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js" defer></script>
-<script src="app.js?v=22" defer></script>
+<script src="app.js?v=23" defer></script>
 </body>
 </html>
