@@ -315,7 +315,8 @@ app.post('/api',function(req,res){
         var nums=direction.replace('总进球-','').split(/[、,]/);
         var vals=[];
         for(var ni=0;ni<nums.length;ni++){
-          var n=nums[ni].trim();
+          // 去掉"球"等后缀，只保留数字和+号
+          var n=nums[ni].replace(/球/g,'').trim();
           if(tg[n]!==undefined) vals.push(tg[n]);
         }
         if(vals.length===0) return null;
