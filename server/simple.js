@@ -165,16 +165,28 @@ app.post('/api',function(req,res){
 
     // 辅助：获取某场比赛某个方向的赔率
     function getMatchOdds(match, direction){
-      var fiveOdds=odds500Cache[match.num||''];
-      if(fiveOdds && fiveOdds._t && (now-fiveOdds._t<oddsCacheTTL)){
+      var num = match.num||'';
+      // 直接从 odds_history 文件读取，确保与代码一致
+      var od = loadOddsFromFile(dateStr, num);
+      if(od){
         return {
-          spf: { home: fiveOdds.spf.home, draw: fiveOdds.spf.draw, away: fiveOdds.spf.away },
-          rqspf: fiveOdds.rqspf ? { home: fiveOdds.rqspf.home, draw: fiveOdds.rqspf.draw, away: fiveOdds.rqspf.away, handicap: fiveOdds.rqspf.handicap } : null,
-          totalGoals: fiveOdds.totalGoals || null,
-          halfFull: fiveOdds.halfFull || null,
+          spf: od.spf ? { home: od.spf.home, draw: od.spf.draw, away: od.spf.away } : null,
+          rqspf: od.rqspf ? { home: od.rqspf.home, draw: od.rqspf.draw, away: od.rqspf.away, handicap: od.rqspf.handicap } : null,
+          totalGoals: od.totalGoals || null,
+          halfFull: od.halfFull || null,
         };
       }
       return null;
+    }
+
+    // 从 odds_history 文件读取指定匹配的赔率
+    function loadOddsFromFile(date, num){
+      try{
+        var f=path.join(__dirname,'odds_history',date+'.json');
+        if(!fs.existsSync(f)) return null;
+        var raw=JSON.parse(fs.readFileSync(f,'utf8'));
+        return (raw.odds||{})[num]||null;
+      }catch(e){ return null; }
     }
 
     // 提取复合方向的所有子选项赔率
