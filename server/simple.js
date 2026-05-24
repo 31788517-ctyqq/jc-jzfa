@@ -161,15 +161,7 @@ app.post('/api',function(req,res){
     var mKeys = Object.keys(data.m||{});
     for(var k=0;k<mKeys.length;k++){ var m=data.m[mKeys[k]]; if((m.date||'').slice(0,10)===dateStr) mList.push(m); }
 
-    // 异步拉取500.com赔率（已从历史加载的日期不重复抓取）
-    if(!oddsHistoryLoaded[dateStr] && odds500Date!==dateStr && !odds500Cache._fetching){
-      odds500Cache._fetching=true;
-      fetch500Odds(dateStr).then(function(data){
-        Object.keys(data).forEach(function(k){ data[k]._t=now; odds500Cache[k]=data[k]; });
-        odds500Date=dateStr;
-        odds500Cache._fetching=false;
-      }).catch(function(){ odds500Cache._fetching=false; });
-    }
+    // 异步拉取已禁用——统一依赖 odds_history 文件
 
     // 辅助：获取某场比赛某个方向的赔率
     function getMatchOdds(match, direction){
