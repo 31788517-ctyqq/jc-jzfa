@@ -459,20 +459,10 @@ app.post('/api',function(req,res){
       
       function getOddsObj(match){
         var num=match.num||'';
-        // 优先使用内存缓存（与 plan-list 一致）
-        var five=odds500Cache[num];
-        if(five&&five._t){
-          return { spf:five.spf||null, rqspf:five.rqspf||null, totalGoals:five.totalGoals||null };
-        }
+        // 直接从 odds_history 文件读取
         if(histOdds&&histOdds[num]){
           var od=histOdds[num];
-          var result = { spf:od.spf||null, rqspf:od.rqspf||null, totalGoals:od.totalGoals||null };
-          var missingInfo = [];
-          if(!od.spf) missingInfo.push('SPF');
-          if(!od.rqspf) missingInfo.push('RQ');
-          if(!od.totalGoals) missingInfo.push('TG');
-          if(missingInfo.length>0) console.log('[income-odds-missing]', ds, num, 'missing:', missingInfo.join(','));
-          return result;
+          return { spf:od.spf||null, rqspf:od.rqspf||null, totalGoals:od.totalGoals||null };
         }
         console.log('[income-odds-notfound]', ds, num, 'matchId='+match.matchId);
         return null;
