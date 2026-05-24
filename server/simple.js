@@ -154,27 +154,12 @@ app.post('/api',function(req,res){
   var a=req.body.action,d=req.body.data||{};
   if(a==='plan-list'){
     var dateStr = d.date || new Date().toISOString().slice(0,10);
-
-    // 检查是否有冻结的方案快照
-    var snap = planSnapshots[dateStr];
     var now = Date.now();
 
     // 收集当天比赛
     var mList = [];
     var mKeys = Object.keys(data.m||{});
     for(var k=0;k<mKeys.length;k++){ var m=data.m[mKeys[k]]; if((m.date||'').slice(0,10)===dateStr) mList.push(m); }
-
-    // 计算最早开赛时间，判断是否需要冻结
-    var earliestStart = null;
-    for(var i=0;i<mList.length;i++){ var st=mList[i].startTime; if(st){ var t=new Date(st).getTime(); if(!earliestStart||t<earliestStart) earliestStart=t; } }
-    var shouldFreeze = earliestStart && (now >= earliestStart - 30*60000);
-
-    // 如果有快照且已冻结，直接返回
-    if(snap && snap.frozen){
-      return res.json(snap.data);
-    }
-    // 如果已冻结但无快照，生成后保存
-    // 每天下午4点前未到首次比赛30分钟前不冻结（按当天16:00检查）
 
     // 异步拉取500.com赔率（已从历史加载的日期不重复抓取）
     if(!oddsHistoryLoaded[dateStr] && odds500Date!==dateStr && !odds500Cache._fetching){
@@ -363,15 +348,7 @@ app.post('/api',function(req,res){
     }
 
     var plans=generatePlans();
-    var respData={code:1,data:{date:dateStr,plans:plans}};
-
-    // 冻结逻辑：第一场比赛前30分钟
-    if(shouldFreeze && plans.length>0){
-      planSnapshots[dateStr]={ data:respData, frozen:true, time:now };
-      console.log('Plan snapshot frozen for '+dateStr+' ('+plans.length+' plans)');
-    }
-
-    return res.json(respData);
+    return res.json({code:1,data:{date:dateStr,plans:plans}});
   }
   if(a==='income-stats'){
     var planFilter=d.plan||'all';
