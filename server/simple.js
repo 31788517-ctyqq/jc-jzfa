@@ -540,8 +540,8 @@ app.post('/api',function(req,res){
         }
         
         var prize=0, dayIncome=0, status='unknown';
+        totalPlans++;
         if(!anyUnknown){
-          totalPlans++;
           if(allWon){
             prize = hasAllOdds && effectiveOdds.length===2 ? Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]) : Math.round(AMOUNT * 3);
             dayIncome = prize - AMOUNT;
@@ -550,6 +550,9 @@ app.post('/api',function(req,res){
             dayIncome = -AMOUNT;
             status='lose';
           }
+        } else {
+          // 结果未知默认计为亏损
+          dayIncome = -AMOUNT;
         }
         totalIncome+=dayIncome;
         
