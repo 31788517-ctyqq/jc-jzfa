@@ -235,8 +235,8 @@ function loadMatchList() {
         <div class="match-card" onclick="goDetail('${m.matchId}')">
           <div class="match-header">
             <span class="match-league">${m.leagueName}</span>
-            <span class="match-num">${roundText}</span>
             ${m.isSingleGame ? '<span class="match-single-badge">单关</span>' : ''}
+            <span class="match-num">${roundText}</span>
           </div>
           <div class="match-teams">
             <span class="team-name">${m.homeName}</span>
