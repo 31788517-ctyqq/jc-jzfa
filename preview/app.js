@@ -856,41 +856,19 @@ function loadIncome() {
       return;
     }
 
-    var html = '<div class="income-list income-list-full">';
-    html += '<div class="income-header-row"><span>日期</span><span>方案</span><span class="income-matches-hd">对阵与推荐</span><span class="income-prize-hd">中奖/盈利</span></div>';
+    var html = '<div class="income-list">';
+    html += '<div class="income-header-row"><span>时间</span><span class="inc-col-hit">命中数</span><span class="inc-col-rate">命中率</span><span class="inc-col-income">收入金额</span></div>';
     
     records.forEach(function(r) {
       var incColor = r.income >= 0 ? '#EF4444' : '#22C55E';
-      var incText = r.income;
+      var incPrefix = r.income >= 0 ? '' : '';
       var dateShort = r.date.slice(5).replace('-', '/');
       
-      // 构建对阵详情
-      var matchesDetail = r.matches.map(function(m) {
-        var ms = m.isWon ? '✓' : m.isLose ? '✗' : '○';
-        var mc = m.isWon ? '#EF4444' : m.isLose ? '#22C55E' : '#666';
-        return '<div class="inc-match-detail">' +
-          '<span style="color:' + mc + ';margin-right:4px">' + ms + '</span>' +
-          '<span class="inc-match-teams">' + m.home + ' vs ' + m.visit + '</span>' +
-          '<span class="inc-match-dir">' + m.direction + '</span>' +
-        '</div>';
-      }).join('');
-      
-      // 中奖金额 + 盈利
-      var prizeText = '';
-      if (r.status === 'won') {
-        prizeText = '<span style="color:#EF4444">¥' + (r.prize || 0) + '</span>';
-      } else if (r.status === 'lose') {
-        prizeText = '<span style="color:#888">0</span>';
-      } else {
-        prizeText = '<span style="color:#666">--</span>';
-      }
-      var incomeLine = '<div style="font-weight:700;color:' + incColor + '">' + incText + '</div>';
-      
-      html += '<div class="income-row income-row-full">' +
+      html += '<div class="income-row">' +
         '<span class="income-date">' + dateShort + '</span>' +
-        '<span class="income-plan-name">' + r.plan + '</span>' +
-        '<div class="income-matches">' + matchesDetail + '</div>' +
-        '<div class="income-prize-cell">' + prizeText + incomeLine + '</div>' +
+        '<span class="income-hit">' + (r.hitCount||0) + '/' + (r.totalPlans||0) + '</span>' +
+        '<span class="income-rate">' + (r.hitRate||0) + '%</span>' +
+        '<span class="income-value" style="color:' + incColor + '">' + r.income + '</span>' +
       '</div>';
     });
     html += '</div>';
