@@ -1256,7 +1256,6 @@ function loadPlanList() {
         '</div>' +
       '</div>';
     }).join('');
-    }).join('');
   }).catch(function(e) {
     el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);">' + e.message + '</div>';
   });
