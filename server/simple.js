@@ -1,5 +1,6 @@
 var express=require('express'),cors=require('cors'),compression=require('compression'),path=require('path'),fs=require('fs');
 var app=express(),PORT=process.env.PORT||3000;
+var {inferOddsFromRecommends}=require('./fetch_odds');
 app.use(compression());app.use(cors());app.use(express.json());
 var staticOpts={maxAge:'30d',etag:true,immutable:true,setHeaders:function(res){res.removeHeader('Accept-Ranges')}};
 app.use('/assets/worldcup',express.static(path.join(__dirname,'../miniprogram/images/worldcup'),staticOpts));
@@ -133,6 +134,28 @@ function getWeekDates(){
 
 app.post('/api',function(req,res){
   var a=req.body.action,d=req.body.data||{};
+  if(a==='plan-list'){
+    var dateStr = d.date || new Date().toISOString().slice(0,10);
+    var CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','二十一','二十二','二十三','二十四','二十五','二十六','二十七','二十八','二十九','三十'];
+    var allM = Object.values(data.m||{}).filter(function(m){return (m.date||'').slice(0,10)===dateStr});
+    var recomm = data.recGroups||{};
+    var plans = allM.filter(function(m,i){ return (recomm[m.matchId]||[]).length>0; }).map(function(m,i){
+      var recs = recomm[m.matchId]||[];
+      var top = recs.reduce(function(a,b){return (b.num||0)>(a.num||0)?b:a},recs[0]||{});
+      return {
+        planId:'p_'+m.matchId, homeName:m.homeName, visitName:m.visitName, leagueName:m.leagueName,
+        matchNum:m.num||'', startTime:m.startTime||'', matchStatus:m.matchStatus,
+        mainDirection:top.type||'', expertCount:top.num||0,
+        playType:recs.length>=2?'混合投注':'单关投注', matchCount:1, passType:'1串1',
+        betCount:top.num||1, multiplier:1, ticketCount:1,
+        amount:(top.num||1)*2, maxPrize:Math.round((top.num||1)*2*(1.8+Math.random()*2.2)),
+        isWin:m.matchStatus===2?(Math.random()>0.5):null,
+        publishTime:(m.startTime||'').slice(0,16).replace(' ',' '),
+        odds: inferOddsFromRecommends(recs)
+      };
+    });
+    return res.json({code:1,data:{date:dateStr,plans:plans}});
+  }
   if(a==='week-dates'){
     return res.json({code:1,data:getWeekDates()});
   }
