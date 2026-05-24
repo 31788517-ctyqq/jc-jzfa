@@ -470,9 +470,16 @@ app.post('/api',function(req,res){
       
       function buildMatch(match, direction){
         var recs=findRecommends(match.matchId);
-        var subDirs = direction.split(/[、,]/);
-        var matchedRecs = [];
         var subResults = [];
+        var matchedRecs = [];
+        
+        // 复合方向：按、分割，但总进球系列是整体（如"总进球-2、3球"不拆）
+        var subDirs;
+        if(direction.indexOf('总进球')===0){
+          subDirs = [direction];
+        } else {
+          subDirs = direction.split(/[、,]/);
+        }
         subDirs.forEach(function(sd){
           var s = sd.trim();
           var found = null;
