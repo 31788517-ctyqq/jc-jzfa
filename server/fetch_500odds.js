@@ -32,6 +32,10 @@ function parseSegment(segment, matchNum) {
   // 从 <span> 标签中提取赔率数值（避免 data-sp 属性重复）
   const spanMatch = segment.match(/<span>(\d{1,3}\.\d{2})<\/span>/g);
   const nums = (spanMatch || []).map(s => Number(s.replace(/<[^>]*>/g, '')));
+  // DEBUG: log nums length for total-goal matches
+  if (matchNum === '周日011' || matchNum === '周日026') {
+    console.log('parseSegment ' + matchNum + ': nums.length=' + nums.length + ' first6=' + JSON.stringify(nums.slice(0,6)).substring(0,60) + ' last8=' + JSON.stringify(nums.slice(-8)));
+  }
   if (nums.length < 6) return null;
 
   // 检测单关投注标识：<span class="ico-dg">单关</span>
@@ -59,17 +63,19 @@ function parseSegment(segment, matchNum) {
     ah: nums[12], ad: nums[13], aa: nums[14],
   } : null;
 
-  // 总进球（最后8个值：0,1,2,3,4,5,6,7+）
-  const totalGoals = nums.length >= 24 ? {
-    '0': nums[nums.length - 8],
-    '1': nums[nums.length - 7],
-    '2': nums[nums.length - 6],
-    '3': nums[nums.length - 5],
-    '4': nums[nums.length - 4],
-    '5': nums[nums.length - 3],
-    '6': nums[nums.length - 2],
-    '7+': nums[nums.length - 1],
-  } : null;
+  // 总进球（在"总进球"标签后寻找8个赔率值）
+  const totalGoals = (function() {
+    var tgIdx = segment.indexOf('总进球');
+    if (tgIdx < 0) return null;
+    var after = segment.substring(tgIdx + 3, Math.min(segment.length, tgIdx + 500));
+    // 提取此段中的所有 x.xx 格式数值
+    var tgNums = (after.match(/(\d{1,3}\.\d{2})/g) || []).map(Number);
+    if (tgNums.length >= 8) {
+      return { '0': tgNums[0], '1': tgNums[1], '2': tgNums[2], '3': tgNums[3],
+               '4': tgNums[4], '5': tgNums[5], '6': tgNums[6], '7+': tgNums[7] };
+    }
+    return null;
+  })();
 
   return { num: matchNum, homeName, visitName, handicap, spf, rqspf, halfFull, totalGoals, isSingleGame };
 }
