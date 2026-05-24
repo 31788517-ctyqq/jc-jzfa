@@ -1,6 +1,5 @@
 var express=require('express'),cors=require('cors'),compression=require('compression'),path=require('path'),fs=require('fs');
 var app=express(),PORT=process.env.PORT||3000;
-var {inferOddsFromRecommends}=require('./fetch_odds');
 var {fetchOdds:fetch500Odds}=require('./fetch_500odds');
 // 赔率缓存：避免重复抓取（30分钟过期）
 var oddsCache={},oddsCacheTime={},oddsCacheTTL=1800000;
@@ -198,7 +197,7 @@ app.post('/api',function(req,res){
           halfFull: fiveOdds.halfFull || null,
         };
       }
-      return inferOddsFromRecommends(findRecommends(match.matchId));
+      return null;
     }
 
     // 提取复合方向的所有子选项赔率
@@ -472,7 +471,7 @@ app.post('/api',function(req,res){
           var od=histOdds[num];
           return { spf:od.spf||null, rqspf:od.rqspf||null, totalGoals:od.totalGoals||null };
         }
-        return inferOddsFromRecommends(findRecommends(match.matchId));
+        return null;
       }
       
       function buildMatch(match, direction){
