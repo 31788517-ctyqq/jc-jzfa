@@ -199,11 +199,12 @@ app.post('/api',function(req,res){
       return inferOddsFromRecommends(findRecommends(match.matchId));
     }
 
-    // 辅助：获取每个方向专家数最多的场次
-    function findBestMatchForDirection(directions){
+    // 辅助：获取每个方向专家数最多的场次（可排除已选比赛）
+    function findBestMatchForDirection(directions, excludeIds){
       var bestMatch=null,bestCount=0;
       for(var i=0;i<mList.length;i++){
         var m=mList[i];
+        if(excludeIds && excludeIds.indexOf(m.matchId)>=0) continue;
         var recs=findRecommends(m.matchId);
         var total=0;
         for(var j=0;j<recs.length;j++){
@@ -265,9 +266,9 @@ app.post('/api',function(req,res){
     function generatePlans(){
       var plans=[];
       
-      // 方案一：场次1=平/让平最多专家，场次2=让负最多专家
+      // 方案一：场次1=平/让平最多专家，场次2=让负最多专家（排除已选）
       var m1a=findBestMatchForDirection(['平','让平']);
-      var m1b=findBestMatchForDirection(['让负']);
+      var m1b=findBestMatchForDirection(['让负'], m1a?[m1a.matchId]:null);
       
       // 方案二：场次1=总进球-2、3球最多专家，场次2=让负最多专家
       var m2a=findBestMatchForDirection(['总进球-2、3球']);
@@ -379,10 +380,11 @@ app.post('/api',function(req,res){
         try{ var raw=JSON.parse(fs.readFileSync(oddsFile,'utf8')); histOdds=raw.odds||{}; }catch(e){}
       }
       
-      function findBest(directions){
+      function findBest(directions, excludeIds){
         var best=null,bestCount=0;
         for(var j=0;j<mList.length;j++){
           var mm=mList[j];
+          if(excludeIds && excludeIds.indexOf(mm.matchId)>=0) continue;
           var recs=findRecommends(mm.matchId);
           var total=0;
           for(var ri=0;ri<recs.length;ri++){ if(directions.indexOf(recs[ri].type)>=0) total+=recs[ri].num||0; }
@@ -428,9 +430,9 @@ app.post('/api',function(req,res){
         };
       }
       
-      var m1a=findBest(['平','让平']), m1b=findBest(['让负']);
-      var m2a=findBest(['总进球-2、3球']), m2b=findBest(['让负']);
-      var m3a=findBest(['总进球-2、3球']), m3b=findBest(['让胜']);
+      var m1a=findBest(['平','让平']), m1b=findBest(['让负'], m1a?[m1a.matchId]:null);
+      var m2a=findBest(['总进球-2、3球']), m2b=findBest(['让负'], m2a?[m2a.matchId]:null);
+      var m3a=findBest(['总进球-2、3球']), m3b=findBest(['让胜'], m3a?[m3a.matchId]:null);
       
       var dayPlans=[];
       if(m1a&&m1b) dayPlans.push({name:'plan_1',planName:'方案一',matches:[buildMatch(m1a,'平、让平'),buildMatch(m1b,'让负')]});
