@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>竞彩推荐监控</title>
 <link rel="preconnect" href="https://zj.100qiu.com">
-<link rel="preload" href="/app.js?v=24" as="script">
+<link rel="preload" href="/app.js?v=25" as="script">
 <style>
 :root {
   --cyan: #18E0E0;
@@ -823,6 +823,20 @@ body {
   height: 36px;
   background: rgba(24,224,224,0.10);
   flex-shrink: 0;
+}
+
+/* 方案收入统计卡片 — 缩小字号防拥挤 */
+.inc-stats-card .filter-stats-row { gap: 6px; }
+.inc-stats-card .filter-stat-value {
+  font-size: 22px;
+  line-height: 1.2;
+}
+.inc-stats-card .filter-stat-label {
+  font-size: 10px;
+  margin-top: 2px;
+}
+.inc-stats-card .filter-stat-divider {
+  height: 28px;
 }
 
 .filter-section-card {
@@ -1884,7 +1898,7 @@ body {
   </div>
 
   <!-- 筛选概览统计卡片 (中间) -->
-  <div class="filter-stats-card" id="incStatsCard">
+  <div class="filter-stats-card inc-stats-card" id="incStatsCard">
     <div class="stats-subtitle">筛选结果</div>
     <div class="filter-stats-row">
       <div class="filter-stat-item">
@@ -1893,13 +1907,13 @@ body {
       </div>
       <div class="filter-stat-divider"></div>
       <div class="filter-stat-item">
-        <div class="filter-stat-value" id="incTotalIncome">-</div>
-        <div class="filter-stat-label">总收入(元)</div>
+        <div class="filter-stat-value" id="incWinRate">-</div>
+        <div class="filter-stat-label">中奖率</div>
       </div>
       <div class="filter-stat-divider"></div>
       <div class="filter-stat-item">
-        <div class="filter-stat-value" id="incWinRate">-</div>
-        <div class="filter-stat-label">中奖率</div>
+        <div class="filter-stat-value" id="incTotalIncome">-</div>
+        <div class="filter-stat-label">总收入(元)</div>
       </div>
     </div>
   </div>
@@ -1929,6 +1943,6 @@ body {
 
 
 <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js" defer></script>
-<script src="app.js?v=24" defer></script>
+<script src="app.js?v=25" defer></script>
 </body>
 </html>

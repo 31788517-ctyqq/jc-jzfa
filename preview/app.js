@@ -847,7 +847,7 @@ function loadIncome() {
     
     var incomeEl = document.getElementById('incTotalIncome');
     var income = s.totalIncome || 0;
-    incomeEl.textContent = (income >= 0 ? '+' : '') + income;
+    incomeEl.textContent = income;
     incomeEl.style.color = income >= 0 ? '#EF4444' : '#22C55E';
 
     var records = data.records || [];
@@ -861,7 +861,7 @@ function loadIncome() {
     
     records.forEach(function(r) {
       var incColor = r.income >= 0 ? '#EF4444' : '#22C55E';
-      var incText = (r.income >= 0 ? '+' : '') + r.income;
+      var incText = r.income;
       var dateShort = r.date.slice(5).replace('-', '/');
       
       // 构建对阵详情
@@ -878,7 +878,7 @@ function loadIncome() {
       // 中奖金额 + 盈利
       var prizeText = '';
       if (r.status === 'won') {
-        prizeText = '<span style="color:#EF4444">+¥' + (r.prize || 0) + '</span>';
+        prizeText = '<span style="color:#EF4444">¥' + (r.prize || 0) + '</span>';
       } else if (r.status === 'lose') {
         prizeText = '<span style="color:#888">0</span>';
       } else {
