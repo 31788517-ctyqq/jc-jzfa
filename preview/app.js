@@ -857,7 +857,7 @@ function loadIncome() {
     }
 
     var html = '<div class="income-list">';
-    html += '<div class="income-header-row"><span>时间</span><span class="inc-col-hit">命中数</span><span class="inc-col-rate">命中率</span><span class="inc-col-income">收入金额</span></div>';
+    html += '<div class="income-header-row"><span>时间</span><span class="inc-col-hit">命中数</span><span class="inc-col-rate">命中率</span><span class="inc-col-income">盈利</span></div>';
     
     records.forEach(function(r) {
       var incColor = r.income >= 0 ? '#EF4444' : '#22C55E';
