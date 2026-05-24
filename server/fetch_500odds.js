@@ -81,12 +81,17 @@ function extractTotalGoals(html) {
         }
       }
       
-      if (nearestMatch && tgNums.length >= 16 && !result[nearestMatch]) {
-        // 进球数赔率：每个值在HTML中出现两次(data属性+可视文本)，取偶数索引
-        result[nearestMatch] = {
-          '0': tgNums[0], '1': tgNums[2], '2': tgNums[4], '3': tgNums[6],
-          '4': tgNums[8], '5': tgNums[10], '6': tgNums[12], '7+': tgNums[14],
-        };
+      if (nearestMatch && tgNums.length >= 6 && !result[nearestMatch]) {
+        // 进球数赔率：8个值，每个在HTML中出现两次（data属性+文本）
+        // 跳过前两个非赔率数值，从索引2开始取偶数位（2,4,6,8,...）
+        var goals = {};
+        var gKeys = ['0','1','2','3','4','5','6','7+'];
+        var gIdx = 2; // 跳过前两个非赔率值
+        for (var gi = 0; gi < gKeys.length; gi++) {
+          if (gIdx < tgNums.length) goals[gKeys[gi]] = tgNums[gIdx];
+          gIdx += 2;
+        }
+        result[nearestMatch] = goals;
       }
       tgIdx++;
     }
