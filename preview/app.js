@@ -1048,7 +1048,12 @@ function updateRankDateBar() {
 }
 
 function shiftRankDate(delta) {
-  rankDateOffset += delta;
+  var newOffset = rankDateOffset + delta;
+  var d = new Date();
+  d.setDate(d.getDate() + newOffset);
+  var newDate = d.toISOString().slice(0,10);
+  if (newDate < MIN_PLAN_DATE) return; // 不早于4月25日
+  rankDateOffset = newOffset;
   updateRankDateBar();
   loadRanking();
 }
@@ -1062,6 +1067,7 @@ function goRankToday() {
 // ========== 今日方案 ==========
 var planDate = ''; // YYYY-MM-DD
 var planDateOffset = 0;
+var MIN_PLAN_DATE = '2026-04-25'; // 最早有赔率数据的日期
 
 function updatePlanDateBar() {
   var d = new Date();
@@ -1078,7 +1084,12 @@ function updatePlanDateBar() {
 }
 
 function shiftPlanDate(delta) {
-  planDateOffset += delta;
+  var newOffset = planDateOffset + delta;
+  var d = new Date();
+  d.setDate(d.getDate() + newOffset);
+  var newDate = d.toISOString().slice(0,10);
+  if (newDate < MIN_PLAN_DATE) return; // 不早于4月25日
+  planDateOffset = newOffset;
   updatePlanDateBar();
   loadPlanList();
 }
