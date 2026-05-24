@@ -388,40 +388,44 @@ app.post('/api',function(req,res){
       if(fmtDate2(startDate)<minDate) startDate=new Date(minDate);
     }
     
-    // 提取赔率数值
+    // 提取单个赔率值（仅供单选方向使用）
     function extractOddsVal(oddsObj, direction){
       if(!oddsObj) return null;
-      // 复合方向：拆开取平均值
-      if(direction.indexOf('、')>=0 || direction.indexOf(',')>=0){
-        var parts = direction.split(/[、,]/);
-        var vals = [];
-        for(var pi=0;pi<parts.length;pi++){
-          var sv = extractOddsVal(oddsObj, parts[pi].trim());
-          if(sv!==null) vals.push(sv);
-        }
-        if(vals.length===0) return null;
-        return vals.reduce(function(a,b){return a+b},0) / vals.length;
-      }
       if(direction==='平') return oddsObj.spf?oddsObj.spf.draw:null;
       if(direction==='让平') return oddsObj.rqspf?oddsObj.rqspf.draw:null;
       if(direction==='让负') return oddsObj.rqspf?oddsObj.rqspf.away:null;
       if(direction==='让胜') return oddsObj.rqspf?oddsObj.rqspf.home:null;
+      return null;
+    }
+    
+    // 提取复合方向的所有子选项赔率（返回数组）
+    function extractIndividualOdds(oddsObj, direction){
+      if(!oddsObj) return [];
+      // 总进球双选："总进球-2、3球"
       if(direction.indexOf('总进球-')===0){
         var tg=oddsObj.totalGoals;
-        if(!tg) return null;
+        if(!tg) return [];
         var nums=direction.replace('总进球-','').split(/[、,]/);
         var vals=[];
         for(var ni=0;ni<nums.length;ni++){
-          // 去掉"球"等后缀，只保留数字和+号
           var n=nums[ni].replace(/球/g,'').trim();
           if(tg[n]!==undefined) vals.push(tg[n]);
         }
-        if(vals.length===0) return null;
-        // 双选取两者之积的开方（降低波动），用平均值
-        var sum=vals.reduce(function(a,b){return a+b},0);
-        return sum/vals.length;
+        return vals;
       }
-      return null;
+      // 其他复合方向："平、让平"
+      if(direction.indexOf('、')>=0 || direction.indexOf(',')>=0){
+        var parts = direction.split(/[、,]/);
+        var vals=[];
+        for(var pi=0;pi<parts.length;pi++){
+          var sv = extractOddsVal(oddsObj, parts[pi].trim());
+          if(sv!==null) vals.push(sv);
+        }
+        return vals;
+      }
+      // 单选
+      var sv = extractOddsVal(oddsObj, direction);
+      return sv!==null ? [sv] : [];
     }
     
     var results=[];
@@ -535,22 +539,18 @@ app.post('/api',function(req,res){
           if(!pp.matches[mi].isWon&&!pp.matches[mi].isLose) anyUnknown=true;
         }
         
-        // 奖金计算: 1000 × odds2 × (sum_odds1) / (2N)  双选公式
+        // 奖金计算: 1000 × eff1 × eff2
+        // eff = (单选赔率) 或 (双选: sum/4)
         var effectiveOdds=[];
         var hasAllOdds=true;
         for(var mi=0;mi<pp.matches.length;mi++){
-          var subOdds=[];
-          var subDirs = pp.matches[mi].direction.split(/[、,]/);
-          subDirs.forEach(function(sd){
-            var ov = extractOddsVal(pp.matches[mi].oddsObj, sd.trim());
-            if(ov!==null) subOdds.push(ov);
-          });
+          var subOdds = extractIndividualOdds(pp.matches[mi].oddsObj, pp.matches[mi].direction);
           if(subOdds.length===0){ hasAllOdds=false; continue; }
           var N = subOdds.length;
           if(N===1){
             effectiveOdds.push(subOdds[0]);
           } else {
-            // 奖金 = 方案金额 × odds_other × Σ(sub_odds) / (2N)
+            // 双选: eff = sum / (2N) = sum / 4
             var sum = subOdds.reduce(function(a,b){return a+b}, 0);
             effectiveOdds.push(sum / (2*N));
           }
