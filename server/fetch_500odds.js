@@ -34,6 +34,9 @@ function parseSegment(segment, matchNum) {
   const nums = (spanMatch || []).map(s => Number(s.replace(/<[^>]*>/g, '')));
   if (nums.length < 6) return null;
 
+  // 检测单关投注标识：<span class="ico-dg">单关</span>
+  const isSingleGame = segment.indexOf('ico-dg') > -1;
+
   // 提取主客队名
   const vsMatch = segment.match(/([\u4e00-\u9fa5a-zA-Z]+)\s*VS\s*([\u4e00-\u9fa5a-zA-Z]+)/);
   const homeName = vsMatch ? vsMatch[1].trim() : '';
@@ -56,7 +59,7 @@ function parseSegment(segment, matchNum) {
     ah: nums[12], ad: nums[13], aa: nums[14],
   } : null;
 
-  return { num: matchNum, homeName, visitName, handicap, spf, rqspf, halfFull };
+  return { num: matchNum, homeName, visitName, handicap, spf, rqspf, halfFull, isSingleGame };
 }
 
 function extractOdds(html) {

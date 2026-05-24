@@ -197,7 +197,8 @@ app.post('/api',function(req,res){
         amount:(top.num||1)*2, maxPrize:Math.round((top.num||1)*2*(1.8+Math.random()*2.2)),
         isWin:m.matchStatus===2?(Math.random()>0.5):null,
         publishTime:(m.startTime||'').slice(0,16).replace(' ',' '),
-        odds: odds
+        odds: odds,
+        isSingleGame: odds500Cache[m.num] ? odds500Cache[m.num].isSingleGame===true : false
       });
     }
     return res.json({code:1,data:{date:dateStr,plans:plans}});
@@ -238,6 +239,32 @@ app.post('/api',function(req,res){
       var recs=findRecommends(m.matchId);
       return Object.assign({},m,{recommNum:m.recommNum||recs.reduce(function(s,x){return s+(x.num||0)},0)});
     });
+    // 补充500.com单关标识
+    var needFetch500 = false;
+    all=all.map(function(m){
+      var num=m.num||'';
+      var fiveData=odds500Cache[num];
+      var isSingle=false;
+      if(fiveData && fiveData._t){
+        isSingle=fiveData.isSingleGame===true;
+      }else{
+        needFetch500=true;
+      }
+      return Object.assign({},m,{isSingleGame:isSingle});
+    });
+    // 异步拉取500.com数据
+    if(needFetch500 && !odds500Cache._fetching && date){
+      odds500Cache._fetching=true;
+      fetch500Odds(date).then(function(data){
+        Object.keys(data).forEach(function(k){
+          data[k]._t=Date.now();
+          odds500Cache[k]=data[k];
+        });
+        odds500Cache._fetching=false;
+      }).catch(function(){
+        odds500Cache._fetching=false;
+      });
+    }
     all.sort(function(a,b){
       var order={1:0,0:1,2:2,3:3};
       var oa=order[a.matchStatus]!==undefined?order[a.matchStatus]:99;
