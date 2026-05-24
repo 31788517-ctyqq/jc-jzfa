@@ -463,13 +463,14 @@ app.post('/api',function(req,res){
       
       function getOddsObj(match){
         var num=match.num||'';
-        if(histOdds&&histOdds[num]){
-          var od=histOdds[num];
-          return { spf:od.spf||null, rqspf:od.rqspf||null, totalGoals:od.totalGoals||null };
-        }
+        // 优先使用内存缓存（与 plan-list 一致）
         var five=odds500Cache[num];
         if(five&&five._t){
           return { spf:five.spf||null, rqspf:five.rqspf||null, totalGoals:five.totalGoals||null };
+        }
+        if(histOdds&&histOdds[num]){
+          var od=histOdds[num];
+          return { spf:od.spf||null, rqspf:od.rqspf||null, totalGoals:od.totalGoals||null };
         }
         return inferOddsFromRecommends(findRecommends(match.matchId));
       }
