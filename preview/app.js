@@ -1218,7 +1218,13 @@ function loadPlanList() {
           else if (ft.indexOf('总进球') >= 0 && oddsObj.totalGoals) {
             var gm = ft.match(/(\d+\+?)/);
             if (gm) val = oddsObj.totalGoals[gm[1]];
-          } else if (ft.indexOf('胜') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.home;
+          }
+          // 总进球子选项（如"3球"）：不含"总进球"前缀的回退
+          if (!val && ft.indexOf('球') >= 0 && oddsObj.totalGoals) {
+            var gm2 = ft.match(/(\d+\+?)/);
+            if (gm2) val = oddsObj.totalGoals[gm2[1]];
+          }
+          if (!val && ft.indexOf('胜') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.home;
           else if (ft.indexOf('平') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.draw;
           else if (ft.indexOf('负') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.away;
           if (!val && oddsObj.spf) val = oddsObj.spf.home || oddsObj.spf.draw || oddsObj.spf.away;
