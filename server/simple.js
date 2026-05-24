@@ -27,6 +27,38 @@ var previewOpts={maxAge:'1h',etag:true,setHeaders:function(res,fp){
 }};
 app.use(express.static(path.join(__dirname,'../preview'),previewOpts));
 
+// 修复比赛日期：num前缀（周一~周日）必须与date的星期匹配
+var WEEK_NAMES={周一:1,周二:2,周三:3,周四:4,周五:5,周六:6,周日:0};
+function getDayOfWeek(dateStr){
+  if(!dateStr||dateStr.length<10)return -1;
+  return new Date(dateStr.slice(0,10).replace(/-/g,'/')+' 00:00:00').getDay();
+}
+function fixMatchDates(allM){
+  var fixed=0,skipped=0;
+  function fmtDate(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
+  Object.keys(allM).forEach(function(k){
+    var m=allM[k];
+    if(!m||!m.num||!m.date)return;
+    var wp=m.num.slice(0,2);
+    var eDay=WEEK_NAMES[wp];
+    if(eDay===undefined)return;
+    var aDay=getDayOfWeek(m.date);
+    if(aDay===eDay)return;
+    if(aDay<0)return;
+    var d=new Date(m.date.slice(0,10)+'T00:00:00+08:00');
+    var best=null,bestD=99;
+    for(var o=-6;o<=6;o++){
+      var dd=new Date(d);dd.setDate(dd.getDate()+o);
+      if(dd.getDay()===eDay){
+        var dist=o<0?-o:o;
+        if(dist<bestD){bestD=dist;best=fmtDate(dd)}
+      }
+    }
+    if(best&&best!==m.date){m.date=best;fixed++}
+  });
+  return {fixed:fixed,skipped:skipped};
+}
+
 var data={m:{},r:{}};
 try{
   var raw=JSON.parse(fs.readFileSync(path.join(__dirname,'data.json'),'utf8'));
@@ -76,39 +108,6 @@ app.get('/health',function(req,res){res.json({status:'ok',matches:Object.keys(da
 
 // 缓存
 var cache={rank:{data:null,time:0,cat:''}};
-
-// 修复比赛日期：num前缀（周一~周日）必须与date的星期匹配
-var WEEK_NAMES={周一:1,周二:2,周三:3,周四:4,周五:5,周六:6,周日:0};
-function getDayOfWeek(dateStr){
-  if(!dateStr||dateStr.length<10)return -1;
-  return new Date(dateStr.slice(0,10).replace(/-/g,'/')+' 00:00:00').getDay();
-}
-function fixMatchDates(allM){
-  var fixed=0,skipped=0;
-  function fmtDate(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
-  Object.keys(allM).forEach(function(k){
-    var m=allM[k];
-    if(!m||!m.num||!m.date)return;
-    var wp=m.num.slice(0,2);
-    var eDay=WEEK_NAMES[wp];
-    if(eDay===undefined)return;
-    var aDay=getDayOfWeek(m.date);
-    if(aDay===eDay)return; // already correct
-    if(aDay<0)return;
-    // 寻找最近匹配的日期（正负方向都试）
-    var d=new Date(m.date.slice(0,10)+'T00:00:00+08:00');
-    var best=null,bestD=99;
-    for(var o=-6;o<=6;o++){
-      var dd=new Date(d);dd.setDate(dd.getDate()+o);
-      if(dd.getDay()===eDay){
-        var dist=o<0?-o:o;
-        if(dist<bestD){bestD=dist;best=fmtDate(dd)}
-      }
-    }
-    if(best&&best!==m.date){m.date=best;fixed++}
-  });
-  return {fixed:fixed,skipped:skipped};
-}
 
 // match-detail: try both 'm_ID' and 'ID' as key
 function findMatch(matchId){
