@@ -453,17 +453,6 @@ function loadRanking(cat, dir) {
   if (rankDate) params.date = rankDate;
 
   api('ranking-list', params).then(data => {
-    // 日期标签：显示当前排行数据的竞彩期号
-    const dateEl = document.getElementById('rankingDateLabel');
-    if (data.matchDateLabel) {
-      const today = new Date().toISOString().slice(0,10);
-      const prefix = data.effectiveDate === today ? '今天 ' : '';
-      dateEl.textContent = prefix + data.matchDateLabel;
-      dateEl.style.display = 'block';
-    } else {
-      dateEl.style.display = 'none';
-    }
-
     // 分类筛选
     const catOrder = CAT_NAMES.filter(c => c === '综合排名' || (data.categories && data.categories[c]));
     catEl.innerHTML = catOrder.map(c => {
