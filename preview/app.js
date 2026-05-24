@@ -270,7 +270,8 @@ function goDetail(matchId) {
   ]).then(([detail, trend]) => {
     const match = detail.match || detail;
     const recommends = detail.recommends || [];
-    const statusText = { 0: '未开始', 1: '进行中', 2: '已结束' }[match.matchStatus] || '未知';
+    const hasResults = recommends.some(function(r){return r.result!==null});
+    const statusText = match.matchStatus===2 || hasResults ? '已结束' : { 0: '未开始', 1: '进行中' }[match.matchStatus] || '未知';
     const roundText = match.num || '';
     const isLive = match.matchStatus === 1 || match.matchStatus === 2;
     const scoreText = match.score || '';
@@ -301,7 +302,7 @@ function goDetail(matchId) {
       <div class="match-card" style="margin-bottom: 16px;">
         <div class="match-header">
           <span class="match-league">${match.leagueName}</span>
-          <span class="match-num" style="background: ${match.matchStatus === 0 ? 'rgba(34,211,238,0.1)' : 'rgba(52,211,153,0.1)'}; color: ${match.matchStatus === 0 ? 'var(--cyan)' : 'var(--green)'}">${statusText}</span>
+          <span class="match-num" style="background: ${match.matchStatus===0 && !hasResults ? 'rgba(34,211,238,0.1)' : 'rgba(52,211,153,0.1)'}; color: ${match.matchStatus===0 && !hasResults ? 'var(--cyan)' : 'var(--green)'}">${statusText}</span>
         </div>
         <div class="match-teams">
           <span class="team-name">${match.homeName}</span>
@@ -348,7 +349,7 @@ function goDetail(matchId) {
       });
       dirItems = Object.keys(typeMap).map(t => ({ type: t, num: typeMap[t] }));
     }
-    var isFinished=match.matchStatus===2;
+    var isFinished=match.matchStatus===2 || recommends.some(function(r){return r.result!==null});
     dirItems.sort((a, b) => (b.num || 0) - (a.num || 0)).forEach(r => {
       var isHit=isFinished&&hitMap[r.type];
       var hitFlag=isHit?'<img src="/assets/worldcup/flag-hit.png" class="hit-flag" alt="">':'';
