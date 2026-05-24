@@ -508,6 +508,16 @@ app.post('/api',function(req,res){
       if(m2a&&m2b) dayPlans.push({name:'plan_2',planName:'方案二',matches:[buildMatch(m2a,'总进球-2、3球'),buildMatch(m2b,'让负')]});
       if(m3a&&m3b) dayPlans.push({name:'plan_3',planName:'方案三',matches:[buildMatch(m3a,'总进球-2、3球'),buildMatch(m3b,'让胜')]});
       
+      // 如果当天有任意方案结果未知，整日不统计
+      var dayHasUnknown = false;
+      dayPlans.forEach(function(pp){
+        if(planFilter!=='all' && pp.name!==planFilter) return;
+        for(var mi=0;mi<pp.matches.length;mi++){
+          if(!pp.matches[mi].isWon && !pp.matches[mi].isLose){ dayHasUnknown=true; return; }
+        }
+      });
+      if(dayHasUnknown) continue;
+      
       dayPlans.forEach(function(pp){
         if(planFilter!=='all' && pp.name!==planFilter) return;
         
@@ -540,20 +550,15 @@ app.post('/api',function(req,res){
         }
         
         var prize=0, dayIncome=0, status='unknown';
-        totalPlans++;
-        if(!anyUnknown){
-          if(allWon){
-            prize = hasAllOdds && effectiveOdds.length===2 ? Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]) : Math.round(AMOUNT * 3);
-            dayIncome = prize - AMOUNT;
-            status='won'; totalWon++;
-          } else if(anyLose){
-            dayIncome = -AMOUNT;
-            status='lose';
-          }
-        } else {
-          // 结果未知默认计为亏损
+        if(allWon){
+          prize = hasAllOdds && effectiveOdds.length===2 ? Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]) : Math.round(AMOUNT * 3);
+          dayIncome = prize - AMOUNT;
+          status='won'; totalWon++;
+        } else if(anyLose){
           dayIncome = -AMOUNT;
+          status='lose';
         }
+        totalPlans++;
         totalIncome+=dayIncome;
         
         results.push({
