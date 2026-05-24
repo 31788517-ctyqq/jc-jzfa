@@ -289,25 +289,49 @@ app.post('/api',function(req,res){
   }
   if(a==='income-stats'){
     var planFilter=d.plan||'all';
-    var daysFilter=d.days||0; // 0=all
-    
-    // 日期范围
-    var days=daysFilter>0?daysFilter:60; // 最多60天
-    var endDate=new Date();
-    var startDate=new Date(endDate.getTime()-days*86400000);
-    var minDate='2026-04-25';
-    if(fmtDate2(startDate)<minDate) startDate=new Date(minDate);
+    var daysFilter=parseInt(d.days)||0; // 0=all
+    var AMOUNT=1000; // 方案金额固定1000元
     
     function fmtDate2(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
     
-    // 按日期生成方案并计算收入
+    // 日期范围：最早4/25 → 今天
+    var minDate='2026-04-25';
+    var endDate=new Date();
+    var startDate=new Date(minDate);
+    if(daysFilter>0){
+      startDate=new Date(endDate.getTime()-(daysFilter-1)*86400000);
+      if(fmtDate2(startDate)<minDate) startDate=new Date(minDate);
+    }
+    
+    // 提取赔率数值
+    function extractOddsVal(oddsObj, direction){
+      if(!oddsObj) return null;
+      if(direction==='平') return oddsObj.spf?oddsObj.spf.draw:null;
+      if(direction==='让负') return oddsObj.rqspf?oddsObj.rqspf.away:null;
+      if(direction==='让胜') return oddsObj.rqspf?oddsObj.rqspf.home:null;
+      if(direction.indexOf('总进球-')===0){
+        var tg=oddsObj.totalGoals;
+        if(!tg) return null;
+        var nums=direction.replace('总进球-','').split(/[、,]/);
+        var vals=[];
+        for(var ni=0;ni<nums.length;ni++){
+          var n=nums[ni].trim();
+          if(tg[n]!==undefined) vals.push(tg[n]);
+        }
+        if(vals.length===0) return null;
+        // 双选取两者之积的开方（降低波动），用平均值
+        var sum=vals.reduce(function(a,b){return a+b},0);
+        return sum/vals.length;
+      }
+      return null;
+    }
+    
     var results=[];
     var totalPlans=0,totalWon=0,totalIncome=0;
     
-    for(var d=new Date(startDate);d<=endDate;d.setDate(d.getDate()+1)){
+    for(var d=new Date(startDate); d<=endDate; d.setDate(d.getDate()+1)){
       var ds=fmtDate2(d);
       
-      // 收集当天比赛
       var mList=[];
       var mKeys=Object.keys(data.m||{});
       for(var k=0;k<mKeys.length;k++){ var m=data.m[mKeys[k]]; if((m.date||'').slice(0,10)===ds) mList.push(m); }
@@ -332,63 +356,71 @@ app.post('/api',function(req,res){
         return best;
       }
       
-      function getOdds(match, direction){
+      function getOddsObj(match){
         var num=match.num||'';
         if(histOdds&&histOdds[num]){
           var od=histOdds[num];
-          return {
-            spf:od.spf?{home:od.spf.home,draw:od.spf.draw,away:od.spf.away}:null,
-            rqspf:od.rqspf?{home:od.rqspf.home,draw:od.rqspf.draw,away:od.rqspf.away}:null,
-            totalGoals:od.totalGoals||null
-          };
+          return { spf:od.spf||null, rqspf:od.rqspf||null, totalGoals:od.totalGoals||null };
         }
         var five=odds500Cache[num];
         if(five&&five._t){
-          return {
-            spf:five.spf?{home:five.spf.home,draw:five.spf.draw,away:five.spf.away}:null,
-            rqspf:five.rqspf?{home:five.rqspf.home,draw:five.rqspf.draw,away:five.rqspf.away}:null,
-            totalGoals:five.totalGoals||null
-          };
+          return { spf:five.spf||null, rqspf:five.rqspf||null, totalGoals:five.totalGoals||null };
         }
         return inferOddsFromRecommends(findRecommends(match.matchId));
       }
       
-      function buildPlan(match,direction,planName){
+      function buildMatch(match, direction){
         var recs=findRecommends(match.matchId);
         var matched=null;
         for(var ri=0;ri<recs.length;ri++){ if(recs[ri].type===direction){ matched=recs[ri]; break; } }
-        var isWon=matched?matched.result===1:null;
-        var isLose=matched?matched.result===0:null;
-        return { matchId:match.matchId, homeName:match.homeName, visitName:match.visitName, matchNum:match.num||'', direction:direction, odds:getOdds(match,direction), isWon:isWon, isLose:isLose };
+        return {
+          matchId:match.matchId, homeName:match.homeName, visitName:match.visitName,
+          matchNum:match.num||'', direction:direction,
+          oddsObj:getOddsObj(match),
+          isWon:matched?matched.result===1:null,
+          isLose:matched?matched.result===0:null
+        };
       }
       
-      // 生成3个方案
       var m1a=findBest(['平','让平']), m1b=findBest(['让负']);
       var m2a=findBest(['总进球-2、3球']), m2b=findBest(['让负']);
       var m3a=findBest(['总进球-2、3球']), m3b=findBest(['让胜']);
       
       var dayPlans=[];
-      if(m1a&&m1b) dayPlans.push({name:'plan_1',planName:'方案一',matches:[buildPlan(m1a,'平'),buildPlan(m1b,'让负')]});
-      if(m2a&&m2b) dayPlans.push({name:'plan_2',planName:'方案二',matches:[buildPlan(m2a,'总进球-2、3球'),buildPlan(m2b,'让负')]});
-      if(m3a&&m3b) dayPlans.push({name:'plan_3',planName:'方案三',matches:[buildPlan(m3a,'总进球-2、3球'),buildPlan(m3b,'让胜')]});
+      if(m1a&&m1b) dayPlans.push({name:'plan_1',planName:'方案一',matches:[buildMatch(m1a,'平'),buildMatch(m1b,'让负')]});
+      if(m2a&&m2b) dayPlans.push({name:'plan_2',planName:'方案二',matches:[buildMatch(m2a,'总进球-2、3球'),buildMatch(m2b,'让负')]});
+      if(m3a&&m3b) dayPlans.push({name:'plan_3',planName:'方案三',matches:[buildMatch(m3a,'总进球-2、3球'),buildMatch(m3b,'让胜')]});
       
       dayPlans.forEach(function(pp){
         if(planFilter!=='all' && pp.name!==planFilter) return;
         
-        var allWon=true,anyLose=false,anyUnknown=false;
+        var allWon=true, anyLose=false, anyUnknown=false;
         for(var mi=0;mi<pp.matches.length;mi++){
           if(!pp.matches[mi].isWon) allWon=false;
           if(pp.matches[mi].isLose) anyLose=true;
           if(!pp.matches[mi].isWon&&!pp.matches[mi].isLose) anyUnknown=true;
         }
         
-        var amount=1000;
-        var dayIncome=0;
-        var status='unknown';
+        // 计算赔率：odds1 * odds2 (2串1)
+        var odds=[];
+        var hasAllOdds=true;
+        for(var mi=0;mi<pp.matches.length;mi++){
+          var ov=extractOddsVal(pp.matches[mi].oddsObj, pp.matches[mi].direction);
+          if(ov!==null) odds.push(ov); else hasAllOdds=false;
+        }
+        
+        var prize=0, dayIncome=0, status='unknown';
         if(!anyUnknown){
-          if(allWon){ dayIncome+=2000; status='won'; totalWon++; } // 2串1约中奖3000，利润2000
-          else if(anyLose){ dayIncome-=amount; status='lose'; }
           totalPlans++;
+          if(allWon){
+            // 盈利公式：中奖金额 - 方案金额；2串1中奖金=方案金额×赔率1×赔率2
+            prize = hasAllOdds && odds.length===2 ? Math.round(AMOUNT * odds[0] * odds[1]) : Math.round(AMOUNT * 3);
+            dayIncome = prize - AMOUNT;
+            status='won'; totalWon++;
+          } else if(anyLose){
+            dayIncome = -AMOUNT;
+            status='lose';
+          }
         }
         totalIncome+=dayIncome;
         
@@ -397,15 +429,12 @@ app.post('/api',function(req,res){
           matches:pp.matches.map(function(mm){
             return { matchNum:mm.matchNum, home:mm.homeName, visit:mm.visitName, direction:mm.direction, isWon:mm.isWon, isLose:mm.isLose };
           }),
-          income:dayIncome
+          prize:prize, income:dayIncome
         });
       });
     }
     
-    // 只返回最近N条
-    if(daysFilter===0) results=results.slice(-30);
     var winRate=totalPlans>0?Math.round(totalWon/totalPlans*100):0;
-    
     return res.json({code:1,data:{
       summary:{ totalPlans:totalPlans, totalWon:totalWon, totalIncome:totalIncome, winRate:winRate },
       records:results.reverse()
