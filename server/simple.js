@@ -322,14 +322,14 @@ app.post('/api',function(req,res){
     return res.json({code:1,data:{lastResult:lastResult,series:series,timeLabels:timeLabels}});
   }
   if(a==='ranking-list'){
-    var filterCat=d.category||null,filterDir=d.direction||null;
-    // 30s 缓存
-    var ck=filterCat+'|'+filterDir;
+    var filterCat=d.category||null,filterDir=d.direction||null,reqDate=d.date||null;
+    // 30s 缓存(按完整参数)
+    var ck=filterCat+'|'+filterDir+'|'+(reqDate||'');
     if(cache.rank.data&&ck===cache.rank.cat&&Date.now()-cache.rank.time<30000)
       return res.json(cache.rank.data);
 
     function fmtDate(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
-    // 统计每个竞彩date的推荐总数
+    // 统计每个竞彩date的推荐总数（全量统计，用于回退）
     var dateRecNum={};
     Object.keys(data.m).forEach(function(k){
       var m=data.m[k];
@@ -342,15 +342,19 @@ app.post('/api',function(req,res){
       if(!dateRecNum[m.date])dateRecNum[m.date]=0;
       dateRecNum[m.date]+=total;
     });
-    // 从今天往前找最近一个有推荐的竞彩期号日期
+    // 指定日期或自动查找最近有推荐的日期
     var now=new Date();
     var effectiveDate='';
-    for(var i=0;i<30;i++){
-      var ds=fmtDate(now);
-      if(dateRecNum[ds]&&dateRecNum[ds]>0){effectiveDate=ds;break}
-      now.setDate(now.getDate()-1);
+    if(reqDate){
+      effectiveDate=reqDate;
+    }else{
+      for(var i=0;i<30;i++){
+        var ds=fmtDate(now);
+        if(dateRecNum[ds]&&dateRecNum[ds]>0){effectiveDate=ds;break}
+        now.setDate(now.getDate()-1);
+      }
     }
-    if(!effectiveDate)effectiveDate=fmtDate(new Date());
+    if(!effectiveDate)effectiveDate=reqDate||fmtDate(new Date());
     // 该日期的竞彩期号标签（如"周二"）
     var effectiveWeek='';
     Object.keys(data.m).forEach(function(k){
