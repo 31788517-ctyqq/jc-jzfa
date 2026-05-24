@@ -25,11 +25,24 @@ function inferOddsFromRecommends(recomms, matchStatus) {
 
   // 从推荐比例反推赔率 (高推荐 → 低赔率)
   const maxRatio = Math.max(hRatio, dRatio, aRatio);
-  const scale = maxRatio > 0.6 ? 1.3 : maxRatio > 0.4 ? 1.6 : 2.0;
 
-  const home = hRatio > 0 ? (2.8 - hRatio * scale).toFixed(2) : null;
-  const draw = dRatio > 0 ? (3.2 - dRatio * scale).toFixed(2) : null;
-  const away = aRatio > 0 ? (2.8 - aRatio * scale).toFixed(2) : null;
+  // 检测是否包含让球方向
+  const hasHandicap = recomms.some(r => (r.type||'').indexOf('让')===0);
+
+  // 小样本(<5专家)和大样本使用不同参数，使推导更接近市场赔率
+  const isSmall = total < 5;
+  const home = hRatio > 0 ? (isSmall
+    ? (2.0 - hRatio * 0.3 + (hasHandicap ? 0.4 : 0)).toFixed(2)
+    : (2.8 - hRatio * 1.3).toFixed(2)
+  ) : null;
+  const draw = dRatio > 0 ? (isSmall
+    ? (3.0 - dRatio * 0.5).toFixed(2)
+    : (3.2 - dRatio * 1.3).toFixed(2)
+  ) : null;
+  const away = aRatio > 0 ? (isSmall
+    ? (2.0 - aRatio * 0.3 + (hasHandicap ? 0.4 : 0)).toFixed(2)
+    : (2.8 - aRatio * 1.3).toFixed(2)
+  ) : null;
 
   return { home, draw, away };
 }
