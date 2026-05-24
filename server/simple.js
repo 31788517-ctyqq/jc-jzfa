@@ -169,13 +169,23 @@ app.post('/api',function(req,res){
       // 直接从 odds_history 文件读取，确保与代码一致
       var od = loadOddsFromFile(dateStr, num);
       if(od){
-        return {
+        var result = {
           spf: od.spf ? { home: od.spf.home, draw: od.spf.draw, away: od.spf.away } : null,
           rqspf: od.rqspf ? { home: od.rqspf.home, draw: od.rqspf.draw, away: od.rqspf.away, handicap: od.rqspf.handicap } : null,
           totalGoals: od.totalGoals || null,
           halfFull: od.halfFull || null,
         };
+        // 诊断日志：检查赔率完整性
+        var missingInfo = [];
+        if(!od.spf) missingInfo.push('SPF');
+        if(!od.rqspf) missingInfo.push('RQ');
+        if(!od.totalGoals) missingInfo.push('总进球');
+        if(missingInfo.length > 0){
+          console.log('[odds-missing]', dateStr, num, 'direction='+direction, 'missing:', missingInfo.join(','));
+        }
+        return result;
       }
+      console.log('[odds-notfound]', dateStr, num, 'direction='+direction, 'matchId='+match.matchId);
       return null;
     }
 
@@ -450,8 +460,15 @@ app.post('/api',function(req,res){
         }
         if(histOdds&&histOdds[num]){
           var od=histOdds[num];
-          return { spf:od.spf||null, rqspf:od.rqspf||null, totalGoals:od.totalGoals||null };
+          var result = { spf:od.spf||null, rqspf:od.rqspf||null, totalGoals:od.totalGoals||null };
+          var missingInfo = [];
+          if(!od.spf) missingInfo.push('SPF');
+          if(!od.rqspf) missingInfo.push('RQ');
+          if(!od.totalGoals) missingInfo.push('TG');
+          if(missingInfo.length>0) console.log('[income-odds-missing]', ds, num, 'missing:', missingInfo.join(','));
+          return result;
         }
+        console.log('[income-odds-notfound]', ds, num, 'matchId='+match.matchId);
         return null;
       }
       
@@ -1016,6 +1033,39 @@ app.post('/api',function(req,res){
       result.saved=true;
     }catch(e){result.saveError=e.message}
     return res.json({code:1,data:result,msg:'Fixed '+result.fixed+' matches'});
+  }
+  // 诊断API：检查特定日期/场次的赔率数据
+  if(a==='check-odds'){
+    var chkDate=d.date||'';
+    var chkNum=d.num||'';
+    var result={date:chkDate, num:chkNum, found:false, data:null, filePath:'', fileExists:false};
+    if(chkDate){
+      var f=path.join(__dirname,'odds_history',chkDate+'.json');
+      result.filePath=f;
+      result.fileExists=fs.existsSync(f);
+      if(result.fileExists){
+        try{
+          var raw=JSON.parse(fs.readFileSync(f,'utf8'));
+          var odds=raw.odds||{};
+          result.totalMatches=Object.keys(odds).length;
+          result.availableNums=Object.keys(odds);
+          if(chkNum){
+            var od=odds[chkNum];
+            result.found=!!od;
+            result.data=od||null;
+            if(od){
+              result.hasSPF=!!od.spf;
+              result.hasRQ=!!od.rqspf;
+              result.hasTG=!!od.totalGoals;
+              result.spfDetail=od.spf||null;
+              result.rqspfDetail=od.rqspf||null;
+              result.totalGoalsDetail=od.totalGoals||null;
+            }
+          }
+        }catch(e){result.error=e.message}
+      }
+    }
+    return res.json({code:1,data:result});
   }
   res.json({code:0,msg:'Not found'})
 });

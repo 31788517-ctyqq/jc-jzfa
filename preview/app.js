@@ -1211,10 +1211,11 @@ function loadPlanList() {
           var label = pt.trim();
           var ft = commonPrefix ? (commonPrefix + label.replace(commonPrefix, '')) : label.trim();
           var val = null;
+          var isRQ = false;  // 标记是否已尝试RQ取值（防止fallback到SPF）
 
-          if (ft === '让胜' || ft.indexOf('让胜') >= 0) val = oddsObj.rqspf && oddsObj.rqspf.home;
-          else if (ft === '让平' || ft.indexOf('让平') >= 0) val = oddsObj.rqspf && oddsObj.rqspf.draw;
-          else if (ft === '让负' || ft.indexOf('让负') >= 0) val = oddsObj.rqspf && oddsObj.rqspf.away;
+          if (ft === '让胜' || ft.indexOf('让胜') >= 0) { val = oddsObj.rqspf && oddsObj.rqspf.home; isRQ = true; }
+          else if (ft === '让平' || ft.indexOf('让平') >= 0) { val = oddsObj.rqspf && oddsObj.rqspf.draw; isRQ = true; }
+          else if (ft === '让负' || ft.indexOf('让负') >= 0) { val = oddsObj.rqspf && oddsObj.rqspf.away; isRQ = true; }
           else if (ft.indexOf('总进球') >= 0 && oddsObj.totalGoals) {
             var gm = ft.match(/(\d+\+?)/);
             if (gm) val = oddsObj.totalGoals[gm[1]];
@@ -1224,10 +1225,13 @@ function loadPlanList() {
             var gm2 = ft.match(/(\d+\+?)/);
             if (gm2) val = oddsObj.totalGoals[gm2[1]];
           }
-          if (!val && ft.indexOf('胜') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.home;
-          else if (!val && ft.indexOf('平') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.draw;
-          else if (!val && ft.indexOf('负') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.away;
-          if (!val && oddsObj.spf) val = oddsObj.spf.home || oddsObj.spf.draw || oddsObj.spf.away;
+          // SPF fallback 仅对非RQ/非总进球方向生效
+          if (!val && !isRQ) {
+            if (ft.indexOf('胜') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.home;
+            else if (ft.indexOf('平') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.draw;
+            else if (ft.indexOf('负') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.away;
+          }
+          if (!val && !isRQ && oddsObj.spf) val = oddsObj.spf.home || oddsObj.spf.draw || oddsObj.spf.away;
 
           // 查找此子方向的结果状态
           var subR = null;
