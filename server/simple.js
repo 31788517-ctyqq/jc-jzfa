@@ -6,6 +6,8 @@ var {fetchOdds:fetch500Odds}=require('./fetch_500odds');
 var oddsCache={},oddsCacheTime={},oddsCacheTTL=1800000;
 // 按日期缓存500.com全量赔率
 var odds500Cache={},odds500Date='';
+// 已从odds_history加载的日期（防止异步抓取覆盖历史数据）
+var oddsHistoryLoaded={};
 // 方案快照冻结缓存
 var planSnapshots={};
 app.use(compression());app.use(cors());app.use(express.json());
@@ -175,8 +177,8 @@ app.post('/api',function(req,res){
     // 如果已冻结但无快照，生成后保存
     // 每天下午4点前未到首次比赛30分钟前不冻结（按当天16:00检查）
 
-    // 异步拉取500.com赔率
-    if(odds500Date!==dateStr && !odds500Cache._fetching){
+    // 异步拉取500.com赔率（已从历史加载的日期不重复抓取）
+    if(!oddsHistoryLoaded[dateStr] && odds500Date!==dateStr && !odds500Cache._fetching){
       odds500Cache._fetching=true;
       fetch500Odds(dateStr).then(function(data){
         Object.keys(data).forEach(function(k){ data[k]._t=now; odds500Cache[k]=data[k]; });
@@ -1052,6 +1054,7 @@ function loadOddsHistory(){
         oddsData[k]._t=Date.now();
         odds500Cache[k]=oddsData[k];
       });
+      oddsHistoryLoaded[dateStr]=true;
       if(!odds500Date) odds500Date=dateStr;
       loaded++;
     }catch(e){}
