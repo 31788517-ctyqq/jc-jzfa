@@ -199,6 +199,38 @@ app.post('/api',function(req,res){
       return inferOddsFromRecommends(findRecommends(match.matchId));
     }
 
+    // 提取复合方向的所有子选项赔率
+    function extractSubOdds(oddsObj, direction){
+      var vals = [];
+      // 总进球复合: "总进球-2、3球"
+      if(direction.indexOf('总进球-')===0){
+        var tg = oddsObj.totalGoals;
+        if(!tg) return vals;
+        var nums = direction.replace('总进球-','').split(/[、,]/);
+        for(var ni=0;ni<nums.length;ni++){
+          var n = nums[ni].replace(/球/g,'').trim();
+          if(tg[n]!==undefined) vals.push(tg[n]);
+        }
+        return vals;
+      }
+      // 其他复合方向: "平、让平"
+      if(direction.indexOf('、')>=0 || direction.indexOf(',')>=0){
+        var parts = direction.split(/[、,]/);
+        for(var pi=0;pi<parts.length;pi++){
+          var pd = parts[pi].trim();
+          if(pd==='平'){ if(oddsObj.spf) vals.push(oddsObj.spf.draw); }
+          else if(pd==='让平' && oddsObj.rqspf) vals.push(oddsObj.rqspf.draw);
+          else if(pd==='让负' && oddsObj.rqspf) vals.push(oddsObj.rqspf.away);
+          else if(pd==='让胜' && oddsObj.rqspf) vals.push(oddsObj.rqspf.home);
+        }
+        return vals;
+      }
+      // 单选
+      if(direction==='让负' && oddsObj.rqspf) vals.push(oddsObj.rqspf.away);
+      else if(direction==='让胜' && oddsObj.rqspf) vals.push(oddsObj.rqspf.home);
+      return vals;
+    }
+
     // 辅助：获取每个方向专家数最多的场次（可排除已选比赛）
     function findBestMatchForDirection(directions, excludeIds){
       var bestMatch=null,bestCount=0;
@@ -269,7 +301,16 @@ app.post('/api',function(req,res){
     function generatePlans(){
       var plans=[];
       
-      // 方案一：场次1=平/让平最多专家，场次2=让负最多专家（排除已选）
+      // 奖金计算：eff = sum(sub_odds) / (2N)  双选公式
+      function calcEffectiveOdds(direction, match){
+        var oddsObj = match.odds || {};
+        var subOdds = extractSubOdds(oddsObj, direction);
+        if(subOdds.length === 0) return null;
+        var N = subOdds.length;
+        if(N === 1) return subOdds[0];
+        return subOdds.reduce(function(a,b){return a+b}, 0) / (2 * N);
+      }
+      
       var m1a=findBestMatchForDirection(['平','让平']);
       var m1b=findBestMatchForDirection(['让负'], m1a?[m1a.matchId]:null);
       
@@ -281,24 +322,42 @@ app.post('/api',function(req,res){
       var m3a=findBestMatchForDirection(['总进球-2、3球']);
       var m3b=findBestMatchForDirection(['让胜']);
 
-      if(m1a&&m1b) plans.push({ planId:'plan_'+dateStr+'_1', planName:'方案一',
-        matches:[buildMatchObj(m1a,'平、让平'),buildMatchObj(m1b,'让负')],
-        amount:1000, playType:'混合投注', matchCount:2, passType:'2串1',
-        betCount:250, ticketCount:10, multiplier:25,
-        maxPrize:Math.round(1000*2.5+Math.random()*2000)
-      });
-      if(m2a&&m2b) plans.push({ planId:'plan_'+dateStr+'_2', planName:'方案二',
-        matches:[buildMatchObj(m2a,'总进球-2、3球'),buildMatchObj(m2b,'让负')],
-        amount:1000, playType:'混合投注', matchCount:2, passType:'2串1',
-        betCount:250, ticketCount:10, multiplier:25,
-        maxPrize:Math.round(1000*2.5+Math.random()*2000)
-      });
-      if(m3a&&m3b) plans.push({ planId:'plan_'+dateStr+'_3', planName:'方案三',
-        matches:[buildMatchObj(m3a,'总进球-2、3球'),buildMatchObj(m3b,'让胜')],
-        amount:1000, playType:'混合投注', matchCount:2, passType:'2串1',
-        betCount:250, ticketCount:10, multiplier:25,
-        maxPrize:Math.round(1000*2.5+Math.random()*2000)
-      });
+      if(m1a&&m1b){
+        var m1aObj = buildMatchObj(m1a,'平、让平');
+        var m1bObj = buildMatchObj(m1b,'让负');
+        var eff1 = calcEffectiveOdds('平、让平', m1aObj);
+        var eff2 = calcEffectiveOdds('让负', m1bObj);
+        var mp1 = eff1&&eff2 ? Math.round(1000 * eff1 * eff2) : Math.round(1000 * 2.5);
+        plans.push({ planId:'plan_'+dateStr+'_1', planName:'方案一',
+          matches:[m1aObj, m1bObj],
+          amount:1000, playType:'混合投注', matchCount:2, passType:'2串1',
+          betCount:250, ticketCount:10, multiplier:25, maxPrize:mp1
+        });
+      }
+      if(m2a&&m2b){
+        var m2aObj = buildMatchObj(m2a,'总进球-2、3球');
+        var m2bObj = buildMatchObj(m2b,'让负');
+        var eff1 = calcEffectiveOdds('总进球-2、3球', m2aObj);
+        var eff2 = calcEffectiveOdds('让负', m2bObj);
+        var mp2 = eff1&&eff2 ? Math.round(1000 * eff1 * eff2) : Math.round(1000 * 2.5);
+        plans.push({ planId:'plan_'+dateStr+'_2', planName:'方案二',
+          matches:[m2aObj, m2bObj],
+          amount:1000, playType:'混合投注', matchCount:2, passType:'2串1',
+          betCount:250, ticketCount:10, multiplier:25, maxPrize:mp2
+        });
+      }
+      if(m3a&&m3b){
+        var m3aObj = buildMatchObj(m3a,'总进球-2、3球');
+        var m3bObj = buildMatchObj(m3b,'让胜');
+        var eff1 = calcEffectiveOdds('总进球-2、3球', m3aObj);
+        var eff2 = calcEffectiveOdds('让胜', m3bObj);
+        var mp3 = eff1&&eff2 ? Math.round(1000 * eff1 * eff2) : Math.round(1000 * 2.5);
+        plans.push({ planId:'plan_'+dateStr+'_3', planName:'方案三',
+          matches:[m3aObj, m3bObj],
+          amount:1000, playType:'混合投注', matchCount:2, passType:'2串1',
+          betCount:250, ticketCount:10, multiplier:25, maxPrize:mp3
+        });
+      }
       return plans;
     }
 
