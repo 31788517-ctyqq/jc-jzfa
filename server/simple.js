@@ -13,7 +13,7 @@ app.use(compression());app.use(cors());app.use(express.json());
 var staticOpts={maxAge:'30d',etag:true,immutable:true,setHeaders:function(res){res.removeHeader('Accept-Ranges')}};
 app.use('/assets/worldcup',express.static(path.join(__dirname,'../miniprogram/images/worldcup'),staticOpts));
 // 首页内存缓存：避免每次读磁盘
-var homeCache=null,homeCacheTime=0,homeCacheMaxAge=60000;
+var homeCache=null,homeCacheTime=0,homeCacheMaxAge=0;
 var hp=path.join(__dirname,'../preview/index.html');
 function getHomeHTML(cb){
   var now=Date.now();
@@ -24,14 +24,14 @@ function getHomeHTML(cb){
   });
 }
 app.get('/',function(req,res){
-  getHomeHTML(function(err,html){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'public, max-age=60'});res.end(html)});
+  getHomeHTML(function(err,html){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache, no-store, must-revalidate'});res.end(html)});
 });
-var previewOpts={maxAge:'1h',etag:true,setHeaders:function(res,fp){
+var previewOpts={maxAge:0,etag:false,setHeaders:function(res,fp){
+  res.setHeader('Cache-Control','no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma','no-cache');
+  res.setHeader('Expires','0');
   res.removeHeader('Accept-Ranges');
-  // 强制 charset 防止手机端乱码
   if(fp.endsWith('.html'))res.setHeader('Content-Type','text/html; charset=utf-8');
-  // CSS/JS 长缓存30天，HTML 短缓存1h
-  if(fp.endsWith('.css')||fp.endsWith('.js')){res.setHeader('Cache-Control','public, max-age=2592000')}
 }};
 app.use(express.static(path.join(__dirname,'../preview'),previewOpts));
 
