@@ -46,20 +46,27 @@ function parseSegment(segment, matchNum) {
   const hcapMatch = segment.match(/([+-]\d)/);
   const handicap = hcapMatch ? parseInt(hcapMatch[1]) : 0;
 
-  // SPF胜平负 (前3个)
+  // SPF胜平负 (前3个: 0-2)
   const spf = { home: nums[0], draw: nums[1], away: nums[2] };
 
-  // RQSPF让球胜平负 (接下来3个)
+  // RQSPF让球胜平负 (3-5)
   const rqspf = { home: nums[3], draw: nums[4], away: nums[5], handicap };
 
-  // 半全场 (9个)
+  // 半全场 (6-14, 9个)
   const halfFull = nums.length >= 15 ? {
     hh: nums[6], hd: nums[7], ha: nums[8],
     dh: nums[9], dd: nums[10], da: nums[11],
     ah: nums[12], ad: nums[13], aa: nums[14],
   } : null;
 
-  return { num: matchNum, homeName, visitName, handicap, spf, rqspf, halfFull, isSingleGame };
+  // 总进球 (排在比分31个之后, 即位置 15+31=46 开始共8个)
+  // 0,1,2,3,4,5,6,7+
+  const totalGoals = nums.length >= 54 ? {
+    '0': nums[46], '1': nums[47], '2': nums[48], '3': nums[49],
+    '4': nums[50], '5': nums[51], '6': nums[52], '7+': nums[53],
+  } : null;
+
+  return { num: matchNum, homeName, visitName, handicap, spf, rqspf, halfFull, totalGoals, isSingleGame };
 }
 
 function extractOdds(html) {
