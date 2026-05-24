@@ -1,6 +1,9 @@
 var express=require('express'),cors=require('cors'),compression=require('compression'),path=require('path'),fs=require('fs');
 var app=express(),PORT=process.env.PORT||3000;
 var {inferOddsFromRecommends}=require('./fetch_odds');
+var {fetchOdds}=require('./fetch_real_odds');
+// 赔率缓存：避免重复抓取（30分钟过期）
+var oddsCache={},oddsCacheTime={},oddsCacheTTL=1800000;
 app.use(compression());app.use(cors());app.use(express.json());
 var staticOpts={maxAge:'30d',etag:true,immutable:true,setHeaders:function(res){res.removeHeader('Accept-Ranges')}};
 app.use('/assets/worldcup',express.static(path.join(__dirname,'../miniprogram/images/worldcup'),staticOpts));
@@ -158,6 +161,24 @@ app.post('/api',function(req,res){
       if(recs.length===0) continue;
       var top = recs[0];
       for(var j=1;j<recs.length;j++){ if(recs[j].num>top.num) top=recs[j]; }
+      // 赔率：优先使用真实赔率缓存(30分钟有效)，否则用推荐推导
+      var odds=null;
+      var mid=m.matchId;
+      var cached=oddsCache[mid];
+      var cacheFresh=oddsCacheTime[mid]&&Date.now()-oddsCacheTime[mid]<oddsCacheTTL;
+      if(cached && cacheFresh){
+        odds=cached;
+      }else{
+        odds=inferOddsFromRecommends(findRecommends(mid));
+        // 异步后台更新真实赔率（首次或过期时触发）
+        if(!cacheFresh){
+          oddsCacheTime[mid]=Date.now(); // 防止重复触发
+          fetchOdds(mid).then(function(real){
+            if(real){oddsCache[mid]=real;oddsCacheTime[mid]=Date.now();}
+            else{oddsCacheTime[mid]=0} // 标记失败，下次重试
+          }).catch(function(){oddsCacheTime[mid]=0});
+        }
+      }
       plans.push({
         planId:'p_'+m.matchId, homeName:m.homeName, visitName:m.visitName, leagueName:m.leagueName,
         matchNum:m.num||'', startTime:m.startTime||'', matchStatus:m.matchStatus,
@@ -167,7 +188,7 @@ app.post('/api',function(req,res){
         amount:(top.num||1)*2, maxPrize:Math.round((top.num||1)*2*(1.8+Math.random()*2.2)),
         isWin:m.matchStatus===2?(Math.random()>0.5):null,
         publishTime:(m.startTime||'').slice(0,16).replace(' ',' '),
-        odds: inferOddsFromRecommends(findRecommends(m.matchId))
+        odds: odds
       });
     }
     return res.json({code:1,data:{date:dateStr,plans:plans}});
