@@ -217,18 +217,40 @@ app.post('/api',function(req,res){
     // 辅助：构建单个match对象
     function buildMatchObj(m, direction){
       var recs=findRecommends(m.matchId);
-      var matchedRec=null;
-      for(var j=0;j<recs.length;j++){ if(recs[j].type===direction){ matchedRec=recs[j]; break; } }
-      if(!matchedRec){
-        // 复合方向如"总进球-2、3球", 找匹配的推荐
+      var expertCount=0, isMatchWon=null, isMatchLose=null;
+      
+      // 方向可能包含多个子方向（如"平、让平"）
+      var subDirs = direction.split(/[、,]/);
+      var matchedRecs = [];
+      
+      subDirs.forEach(function(subDir){
+        var sd = subDir.trim();
+        recs.forEach(function(r){
+          if(r.type===sd) matchedRecs.push(r);
+        });
+      });
+      
+      if(matchedRecs.length===0){
+        // 模糊匹配（兼容旧逻辑）
         for(var j=0;j<recs.length;j++){
           var rt=recs[j].type||'';
-          if(rt.indexOf(direction)>=0 || direction.indexOf(rt)>=0){ matchedRec=recs[j]; break; }
+          if(rt.indexOf(direction)>=0 || direction.indexOf(rt)>=0){ matchedRecs.push(recs[j]); }
         }
       }
-      var expertCount=matchedRec?matchedRec.num:0;
-      var isMatchWon=matchedRec?matchedRec.result===1:null;
-      var isMatchLose=matchedRec?matchedRec.result===0:null;
+      
+      expertCount = matchedRecs.reduce(function(s,r){ return s + (r.num||0); }, 0);
+      
+      // 胜负判定：所有子方向都命中才算赢，有一个未中就算输
+      var hasWon = matchedRecs.length>0, hasLose = false, hasUnknown = false;
+      matchedRecs.forEach(function(r){
+        if(r.result===1){} // pass
+        else if(r.result===0) hasLose=true;
+        else hasUnknown=true;
+      });
+      if(hasUnknown) hasWon=false;
+      isMatchWon = hasWon && !hasUnknown;
+      isMatchLose = hasLose && !hasUnknown;
+      
       return {
         matchId:m.matchId, homeName:m.homeName, visitName:m.visitName,
         leagueName:m.leagueName, matchNum:m.num||'', startTime:m.startTime||'',
@@ -256,7 +278,7 @@ app.post('/api',function(req,res){
       var m3b=findBestMatchForDirection(['让胜']);
 
       if(m1a&&m1b) plans.push({ planId:'plan_'+dateStr+'_1', planName:'方案一',
-        matches:[buildMatchObj(m1a,'平'),buildMatchObj(m1b,'让负')],
+        matches:[buildMatchObj(m1a,'平、让平'),buildMatchObj(m1b,'让负')],
         amount:1000, playType:'混合投注', matchCount:2, passType:'2串1',
         betCount:250, ticketCount:10, multiplier:25,
         maxPrize:Math.round(1000*2.5+Math.random()*2000)
@@ -306,7 +328,19 @@ app.post('/api',function(req,res){
     // 提取赔率数值
     function extractOddsVal(oddsObj, direction){
       if(!oddsObj) return null;
+      // 复合方向：拆开取平均值
+      if(direction.indexOf('、')>=0 || direction.indexOf(',')>=0){
+        var parts = direction.split(/[、,]/);
+        var vals = [];
+        for(var pi=0;pi<parts.length;pi++){
+          var sv = extractOddsVal(oddsObj, parts[pi].trim());
+          if(sv!==null) vals.push(sv);
+        }
+        if(vals.length===0) return null;
+        return vals.reduce(function(a,b){return a+b},0) / vals.length;
+      }
       if(direction==='平') return oddsObj.spf?oddsObj.spf.draw:null;
+      if(direction==='让平') return oddsObj.rqspf?oddsObj.rqspf.draw:null;
       if(direction==='让负') return oddsObj.rqspf?oddsObj.rqspf.away:null;
       if(direction==='让胜') return oddsObj.rqspf?oddsObj.rqspf.home:null;
       if(direction.indexOf('总进球-')===0){
@@ -372,14 +406,25 @@ app.post('/api',function(req,res){
       
       function buildMatch(match, direction){
         var recs=findRecommends(match.matchId);
-        var matched=null;
-        for(var ri=0;ri<recs.length;ri++){ if(recs[ri].type===direction){ matched=recs[ri]; break; } }
+        var subDirs = direction.split(/[、,]/);
+        var matchedRecs = [];
+        subDirs.forEach(function(sd){
+          var s = sd.trim();
+          for(var ri=0;ri<recs.length;ri++){ if(recs[ri].type===s) matchedRecs.push(recs[ri]); }
+        });
+        var isWon=null, isLose=null;
+        if(matchedRecs.length>0){
+          var allWon=true, anyLose=false, anyUnknown=false;
+          matchedRecs.forEach(function(r){
+            if(r.result===1){} else if(r.result===0) anyLose=true; else anyUnknown=true;
+          });
+          if(!anyUnknown){ isWon=allWon; isLose=anyLose; }
+        }
         return {
           matchId:match.matchId, homeName:match.homeName, visitName:match.visitName,
           matchNum:match.num||'', direction:direction,
           oddsObj:getOddsObj(match),
-          isWon:matched?matched.result===1:null,
-          isLose:matched?matched.result===0:null
+          isWon:isWon, isLose:isLose
         };
       }
       
@@ -388,7 +433,7 @@ app.post('/api',function(req,res){
       var m3a=findBest(['总进球-2、3球']), m3b=findBest(['让胜']);
       
       var dayPlans=[];
-      if(m1a&&m1b) dayPlans.push({name:'plan_1',planName:'方案一',matches:[buildMatch(m1a,'平'),buildMatch(m1b,'让负')]});
+      if(m1a&&m1b) dayPlans.push({name:'plan_1',planName:'方案一',matches:[buildMatch(m1a,'平、让平'),buildMatch(m1b,'让负')]});
       if(m2a&&m2b) dayPlans.push({name:'plan_2',planName:'方案二',matches:[buildMatch(m2a,'总进球-2、3球'),buildMatch(m2b,'让负')]});
       if(m3a&&m3b) dayPlans.push({name:'plan_3',planName:'方案三',matches:[buildMatch(m3a,'总进球-2、3球'),buildMatch(m3b,'让胜')]});
       
