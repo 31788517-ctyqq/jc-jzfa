@@ -166,7 +166,7 @@ function switchTab(tab) {
     }, 300);
   }
   if (tab === 'plan') { updatePlanDateBar(); loadPlanList(); }
-  if (tab === 'rank') loadRanking();
+  if (tab === 'rank') { updateRankDateBar(); loadRanking(); }
   if (tab === 'hit') loadHitRate();
   if (tab === 'filter') { loadFilterLeagues(); resetFilterResult(); }
 }
@@ -450,6 +450,7 @@ function loadRanking(cat, dir) {
   const params = {};
   if (selectedCategory && selectedDirection) params.direction = selectedDirection;
   else if (selectedCategory) params.category = selectedCategory;
+  if (rankDate) params.date = rankDate;
 
   api('ranking-list', params).then(data => {
     // 日期标签：显示当前排行数据的竞彩期号
@@ -1037,6 +1038,36 @@ function renderAIContent(content, homeTeam, awayTeam) {
 function closeAI() {
   document.getElementById('aiOverlay').classList.remove('active');
   document.body.style.overflow = '';
+}
+
+// ========== 排行榜日期切换 ==========
+var rankDate = '';
+var rankDateOffset = 0;
+
+function updateRankDateBar() {
+  var d = new Date();
+  d.setDate(d.getDate() + rankDateOffset);
+  rankDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  var el = document.getElementById('rankDateCurrent');
+  if (!el) return;
+  var weekNames = ['周日','周一','周二','周三','周四','周五','周六'];
+  var week = weekNames[d.getDay()];
+  var mmdd = String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+  var today = new Date().toDateString() === d.toDateString();
+  var prefix = today ? '今天 ' : '';
+  el.textContent = prefix + mmdd + ' ' + week;
+}
+
+function shiftRankDate(delta) {
+  rankDateOffset += delta;
+  updateRankDateBar();
+  loadRanking();
+}
+
+function goRankToday() {
+  rankDateOffset = 0;
+  updateRankDateBar();
+  loadRanking();
 }
 
 // ========== 今日方案 ==========
