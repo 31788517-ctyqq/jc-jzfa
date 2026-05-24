@@ -33,11 +33,8 @@ try{
   data.m=raw.m||raw.matches||{};
   data.r=raw.r||raw.recommends||{};
   console.log('Loaded',Object.keys(data.m).length,'matches',Object.keys(data.r).length,'recGroups');
-  // 启动时自动修复日期不匹配（仅修正内存，不回写 data.json 避免永久改数据）
-  var fixResult=fixMatchDates(data.m);
-  if(fixResult.fixed>0){
-    console.log('Auto-fixed (memory only):',fixResult.fixed,'matches with wrong dates');
-  }
+  // fixMatchDates 已禁用：num前缀（如"周五"）可能不反映实际比赛日期（赛程可能调整）
+  // 日期以 API 返回的 bDate/date 字段为准（由 period_daemon 写入 data.json）
 }catch(e){console.log('No data.json:',e.message)}
 
 // 实时比分合并
