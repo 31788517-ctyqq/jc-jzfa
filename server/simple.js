@@ -1,9 +1,11 @@
 var express=require('express'),cors=require('cors'),compression=require('compression'),path=require('path'),fs=require('fs');
 var app=express(),PORT=process.env.PORT||3000;
 var {inferOddsFromRecommends}=require('./fetch_odds');
-var {fetchOdds}=require('./fetch_real_odds');
+var {fetchOdds:fetch500Odds}=require('./fetch_500odds');
 // 赔率缓存：避免重复抓取（30分钟过期）
 var oddsCache={},oddsCacheTime={},oddsCacheTTL=1800000;
+// 按日期缓存500.com全量赔率
+var odds500Cache={},odds500Date='';
 app.use(compression());app.use(cors());app.use(express.json());
 var staticOpts={maxAge:'30d',etag:true,immutable:true,setHeaders:function(res){res.removeHeader('Accept-Ranges')}};
 app.use('/assets/worldcup',express.static(path.join(__dirname,'../miniprogram/images/worldcup'),staticOpts));
@@ -161,22 +163,29 @@ app.post('/api',function(req,res){
       if(recs.length===0) continue;
       var top = recs[0];
       for(var j=1;j<recs.length;j++){ if(recs[j].num>top.num) top=recs[j]; }
-      // 赔率：优先使用真实赔率缓存(30分钟有效)，否则用推荐推导
+      // 赔率：优先500.com真实赔率，否则推荐推导
       var odds=null;
       var mid=m.matchId;
-      var cached=oddsCache[mid];
-      var cacheFresh=oddsCacheTime[mid]&&Date.now()-oddsCacheTime[mid]<oddsCacheTTL;
-      if(cached && cacheFresh){
-        odds=cached;
+      var mNum=m.num||'';
+      // 优先用500.com缓存（展平spf结构为 {home, draw, away}）
+      var fiveOdds=odds500Cache[mNum];
+      if(fiveOdds && fiveOdds._t && (Date.now()-fiveOdds._t<oddsCacheTTL)){
+        odds=fiveOdds.spf ? {home:fiveOdds.spf.home,draw:fiveOdds.spf.draw,away:fiveOdds.spf.away} : fiveOdds;
       }else{
         odds=inferOddsFromRecommends(findRecommends(mid));
-        // 异步后台更新真实赔率（首次或过期时触发）
-        if(!cacheFresh){
-          oddsCacheTime[mid]=Date.now(); // 防止重复触发
-          fetchOdds(mid).then(function(real){
-            if(real){oddsCache[mid]=real;oddsCacheTime[mid]=Date.now();}
-            else{oddsCacheTime[mid]=0} // 标记失败，下次重试
-          }).catch(function(){oddsCacheTime[mid]=0});
+        // 异步后台拉取500.com数据（按日期，只触发一次）
+        if(odds500Date!==dateStr && !odds500Cache._fetching){
+          odds500Cache._fetching=true;
+          fetch500Odds(dateStr).then(function(data){
+            Object.keys(data).forEach(function(k){
+              data[k]._t=Date.now();
+              odds500Cache[k]=data[k];
+            });
+            odds500Date=dateStr;
+            odds500Cache._fetching=false;
+          }).catch(function(){
+            odds500Cache._fetching=false;
+          });
         }
       }
       plans.push({
