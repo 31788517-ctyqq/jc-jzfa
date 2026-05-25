@@ -41,10 +41,15 @@ export function loadPlanList() {
   // 初始加载时不传日期，让服务器自动选择最新数据日
   var params = state.planDateOffset === 0 ? {} : { date: state.planDate };
   api('plan-list', params).then(function (data) {
-    // 用服务器返回的实际日期更新显示
+    // 用服务器返回的实际日期更新显示（直接改DOM避免updatePlanDateBar重置）
     if (data.date && data.date !== state.planDate) {
       state.setPlanDate(data.date);
-      updatePlanDateBar();
+      var planEl = document.getElementById('planDateCurrent');
+      if (planEl) {
+        var mmdd = data.date.slice(5).replace('-', '/');
+        var week = WEEK_NAMES[new Date(data.date).getDay()];
+        planEl.textContent = mmdd + ' ' + week;
+      }
     }
     var plans = data.plans || [];
     if (plans.length === 0) {

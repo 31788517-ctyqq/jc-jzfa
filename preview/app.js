@@ -1346,7 +1346,14 @@ function loadPlanList() {
 
   var params = planDateOffset === 0 ? {} : { date: planDate };
   api('plan-list', params).then(function(data) {
-    if (data.date && data.date !== planDate) { planDate = data.date; updatePlanDateBar(); }
+    if (data.date && data.date !== planDate) {
+      planDate = data.date;
+      var planEl = document.getElementById('planDateCurrent');
+      if (planEl) {
+        var mmdd = data.date.slice(5).replace('-', '/');
+        planEl.textContent = mmdd + ' ' + WEEK_NAMES[new Date(data.date).getDay()];
+      }
+    }
     var plans = data.plans || [];
     if (plans.length === 0) {
       // 当天无方案时自动回退到最近有方案的日期
