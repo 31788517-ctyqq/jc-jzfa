@@ -577,26 +577,208 @@ app.post('/api', async (req, res) => {
       case 'hit-rate-filter': {
         const { league, timeRange, directionType, direction, rankType, rankTop } = data;
         try {
-          const result = database.getFilterRate({
-            league: league || '',
-            timeRange: timeRange || 'all',
-            directionType: directionType || '',
-            direction: direction || '',
-            rankType: rankType || '全部',
-            rankTop: rankTop || 0
+          const fs = require('fs');
+          const path = require('path');
+
+          // 读取 data.json
+          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const mMap = dataFile.m || {};
+          const rMap = dataFile.r || {};
+
+          // 归一化推荐
+          function norm(recs) {
+            return recs.map(function(x) {
+              return {
+                type: x.t || x.type,
+                num: x.n || x.num,
+                result: x.rs !== undefined ? x.rs : (x.result !== undefined ? x.result : null)
+              };
+            });
+          }
+
+          // 方向分类
+          function classifyDir(type) {
+            if (!type) return '其他';
+            if (['胜', '平', '负'].indexOf(type) >= 0) return '胜平负';
+            if (type.indexOf('让') === 0 && type.length <= 3) return '让球';
+            if (type.indexOf('总进球') === 0) return '进球数';
+            if (['胜胜', '负负'].indexOf(type) >= 0 || type.indexOf('半全场') === 0) return '半全场';
+            if (type.indexOf('、') >= 0 || type.indexOf(',') >= 0) return '双选';
+            return '其他';
+          }
+
+          // Build match+rec list from data.json
+          var allItems = [];
+          Object.keys(mMap).forEach(function(k) {
+            var m = mMap[k];
+            if (!m || !m.matchId || !m.date) return;
+            var date = m.date.slice(0, 10);
+            var raw = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
+            var recs = norm(raw);
+            recs.forEach(function(r) {
+              if (r.type && r.num > 0 && r.result !== null && r.result !== undefined) {
+                allItems.push({
+                  matchId: m.matchId,
+                  date: date,
+                  leagueName: m.leagueName || '',
+                  homeName: m.homeName || '',
+                  visitName: m.visitName || '',
+                  num: m.num || '',
+                  direction: r.type,
+                  expertCount: r.num,
+                  result: r.result,
+                  dirType: classifyDir(r.type)
+                });
+              }
+            });
           });
-          return res.json({ code: 1, data: result });
-        } catch (dbErr) {
-          return res.json({ code: 0, msg: '查询失败: ' + dbErr.message });
+
+          // Filter: timeRange
+          var now = new Date();
+          if (timeRange && timeRange !== 'all') {
+            var cutoff = new Date(now);
+            cutoff.setDate(cutoff.getDate() - parseInt(timeRange, 10));
+            var cutoffStr = cutoff.toISOString().slice(0, 10);
+            allItems = allItems.filter(function(x) { return x.date >= cutoffStr; });
+          }
+
+          // Filter: league
+          if (league) {
+            allItems = allItems.filter(function(x) { return x.leagueName === league; });
+          }
+
+          // Filter: directionType
+          // "综合排名" means: for each match, take the top expertCount direction regardless of type
+          if (directionType === '综合排名') {
+            // sort by matchId+expertCount desc, pick top per match
+            var matchTop = {};
+            allItems.forEach(function(x) {
+              if (!matchTop[x.matchId] || matchTop[x.matchId].expertCount < x.expertCount) {
+                matchTop[x.matchId] = x;
+              }
+            });
+            allItems = Object.values(matchTop);
+          } else if (directionType) {
+            allItems = allItems.filter(function(x) { return x.dirType === directionType; });
+          }
+
+          // Filter: direction
+          if (direction) {
+            allItems = allItems.filter(function(x) { return x.direction === direction; });
+          }
+
+          // Filter: rankTop (per match)
+          var isPerMatch = (rankType === '每场' && rankTop > 0);
+          var isDaily = (rankType === '每天' && rankTop > 0);
+          if (isPerMatch) {
+            // For each match, only keep top N directions by expertCount
+            var matchGroups = {};
+            allItems.forEach(function(x) {
+              if (!matchGroups[x.matchId]) matchGroups[x.matchId] = [];
+              matchGroups[x.matchId].push(x);
+            });
+            allItems = [];
+            Object.keys(matchGroups).forEach(function(mid) {
+              var items = matchGroups[mid];
+              items.sort(function(a, b) { return b.expertCount - a.expertCount; });
+              // Get the max expertCount to find "tied for first"
+              var maxCount = items[0].expertCount;
+              var kept = items.filter(function(x) { return x.expertCount === maxCount; }).slice(0, rankTop);
+              allItems = allItems.concat(kept);
+            });
+          } else if (isDaily) {
+            // For each day, find the global max expertCount, then filter per match
+            var dayMax = {};
+            allItems.forEach(function(x) {
+              if (!dayMax[x.date] || dayMax[x.date] < x.expertCount) dayMax[x.date] = x.expertCount;
+            });
+            allItems = allItems.filter(function(x) {
+              return x.expertCount === dayMax[x.date];
+            });
+            // Then pick top N per match
+            var matchGroups = {};
+            allItems.forEach(function(x) {
+              if (!matchGroups[x.matchId]) matchGroups[x.matchId] = [];
+              matchGroups[x.matchId].push(x);
+            });
+            allItems = [];
+            Object.keys(matchGroups).forEach(function(mid) {
+              var items = matchGroups[mid];
+              items.sort(function(a, b) { return b.expertCount - a.expertCount; });
+              allItems = allItems.concat(items.slice(0, rankTop));
+            });
+          }
+
+          // Calculate stats
+          var hitCount = 0, totalCount = allItems.length;
+          allItems.forEach(function(x) { if (x.result === 1) hitCount++; });
+          var hitRate = totalCount > 0 ? Math.round(hitCount / totalCount * 1000) / 10 : 0;
+
+          // Daily results
+          var dailyMap = {};
+          allItems.forEach(function(x) {
+            if (!dailyMap[x.date]) dailyMap[x.date] = { totalMatch: 0, hitMatch: 0, matchSet: {}, hitSet: {} };
+            if (!dailyMap[x.date].matchSet[x.matchId]) {
+              dailyMap[x.date].matchSet[x.matchId] = true;
+              dailyMap[x.date].totalMatch++;
+            }
+            if (x.result === 1 && !dailyMap[x.date].hitSet[x.matchId]) {
+              dailyMap[x.date].hitSet[x.matchId] = true;
+              dailyMap[x.date].hitMatch++;
+            }
+          });
+          var dailyResults = Object.keys(dailyMap).sort().reverse().slice(0, 15).map(function(d) {
+            var dm = dailyMap[d];
+            return {
+              date: d.replace(/-/g, '/'),
+              totalMatch: dm.totalMatch,
+              hitMatch: dm.hitMatch,
+              hitRate: dm.totalMatch > 0 ? Math.round(dm.hitMatch / dm.totalMatch * 1000) / 10 : 0
+            };
+          });
+
+          // Condition summary
+          var condParts = [];
+          if (league) condParts.push(league);
+          if (timeRange === '30') condParts.push('近30天');
+          else if (timeRange === '60') condParts.push('近60天');
+          else if (timeRange === '90') condParts.push('近90天');
+          if (direction) condParts.push(direction);
+          else if (directionType && directionType !== '综合排名') condParts.push(directionType);
+          else if (directionType === '综合排名') condParts.push('综合排名');
+          if (isPerMatch) condParts.push('每场前' + rankTop);
+          if (isDaily) condParts.push('每天前' + rankTop);
+          var conditionSummary = condParts.length > 0 ? condParts.join(' | ') : '全部条件';
+
+          return res.json({
+            code: 1,
+            data: {
+              hitCount: hitCount,
+              totalCount: totalCount,
+              hitRate: hitRate,
+              conditionSummary: conditionSummary,
+              detailList: allItems,
+              dailyResults: dailyResults
+            }
+          });
+        } catch (e) {
+          return res.json({ code: 0, msg: '查询失败: ' + e.message });
         }
       }
 
       case 'filter-leagues': {
         try {
-          const leagues = database.getAllLeagues();
-          return res.json({ code: 1, data: leagues });
-        } catch (dbErr) {
-          return res.json({ code: 0, msg: '获取联赛列表失败: ' + dbErr.message });
+          const fs = require('fs');
+          const path = require('path');
+          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const mMap = dataFile.m || {};
+          const leagueSet = {};
+          Object.values(mMap).forEach(function(m) {
+            if (m && m.leagueName) leagueSet[m.leagueName] = true;
+          });
+          return res.json({ code: 1, data: Object.keys(leagueSet).sort() });
+        } catch (e) {
+          return res.json({ code: 0, msg: '获取联赛列表失败: ' + e.message });
         }
       }
 
@@ -1130,14 +1312,44 @@ app.post('/api', async (req, res) => {
 
       case 'filter-stats': {
         try {
-          const stats = database.getFilterStats();
-          const leagues = database.getAllLeagues();
-          const stale = database.getStaleRecommendations();
-          stats.leagues = leagues;
-          stats.staleCount = stale ? stale.length : 0;
-          return res.json({ code: 1, data: stats });
-        } catch (dbErr) {
-          return res.json({ code: 0, msg: '获取统计失败: ' + dbErr.message });
+          const fs = require('fs');
+          const path = require('path');
+          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const mMap = dataFile.m || {};
+          const rMap = dataFile.r || {};
+
+          var matchCount = 0, leagueSet = {}, dirSet = {}, staleCount = 0;
+          Object.keys(mMap).forEach(function(k) {
+            var m = mMap[k];
+            if (!m) return;
+            // Count matches with recs that have results
+            var raw = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
+            var hasResult = raw.some(function(x) { return (x.rs !== undefined ? x.rs : x.result) !== null && (x.rs !== undefined ? x.rs : x.result) !== undefined; });
+            if (hasResult) {
+              matchCount++;
+              if (m.leagueName) leagueSet[m.leagueName] = true;
+              raw.forEach(function(x) {
+                var t = x.t || x.type;
+                if (t) dirSet[t] = true;
+              });
+            }
+            // Count stale (no result)
+            var hasStale = raw.some(function(x) { var r = x.rs !== undefined ? x.rs : x.result; return r === null || r === undefined; });
+            if (hasStale) staleCount++;
+          });
+
+          return res.json({
+            code: 1,
+            data: {
+              matchCount: matchCount,
+              leagueCount: Object.keys(leagueSet).length,
+              directionCount: Object.keys(dirSet).length,
+              leagues: Object.keys(leagueSet).sort(),
+              staleCount: staleCount
+            }
+          });
+        } catch (e) {
+          return res.json({ code: 0, msg: '获取统计失败: ' + e.message });
         }
       }
 
