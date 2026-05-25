@@ -8,6 +8,7 @@ export function loadHome() {
     var mcEl = document.getElementById('matchCount');
     if (mcEl) mcEl.textContent = matches.length || '-';
     var mrEl = document.getElementById('maxRankCount');
-    if (mrEl) mrEl.textContent = rank.topExpertCount || 0;
+    // 统计所有比赛的推荐专家数合计（而非单场最高）
+    if (mrEl) mrEl.textContent = matches.reduce(function(s, m) { return s + (m.recommNum || 0); }, 0) || '-';
   });
 }

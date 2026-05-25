@@ -213,7 +213,7 @@ function loadHome() {
   Promise.all([rankP, matchP]).then(function(r) {
     var rank = r[0], matches = r[1];
     document.getElementById('matchCount').textContent = matches.length || '-';
-    document.getElementById('maxRankCount').textContent = rank.topExpertCount||0;
+    document.getElementById('maxRankCount').textContent = matches.reduce(function(s,m){ return s+(m.recommNum||0); },0) || '-';
   });
 }
 
