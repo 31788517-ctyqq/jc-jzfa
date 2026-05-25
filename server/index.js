@@ -395,24 +395,35 @@ app.post('/api', async (req, res) => {
 
       case 'match-detail': {
         const { matchId } = data;
-        // 从 data.json 读取（支持历史比赛）
+        // 从 data.json 读取比赛+推荐（支持历史比赛）
         let match = null;
+        let recommends = [];
         try {
           const fs = require('fs');
           const path = require('path');
           const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
           const mMap = dataFile.m || {};
+          const rMap = dataFile.r || {};
           const key = 'm_' + matchId;
           match = mMap[key] || mMap[matchId] || null;
+          // 读取推荐并兼容新旧 schema
+          const raw = rMap[key] || rMap[String(matchId)] || [];
+          recommends = raw.map(function(x) {
+            return {
+              type: x.t || x.type,
+              num: x.n || x.num,
+              result: x.rs !== undefined ? x.rs : (x.result !== undefined ? x.result : null)
+            };
+          });
         } catch {}
-        // 兜底：尝试实时数据
+        // 兜底：尝试实时数据（仅 match，无历史推荐）
         if (!match) {
           try {
             const matches = await ensureData();
             match = matches.find(m => m.matchId === matchId) || null;
           } catch {}
         }
-        return res.json({ code: 1, data: match || null });
+        return res.json({ code: 1, data: { match: match || {}, recommends: recommends } });
       }
 
       case 'hit-rate-stats': {
