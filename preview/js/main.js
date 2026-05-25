@@ -33,6 +33,69 @@ export function shiftWeek(delta) {
   loadMatchList();
 }
 
+// ── 日历选择器 ──
+export function toggleDatePicker() {
+  var el = document.getElementById('datePicker');
+  if (!el) return;
+  var isOpen = el.style.display !== 'none';
+  if (isOpen) { el.style.display = 'none'; return; }
+  renderDatePicker();
+  el.style.display = 'block';
+}
+
+function renderDatePicker() {
+  var list = document.getElementById('datePickerList');
+  if (!list) return;
+  var weeks = state.weekDates || [];
+  if (weeks.length === 0) { list.innerHTML = '<div style="padding:12px;color:var(--text3);text-align:center">暂无可用日期</div>'; return; }
+
+  // Group by month
+  var today = formatDate(new Date()).slice(5);
+  var currentDate = state.weekDates[state.selectedWeekIdx] ? state.weekDates[state.selectedWeekIdx].matchDate : '';
+  var months = {};
+  weeks.forEach(function (w) {
+    var md = w.matchDate; // "MM-DD"
+    var m = md.slice(0, 2);
+    if (!months[m]) months[m] = [];
+    months[m].push(w);
+  });
+
+  // Sort months descending (newest first)
+  var sortedMonths = Object.keys(months).sort().reverse();
+  var html = '';
+  sortedMonths.forEach(function (m) {
+    html += '<div style="font-size:11px;color:var(--text3);margin:10px 0 6px;font-weight:600">' + m + '月</div>';
+    html += '<div class="date-picker-list">';
+    months[m].forEach(function (w) {
+      var dd = w.matchDate.slice(3);
+      var isActive = w.matchDate === currentDate;
+      var isToday = w.matchDate === today;
+      html += '<div class="date-picker-item' + (isActive ? ' active' : '') + (isToday ? ' today' : '') +
+        '" onclick="selectDateFromPicker(\'' + w.matchDate + '\')">' + dd + '</div>';
+    });
+    html += '</div>';
+  });
+  list.innerHTML = html;
+}
+
+export function selectDateFromPicker(matchDate) {
+  var weeks = state.weekDates || [];
+  if (matchDate === 'today') {
+    var today = formatDate(new Date()).slice(5);
+    for (var i = 0; i < weeks.length; i++) {
+      if (weeks[i].matchDate === today) { state.setSelectedWeekIdx(i); break; }
+    }
+  } else {
+    for (var i = 0; i < weeks.length; i++) {
+      if (weeks[i].matchDate === matchDate) { state.setSelectedWeekIdx(i); break; }
+    }
+  }
+  updateDateBar();
+  loadMatchList();
+  var el = document.getElementById('datePicker');
+  if (el) el.style.display = 'none';
+}
+
 export function goToday() {
   var today = formatDate(new Date()).slice(5);
   var now = new Date();
@@ -136,6 +199,8 @@ window.switchTab = switchTab;
 window.goBack = goBack;
 window.goToday = goToday;
 window.shiftWeek = shiftWeek;
+window.toggleDatePicker = toggleDatePicker;
+window.selectDateFromPicker = selectDateFromPicker;
 window.goDetail = goDetail;
 window.closeAI = closeAI;
 window.showAIPrediction = showAIPrediction;
