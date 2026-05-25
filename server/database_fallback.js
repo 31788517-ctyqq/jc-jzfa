@@ -1,6 +1,6 @@
 /**
  * 本地数据库模块 - 兼容模式
- * 当 better-sqlite3 不可用时使用内存假对象
+ * 当 better-sqlite3 不可用时使用内存假对象（兼容 CentOS 6 / Node 10）
  */
 let db;
 
@@ -24,10 +24,11 @@ try {
   module.exports = { initDatabase, getDatabase, closeDatabase };
 
 } catch (e) {
+  // Fallback: complete stub for all database functions
   console.log('[db] better-sqlite3 unavailable, using in-memory stub');
 
   function initDatabase() {
-    console.log('[db] In-memory database initialized');
+    console.log('[db] In-memory database initialized (stub mode)');
     return true;
   }
 
@@ -42,10 +43,51 @@ try {
       },
       pragma: function() {},
       exec: function() {},
-      close: function() {}
+      close: function() {},
+      transaction: function(fn) { return function(items) { fn(items); }; }
     };
   }
 
-  function closeDatabase() {}
-  module.exports = { initDatabase, getDatabase, closeDatabase };
+  function closeDatabase() { console.log('[db] closed (stub)'); }
+
+  // All stub functions returning sensible empty data
+  var noop = function() {};
+  var emptyArr = function() { return []; };
+  var nullFn = function() { return null; };
+  var zeroObj = function() { return { matchCount: 0, leagueCount: 0, directionCount: 0 }; };
+  var emptyRate = function() { return { hitCount: 0, totalCount: 0, hitRate: 0, conditionSummary: '', detailList: [], dailyResults: [] }; };
+  var emptySummary = function() {
+    var today = new Date().toISOString().slice(0, 10);
+    return { todayDate: today, totalMatches: 0, finishedMatches: 0, unfinishedMatches: 0, canShowCards: false };
+  };
+
+  module.exports = {
+    initDatabase: initDatabase,
+    getDatabase: getDatabase,
+    closeDatabase: closeDatabase,
+    // Matches
+    upsertMatch: noop,
+    batchUpsertMatches: noop,
+    getMatchesByDate: emptyArr,
+    getAllMatches: emptyArr,
+    // Recommends
+    batchUpsertRecommends: noop,
+    getRecommendsByMatchId: emptyArr,
+    updateRecommendResult: noop,
+    // Crawl
+    logCrawl: noop,
+    getCrawledDates: emptyArr,
+    // Stats
+    getHitRateStats: emptyArr,
+    getDailyTrend: emptyArr,
+    getAllLeagues: emptyArr,
+    getStaleRecommendations: emptyArr,
+    getFilterStats: zeroObj,
+    getFilterRate: emptyRate,
+    // AI
+    upsertAIPrediction: noop,
+    getAIPrediction: nullFn,
+    getTodayUnfinishedMatches: emptyArr,
+    getTodayMatchSummary: emptySummary
+  };
 }

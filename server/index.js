@@ -157,7 +157,9 @@ async function safeApiCall(fn, fallbackFn) {
 
 // ==================== API 路由 ====================
 app.post('/api', async (req, res) => {
-  const { action, data = {} } = req.body;
+  const { action, data: wrappedData = {} } = req.body;
+  // 前端传参格式兼容: {action, date, days} 和 {action, data: {date, days}} 都支持
+  const data = Object.assign({}, wrappedData, req.body);
   logger.info(`API: ${action} ${JSON.stringify(data).slice(0, 100)}`);
   try {
     switch (action) {
@@ -510,6 +512,12 @@ app.post('/api', async (req, res) => {
           });
 
           // 2) 工具函数
+          function normalizeRecs(recs) {
+            return recs.map(function(x) {
+              var r = x.rs !== undefined ? x.rs : (x.result !== undefined ? x.result : null);
+              return { type: x.t || x.type, num: x.n || x.num, result: r };
+            });
+          }
           function loadOddsFromFile(date, num) {
             try {
               const f = path.join(__dirname, 'odds_history', date + '.json');
@@ -521,8 +529,8 @@ app.post('/api', async (req, res) => {
 
           function findRecommends(matchId) {
             const key = 'm_' + matchId;
-            const recs = rMap[key] || [];
-            return recs.filter(r => r && r.type && typeof r.num === 'number' && r.num > 0);
+            const raw = rMap[key] || rMap[String(matchId)] || [];
+            return normalizeRecs(raw);
           }
 
           function getMatchOdds(match, direction) {
@@ -696,6 +704,248 @@ app.post('/api', async (req, res) => {
           return res.json({ code: 1, data: { date: dateStr, plans } });
         } catch (e) {
           return res.json({ code: 0, msg: '获取方案列表失败: ' + e.message });
+        }
+      }
+
+      case 'income-stats': {
+        try {
+          const planFilter = data.plan || 'all';
+          const daysFilter = parseInt(data.days) || 0;
+          const AMOUNT = 1000;
+          const fs = require('fs');
+          const path = require('path');
+
+          function fmtDate2(dd) { return dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0'); }
+
+          const minDate = '2026-04-25';
+          const endDate = new Date();
+          let startDate = new Date(minDate);
+          if (daysFilter > 0) {
+            startDate = new Date(endDate.getTime() - (daysFilter - 1) * 86400000);
+            if (fmtDate2(startDate) < minDate) startDate = new Date(minDate);
+          }
+
+          // Load data from data.json
+          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const mMap = dataFile.m || {};
+          const rMap = dataFile.r || {};
+
+          function normalizeRecs(recs) {
+            return recs.map(function(x) {
+              var r = x.rs !== undefined ? x.rs : (x.result !== undefined ? x.result : null);
+              return { type: x.t || x.type, num: x.n || x.num, result: r };
+            });
+          }
+
+          function findRecommends(matchId) {
+            const raw = rMap['m_' + matchId] || rMap[String(matchId)] || [];
+            return normalizeRecs(raw);
+          }
+
+          function extractOddsVal(oddsObj, direction) {
+            if (!oddsObj) return null;
+            if (direction === '平') return oddsObj.spf ? oddsObj.spf.draw : null;
+            if (direction === '让平') return oddsObj.rqspf ? oddsObj.rqspf.draw : null;
+            if (direction === '让负') return oddsObj.rqspf ? oddsObj.rqspf.away : null;
+            if (direction === '让胜') return oddsObj.rqspf ? oddsObj.rqspf.home : null;
+            return null;
+          }
+
+          function extractIndividualOdds(oddsObj, direction) {
+            if (!oddsObj) return [];
+            if (direction.indexOf('总进球-') === 0) {
+              const tg = oddsObj.totalGoals;
+              if (!tg) return [];
+              const nums = direction.replace('总进球-', '').split(/[、,]/);
+              const vals = [];
+              for (const n of nums) {
+                const v = n.replace(/球/g, '').trim();
+                if (tg[v] !== undefined) vals.push(tg[v]);
+              }
+              return vals;
+            }
+            if (direction.indexOf('、') >= 0 || direction.indexOf(',') >= 0) {
+              const parts = direction.split(/[、,]/);
+              const vals = [];
+              for (const p of parts) {
+                const sv = extractOddsVal(oddsObj, p.trim());
+                if (sv !== null) vals.push(sv);
+              }
+              return vals;
+            }
+            const sv = extractOddsVal(oddsObj, direction);
+            return sv !== null ? [sv] : [];
+          }
+
+          const results = [];
+          let totalPlans = 0, totalWon = 0, totalIncome = 0;
+
+          for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            const ds = fmtDate2(d);
+            const mList = [];
+            Object.keys(mMap).forEach(k => {
+              const m = mMap[k];
+              if (m && (m.date || '').slice(0, 10) === ds) mList.push(m);
+            });
+            if (mList.length === 0) continue;
+
+            const oddsFile = path.join(__dirname, 'odds_history', ds + '.json');
+            let histOdds = null;
+            if (fs.existsSync(oddsFile)) {
+              try { const raw = JSON.parse(fs.readFileSync(oddsFile, 'utf8')); histOdds = raw.odds || {}; } catch (e) {}
+            }
+
+            function findBest(directions, excludeIds) {
+              let best = null, bestCount = 0, bestHasOdds = false;
+              for (const mm of mList) {
+                if (excludeIds && excludeIds.indexOf(mm.matchId) >= 0) continue;
+                const num = mm.num || '';
+                const hasOdds = histOdds && histOdds[num];
+                if (histOdds && !hasOdds) continue;
+                const recs = findRecommends(mm.matchId);
+                let total = 0;
+                for (const r of recs) {
+                  if (directions.indexOf(r.type) >= 0) total += r.num || 0;
+                }
+                if (total > bestCount || (total === bestCount && total > 0 && hasOdds && !bestHasOdds)) {
+                  bestCount = total; best = mm; bestHasOdds = hasOdds;
+                }
+              }
+              return best;
+            }
+
+            function getOddsObj(match) {
+              const num = match.num || '';
+              if (histOdds && histOdds[num]) {
+                const od = histOdds[num];
+                return { spf: od.spf || null, rqspf: od.rqspf || null, totalGoals: od.totalGoals || null };
+              }
+              return null;
+            }
+
+            function buildMatch(match, direction) {
+              const recs = findRecommends(match.matchId);
+              const subResults = [];
+              const matchedRecs = [];
+              let fullMatch = null;
+              for (const r of recs) { if (r.type === direction) fullMatch = r; }
+              if (fullMatch) {
+                matchedRecs.push(fullMatch);
+                subResults.push({ direction: direction, result: fullMatch.result !== undefined ? fullMatch.result : null });
+              } else {
+                const subDirs = direction.split(/[、,]/);
+                subDirs.forEach(sd => {
+                  const s = sd.trim();
+                  let found = null;
+                  for (const r of recs) { if (r.type === s) found = r; }
+                  if (!found && s.indexOf('球') >= 0) {
+                    const num = s.replace(/球/g, '');
+                    for (const r of recs) { if (r.type === ('总进球-' + num)) found = r; }
+                  }
+                  if (found) matchedRecs.push(found);
+                  subResults.push({ direction: s, result: found ? found.result : null });
+                });
+              }
+              let isWon = null, isLose = null;
+              if (matchedRecs.length > 0) {
+                let anyWon = false, anyLose = false, anyUnknown = false;
+                matchedRecs.forEach(r => {
+                  if (r.result === 1) anyWon = true;
+                  else if (r.result === 0) anyLose = true;
+                  else anyUnknown = true;
+                });
+                if (!anyUnknown) { isWon = anyWon; isLose = !anyWon && anyLose; }
+              }
+              return {
+                matchId: match.matchId, homeName: match.homeName, visitName: match.visitName,
+                matchNum: match.num || '', direction: direction,
+                oddsObj: getOddsObj(match),
+                subResults: subResults,
+                isWon: isWon, isLose: isLose
+              };
+            }
+
+            const m1a = findBest(['平', '让平']), m1b = findBest(['让负'], m1a ? [m1a.matchId] : null);
+            const m2a = findBest(['总进球-2、3球']), m2b = findBest(['让负'], m2a ? [m2a.matchId] : null);
+            const m3a = findBest(['总进球-2、3球']), m3b = findBest(['让胜'], m3a ? [m3a.matchId] : null);
+
+            const dayPlans = [];
+            if (m1a && m1b) dayPlans.push({ name: 'plan_1', planName: '方案一', matches: [buildMatch(m1a, '平、让平'), buildMatch(m1b, '让负')] });
+            if (m2a && m2b) dayPlans.push({ name: 'plan_2', planName: '方案二', matches: [buildMatch(m2a, '总进球-2、3球'), buildMatch(m2b, '让负')] });
+            if (m3a && m3b) dayPlans.push({ name: 'plan_3', planName: '方案三', matches: [buildMatch(m3a, '总进球-2、3球'), buildMatch(m3b, '让胜')] });
+
+            dayPlans.forEach(pp => {
+              if (planFilter !== 'all' && pp.name !== planFilter) return;
+              let allWon = true, anyLose = false, anyUnknown = false;
+              for (const mm of pp.matches) {
+                if (!mm.isWon) allWon = false;
+                if (mm.isLose) anyLose = true;
+                if (!mm.isWon && !mm.isLose) anyUnknown = true;
+              }
+              if (anyUnknown) return;
+
+              const effectiveOdds = [];
+              let hasAllOdds = true;
+              for (const mm of pp.matches) {
+                const subOdds = extractIndividualOdds(mm.oddsObj, mm.direction);
+                if (subOdds.length === 0) { hasAllOdds = false; continue; }
+                const N = subOdds.length;
+                if (N === 1) {
+                  effectiveOdds.push(subOdds[0]);
+                } else {
+                  effectiveOdds.push(subOdds.reduce((a, b) => a + b, 0) / (2 * N));
+                }
+              }
+
+              let prize = 0, dayIncome = 0, status = 'unknown';
+              if (allWon) {
+                prize = hasAllOdds && effectiveOdds.length === 2 ? Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]) : Math.round(AMOUNT * 3);
+                dayIncome = prize - AMOUNT;
+                status = 'won'; totalWon++;
+              } else if (anyLose) {
+                dayIncome = -AMOUNT;
+                status = 'lose';
+              }
+              totalPlans++;
+              totalIncome += dayIncome;
+
+              results.push({
+                date: ds, plan: pp.planName, status: status,
+                matches: pp.matches.map(mm => ({
+                  matchNum: mm.matchNum, home: mm.homeName, visit: mm.visitName, direction: mm.direction, isWon: mm.isWon, isLose: mm.isLose
+                })),
+                prize: prize, income: dayIncome
+              });
+            });
+          }
+
+          // Aggregate by date
+          const dateMap = {};
+          results.forEach(r => {
+            if (!dateMap[r.date]) dateMap[r.date] = { won: 0, total: 0, income: 0 };
+            dateMap[r.date].total++;
+            dateMap[r.date].income += r.income;
+            if (r.status === 'won') dateMap[r.date].won++;
+          });
+          const dayRecords = [];
+          Object.keys(dateMap).sort().reverse().forEach(ds => {
+            const dr = dateMap[ds];
+            dayRecords.push({
+              date: ds,
+              hitCount: dr.won,
+              totalPlans: dr.total,
+              hitRate: dr.total > 0 ? Math.round(dr.won / dr.total * 100) : 0,
+              income: dr.income
+            });
+          });
+
+          const winRate = totalPlans > 0 ? Math.round(totalWon / totalPlans * 100) : 0;
+          return res.json({ code: 1, data: {
+            summary: { totalPlans: totalPlans, totalWon: totalWon, totalIncome: totalIncome, winRate: winRate },
+            records: dayRecords
+          }});
+        } catch (e) {
+          return res.json({ code: 0, msg: '获取收入统计失败: ' + e.message });
         }
       }
 
