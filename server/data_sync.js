@@ -218,6 +218,27 @@ async function syncMatchList() {
       data.m[mkey] = newMatch;
     }
 
+    // 从 500.com 赔率数据补充单关标识
+    try {
+      const oddsFile = path.join(ODDS_DIR, period.date + '.json');
+      if (fs.existsSync(oddsFile)) {
+        const oddsData = JSON.parse(fs.readFileSync(oddsFile, 'utf8'));
+        const oddsMap = oddsData.odds || {};
+        let singleCount = 0;
+        Object.keys(data.m).forEach(k => {
+          const match = data.m[k];
+          if (!match || (match.date || '').slice(0, 10) !== period.date) return;
+          const num = match.num || '';
+          const fiveData = oddsMap[num];
+          if (fiveData && fiveData.isSingleGame === true) {
+            match.isSingleGame = true;
+            singleCount++;
+          }
+        });
+        if (singleCount > 0) log('[match_list] 单关标识更新 ' + singleCount + ' 场');
+      }
+    } catch (e) {}
+
     atomicWrite(DATA_FILE, data);
     log('[match_list] 赛程同步完成: 新增' + newCount + '场 更新' + updateCount + '场');
     notifyReload();
