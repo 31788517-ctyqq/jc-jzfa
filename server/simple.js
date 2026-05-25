@@ -126,7 +126,7 @@ function findMatch(matchId){
 function normalizeRecs(recs){
   return recs.map(function(x){
     var r=x.rs!==undefined?x.rs:(x.result!==undefined?x.result:null);
-    if(r===2) r=null;
+    // result=2 表示"待定/未开"，保留原值用于判断状态
     return {type:x.t||x.type,num:x.n||x.num,result:r};
   });
 }
