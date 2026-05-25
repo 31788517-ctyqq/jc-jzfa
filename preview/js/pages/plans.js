@@ -20,7 +20,7 @@ export function shiftPlanDate(delta) {
   var newOffset = state.planDateOffset + delta;
   var d = new Date();
   d.setDate(d.getDate() + newOffset);
-  var newDate = d.toISOString().slice(0, 10);
+  var newDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   if (newDate < MIN_PLAN_DATE) return;
   state.setPlanDateOffset(newOffset);
   updatePlanDateBar();
@@ -41,6 +41,11 @@ export function loadPlanList() {
   // 初始加载时不传日期，让服务器自动选择最新数据日
   var params = state.planDateOffset === 0 ? {} : { date: state.planDate };
   api('plan-list', params).then(function (data) {
+    // 用服务器返回的实际日期更新显示
+    if (data.date && data.date !== state.planDate) {
+      state.setPlanDate(data.date);
+      updatePlanDateBar();
+    }
     var plans = data.plans || [];
     if (plans.length === 0) {
       var now = new Date();
