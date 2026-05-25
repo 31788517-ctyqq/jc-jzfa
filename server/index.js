@@ -1048,7 +1048,7 @@ app.post('/api', async (req, res) => {
       // ========== 今日方案列表 ==========
       case 'plan-list': {
         try {
-          const dateStr = data.date || localDate();
+          const dateStr = data.date || latestDataDate();
           const fs = require('fs');
           const path = require('path');
 
