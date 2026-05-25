@@ -43,40 +43,55 @@ export function toggleDatePicker() {
   el.style.display = 'block';
 }
 
+let pickerYear, pickerMonth;
+
 function renderDatePicker() {
-  var list = document.getElementById('datePickerList');
-  if (!list) return;
+  var grid = document.getElementById('datePickerGrid');
+  var monthEl = document.getElementById('datePickerMonth');
+  if (!grid || !monthEl) return;
+
   var weeks = state.weekDates || [];
-  if (weeks.length === 0) { list.innerHTML = '<div style="padding:12px;color:var(--text3);text-align:center">暂无可用日期</div>'; return; }
+  var available = {};
+  weeks.forEach(function (w) { available[w.matchDate] = true; });
 
-  // Group by month
   var today = formatDate(new Date()).slice(5);
-  var currentDate = state.weekDates[state.selectedWeekIdx] ? state.weekDates[state.selectedWeekIdx].matchDate : '';
-  var months = {};
-  weeks.forEach(function (w) {
-    var md = w.matchDate; // "MM-DD"
-    var m = md.slice(0, 2);
-    if (!months[m]) months[m] = [];
-    months[m].push(w);
-  });
+  var current = weeks[state.selectedWeekIdx] ? weeks[state.selectedWeekIdx].matchDate : '';
 
-  // 只显示最新一个月的日期
-  var sortedMonths = Object.keys(months).sort().reverse();
-  var latestMonth = sortedMonths[0];
-  var html = '';
-  if (latestMonth) {
-    html += '<div style="font-size:11px;color:var(--text3);margin:0 0 6px;font-weight:600">' + latestMonth + '月</div>';
-    html += '<div class="date-picker-list">';
-    months[latestMonth].forEach(function (w) {
-      var dd = w.matchDate.slice(3);
-      var isActive = w.matchDate === currentDate;
-      var isToday = w.matchDate === today;
-      html += '<div class="date-picker-item' + (isActive ? ' active' : '') + (isToday ? ' today' : '') +
-        '" onclick="selectDateFromPicker(\'' + w.matchDate + '\')">' + dd + '</div>';
-    });
-    html += '</div>';
+  if (!pickerYear) {
+    var d = new Date();
+    pickerYear = d.getFullYear();
+    pickerMonth = d.getMonth() + 1;
+    if (current) pickerMonth = parseInt(current.slice(0, 2), 10);
   }
-  list.innerHTML = html;
+
+  var CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二'];
+  monthEl.textContent = CN[pickerMonth - 1] + '月 ' + pickerYear;
+
+  var firstDay = new Date(pickerYear, pickerMonth - 1, 1);
+  var lastDay = new Date(pickerYear, pickerMonth, 0);
+  var daysInMonth = lastDay.getDate();
+  var startDow = firstDay.getDay();
+
+  var html = '';
+  for (var i = 0; i < startDow; i++) html += '<div class="date-picker-cell other-month"></div>';
+  for (var day = 1; day <= daysInMonth; day++) {
+    var mm = String(pickerMonth).padStart(2, '0');
+    var dd = String(day).padStart(2, '0');
+    var md = mm + '-' + dd;
+    var hasMatch = !!available[md];
+    var isActive = md === current;
+    var isToday = md === today;
+    var cls = 'date-picker-cell';
+    if (hasMatch) cls += ' has-match';
+    if (isActive) cls += ' active';
+    if (isToday) cls += ' today';
+    var onclick = hasMatch ? (' onclick="selectDateFromPicker(\'' + md + '\')"') : '';
+    html += '<div class="' + cls + '"' + onclick + '>' + day + '</div>';
+  }
+  grid.innerHTML = html;
+
+  document.getElementById('datePickerPrev').onclick = function () { pickerMonth--; if (pickerMonth < 1) { pickerYear--; pickerMonth = 12; } renderDatePicker(); };
+  document.getElementById('datePickerNext').onclick = function () { pickerMonth++; if (pickerMonth > 12) { pickerYear++; pickerMonth = 1; } renderDatePicker(); };
 }
 
 export function selectDateFromPicker(matchDate) {
