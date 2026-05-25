@@ -50,6 +50,7 @@ app.use('/api', apiLimiter);
 // 静态资源缓存
 const staticOpts = { maxAge: '7d', etag: true, lastModified: true };
 app.use('/assets/worldcup', express.static(path.join(__dirname, '../miniprogram/images/worldcup'), staticOpts));
+app.use('/assets', express.static(path.join(__dirname, '../miniprogram/images'), staticOpts));
 // 首页内存缓存
 let homeCache = null, homeCacheTime = 0;
 const hp = path.join(__dirname, '../preview/index.html');
