@@ -262,7 +262,13 @@ app.post('/api',function(req,res){
       subDirs.forEach(function(subDir){
         var sd = subDir.trim();
         var found = null;
+        // 精确匹配
         for(var j=0;j<recs.length;j++){ if(recs[j].type===sd){ found=recs[j]; break; } }
+        // 总进球子选项回退："3球" → "总进球-3"
+        if(!found && sd.indexOf('球')>=0){
+          var num=sd.replace(/球/g,'');
+          for(var j=0;j<recs.length;j++){ if(recs[j].type===('总进球-'+num)){ found=recs[j]; break; } }
+        }
         if(found) matchedRecs.push(found);
         subResults.push({ direction: sd, result: found ? found.result : null });
       });
@@ -473,17 +479,18 @@ app.post('/api',function(req,res){
         var subResults = [];
         var matchedRecs = [];
         
-        // 复合方向：按、分割，但总进球系列是整体（如"总进球-2、3球"不拆）
-        var subDirs;
-        if(direction.indexOf('总进球')===0){
-          subDirs = [direction];
-        } else {
-          subDirs = direction.split(/[、,]/);
-        }
+        // 拆分方向（包括总进球系列），尝试匹配rec类型
+        var subDirs = direction.split(/[、,]/);
         subDirs.forEach(function(sd){
           var s = sd.trim();
           var found = null;
+          // 先精确匹配
           for(var ri=0;ri<recs.length;ri++){ if(recs[ri].type===s) found=recs[ri]; }
+          // 总进球子选项回退：如 "3球" → 匹配 "总进球-3"
+          if(!found && s.indexOf('球')>=0){
+            var num=s.replace(/球/g,'');
+            for(var ri=0;ri<recs.length;ri++){ if(recs[ri].type===('总进球-'+num)) found=recs[ri]; }
+          }
           if(found) matchedRecs.push(found);
           subResults.push({ direction: s, result: found ? found.result : null });
         });
