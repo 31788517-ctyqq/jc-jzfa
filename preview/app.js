@@ -382,7 +382,7 @@ function goDetail(matchId) {
       const top5 = (trend.lastResult || []).sort((a, b) => b.num - a.num).slice(0, 5);
 
       // 无趋势数据时展示占位样式
-      if (!trend.timeLabels || trend.timeLabels.length === 0) {
+      if (!trend.timeLabels || trend.timeLabels.length === 0 || (trend.series || []).length === 0) {
         chartEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:#64748B;">
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.5"><path d="M14 25C14 27 15.07 32 29 32C42.93 32 44 27 44 25C44 23 44 10 44 10H29H14C14 10 14 23 14 25Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M29 16H23V21L26 24L29 21V16Z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M26 16V10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 40L43 40" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 14H4C4 14 5 19 6 22C7 25 14 24 14 24" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/></svg>
           <div style="margin-top:12px;font-size:13px;color:#94A3B8;">趋势数据收集中</div>
@@ -391,13 +391,16 @@ function goDetail(matchId) {
         return;
       }
 
-      const chart = echarts.init(chartEl);
+      var existInstance = echarts.getInstanceByDom(chartEl);
+if (existInstance) existInstance.dispose();
+const chart = echarts.init(chartEl);
       const colors = ['#EF4444', '#FBBF24', '#34D399', '#18E0E0', '#A78BFA'];
       
-      const series = trend.series
-        .filter(s => top5.some(t => t.type === s.name))
-        .slice(0, 5)
-        .map((s, i) => ({
+      var matchedSeries = trend.series.filter(function(s) {
+        return top5.some(function(t) { return t.type === s.name; });
+      });
+      if (matchedSeries.length === 0) matchedSeries = trend.series.slice(0, 5);
+      const series = matchedSeries.slice(0, 5).map(function(s, i) { return {
           name: s.name,
           type: 'line',
           smooth: true,
