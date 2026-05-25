@@ -1291,7 +1291,7 @@ function shiftRankDate(delta) {
   var newOffset = rankDateOffset + delta;
   var d = new Date();
   d.setDate(d.getDate() + newOffset);
-  var newDate = d.toISOString().slice(0,10);
+  var newDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   if (newDate < MIN_PLAN_DATE) return; // 不早于4月25日
   rankDateOffset = newOffset;
   updateRankDateBar();
@@ -1327,7 +1327,7 @@ function shiftPlanDate(delta) {
   var newOffset = planDateOffset + delta;
   var d = new Date();
   d.setDate(d.getDate() + newOffset);
-  var newDate = d.toISOString().slice(0,10);
+  var newDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   if (newDate < MIN_PLAN_DATE) return; // 不早于4月25日
   planDateOffset = newOffset;
   updatePlanDateBar();
@@ -1346,6 +1346,7 @@ function loadPlanList() {
 
   var params = planDateOffset === 0 ? {} : { date: planDate };
   api('plan-list', params).then(function(data) {
+    if (data.date && data.date !== planDate) { planDate = data.date; updatePlanDateBar(); }
     var plans = data.plans || [];
     if (plans.length === 0) {
       // 当天无方案时自动回退到最近有方案的日期
