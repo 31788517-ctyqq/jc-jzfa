@@ -101,34 +101,53 @@ function toggleDatePicker() {
   renderDatePicker();
   el.style.display = 'block';
 }
+var datePickerYear, datePickerMonth;
 function renderDatePicker() {
-  var list = document.getElementById('datePickerList');
-  if (!list) return;
-  if (weekDates.length === 0) { list.innerHTML = '<div style="padding:12px;color:var(--text3);text-align:center">暂无可用日期</div>'; return; }
+  var grid = document.getElementById('datePickerGrid');
+  var monthEl = document.getElementById('datePickerMonth');
+  if (!grid || !monthEl) return;
+
+  var available = {};
+  weekDates.forEach(function(w) { available[w.matchDate] = true; });
+
   var today = formatDate(new Date()).slice(5);
   var current = weekDates[selectedWeekIdx] ? weekDates[selectedWeekIdx].matchDate : '';
-  var months = {};
-  weekDates.forEach(function(w) {
-    var m = w.matchDate.slice(0,2);
-    if (!months[m]) months[m] = [];
-    months[m].push(w);
-  });
-  var sortedMonths = Object.keys(months).sort().reverse();
-  var latestMonth = sortedMonths[0];
-  var html = '';
-  if (latestMonth) {
-    html += '<div style="font-size:11px;color:var(--text3);margin:0 0 6px;font-weight:600">' + latestMonth + '月</div>';
-    html += '<div class="date-picker-list">';
-    months[latestMonth].forEach(function(w) {
-      var dd = w.matchDate.slice(3);
-      var isActive = w.matchDate === current;
-      var isToday = w.matchDate === today;
-      html += '<div class="date-picker-item' + (isActive ? ' active' : '') + (isToday ? ' today' : '') +
-        '" onclick="selectDateFromPicker(\'' + w.matchDate + '\')">' + dd + '</div>';
-    });
-    html += '</div>';
+
+  if (!datePickerYear) {
+    var d = new Date();
+    datePickerYear = d.getFullYear();
+    datePickerMonth = d.getMonth() + 1;
+    if (current) datePickerMonth = parseInt(current.slice(0, 2), 10);
   }
-  list.innerHTML = html;
+
+  var CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二'];
+  monthEl.textContent = CN[datePickerMonth - 1] + '月 ' + datePickerYear;
+
+  var firstDay = new Date(datePickerYear, datePickerMonth - 1, 1);
+  var lastDay = new Date(datePickerYear, datePickerMonth, 0);
+  var daysInMonth = lastDay.getDate();
+  var startDow = firstDay.getDay();
+
+  var html = '';
+  for (var i = 0; i < startDow; i++) html += '<div class="date-picker-cell other-month"></div>';
+  for (var day = 1; day <= daysInMonth; day++) {
+    var mm = String(datePickerMonth).padStart(2, '0');
+    var dd = String(day).padStart(2, '0');
+    var md = mm + '-' + dd;
+    var hasMatch = !!available[md];
+    var isActive = md === current;
+    var isToday = md === today;
+    var cls = 'date-picker-cell';
+    if (hasMatch) cls += ' has-match';
+    if (isActive) cls += ' active';
+    if (isToday) cls += ' today';
+    var onclick = hasMatch ? (' onclick="selectDateFromPicker(\'' + md + '\')"') : '';
+    html += '<div class="' + cls + '"' + onclick + '>' + day + '</div>';
+  }
+  grid.innerHTML = html;
+
+  document.getElementById('datePickerPrev').onclick = function () { datePickerMonth--; if (datePickerMonth < 1) { datePickerYear--; datePickerMonth = 12; } renderDatePicker(); };
+  document.getElementById('datePickerNext').onclick = function () { datePickerMonth++; if (datePickerMonth > 12) { datePickerYear++; datePickerMonth = 1; } renderDatePicker(); };
 }
 function selectDateFromPicker(date) {
   if (date === 'today') {

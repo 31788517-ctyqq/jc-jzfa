@@ -501,7 +501,7 @@ body {
   background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
-  padding: 12px 14px 8px;
+  padding: 14px 16px 12px;
   backdrop-filter: blur(10px);
   animation: fadeUp 0.25s ease;
 }
@@ -509,10 +509,79 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+}
+.date-picker-nav {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: rgba(24,224,224,0.08);
+  border: 1px solid rgba(24,224,224,0.15);
+  color: var(--cyan);
+  font-size: var(--fs-lg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.date-picker-nav:hover { background: rgba(24,224,224,0.18); }
+.date-picker-month {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+.date-picker-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+  font-size: var(--fs-xs);
+  color: var(--text3);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 8px;
+}
+.date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.date-picker-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: var(--fs-sm);
+  color: var(--text2);
+  cursor: default;
+  transition: all 0.15s;
+}
+.date-picker-cell.has-match {
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 500;
+}
+.date-picker-cell.has-match:hover { background: rgba(24,224,224,0.12); color: var(--cyan); }
+.date-picker-cell.today { border: 1.5px solid var(--cyan); font-weight: 600; }
+.date-picker-cell.active {
+  background: var(--cyan);
+  color: var(--bg);
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(24,224,224,0.3);
+}
+.date-picker-cell.other-month { color: var(--text3); opacity: 0.4; }
+.date-picker-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.05);
 }
 .date-picker-today {
-  padding: 6px 16px;
+  padding: 5px 16px;
   border-radius: 999px;
   background: var(--cyan);
   color: var(--bg);
@@ -533,29 +602,6 @@ body {
   align-items: center;
   justify-content: center;
 }
-.date-picker-list {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-}
-.date-picker-item {
-  padding: 8px 2px;
-  text-align: center;
-  border-radius: 8px;
-  font-size: var(--fs-sm);
-  color: var(--text2);
-  cursor: pointer;
-  transition: all 0.15s;
-  user-select: none;
-}
-.date-picker-item:hover { background: rgba(24,224,224,0.08); color: var(--cyan); }
-.date-picker-item.active {
-  background: rgba(24,224,224,0.15);
-  color: var(--cyan);
-  font-weight: 700;
-  box-shadow: 0 0 8px rgba(24,224,224,0.2);
-}
-.date-picker-item.today { color: var(--cyan); font-weight: 600; }
 
 .filter-row {
   display: flex;
@@ -1787,10 +1833,18 @@ body {
   <!-- 日历面板 -->
   <div class="date-picker" id="datePicker" style="display:none">
     <div class="date-picker-header">
+      <button class="date-picker-nav" id="datePickerPrev">&lt;</button>
+      <span class="date-picker-month" id="datePickerMonth">5月 2026</span>
+      <button class="date-picker-nav" id="datePickerNext">&gt;</button>
+    </div>
+    <div class="date-picker-weekdays">
+      <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+    </div>
+    <div class="date-picker-grid" id="datePickerGrid"></div>
+    <div class="date-picker-footer">
       <button class="date-picker-today" onclick="selectDateFromPicker('today')">今天</button>
       <button class="date-picker-close" onclick="toggleDatePicker()">✕</button>
     </div>
-    <div class="date-picker-list" id="datePickerList"></div>
   </div>
   <div id="matchList"></div>
 </div>
