@@ -236,14 +236,30 @@ app.post('/api', async (req, res) => {
       case 'recommend-trend': {
         const { matchId } = data;
         if (!matchId) return res.json({ code: 0, msg: '缺少 matchId' });
-        const recomms = await ensureRecommends(matchId);
-        // 同时存入数据库
+
+        // 获取推荐：先尝试实时API，失败则回退到 data.json
+        var recomms = [];
         try {
-          const fetchDate = new Date().toISOString().slice(0, 10);
-          database.batchUpsertRecommends(matchId, recomms, fetchDate);
-        } catch (dbErr) {
-          logger.error('存储推荐数据失败: ' + dbErr.message);
+          recomms = await ensureRecommends(matchId);
+        } catch (e) {
+          logger.warn('实时推荐获取失败，回退到 data.json: ' + e.message);
+          try {
+            const fs = require('fs');
+            const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+            const rMap = dataFile.r || {};
+            const raw = rMap['m_' + matchId] || rMap[String(matchId)] || [];
+            recomms = raw.map(function(x) {
+              return {
+                type: x.t || x.type,
+                num: x.n || x.num,
+                result: x.rs !== undefined ? x.rs : (x.result !== undefined ? x.result : null)
+              };
+            });
+          } catch (e2) {
+            logger.warn('data.json 回退也失败: ' + e2.message);
+          }
         }
+
         // 从 trends.json 读取真实趋势快照（period_daemon 每20分钟写入）
         var timeLabels = [], series = [];
         try {
@@ -267,7 +283,7 @@ app.post('/api', async (req, res) => {
         } catch(e) { logger.warn('读取趋势快照失败: ' + e.message); }
 
         // 如果没有历史快照，用当前值生成单点趋势
-        if (series.length === 0) {
+        if (series.length === 0 && recomms.length > 0) {
           var now = new Date();
           var t = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
           timeLabels = [t];
@@ -379,15 +395,22 @@ app.post('/api', async (req, res) => {
 
       case 'match-detail': {
         const { matchId } = data;
-        // 优先从数据库读取
+        // 从 data.json 读取（支持历史比赛）
         let match = null;
         try {
-          const dbMatches = database.getAllMatches();
-          match = dbMatches.find(m => m.matchId === matchId);
+          const fs = require('fs');
+          const path = require('path');
+          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const mMap = dataFile.m || {};
+          const key = 'm_' + matchId;
+          match = mMap[key] || mMap[matchId] || null;
         } catch {}
+        // 兜底：尝试实时数据
         if (!match) {
-          const matches = await ensureData();
-          match = matches.find(m => m.matchId === matchId);
+          try {
+            const matches = await ensureData();
+            match = matches.find(m => m.matchId === matchId) || null;
+          } catch {}
         }
         return res.json({ code: 1, data: match || null });
       }
