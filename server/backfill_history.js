@@ -1,107 +1,154 @@
 /**
- * 历史数据补爬：2026-01-01 ~ 2026-03-18
- * 输出：合并到现有 data.json
+ * 历史推荐数据回填脚本
+ * 为 data.json 中所有缺少推荐数据的比赛抓取专家推荐方向及命中结果
+ *
+ * 用法: node server/backfill_history.js [--dry-run]
  */
-var https=require('https'),fs=require('fs'),path=require('path');
-var env={};
-try{fs.readFileSync(path.join(__dirname,'.env'),'utf8').split('\n').forEach(function(l){var p=l.trim().split('=');if(p.length===2)env[p[0]]=p[1]})}catch(e){}
 
-function get(url,p,h){return new Promise(function(r,e){var q=p?'?'+Object.keys(p).map(function(k){return k+'='+encodeURIComponent(p[k])}).join('&'):'';var u=require('url').parse(url+q);var req=https.request({hostname:u.hostname,port:443,path:u.pathname+(u.search||''),headers:Object.assign({Accept:'*/*','User-Agent':'Mozilla/5.0'},h||{}),rejectUnauthorized:false},function(res){var c=[];res.on('data',function(d){c.push(d)});res.on('end',function(){var t=Buffer.concat(c).toString();try{r(JSON.parse(t))}catch(ee){r({code:0,msg:t.slice(0,200)})}})});req.on('error',e);req.setTimeout(20000,function(){req.abort();e(new Error('timeout'))});req.end()})}
-function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
+const fs = require('fs');
+const path = require('path');
+const { getWithUA, sleep, jitter } = require('./http-utils');
+const { getToken, refreshToken } = require('./token_manager');
 
-var LOG=path.join(__dirname,'..','logs','backfill.log');
-function log(msg){var line='['+new Date().toISOString()+'] '+msg;console.log(line);try{fs.appendFileSync(LOG,line+'\n')}catch(e){}}
+const DATA_FILE = path.join(__dirname, 'data.json');
+const MIDOU_BASE = 'https://midou310.com/mdsj';
+const BATCH_SAVE_INTERVAL = 20;
+const REQUEST_DELAY_MS = 400;
 
-var weekMap={一:1,二:2,三:3,四:4,五:5,六:6,日:0};
-function fmtDate(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
-function getDayOfWeek(ds){return new Date(ds.slice(0,10).replace(/-/g,'/')+' 00:00:00').getDay()}
+const dryRun = process.argv.includes('--dry-run');
 
-async function main(){
-  log('=== 历史数据补爬 2026-01-01 ~ 2026-03-18 ===');
-  var login=await get('https://midou310.com/mdsj/gduser/login.do',{mobile:env.MIDOU_MOBILE,password:env.MIDOU_PASSWORD});
-  if(login.code!==1){log('Login FAIL');process.exit(1)}
-  var token=login.data.token;
-  log('Login OK');
+function log(msg) {
+  const ts = new Date().toISOString().slice(11, 19);
+  console.log('[' + ts + '] ' + msg);
+}
 
-  var dataFile=path.join(__dirname,'data.json');
-  var data={};
-  try{data=JSON.parse(fs.readFileSync(dataFile,'utf8'))}catch(e){data={m:{},r:{}}}
-  if(!data.m)data.m={};
-  if(!data.r)data.r={};
+function atomicWrite(filePath, obj) {
+  const tmp = filePath + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(obj));
+  fs.renameSync(tmp, filePath);
+}
 
-  var start=new Date('2026-01-01T00:00:00+08:00');
-  var end=new Date('2026-03-18T23:59:59+08:00');
-  var totalD=0,totalM=0,totalR=0,skipD=0;
-  var checkpoint=0;
+async function main() {
+  log('历史推荐数据回填启动' + (dryRun ? ' [DRY RUN]' : ''));
 
-  for(var d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
-    var dateStr=fmtDate(d);
-    totalD++;
-    log('['+dateStr+'] fetching...');
+  if (!fs.existsSync(DATA_FILE)) {
+    log('ERROR: data.json 不存在');
+    process.exit(1);
+  }
+  let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  if (!data.r) data.r = {};
+  const mMap = data.m || {};
 
-    try{
-      var mr=await get('https://midou310.com/mdsj/score/footballDataList.do',{time:d.getTime(),order:'status desc, start_datetime asc, data_id asc'},{Cookie:'token='+token});
-      if(mr.code!==1||!mr.data||mr.data.length===0){skipD++;log('  No data');continue}
-      var matches=mr.data||[];
-      log('  '+matches.length+' matches');
+  // 找出所有需要回填的比赛
+  const toFetch = [];
+  Object.keys(mMap).forEach(k => {
+    const m = mMap[k];
+    if (!m || !m.matchId) return;
+    const mid = String(m.matchId);
+    const rk = 'm_' + mid;
+    const existingRecs = data.r[rk] || data.r[mid] || [];
+    const hasStale = existingRecs.length > 0 && existingRecs.some(r => r.result === null || r.result === 2);
+    const noRecs = existingRecs.length === 0;
 
-      for(var i=0;i<matches.length;i++){
-        var m=matches[i];
-        var mid=String(m.matchId||m.dataId||'');
-        if(!mid)continue;
+    if (noRecs || hasStale) {
+      toFetch.push({
+        mid, rk: 'm_' + mid,
+        date: m.date || '', num: m.num || '',
+        home: m.homeName || '', visit: m.visitName || '',
+        matchStatus: m.matchStatus || 0,
+        existingCount: existingRecs.length,
+        staleCount: existingRecs.filter(r => r.result === null || r.result === 2).length
+      });
+    }
+  });
 
-        // 日期
-        var md='';
-        if(m.bDate&&typeof m.bDate==='string'&&m.bDate.length>=10)md=m.bDate.slice(0,10);
-        if(!md||md.length!==10)md=dateStr;
+  toFetch.sort((a, b) => b.date.localeCompare(a.date));
 
-        // 存储比赛
-        var mkey='m_'+mid;
-        if(!data.m[mkey]){
-          data.m[mkey]={
-            matchId:mid,num:m.num||'',homeName:m.homeName||'',
-            visitName:m.visitName||'',leagueName:m.leagueName||'',
-            startTime:m.startTime||'',matchStatus:m.matchStatus||0,
-            score:m.score||'',halfScore:m.halfScore||'',
-            duration:m.duration||'',yellow:m.yellow||'',red:m.red||'',
-            recommNum:m.recommNum||0,date:md
-          };
-          totalM++;
+  log('共 ' + toFetch.length + ' 场比赛需要回填');
+  if (toFetch.length === 0) { log('无需回填，退出'); process.exit(0); }
+
+  // 日期分布
+  const dateDist = {};
+  toFetch.forEach(t => {
+    if (!dateDist[t.date]) dateDist[t.date] = 0;
+    dateDist[t.date]++;
+  });
+  log('覆盖 ' + Object.keys(dateDist).length + ' 个日期');
+
+  if (dryRun) { log('DRY RUN 完成，退出'); process.exit(0); }
+
+  // 获取 token
+  let token;
+  try {
+    token = await getToken();
+    log('Token 获取成功');
+  } catch (e) {
+    log('ERROR: Token 获取失败: ' + e.message);
+    process.exit(1);
+  }
+
+  // 逐场抓取
+  let success = 0, fail = 0, skipped = 0, batchCount = 0;
+
+  for (let i = 0; i < toFetch.length; i++) {
+    const item = toFetch[i];
+    const progress = '[' + (i + 1) + '/' + toFetch.length + ']';
+
+    try {
+      const recRes = await getWithUA(
+        MIDOU_BASE + '/score/getExpertRecommData.do',
+        { dataId: item.mid, type: 0 },
+        { Cookie: 'token=' + token }
+      );
+
+      if (recRes.code === 1 && recRes.data && recRes.data.length > 0) {
+        const recs = recRes.data
+          .filter(x => x && x.type && x.num > 0)
+          .map(x => ({ type: x.type, num: x.num, result: x.result !== undefined ? x.result : null }));
+
+        if (recs.length > 0) {
+          data.r[item.rk] = recs;
+          const hitCount = recs.filter(r => r.result === 1).length;
+          log(progress + ' OK ' + item.date + ' ' + item.num + ' ' + item.home + ' vs ' + item.visit + ' -> ' + recs.length + ' recs (hit:' + hitCount + ')');
+          success++; batchCount++;
+        } else {
+          skipped++;
         }
-
-        // 推荐（有结果的才抓）
-        var rkey='m_'+mid;
-        if(!data.r[rkey]&&m.matchStatus>=1){
-          await sleep(100);
-          try{
-            var rr=await get('https://midou310.com/mdsj/score/getExpertRecommData.do',{dataId:mid,type:0},{Cookie:'token='+token});
-            if(rr.code===1&&rr.data&&rr.data.length){
-              var recs=rr.data.filter(function(x){return x&&x.type&&x.num>0}).map(function(x){return{type:x.type,num:x.num,result:x.result!==undefined?x.result:null}});
-              if(recs.length){data.r[rkey]=recs;totalR++}
-            }
-          }catch(e){/* skip */}
-        }
+      } else if (recRes.code === -1) {
+        log(progress + ' Token expired, refreshing...');
+        try { token = await refreshToken(); } catch (e) {}
+        i--;
+        await sleep(2000);
+        continue;
+      } else {
+        skipped++;
       }
-    }catch(e){log('  ERROR: '+e.message)}
-    await sleep(200);
+    } catch (e) {
+      log(progress + ' FAIL ' + item.date + ' ' + item.num + ': ' + e.message);
+      fail++;
+    }
 
-    // 每10天保存一次
-    checkpoint++;
-    if(checkpoint%10===0){
-      fs.writeFileSync(dataFile+'.tmp',JSON.stringify(data));
-      fs.renameSync(dataFile+'.tmp',dataFile);
-      log('Checkpoint saved: M'+Object.keys(data.m).length+' R'+Object.keys(data.r).length);
+    if (batchCount >= BATCH_SAVE_INTERVAL) {
+      atomicWrite(DATA_FILE, data);
+      log('  [saved] success:' + success + ' fail:' + fail + ' skip:' + skipped);
+      batchCount = 0;
+    }
+
+    await sleep(jitter(REQUEST_DELAY_MS));
+
+    if ((i + 1) % 100 === 0) {
+      try { token = await refreshToken(); log('  [token refreshed]'); } catch (e) {}
     }
   }
 
-  // 最终保存
-  fs.writeFileSync(dataFile+'.tmp',JSON.stringify(data));
-  fs.renameSync(dataFile+'.tmp',dataFile);
+  atomicWrite(DATA_FILE, data);
   log('');
   log('=== DONE ===');
-  log('Days: '+totalD+' (with data:'+(totalD-skipD)+' skipped:'+skipD+')');
-  log('New matches: '+totalM+' New recs: '+totalR);
-  log('Total: M'+Object.keys(data.m).length+' R'+Object.keys(data.r).length);
+  log('success: ' + success + ' fail: ' + fail + ' skip: ' + skipped);
 }
 
-main().catch(function(e){log('FATAL: '+e.message);process.exit(1)});
+main().catch(e => {
+  log('FATAL: ' + e.message);
+  console.error(e);
+  process.exit(1);
+});

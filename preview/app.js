@@ -409,7 +409,7 @@ const chart = echarts.init(chartEl);
           lineStyle: { width: 2, color: colors[i] },
           itemStyle: { color: colors[i] },
           data: s.data
-        }));
+        }});
 
       chart.setOption({
         color: colors,
@@ -458,6 +458,22 @@ function loadRanking(cat, dir) {
   if (rankDate) params.date = rankDate;
 
   api('ranking-list', params).then(data => {
+    // 当天无排名时自动回退到最近有数据的日期
+    if ((data.ranking || []).length === 0 && !selectedCategory && !selectedDirection) {
+      var now2 = new Date();
+      var todayStr2 = now2.getFullYear() + '-' + String(now2.getMonth()+1).padStart(2,'0') + '-' + String(now2.getDate()).padStart(2,'0');
+      if (rankDate === todayStr2 || rankDate === '') {
+        var d3 = new Date();
+        d3.setDate(d3.getDate() + rankDateOffset - 1);
+        if (d3.toISOString().slice(0,10) >= MIN_PLAN_DATE) {
+          rankDateOffset--;
+          updateRankDateBar();
+          loadRanking();
+          return;
+        }
+      }
+    }
+
     // 分类筛选
     const catOrder = CAT_NAMES.filter(c => c === '综合排名' || (data.categories && data.categories[c]));
     catEl.innerHTML = catOrder.map(c => {
@@ -1125,7 +1141,7 @@ function goRankToday() {
 // ========== 今日方案 ==========
 var planDate = ''; // YYYY-MM-DD
 var planDateOffset = 0;
-var MIN_PLAN_DATE = '2026-04-25'; // 最早有赔率数据的日期
+var MIN_PLAN_DATE = '2026-03-19'; // 最早有数据的日期
 
 function updatePlanDateBar() {
   var d = new Date();
@@ -1165,7 +1181,20 @@ function loadPlanList() {
   api('plan-list', { date: planDate }).then(function(data) {
     var plans = data.plans || [];
     if (plans.length === 0) {
-      el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">当日暂无竞彩方案</div>';
+      // 当天无方案时自动回退到最近有方案的日期
+      var now = new Date();
+      var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+      if (planDate === todayStr) {
+        var d2 = new Date();
+        d2.setDate(d2.getDate() + planDateOffset - 1);
+        if (d2.toISOString().slice(0,10) >= MIN_PLAN_DATE) {
+          planDateOffset--;
+          updatePlanDateBar();
+          loadPlanList();
+          return;
+        }
+      }
+      el.innerHTML = '<div style=\"text-align:center;padding:80px 0;color:var(--text3);font-size:14px;\">当日暂无竞彩方案</div>';
       return;
     }
 
@@ -1173,17 +1202,30 @@ function loadPlanList() {
       var matches = p.matches || [];
 
       // 判断方案整体中奖状态
-      var allWon = matches.length > 0;
-      var anyLose = false;
-      var anyUndetermined = false;
-      for (var mi = 0; mi < matches.length; mi++) {
-        if (!matches[mi].isMatchWon) allWon = false;
-        if (matches[mi].isMatchLose) anyLose = true;
-        if (!matches[mi].isMatchWon && !matches[mi].isMatchLose) anyUndetermined = true;
+      var isWon = false, isLose = false;
+      if (p.passType === '混合过关') {
+        var hitCount = 0, loseCount = 0, undetermined = false;
+        for (var mi = 0; mi < matches.length; mi++) {
+          if (matches[mi].isMatchWon) hitCount++;
+          else if (matches[mi].isMatchLose) loseCount++;
+          else undetermined = true;
+        }
+        if (!undetermined) {
+          isWon = hitCount >= 2;
+          isLose = !isWon;
+        }
+      } else {
+        var allWon = matches.length > 0;
+        var anyLose = false, anyUndetermined = false;
+        for (var mi2 = 0; mi2 < matches.length; mi2++) {
+          if (!matches[mi2].isMatchWon) allWon = false;
+          if (matches[mi2].isMatchLose) anyLose = true;
+          if (!matches[mi2].isMatchWon && !matches[mi2].isMatchLose) anyUndetermined = true;
+        }
+        isWon = allWon;
+        isLose = anyLose && !isWon;
+        if (anyUndetermined) { isWon = false; isLose = false; }
       }
-      var isWon = allWon;
-      var isLose = anyLose && !isWon;
-      if (anyUndetermined) { isWon = false; isLose = false; }
 
       var planName = p.planName || ('方案' + (i + 1));
 
@@ -1192,10 +1234,71 @@ function loadPlanList() {
       var prizeVal = (p.maxPrize || 0).toFixed(0);
       var prizeLabel = isWon ? '中奖金额' : (isLose ? '预计奖金' : '预计最高奖金');
 
-      // 发布/截止时间
-      var publishTime = '';
-      if (p.publishTime) publishTime = p.publishTime;
-      else if (matches.length > 0 && matches[0].startTime) publishTime = matches[0].startTime.slice(0,16).replace('T',' ');
+      // 方案六开奖后按实际命中计算奖金
+      if (p.passType === '混合过关' && isWon) {
+        var hitOddsArr = [];
+        for (var mi3 = 0; mi3 < matches.length; mi3++) {
+          if (matches[mi3].isMatchWon) {
+            var eo = matches[mi3].effectiveOdds;
+            if (!eo) {
+              // fallback: extract from odds object
+              var od = matches[mi3].odds || {};
+              if (od.rqspf && od.rqspf.home) eo = od.rqspf.home;
+              else if (od.spf && od.spf.home) eo = od.spf.home;
+              else eo = 1.5;
+            }
+            if (eo > 0) hitOddsArr.push(eo);
+          }
+        }
+        if (hitOddsArr.length >= 2) {
+          var actual2in1 = 0, actual3in1 = 0;
+          for (var a = 0; a < hitOddsArr.length; a++) {
+            for (var b = a + 1; b < hitOddsArr.length; b++) {
+              actual2in1 += 2 * hitOddsArr[a] * hitOddsArr[b];
+            }
+          }
+          for (var a = 0; a < hitOddsArr.length; a++) {
+            for (var b = a + 1; b < hitOddsArr.length; b++) {
+              for (var c = b + 1; c < hitOddsArr.length; c++) {
+                actual3in1 += 2 * hitOddsArr[a] * hitOddsArr[b] * hitOddsArr[c];
+              }
+            }
+          }
+          prizeVal = Math.round((actual2in1 + actual3in1) * 25).toFixed(0);
+          prizeLabel = '中奖金额';
+        }
+      }
+
+      // 截单时间：基于第一场比赛开赛时间，提前30分钟；周一至五22:00之后截单21:30；周六日23:00之后截单22:30
+      var cutoffDisplay = '';
+      if (matches.length > 0 && matches[0].startTime) {
+        var stParts = matches[0].startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+        if (stParts) {
+          var stMonth = parseInt(stParts[1]) - 1, stDay = parseInt(stParts[2]), stHour = parseInt(stParts[3]), stMin = parseInt(stParts[4]);
+          var pYear = parseInt(planDate.slice(0, 4));
+          var kickoff = new Date(pYear, stMonth, stDay, stHour, stMin);
+          if (!isNaN(kickoff.getTime())) {
+            var mp = planDate.split('-');
+            var matchDateOnly = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]));
+            var kickoffDateOnly = new Date(kickoff.getFullYear(), kickoff.getMonth(), kickoff.getDate());
+            var isCrossMidnight = kickoffDateOnly > matchDateOnly;
+            var cutoff;
+            if (isCrossMidnight) {
+              // 跨日比赛：用比赛日期的星期几，固定晚间截单
+              var matchDow = matchDateOnly.getDay();
+              if (matchDow >= 1 && matchDow <= 5) cutoff = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]), 21, 30);
+              else cutoff = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]), 22, 30);
+            } else {
+              cutoff = new Date(kickoff.getTime() - 30 * 60 * 1000);
+              var dow = kickoff.getDay();
+              if (dow >= 1 && dow <= 5 && stHour >= 22) cutoff = new Date(pYear, stMonth, stDay, 21, 30);
+              else if ((dow === 0 || dow === 6) && stHour >= 23) cutoff = new Date(pYear, stMonth, stDay, 22, 30);
+            }
+            var pad2 = function(n){ return String(n).padStart(2,'0'); };
+            cutoffDisplay = '截单时间：' + pad2(cutoff.getMonth()+1) + '/' + pad2(cutoff.getDate()) + ' ' + pad2(cutoff.getHours()) + ':' + pad2(cutoff.getMinutes());
+          }
+        }
+      }
 
       // 辅助：解析某场比赛的方向赔率显示（含子方向中/未中着色）
       function resolveMatchOddsHtml(match, planIdx) {
@@ -1252,10 +1355,15 @@ function loadPlanList() {
             subColor = subR.result === 1 ? '#EF4444' : '#22C55E';
           }
 
-          if (val) resolved.push('<span style=\"color:' + subColor + '\">' + label + '(' + val + ')</span>');
-          else resolved.push(label + '(-)');
+          var displayLabel = label;
+          if (displayLabel.indexOf('总进球-') === 0) {
+            displayLabel = displayLabel.replace('总进球-', '');
+            if (displayLabel.indexOf('球') < 0) displayLabel += '球';
+          }
+          if (val) resolved.push('<span style=\"color:' + subColor + '\">' + displayLabel + '(' + val + ')</span>');
+          else resolved.push('<span style=\"color:' + subColor + '\">' + displayLabel + '(-)</span>');
         });
-        return resolved.join('、');
+        return resolved.join('<span style=\"color:#fff\">、</span>');
       }
 
       // 构建比赛表格行
@@ -1297,7 +1405,7 @@ function loadPlanList() {
             '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
             '<span class="plan-name">' + planName + '</span>' +
           '</div>' +
-          '<span class="plan-pub-time">' + publishTime + '</span>' +
+          '<span class="plan-pub-time">' + cutoffDisplay + '</span>' +
         '</div>' +
         // ═══ 数据行 ═══
         '<div class="plan-amount-row">' +
@@ -1324,8 +1432,8 @@ function loadPlanList() {
             '<div>注数/倍/票</div>' +
           '</div>' +
           '<div class="plan-info-right">' +
-            '<div>竞彩记录-' + (p.playType || '混合投注') + '</div>' +
-            '<div>' + (p.matchCount || 2) + '场' + (p.passType || '2串1') + '</div>' +
+            '<div>' + (p.playType || '混合投注') + '</div>' +
+            '<div>' + (p.passType === '混合过关' ? '2场2串1，3场3串1' : (p.matchCount || 2) + '场' + (p.passType || '2串1')) + '</div>' +
             '<div>' + (p.betCount || 250) + '注' + (p.multiplier || 25) + '倍' + (p.ticketCount || 10) + '票</div>' +
           '</div>' +
           (isWon ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>' : '') +
