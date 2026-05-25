@@ -867,25 +867,77 @@ app.post('/api', async (req, res) => {
         const mid = data.matchId;
         if (!mid) return res.json({ code: 0, msg: '缺少 matchId' });
         try {
-          const cached = database.getAIPrediction(mid);
-          if (cached && cached.content) return res.json({ code: 1, data: { matchId: mid, content: cached.content, confidence: cached.confidence || 0, fromCache: true } });
-          // 无缓存，异步生成
-          const m = database.getRecommendsByMatchId(mid);
-          const matchInfo = { matchId: mid, homeName: (m && m.homeName) || '', visitName: (m && m.visitName) || '', leagueName: (m && m.leagueName) || '', date: (m && m.date) || '', num: (m && m.num) || '' };
-          res.json({ code: 0, msg: '分析未就绪，正在后台生成中，请稍后刷新', pending: true });
-          const ds = require('./deepseek');
-          ds.generateAnalysis(matchInfo).then(r => {
-            if (r.content) {
-              database.upsertAIPrediction(mid, { ...matchInfo, content: r.content, confidence: (r.content && r.content.confidence) || 0, rawResponse: r.rawResponse || '', tokenUsage: r.tokenUsage || 0 });
+          const fs = require('fs');
+          const path = require('path');
+
+          // 1) 从 ai_cache.json 文件读取缓存
+          var cacheFile = path.join(__dirname, 'ai_cache.json');
+          var cache = {};
+          if (fs.existsSync(cacheFile)) {
+            try { cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
+          }
+
+          if (cache[mid] && cache[mid].content) {
+            return res.json({ code: 1, data: { matchId: mid, content: cache[mid].content, confidence: cache[mid].confidence || 0, fromCache: true } });
+          }
+
+          // 2) 从 data.json 获取比赛信息
+          var matchInfo = {};
+          try {
+            var dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+            var mMap = dataFile.m || {};
+            var m = mMap['m_' + mid] || mMap[mid];
+            if (m) {
+              matchInfo = { matchId: mid, homeName: m.homeName || '', visitName: m.visitName || '', leagueName: m.leagueName || '', date: m.date || '', num: m.num || '' };
             }
-          }).catch(e => console.error('[ai] index.js 生成失败', mid, e.message));
+          } catch (e) {}
+
+          // 3) 后台异步生成（DeepSeek API），先返回 pending
+          res.json({ code: 0, msg: '分析未就绪，正在后台生成中，请稍后刷新', pending: true });
+
+          try {
+            const ds = require('./deepseek');
+            ds.generateAnalysis(matchInfo).then(function(r) {
+              if (r && r.content) {
+                // 写入文件缓存
+                try {
+                  var current = {};
+                  if (fs.existsSync(cacheFile)) {
+                    try { current = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
+                  }
+                  current[mid] = { content: r.content, confidence: (r.content && r.content.confidence) || 0, updatedAt: new Date().toISOString() };
+                  fs.writeFileSync(cacheFile, JSON.stringify(current));
+                } catch (e) { console.error('[ai] cache write error:', e.message); }
+              }
+            }).catch(function(e) { console.error('[ai] generate error:', e.message); });
+          } catch (e) { console.error('[ai] deepseek module error:', e.message); }
           return;
         } catch (e) { return res.json({ code: 0, msg: '查询失败: ' + e.message }); }
       }
       case 'ai-predict-status': {
         try {
-          const summary = database.getTodayMatchSummary();
-          return res.json({ code: 1, data: summary });
+          const fs = require('fs');
+          const path = require('path');
+          const today = new Date().toISOString().slice(0, 10);
+          var totalMatches = 0, finishedMatches = 0;
+          try {
+            var dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+            var mMap = dataFile.m || {};
+            Object.values(mMap).forEach(function(m) {
+              if (!m || !m.date) return;
+              if ((m.date || '').slice(0, 10) === today) {
+                totalMatches++;
+                if (m.matchStatus >= 2) finishedMatches++;
+              }
+            });
+          } catch (e) {}
+          return res.json({ code: 1, data: {
+            todayDate: today,
+            totalMatches: totalMatches,
+            finishedMatches: finishedMatches,
+            unfinishedMatches: totalMatches - finishedMatches,
+            canShowCards: (totalMatches - finishedMatches) > 0
+          }});
         } catch (e) { return res.json({ code: 0, msg: e.message }); }
       }
       case 'ai-batch-generate': {
