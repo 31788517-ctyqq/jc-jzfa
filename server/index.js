@@ -529,6 +529,28 @@ app.post('/api', async (req, res) => {
             dateDirMap[r.date][r.direction].hits += r.hit;
           });
 
+          // 场次前三命中率：每场比赛取专家数前3的方向，任一命中即算该场命中
+          var matchTop3 = {}; // matchId -> { hit: bool, total: count }
+          Object.keys(rMap).forEach(function(k) {
+            var mid = k.replace(/^m_/, '');
+            var match = mMap['m_' + mid] || mMap[mid];
+            var matchDate = match ? (match.date || '').slice(0, 10) : '';
+            if (matchDate < cutoffStr) return;
+            var recs = normalizeRecs(rMap[k] || []);
+            recs.sort(function(a, b) { return (b.num || 0) - (a.num || 0); });
+            var top3 = recs.slice(0, 3);
+            var hasHit = top3.some(function(r) { return r.result === 1; });
+            var hasResult = top3.some(function(r) { return r.result !== null && r.result !== undefined; });
+            if (hasResult || top3.length > 0) {
+              if (!matchTop3[mid]) matchTop3[mid] = { hit: false, any: false };
+              if (hasHit) matchTop3[mid].hit = true;
+              matchTop3[mid].any = true;
+            }
+          });
+          var top3Total = Object.keys(matchTop3).length;
+          var top3Hits = Object.values(matchTop3).filter(function(x) { return x.hit; }).length;
+          var top3HitRate = top3Total > 0 ? Math.round(top3Hits / top3Total * 1000) / 10 : 0;
+
           var dailyTrend = Object.keys(dateDirMap).sort().map(function(d) {
             var dirs = [];
             Object.keys(dateDirMap[d]).forEach(function(dir) {
@@ -546,7 +568,8 @@ app.post('/api', async (req, res) => {
             data: {
               totalDays: days,
               directionStats: directionStats,
-              dailyTrend: dailyTrend
+              dailyTrend: dailyTrend,
+              top3HitRate: top3HitRate
             }
           });
         } catch (dbErr) {
