@@ -161,6 +161,74 @@ function selectDateFromPicker(date) {
   var el = document.getElementById('datePicker');
   if (el) el.style.display = 'none';
 }
+
+// ── 通用日历渲染 (app.js) ──
+function renderMonthCalendar(prefix, availableDates, current, today, onSelect) {
+  var grid = document.getElementById(prefix + 'Grid');
+  var monthEl = document.getElementById(prefix + 'Month');
+  if (!grid || !monthEl) return;
+  var yk = prefix + 'Y', mk = prefix + 'M';
+  if (typeof window[yk] === 'undefined') {
+    var d = new Date();
+    window[yk] = d.getFullYear();
+    window[mk] = d.getMonth() + 1;
+    if (current) window[mk] = parseInt(current.slice(0, 2), 10);
+  }
+  var CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二'];
+  monthEl.textContent = CN[window[mk] - 1] + '月 ' + window[yk];
+  var firstDay = new Date(window[yk], window[mk] - 1, 1);
+  var lastDay = new Date(window[yk], window[mk], 0);
+  var startDow = firstDay.getDay();
+  var html = '';
+  for (var i = 0; i < startDow; i++) html += '<div class="date-picker-cell other-month"></div>';
+  for (var day = 1; day <= lastDay.getDate(); day++) {
+    var mm = String(window[mk]).padStart(2, '0');
+    var dd = String(day).padStart(2, '0');
+    var md = mm + '-' + dd;
+    var hasMatch = availableDates.indexOf(md) >= 0;
+    var isActive = md === current;
+    var isToday = md === today;
+    var cls = 'date-picker-cell';
+    if (hasMatch) cls += ' has-match';
+    if (isActive) cls += ' active';
+    if (isToday) cls += ' today';
+    var onclick = hasMatch ? (' onclick="' + onSelect + '(\'' + md + '\')"') : '';
+    html += '<div class="' + cls + '"' + onclick + '>' + day + '</div>';
+  }
+  grid.innerHTML = html;
+  document.getElementById(prefix + 'Prev').onclick = function () { window[mk]--; if (window[mk] < 1) { window[yk]--; window[mk] = 12; } renderMonthCalendar(prefix, availableDates, current, today, onSelect); };
+  document.getElementById(prefix + 'Next').onclick = function () { window[mk]++; if (window[mk] > 12) { window[yk]++; window[mk] = 1; } renderMonthCalendar(prefix, availableDates, current, today, onSelect); };
+}
+function togglePlanDatePicker() {
+  var el = document.getElementById('planDatePicker');
+  if (!el) return;
+  if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+  var available = weekDates.map(function(w) { return w.matchDate; });
+  var today = formatDate(new Date()).slice(5);
+  renderMonthCalendar('planDate', available, planDate.slice(5), today, 'selectPlanDateFromPicker');
+  el.style.display = 'block';
+}
+function selectPlanDateFromPicker(md) {
+  planDate = planDate.slice(0,5) + md;
+  updatePlanDateBar();
+  loadPlanList();
+  document.getElementById('planDatePicker').style.display = 'none';
+}
+function toggleRankDatePicker() {
+  var el = document.getElementById('rankDatePicker');
+  if (!el) return;
+  if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+  var available = weekDates.map(function(w) { return w.matchDate; });
+  var today = formatDate(new Date()).slice(5);
+  renderMonthCalendar('rankDate', available, rankDate.slice(5), today, 'selectRankDateFromPicker');
+  el.style.display = 'block';
+}
+function selectRankDateFromPicker(md) {
+  rankDate = rankDate.slice(0,5) + md;
+  updateRankDateBar();
+  loadRanking();
+  document.getElementById('rankDatePicker').style.display = 'none';
+}
 function goToday() {
   // 找到今天或最近的竞彩期号
   var today = formatDate(new Date()).slice(5);

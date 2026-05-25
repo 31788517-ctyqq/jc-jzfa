@@ -112,6 +112,96 @@ export function selectDateFromPicker(matchDate) {
   if (el) el.style.display = 'none';
 }
 
+// ── 通用日历渲染 ──
+function dobj(dateStr) {
+  var p = dateStr.split('-');
+  return { y: parseInt(p[0], 10), m: parseInt(p[1], 10), d: parseInt(p[2], 10) };
+}
+
+function renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onSelect) {
+  var grid = document.getElementById(prefix + 'Grid');
+  var monthEl = document.getElementById(prefix + 'Month');
+  if (!grid || !monthEl) return;
+
+  var yearKey = prefix + 'Year', monthKey = prefix + 'MonthIdx';
+  if (typeof window[yearKey] === 'undefined') {
+    var d = new Date();
+    window[yearKey] = d.getFullYear();
+    window[monthKey] = d.getMonth() + 1;
+    if (currentDate) window[monthKey] = parseInt(currentDate.slice(0, 2), 10);
+  }
+
+  var CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二'];
+  monthEl.textContent = CN[window[monthKey] - 1] + '月 ' + window[yearKey];
+
+  var firstDay = new Date(window[yearKey], window[monthKey] - 1, 1);
+  var lastDay = new Date(window[yearKey], window[monthKey], 0);
+  var startDow = firstDay.getDay();
+
+  var html = '';
+  for (var i = 0; i < startDow; i++) html += '<div class="date-picker-cell other-month"></div>';
+  for (var day = 1; day <= lastDay.getDate(); day++) {
+    var mm = String(window[monthKey]).padStart(2, '0');
+    var dd = String(day).padStart(2, '0');
+    var md = mm + '-' + dd;
+    var hasMatch = availableDates.indexOf(md) >= 0;
+    var isActive = md === currentDate;
+    var isToday = md === todayDate;
+    var cls = 'date-picker-cell';
+    if (hasMatch) cls += ' has-match';
+    if (isActive) cls += ' active';
+    if (isToday) cls += ' today';
+    var onclick = hasMatch ? (' onclick="' + onSelect + '(\'' + md + '\')"') : '';
+    html += '<div class="' + cls + '"' + onclick + '>' + day + '</div>';
+  }
+  grid.innerHTML = html;
+
+  document.getElementById(prefix + 'Prev').onclick = function () { window[monthKey]--; if (window[monthKey] < 1) { window[yearKey]--; window[monthKey] = 12; } renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onSelect); };
+  document.getElementById(prefix + 'Next').onclick = function () { window[monthKey]++; if (window[monthKey] > 12) { window[yearKey]++; window[monthKey] = 1; } renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onSelect); };
+}
+
+// ── 今日方案日历 ──
+export function togglePlanDatePicker() {
+  var el = document.getElementById('planDatePicker');
+  if (!el) return;
+  if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+  var weeks = state.weekDates || [];
+  var available = weeks.map(function(w) { return w.matchDate; });
+  var today = formatDate(new Date()).slice(5);
+  renderMonthCalendar('planDate', available, state.planDate.slice(5), today, 'selectPlanDateFromPicker');
+  el.style.display = 'block';
+}
+export function selectPlanDateFromPicker(md) {
+  var weeks = state.weekDates || [];
+  // check if weekDates has this specific date
+  for (var i = 0; i < weeks.length; i++) {
+    if (weeks[i].matchDate === md) { state.setSelectedWeekIdx(i); break; }
+  }
+  // Set plan date to the year of the selected matchDate with correct date
+  state.setPlanDate(state.planDate.slice(0,5) + md);
+  updatePlanDateBar();
+  loadPlanList();
+  document.getElementById('planDatePicker').style.display = 'none';
+}
+
+// ── 排行榜日历 ──
+export function toggleRankDatePicker() {
+  var el = document.getElementById('rankDatePicker');
+  if (!el) return;
+  if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+  var weeks = state.weekDates || [];
+  var available = weeks.map(function(w) { return w.matchDate; });
+  var today = formatDate(new Date()).slice(5);
+  renderMonthCalendar('rankDate', available, state.rankDate.slice(5), today, 'selectRankDateFromPicker');
+  el.style.display = 'block';
+}
+export function selectRankDateFromPicker(md) {
+  state.setRankDate(state.rankDate.slice(0,5) + md);
+  updateRankDateBar();
+  loadRanking();
+  document.getElementById('rankDatePicker').style.display = 'none';
+}
+
 export function goToday() {
   var today = formatDate(new Date()).slice(5);
   var now = new Date();
@@ -217,6 +307,10 @@ window.goToday = goToday;
 window.shiftWeek = shiftWeek;
 window.toggleDatePicker = toggleDatePicker;
 window.selectDateFromPicker = selectDateFromPicker;
+window.togglePlanDatePicker = togglePlanDatePicker;
+window.selectPlanDateFromPicker = selectPlanDateFromPicker;
+window.toggleRankDatePicker = toggleRankDatePicker;
+window.selectRankDateFromPicker = selectRankDateFromPicker;
 window.goDetail = goDetail;
 window.closeAI = closeAI;
 window.showAIPrediction = showAIPrediction;
