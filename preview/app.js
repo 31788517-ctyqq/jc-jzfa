@@ -546,7 +546,7 @@ function loadHitRate() {
           </div>
           <div class="stat-big">
             <div class="stat-big-value">${top3Rate}%</div>
-            <div class="stat-big-label">场次前三命中率</div>
+            <div class="stat-big-label">综合排名命中率</div>
           </div>
         </div>
       </div>

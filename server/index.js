@@ -529,27 +529,59 @@ app.post('/api', async (req, res) => {
             dateDirMap[r.date][r.direction].hits += r.hit;
           });
 
-          // 场次前三命中率：每场比赛取专家数前3的方向，任一命中即算该场命中
-          var matchTop3 = {}; // matchId -> { hit: bool, total: count }
+          // 综合排名命中率：
+          //  每天综合排名前5场比赛，≥3场命中则当天"合格"
+          //  统计近60个有效比赛日(≥5场比赛)的合格率
+          //  当天不足5场则往前推，凑满60天
+          var matchDayTop = {}; // matchId -> { date, expertCount, isHit }
           Object.keys(rMap).forEach(function(k) {
             var mid = k.replace(/^m_/, '');
             var match = mMap['m_' + mid] || mMap[mid];
             var matchDate = match ? (match.date || '').slice(0, 10) : '';
-            if (matchDate < cutoffStr) return;
+            if (!matchDate) return;
             var recs = normalizeRecs(rMap[k] || []);
+            if (recs.length === 0) return;
+            // 取该场比赛综合排名第一的方向(max expertCount)
             recs.sort(function(a, b) { return (b.num || 0) - (a.num || 0); });
-            var top3 = recs.slice(0, 3);
-            var hasHit = top3.some(function(r) { return r.result === 1; });
-            var hasResult = top3.some(function(r) { return r.result !== null && r.result !== undefined; });
-            if (hasResult || top3.length > 0) {
-              if (!matchTop3[mid]) matchTop3[mid] = { hit: false, any: false };
-              if (hasHit) matchTop3[mid].hit = true;
-              matchTop3[mid].any = true;
-            }
+            var top = recs[0];
+            var hasResult = top.result !== null && top.result !== undefined;
+            if (!hasResult) return;
+            matchDayTop[mid] = {
+              date: matchDate,
+              expertCount: top.num || 0,
+              isHit: top.result === 1
+            };
           });
-          var top3Total = Object.keys(matchTop3).length;
-          var top3Hits = Object.values(matchTop3).filter(function(x) { return x.hit; }).length;
-          var top3HitRate = top3Total > 0 ? Math.round(top3Hits / top3Total * 1000) / 10 : 0;
+
+          // 按日期分组：每天取 top5 比赛
+          var dayTop5 = {}; // date -> [{ matchId, expertCount, isHit }]
+          Object.keys(matchDayTop).forEach(function(mid) {
+            var item = matchDayTop[mid];
+            if (!dayTop5[item.date]) dayTop5[item.date] = [];
+            dayTop5[item.date].push({ matchId: mid, expertCount: item.expertCount, isHit: item.isHit });
+          });
+          Object.keys(dayTop5).forEach(function(d) {
+            dayTop5[d].sort(function(a, b) { return b.expertCount - a.expertCount; });
+            dayTop5[d] = dayTop5[d].slice(0, 5);
+          });
+
+          // 取近 60 个有效比赛日(≥5场)，不足则往前推
+          var validDates = Object.keys(dayTop5).filter(function(d) {
+            return d <= new Date().toISOString().slice(0, 10) && dayTop5[d].length >= 1;
+          }).sort().reverse();
+          var targetDays = days || 60;
+          var qualifiedDays = 0, participatingDays = 0;
+          for (var di = 0; di < validDates.length && participatingDays < targetDays; di++) {
+            var dd = validDates[di];
+            var top5 = dayTop5[dd];
+            if (top5.length < 3) continue; // 不足3场无法达标，跳过
+            participatingDays++;
+            var dayHits = top5.filter(function(x) { return x.isHit; }).length;
+            if (dayHits >= 3) qualifiedDays++;
+          }
+          var top3HitRate = participatingDays > 0
+            ? Math.round(qualifiedDays / participatingDays * 1000) / 10
+            : 0;
 
           var dailyTrend = Object.keys(dateDirMap).sort().map(function(d) {
             var dirs = [];
