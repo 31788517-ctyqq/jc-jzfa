@@ -114,11 +114,12 @@ function renderDatePicker() {
     months[m].push(w);
   });
   var sortedMonths = Object.keys(months).sort().reverse();
+  var latestMonth = sortedMonths[0];
   var html = '';
-  sortedMonths.forEach(function(m) {
-    html += '<div style="font-size:11px;color:var(--text3);margin:10px 0 6px;font-weight:600">' + m + '月</div>';
+  if (latestMonth) {
+    html += '<div style="font-size:11px;color:var(--text3);margin:0 0 6px;font-weight:600">' + latestMonth + '月</div>';
     html += '<div class="date-picker-list">';
-    months[m].forEach(function(w) {
+    months[latestMonth].forEach(function(w) {
       var dd = w.matchDate.slice(3);
       var isActive = w.matchDate === current;
       var isToday = w.matchDate === today;
@@ -126,7 +127,7 @@ function renderDatePicker() {
         '" onclick="selectDateFromPicker(\'' + w.matchDate + '\')">' + dd + '</div>';
     });
     html += '</div>';
-  });
+  }
   list.innerHTML = html;
 }
 function selectDateFromPicker(date) {
