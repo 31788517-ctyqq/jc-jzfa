@@ -355,23 +355,103 @@ app.post('/api', async (req, res) => {
       }
 
       case 'hit-rate-stats': {
-        const days = data.days || 30;
+        const days = parseInt(data.days) || 30;
         try {
-          const directionStats = database.getHitRateStats(days);
-          const dailyTrend = database.getDailyTrend(days);
-          if (!directionStats || directionStats.length === 0) {
+          const fs = require('fs');
+          const path = require('path');
+
+          // Load from data.json (compatible with server without better-sqlite3)
+          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const mMap = dataFile.m || {};
+          const rMap = dataFile.r || {};
+
+          function normalizeRecs(recs) {
+            return recs.map(function(x) {
+              var r = x.rs !== undefined ? x.rs : (x.result !== undefined ? x.result : null);
+              return { type: x.t || x.type, num: x.n || x.num, result: r };
+            });
+          }
+
+          // Collect all recs with known results, joined with match date
+          var allRecs = [];
+          Object.keys(rMap).forEach(function(k) {
+            var mid = k.replace(/^m_/, '');
+            var match = mMap['m_' + mid] || mMap[mid];
+            var matchDate = match ? (match.date || '').slice(0, 10) : '';
+            var recs = normalizeRecs(rMap[k] || []);
+            recs.forEach(function(r) {
+              if (r.type && r.result !== null && r.result !== undefined) {
+                allRecs.push({
+                  direction: r.type,
+                  hit: r.result === 1 ? 1 : 0,
+                  miss: r.result === 0 ? 1 : 0,
+                  date: matchDate
+                });
+              }
+            });
+          });
+
+          // Filter by days
+          var cutoff = new Date();
+          cutoff.setDate(cutoff.getDate() - days);
+          var cutoffStr = cutoff.toISOString().slice(0, 10);
+          allRecs = allRecs.filter(function(r) { return r.date >= cutoffStr; });
+
+          if (allRecs.length === 0) {
             return res.json({ code: 0, msg: '命中率统计需要历史数据积累。请先运行爬虫抓取历史数据：node scraper.js' });
           }
+
+          // Aggregate by direction
+          var dirMap = {};
+          allRecs.forEach(function(r) {
+            if (!dirMap[r.direction]) dirMap[r.direction] = { total: 0, hits: 0, misses: 0 };
+            dirMap[r.direction].total++;
+            dirMap[r.direction].hits += r.hit;
+            dirMap[r.direction].misses += r.miss;
+          });
+
+          var directionStats = Object.keys(dirMap).map(function(d) {
+            var s = dirMap[d];
+            return {
+              direction: d,
+              totalRecommends: s.total,
+              hitCount: s.hits,
+              missCount: s.misses,
+              hitRate: s.total > 0 ? Math.round(s.hits / s.total * 1000) / 10 : 0
+            };
+          }).sort(function(a, b) { return b.hitCount - a.hitCount; });
+
+          // Aggregate by date -> direction
+          var dateDirMap = {};
+          allRecs.forEach(function(r) {
+            if (!dateDirMap[r.date]) dateDirMap[r.date] = {};
+            if (!dateDirMap[r.date][r.direction]) dateDirMap[r.date][r.direction] = { total: 0, hits: 0 };
+            dateDirMap[r.date][r.direction].total++;
+            dateDirMap[r.date][r.direction].hits += r.hit;
+          });
+
+          var dailyTrend = Object.keys(dateDirMap).sort().map(function(d) {
+            var dirs = [];
+            Object.keys(dateDirMap[d]).forEach(function(dir) {
+              var s = dateDirMap[d][dir];
+              dirs.push({
+                direction: dir,
+                hitRate: s.total > 0 ? Math.round(s.hits / s.total * 1000) / 10 : 0
+              });
+            });
+            return { date: d, directions: dirs };
+          });
+
           return res.json({
             code: 1,
             data: {
               totalDays: days,
-              directionStats,
-              dailyTrend
+              directionStats: directionStats,
+              dailyTrend: dailyTrend
             }
           });
         } catch (dbErr) {
-          return res.json({ code: 0, msg: '数据库未初始化: ' + dbErr.message });
+          return res.json({ code: 0, msg: '命中率统计失败: ' + dbErr.message });
         }
       }
 
