@@ -94,7 +94,7 @@ nginx -t && nginx -s reload && echo "  Nginx 配置成功"
 echo "[7/7] 启动服务..."
 cd $PROJECT_DIR
 pm2 delete jc-zjfa 2>/dev/null || true
-pm2 start server/index.js --name jc-zjfa --node-args="--max-old-space-size=256"
+BEHIND_PROXY=1 pm2 start server/index.js --name jc-zjfa --node-args="--max-old-space-size=256"
 pm2 save
 
 echo ""
