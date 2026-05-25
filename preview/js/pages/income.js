@@ -2,8 +2,7 @@ import { api } from '../api.js';
 import * as state from '../state.js';
 
 export function loadIncome(force) {
-  if (!state.incomeLoaded && !force) return;
-  if (!force && state.incomeLoaded) return;
+  if (state.incomeLoaded && !force) return;
   state.setIncomeLoaded(true);
   var resultEl = document.getElementById('incomeResult');
   if (!resultEl) return;
