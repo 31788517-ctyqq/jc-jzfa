@@ -11,6 +11,13 @@ const logger = require('./logger');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 本地日期辅助（避免 UTC 时区偏移）
+function localDate(d) {
+  d = d || new Date();
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + dd;
+}
+
 // 生产优化
 app.disable('x-powered-by');
 // 生产环境由 nginx 处理 gzip，避免双重压缩
@@ -182,7 +189,7 @@ async function fetchRecommends(matchId) {
 
 // ==================== 数据库降级 ====================
 async function dbMatchList() {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDate();
   const matches = database.getMatchesByDate(today);
   if (matches && matches.length > 0) return matches;
   return database.getAllMatches() || [];
@@ -265,7 +272,7 @@ app.post('/api', async (req, res) => {
           const path = require('path');
           const dateStr = data.matchDate
             ? (new Date().getFullYear() + '-' + data.matchDate)
-            : (data.date || new Date().toISOString().slice(0, 10));
+            : (data.date || localDate());
 
           const dataFile = getDataJson();
           const mMap = dataFile.m || {};
@@ -290,7 +297,7 @@ app.post('/api', async (req, res) => {
 
           // 如果没有找到数据，尝试实时抓取（仅限今天）
           if (list.length === 0) {
-            const today = new Date().toISOString().slice(0, 10);
+            const today = localDate();
             if (dateStr === today) {
               const liveMatches = await safeApiCall(
                 () => ensureData(),
@@ -386,7 +393,7 @@ app.post('/api', async (req, res) => {
         }
 
         // 日期筛选：默认今天，支持指定日期
-        const requestDate = data.date || new Date().toISOString().slice(0, 10);
+        const requestDate = data.date || localDate();
         matches = matches.filter(m => m.date === requestDate);
 
         // 获取推荐（缓存 rMap，避免每次读磁盘）
@@ -486,7 +493,7 @@ app.post('/api', async (req, res) => {
         return res.json({
           code: 1,
           data: {
-            date: new Date().toISOString().slice(0, 10),
+            date: localDate(),
             filterCategory,
             filterDirection,
             totalMatches: ranking.length,
@@ -633,7 +640,7 @@ app.post('/api', async (req, res) => {
 
           // 取近 60 个有效比赛日(≥5场)，不足则往前推
           var validDates = Object.keys(dayTop5).filter(function(d) {
-            return d <= new Date().toISOString().slice(0, 10) && dayTop5[d].length >= 1;
+            return d <= localDate() && dayTop5[d].length >= 1;
           }).sort().reverse();
           var targetDays = days || 60;
           var qualifiedDays = 0, participatingDays = 0;
@@ -982,7 +989,7 @@ app.post('/api', async (req, res) => {
         try {
           const fs = require('fs');
           const path = require('path');
-          const today = new Date().toISOString().slice(0, 10);
+          const today = localDate();
           var totalMatches = 0, finishedMatches = 0;
           try {
             var dataFile = getDataJson();
@@ -1029,7 +1036,7 @@ app.post('/api', async (req, res) => {
       // ========== 今日方案列表 ==========
       case 'plan-list': {
         try {
-          const dateStr = data.date || new Date().toISOString().slice(0, 10);
+          const dateStr = data.date || localDate();
           const fs = require('fs');
           const path = require('path');
 

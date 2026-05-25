@@ -7,6 +7,32 @@ const DIR_COLORS = {
 const CAT_NAMES = ['综合排名', '胜平负', '半全场', '进球数', '双选', '让球'];
 const WEEK_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
+// ECharts 按需懒加载：只在比赛详情页需要图表时才加载（首页无需加载 ~1MB 的 ECharts）
+var echartsReady = false, echartsLoading = false;
+var echartsWaiters = [];
+
+function loadECharts() {
+  return new Promise(function(resolve) {
+    if (typeof echarts !== 'undefined') { echartsReady = true; return resolve(); }
+    if (echartsLoading) { echartsWaiters.push(resolve); return; }
+    echartsLoading = true;
+    var script = document.createElement('script');
+    script.src = '/assets/echarts.min.js?v=1';
+    script.onload = function() {
+      echartsReady = true;
+      echartsLoading = false;
+      resolve();
+      echartsWaiters.forEach(function(w) { w(); });
+    };
+    script.onerror = function() {
+      echartsLoading = false;
+      console.warn('ECharts 加载失败，图表功能不可用');
+      resolve();
+    };
+    document.head.appendChild(script);
+  });
+}
+
 let currentPage = 'home', detailMatchId = null;
 let selectedCategory = '', selectedDirection = '';
 let selectedMatchDate = '';
@@ -182,8 +208,9 @@ function goBack() {
 // 首页
 function loadHome() {
   // 首页：ranking-list + match-list 同时发起，用 Promise.all 减少等待
-  var rankP = api('ranking-list', {}).catch(function() { return {}; });
-  var matchP = api('match-list', { date: new Date().toISOString().slice(0,10) }).catch(function() { return []; });
+  var todayStr = formatDate(new Date());
+  var rankP = api('ranking-list', { date: todayStr }).catch(function() { return {}; });
+  var matchP = api('match-list', { date: todayStr }).catch(function() { return []; });
   Promise.all([rankP, matchP]).then(function(r) {
     var rank = r[0], matches = r[1];
     document.getElementById('matchCount').textContent = matches.length || '-';
@@ -391,52 +418,56 @@ function goDetail(matchId) {
         return;
       }
 
-      var existInstance = echarts.getInstanceByDom(chartEl);
-if (existInstance) existInstance.dispose();
-const chart = echarts.init(chartEl);
-      const colors = ['#EF4444', '#FBBF24', '#34D399', '#18E0E0', '#A78BFA'];
-      
-      var matchedSeries = trend.series.filter(function(s) {
-        return top5.some(function(t) { return t.type === s.name; });
-      });
-      if (matchedSeries.length === 0) matchedSeries = trend.series.slice(0, 5);
-      const series = matchedSeries.slice(0, 5).map(function(s, i) { return {
-          name: s.name,
-          type: 'line',
-          smooth: true,
-          symbol: 'circle',
-          symbolSize: 6,
-          lineStyle: { width: 2, color: colors[i] },
-          itemStyle: { color: colors[i] },
-          data: s.data
-        }});
+      // 懒加载 ECharts 后渲染图表
+      loadECharts().then(function() {
+        if (!echartsReady) return;
+        var existInstance = echarts.getInstanceByDom(chartEl);
+        if (existInstance) existInstance.dispose();
+        const chart = echarts.init(chartEl);
+        const colors = ['#EF4444', '#FBBF24', '#34D399', '#18E0E0', '#A78BFA'];
+        
+        var matchedSeries = trend.series.filter(function(s) {
+          return top5.some(function(t) { return t.type === s.name; });
+        });
+        if (matchedSeries.length === 0) matchedSeries = trend.series.slice(0, 5);
+        const series = matchedSeries.slice(0, 5).map(function(s, i) { return {
+            name: s.name,
+            type: 'line',
+            smooth: true,
+            symbol: 'circle',
+            symbolSize: 6,
+            lineStyle: { width: 2, color: colors[i] },
+            itemStyle: { color: colors[i] },
+            data: s.data
+          }});
 
-      chart.setOption({
-        color: colors,
-        tooltip: { trigger: 'axis' },
-        legend: { 
-          bottom: 0, 
-          icon: 'circle',
-          itemWidth: 8,
-          itemHeight: 8,
-          textStyle: { fontSize: 10, color: '#94A3B8' }
-        },
-        grid: { left: '2%', right: '4%', bottom: '18%', top: '5%', containLabel: true },
-        xAxis: {
-          type: 'category',
-          data: trend.timeLabels,
-          axisLine: { show: false },
-          axisTick: { show: false },
-          axisLabel: { fontSize: 10, color: '#64748B' }
-        },
-        yAxis: {
-          type: 'value',
-          axisLine: { show: false },
-          axisTick: { show: false },
-          axisLabel: { fontSize: 10, color: '#64748B' },
-          splitLine: { lineStyle: { color: 'rgba(255,255,255,0.03)' } }
-        },
-        series
+        chart.setOption({
+          color: colors,
+          tooltip: { trigger: 'axis' },
+          legend: { 
+            bottom: 0, 
+            icon: 'circle',
+            itemWidth: 8,
+            itemHeight: 8,
+            textStyle: { fontSize: 10, color: '#94A3B8' }
+          },
+          grid: { left: '2%', right: '4%', bottom: '18%', top: '5%', containLabel: true },
+          xAxis: {
+            type: 'category',
+            data: trend.timeLabels,
+            axisLine: { show: false },
+            axisTick: { show: false },
+            axisLabel: { fontSize: 10, color: '#64748B' }
+          },
+          yAxis: {
+            type: 'value',
+            axisLine: { show: false },
+            axisTick: { show: false },
+            axisLabel: { fontSize: 10, color: '#64748B' },
+            splitLine: { lineStyle: { color: 'rgba(255,255,255,0.03)' } }
+          },
+          series
+        });
       });
     }, 100);
   });
