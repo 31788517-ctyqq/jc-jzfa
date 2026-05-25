@@ -93,6 +93,54 @@ function shiftWeek(delta) {
   updateDateBar();
   loadMatchList();
 }
+// ── 日历选择器 ──
+function toggleDatePicker() {
+  var el = document.getElementById('datePicker');
+  if (!el) return;
+  if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+  renderDatePicker();
+  el.style.display = 'block';
+}
+function renderDatePicker() {
+  var list = document.getElementById('datePickerList');
+  if (!list) return;
+  if (weekDates.length === 0) { list.innerHTML = '<div style="padding:12px;color:var(--text3);text-align:center">暂无可用日期</div>'; return; }
+  var today = formatDate(new Date()).slice(5);
+  var current = weekDates[selectedWeekIdx] ? weekDates[selectedWeekIdx].matchDate : '';
+  var months = {};
+  weekDates.forEach(function(w) {
+    var m = w.matchDate.slice(0,2);
+    if (!months[m]) months[m] = [];
+    months[m].push(w);
+  });
+  var sortedMonths = Object.keys(months).sort().reverse();
+  var html = '';
+  sortedMonths.forEach(function(m) {
+    html += '<div style="font-size:11px;color:var(--text3);margin:10px 0 6px;font-weight:600">' + m + '月</div>';
+    html += '<div class="date-picker-list">';
+    months[m].forEach(function(w) {
+      var dd = w.matchDate.slice(3);
+      var isActive = w.matchDate === current;
+      var isToday = w.matchDate === today;
+      html += '<div class="date-picker-item' + (isActive ? ' active' : '') + (isToday ? ' today' : '') +
+        '" onclick="selectDateFromPicker(\'' + w.matchDate + '\')">' + dd + '</div>';
+    });
+    html += '</div>';
+  });
+  list.innerHTML = html;
+}
+function selectDateFromPicker(date) {
+  if (date === 'today') {
+    var today = formatDate(new Date()).slice(5);
+    weekDates.forEach(function(w, i) { if (w.matchDate === today) selectedWeekIdx = i; });
+  } else {
+    weekDates.forEach(function(w, i) { if (w.matchDate === date) selectedWeekIdx = i; });
+  }
+  updateDateBar();
+  loadMatchList();
+  var el = document.getElementById('datePicker');
+  if (el) el.style.display = 'none';
+}
 function goToday() {
   // 找到今天或最近的竞彩期号
   var today = formatDate(new Date()).slice(5);

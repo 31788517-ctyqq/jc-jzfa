@@ -494,6 +494,69 @@ body {
 .date-arrow:hover { background: rgba(24,224,224,0.18); border-color: rgba(24,224,224,0.3); }
 .date-arrow:active { background: var(--cyan); border-color: var(--cyan); color: var(--bg); }
 
+/* 日历选择器 */
+.date-picker {
+  position: relative;
+  margin: 0 0 8px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 12px 14px 8px;
+  backdrop-filter: blur(10px);
+  animation: fadeUp 0.25s ease;
+}
+.date-picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.date-picker-today {
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: var(--cyan);
+  color: var(--bg);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+.date-picker-close {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: none;
+  color: var(--text2);
+  font-size: var(--fs-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.date-picker-list {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.date-picker-item {
+  padding: 8px 2px;
+  text-align: center;
+  border-radius: 8px;
+  font-size: var(--fs-sm);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.date-picker-item:hover { background: rgba(24,224,224,0.08); color: var(--cyan); }
+.date-picker-item.active {
+  background: rgba(24,224,224,0.15);
+  color: var(--cyan);
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(24,224,224,0.2);
+}
+.date-picker-item.today { color: var(--cyan); font-weight: 600; }
+
 .filter-row {
   display: flex;
   gap: 8px;
@@ -1718,8 +1781,16 @@ body {
 <div class="page" id="page-match">
   <div class="date-bar" id="dateBar">
     <span class="date-arrow" onclick="shiftWeek(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
-    <span class="date-current" id="dateCurrent" onclick="goToday()"></span>
+    <span class="date-current" id="dateCurrent" onclick="toggleDatePicker()"></span>
     <span class="date-arrow" onclick="shiftWeek(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+  </div>
+  <!-- 日历面板 -->
+  <div class="date-picker" id="datePicker" style="display:none">
+    <div class="date-picker-header">
+      <button class="date-picker-today" onclick="selectDateFromPicker('today')">今天</button>
+      <button class="date-picker-close" onclick="toggleDatePicker()">✕</button>
+    </div>
+    <div class="date-picker-list" id="datePickerList"></div>
   </div>
   <div id="matchList"></div>
 </div>
