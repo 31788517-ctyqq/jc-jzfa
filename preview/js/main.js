@@ -168,18 +168,21 @@ export function togglePlanDatePicker() {
   var weeks = state.weekDates || [];
   var available = weeks.map(function(w) { return w.matchDate; });
   var today = formatDate(new Date()).slice(5);
-  renderMonthCalendar('planDate', available, state.planDate.slice(5), today, 'selectPlanDateFromPicker');
+  // 从实际 planDate 提取 MM-DD
+  var current = state.planDate ? state.planDate.slice(5) : today;
+  renderMonthCalendar('planDate', available, current, today, 'selectPlanDateFromPicker');
   el.style.display = 'block';
 }
 export function selectPlanDateFromPicker(md) {
-  var weeks = state.weekDates || [];
-  // check if weekDates has this specific date
-  for (var i = 0; i < weeks.length; i++) {
-    if (weeks[i].matchDate === md) { state.setSelectedWeekIdx(i); break; }
+  var year = state.planDate ? state.planDate.slice(0, 4) : new Date().getFullYear();
+  state.setPlanDate(year + '-' + md);
+  // 直接更新DOM，不调updatePlanDateBar避免重置
+  var el = document.getElementById('planDateCurrent');
+  if (el) {
+    var mmdd = md.replace('-', '/');
+    var week = WEEK_NAMES[new Date(year, parseInt(md.slice(0,2), 10) - 1, parseInt(md.slice(3), 10)).getDay()];
+    el.textContent = mmdd + ' ' + week;
   }
-  // Set plan date to the year of the selected matchDate with correct date
-  state.setPlanDate(state.planDate.slice(0,5) + md);
-  updatePlanDateBar();
   loadPlanList();
   document.getElementById('planDatePicker').style.display = 'none';
 }
@@ -192,12 +195,19 @@ export function toggleRankDatePicker() {
   var weeks = state.weekDates || [];
   var available = weeks.map(function(w) { return w.matchDate; });
   var today = formatDate(new Date()).slice(5);
-  renderMonthCalendar('rankDate', available, state.rankDate.slice(5), today, 'selectRankDateFromPicker');
+  var current = state.rankDate ? state.rankDate.slice(5) : today;
+  renderMonthCalendar('rankDate', available, current, today, 'selectRankDateFromPicker');
   el.style.display = 'block';
 }
 export function selectRankDateFromPicker(md) {
-  state.setRankDate(state.rankDate.slice(0,5) + md);
-  updateRankDateBar();
+  var year = state.rankDate ? state.rankDate.slice(0, 4) : new Date().getFullYear();
+  state.setRankDate(year + '-' + md);
+  var el = document.getElementById('rankDateCurrent');
+  if (el) {
+    var mmdd = md.replace('-', '/');
+    var week = WEEK_NAMES[new Date(year, parseInt(md.slice(0,2), 10) - 1, parseInt(md.slice(3), 10)).getDay()];
+    el.textContent = mmdd + ' ' + week;
+  }
   loadRanking();
   document.getElementById('rankDatePicker').style.display = 'none';
 }

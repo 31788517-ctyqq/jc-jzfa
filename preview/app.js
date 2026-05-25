@@ -205,12 +205,19 @@ function togglePlanDatePicker() {
   if (el.style.display !== 'none') { el.style.display = 'none'; return; }
   var available = weekDates.map(function(w) { return w.matchDate; });
   var today = formatDate(new Date()).slice(5);
-  renderMonthCalendar('planDate', available, planDate.slice(5), today, 'selectPlanDateFromPicker');
+  var current = planDate ? planDate.slice(5) : today;
+  renderMonthCalendar('planDate', available, current, today, 'selectPlanDateFromPicker');
   el.style.display = 'block';
 }
 function selectPlanDateFromPicker(md) {
-  planDate = planDate.slice(0,5) + md;
-  updatePlanDateBar();
+  var year = planDate ? planDate.slice(0, 4) : new Date().getFullYear();
+  planDate = year + '-' + md;
+  var el = document.getElementById('planDateCurrent');
+  if (el) {
+    var mmdd = md.replace('-', '/');
+    var week = WEEK_NAMES[new Date(year, parseInt(md.slice(0,2), 10) - 1, parseInt(md.slice(3), 10)).getDay()];
+    el.textContent = mmdd + ' ' + week;
+  }
   loadPlanList();
   document.getElementById('planDatePicker').style.display = 'none';
 }
@@ -220,12 +227,19 @@ function toggleRankDatePicker() {
   if (el.style.display !== 'none') { el.style.display = 'none'; return; }
   var available = weekDates.map(function(w) { return w.matchDate; });
   var today = formatDate(new Date()).slice(5);
-  renderMonthCalendar('rankDate', available, rankDate.slice(5), today, 'selectRankDateFromPicker');
+  var current = rankDate ? rankDate.slice(5) : today;
+  renderMonthCalendar('rankDate', available, current, today, 'selectRankDateFromPicker');
   el.style.display = 'block';
 }
 function selectRankDateFromPicker(md) {
-  rankDate = rankDate.slice(0,5) + md;
-  updateRankDateBar();
+  var year = rankDate ? rankDate.slice(0, 4) : new Date().getFullYear();
+  rankDate = year + '-' + md;
+  var el = document.getElementById('rankDateCurrent');
+  if (el) {
+    var mmdd = md.replace('-', '/');
+    var week = WEEK_NAMES[new Date(year, parseInt(md.slice(0,2), 10) - 1, parseInt(md.slice(3), 10)).getDay()];
+    el.textContent = mmdd + ' ' + week;
+  }
   loadRanking();
   document.getElementById('rankDatePicker').style.display = 'none';
 }
