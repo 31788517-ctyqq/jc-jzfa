@@ -113,6 +113,7 @@ function mergeLiveScore(m){
 }
 
 app.get('/health',function(req,res){res.json({status:'ok',matches:Object.keys(data.m).length})});
+app.get('/favicon.ico',function(req,res){res.status(204).end()});
 
 // 缓存
 var cache={rank:{data:null,time:0,cat:''}};
@@ -139,6 +140,7 @@ function findRecommends(matchId){
 function getWeekDates(){
   var list=[],seen={};
   Object.values(data.m).forEach(function(m){
+    if(!m) return;
     var w=m.num?m.num.slice(0,2):'';
     if(!w||w.length<2)return;
     var matchDate=(m.date||'').slice(5)||'';
@@ -159,7 +161,7 @@ app.post('/api',function(req,res){
     // 收集当天比赛
     var mList = [];
     var mKeys = Object.keys(data.m||{});
-    for(var k=0;k<mKeys.length;k++){ var m=data.m[mKeys[k]]; if((m.date||'').slice(0,10)===dateStr) mList.push(m); }
+    for(var k=0;k<mKeys.length;k++){ var m=data.m[mKeys[k]]; if(!m) continue; if((m.date||'').slice(0,10)===dateStr) mList.push(m); }
 
     // 异步拉取已禁用——统一依赖 odds_history 文件
 
@@ -437,7 +439,7 @@ app.post('/api',function(req,res){
       
       var mList=[];
       var mKeys=Object.keys(data.m||{});
-      for(var k=0;k<mKeys.length;k++){ var m=data.m[mKeys[k]]; if((m.date||'').slice(0,10)===ds) mList.push(m); }
+      for(var k=0;k<mKeys.length;k++){ var m=data.m[mKeys[k]]; if(m && (m.date||'').slice(0,10)===ds) mList.push(m); }
       if(mList.length===0) continue;
       
       // 加载历史赔率
@@ -448,17 +450,21 @@ app.post('/api',function(req,res){
       }
       
       function findBest(directions, excludeIds){
-        var best=null,bestCount=0;
+        var best=null,bestCount=0,bestHasOdds=false;
         for(var j=0;j<mList.length;j++){
           var mm=mList[j];
           if(excludeIds && excludeIds.indexOf(mm.matchId)>=0) continue;
           var num=mm.num||'';
-          // 跳过没有500.com赔率的比赛
-          if(!(histOdds&&histOdds[num])) continue;
+          // 有赔率数据时优先选有赔率的比赛；无赔率数据时不过滤
+          var hasOdds = histOdds && histOdds[num];
+          if(histOdds && !hasOdds) continue;
           var recs=findRecommends(mm.matchId);
           var total=0;
           for(var ri=0;ri<recs.length;ri++){ if(directions.indexOf(recs[ri].type)>=0) total+=recs[ri].num||0; }
-          if(total>bestCount){ bestCount=total; best=mm; }
+          // 总数更高，或总数相同但有赔率数据优先
+          if(total>bestCount || (total===bestCount && total>0 && hasOdds && !bestHasOdds)){
+            bestCount=total; best=mm; bestHasOdds=hasOdds;
+          }
         }
         return best;
       }
@@ -479,21 +485,27 @@ app.post('/api',function(req,res){
         var subResults = [];
         var matchedRecs = [];
         
-        // 拆分方向（包括总进球系列），尝试匹配rec类型
-        var subDirs = direction.split(/[、,]/);
-        subDirs.forEach(function(sd){
-          var s = sd.trim();
-          var found = null;
-          // 先精确匹配
-          for(var ri=0;ri<recs.length;ri++){ if(recs[ri].type===s) found=recs[ri]; }
-          // 总进球子选项回退：如 "3球" → 匹配 "总进球-3"
-          if(!found && s.indexOf('球')>=0){
-            var num=s.replace(/球/g,'');
-            for(var ri=0;ri<recs.length;ri++){ if(recs[ri].type===('总进球-'+num)) found=recs[ri]; }
-          }
-          if(found) matchedRecs.push(found);
-          subResults.push({ direction: s, result: found ? found.result : null });
-        });
+        // 先尝试完整方向精确匹配（如 "总进球-2、3球"、"平、让平"）
+        var fullMatch=null;
+        for(var ri=0;ri<recs.length;ri++){ if(recs[ri].type===direction) fullMatch=recs[ri]; }
+        if(fullMatch){
+          matchedRecs.push(fullMatch);
+          subResults.push({ direction: direction, result: fullMatch.result!==undefined?fullMatch.result:null });
+        } else {
+          // 未找到完整匹配，拆分方向再尝试
+          var subDirs = direction.split(/[、,]/);
+          subDirs.forEach(function(sd){
+            var s = sd.trim();
+            var found = null;
+            for(var ri=0;ri<recs.length;ri++){ if(recs[ri].type===s) found=recs[ri]; }
+            if(!found && s.indexOf('球')>=0){
+              var num=s.replace(/球/g,'');
+              for(var ri=0;ri<recs.length;ri++){ if(recs[ri].type===('总进球-'+num)) found=recs[ri]; }
+            }
+            if(found) matchedRecs.push(found);
+            subResults.push({ direction: s, result: found ? found.result : null });
+          });
+        }
         var isWon=null, isLose=null;
         if(matchedRecs.length>0){
           var anyWon=false, anyLose=false, anyUnknown=false;
@@ -522,16 +534,7 @@ app.post('/api',function(req,res){
       if(m2a&&m2b) dayPlans.push({name:'plan_2',planName:'方案二',matches:[buildMatch(m2a,'总进球-2、3球'),buildMatch(m2b,'让负')]});
       if(m3a&&m3b) dayPlans.push({name:'plan_3',planName:'方案三',matches:[buildMatch(m3a,'总进球-2、3球'),buildMatch(m3b,'让胜')]});
       
-      // 如果当天有任意方案结果未知，整日不统计
-      var dayHasUnknown = false;
-      dayPlans.forEach(function(pp){
-        if(planFilter!=='all' && pp.name!==planFilter) return;
-        for(var mi=0;mi<pp.matches.length;mi++){
-          if(!pp.matches[mi].isWon && !pp.matches[mi].isLose){ dayHasUnknown=true; return; }
-        }
-      });
-      if(dayHasUnknown) continue;
-      
+      // 按方案过滤：跳过结果未知的方案，已知的继续统计
       dayPlans.forEach(function(pp){
         if(planFilter!=='all' && pp.name!==planFilter) return;
         
@@ -541,6 +544,8 @@ app.post('/api',function(req,res){
           if(pp.matches[mi].isLose) anyLose=true;
           if(!pp.matches[mi].isWon&&!pp.matches[mi].isLose) anyUnknown=true;
         }
+        // 跳过结果未知的方案
+        if(anyUnknown) return;
         
         // 奖金计算: 1000 × eff1 × eff2
         // eff = (单选赔率) 或 (双选: sum/4)
@@ -619,12 +624,14 @@ app.post('/api',function(req,res){
     // 竞彩期号筛选 or 日期筛选
     if(weekNum){
       Object.values(data.m).forEach(function(m){
+        if(!m) return;
         var w=m.num?m.num.slice(0,2):'';
         var md=(m.date||'').slice(5)||'';
         if(w===weekNum&&md===matchDate){all.push(m);seen[m.matchId]=true}
       });
     }else{
       Object.values(data.m).forEach(function(m){
+        if(!m) return;
         if(m.date===date){all.push(m);seen[m.matchId]=true}
       });
     }
@@ -733,7 +740,7 @@ app.post('/api',function(req,res){
     var dateRecNum={};
     Object.keys(data.m).forEach(function(k){
       var m=data.m[k];
-      if(!m.date)return;
+      if(!m||!m.date)return;
       var total=m.recommNum||0;
       if(total===0){
         var recs=findRecommends(m.matchId);
@@ -759,6 +766,7 @@ app.post('/api',function(req,res){
     var effectiveWeek='';
     Object.keys(data.m).forEach(function(k){
       var m=data.m[k];
+      if(!m) return;
       if(m.date===effectiveDate&&!effectiveWeek){effectiveWeek=m.num?m.num.slice(0,2):''}
     });
     var matchDateLabel=effectiveDate.slice(5).replace('-','/')+' '+effectiveWeek;
@@ -775,7 +783,8 @@ app.post('/api',function(req,res){
     // 收集方向统计（仅 effectiveDate 的比赛）
     var dirStats={};
     Object.keys(data.m).forEach(function(k){
-      var m=data.m[k],mId=m.matchId;
+      var m=data.m[k]; if(!m||!m.date) return;
+      var mId=m.matchId;
       if(m.date!==effectiveDate)return;
       var recs=findRecommends(mId);
       if(!recs.length)return;
@@ -810,7 +819,7 @@ app.post('/api',function(req,res){
       var catDirs={};
       categories[filterCat].directions.forEach(function(d){catDirs[d.name]=true});
       Object.keys(data.m).forEach(function(k){
-        var m=data.m[k];
+        var m=data.m[k]; if(!m||!m.date) return;
         if(!inRange(m.date))return;
         var recs=findRecommends(m.matchId).filter(function(r){return catDirs[r.type]&&r.num>0});
         if(recs.length){
@@ -821,7 +830,7 @@ app.post('/api',function(req,res){
     }else{
       // 综合排名
       Object.keys(data.m).forEach(function(k){
-        var m=data.m[k];
+        var m=data.m[k]; if(!m||!m.date) return;
         if(!inRange(m.date))return;
         var recs=findRecommends(m.matchId).filter(function(r){return r.num>0});
         if(recs.length){

@@ -496,54 +496,201 @@ app.post('/api', async (req, res) => {
       case 'plan-list': {
         try {
           const dateStr = data.date || new Date().toISOString().slice(0, 10);
-          // 获取当日比赛和推荐
-          const matches = await safeApiCall(
-            () => ensureData(),
-            async () => dbMatchList()
-          );
-          const dayMatches = matches.filter(m => (m.date || '').slice(0, 10) === dateStr);
-          
-          // 构建方案列表：每场比赛取推荐最多的方向作为一个"方案"
+          const fs = require('fs');
+          const path = require('path');
+
+          // 1) 从 data.json 加载比赛和推荐
+          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const mMap = dataFile.m || {};
+          const rMap = dataFile.r || {};
+          const mList = [];
+          Object.keys(mMap).forEach(k => {
+            const m = mMap[k];
+            if (m && (m.date || '').slice(0, 10) === dateStr) mList.push(m);
+          });
+
+          // 2) 工具函数
+          function loadOddsFromFile(date, num) {
+            try {
+              const f = path.join(__dirname, 'odds_history', date + '.json');
+              if (!fs.existsSync(f)) return null;
+              const raw = JSON.parse(fs.readFileSync(f, 'utf8'));
+              return (raw.odds || {})[num] || null;
+            } catch (e) { return null; }
+          }
+
+          function findRecommends(matchId) {
+            const key = 'm_' + matchId;
+            const recs = rMap[key] || [];
+            return recs.filter(r => r && r.type && typeof r.num === 'number' && r.num > 0);
+          }
+
+          function getMatchOdds(match, direction) {
+            const num = match.num || '';
+            const od = loadOddsFromFile(dateStr, num);
+            if (od) {
+              return {
+                spf: od.spf ? { home: od.spf.home, draw: od.spf.draw, away: od.spf.away } : null,
+                rqspf: od.rqspf ? { home: od.rqspf.home, draw: od.rqspf.draw, away: od.rqspf.away, handicap: od.rqspf.handicap } : null,
+                totalGoals: od.totalGoals || null,
+                halfFull: od.halfFull || null,
+              };
+            }
+            return null;
+          }
+
+          function extractSubOdds(oddsObj, direction) {
+            const vals = [];
+            if (direction.indexOf('总进球-') === 0) {
+              const tg = oddsObj.totalGoals;
+              if (!tg) return vals;
+              const nums = direction.replace('总进球-', '').split(/[、,]/);
+              nums.forEach(n => {
+                const v = n.replace(/球/g, '').trim();
+                if (tg[v] !== undefined) vals.push(tg[v]);
+              });
+              return vals;
+            }
+            if (direction.indexOf('、') >= 0 || direction.indexOf(',') >= 0) {
+              const parts = direction.split(/[、,]/);
+              parts.forEach(pd => {
+                pd = pd.trim();
+                if (pd === '平' && oddsObj.spf) vals.push(oddsObj.spf.draw);
+                else if (pd === '让平' && oddsObj.rqspf) vals.push(oddsObj.rqspf.draw);
+                else if (pd === '让负' && oddsObj.rqspf) vals.push(oddsObj.rqspf.away);
+                else if (pd === '让胜' && oddsObj.rqspf) vals.push(oddsObj.rqspf.home);
+              });
+              return vals;
+            }
+            if (direction === '让负' && oddsObj.rqspf) vals.push(oddsObj.rqspf.away);
+            else if (direction === '让胜' && oddsObj.rqspf) vals.push(oddsObj.rqspf.home);
+            return vals;
+          }
+
+          function findBestMatchForDirection(directions, excludeIds) {
+            let bestMatch = null, bestCount = 0;
+            for (const m of mList) {
+              if (excludeIds && excludeIds.indexOf(m.matchId) >= 0) continue;
+              const num = m.num || '';
+              if (!loadOddsFromFile(dateStr, num)) continue;
+              const recs = findRecommends(m.matchId);
+              let total = 0;
+              for (const r of recs) {
+                if (directions.indexOf(r.type) >= 0) total += r.num || 0;
+              }
+              if (total > bestCount) { bestCount = total; bestMatch = m; }
+            }
+            return bestMatch;
+          }
+
+          function buildMatchObj(m, direction) {
+            const recs = findRecommends(m.matchId);
+            let expertCount = 0, isMatchWon = null, isMatchLose = null;
+            const subDirs = direction.split(/[、,]/);
+            const matchedRecs = [];
+            const subResults = [];
+
+            subDirs.forEach(subDir => {
+              const sd = subDir.trim();
+              let found = null;
+              for (const r of recs) { if (r.type === sd) { found = r; break; } }
+              if (!found && sd.indexOf('球') >= 0) {
+                const num = sd.replace(/球/g, '');
+                for (const r of recs) { if (r.type === ('总进球-' + num)) { found = r; break; } }
+              }
+              if (found) matchedRecs.push(found);
+              subResults.push({ direction: sd, result: found ? found.result : null });
+            });
+
+            if (matchedRecs.length === 0) {
+              for (const r of recs) {
+                const rt = r.type || '';
+                if (rt.indexOf(direction) >= 0 || direction.indexOf(rt) >= 0) matchedRecs.push(r);
+              }
+              if (matchedRecs.length === 0) subResults.push({ direction: direction, result: null });
+            }
+
+            expertCount = matchedRecs.reduce((s, r) => s + (r.num || 0), 0);
+
+            let anyWon = false, anyLose = false, anyUnknown = false;
+            matchedRecs.forEach(r => {
+              if (r.result === 1) anyWon = true;
+              else if (r.result === 0) anyLose = true;
+              else anyUnknown = true;
+            });
+            if (!anyUnknown) {
+              isMatchWon = anyWon;
+              isMatchLose = !anyWon && anyLose;
+            }
+
+            return {
+              matchId: m.matchId, homeName: m.homeName, visitName: m.visitName,
+              leagueName: m.leagueName, matchNum: m.num || '', startTime: m.startTime || '',
+              matchStatus: m.matchStatus || 0,
+              direction: direction, expertCount: expertCount,
+              isMatchWon: isMatchWon, isMatchLose: isMatchLose,
+              subResults: subResults,
+              odds: getMatchOdds(m, direction)
+            };
+          }
+
+          function calcEffectiveOdds(direction, match) {
+            const oddsObj = match.odds || {};
+            const subOdds = extractSubOdds(oddsObj, direction);
+            if (subOdds.length === 0) return null;
+            const N = subOdds.length;
+            if (N === 1) return subOdds[0];
+            return subOdds.reduce((a, b) => a + b, 0) / (2 * N);
+          }
+
+          // 3) 生成3个策略方案
           const plans = [];
-          for (const m of dayMatches) {
-            let recomms = [];
-            try { recomms = await ensureRecommends(m.matchId); } catch { continue; }
-            if (recomms.length === 0) continue;
-            // 取推荐专家数最多的方向
-            const topDir = recomms.reduce((a, b) => (b.num || 0) > (a.num || 0) ? b : a, recomms[0]);
-            // 取次要推荐方向做混合过关
-            const subDirs = recomms.filter(r => r !== topDir && r.num > 0).slice(0, 2);
-            
+
+          const m1a = findBestMatchForDirection(['平', '让平']);
+          const m1b = findBestMatchForDirection(['让负'], m1a ? [m1a.matchId] : null);
+          const m2a = findBestMatchForDirection(['总进球-2、3球']);
+          const m2b = findBestMatchForDirection(['让负']);
+          const m3a = findBestMatchForDirection(['总进球-2、3球']);
+          const m3b = findBestMatchForDirection(['让胜']);
+
+          if (m1a && m1b) {
+            const m1aObj = buildMatchObj(m1a, '平、让平');
+            const m1bObj = buildMatchObj(m1b, '让负');
+            const e1 = calcEffectiveOdds('平、让平', m1aObj);
+            const e2 = calcEffectiveOdds('让负', m1bObj);
             plans.push({
-              planId: 'p_' + m.matchId,
-              planName: (recomms.length >= 2 ? '混合投注' : '单关投注'),
-              homeName: m.homeName,
-              visitName: m.visitName,
-              leagueName: m.leagueName,
-              matchNum: m.num || '',
-              startTime: m.startTime || '',
-              matchStatus: m.matchStatus,
-              mainDirection: topDir.type,
-              expertCount: topDir.num,
-              subDirections: subDirs.map(r => r.type),
-              // 模拟方案数据
-              playType: recomms.length >= 2 ? '混合投注' : '单关投注',
-              matchCount: 1,
-              passType: '1串1',
-              betCount: topDir.num || 1,
-              multiplier: 1,
-              ticketCount: 1,
-              amount: (topDir.num || 1) * 2,
-              maxPrize: Math.round((topDir.num || 1) * 2 * (1.8 + Math.random() * 2.2)),
-              isWin: m.matchStatus === 2 ? (Math.random() > 0.5) : null,  // 已完赛随机命中
-              publishTime: m.startTime ? m.startTime.slice(0, 16).replace(' ', ' ') : ''
+              planId: 'plan_' + dateStr + '_1', planName: '方案一',
+              matches: [m1aObj, m1bObj],
+              amount: 1000, playType: '混合投注', matchCount: 2, passType: '2串1',
+              betCount: 250, ticketCount: 10, multiplier: 25,
+              maxPrize: e1 && e2 ? Math.round(1000 * e1 * e2) : Math.round(1000 * 2.5)
             });
           }
-          
-          // 赔率从500.com缓存获取，无数据时为null
-          const odds500Cache = global.odds500Cache || {};
-          for (const plan of plans) {
-            plan.odds = null;
+          if (m2a && m2b) {
+            const m2aObj = buildMatchObj(m2a, '总进球-2、3球');
+            const m2bObj = buildMatchObj(m2b, '让负');
+            const e1 = calcEffectiveOdds('总进球-2、3球', m2aObj);
+            const e2 = calcEffectiveOdds('让负', m2bObj);
+            plans.push({
+              planId: 'plan_' + dateStr + '_2', planName: '方案二',
+              matches: [m2aObj, m2bObj],
+              amount: 1000, playType: '混合投注', matchCount: 2, passType: '2串1',
+              betCount: 250, ticketCount: 10, multiplier: 25,
+              maxPrize: e1 && e2 ? Math.round(1000 * e1 * e2) : Math.round(1000 * 2.5)
+            });
+          }
+          if (m3a && m3b) {
+            const m3aObj = buildMatchObj(m3a, '总进球-2、3球');
+            const m3bObj = buildMatchObj(m3b, '让胜');
+            const e1 = calcEffectiveOdds('总进球-2、3球', m3aObj);
+            const e2 = calcEffectiveOdds('让胜', m3bObj);
+            plans.push({
+              planId: 'plan_' + dateStr + '_3', planName: '方案三',
+              matches: [m3aObj, m3bObj],
+              amount: 1000, playType: '混合投注', matchCount: 2, passType: '2串1',
+              betCount: 250, ticketCount: 10, multiplier: 25,
+              maxPrize: e1 && e2 ? Math.round(1000 * e1 * e2) : Math.round(1000 * 2.5)
+            });
           }
 
           return res.json({ code: 1, data: { date: dateStr, plans } });

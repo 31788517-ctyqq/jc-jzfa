@@ -1,0 +1,655 @@
+/**
+ * 统一数据同步守护进程
+ * 替代旧的 period_daemon.js + score_daemon.js + sync_scores.js
+ *
+ * 调度计划:
+ *   - 12:00 每天:     500.com 赔率抓取 + 赛程信息同步（各一次）
+ *   - 每 20 分钟:     专家推荐方向 + 专家数
+ *   - 每 2 分钟:      实时比分（全场/半场比分、黄牌、红牌、比赛状态）
+ *   - 赛后动态:       专家推荐命中结果（检测到比赛结束时自动回填）
+ *   - 最后一场+3h:    全量核对收尾
+ *
+ * 反封策略:
+ *   - 随机 UA 池轮换
+ *   - 请求间隔随机抖动 (150~800ms)
+ *   - Token 共享复用（统一 token_manager）
+ *   - 失败重试 + 指数退避
+ */
+const fs = require('fs');
+const path = require('path');
+const { exec } = require('child_process');
+const { getWithUA, getWithRetry, jitter, sleep } = require('./http-utils');
+const { getToken, refreshToken } = require('./token_manager');
+const { fetchOdds: fetch500Odds } = require('./fetch_500odds');
+
+// ═══ 配置常量 ═══
+const DATA_FILE = path.join(__dirname, 'data.json');
+const LIVE_FILE = path.join(__dirname, 'live_scores.json');
+const TREND_FILE = path.join(__dirname, 'trends.json');
+const ODDS_DIR = path.join(__dirname, 'odds_history');
+const LOG_FILE = path.join(__dirname, '..', 'logs', 'data_sync.log');
+
+const MIDOU_BASE = 'https://midou310.com/mdsj';
+
+// 确保必要目录存在
+if (!fs.existsSync(ODDS_DIR)) fs.mkdirSync(ODDS_DIR, { recursive: true });
+if (!fs.existsSync(path.dirname(LOG_FILE))) fs.mkdirSync(path.dirname(LOG_FILE), { recursive: true });
+
+// ═══ 工具函数 ═══
+function log(msg) {
+  const line = '[' + new Date().toISOString().replace('T', ' ').slice(0, 19) + '] ' + msg;
+  console.log(line);
+  try { fs.appendFileSync(LOG_FILE, line + '\n'); } catch (e) {}
+}
+
+function fmtLocal(dd) {
+  return dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0');
+}
+
+function getCurrentPeriod() {
+  const weekMap = { 0: '周日', 1: '周一', 2: '周二', 3: '周三', 4: '周四', 5: '周五', 6: '周六' };
+  const now = new Date();
+  return { date: fmtLocal(now), week: weekMap[now.getDay()] };
+}
+
+/** 原子写入：先写 .tmp 再 rename */
+function atomicWrite(filePath, data) {
+  const tmpFile = filePath + '.tmp';
+  fs.writeFileSync(tmpFile, JSON.stringify(data));
+  fs.renameSync(tmpFile, filePath);
+}
+
+/** 通知 simple.js 重载数据 */
+function notifyReload() {
+  exec('pm2 restart jc-zjfa', { timeout: 5000 }, err => {
+    if (err) log('[notify] jc-zjfa 重启通知失败: ' + err.message);
+  });
+}
+
+/** 保存推荐趋势快照（每个 matchId 最多保留 48 条 = 16 小时） */
+function saveTrendSnapshot(matchId, recs) {
+  try {
+    let trends = {};
+    if (fs.existsSync(TREND_FILE)) trends = JSON.parse(fs.readFileSync(TREND_FILE, 'utf8'));
+    const key = 'm_' + matchId;
+    if (!trends[key]) trends[key] = [];
+    const now = new Date();
+    const t = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    const snap = { t, ts: now.toISOString() };
+    recs.forEach(r => { snap[r.type] = r.num; });
+    const list = trends[key];
+    if (list.length > 0 && list[list.length - 1].t === t) {
+      list[list.length - 1] = snap; // 同一分钟去重
+    } else {
+      list.push(snap);
+    }
+    if (list.length > 48) trends[key] = list.slice(-48);
+    atomicWrite(TREND_FILE, trends);
+  } catch (e) {}
+}
+
+// ═══ Task 1: 500.com 赔率抓取 + 完整性校验（每天 12:00） ═══
+async function sync500Odds(dateStr) {
+  log('[500odds] 开始抓取 ' + dateStr);
+
+  const filePath = path.join(ODDS_DIR, dateStr + '.json');
+
+  // 已有有效数据跳过
+  if (fs.existsSync(filePath)) {
+    const stat = fs.statSync(filePath);
+    if (stat.size > 100) {
+      log('[500odds] ' + dateStr + ' 已有数据，跳过');
+      return;
+    }
+  }
+
+  try {
+    const odds = await fetch500Odds(dateStr);
+    const matchNums = Object.keys(odds);
+
+    if (matchNums.length === 0) {
+      log('[500odds] ' + dateStr + ' 无赔率数据');
+      fs.writeFileSync(filePath, JSON.stringify({ date: dateStr, matches: [], empty: true }));
+      return;
+    }
+
+    fs.writeFileSync(filePath, JSON.stringify({ date: dateStr, odds }));
+    log('[500odds] ' + dateStr + ' 抓取完成: ' + matchNums.length + ' 场');
+
+    // 完整性校验
+    await validate500Odds(dateStr, odds);
+
+  } catch (e) {
+    log('[500odds] ' + dateStr + ' 抓取失败: ' + e.message);
+  }
+}
+
+/** 对比 data.json 中的比赛编号，检查 500.com 赔率是否完整 */
+async function validate500Odds(dateStr, odds) {
+  try {
+    if (!fs.existsSync(DATA_FILE)) return;
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    const expectedNums = [];
+
+    Object.keys(data.m || {}).forEach(k => {
+      const m = data.m[k];
+      if (m && m.date && m.date.slice(0, 10) === dateStr && m.num) {
+        expectedNums.push(m.num);
+      }
+    });
+
+    const missing = expectedNums.filter(n => !odds[n]);
+    if (missing.length > 0) {
+      log('[500odds] ⚠ 校验: 缺失 ' + missing.length + ' 场: ' + missing.join(', '));
+    } else {
+      log('[500odds] ✓ 校验: 全部 ' + expectedNums.length + ' 场赔率完整');
+    }
+  } catch (e) {
+    log('[500odds] 校验失败: ' + e.message);
+  }
+}
+
+// ═══ Task 2: 赛程信息同步（每天 12:00，替换旧的 footballDataList 全量更新） ═══
+async function syncMatchList() {
+  const period = getCurrentPeriod();
+  log('[match_list] 同步赛程: ' + period.date + ' ' + period.week);
+
+  try {
+    const token = await getToken();
+    const timestamp = new Date(period.date + 'T00:00:00+08:00').getTime();
+
+    const matchRes = await getWithRetry(
+      MIDOU_BASE + '/score/footballDataList.do',
+      { time: timestamp, order: 'status desc, start_datetime asc, data_id asc' },
+      { Cookie: 'token=' + token }
+    );
+
+    if (matchRes.code !== 1 || !matchRes.data) {
+      log('[match_list] 获取失败: ' + (matchRes.msg || ''));
+      return;
+    }
+
+    // 按竞彩期号前缀 + 日期双重过滤
+    const periodMatches = (matchRes.data || []).filter(m => {
+      if (!m.num || m.num.indexOf(period.week) !== 0) return false;
+      const bd = (m.bDate || '').slice(0, 10);
+      if (bd === period.date) return true;
+      if (!bd && m.startTime && m.startTime.length >= 11) {
+        const st = m.startTime.replace(/\//g, '-');
+        const dt = new Date(new Date().getFullYear() + '-' + st.slice(0, 2) + '-' + st.slice(3, 5) + 'T' + st.slice(6, 11) + ':00+08:00');
+        if (!isNaN(dt.getTime())) {
+          if (dt.getHours() < 9) dt.setDate(dt.getDate() - 1);
+          return fmtLocal(dt) === period.date;
+        }
+      }
+      return false;
+    });
+
+    if (periodMatches.length === 0) {
+      log('[match_list] ' + period.date + ' 无比赛');
+      return;
+    }
+
+    // 更新 data.json
+    let data = {};
+    try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) {}
+    if (!data.m) data.m = {};
+    if (!data.r) data.r = {};
+
+    let newCount = 0, updateCount = 0;
+
+    for (const m of periodMatches) {
+      const mid = String(m.matchId || m.dataId || '');
+      const mkey = 'm_' + mid;
+      const md = (m.bDate && typeof m.bDate === 'string' && m.bDate.length >= 10)
+        ? m.bDate.slice(0, 10) : period.date;
+
+      const newMatch = {
+        matchId: mid, num: m.num || '',
+        homeName: m.homeName || '', visitName: m.visitName || '',
+        leagueName: m.leagueName || '', startTime: m.startTime || '',
+        matchStatus: m.matchStatus || 0, score: m.score || '',
+        halfScore: m.halfScore || '', duration: m.duration || '',
+        yellow: m.yellow || '', red: m.red || '',
+        recommNum: m.recommNum || 0, date: md
+      };
+
+      if (data.m[mkey]) { updateCount++; } else { newCount++; }
+      data.m[mkey] = newMatch;
+    }
+
+    atomicWrite(DATA_FILE, data);
+    log('[match_list] 赛程同步完成: 新增' + newCount + '场 更新' + updateCount + '场');
+    notifyReload();
+
+  } catch (e) {
+    log('[match_list] 同步失败: ' + e.message);
+    await refreshToken();
+  }
+}
+
+// ═══ Task 3: 推荐方向同步（每 20 分钟） ═══
+async function syncRecommends() {
+  const period = getCurrentPeriod();
+
+  try {
+    const token = await getToken();
+
+    // 加载 data.json
+    let data = {};
+    try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) {}
+    if (!data.m) data.m = {};
+    if (!data.r) data.r = {};
+
+    // 筛选今日比赛
+    const todayMatches = [];
+    Object.keys(data.m).forEach(k => {
+      const m = data.m[k];
+      if (m && m.date && m.date.slice(0, 10) === period.date) {
+        todayMatches.push(m);
+      }
+    });
+
+    if (todayMatches.length === 0) {
+      log('[recommend] 今日无比赛');
+      return;
+    }
+
+    let recChanged = 0, resultUpdated = 0;
+
+    for (let i = 0; i < todayMatches.length; i++) {
+      const m = todayMatches[i];
+      const mid = String(m.matchId || '');
+
+      try {
+        const recRes = await getWithUA(
+          MIDOU_BASE + '/score/getExpertRecommData.do',
+          { dataId: mid, type: 0 },
+          { Cookie: 'token=' + token }
+        );
+
+        if (recRes.code === 1 && recRes.data && recRes.data.length) {
+          const recs = recRes.data
+            .filter(x => x && x.type && x.num > 0)
+            .map(x => ({
+              type: x.type,
+              num: x.num,
+              result: x.result !== undefined ? x.result : null
+            }));
+
+          const rk = 'm_' + mid;
+          const oldRecs = data.r[rk] || [];
+          const oldLen = oldRecs.length;
+          const oldResultCount = oldRecs.filter(r => r.result !== null && r.result !== 2).length;
+
+          data.r[rk] = recs;
+          if (recs.length !== oldLen) recChanged++;
+
+          const newResultCount = recs.filter(r => r.result !== null && r.result !== 2).length;
+          if (newResultCount > oldResultCount) resultUpdated++;
+
+          saveTrendSnapshot(mid, recs);
+        }
+      } catch (e) {
+        log('[recommend] ' + mid + ' 获取失败: ' + e.message);
+      }
+
+      // 随机化请求间隔 150~800ms（防反爬）
+      await sleep(jitter(300));
+    }
+
+    atomicWrite(DATA_FILE, data);
+
+    // 状态汇总
+    const allDone = todayMatches.every(m => m.matchStatus >= 2);
+    const summary = todayMatches.map(m =>
+      (m.num || '') + ':' + (m.matchStatus === 0 ? '未' : m.matchStatus === 1 ? '赛中' : m.matchStatus === 2 ? '完' : '取消')
+    ).join(',');
+    log('[recommend] ' + todayMatches.length + '场 [' + summary + '] 推荐变更:' + recChanged + ' 命中更新:' + resultUpdated + (allDone ? ' ALL_DONE' : ''));
+
+    // 如果有命中结果更新，通知 simple.js 重载
+    if (resultUpdated > 0 || recChanged > 0) notifyReload();
+
+  } catch (e) {
+    log('[recommend] 同步失败: ' + e.message);
+    await refreshToken();
+  }
+}
+
+// ═══ Task 4: 实时比分同步（每 2 分钟） ═══
+async function syncLiveScores() {
+  try {
+    const token = await getToken();
+    const today = new Date().toISOString().slice(0, 10);
+
+    const matchRes = await getWithUA(
+      MIDOU_BASE + '/score/footballDataList.do',
+      { time: Date.now(), order: 'status desc, start_datetime asc, data_id asc' },
+      { Cookie: 'token=' + token }
+    );
+
+    if (matchRes.code !== 1 || !matchRes.data) return;
+
+    const matches = (matchRes.data || []).map(m => {
+      let md = '';
+      if (m.bDate && typeof m.bDate === 'string' && m.bDate.length >= 10) md = m.bDate.slice(0, 10);
+      if (!md) md = today;
+      return {
+        matchId: String(m.matchId || m.dataId || ''),
+        num: m.num || '', homeName: m.homeName || '', visitName: m.visitName || '',
+        leagueName: m.leagueName || '', startTime: m.startTime || '',
+        matchStatus: m.matchStatus !== undefined ? m.matchStatus : 0,
+        score: m.score || '', halfScore: m.halfScore || '',
+        duration: m.duration || '', yellow: m.yellow || '', red: m.red || '',
+        homeScore: m.homeScore !== undefined ? m.homeScore : -1,
+        visitScore: m.visitScore !== undefined ? m.visitScore : -1,
+        recommNum: m.recommNum || 0, date: md
+      };
+    });
+
+    // 写入 live_scores.json
+    atomicWrite(LIVE_FILE, { date: today, matches, updated: new Date().toISOString() });
+
+    // 同步到 data.json 的比分字段
+    syncLiveToData(matches);
+
+    const liveCount = matches.filter(m => m.matchStatus === 1).length;
+    const finishedCount = matches.filter(m => m.matchStatus >= 2).length;
+    log('[live_score] ' + matches.length + '场, 赛中:' + liveCount + ', 已结束:' + finishedCount);
+
+  } catch (e) {
+    // 比分同步失败不抛异常，静默跳过
+  }
+}
+
+/** 把实时比分合并到 data.json */
+function syncLiveToData(liveMatches) {
+  try {
+    let data = {};
+    try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) { return; }
+    if (!data.m) data.m = {};
+
+    let updated = 0;
+    liveMatches.forEach(lm => {
+      const key = 'm_' + lm.matchId;
+      const old = data.m[key];
+      if (old) {
+        if (old.matchStatus !== lm.matchStatus || old.score !== lm.score ||
+            old.duration !== lm.duration || old.yellow !== lm.yellow ||
+            old.red !== lm.red || old.halfScore !== lm.halfScore) {
+          updated++;
+          data.m[key] = Object.assign({}, old, {
+            matchStatus: lm.matchStatus, score: lm.score,
+            halfScore: lm.halfScore, duration: lm.duration,
+            yellow: lm.yellow, red: lm.red, recommNum: lm.recommNum
+          });
+        }
+      }
+    });
+
+    if (updated > 0) {
+      atomicWrite(DATA_FILE, data);
+    }
+  } catch (e) {}
+}
+
+// ═══ Task 5: 赛后回填专家命中结果 ═══
+async function backfillResults(dateStr) {
+  log('[backfill] 开始回填 ' + dateStr + ' 命中信息...');
+
+  try {
+    const token = await getToken();
+    let data = {};
+    try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) {}
+    if (!data.m) data.m = {}; if (!data.r) data.r = {};
+
+    // 找已结束但 result 仍为 null/2 的比赛
+    const needBackfill = [];
+    Object.keys(data.r).forEach(rk => {
+      const mid = rk.replace('m_', '');
+      const match = data.m[rk] || data.m['m_' + mid];
+      if (!match || !match.date || match.date.slice(0, 10) !== dateStr) return;
+      if (match.matchStatus < 2) return;
+      const recs = data.r[rk] || [];
+      const staleCount = recs.filter(r => r.result === null || r.result === 2).length;
+      if (staleCount > 0) {
+        needBackfill.push({ mid, match, staleCount });
+      }
+    });
+
+    if (needBackfill.length === 0) { log('[backfill] 无需回填'); return; }
+
+    log('[backfill] ' + needBackfill.length + ' 场比赛需要回填');
+    let updated = 0;
+
+    for (const item of needBackfill) {
+      try {
+        const recRes = await getWithUA(
+          MIDOU_BASE + '/score/getExpertRecommData.do',
+          { dataId: item.mid, type: 0 },
+          { Cookie: 'token=' + token }
+        );
+        if (recRes.code === 1 && recRes.data && recRes.data.length) {
+          const newRecs = recRes.data
+            .filter(x => x && x.type && x.num > 0)
+            .map(x => ({ type: x.type, num: x.num, result: x.result !== undefined ? x.result : null }));
+
+          const rk = 'm_' + item.mid;
+          const oldStale = (data.r[rk] || []).filter(r => r.result === null || r.result === 2).length;
+          data.r[rk] = newRecs;
+          const newStale = newRecs.filter(r => r.result === null || r.result === 2).length;
+          if (newStale < oldStale) {
+            updated++;
+            log('[backfill] ' + rk + ' (' + item.match.homeName + ' vs ' + item.match.visitName + ') stale:' + oldStale + '→' + newStale);
+          }
+        }
+      } catch (e) {
+        log('[backfill] ' + item.mid + ' 失败: ' + e.message);
+      }
+      await sleep(jitter(300));
+    }
+
+    if (updated > 0) {
+      atomicWrite(DATA_FILE, data);
+      notifyReload();
+      log('[backfill] 完成, 更新了 ' + updated + ' 场比赛');
+    } else {
+      log('[backfill] 无新增命中');
+    }
+  } catch (e) {
+    log('[backfill] 错误: ' + e.message);
+  }
+}
+
+// ═══ Task 6: 计算出"最后一场+3h"的时间点 ═══
+function getDayEndTime(dateStr) {
+  try {
+    if (!fs.existsSync(DATA_FILE)) return 0;
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+
+    let latestTime = 0;
+    const year = new Date().getFullYear();
+
+    Object.values(data.m || {}).forEach(m => {
+      if (!m || !m.date || m.date.slice(0, 10) !== dateStr) return;
+      if (!m.startTime) return;
+
+      const st = m.startTime.replace(/\//g, '-');
+      const dt = new Date(year + '-' + st.slice(0, 2) + '-' + st.slice(3, 5) + 'T' + st.slice(6, 11) + ':00+08:00');
+      if (!isNaN(dt.getTime()) && dt.getTime() > latestTime) {
+        latestTime = dt.getTime();
+      }
+    });
+
+    return latestTime > 0 ? latestTime + 3 * 3600000 : 0;
+  } catch (e) {
+    return 0;
+  }
+}
+
+/** 全量核对收尾：回填命中 + 赔率完整性 + 状态修正 */
+async function finalCheck(dateStr) {
+  log('══════ 最终核对 [' + dateStr + '] 开始 ══════');
+
+  // 1. 回填所有命中结果
+  await backfillResults(dateStr);
+
+  // 2. 500 赔率完整性
+  const oddsFile = path.join(ODDS_DIR, dateStr + '.json');
+  if (fs.existsSync(oddsFile)) {
+    try {
+      const raw = JSON.parse(fs.readFileSync(oddsFile, 'utf8'));
+      const odds = raw.odds || {};
+      await validate500Odds(dateStr, odds);
+    } catch (e) {
+      log('[final] 赔率文件读取失败: ' + e.message);
+    }
+  } else {
+    log('[final] 赔率数据缺失，尝试补抓...');
+    await sync500Odds(dateStr);
+  }
+
+  // 3. 根据推荐 result 修正比赛状态（已完成但 status 未更新）
+  try {
+    let data = {};
+    if (fs.existsSync(DATA_FILE)) data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    if (data.m) {
+      let fixed = 0;
+      Object.keys(data.m).forEach(k => {
+        const m = data.m[k];
+        if (!m || !m.date || m.date.slice(0, 10) !== dateStr) return;
+        if (m.matchStatus >= 2) return;
+        const recs = (data.r['m_' + m.matchId] || data.r[m.matchId] || []);
+        if (recs.some(r => r.result !== null && r.result !== 2)) {
+          m.matchStatus = 2;
+          fixed++;
+        }
+      });
+      if (fixed > 0) {
+        atomicWrite(DATA_FILE, data);
+        log('[final] 修正 ' + fixed + ' 场比赛状态为"已结束"');
+      }
+    }
+  } catch (e) {
+    log('[final] 状态修正失败: ' + e.message);
+  }
+
+  log('══════ 最终核对 [' + dateStr + '] 完成 ══════');
+  notifyReload();
+}
+
+// ═══ 调度器 ═══
+let currentDate = '';
+let recommendRunning = false;
+let liveScoreRunning = false;
+let finalCheckDone = false;
+
+/** 计算到下一个12:00的毫秒数 */
+function getNextNoonDelay() {
+  const now = new Date();
+  const target = new Date(now);
+  target.setHours(12, 0, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  return target.getTime() - now.getTime();
+}
+
+async function start() {
+  log('════════════════════════════════════════');
+  log('  统一数据同步守护进程 v2 启动');
+  log('  数据源: midou310.com + 500.com');
+  log('════════════════════════════════════════');
+
+  currentDate = new Date().toISOString().slice(0, 10);
+
+  // ═══ 首次启动：如果已过12点，立即执行赛程+赔率同步 ═══
+  const now = new Date();
+  const noonToday = new Date(currentDate + 'T12:00:00+08:00');
+  if (now >= noonToday) {
+    log('[init] 当前已过12:00，立即执行赛程+赔率同步');
+    try {
+      await syncMatchList();
+      await sleep(jitter(2000));
+      await sync500Odds(currentDate);
+    } catch (e) { log('[init] 初始同步失败: ' + e.message); }
+  }
+
+  // ═══ 循环1: 每2分钟 — 实时比分 ═══
+  async function liveScoreLoop() {
+    if (liveScoreRunning) return;
+    liveScoreRunning = true;
+    try { await syncLiveScores(); } catch (e) {}
+    liveScoreRunning = false;
+    setTimeout(liveScoreLoop, 120000);
+  }
+
+  // ═══ 循环2: 每20分钟 — 推荐方向 + 最后一场+3h检测 ═══
+  async function recommendLoop() {
+    if (recommendRunning) return;
+    recommendRunning = true;
+    try {
+      await syncRecommends();
+
+      // 检测是否到达"最后一场+3h"时间
+      if (!finalCheckDone) {
+        const dayEndTime = getDayEndTime(currentDate);
+        if (dayEndTime > 0 && Date.now() >= dayEndTime) {
+          log('[scheduler] ⏰ 最后一场+3h，触发最终核对');
+          finalCheckDone = true;
+          await finalCheck(currentDate);
+        }
+      }
+    } catch (e) {
+      log('[loop] 推荐同步异常: ' + e.message);
+    }
+    recommendRunning = false;
+    setTimeout(recommendLoop, 20 * 60 * 1000);
+  }
+
+  // ═══ 每日12:00定时：赔率+赛程 ═══
+  function scheduleNoon() {
+    const delay = getNextNoonDelay();
+    log('[scheduler] 下次12:00定时: ' + Math.round(delay / 3600000) + ' 小时后');
+
+    setTimeout(async () => {
+      const today = new Date().toISOString().slice(0, 10);
+
+      // 日期变更重置
+      if (today !== currentDate) {
+        log('[scheduler] 日期变更: ' + currentDate + ' → ' + today);
+        currentDate = today;
+        finalCheckDone = false;
+      }
+
+      log('[scheduler] ⏰ 12:00 定时任务触发');
+      try {
+        await syncMatchList();
+        await sleep(jitter(2000));
+        await sync500Odds(today);
+      } catch (e) {
+        log('[scheduler] 12:00 任务失败: ' + e.message);
+      }
+
+      scheduleNoon(); // 预约明天
+    }, delay);
+  }
+
+  // 启动所有循环（错峰启动，避免同时发起请求）
+  setTimeout(liveScoreLoop, 5000);     // 5秒后开始比分
+  setTimeout(recommendLoop, 30000);    // 30秒后开始推荐
+  scheduleNoon();                       // 计算12:00定时
+
+  // 每分钟检查日期变更
+  setInterval(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    if (today !== currentDate) {
+      log('[scheduler] 日期变更: ' + currentDate + ' → ' + today);
+      currentDate = today;
+      finalCheckDone = false;
+    }
+  }, 60000);
+}
+
+start().catch(e => {
+  log('FATAL: ' + e.message);
+  process.exit(1);
+});

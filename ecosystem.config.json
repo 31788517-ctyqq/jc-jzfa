@@ -1,19 +1,38 @@
 {
-  "apps": [{
-    "name": "jc-zjfa",
-    "script": "index.js",
-    "cwd": "./server",
-    "instances": 1,
-    "exec_mode": "fork",
-    "env": {
-      "NODE_ENV": "production"
+  "apps": [
+    {
+      "name": "jc-zjfa",
+      "script": "index.js",
+      "cwd": "./server",
+      "instances": 1,
+      "exec_mode": "fork",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "max_memory_restart": "256M",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss",
+      "error_file": "./logs/error.log",
+      "out_file": "./logs/out.log",
+      "merge_logs": true,
+      "autorestart": true,
+      "watch": false
     },
-    "max_memory_restart": "256M",
-    "log_date_format": "YYYY-MM-DD HH:mm:ss",
-    "error_file": "./logs/error.log",
-    "out_file": "./logs/out.log",
-    "merge_logs": true,
-    "autorestart": true,
-    "watch": false
-  }]
+    {
+      "name": "jc-sync",
+      "script": "data_sync.js",
+      "cwd": "./server",
+      "instances": 1,
+      "exec_mode": "fork",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "max_memory_restart": "256M",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss",
+      "error_file": "./logs/sync_error.log",
+      "out_file": "./logs/sync_out.log",
+      "merge_logs": true,
+      "autorestart": true,
+      "watch": false
+    }
+  ]
 }
