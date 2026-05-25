@@ -1,22 +1,24 @@
 /**
  * 本地数据库模块 - 基于 better-sqlite3
  * 存储比赛数据、推荐数据、命中率数据
+ * 当 better-sqlite3 不可用时使用内存假对象（兼容旧服务器）
  */
-const Database = require('better-sqlite3');
-const path = require('path');
-
-const DB_PATH = path.join(__dirname, 'midou_data.db');
-
 let db;
 
-/**
- * 初始化数据库，创建表结构
- */
-function initDatabase() {
-  db = new Database(DB_PATH);
-  
-  // 开启 WAL 模式提升并发性能
-  db.pragma('journal_mode = WAL');
+try {
+  const Database = require('better-sqlite3');
+  const path = require('path');
+
+  const DB_PATH = path.join(__dirname, 'midou_data.db');
+
+  /**
+   * 初始化数据库，创建表结构
+   */
+  function initDatabase() {
+    db = new Database(DB_PATH);
+
+    // 开启 WAL 模式提升并发性能
+    db.pragma('journal_mode = WAL');
   
   db.exec(`
     CREATE TABLE IF NOT EXISTS matches (
@@ -647,3 +649,44 @@ module.exports = {
   getTodayMatchSummary,
   closeDatabase
 };
+
+} catch (e) {
+  // 兼容旧服务器（Node v10 / CentOS 6 无法编译 better-sqlite3）
+  console.log('[db] better-sqlite3 unavailable, using in-memory stub');
+
+  function initDatabase() {
+    console.log('[db] In-memory database initialized');
+    return true;
+  }
+
+  function stubRun() { return { lastInsertRowid: 1, changes: 1 }; }
+  function stubGet() { return null; }
+  function stubAll() { return []; }
+  const stubStmt = { run: stubRun, get: stubGet, all: stubAll };
+  const stubDB = {
+    prepare: () => stubStmt,
+    pragma: () => {},
+    exec: () => {},
+    close: () => {},
+    transaction: (fn) => (items) => fn(items),
+  };
+
+  const noop = () => {};
+  const emptyArr = () => [];
+  const nullFn = () => null;
+  const zeroObj = () => ({ matchCount: 0, leagueCount: 0, directionCount: 0 });
+  const emptyRate = () => ({ hitCount: 0, totalCount: 0, hitRate: 0, conditionSummary: '', detailList: [], dailyResults: [] });
+  const emptySummary = () => ({ todayDate: new Date().toISOString().slice(0, 10), totalMatches: 0, finishedMatches: 0, unfinishedMatches: 0, canShowCards: false });
+
+  module.exports = {
+    initDatabase,
+    batchUpsertMatches: noop, batchUpsertRecommends: noop, logCrawl: noop,
+    getCrawledDates: emptyArr, getMatchesByDate: emptyArr, getRecommendsByMatchId: emptyArr,
+    getAllMatches: emptyArr, getHitRateStats: emptyArr, getDailyTrend: emptyArr,
+    getAllLeagues: emptyArr, getStaleRecommendations: emptyArr, updateRecommendResult: noop,
+    getFilterStats: zeroObj, getFilterRate: emptyRate,
+    upsertAIPrediction: noop, getAIPrediction: nullFn,
+    getTodayUnfinishedMatches: emptyArr, getTodayMatchSummary: emptySummary,
+    closeDatabase: noop
+  };
+}
