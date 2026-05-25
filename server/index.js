@@ -18,6 +18,18 @@ function localDate(d) {
   return y + '-' + m + '-' + dd;
 }
 
+// 获取 data.json 中最新的有数据日期
+function latestDataDate() {
+  const dataFile = getDataJson();
+  const mMap = dataFile.m || {};
+  let latest = '';
+  Object.keys(mMap).forEach(k => {
+    const d = (mMap[k] && mMap[k].date) ? mMap[k].date.slice(0, 10) : '';
+    if (d > latest) latest = d;
+  });
+  return latest || localDate();
+}
+
 // 生产优化
 app.disable('x-powered-by');
 // 生产环境由 nginx 处理 gzip，避免双重压缩
@@ -272,7 +284,7 @@ app.post('/api', async (req, res) => {
           const path = require('path');
           const dateStr = data.matchDate
             ? (new Date().getFullYear() + '-' + data.matchDate)
-            : (data.date || localDate());
+            : (data.date || latestDataDate());
 
           const dataFile = getDataJson();
           const mMap = dataFile.m || {};
@@ -392,8 +404,8 @@ app.post('/api', async (req, res) => {
           matches = await ensureData();
         }
 
-        // 日期筛选：默认今天，支持指定日期
-        const requestDate = data.date || localDate();
+        // 日期筛选：默认最新有数据日期，支持指定日期
+        const requestDate = data.date || latestDataDate();
         matches = matches.filter(m => m.date === requestDate);
 
         // 获取推荐（缓存 rMap，避免每次读磁盘）
