@@ -828,12 +828,17 @@ function doFilterQuery() {
     resultEl.innerHTML = html;
   }).catch(function(e) {
     resultEl.innerHTML = '<div class="loading">' + e.message + '</div>';
+    incomeLoaded = false; // 失败后允许重试
   });
 }
 
 // ========== 方案收入 ==========
-function loadIncome() {
+var incomeLoaded = false;
+function loadIncome(force) {
+  if (!force && incomeLoaded) return; // 避免重复加载
+  incomeLoaded = true;
   var resultEl = document.getElementById('incomeResult');
+  if (!resultEl) return;
   resultEl.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
 
   var timeVal = getDDVal('dd-incTime');
@@ -875,6 +880,7 @@ function loadIncome() {
     resultEl.innerHTML = html;
   }).catch(function(e) {
     resultEl.innerHTML = '<div class="loading">' + e.message + '</div>';
+    incomeLoaded = false; // 失败后允许重试
   });
 }
 

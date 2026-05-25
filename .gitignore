@@ -1,6 +1,8 @@
 node_modules/
 server/.env
 server/midou_data.db
+server/midou_data.db-shm
+server/midou_data.db-wal
 *.log
 $null
 nul)
