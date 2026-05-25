@@ -64,7 +64,7 @@ nginx -t && nginx -s reload && echo NGINX_OK""")
     
     # PM2
     print("[5] PM2...")
-    rc,o,e=run("cd /var/www/zj.100qiu.com && pm2 delete jc-zjfa 2>/dev/null; pm2 start server/index.js --name jc-zjfa && pm2 save && echo PM2_OK")
+    rc,o,e=run("cd /var/www/zj.100qiu.com && pm2 delete jc-zjfa 2>/dev/null; BEHIND_PROXY=1 pm2 start server/index.js --name jc-zjfa && pm2 save && echo PM2_OK")
     print(o)
     
     print("\n[DONE] http://zj.100qiu.com")

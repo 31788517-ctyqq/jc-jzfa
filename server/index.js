@@ -13,7 +13,10 @@ const PORT = process.env.PORT || 3000;
 
 // 生产优化
 app.disable('x-powered-by');
-app.use(compression());
+// 生产环境由 nginx 处理 gzip，避免双重压缩
+if (!process.env.BEHIND_PROXY) {
+  app.use(compression());
+}
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
@@ -67,6 +70,68 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
 // ==================== 缓存 ====================
 const cache = { token: null, tokenExpire: 0, matches: null, matchTime: 0, recommCache: {} };
+
+// ==================== data.json 内存缓存（避免每次 API 都 792KB 磁盘 I/O） ====================
+let _dataJsonCache = null;
+let _dataJsonCacheTime = 0;
+let _dataJsonCacheMtime = 0;
+const DATA_JSON_PATH = path.join(__dirname, 'data.json');
+function getDataJson(forceRefresh) {
+  const now = Date.now();
+  if (!forceRefresh && _dataJsonCache && (now - _dataJsonCacheTime < 30000)) {
+    return _dataJsonCache;
+  }
+  try {
+    const stat = fs.statSync(DATA_JSON_PATH);
+    if (!forceRefresh && _dataJsonCache && stat.mtimeMs === _dataJsonCacheMtime) {
+      _dataJsonCacheTime = now;
+      return _dataJsonCache;
+    }
+    _dataJsonCache = JSON.parse(fs.readFileSync(DATA_JSON_PATH, 'utf8'));
+    _dataJsonCacheTime = now;
+    _dataJsonCacheMtime = stat.mtimeMs;
+    return _dataJsonCache;
+  } catch (e) {
+    logger.error('读取 data.json 失败: ' + e.message);
+    return _dataJsonCache || { m: {}, r: {} };
+  }
+}
+
+// trends.json 内存缓存（每 60 秒刷新）
+let _trendsCache = null;
+let _trendsCacheTime = 0;
+const TRENDS_PATH = path.join(__dirname, 'trends.json');
+function getTrendsJson() {
+  const now = Date.now();
+  if (_trendsCache && (now - _trendsCacheTime < 60000)) return _trendsCache;
+  try {
+    if (fs.existsSync(TRENDS_PATH)) {
+      _trendsCache = JSON.parse(fs.readFileSync(TRENDS_PATH, 'utf8'));
+      _trendsCacheTime = now;
+      return _trendsCache;
+    }
+  } catch (e) {}
+  return _trendsCache || {};
+}
+
+// odds_history 按日期缓存（最多缓存 10 个日期文件，LRU 淘汰）
+let _oddsCache = {};
+const _oddsCacheKeys = [];
+const MAX_ODDS_CACHE = 10;
+function getOddsHistory(dateStr) {
+  if (_oddsCache[dateStr]) return _oddsCache[dateStr];
+  const f = path.join(__dirname, 'odds_history', dateStr + '.json');
+  try {
+    if (!fs.existsSync(f)) return null;
+    const raw = JSON.parse(fs.readFileSync(f, 'utf8'));
+    _oddsCache[dateStr] = raw.odds || {};
+    _oddsCacheKeys.push(dateStr);
+    if (_oddsCacheKeys.length > MAX_ODDS_CACHE) {
+      delete _oddsCache[_oddsCacheKeys.shift()];
+    }
+    return _oddsCache[dateStr];
+  } catch (e) { return null; }
+}
 
 // ==================== 登录 ====================
 async function login() {
@@ -171,7 +236,7 @@ app.post('/api', async (req, res) => {
         try {
           const fs = require('fs');
           const path = require('path');
-          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const dataFile = getDataJson();
           const mMap = dataFile.m || {};
           const seen = {}, list = [];
           Object.keys(mMap).forEach(k => {
@@ -202,18 +267,11 @@ app.post('/api', async (req, res) => {
             ? (new Date().getFullYear() + '-' + data.matchDate)
             : (data.date || new Date().toISOString().slice(0, 10));
 
-          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const dataFile = getDataJson();
           const mMap = dataFile.m || {};
 
-          // 读取 500.com 赔率数据获取单关标识
-          let oddsMap = {};
-          try {
-            const oddsFile = path.join(__dirname, 'odds_history', dateStr + '.json');
-            if (fs.existsSync(oddsFile)) {
-              const oddsData = JSON.parse(fs.readFileSync(oddsFile, 'utf8'));
-              oddsMap = oddsData.odds || {};
-            }
-          } catch (e) {}
+          // 读取 500.com 赔率数据获取单关标识（使用缓存）
+          const oddsMap = getOddsHistory(dateStr) || {};
 
           const list = [];
           Object.keys(mMap).forEach(k => {
@@ -261,7 +319,7 @@ app.post('/api', async (req, res) => {
           logger.warn('实时推荐获取失败，回退到 data.json: ' + e.message);
           try {
             const fs = require('fs');
-            const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+            const dataFile = getDataJson();
             const rMap = dataFile.r || {};
             const raw = rMap['m_' + matchId] || rMap[String(matchId)] || [];
             recomms = raw.map(function(x) {
@@ -276,12 +334,11 @@ app.post('/api', async (req, res) => {
           }
         }
 
-        // 从 trends.json 读取真实趋势快照（period_daemon 每20分钟写入）
+        // 从 trends.json 读取真实趋势快照（period_daemon 每20分钟写入，使用内存缓存）
         var timeLabels = [], series = [];
         try {
-          var trendFile = path.join(__dirname, 'trends.json');
-          if (require('fs').existsSync(trendFile)) {
-            var trends = JSON.parse(require('fs').readFileSync(trendFile, 'utf8'));
+          var trends = getTrendsJson();
+          if (trends && Object.keys(trends).length > 0) {
             var key = 'm_' + matchId;
             var snaps = (trends[key] || []);
             if (snaps.length > 0) {
@@ -318,7 +375,7 @@ app.post('/api', async (req, res) => {
         try {
           const fs = require('fs');
           const path = require('path');
-          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const dataFile = getDataJson();
           const mMap = dataFile.m || {};
           cachedRMap = dataFile.r || {};
           matches = Object.values(mMap).filter(m => m && m.matchId);
@@ -448,7 +505,7 @@ app.post('/api', async (req, res) => {
         try {
           const fs = require('fs');
           const path = require('path');
-          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const dataFile = getDataJson();
           const mMap = dataFile.m || {};
           const rMap = dataFile.r || {};
           const key = 'm_' + matchId;
@@ -479,56 +536,53 @@ app.post('/api', async (req, res) => {
           const fs = require('fs');
           const path = require('path');
 
-          // Load from data.json (compatible with server without better-sqlite3)
-          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          // Load from data.json
+          const dataFile = getDataJson();
           const mMap = dataFile.m || {};
           const rMap = dataFile.r || {};
 
           function normalizeRecs(recs) {
-            return recs.map(function(x) {
+            return (recs || []).map(function(x) {
               var raw = x.rs !== undefined ? x.rs : (x.result !== undefined ? x.result : null);
               var r = (raw === 0 || raw === 1) ? raw : null;
               return { type: x.t || x.type, num: x.n || x.num, result: r };
             });
           }
 
-          // Collect all recs with known results, joined with match date
-          var allRecs = [];
+          // 单次遍历：同时收集 allRecs、按方向聚合、按日期-方向聚合
+          var cutoff = new Date();
+          cutoff.setDate(cutoff.getDate() - days);
+          var cutoffStr = cutoff.toISOString().slice(0, 10);
+
+          var dirMap = {};
+          var dateDirMap = {};
+          var allRecsCount = 0;
+
           Object.keys(rMap).forEach(function(k) {
             var mid = k.replace(/^m_/, '');
             var match = mMap['m_' + mid] || mMap[mid];
             var matchDate = match ? (match.date || '').slice(0, 10) : '';
+            if (!matchDate || matchDate < cutoffStr) return;
             var recs = normalizeRecs(rMap[k] || []);
             recs.forEach(function(r) {
-              if (r.type && r.result !== null && r.result !== undefined) {
-                allRecs.push({
-                  direction: r.type,
-                  hit: r.result === 1 ? 1 : 0,
-                  miss: r.result === 0 ? 1 : 0,
-                  date: matchDate
-                });
-              }
+              if (!r.type || r.result === null || r.result === undefined) return;
+              allRecsCount++;
+              // 按方向聚合
+              if (!dirMap[r.type]) dirMap[r.type] = { total: 0, hits: 0, misses: 0 };
+              dirMap[r.type].total++;
+              if (r.result === 1) dirMap[r.type].hits++;
+              else dirMap[r.type].misses++;
+              // 按日期-方向聚合
+              if (!dateDirMap[matchDate]) dateDirMap[matchDate] = {};
+              if (!dateDirMap[matchDate][r.type]) dateDirMap[matchDate][r.type] = { total: 0, hits: 0 };
+              dateDirMap[matchDate][r.type].total++;
+              if (r.result === 1) dateDirMap[matchDate][r.type].hits++;
             });
           });
 
-          // Filter by days
-          var cutoff = new Date();
-          cutoff.setDate(cutoff.getDate() - days);
-          var cutoffStr = cutoff.toISOString().slice(0, 10);
-          allRecs = allRecs.filter(function(r) { return r.date >= cutoffStr; });
-
-          if (allRecs.length === 0) {
+          if (allRecsCount === 0) {
             return res.json({ code: 0, msg: '命中率统计需要历史数据积累。请先运行爬虫抓取历史数据：node scraper.js' });
           }
-
-          // Aggregate by direction
-          var dirMap = {};
-          allRecs.forEach(function(r) {
-            if (!dirMap[r.direction]) dirMap[r.direction] = { total: 0, hits: 0, misses: 0 };
-            dirMap[r.direction].total++;
-            dirMap[r.direction].hits += r.hit;
-            dirMap[r.direction].misses += r.miss;
-          });
 
           var directionStats = Object.keys(dirMap).map(function(d) {
             var s = dirMap[d];
@@ -540,15 +594,6 @@ app.post('/api', async (req, res) => {
               hitRate: s.total > 0 ? Math.round(s.hits / s.total * 1000) / 10 : 0
             };
           }).sort(function(a, b) { return b.hitCount - a.hitCount; });
-
-          // Aggregate by date -> direction
-          var dateDirMap = {};
-          allRecs.forEach(function(r) {
-            if (!dateDirMap[r.date]) dateDirMap[r.date] = {};
-            if (!dateDirMap[r.date][r.direction]) dateDirMap[r.date][r.direction] = { total: 0, hits: 0 };
-            dateDirMap[r.date][r.direction].total++;
-            dateDirMap[r.date][r.direction].hits += r.hit;
-          });
 
           // 综合排名命中率：
           //  每天综合排名前5场比赛，≥3场命中则当天"合格"
@@ -657,11 +702,9 @@ app.post('/api', async (req, res) => {
           const path = require('path');
 
           // 读取 data.json
-          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const dataFile = getDataJson();
           const mMap = dataFile.m || {};
           const rMap = dataFile.r || {};
-
-          // 归一化推荐
           function norm(recs) {
             return recs.map(function(x) {
               return {
@@ -846,7 +889,7 @@ app.post('/api', async (req, res) => {
         try {
           const fs = require('fs');
           const path = require('path');
-          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const dataFile = getDataJson();
           const mMap = dataFile.m || {};
           const leagueSet = {};
           Object.values(mMap).forEach(function(m) {
@@ -905,7 +948,7 @@ app.post('/api', async (req, res) => {
           // 2) 从 data.json 获取比赛信息
           var matchInfo = {};
           try {
-            var dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+            var dataFile = getDataJson();
             var mMap = dataFile.m || {};
             var m = mMap['m_' + mid] || mMap[mid];
             if (m) {
@@ -942,7 +985,7 @@ app.post('/api', async (req, res) => {
           const today = new Date().toISOString().slice(0, 10);
           var totalMatches = 0, finishedMatches = 0;
           try {
-            var dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+            var dataFile = getDataJson();
             var mMap = dataFile.m || {};
             Object.values(mMap).forEach(function(m) {
               if (!m || !m.date) return;
@@ -991,7 +1034,7 @@ app.post('/api', async (req, res) => {
           const path = require('path');
 
           // 1) 从 data.json 加载比赛和推荐
-          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const dataFile = getDataJson();
           const mMap = dataFile.m || {};
           const rMap = dataFile.r || {};
           const mList = [];
@@ -1002,30 +1045,38 @@ app.post('/api', async (req, res) => {
 
           // 2) 工具函数
           function normalizeRecs(recs) {
-            return recs.map(function(x) {
+            return (recs || []).map(function(x) {
               var raw = x.rs !== undefined ? x.rs : (x.result !== undefined ? x.result : null);
               var r = (raw === 0 || raw === 1) ? raw : null;
               return { type: x.t || x.type, num: x.n || x.num, result: r };
             });
           }
           function loadOddsFromFile(date, num) {
-            try {
-              const f = path.join(__dirname, 'odds_history', date + '.json');
-              if (!fs.existsSync(f)) return null;
-              const raw = JSON.parse(fs.readFileSync(f, 'utf8'));
-              return (raw.odds || {})[num] || null;
-            } catch (e) { return null; }
+            const odds = getOddsHistory(date);
+            return odds ? (odds[num] || null) : null;
+          }
+
+          // 预计算：一次获取所有比赛的 recs 和 odds，消除 N 次重复查找
+          const matchDataMap = {};
+          for (const m of mList) {
+            const num = m.num || '';
+            const key = m.matchId;
+            const raw = rMap['m_' + key] || rMap[String(key)] || [];
+            matchDataMap[key] = {
+              match: m,
+              recs: normalizeRecs(raw),
+              odds: loadOddsFromFile(dateStr, num)
+            };
           }
 
           function findRecommends(matchId) {
-            const key = 'm_' + matchId;
-            const raw = rMap[key] || rMap[String(matchId)] || [];
-            return normalizeRecs(raw);
+            const md = matchDataMap[matchId];
+            return md ? md.recs : [];
           }
 
           function getMatchOdds(match, direction) {
-            const num = match.num || '';
-            const od = loadOddsFromFile(dateStr, num);
+            const md = matchDataMap[match.matchId];
+            const od = md && md.odds;
             if (od) {
               return {
                 spf: od.spf ? { home: od.spf.home, draw: od.spf.draw, away: od.spf.away } : null,
@@ -1069,9 +1120,10 @@ app.post('/api', async (req, res) => {
             let bestMatch = null, bestCount = 0;
             for (const m of mList) {
               if (excludeIds && excludeIds.indexOf(m.matchId) >= 0) continue;
-              const num = m.num || '';
-              if (!loadOddsFromFile(dateStr, num)) continue;
-              const recs = findRecommends(m.matchId);
+              // 使用预计算缓存，消除重复磁盘 I/O
+              const md = matchDataMap[m.matchId];
+              if (!md || !md.odds) continue;
+              const recs = md.recs;
               let total = 0;
               for (const r of recs) {
                 if (directions.indexOf(r.type) >= 0) total += r.num || 0;
@@ -1318,12 +1370,12 @@ app.post('/api', async (req, res) => {
           }
 
           // Load data from data.json
-          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const dataFile = getDataJson();
           const mMap = dataFile.m || {};
           const rMap = dataFile.r || {};
 
           function normalizeRecs(recs) {
-            return recs.map(function(x) {
+            return (recs || []).map(function(x) {
               var raw = x.rs !== undefined ? x.rs : (x.result !== undefined ? x.result : null);
               var r = (raw === 0 || raw === 1) ? raw : null;
               return { type: x.t || x.type, num: x.n || x.num, result: r };
@@ -1382,20 +1434,32 @@ app.post('/api', async (req, res) => {
             });
             if (mList.length === 0) continue;
 
-            const oddsFile = path.join(__dirname, 'odds_history', ds + '.json');
-            let histOdds = null;
-            if (fs.existsSync(oddsFile)) {
-              try { const raw = JSON.parse(fs.readFileSync(oddsFile, 'utf8')); histOdds = raw.odds || {}; } catch (e) {}
+            const histOdds = getOddsHistory(ds);
+
+            // 预计算：一次获取所有比赛的 recs 和 odds
+            const matchDataMap = {};
+            for (const mm of mList) {
+              const num = mm.num || '';
+              let oddsObj = null;
+              if (histOdds && histOdds[num]) {
+                const od = histOdds[num];
+                oddsObj = { spf: od.spf || null, rqspf: od.rqspf || null, totalGoals: od.totalGoals || null };
+              }
+              matchDataMap[mm.matchId] = {
+                match: mm,
+                recs: findRecommends(mm.matchId),
+                odds: oddsObj
+              };
             }
 
             function findBest(directions, excludeIds) {
               let best = null, bestCount = 0, bestHasOdds = false;
               for (const mm of mList) {
                 if (excludeIds && excludeIds.indexOf(mm.matchId) >= 0) continue;
-                const num = mm.num || '';
-                const hasOdds = histOdds && histOdds[num];
+                const md = matchDataMap[mm.matchId];
+                const hasOdds = md && !!md.odds;
                 if (histOdds && !hasOdds) continue;
-                const recs = findRecommends(mm.matchId);
+                const recs = md ? md.recs : [];
                 let total = 0;
                 for (const r of recs) {
                   if (directions.indexOf(r.type) >= 0) total += r.num || 0;
@@ -1408,16 +1472,13 @@ app.post('/api', async (req, res) => {
             }
 
             function getOddsObj(match) {
-              const num = match.num || '';
-              if (histOdds && histOdds[num]) {
-                const od = histOdds[num];
-                return { spf: od.spf || null, rqspf: od.rqspf || null, totalGoals: od.totalGoals || null };
-              }
-              return null;
+              const md = matchDataMap[match.matchId];
+              return md ? md.odds : null;
             }
 
             function buildMatch(match, direction) {
-              const recs = findRecommends(match.matchId);
+              const md = matchDataMap[match.matchId];
+              const recs = md ? md.recs : [];
               const subResults = [];
               const matchedRecs = [];
 
@@ -1495,6 +1556,21 @@ app.post('/api', async (req, res) => {
               };
             }
 
+            // 方案六综合排名也用预计算数据
+            const top5 = [];
+            for (const k of Object.keys(matchDataMap)) {
+              const mdData = matchDataMap[k];
+              const recs6 = mdData.recs;
+              if (recs6.length === 0) continue;
+              const maxDir = recs6.reduce((a, b) => (b.num || 0) > ((a && a.num) || 0) ? b : a, null);
+              if (maxDir && maxDir.num > 0) {
+                const mm = mdData.match;
+                top5.push({ match: mm, direction: maxDir.type, expertCount: maxDir.num });
+              }
+            }
+            top5.sort((a, b) => b.expertCount - a.expertCount);
+            const top5SelTop = top5.slice(0, 5);
+
             const m1a = findBest(['平', '让平']), m1b = findBest(['让负'], m1a ? [m1a.matchId] : null);
             const m2a = findBest(['总进球-2、3球']), m2b = findBest(['让负'], m2a ? [m2a.matchId] : null);
             const m3a = findBest(['总进球-2、3球']), m3b = findBest(['让胜'], m3a ? [m3a.matchId] : null);
@@ -1504,7 +1580,6 @@ app.post('/api', async (req, res) => {
             if (m2a && m2b) dayPlans.push({ name: 'plan_2', planName: '方案二', matches: [buildMatch(m2a, '总进球-2、3球'), buildMatch(m2b, '让负')] });
             if (m3a && m3b) dayPlans.push({ name: 'plan_3', planName: '方案三', matches: [buildMatch(m3a, '总进球-2、3球'), buildMatch(m3b, '让胜')] });
 
-            // 方案四～六：仅在 ≥15 场时生成
             const dayMatchCount = mList.length;
             if (dayMatchCount >= 15) {
               const m4a = findBest(['平', '让平']);
@@ -1513,23 +1588,10 @@ app.post('/api', async (req, res) => {
               const m5a = findBest(['平', '让平']);
               const m5b = findBest(['总进球-2、3球'], m5a ? [m5a.matchId] : null);
               if (m5a && m5b) dayPlans.push({ name: 'plan_5', planName: '方案五', matches: [buildMatch(m5a, '平、让平'), buildMatch(m5b, '总进球-2、3球')] });
-              // 方案六：综合排名前5场
-              try {
-                const top5 = [];
-                for (const mm of mList) {
-                  const recs6 = findRecommends(mm.matchId);
-                  if (recs6.length === 0) continue;
-                  const maxDir = recs6.reduce((a, b) => (b.num || 0) > ((a && a.num) || 0) ? b : a, null);
-                  if (maxDir && maxDir.num > 0) top5.push({ match: mm, direction: maxDir.type });
-                }
-                top5.sort((a, b) => b.expertCount - a.expertCount);
-                const top5Sel = top5.slice(0, 5);
-                if (top5Sel.length >= 3) {
-                  dayPlans.push({ name: 'plan_6', planName: '方案六', matches: top5Sel.map(t => buildMatch(t.match, t.direction)) });
-                }
-              } catch (e6) {}
+              if (top5SelTop.length >= 3) {
+                dayPlans.push({ name: 'plan_6', planName: '方案六', matches: top5SelTop.map(t => buildMatch(t.match, t.direction)) });
+              }
             }
-            // 比赛低于5场时最多只保留前2个方案
             if (dayMatchCount < 5 && dayPlans.length > 2) {
               dayPlans.splice(2);
             }
@@ -1654,7 +1716,7 @@ app.post('/api', async (req, res) => {
         try {
           const fs = require('fs');
           const path = require('path');
-          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const dataFile = getDataJson();
           const mMap = dataFile.m || {};
           const rMap = dataFile.r || {};
 

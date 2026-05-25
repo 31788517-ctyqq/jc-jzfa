@@ -73,7 +73,7 @@ echo ""
 echo "[6/8] 启动服务..."
 cd $PROJECT_DIR
 pm2 delete jc-zjfa 2>/dev/null || true
-pm2 start ecosystem.config.json
+BEHIND_PROXY=1 pm2 start ecosystem.config.json
 pm2 save
 pm2 startup | tail -1 | bash 2>/dev/null || echo "  (手动执行上面的 pm2 startup 命令)"
 
