@@ -296,7 +296,43 @@ app.post('/api', async (req, res) => {
       }
 
       case 'ranking-list': {
-        const matches = await ensureData();
+        // 从 data.json 读取比赛（包含历史比赛+推荐结果，确保 isHit 正确）
+        let matches = [];
+        let useDataJson = true;
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const mMap = dataFile.m || {};
+          const rMap = dataFile.r || {};
+          matches = Object.values(mMap).filter(m => m && m.matchId);
+        } catch {}
+        // 兜底：实时 API
+        if (matches.length === 0) {
+          matches = await ensureData();
+          useDataJson = false;
+        }
+
+        // 获取推荐：data.json 优先（有历史命中结果），API 兜底
+        async function getRecs(matchId) {
+          if (useDataJson) {
+            const rMap = (() => {
+              try {
+                const fs = require('fs');
+                const path = require('path');
+                const df = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+                return df.r || {};
+              } catch { return {}; }
+            })();
+            const raw = rMap['m_' + matchId] || rMap[String(matchId)] || [];
+            return raw.map(x => ({
+              type: x.t || x.type,
+              num: x.n || x.num,
+              result: x.rs !== undefined ? x.rs : (x.result !== undefined ? x.result : null)
+            }));
+          }
+          try { return await ensureRecommends(matchId); } catch { return []; }
+        }
         const filterCategory = data.category || null;
         const filterDirection = data.direction || null;
 
@@ -314,12 +350,12 @@ app.post('/api', async (req, res) => {
         const dirStats = {}; // { type: { totalNum: number, matches: [] } }
         for (const m of matches) {
           let recomms;
-          try { recomms = await ensureRecommends(m.matchId); } catch { continue; }
+          try { recomms = await getRecs(m.matchId); } catch { continue; }
           for (const r of recomms) {
             if (!r.type || !r.num) continue;
             if (!dirStats[r.type]) dirStats[r.type] = { totalNum: 0, matches: [] };
             dirStats[r.type].totalNum += r.num;
-            dirStats[r.type].matches.push({ matchId: m.matchId, homeName: m.homeName, visitName: m.visitName, leagueName: m.leagueName, num: m.num, date: m.date, direction: r.type, expertCount: r.num, matchStatus: m.matchStatus });
+            dirStats[r.type].matches.push({ matchId: m.matchId, homeName: m.homeName, visitName: m.visitName, leagueName: m.leagueName, num: m.num, date: m.date, direction: r.type, expertCount: r.num, matchStatus: m.matchStatus, isHit: r.result === 1 });
           }
         }
 
@@ -349,7 +385,7 @@ app.post('/api', async (req, res) => {
         // ====== 构建排名列表 ======
         const list = [];
         if (filterDirection && dirStats[filterDirection]) {
-          // 按具体方向筛选
+          // 按具体方向筛选（isHit 已在上面收集阶段设置）
           for (const item of dirStats[filterDirection].matches) {
             list.push({ ...item });
           }
@@ -358,20 +394,20 @@ app.post('/api', async (req, res) => {
           const catDirs = new Set(categories[filterCategory].directions.map(d => d.name));
           for (const m of matches) {
             let recomms;
-            try { recomms = await ensureRecommends(m.matchId); } catch { continue; }
+            try { recomms = await getRecs(m.matchId); } catch { continue; }
             const filtered = recomms.filter(r => catDirs.has(r.type) && r.num > 0);
             if (filtered.length > 0) {
               const maxDir = filtered.reduce((a, b) => b.num > a.num ? b : a);
-              list.push({ matchId: m.matchId, homeName: m.homeName, visitName: m.visitName, leagueName: m.leagueName, num: m.num, date: m.date, direction: maxDir.type, expertCount: maxDir.num, matchStatus: m.matchStatus });
+              list.push({ matchId: m.matchId, homeName: m.homeName, visitName: m.visitName, leagueName: m.leagueName, num: m.num, date: m.date, direction: maxDir.type, expertCount: maxDir.num, matchStatus: m.matchStatus, isHit: maxDir.result === 1 });
             }
           }
         } else {
           // 综合排名：取每场比赛推荐专家最多的方向
           for (const m of matches) {
             let recomms;
-            try { recomms = await ensureRecommends(m.matchId); } catch { continue; }
+            try { recomms = await getRecs(m.matchId); } catch { continue; }
             const maxDir = recomms.reduce((a, b) => (b.num || 0) > ((a && a.num) || 0) ? b : a, null);
-            if (maxDir && maxDir.num > 0) list.push({ matchId: m.matchId, homeName: m.homeName, visitName: m.visitName, leagueName: m.leagueName, num: m.num, date: m.date, direction: maxDir.type, expertCount: maxDir.num, matchStatus: m.matchStatus });
+            if (maxDir && maxDir.num > 0) list.push({ matchId: m.matchId, homeName: m.homeName, visitName: m.visitName, leagueName: m.leagueName, num: m.num, date: m.date, direction: maxDir.type, expertCount: maxDir.num, matchStatus: m.matchStatus, isHit: maxDir.result === 1 });
           }
         }
 
