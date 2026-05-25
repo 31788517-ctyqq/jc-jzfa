@@ -38,7 +38,9 @@ export function loadPlanList() {
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载方案中...</div>';
 
-  api('plan-list', { date: state.planDate }).then(function (data) {
+  // 初始加载时不传日期，让服务器自动选择最新数据日
+  var params = state.planDateOffset === 0 ? {} : { date: state.planDate };
+  api('plan-list', params).then(function (data) {
     var plans = data.plans || [];
     if (plans.length === 0) {
       var now = new Date();
@@ -46,7 +48,8 @@ export function loadPlanList() {
       if (state.planDate === todayStr) {
         var d2 = new Date();
         d2.setDate(d2.getDate() + state.planDateOffset - 1);
-        if (d2.toISOString().slice(0, 10) >= MIN_PLAN_DATE) {
+        var prevDateStr = d2.getFullYear() + '-' + String(d2.getMonth() + 1).padStart(2, '0') + '-' + String(d2.getDate()).padStart(2, '0');
+        if (prevDateStr >= MIN_PLAN_DATE) {
           state.setPlanDateOffset(state.planDateOffset - 1);
           updatePlanDateBar();
           loadPlanList();

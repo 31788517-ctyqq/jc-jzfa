@@ -1208,7 +1208,8 @@ function loadPlanList() {
   var el = document.getElementById('planList');
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载方案中...</div>';
 
-  api('plan-list', { date: planDate }).then(function(data) {
+  var params = planDateOffset === 0 ? {} : { date: planDate };
+  api('plan-list', params).then(function(data) {
     var plans = data.plans || [];
     if (plans.length === 0) {
       // 当天无方案时自动回退到最近有方案的日期
@@ -1217,7 +1218,8 @@ function loadPlanList() {
       if (planDate === todayStr) {
         var d2 = new Date();
         d2.setDate(d2.getDate() + planDateOffset - 1);
-        if (d2.toISOString().slice(0,10) >= MIN_PLAN_DATE) {
+        var prevDateStr = d2.getFullYear() + '-' + String(d2.getMonth()+1).padStart(2,'0') + '-' + String(d2.getDate()).padStart(2,'0');
+        if (prevDateStr >= MIN_PLAN_DATE) {
           planDateOffset--;
           updatePlanDateBar();
           loadPlanList();
