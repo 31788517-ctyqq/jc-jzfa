@@ -1853,8 +1853,17 @@ body {
 <div class="page" id="page-plan">
   <div class="date-bar" id="planDateBar">
     <span class="date-arrow" onclick="shiftPlanDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
-    <span class="date-current" id="planDateCurrent" onclick="goPlanToday()"></span>
+    <span class="date-current" id="planDateCurrent" onclick="togglePlanDatePicker()"></span>
     <span class="date-arrow" onclick="shiftPlanDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+  </div>
+  <div class="date-picker" id="planDatePicker" style="display:none">
+    <div class="date-picker-header">
+      <button class="date-picker-nav" id="planDatePrev">&lt;</button>
+      <span class="date-picker-month" id="planDateMonth">5月 2026</span>
+      <button class="date-picker-nav" id="planDateNext">&gt;</button>
+    </div>
+    <div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+    <div class="date-picker-grid" id="planDateGrid"></div>
   </div>
   <div id="planList"></div>
 </div>
@@ -1870,8 +1879,17 @@ body {
   <div class="filter-row" id="subFilterBar" style="display:none; padding-top: 0;"></div>
   <div class="date-bar" id="rankDateBar">
     <span class="date-arrow" onclick="shiftRankDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
-    <span class="date-current" id="rankDateCurrent" onclick="goRankToday()"></span>
+    <span class="date-current" id="rankDateCurrent" onclick="toggleRankDatePicker()"></span>
     <span class="date-arrow" onclick="shiftRankDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+  </div>
+  <div class="date-picker" id="rankDatePicker" style="display:none">
+    <div class="date-picker-header">
+      <button class="date-picker-nav" id="rankDatePrev">&lt;</button>
+      <span class="date-picker-month" id="rankDateMonth">5月 2026</span>
+      <button class="date-picker-nav" id="rankDateNext">&gt;</button>
+    </div>
+    <div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+    <div class="date-picker-grid" id="rankDateGrid"></div>
   </div>
   <div class="rank-list" id="rankList"></div>
 </div>
