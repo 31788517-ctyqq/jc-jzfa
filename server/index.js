@@ -164,35 +164,73 @@ app.post('/api', async (req, res) => {
   try {
     switch (action) {
       case 'week-dates': {
-        // 返回可用的竞彩周日期列表（用于前端日期选择器）
-        const matches = await safeApiCall(() => ensureData(), async () => dbMatchList());
-        const seen = {}, list = [];
-        matches.forEach(m => {
-          const md = (m.date || '').slice(5) || '';
-          const num = (m.num || '').slice(0, 2) || '';
-          const key = md + '_' + num;
-          if (!seen[key]) {
-            seen[key] = true;
-            list.push({ weekNum: num, matchDate: md });
-          }
-        });
-        list.sort((a, b) => a.matchDate > b.matchDate ? 1 : -1);
-        return res.json({ code: 1, data: list });
+        // 返回可用的竞彩周日期列表（从data.json读取全量历史日期）
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const mMap = dataFile.m || {};
+          const seen = {}, list = [];
+          Object.keys(mMap).forEach(k => {
+            const m = mMap[k];
+            if (!m || !m.date) return;
+            const md = m.date.slice(5) || '';
+            const num = (m.num || '').slice(0, 2) || '';
+            if (!md || !num || num.length < 2) return;
+            const key = md + '_' + num;
+            if (!seen[key]) {
+              seen[key] = true;
+              list.push({ weekNum: num, matchDate: md });
+            }
+          });
+          list.sort((a, b) => a.matchDate > b.matchDate ? 1 : -1);
+          return res.json({ code: 1, data: list });
+        } catch (e) {
+          return res.json({ code: 1, data: [] });
+        }
       }
 
       case 'match-list': {
-        const matches = await safeApiCall(
-          () => ensureData(),
-          async () => dbMatchList()
-        );
-        // 同时存入数据库
+        // 从 data.json 读取比赛列表（支持历史日期切换）
         try {
-          const fetchDate = matches.length > 0 ? matches[0].date : new Date().toISOString().slice(0, 10);
-          database.batchUpsertMatches(matches, fetchDate);
-        } catch (dbErr) {
-          logger.error('存储比赛数据失败: ' + dbErr.message);
+          const fs = require('fs');
+          const path = require('path');
+          const dateStr = data.matchDate
+            ? (new Date().getFullYear() + '-' + data.matchDate)
+            : (data.date || new Date().toISOString().slice(0, 10));
+
+          const dataFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
+          const mMap = dataFile.m || {};
+
+          const list = [];
+          Object.keys(mMap).forEach(k => {
+            const m = mMap[k];
+            if (!m) return;
+            const md = (m.date || '').slice(0, 10);
+            if (md !== dateStr) return;
+            list.push(m);
+          });
+
+          // 按比赛编号排序
+          list.sort((a, b) => (a.num || '').localeCompare(b.num || ''));
+
+          // 如果没有找到数据，尝试实时抓取（仅限今天）
+          if (list.length === 0) {
+            const today = new Date().toISOString().slice(0, 10);
+            if (dateStr === today) {
+              const liveMatches = await safeApiCall(
+                () => ensureData(),
+                async () => []
+              );
+              const filtered = liveMatches.filter(m => (m.date || '').slice(0, 10) === today);
+              return res.json({ code: 1, data: filtered });
+            }
+          }
+
+          return res.json({ code: 1, data: list });
+        } catch (e) {
+          return res.json({ code: 1, data: [] });
         }
-        return res.json({ code: 1, data: matches });
       }
 
       case 'recommend-trend': {
