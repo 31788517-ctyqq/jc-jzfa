@@ -63,6 +63,16 @@ export function loadRanking(cat, dir) {
       else if (r === 3) { badgeClass = 'bronze'; badgeContent = '🥉'; }
 
       const pct = Math.round(item.expertCount / topCount * 100);
+      // AI标签隐藏逻辑：比赛日期早于今天则隐藏（同match-detail页AI预测核心看点卡片规则）
+      var today = new Date(); today.setHours(0,0,0,0);
+      var matchDate = new Date((item.date || '').slice(0,10)); if (isNaN(matchDate.getTime())) matchDate = today;
+      var showAI = matchDate >= today;
+      var aiTagHtml = '';
+      if (showAI) {
+        var h = (item.homeName || '').replace(/'/g, '&apos;');
+        var v = (item.visitName || '').replace(/'/g, '&apos;');
+        aiTagHtml = '<div class="rank-ai-tag" onclick="event.stopPropagation();showAIPrediction(\'' + item.matchId + '\',\'' + h + '\',\'' + v + '\')">🤖 AI解析</div>';
+      }
       return `
         <div class="rank-card" onclick="goDetail('${item.matchId}')">
           <div class="rank-badge ${badgeClass}">${badgeContent}</div>
@@ -74,7 +84,7 @@ export function loadRanking(cat, dir) {
               <div class="rank-progress-fill" data-width="${pct}"></div>
             </div>
           </div>
-          <div class="rank-ai-tag" onclick="event.stopPropagation();showAIPrediction('${item.matchId}','${item.homeName.replace(/'/g, "\\'")}','${item.visitName.replace(/'/g, "\\'")}')">🤖 AI解析</div>
+          ${aiTagHtml}
           ${item.isHit ? '<div class="rank-hit-stamp">中</div>' : ''}
         </div>
       `;
