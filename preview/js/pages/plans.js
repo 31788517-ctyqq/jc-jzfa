@@ -17,6 +17,7 @@ export function updatePlanDateBar() {
 }
 
 export function shiftPlanDate(delta) {
+  state.setPlanDateExplicit(false); // 恢复 offset 驱动模式
   var newOffset = state.planDateOffset + delta;
   var d = new Date();
   d.setDate(d.getDate() + newOffset);
@@ -28,6 +29,7 @@ export function shiftPlanDate(delta) {
 }
 
 export function goPlanToday() {
+  state.setPlanDateExplicit(false);
   state.setPlanDateOffset(0);
   updatePlanDateBar();
   loadPlanList();
@@ -38,11 +40,18 @@ export function loadPlanList() {
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载方案中...</div>';
 
-  // 初始加载时不传日期，让服务器自动选择最新数据日
-  var params = state.planDateOffset === 0 ? {} : { date: state.planDate };
+  // 日历直接选日时强制发送日期；offset=0且非显式选日则不传日期让服务器选最新
+  var params;
+  if (state.planDateExplicit) {
+    params = { date: state.planDate };
+  } else if (state.planDateOffset === 0) {
+    params = {};
+  } else {
+    params = { date: state.planDate };
+  }
   api('plan-list', params).then(function (data) {
-    // 用服务器返回的实际日期更新显示（直接改DOM避免updatePlanDateBar重置）
-    if (data.date && data.date !== state.planDate) {
+    // 用服务器返回的实际日期更新显示（日历显式选日时不过度覆盖）
+    if (data.date && data.date !== state.planDate && !state.planDateExplicit) {
       state.setPlanDate(data.date);
       var planEl = document.getElementById('planDateCurrent');
       if (planEl) {
