@@ -63,6 +63,7 @@ function renderDatePicker() {
     pickerMonth = d.getMonth() + 1;
     if (current) pickerMonth = parseInt(current.slice(0, 2), 10);
   }
+  window.datePickerYear = pickerYear;
 
   var CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二'];
   monthEl.textContent = CN[pickerMonth - 1] + '月 ' + pickerYear;
@@ -90,8 +91,8 @@ function renderDatePicker() {
   }
   grid.innerHTML = html;
 
-  document.getElementById('datePickerPrev').onclick = function () { pickerMonth--; if (pickerMonth < 1) { pickerYear--; pickerMonth = 12; } renderDatePicker(); };
-  document.getElementById('datePickerNext').onclick = function () { pickerMonth++; if (pickerMonth > 12) { pickerYear++; pickerMonth = 1; } renderDatePicker(); };
+  document.getElementById('datePickerPrev').onclick = function () { pickerMonth--; if (pickerMonth < 1) { pickerYear--; pickerMonth = 12; } window.datePickerYear = pickerYear; renderDatePicker(); };
+  document.getElementById('datePickerNext').onclick = function () { pickerMonth++; if (pickerMonth > 12) { pickerYear++; pickerMonth = 1; } window.datePickerYear = pickerYear; renderDatePicker(); };
 }
 
 export function selectDateFromPicker(matchDate) {
@@ -174,7 +175,8 @@ export function togglePlanDatePicker() {
   el.style.display = 'block';
 }
 export function selectPlanDateFromPicker(md) {
-  var year = state.planDate ? state.planDate.slice(0, 4) : new Date().getFullYear();
+  // 使用日历控件当前年份，而非 planDate 的年份（修复跨年导航bug）
+  var year = window.planDateYear || new Date().getFullYear();
   state.setPlanDate(year + '-' + md);
   // 直接更新DOM，不调updatePlanDateBar避免重置
   var el = document.getElementById('planDateCurrent');
@@ -200,7 +202,8 @@ export function toggleRankDatePicker() {
   el.style.display = 'block';
 }
 export function selectRankDateFromPicker(md) {
-  var year = state.rankDate ? state.rankDate.slice(0, 4) : new Date().getFullYear();
+  // 使用日历控件当前年份，而非 rankDate 的年份（修复跨年导航bug）
+  var year = window.rankDateYear || new Date().getFullYear();
   state.setRankDate(year + '-' + md);
   var el = document.getElementById('rankDateCurrent');
   if (el) {
