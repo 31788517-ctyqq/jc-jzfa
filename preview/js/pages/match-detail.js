@@ -198,10 +198,12 @@ export function closeAI() {
   document.body.style.overflow = '';
 }
 
-export function showAIPrediction(matchId) {
-  var teams = document.querySelectorAll('#detailContent .team-name');
-  var homeTeam = teams[0] ? teams[0].textContent : '主队';
-  var awayTeam = teams[1] ? teams[1].textContent : '客队';
+export function showAIPrediction(matchId, homeTeam, awayTeam) {
+  if (!homeTeam || !awayTeam) {
+    var teams = document.querySelectorAll('#detailContent .team-name');
+    homeTeam = (teams[0] ? teams[0].textContent : null) || homeTeam || '主队';
+    awayTeam = (teams[1] ? teams[1].textContent : null) || awayTeam || '客队';
+  }
 
   var html = '<div class="ai-modal-header"><span class="ai-modal-title">AI深度解析</span><button class="ai-modal-close" onclick="closeAI()">&times;</button></div>';
   html += '<div class="ai-content"><div style="text-align:center;padding:60px 20px;color:var(--cyan);"><div style="font-size:40px;margin-bottom:16px;">⏳</div><div style="font-size:16px;font-weight:600;">正在生成分析...</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">正在搜索比赛信息并生成五维分析</div></div></div>';
