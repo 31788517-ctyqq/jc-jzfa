@@ -166,6 +166,9 @@ export function loadPlanList() {
 
       function resolveMatchOddsHtml(match, planIdx) {
         var dir = match.direction || '';
+        // 单关双选方向展开：胜平→胜、平，平负→平、负
+        if (dir === '胜平') dir = '胜、平';
+        else if (dir === '平负') dir = '平、负';
         var oddsObj = match.odds || {};
         var parts = dir ? dir.split(/[、，,]/) : [];
         var subResults = match.subResults || [];

@@ -1131,6 +1131,8 @@ app.post('/api', async (req, res) => {
               });
               return vals;
             }
+            if (direction === '胜平' && oddsObj.spf) { vals.push(oddsObj.spf.home); vals.push(oddsObj.spf.draw); return vals; }
+            if (direction === '平负' && oddsObj.spf) { vals.push(oddsObj.spf.draw); vals.push(oddsObj.spf.away); return vals; }
             if (direction === '让负' && oddsObj.rqspf) vals.push(oddsObj.rqspf.away);
             else if (direction === '让胜' && oddsObj.rqspf) vals.push(oddsObj.rqspf.home);
             return vals;
@@ -1360,6 +1362,34 @@ app.post('/api', async (req, res) => {
             } catch (e6) {}
           }
 
+          // ========== 方案七：单关双选（胜平/平负） ==========
+          const singleMatches = mList.filter(m => {
+            const md = matchDataMap[m.matchId];
+            return md && md.odds && md.odds.isSingleGame === true;
+          });
+          if (singleMatches.length > 0) {
+            let bestM7 = null, bestM7Dir = '', bestM7Count = 0;
+            for (const sm of singleMatches) {
+              const recs = matchDataMap[sm.matchId].recs;
+              for (const r of recs) {
+                if ((r.type === '胜平' || r.type === '平负') && r.num > bestM7Count) {
+                  bestM7Count = r.num; bestM7 = sm; bestM7Dir = r.type;
+                }
+              }
+            }
+            if (bestM7 && bestM7Dir) {
+              const m7Obj = buildMatchObj(bestM7, bestM7Dir);
+              const eo = calcEffectiveOdds(bestM7Dir, m7Obj);
+              plans.push({
+                planId: 'plan_' + dateStr + '_7', planName: '方案七',
+                matches: [m7Obj], amount: 1000, playType: '单关',
+                matchCount: 1, passType: '单关',
+                betCount: 250, ticketCount: 10, multiplier: 25,
+                maxPrize: eo ? Math.round(1000 * eo) : Math.round(1000 * 2.0)
+              });
+            }
+          }
+
           // 比赛低于5场时最多只保留前2个方案
           if (matchCount < 5 && plans.length > 2) {
             plans.splice(2);
@@ -1413,6 +1443,8 @@ app.post('/api', async (req, res) => {
             if (direction === '让平') return oddsObj.rqspf ? oddsObj.rqspf.draw : null;
             if (direction === '让负') return oddsObj.rqspf ? oddsObj.rqspf.away : null;
             if (direction === '让胜') return oddsObj.rqspf ? oddsObj.rqspf.home : null;
+            if (direction === '胜平') return oddsObj.spf ? oddsObj.spf.home : null;
+            if (direction === '平负') return oddsObj.spf ? oddsObj.spf.away : null;
             return null;
           }
 
@@ -1438,6 +1470,8 @@ app.post('/api', async (req, res) => {
               }
               return vals;
             }
+            if (direction === '胜平' && oddsObj.spf) return [oddsObj.spf.home, oddsObj.spf.draw];
+            if (direction === '平负' && oddsObj.spf) return [oddsObj.spf.draw, oddsObj.spf.away];
             const sv = extractOddsVal(oddsObj, direction);
             return sv !== null ? [sv] : [];
           }
@@ -1463,7 +1497,7 @@ app.post('/api', async (req, res) => {
               let oddsObj = null;
               if (histOdds && histOdds[num]) {
                 const od = histOdds[num];
-                oddsObj = { spf: od.spf || null, rqspf: od.rqspf || null, totalGoals: od.totalGoals || null };
+                oddsObj = { spf: od.spf || null, rqspf: od.rqspf || null, totalGoals: od.totalGoals || null, isSingleGame: od.isSingleGame || false };
               }
               matchDataMap[mm.matchId] = {
                 match: mm,
@@ -1612,6 +1646,25 @@ app.post('/api', async (req, res) => {
                 dayPlans.push({ name: 'plan_6', planName: '方案六', matches: top5SelTop.map(t => buildMatch(t.match, t.direction)) });
               }
             }
+            // ========== 方案七：单关双选（胜平/平负） ==========
+            const singleMatches7 = mList.filter(m => {
+              const md = matchDataMap[m.matchId];
+              return md && md.odds && md.odds.isSingleGame === true;
+            });
+            if (singleMatches7.length > 0) {
+              let bestM7 = null, bestM7Dir = '', bestM7Count = 0;
+              for (const sm of singleMatches7) {
+                const recs7 = matchDataMap[sm.matchId] ? matchDataMap[sm.matchId].recs : [];
+                for (const r of recs7) {
+                  if ((r.type === '胜平' || r.type === '平负') && r.num > bestM7Count) {
+                    bestM7Count = r.num; bestM7 = sm; bestM7Dir = r.type;
+                  }
+                }
+              }
+              if (bestM7 && bestM7Dir) {
+                dayPlans.push({ name: 'plan_7', planName: '方案七', matches: [buildMatch(bestM7, bestM7Dir)] });
+              }
+            }
             if (dayMatchCount < 5 && dayPlans.length > 2) {
               dayPlans.splice(2);
             }
@@ -1681,7 +1734,13 @@ app.post('/api', async (req, res) => {
                     if (N === 1) effectiveOdds.push(subOdds[0]);
                     else effectiveOdds.push(subOdds.reduce((a, b) => a + b, 0) / (2 * N));
                   }
-                  prize = hasAllOdds && effectiveOdds.length >= 2 ? Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]) : Math.round(AMOUNT * 3);
+                  if (hasAllOdds && effectiveOdds.length >= 2) {
+                    prize = Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]);
+                  } else if (hasAllOdds && effectiveOdds.length === 1) {
+                    prize = Math.round(AMOUNT * effectiveOdds[0]);
+                  } else {
+                    prize = Math.round(AMOUNT * 3);
+                  }
                 }
                 dayIncome = prize - AMOUNT;
                 status = 'won'; totalWon++;
