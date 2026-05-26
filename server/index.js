@@ -8,6 +8,7 @@ const path = require('path');
 const database = require('./database');
 const { get } = require('./http-utils');
 const logger = require('./logger');
+const deepseek = require('./deepseek');  // 预加载避免 ai-predict 同步异常阻断响应
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -976,25 +977,22 @@ app.post('/api', async (req, res) => {
             }
           } catch (e) {}
 
-          // 3) 后台异步生成（DeepSeek API），先返回 pending
+          // 3) 先返回 pending，后台异步生成（DeepSeek API）
           res.json({ code: 0, msg: '分析未就绪，正在后台生成中，请稍后刷新', pending: true });
 
-          try {
-            const ds = require('./deepseek');
-            ds.generateAnalysis(matchInfo).then(function(r) {
-              if (r && r.content) {
-                // 写入文件缓存
-                try {
-                  var current = {};
-                  if (fs.existsSync(cacheFile)) {
-                    try { current = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
-                  }
-                  current[mid] = { content: r.content, confidence: (r.content && r.content.confidence) || 0, updatedAt: new Date().toISOString() };
-                  fs.writeFileSync(cacheFile, JSON.stringify(current));
-                } catch (e) { console.error('[ai] cache write error:', e.message); }
-              }
-            }).catch(function(e) { console.error('[ai] generate error:', e.message); });
-          } catch (e) { console.error('[ai] deepseek module error:', e.message); }
+          deepseek.generateAnalysis(matchInfo).then(function(r) {
+            if (r && r.content) {
+              // 写入文件缓存
+              try {
+                var current = {};
+                if (fs.existsSync(cacheFile)) {
+                  try { current = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
+                }
+                current[mid] = { content: r.content, confidence: (r.content && r.content.confidence) || 0, updatedAt: new Date().toISOString() };
+                fs.writeFileSync(cacheFile, JSON.stringify(current));
+              } catch (e) { console.error('[ai] cache write error:', e.message); }
+            }
+          }).catch(function(e) { console.error('[ai] generate error:', e.message); });
           return;
         } catch (e) { return res.json({ code: 0, msg: '查询失败: ' + e.message }); }
       }
