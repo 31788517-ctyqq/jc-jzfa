@@ -1793,7 +1793,16 @@ body {
   background: rgba(14,24,34,0.6); border: 1px solid rgba(255,255,255,0.06);
   border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;
 }
-.gs-modal-sec-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+.gs-modal-sec-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.gs-title-icon {
+  display: inline-block; width: 22px; height: 22px; flex-shrink: 0;
+  background: url('/assets/gongshoudao-icons.png') no-repeat;
+  background-size: 44px 44px;
+}
+.gs-ico-power { background-position: 0 0; }
+.gs-ico-ball  { background-position: -22px 0; }
+.gs-ico-goal  { background-position: 0 -22px; }
+.gs-ico-score { background-position: -22px -22px; }
 
 /* 行 */
 .gs-row { display: flex; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.025); }
