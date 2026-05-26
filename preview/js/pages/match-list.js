@@ -47,7 +47,6 @@ export function loadMatchList() {
           <div class="match-header">
             <span class="match-league">${m.leagueName}</span>
             ${m.isSingleGame ? '<span class="match-single-badge">单关</span>' : ''}
-            <span class="match-gs-tag" onclick="event.stopPropagation();showGongshoudao('${m.matchId}','${(m.leagueName || '').replace(/'/g, "\\'")}','${(m.homeName || '').replace(/'/g, "\\'")}','${(m.visitName || '').replace(/'/g, "\\'")}','${m.num || ''}','${(m.startTime || '').replace(/'/g, "\\'")}')">⚔️ 攻守</span>
             <span class="match-num">${roundText}</span>
           </div>
           <div class="match-teams">
@@ -60,6 +59,7 @@ export function loadMatchList() {
             <span class="match-time">${startDate ? startDate.replace('-', '/') + ' ' : ''}${timeStr}</span>
           </div>
           <div class="match-status" style="color:${m.matchStatus === 1 ? 'var(--cyan)' : m.matchStatus === 2 ? 'var(--green)' : m.matchStatus === 3 ? 'var(--red)' : 'var(--text2)'}">${statusText} ${extraInfo}</div>
+          <div class="match-gs-wrap" onclick="event.stopPropagation();showGongshoudao('${m.matchId}','${(m.leagueName || '').replace(/'/g, "\\'")}','${(m.homeName || '').replace(/'/g, "\\'")}','${(m.visitName || '').replace(/'/g, "\\'")}','${m.num || ''}','${(m.startTime || '').replace(/'/g, "\\'")}')"><span class="match-gs-tag">⚔️ 功守道量化</span></div>
         </div>
       `;
     }).join('');
