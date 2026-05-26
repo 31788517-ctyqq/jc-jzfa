@@ -261,8 +261,8 @@ export function renderAIContent(content, homeTeam, awayTeam) {
   var highlight = c['核心看点'] || {};
   var baseTable = baseStr['攻防全景数据'];
 
-  function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-  function clip(s, max) { s = s || ''; if (s.length <= max) return s; var idx = s.lastIndexOf('。', max); if (idx > max * 0.5) return s.substring(0, idx + 1); idx = s.lastIndexOf('，', max); if (idx > max * 0.5) return s.substring(0, idx) + '...'; return s.substring(0, max - 3) + '...'; }
+  function esc(s) { var str = (s == null ? '' : String(s)); return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function clip(s, max) { var str = (s == null ? '' : String(s)); if (str.length <= max) return str; var idx = str.lastIndexOf('。', max); if (idx > max * 0.5) return str.substring(0, idx + 1); idx = str.lastIndexOf('，', max); if (idx > max * 0.5) return str.substring(0, idx) + '...'; return str.substring(0, max - 3) + '...'; }
   function has(s) { return s && (typeof s === 'string' ? s.trim().length > 0 : true); }
 
   var html = '';
