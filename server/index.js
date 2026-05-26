@@ -294,6 +294,18 @@ app.post('/api', async (req, res) => {
           // 读取 500.com 赔率数据获取单关标识（使用缓存）
           const oddsMap = getOddsHistory(dateStr) || {};
 
+          // 读取功守道缓存，判断哪些比赛有统计数据
+          let gsCacheMap = {};
+          try {
+            const gsCachePath = path.join(__dirname, 'gongshoudao', 'cache.json');
+            if (fs.existsSync(gsCachePath)) {
+              const gsCache = JSON.parse(fs.readFileSync(gsCachePath, 'utf8'));
+              gsCacheMap = gsCache['_global'] || {};
+            }
+          } catch (e) {
+            // 功守道缓存不可用，所有比赛都不显示标签
+          }
+
           const list = [];
           Object.keys(mMap).forEach(k => {
             const m = mMap[k];
@@ -303,7 +315,9 @@ app.post('/api', async (req, res) => {
             // 补充单关标识
             const fiveOdds = oddsMap[m.num || ''];
             const isSingleGame = fiveOdds && fiveOdds.isSingleGame === true;
-            list.push(Object.assign({}, m, { isSingleGame: isSingleGame }));
+            // 检查功守道数据是否可用
+            const hasGS = !!(gsCacheMap[k] && gsCacheMap[k].attackPattern);
+            list.push(Object.assign({}, m, { isSingleGame: isSingleGame, hasGongshoudao: hasGS }));
           });
 
           // 按比赛编号排序
@@ -1027,57 +1041,65 @@ app.post('/api', async (req, res) => {
         const mid = data.matchId;
         if (!mid) return res.json({ code: 0, msg: '缺少 matchId' });
         try {
+          // 优先从功守道引擎缓存读取
+          let gsResult = null;
+          try {
+            const gsEngine = require('./gongshoudao/index');
+            gsResult = await gsEngine.getMatchResult(mid);
+          } catch (gsErr) {
+            logger.warn('[gongshoudao] 引擎异常: ' + gsErr.message);
+          }
+
+          if (gsResult) {
+            return res.json({ code: 1, data: gsResult });
+          }
+
+          // 降级：使用 AI 缓存 + data.json 返回基础数据
           const dataFile = getDataJson();
           const mMap = dataFile.m || {};
           const m = mMap['m_' + mid] || mMap[mid];
           if (!m) return res.json({ code: 0, msg: '比赛不存在' });
 
-          // 从 data.json / odds 获取基本赔率数据
           const num = m.num || '';
           const histOdds = getOddsHistory(latestDataDate()) || {};
           const od = histOdds[num] || {};
 
-          // 读取 AI 缓存，看是否有分析数据
-          var aiCache = {};
-          const cacheFile = path.join(__dirname, 'ai_cache.json');
-          if (fs.existsSync(cacheFile)) {
-            try { aiCache = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
-          }
-          const ai = aiCache[mid] || aiCache['m_' + mid] || {};
-
-          // 构建攻守道量化数据
           const gs = {
             matchId: mid,
-            home: {
-              winRate: ai.content && ai.content['基础面'] ? null : '--',
-              winRateLabel: '近6场',
-              avgGoal: '--',
-              avgConcede: '--',
-              overRate: '--',
-              handicapWinRate: '--',
-              recentForm: ['W','D','W','L','W','W']
-            },
-            away: {
-              winRateLabel: '近6场',
-              avgGoal: '--',
-              avgConcede: '--',
-              overRate: '--',
-              handicapWinRate: '--',
-              recentForm: ['L','W','D','L','W','L']
-            },
-            head2head: {
-              homeWin: '--',
-              awayWin: '--',
-              homeLabel: '近3次',
-              awayLabel: '近3次'
-            },
-            odds: {
-              spf: od.spf || null,
-              rqspf: od.rqspf || null
-            },
-            suggestion: '攻守道量化数据基于球队历史表现统计，为您提供客观对比视角。具体数据可结合AI深度解析获取更全面的分析。'
+            homeName: m.homeName || '',
+            visitName: m.visitName || '',
+            leagueName: m.leagueName || '',
+            num: m.num || '',
+            attackAdvantage: '+0%',
+            attackAdvantageValue: 50,
+            defenseAdvantage: '+0%',
+            defenseAdvantageValue: 50,
+            attackPattern: '攻守平衡',
+            attackWeightHome: '50%',
+            attackWeightAway: '50%',
+            defenseWeightHome: '50%',
+            defenseWeightAway: '50%',
+            totalAdvantage: '+0%',
+            totalAdvantageValue: 50,
+            homeWeight: '50%',
+            awayWeight: '50%',
+            goalDiffHome: '--',
+            goalDiffAway: '--',
+            totalGoalsExpect: '--',
+            totalGoalsValue: 50,
+            homeWinExpect: '+0.00',
+            homeWinValue: 50,
+            totalAdvantage2: '+0.00',
+            totalAdvantage2Value: 50,
+            goalCount: '±0',
+            goalCountValue: 50,
+            verifyResult: '暂无数据',
+            verifyValue: 50,
+            resonance: { verdict: '数据不足，无法完成量化分析，请使用"AI深度解析"获取更全面的比赛分析' },
+            scores: [],
+            suggestion: '统计数据暂未就绪。请使用AI深度解析功能获取实时分析。'
           };
-          return res.json({ code: 1, data: gs });
+          return res.json({ code: 1, data: gs, fallback: true });
         } catch (e) { return res.json({ code: 0, msg: '查询失败: ' + e.message }); }
       }
       case 'ai-batch-generate': {

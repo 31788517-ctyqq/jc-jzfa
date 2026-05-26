@@ -51,9 +51,11 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
     html += gsRow('进攻优势', renderBar(gs.attackAdvantage || '+20%', gs.attackAdvantageValue || 60));
     html += gsRow('防守优势', renderBar(gs.defenseAdvantage || '-10%', gs.defenseAdvantageValue || 40, true));
     html += gsRow('攻守格局', '<span class="gs-val-text">' + (gs.attackPattern || '对攻为主') + '</span>');
-    html += gsRow('进攻权重', '<span class="gs-vs">' + (gs.attackWeightHome || '30%') + ' <i>vs</i> ' + (gs.attackWeightAway || '50%') + '</span>');
-    html += gsRow('防守权重', '<span class="gs-vs">' + (gs.defenseWeightHome || '40%') + ' <i>vs</i> ' + (gs.defenseWeightAway || '60%') + '</span>');
+    html += gsRow('维度权重(攻)', '<span class="gs-vs">' + (gs.attackWeightHome || '50%') + ' <i>vs</i> ' + (gs.attackWeightAway || '50%') + '</span>');
+    html += gsRow('维度权重(守)', '<span class="gs-vs">' + (gs.defenseWeightHome || '50%') + ' <i>vs</i> ' + (gs.defenseWeightAway || '50%') + '</span>');
     html += gsRow('综合攻守优势', renderBar(gs.totalAdvantage || '+50%', gs.totalAdvantageValue || 75));
+    html += gsRow('实力阶梯', '<span class="gs-val-text">' + (gs.ladderLabel || '⚖️ 双方实力接近') + '</span>');
+    html += gsRow('胜平负交叉', '<span class="gs-vs">胜' + (gs.crossWin || '--') + ' 平' + (gs.crossDraw || '--') + ' 负' + (gs.crossLose || '--') + ' <i>' + (gs.crossRq > 0 ? '客让' + gs.crossRq : gs.crossRq < 0 ? '主让' + Math.abs(gs.crossRq) : '平手') + '</i></span>');
 
     html += '</div>';
 
@@ -64,6 +66,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
     html += gsRow('主客权重', '<span class="gs-vs">' + (gs.homeWeight || '30%') + ' <i>vs</i> ' + (gs.awayWeight || '50%') + '</span>');
     html += gsRow('得失球', '<span class="gs-vs">' + (gs.goalDiffHome || '30%') + ' <i>vs</i> ' + (gs.goalDiffAway || '50%') + '</span>');
     html += gsRow('总进球期望', renderBar(gs.totalGoalsExpect || '5.1', gs.totalGoalsValue || 70, false));
+    html += gsRow('弹窗区间', '<span class="gs-val-text">' + (gs.goalRange && gs.goalRange.range ? gs.goalRange.range : '2-4球') + '</span>');
 
     html += '</div>';
 
@@ -75,6 +78,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
     html += gsRow('综合攻守优势', renderBar(gs.totalAdvantage2 || '+50%', gs.totalAdvantage2Value || 60));
     html += gsRow('输赢球个数', renderBar(gs.goalCount || '≥2', gs.goalCountValue || 50, false));
     html += gsRow('主客赛果验证', renderBar(gs.verifyResult || '2', gs.verifyValue || 40, false));
+    html += gsRow('7场阈值', '<span class="gs-val-text">' + (gs.sevenMatch ? (gs.sevenMatch.dimension1.label || '--') : '--') + '</span>');
 
     html += '</div>';
 
