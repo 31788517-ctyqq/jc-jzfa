@@ -74,6 +74,7 @@ export function loadRanking(cat, dir) {
               <div class="rank-progress-fill" data-width="${pct}"></div>
             </div>
           </div>
+          <div class="rank-ai-tag" onclick="event.stopPropagation();showAIPrediction('${item.matchId}')">🤖 AI解析</div>
           ${item.isHit ? '<div class="rank-hit-stamp">中</div>' : ''}
         </div>
       `;

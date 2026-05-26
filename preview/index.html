@@ -390,6 +390,27 @@ body {
   gap: 14px;
   backdrop-filter: blur(10px);
   align-items: center;
+  position: relative;
+}
+.rank-ai-tag {
+  position: absolute;
+  top: 8px; right: 8px;
+  z-index: 2;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(24,224,224,0.18), rgba(99,102,241,0.18));
+  border: 1px solid rgba(24,224,224,0.35);
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+.rank-ai-tag:hover {
+  background: linear-gradient(135deg, rgba(24,224,224,0.3), rgba(99,102,241,0.3));
+  border-color: rgba(24,224,224,0.6);
+  box-shadow: 0 0 10px rgba(24,224,224,0.2);
 }
 .rank-hit-stamp {
   width: 32px;
