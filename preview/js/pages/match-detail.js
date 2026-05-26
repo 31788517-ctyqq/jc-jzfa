@@ -239,11 +239,12 @@ export function showAIPrediction(matchId) {
         if (inner2) inner2.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);">分析未就绪，请稍后重试</div>';
       }
     }
-  }).catch(function () {
+  }).catch(function (e) {
     var ac3 = document.getElementById('aiModal');
     if (ac3) {
       var inner3 = ac3.querySelector('.ai-content');
-      if (inner3) inner3.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);">请求失败，请检查网络</div>';
+      var errMsg = e && e.message ? e.message : '网络连接失败';
+      if (inner3) inner3.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="font-size:16px;font-weight:600;">请求失败</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">' + errMsg + '</div><button style="margin-top:16px;padding:8px 20px;border-radius:20px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:13px;" onclick="showAIPrediction(\'' + matchId + '\')">重试</button></div>';
     }
   });
 }
