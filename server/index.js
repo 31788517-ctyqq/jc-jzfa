@@ -1158,7 +1158,11 @@ app.post('/api', async (req, res) => {
           function buildMatchObj(m, direction) {
             const recs = findRecommends(m.matchId);
             let expertCount = 0, isMatchWon = null, isMatchLose = null;
-            const subDirs = direction.split(/[、,]/);
+            // 单关双选：展开胜平/平负为子方向，以便前端分开展示赔率和命中颜色
+            let effectiveDir = direction;
+            if (direction === '胜平') effectiveDir = '胜、平';
+            else if (direction === '平负') effectiveDir = '平、负';
+            const subDirs = effectiveDir.split(/[、,]/);
             const matchedRecsSet = new Set();
             const subResults = [];
 

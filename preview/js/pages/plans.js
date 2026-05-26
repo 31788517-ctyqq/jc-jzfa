@@ -166,9 +166,11 @@ export function loadPlanList() {
 
       function resolveMatchOddsHtml(match, planIdx) {
         var dir = match.direction || '';
+        var origDir = dir;
         // 单关双选方向展开：胜平→胜、平，平负→平、负
         if (dir === '胜平') dir = '胜、平';
         else if (dir === '平负') dir = '平、负';
+        var isPlan7 = (origDir === '胜平' || origDir === '平负');
         var oddsObj = match.odds || {};
         var parts = dir ? dir.split(/[、，,]/) : [];
         var subResults = match.subResults || [];
@@ -218,10 +220,12 @@ export function loadPlanList() {
             displayLabel = displayLabel.replace('总进球-', '');
             if (displayLabel.indexOf('球') < 0) displayLabel += '球';
           }
-          if (val) resolved.push('<span style="color:' + subColor + '">' + displayLabel + '(' + val + ')</span>');
-          else resolved.push('<span style="color:' + subColor + '">' + displayLabel + '(-)</span>');
+          var openP = isPlan7 ? '（' : '(';
+          var closeP = isPlan7 ? '）' : ')';
+          if (val) resolved.push('<span style="color:' + subColor + '">' + displayLabel + openP + val + closeP + '</span>');
+          else resolved.push('<span style="color:' + subColor + '">' + displayLabel + openP + '-' + closeP + '</span>');
         });
-        return resolved.join('<span style="color:#fff">、</span>');
+        return resolved.join('<span style="color:#fff">' + (isPlan7 ? '+' : '、') + '</span>');
       }
 
       var matchRows = '';
