@@ -1781,70 +1781,49 @@ body {
   white-space: nowrap;
 }
 
-/* ⚔️ 攻守道量化页 */
-.gs-header-card {
-  background: var(--card); border: 1px solid var(--card-border);
-  border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; text-align: center;
-}
-.gs-header-top {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;
-}
-.gs-league { font-size: 12px; color: var(--text3); }
-.gs-teams-center { font-size: 16px; font-weight: 700; color: var(--text); }
-.gs-vs-text { font-weight: 400; color: var(--text3); font-size: 12px; margin: 0 4px; }
-.gs-match-num { font-size: 11px; color: var(--text3); }
-.gs-header-time { font-size: 12px; color: var(--text2); }
+/* ⚔️ 功守道弹窗 */
+.gs-modal-head { text-align: center; padding: 12px 0 8px; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 12px; }
+.gs-modal-head-row { display: flex; justify-content: space-between; align-items: center; }
+.gs-modal-league { font-size: 11px; color: var(--text3); }
+.gs-modal-teams { font-size: 14px; font-weight: 700; color: var(--text); }
+.gs-modal-num { font-size: 10px; color: var(--text3); }
+.gs-modal-time { font-size: 11px; color: var(--text2); margin-top: 2px; }
 
-.gs-section {
-  background: var(--card); border: 1px solid var(--card-border);
-  border-radius: 16px; padding: 16px; margin-bottom: 14px;
-}
-.gs-section-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
-.gs-icon { margin-right: 4px; }
-
-/* 行布局 */
-.gs-row {
-  display: flex; align-items: center; gap: 8px; padding: 6px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-}
-.gs-label {
-  width: 90px; flex-shrink: 0; font-size: 12px; color: var(--text2);
-}
-.gs-progress-wrap { flex: 1; }
-.gs-progress-bar {
-  height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden;
-}
-.gs-progress-fill {
-  height: 100%; border-radius: 3px;
-  background: linear-gradient(90deg, var(--cyan), rgba(24,224,224,0.6));
-}
-.gs-value {
-  width: 50px; text-align: right; font-size: 12px; font-weight: 600; color: var(--cyan); flex-shrink: 0;
-}
-.gs-value.negative { color: var(--red); }
-
-/* 对比行 */
-.gs-compare-wrap {
-  flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.gs-compare-home { font-size: 13px; font-weight: 700; }
-.gs-compare-vs { font-size: 10px; color: var(--text3); margin: 0 4px; }
-.gs-compare-away { font-size: 13px; font-weight: 700; }
-
-/* 文本行 */
-.gs-text-wrap { flex: 1; }
-.gs-text-wrap.right { text-align: right; }
-.gs-text-value { font-size: 12px; font-weight: 600; color: var(--cyan); }
-
-/* 比分 */
-.gs-score-grid { display: flex; gap: 12px; }
-.gs-score-item {
-  flex: 1; text-align: center; padding: 14px 8px;
+.gs-modal-section {
   background: rgba(14,24,34,0.6); border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 12px;
+  border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
 }
-.gs-score-value { font-size: 22px; font-weight: 900; color: var(--text); }
-.gs-score-percent { font-size: 12px; font-weight: 600; color: var(--cyan); margin-top: 4px; }
+.gs-modal-sec-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+
+/* 行 */
+.gs-row { display: flex; align-items: center; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.025); }
+.gs-row-label { width: 82px; flex-shrink: 0; font-size: 11px; color: var(--text2); }
+.gs-row-body { flex: 1; display: flex; align-items: center; justify-content: flex-end; }
+
+/* 进度条 */
+.gs-bar-wrap { display: flex; align-items: center; gap: 8px; flex: 1; }
+.gs-bar-bg { flex: 1; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.gs-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg,var(--cyan),rgba(24,224,224,0.5)); }
+.gs-bar-fill.neg { background: linear-gradient(90deg,var(--red),rgba(239,68,68,0.5)); }
+.gs-bar-val { font-size: 11px; font-weight: 600; color: var(--cyan); min-width: 36px; text-align: right; }
+.gs-bar-val.neg { color: var(--red); }
+
+/* 对比 */
+.gs-vs { font-size: 12px; font-weight: 600; color: var(--text); }
+.gs-vs i { font-weight: 400; color: var(--text3); font-style: normal; margin: 0 6px; font-size: 10px; }
+
+/* 文本值 */
+.gs-val-text { font-size: 12px; font-weight: 600; color: var(--cyan); }
+
+/* 比分卡片 */
+.gs-score-grid { display: flex; gap: 8px; }
+.gs-score-card {
+  flex: 1; text-align: center; padding: 12px 6px;
+  background: rgba(14,24,34,0.5); border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 10px;
+}
+.gs-score-val { font-size: 20px; font-weight: 900; color: var(--text); }
+.gs-score-pct { font-size: 11px; font-weight: 600; color: var(--cyan); margin-top: 2px; }
 
 /* 卡片底部功守道标签 */
 .match-gs-wrap {
