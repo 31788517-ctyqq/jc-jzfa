@@ -1125,6 +1125,8 @@ app.post('/api', async (req, res) => {
               parts.forEach(pd => {
                 pd = pd.trim();
                 if (pd === '平' && oddsObj.spf) vals.push(oddsObj.spf.draw);
+                else if (pd === '胜' && oddsObj.spf) vals.push(oddsObj.spf.home);
+                else if (pd === '负' && oddsObj.spf) vals.push(oddsObj.spf.away);
                 else if (pd === '让平' && oddsObj.rqspf) vals.push(oddsObj.rqspf.draw);
                 else if (pd === '让负' && oddsObj.rqspf) vals.push(oddsObj.rqspf.away);
                 else if (pd === '让胜' && oddsObj.rqspf) vals.push(oddsObj.rqspf.home);
@@ -1135,6 +1137,8 @@ app.post('/api', async (req, res) => {
             if (direction === '平负' && oddsObj.spf) { vals.push(oddsObj.spf.draw); vals.push(oddsObj.spf.away); return vals; }
             if (direction === '让负' && oddsObj.rqspf) vals.push(oddsObj.rqspf.away);
             else if (direction === '让胜' && oddsObj.rqspf) vals.push(oddsObj.rqspf.home);
+            else if (direction === '胜' && oddsObj.spf) vals.push(oddsObj.spf.home);
+            else if (direction === '负' && oddsObj.spf) vals.push(oddsObj.spf.away);
             return vals;
           }
 
@@ -1447,6 +1451,8 @@ app.post('/api', async (req, res) => {
             if (direction === '让平') return oddsObj.rqspf ? oddsObj.rqspf.draw : null;
             if (direction === '让负') return oddsObj.rqspf ? oddsObj.rqspf.away : null;
             if (direction === '让胜') return oddsObj.rqspf ? oddsObj.rqspf.home : null;
+            if (direction === '胜') return oddsObj.spf ? oddsObj.spf.home : null;
+            if (direction === '负') return oddsObj.spf ? oddsObj.spf.away : null;
             if (direction === '胜平') return oddsObj.spf ? oddsObj.spf.home : null;
             if (direction === '平负') return oddsObj.spf ? oddsObj.spf.away : null;
             return null;
