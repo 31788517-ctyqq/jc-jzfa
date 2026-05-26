@@ -177,10 +177,12 @@ export function togglePlanDatePicker() {
 export function selectPlanDateFromPicker(md) {
   // 使用日历控件当前年份，而非 planDate 的年份（修复跨年导航bug）
   var year = window.planDateYear || new Date().getFullYear();
+  var parts = md.split('-');
+  var month = parseInt(parts[0], 10), day = parseInt(parts[1], 10);
   var fullDate = year + '-' + md;
   state.setPlanDate(fullDate);
   // 同步 planDateOffset，避免 loadPlanList 因 offset=0 忽略 date 参数
-  var sel = new Date(fullDate);
+  var sel = new Date(year, month - 1, day);
   var td = new Date(); td.setHours(0, 0, 0, 0);
   state.setPlanDateOffset(Math.round((sel - td) / 86400000));
   // 直接更新DOM，不调updatePlanDateBar避免重置
