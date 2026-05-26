@@ -46,7 +46,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
 
     // ====== 实力分析 ======
     html += '<div class="gs-modal-section">';
-    html += '<div class="gs-modal-sec-title"><span class="gs-title-icon gs-ico-power"></span>实力分析</div>';
+    html += '<div class="gs-modal-sec-title"><img src="/assets/gs-power.png" class="gs-title-icon" alt="">实力分析</div>';
 
     html += gsRow('进攻优势', renderBar(gs.attackAdvantage || '+20%', gs.attackAdvantageValue || 60));
     html += gsRow('防守优势', renderBar(gs.defenseAdvantage || '-10%', gs.defenseAdvantageValue || 40, true));
@@ -59,7 +59,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
 
     // ====== 大小球分析 ======
     html += '<div class="gs-modal-section">';
-    html += '<div class="gs-modal-sec-title"><span class="gs-title-icon gs-ico-ball"></span>大小球分析</div>';
+    html += '<div class="gs-modal-sec-title"><img src="/assets/gs-ball.png" class="gs-title-icon" alt="">大小球分析</div>';
 
     html += gsRow('主客权重', '<span class="gs-vs">' + (gs.homeWeight || '30%') + ' <i>vs</i> ' + (gs.awayWeight || '50%') + '</span>');
     html += gsRow('得失球', '<span class="gs-vs">' + (gs.goalDiffHome || '30%') + ' <i>vs</i> ' + (gs.goalDiffAway || '50%') + '</span>');
@@ -69,7 +69,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
 
     // ====== 净胜球分析 ======
     html += '<div class="gs-modal-section">';
-    html += '<div class="gs-modal-sec-title"><span class="gs-title-icon gs-ico-goal"></span>净胜球分析</div>';
+    html += '<div class="gs-modal-sec-title"><img src="/assets/gs-goal.png" class="gs-title-icon" alt="">净胜球分析</div>';
 
     html += gsRow('主队赢球期望', renderBar(gs.homeWinExpect || '+5.1', gs.homeWinValue || 40));
     html += gsRow('综合攻守优势', renderBar(gs.totalAdvantage2 || '+50%', gs.totalAdvantage2Value || 60));
@@ -80,7 +80,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
 
     // ====== 比分 ======
     html += '<div class="gs-modal-section">';
-    html += '<div class="gs-modal-sec-title"><span class="gs-title-icon gs-ico-score"></span>比分</div>';
+    html += '<div class="gs-modal-sec-title"><img src="/assets/gs-score.png" class="gs-title-icon" alt="">比分</div>';
     html += '<div class="gs-score-grid">';
     var scores = gs.scores || [
       { score: '1-1', percent: '50%' },
