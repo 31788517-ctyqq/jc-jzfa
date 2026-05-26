@@ -10,6 +10,7 @@ import { loadHitRate } from './pages/hit-rate.js';
 import { loadFilterLeagues, resetFilterResult, toggleDD, selectDD, getDDVal, onDDTypeChange, onRankTypeChange, doFilterQuery, closeAllDD, handleDocClose } from './pages/filter.js';
 import { loadIncome } from './pages/income.js';
 import { loadPlanList, updatePlanDateBar, shiftPlanDate, goPlanToday } from './pages/plans.js';
+import { showGongshoudao } from './pages/gongshoudao.js';
 
 // ── 日期切换 ──
 export function updateDateBar() {
@@ -333,6 +334,7 @@ window.selectRankDateFromPicker = selectRankDateFromPicker;
 window.goDetail = goDetail;
 window.closeAI = closeAI;
 window.showAIPrediction = showAIPrediction;
+window.showGongshoudao = showGongshoudao;
 window.selectCategory = selectCategory;
 window.selectDirection = selectDirection;
 window.shiftRankDate = shiftRankDate;

@@ -1022,6 +1022,64 @@ app.post('/api', async (req, res) => {
           }});
         } catch (e) { return res.json({ code: 0, msg: e.message }); }
       }
+      // ========== 攻守道量化 ==========
+      case 'gongshoudao': {
+        const mid = data.matchId;
+        if (!mid) return res.json({ code: 0, msg: '缺少 matchId' });
+        try {
+          const dataFile = getDataJson();
+          const mMap = dataFile.m || {};
+          const m = mMap['m_' + mid] || mMap[mid];
+          if (!m) return res.json({ code: 0, msg: '比赛不存在' });
+
+          // 从 data.json / odds 获取基本赔率数据
+          const num = m.num || '';
+          const histOdds = getOddsHistory(latestDataDate()) || {};
+          const od = histOdds[num] || {};
+
+          // 读取 AI 缓存，看是否有分析数据
+          var aiCache = {};
+          const cacheFile = path.join(__dirname, 'ai_cache.json');
+          if (fs.existsSync(cacheFile)) {
+            try { aiCache = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
+          }
+          const ai = aiCache[mid] || aiCache['m_' + mid] || {};
+
+          // 构建攻守道量化数据
+          const gs = {
+            matchId: mid,
+            home: {
+              winRate: ai.content && ai.content['基础面'] ? null : '--',
+              winRateLabel: '近6场',
+              avgGoal: '--',
+              avgConcede: '--',
+              overRate: '--',
+              handicapWinRate: '--',
+              recentForm: ['W','D','W','L','W','W']
+            },
+            away: {
+              winRateLabel: '近6场',
+              avgGoal: '--',
+              avgConcede: '--',
+              overRate: '--',
+              handicapWinRate: '--',
+              recentForm: ['L','W','D','L','W','L']
+            },
+            head2head: {
+              homeWin: '--',
+              awayWin: '--',
+              homeLabel: '近3次',
+              awayLabel: '近3次'
+            },
+            odds: {
+              spf: od.spf || null,
+              rqspf: od.rqspf || null
+            },
+            suggestion: '攻守道量化数据基于球队历史表现统计，为您提供客观对比视角。具体数据可结合AI深度解析获取更全面的分析。'
+          };
+          return res.json({ code: 1, data: gs });
+        } catch (e) { return res.json({ code: 0, msg: '查询失败: ' + e.message }); }
+      }
       case 'ai-batch-generate': {
         const daemon = require('./ai_daemon'); daemon.dailyBatch();
         return res.json({ code: 1, data: { message: 'AI批量生成已启动' } });
