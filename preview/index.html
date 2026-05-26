@@ -1846,18 +1846,23 @@ body {
 .gs-score-value { font-size: 22px; font-weight: 900; color: var(--text); }
 .gs-score-percent { font-size: 12px; font-weight: 600; color: var(--cyan); margin-top: 4px; }
 
-/* 卡片标签 */
+/* 卡片底部功守道标签 */
+.match-gs-wrap {
+  text-align: center; margin-top: 10px;
+}
 .match-gs-tag {
-  display: inline-flex; align-items: center; gap: 3px;
-  padding: 2px 8px; border-radius: 8px;
-  background: linear-gradient(135deg, rgba(24,224,224,0.12), rgba(99,102,241,0.12));
-  border: 1px solid rgba(24,224,224,0.25);
-  color: var(--cyan); font-size: 10px; font-weight: 600;
-  cursor: pointer; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 14px; border-radius: 14px;
+  background: linear-gradient(135deg, rgba(24,224,224,0.1), rgba(99,102,241,0.1));
+  border: 1px solid rgba(24,224,224,0.2);
+  color: var(--cyan); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  letter-spacing: 0.5px;
 }
 .match-gs-tag:hover {
-  background: linear-gradient(135deg, rgba(24,224,224,0.22), rgba(99,102,241,0.22));
-  border-color: rgba(24,224,224,0.5);
+  background: linear-gradient(135deg, rgba(24,224,224,0.2), rgba(99,102,241,0.2));
+  border-color: rgba(24,224,224,0.45);
+  box-shadow: 0 0 12px rgba(24,224,224,0.15);
 }
 </style>
 
