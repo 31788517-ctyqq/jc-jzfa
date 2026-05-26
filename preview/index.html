@@ -9,7 +9,7 @@
 <title>竞彩推荐监控</title>
 <link rel="preconnect" href="https://zj.100qiu.com">
 <link rel="preload" href="/js/main.js?v=56" as="script" crossorigin="anonymous">
-<link rel="preload" href="/assets/worldcup/design-hero-banner.webp" as="image" type="image/webp">
+<link rel="preload" href="/assets/worldcup/design-hero-banner.png" as="image" type="image/png">
 <style>
 :root {
   --cyan: #18E0E0;
@@ -839,15 +839,6 @@ body {
     linear-gradient(180deg, rgba(0,16,24,0.3) 0%, rgba(10,25,40,0.6) 100%),
     url('/assets/worldcup/design-hero-banner.png') center center / cover no-repeat;
 }
-/* WebP 支持：优先加载压缩后的 WebP 版本（体积减少 70-80%） */
-@supports (background-image: url('data:image/webp;base64,UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoCAAEAAQAcJaQAA3AA/vp+mAA=')) {
-  .hero-section {
-    background: 
-      linear-gradient(180deg, rgba(0,16,24,0.3) 0%, rgba(10,25,40,0.6) 100%),
-      url('/assets/worldcup/design-hero-banner.webp') center center / cover no-repeat;
-  }
-}
-
 .stats-grid { gap: 14px; margin: 0 0 20px; }
 .stat-box,
 .menu-item,
