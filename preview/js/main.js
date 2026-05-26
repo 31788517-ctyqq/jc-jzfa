@@ -86,7 +86,7 @@ function renderDatePicker() {
     if (hasMatch) cls += ' has-match';
     if (isActive) cls += ' active';
     if (isToday) cls += ' today';
-    var onclick = hasMatch ? (' onclick="selectDateFromPicker(\'' + md + '\')"') : '';
+    var onclick = ' onclick="selectDateFromPicker(\'' + md + '\')"';
     html += '<div class="' + cls + '"' + onclick + '>' + day + '</div>';
   }
   grid.innerHTML = html;
@@ -152,7 +152,8 @@ function renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onS
     if (hasMatch) cls += ' has-match';
     if (isActive) cls += ' active';
     if (isToday) cls += ' today';
-    var onclick = hasMatch ? (' onclick="' + onSelect + '(\'' + md + '\')"') : '';
+    // 所有日期均可点击，无数据的日期由后端返回空列表+页面提示"暂无方案"
+    var onclick = ' onclick="' + onSelect + '(\'' + md + '\')"';
     html += '<div class="' + cls + '"' + onclick + '>' + day + '</div>';
   }
   grid.innerHTML = html;
