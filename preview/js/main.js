@@ -182,15 +182,13 @@ export function selectPlanDateFromPicker(md) {
   var month = parseInt(parts[0], 10), day = parseInt(parts[1], 10);
   var fullDate = year + '-' + md;
   state.setPlanDate(fullDate);
-  // 同步 planDateOffset，避免 loadPlanList 因 offset=0 忽略 date 参数
-  var sel = new Date(year, month - 1, day);
-  var td = new Date(); td.setHours(0, 0, 0, 0);
-  state.setPlanDateOffset(Math.round((sel - td) / 86400000));
+  // 标记为日历直接选日，不污染 planDateOffset（避免影响左右箭头切换）
+  state.setPlanDateExplicit(true);
   // 直接更新DOM，不调updatePlanDateBar避免重置
   var el = document.getElementById('planDateCurrent');
   if (el) {
     var mmdd = md.replace('-', '/');
-    var week = WEEK_NAMES[sel.getDay()];
+    var week = WEEK_NAMES[new Date(year, month - 1, day).getDay()];
     el.textContent = mmdd + ' ' + week;
   }
   loadPlanList();
