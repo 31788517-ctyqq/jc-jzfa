@@ -1283,7 +1283,7 @@ app.post('/api', async (req, res) => {
           const m2a = findBestMatchForDirection(['总进球-2、3球']);
           const m2b = findBestMatchForDirection(['让负']);
           const m3a = findBestMatchForDirection(['总进球-2、3球']);
-          const m3b = findBestMatchForDirection(['让胜']);
+          const m3b = findBestMatchForDirection(['胜']);
 
           function push2MatchPlan(planName, planSuffix, mA, dirA, mB, dirB, betCount, ticketCount) {
             if (!mA || !mB) return;
@@ -1302,7 +1302,7 @@ app.post('/api', async (req, res) => {
 
           push2MatchPlan('方案一', '1', m1a, '平、让平', m1b, '让负', 250, 10);
           push2MatchPlan('方案二', '2', m2a, '总进球-2、3球', m2b, '让负', 250, 10);
-          push2MatchPlan('方案三', '3', m3a, '总进球-2、3球', m3b, '让胜', 250, 10);
+          push2MatchPlan('方案三', '3', m3a, '总进球-2、3球', m3b, '胜', 250, 10);
 
           // 方案四～六：仅在 ≥15 场时生成
           if (matchCount >= 15) {
@@ -1631,12 +1631,12 @@ app.post('/api', async (req, res) => {
 
             const m1a = findBest(['平', '让平']), m1b = findBest(['让负'], m1a ? [m1a.matchId] : null);
             const m2a = findBest(['总进球-2、3球']), m2b = findBest(['让负'], m2a ? [m2a.matchId] : null);
-            const m3a = findBest(['总进球-2、3球']), m3b = findBest(['让胜'], m3a ? [m3a.matchId] : null);
+            const m3a = findBest(['总进球-2、3球']), m3b = findBest(['胜'], m3a ? [m3a.matchId] : null);
 
             const dayPlans = [];
             if (m1a && m1b) dayPlans.push({ name: 'plan_1', planName: '方案一', matches: [buildMatch(m1a, '平、让平'), buildMatch(m1b, '让负')] });
             if (m2a && m2b) dayPlans.push({ name: 'plan_2', planName: '方案二', matches: [buildMatch(m2a, '总进球-2、3球'), buildMatch(m2b, '让负')] });
-            if (m3a && m3b) dayPlans.push({ name: 'plan_3', planName: '方案三', matches: [buildMatch(m3a, '总进球-2、3球'), buildMatch(m3b, '让胜')] });
+            if (m3a && m3b) dayPlans.push({ name: 'plan_3', planName: '方案三', matches: [buildMatch(m3a, '总进球-2、3球'), buildMatch(m3b, '胜')] });
 
             const dayMatchCount = mList.length;
             if (dayMatchCount >= 15) {
