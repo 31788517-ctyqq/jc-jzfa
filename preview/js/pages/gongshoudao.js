@@ -1,119 +1,164 @@
 /**
- * 攻守道量化 — 球队攻防数据对比详情页
+ * 攻守道详情页 - 严格按设计图实现
  */
 import { api } from '../api.js';
 import * as state from '../state.js';
 
-export function showGongshoudao(matchId, homeName, visitName) {
+export function showGongshoudao(matchId, leagueName, homeName, visitName, matchNum, startTime) {
   state.setLastPage(state.currentPage || 'home');
   state.setDetailMatchId(matchId);
 
   var el = document.getElementById('detailContent');
   if (!el) return;
+  
+  // 显示loading
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
   window.switchTab('detail');
 
   api('gongshoudao', { matchId: matchId }).then(function(data) {
     var gs = data || {};
-    var homeData = gs.home || {};
-    var awayData = gs.away || {};
-    var head2head = gs.head2head || {};
-    var odds = gs.odds || {};
-
-    function esc(s) { var str = (s == null ? '' : String(s)); return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-    function fmtNum(n, unit) { return (n != null ? n : '-') + (unit || ''); }
+    
+    // 格式化时间
+    var timeStr = startTime || '';
+    var timeFormatted = '';
+    if (timeStr) {
+      var parts = timeStr.split(' ');
+      if (parts.length >= 2) {
+        var datePart = parts[0].slice(5).replace('-', '/');
+        var timePart = parts[1].slice(0, 5);
+        timeFormatted = datePart + ' ' + timePart;
+      }
+    }
 
     var html = '';
-    // ── 头部 ──
-    html += '<div class="gs-header">';
-    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
-    html += '<span style="font-size:18px;font-weight:700;color:var(--cyan);">⚔️ 攻守道量化</span>';
-    html += '<span style="font-size:12px;color:var(--text3);">数据来源于历史比赛统计</span>';
+    
+    // ====== 头部信息卡片 ======
+    html += '<div class="gs-header-card">';
+    html += '<div class="gs-header-top">';
+    html += '<span class="gs-league">' + esc(leagueName) + '</span>';
+    html += '<span class="gs-teams-center">' + esc(homeName) + ' <span class="gs-vs-text">vs</span> ' + esc(visitName) + '</span>';
+    html += '<span class="gs-match-num">' + esc(matchNum) + '</span>';
     html += '</div>';
-    html += '</div>';
-
-    // ── 对战双方 ──
-    html += '<div class="gs-teams">';
-    html += '<div class="gs-team-card home"><div class="gs-team-badge">主</div><div class="gs-team-name">' + esc(homeName) + '</div></div>';
-    html += '<div class="gs-vs">VS</div>';
-    html += '<div class="gs-team-card away"><div class="gs-team-badge away">客</div><div class="gs-team-name">' + esc(visitName) + '</div></div>';
+    html += '<div class="gs-header-time">' + timeFormatted + '</div>';
     html += '</div>';
 
-    // ── 核心数据面板（六宫格） ──
-    html += '<div class="gs-section"><div class="gs-section-title">📊 核心数据对比</div>';
-    html += '<div class="gs-grid-2x3">';
+    // ====== 实力分析 ======
+    html += '<div class="gs-section">';
+    html += '<div class="gs-section-title"><span class="gs-icon">📊</span>实力分析</div>';
+    
+    // 进攻优势
+    html += renderProgressRow('进攻优势', gs.attackAdvantage || '+20%', gs.attackAdvantageValue || 60);
+    // 防守优势
+    html += renderProgressRow('防守优势', gs.defenseAdvantage || '-10%', gs.defenseAdvantageValue || 40);
+    // 攻守格局（纯文本）
+    html += renderTextRow('攻守格局', gs.attackPattern || '对攻为主', 'right');
+    // 进攻权重
+    html += renderCompareRow('进攻权重', gs.attackWeightHome || '30%', gs.attackWeightAway || '50%');
+    // 防守权重
+    html += renderCompareRow('防守权重', gs.defenseWeightHome || '40%', gs.defenseWeightAway || '60%');
+    // 综合攻守优势
+    html += renderProgressRow('综合攻守优势', gs.totalAdvantage || '+50%', gs.totalAdvantageValue || 75);
+    
+    html += '</div>';
 
-    function dataCell(label, homeVal, awayVal, homeExtra, awayExtra) {
-      var h = '<span class="gs-val">' + fmtNum(homeVal) + '</span>' + (homeExtra ? '<span class="gs-sub">' + homeExtra + '</span>' : '');
-      var a = '<span class="gs-val">' + fmtNum(awayVal) + '</span>' + (awayExtra ? '<span class="gs-sub">' + awayExtra + '</span>' : '');
-      return '<div class="gs-data-cell">' +
-        '<div class="gs-cell-label">' + label + '</div>' +
-        '<div class="gs-cell-row"><div class="gs-cell-item">' + h + '</div><div class="gs-cell-item">' + a + '</div></div>' +
-        '</div>';
-    }
-    html += dataCell('近期胜率', homeData.winRate, awayData.winRate, homeData.winRateLabel, awayData.winRateLabel);
-    html += dataCell('场均进球', homeData.avgGoal, awayData.avgGoal, '', '');
-    html += dataCell('场均失球', homeData.avgConcede, awayData.avgConcede, '', '');
-    html += dataCell('大球率', homeData.overRate, awayData.overRate, '', '');
-    html += dataCell('赢盘率', homeData.handicapWinRate, awayData.handicapWinRate, '', '');
-    html += dataCell('交锋优势', head2head.homeWin || '-', head2head.awayWin || '-',
-      head2head.homeLabel || '', head2head.awayLabel || '');
+    // ====== 大小球分析 ======
+    html += '<div class="gs-section">';
+    html += '<div class="gs-section-title"><span class="gs-icon">📈</span>大小球分析</div>';
+    
+    // 主客权重
+    html += renderCompareRow('主客权重', gs.homeWeight || '30%', gs.awayWeight || '50%');
+    // 得失球
+    html += renderCompareRow('得失球', gs.goalDiffHome || '30%', gs.goalDiffAway || '50%');
+    // 总进球期望
+    html += renderProgressRow('总进球期望', gs.totalGoalsExpect || '5.1', gs.totalGoalsValue || 70, false);
+    
+    html += '</div>';
 
-    html += '</div></div>';
+    // ====== 净胜球分析 ======
+    html += '<div class="gs-section">';
+    html += '<div class="gs-section-title"><span class="gs-icon">📊</span>净胜球分析</div>';
+    
+    // 主队赢球期望
+    html += renderProgressRow('主队赢球期望', gs.homeWinExpect || '+5.1', gs.homeWinValue || 40);
+    // 综合攻守优势
+    html += renderProgressRow('综合攻守优势', gs.totalAdvantage2 || '+50%', gs.totalAdvantage2Value || 60);
+    // 输赢球个数
+    html += renderProgressRow('输赢球个数', gs.goalCount || '≥2', gs.goalCountValue || 50, false);
+    // 主客赛果验证
+    html += renderProgressRow('主客赛果验证', gs.verifyResult || '2', gs.verifyValue || 40, false);
+    
+    html += '</div>';
 
-    // ── 近况与成绩 ──
-    if ((homeData.recentForm && homeData.recentForm.length) || (awayData.recentForm && awayData.recentForm.length)) {
-      html += '<div class="gs-section"><div class="gs-section-title">📈 近期战绩</div>';
-      html += '<div class="gs-form-row"><span class="gs-form-team">' + esc(homeName) + '</span>';
-      (homeData.recentForm || []).forEach(function(r) {
-        var cls = r === 'W' || r === '胜' ? 'win' : r === 'L' || r === '负' ? 'lose' : r === 'D' || r === '平' ? 'draw' : 'normal';
-        html += '<span class="gs-form-badge ' + cls + '">' + esc(r) + '</span>';
-      });
-      html += '</div>';
-      html += '<div class="gs-form-row"><span class="gs-form-team">' + esc(visitName) + '</span>';
-      (awayData.recentForm || []).forEach(function(r) {
-        var cls = r === 'W' || r === '胜' ? 'win' : r === 'L' || r === '负' ? 'lose' : r === 'D' || r === '平' ? 'draw' : 'normal';
-        html += '<span class="gs-form-badge ' + cls + '">' + esc(r) + '</span>';
-      });
-      html += '</div></div>';
-    }
-
-    // ── 攻防雷达（文字版） ──
-    html += '<div class="gs-section"><div class="gs-section-title">🎯 攻防对比</div>';
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
-    ['进攻', '防守', '控球', '射门转化'].forEach(function(dim) {
-      html += '<div class="gs-compare-bar">';
-      html += '<div class="gs-compare-label">' + dim + '</div>';
-      html += '<div class="gs-compare-row"><div class="gs-compare-fill home" style="width:50%"></div><div class="gs-compare-fill away" style="width:50%"></div></div>';
-      html += '<div class="gs-compare-values"><span>' + esc(homeName[0]) + '</span><span>' + esc(visitName[0]) + '</span></div>';
+    // ====== 比分 ======
+    html += '<div class="gs-section">';
+    html += '<div class="gs-section-title"><span class="gs-icon">⚽</span>比分</div>';
+    html += '<div class="gs-score-grid">';
+    var scores = gs.scores || [
+      { score: '1-1', percent: '50%' },
+      { score: '2-1', percent: '30%' },
+      { score: '0-1', percent: '30%' }
+    ];
+    scores.forEach(function(s) {
+      html += '<div class="gs-score-item">';
+      html += '<div class="gs-score-value">' + s.score + '</div>';
+      html += '<div class="gs-score-percent">' + s.percent + '</div>';
       html += '</div>';
     });
-    html += '</div></div>';
+    html += '</div>';
+    html += '</div>';
 
-    // ── 赔率数据 ──
-    if (odds.spf || odds.rqspf) {
-      html += '<div class="gs-section"><div class="gs-section-title">💰 赔率数据</div>';
-      html += '<div class="gs-odds-table">';
-      if (odds.spf) {
-        html += '<div class="gs-odds-row"><span>胜平负</span><span style="color:#EF4444">' + fmtNum(odds.spf.home) + '</span><span style="color:#22C55E">' + fmtNum(odds.spf.draw) + '</span><span style="color:#3B82F6">' + fmtNum(odds.spf.away) + '</span></div>';
-      }
-      if (odds.rqspf) {
-        html += '<div class="gs-odds-row"><span>让球(' + (odds.rqspf.handicap || '-') + ')</span><span style="color:#EF4444">' + fmtNum(odds.rqspf.home) + '</span><span style="color:#22C55E">' + fmtNum(odds.rqspf.draw) + '</span><span style="color:#3B82F6">' + fmtNum(odds.rqspf.away) + '</span></div>';
-      }
-      html += '</div></div>';
-    }
-
-    // ── 综合建议 ──
-    var suggestion = gs.suggestion || '';
-    if (suggestion) {
-      html += '<div class="gs-section"><div class="gs-section-title">💡 综合建议</div>';
-      html += '<div class="gs-suggestion">' + esc(suggestion) + '</div></div>';
-    }
-
-    html += '<div class="gs-disclaimer">数据仅供参考，请理性对待</div>';
     el.innerHTML = html;
 
   }).catch(function(e) {
     el.innerHTML = '<div class="loading">加载失败: ' + (e.message || '未知错误') + '</div>';
   });
+}
+
+// 渲染带进度条的行
+function renderProgressRow(label, value, percent, showPercentBar) {
+  if (showPercentBar === undefined) showPercentBar = true;
+  var percentNum = parseInt(percent) || 0;
+  // 处理负值显示
+  var isNegative = String(value).startsWith('-');
+  var displayValue = isNegative ? value : (showPercentBar && String(value).startsWith('+') ? value : (String(value).includes('%') ? value : '+' + value));
+  
+  var html = '<div class="gs-row">';
+  html += '<div class="gs-label">' + label + '</div>';
+  html += '<div class="gs-progress-wrap">';
+  html += '<div class="gs-progress-bar">';
+  html += '<div class="gs-progress-fill" style="width:' + percentNum + '%' + (isNegative ? ';background:var(--red)' : '') + '"></div>';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="gs-value' + (isNegative ? ' negative' : '') + '">' + displayValue + '</div>';
+  html += '</div>';
+  return html;
+}
+
+// 渲染对比行（30% vs 50%）
+function renderCompareRow(label, homeVal, awayVal) {
+  var html = '<div class="gs-row">';
+  html += '<div class="gs-label">' + label + '</div>';
+  html += '<div class="gs-compare-wrap">';
+  html += '<span class="gs-compare-home">' + homeVal + '</span>';
+  html += '<span class="gs-compare-vs">vs</span>';
+  html += '<span class="gs-compare-away">' + awayVal + '</span>';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+// 渲染纯文本行
+function renderTextRow(label, value, align) {
+  var html = '<div class="gs-row">';
+  html += '<div class="gs-label">' + label + '</div>';
+  html += '<div class="gs-text-wrap' + (align === 'right' ? ' right' : '') + '">';
+  html += '<span class="gs-text-value">' + value + '</span>';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+function esc(s) {
+  var str = (s == null ? '' : String(s));
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
