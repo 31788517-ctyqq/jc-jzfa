@@ -58,7 +58,7 @@ export function togglePick(ev, matchId) {
 function clearPicks() {
   pickedIds = {};
   updatePkBar();
-  document.querySelectorAll('.quant-table tbody tr').forEach(function (r) { r.classList.remove('picked'); });
+  document.querySelectorAll('.quant-card-row').forEach(function (r) { r.classList.remove('picked'); });
 }
 
 export function startPK() {
@@ -231,21 +231,21 @@ function getCompletenessLabel(score) {
   return { text: '无数据', cls: 'q-none' };
 }
 
-// ═══ 渲染纯表格 ═══
+// ═══ 渲染 — flex 卡片表格 ═══
 function renderTable() {
   var wrap = document.getElementById('quantTableWrap');
   if (!wrap) return;
 
-  // ★Phase1: 构建数据时间戳条
-  var timeBarHtml = '<div class="quant-time-bar">';
-  timeBarHtml += '<span class="quant-time-item" title="GS功守道缓存"><span class="quant-time-dot gs-dot"></span>GS: ' + formatTime(gsCacheTime) + '</span>';
-  timeBarHtml += '<span class="quant-time-item" title="欧指热度数据"><span class="quant-time-dot hot-dot"></span>热度: ' + formatTime(hotCacheTime) + '</span>';
-  timeBarHtml += '<span class="quant-time-item" title="比赛排名数据"><span class="quant-time-dot rank-dot"></span>排名: ' + formatTime(dataTime) + '</span>';
-  timeBarHtml += '</div>';
+  // 时间戳条
+  var h = '<div class="quant-time-bar">';
+  h += '<span class="quant-time-item" title="GS功守道缓存"><span class="quant-time-dot gs-dot"></span>GS: ' + formatTime(gsCacheTime) + '</span>';
+  h += '<span class="quant-time-item" title="欧指热度数据"><span class="quant-time-dot hot-dot"></span>热度: ' + formatTime(hotCacheTime) + '</span>';
+  h += '<span class="quant-time-item" title="比赛排名数据"><span class="quant-time-dot rank-dot"></span>排名: ' + formatTime(dataTime) + '</span>';
+  h += '</div>';
 
+  // 排序
   var sorted;
   if (currentTab === 'power') {
-    // 实力tab保持API原始顺序，不排序
     sorted = allData.slice();
   } else {
     sorted = allData.slice().sort(function (a, b) {
@@ -256,210 +256,230 @@ function renderTable() {
     });
   }
 
-  // 按 currentTab 确定列定义（实力tab全部不可排序）
-  var cols;
+  // 列定义 — key, label, sortable, colCls
+  var cols, renderRow;
   if (currentTab === 'power') {
     cols = [
-      { key: 'match', label: '对阵', sortable: false, cls: 'th-match' },
-      { key: 'rank', label: '总排序', sortable: true, cls: 'th-rk' },
-      { key: 'goalDiff', label: '净胜球', sortable: false, cls: 'th-gd' },
-      { key: 'cross', label: '胜平负交叉', sortable: false, cls: 'th-cross' },
-      { key: 'power', label: '综合实力', sortable: false, cls: 'th-power' },
-      { key: 'ad', label: '攻守实力', sortable: false, cls: 'th-ad' }
+      { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
+      { key: 'rank', label: '总排序', sortable: true, colCls: 'q-col-rk' },
+      { key: 'goalDiff', label: '净胜球', sortable: false, colCls: 'q-col-gd' },
+      { key: 'cross', label: '胜平负\n交叉', sortable: false, colCls: 'q-col-cross' },
+      { key: 'power', label: '综合实力', sortable: false, colCls: 'q-col-power' },
+      { key: 'ad', label: '攻守实力', sortable: false, colCls: 'q-col-ad' }
     ];
+    renderRow = function (item) {
+      return renderRank(item.rank) +
+        renderGoalDiff(item) +
+        renderCrossValue(item) +
+        renderPower(item) +
+        renderAdCombined(item);
+    };
   } else if (currentTab === 'goal') {
     cols = [
-      { key: 'match', label: '对阵', sortable: false, cls: 'th-match' },
-      { key: 'totalSum', label: '合计', sortable: true, cls: 'th-sum' },
-      { key: 'bigBallRatio', label: '大球比例', sortable: true, cls: 'th-big' },
-      { key: 'attDefGoal', label: '攻防进球', sortable: true, cls: 'th-ag' },
-      { key: 'strengthGoal', label: '实力进球', sortable: true, cls: 'th-sg' },
-      { key: 'headToHeadGoal', label: '交锋进球', sortable: true, cls: 'th-hg' },
-      { key: 'breakArmor', label: '破甲和', sortable: true, cls: 'th-ba' }
+      { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
+      { key: 'totalSum', label: '合计', sortable: true, colCls: 'q-col-sum' },
+      { key: 'bigBallRatio', label: '大球\n比例', sortable: true, colCls: 'q-col-big' },
+      { key: 'attDefGoal', label: '攻防\n进球', sortable: true, colCls: 'q-col-ag' },
+      { key: 'strengthGoal', label: '实力\n进球', sortable: true, colCls: 'q-col-sg' },
+      { key: 'headToHeadGoal', label: '交锋\n进球', sortable: true, colCls: 'q-col-hg' },
+      { key: 'breakArmor', label: '破甲和', sortable: true, colCls: 'q-col-ba' }
     ];
+    renderRow = function (item) {
+      return renderGoalCell(item, 'totalSum') +
+        renderGoalCell(item, 'bigBallRatio') +
+        renderGoalCell(item, 'attDefGoal') +
+        renderGoalCell(item, 'strengthGoal') +
+        renderGoalCell(item, 'headToHeadGoal') +
+        renderGoalCell(item, 'breakArmor');
+    };
   } else {
     cols = [
-      { key: 'match', label: '对阵', sortable: false, cls: 'th-match' },
-      { key: 'rq', label: '让球数', sortable: false, cls: 'th-rq' },
-      { key: 'hotFocusNum', label: '关注热度', sortable: true, cls: 'th-hot' },
-      { key: 'heatIndex', label: '冷热指数', sortable: true, cls: 'th-heat' },
-      { key: 'homeFeature', label: '主队特征', sortable: false, cls: 'th-hf' },
-      { key: 'guestFeature', label: '客队特征', sortable: false, cls: 'th-gf' },
-      { key: 'staticDiff', label: '静态实力差', sortable: true, cls: 'th-sd' },
-      { key: 'oddsLive', label: '亚指临盘', sortable: false, cls: 'th-ol' }
+      { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
+      { key: 'rq', label: '让球数', sortable: false, colCls: 'q-col-rq' },
+      { key: 'hotFocusNum', label: '关注\n热度', sortable: true, colCls: 'q-col-hot' },
+      { key: 'heatIndex', label: '冷热\n指数', sortable: true, colCls: 'q-col-heat' },
+      { key: 'homeFeature', label: '主队\n特征', sortable: false, colCls: 'q-col-hf' },
+      { key: 'guestFeature', label: '客队\n特征', sortable: false, colCls: 'q-col-gf' },
+      { key: 'staticDiff', label: '静态\n实力差', sortable: true, colCls: 'q-col-sd' },
+      { key: 'oddsLive', label: '亚指\n临盘', sortable: false, colCls: 'q-col-ol' }
     ];
+    renderRow = function (item) {
+      return renderHotCell(item, 'rq') +
+        renderHotCell(item, 'hotFocusNum') +
+        renderHotCell(item, 'heatIndex') +
+        renderHotCell(item, 'homeFeature') +
+        renderHotCell(item, 'guestFeature') +
+        renderHotCell(item, 'staticDiff') +
+        renderHotCell(item, 'oddsLive');
+    };
   }
 
-  var h = '<table class="quant-table"><thead><tr><th class="th-chk"></th>';
-  cols.forEach(function (c) {
-    var ad = sortKey === c.key ? (sortAsc ? ' sort-asc' : ' sort-desc') : '';
-    h += '<th class="' + c.cls + (c.sortable ? ' sortable' + ad : '') + '" onclick="' + (c.sortable ? 'sortBy(\'' + c.key + '\')' : '') + '">' + c.label + '</th>';
-  });
-  h += '</tr></thead><tbody>';
+  // 构建卡片表格
+  h += '<div class="quant-card-list">';
 
+  // 表头
+  h += '<div class="quant-card-header">';
+  h += '<span class="q-col-chk"></span>';
+  cols.forEach(function (c) {
+    var isActive = sortKey === c.key;
+    var sortCls = '';
+    if (isActive && c.sortable) {
+      sortCls = sortAsc ? ' q-sort-asc' : ' q-sort-desc';
+    }
+    h += '<span class="' + c.colCls + (c.hdCls ? ' ' + c.hdCls : '') +
+      (c.sortable ? ' q-sortable' + sortCls : '') +
+      '" onclick="' + (c.sortable ? 'sortBy(\'' + c.key + '\')' : '') + '">' +
+      c.label.replace(/\n/g, '<br>') + '</span>';
+  });
+  h += '</div>';
+
+  // 数据行
   sorted.forEach(function (item) {
     var p = !!pickedIds[item.matchId];
     var compl = getCompletenessLabel(item.completenessScore || 0);
-    h += '<tr id="qr-' + item.matchId + '" class="' + (p ? 'picked' : '') + ' q-row-' + compl.cls + '">' +
-      '<td><input type="checkbox" class="q-chk" ' + (p ? 'checked' : '') + ' onclick="togglePick(event,\'' + item.matchId + '\')"/></td>' +
-      tdMatch(item, compl);
-
-    if (currentTab === 'power') {
-      h += tdRank(item.rank) +
-        tdNum(item, 'goalDiff') +
-        tdCrossValue(item) +
-        tdNum(item, 'power') +
-        tdAdCombined(item);
-    } else if (currentTab === 'goal') {
-      h += tdGoalCell(item, 'totalSum', 2) +
-        tdGoalCell(item, 'bigBallRatio', 1) +
-        tdGoalCell(item, 'attDefGoal', 2) +
-        tdGoalCell(item, 'strengthGoal', 2) +
-        tdGoalCell(item, 'headToHeadGoal', 2) +
-        tdGoalCell(item, 'breakArmor', 2);
-    } else {
-      h += tdHotCell(item, 'rq') +
-        tdHotCell(item, 'hotFocusNum') +
-        tdHotCell(item, 'heatIndex') +
-        tdHotCell(item, 'homeFeature') +
-        tdHotCell(item, 'guestFeature') +
-        tdHotCell(item, 'staticDiff') +
-        tdHotCell(item, 'oddsLive');
-    }
-
-    h += '</tr>';
+    h += '<div id="qr-' + item.matchId + '" class="quant-card-row' + (p ? ' picked' : '') + ' q-row-' + compl.cls + '">';
+    h += '<span class="q-col-chk"><input type="checkbox" class="q-chk" ' + (p ? 'checked' : '') + ' onclick="togglePick(event,\'' + item.matchId + '\')"/></span>';
+    h += renderMatch(item, compl);
+    h += renderRow(item);
+    h += '</div>';
   });
 
-  h += '</tbody></table>';
-  wrap.innerHTML = timeBarHtml + h;
+  h += '</div>';
+  wrap.innerHTML = h;
   updatePkBar();
 }
 
-function tdMatch(item, compl) {
-  return '<td class="q-match-cell">' +
+// ── 对战列 ──
+function renderMatch(item, compl) {
+  return '<span class="q-col-match q-match-cell">' +
     '<div class="q-match-teams">' + esc(item.homeName) + '</div>' +
     '<div class="q-match-vs">vs</div>' +
     '<div class="q-match-teams">' + esc(item.visitName) + '</div>' +
     '<span class="q-compl-indicator ' + (compl ? compl.cls : '') + '" title="数据完整度: ' + (compl ? compl.text : '未知') + '">●</span>' +
-    '</td>';
+    '</span>';
 }
 
-function tdRank(r) {
+// ── 排名 ──
+function renderRank(r) {
   var cls = r === 1 ? 'r1' : r === 2 ? 'r2' : r === 3 ? 'r3' : '';
-  return '<td><span class="q-cell-rank ' + cls + '">' + r + '</span></td>';
+  return '<span class="q-col-rk"><span class="q-cell-rank ' + cls + '">' + r + '</span></span>';
 }
 
-function tdNum(item, k) {
-  var v;
-  if (k === 'goalDiff') {
-    v = item.goalDiff;
-    if (v !== '-') { var n = parseFloat(String(v).split('/')[0]); if (!isNaN(n)) v = (n >= 0 ? '+' : '') + n.toFixed(4); }
-  } else { // power — 综合实力偏移
-    var pv = item.totalAdvantageValue - 50;
-    v = (pv >= 0 ? '+' : '') + pv.toFixed(1) + '%';
-  }
-  var cls = getNumClass(item, k);
-  return '<td><span class="q-cell-num ' + cls + '">' + v + '</span></td>';
+// ── 净胜球 ──
+function renderGoalDiff(item) {
+  var v = item.goalDiff;
+  if (v === '-' || v === '?') return '<span class="q-col-gd"><span class="q-cell-num">-</span></span>';
+  var n = parseFloat(String(v).split('/')[0]);
+  if (isNaN(n)) return '<span class="q-col-gd"><span class="q-cell-num">' + v + '</span></span>';
+  var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
+  return '<span class="q-col-gd"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
 }
 
-function getNumClass(item, k) {
-  if (k === 'goalDiff') {
-    var v = item.goalDiff;
-    if (v === '-' || v === '?') return '';
-    var n = parseFloat(String(v).split('/')[0]); if (isNaN(n)) return '';
-    return n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  }
-  // power — 综合实力偏移
-  var p = item.totalAdvantageValue - 50;
-  if (p > 0) return 'pos';
-  if (p < 0) return 'neg';
-  return '';
+// ── 综合实力 ──
+function renderPower(item) {
+  var pv = item.totalAdvantageValue - 50;
+  var cls = pv > 0 ? 'pos' : pv < 0 ? 'neg' : '';
+  return '<span class="q-col-power"><span class="q-cell-num ' + cls + '">' + (pv >= 0 ? '+' : '') + pv.toFixed(2) + '%</span></span>';
 }
 
-function tdCrossValue(item) {
+// ── 胜平负交叉 ──
+function renderCrossValue(item) {
   var v = item.crossValue;
   if (v === '-' || v === undefined || v === null) {
-    return '<td><span class="q-cell-num" style="color:var(--text4)">-</span></td>';
+    return '<span class="q-col-cross"><span class="q-cell-num" style="color:var(--text4)">-</span></span>';
   }
   var n = parseFloat(v);
-  if (isNaN(n)) return '<td><span class="q-cell-num">' + v + '</span></td>';
+  if (isNaN(n)) return '<span class="q-col-cross"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<td><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></td>';
+  return '<span class="q-col-cross"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
 }
 
-function tdAdCombined(item) {
+// ── 攻守实力 ──
+function renderAdCombined(item) {
   var v = item.adCombined;
-  if (v === 0 || v === undefined || v === null) return '<td><span class="q-cell-num" style="color:var(--text4)">0.00</span></td>';
+  if (v === 0 || v === undefined || v === null) return '<span class="q-col-ad"><span class="q-cell-num" style="color:var(--text4)">0.00</span></span>';
   var n = parseFloat(v);
-  if (isNaN(n)) return '<td><span class="q-cell-num">' + v + '</span></td>';
+  if (isNaN(n)) return '<span class="q-col-ad"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<td><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></td>';
+  return '<span class="q-col-ad"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
 }
 
-// 进球 tab 单元格
-function tdGoalCell(item, key, digits) {
+// ── 进球 tab 单元格 (统一 toFixed(2)) ──
+function renderGoalCell(item, key) {
   var v = item[key];
   if (v === '-' || v === undefined || v === null) {
-    return '<td><span class="q-cell-num" style="color:var(--text4)">-</span></td>';
+    return '<span class="q-col-' + keyToCls(key) + '"><span class="q-cell-num" style="color:var(--text4)">-</span></span>';
   }
   var n = parseFloat(v);
-  if (isNaN(n)) return '<td><span class="q-cell-num">' + v + '</span></td>';
+  if (isNaN(n)) return '<span class="q-col-' + keyToCls(key) + '"><span class="q-cell-num">' + v + '</span></span>';
   var formatted;
   if (key === 'bigBallRatio') {
-    formatted = n.toFixed(digits) + '%';
+    formatted = n.toFixed(2) + '%';
   } else {
-    formatted = (n >= 0 ? '+' : '') + n.toFixed(digits);
+    formatted = (n >= 0 ? '+' : '') + n.toFixed(2);
   }
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<td><span class="q-cell-num ' + cls + '">' + formatted + '</span></td>';
+  return '<span class="q-col-' + keyToCls(key) + '"><span class="q-cell-num ' + cls + '">' + formatted + '</span></span>';
 }
 
-// 热点 tab 单元格
-function tdHotCell(item, key) {
+function keyToCls(key) {
+  var m = { totalSum: 'sum', bigBallRatio: 'big', attDefGoal: 'ag', strengthGoal: 'sg', headToHeadGoal: 'hg', breakArmor: 'ba' };
+  return m[key] || 'sum';
+}
+
+// ── 热点 tab 单元格 (去图标) ──
+function renderHotCell(item, key) {
   var v = item[key];
   if (v === '-' || v === undefined || v === null) {
-    return '<td><span class="q-cell-num" style="color:var(--text4);font-size:10px">数据接入中</span></td>';
+    return '<span class="q-col-' + hotKeyToCls(key) + '"><span class="q-cell-num" style="color:var(--text4);font-size:10px">数据接入中</span></span>';
   }
   if (key === 'heatIndex') {
-    // 后端可能返回格式化字符串 "1.35 🔥" 或纯数字
-    if (typeof v === 'string' && v.indexOf('🔥') !== -1) {
-      return '<td><span class="q-cell-num neg">' + v + '</span></td>';
-    }
-    if (typeof v === 'string' && v.indexOf('🧊') !== -1) {
-      return '<td><span class="q-cell-num cool">' + v + '</span></td>';
-    }
-    var n = parseFloat(v);
-    if (isNaN(n)) return '<td><span class="q-cell-num">' + v + '</span></td>';
-    var icon = n > 1.2 ? ' 🔥' : n < 0.8 ? ' 🧊' : ' 🎯';
-    var cls = n > 1.2 ? 'neg' : n < 0.8 ? 'cool' : 'pos';
-    return '<td><span class="q-cell-num ' + cls + '">' + n.toFixed(2) + icon + '</span></td>';
+    // 去掉后端可能附加的图标，只取数值
+    var cleaned = String(v).replace(/[^\d.]/g, '');
+    var n = parseFloat(cleaned);
+    if (isNaN(n)) return '<span class="q-col-heat"><span class="q-cell-num">' + v + '</span></span>';
+    var cls = n > 1.20 ? 'neg' : n < 0.80 ? 'cool' : 'pos';
+    return '<span class="q-col-heat"><span class="q-cell-num ' + cls + '">' + n.toFixed(2) + '</span></span>';
   }
+  if (key === 'staticDiff') {
+    var n = parseFloat(v);
+    if (isNaN(n)) return '<span class="q-col-sd"><span class="q-cell-num">' + v + '</span></span>';
+    var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
+    return '<span class="q-col-sd"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
+  }
+  if (key === 'hotFocusNum') {
+    var n = parseFloat(v);
+    if (isNaN(n)) return '<span class="q-col-hot"><span class="q-cell-num">' + v + '</span></span>';
+    var formatted = n > 10000 ? (n / 10000).toFixed(2) + '万' : n.toFixed(0);
+    return '<span class="q-col-hot"><span class="q-cell-num">' + formatted + '</span></span>';
+  }
+  // rq, homeFeature, guestFeature, oddsLive
   var n = parseFloat(v);
-  if (isNaN(n)) return '<td><span class="q-cell-num">' + v + '</span></td>';
-  if (key === 'hotFocusNum' && n > 1000) v = (n / 10000).toFixed(1) + '万';
-  if (key === 'staticDiff') { var clsSD = n > 0 ? 'pos' : n < 0 ? 'neg' : ''; return '<td><span class="q-cell-num ' + clsSD + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></td>'; }
-  return '<td><span class="q-cell-num">' + v + '</span></td>';
+  if (isNaN(n)) return '<span class="q-col-' + hotKeyToCls(key) + '"><span class="q-cell-num">' + v + '</span></span>';
+  return '<span class="q-col-' + hotKeyToCls(key) + '"><span class="q-cell-num">' + n.toFixed(2) + '</span></span>';
 }
 
+function hotKeyToCls(key) {
+  var m = { rq: 'rq', hotFocusNum: 'hot', heatIndex: 'heat', homeFeature: 'hf', guestFeature: 'gf', staticDiff: 'sd', oddsLive: 'ol' };
+  return m[key] || 'ol';
+}
+
+// ── 排序值提取 ──
 function getSortVal(item, key) {
   switch (key) {
-    // 实力
     case 'rank':       return item.rank || 99;
     case 'goalDiff':   var p = String(item.goalDiff).split('/'); var n = parseFloat(p[0]); return isNaN(n) ? 0 : n;
     case 'cross':      return parseFloat(item.crossValue) || 0;
     case 'power':      return item.totalAdvantageValue || 0;
     case 'ad':         return parseFloat(item.adCombined) || 0;
-    // 进球
     case 'totalSum':       return parseFloat(item.totalSum) || 0;
     case 'bigBallRatio':   return parseFloat(item.bigBallRatio) || 0;
     case 'attDefGoal':     return parseFloat(item.attDefGoal) || 0;
     case 'strengthGoal':   return parseFloat(item.strengthGoal) || 0;
     case 'headToHeadGoal': return parseFloat(item.headToHeadGoal) || 0;
     case 'breakArmor':     return parseFloat(item.breakArmor) || 0;
-    // 热点
     case 'hotFocusNum': return parseFloat(item.hotFocusNum) || 0;
     case 'heatIndex':
-      // 后端可能返回 "1.35 🔥" 格式，提取数值
       var hv = String(item.heatIndex).replace(/[^\d.]/g, '');
       return parseFloat(hv) || 0;
     case 'staticDiff':  return parseFloat(item.staticDiff) || 0;
