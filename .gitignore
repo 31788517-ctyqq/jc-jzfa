@@ -6,3 +6,17 @@ server/midou_data.db-wal
 *.log
 $null
 nul)
+
+# ── 运行时数据文件（由爬虫/同步进程生成，不应被 git 覆盖） ──
+server/data.json
+server/live_scores.json
+server/trends.json
+server/gongshoudao/cache.json
+server/jczq_change_cache.json
+server/odds_history/
+server/shuju_data/
+server/shuju_map_*.json
+server/ai_cache.json
+server/ai_timing.json
+server/logs/
+server/midou_data.db-journal
