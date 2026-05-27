@@ -1862,75 +1862,58 @@ body {
   color: var(--cyan); font-weight: 600;
 }
 /* 表格容器 */
-.quant-table-wrap {
-  margin: 0 12px; padding-bottom: 80px;
-}
-.quant-table {
-  width: 100%; border-collapse: collapse; table-layout: fixed;
-}
+.quant-table-wrap { margin: 0 8px; padding-bottom: 80px; }
+.quant-table { width: 100%; border-collapse: collapse; }
 .quant-table thead th {
   font-size: 10px; color: var(--text3); font-weight: 500;
-  padding: 10px 4px 8px; text-align: center;
-  border-bottom: 1px solid rgba(24,224,224,0.08);
+  padding: 8px 4px; text-align: center; border-bottom: 1px solid rgba(24,224,224,0.06);
   white-space: nowrap;
 }
 .quant-table thead th.sortable { cursor: pointer; user-select: none; }
-.quant-table thead th.sortable:hover { color: var(--cyan); }
-.quant-table thead th.sort-asc::after { content:' ▲'; color:var(--cyan); font-size:8px; }
-.quant-table thead th.sort-desc::after { content:' ▼'; color:var(--cyan); font-size:8px; }
+.quant-table thead th.sort-asc::after { content:' ▲'; color:var(--cyan); font-size:7px; }
+.quant-table thead th.sort-desc::after { content:' ▼'; color:var(--cyan); font-size:7px; }
 .quant-table tbody td {
-  padding: 12px 4px; text-align: center; font-size: 12px;
-  border-bottom: 1px solid rgba(24,224,224,0.04);
-  vertical-align: middle;
+  padding: 10px 4px; text-align: center; font-size: 12px;
+  border-bottom: 1px solid rgba(24,224,224,0.03); vertical-align: middle;
 }
-.quant-table tbody tr { transition: background 0.15s; }
-.quant-table tbody tr:hover { background: rgba(24,224,224,0.03); }
-.quant-table tbody tr.picked { background: rgba(24,224,224,0.06); }
-/* 列宽 */
-.th-chk   { width: 32px; }
-.th-match { width: auto; text-align: left !important; padding-left: 8px !important; }
-.th-rank  { width: 50px; }
-.th-gd    { width: 48px; }
-.th-cross { width: 52px; }
-.th-power { width: 48px; }
-.th-ad    { width: 48px; }
-/* 复选框 */
-.q-chk { width: 18px; height: 18px; accent-color: var(--cyan); cursor: pointer; }
-/* 对阵信息 */
+.quant-table tbody tr.picked { background: rgba(24,224,224,0.05); }
+.th-chk   { width: 28px; }
+.th-match { width: auto; text-align: left !important; padding-left: 6px !important; }
+.th-rank  { width: 40px; }
+.th-gd    { width: 58px; }
+.th-cross { width: 62px; }
+.th-power { width: 50px; }
+.th-ad    { width: 56px; }
+.q-chk { width: 16px; height: 16px; accent-color: var(--cyan); cursor: pointer; }
 .q-match-cell { text-align: left; }
 .q-match-num { font-size: 9px; color: var(--text3); }
-.q-match-teams { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
-.q-match-league { font-size: 9px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
-/* 排名色号 */
+.q-match-teams { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; }
 .q-cell-rank { font-weight: 700; }
 .q-cell-rank.r1 { color: #FFD700; }
 .q-cell-rank.r2 { color: #C0C0C0; }
 .q-cell-rank.r3 { color: #CD7F32; }
-/* 数据单元格 */
-.q-cell-num { font-weight: 600; }
+.q-cell-num { font-weight: 500; }
 .q-cell-num.pos { color: #22c55e; }
 .q-cell-num.neg { color: var(--red); }
-.q-cell-num.zero { color: var(--text3); }
 /* 底部PK栏 */
 .quant-pk-bar {
   position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
   width: calc(100% - 24px); max-width: 396px;
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 16px; border-radius: 16px;
-  background: linear-gradient(135deg, rgba(16, 24, 36, 0.95), rgba(8, 16, 28, 0.98));
+  background: linear-gradient(135deg, rgba(16,24,36,0.95), rgba(8,16,28,0.98));
   border: 1px solid rgba(24,224,224,0.15);
   backdrop-filter: blur(12px); z-index: 100;
 }
-.pk-bar-hint { font-size: 12px; color: var(--text2); }
-.pk-bar-hint b { color: var(--cyan); font-size: 14px; }
+.pk-bar-hint { font-size: 13px; color: var(--text2); }
+.pk-bar-hint b { color: var(--cyan); font-size: 15px; }
 .pk-bar-btn {
-  padding: 8px 20px; border-radius: 20px; border: none;
+  padding: 8px 22px; border-radius: 20px; border: none;
   background: linear-gradient(135deg, #22c55e, #16a34a);
-  color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
-  transition: all 0.2s;
+  color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
 }
-.pk-bar-btn:active { transform: scale(0.95); opacity: 0.9; }
-.pk-bar-btn:disabled { background: rgba(255,255,255,0.08); color: var(--text3); cursor: default; }
+.pk-bar-btn:active { transform: scale(0.95); }
+.pk-bar-btn:disabled { background: rgba(255,255,255,0.08); color: var(--text3); }
 
 /* ═══ 场次PK弹窗 ═══ */
 .pk-overlay {
@@ -2390,6 +2373,6 @@ body {
 </div>
 
 
-<script type="module" src="/js/main.js?v=61"></script>
+<script type="module" src="/js/main.js?v=62"></script>
 </body>
 </html>
