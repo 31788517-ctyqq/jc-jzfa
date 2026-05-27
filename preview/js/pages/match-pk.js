@@ -169,8 +169,7 @@ function tdPctNum(val, sum) {
   var pct = sum > 0 ? Math.round(d / sum * 100) : 0;
   var label = val >= 0 ? '+' + d.toFixed(1) : d.toFixed(1);
   var cls = val >= 0 ? 'pk2-pct-pos' : 'pk2-pct-neg';
-  return '<td class="pk2-td-num"><div class="pk2-pct-bar-wrap"><div class="pk2-pct-bar ' + cls + '" style="width:' + pct + '%"></div></div>' +
-    '<span class="' + cls + '">' + label + '<br>' + pct + '%</span></td>';
+  return '<td class="pk2-td-num"><span class="' + cls + '">' + pct + '%</span></td>';
 }
 
 // ═══ PK结果卡片 ═══
@@ -355,14 +354,13 @@ function renderPowerDuel(a, b) {
     '</div></div>';
 }
 
-// 带进度条的百分比单元格
+// 百分比单元格（无进度条）
 function tdPctBar(val, sum) {
   var absV = Math.abs(val);
   var pct = sum > 0 ? Math.round(absV / sum * 100) : 0;
   var sign = val >= 0 ? '+' : '';
   var cls = val >= 0 ? 'pk2-pct-pos' : 'pk2-pct-neg';
-  return '<td class="pk2-td-num"><div class="pk2-pct-bar-wrap"><div class="pk2-pct-bar ' + cls + '" style="width:' + pct + '%"></div></div>' +
-    '<span class="' + cls + '">' + sign + absV.toFixed(2) + '<br>' + pct + '%</span></td>';
+  return '<td class="pk2-td-num"><span class="' + cls + '">' + pct + '%</span></td>';
 }
 
 // ═══ 热度维度PK ═══
