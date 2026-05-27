@@ -17,7 +17,7 @@ const API_BASE = 'https://m.100qiu.com';
 // 生产环境（同一台服务器）使用本地直连，绕过公网 HTTPS
 // 设置环境变量 GONGSHOUDAO_LOCAL=true 启用
 const USE_LOCAL = process.env.GONGSHOUDAO_LOCAL === 'true';
-const LOCAL_API = 'http://127.0.0.1:8080'; // Java 后端默认端口
+const LOCAL_API = 'http://127.0.0.1:19880'; // Java 后端 API 端口
 const STATS_BANK_PATH = path.join(__dirname, '..', 'stats_bank.json');
 
 // ==================== dateTime 编码 ====================

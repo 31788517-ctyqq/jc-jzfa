@@ -10,7 +10,7 @@ const fs = require('fs');
 const jczqYz = require('./jczqYz_fetcher');
 
 const LOCAL_HOST = '127.0.0.1';
-const LOCAL_PORT = 8080;
+const LOCAL_PORT = 19880;
 const CACHE_PATH = path.join(__dirname, 'jczq_change_cache.json');
 const BATCH_SIZE = 6;  // 并发数
 

@@ -10,7 +10,7 @@
 const http = require('http');
 
 const LOCAL_HOST = '127.0.0.1';
-const LOCAL_PORT = 8080;
+const LOCAL_PORT = 19880;
 
 // ── HTTP 请求 ──
 
