@@ -1268,6 +1268,42 @@ app.post('/api', async (req, res) => {
         } catch (e) { return res.json({ code: 0, msg: '查询失败: ' + e.message }); }
       }
       // ========== 量化热度数据 ==========
+      case 'gongshoudao-all': {
+        // 批量获取所有比赛的功守道数据（一次请求替代 N 次单场 gongshoudao 调用）
+        const requestDate = data.date || latestDataDate();
+        try {
+          const fs = require('fs');
+          const path = require('path');
+
+          // 读取功守道全局缓存
+          const gsCachePath = path.join(__dirname, 'gongshoudao', 'cache.json');
+          let gsAll = {};
+          try {
+            if (fs.existsSync(gsCachePath)) {
+              gsAll = JSON.parse(fs.readFileSync(gsCachePath, 'utf8'))['_global'] || {};
+            }
+          } catch (e) {}
+
+          // 读取 data.json 筛选当天比赛，按 matchId 返回缓存数据
+          const dataFile = getDataJson();
+          const mMap = dataFile.m || {};
+
+          const result = {};
+          Object.keys(mMap).forEach(function (k) {
+            const m = mMap[k];
+            if (!m || !m.date || m.date.slice(0, 10) !== requestDate) return;
+            const mid = m.matchId || k.replace(/^m_/, '');
+            // 兼容多种缓存 key 格式（含/不含 m_ 前缀）
+            result[mid] = gsAll[k] || gsAll['m_' + mid] || gsAll[mid] || null;
+          });
+
+          return res.json({ code: 1, data: { date: requestDate, gsData: result } });
+        } catch (e) {
+          return res.json({ code: 0, msg: '功守道批量获取失败: ' + e.message });
+        }
+      }
+
+      // ========== 量化热度数据 ==========
       case 'quant-hot': {
         const requestDate = data.date || latestDataDate();
         try {

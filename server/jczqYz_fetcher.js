@@ -1,19 +1,30 @@
 /**
  * JczqYz 亚指临盘 + 关注热度数据获取
  *
- * 调用 m.100qiu.com/api/JczqYz 获取：
+ * 调用 m.100qiu.com/api/JczqYz（本地直连 127.0.0.1:8080）
+ * 获取：
  *   - hotFocusNum  (关注热度人数)
  *   - hotWinRate / hotLoseRate (主客胜支持率)
  *   - lastPan + asiaLastAvgWinOdd + asiaLastAvgLoseOdd → oddsLive (亚指临盘)
  */
-const https = require('https');
+const http = require('http');
+
+const LOCAL_HOST = '127.0.0.1';
+const LOCAL_PORT = 8080;
 
 // ── HTTP 请求 ──
 
-function fetchJSON(url, timeoutMs) {
+function fetchJSON(path, timeoutMs) {
   timeoutMs = timeoutMs || 8000;
   return new Promise(function (resolve) {
-    https.get(url, { rejectUnauthorized: false }, function (res) {
+    var opts = {
+      hostname: LOCAL_HOST,
+      port: LOCAL_PORT,
+      path: path,
+      method: 'GET',
+      headers: { 'Host': 'm.100qiu.com', 'Accept': 'application/json' }
+    };
+    http.get(opts, function (res) {
       var chunks = [];
       res.on('data', function (c) { chunks.push(c); });
       res.on('end', function () {
@@ -33,8 +44,8 @@ function fetchJSON(url, timeoutMs) {
  */
 async function fetchJczqYz(dateStr, number) {
   var dt = dateStr.replace(/-/g, '');    // "20260527"
-  var url = 'https://m.100qiu.com/api/JczqYz?dateTime=' + dt + '&number=' + number;
-  var resp = await fetchJSON(url);
+  var path = '/api/JczqYz?dateTime=' + dt + '&number=' + number;
+  var resp = await fetchJSON(path);
 
   if (!resp || !resp.data) return null;
 

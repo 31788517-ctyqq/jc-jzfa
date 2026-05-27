@@ -92,15 +92,15 @@ export function loadQuantRank() {
       wrap.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3)">暂无比赛数据</div>';
       return;
     }
-    var gsPromises = ranking.map(function (item) {
-      return api('gongshoudao', { matchId: item.matchId }).catch(function () { return null; });
-    });
-    // ⭐ 并行请求热度数据
+    // ⭐ 批量获取功守道 + 热度数据（2 次请求替代 N+1 次）
+    var gsAllPromise = api('gongshoudao-all', params).catch(function () { return {}; });
     var hotPromise = api('quant-hot', params).catch(function () { return null; });
-    Promise.all(gsPromises.concat([hotPromise])).then(function (results) {
-      var hotData = results[results.length - 1] || {};
+    Promise.all([gsAllPromise, hotPromise]).then(function (results) {
+      var gsAllData = results[0] || {};
+      var gsAllMap = gsAllData.gsData || {};
+      var hotData = results[1] || {};
       var hotMap = (hotData && hotData.hotData) ? hotData.hotData : {};
-      var gsResults = results.slice(0, -1);
+      var gsResults = ranking.map(function (item) { return gsAllMap[item.matchId] || {}; });
       allData = ranking.map(function (item, i) {
         var merged = mergeItem(item, gsResults[i] || {});
         // ⭐ 注入热度数据
