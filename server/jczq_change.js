@@ -266,6 +266,7 @@ async function computeHotData(dateStr, matchList) {
             }
           }
           if (needUpdate) {
+            cached._ts = new Date().toISOString();
             cache[dateKey][matchId] = cached;
           }
           results[matchId] = cached;
@@ -306,6 +307,7 @@ async function computeHotData(dateStr, matchList) {
         }
 
         var entry = {
+          _ts:          new Date().toISOString(),
           staticDiff: staticDiff,
           heatIndex:   heat.value,
           heatLevel:   heat.level,
