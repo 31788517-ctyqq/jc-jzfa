@@ -149,7 +149,7 @@ def batch_upload(sftp, ssh, file_list, dry_run=False):
     # 2) 构建批量 cp + md5 命令
     for local_path, remote_path, tmp_path in tmp_files:
         remote_dir = os.path.dirname(remote_path)
-        cp_cmds.append('mkdir -p {d} && cp -f {t} {p}'.format(
+        cp_cmds.append('mkdir -p {d} && chattr -i {p} 2>/dev/null; cp -f {t} {p}'.format(
             d=remote_dir, t=tmp_path, p=remote_path))
         verify_cmds.append('echo "##{}##" && md5sum {}'.format(
             os.path.basename(remote_path), remote_path))
