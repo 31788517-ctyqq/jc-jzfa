@@ -263,7 +263,9 @@ function renderTable() {
 
 function tdMatch(item) {
   return '<td class="q-match-cell">' +
-    '<div class="q-match-teams">' + esc(item.homeName) + ' vs ' + esc(item.visitName) + '</div>' +
+    '<div class="q-match-teams">' + esc(item.homeName) + '</div>' +
+    '<div class="q-match-vs">vs</div>' +
+    '<div class="q-match-teams">' + esc(item.visitName) + '</div>' +
     '</td>';
 }
 
