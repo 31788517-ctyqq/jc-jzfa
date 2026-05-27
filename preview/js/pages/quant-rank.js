@@ -292,7 +292,7 @@ function renderTable() {
   }
 
   // 构建卡片表格
-  h += '<div class="quant-card-list">';
+  var h = '<div class="quant-card-list">';
 
   // 表头
   h += '<div class="quant-card-header">';
