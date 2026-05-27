@@ -3,6 +3,7 @@ import { api } from '../api.js';
 function esc(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
+function shortTeam(name) { if (!name) return '--'; return name.slice(0, 2) + '..'; }
 
 /** 打开多场PK弹窗 */
 export function openPKMulti(pickedList, tab) {
@@ -147,7 +148,7 @@ function buildTableRow(item, idx, colSums, total) {
   var vals = calcRowValues(item);
   return '<tr class="pk2-row">' +
     '<td class="pk2-td-name"><span class="pk2-row-idx">' + idx + '</span>' +
-      '<span class="pk2-team-name">' + esc(item.homeName) + ' vs ' + esc(item.visitName) + '</span>' +
+      '<span class="pk2-team-name">' + esc(shortTeam(item.homeName)) + ' vs ' + esc(shortTeam(item.visitName)) + '</span>' +
       '<div class="pk2-team-num">' + esc(item.num) + '</div></td>' +
     '<td class="pk2-td-num"></td>' +
     tdPctNum(vals.bigBall, colSums.bigBall) +
@@ -198,27 +199,27 @@ function renderPKCard(a, b) {
         (result === 'a' ? '👑' : result === 'b' ? '' : '') + '</span>' +
       '<span class="pk2-result-label">' + dim.label + '</span>' +
       '<span class="pk2-result-values">' +
-        '<span class="' + (result === 'a' ? 'pk2-win' : '') + '">' + esc(a.homeName) + ' (' + formatVal(va, dim.fmt) + ')</span>' +
+        '<span class="' + (result === 'a' ? 'pk2-win' : '') + '">' + esc(shortTeam(a.homeName)) + ' (' + formatVal(va, dim.fmt) + ')</span>' +
         ' vs ' +
-        '<span class="' + (result === 'b' ? 'pk2-win' : '') + '">' + esc(b.homeName) + ' (' + formatVal(vb, dim.fmt) + ')</span>' +
+        '<span class="' + (result === 'b' ? 'pk2-win' : '') + '">' + esc(shortTeam(b.homeName)) + ' (' + formatVal(vb, dim.fmt) + ')</span>' +
       '</span>' +
       '<span class="pk2-result-arrow ' + (result === 'a' ? 'pk2-win' : result === 'b' ? 'pk2-lose' : '') + '">' +
-        (result === 'a' ? esc(a.homeName) + ' 胜' : result === 'b' ? esc(b.homeName) + ' 胜' : '平') +
+        (result === 'a' ? esc(shortTeam(a.homeName)) + ' 胜' : result === 'b' ? esc(shortTeam(b.homeName)) + ' 胜' : '平') +
       '</span>' +
     '</div>';
   }).join('');
 
   return '<div class="pk2-card">' +
     '<div class="pk2-card-head">' +
-      '<div class="pk2-card-team">' + esc(a.homeName) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(a.num) + '</span></div>' +
+      '<div class="pk2-card-team">' + esc(shortTeam(a.homeName)) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(a.num) + '</span></div>' +
       '<span class="pk2-card-vs">VS</span>' +
-      '<div class="pk2-card-team">' + esc(b.homeName) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(b.num) + '</span></div>' +
+      '<div class="pk2-card-team">' + esc(shortTeam(b.homeName)) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(b.num) + '</span></div>' +
     '</div>' +
     '<div class="pk2-card-body">' + rows + '</div>' +
     '<div class="pk2-card-summary">🏆 总PK：' +
-      '<b style="color:var(--cyan)">' + esc(a.homeName) + ' (' + aWins + '胜)</b> ' +
+      '<b style="color:var(--cyan)">' + esc(shortTeam(a.homeName)) + ' (' + aWins + '胜)</b> ' +
       (aWins > bWins ? '👑' : aWins === bWins ? '⚖️ 平局' : '') +
-      (bWins > aWins ? ' <b style="color:#f97316">' + esc(b.homeName) + ' (' + bWins + '胜)</b> 👑' : '') +
+      (bWins > aWins ? ' <b style="color:#f97316">' + esc(shortTeam(b.homeName)) + ' (' + bWins + '胜)</b> 👑' : '') +
     '</div></div>';
 }
 
@@ -270,7 +271,7 @@ function renderPKPower(modal, list) {
     var ad    = (item.attackAdvantageValue || 0) + (item.defenseAdvantageValue || 0) - 100;
     html += '<tr class="pk2-row">' +
       '<td class="pk2-td-name"><span class="pk2-row-idx">' + (i + 1) + '</span>' +
-        '<span class="pk2-team-name">' + esc(item.homeName) + ' vs ' + esc(item.visitName) + '</span>' +
+        '<span class="pk2-team-name">' + esc(shortTeam(item.homeName)) + ' vs ' + esc(shortTeam(item.visitName)) + '</span>' +
         '<div class="pk2-team-num">' + esc(item.num) + '</div></td>' +
       '<td class="pk2-td-num">' + (item.rank || '-') + '</td>' +
       tdPctBar(gd, colSums.gd) +
@@ -330,27 +331,27 @@ function renderPowerDuel(a, b) {
         (result === 'a' ? '👑' : '') + '</span>' +
       '<span class="pk2-result-label">' + d.label + '</span>' +
       '<span class="pk2-result-values">' +
-        '<span class="' + (result === 'a' ? 'pk2-win' : '') + '">' + esc(a.homeName) + ' (' + (typeof d.va === 'number' ? d.va.toFixed(2) : d.va) + ')</span>' +
+        '<span class="' + (result === 'a' ? 'pk2-win' : '') + '">' + esc(shortTeam(a.homeName)) + ' (' + (typeof d.va === 'number' ? d.va.toFixed(2) : d.va) + ')</span>' +
         ' vs ' +
-        '<span class="' + (result === 'b' ? 'pk2-win' : '') + '">' + esc(b.homeName) + ' (' + (typeof d.vb === 'number' ? d.vb.toFixed(2) : d.vb) + ')</span>' +
+        '<span class="' + (result === 'b' ? 'pk2-win' : '') + '">' + esc(shortTeam(b.homeName)) + ' (' + (typeof d.vb === 'number' ? d.vb.toFixed(2) : d.vb) + ')</span>' +
       '</span>' +
       '<span class="pk2-result-arrow ' + (result === 'a' ? 'pk2-win' : result === 'b' ? 'pk2-lose' : '') + '">' +
-        (result === 'a' ? esc(a.homeName) + ' 胜' : result === 'b' ? esc(b.homeName) + ' 胜' : '平') +
+        (result === 'a' ? esc(shortTeam(a.homeName)) + ' 胜' : result === 'b' ? esc(shortTeam(b.homeName)) + ' 胜' : '平') +
       '</span>' +
     '</div>';
   }).join('');
 
   return '<div class="pk2-card">' +
     '<div class="pk2-card-head">' +
-      '<div class="pk2-card-team">' + esc(a.homeName) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(a.num) + '</span></div>' +
+      '<div class="pk2-card-team">' + esc(shortTeam(a.homeName)) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(a.num) + '</span></div>' +
       '<span class="pk2-card-vs">VS</span>' +
-      '<div class="pk2-card-team">' + esc(b.homeName) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(b.num) + '</span></div>' +
+      '<div class="pk2-card-team">' + esc(shortTeam(b.homeName)) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(b.num) + '</span></div>' +
     '</div>' +
     '<div class="pk2-card-body">' + rows + '</div>' +
     '<div class="pk2-card-summary">🏆 总PK：' +
-      '<b style="color:var(--cyan)">' + esc(a.homeName) + ' (' + aWins + '胜)</b> ' +
+      '<b style="color:var(--cyan)">' + esc(shortTeam(a.homeName)) + ' (' + aWins + '胜)</b> ' +
       (aWins > bWins ? '👑' : aWins === bWins ? '⚖️ 平局' : '') +
-      (bWins > aWins ? ' <b style="color:#f97316">' + esc(b.homeName) + ' (' + bWins + '胜)</b> 👑' : '') +
+      (bWins > aWins ? ' <b style="color:#f97316">' + esc(shortTeam(b.homeName)) + ' (' + bWins + '胜)</b> 👑' : '') +
     '</div></div>';
 }
 
@@ -408,7 +409,7 @@ function renderPKHot(modal, list) {
     var odds = parseFloat(item.oddsLive) || 0;
     html += '<tr class="pk2-row">' +
       '<td class="pk2-td-name"><span class="pk2-row-idx">' + (i + 1) + '</span>' +
-        '<span class="pk2-team-name">' + esc(item.homeName) + ' vs ' + esc(item.visitName) + '</span>' +
+        '<span class="pk2-team-name">' + esc(shortTeam(item.homeName)) + ' vs ' + esc(shortTeam(item.visitName)) + '</span>' +
         '<div class="pk2-team-num">' + esc(item.num) + '</div></td>' +
       tdPctBar(hot,  colSums.hot) +
       tdPctBar(heat, colSums.heat) +
