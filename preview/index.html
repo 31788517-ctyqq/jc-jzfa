@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>竞彩推荐监控</title>
 <link rel="preconnect" href="https://zj.100qiu.com">
-<link rel="preload" href="/js/main.js?v=56" as="script" crossorigin="anonymous">
+<link rel="preload" href="/js/main.js?v=58" as="script" crossorigin="anonymous">
 <link rel="preload" href="/assets/worldcup/design-hero-banner.png" as="image" type="image/png">
 <style>
 :root {
@@ -1817,9 +1817,10 @@ body {
 .gs-val-text { font-size: 13px; font-weight: 600; color: var(--cyan); }
 
 /* 比分卡片 */
-.gs-score-grid { display: flex; gap: 10px; }
+.gs-score-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .gs-score-card {
-  flex: 1; text-align: center; padding: 14px 8px;
+  flex: 0 0 calc(33.33% - 6px); min-width: 70px;
+  text-align: center; padding: 14px 4px;
   background: rgba(14,24,34,0.5); border: 1px solid rgba(255,255,255,0.05);
   border-radius: 10px;
 }
@@ -2160,6 +2161,6 @@ body {
 </div>
 
 
-<script type="module" src="/js/main.js?v=56"></script>
+<script type="module" src="/js/main.js?v=58"></script>
 </body>
 </html>

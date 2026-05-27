@@ -257,31 +257,26 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
 
   // 调用 API
   api('ai-predict', { matchId: matchId }).then(function (d) {
-    if (d.fromCache || (d.content && !d.pendingMerge)) {
-      // 缓存命中或完整合并结果 → 直接渲染
+    if (d.content) {
+      // 有内容就渲染（无论是否 partial、pendingMerge）
       stopWaitUI();
-      renderAIContent(d.content, homeTeam, awayTeam);
-    } else if (d.content && d.pendingMerge) {
-      // 部分结果（首个模型已完成，第二个生成中）→ 先渲染 + 继续等待合并
-      stopWaitUI();
-      var sourceTag = d.readySource === 'deepseek' ? 'DeepSeek' : (d.readySource === 'doubao' ? '豆包' : '');
-      renderAIContentWithBadge(d.content, homeTeam, awayTeam,
-        sourceTag + '已完成，另一模型交叉验证中...');
-      // 继续轮询合并版本（最多再等 20 次 × 2s）
-      var mergeRetry = 0;
-      (function pollMerge() {
-        mergeRetry++;
-        if (mergeRetry > 20) return; // 放弃，保持当前显示
-        setTimeout(function () {
-          api('ai-predict', { matchId: matchId }).then(function (rd) {
-            if (rd.content && !rd.pendingMerge) {
-              renderAIContent(rd.content, homeTeam, awayTeam);
-            } else {
-              pollMerge();
-            }
-          }).catch(function () { pollMerge(); });
-        }, 2000);
-      })();
+      if (d.pendingMerge) {
+        var st = d.readySource === 'deepseek' ? 'DeepSeek' : (d.readySource === 'doubao' ? '豆包' : '一方');
+        renderAIContentWithBadge(d.content, homeTeam, awayTeam,
+          st + '已完成，另一模型交叉验证中...');
+        // 继续等合并版
+        var mr = 0;
+        (function pm() { mr++; if (mr > 30) return;
+          setTimeout(function () {
+            api('ai-predict', { matchId: matchId }).then(function(r2) {
+              if (r2.content && !r2.pendingMerge) renderAIContent(r2.content, homeTeam, awayTeam);
+              else pm();
+            }).catch(function() { pm(); });
+          }, 2000);
+        })();
+      } else {
+        renderAIContent(d.content, homeTeam, awayTeam);
+      }
     } else if (d.pending) {
       // 两个模型都在生成中
       if (d.estimatedWait) estimatedTotalSec = Math.min(d.estimatedWait, 35);
@@ -302,18 +297,16 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
           if (rd.content) {
             stopWaitUI();
             if (rd.pendingMerge) {
-              var st = rd.readySource === 'deepseek' ? 'DeepSeek' : (rd.readySource === 'doubao' ? '豆包' : '');
+              var s2 = rd.readySource === 'deepseek' ? 'DeepSeek' : (rd.readySource === 'doubao' ? '豆包' : '一方');
               renderAIContentWithBadge(rd.content, homeTeam, awayTeam,
-                st + '已完成，另一模型交叉验证中...');
-              // 继续等合并版
+                s2 + '已完成，另一模型交叉验证中...');
               var mr2 = 0;
-              (function pm2() {
-                mr2++; if (mr2 > 20) return;
-                setTimeout(function () {
-                  api('ai-predict', { matchId: matchId }).then(function (r2) {
-                    if (r2.content && !r2.pendingMerge) renderAIContent(r2.content, homeTeam, awayTeam);
+              (function pm2() { mr2++; if (mr2 > 30) return;
+                setTimeout(function() {
+                  api('ai-predict', { matchId: matchId }).then(function(r3) {
+                    if (r3.content && !r3.pendingMerge) renderAIContent(r3.content, homeTeam, awayTeam);
                     else pm2();
-                  }).catch(function () { pm2(); });
+                  }).catch(function() { pm2(); });
                 }, 2000);
               })();
             } else {

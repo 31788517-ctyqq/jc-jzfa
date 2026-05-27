@@ -1,0 +1,22 @@
+{
+    "postman.settings.dotenv-detection-notification-visibility": false,
+    "claudeCode.environmentVariables": [
+        {
+            "name": "ANTHROPIC_BASE_URL",
+            "value": "https://api.deepseek.com/anthropic"
+        },
+        {
+            "name": "ANTHROPIC_AUTH_TOKEN",
+            "value": "[REDACTED_DEEPSEEK_KEY]"
+        },
+        {
+            "name": "ANTHROPIC_MODEL",
+            "value": "deepseek-v4-pro[1m]"
+        },
+        {
+            "name": "ANTHROPIC_SMALL_FAST_MODEL",
+            "value": "deepseek-v4-flash"
+        }
+    ],
+    "claudeCode.selectedModel": "deepseek-v4-pro[1m]"
+}
