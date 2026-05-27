@@ -1874,7 +1874,7 @@ body {
 .quant-table thead th.sort-asc::after { content:' ▲'; color:var(--cyan); font-size:7px; }
 .quant-table thead th.sort-desc::after { content:' ▼'; color:var(--cyan); font-size:7px; }
 .quant-table tbody td {
-  padding: 12px 6px; text-align: center; font-size: 13px;
+  padding: 12px 6px; text-align: center; font-size: 13px; color: var(--text2);
   border-bottom: 1px solid rgba(24,224,224,0.04); vertical-align: middle;
 }
 .quant-table tbody tr.picked { background: rgba(24,224,224,0.06); }
@@ -1899,13 +1899,10 @@ body {
 .th-gf    { width: 80px; }
 .th-sd    { width: 60px; }
 .th-ol    { width: 58px; }
-/* cold 热度关联色 */
-.q-cell-num.cool { color: #3498DB; }
 .q-chk { width: 18px; height: 18px; accent-color: var(--cyan); cursor: pointer; }
 .q-match-cell { text-align: left; }
-.q-match-num { font-size: 10px; color: var(--text3); margin-bottom: 2px; }
-.q-match-teams { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
-.q-cell-num { font-weight: 600; font-size: 13px; }
+.q-match-teams { font-size: 13px; font-weight: 600; color: var(--text2); white-space: nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
+.q-cell-num { font-weight: 600; font-size: 13px; color: var(--text2); }
 .q-cell-num.pos { color: #2ECC71; }
 .q-cell-num.neg { color: #E74C3C; }
 /* 底部PK栏 — 紧跟表格 */
