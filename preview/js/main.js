@@ -11,6 +11,8 @@ import { loadFilterLeagues, resetFilterResult, toggleDD, selectDD, getDDVal, onD
 import { loadIncome } from './pages/income.js';
 import { loadPlanList, updatePlanDateBar, shiftPlanDate, goPlanToday } from './pages/plans.js';
 import { showGongshoudao } from './pages/gongshoudao.js';
+import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker } from './pages/quant-rank.js';
+import { openPK, closePK } from './pages/match-pk.js';
 
 // ── 日期切换 ──
 export function updateDateBar() {
@@ -274,6 +276,7 @@ export function switchTab(tab) {
     match: '今日比赛',
     plan: '今日方案',
     detail: '比赛详情',
+    'quant-rank': '量化数据排行榜',
     rank: '推荐排行榜',
     hit: '命中率统计',
     filter: '命中率筛选',
@@ -305,6 +308,7 @@ export function switchTab(tab) {
     }, 300);
   }
   if (tab === 'plan') { updatePlanDateBar(); loadPlanList(); }
+  if (tab === 'quant-rank') { updateQuantDateBar(); loadQuantRank(); }
   if (tab === 'rank') { updateRankDateBar(); loadRanking(); }
   if (tab === 'hit') loadHitRate();
   if (tab === 'filter') { loadFilterLeagues(); resetFilterResult(); }
@@ -348,6 +352,11 @@ window.onRankTypeChange = onRankTypeChange;
 window.shiftPlanDate = shiftPlanDate;
 window.goPlanToday = goPlanToday;
 window.loadIncome = function (f) { loadIncome(f); };
+window.shiftQuantDate = shiftQuantDate;
+window.goQuantToday = goQuantToday;
+window.toggleQuantDatePicker = toggleQuantDatePicker;
+window.openPK = openPK;
+window.closePK = closePK;
 
 // ── 导航栏滚动隐藏 ──
 window.addEventListener('scroll', () => {

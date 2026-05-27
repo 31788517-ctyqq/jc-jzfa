@@ -1845,6 +1845,146 @@ body {
   border-color: rgba(24,224,224,0.45);
   box-shadow: 0 0 12px rgba(24,224,224,0.15);
 }
+
+/* ═══ 量化数据排行榜 ═══ */
+.quant-stats-row {
+  display: flex; align-items: center;
+  background: linear-gradient(135deg, rgba(24,224,224,0.06), rgba(99,102,241,0.04));
+  border: 1px solid rgba(24,224,224,0.12);
+  border-radius: 16px; padding: 16px 12px; margin: 0 16px 16px;
+}
+.quant-stat-item { flex: 1; text-align: center; }
+.quant-stat-num { font-size: 22px; font-weight: 800; color: var(--cyan); }
+.quant-stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.quant-stat-div { width: 1px; height: 32px; background: rgba(24,224,224,0.12); }
+.quant-list { display: flex; flex-direction: column; gap: 10px; padding: 0 16px 24px; }
+.quant-card {
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: var(--radius); padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  transition: all 0.2s; cursor: pointer;
+}
+.quant-card:active { transform: scale(0.98); }
+.quant-rank-num {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+  background: rgba(24,224,224,0.08); color: var(--cyan);
+}
+.quant-rank-num.top1 { background: linear-gradient(135deg,#FFD700,#FFA500); color: #1a1a2e; font-size: 16px; }
+.quant-rank-num.top2 { background: linear-gradient(135deg,#C0C0C0,#A8A8A8); color: #1a1a2e; }
+.quant-rank-num.top3 { background: linear-gradient(135deg,#CD7F32,#B87333); color: #fff; }
+.quant-body { flex: 1; min-width: 0; }
+.quant-match-info {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.quant-league-tag {
+  font-size: 10px; color: var(--text3); background: rgba(24,224,224,0.06);
+  padding: 2px 8px; border-radius: 10px; flex-shrink: 0; max-width: 80px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.quant-match-num {
+  font-size: 11px; color: var(--text3); flex-shrink: 0;
+}
+.quant-teams {
+  font-size: 14px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.quant-scores {
+  display: flex; gap: 16px; align-items: center;
+}
+.quant-score-item {
+  display: flex; flex-direction: column; align-items: center;
+}
+.quant-score-label {
+  font-size: 10px; color: var(--text3); margin-bottom: 2px;
+}
+.quant-score-val {
+  font-size: 15px; font-weight: 700; color: var(--cyan);
+}
+.quant-score-val.red { color: var(--red); }
+.quant-score-val.amber { color: var(--amber); }
+.quant-score-bar {
+  width: 4px; height: 28px; border-radius: 2px;
+  background: linear-gradient(180deg, var(--cyan), rgba(24,224,224,0.2));
+  margin: 0 4px;
+}
+.quant-score-bar.red { background: linear-gradient(180deg, var(--red), rgba(239,68,68,0.2)); }
+.quant-pk-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 12px; border-radius: 20px; flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(24,224,224,0.08));
+  border: 1px solid rgba(99,102,241,0.2);
+  color: #818cf8; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.quant-pk-btn:hover {
+  background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(24,224,224,0.14));
+  border-color: rgba(99,102,241,0.4);
+  box-shadow: 0 0 10px rgba(99,102,241,0.15);
+}
+.quant-gs-tag {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 10px; border-radius: 10px;
+  background: rgba(24,224,224,0.08); border: 1px solid rgba(24,224,224,0.15);
+  font-size: 10px; color: var(--cyan); margin-top: 6px;
+}
+
+/* ═══ 场次PK弹窗 ═══ */
+.pk-overlay {
+  display: none; position: fixed; inset: 0; z-index: 11000;
+  background: rgba(0,0,0,0.85);
+}
+.pk-overlay.active { display: flex; align-items: flex-end; justify-content: center; }
+.pk-modal {
+  width: 100%; max-width: 420px; max-height: 92vh;
+  background: linear-gradient(180deg, #0d1b28 0%, #091420 100%);
+  border-radius: 20px 20px 0 0; overflow-y: auto;
+  animation: pkSlideUp 0.28s ease;
+}
+@keyframes pkSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.pk-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 20px 14px; border-bottom: 1px solid rgba(24,224,224,0.08);
+}
+.pk-title {
+  font-size: 17px; font-weight: 700; color: var(--cyan);
+  display: flex; align-items: center; gap: 6px;
+}
+.pk-close { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.06); color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
+.pk-vs-zone { display: flex; align-items: center; padding: 20px 16px; gap: 8px; }
+.pk-team-box { flex: 1; text-align: center; }
+.pk-team-home, .pk-team-away {
+  font-size: 18px; font-weight: 700; color: var(--text);
+  padding: 12px 8px; border-radius: 12px;
+  background: rgba(24,224,224,0.04); border: 1px solid rgba(24,224,224,0.08);
+}
+.pk-vs { font-size: 22px; font-weight: 900; color: var(--cyan); flex-shrink: 0; }
+.pk-compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px 20px; }
+.pk-compare-row { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 60px 1fr; gap: 8px; align-items: center; }
+.pk-compare-label { grid-column: 1 / -1; font-size: 11px; color: var(--text3); text-align: center; margin-top: 8px; margin-bottom: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+.pk-compare-val { text-align: center; font-size: 14px; font-weight: 600; color: var(--text); }
+.pk-compare-bar-wrap { display: flex; align-items: center; gap: 6px; }
+.pk-compare-bar-bg { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.06); overflow: hidden; }
+.pk-compare-bar-fill { height: 100%; border-radius: 3px; }
+.pk-compare-bar-fill.home { background: linear-gradient(90deg, var(--cyan), #6366f1); }
+.pk-compare-bar-fill.away { background: linear-gradient(90deg, #f97316, var(--red)); float: right; }
+.pk-section-title {
+  font-size: 13px; font-weight: 700; color: var(--cyan);
+  padding: 12px 16px 8px; display: flex; align-items: center; gap: 6px;
+}
+.pk-recent-row { display: flex; gap: 8px; padding: 0 16px 16px; }
+.pk-recent-box { flex: 1; background: rgba(24,224,224,0.03); border-radius: 10px; padding: 10px; text-align: center; border: 1px solid rgba(24,224,224,0.06); }
+.pk-recent-name { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+.pk-recent-wdl { display: flex; justify-content: center; gap: 6px; }
+.pk-wdl-dot {
+  width: 22px; height: 22px; border-radius: 50%; font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; color: #fff;
+}
+.pk-wdl-dot.w { background: #22c55e; }
+.pk-wdl-dot.d { background: #eab308; }
+.pk-wdl-dot.l { background: #ef4444; }
+.pk-score-summary { font-size: 12px; color: var(--text2); margin-top: 6px; }
 </style>
 
 </head>
@@ -1878,6 +2018,14 @@ body {
       <div class="menu-content">
         <div class="menu-title">方案收入</div>
         <div class="menu-desc">查看方案盈利情况</div>
+      </div>
+      <div class="menu-arrow">›</div>
+    </div>
+    <div class="menu-item" onclick="switchTab('quant-rank')">
+      <div class="menu-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="14" y="32" width="8" height="18" fill="none" stroke="currentColor" stroke-width="4"/><rect x="28" y="24" width="8" height="26" fill="none" stroke="currentColor" stroke-width="4"/><rect x="42" y="16" width="8" height="34" fill="none" stroke="currentColor" stroke-width="4"/></svg></div>
+      <div class="menu-content">
+        <div class="menu-title">量化数据排行榜</div>
+        <div class="menu-desc">量化数据排行及场次数据PK</div>
       </div>
       <div class="menu-arrow">›</div>
     </div>
@@ -1969,6 +2117,48 @@ body {
     <div class="date-picker-grid" id="rankDateGrid"></div>
   </div>
   <div class="rank-list" id="rankList"></div>
+</div>
+
+<!-- 量化数据排行榜 -->
+<div class="page" id="page-quant-rank">
+  <div class="date-bar" id="quantDateBar">
+    <span class="date-arrow" onclick="shiftQuantDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+    <span class="date-current" id="quantDateCurrent" onclick="toggleQuantDatePicker()"></span>
+    <span class="date-arrow" onclick="shiftQuantDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+  </div>
+  <div class="date-picker" id="quantDatePicker" style="display:none">
+    <div class="date-picker-header">
+      <button class="date-picker-nav" id="quantDatePrev">&lt;</button>
+      <span class="date-picker-month" id="quantDateMonth">5月 2026</span>
+      <button class="date-picker-nav" id="quantDateNext">&gt;</button>
+    </div>
+    <div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+    <div class="date-picker-grid" id="quantDateGrid"></div>
+  </div>
+  <!-- 统计概览 -->
+  <div class="quant-stats-row" id="quantStatsRow">
+    <div class="quant-stat-item">
+      <div class="quant-stat-num" id="quantTotalMatches">-</div>
+      <div class="quant-stat-label">总场次</div>
+    </div>
+    <div class="quant-stat-div"></div>
+    <div class="quant-stat-item">
+      <div class="quant-stat-num" id="quantTaggedCount">-</div>
+      <div class="quant-stat-label">已量化</div>
+    </div>
+    <div class="quant-stat-div"></div>
+    <div class="quant-stat-item">
+      <div class="quant-stat-num" id="quantAvgScore">-</div>
+      <div class="quant-stat-label">均分</div>
+    </div>
+  </div>
+  <!-- 比赛列表 -->
+  <div class="quant-list" id="quantList"></div>
+</div>
+
+<!-- 场次PK弹窗 -->
+<div class="pk-overlay" id="pkOverlay" onclick="if(event.target===this)closePK()">
+  <div class="pk-modal" id="pkModal"></div>
 </div>
 
 <!-- 命中率 -->
@@ -2161,6 +2351,6 @@ body {
 </div>
 
 
-<script type="module" src="/js/main.js?v=58"></script>
+<script type="module" src="/js/main.js?v=59"></script>
 </body>
 </html>

@@ -312,6 +312,7 @@ function switchTab(tab) {
     match: '今日比赛',
     plan: '今日方案',
     detail: '比赛详情',
+    'quant-rank': '量化数据排行榜',
     rank: '推荐排行榜',
     hit: '命中率统计',
     filter: '命中率筛选',
@@ -343,6 +344,7 @@ function switchTab(tab) {
     }, 300);
   }
   if (tab === 'plan') { updatePlanDateBar(); loadPlanList(); }
+  if (tab === 'quant-rank') { updateQuantDateBar(); loadQuantRank(); }
   if (tab === 'rank') { updateRankDateBar(); loadRanking(); }
   if (tab === 'hit') loadHitRate();
   if (tab === 'filter') { loadFilterLeagues(); resetFilterResult(); }
