@@ -343,14 +343,48 @@ app.post('/api', async (req, res) => {
 
           // 读取功守道缓存，判断哪些比赛有统计数据
           let gsCacheMap = {};
+          const gsCachePath = path.join(__dirname, 'gongshoudao', 'cache.json');
           try {
-            const gsCachePath = path.join(__dirname, 'gongshoudao', 'cache.json');
             if (fs.existsSync(gsCachePath)) {
               const gsCache = JSON.parse(fs.readFileSync(gsCachePath, 'utf8'));
               gsCacheMap = gsCache['_global'] || {};
             }
           } catch (e) {
             // 功守道缓存不可用，所有比赛都不显示标签
+          }
+
+          // ⭐ 检测当前日期是否有未缓存的功守道比赛
+          let gsNeedCompute = false;
+          const allKeys = Object.keys(mMap);
+          for (let ki = 0; ki < allKeys.length; ki++) {
+            const k = allKeys[ki];
+            const m = mMap[k];
+            if (!m) continue;
+            const md = (m.date || '').slice(0, 10);
+            if (md !== dateStr) continue;
+            // 兼容缓存 key 带或不带 m_ 前缀
+            const cached = gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
+            if (!(cached && cached.attackPattern)) {
+              gsNeedCompute = true;
+              break;
+            }
+          }
+
+          // 如果有未缓存比赛，触发全量计算刷新缓存
+          if (gsNeedCompute) {
+            try {
+              const gsEngine = require('./gongshoudao/index');
+              logger.info('[gs] 检测到' + dateStr + '存在未缓存功守道数据, 触发计算...');
+              await gsEngine.refreshCache();
+              // 重新读取缓存
+              if (fs.existsSync(gsCachePath)) {
+                const refreshedCache = JSON.parse(fs.readFileSync(gsCachePath, 'utf8'));
+                gsCacheMap = refreshedCache['_global'] || {};
+              }
+              logger.info('[gs] 刷新完成, 缓存比赛数: ' + Object.keys(gsCacheMap).length);
+            } catch (e) {
+              logger.warn('[gs] 功守道增量计算失败: ' + e.message);
+            }
           }
 
           const list = [];
@@ -362,8 +396,9 @@ app.post('/api', async (req, res) => {
             // 补充单关标识
             const fiveOdds = oddsMap[m.num || ''];
             const isSingleGame = fiveOdds && fiveOdds.isSingleGame === true;
-            // 检查功守道数据是否可用
-            const hasGS = !!(gsCacheMap[k] && gsCacheMap[k].attackPattern);
+            // 检查功守道数据是否可用：兼容 m_ 前缀的 key 格式
+            const cachedGS = gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
+            const hasGS = !!(cachedGS && cachedGS.attackPattern);
             list.push(Object.assign({}, m, { isSingleGame: isSingleGame, hasGongshoudao: hasGS }));
           });
 
