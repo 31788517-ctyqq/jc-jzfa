@@ -1865,17 +1865,17 @@ body {
 .quant-table-wrap { margin: 0 8px; padding-bottom: 20px; }
 .quant-table { width: 100%; border-collapse: collapse; }
 .quant-table thead th {
-  font-size: 11px; color: var(--text2); font-weight: 600;
-  padding: 10px 6px 12px; text-align: center;
-  border-bottom: 1px solid rgba(24,224,224,0.1);
-  white-space: nowrap; letter-spacing: 0.5px;
+  font-size: 11px; color: #64748B; font-weight: 500;
+  padding: 12px 4px; text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  white-space: nowrap;
 }
 .quant-table thead th.sortable { cursor: pointer; user-select: none; }
 .quant-table thead th.sort-asc::after { content:' ▲'; color:var(--cyan); font-size:7px; }
 .quant-table thead th.sort-desc::after { content:' ▼'; color:var(--cyan); font-size:7px; }
 .quant-table tbody td {
-  padding: 12px 6px; text-align: center; font-size: 13px; color: var(--text2);
-  border-bottom: 1px solid rgba(24,224,224,0.04); vertical-align: middle;
+  padding: 14px 4px; text-align: center; font-size: 13px; color: var(--text2);
+  border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle;
 }
 .quant-table tbody tr.picked { background: rgba(24,224,224,0.06); }
 .th-chk   { width: 32px; }
@@ -1903,8 +1903,8 @@ body {
 .q-match-cell { text-align: left; }
 .q-match-teams { font-size: 13px; font-weight: 600; color: var(--text2); white-space: nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
 .q-cell-num { font-weight: 600; font-size: 13px; color: var(--text2); }
-.q-cell-num.pos { color: #2ECC71; }
-.q-cell-num.neg { color: #E74C3C; }
+.q-cell-num.pos { color: var(--cyan); }
+.q-cell-num.neg { color: var(--red); }
 /* 底部PK栏 — 紧跟表格 */
 .quant-pk-bar {
   margin: 8px 12px 100px;
@@ -2170,7 +2170,11 @@ body {
     <div class="quant-tab" data-tab="hot" onclick="switchQuantTab('hot')">热点排行榜</div>
   </div>
   <!-- 日期栏 -->
-  <div class="date-bar" id="quantDateBar"></div>
+  <div class="date-bar" id="quantDateBar">
+    <span class="date-arrow" onclick="shiftQuantDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+    <span class="date-current" id="quantDateCurrent" onclick="toggleQuantDatePicker()"></span>
+    <span class="date-arrow" onclick="shiftQuantDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+  </div>
   <!-- 表格容器 -->
   <div class="quant-table-wrap" id="quantTableWrap"></div>
   <!-- 底部PK操作栏 -->
