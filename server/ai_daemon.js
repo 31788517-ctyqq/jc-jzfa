@@ -20,6 +20,8 @@ try {
 }
 
 var deepseek = require('./deepseek');
+var doubao = require('./doubao');
+var aiMerger = require('./ai_merger');
 
 var LOG_FILE = path.join(__dirname, '..', 'logs', 'ai_daemon.log');
 
@@ -69,31 +71,45 @@ function getTodayMatches() {
 }
 
 /**
- * 保存 AI 分析结果
+ * 保存 AI 分析结果（双模型合并版本）
  */
-function savePrediction(matchId, matchInfo, deepseekResult) {
+function savePrediction(matchId, matchInfo, mergedResult, dsResult, dbResult) {
   if (useDB) {
     return database.upsertAIPrediction(matchId, {
       leagueName: matchInfo.leagueName,
       homeName: matchInfo.homeName,
       visitName: matchInfo.visitName,
       matchDate: matchInfo.date,
-      content: deepseekResult.content,
-      confidence: (deepseekResult.content && deepseekResult.content.confidence) || 0,
+      content: mergedResult.content || mergedResult,
+      confidence: mergedResult.confidence || (mergedResult.content && mergedResult.content.confidence) || 0,
       rawPrompt: JSON.stringify({ system: deepseek.buildSystemPrompt(), user: deepseek.buildUserPrompt(matchInfo) }),
-      rawResponse: deepseekResult.rawResponse || '',
-      tokenUsage: deepseekResult.tokenUsage || 0
+      rawResponse: (dsResult && dsResult.rawResponse) || '',
+      tokenUsage: (dsResult && dsResult.tokenUsage) || 0
     });
   }
-  // data.json fallback: 写在内存缓存中
+  // ai_cache.json 记录（新格式：含 sources）
   try {
     var aiFile = path.join(__dirname, 'ai_cache.json');
     var cache = {};
     if (fs.existsSync(aiFile)) cache = JSON.parse(fs.readFileSync(aiFile, 'utf8'));
+    var now = new Date().toISOString();
     cache[matchId] = {
-      content: deepseekResult.content,
-      confidence: (deepseekResult.content && deepseekResult.content.confidence) || 0,
-      updatedAt: new Date().toISOString()
+      content: mergedResult.content || mergedResult,
+      confidence: mergedResult.confidence || (mergedResult.content && mergedResult.content.confidence) || 0,
+      updatedAt: now,
+      merged: !!(dsResult && dbResult),
+      sources: {
+        deepseek: dsResult ? {
+          content: dsResult.content || null,
+          confidence: (dsResult.content && dsResult.content.confidence) || 70,
+          generatedAt: now
+        } : null,
+        doubao: dbResult ? {
+          content: dbResult.content || null,
+          confidence: (dbResult.content && dbResult.content.confidence) || 70,
+          generatedAt: now
+        } : null
+      }
     };
     fs.writeFileSync(aiFile, JSON.stringify(cache));
     return true;
@@ -103,22 +119,53 @@ function savePrediction(matchId, matchInfo, deepseekResult) {
 }
 
 /**
- * 处理单场比赛
+ * 处理单场比赛（双模型并行 + 合并）
  */
 function processMatch(match) {
   log('处理比赛: ' + match.homeName + ' vs ' + match.visitName + ' (' + match.matchId + ')');
 
-  return deepseek.generateAnalysis(match).then(function (result) {
-    if (!result.content) {
-      log('跳过 ' + match.matchId + ': 解析失败 - ' + (result.parseError || ''));
-      return { matchId: match.matchId, success: false, error: result.parseError || '解析失败' };
+  return Promise.all([
+    deepseek.generateAnalysis(match).then(function (r) {
+      return { source: 'deepseek', content: r.content, confidence: (r.content && r.content.confidence) || 70, rawResponse: r.rawResponse, tokenUsage: r.tokenUsage, parseError: r.parseError };
+    }).catch(function (err) {
+      log('DeepSeek 失败 ' + match.matchId + ': ' + err.message);
+      return { source: 'deepseek', error: err.message };
+    }),
+    doubao.generateAnalysis(match).then(function (r) {
+      return { source: 'doubao', content: r.content, confidence: (r.content && r.content.confidence) || 70, rawResponse: r.rawResponse, tokenUsage: r.tokenUsage, parseError: r.parseError };
+    }).catch(function (err) {
+      log('豆包 失败 ' + match.matchId + ': ' + err.message);
+      return { source: 'doubao', error: err.message };
+    })
+  ]).then(function (results) {
+    var dsResult = results[0];
+    var dbResult = results[1];
+
+    if (dsResult.content && dbResult.content) {
+      // 双模型成功 → 合并
+      var merged = aiMerger.mergeAnalyses(
+        { content: dsResult.content, confidence: dsResult.confidence },
+        { content: dbResult.content, confidence: dbResult.confidence },
+        match
+      );
+      savePrediction(match.matchId, match, merged, dsResult, dbResult);
+      log('完成 ' + match.matchId + ': 双模型合并 confidence=' + merged.confidence);
+      return { matchId: match.matchId, success: true, merged: true };
+    } else if (dsResult.content) {
+      // 仅 DeepSeek 成功
+      savePrediction(match.matchId, match, dsResult, dsResult, null);
+      log('完成 ' + match.matchId + ': 仅 DeepSeek (豆包失败)');
+      return { matchId: match.matchId, success: true, merged: false, partial: true };
+    } else if (dbResult.content) {
+      // 仅豆包成功
+      savePrediction(match.matchId, match, dbResult, null, dbResult);
+      log('完成 ' + match.matchId + ': 仅豆包 (DeepSeek失败)');
+      return { matchId: match.matchId, success: true, merged: false, partial: true };
+    } else {
+      // 都失败
+      log('双失败 ' + match.matchId + ': DS=' + (dsResult.error || '') + ', DB=' + (dbResult.error || ''));
+      return { matchId: match.matchId, success: false, error: '双模型均失败' };
     }
-    savePrediction(match.matchId, match, result);
-    log('完成 ' + match.matchId + ': confidence=' + (result.content.confidence || '?'));
-    return { matchId: match.matchId, success: true };
-  }).catch(function (err) {
-    log('失败 ' + match.matchId + ': ' + err.message);
-    return { matchId: match.matchId, success: false, error: err.message };
   });
 }
 
