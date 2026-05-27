@@ -370,21 +370,15 @@ app.post('/api', async (req, res) => {
             }
           }
 
-          // 如果有未缓存比赛，触发全量计算刷新缓存
+          // 如果有未缓存比赛，后台异步触发计算（不阻塞响应）
           if (gsNeedCompute) {
-            try {
-              const gsEngine = require('./gongshoudao/index');
-              logger.info('[gs] 检测到' + dateStr + '存在未缓存功守道数据, 触发计算...');
-              await gsEngine.refreshCache();
-              // 重新读取缓存
-              if (fs.existsSync(gsCachePath)) {
-                const refreshedCache = JSON.parse(fs.readFileSync(gsCachePath, 'utf8'));
-                gsCacheMap = refreshedCache['_global'] || {};
-              }
-              logger.info('[gs] 刷新完成, 缓存比赛数: ' + Object.keys(gsCacheMap).length);
-            } catch (e) {
-              logger.warn('[gs] 功守道增量计算失败: ' + e.message);
-            }
+            const gsEngine = require('./gongshoudao/index');
+            logger.info('[gs] 检测到' + dateStr + '存在未缓存功守道数据, 后台异步计算...');
+            gsEngine.refreshCache().then(() => {
+              logger.info('[gs] 后台计算完成');
+            }).catch(e => {
+              logger.warn('[gs] 后台计算失败: ' + e.message);
+            });
           }
 
           const list = [];
