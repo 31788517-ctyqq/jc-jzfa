@@ -1,14 +1,16 @@
 /**
  * JczqChange 欧指倾向数据获取 + 冷热指数计算
  *
- * 调用 m.100qiu.com/api/JczqChange 获取投注比例和欧指概率
+ * 调用 m.100qiu.com/api/JczqChange + JczqBasic（本地直连 127.0.0.1:8080）
  * 按产品文档公式计算冷热指数 / 主客队特征
  */
-const https = require('https');
+const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const jczqYz = require('./jczqYz_fetcher');
 
+const LOCAL_HOST = '127.0.0.1';
+const LOCAL_PORT = 8080;
 const CACHE_PATH = path.join(__dirname, 'jczq_change_cache.json');
 const BATCH_SIZE = 6;  // 并发数
 
@@ -26,10 +28,17 @@ function writeCache(data) {
 
 // ── HTTP 请求 ──
 
-function fetchJSON(url, timeoutMs) {
+function fetchJSON(apiPath, timeoutMs) {
   timeoutMs = timeoutMs || 8000;
   return new Promise(function (resolve) {
-    https.get(url, { rejectUnauthorized: false }, function (res) {
+    var opts = {
+      hostname: LOCAL_HOST,
+      port: LOCAL_PORT,
+      path: apiPath,
+      method: 'GET',
+      headers: { 'Host': 'm.100qiu.com', 'Accept': 'application/json' }
+    };
+    http.get(opts, function (res) {
       var chunks = [];
       res.on('data', function (c) { chunks.push(c); });
       res.on('end', function () {
@@ -49,8 +58,8 @@ function fetchJSON(url, timeoutMs) {
  */
 async function fetchJczqChange(dateStr, number) {
   var dt = dateStr.replace(/-/g, '');    // "20260526"
-  var url = 'https://m.100qiu.com/api/JczqChange?dateTime=' + dt + '&number=' + number;
-  var resp = await fetchJSON(url);
+  var apiPath = '/api/JczqChange?dateTime=' + dt + '&number=' + number;
+  var resp = await fetchJSON(apiPath);
   return (resp && resp.data) ? resp.data : null;
 }
 
@@ -62,8 +71,8 @@ async function fetchJczqChange(dateStr, number) {
  */
 async function fetchJczqBasic(dateStr, number) {
   var dt = dateStr.replace(/-/g, '');
-  var url = 'https://m.100qiu.com/api/JczqBasic?dateTime=' + dt + '&number=' + number;
-  var resp = await fetchJSON(url);
+  var apiPath = '/api/JczqBasic?dateTime=' + dt + '&number=' + number;
+  var resp = await fetchJSON(apiPath);
   return (resp && resp.data) ? resp.data : null;
 }
 
@@ -216,15 +225,38 @@ async function computeHotData(dateStr, matchList) {
 
         // 1) 先查缓存
         if (cache[dateKey][matchId]) {
-          results[matchId] = cache[dateKey][matchId];
+          var cached = cache[dateKey][matchId];
+          // 如果缓存中 Yz 数据缺失（之前请求失败），静默重试 Yz 补齐
+          if (cached.hotFocusNum === null || cached.hotFocusNum === undefined) {
+            var yzRetry = await jczqYz.fetchJczqYz(dateStr, number);
+            if (yzRetry) {
+              if (yzRetry.hotFocusNum !== null && yzRetry.hotFocusNum !== undefined) {
+                cached.hotFocusNum = yzRetry.hotFocusNum;
+              }
+              if (yzRetry.oddsLive !== null && yzRetry.oddsLive !== undefined) {
+                cached.oddsLive = yzRetry.oddsLive;
+              }
+              if ((cached.rq === undefined || cached.rq === null || cached.rq === 0) && yzRetry.rq) {
+                cached.rq = yzRetry.rq;
+              }
+              if ((cached.hotWinRate === undefined || cached.hotWinRate === null) && yzRetry.hotWinRate) {
+                cached.hotWinRate = yzRetry.hotWinRate;
+                cached.hotLoseRate = yzRetry.hotLoseRate;
+              }
+              cache[dateKey][matchId] = cached;
+            }
+          }
+          results[matchId] = cached;
           return;
         }
 
-        // 2) 获取 JczqChange
-        var cd = await fetchJczqChange(dateStr, number);
-
-        // 2.5) 获取 JczqYz（关注热度 + 亚指临盘）
-        var yz = await jczqYz.fetchJczqYz(dateStr, number);
+        // 2) 并行获取 JczqChange + JczqYz（减少串行等待）
+        var cdYz = await Promise.all([
+          fetchJczqChange(dateStr, number),
+          jczqYz.fetchJczqYz(dateStr, number)
+        ]);
+        var cd = cdYz[0];
+        var yz = cdYz[1];
         var hotFocusNum = yz ? yz.hotFocusNum : null;
         var oddsLive    = yz ? yz.oddsLive    : null;
         // 如果 Yz 有 rq 且传入的 matchList.rq 缺失，则用 Yz 的 rq
@@ -238,16 +270,16 @@ async function computeHotData(dateStr, matchList) {
         var homeFeat  = computeFeature(cd, 'home');
         var awayFeat  = computeFeature(cd, 'away');
 
-        // staticDiff
+        // staticDiff — 优先用功守道提供的实力数据，只在两者都缺失时才降级到 JczqBasic
         var staticDiff;
-        if (m.homePower !== undefined && m.guestPower !== undefined) {
+        if (m.homePower != null && m.guestPower != null) {
           staticDiff = computeStaticDiff(m.homePower, m.guestPower);
         } else {
-          // 降级：从 JczqBasic 取
+          // 降级：从 JczqBasic 取（功守道缓存未命中时才触发）
           var basic = await fetchJczqBasic(dateStr, number);
           staticDiff = computeStaticDiff(
-            basic ? basic.homePower : 50,
-            basic ? basic.guestPower : 50
+            (basic && basic.homePower != null) ? basic.homePower : 50,
+            (basic && basic.guestPower != null) ? basic.guestPower : 50
           );
         }
 
@@ -259,6 +291,8 @@ async function computeHotData(dateStr, matchList) {
           homeFeature: homeFeat,
           guestFeature: awayFeat,
           hotFocusNum: hotFocusNum,
+          hotWinRate:  yz ? yz.hotWinRate : null,
+          hotLoseRate: yz ? yz.hotLoseRate : null,
           oddsLive:    oddsLive,
           rq:          rq
         };
