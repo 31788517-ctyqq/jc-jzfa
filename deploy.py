@@ -275,15 +275,6 @@ def main():
                 sys.exit(0)
     print()
 
-    if not all_ok:
-        print(c('R', '⚠ 服务器环境检查未全部通过，请确认！'))
-        if dry_run:
-            print(c('Y', '  DRY RUN 模式继续...\n'))
-        else:
-            r = input('  是否继续部署？(y/N) ')
-            if r.lower() != 'y':
-                sys.exit(0)
-
     # ── Phase 1: 备份数据（fast/quick 跳过） ──
     if fast_mode or quick_mode:
         print(c('Y', '[Phase 1] 跳过备份'))
