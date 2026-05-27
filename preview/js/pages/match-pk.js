@@ -5,7 +5,7 @@ function esc(str) {
 }
 
 /** 打开多场PK弹窗 */
-export function openPKMulti(pickedList) {
+export function openPKMulti(pickedList, tab) {
   var overlay = document.getElementById('pkOverlay');
   if (!overlay || pickedList.length < 2) return;
   overlay.classList.add('active');
@@ -24,7 +24,10 @@ export function openPKMulti(pickedList) {
   });
 
   Promise.all(promises).then(function (fullList) {
-    renderPK(modal, fullList);
+    var t = tab || 'power';
+    if (t === 'power') renderPKPower(modal, fullList);
+    else if (t === 'goal') renderPKGoal(modal, fullList);
+    else renderPKHot(modal, fullList);
   });
 }
 
@@ -53,13 +56,13 @@ function buildGSFields(gs) {
   };
 }
 
-function renderPK(modal, list) {
+function renderPKGoal(modal, list) {
   var n = list.length;
 
   // ═══ 构建数据表 ═══
   var html =
     '<div class="pk2-header">' +
-      '<span class="pk2-title">⚔️ 场次PK对比</span>' +
+      '<span class="pk2-title">⚔️ 进球PK对比</span>' +
       '<span class="pk2-close" onclick="closePK()">✕</span>' +
     '</div>';
 
@@ -232,6 +235,199 @@ function formatVal(val, fmt) {
   if (fmt === 'cross') return (val >= 0 ? '胜+' : '负') + Math.abs(val).toFixed(0);
   if (fmt === 'armor') return Number(val).toFixed(0) + '点';
   return Number(val).toFixed(0);
+}
+
+// ═══ 实力维度PK ═══
+function renderPKPower(modal, list) {
+  var n = list.length;
+  var html =
+    '<div class="pk2-header">' +
+      '<span class="pk2-title">⚔️ 实力PK对比</span>' +
+      '<span class="pk2-close" onclick="closePK()">✕</span>' +
+    '</div>';
+
+  html += '<div class="pk2-section-label">实力维度指标对比</div>';
+  html += '<div class="pk2-table-wrap"><table class="pk2-table">';
+  html += '<thead><tr><th class="pk2-th-name">对阵</th>' +
+    '<th class="pk2-th-num">总排序</th>' +
+    '<th class="pk2-th-num">净胜球<br>占比</th>' +
+    '<th class="pk2-th-num">胜平负<br>占比</th>' +
+    '<th class="pk2-th-num">综合实力<br>占比</th>' +
+    '<th class="pk2-th-num">攻守实力<br>占比</th>' +
+    '</tr></thead><tbody>';
+
+  var colSums = { gd: 0, cross: 0, power: 0, ad: 0 };
+  list.forEach(function (item) {
+    colSums.gd    += Math.abs(parseFloat(String(item.goalDiff).split('/')[0]) || 0);
+    colSums.cross += Math.abs((item.crossWin || 0) - (item.crossLose || 0));
+    colSums.power += Math.abs((item.totalAdvantageValue || 0) - 50);
+    colSums.ad    += Math.abs((item.attackAdvantageValue || 0) + (item.defenseAdvantageValue || 0) - 100);
+  });
+
+  list.forEach(function (item, i) {
+    var gd    = parseFloat(String(item.goalDiff).split('/')[0]) || 0;
+    var cross = (item.crossWin || 0) - (item.crossLose || 0);
+    var power = (item.totalAdvantageValue || 0) - 50;
+    var ad    = (item.attackAdvantageValue || 0) + (item.defenseAdvantageValue || 0) - 100;
+    html += '<tr class="pk2-row">' +
+      '<td class="pk2-td-name"><span class="pk2-row-idx">' + (i + 1) + '</span>' +
+        '<span class="pk2-team-name">' + esc(item.homeName) + ' vs ' + esc(item.visitName) + '</span>' +
+        '<div class="pk2-team-num">' + esc(item.num) + '</div></td>' +
+      '<td class="pk2-td-num">' + (item.rank || '-') + '</td>' +
+      tdPctBar(gd, colSums.gd) +
+      tdPctBar(cross, colSums.cross) +
+      tdPctBar(power, colSums.power) +
+      tdPctBar(ad, colSums.ad) +
+      '</tr>';
+  });
+
+  html += '<tr class="pk2-row-total"><td class="pk2-td-name"><b>列合计</b></td>' +
+    '<td class="pk2-td-num"></td>' +
+    tdPct(colSums.gd, colSums.gd) +
+    tdPct(colSums.cross, colSums.cross) +
+    tdPct(colSums.power, colSums.power) +
+    tdPct(colSums.ad, colSums.ad) +
+    '</tr>';
+  html += '</tbody></table></div>';
+
+  html += '<div class="pk2-section-label">🏆 实力PK结果</div>';
+  html += renderPowerPKCard(list);
+  html += '<div class="pk2-footer"><button class="pk2-done-btn" onclick="closePK()">完成</button></div>';
+  modal.innerHTML = html;
+}
+
+function renderPowerPKCard(list) {
+  if (list.length === 2) return renderPowerDuel(list[0], list[1]);
+  var html = '';
+  for (var i = 0; i < list.length - 1; i++) {
+    for (var j = i + 1; j < list.length; j++) {
+      html += '<div style="font-size:10px;color:var(--text3);padding:8px 16px 2px">对决 ' + (i + 1) + ' vs ' + (j + 1) + '</div>';
+      html += renderPowerDuel(list[i], list[j]);
+    }
+  }
+  return html;
+}
+
+function renderPowerDuel(a, b) {
+  var dims = [
+    { label: '总排序PK',    va: a.rank || 99, vb: b.rank || 99, lowerWins: true },
+    { label: '净胜球PK',    va: parseFloat(String(a.goalDiff).split('/')[0]) || 0, vb: parseFloat(String(b.goalDiff).split('/')[0]) || 0 },
+    { label: '胜平负PK',    va: (a.crossWin || 0) - (a.crossLose || 0), vb: (b.crossWin || 0) - (b.crossLose || 0) },
+    { label: '综合实力PK',  va: a.totalAdvantageValue || 0, vb: b.totalAdvantageValue || 0 },
+    { label: '攻守实力PK',  va: (a.attackAdvantageValue || 0) + (a.defenseAdvantageValue || 0), vb: (b.attackAdvantageValue || 0) + (b.defenseAdvantageValue || 0) }
+  ];
+
+  var aWins = 0, bWins = 0;
+  var rows = dims.map(function (d) {
+    var result;
+    if (d.lowerWins) {
+      result = d.va < d.vb ? 'a' : d.vb < d.va ? 'b' : 'draw';
+    } else {
+      result = d.va > d.vb ? 'a' : d.vb > d.va ? 'b' : 'draw';
+    }
+    if (result === 'a') aWins++; else if (result === 'b') bWins++;
+    return '<div class="pk2-result-row">' +
+      '<span class="pk2-result-icon ' + (result === 'a' ? 'pk2-win' : result === 'b' ? 'pk2-lose' : '') + '">' +
+        (result === 'a' ? '👑' : '') + '</span>' +
+      '<span class="pk2-result-label">' + d.label + '</span>' +
+      '<span class="pk2-result-values">' +
+        '<span class="' + (result === 'a' ? 'pk2-win' : '') + '">' + esc(a.homeName) + ' (' + (typeof d.va === 'number' ? d.va.toFixed(2) : d.va) + ')</span>' +
+        ' vs ' +
+        '<span class="' + (result === 'b' ? 'pk2-win' : '') + '">' + esc(b.homeName) + ' (' + (typeof d.vb === 'number' ? d.vb.toFixed(2) : d.vb) + ')</span>' +
+      '</span>' +
+      '<span class="pk2-result-arrow ' + (result === 'a' ? 'pk2-win' : result === 'b' ? 'pk2-lose' : '') + '">' +
+        (result === 'a' ? esc(a.homeName) + ' 胜' : result === 'b' ? esc(b.homeName) + ' 胜' : '平') +
+      '</span>' +
+    '</div>';
+  }).join('');
+
+  return '<div class="pk2-card">' +
+    '<div class="pk2-card-head">' +
+      '<div class="pk2-card-team">' + esc(a.homeName) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(a.num) + '</span></div>' +
+      '<span class="pk2-card-vs">VS</span>' +
+      '<div class="pk2-card-team">' + esc(b.homeName) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(b.num) + '</span></div>' +
+    '</div>' +
+    '<div class="pk2-card-body">' + rows + '</div>' +
+    '<div class="pk2-card-summary">🏆 总PK：' +
+      '<b style="color:var(--cyan)">' + esc(a.homeName) + ' (' + aWins + '胜)</b> ' +
+      (aWins > bWins ? '👑' : aWins === bWins ? '⚖️ 平局' : '') +
+      (bWins > aWins ? ' <b style="color:#f97316">' + esc(b.homeName) + ' (' + bWins + '胜)</b> 👑' : '') +
+    '</div></div>';
+}
+
+// 带进度条的百分比单元格
+function tdPctBar(val, sum) {
+  var absV = Math.abs(val);
+  var pct = sum > 0 ? Math.round(absV / sum * 100) : 0;
+  var sign = val >= 0 ? '+' : '';
+  var cls = val >= 0 ? 'pk2-pct-pos' : 'pk2-pct-neg';
+  return '<td class="pk2-td-num"><div class="pk2-pct-bar-wrap"><div class="pk2-pct-bar ' + cls + '" style="width:' + pct + '%"></div></div>' +
+    '<span class="' + cls + '">' + sign + absV.toFixed(2) + '<br>' + pct + '%</span></td>';
+}
+
+// ═══ 热度维度PK ═══
+function renderPKHot(modal, list) {
+  var n = list.length;
+  var html =
+    '<div class="pk2-header">' +
+      '<span class="pk2-title">🔥 热度PK对比</span>' +
+      '<span class="pk2-close" onclick="closePK()">✕</span>' +
+    '</div>';
+
+  var hasHotData = list.some(function (item) { return item.hotFocusNum !== '-' && item.hotFocusNum !== undefined; });
+
+  if (!hasHotData) {
+    html += '<div style="text-align:center;padding:80px 20px;color:var(--text3);font-size:13px">' +
+      '⚠️ 热点数据尚未接入<br><br>' +
+      '含：让球数、关注热度、冷热指数、主客队特征、亚指临盘<br>' +
+      '请等待后端数据接口就绪</div>';
+    html += '<div class="pk2-footer"><button class="pk2-done-btn" onclick="closePK()">完成</button></div>';
+    modal.innerHTML = html;
+    return;
+  }
+
+  html += '<div class="pk2-section-label">热度维度指标对比</div>';
+  html += '<div class="pk2-table-wrap"><table class="pk2-table">';
+  html += '<thead><tr><th class="pk2-th-name">对阵</th>' +
+    '<th class="pk2-th-num">关注热度<br>占比</th>' +
+    '<th class="pk2-th-num">冷热指数<br>占比</th>' +
+    '<th class="pk2-th-num">静态实力差<br>占比</th>' +
+    '<th class="pk2-th-num">亚指临盘<br>占比</th>' +
+    '</tr></thead><tbody>';
+
+  var colSums = { hot: 0, heat: 0, diff: 0, odds: 0 };
+  list.forEach(function (item) {
+    colSums.hot  += Math.abs(parseFloat(item.hotFocusNum) || 0);
+    colSums.heat += Math.abs(parseFloat(item.heatIndex) || 0);
+    colSums.diff += Math.abs(parseFloat(item.staticDiff) || 0);
+    colSums.odds += Math.abs(parseFloat(item.oddsLive) || 0);
+  });
+
+  list.forEach(function (item, i) {
+    var hot  = parseFloat(item.hotFocusNum) || 0;
+    var heat = parseFloat(item.heatIndex) || 0;
+    var diff = parseFloat(item.staticDiff) || 0;
+    var odds = parseFloat(item.oddsLive) || 0;
+    html += '<tr class="pk2-row">' +
+      '<td class="pk2-td-name"><span class="pk2-row-idx">' + (i + 1) + '</span>' +
+        '<span class="pk2-team-name">' + esc(item.homeName) + ' vs ' + esc(item.visitName) + '</span>' +
+        '<div class="pk2-team-num">' + esc(item.num) + '</div></td>' +
+      tdPctBar(hot,  colSums.hot) +
+      tdPctBar(heat, colSums.heat) +
+      tdPctBar(diff, colSums.diff) +
+      tdPctBar(odds, colSums.odds) +
+      '</tr>';
+  });
+
+  html += '<tr class="pk2-row-total"><td class="pk2-td-name"><b>列合计</b></td>' +
+    tdPct(colSums.hot, colSums.hot) +
+    tdPct(colSums.heat, colSums.heat) +
+    tdPct(colSums.diff, colSums.diff) +
+    tdPct(colSums.odds, colSums.odds) +
+    '</tr>';
+  html += '</tbody></table></div>';
+  html += '<div class="pk2-footer"><button class="pk2-done-btn" onclick="closePK()">完成</button></div>';
+  modal.innerHTML = html;
 }
 
 export function closePK() {
