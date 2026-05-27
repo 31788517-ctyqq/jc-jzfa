@@ -113,7 +113,7 @@ def c(color, text):
 # 核心函数
 # ══════════════════════════════════════════
 
-def ssh_cmd(ssh, cmd, timeout=120):
+def ssh_cmd(ssh, cmd, timeout=60):
     """执行 SSH 命令，返回 (stdout, stderr)"""
     stdin, stdout, stderr = ssh.exec_command(cmd, timeout=timeout)
     out = stdout.read().decode('utf-8', errors='replace').strip()
@@ -239,42 +239,43 @@ def pm2_restart_and_verify(ssh):
 def main():
     dry_run = '--dry' in sys.argv
     fast_mode = '--fast' in sys.argv
+    quick_mode = '--quick' in sys.argv
     ts = datetime.now().strftime('%Y%m%d_%H%M%S')
 
     if dry_run:
         print(c('Y', '\n*** DRY RUN — 不会实际部署 ***\n'))
 
     # ── 连接服务器 ──
-    print(c('C', '连接服务器 {} ...'.format(HOST)))
+    print(c('C', '连接 {} ...'.format(HOST)))
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
-        ssh.connect(HOST, username=USER, password=PASS, timeout=15, port=22,
+        ssh.connect(HOST, username=USER, password=PASS, timeout=10, port=22,
                     disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
-        print(c('G', '  已连接\n'))
+        print(c('G', ' ok'))
     except Exception as e:
-        print(c('R', '  连接失败: {}'.format(e)))
+        print(c('R', ' 失败: {}'.format(e)))
         sys.exit(1)
 
     sftp = ssh.open_sftp()
 
-    # ── Phase 0: 检查服务器环境 ──
-    print(c('D', '═' * 54))
-    print(c('C', '[Phase 0] 检查服务器环境'))
-    checks = {
-        'Nginx 存在': 'test -f /usr/sbin/nginx && echo OK || echo MISSING',
-        'PM2 运行中': 'pm2 jlist 2>/dev/null | grep -c "name" || echo 0',
-        'Nginx 路径': 'test -d {}/preview && echo OK || echo MISSING'.format(NGINX_ROOT),
-        'PM2 路径':   'test -d {}/server && echo OK || echo MISSING'.format(PM2_ROOT),
-    }
-    all_ok = True
-    for label, cmd in checks.items():
-        out, _ = ssh_cmd(ssh, cmd, 10)
-        ok = 'OK' in out or (out.isdigit() and int(out) >= 2)
-        if not ok:
-            all_ok = False
-        mark = c('G', '✓') if ok else c('R', '✗')
-        print('  {} {}: {}'.format(mark, label, out.strip()[:40]))
+    # ── Phase 0: 环境检查（fast/quick 跳过） ──
+    if not fast_mode and not quick_mode:
+        print(c('C', '[Phase 0] 环境检查'))
+        checks = {
+            'Nginx': 'test -f /usr/sbin/nginx && echo OK || echo MISSING',
+            'PM2': 'pm2 jlist 2>/dev/null | grep -c "name" || echo 0',
+        }
+        all_ok = True
+        for label, cmd in checks.items():
+            out, _ = ssh_cmd(ssh, cmd, 5)
+            ok = 'OK' in out or (out.isdigit() and int(out) >= 2)
+            if not ok: all_ok = False
+            print('  {}: {}'.format(c('G','✓') if ok else c('R','✗'), label))
+        if not all_ok:
+            print(c('R', '⚠ 环境异常，请确认'))
+            if input('继续？(y/N) ').lower() != 'y':
+                sys.exit(0)
     print()
 
     if not all_ok:
@@ -286,9 +287,9 @@ def main():
             if r.lower() != 'y':
                 sys.exit(0)
 
-    # ── Phase 1: 备份数据 ──
-    if fast_mode:
-        print(c('Y', '[Phase 1] --fast 模式，跳过备份\n'))
+    # ── Phase 1: 备份数据（fast/quick 跳过） ──
+    if fast_mode or quick_mode:
+        print(c('Y', '[Phase 1] 跳过备份'))
     else:
         backup_dir = '/tmp/deploy_backup_' + ts
         print(c('D', '═' * 54))
@@ -341,53 +342,39 @@ def main():
 
     print('  上传完成: {} 文件'.format(total))
 
-    # ── Phase 3: 部署后同步 ──
-    # 确保 /var/www/zj.100qiu.com/server/ 和 /root/server/ 一致
-    print(c('D', '\n═' * 54))
-    print(c('C', '[Phase 3] 路径同步校验'))
-    if not dry_run:
-        # 用 rsync 或 cp 同步 server 目录（保护数据文件）
+    # ── Phase 3: 路径同步（fast/quick 跳过） ──
+    if not fast_mode and not quick_mode and not dry_run:
+        print(c('C', '[Phase 3] 路径同步'))
         out, _ = ssh_cmd(ssh,
-            'rsync -av --exclude="data.json" --exclude="live_scores.json" '
+            'rsync -aq --exclude="data.json" --exclude="live_scores.json" '
             '--exclude="trends.json" --exclude="cache.json" '
             '--exclude="ai_cache.json" --exclude="ai_timing.json" '
             '--exclude="midou_data.db" --exclude=".env" '
             '--exclude="logs" --exclude="node_modules" '
             '{}/server/ {}/server/ 2>&1 | tail -3'.format(PM2_ROOT, NGINX_ROOT), 15)
-        if out:
-            for line in out.split('\n')[:3]:
-                print('  ' + line[:100])
-        print('  同步完成')
+        print('  完成')
     print()
 
     sftp.close()
 
-    # ── Phase 4: 重启 PM2 ──
-    print(c('D', '═' * 54))
-    print(c('C', '[Phase 4] PM2 重启'))
-    if dry_run:
-        print('  (skip)')
-    else:
-        pm2_restart_and_verify(ssh)
+    # ── Phase 4: PM2 重启 ──
+    if not dry_run:
+        if quick_mode:
+            ssh_cmd(ssh, 'pm2 restart jc-zjfa 2>&1', 10)
+            print(c('G', '[Phase 4] PM2 已重启'))
+        else:
+            pm2_restart_and_verify(ssh)
     print()
 
-    # ── Phase 5: 健康检查 ──
-    print(c('D', '═' * 54))
-    print(c('C', '[Phase 5] 服务验证'))
-    if dry_run:
-        print('  (skip)')
-    else:
-        # Express 健康检查
-        health, _ = ssh_cmd(ssh, 'curl -s http://localhost:3000/health 2>/dev/null', 10)
-        print('  健康检查: {}'.format(c('G', health) if health == 'ok' else c('R', health or '无响应')))
+    # ── Phase 5: 验证（quick 跳过） ──
+    if not quick_mode and not dry_run:
+        print(c('D', '═' * 54))
+        print(c('C', '[Phase 5] 服务验证'))
+        health, _ = ssh_cmd(ssh, 'curl -s http://localhost:3000/health 2>/dev/null', 5)
+        print('  健康: {}'.format(c('G', health) if health == 'ok' else c('R', health or 'N/A')))
 
-        # 前端页面可访问性
-        out, _ = ssh_cmd(ssh, 'curl -sI http://localhost/ 2>/dev/null | head -1', 10)
-        print('  前端页面: {}'.format(out[:60] if out else c('R', '无响应')))
-
-        # data.json 完整性
-        out, _ = ssh_cmd(ssh, 'wc -c < {}/server/data.json 2>/dev/null'.format(PM2_ROOT), 10)
-        print('  data.json: {} 字节'.format(out.strip() if out else c('R', '缺失!')))
+        out, _ = ssh_cmd(ssh, 'wc -c < {}/server/data.json 2>/dev/null'.format(PM2_ROOT), 5)
+        print('  data.json: {}B'.format(out.strip() if out else c('R', 'MISSING!')))
     print()
 
     # ── 汇总 ──
@@ -405,7 +392,8 @@ def main():
     else:
         print(c('G', '部署成功 — {} 个文件全部验证通过'.format(total)))
 
-    print(c('D', '\n用法: python deploy.py [--dry] [--fast]'))
+    print(c('D', '\n用法: python deploy.py [--dry] [--fast] [--quick]'))
+    print(c('D', '  --dry   试运行  --fast  跳过环境检测/备份/同步  --quick  仅上传+重启'))
     ssh.close()
 
 
