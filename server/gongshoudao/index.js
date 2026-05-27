@@ -62,6 +62,10 @@ function computeSingleMatch(rawStats, matchInfo) {
     num: matchInfo.num || '',
     startTime: matchInfo.startTime || '',
 
+    // ⭐ 基础实力分（供 quant-hot 计算 staticDiff）
+    homePower: vars.homePower,
+    guestPower: vars.awayPower,
+
     // 第二阶段输出：实力分析
     attackAdvantage: strengthResult.attackAdvantage,
     attackAdvantageValue: strengthResult.attackAdvantageValue,
