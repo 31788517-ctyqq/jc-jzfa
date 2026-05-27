@@ -4,11 +4,158 @@
  */
 const https = require('https');
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 
 const API_KEY = process.env.DEEPSEEK_API_KEY || 'DUMMY_PLACEHOLDER';
 const BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1';
 const MODEL = 'deepseek-v4-pro';
 const TIMEOUT = 60000; // 60秒超时
+
+/** 加载合并后的 shuju 数据（含500.com近10场+近6场） */
+function loadShujuData(matchInfo) {
+  try {
+    var dateStr = (matchInfo.date || '').slice(0, 10);
+    if (!dateStr) return null;
+    var shujuFile = path.join(__dirname, 'shuju_data', 'shuju_merged_' + dateStr + '.json');
+    if (!fs.existsSync(shujuFile)) return null;
+    var shuju = JSON.parse(fs.readFileSync(shujuFile, 'utf8'));
+    var matchNum = matchInfo.num || '';
+    return (shuju.matches || {})[matchNum] || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/** 格式化500.com统计数据为可读文本 */
+function formatShujuStats(shuju) {
+  if (!shuju || !shuju.recentForm) return '';
+
+  var rf = shuju.recentForm;
+  var parts = [];
+
+  // 近10场（全联赛）
+  var h10 = rf.last10 ? rf.last10.home : null;
+  var a10 = rf.last10 ? rf.last10.away : null;
+  if (h10 && h10.wins !== undefined) {
+    parts.push('【500.com 近10场战绩（所有赛事）——请严格以此数据为准】');
+    parts.push(formatTeamStats('主队', h10));
+    parts.push(formatTeamStats('客队', a10));
+  }
+
+  // 近10场（同联赛）
+  var h10L = rf.last10League ? rf.last10League.home : null;
+  var a10L = rf.last10League ? rf.last10League.away : null;
+  if (h10L && h10L.wins !== undefined) {
+    parts.push('');
+    parts.push('【500.com 近10场战绩（同联赛赛事）】');
+    parts.push(formatTeamStats('主队', h10L));
+    parts.push(formatTeamStats('客队', a10L));
+  }
+
+  // 近6场
+  var h6 = rf.last6 ? rf.last6.home : null;
+  var a6 = rf.last6 ? rf.last6.away : null;
+  if (h6 && h6.wins !== undefined) {
+    parts.push('');
+    parts.push('【500.com 近6场战绩】');
+    parts.push(formatTeamStats('主队', h6));
+    parts.push(formatTeamStats('客队', a6));
+  }
+
+  return parts.join('\n');
+}
+
+function formatTeamStats(label, stats) {
+  if (!stats) return '';
+  var s = stats;
+  var wdl = (s.wins || 0) + '胜' + (s.draws || 0) + '平' + (s.losses || 0) + '负';
+  var goals = s.goals !== undefined ? '进' + s.goals + '球' : '';
+  var conceded = s.conceded !== undefined ? '失' + s.conceded + '球' : '';
+  var pct = [];
+  if (s.winPct !== undefined) pct.push('胜率' + s.winPct + '%');
+  if (s.handicapPct !== undefined) pct.push('赢盘率' + s.handicapPct + '%');
+  if (s.overPct !== undefined) pct.push('大球率' + s.overPct + '%');
+  return label + ': ' + [wdl, goals, conceded, pct.join(' ')].filter(Boolean).join('，');
+}
+
+/** 辅助：安全计算场均（保留1位小数），返回字符串 */
+function calcAvg(total, games) {
+  if (total === undefined || total === null || games === undefined || games <= 0) return '?';
+  return (total / games).toFixed(1);
+}
+
+/**
+ * 基于500.com数据预计算攻防全景数据表格
+ * @param {Object} shujuData - 500.com 合并数据
+ * @returns {Object|null} {header, rows, _verified, _source}
+ */
+function buildAttackDefenseTable(shujuData) {
+  if (!shujuData || !shujuData.recentForm) return null;
+  var rf = shujuData.recentForm;
+
+  // 优先近10场同联赛 → fallback 近10场全联赛
+  var h10, a10;
+  if (rf.last10League && rf.last10League.home && rf.last10League.home.wins !== undefined) {
+    h10 = rf.last10League.home;
+    a10 = rf.last10League.away || {};
+  } else if (rf.last10 && rf.last10.home && rf.last10.home.wins !== undefined) {
+    h10 = rf.last10.home;
+    a10 = rf.last10.away || {};
+  } else {
+    return null;
+  }
+
+  var h6 = (rf.last6 || {}).home || {};
+  var a6 = (rf.last6 || {}).away || {};
+
+  return {
+    header: ['数据项', '主队', '客队'],
+    rows: [
+      ['赛季场均进球', calcAvg(h10.goals, 10), calcAvg(a10.goals, 10)],
+      ['赛季场均失球', calcAvg(h10.conceded, 10), calcAvg(a10.conceded, 10)],
+      ['近6场场均进球', calcAvg(h6.goals, 6), calcAvg(a6.goals, 6)],
+      ['近6场场均失球', calcAvg(h6.conceded, 6), calcAvg(a6.conceded, 6)],
+      ['核心射手', '根据知识库补充', '根据知识库补充']
+    ],
+    _verified: true,
+    _source: '500.com'
+  };
+}
+
+/**
+ * 基于500.com数据预计算近期战绩 WDL
+ * @param {Object} shujuData - 500.com 合并数据
+ * @returns {Object|null} {home:{w,d,l}, away:{w,d,l}, _verified}
+ */
+function buildRecentFormWDL(shujuData) {
+  if (!shujuData || !shujuData.recentForm) return null;
+  var rf = shujuData.recentForm;
+
+  // 优先近6场 → fallback 近10场同联赛 → fallback 近10场全联赛
+  var homeStats, awayStats;
+  var h6 = (rf.last6 || {}).home || {};
+  var a6 = (rf.last6 || {}).away || {};
+  if (h6.wins !== undefined) {
+    homeStats = h6; awayStats = a6;
+  } else {
+    var h10L = (rf.last10League || {}).home || {};
+    var a10L = (rf.last10League || {}).away || {};
+    if (h10L.wins !== undefined) {
+      homeStats = h10L; awayStats = a10L;
+    } else {
+      var h10 = (rf.last10 || {}).home || {};
+      var a10 = (rf.last10 || {}).away || {};
+      homeStats = h10; awayStats = a10;
+    }
+  }
+
+  return {
+    home: { w: homeStats.wins || 0, d: homeStats.draws || 0, l: homeStats.losses || 0 },
+    away: { w: awayStats.wins || 0, d: awayStats.draws || 0, l: awayStats.losses || 0 },
+    _verified: true
+  };
+}
 
 /**
  * 构建五维分析的 System Prompt
@@ -38,86 +185,114 @@ function buildSystemPrompt() {
  * 构建用户 Prompt
  */
 function buildUserPrompt(matchInfo) {
-  return `请深度分析以下比赛，并按照五维分析框架输出完整的分析报告。
+  var shujuData = loadShujuData(matchInfo);
+  var shujuText = shujuData ? formatShujuStats(shujuData) : '';
+  var adTable = shujuData ? buildAttackDefenseTable(shujuData) : null;
+  var formWDL = shujuData ? buildRecentFormWDL(shujuData) : null;
 
-**比赛信息**
-- 联赛：${matchInfo.leagueName || '未知'}
-- 主队：${matchInfo.homeName || '未知'}
-- 客队：${matchInfo.visitName || '未知'}
-- 比赛时间：${matchInfo.date || '未知'}
-- 场次编号：${matchInfo.num || ''}
+  var prompt = '请深度分析以下比赛，并按照五维分析框架输出完整的分析报告。\n\n' +
+    '**比赛信息**\n' +
+    '- 联赛：' + (matchInfo.leagueName || '未知') + '\n' +
+    '- 主队：' + (matchInfo.homeName || '未知') + '\n' +
+    '- 客队：' + (matchInfo.visitName || '未知') + '\n' +
+    '- 比赛时间：' + (matchInfo.date || '未知') + '\n' +
+    '- 场次编号：' + (matchInfo.num || '') + '\n\n';
 
-请通过你的知识库搜索球队信息，包括但不限于：
-- 双方积分排名、近期战绩
-- 核心球员状态、伤病情况
-- 历史交锋记录
-- 盘口赔率数据
-- 大小球趋势
+  // ⭐ 当有500.com数据时，注入锁定的攻防数据和近期战绩
+  if (shujuData && adTable && formWDL) {
+    prompt += '**以下是从500.com抓取并预计算的真实数据，你的输出中必须严格使用这些数值，不得修改或编造：**\n\n';
+    prompt += '【攻防全景数据——必须原样输出表格中的数据，禁止修改任何数值】\n';
+    prompt += JSON.stringify(adTable, null, 2) + '\n\n';
+    prompt += '【近期战绩——必须原样使用以下 WDL 数值】\n';
+    prompt += '主队近6场: ' + formWDL.home.w + '胜' + formWDL.home.d + '平' + formWDL.home.l + '负\n';
+    prompt += '客队近6场: ' + formWDL.away.w + '胜' + formWDL.away.d + '平' + formWDL.away.l + '负\n\n';
+    prompt += '【500.com 原始统计详情（供分析参考）】\n' + shujuText + '\n\n';
+    prompt += '对于500.com未覆盖的部分（积分排名、历史交锋、伤病、盘口赔率等），请通过你的知识库搜索补充。\n\n';
+    prompt += '**重要规则：**\n';
+    prompt += '1. JSON 中「基础面.攻防全景数据」的 rows 数组必须使用上面预计算的表格数据，不得修改任何数值\n';
+    prompt += '2. JSON 中「状态面.主队近况」必须为"近6场' + formWDL.home.w + '胜' + formWDL.home.d + '平' + formWDL.home.l + '负"\n';
+    prompt += '3. JSON 中「状态面.客队近况」必须为"近6场' + formWDL.away.w + '胜' + formWDL.away.d + '平' + formWDL.away.l + '负"\n';
+    prompt += '4. 其他字段（核心结论、分析文字等）请基于以上500.com真实数据进行深度分析\n';
+  } else if (shujuText) {
+    prompt += '**以下是从500.com抓取的真实概率统计，请严格基于此数据进行近况分析（勿编造）**\n' +
+      shujuText + '\n\n' +
+      '对于此数据未覆盖的部分（积分排名、历史交锋、伤病、盘口赔率等），请通过你的知识库搜索补充。\n';
+  } else {
+    prompt += '请通过你的知识库搜索球队信息，包括但不限于：\n' +
+      '- 双方积分排名、近期战绩\n' +
+      '- 核心球员状态、伤病情况\n' +
+      '- 历史交锋记录\n' +
+      '- 盘口赔率数据\n' +
+      '- 大小球趋势\n';
+  }
 
-**重要规则**：在输出的任何字段（尤其是积分排名字段）中引用球队时，必须使用上面给定的全称（${matchInfo.homeName || '主队'}和${matchInfo.visitName || '客队'}），不得使用简称或别称。
+  prompt += '\n- **重要规则**：在输出的任何字段（尤其是积分排名字段）中引用球队时，必须使用上面给定的全称（' +
+    (matchInfo.homeName || '主队') + '和' + (matchInfo.visitName || '客队') + '），不得使用简称或别称。\n\n';
 
-请以 JSON 格式输出（以下 JSON 中的值仅为字段类型说明，请基于你的知识库生成真实数据，不要照抄）：
-{
-  "confidence": "<整数0-100, 你对本场分析的确信度>",
-  "基础面": {
-    "概括": "<15字以内摘要>",
-    "积分排名": "<结合双方联赛排名与积分形势, 60字以内>",
-    "攻防全景数据": {
-      "header": ["数据项", "主队", "客队"],
-      "rows": [
-        ["赛季场均进球", "<浮点数>", "<浮点数>"],
-        ["赛季场均失球", "<浮点数>", "<浮点数>"],
-        ["近6场场均进球", "<浮点数>", "<浮点数>"],
-        ["近6场场均失球", "<浮点数>", "<浮点数>"],
-        ["核心射手", "<状态描述>", "<状态描述>"]
-      ]
-    },
-    "核心结论": "<60字以内>"
-  },
-  "状态面": {
-    "概括": "<15字以内摘要>",
-    "主队近况": "<格式: 近6场X胜X平X负, 附状态描述, 60字以内>",
-    "客队近况": "<同上>",
-    "历史对阵": "<近N次交手战绩, 60字以内>",
-    "伤病影响": {
-      "header": ["球队", "缺阵情况", "影响评估"],
-      "rows": [
-        ["<主队/客队>", "<具体伤停球员>", "<高/中/低>"]
-      ]
-    },
-    "队内氛围": "<40字以内>",
-    "核心结论": "<60字以内>"
-  },
-  "动机面": {
-    "概括": "<15字以内>",
-    "战意强度": "<双方抢分意愿+比赛重要性, 80字以内>"
-  },
-  "对位面": {
-    "概括": "<15字以内>",
-    "攻防博弈": "<60字以内>",
-    "节奏控制": "<60字以内>",
-    "主场氛围": "<40字以内>",
-    "战术与教练风格": "<50字以内>",
-    "核心结论": "<60字以内>"
-  },
-  "市场面": {
-    "概括": "<15字以内>",
-    "盘口与赔率": "<初始盘口+赔率趋势, 60字以内>",
-    "大小球": "<大小球盘口分析, 60字以内>",
-    "数据变化解读": "<盘口赔率变化趋势, 50字以内>",
-    "诱导可能": "<是否存在诱导痕迹, 40字以内>",
-    "核心结论": "<60字以内>"
-  },
-  "核心看点": {
-    "核心看点": "<本场最关键1-2个博弈点, 80字以内>",
-    "变数提醒": "<影响赛果的不确定性因素, 60字以内>"
-  },
-  "预测建议": [
-    {"玩法": "胜平负", "建议方向": "<如: 主胜 / 让平>", "核心逻辑": "<30字以内>"},
-    {"玩法": "大小球", "建议方向": "<如: 大球 / 小球>", "核心逻辑": "<30字以内>"},
-    {"玩法": "比分预测", "建议方向": "<如: 2:1 / 1:0>", "核心逻辑": "<30字以内>"}
-  ]
-}`;
+  prompt += '请以 JSON 格式输出（以下 JSON 中的值仅为字段类型说明，请基于你的知识库生成真实数据，不要照抄）：\n' +
+    '{\n' +
+    '  "confidence": "<整数0-100, 你对本场分析的确信度>",\n' +
+    '  "基础面": {\n' +
+    '    "概括": "<15字以内摘要>",\n' +
+    '    "积分排名": "<结合双方联赛排名与积分形势, 60字以内>",\n' +
+    '    "攻防全景数据": {\n' +
+    '      "header": ["数据项", "主队", "客队"],\n' +
+    '      "rows": [\n' +
+    '        ["赛季场均进球", "<浮点数>", "<浮点数>"],\n' +
+    '        ["赛季场均失球", "<浮点数>", "<浮点数>"],\n' +
+    '        ["近6场场均进球", "<浮点数>", "<浮点数>"],\n' +
+    '        ["近6场场均失球", "<浮点数>", "<浮点数>"],\n' +
+    '        ["核心射手", "<状态描述>", "<状态描述>"]\n' +
+    '      ]\n' +
+    '    },\n' +
+    '    "核心结论": "<60字以内>"\n' +
+    '  },\n' +
+    '  "状态面": {\n' +
+    '    "概括": "<15字以内摘要>",\n' +
+    '    "主队近况": "<格式: 近6场X胜X平X负, 附状态描述, 60字以内>",\n' +
+    '    "客队近况": "<同上>",\n' +
+    '    "历史对阵": "<近N次交手战绩, 60字以内>",\n' +
+    '    "伤病影响": {\n' +
+    '      "header": ["球队", "缺阵情况", "影响评估"],\n' +
+    '      "rows": [\n' +
+    '        ["<主队/客队>", "<具体伤停球员>", "<高/中/低>"]\n' +
+    '      ]\n' +
+    '    },\n' +
+    '    "队内氛围": "<40字以内>",\n' +
+    '    "核心结论": "<60字以内>"\n' +
+    '  },\n' +
+    '  "动机面": {\n' +
+    '    "概括": "<15字以内>",\n' +
+    '    "战意强度": "<双方抢分意愿+比赛重要性, 80字以内>"\n' +
+    '  },\n' +
+    '  "对位面": {\n' +
+    '    "概括": "<15字以内>",\n' +
+    '    "攻防博弈": "<60字以内>",\n' +
+    '    "节奏控制": "<60字以内>",\n' +
+    '    "主场氛围": "<40字以内>",\n' +
+    '    "战术与教练风格": "<50字以内>",\n' +
+    '    "核心结论": "<60字以内>"\n' +
+    '  },\n' +
+    '  "市场面": {\n' +
+    '    "概括": "<15字以内>",\n' +
+    '    "盘口与赔率": "<初始盘口+赔率趋势, 60字以内>",\n' +
+    '    "大小球": "<大小球盘口分析, 60字以内>",\n' +
+    '    "数据变化解读": "<盘口赔率变化趋势, 50字以内>",\n' +
+    '    "诱导可能": "<是否存在诱导痕迹, 40字以内>",\n' +
+    '    "核心结论": "<60字以内>"\n' +
+    '  },\n' +
+    '  "核心看点": {\n' +
+    '    "核心看点": "<本场最关键1-2个博弈点, 80字以内>",\n' +
+    '    "变数提醒": "<影响赛果的不确定性因素, 60字以内>"\n' +
+    '  },\n' +
+    '  "预测建议": [\n' +
+    '    {"玩法": "胜平负", "建议方向": "<如: 主胜 / 让平>", "核心逻辑": "<30字以内>"},\n' +
+    '    {"玩法": "大小球", "建议方向": "<如: 大球 / 小球>", "核心逻辑": "<30字以内>"},\n' +
+    '    {"玩法": "比分预测", "建议方向": "<如: 2:1 / 1:0>", "核心逻辑": "<30字以内>"}\n' +
+    '  ]\n' +
+    '}';
+
+  return prompt;
 }
 
 /**
@@ -246,5 +421,9 @@ module.exports = {
   batchGenerate,
   callDeepSeek,
   buildSystemPrompt,
-  buildUserPrompt
+  buildUserPrompt,
+  buildAttackDefenseTable,
+  buildRecentFormWDL,
+  loadShujuData,
+  formatShujuStats
 };
