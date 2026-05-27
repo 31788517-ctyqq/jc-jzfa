@@ -594,10 +594,22 @@ app.post('/api', async (req, res) => {
         const ranking = list.map((item, i) => ({ rank: i + 1, ...item }));
         const topExpertCount = ranking.length > 0 ? ranking[0].expertCount : 0;
 
+        // ★Phase1: 获取 data.json 文件修改时间
+        let dataTime = null;
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const dataJsonPath = path.join(__dirname, 'data.json');
+          if (fs.existsSync(dataJsonPath)) {
+            dataTime = fs.statSync(dataJsonPath).mtime.toISOString();
+          }
+        } catch (e) {}
+
         return res.json({
           code: 1,
           data: {
             date: requestDate,
+            dataTime: dataTime,
             filterCategory,
             filterDirection,
             totalMatches: ranking.length,
@@ -1297,7 +1309,15 @@ app.post('/api', async (req, res) => {
             result[mid] = gsAll[k] || gsAll['m_' + mid] || gsAll[mid] || null;
           });
 
-          return res.json({ code: 1, data: { date: requestDate, gsData: result } });
+          // ★Phase1: 获取功守道缓存文件修改时间
+          let gsCacheTime = null;
+          try {
+            if (fs.existsSync(gsCachePath)) {
+              gsCacheTime = fs.statSync(gsCachePath).mtime.toISOString();
+            }
+          } catch (e) {}
+
+          return res.json({ code: 1, data: { date: requestDate, gsData: result, gsCacheTime: gsCacheTime } });
         } catch (e) {
           return res.json({ code: 0, msg: '功守道批量获取失败: ' + e.message });
         }
@@ -1343,7 +1363,25 @@ app.post('/api', async (req, res) => {
           const jczqChange = require('./jczq_change');
           const result = await jczqChange.computeHotData(requestDate, matchList);
 
-          return res.json({ code: 1, data: { date: requestDate, hotData: result } });
+          // ★Phase1: 从结果中取最晚的 _ts 作为热度数据更新时间
+          let hotCacheTime = null;
+          try {
+            Object.keys(result).forEach(function(k) {
+              var ts = result[k] && result[k]._ts;
+              if (ts && (!hotCacheTime || ts > hotCacheTime)) hotCacheTime = ts;
+            });
+          } catch (e) {}
+          // 如果 entry 中没有 _ts，回退到全量缓存文件的 mtime
+          if (!hotCacheTime) {
+            try {
+              var changeCachePath = path.join(__dirname, 'jczq_change_cache.json');
+              if (fs.existsSync(changeCachePath)) {
+                hotCacheTime = fs.statSync(changeCachePath).mtime.toISOString();
+              }
+            } catch (e) {}
+          }
+
+          return res.json({ code: 1, data: { date: requestDate, hotData: result, hotCacheTime: hotCacheTime } });
         } catch (e) {
           return res.json({ code: 0, msg: '热度数据获取失败: ' + e.message });
         }
