@@ -31,6 +31,10 @@ export function toggleQuantDatePicker() {
 
 export function switchQuantTab(tab) {
   currentTab = tab;
+  // 切换 tab 时重置排序键为默认
+  if (tab === 'power') { sortKey = 'rank'; sortAsc = true; }
+  else if (tab === 'goal') { sortKey = 'totalSum'; sortAsc = true; }
+  else { sortKey = 'hotFocusNum'; sortAsc = true; }
   document.querySelectorAll('.quant-tab').forEach(function (t) { t.classList.remove('active'); });
   var t = document.querySelector('.quant-tab[data-tab="' + tab + '"]');
   if (t) t.classList.add('active');
@@ -55,7 +59,7 @@ function clearPicks() {
 export function startPK() {
   var picked = allData.filter(function (item) { return pickedIds[item.matchId]; });
   if (picked.length < 2) return;
-  if (window.openPKMulti) { window.openPKMulti(picked); clearPicks(); }
+  if (window.openPKMulti) { window.openPKMulti(picked, currentTab); clearPicks(); }
 }
 
 function updatePkBar() {
@@ -104,6 +108,27 @@ export function loadQuantRank() {
 }
 
 function mergeItem(item, gs) {
+  var cw = gs.crossWin !== undefined ? gs.crossWin : '-';
+  var cd = gs.crossDraw !== undefined ? gs.crossDraw : '-';
+  var cl = gs.crossLose !== undefined ? gs.crossLose : '-';
+  var aav = gs.attackAdvantageValue || 0;
+  var dav = gs.defenseAdvantageValue || 0;
+  var gdh = parseFloat(gs.goalDiffHome) || 0;
+  var gda = parseFloat(gs.goalDiffAway) || 0;
+  var tge = parseFloat(gs.totalGoalsExpect) || 0;
+  var tgv = parseFloat(gs.totalGoalsValue) || 0;
+  // 交锋进球：简化的对冲进球预期
+  var hhg = (cw !== '-' && cl !== '-') ? (((cw || 0) - (cl || 0)) / 10 + 2.5) : 2.5;
+
+  function goalTotalSum() {
+    var b = Math.abs(tge);
+    var a = Math.abs(gdh + gda);
+    var s = Math.abs(tgv);
+    var h = Math.abs(hhg);
+    var r = Math.abs((aav + dav) / 100);
+    return parseFloat((b + a + s + h + r).toFixed(4));
+  }
+
   return {
     matchId: item.matchId,
     num: item.num || '',
@@ -113,16 +138,32 @@ function mergeItem(item, gs) {
     date: item.date || '',
     matchStatus: item.matchStatus || 0,
     rank: item.rank || 99,
+    // 实力维度
     totalAdvantage: gs.totalAdvantage || '-',
     totalAdvantageValue: gs.totalAdvantageValue || 0,
     goalDiff: gs.goalDiffHome || '-',
-    crossWin: gs.crossWin !== undefined ? gs.crossWin : '-',
-    crossDraw: gs.crossDraw !== undefined ? gs.crossDraw : '-',
-    crossLose: gs.crossLose !== undefined ? gs.crossLose : '-',
+    crossWin: cw,
+    crossDraw: cd,
+    crossLose: cl,
     crossRq: gs.crossRq,
-    attackAdvantageValue: gs.attackAdvantageValue || 0,
-    defenseAdvantageValue: gs.defenseAdvantageValue || 0,
-    hasGS: !!(gs.attackPattern)
+    attackAdvantageValue: aav,
+    defenseAdvantageValue: dav,
+    hasGS: !!(gs.attackPattern),
+    // 进球维度
+    bigBallRatio: tge,
+    attDefGoal: gdh + gda,
+    strengthGoal: tgv,
+    headToHeadGoal: hhg,
+    breakArmor: (aav + dav) / 100,
+    totalSum: goalTotalSum(),
+    // 热点维度（占位）
+    rq: gs.crossRq !== undefined ? gs.crossRq : '-',
+    hotFocusNum: '-',
+    heatIndex: '-',
+    homeFeature: '-',
+    guestFeature: '-',
+    staticDiff: gs.totalAdvantageValue || 0,
+    oddsLive: '-'
   };
 }
 
@@ -138,14 +179,39 @@ function renderTable() {
     return 0;
   });
 
-  var cols = [
-    { key: 'match', label: '对阵', sortable: false, cls: 'th-match' },
-    { key: 'rank', label: '总排序', sortable: true, cls: 'th-rank' },
-    { key: 'goalDiff', label: '净胜球', sortable: true, cls: 'th-gd' },
-    { key: 'cross', label: '胜平负交叉', sortable: false, cls: 'th-cross' },
-    { key: 'power', label: '综合实力', sortable: true, cls: 'th-power' },
-    { key: 'ad', label: '攻守实力', sortable: false, cls: 'th-ad' }
-  ];
+  // 按 currentTab 确定列定义
+  var cols;
+  if (currentTab === 'power') {
+    cols = [
+      { key: 'match', label: '对阵', sortable: false, cls: 'th-match' },
+      { key: 'rank', label: '总排序', sortable: true, cls: 'th-rank' },
+      { key: 'goalDiff', label: '净胜球', sortable: true, cls: 'th-gd' },
+      { key: 'cross', label: '胜平负交叉', sortable: false, cls: 'th-cross' },
+      { key: 'power', label: '综合实力', sortable: true, cls: 'th-power' },
+      { key: 'ad', label: '攻守实力', sortable: false, cls: 'th-ad' }
+    ];
+  } else if (currentTab === 'goal') {
+    cols = [
+      { key: 'match', label: '对阵', sortable: false, cls: 'th-match' },
+      { key: 'totalSum', label: '合计', sortable: true, cls: 'th-sum' },
+      { key: 'bigBallRatio', label: '大球比例', sortable: true, cls: 'th-big' },
+      { key: 'attDefGoal', label: '攻防进球', sortable: true, cls: 'th-ag' },
+      { key: 'strengthGoal', label: '实力进球', sortable: true, cls: 'th-sg' },
+      { key: 'headToHeadGoal', label: '交锋进球', sortable: true, cls: 'th-hg' },
+      { key: 'breakArmor', label: '破甲和', sortable: true, cls: 'th-ba' }
+    ];
+  } else {
+    cols = [
+      { key: 'match', label: '对阵', sortable: false, cls: 'th-match' },
+      { key: 'rq', label: '让球数', sortable: false, cls: 'th-rq' },
+      { key: 'hotFocusNum', label: '关注热度', sortable: true, cls: 'th-hot' },
+      { key: 'heatIndex', label: '冷热指数', sortable: true, cls: 'th-heat' },
+      { key: 'homeFeature', label: '主队特征', sortable: false, cls: 'th-hf' },
+      { key: 'guestFeature', label: '客队特征', sortable: false, cls: 'th-gf' },
+      { key: 'staticDiff', label: '静态实力差', sortable: true, cls: 'th-sd' },
+      { key: 'oddsLive', label: '亚指临盘', sortable: false, cls: 'th-ol' }
+    ];
+  }
 
   var h = '<table class="quant-table"><thead><tr><th class="th-chk"></th>';
   cols.forEach(function (c) {
@@ -158,13 +224,32 @@ function renderTable() {
     var p = !!pickedIds[item.matchId];
     h += '<tr id="qr-' + item.matchId + '" class="' + (p ? 'picked' : '') + '">' +
       '<td><input type="checkbox" class="q-chk" ' + (p ? 'checked' : '') + ' onclick="togglePick(event,\'' + item.matchId + '\')"/></td>' +
-      tdMatch(item) +
-      tdRank(item.rank) +
-      tdNum(item, 'goalDiff') +
-      tdCross(item) +
-      tdNum(item, 'power') +
-      tdAd(item) +
-      '</tr>';
+      tdMatch(item);
+
+    if (currentTab === 'power') {
+      h += tdRank(item.rank) +
+        tdNum(item, 'goalDiff') +
+        tdCross(item) +
+        tdNum(item, 'power') +
+        tdAd(item);
+    } else if (currentTab === 'goal') {
+      h += tdGoalCell(item, 'totalSum', 2) +
+        tdGoalCell(item, 'bigBallRatio', 1) +
+        tdGoalCell(item, 'attDefGoal', 2) +
+        tdGoalCell(item, 'strengthGoal', 2) +
+        tdGoalCell(item, 'headToHeadGoal', 2) +
+        tdGoalCell(item, 'breakArmor', 2);
+    } else {
+      h += tdHotCell(item, 'rq') +
+        tdHotCell(item, 'hotFocusNum') +
+        tdHotCell(item, 'heatIndex') +
+        tdHotCell(item, 'homeFeature') +
+        tdHotCell(item, 'guestFeature') +
+        tdHotCell(item, 'staticDiff') +
+        tdHotCell(item, 'oddsLive');
+    }
+
+    h += '</tr>';
   });
 
   h += '</tbody></table>';
@@ -224,12 +309,62 @@ function tdAd(item) {
   return '<td><span class="q-cell-num" style="font-size:11px;white-space:nowrap;">+攻' + a + '守' + d + '</span></td>';
 }
 
+// 进球 tab 单元格
+function tdGoalCell(item, key, digits) {
+  var v = item[key];
+  if (v === '-' || v === undefined || v === null) {
+    return '<td><span class="q-cell-num" style="color:var(--text4)">-</span></td>';
+  }
+  var n = parseFloat(v);
+  if (isNaN(n)) return '<td><span class="q-cell-num">' + v + '</span></td>';
+  var formatted;
+  if (key === 'bigBallRatio') {
+    formatted = n.toFixed(digits) + '%';
+  } else {
+    formatted = (n >= 0 ? '+' : '') + n.toFixed(digits);
+  }
+  var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
+  return '<td><span class="q-cell-num ' + cls + '">' + formatted + '</span></td>';
+}
+
+// 热点 tab 单元格
+function tdHotCell(item, key) {
+  var v = item[key];
+  if (v === '-' || v === undefined || v === null) {
+    return '<td><span class="q-cell-num" style="color:var(--text4);font-size:10px">数据接入中</span></td>';
+  }
+  if (key === 'heatIndex') {
+    var n = parseFloat(v);
+    if (isNaN(n)) return '<td><span class="q-cell-num">' + v + '</span></td>';
+    var icon = n > 1.2 ? ' 🔥' : n < 0.8 ? ' 🧊' : ' 🎯';
+    var cls = n > 1.2 ? 'neg' : n < 0.8 ? 'cool' : 'pos';
+    return '<td><span class="q-cell-num ' + cls + '">' + n.toFixed(2) + icon + '</span></td>';
+  }
+  var n = parseFloat(v);
+  if (isNaN(n)) return '<td><span class="q-cell-num">' + v + '</span></td>';
+  if (key === 'hotFocusNum' && n > 1000) v = (n / 10000).toFixed(1) + '万';
+  if (key === 'staticDiff') { var clsSD = n > 0 ? 'pos' : n < 0 ? 'neg' : ''; return '<td><span class="q-cell-num ' + clsSD + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></td>'; }
+  return '<td><span class="q-cell-num">' + v + '</span></td>';
+}
+
 function getSortVal(item, key) {
   switch (key) {
-    case 'rank': return item.rank || 99;
-    case 'goalDiff': var p = String(item.goalDiff).split('/'); var n = parseFloat(p[0]); return isNaN(n) ? 0 : n;
-    case 'power': return item.totalAdvantageValue || 0;
-    case 'ad': return (item.attackAdvantageValue || 0) + (item.defenseAdvantageValue || 0);
+    // 实力
+    case 'rank':       return item.rank || 99;
+    case 'goalDiff':   var p = String(item.goalDiff).split('/'); var n = parseFloat(p[0]); return isNaN(n) ? 0 : n;
+    case 'power':      return item.totalAdvantageValue || 0;
+    case 'ad':         return (item.attackAdvantageValue || 0) + (item.defenseAdvantageValue || 0);
+    // 进球
+    case 'totalSum':       return parseFloat(item.totalSum) || 0;
+    case 'bigBallRatio':   return parseFloat(item.bigBallRatio) || 0;
+    case 'attDefGoal':     return parseFloat(item.attDefGoal) || 0;
+    case 'strengthGoal':   return parseFloat(item.strengthGoal) || 0;
+    case 'headToHeadGoal': return parseFloat(item.headToHeadGoal) || 0;
+    case 'breakArmor':     return parseFloat(item.breakArmor) || 0;
+    // 热点
+    case 'hotFocusNum': return parseFloat(item.hotFocusNum) || 0;
+    case 'heatIndex':   return parseFloat(item.heatIndex) || 0;
+    case 'staticDiff':  return parseFloat(item.staticDiff) || 0;
     default: return 0;
   }
 }
