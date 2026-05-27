@@ -96,6 +96,20 @@ export function loadQuantRank() {
     // ★Phase1: 记录排名数据时间戳
     dataTime = rankData.dataTime || null;
     if (ranking.length === 0) {
+      // 当天无数据 → 自动回退到前一天（和今日比赛页面规则一致）
+      var now = new Date();
+      var todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      if (quantDateOffset === 0 && (quantDate === '' || quantDate === todayStr)) {
+        var prev = new Date();
+        prev.setDate(prev.getDate() - 1);
+        var prevStr = prev.getFullYear() + '-' + String(prev.getMonth() + 1).padStart(2, '0') + '-' + String(prev.getDate()).padStart(2, '0');
+        if (prevStr >= '2026-03-19') {
+          quantDateOffset = -1;
+          updateQuantDateBar();
+          loadQuantRank();
+          return;
+        }
+      }
       wrap.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3)">暂无比赛数据</div>';
       return;
     }
@@ -350,11 +364,21 @@ function renderTable() {
 }
 
 // ── 对战列 ──
+function shortTeam(name) {
+  if (!name) return '--';
+  // 中文队名 > 4 字截取前 2 字 + ..
+  // 英文队名 > 8 字符截取前 6 字符 + ..
+  if (/[\u4e00-\u9fff]/.test(name)) {
+    return name.length > 4 ? name.slice(0, 2) + '..' : name;
+  }
+  return name.length > 8 ? name.slice(0, 6) + '..' : name;
+}
+
 function renderMatch(item, compl) {
   return '<span class="q-col-match q-match-cell">' +
-    '<div class="q-match-teams">' + esc(item.homeName) + '</div>' +
+    '<div class="q-match-teams" title="' + esc(item.homeName) + '">' + esc(shortTeam(item.homeName)) + '</div>' +
     '<div class="q-match-vs">vs</div>' +
-    '<div class="q-match-teams">' + esc(item.visitName) + '</div>' +
+    '<div class="q-match-teams" title="' + esc(item.visitName) + '">' + esc(shortTeam(item.visitName)) + '</div>' +
     '<span class="q-compl-indicator ' + (compl ? compl.cls : '') + '" title="数据完整度: ' + (compl ? compl.text : '未知') + '">●</span>' +
     '</span>';
 }
