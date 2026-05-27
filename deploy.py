@@ -121,54 +121,69 @@ def ssh_cmd(ssh, cmd, timeout=120):
     return out, err
 
 
-def safe_upload(sftp, ssh, local_path, remote_path):
+def batch_upload(sftp, ssh, file_list, dry_run=False):
     """
-    可靠上传：SFTP→/tmp/ → cp -f → 目标 → md5 双重验证
-    返回: (success: bool, local_md5: str, remote_md5: str)
+    批量上传：SFTP 全部→/tmp/ → 单次 SSH cp+md5 → 返回结果列表
+    file_list: [(local_path, remote_path), ...]
     """
-    fname = os.path.basename(remote_path)
-    tmp_path = '/tmp/_deploy_{}_{}'.format(
-        hashlib.md5(remote_path.encode()).hexdigest()[:8], fname)
+    results = []
+    tmp_files = []
+    cp_cmds = []
+    verify_cmds = []
 
-    # 1) 读本地文件
-    with open(local_path, 'rb') as f:
-        local_data = f.read()
-    local_md5 = hashlib.md5(local_data).hexdigest()
-    local_size = len(local_data)
+    if dry_run:
+        for lp, rp in file_list:
+            results.append((True, os.path.basename(rp), 'DRY', '-', '-'))
+        return results
 
-    # 2) SFTP → /tmp
-    try:
-        sftp.put(local_path, tmp_path)
-    except Exception as e:
-        return False, local_md5, 'SFTP_PUT_FAIL: ' + str(e)[:50]
+    # 1) SFTP 批量上传到 /tmp
+    for local_path, remote_path in file_list:
+        fname = os.path.basename(remote_path)
+        tmp_path = '/tmp/_dep_{}'.format(fname)
+        try:
+            sftp.put(local_path, tmp_path)
+            tmp_files.append((local_path, remote_path, tmp_path))
+        except Exception as e:
+            results.append((False, os.path.basename(remote_path), 'SFTP', '-', str(e)[:50]))
 
-    # 3) 验证 /tmp 文件 md5
-    out, _ = ssh_cmd(ssh, 'md5sum {} 2>/dev/null'.format(tmp_path), 10)
-    tmp_md5 = out.split()[0] if out else ''
-    if tmp_md5 != local_md5:
-        return False, local_md5, 'TMP_MD5_MISMATCH: {}'.format(tmp_md5[:8])
+    # 2) 构建批量 cp + md5 命令
+    for local_path, remote_path, tmp_path in tmp_files:
+        remote_dir = os.path.dirname(remote_path)
+        cp_cmds.append('mkdir -p {d} && cp -f {t} {p}'.format(
+            d=remote_dir, t=tmp_path, p=remote_path))
+        verify_cmds.append('echo "##{}##" && md5sum {}'.format(
+            os.path.basename(remote_path), remote_path))
 
-    # 4) 确保目标目录存在
-    remote_dir = os.path.dirname(remote_path)
-    ssh_cmd(ssh, 'mkdir -p {} 2>/dev/null'.format(remote_dir), 5)
+    if not cp_cmds:
+        return results
 
-    # 5) cp -f 覆盖目标
-    out, err = ssh_cmd(ssh, 'cp -f {} {} 2>&1'.format(tmp_path, remote_path), 10)
-    if err and 'cannot' in err.lower():
-        return False, local_md5, 'CP_FAIL: ' + err[:50]
+    batch_cmd = ' && '.join(cp_cmds) + ' && ' + ' && '.join(verify_cmds)
+    out, err = ssh_cmd(ssh, batch_cmd, len(tmp_files) * 5 + 10)
 
-    # 6) 验证目标文件 md5
-    out, _ = ssh_cmd(ssh, 'md5sum {} 2>/dev/null'.format(remote_path), 10)
-    target_md5 = out.split()[0] if out else ''
+    # 3) 解析 md5sum 结果
+    segments = out.split('##')
+    md5_map = {}
+    for i in range(1, len(segments) - 1, 2):
+        fname = segments[i].strip()
+        md5_str = segments[i + 1].strip().split()[0] if len(segments) > i + 1 else ''
+        md5_map[fname] = md5_str
 
-    if target_md5 != local_md5:
-        return False, local_md5, 'TARGET_MD5_MISMATCH: local={} target={}'.format(
-            local_md5[:8], target_md5[:8])
+    # 4) 验证
+    for local_path, remote_path, tmp_path in tmp_files:
+        fname = os.path.basename(remote_path)
+        with open(local_path, 'rb') as f:
+            local_md5 = hashlib.md5(f.read()).hexdigest()
+        remote_md5 = md5_map.get(fname, '')
+        if remote_md5 == local_md5:
+            results.append((True, os.path.basename(remote_path), 'OK', local_md5, remote_md5))
+        else:
+            results.append((False, os.path.basename(remote_path), 'MD5', local_md5[:8],
+                            remote_md5[:8] if remote_md5 else 'MISSING'))
 
-    # 7) 清理 /tmp
-    ssh_cmd(ssh, 'rm -f {} 2>/dev/null'.format(tmp_path), 5)
+    # 5) 清理
+    ssh_cmd(ssh, 'rm -f /tmp/_dep_* 2>/dev/null', 5)
 
-    return True, local_md5, target_md5
+    return results
 
 
 def pm2_restart_and_verify(ssh):
@@ -293,45 +308,38 @@ def main():
             print('  已备份 {} 个文件 → {}'.format(backed, backup_dir))
         print()
 
-    # ── Phase 2: 上传文件 ──
+    # ── Phase 2: 批量上传文件 ──
     print(c('D', '═' * 54))
-    print(c('C', '[Phase 2] 上传代码文件'))
+    print(c('C', '[Phase 2] 批量上传代码文件'))
     results = []
     total = 0
 
+    # 收集所有待上传文件
+    upload_list = []
     for rel_path, target in DEPLOY_MAP:
         local_path = os.path.join(LOCAL_ROOT, rel_path)
         if not os.path.exists(local_path):
             print('  {} SKIP: 本地文件不存在 → {}'.format(c('Y', '?'), rel_path))
             continue
-
-        # 确定部署目标路径
-        targets = []
         if target in ('nginx', 'both'):
-            targets.append((NGINX_ROOT, 'Nginx'))
+            upload_list.append((local_path, os.path.join(NGINX_ROOT, rel_path)))
         if target in ('pm2', 'both'):
-            targets.append((PM2_ROOT, 'PM2'))
+            upload_list.append((local_path, os.path.join(PM2_ROOT, rel_path)))
 
-        for root, label in targets:
-            remote_path = os.path.join(root, rel_path)
-            total += 1
-
-            if dry_run:
-                results.append((True, rel_path, label, '-', '-'))
-                continue
-
-            success, local_md5, remote_info = safe_upload(sftp, ssh, local_path, remote_path)
-            results.append((success, rel_path, label, local_md5, remote_info))
-
+    total = len(upload_list)
+    if dry_run:
+        for lp, rp in upload_list:
+            results.append((True, rp, 'DRY', '-', '-'))
+    else:
+        batch_results = batch_upload(sftp, ssh, upload_list)
+        for success, fname, label, lm, rm in batch_results:
+            results.append((success, fname, label, lm, rm))
             if success:
-                size = os.path.getsize(local_path)
-                print('  {} {:>6}B  {} {}'.format(
-                    c('G', '✓'), size, rel_path, c('D', '[' + label + ']')))
+                print('  {} {} {}'.format(c('G', '✓'), fname, c('D', '[' + label + ']')))
             else:
-                size = os.path.getsize(local_path)
-                print('  {} {:>6}B  {} {} — {}'.format(
-                    c('R', '✗'), size, rel_path, c('D', '[' + label + ']'),
-                    remote_info[:60]))
+                print('  {} {} {} — {}'.format(c('R', '✗'), fname, c('D', '[' + label + ']'), rm[:40]))
+
+    print('  上传完成: {} 文件'.format(total))
 
     # ── Phase 3: 部署后同步 ──
     # 确保 /var/www/zj.100qiu.com/server/ 和 /root/server/ 一致
