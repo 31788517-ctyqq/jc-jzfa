@@ -1,0 +1,1 @@
+var d=require('./data.json');var r=d.r;var ks=Object.keys(r).sort().slice(-10);ks.forEach(function(k){console.log(k,(r[k]||[]).length)});console.log('Total recs:',Object.keys(r).length)

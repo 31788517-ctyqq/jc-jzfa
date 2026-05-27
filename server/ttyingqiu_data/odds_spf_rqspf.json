@@ -1,0 +1,7352 @@
+{
+  "2026-03-19": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-20",
+      "homeName": "KFUM奥斯陆",
+      "awayName": "腓特烈斯塔",
+      "leagueName": "挪威杯",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.13",
+        "draw": "3.40",
+        "lose": "3.45"
+      },
+      "rqspf": {
+        "win": "2.14",
+        "draw": "3.44",
+        "lose": "4.11",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四002",
+      "matchDate": "2026-03-20",
+      "homeName": "弗赖堡",
+      "awayName": "亨克",
+      "leagueName": "欧联",
+      "matchTime": "01:45",
+      "spf": {
+        "win": "1.54",
+        "draw": "4.35",
+        "lose": "6.10"
+      },
+      "rqspf": {
+        "win": "2.63",
+        "draw": "3.29",
+        "lose": "3.15",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周四003",
+      "matchDate": "2026-03-20",
+      "homeName": "里昂",
+      "awayName": "塞尔塔",
+      "leagueName": "欧联",
+      "matchTime": "01:45",
+      "spf": {
+        "win": "2.26",
+        "draw": "3.20",
+        "lose": "3.50"
+      },
+      "rqspf": {
+        "win": "2.07",
+        "draw": "3.20",
+        "lose": "4.83",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四004",
+      "matchDate": "2026-03-20",
+      "homeName": "中日德兰",
+      "awayName": "诺丁汉森林",
+      "leagueName": "欧联",
+      "matchTime": "01:45",
+      "spf": {
+        "win": "2.90",
+        "draw": "3.40",
+        "lose": "2.49"
+      },
+      "rqspf": {
+        "win": "2.64",
+        "draw": "4.29",
+        "lose": "2.56",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四005",
+      "matchDate": "2026-03-20",
+      "homeName": "AEK拉纳卡",
+      "awayName": "水晶宫",
+      "leagueName": "欧协联",
+      "matchTime": "01:45",
+      "spf": {
+        "win": "6.90",
+        "draw": "4.00",
+        "lose": "1.52"
+      },
+      "rqspf": {
+        "win": "3.13",
+        "draw": "3.54",
+        "lose": "2.50",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-20",
+      "homeName": "琴斯托霍瓦",
+      "awayName": "佛罗伦萨",
+      "leagueName": "欧协联",
+      "matchTime": "01:45",
+      "spf": {
+        "win": "2.70",
+        "draw": "3.40",
+        "lose": "2.59"
+      },
+      "rqspf": {
+        "win": "3.47",
+        "draw": "3.95",
+        "lose": "2.17",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-20",
+      "homeName": "雅典AEK",
+      "awayName": "采列",
+      "leagueName": "欧协联",
+      "matchTime": "01:45",
+      "spf": {
+        "win": "1.27",
+        "draw": "6.10",
+        "lose": "9.90"
+      },
+      "rqspf": {
+        "win": "3.03",
+        "draw": "4.61",
+        "lose": "2.20",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "周四006",
+      "matchDate": "2026-03-20",
+      "homeName": "美因茨",
+      "awayName": "奥洛穆茨",
+      "leagueName": "欧协联",
+      "matchTime": "01:45",
+      "spf": {
+        "win": "1.32",
+        "draw": "5.10",
+        "lose": "10.50"
+      },
+      "rqspf": {
+        "win": "1.90",
+        "draw": "3.78",
+        "lose": "4.71",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-20",
+      "homeName": "布加勒斯特迪纳摩",
+      "awayName": "克拉约瓦大学",
+      "leagueName": "罗甲",
+      "matchTime": "02:30",
+      "spf": {
+        "win": "2.81",
+        "draw": "2.99",
+        "lose": "2.44"
+      },
+      "rqspf": {
+        "win": "4.18",
+        "draw": "3.12",
+        "lose": "2.26",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-20",
+      "homeName": "布莱尼",
+      "awayName": "布兰",
+      "leagueName": "挪威杯",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "6.20",
+        "draw": "4.45",
+        "lose": "1.50"
+      },
+      "rqspf": {
+        "win": "2.48",
+        "draw": "3.93",
+        "lose": "2.91",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "周四010",
+      "matchDate": "2026-03-20",
+      "homeName": "贝蒂斯",
+      "awayName": "帕纳辛纳科斯",
+      "leagueName": "欧联",
+      "matchTime": "04:00",
+      "spf": {
+        "win": "1.43",
+        "draw": "4.80",
+        "lose": "7.30"
+      },
+      "rqspf": {
+        "win": "2.00",
+        "draw": "3.65",
+        "lose": "4.40",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周四008",
+      "matchDate": "2026-03-20",
+      "homeName": "波尔图",
+      "awayName": "斯图加特",
+      "leagueName": "欧联",
+      "matchTime": "04:00",
+      "spf": {
+        "win": "2.49",
+        "draw": "3.55",
+        "lose": "2.78"
+      },
+      "rqspf": {
+        "win": "2.24",
+        "draw": "3.95",
+        "lose": "3.30",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四007",
+      "matchDate": "2026-03-20",
+      "homeName": "罗马",
+      "awayName": "博洛尼亚",
+      "leagueName": "欧联",
+      "matchTime": "04:00",
+      "spf": {
+        "win": "1.74",
+        "draw": "3.65",
+        "lose": "5.20"
+      },
+      "rqspf": {
+        "win": "4.22",
+        "draw": "2.96",
+        "lose": "2.34",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周四009",
+      "matchDate": "2026-03-20",
+      "homeName": "阿斯顿维拉",
+      "awayName": "里尔",
+      "leagueName": "欧联",
+      "matchTime": "04:00",
+      "spf": {
+        "win": "1.73",
+        "draw": "3.75",
+        "lose": "5.10"
+      },
+      "rqspf": {
+        "win": "3.26",
+        "draw": "3.36",
+        "lose": "2.51",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-20",
+      "homeName": "布拉格斯巴达",
+      "awayName": "阿尔克马尔",
+      "leagueName": "欧协联",
+      "matchTime": "04:00",
+      "spf": {
+        "win": "2.44",
+        "draw": "3.75",
+        "lose": "2.68"
+      },
+      "rqspf": {
+        "win": "2.47",
+        "draw": "4.26",
+        "lose": "2.76",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-20",
+      "homeName": "巴列卡诺",
+      "awayName": "萨姆松体育",
+      "leagueName": "欧协联",
+      "matchTime": "04:00",
+      "spf": {
+        "win": "1.55",
+        "draw": "3.85",
+        "lose": "6.80"
+      },
+      "rqspf": {
+        "win": "2.39",
+        "draw": "4.04",
+        "lose": "2.98",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-20",
+      "homeName": "斯特拉斯堡",
+      "awayName": "里耶卡",
+      "leagueName": "欧协联",
+      "matchTime": "04:00",
+      "spf": {
+        "win": "1.38",
+        "draw": "5.00",
+        "lose": "7.70"
+      },
+      "rqspf": {
+        "win": "1.97",
+        "draw": "3.95",
+        "lose": "4.14",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-20",
+      "homeName": "格雷米奥",
+      "awayName": "维多利亚",
+      "leagueName": "巴西甲",
+      "matchTime": "06:00",
+      "spf": {
+        "win": "1.83",
+        "draw": "3.45",
+        "lose": "4.05"
+      },
+      "rqspf": {
+        "win": "3.44",
+        "draw": "3.80",
+        "lose": "2.24",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-20",
+      "homeName": "弗拉门戈",
+      "awayName": "雷莫",
+      "leagueName": "巴西甲",
+      "matchTime": "07:00",
+      "spf": {
+        "win": "1.14",
+        "draw": "7.50",
+        "lose": "14.50"
+      },
+      "rqspf": {
+        "win": "2.28",
+        "draw": "3.84",
+        "lose": "3.31",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-20",
+      "homeName": "沙佩科恩斯",
+      "awayName": "科林蒂安",
+      "leagueName": "巴西甲",
+      "matchTime": "08:30",
+      "spf": {
+        "win": "3.05",
+        "draw": "3.10",
+        "lose": "2.33"
+      },
+      "rqspf": {
+        "win": "4.29",
+        "draw": "3.25",
+        "lose": "2.17",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-20",
+      "homeName": "老虎大学",
+      "awayName": "辛辛那提FC",
+      "leagueName": "美冠杯",
+      "matchTime": "09:00",
+      "spf": {
+        "win": "1.35",
+        "draw": "5.00",
+        "lose": "7.00"
+      },
+      "rqspf": {
+        "win": "2.15",
+        "draw": "4.60",
+        "lose": "3.13",
+        "handicap": "-1"
+      }
+    }
+  ],
+  "2026-03-20": [
+    {
+      "matchNum": "周五001",
+      "matchDate": "2026-03-20",
+      "homeName": "西悉尼流浪者",
+      "awayName": "阿德莱德联",
+      "leagueName": "澳超",
+      "matchTime": "16:35",
+      "spf": {
+        "win": "1.87",
+        "draw": "4.10",
+        "lose": "3.65"
+      },
+      "rqspf": {
+        "win": "2.04",
+        "draw": "4.63",
+        "lose": "3.38",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-21",
+      "homeName": "皮亚斯特",
+      "awayName": "拉多米亚克",
+      "leagueName": "波兰甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.17",
+        "draw": "3.45",
+        "lose": "2.88"
+      },
+      "rqspf": {
+        "win": "2.53",
+        "draw": "2.98",
+        "lose": "3.68",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-21",
+      "homeName": "阿德米拉",
+      "awayName": "维也纳快速青年队",
+      "leagueName": "奥乙",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "1.33",
+        "draw": "4.85",
+        "lose": "7.00"
+      },
+      "rqspf": {
+        "win": "3.74",
+        "draw": "4.04",
+        "lose": "2.05",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-21",
+      "homeName": "奥地利克拉根福",
+      "awayName": "第一维也纳",
+      "leagueName": "奥乙",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "3.30",
+        "draw": "3.30",
+        "lose": "2.03"
+      },
+      "rqspf": {
+        "win": "3.63",
+        "draw": "4.51",
+        "lose": "1.98",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-21",
+      "homeName": "列弗宁",
+      "awayName": "赫塔韦尔斯",
+      "leagueName": "奥乙",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "1.98",
+        "draw": "3.40",
+        "lose": "3.35"
+      },
+      "rqspf": {
+        "win": "3.86",
+        "draw": "3.81",
+        "lose": "2.08",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-21",
+      "homeName": "圣珀尔滕",
+      "awayName": "奥地利萨尔斯堡",
+      "leagueName": "奥乙",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "1.28",
+        "draw": "5.10",
+        "lose": "8.20"
+      },
+      "rqspf": {
+        "win": "2.32",
+        "draw": "3.85",
+        "lose": "3.21",
+        "handicap": "-1"
+      }
+    }
+  ],
+  "2026-03-21": [
+    {
+      "matchNum": "周六001",
+      "matchDate": "2026-03-21",
+      "homeName": "布里斯班狮吼",
+      "awayName": "惠灵顿凤凰",
+      "leagueName": "澳超",
+      "matchTime": "12:00",
+      "spf": {
+        "win": "2.13",
+        "draw": "3.65",
+        "lose": "3.25"
+      },
+      "rqspf": {
+        "win": "2.43",
+        "draw": "3.79",
+        "lose": "3.07",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-21",
+      "homeName": "冈山绿雉",
+      "awayName": "长崎成功丸",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.29",
+        "draw": "3.20",
+        "lose": "3.00"
+      },
+      "rqspf": {
+        "win": "2.32",
+        "draw": "3.19",
+        "lose": "3.89",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六002",
+      "matchDate": "2026-03-21",
+      "homeName": "大田市民",
+      "awayName": "全北现代",
+      "leagueName": "韩K联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.60",
+        "draw": "3.20",
+        "lose": "2.60"
+      },
+      "rqspf": {
+        "win": "3.51",
+        "draw": "2.98",
+        "lose": "2.63",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-21",
+      "homeName": "金海",
+      "awayName": "水原三星",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "5.20",
+        "draw": "4.00",
+        "lose": "1.47"
+      },
+      "rqspf": {
+        "win": "3.76",
+        "draw": "3.37",
+        "lose": "2.28",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-21",
+      "homeName": "坡州前线",
+      "awayName": "全南天龙",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "3.30",
+        "draw": "3.30",
+        "lose": "1.95"
+      },
+      "rqspf": {
+        "win": "4.52",
+        "draw": "3.90",
+        "lose": "1.91",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-21",
+      "homeName": "城南FC",
+      "awayName": "忠南牙山",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.12",
+        "draw": "3.20",
+        "lose": "2.96"
+      },
+      "rqspf": {
+        "win": "2.35",
+        "draw": "3.79",
+        "lose": "3.21",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六003",
+      "matchDate": "2026-03-21",
+      "homeName": "福冈黄蜂",
+      "awayName": "大阪钢巴",
+      "leagueName": "日职联",
+      "matchTime": "13:30",
+      "spf": {
+        "win": "3.70",
+        "draw": "3.35",
+        "lose": "1.95"
+      },
+      "rqspf": {
+        "win": "4.57",
+        "draw": "3.58",
+        "lose": "1.99",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六004",
+      "matchDate": "2026-03-21",
+      "homeName": "墨尔本胜利",
+      "awayName": "中央海岸水手",
+      "leagueName": "澳超",
+      "matchTime": "14:10",
+      "spf": {
+        "win": "1.45",
+        "draw": "5.00",
+        "lose": "6.10"
+      },
+      "rqspf": {
+        "win": "2.73",
+        "draw": "4.01",
+        "lose": "2.59",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-21",
+      "homeName": "天安城",
+      "awayName": "首尔衣恋",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "3.20",
+        "draw": "3.20",
+        "lose": "2.01"
+      },
+      "rqspf": {
+        "win": "4.82",
+        "draw": "3.96",
+        "lose": "1.84",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-21",
+      "homeName": "忠北清州",
+      "awayName": "安山小绿人",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.14",
+        "draw": "3.10",
+        "lose": "3.05"
+      },
+      "rqspf": {
+        "win": "2.28",
+        "draw": "3.43",
+        "lose": "3.68",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六005",
+      "matchDate": "2026-03-21",
+      "homeName": "澳大利亚女足",
+      "awayName": "日本女足",
+      "leagueName": "女亚洲杯",
+      "matchTime": "17:00",
+      "spf": {
+        "win": "5.70",
+        "draw": "4.50",
+        "lose": "1.38"
+      },
+      "rqspf": {
+        "win": "2.26",
+        "draw": "3.80",
+        "lose": "3.37",
+        "handicap": "-1"
+      }
+    }
+  ],
+  "2026-03-22": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "悉尼FC",
+      "awayName": "纽卡斯尔喷气机",
+      "leagueName": "澳超",
+      "matchTime": "12:00",
+      "spf": {
+        "win": "1.97",
+        "draw": "4.35",
+        "lose": "3.20"
+      },
+      "rqspf": {
+        "win": "2.57",
+        "draw": "4.22",
+        "lose": "2.66",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "清水心跳",
+      "awayName": "广岛三箭",
+      "leagueName": "日职联",
+      "matchTime": "12:00",
+      "spf": {
+        "win": "3.65",
+        "draw": "3.45",
+        "lose": "1.94"
+      },
+      "rqspf": {
+        "win": "2.24",
+        "draw": "3.15",
+        "lose": "4.22",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "东京绿茵",
+      "awayName": "FC东京",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "3.85",
+        "draw": "3.15",
+        "lose": "2.00"
+      },
+      "rqspf": {
+        "win": "5.35",
+        "draw": "2.88",
+        "lose": "2.14",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "京都不死鸟",
+      "awayName": "名古屋鲸鱼",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.41",
+        "draw": "3.50",
+        "lose": "2.63"
+      },
+      "rqspf": {
+        "win": "2.49",
+        "draw": "3.40",
+        "lose": "3.27",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周日001",
+      "matchDate": "2026-03-22",
+      "homeName": "FC首尔",
+      "awayName": "光州FC",
+      "leagueName": "韩K联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.42",
+        "draw": "4.30",
+        "lose": "6.90"
+      },
+      "rqspf": {
+        "win": "3.15",
+        "draw": "3.11",
+        "lose": "2.76",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "蔚山HD",
+      "awayName": "金泉尚武",
+      "leagueName": "韩K联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.23",
+        "draw": "3.35",
+        "lose": "2.98"
+      },
+      "rqspf": {
+        "win": "1.83",
+        "draw": "4.05",
+        "lose": "4.80",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "釜山偶像",
+      "awayName": "大邱FC",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.49",
+        "draw": "3.30",
+        "lose": "2.55"
+      },
+      "rqspf": {
+        "win": "3.81",
+        "draw": "3.28",
+        "lose": "2.30",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "华城FC",
+      "awayName": "龙仁FC",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.84",
+        "draw": "3.40",
+        "lose": "3.80"
+      },
+      "rqspf": {
+        "win": "3.15",
+        "draw": "3.58",
+        "lose": "2.47",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "川崎前锋",
+      "awayName": "横滨水手",
+      "leagueName": "日职联",
+      "matchTime": "14:00",
+      "spf": {
+        "win": "2.14",
+        "draw": "3.75",
+        "lose": "2.90"
+      },
+      "rqspf": {
+        "win": "1.95",
+        "draw": "4.02",
+        "lose": "4.15",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周日002",
+      "matchDate": "2026-03-22",
+      "homeName": "大阪樱花",
+      "awayName": "神户胜利船",
+      "leagueName": "日职联",
+      "matchTime": "14:00",
+      "spf": {
+        "win": "2.56",
+        "draw": "3.40",
+        "lose": "2.56"
+      },
+      "rqspf": {
+        "win": "3.32",
+        "draw": "3.71",
+        "lose": "2.32",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "鹿岛鹿角",
+      "awayName": "千叶市原",
+      "leagueName": "日职联",
+      "matchTime": "14:00",
+      "spf": {
+        "win": "1.56",
+        "draw": "3.95",
+        "lose": "5.30"
+      },
+      "rqspf": {
+        "win": "2.13",
+        "draw": "3.88",
+        "lose": "3.63",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周日003",
+      "matchDate": "2026-03-22",
+      "homeName": "浦和红钻",
+      "awayName": "町田泽维亚",
+      "leagueName": "日职联",
+      "matchTime": "15:00",
+      "spf": {
+        "win": "2.70",
+        "draw": "3.10",
+        "lose": "2.60"
+      },
+      "rqspf": {
+        "win": "2.97",
+        "draw": "3.01",
+        "lose": "3.00",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "柏太阳神",
+      "awayName": "水户蜀葵",
+      "leagueName": "日职联",
+      "matchTime": "15:00",
+      "spf": {
+        "win": "1.58",
+        "draw": "3.80",
+        "lose": "5.40"
+      },
+      "rqspf": {
+        "win": "3.67",
+        "draw": "3.23",
+        "lose": "2.38",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "浦项铁人",
+      "awayName": "富川FC",
+      "leagueName": "韩K联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.23",
+        "draw": "3.10",
+        "lose": "3.20"
+      },
+      "rqspf": {
+        "win": "2.14",
+        "draw": "3.52",
+        "lose": "3.97",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "江原FC",
+      "awayName": "济州SK FC",
+      "leagueName": "韩K联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "1.67",
+        "draw": "3.50",
+        "lose": "5.10"
+      },
+      "rqspf": {
+        "win": "1.89",
+        "draw": "3.50",
+        "lose": "5.35",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "安养FC",
+      "awayName": "仁川联",
+      "leagueName": "韩K联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.69",
+        "draw": "3.05",
+        "lose": "2.62"
+      },
+      "rqspf": {
+        "win": "2.33",
+        "draw": "3.87",
+        "lose": "3.18",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "庆南FC",
+      "awayName": "金浦市民",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "4.15",
+        "draw": "3.35",
+        "lose": "1.78"
+      },
+      "rqspf": {
+        "win": "5.30",
+        "draw": "3.61",
+        "lose": "1.86",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周日004",
+      "matchDate": "2026-03-22",
+      "homeName": "珀斯光荣",
+      "awayName": "墨尔本城",
+      "leagueName": "澳超",
+      "matchTime": "16:00",
+      "spf": {
+        "win": "3.70",
+        "draw": "3.75",
+        "lose": "1.95"
+      },
+      "rqspf": {
+        "win": "4.16",
+        "draw": "3.88",
+        "lose": "1.99",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-22",
+      "homeName": "卡芬堡",
+      "awayName": "阿姆斯特顿",
+      "leagueName": "奥乙",
+      "matchTime": "17:30",
+      "spf": {
+        "win": "3.95",
+        "draw": "3.80",
+        "lose": "1.71"
+      },
+      "rqspf": {
+        "win": "2.01",
+        "draw": "4.59",
+        "lose": "3.48",
+        "handicap": "1"
+      }
+    }
+  ],
+  "2026-03-23": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-24",
+      "homeName": "斯洛博齐亚",
+      "awayName": "加拉茨钢铁",
+      "leagueName": "罗甲",
+      "matchTime": "02:30",
+      "spf": {
+        "win": "3.05",
+        "draw": "3.10",
+        "lose": "2.21"
+      },
+      "rqspf": {
+        "win": "3.78",
+        "draw": "3.00",
+        "lose": "2.47",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-24",
+      "homeName": "卡斯迪隆",
+      "awayName": "莱昂文体",
+      "leagueName": "西乙",
+      "matchTime": "03:30",
+      "spf": {
+        "win": "1.43",
+        "draw": "4.50",
+        "lose": "6.20"
+      },
+      "rqspf": {
+        "win": "2.16",
+        "draw": "3.78",
+        "lose": "3.65",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-24",
+      "homeName": "拉普拉塔大学生",
+      "awayName": "科尔多瓦中央",
+      "leagueName": "阿甲",
+      "matchTime": "06:00",
+      "spf": {
+        "win": "1.48",
+        "draw": "3.80",
+        "lose": "7.00"
+      },
+      "rqspf": {
+        "win": "3.29",
+        "draw": "3.00",
+        "lose": "2.74",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-24",
+      "homeName": "飓风队",
+      "awayName": "巴拉卡斯中央",
+      "leagueName": "阿甲",
+      "matchTime": "08:15",
+      "spf": {
+        "win": "1.91",
+        "draw": "2.99",
+        "lose": "4.50"
+      },
+      "rqspf": {
+        "win": "2.42",
+        "draw": "3.17",
+        "lose": "3.65",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-03-24": [
+    {
+      "matchNum": "周二001",
+      "matchDate": "2026-03-25",
+      "homeName": "埃门",
+      "awayName": "坎布尔",
+      "leagueName": "荷乙",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "2.51",
+        "draw": "3.70",
+        "lose": "2.30"
+      },
+      "rqspf": {
+        "win": "3.13",
+        "draw": "3.96",
+        "lose": "2.33",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周二002",
+      "matchDate": "2026-03-25",
+      "homeName": "唐卡斯特",
+      "awayName": "维尔港",
+      "leagueName": "英甲",
+      "matchTime": "03:45",
+      "spf": {
+        "win": "1.73",
+        "draw": "3.55",
+        "lose": "4.00"
+      },
+      "rqspf": {
+        "win": "4.03",
+        "draw": "3.10",
+        "lose": "2.32",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-25",
+      "homeName": "拉茨流浪者",
+      "awayName": "帕尔蒂克",
+      "leagueName": "苏冠",
+      "matchTime": "03:45",
+      "spf": {
+        "win": "2.65",
+        "draw": "3.20",
+        "lose": "2.34"
+      },
+      "rqspf": {
+        "win": "3.00",
+        "draw": "3.17",
+        "lose": "2.84",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-25",
+      "homeName": "奥尔德姆",
+      "awayName": "诺茨郡",
+      "leagueName": "英乙",
+      "matchTime": "03:45",
+      "spf": {
+        "win": "2.53",
+        "draw": "3.15",
+        "lose": "2.47"
+      },
+      "rqspf": {
+        "win": "3.19",
+        "draw": "3.33",
+        "lose": "2.58",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-03-25": [],
+  "2026-03-26": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-27",
+      "homeName": "直布罗陀",
+      "awayName": "拉脱维亚",
+      "leagueName": "欧国联",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "6.80",
+        "draw": "4.00",
+        "lose": "1.53"
+      },
+      "rqspf": {
+        "win": "4.16",
+        "draw": "3.51",
+        "lose": "2.10",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "周四001",
+      "matchDate": "2026-03-27",
+      "homeName": "土耳其",
+      "awayName": "罗马尼亚",
+      "leagueName": "世欧预",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "1.44",
+        "draw": "4.55",
+        "lose": "5.90"
+      },
+      "rqspf": {
+        "win": "2.05",
+        "draw": "3.38",
+        "lose": "4.58",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周四007",
+      "matchDate": "2026-03-27",
+      "homeName": "丹麦",
+      "awayName": "北马其顿",
+      "leagueName": "世欧预",
+      "matchTime": "03:45",
+      "spf": {
+        "win": "1.17",
+        "draw": "6.60",
+        "lose": "13.00"
+      },
+      "rqspf": {
+        "win": "2.74",
+        "draw": "3.82",
+        "lose": "2.67",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "周四005",
+      "matchDate": "2026-03-27",
+      "homeName": "波兰",
+      "awayName": "阿尔巴尼亚",
+      "leagueName": "世欧预",
+      "matchTime": "03:45",
+      "spf": {
+        "win": "1.61",
+        "draw": "3.55",
+        "lose": "5.20"
+      },
+      "rqspf": {
+        "win": "2.94",
+        "draw": "2.98",
+        "lose": "3.07",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周四006",
+      "matchDate": "2026-03-27",
+      "homeName": "捷克",
+      "awayName": "爱尔兰",
+      "leagueName": "世欧预",
+      "matchTime": "03:45",
+      "spf": {
+        "win": "2.02",
+        "draw": "3.35",
+        "lose": "3.50"
+      },
+      "rqspf": {
+        "win": "2.05",
+        "draw": "3.19",
+        "lose": "5.03",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四002",
+      "matchDate": "2026-03-27",
+      "homeName": "意大利",
+      "awayName": "北爱尔兰",
+      "leagueName": "世欧预",
+      "matchTime": "03:45",
+      "spf": {
+        "win": "1.22",
+        "draw": "5.60",
+        "lose": "12.00"
+      },
+      "rqspf": {
+        "win": "3.25",
+        "draw": "3.49",
+        "lose": "2.45",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "周四003",
+      "matchDate": "2026-03-27",
+      "homeName": "斯洛伐克",
+      "awayName": "科索沃",
+      "leagueName": "世欧预",
+      "matchTime": "03:45",
+      "spf": {
+        "win": "2.47",
+        "draw": "2.99",
+        "lose": "2.90"
+      },
+      "rqspf": {
+        "win": "2.53",
+        "draw": "3.02",
+        "lose": "3.65",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四004",
+      "matchDate": "2026-03-27",
+      "homeName": "威尔士",
+      "awayName": "波黑",
+      "leagueName": "世欧预",
+      "matchTime": "03:45",
+      "spf": {
+        "win": "1.64",
+        "draw": "3.75",
+        "lose": "4.90"
+      },
+      "rqspf": {
+        "win": "1.71",
+        "draw": "3.79",
+        "lose": "6.58",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四008",
+      "matchDate": "2026-03-27",
+      "homeName": "巴西",
+      "awayName": "法国",
+      "leagueName": "国际友谊",
+      "matchTime": "04:00",
+      "spf": {
+        "win": "2.60",
+        "draw": "3.65",
+        "lose": "2.25"
+      },
+      "rqspf": {
+        "win": "3.26",
+        "draw": "3.52",
+        "lose": "2.43",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四009",
+      "matchDate": "2026-03-27",
+      "homeName": "玻利维亚",
+      "awayName": "苏里南",
+      "leagueName": "世界杯附",
+      "matchTime": "06:00",
+      "spf": {
+        "win": "2.49",
+        "draw": "2.88",
+        "lose": "2.99"
+      },
+      "rqspf": {
+        "win": "1.97",
+        "draw": "3.45",
+        "lose": "4.91",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四010",
+      "matchDate": "2026-03-27",
+      "homeName": "哥伦比亚",
+      "awayName": "克罗地亚",
+      "leagueName": "国际友谊",
+      "matchTime": "07:30",
+      "spf": {
+        "win": "2.04",
+        "draw": "3.35",
+        "lose": "3.20"
+      },
+      "rqspf": {
+        "win": "2.28",
+        "draw": "3.06",
+        "lose": "4.21",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-27",
+      "homeName": "阿根廷青年人",
+      "awayName": "拉努斯",
+      "leagueName": "阿甲",
+      "matchTime": "08:00",
+      "spf": {
+        "win": "2.09",
+        "draw": "2.85",
+        "lose": "3.95"
+      },
+      "rqspf": {
+        "win": "2.23",
+        "draw": "3.01",
+        "lose": "4.53",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-03-27": [
+    {
+      "matchNum": "周五002",
+      "matchDate": "2026-03-27",
+      "homeName": "中国",
+      "awayName": "库拉索",
+      "leagueName": "FIFA系列赛",
+      "matchTime": "14:00",
+      "spf": {
+        "win": "5.60",
+        "draw": "3.85",
+        "lose": "1.56"
+      },
+      "rqspf": {
+        "win": "2.33",
+        "draw": "4.03",
+        "lose": "3.09",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "周五003",
+      "matchDate": "2026-03-27",
+      "homeName": "澳大利亚",
+      "awayName": "喀麦隆",
+      "leagueName": "FIFA系列赛",
+      "matchTime": "17:10",
+      "spf": {
+        "win": "2.02",
+        "draw": "3.20",
+        "lose": "3.65"
+      },
+      "rqspf": {
+        "win": "4.51",
+        "draw": "3.56",
+        "lose": "2.00",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周五004",
+      "matchDate": "2026-03-27",
+      "homeName": "神户胜利船",
+      "awayName": "广岛三箭",
+      "leagueName": "日职联",
+      "matchTime": "18:00",
+      "spf": {
+        "win": "2.80",
+        "draw": "3.25",
+        "lose": "2.56"
+      },
+      "rqspf": {
+        "win": "2.73",
+        "draw": "3.60",
+        "lose": "2.80",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-27",
+      "homeName": "波黑U21",
+      "awayName": "斯洛文尼亚U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "22:00",
+      "spf": {
+        "win": "2.64",
+        "draw": "3.20",
+        "lose": "2.33"
+      },
+      "rqspf": {
+        "win": "2.22",
+        "draw": "4.40",
+        "lose": "3.09",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-27",
+      "homeName": "哈萨克斯坦U21",
+      "awayName": "斯洛伐克U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "23:00",
+      "spf": {
+        "win": "4.25",
+        "draw": "3.80",
+        "lose": "1.61"
+      },
+      "rqspf": {
+        "win": "3.16",
+        "draw": "3.24",
+        "lose": "2.66",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-27",
+      "homeName": "格鲁吉亚U21",
+      "awayName": "拉脱维亚U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "23:00",
+      "spf": {
+        "win": "1.63",
+        "draw": "3.50",
+        "lose": "4.50"
+      },
+      "rqspf": {
+        "win": "2.72",
+        "draw": "3.26",
+        "lose": "3.05",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-28",
+      "homeName": "挪威U21",
+      "awayName": "荷兰U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.47",
+        "draw": "3.65",
+        "lose": "2.27"
+      },
+      "rqspf": {
+        "win": "2.75",
+        "draw": "4.85",
+        "lose": "2.31",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周五005",
+      "matchDate": "2026-03-28",
+      "homeName": "奥地利",
+      "awayName": "加纳",
+      "leagueName": "国际友谊",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "1.52",
+        "draw": "4.20",
+        "lose": "5.30"
+      },
+      "rqspf": {
+        "win": "2.69",
+        "draw": "3.23",
+        "lose": "3.13",
+        "handicap": "-1"
+      }
+    }
+  ],
+  "2026-03-28": [
+    {
+      "matchNum": "周六001",
+      "matchDate": "2026-03-28",
+      "homeName": "町田泽维亚",
+      "awayName": "川崎前锋",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.72",
+        "draw": "4.00",
+        "lose": "4.60"
+      },
+      "rqspf": {
+        "win": "2.01",
+        "draw": "3.82",
+        "lose": "4.11",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-28",
+      "homeName": "龙仁FC",
+      "awayName": "水原三星",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "5.40",
+        "draw": "4.20",
+        "lose": "1.43"
+      },
+      "rqspf": {
+        "win": "3.74",
+        "draw": "3.64",
+        "lose": "2.18",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-28",
+      "homeName": "忠南牙山",
+      "awayName": "华城FC",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.13",
+        "draw": "3.20",
+        "lose": "2.98"
+      },
+      "rqspf": {
+        "win": "2.26",
+        "draw": "2.96",
+        "lose": "4.49",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六002",
+      "matchDate": "2026-03-28",
+      "homeName": "浦项铁人",
+      "awayName": "江原FC",
+      "leagueName": "韩K联",
+      "matchTime": "14:00",
+      "spf": {
+        "win": "3.10",
+        "draw": "2.94",
+        "lose": "2.40"
+      },
+      "rqspf": {
+        "win": "2.72",
+        "draw": "3.02",
+        "lose": "3.30",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-28",
+      "homeName": "安山小绿人",
+      "awayName": "庆南FC",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.86",
+        "draw": "3.25",
+        "lose": "2.17"
+      },
+      "rqspf": {
+        "win": "3.27",
+        "draw": "3.27",
+        "lose": "2.57",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-28",
+      "homeName": "天安城",
+      "awayName": "全南天龙",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "3.05",
+        "draw": "3.15",
+        "lose": "2.09"
+      },
+      "rqspf": {
+        "win": "3.75",
+        "draw": "3.85",
+        "lose": "2.10",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-28",
+      "homeName": "城南FC",
+      "awayName": "金浦市民",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.63",
+        "draw": "2.80",
+        "lose": "2.59"
+      },
+      "rqspf": {
+        "win": "2.71",
+        "draw": "2.85",
+        "lose": "3.54",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-03-29": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-29",
+      "homeName": "忠北清州",
+      "awayName": "釜山偶像",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "3.90",
+        "draw": "3.35",
+        "lose": "1.77"
+      },
+      "rqspf": {
+        "win": "5.78",
+        "draw": "3.60",
+        "lose": "1.81",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-29",
+      "homeName": "水原FC",
+      "awayName": "坡州前线",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.49",
+        "draw": "4.05",
+        "lose": "4.95"
+      },
+      "rqspf": {
+        "win": "2.62",
+        "draw": "3.06",
+        "lose": "3.42",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-29",
+      "homeName": "大邱FC",
+      "awayName": "首尔衣恋",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.19",
+        "draw": "3.35",
+        "lose": "2.74"
+      },
+      "rqspf": {
+        "win": "1.84",
+        "draw": "3.52",
+        "lose": "5.75",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-03-30": [
+    {
+      "matchNum": "周一002",
+      "matchDate": "2026-03-31",
+      "homeName": "德国",
+      "awayName": "加纳",
+      "leagueName": "国际友谊",
+      "matchTime": "02:45",
+      "spf": {
+        "win": "1.14",
+        "draw": "7.80",
+        "lose": "13.00"
+      },
+      "rqspf": {
+        "win": "1.98",
+        "draw": "6.25",
+        "lose": "2.98",
+        "handicap": "-2"
+      }
+    }
+  ],
+  "2026-03-31": [
+    {
+      "matchNum": "周二001",
+      "matchDate": "2026-03-31",
+      "homeName": "喀麦隆",
+      "awayName": "中国",
+      "leagueName": "FIFA系列赛",
+      "matchTime": "14:00",
+      "spf": {
+        "win": "1.36",
+        "draw": "4.30",
+        "lose": "7.50"
+      },
+      "rqspf": {
+        "win": "2.30",
+        "draw": "3.91",
+        "lose": "3.22",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周二002",
+      "matchDate": "2026-03-31",
+      "homeName": "澳大利亚",
+      "awayName": "库拉索",
+      "leagueName": "FIFA系列赛",
+      "matchTime": "17:10",
+      "spf": {
+        "win": "1.29",
+        "draw": "4.90",
+        "lose": "8.50"
+      },
+      "rqspf": {
+        "win": "1.92",
+        "draw": "4.19",
+        "lose": "4.13",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-31",
+      "homeName": "拉脱维亚U21",
+      "awayName": "北爱尔兰U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "19:00",
+      "spf": {
+        "win": "2.73",
+        "draw": "3.25",
+        "lose": "2.46"
+      },
+      "rqspf": {
+        "win": "3.80",
+        "draw": "3.61",
+        "lose": "2.17",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-31",
+      "homeName": "黑山U21",
+      "awayName": "波兰U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "20:00",
+      "spf": {
+        "win": "4.30",
+        "draw": "3.80",
+        "lose": "1.71"
+      },
+      "rqspf": {
+        "win": "3.01",
+        "draw": "3.74",
+        "lose": "2.49",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-31",
+      "homeName": "亚美尼亚U21",
+      "awayName": "北马其顿U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "22:00",
+      "spf": {
+        "win": "2.55",
+        "draw": "3.40",
+        "lose": "2.55"
+      },
+      "rqspf": {
+        "win": "3.47",
+        "draw": "3.82",
+        "lose": "2.21",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-31",
+      "homeName": "斯洛文尼亚U21",
+      "awayName": "挪威U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "22:00",
+      "spf": {
+        "win": "",
+        "draw": "",
+        "lose": ""
+      },
+      "rqspf": {
+        "win": "2.94",
+        "draw": "4.79",
+        "lose": "2.21",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-31",
+      "homeName": "芬兰U21",
+      "awayName": "塞浦路斯U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "23:00",
+      "spf": {
+        "win": "1.10",
+        "draw": "9.30",
+        "lose": "16.50"
+      },
+      "rqspf": {
+        "win": "1.68",
+        "draw": "5.16",
+        "lose": "4.66",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-31",
+      "homeName": "哈萨克斯坦U21",
+      "awayName": "爱尔兰U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "23:00",
+      "spf": {
+        "win": "3.70",
+        "draw": "3.40",
+        "lose": "1.94"
+      },
+      "rqspf": {
+        "win": "2.22",
+        "draw": "3.54",
+        "lose": "3.72",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-03-31",
+      "homeName": "克罗地亚U21",
+      "awayName": "土耳其U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "23:30",
+      "spf": {
+        "win": "2.09",
+        "draw": "3.50",
+        "lose": "3.15"
+      },
+      "rqspf": {
+        "win": "1.92",
+        "draw": "3.55",
+        "lose": "5.00",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-01",
+      "homeName": "拉脱维亚",
+      "awayName": "直布罗陀",
+      "leagueName": "欧国联",
+      "matchTime": "00:00",
+      "spf": {
+        "win": "1.26",
+        "draw": "5.20",
+        "lose": "11.00"
+      },
+      "rqspf": {
+        "win": "2.80",
+        "draw": "3.65",
+        "lose": "2.70",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-01",
+      "homeName": "保加利亚U21",
+      "awayName": "阿塞拜疆U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "00:00",
+      "spf": {
+        "win": "1.28",
+        "draw": "5.10",
+        "lose": "9.50"
+      },
+      "rqspf": {
+        "win": "3.73",
+        "draw": "4.21",
+        "lose": "2.01",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-01",
+      "homeName": "希腊U21",
+      "awayName": "德国U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "00:00",
+      "spf": {
+        "win": "4.55",
+        "draw": "4.35",
+        "lose": "1.59"
+      },
+      "rqspf": {
+        "win": "2.62",
+        "draw": "3.83",
+        "lose": "2.78",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-01",
+      "homeName": "丹麦U21",
+      "awayName": "威尔士U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "00:00",
+      "spf": {
+        "win": "1.40",
+        "draw": "4.75",
+        "lose": "6.50"
+      },
+      "rqspf": {
+        "win": "1.94",
+        "draw": "4.13",
+        "lose": "4.08",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-01",
+      "homeName": "奥地利U21",
+      "awayName": "白俄罗斯U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "00:00",
+      "spf": {
+        "win": "1.47",
+        "draw": "4.45",
+        "lose": "5.70"
+      },
+      "rqspf": {
+        "win": "2.05",
+        "draw": "4.13",
+        "lose": "3.69",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周二003",
+      "matchDate": "2026-04-01",
+      "homeName": "挪威",
+      "awayName": "瑞士",
+      "leagueName": "国际友谊",
+      "matchTime": "00:00",
+      "spf": {
+        "win": "1.94",
+        "draw": "3.95",
+        "lose": "3.20"
+      },
+      "rqspf": {
+        "win": "2.01",
+        "draw": "4.11",
+        "lose": "3.84",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周二004",
+      "matchDate": "2026-04-01",
+      "homeName": "黑山",
+      "awayName": "斯洛文尼亚",
+      "leagueName": "国际友谊",
+      "matchTime": "00:00",
+      "spf": {
+        "win": "2.46",
+        "draw": "3.15",
+        "lose": "2.81"
+      },
+      "rqspf": {
+        "win": "3.98",
+        "draw": "3.15",
+        "lose": "2.31",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-01",
+      "homeName": "瑞典U21",
+      "awayName": "意大利U21",
+      "leagueName": "欧青U21外",
+      "matchTime": "00:30",
+      "spf": {
+        "win": "3.95",
+        "draw": "4.00",
+        "lose": "1.72"
+      },
+      "rqspf": {
+        "win": "2.92",
+        "draw": "3.94",
+        "lose": "2.46",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-01",
+      "homeName": "米兰德斯",
+      "awayName": "阿尔瓦塞特",
+      "leagueName": "西乙",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.31",
+        "draw": "3.25",
+        "lose": "2.98"
+      },
+      "rqspf": {
+        "win": "2.14",
+        "draw": "4.15",
+        "lose": "3.40",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-01",
+      "homeName": "阿尔多斯维",
+      "awayName": "阿根廷青年人",
+      "leagueName": "阿甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "4.50",
+        "draw": "3.15",
+        "lose": "1.85"
+      },
+      "rqspf": {
+        "win": "5.38",
+        "draw": "3.47",
+        "lose": "1.90",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周二005",
+      "matchDate": "2026-04-01",
+      "homeName": "匈牙利",
+      "awayName": "希腊",
+      "leagueName": "国际友谊",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.79",
+        "draw": "3.20",
+        "lose": "2.42"
+      },
+      "rqspf": {
+        "win": "2.75",
+        "draw": "3.33",
+        "lose": "2.96",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-01": [
+    {
+      "matchNum": "周三002",
+      "matchDate": "2026-04-01",
+      "homeName": "町田泽维亚",
+      "awayName": "FC东京",
+      "leagueName": "日职联",
+      "matchTime": "18:00",
+      "spf": {
+        "win": "2.49",
+        "draw": "3.10",
+        "lose": "3.05"
+      },
+      "rqspf": {
+        "win": "2.44",
+        "draw": "3.09",
+        "lose": "3.73",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周三001",
+      "matchDate": "2026-04-01",
+      "homeName": "神户胜利船",
+      "awayName": "清水心跳",
+      "leagueName": "日职联",
+      "matchTime": "18:00",
+      "spf": {
+        "win": "1.93",
+        "draw": "3.55",
+        "lose": "4.00"
+      },
+      "rqspf": {
+        "win": "4.11",
+        "draw": "3.17",
+        "lose": "2.26",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-02",
+      "homeName": "安道尔FC",
+      "awayName": "马拉加",
+      "leagueName": "西乙",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "",
+        "draw": "",
+        "lose": ""
+      },
+      "rqspf": {
+        "win": "3.21",
+        "draw": "4.26",
+        "lose": "2.19",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-02",
+      "homeName": "布尔戈斯",
+      "awayName": "休达",
+      "leagueName": "西乙",
+      "matchTime": "02:00",
+      "spf": {
+        "win": "1.97",
+        "draw": "3.05",
+        "lose": "4.15"
+      },
+      "rqspf": {
+        "win": "2.83",
+        "draw": "3.26",
+        "lose": "2.93",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-02",
+      "homeName": "韦斯卡",
+      "awayName": "莱昂文体",
+      "leagueName": "西乙",
+      "matchTime": "02:00",
+      "spf": {
+        "win": "2.17",
+        "draw": "3.10",
+        "lose": "3.40"
+      },
+      "rqspf": {
+        "win": "1.97",
+        "draw": "3.58",
+        "lose": "4.67",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-02": [
+    {
+      "matchNum": "周四001",
+      "matchDate": "2026-04-02",
+      "homeName": "麦克阿瑟FC",
+      "awayName": "纽卡斯尔喷气机",
+      "leagueName": "澳超",
+      "matchTime": "16:35",
+      "spf": {
+        "win": "2.08",
+        "draw": "4.10",
+        "lose": "3.05"
+      },
+      "rqspf": {
+        "win": "2.77",
+        "draw": "4.00",
+        "lose": "2.56",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四002",
+      "matchDate": "2026-04-02",
+      "homeName": "布里斯班狮吼",
+      "awayName": "悉尼FC",
+      "leagueName": "澳超",
+      "matchTime": "18:00",
+      "spf": {
+        "win": "2.56",
+        "draw": "3.50",
+        "lose": "2.66"
+      },
+      "rqspf": {
+        "win": "3.63",
+        "draw": "3.95",
+        "lose": "2.11",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-03": [
+    {
+      "matchNum": "周五001",
+      "matchDate": "2026-04-03",
+      "homeName": "阿德莱德联",
+      "awayName": "奥克兰FC",
+      "leagueName": "澳超",
+      "matchTime": "16:35",
+      "spf": {
+        "win": "2.42",
+        "draw": "3.75",
+        "lose": "2.70"
+      },
+      "rqspf": {
+        "win": "2.79",
+        "draw": "3.40",
+        "lose": "2.86",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-03",
+      "homeName": "科灵",
+      "awayName": "埃斯比约",
+      "leagueName": "丹麦甲",
+      "matchTime": "19:00",
+      "spf": {
+        "win": "2.35",
+        "draw": "3.60",
+        "lose": "2.66"
+      },
+      "rqspf": {
+        "win": "2.24",
+        "draw": "4.33",
+        "lose": "3.08",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-03",
+      "homeName": "唐卡斯特",
+      "awayName": "曼斯菲尔德",
+      "leagueName": "英甲",
+      "matchTime": "19:30",
+      "spf": {
+        "win": "2.17",
+        "draw": "3.50",
+        "lose": "2.83"
+      },
+      "rqspf": {
+        "win": "2.50",
+        "draw": "3.09",
+        "lose": "3.61",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周五002",
+      "matchDate": "2026-04-03",
+      "homeName": "米德尔斯堡",
+      "awayName": "米尔沃尔",
+      "leagueName": "英冠",
+      "matchTime": "19:30",
+      "spf": {
+        "win": "1.76",
+        "draw": "3.70",
+        "lose": "4.15"
+      },
+      "rqspf": {
+        "win": "3.98",
+        "draw": "3.23",
+        "lose": "2.27",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-03",
+      "homeName": "B93哥本哈根",
+      "awayName": "霍布罗",
+      "leagueName": "丹麦甲",
+      "matchTime": "20:00",
+      "spf": {
+        "win": "2.59",
+        "draw": "3.80",
+        "lose": "2.31"
+      },
+      "rqspf": {
+        "win": "2.74",
+        "draw": "3.85",
+        "lose": "2.65",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-04": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-04",
+      "homeName": "千叶市原",
+      "awayName": "东京绿茵",
+      "leagueName": "日职联",
+      "matchTime": "12:00",
+      "spf": {
+        "win": "2.87",
+        "draw": "3.15",
+        "lose": "2.60"
+      },
+      "rqspf": {
+        "win": "3.02",
+        "draw": "3.20",
+        "lose": "2.79",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-04",
+      "homeName": "水户蜀葵",
+      "awayName": "鹿岛鹿角",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "3.85",
+        "draw": "3.50",
+        "lose": "1.98"
+      },
+      "rqspf": {
+        "win": "2.54",
+        "draw": "3.41",
+        "lose": "3.17",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-04",
+      "homeName": "济州SK FC",
+      "awayName": "富川FC",
+      "leagueName": "韩K联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.58",
+        "draw": "3.00",
+        "lose": "2.77"
+      },
+      "rqspf": {
+        "win": "2.64",
+        "draw": "3.47",
+        "lose": "2.99",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六001",
+      "matchDate": "2026-04-04",
+      "homeName": "全北现代",
+      "awayName": "蔚山HD",
+      "leagueName": "韩K联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.28",
+        "draw": "3.20",
+        "lose": "3.00"
+      },
+      "rqspf": {
+        "win": "2.48",
+        "draw": "2.90",
+        "lose": "3.95",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-04",
+      "homeName": "首尔衣恋",
+      "awayName": "水原FC",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.66",
+        "draw": "3.45",
+        "lose": "2.31"
+      },
+      "rqspf": {
+        "win": "3.42",
+        "draw": "3.73",
+        "lose": "2.27",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-04",
+      "homeName": "龙仁FC",
+      "awayName": "全南天龙",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "3.10",
+        "draw": "3.40",
+        "lose": "2.06"
+      },
+      "rqspf": {
+        "win": "4.16",
+        "draw": "3.72",
+        "lose": "2.03",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六002",
+      "matchDate": "2026-04-04",
+      "homeName": "中央海岸水手",
+      "awayName": "珀斯光荣",
+      "leagueName": "澳超",
+      "matchTime": "14:00",
+      "spf": {
+        "win": "2.60",
+        "draw": "3.55",
+        "lose": "2.55"
+      },
+      "rqspf": {
+        "win": "2.32",
+        "draw": "3.82",
+        "lose": "3.24",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-04",
+      "homeName": "名古屋鲸鱼",
+      "awayName": "大阪樱花",
+      "leagueName": "日职联",
+      "matchTime": "14:00",
+      "spf": {
+        "win": "2.44",
+        "draw": "3.55",
+        "lose": "2.80"
+      },
+      "rqspf": {
+        "win": "2.45",
+        "draw": "3.69",
+        "lose": "3.10",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六003",
+      "matchDate": "2026-04-04",
+      "homeName": "大阪钢巴",
+      "awayName": "京都不死鸟",
+      "leagueName": "日职联",
+      "matchTime": "15:00",
+      "spf": {
+        "win": "2.38",
+        "draw": "3.45",
+        "lose": "2.90"
+      },
+      "rqspf": {
+        "win": "2.73",
+        "draw": "2.97",
+        "lose": "3.35",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六004",
+      "matchDate": "2026-04-04",
+      "homeName": "江原FC",
+      "awayName": "光州FC",
+      "leagueName": "韩K联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "1.63",
+        "draw": "3.60",
+        "lose": "5.30"
+      },
+      "rqspf": {
+        "win": "3.77",
+        "draw": "3.03",
+        "lose": "2.46",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-04",
+      "homeName": "浦项铁人",
+      "awayName": "大田市民",
+      "leagueName": "韩K联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.51",
+        "draw": "3.15",
+        "lose": "2.75"
+      },
+      "rqspf": {
+        "win": "3.22",
+        "draw": "3.05",
+        "lose": "2.76",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-04",
+      "homeName": "庆南FC",
+      "awayName": "釜山偶像",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "3.65",
+        "draw": "3.35",
+        "lose": "1.89"
+      },
+      "rqspf": {
+        "win": "4.93",
+        "draw": "3.75",
+        "lose": "1.88",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-04",
+      "homeName": "华城FC",
+      "awayName": "城南FC",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.97",
+        "draw": "2.98",
+        "lose": "2.34"
+      },
+      "rqspf": {
+        "win": "3.80",
+        "draw": "2.99",
+        "lose": "2.48",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六005",
+      "matchDate": "2026-04-04",
+      "homeName": "墨尔本城",
+      "awayName": "西悉尼流浪者",
+      "leagueName": "澳超",
+      "matchTime": "16:35",
+      "spf": {
+        "win": "1.84",
+        "draw": "3.90",
+        "lose": "3.95"
+      },
+      "rqspf": {
+        "win": "2.02",
+        "draw": "3.96",
+        "lose": "3.94",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-04",
+      "homeName": "法鲁人",
+      "awayName": "费伦斯",
+      "leagueName": "葡甲",
+      "matchTime": "18:00",
+      "spf": {
+        "win": "1.83",
+        "draw": "3.20",
+        "lose": "4.10"
+      },
+      "rqspf": {
+        "win": "2.16",
+        "draw": "3.38",
+        "lose": "4.12",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-04",
+      "homeName": "葡萄牙体育B队",
+      "awayName": "佩纳菲尔",
+      "leagueName": "葡甲",
+      "matchTime": "18:00",
+      "spf": {
+        "win": "2.07",
+        "draw": "3.20",
+        "lose": "3.15"
+      },
+      "rqspf": {
+        "win": "2.10",
+        "draw": "4.13",
+        "lose": "3.51",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六006",
+      "matchDate": "2026-04-04",
+      "homeName": "图尔库国际",
+      "awayName": "VPS瓦萨",
+      "leagueName": "芬超",
+      "matchTime": "18:00",
+      "spf": {
+        "win": "1.40",
+        "draw": "4.70",
+        "lose": "6.60"
+      },
+      "rqspf": {
+        "win": "2.17",
+        "draw": "3.51",
+        "lose": "3.91",
+        "handicap": "-1"
+      }
+    }
+  ],
+  "2026-04-05": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-05",
+      "homeName": "长崎成功丸",
+      "awayName": "清水心跳",
+      "leagueName": "日职联",
+      "matchTime": "12:00",
+      "spf": {
+        "win": "2.73",
+        "draw": "3.20",
+        "lose": "2.69"
+      },
+      "rqspf": {
+        "win": "2.51",
+        "draw": "3.08",
+        "lose": "3.60",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周日001",
+      "matchDate": "2026-04-05",
+      "homeName": "墨尔本胜利",
+      "awayName": "惠灵顿凤凰",
+      "leagueName": "澳超",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.54",
+        "draw": "4.80",
+        "lose": "4.95"
+      },
+      "rqspf": {
+        "win": "2.36",
+        "draw": "3.85",
+        "lose": "3.14",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-05",
+      "homeName": "柏太阳神",
+      "awayName": "横滨水手",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.60",
+        "draw": "4.15",
+        "lose": "5.40"
+      },
+      "rqspf": {
+        "win": "3.43",
+        "draw": "3.57",
+        "lose": "2.32",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-05",
+      "homeName": "冈山绿雉",
+      "awayName": "神户胜利船",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "3.15",
+        "draw": "3.10",
+        "lose": "2.44"
+      },
+      "rqspf": {
+        "win": "4.92",
+        "draw": "3.15",
+        "lose": "2.08",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-05",
+      "homeName": "广岛三箭",
+      "awayName": "福冈黄蜂",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.46",
+        "draw": "4.40",
+        "lose": "7.30"
+      },
+      "rqspf": {
+        "win": "2.58",
+        "draw": "2.95",
+        "lose": "3.64",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周日002",
+      "matchDate": "2026-04-05",
+      "homeName": "安养FC",
+      "awayName": "FC首尔",
+      "leagueName": "韩K联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "3.45",
+        "draw": "3.15",
+        "lose": "2.11"
+      },
+      "rqspf": {
+        "win": "4.87",
+        "draw": "3.59",
+        "lose": "1.93",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-05",
+      "homeName": "大邱FC",
+      "awayName": "金浦市民",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.11",
+        "draw": "3.30",
+        "lose": "3.05"
+      },
+      "rqspf": {
+        "win": "2.06",
+        "draw": "3.47",
+        "lose": "4.39",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-05",
+      "homeName": "水原三星",
+      "awayName": "忠北清州",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.39",
+        "draw": "4.45",
+        "lose": "6.30"
+      },
+      "rqspf": {
+        "win": "2.25",
+        "draw": "3.20",
+        "lose": "4.08",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周日003",
+      "matchDate": "2026-04-05",
+      "homeName": "FC东京",
+      "awayName": "町田泽维亚",
+      "leagueName": "日职联",
+      "matchTime": "14:00",
+      "spf": {
+        "win": "2.42",
+        "draw": "3.15",
+        "lose": "3.15"
+      },
+      "rqspf": {
+        "win": "2.60",
+        "draw": "3.58",
+        "lose": "2.97",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周日004",
+      "matchDate": "2026-04-05",
+      "homeName": "川崎前锋",
+      "awayName": "浦和红钻",
+      "leagueName": "日职联",
+      "matchTime": "15:00",
+      "spf": {
+        "win": "2.61",
+        "draw": "3.50",
+        "lose": "2.61"
+      },
+      "rqspf": {
+        "win": "2.86",
+        "draw": "3.12",
+        "lose": "3.01",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周日005",
+      "matchDate": "2026-04-05",
+      "homeName": "仁川联",
+      "awayName": "金泉尚武",
+      "leagueName": "韩K联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.33",
+        "draw": "3.00",
+        "lose": "3.10"
+      },
+      "rqspf": {
+        "win": "2.91",
+        "draw": "3.33",
+        "lose": "2.79",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-05",
+      "homeName": "安山小绿人",
+      "awayName": "忠南牙山",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "3.85",
+        "draw": "3.55",
+        "lose": "1.79"
+      },
+      "rqspf": {
+        "win": "4.40",
+        "draw": "4.02",
+        "lose": "1.90",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-05",
+      "homeName": "赫拉德茨",
+      "awayName": "波希米亚1905",
+      "leagueName": "捷甲",
+      "matchTime": "19:00",
+      "spf": {
+        "win": "2.09",
+        "draw": "3.15",
+        "lose": "3.30"
+      },
+      "rqspf": {
+        "win": "1.94",
+        "draw": "3.47",
+        "lose": "5.02",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-06": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "特马利卡",
+      "awayName": "皮亚斯特",
+      "leagueName": "波兰甲",
+      "matchTime": "18:15",
+      "spf": {
+        "win": "2.72",
+        "draw": "3.55",
+        "lose": "2.22"
+      },
+      "rqspf": {
+        "win": "3.35",
+        "draw": "3.85",
+        "lose": "2.25",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一001",
+      "matchDate": "2026-04-06",
+      "homeName": "赫尔蒙德",
+      "awayName": "瓦尔韦克",
+      "leagueName": "荷乙",
+      "matchTime": "18:15",
+      "spf": {
+        "win": "3.60",
+        "draw": "3.85",
+        "lose": "1.78"
+      },
+      "rqspf": {
+        "win": "4.16",
+        "draw": "4.23",
+        "lose": "1.90",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一002",
+      "matchDate": "2026-04-06",
+      "homeName": "乌迪内斯",
+      "awayName": "科莫",
+      "leagueName": "意甲",
+      "matchTime": "18:30",
+      "spf": {
+        "win": "5.60",
+        "draw": "3.85",
+        "lose": "1.66"
+      },
+      "rqspf": {
+        "win": "2.32",
+        "draw": "3.61",
+        "lose": "3.40",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "切塞纳",
+      "awayName": "南蒂罗尔",
+      "leagueName": "意乙",
+      "matchTime": "18:30",
+      "spf": {
+        "win": "2.28",
+        "draw": "3.20",
+        "lose": "3.00"
+      },
+      "rqspf": {
+        "win": "2.24",
+        "draw": "2.99",
+        "lose": "4.54",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "法尔肯堡",
+      "awayName": "卢恩斯基尔",
+      "leagueName": "瑞典超甲",
+      "matchTime": "19:00",
+      "spf": {
+        "win": "2.04",
+        "draw": "3.70",
+        "lose": "3.15"
+      },
+      "rqspf": {
+        "win": "1.94",
+        "draw": "4.12",
+        "lose": "4.13",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "松兹瓦尔",
+      "awayName": "北欧联FC",
+      "leagueName": "瑞典超甲",
+      "matchTime": "19:00",
+      "spf": {
+        "win": "2.34",
+        "draw": "3.45",
+        "lose": "2.77"
+      },
+      "rqspf": {
+        "win": "2.33",
+        "draw": "3.86",
+        "lose": "3.18",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一003",
+      "matchDate": "2026-04-06",
+      "homeName": "朴茨茅斯",
+      "awayName": "牛津联",
+      "leagueName": "英冠",
+      "matchTime": "19:30",
+      "spf": {
+        "win": "2.05",
+        "draw": "3.10",
+        "lose": "3.70"
+      },
+      "rqspf": {
+        "win": "2.19",
+        "draw": "3.13",
+        "lose": "4.41",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "布鲁日",
+      "awayName": "安德莱赫特",
+      "leagueName": "比甲",
+      "matchTime": "19:30",
+      "spf": {
+        "win": "1.40",
+        "draw": "5.00",
+        "lose": "5.90"
+      },
+      "rqspf": {
+        "win": "2.17",
+        "draw": "3.61",
+        "lose": "3.77",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "赫塔韦尔斯",
+      "awayName": "奥地利萨尔斯堡",
+      "leagueName": "奥乙",
+      "matchTime": "20:00",
+      "spf": {
+        "win": "2.12",
+        "draw": "3.25",
+        "lose": "3.10"
+      },
+      "rqspf": {
+        "win": "2.57",
+        "draw": "3.35",
+        "lose": "3.19",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "奥地利维也纳青年队",
+      "awayName": "奥地利卢斯特瑙",
+      "leagueName": "奥乙",
+      "matchTime": "20:00",
+      "spf": {
+        "win": "3.05",
+        "draw": "3.30",
+        "lose": "2.12"
+      },
+      "rqspf": {
+        "win": "4.15",
+        "draw": "3.83",
+        "lose": "2.00",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "卡芬堡",
+      "awayName": "维也纳快速青年队",
+      "leagueName": "奥乙",
+      "matchTime": "20:00",
+      "spf": {
+        "win": "2.35",
+        "draw": "3.80",
+        "lose": "2.43"
+      },
+      "rqspf": {
+        "win": "2.37",
+        "draw": "4.31",
+        "lose": "2.88",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "列弗宁",
+      "awayName": "阿姆斯特顿",
+      "leagueName": "奥乙",
+      "matchTime": "20:00",
+      "spf": {
+        "win": "2.46",
+        "draw": "3.75",
+        "lose": "2.34"
+      },
+      "rqspf": {
+        "win": "2.56",
+        "draw": "3.92",
+        "lose": "2.81",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一004",
+      "matchDate": "2026-04-06",
+      "homeName": "米尔沃尔",
+      "awayName": "诺维奇",
+      "leagueName": "英冠",
+      "matchTime": "20:00",
+      "spf": {
+        "win": "2.17",
+        "draw": "3.25",
+        "lose": "3.20"
+      },
+      "rqspf": {
+        "win": "1.92",
+        "draw": "3.84",
+        "lose": "4.51",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "尼奈斯",
+      "awayName": "伊韦尔东",
+      "leagueName": "瑞士挑",
+      "matchTime": "20:00",
+      "spf": {
+        "win": "3.90",
+        "draw": "3.80",
+        "lose": "1.71"
+      },
+      "rqspf": {
+        "win": "4.11",
+        "draw": "3.78",
+        "lose": "2.03",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一005",
+      "matchDate": "2026-04-06",
+      "homeName": "埃尔夫斯堡",
+      "awayName": "哥德堡",
+      "leagueName": "瑞典超",
+      "matchTime": "20:00",
+      "spf": {
+        "win": "2.23",
+        "draw": "3.10",
+        "lose": "3.20"
+      },
+      "rqspf": {
+        "win": "2.63",
+        "draw": "3.50",
+        "lose": "2.98",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "赫根",
+      "awayName": "布洛马波卡纳",
+      "leagueName": "瑞典超",
+      "matchTime": "20:00",
+      "spf": {
+        "win": "1.69",
+        "draw": "3.95",
+        "lose": "4.25"
+      },
+      "rqspf": {
+        "win": "2.36",
+        "draw": "3.70",
+        "lose": "3.25",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "草蜢",
+      "awayName": "锡永",
+      "leagueName": "瑞士超",
+      "matchTime": "20:00",
+      "spf": {
+        "win": "2.95",
+        "draw": "3.40",
+        "lose": "2.23"
+      },
+      "rqspf": {
+        "win": "3.63",
+        "draw": "3.87",
+        "lose": "2.13",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "瓦埃勒",
+      "awayName": "兰讷斯",
+      "leagueName": "丹麦超",
+      "matchTime": "20:00",
+      "spf": {
+        "win": "2.75",
+        "draw": "3.40",
+        "lose": "2.44"
+      },
+      "rqspf": {
+        "win": "3.91",
+        "draw": "3.66",
+        "lose": "2.12",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一006",
+      "matchDate": "2026-04-06",
+      "homeName": "瓦勒伦加",
+      "awayName": "维京",
+      "leagueName": "挪超",
+      "matchTime": "20:30",
+      "spf": {
+        "win": "2.82",
+        "draw": "3.95",
+        "lose": "2.26"
+      },
+      "rqspf": {
+        "win": "2.97",
+        "draw": "3.82",
+        "lose": "2.48",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "利恩",
+      "awayName": "海于格松",
+      "leagueName": "挪甲",
+      "matchTime": "20:30",
+      "spf": {
+        "win": "2.16",
+        "draw": "3.70",
+        "lose": "2.73"
+      },
+      "rqspf": {
+        "win": "2.61",
+        "draw": "3.96",
+        "lose": "2.73",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "奥德",
+      "awayName": "松达尔",
+      "leagueName": "挪甲",
+      "matchTime": "20:30",
+      "spf": {
+        "win": "2.49",
+        "draw": "3.80",
+        "lose": "2.29"
+      },
+      "rqspf": {
+        "win": "2.40",
+        "draw": "4.18",
+        "lose": "2.89",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "阿萨纳",
+      "awayName": "摩斯",
+      "leagueName": "挪甲",
+      "matchTime": "20:30",
+      "spf": {
+        "win": "2.49",
+        "draw": "3.35",
+        "lose": "2.49"
+      },
+      "rqspf": {
+        "win": "2.63",
+        "draw": "3.52",
+        "lose": "2.97",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "拉多米亚克",
+      "awayName": "莫托路宾",
+      "leagueName": "波兰甲",
+      "matchTime": "20:45",
+      "spf": {
+        "win": "2.22",
+        "draw": "3.60",
+        "lose": "2.69"
+      },
+      "rqspf": {
+        "win": "2.46",
+        "draw": "4.10",
+        "lose": "2.85",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一007",
+      "matchDate": "2026-04-06",
+      "homeName": "莱切",
+      "awayName": "亚特兰大",
+      "leagueName": "意甲",
+      "matchTime": "21:00",
+      "spf": {
+        "win": "5.70",
+        "draw": "3.95",
+        "lose": "1.63"
+      },
+      "rqspf": {
+        "win": "2.65",
+        "draw": "3.81",
+        "lose": "2.77",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "巴里",
+      "awayName": "摩德纳",
+      "leagueName": "意乙",
+      "matchTime": "21:00",
+      "spf": {
+        "win": "4.75",
+        "draw": "3.70",
+        "lose": "1.66"
+      },
+      "rqspf": {
+        "win": "4.50",
+        "draw": "3.71",
+        "lose": "1.96",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "威尼斯",
+      "awayName": "史泰比亚",
+      "leagueName": "意乙",
+      "matchTime": "21:00",
+      "spf": {
+        "win": "1.42",
+        "draw": "4.50",
+        "lose": "6.50"
+      },
+      "rqspf": {
+        "win": "2.26",
+        "draw": "3.11",
+        "lose": "4.21",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "曼托瓦",
+      "awayName": "恩特拉",
+      "leagueName": "意乙",
+      "matchTime": "21:00",
+      "spf": {
+        "win": "2.40",
+        "draw": "3.15",
+        "lose": "2.87"
+      },
+      "rqspf": {
+        "win": "2.29",
+        "draw": "3.19",
+        "lose": "3.98",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "卡坦扎罗",
+      "awayName": "蒙扎",
+      "leagueName": "意乙",
+      "matchTime": "21:00",
+      "spf": {
+        "win": "3.10",
+        "draw": "3.35",
+        "lose": "2.19"
+      },
+      "rqspf": {
+        "win": "4.07",
+        "draw": "3.47",
+        "lose": "2.14",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "雷吉亚纳",
+      "awayName": "佩斯卡拉",
+      "leagueName": "意乙",
+      "matchTime": "21:00",
+      "spf": {
+        "win": "3.00",
+        "draw": "3.30",
+        "lose": "2.25"
+      },
+      "rqspf": {
+        "win": "3.33",
+        "draw": "3.28",
+        "lose": "2.53",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "奥雷布洛",
+      "awayName": "兰斯科罗纳",
+      "leagueName": "瑞典超甲",
+      "matchTime": "21:00",
+      "spf": {
+        "win": "1.96",
+        "draw": "3.70",
+        "lose": "3.35"
+      },
+      "rqspf": {
+        "win": "1.99",
+        "draw": "4.41",
+        "lose": "3.67",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-06",
+      "homeName": "瓦尔贝里",
+      "awayName": "厄斯特松德",
+      "leagueName": "瑞典超甲",
+      "matchTime": "21:00",
+      "spf": {
+        "win": "2.21",
+        "draw": "3.10",
+        "lose": "3.30"
+      },
+      "rqspf": {
+        "win": "2.29",
+        "draw": "3.12",
+        "lose": "4.09",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-07": [
+    {
+      "matchNum": "周二001",
+      "matchDate": "2026-04-07",
+      "homeName": "墨尔本城",
+      "awayName": "中央海岸水手",
+      "leagueName": "澳超",
+      "matchTime": "17:00",
+      "spf": {
+        "win": "1.43",
+        "draw": "4.80",
+        "lose": "6.60"
+      },
+      "rqspf": {
+        "win": "2.71",
+        "draw": "4.19",
+        "lose": "2.54",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "阿尔卡",
+      "awayName": "卢宾",
+      "leagueName": "波兰甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.35",
+        "draw": "3.05",
+        "lose": "2.88"
+      },
+      "rqspf": {
+        "win": "2.95",
+        "draw": "3.72",
+        "lose": "2.53",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "维泽拉",
+      "awayName": "本菲卡B队",
+      "leagueName": "葡甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "1.96",
+        "draw": "3.35",
+        "lose": "3.40"
+      },
+      "rqspf": {
+        "win": "1.90",
+        "draw": "3.59",
+        "lose": "5.07",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "阿劳",
+      "awayName": "卡洛治",
+      "leagueName": "瑞士挑",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "1.38",
+        "draw": "4.80",
+        "lose": "6.00"
+      },
+      "rqspf": {
+        "win": "2.14",
+        "draw": "3.48",
+        "lose": "4.06",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "KFUM奥斯陆",
+      "awayName": "桑德菲杰",
+      "leagueName": "挪超",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "",
+        "draw": "",
+        "lose": ""
+      },
+      "rqspf": {
+        "win": "2.16",
+        "draw": "3.94",
+        "lose": "3.52",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周二002",
+      "matchDate": "2026-04-08",
+      "homeName": "奥勒松",
+      "awayName": "腓特烈斯塔",
+      "leagueName": "挪超",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.42",
+        "draw": "3.60",
+        "lose": "2.77"
+      },
+      "rqspf": {
+        "win": "3.05",
+        "draw": "3.41",
+        "lose": "2.63",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "康斯文格",
+      "awayName": "布莱尼",
+      "leagueName": "挪甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "1.87",
+        "draw": "3.60",
+        "lose": "3.45"
+      },
+      "rqspf": {
+        "win": "1.99",
+        "draw": "4.32",
+        "lose": "3.74",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "贺特",
+      "awayName": "桑德尼斯",
+      "leagueName": "挪甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.47",
+        "draw": "3.55",
+        "lose": "2.41"
+      },
+      "rqspf": {
+        "win": "2.50",
+        "draw": "4.21",
+        "lose": "2.75",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "奥迪沃特",
+      "awayName": "桑德维根斯",
+      "leagueName": "瑞典超甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.20",
+        "draw": "3.35",
+        "lose": "3.05"
+      },
+      "rqspf": {
+        "win": "2.24",
+        "draw": "3.33",
+        "lose": "3.92",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "北西兰",
+      "awayName": "布隆德比",
+      "leagueName": "丹麦超",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.16",
+        "draw": "3.60",
+        "lose": "2.92"
+      },
+      "rqspf": {
+        "win": "2.20",
+        "draw": "3.44",
+        "lose": "3.91",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "乌契",
+      "awayName": "瑞普斯威尔",
+      "leagueName": "瑞士挑",
+      "matchTime": "01:30",
+      "spf": {
+        "win": "1.44",
+        "draw": "4.70",
+        "lose": "5.20"
+      },
+      "rqspf": {
+        "win": "2.62",
+        "draw": "3.85",
+        "lose": "2.78",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "韦尔",
+      "awayName": "纳沙泰尔",
+      "leagueName": "瑞士挑",
+      "matchTime": "01:30",
+      "spf": {
+        "win": "2.21",
+        "draw": "3.40",
+        "lose": "2.84"
+      },
+      "rqspf": {
+        "win": "2.21",
+        "draw": "3.58",
+        "lose": "3.71",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "瓦杜兹",
+      "awayName": "贝林佐纳",
+      "leagueName": "瑞士挑",
+      "matchTime": "02:00",
+      "spf": {
+        "win": "1.20",
+        "draw": "5.90",
+        "lose": "9.70"
+      },
+      "rqspf": {
+        "win": "2.91",
+        "draw": "3.99",
+        "lose": "2.46",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "艾尔联",
+      "awayName": "邓弗姆林",
+      "leagueName": "苏冠",
+      "matchTime": "02:45",
+      "spf": {
+        "win": "3.15",
+        "draw": "3.15",
+        "lose": "2.05"
+      },
+      "rqspf": {
+        "win": "2.67",
+        "draw": "3.59",
+        "lose": "2.87",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "维尔港",
+      "awayName": "罗瑟汉姆",
+      "leagueName": "英甲",
+      "matchTime": "02:45",
+      "spf": {
+        "win": "2.48",
+        "draw": "3.25",
+        "lose": "2.58"
+      },
+      "rqspf": {
+        "win": "2.62",
+        "draw": "3.67",
+        "lose": "2.87",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-08": [
+    {
+      "matchNum": "周三001",
+      "matchDate": "2026-04-08",
+      "homeName": "大阪钢巴",
+      "awayName": "曼谷联",
+      "leagueName": "亚冠二级",
+      "matchTime": "18:00",
+      "spf": {
+        "win": "1.27",
+        "draw": "4.85",
+        "lose": "7.90"
+      },
+      "rqspf": {
+        "win": "4.35",
+        "draw": "4.29",
+        "lose": "1.85",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "拉里萨",
+      "awayName": "帕纳托利科斯",
+      "leagueName": "希腊超",
+      "matchTime": "21:00",
+      "spf": {
+        "win": "2.50",
+        "draw": "2.91",
+        "lose": "2.80"
+      },
+      "rqspf": {
+        "win": "3.32",
+        "draw": "3.65",
+        "lose": "2.34",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-08",
+      "homeName": "潘塞莱科斯",
+      "awayName": "特里波利斯",
+      "leagueName": "希腊超",
+      "matchTime": "22:00",
+      "spf": {
+        "win": "2.75",
+        "draw": "3.05",
+        "lose": "2.46"
+      },
+      "rqspf": {
+        "win": "2.22",
+        "draw": "3.93",
+        "lose": "3.36",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-09": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-10",
+      "homeName": "琴斯托霍瓦",
+      "awayName": "GKS卡托威斯",
+      "leagueName": "波兰杯",
+      "matchTime": "00:30",
+      "spf": {
+        "win": "1.80",
+        "draw": "3.50",
+        "lose": "3.90"
+      },
+      "rqspf": {
+        "win": "1.94",
+        "draw": "3.32",
+        "lose": "5.42",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四002",
+      "matchDate": "2026-04-10",
+      "homeName": "巴列卡诺",
+      "awayName": "雅典AEK",
+      "leagueName": "欧协联",
+      "matchTime": "00:45",
+      "spf": {
+        "win": "1.79",
+        "draw": "3.40",
+        "lose": "5.00"
+      },
+      "rqspf": {
+        "win": "1.99",
+        "draw": "3.39",
+        "lose": "4.92",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四003",
+      "matchDate": "2026-04-10",
+      "homeName": "弗赖堡",
+      "awayName": "塞尔塔",
+      "leagueName": "欧联",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "2.20",
+        "draw": "3.20",
+        "lose": "3.65"
+      },
+      "rqspf": {
+        "win": "2.23",
+        "draw": "3.30",
+        "lose": "4.01",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四006",
+      "matchDate": "2026-04-10",
+      "homeName": "水晶宫",
+      "awayName": "佛罗伦萨",
+      "leagueName": "欧协联",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "1.58",
+        "draw": "3.90",
+        "lose": "6.20"
+      },
+      "rqspf": {
+        "win": "2.95",
+        "draw": "3.31",
+        "lose": "2.77",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周四004",
+      "matchDate": "2026-04-10",
+      "homeName": "波尔图",
+      "awayName": "诺丁汉森林",
+      "leagueName": "欧联",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "1.95",
+        "draw": "3.25",
+        "lose": "4.35"
+      },
+      "rqspf": {
+        "win": "1.99",
+        "draw": "3.68",
+        "lose": "4.38",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四007",
+      "matchDate": "2026-04-10",
+      "homeName": "美因茨",
+      "awayName": "斯特拉斯堡",
+      "leagueName": "欧协联",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "2.35",
+        "draw": "3.20",
+        "lose": "3.25"
+      },
+      "rqspf": {
+        "win": "2.57",
+        "draw": "3.12",
+        "lose": "3.41",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四005",
+      "matchDate": "2026-04-10",
+      "homeName": "博洛尼亚",
+      "awayName": "阿斯顿维拉",
+      "leagueName": "欧联",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "4.00",
+        "draw": "3.35",
+        "lose": "2.03"
+      },
+      "rqspf": {
+        "win": "5.13",
+        "draw": "3.35",
+        "lose": "1.97",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-10": [
+    {
+      "matchNum": "周五001",
+      "matchDate": "2026-04-10",
+      "homeName": "中央海岸水手",
+      "awayName": "布里斯班狮吼",
+      "leagueName": "澳超",
+      "matchTime": "17:35",
+      "spf": {
+        "win": "3.10",
+        "draw": "3.65",
+        "lose": "2.20"
+      },
+      "rqspf": {
+        "win": "2.91",
+        "draw": "4.04",
+        "lose": "2.44",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-11": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "千叶市原",
+      "awayName": "水户蜀葵",
+      "leagueName": "日职联",
+      "matchTime": "12:00",
+      "spf": {
+        "win": "2.80",
+        "draw": "3.10",
+        "lose": "2.70"
+      },
+      "rqspf": {
+        "win": "2.49",
+        "draw": "3.10",
+        "lose": "3.61",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "奥克兰FC",
+      "awayName": "墨尔本胜利",
+      "leagueName": "澳超",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.30",
+        "draw": "3.85",
+        "lose": "2.82"
+      },
+      "rqspf": {
+        "win": "2.21",
+        "draw": "3.96",
+        "lose": "3.36",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "福冈黄蜂",
+      "awayName": "长崎成功丸",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.52",
+        "draw": "3.15",
+        "lose": "2.99"
+      },
+      "rqspf": {
+        "win": "2.84",
+        "draw": "3.25",
+        "lose": "2.92",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "广岛三箭",
+      "awayName": "清水心跳",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.64",
+        "draw": "3.80",
+        "lose": "5.60"
+      },
+      "rqspf": {
+        "win": "3.35",
+        "draw": "3.40",
+        "lose": "2.44",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "町田泽维亚",
+      "awayName": "柏太阳神",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.87",
+        "draw": "3.20",
+        "lose": "2.57"
+      },
+      "rqspf": {
+        "win": "2.66",
+        "draw": "3.45",
+        "lose": "2.97",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "浦项铁人",
+      "awayName": "济州SK FC",
+      "leagueName": "韩K联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.85",
+        "draw": "3.35",
+        "lose": "4.10"
+      },
+      "rqspf": {
+        "win": "1.76",
+        "draw": "3.44",
+        "lose": "7.02",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六001",
+      "matchDate": "2026-04-11",
+      "homeName": "FC首尔",
+      "awayName": "全北现代",
+      "leagueName": "韩K联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.50",
+        "draw": "3.00",
+        "lose": "2.85"
+      },
+      "rqspf": {
+        "win": "2.93",
+        "draw": "2.81",
+        "lose": "3.28",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "釜山偶像",
+      "awayName": "龙仁FC",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.51",
+        "draw": "3.95",
+        "lose": "5.40"
+      },
+      "rqspf": {
+        "win": "2.28",
+        "draw": "3.79",
+        "lose": "3.34",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "水原FC",
+      "awayName": "大邱FC",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.49",
+        "draw": "3.65",
+        "lose": "2.36"
+      },
+      "rqspf": {
+        "win": "2.35",
+        "draw": "3.26",
+        "lose": "3.72",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六002",
+      "matchDate": "2026-04-11",
+      "homeName": "神户胜利船",
+      "awayName": "名古屋鲸鱼",
+      "leagueName": "日职联",
+      "matchTime": "14:00",
+      "spf": {
+        "win": "2.03",
+        "draw": "3.45",
+        "lose": "3.75"
+      },
+      "rqspf": {
+        "win": "1.99",
+        "draw": "3.12",
+        "lose": "5.57",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "横滨水手",
+      "awayName": "FC东京",
+      "leagueName": "日职联",
+      "matchTime": "14:00",
+      "spf": {
+        "win": "4.35",
+        "draw": "3.60",
+        "lose": "1.85"
+      },
+      "rqspf": {
+        "win": "3.95",
+        "draw": "4.04",
+        "lose": "2.00",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六003",
+      "matchDate": "2026-04-11",
+      "homeName": "纽卡斯尔喷气机",
+      "awayName": "阿德莱德联",
+      "leagueName": "澳超",
+      "matchTime": "15:00",
+      "spf": {
+        "win": "2.19",
+        "draw": "4.20",
+        "lose": "2.80"
+      },
+      "rqspf": {
+        "win": "2.39",
+        "draw": "4.08",
+        "lose": "2.95",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "大阪钢巴",
+      "awayName": "大阪樱花",
+      "leagueName": "日职联",
+      "matchTime": "15:00",
+      "spf": {
+        "win": "2.47",
+        "draw": "3.50",
+        "lose": "2.80"
+      },
+      "rqspf": {
+        "win": "2.48",
+        "draw": "3.74",
+        "lose": "3.02",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "京都不死鸟",
+      "awayName": "冈山绿雉",
+      "leagueName": "日职联",
+      "matchTime": "15:00",
+      "spf": {
+        "win": "2.23",
+        "draw": "3.35",
+        "lose": "3.25"
+      },
+      "rqspf": {
+        "win": "2.04",
+        "draw": "3.27",
+        "lose": "4.84",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六004",
+      "matchDate": "2026-04-11",
+      "homeName": "仁川联",
+      "awayName": "蔚山HD",
+      "leagueName": "韩K联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.60",
+        "draw": "3.15",
+        "lose": "2.63"
+      },
+      "rqspf": {
+        "win": "3.76",
+        "draw": "3.04",
+        "lose": "2.46",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "光州FC",
+      "awayName": "富川FC",
+      "leagueName": "韩K联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "3.65",
+        "draw": "2.83",
+        "lose": "2.21"
+      },
+      "rqspf": {
+        "win": "2.84",
+        "draw": "3.14",
+        "lose": "3.02",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "华城FC",
+      "awayName": "全南天龙",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.56",
+        "draw": "3.25",
+        "lose": "2.50"
+      },
+      "rqspf": {
+        "win": "3.19",
+        "draw": "3.19",
+        "lose": "2.67",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-11",
+      "homeName": "坡州前线",
+      "awayName": "首尔衣恋",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "3.45",
+        "draw": "3.35",
+        "lose": "1.95"
+      },
+      "rqspf": {
+        "win": "4.77",
+        "draw": "3.62",
+        "lose": "1.94",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-12": [
+    {
+      "matchNum": "周日001",
+      "matchDate": "2026-04-12",
+      "homeName": "墨尔本城",
+      "awayName": "惠灵顿凤凰",
+      "leagueName": "澳超",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.81",
+        "draw": "3.90",
+        "lose": "4.10"
+      },
+      "rqspf": {
+        "win": "3.51",
+        "draw": "3.53",
+        "lose": "2.31",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-12",
+      "homeName": "浦和红钻",
+      "awayName": "东京绿茵",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.11",
+        "draw": "3.45",
+        "lose": "3.50"
+      },
+      "rqspf": {
+        "win": "1.96",
+        "draw": "3.34",
+        "lose": "5.18",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-12",
+      "homeName": "大田市民",
+      "awayName": "江原FC",
+      "leagueName": "韩K联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.63",
+        "draw": "3.10",
+        "lose": "2.63"
+      },
+      "rqspf": {
+        "win": "2.73",
+        "draw": "2.82",
+        "lose": "3.56",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-12",
+      "homeName": "天安城",
+      "awayName": "忠北清州",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.52",
+        "draw": "3.25",
+        "lose": "2.55"
+      },
+      "rqspf": {
+        "win": "2.85",
+        "draw": "2.85",
+        "lose": "3.33",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-12",
+      "homeName": "水原三星",
+      "awayName": "金浦市民",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.04",
+        "draw": "3.30",
+        "lose": "3.25"
+      },
+      "rqspf": {
+        "win": "3.60",
+        "draw": "3.03",
+        "lose": "2.54",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周日002",
+      "matchDate": "2026-04-12",
+      "homeName": "川崎前锋",
+      "awayName": "鹿岛鹿角",
+      "leagueName": "日职联",
+      "matchTime": "15:00",
+      "spf": {
+        "win": "3.00",
+        "draw": "3.55",
+        "lose": "2.28"
+      },
+      "rqspf": {
+        "win": "3.49",
+        "draw": "3.56",
+        "lose": "2.30",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周日003",
+      "matchDate": "2026-04-12",
+      "homeName": "金泉尚武",
+      "awayName": "安养FC",
+      "leagueName": "韩K联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.51",
+        "draw": "2.90",
+        "lose": "2.95"
+      },
+      "rqspf": {
+        "win": "2.58",
+        "draw": "3.01",
+        "lose": "3.54",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-12",
+      "homeName": "忠南牙山",
+      "awayName": "金海",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "1.70",
+        "draw": "3.60",
+        "lose": "4.20"
+      },
+      "rqspf": {
+        "win": "2.69",
+        "draw": "3.77",
+        "lose": "2.74",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-12",
+      "homeName": "城南FC",
+      "awayName": "安山小绿人",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "1.55",
+        "draw": "3.75",
+        "lose": "5.30"
+      },
+      "rqspf": {
+        "win": "2.96",
+        "draw": "3.49",
+        "lose": "2.65",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-12",
+      "homeName": "第一维也纳",
+      "awayName": "格拉茨风暴青年队",
+      "leagueName": "奥乙",
+      "matchTime": "16:30",
+      "spf": {
+        "win": "2.35",
+        "draw": "3.40",
+        "lose": "2.64"
+      },
+      "rqspf": {
+        "win": "2.44",
+        "draw": "4.45",
+        "lose": "2.73",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周日004",
+      "matchDate": "2026-04-12",
+      "homeName": "珀斯光荣",
+      "awayName": "麦克阿瑟FC",
+      "leagueName": "澳超",
+      "matchTime": "17:00",
+      "spf": {
+        "win": "3.65",
+        "draw": "3.90",
+        "lose": "1.92"
+      },
+      "rqspf": {
+        "win": "3.31",
+        "draw": "4.23",
+        "lose": "2.16",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-13": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-13",
+      "homeName": "梅塔洛格布斯",
+      "awayName": "FK米耶尔库雷亚丘克",
+      "leagueName": "罗甲",
+      "matchTime": "20:30",
+      "spf": {
+        "win": "3.10",
+        "draw": "3.20",
+        "lose": "2.17"
+      },
+      "rqspf": {
+        "win": "3.80",
+        "draw": "3.48",
+        "lose": "2.22",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-13",
+      "homeName": "布加勒斯特快速",
+      "awayName": "阿格斯",
+      "leagueName": "罗甲",
+      "matchTime": "23:30",
+      "spf": {
+        "win": "1.80",
+        "draw": "3.30",
+        "lose": "4.10"
+      },
+      "rqspf": {
+        "win": "1.76",
+        "draw": "3.84",
+        "lose": "5.73",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-14",
+      "homeName": "皮亚斯特",
+      "awayName": "什切青波贡",
+      "leagueName": "波兰甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.07",
+        "draw": "3.30",
+        "lose": "3.20"
+      },
+      "rqspf": {
+        "win": "2.06",
+        "draw": "3.73",
+        "lose": "4.04",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-14",
+      "homeName": "路西塔尼亚",
+      "awayName": "波尔图B队",
+      "leagueName": "葡甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.27",
+        "draw": "3.25",
+        "lose": "2.86"
+      },
+      "rqspf": {
+        "win": "3.02",
+        "draw": "3.67",
+        "lose": "2.51",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一002",
+      "matchDate": "2026-04-14",
+      "homeName": "布洛马波卡纳",
+      "awayName": "索尔纳",
+      "leagueName": "瑞典超",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "3.50",
+        "draw": "3.65",
+        "lose": "1.92"
+      },
+      "rqspf": {
+        "win": "5.45",
+        "draw": "4.09",
+        "lose": "1.74",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一001",
+      "matchDate": "2026-04-14",
+      "homeName": "天狼星",
+      "awayName": "哈马比",
+      "leagueName": "瑞典超",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.48",
+        "draw": "3.45",
+        "lose": "2.58"
+      },
+      "rqspf": {
+        "win": "3.76",
+        "draw": "3.73",
+        "lose": "2.14",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-14",
+      "homeName": "诺霍斯",
+      "awayName": "康斯文格",
+      "leagueName": "挪甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "4.00",
+        "draw": "4.20",
+        "lose": "1.64"
+      },
+      "rqspf": {
+        "win": "2.44",
+        "draw": "3.55",
+        "lose": "3.23",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-14",
+      "homeName": "弗雷德里西亚",
+      "awayName": "瓦埃勒",
+      "leagueName": "丹麦超",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.34",
+        "draw": "3.65",
+        "lose": "2.65"
+      },
+      "rqspf": {
+        "win": "2.32",
+        "draw": "4.08",
+        "lose": "3.07",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-14",
+      "homeName": "阿贾克斯U21",
+      "awayName": "奥斯",
+      "leagueName": "荷乙",
+      "matchTime": "02:00",
+      "spf": {
+        "win": "2.19",
+        "draw": "3.75",
+        "lose": "2.65"
+      },
+      "rqspf": {
+        "win": "2.09",
+        "draw": "4.36",
+        "lose": "3.40",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-14",
+      "homeName": "阿尔克马尔青年队",
+      "awayName": "埃因霍温青年队",
+      "leagueName": "荷乙",
+      "matchTime": "02:00",
+      "spf": {
+        "win": "2.19",
+        "draw": "4.05",
+        "lose": "2.53"
+      },
+      "rqspf": {
+        "win": "2.27",
+        "draw": "4.65",
+        "lose": "2.88",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-14",
+      "homeName": "巴拉多利德",
+      "awayName": "埃瓦尔",
+      "leagueName": "西乙",
+      "matchTime": "02:30",
+      "spf": {
+        "win": "2.36",
+        "draw": "2.93",
+        "lose": "3.15"
+      },
+      "rqspf": {
+        "win": "2.68",
+        "draw": "3.47",
+        "lose": "2.94",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-14",
+      "homeName": "克卢日大学",
+      "awayName": "克拉约瓦大学",
+      "leagueName": "罗甲",
+      "matchTime": "02:30",
+      "spf": {
+        "win": "2.90",
+        "draw": "3.00",
+        "lose": "2.36"
+      },
+      "rqspf": {
+        "win": "3.00",
+        "draw": "2.85",
+        "lose": "3.16",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一003",
+      "matchDate": "2026-04-14",
+      "homeName": "佛罗伦萨",
+      "awayName": "拉齐奥",
+      "leagueName": "意甲",
+      "matchTime": "02:45",
+      "spf": {
+        "win": "2.38",
+        "draw": "3.20",
+        "lose": "3.25"
+      },
+      "rqspf": {
+        "win": "2.58",
+        "draw": "3.05",
+        "lose": "3.50",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一004",
+      "matchDate": "2026-04-14",
+      "homeName": "罗德兹",
+      "awayName": "特鲁瓦",
+      "leagueName": "法乙",
+      "matchTime": "02:45",
+      "spf": {
+        "win": "3.00",
+        "draw": "3.40",
+        "lose": "2.11"
+      },
+      "rqspf": {
+        "win": "4.49",
+        "draw": "3.58",
+        "lose": "2.00",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一005",
+      "matchDate": "2026-04-14",
+      "homeName": "曼联",
+      "awayName": "利兹联",
+      "leagueName": "英超",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "1.65",
+        "draw": "4.15",
+        "lose": "5.00"
+      },
+      "rqspf": {
+        "win": "2.56",
+        "draw": "3.51",
+        "lose": "3.06",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周一006",
+      "matchDate": "2026-04-14",
+      "homeName": "莱万特",
+      "awayName": "赫塔菲",
+      "leagueName": "西甲",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "2.66",
+        "draw": "2.85",
+        "lose": "3.15"
+      },
+      "rqspf": {
+        "win": "2.79",
+        "draw": "3.27",
+        "lose": "2.96",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一007",
+      "matchDate": "2026-04-14",
+      "homeName": "通德拉",
+      "awayName": "吉尔维森特",
+      "leagueName": "葡超",
+      "matchTime": "03:15",
+      "spf": {
+        "win": "3.90",
+        "draw": "3.40",
+        "lose": "1.89"
+      },
+      "rqspf": {
+        "win": "5.58",
+        "draw": "3.14",
+        "lose": "1.98",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-14",
+      "homeName": "国防与司法",
+      "awayName": "塔勒瑞斯",
+      "leagueName": "阿甲",
+      "matchTime": "03:30",
+      "spf": {
+        "win": "2.90",
+        "draw": "2.71",
+        "lose": "2.72"
+      },
+      "rqspf": {
+        "win": "3.04",
+        "draw": "2.68",
+        "lose": "3.33",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-14",
+      "homeName": "萨米恩托",
+      "awayName": "拉普拉塔体操",
+      "leagueName": "阿甲",
+      "matchTime": "03:30",
+      "spf": {
+        "win": "2.74",
+        "draw": "2.87",
+        "lose": "2.74"
+      },
+      "rqspf": {
+        "win": "3.02",
+        "draw": "2.61",
+        "lose": "3.49",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-14",
+      "homeName": "拉努斯",
+      "awayName": "班菲尔德",
+      "leagueName": "阿甲",
+      "matchTime": "06:00",
+      "spf": {
+        "win": "1.94",
+        "draw": "2.95",
+        "lose": "4.45"
+      },
+      "rqspf": {
+        "win": "1.89",
+        "draw": "3.28",
+        "lose": "5.91",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-14": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-14",
+      "homeName": "基柏",
+      "awayName": "MP米克力",
+      "leagueName": "芬兰杯",
+      "matchTime": "23:00",
+      "spf": {
+        "win": "1.76",
+        "draw": "3.55",
+        "lose": "3.35"
+      },
+      "rqspf": {
+        "win": "4.73",
+        "draw": "5.11",
+        "lose": "1.68",
+        "handicap": "-2"
+      }
+    }
+  ],
+  "2026-04-15": [
+    {
+      "matchNum": "周三001",
+      "matchDate": "2026-04-15",
+      "homeName": "蔚山HD",
+      "awayName": "FC首尔",
+      "leagueName": "韩K联",
+      "matchTime": "18:30",
+      "spf": {
+        "win": "2.61",
+        "draw": "2.99",
+        "lose": "2.75"
+      },
+      "rqspf": {
+        "win": "2.89",
+        "draw": "3.00",
+        "lose": "3.10",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周三002",
+      "matchDate": "2026-04-15",
+      "homeName": "曼谷联",
+      "awayName": "大阪钢巴",
+      "leagueName": "亚冠二级",
+      "matchTime": "20:15",
+      "spf": {
+        "win": "5.70",
+        "draw": "3.80",
+        "lose": "1.51"
+      },
+      "rqspf": {
+        "win": "2.33",
+        "draw": "3.29",
+        "lose": "3.74",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-15",
+      "homeName": "奥卢",
+      "awayName": "雅罗",
+      "leagueName": "芬兰杯",
+      "matchTime": "23:00",
+      "spf": {
+        "win": "1.40",
+        "draw": "4.20",
+        "lose": "5.10"
+      },
+      "rqspf": {
+        "win": "2.05",
+        "draw": "3.93",
+        "lose": "3.87",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周三003",
+      "matchDate": "2026-04-16",
+      "homeName": "特罗姆瑟",
+      "awayName": "利勒斯特罗姆",
+      "leagueName": "挪超",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "1.91",
+        "draw": "3.80",
+        "lose": "3.75"
+      },
+      "rqspf": {
+        "win": "1.81",
+        "draw": "3.63",
+        "lose": "5.71",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周三004",
+      "matchDate": "2026-04-16",
+      "homeName": "萨普斯堡",
+      "awayName": "博德闪耀",
+      "leagueName": "挪超",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "5.90",
+        "draw": "5.30",
+        "lose": "1.44"
+      },
+      "rqspf": {
+        "win": "3.83",
+        "draw": "4.26",
+        "lose": "1.98",
+        "handicap": "1"
+      }
+    }
+  ],
+  "2026-04-16": [
+    {
+      "matchNum": "周四001",
+      "matchDate": "2026-04-17",
+      "homeName": "塞尔塔",
+      "awayName": "弗赖堡",
+      "leagueName": "欧联",
+      "matchTime": "00:45",
+      "spf": {
+        "win": "1.77",
+        "draw": "3.90",
+        "lose": "4.55"
+      },
+      "rqspf": {
+        "win": "2.08",
+        "draw": "4.50",
+        "lose": "3.34",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-17",
+      "homeName": "彼得堡联",
+      "awayName": "维尔港",
+      "leagueName": "英甲",
+      "matchTime": "02:45",
+      "spf": {
+        "win": "1.63",
+        "draw": "3.80",
+        "lose": "4.45"
+      },
+      "rqspf": {
+        "win": "2.86",
+        "draw": "3.55",
+        "lose": "2.70",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-17",
+      "homeName": "布罗姆利",
+      "awayName": "剑桥联",
+      "leagueName": "英乙",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "3.15",
+        "draw": "3.05",
+        "lose": "2.20"
+      },
+      "rqspf": {
+        "win": "3.35",
+        "draw": "2.85",
+        "lose": "2.83",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四005",
+      "matchDate": "2026-04-17",
+      "homeName": "佛罗伦萨",
+      "awayName": "水晶宫",
+      "leagueName": "欧协联",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "3.40",
+        "draw": "3.55",
+        "lose": "2.09"
+      },
+      "rqspf": {
+        "win": "3.57",
+        "draw": "3.73",
+        "lose": "2.20",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四002",
+      "matchDate": "2026-04-17",
+      "homeName": "诺丁汉森林",
+      "awayName": "波尔图",
+      "leagueName": "欧联",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "2.40",
+        "draw": "3.15",
+        "lose": "3.25"
+      },
+      "rqspf": {
+        "win": "3.14",
+        "draw": "3.38",
+        "lose": "2.58",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四003",
+      "matchDate": "2026-04-17",
+      "homeName": "贝蒂斯",
+      "awayName": "布拉加",
+      "leagueName": "欧联",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "1.77",
+        "draw": "3.65",
+        "lose": "4.90"
+      },
+      "rqspf": {
+        "win": "1.85",
+        "draw": "3.39",
+        "lose": "6.02",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四007",
+      "matchDate": "2026-04-17",
+      "homeName": "斯特拉斯堡",
+      "awayName": "美因茨",
+      "leagueName": "欧协联",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "1.92",
+        "draw": "3.75",
+        "lose": "3.80"
+      },
+      "rqspf": {
+        "win": "1.81",
+        "draw": "4.15",
+        "lose": "4.77",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四006",
+      "matchDate": "2026-04-17",
+      "homeName": "雅典AEK",
+      "awayName": "巴列卡诺",
+      "leagueName": "欧协联",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "2.08",
+        "draw": "3.65",
+        "lose": "3.35"
+      },
+      "rqspf": {
+        "win": "2.05",
+        "draw": "4.38",
+        "lose": "3.49",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四004",
+      "matchDate": "2026-04-17",
+      "homeName": "阿斯顿维拉",
+      "awayName": "博洛尼亚",
+      "leagueName": "欧联",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "1.50",
+        "draw": "4.45",
+        "lose": "6.60"
+      },
+      "rqspf": {
+        "win": "3.11",
+        "draw": "3.36",
+        "lose": "2.61",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-17",
+      "homeName": "堤格雷",
+      "awayName": "马卡拉",
+      "leagueName": "南美杯",
+      "matchTime": "06:00",
+      "spf": {
+        "win": "1.47",
+        "draw": "3.85",
+        "lose": "6.20"
+      },
+      "rqspf": {
+        "win": "3.06",
+        "draw": "3.23",
+        "lose": "2.74",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-17",
+      "homeName": "米内罗竞技",
+      "awayName": "尤文提度",
+      "leagueName": "南美杯",
+      "matchTime": "06:00",
+      "spf": {
+        "win": "1.31",
+        "draw": "4.80",
+        "lose": "7.80"
+      },
+      "rqspf": {
+        "win": "3.70",
+        "draw": "3.88",
+        "lose": "2.11",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "周四008",
+      "matchDate": "2026-04-17",
+      "homeName": "帕尔梅拉斯",
+      "awayName": "水晶竞技",
+      "leagueName": "解放者杯",
+      "matchTime": "06:00",
+      "spf": {
+        "win": "1.13",
+        "draw": "6.80",
+        "lose": "14.50"
+      },
+      "rqspf": {
+        "win": "2.47",
+        "draw": "3.70",
+        "lose": "3.07",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-17",
+      "homeName": "拉努斯",
+      "awayName": "拉巴斯准备",
+      "leagueName": "解放者杯",
+      "matchTime": "06:00",
+      "spf": {
+        "win": "1.31",
+        "draw": "4.85",
+        "lose": "7.60"
+      },
+      "rqspf": {
+        "win": "3.89",
+        "draw": "3.91",
+        "lose": "2.04",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-17",
+      "homeName": "圣洛伦索",
+      "awayName": "昆卡竞技",
+      "leagueName": "南美杯",
+      "matchTime": "08:30",
+      "spf": {
+        "win": "1.46",
+        "draw": "3.25",
+        "lose": "9.10"
+      },
+      "rqspf": {
+        "win": "3.73",
+        "draw": "3.08",
+        "lose": "2.45",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-17",
+      "homeName": "布拉干RB",
+      "awayName": "布鲁明",
+      "leagueName": "南美杯",
+      "matchTime": "08:30",
+      "spf": {
+        "win": "1.29",
+        "draw": "4.90",
+        "lose": "8.00"
+      },
+      "rqspf": {
+        "win": "3.70",
+        "draw": "4.14",
+        "lose": "2.04",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-17",
+      "homeName": "佩纳罗尔",
+      "awayName": "普拉滕斯",
+      "leagueName": "解放者杯",
+      "matchTime": "08:30",
+      "spf": {
+        "win": "2.02",
+        "draw": "2.85",
+        "lose": "3.95"
+      },
+      "rqspf": {
+        "win": "2.03",
+        "draw": "3.18",
+        "lose": "5.14",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四009",
+      "matchDate": "2026-04-17",
+      "homeName": "弗拉门戈",
+      "awayName": "麦德林独立",
+      "leagueName": "解放者杯",
+      "matchTime": "08:30",
+      "spf": {
+        "win": "1.17",
+        "draw": "6.20",
+        "lose": "11.50"
+      },
+      "rqspf": {
+        "win": "3.18",
+        "draw": "3.76",
+        "lose": "2.37",
+        "handicap": "-2"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-17",
+      "homeName": "西恩夏诺",
+      "awayName": "卡贝略港学院",
+      "leagueName": "南美杯",
+      "matchTime": "10:00",
+      "spf": {
+        "win": "",
+        "draw": "",
+        "lose": ""
+      },
+      "rqspf": {
+        "win": "2.98",
+        "draw": "3.49",
+        "lose": "2.63",
+        "handicap": "-1"
+      }
+    }
+  ],
+  "2026-04-17": [
+    {
+      "matchNum": "周五001",
+      "matchDate": "2026-04-17",
+      "homeName": "墨尔本胜利",
+      "awayName": "纽卡斯尔喷气机",
+      "leagueName": "澳超",
+      "matchTime": "17:35",
+      "spf": {
+        "win": "2.29",
+        "draw": "3.90",
+        "lose": "2.80"
+      },
+      "rqspf": {
+        "win": "2.31",
+        "draw": "4.28",
+        "lose": "2.99",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-18": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-18",
+      "homeName": "横滨水手",
+      "awayName": "川崎前锋",
+      "leagueName": "日职联",
+      "matchTime": "12:00",
+      "spf": {
+        "win": "2.53",
+        "draw": "3.65",
+        "lose": "2.62"
+      },
+      "rqspf": {
+        "win": "3.08",
+        "draw": "4.07",
+        "lose": "2.32",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六001",
+      "matchDate": "2026-04-18",
+      "homeName": "惠灵顿凤凰",
+      "awayName": "西悉尼流浪者",
+      "leagueName": "澳超",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.08",
+        "draw": "3.95",
+        "lose": "3.15"
+      },
+      "rqspf": {
+        "win": "2.05",
+        "draw": "4.06",
+        "lose": "3.72",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-18",
+      "homeName": "广岛三箭",
+      "awayName": "长崎成功丸",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.38",
+        "draw": "4.85",
+        "lose": "8.40"
+      },
+      "rqspf": {
+        "win": "2.37",
+        "draw": "3.43",
+        "lose": "3.47",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-18",
+      "homeName": "鹿岛鹿角",
+      "awayName": "浦和红钻",
+      "leagueName": "日职联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.06",
+        "draw": "3.45",
+        "lose": "3.60"
+      },
+      "rqspf": {
+        "win": "3.85",
+        "draw": "3.08",
+        "lose": "2.40",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-18",
+      "homeName": "FC首尔",
+      "awayName": "大田市民",
+      "leagueName": "韩K联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.91",
+        "draw": "3.40",
+        "lose": "3.80"
+      },
+      "rqspf": {
+        "win": "2.96",
+        "draw": "3.71",
+        "lose": "2.53",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-18",
+      "homeName": "江原FC",
+      "awayName": "全北现代",
+      "leagueName": "韩K联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.42",
+        "draw": "2.97",
+        "lose": "3.00"
+      },
+      "rqspf": {
+        "win": "3.67",
+        "draw": "3.01",
+        "lose": "2.52",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-18",
+      "homeName": "釜山偶像",
+      "awayName": "水原FC",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "2.52",
+        "draw": "3.40",
+        "lose": "2.43"
+      },
+      "rqspf": {
+        "win": "2.22",
+        "draw": "3.89",
+        "lose": "3.39",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-18",
+      "homeName": "庆南FC",
+      "awayName": "水原三星",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "4.45",
+        "draw": "3.35",
+        "lose": "1.73"
+      },
+      "rqspf": {
+        "win": "2.77",
+        "draw": "3.24",
+        "lose": "3.01",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "周六002",
+      "matchDate": "2026-04-18",
+      "homeName": "东京绿茵",
+      "awayName": "千叶市原",
+      "leagueName": "日职联",
+      "matchTime": "14:00",
+      "spf": {
+        "win": "2.19",
+        "draw": "3.25",
+        "lose": "3.50"
+      },
+      "rqspf": {
+        "win": "2.10",
+        "draw": "3.26",
+        "lose": "4.58",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-18",
+      "homeName": "布里斯班狮吼",
+      "awayName": "墨尔本城",
+      "leagueName": "澳超",
+      "matchTime": "15:00",
+      "spf": {
+        "win": "3.50",
+        "draw": "3.65",
+        "lose": "2.04"
+      },
+      "rqspf": {
+        "win": "4.79",
+        "draw": "4.07",
+        "lose": "1.83",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六003",
+      "matchDate": "2026-04-18",
+      "homeName": "大阪樱花",
+      "awayName": "京都不死鸟",
+      "leagueName": "日职联",
+      "matchTime": "15:00",
+      "spf": {
+        "win": "2.31",
+        "draw": "3.45",
+        "lose": "3.05"
+      },
+      "rqspf": {
+        "win": "2.82",
+        "draw": "3.73",
+        "lose": "2.64",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-18",
+      "homeName": "富川FC",
+      "awayName": "仁川联",
+      "leagueName": "韩K联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.90",
+        "draw": "3.05",
+        "lose": "2.40"
+      },
+      "rqspf": {
+        "win": "3.54",
+        "draw": "3.14",
+        "lose": "2.49",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周六004",
+      "matchDate": "2026-04-18",
+      "homeName": "济州SK FC",
+      "awayName": "金泉尚武",
+      "leagueName": "韩K联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.95",
+        "draw": "3.15",
+        "lose": "2.36"
+      },
+      "rqspf": {
+        "win": "2.92",
+        "draw": "3.60",
+        "lose": "2.63",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-18",
+      "homeName": "大邱FC",
+      "awayName": "天安城",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "1.52",
+        "draw": "4.20",
+        "lose": "4.90"
+      },
+      "rqspf": {
+        "win": "2.87",
+        "draw": "3.29",
+        "lose": "2.86",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-18",
+      "homeName": "忠北清州",
+      "awayName": "金海",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.19",
+        "draw": "3.25",
+        "lose": "2.96"
+      },
+      "rqspf": {
+        "win": "2.05",
+        "draw": "3.62",
+        "lose": "4.21",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-19": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-19",
+      "homeName": "水户蜀葵",
+      "awayName": "柏太阳神",
+      "leagueName": "日职联",
+      "matchTime": "12:00",
+      "spf": {
+        "win": "4.15",
+        "draw": "3.40",
+        "lose": "1.94"
+      },
+      "rqspf": {
+        "win": "4.31",
+        "draw": "3.29",
+        "lose": "2.15",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周日001",
+      "matchDate": "2026-04-19",
+      "homeName": "蔚山HD",
+      "awayName": "光州FC",
+      "leagueName": "韩K联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.58",
+        "draw": "3.85",
+        "lose": "5.30"
+      },
+      "rqspf": {
+        "win": "2.44",
+        "draw": "3.46",
+        "lose": "3.30",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-19",
+      "homeName": "安山小绿人",
+      "awayName": "首尔衣恋",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "7.70",
+        "draw": "4.90",
+        "lose": "1.31"
+      },
+      "rqspf": {
+        "win": "3.14",
+        "draw": "3.39",
+        "lose": "2.58",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-19",
+      "homeName": "城南FC",
+      "awayName": "坡州前线",
+      "leagueName": "韩K2联",
+      "matchTime": "13:00",
+      "spf": {
+        "win": "1.83",
+        "draw": "3.40",
+        "lose": "3.85"
+      },
+      "rqspf": {
+        "win": "1.90",
+        "draw": "3.48",
+        "lose": "5.27",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周日002",
+      "matchDate": "2026-04-19",
+      "homeName": "阿德莱德联",
+      "awayName": "麦克阿瑟FC",
+      "leagueName": "澳超",
+      "matchTime": "13:30",
+      "spf": {
+        "win": "1.85",
+        "draw": "4.30",
+        "lose": "3.60"
+      },
+      "rqspf": {
+        "win": "1.98",
+        "draw": "4.04",
+        "lose": "4.03",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周日003",
+      "matchDate": "2026-04-19",
+      "homeName": "大阪钢巴",
+      "awayName": "冈山绿雉",
+      "leagueName": "日职联",
+      "matchTime": "14:00",
+      "spf": {
+        "win": "1.70",
+        "draw": "3.70",
+        "lose": "5.20"
+      },
+      "rqspf": {
+        "win": "1.99",
+        "draw": "3.44",
+        "lose": "4.79",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周日004",
+      "matchDate": "2026-04-19",
+      "homeName": "名古屋鲸鱼",
+      "awayName": "福冈黄蜂",
+      "leagueName": "日职联",
+      "matchTime": "15:00",
+      "spf": {
+        "win": "1.71",
+        "draw": "3.70",
+        "lose": "5.10"
+      },
+      "rqspf": {
+        "win": "1.91",
+        "draw": "3.54",
+        "lose": "5.11",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周日005",
+      "matchDate": "2026-04-19",
+      "homeName": "浦项铁人",
+      "awayName": "安养FC",
+      "leagueName": "韩K联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.31",
+        "draw": "2.97",
+        "lose": "3.20"
+      },
+      "rqspf": {
+        "win": "2.25",
+        "draw": "3.02",
+        "lose": "4.43",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-19",
+      "homeName": "忠南牙山",
+      "awayName": "全南天龙",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "2.06",
+        "draw": "3.45",
+        "lose": "3.10"
+      },
+      "rqspf": {
+        "win": "2.02",
+        "draw": "3.77",
+        "lose": "4.14",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-19",
+      "homeName": "华城FC",
+      "awayName": "金浦市民",
+      "leagueName": "韩K2联",
+      "matchTime": "15:30",
+      "spf": {
+        "win": "3.50",
+        "draw": "3.05",
+        "lose": "2.05"
+      },
+      "rqspf": {
+        "win": "4.82",
+        "draw": "3.30",
+        "lose": "2.03",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-19",
+      "homeName": "圣珀尔滕",
+      "awayName": "列弗宁",
+      "leagueName": "奥乙",
+      "matchTime": "16:30",
+      "spf": {
+        "win": "1.76",
+        "draw": "3.75",
+        "lose": "3.80"
+      },
+      "rqspf": {
+        "win": "2.94",
+        "draw": "3.87",
+        "lose": "2.48",
+        "handicap": "-1"
+      }
+    }
+  ],
+  "2026-04-20": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-20",
+      "homeName": "波图森尼",
+      "awayName": "梅塔洛格布斯",
+      "leagueName": "罗甲",
+      "matchTime": "22:30",
+      "spf": {
+        "win": "1.40",
+        "draw": "4.60",
+        "lose": "6.00"
+      },
+      "rqspf": {
+        "win": "1.98",
+        "draw": "3.81",
+        "lose": "4.28",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "格但斯克",
+      "awayName": "皮亚斯特",
+      "leagueName": "波兰甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.08",
+        "draw": "3.65",
+        "lose": "2.89"
+      },
+      "rqspf": {
+        "win": "1.90",
+        "draw": "4.37",
+        "lose": "4.07",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "利恩",
+      "awayName": "桑德尼斯",
+      "leagueName": "挪甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "1.75",
+        "draw": "4.05",
+        "lose": "3.55"
+      },
+      "rqspf": {
+        "win": "2.44",
+        "draw": "4.17",
+        "lose": "2.84",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "奥迪沃特",
+      "awayName": "奥斯达",
+      "leagueName": "瑞典超甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.37",
+        "draw": "3.45",
+        "lose": "2.71"
+      },
+      "rqspf": {
+        "win": "2.04",
+        "draw": "3.57",
+        "lose": "4.31",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "中日德兰",
+      "awayName": "奥胡斯",
+      "leagueName": "丹麦超",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.06",
+        "draw": "3.65",
+        "lose": "3.15"
+      },
+      "rqspf": {
+        "win": "2.01",
+        "draw": "3.18",
+        "lose": "5.26",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "松兹瓦尔",
+      "awayName": "布莱格",
+      "leagueName": "瑞典超甲",
+      "matchTime": "01:05",
+      "spf": {
+        "win": "2.87",
+        "draw": "3.40",
+        "lose": "2.28"
+      },
+      "rqspf": {
+        "win": "3.67",
+        "draw": "3.82",
+        "lose": "2.14",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "法鲁尔",
+      "awayName": "布加勒斯特星",
+      "leagueName": "罗甲",
+      "matchTime": "01:30",
+      "spf": {
+        "win": "3.25",
+        "draw": "3.50",
+        "lose": "1.97"
+      },
+      "rqspf": {
+        "win": "2.54",
+        "draw": "3.13",
+        "lose": "3.47",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "波尔图B队",
+      "awayName": "雷克索斯",
+      "leagueName": "葡甲",
+      "matchTime": "01:45",
+      "spf": {
+        "win": "2.69",
+        "draw": "3.25",
+        "lose": "2.37"
+      },
+      "rqspf": {
+        "win": "2.35",
+        "draw": "4.06",
+        "lose": "3.03",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "葡萄牙体育B队",
+      "awayName": "费尔格拉斯",
+      "leagueName": "葡甲",
+      "matchTime": "01:45",
+      "spf": {
+        "win": "2.38",
+        "draw": "3.20",
+        "lose": "2.74"
+      },
+      "rqspf": {
+        "win": "2.16",
+        "draw": "3.72",
+        "lose": "3.69",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "邓伯什",
+      "awayName": "乌德勒支青年队",
+      "leagueName": "荷乙",
+      "matchTime": "02:00",
+      "spf": {
+        "win": "1.84",
+        "draw": "3.90",
+        "lose": "3.30"
+      },
+      "rqspf": {
+        "win": "1.75",
+        "draw": "4.75",
+        "lose": "4.53",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "巴拉卡斯中央",
+      "awayName": "贝尔格拉诺",
+      "leagueName": "阿甲",
+      "matchTime": "02:00",
+      "spf": {
+        "win": "3.55",
+        "draw": "2.83",
+        "lose": "2.23"
+      },
+      "rqspf": {
+        "win": "4.01",
+        "draw": "2.76",
+        "lose": "2.56",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "拉科鲁尼亚",
+      "awayName": "米兰德斯",
+      "leagueName": "西乙",
+      "matchTime": "02:30",
+      "spf": {
+        "win": "1.47",
+        "draw": "4.40",
+        "lose": "5.70"
+      },
+      "rqspf": {
+        "win": "2.49",
+        "draw": "3.71",
+        "lose": "3.03",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周一001",
+      "matchDate": "2026-04-21",
+      "homeName": "莱切",
+      "awayName": "佛罗伦萨",
+      "leagueName": "意甲",
+      "matchTime": "02:45",
+      "spf": {
+        "win": "3.80",
+        "draw": "3.30",
+        "lose": "2.11"
+      },
+      "rqspf": {
+        "win": "4.24",
+        "draw": "3.25",
+        "lose": "2.18",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一002",
+      "matchDate": "2026-04-21",
+      "homeName": "敦刻尔克",
+      "awayName": "拉瓦勒",
+      "leagueName": "法乙",
+      "matchTime": "02:45",
+      "spf": {
+        "win": "2.11",
+        "draw": "3.35",
+        "lose": "3.05"
+      },
+      "rqspf": {
+        "win": "2.43",
+        "draw": "3.14",
+        "lose": "3.69",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一003",
+      "matchDate": "2026-04-21",
+      "homeName": "水晶宫",
+      "awayName": "西汉姆联",
+      "leagueName": "英超",
+      "matchTime": "03:00",
+      "spf": {
+        "win": "2.68",
+        "draw": "3.30",
+        "lose": "2.72"
+      },
+      "rqspf": {
+        "win": "3.00",
+        "draw": "3.56",
+        "lose": "2.58",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周一004",
+      "matchDate": "2026-04-21",
+      "homeName": "莫雷拉人",
+      "awayName": "埃斯托里尔",
+      "leagueName": "葡超",
+      "matchTime": "03:15",
+      "spf": {
+        "win": "2.66",
+        "draw": "3.30",
+        "lose": "2.49"
+      },
+      "rqspf": {
+        "win": "3.95",
+        "draw": "3.29",
+        "lose": "2.25",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "科尔多瓦中央",
+      "awayName": "普拉滕斯",
+      "leagueName": "阿甲",
+      "matchTime": "04:15",
+      "spf": {
+        "win": "3.55",
+        "draw": "2.70",
+        "lose": "2.33"
+      },
+      "rqspf": {
+        "win": "3.53",
+        "draw": "2.78",
+        "lose": "2.79",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "班菲尔德",
+      "awayName": "门多萨独立",
+      "leagueName": "阿甲",
+      "matchTime": "04:15",
+      "spf": {
+        "win": "2.47",
+        "draw": "2.92",
+        "lose": "3.00"
+      },
+      "rqspf": {
+        "win": "3.22",
+        "draw": "3.40",
+        "lose": "2.52",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "圣洛伦索",
+      "awayName": "萨斯菲尔德",
+      "leagueName": "阿甲",
+      "matchTime": "06:30",
+      "spf": {
+        "win": "2.89",
+        "draw": "2.86",
+        "lose": "2.60"
+      },
+      "rqspf": {
+        "win": "3.64",
+        "draw": "2.85",
+        "lose": "2.66",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "天主大学",
+      "awayName": "拉卡莱拉联",
+      "leagueName": "智利甲",
+      "matchTime": "08:30",
+      "spf": {
+        "win": "1.43",
+        "draw": "4.55",
+        "lose": "6.20"
+      },
+      "rqspf": {
+        "win": "2.18",
+        "draw": "3.96",
+        "lose": "3.44",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "门多萨体操击剑",
+      "awayName": "拉努斯",
+      "leagueName": "阿甲",
+      "matchTime": "08:45",
+      "spf": {
+        "win": "2.99",
+        "draw": "2.66",
+        "lose": "2.71"
+      },
+      "rqspf": {
+        "win": "4.74",
+        "draw": "3.26",
+        "lose": "2.07",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "堤格雷",
+      "awayName": "飓风队",
+      "leagueName": "阿甲",
+      "matchTime": "08:45",
+      "spf": {
+        "win": "2.57",
+        "draw": "2.66",
+        "lose": "3.20"
+      },
+      "rqspf": {
+        "win": "2.54",
+        "draw": "3.16",
+        "lose": "3.44",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-21": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "FC首尔",
+      "awayName": "富川FC",
+      "leagueName": "韩K联",
+      "matchTime": "18:30",
+      "spf": {
+        "win": "1.56",
+        "draw": "3.75",
+        "lose": "5.80"
+      },
+      "rqspf": {
+        "win": "2.81",
+        "draw": "3.19",
+        "lose": "3.02",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周二001",
+      "matchDate": "2026-04-21",
+      "homeName": "全北现代",
+      "awayName": "仁川联",
+      "leagueName": "韩K联",
+      "matchTime": "18:30",
+      "spf": {
+        "win": "1.73",
+        "draw": "3.60",
+        "lose": "4.55"
+      },
+      "rqspf": {
+        "win": "1.84",
+        "draw": "3.31",
+        "lose": "6.43",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周二002",
+      "matchDate": "2026-04-21",
+      "homeName": "金泉尚武",
+      "awayName": "江原FC",
+      "leagueName": "韩K联",
+      "matchTime": "18:30",
+      "spf": {
+        "win": "3.05",
+        "draw": "3.10",
+        "lose": "2.33"
+      },
+      "rqspf": {
+        "win": "2.98",
+        "draw": "3.30",
+        "lose": "2.76",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "亚布洛内茨",
+      "awayName": "博莱斯拉夫",
+      "leagueName": "捷克杯",
+      "matchTime": "23:00",
+      "spf": {
+        "win": "1.94",
+        "draw": "3.35",
+        "lose": "3.45"
+      },
+      "rqspf": {
+        "win": "2.15",
+        "draw": "3.33",
+        "lose": "4.23",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-21",
+      "homeName": "哈卡",
+      "awayName": "查普斯",
+      "leagueName": "芬甲",
+      "matchTime": "23:30",
+      "spf": {
+        "win": "1.65",
+        "draw": "3.80",
+        "lose": "4.35"
+      },
+      "rqspf": {
+        "win": "3.22",
+        "draw": "3.86",
+        "lose": "2.31",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-22",
+      "homeName": "霍森斯",
+      "awayName": "埃斯比约",
+      "leagueName": "丹麦甲",
+      "matchTime": "00:00",
+      "spf": {
+        "win": "2.49",
+        "draw": "3.45",
+        "lose": "2.58"
+      },
+      "rqspf": {
+        "win": "2.36",
+        "draw": "3.71",
+        "lose": "3.23",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周二003",
+      "matchDate": "2026-04-22",
+      "homeName": "町田泽维亚",
+      "awayName": "迪拜青年国民",
+      "leagueName": "亚精英赛",
+      "matchTime": "00:15",
+      "spf": {
+        "win": "2.51",
+        "draw": "2.99",
+        "lose": "2.87"
+      },
+      "rqspf": {
+        "win": "2.41",
+        "draw": "2.92",
+        "lose": "4.10",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-22",
+      "homeName": "阿尔塔奇",
+      "awayName": "WSG蒂罗尔",
+      "leagueName": "奥甲",
+      "matchTime": "00:30",
+      "spf": {
+        "win": "2.26",
+        "draw": "3.15",
+        "lose": "3.10"
+      },
+      "rqspf": {
+        "win": "2.10",
+        "draw": "3.51",
+        "lose": "4.14",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-22",
+      "homeName": "BW林茨",
+      "awayName": "沃尔夫斯贝格",
+      "leagueName": "奥甲",
+      "matchTime": "00:30",
+      "spf": {
+        "win": "2.03",
+        "draw": "3.40",
+        "lose": "3.40"
+      },
+      "rqspf": {
+        "win": "1.98",
+        "draw": "4.38",
+        "lose": "3.72",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-22",
+      "homeName": "阿格斯",
+      "awayName": "克卢日大学",
+      "leagueName": "罗杯",
+      "matchTime": "00:30",
+      "spf": {
+        "win": "3.00",
+        "draw": "2.76",
+        "lose": "2.47"
+      },
+      "rqspf": {
+        "win": "4.90",
+        "draw": "3.20",
+        "lose": "2.06",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周二005",
+      "matchDate": "2026-04-22",
+      "homeName": "毕尔巴鄂",
+      "awayName": "奥萨苏纳",
+      "leagueName": "西甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "1.90",
+        "draw": "3.60",
+        "lose": "4.20"
+      },
+      "rqspf": {
+        "win": "1.80",
+        "draw": "3.80",
+        "lose": "5.49",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周二004",
+      "matchDate": "2026-04-22",
+      "homeName": "马洛卡",
+      "awayName": "巴伦西亚",
+      "leagueName": "西甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.75",
+        "draw": "3.20",
+        "lose": "2.75"
+      },
+      "rqspf": {
+        "win": "2.61",
+        "draw": "3.01",
+        "lose": "3.48",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-22",
+      "homeName": "奥雷布洛",
+      "awayName": "北雪平",
+      "leagueName": "瑞典超甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "3.40",
+        "draw": "3.65",
+        "lose": "1.95"
+      },
+      "rqspf": {
+        "win": "4.83",
+        "draw": "4.12",
+        "lose": "1.81",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-22",
+      "homeName": "哈维德夫",
+      "awayName": "科灵",
+      "leagueName": "丹麦甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "1.96",
+        "draw": "3.50",
+        "lose": "3.55"
+      },
+      "rqspf": {
+        "win": "2.01",
+        "draw": "3.33",
+        "lose": "4.92",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-22",
+      "homeName": "希勒罗德",
+      "awayName": "林比",
+      "leagueName": "丹麦甲",
+      "matchTime": "02:00",
+      "spf": {
+        "win": "2.90",
+        "draw": "3.45",
+        "lose": "2.25"
+      },
+      "rqspf": {
+        "win": "3.69",
+        "draw": "3.84",
+        "lose": "2.13",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-22": [
+    {
+      "matchNum": "周三001",
+      "matchDate": "2026-04-22",
+      "homeName": "大阪钢巴",
+      "awayName": "福冈黄蜂",
+      "leagueName": "日职联",
+      "matchTime": "18:00",
+      "spf": {
+        "win": "1.91",
+        "draw": "3.50",
+        "lose": "4.15"
+      },
+      "rqspf": {
+        "win": "4.12",
+        "draw": "3.26",
+        "lose": "2.21",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-22",
+      "homeName": "安养FC",
+      "awayName": "蔚山HD",
+      "leagueName": "韩K联",
+      "matchTime": "18:30",
+      "spf": {
+        "win": "2.58",
+        "draw": "3.20",
+        "lose": "2.64"
+      },
+      "rqspf": {
+        "win": "3.87",
+        "draw": "3.54",
+        "lose": "2.17",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周三002",
+      "matchDate": "2026-04-22",
+      "homeName": "浦项铁人",
+      "awayName": "光州FC",
+      "leagueName": "韩K联",
+      "matchTime": "18:30",
+      "spf": {
+        "win": "1.54",
+        "draw": "3.60",
+        "lose": "6.40"
+      },
+      "rqspf": {
+        "win": "3.15",
+        "draw": "3.11",
+        "lose": "2.76",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-22",
+      "homeName": "大田市民",
+      "awayName": "济州SK FC",
+      "leagueName": "韩K联",
+      "matchTime": "18:30",
+      "spf": {
+        "win": "1.70",
+        "draw": "3.55",
+        "lose": "4.75"
+      },
+      "rqspf": {
+        "win": "4.23",
+        "draw": "3.32",
+        "lose": "2.15",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-22",
+      "homeName": "潘塞莱科斯",
+      "awayName": "阿特罗米托斯",
+      "leagueName": "希腊超",
+      "matchTime": "21:00",
+      "spf": {
+        "win": "3.30",
+        "draw": "2.90",
+        "lose": "2.21"
+      },
+      "rqspf": {
+        "win": "3.57",
+        "draw": "2.65",
+        "lose": "2.91",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-22",
+      "homeName": "拉里萨",
+      "awayName": "基菲萨",
+      "leagueName": "希腊超",
+      "matchTime": "22:00",
+      "spf": {
+        "win": "2.53",
+        "draw": "3.25",
+        "lose": "2.53"
+      },
+      "rqspf": {
+        "win": "2.69",
+        "draw": "2.80",
+        "lose": "3.66",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周三003",
+      "matchDate": "2026-04-22",
+      "homeName": "古比斯",
+      "awayName": "奥卢",
+      "leagueName": "芬超",
+      "matchTime": "23:00",
+      "spf": {
+        "win": "1.86",
+        "draw": "3.65",
+        "lose": "3.70"
+      },
+      "rqspf": {
+        "win": "4.22",
+        "draw": "4.00",
+        "lose": "1.94",
+        "handicap": "-1"
+      }
+    }
+  ],
+  "2026-04-23": [
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-23",
+      "homeName": "IBV韦斯特曼纳",
+      "awayName": "雷克雅未克",
+      "leagueName": "冰岛超",
+      "matchTime": "21:00",
+      "spf": {
+        "win": "3.95",
+        "draw": "4.50",
+        "lose": "1.60"
+      },
+      "rqspf": {
+        "win": "4.19",
+        "draw": "4.86",
+        "lose": "1.79",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "北西兰",
+      "awayName": "奥胡斯",
+      "leagueName": "丹麦超",
+      "matchTime": "00:00",
+      "spf": {
+        "win": "2.75",
+        "draw": "3.80",
+        "lose": "2.21"
+      },
+      "rqspf": {
+        "win": "2.84",
+        "draw": "3.87",
+        "lose": "2.56",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "兰讷斯",
+      "awayName": "弗雷德里西亚",
+      "leagueName": "丹麦超",
+      "matchTime": "00:00",
+      "spf": {
+        "win": "1.96",
+        "draw": "3.65",
+        "lose": "3.35"
+      },
+      "rqspf": {
+        "win": "4.19",
+        "draw": "3.83",
+        "lose": "1.99",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周四002",
+      "matchDate": "2026-04-24",
+      "homeName": "前进之鹰",
+      "awayName": "阿尔克马尔",
+      "leagueName": "荷甲",
+      "matchTime": "00:45",
+      "spf": {
+        "win": "2.17",
+        "draw": "4.00",
+        "lose": "2.94"
+      },
+      "rqspf": {
+        "win": "2.86",
+        "draw": "4.19",
+        "lose": "2.42",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四003",
+      "matchDate": "2026-04-24",
+      "homeName": "莱万特",
+      "awayName": "塞维利亚",
+      "leagueName": "西甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.47",
+        "draw": "3.25",
+        "lose": "3.05"
+      },
+      "rqspf": {
+        "win": "2.98",
+        "draw": "2.94",
+        "lose": "3.07",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "代格福什",
+      "awayName": "索尔纳",
+      "leagueName": "瑞典超",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.82",
+        "draw": "3.15",
+        "lose": "2.46"
+      },
+      "rqspf": {
+        "win": "4.05",
+        "draw": "3.49",
+        "lose": "2.14",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "哥德堡盖斯",
+      "awayName": "米亚尔比",
+      "leagueName": "瑞典超",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.42",
+        "draw": "3.30",
+        "lose": "2.75"
+      },
+      "rqspf": {
+        "win": "4.06",
+        "draw": "3.91",
+        "lose": "2.00",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "卡尔马",
+      "awayName": "哥德堡",
+      "leagueName": "瑞典超",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.40",
+        "draw": "3.40",
+        "lose": "2.74"
+      },
+      "rqspf": {
+        "win": "2.60",
+        "draw": "3.58",
+        "lose": "2.97",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四004",
+      "matchDate": "2026-04-24",
+      "homeName": "马尔默",
+      "awayName": "天狼星",
+      "leagueName": "瑞典超",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "2.36",
+        "draw": "3.35",
+        "lose": "2.72"
+      },
+      "rqspf": {
+        "win": "2.53",
+        "draw": "3.81",
+        "lose": "2.91",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "奥尔堡",
+      "awayName": "B93哥本哈根",
+      "leagueName": "丹麦甲",
+      "matchTime": "01:00",
+      "spf": {
+        "win": "1.74",
+        "draw": "4.05",
+        "lose": "3.90"
+      },
+      "rqspf": {
+        "win": "2.77",
+        "draw": "4.23",
+        "lose": "2.48",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "布加勒斯特迪纳摩",
+      "awayName": "克拉约瓦大学",
+      "leagueName": "罗杯",
+      "matchTime": "01:30",
+      "spf": {
+        "win": "2.53",
+        "draw": "2.98",
+        "lose": "2.71"
+      },
+      "rqspf": {
+        "win": "3.67",
+        "draw": "3.05",
+        "lose": "2.49",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四005",
+      "matchDate": "2026-04-24",
+      "homeName": "巴列卡诺",
+      "awayName": "西班牙人",
+      "leagueName": "西甲",
+      "matchTime": "02:00",
+      "spf": {
+        "win": "2.17",
+        "draw": "3.35",
+        "lose": "3.55"
+      },
+      "rqspf": {
+        "win": "2.42",
+        "draw": "3.04",
+        "lose": "3.86",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "周四006",
+      "matchDate": "2026-04-24",
+      "homeName": "卡萨比亚",
+      "awayName": "布拉加",
+      "leagueName": "葡超",
+      "matchTime": "02:00",
+      "spf": {
+        "win": "5.50",
+        "draw": "3.60",
+        "lose": "1.60"
+      },
+      "rqspf": {
+        "win": "2.33",
+        "draw": "3.45",
+        "lose": "3.55",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "桑德捷斯基",
+      "awayName": "中日德兰",
+      "leagueName": "丹麦超",
+      "matchTime": "02:00",
+      "spf": {
+        "win": "5.00",
+        "draw": "4.70",
+        "lose": "1.50"
+      },
+      "rqspf": {
+        "win": "3.31",
+        "draw": "3.85",
+        "lose": "2.27",
+        "handicap": "1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "艾斯登",
+      "awayName": "比肖特VA",
+      "leagueName": "比乙",
+      "matchTime": "02:30",
+      "spf": {
+        "win": "3.50",
+        "draw": "3.30",
+        "lose": "1.89"
+      },
+      "rqspf": {
+        "win": "4.45",
+        "draw": "4.02",
+        "lose": "1.89",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "洛默尔",
+      "awayName": "RFC列日",
+      "leagueName": "比乙",
+      "matchTime": "02:30",
+      "spf": {
+        "win": "1.78",
+        "draw": "3.60",
+        "lose": "3.60"
+      },
+      "rqspf": {
+        "win": "3.91",
+        "draw": "3.78",
+        "lose": "2.08",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周四007",
+      "matchDate": "2026-04-24",
+      "homeName": "斯图加特",
+      "awayName": "弗赖堡",
+      "leagueName": "德国杯",
+      "matchTime": "02:45",
+      "spf": {
+        "win": "1.64",
+        "draw": "4.45",
+        "lose": "4.80"
+      },
+      "rqspf": {
+        "win": "3.30",
+        "draw": "3.79",
+        "lose": "2.30",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "圣图尔登",
+      "awayName": "安德莱赫特",
+      "leagueName": "比甲",
+      "matchTime": "02:45",
+      "spf": {
+        "win": "1.93",
+        "draw": "3.60",
+        "lose": "3.55"
+      },
+      "rqspf": {
+        "win": "2.49",
+        "draw": "4.04",
+        "lose": "2.83",
+        "handicap": "0"
+      }
+    }
+  ],
+  "2026-04-24": [
+    {
+      "matchNum": "周五001",
+      "matchDate": "2026-04-24",
+      "homeName": "麦克阿瑟FC",
+      "awayName": "惠灵顿凤凰",
+      "leagueName": "澳超",
+      "matchTime": "17:35",
+      "spf": {
+        "win": "2.47",
+        "draw": "3.85",
+        "lose": "2.60"
+      },
+      "rqspf": {
+        "win": "2.76",
+        "draw": "3.66",
+        "lose": "2.73",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "FC东京",
+      "awayName": "水户蜀葵",
+      "leagueName": "日职联",
+      "matchTime": "18:00",
+      "spf": {
+        "win": "1.65",
+        "draw": "3.65",
+        "lose": "5.80"
+      },
+      "rqspf": {
+        "win": "3.07",
+        "draw": "3.36",
+        "lose": "2.65",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周五002",
+      "matchDate": "2026-04-24",
+      "homeName": "柏太阳神",
+      "awayName": "鹿岛鹿角",
+      "leagueName": "日职联",
+      "matchTime": "18:00",
+      "spf": {
+        "win": "2.72",
+        "draw": "3.25",
+        "lose": "2.65"
+      },
+      "rqspf": {
+        "win": "3.31",
+        "draw": "3.29",
+        "lose": "2.53",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "赫曼施塔特",
+      "awayName": "FK米耶尔库雷亚丘克",
+      "leagueName": "罗甲",
+      "matchTime": "22:30",
+      "spf": {
+        "win": "1.70",
+        "draw": "3.60",
+        "lose": "4.25"
+      },
+      "rqspf": {
+        "win": "3.94",
+        "draw": "3.66",
+        "lose": "2.11",
+        "handicap": "-1"
+      }
+    },
+    {
+      "matchNum": "周五003",
+      "matchDate": "2026-04-24",
+      "homeName": "TPS图尔库",
+      "awayName": "格尼斯坦",
+      "leagueName": "芬超",
+      "matchTime": "23:00",
+      "spf": {
+        "win": "2.29",
+        "draw": "3.35",
+        "lose": "2.88"
+      },
+      "rqspf": {
+        "win": "2.09",
+        "draw": "4.16",
+        "lose": "3.53",
+        "handicap": "0"
+      }
+    },
+    {
+      "matchNum": "",
+      "matchDate": "2026-04-24",
+      "homeName": "VPS瓦萨",
+      "awayName": "埃尔维斯",
+      "leagueName": "芬超",
+      "matchTime": "23:00",
+      "spf": {
+        "win": "3.15",
+        "draw": "3.55",
+        "lose": "2.08"
+      },
+      "rqspf": {
+        "win": "3.98",
+        "draw": "4.04",
+        "lose": "1.99",
+        "handicap": "0"
+      }
+    }
+  ]
+}

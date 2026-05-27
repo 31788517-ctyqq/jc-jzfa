@@ -1,0 +1,1517 @@
+{
+  "date": "2026-04-26",
+  "odds": {
+    "周日001": {
+      "num": "周日001",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -1,
+      "spf": {
+        "home": 1.66,
+        "draw": 3.18,
+        "away": 4.7
+      },
+      "rqspf": {
+        "home": 3.47,
+        "draw": 3.05,
+        "away": 1.95,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 8,
+        "1": 3.8,
+        "2": 3.05,
+        "3": 3.8,
+        "4": 7.2,
+        "5": 14
+      }
+    },
+    "周日002": {
+      "num": "周日002",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -1,
+      "spf": {
+        "home": 2.03,
+        "draw": 3.54,
+        "away": 2.82
+      },
+      "rqspf": {
+        "home": 3.85,
+        "draw": 4.1,
+        "away": 1.6,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "isSingleGame": true,
+      "totalGoals": {
+        "0": 19,
+        "1": 6.65,
+        "2": 4.25,
+        "3": 3.55,
+        "4": 4.4,
+        "5": 7.2
+      }
+    },
+    "周日003": {
+      "num": "周日003",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 3.18,
+        "draw": 3.4,
+        "away": 1.92
+      },
+      "rqspf": {
+        "home": 1.67,
+        "draw": 3.75,
+        "away": 3.8,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 14.5,
+        "1": 5.75,
+        "2": 3.9,
+        "3": 3.45,
+        "4": 4.75,
+        "5": 8
+      }
+    },
+    "周日004": {
+      "num": "周日004",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.88,
+        "draw": 3.2,
+        "away": 3.51
+      },
+      "rqspf": {
+        "home": 4.1,
+        "draw": 3.35,
+        "away": 1.71,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": true,
+      "totalGoals": {
+        "0": 13,
+        "1": 5,
+        "2": 3.35,
+        "3": 3.45,
+        "4": 5.25,
+        "5": 9.5
+      }
+    },
+    "周日005": {
+      "num": "周日005",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.82,
+        "draw": 3.62,
+        "away": 3.3
+      },
+      "rqspf": {
+        "home": 3.52,
+        "draw": 3.7,
+        "away": 1.74,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 15,
+        "1": 6,
+        "2": 4,
+        "3": 3.5,
+        "4": 4.65,
+        "5": 7.5
+      }
+    },
+    "周日006": {
+      "num": "周日006",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 2.35,
+        "draw": 3,
+        "away": 2.7
+      },
+      "rqspf": {
+        "home": 4.95,
+        "draw": 4.2,
+        "away": 1.45,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 15,
+        "1": 5.75,
+        "2": 3.55,
+        "3": 3.5,
+        "4": 4.65,
+        "5": 8.25
+      }
+    },
+    "周日007": {
+      "num": "周日007",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 2.52,
+        "draw": 3.12,
+        "away": 2.43
+      },
+      "rqspf": {
+        "home": 5.65,
+        "draw": 4.4,
+        "away": 1.38,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 14.5,
+        "1": 5.5,
+        "2": 3.6,
+        "3": 3.4,
+        "4": 5,
+        "5": 8.25
+      }
+    },
+    "周日008": {
+      "num": "周日008",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -1,
+      "spf": {
+        "home": 3.15,
+        "draw": 3.45,
+        "away": 1.92
+      },
+      "rqspf": {
+        "home": 1.67,
+        "draw": 3.7,
+        "away": 3.85,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 14,
+        "1": 5.5,
+        "2": 3.65,
+        "3": 3.6,
+        "4": 5.1,
+        "5": 8.25
+      }
+    },
+    "周日009": {
+      "num": "周日009",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -1,
+      "spf": {
+        "home": 1.82,
+        "draw": 3.75,
+        "away": 3.2
+      },
+      "rqspf": {
+        "home": 3.34,
+        "draw": 3.92,
+        "away": 1.74,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 20,
+        "1": 6.7,
+        "2": 4.2,
+        "3": 3.65,
+        "4": 4.4,
+        "5": 6.5
+      }
+    },
+    "周日010": {
+      "num": "周日010",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 5.65,
+        "draw": 3.8,
+        "away": 1.45
+      },
+      "rqspf": {
+        "home": 2.32,
+        "draw": 3,
+        "away": 2.74,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 11,
+        "1": 4.6,
+        "2": 3.1,
+        "3": 3.55,
+        "4": 5.9,
+        "5": 11.5
+      }
+    },
+    "周日011": {
+      "num": "周日011",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.93,
+        "draw": 3.5,
+        "away": 3.08
+      },
+      "rqspf": {
+        "home": 3.85,
+        "draw": 3.75,
+        "away": 1.66,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 14,
+        "1": 5.7,
+        "2": 3.85,
+        "3": 3.5,
+        "4": 4.6,
+        "5": 8
+      }
+    },
+    "周日012": {
+      "num": "周日012",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.4,
+        "draw": 4.3,
+        "away": 5.47
+      },
+      "rqspf": {
+        "home": 2.18,
+        "draw": 3.7,
+        "away": 2.5,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 22,
+        "1": 8.4,
+        "2": 4.85,
+        "3": 3.45,
+        "4": 4.1,
+        "5": 6
+      }
+    },
+    "周日013": {
+      "num": "周日013",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -1,
+      "spf": {
+        "home": 1.85,
+        "draw": 3.45,
+        "away": 3.35
+      },
+      "rqspf": {
+        "home": 3.48,
+        "draw": 3.7,
+        "away": 1.75,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "isSingleGame": true,
+      "totalGoals": {
+        "0": 15,
+        "1": 5.8,
+        "2": 3.7,
+        "3": 3.7,
+        "4": 4.75,
+        "5": 8.2
+      }
+    },
+    "周日014": {
+      "num": "周日014",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 2.18,
+        "draw": 3,
+        "away": 2.96
+      },
+      "rqspf": {
+        "home": 5.05,
+        "draw": 3.6,
+        "away": 1.53,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 9.5,
+        "1": 4.2,
+        "2": 3.1,
+        "3": 3.45,
+        "4": 6.35,
+        "5": 13.5
+      }
+    },
+    "周日015": {
+      "num": "周日015",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -1,
+      "spf": {
+        "home": 2.5,
+        "draw": 3.05,
+        "away": 2.49
+      },
+      "rqspf": {
+        "home": 1.4,
+        "draw": 4.2,
+        "away": 5.65,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 11,
+        "1": 4.6,
+        "2": 3.4,
+        "3": 3.6,
+        "4": 5.6,
+        "5": 10
+      }
+    },
+    "周日016": {
+      "num": "周日016",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.43,
+        "draw": 3.95,
+        "away": 5.65
+      },
+      "rqspf": {
+        "home": 2.56,
+        "draw": 3.1,
+        "away": 2.4,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 14,
+        "1": 5.6,
+        "2": 3.6,
+        "3": 3.5,
+        "4": 4.8,
+        "5": 8.25
+      }
+    },
+    "周日017": {
+      "num": "周日017",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 4.45,
+        "draw": 3.8,
+        "away": 1.56
+      },
+      "rqspf": {
+        "home": 2.11,
+        "draw": 3.15,
+        "away": 2.96,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 15,
+        "1": 6,
+        "2": 3.95,
+        "3": 3.4,
+        "4": 4.7,
+        "5": 8
+      }
+    },
+    "周日018": {
+      "num": "周日018",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.33,
+        "draw": 4.4,
+        "away": 6.65
+      },
+      "rqspf": {
+        "home": 2.05,
+        "draw": 3.55,
+        "away": 2.78,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 17,
+        "1": 6,
+        "2": 4,
+        "3": 3.35,
+        "4": 4.65,
+        "5": 7.5
+      }
+    },
+    "周日019": {
+      "num": "周日019",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.29,
+        "draw": 4.8,
+        "away": 6.85
+      },
+      "rqspf": {
+        "home": 1.92,
+        "draw": 3.7,
+        "away": 2.96,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 20,
+        "1": 7,
+        "2": 4.3,
+        "3": 3.45,
+        "4": 4.25,
+        "5": 6.8
+      }
+    },
+    "周日020": {
+      "num": "周日020",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 7.2,
+        "draw": 4.65,
+        "away": 1.29
+      },
+      "rqspf": {
+        "home": 2.9,
+        "draw": 3.45,
+        "away": 2.02,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 18,
+        "1": 5.9,
+        "2": 3.95,
+        "3": 3.55,
+        "4": 4.6,
+        "5": 7.4
+      }
+    },
+    "周日021": {
+      "num": "周日021",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.92,
+        "draw": 2.9,
+        "away": 3.8
+      },
+      "rqspf": {
+        "home": 4.15,
+        "draw": 3.45,
+        "away": 1.67,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 9,
+        "1": 3.8,
+        "2": 3.2,
+        "3": 3.55,
+        "4": 6.5,
+        "5": 14
+      }
+    },
+    "周日022": {
+      "num": "周日022",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 3.35,
+        "draw": 2.92,
+        "away": 2.05
+      },
+      "rqspf": {
+        "home": 1.58,
+        "draw": 3.65,
+        "away": 4.5,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 7.5,
+        "1": 3.6,
+        "2": 3.05,
+        "3": 3.9,
+        "4": 7.3,
+        "5": 15
+      }
+    },
+    "周日023": {
+      "num": "周日023",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 11.5,
+        "draw": 5.15,
+        "away": 1.18
+      },
+      "rqspf": {
+        "home": 3.62,
+        "draw": 3.55,
+        "away": 1.75,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 14,
+        "1": 5,
+        "2": 3.7,
+        "3": 3.15,
+        "4": 4.7,
+        "5": 9.6
+      }
+    },
+    "周日024": {
+      "num": "周日024",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -1,
+      "spf": {
+        "home": 3.36,
+        "draw": 4.1,
+        "away": 1.7
+      },
+      "rqspf": {
+        "home": 1.87,
+        "draw": 3.9,
+        "away": 2.96,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 29,
+        "1": 8.5,
+        "2": 4.85,
+        "3": 3.7,
+        "4": 4.15,
+        "5": 5.75
+      }
+    },
+    "周日025": {
+      "num": "周日025",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 2.66,
+        "draw": 2.86,
+        "away": 2.48
+      },
+      "rqspf": {
+        "home": 6.4,
+        "draw": 4.2,
+        "away": 1.36,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": true,
+      "totalGoals": {
+        "0": 9,
+        "1": 3.95,
+        "2": 3.35,
+        "3": 3.5,
+        "4": 6.25,
+        "5": 13
+      }
+    },
+    "周日026": {
+      "num": "周日026",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.43,
+        "draw": 4.3,
+        "away": 5.05
+      },
+      "rqspf": {
+        "home": 2.26,
+        "draw": 3.65,
+        "away": 2.42,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 22,
+        "1": 7.25,
+        "2": 4.3,
+        "3": 3.4,
+        "4": 4.2,
+        "5": 6.75
+      }
+    },
+    "周日027": {
+      "num": "周日027",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.67,
+        "draw": 3.65,
+        "away": 3.9
+      },
+      "rqspf": {
+        "home": 3.47,
+        "draw": 3.15,
+        "away": 1.91,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 14,
+        "1": 5.7,
+        "2": 3.7,
+        "3": 3.4,
+        "4": 4.8,
+        "5": 8.35
+      }
+    },
+    "周日029": {
+      "num": "周日029",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -1,
+      "spf": {
+        "home": 2.28,
+        "draw": 3.6,
+        "away": 2.42
+      },
+      "rqspf": {
+        "home": 4.8,
+        "draw": 4.25,
+        "away": 1.46,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 22,
+        "1": 7.25,
+        "2": 4.1,
+        "3": 3.45,
+        "4": 4.4,
+        "5": 6.5
+      }
+    },
+    "周六001": {
+      "num": "周六001",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -1,
+      "spf": {
+        "home": 2.62,
+        "draw": 2.9,
+        "away": 2.48
+      },
+      "rqspf": {
+        "home": 6.8,
+        "draw": 4.05,
+        "away": 1.36,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 8.5,
+        "1": 4,
+        "2": 3.25,
+        "3": 3.9,
+        "4": 6.25,
+        "5": 11
+      }
+    },
+    "周六002": {
+      "num": "周六002",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -1,
+      "spf": {
+        "home": 1.5,
+        "draw": 3.85,
+        "away": 4.95
+      },
+      "rqspf": {
+        "home": 2.77,
+        "draw": 3.1,
+        "away": 2.25,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "isSingleGame": true,
+      "totalGoals": {
+        "0": 15,
+        "1": 5.8,
+        "2": 3.6,
+        "3": 3.2,
+        "4": 5.35,
+        "5": 8.6
+      }
+    },
+    "周六003": {
+      "num": "周六003",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -1,
+      "spf": {
+        "home": 1.33,
+        "draw": 5.1,
+        "away": 5.5
+      },
+      "rqspf": {
+        "home": 1.98,
+        "draw": 3.85,
+        "away": 2.74,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 29,
+        "1": 10,
+        "2": 5.55,
+        "3": 4,
+        "4": 4.1,
+        "5": 5.55
+      }
+    },
+    "周六004": {
+      "num": "周六004",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -1,
+      "spf": {
+        "home": 3.13,
+        "draw": 3.8,
+        "away": 1.83
+      },
+      "rqspf": {
+        "home": 1.76,
+        "draw": 3.7,
+        "away": 3.45,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "isSingleGame": true,
+      "totalGoals": {
+        "0": 20,
+        "1": 8.3,
+        "2": 4.9,
+        "3": 3.95,
+        "4": 4,
+        "5": 6
+      }
+    },
+    "周六005": {
+      "num": "周六005",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 3.12,
+        "draw": 3.25,
+        "away": 2
+      },
+      "rqspf": {
+        "home": 1.63,
+        "draw": 3.8,
+        "away": 3.95,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 11.5,
+        "1": 4.9,
+        "2": 3.65,
+        "3": 3.65,
+        "4": 5,
+        "5": 9.5
+      }
+    },
+    "周六006": {
+      "num": "周六006",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 2.42,
+        "draw": 3.35,
+        "away": 2.4
+      },
+      "rqspf": {
+        "home": 1.43,
+        "draw": 4.4,
+        "away": 4.95,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 15,
+        "1": 5.65,
+        "2": 3.7,
+        "3": 3.4,
+        "4": 4.8,
+        "5": 7.95
+      }
+    },
+    "周六007": {
+      "num": "周六007",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 3.16,
+        "draw": 3.1,
+        "away": 2.04
+      },
+      "rqspf": {
+        "home": 1.58,
+        "draw": 3.75,
+        "away": 4.35,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 10,
+        "1": 4.85,
+        "2": 3,
+        "3": 3.5,
+        "4": 6,
+        "5": 11.5
+      }
+    },
+    "周六008": {
+      "num": "周六008",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.95,
+        "draw": 3,
+        "away": 3.53
+      },
+      "rqspf": {
+        "home": 4.3,
+        "draw": 3.35,
+        "away": 1.67,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 10.5,
+        "1": 4.5,
+        "2": 3.3,
+        "3": 3.65,
+        "4": 5.5,
+        "5": 10.5
+      }
+    },
+    "周六009": {
+      "num": "周六009",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.93,
+        "draw": 3,
+        "away": 3.6
+      },
+      "rqspf": {
+        "home": 4.45,
+        "draw": 3.35,
+        "away": 1.65,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 7.5,
+        "1": 3.7,
+        "2": 3,
+        "3": 4,
+        "4": 7,
+        "5": 15
+      }
+    },
+    "周六010": {
+      "num": "周六010",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 2.2,
+        "draw": 3.28,
+        "away": 2.7
+      },
+      "rqspf": {
+        "home": 4.8,
+        "draw": 3.93,
+        "away": 1.5,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 11,
+        "1": 5.15,
+        "2": 3.5,
+        "3": 3.5,
+        "4": 5.15,
+        "5": 9.5
+      }
+    },
+    "周六011": {
+      "num": "周六011",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 3.45,
+        "draw": 3.6,
+        "away": 1.78
+      },
+      "rqspf": {
+        "home": 1.8,
+        "draw": 3.76,
+        "away": 3.25,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": true,
+      "totalGoals": {
+        "0": 19,
+        "1": 7.35,
+        "2": 4.35,
+        "3": 3.45,
+        "4": 4.15,
+        "5": 7
+      }
+    },
+    "周六012": {
+      "num": "周六012",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.9,
+        "draw": 3.65,
+        "away": 3.05
+      },
+      "rqspf": {
+        "home": 3.55,
+        "draw": 3.8,
+        "away": 1.71,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 17,
+        "1": 6.8,
+        "2": 4.2,
+        "3": 3.45,
+        "4": 4.5,
+        "5": 7.1
+      }
+    },
+    "周六013": {
+      "num": "周六013",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 3.45,
+        "draw": 4.15,
+        "away": 1.67
+      },
+      "rqspf": {
+        "home": 1.92,
+        "draw": 4,
+        "away": 2.8,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 29,
+        "1": 10,
+        "2": 5.1,
+        "3": 3.7,
+        "4": 4.1,
+        "5": 5.45
+      }
+    },
+    "周六014": {
+      "num": "周六014",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 2.34,
+        "draw": 3.35,
+        "away": 2.48
+      },
+      "rqspf": {
+        "home": 4.9,
+        "draw": 4.35,
+        "away": 1.44,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 21,
+        "1": 7.5,
+        "2": 4.3,
+        "3": 3.45,
+        "4": 4.4,
+        "5": 6.5
+      }
+    },
+    "周六015": {
+      "num": "周六015",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 2.3,
+        "draw": 3.08,
+        "away": 2.7
+      },
+      "rqspf": {
+        "home": 5.2,
+        "draw": 4.05,
+        "away": 1.45,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 12.5,
+        "1": 5.3,
+        "2": 3.2,
+        "3": 3.45,
+        "4": 5.5,
+        "5": 9.5
+      }
+    },
+    "周六016": {
+      "num": "周六016",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 5.3,
+        "draw": 4.15,
+        "away": 1.43
+      },
+      "rqspf": {
+        "home": 2.35,
+        "draw": 3.5,
+        "away": 2.4,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 16,
+        "1": 6.25,
+        "2": 3.9,
+        "3": 3.25,
+        "4": 4.5,
+        "5": 7.75
+      }
+    },
+    "周六017": {
+      "num": "周六017",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.39,
+        "draw": 4.3,
+        "away": 5.65
+      },
+      "rqspf": {
+        "home": 2.16,
+        "draw": 3.8,
+        "away": 2.48,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 21,
+        "1": 7.2,
+        "2": 4.25,
+        "3": 3.4,
+        "4": 4.3,
+        "5": 6.75
+      }
+    },
+    "周六018": {
+      "num": "周六018",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 5.3,
+        "draw": 4,
+        "away": 1.45
+      },
+      "rqspf": {
+        "home": 2.33,
+        "draw": 3.15,
+        "away": 2.62,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 11.5,
+        "1": 5.1,
+        "2": 3.7,
+        "3": 3.4,
+        "4": 5.4,
+        "5": 9
+      }
+    },
+    "周六019": {
+      "num": "周六019",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.52,
+        "draw": 4.1,
+        "away": 4.4
+      },
+      "rqspf": {
+        "home": 2.56,
+        "draw": 3.65,
+        "away": 2.15,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 21,
+        "1": 7.1,
+        "2": 4.35,
+        "3": 3.35,
+        "4": 4.15,
+        "5": 7
+      }
+    },
+    "周六020": {
+      "num": "周六020",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 3.6,
+        "draw": 3.05,
+        "away": 1.91
+      },
+      "rqspf": {
+        "home": 1.67,
+        "draw": 3.24,
+        "away": 4.5,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 9.5,
+        "1": 4.2,
+        "2": 3.2,
+        "3": 3.7,
+        "4": 6.2,
+        "5": 12
+      }
+    },
+    "周六021": {
+      "num": "周六021",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.58,
+        "draw": 3.25,
+        "away": 5.3
+      },
+      "rqspf": {
+        "home": 3.04,
+        "draw": 3.11,
+        "away": 2.09,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": true,
+      "totalGoals": {
+        "0": 9,
+        "1": 4.15,
+        "2": 3,
+        "3": 3.6,
+        "4": 6.5,
+        "5": 13.5
+      }
+    },
+    "周六023": {
+      "num": "周六023",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.29,
+        "draw": 4.75,
+        "away": 6.95
+      },
+      "rqspf": {
+        "home": 1.99,
+        "draw": 3.45,
+        "away": 2.97,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": true,
+      "totalGoals": {
+        "0": 16,
+        "1": 5.85,
+        "2": 3.8,
+        "3": 3.35,
+        "4": 4.6,
+        "5": 8.4
+      }
+    },
+    "周六024": {
+      "num": "周六024",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 4.25,
+        "draw": 4.1,
+        "away": 1.54
+      },
+      "rqspf": {
+        "home": 2.12,
+        "draw": 3.6,
+        "away": 2.63,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 24,
+        "1": 8,
+        "2": 4.65,
+        "3": 3.35,
+        "4": 4,
+        "5": 6.5
+      }
+    },
+    "周六025": {
+      "num": "周六025",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 2.03,
+        "draw": 3.1,
+        "away": 3.2
+      },
+      "rqspf": {
+        "home": 4.45,
+        "draw": 3.58,
+        "away": 1.6,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 11,
+        "1": 4.75,
+        "2": 3.15,
+        "3": 3.5,
+        "4": 5.7,
+        "5": 10.5
+      }
+    },
+    "周六026": {
+      "num": "周六026",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 10,
+        "draw": 6.25,
+        "away": 1.15
+      },
+      "rqspf": {
+        "home": 2,
+        "draw": 4,
+        "away": 2.64,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 21,
+        "1": 7,
+        "2": 4.35,
+        "3": 3.4,
+        "4": 4.25,
+        "5": 7
+      }
+    },
+    "周六028": {
+      "num": "周六028",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 2.45,
+        "draw": 2.65,
+        "away": 2.92
+      },
+      "rqspf": {
+        "home": 6.3,
+        "draw": 3.9,
+        "away": 1.4,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 6.5,
+        "1": 3.25,
+        "2": 3.2,
+        "3": 4.05,
+        "4": 8,
+        "5": 18
+      }
+    },
+    "周六029": {
+      "num": "周六029",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -9,
+      "spf": {
+        "home": 1.93,
+        "draw": 3.35,
+        "away": 3.2
+      },
+      "rqspf": {
+        "home": 3.95,
+        "draw": 3.6,
+        "away": 1.67,
+        "handicap": -9
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 12,
+        "1": 4.5,
+        "2": 3.45,
+        "3": 3.5,
+        "4": 5.5,
+        "5": 10
+      }
+    },
+    "周六030": {
+      "num": "周六030",
+      "homeName": "",
+      "visitName": "",
+      "handicap": -1,
+      "spf": {
+        "home": 1.43,
+        "draw": 4.05,
+        "away": 5.45
+      },
+      "rqspf": {
+        "home": 2.42,
+        "draw": 3.38,
+        "away": 2.38,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "isSingleGame": false,
+      "totalGoals": {
+        "0": 15,
+        "1": 5.4,
+        "2": 3.7,
+        "3": 3.45,
+        "4": 4.7,
+        "5": 7.7
+      }
+    }
+  }
+}

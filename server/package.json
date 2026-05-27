@@ -6,9 +6,10 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
     "express": "^4.21.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.0",
-    "express-rate-limit": "^7.4.0"
+    "express-rate-limit": "^6.11.2"
   }
 }

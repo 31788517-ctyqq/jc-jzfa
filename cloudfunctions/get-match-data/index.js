@@ -353,9 +353,9 @@ exports.main = async (event, context) => {
         // 条件摘要
         const parts = [];
         if (league) parts.push(league);
-        if (timeRange === '30') parts.push('近30天');
-        else if (timeRange === '60') parts.push('近60天');
-        else if (timeRange === '90') parts.push('近90天');
+        if (timeRange === '30') parts.push('近一个月');
+        else if (timeRange === '60') parts.push('近两个月');
+        else if (timeRange === '90') parts.push('近三个月');
         if (direction && directionType) parts.push(direction);
         else if (directionType) parts.push(directionType);
         if (rankTop > 0) {

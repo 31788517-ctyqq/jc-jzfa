@@ -218,16 +218,22 @@ async function computeAll() {
  * @returns {Promise<Object|null>}
  */
 async function getMatchResult(matchId) {
-  // 1. 尝试读缓存
+  // 1. 尝试读缓存（兼容 m_ 前缀）
   const cache = readCache();
   const cacheKey = '_global';
-  if (cache[cacheKey] && cache[cacheKey][matchId]) {
-    return cache[cacheKey][matchId];
-  }
+  const globalCache = cache[cacheKey] || {};
+
+  // 直接匹配
+  if (globalCache[matchId]) return globalCache[matchId];
+  // m_ 前缀匹配
+  if (globalCache['m_' + matchId]) return globalCache['m_' + matchId];
+  // 去 m_ 前缀匹配
+  const clean = String(matchId).replace(/^m_/, '');
+  if (globalCache[clean]) return globalCache[clean];
 
   // 2. 全量计算（首次计算会写入缓存）
   const results = await computeAll();
-  return results[matchId] || null;
+  return results[matchId] || results['m_' + matchId] || results[clean] || null;
 }
 
 /**

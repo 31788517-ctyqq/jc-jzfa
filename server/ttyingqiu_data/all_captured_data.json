@@ -1,0 +1,54 @@
+{
+  "2026-05-25": [
+    {
+      "awayId": 114199,
+      "awayLogo": "https://r.ttyingqiu.com/upload/sportdata/teamLogo/0ffb7ffab7e1720c91427e75b4a50ace.png",
+      "awayName": "米亚尔比",
+      "awayRank": "5",
+      "bigsmall": "1.01;2.5;0.86",
+      "card": [
+        "0-1",
+        "0-1"
+      ],
+      "corner": "2-2",
+      "elapsedTime": "比赛中-中场",
+      "groupName": "",
+      "homeId": 116773,
+      "homeLogo": "https://r.ttyingqiu.com/upload/sportdata/teamLogo/41b828223947cae32e97c8cac45fb17f.png",
+      "homeName": "哥德堡",
+      "homeRank": "15",
+      "isCartoon": false,
+      "isPlayed": 0,
+      "isVideo": false,
+      "jcDanguan": 0,
+      "leagueColor": "#d38509",
+      "leagueId": 2179,
+      "leagueName": "瑞典超",
+      "leagueType": 1,
+      "matchDate": "2026-05-26",
+      "matchId": 6006182,
+      "matchNoCn": "周一006",
+      "matchResult": "1",
+      "matchTime": "01:00",
+      "middle": false,
+      "oddsAsia": "1.07;0/0.5;0.80",
+      "oddsBeidan": "2.96;3.53;2.63;0",
+      "oddsEurope": "2.45;3.15;2.78",
+      "playerGolas": 0,
+      "playerRcard": 0,
+      "playerYcard": 0,
+      "qtMatchId": 114467066,
+      "rating": 0.0,
+      "round": "9",
+      "score": [
+        "0:0",
+        "0:0",
+        "",
+        ""
+      ],
+      "showTurnTips": 0,
+      "stageName": "联赛",
+      "status": 14
+    }
+  ]
+}

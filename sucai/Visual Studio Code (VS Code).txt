@@ -1,0 +1,198 @@
+可以的，在 Visual Studio Code (VS Code) 里将 Claude Code 切换到 DeepSeek 模型，是完全可行的，而且有不止一种方法。
+
+> 这里有个小提示，你提到的“Claude Code的IDE”，一般指的是安装在 VS Code 里的“Claude Code for VS Code”这个插件。不过，现在大家更常用的是从终端里运行的 `claude` 命令行工具（CLI）。虽然接入 DeepSeek 的配置方法基本一样，但它们的入口不同，使用前最好确认一下当前的环境。
+
+### ⚠️ 建议关注的兼容性问题
+
+在使用前，有一个细节值得留意。有开发者发现，DeepSeek V4 模型有一个独特要求，即其返回的消息若包含工具调用（tool_call），则该消息在后续交互中必须包含 `reasoning_content` 字段，否则会报错。
+
+一些社区工具（如 `cc-switch`）可能还未完全解决此问题。因此，为保证稳定性，DeepSeek **官方推荐的配置方法**（下文方法一）是目前最稳妥的选择。
+
+### 💡 两种接入方案对比
+
+我整理了两种主要的配置方式，方便你根据自己的需求来选择：
+
+| 配置方法 | 优点 | 缺点 |
+| :--- | :--- | :--- |
+| **方法一：修改环境变量（官方推荐）** | - 最稳定<br>- 简单快捷<br>- 由官方维护，兼容性最好 | - 灵活性稍低，可能会占用Claude Code对不同模型的选择权 |
+| **方法二：修改配置文件 (settings.json)** | - 配置在项目/用户级别固化，更规范<br>- 便于备份和分享 | - 不适用CLI，仅对VS Code插件有效 |
+
+---
+
+### 🔧 方法一：通过设置环境变量（官方推荐 & 最稳定）
+
+这是 DeepSeek 官方推荐的方法，通过修改 Claude Code 的运行环境，将它的API请求重定向到 DeepSeek。
+
+#### **1. 准备工作** 📋
+
+在开始配置前，确保你的电脑上满足以下条件：
+
+*   **Node.js**: 版本需要是 **18.0** 或更高。
+*   **Git**: 如果你是 Windows 系统，需要安装并配置好 Git for Windows。
+*   **Claude Code (CLI 版本)**:
+    1.  打开你的终端（Terminal）。
+    2.  运行安装命令：`npm install -g @anthropic-ai/claude-code`
+    3.  验证安装：`claude --version`（若能正常显示版本号，则说明安装成功）。
+
+#### **2. 获取 DeepSeek API Key** 🔑
+
+1.  访问 DeepSeek 的开放平台 **[platform.deepseek.com](http://platform.deepseek.com/)**。
+2.  登录或注册一个账号。
+3.  在左侧菜单找到并进入 “API Keys” 页面，创建一个新的 API Key，并**复制保存好**。
+
+#### **3. 配置环境变量** ⚙️
+
+接下来，需要将你的 DeepSeek API Key 和模型信息填入 Claude Code 的环境变量。请根据你的操作系统进行操作：
+
+**对于 macOS/Linux 用户**
+
+在终端中依次执行以下命令（请将 `<你的DeepSeek API Key>` 替换为你的真实API Key）：
+
+```bash
+export ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
+export ANTHROPIC_AUTH_TOKEN=<你的DeepSeek API Key>
+export ANTHROPIC_MODEL=deepseek-v4-pro[1m]
+export ANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-v4-pro[1m]
+export ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-pro[1m]
+export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-flash
+export CLAUDE_CODE_SUBAGENT_MODEL=deepseek-v4-flash
+export CLAUDE_CODE_EFFORT_LEVEL=max
+```
+
+**对于 Windows 用户**
+
+在 PowerShell 中依次执行以下命令（请将 `<你的DeepSeek API Key>` 替换为你的真实API Key）：
+
+```powershell
+$env:ANTHROPIC_BASE_URL="https://api.deepseek.com/anthropic"
+$env:ANTHROPIC_AUTH_TOKEN="<你的DeepSeek API Key>"
+$env:ANTHROPIC_MODEL="deepseek-v4-pro[1m]"
+$env:ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro[1m]"
+$env:ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-pro[1m]"
+$env:ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-v4-flash"
+$env:CLAUDE_CODE_SUBAGENT_MODEL="deepseek-v4-flash"
+$env:CLAUDE_CODE_EFFORT_LEVEL="max"
+```
+
+#### **4. 启动与验证** 🚀
+
+1.  在你**当前执行过上述命令**的同一个终端里，进入你的项目目录：`cd /path/to/your-project`
+2.  启动 Claude Code：`claude`
+3.  在 Claude 的对话界面中，尝试问它：“你是谁开发的模型？” 如果它回答是 DeepSeek，就说明配置成功了！
+
+> **请注意**：通过此方法配置，Claude Code 将会使用 DeepSeek 模型直到当前终端会话关闭。
+
+---
+
+### 🚀 方法二：通过修改 VSCode 配置文件
+
+如果你希望在 VSCode 的“Claude Code for VS Code”插件中永久使用 DeepSeek，可以通过修改 `settings.json` 文件来实现。
+
+#### **完整配置代码**
+
+打开你的 VSCode 设置文件 (`settings.json`)，并添加或修改如下内容：
+
+```json
+{
+  // ... 其他配置
+  "claudeCode.environmentVariables": [
+    {
+      "name": "ANTHROPIC_BASE_URL",
+      "value": "https://api.deepseek.com/anthropic"
+    },
+    {
+      "name": "ANTHROPIC_AUTH_TOKEN",
+      "value": "<你的DeepSeek API Key>" // 替换为你的真实API Key
+    },
+    {
+      "name": "ANTHROPIC_MODEL",
+      "value": "deepseek-v4-pro[1m]"
+    },
+    {
+      "name": "ANTHROPIC_SMALL_FAST_MODEL",
+      "value": "deepseek-v4-flash"
+    }
+  ],
+  "claudeCode.selectedModel": "deepseek-v4-pro[1m]" // 指定默认模型
+}
+```
+
+**各参数说明：**
+
+*   `ANTHROPIC_BASE_URL`：API 服务器地址，填写为 `https://api.deepseek.com/anthropic`。
+*   `ANTHROPIC_AUTH_TOKEN`：DeepSeek API Key。
+*   `ANTHROPIC_MODEL`：主要使用的模型。例如：`deepseek-v4-pro[1m]`。
+*   `ANTHROPIC_SMALL_FAST_MODEL`：用于快速、轻量级任务的模型。例如：`deepseek-v4-flash`。
+*   `claudeCode.selectedModel`：在插件界面中默认选中的模型。
+
+配置完成后，**完全退出并重启 VSCode**，即可生效。
+
+---
+
+### 💡 备选工具 & 高级用法
+
+*   **`deepclaude` 工具**：社区也提供了像 `deepclaude` 这样的开源工具，它可以在保留 Claude Code 操作体验的同时，将后台模型无缝切换到 DeepSeek，并且据称可以将成本降低至原来的 **1/17**。注意，此方法非官方出品，使用时请评估其稳定性。
+
+*   **其他VSCode扩展**：在 VSCode 中，除了通过 Claude Code 间接接入，你也可以直接搜索“DeepSeek AI”等官方或社区插件来获得最纯粹的 DeepSeek 编程体验。
+
+如果遇到任何问题，可以随时再问我～
+
+
+不需要。即使没有 Claude Code 账号，也可以通过几种方法，在 VS Code 里用上 DeepSeek 模型。它们的核心思路都是通过配置，让 Claude Code 的环境去请求 DeepSeek 的 API，从而实现“免登录”。
+
+这里有几种主流方法，你可以根据自己的偏好来选择：
+
+### 🚀 方案一：使用 Claude Code Desktop (目前最推荐)
+
+这个方法因为由官方支持，所以最稳定，成功率高，也很适合不想操作命令行的新手。
+
+**核心步骤：**
+
+1.  **下载并安装**：从 [claude.com/download](https://claude.com/download) 下载对应系统的客户端，**安装后不要登录**。
+2.  **获取 DeepSeek API Key**：访问 [DeepSeek 开放平台](https://platform.deepseek.com/)，登录后创建一个 API Key 并妥善保存。
+3.  **开启开发者模式**：点击菜单栏 `Help -> Troubleshooting -> Enable Developer Mode` 并确认重启。
+4.  **配置第三方模型**：重启后，点击 `Developer -> Configure Third-Party Inference`。在弹出的窗口中选择 `Gateway` 模式，并按下图进行配置，点击 `Apply locally` 和 `Relaunch Now` 完成。
+    *   `Gateway base URL`: `https://api.deepseek.com/anthropic`
+    *   `Gateway API key`: 粘贴你的 DeepSeek API Key
+    *   `Gateway auth scheme`: `bearer`
+
+完成后，重启客户端并选择 `Continue with Gateway`，就可以开始使用了。
+
+### ⚙️ 方案二：配置 VS Code 插件 (可能需要特殊手段)
+
+这个方法直接在我们上次聊到的 VS Code 插件里操作，但难度会稍微高一些。因为在 Claude Code 2.0 版本后，VS Code 插件启用了强制的账号验证机制，直接通过修改 `settings.json` 的方式可能会失效。
+
+如果直接修改不成功，可以试试配合一个叫 `free-claude-code` 的本地代理工具。它会在你电脑上开一个小服务，把 Claude 的请求转给 DeepSeek，以此绕过验证。
+
+### 📦 方案三：使用 x-cmd 等第三方工具
+
+这是一个比较便捷的命令行方案。你可以通过 `x-cmd` 这个工具来启动 Claude Code，并让它直接使用 DeepSeek 的模型，同样不需要 Claude 账号。
+
+**核心步骤：**
+
+1.  **安装 x-cmd**：在终端执行 `curl https://get.x-cmd.com | bash`
+2.  **配置 API Key**：运行 `x deepseek init` 并按指引配置你的 DeepSeek API Key。
+3.  **启动 Claude Code**：在终端运行 `x claude ds`，启动后便可通过 DeepSeek 模型来执行编码任务。
+
+### 💡 备选方案：直接使用 VS Code 替代插件
+
+如果不想折腾，这可能是最简单直接的办法。你可以直接在 VS Code 的扩展商店里搜索并安装支持 DeepSeek 的插件，它们没有强制登录的限制，开箱即用。这类插件有很多，例如：
+
+*   **Cline**: 开源且功能强大，支持执行命令和操作文件。
+*   **Continue**: 开源的 AI 代码助手，可以接入多种模型。
+
+这些都是在开发者社区中评价不错的替代品。
+
+### 💎 方案对比与总结
+
+为了让你更快地做出选择，我把三种主流方案的特点整理成了一个表格：
+
+| 方案 | 核心原理 | 适用场景 | 操作难度 |
+| :--- | :--- | :--- | :--- |
+| **方案一：Claude Code Desktop** | 官方支持，通过Gateway配置接入第三方API。 | **追求稳定体验**、不喜欢命令行、需要访问1M超长上下文的用户。 | 低 |
+| **方案二：VS Code插件 + 特殊配置** | 通过修改配置或本地代理，绕过官方账号验证。 | **习惯在VS Code插件内工作**，有耐心排查配置问题的开发者。 | 高 |
+| **方案三：x-cmd 等工具** | 通过第三方封装工具调用API，灵活切换模型。 | **命令行重度用户**，喜欢高效、简洁的操作方式。 | 中 |
+
+> **最后，一个小提醒：** 无论选择哪种方案，都需要先去 [DeepSeek 开放平台](https://platform.deepseek.com/) 注册账号并生成 API Key。DeepSeek 的收费很良心，使用量不大时，费用可能只要几块钱甚至免费。建议你先小额充值，这样最稳妥。
+
+如果你对某个方案的某个步骤有疑问，可以随时再问我～

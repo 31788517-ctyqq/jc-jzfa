@@ -1,0 +1,51 @@
+有的，Claude Code 提供了与 Codex 的“完全控制访问”十分相似的功能，并且在权限控制的细节上更加丰富。
+
+简单来说，这个功能在 Claude Code 中被称为 **Bypass 模式**（绕过模式）或 **YOLO 模式**。开启后，Claude 在执行任何操作前都**不会再向你确认**，从而获得你想要的“完全控制”。
+
+### ⚡ 如何快速开启“完全控制”
+
+开启方法取决于你使用的是桌面版还是命令行版本：
+
+#### 1. Claude Code Desktop (桌面应用)
+
+这是最直观的图形化操作方式。
+
+*   **路径**：打开应用 → 点击左下角的个人头像菜单 → 选择 **Settings** → 在设置列表中找到并选择 **Claude Code** → 打开 **Allow bypass permissions mode** 开关。
+
+#### 2. Claude Code CLI (命令行工具)
+
+*   **通过命令行参数 (临时)**：在启动时添加以下任意一个参数，效果仅在当前会话中生效。
+    ```bash
+    claude --dangerously-skip-permissions
+    # 或者
+    claude --permission-mode bypassPermissions
+    ```
+*   **通过配置文件 (持久)**：编辑项目的 `.claude/settings.json` 或用户的 `~/.claude/settings.json` 文件，设置默认模式。
+    ```json
+    {
+      "permissions": {
+        "defaultMode": "bypassPermissions"
+      }
+    }
+    ```
+
+### ⚖️ Claude Code vs. Codex：权限模式对比
+
+Claude Code 的权限管理不只“全开”和“全关”，它提供了多达**六种**精细的权限模式，让你在效率和安全性之间找到最佳平衡。
+
+| 模式 (Mode) | 文件读取 | 文件编辑 | Shell命令 | 主要场景 |
+| :--- | :--- | :--- | :--- | :--- |
+| **default** (默认) | 自动允许 | **询问** | **询问** | 日常开发，最安全稳妥 |
+| **acceptEdits** | 自动允许 | **自动允许** | **询问** | 大规模重构，信任AI的代码编辑能力 |
+| **plan** (规划) | 自动允许 | **不允许** | **询问** | 探索代码、制定方案，限制修改权限 |
+| **auto** (自动) | 自动允许 | LLM智能判断 | LLM智能判断 | 团队/企业使用，由AI自行判断风险，进一步提升效率 |
+| **dontAsk** (不询问) | 仅预批准 | 仅预批准 | 仅预批准 | 锁定环境，未预先批准的操作一律拒绝 |
+| **bypassPermissions** (绕过) | 自动允许 | 自动允许 | 自动允许 | 完整的“完全控制”，适合CI/CD等受控环境 |
+
+可以看到，Codex 的“完全访问”模式对应于 Claude Code 的 `bypassPermissions` 模式。但 Claude Code 提供了更多中间选项，例如 `acceptEdits` 模式在允许AI自由编辑文件的同时，仍会对潜在危险的Shell命令进行询问，这在实际使用中可能是一个更理想的折中方案。
+
+### 💎 总结与安全提醒
+
+*   **追求极致效率**：选择 `bypassPermissions`（YOLO）模式，这便是你寻求的“完全控制”。
+*   **日常更佳实践**：并非所有任务都需要完全控制。对于大多数场景，`acceptEdits` 或 `auto` 模式能在安全和效率之间取得更好的平衡。
+*   **安全底线**：`bypassPermissions` 模式会授予 Claude 极高的权限。强烈建议仅在隔离的开发环境或临时容器中使用，以避免意外操作造成数据丢失或系统损坏。

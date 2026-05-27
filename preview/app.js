@@ -1150,22 +1150,23 @@ function showAIPrediction(matchId) {
 
   // 调用 API
   api('ai-predict', { matchId: matchId }).then(function(d) {
-    if (d.fromCache || (d.content && !d.pendingMerge)) {
+    if (d.content) {
       stopWaitUI();
-      renderAIContent(d.content, homeTeam, awayTeam);
-    } else if (d.content && d.pendingMerge) {
-      stopWaitUI();
-      var st = d.readySource === 'deepseek' ? 'DeepSeek' : (d.readySource === 'doubao' ? '豆包' : '');
-      renderAIContentWithBadge(d.content, homeTeam, awayTeam, st + '已完成，另一模型交叉验证中...');
-      var mr = 0;
-      (function pm() { mr++; if (mr > 20) return;
-        setTimeout(function () {
-          api('ai-predict', { matchId: matchId }).then(function(r2) {
-            if (r2.content && !r2.pendingMerge) renderAIContent(r2.content, homeTeam, awayTeam);
-            else pm();
-          }).catch(function() { pm(); });
-        }, 2000);
-      })();
+      if (d.pendingMerge) {
+        var st = d.readySource === 'deepseek' ? 'DeepSeek' : (d.readySource === 'doubao' ? '豆包' : '一方');
+        renderAIContentWithBadge(d.content, homeTeam, awayTeam, st + '已完成，另一模型交叉验证中...');
+        var mr = 0;
+        (function pm() { mr++; if (mr > 30) return;
+          setTimeout(function () {
+            api('ai-predict', { matchId: matchId }).then(function(r2) {
+              if (r2.content && !r2.pendingMerge) renderAIContent(r2.content, homeTeam, awayTeam);
+              else pm();
+            }).catch(function() { pm(); });
+          }, 2000);
+        })();
+      } else {
+        renderAIContent(d.content, homeTeam, awayTeam);
+      }
     } else if (d.pending) {
       if (d.estimatedWait) estimatedTotalSec = Math.min(d.estimatedWait, 35);
       startWaitUI();
@@ -1185,10 +1186,10 @@ function showAIPrediction(matchId) {
           if (rd.content) {
             stopWaitUI();
             if (rd.pendingMerge) {
-              var s2 = rd.readySource === 'deepseek' ? 'DeepSeek' : (rd.readySource === 'doubao' ? '豆包' : '');
+              var s2 = rd.readySource === 'deepseek' ? 'DeepSeek' : (rd.readySource === 'doubao' ? '豆包' : '一方');
               renderAIContentWithBadge(rd.content, homeTeam, awayTeam, s2 + '已完成，另一模型交叉验证中...');
               var mr2 = 0;
-              (function pm2() { mr2++; if (mr2 > 20) return;
+              (function pm2() { mr2++; if (mr2 > 30) return;
                 setTimeout(function() {
                   api('ai-predict', { matchId: matchId }).then(function(r3) {
                     if (r3.content && !r3.pendingMerge) renderAIContent(r3.content, homeTeam, awayTeam);

@@ -1,0 +1,89 @@
+{
+  "date": "2026-03-23",
+  "odds": {
+    "周一001": {
+      "num": "周一001",
+      "homeName": "斯洛博齐亚",
+      "visitName": "加拉茨钢铁",
+      "handicap": 0,
+      "spf": {
+        "home": 3.05,
+        "draw": 3.1,
+        "away": 2.21
+      },
+      "rqspf": {
+        "home": 3.78,
+        "draw": 3.0,
+        "away": 2.47,
+        "handicap": 0
+      },
+      "halfFull": null,
+      "totalGoals": null,
+      "scores": null,
+      "isSingleGame": false
+    },
+    "周一002": {
+      "num": "周一002",
+      "homeName": "卡斯迪隆",
+      "visitName": "莱昂文体",
+      "handicap": -1,
+      "spf": {
+        "home": 1.43,
+        "draw": 4.5,
+        "away": 6.2
+      },
+      "rqspf": {
+        "home": 2.16,
+        "draw": 3.78,
+        "away": 3.65,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "totalGoals": null,
+      "scores": null,
+      "isSingleGame": false
+    },
+    "周一003": {
+      "num": "周一003",
+      "homeName": "拉普拉塔大学生",
+      "visitName": "科尔多瓦中央",
+      "handicap": -1,
+      "spf": {
+        "home": 1.48,
+        "draw": 3.8,
+        "away": 7.0
+      },
+      "rqspf": {
+        "home": 3.29,
+        "draw": 3.0,
+        "away": 2.74,
+        "handicap": -1
+      },
+      "halfFull": null,
+      "totalGoals": null,
+      "scores": null,
+      "isSingleGame": false
+    },
+    "周一004": {
+      "num": "周一004",
+      "homeName": "飓风队",
+      "visitName": "巴拉卡斯中央",
+      "handicap": 0,
+      "spf": {
+        "home": 1.91,
+        "draw": 2.99,
+        "away": 4.5
+      },
+      "rqspf": {
+        "home": 2.42,
+        "draw": 3.17,
+        "away": 3.65,
+        "handicap": 0
+      },
+      "halfFull": null,
+      "totalGoals": null,
+      "scores": null,
+      "isSingleGame": false
+    }
+  }
+}
