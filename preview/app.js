@@ -1092,16 +1092,16 @@ function showAIPrediction(matchId) {
 
   // 显示加载态
   var html = '<div class="ai-modal-header"><span class="ai-modal-title">AI深度解析</span><button class="ai-modal-close" onclick="closeAI()">✕</button></div>';
-  html += '<div class="ai-content"><div style="text-align:center;padding:60px 20px;color:var(--cyan);"><div style="font-size:40px;margin-bottom:16px;">⏳</div><div style="font-size:16px;font-weight:600;">正在交叉分析中...</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">DeepSeek + 豆包 双模型交叉验证</div></div></div>';
+  html += '<div class="ai-content"><div style="text-align:center;padding:60px 20px;color:var(--cyan);"><div style="font-size:40px;margin-bottom:16px;">⏳</div><div style="font-size:16px;font-weight:600;">正在交叉分析中...</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">DeepSeek + 豆包 双模型并行，先到先得</div></div></div>';
   document.getElementById('aiModal').innerHTML = html;
   document.getElementById('aiOverlay').classList.add('active');
   document.body.style.overflow = 'hidden';
 
   // 轮询计时变量
   var pollStartTime = Date.now();
-  var estimatedTotalSec = 45;
+  var estimatedTotalSec = 35;
   var retryCount = 0;
-  var maxRetries = 20;
+  var maxRetries = 30;
   var pollTimer = null;
   var modalEl = document.getElementById('aiModal');
 
@@ -1115,12 +1115,12 @@ function showAIPrediction(matchId) {
     inner.innerHTML = '<div style="text-align:center;padding:60px 20px;">' +
       '<div style="font-size:40px;margin-bottom:16px;">⏳</div>' +
       '<div style="font-size:16px;font-weight:600;color:var(--cyan);">正在交叉分析中...</div>' +
-      '<div style="font-size:12px;color:var(--text3);margin-top:8px;">DeepSeek + 豆包 双模型交叉验证</div>' +
+      '<div style="font-size:12px;color:var(--text3);margin-top:6px;">DeepSeek + 豆包 双模型并行，先到先得</div>' +
       '<div style="margin-top:20px;width:220px;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;margin-left:auto;margin-right:auto;">' +
         '<div style="width:' + progress + '%;height:100%;background:var(--cyan);border-radius:2px;transition:width 0.5s ease;"></div>' +
       '</div>' +
       '<div style="font-size:12px;color:var(--text3);margin-top:10px;">' +
-        (remaining > 0 ? '预计还需约 ' + remaining + ' 秒' : '正在收尾，请稍候...') +
+        (remaining > 0 ? '首个结果预计还需约 ' + remaining + ' 秒' : '正在收尾，请稍候...') +
       '</div>' +
       '<div style="font-size:10px;color:var(--text3);margin-top:4px;">已等待 ' + elapsed + ' 秒</div>' +
     '</div>';
@@ -1137,13 +1137,37 @@ function showAIPrediction(matchId) {
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
   }
 
+  // 渲染部分结果 + badge
+  function renderAIContentWithBadge(content, ht, at, badge) {
+    renderAIContent(content, ht, at);
+    var dis = modalEl ? modalEl.querySelector('.ai-disclaimer') : null;
+    if (dis) {
+      dis.insertAdjacentHTML('beforebegin',
+        '<div style="margin:12px 20px;padding:8px 14px;border-radius:8px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);font-size:12px;color:var(--cyan);text-align:center;">⏳ ' + (badge || '交叉验证中...') + '</div>'
+      );
+    }
+  }
+
   // 调用 API
   api('ai-predict', { matchId: matchId }).then(function(d) {
-    if (d.fromCache || d.content) {
+    if (d.fromCache || (d.content && !d.pendingMerge)) {
       stopWaitUI();
       renderAIContent(d.content, homeTeam, awayTeam);
+    } else if (d.content && d.pendingMerge) {
+      stopWaitUI();
+      var st = d.readySource === 'deepseek' ? 'DeepSeek' : (d.readySource === 'doubao' ? '豆包' : '');
+      renderAIContentWithBadge(d.content, homeTeam, awayTeam, st + '已完成，另一模型交叉验证中...');
+      var mr = 0;
+      (function pm() { mr++; if (mr > 20) return;
+        setTimeout(function () {
+          api('ai-predict', { matchId: matchId }).then(function(r2) {
+            if (r2.content && !r2.pendingMerge) renderAIContent(r2.content, homeTeam, awayTeam);
+            else pm();
+          }).catch(function() { pm(); });
+        }, 2000);
+      })();
     } else if (d.pending) {
-      if (d.estimatedWait) estimatedTotalSec = d.estimatedWait;
+      if (d.estimatedWait) estimatedTotalSec = Math.min(d.estimatedWait, 35);
       startWaitUI();
 
       function retry() {
@@ -1160,10 +1184,24 @@ function showAIPrediction(matchId) {
         api('ai-predict', { matchId: matchId }).then(function(rd) {
           if (rd.content) {
             stopWaitUI();
-            renderAIContent(rd.content, homeTeam, awayTeam);
+            if (rd.pendingMerge) {
+              var s2 = rd.readySource === 'deepseek' ? 'DeepSeek' : (rd.readySource === 'doubao' ? '豆包' : '');
+              renderAIContentWithBadge(rd.content, homeTeam, awayTeam, s2 + '已完成，另一模型交叉验证中...');
+              var mr2 = 0;
+              (function pm2() { mr2++; if (mr2 > 20) return;
+                setTimeout(function() {
+                  api('ai-predict', { matchId: matchId }).then(function(r3) {
+                    if (r3.content && !r3.pendingMerge) renderAIContent(r3.content, homeTeam, awayTeam);
+                    else pm2();
+                  }).catch(function() { pm2(); });
+                }, 2000);
+              })();
+            } else {
+              renderAIContent(rd.content, homeTeam, awayTeam);
+            }
           }
-          else { setTimeout(retry, 3000); }
-        }).catch(function() { setTimeout(retry, 3000); });
+          else { setTimeout(retry, 2000); }
+        }).catch(function() { setTimeout(retry, 2000); });
       }
       setTimeout(retry, 2000);
     } else {
