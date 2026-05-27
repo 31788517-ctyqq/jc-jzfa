@@ -95,9 +95,24 @@ export function loadQuantRank() {
     var gsPromises = ranking.map(function (item) {
       return api('gongshoudao', { matchId: item.matchId }).catch(function () { return null; });
     });
-    Promise.all(gsPromises).then(function (gsResults) {
+    // ⭐ 并行请求热度数据
+    var hotPromise = api('quant-hot', params).catch(function () { return null; });
+    Promise.all(gsPromises.concat([hotPromise])).then(function (results) {
+      var hotData = results[results.length - 1] || {};
+      var hotMap = (hotData && hotData.hotData) ? hotData.hotData : {};
+      var gsResults = results.slice(0, -1);
       allData = ranking.map(function (item, i) {
-        return mergeItem(item, gsResults[i] || {});
+        var merged = mergeItem(item, gsResults[i] || {});
+        // ⭐ 注入热度数据
+        var hd = hotMap[item.matchId] || {};
+        if (hd.staticDiff !== undefined && hd.staticDiff !== null) merged.staticDiff = hd.staticDiff;
+        if (hd.heatIndex !== null && hd.heatIndex !== undefined) merged.heatIndex = hd.heatLabel || hd.heatIndex;
+        if (hd.homeFeature) merged.homeFeature = hd.homeFeature;
+        if (hd.guestFeature) merged.guestFeature = hd.guestFeature;
+        if (hd.oddsLive !== null && hd.oddsLive !== undefined) merged.oddsLive = hd.oddsLive;
+        if (hd.hotFocusNum !== null && hd.hotFocusNum !== undefined) merged.hotFocusNum = hd.hotFocusNum;
+        if (hd.rq !== undefined && hd.rq !== null) merged.rq = hd.rq;
+        return merged;
       });
       sortKey = 'rank'; sortAsc = true;
       renderTable();
@@ -340,6 +355,13 @@ function tdHotCell(item, key) {
     return '<td><span class="q-cell-num" style="color:var(--text4);font-size:10px">数据接入中</span></td>';
   }
   if (key === 'heatIndex') {
+    // 后端可能返回格式化字符串 "1.35 🔥" 或纯数字
+    if (typeof v === 'string' && v.indexOf('🔥') !== -1) {
+      return '<td><span class="q-cell-num neg">' + v + '</span></td>';
+    }
+    if (typeof v === 'string' && v.indexOf('🧊') !== -1) {
+      return '<td><span class="q-cell-num cool">' + v + '</span></td>';
+    }
     var n = parseFloat(v);
     if (isNaN(n)) return '<td><span class="q-cell-num">' + v + '</span></td>';
     var icon = n > 1.2 ? ' 🔥' : n < 0.8 ? ' 🧊' : ' 🎯';
@@ -369,7 +391,10 @@ function getSortVal(item, key) {
     case 'breakArmor':     return parseFloat(item.breakArmor) || 0;
     // 热点
     case 'hotFocusNum': return parseFloat(item.hotFocusNum) || 0;
-    case 'heatIndex':   return parseFloat(item.heatIndex) || 0;
+    case 'heatIndex':
+      // 后端可能返回 "1.35 🔥" 格式，提取数值
+      var hv = String(item.heatIndex).replace(/[^\d.]/g, '');
+      return parseFloat(hv) || 0;
     case 'staticDiff':  return parseFloat(item.staticDiff) || 0;
     default: return 0;
   }

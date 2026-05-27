@@ -1273,6 +1273,52 @@ app.post('/api', async (req, res) => {
           return res.json({ code: 1, data: gs, fallback: true });
         } catch (e) { return res.json({ code: 0, msg: '查询失败: ' + e.message }); }
       }
+      // ========== 量化热度数据 ==========
+      case 'quant-hot': {
+        const requestDate = data.date || latestDataDate();
+        try {
+          const fs = require('fs');
+          const path = require('path');
+
+          // 1) 读取功守道 cache（取得 rq、homePower、guestPower）
+          let gsCacheMap = {};
+          const gsCachePath = path.join(__dirname, 'gongshoudao', 'cache.json');
+          try {
+            if (fs.existsSync(gsCachePath)) {
+              gsCacheMap = JSON.parse(fs.readFileSync(gsCachePath, 'utf8'))['_global'] || {};
+            }
+          } catch (e) {}
+
+          // 2) 读取 data.json → 筛选当天比赛
+          const dataFile = getDataJson();
+          const mMap = dataFile.m || {};
+
+          const matchList = [];
+          Object.keys(mMap).forEach(function(k) {
+            const m = mMap[k];
+            if (!m || !m.date) return;
+            if (m.date.slice(0, 10) !== requestDate) return;
+            const mid = m.matchId || k.replace(/^m_/, '');
+            const gs = gsCacheMap[k] || gsCacheMap['m_' + mid] || gsCacheMap[mid] || {};
+            matchList.push({
+              matchId:   mid,
+              num:       m.num || '',
+              rq:        gs.crossRq !== undefined ? gs.crossRq : null,
+              homePower: gs.homePower,
+              guestPower: gs.guestPower
+            });
+          });
+
+          // 3) 调用热度计算
+          const jczqChange = require('./jczq_change');
+          const result = await jczqChange.computeHotData(requestDate, matchList);
+
+          return res.json({ code: 1, data: { date: requestDate, hotData: result } });
+        } catch (e) {
+          return res.json({ code: 0, msg: '热度数据获取失败: ' + e.message });
+        }
+      }
+
       case 'ai-batch-generate': {
         const daemon = require('./ai_daemon'); daemon.dailyBatch();
         return res.json({ code: 1, data: { message: 'AI批量生成已启动' } });
