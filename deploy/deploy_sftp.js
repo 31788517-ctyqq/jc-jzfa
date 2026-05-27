@@ -11,11 +11,8 @@ const REMOTE_DIR = '/var/www/zj.100qiu.com';
 const FILES = [
   'server/index.js',
   'server/simple.js',
-  'server/data.json',
   'server/data_sync.js',
   'server/token_manager.js',
-  'server/live_scores.json',
-  'server/trends.json',
   'server/oneshot_sync.js',
   'server/http-utils.js',
   'server/fetch_real_odds.js',
@@ -23,6 +20,8 @@ const FILES = [
   '.gitignore',
   'preview/app.js',
   'preview/index.html',
+  'preview/js/pages/quant-rank.js',
+  'preview/js/pages/match-pk.js',
 ];
 
 const conn = new Client();
