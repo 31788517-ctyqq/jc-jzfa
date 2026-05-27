@@ -409,8 +409,57 @@ export function renderAIContent(content, homeTeam, awayTeam) {
       }
     }
     if (bHasTable) {
-      html += '<div class="ai-data-compare"><div class="ai-data-title">攻防数据对比</div>';
-      baseTable.rows.forEach(function (row) { if (row.length < 3) return; var label = row[0], hv = row[1], av = row[2]; var isShooter = (label.indexOf('射手') >= 0); if (isShooter) { html += '<div class="ai-shooter-dual"><div class="ai-shooter-item home"><span class="ai-shooter-tag">主</span><span class="ai-shooter-desc">' + esc(hv) + '</span></div><div class="ai-shooter-divider"></div><div class="ai-shooter-item away"><span class="ai-shooter-tag">客</span><span class="ai-shooter-desc">' + esc(av) + '</span></div></div>'; } else { var hn = parseFloat(hv), an = parseFloat(av); var hp = isNaN(hn) || isNaN(an) ? 50 : Math.round(hn / (hn + an) * 100); html += '<div class="ai-data-row"><span class="ai-data-label">' + esc(label) + '</span><span class="ai-data-home">' + esc(hv) + '</span><div class="ai-progress-bar"><div class="ai-progress" style="width:' + hp + '%"></div></div><span class="ai-data-away">' + esc(av) + '</span></div>'; } });
+      var adCheck = baseStr['_attackDefenseCheck'];
+      var hasAdConflict = adCheck && adCheck.detected;
+      html += '<div class="ai-data-compare"><div class="ai-data-title">攻防数据对比';
+      if (hasAdConflict) html += ' <span style="font-size:10px;color:var(--amber);">⚠️ 双模型数据不一致</span>';
+      html += '</div>';
+
+      // 构建冲突快速索引
+      var adConflictMap = {};
+      if (adCheck && adCheck.conflicts) {
+        adCheck.conflicts.forEach(function (c) { adConflictMap[c.label] = c; });
+      }
+
+      baseTable.rows.forEach(function (row) {
+        if (row.length < 3) return;
+        var label = row[0], hv = row[1], av = row[2];
+        var isShooter = (label.indexOf('射手') >= 0);
+        var rowConflict = adConflictMap[label];
+        var isConflict = rowConflict && rowConflict.conflict;
+
+        if (isShooter) {
+          html += '<div class="ai-shooter-dual"><div class="ai-shooter-item home"><span class="ai-shooter-tag">主</span><span class="ai-shooter-desc">' + esc(hv) + '</span></div><div class="ai-shooter-divider"></div><div class="ai-shooter-item away"><span class="ai-shooter-tag">客</span><span class="ai-shooter-desc">' + esc(av) + '</span></div></div>';
+          if (isConflict) {
+            html += '<div style="margin:2px 0 6px 10px;font-size:10px;color:var(--text3);display:flex;justify-content:space-around;">';
+            html += '<span>豆包: ' + esc(rowConflict.dbHome || '--') + ' / ' + esc(rowConflict.dbAway || '--') + '</span>';
+            html += '</div>';
+          }
+        } else {
+          var hn = parseFloat(hv), an = parseFloat(av);
+          var hp = isNaN(hn) || isNaN(an) ? 50 : Math.round(hn / (hn + an) * 100);
+          html += '<div class="ai-data-row' + (isConflict ? '' : '') + '">';
+          html += '<span class="ai-data-label">' + esc(label);
+          if (isConflict) html += ' <span style="font-size:9px;color:var(--amber);">⚠</span>';
+          html += '</span>';
+          html += '<span class="ai-data-home">' + esc(hv) + '</span>';
+          html += '<div class="ai-progress-bar"><div class="ai-progress" style="width:' + hp + '%"></div></div>';
+          html += '<span class="ai-data-away">' + esc(av) + '</span>';
+          html += '</div>';
+
+          // 豆包对比行（仅冲突时显示）
+          if (isConflict && rowConflict.dbHome && rowConflict.dbAway) {
+            var dbHn = parseFloat(rowConflict.dbHome), dbAn = parseFloat(rowConflict.dbAway);
+            var dbHp = isNaN(dbHn) || isNaN(dbAn) ? 50 : Math.round(dbHn / (dbHn + dbAn) * 100);
+            html += '<div class="ai-data-row" style="opacity:0.6;padding:2px 0 6px 0;font-size:11px;">';
+            html += '<span class="ai-data-label" style="font-size:10px;color:#a855f7;">豆包</span>';
+            html += '<span class="ai-data-home" style="font-size:12px;color:#a855f7;">' + esc(rowConflict.dbHome) + '</span>';
+            html += '<div class="ai-progress-bar"><div class="ai-progress" style="width:' + dbHp + '%;background:linear-gradient(90deg,#a855f7,rgba(168,85,247,0.4));"></div></div>';
+            html += '<span class="ai-data-away" style="font-size:12px;color:#a855f7;">' + esc(rowConflict.dbAway) + '</span>';
+            html += '</div>';
+          }
+        }
+      });
       html += '</div>';
     }
     if (bHasBaseCon) html += '<div class="ai-item-conclusion"><div class="ai-item-label">核心结论</div><div class="ai-item-text">' + clip(esc(baseStr['核心结论']), 120) + '</div></div>';
@@ -420,11 +469,66 @@ export function renderAIContent(content, homeTeam, awayTeam) {
   // 02 状态面
   var hf = (stateStr['主队近况'] || '').match(/(\d+)胜(\d+)平(\d+)负/), af = (stateStr['客队近况'] || '').match(/(\d+)胜(\d+)平(\d+)负/);
   var hasHistory = has(stateStr['历史对阵']); var injTable = stateStr['伤病影响']; var hasInj = injTable && injTable.rows && injTable.rows.length; var hasStateCon = has(stateStr['核心结论']);
+  var rfc = stateStr['_recentFormCheck']; // 近期战绩交叉验证数据
   if (hf || af || hasHistory || hasInj || hasStateCon) {
     html += '<div id="ai-sec-02" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">02</span><span class="ai-sec-name">状态面</span></div>';
     if (hf || af) { html += '<div class="ai-form-title">近期战绩对比</div>'; }
-    if (hf) { html += '<div class="ai-form-row"><span class="ai-form-label">' + esc(homeTeam) + '</span>'; for (var i = 0; i < parseInt(hf[1]); i++) html += '<span class="ai-form-dot w">W</span>'; for (i = 0; i < parseInt(hf[2]); i++) html += '<span class="ai-form-dot d">D</span>'; for (i = 0; i < parseInt(hf[3]); i++) html += '<span class="ai-form-dot l">L</span>'; html += '<span class="ai-form-summary">' + hf[1] + 'W ' + hf[2] + 'D ' + hf[3] + 'L</span></div>'; }
-    if (af) { html += '<div class="ai-form-row"><span class="ai-form-label">' + esc(awayTeam) + '</span>'; for (var j = 0; j < parseInt(af[1]); j++) html += '<span class="ai-form-dot w">W</span>'; for (j = 0; j < parseInt(af[2]); j++) html += '<span class="ai-form-dot d">D</span>'; for (j = 0; j < parseInt(af[3]); j++) html += '<span class="ai-form-dot l">L</span>'; html += '<span class="ai-form-summary">' + af[1] + 'W ' + af[2] + 'D ' + af[3] + 'L</span></div>'; }
+
+    // 辅助函数：渲染 W/D/L 小圆点
+    function renderFormDots(w, d, l) {
+      var dots = '';
+      for (var di = 0; di < w; di++) dots += '<span class="ai-form-dot w">W</span>';
+      for (var di = 0; di < d; di++) dots += '<span class="ai-form-dot d">D</span>';
+      for (var di = 0; di < l; di++) dots += '<span class="ai-form-dot l">L</span>';
+      return dots;
+    }
+
+    // 渲染主队近期战绩
+    if (rfc && rfc.conflicts && rfc.conflicts.home && rfc.conflicts.home.conflict) {
+      var hc = rfc.conflicts.home;
+      var dsH = hc.deepseek, dbH = hc.doubao;
+      html += '<div class="ai-form-row" style="flex-wrap:wrap;gap:6px;padding:8px 10px;">';
+      html += '<span class="ai-form-label" style="width:100%;margin-bottom:2px;">' + esc(homeTeam) + ' <span style="font-size:10px;color:var(--amber);">⚠️ 双模型数据不一致</span></span>';
+      if (dsH && dbH) {
+        html += '<div style="display:flex;width:100%;gap:8px;">';
+        html += '<div style="flex:1;padding:6px 8px;background:rgba(34,211,238,0.06);border-radius:6px;border:1px solid rgba(34,211,238,0.15);">';
+        html += '<div style="font-size:10px;color:var(--cyan);margin-bottom:3px;">DeepSeek</div>';
+        html += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">' + renderFormDots(dsH.w, dsH.d, dsH.l) + '<span class="ai-form-summary">' + dsH.w + 'W ' + dsH.d + 'D ' + dsH.l + 'L</span></div></div>';
+        html += '<div style="flex:1;padding:6px 8px;background:rgba(168,85,247,0.06);border-radius:6px;border:1px solid rgba(168,85,247,0.15);">';
+        html += '<div style="font-size:10px;color:#a855f7;margin-bottom:3px;">豆包</div>';
+        html += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">' + renderFormDots(dbH.w, dbH.d, dbH.l) + '<span class="ai-form-summary">' + dbH.w + 'W ' + dbH.d + 'D ' + dbH.l + 'L</span></div></div>';
+        html += '</div>';
+      }
+      html += '</div>';
+    } else if (hf) {
+      html += '<div class="ai-form-row"><span class="ai-form-label">' + esc(homeTeam) + '</span>';
+      html += renderFormDots(parseInt(hf[1]), parseInt(hf[2]), parseInt(hf[3]));
+      html += '<span class="ai-form-summary">' + hf[1] + 'W ' + hf[2] + 'D ' + hf[3] + 'L</span></div>';
+    }
+
+    // 渲染客队近期战绩
+    if (rfc && rfc.conflicts && rfc.conflicts.away && rfc.conflicts.away.conflict) {
+      var ac = rfc.conflicts.away;
+      var dsA = ac.deepseek, dbA = ac.doubao;
+      html += '<div class="ai-form-row" style="flex-wrap:wrap;gap:6px;padding:8px 10px;">';
+      html += '<span class="ai-form-label" style="width:100%;margin-bottom:2px;">' + esc(awayTeam) + ' <span style="font-size:10px;color:var(--amber);">⚠️ 双模型数据不一致</span></span>';
+      if (dsA && dbA) {
+        html += '<div style="display:flex;width:100%;gap:8px;">';
+        html += '<div style="flex:1;padding:6px 8px;background:rgba(34,211,238,0.06);border-radius:6px;border:1px solid rgba(34,211,238,0.15);">';
+        html += '<div style="font-size:10px;color:var(--cyan);margin-bottom:3px;">DeepSeek</div>';
+        html += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">' + renderFormDots(dsA.w, dsA.d, dsA.l) + '<span class="ai-form-summary">' + dsA.w + 'W ' + dsA.d + 'D ' + dsA.l + 'L</span></div></div>';
+        html += '<div style="flex:1;padding:6px 8px;background:rgba(168,85,247,0.06);border-radius:6px;border:1px solid rgba(168,85,247,0.15);">';
+        html += '<div style="font-size:10px;color:#a855f7;margin-bottom:3px;">豆包</div>';
+        html += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">' + renderFormDots(dbA.w, dbA.d, dbA.l) + '<span class="ai-form-summary">' + dbA.w + 'W ' + dbA.d + 'D ' + dbA.l + 'L</span></div></div>';
+        html += '</div>';
+      }
+      html += '</div>';
+    } else if (af) {
+      html += '<div class="ai-form-row"><span class="ai-form-label">' + esc(awayTeam) + '</span>';
+      html += renderFormDots(parseInt(af[1]), parseInt(af[2]), parseInt(af[3]));
+      html += '<span class="ai-form-summary">' + af[1] + 'W ' + af[2] + 'D ' + af[3] + 'L</span></div>';
+    }
+
     if (hasHistory) html += '<div class="ai-item"><div class="ai-item-label">历史交锋</div><div class="ai-item-text">' + clip(esc(stateStr['历史对阵']), 120) + '</div></div>';
     if (hasInj) { html += '<div class="ai-injury-title">伤停对比</div>'; injTable.rows.forEach(function (row) { if (row.length < 3) return; var isHome = (row[0].indexOf('主') >= 0 || row[0].indexOf(homeTeam) >= 0); var tag = isHome ? esc(homeTeam[0]) : esc(awayTeam[0]); var tagClass = isHome ? 'home' : 'away'; html += '<div class="ai-injury-row"><div class="ai-injury-head"><span class="ai-injury-badge ' + tagClass + '">' + tag + '</span><span class="ai-injury-team">' + esc(row[0]) + '</span></div><div class="ai-injury-detail">' + esc(row[1]) + '</div></div>'; }); }
     if (hasStateCon) html += '<div class="ai-item-conclusion"><div class="ai-item-label">核心结论</div><div class="ai-item-text">' + clip(esc(stateStr['核心结论']), 120) + '</div></div>';

@@ -20,7 +20,8 @@ const path = require('path');
 const { exec } = require('child_process');
 const { getWithUA, getWithRetry, jitter, sleep } = require('./http-utils');
 const { getToken, refreshToken } = require('./token_manager');
-const { fetchOdds: fetch500Odds } = require('./fetch_500odds');
+const { fetchOdds: fetch500Odds, fetchShujuMap } = require('./fetch_500odds');
+const { execSync } = require('child_process');
 
 // ═══ 配置常量 ═══
 const DATA_FILE = path.join(__dirname, 'data.json');
@@ -146,6 +147,171 @@ async function validate500Odds(dateStr, odds) {
     }
   } catch (e) {
     log('[500odds] 校验失败: ' + e.message);
+  }
+}
+
+/** 更新 data.json 中的比赛补充 500.com 队名（以 trade.500.com 为准） */
+function enrichNamesFrom500(dateStr, odds, shujuMap) {
+  try {
+    if (!fs.existsSync(DATA_FILE)) return;
+    var data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    if (!data.m) return;
+    var changed = false;
+    Object.keys(data.m).forEach(function(k) {
+      var match = data.m[k];
+      if (!match || !match.num || (match.date || '').slice(0, 10) !== dateStr) return;
+      var num = match.num;
+      // 500.com odds 里有队名
+      var odd = odds[num];
+      if (odd && odd.homeName && odd.homeName.length > 0 && odd.homeName !== match.homeName) {
+        match.homeName = odd.homeName;
+        changed = true;
+      }
+      if (odd && odd.visitName && odd.visitName.length > 0 && odd.visitName !== match.visitName) {
+        match.visitName = odd.visitName;
+        changed = true;
+      }
+      // 注入 shuju ID
+      if (shujuMap && shujuMap[num]) {
+        match.shujuId = shujuMap[num].shujuId || shujuMap[num];
+      }
+    });
+    if (changed) {
+      atomicWrite(DATA_FILE, data);
+      log('[500odds] 队名已从500.com修正');
+    }
+  } catch (e) {}
+}
+
+// ═══ Task 1B: 500.com shuju 近期战绩+攻防数据抓取（每天 12:00 跟在赔率之后） ═══
+async function sync500Shuju(dateStr) {
+  log('[500shuju] 开始抓取近期战绩+攻防数据: ' + dateStr);
+
+  var shujuMapFile = path.join(__dirname, 'shuju_map_' + dateStr + '.json');
+  var shujuDataFile = path.join(__dirname, 'shuju_data', 'shuju_' + dateStr + '.json');
+
+  // 已有有效数据跳过
+  if (fs.existsSync(shujuDataFile)) {
+    var stat = fs.statSync(shujuDataFile);
+    if (stat.size > 100) {
+      log('[500shuju] ' + dateStr + ' 已有数据，跳过');
+      return;
+    }
+  }
+
+  try {
+    // Step 1: 获取 shuju ID 映射
+    var shujuMap = {};
+    if (fs.existsSync(shujuMapFile)) {
+      try { shujuMap = JSON.parse(fs.readFileSync(shujuMapFile, 'utf8')); } catch (e) {}
+    }
+    if (!shujuMap || Object.keys(shujuMap).length === 0) {
+      log('[500shuju] 从 trade.500.com 获取 shuju ID 映射...');
+      shujuMap = await fetchShujuMap(dateStr);
+    }
+
+    if (!shujuMap || Object.keys(shujuMap).length === 0) {
+      log('[500shuju] ' + dateStr + ' 无 shuju ID 映射，可能是无比赛日或页面无分析链接');
+      fs.writeFileSync(shujuMapFile, JSON.stringify({ date: dateStr, empty: true }));
+      return;
+    }
+
+    // 保存映射
+    fs.writeFileSync(shujuMapFile, JSON.stringify(shujuMap, null, 2));
+    log('[500shuju] 映射表: ' + Object.keys(shujuMap).length + ' 个场次');
+
+    // 将 shuju ID 注入 data.json
+    try {
+      var oddsFile = path.join(ODDS_DIR, dateStr + '.json');
+      var oddsData = {};
+      if (fs.existsSync(oddsFile)) {
+        try { oddsData = JSON.parse(fs.readFileSync(oddsFile, 'utf8')); } catch (e) {}
+      }
+      enrichNamesFrom500(dateStr, (oddsData.odds || {}), shujuMap);
+    } catch (e) {}
+
+    // Step 2: 调用 Python 爬虫
+    var pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    var scriptPath = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi.py');
+    var pyResult = execSync(pythonCmd + ' "' + scriptPath + '" ' + dateStr, {
+      cwd: path.join(__dirname, '..'),
+      timeout: 300000,  // 5分钟超时（多场比赛需要串行抓取）
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024
+    });
+    if (pyResult) log('[500shuju] ' + pyResult.trim().split('\n').slice(-3).join(' | '));
+
+    // 确认文件产出
+    if (fs.existsSync(shujuDataFile) && fs.statSync(shujuDataFile).size > 100) {
+      log('[500shuju] ' + dateStr + ' 抓取完成 ✓');
+    } else {
+      log('[500shuju] ' + dateStr + ' 抓取后文件缺失或为空');
+    }
+
+  } catch (e) {
+    log('[500shuju] ' + dateStr + ' 抓取失败: ' + e.message);
+    // 如果是 Python 脚本失败，输出更多信息
+    if (e.stderr) log('[500shuju] stderr: ' + e.stderr.toString().slice(0, 500));
+  }
+}
+
+/** Task 1C: Selenium 补充抓取近6场数据 (JS 动态渲染, 速度较慢) */
+async function sync500ShujuSelenium(dateStr) {
+  log('[500shuju-sel] Selenium 近6场数据: ' + dateStr);
+
+  var selFile = path.join(__dirname, 'shuju_data', 'shuju_selenium_' + dateStr + '.json');
+
+  // 已有数据跳过
+  if (fs.existsSync(selFile) && fs.statSync(selFile).size > 500) {
+    log('[500shuju-sel] ' + dateStr + ' Selenium 数据已存在，跳过');
+    return;
+  }
+
+  // 需要有 shuju_map 才执行
+  var shujuMapFile = path.join(__dirname, 'shuju_map_' + dateStr + '.json');
+  if (!fs.existsSync(shujuMapFile)) {
+    log('[500shuju-sel] 无 shuju_map，跳过');
+    return;
+  }
+
+  try {
+    var pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    var scriptPath = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi_selenium.py');
+    // Selenium 较慢, 给 10 分钟超时
+    var pyResult = execSync(pythonCmd + ' "' + scriptPath + '" ' + dateStr, {
+      cwd: path.join(__dirname, '..'),
+      timeout: 600000,
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024
+    });
+    if (pyResult) {
+      var lines = pyResult.trim().split('\n');
+      log('[500shuju-sel] ' + lines[lines.length - 1] || 'done');
+    }
+  } catch (e) {
+    log('[500shuju-sel] 失败: ' + e.message);
+  }
+}
+
+/** Task 1D: liansai.500.com 积分榜抓取 (补齐赛季表) */
+async function sync500ShujuStandings(dateStr) {
+  log('[500shuju-standings] 积分榜抓取: ' + dateStr);
+
+  try {
+    var pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    var scriptPath = path.join(__dirname, '..', 'scripts', 'fetch_league_standings.py');
+    var pyResult = execSync(pythonCmd + ' "' + scriptPath + '" ' + dateStr, {
+      cwd: path.join(__dirname, '..'),
+      timeout: 300000,
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024
+    });
+    if (pyResult) {
+      var lines = pyResult.trim().split('\n').filter(l => l.includes('[OK]'));
+      log('[500shuju-standings] ' + (lines[lines.length - 1] || 'done'));
+    }
+  } catch (e) {
+    log('[500shuju-standings] 失败: ' + e.message);
   }
 }
 
@@ -591,6 +757,16 @@ async function start() {
       await syncMatchList();
       await sleep(jitter(2000));
       await sync500Odds(currentDate);
+      await sleep(jitter(2000));
+      sync500Shuju(currentDate);
+      sync500ShujuSelenium(currentDate);
+      // 延后5分钟合并数据
+      setTimeout(() => {
+        try {
+          const { mergeShuju } = require('./merge_shuju');
+          mergeShuju(currentDate);
+        } catch (e) {}
+      }, 5 * 60 * 1000);
     } catch (e) { log('[init] 初始同步失败: ' + e.message); }
   }
 
@@ -646,6 +822,17 @@ async function start() {
         await syncMatchList();
         await sleep(jitter(2000));
         await sync500Odds(today);
+        await sleep(jitter(2000));
+        sync500Shuju(today); // 静态 HTML
+        sync500ShujuSelenium(today); // Selenium JS 渲染
+        // 延后 5 分钟合并数据 + 清理（等 Selenium 完成）
+        setTimeout(() => {
+          log('[shuju] 开始合并静态+Selenium数据...');
+          try {
+            const { mergeShuju } = require('./merge_shuju');
+            mergeShuju(today);
+          } catch (e) { log('[shuju] 合并失败: ' + e.message); }
+        }, 5 * 60 * 1000);
       } catch (e) {
         log('[scheduler] 12:00 任务失败: ' + e.message);
       }

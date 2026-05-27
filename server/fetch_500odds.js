@@ -145,4 +145,64 @@ function fetchOdds(dateStr) {
   });
 }
 
-module.exports = { fetchOdds, extractOdds };
+/**
+ * 从 trade.500.com HTML 中提取 fenxi/shuju-{id} 链接
+ * 返回 { matchNum -> { shujuId, url } } 映射
+ */
+function extractShujuIds(html) {
+  const result = {};
+  const weekDays = ['周日','周一','周二','周三','周四','周五','周六'];
+  const matchRegex = new RegExp('(' + weekDays.join('|') + ')(\\d{3})', 'g');
+  const shujuRegex = /fenxi\/shuju-(\d+)\.shtml/g;
+
+  // 收集所有场次编号的位置
+  const matchPositions = [];
+  let m;
+  while ((m = matchRegex.exec(html)) !== null) {
+    matchPositions.push({ num: m[1] + m[2], pos: m.index });
+  }
+
+  // 收集所有 shuju 链接
+  const shujuLinks = [];
+  while ((m = shujuRegex.exec(html)) !== null) {
+    shujuLinks.push({ id: m[1], pos: m.index });
+  }
+
+  // 按位置最近原则匹配：每个 shuju 链接归属于离它最近的前面场次
+  for (let i = 0; i < shujuLinks.length; i++) {
+    let nearestMatch = null, minDist = Infinity;
+    for (let j = 0; j < matchPositions.length; j++) {
+      const dist = shujuLinks[i].pos - matchPositions[j].pos;
+      if (dist > 0 && dist < minDist) {
+        minDist = dist;
+        nearestMatch = matchPositions[j].num;
+      }
+    }
+    if (nearestMatch && !result[nearestMatch]) {
+      result[nearestMatch] = {
+        shujuId: shujuLinks[i].id,
+        url: 'https://odds.500.com/fenxi/shuju-' + shujuLinks[i].id + '.shtml'
+      };
+    }
+  }
+
+  return result;
+}
+
+/** 获取 shuju ID 映射（一次遍历 page1 和 page2） */
+function fetchShujuMap(dateStr) {
+  var prevDate = new Date(dateStr);
+  prevDate.setDate(prevDate.getDate() - 1);
+  var prevStr = prevDate.toISOString().slice(0, 10);
+
+  return Promise.all([
+    fetchPage(dateStr, 1).then(extractShujuIds).catch(() => ({})),
+    fetchPage(dateStr, 2).then(extractShujuIds).catch(() => ({})),
+    fetchPage(prevStr, 1).then(extractShujuIds).catch(() => ({})),
+    fetchPage(prevStr, 2).then(extractShujuIds).catch(() => ({}))
+  ]).then(function(results) {
+    return Object.assign({}, results[0], results[1], results[2], results[3]);
+  });
+}
+
+module.exports = { fetchOdds, extractOdds, fetchPage, extractShujuIds, fetchShujuMap };
