@@ -172,55 +172,75 @@ async function crossMatchAll() {
 }
 
 /**
- * 对全量匹配结果执行批量计算
+ * 对全量匹配结果执行批量计算（增量更新：保留已有缓存，只计算新匹配）
  */
 async function computeAll() {
-  console.log('[gs] === 全量计算 ===');
+  console.log('[gs] === 全量计算（增量模式） ===');
 
-  // 1. 尝试缓存
   const cache = readCache();
   const cacheKey = '_global';
-  if (cache[cacheKey]) {
-    const cached = cache[cacheKey];
-    const hasAny = Object.values(cached).some(v => v && v.attackPattern);
-    if (hasAny) {
-      console.log('[gs] 使用缓存,', Object.keys(cached).length, '场');
-      return cached;
-    }
-    // 缓存存在但为空/旧，删除重算
-    delete cache[cacheKey];
+
+  // 1. 保留已有缓存
+  const existing = (cache[cacheKey] && Object.keys(cache[cacheKey]).length > 0)
+    ? cache[cacheKey] : {};
+  let hasAny = Object.values(existing).some(v => v && v.attackPattern);
+  if (hasAny) {
+    console.log('[gs] 已有缓存', Object.keys(existing).length, '场，增量更新...');
   }
 
   // 2. 交叉匹配 API ↔ data.json
-  const statsMap = await crossMatchAll();
+  let statsMap;
+  try {
+    statsMap = await crossMatchAll();
+  } catch (e) {
+    console.error('[gs] crossMatchAll 失败:', e.message);
+    // 返回已有缓存
+    if (hasAny) {
+      console.log('[gs] 降级使用已有缓存');
+      return existing;
+    }
+    return {};
+  }
   if (Object.keys(statsMap).length === 0) {
     console.log('[gs] 无匹配数据');
+    if (hasAny) return existing;
     return {};
   }
 
-  // 3. 读取 data.json 获取 team name → matchId 映射
+  // 3. 读取 data.json
   const mMap = loadDataJsonM();
 
-  // 4. 逐场计算
-  const results = {};
+  // 4. 只计算缓存中没有的匹配（增量）
+  let newCount = 0;
+  const toCompute = [];
   Object.entries(statsMap).forEach(([mid, rawStats]) => {
-    const m = mMap[mid] || {};
-    try {
-      results[mid] = computeSingleMatch(rawStats, m);
-    } catch (e) {
-      console.error('[gs] 计算失败:', mid, e.message);
-      results[mid] = null;
+    if (existing[mid] && existing[mid].attackPattern) {
+      // 已有有效缓存，跳过（除非要强制刷新）
+      return;
     }
+    toCompute.push([mid, rawStats]);
   });
 
-  const validCount = Object.values(results).filter(v => v).length;
-  console.log('[gs] 计算完成:', validCount + '/' + Object.keys(results).length + '场有效');
+  if (toCompute.length > 0) {
+    console.log('[gs] 需计算', toCompute.length, '场新匹配...');
+    toCompute.forEach(([mid, rawStats]) => {
+      const m = mMap[mid] || {};
+      try {
+        existing[mid] = computeSingleMatch(rawStats, m);
+        newCount++;
+      } catch (e) {
+        console.error('[gs] 计算失败:', mid, e.message);
+      }
+    });
+  }
+
+  console.log('[gs] 增量完成:', newCount, '场新增, 共', Object.keys(existing).length, '场');
 
   // 5. 写入缓存
-  cache[cacheKey] = results;
+  cache[cacheKey] = existing;
   writeCache(cache);
 
-  return results;
+  return existing;
 }
 
 /**
@@ -248,12 +268,9 @@ async function getMatchResult(matchId) {
 }
 
 /**
- * 强制刷新缓存
+ * 刷新缓存（增量模式：保留旧数据，只计算新匹配）
  */
 async function refreshCache() {
-  const cache = readCache();
-  delete cache['_global'];
-  writeCache(cache);
   return computeAll();
 }
 
