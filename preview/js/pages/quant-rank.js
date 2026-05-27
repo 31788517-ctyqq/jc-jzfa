@@ -40,8 +40,8 @@ export function switchQuantTab(tab) {
   if (tab === 'power') { sortKey = 'rank'; sortAsc = true; }
   else if (tab === 'goal') { sortKey = 'totalSum'; sortAsc = true; }
   else { sortKey = 'hotFocusNum'; sortAsc = true; }
-  document.querySelectorAll('.quant-tab').forEach(function (t) { t.classList.remove('active'); });
-  var t = document.querySelector('.quant-tab[data-tab="' + tab + '"]');
+  document.querySelectorAll('#quantFilterBar .filter-tag').forEach(function (t) { t.classList.remove('active'); });
+  var t = document.querySelector('#quantFilterBar .filter-tag[data-tab="' + tab + '"]');
   if (t) t.classList.add('active');
   renderTable();
 }

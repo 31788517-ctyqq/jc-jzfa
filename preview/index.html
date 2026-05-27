@@ -1846,21 +1846,6 @@ body {
   box-shadow: 0 0 12px rgba(24,224,224,0.15);
 }
 
-/* ═══ 量化数据排行榜 ═══ */
-.quant-tabs-row {
-  display: flex; gap: 0; margin: 0 16px 12px;
-  background: rgba(255,255,255,0.03); border-radius: 14px;
-  padding: 4px; border: 1px solid rgba(24,224,224,0.08);
-}
-.quant-tab {
-  flex: 1; text-align: center; padding: 8px 0; font-size: 12px;
-  border-radius: 10px; cursor: pointer; color: var(--text3);
-  transition: all 0.2s; font-weight: 500;
-}
-.quant-tab.active {
-  background: linear-gradient(135deg, rgba(24,224,224,0.15), rgba(99,102,241,0.1));
-  color: var(--cyan); font-weight: 600;
-}
 /* 表格容器 */
 .quant-table-wrap { margin: 0 8px; padding-bottom: 20px; overflow: hidden; }
 .quant-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
@@ -2217,10 +2202,10 @@ body {
 <!-- 量化数据排行榜 -->
 <div class="page" id="page-quant-rank">
   <!-- 标签切换 -->
-  <div class="quant-tabs-row">
-    <div class="quant-tab active" data-tab="power" onclick="switchQuantTab('power')">实力排行榜</div>
-    <div class="quant-tab" data-tab="goal" onclick="switchQuantTab('goal')">进球排行榜</div>
-    <div class="quant-tab" data-tab="hot" onclick="switchQuantTab('hot')">热点排行榜</div>
+  <div class="filter-row" id="quantFilterBar">
+    <div class="filter-tag active" data-tab="power" onclick="switchQuantTab('power')">实力排行榜</div>
+    <div class="filter-tag" data-tab="goal" onclick="switchQuantTab('goal')">进球排行榜</div>
+    <div class="filter-tag" data-tab="hot" onclick="switchQuantTab('hot')">热点排行榜</div>
   </div>
   <!-- 日期栏 -->
   <div class="date-bar" id="quantDateBar">
