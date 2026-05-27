@@ -11,8 +11,8 @@ import { loadFilterLeagues, resetFilterResult, toggleDD, selectDD, getDDVal, onD
 import { loadIncome } from './pages/income.js';
 import { loadPlanList, updatePlanDateBar, shiftPlanDate, goPlanToday } from './pages/plans.js';
 import { showGongshoudao } from './pages/gongshoudao.js';
-import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker } from './pages/quant-rank.js';
-import { openPK, closePK } from './pages/match-pk.js';
+import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker, switchQuantTab, togglePick, startPK, sortBy } from './pages/quant-rank.js';
+import { openPK, closePK, openPKMulti } from './pages/match-pk.js';
 
 // ── 日期切换 ──
 export function updateDateBar() {
@@ -355,8 +355,13 @@ window.loadIncome = function (f) { loadIncome(f); };
 window.shiftQuantDate = shiftQuantDate;
 window.goQuantToday = goQuantToday;
 window.toggleQuantDatePicker = toggleQuantDatePicker;
+window.switchQuantTab = switchQuantTab;
+window.togglePick = togglePick;
+window.startPK = startPK;
+window.sortBy = sortBy;
 window.openPK = openPK;
 window.closePK = closePK;
+window.openPKMulti = openPKMulti;
 
 // ── 导航栏滚动隐藏 ──
 window.addEventListener('scroll', () => {

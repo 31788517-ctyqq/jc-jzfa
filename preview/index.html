@@ -1847,88 +1847,90 @@ body {
 }
 
 /* ═══ 量化数据排行榜 ═══ */
-.quant-stats-row {
-  display: flex; align-items: center;
-  background: linear-gradient(135deg, rgba(24,224,224,0.06), rgba(99,102,241,0.04));
-  border: 1px solid rgba(24,224,224,0.12);
-  border-radius: 16px; padding: 16px 12px; margin: 0 16px 16px;
+.quant-tabs-row {
+  display: flex; gap: 0; margin: 0 16px 12px;
+  background: rgba(255,255,255,0.03); border-radius: 14px;
+  padding: 4px; border: 1px solid rgba(24,224,224,0.08);
 }
-.quant-stat-item { flex: 1; text-align: center; }
-.quant-stat-num { font-size: 22px; font-weight: 800; color: var(--cyan); }
-.quant-stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
-.quant-stat-div { width: 1px; height: 32px; background: rgba(24,224,224,0.12); }
-.quant-list { display: flex; flex-direction: column; gap: 10px; padding: 0 16px 24px; }
-.quant-card {
-  background: var(--card); border: 1px solid var(--card-border);
-  border-radius: var(--radius); padding: 14px 16px;
-  display: flex; align-items: center; gap: 12px;
-  transition: all 0.2s; cursor: pointer;
+.quant-tab {
+  flex: 1; text-align: center; padding: 8px 0; font-size: 12px;
+  border-radius: 10px; cursor: pointer; color: var(--text3);
+  transition: all 0.2s; font-weight: 500;
 }
-.quant-card:active { transform: scale(0.98); }
-.quant-rank-num {
-  width: 30px; height: 30px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; flex-shrink: 0;
-  background: rgba(24,224,224,0.08); color: var(--cyan);
+.quant-tab.active {
+  background: linear-gradient(135deg, rgba(24,224,224,0.15), rgba(99,102,241,0.1));
+  color: var(--cyan); font-weight: 600;
 }
-.quant-rank-num.top1 { background: linear-gradient(135deg,#FFD700,#FFA500); color: #1a1a2e; font-size: 16px; }
-.quant-rank-num.top2 { background: linear-gradient(135deg,#C0C0C0,#A8A8A8); color: #1a1a2e; }
-.quant-rank-num.top3 { background: linear-gradient(135deg,#CD7F32,#B87333); color: #fff; }
-.quant-body { flex: 1; min-width: 0; }
-.quant-match-info {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+/* 表格容器 */
+.quant-table-wrap {
+  margin: 0 12px; padding-bottom: 80px;
 }
-.quant-league-tag {
-  font-size: 10px; color: var(--text3); background: rgba(24,224,224,0.06);
-  padding: 2px 8px; border-radius: 10px; flex-shrink: 0; max-width: 80px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.quant-table {
+  width: 100%; border-collapse: collapse; table-layout: fixed;
 }
-.quant-match-num {
-  font-size: 11px; color: var(--text3); flex-shrink: 0;
+.quant-table thead th {
+  font-size: 10px; color: var(--text3); font-weight: 500;
+  padding: 10px 4px 8px; text-align: center;
+  border-bottom: 1px solid rgba(24,224,224,0.08);
+  white-space: nowrap;
 }
-.quant-teams {
-  font-size: 14px; font-weight: 600; color: var(--text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.quant-table thead th.sortable { cursor: pointer; user-select: none; }
+.quant-table thead th.sortable:hover { color: var(--cyan); }
+.quant-table thead th.sort-asc::after { content:' ▲'; color:var(--cyan); font-size:8px; }
+.quant-table thead th.sort-desc::after { content:' ▼'; color:var(--cyan); font-size:8px; }
+.quant-table tbody td {
+  padding: 12px 4px; text-align: center; font-size: 12px;
+  border-bottom: 1px solid rgba(24,224,224,0.04);
+  vertical-align: middle;
 }
-.quant-scores {
-  display: flex; gap: 16px; align-items: center;
+.quant-table tbody tr { transition: background 0.15s; }
+.quant-table tbody tr:hover { background: rgba(24,224,224,0.03); }
+.quant-table tbody tr.picked { background: rgba(24,224,224,0.06); }
+/* 列宽 */
+.th-chk   { width: 32px; }
+.th-match { width: auto; text-align: left !important; padding-left: 8px !important; }
+.th-rank  { width: 50px; }
+.th-gd    { width: 48px; }
+.th-cross { width: 52px; }
+.th-power { width: 48px; }
+.th-ad    { width: 48px; }
+/* 复选框 */
+.q-chk { width: 18px; height: 18px; accent-color: var(--cyan); cursor: pointer; }
+/* 对阵信息 */
+.q-match-cell { text-align: left; }
+.q-match-num { font-size: 9px; color: var(--text3); }
+.q-match-teams { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
+.q-match-league { font-size: 9px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
+/* 排名色号 */
+.q-cell-rank { font-weight: 700; }
+.q-cell-rank.r1 { color: #FFD700; }
+.q-cell-rank.r2 { color: #C0C0C0; }
+.q-cell-rank.r3 { color: #CD7F32; }
+/* 数据单元格 */
+.q-cell-num { font-weight: 600; }
+.q-cell-num.pos { color: #22c55e; }
+.q-cell-num.neg { color: var(--red); }
+.q-cell-num.zero { color: var(--text3); }
+/* 底部PK栏 */
+.quant-pk-bar {
+  position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
+  width: calc(100% - 24px); max-width: 396px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-radius: 16px;
+  background: linear-gradient(135deg, rgba(16, 24, 36, 0.95), rgba(8, 16, 28, 0.98));
+  border: 1px solid rgba(24,224,224,0.15);
+  backdrop-filter: blur(12px); z-index: 100;
 }
-.quant-score-item {
-  display: flex; flex-direction: column; align-items: center;
+.pk-bar-hint { font-size: 12px; color: var(--text2); }
+.pk-bar-hint b { color: var(--cyan); font-size: 14px; }
+.pk-bar-btn {
+  padding: 8px 20px; border-radius: 20px; border: none;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
 }
-.quant-score-label {
-  font-size: 10px; color: var(--text3); margin-bottom: 2px;
-}
-.quant-score-val {
-  font-size: 15px; font-weight: 700; color: var(--cyan);
-}
-.quant-score-val.red { color: var(--red); }
-.quant-score-val.amber { color: var(--amber); }
-.quant-score-bar {
-  width: 4px; height: 28px; border-radius: 2px;
-  background: linear-gradient(180deg, var(--cyan), rgba(24,224,224,0.2));
-  margin: 0 4px;
-}
-.quant-score-bar.red { background: linear-gradient(180deg, var(--red), rgba(239,68,68,0.2)); }
-.quant-pk-btn {
-  display: flex; align-items: center; gap: 4px;
-  padding: 6px 12px; border-radius: 20px; flex-shrink: 0;
-  background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(24,224,224,0.08));
-  border: 1px solid rgba(99,102,241,0.2);
-  color: #818cf8; font-size: 12px; font-weight: 600;
-  cursor: pointer; transition: all 0.2s;
-}
-.quant-pk-btn:hover {
-  background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(24,224,224,0.14));
-  border-color: rgba(99,102,241,0.4);
-  box-shadow: 0 0 10px rgba(99,102,241,0.15);
-}
-.quant-gs-tag {
-  display: inline-flex; align-items: center; gap: 3px;
-  padding: 2px 10px; border-radius: 10px;
-  background: rgba(24,224,224,0.08); border: 1px solid rgba(24,224,224,0.15);
-  font-size: 10px; color: var(--cyan); margin-top: 6px;
-}
+.pk-bar-btn:active { transform: scale(0.95); opacity: 0.9; }
+.pk-bar-btn:disabled { background: rgba(255,255,255,0.08); color: var(--text3); cursor: default; }
 
 /* ═══ 场次PK弹窗 ═══ */
 .pk-overlay {
@@ -2121,39 +2123,25 @@ body {
 
 <!-- 量化数据排行榜 -->
 <div class="page" id="page-quant-rank">
-  <div class="date-bar" id="quantDateBar">
+  <!-- 标签切换 -->
+  <div class="quant-tabs-row">
+    <div class="quant-tab active" data-tab="power" onclick="switchQuantTab('power')">实力排行榜</div>
+    <div class="quant-tab" data-tab="goal" onclick="switchQuantTab('goal')">进球排行榜</div>
+    <div class="quant-tab" data-tab="hot" onclick="switchQuantTab('hot')">热点排行榜</div>
+  </div>
+  <!-- 日期栏 -->
+  <div class="date-bar" id="quantDateBar" style="display:none">
     <span class="date-arrow" onclick="shiftQuantDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
     <span class="date-current" id="quantDateCurrent" onclick="toggleQuantDatePicker()"></span>
     <span class="date-arrow" onclick="shiftQuantDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
   </div>
-  <div class="date-picker" id="quantDatePicker" style="display:none">
-    <div class="date-picker-header">
-      <button class="date-picker-nav" id="quantDatePrev">&lt;</button>
-      <span class="date-picker-month" id="quantDateMonth">5月 2026</span>
-      <button class="date-picker-nav" id="quantDateNext">&gt;</button>
-    </div>
-    <div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
-    <div class="date-picker-grid" id="quantDateGrid"></div>
+  <!-- 表格容器 -->
+  <div class="quant-table-wrap" id="quantTableWrap"></div>
+  <!-- 底部PK操作栏 -->
+  <div class="quant-pk-bar" id="quantPkBar" style="display:none">
+    <span class="pk-bar-hint" id="pkBarHint">已选 <b id="pkSelectCount">0</b> 场</span>
+    <button class="pk-bar-btn" id="pkBarBtn" onclick="startPK()">⚔️ 场次PK</button>
   </div>
-  <!-- 统计概览 -->
-  <div class="quant-stats-row" id="quantStatsRow">
-    <div class="quant-stat-item">
-      <div class="quant-stat-num" id="quantTotalMatches">-</div>
-      <div class="quant-stat-label">总场次</div>
-    </div>
-    <div class="quant-stat-div"></div>
-    <div class="quant-stat-item">
-      <div class="quant-stat-num" id="quantTaggedCount">-</div>
-      <div class="quant-stat-label">已量化</div>
-    </div>
-    <div class="quant-stat-div"></div>
-    <div class="quant-stat-item">
-      <div class="quant-stat-num" id="quantAvgScore">-</div>
-      <div class="quant-stat-label">均分</div>
-    </div>
-  </div>
-  <!-- 比赛列表 -->
-  <div class="quant-list" id="quantList"></div>
 </div>
 
 <!-- 场次PK弹窗 -->
@@ -2351,6 +2339,6 @@ body {
 </div>
 
 
-<script type="module" src="/js/main.js?v=59"></script>
+<script type="module" src="/js/main.js?v=60"></script>
 </body>
 </html>
