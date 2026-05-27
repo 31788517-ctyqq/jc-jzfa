@@ -65,20 +65,20 @@ PROTECTED_FILES = [
 # 部署文件清单
 # 标注 deploy_to: 'nginx' → Nginx 静态路径, 'pm2' → PM2 运行路径, 'both' → 两个都部署
 DEPLOY_MAP = [
-    # 前端静态文件 → Nginx 直接提供
-    ('preview/index.html',                'nginx'),
-    ('preview/app.js',                    'nginx'),
-    ('preview/js/main.js',                'nginx'),
-    ('preview/js/pages/quant-rank.js',    'nginx'),
-    ('preview/js/pages/match-pk.js',      'nginx'),
-    ('preview/js/pages/ranking.js',       'nginx'),
-    ('preview/js/pages/income.js',        'nginx'),
-    ('preview/js/pages/plans.js',         'nginx'),
-    ('preview/js/pages/hit-rate.js',      'nginx'),
-        ('preview/js/pages/filter.js',        'nginx'),
-        ('preview/js/pages/gongshoudao.js',   'nginx'),
-        ('preview/js/charts.js',              'nginx'),
-    ('preview/js/api.js',                 'nginx'),
+    # 前端静态文件 → Nginx + Express 双路径（防止 Express fallback 使用旧文件）
+    ('preview/index.html',                'both'),
+    ('preview/app.js',                    'both'),
+    ('preview/js/main.js',                'both'),
+    ('preview/js/pages/quant-rank.js',    'both'),
+    ('preview/js/pages/match-pk.js',      'both'),
+    ('preview/js/pages/ranking.js',       'both'),
+    ('preview/js/pages/income.js',        'both'),
+    ('preview/js/pages/plans.js',         'both'),
+    ('preview/js/pages/hit-rate.js',      'both'),
+        ('preview/js/pages/filter.js',        'both'),
+        ('preview/js/pages/gongshoudao.js',   'both'),
+        ('preview/js/charts.js',              'both'),
+    ('preview/js/api.js',                 'both'),
     # 服务端 → PM2 运行时路径
     ('server/index.js',                   'both'),
     ('server/jczqYz_fetcher.js',          'both'),
@@ -341,6 +341,33 @@ def main():
             '--exclude="logs" --exclude="node_modules" '
             '{}/server/ {}/server/ 2>&1 | tail -3'.format(PM2_ROOT, NGINX_ROOT), 15)
         print('  完成')
+    print()
+
+    # ── Phase 3.5: 修复 Nginx 缓存配置 ──
+    if not dry_run:
+        print(c('C', '[Phase 3.5] 修复 Nginx 缓存'))
+        nginx_fix_script = '''python3 << 'FIXEOF'
+import shutil
+conffile = '/etc/nginx/conf.d/zj.conf'
+with open(conffile) as f:
+    c = f.read()
+if 'expires 1h;' not in c:
+    print('SKIP')
+else:
+    shutil.copy2(conffile, conffile + '.bak')
+    c = c.replace('        expires 1h;',
+                  '        expires 5m;\\n        add_header Cache-Control "public, max-age=300";')
+    with open(conffile, 'w') as f:
+        f.write(c)
+    print('FIXED')
+FIXEOF'''
+        out, _ = ssh_cmd(ssh, nginx_fix_script, 10)
+        if 'FIXED' in out:
+            print('  {}: expires 1h → 5m'.format(c('G', '已修复')))
+        else:
+            print('  {}'.format(c('D', '无需修复')))
+        ssh_cmd(ssh, 'nginx -t && nginx -s reload 2>&1', 10)
+        print('  Nginx 已重载')
     print()
 
     sftp.close()

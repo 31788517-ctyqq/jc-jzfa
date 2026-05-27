@@ -115,7 +115,14 @@ server {
     location / {
         root /var/www/zj.100qiu.com/preview;
         try_files $uri /index.html;
-        expires 1h;
+        expires 5m;
+        
+        # HTML 不缓存，确保部署后立即生效
+        location ~* \.html$ {
+            expires -1;
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
+            add_header Pragma "no-cache";
+        }
     }
 
     location /api {
