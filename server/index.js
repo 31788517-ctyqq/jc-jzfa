@@ -113,7 +113,7 @@ function getHomeHTML(cb) {
 app.get('/', (req, res) => {
   getHomeHTML((err, html) => { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=60' }); res.end(html); });
 });
-app.use(express.static(path.join(__dirname, '../preview'), { maxAge: '1h', setHeaders: (res, fPath) => { res.setHeader('Content-Type', fPath.endsWith('.html') ? 'text/html; charset=utf-8' : fPath.endsWith('.js') ? 'application/javascript; charset=utf-8' : fPath.endsWith('.css') ? 'text/css; charset=utf-8' : 'application/octet-stream; charset=utf-8'); } }));
+app.use(express.static(path.join(__dirname, '../preview'), { maxAge: 0, setHeaders: (res, fPath) => { res.setHeader('Cache-Control', 'no-cache'); res.setHeader('Content-Type', fPath.endsWith('.html') ? 'text/html; charset=utf-8' : fPath.endsWith('.js') ? 'application/javascript; charset=utf-8' : fPath.endsWith('.css') ? 'text/css; charset=utf-8' : 'application/octet-stream; charset=utf-8'); } }));
 
 // favicon 请求直接返回 204，避免 404 日志干扰
 app.get('/favicon.ico', (req, res) => res.status(204).end());
