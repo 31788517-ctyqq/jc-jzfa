@@ -1862,43 +1862,44 @@ body {
   color: var(--cyan); font-weight: 600;
 }
 /* 表格容器 */
-.quant-table-wrap { margin: 0 8px; padding-bottom: 20px; }
-.quant-table { width: 100%; border-collapse: collapse; }
+.quant-table-wrap { margin: 0 8px; padding-bottom: 20px; overflow: hidden; }
+.quant-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
 .quant-table thead th {
   font-size: 11px; color: #64748B; font-weight: 500;
-  padding: 12px 8px; text-align: center;
+  padding: 12px 4px; text-align: center;
   border-bottom: 1px solid rgba(255,255,255,0.06);
-  white-space: nowrap;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .quant-table thead th.sortable { cursor: pointer; user-select: none; }
 .quant-table thead th.sort-asc::after { content:' ▲'; color:var(--cyan); font-size:7px; }
 .quant-table thead th.sort-desc::after { content:' ▼'; color:var(--cyan); font-size:7px; }
 .quant-table tbody td {
-  padding: 14px 8px; text-align: center; font-size: 13px; color: var(--text2);
+  padding: 14px 4px; text-align: center; font-size: 13px; color: var(--text2);
   border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle;
+  overflow: hidden; text-overflow: ellipsis;
 }
 .quant-table tbody tr.picked { background: rgba(24,224,224,0.06); }
-.th-chk   { width: 32px; }
-.th-match { width: auto; text-align: left !important; padding-left: 8px !important; }
-.th-gd    { width: 64px; }
-.th-cross { width: 68px; }
-.th-power { width: 58px; }
-.th-ad    { width: 62px; }
+.th-chk   { width: 26px; }
+.th-match { text-align: left !important; padding-left: 6px !important; }
+.th-gd    { width: 54px; }
+.th-cross { width: 60px; }
+.th-power { width: 52px; }
+.th-ad    { width: 54px; }
 /* 进球排行榜列宽 */
-.th-sum   { width: 48px; }
-.th-big   { width: 60px; }
-.th-ag    { width: 58px; }
-.th-sg    { width: 58px; }
-.th-hg    { width: 58px; }
-.th-ba    { width: 48px; }
+.th-sum   { width: 44px; }
+.th-big   { width: 52px; }
+.th-ag    { width: 52px; }
+.th-sg    { width: 52px; }
+.th-hg    { width: 52px; }
+.th-ba    { width: 44px; }
 /* 热点排行榜列宽 */
-.th-rq    { width: 48px; }
-.th-hot   { width: 58px; }
-.th-heat  { width: 60px; }
-.th-hf    { width: 80px; }
-.th-gf    { width: 80px; }
-.th-sd    { width: 60px; }
-.th-ol    { width: 58px; }
+.th-rq    { width: 38px; }
+.th-hot   { width: 48px; }
+.th-heat  { width: 52px; }
+.th-hf    { width: 62px; }
+.th-gf    { width: 62px; }
+.th-sd    { width: 52px; }
+.th-ol    { width: 48px; }
 /* 复选框 — 空心+选中√ */
 .q-chk {
   appearance: none; -webkit-appearance: none;
@@ -1915,7 +1916,7 @@ body {
   position: absolute; top: -1px; left: 2px;
 }
 .q-match-cell { text-align: left; }
-.q-match-teams { font-size: 13px; font-weight: 600; color: var(--text2); white-space: nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
+.q-match-teams { font-size: 13px; font-weight: 600; color: var(--text2); white-space: nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
 .q-match-vs { font-size: 11px; font-weight: 400; color: var(--text3); padding: 1px 0; }
 .q-cell-num { font-weight: 600; font-size: 13px; color: var(--text2); }
 .q-cell-num.pos { color: var(--cyan); font-weight: 700; }
