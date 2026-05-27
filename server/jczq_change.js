@@ -12,7 +12,8 @@ const jczqYz = require('./jczqYz_fetcher');
 const LOCAL_HOST = '127.0.0.1';
 const LOCAL_PORT = 19880;
 const CACHE_PATH = path.join(__dirname, 'jczq_change_cache.json');
-const BATCH_SIZE = 6;  // 并发数
+const BATCH_SIZE = 2;  // 降低并发避免 Java API 繁忙限流
+const BATCH_DELAY = 500; // 批次间延迟 ms
 
 // ── 缓存 ──
 
@@ -226,25 +227,46 @@ async function computeHotData(dateStr, matchList) {
         // 1) 先查缓存
         if (cache[dateKey][matchId]) {
           var cached = cache[dateKey][matchId];
+          var needUpdate = false;
           // 如果缓存中 Yz 数据缺失（之前请求失败），静默重试 Yz 补齐
           if (cached.hotFocusNum === null || cached.hotFocusNum === undefined) {
             var yzRetry = await jczqYz.fetchJczqYz(dateStr, number);
             if (yzRetry) {
               if (yzRetry.hotFocusNum !== null && yzRetry.hotFocusNum !== undefined) {
                 cached.hotFocusNum = yzRetry.hotFocusNum;
+                needUpdate = true;
               }
               if (yzRetry.oddsLive !== null && yzRetry.oddsLive !== undefined) {
                 cached.oddsLive = yzRetry.oddsLive;
+                needUpdate = true;
               }
               if ((cached.rq === undefined || cached.rq === null || cached.rq === 0) && yzRetry.rq) {
                 cached.rq = yzRetry.rq;
+                needUpdate = true;
               }
               if ((cached.hotWinRate === undefined || cached.hotWinRate === null) && yzRetry.hotWinRate) {
                 cached.hotWinRate = yzRetry.hotWinRate;
                 cached.hotLoseRate = yzRetry.hotLoseRate;
+                needUpdate = true;
               }
-              cache[dateKey][matchId] = cached;
             }
+          }
+          // 如果缓存中 Change 数据缺失（heatIndex 为 null，之前请求繁忙），静默重试 JczqChange
+          if (cached.heatIndex === null || cached.heatIndex === undefined) {
+            var cdRetry = await fetchJczqChange(dateStr, number);
+            if (cdRetry) {
+              var rqVal = m.rq !== undefined && m.rq !== null ? m.rq : (cached.rq || cdRetry.rq || 0);
+              var heatRetry = computeHeatIndex(rqVal, cdRetry);
+              cached.heatIndex = heatRetry.value;
+              cached.heatLevel = heatRetry.level;
+              cached.heatLabel = heatRetry.label;
+              cached.homeFeature = computeFeature(cdRetry, 'home');
+              cached.guestFeature = computeFeature(cdRetry, 'away');
+              needUpdate = true;
+            }
+          }
+          if (needUpdate) {
+            cache[dateKey][matchId] = cached;
           }
           results[matchId] = cached;
           return;
@@ -303,6 +325,10 @@ async function computeHotData(dateStr, matchList) {
     });
 
     await Promise.all(promises);
+    // 批次间短暂延迟，避免 Java API 繁忙限流
+    if (i + BATCH_SIZE < matchList.length) {
+      await new Promise(function (resolve) { setTimeout(resolve, BATCH_DELAY); });
+    }
   }
 
   // 写入缓存
