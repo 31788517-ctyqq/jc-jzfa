@@ -3,7 +3,7 @@
     {
       "name": "jc-zjfa",
       "script": "index.js",
-      "cwd": "./server",
+      "cwd": "/root/server",
       "instances": 1,
       "exec_mode": "fork",
       "env": {
@@ -21,7 +21,7 @@
     {
       "name": "jc-sync",
       "script": "data_sync.js",
-      "cwd": "./server",
+      "cwd": "/root/server",
       "instances": 1,
       "exec_mode": "fork",
       "env": {
