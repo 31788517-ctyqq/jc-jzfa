@@ -3,6 +3,9 @@
  * 对 DeepSeek + 豆包两个模型的分析结果进行去重、冲突裁决、互补合并
  */
 
+const fs = require('fs');
+const path = require('path');
+
 /**
  * 计算两段文本的相似度（基于字符集 Jaccard + 词级重叠）
  * 返回 0-1 之间的相似度
@@ -71,6 +74,176 @@ function complementMerge(a, b) {
 }
 
 /**
+ * 从"X胜X平X负"文本中解析 W/D/L 数值
+ * 返回 { w: N, d: N, l: N } 或 null
+ */
+function parseWinDrawLoss(text) {
+  if (!text) return null;
+  var str = String(text);
+  var m = str.match(/(\d+)\s*胜\s*(\d+)\s*平\s*(\d+)\s*负/);
+  if (m) return { w: parseInt(m[1], 10), d: parseInt(m[2], 10), l: parseInt(m[3], 10) };
+  // 反向匹配 "X负X平X胜"
+  m = str.match(/(\d+)\s*负\s*(\d+)\s*平\s*(\d+)\s*胜/);
+  if (m) return { w: parseInt(m[3], 10), d: parseInt(m[2], 10), l: parseInt(m[1], 10) };
+  // 简写格式 "4W 1D 1L"
+  m = str.match(/(\d+)\s*[WＷwｗ]\s*(\d+)\s*[DＤdｄ]\s*(\d+)\s*[LＬlｌ]/i);
+  if (m) return { w: parseInt(m[1], 10), d: parseInt(m[2], 10), l: parseInt(m[3], 10) };
+  return null;
+}
+
+/**
+ * 对比两队近期战绩，检测冲突
+ * @param {Object} dsStateSection - DeepSeek 的状态面
+ * @param {Object} dbStateSection - 豆包 的状态面
+ * @param {string} homeTeam - 主队名称
+ * @param {string} awayTeam - 客队名称
+ * @returns {Object|null} 冲突检测结果
+ */
+function checkRecentFormConflict(dsStateSection, dbStateSection, homeTeam, awayTeam) {
+  var dsHomeText = (dsStateSection || {})['主队近况'] || '';
+  var dsAwayText = (dsStateSection || {})['客队近况'] || '';
+  var dbHomeText = (dbStateSection || {})['主队近况'] || '';
+  var dbAwayText = (dbStateSection || {})['客队近况'] || '';
+
+  var dsHome = parseWinDrawLoss(dsHomeText);
+  var dsAway = parseWinDrawLoss(dsAwayText);
+  var dbHome = parseWinDrawLoss(dbHomeText);
+  var dbAway = parseWinDrawLoss(dbAwayText);
+
+  // 两个模型都必须有可解析的数据才做检测
+  if (!dsHome && !dbHome && !dsAway && !dbAway) return null;
+
+  var result = { detected: false, conflicts: {} };
+
+  // 检测主队数据冲突
+  if (dsHome && dbHome) {
+    var homeConflict = !(dsHome.w === dbHome.w && dsHome.d === dbHome.d && dsHome.l === dbHome.l);
+    result.conflicts.home = {
+      conflict: homeConflict,
+      deepseek: dsHome,
+      doubao: dbHome,
+      deepseekText: dsHomeText,
+      doubaoText: dbHomeText
+    };
+    if (homeConflict) result.detected = true;
+  } else if (dsHome && !dbHome) {
+    result.conflicts.home = { conflict: false, deepseek: dsHome, doubao: null, deepseekText: dsHomeText, doubaoText: '' };
+  } else if (!dsHome && dbHome) {
+    result.conflicts.home = { conflict: false, deepseek: null, doubao: dbHome, deepseekText: '', doubaoText: dbHomeText };
+  } else {
+    result.conflicts.home = { conflict: false, deepseek: null, doubao: null, deepseekText: '', doubaoText: '' };
+  }
+
+  // 检测客队数据冲突
+  if (dsAway && dbAway) {
+    var awayConflict = !(dsAway.w === dbAway.w && dsAway.d === dbAway.d && dsAway.l === dbAway.l);
+    result.conflicts.away = {
+      conflict: awayConflict,
+      deepseek: dsAway,
+      doubao: dbAway,
+      deepseekText: dsAwayText,
+      doubaoText: dbAwayText
+    };
+    if (awayConflict) result.detected = true;
+  } else if (dsAway && !dbAway) {
+    result.conflicts.away = { conflict: false, deepseek: dsAway, doubao: null, deepseekText: dsAwayText, doubaoText: '' };
+  } else if (!dsAway && dbAway) {
+    result.conflicts.away = { conflict: false, deepseek: null, doubao: dbAway, deepseekText: '', doubaoText: dbAwayText };
+  } else {
+    result.conflicts.away = { conflict: false, deepseek: null, doubao: null, deepseekText: '', doubaoText: '' };
+  }
+
+  result.severity = 'low';
+  if (result.conflicts.home.conflict && result.conflicts.away.conflict) result.severity = 'high';
+  else if (result.conflicts.home.conflict || result.conflicts.away.conflict) result.severity = 'medium';
+
+  return result.detected ? result : null;
+}
+
+/**
+ * 对比攻防全景数据表格，检测数值冲突
+ * @param {Array} dsRows - DeepSeek 的 rows
+ * @param {Array} dbRows - 豆包 的 rows
+ * @returns {Object|null} { detected, conflicts: [{label, dsHome, dsAway, dbHome, dbAway, conflict}], dsRows, dbRows }
+ */
+function checkAttackDefenseConflict(dsRows, dbRows) {
+  if (!dsRows || !dsRows.length || !dbRows || !dbRows.length) {
+    // 只有一方有数据，不算冲突
+    return null;
+  }
+
+  // 建索引：按 row[0]（数据项标签）匹配
+  var dsMap = {};
+  dsRows.forEach(function (row, i) { if (row && row.length >= 3) dsMap[row[0]] = row; });
+  var dbMap = {};
+  dbRows.forEach(function (row, i) { if (row && row.length >= 3) dbMap[row[0]] = row; });
+
+  var conflictRows = [];
+  var hasConflict = false;
+
+  for (var label in dsMap) {
+    var dsRow = dsMap[label], dbRow = dbMap[label];
+    if (!dsRow) continue;
+    var dsHome = String(dsRow[1] || ''), dsAway = String(dsRow[2] || '');
+    var dbHome = dbRow ? String(dbRow[1] || '') : '';
+    var dbAway = dbRow ? String(dbRow[2] || '') : '';
+
+    // 解析数值
+    var dsHomeNum = parseFloat(dsHome), dsAwayNum = parseFloat(dsAway);
+    var dbHomeNum = parseFloat(dbHome), dbAwayNum = parseFloat(dbAway);
+
+    // 射手标签等非数值字段直接跳过比较
+    if (isNaN(dsHomeNum) || isNaN(dsAwayNum)) continue;
+    if (dbRow && (isNaN(dbHomeNum) || isNaN(dbAwayNum))) continue;
+
+    // 比较差异（>0.1 视为冲突，因为不同数据源可能略有差异）
+    var homeDiff = dbRow ? Math.abs(dsHomeNum - dbHomeNum) : 0;
+    var awayDiff = dbRow ? Math.abs(dsAwayNum - dbAwayNum) : 0;
+    var isConflict = (homeDiff > 0.1 || awayDiff > 0.1);
+
+    conflictRows.push({
+      label: label,
+      dsHome: dsHome, dsAway: dsAway,
+      dbHome: dbHome, dbAway: dbAway,
+      conflict: isConflict,
+      homeDiff: Math.round(homeDiff * 100) / 100,
+      awayDiff: Math.round(awayDiff * 100) / 100
+    });
+    if (isConflict) hasConflict = true;
+  }
+
+  // 如果有只豆包有的行（DeepSeek没有），也加上
+  for (var lbl in dbMap) {
+    if (!dsMap[lbl]) {
+      var dbOnlyRow = dbMap[lbl];
+      if (dbOnlyRow && dbOnlyRow.length >= 3) {
+        conflictRows.push({
+          label: lbl,
+          dsHome: '', dsAway: '',
+          dbHome: String(dbOnlyRow[1] || ''), dbAway: String(dbOnlyRow[2] || ''),
+          conflict: false, // 独有数据不算冲突
+          homeDiff: 0, awayDiff: 0
+        });
+      }
+    }
+  }
+
+  if (!conflictRows.length) return null;
+
+  // 按冲突行数决定 severity
+  var conflictCount = conflictRows.filter(function (r) { return r.conflict; }).length;
+  var severity = conflictCount === 0 ? 'none' : (conflictCount <= 2 ? 'low' : 'medium');
+
+  return {
+    detected: hasConflict,
+    conflicts: conflictRows,
+    severity: severity,
+    dsRows: dsRows,
+    dbRows: dbRows
+  };
+}
+
+/**
  * 解析预测建议为结构化的玩法→方向映射
  */
 function parsePredictions(predsArray) {
@@ -84,6 +257,119 @@ function parsePredictions(predsArray) {
     }
   });
   return map;
+}
+
+/**
+ * 加载500.com合并数据，用于交叉校验
+ * @param {string} dateStr - 日期 YYYY-MM-DD
+ * @returns {Object|null}
+ */
+function loadShujuForValidation(dateStr) {
+  try {
+    var shujuFile = path.join(__dirname, 'shuju_data', 'shuju_merged_' + dateStr + '.json');
+    if (!fs.existsSync(shujuFile)) return null;
+    return JSON.parse(fs.readFileSync(shujuFile, 'utf8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+/** 辅助：安全计算场均（保留1位小数），返回字符串 */
+function calcAvg(total, games) {
+  if (total === undefined || total === null || games === undefined || games <= 0) return '?';
+  return (total / games).toFixed(1);
+}
+
+/**
+ * 校验并修正攻防全景数据 + 近期战绩
+ * 如果 AI 模型输出的数值与500.com不一致，用500.com数据覆盖
+ * @param {Object} merged - 当前合并后的内容对象
+ * @param {Object} matchInfo - 比赛基本信息
+ * @returns {Object} 修正后的 merged 对象
+ */
+function validateAndFixFromShuju(merged, matchInfo) {
+  if (!matchInfo || !matchInfo.date) return merged;
+  var dateStr = (matchInfo.date || '').slice(0, 10);
+  if (!dateStr) return merged;
+
+  var shujuData = loadShujuForValidation(dateStr);
+  if (!shujuData) return merged;
+
+  var matchShuju = (shujuData.matches || {})[matchInfo.num || ''];
+  if (!matchShuju || !matchShuju.recentForm) return merged;
+
+  var rf = matchShuju.recentForm;
+
+  // 获取攻防数据源：优先近10场同联赛 → fallback 近10场全联赛
+  var h10, a10;
+  if (rf.last10League && rf.last10League.home && rf.last10League.home.wins !== undefined) {
+    h10 = rf.last10League.home;
+    a10 = rf.last10League.away || {};
+  } else if (rf.last10 && rf.last10.home && rf.last10.home.wins !== undefined) {
+    h10 = rf.last10.home;
+    a10 = rf.last10.away || {};
+  } else {
+    return merged;
+  }
+
+  var h6 = (rf.last6 || {}).home || {};
+  var a6 = (rf.last6 || {}).away || {};
+
+  // ⭐ 修正攻防全景数据表格
+  var fixedRows = [
+    ['赛季场均进球', calcAvg(h10.goals, 10), calcAvg(a10.goals, 10)],
+    ['赛季场均失球', calcAvg(h10.conceded, 10), calcAvg(a10.conceded, 10)],
+    ['近6场场均进球', calcAvg(h6.goals, 6), calcAvg(a6.goals, 6)],
+    ['近6场场均失球', calcAvg(h6.conceded, 6), calcAvg(a6.conceded, 6)],
+    ['核心射手', '根据知识库补充', '根据知识库补充']
+  ];
+
+  if (merged['基础面'] && merged['基础面']['攻防全景数据']) {
+    var oldRows = merged['基础面']['攻防全景数据'].rows || [];
+    // 简单检测：如果现有 rows 长度不对或数值缺失，强制覆盖
+    var needFix = oldRows.length < 4;
+    merged['基础面']['攻防全景数据'].rows = fixedRows;
+    merged['基础面']['攻防全景数据']._verified = true;
+    merged['基础面']['攻防全景数据']._source = '500.com';
+    if (needFix || merged['基础面']['攻防全景数据']._wasWrong) {
+      console.log('[ai_merger] 攻防全景数据已用500.com数据覆盖');
+    }
+  }
+
+  // ⭐ 修正近期战绩主客队 WDL
+  var formHomeStats, formAwayStats;
+  var h6f = (rf.last6 || {}).home || {};
+  var a6f = (rf.last6 || {}).away || {};
+  if (h6f.wins !== undefined) { formHomeStats = h6f; formAwayStats = a6f; }
+  else { formHomeStats = h10; formAwayStats = a10; }
+
+  var fixedHomeForm = '近6场' + (formHomeStats.wins || 0) + '胜' + (formHomeStats.draws || 0) + '平' + (formHomeStats.losses || 0) + '负';
+  var fixedAwayForm = '近6场' + (formAwayStats.wins || 0) + '胜' + (formAwayStats.draws || 0) + '平' + (formAwayStats.losses || 0) + '负';
+
+  if (merged['状态面']) {
+    var oldHome = merged['状态面']['主队近况'] || '';
+    var oldAway = merged['状态面']['客队近况'] || '';
+    // 解析旧值中的 WDL
+    var oldHomeWDL = parseWinDrawLoss(oldHome);
+    var oldAwayWDL = parseWinDrawLoss(oldAway);
+    var needFixHome = !oldHomeWDL ||
+      oldHomeWDL.w !== (formHomeStats.wins || 0) ||
+      oldHomeWDL.d !== (formHomeStats.draws || 0) ||
+      oldHomeWDL.l !== (formHomeStats.losses || 0);
+    var needFixAway = !oldAwayWDL ||
+      oldAwayWDL.w !== (formAwayStats.wins || 0) ||
+      oldAwayWDL.d !== (formAwayStats.draws || 0) ||
+      oldAwayWDL.l !== (formAwayStats.losses || 0);
+
+    if (needFixHome || needFixAway) {
+      merged['状态面']['主队近况'] = fixedHomeForm;
+      merged['状态面']['客队近况'] = fixedAwayForm;
+      merged['状态面']['_recentFormVerified'] = true;
+      console.log('[ai_merger] 近期战绩已用500.com数据覆盖: 主队=' + fixedHomeForm + ' 客队=' + fixedAwayForm);
+    }
+  }
+
+  return merged;
 }
 
 /**
@@ -118,9 +404,18 @@ function mergeAnalyses(deepseekResult, doubaoResult, matchInfo) {
       var dsVal = dsSection[field];
       var dbVal = dbSection[field];
 
-      // 表格类保留两份（攻防全景数据等）
-      if (field === '攻防全景数据' || field === '伤病影响') {
-        // 优先用 DeepSeek 的表格（数据更规范）
+      // 表格类特殊处理
+      if (field === '攻防全景数据') {
+        // DeepSeek 表格为主，同时保留豆包表格供交叉验证
+        merged[section][field] = dsVal || dbVal;
+        if (dsVal && dbVal) {
+          merged[section]['_attackDefenseDsRows'] = (dsVal && dsVal.rows) ? dsVal.rows : null;
+          merged[section]['_attackDefenseDbRows'] = (dbVal && dbVal.rows) ? dbVal.rows : null;
+        }
+        continue;
+      }
+      if (field === '伤病影响') {
+        // 优用 DeepSeek 的表格
         merged[section][field] = dsVal || dbVal;
         continue;
       }
@@ -163,6 +458,76 @@ function mergeAnalyses(deepseekResult, doubaoResult, matchInfo) {
       merged[section]['概括'] = dsSection['概括'] || dbSection['概括'] || '';
     }
   });
+
+  // ── 步骤② 近期战绩交叉验证 ──
+  var recentFormCheck = checkRecentFormConflict(
+    ds['状态面'] || {}, db['状态面'] || {},
+    (matchInfo && matchInfo.homeName) || '',
+    (matchInfo && matchInfo.visitName) || ''
+  );
+  if (recentFormCheck) {
+    merged['状态面']['_recentFormCheck'] = recentFormCheck;
+    // 记录冲突
+    if (recentFormCheck.conflicts.home && recentFormCheck.conflicts.home.conflict) {
+      conflicts.push({
+        section: '状态面',
+        field: '主队近况',
+        deepseek: clipText(recentFormCheck.conflicts.home.deepseekText || '', 60),
+        doubao: clipText(recentFormCheck.conflicts.home.doubaoText || '', 60),
+        severity: recentFormCheck.severity || 'medium',
+        resolved: 'both_shown',
+        dsW: recentFormCheck.conflicts.home.deepseek ? recentFormCheck.conflicts.home.deepseek.w : null,
+        dsD: recentFormCheck.conflicts.home.deepseek ? recentFormCheck.conflicts.home.deepseek.d : null,
+        dsL: recentFormCheck.conflicts.home.deepseek ? recentFormCheck.conflicts.home.deepseek.l : null,
+        dbW: recentFormCheck.conflicts.home.doubao ? recentFormCheck.conflicts.home.doubao.w : null,
+        dbD: recentFormCheck.conflicts.home.doubao ? recentFormCheck.conflicts.home.doubao.d : null,
+        dbL: recentFormCheck.conflicts.home.doubao ? recentFormCheck.conflicts.home.doubao.l : null
+      });
+    }
+    if (recentFormCheck.conflicts.away && recentFormCheck.conflicts.away.conflict) {
+      conflicts.push({
+        section: '状态面',
+        field: '客队近况',
+        deepseek: clipText(recentFormCheck.conflicts.away.deepseekText || '', 60),
+        doubao: clipText(recentFormCheck.conflicts.away.doubaoText || '', 60),
+        severity: recentFormCheck.severity || 'medium',
+        resolved: 'both_shown',
+        dsW: recentFormCheck.conflicts.away.deepseek ? recentFormCheck.conflicts.away.deepseek.w : null,
+        dsD: recentFormCheck.conflicts.away.deepseek ? recentFormCheck.conflicts.away.deepseek.d : null,
+        dsL: recentFormCheck.conflicts.away.deepseek ? recentFormCheck.conflicts.away.deepseek.l : null,
+        dbW: recentFormCheck.conflicts.away.doubao ? recentFormCheck.conflicts.away.doubao.w : null,
+        dbD: recentFormCheck.conflicts.away.doubao ? recentFormCheck.conflicts.away.doubao.d : null,
+        dbL: recentFormCheck.conflicts.away.doubao ? recentFormCheck.conflicts.away.doubao.l : null
+      });
+    }
+  }
+
+  // ── 步骤②b 攻防全景数据交叉验证 ──
+  var adDsRows = merged['基础面']['_attackDefenseDsRows'];
+  var adDbRows = merged['基础面']['_attackDefenseDbRows'];
+  if (adDsRows && adDbRows) {
+    var adCheck = checkAttackDefenseConflict(adDsRows, adDbRows);
+    if (adCheck && adCheck.detected) {
+      merged['基础面']['_attackDefenseCheck'] = adCheck;
+      adCheck.conflicts.forEach(function (c) {
+        if (c.conflict) {
+          conflicts.push({
+            section: '基础面',
+            field: '攻防全景数据' + '-' + c.label,
+            deepseek: c.dsHome + '/' + c.dsAway,
+            doubao: c.dbHome + '/' + c.dbAway,
+            severity: adCheck.severity || 'medium',
+            resolved: 'both_shown',
+            diff: c.homeDiff + '/' + c.awayDiff
+          });
+        }
+      });
+    }
+    // 即使无冲突也保留交叉数据供前端展示一致性
+    if (adCheck && !adCheck.detected) {
+      merged['基础面']['_attackDefenseCheck'] = adCheck;
+    }
+  }
 
   // ── 步骤③ 预测建议冲突裁决 ──
   var dsPreds = parsePredictions(ds['预测建议'] || []);
@@ -238,6 +603,10 @@ function mergeAnalyses(deepseekResult, doubaoResult, matchInfo) {
     }
   }
 
+  // ── 步骤④b 500.com 数据交叉校验与强制覆盖 ──
+  // 攻防全景数据和近期战绩必须以500.com预计算值为准
+  merged = validateAndFixFromShuju(merged, matchInfo);
+
   // ── 步骤⑤ JSON 重组 ──
   // 综合 confidence
   var finalConf = Math.round((dsConf + dbConf) / 2);
@@ -269,4 +638,4 @@ function clipText(text, maxLen) {
   return s.substring(0, maxLen - 3) + '...';
 }
 
-module.exports = { mergeAnalyses };
+module.exports = { mergeAnalyses, validateAndFixFromShuju, loadShujuForValidation };
