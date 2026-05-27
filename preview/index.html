@@ -1846,47 +1846,82 @@ body {
   box-shadow: 0 0 12px rgba(24,224,224,0.15);
 }
 
-/* 表格容器 */
-.quant-table-wrap { margin: 0 8px; padding-bottom: 20px; overflow: hidden; }
-.quant-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
-.quant-table thead th {
-  font-size: 11px; color: #64748B; font-weight: 500;
-  padding: 12px 4px; text-align: center;
+/* ═══ 量化数据排行榜 — flex 卡片表格 ═══ */
+.quant-table-wrap { margin: 0 4px; padding-bottom: 20px; }
+/* 卡片容器 — 和方案收入 income-list 同风格 */
+.quant-card-list {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+/* 表头行 */
+.quant-card-header {
+  display: flex; align-items: center;
+  font-size: 10px; color: #64748B; font-weight: 500;
+  padding: 10px 10px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: rgba(0,255,255,0.03);
+  min-height: 38px;
 }
-.quant-table thead th.sortable { cursor: pointer; user-select: none; }
-.quant-table thead th.sort-asc::after { content:' ▲'; color:var(--cyan); font-size:7px; }
-.quant-table thead th.sort-desc::after { content:' ▼'; color:var(--cyan); font-size:7px; }
-.quant-table tbody td {
-  padding: 14px 4px; text-align: center; font-size: 11px; color: #64748B;
-  border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle;
-  overflow: hidden; text-overflow: ellipsis;
+.quant-card-header span {
+  white-space: normal; word-break: keep-all; line-height: 1.3;
+  text-align: center;
 }
-.quant-table tbody tr.picked { background: rgba(24,224,224,0.06); }
-.th-chk   { width: 26px; }
-.th-match { text-align: left !important; padding-left: 6px !important; }
-.th-rk    { width: 44px; }
-.th-gd    { width: 54px; }
-.th-cross { width: 60px; }
-.th-power { width: 52px; }
-.th-ad    { width: 54px; }
-/* 进球排行榜列宽 */
-.th-sum   { width: 44px; }
-.th-big   { width: 52px; }
-.th-ag    { width: 52px; }
-.th-sg    { width: 52px; }
-.th-hg    { width: 52px; }
-.th-ba    { width: 44px; }
-/* 热点排行榜列宽 */
-.th-rq    { width: 38px; }
-.th-hot   { width: 48px; }
-.th-heat  { width: 52px; }
-.th-hf    { width: 62px; }
-.th-gf    { width: 62px; }
-.th-sd    { width: 52px; }
-.th-ol    { width: 48px; }
-/* 复选框 — 空心+选中√ */
+.quant-card-header span.q-sortable { cursor: pointer; user-select: none; }
+.quant-card-header span.q-sort-asc  { color: var(--cyan); }
+.quant-card-header span.q-sort-desc { color: var(--cyan); }
+.quant-card-header span.q-match-hd { text-align: left; }
+/* 数据行 */
+.quant-card-row {
+  display: flex; align-items: center;
+  font-size: 11px; min-height: 52px;
+  padding: 10px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  transition: background 0.15s;
+}
+.quant-card-row:last-child { border-bottom: none; }
+.quant-card-row.picked { background: rgba(24,224,224,0.06); }
+/* 列宽定义 — flex-shrink:0 防止压缩 */
+.q-col-chk   { width: 24px; flex-shrink: 0; text-align: center; }
+.q-col-match { flex: 1; min-width: 0; padding: 0 4px; }
+.q-col-rk    { width: 40px; flex-shrink: 0; text-align: center; }
+.q-col-gd    { width: 56px; flex-shrink: 0; text-align: center; }
+.q-col-cross { width: 62px; flex-shrink: 0; text-align: center; }
+.q-col-power { width: 54px; flex-shrink: 0; text-align: center; }
+.q-col-ad    { width: 54px; flex-shrink: 0; text-align: center; }
+.q-col-sum   { width: 44px; flex-shrink: 0; text-align: center; }
+.q-col-big   { width: 54px; flex-shrink: 0; text-align: center; }
+.q-col-ag    { width: 54px; flex-shrink: 0; text-align: center; }
+.q-col-sg    { width: 54px; flex-shrink: 0; text-align: center; }
+.q-col-hg    { width: 54px; flex-shrink: 0; text-align: center; }
+.q-col-ba    { width: 48px; flex-shrink: 0; text-align: center; }
+.q-col-rq    { width: 42px; flex-shrink: 0; text-align: center; }
+.q-col-hot   { width: 54px; flex-shrink: 0; text-align: center; }
+.q-col-heat  { width: 56px; flex-shrink: 0; text-align: center; }
+.q-col-hf    { width: 64px; flex-shrink: 0; text-align: center; }
+.q-col-gf    { width: 64px; flex-shrink: 0; text-align: center; }
+.q-col-sd    { width: 54px; flex-shrink: 0; text-align: center; }
+.q-col-ol    { width: 50px; flex-shrink: 0; text-align: center; }
+/* 单元格内文本可折行 */
+.q-col-cross .q-cell-num,
+.q-col-power .q-cell-num,
+.q-col-ad   .q-cell-num,
+.q-col-sum  .q-cell-num,
+.q-col-big  .q-cell-num,
+.q-col-ag   .q-cell-num,
+.q-col-sg   .q-cell-num,
+.q-col-hg   .q-cell-num,
+.q-col-ba   .q-cell-num,
+.q-col-hot  .q-cell-num,
+.q-col-heat .q-cell-num,
+.q-col-hf   .q-cell-num,
+.q-col-gf   .q-cell-num,
+.q-col-sd   .q-cell-num,
+.q-col-ol   .q-cell-num {
+  white-space: normal; word-break: break-all; line-height: 1.25;
+}
+/* 复选框 */
 .q-chk {
   appearance: none; -webkit-appearance: none;
   width: 16px; height: 16px;
@@ -1894,19 +1929,25 @@ body {
   border-radius: 4px; background: transparent;
   cursor: pointer; position: relative; flex-shrink: 0;
 }
-.q-chk:checked {
-  border-color: var(--cyan); background: transparent;
-}
+.q-chk:checked { border-color: var(--cyan); background: transparent; }
 .q-chk:checked::after {
   content: '✓'; color: var(--cyan); font-size: 12px; font-weight: 700;
   position: absolute; top: -1px; left: 2px;
 }
-.q-match-cell { text-align: left; }
-.q-match-teams { font-size: 11px; font-weight: 600; color: #64748B; white-space: nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
-.q-match-vs { font-size: 11px; font-weight: 400; color: #64748B; padding: 1px 0; }
+/* 对阵列 */
+.q-match-cell { text-align: left; position: relative; }
+.q-match-teams { font-size: 11px; font-weight: 600; color: #64748B; white-space: normal; word-break: break-all; line-height: 1.25; }
+.q-match-vs { font-size: 10px; font-weight: 400; color: #64748B; padding: 1px 0; }
+/* 数值通用 */
 .q-cell-num { font-weight: 600; font-size: 11px; color: #64748B; }
 .q-cell-num.pos { color: var(--cyan); font-weight: 700; }
 .q-cell-num.neg { color: var(--red); }
+.q-cell-num.cool { color: #60A5FA; }
+/* 排名 */
+.q-cell-rank { font-weight: 700; font-size: 12px; color: #64748B; }
+.q-cell-rank.r1 { color: #FFD700; }
+.q-cell-rank.r2 { color: #C0C0C0; }
+.q-cell-rank.r3 { color: #CD7F32; }
 /* 底部PK栏 — 紧跟表格 */
 .quant-pk-bar {
   margin: 8px 12px 100px;
