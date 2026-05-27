@@ -8,11 +8,6 @@ var pickedIds = {};
 var sortKey = 'rank';
 var sortAsc = true;
 
-// ★Phase1: 数据时间戳
-var gsCacheTime = null;   // 功守道缓存修改时间
-var hotCacheTime = null;  // 热度缓存最晚条目时间
-var dataTime = null;      // data.json 修改时间
-
 export function updateQuantDateBar() {
   var d = new Date();
   d.setDate(d.getDate() + quantDateOffset);
@@ -93,8 +88,6 @@ export function loadQuantRank() {
 
   api('ranking-list', params).then(function (rankData) {
     var ranking = rankData.ranking || [];
-    // ★Phase1: 记录排名数据时间戳
-    dataTime = rankData.dataTime || null;
     if (ranking.length === 0) {
       // 当天无数据 → 自动回退到前一天（和今日比赛页面规则一致）
       var now = new Date();
@@ -121,9 +114,6 @@ export function loadQuantRank() {
       var gsAllMap = gsAllData.gsData || {};
       var hotData = results[1] || {};
       var hotMap = (hotData && hotData.hotData) ? hotData.hotData : {};
-      // ★Phase1: 记录时间戳
-      gsCacheTime = gsAllData.gsCacheTime || null;
-      hotCacheTime = (hotData && hotData.hotCacheTime) || null;
       var gsResults = ranking.map(function (item) { return gsAllMap[item.matchId] || {}; });
       allData = ranking.map(function (item, i) {
         var merged = mergeItem(item, gsResults[i] || {});
@@ -225,37 +215,10 @@ function mergeItem(item, gs) {
   };
 }
 
-// ═══ 数据时间戳渲染 ═══
-function formatTime(isoStr) {
-  if (!isoStr) return '--:--:--';
-  try {
-    var d = new Date(isoStr);
-    if (isNaN(d.getTime())) return '--:--:--';
-    var hh = String(d.getHours()).padStart(2, '0');
-    var mm = String(d.getMinutes()).padStart(2, '0');
-    var ss = String(d.getSeconds()).padStart(2, '0');
-    return hh + ':' + mm + ':' + ss;
-  } catch (e) { return '--:--:--'; }
-}
-
-function getCompletenessLabel(score) {
-  if (score >= 3) return { text: '完整', cls: 'q-complete' };
-  if (score >= 2) return { text: '部分', cls: 'q-partial' };
-  if (score >= 1) return { text: '缺失', cls: 'q-missing' };
-  return { text: '无数据', cls: 'q-none' };
-}
-
 // ═══ 渲染 — flex 卡片表格 ═══
 function renderTable() {
   var wrap = document.getElementById('quantTableWrap');
   if (!wrap) return;
-
-  // 时间戳条
-  var h = '<div class="quant-time-bar">';
-  h += '<span class="quant-time-item" title="GS功守道缓存"><span class="quant-time-dot gs-dot"></span>GS: ' + formatTime(gsCacheTime) + '</span>';
-  h += '<span class="quant-time-item" title="欧指热度数据"><span class="quant-time-dot hot-dot"></span>热度: ' + formatTime(hotCacheTime) + '</span>';
-  h += '<span class="quant-time-item" title="比赛排名数据"><span class="quant-time-dot rank-dot"></span>排名: ' + formatTime(dataTime) + '</span>';
-  h += '</div>';
 
   // 排序
   var sorted;
@@ -350,10 +313,9 @@ function renderTable() {
   // 数据行
   sorted.forEach(function (item) {
     var p = !!pickedIds[item.matchId];
-    var compl = getCompletenessLabel(item.completenessScore || 0);
-    h += '<div id="qr-' + item.matchId + '" class="quant-card-row' + (p ? ' picked' : '') + ' q-row-' + compl.cls + '">';
+    h += '<div id="qr-' + item.matchId + '" class="quant-card-row' + (p ? ' picked' : '') + '">';
     h += '<span class="q-col-chk"><input type="checkbox" class="q-chk" ' + (p ? 'checked' : '') + ' onclick="togglePick(event,\'' + item.matchId + '\')"/></span>';
-    h += renderMatch(item, compl);
+    h += renderMatch(item);
     h += renderRow(item);
     h += '</div>';
   });
@@ -369,12 +331,11 @@ function shortTeam(name) {
   return name.slice(0, 2) + '..';
 }
 
-function renderMatch(item, compl) {
+function renderMatch(item) {
   return '<span class="q-col-match q-match-cell">' +
     '<div class="q-match-teams" title="' + esc(item.homeName) + '">' + esc(shortTeam(item.homeName)) + '</div>' +
     '<div class="q-match-vs">vs</div>' +
     '<div class="q-match-teams" title="' + esc(item.visitName) + '">' + esc(shortTeam(item.visitName)) + '</div>' +
-    '<span class="q-compl-indicator ' + (compl ? compl.cls : '') + '" title="数据完整度: ' + (compl ? compl.text : '未知') + '">●</span>' +
     '</span>';
 }
 
