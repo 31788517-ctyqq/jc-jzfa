@@ -333,9 +333,9 @@ function shortTeam(name) {
 
 function renderMatch(item) {
   return '<span class="q-col-match q-match-cell">' +
-    '<div class="q-match-teams" title="' + esc(item.homeName) + '">' + esc(shortTeam(item.homeName)) + '</div>' +
+    '<div class="q-match-teams" title="' + esc(item.homeName) + '">' + esc(item.homeName) + '</div>' +
     '<div class="q-match-vs">vs</div>' +
-    '<div class="q-match-teams" title="' + esc(item.visitName) + '">' + esc(shortTeam(item.visitName)) + '</div>' +
+    '<div class="q-match-teams" title="' + esc(item.visitName) + '">' + esc(item.visitName) + '</div>' +
     '</span>';
 }
 

@@ -147,9 +147,9 @@ function calcRowValues(item) {
 function buildTableRow(item, idx, colSums, total) {
   var vals = calcRowValues(item);
   return '<tr class="pk2-row">' +
-    '<td class="pk2-td-name"><span class="pk2-row-idx">' + idx + '</span>' +
-      '<span class="pk2-team-name">' + esc(shortTeam(item.homeName)) + ' vs ' + esc(shortTeam(item.visitName)) + '</span>' +
-      '<div class="pk2-team-num">' + esc(item.num) + '</div></td>' +
+    '<td class="pk2-td-name"><div class="pk2-match-line">' + esc(item.homeName) + '</div>' +
+      '<div class="pk2-match-vs">vs</div>' +
+      '<div class="pk2-match-line">' + esc(item.visitName) + '</div></td>' +
     '<td class="pk2-td-num"></td>' +
     tdPctNum(vals.bigBall, colSums.bigBall) +
     tdPctNum(vals.attDef, colSums.attDef) +
@@ -211,9 +211,9 @@ function renderPKCard(a, b) {
 
   return '<div class="pk2-card">' +
     '<div class="pk2-card-head">' +
-      '<div class="pk2-card-team">' + esc(shortTeam(a.homeName)) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(a.num) + '</span></div>' +
+      '<div class="pk2-card-team">' + esc(shortTeam(a.homeName)) + '</div>' +
       '<span class="pk2-card-vs">VS</span>' +
-      '<div class="pk2-card-team">' + esc(shortTeam(b.homeName)) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(b.num) + '</span></div>' +
+      '<div class="pk2-card-team">' + esc(shortTeam(b.homeName)) + '</div>' +
     '</div>' +
     '<div class="pk2-card-body">' + rows + '</div>' +
     '<div class="pk2-card-summary">🏆 总PK：' +
@@ -270,9 +270,9 @@ function renderPKPower(modal, list) {
     var power = (item.totalAdvantageValue || 0) - 50;
     var ad    = (item.attackAdvantageValue || 0) + (item.defenseAdvantageValue || 0) - 100;
     html += '<tr class="pk2-row">' +
-      '<td class="pk2-td-name"><span class="pk2-row-idx">' + (i + 1) + '</span>' +
-        '<span class="pk2-team-name">' + esc(shortTeam(item.homeName)) + ' vs ' + esc(shortTeam(item.visitName)) + '</span>' +
-        '<div class="pk2-team-num">' + esc(item.num) + '</div></td>' +
+      '<td class="pk2-td-name"><div class="pk2-match-line">' + esc(item.homeName) + '</div>' +
+        '<div class="pk2-match-vs">vs</div>' +
+        '<div class="pk2-match-line">' + esc(item.visitName) + '</div></td>' +
       '<td class="pk2-td-num">' + (item.rank || '-') + '</td>' +
       tdPctBar(gd, colSums.gd) +
       tdPctBar(cross, colSums.cross) +
@@ -343,9 +343,9 @@ function renderPowerDuel(a, b) {
 
   return '<div class="pk2-card">' +
     '<div class="pk2-card-head">' +
-      '<div class="pk2-card-team">' + esc(shortTeam(a.homeName)) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(a.num) + '</span></div>' +
+      '<div class="pk2-card-team">' + esc(shortTeam(a.homeName)) + '</div>' +
       '<span class="pk2-card-vs">VS</span>' +
-      '<div class="pk2-card-team">' + esc(shortTeam(b.homeName)) + '<span style="font-size:10px;color:var(--text3)"> ' + esc(b.num) + '</span></div>' +
+      '<div class="pk2-card-team">' + esc(shortTeam(b.homeName)) + '</div>' +
     '</div>' +
     '<div class="pk2-card-body">' + rows + '</div>' +
     '<div class="pk2-card-summary">🏆 总PK：' +
@@ -408,9 +408,9 @@ function renderPKHot(modal, list) {
     var diff = parseFloat(item.staticDiff) || 0;
     var odds = parseFloat(item.oddsLive) || 0;
     html += '<tr class="pk2-row">' +
-      '<td class="pk2-td-name"><span class="pk2-row-idx">' + (i + 1) + '</span>' +
-        '<span class="pk2-team-name">' + esc(shortTeam(item.homeName)) + ' vs ' + esc(shortTeam(item.visitName)) + '</span>' +
-        '<div class="pk2-team-num">' + esc(item.num) + '</div></td>' +
+      '<td class="pk2-td-name"><div class="pk2-match-line">' + esc(item.homeName) + '</div>' +
+        '<div class="pk2-match-vs">vs</div>' +
+        '<div class="pk2-match-line">' + esc(item.visitName) + '</div></td>' +
       tdPctBar(hot,  colSums.hot) +
       tdPctBar(heat, colSums.heat) +
       tdPctBar(diff, colSums.diff) +
