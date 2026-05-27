@@ -65,7 +65,7 @@ export function startPK() {
 function updatePkBar() {
   var bar = document.getElementById('quantPkBar');
   var count = Object.keys(pickedIds).length;
-  var cntEl = document.getElementById('pkSelectCount');
+  var cntEl = document.getElementById('pkBarCount');
   var btn = document.getElementById('pkBarBtn');
   if (bar) bar.style.display = count > 0 ? 'flex' : 'none';
   if (cntEl) cntEl.textContent = count;
@@ -263,7 +263,7 @@ function renderTable() {
 
 function tdMatch(item) {
   return '<td class="q-match-cell">' +
-    '<div class="q-match-num">' + esc(item.num) + '</div>' +
+    '<div class="q-match-num">' + esc(item.num) + ' ' + esc(item.leagueName) + '</div>' +
     '<div class="q-match-teams">' + esc(item.homeName) + ' vs ' + esc(item.visitName) + '</div>' +
     '</td>';
 }
