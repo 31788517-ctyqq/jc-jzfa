@@ -94,8 +94,8 @@ function calcAttackAdvantage(vars) {
   const eff = attackEfficiencyScore(vars);
   const dist = goalDistributionScore(vars);
 
-  // 权重：赢球格局 35%、攻击能效 30%、进球厚度 35%
-  const weights = { gap: 0.35, eff: 0.30, dist: 0.35 };
+  // 权重：赢球格局 40%、攻击能效 35%、进球厚度 25%
+  const weights = { gap: 0.40, eff: 0.35, dist: 0.25 };
   const compositeAdv = round(
     gap.advantage * weights.gap +
     eff.advantage * weights.eff +
@@ -185,8 +185,8 @@ function calcDefenseAdvantage(vars) {
   const eff = defenseEfficiencyScore(vars);
   const dist = concedeDistributionScore(vars);
 
-  // 权重：输球容错 35%、防御能效 30%、零封能力 35%
-  const weights = { gap: 0.35, eff: 0.30, dist: 0.35 };
+  // 权重：输球容错 40%、防御能效 35%、零封能力 25%
+  const weights = { gap: 0.40, eff: 0.35, dist: 0.25 };
   const compositeAdv = round(
     gap.advantage * weights.gap +
     eff.advantage * weights.eff +
