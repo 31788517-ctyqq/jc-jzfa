@@ -172,22 +172,27 @@ function renderTable() {
   var wrap = document.getElementById('quantTableWrap');
   if (!wrap) return;
 
-  var sorted = allData.slice().sort(function (a, b) {
-    var va = getSortVal(a, sortKey), vb = getSortVal(b, sortKey);
-    if (va < vb) return sortAsc ? -1 : 1;
-    if (va > vb) return sortAsc ? 1 : -1;
-    return 0;
-  });
+  var sorted;
+  if (currentTab === 'power') {
+    // 实力tab保持API原始顺序，不排序
+    sorted = allData.slice();
+  } else {
+    sorted = allData.slice().sort(function (a, b) {
+      var va = getSortVal(a, sortKey), vb = getSortVal(b, sortKey);
+      if (va < vb) return sortAsc ? -1 : 1;
+      if (va > vb) return sortAsc ? 1 : -1;
+      return 0;
+    });
+  }
 
-  // 按 currentTab 确定列定义
+  // 按 currentTab 确定列定义（实力tab全部不可排序）
   var cols;
   if (currentTab === 'power') {
     cols = [
       { key: 'match', label: '对阵', sortable: false, cls: 'th-match' },
-      { key: 'rank', label: '总排序', sortable: true, cls: 'th-rank' },
-      { key: 'goalDiff', label: '净胜球', sortable: true, cls: 'th-gd' },
+      { key: 'goalDiff', label: '净胜球', sortable: false, cls: 'th-gd' },
       { key: 'cross', label: '胜平负交叉', sortable: false, cls: 'th-cross' },
-      { key: 'power', label: '综合实力', sortable: true, cls: 'th-power' },
+      { key: 'power', label: '综合实力', sortable: false, cls: 'th-power' },
       { key: 'ad', label: '攻守实力', sortable: false, cls: 'th-ad' }
     ];
   } else if (currentTab === 'goal') {
@@ -227,8 +232,7 @@ function renderTable() {
       tdMatch(item);
 
     if (currentTab === 'power') {
-      h += tdRank(item.rank) +
-        tdNum(item, 'goalDiff') +
+      h += tdNum(item, 'goalDiff') +
         tdCross(item) +
         tdNum(item, 'power') +
         tdAd(item);
@@ -274,8 +278,9 @@ function tdNum(item, k) {
   if (k === 'goalDiff') {
     v = item.goalDiff;
     if (v !== '-') { var n = parseFloat(String(v).split('/')[0]); if (!isNaN(n)) v = (n >= 0 ? '+' : '') + n.toFixed(4); }
-  } else { // power
-    v = item.totalAdvantage || '-';
+  } else { // power — 综合实力偏移百分比
+    var pv = item.totalAdvantageValue - 50;
+    v = (pv >= 0 ? '+' : '') + pv.toFixed(1) + '%';
   }
   var cls = getNumClass(item, k);
   return '<td><span class="q-cell-num ' + cls + '">' + v + '</span></td>';
@@ -288,10 +293,10 @@ function getNumClass(item, k) {
     var n = parseFloat(String(v).split('/')[0]); if (isNaN(n)) return '';
     return n > 0 ? 'pos' : n < 0 ? 'neg' : '';
   }
-  // power
-  var p = item.totalAdvantageValue;
-  if (p >= 60) return 'pos';
-  if (p < 45) return 'neg';
+  // power — 综合实力偏移
+  var p = item.totalAdvantageValue - 50;
+  if (p > 0) return 'pos';
+  if (p < 0) return 'neg';
   return '';
 }
 
