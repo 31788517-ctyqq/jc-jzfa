@@ -366,12 +366,7 @@ function renderTable() {
 // ── 对战列 ──
 function shortTeam(name) {
   if (!name) return '--';
-  // 中文队名 > 4 字截取前 2 字 + ..
-  // 英文队名 > 8 字符截取前 6 字符 + ..
-  if (/[\u4e00-\u9fff]/.test(name)) {
-    return name.length > 4 ? name.slice(0, 2) + '..' : name;
-  }
-  return name.length > 8 ? name.slice(0, 6) + '..' : name;
+  return name.slice(0, 2) + '..';
 }
 
 function renderMatch(item, compl) {
