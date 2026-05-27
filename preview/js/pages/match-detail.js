@@ -205,36 +205,90 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
     awayTeam = (teams[1] ? teams[1].textContent : null) || awayTeam || '客队';
   }
 
+  // 显示加载态
   var html = '<div class="ai-modal-header"><span class="ai-modal-title">AI深度解析</span><button class="ai-modal-close" onclick="closeAI()">&times;</button></div>';
-  html += '<div class="ai-content"><div style="text-align:center;padding:60px 20px;color:var(--cyan);"><div style="font-size:40px;margin-bottom:16px;">⏳</div><div style="font-size:16px;font-weight:600;">正在生成分析...</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">正在搜索比赛信息并生成五维分析</div></div></div>';
+  html += '<div class="ai-content"><div style="text-align:center;padding:60px 20px;color:var(--cyan);"><div style="font-size:40px;margin-bottom:16px;">⏳</div><div style="font-size:16px;font-weight:600;">正在交叉分析中...</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">DeepSeek + 豆包 双模型交叉验证</div></div></div>';
   var modalEl = document.getElementById('aiModal');
   if (modalEl) modalEl.innerHTML = html;
   var overlayEl = document.getElementById('aiOverlay');
   if (overlayEl) overlayEl.classList.add('active');
   document.body.style.overflow = 'hidden';
 
+  // 轮询计时变量
+  var pollStartTime = Date.now();
+  var estimatedTotalSec = 45;
+  var retryCount = 0;
+  var maxRetries = 20;
+  var pollTimer = null;
+
+  // 更新等待界面
+  function updateWaitUI() {
+    var elapsed = Math.floor((Date.now() - pollStartTime) / 1000);
+    var remaining = Math.max(1, estimatedTotalSec - elapsed);
+    var progress = Math.min(98, Math.floor(elapsed / Math.max(estimatedTotalSec, 1) * 100));
+
+    var inner = modalEl ? modalEl.querySelector('.ai-content') : null;
+    if (!inner) return;
+    inner.innerHTML = '<div style="text-align:center;padding:60px 20px;">' +
+      '<div style="font-size:40px;margin-bottom:16px;">⏳</div>' +
+      '<div style="font-size:16px;font-weight:600;color:var(--cyan);">正在交叉分析中...</div>' +
+      '<div style="font-size:12px;color:var(--text3);margin-top:8px;">DeepSeek + 豆包 双模型交叉验证</div>' +
+      '<div style="margin-top:20px;width:220px;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;margin-left:auto;margin-right:auto;">' +
+        '<div style="width:' + progress + '%;height:100%;background:var(--cyan);border-radius:2px;transition:width 0.5s ease;"></div>' +
+      '</div>' +
+      '<div style="font-size:12px;color:var(--text3);margin-top:10px;">' +
+        (remaining > 0 ? '预计还需约 ' + remaining + ' 秒' : '正在收尾，请稍候...') +
+      '</div>' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:4px;">已等待 ' + elapsed + ' 秒</div>' +
+    '</div>';
+  }
+
+  function startWaitUI() {
+    updateWaitUI();
+    // 每秒更新一次进度条
+    pollTimer = setInterval(function () {
+      if (pollTimer) updateWaitUI();
+    }, 1000);
+  }
+
+  function stopWaitUI() {
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  }
+
+  // 调用 API
   api('ai-predict', { matchId: matchId }).then(function (d) {
     if (d.fromCache || d.content) {
+      stopWaitUI();
       renderAIContent(d.content, homeTeam, awayTeam);
     } else if (d.pending) {
-      var retryCount = 0;
+      // 获取后端预估等待时间
+      if (d.estimatedWait) estimatedTotalSec = d.estimatedWait;
+      startWaitUI();
+
+      // 后台生成中，3 秒后重试
       function retry() {
-        if (retryCount >= 15) {
+        if (retryCount >= maxRetries) {
+          stopWaitUI();
           var ac = document.getElementById('aiModal');
           if (ac) {
             var inner = ac.querySelector('.ai-content');
-            if (inner) inner.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);">生成超时，请稍后再试</div>';
+            if (inner) inner.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);"><div style="font-size:40px;margin-bottom:12px;">⏰</div><div style="font-size:16px;font-weight:600;">分析生成超时</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">双模型验证耗时较长，请稍后重试</div><button style="margin-top:20px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;" onclick="showAIPrediction(\'' + matchId + '\')">重新生成</button></div>';
           }
           return;
         }
         retryCount++;
         api('ai-predict', { matchId: matchId }).then(function (rd) {
-          if (rd.content) { renderAIContent(rd.content, homeTeam, awayTeam); }
-          else { setTimeout(retry, 3000); }
+          if (rd.content) {
+            stopWaitUI();
+            renderAIContent(rd.content, homeTeam, awayTeam);
+          } else {
+            setTimeout(retry, 3000);
+          }
         }).catch(function () { setTimeout(retry, 3000); });
       }
       setTimeout(retry, 2000);
     } else {
+      stopWaitUI();
       var ac2 = document.getElementById('aiModal');
       if (ac2) {
         var inner2 = ac2.querySelector('.ai-content');
@@ -242,6 +296,7 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
       }
     }
   }).catch(function (e) {
+    stopWaitUI();
     var ac3 = document.getElementById('aiModal');
     if (ac3) {
       var inner3 = ac3.querySelector('.ai-content');

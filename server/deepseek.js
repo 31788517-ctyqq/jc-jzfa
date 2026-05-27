@@ -5,7 +5,7 @@
 const https = require('https');
 const http = require('http');
 
-const API_KEY = process.env.DEEPSEEK_API_KEY || '[REDACTED_DEEPSEEK_KEY]';
+const API_KEY = process.env.DEEPSEEK_API_KEY || 'DUMMY_PLACEHOLDER';
 const BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1';
 const MODEL = 'deepseek-v4-pro';
 const TIMEOUT = 60000; // 60秒超时
