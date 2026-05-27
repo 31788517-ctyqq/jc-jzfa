@@ -134,13 +134,19 @@ function mergeItem(item, gs) {
   var tgv = parseFloat(gs.totalGoalsValue) || 0;
   // 交锋进球：简化的对冲进球预期
   var hhg = (cw !== '-' && cl !== '-') ? (((cw || 0) - (cl || 0)) / 10 + 2.5) : 2.5;
+  // P0: 大球比例 — 使用 gongshoudao goalRange.overRate（已 *100），无数据默认50
+  var bigBall = (gs.goalRange && gs.goalRange.overRate != null) ? gs.goalRange.overRate : (gs.overRate != null ? gs.overRate : 50);
+  // P1: 胜平负交叉 — 文档公式: (H_win + G_loss - H_loss - G_win) / 10
+  var crossValue = (gs.hWins != null && gs.aLosses != null) ? ((gs.hWins + gs.aLosses - gs.hLosses - gs.aWins) / 10) : '-';
+  // P2: 攻守实力 — 组合为单一数值
+  var adCombined = ((aav + dav) / 2 - 50);
 
   function goalTotalSum() {
-    var b = Math.abs(tge);
+    var b = Math.abs(bigBall);
     var a = Math.abs(gdh + gda);
-    var s = Math.abs(tgv);
+    var s = Math.abs(tge);
     var h = Math.abs(hhg);
-    var r = Math.abs((aav + dav) / 100);
+    var r = Math.abs(adCombined);
     return parseFloat((b + a + s + h + r).toFixed(4));
   }
 
@@ -165,11 +171,11 @@ function mergeItem(item, gs) {
     defenseAdvantageValue: dav,
     hasGS: !!(gs.attackPattern),
     // 进球维度
-    bigBallRatio: tge,
+    bigBallRatio: bigBall,
     attDefGoal: gdh + gda,
-    strengthGoal: tgv,
+    strengthGoal: tge,
     headToHeadGoal: hhg,
-    breakArmor: (aav + dav) / 100,
+    breakArmor: adCombined,
     totalSum: goalTotalSum(),
     // 热点维度（占位）
     rq: gs.crossRq !== undefined ? gs.crossRq : '-',
@@ -178,7 +184,11 @@ function mergeItem(item, gs) {
     homeFeature: '-',
     guestFeature: '-',
     staticDiff: gs.totalAdvantageValue || 0,
-    oddsLive: '-'
+    oddsLive: '-',
+    // P1: 胜平负交叉数值
+    crossValue: crossValue,
+    // P2: 攻守实力组合值
+    adCombined: adCombined
   };
 }
 
@@ -205,6 +215,7 @@ function renderTable() {
   if (currentTab === 'power') {
     cols = [
       { key: 'match', label: '对阵', sortable: false, cls: 'th-match' },
+      { key: 'rank', label: '总排序', sortable: true, cls: 'th-rk' },
       { key: 'goalDiff', label: '净胜球', sortable: false, cls: 'th-gd' },
       { key: 'cross', label: '胜平负交叉', sortable: false, cls: 'th-cross' },
       { key: 'power', label: '综合实力', sortable: false, cls: 'th-power' },
@@ -247,10 +258,11 @@ function renderTable() {
       tdMatch(item);
 
     if (currentTab === 'power') {
-      h += tdNum(item, 'goalDiff') +
-        tdCross(item) +
+      h += tdRank(item.rank) +
+        tdNum(item, 'goalDiff') +
+        tdCrossValue(item) +
         tdNum(item, 'power') +
-        tdAd(item);
+        tdAdCombined(item);
     } else if (currentTab === 'goal') {
       h += tdGoalCell(item, 'totalSum', 2) +
         tdGoalCell(item, 'bigBallRatio', 1) +
@@ -294,7 +306,7 @@ function tdNum(item, k) {
   if (k === 'goalDiff') {
     v = item.goalDiff;
     if (v !== '-') { var n = parseFloat(String(v).split('/')[0]); if (!isNaN(n)) v = (n >= 0 ? '+' : '') + n.toFixed(4); }
-  } else { // power — 综合实力偏移百分比
+  } else { // power — 综合实力偏移
     var pv = item.totalAdvantageValue - 50;
     v = (pv >= 0 ? '+' : '') + pv.toFixed(1) + '%';
   }
@@ -316,18 +328,24 @@ function getNumClass(item, k) {
   return '';
 }
 
-function tdCross(item) {
-  if (item.crossWin === '-' && item.crossDraw === '-' && item.crossLose === '-') {
+function tdCrossValue(item) {
+  var v = item.crossValue;
+  if (v === '-' || v === undefined || v === null) {
     return '<td><span class="q-cell-num" style="color:var(--text4)">-</span></td>';
   }
-  var w = item.crossWin, d = item.crossDraw, l = item.crossLose;
-  return '<td><span class="q-cell-num" style="font-size:11px">胜' + w + ' 平' + d + ' 负' + l + '</span></td>';
+  var n = parseFloat(v);
+  if (isNaN(n)) return '<td><span class="q-cell-num">' + v + '</span></td>';
+  var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
+  return '<td><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></td>';
 }
 
-function tdAd(item) {
-  var a = item.attackAdvantageValue, d = item.defenseAdvantageValue;
-  if (a === 0 && d === 0) return '<td><span class="q-cell-num" style="color:var(--text4)">-</span></td>';
-  return '<td><span class="q-cell-num" style="font-size:11px;white-space:nowrap;">+攻' + a + '守' + d + '</span></td>';
+function tdAdCombined(item) {
+  var v = item.adCombined;
+  if (v === 0 || v === undefined || v === null) return '<td><span class="q-cell-num" style="color:var(--text4)">0.00</span></td>';
+  var n = parseFloat(v);
+  if (isNaN(n)) return '<td><span class="q-cell-num">' + v + '</span></td>';
+  var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
+  return '<td><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></td>';
 }
 
 // 进球 tab 单元格
@@ -380,8 +398,9 @@ function getSortVal(item, key) {
     // 实力
     case 'rank':       return item.rank || 99;
     case 'goalDiff':   var p = String(item.goalDiff).split('/'); var n = parseFloat(p[0]); return isNaN(n) ? 0 : n;
+    case 'cross':      return parseFloat(item.crossValue) || 0;
     case 'power':      return item.totalAdvantageValue || 0;
-    case 'ad':         return (item.attackAdvantageValue || 0) + (item.defenseAdvantageValue || 0);
+    case 'ad':         return parseFloat(item.adCombined) || 0;
     // 进球
     case 'totalSum':       return parseFloat(item.totalSum) || 0;
     case 'bigBallRatio':   return parseFloat(item.bigBallRatio) || 0;

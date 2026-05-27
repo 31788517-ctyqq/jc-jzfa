@@ -88,6 +88,13 @@ function computeSingleMatch(rawStats, matchInfo) {
     crossDraw: strengthResult.cross.crossDraw,
     crossLose: strengthResult.cross.crossLose,
     crossRq: strengthResult.cross.rq,
+    // 原始近10场胜平负场次（用于前端计算赛果对冲差值）
+    hWins: strengthResult.cross.hWins,
+    hLosses: strengthResult.cross.hLosses,
+    aWins: strengthResult.cross.aWins,
+    aLosses: strengthResult.cross.aLosses,
+    // 大球率（goalRange 内部）
+    overRate: goalResult.goalRange.overRate,
 
     // 第四阶段输出：大小球
     homeWeight: goalResult.homeWeight,
