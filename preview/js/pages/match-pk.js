@@ -216,7 +216,7 @@ function renderPKCard(a, b) {
       '<div class="pk2-card-team">' + esc(shortTeam(b.homeName)) + '</div>' +
     '</div>' +
     '<div class="pk2-card-body">' + rows + '</div>' +
-    '<div class="pk2-card-summary">🏆 总PK：' +
+    '<div class="pk2-card-summary">总PK：' +
       '<b style="color:var(--cyan)">' + esc(shortTeam(a.homeName)) + ' (' + aWins + '胜)</b> ' +
       (aWins > bWins ? '👑' : aWins === bWins ? '⚖️ 平局' : '') +
       (bWins > aWins ? ' <b style="color:#f97316">' + esc(shortTeam(b.homeName)) + ' (' + bWins + '胜)</b> 👑' : '') +
@@ -242,7 +242,7 @@ function renderPKPower(modal, list) {
   var n = list.length;
   var html =
     '<div class="pk2-header">' +
-      '<span class="pk2-title">⚔️ 实力PK对比</span>' +
+      '<span class="pk2-title">实力PK对比</span>' +
       '<span class="pk2-close" onclick="closePK()">✕</span>' +
     '</div>';
 
@@ -290,7 +290,7 @@ function renderPKPower(modal, list) {
     '</tr>';
   html += '</tbody></table></div>';
 
-  html += '<div class="pk2-section-label">🏆 实力PK结果</div>';
+  html += '<div class="pk2-section-label">实力PK结果</div>';
   html += renderPowerPKCard(list);
   html += '<div class="pk2-footer"><button class="pk2-done-btn" onclick="closePK()">完成</button></div>';
   modal.innerHTML = html;
@@ -327,8 +327,6 @@ function renderPowerDuel(a, b) {
     }
     if (result === 'a') aWins++; else if (result === 'b') bWins++;
     return '<div class="pk2-result-row">' +
-      '<span class="pk2-result-icon ' + (result === 'a' ? 'pk2-win' : result === 'b' ? 'pk2-lose' : '') + '">' +
-        (result === 'a' ? '👑' : '') + '</span>' +
       '<span class="pk2-result-label">' + d.label + '</span>' +
       '<span class="pk2-result-values">' +
         '<span class="' + (result === 'a' ? 'pk2-win' : '') + '">' + esc(shortTeam(a.homeName)) + ' (' + (typeof d.va === 'number' ? d.va.toFixed(2) : d.va) + ')</span>' +
@@ -348,7 +346,7 @@ function renderPowerDuel(a, b) {
       '<div class="pk2-card-team">' + esc(shortTeam(b.homeName)) + '</div>' +
     '</div>' +
     '<div class="pk2-card-body">' + rows + '</div>' +
-    '<div class="pk2-card-summary">🏆 总PK：' +
+    '<div class="pk2-card-summary">总PK：' +
       '<b style="color:var(--cyan)">' + esc(shortTeam(a.homeName)) + ' (' + aWins + '胜)</b> ' +
       (aWins > bWins ? '👑' : aWins === bWins ? '⚖️ 平局' : '') +
       (bWins > aWins ? ' <b style="color:#f97316">' + esc(shortTeam(b.homeName)) + ' (' + bWins + '胜)</b> 👑' : '') +
