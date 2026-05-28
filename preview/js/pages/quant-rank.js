@@ -164,6 +164,12 @@ function mergeItem(item, gs) {
   // P2: 攻守实力 — 组合为单一数值
   var adCombined = ((aav + dav) / 2 - 50);
 
+  // 总排序：四维加权合成（文档公式）
+  var gdScore = parseFloat(gs.goalDiffHome) || 0;
+  var cvNum = crossValue === '-' ? 0 : parseFloat(crossValue);
+  var pwScore = ((gs.totalAdvantageValue || 0) - 50) / 100;
+  var totalScore = parseFloat(((gdScore + cvNum + pwScore + adCombined) / 4).toFixed(4));
+
   function goalTotalSum() {
     var b = Math.abs(bigBall);
     var a = Math.abs(gdh + gda);
@@ -182,6 +188,7 @@ function mergeItem(item, gs) {
     date: item.date || '',
     matchStatus: item.matchStatus || 0,
     rank: item.rank || 99,
+    totalScore: totalScore,          // 总排序得分（四维合成）
     // 实力维度
     totalAdvantage: gs.totalAdvantage || '-',
     totalAdvantageValue: gs.totalAdvantageValue || 0,
@@ -245,7 +252,7 @@ function renderTable() {
       { key: 'ad', label: '攻守\n实力', sortable: false, colCls: 'q-col-ad' }
     ];
     renderRow = function (item) {
-      return renderRank(item.rank) +
+      return renderRank(item.totalScore) +
         renderGoalDiff(item) +
         renderCrossValue(item) +
         renderPower(item) +
@@ -339,10 +346,13 @@ function renderMatch(item) {
     '</span>';
 }
 
-// ── 排名 ──
-function renderRank(r) {
-  var cls = r === 1 ? 'r1' : r === 2 ? 'r2' : r === 3 ? 'r3' : '';
-  return '<span class="q-col-rk"><span class="q-cell-rank ' + cls + '">' + r + '</span></span>';
+// ── 总排序（文档格式：四位合成值，保留2位小数） ──
+function renderRank(totalScore) {
+  if (totalScore === undefined || totalScore === null || isNaN(totalScore))
+    return '<span class="q-col-rk"><span class="q-cell-num">-</span></span>';
+  var n = parseFloat(totalScore);
+  var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
+  return '<span class="q-col-rk"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
 }
 
 // ── 净胜球 ──
@@ -445,7 +455,7 @@ function hotKeyToCls(key) {
 // ── 排序值提取 ──
 function getSortVal(item, key) {
   switch (key) {
-    case 'rank':       return item.rank || 99;
+    case 'rank':       return parseFloat(item.totalScore) || 0;
     case 'goalDiff':   var p = String(item.goalDiff).split('/'); var n = parseFloat(p[0]); return isNaN(n) ? 0 : n;
     case 'cross':      return parseFloat(item.crossValue) || 0;
     case 'power':      return item.totalAdvantageValue || 0;
