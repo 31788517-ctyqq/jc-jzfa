@@ -209,6 +209,11 @@ function analyze(vars, xgHome, xgAway) {
   // Total_战 百分比化显示
   const totalPct = round(totalStrength.normalized * 100, 1);
 
+  // ★ 实力进球 (M3_B) = 0.5 × (主队静态进球能力 + 客队静态进球能力) × (1 + 0.2 × Total_战)
+  const hGoalAbility = vars.homeRecentGoalAvg || 1;
+  const aGoalAbility = vars.awayRecentGoalAvg || 1;
+  const strengthGoal = round(0.5 * (hGoalAbility + aGoalAbility) * (1 + 0.2 * totalStrength.normalized), F);
+
   return {
     // 主队赢球期望
     homeWinExpect: (diffXG >= 0 ? '+' : '') + diffXG.toFixed(2),
@@ -239,7 +244,10 @@ function analyze(vars, xgHome, xgAway) {
 
     // 内部数据
     _totalStrength: totalStrength,
-    _diffXG: diffXG
+    _diffXG: diffXG,
+
+    // ★ 实力进球（供进球预测排行榜使用）
+    strengthGoal: strengthGoal
   };
 }
 
