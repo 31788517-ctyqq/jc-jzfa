@@ -4,6 +4,7 @@
  *
  * 调度计划:
  *   - 12:00 每天:     500.com 赔率抓取 + 赛程信息同步（各一次）
+ *   - 每 1 小时:      AI 深度解析刷新（8:00~20:00）
  *   - 每 20 分钟:     专家推荐方向 + 专家数
  *   - 每 2 分钟:      实时比分（全场/半场比分、黄牌、红牌、比赛状态）
  *   - 赛后动态:       专家推荐命中结果（检测到比赛结束时自动回填）
@@ -22,6 +23,14 @@ const { getWithUA, getWithRetry, jitter, sleep } = require('./http-utils');
 const { getToken, refreshToken } = require('./token_manager');
 const { fetchOdds: fetch500Odds, fetchShujuMap } = require('./fetch_500odds');
 const { execSync } = require('child_process');
+
+// AI 模块（用于定时刷新）
+let deepseek, doubao, aiMerger;
+function loadAIModules() {
+  try { deepseek = require('./deepseek'); } catch (e) {}
+  try { doubao = require('./doubao'); } catch (e) {}
+  try { aiMerger = require('./ai_merger'); } catch (e) {}
+}
 
 // ═══ 配置常量 ═══
 const DATA_FILE = path.join(__dirname, 'data.json');
@@ -664,6 +673,106 @@ async function backfillResults(dateStr) {
   }
 }
 
+// ═══ Task 5B: AI 深度解析定时刷新（每小时，8:00~20:00） ═══
+let aiRefreshRunning = false;
+
+async function refreshTodayAI() {
+  if (aiRefreshRunning) return;
+  const now = new Date();
+  const hour = now.getHours();
+  // 仅在 8:00~19:59 之间执行（20:00 前截止）
+  if (hour < 8 || hour >= 20) return;
+
+  aiRefreshRunning = true;
+  const today = fmtLocal(now);
+  log('[ai_refresh] 开始刷新 ' + today + ' AI 深度解析...');
+
+  try {
+    loadAIModules();
+    if (!deepseek || !doubao || !aiMerger) {
+      log('[ai_refresh] AI 模块未加载，跳过');
+      aiRefreshRunning = false;
+      return;
+    }
+
+    if (!fs.existsSync(DATA_FILE)) { aiRefreshRunning = false; return; }
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    const mMap = data.m || {};
+
+    // 找今天比赛
+    const todayMatches = [];
+    Object.keys(mMap).forEach(k => {
+      const m = mMap[k];
+      if (m && (m.date || '').slice(0, 10) === today) todayMatches.push(m);
+    });
+
+    if (todayMatches.length === 0) {
+      log('[ai_refresh] ' + today + ' 无比赛，跳过');
+      aiRefreshRunning = false;
+      return;
+    }
+
+    log('[ai_refresh] 共 ' + todayMatches.length + ' 场比赛，开始逐场分析...');
+
+    var cacheFile = path.join(__dirname, 'ai_cache.json');
+
+    function saveAICache(mid, source, content, conf) {
+      try {
+        var cache = {};
+        try { cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
+        var entry = cache[mid] || { sources: {} };
+        if (!entry.sources) entry.sources = {};
+        entry.sources[source] = { content, confidence: conf, generatedAt: new Date().toISOString() };
+        if (entry.sources.deepseek && entry.sources.doubao) {
+          var matchInfo = { matchId: mid };
+          var m = mMap['m_' + mid] || mMap[mid];
+          if (m) matchInfo = { matchId: mid, homeName: m.homeName, visitName: m.visitName, leagueName: m.leagueName, date: m.date, num: m.num };
+          var merged = aiMerger.mergeAnalyses(
+            { content: entry.sources.deepseek.content, confidence: entry.sources.deepseek.confidence || 70 },
+            { content: entry.sources.doubao.content, confidence: entry.sources.doubao.confidence || 70 },
+            matchInfo
+          );
+          entry.content = merged.content; entry.confidence = merged.confidence; entry.merged = true;
+        } else {
+          entry.content = content; entry.confidence = conf;
+        }
+        entry.updatedAt = new Date().toISOString();
+        cache[mid] = entry;
+        fs.writeFileSync(cacheFile, JSON.stringify(cache));
+        return entry;
+      } catch (e) { return null; }
+    }
+
+    for (const m of todayMatches) {
+      const mid = m.matchId;
+      const matchInfo = {
+        matchId: mid, homeName: m.homeName || '', visitName: m.visitName || '',
+        leagueName: m.leagueName || '', date: m.date || '', num: m.num || ''
+      };
+
+      try {
+        const dsR = await deepseek.generateAnalysis(matchInfo);
+        var dsC = dsR && dsR.content ? (dsR.content || dsR) : null;
+        if (dsC) saveAICache(mid, 'deepseek', dsC, dsC.confidence || 70);
+      } catch (e) { log('[ai_refresh] DS ' + mid + ' 失败: ' + e.message.slice(0, 80)); }
+
+      try {
+        const dbR = await doubao.generateAnalysis(matchInfo);
+        var dbC = dbR && dbR.content ? (dbR.content || dbR) : null;
+        if (dbC) saveAICache(mid, 'doubao', dbC, dbC.confidence || 70);
+      } catch (e) { log('[ai_refresh] DB ' + mid + ' 失败: ' + e.message.slice(0, 80)); }
+
+      log('[ai_refresh] ' + m.num + ' ' + m.homeName + ' vs ' + m.visitName + ' 完成');
+      await sleep(jitter(3000)); // 间隔 3 秒避免限流
+    }
+
+    log('[ai_refresh] ' + today + ' AI 刷新完成: ' + todayMatches.length + ' 场');
+  } catch (e) {
+    log('[ai_refresh] 异常: ' + e.message);
+  }
+  aiRefreshRunning = false;
+}
+
 // ═══ Task 6: 计算出"最后一场+3h"的时间点 ═══
 function getDayEndTime(dateStr) {
   try {
@@ -1007,6 +1116,13 @@ async function start() {
   setTimeout(liveScoreLoop, 5000);     // 5秒后开始比分
   setTimeout(recommendLoop, 30000);    // 30秒后开始推荐
   scheduleNoon();                       // 计算12:00定时
+
+  // ═══ 每小时 AI 深度解析刷新（8:00~20:00） ═══
+  async function aiRefreshLoop() {
+    try { await refreshTodayAI(); } catch (e) {}
+    setTimeout(aiRefreshLoop, 60 * 60 * 1000);
+  }
+  setTimeout(aiRefreshLoop, 120000);  // 2分钟后开始首次，之后每小时
 
   // ═══ 健康监控：每分钟检查 ═══
   let _lastBackfillCheck = 0;
