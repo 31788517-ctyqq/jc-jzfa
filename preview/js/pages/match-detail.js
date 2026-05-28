@@ -279,15 +279,17 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
     stopWaitUI();
     if (d.content) {
       if (d.dualModel && d.merged) {
-        // 双模型合并版直接展示
         renderAIContent(d.content, homeTeam, awayTeam);
       } else if (d.singleModel || d.pendingMerge) {
-        // 单模型先到先得 → 先展示，后台轮询合并版
         var badge = (d.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 已完成，另一模型验证中...';
         renderAIContentWithBadge(d.content, homeTeam, awayTeam, badge);
         pollForMerge(matchId, homeTeam, awayTeam, 0);
       } else {
         renderAIContent(d.content, homeTeam, awayTeam);
+      }
+      // ★ 500.com 数据缺失提示
+      if (d.shujuMissing) {
+        showShujuMissingNotice();
       }
     } else {
       var ac = document.getElementById('aiModal');
@@ -305,6 +307,20 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
       if (inner) inner.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="font-size:16px;font-weight:600;">请求失败</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">' + msg + '</div><button style="margin-top:16px;padding:8px 20px;border-radius:20px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:13px;" onclick="showAIPrediction(\'' + matchId + '\')">重试</button></div>';
     }
   });
+}
+
+/** 在弹窗底部插入 500.com 数据缺失提示 */
+function showShujuMissingNotice() {
+  var modal = document.getElementById('aiModal');
+  if (!modal) return;
+  var dis = modal.querySelector('.ai-disclaimer');
+  if (dis) {
+    dis.insertAdjacentHTML('afterend',
+      '<div style="margin:8px 20px;padding:10px 14px;border-radius:8px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);font-size:12px;color:#FBBF24;text-align:center;">' +
+        '📊 500.com 近10场及交战数据尚未入库，攻防对比和近期战绩图表可能基于AI知识预估。已触发后台数据抓取，稍后重试可获得精确统计。' +
+      '</div>'
+    );
+  }
 }
 
 export function renderAIContent(content, homeTeam, awayTeam) {

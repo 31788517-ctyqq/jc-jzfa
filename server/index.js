@@ -1074,6 +1074,25 @@ app.post('/api', async (req, res) => {
             if (m) matchInfo = { matchId: mid, homeName: m.homeName, visitName: m.visitName, leagueName: m.leagueName, date: m.date, num: m.num };
           } catch (e) {}
 
+          // ★ 检查 500.com 数据是否存在
+          var shujuMissing = true;
+          try {
+            if (matchInfo.date) {
+              var dateStr = matchInfo.date.slice(0, 10);
+              var shujuFile = path.join(__dirname, 'shuju_data', 'shuju_merged_' + dateStr + '.json');
+              if (fs.existsSync(shujuFile) && fs.statSync(shujuFile).size > 100) {
+                var shujuJson = JSON.parse(fs.readFileSync(shujuFile, 'utf8'));
+                shujuMissing = !((shujuJson.matches || {})[matchInfo.num]);
+              }
+            }
+          } catch (e) {}
+          if (shujuMissing) {
+            console.log('[ai] 500.com 数据缺失: ' + mid + ' ' + matchInfo.num + ', 后台触发抓取...');
+            // 后台异步触发抓取
+            const ds = require('./data_sync');
+            ds.triggerShujuFetch && ds.triggerShujuFetch(matchInfo.date ? matchInfo.date.slice(0,10) : '');
+          }
+
           const AI_TIMEOUT = 60000;
 
           // 缓存写入（后台合并）
@@ -1107,14 +1126,16 @@ app.post('/api', async (req, res) => {
           if (cachedEntry && cachedEntry.content && hasDS && hasDB) {
             return res.json({ code: 1, data: {
               matchId: mid, content: cachedEntry.content,
-              confidence: cachedEntry.confidence || 0, fromCache: true, dualModel: true, merged: true
+              confidence: cachedEntry.confidence || 0, fromCache: true, dualModel: true, merged: true,
+              shujuMissing: shujuMissing
             }});
           }
           // 旧格式
           if (cachedEntry && cachedEntry.content && !cachedEntry.sources) {
             return res.json({ code: 1, data: {
               matchId: mid, content: cachedEntry.content,
-              confidence: cachedEntry.confidence || 0, fromCache: true, legacy: true
+              confidence: cachedEntry.confidence || 0, fromCache: true, legacy: true,
+              shujuMissing: shujuMissing
             }});
           }
           // 已有单模型缓存（另一个还在跑）→ 先返回，让前端轮询
@@ -1123,7 +1144,8 @@ app.post('/api', async (req, res) => {
               matchId: mid, content: cachedEntry.content,
               confidence: cachedEntry.confidence || 0, fromCache: true,
               singleModel: true, pendingMerge: true,
-              readySource: hasDS ? 'deepseek' : 'doubao'
+              readySource: hasDS ? 'deepseek' : 'doubao',
+              shujuMissing: shujuMissing
             }});
           }
 
@@ -1162,14 +1184,16 @@ app.post('/api', async (req, res) => {
           if (cachedEntry && cachedEntry.content && cachedEntry.merged) {
             return res.json({ code: 1, data: {
               matchId: mid, content: cachedEntry.content,
-              confidence: cachedEntry.confidence, dualModel: true, merged: true
+              confidence: cachedEntry.confidence, dualModel: true, merged: true,
+              shujuMissing: shujuMissing
             }});
           } else if (cachedEntry && cachedEntry.content) {
             return res.json({ code: 1, data: {
               matchId: mid, content: cachedEntry.content,
               confidence: cachedEntry.confidence,
               singleModel: true, pendingMerge: true,
-              readySource: first ? first.source : (hasDS ? 'deepseek' : 'doubao')
+              readySource: first ? first.source : (hasDS ? 'deepseek' : 'doubao'),
+              shujuMissing: shujuMissing
             }});
           }
 
