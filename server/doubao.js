@@ -8,7 +8,7 @@ const http = require('http');
 
 const API_KEY = process.env.DOUBAO_API_KEY || 'DUMMY_PLACEHOLDER';
 const BASE_URL = process.env.DOUBAO_BASE_URL || 'https://ark.cn-beijing.volces.com/api/v3';
-const MODEL = 'doubao-seed-2-0-pro-260215';
+const MODEL = process.env.DOUBAO_MODEL || 'doubao-seed-2-0-code-preview-260215';
 const TIMEOUT = 60000; // 60秒超时
 
 // 复用 deepseek.js 的 Prompt 构建函数（保持两个模型接收完全相同的指令）
