@@ -148,25 +148,31 @@ function mergeItem(item, gs) {
   var cw = gs.crossWin !== undefined ? gs.crossWin : '-';
   var cd = gs.crossDraw !== undefined ? gs.crossDraw : '-';
   var cl = gs.crossLose !== undefined ? gs.crossLose : '-';
-  var aav = gs.attackAdvantageValue || 0;
-  var dav = gs.defenseAdvantageValue || 0;
   var gdh = parseFloat(gs.goalDiffHome) || 0;
   var gda = parseFloat(gs.goalDiffAway) || 0;
   var tge = parseFloat(gs.totalGoalsExpect) || 0;
   var tgv = parseFloat(gs.totalGoalsValue) || 0;
   // 交锋进球：简化的对冲进球预期
-  var hhg = (cw !== '-' && cl !== '-') ? (((cw || 0) - (cl || 0)) / 10 + 2.5) : 2.5;
+  var hhg = (cw !== '-' && cl !== '-') ? (((cw || 0) - (cl || 0)) + 2.5) : 2.5;
   // P0: 大球比例 — 使用 gongshoudao goalRange.overRate（已 *100），无数据默认50
   var bigBall = (gs.goalRange && gs.goalRange.overRate != null) ? gs.goalRange.overRate : (gs.overRate != null ? gs.overRate : 50);
-  // P1: 胜平负交叉 — 文档公式: (H_win + G_loss - H_loss - G_win) / 10
-  var crossValue = (gs.hWins != null && gs.aLosses != null) ? ((gs.hWins + gs.aLosses - gs.hLosses - gs.aWins) / 10) : '-';
-  // P2: 攻守实力 — 组合为单一数值
-  var adCombined = ((aav + dav) / 2 - 50);
 
-  // 总排序：四维加权合成（文档公式）
-  var gdScore = parseFloat(gs.goalDiffHome) || 0;
+  // ── 实力PK四维指标（PK.md 2.1-2.2） ──
+
+  // ① 净胜球量化 = xgHome - xgAway（源自射门还原法 M3_A）
+  var gdScore = (gs.xgHome != null && gs.xgAway != null) ? parseFloat((gs.xgHome - gs.xgAway).toFixed(4)) : 0;
+
+  // ② 胜平负交叉 = (H_win + G_loss - H_loss - G_win) / 10（基于真实赛果对冲）
+  var crossValue = (gs.hWins != null && gs.aLosses != null) ? ((gs.hWins + gs.aLosses - gs.hLosses - gs.aWins) / 10) : '-';
   var cvNum = crossValue === '-' ? 0 : parseFloat(crossValue);
-  var pwScore = ((gs.totalAdvantageValue || 0) - 50) / 100;
+
+  // ③ 综合实力 = Total_战 = 0.7×(homePower-guestPower)/100 + 0.3×Dyn（双轨实力量化）
+  var pwScore = gs.totalStrength != null ? parseFloat(gs.totalStrength.toFixed(4)) : 0;
+
+  // ④ 攻守实力 = w_进攻 × Adv_进攻 + w_防守 × Adv_防守（sigmoid加权合成 V24.0）
+  var adCombined = gs.adWeightedComposite != null ? parseFloat(gs.adWeightedComposite.toFixed(4)) : 0;
+
+  // 总排序 = 0.25 × 净胜球 + 0.25 × 胜平负交叉 + 0.25 × 综合实力 + 0.25 × 攻守实力
   var totalScore = parseFloat(((gdScore + cvNum + pwScore + adCombined) / 4).toFixed(4));
 
   function goalTotalSum() {
@@ -187,17 +193,22 @@ function mergeItem(item, gs) {
     date: item.date || '',
     matchStatus: item.matchStatus || 0,
     rank: item.rank || 99,
-    totalScore: totalScore,          // 总排序得分（四维合成）
-    // 实力维度
+    totalScore: totalScore,          // 总排序得分（四维等权合成）
+    // 实力维度 — 四维指标原始值
+    gdScore: gdScore,               // 净胜球量化 = xgHome - xgAway
+    crossValue: crossValue,          // 胜平负交叉 = (H_win+G_loss-H_loss-G_win)/10
+    pwScore: pwScore,               // 综合实力 = Total_战
+    adCombined: adCombined,          // 攻守实力 = sigmoid加权合成
+    // 兼容旧字段
     totalAdvantage: gs.totalAdvantage || '-',
-    totalAdvantageValue: gs.totalAdvantageValue || 0,
-    goalDiff: gs.goalDiffHome || '-',
+    totalAdvantageValue: Math.round(50 + pwScore * 100),  // Total_战 映射到进度条
+    goalDiff: gdScore,               // ★ 改为净胜球量化值
     crossWin: cw,
     crossDraw: cd,
     crossLose: cl,
     crossRq: gs.crossRq,
-    attackAdvantageValue: aav,
-    defenseAdvantageValue: dav,
+    attackAdvantageValue: gs.attackAdvantageValue || 0,
+    defenseAdvantageValue: gs.defenseAdvantageValue || 0,
     hasGS: !!(gs.attackPattern),
     // 进球维度
     bigBallRatio: bigBall,
@@ -354,19 +365,21 @@ function renderRank(totalScore) {
   return '<span class="q-col-rk"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
 }
 
-// ── 净胜球（保留2位小数） ──
+// ── 净胜球量化（保留2位小数） ──
 function renderGoalDiff(item) {
-  var v = item.goalDiff;
-  if (v === '-' || v === '?') return '<span class="q-col-gd"><span class="q-cell-num">-</span></span>';
-  var n = parseFloat(String(v).split('/')[0]);
+  var v = item.gdScore !== undefined ? item.gdScore : item.goalDiff;
+  if (v === '-' || v === '?' || v === undefined || v === null) return '<span class="q-col-gd"><span class="q-cell-num">-</span></span>';
+  var n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-gd"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
   return '<span class="q-col-gd"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
 }
+// ── 综合实力（Total_战，百分比化显示） ──
 function renderPower(item) {
-  var pv = item.totalAdvantageValue - 50;
+  var pv = item.pwScore !== undefined ? item.pwScore : (item.totalAdvantageValue - 50) / 100;
+  var pct = pv * 100;
   var cls = pv > 0 ? 'pos' : pv < 0 ? 'neg' : '';
-  return '<span class="q-col-power"><span class="q-cell-num ' + cls + '">' + (pv >= 0 ? '+' : '') + pv.toFixed(1) + '%</span></span>';
+  return '<span class="q-col-power"><span class="q-cell-num ' + cls + '">' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%</span></span>';
 }
 
 // ── 胜平负交叉（保留2位小数） ──
@@ -460,9 +473,9 @@ function hotKeyToCls(key) {
 function getSortVal(item, key) {
   switch (key) {
     case 'rank':       return parseFloat(item.totalScore) || 0;
-    case 'goalDiff':   var p = String(item.goalDiff).split('/'); var n = parseFloat(p[0]); return isNaN(n) ? 0 : n;
+    case 'goalDiff':   return parseFloat(item.gdScore) || 0;
     case 'cross':      return parseFloat(item.crossValue) || 0;
-    case 'power':      return item.totalAdvantageValue || 0;
+    case 'power':      return parseFloat(item.pwScore) || 0;
     case 'ad':         return parseFloat(item.adCombined) || 0;
     case 'totalSum':       return parseFloat(item.totalSum) || 0;
     case 'bigBallRatio':   return parseFloat(item.bigBallRatio) || 0;

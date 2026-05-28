@@ -1816,11 +1816,18 @@ body {
 
 /* 文本值 */
 .gs-val-text { font-size: 13px; font-weight: 600; color: var(--cyan); }
+.gs-note { font-size: 10px; color: var(--text3); font-weight: 400; }
+
+/* 比分分类标签 */
+.gs-score-cat { padding: 6px 0 4px; }
+.gs-score-cat-label { font-size: 11px; color: var(--amber); font-weight: 600; }
+.gs-vs-row { display: flex; align-items: center; gap: 6px; }
+.gs-bar-group { flex: 1; }
 
 /* 比分卡片 */
 .gs-score-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .gs-score-card {
-  flex: 0 0 calc(33.33% - 6px); min-width: 70px;
+  flex: 0 0 calc(25% - 6px); min-width: 64px;
   text-align: center; padding: 14px 4px;
   background: rgba(14,24,34,0.5); border: 1px solid rgba(255,255,255,0.05);
   border-radius: 10px;
