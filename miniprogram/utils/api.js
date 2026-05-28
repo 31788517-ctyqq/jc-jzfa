@@ -1,3 +1,13 @@
+/**
+ * miniprogram/utils/api.js
+ * 微信小程序 API 调用封装
+ * 
+ * ⚠ CloudBase 云函数模式已废弃，当前生产环境使用自建 Express 服务器。
+ *    如需切换回 CloudBase，参考 server/api-schema.json 中的接口定义。
+ * 
+ * API 规范: server/api-schema.json
+ */
+
 const CLOUD_FN = 'get-match-data';
 
 function request(action, data = {}) {

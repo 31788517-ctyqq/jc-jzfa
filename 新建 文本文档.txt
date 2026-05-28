@@ -7,7 +7,7 @@
 5、图表要求直观移动；
 6、页面和图标有设计感，
 7、用已有的skills来规划项目，从产品规划、架构、页面设计、测试等流程规范开发；
-8、页面登录的https://midou310.com/mdsj/score/footballNew.do，用户名/密码：13570060818/Yy861018
+8、页面登录的https://midou310.com/mdsj/score/footballNew.do，用户名/密码：(从环境变量读取)
 9、对完成的比赛推荐的方向是否命中进行标记，https://midou310.com/mdsj/score/footballDataDetails.do?matchId=2039815页面有对比赛推荐方向的命中进行标记，中或者未中；
 10、对各个方向的命中率进行统计，统计近30天所有的比赛，并形成图表展示；
 11、开发遵循开发规范和流程，保障项目顺利进行；

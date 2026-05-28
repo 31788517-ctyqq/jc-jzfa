@@ -1,8 +1,21 @@
 import paramiko, sys, os
 
-HOST = '119.23.51.159'
-USER = 'root'
-PASS = 'znm19811225@'
+HOST = os.environ.get('DEPLOY_SSH_HOST', '119.23.51.159')
+USER = os.environ.get('DEPLOY_SSH_USER', 'root')
+PASS = os.environ.get('DEPLOY_SSH_PASS')
+
+if not PASS:
+    env_deploy = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env.deploy')
+    if os.path.exists(env_deploy):
+        with open(env_deploy, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('DEPLOY_SSH_PASS='):
+                    PASS = line.split('=', 1)[1].strip().strip('"').strip("'")
+                    break
+if not PASS:
+    sys.stderr.write('Error: DEPLOY_SSH_PASS not set. Use env var or .env.deploy file.\n')
+    sys.exit(1)
 
 try:
     sys.stderr.write('Connecting...\n')

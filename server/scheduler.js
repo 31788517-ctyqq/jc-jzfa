@@ -3,14 +3,17 @@
  * 每5分钟自动抓取最新比赛和推荐数据
  */
 const logger = require('./logger');
+const alert = require('./alert');
 const { fetchMatches, fetchRecommends, login } = require('./index');
 
 let schedulerTimer = null;
 let isRunning = false;
+let consecutiveFails = 0;
 
 async function crawlLatest() {
   if (isRunning) return;
   isRunning = true;
+  let success = false;
   const startTime = Date.now();
   logger.info('[定时任务] 开始爬取');
 
@@ -28,10 +31,16 @@ async function crawlLatest() {
       }
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
+    success = true;
   } catch (e) {
     logger.error('[定时任务] 爬取失败: ' + e.message);
+    consecutiveFails++;
+    if (consecutiveFails >= 3) {
+      alert.schedulerFailed('scheduler 定时爬取', e.message + ' | 连续失败' + consecutiveFails + '次');
+    }
   }
 
+  if (success) consecutiveFails = 0;
   isRunning = false;
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   logger.info(`[定时任务] 完成，耗时 ${elapsed}s`);

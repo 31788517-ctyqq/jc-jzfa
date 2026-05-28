@@ -1,6 +1,22 @@
 # Claude Code + DeepSeek 环境变量配置
+# 安全提示: API Key 请从环境变量或 .env 文件读取，切勿硬编码
+$API_KEY = $env:ANTHROPIC_AUTH_TOKEN
+if (-not $API_KEY) {
+    $envFile = Join-Path $PSScriptRoot ".env"
+    if (Test-Path $envFile) {
+        Get-Content $envFile | ForEach-Object {
+            if ($_ -match '^ANTHROPIC_AUTH_TOKEN=(.+)$') { $API_KEY = $matches[1].Trim() }
+        }
+    }
+}
+if (-not $API_KEY) {
+    Write-Host "错误: 未找到 ANTHROPIC_AUTH_TOKEN" -ForegroundColor Red
+    Write-Host "请设置: `$env:ANTHROPIC_AUTH_TOKEN='sk-xxx'" -ForegroundColor Yellow
+    exit 1
+}
+
 $env:ANTHROPIC_BASE_URL = "https://api.deepseek.com/anthropic"
-$env:ANTHROPIC_AUTH_TOKEN = "sk-a4a33977f39547fc89cbdb443539a7c3"
+$env:ANTHROPIC_AUTH_TOKEN = $API_KEY
 $env:ANTHROPIC_MODEL = "deepseek-v4-pro[1m]"
 $env:ANTHROPIC_DEFAULT_OPUS_MODEL = "deepseek-v4-pro[1m]"
 $env:ANTHROPIC_DEFAULT_SONNET_MODEL = "deepseek-v4-pro[1m]"

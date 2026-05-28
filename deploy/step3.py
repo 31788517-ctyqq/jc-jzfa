@@ -1,5 +1,20 @@
-import paramiko, time, sys
-HOST="119.23.51.159"; USER="root"; PASS="znm19811225@"
+import paramiko, time, sys, os
+HOST = os.environ.get('DEPLOY_SSH_HOST', '119.23.51.159')
+USER = os.environ.get('DEPLOY_SSH_USER', 'root')
+PASS = os.environ.get('DEPLOY_SSH_PASS')
+if not PASS:
+    env_deploy = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.env.deploy')
+    if os.path.exists(env_deploy):
+        with open(env_deploy, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('DEPLOY_SSH_PASS='):
+                    PASS = line.split('=', 1)[1].strip().strip('"').strip("'")
+                    break
+if not PASS:
+    print('Error: DEPLOY_SSH_PASS not set. Use env var or .env.deploy file.')
+    sys.exit(1)
+
 ssh=paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect(HOST,22,USER,PASS,timeout=10,look_for_keys=False,allow_agent=False)
@@ -29,7 +44,11 @@ if "NOT_FOUND" not in o:
     
     # Config
     print("[2] Config...")
-    rc,o,e=run("cat > /var/www/zj.100qiu.com/server/.env << 'ENVEOF'\nPORT=3000\nMIDOU_MOBILE=13570060818\nMIDOU_PASSWORD=73d26b46ab37f7a3725ba19e1b704090\nNODE_ENV=production\nENVEOF\necho DONE")
+    MIDOU_MOBILE = os.environ.get('MIDOU_MOBILE', '')
+    MIDOU_PASSWORD = os.environ.get('MIDOU_PASSWORD', '')
+    if not MIDOU_MOBILE or not MIDOU_PASSWORD:
+        print("Warning: MIDOU_MOBILE/MIDOU_PASSWORD env vars not set, .env will be incomplete")
+    rc,o,e=run(f"cat > /var/www/zj.100qiu.com/server/.env << 'ENVEOF'\nPORT=3000\nMIDOU_MOBILE={MIDOU_MOBILE}\nMIDOU_PASSWORD={MIDOU_PASSWORD}\nNODE_ENV=production\nENVEOF\necho DONE")
     print(o)
     
     # Install

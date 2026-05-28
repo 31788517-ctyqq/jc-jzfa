@@ -5,19 +5,15 @@
  * 写入 data.json，simple.js 自动重载
  */
 var https=require('https'),fs=require('fs'),path=require('path');
+var logger = require('./logger').child('period_daemon');
 
 var CONFIG={};
 try{fs.readFileSync(path.join(__dirname,'.env'),'utf8').split('\n').forEach(function(l){var p=l.trim().split('=');if(p.length===2)CONFIG[p[0]]=p[1]})}catch(e){}
 
 var DATA_FILE=path.join(__dirname,'data.json');
 var TREND_FILE=path.join(__dirname,'trends.json');
-var LOG_FILE=path.join(__dirname,'..','logs','period_daemon.log');
 
-function log(msg){
-  var line='['+new Date().toISOString()+'] '+msg;
-  console.log(line);
-  try{fs.appendFileSync(LOG_FILE,line+'\n')}catch(e){}
-}
+function log(msg){ logger.info(msg); }
 
 function get(url,p,h){return new Promise(function(r,e){var q=p?'?'+Object.keys(p).map(function(k){return k+'='+encodeURIComponent(p[k])}).join('&'):'';var u=require('url').parse(url+q);var req=https.request({hostname:u.hostname,port:443,path:u.pathname+(u.search||''),headers:Object.assign({Accept:'*/*','User-Agent':'Mozilla/5.0'},h||{}),rejectUnauthorized:false},function(res){var c=[];res.on('data',function(d){c.push(d)});res.on('end',function(){var t=Buffer.concat(c).toString();try{r(JSON.parse(t))}catch(ee){r({code:0,msg:t.slice(0,200)})}})});req.on('error',e);req.setTimeout(20000,function(){req.abort()});req.end()})}
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}

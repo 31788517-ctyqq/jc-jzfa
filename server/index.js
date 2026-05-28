@@ -1,3 +1,13 @@
+/**
+ * server/index.js
+ * 竞彩足球推荐趋势监控 — Express API 服务入口
+ *
+ * 模块结构:
+ *   core/cache.js     — data.json / trends.json / odds 缓存层
+ *   core/midou.js     — 米斗数据登录、爬取、数据获取
+ *   core/ai-timing.js — AI 计时统计
+ *   database.js       — SQLite 主存储（降级 JSON）
+ */
 require('dotenv').config();
 const fs = require('fs');
 const express = require('express');
@@ -8,78 +18,67 @@ const path = require('path');
 const database = require('./database');
 const { get } = require('./http-utils');
 const logger = require('./logger');
-const deepseek = require('./deepseek');  // 预加载避免 ai-predict 同步异常阻断响应
-const doubao = require('./doubao');    // 豆包 API 客户端
-const aiMerger = require('./ai_merger'); // 双模型交叉合并引擎
+const deepseek = require('./deepseek');
+const doubao = require('./doubao');
+const aiMerger = require('./ai_merger');
 
-// AI 计时统计（用于预估等待时间）
-function getEstimatedWaitTime() {
-  try {
-    var timingPath = path.join(__dirname, 'ai_timing.json');
-    if (fs.existsSync(timingPath)) {
-      var timing = JSON.parse(fs.readFileSync(timingPath, 'utf8'));
-      if (timing.total_estimated_sec && timing.sample_count > 0) {
-        return timing.total_estimated_sec;
-      }
-    }
-  } catch (e) {}
-  return 45; // 默认 45 秒保守估计
+// ── 核心模块 ──
+const cacheModule = require('./core/cache');
+const midouModule = require('./core/midou');
+const aiTiming = require('./core/ai-timing');
+const health = require('./core/health');
+
+// ── 函数别名（保持 POST /api 路由中引用兼容） ──
+const localDate = cacheModule.localDate;
+const latestDataDate = cacheModule.latestDataDate;
+const getDataJson = cacheModule.getDataJson;
+const getTrendsJson = cacheModule.getTrendsJson;
+const getOddsHistory = cacheModule.getOddsHistory;
+const DATA_JSON_PATH = cacheModule.DATA_JSON_PATH;
+const TRENDS_PATH = cacheModule.TRENDS_PATH;
+
+const login = midouModule.login;
+const fetchMatches = midouModule.fetchMatches;
+const fetchRecommends = midouModule.fetchRecommends;
+const ensureData = midouModule.ensureData;
+const ensureRecommends = midouModule.ensureRecommends;
+const safeApiCall = midouModule.safeApiCall;
+const CONFIG = midouModule.CONFIG;
+
+const getEstimatedWaitTime = aiTiming.getEstimatedWaitTime;
+const updateTimingStats = aiTiming.updateTimingStats;
+
+// ── 数据库桥接 ──
+async function dbMatchList() {
+  const today = localDate();
+  if (database.isAvailable && database.isAvailable()) {
+    const m = database.getMatchesByDate(today);
+    if (m && m.length > 0) return m;
+    return database.getAllMatches() || [];
+  }
+  return [];
+}
+async function dbRecommends(matchId) {
+  if (database.isAvailable && database.isAvailable()) {
+    return database.getRecommendsByMatchId(matchId) || [];
+  }
+  return [];
 }
 
-function updateTimingStats(deepseekMs, doubaoMs, mergeMs) {
-  try {
-    var timingPath = path.join(__dirname, 'ai_timing.json');
-    var timing = { deepseek_avg_ms: 0, doubao_avg_ms: 0, merge_avg_ms: 0, total_estimated_sec: 45, sample_count: 0, last_updated: '' };
-    if (fs.existsSync(timingPath)) {
-      try { timing = JSON.parse(fs.readFileSync(timingPath, 'utf8')); } catch (e) {}
-    }
-    var n = timing.sample_count || 0;
-    // 移动平均
-    var decay = n > 5 ? 0.9 : (n > 0 ? 0.7 : 0); // 新样本权重递减
-    timing.deepseek_avg_ms = decay > 0 ? Math.round(timing.deepseek_avg_ms * decay + deepseekMs * (1 - decay)) : deepseekMs;
-    timing.doubao_avg_ms = decay > 0 ? Math.round(timing.doubao_avg_ms * decay + doubaoMs * (1 - decay)) : doubaoMs;
-    timing.merge_avg_ms = mergeMs;
-    timing.sample_count = n + 1;
-    // 总预估 = max(两模型) + merge，加 3 秒 buffer
-    timing.total_estimated_sec = Math.ceil((Math.max(timing.deepseek_avg_ms, timing.doubao_avg_ms) + timing.merge_avg_ms) / 1000) + 3;
-    timing.last_updated = new Date().toISOString();
-    fs.writeFileSync(timingPath, JSON.stringify(timing));
-  } catch (e) {}
-}
+// ══════════════════════════════════════════
+// Express 应用初始化
+// ══════════════════════════════════════════
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 本地日期辅助（避免 UTC 时区偏移）
-function localDate(d) {
-  d = d || new Date();
-  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0');
-  return y + '-' + m + '-' + dd;
-}
-
-// 获取 data.json 中最新的有数据日期
-function latestDataDate() {
-  const dataFile = getDataJson();
-  const mMap = dataFile.m || {};
-  let latest = '';
-  Object.keys(mMap).forEach(k => {
-    const d = (mMap[k] && mMap[k].date) ? mMap[k].date.slice(0, 10) : '';
-    if (d > latest) latest = d;
-  });
-  return latest || localDate();
-}
-
-// 生产优化
 app.disable('x-powered-by');
-// 生产环境由 nginx 处理 gzip，避免双重压缩
-if (!process.env.BEHIND_PROXY) {
-  app.use(compression());
-}
+if (!process.env.BEHIND_PROXY) { app.use(compression()); }
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-// 强制 API 响应为 UTF-8，防止中文乱码 → "??"
+// UTF-8 响应头
 app.use('/api', (req, res, next) => {
-  var origJson = res.json;
+  const origJson = res.json;
   res.json = function (body) {
     if (!res.headersSent) res.setHeader('Content-Type', 'application/json; charset=utf-8');
     return origJson.call(this, body);
@@ -88,18 +87,16 @@ app.use('/api', (req, res, next) => {
 });
 
 // 速率限制
-const apiLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 60,
+app.use('/api', rateLimit({
+  windowMs: 60 * 1000, max: 60,
   message: { code: -1, msg: '请求过于频繁，请稍后再试' }
-});
-app.use('/api', apiLimiter);
+}));
 
-// 静态资源缓存
+// 静态资源
 const staticOpts = { maxAge: '7d', etag: true, lastModified: true };
 app.use('/assets/worldcup', express.static(path.join(__dirname, '../miniprogram/images/worldcup'), staticOpts));
 app.use('/assets', express.static(path.join(__dirname, '../miniprogram/images'), staticOpts));
-// 首页内存缓存
+
 let homeCache = null, homeCacheTime = 0;
 const hp = path.join(__dirname, '../preview/index.html');
 function getHomeHTML(cb) {
@@ -113,183 +110,27 @@ function getHomeHTML(cb) {
 app.get('/', (req, res) => {
   getHomeHTML((err, html) => { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=60' }); res.end(html); });
 });
-app.use(express.static(path.join(__dirname, '../preview'), { maxAge: 0, setHeaders: (res, fPath) => { res.setHeader('Cache-Control', 'no-cache'); res.setHeader('Content-Type', fPath.endsWith('.html') ? 'text/html; charset=utf-8' : fPath.endsWith('.js') ? 'application/javascript; charset=utf-8' : fPath.endsWith('.css') ? 'text/css; charset=utf-8' : 'application/octet-stream; charset=utf-8'); } }));
+app.use(express.static(path.join(__dirname, '../preview'), { maxAge: 0, setHeaders: (res, fPath) => {
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Content-Type', fPath.endsWith('.html') ? 'text/html; charset=utf-8' : fPath.endsWith('.js') ? 'application/javascript; charset=utf-8' : fPath.endsWith('.css') ? 'text/css; charset=utf-8' : 'application/octet-stream; charset=utf-8');
+}}));
 
-// favicon 请求直接返回 204，避免 404 日志干扰
 app.get('/favicon.ico', (req, res) => res.status(204).end());
-
-// ==================== 健康检查 ====================
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime(), time: new Date().toISOString() });
 });
-
-// ==================== 配置 ====================
-const CONFIG = {
-  MIDOU_BASE: 'https://midou310.com/mdsj',
-  MOBILE: process.env.MIDOU_MOBILE,
-  PASSWORD: process.env.MIDOU_PASSWORD
-};
+// 深度健康检查（数据库 / 数据完整性 / 外部API / 系统资源）
+app.get('/health/deep', async (req, res) => {
+  try { const r = await health.deepCheck(); res.json(r); }
+  catch (e) { res.json({ status: 'error', message: e.message }); }
+});
 
 // 启动校验
 if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   logger.error('启动失败：缺少 MIDOU_MOBILE / MIDOU_PASSWORD 配置');
-  process.exit(1);
-}
-
-// ==================== 缓存 ====================
-const cache = { token: null, tokenExpire: 0, matches: null, matchTime: 0, recommCache: {} };
-
-// ==================== data.json 内存缓存（避免每次 API 都 792KB 磁盘 I/O） ====================
-let _dataJsonCache = null;
-let _dataJsonCacheTime = 0;
-let _dataJsonCacheMtime = 0;
-const DATA_JSON_PATH = path.join(__dirname, 'data.json');
-function getDataJson(forceRefresh) {
-  const now = Date.now();
-  if (!forceRefresh && _dataJsonCache && (now - _dataJsonCacheTime < 30000)) {
-    return _dataJsonCache;
-  }
-  try {
-    const stat = fs.statSync(DATA_JSON_PATH);
-    if (!forceRefresh && _dataJsonCache && stat.mtimeMs === _dataJsonCacheMtime) {
-      _dataJsonCacheTime = now;
-      return _dataJsonCache;
-    }
-    _dataJsonCache = JSON.parse(fs.readFileSync(DATA_JSON_PATH, 'utf8'));
-    _dataJsonCacheTime = now;
-    _dataJsonCacheMtime = stat.mtimeMs;
-    return _dataJsonCache;
-  } catch (e) {
-    logger.error('读取 data.json 失败: ' + e.message);
-    return _dataJsonCache || { m: {}, r: {} };
-  }
-}
-
-// trends.json 内存缓存（每 60 秒刷新）
-let _trendsCache = null;
-let _trendsCacheTime = 0;
-const TRENDS_PATH = path.join(__dirname, 'trends.json');
-function getTrendsJson() {
-  const now = Date.now();
-  if (_trendsCache && (now - _trendsCacheTime < 60000)) return _trendsCache;
-  try {
-    if (fs.existsSync(TRENDS_PATH)) {
-      _trendsCache = JSON.parse(fs.readFileSync(TRENDS_PATH, 'utf8'));
-      _trendsCacheTime = now;
-      return _trendsCache;
-    }
-  } catch (e) {}
-  return _trendsCache || {};
-}
-
-// odds_history 按日期缓存（最多缓存 10 个日期文件，LRU 淘汰）
-let _oddsCache = {};
-const _oddsCacheKeys = [];
-const MAX_ODDS_CACHE = 10;
-function getOddsHistory(dateStr) {
-  if (_oddsCache[dateStr]) return _oddsCache[dateStr];
-  const f = path.join(__dirname, 'odds_history', dateStr + '.json');
-  try {
-    if (!fs.existsSync(f)) return null;
-    const raw = JSON.parse(fs.readFileSync(f, 'utf8'));
-    _oddsCache[dateStr] = raw.odds || {};
-    _oddsCacheKeys.push(dateStr);
-    if (_oddsCacheKeys.length > MAX_ODDS_CACHE) {
-      delete _oddsCache[_oddsCacheKeys.shift()];
-    }
-    return _oddsCache[dateStr];
-  } catch (e) { return null; }
-}
-
-// ==================== 登录 ====================
-async function login() {
-  const now = Date.now();
-  if (cache.token && cache.tokenExpire > now) return cache.token;
-  const res = await get(`${CONFIG.MIDOU_BASE}/gduser/login.do`, { mobile: CONFIG.MOBILE, password: CONFIG.PASSWORD });
-  if (res.code === 1) {
-    cache.token = res.data.token;
-    cache.tokenExpire = now + 3600000;
-    logger.info('登录成功, token: ' + cache.token.slice(0, 16) + '...');
-    return cache.token;
-  }
-  throw new Error('登录失败: ' + (res.msg || '未知'));
-}
-
-// ==================== 获取比赛列表 ====================
-async function fetchMatches() {
-  const token = await login();
-  const timestamp = Date.now();
-  const res = await get(`${CONFIG.MIDOU_BASE}/score/footballDataList.do`,
-    { time: timestamp, order: 'status desc, start_datetime asc, data_id asc' },
-    { Cookie: `token=${token}` }
-  );
-  if (res.code !== 1) throw new Error('获取比赛列表失败: ' + (res.msg || ''));
-  return (res.data || []).map(m => ({
-    matchId: String(m.matchId), num: m.num || '', homeName: m.homeName || '',
-    visitName: m.visitName || '', leagueName: m.leagueName || '',
-    startTime: m.startTime || '', matchStatus: m.matchStatus,
-    score: m.score || '', recommNum: m.recommNum || 0,
-    date: (res.today || '').slice(0, 10)
-  }));
-}
-
-// ==================== 获取推荐详情 ====================
-async function fetchRecommends(matchId) {
-  const token = await login();
-  const res = await get(`${CONFIG.MIDOU_BASE}/score/getExpertRecommData.do`,
-    { dataId: matchId, type: 0 },
-    { Cookie: `token=${token}` }
-  );
-  if (res.code !== 1) throw new Error(`获取推荐失败 matchId=${matchId}: ${res.msg || ''}`);
-  const items = (res.data || []).filter(item => item && item.type && item.num > 0);
-  return items.map(item => ({
-    type: item.type, num: item.num,
-    result: item.result !== undefined ? item.result : null
-  }));
-}
-
-// ==================== 数据库降级 ====================
-async function dbMatchList() {
-  const today = localDate();
-  const matches = database.getMatchesByDate(today);
-  if (matches && matches.length > 0) return matches;
-  return database.getAllMatches() || [];
-}
-
-async function dbRecommends(matchId) {
-  const result = database.getRecommendsByMatchId(matchId);
-  return result || [];
-}
-
-// ==================== 确保比赛和推荐数据 ====================
-async function ensureData() {
-  const now = Date.now();
-  if (!cache.matches || now - cache.matchTime > 60000) {
-    cache.matches = await fetchMatches();
-    cache.matchTime = now;
-    logger.info(`获取到 ${cache.matches.length} 场比赛`);
-  }
-  return cache.matches;
-}
-
-async function ensureRecommends(matchId) {
-  if (!cache.recommCache[matchId]) {
-    cache.recommCache[matchId] = await fetchRecommends(matchId);
-    logger.info(`获取推荐 matchId=${matchId}, ${cache.recommCache[matchId].length} 个方向`);
-  }
-  return cache.recommCache[matchId];
-}
-
-// ==================== API 容错包装 ====================
-async function safeApiCall(fn, fallbackFn) {
-  try {
-    return await fn();
-  } catch (err) {
-    logger.warn('实时数据获取失败，已降级: ' + err.message);
-    if (fallbackFn) return await fallbackFn();
-    throw err;
-  }
-}
+  const alert = require('./alert');
+  alert.loginFailed('缺少 MIDOU_MOBILE/MIDOU_PASSWORD').then(() => process.exit(1));
+} else {
 
 // ==================== API 路由 ====================
 app.post('/api', async (req, res) => {
@@ -2347,4 +2188,6 @@ module.exports = { fetchMatches, fetchRecommends, login };
 if (process.env.NODE_ENV === 'production') {
   const scheduler = require('./scheduler');
   scheduler.start();
+}
+ 
 }

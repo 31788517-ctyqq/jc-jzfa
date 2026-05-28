@@ -40,10 +40,27 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='repla
 # ══════════════════════════════════════════
 # 配置
 # ══════════════════════════════════════════
-HOST = '119.23.51.159'
-USER = 'root'
-PASS = 'znm19811225@'
-LOCAL_ROOT = 'E:/JC-ZJFA'
+HOST = os.environ.get('DEPLOY_SSH_HOST', '119.23.51.159')
+USER = os.environ.get('DEPLOY_SSH_USER', 'root')
+LOCAL_ROOT = os.environ.get('DEPLOY_LOCAL_ROOT', 'E:/JC-ZJFA')
+
+# SSH 密码仅从环境变量获取，禁止硬编码
+PASS = os.environ.get('DEPLOY_SSH_PASS')
+if not PASS:
+    # 尝试从 .env.deploy 文件读取（gitignored）
+    env_deploy = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env.deploy')
+    if os.path.exists(env_deploy):
+        with open(env_deploy, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('DEPLOY_SSH_PASS='):
+                    PASS = line.split('=', 1)[1].strip().strip('"').strip("'")
+                    break
+if not PASS:
+    print(c('R', '错误: 未设置 DEPLOY_SSH_PASS 环境变量或 .env.deploy 文件'))
+    print(c('D', '请运行: set DEPLOY_SSH_PASS=your_password  (Windows)'))
+    print(c('D', '或创建 .env.deploy 文件 (参考 .env.deploy.example)'))
+    sys.exit(1)
 
 # 两个部署目标
 NGINX_ROOT = '/var/www/zj.100qiu.com'   # Nginx 静态文件从这里提供

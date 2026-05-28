@@ -9,9 +9,14 @@ const { get } = require('./http-utils');
 // 配置
 const CONFIG = {
   MIDOU_BASE: 'https://midou310.com/mdsj',
-  MOBILE: process.env.MIDOU_MOBILE || '13570060818',
-  PASSWORD: process.env.MIDOU_PASSWORD || '73d26b46ab37f7a3725ba19e1b704090'
+  MOBILE: process.env.MIDOU_MOBILE,
+  PASSWORD: process.env.MIDOU_PASSWORD
 };
+
+if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
+  console.error('[scraper] 缺少 MIDOU_MOBILE / MIDOU_PASSWORD 环境变量');
+  process.exit(1);
+}
 
 let token = null;
 
