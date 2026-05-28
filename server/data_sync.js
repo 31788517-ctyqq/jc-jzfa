@@ -1045,7 +1045,28 @@ async function start() {
   }, 60000);
 }
 
-start().catch(e => {
-  log('FATAL: ' + e.message);
-  process.exit(1);
-});
+// 仅直接运行时启动，被 require 时不自动启动
+if (require.main === module) {
+  start().catch(e => {
+    log('FATAL: ' + e.message);
+    process.exit(1);
+  });
+}
+
+// ── 供外部调用的接口 ──
+module.exports = {
+  /** 触发 500.com 数据抓取（AI 解析发现缺失时调用） */
+  triggerShujuFetch: async function (dateStr) {
+    if (!dateStr) dateStr = fmtLocal(new Date());
+    console.log('[data_sync] 外部触发 500.com 数据抓取: ' + dateStr);
+    try {
+      await sync500Odds(dateStr);
+      await sync500Shuju(dateStr);
+      sync500ShujuSelenium(dateStr);
+    } catch (e) {
+      console.error('[data_sync] 外部抓取失败: ' + e.message);
+    }
+  },
+  backfillResults,
+  syncMatchList
+};
