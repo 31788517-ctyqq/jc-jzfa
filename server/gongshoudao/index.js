@@ -46,8 +46,8 @@ function computeSingleMatch(rawStats, matchInfo) {
   // 第二阶段：实力分析
   const strengthResult = attack.analyze(vars);
 
-  // 第四阶段：大小球 + xG
-  const goalResult = goal.analyze(vars, strengthResult.totalAdvantagePct);
+  // 第四阶段：大小球 + xG（传入归一化 S 值）
+  const goalResult = goal.analyze(vars, strengthResult.totalAdvantageRaw);
 
   // 第五阶段：净胜球 + 让球分析
   const diffResult = diff.analyze(vars, goalResult.xgHome, goalResult.xgAway);
@@ -72,12 +72,22 @@ function computeSingleMatch(rawStats, matchInfo) {
     defenseAdvantage: strengthResult.defenseAdvantage,
     defenseAdvantageValue: strengthResult.defenseAdvantageValue,
     attackPattern: strengthResult.attackPattern,
+    // 维度权重（规范名 + 兼容旧名）
+    attackDimWeight: strengthResult.attackDimWeight,
+    defenseDimWeight: strengthResult.defenseDimWeight,
     attackWeightHome: strengthResult.attackWeightHome,
     attackWeightAway: strengthResult.attackWeightAway,
     defenseWeightHome: strengthResult.defenseWeightHome,
     defenseWeightAway: strengthResult.defenseWeightAway,
     totalAdvantage: strengthResult.totalAdvantage,
+    totalAdvantageRaw: strengthResult.totalAdvantageRaw,
     totalAdvantageValue: strengthResult.totalAdvantageValue,
+
+    // ★ 攻守实力（sigmoid 加权合成，供 PK 排行榜使用）
+    adWeightedComposite: strengthResult.adWeightedComposite,
+    // 原始进攻/防守优势度（供前端计算使用）
+    attackAdvantageRaw: strengthResult.attackAdvantageRaw,
+    defenseAdvantageRaw: strengthResult.defenseAdvantageRaw,
 
     // 实力阶梯标签
     ladderLabel: strengthResult.ladder.label,
@@ -104,12 +114,17 @@ function computeSingleMatch(rawStats, matchInfo) {
     totalGoalsExpect: goalResult.totalGoalsExpect,
     totalGoalsValue: goalResult.totalGoalsValue,
     goalRange: goalResult.goalRange,
+    // ★ xG 值（主客预期进球，供排行榜净胜球量化使用）
+    xgHome: goalResult.xgHome,
+    xgAway: goalResult.xgAway,
 
     // 第五阶段输出：净胜球
     homeWinExpect: diffResult.homeWinExpect,
     homeWinValue: diffResult.homeWinValue,
     totalAdvantage2: diffResult.totalAdvantage2,
     totalAdvantage2Value: diffResult.totalAdvantage2Value,
+    // ★ Total_战（双轨实力量化结果）
+    totalStrength: diffResult._totalStrength.normalized,
     goalCount: diffResult.goalCount,
     goalCountValue: diffResult.goalCountValue,
     verifyResult: diffResult.verifyResult,

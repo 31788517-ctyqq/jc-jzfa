@@ -1,78 +1,86 @@
 /**
- * 第四阶段：阵之第二维 · 和差归一大小球博弈算法
+ * 第四阶段：阵之第二维 · 和差归一大小球博弈算法（V24 修订版）
  *
- * 计算：
- *   总进球期望 E_total
- *   主客预期进球 xG_home / xG_away
- *   进球数弹性区间（三维收敛锁）
+ * 按照 gongshoudao-quan.md 新公式重写：
+ *   主客权重 W_h = sigmoid(S), W_a = 1 - W_h
+ *   场地烈度 Intensity = 主场场均得失球 + 客场场均得失球
+ *   全局总进球期望 λ_total = W_h × Intensity_home + W_a × Intensity_away
+ *   三维收敛锁
+ *   xG 计算
  */
 const F = 4;
 
-// ==================== 4.1 主客权重（杠杆放大器）====================
+function round(v, n) {
+  const m = Math.pow(10, n);
+  return Math.round(v * m) / m;
+}
 
-function calcWeights(totalAdvantagePct) {
-  // P_total 已经是百分比化值（如 +5.2 表示主队优5.2%）
-  const homeWeight = round((1 + totalAdvantagePct / 100) / 2, F);
-  const awayWeight = round((1 - totalAdvantagePct / 100) / 2, F);
-  return { home: Math.max(0.1, Math.min(0.9, homeWeight)), away: Math.max(0.1, Math.min(0.9, awayWeight)) };
+function sigmoid(x) {
+  return 1 / (1 + Math.exp(-x));
+}
+
+// ==================== 4.1 主客权重（sigmoid 杠杆放大器）====================
+
+function calcWeights(S) {
+  // W_h = e^S / (1 + e^S), W_a = 1 - W_h
+  const wHome = round(sigmoid(S), F);
+  const wAway = round(1 - wHome, F);
+  return { home: Math.max(0.05, Math.min(0.95, wHome)), away: Math.max(0.05, Math.min(0.95, wAway)) };
 }
 
 // ==================== 4.2 场地烈度 ====================
 
 function calcFieldIntensity(vars) {
-  // 主场场均得失球 + 客场场均得失球
-  const homeField = (vars.homeFieldGoalAvg || 0) + (vars.homeFieldLoseAvg || 0);
-  const awayField = (vars.awayFieldGoalAvg || 0) + (vars.awayFieldLoseAvg || 0);
-
-  // 如果没有场地数据，回退到近期数据
   const hFGoal = vars.homeFieldGoalAvg || vars.homeRecentGoalAvg || 1;
   const hFLose = vars.homeFieldLoseAvg || vars.homeRecentLoseAvg || 1;
   const aFGoal = vars.awayFieldGoalAvg || vars.awayRecentGoalAvg || 1;
   const aFLose = vars.awayFieldLoseAvg || vars.awayRecentLoseAvg || 1;
 
-  return round(hFGoal + hFLose + aFGoal + aFLose, F);
+  return {
+    home: round(hFGoal + hFLose, 2),
+    away: round(aFGoal + aFLose, 2),
+    total: round(hFGoal + hFLose + aFGoal + aFLose, F)
+  };
 }
 
-// ==================== 4.3 全局总进球期望 ====================
+// ==================== 4.3 全局总进球期望 λ_total ====================
 
-function calcTotalGoalExpect(fieldIntensity, weights) {
-  // E_total = fieldIntensity * (w_home * 攻击比重 + w_away * 防守比重)
-  const homeContribution = fieldIntensity * weights.home * 0.5;
-  const awayContribution = fieldIntensity * weights.away * 0.5;
-  return round(homeContribution + awayContribution, F);
+function calcTotalGoalExpect(intensity, weights) {
+  // λ_total = W_h × Intensity_home + W_a × Intensity_away
+  return round(weights.home * intensity.home + weights.away * intensity.away, F);
 }
 
 // ==================== 4.4 进球数弹性区间（三维收敛锁）====================
 
 function calcGoalRange(vars, totalExpect) {
-  // 1. 大盘近期基因：大球率 → 等效期望
-  const overRate = (vars.homeOverRate + vars.awayOverRate) / 2; // 0~1
-  const overAdjusted = 2 + overRate * 2; // 将大球率映射到进球数（约2-4球）
-
-  // 2. 交锋基因：基于交锋比分均值
+  const overRate = (vars.homeOverRate + vars.awayOverRate) / 2;
+  // 综合期望线 λ_gene = 0.4×主大球率 + 0.4×客大球率 + 0.2×交锋大球率
+  // 大球率放大到进球尺度
+  const lambdaGene = 0.4 * overRate * 5 + 0.4 * overRate * 5 + 0.2 * overRate * 5; // 简化：用同一overRate
+  // 实际复刻基因：最近两次交锋进球数均值
   const jiaoFenScores = vars.jiaoFenScores || [];
-  let jfAvg = 0;
+  let lambdaActual = totalExpect;
   if (jiaoFenScores.length > 0) {
     const sum = jiaoFenScores.reduce((s, sc) => s + (sc ? (sc.h + sc.a) : 0), 0);
-    jfAvg = sum / jiaoFenScores.length;
+    lambdaActual = sum / jiaoFenScores.length;
   }
 
-  // 3. 综合期望线
-  const compositeLine = (overAdjusted * 0.4 + (jfAvg || totalExpect) * 0.3 + totalExpect * 0.3);
+  const compositeLine = lambdaGene * 0.4 + lambdaActual * 0.3 + totalExpect * 0.3;
 
-  // 下限锁：基于综合期望线动态计算
   let lowerLock = Math.max(0, Math.floor(compositeLine) - 1);
-  // 双方攻击力都弱 → 保底至少1球
-  if (overRate < 0.3 && (vars.homeAttackEfficiency + vars.awayAttackEfficiency) < 0.5) {
-    lowerLock = 1;
+  let upperLock = Math.ceil(compositeLine) + 1;
+
+  // 下限锁
+  if (lambdaGene < 1.8 && lambdaActual < 1.5) {
+    upperLock = Math.min(upperLock, 2);
+  }
+  // 上限锁
+  if (lambdaGene > 2.5) {
+    lowerLock = Math.max(lowerLock, 2);
   }
 
-  // 上限锁：综合期望线 + 缓冲
-  let upperLock = Math.ceil(compositeLine) + 1;
-  if (jfAvg > 0 && jfAvg < 2) {
-    upperLock = Math.min(upperLock, 3); // 交锋低比分 → 上限限制
-  }
   upperLock = Math.max(2, Math.min(6, upperLock));
+  lowerLock = Math.max(0, lowerLock);
 
   return {
     range: lowerLock + '-' + upperLock + '球',
@@ -80,71 +88,107 @@ function calcGoalRange(vars, totalExpect) {
     upper: upperLock,
     compositeLine: round(compositeLine, 2),
     overRate: round(overRate * 100, 1),
-    jfAvg: round(jfAvg, 2)
+    lambdaGene: round(lambdaGene, 2),
+    lambdaActual: round(lambdaActual, 2)
   };
 }
 
 // ==================== 4.5 主客近期进球期望（xG）====================
 
 function calcExpectedGoals(vars, totalExpect, weights) {
-  // 1. 还原底层攻防频次
-  // 进攻次数 ≈ 场均进球 * 10 * 进攻效率系数
-  const hAttacks = (vars.homeRecentGoalAvg || 1) * 10 * (1 + vars.homeAttackEfficiency);
-  const hDefFaced = (vars.homeRecentLoseAvg || 1) * 10 * (1 + vars.homeDefendEfficiency);
-  const aAttacks = (vars.awayRecentGoalAvg || 1) * 10 * (1 + vars.awayAttackEfficiency);
-  const aDefFaced = (vars.awayRecentLoseAvg || 1) * 10 * (1 + vars.awayDefendEfficiency);
+  const gh = vars.homeRecentGoalAvg || 1;
+  const ga = vars.awayRecentGoalAvg || 1;
+  const eh = vars.homeAttackEfficiency || 0.1;
+  const ea = vars.awayAttackEfficiency || 0.1;
+  const lh = vars.homeRecentLoseAvg || 1;
+  const la = vars.awayRecentLoseAvg || 1;
+  const dh = Math.max(vars.homeDefendEfficiency, 0.01);
+  const da = Math.max(vars.awayDefendEfficiency, 0.01);
 
-  // 2. 四维呼吸权重
-  // 主队进攻 vs 客队防守 → 主队射门转化率
-  const hConversion = (hAttacks / (aDefFaced + 1)) * 0.1; // 归一化
-  const aConversion = (aAttacks / (hDefFaced + 1)) * 0.1;
+  // 还原底层攻防次数
+  const atkH = gh / eh;
+  const shotAgainstH = lh / dh;
+  const atkA = ga / ea;
+  const shotAgainstA = la / da;
 
-  // 3. 终极进球期望
-  const xgHome = round(totalExpect * weights.home * (1 + hConversion) / (1 + hConversion + aConversion), 2);
-  const xgAway = round(totalExpect * weights.away * (1 + aConversion) / (1 + hConversion + aConversion), 2);
+  // 四维呼吸权重
+  const beta1 = atkH / (atkH + shotAgainstA + 0.1);
+  const beta2 = atkA / (atkA + shotAgainstH + 0.1);
+
+  const hfGoal = vars.homeFieldGoalAvg || vars.homeRecentGoalAvg || 1;
+  const hfLose = vars.homeFieldLoseAvg || vars.homeRecentLoseAvg || 1;
+  const afGoal = vars.awayFieldGoalAvg || vars.awayRecentGoalAvg || 1;
+  const afLose = vars.awayFieldLoseAvg || vars.awayRecentLoseAvg || 1;
+
+  const beta3 = (hfGoal - hfLose) / (hfGoal + hfLose + 1);
+  const beta4 = (afGoal - afLose) / (afGoal + afLose + 1);
+
+  // 终极进球期望
+  const xgHome = round(beta1 * atkH + beta3 * hfGoal, 2);
+  const xgAway = round(beta2 * atkA + beta4 * afGoal, 2);
+
+  // 缩放到总期望
+  const totalXg = xgHome + xgAway;
+  if (totalXg > 0.01) {
+    const scale = totalExpect / totalXg;
+    return {
+      xgHome: round(Math.max(0.1, xgHome * scale), 2),
+      xgAway: round(Math.max(0.1, xgAway * scale), 2),
+      hConversion: round(beta1, F),
+      aConversion: round(beta2, F)
+    };
+  }
 
   return {
-    xgHome: Math.max(0.1, xgHome),
-    xgAway: Math.max(0.1, xgAway),
-    hConversion: round(hConversion, F),
-    aConversion: round(aConversion, F)
+    xgHome: round(totalExpect * weights.home, 2),
+    xgAway: round(totalExpect * weights.away, 2),
+    hConversion: 0,
+    aConversion: 0
   };
 }
 
 // ==================== 主入口 ====================
 
-function analyze(vars, totalAdvantagePct) {
-  const weights = calcWeights(totalAdvantagePct);
-  const fieldIntensity = calcFieldIntensity(vars);
-  const totalExpect = calcTotalGoalExpect(fieldIntensity, weights);
+function analyze(vars, S) {
+  const weights = calcWeights(S);
+  const intensity = calcFieldIntensity(vars);
+  const totalExpect = calcTotalGoalExpect(intensity, weights);
   const goalRange = calcGoalRange(vars, totalExpect);
   const xg = calcExpectedGoals(vars, totalExpect, weights);
+
+  const hGoal = vars.homeRecentGoalAvg || 1;
+  const hLose = vars.homeRecentLoseAvg || 1;
+  const aGoal = vars.awayRecentGoalAvg || 1;
+  const aLose = vars.awayRecentLoseAvg || 1;
 
   return {
     // 主客权重
     homeWeight: round(weights.home * 100, 1) + '%',
     awayWeight: round(weights.away * 100, 1) + '%',
     // 得失球对比
-    goalDiffHome: round(vars.homeRecentGoalAvg, 1) + '/' + round(vars.homeRecentLoseAvg, 1),
-    goalDiffAway: round(vars.awayRecentGoalAvg, 1) + '/' + round(vars.awayRecentLoseAvg, 1),
+    goalDiffHome: round(hGoal, 1) + '/' + round(hLose, 1),
+    goalDiffAway: round(aGoal, 1) + '/' + round(aLose, 1),
+    // 场地烈度
+    intensityHome: intensity.home.toFixed(2) + '球',
+    intensityAway: intensity.away.toFixed(2) + '球',
+    // 进球失球和
+    goalSumHome: round(hGoal, 2).toFixed(2) + '球',
+    goalSumAway: round(aGoal, 2).toFixed(2) + '球',
+    loseSumHome: round(hLose, 2).toFixed(2) + '球',
+    loseSumAway: round(aLose, 2).toFixed(2) + '球',
     // 总进球期望
-    totalGoalsExpect: totalExpect.toFixed(1),
-    totalGoalsValue: Math.round(totalExpect / 6 * 100), // 0~6球映射到 0~100
+    totalGoalsExpect: totalExpect.toFixed(2),
+    totalGoalsValue: Math.round(totalExpect / 6 * 100),
     // 弹窗区间
     goalRange,
     // xG
     xgHome: xg.xgHome,
     xgAway: xg.xgAway,
-    fieldIntensity,
+    fieldIntensity: intensity.total,
     // 子维度
     _weights: weights,
     _xg: xg
   };
-}
-
-function round(v, n) {
-  const m = Math.pow(10, n);
-  return Math.round(v * m) / m;
 }
 
 module.exports = { analyze };

@@ -60,6 +60,11 @@ function buildGSFields(gs) {
     crossLose: gs.crossLose || '-',
     crossRq: gs.crossRq || 0,
     goalRange: (gs.goalRange || {}).range || '-',
+    // ★ 新增 V24 字段
+    xgHome: gs.xgHome != null ? gs.xgHome : 0,
+    xgAway: gs.xgAway != null ? gs.xgAway : 0,
+    adWeightedComposite: gs.adWeightedComposite != null ? gs.adWeightedComposite : 0,
+    totalStrength: gs.totalStrength != null ? gs.totalStrength : 0,
     hasGS: !!(gs.attackPattern)
   };
 }
@@ -136,7 +141,7 @@ function calcColSums(list) {
     sums.bigBall  += Math.abs(parseFloat(item.totalGoalsExpect) || 0);
     sums.attDef   += Math.abs(item.attackAdvantageValue + item.defenseAdvantageValue - 100) / 20;
     sums.power    += Math.abs(item.totalAdvantageValue - 50) / 10;
-    sums.cross    += Math.abs((item.crossWin || 0) - (item.crossLose || 0)) / 5;
+    sums.cross    += Math.abs((item.crossWin || 0) - (item.crossLose || 0));
     sums.armor    += Math.abs((item.attackAdvantageValue + item.defenseAdvantageValue) / 10);
   });
   return sums;
@@ -146,7 +151,7 @@ function calcRowValues(item) {
   var g = parseFloat(item.totalGoalsExpect) || 0;
   var a = (item.attackAdvantageValue + item.defenseAdvantageValue - 100) / 20;
   var p = (item.totalAdvantageValue - 50) / 10;
-  var c = ((item.crossWin || 0) - (item.crossLose || 0)) / 5;
+  var c = ((item.crossWin || 0) - (item.crossLose || 0));
   var r = (item.attackAdvantageValue + item.defenseAdvantageValue) / 10;
   return { bigBall: g, attDef: a, power: p, cross: c, armor: r };
 }

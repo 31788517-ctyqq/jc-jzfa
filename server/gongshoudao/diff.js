@@ -1,16 +1,24 @@
 /**
- * 第五阶段：让球分析 (7-Match Threshold & Hard Power Analysis)
+ * 第五阶段：让球分析 (7-Match Threshold & Hard Power Analysis) V24 修订版
  *
- * 计算：
- *   预期净胜球差 Diff_xG
- *   双轨实力量化 Total_战
+ * 按照 gongshoudao-quan.md 新公式重写：
+ *   Diff_exp = xgHome - xgAway
+ *   Static = (homePower - guestPower) / 100
+ *   Dyn_h = (3×H_win + 1×PG_h) / 30, Dyn_a = (3×A_win + 1×PG_a) / 30
+ *   Total_战 = 0.7 × Static + 0.3 × (Dyn_h - Dyn_a)
  *   Anchor 动态锚点
- *   7场硬性通过判定
+ *   7场硬性阈值判定
  *   三者一致共振裁决
  */
 const F = 4;
 
-// ==================== 5.1 主队赢球期望值 Diff_xG ====================
+function round(v, n) {
+  const m = Math.pow(10, n);
+  return Math.round(v * m) / m;
+}
+
+// ==================== 5.1 主队赢球期望值 Diff_exp ====================
+
 function calcDiffXG(xgHome, xgAway) {
   return round(xgHome - xgAway, F);
 }
@@ -18,86 +26,88 @@ function calcDiffXG(xgHome, xgAway) {
 // ==================== 5.2 双轨实力量化 Total_战 ====================
 
 /**
- * 静态实力：基于 power 值的标准化
+ * 静态实力：Static = (homePower - guestPower) / 100
  */
 function calcStaticStrength(vars) {
   const hPower = vars.homePower || 50;
   const aPower = vars.awayPower || 50;
-  // 差值映射到 ±100 范围
-  return round((hPower - aPower) / 5, F); // 10分差 ≈ 2净胜球优势
+  return round((hPower - aPower) / 100, F);
 }
 
 /**
- * 动态状态：基于近期攻防表现
+ * 动态状态：
+ *   Dyn_h = (3×H_win + 1×PG_h) / 30
+ *   Dyn_a = (3×A_win + 1×PG_a) / 30
+ *   Dyn = Dyn_h - Dyn_a
  */
 function calcDynamicState(vars) {
-  // 攻防综合指标
-  const hDyn = (vars.homeAttackEfficiency - vars.homeDefendEfficiency) * 10;
-  const aDyn = (vars.awayAttackEfficiency - vars.awayDefendEfficiency) * 10;
+  const hWins = vars.homeWinGap_2 + vars.homeWinGap_1;
+  const aWins = vars.awayWinGap_2 + vars.awayWinGap_1;
+  const hDraws = vars.homeDraw;
+  const aDraws = vars.awayDraw;
 
-  // 近期进球差
-  const hRecentDiff = (vars.homeRecentGoalAvg || 1) - (vars.homeRecentLoseAvg || 1);
-  const aRecentDiff = (vars.awayRecentGoalAvg || 1) - (vars.awayRecentLoseAvg || 1);
-
-  // 综合动态状态
-  return round((hDyn - aDyn) + (hRecentDiff - aRecentDiff), F);
+  const dynH = (3 * hWins + 1 * hDraws) / 30;
+  const dynA = (3 * aWins + 1 * aDraws) / 30;
+  return round(dynH - dynA, F);
 }
 
 /**
- * 综合实力量化 Total_战
+ * 综合实力量化：Total_战 = 0.7 × Static + 0.3 × Dyn
  */
 function calcTotalStrength(vars) {
-  const staticStrength = calcStaticStrength(vars);
-  const dynamicState = calcDynamicState(vars);
+  const staticStr = calcStaticStrength(vars);
+  const dynState = calcDynamicState(vars);
 
-  // 40% 静态 + 60% 动态
-  const total = round(staticStrength * 0.4 + dynamicState * 0.6, F);
-
-  // 归一化：映射到净胜球预期范围
-  // 正值=主队优势，负值=客队优势
   return {
-    total: total,
-    static: staticStrength,
-    dynamic: dynamicState,
-    normalized: round(total, F)
+    static: round(staticStr, F),
+    dynamic: round(dynState, F),
+    normalized: round(0.7 * staticStr + 0.3 * dynState, F)
   };
 }
 
-// ==================== 5.3 Anchor 锚点锁定 ====================
+// ==================== Anchor 锚点锁定 ====================
 
 /**
  * 根据 Total_战 锁定锚点
+ *   ≥ 0.2: 主队强势盘面, anchor = 0.3
+ *   -0.2 ~ 0.2: 均势, anchor = 0.0
+ *   ≤ -0.2: 客队强势, anchor = -0.3
  */
-function calcAnchor(diffXG) {
-  if (diffXG >= 0.5) return { anchor: 'A', label: '主队强势盘面', judgment: '主强' };
-  if (diffXG <= -0.5) return { anchor: 'C', label: '客队强势/逆风盘面', judgment: '客强' };
-  return { anchor: 'B', label: '双方均势/胶着盘面', judgment: '均势' };
+function calcAnchor(totalStrength) {
+  const t = totalStrength.normalized;
+  if (t >= 0.2)  return { anchor: 0.3,  label: '主队强势盘面', judgment: '主强' };
+  if (t <= -0.2) return { anchor: -0.3, label: '客队强势盘面', judgment: '客强' };
+  return { anchor: 0.0, label: '双方均势/胶着盘面', judgment: '均势' };
 }
 
-// ==================== 5.4 7场硬性阈值全分布交叉统计 ====================
+// ==================== 5.3 7场硬性阈值全分布交叉统计 ====================
 
 /**
  * 维度一：【主赢 ∩ 客输】正向期望赢盘组合判定
+ *   主强或均势 (Total_战 ≥ -0.2):
+ *     主: gd ≥ 1, 客: gd ≤ -1
+ *   主弱 (Total_战 < -0.2):
+ *     主: gd ≥ 0, 客: gd ≤ 0
  */
-function calcWinLoseCross(anchor, homeSeries, awaySeries) {
+function calcWinLoseCross(totalStrength, homeSeries, awaySeries) {
   let hCount = 0;
   let aCount = 0;
 
-  const isHomeStrongOrBalanced = (anchor.judgment === '主强' || anchor.judgment === '均势');
+  const isWeak = totalStrength.normalized < -0.2;
 
   for (const gd of homeSeries) {
-    if (isHomeStrongOrBalanced) {
+    if (isWeak) {
       if (gd >= 0) hCount++;
     } else {
-      if (gd > 0) hCount++;
+      if (gd >= 1) hCount++;
     }
   }
 
   for (const gd of awaySeries) {
-    if (isHomeStrongOrBalanced) {
+    if (isWeak) {
       if (gd <= 0) aCount++;
     } else {
-      if (gd < 0) aCount++;
+      if (gd <= -1) aCount++;
     }
   }
 
@@ -106,32 +116,36 @@ function calcWinLoseCross(anchor, homeSeries, awaySeries) {
 
   return {
     hCount, aCount, total, passed,
-    label: passed ? '🔥 符合期望（主队盘路强势）' : '➖ 未达阈值'
+    label: passed ? '🔥 符合期望' : '⚠️ 未通过'
   };
 }
 
 /**
  * 维度二：【主输 ∩ 客赢】逆向防守咬盘组合判定
+ *   主强或均势 (Total_战 ≥ -0.2):
+ *     主: gd ≤ -1, 客: gd ≥ 1
+ *   主弱 (Total_战 < -0.2):
+ *     主: gd ≤ 0, 客: gd ≥ 0
  */
-function calcLoseWinCross(anchor, homeSeries, awaySeries) {
+function calcLoseWinCross(totalStrength, homeSeries, awaySeries) {
   let hCount = 0;
   let aCount = 0;
 
-  const isHomeStrongOrBalanced = (anchor.judgment === '主强' || anchor.judgment === '均势');
+  const isWeak = totalStrength.normalized < -0.2;
 
   for (const gd of homeSeries) {
-    if (isHomeStrongOrBalanced) {
-      if (gd < 0) hCount++;
-    } else {
+    if (isWeak) {
       if (gd <= 0) hCount++;
+    } else {
+      if (gd <= -1) hCount++;
     }
   }
 
   for (const gd of awaySeries) {
-    if (isHomeStrongOrBalanced) {
-      if (gd > 0) aCount++;
-    } else {
+    if (isWeak) {
       if (gd >= 0) aCount++;
+    } else {
+      if (gd >= 1) aCount++;
     }
   }
 
@@ -140,51 +154,35 @@ function calcLoseWinCross(anchor, homeSeries, awaySeries) {
 
   return {
     hCount, aCount, total, passed,
-    label: passed ? '🛡️ 弱方韧性（客队盘路强势）' : '➖ 未达阈值'
+    label: passed ? '🛡️ 弱方韧性' : '⚠️ 未通过'
   };
 }
 
-// ==================== 5.5 三者一致共振裁决 ====================
+// ==================== 5.4 三者一致共振裁决 ====================
 
-function calcResonance(diffXG, totalStrength, dimension1, dimension2) {
+function calcResonance(diffXG, totalStrength, dim1, dim2) {
   const diffPositive = diffXG > 0;
-  const totalPositive = totalStrength.normalized > 0;
+  const totalStrong = totalStrength.normalized >= 0.2;
+  const totalWeak = totalStrength.normalized <= -0.2;
 
-  // 主队共振
-  if (diffPositive && totalPositive && dimension1.passed) {
-    return {
-      verdict: '🔥 三者共振：主队穿盘概率极高',
-      level: 'strong_home'
-    };
+  // 主队共振提振: Diff_exp > 0 && Total_战 ≥ 0.2 && 维度一通过
+  if (diffPositive && totalStrong && dim1.passed) {
+    return { verdict: '🔥 三者共振：主队穿盘概率极高', level: 'strong_home' };
   }
 
-  // 客队共振
-  if (!diffPositive && !totalPositive && dimension2.passed) {
-    return {
-      verdict: '🛡️ 三者共振：客队不败稳健',
-      level: 'strong_away'
-    };
+  // 客队共振提振: Diff_exp < 0 && Total_战 ≤ -0.2 && 维度二通过
+  if (!diffPositive && totalWeak && dim2.passed) {
+    return { verdict: '🛡️ 三者共振：客队不败稳健', level: 'strong_away' };
   }
 
-  // 部分通过
-  if (dimension1.passed) {
-    return {
-      verdict: '主队盘路偏强，但需谨慎（期望/实力未完全共振）',
-      level: 'weak_home'
-    };
+  if (dim1.passed) {
+    return { verdict: '主队盘路偏强，但需谨慎', level: 'weak_home' };
+  }
+  if (dim2.passed) {
+    return { verdict: '客队韧性强，但需谨慎', level: 'weak_away' };
   }
 
-  if (dimension2.passed) {
-    return {
-      verdict: '客队韧性强，但需谨慎（期望/实力未完全共振）',
-      level: 'weak_away'
-    };
-  }
-
-  return {
-    verdict: '回归常态：基本面对冲，无明确方向',
-    level: 'neutral'
-  };
+  return { verdict: '回归常态：基本面对冲，无明确方向', level: 'neutral' };
 }
 
 // ==================== 主入口 ====================
@@ -197,26 +195,33 @@ function analyze(vars, xgHome, xgAway) {
   const totalStrength = calcTotalStrength(vars);
 
   // Anchor
-  const anchor = calcAnchor(diffXG);
+  const anchor = calcAnchor(totalStrength);
 
   // 5.3 7场阈值
   const homeSeries = vars.homeGoalDiffSeries || [];
   const awaySeries = vars.awayGoalDiffSeries || [];
-  const dim1 = calcWinLoseCross(anchor, homeSeries, awaySeries);
-  const dim2 = calcLoseWinCross(anchor, homeSeries, awaySeries);
+  const dim1 = calcWinLoseCross(totalStrength, homeSeries, awaySeries);
+  const dim2 = calcLoseWinCross(totalStrength, homeSeries, awaySeries);
 
   // 5.4 共振裁决
   const resonance = calcResonance(diffXG, totalStrength, dim1, dim2);
 
+  // Total_战 百分比化显示
+  const totalPct = round(totalStrength.normalized * 100, 1);
+
   return {
     // 主队赢球期望
     homeWinExpect: (diffXG >= 0 ? '+' : '') + diffXG.toFixed(2),
-    homeWinValue: Math.round(50 + diffXG * 10), // 进度条映射
-    // 综合实力量化
-    totalAdvantage2: (totalStrength.normalized >= 0 ? '+' : '') + totalStrength.normalized.toFixed(2),
-    totalAdvantage2Value: Math.round(50 + totalStrength.normalized * 10),
+    homeWinValue: Math.round(50 + diffXG * 10),
+
+    // 功守道战力 Total_战（百分比化）
+    totalAdvantage2: (totalPct >= 0 ? '+' : '') + totalPct + '%',
+    totalAdvantage2Value: Math.round(50 + totalStrength.normalized * 100),
+    totalAdvantage2Raw: round(totalStrength.normalized, F),
+
     // 锚点
     anchor,
+
     // 7场验证
     verifyResult: dim1.passed ? '✓ 通过' : (dim2.passed ? '⚠ 逆向通过' : '✗ 未通过'),
     verifyValue: dim1.passed ? 80 : (dim2.passed ? 50 : 20),
@@ -224,20 +229,18 @@ function analyze(vars, xgHome, xgAway) {
       dimension1: dim1,
       dimension2: dim2
     },
+
     // 共振
     resonance,
+
     // 净胜球分布数据
     goalCount: diffXG >= 0.5 ? '≥1' : (diffXG <= -0.5 ? '≤-1' : '±0'),
     goalCountValue: Math.round(50 + diffXG * 25),
+
     // 内部数据
     _totalStrength: totalStrength,
     _diffXG: diffXG
   };
-}
-
-function round(v, n) {
-  const m = Math.pow(10, n);
-  return Math.round(v * m) / m;
 }
 
 module.exports = { analyze };
