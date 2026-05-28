@@ -60,11 +60,11 @@ function atomicWrite(filePath, data) {
   fs.renameSync(tmpFile, filePath);
 }
 
-/** 通知 simple.js 重载数据 */
+/** 数据已写入 data.json，服务端通过 mtimeMs 自动检测重载，无需额外通知 */
 function notifyReload() {
-  exec('pm2 restart jc-zjfa', { timeout: 5000 }, err => {
-    if (err) log('[notify] jc-zjfa 重启通知失败: ' + err.message);
-  });
+  // 数据同步进程通过 atomicWrite 更新 data.json
+  // Express 服务端 getDataJson() 通过 stat.mtimeMs 自动检测变更并重载
+  // 无需 PM2 重启
 }
 
 /** 保存推荐趋势快照（每个 matchId 最多保留 48 条 = 16 小时） */
@@ -549,17 +549,30 @@ async function syncLiveScores() {
   }
 }
 
-/** 把实时比分合并到 data.json */
+/** 把实时比分合并到 data.json（增加 num 回退匹配） */
 function syncLiveToData(liveMatches) {
   try {
     let data = {};
     try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) { return; }
     if (!data.m) data.m = {};
 
+    // 构建 num→key 的索引，用于 matchId 不匹配时的回退查找
+    const numIndex = {};
+    Object.keys(data.m).forEach(k => {
+      const m = data.m[k];
+      if (m && m.num) numIndex[m.num] = k;
+    });
+
     let updated = 0;
     liveMatches.forEach(lm => {
-      const key = 'm_' + lm.matchId;
-      const old = data.m[key];
+      // 优先用 matchId 匹配
+      let key = 'm_' + lm.matchId;
+      let old = data.m[key];
+      // 回退：用竞彩编号 num 匹配
+      if (!old && lm.num && numIndex[lm.num]) {
+        key = numIndex[lm.num];
+        old = data.m[key];
+      }
       if (old) {
         if (old.matchStatus !== lm.matchStatus || old.score !== lm.score ||
             old.duration !== lm.duration || old.yellow !== lm.yellow ||
@@ -576,8 +589,11 @@ function syncLiveToData(liveMatches) {
 
     if (updated > 0) {
       atomicWrite(DATA_FILE, data);
+      log('[live_score] 更新了 ' + updated + ' 场比赛数据');
     }
-  } catch (e) {}
+  } catch (e) {
+    log('[live_score] 数据合并异常: ' + e.message);
+  }
 }
 
 // ═══ Task 5: 赛后回填专家命中结果 ═══
@@ -725,6 +741,98 @@ async function finalCheck(dateStr) {
   notifyReload();
 }
 
+// ═══ 辅助：确保当天比赛数据存在（启动后每30分钟重试，最多5次） ═══
+let _ensureRetries = 0;
+const _ensureMaxRetries = 5;
+let _ensureTimer = null;
+
+function startEnsureTodayMatches() {
+  if (_ensureTimer) clearInterval(_ensureTimer);
+  _ensureTimer = setInterval(async () => {
+    if (_ensureRetries >= _ensureMaxRetries) {
+      clearInterval(_ensureTimer);
+      _ensureTimer = null;
+      return;
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    const hasData = todayHasMatches(today);
+    if (hasData) {
+      log('[ensure] ' + today + ' 已有 ' + countTodayMatches(today) + ' 场比赛数据，重试停止');
+      clearInterval(_ensureTimer);
+      _ensureTimer = null;
+      _ensureRetries = 0;
+      return;
+    }
+    _ensureRetries++;
+    log('[ensure] ' + today + ' 无比赛数据，尝试同步 (第' + _ensureRetries + '/' + _ensureMaxRetries + '次)...');
+    try {
+      await syncMatchList();
+      await sleep(jitter(2000));
+      // 同步后立即检查
+      if (todayHasMatches(today)) {
+        log('[ensure] ✓ 赛程同步成功，' + countTodayMatches(today) + ' 场比赛已入库');
+        clearInterval(_ensureTimer);
+        _ensureTimer = null;
+        _ensureRetries = 0;
+        return;
+      }
+    } catch (e) {
+      log('[ensure] 尝试失败: ' + e.message);
+    }
+  }, 30 * 60 * 1000);  // 30 分钟间隔
+
+  // 立即执行一次
+  _ensureTimer._onTimeout(); // Node.js 内部触发，用个简单的方式
+}
+// Python 式的简单实现
+function kickEnsure() {
+  if (!_ensureTimer) return;
+  // 立即触发一次检查
+  setTimeout(async () => {
+    if (_ensureRetries >= _ensureMaxRetries) return;
+    const today = new Date().toISOString().slice(0, 10);
+    if (todayHasMatches(today)) return;
+    _ensureRetries++;
+    log('[ensure] 立即重试同步 (' + _ensureRetries + '/' + _ensureMaxRetries + ')...');
+    try {
+      await syncMatchList();
+    } catch (e) { log('[ensure] 立即重试失败: ' + e.message); }
+  }, 5000);
+}
+
+function todayHasMatches(dateStr) {
+  return countTodayMatches(dateStr) > 0;
+}
+
+function countTodayMatches(dateStr) {
+  try {
+    if (!fs.existsSync(DATA_FILE)) return 0;
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    let count = 0;
+    Object.values(data.m || {}).forEach(m => {
+      if (m && m.date && m.date.slice(0, 10) === dateStr) count++;
+    });
+    return count;
+  } catch (e) { return 0; }
+}
+
+function getTodayStatusSummary(dateStr) {
+  try {
+    if (!fs.existsSync(DATA_FILE)) return '无数据';
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    let total = 0, status0 = 0, status1 = 0, status2 = 0, other = 0;
+    Object.values(data.m || {}).forEach(m => {
+      if (!m || !m.date || m.date.slice(0, 10) !== dateStr) return;
+      total++;
+      if (m.matchStatus === 0) status0++;
+      else if (m.matchStatus === 1) status1++;
+      else if (m.matchStatus === 2) status2++;
+      else other++;
+    });
+    return total + '场 [未:' + status0 + ' 赛中:' + status1 + ' 完:' + status2 + (other ? ' 其他:' + other : '') + ']';
+  } catch (e) { return '?'; }
+}
+
 // ═══ 调度器 ═══
 let currentDate = '';
 let recommendRunning = false;
@@ -742,17 +850,25 @@ function getNextNoonDelay() {
 
 async function start() {
   log('════════════════════════════════════════');
-  log('  统一数据同步守护进程 v2 启动');
+  log('  统一数据同步守护进程 v3 启动');
+  log('  增强: 启动重试 + num回退匹配 + 健康监控');
   log('  数据源: midou310.com + 500.com');
   log('════════════════════════════════════════');
 
   currentDate = new Date().toISOString().slice(0, 10);
+  log('[init] 当前日期: ' + currentDate + ' 数据状态: ' + getTodayStatusSummary(currentDate));
 
-  // ═══ 首次启动：如果已过12点，立即执行赛程+赔率同步 ═══
+  // ═══ 首次启动：如果已过12点 或 今天无数据，立即执行赛程+赔率同步 ═══
   const now = new Date();
   const noonToday = new Date(currentDate + 'T12:00:00+08:00');
-  if (now >= noonToday) {
-    log('[init] 当前已过12:00，立即执行赛程+赔率同步');
+  const needSync = (now >= noonToday) || !todayHasMatches(currentDate);
+
+  if (needSync) {
+    if (now >= noonToday) {
+      log('[init] 当前已过12:00，立即执行赛程+赔率同步');
+    } else {
+      log('[init] 当前' + currentDate + '缺少比赛数据，提前触发赛程同步');
+    }
     try {
       await syncMatchList();
       await sleep(jitter(2000));
@@ -765,9 +881,19 @@ async function start() {
         try {
           const { mergeShuju } = require('./merge_shuju');
           mergeShuju(currentDate);
+          log('[init] 数据合并完成, ' + getTodayStatusSummary(currentDate));
         } catch (e) {}
       }, 5 * 60 * 1000);
     } catch (e) { log('[init] 初始同步失败: ' + e.message); }
+  } else {
+    log('[init] 今日数据已存在，跳过赛程同步');
+  }
+
+  // ═══ 启动重试保障：如果启动时就有数据缺失，启动 30 分钟重试 ═══
+  if (!todayHasMatches(currentDate)) {
+    log('[init] ⚠️ 今日仍无数据，启动重试机制（每30分钟，最多5次）');
+    kickEnsure();
+    startEnsureTodayMatches();
   }
 
   // ═══ 循环1: 每2分钟 — 实时比分 ═══
@@ -815,6 +941,7 @@ async function start() {
         log('[scheduler] 日期变更: ' + currentDate + ' → ' + today);
         currentDate = today;
         finalCheckDone = false;
+        _ensureRetries = 0; // 重置重试计数
       }
 
       log('[scheduler] ⏰ 12:00 定时任务触发');
@@ -831,10 +958,16 @@ async function start() {
           try {
             const { mergeShuju } = require('./merge_shuju');
             mergeShuju(today);
+            log('[shuju] 合并完成: ' + getTodayStatusSummary(today));
           } catch (e) { log('[shuju] 合并失败: ' + e.message); }
         }, 5 * 60 * 1000);
       } catch (e) {
         log('[scheduler] 12:00 任务失败: ' + e.message);
+        // 失败后启动重试
+        if (!todayHasMatches(today)) {
+          kickEnsure();
+          startEnsureTodayMatches();
+        }
       }
 
       scheduleNoon(); // 预约明天
@@ -846,13 +979,23 @@ async function start() {
   setTimeout(recommendLoop, 30000);    // 30秒后开始推荐
   scheduleNoon();                       // 计算12:00定时
 
-  // 每分钟检查日期变更
+  // ═══ 健康监控：每10分钟检查数据状态 ═══
   setInterval(() => {
     const today = new Date().toISOString().slice(0, 10);
     if (today !== currentDate) {
       log('[scheduler] 日期变更: ' + currentDate + ' → ' + today);
       currentDate = today;
       finalCheckDone = false;
+      _ensureRetries = 0;
+      // 如果新的一天没数据，启动重试
+      if (!todayHasMatches(today)) {
+        kickEnsure();
+        startEnsureTodayMatches();
+      }
+    }
+    // 每小时输出一次完整健康状态
+    if (new Date().getMinutes() === 0) {
+      log('[health] ' + today + ' 数据状态: ' + getTodayStatusSummary(today));
     }
   }, 60000);
 }
