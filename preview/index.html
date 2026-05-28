@@ -2409,6 +2409,27 @@ body {
 </div>
 
 
+<script>
+// ★ 同步阻塞脚本：在页面首次绘制前恢复上次访问的页面，杜绝首页闪烁
+(function () {
+  try {
+    var last = sessionStorage.getItem('lastPage');
+    if (last && last !== 'home' && last !== 'detail') {
+      var pg = document.getElementById('page-' + last);
+      if (pg) pg.classList.add('active');
+      var tb = document.getElementById('tab-' + last);
+      if (tb) tb.classList.add('active');
+      // 更新标题
+      var titles = { match:'今日比赛', plan:'今日方案', 'quant-rank':'量化数据排行榜', rank:'推荐排行榜', hit:'命中率统计', filter:'命中率筛选', income:'方案收入' };
+      var titleEl = document.getElementById('navTitle');
+      if (titleEl && titles[last]) titleEl.textContent = titles[last];
+    } else {
+      var home = document.getElementById('page-home');
+      if (home) home.classList.add('active');
+    }
+  } catch (e) {}
+})();
+</script>
 <script type="module" src="/js/main.js?v=63"></script>
 </body>
 </html>
