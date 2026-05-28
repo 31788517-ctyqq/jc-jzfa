@@ -241,8 +241,8 @@ function renderTable() {
       { key: 'rank', label: '总排序', sortable: true, colCls: 'q-col-rk' },
       { key: 'goalDiff', label: '净胜球', sortable: false, colCls: 'q-col-gd' },
       { key: 'cross', label: '胜平负\n交叉', sortable: false, colCls: 'q-col-cross' },
-      { key: 'power', label: '综合实力', sortable: false, colCls: 'q-col-power' },
-      { key: 'ad', label: '攻守实力', sortable: false, colCls: 'q-col-ad' }
+      { key: 'power', label: '综合\n实力', sortable: false, colCls: 'q-col-power' },
+      { key: 'ad', label: '攻守\n实力', sortable: false, colCls: 'q-col-ad' }
     ];
     renderRow = function (item) {
       return renderRank(item.rank) +
@@ -352,14 +352,12 @@ function renderGoalDiff(item) {
   var n = parseFloat(String(v).split('/')[0]);
   if (isNaN(n)) return '<span class="q-col-gd"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<span class="q-col-gd"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
+  return '<span class="q-col-gd"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(1) + '</span></span>';
 }
-
-// ── 综合实力 ──
 function renderPower(item) {
   var pv = item.totalAdvantageValue - 50;
   var cls = pv > 0 ? 'pos' : pv < 0 ? 'neg' : '';
-  return '<span class="q-col-power"><span class="q-cell-num ' + cls + '">' + (pv >= 0 ? '+' : '') + pv.toFixed(2) + '%</span></span>';
+  return '<span class="q-col-power"><span class="q-cell-num ' + cls + '">' + (pv >= 0 ? '+' : '') + pv.toFixed(1) + '%</span></span>';
 }
 
 // ── 胜平负交叉 ──
@@ -371,17 +369,17 @@ function renderCrossValue(item) {
   var n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-cross"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<span class="q-col-cross"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
+  return '<span class="q-col-cross"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(1) + '</span></span>';
 }
 
 // ── 攻守实力 ──
 function renderAdCombined(item) {
   var v = item.adCombined;
-  if (v === 0 || v === undefined || v === null) return '<span class="q-col-ad"><span class="q-cell-num" style="color:var(--text4)">0.00</span></span>';
+  if (v === 0 || v === undefined || v === null) return '<span class="q-col-ad"><span class="q-cell-num" style="color:var(--text4)">0.0</span></span>';
   var n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-ad"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<span class="q-col-ad"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
+  return '<span class="q-col-ad"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(1) + '</span></span>';
 }
 
 // ── 进球 tab 单元格 (统一 toFixed(2)) ──
