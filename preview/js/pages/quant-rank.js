@@ -442,7 +442,7 @@ function renderHotCell(item, key) {
   // rq, homeFeature, guestFeature, oddsLive
   // 文本字段清理箭头符号后展示
   if (key === 'rq' || key === 'homeFeature' || key === 'guestFeature') {
-    var cleaned = String(v).replace(/[→↑↓←↗↙]/g, '').trim();
+    var cleaned = String(v).replace(/→/g, '').trim();
     return '<span class="q-col-' + hotKeyToCls(key) + '"><span class="q-cell-num">' + cleaned + '</span></span>';
   }
   var n = parseFloat(v);
