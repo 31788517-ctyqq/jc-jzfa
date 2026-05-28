@@ -1057,135 +1057,127 @@ app.post('/api', async (req, res) => {
           const fs = require('fs');
           const path = require('path');
 
-          // 1) 从 ai_cache.json 文件读取缓存
           var cacheFile = path.join(__dirname, 'ai_cache.json');
           var cache = {};
           if (fs.existsSync(cacheFile)) {
             try { cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
           }
-
           var cachedEntry = cache[mid];
-
-          // 2) 检查双模型缓存是否齐全
           var hasDS = cachedEntry && cachedEntry.sources && cachedEntry.sources.deepseek && cachedEntry.sources.deepseek.content;
           var hasDB = cachedEntry && cachedEntry.sources && cachedEntry.sources.doubao && cachedEntry.sources.doubao.content;
 
-          if (cachedEntry && cachedEntry.content && hasDS && hasDB) {
-            // 双模型齐全，直接返回合并结果
-            return res.json({ code: 1, data: {
-              matchId: mid,
-              content: cachedEntry.content,
-              confidence: cachedEntry.confidence || 0,
-              fromCache: true,
-              dualModel: true,
-              merged: cachedEntry.merged || false
-            }});
+          // 获取比赛信息
+          var matchInfo = {};
+          try {
+            var df = getDataJson();
+            var m = (df.m || {})['m_' + mid] || (df.m || {})[mid];
+            if (m) matchInfo = { matchId: mid, homeName: m.homeName, visitName: m.visitName, leagueName: m.leagueName, date: m.date, num: m.num };
+          } catch (e) {}
+
+          const AI_TIMEOUT = 60000;
+
+          // 缓存写入（后台合并）
+          function saveCache(source, content, conf) {
+            try {
+              var cur = {};
+              try { cur = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
+              var entry = cur[mid] || { sources: {} };
+              if (!entry.sources) entry.sources = {};
+              entry.sources[source] = { content, confidence: conf, generatedAt: new Date().toISOString() };
+              if (entry.sources.deepseek && entry.sources.doubao) {
+                var merged = aiMerger.mergeAnalyses(
+                  { content: entry.sources.deepseek.content, confidence: entry.sources.deepseek.confidence || 70 },
+                  { content: entry.sources.doubao.content, confidence: entry.sources.doubao.confidence || 70 },
+                  matchInfo
+                );
+                entry.content = merged.content; entry.confidence = merged.confidence; entry.merged = true;
+                console.log('[ai] 双模型合并完成: ' + mid);
+              } else {
+                entry.content = content; entry.confidence = conf; entry.merged = false;
+                console.log('[ai] ' + source + ' 缓存: ' + mid + ' conf=' + conf);
+              }
+              entry.updatedAt = new Date().toISOString();
+              cur[mid] = entry;
+              fs.writeFileSync(cacheFile, JSON.stringify(cur));
+              return entry;
+            } catch (e) { console.error('[ai] cache err:', e.message); return null; }
           }
 
-          // 3) 兼容旧缓存（无 sources 的旧格式，仅有 content）
+          // 已有双模型合并 → 直接返回
+          if (cachedEntry && cachedEntry.content && hasDS && hasDB) {
+            return res.json({ code: 1, data: {
+              matchId: mid, content: cachedEntry.content,
+              confidence: cachedEntry.confidence || 0, fromCache: true, dualModel: true, merged: true
+            }});
+          }
+          // 旧格式
           if (cachedEntry && cachedEntry.content && !cachedEntry.sources) {
             return res.json({ code: 1, data: {
-              matchId: mid,
-              content: cachedEntry.content,
-              confidence: cachedEntry.confidence || 0,
-              fromCache: true,
-              legacy: true
+              matchId: mid, content: cachedEntry.content,
+              confidence: cachedEntry.confidence || 0, fromCache: true, legacy: true
             }});
           }
-
-          // 4) 如果已有 single-source 缓存（上一个模型先完成了），直接返回部分结果
+          // 已有单模型缓存（另一个还在跑）→ 先返回，让前端轮询
           if (cachedEntry && cachedEntry.content && cachedEntry.sources && (hasDS || hasDB) && !(hasDS && hasDB)) {
             return res.json({ code: 1, data: {
-              matchId: mid,
-              content: cachedEntry.content,
-              confidence: cachedEntry.confidence || 0,
-              fromCache: true,
-              partial: true,
-              pendingMerge: true,
+              matchId: mid, content: cachedEntry.content,
+              confidence: cachedEntry.confidence || 0, fromCache: true,
+              singleModel: true, pendingMerge: true,
               readySource: hasDS ? 'deepseek' : 'doubao'
             }});
           }
 
-          // 5) 从 data.json 获取比赛信息
-          var matchInfo = {};
-          try {
-            var dataFile = getDataJson();
-            var mMap = dataFile.m || {};
-            var m = mMap['m_' + mid] || mMap[mid];
-            if (m) {
-              matchInfo = { matchId: mid, homeName: m.homeName || '', visitName: m.visitName || '', leagueName: m.leagueName || '', date: m.date || '', num: m.num || '' };
+          // ★ 无缓存 → 启动双模型并行
+          var dsPromise = deepseek.generateAnalysis(matchInfo).then(function (r) {
+            var c = r && r.content ? (r.content || r) : null;
+            if (!c) throw new Error('DS empty');
+            return { source: 'deepseek', content: c, conf: c.confidence || 70, entry: saveCache('deepseek', c, c.confidence || 70) };
+          }).catch(function (e) { console.log('[ai] DS err:', e.message); return null; });
+
+          var dbPromise = doubao.generateAnalysis(matchInfo).then(function (r) {
+            var c = r && r.content ? (r.content || r) : null;
+            if (!c) throw new Error('DB empty');
+            return { source: 'doubao', content: c, conf: c.confidence || 70, entry: saveCache('doubao', c, c.confidence || 70) };
+          }).catch(function (e) { console.log('[ai] DB err:', e.message); return null; });
+
+          var t0 = Date.now();
+
+          // 等第一个完成
+          var first = await Promise.race([dsPromise, dbPromise]);
+
+          // 等第二个（在剩余时间内）
+          if (first && first.source) {
+            var remaining = AI_TIMEOUT - (Date.now() - t0);
+            if (remaining > 2000) {
+              var otherPromise = first.source === 'deepseek' ? dbPromise : dsPromise;
+              await Promise.race([otherPromise, new Promise(function (r) { setTimeout(r, remaining); })]);
             }
-          } catch (e) {}
+          }
 
-          // 6) 启动模型调用（在 res.json 之前，确保不因 return 丢失）
-          deepseek.generateAnalysis(matchInfo).then(function (dsR) {
-            var dsC = dsR && dsR.content ? (dsR.content || dsR) : null;
-            if (!dsC) { console.log('[ai] DeepSeek 无内容'); return; }
-            var conf = dsC.confidence || 70;
-            try {
-              var cur = {};
-              try { cur = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
-              var entry = cur[mid] || { sources: {} };
-              if (!entry.sources) entry.sources = {};
-              entry.sources.deepseek = { content: dsC, confidence: conf, generatedAt: new Date().toISOString() };
-              if (entry.sources.doubao) {
-                var merged = aiMerger.mergeAnalyses(
-                  { content: entry.sources.deepseek.content, confidence: entry.sources.deepseek.confidence || 70 },
-                  { content: entry.sources.doubao.content, confidence: entry.sources.doubao.confidence || 70 },
-                  matchInfo
-                );
-                entry.content = merged.content; entry.confidence = merged.confidence; entry.merged = true;
-                console.log('[ai] 双模型合并: ' + mid);
-              } else {
-                entry.content = dsC; entry.confidence = conf;
-                console.log('[ai] DS缓存: ' + mid + ' conf=' + conf);
-              }
-              entry.updatedAt = new Date().toISOString();
-              cur[mid] = entry;
-              fs.writeFileSync(cacheFile, JSON.stringify(cur));
-            } catch (e) { console.error('[ai] cache err:', e.message); }
-          }).catch(function (e) { console.error('[ai] DS err:', e.message); });
+          // 重新读缓存
+          cache = {};
+          try { cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
+          cachedEntry = cache[mid];
 
-          doubao.generateAnalysis(matchInfo).then(function (dbR) {
-            var dbC = dbR && dbR.content ? (dbR.content || dbR) : null;
-            if (!dbC) { console.log('[ai] 豆包 无内容'); return; }
-            var conf = dbC.confidence || 70;
-            try {
-              var cur = {};
-              try { cur = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
-              var entry = cur[mid] || { sources: {} };
-              if (!entry.sources) entry.sources = {};
-              entry.sources.doubao = { content: dbC, confidence: conf, generatedAt: new Date().toISOString() };
-              if (entry.sources.deepseek) {
-                var merged = aiMerger.mergeAnalyses(
-                  { content: entry.sources.deepseek.content, confidence: entry.sources.deepseek.confidence || 70 },
-                  { content: entry.sources.doubao.content, confidence: entry.sources.doubao.confidence || 70 },
-                  matchInfo
-                );
-                entry.content = merged.content; entry.confidence = merged.confidence; entry.merged = true;
-                console.log('[ai] 双模型合并: ' + mid);
-              } else {
-                entry.content = dbC; entry.confidence = conf;
-                console.log('[ai] DB缓存: ' + mid + ' conf=' + conf);
-              }
-              entry.updatedAt = new Date().toISOString();
-              cur[mid] = entry;
-              fs.writeFileSync(cacheFile, JSON.stringify(cur));
-            } catch (e) { console.error('[ai] cache err:', e.message); }
-          }).catch(function (e) { console.error('[ai] DB err:', e.message); });
+          if (cachedEntry && cachedEntry.content && cachedEntry.merged) {
+            return res.json({ code: 1, data: {
+              matchId: mid, content: cachedEntry.content,
+              confidence: cachedEntry.confidence, dualModel: true, merged: true
+            }});
+          } else if (cachedEntry && cachedEntry.content) {
+            return res.json({ code: 1, data: {
+              matchId: mid, content: cachedEntry.content,
+              confidence: cachedEntry.confidence,
+              singleModel: true, pendingMerge: true,
+              readySource: first ? first.source : (hasDS ? 'deepseek' : 'doubao')
+            }});
+          }
 
-          // 7) 返回 pending
-          var estimatedWait = getEstimatedWaitTime();
-          res.json({
-            code: 0,
-            msg: '分析生成中，DeepSeek + 豆包 双模型交叉验证...',
-            pending: true,
-            estimatedWait: estimatedWait,
-            dualModel: true
-          });
-
-          return;
-        } catch (e) { return res.json({ code: 0, msg: '查询失败: ' + e.message }); }
+          return res.json({ code: 1, data: { matchId: mid, polling: true, status: 'pending' } });
+        } catch (e) {
+          logger.error('[ai-predict] ' + e.message);
+          return res.json({ code: 0, msg: 'AI 分析异常，请稍后重试' });
+        }
       }
       case 'ai-predict-status': {
         try {

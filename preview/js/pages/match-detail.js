@@ -255,82 +255,54 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
   }
 
-  // 调用 API
-  api('ai-predict', { matchId: matchId }).then(function (d) {
+  // ★ 后端等待60s双模型并行，前端直接拿结果
+  startWaitUI();
+
+  function pollForMerge(matchId, homeTeam, awayTeam, retries) {
+    retries = retries || 0;
+    if (retries >= 20) return; // 最多轮询60秒
+    setTimeout(function () {
+      api('ai-predict', { matchId: matchId }, { timeout: 15000 }).then(function (rd) {
+        if (rd.content && !rd.pendingMerge && (rd.dualModel || rd.merged)) {
+          // 合并版就绪 → 静默更新展示
+          renderAIContent(rd.content, homeTeam, awayTeam);
+        } else {
+          pollForMerge(matchId, homeTeam, awayTeam, retries + 1);
+        }
+      }).catch(function () {
+        pollForMerge(matchId, homeTeam, awayTeam, retries + 1);
+      });
+    }, 3000);
+  }
+
+  api('ai-predict', { matchId: matchId }, { timeout: 70000 }).then(function (d) {
+    stopWaitUI();
     if (d.content) {
-      // 有内容就渲染（无论是否 partial、pendingMerge）
-      stopWaitUI();
-      if (d.pendingMerge) {
-        var st = d.readySource === 'deepseek' ? 'DeepSeek' : (d.readySource === 'doubao' ? '豆包' : '一方');
-        renderAIContentWithBadge(d.content, homeTeam, awayTeam,
-          st + '已完成，另一模型交叉验证中...');
-        // 继续等合并版
-        var mr = 0;
-        (function pm() { mr++; if (mr > 30) return;
-          setTimeout(function () {
-            api('ai-predict', { matchId: matchId }).then(function(r2) {
-              if (r2.content && !r2.pendingMerge) renderAIContent(r2.content, homeTeam, awayTeam);
-              else pm();
-            }).catch(function() { pm(); });
-          }, 2000);
-        })();
+      if (d.dualModel && d.merged) {
+        // 双模型合并版直接展示
+        renderAIContent(d.content, homeTeam, awayTeam);
+      } else if (d.singleModel || d.pendingMerge) {
+        // 单模型先到先得 → 先展示，后台轮询合并版
+        var badge = (d.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 已完成，另一模型验证中...';
+        renderAIContentWithBadge(d.content, homeTeam, awayTeam, badge);
+        pollForMerge(matchId, homeTeam, awayTeam, 0);
       } else {
         renderAIContent(d.content, homeTeam, awayTeam);
       }
-    } else if (d.pending) {
-      // 两个模型都在生成中
-      if (d.estimatedWait) estimatedTotalSec = Math.min(d.estimatedWait, 35);
-      startWaitUI();
-
-      function retry() {
-        if (retryCount >= maxRetries) {
-          stopWaitUI();
-          var ac = document.getElementById('aiModal');
-          if (ac) {
-            var inner = ac.querySelector('.ai-content');
-            if (inner) inner.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);"><div style="font-size:40px;margin-bottom:12px;">⏰</div><div style="font-size:16px;font-weight:600;">分析生成超时</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">双模型验证耗时较长，请稍后重试</div><button style="margin-top:20px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;" onclick="showAIPrediction(\'' + matchId + '\')">重新生成</button></div>';
-          }
-          return;
-        }
-        retryCount++;
-        api('ai-predict', { matchId: matchId }).then(function (rd) {
-          if (rd.content) {
-            stopWaitUI();
-            if (rd.pendingMerge) {
-              var s2 = rd.readySource === 'deepseek' ? 'DeepSeek' : (rd.readySource === 'doubao' ? '豆包' : '一方');
-              renderAIContentWithBadge(rd.content, homeTeam, awayTeam,
-                s2 + '已完成，另一模型交叉验证中...');
-              var mr2 = 0;
-              (function pm2() { mr2++; if (mr2 > 30) return;
-                setTimeout(function() {
-                  api('ai-predict', { matchId: matchId }).then(function(r3) {
-                    if (r3.content && !r3.pendingMerge) renderAIContent(r3.content, homeTeam, awayTeam);
-                    else pm2();
-                  }).catch(function() { pm2(); });
-                }, 2000);
-              })();
-            } else {
-              renderAIContent(rd.content, homeTeam, awayTeam);
-            }
-          } else { setTimeout(retry, 2000); }
-        }).catch(function () { setTimeout(retry, 2000); });
-      }
-      setTimeout(retry, 2000);
     } else {
-      stopWaitUI();
-      var ac2 = document.getElementById('aiModal');
-      if (ac2) {
-        var inner2 = ac2.querySelector('.ai-content');
-        if (inner2) inner2.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);">分析未就绪，请稍后重试</div>';
+      var ac = document.getElementById('aiModal');
+      if (ac) {
+        var inner = ac.querySelector('.ai-content');
+        if (inner) inner.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);"><div style="font-size:40px;margin-bottom:12px;">⏰</div><div style="font-size:16px;font-weight:600;">分析未就绪</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">请稍后重试</div><button style="margin-top:20px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;" onclick="showAIPrediction(\'' + matchId + '\')">重试</button></div>';
       }
     }
   }).catch(function (e) {
     stopWaitUI();
-    var ac3 = document.getElementById('aiModal');
-    if (ac3) {
-      var inner3 = ac3.querySelector('.ai-content');
-      var errMsg = e && e.message ? e.message : '网络连接失败';
-      if (inner3) inner3.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="font-size:16px;font-weight:600;">请求失败</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">' + errMsg + '</div><button style="margin-top:16px;padding:8px 20px;border-radius:20px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:13px;" onclick="showAIPrediction(\'' + matchId + '\')">重试</button></div>';
+    var ac = document.getElementById('aiModal');
+    if (ac) {
+      var inner = ac.querySelector('.ai-content');
+      var msg = e && e.message ? e.message : '网络连接失败';
+      if (inner) inner.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="font-size:16px;font-weight:600;">请求失败</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">' + msg + '</div><button style="margin-top:16px;padding:8px 20px;border-radius:20px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:13px;" onclick="showAIPrediction(\'' + matchId + '\')">重试</button></div>';
     }
   });
 }
