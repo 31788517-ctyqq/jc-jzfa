@@ -31,6 +31,8 @@ export function toggleQuantDatePicker() {
 
 export function switchQuantTab(tab) {
   currentTab = tab;
+  pickedIds = {};  // 切换 tab 时清空复选框状态
+  updatePkBar();
   // 切换 tab 时重置排序键为默认
   if (tab === 'power') { sortKey = 'rank'; sortAsc = true; }
   else if (tab === 'goal') { sortKey = 'totalSum'; sortAsc = true; }
@@ -75,6 +77,8 @@ export function sortBy(key) {
 
 // ═══ 数据加载 ═══
 export function loadQuantRank() {
+  pickedIds = {};  // 切换日期时清空复选框状态
+  updatePkBar();
   var wrap = document.getElementById('quantTableWrap');
   if (!wrap) return;
   wrap.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载数据中...</div>';
