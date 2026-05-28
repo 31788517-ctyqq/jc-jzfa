@@ -383,13 +383,40 @@ document.addEventListener('touchend', function (e) {
   setTimeout(function () { handleDocClose(e); }, 50);
 });
 
-// ── 启动：恢复上次访问的页面 ──
+// ── 启动：立即恢复上次页面，避免首页闪烁 ──
 (function initPage() {
+  // ★ 立即隐藏所有页面，防止先闪 home 再切换
+  document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
+  // 读取上次保存的页面
   var last = null;
   try { last = sessionStorage.getItem('lastPage'); } catch(e) {}
+  // 确定要显示的页面
   if (last && last !== 'home' && last !== 'detail') {
-    switchTab(last);
+    document.getElementById('page-' + last).classList.add('active');
+    state.setCurrentPage(last);
+    // 同步底部 tab 高亮
+    document.querySelectorAll('.tab-item').forEach(function (t) { t.classList.remove('active'); });
+    var tabEl = document.getElementById('tab-' + last);
+    if (tabEl) tabEl.classList.add('active');
+    // 延迟加载内容
+    setTimeout(function () { switchTabLoad(last); }, 10);
   } else {
+    document.getElementById('page-home').classList.add('active');
+    state.setCurrentPage('home');
     loadHome();
   }
 })();
+
+// 只加载内容，不切换 DOM（用于初始化）
+function switchTabLoad(tab) {
+  if (tab === 'match') {
+    if (state.weekDates.length > 0) { updateDateBar(); loadMatchList(); }
+    else initWeekDates();
+  }
+  if (tab === 'plan') { updatePlanDateBar(); loadPlanList(); }
+  if (tab === 'quant-rank') { updateQuantDateBar(); loadQuantRank(); }
+  if (tab === 'rank') { updateRankDateBar(); loadRanking(); }
+  if (tab === 'hit') loadHitRate();
+  if (tab === 'filter') { loadFilterLeagues(); resetFilterResult(); }
+  if (tab === 'income') loadIncome();
+}
