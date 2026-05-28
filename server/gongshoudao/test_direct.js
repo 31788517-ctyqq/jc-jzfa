@@ -67,7 +67,8 @@ console.log('  进攻权重:', att.attackWeightHome, 'vs', att.attackWeightAway)
 console.log('  防守权重:', att.defenseWeightHome, 'vs', att.defenseWeightAway);
 console.log('  综合优势:', att.totalAdvantage, '(value:', att.totalAdvantageValue + ')');
 console.log('  实力阶梯:', att.ladder.label, '(level:', att.ladder.level + ')');
-console.log('  交叉分布: 主胜客负', att.cross.crossWin, '/平局', att.cross.crossDraw, '/主负客胜', att.cross.crossLose);
+console.log('  不让球交叉: 胜' + att.cross.spf.win + ' 平' + att.cross.spf.draw + ' 负' + att.cross.spf.lose + '（让0）');
+console.log('  让球交叉: 让胜' + att.cross.handicap.win + ' 让平' + att.cross.handicap.draw + ' 让负' + att.cross.handicap.lose + '（让' + att.cross.rq + '）');
 console.log();
 
 // 第四阶段

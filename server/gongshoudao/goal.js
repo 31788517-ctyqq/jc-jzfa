@@ -53,28 +53,43 @@ function calcTotalGoalExpect(intensity, weights) {
 // ==================== 4.4 进球数弹性区间（三维收敛锁）====================
 
 function calcGoalRange(vars, totalExpect) {
-  const overRate = (vars.homeOverRate + vars.awayOverRate) / 2;
-  // 综合期望线 λ_gene = 0.4×主大球率 + 0.4×客大球率 + 0.2×交锋大球率
-  // 大球率放大到进球尺度
-  const lambdaGene = 0.4 * overRate * 5 + 0.4 * overRate * 5 + 0.2 * overRate * 5; // 简化：用同一overRate
-  // 实际复刻基因：最近两次交锋进球数均值
+  const homeOR = vars.homeOverRate || 0;
+  const awayOR = vars.awayOverRate || 0;
+
+  // 交锋大球率：近3-6次交锋中总进球≥3球的场次比例
   const jiaoFenScores = vars.jiaoFenScores || [];
+  let h2hOverRate = (homeOR + awayOR) / 2; // fallback
+  if (jiaoFenScores.length > 0) {
+    const overCount = jiaoFenScores.filter(function(s) {
+      return s && (s.h + s.a) >= 3;
+    }).length;
+    h2hOverRate = overCount / jiaoFenScores.length;
+  }
+
+  // 综合期望线 λ_gene = 0.4×主大球率×5 + 0.4×客大球率×5 + 0.2×交锋大球率×5
+  // 大球率(0~1) ×5 放大到进球尺度(0~5)
+  const lambdaGene = round(
+    0.4 * homeOR * 5 + 0.4 * awayOR * 5 + 0.2 * h2hOverRate * 5,
+    F
+  );
+
+  // 实际复刻基因：最近两次交锋进球数均值
   let lambdaActual = totalExpect;
   if (jiaoFenScores.length > 0) {
     const sum = jiaoFenScores.reduce((s, sc) => s + (sc ? (sc.h + sc.a) : 0), 0);
-    lambdaActual = sum / jiaoFenScores.length;
+    lambdaActual = round(sum / jiaoFenScores.length, F);
   }
 
-  const compositeLine = lambdaGene * 0.4 + lambdaActual * 0.3 + totalExpect * 0.3;
+  const compositeLine = round(lambdaGene * 0.4 + lambdaActual * 0.3 + totalExpect * 0.3, F);
 
   let lowerLock = Math.max(0, Math.floor(compositeLine) - 1);
   let upperLock = Math.ceil(compositeLine) + 1;
 
-  // 下限锁
+  // 下限锁：若 λ_gene < 1.8 且 λ_actual < 1.5 → 总进球锁定 ≤ 2 球
   if (lambdaGene < 1.8 && lambdaActual < 1.5) {
     upperLock = Math.min(upperLock, 2);
   }
-  // 上限锁
+  // 上限锁：若 λ_gene > 2.5 → 总进球 ≥ 2.5 球（下限至少 2）
   if (lambdaGene > 2.5) {
     lowerLock = Math.max(lowerLock, 2);
   }
@@ -87,9 +102,12 @@ function calcGoalRange(vars, totalExpect) {
     lower: lowerLock,
     upper: upperLock,
     compositeLine: round(compositeLine, 2),
-    overRate: round(overRate * 100, 1),
-    lambdaGene: round(lambdaGene, 2),
-    lambdaActual: round(lambdaActual, 2)
+    overRate: round((homeOR + awayOR) / 2 * 100, 1),
+    lambdaGene,
+    lambdaActual,
+    homeOverRate: round(homeOR, F),
+    awayOverRate: round(awayOR, F),
+    h2hOverRate: round(h2hOverRate, F)
   };
 }
 
