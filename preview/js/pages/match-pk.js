@@ -16,15 +16,22 @@ export function openPKMulti(pickedList, tab) {
   if (!modal) return;
   modal.innerHTML = '<div style="text-align:center;padding:80px 20px;color:var(--cyan)"><div style="font-size:36px;margin-bottom:12px">⚔️</div><div style="font-size:14px;font-weight:600">PK数据分析中...</div></div>';
 
-  // 为每场补全 GS 数据
+  // 为每场补全 GS 数据（带 5 秒超时保护）
   var promises = pickedList.map(function (item) {
     if (item.hasGS && item.totalAdvantage) return Promise.resolve(item);
-    return api('gongshoudao', { matchId: item.matchId }).then(function (gs) {
-      return Object.assign({}, item, buildGSFields(gs));
-    }).catch(function () { return item; });
+    return Promise.race([
+      api('gongshoudao', { matchId: item.matchId }).then(function (gs) {
+        return Object.assign({}, item, buildGSFields(gs));
+      }),
+      new Promise(function (resolve) { setTimeout(function () { resolve(item); }, 5000); })
+    ]).catch(function () { return item; });
   });
 
-  Promise.all(promises).then(function (fullList) {
+  var totalTimeout = new Promise(function (resolve) {
+    setTimeout(function () { resolve(null); }, 8000);
+  });
+  Promise.race([Promise.all(promises), totalTimeout]).then(function (fullList) {
+    if (!fullList) fullList = pickedList;  // 超时则用原数据渲染
     var t = tab || 'power';
     if (t === 'power') renderPKPower(modal, fullList);
     else if (t === 'goal') renderPKGoal(modal, fullList);
