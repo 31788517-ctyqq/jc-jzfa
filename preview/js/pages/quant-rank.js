@@ -404,7 +404,7 @@ function renderAdCombined(item) {
   return '<span class="q-col-ad"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
 }
 
-// ── 进球 tab 单元格 (统一 toFixed(2)) ──
+// ── 进球 tab 单元格 (统一 toFixed(1)) ──
 function renderGoalCell(item, key) {
   var v = item[key];
   if (v === '-' || v === undefined || v === null) {
@@ -414,9 +414,9 @@ function renderGoalCell(item, key) {
   if (isNaN(n)) return '<span class="q-col-' + keyToCls(key) + '"><span class="q-cell-num">' + v + '</span></span>';
   var formatted;
   if (key === 'bigBallRatio') {
-    formatted = n.toFixed(2) + '%';
+    formatted = n.toFixed(1) + '%';
   } else {
-    formatted = (n >= 0 ? '+' : '') + n.toFixed(2);
+    formatted = (n >= 0 ? '+' : '') + n.toFixed(1);
   }
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
   return '<span class="q-col-' + keyToCls(key) + '"><span class="q-cell-num ' + cls + '">' + formatted + '</span></span>';
