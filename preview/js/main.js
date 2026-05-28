@@ -264,6 +264,8 @@ export function initWeekDates() {
 export function switchTab(tab) {
   if (state.currentPage === 'home' && tab !== 'home') state.setSavedScrollY(window.scrollY);
   state.setCurrentPage(tab);
+  // 记住当前页，刷新后恢复
+  try { sessionStorage.setItem('lastPage', tab); } catch(e) {}
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   var pageEl = document.getElementById('page-' + (tab === 'detail' ? 'detail' : tab));
   if (pageEl) pageEl.classList.add('active');
@@ -381,5 +383,13 @@ document.addEventListener('touchend', function (e) {
   setTimeout(function () { handleDocClose(e); }, 50);
 });
 
-// ── 启动 ──
-loadHome();
+// ── 启动：恢复上次访问的页面 ──
+(function initPage() {
+  var last = null;
+  try { last = sessionStorage.getItem('lastPage'); } catch(e) {}
+  if (last && last !== 'home' && last !== 'detail') {
+    switchTab(last);
+  } else {
+    loadHome();
+  }
+})();
