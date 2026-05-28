@@ -816,6 +816,24 @@ function countTodayMatches(dateStr) {
   } catch (e) { return 0; }
 }
 
+/** 检查指定日期是否有已结束但未回填的比赛 */
+function needBackfillCheck(dateStr) {
+  try {
+    if (!fs.existsSync(DATA_FILE)) return false;
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    let hasStale = false;
+    Object.keys(data.r || {}).forEach(rk => {
+      const mid = rk.replace('m_', '');
+      const match = data.m[rk] || data.m['m_' + mid];
+      if (!match || !match.date || match.date.slice(0, 10) !== dateStr) return;
+      if (match.matchStatus < 2) return;
+      const recs = data.r[rk] || [];
+      if (recs.some(r => r.result === null || r.result === 2)) hasStale = true;
+    });
+    return hasStale;
+  } catch (e) { return false; }
+}
+
 function getTodayStatusSummary(dateStr) {
   try {
     if (!fs.existsSync(DATA_FILE)) return '无数据';
@@ -888,6 +906,17 @@ async function start() {
   } else {
     log('[init] 今日数据已存在，跳过赛程同步');
   }
+
+  // ═══ 启动后检查昨天是否需要回填（避免重启导致跳过） ═══
+  try {
+    const yd = fmtLocal(new Date(Date.now() - 86400000));
+    if (needBackfillCheck(yd)) {
+      log('[init] 检测到昨天 ' + yd + ' 存在未回填比赛，启动回填...');
+      backfillResults(yd).then(() => {
+        log('[init] 昨天 ' + yd + ' 回填完成');
+      }).catch(e => log('[init] 昨天回填失败: ' + e.message));
+    }
+  } catch (e) {}
 
   // ═══ 启动重试保障：如果启动时就有数据缺失，启动 30 分钟重试 ═══
   if (!todayHasMatches(currentDate)) {
@@ -979,7 +1008,8 @@ async function start() {
   setTimeout(recommendLoop, 30000);    // 30秒后开始推荐
   scheduleNoon();                       // 计算12:00定时
 
-  // ═══ 健康监控：每10分钟检查数据状态 ═══
+  // ═══ 健康监控：每分钟检查 ═══
+  let _lastBackfillCheck = 0;
   setInterval(() => {
     const today = new Date().toISOString().slice(0, 10);
     if (today !== currentDate) {
@@ -987,15 +1017,30 @@ async function start() {
       currentDate = today;
       finalCheckDone = false;
       _ensureRetries = 0;
-      // 如果新的一天没数据，启动重试
       if (!todayHasMatches(today)) {
         kickEnsure();
         startEnsureTodayMatches();
       }
+      // 日期变更时也检查昨天回填
+      const yd = fmtLocal(new Date(Date.now() - 86400000));
+      if (needBackfillCheck(yd)) {
+        log('[health] 日期变更，触发昨天 ' + yd + ' 回填...');
+        backfillResults(yd).catch(e => log('[health] 昨天回填失败: ' + e.message));
+      }
     }
-    // 每小时输出一次完整健康状态
+    // 每20分钟检查一次昨天回填
+    if (Date.now() - _lastBackfillCheck > 1200000) {
+      _lastBackfillCheck = Date.now();
+      const yd = fmtLocal(new Date(Date.now() - 86400000));
+      if (needBackfillCheck(yd)) {
+        log('[health] 定时检查：昨天 ' + yd + ' 存在未回填比赛，触发回填...');
+        backfillResults(yd).catch(e => log('[health] 昨天回填失败: ' + e.message));
+      }
+    }
+    // 整点输出健康状态
     if (new Date().getMinutes() === 0) {
-      log('[health] ' + today + ' 数据状态: ' + getTodayStatusSummary(today));
+      const yd = fmtLocal(new Date(Date.now() - 86400000));
+      log('[health] ' + today + ' 数据状态: ' + getTodayStatusSummary(today) + ' | 昨天: ' + getTodayStatusSummary(yd));
     }
   }, 60000);
 }
