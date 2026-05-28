@@ -379,6 +379,51 @@ def main():
             pm2_restart_and_verify(ssh)
     print()
 
+    # ── Phase 4.5: 部署复验（确认文件未被还原） ──
+    if not dry_run and upload_list:
+        print(c('D', '═' * 54))
+        print(c('C', '[Phase 4.5] 部署复验 — 确认服务器文件与本地一致'))
+        # 构建唯一文件列表（去重，取每个本地文件的第一个远程路径作为校验目标）
+        verified = set()
+        recheck_list = []
+        for lp, rp in upload_list:
+            if lp not in verified:
+                verified.add(lp)
+                recheck_list.append((lp, rp))
+        # 批量获取服务器 MD5
+        md5_cmds = []
+        for lp, rp in recheck_list:
+            md5_cmds.append('echo "##{}##" && md5sum {}'.format(lp, rp))
+        if md5_cmds:
+            batch_md5_cmd = ' && '.join(md5_cmds)
+            out, _ = ssh_cmd(ssh, batch_md5_cmd, len(md5_cmds) * 3 + 10)
+            segments = out.split('##')
+            server_md5_map = {}
+            for i in range(1, len(segments) - 1, 2):
+                local_path = segments[i].strip()
+                md5_str = segments[i + 1].strip().split()[0] if len(segments) > i + 1 else ''
+                server_md5_map[local_path] = md5_str
+
+            recheck_ok = 0
+            recheck_fail = []
+            for lp, rp in recheck_list:
+                with open(lp, 'rb') as f:
+                    local_md5 = hashlib.md5(f.read()).hexdigest()
+                server_md5 = server_md5_map.get(lp, '')
+                if server_md5 == local_md5:
+                    recheck_ok += 1
+                else:
+                    recheck_fail.append((os.path.basename(rp), local_md5[:8], server_md5[:8] if server_md5 else 'MISSING'))
+
+            if recheck_fail:
+                print(c('R', '  ✗ 复验失败 — {} 个文件与服务器不一致（可能被还原）:'.format(len(recheck_fail))))
+                for fname, lm, rm in recheck_fail:
+                    print('    ✗ {} 本地:{} 服务器:{}'.format(fname, lm, rm))
+                print(c('Y', '  请重新运行部署脚本'))
+            else:
+                print('  {} {} 个文件复验通过'.format(c('G', '✓'), recheck_ok))
+    print()
+
     # ── Phase 5: 验证（quick 跳过） ──
     if not quick_mode and not dry_run:
         print(c('D', '═' * 54))
