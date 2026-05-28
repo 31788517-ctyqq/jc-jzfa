@@ -136,10 +136,12 @@ def batch_upload(sftp, ssh, file_list, dry_run=False):
             results.append((True, os.path.basename(rp), 'DRY', '-', '-'))
         return results
 
-    # 1) SFTP 批量上传到 /tmp
+    # 1) SFTP 批量上传到 /tmp（用 remote_path 的 hash 避免同名冲突）
     for local_path, remote_path in file_list:
         fname = os.path.basename(remote_path)
-        tmp_path = '/tmp/_dep_{}'.format(fname)
+        # 用远程路径的 MD5 前8位保证唯一性，防止不同目录同名文件互相覆盖
+        path_hash = hashlib.md5(remote_path.encode()).hexdigest()[:8]
+        tmp_path = '/tmp/_dep_{}_{}'.format(path_hash, fname)
         try:
             sftp.put(local_path, tmp_path)
             tmp_files.append((local_path, remote_path, tmp_path))
@@ -151,8 +153,9 @@ def batch_upload(sftp, ssh, file_list, dry_run=False):
         remote_dir = os.path.dirname(remote_path)
         cp_cmds.append('mkdir -p {d} && chattr -i {p} 2>/dev/null; cp -f {t} {p}'.format(
             d=remote_dir, t=tmp_path, p=remote_path))
+        # 用远程完整路径做标记（而非 basename），避免同名文件验证冲突
         verify_cmds.append('echo "##{}##" && md5sum {}'.format(
-            os.path.basename(remote_path), remote_path))
+            remote_path, remote_path))
 
     if not cp_cmds:
         return results
@@ -168,16 +171,16 @@ def batch_upload(sftp, ssh, file_list, dry_run=False):
         md5_str = segments[i + 1].strip().split()[0] if len(segments) > i + 1 else ''
         md5_map[fname] = md5_str
 
-    # 4) 验证
+    # 4) 验证（用 remote_path 而非 basename 做 key，消除同名冲突）
     for local_path, remote_path, tmp_path in tmp_files:
         fname = os.path.basename(remote_path)
         with open(local_path, 'rb') as f:
             local_md5 = hashlib.md5(f.read()).hexdigest()
-        remote_md5 = md5_map.get(fname, '')
+        remote_md5 = md5_map.get(remote_path, '')
         if remote_md5 == local_md5:
-            results.append((True, os.path.basename(remote_path), 'OK', local_md5, remote_md5))
+            results.append((True, fname, 'OK', local_md5, remote_md5))
         else:
-            results.append((False, os.path.basename(remote_path), 'MD5', local_md5[:8],
+            results.append((False, fname, 'MD5', local_md5[:8],
                             remote_md5[:8] if remote_md5 else 'MISSING'))
 
     # 5) 清理
