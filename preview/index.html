@@ -2391,7 +2391,7 @@ body {
 
 <!-- TabBar -->
   <div class="tabbar">
-  <div class="tab-item active" onclick="switchTab('home')" id="tab-home">
+  <div class="tab-item" onclick="switchTab('home')" id="tab-home">
     <span class="tab-icon"><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M44 44V20L24 4L4 20V44H16V26H32V44H44Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M24 44V34" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
   </div>
   <div class="tab-item" onclick="switchTab('match')" id="tab-match">
@@ -2426,6 +2426,8 @@ body {
     } else {
       var home = document.getElementById('page-home');
       if (home) home.classList.add('active');
+      var tb = document.getElementById('tab-home');
+      if (tb) tb.classList.add('active');
     }
   } catch (e) {}
 })();
