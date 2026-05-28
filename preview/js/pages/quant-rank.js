@@ -346,31 +346,33 @@ function renderMatch(item) {
     '</span>';
 }
 
-// ── 总排序（文档格式：四位合成值，保留2位小数） ──
+// ── 总排序（文档规范：保留4位小数） ──
 function renderRank(totalScore) {
   if (totalScore === undefined || totalScore === null || isNaN(totalScore))
     return '<span class="q-col-rk"><span class="q-cell-num">-</span></span>';
   var n = parseFloat(totalScore);
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<span class="q-col-rk"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
+  return '<span class="q-col-rk"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(4) + '</span></span>';
 }
 
-// ── 净胜球 ──
+// ── 净胜球（文档规范：预期进球差，4位小数） ──
 function renderGoalDiff(item) {
   var v = item.goalDiff;
   if (v === '-' || v === '?') return '<span class="q-col-gd"><span class="q-cell-num">-</span></span>';
   var n = parseFloat(String(v).split('/')[0]);
   if (isNaN(n)) return '<span class="q-col-gd"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<span class="q-col-gd"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(1) + '</span></span>';
-}
-function renderPower(item) {
-  var pv = item.totalAdvantageValue - 50;
-  var cls = pv > 0 ? 'pos' : pv < 0 ? 'neg' : '';
-  return '<span class="q-col-power"><span class="q-cell-num ' + cls + '">' + (pv >= 0 ? '+' : '') + pv.toFixed(1) + '%</span></span>';
+  return '<span class="q-col-gd"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(4) + '</span></span>';
 }
 
-// ── 胜平负交叉 ──
+// ── 综合实力（文档规范：双轨模型结果，纯数值不带%号，4位小数） ──
+function renderPower(item) {
+  var pv = (item.totalAdvantageValue - 50) / 100;
+  var cls = pv > 0 ? 'pos' : pv < 0 ? 'neg' : '';
+  return '<span class="q-col-power"><span class="q-cell-num ' + cls + '">' + (pv >= 0 ? '+' : '') + pv.toFixed(4) + '</span></span>';
+}
+
+// ── 胜平负交叉（文档规范：赛果对冲差值，4位小数） ──
 function renderCrossValue(item) {
   var v = item.crossValue;
   if (v === '-' || v === undefined || v === null) {
@@ -379,17 +381,17 @@ function renderCrossValue(item) {
   var n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-cross"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<span class="q-col-cross"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(1) + '</span></span>';
+  return '<span class="q-col-cross"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(4) + '</span></span>';
 }
 
-// ── 攻守实力 ──
+// ── 攻守实力（文档规范：功守道结果，4位小数） ──
 function renderAdCombined(item) {
   var v = item.adCombined;
-  if (v === 0 || v === undefined || v === null) return '<span class="q-col-ad"><span class="q-cell-num" style="color:var(--text4)">0.0</span></span>';
+  if (v === 0 || v === undefined || v === null) return '<span class="q-col-ad"><span class="q-cell-num" style="color:var(--text4)">0.0000</span></span>';
   var n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-ad"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<span class="q-col-ad"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(1) + '</span></span>';
+  return '<span class="q-col-ad"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(4) + '</span></span>';
 }
 
 // ── 进球 tab 单元格 (统一 toFixed(2)) ──
@@ -442,6 +444,10 @@ function renderHotCell(item, key) {
     return '<span class="q-col-hot"><span class="q-cell-num">' + formatted + '</span></span>';
   }
   // rq, homeFeature, guestFeature, oddsLive
+  // 文本字段直接用原值，数值字段 toFixed(2)
+  if (key === 'rq' || key === 'homeFeature' || key === 'guestFeature') {
+    return '<span class="q-col-' + hotKeyToCls(key) + '"><span class="q-cell-num">' + v + '</span></span>';
+  }
   var n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-' + hotKeyToCls(key) + '"><span class="q-cell-num">' + v + '</span></span>';
   return '<span class="q-col-' + hotKeyToCls(key) + '"><span class="q-cell-num">' + n.toFixed(2) + '</span></span>';
