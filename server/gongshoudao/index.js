@@ -117,6 +117,11 @@ function computeSingleMatch(rawStats, matchInfo) {
     // ★ xG 值（主客预期进球，供排行榜净胜球量化使用）
     xgHome: goalResult.xgHome,
     xgAway: goalResult.xgAway,
+    // ★ 进球预测维度（PK.md 进球数预测公式）
+    attDefGoal: goalResult.attDefGoal,         // 攻防进球 = xgHome + xgAway
+    breakArmorSum: goalResult.breakArmorSum,   // 破甲和
+    bigBallRatio: goalResult.bigBallRatio,     // 大球比例（百分比）
+    h2hGoalAvg: goalResult.h2hGoalAvg,         // 交锋进球 = H2H场均总进球
 
     // 第五阶段输出：净胜球
     homeWinExpect: diffResult.homeWinExpect,
@@ -125,6 +130,8 @@ function computeSingleMatch(rawStats, matchInfo) {
     totalAdvantage2Value: diffResult.totalAdvantage2Value,
     // ★ Total_战（双轨实力量化结果）
     totalStrength: diffResult._totalStrength.normalized,
+    // ★ 实力进球（供进球预测排行榜使用）
+    strengthGoal: diffResult.strengthGoal,
     goalCount: diffResult.goalCount,
     goalCountValue: diffResult.goalCountValue,
     verifyResult: diffResult.verifyResult,

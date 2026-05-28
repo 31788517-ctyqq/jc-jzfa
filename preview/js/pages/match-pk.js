@@ -138,21 +138,21 @@ function renderPKGoal(modal, list) {
 function calcColSums(list) {
   var sums = { bigBall: 0, attDef: 0, power: 0, cross: 0, armor: 0 };
   list.forEach(function (item) {
-    sums.bigBall  += Math.abs(parseFloat(item.totalGoalsExpect) || 0);
-    sums.attDef   += Math.abs(item.attackAdvantageValue + item.defenseAdvantageValue - 100) / 20;
-    sums.power    += Math.abs(item.totalAdvantageValue - 50) / 10;
-    sums.cross    += Math.abs((item.crossWin || 0) - (item.crossLose || 0));
-    sums.armor    += Math.abs((item.attackAdvantageValue + item.defenseAdvantageValue) / 10);
+    sums.bigBall  += Math.abs(parseFloat(item.bigBallRatio) || 0);
+    sums.attDef   += Math.abs(parseFloat(item.attDefGoal) || 0);
+    sums.power    += Math.abs(parseFloat(item.strengthGoal) || 0);
+    sums.cross    += Math.abs(parseFloat(item.headToHeadGoal) || 0);
+    sums.armor    += Math.abs(parseFloat(item.breakArmor) || 0);
   });
   return sums;
 }
 
 function calcRowValues(item) {
-  var g = parseFloat(item.totalGoalsExpect) || 0;
-  var a = (item.attackAdvantageValue + item.defenseAdvantageValue - 100) / 20;
-  var p = (item.totalAdvantageValue - 50) / 10;
-  var c = ((item.crossWin || 0) - (item.crossLose || 0));
-  var r = (item.attackAdvantageValue + item.defenseAdvantageValue) / 10;
+  var g = parseFloat(item.bigBallRatio) || 0;
+  var a = parseFloat(item.attDefGoal) || 0;
+  var p = parseFloat(item.strengthGoal) || 0;
+  var c = parseFloat(item.headToHeadGoal) || 0;
+  var r = parseFloat(item.breakArmor) || 0;
   return { bigBall: g, attDef: a, power: p, cross: c, armor: r };
 }
 

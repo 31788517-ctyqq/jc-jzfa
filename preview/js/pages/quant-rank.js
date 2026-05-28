@@ -148,14 +148,23 @@ function mergeItem(item, gs) {
   var cw = gs.crossWin !== undefined ? gs.crossWin : '-';
   var cd = gs.crossDraw !== undefined ? gs.crossDraw : '-';
   var cl = gs.crossLose !== undefined ? gs.crossLose : '-';
-  var gdh = parseFloat(gs.goalDiffHome) || 0;
-  var gda = parseFloat(gs.goalDiffAway) || 0;
-  var tge = parseFloat(gs.totalGoalsExpect) || 0;
-  var tgv = parseFloat(gs.totalGoalsValue) || 0;
-  // 交锋进球：简化的对冲进球预期
-  var hhg = (cw !== '-' && cl !== '-') ? (((cw || 0) - (cl || 0)) + 2.5) : 2.5;
-  // P0: 大球比例 — 使用 gongshoudao goalRange.overRate（已 *100），无数据默认50
-  var bigBall = (gs.goalRange && gs.goalRange.overRate != null) ? gs.goalRange.overRate : (gs.overRate != null ? gs.overRate : 50);
+
+  // ── 进球预测维度（直接使用后端按 PK.md 公式计算的值） ──
+
+  // 大球比例 = 0.4×主队大球率 + 0.4×客队大球率 + 0.2×交锋大球率（百分比）
+  var bigBall = gs.bigBallRatio != null ? gs.bigBallRatio : 50;
+
+  // 攻防进球 = xgHome + xgAway（射门还原法 M3_A）
+  var attDefGoal = gs.attDefGoal != null ? gs.attDefGoal : (gs.xgHome || 0) + (gs.xgAway || 0);
+
+  // 实力进球 = 0.5 × (主队静态进球能力 + 客队静态进球能力) × (1 + 0.2 × Total_战)
+  var strengthGoal = gs.strengthGoal != null ? gs.strengthGoal : (parseFloat(gs.totalGoalsExpect) || 0);
+
+  // 交锋进球 = H2H场均总进球（最近3-6次交锋）
+  var headToHeadGoal = gs.h2hGoalAvg != null ? gs.h2hGoalAvg : 2.5;
+
+  // 破甲和 = 主队进攻次数/(客队被射次数+0.5) + 客队进攻次数/(主队被射次数+0.5)
+  var breakArmor = gs.breakArmorSum != null ? gs.breakArmorSum : 0;
 
   // ── 实力PK四维指标（PK.md 2.1-2.2） ──
 
@@ -177,10 +186,10 @@ function mergeItem(item, gs) {
 
   function goalTotalSum() {
     var b = Math.abs(bigBall);
-    var a = Math.abs(gdh + gda);
-    var s = Math.abs(tge);
-    var h = Math.abs(hhg);
-    var r = Math.abs(adCombined);
+    var a = Math.abs(attDefGoal);
+    var s = Math.abs(strengthGoal);
+    var h = Math.abs(headToHeadGoal);
+    var r = Math.abs(breakArmor);
     return parseFloat((b + a + s + h + r).toFixed(4));
   }
 
@@ -202,7 +211,7 @@ function mergeItem(item, gs) {
     // 兼容旧字段
     totalAdvantage: gs.totalAdvantage || '-',
     totalAdvantageValue: Math.round(50 + pwScore * 100),  // Total_战 映射到进度条
-    goalDiff: gdScore,               // ★ 改为净胜球量化值
+    goalDiff: gdScore,               // 净胜球量化值
     crossWin: cw,
     crossDraw: cd,
     crossLose: cl,
@@ -210,12 +219,12 @@ function mergeItem(item, gs) {
     attackAdvantageValue: gs.attackAdvantageValue || 0,
     defenseAdvantageValue: gs.defenseAdvantageValue || 0,
     hasGS: !!(gs.attackPattern),
-    // 进球维度
+    // 进球维度（后端按 PK.md 公式计算）
     bigBallRatio: bigBall,
-    attDefGoal: gdh + gda,
-    strengthGoal: tge,
-    headToHeadGoal: hhg,
-    breakArmor: adCombined,
+    attDefGoal: attDefGoal,
+    strengthGoal: strengthGoal,
+    headToHeadGoal: headToHeadGoal,
+    breakArmor: breakArmor,
     totalSum: goalTotalSum(),
     // 热点维度（占位）
     rq: gs.crossRq !== undefined ? gs.crossRq : '-',
