@@ -43,12 +43,9 @@ export function switchQuantTab(tab) {
 
 export function togglePick(ev, matchId) {
   ev.stopPropagation();
-  ev.preventDefault();  // 阻止浏览器默认切换，由 JS 统一控制
+  // 利用浏览器原生 checkbox 切换，JS 只管理 pickedIds 和行样式
   if (pickedIds[matchId]) delete pickedIds[matchId];
   else pickedIds[matchId] = true;
-  // 同步 checkbox 视觉状态
-  var cb = ev.target;
-  if (cb && cb.type === 'checkbox') cb.checked = !!pickedIds[matchId];
   updatePkBar();
   var row = document.getElementById('qr-' + matchId);
   if (row) { if (pickedIds[matchId]) row.classList.add('picked'); else row.classList.remove('picked'); }
