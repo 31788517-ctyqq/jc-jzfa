@@ -438,7 +438,7 @@ function renderHotCell(item, key) {
     var n = parseFloat(v);
     if (isNaN(n)) return '<span class="q-col-hot"><span class="q-cell-num">' + v + '</span></span>';
     var fmt = n > 10000 ? Math.round(n / 100) / 100 : n.toFixed(0);
-    return '<span class="q-col-hot"><span class="q-cell-num">' + fmt + '</span></span>';
+    return '<span class="q-col-hot"><span class="q-cell-num pos">' + fmt + '</span></span>';
   }
   // rq, homeFeature, guestFeature, oddsLive
   // 文本字段清理箭头符号后展示
