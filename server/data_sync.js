@@ -23,6 +23,8 @@ const { getWithUA, getWithRetry, jitter, sleep } = require('./http-utils');
 const { getToken, refreshToken } = require('./token_manager');
 const { fetchOdds: fetch500Odds, fetchShujuMap } = require('./fetch_500odds');
 const { execSync } = require('child_process');
+const alert = require('./alert');
+const logger = require('./logger').child('data_sync');
 
 // AI 模块（用于定时刷新）
 let deepseek, doubao, aiMerger;
@@ -37,20 +39,17 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 const LIVE_FILE = path.join(__dirname, 'live_scores.json');
 const TREND_FILE = path.join(__dirname, 'trends.json');
 const ODDS_DIR = path.join(__dirname, 'odds_history');
-const LOG_FILE = path.join(__dirname, '..', 'logs', 'data_sync.log');
 
 const MIDOU_BASE = 'https://midou310.com/mdsj';
 
+// 告警防抖动：推荐同步故障至少间隔15分钟再重复告警
+let _lastRecError = 0;
+
 // 确保必要目录存在
 if (!fs.existsSync(ODDS_DIR)) fs.mkdirSync(ODDS_DIR, { recursive: true });
-if (!fs.existsSync(path.dirname(LOG_FILE))) fs.mkdirSync(path.dirname(LOG_FILE), { recursive: true });
 
 // ═══ 工具函数 ═══
-function log(msg) {
-  const line = '[' + new Date().toISOString().replace('T', ' ').slice(0, 19) + '] ' + msg;
-  console.log(line);
-  try { fs.appendFileSync(LOG_FILE, line + '\n'); } catch (e) {}
-}
+function log(msg) { logger.info(msg); }
 
 function fmtLocal(dd) {
   return dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0');
@@ -509,6 +508,11 @@ async function syncRecommends() {
   } catch (e) {
     log('[recommend] 同步失败: ' + e.message);
     await refreshToken();
+    // 连续失败告警
+    if (!_lastRecError || Date.now() - _lastRecError > 900000) {
+      alert.crawlFailed(e.message, 'data_sync recommend 同步连续失败');
+      _lastRecError = Date.now();
+    }
   }
 }
 
@@ -1165,7 +1169,9 @@ async function start() {
 if (require.main === module) {
   start().catch(e => {
     log('FATAL: ' + e.message);
-    process.exit(1);
+    alert.crawlFailed(e.message, 'data_sync 守护进程启动失败').then(() => {
+      process.exit(1);
+    });
   });
 }
 

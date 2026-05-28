@@ -7,6 +7,8 @@
 var path = require('path');
 var fs = require('fs');
 
+var logger = require('./logger').child('ai_daemon');
+
 // 尝试加载 database（SQLite模式），失败则 fallback 到 data.json 模式
 var database = null;
 var useDB = false;
@@ -14,24 +16,18 @@ try {
   database = require('./database');
   database.initDatabase();
   useDB = true;
-  console.log('[ai_daemon] 数据库模式');
+  logger.info('数据库模式');
 } catch (e) {
-  console.log('[ai_daemon] 数据库不可用，使用 data.json 模式:', e.message);
+  logger.info('数据库不可用，使用 data.json 模式: ' + e.message);
 }
 
 var deepseek = require('./deepseek');
 var doubao = require('./doubao');
 var aiMerger = require('./ai_merger');
 
-var LOG_FILE = path.join(__dirname, '..', 'logs', 'ai_daemon.log');
-
-function log(msg) {
-  var line = '[' + new Date().toISOString().replace('T', ' ').slice(0, 19) + '] ' + msg;
-  console.log(line);
-  try { fs.appendFileSync(LOG_FILE, line + '\n'); } catch (e) {}
-}
-
 var isRunning = false;
+
+function log(msg) { logger.info(msg); }
 
 /**
  * 获取当天比赛列表

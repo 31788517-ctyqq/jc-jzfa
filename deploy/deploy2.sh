@@ -35,10 +35,14 @@ echo "  项目已部署到 $PROJECT_DIR"
 # 4. 配置环境变量
 echo "[4/7] 配置..."
 cd $PROJECT_DIR
-cat > server/.env << 'EOF'
+if [ -z "$MIDOU_MOBILE" ] || [ -z "$MIDOU_PASSWORD" ]; then
+    echo "  错误: 缺少 MIDOU_MOBILE / MIDOU_PASSWORD 环境变量"
+    exit 1
+fi
+cat > server/.env << EOF
 PORT=3000
-MIDOU_MOBILE=13570060818
-MIDOU_PASSWORD=73d26b46ab37f7a3725ba19e1b704090
+MIDOU_MOBILE=$MIDOU_MOBILE
+MIDOU_PASSWORD=$MIDOU_PASSWORD
 NODE_ENV=production
 EOF
 

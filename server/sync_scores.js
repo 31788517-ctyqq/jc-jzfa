@@ -14,13 +14,9 @@ var CONFIG = {
 };
 
 var OUTPUT = path.join(__dirname, 'live_scores.json');
-var LOG_FILE = path.join(__dirname, '..', 'logs', 'score_sync.log');
+var logger = require('./logger').child('score_sync');
 
-function log(msg) {
-  var line = '[' + new Date().toISOString() + '] ' + msg;
-  console.log(line);
-  try { fs.appendFileSync(LOG_FILE, line + '\n'); } catch(e) {}
-}
+function log(msg) { logger.info(msg); }
 
 function get(urlStr, params, headers) {
   return new Promise(function(resolve, reject) {

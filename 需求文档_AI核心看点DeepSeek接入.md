@@ -41,7 +41,7 @@
 | 项目 | 内容 |
 |------|------|
 | 接入文档 | https://api-docs.deepseek.com/zh-cn/ |
-| API Key | `[REDACTED_DEEPSEEK_KEY]` |
+| API Key | `YOUR_DEEPSEEK_API_KEY`（从环境变量 DEEPSEEK_API_KEY 读取） |
 | 接口地址 | `https://api.deepseek.com/v1/chat/completions` |
 | 模型 | `deepseek-chat`（默认模型） |
 | 调用方式 | POST JSON |
@@ -71,7 +71,7 @@
 
 ### 3.4 环境变量配置
 ```
-DEEPSEEK_API_KEY=[REDACTED_DEEPSEEK_KEY]
+DEEPSEEK_API_KEY=YOUR_DEEPSEEK_API_KEY
 DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
 ```
 

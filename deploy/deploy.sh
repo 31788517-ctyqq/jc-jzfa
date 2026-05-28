@@ -46,14 +46,18 @@ cd $PROJECT_DIR
 echo ""
 echo "[3/8] 配置环境变量..."
 if [ ! -f server/.env ]; then
-    cp server/.env.example server/.env 2>/dev/null || {
-        cat > server/.env << EOF
+    if [ -z "$MIDOU_MOBILE" ] || [ -z "$MIDOU_PASSWORD" ]; then
+        echo "  错误: 缺少 MIDOU_MOBILE / MIDOU_PASSWORD 环境变量"
+        echo "  请在部署前设置: export MIDOU_MOBILE=xxx MIDOU_PASSWORD=xxx"
+        exit 1
+    fi
+    cat > server/.env << EOF
 PORT=$PORT
-MIDOU_MOBILE=13570060818
-MIDOU_PASSWORD=73d26b46ab37f7a3725ba19e1b704090
+MIDOU_MOBILE=$MIDOU_MOBILE
+MIDOU_PASSWORD=$MIDOU_PASSWORD
 NODE_ENV=production
 EOF
-    }
+    echo "  已创建 server/.env"
 fi
 echo "PORT=$PORT" >> server/.env
 echo "NODE_ENV=production" >> server/.env

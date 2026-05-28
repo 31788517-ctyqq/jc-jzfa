@@ -1,6 +1,10 @@
 /**
- * 统一日志模块
- * 输出：控制台 + 按日期切割文件
+ * 统一日志模块（winston）
+ * 输出：控制台 + 按大小切割文件（combined.log / error.log）
+ *
+ * 用法：
+ *   const logger = require('./logger');           // 通用日志
+ *   const logger = require('./logger').child('data_sync'); // 带标签的进程日志
  */
 const winston = require('winston');
 const path = require('path');
@@ -9,21 +13,27 @@ const fs = require('fs');
 const logDir = path.join(__dirname, '..', 'logs');
 if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
 
+const baseFormat = winston.format.combine(
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  winston.format.errors({ stack: true })
+);
+
 const logger = winston.createLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
   format: winston.format.combine(
-    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    winston.format.errors({ stack: true }),
-    winston.format.printf(({ timestamp, level, message, stack }) => {
-      return `${timestamp} [${level.toUpperCase()}] ${stack || message}`;
+    baseFormat,
+    winston.format.printf(({ timestamp, level, message, stack, label }) => {
+      const prefix = label ? `[${label}] ` : '';
+      return `${timestamp} [${level.toUpperCase()}] ${prefix}${stack || message}`;
     })
   ),
   transports: [
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),
-        winston.format.printf(({ timestamp, level, message }) => {
-          return `[${level}] ${message}`;
+        winston.format.printf(({ level, message, label }) => {
+          const prefix = label ? `[${label}] ` : '';
+          return `[${level}] ${prefix}${message}`;
         })
       )
     }),
@@ -41,4 +51,11 @@ const logger = winston.createLogger({
   ]
 });
 
+/** 创建带标签的子日志器（用于区分不同守护进程） */
+function child(label) {
+  return logger.child({ label });
+}
+
 module.exports = logger;
+module.exports.child = child;
+

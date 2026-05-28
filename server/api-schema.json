@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "JC-ZJFA API 接口规范",
+  "description": "POST /api 统一入口，action 分发。前后端共用协议。",
+  "version": "2.0",
+  "baseEndpoint": "POST /api",
+  "requestFormat": {
+    "type": "object",
+    "required": ["action"],
+    "properties": {
+      "action": { "type": "string", "description": "操作名称" },
+      "data": { "type": "object", "description": "业务参数（可选平铺在顶层）" }
+    }
+  },
+  "responseFormat": {
+    "success": { "code": 1, "data": {}, "msg": "成功" },
+    "error": { "code": 0, "msg": "错误描述" }
+  },
+  "actions": {
+    "week-dates": {
+      "desc": "可用竞彩周日期列表",
+      "params": {},
+      "response": { "code": 1, "data": [{"weekNum": "01", "matchDate": "01-23"}] }
+    },
+    "match-list": {
+      "desc": "当日/指定日期比赛列表",
+      "params": { "date": "YYYY-MM-DD (可选)", "matchDate": "MM-DD (可选)" },
+      "response": { "code": 1, "data": [{"matchId": "...", "homeName": "...", "visitName": "...", "leagueName": "...", "startTime": "23:00", "matchStatus": 0, "score": "", "recommNum": 0, "date": "..."}] }
+    },
+    "match-detail": {
+      "desc": "单场比赛基本信息",
+      "params": { "matchId": "string" },
+      "response": { "code": 1, "data": {"matchId": "...", "homeName": "...", "visitName": "...", "recommendations": [{"type": "胜", "num": 6, "result": null}]} }
+    },
+    "recommend-trend": {
+      "desc": "推荐趋势图表数据",
+      "params": { "matchId": "string" },
+      "response": { "code": 1, "data": {"timeLabels": ["11:00", "11:30"], "series": [{"name": "胜", "data": [5, 6]}], "lastResult": [{"type": "胜", "num": 6, "result": 1}]} }
+    },
+    "ranking-list": {
+      "desc": "推荐排行榜（综合 + 方向筛选）",
+      "params": { "date": "string (可选)", "direction": "胜/平/负 (可选)", "category": "string (可选)" },
+      "response": { "code": 1, "data": {"date": "...", "availableDirections": ["胜","平"], "ranking": [{"rank": 1, "matchId": "...", "homeName": "...", "visitName": "...", "direction": "胜", "expertCount": 6}]} }
+    },
+    "hit-rate-stats": {
+      "desc": "命中率统计",
+      "params": { "days": 30 },
+      "response": { "code": 1, "data": {"totalDays": 25, "directionStats": [{"direction": "胜", "hitRate": 60.0}], "dailyTrend": [{"date": "...", "directions": []}]} }
+    },
+    "hit-rate-filter": {
+      "desc": "按条件筛选命中率",
+      "params": { "league": "string", "direction": "string", "days": 30 },
+      "response": { "code": 1, "data": {"hitRate": 60.0, "hitCount": 72, "totalCount": 120} }
+    },
+    "filter-leagues": {
+      "desc": "可用联赛列表",
+      "params": {},
+      "response": { "code": 1, "data": ["英超", "西甲", "意甲"] }
+    },
+    "filter-stats": {
+      "desc": "筛选统计概览",
+      "params": {},
+      "response": { "code": 1, "data": {"matchCount": 100, "leagueCount": 12, "directionCount": 9} }
+    },
+    "ai-predict": {
+      "desc": "AI 五维分析 (DeepSeek + 豆包)",
+      "params": { "matchId": "string", "force": false },
+      "response": { "code": 1, "data": {"content": "...", "confidence": 0.85, "estimatedWait": 45} }
+    },
+    "ai-predict-status": {
+      "desc": "AI 分析状态查询",
+      "params": { "matchId": "string" },
+      "response": { "code": 1, "data": {"status": "completed/pending/failed", "estimatedWait": 0} }
+    },
+    "match-odds": {
+      "desc": "赔率数据",
+      "params": { "matchId": "string", "date": "string" },
+      "response": { "code": 1, "data": {"odds": {...}} }
+    },
+    "quant-hot": {
+      "desc": "量化热门排名",
+      "params": { "date": "string" },
+      "response": { "code": 1, "data": {"ranking": [...]} }
+    },
+    "gongshoudao": {
+      "desc": "功守道单场攻防分析",
+      "params": { "matchId": "string", "date": "string" },
+      "response": { "code": 1, "data": {"attackPattern": "...", "defensePattern": "..."} }
+    },
+    "gongshoudao-all": {
+      "desc": "功守道全量分析列表",
+      "params": { "date": "string" },
+      "response": { "code": 1, "data": {"list": [...]} }
+    },
+    "plan-list": {
+      "desc": "推荐方案列表",
+      "params": { "date": "string", "type": "string" },
+      "response": { "code": 1, "data": [{"planName": "..."}] }
+    },
+    "income-stats": {
+      "desc": "收益统计",
+      "params": { "days": 30 },
+      "response": { "code": 1, "data": {"totalIncome": 0, "daily": [...]} }
+    },
+    "crawl-status": {
+      "desc": "爬虫运行状态",
+      "params": {},
+      "response": { "code": 1, "data": {"lastCrawl": "...", "nextCrawl": "..."} }
+    },
+    "backfill-results": {
+      "desc": "回填比赛结果",
+      "params": { "date": "string" },
+      "response": { "code": 1, "data": {"updated": 5} }
+    },
+    "backfill-status": {
+      "desc": "回填状态查询",
+      "params": { "date": "string" },
+      "response": { "code": 1, "data": {"needBackfill": false} }
+    }
+  }
+}

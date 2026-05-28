@@ -1,22 +1,35 @@
 node_modules/
-server/.env
-server/midou_data.db
-server/midou_data.db-shm
-server/midou_data.db-wal
+__pycache__/
+*.pyc
 *.log
 $null
 nul)
 
+# ── 敏感配置文件（绝对禁止提交） ──
+.env
+.env.*
+!.env.example
+.env.deploy
+*.pem
+*.key
+*_secret*
+*_credentials*
+
 # ── 运行时数据文件（由爬虫/同步进程生成，不应被 git 覆盖） ──
+server/.env
+server/midou_data.db
+server/midou_data.db-shm
+server/midou_data.db-wal
+server/midou_data.db-journal
 server/data.json
 server/live_scores.json
 server/trends.json
 server/gongshoudao/cache.json
 server/jczq_change_cache.json
+server/ai_cache.json
+server/ai_timing.json
 server/odds_history/
 server/shuju_data/
 server/shuju_map_*.json
-server/ai_cache.json
-server/ai_timing.json
 server/logs/
-server/midou_data.db-journal
+server/ttyingqiu_data/

@@ -5,6 +5,7 @@
 var env={};
 try{require('fs').readFileSync(require('path').join(__dirname,'.env'),'utf8').split('\n').forEach(function(l){var p=l.trim().split('=');if(p.length===2)env[p[0]]=p[1]})}catch(e){}
 var https=require('https'),fs=require('fs'),path=require('path');
+var logger = require('./logger').child('refetch_rec');
 
 function get(url,p,h){return new Promise(function(r,e){var q=p?'?'+Object.keys(p).map(function(k){return k+'='+encodeURIComponent(p[k])}).join('&'):'';var u=require('url').parse(url+q);var req=https.request({hostname:u.hostname,port:443,path:u.pathname+(u.search||''),headers:Object.assign({Accept:'*/*','User-Agent':'Mozilla/5.0'},h||{}),rejectUnauthorized:false},function(res){var c=[];res.on('data',function(d){c.push(d)});res.on('end',function(){var t=Buffer.concat(c).toString();try{r(JSON.parse(t))}catch(ee){r({code:0,msg:t.slice(0,200)})}})});req.on('error',e);req.setTimeout(20000,function(){req.abort()});req.end()})}
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
@@ -12,8 +13,7 @@ function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
 function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function fmtTime(){return new Date().toISOString()}
 
-var LOG=path.join(__dirname,'..','logs','refetch_rec.log');
-function log(msg){var line='['+fmtTime()+'] '+msg;console.log(line);try{fs.appendFileSync(LOG,line+'\n')}catch(e){}}
+function log(msg){ logger.info(msg); }
 
 async function main(){
   var dataFile=path.join(__dirname,'data.json');
