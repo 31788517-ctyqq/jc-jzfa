@@ -1408,6 +1408,16 @@ app.post('/api', async (req, res) => {
           const fs = require('fs');
           const path = require('path');
 
+          // ★ 当日方案仅在下午 4 点后展示
+          const today = localDate();
+          if (dateStr === today) {
+            const now = new Date();
+            const hour = now.getHours();
+            if (hour < 16) {
+              return res.json({ code: 1, data: { date: dateStr, plans: [], notice: '今日方案预计 16:00 后陆续更新', waitUntil: '16:00' } });
+            }
+          }
+
           // 1) 从 data.json 加载比赛和推荐
           const dataFile = getDataJson();
           const mMap = dataFile.m || {};

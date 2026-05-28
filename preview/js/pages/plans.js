@@ -62,6 +62,11 @@ export function loadPlanList() {
     }
     var plans = data.plans || [];
     if (plans.length === 0) {
+      // 有 notice 说明是时间限制（16:00前），不跳转到前一天
+      if (data.notice) {
+        el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">' + data.notice + '</div>';
+        return;
+      }
       var now = new Date();
       var todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
       if (state.planDate === todayStr) {
