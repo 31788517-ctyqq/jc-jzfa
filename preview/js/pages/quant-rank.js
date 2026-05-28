@@ -279,7 +279,7 @@ function renderTable() {
     cols = [
       { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
       { key: 'rq', label: '让球数', sortable: false, colCls: 'q-col-rq' },
-      { key: 'hotFocusNum', label: '关注\n热度', sortable: true, colCls: 'q-col-hot' },
+      { key: 'hotFocusNum', label: '关注\n热度\n（万）', sortable: true, colCls: 'q-col-hot' },
       { key: 'heatIndex', label: '冷热\n指数', sortable: true, colCls: 'q-col-heat' },
       { key: 'homeFeature', label: '主队\n特征', sortable: false, colCls: 'q-col-hf' },
       { key: 'guestFeature', label: '客队\n特征', sortable: false, colCls: 'q-col-gf' },
@@ -418,7 +418,7 @@ function keyToCls(key) {
 function renderHotCell(item, key) {
   var v = item[key];
   if (v === '-' || v === undefined || v === null) {
-    return '<span class="q-col-' + hotKeyToCls(key) + '"><span class="q-cell-num" style="color:var(--text4);font-size:10px">数据接入中</span></span>';
+    return '<span class="q-col-' + hotKeyToCls(key) + '"><span class="q-cell-num">-</span></span>';
   }
   if (key === 'heatIndex') {
     // 去掉后端可能附加的图标，只取数值
@@ -437,13 +437,13 @@ function renderHotCell(item, key) {
   if (key === 'hotFocusNum') {
     var n = parseFloat(v);
     if (isNaN(n)) return '<span class="q-col-hot"><span class="q-cell-num">' + v + '</span></span>';
-    var formatted = n > 10000 ? (n / 10000).toFixed(2) + '万' : n.toFixed(0);
-    return '<span class="q-col-hot"><span class="q-cell-num">' + formatted + '</span></span>';
+    return '<span class="q-col-hot"><span class="q-cell-num">' + n.toFixed(2) + '</span></span>';
   }
   // rq, homeFeature, guestFeature, oddsLive
-  // 文本字段直接用原值，数值字段 toFixed(2)
+  // 文本字段清理箭头符号后展示
   if (key === 'rq' || key === 'homeFeature' || key === 'guestFeature') {
-    return '<span class="q-col-' + hotKeyToCls(key) + '"><span class="q-cell-num">' + v + '</span></span>';
+    var cleaned = String(v).replace(/[→↑↓←↗↙]/g, '').trim();
+    return '<span class="q-col-' + hotKeyToCls(key) + '"><span class="q-cell-num">' + cleaned + '</span></span>';
   }
   var n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-' + hotKeyToCls(key) + '"><span class="q-cell-num">' + v + '</span></span>';
