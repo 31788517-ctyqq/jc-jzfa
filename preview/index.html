@@ -1871,7 +1871,7 @@ body {
 .quant-card-header span.q-sortable { cursor: pointer; user-select: none; }
 .quant-card-header span.q-sort-asc  { color: var(--cyan); }
 .quant-card-header span.q-sort-desc { color: var(--cyan); }
-.quant-card-header span.q-match-hd { text-align: left; }
+.quant-card-header span.q-match-hd { text-align: center; }
 /* 数据行 */
 .quant-card-row {
   display: flex; align-items: center;
@@ -1888,30 +1888,30 @@ body {
 .q-col-match { flex: 1; min-width: 54px; max-width: 100px; overflow: hidden; }
 /* 实力 */
 .q-col-rk    { width: 24px; flex-shrink: 0; text-align: center; }
-.q-col-gd    { width: 42px; flex-shrink: 0; text-align: right; }
-.q-col-cross { width: 48px; flex-shrink: 0; text-align: right; }
-.q-col-power { width: 44px; flex-shrink: 0; text-align: right; }
-.q-col-ad    { width: 42px; flex-shrink: 0; text-align: right; }
+.q-col-gd    { width: 42px; flex-shrink: 0; text-align: center; }
+.q-col-cross { width: 48px; flex-shrink: 0; text-align: center; }
+.q-col-power { width: 44px; flex-shrink: 0; text-align: center; }
+.q-col-ad    { width: 42px; flex-shrink: 0; text-align: center; }
 /* 进球 */
-.q-col-sum   { width: 32px; flex-shrink: 0; text-align: right; }
-.q-col-big   { width: 44px; flex-shrink: 0; text-align: right; }
-.q-col-ag    { width: 38px; flex-shrink: 0; text-align: right; }
-.q-col-sg    { width: 38px; flex-shrink: 0; text-align: right; }
-.q-col-hg    { width: 38px; flex-shrink: 0; text-align: right; }
-.q-col-ba    { width: 38px; flex-shrink: 0; text-align: right; }
+.q-col-sum   { width: 32px; flex-shrink: 0; text-align: center; }
+.q-col-big   { width: 44px; flex-shrink: 0; text-align: center; }
+.q-col-ag    { width: 38px; flex-shrink: 0; text-align: center; }
+.q-col-sg    { width: 38px; flex-shrink: 0; text-align: center; }
+.q-col-hg    { width: 38px; flex-shrink: 0; text-align: center; }
+.q-col-ba    { width: 38px; flex-shrink: 0; text-align: center; }
 /* 热点 */
-.q-col-rq    { width: 24px; flex-shrink: 0; text-align: right; }
-.q-col-hot   { width: 38px; flex-shrink: 0; text-align: right; }
-.q-col-heat  { width: 34px; flex-shrink: 0; text-align: right; }
+.q-col-rq    { width: 24px; flex-shrink: 0; text-align: center; }
+.q-col-hot   { width: 38px; flex-shrink: 0; text-align: center; }
+.q-col-heat  { width: 34px; flex-shrink: 0; text-align: center; }
 .q-col-hf    { width: 42px; flex-shrink: 0; text-align: center; overflow: hidden; }
 .q-col-gf    { width: 42px; flex-shrink: 0; text-align: center; overflow: hidden; }
-.q-col-sd    { width: 40px; flex-shrink: 0; text-align: right; }
-.q-col-ol    { width: 34px; flex-shrink: 0; text-align: right; }
+.q-col-sd    { width: 40px; flex-shrink: 0; text-align: center; }
+.q-col-ol    { width: 34px; flex-shrink: 0; text-align: center; }
 
-/* 单元格内文本可折行，数值右对齐 */
+/* 单元格内文本居中 */
 .quant-card-row span[class*=\"q-col-\"] > .q-cell-num {
   white-space: normal; word-break: break-all; line-height: 1.2;
-  text-align: right; display: inline-block; width: 100%;
+  text-align: center; display: inline-block; width: 100%;
   font-size: 10px;
 }
 .quant-card-row .q-col-hf .q-cell-num,
@@ -1931,9 +1931,9 @@ body {
   position: absolute; top: -1px; left: 1px;
 }
 /* 对阵列 */
-.q-match-cell { text-align: left; position: relative; line-height: 1.25; }
-.q-match-teams { font-size: 10px; font-weight: 600; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.q-match-vs { font-size: 8px; font-weight: 400; color: var(--text3); padding: 1px 0; line-height: 1; }
+.q-match-cell { text-align: center; position: relative; line-height: 1.25; }
+.q-match-teams { font-size: 10px; font-weight: 600; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+.q-match-vs { font-size: 8px; font-weight: 400; color: var(--text3); padding: 1px 0; line-height: 1; text-align: center; }
 /* 数值通用 */
 .q-cell-num { font-weight: 600; font-size: 11px; color: #64748B; }
 .q-cell-num.pos { color: var(--cyan); font-weight: 700; }
