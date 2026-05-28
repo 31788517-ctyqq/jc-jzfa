@@ -372,7 +372,7 @@ function renderPKHot(modal, list) {
   var n = list.length;
   var html =
     '<div class="pk2-header">' +
-      '<span class="pk2-title">🔥 热度PK对比</span>' +
+      '<span class="pk2-title">热度PK对比</span>' +
       '<span class="pk2-close" onclick="closePK()">✕</span>' +
     '</div>';
 
