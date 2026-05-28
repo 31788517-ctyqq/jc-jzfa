@@ -3,7 +3,7 @@ import { api } from '../api.js';
 function esc(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-function shortTeam(name) { if (!name) return '--'; return name.slice(0, 2) + '..'; }
+function shortTeam(name) { if (!name) return '--'; return name.slice(0, 3) + '.'; }
 
 /** 打开多场PK弹窗 */
 export function openPKMulti(pickedList, tab) {
