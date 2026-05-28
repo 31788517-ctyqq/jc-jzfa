@@ -187,30 +187,28 @@ function calcWeights(attAdv) {
 // ==================== 第三阶段：实力阶梯映射 ====================
 
 /**
- * 基于 S 值的 7 档实力阶梯
+ * 基于 S 值的 7 档实力阶梯（严格按文档区间匹配）
+ *
+ * │ S ≥ 0.30         → 👑 主队绝对大优势  level  3
+ * │ 0.15 ≤ S < 0.30  → ⚔️ 主队中等优势   level  2
+ * │ 0.05 ≤ S < 0.15  → 🔍 主队微弱优势   level  1
+ * │ -0.05 < S < 0.05 → ⚖️ 双方实力接近   level  0
+ * │ -0.15 < S ≤ -0.05→ 🔍 客队微弱优势   level -1
+ * │ -0.30 < S ≤ -0.15→ ⚔️ 客队中等优势   level -2
+ * │ S ≤ -0.30        → 👑 客队绝对大优势  level -3
  */
-const STRENGTH_LADDERS = [
-  { min:  0.30, label: '👑 主队绝对大优势', level:  3, key: 'home_big'  },
-  { min:  0.15, label: '⚔️ 主队中等优势',   level:  2, key: 'home_mid'  },
-  { min:  0.05, label: '🔍 主队微弱优势',   level:  1, key: 'home_sml'  },
-  { min: -0.05, label: '⚖️ 双方实力接近',   level:  0, key: 'balance'   },
-  { min: -0.15, label: '🔍 客队微弱优势',   level: -1, key: 'away_sml'  },
-  { min: -0.30, label: '⚔️ 客队中等优势',   level: -2, key: 'away_mid'  },
-  { min: -Infinity, label: '👑 客队绝对大优势', level: -3, key: 'away_big' }
-];
-
 function calcStrengthLadder(S) {
-  for (const ladder of STRENGTH_LADDERS) {
-    if (S >= ladder.min) {
-      return {
-        label: ladder.label,
-        level: ladder.level,
-        boundLock: calcBoundLock(ladder.level),
-        key: ladder.key
-      };
-    }
-  }
-  return { label: '⚖️ 双方实力接近', level: 0, boundLock: 0, key: 'balance' };
+  if (S >= 0.30)  return makeLadder('👑 主队绝对大优势',   3, 'home_big');
+  if (S >= 0.15)  return makeLadder('⚔️ 主队中等优势',    2, 'home_mid');
+  if (S >= 0.05)  return makeLadder('🔍 主队微弱优势',    1, 'home_sml');
+  if (S > -0.05)  return makeLadder('⚖️ 双方实力接近',    0, 'balance');
+  if (S >= -0.15) return makeLadder('🔍 客队微弱优势',   -1, 'away_sml');
+  if (S > -0.30)  return makeLadder('⚔️ 客队中等优势',   -2, 'away_mid');
+  return                  makeLadder('👑 客队绝对大优势', -3, 'away_big');
+}
+
+function makeLadder(label, level, key) {
+  return { label, level, boundLock: calcBoundLock(level), key };
 }
 
 function calcBoundLock(level) {
@@ -221,14 +219,15 @@ function calcBoundLock(level) {
   return 0;
 }
 
-// ==================== 胜平负交叉分布（第四部分） ====================
+// ==================== 胜平负交叉分布（让 + 让球数） ====================
 
 /**
+ * 不让球 胜平负交叉
  * Cross_win  = (H_win + A_loss) / 20
  * Cross_draw = (PG_h + PG_a) / 20
  * Cross_loss = (H_loss + A_win) / 20
  */
-function calcCrossDistribution(vars) {
+function calcSpfCross(vars) {
   const hWins = vars.homeWinGap_2 + vars.homeWinGap_1;
   const hDraws = vars.homeDraw;
   const hLosses = vars.homeLoseGap_1 + vars.homeLoseGap_2;
@@ -236,18 +235,75 @@ function calcCrossDistribution(vars) {
   const aDraws = vars.awayDraw;
   const aLosses = vars.awayLoseGap_1 + vars.awayLoseGap_2;
 
-  const crossWin  = round((hWins + aLosses) / 20, F);
-  const crossDraw = round((hDraws + aDraws) / 20, F);
-  const crossLose = round((hLosses + aWins) / 20, F);
+  return {
+    win:  round((hWins + aLosses) / 20, F),
+    draw: round((hDraws + aDraws) / 20, F),
+    lose: round((hLosses + aWins) / 20, F),
+    hWins, hDraws, hLosses,
+    aWins, aDraws, aLosses
+  };
+}
 
+/**
+ * 让球 让胜/让平/让负交叉
+ * 合并两队近20场净胜球分布（5档），按让球数 R 偏移后统计
+ *
+ * 合并分布（主队视角）：
+ *   +2: WG2_h + LG2_a     +1: WG1_h + LG1_a
+ *    0: PG_h + PG_a
+ *   -1: LG1_h + WG1_a     -2: LG2_h + WG2_a
+ *
+ * 让胜 = 净胜球 - R > 0  的场次 / 20
+ * 让平 = 净胜球 - R = 0  的场次 / 20
+ * 让负 = 净胜球 - R < 0  的场次 / 20
+ */
+function calcHandicapCross(vars) {
   const rq = vars.rq || 0;
 
+  // 合并净胜球分布（5档，共20场）
+  const dist = {};
+  dist[2]  = vars.homeWinGap_2  + vars.awayLoseGap_2;
+  dist[1]  = vars.homeWinGap_1  + vars.awayLoseGap_1;
+  dist[0]  = vars.homeDraw      + vars.awayDraw;
+  dist[-1] = vars.homeLoseGap_1 + vars.awayWinGap_1;
+  dist[-2] = vars.homeLoseGap_2 + vars.awayWinGap_2;
+
+  let hcpWin = 0, hcpDraw = 0, hcpLose = 0;
+
+  // 按 rq 偏移统计
+  [-2, -1, 0, 1, 2].forEach(d => {
+    const count = dist[d] || 0;
+    const adjusted = d - rq;  // 让球偏移后的调整值
+    if (adjusted > 0)      hcpWin  += count;
+    else if (adjusted === 0) hcpDraw += count;
+    else                   hcpLose += count;
+  });
+
   return {
-    crossWin, crossDraw, crossLose,
-    hWins, hDraws, hLosses,
-    aWins, aDraws, aLosses,
+    win:  round(hcpWin / 20, F),
+    draw: round(hcpDraw / 20, F),
+    lose: round(hcpLose / 20, F)
+  };
+}
+
+/**
+ * 交叉分布总入口：同时返回不让球组 + 让球组
+ */
+function calcCrossDistribution(vars) {
+  const spf   = calcSpfCross(vars);
+  const hcp   = calcHandicapCross(vars);
+  const rq    = vars.rq || 0;
+
+  return {
+    // 不让球组
+    spf: { win: spf.win, draw: spf.draw, lose: spf.lose },
+    // 让球组（R=0 时与不让球相同）
+    handicap: { win: hcp.win, draw: hcp.draw, lose: hcp.lose },
+    // 让球数
     rq,
-    handicapSuggestion: rq > 0 ? '客队让' + rq + '球' : rq < 0 ? '主队让' + Math.abs(rq) + '球' : '平手盘'
+    // 原始统计场次（供前端计算）
+    hWins: spf.hWins, hDraws: spf.hDraws, hLosses: spf.hLosses,
+    aWins: spf.aWins, aDraws: spf.aDraws, aLosses: spf.aLosses
   };
 }
 
@@ -329,4 +385,4 @@ function analyze(vars) {
   };
 }
 
-module.exports = { analyze, calcAttackAdvantage, calcDefenseAdvantage, calcStrengthLadder };
+module.exports = { analyze, calcAttackAdvantage, calcDefenseAdvantage, calcStrengthLadder, calcCrossDistribution, calcHandicapCross };

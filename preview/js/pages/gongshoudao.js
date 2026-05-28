@@ -54,7 +54,14 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
       '<span class="gs-note" style="margin-left:8px;">（进攻权重:' + (gs.attackDimWeight || gs.attackWeightHome || '50%') + ' | 防守权重:' + (gs.defenseDimWeight || gs.attackWeightAway || '50%') + '）</span>');
     html += gsRow('综合攻守优势', renderBar(gs.totalAdvantage || '+50%', gs.totalAdvantageValue || 75));
     html += gsRow('实力阶梯', '<span class="gs-val-text">' + (gs.ladderLabel || '⚖️ 双方实力接近') + '</span>');
-    html += gsRow('胜平负交叉', '<span class="gs-vs">胜' + fmtCross(gs.crossWin) + ' 平' + fmtCross(gs.crossDraw) + ' 负' + fmtCross(gs.crossLose) + ' <i>' + (gs.crossRq > 0 ? '客让' + gs.crossRq : gs.crossRq < 0 ? '主让' + Math.abs(gs.crossRq) : '平手') + '</i></span>');
+    // 胜平负交叉（不让球 + 让球 双组）
+    var spfStr = '胜' + fmtCross(gs.crossSpfWin) + ' 平' + fmtCross(gs.crossSpfDraw) + ' 负' + fmtCross(gs.crossSpfLose) + '（让0）';
+    var rqVal = gs.crossRq || 0;
+    var hcpStr = '';
+    if (rqVal !== 0) {
+      hcpStr = ' + 让胜' + fmtCross(gs.crossHcpWin) + ' 让平' + fmtCross(gs.crossHcpDraw) + ' 让负' + fmtCross(gs.crossHcpLose) + '（让' + (rqVal > 0 ? '+' + rqVal : rqVal) + '）';
+    }
+    html += gsRow('胜平负交叉', '<span class="gs-vs">' + spfStr + hcpStr + '</span>');
 
     html += '</div>';
 
@@ -65,7 +72,9 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
     html += gsRow('主客权重', '<span class="gs-vs">主队 ' + (gs.homeWeight || '50%') + ' <i>vs</i> 客队 ' + (gs.awayWeight || '50%') + '</span>');
     html += gsRow('得失球', '<span class="gs-vs">主场 ' + (gs.goalDiffHome || '--') + ' <i>vs</i> 客场 ' + (gs.goalDiffAway || '--') + '</span>');
     html += gsRow('总进球期望', '<span class="gs-vs-row"><span class="gs-bar-group">' + renderBar(gs.totalGoalsExpect || '2.5', gs.totalGoalsValue || 42, false) + '</span><span class="gs-note">λ_total</span></span>');
-    html += gsRow('弹窗区间', '<span class="gs-val-text">' + (gs.goalRange && gs.goalRange.range ? gs.goalRange.range : '2-4球') + '</span>');
+    html += gsRow('进球区间', '<span class="gs-val-text">' + (gs.goalRange && gs.goalRange.range ? gs.goalRange.range : '2-4球') + '</span>');
+    html += gsRow('主队预期进球', '<span class="gs-vs-row"><span class="gs-bar-group">' + renderBar((gs.xgHome || 1.5).toFixed(2), Math.min(100, Math.round((gs.xgHome || 1.5) / 5 * 100))) + '</span><span class="gs-note">E_h</span></span>');
+    html += gsRow('客队预期进球', '<span class="gs-vs-row"><span class="gs-bar-group">' + renderBar((gs.xgAway || 1.5).toFixed(2), Math.min(100, Math.round((gs.xgAway || 1.5) / 5 * 100))) + '</span><span class="gs-note">E_a</span></span>');
 
     html += '</div>';
 

@@ -93,10 +93,13 @@ function computeSingleMatch(rawStats, matchInfo) {
     ladderLabel: strengthResult.ladder.label,
     ladderLevel: strengthResult.ladder.level,
 
-    // 胜平负交叉分布
-    crossWin: strengthResult.cross.crossWin,
-    crossDraw: strengthResult.cross.crossDraw,
-    crossLose: strengthResult.cross.crossLose,
+    // 胜平负交叉分布（不让球 + 让球 双组）
+    crossSpfWin: strengthResult.cross.spf.win,
+    crossSpfDraw: strengthResult.cross.spf.draw,
+    crossSpfLose: strengthResult.cross.spf.lose,
+    crossHcpWin: strengthResult.cross.handicap.win,
+    crossHcpDraw: strengthResult.cross.handicap.draw,
+    crossHcpLose: strengthResult.cross.handicap.lose,
     crossRq: strengthResult.cross.rq,
     // 原始近10场胜平负场次（用于前端计算赛果对冲差值）
     hWins: strengthResult.cross.hWins,
