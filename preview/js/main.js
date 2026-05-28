@@ -383,23 +383,14 @@ document.addEventListener('touchend', function (e) {
   setTimeout(function () { handleDocClose(e); }, 50);
 });
 
-// ── 启动：立即恢复上次页面，避免首页闪烁 ──
+// ── 启动：恢复上次页面（DOM 已由阻塞脚本预设 active，此处只加载数据）───
 (function initPage() {
-  // ★ 立即隐藏所有页面，防止先闪 home 再切换
-  document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
-  // 读取上次保存的页面
   var last = null;
   try { last = sessionStorage.getItem('lastPage'); } catch(e) {}
-  // 确定要显示的页面
+  // 如果阻塞脚本已设 active（非 home），直接加载数据；否则初始化 home
   if (last && last !== 'home' && last !== 'detail') {
-    document.getElementById('page-' + last).classList.add('active');
     state.setCurrentPage(last);
-    // 同步底部 tab 高亮
-    document.querySelectorAll('.tab-item').forEach(function (t) { t.classList.remove('active'); });
-    var tabEl = document.getElementById('tab-' + last);
-    if (tabEl) tabEl.classList.add('active');
-    // 延迟加载内容
-    setTimeout(function () { switchTabLoad(last); }, 10);
+    switchTabLoad(last);
   } else {
     document.getElementById('page-home').classList.add('active');
     state.setCurrentPage('home');
