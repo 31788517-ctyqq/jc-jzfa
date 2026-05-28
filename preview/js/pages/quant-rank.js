@@ -345,7 +345,7 @@ function renderTable() {
 // ── 对战列 ──
 function shortTeam(name) {
   if (!name) return '--';
-  return name.slice(0, 3) + '.';
+  return name.length > 3 ? name.slice(0, 3) + '..' : name;
 }
 
 function renderMatch(item) {
