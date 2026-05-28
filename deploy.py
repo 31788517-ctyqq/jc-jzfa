@@ -349,45 +349,21 @@ def main():
     # ── Phase 3.5: 修复 Nginx 缓存配置 ──
     if not dry_run:
         print(c('C', '[Phase 3.5] 修复 Nginx 缓存'))
-        nginx_fix_script = r"""python3 << 'FIXEOF'
-import os, glob
-# 查找实际 nginx 配置文件（可能是 zj.conf 或 zj.100qiu.com.conf）
-candidates = glob.glob('/etc/nginx/conf.d/zj*.conf')
-if not candidates:
-    print('NOTFOUND')
-else:
-    conffile = candidates[0]
-    with open(conffile) as f:
-        c = f.read()
-    # 确保有 Cache-Control，且无 expires 缓存
-    fixed = False
-    if 'Cache-Control' not in c:
-        # 在 location / 块内添加 Cache-Control
-        c = c.replace('try_files $uri /index.html;',
-                      'try_files $uri /index.html;\n        add_header Cache-Control "no-cache, must-revalidate";')
-        fixed = True
-    # 移除可能存在的 expires 缓存时间
-    import re
-    c2 = re.sub(r'\s*expires\s+\d+[hdm];', '', c)
-    if c2 != c:
-        c = c2
-        fixed = True
-    if fixed:
-        import shutil
-        shutil.copy2(conffile, conffile + '.bak')
-        with open(conffile, 'w') as f:
-            f.write(c)
-        print('FIXED:' + conffile)
-    else:
-        print('SKIP')
-FIXEOF"""
-        out, _ = ssh_cmd(ssh, nginx_fix_script, 10)
+        fix_cmds = (
+            "CONF=$(ls /etc/nginx/conf.d/zj*.conf 2>/dev/null | head -1); "
+            "if [ -z \"$CONF\" ]; then echo NOTFOUND; exit 0; fi; "
+            "if grep -q 'Cache-Control' \"$CONF\" 2>/dev/null; then echo SKIP; else "
+            "cp \"$CONF\" \"${CONF}.bak.$(date +%Y%m%d_%H%M%S)\" 2>/dev/null; "
+            "sed -i '/try_files.*index\\.html;/a\\        add_header Cache-Control \"no-cache, must-revalidate\";' \"$CONF\"; "
+            "echo FIXED; fi"
+        )
+        out, _ = ssh_cmd(ssh, fix_cmds, 10)
         if 'FIXED' in out:
-            print('  {}: {}'.format(c('G', '已修复'), out.split(':')[1] if ':' in out else ''))
+            print('  {}'.format(c('G', '已修复: 添加 Cache-Control')))
+        elif 'SKIP' in out:
+            print('  {}'.format(c('D', '无需修复')))
         elif 'NOTFOUND' in out:
             print('  {}'.format(c('Y', '未找到配置文件')))
-        else:
-            print('  {}'.format(c('D', '无需修复')))
         ssh_cmd(ssh, 'nginx -t && nginx -s reload 2>&1', 10)
         print('  Nginx 已重载')
     print()
