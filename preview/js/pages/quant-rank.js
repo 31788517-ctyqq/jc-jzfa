@@ -43,17 +43,15 @@ export function switchQuantTab(tab) {
 
 export function togglePick(ev, matchId) {
   ev.stopPropagation();
+  ev.preventDefault();  // 阻止浏览器默认切换，由 JS 统一控制
   if (pickedIds[matchId]) delete pickedIds[matchId];
   else pickedIds[matchId] = true;
+  // 同步 checkbox 视觉状态
+  var cb = ev.target;
+  if (cb && cb.type === 'checkbox') cb.checked = !!pickedIds[matchId];
   updatePkBar();
   var row = document.getElementById('qr-' + matchId);
   if (row) { if (pickedIds[matchId]) row.classList.add('picked'); else row.classList.remove('picked'); }
-}
-
-function clearPicks() {
-  pickedIds = {};
-  updatePkBar();
-  document.querySelectorAll('.quant-card-row').forEach(function (r) { r.classList.remove('picked'); });
 }
 
 export function startPK() {
@@ -63,8 +61,8 @@ export function startPK() {
 }
 
 function updatePkBar() {
-  var bar = document.getElementById('quantPkBar');
   var count = Object.keys(pickedIds).length;
+  var bar = document.getElementById('quantPkBar');
   var cntEl = document.getElementById('pkBarCount');
   var btn = document.getElementById('pkBarBtn');
   if (bar) bar.style.display = count > 0 ? 'flex' : 'none';
@@ -346,33 +344,31 @@ function renderMatch(item) {
     '</span>';
 }
 
-// ── 总排序（文档规范：保留4位小数） ──
+// ── 总排序（四维合成得分，保留2位小数） ──
 function renderRank(totalScore) {
   if (totalScore === undefined || totalScore === null || isNaN(totalScore))
     return '<span class="q-col-rk"><span class="q-cell-num">-</span></span>';
   var n = parseFloat(totalScore);
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<span class="q-col-rk"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(4) + '</span></span>';
+  return '<span class="q-col-rk"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
 }
 
-// ── 净胜球（文档规范：预期进球差，4位小数） ──
+// ── 净胜球（保留2位小数） ──
 function renderGoalDiff(item) {
   var v = item.goalDiff;
   if (v === '-' || v === '?') return '<span class="q-col-gd"><span class="q-cell-num">-</span></span>';
   var n = parseFloat(String(v).split('/')[0]);
   if (isNaN(n)) return '<span class="q-col-gd"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<span class="q-col-gd"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(4) + '</span></span>';
+  return '<span class="q-col-gd"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
 }
-
-// ── 综合实力（文档规范：双轨模型结果，纯数值不带%号，4位小数） ──
 function renderPower(item) {
-  var pv = (item.totalAdvantageValue - 50) / 100;
+  var pv = item.totalAdvantageValue - 50;
   var cls = pv > 0 ? 'pos' : pv < 0 ? 'neg' : '';
-  return '<span class="q-col-power"><span class="q-cell-num ' + cls + '">' + (pv >= 0 ? '+' : '') + pv.toFixed(4) + '</span></span>';
+  return '<span class="q-col-power"><span class="q-cell-num ' + cls + '">' + (pv >= 0 ? '+' : '') + pv.toFixed(1) + '%</span></span>';
 }
 
-// ── 胜平负交叉（文档规范：赛果对冲差值，4位小数） ──
+// ── 胜平负交叉（保留2位小数） ──
 function renderCrossValue(item) {
   var v = item.crossValue;
   if (v === '-' || v === undefined || v === null) {
@@ -381,17 +377,17 @@ function renderCrossValue(item) {
   var n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-cross"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<span class="q-col-cross"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(4) + '</span></span>';
+  return '<span class="q-col-cross"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
 }
 
-// ── 攻守实力（文档规范：功守道结果，4位小数） ──
+// ── 攻守实力（保留2位小数） ──
 function renderAdCombined(item) {
   var v = item.adCombined;
-  if (v === 0 || v === undefined || v === null) return '<span class="q-col-ad"><span class="q-cell-num" style="color:var(--text4)">0.0000</span></span>';
+  if (v === 0 || v === undefined || v === null) return '<span class="q-col-ad"><span class="q-cell-num" style="color:var(--text4)">0.00</span></span>';
   var n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-ad"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<span class="q-col-ad"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(4) + '</span></span>';
+  return '<span class="q-col-ad"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
 }
 
 // ── 进球 tab 单元格 (统一 toFixed(2)) ──
