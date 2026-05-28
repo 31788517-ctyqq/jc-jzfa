@@ -269,9 +269,20 @@ def main():
     print(c('C', '连接 {} ...'.format(HOST)))
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    # SSH 密钥认证优先
+    key_path = os.path.expanduser('~/.ssh/id_rsa_jczjfa')
+    KEY_FILE = key_path if os.path.exists(key_path) else None
+
     try:
-        ssh.connect(HOST, username=USER, password=PASS, timeout=10, port=22,
-                    disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
+        if KEY_FILE:
+            print(c('D', '  使用 SSH 密钥认证: ' + KEY_FILE))
+            ssh.connect(HOST, username=USER, key_filename=KEY_FILE, timeout=10, port=22,
+                        disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']},
+                        look_for_keys=False, allow_agent=False)
+        else:
+            ssh.connect(HOST, username=USER, password=PASS, timeout=10, port=22,
+                        disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
         print(c('G', ' ok'))
     except Exception as e:
         print(c('R', ' 失败: {}'.format(e)))
