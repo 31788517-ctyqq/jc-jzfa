@@ -63,7 +63,7 @@ function renderPKGoal(modal, list) {
   // ═══ 构建数据表 ═══
   var html =
     '<div class="pk2-header">' +
-      '<span class="pk2-title">⚔️ 进球PK对比</span>' +
+      '<span class="pk2-title">进球PK对比</span>' +
       '<span class="pk2-close" onclick="closePK()">✕</span>' +
     '</div>';
 
@@ -102,7 +102,7 @@ function renderPKGoal(modal, list) {
   html += '</tbody></table></div>';
 
   // ── PK结果卡 ──
-  html += '<div class="pk2-section-label">🏆 PK结果</div>';
+  html += '<div class="pk2-section-label">PK结果</div>';
 
   if (n === 2) {
     html += renderPKCard(list[0], list[1]);
@@ -195,8 +195,6 @@ function renderPKCard(a, b) {
     else { result = 'draw'; }
 
     return '<div class="pk2-result-row">' +
-      '<span class="pk2-result-icon ' + (result === 'a' ? 'pk2-win' : result === 'b' ? 'pk2-lose' : '') + '">' +
-        (result === 'a' ? '👑' : result === 'b' ? '' : '') + '</span>' +
       '<span class="pk2-result-label">' + dim.label + '</span>' +
       '<span class="pk2-result-values">' +
         '<span class="' + (result === 'a' ? 'pk2-win' : '') + '">' + esc(shortTeam(a.homeName)) + ' (' + formatVal(va, dim.fmt) + ')</span>' +
