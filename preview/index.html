@@ -1863,7 +1863,7 @@ body {
 
 /* ═══ P2-5: ECharts 图表视图 ═══ */
 .quant-chart-wrap { margin: 0; padding: 8px 0 20px; }
-.quant-chart-inner { width: 100%; height: 420px; }
+.quant-chart-inner { width: 100%; min-height: 360px; }
 
 /* ═══ P2-6: 视图切换按钮 ═══ */
 .quant-view-toggle {
@@ -1880,9 +1880,9 @@ body {
 }
 .qt-view-btn:hover { border-color: rgba(24,224,224,0.35); }
 
-/* 平板及以上默认显示图表 */
+/* 平板及以上 */
 @media (min-width: 768px) {
-  .quant-chart-inner { height: 520px; }
+  .quant-chart-inner { min-height: 480px; }
   .quant-view-toggle { padding: 12px 16px 16px; }
 }
 .quant-card-list {
