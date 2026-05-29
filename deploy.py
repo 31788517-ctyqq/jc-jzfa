@@ -181,7 +181,7 @@ def batch_upload(sftp, ssh, file_list, dry_run=False):
     if not cp_cmds:
         return results
 
-    batch_cmd = ' && '.join(cp_cmds) + ' && ' + ' && '.join(verify_cmds)
+    batch_cmd = ' && '.join(cp_cmds) + ' && sync && ' + ' && '.join(verify_cmds)
     out, err = ssh_cmd(ssh, batch_cmd, len(tmp_files) * 5 + 10)
 
     # 3) 解析 md5sum 结果
