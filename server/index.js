@@ -108,7 +108,23 @@ const PORT = process.env.PORT || 3000;
 app.disable('x-powered-by');
 if (!process.env.BEHIND_PROXY) { app.use(compression()); }
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
+// 手动 JSON 解析（绕过 body-parser 版本兼容问题）
+app.use('/api', (req, res, next) => {
+  var ct = (req.headers['content-type'] || '').toLowerCase();
+  if (ct.indexOf('application/json') === -1) return next();
+  var chunks = [];
+  req.on('data', function(c) { chunks.push(c); });
+  req.on('end', function() {
+    if (chunks.length === 0) return next();
+    try {
+      req.body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+    } catch (e) {
+      logger.warn('[json-parse] ' + e.message);
+      return res.status(400).json({ code: -1, msg: 'Invalid JSON: ' + e.message });
+    }
+    next();
+  });
+});
 
 // UTF-8 响应头
 app.use('/api', (req, res, next) => {
