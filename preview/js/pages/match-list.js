@@ -85,10 +85,16 @@ export function loadMatchList() {
       return `
         <div class="match-card" id="mc-${m.matchId}" onclick="goDetail('${m.matchId}')">
           <div class="match-header">
-            <input type="checkbox" class="mc-chk" onclick="event.stopPropagation();toggleMatchPick('${m.matchId}')" />
-            <span class="match-league">${m.leagueName}</span>
-            ${m.isSingleGame ? '<span class="match-single-badge">单关</span>' : ''}
-            <span class="match-num">${roundText}</span>
+            <div class="match-header-left">
+              <label class="mc-chk-wrap" onclick="event.stopPropagation()">
+                <input type="checkbox" class="mc-chk" onchange="toggleMatchPick('${m.matchId}')" />
+              </label>
+              <span class="match-league">${m.leagueName}</span>
+            </div>
+            <div class="match-header-right">
+              ${m.isSingleGame ? '<span class="match-single-badge">单关</span>' : ''}
+              <span class="match-num">${roundText}</span>
+            </div>
           </div>
           <div class="match-teams">
             <span class="team-name">${m.homeName}</span>
