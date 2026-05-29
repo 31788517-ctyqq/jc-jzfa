@@ -75,6 +75,12 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
     html += gsRow('进球区间', '<span class="gs-val-text">' + (gs.goalRange && gs.goalRange.range ? gs.goalRange.range : '2-4球') + '</span>');
     html += gsRow('主队预期进球', '<span class="gs-vs-row"><span class="gs-bar-group">' + renderBar((gs.xgHome || 1.5).toFixed(2), Math.min(100, Math.round((gs.xgHome || 1.5) / 5 * 100))) + '</span><span class="gs-note">E_h</span></span>');
     html += gsRow('客队预期进球', '<span class="gs-vs-row"><span class="gs-bar-group">' + renderBar((gs.xgAway || 1.5).toFixed(2), Math.min(100, Math.round((gs.xgAway || 1.5) / 5 * 100))) + '</span><span class="gs-note">E_a</span></span>');
+    // 四重熔断
+    var consensusLabel = gs.fusionConsensus || '';
+    if (consensusLabel) {
+      var consensusVal = gs.fusionFused ? (gs.fusionFinalHome || 0).toFixed(2) + '/' + (gs.fusionFinalAway || 0).toFixed(2) : '--';
+      html += gsRow('四重验证基准', '<span class="gs-vs-row"><span class="gs-bar-group">' + renderBar(consensusVal, Math.min(100, Math.round(((gs.fusionFinalHome || 1) + (gs.fusionFinalAway || 1)) / 6 * 100))) + '</span><span class="gs-note" style="color:var(--amber);">' + consensusLabel + '</span></span>');
+    }
 
     html += '</div>';
 
@@ -82,7 +88,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
     html += '<div class="gs-modal-section">';
     html += '<div class="gs-modal-sec-title"><img src="/assets/gs-goal.png" class="gs-title-icon" alt="">让球分析（7场阈值裁决）</div>';
 
-    html += gsRow('预期净胜球差', '<span class="gs-vs-row"><span class="gs-bar-group">' + renderBar(gs.homeWinExpect || '+0.50', gs.homeWinValue || 55) + '</span><span class="gs-note">Diff_exp</span></span>');
+    html += gsRow('主队赢球期望', '<span class="gs-vs-row"><span class="gs-bar-group">' + renderBar(gs.homeWinExpect || '+0.50', gs.homeWinValue || 55) + '</span><span class="gs-note">Diff_exp</span></span>');
     html += gsRow('功守道战力', '<span class="gs-vs-row"><span class="gs-bar-group">' + renderBar(gs.totalAdvantage2 || '+2.5%', gs.totalAdvantage2Value || 55) + '</span><span class="gs-note">Total_战</span></span>');
     html += gsRow('动态锚点', '<span class="gs-val-text">' + (gs.anchor && gs.anchor.label ? gs.anchor.label : '--') + '</span>');
     html += gsRow('输赢球分布', renderBar(gs.goalCount || '±0', gs.goalCountValue || 50, false));

@@ -9,6 +9,7 @@
  *   xG 计算
  */
 const F = 4;
+const fusion = require('./fusion');
 
 function round(v, n) {
   const m = Math.pow(10, n);
@@ -123,11 +124,11 @@ function calcExpectedGoals(vars, totalExpect, weights) {
   const dh = Math.max(vars.homeDefendEfficiency, 0.01);
   const da = Math.max(vars.awayDefendEfficiency, 0.01);
 
-  // 还原底层攻防次数
-  const atkH = gh / eh;
-  const shotAgainstH = lh / dh;
-  const atkA = ga / ea;
-  const shotAgainstA = la / da;
+  // 还原底层攻防次数（分母 +0.001 防除零）
+  const atkH = gh / (eh + 0.001);
+  const shotAgainstH = lh / (dh + 0.001);
+  const atkA = ga / (ea + 0.001);
+  const shotAgainstA = la / (da + 0.001);
 
   // 四维呼吸权重
   const beta1 = atkH / (atkH + shotAgainstA) || 0.5;
@@ -165,6 +166,10 @@ function analyze(vars, S) {
   const totalExpect = calcTotalGoalExpect(intensity, weights);
   const goalRange = calcGoalRange(vars, totalExpect);
   const xg = calcExpectedGoals(vars, totalExpect, weights);
+
+  // ── 四重一致性验证与熔断（zs.md 第6节）──
+  const pAsia = vars.rq ? (vars.rq > 0 ? 2.0 : 3.0) : 2.5; // fallback: 基于让球数推测盘口
+  const consensus = fusion.fuse(vars, { home: xg.xgHome, away: xg.xgAway }, pAsia);
 
   const hGoal = vars.homeRecentGoalAvg || 1;
   const hLose = vars.homeRecentLoseAvg || 1;
@@ -221,9 +226,16 @@ function analyze(vars, S) {
     totalGoalsValue: Math.round(totalExpect / 6 * 100),
     // 弹窗区间
     goalRange,
-    // xG
+    // xG (B2 模型原始值)
     xgHome: xg.xgHome,
     xgAway: xg.xgAway,
+    // 四重熔断后最终值（替代 λ_total 供下游使用）
+    fusionConsensus: consensus.consensus,
+    fusionFused: consensus.fused,
+    fusionFinalTotal: consensus.total,
+    fusionFinalHome: consensus.home,
+    fusionFinalAway: consensus.away,
+    fusionDetails: consensus._details,
     fieldIntensity: intensity.total,
     // ★ 进球预测维度（PK.md 进球数预测公式）
     attDefGoal: attDefGoal,           // 攻防进球 = xgHome + xgAway

@@ -26,33 +26,47 @@ function calcDiffXG(xgHome, xgAway) {
 // ==================== 5.2 双轨实力量化 Total_战 ====================
 
 /**
- * 静态实力：Static = (homePower - guestPower) / 100
+ * 静态实力：Static = (homePower - guestPower) / (homePower + guestPower)
  */
 function calcStaticStrength(vars) {
   const hPower = vars.homePower || 50;
   const aPower = vars.awayPower || 50;
-  return round((hPower - aPower) / 100, F);
+  return round((hPower - aPower) / (hPower + aPower), F);
 }
 
 /**
- * 动态状态：
- *   Dyn_h = (3×H_win + 1×PG_h) / 30
- *   Dyn_a = (3×A_win + 1×PG_a) / 30
- *   Dyn = Dyn_h - Dyn_a
+ * 动态状态（P6/P3/P1 分阶加权，无细分数据时用近10场近似）
+ *
+ *   P_n = (3×W_n + D_n) / (3×n)    // 得分率
+ *   状态值 = 0.5×P6 + 0.3×P3 + 0.2×P1
+ *   DynAdv = (状态值_主 - 状态值_客) / (状态值_主 + 状态值_客)
  */
 function calcDynamicState(vars) {
   const hWins = vars.homeWinGap_2 + vars.homeWinGap_1;
   const aWins = vars.awayWinGap_2 + vars.awayWinGap_1;
   const hDraws = vars.homeDraw;
   const aDraws = vars.awayDraw;
+  const hTotal = hWins + hDraws + vars.homeLoseGap_1 + vars.homeLoseGap_2 || 10;
+  const aTotal = aWins + aDraws + vars.awayLoseGap_1 + vars.awayLoseGap_2 || 10;
 
-  const dynH = (3 * hWins + 1 * hDraws) / 30;
-  const dynA = (3 * aWins + 1 * aDraws) / 30;
-  return round(dynH - dynA, F);
+  // 按比例从10场近似6/3/1场
+  function stateVal(wins, draws, total) {
+    const wRate = wins / total;
+    const dRate = draws / total;
+    const p6 = (3 * wRate * 6 + 1 * dRate * 6) / 18;
+    const p3 = (3 * wRate * 3 + 1 * dRate * 3) / 9;
+    const p1 = (3 * wRate * 1 + 1 * dRate * 1) / 3;
+    return 0.5 * p6 + 0.3 * p3 + 0.2 * p1;
+  }
+
+  const stateH = stateVal(hWins, hDraws, hTotal);
+  const stateA = stateVal(aWins, aDraws, aTotal);
+  const sum = stateH + stateA || 0.01;
+  return round((stateH - stateA) / sum, F);
 }
 
 /**
- * 综合实力量化：Total_战 = 0.7 × Static + 0.3 × Dyn
+ * 综合实力量化：Total_战 = 0.6 × Static + 0.4 × Dyn
  */
 function calcTotalStrength(vars) {
   const staticStr = calcStaticStrength(vars);
@@ -61,7 +75,7 @@ function calcTotalStrength(vars) {
   return {
     static: round(staticStr, F),
     dynamic: round(dynState, F),
-    normalized: round(0.7 * staticStr + 0.3 * dynState, F)
+    normalized: round(0.6 * staticStr + 0.4 * dynState, F)
   };
 }
 
