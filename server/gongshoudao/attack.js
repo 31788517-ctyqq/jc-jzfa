@@ -309,6 +309,31 @@ function calcCrossDistribution(vars) {
   };
 }
 
+// ==================== 2.4：攻守实力（进球/失球分布计分法 V6.4）====================
+
+/**
+ * 基于球队近期进球和失球分布频次，分别评估进攻效率和防守稳固性
+ *
+ *   进攻得分 = WinQiu_0×0 + WinQiu_1×1 + WinQiu_2×2
+ *   防守得分 = LoseQiu_0×2 + LoseQiu_1×1 + LoseQiu_2×0
+ *   总分 = 进攻得分 + 防守得分
+ *   AD_Diff = (Total_home - Total_away) / (Total_home + Total_away)
+ *
+ * 范围 [-1, 1]
+ */
+function calcADDiff(vars) {
+  const atkH = vars.homeGoal0 * 0 + vars.homeGoal1 * 1 + vars.homeGoal2Plus * 2;
+  const defH = vars.homeLose0 * 2 + vars.homeLose1 * 1 + vars.homeLose2Plus * 0;
+  const totalH = atkH + defH;
+
+  const atkA = vars.awayGoal0 * 0 + vars.awayGoal1 * 1 + vars.awayGoal2Plus * 2;
+  const defA = vars.awayLose0 * 2 + vars.awayLose1 * 1 + vars.awayLose2Plus * 0;
+  const totalA = atkA + defA;
+
+  const denom = totalH + totalA || 0.01;
+  return round((totalH - totalA) / denom, F);
+}
+
 // ==================== 主入口 ====================
 
 /**
@@ -372,8 +397,12 @@ function analyze(vars) {
     totalAdvantageValue: clamp(Math.round(50 + sPct), 0, 100),    // 进度条值（0-100）
     totalAdvantagePct: round(S * 100, F),                         // 百分比值（4位小数）
 
-    // ★ 攻守实力（sigmoid 加权合成）：w_进攻 × Adv_进攻 + w_防守 × Adv_防守
-    adWeightedComposite: round(weights.attack * attAdv + weights.defense * defAdv, F),
+    // ★ 攻守实力（V6.4 进球/失球分布计分法）：
+    //   进攻得分 = WinQiu_0×0 + WinQiu_1×1 + WinQiu_2×2
+    //   防守得分 = LoseQiu_0×2 + LoseQiu_1×1 + LoseQiu_2×0
+    //   总分 = 进攻得分 + 防守得分
+    //   AD_Diff = (Total_home - Total_away) / (Total_home + Total_away)
+    adWeightedComposite: calcADDiff(vars),
 
     // 实力阶梯
     ladder,
@@ -387,4 +416,4 @@ function analyze(vars) {
   };
 }
 
-module.exports = { analyze, calcAttackAdvantage, calcDefenseAdvantage, calcStrengthLadder, calcCrossDistribution, calcHandicapCross };
+module.exports = { analyze, calcAttackAdvantage, calcDefenseAdvantage, calcStrengthLadder, calcCrossDistribution, calcHandicapCross, calcADDiff };

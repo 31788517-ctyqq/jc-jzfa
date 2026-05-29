@@ -146,9 +146,23 @@ function calcExpectedGoals(vars, totalExpect, weights) {
   const xgHome = round(beta1 * atkH + beta3 * hfGoal, 2);
   const xgAway = round(beta2 * atkA + beta4 * afGoal, 2);
 
+  // ── GD_q: 净胜球量化（新公式） ──
+  // Phase 1: 还原底层攻防次数 (atkH, atkA, shotAgainstH, shotAgainstA 已计算)
+  // Phase 2: 四维呼吸权重
+  //   W_HA = atkH/(atkH+shotAgainstA)  = beta1,  W_AD = shotAgainstA/(atkH+shotAgainstA) = 1-beta1
+  //   W_AA = atkA/(atkA+shotAgainstH)  = beta2,  W_HD = shotAgainstH/(atkA+shotAgainstH) = 1-beta2
+  // Phase 4: 预期进球（使用主/客场特化场均，非近期场均）
+  //   ExpG_h = (G_home_s × W_HA) + (C_away_s × W_AD) = hfGoal×beta1 + afLose×(1-beta1)
+  //   ExpG_a = (G_away_s × W_AA) + (C_home_s × W_HD) = afGoal×beta2 + hfLose×(1-beta2)
+  // GD_q = ExpG_h - ExpG_a
+  const expGh = beta1 * hfGoal + (1 - beta1) * afLose;
+  const expGa = beta2 * afGoal + (1 - beta2) * hfLose;
+  const gdQ = round(expGh - expGa, 4);
+
   return {
     xgHome: round(Math.max(0.1, xgHome), 2),
     xgAway: round(Math.max(0.1, xgAway), 2),
+    gdQ: gdQ,                          // 净胜球量化 GD_q = ExpG_h - ExpG_a
     hConversion: round(beta1, F),
     aConversion: round(beta2, F),
     _atkH: atkH,
@@ -196,8 +210,8 @@ function analyze(vars, S) {
     jiaoFenOverRate = overCount / jiaoFenScores.length;
   }
 
-  // 大球比例 = 0.4×主队大球率 + 0.4×客队大球率 + 0.2×交锋大球率（百分比）
-  const bigBallRatio = round((0.4 * vars.homeOverRate + 0.4 * vars.awayOverRate + 0.2 * jiaoFenOverRate) * 100, 1);
+  // 综合大球比例 = (主队大球比例 + 客队大球比例 + 交锋大球比例) / 3（百分比）
+  const bigBallRatio = round((vars.homeOverRate + vars.awayOverRate + jiaoFenOverRate) / 3 * 100, 1);
 
   // 交锋进球 = 最近3-6次交锋场均总进球
   let h2hGoalAvg = 2.5;
@@ -229,6 +243,7 @@ function analyze(vars, S) {
     // xG (B2 模型原始值)
     xgHome: xg.xgHome,
     xgAway: xg.xgAway,
+    gdQ: xg.gdQ,                         // 净胜球量化 GD_q = ExpG_h - ExpG_a
     // 四重熔断后最终值（替代 λ_total 供下游使用）
     fusionConsensus: consensus.consensus,
     fusionFused: consensus.fused,
@@ -240,7 +255,7 @@ function analyze(vars, S) {
     // ★ 进球预测维度（PK.md 进球数预测公式）
     attDefGoal: attDefGoal,           // 攻防进球 = xgHome + xgAway
     breakArmorSum: breakArmorSum,     // 破甲和 = atkH/(shotAgainstA+0.5) + atkA/(shotAgainstH+0.5)
-    bigBallRatio: bigBallRatio,       // 大球比例 = 0.4×H + 0.4×A + 0.2×交锋（百分比）
+    bigBallRatio: bigBallRatio,       // 综合大球比例 = (H+A+J)/3 × 100
     h2hGoalAvg: h2hGoalAvg,           // 交锋进球 = H2H场均总进球
     homeRecentGoalAvg: hGoal,         // 主队近期场均进球（供实力进球计算）
     awayRecentGoalAvg: aGoal,         // 客队近期场均进球（供实力进球计算）

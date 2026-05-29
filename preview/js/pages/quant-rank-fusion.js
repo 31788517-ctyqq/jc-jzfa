@@ -165,13 +165,8 @@ function mergeItem(item, gs) {
 
   // ── 进球预测维度 ──
 
-  // 综合大球比例 = (主队大球比例 + 客队大球比例 + 交锋大球比例) / 3（百分比）
-  var bigBall;
-  if (gs.homeOverRate != null && gs.awayOverRate != null && gs.jiaoFenOverRate != null) {
-    bigBall = parseFloat(((gs.homeOverRate + gs.awayOverRate + gs.jiaoFenOverRate) / 3 * 100).toFixed(1));
-  } else {
-    bigBall = gs.bigBallRatio != null ? gs.bigBallRatio : 50;
-  }
+  // 综合大球比例 = (主队大球比例 + 客队大球比例 + 交锋大球比例) / 3 × 100
+  var bigBall = gs.bigBallRatio != null ? gs.bigBallRatio : 50;
 
   // 攻防进球 = xgHome + xgAway（射门还原法 M3_A）
   var attDefGoal = gs.attDefGoal != null ? gs.attDefGoal : (gs.xgHome || 0) + (gs.xgAway || 0);
@@ -187,8 +182,8 @@ function mergeItem(item, gs) {
 
   // ── 实力PK四维指标（PK.md 2.1-2.2） ──
 
-  // ① 净胜球量化 = xgHome - xgAway（源自射门还原法 M3_A）
-  var gdScore = (gs.xgHome != null && gs.xgAway != null) ? parseFloat((gs.xgHome - gs.xgAway).toFixed(4)) : 0;
+  // ① 净胜球量化 = GD_q = ExpG_h - ExpG_a（后端按四维呼吸权重公式计算）
+  var gdScore = (gs.gdQ != null) ? gs.gdQ : ((gs.xgHome != null && gs.xgAway != null) ? parseFloat((gs.xgHome - gs.xgAway).toFixed(4)) : 0);
 
   // ② 胜平负交叉 = (H_wins + A_losses) - (H_losses + A_wins)
   // 数据映射：hWins→主队胜场, aLosses→客队负场, hLosses→主队负场, aWins→客队胜场
@@ -200,10 +195,10 @@ function mergeItem(item, gs) {
   }
   var cvNum = crossValue === '-' ? 0 : crossValue;
 
-  // ③ 综合实力 = Total_战 = 0.7×(homePower-guestPower)/100 + 0.3×Dyn（双轨实力量化）
+  // ③ 综合实力 = Total_战 = 0.7×Static + 0.3×Dyn（V6.4 双轨实力量化）
   var pwScore = gs.totalStrength != null ? parseFloat(gs.totalStrength.toFixed(4)) : 0;
 
-  // ④ 攻守实力 = w_进攻 × Adv_进攻 + w_防守 × Adv_防守（sigmoid加权合成 V24.0）
+  // ④ 攻守实力 = 进球分布计分法 V6.4（WinQiu_2×2 + WinQiu_1×1 + LoseQiu_0×2 + LoseQiu_1×1）
   var adCombined = gs.adWeightedComposite != null ? parseFloat(gs.adWeightedComposite.toFixed(4)) : 0;
 
   // 总排序 = 0.25 × 净胜球 + 0.25 × 胜平负交叉 + 0.25 × 综合实力 + 0.25 × 攻守实力
@@ -298,15 +293,13 @@ function renderTable() {
   if (currentTab === 'power') {
     cols = [
       { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
-      { key: 'rank', label: '总排序', sortable: true, colCls: 'q-col-rk' },
       { key: 'goalDiff', label: '净胜球\n量化', sortable: false, colCls: 'q-col-gd' },
       { key: 'cross', label: '胜平负\n交叉', sortable: false, colCls: 'q-col-cross' },
       { key: 'power', label: '综合\n实力', sortable: false, colCls: 'q-col-power' },
       { key: 'ad', label: '攻守\n实力', sortable: false, colCls: 'q-col-ad' }
     ];
     renderRow = function (item) {
-      return renderRank(item.totalScore) +
-        renderGoalDiff(item) +
+      return renderGoalDiff(item) +
         renderCrossValue(item) +
         renderPower(item) +
         renderAdCombined(item);
@@ -314,22 +307,18 @@ function renderTable() {
   } else if (currentTab === 'goal') {
     cols = [
       { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
-      { key: 'totalSum', label: '合计', sortable: true, colCls: 'q-col-sum' },
-      { key: 'bigBallRatio', label: '大球\n比例', sortable: true, colCls: 'q-col-big' },
+      { key: 'bigBallRatio', label: '综合大球\n比例', sortable: true, colCls: 'q-col-big' },
       { key: 'attDefGoal', label: '攻防\n进球', sortable: true, colCls: 'q-col-ag' },
       { key: 'strengthGoal', label: '实力\n进球', sortable: true, colCls: 'q-col-sg' },
       { key: 'headToHeadGoal', label: '交锋\n进球', sortable: true, colCls: 'q-col-hg' },
-      { key: 'breakArmor', label: '破甲和', sortable: true, colCls: 'q-col-ba' },
-      { key: 'fusion', label: '四重\n验证', sortable: false, colCls: 'q-col-fusion' }
+      { key: 'breakArmor', label: '破甲和', sortable: true, colCls: 'q-col-ba' }
     ];
     renderRow = function (item) {
-      return renderGoalCell(item, 'totalSum') +
-        renderGoalCell(item, 'bigBallRatio') +
+      return renderGoalCell(item, 'bigBallRatio') +
         renderGoalCell(item, 'attDefGoal') +
         renderGoalCell(item, 'strengthGoal') +
         renderGoalCell(item, 'headToHeadGoal') +
-        renderGoalCell(item, 'breakArmor') +
-        renderFusionCell(item);
+        renderGoalCell(item, 'breakArmor');
     };
   } else {
     cols = [
@@ -337,18 +326,12 @@ function renderTable() {
       { key: 'rq', label: '让球数', sortable: false, colCls: 'q-col-rq' },
       { key: 'hotFocusNum', label: '关注\n热度\n（万）', sortable: true, colCls: 'q-col-hot' },
       { key: 'heatIndex', label: '冷热\n指数', sortable: true, colCls: 'q-col-heat' },
-      { key: 'homeFeature', label: '主队\n特征', sortable: false, colCls: 'q-col-hf' },
-      { key: 'guestFeature', label: '客队\n特征', sortable: false, colCls: 'q-col-gf' },
-      { key: 'staticDiff', label: '静态\n实力差', sortable: true, colCls: 'q-col-sd' },
       { key: 'oddsLive', label: '亚指\n临盘', sortable: false, colCls: 'q-col-ol' }
     ];
     renderRow = function (item) {
       return renderHotCell(item, 'rq') +
         renderHotCell(item, 'hotFocusNum') +
         renderHotCell(item, 'heatIndex') +
-        renderHotCell(item, 'homeFeature') +
-        renderHotCell(item, 'guestFeature') +
-        renderHotCell(item, 'staticDiff') +
         renderHotCell(item, 'oddsLive');
     };
   }
@@ -529,7 +512,7 @@ function renderHotCell(item, key) {
   if (key === 'hotFocusNum') {
     var n = parseFloat(v);
     if (isNaN(n)) return '<span class="q-col-hot"><span class="q-cell-num">' + v + '</span></span>';
-    var fmt = n > 10000 ? Math.round(n / 100) / 100 : n.toFixed(0);
+    var fmt = (n / 10000).toFixed(1);
     return '<span class="q-col-hot"><span class="q-cell-num pos">' + fmt + '</span></span>';
   }
   // rq, homeFeature, guestFeature, oddsLive
@@ -671,16 +654,14 @@ function _doRenderChart(container) {
     ];
   } else if (currentTab === 'goal') {
     seriesDefs = [
-      { name: '总进球预期', key: 'totalSum',     fmt: 1, color: '#18E0E0' },
-      { name: '大球比例',   key: 'bigBallRatio', fmt: 1, color: '#22c55e' },
+      { name: '综合大球比例',   key: 'bigBallRatio', fmt: 1, color: '#22c55e' },
       { name: '攻防进球',   key: 'attDefGoal',   fmt: 1, color: '#60a5fa' },
       { name: '实力进球',   key: 'strengthGoal', fmt: 1, color: '#fbbf24' }
     ];
   } else {
     seriesDefs = [
       { name: '关注热度',  key: 'hotFocusNum', fmt: 1, color: '#f97316' },
-      { name: '冷热指数',  key: 'heatIndex',   fmt: 2, color: '#18E0E0' },
-      { name: '静态实力差', key: 'staticDiff',  fmt: 2, color: '#60a5fa' }
+      { name: '冷热指数',  key: 'heatIndex',   fmt: 2, color: '#18E0E0' }
     ];
   }
 
