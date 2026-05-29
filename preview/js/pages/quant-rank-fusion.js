@@ -163,10 +163,15 @@ function mergeItem(item, gs) {
   var cd = gs.crossDraw !== undefined ? gs.crossDraw : '-';
   var cl = gs.crossLose !== undefined ? gs.crossLose : '-';
 
-  // ── 进球预测维度（直接使用后端按 PK.md 公式计算的值） ──
+  // ── 进球预测维度 ──
 
-  // 大球比例 = 0.4×主队大球率 + 0.4×客队大球率 + 0.2×交锋大球率（百分比）
-  var bigBall = gs.bigBallRatio != null ? gs.bigBallRatio : 50;
+  // 综合大球比例 = (主队大球比例 + 客队大球比例 + 交锋大球比例) / 3（百分比）
+  var bigBall;
+  if (gs.homeOverRate != null && gs.awayOverRate != null && gs.jiaoFenOverRate != null) {
+    bigBall = parseFloat(((gs.homeOverRate + gs.awayOverRate + gs.jiaoFenOverRate) / 3 * 100).toFixed(1));
+  } else {
+    bigBall = gs.bigBallRatio != null ? gs.bigBallRatio : 50;
+  }
 
   // 攻防进球 = xgHome + xgAway（射门还原法 M3_A）
   var attDefGoal = gs.attDefGoal != null ? gs.attDefGoal : (gs.xgHome || 0) + (gs.xgAway || 0);
