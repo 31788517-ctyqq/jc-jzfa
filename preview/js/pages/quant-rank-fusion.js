@@ -658,9 +658,10 @@ function _doRenderChart(container) {
     ];
   } else if (currentTab === 'goal') {
     seriesDefs = [
-      { name: '综合大球比例',   key: 'bigBallRatio', fmt: 1, color: '#22c55e' },
-      { name: '攻防进球',   key: 'attDefGoal',   fmt: 1, color: '#60a5fa' },
-      { name: '实力进球',   key: 'strengthGoal', fmt: 1, color: '#fbbf24' }
+      { name: '综合大球比例',   key: 'bigBallRatio',    fmt: 1, color: '#22c55e' },
+      { name: '攻防进球',   key: 'attDefGoal',      fmt: 1, color: '#60a5fa' },
+      { name: '交锋进球',   key: 'headToHeadGoal',  fmt: 1, color: '#fbbf24' },
+      { name: '破甲和',     key: 'breakArmor',      fmt: 1, color: '#f97316' }
     ];
   } else {
     seriesDefs = [
