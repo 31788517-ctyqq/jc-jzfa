@@ -647,7 +647,6 @@ function renderChart() {
 
 function _doRenderChart(container) {
 
-  // 准备数据
   var filtered = allData.filter(function (item) {
     return (currentTab === 'power') || (currentTab === 'goal') || (currentTab === 'hot' && item.hotFocusNum !== '-' && item.hotFocusNum !== undefined);
   });
@@ -657,76 +656,113 @@ function _doRenderChart(container) {
     return;
   }
 
+  var n = filtered.length;
+  // 动态高度：每场 38px + 80px 留白
+  var chartH = Math.max(360, n * 38 + 80);
+  container.style.height = chartH + 'px';
+
+  // 短队名
   var names = filtered.map(function (item) {
-    return esc(shortTeam(item.homeName) + ' vs ' + shortTeam(item.visitName));
+    return shortTeam(item.homeName) + ' vs ' + shortTeam(item.visitName);
   });
 
-  // 根据 tab 准备不同的数据系列
-  var series = [];
+  // ═══ 根据 tab 准备数据 ═══
+  var mainData, title, unit, isPct, isNegOk;
   if (currentTab === 'power') {
-    series = [
-      { name: '净胜球量化',  data: filtered.map(function (x) { return parseFloat(x.gdScore) || 0; }) },
-      { name: '胜平负交叉',  data: filtered.map(function (x) { return parseFloat(x.crossValue) || 0; }) },
-      { name: '综合实力',    data: filtered.map(function (x) { return parseFloat(x.pwScore) || 0; }) },
-      { name: '攻守实力',    data: filtered.map(function (x) { return parseFloat(x.adCombined) || 0; }) }
-    ];
+    title = '综合实力得分';
+    mainData = filtered.map(function (x) { return parseFloat((parseFloat(x.totalScore) || 0).toFixed(2)); });
+    unit = '';
+    isPct = false;
+    isNegOk = true;
   } else if (currentTab === 'goal') {
-    series = [
-      { name: '合计',        data: filtered.map(function (x) { return parseFloat(x.totalSum) || 0; }) },
-      { name: '大球比例',    data: filtered.map(function (x) { return parseFloat(x.bigBallRatio) || 0; }) },
-      { name: '攻防进球',    data: filtered.map(function (x) { return parseFloat(x.attDefGoal) || 0; }) },
-      { name: '实力进球',    data: filtered.map(function (x) { return parseFloat(x.strengthGoal) || 0; }) },
-      { name: '交锋进球',    data: filtered.map(function (x) { return parseFloat(x.headToHeadGoal) || 0; }) },
-      { name: '破甲和',      data: filtered.map(function (x) { return parseFloat(x.breakArmor) || 0; }) }
-    ];
+    title = '总进球预期（合计）';
+    mainData = filtered.map(function (x) { return parseFloat((parseFloat(x.totalSum) || 0).toFixed(1)); });
+    unit = '';
+    isPct = false;
+    isNegOk = false;
   } else {
-    series = [
-      { name: '关注热度',    data: filtered.map(function (x) { return parseFloat(x.hotFocusNum) || 0; }) },
-      { name: '冷热指数',    data: filtered.map(function (x) { var c = String(x.heatIndex).replace(/[^\d.]/g, ''); return parseFloat(c) || 0; }) },
-      { name: '静态实力差',  data: filtered.map(function (x) { return parseFloat(x.staticDiff) || 0; }) }
-    ];
+    title = '关注热度（万）';
+    mainData = filtered.map(function (x) { return parseFloat(parseFloat(x.hotFocusNum) || 0).toFixed(1); });
+    unit = '';
+    isPct = false;
+    isNegOk = false;
   }
 
-  var colors = ['#18E0E0', '#22c55e', '#fbbf24', '#f97316', '#60a5fa', '#a78bfa'];
+  // 数据范围
+  var dataMin = Math.min.apply(null, mainData), dataMax = Math.max.apply(null, mainData);
+  if (isNegOk && dataMin >= 0) isNegOk = false;
+  var absMax = Math.max(Math.abs(dataMin), Math.abs(dataMax), 0.01);
+
+  // ── 构建 series（单系列带渐变颜色） ──
+  var barData = mainData.map(function (v, i) {
+    var item = filtered[i];
+    var ratio = isNegOk ? (v / absMax) : (dataMax > 0 ? v / dataMax : 0);
+    var color;
+    if (isNegOk) {
+      if (v >= 0) {
+        var g = Math.round(34 + 163 * ratio); // green 34→197
+        color = 'rgba(24, 224, 224, ' + (0.25 + 0.75 * ratio).toFixed(2) + ')';
+      } else {
+        var r = Math.round(68 + 171 * Math.abs(ratio));
+        color = 'rgba(' + r + ', 68, 68, ' + (0.3 + 0.7 * Math.abs(ratio)).toFixed(2) + ')';
+      }
+    } else {
+      var alpha = 0.25 + 0.75 * (ratio > 0 ? ratio : 0);
+      color = ratio > 0.6 ? 'rgba(24,224,224,' + alpha.toFixed(2) + ')' :
+              ratio > 0.3 ? 'rgba(96,165,250,' + alpha.toFixed(2) + ')' :
+              'rgba(100,116,139,' + (0.4 + ratio).toFixed(2) + ')';
+    }
+    var tags = computeTags(item);
+    return {
+      value: v,
+      itemStyle: { color: color, borderRadius: [0, 4, 4, 0] },
+      _tags: tags.map(function (t) { return t.e + t.t; }).join('  ')
+    };
+  });
 
   chartInstance = echarts.init(container);
   chartInstance.setOption({
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    legend: {
-      data: series.map(function (s) { return s.name; }),
-      textStyle: { color: '#94A3B8', fontSize: 11 },
-      top: 0
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      formatter: function (p) {
+        var d = p[0];
+        var tags = d.data._tags || '';
+        return '<b>' + d.name + '</b><br/>' + title + '：<b>' + d.value + '</b>' + (tags ? '<br/>' + tags : '');
+      }
     },
-    grid: { left: '3%', right: '6%', bottom: '8%', top: '15%', containLabel: true },
+    grid: { left: '2%', right: '8%', top: 30, bottom: 10, containLabel: true },
     xAxis: {
-      type: 'category',
-      data: names,
-      axisLabel: { color: '#94A3B8', fontSize: 10, rotate: names.length > 5 ? 30 : 0, interval: 0 },
-      axisLine: { lineStyle: { color: 'rgba(24,224,224,0.1)' } }
-    },
-    yAxis: {
       type: 'value',
       axisLabel: { color: '#64748B', fontSize: 10 },
-      splitLine: { lineStyle: { color: 'rgba(24,224,224,0.04)' } }
+      splitLine: { lineStyle: { color: 'rgba(24,224,224,0.04)' } },
+      axisLine: { show: false },
+      min: isNegOk ? -absMax * 1.15 : 0
     },
-    series: series.map(function (s, i) {
-      return {
-        name: s.name,
-        type: 'bar',
-        data: s.data.map(function (v, j) {
-          var item = filtered[j];
-          var label = esc(shortTeam(item.homeName)) + ' vs ' + esc(shortTeam(item.visitName));
-          var tags = computeTags(item);
-          var tagStr = tags.map(function (t) { return t.e + t.t; }).join(' ');
-          return { value: v, _tags: tagStr, _name: label };
-        }),
-        itemStyle: {
-          color: colors[i % colors.length],
-          borderRadius: [2, 2, 0, 0]
-        },
-        barMaxWidth: 36
-      };
-    }),
+    yAxis: {
+      type: 'category',
+      data: names,
+      axisLabel: { color: '#94A3B8', fontSize: 10, width: 80, overflow: 'truncate' },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      inverse: true  // 第一条在最上面
+    },
+    series: [{
+      name: title,
+      type: 'bar',
+      data: barData,
+      barMaxWidth: 18,
+      label: {
+        show: true,
+        position: 'right',
+        color: '#94A3B8',
+        fontSize: 9,
+        formatter: function (p) { return p.value; }
+      },
+      emphasis: {
+        itemStyle: { shadowBlur: 8, shadowColor: 'rgba(24,224,224,0.3)' }
+      }
+    }],
     backgroundColor: 'transparent'
   });
 
