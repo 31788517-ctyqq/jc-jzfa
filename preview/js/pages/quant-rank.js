@@ -1,4 +1,5 @@
 import { api } from '../api.js';
+import { loadECharts, echartsReady } from '../charts.js';
 
 var quantDate = '';
 var quantDateOffset = 0;
@@ -633,9 +634,16 @@ export function switchQuantView(view) {
 
 function renderChart() {
   var container = document.getElementById('quantChart');
-  if (!container || !window.echarts) return;
+  if (!container) return;
 
-  if (chartInstance) chartInstance.dispose();
+  // 懒加载 ECharts
+  loadECharts().then(function () {
+    if (!echartsReady || !window.echarts) return;
+    _doRenderChart(container);
+  });
+}
+
+function _doRenderChart(container) {
 
   // 准备数据
   var filtered = allData.filter(function (item) {
