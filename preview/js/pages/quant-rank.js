@@ -9,6 +9,15 @@ var pickedIds = {};
 var sortKey = 'rank';
 var sortAsc = true;
 
+/** 归一化 fusionConsensus 中文→英文 */
+function normalizeConsensus(raw) {
+  var c = String(raw || '');
+  if (c.indexOf('强一致') !== -1) return 'strong';
+  if (c.indexOf('弱一致') !== -1) return 'weak';
+  if (c.indexOf('熔断') !== -1)   return 'meltdown';
+  return '';
+}
+
 export function updateQuantDateBar() {
   var d = new Date();
   d.setDate(d.getDate() + quantDateOffset);
@@ -229,7 +238,7 @@ function mergeItem(item, gs) {
     crossHcpDraw: gs.crossHcpDraw !== undefined ? gs.crossHcpDraw : '-',
     crossHcpLose: gs.crossHcpLose !== undefined ? gs.crossHcpLose : '-',
     // ★ P1-1: M3.7 四重熔断
-    fusionConsensus: gs.fusionConsensus || '',
+    fusionConsensus: normalizeConsensus(gs.fusionConsensus || ''),
     fusionFinalHome: gs.fusionFinalHome != null ? gs.fusionFinalHome : 0,
     fusionFinalAway: gs.fusionFinalAway != null ? gs.fusionFinalAway : 0,
     // ★ P1-2: 攻防格局
@@ -437,7 +446,7 @@ function renderCrossValue(item) {
   }
   var detail = '';
   if (spfLine || hcpLine) {
-    detail = '<span style="display:block;font-size:8px;color:#64748B;line-height:1.1;margin-top:1px">'
+    detail = '<span style="display:block;font-size:9px;color:#64748B;line-height:1.2;margin-top:1px">'
       + (spfLine ? spfLine : '') + (spfLine && hcpLine ? '<br>' : '') + (hcpLine ? hcpLine : '') + '</span>';
   }
   return '<span class="q-col-cross"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span>' + detail + '</span>';
@@ -495,7 +504,7 @@ function renderFusionCell(item) {
   var a = item.fusionFinalAway != null ? item.fusionFinalAway.toFixed(2) : '-';
   return '<span class="q-col-fusion">' +
     '<span class="fusion-badge ' + cls + '" title="E_final=H' + h + '+A' + a + '">' + label + '</span>' +
-    '<span style="display:block;font-size:8px;color:var(--text3);line-height:1.1">H' + h + '+A' + a + '</span>' +
+    '<span style="display:block;font-size:9px;color:var(--text3);line-height:1.2">H' + h + '+A' + a + '</span>' +
     '</span>';
 }
 
