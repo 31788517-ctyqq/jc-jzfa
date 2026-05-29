@@ -88,9 +88,9 @@ function normalize(val, min, max) {
   return parseFloat((((val - min) / (max - min)) * 100).toFixed(1));
 }
 
-/** 计算实力评分 0-100 */
+/** 计算实力评分 0-100（按指定权重） */
 function calcPowerScores(list) {
-  // 提取四项子维度
+  // 净胜球量化×30% + 胜平负交叉×20% + 综合实力×30% + 攻守实力×20%
   var gds = list.map(function (x) { return parseFloat(x.gdScore) || 0; });
   var cvs = list.map(function (x) { return parseFloat(x.crossValue) || 0; });
   var pws = list.map(function (x) { return parseFloat(x.pwScore) || 0; });
@@ -106,15 +106,30 @@ function calcPowerScores(list) {
     var scv = normalize(cvs[i], cvMin, cvMax);
     var spw = normalize(pws[i], pwMin, pwMax);
     var sad = normalize(ads[i], adMin, adMax);
-    return parseFloat(((sgd + scv + spw + sad) / 4).toFixed(1));
+    return parseFloat((sgd * 0.3 + scv * 0.2 + spw * 0.3 + sad * 0.2).toFixed(1));
   });
 }
 
-/** 计算进球评分 0-100 */
+/** 计算进球评分 0-100（按指定权重） */
 function calcGoalScores(list) {
-  var vals = list.map(function (x) { return parseFloat(x.bigBallRatio) || 50; });
-  var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
-  return vals.map(function (v) { return normalize(v, min, max); });
+  // 综合大球比例×30% + 攻防进球×30% + 交锋进球×20% + 破甲和×20%
+  var bbrs = list.map(function (x) { return parseFloat(x.bigBallRatio) || (x.bigBallRatio === '-' ? 0 : 50); });
+  var atts = list.map(function (x) { return parseFloat(x.attDefGoal) || (x.attDefGoal === '-' ? 0 : 0); });
+  var h2hs = list.map(function (x) { return parseFloat(x.headToHeadGoal) || (x.headToHeadGoal === '-' ? 0 : 2.5); });
+  var bkas = list.map(function (x) { return parseFloat(x.breakArmor) || (x.breakArmor === '-' ? 0 : 0); });
+
+  var bbMin = Math.min.apply(null, bbrs), bbMax = Math.max.apply(null, bbrs);
+  var atMin = Math.min.apply(null, atts), atMax = Math.max.apply(null, atts);
+  var h2Min = Math.min.apply(null, h2hs), h2Max = Math.max.apply(null, h2hs);
+  var bkMin = Math.min.apply(null, bkas), bkMax = Math.max.apply(null, bkas);
+
+  return list.map(function (item, i) {
+    var sbb = normalize(bbrs[i], bbMin, bbMax);
+    var sat = normalize(atts[i], atMin, atMax);
+    var sh2 = normalize(h2hs[i], h2Min, h2Max);
+    var sbk = normalize(bkas[i], bkMin, bkMax);
+    return parseFloat((sbb * 0.3 + sat * 0.3 + sh2 * 0.2 + sbk * 0.2).toFixed(1));
+  });
 }
 
 /** 计算热度评分 0-100（1.0 最优） */
