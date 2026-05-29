@@ -14,6 +14,8 @@ export function toggleMatchPick(matchId) {
   var row = document.getElementById('mc-' + matchId);
   if (row) { if (selectedMatches[matchId]) row.classList.add('picked'); else row.classList.remove('picked'); }
 }
+// 同时挂到 window 确保内联 onchange 可调用
+window.toggleMatchPick = toggleMatchPick;
 
 /** 清空所有选择 */
 export function clearMatchPicks() {
