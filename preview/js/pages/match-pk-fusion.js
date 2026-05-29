@@ -71,7 +71,7 @@ function buildGSFields(gs) {
     breakArmor: gs.breakArmorSum != null ? gs.breakArmorSum : 0,
     totalSum: totalSumVal,
     hasGS: !!(gs.attackPattern),
-    gdScore: gs.xgHome != null && gs.xgAway != null ? parseFloat((gs.xgHome - gs.xgAway).toFixed(4)) : 0,
+    gdScore: gs.gdQ != null ? gs.gdQ : (gs.xgHome != null && gs.xgAway != null ? parseFloat((gs.xgHome - gs.xgAway).toFixed(4)) : 0),
     crossValue: (gs.hWins != null && gs.aLosses != null) ? parseFloat(((gs.hWins + gs.aLosses - gs.hLosses - gs.aWins) / 10).toFixed(4)) : 0,
     pwScore: gs.totalStrength != null ? parseFloat(gs.totalStrength.toFixed(4)) : 0,
     adCombined: gs.adWeightedComposite != null ? parseFloat(gs.adWeightedComposite.toFixed(4)) : 0

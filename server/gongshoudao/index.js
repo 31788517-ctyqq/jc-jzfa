@@ -120,6 +120,7 @@ function computeSingleMatch(rawStats, matchInfo) {
     // ★ xG 值（主客预期进球，供排行榜净胜球量化使用）
     xgHome: goalResult.xgHome,
     xgAway: goalResult.xgAway,
+    gdQ: goalResult.gdQ,                        // ★ 净胜球量化 GD_q
     // ★ 四重熔断
     fusionConsensus: goalResult.fusionConsensus,
     fusionFinalHome: goalResult.fusionFinalHome,

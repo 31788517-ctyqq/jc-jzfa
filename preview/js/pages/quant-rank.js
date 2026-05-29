@@ -161,7 +161,7 @@ function mergeItem(item, gs) {
 
   // ── 进球预测维度（直接使用后端按 PK.md 公式计算的值） ──
 
-  // 大球比例 = 0.4×主队大球率 + 0.4×客队大球率 + 0.2×交锋大球率（百分比）
+  // 综合大球比例 = (主队大球比例 + 客队大球比例 + 交锋大球比例) / 3 × 100
   var bigBall = gs.bigBallRatio != null ? gs.bigBallRatio : 50;
 
   // 攻防进球 = xgHome + xgAway（射门还原法 M3_A）
@@ -178,17 +178,17 @@ function mergeItem(item, gs) {
 
   // ── 实力PK四维指标（PK.md 2.1-2.2） ──
 
-  // ① 净胜球量化 = xgHome - xgAway（源自射门还原法 M3_A）
-  var gdScore = (gs.xgHome != null && gs.xgAway != null) ? parseFloat((gs.xgHome - gs.xgAway).toFixed(4)) : 0;
+  // ① 净胜球量化 = GD_q = ExpG_h - ExpG_a（后端按四维呼吸权重公式计算）
+  var gdScore = (gs.gdQ != null) ? gs.gdQ : ((gs.xgHome != null && gs.xgAway != null) ? parseFloat((gs.xgHome - gs.xgAway).toFixed(4)) : 0);
 
-  // ② 胜平负交叉 = (H_win + G_loss - H_loss - G_win) / 10（基于真实赛果对冲）
-  var crossValue = (gs.hWins != null && gs.aLosses != null) ? ((gs.hWins + gs.aLosses - gs.hLosses - gs.aWins) / 10) : '-';
-  var cvNum = crossValue === '-' ? 0 : parseFloat(crossValue);
+  // ② 胜平负交叉 = (H_wins + A_losses) - (H_losses + A_wins)（基于真实赛果对冲）
+  var crossValue = (gs.hWins != null && gs.aLosses != null) ? (gs.hWins + gs.aLosses - gs.hLosses - gs.aWins) : '-';
+  var cvNum = crossValue === '-' ? 0 : crossValue;
 
-  // ③ 综合实力 = Total_战 = 0.7×(homePower-guestPower)/100 + 0.3×Dyn（双轨实力量化）
+  // ③ 综合实力 = Total_战 = 0.7×Static + 0.3×Dyn（V6.4 双轨实力量化）
   var pwScore = gs.totalStrength != null ? parseFloat(gs.totalStrength.toFixed(4)) : 0;
 
-  // ④ 攻守实力 = w_进攻 × Adv_进攻 + w_防守 × Adv_防守（sigmoid加权合成 V24.0）
+  // ④ 攻守实力 = 进球分布计分法 V6.4（WinQiu_2×2 + WinQiu_1×1 + LoseQiu_0×2 + LoseQiu_1×1）
   var adCombined = gs.adWeightedComposite != null ? parseFloat(gs.adWeightedComposite.toFixed(4)) : 0;
 
   // 总排序 = 0.25 × 净胜球 + 0.25 × 胜平负交叉 + 0.25 × 综合实力 + 0.25 × 攻守实力
@@ -215,7 +215,7 @@ function mergeItem(item, gs) {
     totalScore: totalScore,          // 总排序得分（四维等权合成）
     // 实力维度 — 四维指标原始值
     gdScore: gdScore,               // 净胜球量化 = xgHome - xgAway
-    crossValue: crossValue,          // 胜平负交叉 = (H_win+G_loss-H_loss-G_win)/10
+    crossValue: crossValue,          // 胜平负交叉 = (H_wins+A_losses)-(H_losses+A_wins)
     pwScore: pwScore,               // 综合实力 = Total_战
     adCombined: adCombined,          // 攻守实力 = sigmoid加权合成
     // ★ P0-5: 胜平负交叉双组概率
@@ -283,15 +283,13 @@ function renderTable() {
   if (currentTab === 'power') {
     cols = [
       { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
-      { key: 'rank', label: '总排序', sortable: true, colCls: 'q-col-rk' },
       { key: 'goalDiff', label: '净胜球\n量化', sortable: false, colCls: 'q-col-gd' },
       { key: 'cross', label: '胜平负\n交叉', sortable: false, colCls: 'q-col-cross' },
       { key: 'power', label: '综合\n实力', sortable: false, colCls: 'q-col-power' },
       { key: 'ad', label: '攻守\n实力', sortable: false, colCls: 'q-col-ad' }
     ];
     renderRow = function (item) {
-      return renderRank(item.totalScore) +
-        renderGoalDiff(item) +
+      return renderGoalDiff(item) +
         renderCrossValue(item) +
         renderPower(item) +
         renderAdCombined(item);
@@ -299,22 +297,18 @@ function renderTable() {
   } else if (currentTab === 'goal') {
     cols = [
       { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
-      { key: 'totalSum', label: '合计', sortable: true, colCls: 'q-col-sum' },
-      { key: 'bigBallRatio', label: '大球\n比例', sortable: true, colCls: 'q-col-big' },
+      { key: 'bigBallRatio', label: '综合大球\n比例', sortable: true, colCls: 'q-col-big' },
       { key: 'attDefGoal', label: '攻防\n进球', sortable: true, colCls: 'q-col-ag' },
       { key: 'strengthGoal', label: '实力\n进球', sortable: true, colCls: 'q-col-sg' },
       { key: 'headToHeadGoal', label: '交锋\n进球', sortable: true, colCls: 'q-col-hg' },
-      { key: 'breakArmor', label: '破甲和', sortable: true, colCls: 'q-col-ba' },
-      { key: 'fusion', label: '四重\n验证', sortable: false, colCls: 'q-col-fusion' }
+      { key: 'breakArmor', label: '破甲和', sortable: true, colCls: 'q-col-ba' }
     ];
     renderRow = function (item) {
-      return renderGoalCell(item, 'totalSum') +
-        renderGoalCell(item, 'bigBallRatio') +
+      return renderGoalCell(item, 'bigBallRatio') +
         renderGoalCell(item, 'attDefGoal') +
         renderGoalCell(item, 'strengthGoal') +
         renderGoalCell(item, 'headToHeadGoal') +
-        renderGoalCell(item, 'breakArmor') +
-        renderFusionCell(item);
+        renderGoalCell(item, 'breakArmor');
     };
   } else {
     cols = [
@@ -322,18 +316,12 @@ function renderTable() {
       { key: 'rq', label: '让球数', sortable: false, colCls: 'q-col-rq' },
       { key: 'hotFocusNum', label: '关注\n热度\n（万）', sortable: true, colCls: 'q-col-hot' },
       { key: 'heatIndex', label: '冷热\n指数', sortable: true, colCls: 'q-col-heat' },
-      { key: 'homeFeature', label: '主队\n特征', sortable: false, colCls: 'q-col-hf' },
-      { key: 'guestFeature', label: '客队\n特征', sortable: false, colCls: 'q-col-gf' },
-      { key: 'staticDiff', label: '静态\n实力差', sortable: true, colCls: 'q-col-sd' },
       { key: 'oddsLive', label: '亚指\n临盘', sortable: false, colCls: 'q-col-ol' }
     ];
     renderRow = function (item) {
       return renderHotCell(item, 'rq') +
         renderHotCell(item, 'hotFocusNum') +
         renderHotCell(item, 'heatIndex') +
-        renderHotCell(item, 'homeFeature') +
-        renderHotCell(item, 'guestFeature') +
-        renderHotCell(item, 'staticDiff') +
         renderHotCell(item, 'oddsLive');
     };
   }
@@ -530,7 +518,7 @@ function renderHotCell(item, key) {
   if (key === 'hotFocusNum') {
     var n = parseFloat(v);
     if (isNaN(n)) return '<span class="q-col-hot"><span class="q-cell-num">' + v + '</span></span>';
-    var fmt = n > 10000 ? Math.round(n / 100) / 100 : n.toFixed(0);
+    var fmt = (n / 10000).toFixed(1);
     return '<span class="q-col-hot"><span class="q-cell-num pos">' + fmt + '</span></span>';
   }
   // rq, homeFeature, guestFeature, oddsLive
@@ -670,8 +658,7 @@ function _doRenderChart(container) {
     ];
   } else if (currentTab === 'goal') {
     series = [
-      { name: '合计',        data: filtered.map(function (x) { return parseFloat(x.totalSum) || 0; }) },
-      { name: '大球比例',    data: filtered.map(function (x) { return parseFloat(x.bigBallRatio) || 0; }) },
+      { name: '综合大球比例',    data: filtered.map(function (x) { return parseFloat(x.bigBallRatio) || 0; }) },
       { name: '攻防进球',    data: filtered.map(function (x) { return parseFloat(x.attDefGoal) || 0; }) },
       { name: '实力进球',    data: filtered.map(function (x) { return parseFloat(x.strengthGoal) || 0; }) },
       { name: '交锋进球',    data: filtered.map(function (x) { return parseFloat(x.headToHeadGoal) || 0; }) },
@@ -680,8 +667,7 @@ function _doRenderChart(container) {
   } else {
     series = [
       { name: '关注热度',    data: filtered.map(function (x) { return parseFloat(x.hotFocusNum) || 0; }) },
-      { name: '冷热指数',    data: filtered.map(function (x) { var c = String(x.heatIndex).replace(/[^\d.]/g, ''); return parseFloat(c) || 0; }) },
-      { name: '静态实力差',  data: filtered.map(function (x) { return parseFloat(x.staticDiff) || 0; }) }
+      { name: '冷热指数',    data: filtered.map(function (x) { var c = String(x.heatIndex).replace(/[^\d.]/g, ''); return parseFloat(c) || 0; }) }
     ];
   }
 

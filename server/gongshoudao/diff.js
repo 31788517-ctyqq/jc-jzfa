@@ -3,9 +3,9 @@
  *
  * 按照 gongshoudao-quan.md 新公式重写：
  *   Diff_exp = xgHome - xgAway
- *   Static = (homePower - guestPower) / 100
- *   Dyn_h = (3×H_win + 1×PG_h) / 30, Dyn_a = (3×A_win + 1×PG_a) / 30
- *   Total_战 = 0.7 × Static + 0.3 × (Dyn_h - Dyn_a)
+ *   Static = (homePower - awayPower) / (homePower + awayPower)
+ *   Dyn = V6.4: (WinGap_2×2 + WinGap_1×1.75 + Draw×0.5 + LoseGap_1×0.25) 差值对比
+ *   Total_战 = 0.7 × Static + 0.3 × Dyn_diff（V6.4 动态计分直接得出 Dyn_diff）
  *   Anchor 动态锚点
  *   7场硬性阈值判定
  *   三者一致共振裁决
@@ -35,38 +35,20 @@ function calcStaticStrength(vars) {
 }
 
 /**
- * 动态状态（P6/P3/P1 分阶加权，无细分数据时用近10场近似）
+ * 动态状态（V6.4 动态计分规则）
  *
- *   P_n = (3×W_n + D_n) / (3×n)    // 得分率
- *   状态值 = 0.5×P6 + 0.3×P3 + 0.2×P1
- *   DynAdv = (状态值_主 - 状态值_客) / (状态值_主 + 状态值_客)
+ *   Dynamic_Score = (WinGap_2 × 2) + (WinGap_1 × 1.75) + (Draws × 0.5) + (LoseGap_1 × 0.25)
+ *   Dynamic_Diff = (Dyn_home - Dyn_away) / (Dyn_home + Dyn_away)
  */
 function calcDynamicState(vars) {
-  const hWins = vars.homeWinGap_2 + vars.homeWinGap_1;
-  const aWins = vars.awayWinGap_2 + vars.awayWinGap_1;
-  const hDraws = vars.homeDraw;
-  const aDraws = vars.awayDraw;
-  const hTotal = hWins + hDraws + vars.homeLoseGap_1 + vars.homeLoseGap_2 || 10;
-  const aTotal = aWins + aDraws + vars.awayLoseGap_1 + vars.awayLoseGap_2 || 10;
-
-  // 按比例从10场近似6/3/1场
-  function stateVal(wins, draws, total) {
-    const wRate = wins / total;
-    const dRate = draws / total;
-    const p6 = (3 * wRate * 6 + 1 * dRate * 6) / 18;
-    const p3 = (3 * wRate * 3 + 1 * dRate * 3) / 9;
-    const p1 = (3 * wRate * 1 + 1 * dRate * 1) / 3;
-    return 0.5 * p6 + 0.3 * p3 + 0.2 * p1;
-  }
-
-  const stateH = stateVal(hWins, hDraws, hTotal);
-  const stateA = stateVal(aWins, aDraws, aTotal);
-  const sum = stateH + stateA || 0.01;
-  return round((stateH - stateA) / sum, F);
+  const dynH = vars.homeWinGap_2 * 2 + vars.homeWinGap_1 * 1.75 + vars.homeDraw * 0.5 + vars.homeLoseGap_1 * 0.25;
+  const dynA = vars.awayWinGap_2 * 2 + vars.awayWinGap_1 * 1.75 + vars.awayDraw * 0.5 + vars.awayLoseGap_1 * 0.25;
+  const denom = dynH + dynA || 0.01;
+  return round((dynH - dynA) / denom, F);
 }
 
 /**
- * 综合实力量化：Total_战 = 0.6 × Static + 0.4 × Dyn
+ * 综合实力量化：Total_战 = 0.7 × Static + 0.3 × Dyn（V6.4）
  */
 function calcTotalStrength(vars) {
   const staticStr = calcStaticStrength(vars);
@@ -75,7 +57,7 @@ function calcTotalStrength(vars) {
   return {
     static: round(staticStr, F),
     dynamic: round(dynState, F),
-    normalized: round(0.6 * staticStr + 0.4 * dynState, F)
+    normalized: round(0.7 * staticStr + 0.3 * dynState, F)
   };
 }
 
