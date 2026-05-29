@@ -33,6 +33,8 @@ export function switchQuantTab(tab) {
   currentTab = tab;
   pickedIds = {};  // 切换 tab 时清空复选框状态
   updatePkBar();
+  // 切换 tab 时重置回表格视图
+  if (currentView === 'chart') switchQuantView('table');
   // 切换 tab 时重置排序键为默认
   if (tab === 'power') { sortKey = 'rank'; sortAsc = true; }
   else if (tab === 'goal') { sortKey = 'totalSum'; sortAsc = true; }
@@ -57,6 +59,13 @@ export function startPK() {
   var picked = allData.filter(function (item) { return pickedIds[item.matchId]; });
   if (picked.length < 2) return;
   if (window.openPKMulti) { window.openPKMulti(picked, currentTab); clearPicks(); }
+}
+
+function clearPicks() {
+  pickedIds = {};
+  updatePkBar();
+  document.querySelectorAll('.quant-card-row.picked').forEach(function (r) { r.classList.remove('picked'); });
+  document.querySelectorAll('.q-chk:checked').forEach(function (c) { c.checked = false; });
 }
 
 function updatePkBar() {
@@ -360,6 +369,16 @@ function renderTable() {
   h += '</div>';
   wrap.innerHTML = h;
   updatePkBar();
+
+  // P2-6: 显示视图切换按钮
+  var toggle = document.getElementById('quantViewToggle');
+  if (toggle && allData.length > 0) {
+    toggle.style.display = 'flex';
+    // P2-6: 平板+ 默认图表视图
+    if (window.innerWidth >= 768 && currentView === 'table') {
+      switchQuantView('chart');
+    }
+  }
 }
 
 // ── 对战列 ──
@@ -369,10 +388,12 @@ function shortTeam(name) {
 }
 
 function renderMatch(item) {
+  var tagsHtml = renderTags(item);
   return '<span class="q-col-match q-match-cell">' +
     '<div class="q-match-teams" title="' + esc(item.homeName) + '">' + esc(shortTeam(item.homeName)) + '</div>' +
     '<div class="q-match-vs">vs</div>' +
     '<div class="q-match-teams" title="' + esc(item.visitName) + '">' + esc(shortTeam(item.visitName)) + '</div>' +
+    (tagsHtml ? tagsHtml : '') +
     '</span>';
 }
 
@@ -548,6 +569,161 @@ function getSortVal(item, key) {
     case 'staticDiff':  return parseFloat(item.staticDiff) || 0;
     default: return 0;
   }
+}
+
+// ═══ P0-1: 智能标签系统 ═══
+function computeTags(item) {
+  var tags = [];
+  var pwScore = parseFloat(item.pwScore) || 0;
+  // 1. 绝对优势: pwScore >= 0.25
+  if (pwScore >= 0.25) tags.push({ e: '🔥', t: '绝对优势', c: 'tag-dominance' });
+  // 2. 模型打架: 熔断
+  if (item.fusionConsensus === 'meltdown') tags.push({ e: '⚠️', t: '模型打架', c: 'tag-meltdown' });
+  // 3. 实力均衡: -0.08 ~ +0.08
+  if (pwScore >= -0.08 && pwScore <= 0.08) tags.push({ e: '🎯', t: '实力均衡', c: 'tag-balanced' });
+  // 4. 过热风险: heatIndex >= 1.40
+  var heatIdx = parseFloat(item.heatIndex);
+  if (!isNaN(heatIdx) && heatIdx >= 1.40) {
+    tags.push({ e: '💰', t: '过热风险 (' + heatIdx.toFixed(2) + ')', c: 'tag-overheat' });
+  }
+  // 5. 冷门潜质: heatIndex <= 0.85
+  if (!isNaN(heatIdx) && heatIdx > 0 && heatIdx <= 0.85) {
+    tags.push({ e: '🧊', t: '冷门潜质 (' + heatIdx.toFixed(2) + ')', c: 'tag-cold' });
+  }
+  // 6. 防守大战: adCombined > 0.15 且总进球期望<2.0
+  var ad = parseFloat(item.adCombined) || 0;
+  var totalGoals = item.strengthGoal !== undefined ? parseFloat(item.strengthGoal) : 0;
+  if (ad > 0.15 && totalGoals > 0 && totalGoals < 2.0) tags.push({ e: '🛡️', t: '防守大战', c: 'tag-defense' });
+  // 7. 对攻大战: adCombined > 0.15 且总进球期望>3.0
+  if (ad > 0.15 && totalGoals > 3.0) tags.push({ e: '⚡', t: '对攻大战', c: 'tag-attack' });
+  return tags;
+}
+
+function renderTags(item) {
+  var tags = computeTags(item);
+  if (!tags.length) return '';
+  return '<span class="q-match-tags">' + tags.map(function (t) {
+    return '<span class="q-tag ' + t.c + '" title="' + esc(t.t) + '">' + t.e + '</span>';
+  }).join('') + '</span>';
+}
+
+// ═══ P2-5/P2-6: ECharts 图表视图 + 响应式切换 ═══
+var currentView = 'table';
+var chartInstance = null;
+var chartResizeHandler = null;
+
+export function switchQuantView(view) {
+  currentView = view;
+  var tableWrap = document.getElementById('quantTableWrap');
+  var chartWrap = document.getElementById('quantChartWrap');
+  var toggle = document.getElementById('quantViewToggle');
+  var btns = toggle ? toggle.querySelectorAll('.qt-view-btn') : [];
+
+  btns.forEach(function (b) { b.classList.toggle('active', b.dataset.view === view); });
+
+  if (view === 'chart') {
+    if (tableWrap) tableWrap.style.display = 'none';
+    if (chartWrap) chartWrap.style.display = 'block';
+    setTimeout(function () { renderChart(); }, 100);
+  } else {
+    if (tableWrap) tableWrap.style.display = 'block';
+    if (chartWrap) chartWrap.style.display = 'none';
+  }
+}
+
+function renderChart() {
+  var container = document.getElementById('quantChart');
+  if (!container || !window.echarts) return;
+
+  if (chartInstance) chartInstance.dispose();
+
+  // 准备数据
+  var filtered = allData.filter(function (item) {
+    return (currentTab === 'power') || (currentTab === 'goal') || (currentTab === 'hot' && item.hotFocusNum !== '-' && item.hotFocusNum !== undefined);
+  });
+
+  if (!filtered.length) {
+    container.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3)">暂无数据</div>';
+    return;
+  }
+
+  var names = filtered.map(function (item) {
+    return esc(shortTeam(item.homeName) + ' vs ' + shortTeam(item.visitName));
+  });
+
+  // 根据 tab 准备不同的数据系列
+  var series = [];
+  if (currentTab === 'power') {
+    series = [
+      { name: '净胜球量化',  data: filtered.map(function (x) { return parseFloat(x.gdScore) || 0; }) },
+      { name: '胜平负交叉',  data: filtered.map(function (x) { return parseFloat(x.crossValue) || 0; }) },
+      { name: '综合实力',    data: filtered.map(function (x) { return parseFloat(x.pwScore) || 0; }) },
+      { name: '攻守实力',    data: filtered.map(function (x) { return parseFloat(x.adCombined) || 0; }) }
+    ];
+  } else if (currentTab === 'goal') {
+    series = [
+      { name: '合计',        data: filtered.map(function (x) { return parseFloat(x.totalSum) || 0; }) },
+      { name: '大球比例',    data: filtered.map(function (x) { return parseFloat(x.bigBallRatio) || 0; }) },
+      { name: '攻防进球',    data: filtered.map(function (x) { return parseFloat(x.attDefGoal) || 0; }) },
+      { name: '实力进球',    data: filtered.map(function (x) { return parseFloat(x.strengthGoal) || 0; }) },
+      { name: '交锋进球',    data: filtered.map(function (x) { return parseFloat(x.headToHeadGoal) || 0; }) },
+      { name: '破甲和',      data: filtered.map(function (x) { return parseFloat(x.breakArmor) || 0; }) }
+    ];
+  } else {
+    series = [
+      { name: '关注热度',    data: filtered.map(function (x) { return parseFloat(x.hotFocusNum) || 0; }) },
+      { name: '冷热指数',    data: filtered.map(function (x) { var c = String(x.heatIndex).replace(/[^\d.]/g, ''); return parseFloat(c) || 0; }) },
+      { name: '静态实力差',  data: filtered.map(function (x) { return parseFloat(x.staticDiff) || 0; }) }
+    ];
+  }
+
+  var colors = ['#18E0E0', '#22c55e', '#fbbf24', '#f97316', '#60a5fa', '#a78bfa'];
+
+  chartInstance = echarts.init(container);
+  chartInstance.setOption({
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    legend: {
+      data: series.map(function (s) { return s.name; }),
+      textStyle: { color: '#94A3B8', fontSize: 11 },
+      top: 0
+    },
+    grid: { left: '3%', right: '6%', bottom: '8%', top: '15%', containLabel: true },
+    xAxis: {
+      type: 'category',
+      data: names,
+      axisLabel: { color: '#94A3B8', fontSize: 10, rotate: names.length > 5 ? 30 : 0, interval: 0 },
+      axisLine: { lineStyle: { color: 'rgba(24,224,224,0.1)' } }
+    },
+    yAxis: {
+      type: 'value',
+      axisLabel: { color: '#64748B', fontSize: 10 },
+      splitLine: { lineStyle: { color: 'rgba(24,224,224,0.04)' } }
+    },
+    series: series.map(function (s, i) {
+      return {
+        name: s.name,
+        type: 'bar',
+        data: s.data.map(function (v, j) {
+          var item = filtered[j];
+          var label = esc(shortTeam(item.homeName)) + ' vs ' + esc(shortTeam(item.visitName));
+          var tags = computeTags(item);
+          var tagStr = tags.map(function (t) { return t.e + t.t; }).join(' ');
+          return { value: v, _tags: tagStr, _name: label };
+        }),
+        itemStyle: {
+          color: colors[i % colors.length],
+          borderRadius: [2, 2, 0, 0]
+        },
+        barMaxWidth: 36
+      };
+    }),
+    backgroundColor: 'transparent'
+  });
+
+  // 清理旧 resize 监听，添加新的
+  if (chartResizeHandler) window.removeEventListener('resize', chartResizeHandler);
+  chartResizeHandler = function () { if (chartInstance) chartInstance.resize(); };
+  window.addEventListener('resize', chartResizeHandler);
 }
 
 function esc(str) { return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }

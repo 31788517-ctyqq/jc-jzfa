@@ -10,8 +10,8 @@ import { loadHitRate } from './pages/hit-rate.js';
 import { loadFilterLeagues, resetFilterResult, toggleDD, selectDD, getDDVal, onDDTypeChange, onRankTypeChange, doFilterQuery, closeAllDD, handleDocClose } from './pages/filter.js';
 import { loadIncome } from './pages/income.js';
 import { loadPlanList, updatePlanDateBar, shiftPlanDate, goPlanToday } from './pages/plans.js';
-import { showGongshoudao } from './pages/gongshoudao.js';
-import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker, switchQuantTab, togglePick, startPK, sortBy } from './pages/quant-rank.js';
+import { showGongshoudao } from './pages/gongshoudao.js?v=25052903';
+import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker, switchQuantTab, togglePick, startPK, sortBy, switchQuantView } from './pages/quant-rank.js';
 import { openPK, closePK, openPKMulti } from './pages/match-pk.js';
 
 // ── 日期切换 ──
@@ -361,6 +361,7 @@ window.switchQuantTab = switchQuantTab;
 window.togglePick = togglePick;
 window.startPK = startPK;
 window.sortBy = sortBy;
+window.switchQuantView = switchQuantView;
 window.openPK = openPK;
 window.closePK = closePK;
 window.openPKMulti = openPKMulti;
