@@ -12,8 +12,8 @@ const jczqYz = require('./jczqYz_fetcher');
 const LOCAL_HOST = '127.0.0.1';
 const LOCAL_PORT = 19880;
 const CACHE_PATH = path.join(__dirname, 'jczq_change_cache.json');
-const BATCH_SIZE = 2;  // 降低并发避免 Java API 繁忙限流
-const BATCH_DELAY = 500; // 批次间延迟 ms
+const BATCH_SIZE = 5;  // 增加并发数，减少批次等待
+const BATCH_DELAY = 200; // 批次间延迟 ms（原500ms）
 
 // ── 缓存 ──
 

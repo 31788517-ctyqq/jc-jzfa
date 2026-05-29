@@ -97,7 +97,15 @@ export function loadQuantRank() {
   var params = {};
   if (quantDate) params.date = quantDate;
 
-  api('ranking-list', params).then(function (rankData) {
+  // ★ 三个 API 并行请求，消除串行等待
+  Promise.all([
+    api('ranking-list', params).catch(function () { return { ranking: [] }; }),
+    api('gongshoudao-all', params).catch(function () { return {}; }),
+    api('quant-hot', params).catch(function () { return {}; })
+  ]).then(function (results) {
+    var rankData = results[0] || {};
+    var gsAllData = results[1] || {};
+    var hotData = results[2] || {};
     var ranking = rankData.ranking || [];
     if (ranking.length === 0) {
       // 当天无数据 → 自动回退到前一天（和今日比赛页面规则一致）
@@ -117,19 +125,14 @@ export function loadQuantRank() {
       wrap.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3)">暂无比赛数据</div>';
       return;
     }
-    // ⭐ 批量获取功守道 + 热度数据（2 次请求替代 N+1 次）
-    var gsAllPromise = api('gongshoudao-all', params).catch(function () { return {}; });
-    var hotPromise = api('quant-hot', params).catch(function () { return null; });
-    Promise.all([gsAllPromise, hotPromise]).then(function (results) {
-      var gsAllData = results[0] || {};
-      var gsAllMap = gsAllData.gsData || {};
-      var hotData = results[1] || {};
-      var hotMap = (hotData && hotData.hotData) ? hotData.hotData : {};
-      var gsResults = ranking.map(function (item) { return gsAllMap[item.matchId] || {}; });
-      allData = ranking.map(function (item, i) {
-        var merged = mergeItem(item, gsResults[i] || {});
-        // ⭐ 注入热度数据
-        var hd = hotMap[item.matchId] || {};
+    // ⭐ 并行结果已就绪，直接合并数据
+    var gsAllMap = gsAllData.gsData || {};
+    var hotMap = (hotData && hotData.hotData) ? hotData.hotData : {};
+    var gsResults = ranking.map(function (item) { return gsAllMap[item.matchId] || {}; });
+    allData = ranking.map(function (item, i) {
+      var merged = mergeItem(item, gsResults[i] || {});
+      // ⭐ 注入热度数据
+      var hd = hotMap[item.matchId] || {};
         if (hd.staticDiff !== undefined && hd.staticDiff !== null) merged.staticDiff = hd.staticDiff;
         if (hd.heatIndex !== null && hd.heatIndex !== undefined) merged.heatIndex = hd.heatLabel || hd.heatIndex;
         if (hd.homeFeature) merged.homeFeature = hd.homeFeature;
@@ -148,9 +151,8 @@ export function loadQuantRank() {
         merged.completenessScore = score;
         return merged;
       });
-      sortKey = 'rank'; sortAsc = true;
-      renderTable();
-    });
+    sortKey = 'rank'; sortAsc = true;
+    renderTable();
   }).catch(function () {
     wrap.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3)">加载失败</div>';
   });
