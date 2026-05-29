@@ -24,6 +24,7 @@ export function startMatchPK() {
   if (picked.length < 2) return;
   if (window.openPKMulti) { window.openPKMulti(picked); clearMatchPicks(); }
 }
+window.startMatchPK = startMatchPK;
 
 export function loadMatchList() {
   const el = document.getElementById('matchList');
