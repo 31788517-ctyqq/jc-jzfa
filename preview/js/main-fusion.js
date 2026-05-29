@@ -4,7 +4,7 @@ import { api } from './api.js';
 import { WEEK_NAMES, formatDate } from './utils.js';
 import * as state from './state.js';
 import { loadHome } from './pages/home.js';
-import { loadMatchList } from './pages/match-list.js';
+import { loadMatchList, toggleMatchPick, startMatchPK, clearMatchPicks } from './pages/match-list.js';
 import { goDetail, closeAI, showAIPrediction } from './pages/match-detail.js';
 import { loadRanking, selectCategory, selectDirection, updateRankDateBar, shiftRankDate, goRankToday } from './pages/ranking.js';
 import { loadHitRate } from './pages/hit-rate.js';
@@ -12,8 +12,8 @@ import { loadFilterLeagues, resetFilterResult, toggleDD, selectDD, getDDVal, onD
 import { loadIncome } from './pages/income.js';
 import { loadPlanList, updatePlanDateBar, shiftPlanDate, goPlanToday } from './pages/plans.js';
 import { showGongshoudao } from './pages/gongshoudao.js?v=25052903';
-import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker, switchQuantTab, togglePick, startPK, sortBy, switchQuantView } from './pages/quant-rank-fusion.js?v=75';
-import { openPK, closePK, openPKMulti } from './pages/match-pk-fusion.js?v=75';
+import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker, switchQuantTab, togglePick, startPK, sortBy, switchQuantView } from './pages/quant-rank-fusion.js?v=77';
+import { openPK, closePK, openPKMulti } from './pages/match-pk-fusion.js?v=77';
 
 // ── 日期切换 ──
 export function updateDateBar() {
@@ -365,6 +365,9 @@ window.sortBy = sortBy;
 window.switchQuantView = switchQuantView;
 window.openPK = openPK;
 window.closePK = closePK;
+window.toggleMatchPick = toggleMatchPick;
+window.startMatchPK = startMatchPK;
+window.clearMatchPicks = clearMatchPicks;
 window.openPKMulti = openPKMulti;
 
 // ── 导航栏滚动隐藏 ──
