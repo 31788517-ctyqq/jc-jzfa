@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>竞彩推荐监控</title>
 <link rel="preconnect" href="https://zj.100qiu.com">
-<link rel="preload" href="/js/main-fusion.js?v=77" as="script" crossorigin="anonymous">
+<link rel="preload" href="/js/main-fusion.js?v=78" as="script" crossorigin="anonymous">
 <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js" crossorigin="anonymous"></script>
 <style>
 :root {
@@ -263,25 +263,18 @@ body {
   background: linear-gradient(180deg, transparent 0%, rgba(34, 211, 238, 0.05) 100%);
   pointer-events: none;
 }
-/* 场次复选框 */
+/* 场次复选框（用量化排行榜同款 q-chk 样式） */
 .mc-chk {
-  width: 18px; height: 18px; border-radius: 50%;
-  border: 2px solid rgba(24,224,224,0.25);
   appearance: none; -webkit-appearance: none;
-  background: transparent;
-  cursor: pointer; flex-shrink: 0;
-  transition: all 0.15s;
+  width: 14px; height: 14px;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  border-radius: 3px; background: transparent;
+  cursor: pointer; flex-shrink: 0; margin-right: 8px;
 }
-.mc-chk:checked {
-  border-color: var(--cyan);
-  background: rgba(24,224,224,0.18);
-  box-shadow: 0 0 8px rgba(24,224,224,0.2);
-}
+.mc-chk:checked { border-color: var(--cyan); background: transparent; }
 .mc-chk:checked::after {
-  content: '';
-  display: block; width: 6px; height: 10px;
-  border: solid var(--cyan); border-width: 0 2px 2px 0;
-  transform: rotate(45deg); margin: 2px auto 0;
+  content: '✓'; color: var(--cyan); font-size: 10px; font-weight: 700;
+  position: absolute; transform: translate(-1px, -2px);
 }
 .match-card.picked {
   border-color: rgba(24,224,224,0.3);
@@ -2780,7 +2773,7 @@ body {
   } catch (e) {}
 })();
 </script>
-<script type="module" src="/js/main-fusion.js?v=77"></script>
+<script type="module" src="/js/main-fusion.js?v=78"></script>
 <!-- V5.0-FUSION-PK final-20260529 -->
 </body>
 </html>

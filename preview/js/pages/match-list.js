@@ -7,8 +7,7 @@ var selectedMatches = {};
 var allMatchesData = [];
 
 /** 切换场次选中状态 */
-export function toggleMatchPick(ev, matchId) {
-  ev.stopPropagation();
+export function toggleMatchPick(matchId) {
   if (selectedMatches[matchId]) delete selectedMatches[matchId];
   else selectedMatches[matchId] = true;
   updateMatchPkBar();
@@ -86,7 +85,7 @@ export function loadMatchList() {
       return `
         <div class="match-card" id="mc-${m.matchId}" onclick="goDetail('${m.matchId}')">
           <div class="match-header">
-            <input type="checkbox" class="mc-chk" onclick="toggleMatchPick(event,'${m.matchId}')" />
+            <input type="checkbox" class="mc-chk" onclick="event.stopPropagation();toggleMatchPick('${m.matchId}')" />
             <span class="match-league">${m.leagueName}</span>
             ${m.isSingleGame ? '<span class="match-single-badge">单关</span>' : ''}
             <span class="match-num">${roundText}</span>
