@@ -2,41 +2,25 @@ import { api } from '../api.js';
 import { formatDate } from '../utils.js';
 import * as state from '../state.js';
 
-// ═══ PK 选择状态 ═══
-var selectedMatches = {};
+// ═══ PK 选择状态（全局存储，避免模块加载时序问题） ═══
+window.__ms = window.__ms || {};
 var allMatchesData = [];
-
-/** 切换场次选中状态 */
-export function toggleMatchPick(matchId) {
-  if (selectedMatches[matchId]) delete selectedMatches[matchId];
-  else selectedMatches[matchId] = true;
-  updateMatchPkBar();
-  var row = document.getElementById('mc-' + matchId);
-  if (row) { if (selectedMatches[matchId]) row.classList.add('picked'); else row.classList.remove('picked'); }
-}
-// 同时挂到 window 确保内联 onchange 可调用
-window.toggleMatchPick = toggleMatchPick;
 
 /** 清空所有选择 */
 export function clearMatchPicks() {
-  selectedMatches = {};
-  updateMatchPkBar();
+  window.__ms = {};
   document.querySelectorAll('.match-card.picked').forEach(function (r) { r.classList.remove('picked'); });
   document.querySelectorAll('.mc-chk:checked').forEach(function (c) { c.checked = false; });
-}
-
-/** 更新 PK 栏按钮 */
-function updateMatchPkBar() {
-  var count = Object.keys(selectedMatches).length;
   var bar = document.getElementById('matchPkBar');
+  if (bar) bar.style.display = 'none';
   var cntEl = document.getElementById('mpkBarCount');
-  if (bar) bar.style.display = count >= 2 ? 'flex' : 'none';
-  if (cntEl) cntEl.textContent = count;
+  if (cntEl) cntEl.textContent = '0';
 }
 
 /** 打开 PK 弹窗 */
 export function startMatchPK() {
-  var picked = allMatchesData.filter(function (item) { return selectedMatches[item.matchId]; });
+  var sm = window.__ms || {};
+  var picked = allMatchesData.filter(function (item) { return sm[item.matchId]; });
   if (picked.length < 2) return;
   if (window.openPKMulti) { window.openPKMulti(picked); clearMatchPicks(); }
 }
@@ -53,8 +37,9 @@ export function loadMatchList() {
 
   api('match-list', params).then(matches => {
     allMatchesData = matches;
-    selectedMatches = {};
-    updateMatchPkBar();
+    window.__ms = {};
+    var bar = document.getElementById('matchPkBar');
+    if (bar) bar.style.display = 'none';
     el.innerHTML = matches.map(m => {
       const statusText = { 0: '未开始', 1: '进行中', 2: '已结束', 3: '取消' }[m.matchStatus] || '未知';
       const roundText = m.num || '';
@@ -89,7 +74,7 @@ export function loadMatchList() {
           <div class="match-header">
             <div class="match-header-left">
               <label class="mc-chk-wrap" onclick="event.stopPropagation()">
-                <input type="checkbox" class="mc-chk" onchange="toggleMatchPick('${m.matchId}')" />
+                <input type="checkbox" class="mc-chk" onchange="(function(id){var s=window.__ms||{};if(s[id])delete s[id];else s[id]=1;window.__ms=s;var c=Object.keys(s).length;var b=document.getElementById('matchPkBar');b.style.display=c>=2?'flex':'none';var e=document.getElementById('mpkBarCount');if(e)e.textContent=c;var r=document.getElementById('mc-'+id);if(r){if(s[id])r.classList.add('picked');else r.classList.remove('picked')}})('${m.matchId}')" />
               </label>
               <span class="match-league">${m.leagueName}</span>
             </div>

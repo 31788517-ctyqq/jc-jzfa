@@ -4,7 +4,7 @@ import { api } from './api.js';
 import { WEEK_NAMES, formatDate } from './utils.js';
 import * as state from './state.js';
 import { loadHome } from './pages/home.js';
-import { loadMatchList, toggleMatchPick, startMatchPK, clearMatchPicks } from './pages/match-list.js';
+import { loadMatchList, startMatchPK } from './pages/match-list.js';
 import { goDetail, closeAI, showAIPrediction } from './pages/match-detail.js';
 import { loadRanking, selectCategory, selectDirection, updateRankDateBar, shiftRankDate, goRankToday } from './pages/ranking.js';
 import { loadHitRate } from './pages/hit-rate.js';
@@ -365,9 +365,7 @@ window.sortBy = sortBy;
 window.switchQuantView = switchQuantView;
 window.openPK = openPK;
 window.closePK = closePK;
-window.toggleMatchPick = toggleMatchPick;
 window.startMatchPK = startMatchPK;
-window.clearMatchPicks = clearMatchPicks;
 window.openPKMulti = openPKMulti;
 
 // ── 导航栏滚动隐藏 ──
