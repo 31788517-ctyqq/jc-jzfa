@@ -323,7 +323,7 @@ function renderFusionPK(modal, list) {
   html += renderFusionSummary(ranked);
 
   // ── 底部按钮 ──
-  html += '<div class="pk3-footer"><button class="pk3-done-btn" onclick="closePK()">完成 关闭</button></div>';
+  html += '<div class="pk3-footer"><button class="pk3-done-btn" onclick="closePK()">关闭</button></div>';
 
   modal.innerHTML = html;
 }
