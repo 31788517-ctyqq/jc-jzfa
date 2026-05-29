@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>竞彩推荐监控</title>
 <link rel="preconnect" href="https://zj.100qiu.com">
-<link rel="preload" href="/js/main-fusion.js?v=78" as="script" crossorigin="anonymous">
+<link rel="preload" href="/js/main-fusion.js?v=79" as="script" crossorigin="anonymous">
 <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js" crossorigin="anonymous"></script>
 <style>
 :root {
@@ -264,12 +264,16 @@ body {
   pointer-events: none;
 }
 /* 场次复选框（用量化排行榜同款 q-chk 样式） */
+.mc-chk-wrap {
+  display: inline-flex; align-items: center; flex-shrink: 0;
+  margin-right: 6px; cursor: pointer;
+}
 .mc-chk {
   appearance: none; -webkit-appearance: none;
   width: 14px; height: 14px;
   border: 1.5px solid rgba(255,255,255,0.25);
   border-radius: 3px; background: transparent;
-  cursor: pointer; flex-shrink: 0; margin-right: 8px;
+  cursor: pointer; position: relative;
 }
 .mc-chk:checked { border-color: var(--cyan); background: transparent; }
 .mc-chk:checked::after {
@@ -283,10 +287,14 @@ body {
 
 .match-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
-  position: relative;
+}
+.match-header-left {
+  display: flex; align-items: center; gap: 0;
+}
+.match-header-right {
+  display: flex; align-items: center; gap: 6px; margin-left: auto;
 }
 .match-league {
   font-size: var(--fs-sm);
@@ -2773,7 +2781,7 @@ body {
   } catch (e) {}
 })();
 </script>
-<script type="module" src="/js/main-fusion.js?v=78"></script>
+<script type="module" src="/js/main-fusion.js?v=79"></script>
 <!-- V5.0-FUSION-PK final-20260529 -->
 </body>
 </html>
