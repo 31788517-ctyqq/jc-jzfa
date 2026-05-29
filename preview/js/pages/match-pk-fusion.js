@@ -42,10 +42,27 @@ export function openPKMulti(pickedList) {
 
 function buildGSFields(gs) {
   gs = gs || {};
+  // attDefGoal 已在后端限制 ≤6.5，此处兜底再限一次
+  var attDefGoalVal = parseFloat(gs.attDefGoal) || 0;
+  if (attDefGoalVal > 7.0) attDefGoalVal = 0; // 异常值丢弃
+
+  // totalSum: 进球维度综合指标（V25修正：只累加合理范围内的进球相关值）
   var totalSumVal = function () {
-    var b = Math.abs(gs.bigBallRatio || 0) + Math.abs(gs.attDefGoal || 0) + Math.abs(gs.h2hGoalAvg || 0) + Math.abs(gs.breakArmorSum || 0);
-    return parseFloat(b.toFixed(4));
+    var bbr = Math.min(100, Math.max(0, Math.abs(gs.bigBallRatio || 0)));  // 0-100
+    var adg = Math.min(6.5, Math.abs(attDefGoalVal));                        // 0-6.5
+    var h2h = Math.min(5.0, Math.abs(gs.h2hGoalAvg || 0));                  // 0-5
+    var ba  = Math.min(8.0, Math.abs(gs.breakArmorSum || 0));               // 0-8
+    return parseFloat((bbr + adg * 10 + h2h * 8 + ba * 3).toFixed(1));
   }();
+
+  // 熔断后融合总进球（作为备用指标）
+  var fusionTotal = 0;
+  var fHome = parseFloat(gs.fusionFinalHome);
+  var fAway = parseFloat(gs.fusionFinalAway);
+  if (!isNaN(fHome) && !isNaN(fAway)) {
+    fusionTotal = parseFloat((fHome + fAway).toFixed(2));
+  }
+
   return {
     totalAdvantage: gs.totalAdvantage || '-',
     totalAdvantageValue: gs.totalAdvantageValue || 0,
@@ -61,10 +78,11 @@ function buildGSFields(gs) {
     crossHcpDraw: gs.crossHcpDraw || '-',
     crossHcpLose: gs.crossHcpLose || '-',
     fusionConsensus: gs.fusionConsensus || '',
-    fusionFinalHome: gs.fusionFinalHome != null ? gs.fusionFinalHome : 0,
-    fusionFinalAway: gs.fusionFinalAway != null ? gs.fusionFinalAway : 0,
+    fusionFinalHome: fHome,
+    fusionFinalAway: fAway,
+    fusionFinalTotal: fusionTotal,
     bigBallRatio: gs.bigBallRatio != null ? gs.bigBallRatio : 0,
-    attDefGoal: gs.attDefGoal != null ? gs.attDefGoal : 0,
+    attDefGoal: attDefGoalVal,
     headToHeadGoal: gs.h2hGoalAvg != null ? gs.h2hGoalAvg : 0,
     breakArmor: gs.breakArmorSum != null ? gs.breakArmorSum : 0,
     totalSum: totalSumVal,
@@ -151,9 +169,9 @@ function calcHealthScores(list) {
   });
 }
 
-/** 计算综合信心分 */
+/** 计算综合信心分（V25修正：health权重提升至30%以强化熔断惩罚） */
 function calcCompositeScore(pwr, goal, heat, health) {
-  return parseFloat((0.45 * pwr + 0.25 * goal + 0.15 * heat + 0.15 * health).toFixed(1));
+  return parseFloat((0.40 * pwr + 0.20 * goal + 0.10 * heat + 0.30 * health).toFixed(1));
 }
 
 /** 为 pickedList 每个元素附加评分对象 */
@@ -214,16 +232,49 @@ function getDirectionAdvice(scored) {
 function getGoalDirection(scored) {
   var item = scored.item;
   var bbr = parseFloat(item.bigBallRatio) || 50;
-  // 总进球期望
-  var totalGoals = parseFloat(item.attDefGoal) || parseFloat(item.headToHeadGoal) || 0;
+
+  // 总进球期望（V25修正：attDefGoal 已由后端保障 ≤6.5，作为主指标）
+  // 备选：headToHeadGoal 作为交锋进球参考，fusionFinalHome + fusionFinalAway 作为熔断后修正
+  var totalGoals = parseFloat(item.attDefGoal);
+  if (isNaN(totalGoals) || totalGoals <= 0) {
+    totalGoals = parseFloat(item.headToHeadGoal) || 0;
+  }
+
+  // 熔断后融合值作为兜底（更保守的估计）
+  var fusionTotal = 0;
+  if (!isNaN(parseFloat(item.fusionFinalHome)) && !isNaN(parseFloat(item.fusionFinalAway))) {
+    fusionTotal = parseFloat(item.fusionFinalHome) + parseFloat(item.fusionFinalAway);
+  }
+
+  // 如果 attDefGoal 异常（>6），切到融合值
+  if (totalGoals > 6.0 && fusionTotal > 0) {
+    totalGoals = fusionTotal;
+  }
+
+  // 默认进球参考值（数据库平均值）
+  if (totalGoals <= 0) totalGoals = 2.5;
+
   var pattern = item.attackPattern;
 
-  if (bbr >= 70 && totalGoals > 3.0) return { dir: '大球', stars: 4, cls: 'dir-big', desc: '进球预期高' };
-  if (bbr >= 65 && totalGoals > 2.5) return { dir: '大球', stars: 3, cls: 'dir-big', desc: '倾向大球' };
-  if (bbr <= 40 && totalGoals < 2.0) return { dir: '小球', stars: 4, cls: 'dir-small', desc: '进球预期低' };
+  // ── 双高确认大球 ──
+  if (bbr >= 70 && totalGoals >= 3.0) return { dir: '大球', stars: 4, cls: 'dir-big', desc: '进球预期高' };
+  if (bbr >= 65 && totalGoals >= 2.5) return { dir: '大球', stars: 3, cls: 'dir-big', desc: '倾向大球' };
+
+  // ── 双低确认小球 ──
+  if (bbr <= 35 && totalGoals < 2.0) return { dir: '小球', stars: 4, cls: 'dir-small', desc: '进球预期极低' };
   if (bbr <= 50 && totalGoals < 2.5) return { dir: '小球', stars: 3, cls: 'dir-small', desc: '倾向小球' };
+
+  // ── 格局优先（在兜底之前）──
   if (pattern === '对攻为主') return { dir: '大球', stars: 3, cls: 'dir-big', desc: '对攻格局' };
   if (pattern === '防守为主') return { dir: '小球', stars: 3, cls: 'dir-small', desc: '防守格局' };
+
+  // ── 单边强信号 ──
+  if (bbr >= 70) return { dir: '略偏大球', stars: 2, cls: 'dir-big', desc: '大球率高但预期偏低' };
+  if (bbr <= 35) return { dir: '略偏小球', stars: 2, cls: 'dir-small', desc: '小球倾向但预期偏高' };
+
+  // ── 剩余信号兜底 ──
+  if (totalGoals > 3.0) return { dir: '略偏大球', stars: 2, cls: 'dir-big', desc: '预期偏高' };
+  if (totalGoals < 2.0) return { dir: '略偏小球', stars: 2, cls: 'dir-small', desc: '预期偏低' };
   if (bbr > 50) return { dir: '略偏大球', stars: 2, cls: 'dir-big', desc: '' };
   return { dir: '略偏小球', stars: 2, cls: 'dir-small', desc: '' };
 }
@@ -307,8 +358,20 @@ function renderScoreCard(scored, rank) {
   var dirAdvice = getDirectionAdvice(scored);
   var goalAdvice = getGoalDirection(scored);
 
-  var totalGoalsExpect = parseFloat(item.attDefGoal) || parseFloat(item.headToHeadGoal) || 0;
-  var goalLabel = totalGoalsExpect > 0 ? '（预期 ' + totalGoalsExpect.toFixed(1) + '球）' : '';
+  // 预期进球显示：优先攻防进球(attDefGoal)，其次交锋进球(headToHeadGoal)，兜底熔断融合值
+  var totalGoalsExpect = parseFloat(item.attDefGoal);
+  if (isNaN(totalGoalsExpect) || totalGoalsExpect <= 0) {
+    totalGoalsExpect = parseFloat(item.headToHeadGoal) || 0;
+  }
+  // 异常值保护（>6.5球视为数据异常，使用熔断融合值替代）
+  if (totalGoalsExpect > 6.5) {
+    var ft = parseFloat(item.fusionFinalTotal) || 0;
+    if (ft > 0) totalGoalsExpect = ft;
+    else totalGoalsExpect = parseFloat(item.headToHeadGoal) || 2.5;
+  }
+  // 兜底默认值
+  if (totalGoalsExpect <= 0) totalGoalsExpect = 2.5;
+  var goalLabel = '（预期 ' + totalGoalsExpect.toFixed(1) + '球）';
 
   var fusionBadge = '';
   var consensus = item.fusionConsensus;
@@ -357,7 +420,11 @@ function renderComparisonTable(ranked) {
     var item = scored.item;
     var dirAdvice = getDirectionAdvice(scored);
     var goalAdvice = getGoalDirection(scored);
-    var totalGoals = parseFloat(item.attDefGoal) || parseFloat(item.headToHeadGoal) || 0;
+    // 预期进球（与评分卡保持一致）
+    var totalGoals = parseFloat(item.attDefGoal);
+    if (isNaN(totalGoals) || totalGoals <= 0) totalGoals = parseFloat(item.headToHeadGoal) || 0;
+    if (totalGoals > 6.5 && parseFloat(item.fusionFinalTotal) > 0) totalGoals = parseFloat(item.fusionFinalTotal);
+    if (totalGoals <= 0) totalGoals = 2.5;
 
     var rankEmoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
     var rowCls = scored.compositeScore >= 65 ? 'row-high' : scored.compositeScore >= 45 ? 'row-mid' : 'row-low';
@@ -371,7 +438,7 @@ function renderComparisonTable(ranked) {
       '<td class="col-num ' + heatCls + '">' + scored.heatScore + '</td>' +
       '<td class="col-comp"><b>' + scored.compositeScore + '</b><span class="star-row">' + starStr(scored.stars) + '</span></td>' +
       '<td class="col-dir ' + dirAdvice.cls + '">' + dirAdvice.dir + '</td>' +
-      '<td class="col-goal ' + goalAdvice.cls + '">' + goalAdvice.dir + (totalGoals > 0 ? ' ' + totalGoals.toFixed(1) + '球' : '') + '</td>' +
+      '<td class="col-goal ' + goalAdvice.cls + '">' + goalAdvice.dir + ' ' + totalGoals.toFixed(1) + '球</td>' +
       '</tr>';
   });
 
@@ -450,10 +517,10 @@ function renderComboRecommendations(ranked) {
   if (positive.length < 2) positive = withInfo.filter(function (x) { return !x.meltdown; })
     .sort(function (a, b) { return b.comp - a.comp; });
 
-  // 博冷：HI < 0.85 或熔断
-  var cold = withInfo.filter(function (x) { return x.meltdown || (x.hi > 0 && x.hi < 0.85); })
+  // 博冷：HI < 0.85（排除熔断场次，熔断=数据不可靠应避开）
+  var cold = withInfo.filter(function (x) { return !x.meltdown && x.hi > 0 && x.hi < 0.85; })
     .sort(function (a, b) { return a.hi - b.hi; });
-  if (cold.length < 2) cold = withInfo.filter(function (x) { return x.hi < 1.0; })
+  if (cold.length < 2) cold = withInfo.filter(function (x) { return !x.meltdown && x.hi < 1.0; })
     .sort(function (a, b) { return a.hi - b.hi; });
 
   // 稳健/双选容错
