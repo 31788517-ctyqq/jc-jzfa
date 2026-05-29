@@ -86,6 +86,7 @@ DEPLOY_MAP = [
     ('preview/index.html',                'both'),
     ('preview/app.js',                    'both'),
     ('preview/js/main.js',                'both'),
+    ('preview/js/main-fusion.js',         'both'),
     ('preview/js/pages/quant-rank.js',    'both'),
     ('preview/js/pages/match-pk.js',      'both'),
     ('preview/js/pages/match-pk-fusion.js','both'),
