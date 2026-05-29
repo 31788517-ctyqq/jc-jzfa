@@ -430,37 +430,46 @@ def main():
     if not dry_run and upload_list:
         print(c('D', '═' * 54))
         print(c('C', '[Phase 4.5] 部署复验 — 确认服务器文件与本地一致'))
-        # 构建唯一文件列表（去重，取每个本地文件的第一个远程路径作为校验目标）
-        verified = set()
+        # 对 both 文件同时校验 NGINX 和 PM2 两条路径（去重仅对同一路径）
+        seen_pairs = set()
         recheck_list = []
         for lp, rp in upload_list:
-            if lp not in verified:
-                verified.add(lp)
+            # 用 (lp, rp) 而不是 lp 做去重，确保 both 文件两条路径都校验
+            key = rp
+            if key not in seen_pairs:
+                seen_pairs.add(key)
                 recheck_list.append((lp, rp))
-        # 批量获取服务器 MD5
+        # 批量获取服务器 MD5（用远程路径做标签，避免同文件双路径冲突）
         md5_cmds = []
         for lp, rp in recheck_list:
-            md5_cmds.append('echo "##{}##" && md5sum {}'.format(lp, rp))
+            md5_cmds.append('echo "##{}##" && md5sum {}'.format(rp, rp))
         if md5_cmds:
             batch_md5_cmd = ' && '.join(md5_cmds)
             out, _ = ssh_cmd(ssh, batch_md5_cmd, len(md5_cmds) * 3 + 10)
             segments = out.split('##')
             server_md5_map = {}
             for i in range(1, len(segments) - 1, 2):
-                local_path = segments[i].strip()
+                remote_path = segments[i].strip()
                 md5_str = segments[i + 1].strip().split()[0] if len(segments) > i + 1 else ''
-                server_md5_map[local_path] = md5_str
+                server_md5_map[remote_path] = md5_str
+
+            # 缓存本地文件 md5
+            local_md5_cache = {}
+            def get_local_md5(lp):
+                if lp not in local_md5_cache:
+                    with open(lp, 'rb') as f:
+                        local_md5_cache[lp] = hashlib.md5(f.read()).hexdigest()
+                return local_md5_cache[lp]
 
             recheck_ok = 0
             recheck_fail = []
             for lp, rp in recheck_list:
-                with open(lp, 'rb') as f:
-                    local_md5 = hashlib.md5(f.read()).hexdigest()
-                server_md5 = server_md5_map.get(lp, '')
+                local_md5 = get_local_md5(lp)
+                server_md5 = server_md5_map.get(rp, '')
                 if server_md5 == local_md5:
                     recheck_ok += 1
                 else:
-                    recheck_fail.append((os.path.basename(rp), local_md5[:8], server_md5[:8] if server_md5 else 'MISSING'))
+                    recheck_fail.append((os.path.basename(rp) + ' [' + rp.split('/preview/')[-1].split('/')[0] + ']', local_md5[:8], server_md5[:8] if server_md5 else 'MISSING'))
 
             if recheck_fail:
                 print(c('R', '  ✗ 复验失败 — {} 个文件与服务器不一致（可能被还原）:'.format(len(recheck_fail))))
