@@ -410,6 +410,24 @@ def main():
         # 完全重启 Nginx + 刷新内核页缓存
         ssh_cmd(ssh, 'nginx -s stop 2>/dev/null; sync; echo 3 > /proc/sys/vm/drop_caches 2>/dev/null; sleep 2; nginx 2>&1', 20)
         print('  Nginx 已重启（内核页缓存已清除）')
+    # ── 内容二次验证：检查 index.html 是否真的更新了 ──
+    if not dry_run:
+        idx_path = NGINX_ROOT + '/preview/index.html'
+        test_cmd = "grep -c 'main-fusion.js' {} 2>/dev/null || echo 0".format(idx_path)
+        out, _ = ssh_cmd(ssh, test_cmd, 5)
+        count = out.strip()
+        if count.isdigit() and int(count) > 0:
+            print('  {} Nginx index.html contains main-fusion.js ({} matches)'.format(c('G', '✓'), count))
+        else:
+            print('  {} Nginx index.html still OLD! Retrying with forced write...'.format(c('R', '✗')))
+            force_cmds = (
+                "chattr -i {0} 2>/dev/null; "
+                "cp {1}/preview/index.html {0} 2>/dev/null; "
+                "sync; "
+                "grep -c 'main-fusion.js' {0} 2>/dev/null || echo 0"
+            ).format(idx_path, PM2_ROOT)
+            out2, _ = ssh_cmd(ssh, force_cmds, 10)
+            print('    After force copy: {} matches'.format(out2.strip()))
     print()
 
     sftp.close()
