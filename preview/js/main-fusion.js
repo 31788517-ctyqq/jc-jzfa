@@ -1,4 +1,5 @@
 // ==================== 主入口：路由导航 + 全局状态管理 ====================
+console.log('[V5.0-FUSION] main-fusion.js loaded');
 import { api } from './api.js';
 import { WEEK_NAMES, formatDate } from './utils.js';
 import * as state from './state.js';

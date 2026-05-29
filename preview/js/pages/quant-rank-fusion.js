@@ -1,6 +1,8 @@
 import { api } from '../api.js';
 import { loadECharts, echartsReady } from '../charts.js';
 
+console.log('[V5.0-FUSION] quant-rank-fusion.js loaded — cross-tab selection enabled');
+
 var quantDate = '';
 var quantDateOffset = 0;
 var currentTab = 'power';
@@ -32,7 +34,7 @@ export function toggleQuantDatePicker() {
 
 export function switchQuantTab(tab) {
   currentTab = tab;
-  pickedIds = {};  // 切换 tab 时清空复选框状态
+  // ★ V5.0: 不再清空 pickedIds，支持跨标签选择
   updatePkBar();
   // 切换 tab 时重置回表格视图
   if (currentView === 'chart') switchQuantView('table');
