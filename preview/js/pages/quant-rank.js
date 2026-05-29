@@ -208,6 +208,19 @@ function mergeItem(item, gs) {
     crossValue: crossValue,          // 胜平负交叉 = (H_win+G_loss-H_loss-G_win)/10
     pwScore: pwScore,               // 综合实力 = Total_战
     adCombined: adCombined,          // 攻守实力 = sigmoid加权合成
+    // ★ P0-5: 胜平负交叉双组概率
+    crossSpfWin: gs.crossSpfWin !== undefined ? gs.crossSpfWin : '-',
+    crossSpfDraw: gs.crossSpfDraw !== undefined ? gs.crossSpfDraw : '-',
+    crossSpfLose: gs.crossSpfLose !== undefined ? gs.crossSpfLose : '-',
+    crossHcpWin: gs.crossHcpWin !== undefined ? gs.crossHcpWin : '-',
+    crossHcpDraw: gs.crossHcpDraw !== undefined ? gs.crossHcpDraw : '-',
+    crossHcpLose: gs.crossHcpLose !== undefined ? gs.crossHcpLose : '-',
+    // ★ P1-1: M3.7 四重熔断
+    fusionConsensus: gs.fusionConsensus || '',
+    fusionFinalHome: gs.fusionFinalHome != null ? gs.fusionFinalHome : 0,
+    fusionFinalAway: gs.fusionFinalAway != null ? gs.fusionFinalAway : 0,
+    // ★ P1-2: 攻防格局
+    attackPattern: gs.attackPattern || '',
     // 兼容旧字段
     totalAdvantage: gs.totalAdvantage || '-',
     totalAdvantageValue: Math.round(50 + pwScore * 100),  // Total_战 映射到进度条
@@ -233,11 +246,7 @@ function mergeItem(item, gs) {
     homeFeature: '-',
     guestFeature: '-',
     staticDiff: gs.totalAdvantageValue || 0,
-    oddsLive: '-',
-    // P1: 胜平负交叉数值
-    crossValue: crossValue,
-    // P2: 攻守实力组合值
-    adCombined: adCombined
+    oddsLive: '-'
   };
 }
 
@@ -265,7 +274,7 @@ function renderTable() {
     cols = [
       { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
       { key: 'rank', label: '总排序', sortable: true, colCls: 'q-col-rk' },
-      { key: 'goalDiff', label: '净胜球', sortable: false, colCls: 'q-col-gd' },
+      { key: 'goalDiff', label: '净胜球\n量化', sortable: false, colCls: 'q-col-gd' },
       { key: 'cross', label: '胜平负\n交叉', sortable: false, colCls: 'q-col-cross' },
       { key: 'power', label: '综合\n实力', sortable: false, colCls: 'q-col-power' },
       { key: 'ad', label: '攻守\n实力', sortable: false, colCls: 'q-col-ad' }
@@ -285,7 +294,8 @@ function renderTable() {
       { key: 'attDefGoal', label: '攻防\n进球', sortable: true, colCls: 'q-col-ag' },
       { key: 'strengthGoal', label: '实力\n进球', sortable: true, colCls: 'q-col-sg' },
       { key: 'headToHeadGoal', label: '交锋\n进球', sortable: true, colCls: 'q-col-hg' },
-      { key: 'breakArmor', label: '破甲和', sortable: true, colCls: 'q-col-ba' }
+      { key: 'breakArmor', label: '破甲和', sortable: true, colCls: 'q-col-ba' },
+      { key: 'fusion', label: '四重\n验证', sortable: false, colCls: 'q-col-fusion' }
     ];
     renderRow = function (item) {
       return renderGoalCell(item, 'totalSum') +
@@ -293,7 +303,8 @@ function renderTable() {
         renderGoalCell(item, 'attDefGoal') +
         renderGoalCell(item, 'strengthGoal') +
         renderGoalCell(item, 'headToHeadGoal') +
-        renderGoalCell(item, 'breakArmor');
+        renderGoalCell(item, 'breakArmor') +
+        renderFusionCell(item);
     };
   } else {
     cols = [
@@ -391,7 +402,7 @@ function renderPower(item) {
   return '<span class="q-col-power"><span class="q-cell-num ' + cls + '">' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%</span></span>';
 }
 
-// ── 胜平负交叉（保留2位小数） ──
+// ── 胜平负交叉（双组概率展示 P0-5） ──
 function renderCrossValue(item) {
   var v = item.crossValue;
   if (v === '-' || v === undefined || v === null) {
@@ -400,17 +411,41 @@ function renderCrossValue(item) {
   var n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-cross"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<span class="q-col-cross"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
+  // 双组概率信息
+  var spfLine = '', hcpLine = '';
+  var spfW = item.crossSpfWin, spfD = item.crossSpfDraw, spfL = item.crossSpfLose;
+  if (spfW !== '-' && spfW !== undefined) {
+    spfLine = '胜' + Number(spfW).toFixed(0) + '% 平' + Number(spfD).toFixed(0) + '% 负' + Number(spfL).toFixed(0) + '% (让0)';
+  }
+  var hcpW = item.crossHcpWin, hcpD = item.crossHcpDraw, hcpL = item.crossHcpLose;
+  var rqVal = item.crossRq !== undefined ? item.crossRq : 0;
+  if (hcpW !== '-' && hcpW !== undefined) {
+    hcpLine = '让胜' + Number(hcpW).toFixed(0) + '% 让平' + Number(hcpD).toFixed(0) + '% 让负' + Number(hcpL).toFixed(0) + '% (让' + rqVal + ')';
+  }
+  var detail = '';
+  if (spfLine || hcpLine) {
+    detail = '<span style="display:block;font-size:8px;color:#64748B;line-height:1.1;margin-top:1px">'
+      + (spfLine ? spfLine : '') + (spfLine && hcpLine ? '<br>' : '') + (hcpLine ? hcpLine : '') + '</span>';
+  }
+  return '<span class="q-col-cross"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span>' + detail + '</span>';
 }
 
-// ── 攻守实力（保留2位小数） ──
+// ── 攻守实力（保留2位小数，含格局徽章 P1-2） ──
 function renderAdCombined(item) {
   var v = item.adCombined;
-  if (v === 0 || v === undefined || v === null) return '<span class="q-col-ad"><span class="q-cell-num" style="color:var(--text4)">0.00</span></span>';
+  var patternBadge = '';
+  if (item.attackPattern) {
+    var pc = item.attackPattern === '对攻为主' ? 'atk' : item.attackPattern === '防守为主' ? 'def' : 'bal';
+    patternBadge = '<span class="pattern-badge ' + pc + '" title="' +
+      (item.attackPattern === '对攻为主' ? '进攻优势度>0.15 且 防守优势度>-0.05' :
+       item.attackPattern === '防守为主' ? '防守优势度>0.15 且 进攻优势度>-0.05' : '攻守平衡') +
+      '">' + item.attackPattern + '</span>';
+  }
+  if (v === 0 || v === undefined || v === null) return '<span class="q-col-ad"><span class="q-cell-num" style="color:var(--text4)">0.00</span>' + patternBadge + '</span>';
   var n = parseFloat(v);
-  if (isNaN(n)) return '<span class="q-col-ad"><span class="q-cell-num">' + v + '</span></span>';
+  if (isNaN(n)) return '<span class="q-col-ad"><span class="q-cell-num">' + v + '</span>' + patternBadge + '</span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  return '<span class="q-col-ad"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span></span>';
+  return '<span class="q-col-ad"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span>' + patternBadge + '</span>';
 }
 
 // ── 进球 tab 单元格 (统一 toFixed(1)) ──
@@ -434,6 +469,20 @@ function renderGoalCell(item, key) {
 function keyToCls(key) {
   var m = { totalSum: 'sum', bigBallRatio: 'big', attDefGoal: 'ag', strengthGoal: 'sg', headToHeadGoal: 'hg', breakArmor: 'ba' };
   return m[key] || 'sum';
+}
+
+// ── M3.7 四重验证单元格 (P1-1) ──
+function renderFusionCell(item) {
+  var consensus = item.fusionConsensus;
+  if (!consensus) return '<span class="q-col-fusion"><span class="q-cell-num" style="color:var(--text4)">-</span></span>';
+  var cls = 'fusion-' + consensus;
+  var label = consensus === 'strong' ? '强一致' : consensus === 'weak' ? '弱一致' : consensus === 'meltdown' ? '⚠️熔断' : '';
+  var h = item.fusionFinalHome != null ? item.fusionFinalHome.toFixed(2) : '-';
+  var a = item.fusionFinalAway != null ? item.fusionFinalAway.toFixed(2) : '-';
+  return '<span class="q-col-fusion">' +
+    '<span class="fusion-badge ' + cls + '" title="E_final=H' + h + '+A' + a + '">' + label + '</span>' +
+    '<span style="display:block;font-size:8px;color:var(--text3);line-height:1.1">H' + h + '+A' + a + '</span>' +
+    '</span>';
 }
 
 // ── 热点 tab 单元格 (去图标) ──
