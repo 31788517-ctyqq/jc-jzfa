@@ -1,0 +1,1902 @@
+{
+  "英超": {
+    "season_id": 9110,
+    "jifen_id": "22196",
+    "url": "https://liansai.500.com/zuqiu-9110/jifen-22196/"
+  },
+  "西甲": {
+    "season_id": 9124,
+    "jifen_id": "22267",
+    "url": "https://liansai.500.com/zuqiu-9124/jifen-22267/"
+  },
+  "意甲": {
+    "season_id": 9080,
+    "jifen_id": "22159",
+    "url": "https://liansai.500.com/zuqiu-9080/jifen-22159/"
+  },
+  "德甲": {
+    "season_id": 9117,
+    "jifen_id": "22219",
+    "url": "https://liansai.500.com/zuqiu-9117/jifen-22219/"
+  },
+  "法甲": {
+    "season_id": 9118,
+    "jifen_id": "22218",
+    "url": "https://liansai.500.com/zuqiu-9118/jifen-22218/"
+  },
+  "欧冠": {
+    "season_id": 9106,
+    "jifen_id": "27570",
+    "url": "https://liansai.500.com/zuqiu-9106/jifen-27570/"
+  },
+  "欧罗巴": {
+    "season_id": 9107,
+    "jifen_id": "27571",
+    "url": "https://liansai.500.com/zuqiu-9107/jifen-27571/"
+  },
+  "世外亚洲": {
+    "season_id": 7041,
+    "jifen_id": "25915",
+    "url": "https://liansai.500.com/zuqiu-7041/jifen-25915/"
+  },
+  "中超": {
+    "season_id": 19603,
+    "jifen_id": "26602",
+    "url": "https://liansai.500.com/zuqiu-19603/jifen-26602/"
+  },
+  "世俱杯": {
+    "season_id": 7365,
+    "jifen_id": "22153",
+    "url": "https://liansai.500.com/zuqiu-7365/jifen-22153/"
+  },
+  "奥运男足": {
+    "season_id": 7163,
+    "jifen_id": "21229",
+    "url": "https://liansai.500.com/zuqiu-7163/jifen-21229/"
+  },
+  "女世杯": {
+    "season_id": 6720,
+    "jifen_id": "19965",
+    "url": "https://liansai.500.com/zuqiu-6720/jifen-19965/"
+  },
+  "托托杯": {
+    "season_id": 1616,
+    "jifen_id": "3344",
+    "url": "https://liansai.500.com/zuqiu-1616/jifen-3344/"
+  },
+  "友谊赛": {
+    "season_id": 19472,
+    "jifen_id": "27077",
+    "url": "https://liansai.500.com/zuqiu-19472/jifen-27077/"
+  },
+  "世界杯": {
+    "season_id": 19476,
+    "jifen_id": "26226",
+    "url": "https://liansai.500.com/zuqiu-19476/jifen-26226/"
+  },
+  "世冠赛": {
+    "season_id": 9858,
+    "jifen_id": "22888",
+    "url": "https://liansai.500.com/zuqiu-9858/jifen-22888/"
+  },
+  "土伦杯": {
+    "season_id": 19760,
+    "jifen_id": "27200",
+    "url": "https://liansai.500.com/zuqiu-19760/jifen-27200/"
+  },
+  "世青赛": {
+    "season_id": 9072,
+    "jifen_id": "22779",
+    "url": "https://liansai.500.com/zuqiu-9072/jifen-22779/"
+  },
+  "ＬＧ　杯": {
+    "season_id": 9799,
+    "jifen_id": "22839",
+    "url": "https://liansai.500.com/zuqiu-9799/jifen-22839/"
+  },
+  "四国赛": {
+    "season_id": 6793,
+    "jifen_id": "19456",
+    "url": "https://liansai.500.com/zuqiu-6793/jifen-19456/"
+  },
+  "球会友谊": {
+    "season_id": 19525,
+    "jifen_id": "27517",
+    "url": "https://liansai.500.com/zuqiu-19525/jifen-27517/"
+  },
+  "世女冠": {
+    "season_id": 19799,
+    "jifen_id": "27641",
+    "url": "https://liansai.500.com/zuqiu-19799/jifen-27641/"
+  },
+  "奥运女足": {
+    "season_id": 7162,
+    "jifen_id": "21236",
+    "url": "https://liansai.500.com/zuqiu-7162/jifen-21236/"
+  },
+  "联合会杯": {
+    "season_id": 4415,
+    "jifen_id": "11829",
+    "url": "https://liansai.500.com/zuqiu-4415/jifen-11829/"
+  },
+  "独联体杯": {
+    "season_id": 10214,
+    "jifen_id": "23036",
+    "url": "https://liansai.500.com/zuqiu-10214/jifen-23036/"
+  },
+  "泛太冠": {
+    "season_id": 1807,
+    "jifen_id": "3768",
+    "url": "https://liansai.500.com/zuqiu-1807/jifen-3768/"
+  },
+  "加夫杯": {
+    "season_id": 7567,
+    "jifen_id": "25370",
+    "url": "https://liansai.500.com/zuqiu-7567/jifen-25370/"
+  },
+  "温布利杯": {
+    "season_id": 1865,
+    "jifen_id": "3973",
+    "url": "https://liansai.500.com/zuqiu-1865/jifen-3973/"
+  },
+  "奥迪杯": {
+    "season_id": 5393,
+    "jifen_id": "15166",
+    "url": "https://liansai.500.com/zuqiu-5393/jifen-15166/"
+  },
+  "吉尼斯杯": {
+    "season_id": 5302,
+    "jifen_id": "14822",
+    "url": "https://liansai.500.com/zuqiu-5302/jifen-14822/"
+  },
+  "英亚杯": {
+    "season_id": 19448,
+    "jifen_id": "26108",
+    "url": "https://liansai.500.com/zuqiu-19448/jifen-26108/"
+  },
+  "女世外欧": {
+    "season_id": 19668,
+    "jifen_id": "26869",
+    "url": "https://liansai.500.com/zuqiu-19668/jifen-26869/"
+  },
+  "国际超级杯": {
+    "season_id": 5423,
+    "jifen_id": "15025",
+    "url": "https://liansai.500.com/zuqiu-5423/jifen-15025/"
+  },
+  "欧美超杯": {
+    "season_id": 19374,
+    "jifen_id": "25711",
+    "url": "https://liansai.500.com/zuqiu-19374/jifen-25711/"
+  },
+  "世外附": {
+    "season_id": 6548,
+    "jifen_id": "18793",
+    "url": "https://liansai.500.com/zuqiu-6548/jifen-18793/"
+  },
+  "世青U17": {
+    "season_id": 19532,
+    "jifen_id": "27706",
+    "url": "https://liansai.500.com/zuqiu-19532/jifen-27706/"
+  },
+  "世洲际杯": {
+    "season_id": 19195,
+    "jifen_id": "25483",
+    "url": "https://liansai.500.com/zuqiu-19195/jifen-25483/"
+  },
+  "东亚女锦U15": {
+    "season_id": 7348,
+    "jifen_id": "21554",
+    "url": "https://liansai.500.com/zuqiu-7348/jifen-21554/"
+  },
+  "中北美加女冠": {
+    "season_id": 9367,
+    "jifen_id": "27701",
+    "url": "https://liansai.500.com/zuqiu-9367/jifen-27701/"
+  },
+  "印度洋运": {
+    "season_id": 9372,
+    "jifen_id": "22560",
+    "url": "https://liansai.500.com/zuqiu-9372/jifen-22560/"
+  },
+  "U20联": {
+    "season_id": 9399,
+    "jifen_id": "22576",
+    "url": "https://liansai.500.com/zuqiu-9399/jifen-22576/"
+  },
+  "东亚锦标U15": {
+    "season_id": 19466,
+    "jifen_id": "26167",
+    "url": "https://liansai.500.com/zuqiu-19466/jifen-26167/"
+  },
+  "大洋女U16": {
+    "season_id": 19771,
+    "jifen_id": "27275",
+    "url": "https://liansai.500.com/zuqiu-19771/jifen-27275/"
+  },
+  "南亚杯U17": {
+    "season_id": 19348,
+    "jifen_id": "25654",
+    "url": "https://liansai.500.com/zuqiu-19348/jifen-25654/"
+  },
+  "亚挑联": {
+    "season_id": 19215,
+    "jifen_id": "25902",
+    "url": "https://liansai.500.com/zuqiu-19215/jifen-25902/"
+  },
+  "大世杯": {
+    "season_id": 9480,
+    "jifen_id": "22623",
+    "url": "https://liansai.500.com/zuqiu-9480/jifen-22623/"
+  },
+  "大世杯女": {
+    "season_id": 9482,
+    "jifen_id": "22630",
+    "url": "https://liansai.500.com/zuqiu-9482/jifen-22630/"
+  },
+  "女欧国杯外": {
+    "season_id": 9479,
+    "jifen_id": "22612",
+    "url": "https://liansai.500.com/zuqiu-9479/jifen-22612/"
+  },
+  "东盟锦标": {
+    "season_id": 9504,
+    "jifen_id": "27612",
+    "url": "https://liansai.500.com/zuqiu-9504/jifen-27612/"
+  },
+  "美墨夏女杯": {
+    "season_id": 9505,
+    "jifen_id": "22656",
+    "url": "https://liansai.500.com/zuqiu-9505/jifen-22656/"
+  },
+  "梅杜林杯": {
+    "season_id": 9514,
+    "jifen_id": "22681",
+    "url": "https://liansai.500.com/zuqiu-9514/jifen-22681/"
+  },
+  "非青U17": {
+    "season_id": 19189,
+    "jifen_id": "25581",
+    "url": "https://liansai.500.com/zuqiu-19189/jifen-25581/"
+  },
+  "皮纳塔尔杯": {
+    "season_id": 9542,
+    "jifen_id": "22693",
+    "url": "https://liansai.500.com/zuqiu-9542/jifen-22693/"
+  },
+  "COTIF杯": {
+    "season_id": 9556,
+    "jifen_id": "22735",
+    "url": "https://liansai.500.com/zuqiu-9556/jifen-22735/"
+  },
+  "拉美冠杯": {
+    "season_id": 9586,
+    "jifen_id": "22731",
+    "url": "https://liansai.500.com/zuqiu-9586/jifen-22731/"
+  },
+  "亚协预选": {
+    "season_id": 9616,
+    "jifen_id": "22762",
+    "url": "https://liansai.500.com/zuqiu-9616/jifen-22762/"
+  },
+  "海湾U19": {
+    "season_id": 9606,
+    "jifen_id": "22748",
+    "url": "https://liansai.500.com/zuqiu-9606/jifen-22748/"
+  },
+  "世俱杯(旧)": {
+    "season_id": 9645,
+    "jifen_id": "22768",
+    "url": "https://liansai.500.com/zuqiu-9645/jifen-22768/"
+  },
+  "南美女锦U19": {
+    "season_id": 9629,
+    "jifen_id": "22757",
+    "url": "https://liansai.500.com/zuqiu-9629/jifen-22757/"
+  },
+  "非女挑杯": {
+    "season_id": 9690,
+    "jifen_id": "22791",
+    "url": "https://liansai.500.com/zuqiu-9690/jifen-22791/"
+  },
+  "亚沙运": {
+    "season_id": 9667,
+    "jifen_id": "22786",
+    "url": "https://liansai.500.com/zuqiu-9667/jifen-22786/"
+  },
+  "大洋女U19": {
+    "season_id": 9737,
+    "jifen_id": "25707",
+    "url": "https://liansai.500.com/zuqiu-9737/jifen-25707/"
+  },
+  "球迷杯": {
+    "season_id": 9728,
+    "jifen_id": "22803",
+    "url": "https://liansai.500.com/zuqiu-9728/jifen-22803/"
+  },
+  "世五足": {
+    "season_id": 9776,
+    "jifen_id": "25951",
+    "url": "https://liansai.500.com/zuqiu-9776/jifen-25951/"
+  },
+  "U17女世界杯": {
+    "season_id": 9782,
+    "jifen_id": "22830",
+    "url": "https://liansai.500.com/zuqiu-9782/jifen-22830/"
+  },
+  "世室內足": {
+    "season_id": 9785,
+    "jifen_id": "22829",
+    "url": "https://liansai.500.com/zuqiu-9785/jifen-22829/"
+  },
+  "法语运": {
+    "season_id": 9807,
+    "jifen_id": "22845",
+    "url": "https://liansai.500.com/zuqiu-9807/jifen-22845/"
+  },
+  "女亚冠联": {
+    "season_id": 9813,
+    "jifen_id": "25192",
+    "url": "https://liansai.500.com/zuqiu-9813/jifen-25192/"
+  },
+  "女东南运": {
+    "season_id": 19437,
+    "jifen_id": "26309",
+    "url": "https://liansai.500.com/zuqiu-19437/jifen-26309/"
+  },
+  "蒙太古杯": {
+    "season_id": 19526,
+    "jifen_id": "27211",
+    "url": "https://liansai.500.com/zuqiu-19526/jifen-27211/"
+  },
+  "阿卡斯杯": {
+    "season_id": 9840,
+    "jifen_id": "22883",
+    "url": "https://liansai.500.com/zuqiu-9840/jifen-22883/"
+  },
+  "OSN杯": {
+    "season_id": 9844,
+    "jifen_id": "22892",
+    "url": "https://liansai.500.com/zuqiu-9844/jifen-22892/"
+  },
+  "蒙太古女杯": {
+    "season_id": 19527,
+    "jifen_id": "27202",
+    "url": "https://liansai.500.com/zuqiu-19527/jifen-27202/"
+  },
+  "中北美超杯": {
+    "season_id": 9859,
+    "jifen_id": "22891",
+    "url": "https://liansai.500.com/zuqiu-9859/jifen-22891/"
+  },
+  "女世非预U17": {
+    "season_id": 9892,
+    "jifen_id": "22934",
+    "url": "https://liansai.500.com/zuqiu-9892/jifen-22934/"
+  },
+  "格雷纳杯": {
+    "season_id": 9875,
+    "jifen_id": "22918",
+    "url": "https://liansai.500.com/zuqiu-9875/jifen-22918/"
+  },
+  "世室欧预": {
+    "season_id": 9899,
+    "jifen_id": "22941",
+    "url": "https://liansai.500.com/zuqiu-9899/jifen-22941/"
+  },
+  "女五亚洲杯": {
+    "season_id": 9920,
+    "jifen_id": "22944",
+    "url": "https://liansai.500.com/zuqiu-9920/jifen-22944/"
+  },
+  "欧沙联": {
+    "season_id": 9890,
+    "jifen_id": "22923",
+    "url": "https://liansai.500.com/zuqiu-9890/jifen-22923/"
+  },
+  "沙亚洲杯": {
+    "season_id": 9923,
+    "jifen_id": "22947",
+    "url": "https://liansai.500.com/zuqiu-9923/jifen-22947/"
+  },
+  "沙滩世杯": {
+    "season_id": 9914,
+    "jifen_id": "22954",
+    "url": "https://liansai.500.com/zuqiu-9914/jifen-22954/"
+  },
+  "沙世亚预": {
+    "season_id": 9919,
+    "jifen_id": "22959",
+    "url": "https://liansai.500.com/zuqiu-9919/jifen-22959/"
+  },
+  "非南女杯": {
+    "season_id": 19643,
+    "jifen_id": "26851",
+    "url": "https://liansai.500.com/zuqiu-19643/jifen-26851/"
+  },
+  "沙足赛": {
+    "season_id": 9934,
+    "jifen_id": "22962",
+    "url": "https://liansai.500.com/zuqiu-9934/jifen-22962/"
+  },
+  "沙滩洲际": {
+    "season_id": 9957,
+    "jifen_id": "23017",
+    "url": "https://liansai.500.com/zuqiu-9957/jifen-23017/"
+  },
+  "拉各斯杯": {
+    "season_id": 10111,
+    "jifen_id": "23002",
+    "url": "https://liansai.500.com/zuqiu-10111/jifen-23002/"
+  },
+  "西非女杯": {
+    "season_id": 9950,
+    "jifen_id": "22973",
+    "url": "https://liansai.500.com/zuqiu-9950/jifen-22973/"
+  },
+  "中亚U17": {
+    "season_id": 19761,
+    "jifen_id": "27203",
+    "url": "https://liansai.500.com/zuqiu-19761/jifen-27203/"
+  },
+  "欧青U21外": {
+    "season_id": 10029,
+    "jifen_id": "22993",
+    "url": "https://liansai.500.com/zuqiu-10029/jifen-22993/"
+  },
+  "女冠杯": {
+    "season_id": 10205,
+    "jifen_id": "26591",
+    "url": "https://liansai.500.com/zuqiu-10205/jifen-26591/"
+  },
+  "欧女冠": {
+    "season_id": 10122,
+    "jifen_id": "27482",
+    "url": "https://liansai.500.com/zuqiu-10122/jifen-27482/"
+  },
+  "非室內冠": {
+    "season_id": 10133,
+    "jifen_id": "23011",
+    "url": "https://liansai.500.com/zuqiu-10133/jifen-23011/"
+  },
+  "东盟女锦U19": {
+    "season_id": 10215,
+    "jifen_id": "23106",
+    "url": "https://liansai.500.com/zuqiu-10215/jifen-23106/"
+  },
+  "女欧U17": {
+    "season_id": 10234,
+    "jifen_id": "27624",
+    "url": "https://liansai.500.com/zuqiu-10234/jifen-27624/"
+  },
+  "女东南锦U19": {
+    "season_id": 10294,
+    "jifen_id": "23117",
+    "url": "https://liansai.500.com/zuqiu-10294/jifen-23117/"
+  },
+  "欧室锦标": {
+    "season_id": 10184,
+    "jifen_id": "23026",
+    "url": "https://liansai.500.com/zuqiu-10184/jifen-23026/"
+  },
+  "中东非女杯": {
+    "season_id": 10191,
+    "jifen_id": "23028",
+    "url": "https://liansai.500.com/zuqiu-10191/jifen-23028/"
+  },
+  "女北欧U23": {
+    "season_id": 10298,
+    "jifen_id": "23081",
+    "url": "https://liansai.500.com/zuqiu-10298/jifen-23081/"
+  },
+  "北欧U17": {
+    "season_id": 10204,
+    "jifen_id": "23031",
+    "url": "https://liansai.500.com/zuqiu-10204/jifen-23031/"
+  },
+  "欧室U21": {
+    "season_id": 10216,
+    "jifen_id": "23039",
+    "url": "https://liansai.500.com/zuqiu-10216/jifen-23039/"
+  },
+  "波罗联": {
+    "season_id": 10237,
+    "jifen_id": "23044",
+    "url": "https://liansai.500.com/zuqiu-10237/jifen-23044/"
+  },
+  "CO杯": {
+    "season_id": 10330,
+    "jifen_id": "23128",
+    "url": "https://liansai.500.com/zuqiu-10330/jifen-23128/"
+  },
+  "斯堪彩杯": {
+    "season_id": 10268,
+    "jifen_id": "23057",
+    "url": "https://liansai.500.com/zuqiu-10268/jifen-23057/"
+  },
+  "北欧女U16": {
+    "season_id": 10293,
+    "jifen_id": "23080",
+    "url": "https://liansai.500.com/zuqiu-10293/jifen-23080/"
+  },
+  "GF锦U19": {
+    "season_id": 10295,
+    "jifen_id": "23079",
+    "url": "https://liansai.500.com/zuqiu-10295/jifen-23079/"
+  },
+  "发展杯U17": {
+    "season_id": 19647,
+    "jifen_id": "26802",
+    "url": "https://liansai.500.com/zuqiu-19647/jifen-26802/"
+  },
+  "欧青联": {
+    "season_id": 19313,
+    "jifen_id": "26611",
+    "url": "https://liansai.500.com/zuqiu-19313/jifen-26611/"
+  },
+  "不列颠杯": {
+    "season_id": 10322,
+    "jifen_id": "23113",
+    "url": "https://liansai.500.com/zuqiu-10322/jifen-23113/"
+  },
+  "太阳杯": {
+    "season_id": 10325,
+    "jifen_id": "23119",
+    "url": "https://liansai.500.com/zuqiu-10325/jifen-23119/"
+  },
+  "北非青": {
+    "season_id": 10649,
+    "jifen_id": "23164",
+    "url": "https://liansai.500.com/zuqiu-10649/jifen-23164/"
+  },
+  "加勒比冠": {
+    "season_id": 10855,
+    "jifen_id": "26083",
+    "url": "https://liansai.500.com/zuqiu-10855/jifen-26083/"
+  },
+  "女波罗杯": {
+    "season_id": 19661,
+    "jifen_id": "26840",
+    "url": "https://liansai.500.com/zuqiu-19661/jifen-26840/"
+  },
+  "奥女大洋预": {
+    "season_id": 10942,
+    "jifen_id": "23234",
+    "url": "https://liansai.500.com/zuqiu-10942/jifen-23234/"
+  },
+  "中东非俱": {
+    "season_id": 11086,
+    "jifen_id": "25580",
+    "url": "https://liansai.500.com/zuqiu-11086/jifen-25580/"
+  },
+  "沙世非预": {
+    "season_id": 11241,
+    "jifen_id": "23286",
+    "url": "https://liansai.500.com/zuqiu-11241/jifen-23286/"
+  },
+  "欧联U23": {
+    "season_id": 11416,
+    "jifen_id": "23323",
+    "url": "https://liansai.500.com/zuqiu-11416/jifen-23323/"
+  },
+  "加勒女挑": {
+    "season_id": 11439,
+    "jifen_id": "23328",
+    "url": "https://liansai.500.com/zuqiu-11439/jifen-23328/"
+  },
+  "中东欧杯": {
+    "season_id": 11926,
+    "jifen_id": "23392",
+    "url": "https://liansai.500.com/zuqiu-11926/jifen-23392/"
+  },
+  "大洋冠U19": {
+    "season_id": 11999,
+    "jifen_id": "23446",
+    "url": "https://liansai.500.com/zuqiu-11999/jifen-23446/"
+  },
+  "中北美国联": {
+    "season_id": 12234,
+    "jifen_id": "23488",
+    "url": "https://liansai.500.com/zuqiu-12234/jifen-23488/"
+  },
+  "大洋青冠杯": {
+    "season_id": 12208,
+    "jifen_id": "23484",
+    "url": "https://liansai.500.com/zuqiu-12208/jifen-23484/"
+  },
+  "北冠杯": {
+    "season_id": 12267,
+    "jifen_id": "23489",
+    "url": "https://liansai.500.com/zuqiu-12267/jifen-23489/"
+  },
+  "联盟杯": {
+    "season_id": 19708,
+    "jifen_id": "27019",
+    "url": "https://liansai.500.com/zuqiu-19708/jifen-27019/"
+  },
+  "东南亚室内锦标": {
+    "season_id": 12443,
+    "jifen_id": "23528",
+    "url": "https://liansai.500.com/zuqiu-12443/jifen-23528/"
+  },
+  "中亚女子锦": {
+    "season_id": 12589,
+    "jifen_id": "23548",
+    "url": "https://liansai.500.com/zuqiu-12589/jifen-23548/"
+  },
+  "太平洋运": {
+    "season_id": 13261,
+    "jifen_id": "23644",
+    "url": "https://liansai.500.com/zuqiu-13261/jifen-23644/"
+  },
+  "太平洋女运": {
+    "season_id": 13322,
+    "jifen_id": "23663",
+    "url": "https://liansai.500.com/zuqiu-13322/jifen-23663/"
+  },
+  "南联杯U20": {
+    "season_id": 7360,
+    "jifen_id": "21697",
+    "url": "https://liansai.500.com/zuqiu-7360/jifen-21697/"
+  },
+  "东南亚U23": {
+    "season_id": 19255,
+    "jifen_id": "25434",
+    "url": "https://liansai.500.com/zuqiu-19255/jifen-25434/"
+  },
+  "南亚杯U20": {
+    "season_id": 14341,
+    "jifen_id": "23909",
+    "url": "https://liansai.500.com/zuqiu-14341/jifen-23909/"
+  },
+  "世沙运": {
+    "season_id": 14529,
+    "jifen_id": "23983",
+    "url": "https://liansai.500.com/zuqiu-14529/jifen-23983/"
+  },
+  "女世杯附": {
+    "season_id": 14647,
+    "jifen_id": "24000",
+    "url": "https://liansai.500.com/zuqiu-14647/jifen-24000/"
+  },
+  "中亚U20": {
+    "season_id": 19795,
+    "jifen_id": "27557",
+    "url": "https://liansai.500.com/zuqiu-19795/jifen-27557/"
+  },
+  "南美U17": {
+    "season_id": 19748,
+    "jifen_id": "27288",
+    "url": "https://liansai.500.com/zuqiu-19748/jifen-27288/"
+  },
+  "女南冠U20": {
+    "season_id": 19609,
+    "jifen_id": "26761",
+    "url": "https://liansai.500.com/zuqiu-19609/jifen-26761/"
+  },
+  "中北美女U20": {
+    "season_id": 15748,
+    "jifen_id": "24218",
+    "url": "https://liansai.500.com/zuqiu-15748/jifen-24218/"
+  },
+  "南美室內": {
+    "season_id": 15816,
+    "jifen_id": "24263",
+    "url": "https://liansai.500.com/zuqiu-15816/jifen-24263/"
+  },
+  "中北美女U17": {
+    "season_id": 15758,
+    "jifen_id": "26988",
+    "url": "https://liansai.500.com/zuqiu-15758/jifen-26988/"
+  },
+  "美青U17": {
+    "season_id": 19610,
+    "jifen_id": "26622",
+    "url": "https://liansai.500.com/zuqiu-19610/jifen-26622/"
+  },
+  "北美室内足": {
+    "season_id": 15769,
+    "jifen_id": "24347",
+    "url": "https://liansai.500.com/zuqiu-15769/jifen-24347/"
+  },
+  "女解放者杯": {
+    "season_id": 19366,
+    "jifen_id": "25789",
+    "url": "https://liansai.500.com/zuqiu-19366/jifen-25789/"
+  },
+  "女南冠U17": {
+    "season_id": 19786,
+    "jifen_id": "27533",
+    "url": "https://liansai.500.com/zuqiu-19786/jifen-27533/"
+  },
+  "世女美预": {
+    "season_id": 19394,
+    "jifen_id": "25802",
+    "url": "https://liansai.500.com/zuqiu-19394/jifen-25802/"
+  },
+  "女美洲杯": {
+    "season_id": 15796,
+    "jifen_id": "24247",
+    "url": "https://liansai.500.com/zuqiu-15796/jifen-24247/"
+  },
+  "解放者杯U20": {
+    "season_id": 19688,
+    "jifen_id": "27073",
+    "url": "https://liansai.500.com/zuqiu-19688/jifen-27073/"
+  },
+  "女奥北美": {
+    "season_id": 15813,
+    "jifen_id": "24257",
+    "url": "https://liansai.500.com/zuqiu-15813/jifen-24257/"
+  },
+  "南冠U15": {
+    "season_id": 16241,
+    "jifen_id": "24398",
+    "url": "https://liansai.500.com/zuqiu-16241/jifen-24398/"
+  },
+  "奥北选": {
+    "season_id": 15820,
+    "jifen_id": "24264",
+    "url": "https://liansai.500.com/zuqiu-15820/jifen-24264/"
+  },
+  "南运男足": {
+    "season_id": 15823,
+    "jifen_id": "24268",
+    "url": "https://liansai.500.com/zuqiu-15823/jifen-24268/"
+  },
+  "中北美运男": {
+    "season_id": 19400,
+    "jifen_id": "25862",
+    "url": "https://liansai.500.com/zuqiu-19400/jifen-25862/"
+  },
+  "沙南美预": {
+    "season_id": 16304,
+    "jifen_id": "24404",
+    "url": "https://liansai.500.com/zuqiu-16304/jifen-24404/"
+  },
+  "美女金杯": {
+    "season_id": 15847,
+    "jifen_id": "24281",
+    "url": "https://liansai.500.com/zuqiu-15847/jifen-24281/"
+  },
+  "美女加杯": {
+    "season_id": 15848,
+    "jifen_id": "24288",
+    "url": "https://liansai.500.com/zuqiu-15848/jifen-24288/"
+  },
+  "南美女运": {
+    "season_id": 15851,
+    "jifen_id": "24293",
+    "url": "https://liansai.500.com/zuqiu-15851/jifen-24293/"
+  },
+  "亚冠": {
+    "season_id": 9431,
+    "jifen_id": "24526",
+    "url": "https://liansai.500.com/zuqiu-9431/jifen-24526/"
+  },
+  "亚协杯": {
+    "season_id": 16787,
+    "jifen_id": "24499",
+    "url": "https://liansai.500.com/zuqiu-16787/jifen-24499/"
+  },
+  "东南运": {
+    "season_id": 19429,
+    "jifen_id": "25955",
+    "url": "https://liansai.500.com/zuqiu-19429/jifen-25955/"
+  },
+  "西亚锦": {
+    "season_id": 16792,
+    "jifen_id": "24530",
+    "url": "https://liansai.500.com/zuqiu-16792/jifen-24530/"
+  },
+  "亚总杯": {
+    "season_id": 16797,
+    "jifen_id": "24484",
+    "url": "https://liansai.500.com/zuqiu-16797/jifen-24484/"
+  },
+  "室亚洲杯": {
+    "season_id": 19598,
+    "jifen_id": "26692",
+    "url": "https://liansai.500.com/zuqiu-19598/jifen-26692/"
+  },
+  "阿拉伯杯": {
+    "season_id": 19431,
+    "jifen_id": "26315",
+    "url": "https://liansai.500.com/zuqiu-19431/jifen-26315/"
+  },
+  "东南青冠": {
+    "season_id": 16853,
+    "jifen_id": "24549",
+    "url": "https://liansai.500.com/zuqiu-16853/jifen-24549/"
+  },
+  "海湾锦标": {
+    "season_id": 19367,
+    "jifen_id": "27310",
+    "url": "https://liansai.500.com/zuqiu-19367/jifen-27310/"
+  },
+  "内鲁杯": {
+    "season_id": 16922,
+    "jifen_id": "24578",
+    "url": "https://liansai.500.com/zuqiu-16922/jifen-24578/"
+  },
+  "海湾奥杯": {
+    "season_id": 19469,
+    "jifen_id": "26317",
+    "url": "https://liansai.500.com/zuqiu-19469/jifen-26317/"
+  },
+  "女东南锦": {
+    "season_id": 16889,
+    "jifen_id": "24562",
+    "url": "https://liansai.500.com/zuqiu-16889/jifen-24562/"
+  },
+  "女亚青冠": {
+    "season_id": 16898,
+    "jifen_id": "24569",
+    "url": "https://liansai.500.com/zuqiu-16898/jifen-24569/"
+  },
+  "女和平杯": {
+    "season_id": 16948,
+    "jifen_id": "24583",
+    "url": "https://liansai.500.com/zuqiu-16948/jifen-24583/"
+  },
+  "女东亚杯": {
+    "season_id": 9082,
+    "jifen_id": "22163",
+    "url": "https://liansai.500.com/zuqiu-9082/jifen-22163/"
+  },
+  "U17女亚洲杯": {
+    "season_id": 19382,
+    "jifen_id": "26926",
+    "url": "https://liansai.500.com/zuqiu-19382/jifen-26926/"
+  },
+  "东南亚U16": {
+    "season_id": 16970,
+    "jifen_id": "24592",
+    "url": "https://liansai.500.com/zuqiu-16970/jifen-24592/"
+  },
+  "东南亚U17": {
+    "season_id": 19764,
+    "jifen_id": "27368",
+    "url": "https://liansai.500.com/zuqiu-19764/jifen-27368/"
+  },
+  "阿拉青U17": {
+    "season_id": 16978,
+    "jifen_id": "24610",
+    "url": "https://liansai.500.com/zuqiu-16978/jifen-24610/"
+  },
+  "海湾U17": {
+    "season_id": 19358,
+    "jifen_id": "25700",
+    "url": "https://liansai.500.com/zuqiu-19358/jifen-25700/"
+  },
+  "东南亚U19": {
+    "season_id": 17011,
+    "jifen_id": "24626",
+    "url": "https://liansai.500.com/zuqiu-17011/jifen-24626/"
+  },
+  "西亚U16": {
+    "season_id": 17019,
+    "jifen_id": "24628",
+    "url": "https://liansai.500.com/zuqiu-17019/jifen-24628/"
+  },
+  "南亚杯U19": {
+    "season_id": 19726,
+    "jifen_id": "27197",
+    "url": "https://liansai.500.com/zuqiu-19726/jifen-27197/"
+  },
+  "南亚女杯": {
+    "season_id": 7337,
+    "jifen_id": "21458",
+    "url": "https://liansai.500.com/zuqiu-7337/jifen-21458/"
+  },
+  "东南亚U20": {
+    "season_id": 17022,
+    "jifen_id": "24633",
+    "url": "https://liansai.500.com/zuqiu-17022/jifen-24633/"
+  },
+  "阿拉杯U20": {
+    "season_id": 17046,
+    "jifen_id": "24641",
+    "url": "https://liansai.500.com/zuqiu-17046/jifen-24641/"
+  },
+  "海湾运U20": {
+    "season_id": 17021,
+    "jifen_id": "25178",
+    "url": "https://liansai.500.com/zuqiu-17021/jifen-25178/"
+  },
+  "乌兹联杯": {
+    "season_id": 18395,
+    "jifen_id": "24878",
+    "url": "https://liansai.500.com/zuqiu-18395/jifen-24878/"
+  },
+  "乌兹超杯": {
+    "season_id": 19699,
+    "jifen_id": "26987",
+    "url": "https://liansai.500.com/zuqiu-19699/jifen-26987/"
+  },
+  "大冠杯": {
+    "season_id": 19565,
+    "jifen_id": "27630",
+    "url": "https://liansai.500.com/zuqiu-19565/jifen-27630/"
+  },
+  "大洋女U20": {
+    "season_id": 18542,
+    "jifen_id": "24913",
+    "url": "https://liansai.500.com/zuqiu-18542/jifen-24913/"
+  },
+  "大洋女U17": {
+    "season_id": 18557,
+    "jifen_id": "24923",
+    "url": "https://liansai.500.com/zuqiu-18557/jifen-24923/"
+  },
+  "大洋冠U17": {
+    "season_id": 18631,
+    "jifen_id": "24937",
+    "url": "https://liansai.500.com/zuqiu-18631/jifen-24937/"
+  },
+  "大洋冠U20": {
+    "season_id": 18637,
+    "jifen_id": "24956",
+    "url": "https://liansai.500.com/zuqiu-18637/jifen-24956/"
+  },
+  "大洋统杯": {
+    "season_id": 18570,
+    "jifen_id": "24919",
+    "url": "https://liansai.500.com/zuqiu-18570/jifen-24919/"
+  },
+  "中东非杯": {
+    "season_id": 18693,
+    "jifen_id": "24978",
+    "url": "https://liansai.500.com/zuqiu-18693/jifen-24978/"
+  },
+  "北非冠": {
+    "season_id": 18656,
+    "jifen_id": "24941",
+    "url": "https://liansai.500.com/zuqiu-18656/jifen-24941/"
+  },
+  "非超杯": {
+    "season_id": 19391,
+    "jifen_id": "25791",
+    "url": "https://liansai.500.com/zuqiu-19391/jifen-25791/"
+  },
+  "女非洲杯": {
+    "season_id": 19397,
+    "jifen_id": "25804",
+    "url": "https://liansai.500.com/zuqiu-19397/jifen-25804/"
+  },
+  "非洲运": {
+    "season_id": 18701,
+    "jifen_id": "24957",
+    "url": "https://liansai.500.com/zuqiu-18701/jifen-24957/"
+  },
+  "非青杯外": {
+    "season_id": 18735,
+    "jifen_id": "24964",
+    "url": "https://liansai.500.com/zuqiu-18735/jifen-24964/"
+  },
+  "非运女足": {
+    "season_id": 18743,
+    "jifen_id": "24983",
+    "url": "https://liansai.500.com/zuqiu-18743/jifen-24983/"
+  },
+  "非女锦U20": {
+    "season_id": 7424,
+    "jifen_id": "22308",
+    "url": "https://liansai.500.com/zuqiu-7424/jifen-22308/"
+  },
+  "南亚运": {
+    "season_id": 19064,
+    "jifen_id": "25079",
+    "url": "https://liansai.500.com/zuqiu-19064/jifen-25079/"
+  },
+  "多塞纳杯": {
+    "season_id": 19109,
+    "jifen_id": "26570",
+    "url": "https://liansai.500.com/zuqiu-19109/jifen-26570/"
+  },
+  "世界杯预赛": {
+    "season_id": 19741,
+    "jifen_id": "27125",
+    "url": "https://liansai.500.com/zuqiu-19741/jifen-27125/"
+  },
+  "英冠": {
+    "season_id": 9116,
+    "jifen_id": "22242",
+    "url": "https://liansai.500.com/zuqiu-9116/jifen-22242/"
+  },
+  "英乙": {
+    "season_id": 9119,
+    "jifen_id": "22220",
+    "url": "https://liansai.500.com/zuqiu-9119/jifen-22220/"
+  },
+  "英甲": {
+    "season_id": 9122,
+    "jifen_id": "22224",
+    "url": "https://liansai.500.com/zuqiu-9122/jifen-22224/"
+  },
+  "英足总杯": {
+    "season_id": 10629,
+    "jifen_id": "23156",
+    "url": "https://liansai.500.com/zuqiu-10629/jifen-23156/"
+  },
+  "英联杯": {
+    "season_id": 9134,
+    "jifen_id": "22390",
+    "url": "https://liansai.500.com/zuqiu-9134/jifen-22390/"
+  },
+  "社区盾": {
+    "season_id": 19800,
+    "jifen_id": "27651",
+    "url": "https://liansai.500.com/zuqiu-19800/jifen-27651/"
+  },
+  "英非联": {
+    "season_id": 9154,
+    "jifen_id": "27479",
+    "url": "https://liansai.500.com/zuqiu-9154/jifen-27479/"
+  },
+  "英挑杯": {
+    "season_id": 10667,
+    "jifen_id": "27646",
+    "url": "https://liansai.500.com/zuqiu-10667/jifen-27646/"
+  },
+  "英锦赛": {
+    "season_id": 9210,
+    "jifen_id": "26908",
+    "url": "https://liansai.500.com/zuqiu-9210/jifen-26908/"
+  },
+  "英非北": {
+    "season_id": 10491,
+    "jifen_id": "27481",
+    "url": "https://liansai.500.com/zuqiu-10491/jifen-27481/"
+  },
+  "英非南": {
+    "season_id": 10462,
+    "jifen_id": "27480",
+    "url": "https://liansai.500.com/zuqiu-10462/jifen-27480/"
+  },
+  "英南超": {
+    "season_id": 10505,
+    "jifen_id": "27428",
+    "url": "https://liansai.500.com/zuqiu-10505/jifen-27428/"
+  },
+  "英北超": {
+    "season_id": 10519,
+    "jifen_id": "27414",
+    "url": "https://liansai.500.com/zuqiu-10519/jifen-27414/"
+  },
+  "英依超": {
+    "season_id": 10567,
+    "jifen_id": "27427",
+    "url": "https://liansai.500.com/zuqiu-10567/jifen-27427/"
+  },
+  "英乙U23": {
+    "season_id": 8567,
+    "jifen_id": "25331",
+    "url": "https://liansai.500.com/zuqiu-8567/jifen-25331/"
+  },
+  "英协联杯": {
+    "season_id": 9486,
+    "jifen_id": "26997",
+    "url": "https://liansai.500.com/zuqiu-9486/jifen-26997/"
+  },
+  "英U23": {
+    "season_id": 9581,
+    "jifen_id": "22720",
+    "url": "https://liansai.500.com/zuqiu-9581/jifen-22720/"
+  },
+  "英U23杯": {
+    "season_id": 9587,
+    "jifen_id": "22743",
+    "url": "https://liansai.500.com/zuqiu-9587/jifen-22743/"
+  },
+  "英超夏季赛": {
+    "season_id": 19798,
+    "jifen_id": "27581",
+    "url": "https://liansai.500.com/zuqiu-19798/jifen-27581/"
+  },
+  "骁龙杯": {
+    "season_id": 9891,
+    "jifen_id": "22922",
+    "url": "https://liansai.500.com/zuqiu-9891/jifen-22922/"
+  },
+  "英女超": {
+    "season_id": 10578,
+    "jifen_id": "27635",
+    "url": "https://liansai.500.com/zuqiu-10578/jifen-27635/"
+  },
+  "英女南": {
+    "season_id": 10604,
+    "jifen_id": "23152",
+    "url": "https://liansai.500.com/zuqiu-10604/jifen-23152/"
+  },
+  "英女北": {
+    "season_id": 10553,
+    "jifen_id": "23153",
+    "url": "https://liansai.500.com/zuqiu-10553/jifen-23153/"
+  },
+  "英U21杯": {
+    "season_id": 10598,
+    "jifen_id": "27586",
+    "url": "https://liansai.500.com/zuqiu-10598/jifen-27586/"
+  },
+  "英女冠": {
+    "season_id": 19242,
+    "jifen_id": "25425",
+    "url": "https://liansai.500.com/zuqiu-19242/jifen-25425/"
+  },
+  "英U21": {
+    "season_id": 10574,
+    "jifen_id": "27576",
+    "url": "https://liansai.500.com/zuqiu-10574/jifen-27576/"
+  },
+  "英乙U21": {
+    "season_id": 10603,
+    "jifen_id": "27613",
+    "url": "https://liansai.500.com/zuqiu-10603/jifen-27613/"
+  },
+  "英青杯": {
+    "season_id": 19477,
+    "jifen_id": "27485",
+    "url": "https://liansai.500.com/zuqiu-19477/jifen-27485/"
+  },
+  "英斯盾": {
+    "season_id": 10724,
+    "jifen_id": "23192",
+    "url": "https://liansai.500.com/zuqiu-10724/jifen-23192/"
+  },
+  "英女足总": {
+    "season_id": 19401,
+    "jifen_id": "27224",
+    "url": "https://liansai.500.com/zuqiu-19401/jifen-27224/"
+  },
+  "英女联杯": {
+    "season_id": 10730,
+    "jifen_id": "26913",
+    "url": "https://liansai.500.com/zuqiu-10730/jifen-26913/"
+  },
+  "英女杯": {
+    "season_id": 19156,
+    "jifen_id": "26917",
+    "url": "https://liansai.500.com/zuqiu-19156/jifen-26917/"
+  },
+  "英南超中": {
+    "season_id": 12205,
+    "jifen_id": "27431",
+    "url": "https://liansai.500.com/zuqiu-12205/jifen-27431/"
+  },
+  "英足总瓶": {
+    "season_id": 19264,
+    "jifen_id": "25435",
+    "url": "https://liansai.500.com/zuqiu-19264/jifen-25435/"
+  },
+  "西乙": {
+    "season_id": 9126,
+    "jifen_id": "22239",
+    "url": "https://liansai.500.com/zuqiu-9126/jifen-22239/"
+  },
+  "西班牙杯": {
+    "season_id": 19349,
+    "jifen_id": "26924",
+    "url": "https://liansai.500.com/zuqiu-19349/jifen-26924/"
+  },
+  "西超杯": {
+    "season_id": 19371,
+    "jifen_id": "25681",
+    "url": "https://liansai.500.com/zuqiu-19371/jifen-25681/"
+  },
+  "西丙1": {
+    "season_id": 7260,
+    "jifen_id": "21194",
+    "url": "https://liansai.500.com/zuqiu-7260/jifen-21194/"
+  },
+  "西女超": {
+    "season_id": 10955,
+    "jifen_id": "23246",
+    "url": "https://liansai.500.com/zuqiu-10955/jifen-23246/"
+  },
+  "西丙2": {
+    "season_id": 7261,
+    "jifen_id": "21195",
+    "url": "https://liansai.500.com/zuqiu-7261/jifen-21195/"
+  },
+  "西丙3": {
+    "season_id": 7262,
+    "jifen_id": "21196",
+    "url": "https://liansai.500.com/zuqiu-7262/jifen-21196/"
+  },
+  "西丙4": {
+    "season_id": 7264,
+    "jifen_id": "21197",
+    "url": "https://liansai.500.com/zuqiu-7264/jifen-21197/"
+  },
+  "西丙附": {
+    "season_id": 9086,
+    "jifen_id": "22176",
+    "url": "https://liansai.500.com/zuqiu-9086/jifen-22176/"
+  },
+  "伯纳乌杯": {
+    "season_id": 4936,
+    "jifen_id": "13240",
+    "url": "https://liansai.500.com/zuqiu-4936/jifen-13240/"
+  },
+  "甘伯杯": {
+    "season_id": 12297,
+    "jifen_id": "23492",
+    "url": "https://liansai.500.com/zuqiu-12297/jifen-23492/"
+  },
+  "西联杯": {
+    "season_id": 11042,
+    "jifen_id": "25904",
+    "url": "https://liansai.500.com/zuqiu-11042/jifen-25904/"
+  },
+  "西丙5": {
+    "season_id": 7265,
+    "jifen_id": "21198",
+    "url": "https://liansai.500.com/zuqiu-7265/jifen-21198/"
+  },
+  "西协甲": {
+    "season_id": 9136,
+    "jifen_id": "22271",
+    "url": "https://liansai.500.com/zuqiu-9136/jifen-22271/"
+  },
+  "西甲希望杯": {
+    "season_id": 9388,
+    "jifen_id": "22577",
+    "url": "https://liansai.500.com/zuqiu-9388/jifen-22577/"
+  },
+  "西协乙": {
+    "season_id": 10920,
+    "jifen_id": "27670",
+    "url": "https://liansai.500.com/zuqiu-10920/jifen-27670/"
+  },
+  "西室内足": {
+    "season_id": 10937,
+    "jifen_id": "27740",
+    "url": "https://liansai.500.com/zuqiu-10937/jifen-27740/"
+  },
+  "西女超杯": {
+    "season_id": 19567,
+    "jifen_id": "26521",
+    "url": "https://liansai.500.com/zuqiu-19567/jifen-26521/"
+  },
+  "西协丙": {
+    "season_id": 19157,
+    "jifen_id": "25585",
+    "url": "https://liansai.500.com/zuqiu-19157/jifen-25585/"
+  },
+  "加泰杯": {
+    "season_id": 19416,
+    "jifen_id": "26241",
+    "url": "https://liansai.500.com/zuqiu-19416/jifen-26241/"
+  },
+  "皇后杯": {
+    "season_id": 19153,
+    "jifen_id": "27036",
+    "url": "https://liansai.500.com/zuqiu-19153/jifen-27036/"
+  },
+  "意超杯": {
+    "season_id": 19411,
+    "jifen_id": "26348",
+    "url": "https://liansai.500.com/zuqiu-19411/jifen-26348/"
+  },
+  "意杯": {
+    "season_id": 9211,
+    "jifen_id": "27338",
+    "url": "https://liansai.500.com/zuqiu-9211/jifen-27338/"
+  },
+  "意乙": {
+    "season_id": 9177,
+    "jifen_id": "27611",
+    "url": "https://liansai.500.com/zuqiu-9177/jifen-27611/"
+  },
+  "意丙1": {
+    "season_id": 7294,
+    "jifen_id": "21277",
+    "url": "https://liansai.500.com/zuqiu-7294/jifen-21277/"
+  },
+  "意TIM杯": {
+    "season_id": 4042,
+    "jifen_id": "10299",
+    "url": "https://liansai.500.com/zuqiu-4042/jifen-10299/"
+  },
+  "意丙杯": {
+    "season_id": 10854,
+    "jifen_id": "26592",
+    "url": "https://liansai.500.com/zuqiu-10854/jifen-26592/"
+  },
+  "意丙附": {
+    "season_id": 9066,
+    "jifen_id": "21981",
+    "url": "https://liansai.500.com/zuqiu-9066/jifen-21981/"
+  },
+  "意青联": {
+    "season_id": 10784,
+    "jifen_id": "27762",
+    "url": "https://liansai.500.com/zuqiu-10784/jifen-27762/"
+  },
+  "意青杯": {
+    "season_id": 11008,
+    "jifen_id": "27229",
+    "url": "https://liansai.500.com/zuqiu-11008/jifen-27229/"
+  },
+  "维亚杯": {
+    "season_id": 19681,
+    "jifen_id": "27079",
+    "url": "https://liansai.500.com/zuqiu-19681/jifen-27079/"
+  },
+  "意女超杯": {
+    "season_id": 19584,
+    "jifen_id": "26584",
+    "url": "https://liansai.500.com/zuqiu-19584/jifen-26584/"
+  },
+  "意青乙": {
+    "season_id": 19151,
+    "jifen_id": "27755",
+    "url": "https://liansai.500.com/zuqiu-19151/jifen-27755/"
+  },
+  "意丙2": {
+    "season_id": 10757,
+    "jifen_id": "23200",
+    "url": "https://liansai.500.com/zuqiu-10757/jifen-23200/"
+  },
+  "意女甲": {
+    "season_id": 10780,
+    "jifen_id": "23201",
+    "url": "https://liansai.500.com/zuqiu-10780/jifen-23201/"
+  },
+  "意青联丙": {
+    "season_id": 13075,
+    "jifen_id": "23619",
+    "url": "https://liansai.500.com/zuqiu-13075/jifen-23619/"
+  },
+  "意女杯": {
+    "season_id": 19604,
+    "jifen_id": "27723",
+    "url": "https://liansai.500.com/zuqiu-19604/jifen-27723/"
+  },
+  "德乙": {
+    "season_id": 9132,
+    "jifen_id": "22238",
+    "url": "https://liansai.500.com/zuqiu-9132/jifen-22238/"
+  },
+  "德国杯": {
+    "season_id": 9212,
+    "jifen_id": "27356",
+    "url": "https://liansai.500.com/zuqiu-9212/jifen-27356/"
+  },
+  "德女联": {
+    "season_id": 11259,
+    "jifen_id": "23278",
+    "url": "https://liansai.500.com/zuqiu-11259/jifen-23278/"
+  },
+  "德丙联": {
+    "season_id": 9149,
+    "jifen_id": "27668",
+    "url": "https://liansai.500.com/zuqiu-9149/jifen-27668/"
+  },
+  "德超杯": {
+    "season_id": 9081,
+    "jifen_id": "22160",
+    "url": "https://liansai.500.com/zuqiu-9081/jifen-22160/"
+  },
+  "都柏林杯": {
+    "season_id": 2376,
+    "jifen_id": "5539",
+    "url": "https://liansai.500.com/zuqiu-2376/jifen-5539/"
+  },
+  "德电信杯": {
+    "season_id": 11363,
+    "jifen_id": "23306",
+    "url": "https://liansai.500.com/zuqiu-11363/jifen-23306/"
+  },
+  "德女杯": {
+    "season_id": 11240,
+    "jifen_id": "27222",
+    "url": "https://liansai.500.com/zuqiu-11240/jifen-27222/"
+  },
+  "德青杯": {
+    "season_id": 19368,
+    "jifen_id": "27639",
+    "url": "https://liansai.500.com/zuqiu-19368/jifen-27639/"
+  },
+  "德青联": {
+    "season_id": 9508,
+    "jifen_id": "22654",
+    "url": "https://liansai.500.com/zuqiu-9508/jifen-22654/"
+  },
+  "德地区": {
+    "season_id": 11149,
+    "jifen_id": "27763",
+    "url": "https://liansai.500.com/zuqiu-11149/jifen-27763/"
+  },
+  "德U17": {
+    "season_id": 11165,
+    "jifen_id": "23259",
+    "url": "https://liansai.500.com/zuqiu-11165/jifen-23259/"
+  },
+  "德U19": {
+    "season_id": 11182,
+    "jifen_id": "23273",
+    "url": "https://liansai.500.com/zuqiu-11182/jifen-23273/"
+  },
+  "德女甲": {
+    "season_id": 11201,
+    "jifen_id": "23262",
+    "url": "https://liansai.500.com/zuqiu-11201/jifen-23262/"
+  },
+  "德女乙": {
+    "season_id": 15406,
+    "jifen_id": "24136",
+    "url": "https://liansai.500.com/zuqiu-15406/jifen-24136/"
+  },
+  "法超杯": {
+    "season_id": 19500,
+    "jifen_id": "26349",
+    "url": "https://liansai.500.com/zuqiu-19500/jifen-26349/"
+  },
+  "法丙": {
+    "season_id": 7347,
+    "jifen_id": "21499",
+    "url": "https://liansai.500.com/zuqiu-7347/jifen-21499/"
+  },
+  "法国杯": {
+    "season_id": 19365,
+    "jifen_id": "27350",
+    "url": "https://liansai.500.com/zuqiu-19365/jifen-27350/"
+  },
+  "法联杯": {
+    "season_id": 5476,
+    "jifen_id": "16305",
+    "url": "https://liansai.500.com/zuqiu-5476/jifen-16305/"
+  },
+  "法乙": {
+    "season_id": 9138,
+    "jifen_id": "27679",
+    "url": "https://liansai.500.com/zuqiu-9138/jifen-27679/"
+  },
+  "法全联": {
+    "season_id": 11487,
+    "jifen_id": "27647",
+    "url": "https://liansai.500.com/zuqiu-11487/jifen-27647/"
+  },
+  "法全乙": {
+    "season_id": 11319,
+    "jifen_id": "23300",
+    "url": "https://liansai.500.com/zuqiu-11319/jifen-23300/"
+  },
+  "法女甲": {
+    "season_id": 11337,
+    "jifen_id": "27728",
+    "url": "https://liansai.500.com/zuqiu-11337/jifen-27728/"
+  },
+  "法U19": {
+    "season_id": 11353,
+    "jifen_id": "27626",
+    "url": "https://liansai.500.com/zuqiu-11353/jifen-27626/"
+  },
+  "法女乙": {
+    "season_id": 12473,
+    "jifen_id": "23538",
+    "url": "https://liansai.500.com/zuqiu-12473/jifen-23538/"
+  },
+  "奥甲": {
+    "season_id": 9139,
+    "jifen_id": "27686",
+    "url": "https://liansai.500.com/zuqiu-9139/jifen-27686/"
+  },
+  "奥地利杯": {
+    "season_id": 9252,
+    "jifen_id": "22437",
+    "url": "https://liansai.500.com/zuqiu-9252/jifen-22437/"
+  },
+  "奥乙": {
+    "season_id": 9141,
+    "jifen_id": "22246",
+    "url": "https://liansai.500.com/zuqiu-9141/jifen-22246/"
+  },
+  "奥丙": {
+    "season_id": 12749,
+    "jifen_id": "23580",
+    "url": "https://liansai.500.com/zuqiu-12749/jifen-23580/"
+  },
+  "奥女甲": {
+    "season_id": 12775,
+    "jifen_id": "27304",
+    "url": "https://liansai.500.com/zuqiu-12775/jifen-27304/"
+  },
+  "爱沙尼甲": {
+    "season_id": 19602,
+    "jifen_id": "26597",
+    "url": "https://liansai.500.com/zuqiu-19602/jifen-26597/"
+  },
+  "爱超杯": {
+    "season_id": 19660,
+    "jifen_id": "26839",
+    "url": "https://liansai.500.com/zuqiu-19660/jifen-26839/"
+  },
+  "利沃冬联": {
+    "season_id": 9512,
+    "jifen_id": "22667",
+    "url": "https://liansai.500.com/zuqiu-9512/jifen-22667/"
+  },
+  "爱沙乙": {
+    "season_id": 19680,
+    "jifen_id": "26950",
+    "url": "https://liansai.500.com/zuqiu-19680/jifen-26950/"
+  },
+  "爱沙女甲冠": {
+    "season_id": 19671,
+    "jifen_id": "26874",
+    "url": "https://liansai.500.com/zuqiu-19671/jifen-26874/"
+  },
+  "爱沙杯": {
+    "season_id": 15152,
+    "jifen_id": "27534",
+    "url": "https://liansai.500.com/zuqiu-15152/jifen-27534/"
+  },
+  "爱沙冬锦": {
+    "season_id": 15154,
+    "jifen_id": "24096",
+    "url": "https://liansai.500.com/zuqiu-15154/jifen-24096/"
+  },
+  "安道尔联": {
+    "season_id": 9148,
+    "jifen_id": "27739",
+    "url": "https://liansai.500.com/zuqiu-9148/jifen-27739/"
+  },
+  "安道超杯": {
+    "season_id": 19350,
+    "jifen_id": "25614",
+    "url": "https://liansai.500.com/zuqiu-19350/jifen-25614/"
+  },
+  "安道杯": {
+    "season_id": 19543,
+    "jifen_id": "27674",
+    "url": "https://liansai.500.com/zuqiu-19543/jifen-27674/"
+  },
+  "阿巴超": {
+    "season_id": 9245,
+    "jifen_id": "22403",
+    "url": "https://liansai.500.com/zuqiu-9245/jifen-22403/"
+  },
+  "阿尔杯": {
+    "season_id": 19433,
+    "jifen_id": "27394",
+    "url": "https://liansai.500.com/zuqiu-19433/jifen-27394/"
+  },
+  "阿巴超杯": {
+    "season_id": 19519,
+    "jifen_id": "26395",
+    "url": "https://liansai.500.com/zuqiu-19519/jifen-26395/"
+  },
+  "阿尔巴甲": {
+    "season_id": 12002,
+    "jifen_id": "27598",
+    "url": "https://liansai.500.com/zuqiu-12002/jifen-27598/"
+  },
+  "阿尔巴杯": {
+    "season_id": 19355,
+    "jifen_id": "27363",
+    "url": "https://liansai.500.com/zuqiu-19355/jifen-27363/"
+  },
+  "爱甲": {
+    "season_id": 19627,
+    "jifen_id": "26694",
+    "url": "https://liansai.500.com/zuqiu-19627/jifen-26694/"
+  },
+  "爱超": {
+    "season_id": 19511,
+    "jifen_id": "26370",
+    "url": "https://liansai.500.com/zuqiu-19511/jifen-26370/"
+  },
+  "爱足总杯": {
+    "season_id": 19782,
+    "jifen_id": "27336",
+    "url": "https://liansai.500.com/zuqiu-19782/jifen-27336/"
+  },
+  "爱联杯": {
+    "season_id": 5857,
+    "jifen_id": "16457",
+    "url": "https://liansai.500.com/zuqiu-5857/jifen-16457/"
+  },
+  "牛奶杯": {
+    "season_id": 8629,
+    "jifen_id": "25378",
+    "url": "https://liansai.500.com/zuqiu-8629/jifen-25378/"
+  },
+  "爱女超杯": {
+    "season_id": 19693,
+    "jifen_id": "26964",
+    "url": "https://liansai.500.com/zuqiu-19693/jifen-26964/"
+  },
+  "斯坦杯": {
+    "season_id": 12953,
+    "jifen_id": "23599",
+    "url": "https://liansai.500.com/zuqiu-12953/jifen-23599/"
+  },
+  "爱总统杯": {
+    "season_id": 19600,
+    "jifen_id": "26595",
+    "url": "https://liansai.500.com/zuqiu-19600/jifen-26595/"
+  },
+  "阿塞联": {
+    "season_id": 15459,
+    "jifen_id": "24160",
+    "url": "https://liansai.500.com/zuqiu-15459/jifen-24160/"
+  },
+  "阿塞杯": {
+    "season_id": 19357,
+    "jifen_id": "27349",
+    "url": "https://liansai.500.com/zuqiu-19357/jifen-27349/"
+  },
+  "阿塞甲": {
+    "season_id": 19390,
+    "jifen_id": "27765",
+    "url": "https://liansai.500.com/zuqiu-19390/jifen-27765/"
+  },
+  "比超杯": {
+    "season_id": 9174,
+    "jifen_id": "22295",
+    "url": "https://liansai.500.com/zuqiu-9174/jifen-22295/"
+  },
+  "比甲": {
+    "season_id": 9115,
+    "jifen_id": "22210",
+    "url": "https://liansai.500.com/zuqiu-9115/jifen-22210/"
+  },
+  "比杯": {
+    "season_id": 9301,
+    "jifen_id": "26822",
+    "url": "https://liansai.500.com/zuqiu-9301/jifen-26822/"
+  },
+  "比乙": {
+    "season_id": 9135,
+    "jifen_id": "27302",
+    "url": "https://liansai.500.com/zuqiu-9135/jifen-27302/"
+  },
+  "比女超": {
+    "season_id": 11954,
+    "jifen_id": "27172",
+    "url": "https://liansai.500.com/zuqiu-11954/jifen-27172/"
+  },
+  "比业余": {
+    "season_id": 9601,
+    "jifen_id": "26813",
+    "url": "https://liansai.500.com/zuqiu-9601/jifen-26813/"
+  },
+  "比丙": {
+    "season_id": 11932,
+    "jifen_id": "23398",
+    "url": "https://liansai.500.com/zuqiu-11932/jifen-23398/"
+  },
+  "比U21": {
+    "season_id": 11943,
+    "jifen_id": "23399",
+    "url": "https://liansai.500.com/zuqiu-11943/jifen-23399/"
+  },
+  "比女甲": {
+    "season_id": 11967,
+    "jifen_id": "23407",
+    "url": "https://liansai.500.com/zuqiu-11967/jifen-23407/"
+  },
+  "波甲": {
+    "season_id": 9108,
+    "jifen_id": "22264",
+    "url": "https://liansai.500.com/zuqiu-9108/jifen-22264/"
+  },
+  "波兰杯": {
+    "season_id": 9113,
+    "jifen_id": "27232",
+    "url": "https://liansai.500.com/zuqiu-9113/jifen-27232/"
+  },
+  "波联杯": {
+    "season_id": 1730,
+    "jifen_id": "3924",
+    "url": "https://liansai.500.com/zuqiu-1730/jifen-3924/"
+  },
+  "波乙": {
+    "season_id": 9186,
+    "jifen_id": "27747",
+    "url": "https://liansai.500.com/zuqiu-9186/jifen-27747/"
+  },
+  "波超杯": {
+    "season_id": 9152,
+    "jifen_id": "22250",
+    "url": "https://liansai.500.com/zuqiu-9152/jifen-22250/"
+  },
+  "波兰丙": {
+    "season_id": 13182,
+    "jifen_id": "23630",
+    "url": "https://liansai.500.com/zuqiu-13182/jifen-23630/"
+  },
+  "波女超": {
+    "season_id": 13196,
+    "jifen_id": "23645",
+    "url": "https://liansai.500.com/zuqiu-13196/jifen-23645/"
+  },
+  "波青联": {
+    "season_id": 13239,
+    "jifen_id": "23635",
+    "url": "https://liansai.500.com/zuqiu-13239/jifen-23635/"
+  },
+  "北爱超": {
+    "season_id": 9131,
+    "jifen_id": "27560",
+    "url": "https://liansai.500.com/zuqiu-9131/jifen-27560/"
+  },
+  "北联杯": {
+    "season_id": 9213,
+    "jifen_id": "26991",
+    "url": "https://liansai.500.com/zuqiu-9213/jifen-26991/"
+  },
+  "北爱杯": {
+    "season_id": 19412,
+    "jifen_id": "27393",
+    "url": "https://liansai.500.com/zuqiu-19412/jifen-27393/"
+  },
+  "北爱冠": {
+    "season_id": 12989,
+    "jifen_id": "27326",
+    "url": "https://liansai.500.com/zuqiu-12989/jifen-27326/"
+  },
+  "冰甲": {
+    "season_id": 19601,
+    "jifen_id": "26596",
+    "url": "https://liansai.500.com/zuqiu-19601/jifen-26596/"
+  },
+  "冰岛超": {
+    "season_id": 19561,
+    "jifen_id": "26522",
+    "url": "https://liansai.500.com/zuqiu-19561/jifen-26522/"
+  },
+  "冰岛杯": {
+    "season_id": 19624,
+    "jifen_id": "27707",
+    "url": "https://liansai.500.com/zuqiu-19624/jifen-27707/"
+  },
+  "冰联杯": {
+    "season_id": 19626,
+    "jifen_id": "27365",
+    "url": "https://liansai.500.com/zuqiu-19626/jifen-27365/"
+  },
+  "冰超杯": {
+    "season_id": 19677,
+    "jifen_id": "26949",
+    "url": "https://liansai.500.com/zuqiu-19677/jifen-26949/"
+  },
+  "冰岛锦": {
+    "season_id": 13937,
+    "jifen_id": "23800",
+    "url": "https://liansai.500.com/zuqiu-13937/jifen-23800/"
+  },
+  "冰法女锦": {
+    "season_id": 10282,
+    "jifen_id": "23070",
+    "url": "https://liansai.500.com/zuqiu-10282/jifen-23070/"
+  },
+  "冰女超": {
+    "season_id": 19562,
+    "jifen_id": "26515",
+    "url": "https://liansai.500.com/zuqiu-19562/jifen-26515/"
+  },
+  "冰岛乙": {
+    "season_id": 19607,
+    "jifen_id": "26619",
+    "url": "https://liansai.500.com/zuqiu-19607/jifen-26619/"
+  },
+  "冰女甲": {
+    "season_id": 19746,
+    "jifen_id": "27166",
+    "url": "https://liansai.500.com/zuqiu-19746/jifen-27166/"
+  },
+  "冰女联杯": {
+    "season_id": 19538,
+    "jifen_id": "27078",
+    "url": "https://liansai.500.com/zuqiu-19538/jifen-27078/"
+  },
+  "冰女杯": {
+    "season_id": 19542,
+    "jifen_id": "27439",
+    "url": "https://liansai.500.com/zuqiu-19542/jifen-27439/"
+  },
+  "雷克锦": {
+    "season_id": 19478,
+    "jifen_id": "26239",
+    "url": "https://liansai.500.com/zuqiu-19478/jifen-26239/"
+  },
+  "雷克女锦": {
+    "season_id": 13986,
+    "jifen_id": "23803",
+    "url": "https://liansai.500.com/zuqiu-13986/jifen-23803/"
+  },
+  "芬超": {
+    "season_id": 19506,
+    "jifen_id": "26364",
+    "url": "https://liansai.500.com/zuqiu-19506/jifen-26364/"
+  },
+  "荷甲": {
+    "season_id": 9111,
+    "jifen_id": "22202",
+    "url": "https://liansai.500.com/zuqiu-9111/jifen-22202/"
+  },
+  "捷甲": {
+    "season_id": 9163,
+    "jifen_id": "22259",
+    "url": "https://liansai.500.com/zuqiu-9163/jifen-22259/"
+  },
+  "挪超": {
+    "season_id": 19507,
+    "jifen_id": "26365",
+    "url": "https://liansai.500.com/zuqiu-19507/jifen-26365/"
+  },
+  "苏女超": {
+    "season_id": 11720,
+    "jifen_id": "27750",
+    "url": "https://liansai.500.com/zuqiu-11720/jifen-27750/"
+  },
+  "以超": {
+    "season_id": 9123,
+    "jifen_id": "27270",
+    "url": "https://liansai.500.com/zuqiu-9123/jifen-27270/"
+  },
+  "阿根廷杯": {
+    "season_id": 19535,
+    "jifen_id": "27238",
+    "url": "https://liansai.500.com/zuqiu-19535/jifen-27238/"
+  },
+  "巴拉联": {
+    "season_id": 19484,
+    "jifen_id": "26264",
+    "url": "https://liansai.500.com/zuqiu-19484/jifen-26264/"
+  },
+  "哥甲": {
+    "season_id": 19539,
+    "jifen_id": "27757",
+    "url": "https://liansai.500.com/zuqiu-19539/jifen-27757/"
+  },
+  "委超": {
+    "season_id": 19576,
+    "jifen_id": "27442",
+    "url": "https://liansai.500.com/zuqiu-19576/jifen-27442/"
+  },
+  "乌拉超": {
+    "season_id": 19612,
+    "jifen_id": "27602",
+    "url": "https://liansai.500.com/zuqiu-19612/jifen-27602/"
+  },
+  "韩锦赛": {
+    "season_id": 5578,
+    "jifen_id": "15364",
+    "url": "https://liansai.500.com/zuqiu-5578/jifen-15364/"
+  },
+  "K4联赛": {
+    "season_id": 19669,
+    "jifen_id": "26873",
+    "url": "https://liansai.500.com/zuqiu-19669/jifen-26873/"
+  },
+  "柬埔超": {
+    "season_id": 14319,
+    "jifen_id": "26821",
+    "url": "https://liansai.500.com/zuqiu-14319/jifen-26821/"
+  },
+  "欧协联": {
+    "season_id": 9121,
+    "jifen_id": "27572",
+    "url": "https://liansai.500.com/zuqiu-9121/jifen-27572/"
+  },
+  "解放者杯": {
+    "season_id": 19496,
+    "jifen_id": "27056",
+    "url": "https://liansai.500.com/zuqiu-19496/jifen-27056/"
+  },
+  "亚冠联2": {
+    "season_id": 9214,
+    "jifen_id": "22398",
+    "url": "https://liansai.500.com/zuqiu-9214/jifen-22398/"
+  },
+  "瑞典女联（2场）": {
+    "season_id": 19494,
+    "jifen_id": "26332",
+    "url": "https://liansai.500.com/zuqiu-19494/jifen-26332/"
+  }
+}
