@@ -416,7 +416,7 @@ def main():
             # (本地路径, nginx路径, pm2路径, 验证grep)
             ('preview/index.html', NGINX_ROOT+'/preview/index.html', PM2_ROOT+'/preview/index.html', 'main-fusion.js'),
             ('preview/js/main-fusion.js', NGINX_ROOT+'/preview/js/main-fusion.js', PM2_ROOT+'/preview/js/main-fusion.js', 'V5.0-FUSION'),
-            ('preview/js/pages/match-pk-fusion.js', NGINX_ROOT+'/preview/js/pages/match-pk-fusion.js', PM2_ROOT+'/preview/js/pages/match-pk-fusion.js', 'renderFusionPK'),
+            ('preview/js/pages/match-pk-fusion.js', NGINX_ROOT+'/preview/js/pages/match-pk-fusion.js', PM2_ROOT+'/preview/js/pages/match-pk-fusion.js', 'x.dir +'),
             ('preview/js/pages/quant-rank-fusion.js', NGINX_ROOT+'/preview/js/pages/quant-rank-fusion.js', PM2_ROOT+'/preview/js/pages/quant-rank-fusion.js', 'cross-tab selection'),
         ]
         any_fixed = False
