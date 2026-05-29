@@ -19,6 +19,7 @@ export let rankDateOffset = 0;
 export let planDate = '';
 export let planDateOffset = 0;
 export let planDateExplicit = false;  // 标记日历直接选日，loadPlanList应直接发送该日期
+export let planTab = 'expert'; // 'expert' | 'score' | 'quant'
 
 // 方案收入缓存
 export let incomeLoaded = false;
@@ -41,4 +42,5 @@ export function setRankDateOffset(v) { rankDateOffset = v; }
 export function setPlanDate(v) { planDate = v; }
 export function setPlanDateOffset(v) { planDateOffset = v; }
 export function setPlanDateExplicit(v) { planDateExplicit = v; }
+export function setPlanTab(v) { planTab = v; }
 export function setIncomeLoaded(v) { incomeLoaded = v; }

@@ -13317,9 +13317,9 @@
       "jiaoFenMatch2": "葡杯   2025-12-18   卡萨比亚   1:2   托伦斯   负",
       "matchTimeStr": "2026-05-29",
       "gameShortName": "葡超",
-      "homeWinAward": "2.29",
-      "guestWinAward": "3.56",
-      "drawAward": "3.52"
+      "homeWinAward": "2.56",
+      "guestWinAward": "3.6",
+      "drawAward": "3.0"
     },
     {
       "lineId": "038",
@@ -13369,9 +13369,9 @@
       "jiaoFenMatch2": "解放者杯   2019-04-11   帕尔梅拉斯   3:0   巴兰基亚青年   胜",
       "matchTimeStr": "2026-05-29",
       "gameShortName": "解放者杯",
-      "homeWinAward": "1.8",
-      "guestWinAward": "6.03",
-      "drawAward": "3.56"
+      "homeWinAward": "2.98",
+      "guestWinAward": "2.78",
+      "drawAward": "3.26"
     },
     {
       "lineId": "039",
@@ -13421,9 +13421,9 @@
       "jiaoFenMatch2": "解放者杯   2025-05-14   水晶竞技   0:1   波特诺山丘   胜",
       "matchTimeStr": "2026-05-29",
       "gameShortName": "解放者杯",
-      "homeWinAward": "3.59",
-      "guestWinAward": "2.28",
-      "drawAward": "3.52"
+      "homeWinAward": "3.67",
+      "guestWinAward": "2.53",
+      "drawAward": "2.99"
     },
     {
       "lineId": "040",
@@ -13473,9 +13473,9 @@
       "jiaoFenMatch2": "南俱杯   2005-12-02   天主大学   0:1   博卡青年   胜",
       "matchTimeStr": "2026-05-29",
       "gameShortName": "解放者杯",
-      "homeWinAward": "2.05",
-      "guestWinAward": "3.08",
-      "drawAward": "5.27"
+      "homeWinAward": "2.87",
+      "guestWinAward": "3.13",
+      "drawAward": "3.01"
     },
     {
       "lineId": "041",
@@ -13524,9 +13524,9 @@
       "jiaoFenMatch1": "南俱杯   2026-04-10   马卡拉   1:1   卡利美洲   平",
       "matchTimeStr": "2026-05-29",
       "gameShortName": "南俱杯",
-      "homeWinAward": "4.36",
-      "guestWinAward": "2.29",
-      "drawAward": "2.97"
+      "homeWinAward": "4.09",
+      "guestWinAward": "2.33",
+      "drawAward": "3.05"
     },
     {
       "lineId": "042",
@@ -13569,9 +13569,9 @@
       "jiaoFenMatch1": "南俱杯   2026-04-08   阿利安萨竞技   1:1   堤格雷   平",
       "matchTimeStr": "2026-05-29",
       "gameShortName": "南俱杯",
-      "homeWinAward": "13.58",
-      "guestWinAward": "1.57",
-      "drawAward": "3.44"
+      "homeWinAward": "3.89",
+      "guestWinAward": "2.22",
+      "drawAward": "3.39"
     }
   ]
 }

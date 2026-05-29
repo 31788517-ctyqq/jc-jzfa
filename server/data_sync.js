@@ -324,13 +324,25 @@ async function sync500ShujuStandings(dateStr) {
 }
 
 // ═══ Task 2: 赛程信息同步（每天 12:00，替换旧的 footballDataList 全量更新） ═══
-async function syncMatchList() {
-  const period = getCurrentPeriod();
-  log('[match_list] 同步赛程: ' + period.date + ' ' + period.week);
+async function syncMatchList(dateStr) {
+  // 支持指定日期，默认为当前日期
+  var targetDate;
+  var targetWeek;
+  if (dateStr) {
+    targetDate = dateStr;
+    var d = new Date(dateStr + 'T00:00:00+08:00');
+    var weekMap = { 0: '周日', 1: '周一', 2: '周二', 3: '周三', 4: '周四', 5: '周五', 6: '周六' };
+    targetWeek = weekMap[d.getDay()];
+  } else {
+    var period = getCurrentPeriod();
+    targetDate = period.date;
+    targetWeek = period.week;
+  }
+  log('[match_list] 同步赛程: ' + targetDate + ' ' + targetWeek);
 
   try {
     const token = await getToken();
-    const timestamp = new Date(period.date + 'T00:00:00+08:00').getTime();
+    const timestamp = new Date(targetDate + 'T00:00:00+08:00').getTime();
 
     const matchRes = await getWithRetry(
       MIDOU_BASE + '/score/footballDataList.do',
@@ -345,22 +357,22 @@ async function syncMatchList() {
 
     // 按竞彩期号前缀 + 日期双重过滤
     const periodMatches = (matchRes.data || []).filter(m => {
-      if (!m.num || m.num.indexOf(period.week) !== 0) return false;
+      if (!m.num || m.num.indexOf(targetWeek) !== 0) return false;
       const bd = (m.bDate || '').slice(0, 10);
-      if (bd === period.date) return true;
+      if (bd === targetDate) return true;
       if (!bd && m.startTime && m.startTime.length >= 11) {
         const st = m.startTime.replace(/\//g, '-');
         const dt = new Date(new Date().getFullYear() + '-' + st.slice(0, 2) + '-' + st.slice(3, 5) + 'T' + st.slice(6, 11) + ':00+08:00');
         if (!isNaN(dt.getTime())) {
           if (dt.getHours() < 9) dt.setDate(dt.getDate() - 1);
-          return fmtLocal(dt) === period.date;
+          return fmtLocal(dt) === targetDate;
         }
       }
       return false;
     });
 
     if (periodMatches.length === 0) {
-      log('[match_list] ' + period.date + ' 无比赛');
+      log('[match_list] ' + targetDate + ' 无比赛');
       return;
     }
 
@@ -376,7 +388,7 @@ async function syncMatchList() {
       const mid = String(m.matchId || m.dataId || '');
       const mkey = 'm_' + mid;
       const md = (m.bDate && typeof m.bDate === 'string' && m.bDate.length >= 10)
-        ? m.bDate.slice(0, 10) : period.date;
+        ? m.bDate.slice(0, 10) : targetDate;
 
       const newMatch = {
         matchId: mid, num: m.num || '',
@@ -394,14 +406,14 @@ async function syncMatchList() {
 
     // 从 500.com 赔率数据补充单关标识
     try {
-      const oddsFile = path.join(ODDS_DIR, period.date + '.json');
+      const oddsFile = path.join(ODDS_DIR, targetDate + '.json');
       if (fs.existsSync(oddsFile)) {
         const oddsData = JSON.parse(fs.readFileSync(oddsFile, 'utf8'));
         const oddsMap = oddsData.odds || {};
         let singleCount = 0;
         Object.keys(data.m).forEach(k => {
           const match = data.m[k];
-          if (!match || (match.date || '').slice(0, 10) !== period.date) return;
+          if (!match || (match.date || '').slice(0, 10) !== targetDate) return;
           const num = match.num || '';
           const fiveData = oddsMap[num];
           if (fiveData && fiveData.isSingleGame === true) {
@@ -424,8 +436,13 @@ async function syncMatchList() {
 }
 
 // ═══ Task 3: 推荐方向同步（每 20 分钟） ═══
-async function syncRecommends() {
-  const period = getCurrentPeriod();
+async function syncRecommends(dateStr) {
+  var targetDate;
+  if (dateStr) {
+    targetDate = dateStr;
+  } else {
+    targetDate = getCurrentPeriod().date;
+  }
 
   try {
     const token = await getToken();
@@ -436,24 +453,24 @@ async function syncRecommends() {
     if (!data.m) data.m = {};
     if (!data.r) data.r = {};
 
-    // 筛选今日比赛
-    const todayMatches = [];
+    // 筛选指定日期的比赛
+    const dateMatches = [];
     Object.keys(data.m).forEach(k => {
       const m = data.m[k];
-      if (m && m.date && m.date.slice(0, 10) === period.date) {
-        todayMatches.push(m);
+      if (m && m.date && m.date.slice(0, 10) === targetDate) {
+        dateMatches.push(m);
       }
     });
 
-    if (todayMatches.length === 0) {
-      log('[recommend] 今日无比赛');
+    if (dateMatches.length === 0) {
+      log('[recommend] ' + targetDate + ' 无比赛');
       return;
     }
 
     let recChanged = 0, resultUpdated = 0;
 
-    for (let i = 0; i < todayMatches.length; i++) {
-      const m = todayMatches[i];
+    for (let i = 0; i < dateMatches.length; i++) {
+      const m = dateMatches[i];
       const mid = String(m.matchId || '');
 
       try {
@@ -496,11 +513,11 @@ async function syncRecommends() {
     atomicWrite(DATA_FILE, data);
 
     // 状态汇总
-    const allDone = todayMatches.every(m => m.matchStatus >= 2);
-    const summary = todayMatches.map(m =>
+    const allDone = dateMatches.every(m => m.matchStatus >= 2);
+    const summary = dateMatches.map(m =>
       (m.num || '') + ':' + (m.matchStatus === 0 ? '未' : m.matchStatus === 1 ? '赛中' : m.matchStatus === 2 ? '完' : '取消')
     ).join(',');
-    log('[recommend] ' + todayMatches.length + '场 [' + summary + '] 推荐变更:' + recChanged + ' 命中更新:' + resultUpdated + (allDone ? ' ALL_DONE' : ''));
+    log('[recommend] ' + dateMatches.length + '场 [' + summary + '] 推荐变更:' + recChanged + ' 命中更新:' + resultUpdated + (allDone ? ' ALL_DONE' : ''));
 
     // 如果有命中结果更新，通知 simple.js 重载
     if (resultUpdated > 0 || recChanged > 0) notifyReload();
@@ -618,6 +635,36 @@ async function backfillResults(dateStr) {
     let data = {};
     try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) {}
     if (!data.m) data.m = {}; if (!data.r) data.r = {};
+
+    // ★ 第一步：先用 footballDataList API 刷新比赛状态（修正滞后的 status）
+    let statusFixed = 0;
+    try {
+      const timestamp = new Date(dateStr + 'T00:00:00+08:00').getTime();
+      const matchRes = await getWithUA(
+        MIDOU_BASE + '/score/footballDataList.do',
+        { time: timestamp, order: 'status desc, start_datetime asc, data_id asc' },
+        { Cookie: 'token=' + token }
+      );
+      if (matchRes.code === 1 && matchRes.data) {
+        (matchRes.data || []).forEach(function(m) {
+          var mid = String(m.matchId || m.dataId || '');
+          var rk = 'm_' + mid;
+          var old = data.m[rk] || data.m[mid];
+          if (old && old.matchStatus < 2 && (m.matchStatus || 0) >= 2) {
+            old.matchStatus = m.matchStatus;
+            old.score = m.score || old.score;
+            old.halfScore = m.halfScore || old.halfScore;
+            old.duration = m.duration || old.duration;
+            statusFixed++;
+          }
+        });
+        if (statusFixed > 0) {
+          log('[backfill] 修正 ' + statusFixed + ' 场比赛状态为"已结束"');
+        }
+      }
+    } catch (e) {
+      log('[backfill] 状态刷新失败: ' + e.message);
+    }
 
     // 找已结束但 result 仍为 null/2 的比赛
     const needBackfill = [];
@@ -1020,10 +1067,21 @@ async function start() {
     log('[init] 今日数据已存在，跳过赛程同步');
   }
 
-  // ═══ 启动后检查昨天是否需要回填（避免重启导致跳过） ═══
+  // ═══ 启动后检查昨天是否需要补同步（避免重启导致跳过） ═══
   try {
     const yd = fmtLocal(new Date(Date.now() - 86400000));
-    if (needBackfillCheck(yd)) {
+    // 检查昨天是否有比赛数据，若无则补同步
+    if (!todayHasMatches(yd)) {
+      log('[init] ⚠️ 检测到昨天 ' + yd + ' 缺少比赛数据，启动补同步...');
+      syncMatchList(yd).then(() => {
+        log('[init] 昨天 ' + yd + ' 赛程补同步完成');
+        // 补同步后也触发回填
+        if (needBackfillCheck(yd)) {
+          backfillResults(yd).then(() => log('[init] 昨天 ' + yd + ' 回填完成'))
+            .catch(e => log('[init] 昨天回填失败: ' + e.message));
+        }
+      }).catch(e => log('[init] 昨天补同步失败: ' + e.message));
+    } else if (needBackfillCheck(yd)) {
       log('[init] 检测到昨天 ' + yd + ' 存在未回填比赛，启动回填...');
       backfillResults(yd).then(() => {
         log('[init] 昨天 ' + yd + ' 回填完成');
@@ -1190,5 +1248,7 @@ module.exports = {
     }
   },
   backfillResults,
-  syncMatchList
+  syncMatchList,
+  syncRecommends,
+  sync500Odds
 };
