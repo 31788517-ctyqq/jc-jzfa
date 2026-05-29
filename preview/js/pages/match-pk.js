@@ -65,6 +65,28 @@ function buildGSFields(gs) {
     xgAway: gs.xgAway != null ? gs.xgAway : 0,
     adWeightedComposite: gs.adWeightedComposite != null ? gs.adWeightedComposite : 0,
     totalStrength: gs.totalStrength != null ? gs.totalStrength : 0,
+    // ★ P1-3: 胜平负交叉双组概率
+    crossSpfWin: gs.crossSpfWin || '-',
+    crossSpfDraw: gs.crossSpfDraw || '-',
+    crossSpfLose: gs.crossSpfLose || '-',
+    crossHcpWin: gs.crossHcpWin || '-',
+    crossHcpDraw: gs.crossHcpDraw || '-',
+    crossHcpLose: gs.crossHcpLose || '-',
+    // ★ P1-1: 四重熔断
+    fusionConsensus: gs.fusionConsensus || '',
+    fusionFinalHome: gs.fusionFinalHome != null ? gs.fusionFinalHome : 0,
+    fusionFinalAway: gs.fusionFinalAway != null ? gs.fusionFinalAway : 0,
+    // ★ 进球维度
+    bigBallRatio: gs.bigBallRatio != null ? gs.bigBallRatio : 50,
+    attDefGoal: gs.attDefGoal != null ? gs.attDefGoal : 0,
+    strengthGoal: gs.strengthGoal != null ? gs.strengthGoal : 0,
+    headToHeadGoal: gs.h2hGoalAvg != null ? gs.h2hGoalAvg : 2.5,
+    breakArmor: gs.breakArmorSum != null ? gs.breakArmorSum : 0,
+    totalSum: function () {
+      var b = Math.abs(gs.bigBallRatio || 50) + Math.abs(gs.attDefGoal || 0) + Math.abs(gs.strengthGoal || 0) +
+        Math.abs(gs.h2hGoalAvg || 2.5) + Math.abs(gs.breakArmorSum || 0);
+      return parseFloat(b.toFixed(4));
+    }(),
     hasGS: !!(gs.attackPattern)
   };
 }
@@ -85,7 +107,7 @@ function renderPKGoal(modal, list) {
 
   // 表头
   html += '<thead><tr><th class="pk2-th-name">对阵</th><th class="pk2-th-num">合计</th>' +
-    '<th class="pk2-th-num">大球<br>占比</th>' +
+    '<th class="pk2-th-num">大球<br>比例</th>' +
     '<th class="pk2-th-num">攻防进球<br>占比</th>' +
     '<th class="pk2-th-num">实力进球<br>占比</th>' +
     '<th class="pk2-th-num">交锋进球<br>占比</th>' +
@@ -112,6 +134,19 @@ function renderPKGoal(modal, list) {
     '</tr>';
 
   html += '</tbody></table></div>';
+
+  // ── M3.7 四重验证展示 (P1-1) ──
+  if (n === 2) {
+    var fusionA = renderFusionInfo(list[0]);
+    var fusionB = renderFusionInfo(list[1]);
+    if (fusionA || fusionB) {
+      html += '<div class="pk2-section-label">四重验证校准</div>';
+      html += '<div class="pk2-fusion-row">';
+      html += '<div class="pk2-fusion-team"><b>' + esc(shortTeam(list[0].homeName)) + '</b> ' + fusionA + '</div>';
+      html += '<div class="pk2-fusion-team"><b>' + esc(shortTeam(list[1].homeName)) + '</b> ' + fusionB + '</div>';
+      html += '</div>';
+    }
+  }
 
   // ── PK结果卡 ──
   html += '<div class="pk2-section-label">PK结果</div>';
@@ -185,33 +220,35 @@ function tdPctNum(val, sum) {
   return '<td class="pk2-td-num"><span class="' + cls + '">' + pct + '%</span></td>';
 }
 
-// ═══ PK结果卡片 ═══
+// ═══ PK结果卡片（通用） ═══
 function renderPKCard(a, b) {
   var dims = [
-    { label: '进球数PK', keyA: 'totalGoalsExpect', keyB: 'totalGoalsExpect', fmt: 'num' },
-    { label: '大小球PK', keyA: 'totalGoalsValue', keyB: 'totalGoalsValue', fmt: 'num' },
-    { label: '攻防进球占比PK', keyA: 'attackAdvantageValue', keyB: 'attackAdvantageValue', fmt: 'val' },
-    { label: '实力进球占比PK', keyA: 'totalAdvantageValue', keyB: 'totalAdvantageValue', fmt: 'val' },
-    { label: '交锋进球占比PK', keyA: 'crossWin', keyB: 'crossWin', fmt: 'cross' },
-    { label: '破甲和占比PK', keyA: 'attackAdvantageValue', keyB: 'attackAdvantageValue', fmt: 'armor' }
+    { label: '合计PK',      va: parseFloat(a.totalSum) || 0, vb: parseFloat(b.totalSum) || 0 },
+    { label: '大球比例PK',  va: parseFloat(a.bigBallRatio) || 0, vb: parseFloat(b.bigBallRatio) || 0 },
+    { label: '攻防进球PK',  va: parseFloat(a.attDefGoal) || 0, vb: parseFloat(b.attDefGoal) || 0 },
+    { label: '实力进球PK',  va: parseFloat(a.strengthGoal) || 0, vb: parseFloat(b.strengthGoal) || 0 },
+    { label: '交锋进球PK',  va: parseFloat(a.headToHeadGoal) || 0, vb: parseFloat(b.headToHeadGoal) || 0 },
+    { label: '破甲和PK',    va: parseFloat(a.breakArmor) || 0, vb: parseFloat(b.breakArmor) || 0 }
   ];
 
+  return buildPKCard(a, b, dims);
+}
+
+function buildPKCard(a, b, dims) {
   var aWins = 0, bWins = 0;
 
   var rows = dims.map(function (dim) {
-    var va = getDimVal(dim.keyA, a, dim.fmt);
-    var vb = getDimVal(dim.keyB, b, dim.fmt);
     var result;
-    if (va > vb) { result = 'a'; aWins++; }
-    else if (vb > va) { result = 'b'; bWins++; }
+    if (dim.va > dim.vb) { result = 'a'; aWins++; }
+    else if (dim.vb > dim.va) { result = 'b'; bWins++; }
     else { result = 'draw'; }
 
     return '<div class="pk2-result-row">' +
       '<span class="pk2-result-label">' + dim.label + '</span>' +
       '<span class="pk2-result-values">' +
-        '<span class="' + (result === 'a' ? 'pk2-win' : '') + '">' + esc(shortTeam(a.homeName)) + ' (' + formatVal(va, dim.fmt) + ')</span>' +
+        '<span class="' + (result === 'a' ? 'pk2-win' : '') + '">' + esc(shortTeam(a.homeName)) + ' (' + dim.va.toFixed(1) + ')</span>' +
         ' vs ' +
-        '<span class="' + (result === 'b' ? 'pk2-win' : '') + '">' + esc(shortTeam(b.homeName)) + ' (' + formatVal(vb, dim.fmt) + ')</span>' +
+        '<span class="' + (result === 'b' ? 'pk2-win' : '') + '">' + esc(shortTeam(b.homeName)) + ' (' + dim.vb.toFixed(1) + ')</span>' +
       '</span>' +
       '<span class="pk2-result-arrow ' + (result === 'a' ? 'pk2-win' : result === 'b' ? 'pk2-lose' : '') + '">' +
         (result === 'a' ? esc(shortTeam(a.homeName)) + ' 胜' : result === 'b' ? esc(shortTeam(b.homeName)) + ' 胜' : '平') +
@@ -233,20 +270,6 @@ function renderPKCard(a, b) {
     '</div></div>';
 }
 
-function getDimVal(key, item, fmt) {
-  if (fmt === 'cross') return (item.crossWin || 0) - (item.crossLose || 0);
-  if (fmt === 'armor') return item.attackAdvantageValue + item.defenseAdvantageValue;
-  if (fmt === 'val') return Number(item[key]) || 0;
-  return parseFloat(String(item[key] || '0'));
-}
-
-function formatVal(val, fmt) {
-  if (fmt === 'num') return Number(val).toFixed(1);
-  if (fmt === 'cross') return (val >= 0 ? '胜+' : '负') + Math.abs(val).toFixed(0);
-  if (fmt === 'armor') return Number(val).toFixed(0) + '点';
-  return Number(val).toFixed(0);
-}
-
 // ═══ 实力维度PK ═══
 function renderPKPower(modal, list) {
   var n = list.length;
@@ -260,32 +283,32 @@ function renderPKPower(modal, list) {
   html += '<div class="pk2-table-wrap"><table class="pk2-table">';
   html += '<thead><tr><th class="pk2-th-name">对阵</th>' +
     '<th class="pk2-th-num">总排序</th>' +
-    '<th class="pk2-th-num">净胜球<br>占比</th>' +
-    '<th class="pk2-th-num">胜平负<br>占比</th>' +
-    '<th class="pk2-th-num">综合实力<br>占比</th>' +
-    '<th class="pk2-th-num">攻守实力<br>占比</th>' +
+    '<th class="pk2-th-num">净胜球<br>量化</th>' +
+    '<th class="pk2-th-num">胜平负<br>交叉</th>' +
+    '<th class="pk2-th-num">综合<br>实力</th>' +
+    '<th class="pk2-th-num">攻守<br>实力</th>' +
     '</tr></thead><tbody>';
 
   var colSums = { gd: 0, cross: 0, power: 0, ad: 0 };
   list.forEach(function (item) {
-    colSums.gd    += Math.abs(parseFloat(String(item.goalDiff).split('/')[0]) || 0);
-    colSums.cross += Math.abs((item.crossWin || 0) - (item.crossLose || 0));
-    colSums.power += Math.abs((item.totalAdvantageValue || 0) - 50);
-    colSums.ad    += Math.abs((item.attackAdvantageValue || 0) + (item.defenseAdvantageValue || 0) - 100);
+    colSums.gd    += Math.abs(parseFloat(item.gdScore) || 0);
+    colSums.cross += Math.abs(parseFloat(item.crossValue) || 0);
+    colSums.power += Math.abs(parseFloat(item.pwScore) || 0);
+    colSums.ad    += Math.abs(parseFloat(item.adCombined) || 0);
   });
 
   list.forEach(function (item, i) {
-    var gd    = parseFloat(String(item.goalDiff).split('/')[0]) || 0;
-    var cross = (item.crossWin || 0) - (item.crossLose || 0);
-    var power = (item.totalAdvantageValue || 0) - 50;
-    var ad    = (item.attackAdvantageValue || 0) + (item.defenseAdvantageValue || 0) - 100;
+    var gd    = parseFloat(item.gdScore) || 0;
+    var cross = parseFloat(item.crossValue) || 0;
+    var power = parseFloat(item.pwScore) || 0;
+    var ad    = parseFloat(item.adCombined) || 0;
     html += '<tr class="pk2-row">' +
       '<td class="pk2-td-name"><div class="pk2-match-line">' + esc(item.homeName) + '</div>' +
         '<div class="pk2-match-vs">vs</div>' +
         '<div class="pk2-match-line">' + esc(item.visitName) + '</div></td>' +
       '<td class="pk2-td-num">' + (item.rank || '-') + '</td>' +
       tdPctBar(gd, colSums.gd) +
-      tdPctBar(cross, colSums.cross) +
+      tdPctBarCross(cross, colSums.cross, item) +
       tdPctBar(power, colSums.power) +
       tdPctBar(ad, colSums.ad) +
       '</tr>';
@@ -320,11 +343,11 @@ function renderPowerPKCard(list) {
 
 function renderPowerDuel(a, b) {
   var dims = [
-    { label: '总排序PK',    va: a.rank || 99, vb: b.rank || 99, lowerWins: true },
-    { label: '净胜球PK',    va: parseFloat(String(a.goalDiff).split('/')[0]) || 0, vb: parseFloat(String(b.goalDiff).split('/')[0]) || 0 },
-    { label: '胜平负PK',    va: (a.crossWin || 0) - (a.crossLose || 0), vb: (b.crossWin || 0) - (b.crossLose || 0) },
-    { label: '综合实力PK',  va: a.totalAdvantageValue || 0, vb: b.totalAdvantageValue || 0 },
-    { label: '攻守实力PK',  va: (a.attackAdvantageValue || 0) + (a.defenseAdvantageValue || 0), vb: (b.attackAdvantageValue || 0) + (b.defenseAdvantageValue || 0) }
+    { label: '总排序PK',      va: a.rank || 99, vb: b.rank || 99, lowerWins: true },
+    { label: '净胜球量化PK',  va: parseFloat(a.gdScore) || 0, vb: parseFloat(b.gdScore) || 0 },
+    { label: '胜平负PK',      va: parseFloat(a.crossValue) || 0, vb: parseFloat(b.crossValue) || 0 },
+    { label: '综合实力PK',    va: parseFloat(a.pwScore) || 0, vb: parseFloat(b.pwScore) || 0 },
+    { label: '攻守实力PK',    va: parseFloat(a.adCombined) || 0, vb: parseFloat(b.adCombined) || 0 }
   ];
 
   var aWins = 0, bWins = 0;
@@ -370,6 +393,21 @@ function tdPctBar(val, sum) {
   var sign = val >= 0 ? '+' : '';
   var cls = val >= 0 ? 'pk2-pct-pos' : 'pk2-pct-neg';
   return '<td class="pk2-td-num"><span class="' + cls + '">' + pct + '%</span></td>';
+}
+
+// ═══ P1-3: 胜平负交叉列（含双组概率迷你标签） ═══
+function tdPctBarCross(val, sum, item) {
+  var absV = Math.abs(val);
+  var pct = sum > 0 ? Math.round(absV / sum * 100) : 0;
+  var cls = val >= 0 ? 'pk2-pct-pos' : 'pk2-pct-neg';
+  var mini = '';
+  var spfW = item.crossSpfWin, spfD = item.crossSpfDraw, spfL = item.crossSpfLose;
+  var hcpW = item.crossHcpWin, hcpD = item.crossHcpDraw, hcpL = item.crossHcpLose;
+  if (spfW !== '-' && spfW !== undefined) {
+    mini += '<span style="display:block;font-size:8px;color:#64748B;line-height:1.1;margin-top:1px">'
+      + '胜' + Number(spfW).toFixed(0) + '%平' + Number(spfD).toFixed(0) + '%负' + Number(spfL).toFixed(0) + '%</span>';
+  }
+  return '<td class="pk2-td-num"><span class="' + cls + '">' + pct + '%</span>' + mini + '</td>';
 }
 
 // ═══ 热度维度PK ═══
@@ -433,8 +471,52 @@ function renderPKHot(modal, list) {
     tdPct(colSums.odds, colSums.odds) +
     '</tr>';
   html += '</tbody></table></div>';
+
+  // ── PK结果卡 (P1-4) ──
+  html += '<div class="pk2-section-label">热度PK结果</div>';
+  if (n === 2) {
+    html += renderHotPKCard(list[0], list[1]);
+  } else {
+    for (var ai = 0; ai < n - 1; ai++) {
+      for (var bi = ai + 1; bi < n; bi++) {
+        html += '<div style="font-size:10px;color:var(--text3);padding:8px 16px 2px">对决 ' + (ai + 1) + ' vs ' + (bi + 1) + '</div>';
+        html += renderHotPKCard(list[ai], list[bi]);
+      }
+    }
+  }
+
   html += '<div class="pk2-footer"><button class="pk2-done-btn" onclick="closePK()">完成</button></div>';
   modal.innerHTML = html;
+}
+
+// ═══ 热度PK结果卡片 (P1-4) ═══
+function renderHotPKCard(a, b) {
+  var h2 = function (v) {
+    if (v === '-' || v === undefined || v === null) return 0;
+    var cleaned = String(v).replace(/[^\d.\-]/g, '');
+    return parseFloat(cleaned) || 0;
+  };
+
+  var dims = [
+    { label: '关注热度PK',  va: h2(a.hotFocusNum), vb: h2(b.hotFocusNum) },
+    { label: '冷热指数PK',  va: h2(a.heatIndex),   vb: h2(b.heatIndex) },
+    { label: '实力差PK',    va: h2(a.staticDiff),  vb: h2(b.staticDiff) },
+    { label: '亚指临盘PK',  va: h2(a.oddsLive),    vb: h2(b.oddsLive) }
+  ];
+
+  return buildPKCard(a, b, dims);
+}
+
+// ═══ P1-1: 四重验证信息 ───
+function renderFusionInfo(item) {
+  if (!item.fusionConsensus) return '';
+  var consensus = item.fusionConsensus;
+  var cls = 'fusion-' + consensus;
+  var label = consensus === 'strong' ? '强一致' : consensus === 'weak' ? '弱一致' : consensus === 'meltdown' ? '⚠️熔断' : '';
+  var h = item.fusionFinalHome != null ? item.fusionFinalHome.toFixed(2) : '-';
+  var a = item.fusionFinalAway != null ? item.fusionFinalAway.toFixed(2) : '-';
+  return '<span class="fusion-badge ' + cls + '" title="最终基准值 H:' + h + ' A:' + a + '">' + label + '</span> ' +
+    '<span style="font-size:11px;color:var(--text3)">E_final=H' + h + '+A' + a + '</span>';
 }
 
 export function closePK() {
