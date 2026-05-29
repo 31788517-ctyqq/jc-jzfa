@@ -159,47 +159,50 @@ function mergeItem(item, gs) {
   var cd = gs.crossDraw !== undefined ? gs.crossDraw : '-';
   var cl = gs.crossLose !== undefined ? gs.crossLose : '-';
 
-  // ── 进球预测维度（直接使用后端按 PK.md 公式计算的值） ──
+  // ── 进球预测维度 ──
 
   // 综合大球比例 = (主队大球比例 + 客队大球比例 + 交锋大球比例) / 3 × 100
-  var bigBall = gs.bigBallRatio != null ? gs.bigBallRatio : 50;
+  var bigBall = gs.bigBallRatio != null ? gs.bigBallRatio : '-';
 
   // 攻防进球 = xgHome + xgAway（射门还原法 M3_A）
-  var attDefGoal = gs.attDefGoal != null ? gs.attDefGoal : (gs.xgHome || 0) + (gs.xgAway || 0);
+  var attDefGoal = gs.attDefGoal != null ? gs.attDefGoal : '-';
 
   // 实力进球 = 0.5 × (主队静态进球能力 + 客队静态进球能力) × (1 + 0.2 × Total_战)
-  var strengthGoal = gs.strengthGoal != null ? gs.strengthGoal : (parseFloat(gs.totalGoalsExpect) || 0);
+  var strengthGoal = gs.strengthGoal != null ? gs.strengthGoal : '-';
 
   // 交锋进球 = H2H场均总进球（最近3-6次交锋）
-  var headToHeadGoal = gs.h2hGoalAvg != null ? gs.h2hGoalAvg : 2.5;
+  var headToHeadGoal = gs.h2hGoalAvg != null ? gs.h2hGoalAvg : '-';
 
   // 破甲和 = 主队进攻次数/(客队被射次数+0.5) + 客队进攻次数/(主队被射次数+0.5)
-  var breakArmor = gs.breakArmorSum != null ? gs.breakArmorSum : 0;
+  var breakArmor = gs.breakArmorSum != null ? gs.breakArmorSum : '-';
 
   // ── 实力PK四维指标（PK.md 2.1-2.2） ──
 
   // ① 净胜球量化 = GD_q = ExpG_h - ExpG_a（后端按四维呼吸权重公式计算）
-  var gdScore = (gs.gdQ != null) ? gs.gdQ : ((gs.xgHome != null && gs.xgAway != null) ? parseFloat((gs.xgHome - gs.xgAway).toFixed(4)) : 0);
+  var gdScore = (gs.gdQ != null) ? gs.gdQ : '-';
+  var gdNum = gdScore === '-' ? 0 : gdScore;
 
   // ② 胜平负交叉 = (H_wins + A_losses) - (H_losses + A_wins)（基于真实赛果对冲）
   var crossValue = (gs.hWins != null && gs.aLosses != null) ? (gs.hWins + gs.aLosses - gs.hLosses - gs.aWins) : '-';
   var cvNum = crossValue === '-' ? 0 : crossValue;
 
   // ③ 综合实力 = Total_战 = 0.7×Static + 0.3×Dyn（V6.4 双轨实力量化）
-  var pwScore = gs.totalStrength != null ? parseFloat(gs.totalStrength.toFixed(4)) : 0;
+  var pwScore = gs.totalStrength != null ? parseFloat(gs.totalStrength.toFixed(4)) : '-';
+  var pwNum = pwScore === '-' ? 0 : pwScore;
 
   // ④ 攻守实力 = 进球分布计分法 V6.4（WinQiu_2×2 + WinQiu_1×1 + LoseQiu_0×2 + LoseQiu_1×1）
-  var adCombined = gs.adWeightedComposite != null ? parseFloat(gs.adWeightedComposite.toFixed(4)) : 0;
+  var adCombined = gs.adWeightedComposite != null ? parseFloat(gs.adWeightedComposite.toFixed(4)) : '-';
+  var adNum = adCombined === '-' ? 0 : adCombined;
 
   // 总排序 = 0.25 × 净胜球 + 0.25 × 胜平负交叉 + 0.25 × 综合实力 + 0.25 × 攻守实力
-  var totalScore = parseFloat(((gdScore + cvNum + pwScore + adCombined) / 4).toFixed(4));
+  var totalScore = parseFloat(((gdNum + cvNum + pwNum + adNum) / 4).toFixed(4));
 
   function goalTotalSum() {
-    var b = Math.abs(bigBall);
-    var a = Math.abs(attDefGoal);
-    var s = Math.abs(strengthGoal);
-    var h = Math.abs(headToHeadGoal);
-    var r = Math.abs(breakArmor);
+    var b = bigBall === '-' ? 0 : Math.abs(bigBall);
+    var a = attDefGoal === '-' ? 0 : Math.abs(attDefGoal);
+    var s = strengthGoal === '-' ? 0 : Math.abs(strengthGoal);
+    var h = headToHeadGoal === '-' ? 0 : Math.abs(headToHeadGoal);
+    var r = breakArmor === '-' ? 0 : Math.abs(breakArmor);
     return parseFloat((b + a + s + h + r).toFixed(4));
   }
 
@@ -299,14 +302,12 @@ function renderTable() {
       { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
       { key: 'bigBallRatio', label: '综合大球\n比例', sortable: true, colCls: 'q-col-big' },
       { key: 'attDefGoal', label: '攻防\n进球', sortable: true, colCls: 'q-col-ag' },
-      { key: 'strengthGoal', label: '实力\n进球', sortable: true, colCls: 'q-col-sg' },
       { key: 'headToHeadGoal', label: '交锋\n进球', sortable: true, colCls: 'q-col-hg' },
       { key: 'breakArmor', label: '破甲和', sortable: true, colCls: 'q-col-ba' }
     ];
     renderRow = function (item) {
       return renderGoalCell(item, 'bigBallRatio') +
         renderGoalCell(item, 'attDefGoal') +
-        renderGoalCell(item, 'strengthGoal') +
         renderGoalCell(item, 'headToHeadGoal') +
         renderGoalCell(item, 'breakArmor');
     };
@@ -406,7 +407,9 @@ function renderGoalDiff(item) {
 }
 // ── 综合实力（Total_战，百分比化显示） ──
 function renderPower(item) {
-  var pv = item.pwScore !== undefined ? item.pwScore : (item.totalAdvantageValue - 50) / 100;
+  var pv = item.pwScore;
+  if (pv === '-' || pv === undefined || pv === null)
+    return '<span class="q-col-power"><span class="q-cell-num" style="color:var(--text4)">-</span></span>';
   var pct = pv * 100;
   var cls = pv > 0 ? 'pos' : pv < 0 ? 'neg' : '';
   return '<span class="q-col-power"><span class="q-cell-num ' + cls + '">' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%</span></span>';
@@ -451,7 +454,8 @@ function renderAdCombined(item) {
        item.attackPattern === '防守为主' ? '防守优势度>0.15 且 进攻优势度>-0.05' : '攻守平衡') +
       '">' + item.attackPattern + '</span>';
   }
-  if (v === 0 || v === undefined || v === null) return '<span class="q-col-ad"><span class="q-cell-num" style="color:var(--text4)">0.00</span>' + patternBadge + '</span>';
+  if (v === '-' || v === undefined || v === null)
+    return '<span class="q-col-ad"><span class="q-cell-num" style="color:var(--text4)">-</span>' + patternBadge + '</span>';
   var n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-ad"><span class="q-cell-num">' + v + '</span>' + patternBadge + '</span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
