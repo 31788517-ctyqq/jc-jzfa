@@ -1,0 +1,496 @@
+
+
+```markdown
+# 足球全景智算分析系统 — 全量算法公式文档
+
+> 本文档提取自《足球全景智算分析系统》开发规范，所有公式均已整理为可直接计算的数学表达式。变量名尽量贴近原文档字段，部分参数需根据实际数据映射。
+
+---
+
+## 1. 基础防御效率
+
+```math
+\text{防守效率} = \frac{\text{失球数}}{\text{被射门次数}}
+```
+
+---
+
+## 2. 联赛定位量化（M0）
+
+通用优势函数（用于所有成对比较）：
+
+```math
+\text{优势}(a,b) = \frac{a - b}{a + b}
+```
+
+### 2.1 积分量化（权重 40%）
+
+```math
+\text{ScoreAdv} = \frac{\text{homeJiFenHome} - \text{awayJiFenGuest}}{\text{homeJiFenHome} + \text{awayJiFenGuest}}
+```
+
+### 2.2 赢盘能力（权重 20%）
+
+```math
+\text{WinPanAdv} = \frac{\text{homeWinPan} - \text{guestWinPan}}{\text{homeWinPan} + \text{guestWinPan}}
+```
+
+### 2.3 近6场交锋（权重 20%）
+
+从 `jiaoFenDesc` 解析主队胜/平/负场次 \(W_6, D_6, L_6\)（总和6）。
+
+```math
+\text{homeScore}_6 = 3W_6 + D_6
+```
+```math
+\text{guestScore}_6 = 3L_6 + D_6
+```
+```math
+\text{H2H6Adv} = \frac{\text{homeScore}_6 - \text{guestScore}_6}{\text{homeScore}_6 + \text{guestScore}_6}
+```
+
+### 2.4 近2场交锋（权重 20%）
+
+从 `jiaoFenMatch1/2` 得到主队近2场得分 \(S_2\)（胜=3，平=1，负=0），客队得分 \(G_2\)。
+
+```math
+\text{H2H2Adv} = \frac{S_2 - G_2}{S_2 + G_2} \quad (\text{若分母为0则取0})
+```
+
+### 2.5 最终联赛定位实力
+
+```math
+\text{LeaguePower} = 0.4 \times \text{ScoreAdv} + 0.2 \times \text{WinPanAdv} + 0.2 \times \text{H2H6Adv} + 0.2 \times \text{H2H2Adv}
+```
+
+---
+
+## 3. 综合硬实力（M1）
+
+### 3.1 静态实力优势
+
+```math
+\text{StaticAdv} = \frac{\text{homePower} - \text{guestPower}}{\text{homePower} + \text{guestPower}}
+```
+
+### 3.2 动态状态值
+
+从 `homeSpf` / `guestSpf` 获取近10场胜/平/负场次，计算得分率（得分率 = (胜×3 + 平×1)/30）。  
+加权公式（近6场权重0.5，近3场0.3，近1场0.2）：
+
+```math
+P_6 = \frac{3W_6 + D_6}{18}, \quad
+P_3 = \frac{3W_3 + D_3}{9}, \quad
+P_1 = \frac{3W_1 + D_1}{3}
+```
+```math
+\text{状态值} = 0.5 \times P_6 + 0.3 \times P_3 + 0.2 \times P_1
+```
+```math
+\text{DynAdv} = \frac{\text{状态值}_{\text{主}} - \text{状态值}_{\text{客}}}{\text{状态值}_{\text{主}} + \text{状态值}_{\text{客}}}
+```
+
+### 3.3 综合硬实力
+
+```math
+\text{HardPower} = 0.6 \times \text{StaticAdv} + 0.4 \times \text{DynAdv}
+```
+
+### 3.4 实力等级阈值
+
+| 范围 | 判定 |
+|------|------|
+| ≥ 26% | 主队绝对碾压 |
+| 17% ~ 25% | 主队非对称优势 |
+| 9% ~ 16% | 主队微幅领先 |
+| -8% ~ 8% | 均衡 |
+| -9% ~ -16% | 客队微幅领先 |
+| -17% ~ -25% | 客队非对称优势 |
+| ≤ -26% | 客队绝对碾压 |
+
+---
+
+## 4. 攻守拆解实力（M2）
+
+### 4.1 进攻实力（4:4:2）
+
+```math
+\text{AttackBase} = \frac{\text{homeJiFenHome} - \text{guestAvgConceded}}{\text{homeJiFenHome} + \text{guestAvgConceded}}
+```
+```math
+\text{AttackGoalQuant} = \frac{\text{homeAvgGoals} - \text{guestAvgConceded}}{\text{homeAvgGoals} + \text{guestAvgConceded}}
+```
+```math
+\text{AttackEff} = \frac{\text{homeEnterEfficiency} - \text{guestPreventEfficiency}}{\text{homeEnterEfficiency} + \text{guestPreventEfficiency}}
+```
+```math
+\text{综合攻击力} = 0.4 \times \text{AttackBase} + 0.4 \times \text{AttackGoalQuant} + 0.2 \times \text{AttackEff}
+```
+
+### 4.2 防守实力（4:4:2）
+
+```math
+\text{DefenseBase} = \frac{\text{homeAvgConceded} - \text{guestAvgGoals}}{\text{homeAvgConceded} + \text{guestAvgGoals}}
+```
+```math
+\text{DefenseGoalQuant} = \frac{\text{homeAvgConceded} - \text{guestAvgGoals}}{\text{homeAvgConceded} + \text{guestAvgGoals}} \quad (\text{或差异化使用})
+```
+```math
+\text{DefenseEff} = \frac{\text{homePreventEfficiency} - \text{guestEnterEfficiency}}{\text{homePreventEfficiency} + \text{guestEnterEfficiency}}
+```
+```math
+\text{综合防守力} = 0.4 \times \text{DefenseBase} + 0.4 \times \text{DefenseGoalQuant} + 0.2 \times \text{DefenseEff}
+```
+
+### 4.3 自适应权重
+
+利用 `homeWinQiu_0/1/2`（进球分布 \(W_0,W_1,W_2\)）和 `homeLoseQiu_0/1/2`（失球分布 \(L_0,L_1,L_2\)）：
+
+```math
+\text{进攻分布分} = 0 \times W_0 + 1 \times W_1 + 2 \times W_2
+```
+```math
+\text{防守分布分} = 2 \times L_0 + 1 \times L_1 + 0 \times L_2
+```
+```math
+\text{进攻权重} = \frac{\text{进攻分布分}}{\text{进攻分布分} + \text{防守分布分}}
+```
+```math
+\text{防守权重} = \frac{\text{防守分布分}}{\text{进攻分布分} + \text{防守分布分}}
+```
+
+### 4.4 最终攻守实力量化
+
+```math
+\text{AttackDefPower} = \frac{\text{综合攻击力} \times \text{进攻权重} - \text{综合防守力} \times \text{防守权重}}{\text{综合攻击力} \times \text{进攻权重} + \text{综合防守力} \times \text{防守权重}}
+```
+
+---
+
+## 5. 进球期望模型（M3）
+
+### 5.1 还原攻防次数
+
+```math
+\text{主进攻次数} = \frac{\text{主队总进球}}{\text{homeEnterEfficiency}}
+```
+```math
+\text{主被射次数} = \frac{\text{主队总失球}}{\text{homePreventEfficiency}}
+```
+```math
+\text{客进攻次数} = \frac{\text{客队总进球}}{\text{guestEnterEfficiency}}
+```
+```math
+\text{客被射次数} = \frac{\text{客队总失球}}{\text{guestPreventEfficiency}}
+```
+
+### 5.2 四维呼吸权重
+
+```math
+\alpha = \frac{\text{主进攻次数}}{\text{主进攻次数} + \text{客进攻次数}}
+```
+```math
+\beta = \frac{\text{主被射次数}}{\text{主被射次数} + \text{客被射次数}}
+```
+```math
+\gamma = 1 - \alpha,\quad \delta = 1 - \beta
+```
+
+### 5.3 模型A（射门还原法）
+
+```math
+E_{\text{home}}^{(A)} = \alpha \cdot \text{homeEnterEfficiency} + \beta \cdot \text{guestPreventEfficiency}
+```
+```math
+E_{\text{away}}^{(A)} = \gamma \cdot \text{guestEnterEfficiency} + \delta \cdot \text{homePreventEfficiency}
+```
+```math
+\text{TotalExp}^{(A)} = E_{\text{home}}^{(A)} + E_{\text{away}}^{(A)}
+```
+
+### 5.4 模型B（攻守权重法）
+
+复用 M2 的 `综合攻击力`、`综合防守力` 及进攻权重 \(w_{\text{off}}\)、防守权重 \(w_{\text{def}}\)：
+
+```math
+\text{进攻期望} = G_h \cdot w_{\text{off,home}} + G_a \cdot w_{\text{off,away}}
+```
+```math
+\text{防守期望} = C_h \cdot w_{\text{def,home}} + C_a \cdot w_{\text{def,away}}
+```
+```math
+\text{全场总进球基准} = \text{进攻期望} \cdot w_{\text{off}} + \text{防守期望} \cdot w_{\text{def}}
+```
+```math
+E_{\text{home}}^{(B)} = \text{全场总进球基准} \times w_{\text{off,home}}
+```
+```math
+E_{\text{away}}^{(B)} = \text{全场总进球基准} \times w_{\text{off,away}}
+```
+
+### 5.5 模型C（交锋预测法）
+
+```math
+G_6 = \frac{\text{最近6次交锋总进球}}{6}
+```
+```math
+G_2 = \frac{\text{最近2次交锋总进球}}{2}
+```
+```math
+E_{\text{total}}^{(C)} = 0.3 \times G_6 + 0.7 \times G_2
+```
+（主客分配可依据历史主队进球比例）
+
+---
+
+## 6. 四重一致性验证与熔断（M3.7）
+
+输入：\(E_A, E_B, E_C, P_{\text{asia}}\)（亚指盘口，作为总进球数界限）。
+
+```math
+d_{AB} = |E_A - E_B|,\quad d_{AC} = |E_A - E_C|,\quad d_{BC} = |E_B - E_C|
+```
+- 若 \(d \le 0.3\) 为“一致”，否则“分歧”。
+
+**决策：**
+- 三对一致（强一致）：
+  ```math
+  E_{\text{final}} = \frac{E_A + E_B + E_C}{3}
+  ```
+- 两对一致（弱一致）：剔除不一致的值，取剩余两个平均。
+- ≤1对一致（熔断）：\(E_{\text{final}} = P_{\text{asia}}\)，并输出警告“模型打架，跟随盘口”。
+
+---
+
+## 7. 破甲锁定比分（M4）
+
+### 7.1 破甲系数
+
+```math
+BT_{\text{home}} = \frac{\text{综合攻击力}_{\text{主}}}{\text{综合防守力}_{\text{客}}}
+```
+```math
+BT_{\text{away}} = \frac{\text{综合攻击力}_{\text{客}}}{\text{综合防守力}_{\text{主}}}
+```
+
+### 7.2 单队进球域边界
+
+**主队**：
+- 若 \(BT_{\text{home}} > 1.2\)：
+  ```math
+  H_{\text{domain}} = [\lfloor BT_{\text{home}} \rfloor,\; \lfloor BT_{\text{home}} \rfloor + 1]
+  ```
+- 若 \(0.8 \le BT_{\text{home}} \le 1.2\)：
+  ```math
+  H_{\text{domain}} = [0, 2]
+  ```
+- 若 \(BT_{\text{home}} < 0.8\)：
+  ```math
+  H_{\text{domain}} = [0, 1]
+  ```
+
+客队同理，使用 \(BT_{\text{away}}\) 计算 \(A_{\text{domain}}\)。
+
+### 7.3 实力净胜球范围
+
+依据表4.1中的“净胜球强制范围”：例如 `+1 或 +2` 表示 \(H-A \in \{1,2\}\)。
+
+### 7.4 总数纠偏
+
+```math
+\text{TotalRange} = [\text{TotalExp} - 0.5,\; \text{TotalExp} + 0.5]
+```
+其中 \(\text{TotalExp} = E_{\text{home}} + E_{\text{away}}\) 来自 M3.7 最终基准。
+
+### 7.5 三重交集过滤
+
+遍历所有整数比分 \((H,A)\)，需同时满足：
+1. \(H \in H_{\text{domain}}\) 且 \(A \in A_{\text{domain}}\)
+2. \(H-A\) 落在实力净胜球范围内
+3. \(H+A \in \text{TotalRange}\)
+4. 得失球物理支撑：若 \(H=2\)，需主队过去10场进2+场次 > 0；若 \(A=0\)，需客队过去10场进0场次 > 0
+5. 战力倾向：若综合攻击力主>客 且 综合防守力主<客，则强制 \(H > A\)；反之 \(H < A\)
+
+输出前3组满足条件的比分。若无结果，熔断输出：
+- 均衡 → 1:1
+- 主优 → 1:0
+- 客优 → 0:1
+
+---
+
+## 8. 离散概率动态预测（M4.5）
+
+### 8.1 静态评分（0-2分）
+- 离散度最小 或 <10 → 2分
+- 居中 → 1分
+- 最大 → 0分
+
+### 8.2 动态评分（0-2分）
+
+```math
+\Delta P = P_{\text{临盘}} - P_{\text{初盘}}
+```
+```math
+\gamma = \frac{\text{临盘离散}}{\text{初盘离散}}
+```
+- 若 (\(\Delta P\) 第一 且 \(\gamma\) 最小) 或 临盘离散 < 7.0 → 2分
+- 若中游 或 \(7.0 \le \text{临盘离散} < 10.0\) → 1分
+- 若 \(\Delta P < 0\) 且 \(\gamma > 1\) → 0分（一票否决）
+
+### 8.3 决策
+总分 = 静态分 + 动态分  
+- 单选：总分 ≥ 3.5 且 领先次高分 ≥ 1.0  
+- 双选：最高分与次高分分差 ≤ 1.0  
+- 风控：任意临盘离散 < 7.0 强制标记【极低分歧】，禁止排除
+
+---
+
+## 9. 亚指盘路交叉（Cross-1）
+
+遍历近10场，每场主队净胜球 \(Net_h\)，客队净胜球 \(Net_a = -Net_h\)。
+
+```math
+\text{主队赢盘值} = Net_h + \text{lastPan}
+```
+```math
+\text{客队赢盘值} = Net_a - \text{lastPan}
+```
+赢盘条件：值 ≥ 0 → 赢盘；< 0 → 输盘。  
+统计交叉：
+- 主赢 ∩ 客输
+- 主输 ∩ 客赢
+
+---
+
+## 10. 竞彩让球分布（Cross-2）
+
+```math
+\text{主队让球值} = Net_h + \text{rq}
+```
+- >0 → 让胜
+- =0 → 让平
+- <0 → 让负
+
+```math
+\text{客队让球值} = Net_a - \text{rq}
+```
+- >0 → 让胜
+- =0 → 让平
+- <0 → 让负
+
+统计交叉：
+- 主让胜 ∩ 客让负
+- 主让平 ∩ 客让平
+- 主让负 ∩ 客让胜
+
+---
+
+## 11. 实力PK Master Formula（M1 in 第四部分）
+
+```math
+\Gamma = 0.25 \times ST + 0.15 \times VA + 0.35 \times PR + 0.25 \times ASIA
+```
+- \(ST = \text{StaticAdv}\)
+- \(VA = \text{WinPanAdv}\)
+- \(PR = \frac{\text{主胜概率} - \text{客胜概率}}{\text{主胜概率} + \text{客胜概率}}\)（使用临盘概率）
+- \(ASIA = \frac{\text{asiaLastAvgWinOdd} - \text{asiaLastAvgLoseOdd}}{\text{asiaLastAvgWinOdd} + \text{asiaLastAvgLoseOdd}}\)
+
+---
+
+## 12. 大小球PK精算模型（M2 in 第四部分）
+
+```math
+\Lambda = 0.2 \cdot \text{EXP}_{\text{初盘}} + 0.3 \cdot \text{SUM\_PR} + 0.2 \cdot \text{CROSS} + 0.1 \cdot \text{EFF} + 0.2 \cdot \text{DEF}
+```
+- \(\text{EXP}_{\text{初盘}}\)：初盘大小球盘口（如2.5）
+- \(\text{SUM\_PR}\)：\(E_{\text{home}} + E_{\text{away}}\)
+- \(\text{CROSS}\)：主客进攻/防守交叉得分（可自定义）
+- \(\text{EFF}\)：射门转化率等
+- \(\text{DEF}\)：防守稳固度
+
+---
+
+## 13. 亚指投注PK模型（M3 in 第四部分）
+
+```math
+\Delta = \text{亚指临盘} - \text{亚指初盘} + \text{投注差修正}
+```
+投注差修正 = (主胜投注比例 - 客胜投注比例) × 系数（建议0.2）。  
+符号规则：若亚指为负（主让），实际值取负；若为正（主受让），取正。
+
+---
+
+## 14. 正路指数（M5 in 第四部分）
+
+```math
+\text{正路指数} = \sum_{i=1}^{10} D_i
+```
+\(D_i\) 取值参考文档表格（每项 ±1 或 ±2）。热度修正：
+- 若 \(\sum \text{一赔投注比例} > \sum \text{一赔真实概率}\)，则 \(D_{10}\) 阶梯衰减（如 -2）。
+
+---
+
+## 15. 智能做单模块过滤条件
+
+### 15.1 胜平负做单（SPF Module）
+
+**K4**：选择 \(|homePower - guestPower|\) 最大的场次，强制双选 {优势方, 平局}  
+**K5**：选择 \(S_{\text{final}}\)（正路指数）最高的场次，强制双选 {非三赔选项}
+
+**K1 动态边界**：
+```math
+k_{\min} = \min(\text{homeFeature}, \text{guestFeature}) \quad (\text{四舍五入，无历史则 } k_{\min} = \lceil N/2 \rceil)
+```
+```math
+\text{sumBet} = \sum_{i=1}^{N} \text{一赔投注比例}_i,\quad \text{sumProb} = \sum_{i=1}^{N} \text{一赔真实概率}_i
+```
+```math
+k_{\max} = \begin{cases}
+1 & \text{if } \text{sumBet} > \text{sumProb} \\
+N & \text{otherwise}
+\end{cases}
+```
+剔除 \(k < k_{\min}\) 或 \(k > k_{\max}\) 的方案。
+
+**K2**：统计命中“临盘离散最小项”的个数 \(m\)。若 \(m=0\) 或 \(m=N\)，剔除。  
+**K3**：若优势方命中数 < 劣势方命中数，剔除。
+
+### 15.2 进球数做单（Goal Module）
+
+对每场比赛 \(i\)：
+
+- 若 \(i\) 是 Lambda 最小的场次：
+  ```math
+  \text{Min}_i = \lfloor \text{expTotalGoals}_i \rfloor - 1,\quad \text{Max}_i = \lfloor \text{expTotalGoals}_i \rfloor + 1
+  ```
+- 若 \(i\) 是 dxqLastPan 最大的场次：
+  ```math
+  \text{Min}_i = \lceil \text{expTotalGoals}_i \rceil - 1,\quad \text{Max}_i = \lceil \text{expTotalGoals}_i \rceil + 2
+  ```
+- 其他：
+  ```math
+  \text{Min}_i = \text{expTotalGoals}_i - 2,\quad \text{Max}_i = \text{expTotalGoals}_i + 2
+  ```
+  （所有 Min ≥ 0）
+
+宏观区间：
+```math
+\text{SumMin} = 0.8 \sum_{i=1}^{N} \text{expTotalGoals}_i
+```
+```math
+\text{SumMax} = 1.2 \sum_{i=1}^{N} \text{dxqLastPan}_i
+```
+
+单注进球组合 \((g_1,\dots,g_N)\) 需满足：
+1. 至少 \(N-1\) 场比赛满足 \(g_i \in [\text{Min}_i, \text{Max}_i]\)
+2. \(\sum g_i \in [\text{SumMin}, \text{SumMax}]\)
+
+### 15.3 比分做单（Score Module）
+
+对每个通过 SPF 和 Goal 的方案，将每场比赛的 (SPF结果, 总进球数) 映射到具体比分。若该比分**不在**该场 M4_Score_Top2（前两个推荐比分）中，则整注剔除。
+
+---
+
+*文档结束*
+```
+
