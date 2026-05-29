@@ -403,8 +403,10 @@ def main():
             print('  {}'.format(c('D', '无需修复')))
         elif 'NOTFOUND' in out:
             print('  {}'.format(c('Y', '未找到配置文件')))
-        ssh_cmd(ssh, 'nginx -t && nginx -s reload 2>&1', 10)
-        print('  Nginx 已重载')
+        ssh_cmd(ssh, 'nginx -t 2>&1', 10)
+        # 完全重启 Nginx（清除 open_file_cache + sendfile 缓存）
+        ssh_cmd(ssh, 'nginx -s stop 2>/dev/null; sleep 1; nginx 2>&1', 15)
+        print('  Nginx 已重启（完全清除缓存）')
     print()
 
     sftp.close()
