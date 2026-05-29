@@ -144,88 +144,70 @@ def ssh_cmd(ssh, cmd, timeout=60):
 
 def batch_upload(sftp, ssh, file_list, dry_run=False):
     """
-    批量上传：base64 编码 → SSH pipe 写入 → md5 验证
-    跳过 SFTP（权限/文件锁问题），直接用 SSH 管道的 base64 解码写入
+    批量上传：SFTP → /tmp → SSH cp → md5 验证
+    修复：分批次处理，每批 ≤12 个文件，避免超长 SSH 命令截断
     """
     results = []
-    BATCH_SIZE = 10  # 每批最多 10 个文件
+    BATCH_SIZE = 12
 
     if dry_run:
         for lp, rp in file_list:
             results.append((True, os.path.basename(rp), 'DRY', '-', '-'))
         return results
 
-    import base64 as _b64
-
     # 分批次处理
     for batch_start in range(0, len(file_list), BATCH_SIZE):
         batch = file_list[batch_start:batch_start + BATCH_SIZE]
+        tmp_files = []
+        cp_cmds = []
+        verify_cmds = []
 
-        # 逐文件上传（通过 base64 管道，避免 SFTP 权限问题）
+        # 1) SFTP 上传到 /tmp
         for local_path, remote_path in batch:
             fname = os.path.basename(remote_path)
+            path_hash = hashlib.md5(remote_path.encode()).hexdigest()[:8]
+            tmp_path = '/tmp/_dep_{}_{}'.format(path_hash, fname)
             try:
-                # 读取本地文件并 base64 编码
-                with open(local_path, 'rb') as f:
-                    b64_data = _b64.b64encode(f.read()).decode('ascii')
-
-                remote_dir = os.path.dirname(remote_path)
-
-                # 构建 shell 命令（避免 echo 引入控制字符）
-                # 使用 heredoc 方式写入文件，避免 base64 太长导致的 echo 问题
-                cmd = (
-                    'mkdir -p "{d}" && '
-                    'cat << "EOF" | base64 -d > "{p}"\n'
-                    '{b}\n'
-                    'EOF\n'
-                    'sync && '
-                    'md5sum "{p}"'
-                ).format(d=remote_dir, p=remote_path, b=b64_data)
-
-                stdin, stdout, stderr = ssh.exec_command(cmd, timeout=30)
-                out = stdout.read().decode('utf-8', errors='replace').strip()
-                err = stderr.read().decode('utf-8', errors='replace').strip()
-
-                # 解析 md5
-                remote_md5 = ''
-                if out:
-                    lines = [l for l in out.split('\n') if len(l.strip()) == 32]
-                    if lines:
-                        remote_md5 = lines[0].strip()
-                    else:
-                        # 回退：md5sum 输出格式 "<hash> <path>"
-                        remote_md5 = out.split()[0] if out and len(out.split()) > 0 and len(out.split()[0]) == 32 else ''
-
-                with open(local_path, 'rb') as f:
-                    local_md5 = hashlib.md5(f.read()).hexdigest()
-
-                if remote_md5 == local_md5:
-                    results.append((True, fname, 'OK', local_md5[:8], remote_md5[:8]))
-                else:
-                    # 重试：用 heredoc 写入 .tmp 再 mv（避免正在被读取的文件）\n'
-                    retry_cmd = (
-                        'mkdir -p "{d}" && '
-                        'cat << "BEOF" | base64 -d > "{p}.tmp"\n'
-                        '{b}\n'
-                        'BEOF\n'
-                        'mv -f "{p}.tmp" "{p}" && sync && md5sum "{p}"'
-                    ).format(d=remote_dir, b=b64_data, p=remote_path)
-                    stdin2, stdout2, stderr2 = ssh.exec_command(retry_cmd, timeout=30)
-                    retry_out = stdout2.read().decode('utf-8', errors='replace').strip()
-                    retry_md5 = ''
-                    if retry_out:
-                        rlines = [l for l in retry_out.split('\n') if len(l.strip()) == 32]
-                        if rlines:
-                            retry_md5 = rlines[0].strip()
-                        elif len(retry_out.split()) > 0 and len(retry_out.split()[0]) == 32:
-                            retry_md5 = retry_out.split()[0]
-                    if retry_md5 == local_md5:
-                        results.append((True, fname, 'RETRY', local_md5[:8], retry_md5[:8]))
-                    else:
-                        results.append((False, fname, 'MD5', local_md5[:8],
-                                        retry_md5[:8] if retry_md5 else 'MISS'))
+                sftp.put(local_path, tmp_path)
+                tmp_files.append((local_path, remote_path, tmp_path))
             except Exception as e:
-                results.append((False, fname, 'SSH', '-', str(e)[:50]))
+                results.append((False, fname, 'SFTP', '-', str(e)[:50]))
+
+        if not tmp_files:
+            continue
+
+        # 2) SSH cp + md5
+        for local_path, remote_path, tmp_path in tmp_files:
+            remote_dir = os.path.dirname(remote_path)
+            cp_cmds.append('mkdir -p {d} && chattr -i {p} 2>/dev/null; cp -f {t} {p}'.format(
+                d=remote_dir, t=tmp_path, p=remote_path))
+            verify_cmds.append('echo "##{}##" && md5sum {}'.format(remote_path, remote_path))
+
+        batch_cmd = ' && '.join(cp_cmds) + ' && sync && ' + ' && '.join(verify_cmds)
+        out, err = ssh_cmd(ssh, batch_cmd, len(tmp_files) * 10 + 15)
+
+        # 3) 解析 md5
+        segments = out.split('##')
+        md5_map = {}
+        for i in range(1, len(segments) - 1, 2):
+            rpath = segments[i].strip()
+            md5_str = segments[i + 1].strip().split()[0] if len(segments) > i + 1 else ''
+            md5_map[rpath] = md5_str
+
+        # 4) 验证
+        for local_path, remote_path, tmp_path in tmp_files:
+            fname = os.path.basename(remote_path)
+            with open(local_path, 'rb') as f:
+                local_md5 = hashlib.md5(f.read()).hexdigest()
+            remote_md5 = md5_map.get(remote_path, '')
+            if remote_md5 == local_md5:
+                results.append((True, fname, 'OK', local_md5[:8], remote_md5[:8]))
+            else:
+                results.append((False, fname, 'MD5', local_md5[:8],
+                                remote_md5[:8] if remote_md5 else 'MISS'))
+
+        # 5) 清理
+        ssh_cmd(ssh, 'rm -f /tmp/_dep_* 2>/dev/null', 5)
 
     return results
 
