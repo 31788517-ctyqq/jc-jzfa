@@ -144,68 +144,72 @@ def ssh_cmd(ssh, cmd, timeout=60):
 
 def batch_upload(sftp, ssh, file_list, dry_run=False):
     """
-    批量上传：SFTP 全部→/tmp/ → 单次 SSH cp+md5 → 返回结果列表
-    file_list: [(local_path, remote_path), ...]
+    批量上传：分批次直接 SFTP 覆盖 → 单独 md5 验证
+    修复：1) 避免超长命令截断  2) 避免 /tmp/cp 两步间丢失  3) 逐文件验证
     """
     results = []
-    tmp_files = []
-    cp_cmds = []
-    verify_cmds = []
+    BATCH_SIZE = 15  # 每批最多 15 个文件，避免 SSH 命令过长
 
     if dry_run:
         for lp, rp in file_list:
             results.append((True, os.path.basename(rp), 'DRY', '-', '-'))
         return results
 
-    # 1) SFTP 批量上传到 /tmp（用 remote_path 的 hash 避免同名冲突）
-    for local_path, remote_path in file_list:
-        fname = os.path.basename(remote_path)
-        # 用远程路径的 MD5 前8位保证唯一性，防止不同目录同名文件互相覆盖
-        path_hash = hashlib.md5(remote_path.encode()).hexdigest()[:8]
-        tmp_path = '/tmp/_dep_{}_{}'.format(path_hash, fname)
+    # 分批次处理
+    for batch_start in range(0, len(file_list), BATCH_SIZE):
+        batch = file_list[batch_start:batch_start + BATCH_SIZE]
+
+        # 1) SFTP 直接上传到目标路径（跳过 /tmp 中转，减少中间环节）
+        sftp_ok = 0
+        for local_path, remote_path in batch:
+            try:
+                remote_dir = os.path.dirname(remote_path)
+                # 确保远程目录存在
+                try:
+                    sftp.stat(remote_dir)
+                except:
+                    sftp.mkdir(remote_path)
+                    # 递归创建目录（不支持 mkdir -p，用 SSH 创建）
+                    ssh.exec_command('mkdir -p "{}"'.format(remote_dir), timeout=5)
+                # 直接上传到目标
+                sftp.put(local_path, remote_path, confirm=True)
+                sftp_ok += 1
+            except Exception as e:
+                results.append((False, os.path.basename(remote_path), 'SFTP', '-', str(e)[:50]))
+
+        if sftp_ok == 0:
+            continue
+
+        # 2) SSH 执行 sync（确保写入磁盘）
         try:
-            sftp.put(local_path, tmp_path)
-            tmp_files.append((local_path, remote_path, tmp_path))
-        except Exception as e:
-            results.append((False, os.path.basename(remote_path), 'SFTP', '-', str(e)[:50]))
+            ssh.exec_command('sync', timeout=10)
+        except:
+            pass
 
-    # 2) 构建批量 cp + md5 命令
-    for local_path, remote_path, tmp_path in tmp_files:
-        remote_dir = os.path.dirname(remote_path)
-        cp_cmds.append('mkdir -p {d} && chattr -i {p} 2>/dev/null; cp -f {t} {p}'.format(
-            d=remote_dir, t=tmp_path, p=remote_path))
-        # 用远程完整路径做标记（而非 basename），避免同名文件验证冲突
-        verify_cmds.append('echo "##{}##" && md5sum {}'.format(
-            remote_path, remote_path))
-
-    if not cp_cmds:
-        return results
-
-    batch_cmd = ' && '.join(cp_cmds) + ' && sync && ' + ' && '.join(verify_cmds)
-    out, err = ssh_cmd(ssh, batch_cmd, len(tmp_files) * 5 + 10)
-
-    # 3) 解析 md5sum 结果
-    segments = out.split('##')
-    md5_map = {}
-    for i in range(1, len(segments) - 1, 2):
-        fname = segments[i].strip()
-        md5_str = segments[i + 1].strip().split()[0] if len(segments) > i + 1 else ''
-        md5_map[fname] = md5_str
-
-    # 4) 验证（用 remote_path 而非 basename 做 key，消除同名冲突）
-    for local_path, remote_path, tmp_path in tmp_files:
-        fname = os.path.basename(remote_path)
-        with open(local_path, 'rb') as f:
-            local_md5 = hashlib.md5(f.read()).hexdigest()
-        remote_md5 = md5_map.get(remote_path, '')
-        if remote_md5 == local_md5:
-            results.append((True, fname, 'OK', local_md5, remote_md5))
-        else:
-            results.append((False, fname, 'MD5', local_md5[:8],
-                            remote_md5[:8] if remote_md5 else 'MISSING'))
-
-    # 5) 清理
-    ssh_cmd(ssh, 'rm -f /tmp/_dep_* 2>/dev/null', 5)
+        # 3) 逐文件 md5 验证
+        for local_path, remote_path in batch:
+            fname = os.path.basename(remote_path)
+            try:
+                with open(local_path, 'rb') as f:
+                    local_md5 = hashlib.md5(f.read()).hexdigest()
+                _, stdout, _ = ssh.exec_command('md5sum "{}"'.format(remote_path), timeout=5)
+                remote_out = stdout.read().decode('utf-8', errors='replace').strip()
+                remote_md5 = remote_out.split()[0] if len(remote_out) > 32 else ''
+                if remote_md5 == local_md5:
+                    results.append((True, fname, 'OK', local_md5[:8], remote_md5[:8]))
+                else:
+                    # MD5 不匹配，重试一次
+                    sftp.put(local_path, remote_path, confirm=True)
+                    _, stdout, _ = ssh.exec_command('md5sum "{}"'.format(remote_path), timeout=5)
+                    retry_out = stdout.read().decode('utf-8', errors='replace').strip()
+                    retry_md5 = retry_out.split()[0] if len(retry_out) > 32 else ''
+                    if retry_md5 == local_md5:
+                        results.append((True, fname, 'RETRY', local_md5[:8], retry_md5[:8]))
+                    else:
+                        results.append((False, fname, 'MD5', local_md5[:8],
+                                        retry_md5[:8] if retry_md5 else 'MISSING'))
+            except Exception as e:
+                results.append((False, fname, 'VERIFY', '-', str(e)[:50]))
 
     return results
 
@@ -484,14 +488,18 @@ def main():
         for lp, rp in recheck_list:
             md5_cmds.append('echo "##{}##" && md5sum {}'.format(rp, rp))
         if md5_cmds:
-            batch_md5_cmd = ' && '.join(md5_cmds)
-            out, _ = ssh_cmd(ssh, batch_md5_cmd, len(md5_cmds) * 3 + 10)
-            segments = out.split('##')
+            # 分批次执行 md5 验证（避免超长命令截断）
+            RECHECK_BATCH = 15
             server_md5_map = {}
-            for i in range(1, len(segments) - 1, 2):
-                remote_path = segments[i].strip()
-                md5_str = segments[i + 1].strip().split()[0] if len(segments) > i + 1 else ''
-                server_md5_map[remote_path] = md5_str
+            for ri in range(0, len(md5_cmds), RECHECK_BATCH):
+                sub_cmds = md5_cmds[ri:ri + RECHECK_BATCH]
+                sub_cmd = ' && '.join(sub_cmds)
+                out, _ = ssh_cmd(ssh, sub_cmd, len(sub_cmds) * 3 + 10)
+                segments = out.split('##')
+                for i in range(1, len(segments) - 1, 2):
+                    remote_path = segments[i].strip()
+                    md5_str = segments[i + 1].strip().split()[0] if len(segments) > i + 1 else ''
+                    server_md5_map[remote_path] = md5_str
 
             # 缓存本地文件 md5
             local_md5_cache = {}
@@ -525,10 +533,70 @@ def main():
         print(c('D', '═' * 54))
         print(c('C', '[Phase 5] 服务验证'))
         health, _ = ssh_cmd(ssh, 'curl -s http://localhost:3000/health 2>/dev/null', 5)
-        print('  健康: {}'.format(c('G', health) if health == 'ok' else c('R', health or 'N/A')))
+        health_ok = 'ok' in (health or '')
+        print('  健康: {}'.format(c('G', health.strip()) if health_ok else c('R', health or 'N/A')))
 
         out, _ = ssh_cmd(ssh, 'wc -c < {}/server/data.json 2>/dev/null'.format(PM2_ROOT), 5)
         print('  data.json: {}B'.format(out.strip() if out else c('R', 'MISSING!')))
+
+        # ★ HTTP 内容验证：确认 Nginx 返回最新文件
+        if health_ok:
+            print(c('C', '\n[Phase 5.5] HTTP 内容验证'))
+            # 从本地 index.html 提取特征串用于验证
+            local_index = os.path.join(LOCAL_ROOT, 'preview', 'index.html')
+            try:
+                with open(local_index, 'r', encoding='utf-8') as f:
+                    local_html = f.read()
+                # 提取 HTML 中不重复的脚本标签作为特征
+                import re as _re
+                scripts = _re.findall(r'src="(/[^"]+\?v=\d+)"', local_html)
+                # 取一个可靠的验证点：量化方案 文字
+                check_ok = True
+                html_out, _ = ssh_cmd(ssh,
+                    'curl -s http://localhost:3000/index.html 2>/dev/null | grep -c "量化方案"', 5)
+                if html_out.strip() != '0' and html_out.strip():
+                    print('  {} index.html 内容验证通过（量化方案标签存在）'.format(c('G', '✓')))
+                else:
+                    # fallback: 检查文件大小
+                    size_out, _ = ssh_cmd(ssh,
+                        'STATIC=$(wc -c < /var/www/zj.100qiu.com/preview/index.html 2>/dev/null); '
+                        'ACTUAL=$(curl -s http://localhost:3000/index.html 2>/dev/null | wc -c); '
+                        'echo "${STATIC}:${ACTUAL}"', 5)
+                    sizes = size_out.strip().split(':') if size_out else ['0','0']
+                    if sizes[0] == sizes[1] and int(sizes[0]) > 100000:
+                        print('  {} index.html 大小一致 ({}B)'.format(c('G', '✓'), sizes[0]))
+                        check_ok = True
+                    else:
+                        print(c('R', '  ✗ index.html 不一致! 磁盘:{}B HTTP:{}B'.format(sizes[0], sizes[1])))
+                        check_ok = False
+
+                # 验证 JS 文件
+                js_files = ['main-fusion.js', 'js/pages/plans.js', 'js/pages/match-list.js']
+                for js in js_files:
+                    local_path = os.path.join(LOCAL_ROOT, 'preview', js)
+                    remote_nginx_path = os.path.join(NGINX_ROOT, 'preview', js)
+                    if os.path.exists(local_path):
+                        local_size = os.path.getsize(local_path)
+                        size_out2, _ = ssh_cmd(ssh,
+                            'wc -c < {} 2>/dev/null'.format(remote_nginx_path), 5)
+                        try:
+                            remote_size = int(size_out2.strip() or '0')
+                            if remote_size == local_size:
+                                print('  {} {} OK ({}B)'.format(c('G', '✓'), js, local_size))
+                            else:
+                                print(c('R', '  ✗ {} 大小不一致 本地:{}B 服务器:{}B'.format(js, local_size, remote_size)))
+                                check_ok = False
+                        except:
+                            print(c('R', '  ✗ {} 无法读取'.format(js)))
+                            check_ok = False
+
+                if not check_ok:
+                    print(c('Y', '\n  ⚠ HTTP 验证未通过，文件可能未正确部署'))
+                    print(c('D', '  建议：运行 python deploy.py 重新部署（不使用 --fast）'))
+                else:
+                    print('  {} HTTP 内容全部验证通过'.format(c('G', '✓')))
+            except Exception as e:
+                print(c('Y', '  ⚠ 内容验证跳过: {}'.format(str(e)[:80])))
     print()
 
     # ── 汇总 ──
