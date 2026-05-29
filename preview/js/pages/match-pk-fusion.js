@@ -467,21 +467,21 @@ function renderComboRecommendations(ranked) {
   if (posPick.length >= 2) {
     html += '<div class="pk3-combo-card combo-positive">' +
       '<span class="pk3-combo-tag">🎯 正路 2串1</span>' +
-      '<span class="pk3-combo-teams">' + posPick.map(function (x) { return x.name; }).join(' + ') + '</span>' +
+      '<span class="pk3-combo-teams">' + posPick.map(function (x) { return x.name + '（<b>' + x.dir + '</b>）'; }).join(' + ') + '</span>' +
       '<span class="pk3-combo-hint">综合信心最高 · 低风险</span></div>';
   }
 
   if (coldPick.length >= 2) {
     html += '<div class="pk3-combo-card combo-cold">' +
       '<span class="pk3-combo-tag">⚡ 博冷 2串1</span>' +
-      '<span class="pk3-combo-teams">' + coldPick.map(function (x) { return x.name; }).join(' + ') + '</span>' +
+      '<span class="pk3-combo-teams">' + coldPick.map(function (x) { return x.name + '（<b>' + x.dir + '</b>）'; }).join(' + ') + '</span>' +
       '<span class="pk3-combo-hint">热度异常 · 高赔关注</span></div>';
   }
 
   if (steadyPick.length >= 2) {
     html += '<div class="pk3-combo-card combo-steady">' +
       '<span class="pk3-combo-tag">🛡️ 稳健 2串1</span>' +
-      '<span class="pk3-combo-teams">' + steadyPick.map(function (x) { return x.name; }).join(' + ') + '</span>' +
+      '<span class="pk3-combo-teams">' + steadyPick.map(function (x) { return x.name + '（<b>' + x.dir + '</b>）'; }).join(' + ') + '</span>' +
       '<span class="pk3-combo-hint">实力均衡 · 双选容错</span></div>';
   }
 
