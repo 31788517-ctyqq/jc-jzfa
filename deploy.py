@@ -417,7 +417,7 @@ def main():
             ('preview/index.html', NGINX_ROOT+'/preview/index.html', PM2_ROOT+'/preview/index.html', 'match-header-left'),
             ('preview/js/main-fusion.js', NGINX_ROOT+'/preview/js/main-fusion.js', PM2_ROOT+'/preview/js/main-fusion.js', 'V5.0-FUSION'),
             ('preview/js/pages/match-pk-fusion.js', NGINX_ROOT+'/preview/js/pages/match-pk-fusion.js', PM2_ROOT+'/preview/js/pages/match-pk-fusion.js', 'x.dir +'),
-            ('preview/js/pages/quant-rank-fusion.js', NGINX_ROOT+'/preview/js/pages/quant-rank-fusion.js', PM2_ROOT+'/preview/js/pages/quant-rank-fusion.js', 'barMaxWidth: 16'),
+            ('preview/js/pages/quant-rank-fusion.js', NGINX_ROOT+'/preview/js/pages/quant-rank-fusion.js', PM2_ROOT+'/preview/js/pages/quant-rank-fusion.js', 'gs.homeOverRate != null'),
             ('preview/js/pages/match-list.js', NGINX_ROOT+'/preview/js/pages/match-list.js', PM2_ROOT+'/preview/js/pages/match-list.js', 'window.startMatchPK = startMatchPK'),
         ]
         any_fixed = False
