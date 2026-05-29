@@ -125,6 +125,7 @@ function computeSingleMatch(rawStats, matchInfo) {
     fusionConsensus: goalResult.fusionConsensus,
     fusionFinalHome: goalResult.fusionFinalHome,
     fusionFinalAway: goalResult.fusionFinalAway,
+    fusionFinalTotal: goalResult.fusionFinalTotal,  // V25新增：熔断后融合总进球（备用预期进球指标）
     fusionFused: goalResult.fusionFused,
     // ★ 进球预测维度（PK.md 进球数预测公式）
     attDefGoal: goalResult.attDefGoal,         // 攻防进球 = xgHome + xgAway

@@ -232,22 +232,67 @@ function buildStatsMap(apiData) {
 }
 
 /**
- * 模糊匹配队名（处理"厄勒布鲁"vs"奥雷布洛"等译名差异）
+ * 手动队名别名映射表
+ * key: 标准队名（data.json 中的名称）
+ * value: API 端可能出现的别名列表
+ */
+const TEAM_ALIAS_MAP = {
+  // 挪超 — 队名别名（覆盖 data.json ↔ API 之间的译名/简称差异）
+  '布兰': ['布兰', '白兰恩'],
+  '萨尔普斯堡': ['萨尔普斯堡', '萨普斯堡', '萨尔普斯', '萨普斯'],
+  '奥斯陆KFUM': ['奥斯陆KFUM', 'KFUM奥斯陆'],
+  '特罗姆瑟': ['特罗姆瑟', '特罗姆', '特罗姆瑟IL'],
+  // 国家队 — API 可能不含国家队数据，此映射为兜底
+  '波黑': ['波黑', '波斯尼亚', '波斯尼亚和黑塞哥维那'],
+  '北马其顿': ['北马其顿', '马其顿', '北马其'],
+};
+
+/**
+ * 标准化队名：去括号、去空格、转小写
+ */
+function normalizeTeamName(name) {
+  if (!name) return '';
+  return name.replace(/\(.*\)/g, '').replace(/\s+/g, '').toLowerCase();
+}
+
+/**
+ * 模糊匹配队名（多策略，处理译名差异）
+ *
+ * 策略优先级：
+ *   1) 精确匹配
+ *   2) 包含匹配（长度差 ≤ 50%）
+ *   3) 前缀匹配（取 minLen 字前缀）
+ *   4) TEAM_ALIAS_MAP 别名匹配
  */
 function fuzzyMatch(name1, name2) {
   if (!name1 || !name2) return false;
-  const n1 = name1.replace(/\(.*\)/g, '').trim();
-  const n2 = name2.replace(/\(.*\)/g, '').trim();
-  if (n1 === n2) return true;
-  // 包含匹配
-  if (n1.length >= 2 && n2.length >= 2) {
-    if (n1.includes(n2) || n2.includes(n1)) return true;
+  const nn1 = normalizeTeamName(name1);
+  const nn2 = normalizeTeamName(name2);
+
+  // 策略1: 精确匹配
+  if (nn1 === nn2) return true;
+
+  // 策略2: 包含匹配（长度差 ≤ 50%，防止短名误匹配）
+  if (nn1.length >= 2 && nn2.length >= 2) {
+    const lenRatio = Math.min(nn1.length, nn2.length) / Math.max(nn1.length, nn2.length);
+    if (lenRatio >= 0.5 && (nn1.includes(nn2) || nn2.includes(nn1))) return true;
   }
-  // 单字匹配（如"韩国" vs "韩国队"）
-  if (n1.length >= 2 && n2.length >= 2) {
-    const s1 = n1.slice(0, 2), s2 = n2.slice(0, 2);
-    if (s1 === s2) return true;
+
+  // 策略3: 前缀匹配（minLen 字前缀相同）
+  const minLen = Math.min(nn1.length, nn2.length, 4);
+  if (minLen >= 2 && nn1.slice(0, minLen) === nn2.slice(0, minLen)) return true;
+
+  // 策略4: 别名映射表查
+  for (const [stdName, aliases] of Object.entries(TEAM_ALIAS_MAP)) {
+    const ns = normalizeTeamName(stdName);
+    const aliasSet = aliases.map(a => normalizeTeamName(a));
+    const n1InSet = aliasSet.includes(nn1);
+    const n2InSet = aliasSet.includes(nn2);
+    if (n1InSet && n2InSet) return true;
+    // 反向也查：name1 可能是标准名
+    if ((nn1 === ns && n2InSet) || (nn2 === ns && n1InSet)) return true;
   }
+
   return false;
 }
 
@@ -300,6 +345,7 @@ async function fetchAndRelateByBatch(dateTime) {
   // 按队名匹配（不局限于特定日期）
   const result = {};
   const matchedTeams = new Set();
+  const _unmatchedTeams = []; // 诊断：收集未匹配的比赛
 
   Object.keys(mMap).forEach(mid => {
     const m = mMap[mid];
@@ -308,18 +354,42 @@ async function fetchAndRelateByBatch(dateTime) {
     const visitName = (m.visitName || '').replace(/\(.*\)/g, '').trim();
     if (!homeName) return;
 
+    let matched = false;
     for (const item of apiList) {
       const aHome = (item.homeTeam || '').replace(/\(.*\)/g, '').trim();
       const aGuest = (item.guestTeam || '').replace(/\(.*\)/g, '').trim();
       if (fuzzyMatch(homeName, aHome) && fuzzyMatch(visitName, aGuest)) {
         result[mid] = item;
         matchedTeams.add(homeName + '|' + visitName);
+        matched = true;
         break;
       }
     }
+    if (!matched) {
+      _unmatchedTeams.push({
+        mid, homeName, visitName,
+        league: m.leagueName || '',
+        date: m.matchDate || ''
+      });
+    }
   });
 
-  console.log('[fetch] 匹配到', Object.keys(result).length, '场');
+  // 诊断：输出未匹配比赛（帮助排查队名译名差异）
+  if (_unmatchedTeams.length > 0) {
+    console.log('[fetch] 未匹配到数据的比赛 (' + _unmatchedTeams.length + ' 场):');
+    _unmatchedTeams.forEach(u => {
+      console.log('  - ' + (u.league ? '[' + u.league + '] ' : '') +
+        u.homeName + ' vs ' + u.visitName +
+        (u.date ? ' (' + u.date + ')' : '') +
+        '  mid=' + u.mid);
+    });
+    console.log('[fetch] API 端队名样本（前10场）:');
+    apiList.slice(0, 10).forEach(item => {
+      console.log('  - ' + (item.homeTeam || '?') + ' vs ' + (item.guestTeam || '?'));
+    });
+  }
+
+  console.log('[fetch] 匹配到', Object.keys(result).length, '场 / 共', Object.keys(mMap).length, '场');
   return result;
 }
 

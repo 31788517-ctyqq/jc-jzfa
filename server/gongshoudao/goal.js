@@ -142,9 +142,15 @@ function calcExpectedGoals(vars, totalExpect, weights) {
   const beta3 = (hfGoal - hfLose) / (hfGoal + hfLose + 1);
   const beta4 = (afGoal - afLose) / (afGoal + afLose + 1);
 
-  // 终极进球期望（严格按文档公式，不做额外缩放）
-  const xgHome = round(beta1 * atkH + beta3 * hfGoal, 2);
-  const xgAway = round(beta2 * atkA + beta4 * afGoal, 2);
+  // 终极进球期望（V25 修正：使用实际进球 gh/ga 而非还原射门次数 atkH/atkA）
+  // 原公式 beta1×atkH 将"还原射门次数"直接当做"进球数"，导致低效率球队 xG 虚高（如 9+球）
+  // 修正：射门次数还原仅用于计算权重比例(beta)，xg 本身必须回到进球量纲
+  const xgHomeRaw = beta1 * gh + beta3 * hfGoal;
+  const xgAwayRaw = beta2 * ga + beta4 * afGoal;
+
+  // 安全上限（足球单场每队 xG 极少超过 4.5，总和极少超过 6.5）
+  const xgHome = round(Math.min(4.5, Math.max(0.1, xgHomeRaw)), 2);
+  const xgAway = round(Math.min(4.5, Math.max(0.1, xgAwayRaw)), 2);
 
   // ── GD_q: 净胜球量化（新公式） ──
   // Phase 1: 还原底层攻防次数 (atkH, atkA, shotAgainstH, shotAgainstA 已计算)
@@ -192,15 +198,16 @@ function analyze(vars, S) {
 
   // ── 进球预测维度按 PK.md 文档公式计算 ──
 
-  // 攻防进球 (M3_A) = xgHome + xgAway
-  const attDefGoal = round(xg.xgHome + xg.xgAway, 2);
+  // 攻防进球 (M3_A) = xgHome + xgAway（安全上限 6.5球，足球单场极少超过）
+  const attDefGoal = round(Math.min(6.5, Math.max(0.3, xg.xgHome + xg.xgAway)), 2);
 
   // 破甲和 = 主队进攻次数/(客队被射次数+0.5) + 客队进攻次数/(主队被射次数+0.5)
+  // 安全上限 8.0（这是一个攻防穿透力比值，极少超过 8）
   const atkH = xg._atkH || 0;
   const atkA = xg._atkA || 0;
   const shotAgainstH = xg._shotAgainstH || 0;
   const shotAgainstA = xg._shotAgainstA || 0;
-  const breakArmorSum = round(atkH / (shotAgainstA + 0.5) + atkA / (shotAgainstH + 0.5), F);
+  const breakArmorSum = round(Math.min(8.0, atkH / (shotAgainstA + 0.5) + atkA / (shotAgainstH + 0.5)), F);
 
   // 交锋大球率 = 近3-6次交锋中总进球≥3球的场次比例
   const jiaoFenScores = vars.jiaoFenScores || [];
