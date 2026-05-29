@@ -171,46 +171,54 @@ def batch_upload(sftp, ssh, file_list, dry_run=False):
 
                 remote_dir = os.path.dirname(remote_path)
 
-                # 构建单条 shell 命令：创建目录 → base64 解码写入 → md5 返回
+                # 构建 shell 命令（避免 echo 引入控制字符）
+                # 使用 heredoc 方式写入文件，避免 base64 太长导致的 echo 问题
                 cmd = (
                     'mkdir -p "{d}" && '
-                    'echo "{b}" | base64 -d > "{p}" && '
+                    'cat << "EOF" | base64 -d > "{p}"\n'
+                    '{b}\n'
+                    'EOF\n'
                     'sync && '
-                    'md5sum "{p}" && '
-                    'echo "OK:{f}"'
-                ).format(d=remote_dir, b=b64_data, p=remote_path, f=fname)
+                    'md5sum "{p}"'
+                ).format(d=remote_dir, p=remote_path, b=b64_data)
 
                 stdin, stdout, stderr = ssh.exec_command(cmd, timeout=30)
                 out = stdout.read().decode('utf-8', errors='replace').strip()
                 err = stderr.read().decode('utf-8', errors='replace').strip()
 
-                # 解析 md5 和 OK 标记
+                # 解析 md5
                 remote_md5 = ''
                 if out:
-                    first_line = out.split('\n')[0]
-                    remote_md5 = first_line.split()[0] if len(first_line) > 32 else ''
+                    lines = [l for l in out.split('\n') if len(l.strip()) == 32]
+                    if lines:
+                        remote_md5 = lines[0].strip()
+                    else:
+                        # 回退：md5sum 输出格式 "<hash> <path>"
+                        remote_md5 = out.split()[0] if out and len(out.split()) > 0 and len(out.split()[0]) == 32 else ''
 
                 with open(local_path, 'rb') as f:
                     local_md5 = hashlib.md5(f.read()).hexdigest()
 
-                is_ok = 'OK:' + fname in out
-
-                if remote_md5 == local_md5 and is_ok:
-                    results.append((True, fname, 'OK', local_md5[:8], remote_md5[:8]))
-                elif remote_md5 == local_md5:
+                if remote_md5 == local_md5:
                     results.append((True, fname, 'OK', local_md5[:8], remote_md5[:8]))
                 else:
-                    # 重试：通过管道 echo 方式
+                    # 重试：用 heredoc 写入 .tmp 再 mv（避免正在被读取的文件）\n'
                     retry_cmd = (
                         'mkdir -p "{d}" && '
-                        'echo "{b}" | base64 -d > "{p}.tmp" && '
-                        'mv -f "{p}.tmp" "{p}" && '
-                        'sync && '
-                        'md5sum "{p}"'
+                        'cat << "BEOF" | base64 -d > "{p}.tmp"\n'
+                        '{b}\n'
+                        'BEOF\n'
+                        'mv -f "{p}.tmp" "{p}" && sync && md5sum "{p}"'
                     ).format(d=remote_dir, b=b64_data, p=remote_path)
                     stdin2, stdout2, stderr2 = ssh.exec_command(retry_cmd, timeout=30)
                     retry_out = stdout2.read().decode('utf-8', errors='replace').strip()
-                    retry_md5 = retry_out.split()[0] if len(retry_out) > 32 else ''
+                    retry_md5 = ''
+                    if retry_out:
+                        rlines = [l for l in retry_out.split('\n') if len(l.strip()) == 32]
+                        if rlines:
+                            retry_md5 = rlines[0].strip()
+                        elif len(retry_out.split()) > 0 and len(retry_out.split()[0]) == 32:
+                            retry_md5 = retry_out.split()[0]
                     if retry_md5 == local_md5:
                         results.append((True, fname, 'RETRY', local_md5[:8], retry_md5[:8]))
                     else:
