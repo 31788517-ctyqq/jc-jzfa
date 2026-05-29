@@ -164,6 +164,8 @@ function renderPKGoal(modal, list) {
   }
 
   // ── 底部按钮 ──
+  html += renderPKSummary(list);
+  html += renderComboRecommendations(list);
   html += '<div class="pk2-footer"><button class="pk2-done-btn" onclick="closePK()">完成</button></div>';
 
   modal.innerHTML = html;
@@ -325,6 +327,8 @@ function renderPKPower(modal, list) {
 
   html += '<div class="pk2-section-label">实力PK结果</div>';
   html += renderPowerPKCard(list);
+  html += renderPKSummary(list);
+  html += renderComboRecommendations(list);
   html += '<div class="pk2-footer"><button class="pk2-done-btn" onclick="closePK()">完成</button></div>';
   modal.innerHTML = html;
 }
@@ -485,6 +489,8 @@ function renderPKHot(modal, list) {
     }
   }
 
+  html += renderPKSummary(list);
+  html += renderComboRecommendations(list);
   html += '<div class="pk2-footer"><button class="pk2-done-btn" onclick="closePK()">完成</button></div>';
   modal.innerHTML = html;
 }
@@ -504,7 +510,32 @@ function renderHotPKCard(a, b) {
     { label: '亚指临盘PK',  va: h2(a.oddsLive),    vb: h2(b.oddsLive) }
   ];
 
-  return buildPKCard(a, b, dims);
+  // P1-4: 热度解读标签
+  var verdict = renderHeatVerdict(a, b);
+
+  return buildPKCard(a, b, dims) + verdict;
+}
+
+// P1-4: 冷热指数解读
+function renderHeatVerdict(a, b) {
+  var hiA = parseFloat(a.heatIndex);
+  var hiB = parseFloat(b.heatIndex);
+  if (isNaN(hiA) && isNaN(hiB)) return '';
+
+  var verdicts = [];
+  var addV = function (name, hi) {
+    if (isNaN(hi)) return;
+    if (hi >= 1.40) verdicts.push('<span style="color:#f87171;font-weight:700">🔥 ' + name + '过热(' + hi.toFixed(2) + ')</span>');
+    else if (hi <= 0.85) verdicts.push('<span style="color:#60a5fa;font-weight:700">🧊 ' + name + '冷藏(' + hi.toFixed(2) + ')</span>');
+  };
+  addV(esc(shortTeam(a.homeName)), hiA);
+  addV(esc(shortTeam(b.homeName)), hiB);
+
+  if (!verdicts.length) return '';
+
+  return '<div style="margin:0 10px 8px;padding:8px 12px;border-radius:10px;' +
+    'background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.15);font-size:11px;text-align:center">' +
+    '📡 市场热度提示：' + verdicts.join(' · ') + '</div>';
 }
 
 // ═══ P1-1: 四重验证信息 ───
@@ -517,6 +548,133 @@ function renderFusionInfo(item) {
   var a = item.fusionFinalAway != null ? item.fusionFinalAway.toFixed(2) : '-';
   return '<span class="fusion-badge ' + cls + '" title="最终基准值 H:' + h + ' A:' + a + '">' + label + '</span> ' +
     '<span style="font-size:11px;color:var(--text3)">E_final=H' + h + '+A' + a + '</span>';
+}
+
+// ═══ P0-2: PK增强汇总面板 ═══
+function renderPKSummary(list) {
+  var n = list.length;
+  // 1. 平均综合实力
+  var sumPw = 0, pwCount = 0;
+  list.forEach(function (item) {
+    var pw = parseFloat(item.pwScore) || parseFloat(item.totalStrength) || 0;
+    sumPw += pw; pwCount++;
+  });
+  var avgPw = pwCount > 0 ? parseFloat((sumPw / pwCount).toFixed(2)) : 0;
+
+  // 2. 主队优势率
+  var homeAdv = 0;
+  list.forEach(function (item) {
+    var pw = parseFloat(item.pwScore) || parseFloat(item.totalStrength) || 0;
+    if (pw > 0) homeAdv++;
+  });
+  var homeRatio = n > 0 ? Math.round(homeAdv / n * 100) : 0;
+
+  // 3. 模型健康度
+  var meltdownCount = 0;
+  list.forEach(function (item) {
+    if (item.fusionConsensus === 'meltdown') meltdownCount++;
+  });
+  var healthScore = n > 0 ? Math.round((1 - meltdownCount / n) * 100) : 100;
+
+  // 4. 热度偏离度
+  var heatDev = 0;
+  list.forEach(function (item) {
+    var hi = parseFloat(item.heatIndex);
+    if (!isNaN(hi) && (hi > 1.2 || hi < 0.8)) heatDev++;
+  });
+
+  var pwCls = avgPw > 0 ? 'pk2-pct-pos' : avgPw < 0 ? 'pk2-pct-neg' : '';
+  var healthCls = healthScore >= 80 ? 'pk2-pct-pos' : healthScore >= 50 ? '' : 'pk2-pct-neg';
+
+  return '<div class="pk2-section-label">📊 综合评估</div>' +
+    '<div class="pk2-summary-panel">' +
+      '<div class="pk2-summary-row">' +
+        '<span class="pk2-summary-label">平均综合实力</span>' +
+        '<span class="pk2-summary-value ' + pwCls + '">' + (avgPw >= 0 ? '+' : '') + avgPw.toFixed(2) + '</span>' +
+      '</div>' +
+      '<div class="pk2-summary-row">' +
+        '<span class="pk2-summary-label">主队优势率</span>' +
+        '<span class="pk2-summary-value">' + homeRatio + '%（' + homeAdv + '/' + n + '场）</span>' +
+      '</div>' +
+      '<div class="pk2-summary-row">' +
+        '<span class="pk2-summary-label">模型健康度</span>' +
+        '<span class="pk2-summary-value ' + healthCls + '">' + healthScore + '%' +
+        (meltdownCount > 0 ? ' <span style="font-size:9px;color:#ef5350">⚠️' + meltdownCount + '场熔断</span>' : '') +
+        '</span>' +
+      '</div>' +
+      (heatDev > 0 ? '<div class="pk2-summary-row">' +
+        '<span class="pk2-summary-label">热度偏离度</span>' +
+        '<span class="pk2-summary-value" style="color:#fbbf24">' + heatDev + '场异常</span>' +
+      '</div>' : '') +
+    '</div>';
+}
+
+// ═══ P1-3: 组合推荐卡片 ═══
+function renderComboRecommendations(list) {
+  var n = list.length;
+  if (n < 2 || n > 4) return '';
+
+  // 为每场计算辅助信息
+  var withInfo = list.map(function (item, i) {
+    var pw = parseFloat(item.pwScore) || parseFloat(item.totalStrength) || 0;
+    var hi = parseFloat(item.heatIndex);
+    var meltdown = item.fusionConsensus === 'meltdown';
+    var balanced = pw >= -0.08 && pw <= 0.08;
+    var name = esc(shortTeam(item.homeName));
+    return { idx: i, pw: pw, hi: isNaN(hi) ? 1.0 : hi, meltdown: meltdown, balanced: balanced, name: name, item: item };
+  });
+
+  // 正路组合: 选 pwScore 最高、无熔断、HI < 1.4
+  var positive = withInfo.filter(function (x) { return !x.meltdown && x.hi < 1.4; })
+    .sort(function (a, b) { return b.pw - a.pw; });
+  if (positive.length === 0) positive = withInfo.slice().sort(function (a, b) { return b.pw - a.pw; });
+
+  // 博冷组合: 选 HI < 0.85 或熔断的场次
+  var cold = withInfo.filter(function (x) { return x.meltdown || x.hi < 0.85; })
+    .sort(function (a, b) { return a.hi - b.hi; });
+  if (cold.length === 0) cold = withInfo.slice().sort(function (a, b) { return a.hi - b.hi; });
+
+  // 双选容错: 选实力均衡的场次
+  var doubleChance = withInfo.filter(function (x) { return x.balanced; })
+    .sort(function (a, b) { return Math.abs(a.pw) - Math.abs(b.pw); });
+  if (doubleChance.length === 0) doubleChance = withInfo.slice().sort(function (a, b) { return Math.abs(a.pw) - Math.abs(b.pw); });
+
+  // 选前2场
+  var posPick = positive.slice(0, 2);
+  var coldPick = cold.slice(0, 2);
+  var dcPick = doubleChance.slice(0, 2);
+
+  var html = '<div class="pk2-section-label">🧠 组合推荐</div><div class="pk2-combo-wrap">';
+
+  // 正路组合
+  if (posPick.length >= 2) {
+    var names = posPick.map(function (x) { return x.name; }).join(' + ');
+    html += '<div class="pk2-combo-card combo-positive">' +
+      '<span class="pk2-combo-tag">🎯 正路组合</span>' +
+      '<span class="pk2-combo-teams">' + names + '（主队方向）</span>' +
+      '<span class="pk2-combo-hint">综合实力最高 · 低风险</span></div>';
+  }
+
+  // 博冷组合
+  if (coldPick.length >= 2) {
+    var cnames = coldPick.map(function (x) { return x.name; }).join(' + ');
+    html += '<div class="pk2-combo-card combo-cold">' +
+      '<span class="pk2-combo-tag">⚡ 博冷组合</span>' +
+      '<span class="pk2-combo-teams">' + cnames + '</span>' +
+      '<span class="pk2-combo-hint">冷热指数异常 · 高赔关注</span></div>';
+  }
+
+  // 双选容错
+  if (dcPick.length >= 2) {
+    var dcnames = dcPick.map(function (x) { return x.name; }).join(' + ');
+    html += '<div class="pk2-combo-card combo-double">' +
+      '<span class="pk2-combo-tag">🔒 双选容错</span>' +
+      '<span class="pk2-combo-teams">' + dcnames + '（双选方向）</span>' +
+      '<span class="pk2-combo-hint">实力均衡 · 胜/平或平/负</span></div>';
+  }
+
+  html += '</div>';
+  return html;
 }
 
 export function closePK() {
