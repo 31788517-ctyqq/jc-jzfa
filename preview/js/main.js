@@ -11,8 +11,8 @@ import { loadFilterLeagues, resetFilterResult, toggleDD, selectDD, getDDVal, onD
 import { loadIncome } from './pages/income.js';
 import { loadPlanList, updatePlanDateBar, shiftPlanDate, goPlanToday } from './pages/plans.js';
 import { showGongshoudao } from './pages/gongshoudao.js?v=25052903';
-import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker, switchQuantTab, togglePick, startPK, sortBy, switchQuantView } from './pages/quant-rank.js';
-import { openPK, closePK, openPKMulti } from './pages/match-pk.js';
+import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker, switchQuantTab, togglePick, startPK, sortBy, switchQuantView } from './pages/quant-rank.js?v=67';
+import { openPK, closePK, openPKMulti } from './pages/match-pk.js?v=67';
 
 // ── 日期切换 ──
 export function updateDateBar() {
