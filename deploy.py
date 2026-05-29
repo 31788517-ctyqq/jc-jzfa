@@ -111,6 +111,7 @@ DEPLOY_MAP = [
     ('server/gongshoudao/index.js',       'both'),
     ('server/gongshoudao/attack.js',      'both'),
     ('server/gongshoudao/goal.js',        'both'),
+    ('server/gongshoudao/fusion.js',      'both'),
     ('server/gongshoudao/parser.js',      'both'),
     ('server/gongshoudao/diff.js',        'both'),
     ('server/gongshoudao/score.js',       'both'),
@@ -380,10 +381,20 @@ def main():
         fix_cmds = (
             "CONF=$(ls /etc/nginx/conf.d/zj*.conf 2>/dev/null | head -1); "
             "if [ -z \"$CONF\" ]; then echo NOTFOUND; exit 0; fi; "
-            "if grep -q 'Cache-Control' \"$CONF\" 2>/dev/null; then echo SKIP; else "
+            "NEED_FIX=0; "
+            # 1) 添加 Cache-Control header
+            "if ! grep -q 'Cache-Control.*no-cache' \"$CONF\" 2>/dev/null; then "
             "cp \"$CONF\" \"${CONF}.bak.$(date +%Y%m%d_%H%M%S)\" 2>/dev/null; "
             "sed -i '/try_files.*index\\.html;/a\\        add_header Cache-Control \"no-cache, must-revalidate\";' \"$CONF\"; "
-            "echo FIXED; fi"
+            "NEED_FIX=1; fi; "
+            # 2) 移除或缩短 expires（防 JS 模块导入被浏览器缓存）
+            "if grep -qP 'expires\\s+1h;' \"$CONF\" 2>/dev/null; then "
+            "sed -i 's/expires 1h;/expires -1;/g' \"$CONF\"; "
+            "NEED_FIX=1; fi; "
+            "if grep -qP 'expires\\s+\\d+d;' \"$CONF\" 2>/dev/null; then "
+            "sed -i 's/expires [0-9]*d;/expires -1;/g' \"$CONF\"; "
+            "NEED_FIX=1; fi; "
+            "if [ $NEED_FIX -eq 1 ]; then echo FIXED; else echo SKIP; fi"
         )
         out, _ = ssh_cmd(ssh, fix_cmds, 10)
         if 'FIXED' in out:
@@ -397,6 +408,14 @@ def main():
     print()
 
     sftp.close()
+
+    # ── Phase 3.8: 清除旧缓存 + 刷新 nginx ──
+    if not dry_run:
+        print(c('C', '[Phase 3.8] 清除功守道缓存 + 重载 Nginx'))
+        ssh_cmd(ssh, 'rm -f {0}/server/gongshoudao/cache.json {1}/server/gongshoudao/cache.json 2>/dev/null && echo "cache cleared"'.format(PM2_ROOT, NGINX_ROOT), 5)
+        ssh_cmd(ssh, 'nginx -s reload 2>/dev/null && echo "nginx reloaded"', 5)
+        print('  完成')
+    print()
 
     # ── Phase 4: PM2 重启 ──
     if not dry_run:
