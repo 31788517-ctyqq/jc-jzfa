@@ -190,9 +190,15 @@ function mergeItem(item, gs) {
   // ① 净胜球量化 = xgHome - xgAway（源自射门还原法 M3_A）
   var gdScore = (gs.xgHome != null && gs.xgAway != null) ? parseFloat((gs.xgHome - gs.xgAway).toFixed(4)) : 0;
 
-  // ② 胜平负交叉 = (H_win + G_loss - H_loss - G_win) / 10（基于真实赛果对冲）
-  var crossValue = (gs.hWins != null && gs.aLosses != null) ? ((gs.hWins + gs.aLosses - gs.hLosses - gs.aWins) / 10) : '-';
-  var cvNum = crossValue === '-' ? 0 : parseFloat(crossValue);
+  // ② 胜平负交叉 = (H_wins + A_losses) - (H_losses + A_wins)
+  // 数据映射：hWins→主队胜场, aLosses→客队负场, hLosses→主队负场, aWins→客队胜场
+  var crossValue;
+  if (gs.hWins != null && gs.aLosses != null && gs.hLosses != null && gs.aWins != null) {
+    crossValue = (gs.hWins + gs.aLosses) - (gs.hLosses + gs.aWins);
+  } else {
+    crossValue = '-';
+  }
+  var cvNum = crossValue === '-' ? 0 : crossValue;
 
   // ③ 综合实力 = Total_战 = 0.7×(homePower-guestPower)/100 + 0.3×Dyn（双轨实力量化）
   var pwScore = gs.totalStrength != null ? parseFloat(gs.totalStrength.toFixed(4)) : 0;
@@ -433,32 +439,16 @@ function renderPower(item) {
   return '<span class="q-col-power"><span class="q-cell-num ' + cls + '">' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%</span></span>';
 }
 
-// ── 胜平负交叉（双组概率展示 P0-5） ──
+// ── 胜平负交叉（只展示RC值） ──
 function renderCrossValue(item) {
   var v = item.crossValue;
   if (v === '-' || v === undefined || v === null) {
     return '<span class="q-col-cross"><span class="q-cell-num" style="color:var(--text4)">-</span></span>';
   }
-  var n = parseFloat(v);
-  if (isNaN(n)) return '<span class="q-col-cross"><span class="q-cell-num">' + v + '</span></span>';
+  var n = v;
+  if (typeof n !== 'number' || isNaN(n)) return '<span class="q-col-cross"><span class="q-cell-num">' + v + '</span></span>';
   var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
-  // 双组概率信息
-  var spfLine = '', hcpLine = '';
-  var spfW = item.crossSpfWin, spfD = item.crossSpfDraw, spfL = item.crossSpfLose;
-  if (spfW !== '-' && spfW !== undefined) {
-    spfLine = '胜' + Number(spfW).toFixed(0) + '% 平' + Number(spfD).toFixed(0) + '% 负' + Number(spfL).toFixed(0) + '% (让0)';
-  }
-  var hcpW = item.crossHcpWin, hcpD = item.crossHcpDraw, hcpL = item.crossHcpLose;
-  var rqVal = item.crossRq !== undefined ? item.crossRq : 0;
-  if (hcpW !== '-' && hcpW !== undefined) {
-    hcpLine = '让胜' + Number(hcpW).toFixed(0) + '% 让平' + Number(hcpD).toFixed(0) + '% 让负' + Number(hcpL).toFixed(0) + '% (让' + rqVal + ')';
-  }
-  var detail = '';
-  if (spfLine || hcpLine) {
-    detail = '<span style="display:block;font-size:8px;color:#64748B;line-height:1.1;margin-top:1px">'
-      + (spfLine ? spfLine : '') + (spfLine && hcpLine ? '<br>' : '') + (hcpLine ? hcpLine : '') + '</span>';
-  }
-  return '<span class="q-col-cross"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n.toFixed(2) + '</span>' + detail + '</span>';
+  return '<span class="q-col-cross"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n + '</span></span>';
 }
 
 // ── 攻守实力（保留2位小数，含格局徽章 P1-2） ──
