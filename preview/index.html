@@ -15,6 +15,7 @@
   --cyan: #18E0E0;
   --cyan-glow: rgba(24, 224, 224, 0.25);
   --cyan-subtle: rgba(24, 224, 224, 0.1);
+  --purple: #A78BFA;
   --green: #34D399;
   --red: #EF4444;
   --amber: #FBBF24;
@@ -284,6 +285,17 @@ body {
   border-color: rgba(24,224,224,0.3);
   box-shadow: 0 0 12px rgba(24,224,224,0.08);
 }
+/* PK 提示条 */
+.pk-hint {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; margin-bottom: 12px;
+  border-radius: 12px;
+  background: rgba(167,139,250,0.08);
+  border: 1px solid rgba(167,139,250,0.18);
+  font-size: 13px; color: var(--purple);
+  line-height: 1.5;
+}
+.pk-hint-icon { font-size: 16px; flex-shrink: 0; }
 
 .match-header {
   display: flex;
@@ -660,6 +672,7 @@ body {
   scrollbar-width: none;
 }
 .filter-row::-webkit-scrollbar { display: none; }
+#planTabBar.filter-row { margin: 0; padding: 12px 0; }
 .filter-tag {
   white-space: nowrap;
   padding: 6px 14px;
@@ -1808,6 +1821,133 @@ body {
   white-space: nowrap;
 }
 
+/* ─── 比分方案卡片（amber 色调） ─── */
+.plan-card.score-plan {
+  border-color: rgba(255,178,28,0.18);
+  background: rgba(14,24,34,0.72);
+}
+.plan-card.score-plan .plan-divider {
+  background: rgba(255,178,28,0.12);
+}
+.plan-card.score-plan .plan-amount-col + .plan-amount-col {
+  border-left-color: rgba(255,178,28,0.12);
+}
+.plan-card.score-plan .plan-odds-combo {
+  color: var(--amber);
+}
+.plan-card.score-plan .plan-amount-value {
+  color: var(--amber);
+  text-shadow: 0 0 8px rgba(255,178,28,0.2);
+}
+.plan-card.score-plan .plan-info-right {
+  color: var(--amber);
+  text-shadow: 0 0 6px rgba(255,178,28,0.15);
+}
+.plan-card.score-plan .plan-match-section {
+  border-color: rgba(255,178,28,0.1);
+}
+.plan-card.score-plan .plan-match-table th {
+  background: rgba(255,178,28,0.04);
+}
+.plan-card.score-plan .plan-match-table td {
+  border-top-color: rgba(255,178,28,0.06);
+}
+
+/* ─── 量化方案卡片（purple 色调） ─── */
+.plan-card.quant-plan {
+  border-color: rgba(167,139,250,0.18);
+  background: rgba(14,24,34,0.72);
+}
+.plan-card.quant-plan .plan-divider {
+  background: rgba(167,139,250,0.12);
+}
+.plan-card.quant-plan .plan-amount-col + .plan-amount-col {
+  border-left-color: rgba(167,139,250,0.12);
+}
+.plan-card.quant-plan .plan-amount-value {
+  color: var(--purple);
+  text-shadow: 0 0 8px rgba(167,139,250,0.2);
+}
+.plan-card.quant-plan .plan-info-right {
+  color: var(--purple);
+  text-shadow: 0 0 6px rgba(167,139,250,0.15);
+}
+.plan-card.quant-plan .plan-odds-combo {
+  color: var(--purple);
+}
+.plan-card.quant-plan .plan-match-section {
+  border-color: rgba(167,139,250,0.1);
+}
+.plan-card.quant-plan .plan-match-table th {
+  background: rgba(167,139,250,0.04);
+}
+.plan-card.quant-plan .plan-match-table td {
+  border-top-color: rgba(167,139,250,0.06);
+}
+.plan-card.quant-plan .plan-score-meta span {
+  background: rgba(167,139,250,0.06);
+}
+.plan-score-scores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.plan-score-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  background: rgba(255,178,28,0.08);
+  border: 1px solid rgba(255,178,28,0.2);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--amber);
+}
+/* 比分方案表格列宽 */
+.score-table th:first-child { width: 18%; }
+.score-table th:nth-child(2) { width: 28%; }
+.score-table th:nth-child(3) { width: 26%; }
+.score-table th:last-child { width: 28%; }
+.score-table .allocation-col {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--amber);
+  white-space: nowrap;
+}
+.score-table .plan-alloc-val {
+  font-size: 13px;
+}
+.score-table .plan-alloc-unit {
+  font-size: 10px;
+  color: rgba(255,178,28,0.6);
+  margin-left: 2px;
+}
+.plan-score-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text3);
+}
+.plan-score-meta span {
+  background: rgba(255,178,28,0.06);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.plan-notice {
+  text-align: center;
+  padding: 80px 0;
+  color: var(--text3);
+  font-size: 14px;
+}
+.plan-notice .notice-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  display: block;
+}
+
 /* ⚔️ 功守道弹窗 */
 .gs-modal-head { text-align: center; padding: 14px 0 10px; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 14px; }
 .gs-modal-head-row { display: flex; justify-content: space-between; align-items: center; }
@@ -1857,9 +1997,67 @@ body {
   text-align: center; padding: 14px 4px;
   background: rgba(14,24,34,0.5); border: 1px solid rgba(255,255,255,0.05);
   border-radius: 10px;
+  cursor: pointer; transition: all 0.2s;
 }
+.gs-score-card:hover {
+  background: rgba(24,224,224,0.08);
+  border-color: rgba(24,224,224,0.2);
+}
+.gs-score-card.no-odds {
+  opacity: 0.35; cursor: not-allowed;
+}
+.gs-score-card.no-odds:hover {
+  background: rgba(14,24,34,0.5);
+  border-color: rgba(255,255,255,0.05);
+}
+.gs-score-card.selected {
+  background: rgba(24,224,224,0.15);
+  border-color: var(--cyan);
+  box-shadow: 0 0 10px rgba(24,224,224,0.2);
+}
+.gs-score-card.selected .gs-score-val { color: var(--cyan); }
 .gs-score-val { font-size: 24px; font-weight: 900; color: var(--text); }
 .gs-score-pct { font-size: 13px; font-weight: 600; color: var(--cyan); margin-top: 4px; }
+
+/* 比分投注提示框 */
+.gs-score-hint {
+  margin-top: 10px; padding: 10px 14px;
+  background: rgba(240,165,0,0.06); border: 1px solid rgba(240,165,0,0.15);
+  border-radius: 8px;
+  font-size: 12px; color: var(--amber);
+  text-align: center; user-select: none;
+}
+
+/* 比分投注模拟表格 */
+.gs-score-bet-table {
+  width: 100%; border-collapse: collapse;
+  margin-top: 10px;
+  background: rgba(14,24,34,0.5); border-radius: 10px;
+  overflow: hidden; border: 1px solid rgba(255,255,255,0.06);
+}
+.gs-score-bet-table th {
+  height: 34px; font-size: 11px; font-weight: 500;
+  color: rgba(255,255,255,0.55);
+  background: rgba(0,255,255,0.04);
+  text-align: center; border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.gs-score-bet-table td {
+  font-size: 12px; font-weight: 600;
+  padding: 10px 6px; text-align: center;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  color: var(--text);
+}
+.gs-score-bet-table .gs-bet-odds { color: var(--amber); font-weight: 700; }
+.gs-score-bet-table .gs-bet-alloc { color: var(--cyan); }
+.gs-score-bet-table .gs-bet-payout { color: #22c55e; }
+.gs-score-bet-table .gs-bet-summary-row td {
+  font-size: 12px; font-weight: 700; color: var(--text);
+  background: rgba(0,255,255,0.04);
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.gs-score-bet-table .gs-bet-summary-row .gs-bet-val { color: var(--amber); }
+.gs-score-bet-table .gs-bet-summary-row .gs-bet-income { color: #22c55e; }
 
 /* 卡片底部功守道标签 */
 .match-gs-wrap {
@@ -2506,6 +2704,11 @@ body {
 
 <!-- 今日方案 -->
 <div class="page" id="page-plan">
+  <div class="filter-row" id="planTabBar">
+    <div class="filter-tag active" data-tab="expert" onclick="switchPlanTab('expert')">专家方案</div>
+    <div class="filter-tag" data-tab="score" onclick="switchPlanTab('score')">比分方案</div>
+    <div class="filter-tag" data-tab="quant" onclick="switchPlanTab('quant')">量化方案</div>
+  </div>
   <div class="date-bar" id="planDateBar">
     <span class="date-arrow" onclick="shiftPlanDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
     <span class="date-current" id="planDateCurrent" onclick="togglePlanDatePicker()"></span>

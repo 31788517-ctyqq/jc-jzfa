@@ -218,7 +218,8 @@ function selectPlanDateFromPicker(md) {
     var week = WEEK_NAMES[new Date(year, parseInt(md.slice(0,2), 10) - 1, parseInt(md.slice(3), 10)).getDay()];
     el.textContent = mmdd + ' ' + week;
   }
-  loadPlanList();
+  if (planTab === 'expert') loadPlanList();
+  else loadScorePlanList();
   document.getElementById('planDatePicker').style.display = 'none';
 }
 function toggleRankDatePicker() {
@@ -343,7 +344,7 @@ function switchTab(tab) {
       }
     }, 300);
   }
-  if (tab === 'plan') { updatePlanDateBar(); loadPlanList(); }
+  if (tab === 'plan') { updatePlanDateBar(); if (planTab === 'expert') loadPlanList(); else loadScorePlanList(); }
   if (tab === 'quant-rank') { updateQuantDateBar(); loadQuantRank(); }
   if (tab === 'rank') { updateRankDateBar(); loadRanking(); }
   if (tab === 'hit') loadHitRate();
@@ -1417,6 +1418,7 @@ function goRankToday() {
 // ========== 今日方案 ==========
 var planDate = ''; // YYYY-MM-DD
 var planDateOffset = 0;
+var planTab = 'expert'; // 'expert' | 'score'
 var MIN_PLAN_DATE = '2026-03-19'; // 最早有数据的日期
 
 function updatePlanDateBar() {
@@ -1441,13 +1443,26 @@ function shiftPlanDate(delta) {
   if (newDate < MIN_PLAN_DATE) return; // 不早于4月25日
   planDateOffset = newOffset;
   updatePlanDateBar();
-  loadPlanList();
+  if (planTab === 'expert') loadPlanList();
+  else loadScorePlanList();
 }
 
 function goPlanToday() {
   planDateOffset = 0;
   updatePlanDateBar();
-  loadPlanList();
+  if (planTab === 'expert') loadPlanList();
+  else loadScorePlanList();
+}
+
+function switchPlanTab(tab) {
+  planTab = tab;
+  // 更新标签栏样式
+  document.querySelectorAll('#planTabBar .filter-tag').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
+  });
+  // 加载对应方案
+  if (tab === 'expert') loadPlanList();
+  else loadScorePlanList();
 }
 
 function loadPlanList() {
@@ -1731,6 +1746,167 @@ function loadPlanList() {
           '<thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th></tr></thead>' +
           '<tbody>' + matchRows + '</tbody>' +
         '</table>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }).catch(function(e) {
+    el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);">' + e.message + '</div>';
+  });
+}
+
+// ========== 比分方案 ==========
+function loadScorePlanList() {
+  var el = document.getElementById('planList');
+  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载比分方案中...</div>';
+
+  var params = planDateOffset === 0 ? {} : { date: planDate };
+  api('score-plan-list', params).then(function(data) {
+    if (data.date && data.date !== planDate) {
+      planDate = data.date;
+      var planEl = document.getElementById('planDateCurrent');
+      if (planEl) {
+        var mmdd = data.date.slice(5).replace('-', '/');
+        planEl.textContent = mmdd + ' ' + WEEK_NAMES[new Date(data.date).getDay()];
+      }
+    }
+    var plans = data.plans || [];
+    var notice = data.notice || '';
+
+    // 显示提示信息
+    if (plans.length === 0) {
+      if (notice) {
+        el.innerHTML = '<div class="plan-notice"><span class="notice-icon">⏳</span>' + notice + '</div>';
+      } else {
+        var now = new Date();
+        var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+        if (planDate === todayStr) {
+          var d2 = new Date();
+          d2.setDate(d2.getDate() + planDateOffset - 1);
+          var prevDateStr = d2.getFullYear() + '-' + String(d2.getMonth()+1).padStart(2,'0') + '-' + String(d2.getDate()).padStart(2,'0');
+          if (prevDateStr >= MIN_PLAN_DATE) {
+            planDateOffset--;
+            updatePlanDateBar();
+            loadScorePlanList();
+            return;
+          }
+        }
+        el.innerHTML = '<div class="plan-notice"><span class="notice-icon">📊</span>今日暂无符合条件的比分方案</div>';
+      }
+      return;
+    }
+
+    el.innerHTML = plans.map(function(p, i) {
+      var scores = p.selectedScores || [];
+
+      // 截单时间
+      var cutoffDisplay = '';
+      if (p.startTime) {
+        var stParts = p.startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+        if (stParts) {
+          var stMonth = parseInt(stParts[1]) - 1, stDay = parseInt(stParts[2]), stHour = parseInt(stParts[3]), stMin = parseInt(stParts[4]);
+          var pYear = parseInt(planDate.slice(0, 4));
+          var kickoff = new Date(pYear, stMonth, stDay, stHour, stMin);
+          if (!isNaN(kickoff.getTime())) {
+            var mp = planDate.split('-');
+            var matchDateOnly = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]));
+            var kickoffDateOnly = new Date(kickoff.getFullYear(), kickoff.getMonth(), kickoff.getDate());
+            var isCrossMidnight = kickoffDateOnly > matchDateOnly;
+            var cutoff;
+            if (isCrossMidnight) {
+              var matchDow = matchDateOnly.getDay();
+              if (matchDow >= 1 && matchDow <= 5) cutoff = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]), 21, 30);
+              else cutoff = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]), 22, 30);
+            } else {
+              cutoff = new Date(kickoff.getTime() - 30 * 60 * 1000);
+              var dow = kickoff.getDay();
+              if (dow >= 1 && dow <= 5 && stHour >= 22) cutoff = new Date(pYear, stMonth, stDay, 21, 30);
+              else if ((dow === 0 || dow === 6) && stHour >= 23) cutoff = new Date(pYear, stMonth, stDay, 22, 30);
+            }
+            var pad2 = function(n){ return String(n).padStart(2,'0'); };
+            cutoffDisplay = '截单时间：' + pad2(cutoff.getMonth()+1) + '/' + pad2(cutoff.getDate()) + ' ' + pad2(cutoff.getHours()) + ':' + pad2(cutoff.getMinutes());
+          }
+        }
+      }
+
+      var amountVal = (p.amount || 1000).toFixed(0);
+      var prizeVal = (p.maxPrize || 0).toFixed(0);
+
+      // 比分标签
+      var scoreTags = '';
+      for (var si = 0; si < scores.length; si++) {
+        var s = scores[si];
+        scoreTags += '<span class="plan-score-tag">' + s.score + ' (' + s.odds.toFixed(2) + ')</span>';
+      }
+
+      // 队伍对阵行
+      var teamRow = (p.homeName || '') + ' vs ' + (p.visitName || '');
+
+      return '<div class="plan-card score-plan">' +
+        // 头部
+        '<div class="plan-card-head">' +
+          '<div class="plan-left">' +
+            '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
+            '<span class="plan-name" style="color: var(--amber);">' + (p.planName || '比分方案') + '</span>' +
+          '</div>' +
+          '<span class="plan-pub-time">' + cutoffDisplay + '</span>' +
+        '</div>' +
+        // 数据行
+        '<div class="plan-amount-row">' +
+          '<div class="plan-amount-col">' +
+            '<div class="plan-amount-label">方案金额</div>' +
+            '<div class="plan-amount-value">' + amountVal + '<span class="unit">元</span></div>' +
+          '</div>' +
+          '<div class="plan-amount-col">' +
+            '<div class="plan-amount-label">预计奖金</div>' +
+            '<div class="plan-amount-value" style="color: var(--amber);">' + prizeVal + '<span class="unit">元</span></div>' +
+          '</div>' +
+          '<div class="plan-amount-col">' +
+            '<div class="plan-amount-label">方案状态</div>' +
+            '<div class="plan-amount-value">未开奖</div>' +
+          '</div>' +
+        '</div>' +
+        // 分割线
+        '<div class="plan-divider"></div>' +
+        // 方案信息
+        '<div class="plan-info-grid">' +
+          '<div class="plan-info-left">' +
+            '<div>玩法</div>' +
+            '<div>过关</div>' +
+            '<div>赔率组合</div>' +
+          '</div>' +
+          '<div class="plan-info-right">' +
+            '<div>' + (p.playType || '单场比分') + '</div>' +
+            '<div>' + (p.passType || '比分单关') + '</div>' +
+            '<div class="plan-odds-combo">' + (p.oddsDisplay || '') + '</div>' +
+          '</div>' +
+        '</div>' +
+        // 比赛表格
+        '<div class="plan-match-section">' +
+        '<table class="plan-match-table">' +
+          '<thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th></tr></thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td class="match-info-col">' +
+                '<div class="match-num-text">' + (p.matchNum || '') + '</div>' +
+              '</td>' +
+              '<td class="team-col">' +
+                '<span class="plan-team-home">' + (p.homeName || '') + '</span>' +
+                '<span class="plan-team-vs">vs</span>' +
+                '<span class="plan-team-away">' + (p.visitName || '') + '</span>' +
+              '</td>' +
+              '<td class="odds-col">' +
+                '<div class="plan-score-scores">' + scoreTags + '</div>' +
+              '</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>' +
+        '</div>' +
+        // 量化参考信息
+        '<div class="plan-score-meta">' +
+          '<span>大球率 ' + (p.bigBallRatio || '--') + '%</span>' +
+          '<span>进攻优势 ' + (p.attackAdvantage || '--') + '</span>' +
+          '<span>进球区间 ' + (p.goalRange || '--') + '</span>' +
+          '<span>强队 ' + (p.strongSide === 'home' ? '主队' : '客队') + '</span>' +
         '</div>' +
       '</div>';
     }).join('');

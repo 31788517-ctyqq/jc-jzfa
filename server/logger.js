@@ -53,7 +53,16 @@ const logger = winston.createLogger({
 
 /** 创建带标签的子日志器（用于区分不同守护进程） */
 function child(label) {
-  return logger.child({ label });
+  // 避免 winston child() 递归问题：直接返回带 label 包装的简单对象
+  var meta = { label: label };
+  var wrap = {};
+  ['info','warn','error','debug','verbose'].forEach(function(lvl) {
+    wrap[lvl] = function(msg) {
+      logger.log(lvl, msg, meta);
+    };
+  });
+  wrap.log = function(lvl, msg) { logger.log(lvl, msg, meta); };
+  return wrap;
 }
 
 module.exports = logger;

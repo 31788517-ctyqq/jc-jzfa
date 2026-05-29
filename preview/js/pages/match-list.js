@@ -41,7 +41,10 @@ export function loadMatchList() {
     window.__ms = {};
     var bar = document.getElementById('matchPkBar');
     if (bar) bar.style.display = 'none';
-    el.innerHTML = matches.map(m => {
+    var pkHint = matches.length > 0
+      ? '<div class="pk-hint"><span class="pk-hint-icon">💡</span>选择两场以上比赛进行量化数据PK，可自动生成PK方案</div>'
+      : '';
+    el.innerHTML = pkHint + matches.map(m => {
       const statusText = { 0: '未开始', 1: '进行中', 2: '已结束', 3: '取消' }[m.matchStatus] || '未知';
       const roundText = m.num || '';
       const timeStr = m.startTime ? m.startTime.slice(5) : '';

@@ -97,7 +97,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
     html += '</div>';
 
     // ====== 比分 ======
-    html += '<div class="gs-modal-section">';
+    html += '<div class="gs-modal-section" id="gsScoreSection">';
     html += '<div class="gs-modal-sec-title"><img src="/assets/gs-score.png" class="gs-title-icon" alt="">比分八阵裂变</div>';
 
     var scores = gs.scores || [
@@ -105,41 +105,150 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
       { score: '2-1', percent: '30%' },
       { score: '0-1', percent: '20%' }
     ];
+    var scoreOdds = gs.scoreOdds || {}; // { "1-0": 8.25, ... }
 
     // 分类：正兵(前4)、奇兵(5-6)、伏兵(7-8)
     var zhengBing = scores.slice(0, 4);
     var qiBing = scores.slice(4, 6);
     var fuBing = scores.slice(6, 8);
 
+    function getScoreOddsFromPercent(pctStr) {
+      if (!pctStr) return null;
+      var p = parseFloat(pctStr);
+      if (isNaN(p) || p <= 0) return null;
+      return (1 / (p / 100));
+    }
+
+    function renderScoreCard(s) {
+      var odds = scoreOdds[s.score] !== undefined ? scoreOdds[s.score] : getScoreOddsFromPercent(s.percent);
+      var oddsAttr = ' data-odds="' + (odds !== null ? odds : '--') + '"';
+      var hasOdds = odds !== null;
+      return '<div class="gs-score-card' + (!hasOdds ? ' no-odds' : '') + '" data-score="' + s.score + '"' + oddsAttr + '><div class="gs-score-val">' + s.score + '</div><div class="gs-score-pct">' + s.percent + '</div></div>';
+    }
+
     if (zhengBing.length > 0) {
       html += '<div class="gs-score-cat"><span class="gs-score-cat-label">正兵盘口</span></div>';
       html += '<div class="gs-score-grid">';
-      zhengBing.forEach(function(s) {
-        html += '<div class="gs-score-card"><div class="gs-score-val">' + s.score + '</div><div class="gs-score-pct">' + s.percent + '</div></div>';
-      });
+      zhengBing.forEach(function(s) { html += renderScoreCard(s); });
       html += '</div>';
     }
     if (qiBing.length > 0) {
       html += '<div class="gs-score-cat"><span class="gs-score-cat-label">奇兵盘口</span></div>';
       html += '<div class="gs-score-grid">';
-      qiBing.forEach(function(s) {
-        html += '<div class="gs-score-card"><div class="gs-score-val">' + s.score + '</div><div class="gs-score-pct">' + s.percent + '</div></div>';
-      });
+      qiBing.forEach(function(s) { html += renderScoreCard(s); });
       html += '</div>';
     }
     if (fuBing.length > 0) {
       html += '<div class="gs-score-cat"><span class="gs-score-cat-label">伏兵妖谱</span></div>';
       html += '<div class="gs-score-grid">';
-      fuBing.forEach(function(s) {
-        html += '<div class="gs-score-card"><div class="gs-score-val">' + s.score + '</div><div class="gs-score-pct">' + s.percent + '</div></div>';
-      });
+      fuBing.forEach(function(s) { html += renderScoreCard(s); });
       html += '</div>';
     }
 
-    html += '</div>';
+    // 投注模拟表格容器
+    html += '<div id="gsBetTableWrap" style="display:none;"></div>';
+    // 提示框
+    html += '<div class="gs-score-hint">点击单个或多个比分进行比分投注方案模拟</div>';
+
+    html += '</div>'; // gs-modal-section (比分)
 
     html += '</div>'; // ai-content
     modal.innerHTML = html;
+
+    // ━━━ 绑定比分卡片点击事件 ━━━
+    var selectedScores = []; // [{ score, odds }]
+
+    function renderBetTable() {
+      var wrap = document.getElementById('gsBetTableWrap');
+      if (!wrap) return;
+      if (selectedScores.length === 0) {
+        wrap.style.display = 'none';
+        return;
+      }
+      wrap.style.display = 'block';
+
+      var totalCapital = 1000;
+      var tableHtml = '<table class="gs-score-bet-table"><thead><tr><th>选项</th><th>赔率</th><th>资金分配</th><th>预期奖金</th></tr></thead><tbody>';
+
+      if (selectedScores.length === 1) {
+        // 单选：全部投入
+        var item = selectedScores[0];
+        var payout = totalCapital * item.odds;
+        tableHtml += '<tr>';
+        tableHtml += '<td>' + item.score + '</td>';
+        tableHtml += '<td class="gs-bet-odds">' + item.odds.toFixed(2) + '</td>';
+        tableHtml += '<td class="gs-bet-alloc">' + totalCapital + '</td>';
+        tableHtml += '<td class="gs-bet-payout">' + payout.toFixed(0) + '</td>';
+        tableHtml += '</tr>';
+        tableHtml += '<tr class="gs-bet-summary-row"><td colspan="2">总投入</td><td class="gs-bet-val">' + totalCapital + '</td><td></td></tr>';
+        tableHtml += '<tr class="gs-bet-summary-row"><td colspan="2">期望收入</td><td></td><td class="gs-bet-income">' + payout.toFixed(0) + '</td></tr>';
+      } else {
+        // 多选：荷兰式均分（奖金相等）
+        var sumInv = 0;
+        selectedScores.forEach(function(it) { sumInv += 1 / it.odds; });
+        var expectedIncome = totalCapital / sumInv;
+
+        selectedScores.forEach(function(it) {
+          var alloc = totalCapital * (1 / it.odds) / sumInv;
+          var payout = alloc * it.odds;
+          tableHtml += '<tr>';
+          tableHtml += '<td>' + it.score + '</td>';
+          tableHtml += '<td class="gs-bet-odds">' + it.odds.toFixed(2) + '</td>';
+          tableHtml += '<td class="gs-bet-alloc">' + Math.round(alloc) + '</td>';
+          tableHtml += '<td class="gs-bet-payout">' + Math.round(payout) + '</td>';
+          tableHtml += '</tr>';
+        });
+        tableHtml += '<tr class="gs-bet-summary-row"><td colspan="2">总投入</td><td class="gs-bet-val">' + totalCapital + '</td><td></td></tr>';
+        tableHtml += '<tr class="gs-bet-summary-row"><td colspan="2">期望收入</td><td></td><td class="gs-bet-income">≈' + Math.round(expectedIncome) + '</td></tr>';
+      }
+
+      tableHtml += '</tbody></table>';
+      wrap.innerHTML = tableHtml;
+    }
+
+    // 事件委托：父容器监听
+    var scoreSection = document.getElementById('gsScoreSection');
+    if (scoreSection) {
+      // closest() polyfill
+      var closestEl = Element.prototype.closest
+        ? function(el, sel) { return el.closest(sel); }
+        : function(el, sel) {
+            var e = el;
+            while (e && e.nodeType === 1) {
+              if (e.matches && e.matches(sel)) return e;
+              e = e.parentNode;
+            }
+            return null;
+          };
+
+      scoreSection.addEventListener('click', function(e) {
+        var card = closestEl(e.target, '.gs-score-card');
+        if (!card) return;
+        var score = card.getAttribute('data-score');
+        var oddsAttr = card.getAttribute('data-odds');
+        if (!score) return;
+        // oddsAttr 可能为 '--'（无有效赔率/概率），跳过
+        if (!oddsAttr || oddsAttr === '--') return;
+        var odds = parseFloat(oddsAttr);
+        if (isNaN(odds) || odds <= 0) return;
+
+        // 切换选中
+        var idx = -1;
+        for (var i = 0; i < selectedScores.length; i++) {
+          if (selectedScores[i].score === score) { idx = i; break; }
+        }
+        if (idx >= 0) {
+          // 取消选中
+          selectedScores.splice(idx, 1);
+          card.classList.remove('selected');
+        } else {
+          // 选中
+          selectedScores.push({ score: score, odds: odds });
+          card.classList.add('selected');
+        }
+        renderBetTable();
+      });
+    }
 
   }).catch(function(e) {
     modal.innerHTML = '<div class="ai-modal-header"><span class="ai-modal-title">功守道量化</span><button class="ai-modal-close" onclick="closeAI()">&times;</button></div>' +

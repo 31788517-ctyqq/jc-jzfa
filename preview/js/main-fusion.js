@@ -10,7 +10,7 @@ import { loadRanking, selectCategory, selectDirection, updateRankDateBar, shiftR
 import { loadHitRate } from './pages/hit-rate.js';
 import { loadFilterLeagues, resetFilterResult, toggleDD, selectDD, getDDVal, onDDTypeChange, onRankTypeChange, doFilterQuery, closeAllDD, handleDocClose } from './pages/filter.js';
 import { loadIncome } from './pages/income.js';
-import { loadPlanList, updatePlanDateBar, shiftPlanDate, goPlanToday } from './pages/plans.js';
+import { loadPlanList, loadScorePlanList, loadQuantPlanList, updatePlanDateBar, shiftPlanDate, goPlanToday, switchPlanTab } from './pages/plans.js';
 import { showGongshoudao } from './pages/gongshoudao.js?v=25052903';
 import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker, switchQuantTab, togglePick, startPK, sortBy, switchQuantView } from './pages/quant-rank-fusion.js?v=83';
 import { openPK, closePK, openPKMulti } from './pages/match-pk-fusion.js?v=83';
@@ -195,7 +195,9 @@ export function selectPlanDateFromPicker(md) {
     var week = WEEK_NAMES[new Date(year, month - 1, day).getDay()];
     el.textContent = mmdd + ' ' + week;
   }
-  loadPlanList();
+  if (state.planTab === 'expert') loadPlanList();
+  else if (state.planTab === 'quant') loadQuantPlanList();
+  else loadScorePlanList();
   document.getElementById('planDatePicker').style.display = 'none';
 }
 
@@ -310,7 +312,7 @@ export function switchTab(tab) {
       }
     }, 300);
   }
-  if (tab === 'plan') { updatePlanDateBar(); loadPlanList(); }
+  if (tab === 'plan') { updatePlanDateBar(); if (state.planTab === 'expert') loadPlanList(); else if (state.planTab === 'quant') loadQuantPlanList(); else loadScorePlanList(); }
   if (tab === 'quant-rank') { updateQuantDateBar(); loadQuantRank(); }
   if (tab === 'rank') { updateRankDateBar(); loadRanking(); }
   if (tab === 'hit') loadHitRate();
@@ -354,6 +356,7 @@ window.onDDTypeChange = onDDTypeChange;
 window.onRankTypeChange = onRankTypeChange;
 window.shiftPlanDate = shiftPlanDate;
 window.goPlanToday = goPlanToday;
+window.switchPlanTab = switchPlanTab;
 window.loadIncome = function (f) { loadIncome(f); };
 window.shiftQuantDate = shiftQuantDate;
 window.goQuantToday = goQuantToday;
@@ -407,7 +410,7 @@ function switchTabLoad(tab) {
     if (state.weekDates.length > 0) { updateDateBar(); loadMatchList(); }
     else initWeekDates();
   }
-  if (tab === 'plan') { updatePlanDateBar(); loadPlanList(); }
+  if (tab === 'plan') { updatePlanDateBar(); if (state.planTab === 'expert') loadPlanList(); else if (state.planTab === 'quant') loadQuantPlanList(); else loadScorePlanList(); }
   if (tab === 'quant-rank') { updateQuantDateBar(); loadQuantRank(); }
   if (tab === 'rank') { updateRankDateBar(); loadRanking(); }
   if (tab === 'hit') loadHitRate();
