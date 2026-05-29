@@ -664,7 +664,6 @@ function _doRenderChart(container) {
     series = [
       { name: '综合大球比例',    data: filtered.map(function (x) { return parseFloat(x.bigBallRatio) || 0; }) },
       { name: '攻防进球',    data: filtered.map(function (x) { return parseFloat(x.attDefGoal) || 0; }) },
-      { name: '实力进球',    data: filtered.map(function (x) { return parseFloat(x.strengthGoal) || 0; }) },
       { name: '交锋进球',    data: filtered.map(function (x) { return parseFloat(x.headToHeadGoal) || 0; }) },
       { name: '破甲和',      data: filtered.map(function (x) { return parseFloat(x.breakArmor) || 0; }) }
     ];
