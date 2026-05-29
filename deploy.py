@@ -407,9 +407,9 @@ def main():
         elif 'NOTFOUND' in out:
             print('  {}'.format(c('Y', '未找到配置文件')))
         ssh_cmd(ssh, 'nginx -t 2>&1', 10)
-        # 完全重启 Nginx（清除 open_file_cache + sendfile 缓存）
-        ssh_cmd(ssh, 'nginx -s stop 2>/dev/null; sleep 1; nginx 2>&1', 15)
-        print('  Nginx 已重启（完全清除缓存）')
+        # 完全重启 Nginx + 刷新内核页缓存
+        ssh_cmd(ssh, 'nginx -s stop 2>/dev/null; sync; echo 3 > /proc/sys/vm/drop_caches 2>/dev/null; sleep 2; nginx 2>&1', 20)
+        print('  Nginx 已重启（内核页缓存已清除）')
     print()
 
     sftp.close()
