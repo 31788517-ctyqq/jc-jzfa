@@ -297,7 +297,7 @@ def main():
     # ── Phase 0: 环境检查（fast/quick 跳过） ──
     if not fast_mode and not quick_mode:
         print(c('C', '[Phase 0] 环境检查'))
-        checks = {'Nginx': 'test -f /usr/sbin/nginx && echo OK', 'PM2': 'pm2 jlist 2>/dev/null | grep -c name || echo 0'}
+        checks = {'Nginx': 'test -f /usr/sbin/nginx && echo OK', 'PM2': 'pm2 jlist 2>/dev/null | python3 -c "import sys,json; print(len(json.load(sys.stdin)))" || echo 0'}
         ok = True
         for label, cmd in checks.items():
             out, _ = ssh_cmd(ssh, cmd, 5)
