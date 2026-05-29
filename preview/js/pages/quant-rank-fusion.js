@@ -657,66 +657,63 @@ function _doRenderChart(container) {
   }
 
   var n = filtered.length;
-  // 动态高度：每场 38px + 80px 留白
-  var chartH = Math.max(360, n * 38 + 80);
-  container.style.height = chartH + 'px';
 
   // 短队名
   var names = filtered.map(function (item) {
     return shortTeam(item.homeName) + ' vs ' + shortTeam(item.visitName);
   });
 
-  // ═══ 根据 tab 准备数据 ═══
-  var mainData, title, unit, isPct, isNegOk;
+  // ═══ 根据 tab 定义指标组（每组 3-4 项） ═══
+  var seriesDefs;
   if (currentTab === 'power') {
-    title = '综合实力得分';
-    mainData = filtered.map(function (x) { return parseFloat((parseFloat(x.totalScore) || 0).toFixed(2)); });
-    unit = '';
-    isPct = false;
-    isNegOk = true;
+    seriesDefs = [
+      { name: '综合实力',  key: 'pwScore',     fmt: 2, color: '#18E0E0' },
+      { name: '净胜球量化', key: 'gdScore',     fmt: 2, color: '#22c55e' },
+      { name: '胜平负交叉', key: 'crossValue',  fmt: 2, color: '#fbbf24' },
+      { name: '攻守实力',  key: 'adCombined',  fmt: 2, color: '#f97316' }
+    ];
   } else if (currentTab === 'goal') {
-    title = '总进球预期（合计）';
-    mainData = filtered.map(function (x) { return parseFloat((parseFloat(x.totalSum) || 0).toFixed(1)); });
-    unit = '';
-    isPct = false;
-    isNegOk = false;
+    seriesDefs = [
+      { name: '总进球预期', key: 'totalSum',     fmt: 1, color: '#18E0E0' },
+      { name: '大球比例',   key: 'bigBallRatio', fmt: 1, color: '#22c55e' },
+      { name: '攻防进球',   key: 'attDefGoal',   fmt: 1, color: '#60a5fa' },
+      { name: '实力进球',   key: 'strengthGoal', fmt: 1, color: '#fbbf24' }
+    ];
   } else {
-    title = '关注热度（万）';
-    mainData = filtered.map(function (x) { return parseFloat(parseFloat(x.hotFocusNum) || 0).toFixed(1); });
-    unit = '';
-    isPct = false;
-    isNegOk = false;
+    seriesDefs = [
+      { name: '关注热度',  key: 'hotFocusNum', fmt: 1, color: '#f97316' },
+      { name: '冷热指数',  key: 'heatIndex',   fmt: 2, color: '#18E0E0' },
+      { name: '静态实力差', key: 'staticDiff',  fmt: 2, color: '#60a5fa' }
+    ];
   }
 
-  // 数据范围
-  var dataMin = Math.min.apply(null, mainData), dataMax = Math.max.apply(null, mainData);
-  if (isNegOk && dataMin >= 0) isNegOk = false;
-  var absMax = Math.max(Math.abs(dataMin), Math.abs(dataMax), 0.01);
+  // 动态高度：每场 × 30px（每组指标间隙） + 40px legend
+  var rowsPerTeam = seriesDefs.length;
+  var chartH = Math.max(400, n * rowsPerTeam * 14 + 60);
+  container.style.height = chartH + 'px';
 
-  // ── 构建 series（单系列带渐变颜色） ──
-  var barData = mainData.map(function (v, i) {
-    var item = filtered[i];
-    var ratio = isNegOk ? (v / absMax) : (dataMax > 0 ? v / dataMax : 0);
-    var color;
-    if (isNegOk) {
-      if (v >= 0) {
-        var g = Math.round(34 + 163 * ratio); // green 34→197
-        color = 'rgba(24, 224, 224, ' + (0.25 + 0.75 * ratio).toFixed(2) + ')';
-      } else {
-        var r = Math.round(68 + 171 * Math.abs(ratio));
-        color = 'rgba(' + r + ', 68, 68, ' + (0.3 + 0.7 * Math.abs(ratio)).toFixed(2) + ')';
-      }
-    } else {
-      var alpha = 0.25 + 0.75 * (ratio > 0 ? ratio : 0);
-      color = ratio > 0.6 ? 'rgba(24,224,224,' + alpha.toFixed(2) + ')' :
-              ratio > 0.3 ? 'rgba(96,165,250,' + alpha.toFixed(2) + ')' :
-              'rgba(100,116,139,' + (0.4 + ratio).toFixed(2) + ')';
-    }
-    var tags = computeTags(item);
+  // ── 构建 series ──
+  var series = seriesDefs.map(function (def) {
+    var data = filtered.map(function (item) {
+      var raw = parseFloat(item[def.key]);
+      if (isNaN(raw)) return '-';
+      return parseFloat(raw.toFixed(def.fmt));
+    });
     return {
-      value: v,
-      itemStyle: { color: color, borderRadius: [0, 4, 4, 0] },
-      _tags: tags.map(function (t) { return t.e + t.t; }).join('  ')
+      name: def.name,
+      type: 'bar',
+      data: data,
+      barMaxWidth: 16,
+      itemStyle: {
+        color: def.color,
+        borderRadius: [0, 3, 3, 0]
+      },
+      label: {
+        show: true,
+        position: 'right',
+        color: '#94A3B8',
+        fontSize: 9
+      }
     };
   });
 
@@ -725,19 +722,25 @@ function _doRenderChart(container) {
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      formatter: function (p) {
-        var d = p[0];
-        var tags = d.data._tags || '';
-        return '<b>' + d.name + '</b><br/>' + title + '：<b>' + d.value + '</b>' + (tags ? '<br/>' + tags : '');
+      formatter: function (params) {
+        var html = '<b>' + params[0].name + '</b>';
+        params.forEach(function (p) {
+          html += '<br/>' + p.marker + ' ' + p.seriesName + '：<b>' + p.value + '</b>';
+        });
+        return html;
       }
     },
-    grid: { left: '2%', right: '8%', top: 30, bottom: 10, containLabel: true },
+    legend: {
+      data: seriesDefs.map(function (s) { return s.name; }),
+      textStyle: { color: '#94A3B8', fontSize: 10 },
+      top: 0
+    },
+    grid: { left: '2%', right: '8%', top: 36, bottom: 10, containLabel: true },
     xAxis: {
       type: 'value',
       axisLabel: { color: '#64748B', fontSize: 10 },
       splitLine: { lineStyle: { color: 'rgba(24,224,224,0.04)' } },
-      axisLine: { show: false },
-      min: isNegOk ? -absMax * 1.15 : 0
+      axisLine: { show: false }
     },
     yAxis: {
       type: 'category',
@@ -745,24 +748,9 @@ function _doRenderChart(container) {
       axisLabel: { color: '#94A3B8', fontSize: 10, width: 80, overflow: 'truncate' },
       axisLine: { show: false },
       axisTick: { show: false },
-      inverse: true  // 第一条在最上面
+      inverse: true
     },
-    series: [{
-      name: title,
-      type: 'bar',
-      data: barData,
-      barMaxWidth: 18,
-      label: {
-        show: true,
-        position: 'right',
-        color: '#94A3B8',
-        fontSize: 9,
-        formatter: function (p) { return p.value; }
-      },
-      emphasis: {
-        itemStyle: { shadowBlur: 8, shadowColor: 'rgba(24,224,224,0.3)' }
-      }
-    }],
+    series: series,
     backgroundColor: 'transparent'
   });
 
