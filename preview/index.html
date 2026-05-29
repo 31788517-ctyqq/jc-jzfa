@@ -266,14 +266,16 @@ body {
 }
 /* 场次复选框（用量化排行榜同款 q-chk 样式） */
 .mc-chk-wrap {
-  display: inline-flex; align-items: center; flex-shrink: 0;
-  margin-right: 6px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  margin-right: 4px; cursor: pointer;
+  padding: 8px; margin-left: -8px; /* 扩大点击热区 */
+  position: relative; z-index: 1;
 }
 .mc-chk {
   appearance: none; -webkit-appearance: none;
-  width: 14px; height: 14px;
-  border: 1.5px solid rgba(255,255,255,0.25);
-  border-radius: 3px; background: transparent;
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 4px; background: transparent;
   cursor: pointer; position: relative;
 }
 .mc-chk:checked { border-color: var(--cyan); background: transparent; }
