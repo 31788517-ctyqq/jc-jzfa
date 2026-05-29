@@ -43,8 +43,7 @@ export function openPKMulti(pickedList) {
 function buildGSFields(gs) {
   gs = gs || {};
   var totalSumVal = function () {
-    var b = Math.abs(gs.bigBallRatio || 50) + Math.abs(gs.attDefGoal || 0) + Math.abs(gs.strengthGoal || 0) +
-      Math.abs(gs.h2hGoalAvg || 2.5) + Math.abs(gs.breakArmorSum || 0);
+    var b = Math.abs(gs.bigBallRatio || 0) + Math.abs(gs.attDefGoal || 0) + Math.abs(gs.h2hGoalAvg || 0) + Math.abs(gs.breakArmorSum || 0);
     return parseFloat(b.toFixed(4));
   }();
   return {
@@ -64,15 +63,14 @@ function buildGSFields(gs) {
     fusionConsensus: gs.fusionConsensus || '',
     fusionFinalHome: gs.fusionFinalHome != null ? gs.fusionFinalHome : 0,
     fusionFinalAway: gs.fusionFinalAway != null ? gs.fusionFinalAway : 0,
-    bigBallRatio: gs.bigBallRatio != null ? gs.bigBallRatio : 50,
+    bigBallRatio: gs.bigBallRatio != null ? gs.bigBallRatio : 0,
     attDefGoal: gs.attDefGoal != null ? gs.attDefGoal : 0,
-    strengthGoal: gs.strengthGoal != null ? gs.strengthGoal : 0,
-    headToHeadGoal: gs.h2hGoalAvg != null ? gs.h2hGoalAvg : 2.5,
+    headToHeadGoal: gs.h2hGoalAvg != null ? gs.h2hGoalAvg : 0,
     breakArmor: gs.breakArmorSum != null ? gs.breakArmorSum : 0,
     totalSum: totalSumVal,
     hasGS: !!(gs.attackPattern),
-    gdScore: gs.gdQ != null ? gs.gdQ : (gs.xgHome != null && gs.xgAway != null ? parseFloat((gs.xgHome - gs.xgAway).toFixed(4)) : 0),
-    crossValue: (gs.hWins != null && gs.aLosses != null) ? parseFloat(((gs.hWins + gs.aLosses - gs.hLosses - gs.aWins) / 10).toFixed(4)) : 0,
+    gdScore: gs.gdQ != null ? gs.gdQ : 0,
+    crossValue: (gs.hWins != null && gs.aLosses != null) ? (gs.hWins + gs.aLosses - gs.hLosses - gs.aWins) : 0,
     pwScore: gs.totalStrength != null ? parseFloat(gs.totalStrength.toFixed(4)) : 0,
     adCombined: gs.adWeightedComposite != null ? parseFloat(gs.adWeightedComposite.toFixed(4)) : 0
   };
@@ -217,7 +215,7 @@ function getGoalDirection(scored) {
   var item = scored.item;
   var bbr = parseFloat(item.bigBallRatio) || 50;
   // 总进球期望
-  var totalGoals = parseFloat(item.strengthGoal) || parseFloat(item.attDefGoal) || 2.5;
+  var totalGoals = parseFloat(item.attDefGoal) || parseFloat(item.headToHeadGoal) || 0;
   var pattern = item.attackPattern;
 
   if (bbr >= 70 && totalGoals > 3.0) return { dir: '大球', stars: 4, cls: 'dir-big', desc: '进球预期高' };
@@ -309,7 +307,7 @@ function renderScoreCard(scored, rank) {
   var dirAdvice = getDirectionAdvice(scored);
   var goalAdvice = getGoalDirection(scored);
 
-  var totalGoalsExpect = parseFloat(item.strengthGoal) || parseFloat(item.attDefGoal) || 0;
+  var totalGoalsExpect = parseFloat(item.attDefGoal) || parseFloat(item.headToHeadGoal) || 0;
   var goalLabel = totalGoalsExpect > 0 ? '（预期 ' + totalGoalsExpect.toFixed(1) + '球）' : '';
 
   var fusionBadge = '';
@@ -359,7 +357,7 @@ function renderComparisonTable(ranked) {
     var item = scored.item;
     var dirAdvice = getDirectionAdvice(scored);
     var goalAdvice = getGoalDirection(scored);
-    var totalGoals = parseFloat(item.strengthGoal) || parseFloat(item.attDefGoal) || 0;
+    var totalGoals = parseFloat(item.attDefGoal) || parseFloat(item.headToHeadGoal) || 0;
 
     var rankEmoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
     var rowCls = scored.compositeScore >= 65 ? 'row-high' : scored.compositeScore >= 45 ? 'row-mid' : 'row-low';
