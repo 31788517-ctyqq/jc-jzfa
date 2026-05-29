@@ -2141,6 +2141,216 @@ body {
 .pk2-combo-teams  { font-size: 11px; color: var(--text); }
 .pk2-combo-hint   { font-size: 10px; color: var(--text3); }
 
+/* ═══════════════════════════════════════════
+   V5.0 三维度融合PK — 实战投注决策辅助
+   ═══════════════════════════════════════════ */
+
+/* 头部 */
+.pk3-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 14px 10px; border-bottom: 1px solid rgba(24,224,224,0.12);
+  position: sticky; top: 0; background: #0d1b28; z-index: 2;
+}
+.pk3-title { font-size: 15px; font-weight: 700; color: var(--cyan); }
+.pk3-close { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.06); color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
+
+/* 区域标签 */
+.pk3-section-label {
+  font-size: 12px; font-weight: 700; color: var(--cyan);
+  padding: 12px 10px 8px; display: flex; align-items: center; gap: 6px;
+}
+
+/* ── 模块一：评分卡 ── */
+.pk3-score-cards {
+  display: flex; flex-direction: column; gap: 10px; padding: 0 10px;
+}
+.pk3-score-card {
+  border-radius: 14px; border: 1px solid rgba(24,224,224,0.12);
+  background: linear-gradient(135deg, rgba(24,224,224,0.04), rgba(99,102,241,0.02));
+  overflow: hidden;
+}
+.pk3-sc-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-bottom: 1px solid rgba(24,224,224,0.06);
+}
+.pk3-rank-badge { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+.pk3-sc-match { flex: 1; font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pk3-sc-comp { font-size: 22px; font-weight: 900; color: var(--cyan); flex-shrink: 0; }
+.pk3-sc-comp small { font-size: 11px; font-weight: 500; color: var(--text3); margin-left: 2px; }
+.pk3-sc-body { padding: 8px 14px 6px; }
+.pk3-sc-row {
+  display: flex; align-items: center; gap: 8px; padding: 4px 0;
+}
+.pk3-sc-label { width: 28px; font-size: 11px; color: var(--text2); flex-shrink: 0; font-weight: 500; }
+.pk3-sc-bar { flex: 1; }
+.pk3-bar-bg { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.05); overflow: hidden; }
+.pk3-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+.bar-cyan { background: linear-gradient(90deg, var(--cyan), rgba(24,224,224,0.5)); }
+.bar-red { background: linear-gradient(90deg, var(--red), rgba(239,68,68,0.5)); }
+.bar-green { background: linear-gradient(90deg, #22c55e, rgba(34,197,94,0.5)); }
+.bar-amber { background: linear-gradient(90deg, var(--amber), rgba(251,191,36,0.5)); }
+.bar-blue { background: linear-gradient(90deg, #60a5fa, rgba(96,165,250,0.5)); }
+.pk3-sc-val { width: 34px; text-align: right; font-size: 12px; font-weight: 700; color: var(--cyan); flex-shrink: 0; }
+.pk3-sc-foot { padding: 6px 14px 10px; border-top: 1px solid rgba(24,224,224,0.04); }
+.pk3-sc-advice { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.pk3-sc-dir { font-size: 13px; font-weight: 700; }
+.pk3-sc-goal { font-size: 11px; font-weight: 600; color: var(--text2); }
+.pk3-sc-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.pk3-sc-fusion { margin-top: 4px; }
+.pk3-tag-t {
+  font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 500;
+  background: rgba(255,255,255,0.04); color: var(--text2); white-space: nowrap;
+}
+.pk3-tag-t.tag-red { background: rgba(239,68,68,0.12); color: #ef5350; }
+.pk3-tag-t.tag-green { background: rgba(34,197,94,0.12); color: #4ade80; }
+.pk3-tag-t.tag-amber { background: rgba(251,191,36,0.12); color: #fbbf24; }
+.pk3-tag-t.tag-blue { background: rgba(96,165,250,0.12); color: #60a5fa; }
+.pk3-tag-t.tag-orange { background: rgba(249,115,22,0.12); color: #ff8a50; }
+.pk3-tag-t.tag-indigo { background: rgba(99,102,241,0.12); color: #818cf8; }
+.pk3-fusion-tag {
+  display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600;
+}
+.fusion-ok { background: rgba(76,175,80,0.12); color: #66bb6a; }
+.fusion-warn { background: rgba(251,191,36,0.12); color: #ffc107; }
+.fusion-bad { background: rgba(239,68,68,0.12); color: #ef5350; }
+
+/* 推荐方向颜色 */
+.dir-home, .pk3-advice-card.dir-home { border-left-color: #22c55e; }
+.dir-home-caut { color: #fbbf24 !important; }
+.dir-away { color: #f97316 !important; }
+.dir-away-cold { color: #60a5fa !important; }
+.dir-draw { color: var(--text2) !important; }
+.dir-avoid { color: var(--red) !important; }
+.dir-big { color: #22c55e !important; }
+.dir-small { color: #6366f1 !important; }
+
+/* ── 模块二：横向对比总览表 ── */
+.pk3-table-wrap {
+  margin: 0 10px 8px; border-radius: 12px;
+  border: 1px solid rgba(24,224,224,0.1); overflow: hidden;
+}
+.pk3-compare-table {
+  width: 100%; border-collapse: collapse; font-size: 11px;
+}
+.pk3-compare-table thead th {
+  font-size: 9px; color: var(--text3); font-weight: 500;
+  padding: 8px 4px; text-align: center; border-bottom: 1px solid rgba(24,224,224,0.08);
+  background: rgba(0,255,255,0.03); white-space: normal; word-break: keep-all; line-height: 1.2;
+}
+.pk3-compare-table tbody td {
+  padding: 8px 4px; text-align: center; border-bottom: 1px solid rgba(24,224,224,0.04);
+  vertical-align: middle;
+}
+.pk3-compare-table tbody tr:last-child td { border-bottom: none; }
+.pk3-compare-table .row-high { background: rgba(34,197,94,0.04); }
+.pk3-compare-table .row-mid { background: transparent; }
+.pk3-compare-table .row-low { background: rgba(239,68,68,0.03); }
+.pk3-compare-table .col-rank { width: 24px; font-size: 14px; padding: 8px 2px; }
+.pk3-compare-table .col-match { width: auto; text-align: center; }
+.cmp-home, .cmp-away { font-size: 10px; font-weight: 600; color: var(--text); }
+.cmp-vs { font-size: 9px; color: var(--text3); margin: 0 3px; }
+.pk3-compare-table .col-num { font-size: 12px; font-weight: 700; width: 36px; }
+.pk3-compare-table .col-comp { width: 60px; }
+.pk3-compare-table .col-comp b { font-size: 13px; color: var(--cyan); }
+.star-row { display: block; font-size: 8px; line-height: 1; margin-top: 1px; }
+.pk3-compare-table .col-dir { font-size: 10px; font-weight: 700; width: 52px; }
+.pk3-compare-table .col-goal { font-size: 10px; font-weight: 600; width: 52px; }
+
+/* 数值颜色 */
+.val-good { color: #22c55e !important; }
+.val-warn { color: #fbbf24 !important; }
+.val-bad { color: #ef4444 !important; }
+
+/* ── 模块三：投注建议列表 ── */
+.pk3-advice-list { display: flex; flex-direction: column; gap: 8px; padding: 0 10px; }
+.pk3-advice-card {
+  border-radius: 12px; padding: 10px 14px;
+  border: 1px solid rgba(24,224,224,0.1);
+  background: rgba(24,224,224,0.02);
+  border-left: 3px solid rgba(24,224,224,0.2);
+}
+.pk3-advice-card.dir-home { border-left-color: #22c55e; background: rgba(34,197,94,0.03); }
+.pk3-advice-card.dir-away { border-left-color: #f97316; background: rgba(249,115,22,0.03); }
+.pk3-advice-card.dir-avoid { border-left-color: #ef4444; background: rgba(239,68,68,0.03); }
+.pk3-advice-card.dir-draw { border-left-color: var(--amber); background: rgba(251,191,36,0.03); }
+.pk3-adv-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.pk3-adv-match { font-size: 12px; font-weight: 700; color: var(--text); }
+.pk3-adv-comp { font-size: 11px; font-weight: 600; color: var(--cyan); }
+.pk3-adv-body { display: flex; flex-direction: column; gap: 3px; }
+.pk3-adv-row { display: flex; align-items: center; gap: 8px; font-size: 11px; padding: 2px 0; }
+.pk3-adv-label { width: 28px; color: var(--text3); font-size: 10px; flex-shrink: 0; }
+.pk3-adv-val { font-weight: 700; font-size: 12px; flex-shrink: 0; }
+.pk3-adv-val small { font-size: 9px; font-weight: 400; }
+.pk3-adv-desc { font-size: 10px; color: var(--text3); flex: 1; }
+.pk3-adv-warn { color: #f87171; font-size: 10px; padding: 4px 0; background: rgba(239,68,68,0.06); border-radius: 6px; padding-left: 8px; margin-top: 2px; }
+.pk3-adv-info { color: #60a5fa; font-size: 10px; padding: 4px 0; background: rgba(96,165,250,0.06); border-radius: 6px; padding-left: 8px; margin-top: 2px; }
+
+/* ── 模块四：串关推荐 ── */
+.pk3-combo-wrap { display: flex; flex-direction: column; gap: 8px; padding: 0 10px 12px; }
+.pk3-combo-card {
+  border-radius: 12px; padding: 10px 12px; border: 1px solid;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.pk3-combo-card.combo-positive { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.06); }
+.pk3-combo-card.combo-cold { border-color: rgba(96,165,250,0.3); background: rgba(96,165,250,0.06); }
+.pk3-combo-card.combo-steady { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.06); }
+.pk3-combo-tag { font-size: 12px; font-weight: 700; }
+.pk3-combo-card.combo-positive .pk3-combo-tag { color: #22c55e; }
+.pk3-combo-card.combo-cold .pk3-combo-tag { color: #60a5fa; }
+.pk3-combo-card.combo-steady .pk3-combo-tag { color: #fbbf24; }
+.pk3-combo-teams { font-size: 11px; color: var(--text); }
+.pk3-combo-hint { font-size: 10px; color: var(--text3); }
+
+/* ── 模块五：风险预警面板 ── */
+.pk3-risk-panel {
+  margin: 0 10px 8px; border-radius: 12px;
+  border: 1px solid rgba(24,224,224,0.1);
+  background: linear-gradient(135deg, rgba(239,68,68,0.03), rgba(251,191,36,0.02));
+  overflow: hidden;
+}
+.pk3-risk-list { padding: 8px 0; }
+.pk3-risk-item { padding: 6px 14px; font-size: 11px; color: var(--text2); border-bottom: 1px solid rgba(255,255,255,0.03); }
+.pk3-risk-item:last-child { border-bottom: none; }
+.pk3-risk-item.danger { color: #ef5350; font-weight: 600; }
+.pk3-risk-item.warn { color: #fbbf24; }
+.pk3-risk-item.info { color: #60a5fa; }
+.pk3-risk-clear { padding: 12px 14px; font-size: 12px; color: #22c55e; font-weight: 600; text-align: center; }
+.pk3-risk-health {
+  padding: 10px 14px; border-top: 1px solid rgba(24,224,224,0.06);
+  font-size: 11px; color: var(--text2); display: flex; align-items: center; gap: 6px;
+}
+.pk3-risk-health small { font-size: 10px; }
+
+/* ── 综合评估面板 ── */
+.pk3-summary-panel {
+  margin: 0 10px 12px; border-radius: 12px;
+  border: 1px solid rgba(24,224,224,0.1);
+  background: linear-gradient(135deg, rgba(24,224,224,0.03), rgba(99,102,241,0.02));
+  overflow: hidden;
+}
+.pk3-summary-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px; font-size: 11px;
+  border-bottom: 1px solid rgba(24,224,224,0.03);
+}
+.pk3-summary-row:last-child { border-bottom: none; }
+.pk3-summary-label { color: var(--text2); font-size: 11px; }
+.pk3-summary-value { font-weight: 700; font-size: 12px; color: var(--text); }
+.pk3-summary-value small { font-size: 9px; font-weight: 500; }
+
+/* 底部按钮 */
+.pk3-footer { padding: 16px; text-align: center; }
+.pk3-done-btn {
+  width: 100%; height: 46px; border-radius: 23px;
+  border: 1px solid rgba(24,224,224,0.35);
+  background: linear-gradient(135deg, rgba(24,224,224,0.25), rgba(24,224,224,0.40));
+  color: var(--cyan); font-size: var(--fs-lg); font-weight: 700; cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 10px rgba(24,224,224,0.12);
+}
+.pk3-done-btn:active { transform: scale(0.97); background: linear-gradient(135deg, rgba(24,224,224,0.36), rgba(24,224,224,0.52)); }
+
 /* ═══ P1-2: 攻防格局徽章 ═══ */
 .pattern-badge {
   display: inline-block; font-size: 8px; font-weight: 600; line-height: 1;

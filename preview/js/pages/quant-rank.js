@@ -59,7 +59,7 @@ export function togglePick(ev, matchId) {
 export function startPK() {
   var picked = allData.filter(function (item) { return pickedIds[item.matchId]; });
   if (picked.length < 2) return;
-  if (window.openPKMulti) { window.openPKMulti(picked, currentTab); clearPicks(); }
+  if (window.openPKMulti) { window.openPKMulti(picked); clearPicks(); }
 }
 
 function clearPicks() {
