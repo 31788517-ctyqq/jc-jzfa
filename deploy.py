@@ -144,72 +144,80 @@ def ssh_cmd(ssh, cmd, timeout=60):
 
 def batch_upload(sftp, ssh, file_list, dry_run=False):
     """
-    批量上传：分批次直接 SFTP 覆盖 → 单独 md5 验证
-    修复：1) 避免超长命令截断  2) 避免 /tmp/cp 两步间丢失  3) 逐文件验证
+    批量上传：base64 编码 → SSH pipe 写入 → md5 验证
+    跳过 SFTP（权限/文件锁问题），直接用 SSH 管道的 base64 解码写入
     """
     results = []
-    BATCH_SIZE = 15  # 每批最多 15 个文件，避免 SSH 命令过长
+    BATCH_SIZE = 10  # 每批最多 10 个文件
 
     if dry_run:
         for lp, rp in file_list:
             results.append((True, os.path.basename(rp), 'DRY', '-', '-'))
         return results
 
+    import base64 as _b64
+
     # 分批次处理
     for batch_start in range(0, len(file_list), BATCH_SIZE):
         batch = file_list[batch_start:batch_start + BATCH_SIZE]
 
-        # 1) SFTP 直接上传到目标路径（跳过 /tmp 中转，减少中间环节）
-        sftp_ok = 0
-        for local_path, remote_path in batch:
-            try:
-                remote_dir = os.path.dirname(remote_path)
-                # 确保远程目录存在
-                try:
-                    sftp.stat(remote_dir)
-                except:
-                    sftp.mkdir(remote_path)
-                    # 递归创建目录（不支持 mkdir -p，用 SSH 创建）
-                    ssh.exec_command('mkdir -p "{}"'.format(remote_dir), timeout=5)
-                # 直接上传到目标
-                sftp.put(local_path, remote_path, confirm=True)
-                sftp_ok += 1
-            except Exception as e:
-                results.append((False, os.path.basename(remote_path), 'SFTP', '-', str(e)[:50]))
-
-        if sftp_ok == 0:
-            continue
-
-        # 2) SSH 执行 sync（确保写入磁盘）
-        try:
-            ssh.exec_command('sync', timeout=10)
-        except:
-            pass
-
-        # 3) 逐文件 md5 验证
+        # 逐文件上传（通过 base64 管道，避免 SFTP 权限问题）
         for local_path, remote_path in batch:
             fname = os.path.basename(remote_path)
             try:
+                # 读取本地文件并 base64 编码
+                with open(local_path, 'rb') as f:
+                    b64_data = _b64.b64encode(f.read()).decode('ascii')
+
+                remote_dir = os.path.dirname(remote_path)
+
+                # 构建单条 shell 命令：创建目录 → base64 解码写入 → md5 返回
+                cmd = (
+                    'mkdir -p "{d}" && '
+                    'echo "{b}" | base64 -d > "{p}" && '
+                    'sync && '
+                    'md5sum "{p}" && '
+                    'echo "OK:{f}"'
+                ).format(d=remote_dir, b=b64_data, p=remote_path, f=fname)
+
+                stdin, stdout, stderr = ssh.exec_command(cmd, timeout=30)
+                out = stdout.read().decode('utf-8', errors='replace').strip()
+                err = stderr.read().decode('utf-8', errors='replace').strip()
+
+                # 解析 md5 和 OK 标记
+                remote_md5 = ''
+                if out:
+                    first_line = out.split('\n')[0]
+                    remote_md5 = first_line.split()[0] if len(first_line) > 32 else ''
+
                 with open(local_path, 'rb') as f:
                     local_md5 = hashlib.md5(f.read()).hexdigest()
-                _, stdout, _ = ssh.exec_command('md5sum "{}"'.format(remote_path), timeout=5)
-                remote_out = stdout.read().decode('utf-8', errors='replace').strip()
-                remote_md5 = remote_out.split()[0] if len(remote_out) > 32 else ''
-                if remote_md5 == local_md5:
+
+                is_ok = 'OK:' + fname in out
+
+                if remote_md5 == local_md5 and is_ok:
+                    results.append((True, fname, 'OK', local_md5[:8], remote_md5[:8]))
+                elif remote_md5 == local_md5:
                     results.append((True, fname, 'OK', local_md5[:8], remote_md5[:8]))
                 else:
-                    # MD5 不匹配，重试一次
-                    sftp.put(local_path, remote_path, confirm=True)
-                    _, stdout, _ = ssh.exec_command('md5sum "{}"'.format(remote_path), timeout=5)
-                    retry_out = stdout.read().decode('utf-8', errors='replace').strip()
+                    # 重试：通过管道 echo 方式
+                    retry_cmd = (
+                        'mkdir -p "{d}" && '
+                        'echo "{b}" | base64 -d > "{p}.tmp" && '
+                        'mv -f "{p}.tmp" "{p}" && '
+                        'sync && '
+                        'md5sum "{p}"'
+                    ).format(d=remote_dir, b=b64_data, p=remote_path)
+                    stdin2, stdout2, stderr2 = ssh.exec_command(retry_cmd, timeout=30)
+                    retry_out = stdout2.read().decode('utf-8', errors='replace').strip()
                     retry_md5 = retry_out.split()[0] if len(retry_out) > 32 else ''
                     if retry_md5 == local_md5:
                         results.append((True, fname, 'RETRY', local_md5[:8], retry_md5[:8]))
                     else:
                         results.append((False, fname, 'MD5', local_md5[:8],
-                                        retry_md5[:8] if retry_md5 else 'MISSING'))
+                                        retry_md5[:8] if retry_md5 else 'MISS'))
             except Exception as e:
-                results.append((False, fname, 'VERIFY', '-', str(e)[:50]))
+                results.append((False, fname, 'SSH', '-', str(e)[:50]))
 
     return results
 
