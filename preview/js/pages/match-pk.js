@@ -282,7 +282,7 @@ function renderFusionPK(modal, list) {
 
   var html = '';
   html += '<div class="pk3-header">' +
-    '<span class="pk3-title">⚔️ 三维度融合 PK 分析（' + n + '场）</span>' +
+    '<span class="pk3-title">三维度融合 PK 分析（' + n + '场）</span>' +
     '<span class="pk3-close" onclick="closePK()">✕</span>' +
     '</div>';
 
