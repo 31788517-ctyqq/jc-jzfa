@@ -419,15 +419,20 @@ def main():
         if count.isdigit() and int(count) > 0:
             print('  {} Nginx index.html contains main-fusion.js ({} matches)'.format(c('G', '✓'), count))
         else:
-            print('  {} Nginx index.html still OLD! Retrying with forced write...'.format(c('R', '✗')))
-            force_cmds = (
-                "chattr -i {0} 2>/dev/null; "
-                "cp {1}/preview/index.html {0} 2>/dev/null; "
-                "sync; "
-                "grep -c 'main-fusion.js' {0} 2>/dev/null || echo 0"
-            ).format(idx_path, PM2_ROOT)
-            out2, _ = ssh_cmd(ssh, force_cmds, 10)
-            print('    After force copy: {} matches'.format(out2.strip()))
+            print('  {} Nginx index.html still OLD! Retrying via direct SFTP...'.format(c('R', '✗')))
+            # 直接用 SFTP 单独重传（绕过 batch_upload 的 /tmp 中转）
+            local_idx = os.path.join(LOCAL_ROOT, 'preview/index.html')
+            pm2_idx = PM2_ROOT + '/preview/index.html'
+            try:
+                sftp2 = ssh.open_sftp()
+                sftp2.put(local_idx, idx_path)
+                sftp2.put(local_idx, pm2_idx)
+                sftp2.close()
+                ssh_cmd(ssh, 'sync', 5)
+                out2, _ = ssh_cmd(ssh, test_cmd, 5)
+                print('    After SFTP: {} matches'.format(out2.strip()))
+            except Exception as e2:
+                print('    SFTP retry failed: {}'.format(str(e2)[:80]))
     print()
 
     sftp.close()
