@@ -6,6 +6,7 @@
     "express-rate-limit": "^8.5.2",
     "iconv-lite": "^0.7.2",
     "nodemailer": "^8.0.9",
+    "puppeteer": "^25.1.0",
     "ssh2": "^1.17.0",
     "winston": "^3.19.0"
   }
