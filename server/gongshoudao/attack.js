@@ -41,8 +41,9 @@ function winGapHedge(vars) {
 }
 
 /**
- * 子维度二：攻击力纯能效对冲
- * AtkEff = 近期场均进球 × 攻击效率
+ * 子维度二：攻击力纯能效对冲（修正：改为除法，还原射门次数）
+ * AtkEff_h = Gh / (Eff_atk,h + 0.001)
+ * AtkEff_a = Ga / (Eff_atk,a + 0.001)
  * 对冲 = (AtkEff_h - AtkEff_a) / max(AtkEff_h, AtkEff_a, 0.01)
  */
 function atkEffHedge(vars) {
@@ -51,8 +52,8 @@ function atkEffHedge(vars) {
   const eh = vars.homeAttackEfficiency || 0;
   const ea = vars.awayAttackEfficiency || 0;
 
-  const atkH = gh * eh;
-  const atkA = ga * ea;
+  const atkH = gh / (eh + 0.001);
+  const atkA = ga / (ea + 0.001);
   const denom = Math.max(atkH, atkA, 0.01);
   return round((atkH - atkA) / denom, F);
 }
@@ -104,8 +105,9 @@ function loseGapHedge(vars) {
 }
 
 /**
- * 子维度二：防御纯能效对冲
- * DefEff = 近期场均失球 × 防守效率
+ * 子维度二：防御纯能效对冲（修正：改为除法，还原被射门次数）
+ * DefEff_h = Gha / (Eff_def,h + 0.001)
+ * DefEff_a = Gah / (Eff_def,a + 0.001)
  * 对冲 = (DefEff_a - DefEff_h) / max(DefEff_h, DefEff_a, 0.01)
  * 注意：DefEff 越低防守越好；用 a-h 让客队失球效率高于主队时返回正值（利好主队）
  */
@@ -115,8 +117,8 @@ function defEffHedge(vars) {
   const dh = vars.homeDefendEfficiency || 0;
   const da = vars.awayDefendEfficiency || 0;
 
-  const defH = lh * dh;
-  const defA = la * da;
+  const defH = lh / (dh + 0.001);
+  const defA = la / (da + 0.001);
   const denom = Math.max(defH, defA, 0.01);
   return round((defA - defH) / denom, F);
 }

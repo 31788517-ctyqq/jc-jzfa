@@ -45,28 +45,42 @@ function totalGoalsLock(h, a, goalRange) {
 
 /**
  * 锁二：主客单队进球范围锁（双向破甲硬截断）
+ * Pen_h = Atk_h / (ShotAgainst_a + 0.5)
+ * Pen_a = Atk_a / (ShotAgainst_h + 0.5)
+ * 
+ * 强力破甲 (Pen ≥ 1.2): 单队下限 1球
+ * 防线哑火 (Pen ≤ 0.7): 单队上限 1球
+ * 常规均衡 (0.7 < Pen < 1.2): [0, 3] 区间
  */
 function singleTeamLock(h, a, vars) {
-  // 主破客系数 λ_home = 主队进攻效率 / 客队防守效率
-  const lambdaHome = vars.awayDefendEfficiency > 0
-    ? vars.homeAttackEfficiency / vars.awayDefendEfficiency
-    : 1;
-  const lambdaAway = vars.homeDefendEfficiency > 0
-    ? vars.awayAttackEfficiency / vars.homeDefendEfficiency
-    : 1;
+  const gh = vars.homeRecentGoalAvg || 1;
+  const ga = vars.awayRecentGoalAvg || 1;
+  const lh = vars.homeRecentLoseAvg || 1;
+  const la = vars.awayRecentLoseAvg || 1;
+  const eh = (vars.homeAttackEfficiency || 0) + 0.001;
+  const ea = (vars.awayAttackEfficiency || 0) + 0.001;
+  const dh = (vars.homeDefendEfficiency || 0) + 0.001;
+  const da = (vars.awayDefendEfficiency || 0) + 0.001;
 
-  // 强力破甲 (λ >= 1.5): 下限 1球
-  // 防线哑火 (λ <= 0.5): 上限 2球
-  // 常规均衡: 0~4球
+  // 还原攻防次数
+  const atkH = gh / eh;
+  const atkA = ga / ea;
+  const shotAgainstH = lh / dh;
+  const shotAgainstA = la / da;
 
-  if (lambdaHome >= 1.5 && h < 1) return false;
-  if (lambdaHome <= 0.5 && h > 2) return false;
-  if (lambdaAway >= 1.5 && a < 1) return false;
-  if (lambdaAway <= 0.5 && a > 2) return false;
+  // 破甲系数
+  const penH = atkH / (shotAgainstA + 0.5);
+  const penA = atkA / (shotAgainstH + 0.5);
 
-  // 常规均衡：限制在 0~6 球
-  if (lambdaHome > 0.5 && lambdaHome < 1.5 && h > 6) return false;
-  if (lambdaAway > 0.5 && lambdaAway < 1.5 && a > 6) return false;
+  // 主队限制
+  if (penH >= 1.2 && h < 1) return false;
+  if (penH <= 0.7 && h > 1) return false;
+  if (penH > 0.7 && penH < 1.2 && h > 3) return false;
+
+  // 客队限制
+  if (penA >= 1.2 && a < 1) return false;
+  if (penA <= 0.7 && a > 1) return false;
+  if (penA > 0.7 && penA < 1.2 && a > 3) return false;
 
   return true;
 }

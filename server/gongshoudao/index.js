@@ -120,6 +120,11 @@ function computeSingleMatch(rawStats, matchInfo) {
     // ★ xG 值（主客预期进球，供排行榜净胜球量化使用）
     xgHome: goalResult.xgHome,
     xgAway: goalResult.xgAway,
+    // ★ 四重熔断
+    fusionConsensus: goalResult.fusionConsensus,
+    fusionFinalHome: goalResult.fusionFinalHome,
+    fusionFinalAway: goalResult.fusionFinalAway,
+    fusionFused: goalResult.fusionFused,
     // ★ 进球预测维度（PK.md 进球数预测公式）
     attDefGoal: goalResult.attDefGoal,         // 攻防进球 = xgHome + xgAway
     breakArmorSum: goalResult.breakArmorSum,   // 破甲和
