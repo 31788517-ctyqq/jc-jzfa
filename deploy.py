@@ -410,29 +410,40 @@ def main():
         # 完全重启 Nginx + 刷新内核页缓存
         ssh_cmd(ssh, 'nginx -s stop 2>/dev/null; sync; echo 3 > /proc/sys/vm/drop_caches 2>/dev/null; sleep 2; nginx 2>&1', 20)
         print('  Nginx 已重启（内核页缓存已清除）')
-    # ── 内容二次验证：检查 index.html 是否真的更新了 ──
+    # ── 内容二次验证：检查关键文件是否更新 ──
     if not dry_run:
-        idx_path = NGINX_ROOT + '/preview/index.html'
-        test_cmd = "grep -c 'main-fusion.js' {} 2>/dev/null || echo 0".format(idx_path)
-        out, _ = ssh_cmd(ssh, test_cmd, 5)
-        count = out.strip()
-        if count.isdigit() and int(count) > 0:
-            print('  {} Nginx index.html contains main-fusion.js ({} matches)'.format(c('G', '✓'), count))
-        else:
-            print('  {} Nginx index.html still OLD! Retrying via direct SFTP...'.format(c('R', '✗')))
-            # 直接用 SFTP 单独重传（绕过 batch_upload 的 /tmp 中转）
-            local_idx = os.path.join(LOCAL_ROOT, 'preview/index.html')
-            pm2_idx = PM2_ROOT + '/preview/index.html'
-            try:
-                sftp2 = ssh.open_sftp()
-                sftp2.put(local_idx, idx_path)
-                sftp2.put(local_idx, pm2_idx)
-                sftp2.close()
-                ssh_cmd(ssh, 'sync', 5)
-                out2, _ = ssh_cmd(ssh, test_cmd, 5)
-                print('    After SFTP: {} matches'.format(out2.strip()))
-            except Exception as e2:
-                print('    SFTP retry failed: {}'.format(str(e2)[:80]))
+        critical_files = [
+            # (本地路径, nginx路径, pm2路径, 验证grep)
+            ('preview/index.html', NGINX_ROOT+'/preview/index.html', PM2_ROOT+'/preview/index.html', 'main-fusion.js'),
+            ('preview/js/main-fusion.js', NGINX_ROOT+'/preview/js/main-fusion.js', PM2_ROOT+'/preview/js/main-fusion.js', 'V5.0-FUSION'),
+            ('preview/js/pages/match-pk-fusion.js', NGINX_ROOT+'/preview/js/pages/match-pk-fusion.js', PM2_ROOT+'/preview/js/pages/match-pk-fusion.js', 'renderFusionPK'),
+            ('preview/js/pages/quant-rank-fusion.js', NGINX_ROOT+'/preview/js/pages/quant-rank-fusion.js', PM2_ROOT+'/preview/js/pages/quant-rank-fusion.js', 'cross-tab selection'),
+        ]
+        any_fixed = False
+        for rel, nginx_path, pm2_path, keyword in critical_files:
+            test_cmd = "grep -c '{}' {} 2>/dev/null || echo 0".format(keyword, nginx_path)
+            out, _ = ssh_cmd(ssh, test_cmd, 5)
+            count = out.strip()
+            if count.isdigit() and int(count) > 0:
+                print('  {} {} OK ({} matches)'.format(c('G', '✓'), os.path.basename(nginx_path), count))
+            else:
+                print('  {} {} MISSING! Retrying via SFTP...'.format(c('R', '✗'), os.path.basename(nginx_path)))
+                local_path = os.path.join(LOCAL_ROOT, rel)
+                try:
+                    sftp2 = ssh.open_sftp()
+                    sftp2.put(local_path, nginx_path)
+                    sftp2.put(local_path, pm2_path)
+                    sftp2.close()
+                    ssh_cmd(ssh, 'sync', 5)
+                    out2, _ = ssh_cmd(ssh, test_cmd, 5)
+                    print('    After SFTP: {} matches'.format(out2.strip()))
+                    any_fixed = True
+                except Exception as e2:
+                    print('    SFTP failed: {}'.format(str(e2)[:80]))
+        if any_fixed:
+            # 有文件被重新写入，需要再次刷新 Nginx
+            ssh_cmd(ssh, 'nginx -s reload 2>/dev/null && echo "reloaded"', 5)
+            print('  Nginx reloaded (due to file fix)')
     print()
 
     sftp.close()
