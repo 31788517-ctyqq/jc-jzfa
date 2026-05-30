@@ -11,8 +11,9 @@ export function loadIncome(force) {
   var timeVal = window.getDDVal ? window.getDDVal('dd-incTime') : 'all';
   var days = timeVal === 'all' ? 0 : parseInt(timeVal) || 0;
   var plan = window.getDDVal ? window.getDDVal('dd-incPlan') || 'all' : 'all';
+  var direction = window.getDDVal ? window.getDDVal('dd-incDir') || 'all' : 'all';
 
-  api('income-stats', { days: days, plan: plan }).then(function (data) {
+  api('income-stats', { days: days, plan: plan, direction: direction }).then(function (data) {
     var s = data.summary || {};
     var itp = document.getElementById('incTotalPlans');
     var iwr = document.getElementById('incWinRate');

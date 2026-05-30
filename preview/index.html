@@ -2923,6 +2923,18 @@ body {
   <div class="filter-section-card">
     <div class="filter-head">筛选条件</div>
     <div class="filter-row">
+      <span class="filter-label">方向</span>
+      <div class="filter-dd" id="dd-incDir" data-val="expert">
+        <div class="filter-dd-trigger" onclick="toggleDD('dd-incDir', event)"><span class="filter-dd-text">专家博热方案</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>
+        <ul class="filter-dd-menu">
+          <li data-val="all" class="filter-dd-option" onclick="selectDD('dd-incDir','all','全部')">全部</li>
+          <li data-val="expert" class="filter-dd-option selected" onclick="selectDD('dd-incDir','expert','专家博热方案')">专家博热方案</li>
+          <li data-val="score" class="filter-dd-option" onclick="selectDD('dd-incDir','score','单场比分方案')">单场比分方案</li>
+          <li data-val="quant" class="filter-dd-option" onclick="selectDD('dd-incDir','quant','量化博冷方案')">量化博冷方案</li>
+        </ul>
+      </div>
+    </div>
+    <div class="filter-row">
       <span class="filter-label">时间</span>
       <div class="filter-dd" id="dd-incTime" data-val="all">
         <div class="filter-dd-trigger" onclick="toggleDD('dd-incTime', event)"><span class="filter-dd-text">全部时间</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>

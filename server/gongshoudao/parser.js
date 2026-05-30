@@ -47,11 +47,26 @@ function parse(raw) {
   vars.awayRecentGoalAvg = extractAvg(raw.guestDxqDesc, '进球');
   vars.awayRecentLoseAvg = extractAvg(raw.guestDxqDesc, '失球');
 
-  // ========== 4. 攻防效率（4维，正则提取冒号后绝对值） ==========
-  vars.homeAttackEfficiency = extractEfficiency(raw.homeEnterEfficiency);
-  vars.homeDefendEfficiency = extractEfficiency(raw.homePreventEfficiency);
-  vars.awayAttackEfficiency = extractEfficiency(raw.guestEnterEfficiency);
-  vars.awayDefendEfficiency = extractEfficiency(raw.guestPreventEfficiency);
+  // ========== 4. 攻防效率（4维，正则提取） ==========
+  // 保留原始符号用于方向性判断，同时提供绝对值用于数学运算
+  const effHAtk = extractEfficiencyRaw(raw.homeEnterEfficiency);
+  const effHDef = extractEfficiencyRaw(raw.homePreventEfficiency);
+  const effAAtk = extractEfficiencyRaw(raw.guestEnterEfficiency);
+  const effADef = extractEfficiencyRaw(raw.guestPreventEfficiency);
+  vars.homeAttackEfficiency = Math.abs(effHAtk.val);
+  vars.homeDefendEfficiency = Math.abs(effHDef.val);
+  vars.awayAttackEfficiency = Math.abs(effAAtk.val);
+  vars.awayDefendEfficiency = Math.abs(effADef.val);
+  // 带符号的原始值（供方向敏感的下游算法使用）
+  vars.homeAttackEffRaw = effHAtk.val;
+  vars.homeDefendEffRaw = effHDef.val;
+  vars.awayAttackEffRaw = effAAtk.val;
+  vars.awayDefendEffRaw = effADef.val;
+  // 效率方向标记：正=高于联赛均值, 负=低于联赛均值
+  vars.homeAttackEffUp = effHAtk.val > 0;
+  vars.homeDefendEffUp = effHDef.val > 0;
+  vars.awayAttackEffUp = effAAtk.val > 0;
+  vars.awayDefendEffUp = effADef.val > 0;
 
   // ========== 5. 补充字段 ==========
   vars.homeFieldGoal = parseFloat(raw.homeFieldGoal) || vars.homeFieldGoalAvg;
@@ -82,6 +97,9 @@ function parse(raw) {
   vars.jiaoFenScores = [];
   if (raw.jiaoFenMatch1) vars.jiaoFenScores.push(extractScore(raw.jiaoFenMatch1));
   if (raw.jiaoFenMatch2) vars.jiaoFenScores.push(extractScore(raw.jiaoFenMatch2));
+  // 扩充：从 jiaoFenDesc 中正则提取更多交锋统计字段
+  // 典型格式: "近6次交战 2胜3平1负 进8球失6球 大球2次"
+  vars.jiaoFenExtended = extractJiaoFenExtended(vars.jiaoFenDesc);
 
   // 标准化净胜球序列（用于7场阈值）
   vars.homeGoalDiffSeries = buildGoalDiffSeries(
@@ -123,7 +141,18 @@ function extractAvg(desc, keyword) {
 }
 
 /**
+ * 从效率描述中提取原始带符号值，如 "进攻:0.29" → {val:0.29, ok:true}; "防守:-0.11" → {val:-0.11, ok:true}
+ * 保留符号用于方向性判断：正值=高于联赛平均, 负值=低于联赛平均
+ */
+function extractEfficiencyRaw(desc) {
+  if (!desc) return { val: 0, ok: false };
+  const match = desc.match(/:([\-\d.]+)/);
+  return match ? { val: parseFloat(match[1]), ok: true } : { val: 0, ok: false };
+}
+
+/**
  * 从效率描述中提取绝对值，如 "进攻:0.29" → 0.29; "防守:-0.11" → 0.11
+ * @deprecated 保留用于向后兼容，新代码请使用 extractEfficiencyRaw
  */
 function extractEfficiency(desc) {
   if (!desc) return 0;
@@ -164,4 +193,51 @@ function buildGoalDiffSeries(w2, w1, d, l1, l2) {
   return series;
 }
 
-module.exports = { parse };
+/**
+ * 从 jiaoFenDesc 提取扩充的交锋统计数据
+ * @param {string} desc 如 "近6次交战 2胜3平1负 进8球失6球 大球2次"
+ * @returns {Object} { totalMatches, wins, draws, losses, goalsFor, goalsAgainst, overCount }
+ */
+function extractJiaoFenExtended(desc) {
+  const result = { totalMatches: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, overCount: 0, parsed: false };
+  if (!desc) return result;
+
+  // 提取"近X次交战"中的数字
+  const totalMatch = desc.match(/近(\d+)次交战/);
+  if (totalMatch) result.totalMatches = parseInt(totalMatch[1]);
+
+  // 提取胜平负: "2胜3平1负"
+  const spfMatch = desc.match(/(\d+)胜(\d+)平(\d+)负/);
+  if (spfMatch) {
+    result.wins = parseInt(spfMatch[1]);
+    result.draws = parseInt(spfMatch[2]);
+    result.losses = parseInt(spfMatch[3]);
+  } else {
+    // 兼容变体: "X胜X平X负" 可能含有空格
+    const spfAlt = desc.match(/(\d+)\s*胜\s*(\d+)\s*平\s*(\d+)\s*负/);
+    if (spfAlt) {
+      result.wins = parseInt(spfAlt[1]);
+      result.draws = parseInt(spfAlt[2]);
+      result.losses = parseInt(spfAlt[3]);
+    }
+  }
+
+  // 提取进球失球: "进8球失6球" 或 "进X球 失X球"
+  const gfMatch = desc.match(/进(\d+)\s*球/);
+  const gaMatch = desc.match(/失(\d+)\s*球/);
+  if (gfMatch) result.goalsFor = parseInt(gfMatch[1]);
+  if (gaMatch) result.goalsAgainst = parseInt(gaMatch[1]);
+
+  // 提取大球次数: "大球2次" 或 "大球X次"
+  const overMatch = desc.match(/大球\s*(\d+)\s*次/);
+  if (overMatch) result.overCount = parseInt(overMatch[1]);
+
+  // 检查是否有有效数据
+  result.parsed = result.totalMatches > 0 ||
+    (result.wins + result.draws + result.losses) > 0 ||
+    (result.goalsFor + result.goalsAgainst) > 0;
+
+  return result;
+}
+
+module.exports = { parse, extractJiaoFenExtended };

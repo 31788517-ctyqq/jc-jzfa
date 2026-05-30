@@ -1176,13 +1176,16 @@ app.post('/api', async (req, res) => {
         const mid = data.matchId;
         if (!mid) return res.json({ code: 0, msg: '缺少 matchId' });
         try {
-          // 优先从功守道引擎缓存读取
+          // 优先从功守道引擎缓存读取（★ 10秒超时保护，防止外部API挂死）
           let gsResult = null;
           try {
             const gsEngine = require('./gongshoudao/index');
-            gsResult = await gsEngine.getMatchResult(mid);
+            gsResult = await Promise.race([
+              gsEngine.getMatchResult(mid),
+              new Promise(function(_, reject) { setTimeout(function() { reject(new Error('GS timeout')); }, 10000); })
+            ]);
           } catch (gsErr) {
-            logger.warn('[gongshoudao] 引擎异常: ' + gsErr.message);
+            logger.warn('[gongshoudao] 引擎异常/超时: ' + gsErr.message);
           }
 
           if (gsResult) {
@@ -1801,10 +1804,31 @@ app.post('/api', async (req, res) => {
           // 3) 加载 BF 赔率
           const allplays = getAllplaysData();
 
-          // 4) 荷兰式均分辅助函数
-          function dutchCombinations(oddsMap, totalCapital, strongIsHome, minReturn) {
-            // 优先筛选：强队净胜 ≥1；不足时包含所有比分
+          // 4) 荷兰式均分辅助函数（P2-方案七/八 + P0-方案二/三 + P1-方案六）
+          function dutchCombinations(oddsMap, totalCapital, strongIsHome, useBfOdds, qual) {
+            var scorePercentMap = (qual && qual.scorePercentMap) || null;
+            var goalUpper = (qual && qual.goalUpper) || 0;
+            var xgHome = (qual && qual.xgHome) || 0;
+            var xgAway = (qual && qual.xgAway) || 0;
+            var xgDiff = Math.abs(xgHome - xgAway);
+            var totalStrength = (qual && qual.totalStrength) || 0;
+            var absStrength = Math.abs(totalStrength);
+            var strongXg = strongIsHome ? xgHome : xgAway;
+            var weakXg = strongIsHome ? xgAway : xgHome;
+
+            // ★ P2-方案七：强弱队进球模式分类
+            var matchType = 'normal';
+            if (absStrength > 0.25 && xgDiff > 1.2) {
+              matchType = 'crush';        // 碾压型：弱队基本不进球
+            } else if (absStrength > 0.2 && weakXg > 0.8) {
+              matchType = 'attack-crush'; // 对攻碾压：弱队能还手1球
+            } else if (absStrength <= 0.2 || xgDiff <= 1.0) {
+              matchType = 'narrow';       // 险胜型：窄比分为主
+            }
+
+            // 筛选候选比分
             var preferred = [];
+            var drawCandidates = [];  // ★ P1-方案六：高比分平局
             var allCandidates = [];
             Object.keys(oddsMap).forEach(function(score) {
               var parts = score.split('-');
@@ -1812,11 +1836,36 @@ app.post('/api', async (req, res) => {
               var h = parseInt(parts[0]), a = parseInt(parts[1]);
               if (isNaN(h) || isNaN(a)) return;
               allCandidates.push(score);
-              if (strongIsHome && h - a >= 1) preferred.push(score);
-              else if (!strongIsHome && a - h >= 1) preferred.push(score);
+
+              var strongWin = strongIsHome ? (h - a >= 1) : (a - h >= 1);
+              if (strongWin) {
+                // ★ P2-方案七：根据进球模式筛选
+                if (matchType === 'crush') {
+                  // 碾压型：弱队必须 0 球 (如 2-0/3-0/4-0)
+                  if ((strongIsHome ? a : h) === 0) preferred.push(score);
+                } else if (matchType === 'narrow') {
+                  // 险胜型：只取净胜 ≤2 的比分 (如 1-0/2-1/2-0)
+                  if (Math.abs(h - a) <= 2) preferred.push(score);
+                } else {
+                  // 对攻碾压/正常型：弱队最多进 1 球
+                  if ((strongIsHome ? a : h) <= 1) preferred.push(score);
+                }
+              }
+
+              // ★ P1-方案六：高比分平局纳入（大球场景下 2-2/3-3 等）
+              if (goalUpper >= 4 && h === a && h >= 2) {
+                drawCandidates.push(score);
+              }
             });
-            // 先用强队胜出的比分，不足2个则用全部比分
-            var candidates = preferred.length >= 2 ? preferred : allCandidates;
+
+            // 先用分类后的比分，不足2个则用全部比分
+            var candidates = preferred.length >= 2 ? preferred.slice() : allCandidates.slice();
+            // ★ P1-方案六：大球平局补充
+            if (goalUpper >= 4 && drawCandidates.length > 0) {
+              drawCandidates.forEach(function(ds) {
+                if (candidates.indexOf(ds) < 0) candidates.push(ds);
+              });
+            }
             if (candidates.length < 2) return [];
 
             // 按赔率从低到高排序
@@ -1827,32 +1876,78 @@ app.post('/api', async (req, res) => {
             function tryCombos(r, start, chosen) {
               if (chosen.length >= 2 && chosen.length <= 4) {
                 var invSum = 0;
+                var coverageSum = 0;
+                var hasDraw = false;
                 for (var i = 0; i < chosen.length; i++) {
                   var odd = oddsMap[chosen[i]];
                   if (!odd || odd <= 0) return;
                   invSum += 1 / odd;
+                  // ★ P0-方案二：覆盖率计算
+                  if (useBfOdds) {
+                    coverageSum += 1 / odd; // 真实赔率的隐含概率
+                  } else if (scorePercentMap && typeof scorePercentMap[chosen[i]] !== 'undefined') {
+                    coverageSum += parseFloat(scorePercentMap[chosen[i]]) || 0;
+                  }
+                  var parts2 = chosen[i].split('-');
+                  if (parts2[0] === parts2[1]) hasDraw = true;
                 }
                 if (invSum > 0) {
                   var expectedReturn = totalCapital / invSum;
-                  var minR = minReturn || 1.8;
-                  if (expectedReturn >= totalCapital * minR && expectedReturn <= totalCapital * 2.5) {
+
+                  // ★ P0-方案三：虚拟赔率分级下限（按覆盖比分数量）
+                  var minR;
+                  if (useBfOdds) {
+                    minR = 1.8;
+                  } else {
+                    if (chosen.length === 2) minR = 2.0;
+                    else if (chosen.length === 3) minR = 1.6;
+                    else minR = 1.4; // 4 个比分
+                  }
+
+                  // ★ P0-方案二：覆盖率检查
+                  var minCoverage = useBfOdds ? 0.30 : 25;
+                  if (coverageSum < minCoverage) return;
+
+                  // ★ P1-方案六：平局衰减→回报率要求提高10%
+                  var effectiveMinR = hasDraw ? minR * 1.1 : minR;
+
+                  if (expectedReturn >= totalCapital * effectiveMinR && expectedReturn <= totalCapital * 2.5) {
                     var combo = chosen.slice();
-                    var allocations = [];
+                    // 计算带衰减的资金分配权重
+                    var weights = [];
                     for (var j = 0; j < combo.length; j++) {
                       var o2 = oddsMap[combo[j]];
-                      allocations.push(Math.round(totalCapital * (1 / o2) / invSum));
+                      var w = 1 / o2;
+                      // ★ P1-方案六：平局比分资金分配衰减到80%
+                      var parts3 = combo[j].split('-');
+                      if (parts3[0] === parts3[1] && goalUpper >= 4) {
+                        w *= 0.8;
+                      }
+                      weights.push(w);
+                    }
+                    var adjInvSum = weights.reduce(function(a, b) { return a + b; }, 0);
+                    var allocations = [];
+                    for (var k = 0; k < combo.length; k++) {
+                      allocations.push(Math.round(totalCapital * weights[k] / adjInvSum));
                     }
                     // 微调使总和等于 totalCapital
                     var allocSum = allocations.reduce(function(a, b) { return a + b; }, 0);
                     if (allocSum !== totalCapital) {
-                      var diff = totalCapital - allocSum;
-                      allocations[allocations.length - 1] += diff;
+                      allocations[allocations.length - 1] += (totalCapital - allocSum);
                     }
+
+                    // ★ P2-方案八：综合评分 = 覆盖率×0.5 + 回报率×0.5
+                    var coverageNorm = useBfOdds ? Math.min(1, coverageSum / 0.5) : Math.min(1, coverageSum / 40);
+                    var returnNorm = Math.min(1, (expectedReturn / totalCapital - effectiveMinR) / (2.5 - effectiveMinR));
+                    var compositeScore = coverageNorm * 0.5 + returnNorm * 0.5;
+
                     results.push({
                       scores: combo.map(function(s, si) { return { score: s, odds: oddsMap[s], allocation: allocations[si] }; }),
                       expectedReturn: Math.round(expectedReturn),
                       comboLength: combo.length,
-                      priority: combo.length - invSum * 100 // 优先更多比分且赔率更低的组合
+                      coverage: coverageSum,
+                      compositeScore: compositeScore,
+                      matchType: matchType
                     });
                   }
                 }
@@ -1866,20 +1961,27 @@ app.post('/api', async (req, res) => {
             }
             tryCombos(candidates.length, 0, []);
 
-            // 排序：优先 3 比分，其次 2，最后 4
+            // ★ P2-方案八：综合评分排序（覆盖率×回报率），替代固定长度优先级
             results.sort(function(a, b) {
+              if (b.compositeScore !== a.compositeScore) return b.compositeScore - a.compositeScore;
+              // 评分相同：3比分 > 2比分 > 4比分
               var orderA = a.comboLength === 3 ? 0 : (a.comboLength === 2 ? 1 : 2);
               var orderB = b.comboLength === 3 ? 0 : (b.comboLength === 2 ? 1 : 2);
-              if (orderA !== orderB) return orderA - orderB;
-              return b.expectedReturn - a.expectedReturn;
+              return orderA - orderB;
             });
             return results;
           }
 
-          // 5) 筛选规则
+          // 5) 筛选规则（★ P0-方案一：共识状态门禁）
           function qualifyMatch(item) {
             var gs = item.gs;
             if (!gs) return false;
+
+            // ★ P0-方案一：共识状态门禁
+            var consensus = gs.fusionConsensus || '';
+            if (consensus === 'meltdown') return false; // 四重熔断，比分预测完全不可信
+            var weakThreshold = (consensus === 'weak');
+            var stabilityOverall = parseFloat(gs.stabilityOverall) || 0;
 
             // 规则1: 大球方向
             var bigBallRatio = parseFloat(gs.bigBallRatio) || 0;
@@ -1904,14 +2006,34 @@ app.post('/api', async (req, res) => {
             var xgDiff = Math.abs(xgHome - xgAway);
             if (xgDiff < 0.6) return false;
 
+            // ★ P0-方案一：弱一致提门槛 → 稳定性≥55 且 xgDiff≥1.0
+            if (weakThreshold && (stabilityOverall < 55 || xgDiff < 1.0)) return false;
+
             // 规则4: 弱队进球能力 ≤1.5
             var weakXg = strongIsHome ? xgAway : xgHome;
             if (weakXg > 1.5) return false;
 
-            return { strongIsHome: strongIsHome, bigBallRatio: bigBallRatio, xgHome: xgHome, xgAway: xgAway };
+            return {
+              strongIsHome: strongIsHome, bigBallRatio: bigBallRatio,
+              xgHome: xgHome, xgAway: xgAway,
+              consensus: consensus, stabilityOverall: stabilityOverall,
+              attRaw: attRaw, defRaw: defRaw, totalExpect: totalExpect
+            };
           }
 
-          // 6) 遍历比赛，收集候选方案
+          // 6) 遍历比赛，收集候选方案（★ P1-方案四：多维质量分 + ★ P0-方案三：分级下限）
+          // ★ P1-方案四：提前构建概率映射备用
+          function buildScorePercentMap(gs) {
+            if (!gs || !gs.scores || gs.scores.length === 0) return null;
+            var map = {};
+            gs.scores.forEach(function(s) {
+              if (s && s.score && typeof s.percent !== 'undefined') {
+                map[s.score] = parseFloat(s.percent) || 0;
+              }
+            });
+            return Object.keys(map).length > 0 ? map : null;
+          }
+
           var allCandidates = [];
           for (var mi = 0; mi < mList.length; mi++) {
             var item = mList[mi];
@@ -1940,7 +2062,6 @@ app.post('/api', async (req, res) => {
                   var p = sc.split('-');
                   var h = parseInt(p[0]), a = parseInt(p[1]);
                   if (isNaN(h) || isNaN(a)) return;
-                  // 邻近比分变体
                   var variants = [
                     (h+1) + '-' + a,
                     h + '-' + (a+1),
@@ -1955,10 +2076,8 @@ app.post('/api', async (req, res) => {
                     }
                   });
                 });
-                // 给扩展比分分配较高的赔率（低概率）
                 expandScores.forEach(function(es) {
                   if (!bfOdds[es]) {
-                    // 取已有最低概率的 1/3 作为扩展比分的概率
                     var minPct = 100;
                     item.gs.scores.forEach(function(s) {
                       var p = parseFloat(s.percent) || 100;
@@ -1972,11 +2091,29 @@ app.post('/api', async (req, res) => {
             }
             if (!bfOdds || Object.keys(bfOdds).length === 0) continue;
 
-            // 荷兰式均分：BF赔率用1.8x下限，概率反推用1.3x下限
-            var minRet = useBfOdds ? 1.8 : 1.3;
-            var combos = dutchCombinations(bfOdds, 1000, qual.strongIsHome, minRet);
+            // ★ 构建 qual 对象传给 dutchCombinations
+            var scorePercentMap = buildScorePercentMap(item.gs);
+            var goalUpper = 0;
+            if (item.gs.goalRange && item.gs.goalRange.upper) {
+              goalUpper = parseInt(item.gs.goalRange.upper) || 0;
+            } else if (item.gs.goalRange && item.gs.goalRange.range) {
+              // 兼容 "2-4球" 格式
+              var grParts = String(item.gs.goalRange.range).split('-');
+              if (grParts.length >= 2) goalUpper = parseInt(grParts[1]) || 0;
+            }
+            var dutchQual = {
+              scorePercentMap: scorePercentMap,
+              goalUpper: goalUpper,
+              xgHome: qual.xgHome,
+              xgAway: qual.xgAway,
+              totalStrength: parseFloat(item.gs.totalStrength) || 0
+            };
+
+            var combos = dutchCombinations(bfOdds, 1000, qual.strongIsHome, useBfOdds, dutchQual);
             if (combos.length === 0) continue;
 
+            // ★ P1-方案四：多维比分质量分（在push前计算，用于最终排序）
+            var qs = computeScoreQuality(item.gs, qual);
             allCandidates.push({
               match: item.match,
               gs: item.gs,
@@ -1985,15 +2122,57 @@ app.post('/api', async (req, res) => {
               bigBallRatio: qual.bigBallRatio,
               xgHome: qual.xgHome,
               xgAway: qual.xgAway,
-              bestCombo: combos[0] // 取最优组合
+              consensus: qual.consensus,
+              stabilityOverall: qual.stabilityOverall,
+              qualityScore: qs,
+              bestCombo: combos[0] // ★ P2-方案八：combos已按综合评分排序
             });
           }
 
-          // 按 bigBallRatio 降序排序，取前2
-          allCandidates.sort(function(a, b) { return b.bigBallRatio - a.bigBallRatio; });
-          var topCandidates = allCandidates.slice(0, 2);
+          // ★ P1-方案四 + P1-方案五：多维质量分排序 + 动态方案数量
+          function computeScoreQuality(gs, qual) {
+            var score = 0;
 
-          // 7) 构建方案输出
+            // 大球信号 (25分)
+            var bigBallRatio = parseFloat(gs.bigBallRatio) || 0;
+            score += Math.min(25, bigBallRatio / 4);
+
+            // xG差距 (25分)
+            var xgDiff = Math.abs(qual.xgHome - qual.xgAway);
+            score += Math.min(25, xgDiff / 2.0 * 25);
+
+            // 进球稳定性 (20分)
+            var stability = parseFloat(gs.stabilityOverall) || 0;
+            score += Math.min(20, stability / 5);
+
+            // 共识强度 (20分)
+            var consensus = gs.fusionConsensus || '';
+            if (consensus === 'strong') score += 20;
+            else if (consensus === 'weak') score += 10;
+            else if (consensus === 'none' || !consensus) score += 5;
+
+            // 联赛校准 (10分)
+            var leagueGoals = parseFloat(gs.leagueAvgGoals) || 0;
+            if (leagueGoals > 2.85) score += 10;
+            else if (leagueGoals > 2.5) score += 5;
+
+            return Math.min(100, Math.round(score));
+          }
+
+          // 按质量分降序排序
+          allCandidates.sort(function(a, b) { return b.qualityScore - a.qualityScore; });
+
+          // ★ P1-方案五：动态方案数量（质量分阈值决定 0~3 个）
+          var topCount = 0;
+          if (allCandidates.length > 0 && allCandidates[0].qualityScore >= 55) topCount = 1;
+          if (allCandidates.length >= 2 && allCandidates[1].qualityScore >= 50) topCount = 2;
+          if (allCandidates.length >= 3 && allCandidates[2].qualityScore >= 45
+              && allCandidates[2].bestCombo && (allCandidates[2].bestCombo.coverage || 0) >= 0.25) topCount = 3;
+          // 无高质量候选则不输出
+          if (topCount === 0 && allCandidates.length >= 1 && allCandidates[0].qualityScore < 45) topCount = 0;
+          var topCandidates = allCandidates.slice(0, Math.max(0, topCount));
+
+          // 7) 构建方案输出（★ 新增 qualityScore、consensus、matchType 字段）
           var plans = topCandidates.map(function(c, idx) {
             var match = c.match;
             var strongSide = c.strongIsHome ? 'home' : 'away';
@@ -2008,6 +2187,10 @@ app.post('/api', async (req, res) => {
 
             // 进球区间
             var goalRange = (c.gs.goalRange && c.gs.goalRange.range) ? c.gs.goalRange.range : '2-4球';
+
+            // 共识中文标签
+            var consensus = c.consensus || '';
+            var consensusLabel = consensus === 'strong' ? '强一致' : (consensus === 'weak' ? '弱一致' : '未融合');
 
             return {
               planId: 'score_plan_' + dateStr + '_' + (idx + 1),
@@ -2033,15 +2216,24 @@ app.post('/api', async (req, res) => {
               oddsDisplay: oddsDisplay,
               amount: 1000,
               matchCount: 1,
-              maxPrize: combo.expectedReturn
+              maxPrize: combo.expectedReturn,
+              // ★ 新增字段
+              qualityScore: c.qualityScore,
+              consensusLabel: consensusLabel,
+              matchType: combo.matchType || 'normal',
+              coverage: combo.coverage || 0,
+              compositeScore: combo.compositeScore || 0,
+              stabilityOverall: c.stabilityOverall ? c.stabilityOverall.toFixed(0) : ''
             };
           });
 
           var notice = '';
           if (plans.length === 0) {
-            notice = allCandidates.length === 0
-              ? '今日暂无符合条件的比分方案'
-              : '';
+            if (allCandidates.length === 0) {
+              notice = '今日暂无符合条件的比分方案';
+            } else {
+              notice = '候选场次质量分不足（最高: ' + allCandidates[0].qualityScore + '/100），已自动跳过';
+            }
           }
 
           return res.json({ code: 1, data: { date: dateStr, plans: plans, notice: notice } });
@@ -2105,9 +2297,7 @@ app.post('/api', async (req, res) => {
           // 辅助：获取比赛赔率
           function getMatchOdds(m) {
             var num = m.num || '';
-            // 优先从 od 历史获取
             if (od[num]) return od[num];
-            // 回退到 allplays
             var ap = allplays || {};
             var k = 'num_' + num;
             if (ap[k]) return ap[k];
@@ -2115,8 +2305,148 @@ app.post('/api', async (req, res) => {
             return null;
           }
 
-          // 5) 筛选冷门场次
+          // ==================== P0-方案一：冷门方向验证 ====================
+          // 不再纯赔率驱动，结合模型信号（实力/共识）做交叉验证
+          function getColdDirectionWithValidation(modds, gs) {
+            var directions = [
+              { dir: '胜', odds: parseFloat(modds.spf.home), signal: 0 },
+              { dir: '平', odds: parseFloat(modds.spf.draw), signal: 0 },
+              { dir: '负', odds: parseFloat(modds.spf.away), signal: 0 }
+            ];
+
+            var totalStrength = gs && gs.totalStrength != null ? parseFloat(gs.totalStrength) : 0;
+            var consensus = gs ? (gs.fusionConsensus || '') : '';
+
+            // 信号1: 实力均衡 → 利好平局方向（|totalStrength| < 0.15）
+            if (Math.abs(totalStrength) < 0.15) {
+              directions.forEach(function(d) {
+                if (d.dir === '平') d.signal += 2.5;
+              });
+            }
+
+            // 信号2: 弱一致 → 模型不确定 → 利好任何冷门方向
+            if (consensus.indexOf('weak') >= 0 || consensus.indexOf('弱') >= 0) {
+              directions.forEach(function(d) { d.signal += 1.5; });
+            }
+            // 熔断加分保守（模型打架但不一定利好特定方向）
+            if (consensus.indexOf('meltdown') >= 0 || consensus.indexOf('熔断') >= 0) {
+              directions.forEach(function(d) { d.signal += 0.5; });
+            }
+
+            // 信号3: 赔率最高方的隐含概率低但实力差距不大 → 市场过度低估
+            // 此时赔率最高方向获得额外加成
+            directions.sort(function(a, b) { return b.odds - a.odds; });
+            var highestDir = directions[0];
+            var impliedProb = 1 / highestDir.odds;
+            var strengthGap = Math.abs(totalStrength);
+            if (strengthGap < 0.2 && impliedProb < 0.15) {
+              highestDir.signal += 2.0;
+            }
+            if (strengthGap < 0.1 && highestDir.dir !== '平') {
+              highestDir.signal += 1.0; // 实力极接近但赔率没反映，定价偏差
+            }
+
+            // 综合评分: 0.6 × 赔率排名分 + 0.4 × 模型信号分
+            // 赔率排名分: 赔率最高=3, 第二=2, 最低=1
+            directions.sort(function(a, b) { return b.odds - a.odds; });
+            var oddsRankScore = [3, 2, 1];
+            directions.forEach(function(d, i) {
+              d.finalScore = oddsRankScore[i] * 0.6 + d.signal * 0.4;
+            });
+
+            directions.sort(function(a, b) { return b.finalScore - a.finalScore; });
+            return directions[0];
+          }
+
+          // ==================== P0-方案二：多维冷门评分 ====================
+          function computeColdScore(hi, gs, modds, coldDir) {
+            var score = 0;
+            var totalStrength = gs && gs.totalStrength != null ? parseFloat(gs.totalStrength) : 0;
+            var consensus = gs ? (gs.fusionConsensus || '') : '';
+
+            // 因子1: 热度反转（weight 30%）— 越冷分越高
+            if (hi !== null && hi !== undefined) {
+              var heatFactor = Math.max(0, (0.85 - hi) / 0.85) * 30;
+              score += heatFactor;
+            } else {
+              score += 15; // 无热度数据给中等分
+            }
+
+            // 因子2: 实力均衡度（weight 25%）— 越均衡越容易出冷
+            var tsAbs = Math.abs(totalStrength);
+            var balanceFactor = Math.max(0, (0.3 - tsAbs) / 0.3) * 25;
+            score += balanceFactor;
+
+            // 因子3: 模型不确定性（weight 20%）— 模型打架/不确定是冷门信号
+            if (consensus.indexOf('weak') >= 0 || consensus.indexOf('弱') >= 0) score += 15;
+            if (consensus.indexOf('meltdown') >= 0 || consensus.indexOf('熔断') >= 0) score += 5;
+            if (!consensus) score += 8; // 未融合说明数据不充分
+
+            // 因子4: 赔率价值（weight 15%）— 冷门方向隐含概率 10~25% 为甜区
+            var coldImplied = 1 / coldDir.odds;
+            if (coldImplied >= 0.10 && coldImplied <= 0.25) {
+              score += 12;
+            } else if (coldImplied > 0.25 && coldImplied <= 0.35) {
+              score += 7;
+            } else if (coldImplied > 0.08 && coldImplied < 0.10) {
+              score += 5;
+            } else {
+              score += 2; // 太离谱或太可能都不加分
+            }
+
+            // 因子5: 大市场共识（weight 10%）— 非强一致有不确定性空间
+            if (consensus.indexOf('strong') >= 0 || consensus.indexOf('强') >= 0) {
+              score += 0;
+            } else {
+              score += 5;
+            }
+
+            return Math.min(100, Math.round(score));
+          }
+
+          // ==================== P2-方案四：组合相关性检测 ====================
+          function checkCorrelation(a, b) {
+            var warnings = [];
+            // 同一联赛
+            var leagueA = (a.match.leagueName || '').trim();
+            var leagueB = (b.match.leagueName || '').trim();
+            if (leagueA && leagueB && leagueA === leagueB) {
+              warnings.push('同联赛');
+            }
+
+            // 开球时间接近（< 1.5小时）
+            var timeA = parseKickoffTime(a.match.startTime);
+            var timeB = parseKickoffTime(b.match.startTime);
+            if (timeA && timeB && Math.abs(timeA - timeB) < 5400000) {
+              warnings.push('开球时间接近');
+            }
+
+            // 同一球队（主-主、客-客、主-客 匹配）
+            var homeA = (a.match.homeName || '').trim();
+            var awayA = (a.match.visitName || '').trim();
+            var homeB = (b.match.homeName || '').trim();
+            var awayB = (b.match.visitName || '').trim();
+            if (homeA && homeB && (homeA === homeB || homeA === awayB || awayA === homeB || awayA === awayB)) {
+              warnings.push('同一球队');
+            }
+
+            var riskLevel = warnings.length >= 2 ? 'high' : warnings.length === 1 ? 'medium' : 'low';
+            return { riskLevel: riskLevel, warnings: warnings };
+          }
+
+          function parseKickoffTime(startTime) {
+            if (!startTime) return null;
+            try {
+              var ts = new Date(startTime.replace('T', ' ')).getTime();
+              return isNaN(ts) ? null : ts;
+            } catch (e) { return null; }
+          }
+
+          // ==================== 主流程：筛选冷门场次 ====================
           const hasChangeData = Object.keys(changeDate).length > 0;
+          const MIN_COLD_SCORE = 40;      // P1-方案三：单场最低冷门分
+          const MIN_PLAN_AVG_SCORE = 45;  // P1-方案三：方案最低平均冷门分
+
           var coldCandidates = [];
 
           for (var i = 0; i < mList.length; i++) {
@@ -2127,44 +2457,68 @@ app.post('/api', async (req, res) => {
             var gs = gsCacheMap['m_' + mid] || gsCacheMap[mid] || null;
             var consensus = gs ? (gs.fusionConsensus || '') : '';
 
-            // 获取赔率（提前获取，降级模式也需要）
+            // 获取赔率
             var modds = getMatchOdds(m);
             var spf = modds && modds.spf ? modds.spf : null;
-            if (!spf) continue;
+            if (!spf || spf.home == null || spf.draw == null || spf.away == null) continue;
 
-            // 确定冷门方向：选择 SPF 赔率最高的方向
-            var directions = [];
-            if (spf.home != null) directions.push({ dir: '胜', odds: parseFloat(spf.home) });
-            if (spf.draw != null) directions.push({ dir: '平', odds: parseFloat(spf.draw) });
-            if (spf.away != null) directions.push({ dir: '负', odds: parseFloat(spf.away) });
-            if (directions.length < 3) continue;
-            directions.sort(function(a, b) { return b.odds - a.odds; });
-            var coldDir = directions[0];
+            // ===== P0-方案一：冷门方向验证 =====
+            var coldDirResult = getColdDirectionWithValidation(modds, gs);
+            var coldDir = coldDirResult;
+            // 保留原始赔率排名供展示
+            var rawDirections = [
+              { dir: '胜', odds: parseFloat(spf.home) },
+              { dir: '平', odds: parseFloat(spf.draw) },
+              { dir: '负', odds: parseFloat(spf.away) }
+            ].sort(function(a, b) { return b.odds - a.odds; });
 
             var changeEntry = changeDate[mid];
             var hi = (changeEntry && changeEntry.heatIndex !== null && changeEntry.heatIndex !== undefined)
               ? changeEntry.heatIndex : null;
 
+            // 熔断场始终排除（无论有无热度数据）
+            if (consensus.indexOf('熔断') >= 0 || consensus === 'meltdown') continue;
+
             if (hasChangeData) {
-              // 有热度数据：严格筛选
+              // 有热度数据：用热度做初筛（保留硬阈值但只做粗筛，精筛靠多维评分）
               if (hi === null) continue;
-              if (hi >= 1.40) continue;          // 排除过热
-              if (hi >= 0.85) continue;          // 只保留冷门潜质
-              // 排除熔断场（支持中英文）
-              if (consensus.indexOf('熔断') >= 0 || consensus === 'meltdown') continue;
+              if (hi >= 1.40) continue;
+              if (hi >= 0.85) continue;
             } else {
-              // 无热度数据：降级模式，只要有 SPF 赔率就纳入
+              // ===== P1-方案五：无热度数据降级增强 =====
+              // 用赔率推导冷门可能性 + 共识状态过滤，替代原全纳入策略
+              var impliedHome = 1 / parseFloat(spf.home);
+              var impliedDraw  = 1 / parseFloat(spf.draw);
+              var impliedAway  = 1 / parseFloat(spf.away);
+              var totalImplied = impliedHome + impliedDraw + impliedAway;
+              var fairHome = impliedHome / totalImplied;
+              var fairAway = impliedAway / totalImplied;
+              var fairDraw  = impliedDraw  / totalImplied;
+
+              // 冷门方向（高赔率方）的公平概率
+              var coldFair = fairDraw;
+              if (coldDir.dir === '胜') coldFair = fairHome;
+              if (coldDir.dir === '负') coldFair = fairAway;
+
+              // 过滤：冷门方向公平概率 < 12% 太不可能
+              if (coldFair < 0.12) continue;
+
+              // 强一致 → 市场信心足 → 冷门概率低，跳过
+              if (consensus.indexOf('strong') >= 0 || consensus.indexOf('强') >= 0) continue;
+
+              // 没有功守道数据，虚拟中性数据
               if (!gs || gs.totalStrength === null || gs.totalStrength === undefined) {
-                // 没有功守道数据，虚拟一个中性数据
                 gs = Object.assign({}, gs || {}, { totalStrength: 0 });
               }
-              hi = 0.50; // 降级默认冷门指示值
+
+              hi = 0.65; // 降级默认值（保守，比原 0.50 提高）
             }
 
-            // 综合评分（简化：totalStrength 映射到0-100）
-            var ts = gs && gs.totalStrength != null ? parseFloat(gs.totalStrength) : 0;
-            var compositeScore = Math.round(50 + ts * 100);
-            compositeScore = Math.min(100, Math.max(0, compositeScore));
+            // ===== P0-方案二：多维冷门评分 =====
+            var coldScore = computeColdScore(hi, gs, modds, coldDir);
+
+            // ===== P1-方案三：质量门禁（单场最低分）=====
+            if (coldScore < MIN_COLD_SCORE) continue;
 
             // 共识状态中文
             var consensusLabel = '';
@@ -2177,38 +2531,73 @@ app.post('/api', async (req, res) => {
               match: m,
               heatIndex: hi,
               heatLevel: (changeEntry && changeEntry.heatLevel) || 'cold',
-              heatLabel: (changeEntry && changeEntry.heatLabel) || (hi + ' 🧊'),
+              heatLabel: (changeEntry && changeEntry.heatLabel) || (hi.toFixed(2) + ' 🧊'),
               coldDir: coldDir.dir,
               coldOdds: coldDir.odds,
+              coldDirScore: coldDir.finalScore != null ? parseFloat(coldDir.finalScore.toFixed(2)) : 0,
               consensus: consensus,
               consensusLabel: consensusLabel,
-              compositeScore: compositeScore,
-              totalStrength: ts,
+              compositeScore: coldScore,
+              coldScore: coldScore,
+              totalStrength: gs && gs.totalStrength != null ? parseFloat(gs.totalStrength) : 0,
               odds: modds,
-              rankedDirections: directions
+              rankedDirections: rawDirections
             });
           }
 
-          // 6) 排序：有热度数据按 heatIndex 升序，无热度数据按 |totalStrength| 升序（越均衡越可能爆冷）
-          if (hasChangeData) {
-            coldCandidates.sort(function(a, b) { return a.heatIndex - b.heatIndex; });
-          } else {
-            coldCandidates.sort(function(a, b) {
-              return Math.abs(a.totalStrength) - Math.abs(b.totalStrength);
-            });
+          // 6) 排序：按多维冷门评分降序
+          coldCandidates.sort(function(a, b) { return b.coldScore - a.coldScore; });
+
+          // ===== P1-方案三：动态方案数量 =====
+          var planCount = 0;
+          if (coldCandidates.length >= 4 && (coldCandidates[0].coldScore + coldCandidates[1].coldScore) / 2 >= MIN_PLAN_AVG_SCORE) {
+            planCount = 2;
+          } else if (coldCandidates.length >= 4) {
+            planCount = 1;
+          } else if (coldCandidates.length >= 2 && (coldCandidates[0].coldScore + coldCandidates[1].coldScore) / 2 >= MIN_PLAN_AVG_SCORE) {
+            planCount = 1;
           }
 
-          // 7) 取前 4 场组合成 2 个 2串1 方案
+          // 7) 生成方案（加入 P2 相关性过滤）
           const plans = [];
-          const top4 = coldCandidates.slice(0, 4);
+          var usedMatchIds = [];
 
-          for (var p = 0; p < Math.min(2, top4.length); p++) {
-            // 方案p：取 top4[p*2] 和 top4[p*2+1]
-            var mIdx = p * 2;
-            if (mIdx + 1 >= top4.length) break;
+          for (var p = 0; p < planCount; p++) {
+            // 扫描候选列表，为当前方案找最佳配对
+            var picked = [];
+            for (var ci = 0; ci < coldCandidates.length && picked.length < 2; ci++) {
+              if (usedMatchIds.indexOf(coldCandidates[ci].match.matchId) >= 0) continue;
+              if (picked.length === 0) {
+                picked.push(coldCandidates[ci]);
+              } else {
+                // ===== P2-方案四：组合相关性检测 =====
+                var corr = checkCorrelation(picked[0], coldCandidates[ci]);
+                if (corr.riskLevel === 'high') continue; // 高风险跳过
+                picked.push(coldCandidates[ci]);
+              }
+            }
 
-            var ca = top4[mIdx];
-            var cb = top4[mIdx + 1];
+            // 如果相关性过滤导致配对不足，回退到宽松模式重试
+            if (picked.length < 2) {
+              picked = [];
+              for (var ci2 = 0; ci2 < coldCandidates.length && picked.length < 2; ci2++) {
+                if (usedMatchIds.indexOf(coldCandidates[ci2].match.matchId) >= 0) continue;
+                picked.push(coldCandidates[ci2]);
+              }
+            }
+
+            if (picked.length < 2) break;
+
+            var ca = picked[0];
+            var cb = picked[1];
+            usedMatchIds.push(ca.match.matchId, cb.match.matchId);
+
+            // 方案平均分门禁
+            var planAvg = Math.round((ca.coldScore + cb.coldScore) / 2);
+            if (planAvg < MIN_PLAN_AVG_SCORE) continue;
+
+            // P2：方案相关性标记
+            var corrResult = checkCorrelation(ca, cb);
 
             var matchA = {
               matchId: ca.match.matchId,
@@ -2222,7 +2611,9 @@ app.post('/api', async (req, res) => {
               heatIndex: ca.heatIndex,
               heatLabel: ca.heatLabel,
               consensus: ca.consensusLabel,
-              compositeScore: ca.compositeScore
+              compositeScore: ca.compositeScore,
+              coldScore: ca.coldScore,
+              coldDirScore: ca.coldDirScore
             };
 
             var matchB = {
@@ -2237,16 +2628,15 @@ app.post('/api', async (req, res) => {
               heatIndex: cb.heatIndex,
               heatLabel: cb.heatLabel,
               consensus: cb.consensusLabel,
-              compositeScore: cb.compositeScore
+              compositeScore: cb.compositeScore,
+              coldScore: cb.coldScore,
+              coldDirScore: cb.coldDirScore
             };
 
-            // 赔率组合显示
             var oddsCombo = ca.coldOdds.toFixed(2) + ' × ' + cb.coldOdds.toFixed(2) + ' = ' + (ca.coldOdds * cb.coldOdds).toFixed(2);
             var maxPrize = Math.round(1000 * ca.coldOdds * cb.coldOdds);
-
-            // 方案级别的冷热指数和评分取平均
             var avgCPI = ((ca.heatIndex + cb.heatIndex) / 2).toFixed(2);
-            var avgComp = Math.round((ca.compositeScore + cb.compositeScore) / 2);
+            var avgComp = Math.round((ca.coldScore + cb.coldScore) / 2);
             var consensusParts = [ca.consensusLabel, cb.consensusLabel];
             var combinedConsensus = consensusParts.join(' | ');
 
@@ -2265,12 +2655,37 @@ app.post('/api', async (req, res) => {
               oddsDisplay: oddsCombo,
               coldIndex: avgCPI,
               compositeScore: avgComp,
-              consensus: combinedConsensus
+              coldScore: avgComp,
+              consensus: combinedConsensus,
+              correlationRisk: corrResult.riskLevel,
+              correlationWarnings: corrResult.warnings
             });
           }
 
-          var notice = plans.length === 0 ? '今日暂无符合条件的量化方案' : '';
-          return res.json({ code: 1, data: { date: dateStr, plans: plans, notice: notice } });
+          var notice = '';
+          if (plans.length === 0) {
+            if (coldCandidates.length === 0) {
+              notice = '今日暂无符合条件的冷门场次';
+            } else {
+              notice = '今日冷门场次未达方案质量阈值（候选' + coldCandidates.length + '场）';
+            }
+          }
+
+          return res.json({
+            code: 1,
+            data: {
+              date: dateStr,
+              plans: plans,
+              notice: notice,
+              meta: {
+                candidates: coldCandidates.length,
+                qualified: coldCandidates.length,
+                hasChangeData: hasChangeData,
+                minColdScore: MIN_COLD_SCORE,
+                minPlanAvgScore: MIN_PLAN_AVG_SCORE
+              }
+            }
+          });
 
         } catch (e) {
           logger.error('[quant-plan-list] ' + e.message);
@@ -2281,6 +2696,7 @@ app.post('/api', async (req, res) => {
       case 'income-stats': {
         try {
           const planFilter = data.plan || 'all';
+          const directionFilter = data.direction || 'all';
           const daysFilter = parseInt(data.days) || 0;
           const AMOUNT = 1000;
           const fs = require('fs');
@@ -2550,6 +2966,8 @@ app.post('/api', async (req, res) => {
 
             dayPlans.forEach(pp => {
               if (planFilter !== 'all' && pp.name !== planFilter) return;
+              // ★ 方向筛选：score/quant 类型暂未接入收入计算
+              if (directionFilter === 'score' || directionFilter === 'quant') return;
 
               // 方案六特殊处理：≥2场命中即中奖
               const isPlan6 = pp.name === 'plan_6';
