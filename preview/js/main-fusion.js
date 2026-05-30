@@ -15,6 +15,33 @@ import { showGongshoudao } from './pages/gongshoudao.js?v=25052903';
 import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker, switchQuantTab, togglePick, startPK, sortBy, switchQuantView } from './pages/quant-rank-fusion.js?v=83';
 import { openPK, closePK, openPKMulti } from './pages/match-pk-fusion.js?v=83';
 
+// ★ P3-1: WebSocket 实时推送
+import { initWS, wsEvents, disconnectWS } from './ws-client.js?v=1';
+
+// 初始化 WebSocket 连接
+initWS();
+
+// WebSocket 事件回调
+wsEvents.onScoreUpdate = function (scores) {
+  // 比分实时更新已在 ws-client 中直接操作 DOM
+  // 此处可做额外逻辑，如更新全局状态缓存
+  console.log('[WS] 比分更新: ' + Object.keys(scores).length + ' 场');
+};
+
+wsEvents.onRecommendUpdate = function (recs) {
+  // 推荐命中结果更新 — 延迟刷新当前页数据
+  console.log('[WS] 推荐命中更新: ' + Object.keys(recs).length + ' 场');
+  // 如果当前在比赛列表页，延迟 3 秒刷新（等 Toast 通知显示后）
+  if (state.currentPage === 'home' || state.currentPage === 'match-list') {
+    setTimeout(function () { loadMatchList(); }, 3000);
+  }
+};
+
+wsEvents.onStatusChange = function (status) {
+  // 在调试模式下输出连接状态
+  if (status === 'reconnecting') console.log('[WS] 重连中...');
+};
+
 // ── 日期切换 ──
 export function updateDateBar() {
   var el = document.getElementById('dateCurrent');
