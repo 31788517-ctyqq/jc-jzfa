@@ -161,9 +161,23 @@ function getHomeHTML(cb) {
 app.get('/', (req, res) => {
   getHomeHTML((err, html) => { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=60' }); res.end(html); });
 });
-app.use(express.static(path.join(__dirname, '../preview'), { maxAge: 0, setHeaders: (res, fPath) => {
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Content-Type', fPath.endsWith('.html') ? 'text/html; charset=utf-8' : fPath.endsWith('.js') ? 'application/javascript; charset=utf-8' : fPath.endsWith('.css') ? 'text/css; charset=utf-8' : 'application/octet-stream; charset=utf-8');
+app.use(express.static(path.join(__dirname, '../preview'), { maxAge: '7d', etag: true, lastModified: true, setHeaders: (res, fPath) => {
+  // HTML 不缓存，确保用户始终获取最新页面结构
+  if (fPath.endsWith('.html')) {
+    res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  } else {
+    // JS/CSS/图片 强缓存 7 天（文件名带版本号 ?v= 时缓存命中）
+    res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+  }
+  // MIME 设置
+  if (fPath.endsWith('.html')) res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  else if (fPath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  else if (fPath.endsWith('.css')) res.setHeader('Content-Type', 'text/css; charset=utf-8');
+  else if (fPath.endsWith('.svg')) res.setHeader('Content-Type', 'image/svg+xml');
+  else if (fPath.endsWith('.png')) res.setHeader('Content-Type', 'image/png');
+  else res.setHeader('Content-Type', 'application/octet-stream; charset=utf-8');
 }}));
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
