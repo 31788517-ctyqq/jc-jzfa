@@ -61,6 +61,7 @@ function computeSingleMatch(rawStats, matchInfo) {
     leagueName: matchInfo.leagueName || '',
     num: matchInfo.num || '',
     startTime: matchInfo.startTime || '',
+    computedAt: Date.now(),  // ★ 数据计算时间戳（供前端显示时效标签）
 
     // ⭐ 基础实力分（供 quant-hot 计算 staticDiff）
     homePower: vars.homePower,
@@ -132,6 +133,64 @@ function computeSingleMatch(rawStats, matchInfo) {
     breakArmorSum: goalResult.breakArmorSum,   // 破甲和
     bigBallRatio: goalResult.bigBallRatio,     // 大球比例（百分比）
     h2hGoalAvg: goalResult.h2hGoalAvg,         // 交锋进球 = H2H场均总进球
+
+    // ★ V27 新增: 进球稳定性
+    goalStabilityHome: goalResult.goalStabilityHome || 50,
+    goalStabilityAway: goalResult.goalStabilityAway || 50,
+    defStabilityHome: goalResult.defStabilityHome || 50,
+    defStabilityAway: goalResult.defStabilityAway || 50,
+    stabilityOverall: goalResult.stabilityOverall || 50,
+
+    // ★ V27 新增: 联赛归一化校准
+    leagueCalibration: (function() {
+      var BASELINE = {
+        '德甲':3.18,'荷甲':3.05,'挪超':2.92,'瑞典超':2.85,'英超':2.72,'葡超':2.67,'西甲':2.63,
+        '意甲':2.56,'法甲':2.55,'K联赛':2.48,'日职':2.62,'日乙':2.58,'美职':2.78,'俄超':2.48,
+        '比甲':2.82,'奥甲':2.72,'苏超':2.65,'中超':2.78,'墨超':2.68,'巴甲':2.42,'阿甲':2.18,
+        '欧冠':2.82,'欧罗巴':2.72,'亚冠':2.65,'澳洲甲':2.88,'德乙':2.82,'法乙':2.42,'英冠':2.55,
+        '土超':2.75,'波兰超':2.62,'瑞士超':2.82,'希腊超':2.32,'丹麦超':2.78
+      };
+      var ln = (matchInfo.leagueName || '').trim();
+      var found = 2.65;
+      var keys = Object.keys(BASELINE);
+      for (var ki = 0; ki < keys.length; ki++) { if (ln.indexOf(keys[ki]) !== -1) found = BASELINE[keys[ki]]; }
+      return parseFloat((found / 2.65).toFixed(3));
+    })(),
+    leagueAvgGoals: (function() {
+      var BASELINE = {
+        '德甲':3.18,'荷甲':3.05,'挪超':2.92,'瑞典超':2.85,'英超':2.72,'葡超':2.67,'西甲':2.63,
+        '意甲':2.56,'法甲':2.55,'K联赛':2.48,'日职':2.62,'日乙':2.58,'美职':2.78,'俄超':2.48,
+        '比甲':2.82,'奥甲':2.72,'苏超':2.65,'中超':2.78,'墨超':2.68,'巴甲':2.42,'阿甲':2.18,
+        '欧冠':2.82,'欧罗巴':2.72,'亚冠':2.65,'澳洲甲':2.88,'德乙':2.82,'法乙':2.42,'英冠':2.55,
+        '土超':2.75,'波兰超':2.62,'瑞士超':2.82,'希腊超':2.32,'丹麦超':2.78
+      };
+      var ln = (matchInfo.leagueName || '').trim();
+      var found = 2.65;
+      var keys = Object.keys(BASELINE);
+      for (var ki = 0; ki < keys.length; ki++) { if (ln.indexOf(keys[ki]) !== -1) found = BASELINE[keys[ki]]; }
+      return found;
+    })(),
+    leagueOverBaseline: (function() {
+      var BASELINE = {
+        '德甲':3.18,'荷甲':3.05,'挪超':2.92,'瑞典超':2.85,'英超':2.72,'葡超':2.67,'西甲':2.63,
+        '意甲':2.56,'法甲':2.55,'K联赛':2.48,'日职':2.62,'日乙':2.58,'美职':2.78,'俄超':2.48,
+        '比甲':2.82,'奥甲':2.72,'苏超':2.65,'中超':2.78,'墨超':2.68,'巴甲':2.42,'阿甲':2.18,
+        '欧冠':2.82,'欧罗巴':2.72,'亚冠':2.65,'澳洲甲':2.88,'德乙':2.82,'法乙':2.42,'英冠':2.55,
+        '土超':2.75,'波兰超':2.62,'瑞士超':2.82,'希腊超':2.32,'丹麦超':2.78
+      };
+      var ln = (matchInfo.leagueName || '').trim();
+      var found = 2.65;
+      var keys = Object.keys(BASELINE);
+      for (var ki = 0; ki < keys.length; ki++) { if (ln.indexOf(keys[ki]) !== -1) found = BASELINE[keys[ki]]; }
+      return found >= 2.85 ? 68 : found >= 2.65 ? 55 : 42;
+    })(),
+
+    // ★ V27 新增: 赢盘率 + 赔率（供前端交叉验证用）
+    homeWinPanRate: vars.homeWinPanRate || 0,
+    awayWinPanRate: vars.awayWinPanRate || 0,
+    homeWinAward: vars.homeWinAward || 0,
+    awayWinAward: vars.awayWinAward || 0,
+    drawAward: vars.drawAward || 0,
 
     // 第五阶段输出：净胜球
     homeWinExpect: diffResult.homeWinExpect,
@@ -294,9 +353,21 @@ async function getMatchResult(matchId) {
   const clean = String(matchId).replace(/^m_/, '');
   if (globalCache[clean]) return globalCache[clean];
 
-  // 2. 全量计算（首次计算会写入缓存）
-  const results = await computeAll();
-  return results[matchId] || results['m_' + matchId] || results[clean] || null;
+  // 2. 全量计算（★ 30秒超时保护，防止外部API挂死）
+  try {
+    const results = await Promise.race([
+      computeAll(),
+      new Promise(function(_, reject) { setTimeout(function() { reject(new Error('computeAll timeout')); }, 30000); })
+    ]);
+    return results[matchId] || results['m_' + matchId] || results[clean] || null;
+  } catch (e) {
+    console.error('[gs] computeAll 超时/失败:', e.message);
+    // 降级：返回已有缓存中任意该比赛的版本
+    if (globalCache[matchId]) return globalCache[matchId];
+    if (globalCache['m_' + matchId]) return globalCache['m_' + matchId];
+    if (globalCache[clean]) return globalCache[clean];
+    return null;
+  }
 }
 
 /**

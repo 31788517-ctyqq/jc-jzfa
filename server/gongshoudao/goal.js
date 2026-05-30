@@ -114,6 +114,19 @@ function calcGoalRange(vars, totalExpect) {
 
 // ==================== 4.5 主客近期进球期望（xG）====================
 
+/**
+ * 贝叶斯收缩：将极端 β 值向 0.5 收缩
+ * @param {number} betaRaw 原始 β
+ * @param {number} nMatches 比赛场次（越大越信任原始值）
+ * @param {number} shrinkageStrength 收缩强度，默认 3（β 在 3 场比赛后开始显著偏离 0.5）
+ */
+function shrinkBeta(betaRaw, nMatches, shrinkageStrength) {
+  shrinkageStrength = shrinkageStrength || 3;
+  nMatches = Math.max(1, nMatches || 5);
+  const w = nMatches / (nMatches + shrinkageStrength);
+  return w * betaRaw + (1 - w) * 0.5;
+}
+
 function calcExpectedGoals(vars, totalExpect, weights) {
   const gh = vars.homeRecentGoalAvg || 1;
   const ga = vars.awayRecentGoalAvg || 1;
@@ -130,9 +143,36 @@ function calcExpectedGoals(vars, totalExpect, weights) {
   const atkA = ga / (ea + 0.001);
   const shotAgainstA = la / (da + 0.001);
 
-  // 四维呼吸权重
-  const beta1 = atkH / (atkH + shotAgainstA) || 0.5;
-  const beta2 = atkA / (atkA + shotAgainstH) || 0.5;
+  // 计算比赛样本量用于 β 收缩
+  const homeTotalMatches = (vars.homeWinGap_1 || 0) + (vars.homeWinGap_2 || 0) +
+    (vars.homeLoseGap_1 || 0) + (vars.homeLoseGap_2 || 0) + (vars.homeDraw || 0);
+  const awayTotalMatches = (vars.awayWinGap_1 || 0) + (vars.awayWinGap_2 || 0) +
+    (vars.awayLoseGap_1 || 0) + (vars.awayLoseGap_2 || 0) + (vars.awayDraw || 0);
+  const nMatches = Math.max(5, Math.round((homeTotalMatches + awayTotalMatches) / 2));
+
+  // 四维呼吸权重（带收缩 + 缩尾）
+  const beta1Raw = atkH / (atkH + shotAgainstA) || 0.5;
+  const beta2Raw = atkA / (atkA + shotAgainstH) || 0.5;
+
+  // 缩尾处理：限制极端 β 值
+  const beta1Capped = Math.min(0.85, Math.max(0.15, beta1Raw));
+  const beta2Capped = Math.min(0.85, Math.max(0.15, beta2Raw));
+
+  // 贝叶斯收缩：小样本拉向 0.5
+  const beta1 = shrinkBeta(beta1Capped, nMatches);
+  const beta2 = shrinkBeta(beta2Capped, nMatches);
+
+  // 效率方向修正：如果效率符号指示球队趋势，微调 β
+  // 例如：主队进攻效率高于均值 → 轻微增加主队进攻权重
+  let beta1Adj = beta1, beta2Adj = beta2;
+  if (vars.homeAttackEffRaw !== undefined) {
+    beta1Adj += (vars.homeAttackEffRaw > 0 ? 0.03 : -0.03);
+    beta1Adj = Math.min(0.9, Math.max(0.1, beta1Adj));
+  }
+  if (vars.awayAttackEffRaw !== undefined) {
+    beta2Adj += (vars.awayAttackEffRaw > 0 ? 0.03 : -0.03);
+    beta2Adj = Math.min(0.9, Math.max(0.1, beta2Adj));
+  }
 
   const hfGoal = vars.homeFieldGoalAvg || vars.homeRecentGoalAvg || 1;
   const hfLose = vars.homeFieldLoseAvg || vars.homeRecentLoseAvg || 1;
@@ -142,11 +182,9 @@ function calcExpectedGoals(vars, totalExpect, weights) {
   const beta3 = (hfGoal - hfLose) / (hfGoal + hfLose + 1);
   const beta4 = (afGoal - afLose) / (afGoal + afLose + 1);
 
-  // 终极进球期望（V25 修正：使用实际进球 gh/ga 而非还原射门次数 atkH/atkA）
-  // 原公式 beta1×atkH 将"还原射门次数"直接当做"进球数"，导致低效率球队 xG 虚高（如 9+球）
-  // 修正：射门次数还原仅用于计算权重比例(beta)，xg 本身必须回到进球量纲
-  const xgHomeRaw = beta1 * gh + beta3 * hfGoal;
-  const xgAwayRaw = beta2 * ga + beta4 * afGoal;
+  // 终极进球期望（使用收缩后的 β 值）
+  const xgHomeRaw = beta1Adj * gh + beta3 * hfGoal;
+  const xgAwayRaw = beta2Adj * ga + beta4 * afGoal;
 
   // 安全上限（足球单场每队 xG 极少超过 4.5，总和极少超过 6.5）
   const xgHome = round(Math.min(4.5, Math.max(0.1, xgHomeRaw)), 2);
@@ -154,27 +192,25 @@ function calcExpectedGoals(vars, totalExpect, weights) {
 
   // ── GD_q: 净胜球量化（新公式） ──
   // Phase 1: 还原底层攻防次数 (atkH, atkA, shotAgainstH, shotAgainstA 已计算)
-  // Phase 2: 四维呼吸权重
-  //   W_HA = atkH/(atkH+shotAgainstA)  = beta1,  W_AD = shotAgainstA/(atkH+shotAgainstA) = 1-beta1
-  //   W_AA = atkA/(atkA+shotAgainstH)  = beta2,  W_HD = shotAgainstH/(atkA+shotAgainstH) = 1-beta2
-  // Phase 4: 预期进球（使用主/客场特化场均，非近期场均）
-  //   ExpG_h = (G_home_s × W_HA) + (C_away_s × W_AD) = hfGoal×beta1 + afLose×(1-beta1)
-  //   ExpG_a = (G_away_s × W_AA) + (C_home_s × W_HD) = afGoal×beta2 + hfLose×(1-beta2)
-  // GD_q = ExpG_h - ExpG_a
-  const expGh = beta1 * hfGoal + (1 - beta1) * afLose;
-  const expGa = beta2 * afGoal + (1 - beta2) * hfLose;
+  // Phase 2: 四维呼吸权重（使用稳定化后的 β）
+  const expGh = beta1Adj * hfGoal + (1 - beta1Adj) * afLose;
+  const expGa = beta2Adj * afGoal + (1 - beta2Adj) * hfLose;
   const gdQ = round(expGh - expGa, 4);
 
   return {
     xgHome: round(Math.max(0.1, xgHome), 2),
     xgAway: round(Math.max(0.1, xgAway), 2),
     gdQ: gdQ,                          // 净胜球量化 GD_q = ExpG_h - ExpG_a
-    hConversion: round(beta1, F),
-    aConversion: round(beta2, F),
+    hConversion: round(beta1, F),      // 稳定化后的主队进攻转换率
+    aConversion: round(beta2, F),      // 稳定化后的客队进攻转换率
     _atkH: atkH,
     _atkA: atkA,
     _shotAgainstH: shotAgainstH,
-    _shotAgainstA: shotAgainstA
+    _shotAgainstA: shotAgainstA,
+    _beta1Raw: round(beta1Raw, F),     // 原始 β（调试用）
+    _beta2Raw: round(beta2Raw, F),
+    _beta1Stabilized: round(beta1, F), // 稳定化后的 β
+    _beta2Stabilized: round(beta2, F)
   };
 }
 
@@ -227,6 +263,22 @@ function analyze(vars, S) {
     h2hGoalAvg = round(sum / jiaoFenScores.length, 2);
   }
 
+  // ═══ V27 新增: 进球分布稳定性评分 ═══
+  function calcGoalStability(g0, g1, g2p) {
+    var total = g0 + g1 + g2p;
+    if (total === 0) return 50;
+    var p0 = Math.max(g0 / total, 0.001);
+    var p1 = Math.max(g1 / total, 0.001);
+    var p2 = Math.max(g2p / total, 0.001);
+    var entropy = -(p0 * Math.log(p0) + p1 * Math.log(p1) + p2 * Math.log(p2));
+    return round(Math.max(0, Math.min(100, (1 - entropy / 1.099) * 100)), 1);
+  }
+  var homeGoalStability = calcGoalStability(vars.homeGoal0, vars.homeGoal1, vars.homeGoal2Plus);
+  var awayGoalStability = calcGoalStability(vars.awayGoal0, vars.awayGoal1, vars.awayGoal2Plus);
+  var homeDefStability  = calcGoalStability(vars.homeLose0, vars.homeLose1, vars.homeLose2Plus);
+  var awayDefStability  = calcGoalStability(vars.awayLose0, vars.awayLose1, vars.awayLose2Plus);
+  var stabilityOverall  = round((homeGoalStability + awayGoalStability + homeDefStability + awayDefStability) / 4, 1);
+
   return {
     // 主客权重
     homeWeight: round(weights.home * 100, 1) + '%',
@@ -267,6 +319,12 @@ function analyze(vars, S) {
     homeRecentGoalAvg: hGoal,         // 主队近期场均进球（供实力进球计算）
     awayRecentGoalAvg: aGoal,         // 客队近期场均进球（供实力进球计算）
     jiaoFenOverRate: jiaoFenOverRate, // 交锋大球率
+    // ★ V27 新增: 进球分布稳定性
+    goalStabilityHome: homeGoalStability,
+    goalStabilityAway: awayGoalStability,
+    defStabilityHome: homeDefStability,
+    defStabilityAway: awayDefStability,
+    stabilityOverall: stabilityOverall,
     // 子维度
     _weights: weights,
     _xg: xg
