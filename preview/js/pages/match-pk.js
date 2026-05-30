@@ -103,7 +103,27 @@ function buildGSFields(gs) {
     computedAt: gs.computedAt || gs._timestamp || null,
     dataAge: (gs.computedAt || gs._timestamp)
       ? Math.round((Date.now() - new Date(gs.computedAt || gs._timestamp).getTime()) / 60000)
-      : -1
+      : -1,
+    // V27 新增: 稳定性
+    goalStabilityHome: gs.goalStabilityHome != null ? gs.goalStabilityHome : 50,
+    goalStabilityAway: gs.goalStabilityAway != null ? gs.goalStabilityAway : 50,
+    defStabilityHome: gs.defStabilityHome != null ? gs.defStabilityHome : 50,
+    defStabilityAway: gs.defStabilityAway != null ? gs.defStabilityAway : 50,
+    stabilityOverall: gs.stabilityOverall != null ? gs.stabilityOverall : 50,
+    // V27 新增: 联赛校准
+    leagueCalibration: gs.leagueCalibration != null ? gs.leagueCalibration : 1.0,
+    leagueAvgGoals: gs.leagueAvgGoals || 2.65,
+    leagueOverBaseline: gs.leagueOverBaseline || 55,
+    leagueName: gs.leagueName || '',
+    // V27 新增: 赢盘率 & 赔率（交叉验证用）
+    homeWinPan: gs.homeWinPanRate != null ? parseFloat(gs.homeWinPanRate) : 0,
+    awayWinPan: gs.awayWinPanRate != null ? parseFloat(gs.awayWinPanRate) : 0,
+    homeWinAward: gs.homeWinAward != null ? parseFloat(gs.homeWinAward) : 0,
+    awayWinAward: gs.awayWinAward != null ? parseFloat(gs.awayWinAward) : 0,
+    drawAward: gs.drawAward != null ? parseFloat(gs.drawAward) : 0,
+    // V27 新增: 实力进球 & 实力阶梯（交叉验证用）
+    strengthGoal: gs.strengthGoal != null ? parseFloat(gs.strengthGoal) : 0,
+    ladderLevel: gs.ladderLevel != null ? gs.ladderLevel : 0
   };
 }
 
@@ -183,29 +203,90 @@ function calcHealthScores(list) {
   });
 }
 
-/** 计算综合信心分（V25修正：health权重提升至30%以强化熔断惩罚） */
-function calcCompositeScore(pwr, goal, heat, health) {
-  return parseFloat((0.40 * pwr + 0.20 * goal + 0.10 * heat + 0.30 * health).toFixed(1));
+/** V27 新增: 计算稳定性评分 0-100 */
+function calcStabilityScores(list) {
+  return list.map(function (item) {
+    var s = parseFloat(item.stabilityOverall);
+    return isNaN(s) ? 50 : parseFloat(Math.max(0, Math.min(100, s)).toFixed(1));
+  });
 }
 
-/** 为 pickedList 每个元素附加评分对象 */
+/** V27 新增: 计算多维交叉验证评分 0-100（初始100分，每个分歧扣N分） */
+function calcVerificationScores(list) {
+  return list.map(function (item) {
+    var score = 100;
+    var details = [];
+    var ll = item.ladderLevel || 0;
+    var hAward = parseFloat(item.homeWinAward) || 0;
+    var aAward = parseFloat(item.awayWinAward) || 0;
+    if (ll >= 2 && hAward > 0 && aAward > 0 && hAward > aAward * 1.3) {
+      score -= 15; details.push('赔率与实力阶梯矛盾(主强但赔率高)');
+    } else if (ll <= -2 && aAward > 0 && hAward > 0 && aAward > hAward * 1.3) {
+      score -= 15; details.push('赔率与实力阶梯矛盾(客强但赔率高)');
+    }
+    var winPan = parseFloat(item.homeWinPan) || 0;
+    var awayWinPan = parseFloat(item.awayWinPan) || 0;
+    var pw = parseFloat(item.pwScore) || 0;
+    if (pw > 0.1 && awayWinPan > winPan + 15) {
+      score -= 10; details.push('赢盘率与实力方向矛盾');
+    } else if (pw < -0.1 && winPan > awayWinPan + 15) {
+      score -= 10; details.push('赢盘率与实力方向矛盾');
+    }
+    var sg = parseFloat(item.strengthGoal) || 0;
+    var adg = parseFloat(item.attDefGoal) || 0;
+    if (sg > 0 && adg > 0 && Math.abs(sg - adg) > 1.0) {
+      score -= 15; details.push('实力进球与攻防进球背离(' + sg.toFixed(1) + ' vs ' + adg.toFixed(1) + ')');
+    }
+    var bbr = parseFloat(item.bigBallRatio) || 50;
+    var lob = item.leagueOverBaseline || 55;
+    if (bbr > 70 && lob < 50) {
+      score -= 10; details.push('大球率偏高但与联赛特性不符');
+    }
+    return { score: parseFloat(Math.max(0, score).toFixed(1)), details: details };
+  });
+}
+
+/** V27 重构: 按维度时效衰减 */
+function calcAgeWeight(dataAge, dataType) {
+  if (dataAge < 0) return 1.0;
+  var halfLife = { odds: 15, heat: 30, ai: 60, stats: 360 };
+  var h = halfLife[dataType] || 120;
+  return Math.pow(0.5, dataAge / h);
+}
+
+/** V27重构: 计算综合信心分 */
+function calcCompositeScore(pwr, goal, heat, health, stab, verif) {
+  return parseFloat((0.30 * pwr + 0.15 * goal + 0.10 * heat + 0.15 * health + 0.15 * stab + 0.15 * verif).toFixed(1));
+}
+
+/** V27重构: 为 pickedList 每个元素附加评分对象（含稳定性+验证+时效衰减） */
 function computeAllScores(list) {
   var powerScores = calcPowerScores(list);
   var goalScores = calcGoalScores(list);
   var heatScores = calcHeatScores(list);
   var healthScores = calcHealthScores(list);
+  var stabilityScores = calcStabilityScores(list);
+  var verificationResults = calcVerificationScores(list);
+  var verificationScores = verificationResults.map(function (v) { return v.score; });
 
   return list.map(function (item, i) {
     var pwr = powerScores[i];
     var goal = goalScores[i];
     var heat = heatScores[i];
     var health = healthScores[i];
-    var comp = calcCompositeScore(pwr, goal, heat, health);
+    var stab = stabilityScores[i];
+    var verif = verificationScores[i];
 
-    // P4-⑫: 数据陈旧度惩罚（>120分钟扣5分，>240分钟扣10分）
     var da = item.dataAge;
-    if (da > 240) comp = Math.max(0, comp - 10);
-    else if (da > 120) comp = Math.max(0, comp - 5);
+    var ageW_heat = calcAgeWeight(da, 'heat');
+    var ageW_stats = calcAgeWeight(da, 'stats');
+    var heatAdj = heat * ageW_heat;
+    var stabAdj = stab * ageW_stats;
+
+    var comp = calcCompositeScore(pwr, goal, heatAdj, health, stabAdj, verif);
+
+    if (da > 240) comp = Math.max(0, comp - 5);
+    else if (da > 120) comp = Math.max(0, comp - 3);
 
     return {
       item: item,
@@ -213,8 +294,10 @@ function computeAllScores(list) {
       goalScore: goal,
       heatScore: heat,
       healthScore: health,
+      stabilityScore: stab,
+      verificationScore: verif,
+      verificationDetails: verificationResults[i].details,
       compositeScore: parseFloat(comp.toFixed(1)),
-      // 星级: 0-5
       stars: Math.round(comp / 20)
     };
   });
@@ -226,7 +309,7 @@ function computeAllScores(list) {
 
 /** P0-①/② + P2-⑥/⑦/⑧ + P1-④: 增强方向推荐 */
 function getDirectionAdvice(scored, ranked) {
-  var item = scored.item;
+  var item = scored && scored.item ? scored.item : {};
   var pw = parseFloat(item.pwScore) || 0;
   var hi = parseFloat(item.heatIndex);
   var meltdown = item.fusionConsensus === 'meltdown';
@@ -343,6 +426,27 @@ function getDirectionAdvice(scored, ranked) {
     }
   }
 
+  // V27: 赔率隐含概率校准
+  var hAward = parseFloat(item.homeWinAward) || 0;
+  var aAward = parseFloat(item.awayWinAward) || 0;
+  var dAward = parseFloat(item.drawAward) || 0;
+  result.marketConsistent = true;
+  result.marketDetail = '';
+  if (hAward > 0 && aAward > 0 && dAward > 0) {
+    var invSum = 1/hAward + 1/dAward + 1/aAward;
+    var pMarketHome = (1/hAward) / invSum;
+    var pMarketAway = (1/aAward) / invSum;
+    if (result.dir.indexOf('主胜') === 0 && pMarketAway > pMarketHome + 0.1) {
+      result.marketConsistent = false;
+      result.marketDetail = '市场不看好主胜(赔率:' + hAward.toFixed(2) + '/' + aAward.toFixed(2) + ')';
+    } else if (result.dir.indexOf('客胜') === 0 && pMarketHome > pMarketAway + 0.1) {
+      result.marketConsistent = false;
+      result.marketDetail = '市场不看好客胜(赔率:' + hAward.toFixed(2) + '/' + aAward.toFixed(2) + ')';
+    } else {
+      result.marketDetail = '市场一致(赔率:' + hAward.toFixed(2) + '/' + dAward.toFixed(2) + '/' + aAward.toFixed(2) + ')';
+    }
+  }
+
   return result;
 }
 
@@ -374,15 +478,35 @@ function getGoalDirection(scored, dirAdvice) {
 
   var pattern = item.attackPattern;
 
+  // ⚠️ V26 矛盾检测（优先）：历史大球率与实际预期球严重背离时，以实际预期为准
+  if (bbr >= 65 && totalGoals > 0 && totalGoals < 2.0) {
+    return { dir: '倾向小球', stars: 3, cls: 'dir-small',
+      desc: '历史大球率高(' + bbr.toFixed(0) + '%)但当前预期仅' + totalGoals.toFixed(1) + '球，模型降级' };
+  }
+
+  // 双高确认大球
   if (bbr >= 70 && totalGoals >= 3.0) return applyDirLink({ dir: '大球', stars: 4, cls: 'dir-big', desc: '进球预期高' }, scored);
   if (bbr >= 65 && totalGoals >= 2.5) return applyDirLink({ dir: '大球', stars: 3, cls: 'dir-big', desc: '倾向大球' }, scored);
   if (bbr <= 35 && totalGoals < 2.0) return { dir: '小球', stars: 4, cls: 'dir-small', desc: '进球预期极低' };
   if (bbr <= 50 && totalGoals < 2.5) return { dir: '小球', stars: 3, cls: 'dir-small', desc: '倾向小球' };
-  if (pattern === '对攻为主') return applyDirLink({ dir: '大球', stars: 3, cls: 'dir-big', desc: '对攻格局' }, scored);
-  if (pattern === '防守为主') return { dir: '小球', stars: 3, cls: 'dir-small', desc: '防守格局' };
+
+  // 格局优先（加 totalGoals 验证）
+  if (pattern === '对攻为主') {
+    if (totalGoals >= 3.0) return applyDirLink({ dir: '大球', stars: 4, cls: 'dir-big', desc: '对攻+高预期' }, scored);
+    if (totalGoals >= 2.0) return applyDirLink({ dir: '大球', stars: 3, cls: 'dir-big', desc: '对攻格局' }, scored);
+    return { dir: '略偏小球', stars: 2, cls: 'dir-small', desc: '对攻形态但预期偏低(' + totalGoals.toFixed(1) + '球)' };
+  }
+  if (pattern === '防守为主') {
+    if (totalGoals < 2.5) return { dir: '小球', stars: 4, cls: 'dir-small', desc: '防守+低预期' };
+    return { dir: '小球', stars: 3, cls: 'dir-small', desc: '防守格局' };
+  }
+
+  if (bbr >= 70 && totalGoals >= 2.0) return { dir: '略偏大球', stars: 2, cls: 'dir-big', desc: '大球率高' };
+  if (bbr >= 70) return { dir: '略偏小球', stars: 2, cls: 'dir-small', desc: '大球率高但预期仅' + totalGoals.toFixed(1) + '球' };
   if (totalGoals > 3.0) return applyDirLink({ dir: '略偏大球', stars: 2, cls: 'dir-big', desc: '预期偏高' }, scored);
   if (totalGoals < 2.0) return { dir: '略偏小球', stars: 2, cls: 'dir-small', desc: '预期偏低' };
-  if (bbr > 50) return { dir: '略偏大球', stars: 2, cls: 'dir-big', desc: '' };
+  if (bbr > 50 && totalGoals >= 2.0) return { dir: '略偏大球', stars: 2, cls: 'dir-big', desc: '' };
+  if (bbr > 50) return { dir: '略偏小球', stars: 2, cls: 'dir-small', desc: '历史大球但预期' + totalGoals.toFixed(1) + '球偏低' };
   return { dir: '略偏小球', stars: 2, cls: 'dir-small', desc: '' };
 }
 
@@ -519,6 +643,10 @@ function renderScoreCard(scored, rank, ranked) {
       '<div class="pk3-sc-row"><span class="pk3-sc-label">实力</span><span class="pk3-sc-bar">' + pwrBar + '</span><span class="pk3-sc-val">' + pwr + '</span></div>' +
       '<div class="pk3-sc-row"><span class="pk3-sc-label">进球</span><span class="pk3-sc-bar">' + goalBar + '</span><span class="pk3-sc-val">' + goal + '</span></div>' +
       '<div class="pk3-sc-row"><span class="pk3-sc-label">热度</span><span class="pk3-sc-bar">' + heatBar + '</span><span class="pk3-sc-val">' + heat + '</span></div>' +
+      // V27: 稳定性评分行
+      '<div class="pk3-sc-row pk3-sc-stability"><span class="pk3-sc-label">稳定性</span>' +
+        barHtml(scored.stabilityScore, scored.stabilityScore >= 65 ? 'bar-green' : scored.stabilityScore >= 40 ? 'bar-amber' : 'bar-red') +
+        '<span class="pk3-sc-val">' + scored.stabilityScore + '</span></div>' +
     '</div>' +
     '<div class="pk3-sc-foot">' +
       '<div class="pk3-sc-advice">' +
@@ -527,6 +655,14 @@ function renderScoreCard(scored, rank, ranked) {
       '</div>' +
       (tags.length ? '<div class="pk3-sc-tags">' + tags.join('') + '</div>' : '') +
       (fusionBadge ? '<div class="pk3-sc-fusion">' + fusionBadge + '</div>' : '') +
+      // V27: 联赛归一化标签
+      (function() {
+        var lc = parseFloat(item.leagueCalibration) || 1.0;
+        var la = item.leagueAvgGoals || 2.65;
+        if (lc > 1.08) return '<div class="pk3-sc-fusion"><span class="pk3-fusion-tag pk3-tag-league">🏟️ 高进球联赛(场均' + la.toFixed(1) + '球)</span></div>';
+        if (lc < 0.93) return '<div class="pk3-sc-fusion"><span class="pk3-fusion-tag pk3-tag-league pk3-tag-league-low">🏟️ 低进球联赛(场均' + la.toFixed(1) + '球)</span></div>';
+        return '';
+      })() +
     '</div>' +
     '</div>';
 }
@@ -585,6 +721,7 @@ function renderFocusMatch(ranked) {
           '<span>进球 ' + focusMatch.goalScore + '分</span>' +
           '<span>热度 ' + hiLabel + '</span>' +
           '<span>健康 ' + focusMatch.healthScore + '分</span>' +
+          '<span>稳定性 ' + focusMatch.stabilityScore + '分</span>' +
         '</div>' +
         (dirAdvice.xgDetail ? '<div class="pk3-focus-extra ' + (dirAdvice.xgOk ? '' : 'pk3-adv-warn') + '">' + (dirAdvice.xgOk ? '✅ ' : '⚠️ ') + dirAdvice.xgDetail + '</div>' : '') +
         (!dirAdvice.crossOk ? '<div class="pk3-focus-extra pk3-adv-warn">⚠️ ' + dirAdvice.crossDetail + '</div>' : '') +
@@ -681,6 +818,24 @@ function renderBettingAdviceList(ranked) {
     // P1-③: 弱一致警告
     var weakWarn = (isWeak && !meltdown) ? '<div class="pk3-adv-row pk3-adv-warn">⚠️ 模型弱一致 — 参考价值打折，建议降低注码</div>' : '';
 
+    // V27: 赔率市场一致性
+    var marketRow = !dirAdvice.marketConsistent
+      ? '<div class="pk3-adv-row pk3-adv-warn">⚠️ ' + (dirAdvice.marketDetail || '市场分歧') + '</div>'
+      : (dirAdvice.marketDetail ? '<div class="pk3-adv-row pk3-adv-info">📊 ' + dirAdvice.marketDetail + '</div>' : '');
+
+    // V27: 稳定性低预警
+    var stabRow = '';
+    if (scored.stabilityScore < 35) {
+      stabRow = '<div class="pk3-adv-row pk3-adv-warn">⚠️ 进球分布不稳定(' + scored.stabilityScore + '分) — 预测可信度降低</div>';
+    }
+
+    // V27: 多维验证分歧
+    var verifDetails = scored.verificationDetails || [];
+    var verifRow = '';
+    if (verifDetails.length > 0) {
+      verifRow = '<div class="pk3-adv-row pk3-adv-warn">🔍 ' + verifDetails.join('；') + '</div>';
+    }
+
     html += '<div class="pk3-advice-card ' + dirAdvice.cls + '">' +
       '<div class="pk3-adv-head">' +
         '<span class="pk3-adv-match">' + esc(shortTeam(item.homeName)) + ' vs ' + esc(shortTeam(item.visitName)) + '</span>' +
@@ -703,6 +858,9 @@ function renderBettingAdviceList(ranked) {
         xgRow +
         crossWarn +
         ageRow +
+        marketRow +
+        stabRow +
+        verifRow +
       '</div>' +
     '</div>';
   });
@@ -877,6 +1035,16 @@ function renderRiskPanel(ranked) {
     var adg = parseFloat(item.attDefGoal);
     if (item._rawAttDefGoal !== undefined && item._rawAttDefGoal > 7.0 && (!isNaN(adg) && adg === 0)) {
       risks.push({ level: 'warn', text: '🟠 ' + name + ': 攻防进球异常（原始 >7.0 已丢弃）', severity: 3 });
+    }
+
+    // V27: 稳定性风险
+    if (scored.stabilityScore < 30) {
+      risks.push({ level: 'warn', text: '🟡 ' + name + ': 进球分布极不稳定(' + scored.stabilityScore + '分)', severity: 3 });
+    }
+    // V27: 验证分歧风险
+    var vd = scored.verificationDetails || [];
+    if (vd.length >= 2) {
+      risks.push({ level: 'warn', text: '🟠 ' + name + ': 多维交叉验证出现' + vd.length + '处分歧', severity: 4 });
     }
   });
 

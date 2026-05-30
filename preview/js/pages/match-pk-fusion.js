@@ -332,7 +332,7 @@ function computeAllScores(list) {
 
 /** P0-①/② + P2-⑥/⑦/⑧ + P1-④: 增强方向推荐 */
 function getDirectionAdvice(scored, ranked) {
-  var item = scored.item;
+  var item = scored && scored.item ? scored.item : {};
   var pw = parseFloat(item.pwScore) || 0;
   var hi = parseFloat(item.heatIndex);
   var meltdown = item.fusionConsensus === 'meltdown';
@@ -618,6 +618,7 @@ function renderFusionPK(modal, list) {
 // ═══════════════════════════════════════════
 
 function renderScoreCard(scored, rank, ranked) {
+  if (!scored || !scored.item) { console.warn('[renderScoreCard] scored.item missing'); return ''; }
   var item = scored.item;
   var pwr = scored.powerScore;
   var goal = scored.goalScore;

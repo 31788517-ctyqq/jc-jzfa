@@ -42,6 +42,16 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
     html += '<span class="gs-modal-num">' + esc(matchNum) + '</span>';
     html += '</div>';
     if (timeFormatted) html += '<div class="gs-modal-time">' + timeFormatted + '</div>';
+    // ★ 数据时效标签
+    if (gs.computedAt) {
+      var dataAge = Math.floor((Date.now() - gs.computedAt) / 3600000);
+      var ageLabel = '';
+      var ageClass = '';
+      if (dataAge < 1) { ageLabel = '数据更新于 ' + new Date(gs.computedAt).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}); ageClass = 'gs-data-fresh'; }
+      else if (dataAge < 24) { ageLabel = '数据更新于 ' + dataAge + '小时前'; ageClass = 'gs-data-warn'; }
+      else { ageLabel = '数据可能已过期 (' + Math.floor(dataAge/24) + '天前)'; ageClass = 'gs-data-stale'; }
+      html += '<div class="gs-modal-time" style="font-size:11px;color:var(--gray);"><span class="' + ageClass + '">' + ageLabel + '</span></div>';
+    }
     html += '</div>';
 
     // ====== 实力分析 ======
@@ -107,10 +117,42 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
     ];
     var scoreOdds = gs.scoreOdds || {}; // { "1-0": 8.25, ... }
 
-    // 分类：正兵(前4)、奇兵(5-6)、伏兵(7-8)
-    var zhengBing = scores.slice(0, 4);
-    var qiBing = scores.slice(4, 6);
-    var fuBing = scores.slice(6, 8);
+    // 智能分类：正兵/奇兵/伏兵
+    // 规则：
+    //   正兵 — 概率 > 8% 且净胜球方向与实力阶梯一致，或概率 > 12%
+    //   奇兵 — 概率 3-8% 或方向不一致但有支撑，或概率 8-12% 但方向异常
+    //   伏兵 — 概率 < 5% 但历史上有出现
+    var ladderLevel = gs.ladderLevel || 0; // 正=主队优, 负=客队优
+    var zhengBing = [], qiBing = [], fuBing = [];
+
+    scores.forEach(function(s) {
+      var pct = parseFloat(s.percent) || 0;
+      var parts = s.score.split('-');
+      var hVal = parseInt(parts[0]) || 0;
+      var aVal = parseInt(parts[1]) || 0;
+      var gd = hVal - aVal;
+      var directionMatch = (ladderLevel > 0 && gd > 0) || (ladderLevel < 0 && gd < 0) || ladderLevel === 0;
+      var homeWin = gd > 0, draw = gd === 0, awayWin = gd < 0;
+
+      // 分类逻辑
+      if (pct >= 12 || (pct >= 8 && directionMatch)) {
+        zhengBing.push(s);
+      } else if (pct >= 5 || (pct >= 3 && !directionMatch && pct >= 4)) {
+        qiBing.push(s);
+      } else {
+        fuBing.push(s);
+      }
+    });
+
+    // 确保各类别至少有一些内容
+    if (zhengBing.length === 0 && scores.length > 0) {
+      zhengBing = scores.slice(0, Math.min(3, scores.length));
+      qiBing = scores.slice(zhengBing.length, Math.min(6, scores.length));
+      fuBing = scores.slice(qiBing.length + zhengBing.length, scores.length);
+    }
+    if (qiBing.length === 0 && fuBing.length > 0) {
+      qiBing = fuBing.splice(0, Math.min(2, fuBing.length));
+    }
 
     function getScoreOddsFromPercent(pctStr) {
       if (!pctStr) return null;
@@ -119,29 +161,36 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
       return (1 / (p / 100));
     }
 
-    function renderScoreCard(s) {
+    function renderScoreCard(s, riskClass) {
       var odds = scoreOdds[s.score] !== undefined ? scoreOdds[s.score] : getScoreOddsFromPercent(s.percent);
       var oddsAttr = ' data-odds="' + (odds !== null ? odds : '--') + '"';
       var hasOdds = odds !== null;
-      return '<div class="gs-score-card' + (!hasOdds ? ' no-odds' : '') + '" data-score="' + s.score + '"' + oddsAttr + '><div class="gs-score-val">' + s.score + '</div><div class="gs-score-pct">' + s.percent + '</div></div>';
+      var riskLabel = riskClass || '';
+      var pctVal = parseFloat(s.percent) || 0;
+      var riskDisplay = '';
+      if (riskLabel === 'high') riskDisplay = '<span class="gs-risk-tag gs-risk-high">高风险</span>';
+      else if (riskLabel === 'cold') riskDisplay = '<span class="gs-risk-tag gs-risk-cold">冷门</span>';
+      return '<div class="gs-score-card' + (!hasOdds ? ' no-odds' : '') + '" data-score="' + s.score + '"' + oddsAttr + '>' +
+        '<div class="gs-score-val">' + s.score + riskDisplay + '</div>' +
+        '<div class="gs-score-pct">' + s.percent + '</div></div>';
     }
 
     if (zhengBing.length > 0) {
-      html += '<div class="gs-score-cat"><span class="gs-score-cat-label">正兵盘口</span></div>';
+      html += '<div class="gs-score-cat"><span class="gs-score-cat-label">正兵盘口</span><span class="gs-score-cat-hint">基本面最一致的比分方向</span></div>';
       html += '<div class="gs-score-grid">';
-      zhengBing.forEach(function(s) { html += renderScoreCard(s); });
+      zhengBing.forEach(function(s) { html += renderScoreCard(s, ''); });
       html += '</div>';
     }
     if (qiBing.length > 0) {
-      html += '<div class="gs-score-cat"><span class="gs-score-cat-label">奇兵盘口</span></div>';
+      html += '<div class="gs-score-cat"><span class="gs-score-cat-label">奇兵盘口</span><span class="gs-score-cat-hint">概率较低但有三重锁支撑的隐藏机会</span></div>';
       html += '<div class="gs-score-grid">';
-      qiBing.forEach(function(s) { html += renderScoreCard(s); });
+      qiBing.forEach(function(s) { html += renderScoreCard(s, 'high'); });
       html += '</div>';
     }
     if (fuBing.length > 0) {
-      html += '<div class="gs-score-cat"><span class="gs-score-cat-label">伏兵妖谱</span></div>';
+      html += '<div class="gs-score-cat"><span class="gs-score-cat-label">伏兵妖谱</span><span class="gs-score-cat-hint">历史交锋中曾出现过的冷门比分</span></div>';
       html += '<div class="gs-score-grid">';
-      fuBing.forEach(function(s) { html += renderScoreCard(s); });
+      fuBing.forEach(function(s) { html += renderScoreCard(s, 'cold'); });
       html += '</div>';
     }
 

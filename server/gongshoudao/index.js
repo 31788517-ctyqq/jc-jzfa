@@ -331,6 +331,29 @@ async function computeAll() {
   cache[cacheKey] = existing;
   writeCache(cache);
 
+  // ★ 回测钩子: 功守道预测持久化
+  try {
+    var predLog = require('../prediction_log');
+    var mMap2 = loadDataJsonM();
+    Object.keys(existing).forEach(function(mid) {
+      var gs = existing[mid];
+      if (!gs || !gs.scores) return;
+      var m = mMap2[mid] || {};
+      predLog.upsertGS(mid.replace(/^m_/, ''), {
+        date: (m.date || '').slice(0, 10),
+        homeName: m.homeName || '',
+        visitName: m.visitName || '',
+        leagueName: m.leagueName || '',
+        matchNum: m.num || '',
+        scoresJson: JSON.stringify(gs.scores),
+        topScore: (gs.scores && gs.scores[0]) ? gs.scores[0].score : '',
+        topPercent: (gs.scores && gs.scores[0]) ? parseFloat(gs.scores[0].percent) || 0 : 0,
+        ladderLabel: gs.ladderLabel || '',
+        ladderLevel: gs.ladderLevel || 0
+      });
+    });
+  } catch (e) { console.error('[gs] predLog save error:', e.message); }
+
   return existing;
 }
 
