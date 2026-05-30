@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>竞彩推荐监控</title>
 <link rel="preconnect" href="https://zj.100qiu.com">
-<link rel="preload" href="/js/main-fusion.js?v=83" as="script" crossorigin="anonymous">
+<link rel="preload" href="/js/main-fusion.js?v=84" as="script" crossorigin="anonymous">
 <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js" crossorigin="anonymous"></script>
 <style>
 :root {
@@ -418,6 +418,26 @@ body {
 .match-card-stat.yellow .stat-dot { background: var(--amber); }
 .match-card-stat.red { background: rgba(239,68,68,0.2); color: var(--red); }
 .match-card-stat.red .stat-dot { background: var(--red); }
+
+/* ★ P3-1: WebSocket 实时推送 — 比赛结束闪烁动画 */
+@keyframes match-finished-flash {
+  0%, 100% { border-color: var(--card-border); box-shadow: 0 2px 16px rgba(0,0,0,0.1); }
+  50% { border-color: var(--cyan); box-shadow: 0 2px 20px var(--cyan-glow); }
+}
+.match-card.match-finished-flash {
+  animation: match-finished-flash 0.6s ease-in-out 3;
+}
+.match-card.live {
+  border-color: rgba(24,224,224,0.35);
+}
+/* WS Toast 通知 */
+#ws-toast {
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: 90vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* 排行榜 */
 .rank-list { display: flex; flex-direction: column; gap: 12px; }

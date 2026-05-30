@@ -99,6 +99,8 @@ DEPLOY_MAP = [
         ('preview/js/pages/gongshoudao.js',   'both'),
         ('preview/js/charts.js',              'both'),
     ('preview/js/api.js',                 'both'),
+    # WebSocket 客户端 (P3-1)
+    ('preview/js/ws-client.js',           'both'),
     # 服务端 → PM2 运行时路径
     ('server/index.js',                   'both'),
     ('server/jczqYz_fetcher.js',          'both'),
