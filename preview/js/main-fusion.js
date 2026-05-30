@@ -11,37 +11,12 @@ import { loadHitRate } from './pages/hit-rate.js';
 import { loadFilterLeagues, resetFilterResult, toggleDD, selectDD, getDDVal, onDDTypeChange, onRankTypeChange, doFilterQuery, closeAllDD, handleDocClose } from './pages/filter.js';
 import { loadIncome } from './pages/income.js';
 import { loadPlanList, loadScorePlanList, loadQuantPlanList, updatePlanDateBar, shiftPlanDate, goPlanToday, switchPlanTab } from './pages/plans.js';
-import { showGongshoudao } from './pages/gongshoudao.js?v=25052903';
-import { loadBacktest } from './pages/backtest.js?v=86';
-import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker, switchQuantTab, togglePick, startPK, sortBy, switchQuantView } from './pages/quant-rank-fusion.js?v=83';
-import { openPK, closePK, openPKMulti } from './pages/match-pk-fusion.js?v=85';
+import { showGongshoudao } from './pages/gongshoudao.js';
+import { loadBacktest } from './pages/backtest.js';
+import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker, switchQuantTab, togglePick, startPK, sortBy, switchQuantView } from './pages/quant-rank-fusion.js';
+import { openPK, closePK, openPKMulti } from './pages/match-pk-fusion.js';
 
-// ★ P3-1: WebSocket 实时推送
-import { initWS, wsEvents, disconnectWS } from './ws-client.js?v=1';
-
-// 初始化 WebSocket 连接
-initWS();
-
-// WebSocket 事件回调
-wsEvents.onScoreUpdate = function (scores) {
-  // 比分实时更新已在 ws-client 中直接操作 DOM
-  // 此处可做额外逻辑，如更新全局状态缓存
-  console.log('[WS] 比分更新: ' + Object.keys(scores).length + ' 场');
-};
-
-wsEvents.onRecommendUpdate = function (recs) {
-  // 推荐命中结果更新 — 延迟刷新当前页数据
-  console.log('[WS] 推荐命中更新: ' + Object.keys(recs).length + ' 场');
-  // 如果当前在比赛列表页，延迟 3 秒刷新（等 Toast 通知显示后）
-  if (state.currentPage === 'home' || state.currentPage === 'match-list') {
-    setTimeout(function () { loadMatchList(); }, 3000);
-  }
-};
-
-wsEvents.onStatusChange = function (status) {
-  // 在调试模式下输出连接状态
-  if (status === 'reconnecting') console.log('[WS] 重连中...');
-};
+// WebSocket 暂未实现，使用 HTTP 轮询模式
 
 // ── 日期切换 ──
 export function updateDateBar() {
@@ -313,7 +288,8 @@ export function switchTab(tab) {
     rank: '推荐排行榜',
     hit: '命中率统计',
     filter: '命中率筛选',
-    income: '方案收入'
+    income: '方案收入',
+    backtest: '回测分析'
   };
   var titleEl = document.getElementById('navTitle');
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';

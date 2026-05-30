@@ -452,6 +452,7 @@ function getDirectionAdvice(scored, ranked) {
 
 /** P4-⑪: 进球方向+方向推荐联动，|pw|>0.25时大球信心增强 */
 function getGoalDirection(scored, dirAdvice) {
+  if (!scored || !scored.item) return { dir: '数据不全', stars: 0, tips: [] };
   var item = scored.item;
   var bbr = parseFloat(item.bigBallRatio) || 50;
 
@@ -584,6 +585,7 @@ function renderFusionPK(modal, list) {
 // ═══════════════════════════════════════════
 
 function renderScoreCard(scored, rank, ranked) {
+  if (!scored || !scored.item) return '';
   var item = scored.item;
   var pwr = scored.powerScore;
   var goal = scored.goalScore;
@@ -739,6 +741,7 @@ function renderComparisonTable(ranked) {
     '</tr></thead><tbody>';
 
   ranked.forEach(function (scored, i) {
+    if (!scored || !scored.item) return;
     var item = scored.item;
     var dirAdvice = getDirectionAdvice(scored, ranked);
     var goalAdvice = getGoalDirection(scored, dirAdvice);
@@ -775,6 +778,7 @@ function renderComparisonTable(ranked) {
 function renderBettingAdviceList(ranked) {
   var html = '<div class="pk3-advice-list">';
   ranked.forEach(function (scored, i) {
+    if (!scored || !scored.item) return;
     var item = scored.item;
     var dirAdvice = getDirectionAdvice(scored, ranked);
     var goalAdvice = getGoalDirection(scored, dirAdvice);
@@ -887,6 +891,7 @@ function renderComboRecommendations(ranked) {
 
   // 为每场准备辅助信息
   var withInfo = ranked.map(function (scored) {
+    if (!scored || !scored.item) return null;
     var item = scored.item;
     var pw = parseFloat(item.pwScore) || 0;
     var hi = parseFloat(item.heatIndex);
@@ -937,7 +942,8 @@ function renderComboRecommendations(ranked) {
 
   // ── P2: 三向互斥去重（优先级：正路 > 博冷 > 稳健）──
   var usedNames = [];
-  function pickTop2(source, count) {
+  function pickTop2(source, count, item) {
+    item = item || {};
     var result = [];
     for (var i = 0; i < source.length && result.length < count; i++) {
       if (usedNames.indexOf(source[i].name) === -1) {
@@ -1009,6 +1015,7 @@ function renderComboRecommendations(ranked) {
 function renderRiskPanel(ranked) {
   var risks = [];
   ranked.forEach(function (scored) {
+    if (!scored || !scored.item) return;
     var item = scored.item;
     var name = esc(shortTeam(item.homeName));
     var hi = parseFloat(item.heatIndex);

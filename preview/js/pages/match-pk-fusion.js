@@ -49,8 +49,8 @@ export function openPKMulti(pickedList) {
     try {
       renderFusionPK(modal, fullList);
     } catch (e) {
-      console.error('[openPKMulti] renderFusionPK crash:', e.message);
-      modal.innerHTML = '<div style="text-align:center;padding:80px 20px;color:#EF4444"><div style="font-size:36px;margin-bottom:12px">⚠️</div><div style="font-size:14px;font-weight:600">PK分析渲染失败</div><div style="font-size:12px;color:#999;margin-top:8px">' + esc(e.message) + '</div></div>';
+      console.error('[openPKMulti] renderFusionPK crash:', e.message, e.stack);
+      modal.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#EF4444"><div style="font-size:36px;margin-bottom:12px">⚠️</div><div style="font-size:14px;font-weight:600">PK分析渲染失败</div><div style="font-size:11px;color:#999;margin-top:8px;max-height:200px;overflow:auto;white-space:pre-wrap;text-align:left;padding:8px">' + esc(e.stack || e.message) + '</div></div>';
     }
   });
 }
@@ -475,6 +475,7 @@ function getDirectionAdvice(scored, ranked) {
 
 /** P4-⑪: 进球方向+方向推荐联动，|pw|>0.25时大球信心增强 */
 function getGoalDirection(scored, dirAdvice) {
+  if (!scored || !scored.item) return { dir: '数据不全', stars: 0, tips: [] };
   var item = scored.item;
   var bbr = parseFloat(item.bigBallRatio) || 50;
 
@@ -546,6 +547,7 @@ function getGoalDirection(scored, dirAdvice) {
 
 /** P4-⑪ 辅助: 实力碾压（|pw|>0.25）+ 推荐大球 → +1星加成 */
 function applyDirLink(goalResult, scored) {
+  if (!scored || !scored.item) return goalResult;
   var pwAbs = Math.abs(parseFloat((scored.item && scored.item.pwScore) || 0));
   if (pwAbs > 0.25 && goalResult.dir.indexOf('大球') !== -1 && goalResult.stars < 5) {
     goalResult.stars = Math.min(5, goalResult.stars + 1);
@@ -574,7 +576,7 @@ function renderFusionPK(modal, list) {
     '</div>';
 
   // ── 全局熔断预警横幅（P2）──
-  var meltCount = ranked.filter(function (s) { return s.item.fusionConsensus === 'meltdown'; }).length;
+  var meltCount = ranked.filter(function (s) { return s && s.item && s.item.fusionConsensus === 'meltdown'; }).length;
   if (meltCount > 0) {
     html += '<div class="pk3-global-alert">' +
       '<span class="pk3-alert-icon">⚠️</span>' +
@@ -773,6 +775,7 @@ function renderComparisonTable(ranked) {
     '</tr></thead><tbody>';
 
   ranked.forEach(function (scored, i) {
+    if (!scored || !scored.item) return;
     var item = scored.item;
     var dirAdvice = getDirectionAdvice(scored, ranked);
     var goalAdvice = getGoalDirection(scored, dirAdvice);
@@ -809,6 +812,7 @@ function renderComparisonTable(ranked) {
 function renderBettingAdviceList(ranked) {
   var html = '<div class="pk3-advice-list">';
   ranked.forEach(function (scored, i) {
+    if (!scored || !scored.item) return;
     var item = scored.item;
     var dirAdvice = getDirectionAdvice(scored, ranked);
     var goalAdvice = getGoalDirection(scored, dirAdvice);
@@ -921,6 +925,7 @@ function renderComboRecommendations(ranked) {
 
   // 为每场准备辅助信息
   var withInfo = ranked.map(function (scored) {
+    if (!scored || !scored.item) return null;
     var item = scored.item;
     var pw = parseFloat(item.pwScore) || 0;
     var hi = parseFloat(item.heatIndex);
@@ -971,7 +976,8 @@ function renderComboRecommendations(ranked) {
 
   // ── P2: 三向互斥去重（优先级：正路 > 博冷 > 稳健）──
   var usedNames = [];
-  function pickTop2(source, count) {
+  function pickTop2(source, count, item) {
+    item = item || {};
     var result = [];
     for (var i = 0; i < source.length && result.length < count; i++) {
       if (usedNames.indexOf(source[i].name) === -1) {
@@ -1064,6 +1070,7 @@ function renderComboRecommendations(ranked) {
 function renderRiskPanel(ranked) {
   var risks = [];
   ranked.forEach(function (scored) {
+    if (!scored || !scored.item) return;
     var item = scored.item;
     var name = esc(shortTeam(item.homeName));
     var hi = parseFloat(item.heatIndex);
@@ -1117,7 +1124,7 @@ function renderRiskPanel(ranked) {
   }
 
   // ── 整体健康度 ──
-  var meltCount = ranked.filter(function (s) { return s.item.fusionConsensus === 'meltdown'; }).length;
+  var meltCount = ranked.filter(function (s) { return s && s.item && s.item.fusionConsensus === 'meltdown'; }).length;
   var weakCount = ranked.filter(function (s) { return s.item.fusionConsensus === 'weak'; }).length;
   var healthPct = ranked.length > 0 ? Math.round((1 - (meltCount + weakCount * 0.5) / ranked.length) * 100) : 100;
 

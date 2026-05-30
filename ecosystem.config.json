@@ -8,7 +8,9 @@
       "exec_mode": "fork",
       "env": {
         "NODE_ENV": "production",
-        "BEHIND_PROXY": "1"
+        "BEHIND_PROXY": "1",
+        "DEEPSEEK_API_KEY": "sk-a4a33977f39547fc89cbdb443539a7c3",
+        "DOUBAO_API_KEY": "bd5ab4b5-9cf5-4ff1-8214-f0d274dbf4ee"
       },
       "max_memory_restart": "256M",
       "log_date_format": "YYYY-MM-DD HH:mm:ss",
@@ -26,7 +28,9 @@
       "exec_mode": "fork",
       "env": {
         "NODE_ENV": "production",
-        "BEHIND_PROXY": "1"
+        "BEHIND_PROXY": "1",
+        "DEEPSEEK_API_KEY": "sk-a4a33977f39547fc89cbdb443539a7c3",
+        "DOUBAO_API_KEY": "bd5ab4b5-9cf5-4ff1-8214-f0d274dbf4ee"
       },
       "max_memory_restart": "256M",
       "log_date_format": "YYYY-MM-DD HH:mm:ss",
