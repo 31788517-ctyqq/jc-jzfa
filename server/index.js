@@ -169,6 +169,23 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime(), time: new Date().toISOString() });
 });
+// WebSocket 状态
+app.get('/health/ws', (req, res) => {
+  let wsInfo = { enabled: false, clients: 0 };
+  if (wsServer) {
+    wsInfo = { enabled: true, clients: wsServer.getClientCount() };
+  }
+  res.json(wsInfo);
+});
+// 调度器状态
+app.get('/health/scheduler', (req, res) => {
+  try {
+    const state = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, 'scheduler_state.json'), 'utf8'));
+    res.json(state);
+  } catch (e) {
+    res.json({ status: 'no_state', message: '调度器状态文件不存在' });
+  }
+});
 // 深度健康检查（数据库 / 数据完整性 / 外部API / 系统资源）
 app.get('/health/deep', async (req, res) => {
   try { const r = await health.deepCheck(); res.json(r); }
@@ -181,6 +198,15 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   const alert = require('./alert');
   alert.loginFailed('缺少 MIDOU_MOBILE/MIDOU_PASSWORD').then(() => process.exit(1));
 } else {
+
+// ==================== WebSocket 实时推送 (P3-1) ====================
+let wsServer = null;
+try {
+  wsServer = require('./websocket');
+  logger.info('[ws] WebSocket 模块已加载');
+} catch (e) {
+  logger.warn('[ws] WebSocket 模块加载失败: ' + e.message);
+}
 
 // ==================== API 路由 ====================
 app.post('/api', async (req, res) => {
@@ -2766,6 +2792,7 @@ async function backfillPreviousDayResults() {
   } catch(e) { logger.error('[backfill] 回填异常: ' + e.message); }
 }
 
+
 // ==================== 启动 ====================
 // 初始化数据库
 try {
@@ -2774,12 +2801,26 @@ try {
   logger.error('数据库初始化失败: ' + err.message);
 }
 
-app.listen(PORT, () => {
+// ★ P3-1: 使用显式 http.createServer 以便 WebSocket 共用端口
+const http = require('http');
+const server = http.createServer(app);
+
+// 挂载 WebSocket
+if (wsServer) {
+  try {
+    wsServer.attachToServer(server);
+  } catch (e) {
+    logger.warn('[ws] WebSocket 挂载失败: ' + e.message);
+  }
+}
+
+server.listen(PORT, () => {
   const banner = [
     '============================================',
     '  竞彩推荐监控系统 v2',
     `  环境: ${process.env.NODE_ENV || 'development'}`,
     `  API:  http://localhost:${PORT}/api`,
+    `  WS:   ws://localhost:${PORT}/ws`,
     `  预览: http://localhost:${PORT}/`,
     `  数据源: 米斗数据`,
     `  定时爬取: ${process.env.NODE_ENV === 'production' ? '已启用(5分钟)' : '开发模式未启用'}`,

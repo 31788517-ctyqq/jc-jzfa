@@ -626,7 +626,154 @@ function syncLiveToData(liveMatches) {
   }
 }
 
-// ═══ Task 5: 赛后回填专家命中结果 ═══
+// ═══ Task 5: 赛后回填专家命中结果 (★ P1-2: 并发+失败队列) ═══
+const BACKFILL_CONCURRENCY = 3;        // 并发数
+const BACKFILL_QUEUE_FILE = path.join(__dirname, 'backfill_queue.json');
+const BACKFILL_HISTORY_FILE = path.join(__dirname, 'backfill_history.json');
+
+/** 加载回填失败队列 */
+function loadBackfillQueue() {
+  try {
+    if (fs.existsSync(BACKFILL_QUEUE_FILE)) {
+      const q = JSON.parse(fs.readFileSync(BACKFILL_QUEUE_FILE, 'utf8'));
+      return q.items || [];
+    }
+  } catch (e) {}
+  return [];
+}
+
+/** 保存回填失败队列 */
+function saveBackfillQueue(items) {
+  try {
+    fs.writeFileSync(BACKFILL_QUEUE_FILE, JSON.stringify({
+      updatedAt: new Date().toISOString(), items
+    }, null, 2));
+  } catch (e) {}
+}
+
+/** 记录回填历史 */
+function recordBackfillHistory(mid, status, detail) {
+  try {
+    let history = {};
+    if (fs.existsSync(BACKFILL_HISTORY_FILE)) {
+      history = JSON.parse(fs.readFileSync(BACKFILL_HISTORY_FILE, 'utf8'));
+    }
+    history[mid] = {
+      lastAttempt: new Date().toISOString(),
+      status, // 'success' | 'failed' | 'retry'
+      detail: detail || ''
+    };
+    // 只保留最近500条
+    const keys = Object.keys(history);
+    if (keys.length > 500) {
+      const sorted = keys.sort((a, b) => history[a].lastAttempt.localeCompare(history[b].lastAttempt));
+      sorted.slice(0, keys.length - 500).forEach(k => delete history[k]);
+    }
+    fs.writeFileSync(BACKFILL_HISTORY_FILE, JSON.stringify(history));
+  } catch (e) {}
+}
+
+/** 添加失败项到重试队列 */
+function enqueueBackfillRetry(mid, retryCount, delayMinutes) {
+  let items = loadBackfillQueue();
+  // 去重
+  items = items.filter(i => i.mid !== mid);
+  items.push({
+    mid, retryCount: (retryCount || 0) + 1,
+    nextRetryAt: new Date(Date.now() + (delayMinutes || 30) * 60 * 1000).toISOString(),
+    addedAt: new Date().toISOString()
+  });
+  saveBackfillQueue(items);
+}
+
+/** 处理重试队列中到期的项 */
+async function processBackfillQueue() {
+  const items = loadBackfillQueue();
+  if (items.length === 0) return 0;
+
+  const now = Date.now();
+  const ready = items.filter(i => new Date(i.nextRetryAt).getTime() <= now);
+  const pending = items.filter(i => new Date(i.nextRetryAt).getTime() > now);
+
+  if (ready.length === 0) return 0;
+
+  log('[backfill-queue] 处理重试队列: ' + ready.length + ' 项');
+  let success = 0;
+
+  try {
+    const token = await getToken();
+    let data = {};
+    try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) {}
+
+    // 并发处理
+    const chunks = [];
+    for (let i = 0; i < ready.length; i += BACKFILL_CONCURRENCY) {
+      chunks.push(ready.slice(i, i + BACKFILL_CONCURRENCY));
+    }
+
+    for (const chunk of chunks) {
+      const results = await Promise.allSettled(
+        chunk.map(item => getWithUA(
+          MIDOU_BASE + '/score/getExpertRecommData.do',
+          { dataId: item.mid, type: 0 },
+          { Cookie: 'token=' + token }
+        ).then(recRes => ({ mid: item.mid, retryCount: item.retryCount, recRes }))
+        .catch(err => ({ mid: item.mid, retryCount: item.retryCount, error: err }))
+        )
+      );
+
+      for (const r of results) {
+        if (r.status !== 'fulfilled') continue;
+        const { mid, retryCount, recRes, error } = r.value;
+        if (error || recRes.code !== 1 || !recRes.data) {
+          recordBackfillHistory(mid, 'failed', error ? error.message : 'API返回空');
+          // 最多重试3次
+          if (retryCount < 3) {
+            enqueueBackfillRetry(mid, retryCount, 30 * Math.pow(2, retryCount - 1));
+          } else {
+            log('[backfill-queue] ' + mid + ' 已达最大重试次数(' + retryCount + ')，放弃');
+          }
+          continue;
+        }
+
+        const newRecs = recRes.data
+          .filter(x => x && x.type && x.num > 0)
+          .map(x => ({ type: x.type, num: x.num, result: x.result !== undefined ? x.result : null }));
+
+        const rk = 'm_' + mid;
+        const oldStale = (data.r[rk] || []).filter(r => r.result === null || r.result === 2).length;
+        data.r[rk] = newRecs;
+        const newStale = newRecs.filter(r => r.result === null || r.result === 2).length;
+        if (newStale < oldStale) {
+          success++;
+          recordBackfillHistory(mid, 'success', 'queue-retry, stale:' + oldStale + '→' + newStale);
+          log('[backfill-queue] ' + mid + ' 重试成功 (第' + retryCount + '次)');
+        } else {
+          recordBackfillHistory(mid, 'failed', 'stale未减少');
+          if (retryCount < 3) {
+            enqueueBackfillRetry(mid, retryCount, 30 * Math.pow(2, retryCount - 1));
+          }
+        }
+      }
+
+      await sleep(jitter(500));
+    }
+
+    if (success > 0) {
+      atomicWrite(DATA_FILE, data);
+      notifyReload();
+    }
+
+    // 清理已处理的项
+    const processedIds = new Set(ready.map(i => i.mid));
+    saveBackfillQueue(pending.filter(i => !processedIds.has(i.mid)));
+  } catch (e) {
+    log('[backfill-queue] 队列处理异常: ' + e.message);
+  }
+
+  return success;
+}
+
 async function backfillResults(dateStr) {
   log('[backfill] 开始回填 ' + dateStr + ' 命中信息...');
 
@@ -635,6 +782,9 @@ async function backfillResults(dateStr) {
     let data = {};
     try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) {}
     if (!data.m) data.m = {}; if (!data.r) data.r = {};
+
+    // ★ P1-1: 先用 autoInferStatus 修正可能的滞后状态
+    autoInferStatus(dateStr);
 
     // ★ 第一步：先用 footballDataList API 刷新比赛状态（修正滞后的 status）
     let statusFixed = 0;
@@ -680,20 +830,49 @@ async function backfillResults(dateStr) {
       }
     });
 
-    if (needBackfill.length === 0) { log('[backfill] 无需回填'); return; }
+    if (needBackfill.length === 0) {
+      log('[backfill] 无需回填');
+      // ★ 处理重试队列中的到期项
+      const queueDone = await processBackfillQueue();
+      if (queueDone > 0) log('[backfill] 重试队列处理完成: ' + queueDone + ' 项');
+      return;
+    }
 
     log('[backfill] ' + needBackfill.length + ' 场比赛需要回填');
+
+    // ★ P1-2: 并发请求（BACKFILL_CONCURRENCY路并发）
     let updated = 0;
 
-    for (const item of needBackfill) {
-      try {
-        const recRes = await getWithUA(
+    const chunks = [];
+    for (let i = 0; i < needBackfill.length; i += BACKFILL_CONCURRENCY) {
+      chunks.push(needBackfill.slice(i, i + BACKFILL_CONCURRENCY));
+    }
+
+    for (const chunk of chunks) {
+      const results = await Promise.allSettled(
+        chunk.map(item => getWithUA(
           MIDOU_BASE + '/score/getExpertRecommData.do',
           { dataId: item.mid, type: 0 },
           { Cookie: 'token=' + token }
-        );
-        if (recRes.code === 1 && recRes.data && recRes.data.length) {
-          const newRecs = recRes.data
+        ).then(recRes => ({ ...item, recRes }))
+        .catch(err => ({ ...item, error: err }))
+        )
+      );
+
+      for (const r of results) {
+        if (r.status !== 'fulfilled') continue;
+        const item = r.value;
+
+        if (item.error) {
+          log('[backfill] ' + item.mid + ' 失败: ' + item.error.message);
+          recordBackfillHistory(item.mid, 'failed', item.error.message);
+          // 加入重试队列
+          enqueueBackfillRetry(item.mid, 0, 30);
+          continue;
+        }
+
+        if (item.recRes.code === 1 && item.recRes.data && item.recRes.data.length) {
+          const newRecs = item.recRes.data
             .filter(x => x && x.type && x.num > 0)
             .map(x => ({ type: x.type, num: x.num, result: x.result !== undefined ? x.result : null }));
 
@@ -703,13 +882,25 @@ async function backfillResults(dateStr) {
           const newStale = newRecs.filter(r => r.result === null || r.result === 2).length;
           if (newStale < oldStale) {
             updated++;
+            recordBackfillHistory(item.mid, 'success', 'stale:' + oldStale + '→' + newStale);
             log('[backfill] ' + rk + ' (' + item.match.homeName + ' vs ' + item.match.visitName + ') stale:' + oldStale + '→' + newStale);
+          } else {
+            // 结果无变化，检查是否仍为null
+            if (newStale > 0) {
+              const retries = (needBackfill.find(x => x.mid === item.mid) || {})._retries || 0;
+              if (retries < 2) {
+                enqueueBackfillRetry(item.mid, 0, 60);
+              }
+            }
           }
+        } else {
+          // API无数据，可能是限流或比赛未开始
+          recordBackfillHistory(item.mid, 'failed', 'API返回空数据');
+          enqueueBackfillRetry(item.mid, 0, 30);
         }
-      } catch (e) {
-        log('[backfill] ' + item.mid + ' 失败: ' + e.message);
       }
-      await sleep(jitter(300));
+
+      await sleep(jitter(500)); // 批次间隔
     }
 
     if (updated > 0) {
@@ -719,6 +910,10 @@ async function backfillResults(dateStr) {
     } else {
       log('[backfill] 无新增命中');
     }
+
+    // ★ 处理重试队列
+    await processBackfillQueue();
+
   } catch (e) {
     log('[backfill] 错误: ' + e.message);
   }
@@ -976,6 +1171,82 @@ function countTodayMatches(dateStr) {
   } catch (e) { return 0; }
 }
 
+/**
+ * ★ P1-1: 自动推断比赛状态
+ * 当比赛开赛时间+120分钟已过且score有值时，主动将status标记为2（已结束）
+ * 同时通过推荐result反推：有命中结果→比赛已结束
+ */
+function autoInferStatus(dateStr) {
+  try {
+    if (!fs.existsSync(DATA_FILE)) return 0;
+    let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    if (!data.m) return 0;
+
+    const now = Date.now();
+    const year = new Date().getFullYear();
+    let fixed = 0;
+
+    Object.keys(data.m).forEach(k => {
+      const m = data.m[k];
+      if (!m || m.matchStatus >= 2) return; // 已结束，跳过
+      if (!m.date || m.date.slice(0, 10) !== dateStr) return;
+
+      let shouldFix = false;
+
+      // 方法1: 时间推断——开赛时间+120分钟已过 + 比分有值
+      if (m.startTime && m.score && m.score.trim()) {
+        try {
+          const st = m.startTime.replace(/\//g, '-');
+          const dt = new Date(year + '-' + st.slice(0, 2) + '-' + st.slice(3, 5) + 'T' + st.slice(6, 11) + ':00+08:00');
+          if (!isNaN(dt.getTime())) {
+            const endTime = dt.getTime() + 120 * 60 * 1000; // 开赛+120分钟
+            if (now > endTime) {
+              shouldFix = true;
+            }
+          }
+        } catch (e) {}
+      }
+
+      // 方法2: 推荐result反推——有命中结果 ≠ null/2 → 比赛已结束
+      if (!shouldFix && data.r) {
+        const rk = 'm_' + m.matchId;
+        const recs = data.r[rk] || [];
+        if (recs.some(r => r.result !== null && r.result !== 2)) {
+          shouldFix = true;
+        }
+      }
+
+      // 方法3: 所有比赛时间都已过去超过6小时（兜底）
+      if (!shouldFix && m.startTime) {
+        try {
+          const st = m.startTime.replace(/\//g, '-');
+          const dt = new Date(year + '-' + st.slice(0, 2) + '-' + st.slice(3, 5) + 'T' + st.slice(6, 11) + ':00+08:00');
+          if (!isNaN(dt.getTime())) {
+            if (now > dt.getTime() + 6 * 3600 * 1000) {
+              shouldFix = true;
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (shouldFix) {
+        m.matchStatus = 2;
+        fixed++;
+      }
+    });
+
+    if (fixed > 0) {
+      atomicWrite(DATA_FILE, data);
+      log('[auto_status] ' + dateStr + ' 自动推断 ' + fixed + ' 场比赛状态为"已结束"');
+      notifyReload();
+    }
+    return fixed;
+  } catch (e) {
+    log('[auto_status] 推断失败: ' + e.message);
+    return 0;
+  }
+}
+
 /** 检查指定日期是否有已结束但未回填的比赛 */
 function needBackfillCheck(dateStr) {
   try {
@@ -1105,12 +1376,15 @@ async function start() {
     setTimeout(liveScoreLoop, 120000);
   }
 
-  // ═══ 循环2: 每20分钟 — 推荐方向 + 最后一场+3h检测 ═══
+  // ═══ 循环2: 每20分钟 — 推荐方向 + 最后一场+3h检测 + 状态自动推断 ═══
   async function recommendLoop() {
     if (recommendRunning) return;
     recommendRunning = true;
     try {
       await syncRecommends();
+
+      // ★ P1-1: 每次推荐同步后自动推断比赛状态
+      autoInferStatus(currentDate);
 
       // 检测是否到达"最后一场+3h"时间
       if (!finalCheckDone) {
@@ -1215,10 +1489,24 @@ async function start() {
         backfillResults(yd).catch(e => log('[health] 昨天回填失败: ' + e.message));
       }
     }
-    // 整点输出健康状态
+    // 整点输出健康状态 + 记录每日统计
     if (new Date().getMinutes() === 0) {
       const yd = fmtLocal(new Date(Date.now() - 86400000));
       log('[health] ' + today + ' 数据状态: ' + getTodayStatusSummary(today) + ' | 昨天: ' + getTodayStatusSummary(yd));
+      // ★ P1-1: 整点时自动推断比赛状态
+      autoInferStatus(today);
+      autoInferStatus(yd);
+      // ★ P2-1: 记录每日统计快照
+      try {
+        const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+        const { recordDailyStats } = require('./logger');
+        recordDailyStats({
+          date: today,
+          matchesTotal: Object.keys(data.m || {}).length,
+          recsTotal: Object.keys(data.r || {}).length,
+          statusSummary: getTodayStatusSummary(today)
+        });
+      } catch (e) {}
     }
   }, 60000);
 }
@@ -1250,5 +1538,11 @@ module.exports = {
   backfillResults,
   syncMatchList,
   syncRecommends,
-  sync500Odds
+  sync500Odds,
+  sync500Shuju,
+  sync500ShujuSelenium,
+  syncLiveScores,
+  autoInferStatus,
+  processBackfillQueue,
+  getTodayStatusSummary,
 };
