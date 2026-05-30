@@ -32,11 +32,22 @@ Page({
     this.loadMatches();
   },
 
-  nextDay() {
+  nextDay: async function() {
     const d = new Date(this.data.currentDate);
     d.setDate(d.getDate() + 1);
-    this.setData({ currentDate: DATE.formatDate(d) });
-    this.loadMatches();
+    const nextDate = DATE.formatDate(d);
+    // 检查后一天是否有比赛数据，没有则不跳转
+    try {
+      const matches = await API.getMatchList(nextDate);
+      if (!matches || matches.length === 0) {
+        wx.showToast({ title: '后一天暂无比赛', icon: 'none', duration: 1500 });
+        return;
+      }
+      this.setData({ currentDate: nextDate, matchList: matches });
+    } catch (err) {
+      this.setData({ currentDate: nextDate });
+      this.loadMatches();
+    }
   },
 
   onRefresh() {

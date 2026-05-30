@@ -8,7 +8,9 @@
       "exec_mode": "fork",
       "env": {
         "NODE_ENV": "production",
-        "BEHIND_PROXY": "1"
+        "BEHIND_PROXY": "1",
+        "DEEPSEEK_API_KEY": "[REDACTED_DEEPSEEK_KEY]",
+        "DOUBAO_API_KEY": "[REDACTED_DOUBAO_KEY]"
       },
       "max_memory_restart": "256M",
       "log_date_format": "YYYY-MM-DD HH:mm:ss",
@@ -26,7 +28,9 @@
       "exec_mode": "fork",
       "env": {
         "NODE_ENV": "production",
-        "BEHIND_PROXY": "1"
+        "BEHIND_PROXY": "1",
+        "DEEPSEEK_API_KEY": "[REDACTED_DEEPSEEK_KEY]",
+        "DOUBAO_API_KEY": "[REDACTED_DOUBAO_KEY]"
       },
       "max_memory_restart": "256M",
       "log_date_format": "YYYY-MM-DD HH:mm:ss",

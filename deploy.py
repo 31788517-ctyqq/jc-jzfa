@@ -558,12 +558,12 @@ def main():
                 # 提取 HTML 中不重复的脚本标签作为特征
                 import re as _re
                 scripts = _re.findall(r'src="(/[^"]+\?v=\d+)"', local_html)
-                # 取一个可靠的验证点：量化方案 文字
+                # 取一个可靠的验证点：量化博冷方案 文字
                 check_ok = True
                 html_out, _ = ssh_cmd(ssh,
-                    'curl -s http://localhost:3000/index.html 2>/dev/null | grep -c "量化方案"', 5)
+                    'curl -s http://localhost:3000/index.html 2>/dev/null | grep -c "量化博冷方案"', 5)
                 if html_out.strip() != '0' and html_out.strip():
-                    print('  {} index.html 内容验证通过（量化方案标签存在）'.format(c('G', '✓')))
+                    print('  {} index.html 内容验证通过（量化博冷方案标签存在）'.format(c('G', '✓')))
                 else:
                     # fallback: 检查文件大小
                     size_out, _ = ssh_cmd(ssh,
