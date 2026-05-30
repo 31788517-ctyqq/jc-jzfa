@@ -4,15 +4,15 @@
       "name": "jc-zjfa",
       "script": "index.js",
       "cwd": "/root/server",
-      "instances": 1,
-      "exec_mode": "fork",
+      "instances": 2,
+      "exec_mode": "cluster",
       "env": {
         "NODE_ENV": "production",
         "BEHIND_PROXY": "1",
         "DEEPSEEK_API_KEY": "sk-a4a33977f39547fc89cbdb443539a7c3",
         "DOUBAO_API_KEY": "bd5ab4b5-9cf5-4ff1-8214-f0d274dbf4ee"
       },
-      "max_memory_restart": "256M",
+      "max_memory_restart": "512M",
       "log_date_format": "YYYY-MM-DD HH:mm:ss",
       "error_file": "./logs/error.log",
       "out_file": "./logs/out.log",

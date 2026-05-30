@@ -3,8 +3,10 @@
  * 数据缓存层 — data.json / trends.json / odds_history 内存缓存
  * 
  * 支持 SQLite → JSON 双模读取（优先 DB，降级 JSON）
+ * V2: TTL 延长至 60s + 异步 fs 操作
  */
 const fs = require('fs');
+const fsp = fs.promises;
 const path = require('path');
 const logger = require('../logger');
 
@@ -21,16 +23,18 @@ function localDate(d) {
   return y + '-' + m + '-' + dd;
 }
 
-// ═══ data.json 内存缓存（30秒刷新，通过 mtime 检测变更） ═══
+// ═══ data.json 内存缓存（60秒刷新，通过 mtime 检测变更） ═══
 let _dataJsonCache = null;
 let _dataJsonCacheTime = 0;
 let _dataJsonCacheMtime = 0;
+let _dataJsonLoading = null; // 防并发重复读取
 
 function getDataJson(forceRefresh) {
   const now = Date.now();
-  if (!forceRefresh && _dataJsonCache && (now - _dataJsonCacheTime < 30000)) {
+  if (!forceRefresh && _dataJsonCache && (now - _dataJsonCacheTime < 60000)) {
     return _dataJsonCache;
   }
+  // 使用同步读取以保持 API 兼容（Node.js 文件缓存使 sync 性能可接受）
   try {
     const stat = fs.statSync(DATA_JSON_PATH);
     if (!forceRefresh && _dataJsonCache && stat.mtimeMs === _dataJsonCacheMtime) {

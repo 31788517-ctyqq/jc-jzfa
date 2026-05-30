@@ -84,6 +84,7 @@ PROTECTED_FILES = [
 DEPLOY_MAP = [
     # 前端静态文件 → Nginx + Express 双路径（防止 Express fallback 使用旧文件）
     ('preview/index.html',                'both'),
+    ('preview/css/app.css',               'both'),
     ('preview/app.js',                    'both'),
     ('preview/js/main.js',                'both'),
     ('preview/js/main-fusion.js',         'both'),
@@ -91,6 +92,9 @@ DEPLOY_MAP = [
     ('preview/js/pages/quant-rank-fusion.js','both'),
     ('preview/js/pages/match-pk.js',      'both'),
     ('preview/js/pages/match-pk-fusion.js','both'),
+    ('preview/js/pages/match-list.js',    'both'),
+    ('preview/js/pages/match-detail.js',  'both'),
+    ('preview/js/pages/backtest.js',      'both'),
     ('preview/js/pages/ranking.js',       'both'),
     ('preview/js/pages/income.js',        'both'),
     ('preview/js/pages/plans.js',         'both'),
