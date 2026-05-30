@@ -42,7 +42,7 @@ export function loadMatchList() {
     var bar = document.getElementById('matchPkBar');
     if (bar) bar.style.display = 'none';
     var pkHint = matches.length > 0
-      ? '<div class="pk-hint"><span class="pk-hint-icon">💡</span>选择两场以上比赛进行量化数据PK，可自动生成PK方案</div>'
+      ? '<div class="pk-hint"><span class="pk-hint-icon">💡</span><span class="pk-hint-text">选择两场以上比赛进行量化数据PK，自动生成PK方案</span></div>'
       : '';
     el.innerHTML = pkHint + matches.map(m => {
       const statusText = { 0: '未开始', 1: '进行中', 2: '已结束', 3: '取消' }[m.matchStatus] || '未知';

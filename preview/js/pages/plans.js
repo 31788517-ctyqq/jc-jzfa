@@ -362,7 +362,7 @@ export function loadScorePlanList() {
     var notice = data.notice || '';
     if (plans.length === 0) {
       if (notice) {
-        el.innerHTML = '<div class="plan-notice"><span class="notice-icon">⏳</span>' + notice + '</div>';
+        el.innerHTML = '<div class="plan-notice"><span class="notice-icon"><img src="/assets/expressionless-face.svg" width="32" height="32" alt="" decoding="async"/></span>' + notice + '</div>';
         return;
       }
       var now = new Date();
@@ -525,7 +525,7 @@ export function loadQuantPlanList() {
     var notice = data.notice || '';
     if (plans.length === 0) {
       if (notice) {
-        el.innerHTML = '<div class="plan-notice"><span class="notice-icon">⏳</span>' + notice + '</div>';
+        el.innerHTML = '<div class="plan-notice"><span class="notice-icon"><img src="/assets/expressionless-face.svg" width="32" height="32" alt="" decoding="async"/></span>' + notice + '</div>';
         return;
       }
       var now = new Date();

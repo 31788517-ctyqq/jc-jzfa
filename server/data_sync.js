@@ -22,9 +22,12 @@ const { exec } = require('child_process');
 const { getWithUA, getWithRetry, jitter, sleep } = require('./http-utils');
 const { getToken, refreshToken } = require('./token_manager');
 const { fetchOdds: fetch500Odds, fetchShujuMap } = require('./fetch_500odds');
+const { fetchShujuData } = require('./fetch_shuju');
+const { mergeShuju } = require('./merge_shuju');
 const { execSync } = require('child_process');
 const alert = require('./alert');
 const logger = require('./logger').child('data_sync');
+const database = require('./database');
 
 // AI 模块（用于定时刷新）
 let deepseek, doubao, aiMerger;
@@ -427,6 +430,22 @@ async function syncMatchList(dateStr) {
 
     atomicWrite(DATA_FILE, data);
     log('[match_list] 赛程同步完成: 新增' + newCount + '场 更新' + updateCount + '场');
+    
+    // 同步到 SQLite 数据库
+    if (database.isAvailable()) {
+      try {
+        const dbMatches = periodMatches.map(m => ({
+          matchId: String(m.matchId || m.dataId || ''),
+          num: m.num || '', homeName: m.homeName || '', visitName: m.visitName || '',
+          leagueName: m.leagueName || '', startTime: m.startTime || '',
+          matchStatus: m.matchStatus || 0, score: m.score || '',
+          halfScore: m.halfScore || '', recommNum: m.recommNum || 0,
+          date: (m.bDate && typeof m.bDate === 'string' && m.bDate.length >= 10) ? m.bDate.slice(0, 10) : targetDate
+        }));
+        database.batchUpsertMatches(dbMatches);
+      } catch(e) { log('[db] match_list sync failed: ' + e.message); }
+    }
+    
     notifyReload();
 
   } catch (e) {
@@ -512,13 +531,35 @@ async function syncRecommends(dateStr) {
 
     atomicWrite(DATA_FILE, data);
 
+    // 同步推荐到 SQLite
+    if (database.isAvailable() && recChanged > 0) {
+      try {
+        const dbRecs = [];
+        Object.keys(data.r).forEach(rk => {
+          const mid = rk.startsWith('m_') ? rk.slice(2) : rk;
+          (data.r[rk] || []).forEach(r => {
+            if (!r || !r.type || !r.num) return;
+            dbRecs.push({
+              matchId: String(mid), type: r.type, num: r.num,
+              result: r.result !== undefined ? r.result : null,
+              fetchDate: targetDate
+            });
+          });
+        });
+        if (dbRecs.length > 0) {
+          database.batchUpsertRecommends(dbRecs);
+          log('[db] recommends synced: ' + dbRecs.length + ' records');
+        }
+      } catch(e) { log('[db] recommend sync failed: ' + e.message); }
+    }
+
     // 状态汇总
     const allDone = dateMatches.every(m => m.matchStatus >= 2);
     const summary = dateMatches.map(m =>
       (m.num || '') + ':' + (m.matchStatus === 0 ? '未' : m.matchStatus === 1 ? '赛中' : m.matchStatus === 2 ? '完' : '取消')
     ).join(',');
     log('[recommend] ' + dateMatches.length + '场 [' + summary + '] 推荐变更:' + recChanged + ' 命中更新:' + resultUpdated + (allDone ? ' ALL_DONE' : ''));
-
+    
     // 如果有命中结果更新，通知 simple.js 重载
     if (resultUpdated > 0 || recChanged > 0) notifyReload();
 
@@ -1300,9 +1341,13 @@ function getNextNoonDelay() {
 async function start() {
   log('════════════════════════════════════════');
   log('  统一数据同步守护进程 v3 启动');
-  log('  增强: 启动重试 + num回退匹配 + 健康监控');
+  log('  增强: 启动重试 + num回退匹配 + 健康监控 + SQLite持久化');
   log('  数据源: midou310.com + 500.com');
   log('════════════════════════════════════════');
+
+  // 初始化 SQLite 数据库
+  database.initDatabase();
+  log('[init] SQLite 数据库后端: ' + (database.isAvailable() ? '可用' : 'JSON降级模式'));
 
   currentDate = new Date().toISOString().slice(0, 10);
   log('[init] 当前日期: ' + currentDate + ' 数据状态: ' + getTodayStatusSummary(currentDate));
@@ -1424,9 +1469,23 @@ async function start() {
         await sleep(jitter(2000));
         await sync500Odds(today);
         await sleep(jitter(2000));
-        sync500Shuju(today); // 静态 HTML
-        sync500ShujuSelenium(today); // Selenium JS 渲染
-        // 延后 5 分钟合并数据 + 清理（等 Selenium 完成）
+        
+        // ★ P2: 预生成 shuju 数据（纯 Node.js，不依赖 Python）
+        // shuju_map → fetchShujuData → mergeShuju → shuju_merged
+        log('[scheduler] 开始预生成 shuju 数据...');
+        try {
+          await fetchShujuMap(today);           // Step 1: shuju ID 映射
+          await fetchShujuData(today);          // Step 2: 抓取分析数据 (JS)
+          mergeShuju(today);                    // Step 3: 合并输出
+          log('[scheduler] shuju 预生成完成: ' + today + ' → AI 深度解析数据就绪');
+        } catch (e) {
+          log('[scheduler] shuju 预生成失败: ' + e.message);
+        }
+        
+        // 旧 Python 路径保留（如环境支持则执行）
+        sync500Shuju(today);
+        sync500ShujuSelenium(today);
+        // 延后 5 分钟合并数据
         setTimeout(() => {
           log('[shuju] 开始合并静态+Selenium数据...');
           try {
@@ -1523,16 +1582,20 @@ if (require.main === module) {
 
 // ── 供外部调用的接口 ──
 module.exports = {
-  /** 触发 500.com 数据抓取（AI 解析发现缺失时调用） */
+  /** 触发 500.com 数据抓取（AI 解析发现缺失时调用） — P1: 纯 Node.js，不依赖 Python */
   triggerShujuFetch: async function (dateStr) {
     if (!dateStr) dateStr = fmtLocal(new Date());
     console.log('[data_sync] 外部触发 500.com 数据抓取: ' + dateStr);
     try {
-      await sync500Odds(dateStr);
-      await sync500Shuju(dateStr);
-      sync500ShujuSelenium(dateStr);
+      // Step 1: 生成 shuju_map (JS 原生)
+      await fetchShujuMap(dateStr);
+      // Step 2: 抓取分析数据 (JS 原生，替代 Python)
+      await fetchShujuData(dateStr);
+      // Step 3: 合并生成 shuju_merged
+      mergeShuju(dateStr);
+      console.log('[data_sync] shuju 数据抓取完成: ' + dateStr);
     } catch (e) {
-      console.error('[data_sync] 外部抓取失败: ' + e.message);
+      console.error('[data_sync] shuju 抓取失败: ' + e.message);
     }
   },
   backfillResults,

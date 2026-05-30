@@ -16,6 +16,7 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const database = require('./database');
+const predictionLog = require('./prediction_log');
 const { get } = require('./http-utils');
 const logger = require('./logger');
 const deepseek = require('./deepseek');
@@ -1060,6 +1061,24 @@ app.post('/api', async (req, res) => {
               entry.updatedAt = new Date().toISOString();
               cur[mid] = entry;
               fs.writeFileSync(cacheFile, JSON.stringify(cur));
+
+              // ★ 回测钩子: AI 预测持久化
+              try {
+                var preds = (entry.content && entry.content['预测建议']) ? entry.content['预测建议'] : [];
+                var aiFields = { confidence: entry.confidence || 0, content: JSON.stringify(entry.content) };
+                if (matchInfo.date) aiFields.date = matchInfo.date.slice(0, 10);
+                if (matchInfo.homeName) aiFields.homeName = matchInfo.homeName;
+                if (matchInfo.visitName) aiFields.visitName = matchInfo.visitName;
+                if (matchInfo.leagueName) aiFields.leagueName = matchInfo.leagueName;
+                if (matchInfo.num) aiFields.matchNum = matchInfo.num;
+                preds.forEach(function(p) {
+                  if (p['玩法'] === '胜平负') aiFields.spf = p['建议方向'];
+                  if (p['玩法'] === '大小球') aiFields.overunder = p['建议方向'];
+                  if (p['玩法'] === '比分预测') aiFields.score = p['建议方向'];
+                });
+                predictionLog.upsertAI(mid, aiFields);
+              } catch (e) {}
+
               return entry;
             } catch (e) { console.error('[ai] cache err:', e.message); return null; }
           }
@@ -1294,6 +1313,41 @@ app.post('/api', async (req, res) => {
           return res.json({ code: 1, data: { date: requestDate, gsData: result, gsCacheTime: gsCacheTime } });
         } catch (e) {
           return res.json({ code: 0, msg: '功守道批量获取失败: ' + e.message });
+        }
+      }
+
+      // ========== 预测回测 ==========
+      case 'prediction-backtest': {
+        try {
+          predictionLog.autoEnsure();
+          var result = predictionLog.queryBacktest({
+            type: data.type || 'all',
+            dateRange: data.dateRange || 'all',
+            league: data.league || 'all',
+            direction: data.direction || 'all',
+            aiConf: data.aiConf || 'all',
+            pkConf: data.pkConf || 'all',
+            consensus: data.consensus || 'all',
+            page: parseInt(data.page) || 1,
+            pageSize: parseInt(data.pageSize) || 20
+          });
+
+          // Add league list and total count
+          result.leagues = predictionLog.getLeagues();
+          return res.json({ code: 1, data: result });
+        } catch (e) {
+          return res.json({ code: 0, msg: '回测查询失败: ' + e.message });
+        }
+      }
+
+      // ========== 预测回测联赛列表 ==========
+      case 'backtest-leagues': {
+        try {
+          var leagues = predictionLog.getLeagues();
+          var total = predictionLog.getTotalCount();
+          return res.json({ code: 1, data: { leagues: leagues, total: total } });
+        } catch (e) {
+          return res.json({ code: 0, msg: e.message });
         }
       }
 

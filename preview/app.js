@@ -1757,7 +1757,7 @@ function loadPlanList() {
 // ========== 比分方案 ==========
 function loadScorePlanList() {
   var el = document.getElementById('planList');
-  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载比分方案中...</div>';
+  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载单关比分方案中...</div>';
 
   var params = planDateOffset === 0 ? {} : { date: planDate };
   api('score-plan-list', params).then(function(data) {
@@ -1775,7 +1775,7 @@ function loadScorePlanList() {
     // 显示提示信息
     if (plans.length === 0) {
       if (notice) {
-        el.innerHTML = '<div class="plan-notice"><span class="notice-icon">⏳</span>' + notice + '</div>';
+        el.innerHTML = '<div class="plan-notice"><span class="notice-icon"><img src="/assets/expressionless-face.svg" width="32" height="32" alt="" decoding="async"/></span>' + notice + '</div>';
       } else {
         var now = new Date();
         var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
@@ -1790,7 +1790,7 @@ function loadScorePlanList() {
             return;
           }
         }
-        el.innerHTML = '<div class="plan-notice"><span class="notice-icon">📊</span>今日暂无符合条件的比分方案</div>';
+        el.innerHTML = '<div class="plan-notice"><span class="notice-icon">📊</span>今日暂无符合条件的单关比分方案</div>';
       }
       return;
     }
@@ -1846,7 +1846,7 @@ function loadScorePlanList() {
         '<div class="plan-card-head">' +
           '<div class="plan-left">' +
             '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
-            '<span class="plan-name" style="color: var(--amber);">' + (p.planName || '比分方案') + '</span>' +
+            '<span class="plan-name" style="color: var(--amber);">' + (p.planName || '单关比分方案') + '</span>' +
           '</div>' +
           '<span class="plan-pub-time">' + cutoffDisplay + '</span>' +
         '</div>' +

@@ -12,8 +12,9 @@ import { loadFilterLeagues, resetFilterResult, toggleDD, selectDD, getDDVal, onD
 import { loadIncome } from './pages/income.js';
 import { loadPlanList, loadScorePlanList, loadQuantPlanList, updatePlanDateBar, shiftPlanDate, goPlanToday, switchPlanTab } from './pages/plans.js';
 import { showGongshoudao } from './pages/gongshoudao.js?v=25052903';
+import { loadBacktest } from './pages/backtest.js?v=86';
 import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker, switchQuantTab, togglePick, startPK, sortBy, switchQuantView } from './pages/quant-rank-fusion.js?v=83';
-import { openPK, closePK, openPKMulti } from './pages/match-pk-fusion.js?v=83';
+import { openPK, closePK, openPKMulti } from './pages/match-pk-fusion.js?v=85';
 
 // ★ P3-1: WebSocket 实时推送
 import { initWS, wsEvents, disconnectWS } from './ws-client.js?v=1';
@@ -345,6 +346,7 @@ export function switchTab(tab) {
   if (tab === 'hit') loadHitRate();
   if (tab === 'filter') { loadFilterLeagues(); resetFilterResult(); }
   if (tab === 'income') loadIncome();
+  if (tab === 'backtest') loadBacktest();
 }
 
 export function goBack() {
@@ -443,4 +445,5 @@ function switchTabLoad(tab) {
   if (tab === 'hit') loadHitRate();
   if (tab === 'filter') { loadFilterLeagues(); resetFilterResult(); }
   if (tab === 'income') loadIncome();
+  if (tab === 'backtest') loadBacktest();
 }
