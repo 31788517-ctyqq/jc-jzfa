@@ -111,6 +111,10 @@ DEPLOY_MAP = [
     ('server/fetch_odds.js',              'both'),
     ('server/fetch_500odds.js',           'both'),
     ('server/merge_shuju.js',             'both'),
+    ('server/logger.js',                  'both'),
+    ('server/catch_up.js',                'both'),
+    ('server/websocket.js',               'both'),
+    ('server/scheduler_v2.js',            'both'),
     ('server/gongshoudao/index.js',       'both'),
     ('server/gongshoudao/attack.js',      'both'),
     ('server/gongshoudao/goal.js',        'both'),
@@ -463,9 +467,13 @@ def main():
     if not dry_run:
         if quick_mode:
             ssh_cmd(ssh, 'pm2 restart jc-zjfa 2>&1', 10)
-            print(c('G', '[Phase 4] PM2 已重启'))
+            ssh_cmd(ssh, 'pm2 restart jc-sync 2>&1', 10)
+            print(c('G', '[Phase 4] PM2 已重启 (jc-zjfa + jc-sync)'))
         else:
             pm2_restart_and_verify(ssh)
+            # 也重启数据同步守护进程（加载 P1/P2 增强逻辑）
+            ssh_cmd(ssh, 'pm2 restart jc-sync 2>&1', 10)
+            print('  PM2 jc-sync 已重启（A/增强版 data_sync）')
     print()
 
     # ── Phase 4.5: 部署复验（确认文件未被还原） ──
