@@ -41,14 +41,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 导航栏 */
+/* 导航栏 — 标题距顶部：桌面端 45px，刘海屏 40~56px 自适应 */
 .navbar {
   width: 100%;
-  padding: 12px 16px 8px;
+  padding: 45px 16px 8px;          /* 桌面端 */
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
+}
+/* 移动端：使用 safe-area 适配刘海屏 */
+@media (max-width: 420px) {
+  .navbar {
+    padding-top: max(40px, env(safe-area-inset-top, 0px));
+  }
 }
 .nav-logo {
   width: 26px;
