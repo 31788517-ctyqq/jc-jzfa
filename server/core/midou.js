@@ -9,7 +9,9 @@ const logger = require('../logger');
 const CONFIG = {
   MIDOU_BASE: 'https://midou310.com/mdsj',
   MOBILE: process.env.MIDOU_MOBILE,
-  PASSWORD: process.env.MIDOU_PASSWORD
+  PASSWORD: process.env.MIDOU_PASSWORD,
+  BACKUP_MOBILE: process.env.MIDOU_BACKUP_MOBILE || '',
+  BACKUP_PASSWORD: process.env.MIDOU_BACKUP_PASSWORD || ''
 };
 
 // ═══ 运行时缓存 ═══
@@ -18,28 +20,51 @@ let _loginFailures = 0;
 let _lastLoginAlert = 0;
 
 // ═══ 登录 ═══
+async function _doLogin(mobile, password, label) {
+  const res = await get(
+    `${CONFIG.MIDOU_BASE}/gduser/login.do`,
+    { mobile, password }
+  );
+  if (res.code === 1) {
+    logger.info(`[${label}] 登录成功, token: ${res.data.token.slice(0, 16)}...`);
+    return res.data.token;
+  }
+  logger.warn(`[${label}] 登录失败: ${res.msg || '未知'}`);
+  return null;
+}
+
 async function login() {
   const now = Date.now();
   if (cache.token && cache.tokenExpire > now) return cache.token;
 
-  const res = await get(
-    `${CONFIG.MIDOU_BASE}/gduser/login.do`,
-    { mobile: CONFIG.MOBILE, password: CONFIG.PASSWORD }
-  );
-  if (res.code === 1) {
-    cache.token = res.data.token;
-    cache.tokenExpire = now + 3600000; // 1小时
+  // 尝试主账户
+  let token = await _doLogin(CONFIG.MOBILE, CONFIG.PASSWORD, '主账户');
+  if (token) {
+    cache.token = token;
+    cache.tokenExpire = now + 3600000;
     _loginFailures = 0;
-    logger.info('登录成功, token: ' + cache.token.slice(0, 16) + '...');
     return cache.token;
   }
+
+  // 主账户失败，尝试备用账户
+  if (CONFIG.BACKUP_MOBILE && CONFIG.BACKUP_PASSWORD) {
+    logger.info('主账户登录失败，切换到备用账户...');
+    token = await _doLogin(CONFIG.BACKUP_MOBILE, CONFIG.BACKUP_PASSWORD, '备用账户');
+    if (token) {
+      cache.token = token;
+      cache.tokenExpire = now + 3600000;
+      _loginFailures = 0;
+      return cache.token;
+    }
+  }
+
+  // 两个都失败了
   _loginFailures++;
-  // 连续3次登录失败触发告警
   if (_loginFailures >= 3 && now - _lastLoginAlert > 900000) {
     _lastLoginAlert = now;
-    try { const alert = require('../alert'); alert.loginFailed(res.msg || '未知'); } catch (e) {}
+    try { const alert = require('../alert'); alert.loginFailed('主备账户均登录失败'); } catch (e) {}
   }
-  throw new Error('登录失败: ' + (res.msg || '未知'));
+  throw new Error('登录失败: 主备账户均无法登录');
 }
 
 // ═══ 获取比赛列表 ═══

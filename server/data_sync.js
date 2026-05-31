@@ -952,6 +952,52 @@ async function backfillResults(dateStr) {
       log('[backfill] 无新增命中');
     }
 
+    // ★★ P3-1: 同步赛果到 prediction_logs（回测数据源）
+    try {
+      var predictionLog = require('./prediction_log');
+      predictionLog.autoEnsure();
+      var logsUpdated = 0;
+      Object.keys(data.m).forEach(function(k) {
+        var m = data.m[k];
+        if (!m || !m.date || m.date.slice(0, 10) !== dateStr) return;
+        if (m.matchStatus < 2) return;  // 只处理已结束比赛
+        if (!m.score || !m.score.trim()) return;
+        var mid = String(m.matchId || '');
+        if (!mid) return;
+        var scoreStr = (m.score || '').replace('-', ':');
+        var parts = scoreStr.split(':');
+        var homeGoals = parseInt(parts[0]);
+        var awayGoals = parseInt(parts[1]);
+        if (isNaN(homeGoals) || isNaN(awayGoals)) return;
+        var totalGoals = homeGoals + awayGoals;
+        var actualSpf = '';
+        if (homeGoals > awayGoals) actualSpf = '主胜';
+        else if (homeGoals < awayGoals) actualSpf = '客胜';
+        else actualSpf = '平';
+        var actualOverunder = '';
+        if (totalGoals > 2) actualOverunder = '大球';
+        else if (totalGoals < 2) actualOverunder = '小球';
+        else actualOverunder = '走';
+        try {
+          predictionLog.backfillResult(mid, {
+            actualScore: m.score,
+            homeGoals: homeGoals,
+            awayGoals: awayGoals,
+            actualSpf: actualSpf,
+            actualOverunder: actualOverunder
+          });
+          logsUpdated++;
+        } catch (e2) {
+          // 单条失败不影响整体
+        }
+      });
+      if (logsUpdated > 0) {
+        log('[backfill] prediction_logs 赛果同步: ' + logsUpdated + ' 场');
+      }
+    } catch (e) {
+      log('[backfill] prediction_logs 同步异常: ' + e.message);
+    }
+
     // ★ 处理重试队列
     await processBackfillQueue();
 

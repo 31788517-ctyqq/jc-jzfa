@@ -13,6 +13,14 @@ function _mod(name) {
   return import('./pages/' + name + '.js').then(function (m) {
     _modCache[name] = m;
     return m;
+  }).catch(function (e) {
+    console.error('[JS] 模块加载失败: ' + name + ' - ' + (e && e.message));
+    // 重试一次（可能是网络波动或文件刚部署）
+    return import('./pages/' + name + '.js').then(function (m) {
+      _modCache[name] = m;
+      console.warn('[JS] 模块重试成功: ' + name);
+      return m;
+    });
   });
 }
 
@@ -27,33 +35,33 @@ function _preloadMods() {
 
 // ═══ 懒加载 window 代理 ═══
 // 所有 onclick 调用的函数通过代理确保模块已加载
-window.goDetail      = function (id) { _mod('match-detail').then(function (m) { m.goDetail(id); }); };
-window.closeAI       = function ()   { _mod('match-detail').then(function (m) { m.closeAI(); }); };
-window.showAIPrediction = function (id) { _mod('match-detail').then(function (m) { m.showAIPrediction(id); }); };
-window.showGongshoudao = function () { var args = arguments; _mod('gongshoudao').then(function (m) { m.showGongshoudao.apply(null, args); }); };
-window.openPK        = function ()   { var args = arguments; _mod('match-pk-fusion').then(function (m) { m.openPK.apply(null, args); }); };
-window.closePK       = function ()   { _mod('match-pk-fusion').then(function (m) { m.closePK(); }); };
-window.openPKMulti   = function ()   { var args = arguments; _mod('match-pk-fusion').then(function (m) { m.openPKMulti.apply(null, args); }); };
-window.toggleDD      = function ()   { var args = arguments; _mod('filter').then(function (m) { m.toggleDD.apply(null, args); }); };
-window.selectDD      = function ()   { var args = arguments; _mod('filter').then(function (m) { m.selectDD.apply(null, args); }); };
+window.goDetail      = function (id) { _mod('match-detail').then(function (m) { m.goDetail(id); }).catch(function(e) { console.error('[JS] goDetail 失败:', (e&&e.message)); }); };
+window.closeAI       = function ()   { _mod('match-detail').then(function (m) { m.closeAI(); }).catch(function(e) { console.error('[JS] closeAI 失败:', (e&&e.message)); }); };
+window.showAIPrediction = function (id) { _mod('match-detail').then(function (m) { m.showAIPrediction(id); }).catch(function(e) { console.error('[JS] showAIPrediction 失败:', (e&&e.message)); }); };
+window.showGongshoudao = function () { var args = arguments; _mod('gongshoudao').then(function (m) { m.showGongshoudao.apply(null, args); }).catch(function(e) { console.error('[JS] showGongshoudao 失败:', (e&&e.message)); alert('功守道量化数据加载失败，请刷新页面后重试'); }); };
+window.openPK        = function ()   { var args = arguments; _mod('match-pk-fusion').then(function (m) { m.openPK.apply(null, args); }).catch(function(e) { console.error('[JS] openPK 失败:', (e&&e.message)); }); };
+window.closePK       = function ()   { _mod('match-pk-fusion').then(function (m) { m.closePK(); }).catch(function(e) { console.error('[JS] closePK 失败:', (e&&e.message)); }); };
+window.openPKMulti   = function ()   { var args = arguments; _mod('match-pk-fusion').then(function (m) { m.openPKMulti.apply(null, args); }).catch(function(e) { console.error('[JS] openPKMulti 失败:', (e&&e.message)); }); };
+window.toggleDD      = function ()   { var args = arguments; _mod('filter').then(function (m) { m.toggleDD.apply(null, args); }).catch(function(e) { console.error('[JS] toggleDD 失败:', (e&&e.message)); }); };
+window.selectDD      = function ()   { var args = arguments; _mod('filter').then(function (m) { m.selectDD.apply(null, args); }).catch(function(e) { console.error('[JS] selectDD 失败:', (e&&e.message)); }); };
 window.getDDVal      = function (id) { var el = document.getElementById(id); return el ? (el.getAttribute('data-val') || '') : ''; };
-window.onDDTypeChange = function ()  { _mod('filter').then(function (m) { m.onDDTypeChange(); }); };
-window.onRankTypeChange = function(){ _mod('filter').then(function (m) { m.onRankTypeChange(); }); };
-window.doFilterQuery = function ()   { _mod('filter').then(function (m) { m.doFilterQuery(); }); };
-window.loadIncome    = function (f)  { _mod('income').then(function (m) { m.loadIncome(f); }); };
-window.switchPlanTab = function (t)  { _mod('plans').then(function (m) { m.switchPlanTab(t); }); };
-window.shiftPlanDate = function (d)  { _mod('plans').then(function (m) { m.shiftPlanDate(d); }); };
-window.goPlanToday   = function ()   { _mod('plans').then(function (m) { m.goPlanToday(); }); };
-window.switchQuantTab = function (t) { _mod('quant-rank-fusion').then(function (m) { m.switchQuantTab(t); }); };
-window.toggleQuantDatePicker = function () { _mod('quant-rank-fusion').then(function (m) { m.toggleQuantDatePicker(); }); };
-window.shiftQuantDate = function (d) { _mod('quant-rank-fusion').then(function (m) { m.shiftQuantDate(d); }); };
-window.goQuantToday  = function ()   { _mod('quant-rank-fusion').then(function (m) { m.goQuantToday(); }); };
-window.togglePick    = function (id) { _mod('quant-rank-fusion').then(function (m) { m.togglePick(id); }); };
-window.startPK       = function ()   { _mod('quant-rank-fusion').then(function (m) { m.startPK(); }); };
-window.sortBy        = function (k)  { _mod('quant-rank-fusion').then(function (m) { m.sortBy(k); }); };
-window.switchQuantView = function (v) { _mod('quant-rank-fusion').then(function (m) { m.switchQuantView(v); }); };
+window.onDDTypeChange = function ()  { _mod('filter').then(function (m) { m.onDDTypeChange(); }).catch(function(e) { console.error('[JS] onDDTypeChange 失败:', (e&&e.message)); }); };
+window.onRankTypeChange = function(){ _mod('filter').then(function (m) { m.onRankTypeChange(); }).catch(function(e) { console.error('[JS] onRankTypeChange 失败:', (e&&e.message)); }); };
+window.doFilterQuery = function ()   { _mod('filter').then(function (m) { m.doFilterQuery(); }).catch(function(e) { console.error('[JS] doFilterQuery 失败:', (e&&e.message)); }); };
+window.loadIncome    = function (f)  { _mod('income').then(function (m) { m.loadIncome(f); }).catch(function(e) { console.error('[JS] loadIncome 失败:', (e&&e.message)); }); };
+window.switchPlanTab = function (t)  { _mod('plans').then(function (m) { m.switchPlanTab(t); }).catch(function(e) { console.error('[JS] switchPlanTab 失败:', (e&&e.message)); }); };
+window.shiftPlanDate = function (d)  { _mod('plans').then(function (m) { m.shiftPlanDate(d); }).catch(function(e) { console.error('[JS] shiftPlanDate 失败:', (e&&e.message)); }); };
+window.goPlanToday   = function ()   { _mod('plans').then(function (m) { m.goPlanToday(); }).catch(function(e) { console.error('[JS] goPlanToday 失败:', (e&&e.message)); }); };
+window.switchQuantTab = function (t) { _mod('quant-rank-fusion').then(function (m) { m.switchQuantTab(t); }).catch(function(e) { console.error('[JS] switchQuantTab 失败:', (e&&e.message)); }); };
+window.toggleQuantDatePicker = function () { _mod('quant-rank-fusion').then(function (m) { m.toggleQuantDatePicker(); }).catch(function(e) { console.error('[JS] toggleQuantDatePicker 失败:', (e&&e.message)); }); };
+window.shiftQuantDate = function (d) { _mod('quant-rank-fusion').then(function (m) { m.shiftQuantDate(d); }).catch(function(e) { console.error('[JS] shiftQuantDate 失败:', (e&&e.message)); }); };
+window.goQuantToday  = function ()   { _mod('quant-rank-fusion').then(function (m) { m.goQuantToday(); }).catch(function(e) { console.error('[JS] goQuantToday 失败:', (e&&e.message)); }); };
+window.togglePick    = function (id) { _mod('quant-rank-fusion').then(function (m) { m.togglePick(id); }).catch(function(e) { console.error('[JS] togglePick 失败:', (e&&e.message)); }); };
+window.startPK       = function ()   { _mod('quant-rank-fusion').then(function (m) { m.startPK(); }).catch(function(e) { console.error('[JS] startPK 失败:', (e&&e.message)); }); };
+window.sortBy        = function (k)  { _mod('quant-rank-fusion').then(function (m) { m.sortBy(k); }).catch(function(e) { console.error('[JS] sortBy 失败:', (e&&e.message)); }); };
+window.switchQuantView = function (v) { _mod('quant-rank-fusion').then(function (m) { m.switchQuantView(v); }).catch(function(e) { console.error('[JS] switchQuantView 失败:', (e&&e.message)); }); };
 window.startMatchPK  = startMatchPK;  // 已静态导入
-window.handleDocClose = function (e) { _mod('filter').then(function (m) { m.handleDocClose(e); }); };
+window.handleDocClose = function (e) { _mod('filter').then(function (m) { m.handleDocClose(e); }).catch(function(e) { console.error('[JS] handleDocClose 失败:', (e&&e.message)); }); };
 
 // WebSocket 暂未实现，使用 HTTP 轮询模式
 

@@ -127,7 +127,11 @@ export function loadPlanList() {
 
       var planName = p.planName || ('方案' + (i + 1));
       var amountVal = (p.amount || 1000).toFixed(0);
-      var prizeVal = (p.maxPrize || 0).toFixed(0);
+      var isWon = p.isScoreWon || false;
+      var isLose = p.isScoreLose || false;
+      var prizeVal = isWon ? (p.winningPrize || 0).toFixed(0) : (p.maxPrize || 0).toFixed(0);
+      var prizeLabel = isWon ? '中奖金额' : (isLose ? '预计奖金' : '预计最高奖金');
+      var statusText = isWon ? '已中奖' : (isLose ? '未中奖' : '未开奖');
       var prizeLabel = isWon ? '中奖金额' : (isLose ? '预计奖金' : '预计最高奖金');
 
       if (p.passType === '混合过关' && isWon) {
@@ -307,6 +311,8 @@ export function loadPlanList() {
         '<div class="plan-amount-value">' + (isWon ? '已中奖' : (isLose ? '未中奖' : '未开奖')) + '</div>' +
         '</div>' +
         '</div>' +
+        (isWon ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>' : '') +
+        (isLose ? '<div class="plan-lose-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#9AA6B2" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="16" font-weight="900" fill="#9AA6B2" transform="rotate(-10,19,19)">未中</text></svg></div>' : '') +
         '<div class="plan-divider"></div>' +
         '<div class="plan-info-grid">' +
         '<div class="plan-info-left">' +
@@ -384,6 +390,8 @@ export function loadScorePlanList() {
 
     el.innerHTML = plans.map(function(p, i) {
       var scores = p.selectedScores || [];
+      var isWon = p.isScoreWon || false;
+      var isLose = p.isScoreLose || false;
       var cutoffDisplay = '';
       if (p.startTime) {
         var stParts = p.startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
@@ -414,7 +422,11 @@ export function loadScorePlanList() {
       }
 
       var amountVal = (p.amount || 1000).toFixed(0);
-      var prizeVal = (p.maxPrize || 0).toFixed(0);
+      var isWon = p.isScoreWon || false;
+      var isLose = p.isScoreLose || false;
+      var prizeVal = isWon ? (p.winningPrize || 0).toFixed(0) : (p.maxPrize || 0).toFixed(0);
+      var prizeLabel = isWon ? '中奖金额' : (isLose ? '预计奖金' : '预计最高奖金');
+      var statusText = isWon ? '已中奖' : (isLose ? '未中奖' : '未开奖');
 
       // 构建比分标签 + 奖金分配（按行显示）
       var scoreRows = '';
@@ -458,14 +470,16 @@ export function loadScorePlanList() {
             '<div class="plan-amount-value">' + amountVal + '<span class="unit">元</span></div>' +
           '</div>' +
           '<div class="plan-amount-col">' +
-            '<div class="plan-amount-label">预计奖金</div>' +
-            '<div class="plan-amount-value" style="color: var(--amber);">' + prizeVal + '<span class="unit">元</span></div>' +
+            '<div class="plan-amount-label">' + prizeLabel + '</div>' +
+            '<div class="plan-amount-value" style="color: ' + (isWon ? 'var(--red)' : 'var(--amber)') + ';">' + prizeVal + '<span class="unit">元</span></div>' +
           '</div>' +
           '<div class="plan-amount-col">' +
             '<div class="plan-amount-label">方案状态</div>' +
-            '<div class="plan-amount-value">未开奖</div>' +
+            '<div class="plan-amount-value">' + statusText + '</div>' +
           '</div>' +
         '</div>' +
+        (isWon ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>' : '') +
+        (isLose ? '<div class="plan-lose-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#9AA6B2" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="16" font-weight="900" fill="#9AA6B2" transform="rotate(-10,19,19)">未中</text></svg></div>' : '') +
         '<div class="plan-divider"></div>' +
         '<div class="plan-info-grid">' +
           '<div class="plan-info-left">' +
@@ -547,6 +561,31 @@ export function loadQuantPlanList() {
 
     el.innerHTML = plans.map(function(p, i) {
       var matches = p.matches || [];
+      // ★ 中奖判定逻辑（复用专家方案规则）
+      var isWon = false, isLose = false;
+      if (p.passType === '混合过关') {
+        var hitCount = 0, loseCount = 0, undetermined = false;
+        for (var mi = 0; mi < matches.length; mi++) {
+          if (matches[mi].isMatchWon) hitCount++;
+          else if (matches[mi].isMatchLose) loseCount++;
+          else undetermined = true;
+        }
+        if (!undetermined) {
+          isWon = hitCount >= 2;
+          isLose = !isWon;
+        }
+      } else {
+        var allWon = matches.length > 0;
+        var anyLose = false, anyUndetermined = false;
+        for (var mi2 = 0; mi2 < matches.length; mi2++) {
+          if (!matches[mi2].isMatchWon) allWon = false;
+          if (matches[mi2].isMatchLose) anyLose = true;
+          if (!matches[mi2].isMatchWon && !matches[mi2].isMatchLose) anyUndetermined = true;
+        }
+        isWon = allWon;
+        isLose = anyLose && !isWon;
+        if (anyUndetermined) { isWon = false; isLose = false; }
+      }
       // 截单时间计算（复用 expert plan 逻辑）
       var cutoffDisplay = '';
       if (matches.length > 0 && matches[0].startTime) {
@@ -579,7 +618,13 @@ export function loadQuantPlanList() {
 
       var planName = p.planName || ('量化方案 ' + (i + 1));
       var amountVal = (p.amount || 1000).toFixed(0);
-      var prizeVal = (p.maxPrize || 0).toFixed(0);
+      var isWon = p.isScoreWon || false;
+      var isLose = p.isScoreLose || false;
+      var prizeVal = isWon ? (p.winningPrize || 0).toFixed(0) : (p.maxPrize || 0).toFixed(0);
+      var prizeLabel = isWon ? '中奖金额' : (isLose ? '预计奖金' : '预计最高奖金');
+      var statusText = isWon ? '已中奖' : (isLose ? '未中奖' : '未开奖');
+      var prizeLabel = isWon ? '中奖金额' : (isLose ? '预计奖金' : '预计最高奖金');
+      var statusText = isWon ? '已中奖' : (isLose ? '未中奖' : '未开奖');
 
       // 构建比赛表格行
       var matchRows = '';
@@ -595,7 +640,7 @@ export function loadQuantPlanList() {
         }
         var timeDisp = matchDateShort || matchTime ? (matchDateShort + ' ' + matchTime).trim() : '';
 
-        // 方向+赔率展示
+        // 方向+赔率展示（带命中颜色标记）
         var dir = m.direction || '';
         var oddsObj = m.odds || {};
         var oddsVal = '';
@@ -608,7 +653,19 @@ export function loadQuantPlanList() {
           else if (dLower === '让平') oddsVal = oddsObj.rqspf ? oddsObj.rqspf.draw : '';
           else if (dLower === '让负') oddsVal = oddsObj.rqspf ? oddsObj.rqspf.away : '';
         }
-        var oddsDisplay = oddsVal ? dir + '(' + oddsVal + ')' : dir;
+        // 根据 subResults 判定命中颜色
+        var subR = null;
+        var subResults = m.subResults || [];
+        for (var sii = 0; sii < subResults.length; sii++) {
+          if (subResults[sii].direction === dir) { subR = subResults[sii]; break; }
+        }
+        var matchColor = '#fff';
+        if (subR && subR.result !== null && subR.result !== undefined) {
+          matchColor = subR.result === 1 ? '#EF4444' : '#22C55E';
+        }
+        var oddsDisplay = oddsVal 
+          ? '<span style="color:' + matchColor + '">' + dir + '(' + oddsVal + ')</span>' 
+          : '<span style="color:' + matchColor + '">' + dir + '</span>';
 
         matchRows += '<tr>' +
           '<td class="match-info-col">' +
@@ -638,14 +695,16 @@ export function loadQuantPlanList() {
         '<div class="plan-amount-value">' + amountVal + '<span class="unit">元</span></div>' +
         '</div>' +
         '<div class="plan-amount-col">' +
-        '<div class="plan-amount-label">预计奖金</div>' +
+        '<div class="plan-amount-label">' + prizeLabel + '</div>' +
         '<div class="plan-amount-value" style="color: var(--purple);">' + prizeVal + '<span class="unit">元</span></div>' +
         '</div>' +
         '<div class="plan-amount-col">' +
         '<div class="plan-amount-label">方案状态</div>' +
-        '<div class="plan-amount-value">未开奖</div>' +
+        '<div class="plan-amount-value">' + statusText + '</div>' +
         '</div>' +
         '</div>' +
+        (isWon ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>' : '') +
+        (isLose ? '<div class="plan-lose-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#9AA6B2" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="16" font-weight="900" fill="#9AA6B2" transform="rotate(-10,19,19)">未中</text></svg></div>' : '') +
         '<div class="plan-divider"></div>' +
         '<div class="plan-info-grid">' +
         '<div class="plan-info-left">' +

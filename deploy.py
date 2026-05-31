@@ -462,10 +462,16 @@ def main():
 
     sftp.close()
 
-    # ── Phase 3.8: 清除旧缓存 + 刷新 nginx ──
+    # ── Phase 3.8: 功守道缓存刷新（仅 --clear-gs-cache 时清除，否则保留旧缓存） ──
+    clear_gs = '--clear-gs-cache' in sys.argv
     if not dry_run:
-        print(c('C', '[Phase 3.8] 清除功守道缓存 + 重载 Nginx'))
-        ssh_cmd(ssh, 'rm -f {0}/server/gongshoudao/cache.json {1}/server/gongshoudao/cache.json 2>/dev/null && echo "cache cleared"'.format(PM2_ROOT, NGINX_ROOT), 5)
+        if clear_gs:
+            print(c('C', '[Phase 3.8] 清除功守道缓存 + 重载 Nginx'))
+            ssh_cmd(ssh, 'rm -f {0}/server/gongshoudao/cache.json {1}/server/gongshoudao/cache.json 2>/dev/null && echo "cache cleared"'.format(PM2_ROOT, NGINX_ROOT), 5)
+        else:
+            print(c('C', '[Phase 3.8] 触发功守道缓存刷新 + 重载 Nginx（旧缓存保留）'))
+            # 部署后异步触发 GS 计算（不阻塞部署流程）
+            ssh_cmd(ssh, 'curl -s -X POST http://localhost:3000/api -H "Content-Type: application/json" -d \'{"action":"gongshoudao-all","date":"' + datetime.now().strftime('%Y-%m-%d') + '"}\' > /dev/null 2>&1 &', 5)
         ssh_cmd(ssh, 'nginx -s reload 2>/dev/null && echo "nginx reloaded"', 5)
         print('  完成')
     print()
@@ -627,8 +633,9 @@ def main():
     else:
         print(c('G', '部署成功 — {} 个文件全部验证通过'.format(total)))
 
-    print(c('D', '\n用法: python deploy.py [--dry] [--fast] [--quick]'))
+    print(c('D', '\n用法: python deploy.py [--dry] [--fast] [--quick] [--clear-gs-cache]'))
     print(c('D', '  --dry   试运行  --fast  跳过环境检测/备份/同步  --quick  仅上传+重启'))
+    print(c('D', '  --clear-gs-cache  强制清除功守道缓存（默认保留旧缓存）'))
     ssh.close()
 
 

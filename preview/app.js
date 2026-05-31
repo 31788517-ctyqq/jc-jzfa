@@ -1797,6 +1797,8 @@ function loadScorePlanList() {
 
     el.innerHTML = plans.map(function(p, i) {
       var scores = p.selectedScores || [];
+      var isWon = p.isScoreWon || false;
+      var isLose = p.isScoreLose || false;
 
       // 截单时间
       var cutoffDisplay = '';
@@ -1829,7 +1831,9 @@ function loadScorePlanList() {
       }
 
       var amountVal = (p.amount || 1000).toFixed(0);
-      var prizeVal = (p.maxPrize || 0).toFixed(0);
+      var prizeVal = isWon ? (p.winningPrize || 0).toFixed(0) : (p.maxPrize || 0).toFixed(0);
+      var prizeLabel = isWon ? '中奖金额' : (isLose ? '预计奖金' : '预计最高奖金');
+      var statusText = isWon ? '已中奖' : (isLose ? '未中奖' : '未开奖');
 
       // 比分标签
       var scoreTags = '';
@@ -1857,12 +1861,12 @@ function loadScorePlanList() {
             '<div class="plan-amount-value">' + amountVal + '<span class="unit">元</span></div>' +
           '</div>' +
           '<div class="plan-amount-col">' +
-            '<div class="plan-amount-label">预计奖金</div>' +
-            '<div class="plan-amount-value" style="color: var(--amber);">' + prizeVal + '<span class="unit">元</span></div>' +
+            '<div class="plan-amount-label">' + prizeLabel + '</div>' +
+            '<div class="plan-amount-value" style="color: ' + (isWon ? 'var(--red)' : 'var(--amber)') + ';">' + prizeVal + '<span class="unit">元</span></div>' +
           '</div>' +
           '<div class="plan-amount-col">' +
             '<div class="plan-amount-label">方案状态</div>' +
-            '<div class="plan-amount-value">未开奖</div>' +
+            '<div class="plan-amount-value">' + statusText + '</div>' +
           '</div>' +
         '</div>' +
         // 分割线

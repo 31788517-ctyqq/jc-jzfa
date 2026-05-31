@@ -10,7 +10,7 @@ const path = require('path');
 const iconv = require('iconv-lite');
 
 // 加载 .env 配置
-let CONFIG = { MIDOU_MOBILE: '', MIDOU_PASSWORD: '' };
+let CONFIG = { MIDOU_MOBILE: '', MIDOU_PASSWORD: '', MIDOU_BACKUP_MOBILE: '', MIDOU_BACKUP_PASSWORD: '' };
 try {
   const envFile = fs.readFileSync(path.join(__dirname, '.env'), 'utf8');
   envFile.split('\n').forEach(l => {
@@ -59,12 +59,29 @@ function get(url, params, headers) {
   });
 }
 
+async function _doLogin(mobile, password, label) {
+  const res = await get('https://midou310.com/mdsj/gduser/login.do', { mobile, password });
+  if (res.code === 1) {
+    console.log(`[token_manager] [${label}] 登录成功`);
+    return res.data.token;
+  }
+  console.warn(`[token_manager] [${label}] 登录失败: ${res.msg || 'unknown'}`);
+  return null;
+}
+
 async function doLogin() {
-  const res = await get('https://midou310.com/mdsj/gduser/login.do', {
-    mobile: CONFIG.MIDOU_MOBILE, password: CONFIG.MIDOU_PASSWORD
-  });
-  if (res.code !== 1) throw new Error('登录失败: ' + (res.msg || 'unknown'));
-  return res.data.token;
+  // 尝试主账户
+  let token = await _doLogin(CONFIG.MIDOU_MOBILE, CONFIG.MIDOU_PASSWORD, '主账户');
+  if (token) return token;
+
+  // 主账户失败，尝试备用
+  if (CONFIG.MIDOU_BACKUP_MOBILE && CONFIG.MIDOU_BACKUP_PASSWORD) {
+    console.log('[token_manager] 主账户登录失败，切换到备用账户...');
+    token = await _doLogin(CONFIG.MIDOU_BACKUP_MOBILE, CONFIG.MIDOU_BACKUP_PASSWORD, '备用账户');
+    if (token) return token;
+  }
+
+  throw new Error('登录失败: 主备账户均无法登录');
 }
 
 /**

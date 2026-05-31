@@ -248,6 +248,16 @@ async function executeTask(taskName, params, retryCount) {
         await ds.backfillResults(params && params.date);
         break;
       }
+      case 'gongshoudao_refresh': {
+        try {
+          const gsEngine = require('./gongshoudao/index');
+          await gsEngine.refreshCache();
+          logger.info('[task] 功守道缓存刷新完成');
+        } catch (e) {
+          logger.warn('[task] 功守道缓存刷新失败: ' + e.message);
+        }
+        break;
+      }
       default: {
         logger.warn('[task] 未知任务: ' + taskName);
         return false;
@@ -453,6 +463,15 @@ async function start() {
       k + ': ' + v.runs + '次/' + v.failures + '失败'
     ).join(', ');
     logger.info('[health] 任务统计: ' + summary);
+  });
+
+  // 功守道缓存刷新 (每小时)
+  schedule('gongshoudao_refresh', 60 * 60 * 1000, async () => {
+    try {
+      await executeTask('gongshoudao_refresh', {});
+    } catch (e) {
+      logger.warn('[schedule] 功守道刷新异常: ' + e.message);
+    }
   });
 
   // 优雅停机
