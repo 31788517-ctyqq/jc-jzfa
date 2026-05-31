@@ -808,18 +808,92 @@ window.onIncDirChange = function () {
   if (last && last !== 'home' && last !== 'detail') {
     state.setCurrentPage(last);
     switchTabLoad(last);
+    // ★ P1: 后台预取其他核心页面数据（非阻塞）
+    setTimeout(function () {
+      _preloadMods(); // 预加载 ranking / match-detail / match-pk-fusion 模块
+      _preloadData(last);
+    }, 500);
   } else {
     document.getElementById('page-home').classList.add('active');
     state.setCurrentPage('home');
     loadHome();
     _preloadMods();
+    // ★ P1: 从首页预取 match + plan 数据
+    setTimeout(function () {
+      _preloadData('home');
+    }, 500);
   }
 })();
+
+// ★ P1: 异步预取数据（提前填充 sessionStorage 缓存）
+function _preloadData(current) {
+  var preloadMap = {
+    match: ['plan', 'quant-rank'],
+    plan: ['match', 'quant-rank'],
+    'quant-rank': ['match', 'plan'],
+    rank: ['match', 'plan'],
+    hit: ['match'],
+    filter: ['match'],
+    income: ['match'],
+    home: ['match', 'plan'],
+  };
+  var tabs = preloadMap[current] || [];
+  tabs.forEach(function (tab) {
+    if (tab === 'match') {
+      // 触发 match-list 加载（会被缓存拦截）
+      import('./pages/match-list.js').then(function (m) {
+        m.loadMatchList();
+      }).catch(function () {});
+    } else if (tab === 'plan') {
+      import('./pages/plans.js').then(function (m) {
+        if (m.loadPlanList) m.loadPlanList();
+      }).catch(function () {});
+    } else if (tab === 'quant-rank') {
+      import('./pages/quant-rank-fusion.js').then(function (m) {
+        if (m.loadQuantRank) m.loadQuantRank();
+      }).catch(function () {});
+    }
+  });
+}
 
 // 只加载内容，不切换 DOM（用于初始化）
 function switchTabLoad(tab) {
   // 确保页面容器存在（页面刷新后 DOM 被销毁）
-  _ensurePage(tab);
+  var pageEl = _ensurePage(tab);
+
+  // ★ P0 修复：激活页面 DOM（刷新后页面不可见的原因）
+  document.querySelectorAll('.page').forEach(function (p) {
+    p.classList.remove('active');
+  });
+  if (pageEl) pageEl.classList.add('active');
+
+  // 更新导航标题
+  var titles = {
+    home: '竞彩推荐监控',
+    match: '今日比赛',
+    plan: '今日方案',
+    detail: '比赛详情',
+    'quant-rank': '量化数据排行榜',
+    rank: '推荐排行榜',
+    hit: '命中率统计',
+    filter: '命中率筛选',
+    income: '方案收入',
+    backtest: '回测分析',
+  };
+  var titleEl = document.getElementById('navTitle');
+  if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
+
+  // 设置对应 tab-item active
+  document.querySelectorAll('.tab-item').forEach(function (t) {
+    t.classList.remove('active');
+  });
+  var tabEl = document.getElementById('tab-' + (tab === 'detail' ? 'rank' : tab));
+  if (tabEl) tabEl.classList.add('active');
+
+  // 设置返回按钮显示
+  var backEl = document.getElementById('navBack');
+  if (backEl) backEl.style.display = tab === 'detail' || tab === 'filter' ? 'flex' : 'none';
+
   if (tab === 'match') {
     if (state.weekDates.length > 0) {
       updateDateBar();

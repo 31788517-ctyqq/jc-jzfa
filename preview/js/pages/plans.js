@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { WEEK_NAMES, MIN_PLAN_DATE } from '../utils.js';
+import { WEEK_NAMES, MIN_PLAN_DATE, getCache, setCache } from '../utils.js';
 import * as state from '../state.js';
 
 export function updatePlanDateBar() {
@@ -71,6 +71,15 @@ export function loadPlanList() {
   } else {
     params = { date: state.planDate };
   }
+
+  // ★ P1: sessionStorage 缓存命中
+  var cacheKey = 'plan-list:' + state.planDate;
+  var cached = getCache(cacheKey);
+  if (cached) {
+    el.innerHTML = cached;
+    return;
+  }
+
   api('plan-list', params)
     .then(function (data) {
       // 用服务器返回的实际日期更新显示（日历显式选日时不过度覆盖）
@@ -121,7 +130,7 @@ export function loadPlanList() {
         return;
       }
 
-      el.innerHTML = plans
+      var html = plans
         .map(function (p, i) {
           var matches = p.matches || [];
           var isWon = false,
@@ -439,6 +448,8 @@ export function loadPlanList() {
           );
         })
         .join('');
+      setCache(cacheKey, html);
+      el.innerHTML = html;
     })
     .catch(function (e) {
       el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);">' + e.message + '</div>';
@@ -459,6 +470,15 @@ export function loadScorePlanList() {
   } else {
     params = { date: state.planDate };
   }
+
+  // ★ P1: sessionStorage 缓存命中
+  var cacheKey = 'score-plan-list:' + state.planDate;
+  var cached = getCache(cacheKey);
+  if (cached) {
+    el.innerHTML = cached;
+    return;
+  }
+
   api('score-plan-list', params)
     .then(function (data) {
       if (data.date && data.date !== state.planDate && !state.planDateExplicit) {
@@ -506,7 +526,7 @@ export function loadScorePlanList() {
         return;
       }
 
-      el.innerHTML = plans
+      var html = plans
         .map(function (p, i) {
           var scores = p.selectedScores || [];
           var isWon = p.isScoreWon || false;
@@ -690,6 +710,8 @@ export function loadScorePlanList() {
           );
         })
         .join('');
+      el.innerHTML = html;
+      setCache('score-plan-list:' + state.planDate, html);
     })
     .catch(function (e) {
       el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);">' + e.message + '</div>';
@@ -710,6 +732,15 @@ export function loadQuantPlanList() {
   } else {
     params = { date: state.planDate };
   }
+
+  // ★ P1: sessionStorage 缓存命中
+  var cacheKey = 'quant-plan-list:' + state.planDate;
+  var cached = getCache(cacheKey);
+  if (cached) {
+    el.innerHTML = cached;
+    return;
+  }
+
   api('quant-plan-list', params)
     .then(function (data) {
       if (data.date && data.date !== state.planDate && !state.planDateExplicit) {
@@ -757,7 +788,7 @@ export function loadQuantPlanList() {
         return;
       }
 
-      el.innerHTML = plans
+      var html = plans
         .map(function (p, i) {
           var matches = p.matches || [];
           // ★ 中奖判定逻辑（复用专家方案规则）
@@ -994,6 +1025,8 @@ export function loadQuantPlanList() {
           );
         })
         .join('');
+      el.innerHTML = html;
+      setCache('quant-plan-list:' + state.planDate, html);
     })
     .catch(function (e) {
       el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);">' + e.message + '</div>';

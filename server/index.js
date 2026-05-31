@@ -116,9 +116,15 @@ function getWeekDates() {
   }
 }
 
-// ★ P1-6: match-list 请求级缓存（同一日期 1 分钟内复用）
+// ★ P1-6: match-list 请求级缓存（同一日期 5 分钟内复用）
 let _matchListCacheByDate = {};
-const MATCH_LIST_CACHE_TTL = 60 * 1000; // 1 分钟
+// ★ P1: gongshoudao-all / quant-hot 请求级缓存
+let _gsAllCache = null;
+let _gsAllCacheTime = 0;
+let _quantHotCache = null;
+let _quantHotCacheTime = 0;
+const CACHE_TTL_5MIN = 5 * 60 * 1000;
+const MATCH_LIST_CACHE_TTL = 5 * 60 * 1000; // 5 分钟（原 1 分钟，P1 延长减少磁盘 I/O）
 // 根据 date + num 获取比分赔率，格式转换 "1:0" → "1-0"
 function getScoreOdds(allplays, dateStr, num) {
   if (!allplays || !dateStr || !num) return null;
@@ -1570,6 +1576,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         case 'gongshoudao-all': {
           // 批量获取所有比赛的功守道数据（一次请求替代 N 次单场 gongshoudao 调用）
           const requestDate = data.date || latestDataDate();
+
+          // ★ P1: 5 分钟内存缓存
+          const now = Date.now();
+          if (_gsAllCache && _gsAllCache.date === requestDate && now - _gsAllCacheTime < CACHE_TTL_5MIN) {
+            return res.json(_gsAllCache.response);
+          }
+
           try {
             const fs = require('fs');
             const path = require('path');
@@ -1604,7 +1617,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
             } catch (e) {}
 
-            return res.json({ code: 1, data: { date: requestDate, gsData: result, gsCacheTime: gsCacheTime } });
+            const response = { code: 1, data: { date: requestDate, gsData: result, gsCacheTime: gsCacheTime } };
+            // ★ P1: 缓存结果（5 分钟）
+            _gsAllCache = { date: requestDate, response };
+            _gsAllCacheTime = now;
+            return res.json(response);
           } catch (e) {
             return res.json({ code: 0, msg: '功守道批量获取失败: ' + e.message });
           }
@@ -1663,6 +1680,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         // ========== 量化热度数据 ==========
         case 'quant-hot': {
           const requestDate = data.date || latestDataDate();
+
+          // ★ P1: 5 分钟内存缓存
+          const now2 = Date.now();
+          if (_quantHotCache && _quantHotCache.date === requestDate && now2 - _quantHotCacheTime < CACHE_TTL_5MIN) {
+            return res.json(_quantHotCache.response);
+          }
+
           try {
             const fs = require('fs');
             const path = require('path');
@@ -1718,7 +1742,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               } catch (e) {}
             }
 
-            return res.json({ code: 1, data: { date: requestDate, hotData: result, hotCacheTime: hotCacheTime } });
+            const response = { code: 1, data: { date: requestDate, hotData: result, hotCacheTime: hotCacheTime } };
+            // ★ P1: 缓存结果（5 分钟）
+            _quantHotCache = { date: requestDate, response };
+            _quantHotCacheTime = now2;
+            return res.json(response);
           } catch (e) {
             return res.json({ code: 0, msg: '热度数据获取失败: ' + e.message });
           }

@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { formatDate } from '../utils.js';
+import { formatDate, getCache, setCache } from '../utils.js';
 import * as state from '../state.js';
 
 // ═══ PK 选择状态（全局存储，避免模块加载时序问题） ═══
@@ -9,8 +9,12 @@ var allMatchesData = [];
 /** 清空所有选择 */
 export function clearMatchPicks() {
   window.__ms = {};
-  document.querySelectorAll('.match-card.picked').forEach(function (r) { r.classList.remove('picked'); });
-  document.querySelectorAll('.mc-chk:checked').forEach(function (c) { c.checked = false; });
+  document.querySelectorAll('.match-card.picked').forEach(function (r) {
+    r.classList.remove('picked');
+  });
+  document.querySelectorAll('.mc-chk:checked').forEach(function (c) {
+    c.checked = false;
+  });
   var bar = document.getElementById('matchPkBar');
   if (bar) bar.style.display = 'none';
   var cntEl = document.getElementById('mpkBarCount');
@@ -20,9 +24,14 @@ export function clearMatchPicks() {
 /** 打开 PK 弹窗 */
 export function startMatchPK() {
   var sm = window.__ms || {};
-  var picked = allMatchesData.filter(function (item) { return sm[item.matchId]; });
+  var picked = allMatchesData.filter(function (item) {
+    return sm[item.matchId];
+  });
   if (picked.length < 2) return;
-  if (window.openPKMulti) { window.openPKMulti(picked); clearMatchPicks(); }
+  if (window.openPKMulti) {
+    window.openPKMulti(picked);
+    clearMatchPicks();
+  }
 }
 window.startMatchPK = startMatchPK;
 
@@ -32,39 +41,43 @@ function renderMatchHTML(matches) {
   window.__ms = {};
   var bar = document.getElementById('matchPkBar');
   if (bar) bar.style.display = 'none';
-  var pkHint = matches.length > 0
-    ? '<div class="pk-hint"><span class="pk-hint-icon">💡</span><span class="pk-hint-text">选择两场以上比赛进行量化数据PK，自动生成PK方案</span></div>'
-    : '';
-  return pkHint + matches.map(m => {
-    const statusText = { 0: '未开始', 1: '进行中', 2: '已结束', 3: '取消' }[m.matchStatus] || '未知';
-    const roundText = m.num || '';
-    const timeStr = m.startTime ? m.startTime.slice(5) : '';
-    const startDate = m.startTime ? m.startTime.slice(0, 5) : '';
-    const isLive = m.matchStatus === 1 || m.matchStatus === 2;
-    const scoreText = m.score || '';
-    const halfText = m.halfScore || '';
-    const durText = m.duration || '';
-    const yellowText = m.yellow || '';
-    const redText = m.red || '';
-    var scoreDisplay = '';
-    var extraInfo = '';
-    if (isLive && scoreText) {
-      var parts = scoreText.replace('-', ':').split(':');
-      if (parts.length === 2) scoreDisplay = '<span class="match-score">' + parts[0] + ' : ' + parts[1] + '</span>';
-    }
-    if (m.matchStatus === 1 && durText && durText !== '未') {
-      extraInfo += '<span class="match-dur">' + durText + '</span>';
-    }
-    if (isLive && yellowText && yellowText !== '-') {
-      extraInfo += '<span class="match-card-stat yellow"><span class="stat-dot"></span>' + yellowText + '</span>';
-    }
-    if (isLive && redText && redText !== '-') {
-      extraInfo += '<span class="match-card-stat red"><span class="stat-dot"></span>' + redText + '</span>';
-    }
-    if (halfText) {
-      extraInfo += '<span class="match-half">(半 ' + halfText + ')</span>';
-    }
-    return `
+  var pkHint =
+    matches.length > 0
+      ? '<div class="pk-hint"><span class="pk-hint-icon">💡</span><span class="pk-hint-text">选择两场以上比赛进行量化数据PK，自动生成PK方案</span></div>'
+      : '';
+  return (
+    pkHint +
+    matches
+      .map((m) => {
+        const statusText = { 0: '未开始', 1: '进行中', 2: '已结束', 3: '取消' }[m.matchStatus] || '未知';
+        const roundText = m.num || '';
+        const timeStr = m.startTime ? m.startTime.slice(5) : '';
+        const startDate = m.startTime ? m.startTime.slice(0, 5) : '';
+        const isLive = m.matchStatus === 1 || m.matchStatus === 2;
+        const scoreText = m.score || '';
+        const halfText = m.halfScore || '';
+        const durText = m.duration || '';
+        const yellowText = m.yellow || '';
+        const redText = m.red || '';
+        var scoreDisplay = '';
+        var extraInfo = '';
+        if (isLive && scoreText) {
+          var parts = scoreText.replace('-', ':').split(':');
+          if (parts.length === 2) scoreDisplay = '<span class="match-score">' + parts[0] + ' : ' + parts[1] + '</span>';
+        }
+        if (m.matchStatus === 1 && durText && durText !== '未') {
+          extraInfo += '<span class="match-dur">' + durText + '</span>';
+        }
+        if (isLive && yellowText && yellowText !== '-') {
+          extraInfo += '<span class="match-card-stat yellow"><span class="stat-dot"></span>' + yellowText + '</span>';
+        }
+        if (isLive && redText && redText !== '-') {
+          extraInfo += '<span class="match-card-stat red"><span class="stat-dot"></span>' + redText + '</span>';
+        }
+        if (halfText) {
+          extraInfo += '<span class="match-half">(半 ' + halfText + ')</span>';
+        }
+        return `
       <div class="match-card" id="mc-${m.matchId}" onclick="goDetail('${m.matchId}')">
         <div class="match-header">
           <div class="match-header-left">
@@ -91,7 +104,9 @@ function renderMatchHTML(matches) {
         ${m.hasGongshoudao ? `<div class="match-gs-wrap" onclick="event.stopPropagation();showGongshoudao('${m.matchId}','${(m.leagueName || '').replace(/'/g, "\\'")}','${(m.homeName || '').replace(/'/g, "\\'")}','${(m.visitName || '').replace(/'/g, "\\'")}','${m.num || ''}','${(m.startTime || '').replace(/'/g, "\\'")}')"><span class="match-gs-tag">⚔️ 功守道量化</span></div>` : ''}
       </div>
     `;
-  }).join('');
+      })
+      .join('')
+  );
 }
 
 // 接收预取数据直接渲染（跳过 API 调用）
@@ -106,14 +121,30 @@ export function loadMatchList() {
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
 
-  var params = { _t: Date.now() };
   var w = state.weekDates[state.selectedWeekIdx];
-  if (w) { params.weekNum = w.weekNum; params.matchDate = w.matchDate; }
-  else { params.date = formatDate(new Date()); }
+  var cacheKey = 'match-list:' + (w ? w.matchDate : formatDate(new Date()));
 
-  api('match-list', params).then(matches => {
-    el.innerHTML = renderMatchHTML(matches);
-  }).catch(e => {
-    el.innerHTML = '<div class="loading">' + e.message + '</div>';
-  });
+  // ★ P1: sessionStorage 缓存命中
+  var cached = getCache(cacheKey);
+  if (cached) {
+    el.innerHTML = renderMatchHTML(cached);
+    return;
+  }
+
+  var params = { _t: Date.now() };
+  if (w) {
+    params.weekNum = w.weekNum;
+    params.matchDate = w.matchDate;
+  } else {
+    params.date = formatDate(new Date());
+  }
+
+  api('match-list', params)
+    .then((matches) => {
+      setCache(cacheKey, matches);
+      el.innerHTML = renderMatchHTML(matches);
+    })
+    .catch((e) => {
+      el.innerHTML = '<div class="loading">' + e.message + '</div>';
+    });
 }
