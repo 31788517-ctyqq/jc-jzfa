@@ -60,29 +60,29 @@ function injectStyles() {
     '.bt-list-wrap { margin-top:2px; }',
 
     /* 表头 */
-    '.bt-header-row { display:flex; align-items:center; font-size:11px; color:var(--text3); padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(24,224,224,0.03); }',
-    '.bt-hdr-date { flex:1; }',
-    '.bt-hdr-match { flex:1; text-align:center; }',
-    '.bt-hdr-teams { flex:1; padding:0 4px; }',
+    '.bt-header-row { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text3); padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(24,224,224,0.03); }',
+    '.bt-hdr-date { flex:0.6; }',
+    '.bt-hdr-match { flex:0.8; text-align:center; }',
+    '.bt-hdr-teams { flex:1.2; }',
     '.bt-hdr-pred { flex:1; text-align:right; }',
 
     /* 数据行 */
-    '.bt-row { display:flex; align-items:center; font-size:12px; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.02); transition:background .15s; }',
+    '.bt-row { display:flex; align-items:center; gap:6px; font-size:12px; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.02); transition:background .15s; }',
     '.bt-row:last-child { border-bottom:none; }',
     '.bt-row:hover { background:rgba(255,255,255,0.02); }',
 
     /* 日期列 */
-    '.bt-col-date { flex:1; color:var(--text3); font-size:11px; }',
+    '.bt-col-date { flex:0.6; color:var(--text3); font-size:11px; }',
 
     /* 场次列 */
-    '.bt-col-match { flex:1; text-align:center; }',
+    '.bt-col-match { flex:0.8; text-align:center; }',
     '.bt-col-num { font-weight:700; font-size:12px; }',
     '.bt-col-league { font-size:9px; color:var(--text3); display:block; line-height:1.3; }',
 
     /* 对阵列 */
-    '.bt-col-teams { flex:1; padding:0 4px; min-width:0; }',
+    '.bt-col-teams { flex:1.2; min-width:0; }',
     '.bt-col-home { font-weight:500; font-size:12px; line-height:1.4; }',
-    '.bt-col-score { font-weight:700; font-size:13px; color:var(--text); padding:1px 0; line-height:1.4; }',
+    '.bt-col-score { font-weight:700; font-size:13px; color:var(--cyan); padding:1px 0; line-height:1.4; }',
     '.bt-col-away { font-weight:500; font-size:12px; color:var(--text2); line-height:1.4; }',
 
     /* 让球小字 */
