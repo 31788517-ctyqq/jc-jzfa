@@ -2260,6 +2260,22 @@ app.post('/api', async (req, res) => {
             var consensus = c.consensus || '';
             var consensusLabel = consensus === 'strong' ? '强一致' : (consensus === 'weak' ? '弱一致' : '未融合');
 
+            // ★ 中奖判定：对比实际比分
+            var rawScore = (match.score || '').replace(/:/g, '-');
+            var isScoreWon = false, isScoreLose = false, winAlloc = 0, winOdds = 0;
+            if (rawScore) {
+              for (var si2 = 0; si2 < combo.scores.length; si2++) {
+                if (combo.scores[si2].score === rawScore) {
+                  isScoreWon = true;
+                  winAlloc = combo.scores[si2].allocation || 0;
+                  winOdds = combo.scores[si2].odds || 0;
+                  break;
+                }
+              }
+              isScoreLose = !isScoreWon;
+            }
+            var winningPrize = isScoreWon ? Math.round(winAlloc * winOdds) : 0;
+
             return {
               planId: 'score_plan_' + dateStr + '_' + (idx + 1),
               planName: '比分方案 ' + (idx + 1),
@@ -2285,6 +2301,10 @@ app.post('/api', async (req, res) => {
               amount: 1000,
               matchCount: 1,
               maxPrize: combo.expectedReturn,
+              // ★ 中奖判定字段
+              isScoreWon: isScoreWon,
+              isScoreLose: isScoreLose,
+              winningPrize: winningPrize,
               // ★ 新增字段
               qualityScore: c.qualityScore,
               consensusLabel: consensusLabel,
@@ -2329,6 +2349,7 @@ app.post('/api', async (req, res) => {
           // 1) 加载 data.json 比赛列表
           const dataFile = getDataJson();
           const mMap = dataFile.m || {};
+          const rMap = dataFile.r || {};
           const mList = [];
           Object.keys(mMap).forEach(k => {
             const m = mMap[k];
@@ -2371,6 +2392,76 @@ app.post('/api', async (req, res) => {
             if (ap[k]) return ap[k];
             if (m.matchId && ap[m.matchId]) return ap[m.matchId];
             return null;
+          }
+
+          // ★ 辅助：计算比赛命中/未命中结果（复用专家方案逻辑）
+          function normalizeRecs(recs) {
+            return (recs || []).map(function(x) {
+              var raw = x.rs !== undefined ? x.rs : (x.result !== undefined ? x.result : null);
+              var r = (raw === 0 || raw === 1) ? raw : null;
+              return { type: x.t || x.type, num: x.n || x.num, result: r };
+            });
+          }
+          function computeMatchResult(matchId, direction) {
+            var key = matchId;
+            var raw = rMap['m_' + key] || rMap[String(key)] || [];
+            var recs = normalizeRecs(raw);
+
+            var isMatchWon = null, isMatchLose = null;
+            var subResults = [];
+            var matchedRecsSet = new Set();
+
+            // 子方向拆分（处理"胜平"等双选）
+            var effectiveDir = direction;
+            if (direction === '胜平') effectiveDir = '胜、平';
+            else if (direction === '平负') effectiveDir = '平、负';
+            var subDirs = effectiveDir.split(/[、,]/);
+
+            function recContains(recType, sd) {
+              if (recType === sd) return true;
+              var parts = recType.split(/[、,]/);
+              return parts.some(function(p) { return p.trim() === sd; });
+            }
+
+            for (var si = 0; si < subDirs.length; si++) {
+              var sd = subDirs[si].trim();
+              var found = null;
+              // 精确匹配
+              for (var ri = 0; ri < recs.length; ri++) { if (recs[ri].type === sd) { found = recs[ri]; break; } }
+              // 组合类型包含子方向
+              if (!found) {
+                for (var rj = 0; rj < recs.length; rj++) { if (recContains(recs[rj].type, sd)) { found = recs[rj]; break; } }
+              }
+              if (found) matchedRecsSet.add(found);
+              subResults.push({ direction: sd, result: found ? found.result : null });
+            }
+
+            // 全方向模糊匹配兜底
+            if (matchedRecsSet.size === 0) {
+              for (var rk = 0; rk < recs.length; rk++) {
+                var rt = recs[rk].type || '';
+                if (rt.indexOf(direction) >= 0 || direction.indexOf(rt) >= 0) {
+                  matchedRecsSet.add(recs[rk]);
+                }
+              }
+              if (matchedRecsSet.size === 0 && subResults.length === 0) {
+                subResults.push({ direction: direction, result: null });
+              }
+            }
+
+            var matchedArray = Array.from(matchedRecsSet);
+            var anyWon = false, anyLose = false, anyUnknown = false;
+            for (var mi = 0; mi < matchedArray.length; mi++) {
+              if (matchedArray[mi].result === 1) anyWon = true;
+              else if (matchedArray[mi].result === 0) anyLose = true;
+              else anyUnknown = true;
+            }
+            if (!anyUnknown) {
+              isMatchWon = anyWon;
+              isMatchLose = !anyWon && anyLose;
+            }
+
+            return { isMatchWon: isMatchWon, isMatchLose: isMatchLose, subResults: subResults };
           }
 
           // ==================== P0-方案一：冷门方向验证 ====================
@@ -2667,6 +2758,10 @@ app.post('/api', async (req, res) => {
             // P2：方案相关性标记
             var corrResult = checkCorrelation(ca, cb);
 
+            // ★ 计算比赛命中/未命中结果
+            var resultA = computeMatchResult(ca.match.matchId, ca.coldDir);
+            var resultB = computeMatchResult(cb.match.matchId, cb.coldDir);
+
             var matchA = {
               matchId: ca.match.matchId,
               homeName: ca.match.homeName || '',
@@ -2676,6 +2771,9 @@ app.post('/api', async (req, res) => {
               startTime: ca.match.startTime || '',
               direction: ca.coldDir,
               odds: ca.odds,
+              isMatchWon: resultA.isMatchWon,
+              isMatchLose: resultA.isMatchLose,
+              subResults: resultA.subResults,
               heatIndex: ca.heatIndex,
               heatLabel: ca.heatLabel,
               consensus: ca.consensusLabel,
@@ -2693,6 +2791,9 @@ app.post('/api', async (req, res) => {
               startTime: cb.match.startTime || '',
               direction: cb.coldDir,
               odds: cb.odds,
+              isMatchWon: resultB.isMatchWon,
+              isMatchLose: resultB.isMatchLose,
+              subResults: resultB.subResults,
               heatIndex: cb.heatIndex,
               heatLabel: cb.heatLabel,
               consensus: cb.consensusLabel,
@@ -2839,8 +2940,27 @@ app.post('/api', async (req, res) => {
             return sv !== null ? [sv] : [];
           }
 
+          // ===== 收益率辅助：所有方案每单投入金额 =====
+          const AMOUNT_SCORE_OR_QUANT = 1000;
+
+          // 导入共享方案生成模块
+          const PG = require('./core/plan-generator');
+
           const results = [];
           let totalPlans = 0, totalWon = 0, totalIncome = 0;
+
+          // 预加载共享缓存（避免每天循环内重复读取）
+          var _globalGsMap = {};
+          try {
+            var _gsPathPre = path.join(__dirname, 'gongshoudao', 'cache.json');
+            if (fs.existsSync(_gsPathPre)) _globalGsMap = JSON.parse(fs.readFileSync(_gsPathPre, 'utf8'))['_global'] || {};
+          } catch (e) {}
+          var _globalAllplays = getAllplaysData();
+          var _globalChgMap = {};
+          try {
+            var _chgPathPre = path.join(__dirname, 'jczq_change_cache.json');
+            if (fs.existsSync(_chgPathPre)) _globalChgMap = JSON.parse(fs.readFileSync(_chgPathPre, 'utf8')) || {};
+          } catch (e) {}
 
           for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
             const ds = fmtDate2(d);
@@ -3032,98 +3152,265 @@ app.post('/api', async (req, res) => {
               dayPlans.splice(2);
             }
 
-            dayPlans.forEach(pp => {
-              if (planFilter !== 'all' && pp.name !== planFilter) return;
-              // ★ 方向筛选：score/quant 类型暂未接入收入计算
-              if (directionFilter === 'score' || directionFilter === 'quant') return;
+            // ===== 专家博热方案 =====
+            if (directionFilter === 'all' || directionFilter === 'expert') {
+              dayPlans.forEach(pp => {
+                if (planFilter !== 'all' && pp.name !== planFilter) return;
 
-              // 方案六特殊处理：≥2场命中即中奖
-              const isPlan6 = pp.name === 'plan_6';
-              let isWon = false, isLose = false;
-              let hitCount6 = 0;
-              if (isPlan6) {
-                let undetermined6 = false;
-                for (const mm of pp.matches) {
-                  if (mm.isWon) hitCount6++;
-                  else if (!mm.isLose) undetermined6 = true;
-                }
-                if (undetermined6) return;
-                isWon = hitCount6 >= 2;
-                isLose = !isWon;
-              } else {
-                let allWon = true, anyLose = false, anyUnknown = false;
-                for (const mm of pp.matches) {
-                  if (!mm.isWon) allWon = false;
-                  if (mm.isLose) anyLose = true;
-                  if (!mm.isWon && !mm.isLose) anyUnknown = true;
-                }
-                if (anyUnknown) return;
-                isWon = allWon;
-                isLose = anyLose && !isWon;
-              }
-
-              let prize = 0, dayIncome = 0, status = 'unknown';
-              if (isWon) {
+                // 方案六特殊处理：≥2场命中即中奖
+                const isPlan6 = pp.name === 'plan_6';
+                let isWon = false, isLose = false;
+                let hitCount6 = 0;
                 if (isPlan6) {
-                  // 方案六：计算所有中奖组合
-                  const hitOdds = [];
+                  let undetermined6 = false;
                   for (const mm of pp.matches) {
-                    if (mm.isWon) {
-                      const subOdds = extractIndividualOdds(mm.oddsObj, mm.direction);
-                      if (subOdds.length === 1) hitOdds.push(subOdds[0]);
-                      else if (subOdds.length > 1) hitOdds.push(subOdds.reduce((a, b) => a + b, 0) / (2 * subOdds.length));
-                      else hitOdds.push(1.5);
-                    }
+                    if (mm.isWon) hitCount6++;
+                    else if (!mm.isLose) undetermined6 = true;
                   }
-                  let total2 = 0, total3 = 0;
-                  for (let a = 0; a < hitOdds.length; a++) {
-                    for (let b = a + 1; b < hitOdds.length; b++) {
-                      total2 += 2 * hitOdds[a] * hitOdds[b];
-                    }
+                  if (undetermined6) return;
+                  isWon = hitCount6 >= 2;
+                  isLose = !isWon;
+                } else {
+                  let allWon = true, anyLose = false, anyUnknown = false;
+                  for (const mm of pp.matches) {
+                    if (!mm.isWon) allWon = false;
+                    if (mm.isLose) anyLose = true;
+                    if (!mm.isWon && !mm.isLose) anyUnknown = true;
                   }
-                  for (let a = 0; a < hitOdds.length; a++) {
-                    for (let b = a + 1; b < hitOdds.length; b++) {
-                      for (let c = b + 1; c < hitOdds.length; c++) {
-                        total3 += 2 * hitOdds[a] * hitOdds[b] * hitOdds[c];
+                  if (anyUnknown) return;
+                  isWon = allWon;
+                  isLose = anyLose && !isWon;
+                }
+
+                let prize = 0, dayIncome = 0, statusE = 'unknown';
+                if (isWon) {
+                  if (isPlan6) {
+                    const hitOdds = [];
+                    for (const mm of pp.matches) {
+                      if (mm.isWon) {
+                        const subOdds = extractIndividualOdds(mm.oddsObj, mm.direction);
+                        if (subOdds.length === 1) hitOdds.push(subOdds[0]);
+                        else if (subOdds.length > 1) hitOdds.push(subOdds.reduce((a, b) => a + b, 0) / (2 * subOdds.length));
+                        else hitOdds.push(1.5);
                       }
                     }
-                  }
-                  prize = Math.round((total2 + total3) * 25);
-                } else {
-                  const effectiveOdds = [];
-                  let hasAllOdds = true;
-                  for (const mm of pp.matches) {
-                    const subOdds = extractIndividualOdds(mm.oddsObj, mm.direction);
-                    if (subOdds.length === 0) { hasAllOdds = false; continue; }
-                    const N = subOdds.length;
-                    if (N === 1) effectiveOdds.push(subOdds[0]);
-                    else effectiveOdds.push(subOdds.reduce((a, b) => a + b, 0) / (2 * N));
-                  }
-                  if (hasAllOdds && effectiveOdds.length >= 2) {
-                    prize = Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]);
-                  } else if (hasAllOdds && effectiveOdds.length === 1) {
-                    prize = Math.round(AMOUNT * effectiveOdds[0]);
+                    let total2 = 0, total3 = 0;
+                    for (let a = 0; a < hitOdds.length; a++)
+                      for (let b = a + 1; b < hitOdds.length; b++)
+                        total2 += 2 * hitOdds[a] * hitOdds[b];
+                    for (let a = 0; a < hitOdds.length; a++)
+                      for (let b = a + 1; b < hitOdds.length; b++)
+                        for (let c = b + 1; c < hitOdds.length; c++)
+                          total3 += 2 * hitOdds[a] * hitOdds[b] * hitOdds[c];
+                    prize = Math.round((total2 + total3) * 25);
                   } else {
-                    prize = Math.round(AMOUNT * 3);
+                    const effectiveOdds = [];
+                    let hasAllOdds = true;
+                    for (const mm of pp.matches) {
+                      const subOdds = extractIndividualOdds(mm.oddsObj, mm.direction);
+                      if (subOdds.length === 0) { hasAllOdds = false; continue; }
+                      const NN = subOdds.length;
+                      if (NN === 1) effectiveOdds.push(subOdds[0]);
+                      else effectiveOdds.push(subOdds.reduce((a, b) => a + b, 0) / (2 * NN));
+                    }
+                    if (hasAllOdds && effectiveOdds.length >= 2) prize = Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]);
+                    else if (hasAllOdds && effectiveOdds.length === 1) prize = Math.round(AMOUNT * effectiveOdds[0]);
+                    else prize = Math.round(AMOUNT * 3);
+                  }
+                  dayIncome = prize - AMOUNT;
+                  statusE = 'won'; totalWon++;
+                } else if (isLose) {
+                  dayIncome = -AMOUNT;
+                  statusE = 'lose';
+                }
+                totalPlans++;
+                totalIncome += dayIncome;
+                results.push({
+                  date: ds, plan: pp.planName, status: statusE,
+                  matches: pp.matches.map(mm => ({ matchNum: mm.matchNum, home: mm.homeName, visit: mm.visitName, direction: mm.direction, isWon: mm.isWon, isLose: mm.isLose })),
+                  prize: prize, income: dayIncome
+                });
+              });
+            }
+
+            // ===== 单场比分方案 =====
+            if (directionFilter === 'all' || directionFilter === 'score') {
+              var _scoreCandidates = [];
+              for (var _si = 0; _si < mList.length; _si++) {
+                var _m = mList[_si];
+                var _mid = _m.matchId || '';
+                var _gs = _globalGsMap['m_' + _mid] || _globalGsMap[_mid] || null;
+                if (!_gs) continue;
+                var _qual = PG.qualifyMatch({ gs: _gs });
+                if (!_qual) continue;
+
+                var _matchDate = (_m.date || '').slice(0, 10);
+                var _matchNum = _m.num || '';
+                var _bfOdds = getScoreOdds(_globalAllplays, _matchDate, _matchNum);
+                var _useBfOdds = !!_bfOdds;
+                if (!_bfOdds && _gs && _gs.scores && _gs.scores.length > 0) {
+                  _bfOdds = {};
+                  _gs.scores.forEach(function(s) {
+                    if (!s || !s.score || !s.percent) return;
+                    var pct = parseFloat(s.percent) || 0;
+                    if (pct > 0) _bfOdds[s.score] = Math.round(100 / pct * 100) / 100;
+                  });
+                }
+                if (!_bfOdds || Object.keys(_bfOdds).length === 0) continue;
+
+                var _spm = PG.buildScorePercentMap(_gs);
+                var _goalUpper = 0;
+                if (_gs.goalRange && _gs.goalRange.upper) _goalUpper = parseInt(_gs.goalRange.upper) || 0;
+                else if (_gs.goalRange && _gs.goalRange.range) {
+                  var _grParts = String(_gs.goalRange.range).split('-');
+                  if (_grParts.length >= 2) _goalUpper = parseInt(_grParts[1]) || 0;
+                }
+                var _dQual = { scorePercentMap: _spm, goalUpper: _goalUpper, xgHome: _qual.xgHome, xgAway: _qual.xgAway, totalStrength: parseFloat(_gs.totalStrength) || 0 };
+                var _combos = PG.dutchCombinations(_bfOdds, 1000, _qual.strongIsHome, _useBfOdds, _dQual);
+                if (_combos.length === 0) continue;
+
+                var _qs = PG.computeScoreQuality(_gs, _qual);
+                _scoreCandidates.push({ match: _m, gs: _gs, matchId: _mid, strongIsHome: _qual.strongIsHome, qualityScore: _qs, bestCombo: _combos[0] });
+              }
+
+              _scoreCandidates.sort(function(a, b) { return b.qualityScore - a.qualityScore; });
+              var _topCount = 0;
+              if (_scoreCandidates.length > 0 && _scoreCandidates[0].qualityScore >= 55) _topCount = 1;
+              if (_scoreCandidates.length >= 2 && _scoreCandidates[1].qualityScore >= 50) _topCount = 2;
+              if (_scoreCandidates.length >= 3 && _scoreCandidates[2].qualityScore >= 45 && _scoreCandidates[2].bestCombo && (_scoreCandidates[2].bestCombo.coverage || 0) >= 0.25) _topCount = 3;
+              if (_topCount === 0 && _scoreCandidates.length >= 1 && _scoreCandidates[0].qualityScore < 45) _topCount = 0;
+              var _topCands = _scoreCandidates.slice(0, Math.max(0, _topCount));
+
+              _topCands.forEach(function(c, idx) {
+                var combo = c.bestCombo;
+                var rawScore = (c.match.score || '').replace(/:/g, '-');
+                var sWon = false, sLose = false, prize = 0, winAlloc = 0, winOdds = 0;
+                if (rawScore) {
+                  for (var _si2 = 0; _si2 < combo.scores.length; _si2++) {
+                    if (combo.scores[_si2].score === rawScore) { sWon = true; winAlloc = combo.scores[_si2].allocation || 0; winOdds = combo.scores[_si2].odds || 0; break; }
+                  }
+                  sLose = !sWon;
+                }
+                if (!sWon && !sLose) return;
+                prize = sWon ? Math.round(winAlloc * winOdds) : 0;
+
+                totalPlans++;
+                if (sWon) { totalWon++; totalIncome += (prize - AMOUNT_SCORE_OR_QUANT); }
+                else if (sLose) { totalIncome -= AMOUNT_SCORE_OR_QUANT; }
+
+                results.push({
+                  date: ds, plan: '比分方案 ' + (idx + 1),
+                  status: sWon ? 'won' : (sLose ? 'lose' : 'unknown'),
+                  matches: [{ matchNum: c.match.num || '', home: c.match.homeName || '', visit: c.match.visitName || '', direction: '比分', isWon: sWon, isLose: sLose }],
+                  prize: prize, income: sWon ? (prize - AMOUNT_SCORE_OR_QUANT) : (sLose ? -AMOUNT_SCORE_OR_QUANT : 0)
+                });
+              });
+            }
+
+            // ===== 量化博冷方案 =====
+            if (directionFilter === 'all' || directionFilter === 'quant') {
+              var _chgDay = _globalChgMap[ds] || {};
+              var _hasChg = Object.keys(_chgDay).length > 0;
+
+              var _od = getOddsHistory(ds) || {};
+              var MIN_COLD_SCORE = 40, MIN_PLAN_AVG = 45;
+
+              var _coldCands = [];
+              for (var _qi = 0; _qi < mList.length; _qi++) {
+                var _qm = mList[_qi];
+                var _qmid = _qm.matchId;
+                var _qgs = _globalGsMap['m_' + _qmid] || _globalGsMap[_qmid] || null;
+                var _consensus = _qgs ? (_qgs.fusionConsensus || '') : '';
+                if (_consensus.indexOf('熔断') >= 0 || _consensus === 'meltdown') continue;
+
+                var _modds = PG.getMatchOdds(_qm, _od, _globalAllplays);
+                var _spf = _modds && _modds.spf ? _modds.spf : null;
+                if (!_spf || _spf.home == null || _spf.draw == null || _spf.away == null) continue;
+
+                var _coldDir = PG.getColdDirection({ spf: _spf }, _qgs);
+                var _chgEntry = _chgDay[_qmid];
+                var _hi = (_chgEntry && _chgEntry.heatIndex !== null && _chgEntry.heatIndex !== undefined) ? _chgEntry.heatIndex : null;
+
+                if (_hasChg) {
+                  if (_hi === null) continue;
+                  if (_hi >= 1.40 || _hi >= 0.85) continue;
+                } else {
+                  var impliedHome = 1 / parseFloat(_spf.home), impliedDraw = 1 / parseFloat(_spf.draw), impliedAway = 1 / parseFloat(_spf.away);
+                  var totalImplied = impliedHome + impliedDraw + impliedAway;
+                  var coldFair = impliedDraw;
+                  if (_coldDir.dir === '胜') coldFair = impliedHome;
+                  if (_coldDir.dir === '负') coldFair = impliedAway;
+                  if (coldFair < 0.12) continue;
+                  if (_consensus.indexOf('strong') >= 0 || _consensus.indexOf('强') >= 0) continue;
+                  if (!_qgs || _qgs.totalStrength === null || _qgs.totalStrength === undefined) _qgs = Object.assign({}, _qgs || {}, { totalStrength: 0 });
+                  _hi = 0.65;
+                }
+
+                var _coldScore = PG.computeColdScore(_hi, _qgs, { spf: _spf }, _coldDir);
+                if (_coldScore < MIN_COLD_SCORE) continue;
+
+                _coldCands.push({ match: _qm, gs: _qgs, heatIndex: _hi, coldDir: _coldDir.dir, coldOdds: _coldDir.odds, coldScore: _coldScore, odds: _modds });
+              }
+
+              _coldCands.sort(function(a, b) { return b.coldScore - a.coldScore; });
+              var _qPlanCount = 0;
+              if (_coldCands.length >= 4 && (_coldCands[0].coldScore + _coldCands[1].coldScore) / 2 >= MIN_PLAN_AVG) _qPlanCount = 2;
+              else if (_coldCands.length >= 4) _qPlanCount = 1;
+              else if (_coldCands.length >= 2 && (_coldCands[0].coldScore + _coldCands[1].coldScore) / 2 >= MIN_PLAN_AVG) _qPlanCount = 1;
+
+              var _usedIds = [];
+              for (var _qp = 0; _qp < _qPlanCount; _qp++) {
+                var _picked = [];
+                for (var _qci = 0; _qci < _coldCands.length && _picked.length < 2; _qci++) {
+                  if (_usedIds.indexOf(_coldCands[_qci].match.matchId) >= 0) continue;
+                  if (_picked.length === 0) {
+                    _picked.push(_coldCands[_qci]);
+                  } else {
+                    var _corr = PG.checkCorrelation(_picked[0].match, _coldCands[_qci].match);
+                    if (_corr.riskLevel === 'high') continue;
+                    _picked.push(_coldCands[_qci]);
                   }
                 }
-                dayIncome = prize - AMOUNT;
-                status = 'won'; totalWon++;
-              } else if (isLose) {
-                dayIncome = -AMOUNT;
-                status = 'lose';
-              }
-              totalPlans++;
-              totalIncome += dayIncome;
+                if (_picked.length < 2) break;
+                _usedIds.push(_picked[0].match.matchId, _picked[1].match.matchId);
 
-              results.push({
-                date: ds, plan: pp.planName, status: status,
-                matches: pp.matches.map(mm => ({
-                  matchNum: mm.matchNum, home: mm.homeName, visit: mm.visitName, direction: mm.direction, isWon: mm.isWon, isLose: mm.isLose
-                })),
-                prize: prize, income: dayIncome
-              });
-            });
+                var _ca = _picked[0], _cb = _picked[1];
+                var _pAvg = Math.round((_ca.coldScore + _cb.coldScore) / 2);
+                if (_pAvg < MIN_PLAN_AVG) continue;
+
+                // 判定两场命中结果
+                var _rA = PG.checkMatchResult(_ca.match.matchId, _ca.coldDir, rMap, normalizeRecs);
+                var _rB = PG.checkMatchResult(_cb.match.matchId, _cb.coldDir, rMap, normalizeRecs);
+
+                var _qWon = false, _qLose = false;
+                if (_rA.isWon === true && _rB.isWon === true) _qWon = true;
+                else if (_rA.isLose === true || _rB.isLose === true) _qLose = true;
+                if (!_qWon && !_qLose) continue;
+
+                totalPlans++;
+                if (_qWon) {
+                  totalWon++;
+                  var _qpPrize = Math.round(1000 * _ca.coldOdds * _cb.coldOdds);
+                  totalIncome += (_qpPrize - AMOUNT_SCORE_OR_QUANT);
+                  results.push({ date: ds, plan: '量化方案 ' + (_qp + 1), status: 'won',
+                    matches: [
+                      { matchNum: _ca.match.num || '', home: _ca.match.homeName || '', visit: _ca.match.visitName || '', direction: _ca.coldDir, isWon: true, isLose: false },
+                      { matchNum: _cb.match.num || '', home: _cb.match.homeName || '', visit: _cb.match.visitName || '', direction: _cb.coldDir, isWon: true, isLose: false }
+                    ],
+                    prize: _qpPrize, income: (_qpPrize - AMOUNT_SCORE_OR_QUANT)
+                  });
+                } else if (_qLose) {
+                  totalIncome -= AMOUNT_SCORE_OR_QUANT;
+                  results.push({ date: ds, plan: '量化方案 ' + (_qp + 1), status: 'lose',
+                    matches: [
+                      { matchNum: _ca.match.num || '', home: _ca.match.homeName || '', visit: _ca.match.visitName || '', direction: _ca.coldDir, isWon: _rA.isWon || false, isLose: _rA.isLose || false },
+                      { matchNum: _cb.match.num || '', home: _cb.match.homeName || '', visit: _cb.match.visitName || '', direction: _cb.coldDir, isWon: _rB.isWon || false, isLose: _rB.isLose || false }
+                    ],
+                    prize: 0, income: -AMOUNT_SCORE_OR_QUANT
+                  });
+                }
+              }
+            }
           }
 
           // Aggregate by date

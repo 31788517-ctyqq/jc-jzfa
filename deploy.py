@@ -129,6 +129,7 @@ DEPLOY_MAP = [
     ('server/gongshoudao/diff.js',        'both'),
     ('server/gongshoudao/score.js',       'both'),
     ('server/gongshoudao/fetch.js',       'both'),
+    ('server/core/plan-generator.js',     'both'),
     # PM2 配置 → PM2 启动目录
     ('ecosystem.config.json',             'pm2'),
     # 配置文件
