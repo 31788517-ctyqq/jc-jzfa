@@ -1969,7 +1969,7 @@ function loadPlanList() {
   const el = document.getElementById('planList');
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载方案中...</div>';
 
-  const params = planDateOffset === 0 ? {} : { date: planDate };
+  const params = { date: planDate };
   api('plan-list', params)
     .then(function (data) {
       if (data.date && data.date !== planDate) {
@@ -2299,7 +2299,7 @@ function loadScorePlanList() {
   const el = document.getElementById('planList');
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载单关比分方案中...</div>';
 
-  const params = planDateOffset === 0 ? {} : { date: planDate };
+  const params = { date: planDate };
   api('score-plan-list', params)
     .then(function (data) {
       if (data.date && data.date !== planDate) {

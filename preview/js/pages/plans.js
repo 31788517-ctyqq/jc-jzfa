@@ -67,7 +67,7 @@ export function loadPlanList() {
   if (state.planDateExplicit) {
     params = { date: state.planDate };
   } else if (state.planDateOffset === 0) {
-    params = {};
+    params = { date: state.planDate };
   } else {
     params = { date: state.planDate };
   }
@@ -417,7 +417,7 @@ export function loadScorePlanList() {
   if (state.planDateExplicit) {
     params = { date: state.planDate };
   } else if (state.planDateOffset === 0) {
-    params = {};
+    params = { date: state.planDate };
   } else {
     params = { date: state.planDate };
   }
@@ -679,7 +679,7 @@ export function loadQuantPlanList() {
   if (state.planDateExplicit) {
     params = { date: state.planDate };
   } else if (state.planDateOffset === 0) {
-    params = {};
+    params = { date: state.planDate };
   } else {
     params = { date: state.planDate };
   }
