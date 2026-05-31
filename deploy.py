@@ -139,6 +139,17 @@ DEPLOY_MAP = [
     ('server/gongshoudao/score.js',       'both'),
     ('server/gongshoudao/fetch.js',       'both'),
     ('server/core/plan-generator.js',     'both'),
+    # ★ v3 核心模块（index.js 直接 require，遗漏会导致运行时崩溃）
+    ('server/core/cache.js',              'both'),
+    ('server/core/midou.js',              'both'),
+    ('server/core/ai-timing.js',          'both'),
+    ('server/core/health.js',             'both'),
+    ('server/database.js',                'both'),
+    ('server/deepseek.js',                'both'),
+    ('server/doubao.js',                  'both'),
+    ('server/ai_merger.js',               'both'),
+    ('server/prediction_log.js',          'both'),
+    ('server/alert.js',                   'both'),
     ('ecosystem.config.json',             'pm2'),
     ('.gitignore',                        'both'),
 ]
