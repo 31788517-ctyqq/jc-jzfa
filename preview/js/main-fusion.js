@@ -227,10 +227,10 @@ window.goQuantToday = function () {
       console.error('[JS] goQuantToday 失败:', e && e.message);
     });
 };
-window.togglePick = function (id) {
+window.togglePick = function (ev, id) {
   _mod('quant-rank-fusion')
     .then(function (m) {
-      m.togglePick(id);
+      m.togglePick(ev, id);
     })
     .catch(function (e) {
       console.error('[JS] togglePick 失败:', e && e.message);
@@ -271,6 +271,42 @@ window.handleDocClose = function (e) {
     })
     .catch(function (e) {
       console.error('[JS] handleDocClose 失败:', e && e.message);
+    });
+};
+window.selectCategory = function (cat) {
+  _mod('ranking')
+    .then(function (m) {
+      m.selectCategory(cat);
+    })
+    .catch(function (e) {
+      console.error('[JS] selectCategory 失败:', e && e.message);
+    });
+};
+window.selectDirection = function (dir) {
+  _mod('ranking')
+    .then(function (m) {
+      m.selectDirection(dir);
+    })
+    .catch(function (e) {
+      console.error('[JS] selectDirection 失败:', e && e.message);
+    });
+};
+window.shiftRankDate = function (delta) {
+  _mod('ranking')
+    .then(function (m) {
+      m.shiftRankDate(delta);
+    })
+    .catch(function (e) {
+      console.error('[JS] shiftRankDate 失败:', e && e.message);
+    });
+};
+window.goRankToday = function () {
+  _mod('ranking')
+    .then(function (m) {
+      m.goRankToday();
+    })
+    .catch(function (e) {
+      console.error('[JS] goRankToday 失败:', e && e.message);
     });
 };
 
