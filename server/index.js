@@ -1295,6 +1295,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   if (matchInfo.visitName) aiFields.visitName = matchInfo.visitName;
                   if (matchInfo.leagueName) aiFields.leagueName = matchInfo.leagueName;
                   if (matchInfo.num) aiFields.matchNum = matchInfo.num;
+                  if (matchInfo.handicap !== undefined) aiFields.handicap = matchInfo.handicap;
+                  else if (matchInfo.rq !== undefined) aiFields.handicap = matchInfo.rq;
                   preds.forEach(function (p) {
                     if (p['玩法'] === '胜平负') aiFields.spf = p['建议方向'];
                     if (p['玩法'] === '大小球') aiFields.overunder = p['建议方向'];
@@ -2165,7 +2167,41 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             push2MatchPlan('方案二', '2', m2a, '总进球-2、3球', m2b, '让负', 250, 10);
             push2MatchPlan('方案三', '3', m3a, '胜', m3b, '胜', 500, 10, 50);
 
-            // 方案四～六：仅在 ≥15 场时生成
+            // 方案六：当天所有专家推荐方向选择总进球-2、3、4球和总进球-1、2、3球和总进球-3、4、5球
+            // 这三个方向推荐最多数的场次和方向；荷兰式投注（calcEffectiveOdds 内置荷兰式均分）
+            if (matchCount >= 8) {
+              const targetDirs6 = ['总进球-2、3、4球', '总进球-1、2、3球', '总进球-3、4、5球'];
+              let bestM6 = null, bestDir6 = '', bestCount6 = 0;
+              for (const m of mList) {
+                const recs = findRecommends(m.matchId);
+                for (const r of recs) {
+                  if (targetDirs6.includes(r.type) && (r.num || 0) > bestCount6) {
+                    bestCount6 = r.num;
+                    bestM6 = m;
+                    bestDir6 = r.type;
+                  }
+                }
+              }
+              if (bestM6 && bestDir6) {
+                const m6Obj = buildMatchObj(bestM6, bestDir6);
+                const eo = calcEffectiveOdds(bestDir6, m6Obj);
+                plans.push({
+                  planId: 'plan_' + dateStr + '_6',
+                  planName: '方案六',
+                  matches: [m6Obj],
+                  amount: 1000,
+                  playType: '单关',
+                  matchCount: 1,
+                  passType: '单关',
+                  betCount: 250,
+                  ticketCount: 10,
+                  multiplier: 25,
+                  maxPrize: eo ? Math.round(1000 * eo) : Math.round(1000 * 2.0),
+                });
+              }
+            }
+
+            // 方案四～五：仅在 ≥15 场时生成
             if (matchCount >= 15) {
               const m4a = findBestMatchForDirection(['平', '让平']);
               const m4b = findBestMatchForDirection(['胜'], m4a ? [m4a.matchId] : null);
@@ -2174,66 +2210,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const m5a = findBestMatchForDirection(['平', '让平']);
               const m5b = findBestMatchForDirection(['总进球-2、3球'], m5a ? [m5a.matchId] : null);
               push2MatchPlan('方案五', '5', m5a, '平、让平', m5b, '总进球-2、3球', 125, 5);
-
-              // 方案六：综合排名前5场，2串1+3串1混合过关
-              try {
-                const top5 = [];
-                for (const m of mList) {
-                  const recs = findRecommends(m.matchId);
-                  if (recs.length === 0) continue;
-                  const maxDir = recs.reduce((a, b) => ((b.num || 0) > ((a && a.num) || 0) ? b : a), null);
-                  if (maxDir && maxDir.num > 0) {
-                    top5.push({ match: m, direction: maxDir.type, expertCount: maxDir.num });
-                  }
-                }
-                top5.sort((a, b) => b.expertCount - a.expertCount);
-                const top5Matches = top5.slice(0, 5);
-                if (top5Matches.length >= 3) {
-                  const m6Objs = top5Matches.map((t) => buildMatchObj(t.match, t.direction));
-                  // 按文档规则计算最高奖金：2串1(10注) + 3串1(10注) × 25倍
-                  const oddsArr = [];
-                  m6Objs.forEach((mo) => {
-                    const eo = calcEffectiveOdds(mo.direction, mo);
-                    oddsArr.push(eo || 0);
-                  });
-                  let total2in1 = 0,
-                    total3in1 = 0;
-                  for (let i = 0; i < oddsArr.length; i++) {
-                    for (let j = i + 1; j < oddsArr.length; j++) {
-                      if (oddsArr[i] > 0 && oddsArr[j] > 0) {
-                        total2in1 += 2 * oddsArr[i] * oddsArr[j];
-                      }
-                    }
-                  }
-                  for (let i = 0; i < oddsArr.length; i++) {
-                    for (let j = i + 1; j < oddsArr.length; j++) {
-                      for (let k = j + 1; k < oddsArr.length; k++) {
-                        if (oddsArr[i] > 0 && oddsArr[j] > 0 && oddsArr[k] > 0) {
-                          total3in1 += 2 * oddsArr[i] * oddsArr[j] * oddsArr[k];
-                        }
-                      }
-                    }
-                  }
-                  const maxPrize = Math.round((total2in1 + total3in1) * 25);
-                  // 存储各场有效赔率，供前端计算实际奖金
-                  m6Objs.forEach((mo, idx) => {
-                    mo.effectiveOdds = oddsArr[idx];
-                  });
-                  plans.push({
-                    planId: 'plan_' + dateStr + '_6',
-                    planName: '方案六',
-                    matches: m6Objs,
-                    amount: 1000,
-                    playType: '混合投注',
-                    matchCount: top5Matches.length,
-                    passType: '混合过关',
-                    betCount: 20,
-                    ticketCount: 1,
-                    multiplier: 25,
-                    maxPrize: maxPrize > 0 ? maxPrize : Math.round(1000 * 2.5),
-                  });
-                }
-              } catch (e6) {}
             }
 
             // ========== 方案七：单关双选（胜平/平负） ==========
@@ -3774,21 +3750,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 };
               }
 
-              // 方案六综合排名也用预计算数据
-              const top5 = [];
-              for (const k of Object.keys(matchDataMap)) {
-                const mdData = matchDataMap[k];
-                const recs6 = mdData.recs;
-                if (recs6.length === 0) continue;
-                const maxDir = recs6.reduce((a, b) => ((b.num || 0) > ((a && a.num) || 0) ? b : a), null);
-                if (maxDir && maxDir.num > 0) {
-                  const mm = mdData.match;
-                  top5.push({ match: mm, direction: maxDir.type, expertCount: maxDir.num });
-                }
-              }
-              top5.sort((a, b) => b.expertCount - a.expertCount);
-              const top5SelTop = top5.slice(0, 5);
-
               const m1a = findBest(['平', '让平']),
                 m1b = findBest(['让负'], m1a ? [m1a.matchId] : null);
               const m2a = findBest(['总进球-2、3球']),
@@ -3817,6 +3778,31 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 });
 
               const dayMatchCount = mList.length;
+
+              // 方案六：三方向总进球筛选（≥8场），单关荷兰式投注
+              if (dayMatchCount >= 8) {
+                const targetDirs6 = ['总进球-2、3、4球', '总进球-1、2、3球', '总进球-3、4、5球'];
+                let bestM6 = null, bestDir6 = '', bestCount6 = 0;
+                for (const k of Object.keys(matchDataMap)) {
+                  const mdData = matchDataMap[k];
+                  const recs6 = mdData.recs;
+                  for (const r of recs6) {
+                    if (targetDirs6.includes(r.type) && (r.num || 0) > bestCount6) {
+                      bestCount6 = r.num;
+                      bestM6 = mdData.match;
+                      bestDir6 = r.type;
+                    }
+                  }
+                }
+                if (bestM6 && bestDir6) {
+                  dayPlans.push({
+                    name: 'plan_6',
+                    planName: '方案六',
+                    matches: [buildMatch(bestM6, bestDir6)],
+                  });
+                }
+              }
+
               if (dayMatchCount >= 15) {
                 const m4a = findBest(['平', '让平']);
                 const m4b = findBest(['胜'], m4a ? [m4a.matchId] : null);
@@ -3834,13 +3820,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     planName: '方案五',
                     matches: [buildMatch(m5a, '平、让平'), buildMatch(m5b, '总进球-2、3球')],
                   });
-                if (top5SelTop.length >= 3) {
-                  dayPlans.push({
-                    name: 'plan_6',
-                    planName: '方案六',
-                    matches: top5SelTop.map((t) => buildMatch(t.match, t.direction)),
-                  });
-                }
               }
               // ========== 方案七：单关双选（胜平/平负） ==========
               const singleMatches7 = mList.filter((m) => {
@@ -3874,76 +3853,40 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 dayPlans.forEach((pp) => {
                   if (planFilter !== 'all' && pp.name !== planFilter) return;
 
-                  // 方案六特殊处理：≥2场命中即中奖
-                  const isPlan6 = pp.name === 'plan_6';
                   let isWon = false,
                     isLose = false;
-                  let hitCount6 = 0;
-                  if (isPlan6) {
-                    let undetermined6 = false;
-                    for (const mm of pp.matches) {
-                      if (mm.isWon) hitCount6++;
-                      else if (!mm.isLose) undetermined6 = true;
-                    }
-                    if (undetermined6) return;
-                    isWon = hitCount6 >= 2;
-                    isLose = !isWon;
-                  } else {
-                    let allWon = true,
-                      anyLose = false,
-                      anyUnknown = false;
-                    for (const mm of pp.matches) {
-                      if (!mm.isWon) allWon = false;
-                      if (mm.isLose) anyLose = true;
-                      if (!mm.isWon && !mm.isLose) anyUnknown = true;
-                    }
-                    if (anyUnknown) return;
-                    isWon = allWon;
-                    isLose = anyLose && !isWon;
+                  let allWon = true,
+                    anyLose = false,
+                    anyUnknown = false;
+                  for (const mm of pp.matches) {
+                    if (!mm.isWon) allWon = false;
+                    if (mm.isLose) anyLose = true;
+                    if (!mm.isWon && !mm.isLose) anyUnknown = true;
                   }
+                  if (anyUnknown) return;
+                  isWon = allWon;
+                  isLose = anyLose && !isWon;
 
                   let prize = 0,
                     dayIncome = 0,
                     statusE = 'unknown';
                   if (isWon) {
-                    if (isPlan6) {
-                      const hitOdds = [];
-                      for (const mm of pp.matches) {
-                        if (mm.isWon) {
-                          const subOdds = extractIndividualOdds(mm.oddsObj, mm.direction);
-                          if (subOdds.length === 1) hitOdds.push(subOdds[0]);
-                          else if (subOdds.length > 1)
-                            hitOdds.push(subOdds.reduce((a, b) => a + b, 0) / (2 * subOdds.length));
-                          else hitOdds.push(1.5);
-                        }
+                    const effectiveOdds = [];
+                    let hasAllOdds = true;
+                    for (const mm of pp.matches) {
+                      const subOdds = extractIndividualOdds(mm.oddsObj, mm.direction);
+                      if (subOdds.length === 0) {
+                        hasAllOdds = false;
+                        continue;
                       }
-                      let total2 = 0,
-                        total3 = 0;
-                      for (let a = 0; a < hitOdds.length; a++)
-                        for (let b = a + 1; b < hitOdds.length; b++) total2 += 2 * hitOdds[a] * hitOdds[b];
-                      for (let a = 0; a < hitOdds.length; a++)
-                        for (let b = a + 1; b < hitOdds.length; b++)
-                          for (let c = b + 1; c < hitOdds.length; c++)
-                            total3 += 2 * hitOdds[a] * hitOdds[b] * hitOdds[c];
-                      prize = Math.round((total2 + total3) * 25);
-                    } else {
-                      const effectiveOdds = [];
-                      let hasAllOdds = true;
-                      for (const mm of pp.matches) {
-                        const subOdds = extractIndividualOdds(mm.oddsObj, mm.direction);
-                        if (subOdds.length === 0) {
-                          hasAllOdds = false;
-                          continue;
-                        }
-                        const NN = subOdds.length;
-                        if (NN === 1) effectiveOdds.push(subOdds[0]);
-                        else effectiveOdds.push(subOdds.reduce((a, b) => a + b, 0) / (2 * NN));
-                      }
-                      if (hasAllOdds && effectiveOdds.length >= 2)
-                        prize = Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]);
-                      else if (hasAllOdds && effectiveOdds.length === 1) prize = Math.round(AMOUNT * effectiveOdds[0]);
-                      else prize = Math.round(AMOUNT * 3);
+                      const NN = subOdds.length;
+                      if (NN === 1) effectiveOdds.push(subOdds[0]);
+                      else effectiveOdds.push(subOdds.reduce((a, b) => a + b, 0) / (2 * NN));
                     }
+                    if (hasAllOdds && effectiveOdds.length >= 2)
+                      prize = Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]);
+                    else if (hasAllOdds && effectiveOdds.length === 1) prize = Math.round(AMOUNT * effectiveOdds[0]);
+                    else prize = Math.round(AMOUNT * 3);
                     dayIncome = prize - AMOUNT;
                     statusE = 'won';
                     totalWon++;

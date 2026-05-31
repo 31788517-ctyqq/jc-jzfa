@@ -135,34 +135,19 @@ export function loadPlanList() {
           var matches = p.matches || [];
           var isWon = false,
             isLose = false;
-          if (p.passType === '混合过关') {
-            var hitCount = 0,
-              loseCount = 0,
-              undetermined = false;
-            for (var mi = 0; mi < matches.length; mi++) {
-              if (matches[mi].isMatchWon) hitCount++;
-              else if (matches[mi].isMatchLose) loseCount++;
-              else undetermined = true;
-            }
-            if (!undetermined) {
-              isWon = hitCount >= 2;
-              isLose = !isWon;
-            }
-          } else {
-            var allWon = matches.length > 0;
-            var anyLose = false,
-              anyUndetermined = false;
-            for (var mi2 = 0; mi2 < matches.length; mi2++) {
-              if (!matches[mi2].isMatchWon) allWon = false;
-              if (matches[mi2].isMatchLose) anyLose = true;
-              if (!matches[mi2].isMatchWon && !matches[mi2].isMatchLose) anyUndetermined = true;
-            }
-            isWon = allWon;
-            isLose = anyLose && !isWon;
-            if (anyUndetermined) {
-              isWon = false;
-              isLose = false;
-            }
+          var allWon = matches.length > 0;
+          var anyLose = false,
+            anyUndetermined = false;
+          for (var mi2 = 0; mi2 < matches.length; mi2++) {
+            if (!matches[mi2].isMatchWon) allWon = false;
+            if (matches[mi2].isMatchLose) anyLose = true;
+            if (!matches[mi2].isMatchWon && !matches[mi2].isMatchLose) anyUndetermined = true;
+          }
+          isWon = allWon;
+          isLose = anyLose && !isWon;
+          if (anyUndetermined) {
+            isWon = false;
+            isLose = false;
           }
 
           var planName = p.planName || '专家博热方案 ' + (i + 1);
@@ -171,40 +156,6 @@ export function loadPlanList() {
           var prizeVal = isWon ? (p.winningPrize || 0).toFixed(0) : (p.maxPrize || 0).toFixed(0);
           var prizeLabel = isWon ? '中奖金额' : isLose ? '预计奖金' : '预计最高奖金';
           var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
-
-          if (p.passType === '混合过关' && isWon) {
-            var hitOddsArr = [];
-            for (var mi3 = 0; mi3 < matches.length; mi3++) {
-              if (matches[mi3].isMatchWon) {
-                var eo = matches[mi3].effectiveOdds;
-                if (!eo) {
-                  var od = matches[mi3].odds || {};
-                  if (od.rqspf && od.rqspf.home) eo = od.rqspf.home;
-                  else if (od.spf && od.spf.home) eo = od.spf.home;
-                  else eo = 1.5;
-                }
-                if (eo > 0) hitOddsArr.push(eo);
-              }
-            }
-            if (hitOddsArr.length >= 2) {
-              var actual2in1 = 0,
-                actual3in1 = 0;
-              for (var a = 0; a < hitOddsArr.length; a++) {
-                for (var b = a + 1; b < hitOddsArr.length; b++) {
-                  actual2in1 += 2 * hitOddsArr[a] * hitOddsArr[b];
-                }
-              }
-              for (var a2 = 0; a2 < hitOddsArr.length; a2++) {
-                for (var b2 = a2 + 1; b2 < hitOddsArr.length; b2++) {
-                  for (var c = b2 + 1; c < hitOddsArr.length; c++) {
-                    actual3in1 += 2 * hitOddsArr[a2] * hitOddsArr[b2] * hitOddsArr[c];
-                  }
-                }
-              }
-              prizeVal = Math.round((actual2in1 + actual3in1) * 25).toFixed(0);
-              prizeLabel = '中奖金额';
-            }
-          }
 
           var cutoffDisplay = '';
           if (matches.length > 0 && matches[0].startTime) {
@@ -419,7 +370,7 @@ export function loadPlanList() {
             (p.playType || '混合投注') +
             '</div>' +
             '<div>' +
-            (p.passType === '混合过关' ? '2场2串1，3场3串1' : (p.matchCount || 2) + '场' + (p.passType || '2串1')) +
+            ((p.matchCount || 1) + '场' + (p.passType || '单关')) +
             '</div>' +
             '<div>' +
             (p.betCount || 250) +
@@ -794,34 +745,19 @@ export function loadQuantPlanList() {
           // ★ 中奖判定逻辑（复用专家方案规则）
           var isWon = false,
             isLose = false;
-          if (p.passType === '混合过关') {
-            var hitCount = 0,
-              loseCount = 0,
-              undetermined = false;
-            for (var mi = 0; mi < matches.length; mi++) {
-              if (matches[mi].isMatchWon) hitCount++;
-              else if (matches[mi].isMatchLose) loseCount++;
-              else undetermined = true;
-            }
-            if (!undetermined) {
-              isWon = hitCount >= 2;
-              isLose = !isWon;
-            }
-          } else {
-            var allWon = matches.length > 0;
-            var anyLose = false,
-              anyUndetermined = false;
-            for (var mi2 = 0; mi2 < matches.length; mi2++) {
-              if (!matches[mi2].isMatchWon) allWon = false;
-              if (matches[mi2].isMatchLose) anyLose = true;
-              if (!matches[mi2].isMatchWon && !matches[mi2].isMatchLose) anyUndetermined = true;
-            }
-            isWon = allWon;
-            isLose = anyLose && !isWon;
-            if (anyUndetermined) {
-              isWon = false;
-              isLose = false;
-            }
+          var allWon = matches.length > 0;
+          var anyLose = false,
+            anyUndetermined = false;
+          for (var mi2 = 0; mi2 < matches.length; mi2++) {
+            if (!matches[mi2].isMatchWon) allWon = false;
+            if (matches[mi2].isMatchLose) anyLose = true;
+            if (!matches[mi2].isMatchWon && !matches[mi2].isMatchLose) anyUndetermined = true;
+          }
+          isWon = allWon;
+          isLose = anyLose && !isWon;
+          if (anyUndetermined) {
+            isWon = false;
+            isLose = false;
           }
           // 截单时间计算（复用 expert plan 逻辑）
           var cutoffDisplay = '';

@@ -2018,34 +2018,19 @@ function loadPlanList() {
           // 判断方案整体中奖状态
           let isWon = false,
             isLose = false;
-          if (p.passType === '混合过关') {
-            let hitCount = 0,
-              loseCount = 0,
-              undetermined = false;
-            for (var mi = 0; mi < matches.length; mi++) {
-              if (matches[mi].isMatchWon) hitCount++;
-              else if (matches[mi].isMatchLose) loseCount++;
-              else undetermined = true;
-            }
-            if (!undetermined) {
-              isWon = hitCount >= 2;
-              isLose = !isWon;
-            }
-          } else {
-            let allWon = matches.length > 0;
-            let anyLose = false,
-              anyUndetermined = false;
-            for (let mi2 = 0; mi2 < matches.length; mi2++) {
-              if (!matches[mi2].isMatchWon) allWon = false;
-              if (matches[mi2].isMatchLose) anyLose = true;
-              if (!matches[mi2].isMatchWon && !matches[mi2].isMatchLose) anyUndetermined = true;
-            }
-            isWon = allWon;
-            isLose = anyLose && !isWon;
-            if (anyUndetermined) {
-              isWon = false;
-              isLose = false;
-            }
+          let allWon = matches.length > 0;
+          let anyLose = false,
+            anyUndetermined = false;
+          for (let mi2 = 0; mi2 < matches.length; mi2++) {
+            if (!matches[mi2].isMatchWon) allWon = false;
+            if (matches[mi2].isMatchLose) anyLose = true;
+            if (!matches[mi2].isMatchWon && !matches[mi2].isMatchLose) anyUndetermined = true;
+          }
+          isWon = allWon;
+          isLose = anyLose && !isWon;
+          if (anyUndetermined) {
+            isWon = false;
+            isLose = false;
           }
 
           const planName = p.planName || '方案' + (i + 1);
@@ -2054,42 +2039,6 @@ function loadPlanList() {
           const amountVal = (p.amount || 1000).toFixed(0);
           let prizeVal = (p.maxPrize || 0).toFixed(0);
           let prizeLabel = isWon ? '中奖金额' : isLose ? '预计奖金' : '预计最高奖金';
-
-          // 方案六开奖后按实际命中计算奖金
-          if (p.passType === '混合过关' && isWon) {
-            const hitOddsArr = [];
-            for (let mi3 = 0; mi3 < matches.length; mi3++) {
-              if (matches[mi3].isMatchWon) {
-                let eo = matches[mi3].effectiveOdds;
-                if (!eo) {
-                  // fallback: extract from odds object
-                  const od = matches[mi3].odds || {};
-                  if (od.rqspf && od.rqspf.home) eo = od.rqspf.home;
-                  else if (od.spf && od.spf.home) eo = od.spf.home;
-                  else eo = 1.5;
-                }
-                if (eo > 0) hitOddsArr.push(eo);
-              }
-            }
-            if (hitOddsArr.length >= 2) {
-              let actual2in1 = 0,
-                actual3in1 = 0;
-              for (var a = 0; a < hitOddsArr.length; a++) {
-                for (var b = a + 1; b < hitOddsArr.length; b++) {
-                  actual2in1 += 2 * hitOddsArr[a] * hitOddsArr[b];
-                }
-              }
-              for (var a = 0; a < hitOddsArr.length; a++) {
-                for (var b = a + 1; b < hitOddsArr.length; b++) {
-                  for (let c = b + 1; c < hitOddsArr.length; c++) {
-                    actual3in1 += 2 * hitOddsArr[a] * hitOddsArr[b] * hitOddsArr[c];
-                  }
-                }
-              }
-              prizeVal = Math.round((actual2in1 + actual3in1) * 25).toFixed(0);
-              prizeLabel = '中奖金额';
-            }
-          }
 
           // 截单时间：基于第一场比赛开赛时间，提前30分钟；周一至五22:00之后截单21:30；周六日23:00之后截单22:30
           let cutoffDisplay = '';
@@ -2309,7 +2258,7 @@ function loadPlanList() {
             (p.playType || '混合投注') +
             '</div>' +
             '<div>' +
-            (p.passType === '混合过关' ? '2场2串1，3场3串1' : (p.matchCount || 2) + '场' + (p.passType || '2串1')) +
+            ((p.matchCount || 1) + '场' + (p.passType || '单关')) +
             '</div>' +
             '<div>' +
             (p.betCount || 250) +

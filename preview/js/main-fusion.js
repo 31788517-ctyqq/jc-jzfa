@@ -624,7 +624,7 @@ export function initWeekDates() {
         state.setWeekDates([{ weekNum: WEEK_NAMES[new Date().getDay()], matchDate: formatDate(new Date()).slice(5) }]);
       }
       updateDateBar();
-      loadMatchListFromData(matches);
+      loadMatchList();
     })
     .catch(function () {
       state.setWeekDates([{ weekNum: WEEK_NAMES[new Date().getDay()], matchDate: formatDate(new Date()).slice(5) }]);
