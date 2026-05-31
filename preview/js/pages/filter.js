@@ -273,7 +273,7 @@ export function doFilterQuery() {
           var dr = parseFloat(d.hitRate) || 0;
           html +=
             '<div class="filter-detail-row"><span>' +
-            d.date +
+            d.date.slice(5).replace('-', '/') +
             '</span><span>' +
             d.totalMatch +
             '/' +
