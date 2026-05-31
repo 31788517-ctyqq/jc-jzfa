@@ -902,7 +902,6 @@ body {
 }
 .navbar {
   background: linear-gradient(180deg, rgba(0,16,24,0.86), rgba(0,16,24,0));
-  padding-top: max(env(safe-area-inset-top, 8px), 8px);
 }
 .nav-title { text-align: left; font-size: var(--fs-2xl); font-weight: 800; }
 .hero-section {
