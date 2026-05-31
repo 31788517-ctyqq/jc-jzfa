@@ -61,10 +61,10 @@ function injectStyles() {
 
     /* 表头 */
     '.bt-header-row { display:flex; align-items:center; font-size:11px; color:var(--text3); padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(24,224,224,0.03); }',
-    '.bt-hdr-date { width:48px; flex-shrink:0; }',
-    '.bt-hdr-match { width:44px; flex-shrink:0; text-align:center; }',
+    '.bt-hdr-date { flex:1; }',
+    '.bt-hdr-match { flex:1; text-align:center; }',
     '.bt-hdr-teams { flex:1; padding:0 4px; }',
-    '.bt-hdr-pred { width:132px; flex-shrink:0; text-align:right; }',
+    '.bt-hdr-pred { flex:1; text-align:right; }',
 
     /* 数据行 */
     '.bt-row { display:flex; align-items:center; font-size:12px; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.02); transition:background .15s; }',
@@ -72,15 +72,15 @@ function injectStyles() {
     '.bt-row:hover { background:rgba(255,255,255,0.02); }',
 
     /* 日期列 */
-    '.bt-col-date { width:48px; flex-shrink:0; color:var(--text3); font-size:11px; }',
+    '.bt-col-date { flex:1; color:var(--text3); font-size:11px; }',
 
     /* 场次列 */
-    '.bt-col-match { width:44px; flex-shrink:0; text-align:center; }',
+    '.bt-col-match { flex:1; text-align:center; }',
     '.bt-col-num { font-weight:700; font-size:12px; }',
     '.bt-col-league { font-size:9px; color:var(--text3); display:block; line-height:1.3; }',
 
     /* 对阵列 */
-    '.bt-col-teams { flex:1; padding:0 6px; min-width:0; }',
+    '.bt-col-teams { flex:1; padding:0 4px; min-width:0; }',
     '.bt-col-home { font-weight:500; font-size:12px; line-height:1.4; }',
     '.bt-col-score { font-weight:700; font-size:13px; color:var(--text); padding:1px 0; line-height:1.4; }',
     '.bt-col-away { font-weight:500; font-size:12px; color:var(--text2); line-height:1.4; }',
@@ -89,7 +89,7 @@ function injectStyles() {
     '.bt-col-hcp { font-size:10px; color:var(--amber); font-weight:400; margin-left:3px; }',
 
     /* 预测列 */
-    '.bt-col-pred { width:132px; flex-shrink:0; display:flex; flex-direction:column; gap:2px; align-items:flex-end; }',
+    '.bt-col-pred { flex:1; display:flex; flex-direction:column; gap:2px; align-items:flex-end; }',
     '.bt-pred-item { font-size:10px; line-height:1.5; white-space:nowrap; }',
     '.bt-pred-item .pred-label { color:var(--text3); margin-right:2px; }',
     '.bt-pred-item .pred-val { font-weight:600; }',
