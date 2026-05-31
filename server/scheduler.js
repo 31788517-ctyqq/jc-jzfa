@@ -21,7 +21,7 @@ async function crawlLatest() {
     const matches = await fetchMatches();
     logger.info(`[定时任务] 获取 ${matches.length} 场比赛`);
 
-    const activeMatches = matches.filter(m => m.matchStatus !== 3);
+    const activeMatches = matches.filter((m) => m.matchStatus !== 3);
     for (const m of activeMatches.slice(0, 5)) {
       try {
         await fetchRecommends(m.matchId);
@@ -29,7 +29,7 @@ async function crawlLatest() {
       } catch (e) {
         logger.warn(`[定时任务] 推荐失败 matchId=${m.matchId}: ${e.message}`);
       }
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     success = true;
   } catch (e) {

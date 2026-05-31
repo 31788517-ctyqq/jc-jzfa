@@ -1,13 +1,17 @@
 const path = require('path');
-const db = require('better-sqlite3')(path.join(__dirname,'midou_data.db'), { readonly: true });
+const db = require('better-sqlite3')(path.join(__dirname, 'midou_data.db'), { readonly: true });
 const fs = require('fs');
 
-const matches = db.prepare('SELECT matchId,homeName,visitName,leagueName,num,startTime,matchStatus,date FROM matches').all();
+const matches = db
+  .prepare('SELECT matchId,homeName,visitName,leagueName,num,startTime,matchStatus,date FROM matches')
+  .all();
 const recommends = db.prepare('SELECT matchId,type,num,result,fetchDate FROM recommends').all();
 
 const data = { matches: {}, recommends: {} };
-matches.forEach(m => { data.matches[String(m.matchId)] = m; });
-recommends.forEach(r => {
+matches.forEach((m) => {
+  data.matches[String(m.matchId)] = m;
+});
+recommends.forEach((r) => {
   const key = String(r.matchId);
   if (!data.recommends[key]) data.recommends[key] = [];
   data.recommends[key].push({ type: r.type, num: r.num, result: r.result, fetchDate: r.fetchDate });

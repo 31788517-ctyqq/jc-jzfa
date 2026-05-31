@@ -19,7 +19,9 @@ function generateDates(start, end) {
   return dates;
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 async function main() {
   // 从500.com最早有数据的日期开始
@@ -37,7 +39,7 @@ async function main() {
       const odds = await fetchOdds(d);
       const keys = Object.keys(odds);
       if (keys.length > 0) {
-        const dayMatches = keys.sort().map(k => {
+        const dayMatches = keys.sort().map((k) => {
           const m = odds[k];
           return {
             matchNum: k,
@@ -52,10 +54,10 @@ async function main() {
         });
         allData[d] = dayMatches;
         total += dayMatches.length;
-        console.log(`[${String(i+1).padStart(3)}] ${d}: ${dayMatches.length} matches`);
+        console.log(`[${String(i + 1).padStart(3)}] ${d}: ${dayMatches.length} matches`);
       }
-    } catch(e) {
-      console.log(`[${String(i+1).padStart(3)}] ${d}: ERROR - ${e.message}`);
+    } catch (e) {
+      console.log(`[${String(i + 1).padStart(3)}] ${d}: ERROR - ${e.message}`);
     }
     if (i < dates.length - 1) await sleep(200);
   }
@@ -67,31 +69,62 @@ async function main() {
 
   // CSV
   const csvPath = path.join(OUTPUT_DIR, 'odds_500_full.csv');
-  const header = 'date,matchNum,home,away,hcp,' +
+  const header =
+    'date,matchNum,home,away,hcp,' +
     'SPF_w,SPF_d,SPF_l,RQSPF_w,RQSPF_d,RQSPF_l,' +
     'BQC_hh,BQC_hd,BQC_ha,BQC_dh,BQC_dd,BQC_da,BQC_ah,BQC_ad,BQC_aa,' +
     'JQS_0,JQS_1,JQS_2,JQS_3,JQS_4,JQS_5,JQS_6,JQS_7p';
   const lines = [header];
 
-  Object.keys(allData).sort().forEach(d => {
-    allData[d].forEach(m => {
-      const s = m.spf || {}, rq = m.rqspf || {}, hf = m.halfFull || {}, tg = m.totalGoals || {};
-      lines.push([
-        d, m.matchNum, m.homeName, m.visitName, m.handicap,
-        s.home||'', s.draw||'', s.away||'',
-        rq.home||'', rq.draw||'', rq.away||'',
-        hf.hh||'', hf.hd||'', hf.ha||'',
-        hf.dh||'', hf.dd||'', hf.da||'',
-        hf.ah||'', hf.ad||'', hf.aa||'',
-        tg['0']||'', tg['1']||'', tg['2']||'', tg['3']||'',
-        tg['4']||'', tg['5']||'', tg['6']||'', tg['7+']||'',
-      ].join(','));
+  Object.keys(allData)
+    .sort()
+    .forEach((d) => {
+      allData[d].forEach((m) => {
+        const s = m.spf || {},
+          rq = m.rqspf || {},
+          hf = m.halfFull || {},
+          tg = m.totalGoals || {};
+        lines.push(
+          [
+            d,
+            m.matchNum,
+            m.homeName,
+            m.visitName,
+            m.handicap,
+            s.home || '',
+            s.draw || '',
+            s.away || '',
+            rq.home || '',
+            rq.draw || '',
+            rq.away || '',
+            hf.hh || '',
+            hf.hd || '',
+            hf.ha || '',
+            hf.dh || '',
+            hf.dd || '',
+            hf.da || '',
+            hf.ah || '',
+            hf.ad || '',
+            hf.aa || '',
+            tg['0'] || '',
+            tg['1'] || '',
+            tg['2'] || '',
+            tg['3'] || '',
+            tg['4'] || '',
+            tg['5'] || '',
+            tg['6'] || '',
+            tg['7+'] || '',
+          ].join(','),
+        );
+      });
     });
-  });
 
   fs.writeFileSync(csvPath, lines.join('\n'), 'utf-8');
   console.log(`CSV: ${csvPath}`);
   console.log(`\nDONE: ${Object.keys(allData).length} days, ${total} matches`);
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

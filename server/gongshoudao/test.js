@@ -17,7 +17,7 @@ async function test() {
   let results;
   try {
     results = await fetch.fetchAndRelate('2026-05-26');
-  } catch(e) {
+  } catch (e) {
     console.log('  API 请求失败:', e.message);
     console.log('  => 尝试备用日期 2026-05-25');
     results = await fetch.fetchAndRelate('2026-05-25');
@@ -49,8 +49,24 @@ async function test() {
   console.log('  赢球差 [W2/W1/D/L1/L2]:');
   console.log('    主队:', vars.homeWinGap_2, vars.homeWinGap_1, vars.homeDraw, vars.homeLoseGap_1, vars.homeLoseGap_2);
   console.log('    客队:', vars.awayWinGap_2, vars.awayWinGap_1, vars.awayDraw, vars.awayLoseGap_1, vars.awayLoseGap_2);
-  console.log('  攻防效率:', vars.homeAttackEfficiency, vars.homeDefendEfficiency, '|', vars.awayAttackEfficiency, vars.awayDefendEfficiency);
-  console.log('  场均进球/失球:', vars.homeRecentGoalAvg, '/', vars.homeRecentLoseAvg, '|', vars.awayRecentGoalAvg, '/', vars.awayRecentLoseAvg);
+  console.log(
+    '  攻防效率:',
+    vars.homeAttackEfficiency,
+    vars.homeDefendEfficiency,
+    '|',
+    vars.awayAttackEfficiency,
+    vars.awayDefendEfficiency,
+  );
+  console.log(
+    '  场均进球/失球:',
+    vars.homeRecentGoalAvg,
+    '/',
+    vars.homeRecentLoseAvg,
+    '|',
+    vars.awayRecentGoalAvg,
+    '/',
+    vars.awayRecentLoseAvg,
+  );
   console.log('  净胜球序列长度:', vars.homeGoalDiffSeries.length, '/', vars.awayGoalDiffSeries.length, '\n');
 
   // 3. 实力分析
@@ -63,7 +79,13 @@ async function test() {
   console.log('  防守权重:', attResult.defenseWeightHome, 'vs', attResult.defenseWeightAway);
   console.log('  综合优势:', attResult.totalAdvantage, '(value:', attResult.totalAdvantageValue + ')');
   console.log('  实力阶梯:', attResult.ladder.label, '(level:', attResult.ladder.level + ')');
-  console.log('  交叉分布:', '主胜客负=' + attResult.cross.crossWin, '平局=' + attResult.cross.crossDraw, '主负客胜=' + attResult.cross.crossLose, '\n');
+  console.log(
+    '  交叉分布:',
+    '主胜客负=' + attResult.cross.crossWin,
+    '平局=' + attResult.cross.crossDraw,
+    '主负客胜=' + attResult.cross.crossLose,
+    '\n',
+  );
 
   // 4. 大小球
   console.log('[5] 第四阶段：大小球');
@@ -80,8 +102,28 @@ async function test() {
   console.log('  预期净胜球差:', diffRes._diffXG.toFixed(4));
   console.log('  Total_战:', diffRes._totalStrength.normalized.toFixed(4));
   console.log('  Anchor:', diffRes.anchor.label, '(' + diffRes.anchor.anchor + ')');
-  console.log('  维度一(主赢∩客输):', diffRes.sevenMatch.dimension1.label, '(共' + diffRes.sevenMatch.dimension1.total + '场, 主' + diffRes.sevenMatch.dimension1.hCount + '客' + diffRes.sevenMatch.dimension1.aCount + ')');
-  console.log('  维度二(主输∩客赢):', diffRes.sevenMatch.dimension2.label, '(共' + diffRes.sevenMatch.dimension2.total + '场, 主' + diffRes.sevenMatch.dimension2.hCount + '客' + diffRes.sevenMatch.dimension2.aCount + ')');
+  console.log(
+    '  维度一(主赢∩客输):',
+    diffRes.sevenMatch.dimension1.label,
+    '(共' +
+      diffRes.sevenMatch.dimension1.total +
+      '场, 主' +
+      diffRes.sevenMatch.dimension1.hCount +
+      '客' +
+      diffRes.sevenMatch.dimension1.aCount +
+      ')',
+  );
+  console.log(
+    '  维度二(主输∩客赢):',
+    diffRes.sevenMatch.dimension2.label,
+    '(共' +
+      diffRes.sevenMatch.dimension2.total +
+      '场, 主' +
+      diffRes.sevenMatch.dimension2.hCount +
+      '客' +
+      diffRes.sevenMatch.dimension2.aCount +
+      ')',
+  );
   console.log('  共振裁决:', diffRes.resonance.verdict, '\n');
 
   // 6. 完整弹窗数据
@@ -115,7 +157,7 @@ async function test() {
     verifyValue: full.verifyValue,
     ladderLabel: full.ladderLabel,
     resonance: full.resonance.verdict,
-    suggestion: full.suggestion
+    suggestion: full.suggestion,
   };
   console.log(JSON.stringify(summary, null, 2));
 
@@ -124,8 +166,11 @@ async function test() {
   const cache = gs.readCache();
   const cachedKeys = Object.keys(cache);
   console.log('  缓存中有', cachedKeys.length, '个日期:', cachedKeys);
-  
+
   console.log('\n✅ 链路验证通过！');
 }
 
-test().catch(e => { console.error('❌ 测试失败:', e.message); console.error(e.stack); });
+test().catch((e) => {
+  console.error('❌ 测试失败:', e.message);
+  console.error(e.stack);
+});

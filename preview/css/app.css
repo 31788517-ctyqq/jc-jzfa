@@ -44,7 +44,7 @@ body {
 /* 导航栏 */
 .navbar {
   width: 100%;
-  padding: 16px 16px 12px;
+  padding: 12px 16px 8px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -896,13 +896,13 @@ body {
 }
 .navbar {
   background: linear-gradient(180deg, rgba(0,16,24,0.86), rgba(0,16,24,0));
-  padding-top: 54px;
+  padding-top: max(env(safe-area-inset-top, 8px), 8px);
 }
 .nav-title { text-align: left; font-size: var(--fs-2xl); font-weight: 800; }
 .hero-section {
   aspect-ratio: 929 / 424;
   max-height: 180px;
-  margin: 8px 0 20px;
+  margin: 4px 0 16px;
   border-radius: 12px;
   padding: 0;
   overflow: hidden;
@@ -2267,3 +2267,54 @@ body {
 .bt-miss .bt-result-val { color:var(--red); }
 .backtest-pager { margin-top:12px; }
 .backtest-row { margin-bottom:8px; }
+
+/* ═══ 命中率骨架屏 ═══ */
+@keyframes hitSkeletonPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+.hit-skeleton {
+  animation: hitSkeletonPulse 1.6s ease-in-out infinite;
+}
+.hit-sk-summary {
+  display: flex; gap: 14px; margin-bottom: 16px;
+}
+.hit-sk-card {
+  flex: 1; height: 88px; border-radius: 22px;
+  background: rgba(14,24,34,0.72);
+  border: 1px solid rgba(0,245,233,0.08);
+}
+.hit-sk-rank {
+  height: 320px; border-radius: 22px; margin-bottom: 16px;
+  background: rgba(14,24,34,0.72);
+  border: 1px solid rgba(0,245,233,0.08);
+}
+.hit-sk-table {
+  height: 260px; border-radius: 22px;
+  background: rgba(14,24,34,0.72);
+  border: 1px solid rgba(0,245,233,0.08);
+}
+
+/* 命中率错误态 */
+.hit-empty {
+  text-align: center; padding: 80px 0; color: var(--text3);
+}
+.hit-empty-icon {
+  font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.5;
+}
+.hit-empty-title {
+  font-size: var(--fs-lg); font-weight: 600; color: var(--text2); margin-bottom: 8px;
+}
+.hit-empty-desc {
+  font-size: var(--fs-sm); color: var(--text3); line-height: 1.6;
+}
+.hit-retry-btn {
+  display: inline-block; margin-top: 20px; padding: 10px 32px;
+  border-radius: 24px; border: 1px solid rgba(24,224,224,0.3);
+  background: rgba(24,224,224,0.08); color: var(--cyan);
+  font-size: var(--fs-md); font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.hit-retry-btn:hover { background: rgba(24,224,224,0.16); border-color: rgba(24,224,224,0.5); }
+.hit-retry-btn:active { transform: scale(0.96); }
+

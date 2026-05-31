@@ -17,10 +17,15 @@ export function loadRanking(cat, dir) {
   else if (state.selectedCategory) params.category = state.selectedCategory;
   if (state.rankDate) params.date = state.rankDate;
 
-  api('ranking-list', params).then(data => {
+  api('ranking-list', params).then((data) => {
     if ((data.ranking || []).length === 0 && !state.selectedCategory && !state.selectedDirection) {
       var now2 = new Date();
-      var todayStr2 = now2.getFullYear() + '-' + String(now2.getMonth() + 1).padStart(2, '0') + '-' + String(now2.getDate()).padStart(2, '0');
+      var todayStr2 =
+        now2.getFullYear() +
+        '-' +
+        String(now2.getMonth() + 1).padStart(2, '0') +
+        '-' +
+        String(now2.getDate()).padStart(2, '0');
       if (state.rankDate === todayStr2 || state.rankDate === '') {
         var d3 = new Date();
         d3.setDate(d3.getDate() + state.rankDateOffset - 1);
@@ -34,46 +39,68 @@ export function loadRanking(cat, dir) {
     }
 
     if (catEl) {
-      const catOrder = CAT_NAMES.filter(c => c === '综合排名' || (data.categories && data.categories[c]));
-      catEl.innerHTML = catOrder.map(c => {
-        const isActive = (c === '综合排名' && !state.selectedCategory) || c === state.selectedCategory;
-        return `<div class="filter-tag ${isActive ? 'active' : ''}" onclick="selectCategory('${c}')">${c}</div>`;
-      }).join('');
+      const catOrder = CAT_NAMES.filter((c) => c === '综合排名' || (data.categories && data.categories[c]));
+      catEl.innerHTML = catOrder
+        .map((c) => {
+          const isActive = (c === '综合排名' && !state.selectedCategory) || c === state.selectedCategory;
+          return `<div class="filter-tag ${isActive ? 'active' : ''}" onclick="selectCategory('${c}')">${c}</div>`;
+        })
+        .join('');
     }
 
     if (state.selectedCategory && data.categories && data.categories[state.selectedCategory]) {
       if (subEl) {
         subEl.style.display = 'flex';
         const dirs = data.categories[state.selectedCategory].directions;
-        subEl.innerHTML = dirs.map(d => {
-          const isActive = d.name === state.selectedDirection;
-          return `<div class="filter-tag ${isActive ? 'active' : ''}" onclick="selectDirection('${d.name.replace(/'/g, "\\'")}')">${d.name}</div>`;
-        }).join('');
+        subEl.innerHTML = dirs
+          .map((d) => {
+            const isActive = d.name === state.selectedDirection;
+            return `<div class="filter-tag ${isActive ? 'active' : ''}" onclick="selectDirection('${d.name.replace(/'/g, "\\'")}')">${d.name}</div>`;
+          })
+          .join('');
       }
     } else {
       if (subEl) subEl.style.display = 'none';
     }
 
     const topCount = data.ranking.length > 0 ? data.ranking[0].expertCount : 1;
-    el.innerHTML = data.ranking.map(item => {
-      const r = item.rank;
-      let badgeClass = 'normal', badgeContent = r;
-      if (r === 1) { badgeClass = 'gold'; badgeContent = '🥇'; }
-      else if (r === 2) { badgeClass = 'silver'; badgeContent = '🥈'; }
-      else if (r === 3) { badgeClass = 'bronze'; badgeContent = '🥉'; }
+    el.innerHTML = data.ranking
+      .map((item) => {
+        const r = item.rank;
+        let badgeClass = 'normal',
+          badgeContent = r;
+        if (r === 1) {
+          badgeClass = 'gold';
+          badgeContent = '🥇';
+        } else if (r === 2) {
+          badgeClass = 'silver';
+          badgeContent = '🥈';
+        } else if (r === 3) {
+          badgeClass = 'bronze';
+          badgeContent = '🥉';
+        }
 
-      const pct = Math.round(item.expertCount / topCount * 100);
-      // AI标签隐藏逻辑：比赛日期早于今天则隐藏（同match-detail页AI预测核心看点卡片规则）
-      var today = new Date(); today.setHours(0,0,0,0);
-      var matchDate = new Date((item.date || '').slice(0,10)); if (isNaN(matchDate.getTime())) matchDate = today;
-      var showAI = matchDate >= today;
-      var aiTagHtml = '';
-      if (showAI) {
-        var h = (item.homeName || '').replace(/'/g, '&apos;');
-        var v = (item.visitName || '').replace(/'/g, '&apos;');
-        aiTagHtml = '<div class="rank-ai-tag" onclick="event.stopPropagation();showAIPrediction(\'' + item.matchId + '\',\'' + h + '\',\'' + v + '\')">🤖 AI解析</div>';
-      }
-      return `
+        const pct = Math.round((item.expertCount / topCount) * 100);
+        // AI标签隐藏逻辑：比赛日期早于今天则隐藏（同match-detail页AI预测核心看点卡片规则）
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+        var matchDate = new Date((item.date || '').slice(0, 10));
+        if (isNaN(matchDate.getTime())) matchDate = today;
+        var showAI = matchDate >= today;
+        var aiTagHtml = '';
+        if (showAI) {
+          var h = (item.homeName || '').replace(/'/g, '&apos;');
+          var v = (item.visitName || '').replace(/'/g, '&apos;');
+          aiTagHtml =
+            '<div class="rank-ai-tag" onclick="event.stopPropagation();showAIPrediction(\'' +
+            item.matchId +
+            "','" +
+            h +
+            "','" +
+            v +
+            '\')">🤖 AI解析</div>';
+        }
+        return `
         <div class="rank-card" onclick="goDetail('${item.matchId}')">
           <div class="rank-badge ${badgeClass}">${badgeContent}</div>
           <div class="rank-content">
@@ -88,10 +115,11 @@ export function loadRanking(cat, dir) {
           ${item.isHit ? '<div class="rank-hit-stamp">中</div>' : ''}
         </div>
       `;
-    }).join('');
+      })
+      .join('');
 
     requestAnimationFrame(() => {
-      el.querySelectorAll('.rank-progress-fill').forEach(fill => {
+      el.querySelectorAll('.rank-progress-fill').forEach((fill) => {
         setTimeout(() => {
           fill.style.width = fill.dataset.width + '%';
         }, 80);
@@ -101,8 +129,13 @@ export function loadRanking(cat, dir) {
 }
 
 export function selectCategory(cat) {
-  if (cat === '综合排名') { state.setSelectedCategory(''); state.setSelectedDirection(''); }
-  else { state.setSelectedCategory(cat); state.setSelectedDirection(''); }
+  if (cat === '综合排名') {
+    state.setSelectedCategory('');
+    state.setSelectedDirection('');
+  } else {
+    state.setSelectedCategory(cat);
+    state.setSelectedDirection('');
+  }
   loadRanking();
 }
 
@@ -114,7 +147,9 @@ export function selectDirection(dir) {
 export function updateRankDateBar() {
   var d = new Date();
   d.setDate(d.getDate() + state.rankDateOffset);
-  state.setRankDate(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'));
+  state.setRankDate(
+    d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'),
+  );
   var el = document.getElementById('rankDateCurrent');
   if (!el) return;
   var weekNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];

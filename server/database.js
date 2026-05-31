@@ -1,9 +1,9 @@
 /**
  * server/database.js
  * SQLite 数据库模块 — 主数据存储层
- * 
+ *
  * 后端优先级: better-sqlite3（本地开发） → sql.js（生产 CentOS 6） → JSON 降级
- * 
+ *
  * 表结构:
  *   matches       — 比赛信息（matchId 主键）
  *   recommends    — 推荐数据（matchId + type + fetchDate 唯一）
@@ -17,7 +17,7 @@ const DB_PATH = path.join(__dirname, 'midou_data.db');
 
 let db = null;
 let dbAvailable = false;
-let _adapterReady = false;  // sql.js 异步初始化完成标志
+let _adapterReady = false; // sql.js 异步初始化完成标志
 
 // ═══════════════════════════════════════════════════════
 // sql.js 适配器辅助函数
@@ -147,7 +147,9 @@ function _createSqlJsAdapter(sqlDb) {
       } catch (e) {
         _inTransaction = false;
         // 忽略 rollback 错误（可能事务未成功开启）
-        try { dbInstance.run('ROLLBACK'); } catch (_) {}
+        try {
+          dbInstance.run('ROLLBACK');
+        } catch (_) {}
         console.error('[db] transaction error:', e.message);
         throw e;
       }
@@ -239,29 +241,59 @@ function _initBetterSqlite3() {
     return true;
   }
 
-  function isAvailable() { return dbAvailable; }
-  function getDatabase() { return db; }
-  function closeDatabase() { if (db) db.close(); }
+  function isAvailable() {
+    return dbAvailable;
+  }
+  function getDatabase() {
+    return db;
+  }
+  function closeDatabase() {
+    if (db) db.close();
+  }
 
   // ═══ Matches ═══
   function upsertMatch(match) {
     const now = new Date().toISOString();
     const existing = db.prepare('SELECT matchId FROM matches WHERE matchId = ?').get(match.matchId);
     if (existing) {
-      db.prepare(`UPDATE matches SET num=?,homeName=?,visitName=?,leagueName=?,startTime=?,
+      db.prepare(
+        `UPDATE matches SET num=?,homeName=?,visitName=?,leagueName=?,startTime=?,
         matchStatus=?,score=?,halfScore=?,recommNum=?,date=?,fetchDate=?,updatedAt=?
-        WHERE matchId=?`).run(
-        match.num, match.homeName, match.visitName, match.leagueName, match.startTime,
-        match.matchStatus, match.score || '', match.halfScore || '', match.recommNum || 0,
-        match.date, now, now, match.matchId
+        WHERE matchId=?`,
+      ).run(
+        match.num,
+        match.homeName,
+        match.visitName,
+        match.leagueName,
+        match.startTime,
+        match.matchStatus,
+        match.score || '',
+        match.halfScore || '',
+        match.recommNum || 0,
+        match.date,
+        now,
+        now,
+        match.matchId,
       );
     } else {
-      db.prepare(`INSERT INTO matches (matchId,num,homeName,visitName,leagueName,startTime,
+      db.prepare(
+        `INSERT INTO matches (matchId,num,homeName,visitName,leagueName,startTime,
         matchStatus,score,recommNum,date,fetchDate,createdAt,updatedAt)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
-        match.matchId, match.num, match.homeName, match.visitName, match.leagueName,
-        match.startTime, match.matchStatus, match.score || '', match.recommNum || 0,
-        match.date, now, now, now
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      ).run(
+        match.matchId,
+        match.num,
+        match.homeName,
+        match.visitName,
+        match.leagueName,
+        match.startTime,
+        match.matchStatus,
+        match.score || '',
+        match.recommNum || 0,
+        match.date,
+        now,
+        now,
+        now,
       );
     }
   }
@@ -274,8 +306,20 @@ function _initBetterSqlite3() {
     const now = new Date().toISOString();
     const tx = db.transaction((items) => {
       for (const m of items) {
-        upsert.run(m.matchId, m.num, m.homeName, m.visitName, m.leagueName,
-          m.startTime, m.matchStatus, m.score || '', m.recommNum || 0, m.date, now, now);
+        upsert.run(
+          m.matchId,
+          m.num,
+          m.homeName,
+          m.visitName,
+          m.leagueName,
+          m.startTime,
+          m.matchStatus,
+          m.score || '',
+          m.recommNum || 0,
+          m.date,
+          now,
+          now,
+        );
       }
     });
     tx(matches);
@@ -290,7 +334,10 @@ function _initBetterSqlite3() {
   }
 
   function getAllLeagues() {
-    return db.prepare('SELECT DISTINCT leagueName FROM matches ORDER BY leagueName').all().map(r => r.leagueName);
+    return db
+      .prepare('SELECT DISTINCT leagueName FROM matches ORDER BY leagueName')
+      .all()
+      .map((r) => r.leagueName);
   }
 
   // ═══ Recommends ═══
@@ -311,38 +358,63 @@ function _initBetterSqlite3() {
   }
 
   function updateRecommendResult(matchId, type, fetchDate, result) {
-    db.prepare('UPDATE recommends SET result = ? WHERE matchId = ? AND type = ? AND fetchDate = ?')
-      .run(result, matchId, type, fetchDate);
+    db.prepare('UPDATE recommends SET result = ? WHERE matchId = ? AND type = ? AND fetchDate = ?').run(
+      result,
+      matchId,
+      type,
+      fetchDate,
+    );
   }
 
   function getStaleRecommendations(dateStr) {
-    return db.prepare(`
+    return db
+      .prepare(
+        `
       SELECT DISTINCT m.matchId FROM matches m
       LEFT JOIN recommends r ON m.matchId = r.matchId AND r.fetchDate >= ?
       WHERE m.date = ? AND m.matchStatus >= 2 AND r.id IS NULL
-    `).all(dateStr, dateStr).map(r => r.matchId);
+    `,
+      )
+      .all(dateStr, dateStr)
+      .map((r) => r.matchId);
   }
 
   // ═══ Crawl Logs ═══
   function logCrawl(dateStr, matchCount, recommCount, status, message) {
-    db.prepare(`INSERT OR REPLACE INTO crawl_logs (date,matchCount,recommCount,status,message,createdAt)
-      VALUES (?,?,?,?,?,?)`).run(dateStr, matchCount, recommCount, status, message, new Date().toISOString());
+    db.prepare(
+      `INSERT OR REPLACE INTO crawl_logs (date,matchCount,recommCount,status,message,createdAt)
+      VALUES (?,?,?,?,?,?)`,
+    ).run(dateStr, matchCount, recommCount, status, message, new Date().toISOString());
   }
 
   function getCrawledDates() {
-    return db.prepare('SELECT date FROM crawl_logs ORDER BY date DESC').all().map(r => r.date);
+    return db
+      .prepare('SELECT date FROM crawl_logs ORDER BY date DESC')
+      .all()
+      .map((r) => r.date);
   }
 
   // ═══ AI Predictions ═══
   function upsertAIPrediction(pred) {
     const now = new Date().toISOString();
-    db.prepare(`INSERT OR REPLACE INTO ai_predictions
+    db.prepare(
+      `INSERT OR REPLACE INTO ai_predictions
       (matchId,leagueName,homeName,visitName,matchDate,content,confidence,
        rawPrompt,rawResponse,tokenUsage,createdAt,updatedAt)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(
-      pred.matchId, pred.leagueName, pred.homeName, pred.visitName, pred.matchDate,
-      pred.content, pred.confidence, pred.rawPrompt, pred.rawResponse,
-      pred.tokenUsage, now, now
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+    ).run(
+      pred.matchId,
+      pred.leagueName,
+      pred.homeName,
+      pred.visitName,
+      pred.matchDate,
+      pred.content,
+      pred.confidence,
+      pred.rawPrompt,
+      pred.rawResponse,
+      pred.tokenUsage,
+      now,
+      now,
     );
   }
 
@@ -355,7 +427,9 @@ function _initBetterSqlite3() {
     const since = new Date();
     since.setDate(since.getDate() - (daysBack || 30));
     const sinceStr = since.toISOString().slice(0, 10);
-    return db.prepare(`
+    return db
+      .prepare(
+        `
       SELECT r.type as direction, COUNT(*) as count, SUM(r.num) as total,
         SUM(CASE WHEN r.result = 1 THEN r.num ELSE 0 END) as hit,
         SUM(CASE WHEN r.result = 0 THEN r.num ELSE 0 END) as miss
@@ -363,14 +437,18 @@ function _initBetterSqlite3() {
       JOIN matches m ON r.matchId = m.matchId
       WHERE m.matchStatus >= 2 AND r.fetchDate >= ?
       GROUP BY r.type
-    `).all(sinceStr);
+    `,
+      )
+      .all(sinceStr);
   }
 
   function getDailyTrend(daysBack) {
     const since = new Date();
     since.setDate(since.getDate() - (daysBack || 30));
     const sinceStr = since.toISOString().slice(0, 10);
-    return db.prepare(`
+    return db
+      .prepare(
+        `
       SELECT m.date, r.type as direction, COUNT(*) as count, SUM(r.num) as total,
         SUM(CASE WHEN r.result = 1 THEN r.num ELSE 0 END) as hit,
         SUM(CASE WHEN r.result = 0 THEN r.num ELSE 0 END) as miss
@@ -379,7 +457,9 @@ function _initBetterSqlite3() {
       WHERE m.matchStatus >= 2 AND r.fetchDate >= ?
       GROUP BY m.date, r.type
       ORDER BY m.date ASC
-    `).all(sinceStr);
+    `,
+      )
+      .all(sinceStr);
   }
 
   function getFilterStats() {
@@ -391,9 +471,12 @@ function _initBetterSqlite3() {
 
   function getFilterRate(conditions) {
     return {
-      hitCount: 0, totalCount: 0, hitRate: 0,
+      hitCount: 0,
+      totalCount: 0,
+      hitRate: 0,
       conditionSummary: JSON.stringify(conditions || {}),
-      detailList: [], dailyResults: []
+      detailList: [],
+      dailyResults: [],
     };
   }
 
@@ -405,22 +488,42 @@ function _initBetterSqlite3() {
   function getTodayMatchSummary() {
     const today = new Date().toISOString().slice(0, 10);
     const total = db.prepare('SELECT COUNT(*) as cnt FROM matches WHERE date = ?').get(today).cnt || 0;
-    const finished = db.prepare('SELECT COUNT(*) as cnt FROM matches WHERE date = ? AND matchStatus >= 2').get(today).cnt || 0;
+    const finished =
+      db.prepare('SELECT COUNT(*) as cnt FROM matches WHERE date = ? AND matchStatus >= 2').get(today).cnt || 0;
     return {
-      todayDate: today, totalMatches: total, finishedMatches: finished,
-      unfinishedMatches: total - finished, canShowCards: finished > 0
+      todayDate: today,
+      totalMatches: total,
+      finishedMatches: finished,
+      unfinishedMatches: total - finished,
+      canShowCards: finished > 0,
     };
   }
 
-  return module.exports = {
-    initDatabase, getDatabase, closeDatabase, isAvailable,
-    upsertMatch, batchUpsertMatches, getMatchesByDate, getAllMatches, getAllLeagues,
-    batchUpsertRecommends, getRecommendsByMatchId, updateRecommendResult, getStaleRecommendations,
-    logCrawl, getCrawledDates,
-    getHitRateStats, getDailyTrend, getFilterStats, getFilterRate,
-    upsertAIPrediction, getAIPrediction,
-    getTodayUnfinishedMatches, getTodayMatchSummary
-  };
+  return (module.exports = {
+    initDatabase,
+    getDatabase,
+    closeDatabase,
+    isAvailable,
+    upsertMatch,
+    batchUpsertMatches,
+    getMatchesByDate,
+    getAllMatches,
+    getAllLeagues,
+    batchUpsertRecommends,
+    getRecommendsByMatchId,
+    updateRecommendResult,
+    getStaleRecommendations,
+    logCrawl,
+    getCrawledDates,
+    getHitRateStats,
+    getDailyTrend,
+    getFilterStats,
+    getFilterRate,
+    upsertAIPrediction,
+    getAIPrediction,
+    getTodayUnfinishedMatches,
+    getTodayMatchSummary,
+  });
 }
 
 // ═══════════════════════════════════════════════════════
@@ -434,10 +537,11 @@ function _initSqlJs() {
   const wasmPath = require.resolve('sql.js/dist/sql-wasm.wasm');
   const wasmBinary = fs.readFileSync(wasmPath);
 
-  initSqlJs({ wasmBinary }).then(SQL => {
-    adp = _createSqlJsAdapter(SQL);
-    // 建表
-    adp.execDDL(`
+  initSqlJs({ wasmBinary })
+    .then((SQL) => {
+      adp = _createSqlJsAdapter(SQL);
+      // 建表
+      adp.execDDL(`
       CREATE TABLE IF NOT EXISTS matches (
         matchId     TEXT PRIMARY KEY,
         num         TEXT,
@@ -495,21 +599,28 @@ function _initSqlJs() {
         updatedAt    TEXT
       );
     `);
-    dbAvailable = true;
-    _adapterReady = true;
-    console.log('[db] sql.js 初始化成功: ' + DB_PATH);
-  }).catch(e => {
-    console.log('[db] sql.js 初始化失败: ' + e.message);
-  });
+      dbAvailable = true;
+      _adapterReady = true;
+      console.log('[db] sql.js 初始化成功: ' + DB_PATH);
+    })
+    .catch((e) => {
+      console.log('[db] sql.js 初始化失败: ' + e.message);
+    });
 
   function initDatabase() {
     console.log('[db] sql.js 后端等待初始化...');
     return true;
   }
 
-  function isAvailable() { return _adapterReady && dbAvailable; }
-  function getDatabase() { return adp ? adp.raw : null; }
-  function closeDatabase() { if (adp) adp.close(); }
+  function isAvailable() {
+    return _adapterReady && dbAvailable;
+  }
+  function getDatabase() {
+    return adp ? adp.raw : null;
+  }
+  function closeDatabase() {
+    if (adp) adp.close();
+  }
 
   // ═══ Matches (sql.js adapter) ═══
   function upsertMatch(match) {
@@ -517,20 +628,42 @@ function _initSqlJs() {
     const now = new Date().toISOString();
     const existing = adp.execOne('SELECT matchId FROM matches WHERE matchId = ?', match.matchId);
     if (existing) {
-      adp.execRun(`UPDATE matches SET num=?,homeName=?,visitName=?,leagueName=?,startTime=?,
+      adp.execRun(
+        `UPDATE matches SET num=?,homeName=?,visitName=?,leagueName=?,startTime=?,
         matchStatus=?,score=?,halfScore=?,recommNum=?,date=?,fetchDate=?,updatedAt=?
         WHERE matchId=?`,
-        match.num, match.homeName, match.visitName, match.leagueName, match.startTime,
-        match.matchStatus, match.score || '', match.halfScore || '', match.recommNum || 0,
-        match.date, now, now, match.matchId
+        match.num,
+        match.homeName,
+        match.visitName,
+        match.leagueName,
+        match.startTime,
+        match.matchStatus,
+        match.score || '',
+        match.halfScore || '',
+        match.recommNum || 0,
+        match.date,
+        now,
+        now,
+        match.matchId,
       );
     } else {
-      adp.execRun(`INSERT INTO matches (matchId,num,homeName,visitName,leagueName,startTime,
+      adp.execRun(
+        `INSERT INTO matches (matchId,num,homeName,visitName,leagueName,startTime,
         matchStatus,score,recommNum,date,fetchDate,createdAt,updatedAt)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        match.matchId, match.num, match.homeName, match.visitName, match.leagueName,
-        match.startTime, match.matchStatus, match.score || '', match.recommNum || 0,
-        match.date, now, now, now
+        match.matchId,
+        match.num,
+        match.homeName,
+        match.visitName,
+        match.leagueName,
+        match.startTime,
+        match.matchStatus,
+        match.score || '',
+        match.recommNum || 0,
+        match.date,
+        now,
+        now,
+        now,
       );
     }
   }
@@ -540,12 +673,23 @@ function _initSqlJs() {
     const now = new Date().toISOString();
     const batch = adp.transaction((items) => {
       for (const m of items) {
-        adp.execRun(`INSERT OR REPLACE INTO matches
+        adp.execRun(
+          `INSERT OR REPLACE INTO matches
           (matchId,num,homeName,visitName,leagueName,startTime,matchStatus,score,recommNum,
            date,fetchDate,updatedAt)
           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-          m.matchId, m.num, m.homeName, m.visitName, m.leagueName,
-          m.startTime, m.matchStatus, m.score || '', m.recommNum || 0, m.date, now, now
+          m.matchId,
+          m.num,
+          m.homeName,
+          m.visitName,
+          m.leagueName,
+          m.startTime,
+          m.matchStatus,
+          m.score || '',
+          m.recommNum || 0,
+          m.date,
+          now,
+          now,
         );
       }
     });
@@ -564,7 +708,7 @@ function _initSqlJs() {
 
   function getAllLeagues() {
     if (!_adapterReady) return [];
-    return adp.execAll('SELECT DISTINCT leagueName FROM matches ORDER BY leagueName').map(r => r.leagueName);
+    return adp.execAll('SELECT DISTINCT leagueName FROM matches ORDER BY leagueName').map((r) => r.leagueName);
   }
 
   // ═══ Recommends ═══
@@ -573,8 +717,14 @@ function _initSqlJs() {
     const now = new Date().toISOString().slice(0, 10);
     const batch = adp.transaction((list) => {
       for (const r of list) {
-        adp.execRun('INSERT OR REPLACE INTO recommends (matchId,type,num,result,fetchDate) VALUES (?,?,?,?,?)',
-          r.matchId, r.type, r.num, r.result, r.fetchDate || now);
+        adp.execRun(
+          'INSERT OR REPLACE INTO recommends (matchId,type,num,result,fetchDate) VALUES (?,?,?,?,?)',
+          r.matchId,
+          r.type,
+          r.num,
+          r.result,
+          r.fetchDate || now,
+        );
       }
     });
     batch(items);
@@ -587,42 +737,71 @@ function _initSqlJs() {
 
   function updateRecommendResult(matchId, type, fetchDate, result) {
     if (!_adapterReady) return;
-    adp.execRun('UPDATE recommends SET result = ? WHERE matchId = ? AND type = ? AND fetchDate = ?',
-      result, matchId, type, fetchDate);
+    adp.execRun(
+      'UPDATE recommends SET result = ? WHERE matchId = ? AND type = ? AND fetchDate = ?',
+      result,
+      matchId,
+      type,
+      fetchDate,
+    );
   }
 
   function getStaleRecommendations(dateStr) {
     if (!_adapterReady) return [];
-    return adp.execAll(`
+    return adp
+      .execAll(
+        `
       SELECT DISTINCT m.matchId FROM matches m
       LEFT JOIN recommends r ON m.matchId = r.matchId AND r.fetchDate >= ?
       WHERE m.date = ? AND m.matchStatus >= 2 AND r.id IS NULL
-    `, dateStr, dateStr).map(r => r.matchId);
+    `,
+        dateStr,
+        dateStr,
+      )
+      .map((r) => r.matchId);
   }
 
   // ═══ Crawl Logs ═══
   function logCrawl(dateStr, matchCount, recommCount, status, message) {
     if (!_adapterReady) return;
-    adp.execRun(`INSERT OR REPLACE INTO crawl_logs (date,matchCount,recommCount,status,message,createdAt)
-      VALUES (?,?,?,?,?,?)`, dateStr, matchCount, recommCount, status, message, new Date().toISOString());
+    adp.execRun(
+      `INSERT OR REPLACE INTO crawl_logs (date,matchCount,recommCount,status,message,createdAt)
+      VALUES (?,?,?,?,?,?)`,
+      dateStr,
+      matchCount,
+      recommCount,
+      status,
+      message,
+      new Date().toISOString(),
+    );
   }
 
   function getCrawledDates() {
     if (!_adapterReady) return [];
-    return adp.execAll('SELECT date FROM crawl_logs ORDER BY date DESC').map(r => r.date);
+    return adp.execAll('SELECT date FROM crawl_logs ORDER BY date DESC').map((r) => r.date);
   }
 
   // ═══ AI Predictions ═══
   function upsertAIPrediction(pred) {
     if (!_adapterReady) return;
     const now = new Date().toISOString();
-    adp.execRun(`INSERT OR REPLACE INTO ai_predictions
+    adp.execRun(
+      `INSERT OR REPLACE INTO ai_predictions
       (matchId,leagueName,homeName,visitName,matchDate,content,confidence,
        rawPrompt,rawResponse,tokenUsage,createdAt,updatedAt)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-      pred.matchId, pred.leagueName, pred.homeName, pred.visitName, pred.matchDate,
-      pred.content, pred.confidence, pred.rawPrompt, pred.rawResponse,
-      pred.tokenUsage, now, now
+      pred.matchId,
+      pred.leagueName,
+      pred.homeName,
+      pred.visitName,
+      pred.matchDate,
+      pred.content,
+      pred.confidence,
+      pred.rawPrompt,
+      pred.rawResponse,
+      pred.tokenUsage,
+      now,
+      now,
     );
   }
 
@@ -637,7 +816,8 @@ function _initSqlJs() {
     const since = new Date();
     since.setDate(since.getDate() - (daysBack || 30));
     const sinceStr = since.toISOString().slice(0, 10);
-    return adp.execAll(`
+    return adp.execAll(
+      `
       SELECT r.type as direction, COUNT(*) as count, SUM(r.num) as total,
         SUM(CASE WHEN r.result = 1 THEN r.num ELSE 0 END) as hit,
         SUM(CASE WHEN r.result = 0 THEN r.num ELSE 0 END) as miss
@@ -645,7 +825,9 @@ function _initSqlJs() {
       JOIN matches m ON r.matchId = m.matchId
       WHERE m.matchStatus >= 2 AND r.fetchDate >= ?
       GROUP BY r.type
-    `, sinceStr);
+    `,
+      sinceStr,
+    );
   }
 
   function getDailyTrend(daysBack) {
@@ -653,7 +835,8 @@ function _initSqlJs() {
     const since = new Date();
     since.setDate(since.getDate() - (daysBack || 30));
     const sinceStr = since.toISOString().slice(0, 10);
-    return adp.execAll(`
+    return adp.execAll(
+      `
       SELECT m.date, r.type as direction, COUNT(*) as count, SUM(r.num) as total,
         SUM(CASE WHEN r.result = 1 THEN r.num ELSE 0 END) as hit,
         SUM(CASE WHEN r.result = 0 THEN r.num ELSE 0 END) as miss
@@ -662,7 +845,9 @@ function _initSqlJs() {
       WHERE m.matchStatus >= 2 AND r.fetchDate >= ?
       GROUP BY m.date, r.type
       ORDER BY m.date ASC
-    `, sinceStr);
+    `,
+      sinceStr,
+    );
   }
 
   function getFilterStats() {
@@ -675,9 +860,12 @@ function _initSqlJs() {
 
   function getFilterRate(conditions) {
     return {
-      hitCount: 0, totalCount: 0, hitRate: 0,
+      hitCount: 0,
+      totalCount: 0,
+      hitRate: 0,
       conditionSummary: JSON.stringify(conditions || {}),
-      detailList: [], dailyResults: []
+      detailList: [],
+      dailyResults: [],
     };
   }
 
@@ -688,24 +876,45 @@ function _initSqlJs() {
   }
 
   function getTodayMatchSummary() {
-    if (!_adapterReady) return { todayDate: '', totalMatches: 0, finishedMatches: 0, unfinishedMatches: 0, canShowCards: false };
+    if (!_adapterReady)
+      return { todayDate: '', totalMatches: 0, finishedMatches: 0, unfinishedMatches: 0, canShowCards: false };
     const today = new Date().toISOString().slice(0, 10);
     const total = (adp.execOne('SELECT COUNT(*) as cnt FROM matches WHERE date = ?', today) || {}).cnt || 0;
-    const finished = (adp.execOne('SELECT COUNT(*) as cnt FROM matches WHERE date = ? AND matchStatus >= 2', today) || {}).cnt || 0;
+    const finished =
+      (adp.execOne('SELECT COUNT(*) as cnt FROM matches WHERE date = ? AND matchStatus >= 2', today) || {}).cnt || 0;
     return {
-      todayDate: today, totalMatches: total, finishedMatches: finished,
-      unfinishedMatches: total - finished, canShowCards: finished > 0
+      todayDate: today,
+      totalMatches: total,
+      finishedMatches: finished,
+      unfinishedMatches: total - finished,
+      canShowCards: finished > 0,
     };
   }
 
   module.exports = {
-    initDatabase, getDatabase, closeDatabase, isAvailable,
-    upsertMatch, batchUpsertMatches, getMatchesByDate, getAllMatches, getAllLeagues,
-    batchUpsertRecommends, getRecommendsByMatchId, updateRecommendResult, getStaleRecommendations,
-    logCrawl, getCrawledDates,
-    getHitRateStats, getDailyTrend, getFilterStats, getFilterRate,
-    upsertAIPrediction, getAIPrediction,
-    getTodayUnfinishedMatches, getTodayMatchSummary
+    initDatabase,
+    getDatabase,
+    closeDatabase,
+    isAvailable,
+    upsertMatch,
+    batchUpsertMatches,
+    getMatchesByDate,
+    getAllMatches,
+    getAllLeagues,
+    batchUpsertRecommends,
+    getRecommendsByMatchId,
+    updateRecommendResult,
+    getStaleRecommendations,
+    logCrawl,
+    getCrawledDates,
+    getHitRateStats,
+    getDailyTrend,
+    getFilterStats,
+    getFilterRate,
+    upsertAIPrediction,
+    getAIPrediction,
+    getTodayUnfinishedMatches,
+    getTodayMatchSummary,
   };
 }
 
@@ -713,32 +922,45 @@ function _initSqlJs() {
 // 选择后端
 // ═══════════════════════════════════════════════════════
 
+var _backendSelected = false;
+
 // 尝试 Tier 1: better-sqlite3
-try {
-  require.resolve('better-sqlite3');
-  _initBetterSqlite3();
-  return;  // 成功则退出
-} catch (e) {
-  // better-sqlite3 不可用
+if (!_backendSelected) {
+  try {
+    require.resolve('better-sqlite3');
+    _initBetterSqlite3();
+    _backendSelected = true;
+  } catch (e) {
+    // better-sqlite3 不可用
+  }
 }
 
 // 尝试 Tier 2: sql.js (纯 JS，兼容 CentOS 6)
-try {
-  require.resolve('sql.js');
-  _initSqlJs();
-  return;  // sql.js 异步初始化，exports 已设置
-} catch (e) {
-  // sql.js 也不可用
+if (!_backendSelected) {
+  try {
+    require.resolve('sql.js');
+    _initSqlJs();
+    _backendSelected = true;
+  } catch (e) {
+    // sql.js 也不可用
+  }
 }
 
 // ═══════════════════════════════════════════════════════
 // Tier 3: JSON 降级模式
 // ═══════════════════════════════════════════════════════
-console.log('[db] 无可用 SQLite 后端，使用 JSON 降级模式');
+if (!_backendSelected) {
 
-function isAvailable() { return false; }
-function initDatabase() { console.log('[db] JSON 降级模式就绪'); return true; }
-function getDatabase() { return null; }
+function isAvailable() {
+  return false;
+}
+function initDatabase() {
+  console.log('[db] JSON 降级模式就绪');
+  return true;
+}
+function getDatabase() {
+  return null;
+}
 function closeDatabase() {}
 
 const emptyArr = () => [];
@@ -746,17 +968,41 @@ const nullFn = () => null;
 const zeroObj = () => ({ matchCount: 0, leagueCount: 0, directionCount: 0 });
 
 module.exports = {
-  initDatabase, getDatabase, closeDatabase, isAvailable,
-  upsertMatch: () => {}, batchUpsertMatches: () => {},
-  getMatchesByDate: emptyArr, getAllMatches: emptyArr, getAllLeagues: emptyArr,
+  initDatabase,
+  getDatabase,
+  closeDatabase,
+  isAvailable,
+  upsertMatch: () => {},
+  batchUpsertMatches: () => {},
+  getMatchesByDate: emptyArr,
+  getAllMatches: emptyArr,
+  getAllLeagues: emptyArr,
   batchUpsertRecommends: () => {},
-  getRecommendsByMatchId: emptyArr, updateRecommendResult: () => {},
+  getRecommendsByMatchId: emptyArr,
+  updateRecommendResult: () => {},
   getStaleRecommendations: emptyArr,
-  logCrawl: () => {}, getCrawledDates: emptyArr,
-  getHitRateStats: emptyArr, getDailyTrend: emptyArr,
+  logCrawl: () => {},
+  getCrawledDates: emptyArr,
+  getHitRateStats: emptyArr,
+  getDailyTrend: emptyArr,
   getFilterStats: zeroObj,
-  getFilterRate: () => ({ hitCount: 0, totalCount: 0, hitRate: 0, conditionSummary: '', detailList: [], dailyResults: [] }),
-  upsertAIPrediction: () => {}, getAIPrediction: nullFn,
+  getFilterRate: () => ({
+    hitCount: 0,
+    totalCount: 0,
+    hitRate: 0,
+    conditionSummary: '',
+    detailList: [],
+    dailyResults: [],
+  }),
+  upsertAIPrediction: () => {},
+  getAIPrediction: nullFn,
   getTodayUnfinishedMatches: emptyArr,
-  getTodayMatchSummary: () => ({ todayDate: '', totalMatches: 0, finishedMatches: 0, unfinishedMatches: 0, canShowCards: false })
+  getTodayMatchSummary: () => ({
+    todayDate: '',
+    totalMatches: 0,
+    finishedMatches: 0,
+    unfinishedMatches: 0,
+    canShowCards: false,
+  }),
 };
+} // end _backendSelected

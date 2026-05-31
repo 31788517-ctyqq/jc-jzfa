@@ -57,7 +57,7 @@ function calcTotalStrength(vars) {
   return {
     static: round(staticStr, F),
     dynamic: round(dynState, F),
-    normalized: round(0.7 * staticStr + 0.3 * dynState, F)
+    normalized: round(0.7 * staticStr + 0.3 * dynState, F),
   };
 }
 
@@ -71,7 +71,7 @@ function calcTotalStrength(vars) {
  */
 function calcAnchor(totalStrength) {
   const t = totalStrength.normalized;
-  if (t >= 0.2)  return { anchor: 0.3,  label: '主队强势盘面', judgment: '主强' };
+  if (t >= 0.2) return { anchor: 0.3, label: '主队强势盘面', judgment: '主强' };
   if (t <= -0.2) return { anchor: -0.3, label: '客队强势盘面', judgment: '客强' };
   return { anchor: 0.0, label: '双方均势/胶着盘面', judgment: '均势' };
 }
@@ -111,8 +111,11 @@ function calcWinLoseCross(totalStrength, homeSeries, awaySeries) {
   const passed = total >= 7;
 
   return {
-    hCount, aCount, total, passed,
-    label: passed ? '🔥 符合期望' : '⚠️ 未通过'
+    hCount,
+    aCount,
+    total,
+    passed,
+    label: passed ? '🔥 符合期望' : '⚠️ 未通过',
   };
 }
 
@@ -149,8 +152,11 @@ function calcLoseWinCross(totalStrength, homeSeries, awaySeries) {
   const passed = total >= 7;
 
   return {
-    hCount, aCount, total, passed,
-    label: passed ? '🛡️ 弱方韧性' : '⚠️ 未通过'
+    hCount,
+    aCount,
+    total,
+    passed,
+    label: passed ? '🛡️ 弱方韧性' : '⚠️ 未通过',
   };
 }
 
@@ -224,18 +230,18 @@ function analyze(vars, xgHome, xgAway) {
     anchor,
 
     // 7场验证
-    verifyResult: dim1.passed ? '✓ 通过' : (dim2.passed ? '⚠ 逆向通过' : '✗ 未通过'),
-    verifyValue: dim1.passed ? 80 : (dim2.passed ? 50 : 20),
+    verifyResult: dim1.passed ? '✓ 通过' : dim2.passed ? '⚠ 逆向通过' : '✗ 未通过',
+    verifyValue: dim1.passed ? 80 : dim2.passed ? 50 : 20,
     sevenMatch: {
       dimension1: dim1,
-      dimension2: dim2
+      dimension2: dim2,
     },
 
     // 共振
     resonance,
 
     // 净胜球分布数据
-    goalCount: diffXG >= 0.5 ? '≥1' : (diffXG <= -0.5 ? '≤-1' : '±0'),
+    goalCount: diffXG >= 0.5 ? '≥1' : diffXG <= -0.5 ? '≤-1' : '±0',
     goalCountValue: Math.round(50 + diffXG * 25),
 
     // 内部数据
@@ -243,7 +249,7 @@ function analyze(vars, xgHome, xgAway) {
     _diffXG: diffXG,
 
     // ★ 实力进球（供进球预测排行榜使用）
-    strengthGoal: strengthGoal
+    strengthGoal: strengthGoal,
   };
 }
 

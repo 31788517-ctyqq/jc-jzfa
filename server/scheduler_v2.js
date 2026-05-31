@@ -1,6 +1,6 @@
 /**
  * 统一调度器 v2 (P3-2)
- * 
+ *
  * 设计原则:
  *   1. 分布式锁（文件锁，防止PM2多实例并发）
  *   2. 延迟重试队列（失败任务指数退避重试）
@@ -8,9 +8,9 @@
  *   4. 任务健康监控 + 告警
  *   5. 优雅停机（保存进度）
  *   6. 断点续传
- * 
+ *
  * 替代: data_sync.js 中的 setTimeout 循环
- * 
+ *
  * 用法:
  *   node server/scheduler_v2.js
  *   或 PM2: pm2 start server/scheduler_v2.js --name scheduler
@@ -36,7 +36,9 @@ const HEARTBEAT_INTERVAL = 30 * 1000; // 心跳间隔
 let dataSync;
 function loadDataSync() {
   if (!dataSync) {
-    try { dataSync = require('./data_sync'); } catch (e) {
+    try {
+      dataSync = require('./data_sync');
+    } catch (e) {
       logger.error('data_sync 模块加载失败: ' + e.message);
     }
   }
@@ -60,12 +62,15 @@ function acquireLock() {
       }
     }
 
-    fs.writeFileSync(LOCK_FILE, JSON.stringify({
-      instance: INSTANCE_ID,
-      timestamp: Date.now(),
-      pid: process.pid,
-      hostname: require('os').hostname()
-    }));
+    fs.writeFileSync(
+      LOCK_FILE,
+      JSON.stringify({
+        instance: INSTANCE_ID,
+        timestamp: Date.now(),
+        pid: process.pid,
+        hostname: require('os').hostname(),
+      }),
+    );
     return true;
   } catch (e) {
     logger.error('[lock] 获取锁失败: ' + e.message);
@@ -112,7 +117,7 @@ function loadState() {
     startedAt: new Date().toISOString(),
     lastTasks: {},
     taskStats: {},
-    errors: []
+    errors: [],
   };
 }
 
@@ -141,7 +146,7 @@ function saveQueue(queue) {
     queue.updatedAt = new Date().toISOString();
     // 清理过期项（超过24小时的重试）
     const cutoff = Date.now() - 24 * 3600 * 1000;
-    queue.items = (queue.items || []).filter(i => {
+    queue.items = (queue.items || []).filter((i) => {
       return new Date(i.nextRetryAt).getTime() > cutoff;
     });
     fs.writeFileSync(QUEUE_FILE, JSON.stringify(queue, null, 2));
@@ -151,8 +156,8 @@ function saveQueue(queue) {
 function enqueueTask(taskName, params, retryCount, delayMinutes) {
   const queue = loadQueue();
   // 去重
-  const dupIdx = queue.items.findIndex(i =>
-    i.taskName === taskName && JSON.stringify(i.params) === JSON.stringify(params)
+  const dupIdx = queue.items.findIndex(
+    (i) => i.taskName === taskName && JSON.stringify(i.params) === JSON.stringify(params),
   );
   if (dupIdx >= 0) {
     queue.items[dupIdx].retryCount = (retryCount || 0) + 1;
@@ -160,9 +165,11 @@ function enqueueTask(taskName, params, retryCount, delayMinutes) {
   } else {
     queue.items.push({
       id: crypto.randomBytes(4).toString('hex'),
-      taskName, params, retryCount: (retryCount || 0) + 1,
+      taskName,
+      params,
+      retryCount: (retryCount || 0) + 1,
       nextRetryAt: new Date(Date.now() + (delayMinutes || 30) * 60000).toISOString(),
-      addedAt: new Date().toISOString()
+      addedAt: new Date().toISOString(),
     });
   }
   saveQueue(queue);
@@ -174,7 +181,7 @@ async function processQueue() {
   if (!queue.items || queue.items.length === 0) return 0;
 
   const now = Date.now();
-  const ready = queue.items.filter(i => new Date(i.nextRetryAt).getTime() <= now);
+  const ready = queue.items.filter((i) => new Date(i.nextRetryAt).getTime() <= now);
   if (ready.length === 0) return 0;
 
   logger.info('[queue] 处理重试队列: ' + ready.length + ' 项');
@@ -196,8 +203,8 @@ async function processQueue() {
   }
 
   // 清理已处理项
-  const doneIds = new Set(ready.map(i => i.id));
-  queue.items = queue.items.filter(i => !doneIds.has(i.id));
+  const doneIds = new Set(ready.map((i) => i.id));
+  queue.items = queue.items.filter((i) => !doneIds.has(i.id));
   saveQueue(queue);
 
   return done;
@@ -309,25 +316,28 @@ let timers = [];
 function schedule(name, intervalMs, taskFn, immediateCheck) {
   function loop() {
     if (!running) return;
-    const tid = setTimeout(async () => {
-      if (!running) return;
-      // 尝试获取锁（高频轻量任务不抢锁）
-      const needLock = intervalMs >= 60000; // >=1分钟的任务才抢锁
-      if (needLock && !acquireLock()) {
+    const tid = setTimeout(
+      async () => {
+        if (!running) return;
+        // 尝试获取锁（高频轻量任务不抢锁）
+        const needLock = intervalMs >= 60000; // >=1分钟的任务才抢锁
+        if (needLock && !acquireLock()) {
+          timers.push(setTimeout(loop, intervalMs));
+          return;
+        }
+        try {
+          await taskFn();
+        } catch (e) {
+          logger.error('[schedule] ' + name + ' 异常: ' + e.message);
+        }
+        if (needLock) {
+          // 长任务完成后释放锁
+          // （短任务保留锁）
+        }
         timers.push(setTimeout(loop, intervalMs));
-        return;
-      }
-      try {
-        await taskFn();
-      } catch (e) {
-        logger.error('[schedule] ' + name + ' 异常: ' + e.message);
-      }
-      if (needLock) {
-        // 长任务完成后释放锁
-        // （短任务保留锁）
-      }
-      timers.push(setTimeout(loop, intervalMs));
-    }, immediateCheck ? 1000 : intervalMs);
+      },
+      immediateCheck ? 1000 : intervalMs,
+    );
     timers.push(tid);
   }
 
@@ -370,13 +380,16 @@ function scheduleNoonTask() {
       await sleep(2000);
 
       // 异步并行（不互相阻塞）
-      executeTask('sync_500shuju', { date: today }).catch(e => {});
-      executeTask('sync_500shuju_selenium', { date: today }).catch(e => {});
+      executeTask('sync_500shuju', { date: today }).catch((e) => {});
+      executeTask('sync_500shuju_selenium', { date: today }).catch((e) => {});
 
       // 延后5分钟合并
-      setTimeout(() => {
-        executeTask('merge_shuju', { date: today }).catch(e => {});
-      }, 5 * 60 * 1000);
+      setTimeout(
+        () => {
+          executeTask('merge_shuju', { date: today }).catch((e) => {});
+        },
+        5 * 60 * 1000,
+      );
 
       logger.info('[schedule] 12:00 任务链已启动');
     } catch (e) {
@@ -391,7 +404,9 @@ function scheduleNoonTask() {
 }
 
 // ═══ 7. 启动 ═══
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 async function start() {
   const banner = [
@@ -399,14 +414,14 @@ async function start() {
     '  统一调度器 v2 启动',
     '  实例: ' + INSTANCE_ID,
     '  功能: 分布式锁 + 重试队列 + 定时调度',
-    '════════════════════════════════════════'
+    '════════════════════════════════════════',
   ];
-  banner.forEach(l => logger.info(l));
+  banner.forEach((l) => logger.info(l));
 
   running = true;
 
   // 启动时尝试获取锁
-  let hasLock = acquireLock();
+  const hasLock = acquireLock();
   if (!hasLock) {
     logger.info('[init] 启动时无法获取锁，将在心跳周期中重试');
   }
@@ -434,13 +449,18 @@ async function start() {
   }
 
   // 实时比分 (每2分钟)
-  schedule('live_score', 120000, async () => {
-    try {
-      // 从 data_sync 导入 syncLiveScores
-      const ds = loadDataSync();
-      // 通过 data_sync 内部机制直接调用（不需要lock）
-    } catch (e) {}
-  }, true);
+  schedule(
+    'live_score',
+    120000,
+    async () => {
+      try {
+        // 从 data_sync 导入 syncLiveScores
+        const ds = loadDataSync();
+        // 通过 data_sync 内部机制直接调用（不需要lock）
+      } catch (e) {}
+    },
+    true,
+  );
 
   // 推荐同步 (每20分钟)
   schedule('recommend', 20 * 60 * 1000, async () => {
@@ -459,9 +479,9 @@ async function start() {
   // 健康状态输出 (每小时)
   schedule('health_report', 60 * 60 * 1000, async () => {
     const state = loadState();
-    const summary = Object.entries(state.taskStats || {}).map(([k, v]) =>
-      k + ': ' + v.runs + '次/' + v.failures + '失败'
-    ).join(', ');
+    const summary = Object.entries(state.taskStats || {})
+      .map(([k, v]) => k + ': ' + v.runs + '次/' + v.failures + '失败')
+      .join(', ');
     logger.info('[health] 任务统计: ' + summary);
   });
 
@@ -490,7 +510,7 @@ function shutdown() {
   logger.info('[shutdown] 收到停机信号, 保存状态...');
   running = false;
 
-  timers.forEach(t => clearTimeout(t));
+  timers.forEach((t) => clearTimeout(t));
   timers = [];
 
   const state = loadState();
@@ -506,7 +526,7 @@ function shutdown() {
 if (require.main === module) {
   // 先加载 data_sync 但不启动它（避免双进程）
   // scheduler_v2 替代 data_sync 的调度逻辑
-  start().catch(e => {
+  start().catch((e) => {
     logger.error('[fatal] 启动失败: ' + e.message);
     process.exit(1);
   });

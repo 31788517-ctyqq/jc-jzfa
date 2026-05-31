@@ -11,7 +11,7 @@ async function deepCheck() {
     status: 'ok',
     time: new Date().toISOString(),
     uptime: Math.floor(process.uptime()),
-    checks: {}
+    checks: {},
   };
 
   // ── 1. 内存 ──
@@ -22,7 +22,7 @@ async function deepCheck() {
     heapUsedMB: memMB,
     heapTotalMB: Math.round(mem.heapTotal / 1024 / 1024),
     rssMB: Math.round(mem.rss / 1024 / 1024),
-    message: memMB > 200 ? '堆内存偏高 (' + memMB + ' MB)' : '正常 (' + memMB + ' MB)'
+    message: memMB > 200 ? '堆内存偏高 (' + memMB + ' MB)' : '正常 (' + memMB + ' MB)',
   };
 
   // ── 2. data.json 完整性 ──
@@ -40,7 +40,7 @@ async function deepCheck() {
       recCount,
       lastModified: new Date(stat.mtimeMs).toISOString(),
       ageMinutes,
-      message: matchCount + ' 场比赛, ' + recCount + ' 条推荐, ' + ageMinutes + ' 分钟前更新'
+      message: matchCount + ' 场比赛, ' + recCount + ' 条推荐, ' + ageMinutes + ' 分钟前更新',
     };
   } catch (e) {
     result.checks.dataJson = { status: 'error', message: '读取失败: ' + e.message };
@@ -56,7 +56,7 @@ async function deepCheck() {
         status: count > 0 ? 'ok' : 'warn',
         matchCount: count,
         type: 'SQLite',
-        message: count + ' 条比赛记录'
+        message: count + ' 条比赛记录',
       };
     } else {
       result.checks.database = { status: 'info', type: 'JSON fallback', message: 'SQLite 不可用，使用 JSON 模式' };
@@ -72,30 +72,34 @@ async function deepCheck() {
       const http = require('http');
       const req = http.get('http://midou310.com', { timeout: 5000 }, (res) => {
         let data = '';
-        res.on('data', d => data += d);
+        res.on('data', (d) => (data += d));
         res.on('end', () => resolve(data.length));
       });
       req.on('error', reject);
-      req.on('timeout', () => { req.abort(); reject(new Error('timeout')); });
+      req.on('timeout', () => {
+        req.abort();
+        reject(new Error('timeout'));
+      });
     });
     result.checks.externalApi = {
       status: 'ok',
       latencyMs: Date.now() - start,
-      message: '米斗数据可达 (' + (Date.now() - start) + 'ms)'
+      message: '米斗数据可达 (' + (Date.now() - start) + 'ms)',
     };
   } catch (e) {
     result.checks.externalApi = {
       status: 'error',
-      message: '米斗数据不可达: ' + e.message
+      message: '米斗数据不可达: ' + e.message,
     };
   }
 
   // ── 5. 磁盘空间 ──
   try {
     const p = path.join(__dirname, '..');
-    const free = require('child_process').execSync(
-      process.platform === 'win32' ? 'wmic logicaldisk get freespace' : 'df -k "' + p + '" | tail -1'
-    ).toString().trim();
+    const free = require('child_process')
+      .execSync(process.platform === 'win32' ? 'wmic logicaldisk get freespace' : 'df -k "' + p + '" | tail -1')
+      .toString()
+      .trim();
     result.checks.disk = { status: 'ok', freeSpace: free, message: '磁盘可用' };
   } catch (e) {
     result.checks.disk = { status: 'info', message: '无法检查磁盘' };
@@ -103,7 +107,7 @@ async function deepCheck() {
 
   // ── 综合状态 ──
   const critical = ['dataJson'];
-  if (critical.some(k => result.checks[k] && result.checks[k].status === 'error')) {
+  if (critical.some((k) => result.checks[k] && result.checks[k].status === 'error')) {
     result.status = 'degraded';
   }
 

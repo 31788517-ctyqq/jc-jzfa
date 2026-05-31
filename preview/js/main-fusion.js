@@ -978,3 +978,10 @@ function switchTabLoad(tab) {
     });
   }
 }
+
+// 命中率页面重试事件监听
+document.addEventListener('retryHitRate', function () {
+  _mod('hit-rate').then(function (m) {
+    m.loadHitRate();
+  });
+});

@@ -37,7 +37,7 @@ async function syncMatchList() {
   const matchRes = await getWithRetry(
     MIDOU_BASE + '/score/footballDataList.do',
     { time: timestamp, order: 'status desc, start_datetime asc, data_id asc' },
-    { Cookie: 'token=' + token }
+    { Cookie: 'token=' + token },
   );
 
   if (matchRes.code !== 1 || !matchRes.data) {
@@ -45,13 +45,15 @@ async function syncMatchList() {
     return false;
   }
 
-  const periodMatches = (matchRes.data || []).filter(m => {
+  const periodMatches = (matchRes.data || []).filter((m) => {
     if (!m.num || m.num.indexOf(week) !== 0) return false;
     const bd = (m.bDate || '').slice(0, 10);
     if (bd === targetDate) return true;
     if (!bd && m.startTime && m.startTime.length >= 11) {
       const st = m.startTime.replace(/\//g, '-');
-      const dt = new Date(new Date().getFullYear() + '-' + st.slice(0, 2) + '-' + st.slice(3, 5) + 'T' + st.slice(6, 11) + ':00+08:00');
+      const dt = new Date(
+        new Date().getFullYear() + '-' + st.slice(0, 2) + '-' + st.slice(3, 5) + 'T' + st.slice(6, 11) + ':00+08:00',
+      );
       if (!isNaN(dt.getTime())) {
         if (dt.getHours() < 9) dt.setDate(dt.getDate() - 1);
         return dt.toISOString().slice(0, 10) === targetDate;
@@ -66,28 +68,41 @@ async function syncMatchList() {
   }
 
   let data = {};
-  try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) {}
+  try {
+    data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  } catch (e) {}
   if (!data.m) data.m = {};
   if (!data.r) data.r = {};
 
-  let newCount = 0, updateCount = 0;
+  let newCount = 0,
+    updateCount = 0;
   for (const m of periodMatches) {
     const mid = String(m.matchId || m.dataId || '');
     const mkey = 'm_' + mid;
-    const md = (m.bDate && typeof m.bDate === 'string' && m.bDate.length >= 10)
-      ? m.bDate.slice(0, 10) : targetDate;
+    const md = m.bDate && typeof m.bDate === 'string' && m.bDate.length >= 10 ? m.bDate.slice(0, 10) : targetDate;
 
     const newMatch = {
-      matchId: mid, num: m.num || '',
-      homeName: m.homeName || '', visitName: m.visitName || '',
-      leagueName: m.leagueName || '', startTime: m.startTime || '',
-      matchStatus: m.matchStatus || 0, score: m.score || '',
-      halfScore: m.halfScore || '', duration: m.duration || '',
-      yellow: m.yellow || '', red: m.red || '',
-      recommNum: m.recommNum || 0, date: md
+      matchId: mid,
+      num: m.num || '',
+      homeName: m.homeName || '',
+      visitName: m.visitName || '',
+      leagueName: m.leagueName || '',
+      startTime: m.startTime || '',
+      matchStatus: m.matchStatus || 0,
+      score: m.score || '',
+      halfScore: m.halfScore || '',
+      duration: m.duration || '',
+      yellow: m.yellow || '',
+      red: m.red || '',
+      recommNum: m.recommNum || 0,
+      date: md,
     };
 
-    if (data.m[mkey]) { updateCount++; } else { newCount++; }
+    if (data.m[mkey]) {
+      updateCount++;
+    } else {
+      newCount++;
+    }
     data.m[mkey] = newMatch;
   }
 
@@ -102,12 +117,14 @@ async function syncRecommends() {
 
   const token = await getToken();
   let data = {};
-  try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) {}
+  try {
+    data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  } catch (e) {}
   if (!data.m) data.m = {};
   if (!data.r) data.r = {};
 
   const todayMatches = [];
-  Object.keys(data.m).forEach(k => {
+  Object.keys(data.m).forEach((k) => {
     const m = data.m[k];
     if (m && m.date && m.date.slice(0, 10) === targetDate) {
       todayMatches.push(m);
@@ -119,27 +136,29 @@ async function syncRecommends() {
     return false;
   }
 
-  let newRecs = 0, updatedRecs = 0;
+  let newRecs = 0,
+    updatedRecs = 0;
   for (const m of todayMatches) {
     try {
       const recRes = await getWithUA(
         MIDOU_BASE + '/score/getExpertRecommData.do',
         { dataId: m.matchId, type: 0 },
-        { Cookie: 'token=' + token }
+        { Cookie: 'token=' + token },
       );
 
       if (recRes.code === 1 && recRes.data && recRes.data.length) {
         const recs = recRes.data
-          .filter(x => x && x.type && x.num > 0)
-          .map(x => ({
+          .filter((x) => x && x.type && x.num > 0)
+          .map((x) => ({
             type: x.type,
             num: x.num,
-            result: x.result !== undefined ? x.result : null
+            result: x.result !== undefined ? x.result : null,
           }));
 
         const rk = 'm_' + m.matchId;
         const oldRecs = data.r[rk] || [];
-        if (oldRecs.length === 0) newRecs++; else updatedRecs++;
+        if (oldRecs.length === 0) newRecs++;
+        else updatedRecs++;
         data.r[rk] = recs;
       }
     } catch (e) {
@@ -210,8 +229,8 @@ async function syncOdds() {
   // 验证
   try {
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-    const todayCount = Object.keys(data.m || {}).filter(k =>
-      data.m[k] && data.m[k].date && data.m[k].date.slice(0, 10) === targetDate
+    const todayCount = Object.keys(data.m || {}).filter(
+      (k) => data.m[k] && data.m[k].date && data.m[k].date.slice(0, 10) === targetDate,
     ).length;
     const oddsFile = path.join(ODDS_DIR, targetDate + '.json');
     const hasOdds = fs.existsSync(oddsFile) && fs.statSync(oddsFile).size > 100;

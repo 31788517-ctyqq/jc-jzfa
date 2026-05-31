@@ -103,12 +103,18 @@ function parse(raw) {
 
   // 标准化净胜球序列（用于7场阈值）
   vars.homeGoalDiffSeries = buildGoalDiffSeries(
-    vars.homeWinGap_2, vars.homeWinGap_1, vars.homeDraw,
-    vars.homeLoseGap_1, vars.homeLoseGap_2
+    vars.homeWinGap_2,
+    vars.homeWinGap_1,
+    vars.homeDraw,
+    vars.homeLoseGap_1,
+    vars.homeLoseGap_2,
   );
   vars.awayGoalDiffSeries = buildGoalDiffSeries(
-    vars.awayWinGap_2, vars.awayWinGap_1, vars.awayDraw,
-    vars.awayLoseGap_1, vars.awayLoseGap_2
+    vars.awayWinGap_2,
+    vars.awayWinGap_1,
+    vars.awayDraw,
+    vars.awayLoseGap_1,
+    vars.awayLoseGap_2,
   );
 
   return vars;
@@ -199,7 +205,16 @@ function buildGoalDiffSeries(w2, w1, d, l1, l2) {
  * @returns {Object} { totalMatches, wins, draws, losses, goalsFor, goalsAgainst, overCount }
  */
 function extractJiaoFenExtended(desc) {
-  const result = { totalMatches: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, overCount: 0, parsed: false };
+  const result = {
+    totalMatches: 0,
+    wins: 0,
+    draws: 0,
+    losses: 0,
+    goalsFor: 0,
+    goalsAgainst: 0,
+    overCount: 0,
+    parsed: false,
+  };
   if (!desc) return result;
 
   // 提取"近X次交战"中的数字
@@ -233,9 +248,10 @@ function extractJiaoFenExtended(desc) {
   if (overMatch) result.overCount = parseInt(overMatch[1]);
 
   // 检查是否有有效数据
-  result.parsed = result.totalMatches > 0 ||
-    (result.wins + result.draws + result.losses) > 0 ||
-    (result.goalsFor + result.goalsAgainst) > 0;
+  result.parsed =
+    result.totalMatches > 0 ||
+    result.wins + result.draws + result.losses > 0 ||
+    result.goalsFor + result.goalsAgainst > 0;
 
   return result;
 }

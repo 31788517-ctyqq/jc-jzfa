@@ -10,7 +10,7 @@ const { get } = require('./http-utils');
 const CONFIG = {
   MIDOU_BASE: 'https://midou310.com/mdsj',
   MOBILE: process.env.MIDOU_MOBILE,
-  PASSWORD: process.env.MIDOU_PASSWORD
+  PASSWORD: process.env.MIDOU_PASSWORD,
 };
 
 if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
@@ -25,9 +25,9 @@ let token = null;
  */
 async function login() {
   if (token) return token;
-  const res = await get(`${CONFIG.MIDOU_BASE}/gduser/login.do`, { 
-    mobile: CONFIG.MOBILE, 
-    password: CONFIG.PASSWORD 
+  const res = await get(`${CONFIG.MIDOU_BASE}/gduser/login.do`, {
+    mobile: CONFIG.MOBILE,
+    password: CONFIG.PASSWORD,
   });
   if (res.code === 1) {
     token = res.data.token;
@@ -48,14 +48,14 @@ async function fetchMatchesByDate(dateStr) {
   const res = await get(
     `${CONFIG.MIDOU_BASE}/score/footballDataList.do`,
     { time: timestamp, order: 'status desc, start_datetime asc, data_id asc' },
-    { Cookie: `token=${tk}` }
+    { Cookie: `token=${tk}` },
   );
 
   if (res.code !== 1) {
     throw new Error(`获取比赛列表失败(${dateStr}): ${res.msg || ''}`);
   }
 
-  return (res.data || []).map(m => ({
+  return (res.data || []).map((m) => ({
     matchId: String(m.matchId),
     num: m.num || '',
     homeName: m.homeName || '',
@@ -64,7 +64,7 @@ async function fetchMatchesByDate(dateStr) {
     startTime: m.startTime || '',
     matchStatus: m.matchStatus !== undefined ? m.matchStatus : 0,
     score: m.score || '',
-    recommNum: m.recommNum || 0
+    recommNum: m.recommNum || 0,
   }));
 }
 
@@ -76,16 +76,18 @@ async function fetchRecommends(matchId) {
   const res = await get(
     `${CONFIG.MIDOU_BASE}/score/getExpertRecommData.do`,
     { dataId: matchId, type: 0 },
-    { Cookie: `token=${tk}` }
+    { Cookie: `token=${tk}` },
   );
   if (res.code !== 1) {
     throw new Error(`获取推荐失败 matchId=${matchId}: ${res.msg || ''}`);
   }
-  return (res.data || []).filter(item => item && item.type && item.num > 0).map(item => ({
-    type: item.type,
-    num: item.num,
-    result: item.result !== undefined ? item.result : null
-  }));
+  return (res.data || [])
+    .filter((item) => item && item.type && item.num > 0)
+    .map((item) => ({
+      type: item.type,
+      num: item.num,
+      result: item.result !== undefined ? item.result : null,
+    }));
 }
 
 /**
@@ -124,7 +126,7 @@ async function crawlDate(dateStr) {
         totalRecomm += recomms.length;
       }
       // 延迟避免请求过快
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise((r) => setTimeout(r, 300));
     } catch (err) {
       console.error(`[crawl] ${dateStr} matchId=${m.matchId} 获取推荐失败:`, err.message);
     }
@@ -167,7 +169,7 @@ async function main() {
 
   // 生成日期范围: 2026-04-01 ~ 2026-05-18
   const dates = generateDateRange('2026-04-01', '2026-05-18');
-  console.log(`计划抓取 ${dates.length} 天数据 (${dates[0]} ~ ${dates[dates.length-1]})`);
+  console.log(`计划抓取 ${dates.length} 天数据 (${dates[0]} ~ ${dates[dates.length - 1]})`);
 
   let successCount = 0;
   let emptyCount = 0;
@@ -198,11 +200,11 @@ async function main() {
     }
 
     // 进度提示
-    const progress = Math.round((i + 1) / dates.length * 100);
-    console.log(`[进度] ${i+1}/${dates.length} (${progress}%)`);
+    const progress = Math.round(((i + 1) / dates.length) * 100);
+    console.log(`[进度] ${i + 1}/${dates.length} (${progress}%)`);
 
     // 每次请求后延迟，避免触发风控
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 500));
   }
 
   console.log('========================================');
@@ -221,7 +223,7 @@ async function main() {
 
 // 当直接运行时执行 main
 if (require.main === module) {
-  main().catch(err => {
+  main().catch((err) => {
     console.error('[scraper] 错误:', err);
     database.closeDatabase();
     process.exit(1);

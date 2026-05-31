@@ -12,15 +12,18 @@ const jczqYz = require('./jczqYz_fetcher');
 const LOCAL_HOST = '127.0.0.1';
 const LOCAL_PORT = 19880;
 const CACHE_PATH = path.join(__dirname, 'jczq_change_cache.json');
-const BATCH_SIZE = 5;  // 增加并发数，减少批次等待
+const BATCH_SIZE = 5; // 增加并发数，减少批次等待
 const BATCH_DELAY = 200; // 批次间延迟 ms（原500ms）
 
 // ── 缓存 ──
 
 function readCache() {
   if (!fs.existsSync(CACHE_PATH)) return {};
-  try { return JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8')); }
-  catch { return {}; }
+  try {
+    return JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
+  } catch {
+    return {};
+  }
 }
 
 function writeCache(data) {
@@ -32,22 +35,33 @@ function writeCache(data) {
 function fetchJSON(apiPath, timeoutMs) {
   timeoutMs = timeoutMs || 8000;
   return new Promise(function (resolve) {
-    var opts = {
+    const opts = {
       hostname: LOCAL_HOST,
       port: LOCAL_PORT,
       path: apiPath,
       method: 'GET',
-      headers: { 'Host': 'm.100qiu.com', 'Accept': 'application/json' }
+      headers: { Host: 'm.100qiu.com', Accept: 'application/json' },
     };
-    http.get(opts, function (res) {
-      var chunks = [];
-      res.on('data', function (c) { chunks.push(c); });
-      res.on('end', function () {
-        try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf-8'))); }
-        catch (e) { resolve(null); }
+    http
+      .get(opts, function (res) {
+        const chunks = [];
+        res.on('data', function (c) {
+          chunks.push(c);
+        });
+        res.on('end', function () {
+          try {
+            resolve(JSON.parse(Buffer.concat(chunks).toString('utf-8')));
+          } catch (e) {
+            resolve(null);
+          }
+        });
+      })
+      .on('error', function () {
+        resolve(null);
+      })
+      .setTimeout(timeoutMs, function () {
+        resolve(null);
       });
-    }).on('error', function () { resolve(null); })
-      .setTimeout(timeoutMs, function () { resolve(null); });
   });
 }
 
@@ -58,10 +72,10 @@ function fetchJSON(apiPath, timeoutMs) {
  * @returns {Object|null}
  */
 async function fetchJczqChange(dateStr, number) {
-  var dt = dateStr.replace(/-/g, '');    // "20260526"
-  var apiPath = '/api/JczqChange?dateTime=' + dt + '&number=' + number;
-  var resp = await fetchJSON(apiPath);
-  return (resp && resp.data) ? resp.data : null;
+  const dt = dateStr.replace(/-/g, ''); // "20260526"
+  const apiPath = '/api/JczqChange?dateTime=' + dt + '&number=' + number;
+  const resp = await fetchJSON(apiPath);
+  return resp && resp.data ? resp.data : null;
 }
 
 /**
@@ -71,16 +85,16 @@ async function fetchJczqChange(dateStr, number) {
  * @returns {Object|null}
  */
 async function fetchJczqBasic(dateStr, number) {
-  var dt = dateStr.replace(/-/g, '');
-  var apiPath = '/api/JczqBasic?dateTime=' + dt + '&number=' + number;
-  var resp = await fetchJSON(apiPath);
-  return (resp && resp.data) ? resp.data : null;
+  const dt = dateStr.replace(/-/g, '');
+  const apiPath = '/api/JczqBasic?dateTime=' + dt + '&number=' + number;
+  const resp = await fetchJSON(apiPath);
+  return resp && resp.data ? resp.data : null;
 }
 
 // ── 辅助 ──
 
 function round(v, d) {
-  var m = Math.pow(10, d);
+  const m = Math.pow(10, d);
   return Math.round(v * m) / m;
 }
 
@@ -109,24 +123,24 @@ function parsePercent(v) {
 function computeHeatIndex(rq, cd) {
   if (!cd) return { value: null, level: 'unknown', label: '-' };
 
-  var r = parseInt(rq) || 0;
+  const r = parseInt(rq) || 0;
 
   // 解析所有百分比为 0~100 数值
-  var winPct   = cd.winPercent  || 0;
-  var losePct  = cd.losePercent || 0;
-  var lastWR   = parsePercent(cd.lastWinRate);    // 临盘主胜概率
-  var lastLR   = parsePercent(cd.lastLoseRate);   // 临盘客胜概率
-  var rqWinP   = cd.rqWinPercent  || 0;
-  var rqLoseP  = cd.rqLosePercent || 0;
+  const winPct = cd.winPercent || 0;
+  const losePct = cd.losePercent || 0;
+  const lastWR = parsePercent(cd.lastWinRate); // 临盘主胜概率
+  const lastLR = parsePercent(cd.lastLoseRate); // 临盘客胜概率
+  const rqWinP = cd.rqWinPercent || 0;
+  const rqLoseP = cd.rqLosePercent || 0;
 
-  var value;
+  let value;
 
   if (r === -1) {
     // 主队受让一球：R = 主胜投注比例÷主胜临盘概率
-    value = lastWR > 0 ? (winPct / lastWR) : 0;
+    value = lastWR > 0 ? winPct / lastWR : 0;
   } else if (r === 1) {
     // 主队让一球：R = 客胜投注比例÷客胜临盘概率
-    value = lastLR > 0 ? (losePct / lastLR) : 0;
+    value = lastLR > 0 ? losePct / lastLR : 0;
   } else if (r <= -2) {
     // 深盘受让
     value = rqLoseP / 100;
@@ -135,16 +149,23 @@ function computeHeatIndex(rq, cd) {
     value = rqWinP / 100;
   } else {
     // 平手盘或 rq=0，使用主胜投注/主胜概率
-    value = lastWR > 0 ? (winPct / lastWR) : 0;
+    value = lastWR > 0 ? winPct / lastWR : 0;
   }
 
   value = round(value, 2);
 
   // 判定等级
-  var level, label;
-  if (value > 1.20)   { level = 'hot';   label = value + ' 🔥'; }
-  else if (value < 0.80) { level = 'cold';   label = value + ' 🧊'; }
-  else                   { level = 'normal'; label = value + ' 🎯'; }
+  let level, label;
+  if (value > 1.2) {
+    level = 'hot';
+    label = value + ' 🔥';
+  } else if (value < 0.8) {
+    level = 'cold';
+    label = value + ' 🧊';
+  } else {
+    level = 'normal';
+    label = value + ' 🎯';
+  }
 
   return { value: value, level: level, label: label };
 }
@@ -158,19 +179,19 @@ function computeFeature(cd, side) {
   if (!cd) return '-';
 
   if (side === 'home') {
-    var init = parsePercent(cd.winRate);      // 初始
-    var last = parsePercent(cd.lastWinRate);  // 临盘
+    const init = parsePercent(cd.winRate); // 初始
+    const last = parsePercent(cd.lastWinRate); // 临盘
     if (!init || !last) return '-';
-    var delta = round(last - init, 1);
+    const delta = round(last - init, 1);
     if (Math.abs(delta) < 0.5) return '概率' + last.toFixed(1) + '%' + ' →稳定';
     return '概率' + last.toFixed(1) + '%' + ' →' + (delta > 0 ? '↑' : '↓') + Math.abs(delta).toFixed(1) + '%';
   }
 
   if (side === 'away') {
-    var initA = parsePercent(cd.loseRate);
-    var lastA = parsePercent(cd.lastLoseRate);
+    const initA = parsePercent(cd.loseRate);
+    const lastA = parsePercent(cd.lastLoseRate);
     if (!initA || !lastA) return '-';
-    var deltaA = round(lastA - initA, 1);
+    const deltaA = round(lastA - initA, 1);
     if (Math.abs(deltaA) < 0.5) return '概率' + lastA.toFixed(1) + '%' + ' →稳定';
     return '概率' + lastA.toFixed(1) + '%' + ' →' + (deltaA > 0 ? '↑' : '↓') + Math.abs(deltaA).toFixed(1) + '%';
   }
@@ -185,9 +206,9 @@ function computeFeature(cd, side) {
  * 按产品文档公式
  */
 function computeStaticDiff(homePower, guestPower) {
-  var h = parseInt(homePower) || 50;
-  var g = parseInt(guestPower) || 50;
-  var total = h + g;
+  const h = parseInt(homePower) || 50;
+  const g = parseInt(guestPower) || 50;
+  const total = h + g;
   if (total === 0) return 0;
   return round((h - g) / total, 4);
 }
@@ -201,23 +222,23 @@ function computeStaticDiff(homePower, guestPower) {
  * @returns {Object}  { [matchId]: { staticDiff, heatIndex, heatLevel, homeFeature, guestFeature, ... } }
  */
 async function computeHotData(dateStr, matchList) {
-  var cache = readCache();
-  var dateKey = dateStr;
+  const cache = readCache();
+  const dateKey = dateStr;
 
   // 初始化缓存 key
   if (!cache[dateKey]) cache[dateKey] = {};
 
-  var results = {};
+  const results = {};
 
   // 分批并发请求
-  for (var i = 0; i < matchList.length; i += BATCH_SIZE) {
-    var batch = matchList.slice(i, i + BATCH_SIZE);
+  for (let i = 0; i < matchList.length; i += BATCH_SIZE) {
+    const batch = matchList.slice(i, i + BATCH_SIZE);
 
-    var promises = batch.map(function (m) {
+    const promises = batch.map(function (m) {
       return (async function () {
-        var matchId   = m.matchId;
-        var numStr    = m.num || '';
-        var number    = parseInt(numStr.replace(/^[^\d]*/, '')) || 0;
+        const matchId = m.matchId;
+        const numStr = m.num || '';
+        const number = parseInt(numStr.replace(/^[^\d]*/, '')) || 0;
 
         if (!number || number < 1) {
           results[matchId] = makeEmptyResult();
@@ -226,11 +247,11 @@ async function computeHotData(dateStr, matchList) {
 
         // 1) 先查缓存
         if (cache[dateKey][matchId]) {
-          var cached = cache[dateKey][matchId];
-          var needUpdate = false;
+          const cached = cache[dateKey][matchId];
+          let needUpdate = false;
           // 如果缓存中 Yz 数据缺失（之前请求失败），静默重试 Yz 补齐
           if (cached.hotFocusNum === null || cached.hotFocusNum === undefined) {
-            var yzRetry = await jczqYz.fetchJczqYz(dateStr, number);
+            const yzRetry = await jczqYz.fetchJczqYz(dateStr, number);
             if (yzRetry) {
               if (yzRetry.hotFocusNum !== null && yzRetry.hotFocusNum !== undefined) {
                 cached.hotFocusNum = yzRetry.hotFocusNum;
@@ -253,10 +274,10 @@ async function computeHotData(dateStr, matchList) {
           }
           // 如果缓存中 Change 数据缺失（heatIndex 为 null，之前请求繁忙），静默重试 JczqChange
           if (cached.heatIndex === null || cached.heatIndex === undefined) {
-            var cdRetry = await fetchJczqChange(dateStr, number);
+            const cdRetry = await fetchJczqChange(dateStr, number);
             if (cdRetry) {
-              var rqVal = m.rq !== undefined && m.rq !== null ? m.rq : (cached.rq || cdRetry.rq || 0);
-              var heatRetry = computeHeatIndex(rqVal, cdRetry);
+              const rqVal = m.rq !== undefined && m.rq !== null ? m.rq : cached.rq || cdRetry.rq || 0;
+              const heatRetry = computeHeatIndex(rqVal, cdRetry);
               cached.heatIndex = heatRetry.value;
               cached.heatLevel = heatRetry.level;
               cached.heatLabel = heatRetry.label;
@@ -274,51 +295,48 @@ async function computeHotData(dateStr, matchList) {
         }
 
         // 2) 并行获取 JczqChange + JczqYz（减少串行等待）
-        var cdYz = await Promise.all([
-          fetchJczqChange(dateStr, number),
-          jczqYz.fetchJczqYz(dateStr, number)
-        ]);
-        var cd = cdYz[0];
-        var yz = cdYz[1];
-        var hotFocusNum = yz ? yz.hotFocusNum : null;
-        var oddsLive    = yz ? yz.oddsLive    : null;
+        const cdYz = await Promise.all([fetchJczqChange(dateStr, number), jczqYz.fetchJczqYz(dateStr, number)]);
+        const cd = cdYz[0];
+        const yz = cdYz[1];
+        const hotFocusNum = yz ? yz.hotFocusNum : null;
+        const oddsLive = yz ? yz.oddsLive : null;
         // 如果 Yz 有 rq 且传入的 matchList.rq 缺失，则用 Yz 的 rq
         if ((m.rq === undefined || m.rq === null) && yz && yz.rq !== undefined && yz.rq !== null) {
           m.rq = yz.rq;
         }
 
         // 3) 计算各字段
-        var rq        = m.rq !== undefined && m.rq !== null ? m.rq : (cd ? cd.rq : 0);
-        var heat      = computeHeatIndex(rq, cd);
-        var homeFeat  = computeFeature(cd, 'home');
-        var awayFeat  = computeFeature(cd, 'away');
+        const rq = m.rq !== undefined && m.rq !== null ? m.rq : cd ? cd.rq : 0;
+        const heat = computeHeatIndex(rq, cd);
+        const homeFeat = computeFeature(cd, 'home');
+        const awayFeat = computeFeature(cd, 'away');
 
         // staticDiff — 优先用功守道提供的实力数据，只在两者都缺失时才降级到 JczqBasic
-        var staticDiff;
+        let staticDiff;
         if (m.homePower != null && m.guestPower != null) {
           staticDiff = computeStaticDiff(m.homePower, m.guestPower);
         } else {
           // 降级：从 JczqBasic 取（功守道缓存未命中时才触发）
-          var basic = await fetchJczqBasic(dateStr, number);
+          const basic = await fetchJczqBasic(dateStr, number);
           staticDiff = computeStaticDiff(
-            (basic && basic.homePower != null) ? basic.homePower : 50,
-            (basic && basic.guestPower != null) ? basic.guestPower : 50
+            basic && basic.homePower != null ? basic.homePower : 50,
+            basic && basic.guestPower != null ? basic.guestPower : 50,
           );
         }
 
-        var entry = {
-          _ts:          new Date().toISOString(),
+        const entry = {
+          _ts: new Date().toISOString(),
           staticDiff: staticDiff,
-          heatIndex:   heat.value,
-          heatLevel:   heat.level,
-          heatLabel:   heat.label,
+          heatIndex: heat.value,
+          heatLevel: heat.level,
+          heatLabel: heat.label,
           homeFeature: homeFeat,
           guestFeature: awayFeat,
           hotFocusNum: hotFocusNum,
-          hotWinRate:  yz ? yz.hotWinRate : null,
+          hotWinRate: yz ? yz.hotWinRate : null,
           hotLoseRate: yz ? yz.hotLoseRate : null,
-          oddsLive:    oddsLive,
-          rq:          rq
+          oddsLive: oddsLive,
+          rq: rq,
         };
 
         cache[dateKey][matchId] = entry;
@@ -329,7 +347,9 @@ async function computeHotData(dateStr, matchList) {
     await Promise.all(promises);
     // 批次间短暂延迟，避免 Java API 繁忙限流
     if (i + BATCH_SIZE < matchList.length) {
-      await new Promise(function (resolve) { setTimeout(resolve, BATCH_DELAY); });
+      await new Promise(function (resolve) {
+        setTimeout(resolve, BATCH_DELAY);
+      });
     }
   }
 
@@ -349,8 +369,14 @@ function makeEmptyResult() {
     guestFeature: '-',
     hotFocusNum: 0,
     oddsLive: 0,
-    rq: 0
+    rq: 0,
   };
 }
 
-module.exports = { computeHotData: computeHotData, fetchJczqChange: fetchJczqChange, computeHeatIndex: computeHeatIndex, computeStaticDiff: computeStaticDiff, computeFeature: computeFeature };
+module.exports = {
+  computeHotData: computeHotData,
+  fetchJczqChange: fetchJczqChange,
+  computeHeatIndex: computeHeatIndex,
+  computeStaticDiff: computeStaticDiff,
+  computeFeature: computeFeature,
+};

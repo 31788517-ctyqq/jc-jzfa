@@ -54,9 +54,9 @@ function poissonProb(k, lambda) {
  * Dixon-Coles 修正因子 τ(h, a)
  * 修正独立泊松假设在低比分区域（0:0, 1:0, 0:1, 1:1）的偏差。
  * 足球比赛中这些比分的实际频率与独立泊松预测有系统性差异。
- * 
+ *
  * 参考: Dixon & Coles (1997) "Modelling Association Football Scores"
- * 
+ *
  * @param {number} h 主队进球
  * @param {number} a 客队进球
  * @param {number} lambdaH 主队 xG
@@ -85,7 +85,7 @@ function dixonColesCorrection(h, a, lambdaH, lambdaA, rho) {
 /**
  * 条件概率补偿：一方大比分领先后，另一方进球概率变化
  * 模拟比赛中的"反扑效应"和"垃圾时间"效应
- * 
+ *
  * @param {number} ownGoals 已方进球数
  * @param {number} oppGoals 对方进球数
  * @param {number} oppLambda 对方 xG
@@ -120,10 +120,10 @@ function totalGoalsLock(h, a, goalRange) {
 /**
  * 锁二：主客单队进球范围锁 — 软化版
  * 用 Sigmoid 连续衰减替代硬截断，避免阈值边缘"一刀切"
- * 
+ *
  * 强力破甲 (Pen ≥ 1.2): 单队下限 1球（penalty 从 0.3→1.0 渐变）
  * 防线哑火 (Pen ≤ 0.7): 单队上限 1球（penalty 从 1.0→0.3 渐变）
- * 
+ *
  * @returns {number} penalty 因子 0.3~1.0
  */
 function singleTeamPenalty(h, a, vars) {
@@ -195,9 +195,9 @@ function singleTeamLock(h, a, vars) {
   const penA = atkA / (shotAgainstH + 0.5);
 
   // 放宽硬过滤：仅在极端情况下过滤
-  if (penH >= 2.0 && h === 0) return false;  // 极度破甲才硬过滤
-  if (penH <= 0.3 && h >= 3) return false;   // 极度哑火才硬过滤
-  if (h > 6) return false;  // 单队6+球几乎不可能
+  if (penH >= 2.0 && h === 0) return false; // 极度破甲才硬过滤
+  if (penH <= 0.3 && h >= 3) return false; // 极度哑火才硬过滤
+  if (h > 6) return false; // 单队6+球几乎不可能
 
   if (penA >= 2.0 && a === 0) return false;
   if (penA <= 0.3 && a >= 3) return false;
@@ -209,7 +209,7 @@ function singleTeamLock(h, a, vars) {
 /**
  * 锁三：净胜球分布锁 — 软化版
  * 用 sigmoid 衰减替代硬边界
- * 
+ *
  * @returns {number} penalty 因子 0.35~1.0
  */
 function goalDiffPenalty(h, a, ladderLevel) {
@@ -219,7 +219,7 @@ function goalDiffPenalty(h, a, ladderLevel) {
   if (absLv >= 3) {
     // 👑 极端优势
     if (ladderLevel > 0) {
-      return softThreshold(gd, 0.5, 3);  // 净胜≥1时较高, 平局和输球惩罚
+      return softThreshold(gd, 0.5, 3); // 净胜≥1时较高, 平局和输球惩罚
     } else {
       return softThreshold(-gd, 0.5, 3);
     }
@@ -246,8 +246,6 @@ function goalDiffPenalty(h, a, ladderLevel) {
   // ⚖️ 均衡 — 宽区间，极端净胜球轻微惩罚
   if (Math.abs(gd) <= 2) return 1.0;
   return softThreshold(5 - Math.abs(gd), 2, 2);
-
-  return 1.0;
 }
 
 /**
@@ -266,12 +264,12 @@ function goalDiffLock(h, a, ladderLevel) {
 
 /**
  * 2D 联合分布历史修正（升级版）
- * 
+ *
  * 相比旧版的独立维度加成，新增：
  *   1. (h,a) 联合频次加权：同时考虑主客进球数的联合分布
  *   2. jiaoFenExtended 扩展交锋统计：从 jiaoFenDesc 提取的更多字段
  *   3. 非线性频次密度映射：出现多次的比分得到更强提振
- * 
+ *
  * @returns {number} 修正因子 0.8~2.5
  */
 function historyCorrection(h, a, vars) {
@@ -279,18 +277,18 @@ function historyCorrection(h, a, vars) {
 
   // ── 第一层：独立维度分布匹配（保留旧版逻辑）──
   // 主队进球分布匹配
-  if (h === 0) boost *= (1 + vars.homeGoal0 * 0.05);
-  else if (h === 1) boost *= (1 + vars.homeGoal1 * 0.05);
-  else if (h >= 2) boost *= (1 + vars.homeGoal2Plus * 0.05);
+  if (h === 0) boost *= 1 + vars.homeGoal0 * 0.05;
+  else if (h === 1) boost *= 1 + vars.homeGoal1 * 0.05;
+  else if (h >= 2) boost *= 1 + vars.homeGoal2Plus * 0.05;
 
   // 客队进球分布匹配
-  if (a === 0) boost *= (1 + vars.awayGoal0 * 0.03);
-  else if (a === 1) boost *= (1 + vars.awayGoal1 * 0.03);
-  else if (a >= 2) boost *= (1 + vars.awayGoal2Plus * 0.03);
+  if (a === 0) boost *= 1 + vars.awayGoal0 * 0.03;
+  else if (a === 1) boost *= 1 + vars.awayGoal1 * 0.03;
+  else if (a >= 2) boost *= 1 + vars.awayGoal2Plus * 0.03;
 
   // ── 第二层：2D 联合分布 — 交锋历史精确匹配 ──
   const jfScores = vars.jiaoFenScores || [];
-  const matchCount = jfScores.filter(s => s && s.h === h && s.a === a).length;
+  const matchCount = jfScores.filter((s) => s && s.h === h && s.a === a).length;
   if (matchCount >= 2) {
     // 历史交锋中出现 2+ 次 → 强提振
     boost *= 1 + matchCount * 0.15; // 2次→1.3, 3次→1.45
@@ -317,7 +315,7 @@ function historyCorrection(h, a, vars) {
     // 历史交锋中大球率高 → 适当提振高进球比分
     if (jfExt.totalMatches > 0 && jfExt.overCount > 0) {
       const h2hOverRate = jfExt.overCount / jfExt.totalMatches;
-      if (h2hOverRate >= 0.5 && (h + a) >= 3) {
+      if (h2hOverRate >= 0.5 && h + a >= 3) {
         boost *= 1 + h2hOverRate * 0.1; // 交锋大球率≥50%时提振大比分
       }
     }
@@ -389,7 +387,7 @@ function marketDirection(vars) {
   const aAward = vars.awayWinAward || 0;
   if (hAward <= 1 || dAward <= 1 || aAward <= 1) {
     // 赔率无效 → 不校准
-    return { home: 1/3, draw: 1/3, away: 1/3, valid: false };
+    return { home: 1 / 3, draw: 1 / 3, away: 1 / 3, valid: false };
   }
   const rawH = 1 / hAward;
   const rawD = 1 / dAward;
@@ -400,14 +398,14 @@ function marketDirection(vars) {
     draw: round(rawD / total, 4),
     away: round(rawA / total, 4),
     valid: true,
-    overround: round(total - 1, 4)
+    overround: round(total - 1, 4),
   };
 }
 
 /**
  * 市场赔率贝叶斯校准
  * 对每个比分格点，按其结果方向（主胜/平/客胜）用市场隐含概率做加权融合
- * 
+ *
  * @param {number} h 主队进球
  * @param {number} a 客队进球
  * @param {Object} marketDir marketDirection() 的输出
@@ -420,12 +418,14 @@ function marketCalibration(h, a, marketDir, alpha) {
 
   // 确定比分的结果方向
   let resultProb;
-  if (h > a)      resultProb = marketDir.home;  // 主胜
-  else if (h < a) resultProb = marketDir.away;   // 客胜
-  else            resultProb = marketDir.draw;   // 平局
+  if (h > a)
+    resultProb = marketDir.home; // 主胜
+  else if (h < a)
+    resultProb = marketDir.away; // 客胜
+  else resultProb = marketDir.draw; // 平局
 
   // 均匀先验 = 1/3，偏离越大概率调整越大
-  const deviation = resultProb / (1/3);
+  const deviation = resultProb / (1 / 3);
   // 用 alpha 控制向市场靠拢的程度
   return round(1 + alpha * (deviation - 1), 4);
 }
@@ -440,29 +440,44 @@ function analyze(vars, xgHome, xgAway, goalRange, ladderLevel) {
   const scored = [];
   for (const { h, a } of cells) {
     const pPoisson = poissonProb(h, xgHome) * poissonProb(a, xgAway);
-    const pDixonColes = dixonColesCorrection(h, a, xgHome, xgAway);  // DC低比分修正
-    const pCondH = conditionalGoalAdjust(h, a, xgAway);  // 主队反扑效应
-    const pCondA = conditionalGoalAdjust(a, h, xgHome);  // 客队反扑效应
+    const pDixonColes = dixonColesCorrection(h, a, xgHome, xgAway); // DC低比分修正
+    const pCondH = conditionalGoalAdjust(h, a, xgAway); // 主队反扑效应
+    const pCondA = conditionalGoalAdjust(a, h, xgHome); // 客队反扑效应
     const pConditional = pCondH * pCondA;
-    const pLock2 = singleTeamPenalty(h, a, vars);        // 🔒 锁二软化
-    const pLock3 = goalDiffPenalty(h, a, ladderLevel);    // 🔒 锁三软化
+    const pLock2 = singleTeamPenalty(h, a, vars); // 🔒 锁二软化
+    const pLock3 = goalDiffPenalty(h, a, ladderLevel); // 🔒 锁三软化
     const pHistory = historyCorrection(h, a, vars);
     const pPower = powerBoost(h, a, ladderLevel);
     const pMarket = marketCalibration(h, a, marketDir, 0.25); // 📊 市场赔率校准（25%权重）
     const pFinal = pPoisson * pDixonColes * pConditional * pHistory * pPower * pLock2 * pLock3 * pMarket;
-    scored.push({ score: h + '-' + a, h, a, pmf: pFinal,
-      _raw: { poisson: round(pPoisson, 6), dc: round(pDixonColes, 4), cond: round(pConditional, 3),
-              lock2: round(pLock2, 3), lock3: round(pLock3, 3),
-              history: round(pHistory, 3), power: round(pPower, 3), market: round(pMarket, 3) }
+    scored.push({
+      score: h + '-' + a,
+      h,
+      a,
+      pmf: pFinal,
+      _raw: {
+        poisson: round(pPoisson, 6),
+        dc: round(pDixonColes, 4),
+        cond: round(pConditional, 3),
+        lock2: round(pLock2, 3),
+        lock3: round(pLock3, 3),
+        history: round(pHistory, 3),
+        power: round(pPower, 3),
+        market: round(pMarket, 3),
+      },
     });
   }
 
   // 3. 归一化
   const totalP = scored.reduce((s, c) => s + c.pmf, 0);
   if (totalP > 0) {
-    scored.forEach(c => { c.percent = round(c.pmf / totalP * 100, 1); });
+    scored.forEach((c) => {
+      c.percent = round((c.pmf / totalP) * 100, 1);
+    });
   } else {
-    scored.forEach(c => { c.percent = 0; });
+    scored.forEach((c) => {
+      c.percent = 0;
+    });
   }
 
   // 4. 降序排序，取 TOP8
@@ -470,9 +485,9 @@ function analyze(vars, xgHome, xgAway, goalRange, ladderLevel) {
   const top = scored.slice(0, 8);
 
   // 格式化输出
-  return top.map(c => ({
+  return top.map((c) => ({
     score: c.score,
-    percent: c.percent.toFixed(1) + '%'
+    percent: c.percent.toFixed(1) + '%',
   }));
 }
 
@@ -481,4 +496,22 @@ function round(v, n) {
   return Math.round(v * m) / m;
 }
 
-module.exports = { analyze };
+module.exports = {
+  analyze,
+  // 导出内部函数以便单元测试
+  poissonProb,
+  dixonColesCorrection,
+  conditionalGoalAdjust,
+  softThreshold,
+  totalGoalsLock,
+  singleTeamLock,
+  goalDiffLock,
+  singleTeamPenalty,
+  goalDiffPenalty,
+  historyCorrection,
+  powerBoost,
+  marketDirection,
+  marketCalibration,
+  generateValidCells,
+  round,
+};

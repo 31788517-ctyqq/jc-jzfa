@@ -17,22 +17,33 @@ const LOCAL_PORT = 19880;
 function fetchJSON(path, timeoutMs) {
   timeoutMs = timeoutMs || 8000;
   return new Promise(function (resolve) {
-    var opts = {
+    const opts = {
       hostname: LOCAL_HOST,
       port: LOCAL_PORT,
       path: path,
       method: 'GET',
-      headers: { 'Host': 'm.100qiu.com', 'Accept': 'application/json' }
+      headers: { Host: 'm.100qiu.com', Accept: 'application/json' },
     };
-    http.get(opts, function (res) {
-      var chunks = [];
-      res.on('data', function (c) { chunks.push(c); });
-      res.on('end', function () {
-        try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf-8'))); }
-        catch (e) { resolve(null); }
+    http
+      .get(opts, function (res) {
+        const chunks = [];
+        res.on('data', function (c) {
+          chunks.push(c);
+        });
+        res.on('end', function () {
+          try {
+            resolve(JSON.parse(Buffer.concat(chunks).toString('utf-8')));
+          } catch (e) {
+            resolve(null);
+          }
+        });
+      })
+      .on('error', function () {
+        resolve(null);
+      })
+      .setTimeout(timeoutMs, function () {
+        resolve(null);
       });
-    }).on('error', function () { resolve(null); })
-      .setTimeout(timeoutMs, function () { resolve(null); });
   });
 }
 
@@ -43,26 +54,26 @@ function fetchJSON(path, timeoutMs) {
  * @returns {{ hotFocusNum: number, hotWinRate: string, hotLoseRate: string, oddsLive: number, rq: number }|null}
  */
 async function fetchJczqYz(dateStr, number) {
-  var dt = dateStr.replace(/-/g, '');    // "20260527"
-  var path = '/api/JczqYz?dateTime=' + dt + '&number=' + number;
-  var resp = await fetchJSON(path);
+  const dt = dateStr.replace(/-/g, ''); // "20260527"
+  const path = '/api/JczqYz?dateTime=' + dt + '&number=' + number;
+  const resp = await fetchJSON(path);
 
   if (!resp || !resp.data) return null;
 
-  var d = resp.data;
+  const d = resp.data;
 
   // 关注热度人数
-  var hotFocusNum = parseInt(d.hotFocusNum) || 0;
+  const hotFocusNum = parseInt(d.hotFocusNum) || 0;
 
   // 亚指临盘：lastPan 是当前盘口值
-  var oddsLive = parseFloat(d.lastPan) || 0;
+  const oddsLive = parseFloat(d.lastPan) || 0;
 
   return {
-    hotFocusNum:  hotFocusNum,
-    hotWinRate:   d.hotWinRate   || '',
-    hotLoseRate:  d.hotLoseRate  || '',
-    oddsLive:     oddsLive,
-    rq:           d.rq ? parseInt(d.rq) : 0
+    hotFocusNum: hotFocusNum,
+    hotWinRate: d.hotWinRate || '',
+    hotLoseRate: d.hotLoseRate || '',
+    oddsLive: oddsLive,
+    rq: d.rq ? parseInt(d.rq) : 0,
   };
 }
 

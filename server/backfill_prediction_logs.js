@@ -74,6 +74,8 @@ function extractAIPrediction(mid, m) {
   if (m.visitName) aiFields.visitName = m.visitName;
   if (m.leagueName) aiFields.leagueName = m.leagueName;
   if (m.num) aiFields.matchNum = m.num;
+  if (m.handicap !== undefined) aiFields.handicap = m.handicap;
+  else if (m.rq !== undefined) aiFields.handicap = m.rq;
   preds.forEach(function (p) {
     if (p['玩法'] === '胜平负') aiFields.spf = p['建议方向'];
     if (p['玩法'] === '大小球') aiFields.overunder = p['建议方向'];
@@ -98,6 +100,7 @@ function extractGSPrediction(mid, m) {
     topPercent: gs.scores && gs.scores[0] ? parseFloat(gs.scores[0].percent) || 0 : 0,
     ladderLabel: gs.ladderLabel || '',
     ladderLevel: gs.ladderLevel || 0,
+    handicap: m.handicap !== undefined ? m.handicap : (m.rq !== undefined ? m.rq : undefined),
   };
 }
 
@@ -188,6 +191,7 @@ async function main() {
       awayGoals: awayGoals,
       actualSpf: actualSpf,
       actualOverunder: actualOverunder,
+      handicap: m.handicap !== undefined ? m.handicap : (m.rq !== undefined ? m.rq : undefined),
     };
 
     const info = {

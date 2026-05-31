@@ -10,17 +10,17 @@ const path = require('path');
 const API_KEY = process.env.DEEPSEEK_API_KEY || 'DUMMY_PLACEHOLDER';
 const BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1';
 const MODEL = 'deepseek-v4-pro';
-const TIMEOUT = 60000; // 60秒超时
+const TIMEOUT = 90000; // 90秒超时（DeepSeek 分析耗时较长）
 
 /** 加载合并后的 shuju 数据（含500.com近10场+近6场） */
 function loadShujuData(matchInfo) {
   try {
-    var dateStr = (matchInfo.date || '').slice(0, 10);
+    const dateStr = (matchInfo.date || '').slice(0, 10);
     if (!dateStr) return null;
-    var shujuFile = path.join(__dirname, 'shuju_data', 'shuju_merged_' + dateStr + '.json');
+    const shujuFile = path.join(__dirname, 'shuju_data', 'shuju_merged_' + dateStr + '.json');
     if (!fs.existsSync(shujuFile)) return null;
-    var shuju = JSON.parse(fs.readFileSync(shujuFile, 'utf8'));
-    var matchNum = matchInfo.num || '';
+    const shuju = JSON.parse(fs.readFileSync(shujuFile, 'utf8'));
+    const matchNum = matchInfo.num || '';
     return (shuju.matches || {})[matchNum] || null;
   } catch (e) {
     return null;
@@ -31,12 +31,12 @@ function loadShujuData(matchInfo) {
 function formatShujuStats(shuju) {
   if (!shuju || !shuju.recentForm) return '';
 
-  var rf = shuju.recentForm;
-  var parts = [];
+  const rf = shuju.recentForm;
+  const parts = [];
 
   // 近10场（全联赛）
-  var h10 = rf.last10 ? rf.last10.home : null;
-  var a10 = rf.last10 ? rf.last10.away : null;
+  const h10 = rf.last10 ? rf.last10.home : null;
+  const a10 = rf.last10 ? rf.last10.away : null;
   if (h10 && h10.wins !== undefined) {
     parts.push('【500.com 近10场战绩（所有赛事）——请严格以此数据为准】');
     parts.push(formatTeamStats('主队', h10));
@@ -44,8 +44,8 @@ function formatShujuStats(shuju) {
   }
 
   // 近10场（同联赛）
-  var h10L = rf.last10League ? rf.last10League.home : null;
-  var a10L = rf.last10League ? rf.last10League.away : null;
+  const h10L = rf.last10League ? rf.last10League.home : null;
+  const a10L = rf.last10League ? rf.last10League.away : null;
   if (h10L && h10L.wins !== undefined) {
     parts.push('');
     parts.push('【500.com 近10场战绩（同联赛赛事）】');
@@ -54,8 +54,8 @@ function formatShujuStats(shuju) {
   }
 
   // 近6场
-  var h6 = rf.last6 ? rf.last6.home : null;
-  var a6 = rf.last6 ? rf.last6.away : null;
+  const h6 = rf.last6 ? rf.last6.home : null;
+  const a6 = rf.last6 ? rf.last6.away : null;
   if (h6 && h6.wins !== undefined) {
     parts.push('');
     parts.push('【500.com 近6场战绩】');
@@ -68,11 +68,11 @@ function formatShujuStats(shuju) {
 
 function formatTeamStats(label, stats) {
   if (!stats) return '';
-  var s = stats;
-  var wdl = (s.wins || 0) + '胜' + (s.draws || 0) + '平' + (s.losses || 0) + '负';
-  var goals = s.goals !== undefined ? '进' + s.goals + '球' : '';
-  var conceded = s.conceded !== undefined ? '失' + s.conceded + '球' : '';
-  var pct = [];
+  const s = stats;
+  const wdl = (s.wins || 0) + '胜' + (s.draws || 0) + '平' + (s.losses || 0) + '负';
+  const goals = s.goals !== undefined ? '进' + s.goals + '球' : '';
+  const conceded = s.conceded !== undefined ? '失' + s.conceded + '球' : '';
+  const pct = [];
   if (s.winPct !== undefined) pct.push('胜率' + s.winPct + '%');
   if (s.handicapPct !== undefined) pct.push('赢盘率' + s.handicapPct + '%');
   if (s.overPct !== undefined) pct.push('大球率' + s.overPct + '%');
@@ -92,10 +92,10 @@ function calcAvg(total, games) {
  */
 function buildAttackDefenseTable(shujuData) {
   if (!shujuData || !shujuData.recentForm) return null;
-  var rf = shujuData.recentForm;
+  const rf = shujuData.recentForm;
 
   // 优先近10场同联赛 → fallback 近10场全联赛
-  var h10, a10;
+  let h10, a10;
   if (rf.last10League && rf.last10League.home && rf.last10League.home.wins !== undefined) {
     h10 = rf.last10League.home;
     a10 = rf.last10League.away || {};
@@ -106,8 +106,8 @@ function buildAttackDefenseTable(shujuData) {
     return null;
   }
 
-  var h6 = (rf.last6 || {}).home || {};
-  var a6 = (rf.last6 || {}).away || {};
+  const h6 = (rf.last6 || {}).home || {};
+  const a6 = (rf.last6 || {}).away || {};
 
   return {
     header: ['数据项', '主队', '客队'],
@@ -116,10 +116,10 @@ function buildAttackDefenseTable(shujuData) {
       ['赛季场均失球', calcAvg(h10.conceded, 10), calcAvg(a10.conceded, 10)],
       ['近6场场均进球', calcAvg(h6.goals, 6), calcAvg(a6.goals, 6)],
       ['近6场场均失球', calcAvg(h6.conceded, 6), calcAvg(a6.conceded, 6)],
-      ['核心射手', '根据知识库补充', '根据知识库补充']
+      ['核心射手', '根据知识库补充', '根据知识库补充'],
     ],
     _verified: true,
-    _source: '500.com'
+    _source: '500.com',
   };
 }
 
@@ -130,30 +130,33 @@ function buildAttackDefenseTable(shujuData) {
  */
 function buildRecentFormWDL(shujuData) {
   if (!shujuData || !shujuData.recentForm) return null;
-  var rf = shujuData.recentForm;
+  const rf = shujuData.recentForm;
 
   // 优先近6场 → fallback 近10场同联赛 → fallback 近10场全联赛
-  var homeStats, awayStats;
-  var h6 = (rf.last6 || {}).home || {};
-  var a6 = (rf.last6 || {}).away || {};
+  let homeStats, awayStats;
+  const h6 = (rf.last6 || {}).home || {};
+  const a6 = (rf.last6 || {}).away || {};
   if (h6.wins !== undefined) {
-    homeStats = h6; awayStats = a6;
+    homeStats = h6;
+    awayStats = a6;
   } else {
-    var h10L = (rf.last10League || {}).home || {};
-    var a10L = (rf.last10League || {}).away || {};
+    const h10L = (rf.last10League || {}).home || {};
+    const a10L = (rf.last10League || {}).away || {};
     if (h10L.wins !== undefined) {
-      homeStats = h10L; awayStats = a10L;
+      homeStats = h10L;
+      awayStats = a10L;
     } else {
-      var h10 = (rf.last10 || {}).home || {};
-      var a10 = (rf.last10 || {}).away || {};
-      homeStats = h10; awayStats = a10;
+      const h10 = (rf.last10 || {}).home || {};
+      const a10 = (rf.last10 || {}).away || {};
+      homeStats = h10;
+      awayStats = a10;
     }
   }
 
   return {
     home: { w: homeStats.wins || 0, d: homeStats.draws || 0, l: homeStats.losses || 0 },
     away: { w: awayStats.wins || 0, d: awayStats.draws || 0, l: awayStats.losses || 0 },
-    _verified: true
+    _verified: true,
   };
 }
 
@@ -185,18 +188,29 @@ function buildSystemPrompt() {
  * 构建用户 Prompt
  */
 function buildUserPrompt(matchInfo) {
-  var shujuData = loadShujuData(matchInfo);
-  var shujuText = shujuData ? formatShujuStats(shujuData) : '';
-  var adTable = shujuData ? buildAttackDefenseTable(shujuData) : null;
-  var formWDL = shujuData ? buildRecentFormWDL(shujuData) : null;
+  const shujuData = loadShujuData(matchInfo);
+  const shujuText = shujuData ? formatShujuStats(shujuData) : '';
+  const adTable = shujuData ? buildAttackDefenseTable(shujuData) : null;
+  const formWDL = shujuData ? buildRecentFormWDL(shujuData) : null;
 
-  var prompt = '请深度分析以下比赛，并按照五维分析框架输出完整的分析报告。\n\n' +
+  let prompt =
+    '请深度分析以下比赛，并按照五维分析框架输出完整的分析报告。\n\n' +
     '**比赛信息**\n' +
-    '- 联赛：' + (matchInfo.leagueName || '未知') + '\n' +
-    '- 主队：' + (matchInfo.homeName || '未知') + '\n' +
-    '- 客队：' + (matchInfo.visitName || '未知') + '\n' +
-    '- 比赛时间：' + (matchInfo.date || '未知') + '\n' +
-    '- 场次编号：' + (matchInfo.num || '') + '\n\n';
+    '- 联赛：' +
+    (matchInfo.leagueName || '未知') +
+    '\n' +
+    '- 主队：' +
+    (matchInfo.homeName || '未知') +
+    '\n' +
+    '- 客队：' +
+    (matchInfo.visitName || '未知') +
+    '\n' +
+    '- 比赛时间：' +
+    (matchInfo.date || '未知') +
+    '\n' +
+    '- 场次编号：' +
+    (matchInfo.num || '') +
+    '\n\n';
 
   // ⭐ 当有500.com数据时，注入锁定的攻防数据和近期战绩
   if (shujuData && adTable && formWDL) {
@@ -210,15 +224,32 @@ function buildUserPrompt(matchInfo) {
     prompt += '对于500.com未覆盖的部分（积分排名、历史交锋、伤病、盘口赔率等），请通过你的知识库搜索补充。\n\n';
     prompt += '**重要规则：**\n';
     prompt += '1. JSON 中「基础面.攻防全景数据」的 rows 数组必须使用上面预计算的表格数据，不得修改任何数值\n';
-    prompt += '2. JSON 中「状态面.主队近况」必须为"近6场' + formWDL.home.w + '胜' + formWDL.home.d + '平' + formWDL.home.l + '负"\n';
-    prompt += '3. JSON 中「状态面.客队近况」必须为"近6场' + formWDL.away.w + '胜' + formWDL.away.d + '平' + formWDL.away.l + '负"\n';
+    prompt +=
+      '2. JSON 中「状态面.主队近况」必须为"近6场' +
+      formWDL.home.w +
+      '胜' +
+      formWDL.home.d +
+      '平' +
+      formWDL.home.l +
+      '负"\n';
+    prompt +=
+      '3. JSON 中「状态面.客队近况」必须为"近6场' +
+      formWDL.away.w +
+      '胜' +
+      formWDL.away.d +
+      '平' +
+      formWDL.away.l +
+      '负"\n';
     prompt += '4. 其他字段（核心结论、分析文字等）请基于以上500.com真实数据进行深度分析\n';
   } else if (shujuText) {
-    prompt += '**以下是从500.com抓取的真实概率统计，请严格基于此数据进行近况分析（勿编造）**\n' +
-      shujuText + '\n\n' +
+    prompt +=
+      '**以下是从500.com抓取的真实概率统计，请严格基于此数据进行近况分析（勿编造）**\n' +
+      shujuText +
+      '\n\n' +
       '对于此数据未覆盖的部分（积分排名、历史交锋、伤病、盘口赔率等），请通过你的知识库搜索补充。\n';
   } else {
-    prompt += '请通过你的知识库搜索球队信息，包括但不限于：\n' +
+    prompt +=
+      '请通过你的知识库搜索球队信息，包括但不限于：\n' +
       '- 双方积分排名、近期战绩\n' +
       '- 核心球员状态、伤病情况\n' +
       '- 历史交锋记录\n' +
@@ -226,10 +257,15 @@ function buildUserPrompt(matchInfo) {
       '- 大小球趋势\n';
   }
 
-  prompt += '\n- **重要规则**：在输出的任何字段（尤其是积分排名字段）中引用球队时，必须使用上面给定的全称（' +
-    (matchInfo.homeName || '主队') + '和' + (matchInfo.visitName || '客队') + '），不得使用简称或别称。\n\n';
+  prompt +=
+    '\n- **重要规则**：在输出的任何字段（尤其是积分排名字段）中引用球队时，必须使用上面给定的全称（' +
+    (matchInfo.homeName || '主队') +
+    '和' +
+    (matchInfo.visitName || '客队') +
+    '），不得使用简称或别称。\n\n';
 
-  prompt += '请以 JSON 格式输出（以下 JSON 中的值仅为字段类型说明，请基于你的知识库生成真实数据，不要照抄）：\n' +
+  prompt +=
+    '请以 JSON 格式输出（以下 JSON 中的值仅为字段类型说明，请基于你的知识库生成真实数据，不要照抄）：\n' +
     '{\n' +
     '  "confidence": "<整数0-100, 你对本场分析的确信度>",\n' +
     '  "基础面": {\n' +
@@ -300,47 +336,49 @@ function buildUserPrompt(matchInfo) {
  */
 function callDeepSeek(messages) {
   return new Promise(function (resolve, reject) {
-    var url = new URL(BASE_URL + '/chat/completions');
-    var payload = JSON.stringify({
+    const url = new URL(BASE_URL + '/chat/completions');
+    const payload = JSON.stringify({
       model: MODEL,
       messages: messages,
       temperature: 0.7,
-      max_tokens: 4096
+      max_tokens: 4096,
     });
 
-    var options = {
+    const options = {
       hostname: url.hostname,
       port: url.port || (url.protocol === 'https:' ? 443 : 80),
       path: url.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + API_KEY,
-        'Content-Length': Buffer.byteLength(payload)
+        Authorization: 'Bearer ' + API_KEY,
+        'Content-Length': Buffer.byteLength(payload),
       },
-      timeout: TIMEOUT
+      timeout: TIMEOUT,
     };
 
-    var transport = url.protocol === 'https:' ? https : http;
-    var req = transport.request(options, function (res) {
-      var body = '';
-      res.on('data', function (chunk) { body += chunk; });
+    const transport = url.protocol === 'https:' ? https : http;
+    const req = transport.request(options, function (res) {
+      let body = '';
+      res.on('data', function (chunk) {
+        body += chunk;
+      });
       res.on('end', function () {
         if (res.statusCode !== 200) {
           return reject(new Error('DeepSeek API error ' + res.statusCode + ': ' + body.slice(0, 200)));
         }
         try {
-          var data = JSON.parse(body);
-          var content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+          const data = JSON.parse(body);
+          const content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
           if (!content) return reject(new Error('DeepSeek 返回为空'));
           // 提取 JSON（可能被 markdown 代码块包裹）
-          var jsonMatch = content.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/) || content.match(/(\{[\s\S]*\})/);
-          var jsonStr = jsonMatch ? jsonMatch[1] : content;
-          var result = JSON.parse(jsonStr.trim());
+          const jsonMatch = content.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/) || content.match(/(\{[\s\S]*\})/);
+          const jsonStr = jsonMatch ? jsonMatch[1] : content;
+          const result = JSON.parse(jsonStr.trim());
           resolve({
             content: result,
             rawResponse: content,
-            tokenUsage: data.usage ? data.usage.total_tokens : 0
+            tokenUsage: data.usage ? data.usage.total_tokens : 0,
           });
         } catch (e) {
           // 解析失败时返回原始文本
@@ -348,14 +386,19 @@ function callDeepSeek(messages) {
             content: null,
             rawResponse: body.slice(0, 500),
             tokenUsage: 0,
-            parseError: e.message
+            parseError: e.message,
           });
         }
       });
     });
 
-    req.on('timeout', function () { req.destroy(); reject(new Error('DeepSeek API 超时')); });
-    req.on('error', function (e) { reject(e); });
+    req.on('timeout', function () {
+      req.destroy();
+      reject(new Error('DeepSeek API 超时'));
+    });
+    req.on('error', function (e) {
+      reject(e);
+    });
     req.write(payload);
     req.end();
   });
@@ -367,16 +410,16 @@ function callDeepSeek(messages) {
  * @returns {Promise<Object>} 生成的分析结果
  */
 function generateAnalysis(matchInfo) {
-  var messages = [
+  const messages = [
     { role: 'system', content: buildSystemPrompt() },
-    { role: 'user', content: buildUserPrompt(matchInfo) }
+    { role: 'user', content: buildUserPrompt(matchInfo) },
   ];
 
   console.log('[deepseek] 开始生成分析: ' + matchInfo.homeName + ' vs ' + matchInfo.visitName);
-  var startTime = Date.now();
+  const startTime = Date.now();
 
   return callDeepSeek(messages).then(function (result) {
-    var elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log('[deepseek] 生成完成，耗时 ' + elapsed + 's, tokens: ' + (result.tokenUsage || '?'));
     return result;
   });
@@ -389,29 +432,33 @@ function generateAnalysis(matchInfo) {
  * @returns {Promise<Array>}
  */
 function batchGenerate(matchList, onProgress) {
-  var results = [];
+  const results = [];
   function processNext(index) {
     if (index >= matchList.length) return Promise.resolve(results);
-    var match = matchList[index];
-    return generateAnalysis(match).then(function (result) {
-      results.push({
-        matchId: match.matchId,
-        success: !!result.content,
-        content: result.content,
-        tokenUsage: result.tokenUsage,
-        error: result.parseError || null
-      });
-      if (onProgress) onProgress(index + 1, matchList.length, results[index]);
-      // 间隔 2 秒避免触发限流
-      return new Promise(function (r) { setTimeout(r, 2000); }).then(function () {
+    const match = matchList[index];
+    return generateAnalysis(match)
+      .then(function (result) {
+        results.push({
+          matchId: match.matchId,
+          success: !!result.content,
+          content: result.content,
+          tokenUsage: result.tokenUsage,
+          error: result.parseError || null,
+        });
+        if (onProgress) onProgress(index + 1, matchList.length, results[index]);
+        // 间隔 2 秒避免触发限流
+        return new Promise(function (r) {
+          setTimeout(r, 2000);
+        }).then(function () {
+          return processNext(index + 1);
+        });
+      })
+      .catch(function (err) {
+        console.error('[deepseek] 批量生成失败: ' + match.matchId + ' - ' + err.message);
+        results.push({ matchId: match.matchId, success: false, error: err.message });
+        if (onProgress) onProgress(index + 1, matchList.length, results[index]);
         return processNext(index + 1);
       });
-    }).catch(function (err) {
-      console.error('[deepseek] 批量生成失败: ' + match.matchId + ' - ' + err.message);
-      results.push({ matchId: match.matchId, success: false, error: err.message });
-      if (onProgress) onProgress(index + 1, matchList.length, results[index]);
-      return processNext(index + 1);
-    });
   }
   return processNext(0);
 }
@@ -425,5 +472,5 @@ module.exports = {
   buildAttackDefenseTable,
   buildRecentFormWDL,
   loadShujuData,
-  formatShujuStats
+  formatShujuStats,
 };

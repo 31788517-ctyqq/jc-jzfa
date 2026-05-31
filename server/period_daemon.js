@@ -4,265 +4,447 @@
  * - 当期最后一场结束后：一次性抓取完整比赛数据
  * 写入 data.json，simple.js 自动重载
  */
-var https=require('https'),fs=require('fs'),path=require('path');
-var logger = require('./logger').child('period_daemon');
+const https = require('https'),
+  fs = require('fs'),
+  path = require('path');
+const logger = require('./logger').child('period_daemon');
 
-var CONFIG={};
-try{fs.readFileSync(path.join(__dirname,'.env'),'utf8').split('\n').forEach(function(l){var p=l.trim().split('=');if(p.length===2)CONFIG[p[0]]=p[1]})}catch(e){}
+const CONFIG = {};
+try {
+  fs.readFileSync(path.join(__dirname, '.env'), 'utf8')
+    .split('\n')
+    .forEach(function (l) {
+      const p = l.trim().split('=');
+      if (p.length === 2) CONFIG[p[0]] = p[1];
+    });
+} catch (e) {}
 
-var DATA_FILE=path.join(__dirname,'data.json');
-var TREND_FILE=path.join(__dirname,'trends.json');
+const DATA_FILE = path.join(__dirname, 'data.json');
+const TREND_FILE = path.join(__dirname, 'trends.json');
 
-function log(msg){ logger.info(msg); }
-
-function get(url,p,h){return new Promise(function(r,e){var q=p?'?'+Object.keys(p).map(function(k){return k+'='+encodeURIComponent(p[k])}).join('&'):'';var u=require('url').parse(url+q);var req=https.request({hostname:u.hostname,port:443,path:u.pathname+(u.search||''),headers:Object.assign({Accept:'*/*','User-Agent':'Mozilla/5.0'},h||{}),rejectUnauthorized:false},function(res){var c=[];res.on('data',function(d){c.push(d)});res.on('end',function(){var t=Buffer.concat(c).toString();try{r(JSON.parse(t))}catch(ee){r({code:0,msg:t.slice(0,200)})}})});req.on('error',e);req.setTimeout(20000,function(){req.abort()});req.end()})}
-function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
-
-// 保存推荐趋势快照（每个 matchId 最多保留48条=16小时）
-function saveTrendSnapshot(matchId,recs){
-  try{
-    var trends={};
-    if(fs.existsSync(TREND_FILE))trends=JSON.parse(fs.readFileSync(TREND_FILE,'utf8'));
-    var key='m_'+matchId;
-    if(!trends[key])trends[key]=[];
-    var now=new Date();
-    var t=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-    var snap={t:t,ts:now.toISOString()};
-    recs.forEach(function(r){snap[r.type]=r.num});
-    // 去重：如果上一条快照时间相同则替换，避免并发产生重复
-    var list=trends[key];
-    if(list.length>0&&list[list.length-1].t===t){list[list.length-1]=snap}
-    else{list.push(snap)}
-    // 保留最近48条
-    if(list.length>48)trends[key]=list.slice(-48);
-    fs.writeFileSync(TREND_FILE+'.tmp',JSON.stringify(trends));
-    fs.renameSync(TREND_FILE+'.tmp',TREND_FILE);
-  }catch(e){}
+function log(msg) {
+  logger.info(msg);
 }
 
-var WEEK_NAMES={周一:1,周二:2,周三:3,周四:4,周五:5,周六:6,周日:0};
-function fmtLocal(dd){return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')}
+function get(url, p, h) {
+  return new Promise(function (r, e) {
+    const q = p
+      ? '?' +
+        Object.keys(p)
+          .map(function (k) {
+            return k + '=' + encodeURIComponent(p[k]);
+          })
+          .join('&')
+      : '';
+    const u = require('url').parse(url + q);
+    const req = https.request(
+      {
+        hostname: u.hostname,
+        port: 443,
+        path: u.pathname + (u.search || ''),
+        headers: Object.assign({ Accept: '*/*', 'User-Agent': 'Mozilla/5.0' }, h || {}),
+        rejectUnauthorized: false,
+      },
+      function (res) {
+        const c = [];
+        res.on('data', function (d) {
+          c.push(d);
+        });
+        res.on('end', function () {
+          const t = Buffer.concat(c).toString();
+          try {
+            r(JSON.parse(t));
+          } catch (ee) {
+            r({ code: 0, msg: t.slice(0, 200) });
+          }
+        });
+      },
+    );
+    req.on('error', e);
+    req.setTimeout(20000, function () {
+      req.abort();
+    });
+    req.end();
+  });
+}
+function sleep(ms) {
+  return new Promise(function (r) {
+    setTimeout(r, ms);
+  });
+}
+
+// 保存推荐趋势快照（每个 matchId 最多保留48条=16小时）
+function saveTrendSnapshot(matchId, recs) {
+  try {
+    let trends = {};
+    if (fs.existsSync(TREND_FILE)) trends = JSON.parse(fs.readFileSync(TREND_FILE, 'utf8'));
+    const key = 'm_' + matchId;
+    if (!trends[key]) trends[key] = [];
+    const now = new Date();
+    const t = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    const snap = { t: t, ts: now.toISOString() };
+    recs.forEach(function (r) {
+      snap[r.type] = r.num;
+    });
+    // 去重：如果上一条快照时间相同则替换，避免并发产生重复
+    const list = trends[key];
+    if (list.length > 0 && list[list.length - 1].t === t) {
+      list[list.length - 1] = snap;
+    } else {
+      list.push(snap);
+    }
+    // 保留最近48条
+    if (list.length > 48) trends[key] = list.slice(-48);
+    fs.writeFileSync(TREND_FILE + '.tmp', JSON.stringify(trends));
+    fs.renameSync(TREND_FILE + '.tmp', TREND_FILE);
+  } catch (e) {}
+}
+
+const WEEK_NAMES = { 周一: 1, 周二: 2, 周三: 3, 周四: 4, 周五: 5, 周六: 6, 周日: 0 };
+function fmtLocal(dd) {
+  return (
+    dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0')
+  );
+}
 
 // 确定当前竞彩期号：用自然日期推断星期
-function getCurrentPeriod(){
-  var weekMap={0:'周日',1:'周一',2:'周二',3:'周三',4:'周四',5:'周五',6:'周六'};
-  var now=new Date();
-  return {date:fmtLocal(now),week:weekMap[now.getDay()]};
+function getCurrentPeriod() {
+  const weekMap = { 0: '周日', 1: '周一', 2: '周二', 3: '周三', 4: '周四', 5: '周五', 6: '周六' };
+  const now = new Date();
+  return { date: fmtLocal(now), week: weekMap[now.getDay()] };
 }
 
 // 回填历史命中信息：按日期(最近7天)找推荐结果仍为null的比赛，不依赖matchStatus
-async function backfillPreviousDay(token, todayDate){
+async function backfillPreviousDay(token, todayDate) {
   try {
-    var today = new Date(todayDate + 'T00:00:00+08:00');
+    const today = new Date(todayDate + 'T00:00:00+08:00');
 
-    var data = {};
-    if (fs.existsSync(DATA_FILE)) { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
-    if (!data.m) data.m = {}; if (!data.r) data.r = {};
+    let data = {};
+    if (fs.existsSync(DATA_FILE)) {
+      data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    }
+    if (!data.m) data.m = {};
+    if (!data.r) data.r = {};
 
     // 生成最近7天日期集合
-    var dateSet = {};
-    for (var d = 1; d <= 7; d++) {
-      var prev = new Date(today);
+    const dateSet = {};
+    for (let d = 1; d <= 7; d++) {
+      const prev = new Date(today);
       prev.setDate(prev.getDate() - d);
-      dateSet[prev.getFullYear() + '-' + String(prev.getMonth() + 1).padStart(2, '0') + '-' + String(prev.getDate()).padStart(2, '0')] = true;
+      dateSet[
+        prev.getFullYear() +
+          '-' +
+          String(prev.getMonth() + 1).padStart(2, '0') +
+          '-' +
+          String(prev.getDate()).padStart(2, '0')
+      ] = true;
     }
 
     // 按日期找结果不全的比赛（不依赖matchStatus）
-    var needBackfill = [];
-    Object.keys(data.r).forEach(function(rk) {
-      var mid = rk.replace('m_', '');
-      var match = data.m['m_' + mid] || data.m[mid];
+    const needBackfill = [];
+    Object.keys(data.r).forEach(function (rk) {
+      const mid = rk.replace('m_', '');
+      const match = data.m['m_' + mid] || data.m[mid];
       if (!match || !match.date) return;
-      var dd = match.date.slice(0, 10);
+      const dd = match.date.slice(0, 10);
       if (!dateSet[dd]) return;
-      var recs = data.r[rk] || [];
+      const recs = data.r[rk] || [];
       // 2=未确定也需要回填
-      var staleCount = recs.filter(function(r) { return r.result === null || r.result === 2; }).length;
+      const staleCount = recs.filter(function (r) {
+        return r.result === null || r.result === 2;
+      }).length;
       if (staleCount > 0) needBackfill.push({ mid: mid, match: match, nullCount: staleCount });
     });
-    
+
     if (needBackfill.length === 0) return;
     log('[backfillPrev] 近7天有' + needBackfill.length + '场比赛结果不全, 开始回填...');
-    
-    var updated = 0;
-    for (var i = 0; i < needBackfill.length; i++) {
-      var item = needBackfill[i];
+
+    let updated = 0;
+    for (let i = 0; i < needBackfill.length; i++) {
+      const item = needBackfill[i];
       try {
-        var recRes = await get('https://midou310.com/mdsj/score/getExpertRecommData.do', { dataId: item.mid, type: 0 }, { Cookie: 'token=' + token });
+        const recRes = await get(
+          'https://midou310.com/mdsj/score/getExpertRecommData.do',
+          { dataId: item.mid, type: 0 },
+          { Cookie: 'token=' + token },
+        );
         if (recRes.code === 1 && recRes.data && recRes.data.length) {
-          var newRecs = recRes.data.filter(function(x) { return x && x.type && x.num > 0; }).map(function(x) {
-            return { type: x.type, num: x.num, result: x.result !== undefined ? x.result : null };
-          });
-          var rk = 'm_' + item.mid;
-          var oldStale = (data.r[rk] || []).filter(function(r) { return r.result === null || r.result === 2; }).length;
+          const newRecs = recRes.data
+            .filter(function (x) {
+              return x && x.type && x.num > 0;
+            })
+            .map(function (x) {
+              return { type: x.type, num: x.num, result: x.result !== undefined ? x.result : null };
+            });
+          const rk = 'm_' + item.mid;
+          const oldStale = (data.r[rk] || []).filter(function (r) {
+            return r.result === null || r.result === 2;
+          }).length;
           data.r[rk] = newRecs;
-          var newStale = newRecs.filter(function(r) { return r.result === null || r.result === 2; }).length;
-          if (newStale < oldStale) { updated++; log('[backfillPrev] ' + rk + ' (' + item.match.homeName + ' vs ' + item.match.visitName + ') stale:' + oldStale + '→' + newStale); }
+          const newStale = newRecs.filter(function (r) {
+            return r.result === null || r.result === 2;
+          }).length;
+          if (newStale < oldStale) {
+            updated++;
+            log(
+              '[backfillPrev] ' +
+                rk +
+                ' (' +
+                item.match.homeName +
+                ' vs ' +
+                item.match.visitName +
+                ') stale:' +
+                oldStale +
+                '→' +
+                newStale,
+            );
+          }
         }
-      } catch(e) { log('[backfillPrev] ' + item.mid + ' 获取失败: ' + e.message); }
+      } catch (e) {
+        log('[backfillPrev] ' + item.mid + ' 获取失败: ' + e.message);
+      }
       await sleep(200);
     }
-    
+
     if (updated > 0) {
-      var tmpFile = DATA_FILE + '.tmp';
+      const tmpFile = DATA_FILE + '.tmp';
       fs.writeFileSync(tmpFile, JSON.stringify(data));
       fs.renameSync(tmpFile, DATA_FILE);
       log('[backfillPrev] 完成, 更新了' + updated + '场比赛, 重启服务...');
-      var exec = require('child_process').exec;
-      exec('pm2 restart jc-zjfa', { timeout: 5000 }, function() {});
+      const exec = require('child_process').exec;
+      exec('pm2 restart jc-zjfa', { timeout: 5000 }, function () {});
     } else {
       log('[backfillPrev] 无新增命中信息');
     }
-  } catch(e) { log('[backfillPrev] ERROR: ' + e.message); }
+  } catch (e) {
+    log('[backfillPrev] ERROR: ' + e.message);
+  }
 }
 
-async function syncPeriod(){
-  var period=getCurrentPeriod();
-  if(!period.date){log('ERROR: cannot determine period');return}
-  log('=== Period sync: '+period.date+' '+period.week+' ===');
+async function syncPeriod() {
+  const period = getCurrentPeriod();
+  if (!period.date) {
+    log('ERROR: cannot determine period');
+    return;
+  }
+  log('=== Period sync: ' + period.date + ' ' + period.week + ' ===');
 
   // 登录
-  var loginRes=await get('https://midou310.com/mdsj/gduser/login.do',{mobile:CONFIG.MIDOU_MOBILE,password:CONFIG.MIDOU_PASSWORD});
-  if(loginRes.code!==1){log('Login FAIL');return}
-  var token=loginRes.data.token;
+  const loginRes = await get('https://midou310.com/mdsj/gduser/login.do', {
+    mobile: CONFIG.MIDOU_MOBILE,
+    password: CONFIG.MIDOU_PASSWORD,
+  });
+  if (loginRes.code !== 1) {
+    log('Login FAIL');
+    return;
+  }
+  const token = loginRes.data.token;
 
   // ═══ 回填前一天命中信息 ═══
   await backfillPreviousDay(token, period.date);
 
   // 获取今日比赛列表
-  var timestamp=new Date(period.date+'T00:00:00+08:00').getTime();
-  var matchRes=await get('https://midou310.com/mdsj/score/footballDataList.do',{time:timestamp,order:'status desc, start_datetime asc, data_id asc'},{Cookie:'token='+token});
-  if(matchRes.code!==1||!matchRes.data){log('Match list FAIL');return}
+  const timestamp = new Date(period.date + 'T00:00:00+08:00').getTime();
+  const matchRes = await get(
+    'https://midou310.com/mdsj/score/footballDataList.do',
+    { time: timestamp, order: 'status desc, start_datetime asc, data_id asc' },
+    { Cookie: 'token=' + token },
+  );
+  if (matchRes.code !== 1 || !matchRes.data) {
+    log('Match list FAIL');
+    return;
+  }
 
-  var periodMatches=(matchRes.data||[]).filter(function(m){
+  let periodMatches = (matchRes.data || []).filter(function (m) {
     // 按竞彩期号前缀 + 日期双重过滤
-    if(!m.num||m.num.indexOf(period.week)!==0)return false;
-    var bd=(m.bDate||'').slice(0,10);
-    if(bd===period.date)return true;
+    if (!m.num || m.num.indexOf(period.week) !== 0) return false;
+    const bd = (m.bDate || '').slice(0, 10);
+    if (bd === period.date) return true;
     // fallback：从startTime推断竞彩售卖日（9点前属于前一天）
-    if(!bd&&m.startTime&&m.startTime.length>=11){
-      var st=m.startTime.replace(/\//g,'-');
-      var y=new Date().getFullYear();
-      var dt=new Date(y+'-'+st.slice(0,2)+'-'+st.slice(3,5)+'T'+st.slice(6,11)+':00+08:00');
-      if(!isNaN(dt.getTime())){
-        if(dt.getHours()<9)dt.setDate(dt.getDate()-1);
-        return fmtLocal(dt)===period.date;
+    if (!bd && m.startTime && m.startTime.length >= 11) {
+      const st = m.startTime.replace(/\//g, '-');
+      const y = new Date().getFullYear();
+      const dt = new Date(y + '-' + st.slice(0, 2) + '-' + st.slice(3, 5) + 'T' + st.slice(6, 11) + ':00+08:00');
+      if (!isNaN(dt.getTime())) {
+        if (dt.getHours() < 9) dt.setDate(dt.getDate() - 1);
+        return fmtLocal(dt) === period.date;
       }
     }
     return false;
   });
 
-  if(periodMatches.length===0){
+  if (periodMatches.length === 0) {
     // 可能是今天还没比赛，尝试用自然日
-    periodMatches=matchRes.data||[];
-    if(periodMatches.length===0){log('No matches for period');return}
+    periodMatches = matchRes.data || [];
+    if (periodMatches.length === 0) {
+      log('No matches for period');
+      return;
+    }
   }
 
-  log('Period matches: '+periodMatches.length);
+  log('Period matches: ' + periodMatches.length);
 
   // 检查是否全部结束
-  var allDone=periodMatches.every(function(m){return m.matchStatus>=2});
-  var statusSummary=periodMatches.map(function(m){return (m.num||'')+':'+(m.matchStatus===0?'未':m.matchStatus===1?'赛中':m.matchStatus===2?'完':'取消')}).join(',');
-  log('Period matches: '+periodMatches.length+' ['+statusSummary+']'+(allDone?' ALL_DONE':''));
+  const allDone = periodMatches.every(function (m) {
+    return m.matchStatus >= 2;
+  });
+  const statusSummary = periodMatches
+    .map(function (m) {
+      return (
+        (m.num || '') +
+        ':' +
+        (m.matchStatus === 0 ? '未' : m.matchStatus === 1 ? '赛中' : m.matchStatus === 2 ? '完' : '取消')
+      );
+    })
+    .join(',');
+  log('Period matches: ' + periodMatches.length + ' [' + statusSummary + ']' + (allDone ? ' ALL_DONE' : ''));
 
   // 加载 data.json
-  var data={};
-  try{data=JSON.parse(fs.readFileSync(DATA_FILE,'utf8'))}catch(e){data={m:{},r:{}}}
-  if(!data.m)data.m={};
-  if(!data.r)data.r={};
+  let data = {};
+  try {
+    data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  } catch (e) {
+    data = { m: {}, r: {} };
+  }
+  if (!data.m) data.m = {};
+  if (!data.r) data.r = {};
 
-  var newRecs=0,updatedMatches=0;
+  let newRecs = 0,
+    updatedMatches = 0;
 
   // 处理每场比赛：赛前/赛中始终全量更新比赛场次+推荐；结束后只补抓推荐最终态
-  for(var i=0;i<periodMatches.length;i++){
-    var m=periodMatches[i];
-    var mid=String(m.matchId||m.dataId||'');
-    var mkey='m_'+mid;
+  for (let i = 0; i < periodMatches.length; i++) {
+    const m = periodMatches[i];
+    const mid = String(m.matchId || m.dataId || '');
+    const mkey = 'm_' + mid;
 
     // 确定日期
-    var md=(m.bDate&&typeof m.bDate==='string'&&m.bDate.length>=10)?m.bDate.slice(0,10):period.date;
+    const md = m.bDate && typeof m.bDate === 'string' && m.bDate.length >= 10 ? m.bDate.slice(0, 10) : period.date;
 
     // 比赛数据：始终全量更新（每20分钟同步场地、比分、状态等）
-    var oldMatch=data.m[mkey];
-    data.m[mkey]={
-      matchId:mid,num:m.num||'',homeName:m.homeName||'',
-      visitName:m.visitName||'',leagueName:m.leagueName||'',
-      startTime:m.startTime||'',matchStatus:m.matchStatus||0,
-      score:m.score||'',halfScore:m.halfScore||'',
-      duration:m.duration||'',yellow:m.yellow||'',red:m.red||'',
-      recommNum:m.recommNum||0,date:md
+    const oldMatch = data.m[mkey];
+    data.m[mkey] = {
+      matchId: mid,
+      num: m.num || '',
+      homeName: m.homeName || '',
+      visitName: m.visitName || '',
+      leagueName: m.leagueName || '',
+      startTime: m.startTime || '',
+      matchStatus: m.matchStatus || 0,
+      score: m.score || '',
+      halfScore: m.halfScore || '',
+      duration: m.duration || '',
+      yellow: m.yellow || '',
+      red: m.red || '',
+      recommNum: m.recommNum || 0,
+      date: md,
     };
-    if(!oldMatch||oldMatch.matchStatus!==m.matchStatus||oldMatch.score!==(m.score||''))updatedMatches++;
+    if (!oldMatch || oldMatch.matchStatus !== m.matchStatus || oldMatch.score !== (m.score || '')) updatedMatches++;
 
     // 推荐数据：每20分钟更新 + 记录趋势快照
-    try{
-      var recRes=await get('https://midou310.com/mdsj/score/getExpertRecommData.do',{dataId:mid,type:0},{Cookie:'token='+token});
-      if(recRes.code===1&&recRes.data&&recRes.data.length){
-        var recs=recRes.data.filter(function(x){return x&&x.type&&x.num>0}).map(function(x){return{type:x.type,num:x.num,result:x.result!==undefined?x.result:null}});
-        var rk='m_'+mid;
-        var oldLen=(data.r[rk]||[]).length;
-        data.r[rk]=recs;
-        if(recs.length!==oldLen){newRecs++}
+    try {
+      const recRes = await get(
+        'https://midou310.com/mdsj/score/getExpertRecommData.do',
+        { dataId: mid, type: 0 },
+        { Cookie: 'token=' + token },
+      );
+      if (recRes.code === 1 && recRes.data && recRes.data.length) {
+        const recs = recRes.data
+          .filter(function (x) {
+            return x && x.type && x.num > 0;
+          })
+          .map(function (x) {
+            return { type: x.type, num: x.num, result: x.result !== undefined ? x.result : null };
+          });
+        const rk = 'm_' + mid;
+        const oldLen = (data.r[rk] || []).length;
+        data.r[rk] = recs;
+        if (recs.length !== oldLen) {
+          newRecs++;
+        }
 
         // 保存趋势快照
-        saveTrendSnapshot(mid,recs);
+        saveTrendSnapshot(mid, recs);
       }
-    }catch(e){
-      log('  Rec fetch error '+mid+': '+e.message);
+    } catch (e) {
+      log('  Rec fetch error ' + mid + ': ' + e.message);
     }
     await sleep(150);
   }
 
   // 保存
-  var tmpFile=DATA_FILE+'.tmp';
-  fs.writeFileSync(tmpFile,JSON.stringify(data));
-  fs.renameSync(tmpFile,DATA_FILE);
+  const tmpFile = DATA_FILE + '.tmp';
+  fs.writeFileSync(tmpFile, JSON.stringify(data));
+  fs.renameSync(tmpFile, DATA_FILE);
 
-  log('Saved. Matches:'+Object.keys(data.m).length+' Updated:'+updatedMatches+' Recs:'+Object.keys(data.r).length+' NewRecs:'+newRecs+(allDone?' [FINAL]':''));
+  log(
+    'Saved. Matches:' +
+      Object.keys(data.m).length +
+      ' Updated:' +
+      updatedMatches +
+      ' Recs:' +
+      Object.keys(data.r).length +
+      ' NewRecs:' +
+      newRecs +
+      (allDone ? ' [FINAL]' : ''),
+  );
 
   // 通知 simple.js 重载数据
-  var exec=require('child_process').exec;
-  exec('pm2 restart jc-zjfa',{timeout:5000},function(err){
-    if(err)log('Reload notice: jc-zjfa may need manual restart');
+  const exec = require('child_process').exec;
+  exec('pm2 restart jc-zjfa', { timeout: 5000 }, function (err) {
+    if (err) log('Reload notice: jc-zjfa may need manual restart');
   });
 
   // 全部结束后再补爬一次推荐（最终态）
-  if(allDone){
+  if (allDone) {
     log('Final recommend fetch...');
     await sleep(2000);
-    for(var j=0;j<periodMatches.length;j++){
-      var m2=periodMatches[j];
-      var mid2=String(m2.matchId||m2.dataId||'');
-      try{
-        var recRes2=await get('https://midou310.com/mdsj/score/getExpertRecommData.do',{dataId:mid2,type:0},{Cookie:'token='+token});
-        if(recRes2.code===1&&recRes2.data&&recRes2.data.length){
-          var recs2=recRes2.data.filter(function(x){return x&&x.type&&x.num>0}).map(function(x){return{type:x.type,num:x.num,result:x.result!==undefined?x.result:null}});
-          data.r['m_'+mid2]=recs2;
+    for (let j = 0; j < periodMatches.length; j++) {
+      const m2 = periodMatches[j];
+      const mid2 = String(m2.matchId || m2.dataId || '');
+      try {
+        const recRes2 = await get(
+          'https://midou310.com/mdsj/score/getExpertRecommData.do',
+          { dataId: mid2, type: 0 },
+          { Cookie: 'token=' + token },
+        );
+        if (recRes2.code === 1 && recRes2.data && recRes2.data.length) {
+          const recs2 = recRes2.data
+            .filter(function (x) {
+              return x && x.type && x.num > 0;
+            })
+            .map(function (x) {
+              return { type: x.type, num: x.num, result: x.result !== undefined ? x.result : null };
+            });
+          data.r['m_' + mid2] = recs2;
         }
-      }catch(e){}
+      } catch (e) {}
       await sleep(100);
     }
-    fs.writeFileSync(tmpFile,JSON.stringify(data));
-    fs.renameSync(tmpFile,DATA_FILE);
+    fs.writeFileSync(tmpFile, JSON.stringify(data));
+    fs.renameSync(tmpFile, DATA_FILE);
     log('Final recommend fetch done');
   }
 }
 
-async function main(){
+async function main() {
   log('=== Period Daemon started ===');
-  log('Config: MIDOU_MOBILE='+(CONFIG.MIDOU_MOBILE||'NOT SET'));
+  log('Config: MIDOU_MOBILE=' + (CONFIG.MIDOU_MOBILE || 'NOT SET'));
 
-  var INTERVAL_MS=20*60*1000; // 20分钟
+  const INTERVAL_MS = 20 * 60 * 1000; // 20分钟
 
-  while(true){
-    try{
+  while (true) {
+    try {
       await syncPeriod();
-    }catch(e){
-      log('Sync error: '+e.message);
+    } catch (e) {
+      log('Sync error: ' + e.message);
     }
-    log('Next sync in '+INTERVAL_MS/60000+'min');
+    log('Next sync in ' + INTERVAL_MS / 60000 + 'min');
     await sleep(INTERVAL_MS);
   }
 }
 
-main().catch(function(e){log('FATAL: '+e.message);process.exit(1)});
+main().catch(function (e) {
+  log('FATAL: ' + e.message);
+  process.exit(1);
+});

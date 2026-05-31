@@ -22,10 +22,10 @@ let pingInterval = null;
 
 // 暴露给外部的事件回调
 export const wsEvents = {
-  onScoreUpdate: null,    // (scores: { [matchId]: { status, score, halfScore, duration } })
+  onScoreUpdate: null, // (scores: { [matchId]: { status, score, halfScore, duration } })
   onRecommendUpdate: null, // (recs: { [matchId]: [{ type, num, result }] })
   onAIAnalysisUpdate: null, // (analyses: { [matchId]: { content, confidence } })
-  onStatusChange: null,    // (status: 'connected'|'disconnected'|'reconnecting')
+  onStatusChange: null, // (status: 'connected'|'disconnected'|'reconnecting')
 };
 
 // 缓存最近的比分数据，避免重复更新
@@ -56,10 +56,12 @@ function connect() {
     reconnectAttempts = 0;
 
     // 订阅频道
-    ws.send(JSON.stringify({
-      type: 'subscribe',
-      channels: ['live_score', 'recommend', 'ai_analysis']
-    }));
+    ws.send(
+      JSON.stringify({
+        type: 'subscribe',
+        channels: ['live_score', 'recommend', 'ai_analysis'],
+      }),
+    );
 
     // 通知状态变化
     if (wsEvents.onStatusChange) wsEvents.onStatusChange('connected');
@@ -133,7 +135,7 @@ function scheduleReconnect() {
   var delay = Math.min(1000 * Math.pow(2, reconnectAttempts), MAX_RECONNECT_DELAY);
   reconnectAttempts++;
 
-  console.log('[WS] ' + (delay / 1000) + 's 后重连 (第' + reconnectAttempts + '次)');
+  console.log('[WS] ' + delay / 1000 + 's 后重连 (第' + reconnectAttempts + '次)');
   if (wsEvents.onStatusChange) wsEvents.onStatusChange('reconnecting');
 
   reconnectTimer = setTimeout(function () {
@@ -169,9 +171,12 @@ function handleScoreUpdate(scores) {
     var cached = _scoreCache[mid];
 
     // 检查是否有变化
-    if (cached && cached.status === newData.status &&
-        cached.score === newData.score &&
-        cached.duration === newData.duration) {
+    if (
+      cached &&
+      cached.status === newData.status &&
+      cached.score === newData.score &&
+      cached.duration === newData.duration
+    ) {
       continue;
     }
 
@@ -235,7 +240,7 @@ function handleRecommendUpdate(recs) {
   var updatedIds = Object.keys(recs);
   if (updatedIds.length <= 3) {
     // 少量更新 → 逐个通知
-    updatedIds.forEach(function(mid) {
+    updatedIds.forEach(function (mid) {
       showUpdateToast(mid, recs[mid]);
     });
   } else {
@@ -263,7 +268,8 @@ function showUpdateToast(mid, recs, batchCount) {
   if (!toast) {
     toast = document.createElement('div');
     toast.id = 'ws-toast';
-    toast.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);' +
+    toast.style.cssText =
+      'position:fixed;top:16px;left:50%;transform:translateX(-50%);' +
       'background:rgba(24,224,224,0.95);color:#06131B;padding:10px 20px;border-radius:20px;' +
       'font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(24,224,224,0.4);' +
       'transition:opacity 0.3s,transform 0.3s;opacity:0;transform:translateX(-50%) translateY(-10px);';
@@ -274,7 +280,9 @@ function showUpdateToast(mid, recs, batchCount) {
   if (batchCount) {
     msg = '[WS] ' + batchCount + ' 场比赛推荐命中结果已更新';
   } else if (mid && recs) {
-    var hitCount = recs.filter(function(r) { return r.result === 1; }).length;
+    var hitCount = recs.filter(function (r) {
+      return r.result === 1;
+    }).length;
     msg = '[WS] 比赛 ' + mid + ' ' + (hitCount > 0 ? hitCount + '个方向命中！' : '结果已更新');
   }
 

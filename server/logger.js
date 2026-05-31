@@ -1,6 +1,6 @@
 /**
  * 统一日志模块 v2（winston）
- * 
+ *
  * 增强 (P2-1):
  *   - JSON 格式输出（可选，便于 ELK/Loki 分析）
  *   - 性能计时器（startTimer / endTimer）
@@ -28,7 +28,7 @@ if (!fs.existsSync(statsDir)) fs.mkdirSync(statsDir, { recursive: true });
 const jsonFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
   winston.format.errors({ stack: true }),
-  winston.format.json()
+  winston.format.json(),
 );
 
 // ── 文本格式（兼容原有） ──
@@ -40,13 +40,15 @@ const textFormat = winston.format.combine(
     let dur = '';
     if (duration !== undefined) dur = ` [${duration}ms]`;
     let extra = '';
-    const metaKeys = Object.keys(meta).filter(k => k !== 'Symbol(level)' && k !== 'Symbol(message)' && k !== 'Symbol(splat)');
+    const metaKeys = Object.keys(meta).filter(
+      (k) => k !== 'Symbol(level)' && k !== 'Symbol(message)' && k !== 'Symbol(splat)',
+    );
     if (metaKeys.length > 0) {
-      const pairs = metaKeys.map(k => `${k}=${meta[k]}`).join(' ');
+      const pairs = metaKeys.map((k) => `${k}=${meta[k]}`).join(' ');
       extra = ` {${pairs}}`;
     }
     return `${timestamp} [${level.toUpperCase()}] ${prefix}${stack || message}${dur}${extra}`;
-  })
+  }),
 );
 
 // ── 判断是否启用 JSON 格式 ──
@@ -58,54 +60,56 @@ const transports = [
       winston.format.colorize(),
       winston.format.printf(({ level, message, label, duration, ...meta }) => {
         const prefix = label ? `[${label}] ` : '';
-        let dur = duration ? ` [${duration}ms]` : '';
+        const dur = duration ? ` [${duration}ms]` : '';
         let extra = '';
         const cleanMeta = {};
-        Object.keys(meta).forEach(k => {
+        Object.keys(meta).forEach((k) => {
           if (k !== 'Symbol(level)' && k !== 'Symbol(message)' && k !== 'Symbol(splat)' && k !== 'timestamp') {
             cleanMeta[k] = meta[k];
           }
         });
         if (Object.keys(cleanMeta).length > 0) extra = ' ' + JSON.stringify(cleanMeta);
         return `[${level}] ${prefix}${message}${dur}${extra}`;
-      })
-    )
+      }),
+    ),
   }),
   new winston.transports.File({
     filename: path.join(logDir, 'error.log'),
     level: 'error',
     maxsize: 5 * 1024 * 1024,
     maxFiles: 10,
-    format: useJson ? jsonFormat : textFormat
+    format: useJson ? jsonFormat : textFormat,
   }),
   new winston.transports.File({
     filename: path.join(logDir, 'combined.log'),
     maxsize: 10 * 1024 * 1024,
     maxFiles: 15,
-    format: useJson ? jsonFormat : textFormat
-  })
+    format: useJson ? jsonFormat : textFormat,
+  }),
 ];
 
 // 如果启用JSON格式，额外输出一个 JSON 日志文件
 if (useJson) {
-  transports.push(new winston.transports.File({
-    filename: path.join(logDir, 'json.log'),
-    maxsize: 20 * 1024 * 1024,
-    maxFiles: 5,
-    format: jsonFormat
-  }));
+  transports.push(
+    new winston.transports.File({
+      filename: path.join(logDir, 'json.log'),
+      maxsize: 20 * 1024 * 1024,
+      maxFiles: 5,
+      format: jsonFormat,
+    }),
+  );
 }
 
 const logger = winston.createLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  transports
+  transports,
 });
 
 // ═══ 向前兼容的 child() 方法 ═══
 function child(label) {
   const meta = { label: label };
   const wrap = {};
-  ['info', 'warn', 'error', 'debug', 'verbose'].forEach(lvl => {
+  ['info', 'warn', 'error', 'debug', 'verbose'].forEach((lvl) => {
     wrap[lvl] = function (msg, extra) {
       const logMeta = Object.assign({}, meta, extra || {});
       logger.log(lvl, msg, logMeta);
@@ -125,7 +129,9 @@ function child(label) {
         logger.info(`[perf] ${action} completed`, logMeta);
         return duration;
       },
-      getDuration: function () { return Date.now() - start; }
+      getDuration: function () {
+        return Date.now() - start;
+      },
     };
   };
   return wrap;
@@ -141,7 +147,9 @@ logger.startTimer = function (action) {
       logger.info(`[perf] ${action} completed`, meta);
       return duration;
     },
-    getDuration: function () { return Date.now() - start; }
+    getDuration: function () {
+      return Date.now() - start;
+    },
   };
 };
 
@@ -166,12 +174,12 @@ function recordDailyStats(snapshot) {
     const stats = loadStats();
     const date = snapshot.date || new Date().toISOString().slice(0, 10);
     stats.days[date] = Object.assign(stats.days[date] || {}, snapshot, {
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     });
     // 只保留最近90天
     const keys = Object.keys(stats.days).sort();
     if (keys.length > 90) {
-      keys.slice(0, keys.length - 90).forEach(k => delete stats.days[k]);
+      keys.slice(0, keys.length - 90).forEach((k) => delete stats.days[k]);
     }
     fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2));
   } catch (e) {
@@ -182,7 +190,7 @@ function recordDailyStats(snapshot) {
 function getDailyStats(date) {
   try {
     const stats = loadStats();
-    return date ? (stats.days[date] || null) : stats;
+    return date ? stats.days[date] || null : stats;
   } catch (e) {
     return null;
   }

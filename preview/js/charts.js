@@ -6,8 +6,14 @@ var echartsWaiters = [];
 
 export function loadECharts() {
   return new Promise(function (resolve) {
-    if (typeof echarts !== 'undefined') { echartsReady = true; return resolve(); }
-    if (echartsLoading) { echartsWaiters.push(resolve); return; }
+    if (typeof echarts !== 'undefined') {
+      echartsReady = true;
+      return resolve();
+    }
+    if (echartsLoading) {
+      echartsWaiters.push(resolve);
+      return;
+    }
     echartsLoading = true;
     var script = document.createElement('script');
     script.src = '/assets/echarts.min.js?v=1';
@@ -15,7 +21,9 @@ export function loadECharts() {
       echartsReady = true;
       echartsLoading = false;
       resolve();
-      echartsWaiters.forEach(function (w) { w(); });
+      echartsWaiters.forEach(function (w) {
+        w();
+      });
     };
     script.onerror = function () {
       echartsLoading = false;

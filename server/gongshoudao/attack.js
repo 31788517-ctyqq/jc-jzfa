@@ -85,8 +85,8 @@ function calcAttackAdvantage(vars) {
     subDimensions: {
       gap: { value: w, label: '赢球格局' },
       eff: { value: e, label: '攻击能效' },
-      dist: { value: t, label: '进球厚度' }
-    }
+      dist: { value: t, label: '进球厚度' },
+    },
   };
 }
 
@@ -150,8 +150,8 @@ function calcDefenseAdvantage(vars) {
     subDimensions: {
       gap: { value: l, label: '输球空间' },
       eff: { value: e, label: '防御能效' },
-      dist: { value: c, label: '零封能力' }
-    }
+      dist: { value: c, label: '零封能力' },
+    },
   };
 }
 
@@ -200,13 +200,13 @@ function calcWeights(attAdv) {
  * │ S ≤ -0.30        → 👑 客队绝对大优势  level -3
  */
 function calcStrengthLadder(S) {
-  if (S >= 0.30)  return makeLadder('👑 主队绝对大优势',   3, 'home_big');
-  if (S >= 0.15)  return makeLadder('⚔️ 主队中等优势',    2, 'home_mid');
-  if (S >= 0.05)  return makeLadder('🔍 主队微弱优势',    1, 'home_sml');
-  if (S > -0.05)  return makeLadder('⚖️ 双方实力接近',    0, 'balance');
-  if (S >= -0.15) return makeLadder('🔍 客队微弱优势',   -1, 'away_sml');
-  if (S > -0.30)  return makeLadder('⚔️ 客队中等优势',   -2, 'away_mid');
-  return                  makeLadder('👑 客队绝对大优势', -3, 'away_big');
+  if (S >= 0.3) return makeLadder('👑 主队绝对大优势', 3, 'home_big');
+  if (S >= 0.15) return makeLadder('⚔️ 主队中等优势', 2, 'home_mid');
+  if (S >= 0.05) return makeLadder('🔍 主队微弱优势', 1, 'home_sml');
+  if (S > -0.05) return makeLadder('⚖️ 双方实力接近', 0, 'balance');
+  if (S >= -0.15) return makeLadder('🔍 客队微弱优势', -1, 'away_sml');
+  if (S > -0.3) return makeLadder('⚔️ 客队中等优势', -2, 'away_mid');
+  return makeLadder('👑 客队绝对大优势', -3, 'away_big');
 }
 
 function makeLadder(label, level, key) {
@@ -238,11 +238,15 @@ function calcSpfCross(vars) {
   const aLosses = vars.awayLoseGap_1 + vars.awayLoseGap_2;
 
   return {
-    win:  round((hWins + aLosses) / 20, F),
+    win: round((hWins + aLosses) / 20, F),
     draw: round((hDraws + aDraws) / 20, F),
     lose: round((hLosses + aWins) / 20, F),
-    hWins, hDraws, hLosses,
-    aWins, aDraws, aLosses
+    hWins,
+    hDraws,
+    hLosses,
+    aWins,
+    aDraws,
+    aLosses,
   };
 }
 
@@ -264,27 +268,29 @@ function calcHandicapCross(vars) {
 
   // 合并净胜球分布（5档，共20场）
   const dist = {};
-  dist[2]  = vars.homeWinGap_2  + vars.awayLoseGap_2;
-  dist[1]  = vars.homeWinGap_1  + vars.awayLoseGap_1;
-  dist[0]  = vars.homeDraw      + vars.awayDraw;
+  dist[2] = vars.homeWinGap_2 + vars.awayLoseGap_2;
+  dist[1] = vars.homeWinGap_1 + vars.awayLoseGap_1;
+  dist[0] = vars.homeDraw + vars.awayDraw;
   dist[-1] = vars.homeLoseGap_1 + vars.awayWinGap_1;
   dist[-2] = vars.homeLoseGap_2 + vars.awayWinGap_2;
 
-  let hcpWin = 0, hcpDraw = 0, hcpLose = 0;
+  let hcpWin = 0,
+    hcpDraw = 0,
+    hcpLose = 0;
 
   // 按 rq 偏移统计
-  [-2, -1, 0, 1, 2].forEach(d => {
+  [-2, -1, 0, 1, 2].forEach((d) => {
     const count = dist[d] || 0;
-    const adjusted = d - rq;  // 让球偏移后的调整值
-    if (adjusted > 0)      hcpWin  += count;
+    const adjusted = d - rq; // 让球偏移后的调整值
+    if (adjusted > 0) hcpWin += count;
     else if (adjusted === 0) hcpDraw += count;
-    else                   hcpLose += count;
+    else hcpLose += count;
   });
 
   return {
-    win:  round(hcpWin / 20, F),
+    win: round(hcpWin / 20, F),
     draw: round(hcpDraw / 20, F),
-    lose: round(hcpLose / 20, F)
+    lose: round(hcpLose / 20, F),
   };
 }
 
@@ -292,9 +298,9 @@ function calcHandicapCross(vars) {
  * 交叉分布总入口：同时返回不让球组 + 让球组
  */
 function calcCrossDistribution(vars) {
-  const spf   = calcSpfCross(vars);
-  const hcp   = calcHandicapCross(vars);
-  const rq    = vars.rq || 0;
+  const spf = calcSpfCross(vars);
+  const hcp = calcHandicapCross(vars);
+  const rq = vars.rq || 0;
 
   return {
     // 不让球组
@@ -304,8 +310,12 @@ function calcCrossDistribution(vars) {
     // 让球数
     rq,
     // 原始统计场次（供前端计算）
-    hWins: spf.hWins, hDraws: spf.hDraws, hLosses: spf.hLosses,
-    aWins: spf.aWins, aDraws: spf.aDraws, aLosses: spf.aLosses
+    hWins: spf.hWins,
+    hDraws: spf.hDraws,
+    hLosses: spf.hLosses,
+    aWins: spf.aWins,
+    aDraws: spf.aDraws,
+    aLosses: spf.aLosses,
   };
 }
 
@@ -392,10 +402,10 @@ function analyze(vars) {
     defenseWeightAway: round((1 - weights.defense) * 100, 1) + '%',
 
     // 综合攻守优势 S
-    totalAdvantageRaw: round(S, F),                              // 原始归一化值（4位小数）
-    totalAdvantage: sPct >= 0 ? '+' + sPct + '%' : sPct + '%',   // 百分比显示字符串
-    totalAdvantageValue: clamp(Math.round(50 + sPct), 0, 100),    // 进度条值（0-100）
-    totalAdvantagePct: round(S * 100, F),                         // 百分比值（4位小数）
+    totalAdvantageRaw: round(S, F), // 原始归一化值（4位小数）
+    totalAdvantage: sPct >= 0 ? '+' + sPct + '%' : sPct + '%', // 百分比显示字符串
+    totalAdvantageValue: clamp(Math.round(50 + sPct), 0, 100), // 进度条值（0-100）
+    totalAdvantagePct: round(S * 100, F), // 百分比值（4位小数）
 
     // ★ 攻守实力（V6.4 进球/失球分布计分法）：
     //   进攻得分 = WinQiu_0×0 + WinQiu_1×1 + WinQiu_2×2
@@ -412,8 +422,16 @@ function analyze(vars) {
 
     // 子维度细节
     _attackSub: attackResult.subDimensions,
-    _defenseSub: defenseResult.subDimensions
+    _defenseSub: defenseResult.subDimensions,
   };
 }
 
-module.exports = { analyze, calcAttackAdvantage, calcDefenseAdvantage, calcStrengthLadder, calcCrossDistribution, calcHandicapCross, calcADDiff };
+module.exports = {
+  analyze,
+  calcAttackAdvantage,
+  calcDefenseAdvantage,
+  calcStrengthLadder,
+  calcCrossDistribution,
+  calcHandicapCross,
+  calcADDiff,
+};

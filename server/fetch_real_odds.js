@@ -9,7 +9,7 @@ const http = require('http');
  */
 function extractOdds(html) {
   const result = { home: null, draw: null, away: null };
-  
+
   // 查找"平均X赔率"后的第一个 content_cell value
   function findValueAfterLabel(html, label) {
     const idx = html.indexOf(label);
@@ -22,7 +22,7 @@ function extractOdds(html) {
     const fallback = after.match(/>\s*([\d.]+)\s*</);
     return fallback ? fallback[1] : null;
   }
-  
+
   result.home = findValueAfterLabel(html, '平均胜赔率');
   // 平均平赔率 可能不存在（某些页面用 平均盘口），尝试多种或跳过
   const draw1 = findValueAfterLabel(html, '平均平赔率');
@@ -35,10 +35,10 @@ function extractOdds(html) {
     }
   }
   result.draw = draw1;
-  
+
   // 找"平均负赔率"后的值
   result.away = findValueAfterLabel(html, '平均负赔率');
-  
+
   if (result.home || result.draw || result.away) return result;
   return null;
 }
@@ -48,26 +48,32 @@ function extractOdds(html) {
  */
 function fetchOdds(matchId) {
   return new Promise((resolve) => {
-    const req = http.request({
-      hostname: '172.18.93.197',
-      port: 801,
-      path: `/analysis/detail.jsp?matchId=${matchId}`,
-      method: 'GET',
-      headers: {
-        'Host': 'qc.100qiu.com',
-        'User-Agent': 'Mozilla/5.0',
+    const req = http.request(
+      {
+        hostname: '172.18.93.197',
+        port: 801,
+        path: `/analysis/detail.jsp?matchId=${matchId}`,
+        method: 'GET',
+        headers: {
+          Host: 'qc.100qiu.com',
+          'User-Agent': 'Mozilla/5.0',
+        },
+        timeout: 8000,
       },
-      timeout: 8000,
-    }, (res) => {
-      let body = '';
-      res.on('data', (c) => body += c.toString());
-      res.on('end', () => {
-        const odds = extractOdds(body);
-        resolve(odds);
-      });
-    });
+      (res) => {
+        let body = '';
+        res.on('data', (c) => (body += c.toString()));
+        res.on('end', () => {
+          const odds = extractOdds(body);
+          resolve(odds);
+        });
+      },
+    );
     req.on('error', () => resolve(null));
-    req.on('timeout', () => { req.destroy(); resolve(null); });
+    req.on('timeout', () => {
+      req.destroy();
+      resolve(null);
+    });
     req.end();
   });
 }

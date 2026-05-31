@@ -1,11 +1,11 @@
 /**
  * 从 trade.500.com 抓取竞彩赔率 (v3 — HTML 结构适配 + 反爬加固)
- * 
+ *
  * v3 变更:
  *   - 修复页面校验：不再依赖 "football" 文本（新页面不含此词）
  *   - 重写解析器：适配新 HTML 结构（data-matchnum + data-sp 属性）
  *   - 保留: Cookie 预热、UA 池、重试、指数退避
- * 
+ *
  * 旧结构: 比赛编号分段 + <span>N.NN</span> 文本 → parseSegment
  * 新结构: <tr data-matchnum="周六001"> + data-sp="N.NN" 属性 → parseMatchRow
  */
@@ -30,7 +30,7 @@ function randomUA() {
 }
 
 function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
+  return new Promise((r) => setTimeout(r, ms));
 }
 
 function jitter(baseMs) {
@@ -44,31 +44,38 @@ const WARM_TTL = 10 * 60 * 1000;
 
 function warmCookies() {
   const now = Date.now();
-  if (_warmedCookies && (now - _warmedAt < WARM_TTL)) {
+  if (_warmedCookies && now - _warmedAt < WARM_TTL) {
     return _warmedCookies;
   }
 
   return new Promise((resolve) => {
-    const req = https.request('https://trade.500.com/', {
-      headers: {
-        'User-Agent': randomUA(),
-        'Accept': 'text/html,application/xhtml+xml',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
+    const req = https.request(
+      'https://trade.500.com/',
+      {
+        headers: {
+          'User-Agent': randomUA(),
+          Accept: 'text/html,application/xhtml+xml',
+          'Accept-Language': 'zh-CN,zh;q=0.9',
+        },
+        timeout: 10000,
+        rejectUnauthorized: false,
       },
-      timeout: 10000,
-      rejectUnauthorized: false,
-    }, (res) => {
-      const setCookie = res.headers['set-cookie'] || [];
-      const cookies = setCookie.map(c => c.split(';')[0]).join('; ');
-      if (cookies) {
-        _warmedCookies = cookies;
-        _warmedAt = Date.now();
-      }
-      res.resume();
-      resolve(cookies);
-    });
+      (res) => {
+        const setCookie = res.headers['set-cookie'] || [];
+        const cookies = setCookie.map((c) => c.split(';')[0]).join('; ');
+        if (cookies) {
+          _warmedCookies = cookies;
+          _warmedAt = Date.now();
+        }
+        res.resume();
+        resolve(cookies);
+      },
+    );
     req.on('error', () => resolve(''));
-    req.on('timeout', () => { req.destroy(); resolve(''); });
+    req.on('timeout', () => {
+      req.destroy();
+      resolve('');
+    });
     req.end();
   });
 }
@@ -76,10 +83,10 @@ function warmCookies() {
 function buildHeaders(extraCookies) {
   const headers = {
     'User-Agent': randomUA(),
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
     'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
     'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
+    Connection: 'keep-alive',
   };
   // 不手动设 Accept-Encoding，让 Node.js 自动处理 gzip 解压
 
@@ -115,7 +122,17 @@ function fetchPage(dateStr, g, retries) {
         }
         if (attempt < retries) {
           const delay = jitter(2000);
-          console.log('[500] ' + dateStr + ' g=' + g + ' 返回无效内容(len=' + (html ? html.length : 0) + '),' + delay + 'ms后重试...');
+          console.log(
+            '[500] ' +
+              dateStr +
+              ' g=' +
+              g +
+              ' 返回无效内容(len=' +
+              (html ? html.length : 0) +
+              '),' +
+              delay +
+              'ms后重试...',
+          );
           await sleep(delay);
         } else {
           reject(new Error('页面无效，长度=' + (html ? html.length : 0)));
@@ -124,7 +141,21 @@ function fetchPage(dateStr, g, retries) {
         lastError = e;
         if (attempt < retries) {
           const delay = jitter(2000) * (attempt + 1);
-          console.log('[500] ' + dateStr + ' g=' + g + ' 请求失败: ' + e.message + ', ' + delay + 'ms后重试(' + (attempt + 1) + '/' + retries + ')');
+          console.log(
+            '[500] ' +
+              dateStr +
+              ' g=' +
+              g +
+              ' 请求失败: ' +
+              e.message +
+              ', ' +
+              delay +
+              'ms后重试(' +
+              (attempt + 1) +
+              '/' +
+              retries +
+              ')',
+          );
           _warmedCookies = null;
           await sleep(delay);
         }
@@ -143,38 +174,45 @@ function _fetchPageOnce(dateStr, g) {
     const url = 'https://trade.500.com/jczq/?playid=312&g=' + g + '&date=' + dateStr;
     const headers = buildHeaders();
 
-    const req = https.request(url, {
-      headers,
-      timeout: 20000,
-      rejectUnauthorized: false,
-    }, (res) => {
-      if (res.statusCode >= 400) {
-        req.destroy();
-        reject(new Error('HTTP ' + res.statusCode));
-        return;
-      }
-
-      const setCookie = res.headers['set-cookie'];
-      if (setCookie && setCookie.length > 0) {
-        const newCookies = setCookie.map(c => c.split(';')[0]).join('; ');
-        _warmedCookies = _warmedCookies ? _warmedCookies + '; ' + newCookies : newCookies;
-        _warmedAt = Date.now();
-      }
-
-      const chunks = [];
-      res.on('data', (c) => chunks.push(c));
-      res.on('end', () => {
-        try {
-          const html = iconv.decode(Buffer.concat(chunks), 'gbk');
-          resolve(html);
-        } catch (e) {
-          reject(new Error('GBK解码失败: ' + e.message));
+    const req = https.request(
+      url,
+      {
+        headers,
+        timeout: 20000,
+        rejectUnauthorized: false,
+      },
+      (res) => {
+        if (res.statusCode >= 400) {
+          req.destroy();
+          reject(new Error('HTTP ' + res.statusCode));
+          return;
         }
-      });
-    });
+
+        const setCookie = res.headers['set-cookie'];
+        if (setCookie && setCookie.length > 0) {
+          const newCookies = setCookie.map((c) => c.split(';')[0]).join('; ');
+          _warmedCookies = _warmedCookies ? _warmedCookies + '; ' + newCookies : newCookies;
+          _warmedAt = Date.now();
+        }
+
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => {
+          try {
+            const html = iconv.decode(Buffer.concat(chunks), 'gbk');
+            resolve(html);
+          } catch (e) {
+            reject(new Error('GBK解码失败: ' + e.message));
+          }
+        });
+      },
+    );
 
     req.on('error', reject);
-    req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('timeout'));
+    });
     req.end();
   });
 }
@@ -199,85 +237,98 @@ function _fetchPageOnce(dateStr, g) {
  */
 function parseMatchRow(segment, matchNum) {
   // 提取队名
-  var teamLMatch = segment.match(/<a[^>]*class="team-l"[^>]*>([\s\S]*?)<\/a>/);
-  var teamRMatch = segment.match(/<a[^>]*class="team-r"[^>]*>([\s\S]*?)<\/a>/);
+  const teamLMatch = segment.match(/<a[^>]*class="team-l"[^>]*>([\s\S]*?)<\/a>/);
+  const teamRMatch = segment.match(/<a[^>]*class="team-r"[^>]*>([\s\S]*?)<\/a>/);
   if (!teamLMatch || !teamRMatch) return null;
 
-  var homeName = teamLMatch[1].replace(/<[^>]*>/g, '').trim();
-  var visitName = teamRMatch[1].replace(/<[^>]*>/g, '').trim();
+  const homeName = teamLMatch[1].replace(/<[^>]*>/g, '').trim();
+  const visitName = teamRMatch[1].replace(/<[^>]*>/g, '').trim();
 
   // 提取联赛名
-  var leagueMatch = segment.match(/<td[^>]*class="[^"]*td-evt[^"]*"[^>]*>[\s\S]*?<a[^>]*>([^<]*)<\/a>/);
-  var leagueName = leagueMatch ? leagueMatch[1].trim() : '';
+  const leagueMatch = segment.match(/<td[^>]*class="[^"]*td-evt[^"]*"[^>]*>[\s\S]*?<a[^>]*>([^<]*)<\/a>/);
+  const leagueName = leagueMatch ? leagueMatch[1].trim() : '';
 
   // 提取让球数
-  var handicap = 0;
-  var rangMatch = segment.match(/<td[^>]*class="[^"]*td-rang[^"]*"[^>]*>([\s\S]*?)(?=<\/td>)/);
+  let handicap = 0;
+  const rangMatch = segment.match(/<td[^>]*class="[^"]*td-rang[^"]*"[^>]*>([\s\S]*?)(?=<\/td>)/);
   if (rangMatch) {
-    var hcapM = rangMatch[1].match(/([+-]\d+)/);
+    const hcapM = rangMatch[1].match(/([+-]\d+)/);
     if (hcapM) handicap = parseInt(hcapM[1]);
   }
 
   // 提取不让球胜平负 (nspf): type="nspf" data-sp="X.XX"
-  var nspfValues = [];
-  var nspfRegex = /data-type="nspf"[^>]*data-sp="([^"]*)"/g;
-  var m;
+  const nspfValues = [];
+  const nspfRegex = /data-type="nspf"[^>]*data-sp="([^"]*)"/g;
+  let m;
   while ((m = nspfRegex.exec(segment)) !== null) {
     nspfValues.push(parseFloat(m[1]));
   }
 
   // 提取让球胜平负 (spf): type="spf" data-sp="X.XX"
-  var rqspfValues = [];
-  var rqRegex = /data-type="spf"[^>]*data-sp="([^"]*)"/g;
+  const rqspfValues = [];
+  const rqRegex = /data-type="spf"[^>]*data-sp="([^"]*)"/g;
   while ((m = rqRegex.exec(segment)) !== null) {
     rqspfValues.push(parseFloat(m[1]));
   }
 
   if (nspfValues.length < 3) return null;
 
-  var spf = { home: nspfValues[0], draw: nspfValues[1], away: nspfValues[2] };
-  var rqspf = rqspfValues.length >= 3
-    ? { home: rqspfValues[0], draw: rqspfValues[1], away: rqspfValues[2], handicap: handicap }
-    : null;
+  const spf = { home: nspfValues[0], draw: nspfValues[1], away: nspfValues[2] };
+  const rqspf =
+    rqspfValues.length >= 3
+      ? { home: rqspfValues[0], draw: rqspfValues[1], away: rqspfValues[2], handicap: handicap }
+      : null;
 
   // 半全场 (bqc)
-  var halfFull = null;
-  var bqcRegex = /data-type="bqc"[^>]*data-sp="([^"]*)"/g;
-  var bqcValues = [];
+  let halfFull = null;
+  const bqcRegex = /data-type="bqc"[^>]*data-sp="([^"]*)"/g;
+  const bqcValues = [];
   while ((m = bqcRegex.exec(segment)) !== null) {
     bqcValues.push(parseFloat(m[1]));
   }
   if (bqcValues.length >= 9) {
     halfFull = {
-      hh: bqcValues[0], hd: bqcValues[1], ha: bqcValues[2],
-      dh: bqcValues[3], dd: bqcValues[4], da: bqcValues[5],
-      ah: bqcValues[6], ad: bqcValues[7], aa: bqcValues[8]
+      hh: bqcValues[0],
+      hd: bqcValues[1],
+      ha: bqcValues[2],
+      dh: bqcValues[3],
+      dd: bqcValues[4],
+      da: bqcValues[5],
+      ah: bqcValues[6],
+      ad: bqcValues[7],
+      aa: bqcValues[8],
     };
   }
 
   // 总进球 (jq)
-  var totalGoals = null;
-  var jqRegex = /data-type="jq"[^>]*data-sp="([^"]*)"/g;
-  var jqValues = [];
+  let totalGoals = null;
+  const jqRegex = /data-type="jq"[^>]*data-sp="([^"]*)"/g;
+  const jqValues = [];
   while ((m = jqRegex.exec(segment)) !== null) {
     jqValues.push(parseFloat(m[1]));
   }
   if (jqValues.length >= 6) {
     totalGoals = {};
-    var gKeys = ['0', '1', '2', '3', '4', '5', '6', '7+'];
-    for (var gi = 0; gi < Math.min(gKeys.length, Math.floor(jqValues.length / 2)); gi++) {
+    const gKeys = ['0', '1', '2', '3', '4', '5', '6', '7+'];
+    for (let gi = 0; gi < Math.min(gKeys.length, Math.floor(jqValues.length / 2)); gi++) {
       totalGoals[gKeys[gi]] = jqValues[gi * 2];
     }
   }
 
   // 单关标识
-  var isSingleGame = segment.indexOf('ico-dg') > -1;
+  const isSingleGame = segment.indexOf('ico-dg') > -1;
 
   return {
-    num: matchNum, homeName: homeName, visitName: visitName,
-    leagueName: leagueName, handicap: handicap,
-    spf: spf, rqspf: rqspf, halfFull: halfFull,
-    totalGoals: totalGoals, isSingleGame: isSingleGame
+    num: matchNum,
+    homeName: homeName,
+    visitName: visitName,
+    leagueName: leagueName,
+    handicap: handicap,
+    spf: spf,
+    rqspf: rqspf,
+    halfFull: halfFull,
+    totalGoals: totalGoals,
+    isSingleGame: isSingleGame,
   };
 }
 
@@ -285,12 +336,12 @@ function parseMatchRow(segment, matchNum) {
  * v3 主解析函数：基于 <tr data-matchnum=""> 区块
  */
 function extractOdds(html) {
-  var result = {};
+  const result = {};
 
   // 找所有比赛行
-  var rowRegex = /<tr[^>]*data-matchnum="([^"]+)"[^>]*>/g;
-  var trMatch;
-  var rows = [];
+  const rowRegex = /<tr[^>]*data-matchnum="([^"]+)"[^>]*>/g;
+  let trMatch;
+  const rows = [];
 
   while ((trMatch = rowRegex.exec(html)) !== null) {
     rows.push({ num: trMatch[1], start: trMatch.index });
@@ -302,8 +353,8 @@ function extractOdds(html) {
   }
 
   // 找到每个行的结束位置
-  for (var i = 0; i < rows.length; i++) {
-    var endTag = html.indexOf('</tr>', rows[i].start);
+  for (let i = 0; i < rows.length; i++) {
+    const endTag = html.indexOf('</tr>', rows[i].start);
     if (endTag === -1) {
       rows[i].end = html.length;
     } else {
@@ -312,10 +363,10 @@ function extractOdds(html) {
   }
 
   // 解析每行
-  for (var j = 0; j < rows.length; j++) {
-    var row = rows[j];
-    var segment = html.substring(row.start, row.end);
-    var odds = parseMatchRow(segment, row.num);
+  for (let j = 0; j < rows.length; j++) {
+    const row = rows[j];
+    const segment = html.substring(row.start, row.end);
+    const odds = parseMatchRow(segment, row.num);
     if (odds) result[row.num] = odds;
   }
 
@@ -324,42 +375,63 @@ function extractOdds(html) {
 
 // ═══ 旧式解析器（回退用） ═══
 function parseSegment(segment, matchNum) {
-  var spanMatch = segment.match(/<span>(\d{1,3}\.\d{2})<\/span>/g);
-  var nums = (spanMatch || []).map(function(s) { return Number(s.replace(/<[^>]*>/g, '')); });
+  const spanMatch = segment.match(/<span>(\d{1,3}\.\d{2})<\/span>/g);
+  const nums = (spanMatch || []).map(function (s) {
+    return Number(s.replace(/<[^>]*>/g, ''));
+  });
   if (nums.length < 6) return null;
 
-  var isSingleGame = segment.indexOf('ico-dg') > -1;
-  var vsMatch = segment.match(/([\u4e00-\u9fa5a-zA-Z]+)\s*VS\s*([\u4e00-\u9fa5a-zA-Z]+)/);
-  var homeName = vsMatch ? vsMatch[1].trim() : '';
-  var visitName = vsMatch ? vsMatch[2].trim() : '';
-  var hcapMatch = segment.match(/([+-]\d)/);
-  var handicap = hcapMatch ? parseInt(hcapMatch[1]) : 0;
-  var spf = { home: nums[0], draw: nums[1], away: nums[2] };
-  var rqspf = { home: nums[3], draw: nums[4], away: nums[5], handicap: handicap };
-  var halfFull = nums.length >= 15 ? {
-    hh: nums[6], hd: nums[7], ha: nums[8],
-    dh: nums[9], dd: nums[10], da: nums[11],
-    ah: nums[12], ad: nums[13], aa: nums[14],
-  } : null;
+  const isSingleGame = segment.indexOf('ico-dg') > -1;
+  const vsMatch = segment.match(/([\u4e00-\u9fa5a-zA-Z]+)\s*VS\s*([\u4e00-\u9fa5a-zA-Z]+)/);
+  const homeName = vsMatch ? vsMatch[1].trim() : '';
+  const visitName = vsMatch ? vsMatch[2].trim() : '';
+  const hcapMatch = segment.match(/([+-]\d)/);
+  const handicap = hcapMatch ? parseInt(hcapMatch[1]) : 0;
+  const spf = { home: nums[0], draw: nums[1], away: nums[2] };
+  const rqspf = { home: nums[3], draw: nums[4], away: nums[5], handicap: handicap };
+  const halfFull =
+    nums.length >= 15
+      ? {
+          hh: nums[6],
+          hd: nums[7],
+          ha: nums[8],
+          dh: nums[9],
+          dd: nums[10],
+          da: nums[11],
+          ah: nums[12],
+          ad: nums[13],
+          aa: nums[14],
+        }
+      : null;
 
-  return { num: matchNum, homeName: homeName, visitName: visitName, handicap: handicap, spf: spf, rqspf: rqspf, halfFull: halfFull, isSingleGame: isSingleGame, totalGoals: null };
+  return {
+    num: matchNum,
+    homeName: homeName,
+    visitName: visitName,
+    handicap: handicap,
+    spf: spf,
+    rqspf: rqspf,
+    halfFull: halfFull,
+    isSingleGame: isSingleGame,
+    totalGoals: null,
+  };
 }
 
 function _extractOddsLegacy(html) {
-  var result = {};
-  var weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-  var regex = new RegExp('(' + weekDays.join('|') + ')(\\d{3})', 'g');
-  var m;
-  var blocks = [];
+  const result = {};
+  const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  const regex = new RegExp('(' + weekDays.join('|') + ')(\\d{3})', 'g');
+  let m;
+  const blocks = [];
 
   while ((m = regex.exec(html)) !== null) {
     blocks.push({ num: m[1] + m[2], start: m.index });
   }
 
-  for (var i = 0; i < blocks.length; i++) {
-    blocks[i].end = (i < blocks.length - 1) ? blocks[i + 1].start : html.length;
-    var segment = html.substring(blocks[i].start, blocks[i].end);
-    var odds = parseSegment(segment, blocks[i].num);
+  for (let i = 0; i < blocks.length; i++) {
+    blocks[i].end = i < blocks.length - 1 ? blocks[i + 1].start : html.length;
+    const segment = html.substring(blocks[i].start, blocks[i].end);
+    const odds = parseSegment(segment, blocks[i].num);
     if (odds) result[blocks[i].num] = odds;
   }
   return result;
@@ -367,49 +439,50 @@ function _extractOddsLegacy(html) {
 
 // ═══ shujuMap 提取 (v3 行内匹配) ═══
 function extractShujuIds(html) {
-  var result = {};
+  const result = {};
 
   // 方法1: 基于 data-matchnum 行精确匹配
-  var rowRegex = /<tr[^>]*data-matchnum="([^"]+)"[^>]*>/g;
-  var shujuRegex = /fenxi\/shuju-(\d+)\.shtml/;
-  var trMatch;
+  const rowRegex = /<tr[^>]*data-matchnum="([^"]+)"[^>]*>/g;
+  const shujuRegex = /fenxi\/shuju-(\d+)\.shtml/;
+  let trMatch;
 
   while ((trMatch = rowRegex.exec(html)) !== null) {
-    var matchNum = trMatch[1];
-    var endTag = html.indexOf('</tr>', trMatch.index);
+    const matchNum = trMatch[1];
+    let endTag = html.indexOf('</tr>', trMatch.index);
     if (endTag === -1) endTag = html.length;
-    var rowHtml = html.substring(trMatch.index, endTag + 5);
+    const rowHtml = html.substring(trMatch.index, endTag + 5);
 
-    var shujuMatch = rowHtml.match(shujuRegex);
+    const shujuMatch = rowHtml.match(shujuRegex);
     if (shujuMatch) {
       result[matchNum] = {
         shujuId: shujuMatch[1],
-        url: 'https://odds.500.com/fenxi/shuju-' + shujuMatch[1] + '.shtml'
+        url: 'https://odds.500.com/fenxi/shuju-' + shujuMatch[1] + '.shtml',
       };
     }
   }
 
   // 方法2: 如果行匹配未找到，回退到位置匹配
   if (Object.keys(result).length === 0) {
-    var weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-    var matchRegex = new RegExp('(' + weekDays.join('|') + ')(\\d{3})', 'g');
-    var shujuLinkRegex = /fenxi\/shuju-(\d+)\.shtml/g;
+    const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    const matchRegex = new RegExp('(' + weekDays.join('|') + ')(\\d{3})', 'g');
+    const shujuLinkRegex = /fenxi\/shuju-(\d+)\.shtml/g;
 
-    var matchPositions = [];
-    var m;
+    const matchPositions = [];
+    let m;
     while ((m = matchRegex.exec(html)) !== null) {
       matchPositions.push({ num: m[1] + m[2], pos: m.index });
     }
 
-    var shujuLinks = [];
+    const shujuLinks = [];
     while ((m = shujuLinkRegex.exec(html)) !== null) {
       shujuLinks.push({ id: m[1], pos: m.index });
     }
 
-    for (var i = 0; i < shujuLinks.length; i++) {
-      var nearestMatch = null, minDist = Infinity;
-      for (var j = 0; j < matchPositions.length; j++) {
-        var dist = shujuLinks[i].pos - matchPositions[j].pos;
+    for (let i = 0; i < shujuLinks.length; i++) {
+      let nearestMatch = null,
+        minDist = Infinity;
+      for (let j = 0; j < matchPositions.length; j++) {
+        const dist = shujuLinks[i].pos - matchPositions[j].pos;
         if (dist > 0 && dist < minDist) {
           minDist = dist;
           nearestMatch = matchPositions[j].num;
@@ -418,7 +491,7 @@ function extractShujuIds(html) {
       if (nearestMatch && !result[nearestMatch]) {
         result[nearestMatch] = {
           shujuId: shujuLinks[i].id,
-          url: 'https://odds.500.com/fenxi/shuju-' + shujuLinks[i].id + '.shtml'
+          url: 'https://odds.500.com/fenxi/shuju-' + shujuLinks[i].id + '.shtml',
         };
       }
     }
@@ -429,20 +502,36 @@ function extractShujuIds(html) {
 
 // ═══ 主函数 ═══
 function fetchOdds(dateStr) {
-  var prevDate = new Date(dateStr);
+  const prevDate = new Date(dateStr);
   prevDate.setDate(prevDate.getDate() - 1);
-  var prevStr = prevDate.toISOString().slice(0, 10);
+  const prevStr = prevDate.toISOString().slice(0, 10);
 
   return Promise.all([
-    fetchPage(dateStr, 1).then(extractOdds).catch(function() { return {}; }),
-    fetchPage(dateStr, 2).then(extractOdds).catch(function() { return {}; }),
-    fetchPage(prevStr, 1).then(extractOdds).catch(function() { return {}; }),
-    fetchPage(prevStr, 2).then(extractOdds).catch(function() { return {}; })
-  ]).then(function(results) {
-    var merged = {};
-    for (var i = 0; i < results.length; i++) {
-      var keys = Object.keys(results[i]);
-      for (var j = 0; j < keys.length; j++) {
+    fetchPage(dateStr, 1)
+      .then(extractOdds)
+      .catch(function () {
+        return {};
+      }),
+    fetchPage(dateStr, 2)
+      .then(extractOdds)
+      .catch(function () {
+        return {};
+      }),
+    fetchPage(prevStr, 1)
+      .then(extractOdds)
+      .catch(function () {
+        return {};
+      }),
+    fetchPage(prevStr, 2)
+      .then(extractOdds)
+      .catch(function () {
+        return {};
+      }),
+  ]).then(function (results) {
+    const merged = {};
+    for (let i = 0; i < results.length; i++) {
+      const keys = Object.keys(results[i]);
+      for (let j = 0; j < keys.length; j++) {
         merged[keys[j]] = results[i][keys[j]];
       }
     }
@@ -451,20 +540,36 @@ function fetchOdds(dateStr) {
 }
 
 function fetchShujuMap(dateStr) {
-  var prevDate = new Date(dateStr);
+  const prevDate = new Date(dateStr);
   prevDate.setDate(prevDate.getDate() - 1);
-  var prevStr = prevDate.toISOString().slice(0, 10);
+  const prevStr = prevDate.toISOString().slice(0, 10);
 
   return Promise.all([
-    fetchPage(dateStr, 1).then(extractShujuIds).catch(function() { return {}; }),
-    fetchPage(dateStr, 2).then(extractShujuIds).catch(function() { return {}; }),
-    fetchPage(prevStr, 1).then(extractShujuIds).catch(function() { return {}; }),
-    fetchPage(prevStr, 2).then(extractShujuIds).catch(function() { return {}; })
-  ]).then(function(results) {
-    var merged = {};
-    for (var i = 0; i < results.length; i++) {
-      var keys = Object.keys(results[i]);
-      for (var j = 0; j < keys.length; j++) {
+    fetchPage(dateStr, 1)
+      .then(extractShujuIds)
+      .catch(function () {
+        return {};
+      }),
+    fetchPage(dateStr, 2)
+      .then(extractShujuIds)
+      .catch(function () {
+        return {};
+      }),
+    fetchPage(prevStr, 1)
+      .then(extractShujuIds)
+      .catch(function () {
+        return {};
+      }),
+    fetchPage(prevStr, 2)
+      .then(extractShujuIds)
+      .catch(function () {
+        return {};
+      }),
+  ]).then(function (results) {
+    const merged = {};
+    for (let i = 0; i < results.length; i++) {
+      const keys = Object.keys(results[i]);
+      for (let j = 0; j < keys.length; j++) {
         merged[keys[j]] = results[i][keys[j]];
       }
     }

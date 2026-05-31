@@ -33,3 +33,10 @@ server/shuju_data/
 server/shuju_map_*.json
 server/logs/
 server/ttyingqiu_data/
+
+# ── 测试/覆盖率产物 ──
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+

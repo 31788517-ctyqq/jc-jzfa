@@ -26,7 +26,7 @@ function atomicWrite(filePath, obj) {
 async function main() {
   log('历史数据修复启动');
 
-  let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
   if (!data.r) data.r = {};
   const mMap = data.m || {};
   const rMap = data.r || {};
@@ -39,7 +39,7 @@ async function main() {
     if (m.matchStatus >= 2) continue; // already finished
     const mid = String(m.matchId);
     const recs = rMap['m_' + mid] || rMap[mid] || [];
-    const hasKnownResult = recs.some(r => {
+    const hasKnownResult = recs.some((r) => {
       const rs = r.rs !== undefined ? r.rs : r.result;
       return rs === 0 || rs === 1;
     });
@@ -58,7 +58,7 @@ async function main() {
     const mid = String(m.matchId);
     const recs = rMap['m_' + mid] || rMap[mid] || [];
     if (recs.length === 0) continue;
-    const allUnknown = recs.every(r => {
+    const allUnknown = recs.every((r) => {
       const rs = r.rs !== undefined ? r.rs : r.result;
       return rs === 2 || rs === null || rs === undefined;
     });
@@ -71,7 +71,12 @@ async function main() {
 
   if (toBackfill.length > 0) {
     let token;
-    try { token = await getToken(); } catch (e) { log('Token失败: ' + e.message); process.exit(1); }
+    try {
+      token = await getToken();
+    } catch (e) {
+      log('Token失败: ' + e.message);
+      process.exit(1);
+    }
 
     let updated = 0;
     for (const item of toBackfill) {
@@ -79,28 +84,41 @@ async function main() {
         const recRes = await getWithUA(
           MIDOU_BASE + '/score/getExpertRecommData.do',
           { dataId: item.mid, type: 0 },
-          { Cookie: 'token=' + token }
+          { Cookie: 'token=' + token },
         );
         if (recRes.code === 1 && recRes.data && recRes.data.length > 0) {
           const newRecs = recRes.data
-            .filter(x => x && x.type && x.num > 0)
-            .map(x => ({
+            .filter((x) => x && x.type && x.num > 0)
+            .map((x) => ({
               type: x.type,
               num: x.num,
-              result: x.result !== undefined ? x.result : null
+              result: x.result !== undefined ? x.result : null,
             }));
-          const hasNewResults = newRecs.some(r => r.result === 0 || r.result === 1);
+          const hasNewResults = newRecs.some((r) => r.result === 0 || r.result === 1);
           if (hasNewResults) {
             data.r[item.rk] = newRecs;
             // Also update matchStatus
-            const mkey = Object.keys(mMap).find(k => mMap[k] && String(mMap[k].matchId) === item.mid);
+            const mkey = Object.keys(mMap).find((k) => mMap[k] && String(mMap[k].matchId) === item.mid);
             if (mkey && mMap[mkey]) mMap[mkey].matchStatus = 2;
-            const hitCount = newRecs.filter(r => r.result === 1).length;
-            log('  OK ' + item.match.date + ' ' + item.match.num + ' ' + item.match.homeName + ' vs ' + item.match.visitName + ' -> hit:' + hitCount);
+            const hitCount = newRecs.filter((r) => r.result === 1).length;
+            log(
+              '  OK ' +
+                item.match.date +
+                ' ' +
+                item.match.num +
+                ' ' +
+                item.match.homeName +
+                ' vs ' +
+                item.match.visitName +
+                ' -> hit:' +
+                hitCount,
+            );
             updated++;
           }
         } else if (recRes.code === -1) {
-          try { token = await refreshToken(); } catch (e) {}
+          try {
+            token = await refreshToken();
+          } catch (e) {}
         }
       } catch (e) {
         log('  FAIL ' + item.mid + ': ' + e.message);
@@ -115,4 +133,7 @@ async function main() {
   log('全部完成! statusFixed=' + statusFixed + ' backfilled=' + toBackfill.length);
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

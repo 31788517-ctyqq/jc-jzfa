@@ -35,6 +35,8 @@ const latestDataDate = cacheModule.latestDataDate;
 const getDataJson = cacheModule.getDataJson;
 const getTrendsJson = cacheModule.getTrendsJson;
 const getOddsHistory = cacheModule.getOddsHistory;
+const getHitRateCache = cacheModule.getHitRateCache;
+const setHitRateCache = cacheModule.setHitRateCache;
 const DATA_JSON_PATH = cacheModule.DATA_JSON_PATH;
 const TRENDS_PATH = cacheModule.TRENDS_PATH;
 
@@ -730,8 +732,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         case 'hit-rate-stats': {
           const days = parseInt(data.days) || 30;
           try {
-            const fs = require('fs');
-            const path = require('path');
+            // 尝试走内存缓存（TTL 60s，data.json 变更自动失效）
+            const cached = getHitRateCache();
+            if (cached && cached.days === days) {
+              return res.json({ code: 1, data: cached.data });
+            }
 
             // Load from data.json
             const dataFile = getDataJson();
@@ -746,35 +751,55 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               });
             }
 
-            // 单次遍历：同时收集 allRecs、按方向聚合、按日期-方向聚合
+            // 单次遍历：同时收集 dirMap、dateDirMap、matchDayTop
             var cutoff = new Date();
             cutoff.setDate(cutoff.getDate() - days);
             var cutoffStr = cutoff.toISOString().slice(0, 10);
 
             const dirMap = {};
             const dateDirMap = {};
+            const matchDayTop = {}; // mid -> { date, expertCount, isHit }
             let allRecsCount = 0;
 
             Object.keys(rMap).forEach(function (k) {
               const mid = k.replace(/^m_/, '');
               const match = mMap['m_' + mid] || mMap[mid];
               const matchDate = match ? (match.date || '').slice(0, 10) : '';
-              if (!matchDate || matchDate < cutoffStr) return;
+              if (!matchDate) return;
               const recs = normalizeRecs(rMap[k] || []);
-              recs.forEach(function (r) {
-                if (!r.type || r.result === null || r.result === undefined) return;
+              if (recs.length === 0) return;
+
+              // 取该场比赛综合排名第一的方向(max num)
+              var maxNum = -Infinity;
+              var topRec = null;
+              for (var ri = 0; ri < recs.length; ri++) {
+                var r = recs[ri];
+                if (r.num > maxNum) { maxNum = r.num; topRec = r; }
+              }
+              if (topRec && topRec.result !== null && topRec.result !== undefined) {
+                matchDayTop[mid] = {
+                  date: matchDate,
+                  expertCount: topRec.num || 0,
+                  isHit: topRec.result === 1,
+                };
+              }
+
+              if (!matchDate || matchDate < cutoffStr) return;
+              for (var j = 0; j < recs.length; j++) {
+                var rr = recs[j];
+                if (!rr.type || rr.result === null || rr.result === undefined) continue;
                 allRecsCount++;
                 // 按方向聚合
-                if (!dirMap[r.type]) dirMap[r.type] = { total: 0, hits: 0, misses: 0 };
-                dirMap[r.type].total++;
-                if (r.result === 1) dirMap[r.type].hits++;
-                else dirMap[r.type].misses++;
+                if (!dirMap[rr.type]) dirMap[rr.type] = { total: 0, hits: 0, misses: 0 };
+                dirMap[rr.type].total++;
+                if (rr.result === 1) dirMap[rr.type].hits++;
+                else dirMap[rr.type].misses++;
                 // 按日期-方向聚合
                 if (!dateDirMap[matchDate]) dateDirMap[matchDate] = {};
-                if (!dateDirMap[matchDate][r.type]) dateDirMap[matchDate][r.type] = { total: 0, hits: 0 };
-                dateDirMap[matchDate][r.type].total++;
-                if (r.result === 1) dateDirMap[matchDate][r.type].hits++;
-              });
+                if (!dateDirMap[matchDate][rr.type]) dateDirMap[matchDate][rr.type] = { total: 0, hits: 0 };
+                dateDirMap[matchDate][rr.type].total++;
+                if (rr.result === 1) dateDirMap[matchDate][rr.type].hits++;
+              }
             });
 
             if (allRecsCount === 0) {
@@ -795,94 +820,64 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   hitRate: s.total > 0 ? Math.round((s.hits / s.total) * 1000) / 10 : 0,
                 };
               })
-              .sort(function (a, b) {
-                return b.hitCount - a.hitCount;
-              });
-
-            // 综合排名命中率：
-            //  每天综合排名前5场比赛，≥3场命中则当天"合格"
-            //  统计近60个有效比赛日(≥5场比赛)的合格率
-            //  当天不足5场则往前推，凑满60天
-            const matchDayTop = {}; // matchId -> { date, expertCount, isHit }
-            Object.keys(rMap).forEach(function (k) {
-              const mid = k.replace(/^m_/, '');
-              const match = mMap['m_' + mid] || mMap[mid];
-              const matchDate = match ? (match.date || '').slice(0, 10) : '';
-              if (!matchDate) return;
-              const recs = normalizeRecs(rMap[k] || []);
-              if (recs.length === 0) return;
-              // 取该场比赛综合排名第一的方向(max expertCount)
-              recs.sort(function (a, b) {
-                return (b.num || 0) - (a.num || 0);
-              });
-              const top = recs[0];
-              const hasResult = top.result !== null && top.result !== undefined;
-              if (!hasResult) return;
-              matchDayTop[mid] = {
-                date: matchDate,
-                expertCount: top.num || 0,
-                isHit: top.result === 1,
-              };
-            });
+              .sort(function (a, b) { return b.hitCount - a.hitCount; });
 
             // 按日期分组：每天取 top5 比赛
-            const dayTop5 = {}; // date -> [{ matchId, expertCount, isHit }]
+            const dayTop5 = {};
             Object.keys(matchDayTop).forEach(function (mid) {
               const item = matchDayTop[mid];
               if (!dayTop5[item.date]) dayTop5[item.date] = [];
               dayTop5[item.date].push({ matchId: mid, expertCount: item.expertCount, isHit: item.isHit });
             });
             Object.keys(dayTop5).forEach(function (d) {
-              dayTop5[d].sort(function (a, b) {
-                return b.expertCount - a.expertCount;
-              });
+              dayTop5[d].sort(function (a, b) { return b.expertCount - a.expertCount; });
               dayTop5[d] = dayTop5[d].slice(0, 5);
             });
 
-            // 取近 60 个有效比赛日(≥5场)，不足则往前推
+            // 取近 N 个有效比赛日
             const validDates = Object.keys(dayTop5)
-              .filter(function (d) {
-                return d <= localDate() && dayTop5[d].length >= 1;
-              })
-              .sort()
-              .reverse();
+              .filter(function (d) { return d <= localDate() && dayTop5[d].length >= 1; })
+              .sort().reverse();
             const targetDays = days || 60;
-            let qualifiedDays = 0,
-              participatingDays = 0;
+            let qualifiedDays = 0, participatingDays = 0;
             for (let di = 0; di < validDates.length && participatingDays < targetDays; di++) {
               const dd = validDates[di];
               const top5 = dayTop5[dd];
-              if (top5.length < 3) continue; // 不足3场无法达标，跳过
+              if (top5.length < 3) continue;
               participatingDays++;
-              const dayHits = top5.filter(function (x) {
-                return x.isHit;
-              }).length;
+              const dayHits = top5.filter(function (x) { return x.isHit; }).length;
               if (dayHits >= 3) qualifiedDays++;
             }
             const top3HitRate = participatingDays > 0 ? Math.round((qualifiedDays / participatingDays) * 1000) / 10 : 0;
 
-            const dailyTrend = Object.keys(dateDirMap)
-              .sort()
-              .map(function (d) {
-                const dirs = [];
-                Object.keys(dateDirMap[d]).forEach(function (dir) {
-                  const s = dateDirMap[d][dir];
-                  dirs.push({
-                    direction: dir,
-                    hitRate: s.total > 0 ? Math.round((s.hits / s.total) * 1000) / 10 : 0,
-                  });
+            // dailyTrend 裁剪到最近30天（减少响应体积）
+            const sortedDates = Object.keys(dateDirMap).sort();
+            const recentDates = sortedDates.slice(-30);
+            const dailyTrend = recentDates.map(function (d) {
+              const dirs = [];
+              Object.keys(dateDirMap[d]).forEach(function (dir) {
+                const s = dateDirMap[d][dir];
+                dirs.push({
+                  direction: dir,
+                  hitRate: s.total > 0 ? Math.round((s.hits / s.total) * 1000) / 10 : 0,
                 });
-                return { date: d, directions: dirs };
               });
+              return { date: d, directions: dirs };
+            });
+
+            const resultPayload = {
+              totalDays: days,
+              directionStats: directionStats,
+              dailyTrend: dailyTrend,
+              top3HitRate: top3HitRate,
+            };
+
+            // 写入内存缓存
+            setHitRateCache({ days: days, data: resultPayload });
 
             return res.json({
               code: 1,
-              data: {
-                totalDays: days,
-                directionStats: directionStats,
-                dailyTrend: dailyTrend,
-                top3HitRate: top3HitRate,
-              },
+              data: resultPayload,
             });
           } catch (dbErr) {
             return res.json({ code: 0, msg: '命中率统计失败: ' + dbErr.message });
@@ -1254,8 +1249,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               ds.triggerShujuFetch && ds.triggerShujuFetch(matchInfo.date ? matchInfo.date.slice(0, 10) : '');
             }
 
-            const AI_TIMEOUT = 60000;
-
             // 缓存写入（后台合并）
             function saveCache(source, content, conf) {
               try {
@@ -1353,100 +1346,21 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   singleModel: true,
                   pendingMerge: true,
                   readySource: hasDS ? 'deepseek' : 'doubao',
+                  failedSource: null,
                   shujuMissing: shujuMissing,
                 },
               });
             }
 
-            // ★ 无缓存 → 启动双模型并行
-            const dsPromise = deepseek
-              .generateAnalysis(matchInfo)
-              .then(function (r) {
-                const c = r && r.content ? r.content || r : null;
-                if (!c) throw new Error('DS empty');
-                return {
-                  source: 'deepseek',
-                  content: c,
-                  conf: c.confidence || 70,
-                  entry: saveCache('deepseek', c, c.confidence || 70),
-                };
-              })
-              .catch(function (e) {
-                console.log('[ai] DS err:', e.message);
-                return null;
-              });
-
-            const dbPromise = doubao
-              .generateAnalysis(matchInfo)
-              .then(function (r) {
-                const c = r && r.content ? r.content || r : null;
-                if (!c) throw new Error('DB empty');
-                return {
-                  source: 'doubao',
-                  content: c,
-                  conf: c.confidence || 70,
-                  entry: saveCache('doubao', c, c.confidence || 70),
-                };
-              })
-              .catch(function (e) {
-                console.log('[ai] DB err:', e.message);
-                return null;
-              });
-
-            const t0 = Date.now();
-
-            // 等第一个完成
-            const first = await Promise.race([dsPromise, dbPromise]);
-
-            // 等第二个（在剩余时间内）
-            if (first && first.source) {
-              const remaining = AI_TIMEOUT - (Date.now() - t0);
-              if (remaining > 2000) {
-                const otherPromise = first.source === 'deepseek' ? dbPromise : dsPromise;
-                await Promise.race([
-                  otherPromise,
-                  new Promise(function (r) {
-                    setTimeout(r, remaining);
-                  }),
-                ]);
-              }
-            }
-
-            // 重新读缓存
-            cache = {};
-            try {
-              cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
-            } catch (e) {}
-            cachedEntry = cache[mid];
-
-            if (cachedEntry && cachedEntry.content && cachedEntry.merged) {
-              return res.json({
-                code: 1,
-                data: {
-                  matchId: mid,
-                  content: cachedEntry.content,
-                  confidence: cachedEntry.confidence,
-                  dualModel: true,
-                  merged: true,
-                  shujuMissing: shujuMissing,
-                },
-              });
-            } else if (cachedEntry && cachedEntry.content) {
-              return res.json({
-                code: 1,
-                data: {
-                  matchId: mid,
-                  content: cachedEntry.content,
-                  confidence: cachedEntry.confidence,
-                  singleModel: true,
-                  pendingMerge: true,
-                  readySource: first ? first.source : hasDS ? 'deepseek' : 'doubao',
-                  shujuMissing: shujuMissing,
-                },
-              });
-            }
-
-            return res.json({ code: 1, data: { matchId: mid, polling: true, status: 'pending' } });
+            // ★ 无缓存 → 不再触发 AI API（由定时 daemon 统一生成），返回未就绪
+            return res.json({
+              code: 1,
+              data: {
+                matchId: mid,
+                notReady: true,
+                msg: 'AI 分析尚未生成，每日 11:30 / 16:30 定时批量生成，届时刷新即可查看',
+              },
+            });
           } catch (e) {
             logger.error('[ai-predict] ' + e.message);
             return res.json({ code: 0, msg: 'AI 分析异常，请稍后重试' });

@@ -41,8 +41,12 @@ function generateDates(start, end) {
   return dates;
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function jitter(baseMs) { return Math.floor(baseMs * (0.5 + Math.random() * 1.5)); }
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+function jitter(baseMs) {
+  return Math.floor(baseMs * (0.5 + Math.random() * 1.5));
+}
 
 // ═══ 检查点 ═══
 function loadCheckpoint() {
@@ -69,7 +73,9 @@ function saveReport(report) {
 // ═══ Step 1: 赔率补抓 ═══
 async function catchUpOdds(dates, cp) {
   logger.info('═══ Step 1: 500.com 赔率补抓 (' + dates.length + ' 天) ═══');
-  let done = 0, skipped = 0, failed = 0;
+  let done = 0,
+    skipped = 0,
+    failed = 0;
 
   for (let i = 0; i < dates.length; i++) {
     const d = dates[i];
@@ -79,9 +85,15 @@ async function catchUpOdds(dates, cp) {
     if (fs.existsSync(filePath) && fs.statSync(filePath).size > 100) {
       try {
         const existing = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-        if (existing.empty) { skipped++; continue; }
+        if (existing.empty) {
+          skipped++;
+          continue;
+        }
         const oddsCount = Object.keys(existing.odds || {}).length;
-        if (oddsCount > 0) { skipped++; continue; }
+        if (oddsCount > 0) {
+          skipped++;
+          continue;
+        }
       } catch (e) {}
     }
 
@@ -116,7 +128,10 @@ async function catchUpOdds(dates, cp) {
 // ═══ Step 2: shuju攻防数据补抓 ═══
 async function catchUpShuju(dates, cp) {
   logger.info('═══ Step 2: 500.com 攻防数据补抓 (' + dates.length + ' 天) ═══');
-  let done = 0, skipped = 0, failed = 0, noData = 0;
+  let done = 0,
+    skipped = 0,
+    failed = 0,
+    noData = 0;
 
   const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
   const fenxiScript = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi.py');
@@ -163,7 +178,7 @@ async function catchUpShuju(dates, cp) {
           cwd: path.join(__dirname, '..'),
           timeout: 300000,
           encoding: 'utf8',
-          maxBuffer: 1024 * 1024
+          maxBuffer: 1024 * 1024,
         });
       } catch (e) {
         logger.info('    → 静态抓取失败: ' + (e.message || '').slice(0, 100));
@@ -178,7 +193,7 @@ async function catchUpShuju(dates, cp) {
             cwd: path.join(__dirname, '..'),
             timeout: 600000,
             encoding: 'utf8',
-            maxBuffer: 1024 * 1024
+            maxBuffer: 1024 * 1024,
           });
         } catch (e) {
           logger.info('    → Selenium失败: ' + (e.message || '').slice(0, 100));
@@ -198,7 +213,6 @@ async function catchUpShuju(dates, cp) {
       } catch (e) {
         logger.info('    → 合并失败: ' + e.message);
       }
-
     } catch (e) {
       logger.error('    → 失败: ' + e.message);
       failed++;
@@ -210,7 +224,9 @@ async function catchUpShuju(dates, cp) {
     await sleep(jitter(2000));
   }
 
-  logger.info('攻防数据补抓完成: 新增' + done + '天, 跳过' + skipped + '天, 无数据' + noData + '天, 失败' + failed + '天');
+  logger.info(
+    '攻防数据补抓完成: 新增' + done + '天, 跳过' + skipped + '天, 无数据' + noData + '天, 失败' + failed + '天',
+  );
   return { done, skipped, noData, failed };
 }
 
@@ -223,7 +239,11 @@ function printCatchUpCommands(dates) {
   if (dates.length <= 10) {
     logger.info('逐条命令 (共 ' + dates.length + ' 条):');
     for (const d of dates) {
-      console.log('curl -X POST https://zj.100qiu.com/api -H "Content-Type: application/json" -d \'{"action":"sync-match-date","date":"' + d + '"}\'');
+      console.log(
+        'curl -X POST https://zj.100qiu.com/api -H "Content-Type: application/json" -d \'{"action":"sync-match-date","date":"' +
+          d +
+          '"}\'',
+      );
     }
   } else {
     logger.info('命令过多 (' + dates.length + ' 条)，建议使用生产服务器批量脚本:');
@@ -266,7 +286,7 @@ async function main() {
   const dates = generateDates(startDate, endDate);
   console.log('共 ' + dates.length + ' 天\n');
 
-  let cp = loadCheckpoint();
+  const cp = loadCheckpoint();
   if (cp.lastDate) {
     const resumeIdx = dates.indexOf(cp.lastDate);
     if (resumeIdx >= 0) {
@@ -277,10 +297,12 @@ async function main() {
   }
 
   const report = {
-    startDate, endDate, mode,
+    startDate,
+    endDate,
+    mode,
     startedAt: new Date().toISOString(),
     totalDays: dates.length,
-    results: {}
+    results: {},
   };
 
   // 确保目录存在
@@ -313,7 +335,8 @@ async function main() {
   // 完整性检查
   console.log('\n── 完整性检查 ──');
   const allDates = generateDates(startDate, endDate);
-  let oddsMissing = 0, shujuMissing = 0;
+  let oddsMissing = 0,
+    shujuMissing = 0;
   const missingDates = [];
   for (const d of allDates) {
     const oFile = path.join(ODDS_DIR, d + '.json');
@@ -331,7 +354,7 @@ async function main() {
 
   if (shujuMissing > 0) {
     console.log('缺失日期列表:');
-    missingDates.forEach(d => console.log('  ' + d));
+    missingDates.forEach((d) => console.log('  ' + d));
 
     // 写入缺失日期文件供后续批量同步
     const missingFile = path.join(__dirname, 'dates_to_sync.txt');
@@ -345,7 +368,7 @@ async function main() {
 
 // 运行
 if (require.main === module) {
-  main().catch(e => {
+  main().catch((e) => {
     console.error('FATAL:', e.message);
     logger.error('FATAL: ' + e.message);
     console.error(e.stack);

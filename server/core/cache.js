@@ -1,7 +1,7 @@
 /**
  * server/core/cache.js
  * 数据缓存层 — data.json / trends.json / odds_history 内存缓存
- * 
+ *
  * 支持 SQLite → JSON 双模读取（优先 DB，降级 JSON）
  * V2: TTL 延长至 60s + 异步 fs 操作
  */
@@ -19,7 +19,9 @@ const GS_CACHE_PATH = path.join(__dirname, '..', 'gongshoudao', 'cache.json');
 // ═══ 本地日期辅助 ═══
 function localDate(d) {
   d = d || new Date();
-  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0');
+  const y = d.getFullYear(),
+    m = String(d.getMonth() + 1).padStart(2, '0'),
+    dd = String(d.getDate()).padStart(2, '0');
   return y + '-' + m + '-' + dd;
 }
 
@@ -27,11 +29,11 @@ function localDate(d) {
 let _dataJsonCache = null;
 let _dataJsonCacheTime = 0;
 let _dataJsonCacheMtime = 0;
-let _dataJsonLoading = null; // 防并发重复读取
+const _dataJsonLoading = null; // 防并发重复读取
 
 function getDataJson(forceRefresh) {
   const now = Date.now();
-  if (!forceRefresh && _dataJsonCache && (now - _dataJsonCacheTime < 60000)) {
+  if (!forceRefresh && _dataJsonCache && now - _dataJsonCacheTime < 60000) {
     return _dataJsonCache;
   }
   // 使用同步读取以保持 API 兼容（Node.js 文件缓存使 sync 性能可接受）
@@ -56,8 +58,8 @@ function latestDataDate() {
   const dataFile = getDataJson();
   const mMap = dataFile.m || {};
   let latest = '';
-  Object.keys(mMap).forEach(k => {
-    const d = (mMap[k] && mMap[k].date) ? mMap[k].date.slice(0, 10) : '';
+  Object.keys(mMap).forEach((k) => {
+    const d = mMap[k] && mMap[k].date ? mMap[k].date.slice(0, 10) : '';
     if (d > latest) latest = d;
   });
   return latest || localDate();
@@ -69,7 +71,7 @@ let _trendsCacheTime = 0;
 
 function getTrendsJson() {
   const now = Date.now();
-  if (_trendsCache && (now - _trendsCacheTime < 60000)) return _trendsCache;
+  if (_trendsCache && now - _trendsCacheTime < 60000) return _trendsCache;
   try {
     if (fs.existsSync(TRENDS_PATH)) {
       _trendsCache = JSON.parse(fs.readFileSync(TRENDS_PATH, 'utf8'));
@@ -81,7 +83,7 @@ function getTrendsJson() {
 }
 
 // ═══ odds_history 按日期缓存（LRU，最多10天） ═══
-let _oddsCache = {};
+const _oddsCache = {};
 const _oddsCacheKeys = [];
 const MAX_ODDS_CACHE = 10;
 
@@ -97,7 +99,9 @@ function getOddsHistory(dateStr) {
       delete _oddsCache[_oddsCacheKeys.shift()];
     }
     return _oddsCache[dateStr];
-  } catch (e) { return null; }
+  } catch (e) {
+    return null;
+  }
 }
 
 // ═══ 功守道缓存 ═══
@@ -108,6 +112,33 @@ function getGongShouDaoCache() {
     }
   } catch (e) {}
   return null;
+}
+
+// ═══ 命中率统计内存缓存（TTL 60s，data.json mtime 变更自动失效） ═══
+let _hitRateCache = null;
+let _hitRateCacheTime = 0;
+let _hitRateCacheMtime = 0;
+
+function getHitRateCache() {
+  const now = Date.now();
+  let mtime = 0;
+  try { mtime = fs.statSync(DATA_JSON_PATH).mtimeMs; } catch (e) {}
+  if (_hitRateCache && now - _hitRateCacheTime < 60000 && mtime === _hitRateCacheMtime) {
+    return _hitRateCache;
+  }
+  return null; // 缓存未命中，需重新计算
+}
+
+function setHitRateCache(data) {
+  _hitRateCache = data;
+  _hitRateCacheTime = Date.now();
+  try { _hitRateCacheMtime = fs.statSync(DATA_JSON_PATH).mtimeMs; } catch (e) {}
+}
+
+function invalidateHitRateCache() {
+  _hitRateCache = null;
+  _hitRateCacheTime = 0;
+  _hitRateCacheMtime = 0;
 }
 
 // ═══ 缓存控制 ═══
@@ -123,10 +154,19 @@ function invalidateTrends() {
 }
 
 module.exports = {
-  DATA_JSON_PATH, TRENDS_PATH, ODDS_DIR, GS_CACHE_PATH,
-  localDate, latestDataDate,
-  getDataJson, invalidateDataJson,
-  getTrendsJson, invalidateTrends,
+  DATA_JSON_PATH,
+  TRENDS_PATH,
+  ODDS_DIR,
+  GS_CACHE_PATH,
+  localDate,
+  latestDataDate,
+  getDataJson,
+  invalidateDataJson,
+  getTrendsJson,
+  invalidateTrends,
   getOddsHistory,
-  getGongShouDaoCache
+  getGongShouDaoCache,
+  getHitRateCache,
+  setHitRateCache,
+  invalidateHitRateCache,
 };

@@ -1,12 +1,12 @@
 /**
  * server/fetch_shuju.js — Node.js 版 500.com 分析数据抓取 (P1: 替代 Python)
- * 
+ *
  * 功能:
  *   1. 读取 shuju_map_{date}.json 获取 shuju ID 列表
  *   2. 抓取每个 odds.500.com/fenxi/shuju-{id}.shtml 页面 (GBK)
  *   3. 提取队名、联赛名等基础信息
  *   4. 写入 shuju_data/shuju_{date}.json (不依赖 Python)
- * 
+ *
  * 用法:
  *   const { fetchShujuData } = require('./fetch_shuju');
  *   await fetchShujuData('2026-05-30');
@@ -26,42 +26,55 @@ const UA_POOL = [
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/140.0.0.0 Safari/537.36',
 ];
 
-function randomUA() { return UA_POOL[Math.floor(Math.random() * UA_POOL.length)]; }
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function jitter(base) { return Math.floor(base * (0.5 + Math.random() * 1.5)); }
+function randomUA() {
+  return UA_POOL[Math.floor(Math.random() * UA_POOL.length)];
+}
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+function jitter(base) {
+  return Math.floor(base * (0.5 + Math.random() * 1.5));
+}
 
 /**
  * 抓取单个分析页面
  */
 function fetchPage(url) {
   return new Promise((resolve, reject) => {
-    const req = https.get(url, {
-      headers: {
-        'User-Agent': randomUA(),
-        'Accept': 'text/html,application/xhtml+xml',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
+    const req = https.get(
+      url,
+      {
+        headers: {
+          'User-Agent': randomUA(),
+          Accept: 'text/html,application/xhtml+xml',
+          'Accept-Language': 'zh-CN,zh;q=0.9',
+        },
+        timeout: 20000,
+        rejectUnauthorized: false,
       },
-      timeout: 20000,
-      rejectUnauthorized: false,
-    }, (res) => {
-      if (res.statusCode >= 400) {
-        req.destroy();
-        reject(new Error('HTTP ' + res.statusCode));
-        return;
-      }
-      const chunks = [];
-      res.on('data', c => chunks.push(c));
-      res.on('end', () => {
-        try {
-          const html = iconv.decode(Buffer.concat(chunks), 'gbk');
-          resolve(html);
-        } catch (e) {
-          reject(new Error('decode: ' + e.message));
+      (res) => {
+        if (res.statusCode >= 400) {
+          req.destroy();
+          reject(new Error('HTTP ' + res.statusCode));
+          return;
         }
-      });
-    });
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => {
+          try {
+            const html = iconv.decode(Buffer.concat(chunks), 'gbk');
+            resolve(html);
+          } catch (e) {
+            reject(new Error('decode: ' + e.message));
+          }
+        });
+      },
+    );
     req.on('error', reject);
-    req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('timeout'));
+    });
   });
 }
 
@@ -71,8 +84,9 @@ function fetchPage(url) {
 function parseAnalysisPage(html, matchNum, shujuId) {
   // 提取 title 中的队名 (格式: "主队 vs 客队")
   const titleMatch = html.match(/<title>([^<]*)<\/title>/i);
-  let homeTeam = '', awayTeam = '';
-  
+  let homeTeam = '',
+    awayTeam = '';
+
   if (titleMatch) {
     const title = titleMatch[1].replace(/[_\-\s]*500.*$/, '').trim();
     const vsIdx = title.search(/\s*(?:vs|VS|Vs|vS|对\s*阵|对\s*战)\s*/);
@@ -105,7 +119,7 @@ function parseAnalysisPage(html, matchNum, shujuId) {
     awayTeam: awayTeam,
     leagueName: leagueName,
     htmlSize: html.length,
-    _fetched: true
+    _fetched: true,
   };
 }
 
@@ -114,7 +128,7 @@ function parseAnalysisPage(html, matchNum, shujuId) {
  */
 async function fetchShujuData(dateStr, maxRetries) {
   maxRetries = maxRetries || 2;
-  
+
   const mapFile = path.join(__dirname, 'shuju_map_' + dateStr + '.json');
   if (!fs.existsSync(mapFile)) {
     console.log('[fetch_shuju] ' + dateStr + ' shuju_map 不存在，跳过');
@@ -150,14 +164,14 @@ async function fetchShujuData(dateStr, maxRetries) {
   console.log('[fetch_shuju] ' + dateStr + ' 开始抓取 ' + entries.length + ' 场比赛分析数据...');
 
   const results = {};
-  let ok = 0, fail = 0;
+  let ok = 0,
+    fail = 0;
 
   for (let i = 0; i < entries.length; i++) {
     const [matchNum, info] = entries[i];
     const sid = info.shujuId;
-    const url = (info.url && info.url.includes('500.com'))
-      ? info.url
-      : 'https://odds.500.com/fenxi/shuju-' + sid + '.shtml';
+    const url =
+      info.url && info.url.includes('500.com') ? info.url : 'https://odds.500.com/fenxi/shuju-' + sid + '.shtml';
 
     let success = false;
     for (let retry = 0; retry <= maxRetries && !success; retry++) {
@@ -180,8 +194,10 @@ async function fetchShujuData(dateStr, maxRetries) {
       fail++;
     }
 
-    if ((i + 1) % 5 === 0 || (i + 1) === entries.length) {
-      console.log('[fetch_shuju] ' + dateStr + ' 进度: ' + (i + 1) + '/' + entries.length + ' (ok=' + ok + ' fail=' + fail + ')');
+    if ((i + 1) % 5 === 0 || i + 1 === entries.length) {
+      console.log(
+        '[fetch_shuju] ' + dateStr + ' 进度: ' + (i + 1) + '/' + entries.length + ' (ok=' + ok + ' fail=' + fail + ')',
+      );
     }
 
     if ((i + 1) % 3 === 0) {
@@ -196,7 +212,7 @@ async function fetchShujuData(dateStr, maxRetries) {
     date: dateStr,
     source: '500.com fenxi/shuju (Node.js fetcher)',
     matches: results,
-    _meta: { total: entries.length, ok: ok, fail: fail, generatedAt: new Date().toISOString() }
+    _meta: { total: entries.length, ok: ok, fail: fail, generatedAt: new Date().toISOString() },
   };
 
   fs.writeFileSync(outFile, JSON.stringify(output, null, 2));

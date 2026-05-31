@@ -1,7 +1,7 @@
 /**
  * 邮件告警测试脚本
  * 用法: node server/test_alert.js
- * 
+ *
  * 前置条件:
  *   1. 在 server/.env 中配置 ALERT_SMTP_USER 和 ALERT_SMTP_PASS
  *   2. QQ邮箱需在设置中开启 SMTP 服务并获取授权码（16位）
@@ -55,22 +55,26 @@ const alert = require('./alert');
 
   // 发送测试告警
   console.log('[2/3] 发送测试告警邮件...');
-  const sent = await alert.general('info', '告警系统测试', 
-    '<p>这是一封自动发送的测试邮件。</p>'
-    + '<ul>'
-    + '<li>系统: JC-ZJFA 竞彩监控</li>'
-    + '<li>时间: ' + new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }) + '</li>'
-    + '<li>状态: 告警系统已成功配置</li>'
-    + '</ul>'
-    + '<p style="color:#4CAF50;"><b>✅ 配置验证通过</b></p>'
-    + '<p>从现在起，当以下事件发生时您将收到告警邮件：</p>'
-    + '<ol>'
-    + '<li>爬虫连续失败3次</li>'
-    + '<li>米斗数据登录失败</li>'
-    + '<li>data.json 数据异常</li>'
-    + '<li>AI 分析引擎故障</li>'
-    + '<li>定时任务守护进程异常退出</li>'
-    + '</ol>'
+  const sent = await alert.general(
+    'info',
+    '告警系统测试',
+    '<p>这是一封自动发送的测试邮件。</p>' +
+      '<ul>' +
+      '<li>系统: JC-ZJFA 竞彩监控</li>' +
+      '<li>时间: ' +
+      new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }) +
+      '</li>' +
+      '<li>状态: 告警系统已成功配置</li>' +
+      '</ul>' +
+      '<p style="color:#4CAF50;"><b>✅ 配置验证通过</b></p>' +
+      '<p>从现在起，当以下事件发生时您将收到告警邮件：</p>' +
+      '<ol>' +
+      '<li>爬虫连续失败3次</li>' +
+      '<li>米斗数据登录失败</li>' +
+      '<li>data.json 数据异常</li>' +
+      '<li>AI 分析引擎故障</li>' +
+      '<li>定时任务守护进程异常退出</li>' +
+      '</ol>',
   );
 
   if (sent) {

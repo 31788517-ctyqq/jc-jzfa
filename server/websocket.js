@@ -1,13 +1,13 @@
 /**
  * WebSocket 实时推送模块 (P3-1)
- * 
+ *
  * 特点:
  *   - 基于原生 ws 协议，轻量无依赖
  *   - 自动检测 data.json 变更 → 推送比分/推荐的实时更新
  *   - 心跳保活 (30s ping)
  *   - 频道订阅: live_score, recommend, ai_analysis, health
  *   - 与 Express 共用端口（通过 server.on('upgrade')）
- * 
+ *
  * 客户端示例:
  *   const ws = new WebSocket('ws://localhost:3000/ws');
  *   ws.onmessage = (e) => {
@@ -27,7 +27,7 @@ const LIVE_FILE = path.join(__dirname, 'live_scores.json');
 const AI_CACHE_FILE = path.join(__dirname, 'ai_cache.json');
 
 // ═══ WebSocket 服务 ═══
-let wss = null;
+const wss = null;
 let watchInterval = null;
 
 const clients = new Set();
@@ -44,7 +44,8 @@ let _lastAICacheMtime = 0;
  */
 function generateAcceptKey(clientKey) {
   const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
-  return crypto.createHash('sha1')
+  return crypto
+    .createHash('sha1')
     .update(clientKey + GUID)
     .digest('base64');
 }
@@ -65,7 +66,7 @@ function handleUpgrade(req, socket, head) {
     'Connection: Upgrade',
     'Sec-WebSocket-Accept: ' + acceptKey,
     '',
-    ''
+    '',
   ].join('\r\n');
 
   socket.write(responseHeaders);
@@ -90,13 +91,13 @@ function handleUpgrade(req, socket, head) {
   let buffer = Buffer.alloc(0);
   socket.on('data', (data) => {
     buffer = Buffer.concat([buffer, data]);
-    
+
     // 解析 WebSocket 帧
     while (buffer.length >= 2) {
       const firstByte = buffer[0];
-      const opcode = firstByte & 0x0F;
+      const opcode = firstByte & 0x0f;
       const masked = (buffer[1] & 0x80) !== 0;
-      let payloadLen = buffer[1] & 0x7F;
+      let payloadLen = buffer[1] & 0x7f;
       let offset = 2;
 
       if (payloadLen === 126) {
@@ -125,24 +126,29 @@ function handleUpgrade(req, socket, head) {
 
       buffer = buffer.slice(offset + maskLen + payloadLen);
 
-      if (opcode === 0x8) { // 关闭
+      if (opcode === 0x8) {
+        // 关闭
         socket.destroy();
         return;
-      } else if (opcode === 0x9) { // ping
+      } else if (opcode === 0x9) {
+        // ping
         // 回复 pong
         const pong = Buffer.alloc(2);
-        pong[0] = 0x8A; // pong frame
+        pong[0] = 0x8a; // pong frame
         pong[1] = 0x00;
-        try { socket.write(pong); } catch (e) {}
+        try {
+          socket.write(pong);
+        } catch (e) {}
         continue;
-      } else if (opcode === 0x1) { // 文本
+      } else if (opcode === 0x1) {
+        // 文本
         try {
           const msg = JSON.parse(payload.toString('utf8'));
           if (msg.type === 'subscribe' && Array.isArray(msg.channels)) {
             subscriptions.set(clientId, new Set(msg.channels));
           } else if (msg.type === 'unsubscribe' && Array.isArray(msg.channels)) {
             const subs = subscriptions.get(clientId);
-            if (subs) msg.channels.forEach(c => subs.delete(c));
+            if (subs) msg.channels.forEach((c) => subs.delete(c));
           } else if (msg.type === 'ping') {
             // 客户端心跳
             resetHeartbeat();
@@ -160,7 +166,7 @@ function handleUpgrade(req, socket, head) {
   });
 
   socket.on('close', () => {
-    clients.forEach(c => {
+    clients.forEach((c) => {
       if (c.id === clientId) clients.delete(c);
     });
     subscriptions.delete(clientId);
@@ -178,7 +184,7 @@ function handleUpgrade(req, socket, head) {
  * 发送消息到指定客户端
  */
 function sendToClient(clientId, data) {
-  const client = [...clients].find(c => c.id === clientId);
+  const client = [...clients].find((c) => c.id === clientId);
   if (!client) return;
 
   const payload = Buffer.from(JSON.stringify(data), 'utf8');
@@ -195,11 +201,11 @@ function sendToClient(clientId, data) {
  */
 function broadcast(channel, data) {
   if (clients.size === 0) return;
-  
+
   const payload = Buffer.from(JSON.stringify(data), 'utf8');
   const frame = createTextFrame(payload);
 
-  clients.forEach(client => {
+  clients.forEach((client) => {
     const subs = subscriptions.get(client.id);
     if (subs && subs.has(channel)) {
       try {
@@ -244,8 +250,10 @@ function startHeartbeat() {
     const ping = Buffer.alloc(2);
     ping[0] = 0x89; // ping frame
     ping[1] = 0x00;
-    clients.forEach(client => {
-      try { client.socket.write(ping); } catch (e) {}
+    clients.forEach((client) => {
+      try {
+        client.socket.write(ping);
+      } catch (e) {}
     });
   }, 30000);
 }
@@ -283,10 +291,11 @@ function startDataWatcher() {
           const recs = {};
           Object.entries(data.r || {}).forEach(([k, r]) => {
             const mid = k.replace('m_', '');
-            const hasResult = r.some(rc => rc.result !== null && rc.result !== 2);
+            const hasResult = r.some((rc) => rc.result !== null && rc.result !== 2);
             if (hasResult) {
-              recs[mid] = r.filter(rc => rc.result !== null && rc.result !== 2)
-                .map(rc => ({ type: rc.type, num: rc.num, result: rc.result }));
+              recs[mid] = r
+                .filter((rc) => rc.result !== null && rc.result !== 2)
+                .map((rc) => ({ type: rc.type, num: rc.num, result: rc.result }));
             }
           });
 

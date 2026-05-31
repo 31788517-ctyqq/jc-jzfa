@@ -33,7 +33,7 @@ function jitter(baseMs) {
 }
 
 function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
+  return new Promise((r) => setTimeout(r, ms));
 }
 
 /**
@@ -48,42 +48,44 @@ function get(url, params = {}, headers = {}) {
     const urlObj = new URL(fullUrl);
     const lib = urlObj.protocol === 'https:' ? https : http;
 
-    lib.get(fullUrl, { headers }, (res) => {
-      const chunks = [];
-      res.on('data', chunk => chunks.push(chunk));
-      res.on('end', () => {
-        const buffer = Buffer.concat(chunks);
+    lib
+      .get(fullUrl, { headers }, (res) => {
+        const chunks = [];
+        res.on('data', (chunk) => chunks.push(chunk));
+        res.on('end', () => {
+          const buffer = Buffer.concat(chunks);
 
-        // 检测编码：优先使用响应头中的 Content-Type
-        const contentType = res.headers['content-type'] || '';
-        let encoding = 'utf-8';
-        if (contentType.includes('charset=gbk') || contentType.includes('charset=gb2312')) {
-          encoding = 'gbk';
-        }
-
-        // 尝试 UTF-8 解码，如果失败则用 GBK
-        let text;
-        try {
-          text = iconv.decode(buffer, encoding);
-          JSON.parse(text); // 验证是否能解析
-        } catch (e) {
-          // UTF-8 解码失败，尝试 GBK
-          try {
-            text = iconv.decode(buffer, 'gbk');
-            JSON.parse(text);
-          } catch (e2) {
-            // GBK 也失败，尝试 UTF-8
-            text = buffer.toString('utf-8');
+          // 检测编码：优先使用响应头中的 Content-Type
+          const contentType = res.headers['content-type'] || '';
+          let encoding = 'utf-8';
+          if (contentType.includes('charset=gbk') || contentType.includes('charset=gb2312')) {
+            encoding = 'gbk';
           }
-        }
 
-        try {
-          resolve(JSON.parse(text));
-        } catch (e) {
-          reject(new Error('JSON解析失败: ' + (text || buffer.toString('utf-8')).slice(0, 200)));
-        }
-      });
-    }).on('error', reject);
+          // 尝试 UTF-8 解码，如果失败则用 GBK
+          let text;
+          try {
+            text = iconv.decode(buffer, encoding);
+            JSON.parse(text); // 验证是否能解析
+          } catch (e) {
+            // UTF-8 解码失败，尝试 GBK
+            try {
+              text = iconv.decode(buffer, 'gbk');
+              JSON.parse(text);
+            } catch (e2) {
+              // GBK 也失败，尝试 UTF-8
+              text = buffer.toString('utf-8');
+            }
+          }
+
+          try {
+            resolve(JSON.parse(text));
+          } catch (e) {
+            reject(new Error('JSON解析失败: ' + (text || buffer.toString('utf-8')).slice(0, 200)));
+          }
+        });
+      })
+      .on('error', reject);
   });
 }
 
@@ -94,59 +96,71 @@ function get(url, params = {}, headers = {}) {
  * @param {object} extraHeaders 额外请求头（会合并到默认头）
  */
 function getWithUA(url, params = {}, extraHeaders = {}) {
-  const headers = Object.assign({
-    'Accept': 'application/json, text/plain, */*',
-    'User-Agent': randomUA(),
-    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-    'Cache-Control': 'no-cache',
-  }, extraHeaders);
+  const headers = Object.assign(
+    {
+      Accept: 'application/json, text/plain, */*',
+      'User-Agent': randomUA(),
+      'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+      'Cache-Control': 'no-cache',
+    },
+    extraHeaders,
+  );
 
   return new Promise((resolve, reject) => {
-    const qs = params ? '?' + Object.keys(params).map(k =>
-      encodeURIComponent(k) + '=' + encodeURIComponent(params[k])
-    ).join('&') : '';
+    const qs = params
+      ? '?' +
+        Object.keys(params)
+          .map((k) => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+          .join('&')
+      : '';
     const fullUrl = url + qs;
     const urlObj = new URL(fullUrl);
     const lib = urlObj.protocol === 'https:' ? https : http;
 
-    const req = lib.request({
-      hostname: urlObj.hostname,
-      port: urlObj.port || (urlObj.protocol === 'https:' ? 443 : 80),
-      path: urlObj.pathname + urlObj.search,
-      method: 'GET',
-      headers: headers,
-      rejectUnauthorized: false,
-    }, (res) => {
-      const chunks = [];
-      res.on('data', c => chunks.push(c));
-      res.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        const contentType = res.headers['content-type'] || '';
-        let encoding = 'utf-8';
-        if (contentType.includes('charset=gbk') || contentType.includes('charset=gb2312')) {
-          encoding = 'gbk';
-        }
-        let text;
-        try {
-          text = iconv.decode(buffer, encoding);
-          JSON.parse(text);
-        } catch (e) {
-          try {
-            text = iconv.decode(buffer, 'gbk');
-            JSON.parse(text);
-          } catch (e2) {
-            text = buffer.toString('utf-8');
+    const req = lib.request(
+      {
+        hostname: urlObj.hostname,
+        port: urlObj.port || (urlObj.protocol === 'https:' ? 443 : 80),
+        path: urlObj.pathname + urlObj.search,
+        method: 'GET',
+        headers: headers,
+        rejectUnauthorized: false,
+      },
+      (res) => {
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => {
+          const buffer = Buffer.concat(chunks);
+          const contentType = res.headers['content-type'] || '';
+          let encoding = 'utf-8';
+          if (contentType.includes('charset=gbk') || contentType.includes('charset=gb2312')) {
+            encoding = 'gbk';
           }
-        }
-        try {
-          resolve(JSON.parse(text));
-        } catch (e) {
-          reject(new Error('JSON解析失败: ' + (text || buffer.toString('utf-8')).slice(0, 200)));
-        }
-      });
-    });
+          let text;
+          try {
+            text = iconv.decode(buffer, encoding);
+            JSON.parse(text);
+          } catch (e) {
+            try {
+              text = iconv.decode(buffer, 'gbk');
+              JSON.parse(text);
+            } catch (e2) {
+              text = buffer.toString('utf-8');
+            }
+          }
+          try {
+            resolve(JSON.parse(text));
+          } catch (e) {
+            reject(new Error('JSON解析失败: ' + (text || buffer.toString('utf-8')).slice(0, 200)));
+          }
+        });
+      },
+    );
     req.on('error', reject);
-    req.setTimeout(20000, () => { req.abort(); reject(new Error('timeout')); });
+    req.setTimeout(20000, () => {
+      req.abort();
+      reject(new Error('timeout'));
+    });
     req.end();
   });
 }

@@ -31,16 +31,16 @@ function calcModelA(vars) {
   const da = (vars.awayDefendEfficiency || 0) + 0.001;
 
   // 主进攻次数 = Gh×10 / Eff_atk,h
-  const atkH = gh * 10 / eh;
+  const atkH = (gh * 10) / eh;
   // 客进攻次数 = Ga×10 / Eff_atk,a
-  const atkA = ga * 10 / ea;
+  const atkA = (ga * 10) / ea;
   // 主被射次数 = Gha×10 / Eff_def,h
-  const defH = lh * 10 / dh;
+  const defH = (lh * 10) / dh;
   // 客被射次数 = Gah×10 / Eff_def,a
-  const defA = la * 10 / da;
+  const defA = (la * 10) / da;
 
   const alpha = atkH / (atkH + atkA + 0.001);
-  const beta  = defH / (defH + defA + 0.001);
+  const beta = defH / (defH + defA + 0.001);
 
   const effH = vars.homeAttackEfficiency || 0;
   const effA = vars.awayAttackEfficiency || 0;
@@ -55,7 +55,7 @@ function calcModelA(vars) {
   return {
     total: round(ehA + eaA, F),
     home: round(Math.max(0.1, ehA), 2),
-    away: round(Math.max(0.1, eaA), 2)
+    away: round(Math.max(0.1, eaA), 2),
   };
 }
 
@@ -76,7 +76,9 @@ function calcModelC(vars) {
   // 近2次交锋总进球均值
   let g2 = 2.5;
   if (jiaoFenScores.length >= 2) {
-    const sum = jiaoFenScores.reduce(function(s, sc) { return s + (sc ? (sc.h + sc.a) : 0); }, 0);
+    const sum = jiaoFenScores.reduce(function (s, sc) {
+      return s + (sc ? sc.h + sc.a : 0);
+    }, 0);
     g2 = sum / jiaoFenScores.length;
   }
 
@@ -106,9 +108,11 @@ function fuse(vars, modelB, pAsia) {
   const pairs = [
     { i: 0, j: 1, diff: Math.abs(totals[0] - totals[1]) },
     { i: 0, j: 2, diff: Math.abs(totals[0] - totals[2]) },
-    { i: 1, j: 2, diff: Math.abs(totals[1] - totals[2]) }
+    { i: 1, j: 2, diff: Math.abs(totals[1] - totals[2]) },
   ];
-  const consistent = pairs.filter(function(p) { return p.diff <= 0.3; });
+  const consistent = pairs.filter(function (p) {
+    return p.diff <= 0.3;
+  });
   const nConsistent = consistent.length;
 
   let finalTotal, consensusLabel, fused;
@@ -120,10 +124,14 @@ function fuse(vars, modelB, pAsia) {
     fused = true;
   } else if (nConsistent === 2) {
     // 弱一致：剔除分歧值
-    const divergentIdx = [0, 1, 2].find(function(k) {
-      return !consistent.some(function(c) { return c.i === k || c.j === k; });
+    const divergentIdx = [0, 1, 2].find(function (k) {
+      return !consistent.some(function (c) {
+        return c.i === k || c.j === k;
+      });
     });
-    const keepIdx = [0, 1, 2].filter(function(k) { return k !== divergentIdx; });
+    const keepIdx = [0, 1, 2].filter(function (k) {
+      return k !== divergentIdx;
+    });
     finalTotal = round((totals[keepIdx[0]] + totals[keepIdx[1]]) / 2, F);
     consensusLabel = '弱一致(剔除' + names[divergentIdx] + ')';
     fused = true;
@@ -135,9 +143,7 @@ function fuse(vars, modelB, pAsia) {
   }
 
   // 按 B2 模型比例拆分主客
-  const splitRatio = (modelB.home + modelB.away) > 0
-    ? modelB.home / (modelB.home + modelB.away)
-    : 0.5;
+  const splitRatio = modelB.home + modelB.away > 0 ? modelB.home / (modelB.home + modelB.away) : 0.5;
   const finalHome = round(Math.max(0.1, finalTotal * splitRatio), 2);
   const finalAway = round(Math.max(0.1, finalTotal * (1 - splitRatio)), 2);
 
@@ -153,8 +159,10 @@ function fuse(vars, modelB, pAsia) {
       modelC: mC,
       pAsia: round(pAsia || 2.5, F),
       nConsistent,
-      pairs: pairs.map(function(p) { return round(p.diff, F); })
-    }
+      pairs: pairs.map(function (p) {
+        return round(p.diff, F);
+      }),
+    },
   };
 }
 

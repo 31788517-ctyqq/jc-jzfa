@@ -1101,6 +1101,7 @@ async function backfillResults(dateStr) {
               matchNum: m.num || '',
               confidence: entry.confidence || 0,
               content: JSON.stringify(entry.content || ''),
+              handicap: m.handicap !== undefined ? m.handicap : (m.rq !== undefined ? m.rq : undefined),
             };
             preds.forEach(function (p) {
               if (p['玩法'] === '胜平负') aiFields.spf = p['建议方向'];
@@ -1127,6 +1128,7 @@ async function backfillResults(dateStr) {
               topPercent: gs.scores && gs.scores[0] ? parseFloat(gs.scores[0].percent) || 0 : 0,
               ladderLabel: gs.ladderLabel || '',
               ladderLevel: gs.ladderLevel || 0,
+              handicap: m.handicap !== undefined ? m.handicap : (m.rq !== undefined ? m.rq : undefined),
             });
           } catch (e) {}
         }
@@ -1152,6 +1154,7 @@ async function backfillResults(dateStr) {
             awayGoals: awayGoals,
             actualSpf: actualSpf,
             actualOverunder: actualOverunder,
+            handicap: m.handicap !== undefined ? m.handicap : (m.rq !== undefined ? m.rq : undefined),
           });
           logsUpdated++;
         } catch (e2) {
@@ -1261,6 +1264,8 @@ async function refreshTodayAI() {
               if (matchInfo.visitName) aiFields.visitName = matchInfo.visitName;
               if (matchInfo.leagueName) aiFields.leagueName = matchInfo.leagueName;
               if (matchInfo.num) aiFields.matchNum = matchInfo.num;
+              if (matchInfo.handicap !== undefined) aiFields.handicap = matchInfo.handicap;
+              else if (matchInfo.rq !== undefined) aiFields.handicap = matchInfo.rq;
               preds.forEach(function (p) {
                 if (p['玩法'] === '胜平负') aiFields.spf = p['建议方向'];
                 if (p['玩法'] === '大小球') aiFields.overunder = p['建议方向'];

@@ -5,13 +5,42 @@ import * as state from './state.js';
 import { loadHome } from './pages/home.js';
 import { loadMatchList } from './pages/match-list.js';
 import { goDetail, closeAI, showAIPrediction } from './pages/match-detail.js';
-import { loadRanking, selectCategory, selectDirection, updateRankDateBar, shiftRankDate, goRankToday } from './pages/ranking.js';
+import {
+  loadRanking,
+  selectCategory,
+  selectDirection,
+  updateRankDateBar,
+  shiftRankDate,
+  goRankToday,
+} from './pages/ranking.js';
 import { loadHitRate } from './pages/hit-rate.js';
-import { loadFilterLeagues, resetFilterResult, toggleDD, selectDD, getDDVal, onDDTypeChange, onRankTypeChange, doFilterQuery, closeAllDD, handleDocClose } from './pages/filter.js';
+import {
+  loadFilterLeagues,
+  resetFilterResult,
+  toggleDD,
+  selectDD,
+  getDDVal,
+  onDDTypeChange,
+  onRankTypeChange,
+  doFilterQuery,
+  closeAllDD,
+  handleDocClose,
+} from './pages/filter.js';
 import { loadIncome } from './pages/income.js';
 import { loadPlanList, updatePlanDateBar, shiftPlanDate, goPlanToday } from './pages/plans.js';
 import { showGongshoudao } from './pages/gongshoudao.js?v=25052903';
-import { loadQuantRank, updateQuantDateBar, shiftQuantDate, goQuantToday, toggleQuantDatePicker, switchQuantTab, togglePick, startPK, sortBy, switchQuantView } from './pages/quant-rank.js?v=67';
+import {
+  loadQuantRank,
+  updateQuantDateBar,
+  shiftQuantDate,
+  goQuantToday,
+  toggleQuantDatePicker,
+  switchQuantTab,
+  togglePick,
+  startPK,
+  sortBy,
+  switchQuantView,
+} from './pages/quant-rank.js?v=67';
 import { openPK, closePK, openPKMulti } from './pages/match-pk-fusion.js?v=85';
 
 // ── 日期切换 ──
@@ -41,7 +70,10 @@ export function toggleDatePicker() {
   var el = document.getElementById('datePicker');
   if (!el) return;
   var isOpen = el.style.display !== 'none';
-  if (isOpen) { el.style.display = 'none'; return; }
+  if (isOpen) {
+    el.style.display = 'none';
+    return;
+  }
   renderDatePicker();
   el.style.display = 'block';
 }
@@ -55,7 +87,9 @@ function renderDatePicker() {
 
   var weeks = state.weekDates || [];
   var available = {};
-  weeks.forEach(function (w) { available[w.matchDate] = true; });
+  weeks.forEach(function (w) {
+    available[w.matchDate] = true;
+  });
 
   var today = formatDate(new Date()).slice(5);
   var current = weeks[state.selectedWeekIdx] ? weeks[state.selectedWeekIdx].matchDate : '';
@@ -68,7 +102,7 @@ function renderDatePicker() {
   }
   window.datePickerYear = pickerYear;
 
-  var CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二'];
+  var CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
   monthEl.textContent = CN[pickerMonth - 1] + '月 ' + pickerYear;
 
   var firstDay = new Date(pickerYear, pickerMonth - 1, 1);
@@ -94,8 +128,24 @@ function renderDatePicker() {
   }
   grid.innerHTML = html;
 
-  document.getElementById('datePickerPrev').onclick = function () { pickerMonth--; if (pickerMonth < 1) { pickerYear--; pickerMonth = 12; } window.datePickerYear = pickerYear; renderDatePicker(); };
-  document.getElementById('datePickerNext').onclick = function () { pickerMonth++; if (pickerMonth > 12) { pickerYear++; pickerMonth = 1; } window.datePickerYear = pickerYear; renderDatePicker(); };
+  document.getElementById('datePickerPrev').onclick = function () {
+    pickerMonth--;
+    if (pickerMonth < 1) {
+      pickerYear--;
+      pickerMonth = 12;
+    }
+    window.datePickerYear = pickerYear;
+    renderDatePicker();
+  };
+  document.getElementById('datePickerNext').onclick = function () {
+    pickerMonth++;
+    if (pickerMonth > 12) {
+      pickerYear++;
+      pickerMonth = 1;
+    }
+    window.datePickerYear = pickerYear;
+    renderDatePicker();
+  };
 }
 
 export function selectDateFromPicker(matchDate) {
@@ -103,11 +153,17 @@ export function selectDateFromPicker(matchDate) {
   if (matchDate === 'today') {
     var today = formatDate(new Date()).slice(5);
     for (var i = 0; i < weeks.length; i++) {
-      if (weeks[i].matchDate === today) { state.setSelectedWeekIdx(i); break; }
+      if (weeks[i].matchDate === today) {
+        state.setSelectedWeekIdx(i);
+        break;
+      }
     }
   } else {
     for (var i = 0; i < weeks.length; i++) {
-      if (weeks[i].matchDate === matchDate) { state.setSelectedWeekIdx(i); break; }
+      if (weeks[i].matchDate === matchDate) {
+        state.setSelectedWeekIdx(i);
+        break;
+      }
     }
   }
   updateDateBar();
@@ -127,7 +183,8 @@ function renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onS
   var monthEl = document.getElementById(prefix + 'Month');
   if (!grid || !monthEl) return;
 
-  var yearKey = prefix + 'Year', monthKey = prefix + 'MonthIdx';
+  var yearKey = prefix + 'Year',
+    monthKey = prefix + 'MonthIdx';
   if (typeof window[yearKey] === 'undefined') {
     var d = new Date();
     window[yearKey] = d.getFullYear();
@@ -135,7 +192,7 @@ function renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onS
     if (currentDate) window[monthKey] = parseInt(currentDate.slice(0, 2), 10);
   }
 
-  var CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二'];
+  var CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
   monthEl.textContent = CN[window[monthKey] - 1] + '月 ' + window[yearKey];
 
   var firstDay = new Date(window[yearKey], window[monthKey] - 1, 1);
@@ -156,22 +213,41 @@ function renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onS
     if (isActive) cls += ' active';
     if (isToday) cls += ' today';
     // 所有日期均可点击，无数据的日期由后端返回空列表+页面提示"暂无方案"
-    var onclick = ' onclick="' + onSelect + '(\'' + md + '\')"';
+    var onclick = ' onclick="' + onSelect + "('" + md + '\')"';
     html += '<div class="' + cls + '"' + onclick + '>' + day + '</div>';
   }
   grid.innerHTML = html;
 
-  document.getElementById(prefix + 'Prev').onclick = function () { window[monthKey]--; if (window[monthKey] < 1) { window[yearKey]--; window[monthKey] = 12; } renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onSelect); };
-  document.getElementById(prefix + 'Next').onclick = function () { window[monthKey]++; if (window[monthKey] > 12) { window[yearKey]++; window[monthKey] = 1; } renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onSelect); };
+  document.getElementById(prefix + 'Prev').onclick = function () {
+    window[monthKey]--;
+    if (window[monthKey] < 1) {
+      window[yearKey]--;
+      window[monthKey] = 12;
+    }
+    renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onSelect);
+  };
+  document.getElementById(prefix + 'Next').onclick = function () {
+    window[monthKey]++;
+    if (window[monthKey] > 12) {
+      window[yearKey]++;
+      window[monthKey] = 1;
+    }
+    renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onSelect);
+  };
 }
 
 // ── 今日方案日历 ──
 export function togglePlanDatePicker() {
   var el = document.getElementById('planDatePicker');
   if (!el) return;
-  if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+  if (el.style.display !== 'none') {
+    el.style.display = 'none';
+    return;
+  }
   var weeks = state.weekDates || [];
-  var available = weeks.map(function(w) { return w.matchDate; });
+  var available = weeks.map(function (w) {
+    return w.matchDate;
+  });
   var today = formatDate(new Date()).slice(5);
   // 从实际 planDate 提取 MM-DD
   var current = state.planDate ? state.planDate.slice(5) : today;
@@ -182,7 +258,8 @@ export function selectPlanDateFromPicker(md) {
   // 使用日历控件当前年份，而非 planDate 的年份（修复跨年导航bug）
   var year = window.planDateYear || new Date().getFullYear();
   var parts = md.split('-');
-  var month = parseInt(parts[0], 10), day = parseInt(parts[1], 10);
+  var month = parseInt(parts[0], 10),
+    day = parseInt(parts[1], 10);
   var fullDate = year + '-' + md;
   state.setPlanDate(fullDate);
   // 标记为日历直接选日，不污染 planDateOffset（避免影响左右箭头切换）
@@ -202,9 +279,14 @@ export function selectPlanDateFromPicker(md) {
 export function toggleRankDatePicker() {
   var el = document.getElementById('rankDatePicker');
   if (!el) return;
-  if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+  if (el.style.display !== 'none') {
+    el.style.display = 'none';
+    return;
+  }
   var weeks = state.weekDates || [];
-  var available = weeks.map(function(w) { return w.matchDate; });
+  var available = weeks.map(function (w) {
+    return w.matchDate;
+  });
   var today = formatDate(new Date()).slice(5);
   var current = state.rankDate ? state.rankDate.slice(5) : today;
   renderMonthCalendar('rankDate', available, current, today, 'selectRankDateFromPicker');
@@ -217,7 +299,7 @@ export function selectRankDateFromPicker(md) {
   var el = document.getElementById('rankDateCurrent');
   if (el) {
     var mmdd = md.replace('-', '/');
-    var week = WEEK_NAMES[new Date(year, parseInt(md.slice(0,2), 10) - 1, parseInt(md.slice(3), 10)).getDay()];
+    var week = WEEK_NAMES[new Date(year, parseInt(md.slice(0, 2), 10) - 1, parseInt(md.slice(3), 10)).getDay()];
     el.textContent = mmdd + ' ' + week;
   }
   loadRanking();
@@ -232,8 +314,12 @@ export function goToday() {
   state.weekDates.forEach(function (w, i) {
     if (w.matchDate === today && w.weekNum === todayWeek) best = i;
   });
-  if (!(state.weekDates[best] && state.weekDates[best].matchDate === today && state.weekDates[best].weekNum === todayWeek)) {
-    state.weekDates.forEach(function (w, i) { if (w.matchDate <= today) best = i; });
+  if (
+    !(state.weekDates[best] && state.weekDates[best].matchDate === today && state.weekDates[best].weekNum === todayWeek)
+  ) {
+    state.weekDates.forEach(function (w, i) {
+      if (w.matchDate <= today) best = i;
+    });
   }
   state.setSelectedWeekIdx(best);
   updateDateBar();
@@ -241,23 +327,27 @@ export function goToday() {
 }
 
 export function initWeekDates() {
-  api('week-dates', {}).then(function (list) {
-    state.setWeekDates(list || []);
-    if (state.weekDates.length) {
-      var today = formatDate(new Date()).slice(5);
-      state.setSelectedWeekIdx(0);
-      state.weekDates.forEach(function (w, i) { if (w.matchDate <= today) state.setSelectedWeekIdx(i); });
-    } else {
+  api('week-dates', {})
+    .then(function (list) {
+      state.setWeekDates(list || []);
+      if (state.weekDates.length) {
+        var today = formatDate(new Date()).slice(5);
+        state.setSelectedWeekIdx(0);
+        state.weekDates.forEach(function (w, i) {
+          if (w.matchDate <= today) state.setSelectedWeekIdx(i);
+        });
+      } else {
+        state.setWeekDates([{ weekNum: WEEK_NAMES[new Date().getDay()], matchDate: formatDate(new Date()).slice(5) }]);
+      }
+      updateDateBar();
+      loadMatchList();
+    })
+    .catch(function () {
       state.setWeekDates([{ weekNum: WEEK_NAMES[new Date().getDay()], matchDate: formatDate(new Date()).slice(5) }]);
-    }
-    updateDateBar();
-    loadMatchList();
-  }).catch(function () {
-    state.setWeekDates([{ weekNum: WEEK_NAMES[new Date().getDay()], matchDate: formatDate(new Date()).slice(5) }]);
-    state.setSelectedWeekIdx(0);
-    updateDateBar();
-    loadMatchList();
-  });
+      state.setSelectedWeekIdx(0);
+      updateDateBar();
+      loadMatchList();
+    });
 }
 
 // ── 标签切换 ──
@@ -265,11 +355,13 @@ export function switchTab(tab) {
   if (state.currentPage === 'home' && tab !== 'home') state.setSavedScrollY(window.scrollY);
   state.setCurrentPage(tab);
   // 记住当前页，刷新后恢复
-  try { sessionStorage.setItem('lastPage', tab); } catch(e) {}
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  try {
+    sessionStorage.setItem('lastPage', tab);
+  } catch (e) {}
+  document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
   var pageEl = document.getElementById('page-' + (tab === 'detail' ? 'detail' : tab));
   if (pageEl) pageEl.classList.add('active');
-  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach((t) => t.classList.remove('active'));
   var tabEl = document.getElementById('tab-' + (tab === 'detail' ? 'rank' : tab));
   if (tabEl) tabEl.classList.add('active');
 
@@ -282,12 +374,12 @@ export function switchTab(tab) {
     rank: '推荐排行榜',
     hit: '命中率统计',
     filter: '命中率筛选',
-    income: '方案收入'
+    income: '方案收入',
   };
   var titleEl = document.getElementById('navTitle');
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
   var backEl = document.getElementById('navBack');
-  if (backEl) backEl.style.display = (tab === 'detail' || tab === 'filter') ? 'flex' : 'none';
+  if (backEl) backEl.style.display = tab === 'detail' || tab === 'filter' ? 'flex' : 'none';
 
   if (tab === 'home') {
     var cameBack = state.savedScrollY > 0;
@@ -300,8 +392,10 @@ export function switchTab(tab) {
     });
   }
   if (tab === 'match') {
-    if (state.weekDates.length > 0) { updateDateBar(); loadMatchList(); }
-    else initWeekDates();
+    if (state.weekDates.length > 0) {
+      updateDateBar();
+      loadMatchList();
+    } else initWeekDates();
     setTimeout(function () {
       var listEl = document.getElementById('matchList');
       if (listEl && (!listEl.children.length || listEl.children[0].classList.contains('loading-spinner'))) {
@@ -309,11 +403,23 @@ export function switchTab(tab) {
       }
     }, 300);
   }
-  if (tab === 'plan') { updatePlanDateBar(); loadPlanList(); }
-  if (tab === 'quant-rank') { updateQuantDateBar(); loadQuantRank(); }
-  if (tab === 'rank') { updateRankDateBar(); loadRanking(); }
+  if (tab === 'plan') {
+    updatePlanDateBar();
+    loadPlanList();
+  }
+  if (tab === 'quant-rank') {
+    updateQuantDateBar();
+    loadQuantRank();
+  }
+  if (tab === 'rank') {
+    updateRankDateBar();
+    loadRanking();
+  }
   if (tab === 'hit') loadHitRate();
-  if (tab === 'filter') { loadFilterLeagues(); resetFilterResult(); }
+  if (tab === 'filter') {
+    loadFilterLeagues();
+    resetFilterResult();
+  }
   if (tab === 'income') loadIncome();
 }
 
@@ -321,7 +427,9 @@ export function goBack() {
   switchTab(state.lastPage);
   if (state.lastPage === 'home') {
     requestAnimationFrame(function () {
-      requestAnimationFrame(function () { window.scrollTo(0, state.savedScrollY); });
+      requestAnimationFrame(function () {
+        window.scrollTo(0, state.savedScrollY);
+      });
     });
   }
 }
@@ -353,7 +461,9 @@ window.onDDTypeChange = onDDTypeChange;
 window.onRankTypeChange = onRankTypeChange;
 window.shiftPlanDate = shiftPlanDate;
 window.goPlanToday = goPlanToday;
-window.loadIncome = function (f) { loadIncome(f); };
+window.loadIncome = function (f) {
+  loadIncome(f);
+};
 window.shiftQuantDate = shiftQuantDate;
 window.goQuantToday = goQuantToday;
 window.toggleQuantDatePicker = toggleQuantDatePicker;
@@ -367,27 +477,35 @@ window.closePK = closePK;
 window.openPKMulti = openPKMulti;
 
 // ── 导航栏滚动隐藏 ──
-window.addEventListener('scroll', () => {
-  var navbar = document.getElementById('navbar');
-  var currentScroll = window.scrollY;
-  if (currentScroll > 80 && currentScroll > state.lastScrollY_nav) {
-    if (navbar) navbar.classList.add('hidden');
-  } else {
-    if (navbar) navbar.classList.remove('hidden');
-  }
-  state.setLastScrollYNav(currentScroll);
-}, { passive: true });
+window.addEventListener(
+  'scroll',
+  () => {
+    var navbar = document.getElementById('navbar');
+    var currentScroll = window.scrollY;
+    if (currentScroll > 80 && currentScroll > state.lastScrollY_nav) {
+      if (navbar) navbar.classList.add('hidden');
+    } else {
+      if (navbar) navbar.classList.remove('hidden');
+    }
+    state.setLastScrollYNav(currentScroll);
+  },
+  { passive: true },
+);
 
 // ── 下拉菜单全局关闭 ──
 document.addEventListener('click', handleDocClose);
 document.addEventListener('touchend', function (e) {
-  setTimeout(function () { handleDocClose(e); }, 50);
+  setTimeout(function () {
+    handleDocClose(e);
+  }, 50);
 });
 
 // ── 启动：恢复上次页面（DOM 已由阻塞脚本预设 active，此处只加载数据）───
 (function initPage() {
   var last = null;
-  try { last = sessionStorage.getItem('lastPage'); } catch(e) {}
+  try {
+    last = sessionStorage.getItem('lastPage');
+  } catch (e) {}
   // 如果阻塞脚本已设 active（非 home），直接加载数据；否则初始化 home
   if (last && last !== 'home' && last !== 'detail') {
     state.setCurrentPage(last);
@@ -402,13 +520,27 @@ document.addEventListener('touchend', function (e) {
 // 只加载内容，不切换 DOM（用于初始化）
 function switchTabLoad(tab) {
   if (tab === 'match') {
-    if (state.weekDates.length > 0) { updateDateBar(); loadMatchList(); }
-    else initWeekDates();
+    if (state.weekDates.length > 0) {
+      updateDateBar();
+      loadMatchList();
+    } else initWeekDates();
   }
-  if (tab === 'plan') { updatePlanDateBar(); loadPlanList(); }
-  if (tab === 'quant-rank') { updateQuantDateBar(); loadQuantRank(); }
-  if (tab === 'rank') { updateRankDateBar(); loadRanking(); }
+  if (tab === 'plan') {
+    updatePlanDateBar();
+    loadPlanList();
+  }
+  if (tab === 'quant-rank') {
+    updateQuantDateBar();
+    loadQuantRank();
+  }
+  if (tab === 'rank') {
+    updateRankDateBar();
+    loadRanking();
+  }
   if (tab === 'hit') loadHitRate();
-  if (tab === 'filter') { loadFilterLeagues(); resetFilterResult(); }
+  if (tab === 'filter') {
+    loadFilterLeagues();
+    resetFilterResult();
+  }
   if (tab === 'income') loadIncome();
 }

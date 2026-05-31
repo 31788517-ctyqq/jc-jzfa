@@ -1,7 +1,7 @@
 /**
  * server/migrate_to_db.js
  * JSON → SQLite 数据迁移脚本
- * 
+ *
  * 将 data.json / trends.json 中的历史数据导入 SQLite 数据库
  * 用法: node server/migrate_to_db.js           # 完整迁移
  *       node server/migrate_to_db.js --dry-run  # 试运行，不写入
@@ -46,7 +46,13 @@ function fmtLocal(d) {
 
   try {
     dataJson = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
-    console.log('  data.json: ' + Object.keys(dataJson.m || {}).length + ' 场比赛, ' + Object.keys(dataJson.r || {}).length + ' 条推荐');
+    console.log(
+      '  data.json: ' +
+        Object.keys(dataJson.m || {}).length +
+        ' 场比赛, ' +
+        Object.keys(dataJson.r || {}).length +
+        ' 条推荐',
+    );
   } catch (e) {
     console.log('  [跳过] data.json 不可读: ' + e.message);
     dataJson = null;
@@ -66,12 +72,16 @@ function fmtLocal(d) {
     if (dataJson) {
       const mMap = dataJson.m || {};
       const dates = new Set();
-      Object.values(mMap).forEach(m => { if (m.date) dates.add(m.date.slice(0, 10)); });
+      Object.values(mMap).forEach((m) => {
+        if (m.date) dates.add(m.date.slice(0, 10));
+      });
       console.log('  日期范围: ' + Math.min(...Array.from(dates)) + ' ~ ' + Math.max(...Array.from(dates)));
       const statusCounts = {};
-      Object.values(mMap).forEach(m => { statusCounts[m.matchStatus] = (statusCounts[m.matchStatus] || 0) + 1; });
-      Object.keys(statusCounts).forEach(s => {
-        const labels = {0:'未开始',1:'进行中',2:'已结束',3:'取消',4:'延期'};
+      Object.values(mMap).forEach((m) => {
+        statusCounts[m.matchStatus] = (statusCounts[m.matchStatus] || 0) + 1;
+      });
+      Object.keys(statusCounts).forEach((s) => {
+        const labels = { 0: '未开始', 1: '进行中', 2: '已结束', 3: '取消', 4: '延期' };
         console.log('  状态 ' + s + '(' + (labels[s] || '未知') + '): ' + statusCounts[s] + ' 场');
       });
     }
@@ -83,23 +93,25 @@ function fmtLocal(d) {
   console.log('\n[2/3] 迁移比赛数据...');
   if (dataJson) {
     const mMap = dataJson.m || {};
-    const matches = Object.entries(mMap).map(([matchId, m]) => ({
-      matchId: String(matchId),
-      num: m.num || '',
-      homeName: m.homeName || '',
-      visitName: m.visitName || '',
-      leagueName: m.leagueName || '',
-      startTime: m.startTime || '',
-      matchStatus: m.matchStatus || 0,
-      score: m.score || '',
-      halfScore: m.halfScore || '',
-      duration: m.duration || '',
-      yellow: m.yellow || '',
-      red: m.red || '',
-      recommNum: m.recommNum || 0,
-      date: (m.date || '').slice(0, 10),
-      fetchDate: m.fetchDate || fmtLocal()
-    })).filter(m => m.matchId && m.date);
+    const matches = Object.entries(mMap)
+      .map(([matchId, m]) => ({
+        matchId: String(matchId),
+        num: m.num || '',
+        homeName: m.homeName || '',
+        visitName: m.visitName || '',
+        leagueName: m.leagueName || '',
+        startTime: m.startTime || '',
+        matchStatus: m.matchStatus || 0,
+        score: m.score || '',
+        halfScore: m.halfScore || '',
+        duration: m.duration || '',
+        yellow: m.yellow || '',
+        red: m.red || '',
+        recommNum: m.recommNum || 0,
+        date: (m.date || '').slice(0, 10),
+        fetchDate: m.fetchDate || fmtLocal(),
+      }))
+      .filter((m) => m.matchId && m.date);
 
     if (dryRun) {
       console.log('  [DRY] 将迁移 ' + matches.length + ' 场比赛');
@@ -116,14 +128,14 @@ function fmtLocal(d) {
     Object.entries(rMap).forEach(([key, items]) => {
       const matchId = key.startsWith('m_') ? key.slice(2) : key;
       if (!Array.isArray(items)) return;
-      items.forEach(r => {
+      items.forEach((r) => {
         if (!r || !r.type || !r.num) return;
         recs.push({
           matchId: String(matchId),
           type: r.type,
           num: r.num,
           result: r.result !== undefined ? r.result : null,
-          fetchDate: r.fetchDate || fmtLocal()
+          fetchDate: r.fetchDate || fmtLocal(),
         });
       });
     });
@@ -141,17 +153,17 @@ function fmtLocal(d) {
     const trendRecs = [];
     Object.entries(trendsJson).forEach(([matchId, snapshots]) => {
       if (!Array.isArray(snapshots)) return;
-      snapshots.forEach(snap => {
+      snapshots.forEach((snap) => {
         const fetchDate = (snap.time || '').slice(0, 10);
         if (!fetchDate) return;
-        (snap.recs || []).forEach(r => {
+        (snap.recs || []).forEach((r) => {
           if (!r.type || !r.num) return;
           trendRecs.push({
             matchId: String(matchId),
             type: r.type,
             num: r.num,
             result: r.result !== undefined ? r.result : null,
-            fetchDate: fetchDate
+            fetchDate: fetchDate,
           });
         });
       });
@@ -170,8 +182,14 @@ function fmtLocal(d) {
     // 备份原文件
     const bak1 = DATA_PATH + '.pre_migrate_bak';
     const bak2 = TRENDS_PATH + '.pre_migrate_bak';
-    try { fs.copyFileSync(DATA_PATH, bak1); console.log('  备份: ' + bak1); } catch (e) {}
-    try { fs.copyFileSync(TRENDS_PATH, bak2); console.log('  备份: ' + bak2); } catch (e) {}
+    try {
+      fs.copyFileSync(DATA_PATH, bak1);
+      console.log('  备份: ' + bak1);
+    } catch (e) {}
+    try {
+      fs.copyFileSync(TRENDS_PATH, bak2);
+      console.log('  备份: ' + bak2);
+    } catch (e) {}
 
     // 验证
     const db = database.getDatabase();
@@ -182,8 +200,10 @@ function fmtLocal(d) {
 
   database.closeDatabase();
   console.log('\n迁移完毕。');
-})().catch(e => {
+})().catch((e) => {
   console.error('迁移异常: ' + e.message);
-  try { database.closeDatabase(); } catch (_) {}
+  try {
+    database.closeDatabase();
+  } catch (_) {}
   process.exit(1);
 });

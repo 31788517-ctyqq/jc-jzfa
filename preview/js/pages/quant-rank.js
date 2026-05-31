@@ -887,130 +887,164 @@ function _doRenderChart(container) {
     return;
   }
 
+  var n = filtered.length;
+
   var names = filtered.map(function (item) {
     return esc(shortTeam(item.homeName) + ' vs ' + shortTeam(item.visitName));
   });
 
-  // 根据 tab 准备不同的数据系列
-  var series = [];
+  // ═══ 根据 tab 定义指标组 ═══
+  var seriesDefs;
   if (currentTab === 'power') {
-    series = [
-      {
-        name: '净胜球量化',
-        data: filtered.map(function (x) {
-          return parseFloat(x.gdScore) || 0;
-        }),
-      },
-      {
-        name: '胜平负交叉',
-        data: filtered.map(function (x) {
-          return parseFloat(x.crossValue) || 0;
-        }),
-      },
-      {
-        name: '综合实力',
-        data: filtered.map(function (x) {
-          return parseFloat(x.pwScore) || 0;
-        }),
-      },
-      {
-        name: '攻守实力',
-        data: filtered.map(function (x) {
-          return parseFloat(x.adCombined) || 0;
-        }),
-      },
+    seriesDefs = [
+      { name: '综合实力', key: 'pwScore', fmt: 2 },
+      { name: '净胜球量化', key: 'gdScore', fmt: 2 },
+      { name: '胜平负交叉', key: 'crossValue', fmt: 2 },
+      { name: '攻守实力', key: 'adCombined', fmt: 2 },
     ];
   } else if (currentTab === 'goal') {
-    series = [
-      {
-        name: '综合大球比例',
-        data: filtered.map(function (x) {
-          return parseFloat(x.bigBallRatio) || 0;
-        }),
-      },
-      {
-        name: '攻防进球',
-        data: filtered.map(function (x) {
-          return parseFloat(x.attDefGoal) || 0;
-        }),
-      },
-      {
-        name: '交锋进球',
-        data: filtered.map(function (x) {
-          return parseFloat(x.headToHeadGoal) || 0;
-        }),
-      },
-      {
-        name: '破甲和',
-        data: filtered.map(function (x) {
-          return parseFloat(x.breakArmor) || 0;
-        }),
-      },
+    seriesDefs = [
+      { name: '综合大球比例', key: 'bigBallRatio', fmt: 1 },
+      { name: '攻防进球', key: 'attDefGoal', fmt: 1 },
+      { name: '交锋进球', key: 'headToHeadGoal', fmt: 1 },
+      { name: '破甲和', key: 'breakArmor', fmt: 1 },
     ];
   } else {
-    series = [
-      {
-        name: '关注热度',
-        data: filtered.map(function (x) {
-          return parseFloat(x.hotFocusNum) || 0;
-        }),
-      },
-      {
-        name: '冷热指数',
-        data: filtered.map(function (x) {
-          var c = String(x.heatIndex).replace(/[^\d.]/g, '');
-          return parseFloat(c) || 0;
-        }),
-      },
+    seriesDefs = [
+      { name: '关注热度', key: 'hotFocusNum', fmt: 1 },
+      { name: '冷热指数', key: 'heatIndex', fmt: 2 },
     ];
   }
 
-  var colors = ['#18E0E0', '#22c55e', '#fbbf24', '#f97316', '#60a5fa', '#a78bfa'];
+  // ═══ Small Multiples 布局：每个指标独立 mini-chart，纵向堆叠 ═══
+  var gridCount = seriesDefs.length;
+  var gapPct = 0.5;
+  var totalGap = (gridCount - 1) * gapPct;
+  var perGridPct = (100 - totalGap) / gridCount;
+
+  // 动态高度
+  var perChartH = Math.max(130, n * 22 + 30);
+  var totalH = perChartH * gridCount + (gridCount - 1) * 6;
+  container.style.height = Math.max(420, totalH) + 'px';
+
+  // 旧实例先销毁
+  if (chartInstance) {
+    chartInstance.dispose();
+    chartInstance = null;
+  }
+
+  // ── 构建多个 grid / axis / series ──
+  var grids = [];
+  var xAxes = [];
+  var yAxes = [];
+  var allSeries = [];
+  var legendData = [];
+
+  seriesDefs.forEach(function (def, i) {
+    var topPct = i * (perGridPct + gapPct);
+
+    grids.push({
+      left: '14%',
+      right: '6%',
+      top: topPct + '%',
+      height: perGridPct + '%',
+    });
+
+    xAxes.push({
+      gridIndex: i,
+      type: 'value',
+      axisLabel: { color: '#64748B', fontSize: 9 },
+      splitLine: { lineStyle: { color: 'rgba(24,224,224,0.04)' } },
+      axisLine: { show: false },
+      splitNumber: 4,
+    });
+
+    yAxes.push({
+      gridIndex: i,
+      type: 'category',
+      data: names,
+      axisLabel: {
+        color: '#94A3B8',
+        fontSize: 9,
+        show: i === 0,
+        width: 80,
+        overflow: 'truncate',
+      },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      inverse: true,
+    });
+
+    // 提取数据（带标签信息给 tooltip）
+    var rawData = filtered.map(function (item, j) {
+      var raw;
+      if (def.key === 'heatIndex') {
+        var c = String(item.heatIndex || '').replace(/[^\d.-]/g, '');
+        raw = parseFloat(c);
+      } else {
+        raw = parseFloat(item[def.key]);
+      }
+      if (isNaN(raw)) return '-';
+
+      var val = parseFloat(raw.toFixed(def.fmt));
+      var tags = computeTags(item);
+      var tagStr = tags
+        .map(function (t) {
+          return t.e + t.t;
+        })
+        .join(' ');
+      return { value: val, _tags: tagStr, _name: names[j] };
+    });
+
+    legendData.push(def.name);
+
+    allSeries.push({
+      name: def.name,
+      type: 'bar',
+      xAxisIndex: i,
+      yAxisIndex: i,
+      data: rawData,
+      barMaxWidth: 14,
+      barCategoryGap: '20%',
+      itemStyle: {
+        color: function (params) {
+          var v = params.value;
+          if (v === '-' || v === undefined || v === null) return '#374151';
+          return v >= 0 ? '#22c55e' : '#ef4444';
+        },
+        borderRadius: [0, 3, 3, 0],
+      },
+      label: {
+        show: true,
+        position: 'right',
+        color: '#94A3B8',
+        fontSize: 9,
+      },
+    });
+  });
 
   chartInstance = echarts.init(container);
   chartInstance.setOption({
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      formatter: function (params) {
+        if (!params || !params.length) return '';
+        var p = params[0];
+        var tags = (p.data && p.data._tags) ? '<br/><span style="color:#94A3B8;font-size:10px">' + p.data._tags + '</span>' : '';
+        return '<b>' + (p.name || (p.data && p.data._name) || '') + '</b><br/>' + p.marker + ' ' + p.seriesName + '：<b>' + p.value + '</b>' + tags;
+      },
+    },
     legend: {
-      data: series.map(function (s) {
-        return s.name;
-      }),
-      textStyle: { color: '#94A3B8', fontSize: 11 },
+      data: legendData,
+      textStyle: { color: '#94A3B8', fontSize: 10 },
       top: 0,
+      left: 'center',
     },
-    grid: { left: '3%', right: '6%', bottom: '8%', top: '15%', containLabel: true },
-    xAxis: {
-      type: 'category',
-      data: names,
-      axisLabel: { color: '#94A3B8', fontSize: 10, rotate: names.length > 5 ? 30 : 0, interval: 0 },
-      axisLine: { lineStyle: { color: 'rgba(24,224,224,0.1)' } },
-    },
-    yAxis: {
-      type: 'value',
-      axisLabel: { color: '#64748B', fontSize: 10 },
-      splitLine: { lineStyle: { color: 'rgba(24,224,224,0.04)' } },
-    },
-    series: series.map(function (s, i) {
-      return {
-        name: s.name,
-        type: 'bar',
-        data: s.data.map(function (v, j) {
-          var item = filtered[j];
-          var label = esc(shortTeam(item.homeName)) + ' vs ' + esc(shortTeam(item.visitName));
-          var tags = computeTags(item);
-          var tagStr = tags
-            .map(function (t) {
-              return t.e + t.t;
-            })
-            .join(' ');
-          return { value: v, _tags: tagStr, _name: label };
-        }),
-        itemStyle: {
-          color: colors[i % colors.length],
-          borderRadius: [2, 2, 0, 0],
-        },
-        barMaxWidth: 36,
-      };
-    }),
+    grid: grids,
+    xAxis: xAxes,
+    yAxis: yAxes,
+    series: allSeries,
     backgroundColor: 'transparent',
   });
 

@@ -61,7 +61,7 @@ function computeSingleMatch(rawStats, matchInfo) {
     leagueName: matchInfo.leagueName || '',
     num: matchInfo.num || '',
     startTime: matchInfo.startTime || '',
-    computedAt: Date.now(),  // ★ 数据计算时间戳（供前端显示时效标签）
+    computedAt: Date.now(), // ★ 数据计算时间戳（供前端显示时效标签）
 
     // ⭐ 基础实力分（供 quant-hot 计算 staticDiff）
     homePower: vars.homePower,
@@ -121,18 +121,18 @@ function computeSingleMatch(rawStats, matchInfo) {
     // ★ xG 值（主客预期进球，供排行榜净胜球量化使用）
     xgHome: goalResult.xgHome,
     xgAway: goalResult.xgAway,
-    gdQ: goalResult.gdQ,                        // ★ 净胜球量化 GD_q
+    gdQ: goalResult.gdQ, // ★ 净胜球量化 GD_q
     // ★ 四重熔断
     fusionConsensus: goalResult.fusionConsensus,
     fusionFinalHome: goalResult.fusionFinalHome,
     fusionFinalAway: goalResult.fusionFinalAway,
-    fusionFinalTotal: goalResult.fusionFinalTotal,  // V25新增：熔断后融合总进球（备用预期进球指标）
+    fusionFinalTotal: goalResult.fusionFinalTotal, // V25新增：熔断后融合总进球（备用预期进球指标）
     fusionFused: goalResult.fusionFused,
     // ★ 进球预测维度（PK.md 进球数预测公式）
-    attDefGoal: goalResult.attDefGoal,         // 攻防进球 = xgHome + xgAway
-    breakArmorSum: goalResult.breakArmorSum,   // 破甲和
-    bigBallRatio: goalResult.bigBallRatio,     // 大球比例（百分比）
-    h2hGoalAvg: goalResult.h2hGoalAvg,         // 交锋进球 = H2H场均总进球
+    attDefGoal: goalResult.attDefGoal, // 攻防进球 = xgHome + xgAway
+    breakArmorSum: goalResult.breakArmorSum, // 破甲和
+    bigBallRatio: goalResult.bigBallRatio, // 大球比例（百分比）
+    h2hGoalAvg: goalResult.h2hGoalAvg, // 交锋进球 = H2H场均总进球
 
     // ★ V27 新增: 进球稳定性
     goalStabilityHome: goalResult.goalStabilityHome || 50,
@@ -142,46 +142,136 @@ function computeSingleMatch(rawStats, matchInfo) {
     stabilityOverall: goalResult.stabilityOverall || 50,
 
     // ★ V27 新增: 联赛归一化校准
-    leagueCalibration: (function() {
-      var BASELINE = {
-        '德甲':3.18,'荷甲':3.05,'挪超':2.92,'瑞典超':2.85,'英超':2.72,'葡超':2.67,'西甲':2.63,
-        '意甲':2.56,'法甲':2.55,'K联赛':2.48,'日职':2.62,'日乙':2.58,'美职':2.78,'俄超':2.48,
-        '比甲':2.82,'奥甲':2.72,'苏超':2.65,'中超':2.78,'墨超':2.68,'巴甲':2.42,'阿甲':2.18,
-        '欧冠':2.82,'欧罗巴':2.72,'亚冠':2.65,'澳洲甲':2.88,'德乙':2.82,'法乙':2.42,'英冠':2.55,
-        '土超':2.75,'波兰超':2.62,'瑞士超':2.82,'希腊超':2.32,'丹麦超':2.78
+    leagueCalibration: (function () {
+      const BASELINE = {
+        德甲: 3.18,
+        荷甲: 3.05,
+        挪超: 2.92,
+        瑞典超: 2.85,
+        英超: 2.72,
+        葡超: 2.67,
+        西甲: 2.63,
+        意甲: 2.56,
+        法甲: 2.55,
+        K联赛: 2.48,
+        日职: 2.62,
+        日乙: 2.58,
+        美职: 2.78,
+        俄超: 2.48,
+        比甲: 2.82,
+        奥甲: 2.72,
+        苏超: 2.65,
+        中超: 2.78,
+        墨超: 2.68,
+        巴甲: 2.42,
+        阿甲: 2.18,
+        欧冠: 2.82,
+        欧罗巴: 2.72,
+        亚冠: 2.65,
+        澳洲甲: 2.88,
+        德乙: 2.82,
+        法乙: 2.42,
+        英冠: 2.55,
+        土超: 2.75,
+        波兰超: 2.62,
+        瑞士超: 2.82,
+        希腊超: 2.32,
+        丹麦超: 2.78,
       };
-      var ln = (matchInfo.leagueName || '').trim();
-      var found = 2.65;
-      var keys = Object.keys(BASELINE);
-      for (var ki = 0; ki < keys.length; ki++) { if (ln.indexOf(keys[ki]) !== -1) found = BASELINE[keys[ki]]; }
+      const ln = (matchInfo.leagueName || '').trim();
+      let found = 2.65;
+      const keys = Object.keys(BASELINE);
+      for (let ki = 0; ki < keys.length; ki++) {
+        if (ln.indexOf(keys[ki]) !== -1) found = BASELINE[keys[ki]];
+      }
       return parseFloat((found / 2.65).toFixed(3));
     })(),
-    leagueAvgGoals: (function() {
-      var BASELINE = {
-        '德甲':3.18,'荷甲':3.05,'挪超':2.92,'瑞典超':2.85,'英超':2.72,'葡超':2.67,'西甲':2.63,
-        '意甲':2.56,'法甲':2.55,'K联赛':2.48,'日职':2.62,'日乙':2.58,'美职':2.78,'俄超':2.48,
-        '比甲':2.82,'奥甲':2.72,'苏超':2.65,'中超':2.78,'墨超':2.68,'巴甲':2.42,'阿甲':2.18,
-        '欧冠':2.82,'欧罗巴':2.72,'亚冠':2.65,'澳洲甲':2.88,'德乙':2.82,'法乙':2.42,'英冠':2.55,
-        '土超':2.75,'波兰超':2.62,'瑞士超':2.82,'希腊超':2.32,'丹麦超':2.78
+    leagueAvgGoals: (function () {
+      const BASELINE = {
+        德甲: 3.18,
+        荷甲: 3.05,
+        挪超: 2.92,
+        瑞典超: 2.85,
+        英超: 2.72,
+        葡超: 2.67,
+        西甲: 2.63,
+        意甲: 2.56,
+        法甲: 2.55,
+        K联赛: 2.48,
+        日职: 2.62,
+        日乙: 2.58,
+        美职: 2.78,
+        俄超: 2.48,
+        比甲: 2.82,
+        奥甲: 2.72,
+        苏超: 2.65,
+        中超: 2.78,
+        墨超: 2.68,
+        巴甲: 2.42,
+        阿甲: 2.18,
+        欧冠: 2.82,
+        欧罗巴: 2.72,
+        亚冠: 2.65,
+        澳洲甲: 2.88,
+        德乙: 2.82,
+        法乙: 2.42,
+        英冠: 2.55,
+        土超: 2.75,
+        波兰超: 2.62,
+        瑞士超: 2.82,
+        希腊超: 2.32,
+        丹麦超: 2.78,
       };
-      var ln = (matchInfo.leagueName || '').trim();
-      var found = 2.65;
-      var keys = Object.keys(BASELINE);
-      for (var ki = 0; ki < keys.length; ki++) { if (ln.indexOf(keys[ki]) !== -1) found = BASELINE[keys[ki]]; }
+      const ln = (matchInfo.leagueName || '').trim();
+      let found = 2.65;
+      const keys = Object.keys(BASELINE);
+      for (let ki = 0; ki < keys.length; ki++) {
+        if (ln.indexOf(keys[ki]) !== -1) found = BASELINE[keys[ki]];
+      }
       return found;
     })(),
-    leagueOverBaseline: (function() {
-      var BASELINE = {
-        '德甲':3.18,'荷甲':3.05,'挪超':2.92,'瑞典超':2.85,'英超':2.72,'葡超':2.67,'西甲':2.63,
-        '意甲':2.56,'法甲':2.55,'K联赛':2.48,'日职':2.62,'日乙':2.58,'美职':2.78,'俄超':2.48,
-        '比甲':2.82,'奥甲':2.72,'苏超':2.65,'中超':2.78,'墨超':2.68,'巴甲':2.42,'阿甲':2.18,
-        '欧冠':2.82,'欧罗巴':2.72,'亚冠':2.65,'澳洲甲':2.88,'德乙':2.82,'法乙':2.42,'英冠':2.55,
-        '土超':2.75,'波兰超':2.62,'瑞士超':2.82,'希腊超':2.32,'丹麦超':2.78
+    leagueOverBaseline: (function () {
+      const BASELINE = {
+        德甲: 3.18,
+        荷甲: 3.05,
+        挪超: 2.92,
+        瑞典超: 2.85,
+        英超: 2.72,
+        葡超: 2.67,
+        西甲: 2.63,
+        意甲: 2.56,
+        法甲: 2.55,
+        K联赛: 2.48,
+        日职: 2.62,
+        日乙: 2.58,
+        美职: 2.78,
+        俄超: 2.48,
+        比甲: 2.82,
+        奥甲: 2.72,
+        苏超: 2.65,
+        中超: 2.78,
+        墨超: 2.68,
+        巴甲: 2.42,
+        阿甲: 2.18,
+        欧冠: 2.82,
+        欧罗巴: 2.72,
+        亚冠: 2.65,
+        澳洲甲: 2.88,
+        德乙: 2.82,
+        法乙: 2.42,
+        英冠: 2.55,
+        土超: 2.75,
+        波兰超: 2.62,
+        瑞士超: 2.82,
+        希腊超: 2.32,
+        丹麦超: 2.78,
       };
-      var ln = (matchInfo.leagueName || '').trim();
-      var found = 2.65;
-      var keys = Object.keys(BASELINE);
-      for (var ki = 0; ki < keys.length; ki++) { if (ln.indexOf(keys[ki]) !== -1) found = BASELINE[keys[ki]]; }
+      const ln = (matchInfo.leagueName || '').trim();
+      let found = 2.65;
+      const keys = Object.keys(BASELINE);
+      for (let ki = 0; ki < keys.length; ki++) {
+        if (ln.indexOf(keys[ki]) !== -1) found = BASELINE[keys[ki]];
+      }
       return found >= 2.85 ? 68 : found >= 2.65 ? 55 : 42;
     })(),
 
@@ -214,7 +304,13 @@ function computeSingleMatch(rawStats, matchInfo) {
     // 第六阶段：比分矩阵
     scores: (() => {
       try {
-        const s = score.analyze(vars, goalResult.xgHome, goalResult.xgAway, goalResult.goalRange, strengthResult.ladder.level);
+        const s = score.analyze(
+          vars,
+          goalResult.xgHome,
+          goalResult.xgAway,
+          goalResult.goalRange,
+          strengthResult.ladder.level,
+        );
         return s.length > 0 ? s : [{ score: '--', percent: '无合法比分' }];
       } catch (e) {
         return [{ score: '--', percent: '计算异常' }];
@@ -222,19 +318,22 @@ function computeSingleMatch(rawStats, matchInfo) {
     })(),
 
     // 建议
-    suggestion: diffResult.resonance.verdict || '基于历史数据的量化分析，仅供参考'
+    suggestion: diffResult.resonance.verdict || '基于历史数据的量化分析，仅供参考',
   };
 }
 
 // ==================== 全局变量 ====================
-let _globalStatsMap = null;  // { matchId: rawStats }
-let _globalCacheKey = null;  // 当前批次
+const _globalStatsMap = null; // { matchId: rawStats }
+const _globalCacheKey = null; // 当前批次
 
 function loadDataJsonM() {
   const dataFilePath = path.join(__dirname, '..', 'data.json');
   if (!fs.existsSync(dataFilePath)) return {};
-  try { return JSON.parse(fs.readFileSync(dataFilePath, 'utf8')).m || {}; }
-  catch (e) { return {}; }
+  try {
+    return JSON.parse(fs.readFileSync(dataFilePath, 'utf8')).m || {};
+  } catch (e) {
+    return {};
+  }
 }
 
 // ==================== 批量计算与缓存 ====================
@@ -272,9 +371,8 @@ async function computeAll() {
   const cacheKey = '_global';
 
   // 1. 保留已有缓存
-  const existing = (cache[cacheKey] && Object.keys(cache[cacheKey]).length > 0)
-    ? cache[cacheKey] : {};
-  let hasAny = Object.values(existing).some(v => v && v.attackPattern);
+  const existing = cache[cacheKey] && Object.keys(cache[cacheKey]).length > 0 ? cache[cacheKey] : {};
+  const hasAny = Object.values(existing).some((v) => v && v.attackPattern);
   if (hasAny) {
     console.log('[gs] 已有缓存', Object.keys(existing).length, '场，增量更新...');
   }
@@ -333,12 +431,12 @@ async function computeAll() {
 
   // ★ 回测钩子: 功守道预测持久化
   try {
-    var predLog = require('../prediction_log');
-    var mMap2 = loadDataJsonM();
-    Object.keys(existing).forEach(function(mid) {
-      var gs = existing[mid];
+    const predLog = require('../prediction_log');
+    const mMap2 = loadDataJsonM();
+    Object.keys(existing).forEach(function (mid) {
+      const gs = existing[mid];
       if (!gs || !gs.scores) return;
-      var m = mMap2[mid] || {};
+      const m = mMap2[mid] || {};
       predLog.upsertGS(mid.replace(/^m_/, ''), {
         date: (m.date || '').slice(0, 10),
         homeName: m.homeName || '',
@@ -346,13 +444,16 @@ async function computeAll() {
         leagueName: m.leagueName || '',
         matchNum: m.num || '',
         scoresJson: JSON.stringify(gs.scores),
-        topScore: (gs.scores && gs.scores[0]) ? gs.scores[0].score : '',
-        topPercent: (gs.scores && gs.scores[0]) ? parseFloat(gs.scores[0].percent) || 0 : 0,
+        topScore: gs.scores && gs.scores[0] ? gs.scores[0].score : '',
+        topPercent: gs.scores && gs.scores[0] ? parseFloat(gs.scores[0].percent) || 0 : 0,
         ladderLabel: gs.ladderLabel || '',
-        ladderLevel: gs.ladderLevel || 0
+        ladderLevel: gs.ladderLevel || 0,
+        handicap: m.handicap !== undefined ? m.handicap : (m.rq !== undefined ? m.rq : undefined),
       });
     });
-  } catch (e) { console.error('[gs] predLog save error:', e.message); }
+  } catch (e) {
+    console.error('[gs] predLog save error:', e.message);
+  }
 
   return existing;
 }
@@ -380,7 +481,11 @@ async function getMatchResult(matchId) {
   try {
     const results = await Promise.race([
       computeAll(),
-      new Promise(function(_, reject) { setTimeout(function() { reject(new Error('computeAll timeout')); }, 30000); })
+      new Promise(function (_, reject) {
+        setTimeout(function () {
+          reject(new Error('computeAll timeout'));
+        }, 30000);
+      }),
     ]);
     return results[matchId] || results['m_' + matchId] || results[clean] || null;
   } catch (e) {
@@ -407,5 +512,5 @@ module.exports = {
   refreshCache,
   crossMatchAll,
   readCache,
-  writeCache
+  writeCache,
 };

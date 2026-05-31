@@ -9,5 +9,31 @@
     "puppeteer": "^25.1.0",
     "ssh2": "^1.17.0",
     "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.29.7",
+    "@playwright/test": "^1.60.0",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.3.0"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:p0": "jest --testPathPattern=\"server/tests/(index_api|data_sync|prediction_log|database|scheduler_v2|cache|pk_scorer|plan-generator)\"",
+    "test:p1": "jest --testPathPattern=\"server/tests/(ai_daemon|ai-timing|main-fusion|health|http-utils|websocket|midou|cloudfunctions)\"",
+    "test:p2": "jest --testPathPattern=\"gongshoudao/tests\"",
+    "lint": "eslint \"server/**/*.js\" \"preview/js/**/*.js\" \"preview/*.js\" \"scripts/*.js\"",
+    "lint:fix": "eslint --fix \"server/**/*.js\" \"preview/js/**/*.js\" \"preview/*.js\" \"scripts/*.js\"",
+    "format": "prettier --write \"server/**/*.js\" \"preview/js/**/*.js\" \"preview/*.js\" \"scripts/*.js\"",
+    "format:check": "prettier --check \"server/**/*.js\" \"preview/js/**/*.js\" \"preview/*.js\" \"scripts/*.js\" --log-level error",
+    "test:e2e": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui",
+    "test:e2e:report": "npx playwright show-report",
+    "test:smoke": "jest --testPathPattern=\"smoke_api\" --testPathIgnorePatterns=node_modules --forceExit --no-coverage",
+    "setup:githooks": "git config core.hooksPath .githooks",
+    "preflight": "powershell -ExecutionPolicy Bypass -File scripts/release-preflight.ps1",
+    "benchmark": "node scripts/benchmark_gongshoudao.js"
   }
 }

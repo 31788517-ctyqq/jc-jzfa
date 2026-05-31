@@ -1,13 +1,13 @@
 /**
  * 合并静态HTML抓取 + Selenium抓取 → 统一 shuju 数据
- * 
+ *
  * 输入:
  *   server/shuju_data/shuju_{date}.json    (静态: 近10场全联赛+同联赛)
  *   server/shuju_data/shuju_selenium_{date}.json (Selenium: 近6场含百分比)
- * 
+ *
  * 输出:
  *   server/shuju_data/shuju_merged_{date}.json   (合并后完整数据)
- * 
+ *
  * 用法: node server/merge_shuju.js [date]
  */
 const fs = require('fs');
@@ -25,30 +25,31 @@ function mergeShuju(dateStr) {
 
   // 读取静态数据
   if (fs.existsSync(staticFile)) {
-    try { staticData = JSON.parse(fs.readFileSync(staticFile, 'utf8')); } catch (e) {
+    try {
+      staticData = JSON.parse(fs.readFileSync(staticFile, 'utf8'));
+    } catch (e) {
       console.log('[merge] 静态数据读取失败: ' + e.message);
     }
   }
 
   // 读取 Selenium 数据
   if (fs.existsSync(selFile)) {
-    try { selData = JSON.parse(fs.readFileSync(selFile, 'utf8')); } catch (e) {
+    try {
+      selData = JSON.parse(fs.readFileSync(selFile, 'utf8'));
+    } catch (e) {
       console.log('[merge] Selenium数据读取失败: ' + e.message);
     }
   }
 
-  const staticMatches = (staticData.matches || {});
-  const selMatches = (selData.matches || {});
+  const staticMatches = staticData.matches || {};
+  const selMatches = selData.matches || {};
 
   const merged = {};
 
   // 合并两个数据源
-  const allNums = new Set([
-    ...Object.keys(staticMatches),
-    ...Object.keys(selMatches)
-  ]);
+  const allNums = new Set([...Object.keys(staticMatches), ...Object.keys(selMatches)]);
 
-  allNums.forEach(num => {
+  allNums.forEach((num) => {
     const s = staticMatches[num] || {};
     const se = selMatches[num] || {};
 
@@ -75,19 +76,19 @@ function mergeShuju(dateStr) {
         // 近10场 - 所有联赛
         last10: {
           home: cleanStats(h10),
-          away: cleanStats(a10)
+          away: cleanStats(a10),
         },
         // 近10场 - 同联赛
         last10League: {
           home: cleanStats(h10L),
-          away: cleanStats(a10L)
+          away: cleanStats(a10L),
         },
         // 近6场 - Selenium JS渲染
         last6: {
           home: cleanStats(h6, true),
-          away: cleanStats(a6, true)
-        }
-      }
+          away: cleanStats(a6, true),
+        },
+      },
     };
   });
 
@@ -97,7 +98,7 @@ function mergeShuju(dateStr) {
     source: '500.com fenxi/shuju (merged: static + selenium)',
     matchesCount: Object.keys(merged).length,
     matches: merged,
-    generatedAt: new Date().toISOString()
+    generatedAt: new Date().toISOString(),
   };
 
   fs.writeFileSync(outFile, JSON.stringify(output, null, 2));
@@ -111,10 +112,10 @@ function cleanStats(obj, isLast6) {
   const fields = ['wins', 'draws', 'losses', 'goals', 'conceded'];
   const pctFields = ['winPct', 'handicapPct', 'overPct'];
 
-  fields.forEach(f => {
+  fields.forEach((f) => {
     if (obj[f] !== undefined && obj[f] !== null) result[f] = obj[f];
   });
-  pctFields.forEach(f => {
+  pctFields.forEach((f) => {
     if (obj[f] !== undefined && obj[f] !== null) result[f] = obj[f];
   });
 

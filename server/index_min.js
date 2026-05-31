@@ -13,7 +13,7 @@ app.use('/assets/worldcup', express.static(path.join(__dirname, '../miniprogram/
 app.use(express.static(path.join(__dirname, '../preview')));
 
 // 简易日志
-const log = (s) => console.log(`[${new Date().toISOString().slice(0,19)}] ${s}`);
+const log = (s) => console.log(`[${new Date().toISOString().slice(0, 19)}] ${s}`);
 
 // 健康检查
 app.get('/health', (req, res) => {
@@ -24,16 +24,16 @@ app.get('/health', (req, res) => {
 app.post('/api', (req, res) => {
   const { action, data = {} } = req.body;
   log(`API: ${action}`);
-  
+
   try {
     // 尝试加载数据
     let jsonData = { matches: {}, recommends: {} };
     try {
       jsonData = require('./data.json');
-    } catch(e) {
+    } catch (e) {
       log('data.json not loaded, using empty');
     }
-    
+
     switch (action) {
       case 'match-list': {
         const matches = Object.values(jsonData.matches || {});
@@ -42,7 +42,7 @@ app.post('/api', (req, res) => {
           const http = require('./http-utils');
           const token = require('./login-helpers').login();
           // ... 实时抓取逻辑
-        } catch(e) {}
+        } catch (e) {}
         return res.json({ code: 1, data: matches });
       }
       case 'match-detail': {

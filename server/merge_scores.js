@@ -7,7 +7,9 @@ const path = require('path');
 const DATA_FILE = path.join(__dirname, 'data.json');
 const BAK_FILE = path.join(__dirname, 'data_bak.json');
 
-function log(msg) { console.log('[' + new Date().toISOString().slice(11, 19) + '] ' + msg); }
+function log(msg) {
+  console.log('[' + new Date().toISOString().slice(11, 19) + '] ' + msg);
+}
 
 // Load current data
 const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
@@ -22,20 +24,21 @@ log('Current data: ' + Object.keys(mMap).length + ' matches');
 log('Backup data: ' + Object.keys(bakMap).length + ' matches');
 
 // Merge scores from backup
-let merged = 0, noBak = 0;
+let merged = 0,
+  noBak = 0;
 const scoreFields = ['score', 'halfScore', 'duration', 'yellow', 'red', 'matchStatus'];
 
-Object.keys(mMap).forEach(k => {
+Object.keys(mMap).forEach((k) => {
   const m = mMap[k];
   if (!m || !m.matchId) return;
-  
+
   // Skip if already has score
   if (m.score && m.score !== '') return;
-  
+
   // Find in backup by matchId
   const mid = String(m.matchId);
   let bakMatch = null;
-  
+
   // Try different key formats
   for (const bk of Object.keys(bakMap)) {
     const bm = bakMap[bk];
@@ -44,9 +47,9 @@ Object.keys(mMap).forEach(k => {
       break;
     }
   }
-  
+
   if (bakMatch && bakMatch.score && bakMatch.score !== '') {
-    scoreFields.forEach(f => {
+    scoreFields.forEach((f) => {
       if (bakMatch[f] !== undefined && bakMatch[f] !== '') {
         m[f] = bakMatch[f];
       }

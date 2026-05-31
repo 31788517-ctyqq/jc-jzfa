@@ -35,29 +35,32 @@ async function main() {
     log('ERROR: data.json 不存在');
     process.exit(1);
   }
-  let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
   if (!data.r) data.r = {};
   const mMap = data.m || {};
 
   // 找出所有需要回填的比赛
   const toFetch = [];
-  Object.keys(mMap).forEach(k => {
+  Object.keys(mMap).forEach((k) => {
     const m = mMap[k];
     if (!m || !m.matchId) return;
     const mid = String(m.matchId);
     const rk = 'm_' + mid;
     const existingRecs = data.r[rk] || data.r[mid] || [];
-    const hasStale = existingRecs.length > 0 && existingRecs.some(r => r.result === null || r.result === 2);
+    const hasStale = existingRecs.length > 0 && existingRecs.some((r) => r.result === null || r.result === 2);
     const noRecs = existingRecs.length === 0;
 
     if (noRecs || hasStale) {
       toFetch.push({
-        mid, rk: 'm_' + mid,
-        date: m.date || '', num: m.num || '',
-        home: m.homeName || '', visit: m.visitName || '',
+        mid,
+        rk: 'm_' + mid,
+        date: m.date || '',
+        num: m.num || '',
+        home: m.homeName || '',
+        visit: m.visitName || '',
         matchStatus: m.matchStatus || 0,
         existingCount: existingRecs.length,
-        staleCount: existingRecs.filter(r => r.result === null || r.result === 2).length
+        staleCount: existingRecs.filter((r) => r.result === null || r.result === 2).length,
       });
     }
   });
@@ -65,17 +68,23 @@ async function main() {
   toFetch.sort((a, b) => b.date.localeCompare(a.date));
 
   log('共 ' + toFetch.length + ' 场比赛需要回填');
-  if (toFetch.length === 0) { log('无需回填，退出'); process.exit(0); }
+  if (toFetch.length === 0) {
+    log('无需回填，退出');
+    process.exit(0);
+  }
 
   // 日期分布
   const dateDist = {};
-  toFetch.forEach(t => {
+  toFetch.forEach((t) => {
     if (!dateDist[t.date]) dateDist[t.date] = 0;
     dateDist[t.date]++;
   });
   log('覆盖 ' + Object.keys(dateDist).length + ' 个日期');
 
-  if (dryRun) { log('DRY RUN 完成，退出'); process.exit(0); }
+  if (dryRun) {
+    log('DRY RUN 完成，退出');
+    process.exit(0);
+  }
 
   // 获取 token
   let token;
@@ -88,7 +97,10 @@ async function main() {
   }
 
   // 逐场抓取
-  let success = 0, fail = 0, skipped = 0, batchCount = 0;
+  let success = 0,
+    fail = 0,
+    skipped = 0,
+    batchCount = 0;
 
   for (let i = 0; i < toFetch.length; i++) {
     const item = toFetch[i];
@@ -98,25 +110,43 @@ async function main() {
       const recRes = await getWithUA(
         MIDOU_BASE + '/score/getExpertRecommData.do',
         { dataId: item.mid, type: 0 },
-        { Cookie: 'token=' + token }
+        { Cookie: 'token=' + token },
       );
 
       if (recRes.code === 1 && recRes.data && recRes.data.length > 0) {
         const recs = recRes.data
-          .filter(x => x && x.type && x.num > 0)
-          .map(x => ({ type: x.type, num: x.num, result: x.result !== undefined ? x.result : null }));
+          .filter((x) => x && x.type && x.num > 0)
+          .map((x) => ({ type: x.type, num: x.num, result: x.result !== undefined ? x.result : null }));
 
         if (recs.length > 0) {
           data.r[item.rk] = recs;
-          const hitCount = recs.filter(r => r.result === 1).length;
-          log(progress + ' OK ' + item.date + ' ' + item.num + ' ' + item.home + ' vs ' + item.visit + ' -> ' + recs.length + ' recs (hit:' + hitCount + ')');
-          success++; batchCount++;
+          const hitCount = recs.filter((r) => r.result === 1).length;
+          log(
+            progress +
+              ' OK ' +
+              item.date +
+              ' ' +
+              item.num +
+              ' ' +
+              item.home +
+              ' vs ' +
+              item.visit +
+              ' -> ' +
+              recs.length +
+              ' recs (hit:' +
+              hitCount +
+              ')',
+          );
+          success++;
+          batchCount++;
         } else {
           skipped++;
         }
       } else if (recRes.code === -1) {
         log(progress + ' Token expired, refreshing...');
-        try { token = await refreshToken(); } catch (e) {}
+        try {
+          token = await refreshToken();
+        } catch (e) {}
         i--;
         await sleep(2000);
         continue;
@@ -137,7 +167,10 @@ async function main() {
     await sleep(jitter(REQUEST_DELAY_MS));
 
     if ((i + 1) % 100 === 0) {
-      try { token = await refreshToken(); log('  [token refreshed]'); } catch (e) {}
+      try {
+        token = await refreshToken();
+        log('  [token refreshed]');
+      } catch (e) {}
     }
   }
 
@@ -147,7 +180,7 @@ async function main() {
   log('success: ' + success + ' fail: ' + fail + ' skip: ' + skipped);
 }
 
-main().catch(e => {
+main().catch((e) => {
   log('FATAL: ' + e.message);
   console.error(e);
   process.exit(1);

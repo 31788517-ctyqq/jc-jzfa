@@ -10,7 +10,9 @@ const { execSync } = require('child_process');
 const ODDS_DIR = path.join(__dirname, 'odds_history');
 const SHUJU_DIR = path.join(__dirname, 'shuju_data');
 
-function TS() { return new Date().toISOString().replace('T',' ').slice(0,19); }
+function TS() {
+  return new Date().toISOString().replace('T', ' ').slice(0, 19);
+}
 
 function generateDates(start, end) {
   const dates = [];
@@ -28,13 +30,19 @@ function generateDates(start, end) {
   return dates;
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function jitter(ms) { return Math.floor(ms * (0.5 + Math.random() * 1.5)); }
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+function jitter(ms) {
+  return Math.floor(ms * (0.5 + Math.random() * 1.5));
+}
 
 // ===== 赔率补抓 =====
 async function catchUpOdds(dates) {
   console.log(TS() + ' [P0-Odds] 开始: ' + dates.length + ' 天');
-  let done = 0, skipped = 0, failed = 0;
+  let done = 0,
+    skipped = 0,
+    failed = 0;
 
   for (let i = 0; i < dates.length; i++) {
     const d = dates[i];
@@ -44,7 +52,10 @@ async function catchUpOdds(dates) {
       try {
         const e = JSON.parse(fs.readFileSync(fp, 'utf8'));
         const c = Object.keys(e.odds || {}).length;
-        if (e.empty || c > 0) { skipped++; continue; }
+        if (e.empty || c > 0) {
+          skipped++;
+          continue;
+        }
       } catch (_) {}
     }
 
@@ -55,8 +66,13 @@ async function catchUpOdds(dates) {
       const out = { date: d, odds: n > 0 ? odds : {} };
       if (n === 0) out.empty = true;
       fs.writeFileSync(fp, JSON.stringify(out));
-      if (n > 0) { console.log('    OK: ' + n + ' 场'); done++; }
-      else { console.log('    empty'); skipped++; }
+      if (n > 0) {
+        console.log('    OK: ' + n + ' 场');
+        done++;
+      } else {
+        console.log('    empty');
+        skipped++;
+      }
     } catch (e) {
       console.error('    FAIL: ' + e.message);
       failed++;
@@ -70,7 +86,10 @@ async function catchUpOdds(dates) {
 // ===== 攻防数据补抓 =====
 async function catchUpShuju(dates) {
   console.log(TS() + ' [P0-Shuju] 开始: ' + dates.length + ' 天');
-  let done = 0, skipped = 0, failed = 0, noOdds = 0;
+  let done = 0,
+    skipped = 0,
+    failed = 0,
+    noOdds = 0;
 
   const py3 = 'python3';
   const fenxiPy = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi.py');
@@ -81,12 +100,14 @@ async function catchUpShuju(dates) {
     const mf = path.join(SHUJU_DIR, 'shuju_merged_' + d + '.json');
 
     if (fs.existsSync(mf) && fs.statSync(mf).size > 500) {
-      skipped++; continue;
+      skipped++;
+      continue;
     }
 
     const of = path.join(ODDS_DIR, d + '.json');
     if (!fs.existsSync(of) || fs.statSync(of).size < 100) {
-      noOdds++; continue;
+      noOdds++;
+      continue;
     }
 
     try {
@@ -99,7 +120,8 @@ async function catchUpShuju(dates) {
         if (!m || Object.keys(m).length === 0) {
           console.log('    no links');
           fs.writeFileSync(mapf, JSON.stringify({ date: d, empty: true }));
-          noOdds++; continue;
+          noOdds++;
+          continue;
         }
         fs.writeFileSync(mapf, JSON.stringify(m, null, 2));
         console.log('    map: ' + Object.keys(m).length);
@@ -109,7 +131,10 @@ async function catchUpShuju(dates) {
       console.log('    static fetch...');
       try {
         execSync(py3 + ' "' + fenxiPy + '" ' + d, {
-          cwd: path.join(__dirname, '..'), timeout: 300000, encoding: 'utf8', maxBuffer: 2 * 1024 * 1024
+          cwd: path.join(__dirname, '..'),
+          timeout: 300000,
+          encoding: 'utf8',
+          maxBuffer: 2 * 1024 * 1024,
         });
         console.log('    static done');
       } catch (e) {
@@ -122,7 +147,10 @@ async function catchUpShuju(dates) {
         console.log('    selenium...');
         try {
           execSync(py3 + ' "' + selPy + '" ' + d, {
-            cwd: path.join(__dirname, '..'), timeout: 600000, encoding: 'utf8', maxBuffer: 2 * 1024 * 1024
+            cwd: path.join(__dirname, '..'),
+            timeout: 600000,
+            encoding: 'utf8',
+            maxBuffer: 2 * 1024 * 1024,
           });
           console.log('    selenium done');
         } catch (e) {
@@ -167,7 +195,8 @@ async function main() {
   if (!fs.existsSync(SHUJU_DIR)) fs.mkdirSync(SHUJU_DIR, { recursive: true });
 
   const dates = generateDates(start, end);
-  let r1 = {}, r2 = {};
+  let r1 = {},
+    r2 = {};
 
   if (mode === '--all' || mode === '--odds-only') {
     r1 = await catchUpOdds(dates);
@@ -181,7 +210,8 @@ async function main() {
   console.log(TS() + ' DONE: odds=' + JSON.stringify(r1) + ' shuju=' + JSON.stringify(r2));
 
   // 完整性检查
-  let missOdds = 0, missShuju = 0;
+  let missOdds = 0,
+    missShuju = 0;
   const allD = generateDates(start, end);
   for (const d of allD) {
     const of = path.join(ODDS_DIR, d + '.json');
@@ -193,4 +223,7 @@ async function main() {
   console.log('='.repeat(60));
 }
 
-main().catch(e => { console.error('FATAL:', e); process.exit(1); });
+main().catch((e) => {
+  console.error('FATAL:', e);
+  process.exit(1);
+});

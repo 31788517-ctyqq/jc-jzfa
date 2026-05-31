@@ -57,6 +57,7 @@ function initTable() {
           'visitName TEXT,' +
           'leagueName TEXT,' +
           'matchNum TEXT,' +
+          'handicap INTEGER,' +
           'ai_spf TEXT,' +
           'ai_overunder TEXT,' +
           'ai_score TEXT,' +
@@ -99,6 +100,7 @@ function initTable() {
         'CREATE TABLE IF NOT EXISTS prediction_logs (' +
           'id INTEGER PRIMARY KEY AUTOINCREMENT,' +
           'matchId TEXT NOT NULL, date TEXT, homeName TEXT, visitName TEXT, leagueName TEXT, matchNum TEXT,' +
+          'handicap INTEGER,' +
           'ai_spf TEXT, ai_overunder TEXT, ai_score TEXT, ai_confidence REAL, ai_content TEXT,' +
           'pk_composite_score REAL, pk_power_score REAL, pk_goal_score REAL, pk_heat_score REAL, pk_stability_score REAL,' +
           'pk_direction TEXT, pk_direction_stars INTEGER, pk_direction_desc TEXT, pk_hcp_direction TEXT,' +
@@ -113,6 +115,16 @@ function initTable() {
       db.prepare('CREATE INDEX IF NOT EXISTS idx_logs_league ON prediction_logs(leagueName)').run();
     }
     console.log('[prediction_log] table initialized');
+    // ★ 迁移：添加 handicap 列（如果不存在，忽略已存在的错误）
+    try {
+      if (typeof db.run === 'function') {
+        db.run('ALTER TABLE prediction_logs ADD COLUMN handicap INTEGER');
+      } else if (typeof db.prepare === 'function') {
+        db.prepare('ALTER TABLE prediction_logs ADD COLUMN handicap INTEGER').run();
+      }
+    } catch (e) {
+      // 列已存在则忽略
+    }
   } catch (e) {
     console.error('[prediction_log] init error:', e.message);
   }
@@ -239,6 +251,7 @@ function upsertAI(matchId, fields) {
   if (fields.visitName) data.visitName = fields.visitName;
   if (fields.leagueName) data.leagueName = fields.leagueName;
   if (fields.matchNum) data.matchNum = fields.matchNum;
+  if (fields.handicap !== undefined) data.handicap = fields.handicap;
   return upsert(data);
 }
 
@@ -263,6 +276,7 @@ function upsertPK(matchId, fields) {
   if (fields.visitName) data.visitName = fields.visitName;
   if (fields.leagueName) data.leagueName = fields.leagueName;
   if (fields.matchNum) data.matchNum = fields.matchNum;
+  if (fields.handicap !== undefined) data.handicap = fields.handicap;
   return upsert(data);
 }
 
@@ -279,6 +293,7 @@ function upsertGS(matchId, fields) {
   if (fields.visitName) data.visitName = fields.visitName;
   if (fields.leagueName) data.leagueName = fields.leagueName;
   if (fields.matchNum) data.matchNum = fields.matchNum;
+  if (fields.handicap !== undefined) data.handicap = fields.handicap;
   return upsert(data);
 }
 
@@ -290,6 +305,7 @@ function backfillResult(matchId, fields) {
   if (fields.awayGoals !== undefined) data.actual_away_goals = fields.awayGoals;
   if (fields.actualSpf) data.actual_spf = fields.actualSpf;
   if (fields.actualOverunder) data.actual_overunder = fields.actualOverunder;
+  if (fields.handicap !== undefined) data.handicap = fields.handicap;
   data.actual_corrected_at = new Date().toISOString();
   return upsert(data);
 }
