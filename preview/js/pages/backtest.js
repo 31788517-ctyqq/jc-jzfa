@@ -56,30 +56,45 @@ function injectStyles() {
     '.bt-advanced-filters { display:none; }',
     '.bt-advanced-filters.open { display:block; }',
 
-    /* 类型标签 */
-    '.bt-type-tag { font-size:10px; padding:2px 8px; border-radius:999px; }',
-    '.bt-type-tag.bt-type-ai { background:rgba(24,224,224,0.12); color:var(--cyan); }',
-    '.bt-type-tag.bt-type-pk { background:rgba(167,139,250,0.12); color:var(--purple); }',
-    '.bt-type-tag.bt-type-gs { background:rgba(251,191,36,0.12); color:var(--amber); }',
+    /* ── v3 清爽回测列表（参考 income 风格）── */
+    '.bt-list-wrap { margin-top:2px; }',
 
-    /* 结果网格 */
-    '.bt-result-grid { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }',
-    '.bt-result-cell { flex:1; min-width:64px; text-align:center; padding:6px 3px; border-radius:8px; background:rgba(255,255,255,0.03); }',
-    '.bt-result-label { display:block; font-size:10px; color:var(--text3); margin-bottom:3px; }',
-    '.bt-result-val { font-size:12px; font-weight:600; }',
-    '.bt-hit .bt-result-val { color:var(--green); }',
-    '.bt-miss .bt-result-val { color:var(--red); }',
+    /* 表头 */
+    '.bt-header-row { display:flex; align-items:center; font-size:11px; color:var(--text3); padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(24,224,224,0.03); }',
+    '.bt-hdr-date { width:48px; flex-shrink:0; }',
+    '.bt-hdr-match { width:44px; flex-shrink:0; text-align:center; }',
+    '.bt-hdr-teams { flex:1; padding:0 4px; }',
+    '.bt-hdr-pred { width:132px; flex-shrink:0; text-align:right; }',
 
-    /* 比赛卡片 */
-    '.backtest-row { padding:14px 16px !important; margin-bottom:8px; }',
-    '.backtest-row .match-header { margin-bottom:8px; }',
-    '.backtest-row .match-teams { margin-bottom:6px; }',
+    /* 数据行 */
+    '.bt-row { display:flex; align-items:center; font-size:12px; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.02); transition:background .15s; }',
+    '.bt-row:last-child { border-bottom:none; }',
+    '.bt-row:hover { background:rgba(255,255,255,0.02); }',
 
-    /* 赛果SPF标签 */
-    '.bt-spf-badge { display:inline-block; font-size:11px; padding:3px 10px; border-radius:999px; margin-left:8px; font-weight:600; }',
-    '.bt-spf-badge.bt-spf-home { background:rgba(24,224,224,0.12); color:var(--cyan); }',
-    '.bt-spf-badge.bt-spf-draw { background:rgba(167,139,250,0.12); color:var(--purple); }',
-    '.bt-spf-badge.bt-spf-away { background:rgba(251,191,36,0.12); color:var(--amber); }',
+    /* 日期列 */
+    '.bt-col-date { width:48px; flex-shrink:0; color:var(--text3); font-size:11px; }',
+
+    /* 场次列 */
+    '.bt-col-match { width:44px; flex-shrink:0; text-align:center; }',
+    '.bt-col-num { font-weight:700; font-size:12px; }',
+    '.bt-col-league { font-size:9px; color:var(--text3); display:block; line-height:1.3; }',
+
+    /* 对阵列 */
+    '.bt-col-teams { flex:1; padding:0 6px; min-width:0; }',
+    '.bt-col-home { font-weight:500; font-size:12px; line-height:1.4; }',
+    '.bt-col-score { font-weight:700; font-size:13px; color:var(--text); padding:1px 0; line-height:1.4; }',
+    '.bt-col-away { font-weight:500; font-size:12px; color:var(--text2); line-height:1.4; }',
+
+    /* 让球小字 */
+    '.bt-col-hcp { font-size:10px; color:var(--amber); font-weight:400; margin-left:3px; }',
+
+    /* 预测列 */
+    '.bt-col-pred { width:132px; flex-shrink:0; display:flex; flex-direction:column; gap:2px; align-items:flex-end; }',
+    '.bt-pred-item { font-size:10px; line-height:1.5; white-space:nowrap; }',
+    '.bt-pred-item .pred-label { color:var(--text3); margin-right:2px; }',
+    '.bt-pred-item .pred-val { font-weight:600; }',
+    '.bt-pred-item .pred-hit { color:var(--green); }',
+    '.bt-pred-item .pred-miss { color:var(--red); }',
 
     /* 分页 */
     '.backtest-pager { margin-top:12px; }',
@@ -92,12 +107,7 @@ function injectStyles() {
     '.bt-pager-nav { min-width:28px; }',
     '.bt-pager-info { font-size:12px; color:var(--text3); margin:0 8px; white-space:nowrap; }',
 
-    /* 日期标记 */
-    '.bt-date-tag { font-size:11px; color:var(--text3); margin-right:8px; }',
-
-    /* 列表容器 */
-    '.bt-summary-bar { display:flex; justify-content:space-between; align-items:center; padding:6px 4px 12px; color:var(--text3); font-size:12px; }',
-    '.bt-summary-bar strong { color:var(--cyan); }',
+    '.bt-summary-bar { display:flex; justify-content:flex-start; align-items:center; padding:6px 4px 12px; color:var(--text3); font-size:12px; }',
   ].join('\n');
   document.head.appendChild(s);
 }
@@ -108,8 +118,7 @@ function renderPage() {
     renderFilterCard() +
     renderStatsCard() +
     '<div class="bt-summary-bar" id="btSummary" style="display:none;">' +
-    '<span>共 <strong id="btSummaryCount">0</strong> 场比赛</span>' +
-    '<span style="cursor:pointer;color:var(--cyan);" onclick="btGoTop()">↑ 回到顶部</span>' +
+    '<span style="color:var(--text3);">AI预测结果仅供参考</span>' +
     '</div>' +
     '<div class="backtest-list" id="btList"></div>' +
     '<div class="backtest-pager" id="btPager"></div>' +
@@ -223,10 +232,6 @@ window.doBTQuery = function () {
   fetchData();
 };
 
-window.btGoTop = function () {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
 function getBTFilters() {
   function v(id) {
     return window.getDDVal ? window.getDDVal(id) || 'all' : 'all';
@@ -293,9 +298,7 @@ function fetchData() {
       renderPager(res);
       // 更新摘要栏
       var s = document.getElementById('btSummary');
-      var sc = document.getElementById('btSummaryCount');
       if (s) s.style.display = (res.total || 0) > 0 ? 'flex' : 'none';
-      if (sc) sc.textContent = (res.total || 0).toLocaleString();
     })
     .catch(function (e) {
       console.error('backtest fetch error:', e);
@@ -349,7 +352,7 @@ function renderStats(stats) {
   if (g) g.textContent = Math.round((stats.gs_score_hit_rate || 0) * 100) + '%';
 }
 
-/* ── 明细列表 ── */
+/* ── v3 清爽列表：flex 单行布局，参考 income 风格 ── */
 function renderList(list) {
   var el = document.getElementById('btList');
   if (!el) return;
@@ -362,59 +365,79 @@ function renderList(list) {
     return;
   }
 
-  var html = '';
-  list.forEach(function (row) {
-    var tags = [];
-    if (row.ai_spf) tags.push('<span class="bt-type-tag bt-type-ai">AI</span>');
-    if (row.pk_direction) tags.push('<span class="bt-type-tag bt-type-pk">PK</span>');
-    if (row.gs_top_score) tags.push('<span class="bt-type-tag bt-type-gs">GS</span>');
+  var html = '<div class="bt-list-wrap">';
 
-    // 结果单元格（仅在有预测数据时显示）
-    var cells = '';
+  // 表头
+  html += '<div class="bt-header-row">' +
+    '<span class="bt-hdr-date">日期</span>' +
+    '<span class="bt-hdr-match">场次</span>' +
+    '<span class="bt-hdr-teams">对阵 / 比分</span>' +
+    '<span class="bt-hdr-pred">预测结果</span>' +
+    '</div>';
+
+  list.forEach(function (row) {
+    var dateDisplay = esc((row.date || '').slice(5));
+
+    // 让球
+    var hcp = '';
+    if (row.handicap && row.handicap !== 0) {
+      var sign = row.handicap > 0 ? '+' : '';
+      hcp = '<span class="bt-col-hcp">' + sign + row.handicap + '</span>';
+    }
+
+    // 比分
+    var scoreText = esc(row.actual_score || '-');
+
+    // 预测结果（精简：AI/方向  ✓ 或 ✗）
+    var predParts = [];
     if (row.ai_spf) {
-      cells +=
-        '<div class="bt-result-cell ' + (row.ai_hit ? 'bt-hit' : 'bt-miss') + '">' +
-        '<span class="bt-result-label">AI</span>' +
-        '<span class="bt-result-val">' + esc(row.ai_spf) + (row.ai_hit ? ' ✓' : ' ✗') + '</span></div>';
+      predParts.push(
+        '<div class="bt-pred-item">' +
+        '<span class="pred-label">AI</span>' +
+        '<span class="pred-val ' + (row.ai_hit ? 'pred-hit' : 'pred-miss') + '">' +
+        esc(row.ai_spf) + (row.ai_hit ? ' ✓' : ' ✗') +
+        '</span></div>'
+      );
     }
     if (row.pk_direction) {
-      cells +=
-        '<div class="bt-result-cell ' + (row.pk_hit ? 'bt-hit' : 'bt-miss') + '">' +
-        '<span class="bt-result-label">PK</span>' +
-        '<span class="bt-result-val">' + esc(row.pk_direction) + (row.pk_hit ? ' ✓' : ' ✗') + '</span></div>';
+      predParts.push(
+        '<div class="bt-pred-item">' +
+        '<span class="pred-label">PK</span>' +
+        '<span class="pred-val ' + (row.pk_hit ? 'pred-hit' : 'pred-miss') + '">' +
+        esc(row.pk_direction) + (row.pk_hit ? ' ✓' : ' ✗') +
+        '</span></div>'
+      );
     }
     if (row.gs_top_score) {
-      cells +=
-        '<div class="bt-result-cell ' + (row.gs_hit ? 'bt-hit' : 'bt-miss') + '">' +
-        '<span class="bt-result-label">GS</span>' +
-        '<span class="bt-result-val">' + esc(row.gs_top_score) + (row.gs_hit ? ' ✓' : ' ✗') + '</span></div>';
+      predParts.push(
+        '<div class="bt-pred-item">' +
+        '<span class="pred-label">GS</span>' +
+        '<span class="pred-val ' + (row.gs_hit ? 'pred-hit' : 'pred-miss') + '">' +
+        esc(row.gs_top_score) + (row.gs_hit ? ' ✓' : ' ✗') +
+        '</span></div>'
+      );
     }
 
-    // 赛果SPF标签
-    var spfBadge = '';
-    if (row.actual_spf) {
-      var spfClass = '';
-      if (row.actual_spf === '主胜') spfClass = 'bt-spf-home';
-      else if (row.actual_spf === '平') spfClass = 'bt-spf-draw';
-      else spfClass = 'bt-spf-away';
-      spfBadge = '<span class="bt-spf-badge ' + spfClass + '">' + esc(row.actual_spf) + '</span>';
-    }
-
-    html +=
-      '<div class="match-card backtest-row">' +
-      '<div class="match-header"><div class="match-header-left">' +
-      '<span class="match-league">' + esc(row.leagueName || '') + '</span>' +
-      '<span class="match-num">' + esc(row.matchNum || '') + '</span>' +
-      '</div>' +
-      '<div class="match-header-right">' + tags.join('') + spfBadge + '</div>' +
-      '</div>' +
-      '<div class="match-teams"><span class="team-name">' + esc(row.homeName || '') + '</span>' +
-      '<span class="match-score" style="font-size:14px;">' + esc(row.actual_score || '-') + '</span>' +
-      '<span class="team-name">' + esc(row.visitName || '') + '</span></div>' +
-      // ★ 仅在有预测数据时显示结果网格
-      (cells ? '<div class="bt-result-grid">' + cells + '</div>' : '') +
+    html += '<div class="bt-row">' +
+      // 日期
+      '<span class="bt-col-date">' + dateDisplay + '</span>' +
+      // 场次
+      '<span class="bt-col-match">' +
+      '<span class="bt-col-num">' + esc(row.matchNum || '') + '</span>' +
+      '<span class="bt-col-league">' + esc(row.leagueName || '') + '</span>' +
+      '</span>' +
+      // 对阵/比分
+      '<span class="bt-col-teams">' +
+      '<div class="bt-col-home">' + esc(row.homeName || '-') + '</div>' +
+      '<div class="bt-col-score">' + scoreText + hcp + '</div>' +
+      '<div class="bt-col-away">' + esc(row.visitName || '-') + '</div>' +
+      '</span>' +
+      // 预测
+      '<span class="bt-col-pred">' + (predParts.length ? predParts.join('') : '<span style="color:var(--text3);font-size:10px;">-</span>') + '</span>' +
       '</div>';
   });
+
+  html += '</div>';
   el.innerHTML = html;
 }
 
