@@ -32,9 +32,15 @@ const database = require('./database');
 // AI 模块（用于定时刷新）
 let deepseek, doubao, aiMerger;
 function loadAIModules() {
-  try { deepseek = require('./deepseek'); } catch (e) {}
-  try { doubao = require('./doubao'); } catch (e) {}
-  try { aiMerger = require('./ai_merger'); } catch (e) {}
+  try {
+    deepseek = require('./deepseek');
+  } catch (e) {}
+  try {
+    doubao = require('./doubao');
+  } catch (e) {}
+  try {
+    aiMerger = require('./ai_merger');
+  } catch (e) {}
 }
 
 // ═══ 配置常量 ═══
@@ -52,10 +58,14 @@ let _lastRecError = 0;
 if (!fs.existsSync(ODDS_DIR)) fs.mkdirSync(ODDS_DIR, { recursive: true });
 
 // ═══ 工具函数 ═══
-function log(msg) { logger.info(msg); }
+function log(msg) {
+  logger.info(msg);
+}
 
 function fmtLocal(dd) {
-  return dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0');
+  return (
+    dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0')
+  );
 }
 
 function getCurrentPeriod() {
@@ -88,7 +98,9 @@ function saveTrendSnapshot(matchId, recs) {
     const now = new Date();
     const t = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
     const snap = { t, ts: now.toISOString() };
-    recs.forEach(r => { snap[r.type] = r.num; });
+    recs.forEach((r) => {
+      snap[r.type] = r.num;
+    });
     const list = trends[key];
     if (list.length > 0 && list[list.length - 1].t === t) {
       list[list.length - 1] = snap; // 同一分钟去重
@@ -130,7 +142,6 @@ async function sync500Odds(dateStr) {
 
     // 完整性校验
     await validate500Odds(dateStr, odds);
-
   } catch (e) {
     log('[500odds] ' + dateStr + ' 抓取失败: ' + e.message);
   }
@@ -143,14 +154,14 @@ async function validate500Odds(dateStr, odds) {
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     const expectedNums = [];
 
-    Object.keys(data.m || {}).forEach(k => {
+    Object.keys(data.m || {}).forEach((k) => {
       const m = data.m[k];
       if (m && m.date && m.date.slice(0, 10) === dateStr && m.num) {
         expectedNums.push(m.num);
       }
     });
 
-    const missing = expectedNums.filter(n => !odds[n]);
+    const missing = expectedNums.filter((n) => !odds[n]);
     if (missing.length > 0) {
       log('[500odds] ⚠ 校验: 缺失 ' + missing.length + ' 场: ' + missing.join(', '));
     } else {
@@ -165,15 +176,15 @@ async function validate500Odds(dateStr, odds) {
 function enrichNamesFrom500(dateStr, odds, shujuMap) {
   try {
     if (!fs.existsSync(DATA_FILE)) return;
-    var data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     if (!data.m) return;
-    var changed = false;
-    Object.keys(data.m).forEach(function(k) {
-      var match = data.m[k];
+    let changed = false;
+    Object.keys(data.m).forEach(function (k) {
+      const match = data.m[k];
       if (!match || !match.num || (match.date || '').slice(0, 10) !== dateStr) return;
-      var num = match.num;
+      const num = match.num;
       // 500.com odds 里有队名
-      var odd = odds[num];
+      const odd = odds[num];
       if (odd && odd.homeName && odd.homeName.length > 0 && odd.homeName !== match.homeName) {
         match.homeName = odd.homeName;
         changed = true;
@@ -198,12 +209,12 @@ function enrichNamesFrom500(dateStr, odds, shujuMap) {
 async function sync500Shuju(dateStr) {
   log('[500shuju] 开始抓取近期战绩+攻防数据: ' + dateStr);
 
-  var shujuMapFile = path.join(__dirname, 'shuju_map_' + dateStr + '.json');
-  var shujuDataFile = path.join(__dirname, 'shuju_data', 'shuju_' + dateStr + '.json');
+  const shujuMapFile = path.join(__dirname, 'shuju_map_' + dateStr + '.json');
+  const shujuDataFile = path.join(__dirname, 'shuju_data', 'shuju_' + dateStr + '.json');
 
   // 已有有效数据跳过
   if (fs.existsSync(shujuDataFile)) {
-    var stat = fs.statSync(shujuDataFile);
+    const stat = fs.statSync(shujuDataFile);
     if (stat.size > 100) {
       log('[500shuju] ' + dateStr + ' 已有数据，跳过');
       return;
@@ -212,9 +223,11 @@ async function sync500Shuju(dateStr) {
 
   try {
     // Step 1: 获取 shuju ID 映射
-    var shujuMap = {};
+    let shujuMap = {};
     if (fs.existsSync(shujuMapFile)) {
-      try { shujuMap = JSON.parse(fs.readFileSync(shujuMapFile, 'utf8')); } catch (e) {}
+      try {
+        shujuMap = JSON.parse(fs.readFileSync(shujuMapFile, 'utf8'));
+      } catch (e) {}
     }
     if (!shujuMap || Object.keys(shujuMap).length === 0) {
       log('[500shuju] 从 trade.500.com 获取 shuju ID 映射...');
@@ -233,22 +246,24 @@ async function sync500Shuju(dateStr) {
 
     // 将 shuju ID 注入 data.json
     try {
-      var oddsFile = path.join(ODDS_DIR, dateStr + '.json');
-      var oddsData = {};
+      const oddsFile = path.join(ODDS_DIR, dateStr + '.json');
+      let oddsData = {};
       if (fs.existsSync(oddsFile)) {
-        try { oddsData = JSON.parse(fs.readFileSync(oddsFile, 'utf8')); } catch (e) {}
+        try {
+          oddsData = JSON.parse(fs.readFileSync(oddsFile, 'utf8'));
+        } catch (e) {}
       }
-      enrichNamesFrom500(dateStr, (oddsData.odds || {}), shujuMap);
+      enrichNamesFrom500(dateStr, oddsData.odds || {}, shujuMap);
     } catch (e) {}
 
     // Step 2: 调用 Python 爬虫
-    var pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-    var scriptPath = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi.py');
-    var pyResult = execSync(pythonCmd + ' "' + scriptPath + '" ' + dateStr, {
+    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    const scriptPath = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi.py');
+    const pyResult = execSync(pythonCmd + ' "' + scriptPath + '" ' + dateStr, {
       cwd: path.join(__dirname, '..'),
-      timeout: 300000,  // 5分钟超时（多场比赛需要串行抓取）
+      timeout: 300000, // 5分钟超时（多场比赛需要串行抓取）
       encoding: 'utf8',
-      maxBuffer: 1024 * 1024
+      maxBuffer: 1024 * 1024,
     });
     if (pyResult) log('[500shuju] ' + pyResult.trim().split('\n').slice(-3).join(' | '));
 
@@ -258,7 +273,6 @@ async function sync500Shuju(dateStr) {
     } else {
       log('[500shuju] ' + dateStr + ' 抓取后文件缺失或为空');
     }
-
   } catch (e) {
     log('[500shuju] ' + dateStr + ' 抓取失败: ' + e.message);
     // 如果是 Python 脚本失败，输出更多信息
@@ -270,7 +284,7 @@ async function sync500Shuju(dateStr) {
 async function sync500ShujuSelenium(dateStr) {
   log('[500shuju-sel] Selenium 近6场数据: ' + dateStr);
 
-  var selFile = path.join(__dirname, 'shuju_data', 'shuju_selenium_' + dateStr + '.json');
+  const selFile = path.join(__dirname, 'shuju_data', 'shuju_selenium_' + dateStr + '.json');
 
   // 已有数据跳过
   if (fs.existsSync(selFile) && fs.statSync(selFile).size > 500) {
@@ -279,24 +293,24 @@ async function sync500ShujuSelenium(dateStr) {
   }
 
   // 需要有 shuju_map 才执行
-  var shujuMapFile = path.join(__dirname, 'shuju_map_' + dateStr + '.json');
+  const shujuMapFile = path.join(__dirname, 'shuju_map_' + dateStr + '.json');
   if (!fs.existsSync(shujuMapFile)) {
     log('[500shuju-sel] 无 shuju_map，跳过');
     return;
   }
 
   try {
-    var pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-    var scriptPath = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi_selenium.py');
+    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    const scriptPath = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi_selenium.py');
     // Selenium 较慢, 给 10 分钟超时
-    var pyResult = execSync(pythonCmd + ' "' + scriptPath + '" ' + dateStr, {
+    const pyResult = execSync(pythonCmd + ' "' + scriptPath + '" ' + dateStr, {
       cwd: path.join(__dirname, '..'),
       timeout: 600000,
       encoding: 'utf8',
-      maxBuffer: 1024 * 1024
+      maxBuffer: 1024 * 1024,
     });
     if (pyResult) {
-      var lines = pyResult.trim().split('\n');
+      const lines = pyResult.trim().split('\n');
       log('[500shuju-sel] ' + lines[lines.length - 1] || 'done');
     }
   } catch (e) {
@@ -309,16 +323,19 @@ async function sync500ShujuStandings(dateStr) {
   log('[500shuju-standings] 积分榜抓取: ' + dateStr);
 
   try {
-    var pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-    var scriptPath = path.join(__dirname, '..', 'scripts', 'fetch_league_standings.py');
-    var pyResult = execSync(pythonCmd + ' "' + scriptPath + '" ' + dateStr, {
+    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    const scriptPath = path.join(__dirname, '..', 'scripts', 'fetch_league_standings.py');
+    const pyResult = execSync(pythonCmd + ' "' + scriptPath + '" ' + dateStr, {
       cwd: path.join(__dirname, '..'),
       timeout: 300000,
       encoding: 'utf8',
-      maxBuffer: 1024 * 1024
+      maxBuffer: 1024 * 1024,
     });
     if (pyResult) {
-      var lines = pyResult.trim().split('\n').filter(l => l.includes('[OK]'));
+      const lines = pyResult
+        .trim()
+        .split('\n')
+        .filter((l) => l.includes('[OK]'));
       log('[500shuju-standings] ' + (lines[lines.length - 1] || 'done'));
     }
   } catch (e) {
@@ -329,15 +346,15 @@ async function sync500ShujuStandings(dateStr) {
 // ═══ Task 2: 赛程信息同步（每天 12:00，替换旧的 footballDataList 全量更新） ═══
 async function syncMatchList(dateStr) {
   // 支持指定日期，默认为当前日期
-  var targetDate;
-  var targetWeek;
+  let targetDate;
+  let targetWeek;
   if (dateStr) {
     targetDate = dateStr;
-    var d = new Date(dateStr + 'T00:00:00+08:00');
-    var weekMap = { 0: '周日', 1: '周一', 2: '周二', 3: '周三', 4: '周四', 5: '周五', 6: '周六' };
+    const d = new Date(dateStr + 'T00:00:00+08:00');
+    const weekMap = { 0: '周日', 1: '周一', 2: '周二', 3: '周三', 4: '周四', 5: '周五', 6: '周六' };
     targetWeek = weekMap[d.getDay()];
   } else {
-    var period = getCurrentPeriod();
+    const period = getCurrentPeriod();
     targetDate = period.date;
     targetWeek = period.week;
   }
@@ -350,7 +367,7 @@ async function syncMatchList(dateStr) {
     const matchRes = await getWithRetry(
       MIDOU_BASE + '/score/footballDataList.do',
       { time: timestamp, order: 'status desc, start_datetime asc, data_id asc' },
-      { Cookie: 'token=' + token }
+      { Cookie: 'token=' + token },
     );
 
     if (matchRes.code !== 1 || !matchRes.data) {
@@ -359,13 +376,15 @@ async function syncMatchList(dateStr) {
     }
 
     // 按竞彩期号前缀 + 日期双重过滤
-    const periodMatches = (matchRes.data || []).filter(m => {
+    const periodMatches = (matchRes.data || []).filter((m) => {
       if (!m.num || m.num.indexOf(targetWeek) !== 0) return false;
       const bd = (m.bDate || '').slice(0, 10);
       if (bd === targetDate) return true;
       if (!bd && m.startTime && m.startTime.length >= 11) {
         const st = m.startTime.replace(/\//g, '-');
-        const dt = new Date(new Date().getFullYear() + '-' + st.slice(0, 2) + '-' + st.slice(3, 5) + 'T' + st.slice(6, 11) + ':00+08:00');
+        const dt = new Date(
+          new Date().getFullYear() + '-' + st.slice(0, 2) + '-' + st.slice(3, 5) + 'T' + st.slice(6, 11) + ':00+08:00',
+        );
         if (!isNaN(dt.getTime())) {
           if (dt.getHours() < 9) dt.setDate(dt.getDate() - 1);
           return fmtLocal(dt) === targetDate;
@@ -381,29 +400,42 @@ async function syncMatchList(dateStr) {
 
     // 更新 data.json
     let data = {};
-    try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) {}
+    try {
+      data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    } catch (e) {}
     if (!data.m) data.m = {};
     if (!data.r) data.r = {};
 
-    let newCount = 0, updateCount = 0;
+    let newCount = 0,
+      updateCount = 0;
 
     for (const m of periodMatches) {
       const mid = String(m.matchId || m.dataId || '');
       const mkey = 'm_' + mid;
-      const md = (m.bDate && typeof m.bDate === 'string' && m.bDate.length >= 10)
-        ? m.bDate.slice(0, 10) : targetDate;
+      const md = m.bDate && typeof m.bDate === 'string' && m.bDate.length >= 10 ? m.bDate.slice(0, 10) : targetDate;
 
       const newMatch = {
-        matchId: mid, num: m.num || '',
-        homeName: m.homeName || '', visitName: m.visitName || '',
-        leagueName: m.leagueName || '', startTime: m.startTime || '',
-        matchStatus: m.matchStatus || 0, score: m.score || '',
-        halfScore: m.halfScore || '', duration: m.duration || '',
-        yellow: m.yellow || '', red: m.red || '',
-        recommNum: m.recommNum || 0, date: md
+        matchId: mid,
+        num: m.num || '',
+        homeName: m.homeName || '',
+        visitName: m.visitName || '',
+        leagueName: m.leagueName || '',
+        startTime: m.startTime || '',
+        matchStatus: m.matchStatus || 0,
+        score: m.score || '',
+        halfScore: m.halfScore || '',
+        duration: m.duration || '',
+        yellow: m.yellow || '',
+        red: m.red || '',
+        recommNum: m.recommNum || 0,
+        date: md,
       };
 
-      if (data.m[mkey]) { updateCount++; } else { newCount++; }
+      if (data.m[mkey]) {
+        updateCount++;
+      } else {
+        newCount++;
+      }
       data.m[mkey] = newMatch;
     }
 
@@ -414,7 +446,7 @@ async function syncMatchList(dateStr) {
         const oddsData = JSON.parse(fs.readFileSync(oddsFile, 'utf8'));
         const oddsMap = oddsData.odds || {};
         let singleCount = 0;
-        Object.keys(data.m).forEach(k => {
+        Object.keys(data.m).forEach((k) => {
           const match = data.m[k];
           if (!match || (match.date || '').slice(0, 10) !== targetDate) return;
           const num = match.num || '';
@@ -430,24 +462,30 @@ async function syncMatchList(dateStr) {
 
     atomicWrite(DATA_FILE, data);
     log('[match_list] 赛程同步完成: 新增' + newCount + '场 更新' + updateCount + '场');
-    
+
     // 同步到 SQLite 数据库
     if (database.isAvailable()) {
       try {
-        const dbMatches = periodMatches.map(m => ({
+        const dbMatches = periodMatches.map((m) => ({
           matchId: String(m.matchId || m.dataId || ''),
-          num: m.num || '', homeName: m.homeName || '', visitName: m.visitName || '',
-          leagueName: m.leagueName || '', startTime: m.startTime || '',
-          matchStatus: m.matchStatus || 0, score: m.score || '',
-          halfScore: m.halfScore || '', recommNum: m.recommNum || 0,
-          date: (m.bDate && typeof m.bDate === 'string' && m.bDate.length >= 10) ? m.bDate.slice(0, 10) : targetDate
+          num: m.num || '',
+          homeName: m.homeName || '',
+          visitName: m.visitName || '',
+          leagueName: m.leagueName || '',
+          startTime: m.startTime || '',
+          matchStatus: m.matchStatus || 0,
+          score: m.score || '',
+          halfScore: m.halfScore || '',
+          recommNum: m.recommNum || 0,
+          date: m.bDate && typeof m.bDate === 'string' && m.bDate.length >= 10 ? m.bDate.slice(0, 10) : targetDate,
         }));
         database.batchUpsertMatches(dbMatches);
-      } catch(e) { log('[db] match_list sync failed: ' + e.message); }
+      } catch (e) {
+        log('[db] match_list sync failed: ' + e.message);
+      }
     }
-    
-    notifyReload();
 
+    notifyReload();
   } catch (e) {
     log('[match_list] 同步失败: ' + e.message);
     await refreshToken();
@@ -456,7 +494,7 @@ async function syncMatchList(dateStr) {
 
 // ═══ Task 3: 推荐方向同步（每 20 分钟） ═══
 async function syncRecommends(dateStr) {
-  var targetDate;
+  let targetDate;
   if (dateStr) {
     targetDate = dateStr;
   } else {
@@ -468,13 +506,15 @@ async function syncRecommends(dateStr) {
 
     // 加载 data.json
     let data = {};
-    try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) {}
+    try {
+      data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    } catch (e) {}
     if (!data.m) data.m = {};
     if (!data.r) data.r = {};
 
     // 筛选指定日期的比赛
     const dateMatches = [];
-    Object.keys(data.m).forEach(k => {
+    Object.keys(data.m).forEach((k) => {
       const m = data.m[k];
       if (m && m.date && m.date.slice(0, 10) === targetDate) {
         dateMatches.push(m);
@@ -486,7 +526,8 @@ async function syncRecommends(dateStr) {
       return;
     }
 
-    let recChanged = 0, resultUpdated = 0;
+    let recChanged = 0,
+      resultUpdated = 0;
 
     for (let i = 0; i < dateMatches.length; i++) {
       const m = dateMatches[i];
@@ -496,27 +537,27 @@ async function syncRecommends(dateStr) {
         const recRes = await getWithUA(
           MIDOU_BASE + '/score/getExpertRecommData.do',
           { dataId: mid, type: 0 },
-          { Cookie: 'token=' + token }
+          { Cookie: 'token=' + token },
         );
 
         if (recRes.code === 1 && recRes.data && recRes.data.length) {
           const recs = recRes.data
-            .filter(x => x && x.type && x.num > 0)
-            .map(x => ({
+            .filter((x) => x && x.type && x.num > 0)
+            .map((x) => ({
               type: x.type,
               num: x.num,
-              result: x.result !== undefined ? x.result : null
+              result: x.result !== undefined ? x.result : null,
             }));
 
           const rk = 'm_' + mid;
           const oldRecs = data.r[rk] || [];
           const oldLen = oldRecs.length;
-          const oldResultCount = oldRecs.filter(r => r.result !== null && r.result !== 2).length;
+          const oldResultCount = oldRecs.filter((r) => r.result !== null && r.result !== 2).length;
 
           data.r[rk] = recs;
           if (recs.length !== oldLen) recChanged++;
 
-          const newResultCount = recs.filter(r => r.result !== null && r.result !== 2).length;
+          const newResultCount = recs.filter((r) => r.result !== null && r.result !== 2).length;
           if (newResultCount > oldResultCount) resultUpdated++;
 
           saveTrendSnapshot(mid, recs);
@@ -535,14 +576,16 @@ async function syncRecommends(dateStr) {
     if (database.isAvailable() && recChanged > 0) {
       try {
         const dbRecs = [];
-        Object.keys(data.r).forEach(rk => {
+        Object.keys(data.r).forEach((rk) => {
           const mid = rk.startsWith('m_') ? rk.slice(2) : rk;
-          (data.r[rk] || []).forEach(r => {
+          (data.r[rk] || []).forEach((r) => {
             if (!r || !r.type || !r.num) return;
             dbRecs.push({
-              matchId: String(mid), type: r.type, num: r.num,
+              matchId: String(mid),
+              type: r.type,
+              num: r.num,
               result: r.result !== undefined ? r.result : null,
-              fetchDate: targetDate
+              fetchDate: targetDate,
             });
           });
         });
@@ -550,19 +593,35 @@ async function syncRecommends(dateStr) {
           database.batchUpsertRecommends(dbRecs);
           log('[db] recommends synced: ' + dbRecs.length + ' records');
         }
-      } catch(e) { log('[db] recommend sync failed: ' + e.message); }
+      } catch (e) {
+        log('[db] recommend sync failed: ' + e.message);
+      }
     }
 
     // 状态汇总
-    const allDone = dateMatches.every(m => m.matchStatus >= 2);
-    const summary = dateMatches.map(m =>
-      (m.num || '') + ':' + (m.matchStatus === 0 ? '未' : m.matchStatus === 1 ? '赛中' : m.matchStatus === 2 ? '完' : '取消')
-    ).join(',');
-    log('[recommend] ' + dateMatches.length + '场 [' + summary + '] 推荐变更:' + recChanged + ' 命中更新:' + resultUpdated + (allDone ? ' ALL_DONE' : ''));
-    
+    const allDone = dateMatches.every((m) => m.matchStatus >= 2);
+    const summary = dateMatches
+      .map(
+        (m) =>
+          (m.num || '') +
+          ':' +
+          (m.matchStatus === 0 ? '未' : m.matchStatus === 1 ? '赛中' : m.matchStatus === 2 ? '完' : '取消'),
+      )
+      .join(',');
+    log(
+      '[recommend] ' +
+        dateMatches.length +
+        '场 [' +
+        summary +
+        '] 推荐变更:' +
+        recChanged +
+        ' 命中更新:' +
+        resultUpdated +
+        (allDone ? ' ALL_DONE' : ''),
+    );
+
     // 如果有命中结果更新，通知 simple.js 重载
     if (resultUpdated > 0 || recChanged > 0) notifyReload();
-
   } catch (e) {
     log('[recommend] 同步失败: ' + e.message);
     await refreshToken();
@@ -583,25 +642,32 @@ async function syncLiveScores() {
     const matchRes = await getWithUA(
       MIDOU_BASE + '/score/footballDataList.do',
       { time: Date.now(), order: 'status desc, start_datetime asc, data_id asc' },
-      { Cookie: 'token=' + token }
+      { Cookie: 'token=' + token },
     );
 
     if (matchRes.code !== 1 || !matchRes.data) return;
 
-    const matches = (matchRes.data || []).map(m => {
+    const matches = (matchRes.data || []).map((m) => {
       let md = '';
       if (m.bDate && typeof m.bDate === 'string' && m.bDate.length >= 10) md = m.bDate.slice(0, 10);
       if (!md) md = today;
       return {
         matchId: String(m.matchId || m.dataId || ''),
-        num: m.num || '', homeName: m.homeName || '', visitName: m.visitName || '',
-        leagueName: m.leagueName || '', startTime: m.startTime || '',
+        num: m.num || '',
+        homeName: m.homeName || '',
+        visitName: m.visitName || '',
+        leagueName: m.leagueName || '',
+        startTime: m.startTime || '',
         matchStatus: m.matchStatus !== undefined ? m.matchStatus : 0,
-        score: m.score || '', halfScore: m.halfScore || '',
-        duration: m.duration || '', yellow: m.yellow || '', red: m.red || '',
+        score: m.score || '',
+        halfScore: m.halfScore || '',
+        duration: m.duration || '',
+        yellow: m.yellow || '',
+        red: m.red || '',
         homeScore: m.homeScore !== undefined ? m.homeScore : -1,
         visitScore: m.visitScore !== undefined ? m.visitScore : -1,
-        recommNum: m.recommNum || 0, date: md
+        recommNum: m.recommNum || 0,
+        date: md,
       };
     });
 
@@ -611,10 +677,9 @@ async function syncLiveScores() {
     // 同步到 data.json 的比分字段
     syncLiveToData(matches);
 
-    const liveCount = matches.filter(m => m.matchStatus === 1).length;
-    const finishedCount = matches.filter(m => m.matchStatus >= 2).length;
+    const liveCount = matches.filter((m) => m.matchStatus === 1).length;
+    const finishedCount = matches.filter((m) => m.matchStatus >= 2).length;
     log('[live_score] ' + matches.length + '场, 赛中:' + liveCount + ', 已结束:' + finishedCount);
-
   } catch (e) {
     // 比分同步失败不抛异常，静默跳过
   }
@@ -624,18 +689,22 @@ async function syncLiveScores() {
 function syncLiveToData(liveMatches) {
   try {
     let data = {};
-    try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) { return; }
+    try {
+      data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    } catch (e) {
+      return;
+    }
     if (!data.m) data.m = {};
 
     // 构建 num→key 的索引，用于 matchId 不匹配时的回退查找
     const numIndex = {};
-    Object.keys(data.m).forEach(k => {
+    Object.keys(data.m).forEach((k) => {
       const m = data.m[k];
       if (m && m.num) numIndex[m.num] = k;
     });
 
     let updated = 0;
-    liveMatches.forEach(lm => {
+    liveMatches.forEach((lm) => {
       // 优先用 matchId 匹配
       let key = 'm_' + lm.matchId;
       let old = data.m[key];
@@ -645,14 +714,23 @@ function syncLiveToData(liveMatches) {
         old = data.m[key];
       }
       if (old) {
-        if (old.matchStatus !== lm.matchStatus || old.score !== lm.score ||
-            old.duration !== lm.duration || old.yellow !== lm.yellow ||
-            old.red !== lm.red || old.halfScore !== lm.halfScore) {
+        if (
+          old.matchStatus !== lm.matchStatus ||
+          old.score !== lm.score ||
+          old.duration !== lm.duration ||
+          old.yellow !== lm.yellow ||
+          old.red !== lm.red ||
+          old.halfScore !== lm.halfScore
+        ) {
           updated++;
           data.m[key] = Object.assign({}, old, {
-            matchStatus: lm.matchStatus, score: lm.score,
-            halfScore: lm.halfScore, duration: lm.duration,
-            yellow: lm.yellow, red: lm.red, recommNum: lm.recommNum
+            matchStatus: lm.matchStatus,
+            score: lm.score,
+            halfScore: lm.halfScore,
+            duration: lm.duration,
+            yellow: lm.yellow,
+            red: lm.red,
+            recommNum: lm.recommNum,
           });
         }
       }
@@ -668,7 +746,7 @@ function syncLiveToData(liveMatches) {
 }
 
 // ═══ Task 5: 赛后回填专家命中结果 (★ P1-2: 并发+失败队列) ═══
-const BACKFILL_CONCURRENCY = 3;        // 并发数
+const BACKFILL_CONCURRENCY = 3; // 并发数
 const BACKFILL_QUEUE_FILE = path.join(__dirname, 'backfill_queue.json');
 const BACKFILL_HISTORY_FILE = path.join(__dirname, 'backfill_history.json');
 
@@ -686,9 +764,17 @@ function loadBackfillQueue() {
 /** 保存回填失败队列 */
 function saveBackfillQueue(items) {
   try {
-    fs.writeFileSync(BACKFILL_QUEUE_FILE, JSON.stringify({
-      updatedAt: new Date().toISOString(), items
-    }, null, 2));
+    fs.writeFileSync(
+      BACKFILL_QUEUE_FILE,
+      JSON.stringify(
+        {
+          updatedAt: new Date().toISOString(),
+          items,
+        },
+        null,
+        2,
+      ),
+    );
   } catch (e) {}
 }
 
@@ -702,13 +788,13 @@ function recordBackfillHistory(mid, status, detail) {
     history[mid] = {
       lastAttempt: new Date().toISOString(),
       status, // 'success' | 'failed' | 'retry'
-      detail: detail || ''
+      detail: detail || '',
     };
     // 只保留最近500条
     const keys = Object.keys(history);
     if (keys.length > 500) {
       const sorted = keys.sort((a, b) => history[a].lastAttempt.localeCompare(history[b].lastAttempt));
-      sorted.slice(0, keys.length - 500).forEach(k => delete history[k]);
+      sorted.slice(0, keys.length - 500).forEach((k) => delete history[k]);
     }
     fs.writeFileSync(BACKFILL_HISTORY_FILE, JSON.stringify(history));
   } catch (e) {}
@@ -718,11 +804,12 @@ function recordBackfillHistory(mid, status, detail) {
 function enqueueBackfillRetry(mid, retryCount, delayMinutes) {
   let items = loadBackfillQueue();
   // 去重
-  items = items.filter(i => i.mid !== mid);
+  items = items.filter((i) => i.mid !== mid);
   items.push({
-    mid, retryCount: (retryCount || 0) + 1,
+    mid,
+    retryCount: (retryCount || 0) + 1,
     nextRetryAt: new Date(Date.now() + (delayMinutes || 30) * 60 * 1000).toISOString(),
-    addedAt: new Date().toISOString()
+    addedAt: new Date().toISOString(),
   });
   saveBackfillQueue(items);
 }
@@ -733,8 +820,8 @@ async function processBackfillQueue() {
   if (items.length === 0) return 0;
 
   const now = Date.now();
-  const ready = items.filter(i => new Date(i.nextRetryAt).getTime() <= now);
-  const pending = items.filter(i => new Date(i.nextRetryAt).getTime() > now);
+  const ready = items.filter((i) => new Date(i.nextRetryAt).getTime() <= now);
+  const pending = items.filter((i) => new Date(i.nextRetryAt).getTime() > now);
 
   if (ready.length === 0) return 0;
 
@@ -744,7 +831,9 @@ async function processBackfillQueue() {
   try {
     const token = await getToken();
     let data = {};
-    try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) {}
+    try {
+      data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    } catch (e) {}
 
     // 并发处理
     const chunks = [];
@@ -754,13 +843,15 @@ async function processBackfillQueue() {
 
     for (const chunk of chunks) {
       const results = await Promise.allSettled(
-        chunk.map(item => getWithUA(
-          MIDOU_BASE + '/score/getExpertRecommData.do',
-          { dataId: item.mid, type: 0 },
-          { Cookie: 'token=' + token }
-        ).then(recRes => ({ mid: item.mid, retryCount: item.retryCount, recRes }))
-        .catch(err => ({ mid: item.mid, retryCount: item.retryCount, error: err }))
-        )
+        chunk.map((item) =>
+          getWithUA(
+            MIDOU_BASE + '/score/getExpertRecommData.do',
+            { dataId: item.mid, type: 0 },
+            { Cookie: 'token=' + token },
+          )
+            .then((recRes) => ({ mid: item.mid, retryCount: item.retryCount, recRes }))
+            .catch((err) => ({ mid: item.mid, retryCount: item.retryCount, error: err })),
+        ),
       );
 
       for (const r of results) {
@@ -778,13 +869,13 @@ async function processBackfillQueue() {
         }
 
         const newRecs = recRes.data
-          .filter(x => x && x.type && x.num > 0)
-          .map(x => ({ type: x.type, num: x.num, result: x.result !== undefined ? x.result : null }));
+          .filter((x) => x && x.type && x.num > 0)
+          .map((x) => ({ type: x.type, num: x.num, result: x.result !== undefined ? x.result : null }));
 
         const rk = 'm_' + mid;
-        const oldStale = (data.r[rk] || []).filter(r => r.result === null || r.result === 2).length;
+        const oldStale = (data.r[rk] || []).filter((r) => r.result === null || r.result === 2).length;
         data.r[rk] = newRecs;
-        const newStale = newRecs.filter(r => r.result === null || r.result === 2).length;
+        const newStale = newRecs.filter((r) => r.result === null || r.result === 2).length;
         if (newStale < oldStale) {
           success++;
           recordBackfillHistory(mid, 'success', 'queue-retry, stale:' + oldStale + '→' + newStale);
@@ -806,8 +897,8 @@ async function processBackfillQueue() {
     }
 
     // 清理已处理的项
-    const processedIds = new Set(ready.map(i => i.mid));
-    saveBackfillQueue(pending.filter(i => !processedIds.has(i.mid)));
+    const processedIds = new Set(ready.map((i) => i.mid));
+    saveBackfillQueue(pending.filter((i) => !processedIds.has(i.mid)));
   } catch (e) {
     log('[backfill-queue] 队列处理异常: ' + e.message);
   }
@@ -821,8 +912,11 @@ async function backfillResults(dateStr) {
   try {
     const token = await getToken();
     let data = {};
-    try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) {}
-    if (!data.m) data.m = {}; if (!data.r) data.r = {};
+    try {
+      data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    } catch (e) {}
+    if (!data.m) data.m = {};
+    if (!data.r) data.r = {};
 
     // ★ P1-1: 先用 autoInferStatus 修正可能的滞后状态
     autoInferStatus(dateStr);
@@ -834,13 +928,13 @@ async function backfillResults(dateStr) {
       const matchRes = await getWithUA(
         MIDOU_BASE + '/score/footballDataList.do',
         { time: timestamp, order: 'status desc, start_datetime asc, data_id asc' },
-        { Cookie: 'token=' + token }
+        { Cookie: 'token=' + token },
       );
       if (matchRes.code === 1 && matchRes.data) {
-        (matchRes.data || []).forEach(function(m) {
-          var mid = String(m.matchId || m.dataId || '');
-          var rk = 'm_' + mid;
-          var old = data.m[rk] || data.m[mid];
+        (matchRes.data || []).forEach(function (m) {
+          const mid = String(m.matchId || m.dataId || '');
+          const rk = 'm_' + mid;
+          const old = data.m[rk] || data.m[mid];
           if (old && old.matchStatus < 2 && (m.matchStatus || 0) >= 2) {
             old.matchStatus = m.matchStatus;
             old.score = m.score || old.score;
@@ -859,13 +953,13 @@ async function backfillResults(dateStr) {
 
     // 找已结束但 result 仍为 null/2 的比赛
     const needBackfill = [];
-    Object.keys(data.r).forEach(rk => {
+    Object.keys(data.r).forEach((rk) => {
       const mid = rk.replace('m_', '');
       const match = data.m[rk] || data.m['m_' + mid];
       if (!match || !match.date || match.date.slice(0, 10) !== dateStr) return;
       if (match.matchStatus < 2) return;
       const recs = data.r[rk] || [];
-      const staleCount = recs.filter(r => r.result === null || r.result === 2).length;
+      const staleCount = recs.filter((r) => r.result === null || r.result === 2).length;
       if (staleCount > 0) {
         needBackfill.push({ mid, match, staleCount });
       }
@@ -891,13 +985,15 @@ async function backfillResults(dateStr) {
 
     for (const chunk of chunks) {
       const results = await Promise.allSettled(
-        chunk.map(item => getWithUA(
-          MIDOU_BASE + '/score/getExpertRecommData.do',
-          { dataId: item.mid, type: 0 },
-          { Cookie: 'token=' + token }
-        ).then(recRes => ({ ...item, recRes }))
-        .catch(err => ({ ...item, error: err }))
-        )
+        chunk.map((item) =>
+          getWithUA(
+            MIDOU_BASE + '/score/getExpertRecommData.do',
+            { dataId: item.mid, type: 0 },
+            { Cookie: 'token=' + token },
+          )
+            .then((recRes) => ({ ...item, recRes }))
+            .catch((err) => ({ ...item, error: err })),
+        ),
       );
 
       for (const r of results) {
@@ -914,21 +1010,32 @@ async function backfillResults(dateStr) {
 
         if (item.recRes.code === 1 && item.recRes.data && item.recRes.data.length) {
           const newRecs = item.recRes.data
-            .filter(x => x && x.type && x.num > 0)
-            .map(x => ({ type: x.type, num: x.num, result: x.result !== undefined ? x.result : null }));
+            .filter((x) => x && x.type && x.num > 0)
+            .map((x) => ({ type: x.type, num: x.num, result: x.result !== undefined ? x.result : null }));
 
           const rk = 'm_' + item.mid;
-          const oldStale = (data.r[rk] || []).filter(r => r.result === null || r.result === 2).length;
+          const oldStale = (data.r[rk] || []).filter((r) => r.result === null || r.result === 2).length;
           data.r[rk] = newRecs;
-          const newStale = newRecs.filter(r => r.result === null || r.result === 2).length;
+          const newStale = newRecs.filter((r) => r.result === null || r.result === 2).length;
           if (newStale < oldStale) {
             updated++;
             recordBackfillHistory(item.mid, 'success', 'stale:' + oldStale + '→' + newStale);
-            log('[backfill] ' + rk + ' (' + item.match.homeName + ' vs ' + item.match.visitName + ') stale:' + oldStale + '→' + newStale);
+            log(
+              '[backfill] ' +
+                rk +
+                ' (' +
+                item.match.homeName +
+                ' vs ' +
+                item.match.visitName +
+                ') stale:' +
+                oldStale +
+                '→' +
+                newStale,
+            );
           } else {
             // 结果无变化，检查是否仍为null
             if (newStale > 0) {
-              const retries = (needBackfill.find(x => x.mid === item.mid) || {})._retries || 0;
+              const retries = (needBackfill.find((x) => x.mid === item.mid) || {})._retries || 0;
               if (retries < 2) {
                 enqueueBackfillRetry(item.mid, 0, 60);
               }
@@ -954,27 +1061,87 @@ async function backfillResults(dateStr) {
 
     // ★★ P3-1: 同步赛果到 prediction_logs（回测数据源）
     try {
-      var predictionLog = require('./prediction_log');
-      predictionLog.autoEnsure();
-      var logsUpdated = 0;
-      Object.keys(data.m).forEach(function(k) {
-        var m = data.m[k];
+      const predictionLog = require('./prediction_log');
+      await predictionLog.asyncEnsure();
+      let logsUpdated = 0;
+
+      // ★ P1-1: 同步前先加载 AI 缓存和功守道缓存，补写预测数据
+      let aiCache = {};
+      try {
+        const aiCacheFile = path.join(__dirname, 'ai_cache.json');
+        if (fs.existsSync(aiCacheFile)) aiCache = JSON.parse(fs.readFileSync(aiCacheFile, 'utf8'));
+      } catch (e) {}
+      let gsCache = {};
+      try {
+        const gsCacheFile = path.join(__dirname, 'gongshoudao', 'cache.json');
+        if (fs.existsSync(gsCacheFile)) {
+          gsCache = JSON.parse(fs.readFileSync(gsCacheFile, 'utf8'));
+          gsCache = gsCache['_global'] || {};
+        }
+      } catch (e) {}
+
+      Object.keys(data.m).forEach(function (k) {
+        const m = data.m[k];
         if (!m || !m.date || m.date.slice(0, 10) !== dateStr) return;
-        if (m.matchStatus < 2) return;  // 只处理已结束比赛
+        if (m.matchStatus < 2) return; // 只处理已结束比赛
         if (!m.score || !m.score.trim()) return;
-        var mid = String(m.matchId || '');
+        const mid = String(m.matchId || '');
         if (!mid) return;
-        var scoreStr = (m.score || '').replace('-', ':');
-        var parts = scoreStr.split(':');
-        var homeGoals = parseInt(parts[0]);
-        var awayGoals = parseInt(parts[1]);
+
+        // ★ P1-1: 补写 AI 预测数据（如已有但未写入 prediction_logs）
+        if (aiCache[mid]) {
+          const entry = aiCache[mid];
+          try {
+            const preds = entry.content && entry.content['预测建议'] ? entry.content['预测建议'] : [];
+            const aiFields = {
+              date: (m.date || '').slice(0, 10),
+              homeName: m.homeName || '',
+              visitName: m.visitName || '',
+              leagueName: m.leagueName || '',
+              matchNum: m.num || '',
+              confidence: entry.confidence || 0,
+              content: JSON.stringify(entry.content || ''),
+            };
+            preds.forEach(function (p) {
+              if (p['玩法'] === '胜平负') aiFields.spf = p['建议方向'];
+              if (p['玩法'] === '大小球') aiFields.overunder = p['建议方向'];
+              if (p['玩法'] === '比分预测') aiFields.score = p['建议方向'];
+            });
+            predictionLog.upsertAI(mid, aiFields);
+          } catch (e) {}
+        }
+
+        // ★ P1-1: 补写 GS 预测数据（如已有但未通过 computeAll 写入）
+        const gsKey = k.replace(/^m_/, '');
+        const gs = gsCache[mid] || gsCache['m_' + mid] || gsCache[gsKey];
+        if (gs && gs.scores) {
+          try {
+            predictionLog.upsertGS(mid.replace(/^m_/, ''), {
+              date: (m.date || '').slice(0, 10),
+              homeName: m.homeName || '',
+              visitName: m.visitName || '',
+              leagueName: m.leagueName || '',
+              matchNum: m.num || '',
+              scoresJson: JSON.stringify(gs.scores),
+              topScore: gs.scores && gs.scores[0] ? gs.scores[0].score : '',
+              topPercent: gs.scores && gs.scores[0] ? parseFloat(gs.scores[0].percent) || 0 : 0,
+              ladderLabel: gs.ladderLabel || '',
+              ladderLevel: gs.ladderLevel || 0,
+            });
+          } catch (e) {}
+        }
+
+        const scoreStr = (m.score || '').replace('-', ':');
+        const parts = scoreStr.split(':');
+        const homeGoals = parseInt(parts[0]);
+        const awayGoals = parseInt(parts[1]);
         if (isNaN(homeGoals) || isNaN(awayGoals)) return;
-        var totalGoals = homeGoals + awayGoals;
-        var actualSpf = '';
+        const totalGoals = homeGoals + awayGoals;
+        let actualSpf = '';
         if (homeGoals > awayGoals) actualSpf = '主胜';
         else if (homeGoals < awayGoals) actualSpf = '客胜';
         else actualSpf = '平';
-        var actualOverunder = '';
+        let actualOverunder = '';
         if (totalGoals > 2) actualOverunder = '大球';
         else if (totalGoals < 2) actualOverunder = '小球';
         else actualOverunder = '走';
@@ -984,7 +1151,7 @@ async function backfillResults(dateStr) {
             homeGoals: homeGoals,
             awayGoals: awayGoals,
             actualSpf: actualSpf,
-            actualOverunder: actualOverunder
+            actualOverunder: actualOverunder,
           });
           logsUpdated++;
         } catch (e2) {
@@ -1000,7 +1167,6 @@ async function backfillResults(dateStr) {
 
     // ★ 处理重试队列
     await processBackfillQueue();
-
   } catch (e) {
     log('[backfill] 错误: ' + e.message);
   }
@@ -1028,13 +1194,16 @@ async function refreshTodayAI() {
       return;
     }
 
-    if (!fs.existsSync(DATA_FILE)) { aiRefreshRunning = false; return; }
+    if (!fs.existsSync(DATA_FILE)) {
+      aiRefreshRunning = false;
+      return;
+    }
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     const mMap = data.m || {};
 
     // 找今天比赛
     const todayMatches = [];
-    Object.keys(mMap).forEach(k => {
+    Object.keys(mMap).forEach((k) => {
       const m = mMap[k];
       if (m && (m.date || '').slice(0, 10) === today) todayMatches.push(m);
     });
@@ -1047,53 +1216,98 @@ async function refreshTodayAI() {
 
     log('[ai_refresh] 共 ' + todayMatches.length + ' 场比赛，开始逐场分析...');
 
-    var cacheFile = path.join(__dirname, 'ai_cache.json');
+    const cacheFile = path.join(__dirname, 'ai_cache.json');
+    // ★ P1-1: 引入 prediction_log 用于 AI 预测持久化
+    let predictionLog;
+    try { predictionLog = require('./prediction_log'); } catch (e) {}
 
     function saveAICache(mid, source, content, conf) {
       try {
-        var cache = {};
-        try { cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
-        var entry = cache[mid] || { sources: {} };
+        let cache = {};
+        try {
+          cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+        } catch (e) {}
+        const entry = cache[mid] || { sources: {} };
         if (!entry.sources) entry.sources = {};
         entry.sources[source] = { content, confidence: conf, generatedAt: new Date().toISOString() };
         if (entry.sources.deepseek && entry.sources.doubao) {
-          var matchInfo = { matchId: mid };
-          var m = mMap['m_' + mid] || mMap[mid];
-          if (m) matchInfo = { matchId: mid, homeName: m.homeName, visitName: m.visitName, leagueName: m.leagueName, date: m.date, num: m.num };
-          var merged = aiMerger.mergeAnalyses(
+          let matchInfo = { matchId: mid };
+          const m = mMap['m_' + mid] || mMap[mid];
+          if (m)
+            matchInfo = {
+              matchId: mid,
+              homeName: m.homeName,
+              visitName: m.visitName,
+              leagueName: m.leagueName,
+              date: m.date,
+              num: m.num,
+            };
+          const merged = aiMerger.mergeAnalyses(
             { content: entry.sources.deepseek.content, confidence: entry.sources.deepseek.confidence || 70 },
             { content: entry.sources.doubao.content, confidence: entry.sources.doubao.confidence || 70 },
-            matchInfo
+            matchInfo,
           );
-          entry.content = merged.content; entry.confidence = merged.confidence; entry.merged = true;
+          entry.content = merged.content;
+          entry.confidence = merged.confidence;
+          entry.merged = true;
+
+          // ★ P1-1: 双模型合并后写入 prediction_logs
+          if (predictionLog) {
+            try {
+              const preds = merged.content && merged.content['预测建议'] ? merged.content['预测建议'] : [];
+              const aiFields = { confidence: merged.confidence || 0, content: JSON.stringify(merged.content) };
+              if (matchInfo.date) aiFields.date = matchInfo.date.slice(0, 10);
+              if (matchInfo.homeName) aiFields.homeName = matchInfo.homeName;
+              if (matchInfo.visitName) aiFields.visitName = matchInfo.visitName;
+              if (matchInfo.leagueName) aiFields.leagueName = matchInfo.leagueName;
+              if (matchInfo.num) aiFields.matchNum = matchInfo.num;
+              preds.forEach(function (p) {
+                if (p['玩法'] === '胜平负') aiFields.spf = p['建议方向'];
+                if (p['玩法'] === '大小球') aiFields.overunder = p['建议方向'];
+                if (p['玩法'] === '比分预测') aiFields.score = p['建议方向'];
+              });
+              predictionLog.upsertAI(mid, aiFields);
+            } catch (e) { /* 单条失败不影响整体 */ }
+          }
         } else {
-          entry.content = content; entry.confidence = conf;
+          entry.content = content;
+          entry.confidence = conf;
         }
         entry.updatedAt = new Date().toISOString();
         cache[mid] = entry;
         fs.writeFileSync(cacheFile, JSON.stringify(cache));
         return entry;
-      } catch (e) { return null; }
+      } catch (e) {
+        return null;
+      }
     }
 
     for (const m of todayMatches) {
       const mid = m.matchId;
       const matchInfo = {
-        matchId: mid, homeName: m.homeName || '', visitName: m.visitName || '',
-        leagueName: m.leagueName || '', date: m.date || '', num: m.num || ''
+        matchId: mid,
+        homeName: m.homeName || '',
+        visitName: m.visitName || '',
+        leagueName: m.leagueName || '',
+        date: m.date || '',
+        num: m.num || '',
       };
 
       try {
         const dsR = await deepseek.generateAnalysis(matchInfo);
-        var dsC = dsR && dsR.content ? (dsR.content || dsR) : null;
+        const dsC = dsR && dsR.content ? dsR.content || dsR : null;
         if (dsC) saveAICache(mid, 'deepseek', dsC, dsC.confidence || 70);
-      } catch (e) { log('[ai_refresh] DS ' + mid + ' 失败: ' + e.message.slice(0, 80)); }
+      } catch (e) {
+        log('[ai_refresh] DS ' + mid + ' 失败: ' + e.message.slice(0, 80));
+      }
 
       try {
         const dbR = await doubao.generateAnalysis(matchInfo);
-        var dbC = dbR && dbR.content ? (dbR.content || dbR) : null;
+        const dbC = dbR && dbR.content ? dbR.content || dbR : null;
         if (dbC) saveAICache(mid, 'doubao', dbC, dbC.confidence || 70);
-      } catch (e) { log('[ai_refresh] DB ' + mid + ' 失败: ' + e.message.slice(0, 80)); }
+      } catch (e) {
+        log('[ai_refresh] DB ' + mid + ' 失败: ' + e.message.slice(0, 80));
+      }
 
       log('[ai_refresh] ' + m.num + ' ' + m.homeName + ' vs ' + m.visitName + ' 完成');
       await sleep(jitter(3000)); // 间隔 3 秒避免限流
@@ -1115,7 +1329,7 @@ function getDayEndTime(dateStr) {
     let latestTime = 0;
     const year = new Date().getFullYear();
 
-    Object.values(data.m || {}).forEach(m => {
+    Object.values(data.m || {}).forEach((m) => {
       if (!m || !m.date || m.date.slice(0, 10) !== dateStr) return;
       if (!m.startTime) return;
 
@@ -1160,12 +1374,12 @@ async function finalCheck(dateStr) {
     if (fs.existsSync(DATA_FILE)) data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     if (data.m) {
       let fixed = 0;
-      Object.keys(data.m).forEach(k => {
+      Object.keys(data.m).forEach((k) => {
         const m = data.m[k];
         if (!m || !m.date || m.date.slice(0, 10) !== dateStr) return;
         if (m.matchStatus >= 2) return;
-        const recs = (data.r['m_' + m.matchId] || data.r[m.matchId] || []);
-        if (recs.some(r => r.result !== null && r.result !== 2)) {
+        const recs = data.r['m_' + m.matchId] || data.r[m.matchId] || [];
+        if (recs.some((r) => r.result !== null && r.result !== 2)) {
           m.matchStatus = 2;
           fixed++;
         }
@@ -1190,38 +1404,41 @@ let _ensureTimer = null;
 
 function startEnsureTodayMatches() {
   if (_ensureTimer) clearInterval(_ensureTimer);
-  _ensureTimer = setInterval(async () => {
-    if (_ensureRetries >= _ensureMaxRetries) {
-      clearInterval(_ensureTimer);
-      _ensureTimer = null;
-      return;
-    }
-    const today = new Date().toISOString().slice(0, 10);
-    const hasData = todayHasMatches(today);
-    if (hasData) {
-      log('[ensure] ' + today + ' 已有 ' + countTodayMatches(today) + ' 场比赛数据，重试停止');
-      clearInterval(_ensureTimer);
-      _ensureTimer = null;
-      _ensureRetries = 0;
-      return;
-    }
-    _ensureRetries++;
-    log('[ensure] ' + today + ' 无比赛数据，尝试同步 (第' + _ensureRetries + '/' + _ensureMaxRetries + '次)...');
-    try {
-      await syncMatchList();
-      await sleep(jitter(2000));
-      // 同步后立即检查
-      if (todayHasMatches(today)) {
-        log('[ensure] ✓ 赛程同步成功，' + countTodayMatches(today) + ' 场比赛已入库');
+  _ensureTimer = setInterval(
+    async () => {
+      if (_ensureRetries >= _ensureMaxRetries) {
+        clearInterval(_ensureTimer);
+        _ensureTimer = null;
+        return;
+      }
+      const today = new Date().toISOString().slice(0, 10);
+      const hasData = todayHasMatches(today);
+      if (hasData) {
+        log('[ensure] ' + today + ' 已有 ' + countTodayMatches(today) + ' 场比赛数据，重试停止');
         clearInterval(_ensureTimer);
         _ensureTimer = null;
         _ensureRetries = 0;
         return;
       }
-    } catch (e) {
-      log('[ensure] 尝试失败: ' + e.message);
-    }
-  }, 30 * 60 * 1000);  // 30 分钟间隔
+      _ensureRetries++;
+      log('[ensure] ' + today + ' 无比赛数据，尝试同步 (第' + _ensureRetries + '/' + _ensureMaxRetries + '次)...');
+      try {
+        await syncMatchList();
+        await sleep(jitter(2000));
+        // 同步后立即检查
+        if (todayHasMatches(today)) {
+          log('[ensure] ✓ 赛程同步成功，' + countTodayMatches(today) + ' 场比赛已入库');
+          clearInterval(_ensureTimer);
+          _ensureTimer = null;
+          _ensureRetries = 0;
+          return;
+        }
+      } catch (e) {
+        log('[ensure] 尝试失败: ' + e.message);
+      }
+    },
+    30 * 60 * 1000,
+  ); // 30 分钟间隔
 
   // 立即执行一次
   _ensureTimer._onTimeout(); // Node.js 内部触发，用个简单的方式
@@ -1238,7 +1455,9 @@ function kickEnsure() {
     log('[ensure] 立即重试同步 (' + _ensureRetries + '/' + _ensureMaxRetries + ')...');
     try {
       await syncMatchList();
-    } catch (e) { log('[ensure] 立即重试失败: ' + e.message); }
+    } catch (e) {
+      log('[ensure] 立即重试失败: ' + e.message);
+    }
   }, 5000);
 }
 
@@ -1251,11 +1470,13 @@ function countTodayMatches(dateStr) {
     if (!fs.existsSync(DATA_FILE)) return 0;
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     let count = 0;
-    Object.values(data.m || {}).forEach(m => {
+    Object.values(data.m || {}).forEach((m) => {
       if (m && m.date && m.date.slice(0, 10) === dateStr) count++;
     });
     return count;
-  } catch (e) { return 0; }
+  } catch (e) {
+    return 0;
+  }
 }
 
 /**
@@ -1266,14 +1487,14 @@ function countTodayMatches(dateStr) {
 function autoInferStatus(dateStr) {
   try {
     if (!fs.existsSync(DATA_FILE)) return 0;
-    let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     if (!data.m) return 0;
 
     const now = Date.now();
     const year = new Date().getFullYear();
     let fixed = 0;
 
-    Object.keys(data.m).forEach(k => {
+    Object.keys(data.m).forEach((k) => {
       const m = data.m[k];
       if (!m || m.matchStatus >= 2) return; // 已结束，跳过
       if (!m.date || m.date.slice(0, 10) !== dateStr) return;
@@ -1298,7 +1519,7 @@ function autoInferStatus(dateStr) {
       if (!shouldFix && data.r) {
         const rk = 'm_' + m.matchId;
         const recs = data.r[rk] || [];
-        if (recs.some(r => r.result !== null && r.result !== 2)) {
+        if (recs.some((r) => r.result !== null && r.result !== 2)) {
           shouldFix = true;
         }
       }
@@ -1340,24 +1561,30 @@ function needBackfillCheck(dateStr) {
     if (!fs.existsSync(DATA_FILE)) return false;
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     let hasStale = false;
-    Object.keys(data.r || {}).forEach(rk => {
+    Object.keys(data.r || {}).forEach((rk) => {
       const mid = rk.replace('m_', '');
       const match = data.m[rk] || data.m['m_' + mid];
       if (!match || !match.date || match.date.slice(0, 10) !== dateStr) return;
       if (match.matchStatus < 2) return;
       const recs = data.r[rk] || [];
-      if (recs.some(r => r.result === null || r.result === 2)) hasStale = true;
+      if (recs.some((r) => r.result === null || r.result === 2)) hasStale = true;
     });
     return hasStale;
-  } catch (e) { return false; }
+  } catch (e) {
+    return false;
+  }
 }
 
 function getTodayStatusSummary(dateStr) {
   try {
     if (!fs.existsSync(DATA_FILE)) return '无数据';
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-    let total = 0, status0 = 0, status1 = 0, status2 = 0, other = 0;
-    Object.values(data.m || {}).forEach(m => {
+    let total = 0,
+      status0 = 0,
+      status1 = 0,
+      status2 = 0,
+      other = 0;
+    Object.values(data.m || {}).forEach((m) => {
       if (!m || !m.date || m.date.slice(0, 10) !== dateStr) return;
       total++;
       if (m.matchStatus === 0) status0++;
@@ -1366,7 +1593,9 @@ function getTodayStatusSummary(dateStr) {
       else other++;
     });
     return total + '场 [未:' + status0 + ' 赛中:' + status1 + ' 完:' + status2 + (other ? ' 其他:' + other : '') + ']';
-  } catch (e) { return '?'; }
+  } catch (e) {
+    return '?';
+  }
 }
 
 // ═══ 调度器 ═══
@@ -1401,7 +1630,7 @@ async function start() {
   // ═══ 首次启动：如果已过12点 或 今天无数据，立即执行赛程+赔率同步 ═══
   const now = new Date();
   const noonToday = new Date(currentDate + 'T12:00:00+08:00');
-  const needSync = (now >= noonToday) || !todayHasMatches(currentDate);
+  const needSync = now >= noonToday || !todayHasMatches(currentDate);
 
   if (needSync) {
     if (now >= noonToday) {
@@ -1417,14 +1646,19 @@ async function start() {
       sync500Shuju(currentDate);
       sync500ShujuSelenium(currentDate);
       // 延后5分钟合并数据
-      setTimeout(() => {
-        try {
-          const { mergeShuju } = require('./merge_shuju');
-          mergeShuju(currentDate);
-          log('[init] 数据合并完成, ' + getTodayStatusSummary(currentDate));
-        } catch (e) {}
-      }, 5 * 60 * 1000);
-    } catch (e) { log('[init] 初始同步失败: ' + e.message); }
+      setTimeout(
+        () => {
+          try {
+            const { mergeShuju } = require('./merge_shuju');
+            mergeShuju(currentDate);
+            log('[init] 数据合并完成, ' + getTodayStatusSummary(currentDate));
+          } catch (e) {}
+        },
+        5 * 60 * 1000,
+      );
+    } catch (e) {
+      log('[init] 初始同步失败: ' + e.message);
+    }
   } else {
     log('[init] 今日数据已存在，跳过赛程同步');
   }
@@ -1435,19 +1669,24 @@ async function start() {
     // 检查昨天是否有比赛数据，若无则补同步
     if (!todayHasMatches(yd)) {
       log('[init] ⚠️ 检测到昨天 ' + yd + ' 缺少比赛数据，启动补同步...');
-      syncMatchList(yd).then(() => {
-        log('[init] 昨天 ' + yd + ' 赛程补同步完成');
-        // 补同步后也触发回填
-        if (needBackfillCheck(yd)) {
-          backfillResults(yd).then(() => log('[init] 昨天 ' + yd + ' 回填完成'))
-            .catch(e => log('[init] 昨天回填失败: ' + e.message));
-        }
-      }).catch(e => log('[init] 昨天补同步失败: ' + e.message));
+      syncMatchList(yd)
+        .then(() => {
+          log('[init] 昨天 ' + yd + ' 赛程补同步完成');
+          // 补同步后也触发回填
+          if (needBackfillCheck(yd)) {
+            backfillResults(yd)
+              .then(() => log('[init] 昨天 ' + yd + ' 回填完成'))
+              .catch((e) => log('[init] 昨天回填失败: ' + e.message));
+          }
+        })
+        .catch((e) => log('[init] 昨天补同步失败: ' + e.message));
     } else if (needBackfillCheck(yd)) {
       log('[init] 检测到昨天 ' + yd + ' 存在未回填比赛，启动回填...');
-      backfillResults(yd).then(() => {
-        log('[init] 昨天 ' + yd + ' 回填完成');
-      }).catch(e => log('[init] 昨天回填失败: ' + e.message));
+      backfillResults(yd)
+        .then(() => {
+          log('[init] 昨天 ' + yd + ' 回填完成');
+        })
+        .catch((e) => log('[init] 昨天回填失败: ' + e.message));
     }
   } catch (e) {}
 
@@ -1462,7 +1701,9 @@ async function start() {
   async function liveScoreLoop() {
     if (liveScoreRunning) return;
     liveScoreRunning = true;
-    try { await syncLiveScores(); } catch (e) {}
+    try {
+      await syncLiveScores();
+    } catch (e) {}
     liveScoreRunning = false;
     setTimeout(liveScoreLoop, 120000);
   }
@@ -1515,31 +1756,36 @@ async function start() {
         await sleep(jitter(2000));
         await sync500Odds(today);
         await sleep(jitter(2000));
-        
+
         // ★ P2: 预生成 shuju 数据（纯 Node.js，不依赖 Python）
         // shuju_map → fetchShujuData → mergeShuju → shuju_merged
         log('[scheduler] 开始预生成 shuju 数据...');
         try {
-          await fetchShujuMap(today);           // Step 1: shuju ID 映射
-          await fetchShujuData(today);          // Step 2: 抓取分析数据 (JS)
-          mergeShuju(today);                    // Step 3: 合并输出
+          await fetchShujuMap(today); // Step 1: shuju ID 映射
+          await fetchShujuData(today); // Step 2: 抓取分析数据 (JS)
+          mergeShuju(today); // Step 3: 合并输出
           log('[scheduler] shuju 预生成完成: ' + today + ' → AI 深度解析数据就绪');
         } catch (e) {
           log('[scheduler] shuju 预生成失败: ' + e.message);
         }
-        
+
         // 旧 Python 路径保留（如环境支持则执行）
         sync500Shuju(today);
         sync500ShujuSelenium(today);
         // 延后 5 分钟合并数据
-        setTimeout(() => {
-          log('[shuju] 开始合并静态+Selenium数据...');
-          try {
-            const { mergeShuju } = require('./merge_shuju');
-            mergeShuju(today);
-            log('[shuju] 合并完成: ' + getTodayStatusSummary(today));
-          } catch (e) { log('[shuju] 合并失败: ' + e.message); }
-        }, 5 * 60 * 1000);
+        setTimeout(
+          () => {
+            log('[shuju] 开始合并静态+Selenium数据...');
+            try {
+              const { mergeShuju } = require('./merge_shuju');
+              mergeShuju(today);
+              log('[shuju] 合并完成: ' + getTodayStatusSummary(today));
+            } catch (e) {
+              log('[shuju] 合并失败: ' + e.message);
+            }
+          },
+          5 * 60 * 1000,
+        );
       } catch (e) {
         log('[scheduler] 12:00 任务失败: ' + e.message);
         // 失败后启动重试
@@ -1554,16 +1800,18 @@ async function start() {
   }
 
   // 启动所有循环（错峰启动，避免同时发起请求）
-  setTimeout(liveScoreLoop, 5000);     // 5秒后开始比分
-  setTimeout(recommendLoop, 30000);    // 30秒后开始推荐
-  scheduleNoon();                       // 计算12:00定时
+  setTimeout(liveScoreLoop, 5000); // 5秒后开始比分
+  setTimeout(recommendLoop, 30000); // 30秒后开始推荐
+  scheduleNoon(); // 计算12:00定时
 
   // ═══ 每小时 AI 深度解析刷新（8:00~20:00） ═══
   async function aiRefreshLoop() {
-    try { await refreshTodayAI(); } catch (e) {}
+    try {
+      await refreshTodayAI();
+    } catch (e) {}
     setTimeout(aiRefreshLoop, 60 * 60 * 1000);
   }
-  setTimeout(aiRefreshLoop, 120000);  // 2分钟后开始首次，之后每小时
+  setTimeout(aiRefreshLoop, 120000); // 2分钟后开始首次，之后每小时
 
   // ═══ 健康监控：每分钟检查 ═══
   let _lastBackfillCheck = 0;
@@ -1582,7 +1830,7 @@ async function start() {
       const yd = fmtLocal(new Date(Date.now() - 86400000));
       if (needBackfillCheck(yd)) {
         log('[health] 日期变更，触发昨天 ' + yd + ' 回填...');
-        backfillResults(yd).catch(e => log('[health] 昨天回填失败: ' + e.message));
+        backfillResults(yd).catch((e) => log('[health] 昨天回填失败: ' + e.message));
       }
     }
     // 每20分钟检查一次昨天回填
@@ -1591,7 +1839,7 @@ async function start() {
       const yd = fmtLocal(new Date(Date.now() - 86400000));
       if (needBackfillCheck(yd)) {
         log('[health] 定时检查：昨天 ' + yd + ' 存在未回填比赛，触发回填...');
-        backfillResults(yd).catch(e => log('[health] 昨天回填失败: ' + e.message));
+        backfillResults(yd).catch((e) => log('[health] 昨天回填失败: ' + e.message));
       }
     }
     // 整点输出健康状态 + 记录每日统计
@@ -1609,7 +1857,7 @@ async function start() {
           date: today,
           matchesTotal: Object.keys(data.m || {}).length,
           recsTotal: Object.keys(data.r || {}).length,
-          statusSummary: getTodayStatusSummary(today)
+          statusSummary: getTodayStatusSummary(today),
         });
       } catch (e) {}
     }
@@ -1618,7 +1866,7 @@ async function start() {
 
 // 仅直接运行时启动，被 require 时不自动启动
 if (require.main === module) {
-  start().catch(e => {
+  start().catch((e) => {
     log('FATAL: ' + e.message);
     alert.crawlFailed(e.message, 'data_sync 守护进程启动失败').then(() => {
       process.exit(1);

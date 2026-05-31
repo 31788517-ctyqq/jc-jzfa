@@ -36,13 +36,84 @@ if (!data.m) {
 const predictionLog = require('./prediction_log');
 predictionLog.autoEnsure();
 
+// ★ P1-2: 加载 AI 缓存和功守道缓存，用于补写预测数据
+let aiCache = {};
+const AI_CACHE_FILE = path.join(__dirname, 'ai_cache.json');
+if (fs.existsSync(AI_CACHE_FILE)) {
+  try {
+    aiCache = JSON.parse(fs.readFileSync(AI_CACHE_FILE, 'utf8'));
+    console.log('已加载 AI 缓存: ' + Object.keys(aiCache).length + ' 条');
+  } catch (e) {
+    console.log('AI 缓存加载失败: ' + e.message);
+  }
+}
+
+let gsCache = {};
+const GS_CACHE_FILE = path.join(__dirname, 'gongshoudao', 'cache.json');
+if (fs.existsSync(GS_CACHE_FILE)) {
+  try {
+    const raw = JSON.parse(fs.readFileSync(GS_CACHE_FILE, 'utf8'));
+    gsCache = raw['_global'] || {};
+    console.log('已加载 GS 缓存: ' + Object.keys(gsCache).length + ' 条');
+  } catch (e) {
+    console.log('GS 缓存加载失败: ' + e.message);
+  }
+}
+
+// ★ P1-2: 辅助函数 — 从 AI cache 提取预测字段
+function extractAIPrediction(mid, m) {
+  const entry = aiCache[mid] || aiCache['m_' + mid];
+  if (!entry || !entry.content) return null;
+  const preds = entry.content['预测建议'] || [];
+  const aiFields = {
+    confidence: entry.confidence || 0,
+    content: JSON.stringify(entry.content),
+  };
+  if (m.date) aiFields.date = m.date.slice(0, 10);
+  if (m.homeName) aiFields.homeName = m.homeName;
+  if (m.visitName) aiFields.visitName = m.visitName;
+  if (m.leagueName) aiFields.leagueName = m.leagueName;
+  if (m.num) aiFields.matchNum = m.num;
+  preds.forEach(function (p) {
+    if (p['玩法'] === '胜平负') aiFields.spf = p['建议方向'];
+    if (p['玩法'] === '大小球') aiFields.overunder = p['建议方向'];
+    if (p['玩法'] === '比分预测') aiFields.score = p['建议方向'];
+  });
+  return aiFields;
+}
+
+// ★ P1-2: 辅助函数 — 从 GS cache 提取预测字段
+function extractGSPrediction(mid, m) {
+  const clean = String(mid).replace(/^m_/, '');
+  const gs = gsCache[mid] || gsCache['m_' + mid] || gsCache[clean];
+  if (!gs || !gs.scores) return null;
+  return {
+    date: (m.date || '').slice(0, 10),
+    homeName: m.homeName || '',
+    visitName: m.visitName || '',
+    leagueName: m.leagueName || '',
+    matchNum: m.num || '',
+    scoresJson: JSON.stringify(gs.scores),
+    topScore: gs.scores && gs.scores[0] ? gs.scores[0].score : '',
+    topPercent: gs.scores && gs.scores[0] ? parseFloat(gs.scores[0].percent) || 0 : 0,
+    ladderLabel: gs.ladderLabel || '',
+    ladderLevel: gs.ladderLevel || 0,
+  };
+}
+
 // 等待数据库就绪
 function waitForDB(timeout) {
-  return new Promise(function(resolve) {
-    var start = Date.now();
+  return new Promise(function (resolve) {
+    const start = Date.now();
     function check() {
-      if (predictionLog.isReady()) { resolve(true); return; }
-      if (Date.now() - start > timeout) { resolve(false); return; }
+      if (predictionLog.isReady()) {
+        resolve(true);
+        return;
+      }
+      if (Date.now() - start > timeout) {
+        resolve(false);
+        return;
+      }
       setTimeout(check, 300);
     }
     check();
@@ -62,9 +133,11 @@ async function main() {
   const allKeys = Object.keys(matchMap);
 
   let total = 0;
-  let skipped = 0;      // 比赛未结束或无比分
+  let skipped = 0; // 比赛未结束或无比分
   let updated = 0;
   let errors = 0;
+  let aiWritten = 0; // ★ P1-2: AI 预测写入数
+  let gsWritten = 0; // ★ P1-2: GS 预测写入数
   const details = [];
 
   for (const k of allKeys) {
@@ -114,7 +187,7 @@ async function main() {
       homeGoals: homeGoals,
       awayGoals: awayGoals,
       actualSpf: actualSpf,
-      actualOverunder: actualOverunder
+      actualOverunder: actualOverunder,
     };
 
     const info = {
@@ -123,7 +196,7 @@ async function main() {
       match: (m.homeName || '?') + ' vs ' + (m.visitName || '?'),
       score: m.score,
       spf: actualSpf,
-      ou: actualOverunder
+      ou: actualOverunder,
     };
 
     if (dryRun) {
@@ -131,7 +204,18 @@ async function main() {
       updated++;
     } else {
       try {
+        // ★ P1-2: 赛果回填
         predictionLog.backfillResult(mid, fields);
+        // ★ P1-2: 同时补写 AI 预测（如果 ai_cache 有数据）
+        const aiFields = extractAIPrediction(mid, m);
+        if (aiFields) {
+          try { predictionLog.upsertAI(mid, aiFields); aiWritten++; } catch (e) {}
+        }
+        // ★ P1-2: 同时补写 GS 预测（如果功守道缓存有数据）
+        const gsFields = extractGSPrediction(mid, m);
+        if (gsFields) {
+          try { predictionLog.upsertGS(mid.replace(/^m_/, ''), gsFields); gsWritten++; } catch (e) {}
+        }
         updated++;
         details.push(info);
       } catch (e) {
@@ -148,28 +232,32 @@ async function main() {
   console.log('  总比赛数: ' + total);
   console.log('  跳过 (未结束/无比分): ' + skipped);
   console.log('  已' + (dryRun ? '标记' : '回填') + ': ' + updated);
+  console.log('  其中 AI 预测写入: ' + aiWritten);
+  console.log('  其中 GS 预测写入: ' + gsWritten);
   if (errors > 0) console.log('  失败: ' + errors);
 
   // 按日期汇总
   const dateCount = {};
-  details.forEach(function(d) {
+  details.forEach(function (d) {
     // 从 matchId 反查日期（遍历 data.m）
     const mk = 'm_' + d.mid;
     const m = matchMap[mk];
-    const dt = (m && m.date) ? m.date.slice(0, 10) : '未知';
+    const dt = m && m.date ? m.date.slice(0, 10) : '未知';
     if (!dateCount[dt]) dateCount[dt] = [];
     dateCount[dt].push(d);
   });
 
   console.log('\n  按日期分布:');
-  Object.keys(dateCount).sort().forEach(function(dt) {
-    console.log('    ' + dt + ': ' + dateCount[dt].length + ' 场');
-    if (dateCount[dt].length <= 10) {
-      dateCount[dt].forEach(function(d) {
-        console.log('      ' + d.num + ' ' + d.match + ' → ' + d.score + ' (' + d.spf + ', ' + d.ou + ')');
-      });
-    }
-  });
+  Object.keys(dateCount)
+    .sort()
+    .forEach(function (dt) {
+      console.log('    ' + dt + ': ' + dateCount[dt].length + ' 场');
+      if (dateCount[dt].length <= 10) {
+        dateCount[dt].forEach(function (d) {
+          console.log('      ' + d.num + ' ' + d.match + ' → ' + d.score + ' (' + d.spf + ', ' + d.ou + ')');
+        });
+      }
+    });
 
   console.log('\n  验证回测查询...');
   const totalCount = predictionLog.getTotalCount();
@@ -182,7 +270,7 @@ async function main() {
   }
 }
 
-main().catch(function(e) {
+main().catch(function (e) {
   console.error('脚本异常: ' + e.message);
   console.error(e.stack);
   process.exit(1);

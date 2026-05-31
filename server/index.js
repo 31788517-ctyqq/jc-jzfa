@@ -1613,7 +1613,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         // ========== 预测回测 ==========
         case 'prediction-backtest': {
           try {
-            predictionLog.autoEnsure();
+            await predictionLog.asyncEnsure();
             const result = predictionLog.queryBacktest({
               type: data.type || 'all',
               dateRange: data.dateRange || 'all',
@@ -1626,6 +1626,20 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               pageSize: parseInt(data.pageSize) || 20,
             });
 
+            // ★ P1-4: 空数据时输出诊断信息
+            if (!result.items || result.items.length === 0) {
+              const totalAll = predictionLog.getTotalCount();
+              logger.warn('[bt] 回测查询返回空 | DB就绪=' + predictionLog.isReady() +
+                ' | 有赛果总数=' + totalAll +
+                ' | 筛选条件=' + JSON.stringify({ type: data.type, dateRange: data.dateRange, direction: data.direction }));
+              if (!predictionLog.isReady()) {
+                logger.warn('[bt] ⚠ 数据库未就绪，请检查 midou_data.db 初始化状态');
+              }
+              if (totalAll === 0) {
+                logger.warn('[bt] ⚠ prediction_logs 表中无赛果记录，请运行: node server/backfill_prediction_logs.js');
+              }
+            }
+
             // Add league list and total count
             result.leagues = predictionLog.getLeagues();
             return res.json({ code: 1, data: result });
@@ -1637,6 +1651,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         // ========== 预测回测联赛列表 ==========
         case 'backtest-leagues': {
           try {
+            await predictionLog.asyncEnsure();
             const leagues = predictionLog.getLeagues();
             const total = predictionLog.getTotalCount();
             return res.json({ code: 1, data: { leagues: leagues, total: total } });
@@ -1998,6 +2013,47 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 isMatchLose = !anyWon && anyLose;
               }
 
+              // ★ fallback: 推荐数据无 result 时，用比分+赔率直判方向对错
+              if (isMatchWon === null && isMatchLose === null) {
+                if (m && m.matchStatus >= 2 && m.score) {
+                  const mData = matchDataMap[m.matchId];
+                  const mOdds = mData ? mData.odds : null;
+                  const hcp = mOdds && mOdds.rqspf ? mOdds.rqspf.handicap : null;
+                  // 内联比分判定（与 judgeByScore 逻辑一致）
+                  function judgeScoreExp(d, s, h) {
+                    var p = String(s).replace(/[-:]/g, ':').split(':');
+                    var hh = parseInt(p[0]);
+                    var aa = parseInt(p[1]);
+                    if (isNaN(hh) || isNaN(aa)) return null;
+                    if (d === '胜') return hh > aa;
+                    if (d === '平') return hh === aa;
+                    if (d === '负') return hh < aa;
+                    if (d === '胜平') return hh > aa || hh === aa;
+                    if (d === '平负') return hh === aa || hh < aa;
+                    if (d === '让胜' || d === '让平' || d === '让负') {
+                      var ec = hh + (h != null ? parseFloat(h) || 0 : 0);
+                      if (d === '让胜') return ec > aa;
+                      if (d === '让平') return ec === aa;
+                      if (d === '让负') return ec < aa;
+                    }
+                    var gm = d.match(/总进球-(\d+)/);
+                    if (gm) return (hh + aa) === parseInt(gm[1]);
+                    return null;
+                  }
+                  var scoreResult = judgeScoreExp(direction, m.score, hcp);
+                  if (scoreResult !== null) {
+                    isMatchWon = scoreResult;
+                    isMatchLose = !scoreResult;
+                    // 同步更新 subResults
+                    for (var sri2 = 0; sri2 < subResults.length; sri2++) {
+                      var sd2 = subResults[sri2].direction;
+                      var sr2 = judgeScoreExp(sd2, m.score, hcp);
+                      subResults[sri2].result = sr2 !== null ? (sr2 ? 1 : 0) : null;
+                    }
+                  }
+                }
+              }
+
               return {
                 matchId: m.matchId,
                 homeName: m.homeName,
@@ -2193,7 +2249,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (hour < 12) {
                 return res.json({
                   code: 1,
-                  data: { date: dateStr, plans: [], notice: '比分方案预计 12:00 后自动生成', waitUntil: '12:00' },
+                  data: { date: dateStr, plans: [], notice: '单关比分方案预计 12:00 后自动生成', waitUntil: '12:00' },
                 });
               }
             }
@@ -2672,7 +2728,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
               return {
                 planId: 'score_plan_' + dateStr + '_' + (idx + 1),
-                planName: '比分方案 ' + (idx + 1),
+                planName: '单关比分方案 ' + (idx + 1),
                 matchId: c.matchId,
                 matchNum: match.num || '',
                 homeName: match.homeName || '',
@@ -2712,7 +2768,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             var notice = '';
             if (plans.length === 0) {
               if (allCandidates.length === 0) {
-                notice = '今日暂无符合条件的比分方案';
+                notice = '今日暂无符合条件的单关比分方案';
               } else {
                 notice = '候选场次质量分不足（最高: ' + allCandidates[0].qualityScore + '/100），已自动跳过';
               }
@@ -2738,7 +2794,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (hour < 18) {
                 return res.json({
                   code: 1,
-                  data: { date: dateStr, plans: [], notice: '量化方案预计 18:00 后自动生成' },
+                  data: { date: dateStr, plans: [], notice: '量化博冷方案预计 18:00 后自动生成' },
                 });
               }
             }
@@ -2875,6 +2931,53 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (!anyUnknown) {
                 isMatchWon = anyWon;
                 isMatchLose = !anyWon && anyLose;
+              }
+
+              // ★ fallback: 推荐数据无 result 时，用比分+赔率直判方向对错
+              if (isMatchWon === null && isMatchLose === null) {
+                const matchKey2 = 'm_' + String(key);
+                const mForScore = mMap[matchKey2] || mMap[String(key)] || null;
+                if (mForScore && mForScore.matchStatus >= 2 && mForScore.score) {
+                  const scoreParts = String(mForScore.score).replace(/[-:]/g, ':').split(':');
+                  const hg = parseInt(scoreParts[0]);
+                  const ag = parseInt(scoreParts[1]);
+                  if (!isNaN(hg) && !isNaN(ag)) {
+                    const moddsForFallback = getMatchOdds(mForScore);
+                    const hcp = moddsForFallback && moddsForFallback.rqspf ? moddsForFallback.rqspf.handicap : null;
+                    // 内联比分判定
+                    function judgeScore(d, s, h) {
+                      var p = String(s).replace(/[-:]/g, ':').split(':');
+                      var hh = parseInt(p[0]);
+                      var aa = parseInt(p[1]);
+                      if (isNaN(hh) || isNaN(aa)) return null;
+                      if (d === '胜') return hh > aa;
+                      if (d === '平') return hh === aa;
+                      if (d === '负') return hh < aa;
+                      if (d === '胜平') return hh > aa || hh === aa;
+                      if (d === '平负') return hh === aa || hh < aa;
+                      if (d === '让胜' || d === '让平' || d === '让负') {
+                        var ec = hh + (h != null ? parseFloat(h) || 0 : 0);
+                        if (d === '让胜') return ec > aa;
+                        if (d === '让平') return ec === aa;
+                        if (d === '让负') return ec < aa;
+                      }
+                      var gm = d.match(/总进球-(\d+)/);
+                      if (gm) return (hh + aa) === parseInt(gm[1]);
+                      return null;
+                    }
+                    var scoreResult = judgeScore(direction, mForScore.score, hcp);
+                    if (scoreResult !== null) {
+                      isMatchWon = scoreResult;
+                      isMatchLose = !scoreResult;
+                      // 同步更新 subResults
+                      for (var sri = 0; sri < subResults.length; sri++) {
+                        var sd = subResults[sri].direction;
+                        var sr = judgeScore(sd, mForScore.score, hcp);
+                        subResults[sri].result = sr !== null ? (sr ? 1 : 0) : null;
+                      }
+                    }
+                  }
+                }
               }
 
               return { isMatchWon: isMatchWon, isMatchLose: isMatchLose, subResults: subResults };
@@ -3256,7 +3359,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
               plans.push({
                 planId: 'quant_' + dateStr + '_' + (p + 1),
-                planName: '量化方案 ' + (p + 1),
+                planName: '量化博冷方案 ' + (p + 1),
                 matches: [matchA, matchB],
                 amount: 1000,
                 playType: '混合投注（搏冷）',
@@ -3890,7 +3993,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
                   results.push({
                     date: ds,
-                    plan: '比分方案 ' + (idx + 1),
+                    plan: '单关比分方案 ' + (idx + 1),
                     status: sWon ? 'won' : sLose ? 'lose' : 'unknown',
                     matches: [
                       {
@@ -4003,8 +4106,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   if (_pAvg < MIN_PLAN_AVG) continue;
 
                   // 判定两场命中结果
-                  const _rA = PG.checkMatchResult(_ca.match.matchId, _ca.coldDir, rMap, normalizeRecs);
-                  const _rB = PG.checkMatchResult(_cb.match.matchId, _cb.coldDir, rMap, normalizeRecs);
+                  const _rA = PG.checkMatchResult(_ca.match.matchId, _ca.coldDir, rMap, normalizeRecs, mMap);
+                  const _rB = PG.checkMatchResult(_cb.match.matchId, _cb.coldDir, rMap, normalizeRecs, mMap);
 
                   let _qWon = false,
                     _qLose = false;
@@ -4019,7 +4122,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     totalIncome += _qpPrize - AMOUNT_SCORE_OR_QUANT;
                     results.push({
                       date: ds,
-                      plan: '量化方案 ' + (_qp + 1),
+                      plan: '量化博冷方案 ' + (_qp + 1),
                       status: 'won',
                       matches: [
                         {
@@ -4046,7 +4149,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     totalIncome -= AMOUNT_SCORE_OR_QUANT;
                     results.push({
                       date: ds,
-                      plan: '量化方案 ' + (_qp + 1),
+                      plan: '量化博冷方案 ' + (_qp + 1),
                       status: 'lose',
                       matches: [
                         {
