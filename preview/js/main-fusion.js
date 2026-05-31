@@ -396,6 +396,7 @@ export function goBack() {
 }
 
 // ── 本地函数注册到 window ──
+window.switchTab = switchTab;
 window.goBack = goBack;
 window.goToday = goToday;
 window.shiftWeek = shiftWeek;
