@@ -93,8 +93,8 @@ function injectStyles() {
     '.bt-pred-item { font-size:10px; line-height:1.5; white-space:nowrap; }',
     '.bt-pred-item .pred-label { color:var(--text3); margin-right:2px; }',
     '.bt-pred-item .pred-val { font-weight:600; }',
-    '.bt-pred-item .pred-hit { color:var(--green); }',
-    '.bt-pred-item .pred-miss { color:var(--red); }',
+    '.bt-pred-item .pred-hit { color:var(--red); }',
+    '.bt-pred-item .pred-miss { color:var(--green); }',
 
     /* 分页 */
     '.backtest-pager { margin-top:12px; }',
@@ -395,7 +395,7 @@ function renderList(list) {
         '<div class="bt-pred-item">' +
         '<span class="pred-label">AI</span>' +
         '<span class="pred-val ' + (row.ai_hit ? 'pred-hit' : 'pred-miss') + '">' +
-        esc(row.ai_spf) + (row.ai_hit ? ' ✓' : ' ✗') +
+        esc(row.ai_spf) + (row.ai_hit ? ' ✓' : ' ✕') +
         '</span></div>'
       );
     }
@@ -404,7 +404,7 @@ function renderList(list) {
         '<div class="bt-pred-item">' +
         '<span class="pred-label">PK</span>' +
         '<span class="pred-val ' + (row.pk_hit ? 'pred-hit' : 'pred-miss') + '">' +
-        esc(row.pk_direction) + (row.pk_hit ? ' ✓' : ' ✗') +
+        esc(row.pk_direction) + (row.pk_hit ? ' ✓' : ' ✕') +
         '</span></div>'
       );
     }
@@ -413,7 +413,7 @@ function renderList(list) {
         '<div class="bt-pred-item">' +
         '<span class="pred-label">GS</span>' +
         '<span class="pred-val ' + (row.gs_hit ? 'pred-hit' : 'pred-miss') + '">' +
-        esc(row.gs_top_score) + (row.gs_hit ? ' ✓' : ' ✗') +
+        esc(row.gs_top_score) + (row.gs_hit ? ' ✓' : ' ✕') +
         '</span></div>'
       );
     }
