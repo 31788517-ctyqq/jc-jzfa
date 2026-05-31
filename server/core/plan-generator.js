@@ -320,6 +320,17 @@ function checkCorrelation(ca, cb) {
  */
 function judgeByScore(direction, scoreStr, handicap) {
   if (!scoreStr || !direction) return null;
+
+  // ★ 复合方向（含、号，如"平、让平"）：分开判定，任一命中即可
+  if (direction.indexOf('、') >= 0) {
+    const subParts = direction.split(/[、,]/);
+    for (let pi = 0; pi < subParts.length; pi++) {
+      const subR = judgeByScore(subParts[pi].trim(), scoreStr, handicap);
+      if (subR === true) return true;
+    }
+    return false;
+  }
+
   const parts = String(scoreStr).replace(/[-:]/g, ':').split(':');
   const hg = parseInt(parts[0]);
   const ag = parseInt(parts[1]);
@@ -427,7 +438,7 @@ function checkMatchResult(matchId, direction, rMap, normalizeRecs, mMap) {
   if (isMatchWon === null && isMatchLose === null) {
     const matchKey = 'm_' + String(matchId);
     const m = mMap ? (mMap[matchKey] || mMap[String(matchId)] || null) : null;
-    if (m && m.matchStatus >= 2 && m.score) {
+    if (m && m.matchStatus >= 1 && m.score) {
       const scoreResult = judgeByScore(direction, m.score, null);
       if (scoreResult !== null) {
         isMatchWon = scoreResult;

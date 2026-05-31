@@ -156,14 +156,12 @@ export function loadPlanList() {
             }
           }
 
-          var planName = p.planName || '方案' + (i + 1);
+          var planName = p.planName || '专家博热方案 ' + (i + 1);
           var amountVal = (p.amount || 1000).toFixed(0);
-          var isWon = p.isScoreWon || false;
-          var isLose = p.isScoreLose || false;
+          // ★ 不要覆盖上面从 matches[].isMatchWon/isMatchLose 计算出的 isWon/isLose
           var prizeVal = isWon ? (p.winningPrize || 0).toFixed(0) : (p.maxPrize || 0).toFixed(0);
           var prizeLabel = isWon ? '中奖金额' : isLose ? '预计奖金' : '预计最高奖金';
           var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
-          var prizeLabel = isWon ? '中奖金额' : isLose ? '预计奖金' : '预计最高奖金';
 
           if (p.passType === '混合过关' && isWon) {
             var hitOddsArr = [];
@@ -400,12 +398,6 @@ export function loadPlanList() {
             '</div>' +
             '</div>' +
             '</div>' +
-            (isWon
-              ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>'
-              : '') +
-            (isLose
-              ? '<div class="plan-lose-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#9AA6B2" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="16" font-weight="900" fill="#9AA6B2" transform="rotate(-10,19,19)">未中</text></svg></div>'
-              : '') +
             '<div class="plan-divider"></div>' +
             '<div class="plan-info-grid">' +
             '<div class="plan-info-left">' +
@@ -647,12 +639,6 @@ export function loadScorePlanList() {
             '</div>' +
             '</div>' +
             '</div>' +
-            (isWon
-              ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>'
-              : '') +
-            (isLose
-              ? '<div class="plan-lose-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#9AA6B2" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="16" font-weight="900" fill="#9AA6B2" transform="rotate(-10,19,19)">未中</text></svg></div>'
-              : '') +
             '<div class="plan-divider"></div>' +
             '<div class="plan-info-grid">' +
             '<div class="plan-info-left">' +
@@ -671,6 +657,12 @@ export function loadScorePlanList() {
             (p.oddsDisplay || '') +
             '</div>' +
             '</div>' +
+            (isWon
+              ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>'
+              : '') +
+            (isLose
+              ? '<div class="plan-lose-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#9AA6B2" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="16" font-weight="900" fill="#9AA6B2" transform="rotate(-10,19,19)">未中</text></svg></div>'
+              : '') +
             '</div>' +
             '<div class="plan-match-section">' +
             '<table class="plan-match-table score-table">' +
@@ -954,12 +946,6 @@ export function loadQuantPlanList() {
             '</div>' +
             '</div>' +
             '</div>' +
-            (isWon
-              ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>'
-              : '') +
-            (isLose
-              ? '<div class="plan-lose-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#9AA6B2" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="16" font-weight="900" fill="#9AA6B2" transform="rotate(-10,19,19)">未中</text></svg></div>'
-              : '') +
             '<div class="plan-divider"></div>' +
             '<div class="plan-info-grid">' +
             '<div class="plan-info-left">' +
@@ -978,6 +964,12 @@ export function loadQuantPlanList() {
             (p.oddsDisplay || '') +
             '</div>' +
             '</div>' +
+            (isWon
+              ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>'
+              : '') +
+            (isLose
+              ? '<div class="plan-lose-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#9AA6B2" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="16" font-weight="900" fill="#9AA6B2" transform="rotate(-10,19,19)">未中</text></svg></div>'
+              : '') +
             '</div>' +
             '<div class="plan-match-section">' +
             '<table class="plan-match-table">' +

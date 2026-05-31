@@ -2008,19 +2008,27 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   else anyUnknown = true;
                 });
               }
-              if (!anyUnknown) {
+              if (!anyUnknown && matchedRecs.length > 0) {
                 isMatchWon = anyWon;
                 isMatchLose = !anyWon && anyLose;
               }
 
               // ★ fallback: 推荐数据无 result 时，用比分+赔率直判方向对错
               if (isMatchWon === null && isMatchLose === null) {
-                if (m && m.matchStatus >= 2 && m.score) {
+                if (m && m.matchStatus >= 1 && m.score) {
                   const mData = matchDataMap[m.matchId];
                   const mOdds = mData ? mData.odds : null;
                   const hcp = mOdds && mOdds.rqspf ? mOdds.rqspf.handicap : null;
                   // 内联比分判定（与 judgeByScore 逻辑一致）
                   function judgeScoreExp(d, s, h) {
+                    // ★ 复合方向（含、号，如"平、让平"）：分开判定，任一命中即可
+                    if (d.indexOf('、') >= 0) {
+                      var parts = d.split(/[、,]/);
+                      for (var pi = 0; pi < parts.length; pi++) {
+                        if (judgeScoreExp(parts[pi].trim(), s, h)) return true;
+                      }
+                      return false;
+                    }
                     var p = String(s).replace(/[-:]/g, ':').split(':');
                     var hh = parseInt(p[0]);
                     var aa = parseInt(p[1]);
@@ -2044,12 +2052,25 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   if (scoreResult !== null) {
                     isMatchWon = scoreResult;
                     isMatchLose = !scoreResult;
-                    // 同步更新 subResults
+                    // 同步更新 subResults — 直接用 isMatchWon 兜底
                     for (var sri2 = 0; sri2 < subResults.length; sri2++) {
                       var sd2 = subResults[sri2].direction;
                       var sr2 = judgeScoreExp(sd2, m.score, hcp);
-                      subResults[sri2].result = sr2 !== null ? (sr2 ? 1 : 0) : null;
+                      if (sr2 !== null) {
+                        subResults[sri2].result = sr2 ? 1 : 0;
+                      } else if (sd2 === direction || sd2.indexOf(direction) >= 0 || direction.indexOf(sd2) >= 0) {
+                        subResults[sri2].result = isMatchWon ? 1 : 0;
+                      }
                     }
+                  }
+                }
+              }
+
+              // ★ 最终兜底：isMatchWon 已确定但 subResults 仍有 null 时同步
+              if (isMatchWon !== null && isMatchLose !== null) {
+                for (var sri3 = 0; sri3 < subResults.length; sri3++) {
+                  if (subResults[sri3].result === null || subResults[sri3].result === undefined) {
+                    subResults[sri3].result = isMatchWon ? 1 : 0;
                   }
                 }
               }
@@ -2928,7 +2949,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 else if (matchedArray[mi].result === 0) anyLose = true;
                 else anyUnknown = true;
               }
-              if (!anyUnknown) {
+              if (!anyUnknown && matchedArray.length > 0) {
                 isMatchWon = anyWon;
                 isMatchLose = !anyWon && anyLose;
               }
@@ -2937,7 +2958,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (isMatchWon === null && isMatchLose === null) {
                 const matchKey2 = 'm_' + String(key);
                 const mForScore = mMap[matchKey2] || mMap[String(key)] || null;
-                if (mForScore && mForScore.matchStatus >= 2 && mForScore.score) {
+                if (mForScore && mForScore.matchStatus >= 1 && mForScore.score) {
                   const scoreParts = String(mForScore.score).replace(/[-:]/g, ':').split(':');
                   const hg = parseInt(scoreParts[0]);
                   const ag = parseInt(scoreParts[1]);
@@ -2946,6 +2967,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     const hcp = moddsForFallback && moddsForFallback.rqspf ? moddsForFallback.rqspf.handicap : null;
                     // 内联比分判定
                     function judgeScore(d, s, h) {
+                      // ★ 复合方向（含、号，如"平、让平"）：分开判定，任一命中即可
+                      if (d.indexOf('、') >= 0) {
+                        var parts = d.split(/[、,]/);
+                        for (var pi = 0; pi < parts.length; pi++) {
+                          if (judgeScore(parts[pi].trim(), s, h)) return true;
+                        }
+                        return false;
+                      }
                       var p = String(s).replace(/[-:]/g, ':').split(':');
                       var hh = parseInt(p[0]);
                       var aa = parseInt(p[1]);
@@ -2969,13 +2998,36 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     if (scoreResult !== null) {
                       isMatchWon = scoreResult;
                       isMatchLose = !scoreResult;
-                      // 同步更新 subResults
+                      // 同步更新 subResults — 直接用 isMatchWon 确保一致
                       for (var sri = 0; sri < subResults.length; sri++) {
                         var sd = subResults[sri].direction;
                         var sr = judgeScore(sd, mForScore.score, hcp);
-                        subResults[sri].result = sr !== null ? (sr ? 1 : 0) : null;
+                        if (sr !== null) {
+                          subResults[sri].result = sr ? 1 : 0;
+                        } else if (sd === direction || sd.indexOf(direction) >= 0 || direction.indexOf(sd) >= 0) {
+                          // judgeScore 返回 null 时用主方向结果兜底
+                          subResults[sri].result = isMatchWon ? 1 : 0;
+                        }
                       }
                     }
+                  }
+                }
+              }
+
+              // ★ 最终兜底：isMatchWon 已确定但 subResults 仍有 null 时同步
+              if (isMatchWon !== null && isMatchLose !== null) {
+                for (var sri2 = 0; sri2 < subResults.length; sri2++) {
+                  if (subResults[sri2].result === null || subResults[sri2].result === undefined) {
+                    subResults[sri2].result = isMatchWon ? 1 : 0;
+                  }
+                }
+              }
+
+              // ★ 最终兜底：isMatchWon 已确定但 subResults 仍有 null 时同步
+              if (isMatchWon !== null && isMatchLose !== null) {
+                for (var sri3 = 0; sri3 < subResults.length; sri3++) {
+                  if (subResults[sri3].result === null || subResults[sri3].result === undefined) {
+                    subResults[sri3].result = isMatchWon ? 1 : 0;
                   }
                 }
               }
