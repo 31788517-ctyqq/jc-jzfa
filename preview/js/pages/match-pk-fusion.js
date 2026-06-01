@@ -247,7 +247,8 @@ function calcHealthScores(list) {
     var c = item.fusionConsensus;
     if (c === 'strong') return 100;
     if (c === 'weak') return 70;
-    if (c === 'meltdown') return 0;
+    // V2.0: 熔断不再给0分，保留最低基础分20
+    if (c === 'meltdown') return 20;
     return 50;
   });
 }
@@ -391,22 +392,29 @@ function getDirectionAdvice(scored, ranked) {
   var isNaNHi = isNaN(hi) || hi <= 0;
   var result;
 
-  // P0-②: 熔断返回0星
-  if (meltdown)
-    return {
-      dir: '观望/避开',
-      stars: 0,
-      cls: 'dir-avoid',
-      desc: '模型熔断',
-      weak: false,
-      xgOk: true,
-      crossOk: true,
-      xgDetail: '',
-      crossDetail: '',
-    };
+  // ── 熔断 — V2.0: 降级而非完全放弃 ──
+  if (meltdown) {
+    if (pw >= 0.08) {
+      result = { dir: '主胜（参考）', stars: 2, cls: 'dir-home-caut', desc: '模型分歧较大，仅供参考' };
+    } else if (pw <= -0.08) {
+      result = { dir: '客胜（参考）', stars: 2, cls: 'dir-away-cold', desc: '模型分歧较大，仅供参考' };
+    } else {
+      return {
+        dir: '观望/避开',
+        stars: 0,
+        cls: 'dir-avoid',
+        desc: '模型分歧较大且无明确方向',
+        weak: false,
+        xgOk: true,
+        crossOk: true,
+        xgDetail: '',
+        crossDetail: '',
+      };
+    }
+  }
 
   // ── 基础方向推荐 ──
-  if (pw >= 0.25 && !isNaNHi && hi < 1.4) {
+  if (pw >= 0.25 && !isNaNHi && hi < 1.4 && !meltdown) {
     result = { dir: '主胜', stars: 5, cls: 'dir-home', desc: '绝对优势' };
   } else if (pw >= 0.08 && !meltdown) {
     if (!isNaNHi && hi >= 1.4) {
@@ -536,6 +544,34 @@ function getDirectionAdvice(scored, ranked) {
     } else {
       result.marketDetail =
         '市场一致(赔率:' + hAward.toFixed(2) + '/' + dAward.toFixed(2) + '/' + aAward.toFixed(2) + ')';
+    }
+  }
+
+  // ═══ V2.0: EV 期望值计算 ═══
+  result.ev = null;
+  result.valueTag = '';
+  if (hAward > 1.0 && aAward > 1.0 && dAward > 1.0) {
+    var sigmoid = function (x) { return 1 / (1 + Math.exp(-x * 6)); };
+    var pWinEv = sigmoid(pw);
+    var pDrawEv = Math.max(0.18, Math.min(0.32, 0.25 - Math.abs(pw) * 0.3));
+    var pLoseEv = 1 - pWinEv - pDrawEv;
+
+    var evHome = +(pWinEv * hAward - 1).toFixed(3);
+    var evDraw = +(pDrawEv * dAward - 1).toFixed(3);
+    var evAway = +(pLoseEv * aAward - 1).toFixed(3);
+
+    result.ev = { evHome: evHome, evDraw: evDraw, evAway: evAway, pWin: +pWinEv.toFixed(4), pDraw: +pDrawEv.toFixed(4), pAway: +pLoseEv.toFixed(4) };
+
+    if (result.dir.indexOf('主胜') === 0) {
+      if (evHome > 0.15) result.valueTag = '💰超值';
+      else if (evHome > 0.05) result.valueTag = '✅正期望';
+      else if (evHome > -0.05) result.valueTag = '📊合理';
+      else result.valueTag = '⚠️负期望';
+    } else if (result.dir.indexOf('客胜') === 0) {
+      if (evAway > 0.15) result.valueTag = '💰超值';
+      else if (evAway > 0.05) result.valueTag = '✅正期望';
+      else if (evAway > -0.05) result.valueTag = '📊合理';
+      else result.valueTag = '⚠️负期望';
     }
   }
 
@@ -674,7 +710,8 @@ function renderFusionPK(modal, list) {
       '<span class="pk3-alert-icon">⚠️</span>' +
       '<span class="pk3-alert-msg">' +
       meltCount +
-      '场模型熔断 — 建议观望/避开或极小注博冷</span>' +
+      // V2.0: 文案更新（不再劝退，而是提示降级参考）
+      '场模型分歧较大 — 预测仅供参考，建议降低注码或手动确认</span>' +
       '</div>';
   }
 
@@ -735,7 +772,8 @@ function renderScoreCard(scored, rank, ranked) {
   if (item.fusionConsensus === 'meltdown') tags.push('<span class="pk3-tag-t tag-red">⚠️模型打架</span>');
   if (pw >= -0.08 && pw <= 0.08) tags.push('<span class="pk3-tag-t tag-green">🎯实力均衡</span>');
   var hi = parseFloat(item.heatIndex);
-  if (!isNaN(hi) && hi >= 1.4) tags.push('<span class="pk3-tag-t tag-amber">💰过热风险</span>');
+  // V2.0: 固定阈值保留作为快速标签（详细 Z-Score 在投注建议中展示）
+  if (!isNaN(hi) && hi >= 1.4) tags.push('<span class="pk3-tag-t tag-amber">🔥过热风险</span>');
   if (!isNaN(hi) && hi > 0 && hi <= 0.85) tags.push('<span class="pk3-tag-t tag-blue">🧊冷门潜质</span>');
   if (item.attackPattern === '对攻为主') tags.push('<span class="pk3-tag-t tag-orange">⚡对攻大战</span>');
   if (item.attackPattern === '防守为主') tags.push('<span class="pk3-tag-t tag-indigo">🛡️防守大战</span>');
@@ -762,7 +800,8 @@ function renderScoreCard(scored, rank, ranked) {
   var consensus = item.fusionConsensus;
   if (consensus === 'strong') fusionBadge = '<span class="pk3-fusion-tag fusion-ok">✅强一致</span>';
   else if (consensus === 'weak') fusionBadge = '<span class="pk3-fusion-tag fusion-warn">⚠️弱一致</span>';
-  else if (consensus === 'meltdown') fusionBadge = '<span class="pk3-fusion-tag fusion-bad">🔴熔断</span>';
+  // V2.0: 熔断标签改为"模型分歧"（不再完全放弃）
+  else if (consensus === 'meltdown') fusionBadge = '<span class="pk3-fusion-tag fusion-bad">⚠️模型分歧</span>';
 
   var rankBadge = rank <= 3 ? '<span class="pk3-rank-badge r' + rank + '">🥇</span>' : '';
 
@@ -821,6 +860,8 @@ function renderScoreCard(scored, rank, ranked) {
     ' ' +
     goalLabel +
     '</span>' +
+    // V2.0: EV 价值标签
+    (dirAdvice.valueTag ? '<span class="pk3-sc-ev-tag">' + dirAdvice.valueTag + '</span>' : '') +
     '</div>' +
     (tags.length ? '<div class="pk3-sc-tags">' + tags.join('') + '</div>' : '') +
     (fusionBadge ? '<div class="pk3-sc-fusion">' + fusionBadge + '</div>' : '') +
@@ -1103,6 +1144,15 @@ function renderBettingAdviceList(ranked) {
         ? '<div class="pk3-adv-row pk3-adv-info">📊 ' + dirAdvice.marketDetail + '</div>'
         : '';
 
+    // V2.0: EV 价值信息
+    var evRow = '';
+    if (dirAdvice.ev) {
+      var ev = dirAdvice.ev;
+      evRow = '<div class="pk3-adv-row pk3-adv-info">💹 EV: 主' + ev.evHome.toFixed(3) +
+        ' / 平' + ev.evDraw.toFixed(3) + ' / 客' + ev.evAway.toFixed(3) +
+        ' (P主' + (ev.pWin * 100).toFixed(0) + '%)</div>';
+    }
+
     // V27: 稳定性低预警
     var stabRow = '';
     if (scored.stabilityScore < 35) {
@@ -1162,13 +1212,14 @@ function renderBettingAdviceList(ranked) {
       goalAdvice.desc +
       '</span>' +
       '</div>' +
-      (meltdown ? '<div class="pk3-adv-row pk3-adv-warn">⚠️ 模型熔断 — 建议避开或极小注博冷</div>' : '') +
+      (meltdown ? '<div class="pk3-adv-row pk3-adv-warn">⚠️ 模型分歧较大 — 预测仅供参考，建议降低注码</div>' : '') +
       weakWarn +
       hiInfo +
       xgRow +
       crossWarn +
       ageRow +
       marketRow +
+      evRow +
       stabRow +
       verifRow +
       '</div>' +
@@ -1433,7 +1484,8 @@ function renderRiskPanel(ranked) {
     var hi = parseFloat(item.heatIndex);
 
     if (item.fusionConsensus === 'meltdown') {
-      risks.push({ level: 'danger', text: '🔴 ' + name + ': 模型熔断 — 强烈建议避开', severity: 5 });
+      // V2.0: 风险级别从 danger 降至 warn（保留模型预测）
+      risks.push({ level: 'warn', text: '🟠 ' + name + ': 模型分歧较大 — 预测仅供参考', severity: 3 });
     }
     if (!isNaN(hi) && hi >= 1.4) {
       risks.push({
@@ -1490,15 +1542,15 @@ function renderRiskPanel(ranked) {
   });
   if (doubleKill.length > 0) {
     risks.unshift({
-      level: 'danger',
+      level: 'warn', // V2.0: 降级为警告
       text:
-        '💀 熔断+过热双杀：' +
+        '💀 分歧+过热双杀：' +
         doubleKill
           .map(function (s) {
             return esc(shortTeam(s.item.homeName));
           })
           .join(', ') +
-        ' — 强烈建议放弃这组选择',
+        ' — 强烈建议降低注码',
       severity: 5,
     });
   }

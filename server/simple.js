@@ -433,19 +433,17 @@ app.post('/api', function (req, res) {
     function generatePlans() {
       const plans = [];
 
-      // 奖金计算：eff = sum(sub_odds) / (2N)  双选公式
+      // ★ P2-荷兰式奖金：eff = 1 / Σ(1/odd_i)
       function calcEffectiveOdds(direction, match) {
         const oddsObj = match.odds || {};
         const subOdds = extractSubOdds(oddsObj, direction);
         if (subOdds.length === 0) return null;
         const N = subOdds.length;
         if (N === 1) return subOdds[0];
-        return (
-          subOdds.reduce(function (a, b) {
-            return a + b;
-          }, 0) /
-          (2 * N)
-        );
+        const invSum = subOdds.reduce(function (a, b) {
+          return a + 1 / b;
+        }, 0);
+        return invSum > 0 ? 1 / invSum : null;
       }
 
       const m1a = findBestMatchForDirection(['平', '让平']);

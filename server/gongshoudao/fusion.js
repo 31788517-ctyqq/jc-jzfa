@@ -1,5 +1,5 @@
 /**
- * 四重一致性验证与熔断（zs.md 第四阶段第6节）
+ * 四重一致性验证与熔断（zs.md 第四阶段第6节）— V2.0 升级
  *
  * 模型A：射门还原法
  * 模型B：攻守权重法（复用 goal.js 中 B2 模型结果）
@@ -7,9 +7,14 @@
  * P_asia：亚指盘口基准（dxqLastPan）
  *
  * 一致性判定：
- *   - 三者两两差值均 ≤ 0.3 → 强一致：三者平均
- *   - 恰好两对差值 ≤ 0.3 → 弱一致：剔除分歧值取平均
- *   - 否则（≤1对一致）→ 熔断：跟随盘口 P_asia
+ *   - 三者两两差值均 ≤ 0.3 → 强一致：动态加权融合
+ *   - 恰好两对差值 ≤ 0.3 → 弱一致：剔除分歧值取加权平均
+ *   - 否则（≤1对一致）→ 熔断：保留模型加权结果，不跟随盘口
+ *
+ * V2.0 变更：
+ *   1) 支持动态权重（命中率驱动 Softmax）
+ *   2) 熔断不再覆盖为盘口值，保留模型计算结果
+ *   3) 权重默认等权(1/3)，可在外部传入动态权重
  */
 const F = 4;
 
@@ -90,19 +95,36 @@ function calcModelC(vars) {
 // ==================== 一致性判定与熔断 ====================
 
 /**
- * 执行四重一致性验证
+ * 执行四重一致性验证（V2.0 动态加权版）
  * @param {Object} vars 标准变量
  * @param {Object} modelB { home: xgHome, away: xgAway } (来自 goal.js B2 模型)
- * @param {number} pAsia  亚指盘口基准 dxqLastPan (若缺失则 fallback 到 λ_total)
- * @returns {{ total: number, home: number, away: number, consensus: string, fused: boolean }}
+ * @param {number} pAsia  亚指盘口基准 dxqLastPan (仅作参考，不再直接覆写)
+ * @param {Object} weights 可选 { wA, wB, wC } 动态权重，默认等权 1/3
+ * @returns {{ total: number, home: number, away: number, consensus: string, fused: boolean, consensusType: string }}
  */
-function fuse(vars, modelB, pAsia) {
+function fuse(vars, modelB, pAsia, weights) {
   const mA = calcModelA(vars);
   const mC = calcModelC(vars);
   const mB = { total: round(modelB.home + modelB.away, F), home: modelB.home, away: modelB.away };
 
   const totals = [mA.total, mB.total, mC.total];
   const names = ['ModelA(射门还原)', 'ModelB(攻守权重)', 'ModelC(交锋预测)'];
+
+  // V2.0: 动态权重（默认等权）
+  const w = weights || { wA: 1 / 3, wB: 1 / 3, wC: 1 / 3 };
+  const wArr = [w.wA, w.wB, w.wC];
+  const wSum = wArr[0] + wArr[1] + wArr[2];
+  const wNorm = [wArr[0] / wSum, wArr[1] / wSum, wArr[2] / wSum];
+
+  // 加权融合辅助函数
+  function weightedAvg(indices) {
+    var sum = 0, ws = 0;
+    indices.forEach(function (k) {
+      sum += totals[k] * wNorm[k];
+      ws += wNorm[k];
+    });
+    return ws > 0 ? sum / ws : (totals[0] + totals[1] + totals[2]) / 3;
+  }
 
   // 两两比较
   const pairs = [
@@ -115,15 +137,16 @@ function fuse(vars, modelB, pAsia) {
   });
   const nConsistent = consistent.length;
 
-  let finalTotal, consensusLabel, fused;
+  let finalTotal, consensusLabel, consensusType, fused;
 
   if (nConsistent >= 3) {
-    // 强一致
-    finalTotal = round((totals[0] + totals[1] + totals[2]) / 3, F);
+    // 强一致：动态加权融合
+    finalTotal = round(weightedAvg([0, 1, 2]), F);
     consensusLabel = '强一致(三模型融合)';
+    consensusType = 'strong';
     fused = true;
   } else if (nConsistent === 2) {
-    // 弱一致：剔除分歧值
+    // 弱一致：剔除分歧值，保留模型加权
     const divergentIdx = [0, 1, 2].find(function (k) {
       return !consistent.some(function (c) {
         return c.i === k || c.j === k;
@@ -132,14 +155,16 @@ function fuse(vars, modelB, pAsia) {
     const keepIdx = [0, 1, 2].filter(function (k) {
       return k !== divergentIdx;
     });
-    finalTotal = round((totals[keepIdx[0]] + totals[keepIdx[1]]) / 2, F);
+    finalTotal = round(weightedAvg(keepIdx), F);
     consensusLabel = '弱一致(剔除' + names[divergentIdx] + ')';
+    consensusType = 'weak';
     fused = true;
   } else {
-    // 熔断
-    finalTotal = round(pAsia || 2.5, F);
-    consensusLabel = '熔断(模型打架，跟随盘口)';
-    fused = false;
+    // V2.0: 熔断 — 保留模型加权结果，不跟随盘口
+    finalTotal = round(weightedAvg([0, 1, 2]), F);
+    consensusLabel = '熔断(模型分歧较大，预测仅供参考)';
+    consensusType = 'meltdown';
+    fused = true; // V2.0: 仍标记为已融合（保留模型值）
   }
 
   // 按 B2 模型比例拆分主客
@@ -152,6 +177,7 @@ function fuse(vars, modelB, pAsia) {
     home: finalHome,
     away: finalAway,
     consensus: consensusLabel,
+    consensusType: consensusType, // V2.0: 'strong' | 'weak' | 'meltdown'
     fused,
     _details: {
       modelA: mA,
@@ -159,6 +185,7 @@ function fuse(vars, modelB, pAsia) {
       modelC: mC,
       pAsia: round(pAsia || 2.5, F),
       nConsistent,
+      weights: { wA: round(wNorm[0], 4), wB: round(wNorm[1], 4), wC: round(wNorm[2], 4) }, // V2.0: 使用的权重
       pairs: pairs.map(function (p) {
         return round(p.diff, F);
       }),

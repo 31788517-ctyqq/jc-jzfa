@@ -15,10 +15,60 @@ const path = require('path');
 const API_BASE = 'https://m.100qiu.com';
 
 // 生产环境（同一台服务器）使用本地直连，绕过公网 HTTPS
-// 设置环境变量 GONGSHOUDAO_LOCAL=true 启用
 const USE_LOCAL = process.env.GONGSHOUDAO_LOCAL === 'true';
-const LOCAL_API = 'http://127.0.0.1:19880'; // Java 后端 API 端口
+const LOCAL_API = 'http://127.0.0.1:19880';
 const STATS_BANK_PATH = path.join(__dirname, '..', 'stats_bank.json');
+
+// ★ 抓取成功率监控
+const _fetchStats = {
+  totalAttempts: 0,
+  successes: 0,
+  failures: 0,
+  avgLatencyMs: 0,
+  lastAttempt: null,
+  errors: [],
+};
+
+function recordFetchStats(success, latencyMs, errMsg) {
+  _fetchStats.totalAttempts++;
+  if (success) {
+    _fetchStats.successes++;
+    // 加权移动平均
+    _fetchStats.avgLatencyMs =
+      _fetchStats.totalAttempts === 1
+        ? latencyMs
+        : _fetchStats.avgLatencyMs * 0.9 + latencyMs * 0.1;
+  } else {
+    _fetchStats.failures++;
+    _fetchStats.errors.push({
+      time: new Date().toISOString(),
+      error: errMsg || 'unknown',
+    });
+    if (_fetchStats.errors.length > 50) _fetchStats.errors = _fetchStats.errors.slice(-50);
+  }
+  _fetchStats.lastAttempt = new Date().toISOString();
+
+  // 每 20 次检查告警
+  if (_fetchStats.totalAttempts % 20 === 0) {
+    const rate = (_fetchStats.successes / _fetchStats.totalAttempts) * 100;
+    if (rate < 90) {
+      console.warn(
+        '[fetch] ⚠️ API抓取成功率低于90%: ' + rate.toFixed(1) + '% (' +
+          _fetchStats.successes + '/' + _fetchStats.totalAttempts + ')',
+      );
+    }
+  }
+}
+
+function getFetchStats() {
+  const total = _fetchStats.totalAttempts;
+  return {
+    ..._fetchStats,
+    successRate: total > 0 ? (_fetchStats.successes / total * 100).toFixed(1) + '%' : 'N/A',
+    avgLatency: Math.round(_fetchStats.avgLatencyMs) + 'ms',
+    recentErrors: _fetchStats.errors.slice(-3).map((e) => e.time + ' ' + e.error),
+  };
+}
 
 // ==================== dateTime 编码 ====================
 
@@ -79,6 +129,7 @@ function getRequestOptions() {
 
 function httpGetJSON(url, timeoutMs) {
   timeoutMs = timeoutMs || 15000;
+  const startTime = Date.now();
   const isLocal = url.startsWith('http://');
   const lib = isLocal ? http : https;
   return new Promise((resolve, reject) => {
@@ -99,55 +150,173 @@ function httpGetJSON(url, timeoutMs) {
         const chunks = [];
         res.on('data', (c) => chunks.push(c));
         res.on('end', () => {
+          const latencyMs = Date.now() - startTime;
           try {
-            resolve(JSON.parse(Buffer.concat(chunks).toString('utf-8')));
+            const data = JSON.parse(Buffer.concat(chunks).toString('utf-8'));
+            recordFetchStats(true, latencyMs);
+            resolve(data);
           } catch (e) {
+            recordFetchStats(false, latencyMs, 'JSON parse: ' + e.message);
             reject(new Error('JSON parse: ' + e.message));
           }
         });
       })
-      .on('error', reject)
-      .setTimeout(timeoutMs, () => reject(new Error('timeout')));
+      .on('error', (err) => {
+        const latencyMs = Date.now() - startTime;
+        recordFetchStats(false, latencyMs, err.message);
+        reject(err);
+      })
+      .setTimeout(timeoutMs, () => {
+        const latencyMs = Date.now() - startTime;
+        recordFetchStats(false, latencyMs, 'timeout(' + timeoutMs + 'ms)');
+        reject(new Error('timeout'));
+      });
   });
 }
 
 // ==================== 批次发现 ====================
 
+const BATCH_CONFIG_PATH = path.join(__dirname, '..', 'stats_bank.json');
+const LAST_BATCH_KEY = '_last_batch';
+
+// ★ 跳表探测序列：从高往低，步长递减，减少空请求
+//    15 → 10 → 5 → 3 → 2 → 1
+const JUMP_SEQUENCE = [15, 10, 5, 3, 2, 1];
+
+// ★ 探测间隔控制（ms），避免触发反爬
+const PROBE_GAP_MS = 300;
+const PROBE_TIMEOUT_MS = 8000;
+
+// ★ 缓存命中计数器（用于监控发现效率）
+let _discoverHits = 0;
+let _discoverMisses = 0;
+function getDiscoverMetrics() {
+  const total = _discoverHits + _discoverMisses;
+  return {
+    hits: _discoverHits,
+    misses: _discoverMisses,
+    hitRate: total > 0 ? (_discoverHits / total * 100).toFixed(1) + '%' : 'N/A',
+    total,
+  };
+}
+
 /**
- * 探测指定月份从 batch 开始最近的可用批次
+ * ★ 跳表探测单月可用批次（优化版）
+ * 使用 JUMP_SEQUENCE 跳表探测，减少 API 请求次数
+ *
+ * 策略：
+ *   1. 先查本地缓存（_raw_ 前缀）
+ *   2. 缓存未命中 → 跳表探测 API
+ *   3. 找到有效批次后，往前再探 1 步确认是否为最新
+ *
  * @param {number} year
  * @param {number} month
- * @param {number} startBatch 从高往低探
- * @returns {Promise<string|null>} 可用 dateTime
+ * @returns {Promise<string|null>} 最高有效 batch 的 dateTime
+ */
+async function probeWithJumpSequence(year, month) {
+  const foundBatches = []; // 收集所有有效批次
+
+  for (let idx = 0; idx < JUMP_SEQUENCE.length; idx++) {
+    const batch = JUMP_SEQUENCE[idx];
+    const dt = makeDateTime(year, month, batch);
+
+    // 1) 本地缓存优先
+    const cachedRaw = loadRawCache(dt);
+    if (cachedRaw && Array.isArray(cachedRaw) && cachedRaw.length > 0) {
+      console.log('[fetch] 跳表-缓存命中:', dt, cachedRaw.length + '场');
+      foundBatches.push({ dt, count: cachedRaw.length });
+      // 找到最高批次，往前再确认 1 步
+      if (batch < 15) {
+        const nextBatch = batch + 1;
+        const nextDT = makeDateTime(year, month, nextBatch);
+        const nextCached = loadRawCache(nextDT);
+        if (nextCached && Array.isArray(nextCached) && nextCached.length > 0) {
+          console.log('[fetch] 跳表-确认更高批次:', nextDT, nextCached.length + '场');
+          foundBatches.push({ dt: nextDT, count: nextCached.length });
+        }
+      }
+      _discoverHits++;
+      break;
+    }
+
+    // 2) API 探测
+    let result = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        result = await httpGetJSON(buildApiUrl(dt), PROBE_TIMEOUT_MS);
+        break;
+      } catch (e) {
+        if (attempt === 0) {
+          await new Promise((r) => setTimeout(r, 500));
+        }
+      }
+    }
+
+    if (result && result.data && result.data.length > 0) {
+      console.log('[fetch] 跳表-发现批次:', dt, result.data.length + '场');
+      saveRawCache(dt, result.data);
+      foundBatches.push({ dt, count: result.data.length });
+
+      // 往前再探 1 步确认是否还有更高批次
+      if (batch < 15) {
+        const nextBatch = batch + 1;
+        const nextDT = makeDateTime(year, month, nextBatch);
+        const nextCached = loadRawCache(nextDT);
+        if (!nextCached) {
+          try {
+            const nextResult = await httpGetJSON(buildApiUrl(nextDT), PROBE_TIMEOUT_MS);
+            if (nextResult && nextResult.data && nextResult.data.length > 0) {
+              console.log('[fetch] 跳表-确认更高批次:', nextDT, nextResult.data.length + '场');
+              saveRawCache(nextDT, nextResult.data);
+              foundBatches.push({ dt: nextDT, count: nextResult.data.length });
+            }
+          } catch (e) {
+            // 忽略探测失败
+          }
+        }
+      }
+      _discoverHits++;
+      break;
+    }
+
+    // 批次间短暂间隔
+    if (idx < JUMP_SEQUENCE.length - 1) {
+      await new Promise((r) => setTimeout(r, PROBE_GAP_MS));
+    }
+  }
+
+  // 取最高批次号
+  if (foundBatches.length === 0) {
+    _discoverMisses++;
+    return null;
+  }
+  foundBatches.sort((a, b) => parseInt(b.dt) - parseInt(a.dt));
+  return foundBatches[0].dt;
+}
+
+/**
+ * ★ 传统线性探测（兼容保留，作为 fallback）
+ * @deprecated 使用 probeWithJumpSequence 替代
  */
 async function findLatestBatch(year, month, startBatch) {
-  const found = null;
-
-  // 策略：从高往低探测，遇到任何有数据的批次都记录下来，继续往前探直到确认这是最近的有效批次
   for (let b = startBatch; b >= 1; b--) {
     const dt = makeDateTime(year, month, b);
-    // 间隔 1s 避免反爬
     if (b < startBatch) {
       await new Promise((r) => setTimeout(r, 1000));
     }
 
-    // 每个批次最多重试2次
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const result = await httpGetJSON(buildApiUrl(dt), 10000);
         if (result.data && result.data.length > 0) {
           console.log('[fetch] 发现批次:', dt, result.data.length + '场');
-          // 返回发现的第一个（最高的批次号）
           return dt;
         }
-        // result.data 为空数组，跳出重试循环
         break;
       } catch (e) {
         if (attempt === 0) {
-          // 首次失败 -> 等待后重试
           await new Promise((r) => setTimeout(r, 1500));
         }
-        // 第二次还是失败 -> 继续下一个批次
       }
     }
   }
@@ -155,15 +324,17 @@ async function findLatestBatch(year, month, startBatch) {
 }
 
 /**
- * 自动发现最新可用批次
- * 从当前月份开始，往前找最多 3 个月
+ * ★ 自动发现最新可用批次（优化版）
+ *
+ * 策略（三阶段）：
+ *   1. 缓存优先：复用 _last_batch（命中率 > 80%）
+ *   2. 缓存失效 → 并发跳表探测当前月 ± 1 月
+ *   3. 回退传统线性探测
+ *
  * @returns {Promise<string|null>}
  */
-const BATCH_CONFIG_PATH = path.join(__dirname, '..', 'stats_bank.json');
-const LAST_BATCH_KEY = '_last_batch';
-
 async function autoDiscoverBatch() {
-  // 1) 优先复用上次成功的批次
+  // 阶段 1) 优先复用上次成功的批次
   let lastBatch = null;
   try {
     if (fs.existsSync(STATS_BANK_PATH)) {
@@ -178,6 +349,7 @@ async function autoDiscoverBatch() {
       if (result.data && result.data.length > 0) {
         console.log('[fetch] 复用缓存批次:', lastBatch, result.data.length + '场');
         saveRawCache(lastBatch, result.data);
+        _discoverHits++;
         return lastBatch;
       }
     } catch (e) {
@@ -185,22 +357,55 @@ async function autoDiscoverBatch() {
     }
   }
 
-  // 2) 自动探测：当前月 + 前后各1个月
+  // 阶段 2) ★ 并发跳表探测 3 个月跨度
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
 
-  const toTry = [];
+  // 构建候选月份列表（当前月 + 前后各 1 月）
+  const monthsToProbe = [];
   for (let m = month + 1; m >= month - 1; m--) {
     if (m < 1 || m > 12) continue;
     const y = m > month ? (month === 12 ? year + 1 : year) : m < 1 ? year - 1 : year;
-    toTry.push({ year: y, month: m });
+    monthsToProbe.push({ year: y, month: m });
   }
 
-  for (const { year: y, month: m } of toTry) {
+  console.log('[fetch] 跳表并发探测月份:', monthsToProbe.length, '个月');
+
+  // 并发探测所有候选月份
+  const results = await Promise.all(
+    monthsToProbe.map(({ year: y, month: m }) =>
+      probeWithJumpSequence(y, m).catch((e) => {
+        console.log('[fetch] 月份探测异常:', y + '-' + m, e.message);
+        return null;
+      }),
+    ),
+  );
+
+  // 取最高有效批次
+  const validResults = results.filter(Boolean);
+  if (validResults.length > 0) {
+    const bestBatch = validResults.sort((a, b) => parseInt(b) - parseInt(a))[0];
+    console.log('[fetch] 并发探测完成，最佳批次:', bestBatch);
+
+    // 记录到缓存
+    try {
+      let bank = {};
+      if (fs.existsSync(STATS_BANK_PATH)) {
+        bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
+      }
+      bank[LAST_BATCH_KEY] = bestBatch;
+      fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
+    } catch (e) {}
+
+    return bestBatch;
+  }
+
+  // 阶段 3) 回退传统线性探测
+  console.log('[fetch] 跳表探测无结果，回退线性探测...');
+  for (const { year: y, month: m } of monthsToProbe) {
     const dt = await findLatestBatch(y, m, 15);
     if (dt) {
-      // 记录到缓存
       try {
         let bank = {};
         if (fs.existsSync(STATS_BANK_PATH)) {
@@ -213,9 +418,22 @@ async function autoDiscoverBatch() {
     }
   }
 
-  // 3) 都没有，返回 null
   console.log('[fetch] 未找到可用批次');
+  _discoverMisses++;
   return null;
+}
+
+/**
+ * ★ 获取批次发现效率统计
+ */
+function getBatchDiscoveryReport() {
+  const metrics = getDiscoverMetrics();
+  return {
+    ...metrics,
+    strategy: 'jump-table + concurrent',
+    sequence: JUMP_SEQUENCE.join('→'),
+    probeMonths: 3,
+  };
 }
 
 // ==================== 队名匹配 ====================
@@ -511,7 +729,8 @@ async function fetchAndRelate(dateStr) {
     return {};
   }
 
-  const result = await fetchAndRelateByBatch(latestDT);
+  // ★ P1: 多批次聚合，最大化比赛覆盖
+  const result = await fetchAndRelateMultiBatch(latestDT);
 
   // 缓存
   if (Object.keys(result).length > 0) {
@@ -521,30 +740,209 @@ async function fetchAndRelate(dateStr) {
   return result;
 }
 
+/**
+ * ★ P1 新增：多批次聚合匹配
+ * 主批次匹配后，对仍未匹配的比赛尝试补充批次
+ *
+ * 策略：
+ *   1. 先用主批次匹配全部 data.json
+ *   2. 筛选出最新日期中仍未匹配的比赛
+ *   3. 按月份探测补充批次，只匹配未命中的比赛
+ *   4. 聚合所有结果
+ *
+ * @param {string} primaryDT 主批次编码
+ * @returns {Promise<Object>} 聚合后的 { [matchId]: statsObj }
+ */
+async function fetchAndRelateMultiBatch(primaryDT) {
+  console.log('[fetch] === 多批次聚合匹配 ===');
+  console.log('[fetch] 主批次:', primaryDT);
+
+  // 1. 主批次匹配
+  const primaryResult = await fetchAndRelateByBatch(primaryDT);
+  const primaryCount = Object.keys(primaryResult).length;
+  console.log('[fetch] 主批次匹配:', primaryCount, '场');
+
+  if (primaryCount === 0) {
+    console.log('[fetch] 主批次无匹配，跳过补充批次');
+    return primaryResult;
+  }
+
+  // 2. 加载 data.json，找出仍未匹配的最新日期比赛
+  const dataFilePath = path.join(__dirname, '..', 'data.json');
+  let mMap = {};
+  try {
+    if (fs.existsSync(dataFilePath)) {
+      mMap = JSON.parse(fs.readFileSync(dataFilePath, 'utf8')).m || {};
+    }
+  } catch (e) {
+    return primaryResult;
+  }
+
+  // 收集仍未匹配的比赛（重点关注最近10天）
+  const allDates = new Set();
+  Object.values(mMap).forEach((m) => {
+    if (m && m.date) allDates.add(String(m.date).slice(0, 10));
+  });
+  const sortedDates = [...allDates].sort().reverse();
+  const recentDates = sortedDates.slice(0, 10);
+  const recentDateSet = new Set(recentDates);
+
+  const stillUnmatched = [];
+  Object.entries(mMap).forEach(([mid, m]) => {
+    if (!m || !m.homeName) return;
+    const d = String(m.date || '').slice(0, 10);
+    // 只关注最近日期内仍未匹配的比赛
+    if (!recentDateSet.has(d)) return;
+    if (primaryResult[mid] || primaryResult['m_' + mid] || primaryResult[mid.replace(/^m_/, '')]) return;
+    stillUnmatched.push({ mid, m, date: d });
+  });
+
+  // 检查缓存中是否已有这些比赛（来自之前的批次）
+  let fromExistingCache = 0;
+  const supplementaryNeeded = [];
+  stillUnmatched.forEach(({ mid, m }) => {
+    const cached = loadStatsCache(primaryDT);
+    const existing = cached ? (cached[mid] || cached['m_' + mid] || cached[mid.replace(/^m_/, '')]) : null;
+    if (existing) {
+      primaryResult[mid] = existing;
+      fromExistingCache++;
+    } else {
+      supplementaryNeeded.push({ mid, m });
+    }
+  });
+
+  console.log('[fetch] 最近日期未命中比赛:', stillUnmatched.length, '场');
+  console.log('[fetch] 其中历史缓存覆盖:', fromExistingCache, '场');
+
+  if (supplementaryNeeded.length === 0) {
+    console.log('[fetch] 无需补充批次，覆盖率已充足');
+    return primaryResult;
+  }
+
+  console.log('[fetch] 需要补充匹配:', supplementaryNeeded.length, '场');
+  supplementaryNeeded.slice(0, 5).forEach(({ m }) => {
+    console.log('  - [' + (m.leagueName || '') + '] ' + m.homeName + ' vs ' + m.visitName);
+  });
+
+  // 3. 探测补充批次
+  // 按主批次的月份前后扩展探测
+  const parsed = parseDateTime(primaryDT);
+  const primaryYear = parsed.year;
+  const primaryMonth = parsed.month;
+
+  // 候选批次列表：同月剩余批次 + 前后月
+  const candidateBatches = [];
+  for (let m = primaryMonth + 1; m >= primaryMonth - 1; m--) {
+    if (m < 1 || m > 12) continue;
+    const y = m > primaryMonth ? (primaryMonth === 12 ? primaryYear + 1 : primaryYear) : m < 1 ? primaryYear - 1 : primaryYear;
+    for (let b = 15; b >= 1; b--) {
+      const dt = makeDateTime(y, m, b);
+      if (dt !== primaryDT) candidateBatches.push(dt);
+    }
+  }
+
+  // 最多探测 8 个补充批次（避免过多请求）
+  const maxSupplementary = 8;
+  let supplementaryCount = 0;
+  let totalSupplemented = 0;
+  const unmatchedAfterSupplement = new Set(supplementaryNeeded.map((s) => s.mid));
+
+  for (const dt of candidateBatches) {
+    if (supplementaryCount >= maxSupplementary) break;
+    if (unmatchedAfterSupplement.size === 0) break;
+
+    // 只请求有数据的批次
+    let apiResult;
+    const cachedRaw = loadRawCache(dt);
+    if (cachedRaw && Array.isArray(cachedRaw) && cachedRaw.length > 0) {
+      apiResult = { data: cachedRaw };
+    } else {
+      try {
+        apiResult = await httpGetJSON(buildApiUrl(dt), 8000);
+        if (apiResult && apiResult.data && apiResult.data.length > 0) {
+          saveRawCache(dt, apiResult.data);
+        }
+      } catch (e) {
+        continue; // 请求失败，跳过
+      }
+      // 批次间间隔，避免反爬
+      await new Promise((r) => setTimeout(r, 800));
+    }
+
+    if (!apiResult || !apiResult.data || apiResult.data.length === 0) continue;
+
+    const apiList = apiResult.data;
+    supplementaryCount++;
+
+    // 只对仍未匹配的比赛做匹配
+    let foundInThis = 0;
+    for (const { mid, m } of supplementaryNeeded) {
+      if (!unmatchedAfterSupplement.has(mid)) continue;
+      const homeName = (m.homeName || '').replace(/\(.*\)/g, '').trim();
+      const visitName = (m.visitName || '').replace(/\(.*\)/g, '').trim();
+
+      for (const item of apiList) {
+        const aHome = (item.homeTeam || '').replace(/\(.*\)/g, '').trim();
+        const aGuest = (item.guestTeam || '').replace(/\(.*\)/g, '').trim();
+        if (fuzzyMatch(homeName, aHome) && fuzzyMatch(visitName, aGuest)) {
+          primaryResult[mid] = item;
+          unmatchedAfterSupplement.delete(mid);
+          foundInThis++;
+          totalSupplemented++;
+          break;
+        }
+      }
+    }
+
+    if (foundInThis > 0) {
+      console.log('[fetch] 补充批次', dt, ': +', foundInThis, '场 (剩余', unmatchedAfterSupplement.size, '场)');
+    }
+  }
+
+  console.log('[fetch] 多批次聚合完成:', Object.keys(primaryResult).length, '场 (补充', totalSupplemented, '场)');
+  if (unmatchedAfterSupplement.size > 0) {
+    console.log('[fetch] ⚠️ 仍有', unmatchedAfterSupplement.size, '场比赛在所有批次中均无数据');
+  }
+
+  return primaryResult;
+}
+
 // ==================== 缓存 ====================
 
-function saveStatsCache(dateTime, data) {
-  let bank = {};
-  if (fs.existsSync(STATS_BANK_PATH)) {
-    try {
-      bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
-    } catch (e) {}
-  }
-  bank[dateTime] = data;
-  fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
-}
-
-function loadStatsCache(dateTime) {
-  if (!fs.existsSync(STATS_BANK_PATH)) return null;
+/**
+ * ★ 同步更新批次索引 batch_index.json
+ */
+function syncBatchIndex(dateTime, rawData) {
   try {
-    const bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
-    return bank[dateTime] || null;
+    const BATCH_INDEX_PATH = path.join(__dirname, '..', 'batch_index.json');
+    let index = {};
+    if (fs.existsSync(BATCH_INDEX_PATH)) {
+      index = JSON.parse(fs.readFileSync(BATCH_INDEX_PATH, 'utf8'));
+    }
+    const now = Date.now();
+    const matchCount = Array.isArray(rawData) ? rawData.length : (rawData && rawData.length) || 0;
+    index[dateTime] = {
+      valid: true,
+      matchCount: matchCount,
+      discoveredAt: index[dateTime] ? index[dateTime].discoveredAt : now,
+      updatedAt: now,
+      expiresAt: now + 30 * 24 * 3600 * 1000, // 30天过期
+    };
+    fs.writeFileSync(BATCH_INDEX_PATH, JSON.stringify(index, null, 2), 'utf8');
   } catch (e) {
-    return null;
+    // 静默失败，不影响主流程
   }
 }
 
-// 原始 API 数据缓存（key: '_raw_' + dateTime）
+/**
+ * ★ 原始 API 数据缓存（带 TTL + 格式兼容）
+ *
+ * 支持两种格式：
+ *   旧格式: bank['_raw_26061'] = [ apiData... ]
+ *   新格式: bank['_raw_26061'] = { data: [...], createdAt: ts, expiresAt: ts }
+ *
+ * 写入时使用新格式（带 TTL），读取时兼容两种格式。
+ */
 function saveRawCache(dateTime, rawData) {
   let bank = {};
   if (fs.existsSync(STATS_BANK_PATH)) {
@@ -552,17 +950,115 @@ function saveRawCache(dateTime, rawData) {
       bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
     } catch (e) {}
   }
-  bank['_raw_' + dateTime] = rawData;
+  // ★ 新格式：带 TTL 包装
+  const now = Date.now();
+  bank['_raw_' + dateTime] = {
+    data: rawData,
+    createdAt: now,
+    expiresAt: now + 14 * 24 * 3600 * 1000, // 14天过期
+  };
   fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
+
+  // ★ 同步更新批次索引
+  syncBatchIndex(dateTime, rawData);
 }
 
 function loadRawCache(dateTime) {
   if (!fs.existsSync(STATS_BANK_PATH)) return null;
   try {
     const bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
-    return bank['_raw_' + dateTime] || null;
+    const entry = bank['_raw_' + dateTime];
+    if (!entry) return null;
+
+    // 兼容旧格式（直接是数组）
+    if (Array.isArray(entry)) return entry;
+
+    // 新格式：检查 TTL
+    if (entry.expiresAt && entry.expiresAt < Date.now()) {
+      console.log('[fetch] 原始缓存过期:', dateTime);
+      delete bank['_raw_' + dateTime];
+      fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
+      return null;
+    }
+
+    return entry.data || entry;
   } catch (e) {
     return null;
+  }
+}
+
+/**
+ * ★ 匹配结果缓存（带 TTL + 格式兼容）
+ */
+function saveStatsCache(dateTime, data) {
+  let bank = {};
+  if (fs.existsSync(STATS_BANK_PATH)) {
+    try {
+      bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
+    } catch (e) {}
+  }
+  const now = Date.now();
+  bank[dateTime] = {
+    data: data,
+    createdAt: now,
+    expiresAt: now + 7 * 24 * 3600 * 1000, // 7天过期
+    count: Object.keys(data || {}).length,
+  };
+  fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
+}
+
+function loadStatsCache(dateTime) {
+  if (!fs.existsSync(STATS_BANK_PATH)) return null;
+  try {
+    const bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
+    const entry = bank[dateTime];
+    if (!entry) return null;
+
+    // 兼容旧格式（直接是对象，无 expiresAt 包装）
+    if (typeof entry === 'object' && !entry.data && !entry.expiresAt) {
+      return entry; // 旧格式直接返回
+    }
+
+    // 新格式：检查 TTL
+    if (entry.expiresAt && entry.expiresAt < Date.now()) {
+      console.log('[fetch] 匹配缓存过期:', dateTime);
+      delete bank[dateTime];
+      fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
+      return null;
+    }
+
+    return entry.data || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * ★ 缓存健康检查 + 自动清理
+ * 建议每次写入后异步调用
+ */
+function cleanupExpiredCache() {
+  if (!fs.existsSync(STATS_BANK_PATH)) return;
+  try {
+    const bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
+    const now = Date.now();
+    let cleaned = 0;
+
+    Object.keys(bank).forEach((key) => {
+      if (key === '_last_batch') return;
+      const entry = bank[key];
+      if (entry && entry.expiresAt && entry.expiresAt < now) {
+        delete bank[key];
+        cleaned++;
+      }
+    });
+
+    if (cleaned > 0) {
+      fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
+      console.log('[fetch] 自动清理过期缓存:', cleaned, '条');
+    }
+  } catch (e) {
+    // 静默失败
   }
 }
 
@@ -574,11 +1070,21 @@ async function updateStats(dateStr) {
 module.exports = {
   fetchAndRelate,
   fetchAndRelateByBatch,
+  fetchAndRelateMultiBatch,
   updateStats,
   loadStatsCache,
   saveStatsCache,
   autoDiscoverBatch,
   findLatestBatch,
+  probeWithJumpSequence,
   makeDateTime,
   parseDateTime,
+  getDiscoverMetrics,
+  getBatchDiscoveryReport,
+  cleanupExpiredCache,
+  saveRawCache,
+  loadRawCache,
+  getFetchStats,
+  recordFetchStats,
+  JUMP_SEQUENCE,
 };

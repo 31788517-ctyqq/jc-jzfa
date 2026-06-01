@@ -2012,9 +2012,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
               // ★ 最终兜底：isMatchWon 已确定但 subResults 仍有 null 时同步
               if (isMatchWon !== null && isMatchLose !== null) {
+                // 方案六三方向进球：若缺少比分无法拆分具体命中进球数，不强制全部标红
+                var isPlan6Multi = direction.indexOf('总进球-') === 0 && direction.indexOf('、') > 0;
                 for (var sri3 = 0; sri3 < subResults.length; sri3++) {
                   if (subResults[sri3].result === null || subResults[sri3].result === undefined) {
-                    subResults[sri3].result = isMatchWon ? 1 : 0;
+                    if (isPlan6Multi && isMatchWon && (!m.score || m.score === '')) {
+                      // 缺少比分数据，无法确定具体哪个进球命中，保留 null（前端显示白色/待定）
+                      subResults[sri3].result = null;
+                    } else {
+                      subResults[sri3].result = isMatchWon ? 1 : 0;
+                    }
                   }
                 }
               }
@@ -2101,8 +2108,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
               if (bestM6 && bestDir6) {
                 const m6Obj = buildMatchObj(bestM6, bestDir6);
-                const eo = calcEffectiveOdds(bestDir6, m6Obj);
-                const maxPrize6 = eo ? Math.round(1000 * eo) : 0;
+                // 方案六：标准荷兰式投注，奖金 = 总本金 / Σ(1/赔率)，保证三结果收益相等
+                const subOdds6 = extractSubOdds(m6Obj.odds, bestDir6);
+                const invSum6 = subOdds6.reduce((s, o) => s + 1 / o, 0);
+                const maxPrize6 = invSum6 > 0 ? Math.round(1000 / invSum6) : 0;
                 plans.push({
                   planId: 'plan_' + dateStr + '_6',
                   planName: '方案六',
@@ -2152,8 +2161,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
               if (bestM7 && bestM7Dir) {
                 const m7Obj = buildMatchObj(bestM7, bestM7Dir);
-                const eo = calcEffectiveOdds(bestM7Dir, m7Obj);
-                const maxPrize7 = eo ? Math.round(1000 * eo) : 0;
+                // ★ P1-方案七：标准荷兰式奖金 = 总本金 / Σ(1/赔率)
+                const subOdds7 = extractIndividualOdds(m7Obj.oddsObj || m7Obj.odds, bestM7Dir);
+                let maxPrize7 = 0;
+                if (subOdds7.length > 0) {
+                  const invSum7 = subOdds7.reduce((s, o) => s + 1 / o, 0);
+                  maxPrize7 = invSum7 > 0 ? Math.round(1000 / invSum7) : 0;
+                }
                 plans.push({
                   planId: 'plan_' + dateStr + '_7',
                   planName: '方案七',
@@ -2326,7 +2340,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     if (parts2[0] === parts2[1]) hasDraw = true;
                   }
                   if (invSum > 0) {
-                    const expectedReturn = totalCapital / invSum;
+                    // ★ P3: 使用衰减后权重分配的回报为 adjInvSum 对应值，此处为基准预期回报
+                    const baseExpectedReturn = totalCapital / invSum;
 
                     // ★ P0-方案三：虚拟赔率分级下限（按覆盖比分数量）
                     let minR;
@@ -2345,7 +2360,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     // ★ P1-方案六：平局衰减→回报率要求提高10%
                     const effectiveMinR = hasDraw ? minR * 1.1 : minR;
 
-                    if (expectedReturn >= totalCapital * effectiveMinR && expectedReturn <= totalCapital * 2.5) {
+                    if (baseExpectedReturn >= totalCapital * effectiveMinR && baseExpectedReturn <= totalCapital * 2.5) {
                       const combo = chosen.slice();
                       // 计算带衰减的资金分配权重
                       const weights = [];
@@ -2378,7 +2393,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                       const coverageNorm = useBfOdds ? Math.min(1, coverageSum / 0.5) : Math.min(1, coverageSum / 40);
                       const returnNorm = Math.min(
                         1,
-                        (expectedReturn / totalCapital - effectiveMinR) / (2.5 - effectiveMinR),
+                        (baseExpectedReturn / totalCapital - effectiveMinR) / (2.5 - effectiveMinR),
                       );
                       const compositeScore = coverageNorm * 0.5 + returnNorm * 0.5;
 
@@ -2386,7 +2401,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                         scores: combo.map(function (s, si) {
                           return { score: s, odds: oddsMap[s], allocation: allocations[si] };
                         }),
-                        expectedReturn: Math.round(expectedReturn),
+                        // ★ P3: 更名为 baseExpectedReturn 以区分衰减后实际回报
+                        baseExpectedReturn: Math.round(baseExpectedReturn),
                         comboLength: combo.length,
                         coverage: coverageSum,
                         compositeScore: compositeScore,
@@ -2684,7 +2700,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 strongSide: strongSide,
                 selectedScores: combo.scores,
                 totalCapital: 1000,
-                expectedReturn: combo.expectedReturn,
+                expectedReturn: combo.baseExpectedReturn,
                 bigBallRatio: c.bigBallRatio.toFixed(1),
                 attackAdvantage: attDisplay,
                 goalRange: goalRange,
@@ -2696,7 +2712,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 oddsDisplay: oddsDisplay,
                 amount: 1000,
                 matchCount: 1,
-                maxPrize: combo.expectedReturn,
+                maxPrize: combo.baseExpectedReturn,
                 // ★ 中奖判定字段
                 isScoreWon: isScoreWon,
                 isScoreLose: isScoreLose,
@@ -2950,9 +2966,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
               // ★ 最终兜底：isMatchWon 已确定但 subResults 仍有 null 时同步
               if (isMatchWon !== null && isMatchLose !== null) {
+                // 方案六三方向进球：若缺少比分无法拆分具体命中进球数，不强制全部标红
+                var isPlan6Multi = direction.indexOf('总进球-') === 0 && direction.indexOf('、') > 0;
                 for (var sri3 = 0; sri3 < subResults.length; sri3++) {
                   if (subResults[sri3].result === null || subResults[sri3].result === undefined) {
-                    subResults[sri3].result = isMatchWon ? 1 : 0;
+                    if (isPlan6Multi && isMatchWon && (!m.score || m.score === '')) {
+                      // 缺少比分数据，无法确定具体哪个进球命中，保留 null（前端显示白色/待定）
+                      subResults[sri3].result = null;
+                    } else {
+                      subResults[sri3].result = isMatchWon ? 1 : 0;
+                    }
                   }
                 }
               }
@@ -3792,22 +3815,44 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     dayIncome = 0,
                     statusE = 'unknown';
                   if (isWon) {
-                    const effectiveOdds = [];
-                    let hasAllOdds = true;
-                    for (const mm of pp.matches) {
-                      const subOdds = extractIndividualOdds(mm.oddsObj, mm.direction);
-                      if (subOdds.length === 0) {
-                        hasAllOdds = false;
-                        continue;
+                    // 方案六：标准荷兰式投注，奖金 = 总本金 / Σ(1/赔率)
+                    if (pp.name && pp.name.endsWith('_6')) {
+                      const mm6 = pp.matches[0];
+                      const subOdds6 = extractIndividualOdds(mm6.oddsObj, mm6.direction);
+                      if (subOdds6.length === 3) {
+                        const invSum6 = subOdds6.reduce((s, o) => s + 1 / o, 0);
+                        prize = invSum6 > 0 ? Math.round(AMOUNT / invSum6) : Math.round(AMOUNT * 3);
+                      } else {
+                        prize = Math.round(AMOUNT * 3);
                       }
-                      const NN = subOdds.length;
-                      if (NN === 1) effectiveOdds.push(subOdds[0]);
-                      else effectiveOdds.push(subOdds.reduce((a, b) => a + b, 0) / (2 * NN));
+                    } else if (pp.name && pp.name.endsWith('_7')) {
+                      // ★ P1-方案七：标准荷兰式投注，奖金 = 总本金 / Σ(1/赔率)
+                      const mm7 = pp.matches[0];
+                      const subOdds7 = extractIndividualOdds(mm7.oddsObj, mm7.direction);
+                      if (subOdds7.length > 0) {
+                        const invSum7 = subOdds7.reduce((s, o) => s + 1 / o, 0);
+                        prize = invSum7 > 0 ? Math.round(AMOUNT / invSum7) : Math.round(AMOUNT * 3);
+                      } else {
+                        prize = Math.round(AMOUNT * 3);
+                      }
+                    } else {
+                      const effectiveOdds = [];
+                      let hasAllOdds = true;
+                      for (const mm of pp.matches) {
+                        const subOdds = extractIndividualOdds(mm.oddsObj, mm.direction);
+                        if (subOdds.length === 0) {
+                          hasAllOdds = false;
+                          continue;
+                        }
+                        const NN = subOdds.length;
+                        if (NN === 1) effectiveOdds.push(subOdds[0]);
+                        else effectiveOdds.push(subOdds.reduce((a, b) => a + b, 0) / (2 * NN));
+                      }
+                      if (hasAllOdds && effectiveOdds.length >= 2)
+                        prize = Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]);
+                      else if (hasAllOdds && effectiveOdds.length === 1) prize = Math.round(AMOUNT * effectiveOdds[0]);
+                      else prize = Math.round(AMOUNT * 3);
                     }
-                    if (hasAllOdds && effectiveOdds.length >= 2)
-                      prize = Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]);
-                    else if (hasAllOdds && effectiveOdds.length === 1) prize = Math.round(AMOUNT * effectiveOdds[0]);
-                    else prize = Math.round(AMOUNT * 3);
                     dayIncome = prize - AMOUNT;
                     statusE = 'won';
                     totalWon++;

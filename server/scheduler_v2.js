@@ -403,6 +403,122 @@ function scheduleNoonTask() {
   timers.push(tid);
 }
 
+// ═══ ★ 6.5 比赛节奏感知调度 ═══
+
+/**
+ * ★ 判断当前是否处于比赛密集时段
+ *
+ * 时段划分:
+ *   比赛密集期: 08:00-02:00 (次日)
+ *   非比赛期:   02:00-08:00
+ *
+ * 频率分层:
+ *   L1 准实时:  比赛密集期 2min / 非比赛期 30min（JczqYz 临盘）
+ *   L2 批次发现: 比赛密集期 30min / 非比赛期 2h（dcListBasic 探测）
+ *   L3 全量匹配: 比赛密集期 1h / 非比赛期 6h（功守道数据）
+ *   L4 计算引擎: L3 完成后自动触发
+ */
+function isMatchPeakHours() {
+  const hour = new Date().getHours();
+  // 08:00 到次日 02:00 为比赛密集期
+  return hour >= 8 || hour < 2;
+}
+
+function getMatchPhaseLabel() {
+  const hour = new Date().getHours();
+  if (hour >= 8 && hour < 12) return 'morning_prep';   // 上午准备
+  if (hour >= 12 && hour < 14) return 'noon_sync';      // 中午全量同步
+  if (hour >= 14 && hour < 18) return 'afternoon_build'; // 下午建仓
+  if (hour >= 18 && hour < 20) return 'pre_match';       // 赛前2h窗口
+  if (hour >= 20 || hour < 2) return 'match_active';     // 比赛密集
+  return 'off_hours';                                    // 休赛期
+}
+
+/**
+ * ★ 动态频率决策表
+ * 返回各层当前应使用的间隔（毫秒）
+ */
+function getDynamicIntervals() {
+  const peak = isMatchPeakHours();
+  const phase = getMatchPhaseLabel();
+
+  const base = {
+    // L1: 准实时数据（JczqYz 临盘+热度）
+    l1_jczqyz: peak ? 2 * 60 * 1000 : 30 * 60 * 1000,
+    // L1b: 盘口变化追踪（JczqChange）
+    l1_change: peak ? 5 * 60 * 1000 : 60 * 60 * 1000,
+    // L2: 批次发现（dcListBasic 探测）
+    l2_batch_discover: peak ? 30 * 60 * 1000 : 2 * 60 * 60 * 1000,
+    // L3: 全量匹配（功守道数据同步）
+    l3_full_match: peak ? 60 * 60 * 1000 : 6 * 60 * 60 * 1000,
+    // L4: 计算引擎（L3后自动触发，此处为兜底）
+    l4_compute: peak ? 65 * 60 * 1000 : 6.5 * 60 * 60 * 1000,
+  };
+
+  // 微调：赛前窗口加大 L1 频率
+  if (phase === 'pre_match') {
+    base.l1_jczqyz = 60 * 1000; // 1分钟
+  }
+  // 非比赛日放宽
+  if (phase === 'off_hours') {
+    base.l2_batch_discover = 4 * 60 * 60 * 1000; // 4小时
+    base.l3_full_match = 12 * 60 * 60 * 1000;    // 12小时
+  }
+
+  return { phase, peak, ...base };
+}
+
+/**
+ * ★ 抓取成功率监控
+ */
+let _fetchMetrics = {
+  totalAttempts: 0,
+  successes: 0,
+  failures: 0,
+  lastSuccess: null,
+  lastFailure: null,
+  errors: [],
+};
+
+function recordFetchAttempt(success, taskName, errMsg) {
+  _fetchMetrics.totalAttempts++;
+  if (success) {
+    _fetchMetrics.successes++;
+    _fetchMetrics.lastSuccess = new Date().toISOString();
+  } else {
+    _fetchMetrics.failures++;
+    _fetchMetrics.lastFailure = new Date().toISOString();
+    _fetchMetrics.errors.push({
+      time: new Date().toISOString(),
+      task: taskName,
+      error: errMsg || 'unknown',
+    });
+    // 只保留最近 20 条错误
+    if (_fetchMetrics.errors.length > 20) {
+      _fetchMetrics.errors = _fetchMetrics.errors.slice(-20);
+    }
+  }
+
+  // 成功率告警（最近 100 次采样，成功率 < 90%）
+  if (_fetchMetrics.totalAttempts >= 10) {
+    const rate = _fetchMetrics.successes / _fetchMetrics.totalAttempts;
+    if (rate < 0.9 && _fetchMetrics.totalAttempts % 10 === 0) {
+      logger.warn('[metrics] ⚠️ 抓取成功率低于90%: ' + (rate * 100).toFixed(1) + '% (' +
+        _fetchMetrics.successes + '/' + _fetchMetrics.totalAttempts + ')');
+    }
+  }
+}
+
+function getFetchMetrics() {
+  const total = _fetchMetrics.totalAttempts;
+  const rate = total > 0 ? (_fetchMetrics.successes / total * 100).toFixed(1) : 'N/A';
+  return {
+    ..._fetchMetrics,
+    successRate: rate + '%',
+    errors: _fetchMetrics.errors.slice(-5), // 最近5条
+  };
+}
+
 // ═══ 7. 启动 ═══
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
@@ -482,15 +598,109 @@ async function start() {
     const summary = Object.entries(state.taskStats || {})
       .map(([k, v]) => k + ': ' + v.runs + '次/' + v.failures + '失败')
       .join(', ');
+    const intervals = getDynamicIntervals();
+    const fetchM = getFetchMetrics();
+
+    // ★ 同时获取 fetch 模块级的抓取统计
+    let apiFetchStats = 'N/A';
+    try {
+      const { getFetchStats } = require('./gongshoudao/fetch');
+      const fs = getFetchStats();
+      apiFetchStats = fs.successRate + ' avgLatency=' + fs.avgLatency;
+    } catch (e) {}
+
+    logger.info('[health] 时段:' + intervals.phase + ' | 频率:' +
+      ' L1=' + Math.round(intervals.l1_jczqyz / 1000) + 's' +
+      ' L2=' + Math.round(intervals.l2_batch_discover / 60000) + 'min' +
+      ' L3=' + Math.round(intervals.l3_full_match / 60000) + 'min');
     logger.info('[health] 任务统计: ' + summary);
+    logger.info('[health] 调度抓取: ' + fetchM.successRate +
+      ' (' + fetchM.successes + '/' + fetchM.totalAttempts + ')' +
+      (fetchM.lastFailure ? ' 最近失败:' + fetchM.lastFailure : ''));
+    logger.info('[health] API直连: ' + apiFetchStats);
   });
 
-  // 功守道缓存刷新 (每小时)
-  schedule('gongshoudao_refresh', 60 * 60 * 1000, async () => {
+  // ★ 功守道缓存刷新（动态频率：根据比赛节奏自适应）
+  let gsRefreshTimer = null;
+  function scheduleGSRefresh() {
+    if (gsRefreshTimer) clearTimeout(gsRefreshTimer);
+    const intervals = getDynamicIntervals();
+    const delay = intervals.l3_full_match;
+    logger.info('[schedule] 功守道刷新间隔: ' + Math.round(delay / 60000) + 'min (时段:' + intervals.phase + ')');
+
+    gsRefreshTimer = setTimeout(async () => {
+      if (!running) return;
+      try {
+        // ★ 带成功率监控的功守道刷新
+        const startTime = Date.now();
+        await executeTask('gongshoudao_refresh', {});
+        recordFetchAttempt(true, 'gongshoudao_refresh');
+        const duration = Math.round((Date.now() - startTime) / 1000);
+        logger.info('[schedule] 功守道刷新完成 [' + duration + 's]');
+
+        // 自动触发缓存过期清理（每 6 小时一次）
+        if (new Date().getHours() % 6 === 0) {
+          try {
+            const fetchModule = require('./gongshoudao/fetch');
+            fetchModule.cleanupExpiredCache();
+            logger.info('[schedule] 缓存过期清理完成');
+          } catch (e) {
+            logger.warn('[schedule] 缓存清理异常: ' + e.message);
+          }
+        }
+      } catch (e) {
+        logger.warn('[schedule] 功守道刷新异常: ' + e.message);
+        recordFetchAttempt(false, 'gongshoudao_refresh', e.message);
+      }
+      // 递归调度下一次（动态间隔）
+      scheduleGSRefresh();
+    }, delay);
+    timers.push(gsRefreshTimer);
+  }
+
+  // 启动功守道动态调度
+  if (hasLock) {
+    // 首次立即执行（延迟5秒等待初始化完成）
+    setTimeout(() => {
+      executeTask('gongshoudao_refresh', {}).then(() => {
+        recordFetchAttempt(true, 'gongshoudao_refresh_init');
+        // 首次成功后启动动态调度
+        scheduleGSRefresh();
+      }).catch((e) => {
+        logger.warn('[init] 首次功守道刷新失败: ' + e.message);
+        recordFetchAttempt(false, 'gongshoudao_refresh_init', e.message);
+        scheduleGSRefresh();
+      });
+    }, 5000);
+  } else {
+    scheduleGSRefresh();
+  }
+
+  // ★ 输出批次发现效率报告（每小时一次）
+  schedule('discovery_report', 60 * 60 * 1000, async () => {
     try {
-      await executeTask('gongshoudao_refresh', {});
+      const { getBatchDiscoveryReport } = require('./gongshoudao/fetch');
+      const report = getBatchDiscoveryReport();
+      logger.info('[discovery] 批次发现: 命中率=' + report.hitRate +
+        ' (' + report.hits + '/' + report.total + ') 策略=' + report.strategy);
+    } catch (e) {}
+  });
+
+  // ★ 缓存自动淘汰（每 4 小时）
+  schedule('cache_purge', 4 * 60 * 60 * 1000, async () => {
+    try {
+      const { purgeExpired, getCacheStats } = require('./gongshoudao/cache_manager');
+      const before = getCacheStats();
+      const cleaned = purgeExpired();
+      if (cleaned > 0) {
+        const after = getCacheStats();
+        logger.info('[cache] 自动淘汰完成: ' + cleaned + '条 | L1_raw=' +
+          after.layers.L1_rawAPI.entries + '(-' + before.layers.L1_rawAPI.expired +
+          ') L2_match=' + after.layers.L2_matchResults.entries +
+          ' bankSize=' + after.bankSize);
+      }
     } catch (e) {
-      logger.warn('[schedule] 功守道刷新异常: ' + e.message);
+      logger.warn('[cache] 自动淘汰异常: ' + e.message);
     }
   });
 
@@ -532,4 +742,15 @@ if (require.main === module) {
   });
 }
 
-module.exports = { start, executeTask, enqueueTask, getState: loadState, getQueue: loadQueue };
+module.exports = {
+  start,
+  executeTask,
+  enqueueTask,
+  getState: loadState,
+  getQueue: loadQueue,
+  getDynamicIntervals,
+  isMatchPeakHours,
+  getMatchPhaseLabel,
+  recordFetchAttempt,
+  getFetchMetrics,
+};

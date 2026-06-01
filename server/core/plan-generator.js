@@ -125,13 +125,13 @@ function dutchCombinations(oddsMap, totalCapital, strongIsHome, useBfOdds, qual)
           coverageSum += parseFloat(scorePercentMap[chosen[i]]) || 0;
       }
       if (invSum > 0) {
-        const expectedReturn = totalCapital / invSum;
+        const baseExpectedReturn = totalCapital / invSum;
         const minR = useBfOdds ? 1.8 : chosen.length === 2 ? 2.0 : chosen.length === 3 ? 1.6 : 1.4;
         const minCoverage = useBfOdds ? 0.3 : 25;
         if (
           coverageSum >= minCoverage &&
-          expectedReturn >= totalCapital * minR &&
-          expectedReturn <= totalCapital * 2.5
+          baseExpectedReturn >= totalCapital * minR &&
+          baseExpectedReturn <= totalCapital * 2.5
         ) {
           const combo = chosen.slice(),
             weights = [];
@@ -155,7 +155,7 @@ function dutchCombinations(oddsMap, totalCapital, strongIsHome, useBfOdds, qual)
             scores: combo.map(function (s, si) {
               return { score: s, odds: oddsMap[s], allocation: allocations[si] };
             }),
-            expectedReturn: Math.round(expectedReturn),
+            baseExpectedReturn: Math.round(baseExpectedReturn),
             comboLength: combo.length,
             coverage: coverageSum,
           });

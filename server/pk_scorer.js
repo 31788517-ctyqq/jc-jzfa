@@ -8,6 +8,9 @@
 const fs = require('fs');
 const path = require('path');
 const predictionLog = require('./prediction_log');
+// V2.0 新增模块
+const oddsMovement = require('./core/odds-movement');
+const leagueHeat = require('./core/league-heat-profile');
 
 // ═══════════════════════════════════════
 //  评分算法（从前端迁移）
@@ -103,7 +106,8 @@ function calcHealthScores(list) {
     const c = item.fusionConsensus;
     if (c === 'strong') return 100;
     if (c === 'weak') return 70;
-    if (c === 'meltdown') return 0;
+    // V2.0: 熔断不再给0分，保留最低基础分20（模型仍输出预测，仅供参考）
+    if (c === 'meltdown') return 20;
     return 50;
   });
 }
@@ -159,6 +163,42 @@ function calcVerificationScores(list) {
       details.push('bigBall vs league mismatch');
     }
 
+    // ═══ V2.0: P4 盘口位移验证 ═══
+    // 如果数据中有初盘/即时盘数据，进行位移分析
+    const openHome = parseFloat(item.openHomeAward) || 0;
+    const openDraw = parseFloat(item.openDrawAward) || 0;
+    const openAway = parseFloat(item.openAwayAward) || 0;
+    const liveHome = hAward; // 当前赔率即即时盘
+    const liveDraw = parseFloat(item.drawAward) || 0;
+    const liveAway = aAward;
+
+    // 有初盘数据时才做位移分析
+    if (openHome > 1.0 && liveHome > 1.0) {
+      const moveResult = oddsMovement.analyzeMovement(
+        { home: openHome, draw: openDraw, away: openAway },
+        { home: liveHome, draw: liveDraw, away: liveAway },
+        pw
+      );
+      if (moveResult.penalty > 0) {
+        score -= moveResult.penalty;
+        details.push('odds movement: ' + moveResult.direction + ' (shift=' + moveResult.probShift.toFixed(3) + ')');
+      }
+    }
+
+    // ═══ V2.0: P4 欧亚一致性检测 ═══
+    const rq = parseFloat(item.rq) || parseFloat(item.handicap) || 0;
+    if (hAward > 1.0 && aAward > 1.0) {
+      const euroAsia = oddsMovement.checkEuroAsiaConsistency(
+        { home: hAward, draw: liveDraw, away: aAward },
+        rq,
+        pw
+      );
+      if (euroAsia.penalty > 0) {
+        score -= euroAsia.penalty;
+        details.push(euroAsia.detail);
+      }
+    }
+
     return { score: parseFloat(Math.max(0, score).toFixed(1)), details: details };
   });
 }
@@ -170,8 +210,19 @@ function calcAgeWeight(dataAge, dataType) {
   return Math.pow(0.5, dataAge / h);
 }
 
-function calcCompositeScore(pwr, goal, heat, health, stab, verif) {
-  return parseFloat((0.3 * pwr + 0.15 * goal + 0.1 * heat + 0.15 * health + 0.15 * stab + 0.15 * verif).toFixed(1));
+// ═══ V2.0: 按玩法切换评分权重 Profile ═══
+const SCORE_PROFILES = {
+  spf: { power: 0.40, goal: 0.10, heat: 0.10, health: 0.10, stability: 0.10, verify: 0.20 },         // 胜平负：实力+验证权重高
+  overUnder: { power: 0.10, goal: 0.35, heat: 0.05, health: 0.25, stability: 0.15, verify: 0.10 },  // 大小球：进球+健康权重高
+  handicap: { power: 0.40, goal: 0.05, heat: 0.05, health: 0.10, stability: 0.10, verify: 0.30 },    // 让球：实力+验证权重高
+  default: { power: 0.30, goal: 0.15, heat: 0.10, health: 0.15, stability: 0.15, verify: 0.15 },     // 默认维衡
+};
+
+function calcCompositeScore(pwr, goal, heat, health, stab, verif, playType) {
+  const p = SCORE_PROFILES[playType] || SCORE_PROFILES.default;
+  return parseFloat(
+    (p.power * pwr + p.goal * goal + p.heat * heat + p.health * health + p.stability * stab + p.verify * verif).toFixed(1)
+  );
 }
 
 function computeAllScores(list) {
@@ -224,24 +275,43 @@ function getDirectionAdvice(scored, ranked) {
   const meltdown = item.fusionConsensus === 'meltdown';
   const isWeak = item.fusionConsensus === 'weak';
   const isNaNHi = isNaN(hi) || hi <= 0;
+
+  // ═══ V2.0 P5: 联赛自适应热度阈值 ═══
+  const leagueName = item.leagueName || '';
+  let heatZ = null;
+  let isOverheat = false;
+  let isCold = false;
+  if (!isNaNHi) {
+    heatZ = leagueHeat.computeHeatZScore(hi, leagueName);
+    isOverheat = heatZ.isOverheat;
+    isCold = heatZ.isCold;
+  }
+
   let result;
 
-  if (meltdown) return { dir: '观望/避开', stars: 0, desc: '模型熔断', hcpDir: '', goalDir: '小球', goalStars: 3 };
-
-  if (pw >= 0.25 && !isNaNHi && hi < 1.4) {
+  // V2.0: 熔断改为降级 — 保留模型预测但强制降星
+  if (meltdown) {
+    if (pw >= 0.08) {
+      result = { dir: '主胜（参考）', stars: 2, desc: '模型分歧较大，预测仅供参考' };
+    } else if (pw <= -0.08) {
+      result = { dir: '客胜（参考）', stars: 2, desc: '模型分歧较大，预测仅供参考' };
+    } else {
+      result = { dir: '观望/避开', stars: 0, desc: '模型分歧较大且无明确方向' };
+    }
+  } else if (pw >= 0.25 && !isNaNHi && !isOverheat) {
     result = { dir: '主胜', stars: 5, desc: '绝对优势' };
   } else if (pw >= 0.08 && !meltdown) {
-    if (!isNaNHi && hi >= 1.4) {
-      result = { dir: '主胜（防冷）', stars: 3, desc: '过热预警' };
+    if (!isNaNHi && isOverheat) {
+      result = { dir: '主胜（防冷）', stars: 3, desc: '过热预警(HI-Z=' + (heatZ ? heatZ.zScore : '?') + ')' };
     } else {
       result = { dir: '主胜', stars: 4, desc: '明显优势' };
-      if (!isNaNHi && hi > 0 && hi <= 0.85) result = { dir: '主胜', stars: 4, desc: '冷门高赔' };
+      if (!isNaNHi && isCold) result = { dir: '主胜', stars: 4, desc: '冷门高赔(HI-Z=' + (heatZ ? heatZ.zScore : '?') + ')' };
     }
-  } else if (pw <= -0.25 && !isNaNHi && hi < 1.4) {
+  } else if (pw <= -0.25 && !isNaNHi && !isOverheat) {
     result = { dir: '客胜', stars: 5, desc: '绝对优势' };
   } else if (pw <= -0.08 && !meltdown) {
-    if (!isNaNHi && hi >= 1.4) {
-      result = { dir: '客胜（防冷）', stars: 3, desc: '过热预警' };
+    if (!isNaNHi && isOverheat) {
+      result = { dir: '客胜（防冷）', stars: 3, desc: '过热预警(HI-Z=' + (heatZ ? heatZ.zScore : '?') + ')' };
     } else {
       result = { dir: '客胜', stars: 4, desc: '明显优势' };
     }
@@ -278,6 +348,64 @@ function getDirectionAdvice(scored, ranked) {
     result.goalDir = '小球';
     result.goalStars = 3;
   }
+
+  // ═══ V2.0 P3: EV 期望值计算 ═══
+  const hAward = parseFloat(item.homeWinAward) || 0;
+  const aAward = parseFloat(item.awayWinAward) || 0;
+  const drawAward = parseFloat(item.drawAward) || 0;
+
+  result.ev = null;
+  result.valueTag = '';
+  result.valueScore = 0;
+
+  if (hAward > 1.0 && aAward > 1.0 && drawAward > 1.0) {
+    // sigmoid 映射 pwScore → 主胜概率
+    const sigmoid = function (x) { return 1 / (1 + Math.exp(-x * 6)); };
+    const pWin = sigmoid(pw);
+    // 平局概率基于实力均衡度估算
+    const pDraw = Math.max(0.18, Math.min(0.32, 0.25 - Math.abs(pw) * 0.3));
+    const pLose = 1 - pWin - pDraw;
+
+    const evHome = +(pWin * hAward - 1).toFixed(3);
+    const evDraw = +(pDraw * drawAward - 1).toFixed(3);
+    const evAway = +(pLose * aAward - 1).toFixed(3);
+
+    result.ev = { evHome, evDraw, evAway, pWin: +pWin.toFixed(4), pDraw: +pDraw.toFixed(4), pAway: +pLose.toFixed(4) };
+
+    // 价值标签
+    if (result.dir.indexOf('主胜') === 0) {
+      if (evHome > 0.15) {
+        result.valueTag = '💰超值';
+        result.valueScore = 30;
+      } else if (evHome > 0.05) {
+        result.valueTag = '✅正期望';
+        result.valueScore = 15;
+      } else if (evHome > -0.05) {
+        result.valueTag = '📊合理';
+        result.valueScore = 5;
+      } else {
+        result.valueTag = '⚠️负期望';
+        result.valueScore = -10;
+      }
+    } else if (result.dir.indexOf('客胜') === 0) {
+      if (evAway > 0.15) {
+        result.valueTag = '💰超值';
+        result.valueScore = 30;
+      } else if (evAway > 0.05) {
+        result.valueTag = '✅正期望';
+        result.valueScore = 15;
+      } else if (evAway > -0.05) {
+        result.valueTag = '📊合理';
+        result.valueScore = 5;
+      } else {
+        result.valueTag = '⚠️负期望';
+        result.valueScore = -10;
+      }
+    }
+  }
+
+  // ═══ V2.0 P5: 联赛热度 Z-Score 附加信息 ═══
+  result.heatZ = heatZ;
 
   return result;
 }
@@ -404,6 +532,7 @@ function computeAndSave(dateStr) {
             goalScore: s.goalScore,
             heatScore: s.heatScore,
             stabilityScore: s.stabilityScore,
+            healthScore: s.healthScore, // V2.0: 健康评分单独存储
             direction: adv.dir,
             directionStars: adv.stars,
             directionDesc: adv.desc,
@@ -413,6 +542,15 @@ function computeAndSave(dateStr) {
             fusionConsensus: item.fusionConsensus || '',
             batchDate: dateStr || new Date().toISOString().slice(0, 10),
             handicap: item.handicap !== undefined ? item.handicap : (item.rq !== undefined ? item.rq : undefined),
+            // V2.0: EV 价值字段
+            evHome: adv.ev ? adv.ev.evHome : null,
+            evDraw: adv.ev ? adv.ev.evDraw : null,
+            evAway: adv.ev ? adv.ev.evAway : null,
+            valueTag: adv.valueTag || '',
+            valueScore: adv.valueScore || 0,
+            // V2.0: 联赛热度 Z-Score
+            heatZScore: adv.heatZ ? adv.heatZ.zScore : null,
+            heatZOverheat: adv.heatZ ? (adv.heatZ.isOverheat ? 1 : 0) : 0,
           });
           saved++;
         } catch (e) {

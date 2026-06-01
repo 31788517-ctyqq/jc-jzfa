@@ -355,9 +355,10 @@ async function crossMatchAll() {
     console.error('[gs] 无可用批次');
     return {};
   }
-  console.log('[gs] 使用批次:', batchDT);
+  console.log('[gs] 主批次:', batchDT);
 
-  const matched = await fetch.fetchAndRelateByBatch(batchDT);
+  // ★ P1: 使用多批次聚合，最大化比赛覆盖
+  const matched = await fetch.fetchAndRelateMultiBatch(batchDT);
   return matched;
 }
 

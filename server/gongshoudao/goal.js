@@ -10,6 +10,7 @@
  */
 const F = 4;
 const fusion = require('./fusion');
+const modelWeights = require('./model-weights');
 
 function round(v, n) {
   const m = Math.pow(10, n);
@@ -231,7 +232,15 @@ function analyze(vars, S) {
 
   // ── 四重一致性验证与熔断（zs.md 第6节）──
   const pAsia = vars.rq ? (vars.rq > 0 ? 2.0 : 3.0) : 2.5; // fallback: 基于让球数推测盘口
-  const consensus = fusion.fuse(vars, { home: xg.xgHome, away: xg.xgAway }, pAsia);
+  // V2.0: 获取动态权重
+  let dynWeights;
+  try {
+    const predLog = require('../prediction_log');
+    dynWeights = modelWeights.getWeights(predLog);
+  } catch (e) {
+    dynWeights = modelWeights.DEFAULT_WEIGHTS;
+  }
+  const consensus = fusion.fuse(vars, { home: xg.xgHome, away: xg.xgAway }, pAsia, dynWeights);
 
   const hGoal = vars.homeRecentGoalAvg || 1;
   const hLose = vars.homeRecentLoseAvg || 1;
@@ -315,11 +324,13 @@ function analyze(vars, S) {
     gdQ: xg.gdQ, // 净胜球量化 GD_q = ExpG_h - ExpG_a
     // 四重熔断后最终值（替代 λ_total 供下游使用）
     fusionConsensus: consensus.consensus,
+    fusionConsensusType: consensus.consensusType, // V2.0: strong/weak/meltdown
     fusionFused: consensus.fused,
     fusionFinalTotal: consensus.total,
     fusionFinalHome: consensus.home,
     fusionFinalAway: consensus.away,
     fusionDetails: consensus._details,
+    fusionWeights: consensus._details ? consensus._details.weights : null, // V2.0: 使用的动态权重
     fieldIntensity: intensity.total,
     // ★ 进球预测维度（PK.md 进球数预测公式）
     attDefGoal: attDefGoal, // 攻防进球 = xgHome + xgAway

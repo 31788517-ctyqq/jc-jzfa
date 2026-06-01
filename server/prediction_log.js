@@ -125,6 +125,35 @@ function initTable() {
     } catch (e) {
       // 列已存在则忽略
     }
+    // ★ V2.0 迁移：添加健康评分列
+    try {
+      if (typeof db.run === 'function') {
+        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_health_score REAL');
+      } else if (typeof db.prepare === 'function') {
+        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_health_score REAL').run();
+      }
+    } catch (e) { /* 忽略 */ }
+    // ★ V2.0 迁移：添加 EV 价值评分列
+    try {
+      if (typeof db.run === 'function') {
+        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_ev_home REAL');
+        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_ev_draw REAL');
+        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_ev_away REAL');
+        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_value_tag TEXT');
+        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_value_score REAL');
+        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_heat_zscore REAL');
+        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_heat_z_overheat INTEGER');
+      } else if (typeof db.prepare === 'function') {
+        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_health_score REAL').run();
+        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_ev_home REAL').run();
+        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_ev_draw REAL').run();
+        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_ev_away REAL').run();
+        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_value_tag TEXT').run();
+        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_value_score REAL').run();
+        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_heat_zscore REAL').run();
+        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_heat_z_overheat INTEGER').run();
+      }
+    } catch (e) { /* 列已存在则忽略 */ }
   } catch (e) {
     console.error('[prediction_log] init error:', e.message);
   }
@@ -263,6 +292,7 @@ function upsertPK(matchId, fields) {
   if (fields.goalScore !== undefined) data.pk_goal_score = fields.goalScore;
   if (fields.heatScore !== undefined) data.pk_heat_score = fields.heatScore;
   if (fields.stabilityScore !== undefined) data.pk_stability_score = fields.stabilityScore;
+  if (fields.healthScore !== undefined) data.pk_health_score = fields.healthScore; // V2.0
   if (fields.direction) data.pk_direction = fields.direction;
   if (fields.directionStars !== undefined) data.pk_direction_stars = fields.directionStars;
   if (fields.directionDesc) data.pk_direction_desc = fields.directionDesc;
@@ -277,6 +307,14 @@ function upsertPK(matchId, fields) {
   if (fields.leagueName) data.leagueName = fields.leagueName;
   if (fields.matchNum) data.matchNum = fields.matchNum;
   if (fields.handicap !== undefined) data.handicap = fields.handicap;
+  // V2.0: EV 价值字段
+  if (fields.evHome !== undefined && fields.evHome !== null) data.pk_ev_home = fields.evHome;
+  if (fields.evDraw !== undefined && fields.evDraw !== null) data.pk_ev_draw = fields.evDraw;
+  if (fields.evAway !== undefined && fields.evAway !== null) data.pk_ev_away = fields.evAway;
+  if (fields.valueTag) data.pk_value_tag = fields.valueTag;
+  if (fields.valueScore !== undefined) data.pk_value_score = fields.valueScore;
+  if (fields.heatZScore !== undefined && fields.heatZScore !== null) data.pk_heat_zscore = fields.heatZScore;
+  if (fields.heatZOverheat !== undefined) data.pk_heat_z_overheat = fields.heatZOverheat;
   return upsert(data);
 }
 
