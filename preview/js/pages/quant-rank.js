@@ -890,7 +890,7 @@ function _doRenderChart(container) {
   var n = filtered.length;
 
   var names = filtered.map(function (item) {
-    return esc(shortTeam(item.homeName) + ' vs ' + shortTeam(item.visitName));
+    return esc(shortTeam(item.homeName)) + '\nvs\n' + esc(shortTeam(item.visitName));
   });
 
   // ═══ 根据 tab 定义指标组 + 配色 ═══
@@ -1015,7 +1015,7 @@ function _doRenderChart(container) {
   });
 
   // ═══ 动态高度 ═══
-  var rowH = 36;
+  var rowH = 52; // 三行对阵名需要更高行高
   var headerH = 60;
   container.style.height = Math.max(400, headerH + n * rowH + 40) + 'px';
 
@@ -1091,7 +1091,7 @@ function _doRenderChart(container) {
     yAxis: {
       type: 'category',
       data: names,
-      axisLabel: { color: '#94A3B8', fontSize: 10, width: 90, overflow: 'truncate' },
+      axisLabel: { color: '#94A3B8', fontSize: 10, lineHeight: 14 },
       axisLine: { show: false },
       axisTick: { show: false },
       inverse: true,
