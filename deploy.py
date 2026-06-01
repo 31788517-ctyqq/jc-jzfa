@@ -138,6 +138,8 @@ DEPLOY_MAP = [
     ('server/gongshoudao/diff.js',        'both'),
     ('server/gongshoudao/score.js',       'both'),
     ('server/gongshoudao/fetch.js',       'both'),
+    ('server/gongshoudao/model-weights.js','both'),
+    ('server/gongshoudao/cache_manager.js','both'),
     ('server/core/plan-generator.js',     'both'),
     # ★ v3 核心模块（index.js 直接 require，遗漏会导致运行时崩溃）
     ('server/core/cache.js',              'both'),
