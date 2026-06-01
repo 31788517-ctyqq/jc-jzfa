@@ -360,26 +360,31 @@ function renderTable() {
   if (currentTab === 'power') {
     cols = [
       { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
+      { key: 'rank', label: '\u603b排序', sortable: true, colCls: 'q-col-rk' },
       { key: 'goalDiff', label: '净胜球\n量化', sortable: false, colCls: 'q-col-gd' },
       { key: 'cross', label: '胜平负\n交叉', sortable: false, colCls: 'q-col-cross' },
       { key: 'power', label: '综合\n实力', sortable: false, colCls: 'q-col-power' },
       { key: 'ad', label: '攻守\n实力', sortable: false, colCls: 'q-col-ad' },
     ];
     renderRow = function (item) {
-      return renderGoalDiff(item) + renderCrossValue(item) + renderPower(item) + renderAdCombined(item);
+      return renderRank(item.totalScore) + renderGoalDiff(item) + renderCrossValue(item) + renderPower(item) + renderAdCombined(item);
     };
   } else if (currentTab === 'goal') {
     cols = [
       { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
+      { key: 'totalSum', label: '\u5408\u8ba1', sortable: true, colCls: 'q-col-sum' },
       { key: 'bigBallRatio', label: '综合大球\n比例', sortable: true, colCls: 'q-col-big' },
       { key: 'attDefGoal', label: '攻防\n进球', sortable: true, colCls: 'q-col-ag' },
+      { key: 'strengthGoal', label: '实力\n进球', sortable: true, colCls: 'q-col-sg' },
       { key: 'headToHeadGoal', label: '交锋\n进球', sortable: true, colCls: 'q-col-hg' },
       { key: 'breakArmor', label: '破甲和', sortable: true, colCls: 'q-col-ba' },
     ];
     renderRow = function (item) {
       return (
+        renderGoalCell(item, 'totalSum') +
         renderGoalCell(item, 'bigBallRatio') +
         renderGoalCell(item, 'attDefGoal') +
+        renderGoalCell(item, 'strengthGoal') +
         renderGoalCell(item, 'headToHeadGoal') +
         renderGoalCell(item, 'breakArmor')
       );
