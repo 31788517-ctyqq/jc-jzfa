@@ -3819,9 +3819,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                       const subOdds6 = extractIndividualOdds(mm6.oddsObj, mm6.direction);
                       if (subOdds6.length === 3) {
                         const invSum6 = subOdds6.reduce((s, o) => s + 1 / o, 0);
-                        prize = invSum6 > 0 ? Math.round(AMOUNT / invSum6) : Math.round(AMOUNT * 3);
+                        // ★ 有赔率：标准荷兰式
+                        prize = invSum6 > 0 ? Math.round(AMOUNT / invSum6) : 0;
                       } else {
-                        prize = Math.round(AMOUNT * 3);
+                        // ★ 赔率缺失：用历史平均荷兰式倍数 1.31 估计（基于三选总进球真实数据）
+                        prize = Math.round(AMOUNT * 1.31);
                       }
                     } else if (pp.name && pp.name.endsWith('_7')) {
                       // ★ P1-方案七：标准荷兰式投注，奖金 = 总本金 / Σ(1/赔率)
