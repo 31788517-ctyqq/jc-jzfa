@@ -404,6 +404,13 @@ function parseSegment(segment, matchNum) {
         }
       : null;
 
+  // ★ 总进球数赔率 (JQS): 0,1,2,3,4,5,6,7+
+  const totalGoals =
+    nums.length >= 23
+      ? { '0': nums[15], '1': nums[16], '2': nums[17], '3': nums[18],
+          '4': nums[19], '5': nums[20], '6': nums[21], '7+': nums[22] }
+      : null;
+
   return {
     num: matchNum,
     homeName: homeName,
@@ -412,8 +419,8 @@ function parseSegment(segment, matchNum) {
     spf: spf,
     rqspf: rqspf,
     halfFull: halfFull,
+    totalGoals: totalGoals,
     isSingleGame: isSingleGame,
-    totalGoals: null,
   };
 }
 
