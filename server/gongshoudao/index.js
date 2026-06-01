@@ -10,6 +10,7 @@ const attack = require('./attack');
 const goal = require('./goal');
 const diff = require('./diff');
 const score = require('./score');
+const market = require('./market');
 const fetch = require('./fetch');
 
 const CACHE_PATH = path.join(__dirname, 'cache.json');
@@ -51,6 +52,14 @@ function computeSingleMatch(rawStats, matchInfo) {
 
   // 第五阶段：净胜球 + 让球分析
   const diffResult = diff.analyze(vars, goalResult.xgHome, goalResult.xgAway);
+
+  // ★ V7.0 第七阶段：市场情报交叉验证
+  const marketResult = market.analyze(vars, matchInfo, {
+    totalAdvantageRaw: strengthResult.totalAdvantageRaw,
+    xgHome: goalResult.xgHome,
+    xgAway: goalResult.xgAway,
+    fusionConsensusType: goalResult.fusionConsensusType,
+  });
 
   // 组装弹窗数据
   return {
@@ -301,7 +310,7 @@ function computeSingleMatch(rawStats, matchInfo) {
     sevenMatch: diffResult.sevenMatch,
     anchor: diffResult.anchor,
 
-    // 第六阶段：比分矩阵
+    // 第六阶段：比分矩阵（★ V7.0: 传入市场 xG 做融合校准）
     scores: (() => {
       try {
         const s = score.analyze(
@@ -310,6 +319,7 @@ function computeSingleMatch(rawStats, matchInfo) {
           goalResult.xgAway,
           goalResult.goalRange,
           strengthResult.ladder.level,
+          marketResult.marketXg || null, // V7.0: 市场 xG 数据
         );
         return s.length > 0 ? s : [{ score: '--', percent: '无合法比分' }];
       } catch (e) {
@@ -319,6 +329,23 @@ function computeSingleMatch(rawStats, matchInfo) {
 
     // 建议
     suggestion: diffResult.resonance.verdict || '基于历史数据的量化分析，仅供参考',
+
+    // ★ V7.0 第七阶段输出：市场情报交叉验证
+    marketMovement: marketResult.movement || null,
+    marketEuroAsia: marketResult.euroAsia || null,
+    marketXg: marketResult.marketXg || null,
+    marketScore: marketResult.marketScore,
+    marketSignal: marketResult.marketSignal,
+    marketRiskLevel: marketResult.riskLevel,
+    marketRiskDetail: marketResult.riskDetail,
+    marketSignalFlags: marketResult.signalFlags || [],
+    // Market_xG 融合后的 xG（如果可用）
+    fusedXgHome: (marketResult.marketXg && marketResult.marketXg.valid)
+      ? +(goalResult.xgHome * 0.7 + marketResult.marketXg.home * 0.3).toFixed(2)
+      : goalResult.xgHome,
+    fusedXgAway: (marketResult.marketXg && marketResult.marketXg.valid)
+      ? +(goalResult.xgAway * 0.7 + marketResult.marketXg.away * 0.3).toFixed(2)
+      : goalResult.xgAway,
   };
 }
 
@@ -444,8 +471,8 @@ function computeFallbackMatch(m) {
     suggestion: '基于联赛均值降级估算，仅供参考',
     resonance: { verdict: '⚠️ 数据源缺失，使用联赛均值降级估算', level: 'weak' },
     sevenMatch: {
-      dimension1: { hCount: hWins, aCount: aLosses, total: hWins + aLosses, passed: true, label: '⚠️ 降级估算' },
-      dimension2: { hCount: hLosses, aCount: aWins, total: hLosses + aWins, passed: false, label: '⚠️ 降级估算' }
+      dimension1: { hCount: hWins, aCount: aLosses, total: hWins + aLosses, prob: 0.55, probPct: '55.0%', passed: true, label: '⚠️ 降级估算', confidence: '低' },
+      dimension2: { hCount: hLosses, aCount: aWins, total: hLosses + aWins, prob: 0.48, probPct: '48.0%', passed: false, label: '⚠️ 降级估算', confidence: '低' }
     },
     anchor: { anchor: 0.3, label: '弱一致盘面', judgment: '参考' },
     verifyResult: '⚠️ 降级估算',
@@ -481,6 +508,18 @@ function computeFallbackMatch(m) {
     totalGoalsValue: Math.round(avgGoals * 18),
     goalDiffHome: xgHome.toFixed(1) + '/' + (avgGoals - xgHome).toFixed(1),
     goalDiffAway: xgAway.toFixed(1) + '/' + (avgGoals - xgAway).toFixed(1),
+
+    // ★ V7.0 市场情报（降级模式）
+    marketMovement: null,
+    marketEuroAsia: null,
+    marketXg: null,
+    marketScore: 50,
+    marketSignal: '⚠️ 降级模式（无赔率数据）',
+    marketRiskLevel: 'caution',
+    marketRiskDetail: '数据源缺失，市场情报不可用',
+    marketSignalFlags: ['降级估算'],
+    fusedXgHome: xgHome,
+    fusedXgAway: xgAway,
   };
 }
 

@@ -180,6 +180,83 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
 
       html += '</div>';
 
+      // ====== V7.0 市场情报交叉验证 ======
+      if (gs.marketScore !== undefined) {
+        var mktRiskClass = '';
+        if (gs.marketRiskLevel === 'danger') mktRiskClass = 'gs-risk-danger';
+        else if (gs.marketRiskLevel === 'warning') mktRiskClass = 'gs-risk-warning';
+        else if (gs.marketRiskLevel === 'caution') mktRiskClass = 'gs-risk-caution';
+
+        html += '<div class="gs-modal-section">';
+        html += '<div class="gs-modal-sec-title"><img src="/assets/gs-market.png" class="gs-title-icon" alt="">市场情报交叉验证</div>';
+
+        html += gsRow(
+          '市场信号',
+          '<span class="gs-vs-row"><span class="gs-bar-group">' +
+            renderBar(gs.marketScore, gs.marketScore) +
+            '</span><span class="gs-note ' + mktRiskClass + '">' +
+            (gs.marketSignal || '--') +
+            '</span></span>'
+        );
+
+        // 盘口位移
+        if (gs.marketMovement && gs.marketMovement.direction) {
+          var movDir = gs.marketMovement.direction;
+          var movIcon = movDir.indexOf('降水') >= 0 ? '📉' : movDir.indexOf('升水') >= 0 ? '📈' : '➡️';
+          var movClass = gs.marketMovement.severity === 'significant' ? 'gs-risk-warning' : '';
+          html += gsRow(
+            '盘口位移',
+            '<span class="gs-val-text ' + movClass + '">' + movIcon + ' ' + movDir + '</span>' +
+            (gs.marketMovement.probShift ? '<span class="gs-note"> 偏移 ' + (gs.marketMovement.probShift > 0 ? '+' : '') + (gs.marketMovement.probShift * 100).toFixed(1) + '%</span>' : '')
+          );
+        }
+
+        // 欧亚一致性
+        if (gs.marketEuroAsia && gs.marketEuroAsia.detail) {
+          var eaClass = gs.marketEuroAsia.consistent ? '' : 'gs-risk-danger';
+          html += gsRow(
+            '欧亚一致性',
+            '<span class="gs-val-text ' + eaClass + '">' + gs.marketEuroAsia.detail + '</span>'
+          );
+        }
+
+        // Market xG 反推
+        if (gs.marketXg && gs.marketXg.total) {
+          html += gsRow(
+            '市场隐含xG',
+            '<span class="gs-vs-row"><span class="gs-bar-group">' +
+              renderBar(gs.marketXg.total.toFixed(2), Math.min(100, Math.round((gs.marketXg.total / 6) * 100))) +
+              '</span><span class="gs-note">λ_market (盘口: ' + gs.marketXg.overUnderLine + ')</span></span>'
+          );
+          html += gsRow(
+            '融合 xG',
+            '<span class="gs-vs">H:' + (gs.fusedXgHome || '--').toFixed(2) +
+              ' / A:' + (gs.fusedXgAway || '--').toFixed(2) +
+              ' <i>（70%模型 + 30%市场）</i></span>'
+          );
+        }
+
+        // 信号标签
+        if (gs.marketSignalFlags && gs.marketSignalFlags.length > 0) {
+          var flagsHtml = gs.marketSignalFlags.map(function(f) {
+            var fc = 'gs-signal-tag';
+            if (f.indexOf('⚠️') >= 0 || f.indexOf('背离') >= 0) fc += ' gs-signal-danger';
+            else if (f.indexOf('支撑') >= 0 || f.indexOf('一致') >= 0) fc += ' gs-signal-good';
+            return '<span class="' + fc + '">' + f + '</span>';
+          }).join(' ');
+          html += gsRow('信号标签', '<span class="gs-vs-row">' + flagsHtml + '</span>');
+        }
+
+        // 风险提示
+        if (gs.marketRiskDetail) {
+          html += '<div class="gs-modal-note" style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(255,152,0,0.08);color:var(--amber);font-size:12px;">' +
+            gs.marketRiskDetail +
+            '</div>';
+        }
+
+        html += '</div>';
+      }
+
       // ====== 净胜球分析 ======
       html += '<div class="gs-modal-section">';
       html +=
@@ -204,8 +281,17 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
       html += gsRow('输赢球分布', renderBar(gs.goalCount || '±0', gs.goalCountValue || 50, false));
       html += gsRow(
         '7场阈值判定',
-        '<span class="gs-val-text">' + (gs.sevenMatch ? gs.sevenMatch.dimension1.label || '--' : '--') + '</span>',
+        '<span class="gs-val-text">' + (gs.sevenMatch ? (gs.sevenMatch.dimension1.label || '--') : '--') + '</span>'
       );
+      // ★ V7.0: 显示概率 + 置信度
+      if (gs.sevenMatch && gs.sevenMatch.dimension1.prob !== undefined) {
+        html += gsRow(
+          '穿盘概率(Beta-Binomial)',
+          '<span class="gs-vs-row"><span class="gs-bar-group">' +
+            renderBar(gs.sevenMatch.dimension1.probPct || '50%', Math.round((gs.sevenMatch.dimension1.prob || 0.5) * 100)) +
+            '</span><span class="gs-note">置信度: ' + (gs.sevenMatch.dimension1.confidence || '--') + '</span></span>'
+        );
+      }
 
       html += '</div>';
 

@@ -412,7 +412,7 @@ function marketDirection(vars) {
  * @param {number} alpha 融合强度 0~1，默认 0.25（25%市场 + 75%模型）
  * @returns {number} 校准因子 0.85~1.25
  */
-function marketCalibration(h, a, marketDir, alpha) {
+function marketCalibration(h, a, marketDir, alpha, marketXgData) {
   if (!marketDir.valid) return 1.0;
   alpha = alpha || 0.25;
 
@@ -426,29 +426,61 @@ function marketCalibration(h, a, marketDir, alpha) {
 
   // 均匀先验 = 1/3，偏离越大概率调整越大
   const deviation = resultProb / (1 / 3);
-  // 用 alpha 控制向市场靠拢的程度
-  return round(1 + alpha * (deviation - 1), 4);
+  let cal = 1 + alpha * (deviation - 1);
+
+  // ★ V7.0: 市场 xG 增强校准
+  // 当市场隐含总进球与模型有明显差异时，额外调整比分概率
+  if (marketXgData && marketXgData.valid && marketXgData.total > 0) {
+    const totalGoals = h + a;
+    const marketTotal = marketXgData.total;
+    const diff = totalGoals - marketTotal;
+
+    // 比分总进球偏离市场隐含值 → 轻微惩罚/提振
+    if (Math.abs(diff) <= 0.5) {
+      cal *= 1.06; // 与市场一致，微幅提振
+    } else if (Math.abs(diff) <= 1.0) {
+      cal *= 1.03;
+    } else if (Math.abs(diff) > 2.0) {
+      cal *= 0.88; // 严重偏离市场，惩罚
+    } else {
+      cal *= 0.94; // 轻微偏离
+    }
+  }
+
+  return round(cal, 4);
 }
 
-function analyze(vars, xgHome, xgAway, goalRange, ladderLevel) {
+function analyze(vars, xgHome, xgAway, goalRange, ladderLevel, marketXgData) {
   // 0. 市场赔率校准因子（全局）
   const marketDir = marketDirection(vars);
+
+  // ★ V7.0: 市场 xG 融合（如果可用）
+  // 将模型 xG 与市场隐含 xG 做 70/30 加权融合
+  let finalXgHome = xgHome;
+  let finalXgAway = xgAway;
+  let marketXgUsed = false;
+  if (marketXgData && marketXgData.valid && marketXgData.total > 0) {
+    finalXgHome = +(xgHome * 0.7 + marketXgData.home * 0.3).toFixed(2);
+    finalXgAway = +(xgAway * 0.7 + marketXgData.away * 0.3).toFixed(2);
+    marketXgUsed = true;
+  }
+
   // 1. 生成合法格点（粗筛阶段用放宽后的硬过滤）
-  const cells = generateValidCells(xgHome, xgAway, vars, goalRange, ladderLevel);
+  const cells = generateValidCells(finalXgHome, finalXgAway, vars, goalRange, ladderLevel);
 
   // 2. 计算泊松联合概率 + 软锁修正 + 历史修正 + 实力修正
   const scored = [];
   for (const { h, a } of cells) {
-    const pPoisson = poissonProb(h, xgHome) * poissonProb(a, xgAway);
-    const pDixonColes = dixonColesCorrection(h, a, xgHome, xgAway); // DC低比分修正
-    const pCondH = conditionalGoalAdjust(h, a, xgAway); // 主队反扑效应
-    const pCondA = conditionalGoalAdjust(a, h, xgHome); // 客队反扑效应
+    const pPoisson = poissonProb(h, finalXgHome) * poissonProb(a, finalXgAway);
+    const pDixonColes = dixonColesCorrection(h, a, finalXgHome, finalXgAway); // DC低比分修正
+    const pCondH = conditionalGoalAdjust(h, a, finalXgAway); // 主队反扑效应
+    const pCondA = conditionalGoalAdjust(a, h, finalXgHome); // 客队反扑效应
     const pConditional = pCondH * pCondA;
     const pLock2 = singleTeamPenalty(h, a, vars); // 🔒 锁二软化
     const pLock3 = goalDiffPenalty(h, a, ladderLevel); // 🔒 锁三软化
     const pHistory = historyCorrection(h, a, vars);
     const pPower = powerBoost(h, a, ladderLevel);
-    const pMarket = marketCalibration(h, a, marketDir, 0.25); // 📊 市场赔率校准（25%权重）
+    const pMarket = marketCalibration(h, a, marketDir, 0.25, marketXgData); // 📊 V7.0 市场赔率+市场xG校准（25%权重）
     const pFinal = pPoisson * pDixonColes * pConditional * pHistory * pPower * pLock2 * pLock3 * pMarket;
     scored.push({
       score: h + '-' + a,

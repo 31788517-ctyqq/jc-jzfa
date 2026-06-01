@@ -76,7 +76,72 @@ function calcAnchor(totalStrength) {
   return { anchor: 0.0, label: '双方均势/胶着盘面', judgment: '均势' };
 }
 
-// ==================== 5.3 7场硬性阈值全分布交叉统计 ====================
+// ==================== 5.3 Beta-Binomial 概率化阈值判定（V7.0） ====================
+
+/**
+ * Beta-Binomial 后验概率计算
+ *
+ * 相比旧版硬阈值（≥7=通过），用贝叶斯后验概率给出更精确的穿盘概率：
+ *
+ *   P(穿盘) = (α + successes) / (α + β + total)
+ *   where α=2, β=2 (均匀先验)
+ *
+ * 解决的问题：
+ *   - 7/10 vs 7/30 意义完全不同，但旧版被同等对待
+ *   - 小样本时先验起主导作用（回归保守）
+ *   - 大样本时后验趋近于频率估计
+ *
+ * @param {number} successes 正向场次（主赢∩客输）
+ * @param {number} total     总场次（近N场全部比赛）
+ * @param {number} alphaPrior Beta先验 α（默认2）
+ * @param {number} betaPrior  Beta先验 β（默认2）
+ * @returns {{ prob: number, probPct: string, label: string, passed: boolean, confidence: string }}
+ */
+function betaBinomialProb(successes, total, alphaPrior, betaPrior) {
+  alphaPrior = alphaPrior || 2;
+  betaPrior = betaPrior || 2;
+  total = Math.max(0, total || 0);
+  successes = Math.max(0, Math.min(total, successes));
+
+  const alphaPost = alphaPrior + successes;
+  const betaPost = betaPrior + total - successes;
+  const mean = alphaPost / (alphaPost + betaPost);
+
+  // 概率限制在 [5%, 95%] 区间
+  const prob = Math.min(0.95, Math.max(0.05, mean));
+  const probPct = (prob * 100).toFixed(1) + '%';
+
+  // 置信度：total越大，后验越远离先验均值0.5，越可信
+  let confidence;
+  if (total >= 20) confidence = '极高';
+  else if (total >= 14) confidence = '高';
+  else if (total >= 8) confidence = '中等';
+  else confidence = '低（小样本）';
+
+  // 标签
+  let label;
+  let passed;
+  if (prob >= 0.75) {
+    label = '🔥 极高概率(' + probPct + ')';
+    passed = true;
+  } else if (prob >= 0.60) {
+    label = '📊 高概率(' + probPct + ')';
+    passed = true;
+  } else if (prob >= 0.50) {
+    label = '⚖️ 边际概率(' + probPct + ')';
+    passed = false;
+  } else if (prob >= 0.40) {
+    label = '⚠️ 低概率(' + probPct + ')';
+    passed = false;
+  } else {
+    label = '🚫 极低概率(' + probPct + ')';
+    passed = false;
+  }
+
+  return { prob: round(prob, 4), probPct, label, passed, confidence, raw: { successes, total, mean: round(mean, 4) } };
+}
+
+// ==================== 5.3 7场硬性阈值全分布交叉统计（V7.0 升级为概率化） ====================
 
 /**
  * 维度一：【主赢 ∩ 客输】正向期望赢盘组合判定
@@ -108,14 +173,26 @@ function calcWinLoseCross(totalStrength, homeSeries, awaySeries) {
   }
 
   const total = hCount + aCount;
-  const passed = total >= 7;
+
+  // ★ V7.0: Beta-Binomial 概率化替代硬阈值
+  const bb = betaBinomialProb(total, homeSeries.length + awaySeries.length);
+
+  // 同时保留旧版字段作为回退
+  const oldPassed = total >= 7;
 
   return {
     hCount,
     aCount,
     total,
-    passed,
-    label: passed ? '🔥 符合期望' : '⚠️ 未通过',
+    // V7.0 新增概率化字段
+    prob: bb.prob,
+    probPct: bb.probPct,
+    passed: bb.passed,
+    label: bb.label,
+    confidence: bb.confidence,
+    // 旧版兼容
+    _oldPassed: oldPassed,
+    _oldLabel: oldPassed ? '🔥 符合期望' : '⚠️ 未通过',
   };
 }
 
@@ -149,14 +226,26 @@ function calcLoseWinCross(totalStrength, homeSeries, awaySeries) {
   }
 
   const total = hCount + aCount;
-  const passed = total >= 7;
+
+  // ★ V7.0: Beta-Binomial 概率化替代硬阈值
+  const bb = betaBinomialProb(total, homeSeries.length + awaySeries.length);
+
+  // 同时保留旧版字段作为回退
+  const oldPassed = total >= 7;
 
   return {
     hCount,
     aCount,
     total,
-    passed,
-    label: passed ? '🛡️ 弱方韧性' : '⚠️ 未通过',
+    // V7.0 新增概率化字段
+    prob: bb.prob,
+    probPct: bb.probPct,
+    passed: bb.passed,
+    label: bb.label,
+    confidence: bb.confidence,
+    // 旧版兼容
+    _oldPassed: oldPassed,
+    _oldLabel: oldPassed ? '🛡️ 弱方韧性' : '⚠️ 未通过',
   };
 }
 
@@ -167,21 +256,25 @@ function calcResonance(diffXG, totalStrength, dim1, dim2) {
   const totalStrong = totalStrength.normalized >= 0.2;
   const totalWeak = totalStrength.normalized <= -0.2;
 
-  // 主队共振提振: Diff_exp > 0 && Total_战 ≥ 0.2 && 维度一通过
-  if (diffPositive && totalStrong && dim1.passed) {
-    return { verdict: '🔥 三者共振：主队穿盘概率极高', level: 'strong_home' };
+  // ★ V7.0: 使用概率化判定（>=0.60 视为通过）
+  const dim1Passed = dim1.passed && dim1.prob >= 0.55;
+  const dim2Passed = dim2.passed && dim2.prob >= 0.55;
+
+  // 主队共振提振: Diff_exp > 0 && Total_战 ≥ 0.2 && 维度一高概率通过
+  if (diffPositive && totalStrong && dim1Passed) {
+    return { verdict: '🔥 三者共振：主队穿盘概率极高 (' + dim1.probPct + ')', level: 'strong_home' };
   }
 
-  // 客队共振提振: Diff_exp < 0 && Total_战 ≤ -0.2 && 维度二通过
-  if (!diffPositive && totalWeak && dim2.passed) {
-    return { verdict: '🛡️ 三者共振：客队不败稳健', level: 'strong_away' };
+  // 客队共振提振: Diff_exp < 0 && Total_战 ≤ -0.2 && 维度二高概率通过
+  if (!diffPositive && totalWeak && dim2Passed) {
+    return { verdict: '🛡️ 三者共振：客队不败稳健 (' + dim2.probPct + ')', level: 'strong_away' };
   }
 
   if (dim1.passed) {
-    return { verdict: '主队盘路偏强，但需谨慎', level: 'weak_home' };
+    return { verdict: '主队盘路偏强(' + dim1.probPct + ')，但需谨慎', level: 'weak_home' };
   }
   if (dim2.passed) {
-    return { verdict: '客队韧性强，但需谨慎', level: 'weak_away' };
+    return { verdict: '客队韧性(' + dim2.probPct + ')，但需谨慎', level: 'weak_away' };
   }
 
   return { verdict: '回归常态：基本面对冲，无明确方向', level: 'neutral' };
@@ -253,4 +346,4 @@ function analyze(vars, xgHome, xgAway) {
   };
 }
 
-module.exports = { analyze };
+module.exports = { analyze, betaBinomialProb };

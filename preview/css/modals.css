@@ -167,6 +167,15 @@
 .gs-score-bet-table .gs-bet-summary-row .gs-bet-val { color: var(--amber); }
 .gs-score-bet-table .gs-bet-summary-row .gs-bet-income { color: #22c55e; }
 .match-gs-wrap { text-align: right; margin-top: 10px; }
+
+/* ═══ V7.0 市场情报卡片 ═══ */
+.gs-risk-danger { color: var(--red) !important; font-weight: 600; }
+.gs-risk-warning { color: var(--amber) !important; font-weight: 600; }
+.gs-risk-caution { color: #60a5fa !important; }
+.gs-signal-tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 500; background: rgba(255,255,255,0.05); color: var(--text2); white-space: nowrap; margin-right: 4px; margin-bottom: 2px; }
+.gs-signal-tag.gs-signal-danger { background: rgba(239,68,68,0.12); color: #ef5350; }
+.gs-signal-tag.gs-signal-good { background: rgba(34,197,94,0.12); color: #4ade80; }
+.gs-modal-note { padding: 8px 12px; border-radius: 6px; background: rgba(255,152,0,0.08); color: var(--amber); font-size: 12px; margin-top: 8px; }
 .match-gs-tag { display: inline-flex; align-items: center; gap: 4px; padding: 5px 14px; border-radius: 14px; background: linear-gradient(135deg, rgba(24,224,224,0.1), rgba(99,102,241,0.1)); border: 1px solid rgba(24,224,224,0.2); color: var(--cyan); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
 .match-gs-tag:hover { background: linear-gradient(135deg, rgba(24,224,224,0.2), rgba(99,102,241,0.2)); border-color: rgba(24,224,224,0.45); box-shadow: 0 0 12px rgba(24,224,224,0.15); }
 

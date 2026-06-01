@@ -125,23 +125,97 @@ function shrinkBeta(betaRaw, nMatches, shrinkageStrength) {
   return w * betaRaw + (1 - w) * 0.5;
 }
 
+// ==================== V7.0 时间衰减权重 ====================
+
+/**
+ * 指数衰减权重函数
+ * 近期比赛权重远大于远期比赛
+ *
+ * 衰减方案：
+ *   - 最近3场: 60% 权重
+ *   - 最近4-6场: 25% 权重
+ *   - 最近7-10场: 15% 权重
+ *
+ * 实际使用位置衰减（假设 vars 中数据按最近→最远排列）
+ *
+ * @param {number} totalMatches 近N场总数
+ * @param {number} halfLifeK 半衰位置（默认3，表示第3场权重减半）
+ * @returns {number[]} 归一化权重数组 [w0, w1, ...]
+ */
+function timeDecayWeights(totalMatches, halfLifeK) {
+  halfLifeK = halfLifeK || 3;
+  totalMatches = Math.max(1, totalMatches || 10);
+  const raw = [];
+  let sum = 0;
+  for (let k = 0; k < totalMatches; k++) {
+    const w = Math.pow(2, -k / halfLifeK);
+    raw.push(w);
+    sum += w;
+  }
+  return raw.map(function (w) { return w / sum; });
+}
+
+/**
+ * 将等权场均数据转换为时间衰减加权场均
+ * 假设原始场均数据是最近 totalMatches 场的简单平均值，
+ * 此处用三段式权重近似：60%→25%→15%
+ *
+ * @param {number} flatAvg 等权场均值
+ * @param {number} totalMatches 比赛场次
+ * @param {number} recentRatio 最近3场的偏离比例（>1=近期表现更好, <1=近期表现更差）
+ * @returns {number} 时间衰减后的加权均值
+ */
+function applyTimeDecayToAvg(flatAvg, totalMatches, recentRatio) {
+  if (!flatAvg || totalMatches < 4) return flatAvg;
+  recentRatio = recentRatio || 1.0;
+
+  // 三段式：最近1/3场次占60%，中间1/3占25%，最远1/3占15%
+  // 假设近期表现与整体均值的偏差为 recentRatio
+  // timeDecayedAvg = flatAvg * [0.6*recentRatio + 0.25*1.0 + 0.15*(1/recentRatio)]
+  const invertedRatio = 1 / Math.max(0.5, recentRatio);
+  const blendFactor = 0.6 * recentRatio + 0.25 * 1.0 + 0.15 * invertedRatio;
+
+  return +(flatAvg * blendFactor).toFixed(4);
+}
+
+/**
+ * 从净胜球分布推断近期表现趋势
+ * 如果近期赢大比分多 → 近期状态好 (ratio > 1)
+ * 如果近期输大比分多 → 近期状态差 (ratio < 1)
+ *
+ * @param {Object} vars parser 标准变量
+ * @param {string} side 'home' | 'away'
+ * @returns {number} 近期偏离比例
+ */
+function inferRecentTrendRatio(vars, side) {
+  const prefix = side === 'home' ? 'home' : 'away';
+  const w2 = vars[prefix + 'WinGap_2'] || 0;
+  const w1 = vars[prefix + 'WinGap_1'] || 0;
+  const draws = vars[prefix + 'Draw'] || 0;
+  const l1 = vars[prefix + 'LoseGap_1'] || 0;
+  const l2 = vars[prefix + 'LoseGap_2'] || 0;
+
+  // 加权分：大胜+2, 小胜+1, 平0, 小负-1, 大败-2
+  const weightedScore = w2 * 2 + w1 * 1 - l1 * 1 - l2 * 2;
+  const total = w2 + w1 + draws + l1 + l2 || 1;
+
+  // 归一化到 [-1, 1] 再映射到 [0.7, 1.3]
+  const normalizedScore = weightedScore / total;
+  return 1.0 + normalizedScore * 0.3; // 范围 [0.7, 1.3]
+}
+
 function calcExpectedGoals(vars, totalExpect, weights) {
-  const gh = vars.homeRecentGoalAvg || 1;
-  const ga = vars.awayRecentGoalAvg || 1;
+  const ghRaw = vars.homeRecentGoalAvg || 1;
+  const gaRaw = vars.awayRecentGoalAvg || 1;
   const eh = vars.homeAttackEfficiency || 0.1;
   const ea = vars.awayAttackEfficiency || 0.1;
-  const lh = vars.homeRecentLoseAvg || 1;
-  const la = vars.awayRecentLoseAvg || 1;
+  const lhRaw = vars.homeRecentLoseAvg || 1;
+  const laRaw = vars.awayRecentLoseAvg || 1;
   const dh = Math.max(vars.homeDefendEfficiency, 0.01);
   const da = Math.max(vars.awayDefendEfficiency, 0.01);
 
-  // 还原底层攻防次数（分母 +0.001 防除零）
-  const atkH = gh / (eh + 0.001);
-  const shotAgainstH = lh / (dh + 0.001);
-  const atkA = ga / (ea + 0.001);
-  const shotAgainstA = la / (da + 0.001);
-
-  // 计算比赛样本量用于 β 收缩
+  // ── V7.0 时间衰减：近期比赛权重高于远期 ──
+  // 推断近期趋势 + 应用三段式加权
   const homeTotalMatches =
     (vars.homeWinGap_1 || 0) +
     (vars.homeWinGap_2 || 0) +
@@ -154,6 +228,32 @@ function calcExpectedGoals(vars, totalExpect, weights) {
     (vars.awayLoseGap_1 || 0) +
     (vars.awayLoseGap_2 || 0) +
     (vars.awayDraw || 0);
+
+  const homeTrendRatio = inferRecentTrendRatio(vars, 'home');
+  const awayTrendRatio = inferRecentTrendRatio(vars, 'away');
+
+  // 应用时间衰减（仅当比赛场次≥4时有效）
+  const gh = homeTotalMatches >= 4
+    ? applyTimeDecayToAvg(ghRaw, homeTotalMatches, homeTrendRatio)
+    : ghRaw;
+  const ga = awayTotalMatches >= 4
+    ? applyTimeDecayToAvg(gaRaw, awayTotalMatches, awayTrendRatio)
+    : gaRaw;
+  const lh = homeTotalMatches >= 4
+    ? applyTimeDecayToAvg(lhRaw, homeTotalMatches, homeTrendRatio > 1 ? 1 / homeTrendRatio : homeTrendRatio)
+    : lhRaw;
+  const la = awayTotalMatches >= 4
+    ? applyTimeDecayToAvg(laRaw, awayTotalMatches, awayTrendRatio > 1 ? 1 / awayTrendRatio : awayTrendRatio)
+    : laRaw;
+  // ── 时间衰减结束 ──
+
+  // 还原底层攻防次数（分母 +0.001 防除零）
+  const atkH = gh / (eh + 0.001);
+  const shotAgainstH = lh / (dh + 0.001);
+  const atkA = ga / (ea + 0.001);
+  const shotAgainstA = la / (da + 0.001);
+
+  // 计算比赛样本量用于 β 收缩
   const nMatches = Math.max(5, Math.round((homeTotalMatches + awayTotalMatches) / 2));
 
   // 四维呼吸权重（带收缩 + 缩尾）
@@ -352,4 +452,4 @@ function analyze(vars, S) {
   };
 }
 
-module.exports = { analyze };
+module.exports = { analyze, timeDecayWeights, applyTimeDecayToAvg, inferRecentTrendRatio };
