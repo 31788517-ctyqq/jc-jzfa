@@ -870,7 +870,7 @@ function _doRenderChart(container) {
     colors = ['#18E0E0', '#F59E0B'];
   }
 
-  // ═══ 提取原始值 + min-max 归一化到 0%~100% ═══
+  // ═══ 提取原始值 + 带padding的min-max归一化（防止极端值贴0%/100%） ═══
   var metricsData = seriesDefs.map(function (def) {
     var rawVals = filtered.map(function (item) {
       var raw;
@@ -888,9 +888,16 @@ function _doRenderChart(container) {
     var min = valid.length ? Math.min.apply(null, valid) : 0;
     var max = valid.length ? Math.max.apply(null, valid) : 1;
     var range = (max - min) || 1;
+    // 给范围加 10% 双向 padding，避免极端值贴边
+    var pad = range * 0.1;
+    var paddedMin = min - pad;
+    var paddedMax = max + pad;
+    var paddedRange = paddedMax - paddedMin;
     var normVals = rawVals.map(function (v) {
       if (v === null) return null;
-      return parseFloat((((v - min) / range) * 100).toFixed(1));
+      var norm = ((v - paddedMin) / paddedRange) * 100;
+      norm = Math.max(0, Math.min(100, norm));
+      return parseFloat(norm.toFixed(1));
     });
     return { rawVals: rawVals, normVals: normVals, min: min, max: max, range: range };
   });
