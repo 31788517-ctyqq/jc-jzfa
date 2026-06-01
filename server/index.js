@@ -434,6 +434,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             _matchListCacheByDate[dateStr] = { time: now, response };
             return res.json(response);
           } catch (e) {
+            logger.error('[match-list] 异常: ' + (e.message || e) + ' stack: ' + (e.stack || '').split('\n').slice(0, 3).join(' | '));
             return res.json({ code: 1, data: [] });
           }
         }
