@@ -2125,8 +2125,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   const invSum6 = subOdds6.reduce((s, o) => s + 1 / o, 0);
                   maxPrize6 = invSum6 > 0 ? Math.round(1000 / invSum6) : 0;
                 } else {
-                  // ★ 赔率缺失兜底：三选总进球用 3.5/3 ≈ 1.17 荷兰式倍率
-                  maxPrize6 = Math.round(1000 * 3.5 / 3);
+                  // ★ 赔率缺失兜底：用 3.5/N 估算荷兰式倍率（与 calcEffectiveOdds 一致）
+                  const nSel = bestDir6.split(/[、,]/).length || 3;
+                  maxPrize6 = Math.round(1000 * 3.5 / nSel);
                 }
                 plans.push({
                   planId: 'plan_' + dateStr + '_6',
@@ -3854,8 +3855,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                         // ★ 有赔率：标准荷兰式
                         prize = invSum6 > 0 ? Math.round(AMOUNT / invSum6) : 0;
                       } else {
-                        // ★ 赔率缺失：用历史平均荷兰式倍数 1.31 估计（基于三选总进球真实数据）
-                        prize = Math.round(AMOUNT * 1.31);
+                        // ★ 赔率缺失：用 3.5/N 估算荷兰式倍率（与 plan-list calcEffectiveOdds 一致）
+                        const nSel = mm6.direction.split(/[、,]/).length || 3;
+                        prize = Math.round(AMOUNT * 3.5 / nSel);
                       }
                     } else if (pp.name && pp.name.endsWith('_7')) {
                       // ★ P1-方案七：标准荷兰式投注，奖金 = 总本金 / Σ(1/赔率)
