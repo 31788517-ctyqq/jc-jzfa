@@ -89,6 +89,10 @@ PROTECTED_FILES = [
 DEPLOY_MAP = [
     # 前端静态文件 → Nginx + PM2 双路径
     ('preview/index.html',                'both'),
+    ('preview/assets/expressionless-face.svg', 'both'),
+    ('preview/assets/plan_icon.png',      'both'),
+    ('preview/assets/tab_plan.svg',       'both'),
+    ('preview/assets/zuqiu_soccer.svg',   'both'),
     ('preview/css/app.css',               'both'),
     ('preview/css/modals.css',            'both'),
     ('preview/app.js',                    'both'),
