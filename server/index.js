@@ -3870,11 +3870,18 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     } else {
                       // ★ 方案一~五：2串1/单关产品奖品
                       const effectiveOdds = [];
-                      let hasAllOdds = true;
                       for (const mm of pp.matches) {
                         const subOdds = extractIndividualOdds(mm.oddsObj, mm.direction);
                         if (subOdds.length === 0) {
-                          hasAllOdds = false;
+                          // ★ 单场赔率缺失时按方向估算荷兰式有效赔率
+                          const nSub = mm.direction.split(/[、,]/).length || 1;
+                          if (nSub === 1) {
+                            effectiveOdds.push(2.5); // 单选项用 2.5x 典型赔率
+                          } else {
+                            // 多选项：totalGoals 用 3.5/N，其他用 3.0/N
+                            const baseOdds = mm.direction.indexOf('总进球-') === 0 ? 3.5 : 3.0;
+                            effectiveOdds.push(baseOdds / nSub);
+                          }
                           continue;
                         }
                         const NN = subOdds.length;
@@ -3886,13 +3893,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                           effectiveOdds.push(invSum > 0 ? 1 / invSum : 0);
                         }
                       }
-                      if (hasAllOdds && effectiveOdds.length >= 2) {
+                      if (effectiveOdds.length >= 2) {
                         prize = Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]);
-                      } else if (hasAllOdds && effectiveOdds.length === 1) {
+                      } else if (effectiveOdds.length === 1) {
                         prize = Math.round(AMOUNT * effectiveOdds[0]);
                       } else {
-                        // ★ 赔率缺失：2串1方案用 2.5x 保守估计（历史平均 product≈2.5-3.5）
-                        prize = Math.round(AMOUNT * 2.5);
+                        prize = 0;
                       }
                     }
                     dayIncome = prize - AMOUNT;
