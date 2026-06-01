@@ -2101,33 +2101,30 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             push2MatchPlan('方案二', '2', m2a, '总进球-2、3球', m2b, '让负', 250, 10);
             push2MatchPlan('方案三', '3', m3a, '胜', m3b, '胜', 500, 10, 50);
 
-            // 方案六：当天所有专家推荐方向选择总进球-2、3、4球和总进球-1、2、3球和总进球-3、4、5球
-            // 这三个方向推荐最多数的场次和方向；荷兰式投注（calcEffectiveOdds 内置荷兰式均分）
-            if (matchCount >= 8) {
-              const targetDirs6 = ['总进球-2、3、4球', '总进球-1、2、3球', '总进球-3、4、5球'];
-              let bestM6 = null, bestDir6 = '', bestCount6 = 0;
+            // 方案六：当天专家推"总进球-2、3球"数最多的一场，单关荷兰式投注（二选）
+            if (matchCount >= 4) {
+              const targetDir6 = '总进球-2、3球';
+              let bestM6 = null, bestCount6 = 0;
               for (const m of mList) {
                 const recs = findRecommends(m.matchId);
                 for (const r of recs) {
-                  if (targetDirs6.includes(r.type) && (r.num || 0) > bestCount6) {
+                  if (r.type === targetDir6 && (r.num || 0) > bestCount6) {
                     bestCount6 = r.num;
                     bestM6 = m;
-                    bestDir6 = r.type;
                   }
                 }
               }
-              if (bestM6 && bestDir6) {
-                const m6Obj = buildMatchObj(bestM6, bestDir6);
-                // 方案六：标准荷兰式投注，奖金 = 总本金 / Σ(1/赔率)，保证三结果收益相等
-                const subOdds6 = extractSubOdds(m6Obj.odds, bestDir6);
+              if (bestM6 && bestCount6 > 0) {
+                const m6Obj = buildMatchObj(bestM6, targetDir6);
+                // 方案六：标准荷兰式投注（二选），奖金 = 总本金 / Σ(1/赔率)
+                const subOdds6 = extractSubOdds(m6Obj.odds, targetDir6);
                 let maxPrize6;
-                if (subOdds6.length > 0) {
+                if (subOdds6.length === 2) {
                   const invSum6 = subOdds6.reduce((s, o) => s + 1 / o, 0);
                   maxPrize6 = invSum6 > 0 ? Math.round(1000 / invSum6) : 0;
                 } else {
-                  // ★ 赔率缺失兜底：用 3.5/N 估算荷兰式倍率（与 calcEffectiveOdds 一致）
-                  const nSel = bestDir6.split(/[、,]/).length || 3;
-                  maxPrize6 = Math.round(1000 * 3.5 / nSel);
+                  // ★ 赔率缺失兜底：二选总进球用 3.5/2 荷兰式倍率
+                  maxPrize6 = Math.round(1000 * 3.5 / 2);
                 }
                 plans.push({
                   planId: 'plan_' + dateStr + '_6',
@@ -3754,26 +3751,25 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
               const dayMatchCount = mList.length;
 
-              // 方案六：三方向总进球筛选（≥8场），单关荷兰式投注
-              if (dayMatchCount >= 8) {
-                const targetDirs6 = ['总进球-2、3、4球', '总进球-1、2、3球', '总进球-3、4、5球'];
-                let bestM6 = null, bestDir6 = '', bestCount6 = 0;
+              // 方案六：专家推"总进球-2、3球"数最多的一场，单关荷兰式投注（二选）
+              if (dayMatchCount >= 4) {
+                const targetDir6 = '总进球-2、3球';
+                let bestM6 = null, bestCount6 = 0;
                 for (const k of Object.keys(matchDataMap)) {
                   const mdData = matchDataMap[k];
                   const recs6 = mdData.recs;
                   for (const r of recs6) {
-                    if (targetDirs6.includes(r.type) && (r.num || 0) > bestCount6) {
+                    if (r.type === targetDir6 && (r.num || 0) > bestCount6) {
                       bestCount6 = r.num;
                       bestM6 = mdData.match;
-                      bestDir6 = r.type;
                     }
                   }
                 }
-                if (bestM6 && bestDir6) {
+                if (bestM6 && bestCount6 > 0) {
                   dayPlans.push({
                     name: 'plan_6',
                     planName: '方案六',
-                    matches: [buildMatch(bestM6, bestDir6)],
+                    matches: [buildMatch(bestM6, targetDir6)],
                   });
                 }
               }
@@ -3850,13 +3846,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     if (pp.name && pp.name.endsWith('_6')) {
                       const mm6 = pp.matches[0];
                       const subOdds6 = extractIndividualOdds(mm6.oddsObj, mm6.direction);
-                      if (subOdds6.length === 3) {
+                      if (subOdds6.length === 2) {
                         const invSum6 = subOdds6.reduce((s, o) => s + 1 / o, 0);
                         // ★ 有赔率：标准荷兰式
                         prize = invSum6 > 0 ? Math.round(AMOUNT / invSum6) : 0;
                       } else {
                         // ★ 赔率缺失：用 3.5/N 估算荷兰式倍率（与 plan-list calcEffectiveOdds 一致）
-                        const nSel = mm6.direction.split(/[、,]/).length || 3;
+                        const nSel = mm6.direction.split(/[、,]/).length || 2;
                         prize = Math.round(AMOUNT * 3.5 / nSel);
                       }
                     } else if (pp.name && pp.name.endsWith('_7')) {
