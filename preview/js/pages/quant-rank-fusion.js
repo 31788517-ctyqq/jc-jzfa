@@ -844,123 +844,111 @@ function _doRenderChart(container) {
     return shortTeam(item.homeName) + ' vs ' + shortTeam(item.visitName);
   });
 
-  // ═══ 根据 tab 定义指标组（每组 3-4 项） ═══
-  var seriesDefs;
+  // ═══ 根据 tab 定义指标组 + 配色 ═══
+  var seriesDefs, colors;
   if (currentTab === 'power') {
     seriesDefs = [
-      { name: '综合实力', key: 'pwScore', fmt: 2 },
-      { name: '净胜球量化', key: 'gdScore', fmt: 2 },
-      { name: '胜平负交叉', key: 'crossValue', fmt: 2 },
-      { name: '攻守实力', key: 'adCombined', fmt: 2 },
+      { name: '综合实力', key: 'pwScore', fmt: 4, unit: '' },
+      { name: '净胜球量化', key: 'gdScore', fmt: 2, unit: '' },
+      { name: '胜平负交叉', key: 'crossValue', fmt: 0, unit: '' },
+      { name: '攻守实力', key: 'adCombined', fmt: 4, unit: '' },
     ];
+    colors = ['#18E0E0', '#3B82F6', '#F59E0B', '#8B5CF6'];
   } else if (currentTab === 'goal') {
     seriesDefs = [
-      { name: '综合大球比例', key: 'bigBallRatio', fmt: 1 },
-      { name: '攻防进球', key: 'attDefGoal', fmt: 1 },
-      { name: '交锋进球', key: 'headToHeadGoal', fmt: 1 },
-      { name: '破甲和', key: 'breakArmor', fmt: 1 },
+      { name: '综合大球比例', key: 'bigBallRatio', fmt: 1, unit: '%' },
+      { name: '攻防进球', key: 'attDefGoal', fmt: 1, unit: '' },
+      { name: '交锋进球', key: 'headToHeadGoal', fmt: 1, unit: '' },
+      { name: '破甲和', key: 'breakArmor', fmt: 1, unit: '' },
     ];
+    colors = ['#22C55E', '#3B82F6', '#EAB308', '#EF4444'];
   } else {
     seriesDefs = [
-      { name: '关注热度', key: 'hotFocusNum', fmt: 1 },
-      { name: '冷热指数', key: 'heatIndex', fmt: 2 },
+      { name: '关注热度', key: 'hotFocusNum', fmt: 1, unit: '万', divide: 10000 },
+      { name: '冷热指数', key: 'heatIndex', fmt: 2, unit: '' },
     ];
+    colors = ['#18E0E0', '#F59E0B'];
   }
 
-  // ═══ Small Multiples 布局：每个指标独立 mini-chart，纵向堆叠 ═══
-  var gridCount = seriesDefs.length;
-  var gapPct = 0.5; // 图表间隙百分比
-  var totalGap = (gridCount - 1) * gapPct;
-  var perGridPct = (100 - totalGap) / gridCount;
-
-  // 动态高度：每场比赛约 22px + 标题/轴标签 30px
-  var perChartH = Math.max(130, n * 22 + 30);
-  var totalH = perChartH * gridCount + (gridCount - 1) * 6;
-  container.style.height = Math.max(420, totalH) + 'px';
-
-  // 旧实例先销毁
-  if (chartInstance) {
-    chartInstance.dispose();
-    chartInstance = null;
-  }
-
-  // ── 构建多个 grid / axis / series ──
-  var grids = [];
-  var xAxes = [];
-  var yAxes = [];
-  var allSeries = [];
-  var legendData = [];
-
-  seriesDefs.forEach(function (def, i) {
-    var topPct = i * (perGridPct + gapPct);
-
-    // 每个 mini-chart 独立区域
-    grids.push({
-      left: '14%',
-      right: '6%',
-      top: topPct + '%',
-      height: perGridPct + '%',
-    });
-
-    // 独立数值轴（x 轴 = value，因为横向柱状图）
-    xAxes.push({
-      gridIndex: i,
-      type: 'value',
-      axisLabel: { color: '#64748B', fontSize: 9 },
-      splitLine: { lineStyle: { color: 'rgba(24,224,224,0.04)' } },
-      axisLine: { show: false },
-      // 0 刻度线可选
-      splitNumber: 4,
-    });
-
-    // 独立分类轴（y 轴 = 比赛名称）
-    // 只在第一个 mini-chart 显示比赛名称，其余复用相同 data 但隐藏标签
-    yAxes.push({
-      gridIndex: i,
-      type: 'category',
-      data: names,
-      axisLabel: {
-        color: '#94A3B8',
-        fontSize: 9,
-        show: i === 0,
-        width: 80,
-        overflow: 'truncate',
-      },
-      axisLine: { show: false },
-      axisTick: { show: false },
-      inverse: true,
-    });
-
-    // 提取数据
-    var rawData = filtered.map(function (item) {
+  // ═══ 提取原始值 + min-max 归一化到 0%~100% ═══
+  var metricsData = seriesDefs.map(function (def) {
+    var rawVals = filtered.map(function (item) {
       var raw;
       if (def.key === 'heatIndex') {
-        // 冷热指数需要清洗文本
         var c = String(item.heatIndex || '').replace(/[^\d.-]/g, '');
         raw = parseFloat(c);
       } else {
         raw = parseFloat(item[def.key]);
       }
-      if (isNaN(raw)) return '-';
-      return parseFloat(raw.toFixed(def.fmt));
+      if (isNaN(raw)) return null;
+      if (def.divide) raw = raw / def.divide;
+      return raw;
+    });
+    var valid = rawVals.filter(function (v) { return v !== null; });
+    var min = valid.length ? Math.min.apply(null, valid) : 0;
+    var max = valid.length ? Math.max.apply(null, valid) : 1;
+    var range = (max - min) || 1;
+    var normVals = rawVals.map(function (v) {
+      if (v === null) return null;
+      return parseFloat((((v - min) / range) * 100).toFixed(1));
+    });
+    return { rawVals: rawVals, normVals: normVals, min: min, max: max, range: range };
+  });
+
+  // ═══ 构建统一单图 series（分组柱状图） ═══
+  var allSeries = seriesDefs.map(function (def, i) {
+    var md = metricsData[i];
+    var baseColor = colors[i];
+
+    var data = filtered.map(function (item, j) {
+      var raw = md.rawVals[j];
+      var norm = md.normVals[j];
+      if (raw === null || norm === null) return null;
+
+      var tags = computeTags(item);
+      var tagStr = tags
+        .map(function (t) { return t.e + t.t; })
+        .join(' ');
+
+      // 格式化原始值（tooltip 用）
+      var rawStr;
+      if (def.key === 'hotFocusNum') {
+        rawStr = raw.toFixed(def.fmt) + '万';
+      } else if (def.key === 'bigBallRatio') {
+        rawStr = raw.toFixed(def.fmt) + '%';
+      } else if (def.key === 'heatIndex') {
+        rawStr = raw.toFixed(def.fmt);
+      } else if (def.key === 'crossValue') {
+        rawStr = (raw >= 0 ? '+' : '') + Math.round(raw);
+      } else if (def.key === 'pwScore' || def.key === 'adCombined') {
+        rawStr = (raw >= 0 ? '+' : '') + raw.toFixed(def.fmt);
+      } else {
+        rawStr = (raw >= 0 ? '+' : '') + raw.toFixed(def.fmt);
+      }
+
+      return {
+        value: norm,
+        _raw: raw,
+        _rawStr: rawStr,
+        _norm: norm,
+        _tags: tagStr,
+        _name: names[j],
+        _defName: def.name,
+      };
     });
 
-    legendData.push(def.name);
-
-    allSeries.push({
+    return {
       name: def.name,
       type: 'bar',
-      xAxisIndex: i,
-      yAxisIndex: i,
-      data: rawData,
-      barMaxWidth: 14,
-      barCategoryGap: '20%',
-      // 正数绿色，负数红色
+      data: data,
+      barMaxWidth: 18,
+      barCategoryGap: '10%',
+      barGap: '6%',
+      emphasis: { itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.4)' } },
       itemStyle: {
         color: function (params) {
-          var v = params.value;
-          if (v === '-' || v === undefined || v === null) return '#374151';
-          return v >= 0 ? '#22c55e' : '#ef4444';
+          if (!params.data || params.data.value == null) return 'transparent';
+          return baseColor;
         },
         borderRadius: [0, 3, 3, 0],
       },
@@ -968,34 +956,103 @@ function _doRenderChart(container) {
         show: true,
         position: 'right',
         color: '#94A3B8',
-        fontSize: 9,
+        fontSize: 8,
+        formatter: function (params) {
+          if (!params.data || params.data._norm == null) return '';
+          return params.data._norm + '%';
+        },
       },
-    });
+    };
   });
+
+  // ═══ 动态高度 ═══
+  var rowH = 36;
+  var headerH = 60;
+  container.style.height = Math.max(400, headerH + n * rowH + 40) + 'px';
+
+  // ═══ 销毁旧实例 ═══
+  if (chartInstance) {
+    chartInstance.dispose();
+    chartInstance = null;
+  }
 
   chartInstance = echarts.init(container);
   chartInstance.setOption({
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
+      backgroundColor: 'rgba(15,23,42,0.95)',
+      borderColor: 'rgba(24,224,224,0.2)',
+      textStyle: { color: '#E2E8F0', fontSize: 12 },
       formatter: function (params) {
         if (!params || !params.length) return '';
-        var html = '<b>' + params[0].name + '</b>';
+        var first = params[0];
+        var html =
+          '<b style="font-size:13px">' + (first.data && first.data._name ? first.data._name : first.name) + '</b>';
         params.forEach(function (p) {
-          html += '<br/>' + p.marker + ' ' + p.seriesName + '：<b>' + p.value + '</b>';
+          if (!p.data || p.data._raw == null) return;
+          var raw = p.data._raw;
+          var signClr = raw >= 0 ? '#22c55e' : '#ef4444';
+          html +=
+            '<br/>' +
+            p.marker +
+            ' ' +
+            p.data._defName +
+            '：<b style="color:' +
+            signClr +
+            '">' +
+            p.data._rawStr +
+            '</b>' +
+            ' <span style="color:#64748B;font-size:10px">(' +
+            p.data._norm +
+            '%)</span>';
         });
+        var tags =
+          first.data && first.data._tags
+            ? '<br/><span style="color:#94A3B8;font-size:10px">' + first.data._tags + '</span>'
+            : '';
+        html += tags;
         return html;
       },
     },
     legend: {
-      data: legendData,
-      textStyle: { color: '#94A3B8', fontSize: 10 },
-      top: 0,
+      data: seriesDefs.map(function (d) { return d.name; }),
+      textStyle: { color: '#94A3B8', fontSize: 11 },
+      top: 4,
       left: 'center',
+      itemWidth: 12,
+      itemHeight: 12,
+      itemGap: 16,
     },
-    grid: grids,
-    xAxis: xAxes,
-    yAxis: yAxes,
+    grid: {
+      left: '14%',
+      right: '8%',
+      top: 50,
+      bottom: 16,
+    },
+    xAxis: {
+      type: 'value',
+      max: 100,
+      min: 0,
+      axisLabel: { color: '#64748B', fontSize: 10, formatter: '{value}%' },
+      splitLine: { lineStyle: { color: 'rgba(24,224,224,0.06)', type: 'dashed' } },
+      axisLine: { lineStyle: { color: 'rgba(24,224,224,0.15)' } },
+      splitNumber: 5,
+    },
+    yAxis: {
+      type: 'category',
+      data: names,
+      axisLabel: { color: '#94A3B8', fontSize: 10, width: 90, overflow: 'truncate' },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      inverse: true,
+      splitArea: {
+        show: true,
+        areaStyle: {
+          color: ['transparent', 'rgba(255,255,255,0.03)'],
+        },
+      },
+    },
     series: allSeries,
     backgroundColor: 'transparent',
   });

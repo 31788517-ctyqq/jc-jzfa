@@ -2401,7 +2401,8 @@ function loadScorePlanList() {
           }
 
           const amountVal = (p.amount || 1000).toFixed(0);
-          const prizeVal = isWon ? (p.winningPrize || 0).toFixed(0) : (p.maxPrize || 0).toFixed(0);
+          const prizeNum = isWon ? (p.winningPrize || 0) : (p.maxPrize || 0);
+          const prizeVal = prizeNum > 0 ? prizeNum.toFixed(0) : (isWon ? '--' : '0');
           const prizeLabel = isWon ? '中奖金额' : isLose ? '预计奖金' : '预计最高奖金';
           const statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
 

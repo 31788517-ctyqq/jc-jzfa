@@ -2062,6 +2062,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const bObj = buildMatchObj(mB, dirB);
               const e1 = calcEffectiveOdds(dirA, aObj);
               const e2 = calcEffectiveOdds(dirB, bObj);
+              const maxPrize = (e1 && e2) ? Math.round(1000 * e1 * e2) : 0;
+
               plans.push({
                 planId: 'plan_' + dateStr + '_' + planSuffix,
                 planName: planName,
@@ -2073,7 +2075,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 betCount: betCount,
                 ticketCount: ticketCount,
                 multiplier: multiplier || 25,
-                maxPrize: e1 && e2 ? Math.round(1000 * e1 * e2) : Math.round(1000 * 2.5),
+                maxPrize: maxPrize,
+                winningPrize: maxPrize,
               });
             }
 
@@ -2099,6 +2102,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (bestM6 && bestDir6) {
                 const m6Obj = buildMatchObj(bestM6, bestDir6);
                 const eo = calcEffectiveOdds(bestDir6, m6Obj);
+                const maxPrize6 = eo ? Math.round(1000 * eo) : 0;
                 plans.push({
                   planId: 'plan_' + dateStr + '_6',
                   planName: '方案六',
@@ -2110,7 +2114,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   betCount: 250,
                   ticketCount: 10,
                   multiplier: 25,
-                  maxPrize: eo ? Math.round(1000 * eo) : Math.round(1000 * 2.0),
+                  maxPrize: maxPrize6,
+                  winningPrize: maxPrize6,
                 });
               }
             }
@@ -2148,6 +2153,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (bestM7 && bestM7Dir) {
                 const m7Obj = buildMatchObj(bestM7, bestM7Dir);
                 const eo = calcEffectiveOdds(bestM7Dir, m7Obj);
+                const maxPrize7 = eo ? Math.round(1000 * eo) : 0;
                 plans.push({
                   planId: 'plan_' + dateStr + '_7',
                   planName: '方案七',
@@ -2159,7 +2165,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   betCount: 250,
                   ticketCount: 10,
                   multiplier: 25,
-                  maxPrize: eo ? Math.round(1000 * eo) : Math.round(1000 * 2.0),
+                  maxPrize: maxPrize7,
+                  winningPrize: maxPrize7,
                 });
               }
             }

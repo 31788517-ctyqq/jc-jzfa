@@ -274,10 +274,9 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
         var oddsAttr = ' data-odds="' + (odds !== null ? odds : '--') + '"';
         var hasOdds = odds !== null;
         var riskLabel = riskClass || '';
-        var pctVal = parseFloat(s.percent) || 0;
         var riskDisplay = '';
-        if (riskLabel === 'high') riskDisplay = '<span class="gs-risk-tag gs-risk-high">高风险</span>';
-        else if (riskLabel === 'cold') riskDisplay = '<span class="gs-risk-tag gs-risk-cold">冷门</span>';
+        if (riskLabel === 'high') riskDisplay = '<div class="gs-score-risk gs-risk-high">高风险</div>';
+        else if (riskLabel === 'cold') riskDisplay = '<div class="gs-score-risk gs-risk-cold">冷门</div>';
         return (
           '<div class="gs-score-card' +
           (!hasOdds ? ' no-odds' : '') +
@@ -288,11 +287,12 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
           '>' +
           '<div class="gs-score-val">' +
           s.score +
-          riskDisplay +
           '</div>' +
           '<div class="gs-score-pct">' +
           s.percent +
-          '</div></div>'
+          '</div>' +
+          riskDisplay +
+          '</div>'
         );
       }
 

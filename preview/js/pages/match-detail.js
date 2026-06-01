@@ -3,6 +3,9 @@ import { formatDate } from '../utils.js';
 import { loadECharts, echartsReady } from '../charts.js';
 import * as state from '../state.js';
 
+// AI 深度解析缓存：{ matchId: { content: ..., hash: ... } }
+var predictionCache = {};
+
 export function goDetail(matchId) {
   if (state.currentPage === 'home') state.setSavedScrollY(window.scrollY);
   state.setLastPage(state.currentPage);
@@ -216,25 +219,92 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
     awayTeam = (teams[1] ? teams[1].textContent : null) || awayTeam || '客队';
   }
 
+  var modalEl = document.getElementById('aiModal');
+  var overlayEl = document.getElementById('aiOverlay');
+
+  // ═══ 缓存命中：后台静默检查内容是否变化 ═══
+  if (predictionCache[matchId]) {
+    var cached = predictionCache[matchId];
+    // 先打开弹窗展示加载中（后台静默校验）
+    var cacheLoadingHtml =
+      '<div class="ai-modal-header"><span class="ai-modal-title">AI深度解析</span><button class="ai-modal-close" onclick="closeAI()">&times;</button></div>' +
+      '<div class="ai-content"><div style="text-align:center;padding:60px 20px;color:var(--cyan);"><div style="font-size:40px;margin-bottom:16px;">🔍</div><div style="font-size:16px;font-weight:600;">正在确认最新分析...</div></div></div>';
+    if (modalEl) modalEl.innerHTML = cacheLoadingHtml;
+    if (overlayEl) overlayEl.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    api('ai-predict', { matchId: matchId }, { timeout: 15000 })
+      .then(function (d) {
+        var newHash = JSON.stringify(d.content || '');
+        // 内容无变化，直接用缓存渲染
+        if (newHash === cached.hash && d.content) {
+          renderCachedContent(cached.content, homeTeam, awayTeam, d);
+          return;
+        }
+        // 内容有变化，更新缓存并走模拟加载流程
+        predictionCache[matchId] = { content: d, hash: newHash };
+        doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, d);
+      })
+      .catch(function () {
+        // 网络异常时直接用缓存
+        renderCachedContent(cached.content, homeTeam, awayTeam, null);
+      });
+    return;
+  }
+
+  // ═══ 首次访问：走完整模拟加载流程 ═══
+  doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, null);
+}
+
+function renderCachedContent(content, homeTeam, awayTeam, newData) {
+  // 直接用缓存内容渲染，跳过加载动画
+  var resultData = newData || content;
+  if (resultData && resultData.content) {
+    if (resultData.dualModel && resultData.merged) {
+      renderAIContent(resultData.content, homeTeam, awayTeam);
+    } else if (resultData.singleModel && resultData.failedSource) {
+      var failBadge = (resultData.failedSource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 分析未成功，仅展示 ' + (resultData.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 结果';
+      renderAIContentWithBadge(resultData.content, homeTeam, awayTeam, failBadge);
+    } else if (resultData.singleModel || resultData.pendingMerge) {
+      var badge = (resultData.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 已完成，另一模型分析中...';
+      renderAIContentWithBadge(resultData.content, homeTeam, awayTeam, badge);
+    } else {
+      renderAIContent(resultData.content, homeTeam, awayTeam);
+    }
+    if (resultData.shujuMissing) {
+      showShujuMissingNotice();
+    }
+  } else if (resultData && resultData.notReady) {
+    var ac = document.getElementById('aiModal');
+    if (ac) {
+      var inr = ac.querySelector('.ai-content');
+      if (inr)
+        inr.innerHTML =
+          '<div style="text-align:center;padding:60px 20px;color:var(--cyan);"><div style="font-size:48px;margin-bottom:16px;">📋</div><div style="font-size:16px;font-weight:600;">分析生成中</div><div style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.6;">' +
+          (resultData.msg || 'AI 深度解析由定时任务（11:30 / 16:30）统一生成<br>到时间后刷新页面即可查看') +
+          '</div><button style="margin-top:20px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;" onclick="closeAI()">我知道了</button></div>';
+    }
+  }
+}
+
+function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloadedData) {
   // 显示加载态
   var html =
     '<div class="ai-modal-header"><span class="ai-modal-title">AI深度解析</span><button class="ai-modal-close" onclick="closeAI()">&times;</button></div>';
   html +=
     '<div class="ai-content"><div style="text-align:center;padding:60px 20px;color:var(--cyan);"><div style="font-size:40px;margin-bottom:16px;">⏳</div><div style="font-size:16px;font-weight:600;">正在交叉分析中...</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">DeepSeek + 豆包 双模型交叉验证</div></div></div>';
-  var modalEl = document.getElementById('aiModal');
   if (modalEl) modalEl.innerHTML = html;
-  var overlayEl = document.getElementById('aiOverlay');
   if (overlayEl) overlayEl.classList.add('active');
   document.body.style.overflow = 'hidden';
 
   // ═══ 假进度条：模拟实时 AI 运算耗时（20-25s 随机） ═══
   var fakeDurationSec = Math.floor(Math.random() * 6) + 20; // 20-25 秒随机
   var fakeStartTime = Date.now();
-  var pendingResult = null;      // API 返回结果暂存
-  var apiDone = false;           // API 是否已返回
-  var apiError = null;           // API 异常暂存
+  var pendingResult = preloadedData; // 可能已有预加载数据
+  var apiDone = !!preloadedData;     // 如果预加载了数据则标记已完成
+  var apiError = null;               // API 异常暂存
   var pollTimer = null;
-  var rendered = false;          // 防止重复渲染
+  var rendered = false;              // 防止重复渲染
 
   function updateFakeProgress() {
     var elapsed = (Date.now() - fakeStartTime) / 1000;
@@ -271,15 +341,20 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
     updateFakeProgress();
   }, 200);
 
-  // ★ 后台静默请求缓存（瞬间返回），不阻塞进度条
-  api('ai-predict', { matchId: matchId }, { timeout: 15000 })
-    .then(function (d) {
-      pendingResult = d;
-      apiDone = true;
-    })
-    .catch(function (e) {
-      apiError = e && e.message ? e.message : '网络连接失败';
-    });
+  // ★ 后台静默请求（如果还没有预加载数据）
+  if (!preloadedData) {
+    api('ai-predict', { matchId: matchId }, { timeout: 15000 })
+      .then(function (d) {
+        pendingResult = d;
+        apiDone = true;
+        // 存入缓存
+        var contentHash = JSON.stringify(d.content || '');
+        predictionCache[matchId] = { content: d, hash: contentHash };
+      })
+      .catch(function (e) {
+        apiError = e && e.message ? e.message : '网络连接失败';
+      });
+  }
 
   // ★ 假进度条走完后渲染结果
   setTimeout(function () {

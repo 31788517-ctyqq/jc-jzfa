@@ -93,6 +93,12 @@ export function loadPlanList() {
         }
       }
       var plans = data.plans || [];
+      // ★ notice 提示条（有方案时嵌入顶部）
+      var noticeHtml = data.notice
+        ? '<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#fbbf24;text-align:center;">⚠ ' +
+          data.notice +
+          '</div>'
+        : '';
       if (plans.length === 0) {
         // 有 notice 说明是时间限制（16:00前），不跳转到前一天
         if (data.notice) {
@@ -153,8 +159,9 @@ export function loadPlanList() {
           var planName = p.planName || '专家博热方案 ' + (i + 1);
           var amountVal = (p.amount || 1000).toFixed(0);
           // ★ 不要覆盖上面从 matches[].isMatchWon/isMatchLose 计算出的 isWon/isLose
-          var prizeVal = isWon ? (p.winningPrize || 0).toFixed(0) : (p.maxPrize || 0).toFixed(0);
-          var prizeLabel = isWon ? '中奖金额' : isLose ? '预计奖金' : '预计最高奖金';
+          var prizeNum = isWon ? (p.winningPrize || 0) : (isLose ? 0 : (p.maxPrize || 0));
+          var prizeVal = prizeNum > 0 ? prizeNum.toFixed(0) : (isWon ? '--' : '0');
+          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高奖金';
           var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
 
           var cutoffDisplay = '';
@@ -400,7 +407,7 @@ export function loadPlanList() {
         })
         .join('');
       setCache(cacheKey, html);
-      el.innerHTML = html;
+      el.innerHTML = noticeHtml + html;
     })
     .catch(function (e) {
       el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);">' + e.message + '</div>';
@@ -528,8 +535,9 @@ export function loadScorePlanList() {
           var amountVal = (p.amount || 1000).toFixed(0);
           var isWon = p.isScoreWon || false;
           var isLose = p.isScoreLose || false;
-          var prizeVal = isWon ? (p.winningPrize || 0).toFixed(0) : (p.maxPrize || 0).toFixed(0);
-          var prizeLabel = isWon ? '中奖金额' : isLose ? '预计奖金' : '预计最高奖金';
+          var prizeNum2 = isWon ? (p.winningPrize || 0) : (isLose ? 0 : (p.maxPrize || 0));
+          var prizeVal = prizeNum2 > 0 ? prizeNum2.toFixed(0) : (isWon ? '--' : '0');
+          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高奖金';
           var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
 
           // 构建比分标签 + 奖金分配（按行显示）
@@ -806,7 +814,8 @@ export function loadQuantPlanList() {
           var planName = p.planName || '量化博冷方案 ' + (i + 1);
           var amountVal = (p.amount || 1000).toFixed(0);
           // ★ 不覆盖 isWon/isLose — 上面已从 matches[].isMatchWon/isMatchLose 正确计算
-          var prizeVal = isWon ? (p.winningPrize || p.maxPrize || 0).toFixed(0) : (p.maxPrize || 0).toFixed(0);
+          var prizeNum3 = isWon ? (p.winningPrize || p.maxPrize || 0) : (p.maxPrize || 0);
+          var prizeVal = prizeNum3 > 0 ? prizeNum3.toFixed(0) : (isWon ? '--' : '0');
           var prizeLabel = isWon ? '中奖金额' : isLose ? '预计奖金' : '预计最高奖金';
           var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
 
