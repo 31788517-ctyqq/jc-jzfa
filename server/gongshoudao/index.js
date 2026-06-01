@@ -322,6 +322,168 @@ function computeSingleMatch(rawStats, matchInfo) {
   };
 }
 
+// ==================== 降级估算（无 API 数据时使用基础联赛数据） ====================
+
+/**
+ * 为无 API 统计数据的比赛生成降级 GS 条目
+ * 使用联赛平均数据 + 让球信息做保守估计
+ */
+function computeFallbackMatch(m) {
+  const ln = (m.leagueName || '').trim();
+  const handicap = m.handicap !== undefined ? Number(m.handicap) : (m.rq !== undefined ? Number(m.rq) : 0);
+
+  // 联赛场均进球基准
+  const LEAGUE_GOALS = {
+    英超:2.72, 西甲:2.63, 意甲:2.56, 德甲:3.18, 法甲:2.55,
+    荷甲:3.05, 葡超:2.67, 挪超:2.92, 瑞典超:2.85, 日职:2.62,
+    日乙:2.58, 韩职:2.48, 美职:2.78, 俄超:2.48, 比甲:2.82,
+    奥甲:2.72, 苏超:2.65, 中超:2.78, 墨超:2.68, 巴甲:2.42,
+    阿甲:2.18, 欧冠:2.82, 欧罗巴:2.72, 亚冠:2.65, 澳洲甲:2.88,
+    德乙:2.82, 法乙:2.42, 英冠:2.55, 土超:2.75, 波兰超:2.62,
+    瑞士超:2.82, 希腊超:2.32, 丹麦超:2.78
+  };
+  let avgGoals = 2.65; // 默认
+  const keys = Object.keys(LEAGUE_GOALS);
+  for (let i = 0; i < keys.length; i++) {
+    if (ln.indexOf(keys[i]) !== -1) { avgGoals = LEAGUE_GOALS[keys[i]]; break; }
+  }
+
+  // 根据让球偏移估算两队实力
+  const hdc = handicap || 0;
+  const homeAdv = hdc > 0 ? 0.55 : hdc < 0 ? 0.45 : 0.50;
+  const hdcStrength = Math.abs(hdc) > 1 ? 0.35 : Math.abs(hdc) > 0.5 ? 0.20 : 0.08;
+
+  // 基于联赛场均进球做保守 Xg 估算
+  const baseXg = avgGoals / 2;
+  const xgHome = baseXg + hdc * 0.15;
+  const xgAway = baseXg - hdc * 0.15;
+
+  const hWins = Math.round(4 + hdc * 2);
+  const hLosses = Math.round(4 - hdc * 2);
+  const aWins = Math.round(4 - hdc * 2);
+  const aLosses = Math.round(4 + hdc * 2);
+
+  // 大球率根据联赛基线估算
+  const overRate = avgGoals >= 2.85 ? 70 : avgGoals >= 2.65 ? 55 : 40;
+  const bigBallRatio = overRate;
+
+  return {
+    matchId: m.matchId || '',
+    homeName: m.homeName || '',
+    visitName: m.visitName || '',
+    leagueName: m.leagueName || '',
+    num: m.num || '',
+    computedAt: Date.now(),
+    _fallback: true, // 标记为降级数据
+
+    // 实力维度
+    homePower: Math.round(50 + hdc * 15),
+    guestPower: Math.round(50 - hdc * 15),
+    attackAdvantage: (hdc >= 0 ? '+' : '') + Math.round(hdcStrength * 100) + '%',
+    attackAdvantageValue: Math.round(50 + hdcStrength * 100),
+    defenseAdvantage: (hdc >= 0 ? '+' : '') + Math.round(hdcStrength * 80) + '%',
+    defenseAdvantageValue: Math.round(50 + hdcStrength * 80),
+    attackPattern: Math.abs(hdc) > 1 ? '对攻为主' : Math.abs(hdc) > 0.5 ? '攻守平衡' : '攻守平衡',
+    totalAdvantage: (hdc >= 0 ? '+' : '') + Math.round(hdcStrength * 80) + '%',
+    totalAdvantageRaw: hdcStrength,
+    totalAdvantageValue: Math.round(50 + hdcStrength * 100),
+    adWeightedComposite: hdcStrength * 0.6,
+    ladderLabel: Math.abs(hdc) > 1 ? (hdc > 0 ? '⚔️ 主队中等优势' : '⚔️ 客队中等优势') : '⚖️ 双方均势',
+    ladderLevel: Math.abs(hdc) > 1 ? 2 : 1,
+    totalStrength: hdcStrength,
+    crossSpfWin: 0.35 + hdc * 0.08,
+    crossSpfDraw: 0.30,
+    crossSpfLose: 0.35 - hdc * 0.08,
+    crossHcpWin: 0.5 + hdc * 0.1,
+    crossHcpDraw: 0.25,
+    crossHcpLose: 0.25 - hdc * 0.1,
+    crossRq: handicap,
+    hWins: Math.max(0, hWins),
+    hLosses: Math.max(0, hLosses),
+    aWins: Math.max(0, aWins),
+    aLosses: Math.max(0, aLosses),
+
+    // 进球维度
+    overRate: overRate,
+    bigBallRatio: bigBallRatio,
+    attDefGoal: parseFloat((xgHome + xgAway).toFixed(2)),
+    xgHome: parseFloat(xgHome.toFixed(2)),
+    xgAway: parseFloat(xgAway.toFixed(2)),
+    gdQ: parseFloat((xgHome - xgAway).toFixed(4)),
+    strengthGoal: parseFloat((avgGoals * 0.85).toFixed(2)),
+    h2hGoalAvg: parseFloat((avgGoals * 0.9).toFixed(1)),
+    breakArmorSum: parseFloat((1.5 + hdcStrength * 0.5).toFixed(4)),
+    goalRange: {
+      range: avgGoals >= 2.8 ? '2-5球' : '1-4球',
+      lower: 1,
+      upper: avgGoals >= 2.8 ? 5 : 4,
+      compositeLine: parseFloat(avgGoals.toFixed(2)),
+      overRate: overRate,
+      lambdaGene: avgGoals,
+      lambdaActual: avgGoals,
+      homeOverRate: 0.4,
+      awayOverRate: 0.4,
+      h2hOverRate: 0.5
+    },
+
+    // 融合共识
+    fusionConsensus: '弱一致(数据降级)',
+    fusionFinalHome: parseFloat(xgHome.toFixed(2)),
+    fusionFinalAway: parseFloat(xgAway.toFixed(2)),
+    fusionFinalTotal: parseFloat((xgHome + xgAway).toFixed(1)),
+    fusionFused: true,
+
+    // 比分
+    scores: [
+      { score: '1-1', percent: '22%' },
+      { score: hdc > 0 ? '2-1' : '1-2', percent: '18%' },
+      { score: hdc > 0 ? '2-0' : '0-2', percent: '14%' },
+      { score: '1-0', percent: '12%' },
+      { score: '2-2', percent: '10%' }
+    ],
+    suggestion: '基于联赛均值降级估算，仅供参考',
+    resonance: { verdict: '⚠️ 数据源缺失，使用联赛均值降级估算', level: 'weak' },
+    sevenMatch: {
+      dimension1: { hCount: hWins, aCount: aLosses, total: hWins + aLosses, passed: true, label: '⚠️ 降级估算' },
+      dimension2: { hCount: hLosses, aCount: aWins, total: hLosses + aWins, passed: false, label: '⚠️ 降级估算' }
+    },
+    anchor: { anchor: 0.3, label: '弱一致盘面', judgment: '参考' },
+    verifyResult: '⚠️ 降级估算',
+    verifyValue: 40,
+    homeWinExpect: (hdc >= 0 ? '+' : '') + parseFloat((xgHome - xgAway).toFixed(2)),
+    homeWinValue: Math.round(50 + hdc * 10),
+    totalAdvantage2: (hdc >= 0 ? '+' : '') + Math.round(hdcStrength * 60) + '%',
+    totalAdvantage2Value: Math.round(50 + hdcStrength * 60),
+    goalCount: avgGoals >= 2.8 ? '±0' : '≥1',
+    goalCountValue: Math.round(avgGoals * 18),
+    homeWinPanRate: 0.5 + hdc * 0.05,
+    awayWinPanRate: 0.5 - hdc * 0.05,
+    homeWinAward: 2.5 - hdc * 0.3,
+    awayWinAward: 2.5 + hdc * 0.3,
+    drawAward: 3.2,
+    leagueAvgGoals: avgGoals,
+    leagueOverBaseline: avgGoals >= 2.85 ? 68 : avgGoals >= 2.65 ? 55 : 42,
+    leagueCalibration: 0.85,
+    goalStabilityHome: 20,
+    goalStabilityAway: 20,
+    defStabilityHome: 20,
+    defStabilityAway: 20,
+    stabilityOverall: 20,
+    attackDimWeight: '50%',
+    defenseDimWeight: '50%',
+    attackWeightHome: '50%',
+    attackWeightAway: '50%',
+    defenseWeightHome: '50%',
+    defenseWeightAway: '50%',
+    homeWeight: '50%',
+    awayWeight: '50%',
+    totalGoalsExpect: avgGoals.toFixed(2),
+    totalGoalsValue: Math.round(avgGoals * 18),
+    goalDiffHome: xgHome.toFixed(1) + '/' + (avgGoals - xgHome).toFixed(1),
+    goalDiffAway: xgAway.toFixed(1) + '/' + (avgGoals - xgAway).toFixed(1),
+  };
+}
+
 // ==================== 全局变量 ====================
 const _globalStatsMap = null; // { matchId: rawStats }
 const _globalCacheKey = null; // 当前批次
@@ -379,22 +541,15 @@ async function computeAll() {
   }
 
   // 2. 交叉匹配 API ↔ data.json
-  let statsMap;
+  let statsMap = {};
   try {
     statsMap = await crossMatchAll();
   } catch (e) {
     console.error('[gs] crossMatchAll 失败:', e.message);
-    // 返回已有缓存
-    if (hasAny) {
-      console.log('[gs] 降级使用已有缓存');
-      return existing;
-    }
-    return {};
+    statsMap = {}; // 继续走降级流程
   }
-  if (Object.keys(statsMap).length === 0) {
-    console.log('[gs] 无匹配数据');
-    if (hasAny) return existing;
-    return {};
+  if (statsMap && Object.keys(statsMap).length === 0) {
+    console.log('[gs] API 无匹配数据，将完全使用降级估算');
   }
 
   // 3. 读取 data.json
@@ -424,7 +579,38 @@ async function computeAll() {
     });
   }
 
-  console.log('[gs] 增量完成:', newCount, '场新增, 共', Object.keys(existing).length, '场');
+  // 5. ★ 降级估算：为最近 3 天内无 API 数据的比赛生成基本 GS 条目
+  const now = new Date();
+  const recentCutoff = new Date(now);
+  recentCutoff.setDate(recentCutoff.getDate() - 3);
+  const recentDateStr = recentCutoff.toISOString().slice(0, 10);
+
+  let fallbackCount = 0;
+  Object.entries(mMap).forEach(([mid, m]) => {
+    if (!m || !m.homeName || !m.date) return;
+    const d = String(m.date).slice(0, 10);
+    if (d < recentDateStr) return;
+
+    // 检查是否已有有效缓存
+    if (existing[mid] && existing[mid].attackPattern) return;
+
+    // 检查 statsMap 中是否有待计算的数据
+    if (statsMap[mid] || statsMap['m_' + mid]) return;
+
+    // 生成降级估算
+    try {
+      existing[mid] = computeFallbackMatch(m);
+      fallbackCount++;
+    } catch (e) {
+      console.error('[gs] 降级估算失败:', mid, e.message);
+    }
+  });
+
+  if (fallbackCount > 0) {
+    console.log('[gs] 降级估算新增:', fallbackCount, '场（无API数据源，使用联赛均值）');
+  }
+
+  console.log('[gs] 增量完成:', newCount, '场新增,', fallbackCount, '场降级, 共', Object.keys(existing).length, '场');
 
   // 5. 写入缓存
   cache[cacheKey] = existing;
