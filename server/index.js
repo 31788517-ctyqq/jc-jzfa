@@ -2120,8 +2120,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 const m6Obj = buildMatchObj(bestM6, bestDir6);
                 // 方案六：标准荷兰式投注，奖金 = 总本金 / Σ(1/赔率)，保证三结果收益相等
                 const subOdds6 = extractSubOdds(m6Obj.odds, bestDir6);
-                const invSum6 = subOdds6.reduce((s, o) => s + 1 / o, 0);
-                const maxPrize6 = invSum6 > 0 ? Math.round(1000 / invSum6) : 0;
+                let maxPrize6;
+                if (subOdds6.length > 0) {
+                  const invSum6 = subOdds6.reduce((s, o) => s + 1 / o, 0);
+                  maxPrize6 = invSum6 > 0 ? Math.round(1000 / invSum6) : 0;
+                } else {
+                  // ★ 赔率缺失兜底：三选总进球用 3.5/3 ≈ 1.17 荷兰式倍率
+                  maxPrize6 = Math.round(1000 * 3.5 / 3);
+                }
                 plans.push({
                   planId: 'plan_' + dateStr + '_6',
                   planName: '方案六',
