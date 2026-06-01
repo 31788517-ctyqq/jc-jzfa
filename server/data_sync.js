@@ -256,16 +256,13 @@ async function sync500Shuju(dateStr) {
       enrichNamesFrom500(dateStr, oddsData.odds || {}, shujuMap);
     } catch (e) {}
 
-    // Step 2: 调用 Python 爬虫
-    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-    const scriptPath = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi.py');
-    const pyResult = execSync(pythonCmd + ' "' + scriptPath + '" ' + dateStr, {
-      cwd: path.join(__dirname, '..'),
-      timeout: 300000, // 5分钟超时（多场比赛需要串行抓取）
-      encoding: 'utf8',
-      maxBuffer: 1024 * 1024,
-    });
-    if (pyResult) log('[500shuju] ' + pyResult.trim().split('\n').slice(-3).join(' | '));
+    // Step 2: 调用 Node.js 抓取器（内置 HTML 解析，无 Python 依赖）
+    try {
+      const { fetchShujuData } = require('./fetch_shuju');
+      await fetchShujuData(dateStr);
+    } catch (e) {
+      log('[500shuju] Node.js 抓取失败: ' + e.message);
+    }
 
     // 确认文件产出
     if (fs.existsSync(shujuDataFile) && fs.statSync(shujuDataFile).size > 100) {

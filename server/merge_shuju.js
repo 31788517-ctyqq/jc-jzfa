@@ -53,12 +53,30 @@ function mergeShuju(dateStr) {
     const s = staticMatches[num] || {};
     const se = selMatches[num] || {};
 
-    // 近10场数据（来自静态抓取）
-    const ad = s.attackDefense || {};
-    const h10 = (ad.home || {}).recent10 || {};
-    const a10 = (ad.away || {}).recent10 || {};
-    const h10L = (ad.home || {}).recent10League || {};
-    const a10L = (ad.away || {}).recent10League || {};
+    // 近10场数据（来自静态抓取：Python parser → attackDefense，Node.js parser → stats）
+    let h10, a10, h10L, a10L, games10;
+    const ad = s.attackDefense;
+    const st = s.stats;
+    
+    if (ad) {
+      // Python parser format
+      h10 = (ad.home || {}).recent10 || {};
+      a10 = (ad.away || {}).recent10 || {};
+      h10L = (ad.home || {}).recent10League || {};
+      a10L = (ad.away || {}).recent10League || {};
+    } else if (st) {
+      // Node.js parser format
+      h10 = st.homeAll || {};
+      a10 = st.awayAll || {};
+      h10L = st.homeLeague || {};
+      a10L = st.awayLeague || {};
+      games10 = {
+        homeWins: st.homeAll && st.homeAll.wins, homeDraws: st.homeAll && st.homeAll.draws, homeLosses: st.homeAll && st.homeAll.losses,
+        awayWins: st.awayAll && st.awayAll.wins, awayDraws: st.awayAll && st.awayAll.draws, awayLosses: st.awayAll && st.awayAll.losses,
+      };
+    } else {
+      h10 = {}; a10 = {}; h10L = {}; a10L = {};
+    }
 
     // 近6场数据（来自Selenium）
     const h6 = (se.recent6 || {}).home || {};

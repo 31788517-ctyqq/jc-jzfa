@@ -112,6 +112,59 @@ function parseAnalysisPage(html, matchNum, shujuId) {
     leagueName = leagueMatch[1].trim();
   }
 
+  // ★ 解析近10场战绩 (4个实例: 主全联赛/客全联赛/主同赛事/客同赛事)
+  const rec10Pattern = /([\u4e00-\u9fa5a-zA-Z]+)\s*近10场战绩\s*(\d+)\s*胜\s*(\d+)\s*平\s*(\d+)\s*负\s*进\s*(\d+)\s*球\s*失\s*(\d+)\s*球/g;
+  let rec10match;
+  const rec10Results = [];
+  while ((rec10match = rec10Pattern.exec(html)) !== null) {
+    rec10Results.push({
+      team: rec10match[1].trim(),
+      wins: parseInt(rec10match[2]) || 0,
+      draws: parseInt(rec10match[3]) || 0,
+      losses: parseInt(rec10match[4]) || 0,
+      goals: parseInt(rec10match[5]) || 0,
+      conceded: parseInt(rec10match[6]) || 0,
+    });
+  }
+
+  // Map 4 instances → homeAll, awayAll, homeLeague, awayLeague
+  let stats = { homeAll: {}, awayAll: {}, homeLeague: {}, awayLeague: {} };
+  const statKeys = ['homeAll', 'awayAll', 'homeLeague', 'awayLeague'];
+  rec10Results.forEach(function(r, idx) {
+    if (idx < 4) stats[statKeys[idx]] = r;
+  });
+
+  // ★ 解析交锋数据 (H2H)
+  const h2hPattern = /近\s*(\d+)\s*场交战[^<]*主队\s*(\d+)\s*胜[^<]*平\s*(\d+)[^<]*客队\s*(\d+)\s*胜/;
+  const h2hMatch = html.match(h2hPattern);
+  let h2h = null;
+  if (h2hMatch) {
+    h2h = {
+      matches: parseInt(h2hMatch[1]) || 0,
+      homeWins: parseInt(h2hMatch[2]) || 0,
+      draws: parseInt(h2hMatch[3]) || 0,
+      awayWins: parseInt(h2hMatch[4]) || 0,
+    };
+  }
+
+  // ★ 解析胜率/赢盘率/大球率
+  const ratePattern = /胜率[：:]?\s*([\d.]+)%[^<]*赢盘率[：:]?\s*([\d.]+)%[^<]*大球率[：:]?\s*([\d.]+)%/g;
+  const rates = [];
+  let rateMatch;
+  while ((rateMatch = ratePattern.exec(html)) !== null) {
+    rates.push({
+      winRate: parseFloat(rateMatch[1]) || 0,
+      coverRate: parseFloat(rateMatch[2]) || 0,
+      overRate: parseFloat(rateMatch[3]) || 0,
+    });
+  }
+  if (rates.length > 0 && stats.homeAll.wins !== undefined) {
+    stats.homeAll.winRate = rates[0] ? rates[0].winRate : null;
+  }
+  if (rates.length > 1 && stats.awayAll.wins !== undefined) {
+    stats.awayAll.winRate = rates[1] ? rates[1].winRate : null;
+  }
+
   return {
     shujuId: shujuId,
     matchNum: matchNum,
@@ -119,6 +172,13 @@ function parseAnalysisPage(html, matchNum, shujuId) {
     awayTeam: awayTeam,
     leagueName: leagueName,
     htmlSize: html.length,
+    stats: {
+      homeAll: stats.homeAll,
+      awayAll: stats.awayAll,
+      homeLeague: stats.homeLeague,
+      awayLeague: stats.awayLeague,
+      h2h: h2h,
+    },
     _fetched: true,
   };
 }

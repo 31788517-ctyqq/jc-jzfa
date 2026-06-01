@@ -126,6 +126,7 @@ DEPLOY_MAP = [
     ('server/fetch_odds.js',              'both'),
     ('server/fetch_500odds.js',           'both'),
     ('server/merge_shuju.js',             'both'),
+    ('server/fetch_shuju.js',             'both'),
     ('server/logger.js',                  'both'),
     ('server/catch_up.js',                'both'),
     ('server/websocket.js',               'both'),
