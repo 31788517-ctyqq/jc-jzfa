@@ -2050,7 +2050,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (subOdds.length === 0) return null;
               const N = subOdds.length;
               if (N === 1) return subOdds[0];
-              return subOdds.reduce((a, b) => a + b, 0) / (2 * N);
+              // ★ 荷兰式公式：1 / Σ(1/o) 替代错误的 sum/(2N)
+              const invSum = subOdds.reduce((a, b) => a + 1 / b, 0);
+              return invSum > 0 ? 1 / invSum : null;
             }
 
             // 3) 生成策略方案
@@ -3836,6 +3838,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                         prize = Math.round(AMOUNT * 3);
                       }
                     } else {
+                      // ★ 方案一~五：2串1/单关产品奖品
                       const effectiveOdds = [];
                       let hasAllOdds = true;
                       for (const mm of pp.matches) {
@@ -3845,13 +3848,22 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                           continue;
                         }
                         const NN = subOdds.length;
-                        if (NN === 1) effectiveOdds.push(subOdds[0]);
-                        else effectiveOdds.push(subOdds.reduce((a, b) => a + b, 0) / (2 * NN));
+                        if (NN === 1) {
+                          effectiveOdds.push(subOdds[0]);
+                        } else {
+                          // ★ 荷兰式公式：1 / Σ(1/o) 替代错误的 sum/(2N)
+                          const invSum = subOdds.reduce((s, o) => s + 1 / o, 0);
+                          effectiveOdds.push(invSum > 0 ? 1 / invSum : 0);
+                        }
                       }
-                      if (hasAllOdds && effectiveOdds.length >= 2)
+                      if (hasAllOdds && effectiveOdds.length >= 2) {
                         prize = Math.round(AMOUNT * effectiveOdds[0] * effectiveOdds[1]);
-                      else if (hasAllOdds && effectiveOdds.length === 1) prize = Math.round(AMOUNT * effectiveOdds[0]);
-                      else prize = Math.round(AMOUNT * 3);
+                      } else if (hasAllOdds && effectiveOdds.length === 1) {
+                        prize = Math.round(AMOUNT * effectiveOdds[0]);
+                      } else {
+                        // ★ 赔率缺失：2串1方案用 2.5x 保守估计（历史平均 product≈2.5-3.5）
+                        prize = Math.round(AMOUNT * 2.5);
+                      }
                     }
                     dayIncome = prize - AMOUNT;
                     statusE = 'won';
