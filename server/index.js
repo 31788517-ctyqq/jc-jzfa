@@ -2162,12 +2162,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (bestM7 && bestM7Dir) {
                 const m7Obj = buildMatchObj(bestM7, bestM7Dir);
                 // ★ P1-方案七：标准荷兰式奖金 = 总本金 / Σ(1/赔率)
-                const subOdds7 = extractIndividualOdds(m7Obj.oddsObj || m7Obj.odds, bestM7Dir);
-                let maxPrize7 = 0;
-                if (subOdds7.length > 0) {
-                  const invSum7 = subOdds7.reduce((s, o) => s + 1 / o, 0);
-                  maxPrize7 = invSum7 > 0 ? Math.round(1000 / invSum7) : 0;
-                }
+                const subOdds7 = extractSubOdds(m7Obj.odds, bestM7Dir);
+                const invSum7 = subOdds7.reduce((s, o) => s + 1 / o, 0);
+                const maxPrize7 = invSum7 > 0 ? Math.round(1000 / invSum7) : 0;
                 plans.push({
                   planId: 'plan_' + dateStr + '_7',
                   planName: '方案七',
