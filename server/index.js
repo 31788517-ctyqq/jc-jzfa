@@ -3318,6 +3318,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const resultA = computeMatchResult(ca.match.matchId, ca.coldDir);
               const resultB = computeMatchResult(cb.match.matchId, cb.coldDir);
 
+              // ★ 方案级中奖判定（2串1：两场都中才算中奖）
+              let isPlanWon = null,
+                isPlanLose = null;
+              if (resultA.isMatchWon === true && resultB.isMatchWon === true) {
+                isPlanWon = true;
+                isPlanLose = false;
+              } else if (resultA.isMatchLose === true || resultB.isMatchLose === true) {
+                isPlanWon = false;
+                isPlanLose = true;
+              }
+
               const matchA = {
                 matchId: ca.match.matchId,
                 homeName: ca.match.homeName || '',
@@ -3364,7 +3375,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 cb.coldOdds.toFixed(2) +
                 ' = ' +
                 (ca.coldOdds * cb.coldOdds).toFixed(2);
-              const maxPrize = Math.round(1000 * ca.coldOdds * cb.coldOdds);
+              // ★ 赔率缺失（coldOdds 为 0/NaN）不计算奖金
+              const hasValidOdds = ca.coldOdds > 0 && cb.coldOdds > 0 && !isNaN(ca.coldOdds * cb.coldOdds);
+              const maxPrize = hasValidOdds ? Math.round(1000 * ca.coldOdds * cb.coldOdds) : 0;
+              const winningPrize = isPlanWon === true ? maxPrize : isPlanLose === true ? 0 : null;
               const avgCPI = ((ca.heatIndex + cb.heatIndex) / 2).toFixed(2);
               const avgComp = Math.round((ca.coldScore + cb.coldScore) / 2);
               const consensusParts = [ca.consensusLabel, cb.consensusLabel];
@@ -3382,6 +3396,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 ticketCount: 10,
                 multiplier: 25,
                 maxPrize: maxPrize,
+                winningPrize: winningPrize,
+                isPlanWon: isPlanWon,
+                isPlanLose: isPlanLose,
                 oddsDisplay: oddsCombo,
                 coldIndex: avgCPI,
                 compositeScore: avgComp,
@@ -4132,6 +4149,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   totalPlans++;
                   if (_qWon) {
                     totalWon++;
+                    // ★ 赔率缺失时跳过中奖记录，不计算奖金
+                    const _hasValidColdOdds =
+                      _ca.coldOdds > 0 && _cb.coldOdds > 0 && !isNaN(_ca.coldOdds * _cb.coldOdds);
+                    if (!_hasValidColdOdds) continue;
                     const _qpPrize = Math.round(1000 * _ca.coldOdds * _cb.coldOdds);
                     totalIncome += _qpPrize - AMOUNT_SCORE_OR_QUANT;
                     results.push({

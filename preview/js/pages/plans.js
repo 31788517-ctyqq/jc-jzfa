@@ -814,9 +814,9 @@ export function loadQuantPlanList() {
           var planName = p.planName || '量化博冷方案 ' + (i + 1);
           var amountVal = (p.amount || 1000).toFixed(0);
           // ★ 不覆盖 isWon/isLose — 上面已从 matches[].isMatchWon/isMatchLose 正确计算
-          var prizeNum3 = isWon ? (p.winningPrize || p.maxPrize || 0) : (p.maxPrize || 0);
-          var prizeVal = prizeNum3 > 0 ? prizeNum3.toFixed(0) : (isWon ? '--' : '0');
-          var prizeLabel = isWon ? '中奖金额' : isLose ? '预计奖金' : '预计最高奖金';
+          var prizeNum3 = isWon ? (p.winningPrize || p.maxPrize || 0) : (isLose ? 0 : (p.maxPrize || 0));
+          var prizeVal = prizeNum3 > 0 ? prizeNum3.toFixed(0) : (isWon || isLose ? '0' : '0');
+          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高奖金';
           var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
 
           // 构建比赛表格行
