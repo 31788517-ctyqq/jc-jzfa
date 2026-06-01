@@ -2047,7 +2047,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             function calcEffectiveOdds(direction, match) {
               const oddsObj = match.odds || {};
               const subOdds = extractSubOdds(oddsObj, direction);
-              if (subOdds.length === 0) return null;
+              if (subOdds.length === 0) {
+                // ★ 赔率缺失兜底：总进球多选方向用子方向数估算荷兰式有效赔率
+                if (direction.indexOf('总进球-') === 0 && direction.indexOf('、') > 0) {
+                  const nSelections = direction.split(/[、,]/).length || 2;
+                  return 3.5 / nSelections; // 典型总进球赔率≈3.5, 荷兰式 = 3.5/N
+                }
+                return null;
+              }
               const N = subOdds.length;
               if (N === 1) return subOdds[0];
               // ★ 荷兰式公式：1 / Σ(1/o) 替代错误的 sum/(2N)
