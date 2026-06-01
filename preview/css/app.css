@@ -1319,6 +1319,8 @@ body {
   border-radius: 14px;
   overflow: hidden;
   margin-top: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 .income-header-row {
   display: flex;
