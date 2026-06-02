@@ -2526,19 +2526,8 @@ body {
 .scheme-stat-lbl { font-size: var(--fs-xs); color: var(--text3); margin-top: 4px; }
 .scheme-stat-div { width: 1px; height: 32px; background: rgba(24,224,224,0.1); flex-shrink: 0; }
 
-/* ═══ 玩法Tab — 卡片式金色激活 ═══ */
+/* ═══ 玩法Tab — 与推荐排行榜标签风格统一 ═══ */
 #schemePlayTabs { padding: 8px 0 12px; margin: 0; gap: 10px; }
-#schemePlayTabs .filter-tag {
-  flex: 1; min-width: 0; height: 44px; border-radius: 14px;
-  background: rgba(5,25,45,.55); border: 1px solid rgba(0,229,255,.12);
-  display: flex; align-items: center; justify-content: center;
-  color: #8899aa; font-size: 13px; font-weight: 600; cursor: pointer; transition: .3s;
-  padding: 0; text-align: center; white-space: nowrap;
-}
-#schemePlayTabs .filter-tag.active {
-  color: #FFC928; border-color: #FFC928; background: rgba(255,201,40,.08);
-  box-shadow: 0 0 14px rgba(255,201,40,.18); font-weight: 700;
-}
 
 /* ═══ 日期栏 — 卡片背景，无箭头，居中 ═══ */
 #schemeDateBar {
