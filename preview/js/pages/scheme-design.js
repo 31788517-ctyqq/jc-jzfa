@@ -266,7 +266,8 @@ function renderMatchList() {
     var rqspf = odds.rqspf || {};
     var handicap = odds.handicap != null ? odds.handicap : (m.concede || 0);
     var hcpLabel = handicap > 0 ? '+' + handicap : handicap < 0 ? '' + handicap : '0';
-    var isSingleGame = m.isSingleGame === true;
+    // ★ 单关标签：match-list 为主，batch-match-odds 兜底
+    var isSingleGame = m.isSingleGame === true || (m._odds && m._odds.isSingleGame === true);
     var delta = odds.oddsDelta || {};
 
     // 时间格式化

@@ -67,22 +67,27 @@ async function loadOddsData(matchId) {
     var r = await api('match-odds', { matchId: matchId });
     if (r && r.spf) {
       _oddsData = r;
+      // ★ 确定本场的让球数（优先 batch-match-odds 已缓存数据）
+      var targetHcp = null;
+      if (_currentMatch && _currentMatch._odds && _currentMatch._odds.handicap != null) {
+        targetHcp = Number(_currentMatch._odds.handicap);
+      } else if (_currentMatch && _currentMatch.concede != null) {
+        targetHcp = Number(_currentMatch.concede);
+      }
+      if (targetHcp === null) targetHcp = 0;
+
+      // 从 match-odds 返回的 rqspfList 中找到匹配让球数的条目
       if (r.rqspfList && Array.isArray(r.rqspfList) && r.rqspfList.length > 0) {
-        // ★ 优先用 odds_history 的 handicap，再回退到 match concede，默认 0
-        var hcp = (_currentMatch && _currentMatch._odds && _currentMatch._odds.handicap != null)
-          ? Number(_currentMatch._odds.handicap)
-          : ((_currentMatch && _currentMatch.concede) != null ? Number(_currentMatch.concede) : 0);
         var bestRq = r.rqspfList[0];
         for (var i = 0; i < r.rqspfList.length; i++) {
-          if (Number(r.rqspfList[i].handicap) === hcp) { bestRq = r.rqspfList[i]; break; }
+          if (Number(r.rqspfList[i].handicap) === targetHcp) { bestRq = r.rqspfList[i]; break; }
         }
         _oddsData.rqspf = { home: bestRq.home, draw: bestRq.draw, away: bestRq.away };
-        _oddsData.handicap = bestRq.handicap;
-      } else {
-        // ★ 兜底：即使没有 rqspfList，也要确保 handicap 有值
-        _oddsData.handicap = (_currentMatch && _currentMatch._odds && _currentMatch._odds.handicap != null)
-          ? Number(_currentMatch._odds.handicap)
-          : ((_currentMatch && _currentMatch.concede) != null ? Number(_currentMatch.concede) : 0);
+        _oddsData.handicap = Number(bestRq.handicap != null ? bestRq.handicap : targetHcp);
+      }
+      // ★ 兜底：始终确保 handicap 有值
+      if (_oddsData.handicap == null) {
+        _oddsData.handicap = targetHcp;
       }
       // ★ 获取赔率变动趋势
       try {
@@ -202,9 +207,10 @@ function renderMatchSection(m) {
 function renderSPFGrid() {
   var spf = (_oddsData && _oddsData.spf) || {};
   var rq = (_oddsData && _oddsData.rqspf) || {};
-  var hcp = _oddsData.handicap != null ? _oddsData.handicap
+  // ★ 让球数优先级：_oddsData.handicap > _currentMatch._odds.handicap > _currentMatch.concede > 0
+  var hcp = (_oddsData && _oddsData.handicap != null) ? Number(_oddsData.handicap)
     : ((_currentMatch && _currentMatch._odds && _currentMatch._odds.handicap != null) ? Number(_currentMatch._odds.handicap)
-    : ((_currentMatch && _currentMatch.concede) != null ? Number(_currentMatch.concede) : 0));
+    : ((_currentMatch && _currentMatch.concede != null) ? Number(_currentMatch.concede) : 0));
   var delta = (_oddsData && _oddsData.oddsDelta) || {};
 
   var html = '<div class="bet-spf-grid">';
