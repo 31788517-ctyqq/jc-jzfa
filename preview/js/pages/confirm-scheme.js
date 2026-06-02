@@ -649,6 +649,7 @@ window.confirmSavePlan = function () {
     matches: matchDetails,
     amount: amount,
     multiplier: _multiplier,
+    betCount: bets,
     passTypes: _passTypes.length > 0 ? _passTypes : [2],
     note: (_passTypes.length > 1 ? '自由过关 ' : '串关方案 ') +
       (_passTypes.length > 1 ? _passTypes.join('关+') + '关' : _passTypes[0] + '关') +
