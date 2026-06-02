@@ -10,7 +10,7 @@ import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/matc
 var _modCache = {};
 function _mod(name) {
   if (_modCache[name]) return Promise.resolve(_modCache[name]);
-  return import('./pages/' + name + '.js?v=240602')
+  return import('./pages/' + name + '.js?v=24060218')
     .then(function (m) {
       _modCache[name] = m;
       return m;
@@ -543,6 +543,7 @@ export function selectPlanDateFromPicker(md) {
   _mod('plans').then(function (m) {
     if (state.planTab === 'expert') m.loadPlanList();
     else if (state.planTab === 'quant') m.loadQuantPlanList();
+    else if (state.planTab === 'my') m.loadMyPlanList();
     else m.loadScorePlanList();
   });
   document.getElementById('planDatePicker').style.display = 'none';
@@ -648,7 +649,7 @@ function _ensurePage(id) {
         '<div class="date-bar" id="dateBar"><span class="date-arrow" onclick="shiftWeek(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="dateCurrent" onclick="toggleDatePicker()"></span><span class="date-arrow" onclick="shiftWeek(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="datePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="datePickerPrev">&lt;</button><span class="date-picker-month" id="datePickerMonth"></span><button class="date-picker-nav" id="datePickerNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="datePickerGrid"></div><div class="date-picker-footer"><button class="date-picker-today" onclick="selectDateFromPicker(\'today\')">今天</button><button class="date-picker-close" onclick="toggleDatePicker()">✕</button></div></div><div id="matchList"></div><div class="quant-pk-bar" id="matchPkBar" style="display:none"><button class="pk-bar-btn" id="mpkBarBtn" onclick="startMatchPK()">场次PK（已选 <b id="mpkBarCount">0</b> 场）</button></div>';
     else if (id === 'plan')
       el.innerHTML =
-        '<div class="filter-row" id="planTabBar"><div class="filter-tag active" data-tab="expert" onclick="switchPlanTab(\'expert\')">专家博热方案</div><div class="filter-tag" data-tab="score" onclick="switchPlanTab(\'score\')">单关比分方案</div><div class="filter-tag" data-tab="quant" onclick="switchPlanTab(\'quant\')">量化博冷方案</div></div><div class="date-bar" id="planDateBar"><span class="date-arrow" onclick="shiftPlanDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="planDateCurrent" onclick="togglePlanDatePicker()"></span><span class="date-arrow" onclick="shiftPlanDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="planDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="planDatePrev">&lt;</button><span class="date-picker-month" id="planDateMonth"></span><button class="date-picker-nav" id="planDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="planDateGrid"></div></div><div id="planList"></div>';
+        '<div class="filter-row" id="planTabBar"><div class="filter-tag active" data-tab="my" onclick="switchPlanTab(\'my\')">我的方案</div><div class="filter-tag" data-tab="expert" onclick="switchPlanTab(\'expert\')">专家博热方案</div><div class="filter-tag" data-tab="score" onclick="switchPlanTab(\'score\')">单关比分方案</div><div class="filter-tag" data-tab="quant" onclick="switchPlanTab(\'quant\')">量化博冷方案</div></div><div class="date-bar" id="planDateBar"><span class="date-arrow" onclick="shiftPlanDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="planDateCurrent" onclick="togglePlanDatePicker()"></span><span class="date-arrow" onclick="shiftPlanDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="planDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="planDatePrev">&lt;</button><span class="date-picker-month" id="planDateMonth"></span><button class="date-picker-nav" id="planDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="planDateGrid"></div></div><div id="planList"></div>';
     else if (id === 'detail') el.innerHTML = '<div id="detailContent"></div>';
     else if (id === 'rank')
       el.innerHTML =
@@ -663,12 +664,59 @@ function _ensurePage(id) {
     else if (id === 'income')
       el.innerHTML =
         '<div class="filter-section-card"><div class="filter-head">筛选条件</div><div class="filter-row"><span class="filter-label">方向</span><div class="filter-dd" id="dd-incDir" data-val="expert"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incDir\', event)"><span class="filter-dd-text">专家博热方案</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'all\',\'全部\');onIncDirChange()">全部</li><li data-val="expert" class="filter-dd-option selected" onclick="selectDD(\'dd-incDir\',\'expert\',\'专家博热方案\');onIncDirChange()">专家博热方案</li><li data-val="score" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'score\',\'单场比分方案\');onIncDirChange()">单场比分方案</li><li data-val="quant" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'quant\',\'量化博冷方案\');onIncDirChange()">量化博冷方案</li></ul></div></div><div class="filter-row"><span class="filter-label">时间</span><div class="filter-dd" id="dd-incTime" data-val="all"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incTime\', event)"><span class="filter-dd-text">全部时间</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incTime\',\'all\',\'全部时间\')">全部时间</li><li data-val="30" class="filter-dd-option" onclick="selectDD(\'dd-incTime\',\'30\',\'近30天\')">近30天</li><li data-val="60" class="filter-dd-option" onclick="selectDD(\'dd-incTime\',\'60\',\'近60天\')">近60天</li></ul></div></div><div class="filter-row"><span class="filter-label">方案</span><div class="filter-dd" id="dd-incPlan" data-val="all"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incPlan\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incPlan\',\'all\',\'全部\')">全部</li><li data-val="plan_1" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_1\',\'方案一\')">方案一</li><li data-val="plan_2" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_2\',\'方案二\')">方案二</li><li data-val="plan_3" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_3\',\'方案三\')">方案三</li><li data-val="plan_4" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_4\',\'方案四\')">方案四</li><li data-val="plan_5" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_5\',\'方案五\')">方案五</li><li data-val="plan_6" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_6\',\'方案六\')">方案六</li><li data-val="plan_7" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_7\',\'方案七\')">方案七</li></ul></div></div><div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="loadIncome(true)">查询</button></div></div><div class="filter-stats-card inc-stats-card" id="incStatsCard"><div class="stats-subtitle">筛选结果</div><div class="filter-stats-row"><div class="filter-stat-item"><div class="filter-stat-value" id="incTotalPlans">-</div><div class="filter-stat-label">执行方案</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="incWinRate">-</div><div class="filter-stat-label">中奖率</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="incTotalIncome">-</div><div class="filter-stat-label">总盈利(元)</div></div></div></div><div id="incomeResult"></div>';
+    else if (id === 'scheme')
+      el.innerHTML =
+        '<div class="scheme-stats-card" id="schemeStats"><div class="scheme-stat-item"><div class="scheme-stat-val">0</div><div class="scheme-stat-lbl">历史方案</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val">0</div><div class="scheme-stat-lbl">方案收入(分)</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val">0%</div><div class="scheme-stat-lbl">命中率</div></div></div>' +
+        '<div class="filter-row" id="schemePlayTabs"><div class="filter-tag active" data-type="mixed" onclick="switchSchemePlay(\'mixed\')">混合过关</div><div class="filter-tag" data-type="spf" onclick="switchSchemePlay(\'spf\')">胜平负</div><div class="filter-tag" data-type="rqspf" onclick="switchSchemePlay(\'rqspf\')">R胜平负</div><div class="filter-tag" data-type="bf" onclick="switchSchemePlay(\'bf\')">比分</div><div class="filter-tag" data-type="jqs" onclick="switchSchemePlay(\'jqs\')">总进球</div><div class="filter-tag" data-type="bqc" onclick="switchSchemePlay(\'bqc\')">半全场</div></div>' +
+        '<div id="schemeDateBar" class="date-bar"><span class="date-current">&#x1F4C5; 加载中... <span id="schemeMatchTotal">共0场比赛</span></span></div>' +
+        '<div id="schemeMatchList"></div>' +
+        '<div class="scheme-summary-bar" id="schemeSummaryBar" style="display:none">' +
+        '<div class="ssb-top">' +
+        '<div class="ssb-issue"><span>第<span id="ssbIssueNum">--</span>期（仅供参考）</span><i class="ssb-info-icon" title="期号仅供参考">i</i></div>' +
+        '</div>' +
+        '<div class="ssb-content">' +
+        '<div class="ssb-card ssb-selected"><div class="ssb-badge" id="schemeSelCountBadge">0</div><div class="ssb-label">已选</div></div>' +
+        '<div class="ssb-card ssb-pass" id="schemePassText" onclick="showPassPopup()">--</div>' +
+        '<div class="ssb-card ssb-clear" onclick="clearSchemeSelections()">清空</div>' +
+        '<div class="ssb-card ssb-multi" id="ssbMultiCard" onclick="showMultiplierPopup()"><span id="ssbMultiplier">1</span><span class="ssb-multi-label">倍</span></div>' +
+        '<div class="ssb-amount"><div class="ssb-amount-row"><span class="ssb-amount-label">投注金额：</span><span class="ssb-amount-val" id="ssbAmount">0</span><span class="ssb-amount-unit">元</span></div><div class="ssb-amount-row"><span class="ssb-amount-label">理论最高奖金：</span><span class="ssb-amount-val ssb-amount-big" id="ssbMaxWin">0</span><span class="ssb-amount-unit">元</span></div></div>' +
+        '<button class="ssb-view-btn" onclick="saveUserPlan()">查看方案</button>' +
+        '</div>' +
+        '</div>' +
+        '<div class="ssb-overlay" id="multiplierOverlay">' +
+        '<div class="ssb-modal ssb-multi-modal">' +
+        '<div class="ssb-modal-header"><div class="ssb-input-wrap"><input type="text" id="ssbMultiInput" readonly value="1"/><span>倍</span></div><button class="ssb-modal-cancel" onclick="closeMultiplierPopup()">取消</button><button class="ssb-modal-confirm" onclick="confirmMultiplierPopup()">确定</button></div>' +
+        '<div class="ssb-quick-row"><button onclick="setMultiQuick(10)">10</button><button onclick="setMultiQuick(20)">20</button><button onclick="setMultiQuick(50)">50</button><button onclick="setMultiQuick(100)">100</button><button onclick="setMultiQuick(200)">200</button></div>' +
+        '<div class="ssb-keyboard">' +
+        '<button onclick="inputMultiDigit(\'1\')">1</button><button onclick="inputMultiDigit(\'2\')">2</button><button onclick="inputMultiDigit(\'3\')">3</button>' +
+        '<button onclick="inputMultiDigit(\'4\')">4</button><button onclick="inputMultiDigit(\'5\')">5</button><button onclick="inputMultiDigit(\'6\')">6</button>' +
+        '<button onclick="inputMultiDigit(\'7\')">7</button><button onclick="inputMultiDigit(\'8\')">8</button><button onclick="inputMultiDigit(\'9\')">9</button>' +
+        '<button onclick="inputMultiDigit(\'.\')" disabled>.</button><button onclick="inputMultiDigit(\'0\')">0</button><button onclick="backspaceMulti()">⌫</button>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '<div class="ssb-overlay" id="passOverlay">' +
+        '<div class="ssb-modal ssb-pass-modal">' +
+        '<div class="ssb-modal-title">选择过关方式<button class="ssb-modal-close" onclick="closePassPopup()">✕</button></div>' +
+        '<div class="ssb-pass-hint" id="passHint">当前：0场，上限：8关</div>' +
+        '<div class="ssb-pass-list" id="passList"></div>' +
+        '<div class="ssb-modal-footer"><button class="ssb-modal-cancel" onclick="closePassPopup()">取消</button><button class="ssb-modal-confirm" onclick="confirmPassPopup()">确定</button></div>' +
+        '</div>' +
+        '</div>';
+    else if (id === 'confirm-scheme')
+      el.innerHTML = '<div id="confirmContent"><div class="loading"><div class="loading-spinner"></div>加载方案中...</div></div>';
   }
   return el;
 }
 
 // ── 标签切换 ──
 export function switchTab(tab) {
+  // 重定向：独立 myplan 页面已废弃，统一跳转到今日方案 → 我的方案标签
+  if (tab === 'myplan') {
+    try { sessionStorage.setItem('pendingPlanTab', 'my'); } catch (e) {}
+    switchTab('plan');
+    return;
+  }
   if (state.currentPage === 'home' && tab !== 'home') state.setSavedScrollY(window.scrollY);
   state.setCurrentPage(tab);
   // 记住当前页，刷新后恢复
@@ -693,6 +741,8 @@ export function switchTab(tab) {
     filter: '命中率筛选',
     income: '方案收入',
     backtest: '回测分析',
+    scheme: '方案设计',
+    'confirm-scheme': '确认方案',
   };
   var titleEl = document.getElementById('navTitle');
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
@@ -716,10 +766,21 @@ export function switchTab(tab) {
     } else initWeekDates();
   }
   if (tab === 'plan') {
+    // 如果从"保存方案"跳转过来，强制切到"我的方案"
+    var pendingTab;
+    try { pendingTab = sessionStorage.getItem('pendingPlanTab'); sessionStorage.removeItem('pendingPlanTab'); } catch (e) {}
+    if (pendingTab === 'my') {
+      state.setPlanTab('my');
+      // 更新 tab 栏高亮
+      document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === 'my');
+      });
+    }
     _mod('plans').then(function (m) {
       m.updatePlanDateBar();
       if (state.planTab === 'expert') m.loadPlanList();
       else if (state.planTab === 'quant') m.loadQuantPlanList();
+      else if (state.planTab === 'my') m.loadMyPlanList();
       else m.loadScorePlanList();
     });
   }
@@ -756,6 +817,18 @@ export function switchTab(tab) {
       m.loadBacktest();
     });
   }
+  if (tab === 'scheme') {
+    _mod('scheme-design').then(function (m) {
+      m.loadSchemeDesign();
+    });
+  }
+  if (tab === 'confirm-scheme') {
+    var backEl2 = document.getElementById('navBack');
+    if (backEl2) backEl2.style.display = 'flex';
+    _mod('confirm-scheme').then(function (m) {
+      m.loadConfirmScheme();
+    });
+  }
 }
 
 export function goBack() {
@@ -778,6 +851,13 @@ window.toggleDatePicker = toggleDatePicker;
 window.selectDateFromPicker = selectDateFromPicker;
 window.togglePlanDatePicker = togglePlanDatePicker;
 window.selectPlanDateFromPicker = selectPlanDateFromPicker;
+
+// ★ 懒加载代理：方案设计页玩法切换（确保模块未加载时也能响应点击）
+window.switchSchemePlay = function(type) {
+  _mod('scheme-design').then(function() {
+    window.switchSchemePlay(type);
+  });
+};
 window.toggleRankDatePicker = toggleRankDatePicker;
 window.selectRankDateFromPicker = selectRankDateFromPicker;
 // 懒加载的 window 代理已在文件顶部定义
@@ -915,6 +995,8 @@ function switchTabLoad(tab) {
     filter: '命中率筛选',
     income: '方案收入',
     backtest: '回测分析',
+    scheme: '方案设计',
+    'confirm-scheme': '确认方案',
   };
   var titleEl = document.getElementById('navTitle');
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
@@ -937,10 +1019,21 @@ function switchTabLoad(tab) {
     } else initWeekDates();
   }
   if (tab === 'plan') {
+    // 如果从"保存方案"跳转过来，强制切到"我的方案"
+    var pendingTab;
+    try { pendingTab = sessionStorage.getItem('pendingPlanTab'); sessionStorage.removeItem('pendingPlanTab'); } catch (e) {}
+    if (pendingTab === 'my') {
+      state.setPlanTab('my');
+      // 更新 tab 栏高亮
+      document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === 'my');
+      });
+    }
     _mod('plans').then(function (m) {
       m.updatePlanDateBar();
       if (state.planTab === 'expert') m.loadPlanList();
       else if (state.planTab === 'quant') m.loadQuantPlanList();
+      else if (state.planTab === 'my') m.loadMyPlanList();
       else m.loadScorePlanList();
     });
   }
@@ -975,6 +1068,18 @@ function switchTabLoad(tab) {
   if (tab === 'backtest') {
     _mod('backtest').then(function (m) {
       m.loadBacktest();
+    });
+  }
+  if (tab === 'scheme') {
+    _mod('scheme-design').then(function (m) {
+      m.loadSchemeDesign();
+    });
+  }
+  if (tab === 'confirm-scheme') {
+    var backEl2 = document.getElementById('navBack');
+    if (backEl2) backEl2.style.display = 'flex';
+    _mod('confirm-scheme').then(function (m) {
+      m.loadConfirmScheme();
     });
   }
 }

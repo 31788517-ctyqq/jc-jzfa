@@ -1,0 +1,785 @@
+// ==================== 方案设计页面 (按设计图重构) ====================
+import { api } from '../api.js';
+import { formatDate, WEEK_NAMES } from '../utils.js';
+
+var _matches = [];           // 比赛列表
+var _selections = [];        // [{matchId, playType, direction, odds, oddsName, handicap}]
+var _activePlayType = 'mixed'; // mixed|spf|rqspf|bf|jqs|bqc
+var _multiplier = 1;         // 投注倍数
+var _passTypes = [2];       // 过关类型数组，默认 2关，支持多选 [2,3,4,...]
+var _schemeDateOffset = 0;
+var _schemeDate = '';
+
+// ═══ 竞彩规则：木桶原则上限 ═══
+var PLAY_LIMITS = { spf: 8, rqspf: 8, jqs: 6, bf: 4, bqc: 4 };
+var PLAY_NAMES = { spf: '胜平负', rqspf: '让球胜平负', bf: '比分', jqs: '总进球', bqc: '半全场', mixed: '混合过关' };
+
+// ═══ 工具函数 ═══
+function combination(n, k) {
+  if (k > n || k < 0) return 0;
+  if (k === 0 || k === n) return 1;
+  k = Math.min(k, n - k);
+  var res = 1;
+  for (var i = 1; i <= k; i++) {
+    res = res * (n - i + 1) / i;
+  }
+  return Math.round(res);
+}
+
+// ═══ 辅助：计算 k 关过关的展开注数 ═══
+function calcExpandedBets(matchGroups, matchIds, k) {
+  var n = matchIds.length;
+  if (k > n || k <= 0) return 0;
+
+  var total = 0;
+  // 递归生成所有 k-组合索引
+  (function gen(start, combo) {
+    if (combo.length === k) {
+      var product = 1;
+      for (var i = 0; i < combo.length; i++) {
+        product *= matchGroups[matchIds[combo[i]]].length;
+      }
+      total += product;
+      return;
+    }
+    for (var i = start; i < n; i++) {
+      combo.push(i);
+      gen(i + 1, combo);
+      combo.pop();
+    }
+  })(0, []);
+  return total;
+}
+
+// ═══ 木桶上限计算 ═══
+function calcMaxPass() {
+  var uniqueMatchIds = {};
+  _selections.forEach(function(s) { uniqueMatchIds[s.matchId] = true; });
+  var uniqueCount = Object.keys(uniqueMatchIds).length;
+  if (uniqueCount < 2) return 0; // 单关不允许过关
+
+  var minLimit = 8;
+  _selections.forEach(function(s) {
+    var limit = PLAY_LIMITS[s.playType] || 8;
+    if (limit < minLimit) minLimit = limit;
+  });
+  return Math.min(minLimit, uniqueCount);
+}
+
+// ═══ 自动推导过关类型（场次变化时）═══
+function derivePassTypes() {
+  var uniqueMatchIds = {};
+  _selections.forEach(function(s) { uniqueMatchIds[s.matchId] = true; });
+  var n = Object.keys(uniqueMatchIds).length;
+  var maxPass = calcMaxPass();
+
+  if (n < 2) {
+    _passTypes = []; // 单关
+  } else {
+    // 默认勾选 2关 到 min(n, maxPass, 5)
+    var upper = Math.min(n, maxPass, 5);
+    _passTypes = [];
+    for (var i = 2; i <= upper; i++) _passTypes.push(i);
+  }
+}
+
+// ═══ 计算总注数 ═══
+function calcTotalBets() {
+  var matchGroups = {};
+  _selections.forEach(function(s) {
+    if (!matchGroups[s.matchId]) matchGroups[s.matchId] = [];
+    matchGroups[s.matchId].push(s);
+  });
+  var matchIds = Object.keys(matchGroups);
+  var n = matchIds.length;
+  if (n === 0) return 0;
+  if (n === 1) {
+    // 单关：该场比赛有几个选项就几注
+    return matchGroups[matchIds[0]].length;
+  }
+
+  var total = 0;
+  _passTypes.forEach(function(k) {
+    total += calcExpandedBets(matchGroups, matchIds, k);
+  });
+  return total || 1;
+}
+
+// ═══ 计算金额和奖金 ═══
+function calcAmountAndPrize() {
+  var matchGroups = {};
+  _selections.forEach(function(s) {
+    if (!matchGroups[s.matchId]) matchGroups[s.matchId] = [];
+    matchGroups[s.matchId].push(s.odds || 1);
+  });
+  var matchIds = Object.keys(matchGroups);
+
+  var bets = calcTotalBets();
+  var amount = bets * 2 * _multiplier;
+
+  // 每场比赛的最大赔率
+  var maxOddsPerMatch = {};
+  matchIds.forEach(function(mid) {
+    maxOddsPerMatch[mid] = Math.max.apply(null, matchGroups[mid]);
+  });
+
+  // 找所有过关类型中赔率乘积最高的 k-组合
+  var bestProduct = 1;
+  _passTypes.forEach(function(k) {
+    if (k > matchIds.length) return;
+    // 按最大赔率降序取前 k 场
+    var sorted = matchIds
+      .map(function(mid) { return maxOddsPerMatch[mid]; })
+      .sort(function(a, b) { return b - a; });
+    var product = 1;
+    for (var i = 0; i < k; i++) product *= sorted[i];
+    if (product > bestProduct) bestProduct = product;
+  });
+
+  // 理论最高奖金 = 单注金额 × 最佳赔率乘积
+  var singleBetAmount = 2 * _multiplier;
+  var maxWin = Math.round(singleBetAmount * bestProduct * 100) / 100;
+
+  return { bets: bets, amount: amount, maxWin: maxWin };
+}
+
+// ═══ 页面入口 ═══
+export function loadSchemeDesign() {
+  _schemeDateOffset = 0;
+  _activePlayType = 'mixed';
+  // 恢复标签活跃状态
+  document.querySelectorAll('#schemePlayTabs .filter-tag').forEach(function (t) {
+    t.classList.toggle('active', t.getAttribute('data-type') === 'mixed');
+  });
+  updateSchemeDate();
+  loadStats();
+  loadMatches();
+}
+
+// ═══ 日期 ═══
+function updateSchemeDate() {
+  var d = new Date();
+  d.setDate(d.getDate() + _schemeDateOffset);
+  _schemeDate = formatDate(d);
+  var el = document.getElementById('schemeDateBar');
+  if (!el) return;
+  var today = formatDate(new Date());
+  var prefix = _schemeDate === today ? '今天 ' : '';
+  var mmdd = _schemeDate.slice(5).replace('-', '/');
+  var week = WEEK_NAMES[new Date(_schemeDate).getDay()];
+  el.innerHTML =
+    '<span class="date-current">&#x1F4C5; ' + week + ' ' + prefix + mmdd + ' <span id="schemeMatchTotal">共0场比赛</span></span>';
+}
+
+window.shiftSchemeDate = function (delta) {
+  _schemeDateOffset += delta;
+  updateSchemeDate();
+  loadMatches();
+};
+
+// ═══ 统计卡片（用户特别要求，保留） ═══
+function loadStats() {
+  api('my-plan-stats', {}).then(function (stats) {
+    var el = document.getElementById('schemeStats');
+    if (!el) return;
+    var incomeStr = stats.income >= 0 ? '+' + stats.income : String(stats.income);
+    var incomeCls = stats.income >= 0 ? 'scheme-stat-pos' : 'scheme-stat-neg';
+    el.innerHTML =
+      '<div class="scheme-stat-item" onclick="try{sessionStorage.setItem(\'pendingPlanTab\',\'my\');}catch(e){}switchTab(\'plan\')"><div class="scheme-stat-val">' + (stats.count || 0) + '</div><div class="scheme-stat-lbl">历史方案</div></div>' +
+      '<div class="scheme-stat-div"></div>' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val ' + incomeCls + '">' + incomeStr + '</div><div class="scheme-stat-lbl">方案收入(分)</div></div>' +
+      '<div class="scheme-stat-div"></div>' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val">' + (stats.hitRate || 0) + '%</div><div class="scheme-stat-lbl">命中率</div></div>';
+  }).catch(function () {
+    var el = document.getElementById('schemeStats');
+    if (el) el.innerHTML =
+      '<div class="scheme-stat-item"><div class="scheme-stat-val">0</div><div class="scheme-stat-lbl">历史方案</div></div>' +
+      '<div class="scheme-stat-div"></div>' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val">0</div><div class="scheme-stat-lbl">方案收入(分)</div></div>' +
+      '<div class="scheme-stat-div"></div>' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val">0%</div><div class="scheme-stat-lbl">命中率</div></div>';
+  });
+}
+
+// ═══ 比赛列表 ═══
+function loadMatches() {
+  var el = document.getElementById('schemeMatchList');
+  if (!el) return;
+  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载场次中...</div>';
+  api('match-list', { date: _schemeDate }).then(function (data) {
+    _matches = data || [];
+    var totalEl = document.getElementById('schemeMatchTotal');
+    if (totalEl) totalEl.textContent = '共' + _matches.length + '场比赛';
+    var matchIds = _matches.map(function (m) { return m.matchId || m.id; }).filter(Boolean);
+    if (matchIds.length > 0) {
+      return api('batch-match-odds', { matchIds: matchIds, date: _schemeDate }).then(function (oddsMap) {
+        _matches.forEach(function (m) { m._odds = (oddsMap && oddsMap[m.matchId || m.id]) || null; });
+        renderMatchList();
+      });
+    }
+    renderMatchList();
+  }).catch(function (e) {
+    if (el) el.innerHTML = '<div class="hint-box">加载失败: ' + (e && e.message) + '</div>';
+  });
+}
+
+// ═══ 玩法切换 ═══
+window.switchSchemePlay = function (type) {
+  _activePlayType = type;
+  document.querySelectorAll('#schemePlayTabs .filter-tag').forEach(function (t) {
+    t.classList.toggle('active', t.getAttribute('data-type') === type);
+  });
+  renderMatchList();
+};
+
+// ═══ 渲染比赛卡片（按设计图：左侧联赛+编号+时间，右侧对阵+赔率矩阵） ═══
+function renderMatchList() {
+  var el = document.getElementById('schemeMatchList');
+  if (!el) return;
+  if (_matches.length === 0) { el.innerHTML = '<div class="hint-box">当日暂无比赛</div>'; return; }
+
+  // ★ 玩法过滤提示
+  var filterHint = '';
+  if (_activePlayType !== 'mixed') {
+    filterHint = '<div class="scheme-play-hint">当前玩法：<b>' + PLAY_NAMES[_activePlayType] +
+      '</b>（上限 ' + PLAY_LIMITS[_activePlayType] + ' 场），切换玩法标签可查看全部玩法</div>';
+  }
+
+  var html = filterHint + _matches.map(function (m) {
+    var id = m.matchId || m.id || '';
+    var odds = m._odds || {};
+    var spf = odds.spf || {};
+    var rqspf = odds.rqspf || {};
+    var handicap = odds.handicap != null ? odds.handicap : (m.concede || 0);
+    var hcpLabel = handicap > 0 ? '+' + handicap : handicap < 0 ? '' + handicap : '0';
+    var isSingleGame = m.isSingleGame === true;
+    var delta = odds.oddsDelta || {};
+
+    // 时间格式化
+    var timeStr = '';
+    if (m.startTime) {
+      var stParts = m.startTime.match(/(\\d{2})-(\\d{2})\\s+(\\d{2}):(\\d{2})/);
+      if (stParts) timeStr = stParts[1] + '-' + stParts[2] + ' ' + stParts[3] + ':' + stParts[4];
+      else timeStr = m.startTime;
+    }
+
+    // ★ 获取 delta 方向
+    var deltaSpf = getDeltaForField(delta, 'spf');
+    var deltaRqspf = getDeltaForField(delta, 'rqspf');
+
+    // 赔率矩阵：根据玩法类型决定显示哪些行
+    var showSpfRow = _activePlayType === 'mixed' || _activePlayType === 'spf' || _activePlayType === 'bf' || _activePlayType === 'jqs' || _activePlayType === 'bqc';
+    var showRqRow = _activePlayType === 'mixed' || _activePlayType === 'rqspf' || _activePlayType === 'bf' || _activePlayType === 'jqs' || _activePlayType === 'bqc';
+
+    // SPF 行：[0]
+    var spfRow = '';
+    if (showSpfRow) {
+      spfRow = '<div class="sodds-row ' + (_activePlayType !== 'mixed' && _activePlayType !== 'spf' ? 'sodds-row-dim' : '') + '">' +
+        '<span class="sodds-hcp">[0]</span>' +
+        renderOddsBtn(id, 'spf', '胜', spf.home, handicap, deltaSpf.home) +
+        renderOddsBtn(id, 'spf', '平', spf.draw, handicap, deltaSpf.draw) +
+        renderOddsBtn(id, 'spf', '负', spf.away, handicap, deltaSpf.away) +
+        '</div>';
+    }
+
+    // RQSPF 行：[handicap]
+    var rqRow = '';
+    if (showRqRow) {
+      rqRow = '<div class="sodds-row ' + (_activePlayType !== 'mixed' && _activePlayType !== 'rqspf' ? 'sodds-row-dim' : '') + '">' +
+        '<span class="sodds-hcp rq">[' + hcpLabel + ']</span>' +
+        renderOddsBtn(id, 'rqspf', '胜', rqspf.home, handicap, deltaRqspf.home) +
+        renderOddsBtn(id, 'rqspf', '平', rqspf.draw, handicap, deltaRqspf.draw) +
+        renderOddsBtn(id, 'rqspf', '负', rqspf.away, handicap, deltaRqspf.away) +
+        '</div>';
+    }
+
+    // 单关标签
+    var singleBadge = isSingleGame ? '<span class="smc-single-badge" title="本场支持单关投注">单关</span>' : '';
+
+    return '<div class="scheme-match-card" data-mid="' + id + '">' +
+      '<div class="smc-body">' +
+      '<div class="smc-left">' +
+      '<span class="smc-league">' + (m.leagueName || '') + '</span>' +
+      '<span class="smc-num">' + (m.num || m.matchNum || '') + '</span>' +
+      singleBadge +
+      '<span class="smc-time">' + (timeStr || (m.date || '')) + '</span>' +
+      renderOtherSection(id) +
+      '</div>' +
+      '<div class="smc-right">' +
+      '<div class="smc-teams"><span>' + (m.homeName || '') + '</span><span class="smc-vs">VS</span><span>' + (m.visitName || '') + '</span></div>' +
+      '<div class="sodds-matrix">' + spfRow + rqRow + '</div>' +
+      '</div>' +
+      '</div></div>';
+  }).join('');
+  el.innerHTML = html;
+  derivePassTypes();
+  updateSummary();
+}
+
+// ═══ 赔率按钮（方向在上，赔率在下，选中高亮，赔率箭头） ═══
+function renderOddsBtn(matchId, playType, dirName, oddsVal, handicap, deltaDir) {
+  // ★ 玩法过滤：非当前玩法且非混合模式时按钮不可交互
+  var isPlayActive = _activePlayType === 'mixed' || playType === _activePlayType;
+
+  // ★ 多选高亮：遍历所有选择
+  var isActive = _selections.some(function(s) {
+    return s.matchId === matchId && s.playType === playType && s.direction === dirName;
+  });
+  var cls = 'sodds-btn' + (isActive ? ' active' : '');
+  if (!isPlayActive && _activePlayType !== 'mixed') cls += ' sodds-btn-dim';
+
+  var oddsStr = oddsVal != null ? Number(oddsVal).toFixed(2) : '--';
+
+  // ★ 赔率变动箭头
+  var arrowHtml = '';
+  if (deltaDir === 'up') {
+    arrowHtml = '<span class="sodds-arrow-up">&#9650;</span>';
+  } else if (deltaDir === 'down') {
+    arrowHtml = '<span class="sodds-arrow-down">&#9660;</span>';
+  }
+
+  var clickAttr = '';
+  if (isPlayActive) {
+    clickAttr = ' onclick="selectSchemeOdds(\'' + matchId +
+      '\',\'' + playType + '\',\'' + dirName + '\',' + oddsVal + ',' + handicap + ')"';
+  }
+
+  return '<button class="' + cls + '"' + clickAttr + '>' +
+    '<span class="sodds-dir">' + dirName + '</span>' +
+    '<span class="sodds-val">' + oddsStr + arrowHtml + '</span></button>';
+}
+
+// ═══ 获取赔率变动方向 ═══
+function getDeltaForField(delta, playPrefix) {
+  if (!delta || Object.keys(delta).length === 0) return {};
+  var result = {};
+  var directions = ['home', 'draw', 'away'];
+  directions.forEach(function (d) {
+    var key = playPrefix + '.' + d;
+    if (delta[key]) result[d] = delta[key]; // 'up', 'down', or 'flat'
+  });
+  return result;
+}
+
+// ═══ 选择 ═══
+window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handicap) {
+  // ★ 木桶原则：检查玩法上限
+  if (_activePlayType !== 'mixed') {
+    // 在特定玩法下，按"同玩法上限"检查
+    var limit = PLAY_LIMITS[playType] || 8;
+    var samePlayCount = _selections.filter(function (s) { return s.playType === playType; }).length;
+    // 检查是否已有该场比赛的选择
+    var hasThisMatch = _selections.some(function (s) { return s.matchId === matchId; });
+    if (!hasThisMatch && samePlayCount >= limit) {
+      alert('⚽ ' + PLAY_NAMES[playType] + '玩法最多选择 ' + limit + ' 场比赛（木桶原则）');
+      return;
+    }
+  } else {
+    // 混合过关：检查所有玩法上限
+    var totalMatches = 0;
+    var totalMatchIds = {};
+    _selections.forEach(function (s) { totalMatchIds[s.matchId] = true; });
+    totalMatches = Object.keys(totalMatchIds).length;
+    // 检查选中玩法中最苛刻的上限
+    var minLimit = 8;
+    _selections.forEach(function (s) {
+      var l = PLAY_LIMITS[s.playType] || 8;
+      if (l < minLimit) minLimit = l;
+    });
+    var newPlayLimit = PLAY_LIMITS[playType] || 8;
+    if (newPlayLimit < minLimit) minLimit = newPlayLimit;
+    var hasThisMatch = totalMatchIds[matchId];
+    if (!hasThisMatch && totalMatches >= minLimit) {
+      alert('⚽ 当前混合过关方案受玩法限制，最多选择 ' + minLimit + ' 场比赛（木桶原则：' +
+        _selections.map(function (s) { return PLAY_NAMES[s.playType] + '(' + PLAY_LIMITS[s.playType] + ')'; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join('+') + '）');
+      return;
+    }
+  }
+
+  // ★ 切换式多选：已选则取消
+  var existingIdx = -1;
+  for (var i = 0; i < _selections.length; i++) {
+    if (_selections[i].matchId === matchId && _selections[i].playType === playType && _selections[i].direction === dirName) {
+      existingIdx = i;
+      break;
+    }
+  }
+  if (existingIdx >= 0) {
+    _selections.splice(existingIdx, 1);
+    renderMatchList();
+    return;
+  }
+
+  // ★ 同场可多玩法共存，直接追加
+  _selections.push({
+    matchId: matchId,
+    playType: playType,
+    direction: dirName,
+    odds: Number(oddsVal) || 0,
+    oddsName: dirName,
+    handicap: handicap || 0,
+  });
+  renderMatchList();
+};
+
+function findSelection(matchId) {
+  for (var i = 0; i < _selections.length; i++) {
+    if (_selections[i].matchId === matchId) return _selections[i];
+  }
+  return null;
+}
+
+function findOtherSelections(matchId) {
+  return _selections.filter(function(s) {
+    return s.matchId === matchId && ['bf', 'jqs', 'bqc'].indexOf(s.playType) !== -1;
+  });
+}
+
+function renderOtherSection(matchId) {
+  var otherSels = findOtherSelections(matchId);
+  // ★ SPF / RQSPF 模式下禁用"其它"按钮（只能直接点主页赔率）
+  var otherDisabled = _activePlayType === 'spf' || _activePlayType === 'rqspf';
+  var dimCls = otherDisabled ? ' smc-other-dim' : '';
+  var clickAttr = otherDisabled ? '' : ' onclick="openSchemeBetting(\'' + matchId + '\')"';
+
+  if (otherSels.length > 0) {
+    var itemsHtml = otherSels.map(function(s) {
+      var label = s.direction + '  ' + (s.odds > 0 ? Number(s.odds).toFixed(2) : '-');
+      return '<span class="smc-other-info">' + label + '</span>';
+    }).join('');
+    return '<span class="smc-other has-selection' + dimCls + '"' + clickAttr + '>' +
+      '<span class="smc-other-label">其它</span>' +
+      '<div class="smc-other-sep"></div>' +
+      itemsHtml +
+      '</span>';
+  }
+  return '<span class="smc-other' + dimCls + '"' + clickAttr + '>其它</span>';
+}
+
+// ═══ 更新底部栏 ═══
+function updateSummary() {
+  var bar = document.getElementById('schemeSummaryBar');
+  if (!bar) return;
+  var count = _selections.length;
+  if (count === 0) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+
+  // 期号（参考格式）
+  var issueEl = document.getElementById('ssbIssueNum');
+  if (issueEl) {
+    var d = new Date();
+    var y = String(d.getFullYear()).slice(2);
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var issueNum = y + m + '01';
+    issueEl.textContent = issueNum;
+  }
+
+  // 已选数量
+  var badge = document.getElementById('schemeSelCountBadge');
+  if (badge) badge.textContent = count;
+
+  // 过关显示
+  var uniqueMatchIds = {};
+  _selections.forEach(function(s) { uniqueMatchIds[s.matchId] = true; });
+  var n = Object.keys(uniqueMatchIds).length;
+  var passEl = document.getElementById('schemePassText');
+  if (passEl) {
+    if (n < 2) {
+      passEl.textContent = '单关';
+      passEl.style.pointerEvents = 'none';
+      passEl.style.opacity = '0.5';
+    } else {
+      passEl.style.pointerEvents = '';
+      passEl.style.opacity = '';
+      if (_passTypes.length === 0) {
+        passEl.textContent = n + '关';
+      } else if (_passTypes.length === 1) {
+        passEl.textContent = _passTypes[0] + '关';
+      } else {
+        var minPass = Math.min.apply(null, _passTypes);
+        var maxPass = Math.max.apply(null, _passTypes);
+        passEl.textContent = minPass + '~' + maxPass + '关';
+      }
+    }
+  }
+
+  // 倍数
+  var mulEl = document.getElementById('ssbMultiplier');
+  if (mulEl) mulEl.textContent = _multiplier;
+
+  // 金额和奖金
+  var calc = calcAmountAndPrize();
+  var amtEl = document.getElementById('ssbAmount');
+  var winEl = document.getElementById('ssbMaxWin');
+  if (amtEl) amtEl.textContent = calc.amount;
+  if (winEl) winEl.textContent = calc.maxWin;
+}
+
+// ═══ 倍数弹窗 ═══
+var _tempMultiplier = 1;
+
+window.showMultiplierPopup = function() {
+  _tempMultiplier = _multiplier;
+  var overlay = document.getElementById('multiplierOverlay');
+  var input = document.getElementById('ssbMultiInput');
+  if (overlay && input) {
+    overlay.classList.add('active');
+    input.value = _tempMultiplier;
+  }
+};
+
+window.closeMultiplierPopup = function() {
+  var overlay = document.getElementById('multiplierOverlay');
+  if (overlay) overlay.classList.remove('active');
+};
+
+window.confirmMultiplierPopup = function() {
+  _multiplier = Math.max(1, Math.min(999, parseInt(_tempMultiplier) || 1));
+  closeMultiplierPopup();
+  updateSummary();
+};
+
+window.setMultiQuick = function(val) {
+  _tempMultiplier = val;
+  var input = document.getElementById('ssbMultiInput');
+  if (input) input.value = _tempMultiplier;
+};
+
+window.inputMultiDigit = function(digit) {
+  var input = document.getElementById('ssbMultiInput');
+  if (!input) return;
+  var current = String(_tempMultiplier);
+  if (current === '0') current = digit;
+  else if (current.length < 3) current += digit;
+  _tempMultiplier = parseInt(current) || 1;
+  input.value = _tempMultiplier;
+};
+
+window.backspaceMulti = function() {
+  var input = document.getElementById('ssbMultiInput');
+  if (!input) return;
+  var current = String(_tempMultiplier);
+  if (current.length > 1) current = current.slice(0, -1);
+  else current = '1';
+  _tempMultiplier = parseInt(current) || 1;
+  input.value = _tempMultiplier;
+};
+
+// ═══ 过关弹窗 ═══
+var _tempPassTypes = [];
+
+window.showPassPopup = function() {
+  var maxPass = calcMaxPass();
+  if (maxPass < 2) return; // 单关不弹
+
+  _tempPassTypes = _passTypes.slice();
+  var overlay = document.getElementById('passOverlay');
+  var hint = document.getElementById('passHint');
+  var list = document.getElementById('passList');
+
+  if (!overlay || !list) return;
+
+  var uniqueMatchIds = {};
+  _selections.forEach(function(s) { uniqueMatchIds[s.matchId] = true; });
+  var n = Object.keys(uniqueMatchIds).length;
+
+  var matchGroups = {};
+  _selections.forEach(function(s) {
+    if (!matchGroups[s.matchId]) matchGroups[s.matchId] = [];
+    matchGroups[s.matchId].push(s);
+  });
+  var matchIds = Object.keys(matchGroups);
+
+  if (hint) hint.textContent = '当前：' + n + '场，上限：' + maxPass + '关';
+
+  // 渲染 2~8 关选项
+  var html = '';
+  for (var k = 2; k <= 8; k++) {
+    var disabled = k > maxPass || k > n;
+    var checked = _tempPassTypes.indexOf(k) !== -1 && !disabled;
+    var count = disabled ? '──' : calcExpandedBets(matchGroups, matchIds, k) + '注';
+    var cls = disabled ? 'ssb-pass-item disabled' : 'ssb-pass-item';
+    html += '<div class="' + cls + '">' +
+      '<label><input type="checkbox"' + (checked ? ' checked' : '') + (disabled ? ' disabled' : '') + ' onchange="togglePassType(' + k + ')"> ' + k + '关</label>' +
+      '<span class="ssb-pass-count">' + count + '</span>' +
+      '</div>';
+  }
+  list.innerHTML = html;
+
+  overlay.classList.add('active');
+};
+
+window.togglePassType = function(k) {
+  var idx = _tempPassTypes.indexOf(k);
+  if (idx !== -1) _tempPassTypes.splice(idx, 1);
+  else _tempPassTypes.push(k);
+  _tempPassTypes.sort(function(a, b) { return a - b; });
+};
+
+window.closePassPopup = function() {
+  var overlay = document.getElementById('passOverlay');
+  if (overlay) overlay.classList.remove('active');
+};
+
+window.confirmPassPopup = function() {
+  _passTypes = _tempPassTypes.length > 0 ? _tempPassTypes.slice() : [2];
+  closePassPopup();
+  updateSummary();
+};
+
+// ═══ 清空 ═══
+window.clearSchemeSelections = function () {
+  _selections = [];
+  _multiplier = 1;
+  _passTypes = [2];
+  renderMatchList();
+};
+
+// ═══ 确认方案（跳转到确认页面） ═══
+window.saveUserPlan = function () {
+  if (_selections.length === 0) { alert('请至少选择一场比赛'); return; }
+
+  // ★ 单关校验：仅唯一场次时检查
+  var _uniqueMatchIds = {};
+  _selections.forEach(function (s) { _uniqueMatchIds[s.matchId] = true; });
+  var uniqueMatches = Object.keys(_uniqueMatchIds);
+
+  if (uniqueMatches.length === 1) {
+    var selMatch = _matches.find(function(m) { return (m.matchId || m.id) === uniqueMatches[0]; });
+    if (selMatch && selMatch.isSingleGame !== true) {
+      alert('⚽ 该场比赛不支持单关投注（需带"单关"标签），请至少再选一场组成串关');
+      return;
+    }
+    // 兜底：确保没有 RQSPF（正常情况下前面已拦截）
+    var _hasRqspf = _selections.some(function (s) { return s.playType === 'rqspf'; });
+    if (_hasRqspf) {
+      alert('⚽ 单关投注仅支持胜平负(SPF)方向，请移除让球胜平负选择');
+      return;
+    }
+  }
+
+  // ★ 构建 matchDetails 用于确认页面（携带完整赔率数据）
+  var matchDetails = _selections.map(function (s) {
+    var m = _matches.find(function (x) { return (x.matchId || x.id) === s.matchId; }) || {};
+    // 格式化时间
+    var timeStr = '';
+    if (m.startTime) {
+      var stParts = m.startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+      if (stParts) timeStr = stParts[1] + '-' + stParts[2] + ' ' + stParts[3] + ':' + stParts[4];
+      else timeStr = m.startTime;
+    }
+    return {
+      matchId: s.matchId,
+      homeName: m.homeName || '',
+      visitName: m.visitName || '',
+      league: m.leagueName || '',
+      matchNum: m.matchNum || m.num || '',
+      playType: s.playType,
+      direction: s.direction,
+      odds: s.odds,
+      oddsName: s.oddsName,
+      timeStr: timeStr,
+      isSingleGame: m.isSingleGame,
+      _odds: m._odds || {},
+    };
+  });
+
+  var planData = {
+    matches: matchDetails,
+    selections: _selections.slice(),
+    passTypes: _passTypes.slice(),
+    multiplier: _multiplier,
+  };
+
+  // ★ 存储到 sessionStorage，供确认页面读取
+  try {
+    sessionStorage.setItem('pendingConfirmPlan', JSON.stringify(planData));
+  } catch (e) {
+    console.error('存储方案数据失败:', e);
+  }
+
+  // ★ 跳转到确认方案页面
+  window.switchTab('confirm-scheme');
+};
+
+// ═══ 打开投注弹窗 ═══
+window.openSchemeBetting = function (matchId) {
+  var m = _matches.find(function (x) { return (x.matchId || x.id) === matchId; });
+  if (!m) return;
+
+  // ★ 始终删除旧 overlay 重建，避免复用脏状态
+  var oldOverlay = document.getElementById('betOverlay');
+  if (oldOverlay) oldOverlay.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'betOverlay';
+  overlay.className = 'ai-overlay';
+  overlay.onclick = function (e) {
+    if (e.target === overlay) {
+      // 使用完整清理流程（closeBetting 会同时清理 betting-confirm 监听器）
+      if (window._betClose) window._betClose();
+    }
+  };
+  document.body.appendChild(overlay);
+
+  overlay.innerHTML = '<div class="ai-modal" style="display:flex;align-items:center;justify-content:center;min-height:200px;">' +
+    '<div style="text-align:center;color:#aabbcc;padding:60px 0;">' +
+    '<div class="loading-spinner" style="margin:0 auto 16px;"></div>加载中...</div></div>';
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  // 移除旧监听器
+  var handler = window._bettingConfirmHandler;
+  if (handler) window.removeEventListener('betting-confirm', handler);
+
+  window._bettingConfirmHandler = function (e) {
+    var result = e.detail;
+    if (!result) return;
+
+    // ★ 收集所有要添加的选择（兼容单选/多选）
+    var incomingSelections = [];
+    if (result.selections && result.selections.length > 0) {
+      incomingSelections = result.selections;
+    } else if (result.selection) {
+      // 向后兼容旧单选格式
+      incomingSelections = [{ playType: result.playType, label: result.selection, odds: result.odds, handicap: result.handicap }];
+    }
+    if (incomingSelections.length === 0) return;
+
+    // ★ 弹窗代表该场最终选择，直接替换全场
+    _selections = _selections.filter(function (s) { return s.matchId !== matchId; });
+
+    incomingSelections.forEach(function (s) {
+      _selections.push({
+        matchId: matchId,
+        playType: s.playType || 'spf',
+        direction: s.label || s.selection,
+        odds: s.odds || 0,
+        oddsName: s.label || s.selection,
+        handicap: s.handicap || 0,
+      });
+    });
+
+    renderMatchList();
+    window.removeEventListener('betting-confirm', window._bettingConfirmHandler);
+    window._bettingConfirmHandler = null;
+  };
+
+  window.addEventListener('betting-confirm', window._bettingConfirmHandler);
+
+  // 动态加载投注模块并渲染（带缓存破除，传递玩法上下文）
+  import('./betting.js?t=' + Date.now()).then(function (betting) {
+    if (betting.openBetting) {
+      betting.openBetting(matchId, m, _activePlayType);
+    }
+  }).catch(function (e) {
+    console.error('投注模块加载失败:', e);
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    alert('投注模块加载失败');
+  });
+};
+
+// ═══ 玩法切换（已移到文件顶部，此处为注释保留） ═══
+// switchSchemePlay 已在文件顶部通过 window.switchSchemePlay 定义
+// _activePlayType 默认为 'mixed'，通过 loadSchemeDesign() 初始化
