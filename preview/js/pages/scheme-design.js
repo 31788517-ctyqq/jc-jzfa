@@ -687,12 +687,22 @@ window.saveUserPlan = function () {
   var uniqueMatches = Object.keys(_uniqueMatchIds);
 
   if (uniqueMatches.length === 1) {
+    // ★ 检查当前选择中是否包含 SPF 或 RQSPF
+    var hasSpfRqspf = _selections.some(function(s) {
+      return s.playType === 'spf' || s.playType === 'rqspf';
+    });
+
     var selMatch = _matches.find(function(m) { return (m.matchId || m.id) === uniqueMatches[0]; });
-    if (selMatch && selMatch.isSingleGame !== true) {
-      alert('⚽ 该场比赛不支持单关投注（需带"单关"标签），请至少再选一场组成串关');
-      return;
+
+    // ★ 纯 BF/JQS/BQC 组合无需 isSingleGame 标签，直接放行
+    if (hasSpfRqspf) {
+      // 包含 SPF/RQSPF 时，需要该场比赛支持单关（带"单关"标签）
+      if (selMatch && selMatch.isSingleGame !== true) {
+        alert('⚽ 胜平负/让球玩法需要该场比赛支持单关投注（带"单关"标签），请至少再选一场组成串关\n\n注：比分/半全场/进球数单场可直接选择，无需单关标签');
+        return;
+      }
     }
-    // ★ 单关允许所有玩法（SPF/RQSPF/BF/JQS/BQC）
+    // ★ 单关允许所有玩法：SPF/RQSPF（需标签） + BF/JQS/BQC（无需标签）
   }
 
   // ★ 构建 matchDetails 用于确认页面（携带完整赔率数据）
