@@ -161,7 +161,7 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
   html += '<div class="plan-amount-row">';
   html += '<div class="plan-amount-col"><div class="plan-amount-label">方案金额</div><div class="plan-amount-value">' + amount + '<span class="unit">元</span></div></div>';
   html += '<div class="plan-amount-col"><div class="plan-amount-label">预计奖金</div><div class="plan-amount-value">' + maxWin + '<span class="unit">元</span></div></div>';
-  html += '<div class="plan-amount-col"><div class="plan-amount-label">方案状态</div><div class="plan-amount-value"><span class="bonus-opt-badge-sm" onclick="event.stopPropagation();showBonusOptimize()">奖金优化</span></div></div>';
+  html += '<div class="plan-amount-col"><div class="plan-amount-label">方案状态</div><div class="plan-amount-value" style="color:#FFC928;">待确认</div></div>';
   html += '</div>';
 
   // 分割线
@@ -848,7 +848,7 @@ function renderBonusOpt() {
     '<div class="bo-desc-row"><span>总预算：<b>' + total.toFixed(2) + '</b> 元</span><span>' + persecond + '</span></div>' +
     '<div class="bo-thead"><div class="bo-th col-pass">过关</div><div class="bo-th col-desc">单注组合</div><div class="bo-th col-bet">注数分布</div><div class="bo-th col-amount">预测奖金</div></div>' +
     '<div class="bo-tbody">' + rowsHtml + '</div>' +
-    '<div class="bo-footer"><button class="bet-btn-cancel" onclick="closeBonusOpt()">关闭</button></div>' +
+    '<div class="bo-footer"><button class="bet-btn-confirm" onclick="closeBonusOpt()">确认</button></div>' +
     '</div></div>';
 }
 

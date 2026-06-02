@@ -498,8 +498,7 @@ function updateSummary() {
     var y = String(schemeDate.getFullYear()).slice(2);
     var m = String(schemeDate.getMonth() + 1).padStart(2, '0');
     var day = schemeDate.getDate();
-    var weekNum = Math.ceil(day / 7);
-    var issueNum = y + m + String(weekNum).padStart(2, '0');
+    var issueNum = y + m + String(day).padStart(2, '0');
     issueEl.textContent = issueNum;
   }
 
