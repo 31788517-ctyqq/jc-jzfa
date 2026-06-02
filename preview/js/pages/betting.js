@@ -77,13 +77,17 @@ async function loadOddsData(matchId) {
       if (targetHcp === null) targetHcp = 0;
 
       // 从 match-odds 返回的 rqspfList 中找到匹配让球数的条目
+      var matchedRq = null;
       if (r.rqspfList && Array.isArray(r.rqspfList) && r.rqspfList.length > 0) {
-        var bestRq = r.rqspfList[0];
         for (var i = 0; i < r.rqspfList.length; i++) {
-          if (Number(r.rqspfList[i].handicap) === targetHcp) { bestRq = r.rqspfList[i]; break; }
+          if (Number(r.rqspfList[i].handicap) === targetHcp) { matchedRq = r.rqspfList[i]; break; }
         }
-        _oddsData.rqspf = { home: bestRq.home, draw: bestRq.draw, away: bestRq.away };
-        _oddsData.handicap = Number(bestRq.handicap != null ? bestRq.handicap : targetHcp);
+        // ★ 未匹配到精确让球数时，用 rqspfList 第一条的赔率，但让球数用 targetHcp
+        if (!matchedRq) {
+          matchedRq = Object.assign({}, r.rqspfList[0], { handicap: targetHcp });
+        }
+        _oddsData.rqspf = { home: matchedRq.home, draw: matchedRq.draw, away: matchedRq.away };
+        _oddsData.handicap = Number(matchedRq.handicap);
       }
       // ★ 兜底：始终确保 handicap 有值
       if (_oddsData.handicap == null) {
