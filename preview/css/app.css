@@ -1454,40 +1454,130 @@ body {
   background: rgba(255,201,40,0.18);
 }
 
-/* ★ 奖金优化弹窗 */
-.bo-desc {
-  padding: 10px 0; font-size: 12px; color: #8899aa;
-  line-height: 1.6; border-bottom: 1px solid rgba(255,255,255,0.06);
-  margin-bottom: 10px;
+/* ★ 奖金优化弹窗 — 三Tab + 表格 + 步进器（暗黑主题） */
+.bo-modal-wrap {
+  max-width: 560px; width: 94vw; max-height: 92vh;
+  overflow-y: auto; border-radius: 14px;
+  background: #0d1b2a; border: 1px solid rgba(255,201,40,0.15);
 }
-.bo-desc b { color: #FFC928; }
-.bo-summary {
+.bo-panel { padding: 0; }
+.bo-header {
+  display: flex; align-items: center; justify-content: center;
+  padding: 14px 20px; position: sticky; top: 0; z-index: 2;
+  background: #0a1520; border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px 14px 0 0;
+}
+.bo-title { font-size: 18px; font-weight: 700; color: #fff; }
+.bo-close {
+  position: absolute; right: 16px; width: 32px; height: 32px;
+  border-radius: 50%; background: rgba(255,255,255,0.06);
+  border: none; color: #fff; font-size: 16px; cursor: pointer;
+}
+
+/* Tab */
+.bo-tab-wrap {
+  display: flex; margin: 14px 16px 0;
+  border: 1px solid #E24F64; border-radius: 10px;
+  overflow: hidden;
+}
+.bo-tab {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  height: 42px; font-size: 14px; font-weight: 600;
+  color: #E24F64; background: transparent;
+  border-right: 1px solid #E24F64; cursor: pointer;
+  transition: all 0.2s;
+}
+.bo-tab:last-child { border-right: none; }
+.bo-tab.active { background: #E24F64; color: #fff; }
+
+/* 描述行 */
+.bo-desc-row {
   display: flex; justify-content: space-between;
-  padding: 8px 0; font-size: 12px; color: #aabbcc;
+  padding: 12px 19px 4px; font-size: 12px; color: #8899aa;
 }
-.bo-summary b { color: #00E5FF; }
-.bo-table-wrap {
-  max-height: 320px; overflow-y: auto;
-  margin: 8px 0; border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.06);
+.bo-desc-row b { color: #FFC928; }
+
+/* 表头 */
+.bo-thead {
+  display: flex; align-items: center;
+  height: 48px; margin: 10px 10px 0;
+  background: rgba(255,255,255,0.04); border-radius: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
-.bo-table {
-  width: 100%; border-collapse: collapse;
-  font-size: 11px; color: #ccddff;
+.bo-th {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: #64748B;
 }
-.bo-table th {
-  padding: 8px 4px; text-align: center;
-  background: rgba(0,0,0,0.2); color: #64748B;
-  font-weight: 600; font-size: 10px;
-  position: sticky; top: 0; z-index: 1;
-}
-.bo-table td {
-  padding: 7px 4px; text-align: center;
+.col-pass { width: 64px; flex-shrink: 0; }
+.col-desc { flex: 1; }
+.col-bet  { width: 148px; flex-shrink: 0; }
+.col-amount { width: 90px; flex-shrink: 0; }
+
+/* 行 */
+.bo-tbody { margin: 0 10px 10px; }
+.bo-row {
+  display: flex; align-items: center;
+  min-height: 80px; padding: 10px 0;
   border-bottom: 1px solid rgba(255,255,255,0.04);
 }
-.bo-odds { color: #00E5FF; font-weight: 600; }
-.bo-alloc { color: #FFC928; font-weight: 600; }
-.bo-ret { color: #34D399; }
+.bo-row:last-child { border-bottom: none; }
+
+/* 过关标签 */
+.bo-pass-tag {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 22px; border-radius: 14px;
+  background: rgba(226,79,100,0.15); color: #E24F64;
+  font-size: 11px; font-weight: 700;
+}
+.bo-cell-pass { width: 64px; display: flex; justify-content: center; }
+
+/* 描述 */
+.bo-cell-desc {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 0 2px;
+}
+.bo-desc-line1 { font-size: 12px; color: #ccddff; font-weight: 500; text-align: center; }
+.bo-desc-line2 { font-size: 11px; color: #00E5FF; text-align: center; }
+
+/* 步进器 */
+.bo-cell-bet { width: 148px; display: flex; justify-content: center; }
+.bo-stepper {
+  display: flex; width: 122px; height: 40px;
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+  overflow: hidden;
+}
+.bo-stepper.active {
+  border-color: #16A085;
+  box-shadow: 0 0 8px rgba(22,160,133,0.15);
+}
+.bo-step-btn {
+  width: 32px; border: none; background: rgba(255,255,255,0.04);
+  font-size: 20px; color: #8899aa; cursor: pointer; line-height: 1;
+}
+.bo-step-btn:active { background: rgba(255,255,255,0.1); }
+.bo-step-input {
+  flex: 1; border: none; background: transparent;
+  text-align: center; font-size: 15px; font-weight: 600;
+  color: #fff; width: 100%; min-width: 0;
+}
+
+/* 预测奖金 */
+.bo-cell-amount {
+  width: 90px; display: flex; justify-content: center;
+  font-size: 17px; font-weight: 600; color: #00E5FF;
+}
+.bo-amount-hot { color: #E53950; font-weight: 700; font-size: 18px; }
+
+/* 底部 */
+.bo-footer {
+  padding: 12px 16px 20px; display: flex; justify-content: center;
+}
+.bo-footer .bet-btn-cancel {
+  width: 200px; height: 42px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; background: rgba(255,255,255,0.04);
+  color: #8899aa; font-size: 14px; cursor: pointer;
+}
 /* 数据行 - 内容在两线之间垂直居中 */
 .plan-amount-row {
   position: relative;

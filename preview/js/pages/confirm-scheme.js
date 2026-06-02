@@ -689,104 +689,207 @@ function updateSessionStore() {
 }
 
 // ═══ 奖金优化弹窗 ═══
+var _boStrategy = 'balanced'; // balanced | hot | cold
+var _boRows = [];             // [{ pickId, playType, direction, matchLabel, odds, handicap, betCount }]
+var _boBaseAmount = 0;
+
 window.showBonusOptimize = function () {
-  // 计算总金额（注数 × 2元 × 倍数）
   var bets = calcBets(Object.keys(
     _selections.reduce(function (acc, s) { acc[s.matchId] = true; return acc; }, {})
   ).length);
-  var totalAmount = bets * 2 * (_multiplier || 1);
-  if (!totalAmount) totalAmount = 2;
+  _boBaseAmount = bets * 2 * (_multiplier || 1);
+  if (!_boBaseAmount) _boBaseAmount = 2;
 
-  // 计算过关组合及赔率
-  var matchGroups = {};
-  _selections.forEach(function (s) {
-    if (!matchGroups[s.matchId]) matchGroups[s.matchId] = [];
-    matchGroups[s.matchId].push(s.odds || 1);
-  });
-  var matchIds = Object.keys(matchGroups);
-  var n = matchIds.length;
-
-  // 生成所有过关组合
-  var combos = [];
-  _passTypes.forEach(function (k) {
-    if (k > n || k < 2) return;
-    var idxs = [];
-    for (var i = 0; i < n; i++) idxs.push(i);
-    var subs = getCombinations(idxs, k);
-    subs.forEach(function (sub) {
-      var product = 1;
-      sub.forEach(function (mi) {
-        product *= matchGroups[matchIds[mi]][0];
-      });
-      product = Math.round(product * 100) / 100;
-      combos.push({ pass: k, matchCombo: sub, odds: product });
-    });
+  // 构建行数据：每个选择一行
+  _boRows = _selections.map(function (s, idx) {
+    var m = _matches.find(function (x) { return x.matchId === s.matchId; }) || {};
+    var playLabel = ({ spf: '', rqspf: '让', bf: '比分', jqs: '总进球', bqc: '半全场' })[s.playType] || '';
+    var numText = (m.matchNum || '').replace(/^[周一二三四五六日]+/, '');
+    var matchLabel = (m.homeName || '') + ' vs ' + (m.visitName || '');
+    var dirLabel = (s.playType === 'rqspf' ? '让' : '') + (s.direction || s.oddsName || '');
+    var desc = playLabel ? (playLabel + ' ' + dirLabel) : dirLabel;
+    return {
+      id: idx,
+      matchNum: numText,
+      matchLabel: matchLabel,
+      direction: dirLabel,
+      playType: s.playType,
+      desc: desc,
+      odds: Number(s.odds) || 1,
+    };
   });
 
-  if (combos.length === 0) {
-    alert('当前方案暂无过关组合可优化');
-    return;
-  }
+  if (_boRows.length === 0) { alert('暂无方案数据'); return; }
 
-  // 奖金优化：平等收益分配 (Dutching)
-  // weight_i = 1 / odds_i，然后归一化
-  var totalWeight = 0;
-  combos.forEach(function (c) { totalWeight += 1 / c.odds; });
-  combos.forEach(function (c) {
-    c.weight = Math.round((1 / c.odds / totalWeight) * 10000) / 100;
-    c.allocAmount = Math.round(totalAmount * c.weight / 100 * 100) / 100;
-    c.estReturn = Math.round(c.allocAmount * c.odds * 100) / 100;
-  });
+  _boStrategy = 'balanced';
+  applyStrategy();
 
-  // 弹窗渲染
+  // 弹窗容器
   var old = document.getElementById('bonusOptOverlay');
   if (old) old.remove();
   var overlay = document.createElement('div');
   overlay.id = 'bonusOptOverlay';
   overlay.className = 'ai-overlay';
   overlay.onclick = function (e) {
-    if (e.target === overlay) overlay.classList.remove('active');
+    if (e.target === overlay) closeBonusOpt();
   };
   document.body.appendChild(overlay);
 
-  var rowsHtml = combos.map(function (c, i) {
-    var matchLabel = c.matchCombo.map(function (mi) {
-      var mid = matchIds[mi];
-      var m = _matches.find(function (x) { return x.matchId === mid; }) || {};
-      return (m.matchNum || mid).replace(/^[周一二三四五六日]+/, '');
-    }).join('+');
-    return '<tr><td>' + c.pass + '关</td><td>' + matchLabel + '</td>' +
-      '<td class="bo-odds">' + c.odds.toFixed(2) + '</td>' +
-      '<td>' + c.weight.toFixed(1) + '%</td>' +
-      '<td class="bo-alloc">' + c.allocAmount.toFixed(2) + '</td>' +
-      '<td class="bo-ret">≈' + c.estReturn.toFixed(2) + '</td></tr>';
-  }).join('');
-
-  overlay.innerHTML =
-    '<div class="ai-modal" onclick="event.stopPropagation()">' +
-    '<div class="bet-popup">' +
-    '<div class="bet-popup-header">' +
-    '<span class="bet-popup-title">奖金优化</span>' +
-    '<button class="bet-popup-close" onclick="var o=document.getElementById(\'bonusOptOverlay\');if(o)o.classList.remove(\'active\')">&times;</button>' +
-    '</div>' +
-    '<div class="bo-desc">采用<b>平等收益(Dutching)</b>策略，将方案总金额按各过关组合赔率的倒数比例分配，使得任意组合中奖后收益趋于相等，降低波动风险。</div>' +
-    '<div class="bo-summary"><span>总预算：<b>' + totalAmount.toFixed(2) + '</b> 元</span><span>组合数：<b>' + combos.length + '</b></span></div>' +
-    '<div class="bo-table-wrap"><table class="bo-table"><thead><tr><th>过关</th><th>场次</th><th>赔率</th><th>权重</th><th>分配(元)</th><th>预估回报</th></tr></thead><tbody>' +
-    rowsHtml +
-    '</tbody></table></div>' +
-    '<div class="bet-footer"><button class="bet-btn-cancel" onclick="var o=document.getElementById(\'bonusOptOverlay\');if(o)o.classList.remove(\'active\')">关闭</button></div>' +
-    '</div></div>';
-
+  renderBonusOpt();
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
 };
 
-// 组合生成辅助函数
-function getCombinations(arr, k) {
-  if (k === 0) return [[]];
-  if (arr.length < k) return [];
-  var first = arr[0], rest = arr.slice(1);
-  var withFirst = getCombinations(rest, k - 1).map(function (c) { return [first].concat(c); });
-  var withoutFirst = getCombinations(rest, k);
-  return withFirst.concat(withoutFirst);
+function applyStrategy() {
+  var total = _boBaseAmount;
+  var rows = _boRows;
+  var n = rows.length;
+  if (n === 0) return;
+
+  if (_boStrategy === 'balanced') {
+    // 奖金平均：weight_i = 1/odds_i / sum(1/odds_j)
+    var totalInv = 0;
+    rows.forEach(function (r) { totalInv += 1 / r.odds; });
+    rows.forEach(function (r) {
+      var weight = (1 / r.odds) / totalInv;
+      r.betCount = Math.round(total * weight / 2);
+      r.projected = Math.round(r.betCount * 2 * r.odds * 100) / 100;
+    });
+    // 修正取整误差
+    var actualTotal = rows.reduce(function (s, r) { return s + r.betCount * 2; }, 0);
+    var diff = total - actualTotal;
+    if (diff !== 0 && rows.length > 0) {
+      rows[0].betCount += Math.round(diff / 2);
+      rows[0].projected = Math.round(rows[0].betCount * 2 * rows[0].odds * 100) / 100;
+    }
+  } else if (_boStrategy === 'hot') {
+    // 博彩保本：热门（最低赔率）最大，其他保本
+    // 找热门 = 最低赔率
+    var hotIdx = 0;
+    for (var i = 1; i < n; i++) { if (rows[i].odds < rows[hotIdx].odds) hotIdx = i; }
+    // 其他行保本：betCount * 2 * odds >= total → betCount = ceil(total / 2 / odds)
+    var safeguard = 0;
+    rows.forEach(function (r, i) {
+      if (i === hotIdx) return;
+      r.betCount = Math.ceil(total / 2 / r.odds);
+      safeguard += r.betCount * 2;
+    });
+    var remaining = total - safeguard;
+    rows[hotIdx].betCount = Math.max(0, Math.floor(remaining / 2));
+    rows.forEach(function (r) {
+      r.projected = Math.round(r.betCount * 2 * r.odds * 100) / 100;
+    });
+  } else if (_boStrategy === 'cold') {
+    // 奖金最高：冷门（最高赔率）最大，其他保本
+    var coldIdx = 0;
+    for (var j = 1; j < n; j++) { if (rows[j].odds > rows[coldIdx].odds) coldIdx = j; }
+    var safeguard2 = 0;
+    rows.forEach(function (r, i) {
+      if (i === coldIdx) return;
+      r.betCount = Math.ceil(total / 2 / r.odds);
+      safeguard2 += r.betCount * 2;
+    });
+    var remaining2 = total - safeguard2;
+    rows[coldIdx].betCount = Math.max(0, Math.floor(remaining2 / 2));
+    rows.forEach(function (r) {
+      r.projected = Math.round(r.betCount * 2 * r.odds * 100) / 100;
+    });
+  }
 }
+
+function renderBonusOpt() {
+  var overlay = document.getElementById('bonusOptOverlay');
+  if (!overlay) return;
+  var total = _boBaseAmount;
+
+  var tabBal = _boStrategy === 'balanced' ? ' active' : '';
+  var tabHot = _boStrategy === 'hot' ? ' active' : '';
+  var tabCold = _boStrategy === 'cold' ? ' active' : '';
+
+  var persecond = total.toFixed(2) + '元 · ' + _boRows.length + '个选项';
+
+  var rowsHtml = _boRows.map(function (r, idx) {
+    // 判断基准行（热门/冷门标记）
+    var isTarget = false;
+    if (_boStrategy === 'hot') {
+      var hotMin = Math.min.apply(null, _boRows.map(function (rr) { return rr.odds; }));
+      isTarget = r.odds === hotMin;
+    } else if (_boStrategy === 'cold') {
+      var coldMax = Math.max.apply(null, _boRows.map(function (rr) { return rr.odds; }));
+      isTarget = r.odds === coldMax;
+    }
+    var stepperCls = isTarget ? ' active' : '';
+    var amountCls = r.projected >= _boBaseAmount ? ' bo-amount-hot' : '';
+
+    return '<div class="bo-row' + (idx === _boRows.length - 1 ? '' : '') + '">' +
+      '<div class="bo-cell bo-cell-pass"><span class="bo-pass-tag">' + (_passTypes.length > 0 && _passTypes[0] > 1 ? _passTypes[0] + '关' : '单关') + '</span></div>' +
+      '<div class="bo-cell bo-cell-desc"><span class="bo-desc-line1">' + (r.matchNum || '') + ' ' + r.matchLabel + '</span><span class="bo-desc-line2">' + r.desc + '(' + r.odds.toFixed(2) + ')</span></div>' +
+      '<div class="bo-cell bo-cell-bet"><div class="bo-stepper' + stepperCls + '">' +
+        '<button class="bo-step-btn" onclick="boStep(' + idx + ',-10)">-</button>' +
+        '<input class="bo-step-input" id="bo-inp-' + idx + '" value="' + r.betCount + '" onchange="boInput(' + idx + ',this.value)">' +
+        '<button class="bo-step-btn" onclick="boStep(' + idx + ',10)">+</button>' +
+      '</div></div>' +
+      '<div class="bo-cell bo-cell-amount' + amountCls + '">' + r.projected.toFixed(2) + '</div>' +
+      '</div>';
+  }).join('');
+
+  overlay.innerHTML =
+    '<div class="ai-modal bo-modal-wrap" onclick="event.stopPropagation()">' +
+    '<div class="bo-panel">' +
+    '<div class="bo-header">' +
+      '<span class="bo-title">奖金优化</span>' +
+      '<button class="bo-close" onclick="closeBonusOpt()">&times;</button>' +
+    '</div>' +
+    '<div class="bo-tab-wrap">' +
+      '<div class="bo-tab' + tabBal + '" onclick="boSwitchTab(\'balanced\')">奖金平均</div>' +
+      '<div class="bo-tab' + tabHot + '" onclick="boSwitchTab(\'hot\')">博彩保本</div>' +
+      '<div class="bo-tab' + tabCold + '" onclick="boSwitchTab(\'cold\')">奖金最高</div>' +
+    '</div>' +
+    '<div class="bo-desc-row"><span>总预算：<b>' + total.toFixed(2) + '</b> 元</span><span>' + persecond + '</span></div>' +
+    '<div class="bo-thead"><div class="bo-th col-pass">过关</div><div class="bo-th col-desc">单注组合</div><div class="bo-th col-bet">注数分布</div><div class="bo-th col-amount">预测奖金</div></div>' +
+    '<div class="bo-tbody">' + rowsHtml + '</div>' +
+    '<div class="bo-footer"><button class="bet-btn-cancel" onclick="closeBonusOpt()">关闭</button></div>' +
+    '</div></div>';
+}
+
+window.boSwitchTab = function (tab) {
+  _boStrategy = tab;
+  applyStrategy();
+  renderBonusOpt();
+};
+
+window.boStep = function (idx, delta) {
+  var row = _boRows[idx];
+  row.betCount = Math.max(0, row.betCount + Math.round(delta / 10));
+  row.projected = Math.round(row.betCount * 2 * row.odds * 100) / 100;
+  var inp = document.getElementById('bo-inp-' + idx);
+  if (inp) inp.value = row.betCount;
+  // 更新金额列
+  updateBoAmounts();
+};
+
+window.boInput = function (idx, val) {
+  var row = _boRows[idx];
+  row.betCount = Math.max(0, parseInt(val) || 0);
+  row.projected = Math.round(row.betCount * 2 * row.odds * 100) / 100;
+  updateBoAmounts();
+};
+
+function updateBoAmounts() {
+  _boRows.forEach(function (r, idx) {
+    var cell = document.querySelector('#bonusOptOverlay .bo-row:nth-child(' + (idx + 1) + ') .bo-cell-amount');
+    if (cell) {
+      cell.textContent = r.projected.toFixed(2);
+      if (r.projected >= _boBaseAmount) cell.classList.add('bo-amount-hot');
+      else cell.classList.remove('bo-amount-hot');
+    }
+  });
+}
+
+function closeBonusOpt() {
+  var o = document.getElementById('bonusOptOverlay');
+  if (o) { o.classList.remove('active'); o.innerHTML = ''; }
+  document.body.style.overflow = '';
+}
+window.closeBonusOpt = closeBonusOpt;
+
