@@ -155,8 +155,18 @@ DEPLOY_MAP = [
     ('server/deepseek.js',                'both'),
     ('server/doubao.js',                  'both'),
     ('server/ai_merger.js',               'both'),
+    ('server/ai_daemon.js',               'both'),
     ('server/prediction_log.js',          'both'),
     ('server/alert.js',                   'both'),
+    # ★ V7.1 新增核心模块（market.js 依赖 + 影子账户 + 赔率追踪）
+    ('server/core/odds-movement.js',      'both'),
+    ('server/core/market-overlay.js',     'both'),
+    ('server/core/odds-tracker.js',       'both'),
+    ('server/core/bet-scheme-filters.js', 'both'),
+    ('server/core/cache-warmer.js',       'both'),
+    ('server/core/league-heat-profile.js','both'),
+    ('server/core/match-context-collector.js','both'),
+    ('server/core/shadow-account.js',     'both'),
     ('ecosystem.config.json',             'pm2'),
     ('.gitignore',                        'both'),
 ]

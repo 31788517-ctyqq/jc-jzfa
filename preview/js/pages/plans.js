@@ -557,20 +557,72 @@ export function loadMyPlanList() {
     });
 }
 
+// ═══ 自定义确认弹窗工厂 ═══
+function _confirmDelete(planId, planName, onSuccess) {
+  var overlay = document.createElement('div');
+  overlay.className = 'del-overlay active';
+  overlay.innerHTML =
+    '<div class="del-modal">' +
+    '<div class="del-modal-head">' +
+    '<span class="del-modal-icon">&#x26A0;&#xFE0F;</span>' +
+    '<span class="del-modal-title">确认删除</span>' +
+    '</div>' +
+    '<div class="del-modal-body">' +
+    '<p>' + (planName ? '确定删除方案「' + planName + '」吗？' : '确定删除这个方案吗？') + '</p>' +
+    '<p class="del-modal-sub">删除后无法恢复</p>' +
+    '</div>' +
+    '<div class="del-modal-foot">' +
+    '<button class="del-btn-cancel">取消</button>' +
+    '<button class="del-btn-confirm">确认删除</button>' +
+    '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+
+  var close = function () {
+    overlay.classList.remove('active');
+    setTimeout(function () { overlay.remove(); }, 300);
+  };
+  overlay.querySelector('.del-btn-cancel').onclick = close;
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) close();
+  });
+
+  var confirmBtn = overlay.querySelector('.del-btn-confirm');
+  confirmBtn.onclick = function () {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = '删除中...';
+    api('my-plan-delete', { planId: planId }).then(function () {
+      close();
+      onSuccess();
+    }).catch(function (e) {
+      var body = overlay.querySelector('.del-modal-body');
+      var errEl = body.querySelector('.del-err');
+      if (!errEl) {
+        errEl = document.createElement('p');
+        errEl.className = 'del-err';
+        body.appendChild(errEl);
+      }
+      errEl.textContent = '删除失败: ' + (e && e.message);
+      setTimeout(function () {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = '确认删除';
+      }, 2500);
+    });
+  };
+}
+
 // ═══ 我的方案 — 删除 ═══
 window.deletePlanCard = function (planId) {
-  if (!confirm('确定删除这个方案吗？')) return;
-  api('my-plan-delete', { planId: planId }).then(function () {
-    loadMyPlanList();
-  }).catch(function (e) {
-    alert('删除失败: ' + e.message);
-  });
+  var card = document.getElementById('upcard-' + planId);
+  var nameEl = card ? card.querySelector('.plan-name') : null;
+  var planName = nameEl ? nameEl.textContent.trim() : '';
+  _confirmDelete(planId, planName, function () { loadMyPlanList(); });
 };
 
 // ═══ 我的方案 — 分享截图 ═══
 window.sharePlanCard = function (planId) {
   var card = document.getElementById('upcard-' + planId);
-  if (!card) { alert('方案卡片未找到'); return; }
+  if (!card) { _toast('方案卡片未找到', 'err'); return; }
 
   var loadHtml2Canvas = window.html2canvas
     ? Promise.resolve(window.html2canvas)
@@ -582,47 +634,316 @@ window.sharePlanCard = function (planId) {
         document.head.appendChild(script);
       });
 
-  loadHtml2Canvas.then(function (html2canvas) {
-    var actions = card.querySelector('.mp-actions');
-    if (actions) actions.style.display = 'none';
+  _toast('正在生成分享图片...', 'info');
 
-    html2canvas(card, {
-      backgroundColor: '#0e1822',
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      onclone: function (clonedDoc) {
-        var clonedActions = clonedDoc.querySelector('.mp-actions');
-        if (clonedActions) clonedActions.style.display = 'none';
-      },
-    }).then(function (canvas) {
-      if (actions) actions.style.display = '';
-      canvas.toBlob(function (blob) {
-        if (!blob) return;
-        var file = new File([blob], 'plan-' + planId + '.png', { type: 'image/png' });
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-          navigator.share({ title: '竞彩方案分享', text: '来自竞彩推荐监控的自定义方案', files: [file] })
-            .catch(function () { _downloadPlanImage(canvas, planId); });
-        } else {
-          _downloadPlanImage(canvas, planId);
-        }
-      }, 'image/png');
-    }).catch(function (e) {
-      if (actions) actions.style.display = '';
-      alert('截图失败: ' + e.message);
-    });
+  loadHtml2Canvas.then(function (html2canvas) {
+    var shareEl = _buildShareCard(card);
+    document.body.appendChild(shareEl);
+
+    // 等待图片加载后截图
+    setTimeout(function () {
+      html2canvas(shareEl, {
+        scale: 1,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+      }).then(function (canvas) {
+        shareEl.remove();
+        _showShareModal(planId, canvas, card);
+      }).catch(function (e) {
+        shareEl.remove();
+        _toast('截图失败: ' + e.message, 'err');
+      });
+    }, 200);
   }).catch(function (e) {
-    alert('分享组件加载失败: ' + e.message);
+    _toast('分享组件加载失败: ' + e.message, 'err');
   });
 };
 
-function _downloadPlanImage(canvas, planId) {
-  var link = document.createElement('a');
-  link.download = 'plan-' + planId + '.png';
-  link.href = canvas.toDataURL('image/png');
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+// ═══ 构建 750px 高品质分享卡片 DOM ═══
+function _buildShareCard(cardEl) {
+  // ── 提取数据 ──
+  var name = '';
+  var nameEl = cardEl.querySelector('.plan-name');
+  if (nameEl) name = nameEl.textContent.trim();
+
+  var date = '';
+  var dateEl = cardEl.querySelector('.plan-pub-time');
+  if (dateEl) {
+    date = dateEl.textContent.trim();
+    // 尝试提取 MM/DD
+    var dm = date.match(/(\d{2}\/\d{2})/);
+    if (dm) date = dm[1];
+  }
+
+  // 金额行
+  var amountCols = cardEl.querySelectorAll('.plan-amount-col');
+  var amountLabel = '', amountValue = '';
+  var prizeLabel = '', prizeValue = '';
+  var statusText = '未开奖';
+
+  if (amountCols.length >= 1) {
+    var al = amountCols[0].querySelector('.plan-amount-label');
+    var av = amountCols[0].querySelector('.plan-amount-value');
+    amountLabel = al ? al.textContent.trim() : '';
+    amountValue = av ? av.textContent.trim().replace(/\s+/g, '') : '';
+  }
+  if (amountCols.length >= 2) {
+    var pl = amountCols[1].querySelector('.plan-amount-label');
+    var pv = amountCols[1].querySelector('.plan-amount-value');
+    prizeLabel = pl ? pl.textContent.trim() : '';
+    prizeValue = pv ? pv.textContent.trim().replace(/\s+/g, '') : '';
+  }
+  if (amountCols.length >= 3) {
+    var sv = amountCols[2].querySelector('.plan-amount-value');
+    if (sv) statusText = sv.textContent.trim();
+  }
+
+  // 信息行
+  var infoRights = cardEl.querySelectorAll('.plan-info-right > div');
+  var playType = infoRights[0] ? infoRights[0].textContent.trim() : '混合投注';
+  var passType = infoRights[1] ? infoRights[1].textContent.trim() : '--';
+  var betCount = infoRights[2] ? infoRights[2].textContent.trim() : '--';
+
+  // 比赛行
+  var matchRowsEl = cardEl.querySelectorAll('.plan-match-table tbody tr');
+  var matchRows = '';
+  matchRowsEl.forEach(function (row) {
+    var cells = row.querySelectorAll('td');
+    if (cells.length < 3) return;
+    var numEl = cells[0].querySelector('.match-num-text');
+    var num = numEl ? numEl.textContent.trim() : '';
+    var homeEl = cells[1].querySelector('.plan-team-home');
+    var awayEl = cells[1].querySelector('.plan-team-away');
+    var home = homeEl ? homeEl.textContent.trim() : '';
+    var away = awayEl ? awayEl.textContent.trim() : '';
+    var odds = cells[2].textContent.trim().replace(/\s+/g, ' ').substring(0, 40);
+    matchRows +=
+      '<div class="match-row">' +
+      '<div class="round">' + num + '</div>' +
+      '<div class="vs">' + home + '<span>VS</span>' + away + '</div>' +
+      '<div class="bet">' + odds + '</div>' +
+      '</div>';
+  });
+
+  // 金额值分离数字和单位
+  var amtNum = amountValue, amtUnit = '元';
+  var amtMatch = amountValue.match(/^([\d.]+)(.*)/);
+  if (amtMatch) { amtNum = amtMatch[1]; amtUnit = amtMatch[2] || '元'; }
+
+  var pNum = prizeValue, pUnit = '元';
+  var pMatch = prizeValue.match(/^([+\-]?[\d.]+)(.*)/);
+  if (pMatch) { pNum = pMatch[1]; pUnit = pMatch[2] || '元'; }
+
+  var wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;width:750px;';
+  wrapper.innerHTML =
+    '<style>' +
+    '*{margin:0;padding:0;box-sizing:border-box;}' +
+    '.share-card{' +
+    'width:750px;min-height:1624px;padding:56px 40px 120px;' +
+    'background:radial-gradient(circle at top,#05294A 0%,#01131F 65%,#010D16 100%);' +
+    'position:relative;overflow:hidden;' +
+    '}' +
+    '.share-card::after{' +
+    'content:"";position:absolute;left:-120px;right:-120px;bottom:-260px;' +
+    'height:520px;border-radius:50%;' +
+    'border:4px solid rgba(0,220,255,.18);' +
+    'box-shadow:0 0 120px rgba(0,220,255,.18);pointer-events:none;' +
+    '}' +
+    '.sc-header{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;}' +
+    '.sc-title-wrap{display:flex;align-items:center;}' +
+    '.sc-ball{font-size:48px;margin-right:18px;}' +
+    '.sc-title{font-size:54px;font-weight:700;color:#FFFFFF;}' +
+    '.sc-date{font-size:30px;color:#A9B5C3;}' +
+    '.sc-summary{margin-top:56px;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;}' +
+    '.sc-sum-item{flex:1;text-align:center;}' +
+    '.sc-label{color:#A8B5C4;font-size:24px;}' +
+    '.sc-value{margin-top:22px;color:#20EAFF;font-size:56px;font-weight:700;}' +
+    '.sc-value span{font-size:24px;margin-left:4px;}' +
+    '.sc-status{margin-top:22px;color:#FFD322;font-size:56px;font-weight:700;}' +
+    '.sc-divider{width:2px;height:120px;background:rgba(0,220,255,.25);}' +
+    '.sc-info{margin-top:60px;padding-top:42px;border-top:2px solid rgba(0,220,255,.18);position:relative;z-index:1;}' +
+    '.sc-info-row{display:flex;margin-bottom:34px;}' +
+    '.sc-info-left{width:180px;color:#AAB4C0;font-size:28px;}' +
+    '.sc-info-right{font-size:32px;font-weight:600;color:#21EEFF;}' +
+    '.sc-table{margin-top:50px;border-radius:28px;overflow:hidden;' +
+    'border:2px solid rgba(0,220,255,.22);background:rgba(0,15,25,.45);' +
+    'backdrop-filter:blur(6px);position:relative;z-index:1;}' +
+    '.sc-th{height:92px;display:grid;grid-template-columns:120px 1fr 260px;' +
+    'background:rgba(0,220,255,.05);border-bottom:1px solid rgba(0,220,255,.15);}' +
+    '.sc-th div{display:flex;align-items:center;justify-content:center;color:#AEB9C4;font-size:26px;font-weight:600;}' +
+    '.match-row{min-height:220px;display:grid;grid-template-columns:120px 1fr 260px;' +
+    'border-bottom:1px solid rgba(0,220,255,.12);}' +
+    '.match-row:last-child{border-bottom:none;}' +
+    '.round{display:flex;align-items:center;justify-content:center;' +
+    'color:#AEB9C4;font-size:26px;font-weight:600;}' +
+    '.vs{display:flex;flex-direction:column;justify-content:center;align-items:center;' +
+    'color:#FFFFFF;font-size:30px;font-weight:700;line-height:60px;}' +
+    '.vs span{color:#8C96A2;font-size:26px;}' +
+    '.bet{display:flex;align-items:center;justify-content:center;text-align:center;' +
+    'color:#FFFFFF;font-size:26px;font-weight:600;padding:0 20px;line-height:40px;}' +
+    '</style>' +
+    '<div class="share-card">' +
+    '<div class="sc-header">' +
+    '<div class="sc-title-wrap"><div class="sc-ball">&#x26BD;</div><div class="sc-title">' + name + '</div></div>' +
+    '<div class="sc-date">' + date + '</div>' +
+    '</div>' +
+    '<div class="sc-summary">' +
+    '<div class="sc-sum-item"><div class="sc-label">' + amountLabel + '</div><div class="sc-value">' + amtNum + '<span>' + amtUnit + '</span></div></div>' +
+    '<div class="sc-divider"></div>' +
+    '<div class="sc-sum-item"><div class="sc-label">' + prizeLabel + '</div><div class="sc-value">' + pNum + '<span>' + pUnit + '</span></div></div>' +
+    '<div class="sc-divider"></div>' +
+    '<div class="sc-sum-item"><div class="sc-label">方案状态</div><div class="sc-status">' + statusText + '</div></div>' +
+    '</div>' +
+    '<div class="sc-info">' +
+    '<div class="sc-info-row"><span class="sc-info-left">玩法</span><span class="sc-info-right">' + playType + '</span></div>' +
+    '<div class="sc-info-row"><span class="sc-info-left">场数/过关</span><span class="sc-info-right">' + passType + '</span></div>' +
+    '<div class="sc-info-row"><span class="sc-info-left">注数/倍数</span><span class="sc-info-right">' + betCount + '</span></div>' +
+    '</div>' +
+    '<div class="sc-table"><div class="sc-th"><div>场次</div><div>对阵</div><div>投注(赔率)</div></div>' +
+    matchRows +
+    '</div>' +
+    '</div>';
+
+  return wrapper;
+}
+
+// ═══ 分享预览弹窗（通用） ═══
+function _showShareModal(planId, canvas, cardEl) {
+  var overlay = document.createElement('div');
+  overlay.className = 'share-overlay active';
+  var imgSrc = canvas.toDataURL('image/png');
+
+  // 提取方案文字信息
+  var infoLines = _extractPlanInfo(cardEl);
+
+  overlay.innerHTML =
+    '<div class="share-modal">' +
+    '<div class="share-modal-header">' +
+    '<span class="share-modal-title">&#x1F4E4; 分享方案</span>' +
+    '<button class="share-modal-close">&times;</button>' +
+    '</div>' +
+    '<div class="share-modal-body">' +
+    '<div class="share-img-wrap">' +
+    '<img src="' + imgSrc + '" alt="方案截图" decoding="async" />' +
+    '<div class="share-img-hint">&#x1F446; 长按图片可发送给微信好友</div>' +
+    '</div>' +
+    '</div>' +
+    '<div class="share-modal-foot">' +
+    '<button class="share-btn-copy">&#x1F4CB; 复制方案信息</button>' +
+    '<button class="share-btn-save">&#x1F4BE; 保存图片</button>' +
+    '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+
+  var close = function () {
+    overlay.classList.remove('active');
+    setTimeout(function () { overlay.remove(); }, 300);
+  };
+  overlay.querySelector('.share-modal-close').onclick = close;
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) close();
+  });
+
+  // 复制方案信息
+  overlay.querySelector('.share-btn-copy').onclick = function () {
+    navigator.clipboard.writeText(infoLines).then(function () {
+      var btn = overlay.querySelector('.share-btn-copy');
+      btn.textContent = '\u2714 已复制';
+      btn.classList.add('copied');
+      setTimeout(function () {
+        btn.textContent = '\uD83D\uDCCB 复制方案信息';
+        btn.classList.remove('copied');
+      }, 2000);
+    }).catch(function () {
+      var ta = document.createElement('textarea');
+      ta.value = infoLines;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      var btn = overlay.querySelector('.share-btn-copy');
+      btn.textContent = '\u2714 已复制';
+      btn.classList.add('copied');
+      setTimeout(function () {
+        btn.textContent = '\uD83D\uDCCB 复制方案信息';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  };
+
+  // 保存图片
+  overlay.querySelector('.share-btn-save').onclick = function () {
+    var link = document.createElement('a');
+    link.download = 'plan-' + planId + '.png';
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    _toast('图片已保存', 'ok');
+  };
+}
+
+// ═══ 从方案卡片 DOM 提取文字信息 ═══
+function _extractPlanInfo(cardEl) {
+  var lines = [];
+  var nameEl = cardEl.querySelector('.plan-name');
+  if (nameEl) lines.push(nameEl.textContent.trim());
+  lines.push('');
+
+  // 比赛信息
+  var rows = cardEl.querySelectorAll('.plan-match-table tbody tr');
+  rows.forEach(function (row) {
+    var cells = row.querySelectorAll('td');
+    if (cells.length >= 3) {
+      var num = cells[0].textContent.trim().replace(/\s+/g, ' ');
+      var teams = cells[1].textContent.trim().replace(/\s+/g, ' ');
+      var odds = cells[2].textContent.trim().replace(/\s+/g, ' ');
+      if (num || teams) lines.push((num || '') + '  ' + teams + '  ' + (odds || ''));
+    }
+  });
+
+  // 方案金额和奖金
+  var amountCols = cardEl.querySelectorAll('.plan-amount-col');
+  if (amountCols.length >= 2) {
+    var amtLabel = amountCols[0].querySelector('.plan-amount-label');
+    var amtVal = amountCols[0].querySelector('.plan-amount-value');
+    var prizeLabel = amountCols[1].querySelector('.plan-amount-label');
+    var prizeVal = amountCols[1].querySelector('.plan-amount-value');
+    lines.push('');
+    if (amtLabel && amtVal) lines.push((amtLabel.textContent.trim() + ': ' + amtVal.textContent.trim()).replace(/\s+/g, ' '));
+    if (prizeLabel && prizeVal) lines.push((prizeLabel.textContent.trim() + ': ' + prizeVal.textContent.trim()).replace(/\s+/g, ' '));
+  }
+
+  return lines.join('\n');
+}
+
+// ═══ Toast 轻提示 ═══
+function _toast(msg, type) {
+  var el = document.getElementById('shareToast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'shareToast';
+    el.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:99999;padding:10px 24px;border-radius:20px;font-size:13px;font-weight:600;pointer-events:none;transition:opacity 0.3s;opacity:0;';
+    document.body.appendChild(el);
+  }
+  if (type === 'err') {
+    el.style.background = 'rgba(239,68,68,0.9)';
+    el.style.color = '#fff';
+  } else if (type === 'ok') {
+    el.style.background = 'rgba(34,197,94,0.9)';
+    el.style.color = '#fff';
+  } else {
+    el.style.background = 'rgba(0,0,0,0.8)';
+    el.style.color = '#fff';
+  }
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(function () { el.style.opacity = '0'; }, 2000);
 }
 
 // ========== 比分方案 ==========
