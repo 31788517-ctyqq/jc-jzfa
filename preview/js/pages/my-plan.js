@@ -308,15 +308,34 @@ function _buildShareCard(cardEl) {
     '*{margin:0;padding:0;box-sizing:border-box;}' +
     '.share-card{' +
     'width:750px;min-height:1624px;padding:56px 40px 120px;' +
-    'background:radial-gradient(circle at top,#05294A 0%,#01131F 65%,#010D16 100%);' +
+    'background:' +
+    'linear-gradient(90deg,#02131f 0%,#011a29 25%,#02131f 50%,#011a29 75%,#02131f 100%);' +
     'position:relative;overflow:hidden;' +
     '}' +
-    '.share-card::after{' +
-    'content:"";position:absolute;left:-120px;right:-120px;bottom:-260px;' +
-    'height:520px;border-radius:50%;' +
-    'border:4px solid rgba(0,220,255,.18);' +
-    'box-shadow:0 0 120px rgba(0,220,255,.18);pointer-events:none;' +
+    '.share-card::before{' +
+    'content:"";position:absolute;inset:0;' +
+    'background:repeating-linear-gradient(90deg,transparent 0px,rgba(0,255,255,.015) 80px,transparent 160px);' +
+    'pointer-events:none;z-index:0;' +
     '}' +
+    '.footer-glow{position:absolute;left:0;right:0;bottom:0;height:500px;pointer-events:none;z-index:0;}' +
+    '.glow-1{position:absolute;left:-250px;bottom:-380px;width:1250px;height:650px;border-radius:50%;' +
+    'background:radial-gradient(ellipse at center,rgba(0,220,255,.28) 0%,rgba(0,220,255,.12) 35%,rgba(0,220,255,0) 72%);' +
+    'filter:blur(30px);}' +
+    '.glow-2{position:absolute;left:-120px;bottom:-220px;width:980px;height:420px;border-radius:50%;' +
+    'border:3px solid rgba(0,255,255,.28);' +
+    'box-shadow:0 0 25px rgba(0,255,255,.25),0 0 60px rgba(0,255,255,.18);}' +
+    '.glow-3{position:absolute;left:-60px;bottom:-185px;width:860px;height:360px;border-radius:50%;' +
+    'border:2px solid rgba(0,255,255,.12);filter:blur(1px);}' +
+    '.light-left{position:absolute;left:-80px;bottom:-40px;width:360px;height:260px;' +
+    'background:radial-gradient(ellipse at left bottom,rgba(0,255,255,.22),rgba(0,255,255,0));' +
+    'filter:blur(35px);transform:rotate(-12deg);}' +
+    '.light-right{position:absolute;right:-100px;bottom:-60px;width:420px;height:280px;' +
+    'background:radial-gradient(ellipse at right bottom,rgba(0,255,255,.18),rgba(0,255,255,0));' +
+    'filter:blur(40px);}' +
+    '.particle{position:absolute;right:0;bottom:0;width:240px;height:180px;opacity:.25;' +
+    'background-image:radial-gradient(circle,rgba(0,255,255,.8) 1px,transparent 1px);' +
+    'background-size:12px 12px;' +
+    'mask-image:linear-gradient(to top,#000,transparent);}' +
     '.sc-header{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;}' +
     '.sc-title-wrap{display:flex;align-items:center;}' +
     '.sc-ball{font-size:48px;margin-right:18px;}' +
@@ -369,6 +388,11 @@ function _buildShareCard(cardEl) {
     '</div>' +
     '<div class="sc-table"><div class="sc-th"><div>场次</div><div>对阵</div><div>投注(赔率)</div></div>' +
     matchRows +
+    '</div>' +
+    '<div class="footer-glow">' +
+    '<div class="glow-1"></div><div class="glow-2"></div><div class="glow-3"></div>' +
+    '<div class="light-left"></div><div class="light-right"></div>' +
+    '<div class="particle"></div>' +
     '</div>' +
     '</div>';
 
