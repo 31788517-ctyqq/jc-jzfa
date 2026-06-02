@@ -201,7 +201,7 @@ function loadStats() {
     el.innerHTML =
       '<div class="scheme-stat-item" onclick="try{sessionStorage.setItem(\'pendingPlanTab\',\'my\');}catch(e){}switchTab(\'plan\')"><div class="scheme-stat-val">' + (stats.count || 0) + '</div><div class="scheme-stat-lbl">历史方案</div></div>' +
       '<div class="scheme-stat-div"></div>' +
-      '<div class="scheme-stat-item"><div class="scheme-stat-val ' + incomeCls + '">' + incomeStr + '</div><div class="scheme-stat-lbl">方案收入(分)</div></div>' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val ' + incomeCls + '">' + incomeStr + '</div><div class="scheme-stat-lbl">方案收入</div></div>' +
       '<div class="scheme-stat-div"></div>' +
       '<div class="scheme-stat-item"><div class="scheme-stat-val">' + (stats.hitRate || 0) + '%</div><div class="scheme-stat-lbl">命中率</div></div>';
   }).catch(function () {
@@ -209,7 +209,7 @@ function loadStats() {
     if (el) el.innerHTML =
       '<div class="scheme-stat-item"><div class="scheme-stat-val">0</div><div class="scheme-stat-lbl">历史方案</div></div>' +
       '<div class="scheme-stat-div"></div>' +
-      '<div class="scheme-stat-item"><div class="scheme-stat-val">0</div><div class="scheme-stat-lbl">方案收入(分)</div></div>' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val">0</div><div class="scheme-stat-lbl">方案收入</div></div>' +
       '<div class="scheme-stat-div"></div>' +
       '<div class="scheme-stat-item"><div class="scheme-stat-val">0%</div><div class="scheme-stat-lbl">命中率</div></div>';
   });
@@ -491,19 +491,24 @@ function updateSummary() {
   if (count === 0) { bar.style.display = 'none'; return; }
   bar.style.display = 'flex';
 
-  // 期号（参考格式）
+  // 期号（根据方案日期计算，非固定"01"）
   var issueEl = document.getElementById('ssbIssueNum');
   if (issueEl) {
-    var d = new Date();
-    var y = String(d.getFullYear()).slice(2);
-    var m = String(d.getMonth() + 1).padStart(2, '0');
-    var issueNum = y + m + '01';
+    var schemeDate = _schemeDate ? new Date(_schemeDate) : new Date();
+    var y = String(schemeDate.getFullYear()).slice(2);
+    var m = String(schemeDate.getMonth() + 1).padStart(2, '0');
+    var day = schemeDate.getDate();
+    var weekNum = Math.ceil(day / 7);
+    var issueNum = y + m + String(weekNum).padStart(2, '0');
     issueEl.textContent = issueNum;
   }
 
-  // 已选数量
+  // ★ 已选数量 = 场次数（非赔率卡片数）
+  var uniqueMatchIds = {};
+  _selections.forEach(function(s) { uniqueMatchIds[s.matchId] = true; });
+  var matchCount = Object.keys(uniqueMatchIds).length;
   var badge = document.getElementById('schemeSelCountBadge');
-  if (badge) badge.textContent = count;
+  if (badge) badge.textContent = matchCount;
 
   // 过关显示
   var uniqueMatchIds = {};

@@ -174,13 +174,15 @@
   color: #FFC928;
 }
 
-/* 负 = 红色赔率 */
+/* 负 = 默认蓝色赔率（与正/平统一） */
 .bet-cell.lose .bet-odds {
-  color: #FF5B55;
+  color: #00E5FF;
 }
-.bet-cell.lose.selected .bet-name,
+.bet-cell.lose.selected .bet-name {
+  color: #FFC928;
+}
 .bet-cell.lose.selected .bet-odds {
-  color: #FF5B55;
+  color: #00E5FF;
 }
 
 /* 让球列 — 只读 */

@@ -154,14 +154,14 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
   html += '<span class="plan-soccer-icon">&#x26BD;</span>';
   html += '<span class="plan-name">我的方案</span>';
   html += '</div>';
-  html += '<span class="plan-pub-time">待确认</span>';
+  html += '<span class="bonus-opt-badge" onclick="event.stopPropagation();showBonusOptimize()" title="点击查看奖金优化方案">奖金优化</span>';
   html += '</div>';
 
   // 金额行（3列）
   html += '<div class="plan-amount-row">';
   html += '<div class="plan-amount-col"><div class="plan-amount-label">方案金额</div><div class="plan-amount-value">' + amount + '<span class="unit">元</span></div></div>';
   html += '<div class="plan-amount-col"><div class="plan-amount-label">预计奖金</div><div class="plan-amount-value">' + maxWin + '<span class="unit">元</span></div></div>';
-  html += '<div class="plan-amount-col"><div class="plan-amount-label">方案状态</div><div class="plan-amount-value" style="color:#FFC928;">待确认</div></div>';
+  html += '<div class="plan-amount-col"><div class="plan-amount-label">方案状态</div><div class="plan-amount-value"><span class="bonus-opt-badge-sm" onclick="event.stopPropagation();showBonusOptimize()">奖金优化</span></div></div>';
   html += '</div>';
 
   // 分割线
@@ -686,4 +686,107 @@ function updateSessionStore() {
   } catch (e) {
     console.error('存储方案数据失败:', e);
   }
+}
+
+// ═══ 奖金优化弹窗 ═══
+window.showBonusOptimize = function () {
+  // 计算总金额（注数 × 2元 × 倍数）
+  var bets = calcBets(Object.keys(
+    _selections.reduce(function (acc, s) { acc[s.matchId] = true; return acc; }, {})
+  ).length);
+  var totalAmount = bets * 2 * (_multiplier || 1);
+  if (!totalAmount) totalAmount = 2;
+
+  // 计算过关组合及赔率
+  var matchGroups = {};
+  _selections.forEach(function (s) {
+    if (!matchGroups[s.matchId]) matchGroups[s.matchId] = [];
+    matchGroups[s.matchId].push(s.odds || 1);
+  });
+  var matchIds = Object.keys(matchGroups);
+  var n = matchIds.length;
+
+  // 生成所有过关组合
+  var combos = [];
+  _passTypes.forEach(function (k) {
+    if (k > n || k < 2) return;
+    var idxs = [];
+    for (var i = 0; i < n; i++) idxs.push(i);
+    var subs = getCombinations(idxs, k);
+    subs.forEach(function (sub) {
+      var product = 1;
+      sub.forEach(function (mi) {
+        product *= matchGroups[matchIds[mi]][0];
+      });
+      product = Math.round(product * 100) / 100;
+      combos.push({ pass: k, matchCombo: sub, odds: product });
+    });
+  });
+
+  if (combos.length === 0) {
+    alert('当前方案暂无过关组合可优化');
+    return;
+  }
+
+  // 奖金优化：平等收益分配 (Dutching)
+  // weight_i = 1 / odds_i，然后归一化
+  var totalWeight = 0;
+  combos.forEach(function (c) { totalWeight += 1 / c.odds; });
+  combos.forEach(function (c) {
+    c.weight = Math.round((1 / c.odds / totalWeight) * 10000) / 100;
+    c.allocAmount = Math.round(totalAmount * c.weight / 100 * 100) / 100;
+    c.estReturn = Math.round(c.allocAmount * c.odds * 100) / 100;
+  });
+
+  // 弹窗渲染
+  var old = document.getElementById('bonusOptOverlay');
+  if (old) old.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'bonusOptOverlay';
+  overlay.className = 'ai-overlay';
+  overlay.onclick = function (e) {
+    if (e.target === overlay) overlay.classList.remove('active');
+  };
+  document.body.appendChild(overlay);
+
+  var rowsHtml = combos.map(function (c, i) {
+    var matchLabel = c.matchCombo.map(function (mi) {
+      var mid = matchIds[mi];
+      var m = _matches.find(function (x) { return x.matchId === mid; }) || {};
+      return (m.matchNum || mid).replace(/^[周一二三四五六日]+/, '');
+    }).join('+');
+    return '<tr><td>' + c.pass + '关</td><td>' + matchLabel + '</td>' +
+      '<td class="bo-odds">' + c.odds.toFixed(2) + '</td>' +
+      '<td>' + c.weight.toFixed(1) + '%</td>' +
+      '<td class="bo-alloc">' + c.allocAmount.toFixed(2) + '</td>' +
+      '<td class="bo-ret">≈' + c.estReturn.toFixed(2) + '</td></tr>';
+  }).join('');
+
+  overlay.innerHTML =
+    '<div class="ai-modal" onclick="event.stopPropagation()">' +
+    '<div class="bet-popup">' +
+    '<div class="bet-popup-header">' +
+    '<span class="bet-popup-title">奖金优化</span>' +
+    '<button class="bet-popup-close" onclick="var o=document.getElementById(\'bonusOptOverlay\');if(o)o.classList.remove(\'active\')">&times;</button>' +
+    '</div>' +
+    '<div class="bo-desc">采用<b>平等收益(Dutching)</b>策略，将方案总金额按各过关组合赔率的倒数比例分配，使得任意组合中奖后收益趋于相等，降低波动风险。</div>' +
+    '<div class="bo-summary"><span>总预算：<b>' + totalAmount.toFixed(2) + '</b> 元</span><span>组合数：<b>' + combos.length + '</b></span></div>' +
+    '<div class="bo-table-wrap"><table class="bo-table"><thead><tr><th>过关</th><th>场次</th><th>赔率</th><th>权重</th><th>分配(元)</th><th>预估回报</th></tr></thead><tbody>' +
+    rowsHtml +
+    '</tbody></table></div>' +
+    '<div class="bet-footer"><button class="bet-btn-cancel" onclick="var o=document.getElementById(\'bonusOptOverlay\');if(o)o.classList.remove(\'active\')">关闭</button></div>' +
+    '</div></div>';
+
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+};
+
+// 组合生成辅助函数
+function getCombinations(arr, k) {
+  if (k === 0) return [[]];
+  if (arr.length < k) return [];
+  var first = arr[0], rest = arr.slice(1);
+  var withFirst = getCombinations(rest, k - 1).map(function (c) { return [first].concat(c); });
+  var withoutFirst = getCombinations(rest, k);
+  return withFirst.concat(withoutFirst);
 }

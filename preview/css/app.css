@@ -1427,6 +1427,67 @@ body {
   font-size: 12px;
   color: rgba(255,255,255,0.65);
 }
+
+/* ★ 奖金优化标签 — 圆角 */
+.bonus-opt-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+  color: #FFC928; background: rgba(255,201,40,0.1);
+  border: 1px solid rgba(255,201,40,0.2);
+  cursor: pointer; transition: all 0.2s;
+  white-space: nowrap;
+}
+.bonus-opt-badge:hover {
+  background: rgba(255,201,40,0.18);
+  border-color: rgba(255,201,40,0.35);
+}
+.bonus-opt-badge-sm {
+  display: inline-block;
+  padding: 2px 10px; border-radius: 14px;
+  font-size: 11px; font-weight: 600;
+  color: #FFC928; background: rgba(255,201,40,0.1);
+  border: 1px solid rgba(255,201,40,0.2);
+  cursor: pointer; transition: all 0.2s;
+}
+.bonus-opt-badge-sm:hover {
+  background: rgba(255,201,40,0.18);
+}
+
+/* ★ 奖金优化弹窗 */
+.bo-desc {
+  padding: 10px 0; font-size: 12px; color: #8899aa;
+  line-height: 1.6; border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 10px;
+}
+.bo-desc b { color: #FFC928; }
+.bo-summary {
+  display: flex; justify-content: space-between;
+  padding: 8px 0; font-size: 12px; color: #aabbcc;
+}
+.bo-summary b { color: #00E5FF; }
+.bo-table-wrap {
+  max-height: 320px; overflow-y: auto;
+  margin: 8px 0; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.bo-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 11px; color: #ccddff;
+}
+.bo-table th {
+  padding: 8px 4px; text-align: center;
+  background: rgba(0,0,0,0.2); color: #64748B;
+  font-weight: 600; font-size: 10px;
+  position: sticky; top: 0; z-index: 1;
+}
+.bo-table td {
+  padding: 7px 4px; text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.bo-odds { color: #00E5FF; font-weight: 600; }
+.bo-alloc { color: #FFC928; font-weight: 600; }
+.bo-ret { color: #34D399; }
 /* 数据行 - 内容在两线之间垂直居中 */
 .plan-amount-row {
   position: relative;
