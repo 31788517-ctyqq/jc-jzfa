@@ -147,6 +147,57 @@ async function sync500Odds(dateStr) {
   }
 }
 
+// ═══ Task 1E: 赔率变化追踪（Delta日志，动态频率） ═══
+async function sync500OddsDelta(dateStr) {
+  log('[odds-delta] 开始 Delta 追踪: ' + dateStr);
+
+  try {
+    const newOdds = await fetch500Odds(dateStr);
+    if (Object.keys(newOdds).length === 0) {
+      log('[odds-delta] ' + dateStr + ' 无赔率数据，跳过');
+      return;
+    }
+
+    const filePath = path.join(ODDS_DIR, dateStr + '.json');
+    let oldOdds = {};
+    let isFirstSnapshot = true;
+
+    if (fs.existsSync(filePath) && fs.statSync(filePath).size > 100) {
+      try {
+        const raw = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        oldOdds = raw.odds || {};
+        isFirstSnapshot = false;
+      } catch (e) { /* 解析失败则重新创建 */ }
+    }
+
+    const { detectChanges, appendDeltaLog } = require('./core/odds-tracker');
+
+    let changedCount = 0;
+    if (!isFirstSnapshot) {
+      for (const num of Object.keys(newOdds)) {
+        const changes = detectChanges(oldOdds[num] || {}, newOdds[num], num);
+        if (changes) {
+          appendDeltaLog(ODDS_DIR, dateStr, num, changes);
+          changedCount++;
+        }
+      }
+    }
+
+    // 更新最新快照（覆盖写）
+    fs.writeFileSync(filePath, JSON.stringify({ date: dateStr, odds: newOdds, updated: new Date().toISOString() }));
+
+    if (isFirstSnapshot) {
+      log('[odds-delta] ' + dateStr + ' 初盘基准已保存 (' + Object.keys(newOdds).length + ' 场)');
+    } else if (changedCount > 0) {
+      log('[odds-delta] ' + dateStr + ': ' + changedCount + ' 场赔率变化已记录');
+    } else {
+      log('[odds-delta] ' + dateStr + ': 无变化');
+    }
+  } catch (e) {
+    log('[odds-delta] ' + dateStr + ' 失败: ' + e.message);
+  }
+}
+
 /** 对比 data.json 中的比赛编号，检查 500.com 赔率是否完整 */
 async function validate500Odds(dateStr, odds) {
   try {
@@ -717,7 +768,8 @@ function syncLiveToData(liveMatches) {
           old.duration !== lm.duration ||
           old.yellow !== lm.yellow ||
           old.red !== lm.red ||
-          old.halfScore !== lm.halfScore
+          old.halfScore !== lm.halfScore ||
+          old.recommNum !== lm.recommNum
         ) {
           updated++;
           data.m[key] = Object.assign({}, old, {
@@ -1898,6 +1950,7 @@ module.exports = {
   syncMatchList,
   syncRecommends,
   sync500Odds,
+  sync500OddsDelta,
   sync500Shuju,
   sync500ShujuSelenium,
   syncLiveScores,

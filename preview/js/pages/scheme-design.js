@@ -14,6 +14,19 @@ var _schemeDate = '';
 var PLAY_LIMITS = { spf: 8, rqspf: 8, jqs: 6, bf: 4, bqc: 4 };
 var PLAY_NAMES = { spf: '胜平负', rqspf: '让球胜平负', bf: '比分', jqs: '总进球', bqc: '半全场', mixed: '混合过关' };
 
+// ★ 推荐方向 → 赔率按钮映射（用于黄色底色标记）
+var RECOMM_TO_BTN = {
+  '胜': [{ playType: 'spf', dirName: '胜' }],
+  '平': [{ playType: 'spf', dirName: '平' }],
+  '负': [{ playType: 'spf', dirName: '负' }],
+  '让胜': [{ playType: 'rqspf', dirName: '胜' }],
+  '让平': [{ playType: 'rqspf', dirName: '平' }],
+  '让负': [{ playType: 'rqspf', dirName: '负' }],
+  '胜平': [{ playType: 'spf', dirName: '胜' }, { playType: 'spf', dirName: '平' }],
+  '平负': [{ playType: 'spf', dirName: '平' }, { playType: 'spf', dirName: '负' }],
+  '胜负': [{ playType: 'spf', dirName: '胜' }, { playType: 'spf', dirName: '负' }],
+};
+
 // ═══ 工具函数 ═══
 function combination(n, k) {
   if (k > n || k < 0) return 0;
@@ -56,7 +69,8 @@ function calcMaxPass() {
   var uniqueMatchIds = {};
   _selections.forEach(function(s) { uniqueMatchIds[s.matchId] = true; });
   var uniqueCount = Object.keys(uniqueMatchIds).length;
-  if (uniqueCount < 2) return 0; // 单关不允许过关
+  // ★ 单关允许（1关），返回1表示可投单关
+  if (uniqueCount < 2) return 1;
 
   var minLimit = 8;
   _selections.forEach(function(s) {
@@ -267,6 +281,18 @@ function renderMatchList() {
     var deltaSpf = getDeltaForField(delta, 'spf');
     var deltaRqspf = getDeltaForField(delta, 'rqspf');
 
+    // ★ 推荐方向黄色标记：根据 maxRecommendDirs 确定哪些按钮需要标记
+    var recommTopSet = {};
+    var maxRecDirs = odds.maxRecommendDirs || [];
+    maxRecDirs.forEach(function(dirType) {
+      var mappings = RECOMM_TO_BTN[dirType];
+      if (mappings) {
+        mappings.forEach(function(mp) {
+          recommTopSet[mp.playType + '|' + mp.dirName] = true;
+        });
+      }
+    });
+
     // 赔率矩阵：根据玩法类型决定显示哪些行
     var showSpfRow = _activePlayType === 'mixed' || _activePlayType === 'spf' || _activePlayType === 'bf' || _activePlayType === 'jqs' || _activePlayType === 'bqc';
     var showRqRow = _activePlayType === 'mixed' || _activePlayType === 'rqspf' || _activePlayType === 'bf' || _activePlayType === 'jqs' || _activePlayType === 'bqc';
@@ -276,9 +302,9 @@ function renderMatchList() {
     if (showSpfRow) {
       spfRow = '<div class="sodds-row ' + (_activePlayType !== 'mixed' && _activePlayType !== 'spf' ? 'sodds-row-dim' : '') + '">' +
         '<span class="sodds-hcp">[0]</span>' +
-        renderOddsBtn(id, 'spf', '胜', spf.home, handicap, deltaSpf.home) +
-        renderOddsBtn(id, 'spf', '平', spf.draw, handicap, deltaSpf.draw) +
-        renderOddsBtn(id, 'spf', '负', spf.away, handicap, deltaSpf.away) +
+        renderOddsBtn(id, 'spf', '胜', spf.home, handicap, deltaSpf.home, recommTopSet['spf|胜']) +
+        renderOddsBtn(id, 'spf', '平', spf.draw, handicap, deltaSpf.draw, recommTopSet['spf|平']) +
+        renderOddsBtn(id, 'spf', '负', spf.away, handicap, deltaSpf.away, recommTopSet['spf|负']) +
         '</div>';
     }
 
@@ -287,9 +313,9 @@ function renderMatchList() {
     if (showRqRow) {
       rqRow = '<div class="sodds-row ' + (_activePlayType !== 'mixed' && _activePlayType !== 'rqspf' ? 'sodds-row-dim' : '') + '">' +
         '<span class="sodds-hcp rq">[' + hcpLabel + ']</span>' +
-        renderOddsBtn(id, 'rqspf', '胜', rqspf.home, handicap, deltaRqspf.home) +
-        renderOddsBtn(id, 'rqspf', '平', rqspf.draw, handicap, deltaRqspf.draw) +
-        renderOddsBtn(id, 'rqspf', '负', rqspf.away, handicap, deltaRqspf.away) +
+        renderOddsBtn(id, 'rqspf', '胜', rqspf.home, handicap, deltaRqspf.home, recommTopSet['rqspf|胜']) +
+        renderOddsBtn(id, 'rqspf', '平', rqspf.draw, handicap, deltaRqspf.draw, recommTopSet['rqspf|平']) +
+        renderOddsBtn(id, 'rqspf', '负', rqspf.away, handicap, deltaRqspf.away, recommTopSet['rqspf|负']) +
         '</div>';
     }
 
@@ -317,7 +343,7 @@ function renderMatchList() {
 }
 
 // ═══ 赔率按钮（方向在上，赔率在下，选中高亮，赔率箭头） ═══
-function renderOddsBtn(matchId, playType, dirName, oddsVal, handicap, deltaDir) {
+function renderOddsBtn(matchId, playType, dirName, oddsVal, handicap, deltaDir, recommTop) {
   // ★ 玩法过滤：非当前玩法且非混合模式时按钮不可交互
   var isPlayActive = _activePlayType === 'mixed' || playType === _activePlayType;
 
@@ -325,7 +351,7 @@ function renderOddsBtn(matchId, playType, dirName, oddsVal, handicap, deltaDir) 
   var isActive = _selections.some(function(s) {
     return s.matchId === matchId && s.playType === playType && s.direction === dirName;
   });
-  var cls = 'sodds-btn' + (isActive ? ' active' : '');
+  var cls = 'sodds-btn' + (isActive ? ' active' : '') + (recommTop ? ' recomm-top' : '');
   if (!isPlayActive && _activePlayType !== 'mixed') cls += ' sodds-btn-dim';
 
   var oddsStr = oddsVal != null ? Number(oddsVal).toFixed(2) : '--';
@@ -535,7 +561,7 @@ window.closeMultiplierPopup = function() {
 
 window.confirmMultiplierPopup = function() {
   _multiplier = Math.max(1, Math.min(999, parseInt(_tempMultiplier) || 1));
-  closeMultiplierPopup();
+  window.closeMultiplierPopup();
   updateSummary();
 };
 
@@ -570,7 +596,7 @@ var _tempPassTypes = [];
 
 window.showPassPopup = function() {
   var maxPass = calcMaxPass();
-  if (maxPass < 2) return; // 单关不弹
+  if (maxPass < 1) return; // 无选项不弹
 
   _tempPassTypes = _passTypes.slice();
   var overlay = document.getElementById('passOverlay');
@@ -592,15 +618,22 @@ window.showPassPopup = function() {
 
   if (hint) hint.textContent = '当前：' + n + '场，上限：' + maxPass + '关';
 
-  // 渲染 2~8 关选项
+  // ★ 渲染 1~8 关选项（1关=单关）
   var html = '';
-  for (var k = 2; k <= 8; k++) {
+  for (var k = 1; k <= 8; k++) {
     var disabled = k > maxPass || k > n;
     var checked = _tempPassTypes.indexOf(k) !== -1 && !disabled;
-    var count = disabled ? '──' : calcExpandedBets(matchGroups, matchIds, k) + '注';
+    var count;
+    if (disabled) {
+      count = '──';
+    } else if (k === 1) {
+      count = matchIds.length > 0 ? matchGroups[matchIds[0]] ? matchGroups[matchIds[0]].length + '注' : '─' : '─';
+    } else {
+      count = calcExpandedBets(matchGroups, matchIds, k) + '注';
+    }
     var cls = disabled ? 'ssb-pass-item disabled' : 'ssb-pass-item';
     html += '<div class="' + cls + '">' +
-      '<label><input type="checkbox"' + (checked ? ' checked' : '') + (disabled ? ' disabled' : '') + ' onchange="togglePassType(' + k + ')"> ' + k + '关</label>' +
+      '<label><input type="checkbox"' + (checked ? ' checked' : '') + (disabled ? ' disabled' : '') + ' onchange="togglePassType(' + k + ')"> ' + k + '关' + (k === 1 ? '（单关）' : '') + '</label>' +
       '<span class="ssb-pass-count">' + count + '</span>' +
       '</div>';
   }
@@ -622,8 +655,12 @@ window.closePassPopup = function() {
 };
 
 window.confirmPassPopup = function() {
-  _passTypes = _tempPassTypes.length > 0 ? _tempPassTypes.slice() : [2];
-  closePassPopup();
+  var uniqueMatchIds = {};
+  _selections.forEach(function(s) { uniqueMatchIds[s.matchId] = true; });
+  var n = Object.keys(uniqueMatchIds).length;
+  // ★ 单关时默认 1关，多场默认 2关
+  _passTypes = _tempPassTypes.length > 0 ? _tempPassTypes.slice() : (n < 2 ? [1] : [2]);
+  window.closePassPopup();
   updateSummary();
 };
 
@@ -650,12 +687,7 @@ window.saveUserPlan = function () {
       alert('⚽ 该场比赛不支持单关投注（需带"单关"标签），请至少再选一场组成串关');
       return;
     }
-    // 兜底：确保没有 RQSPF（正常情况下前面已拦截）
-    var _hasRqspf = _selections.some(function (s) { return s.playType === 'rqspf'; });
-    if (_hasRqspf) {
-      alert('⚽ 单关投注仅支持胜平负(SPF)方向，请移除让球胜平负选择');
-      return;
-    }
+    // ★ 单关允许所有玩法（SPF/RQSPF/BF/JQS/BQC）
   }
 
   // ★ 构建 matchDetails 用于确认页面（携带完整赔率数据）
