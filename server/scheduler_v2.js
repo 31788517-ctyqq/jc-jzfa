@@ -255,6 +255,13 @@ async function executeTask(taskName, params, retryCount) {
         await ds.backfillResults(params && params.date);
         break;
       }
+      case 'sync_odds_delta': {
+        const date = (params && params.date) || new Date().toISOString().slice(0, 10);
+        if (ds.sync500OddsDelta) {
+          await ds.sync500OddsDelta(date);
+        }
+        break;
+      }
       case 'gongshoudao_refresh': {
         try {
           const gsEngine = require('./gongshoudao/index');
@@ -676,6 +683,73 @@ async function start() {
     scheduleGSRefresh();
   }
 
+  // ★ L5: 赔率变化追踪（动态频率：赛前密集，赛后放松）
+  let oddsDeltaTimer = null;
+  function scheduleOddsDelta() {
+    if (oddsDeltaTimer) clearTimeout(oddsDeltaTimer);
+    const intervals = getDynamicIntervals();
+    const phase = intervals.phase;
+
+    // 频率策略：赛前2h窗口 → 3min / 比赛密集 → 5min / 建仓期 → 10min / 准备期 → 30min / 休赛期 → 2h
+    let delay;
+    switch (phase) {
+      case 'pre_match':      delay = 3 * 60 * 1000; break;
+      case 'match_active':   delay = 5 * 60 * 1000; break;
+      case 'noon_sync':      delay = 5 * 60 * 1000; break;
+      case 'afternoon_build': delay = 10 * 60 * 1000; break;
+      case 'morning_prep':   delay = 30 * 60 * 1000; break;
+      default:               delay = 2 * 60 * 60 * 1000; break; // off_hours
+    }
+
+    logger.info('[schedule] 赔率追踪间隔: ' + Math.round(delay / 60000) + 'min (时段:' + phase + ')');
+
+    oddsDeltaTimer = setTimeout(async () => {
+      if (!running) return;
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        await executeTask('sync_odds_delta', { date: today });
+        recordFetchAttempt(true, 'sync_odds_delta');
+      } catch (e) {
+        logger.warn('[schedule] odds-delta 异常: ' + e.message);
+        recordFetchAttempt(false, 'sync_odds_delta', e.message);
+      }
+      scheduleOddsDelta();
+    }, delay);
+    timers.push(oddsDeltaTimer);
+  }
+
+  // 中午 12 点后启动赔率追踪（初盘基准就绪后）
+  const nowForDelta = new Date();
+  const isAfterNoon = nowForDelta.getHours() >= 12;
+  if (isAfterNoon && hasLock) {
+    setTimeout(() => {
+      logger.info('[init] 启动赔率变化追踪...');
+      executeTask('sync_odds_delta', { date: new Date().toISOString().slice(0, 10) })
+        .then(() => {
+          recordFetchAttempt(true, 'sync_odds_delta_init');
+          scheduleOddsDelta();
+        })
+        .catch((e) => {
+          logger.warn('[init] 赔率追踪初始化失败: ' + e.message);
+          recordFetchAttempt(false, 'sync_odds_delta_init', e.message);
+          scheduleOddsDelta();
+        });
+    }, 10 * 1000); // 延迟10秒等中午同步完成
+  } else {
+    // 未到12点，延迟到12:05启动
+    const toNoon = new Date();
+    toNoon.setHours(12, 5, 0, 0);
+    const msToNoon = toNoon.getTime() - Date.now();
+    if (msToNoon > 0) {
+      const tid = setTimeout(() => {
+        scheduleOddsDelta();
+      }, msToNoon);
+      timers.push(tid);
+    } else {
+      scheduleOddsDelta();
+    }
+  }
+
   // ★ 输出批次发现效率报告（每小时一次）
   schedule('discovery_report', 60 * 60 * 1000, async () => {
     try {
@@ -699,8 +773,41 @@ async function start() {
           ') L2_match=' + after.layers.L2_matchResults.entries +
           ' bankSize=' + after.bankSize);
       }
+
+      // ★ P1-4 + P2: 清理 AI 缓存过期条目（每次 cache_purge 顺带执行）
+      try {
+        const { cleanAiCache } = require('./ai_daemon');
+        cleanAiCache();
+      } catch (e2) {
+        // AI 缓存清理失败不影响主流程
+      }
+
+      // ★ L5: 清理过期 delta 日志（30天保留）
+      try {
+        const { cleanupOldDeltas } = require('./core/odds-tracker');
+        const ODDS_DIR = require('path').join(__dirname, 'odds_history');
+        const cleaned = cleanupOldDeltas(ODDS_DIR, 30);
+        if (cleaned > 0) logger.info('[cache] 清理 ' + cleaned + ' 个过期 delta 日志');
+      } catch (e3) {
+        // delta 清理失败不影响主流程
+      }
     } catch (e) {
       logger.warn('[cache] 自动淘汰异常: ' + e.message);
+    }
+  });
+
+  // ★ P3-1: cache.json 压缩归档（每天凌晨 3 点）
+  schedule('cache_compress', 24 * 60 * 60 * 1000, async () => {
+    const now = new Date();
+    if (now.getHours() !== 3) return; // 只在凌晨 3 点执行
+    try {
+      const { compressCache } = require('./gongshoudao/cache_manager');
+      const result = compressCache();
+      if (result.archived > 0) {
+        logger.info('[cache] cache.json 压缩完成: 归档 ' + result.archived + ' 条, 保留 ' + result.remaining + ' 条');
+      }
+    } catch (e) {
+      logger.warn('[cache] 压缩异常: ' + e.message);
     }
   });
 

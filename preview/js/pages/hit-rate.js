@@ -93,7 +93,7 @@ function renderHitRate(el, data) {
         </div>
         <div class="stat-big">
           <div class="stat-big-value">${top3Rate}%</div>
-          <div class="stat-big-label">综合排名命中率</div>
+          <div class="stat-big-label">每日≥3场命中率</div>
         </div>
       </div>
     </div>
@@ -150,6 +150,40 @@ function renderHitRate(el, data) {
   });
 
   html += '</tbody></table></div>';
+
+  // 日趋势图：近30天各方向命中率走势
+  if (data.dailyTrend && data.dailyTrend.length > 0) {
+    html += '<div class="chart-box" style="margin-top:16px; animation:fadeUp 0.6s ease;">';
+    html += '<div class="chart-title" style="margin-bottom:12px;">日趋势 · 各方向命中率</div>';
+    html += '<div class="daily-trend-wrap">';
+    // 表头
+    html += '<table class="daily-trend-table"><thead><tr><th>日期</th>';
+    var trendDates = data.dailyTrend.slice(-14); // 取最近14天
+    // 收集所有方向名
+    var allDirs = {};
+    trendDates.forEach(function (day) {
+      (day.directions || []).forEach(function (dir) {
+        if (dir.direction) allDirs[dir.direction] = true;
+      });
+    });
+    var dirNames = Object.keys(allDirs).slice(0, 6); // 最多展示6个方向
+    dirNames.forEach(function (dir) {
+      html += '<th class="dtt-dir">' + dir + '</th>';
+    });
+    html += '</tr></thead><tbody>';
+    trendDates.forEach(function (day) {
+      html += '<tr><td class="dtt-date">' + day.date.slice(5) + '</td>';
+      dirNames.forEach(function (dir) {
+        var found = (day.directions || []).find(function (d) { return d.direction === dir; });
+        var rate = found ? found.hitRate : null;
+        var cls = rate !== null ? (rate >= 60 ? 'dtt-high' : rate >= 45 ? 'dtt-mid' : 'dtt-low') : '';
+        html += '<td class="' + cls + '">' + (rate !== null ? rate + '%' : '-') + '</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div></div>';
+  }
+
   el.innerHTML = html;
 
   // 渐进式动画：排名条逐行展开

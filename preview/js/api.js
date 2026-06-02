@@ -1,11 +1,11 @@
-import { API } from './utils.js';
+import { API, getDeviceId } from './utils.js';
 
 export function api(action, data = {}, retries = 2) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 30000);
   return fetch(API, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Device-Id': getDeviceId() },
     body: JSON.stringify({ action, data }),
     signal: ctrl.signal,
   })

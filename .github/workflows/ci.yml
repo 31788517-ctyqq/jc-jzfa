@@ -1,0 +1,77 @@
+# ============================================================
+# CI 管线 — JC-ZJFA
+# 触发: push 到 master / PR 到 master
+# ============================================================
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  # ── Job 1: 代码规范 + 单元测试 ──
+  lint-and-test:
+    name: Lint & Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: P0 Core Tests
+        run: npm run test:p0 -- --forceExit
+
+      - name: P1 Integration Tests
+        run: npm run test:p1 -- --forceExit
+
+      - name: P2 Domain Tests
+        run: npm run test:p2 -- --forceExit
+
+      - name: Full test with coverage
+        run: npm run test:coverage -- --forceExit
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  # ── Job 2: 依赖安全审计 ──
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: npm audit (high/critical)
+        run: npm audit --audit-level=high
+        continue-on-error: true

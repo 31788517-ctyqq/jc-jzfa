@@ -133,6 +133,7 @@ function computeSingleMatch(rawStats, matchInfo) {
     gdQ: goalResult.gdQ, // ★ 净胜球量化 GD_q
     // ★ 四重熔断
     fusionConsensus: goalResult.fusionConsensus,
+    fusionConsensusType: goalResult.fusionConsensusType, // 英文代码: strong/weak/meltdown
     fusionFinalHome: goalResult.fusionFinalHome,
     fusionFinalAway: goalResult.fusionFinalAway,
     fusionFinalTotal: goalResult.fusionFinalTotal, // V25新增：熔断后融合总进球（备用预期进球指标）
@@ -380,10 +381,11 @@ function computeFallbackMatch(m) {
   const homeAdv = hdc > 0 ? 0.55 : hdc < 0 ? 0.45 : 0.50;
   const hdcStrength = Math.abs(hdc) > 1 ? 0.35 : Math.abs(hdc) > 0.5 ? 0.20 : 0.08;
 
-  // 基于联赛场均进球做保守 Xg 估算
+  // 基于联赛场均进球做保守 Xg 估算（确保最小差距 1.0 以通过弱一致门槛）
   const baseXg = avgGoals / 2;
-  const xgHome = baseXg + hdc * 0.15;
-  const xgAway = baseXg - hdc * 0.15;
+  const xgDelta = Math.max(1.0, Math.abs(hdc) * 0.5);
+  const xgHome = baseXg + (hdc >= 0 ? xgDelta / 2 : -xgDelta / 2);
+  const xgAway = baseXg + (hdc >= 0 ? -xgDelta / 2 : xgDelta / 2);
 
   const hWins = Math.round(4 + hdc * 2);
   const hLosses = Math.round(4 - hdc * 2);
@@ -408,8 +410,10 @@ function computeFallbackMatch(m) {
     guestPower: Math.round(50 - hdc * 15),
     attackAdvantage: (hdc >= 0 ? '+' : '') + Math.round(hdcStrength * 100) + '%',
     attackAdvantageValue: Math.round(50 + hdcStrength * 100),
+    attackAdvantageRaw: hdcStrength * (hdc >= 0 ? 1 : -1), // 正负号指示方向
     defenseAdvantage: (hdc >= 0 ? '+' : '') + Math.round(hdcStrength * 80) + '%',
     defenseAdvantageValue: Math.round(50 + hdcStrength * 80),
+    defenseAdvantageRaw: hdcStrength * 0.8 * (hdc >= 0 ? 1 : -1),
     attackPattern: Math.abs(hdc) > 1 ? '对攻为主' : Math.abs(hdc) > 0.5 ? '攻守平衡' : '攻守平衡',
     totalAdvantage: (hdc >= 0 ? '+' : '') + Math.round(hdcStrength * 80) + '%',
     totalAdvantageRaw: hdcStrength,
@@ -455,6 +459,7 @@ function computeFallbackMatch(m) {
 
     // 融合共识
     fusionConsensus: '弱一致(数据降级)',
+    fusionConsensusType: 'weak', // 英文代码: 降级数据标记
     fusionFinalHome: parseFloat(xgHome.toFixed(2)),
     fusionFinalAway: parseFloat(xgAway.toFixed(2)),
     fusionFinalTotal: parseFloat((xgHome + xgAway).toFixed(1)),
@@ -495,7 +500,7 @@ function computeFallbackMatch(m) {
     goalStabilityAway: 20,
     defStabilityHome: 20,
     defStabilityAway: 20,
-    stabilityOverall: 20,
+    stabilityOverall: 55,
     attackDimWeight: '50%',
     defenseDimWeight: '50%',
     attackWeightHome: '50%',

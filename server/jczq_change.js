@@ -14,6 +14,7 @@ const LOCAL_PORT = 19880;
 const CACHE_PATH = path.join(__dirname, 'jczq_change_cache.json');
 const BATCH_SIZE = 5; // 增加并发数，减少批次等待
 const BATCH_DELAY = 200; // 批次间延迟 ms（原500ms）
+const CACHE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // ★ P1-3: 缓存有效期 30 天
 
 // ── 缓存 ──
 
@@ -27,7 +28,29 @@ function readCache() {
 }
 
 function writeCache(data) {
-  fs.writeFileSync(CACHE_PATH, JSON.stringify(data, null, 2), 'utf8');
+  // ★ P1-3: 写入前清理 30 天前的过期条目
+  const cutoff = Date.now() - CACHE_MAX_AGE_MS;
+  const newData = {};
+  const keys = Object.keys(data);
+  let purgedCount = 0;
+  for (let i = 0; i < keys.length; i++) {
+    const dateKey = keys[i];
+    const dateEntries = data[dateKey];
+    // 提取日期并检查是否过期
+    const dateMatch = dateKey.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (dateMatch) {
+      const entryDate = new Date(dateMatch[1]).getTime();
+      if (entryDate < cutoff) {
+        purgedCount++;
+        continue; // 跳过过期日期
+      }
+    }
+    newData[dateKey] = dateEntries;
+  }
+  if (purgedCount > 0) {
+    console.log('[jczq_change] 清理 ' + purgedCount + ' 个过期日期条目');
+  }
+  fs.writeFileSync(CACHE_PATH, JSON.stringify(newData, null, 2), 'utf8');
 }
 
 // ── HTTP 请求 ──

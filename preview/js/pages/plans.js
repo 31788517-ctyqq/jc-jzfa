@@ -23,8 +23,15 @@ export function updatePlanDateBar() {
   el.textContent = prefix + mmdd + ' ' + week;
 }
 
+function _loadActivePlanTab() {
+  if (state.planTab === 'expert') loadPlanList();
+  else if (state.planTab === 'quant') loadQuantPlanList();
+  else if (state.planTab === 'my') loadMyPlanList();
+  else loadScorePlanList();
+}
+
 export function shiftPlanDate(delta) {
-  state.setPlanDateExplicit(false); // 恢复 offset 驱动模式
+  state.setPlanDateExplicit(false);
   var newOffset = state.planDateOffset + delta;
   var d = new Date();
   d.setDate(d.getDate() + newOffset);
@@ -33,18 +40,14 @@ export function shiftPlanDate(delta) {
   if (newDate < MIN_PLAN_DATE) return;
   state.setPlanDateOffset(newOffset);
   updatePlanDateBar();
-  if (state.planTab === 'expert') loadPlanList();
-  else if (state.planTab === 'quant') loadQuantPlanList();
-  else loadScorePlanList();
+  _loadActivePlanTab();
 }
 
 export function goPlanToday() {
   state.setPlanDateExplicit(false);
   state.setPlanDateOffset(0);
   updatePlanDateBar();
-  if (state.planTab === 'expert') loadPlanList();
-  else if (state.planTab === 'quant') loadQuantPlanList();
-  else loadScorePlanList();
+  _loadActivePlanTab();
 }
 
 export function switchPlanTab(tab) {
@@ -54,6 +57,7 @@ export function switchPlanTab(tab) {
   });
   if (tab === 'expert') loadPlanList();
   else if (tab === 'quant') loadQuantPlanList();
+  else if (tab === 'my') loadMyPlanList();
   else loadScorePlanList();
 }
 
@@ -412,6 +416,213 @@ export function loadPlanList() {
     .catch(function (e) {
       el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);">' + e.message + '</div>';
     });
+}
+
+// ========== 我的方案 ==========
+export function loadMyPlanList() {
+  var el = document.getElementById('planList');
+  if (!el) return;
+  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载我的方案中...</div>';
+
+  api('my-plan-list', {})
+    .then(function (data) {
+      var plans = (data && data.plans) || [];
+
+      // ★ 按当前选择的日期过滤方案
+      var curDate = state.planDate || '';
+      if (curDate && plans.length > 0) {
+        plans = plans.filter(function (p) {
+          // 方案日期优先从 createdAt 提取
+          var planDate = '';
+          if (p.date) planDate = p.date;
+          else if (p.createdAt) planDate = p.createdAt.slice(0, 10);
+          // 兜底：从比赛列表中提取日期
+          if (!planDate && p.matches && p.matches.length > 0) {
+            var firstMatch = p.matches[0];
+            if (firstMatch._date) planDate = firstMatch._date;
+          }
+          return planDate === curDate;
+        });
+      }
+
+      if (plans.length === 0) {
+        el.innerHTML =
+          '<div class="plan-notice">' +
+          '<span class="notice-icon">&#x1F375;</span>' +
+          '稍稍等，马上就来' +
+          '</div>';
+        return;
+      }
+
+      var html = plans
+        .map(function (p, idx) {
+          var matches = p.matches || [];
+          var isWon = p.isWon === true;
+          var isLose = p.isWon === false;
+          var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
+          var statusColor = isWon ? '#EF4444' : isLose ? '#9AA6B2' : '#FFC928';
+          var amountVal = (p.amount || 200).toFixed(0);
+          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高奖金';
+          // ★ 修复奖金计算公式：
+          // totalOdds = maxWin / amount，所以预计最高奖金 = amount * totalOdds
+          // 之前多除了 /p.multiplier 导致奖金被低估
+          var prizeVal;
+          if (isWon) {
+            prizeVal = p.resultIncome != null ? '+' + p.resultIncome : '--';
+          } else if (isLose) {
+            prizeVal = '-' + amountVal;
+          } else {
+            var totalOdds = Number(p.totalOdds) || 0;
+            var amount = Number(p.amount) || 0;
+            if (totalOdds > 0 && amount > 0) {
+              prizeVal = Math.round(totalOdds * amount * 100) / 100;
+            } else {
+              prizeVal = '--';
+            }
+          }
+          // 按创建顺序编号：方案一、方案二、方案三...
+          var _cnNums = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十',
+            '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
+            '二十一', '二十二', '二十三', '二十四', '二十五', '二十六', '二十七', '二十八', '二十九', '三十'];
+          var seqNum = idx + 1;
+          var cnNum = seqNum <= 30 ? _cnNums[seqNum] : String(seqNum);
+          var planName = '方案' + cnNum;
+          var dateStr = p.date ? p.date.slice(5).replace('-', '/') : (p.createdAt ? p.createdAt.slice(0, 10).slice(5) : '');
+
+          var matchRows = '';
+          for (var mi = 0; mi < matches.length; mi++) {
+            var m = matches[mi];
+            var oddsStr = m.odds != null ? Number(m.odds).toFixed(2) : '--';
+            var dirDisplay = m.direction || m.oddsName || '';
+            if (m.playType === 'rqspf') dirDisplay = '让' + dirDisplay;
+            var playTypeMap = { spf: '胜平负', rqspf: '让球', jqs: '总进球', bqc: '半全场' };
+            var playLabel = playTypeMap[m.playType] || m.playType || '混合';
+            matchRows +=
+              '<tr>' +
+              '<td class="match-info-col">' +
+              '<div class="match-num-text">' + (m.matchNum || '') + '</div>' +
+              '</td>' +
+              '<td class="team-col">' +
+              '<span class="plan-team-home">' + (m.homeName || '') + '</span>' +
+              '<span class="plan-team-vs">vs</span>' +
+              '<span class="plan-team-away">' + (m.visitName || '') + '</span>' +
+              '</td>' +
+              '<td class="odds-col">' + playLabel + '：' + dirDisplay + '  ' + oddsStr + '</td>' +
+              '</tr>';
+          }
+
+          var stampHtml = '';
+          if (isWon) {
+            stampHtml = '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>';
+          } else if (isLose) {
+            stampHtml = '<div class="plan-lose-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#9AA6B2" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="16" font-weight="900" fill="#9AA6B2" transform="rotate(-10,19,19)">未中</text></svg></div>';
+          }
+
+          return (
+            '<div class="plan-card" id="upcard-' + p.id + '">' +
+            '<div class="plan-card-head">' +
+            '<div class="plan-left">' +
+            '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
+            '<span class="plan-name">' + planName + '</span>' +
+            '</div>' +
+            '<span class="plan-pub-time">' + dateStr + '</span>' +
+            '</div>' +
+            '<div class="plan-amount-row">' +
+            '<div class="plan-amount-col"><div class="plan-amount-label">方案金额</div><div class="plan-amount-value">' + amountVal + '<span class="unit">元</span></div></div>' +
+            '<div class="plan-amount-col"><div class="plan-amount-label">' + prizeLabel + '</div><div class="plan-amount-value">' + prizeVal + '<span class="unit">元</span></div></div>' +
+            '<div class="plan-amount-col"><div class="plan-amount-label">方案状态</div><div class="plan-amount-value" style="color:' + statusColor + ';">' + statusText + '</div></div>' +
+            '</div>' +
+            '<div class="plan-divider"></div>' +
+            '<div class="plan-info-grid">' +
+            '<div class="plan-info-left"><div>玩法</div><div>场数/过关</div><div>注数/倍数</div></div>' +
+            '<div class="plan-info-right"><div>混合投注</div><div>' + (p.matchCount || matches.length) + '场 ' + ((p.passTypes || [2]).length > 1 ? (p.passTypes || [2]).join('~') + '关' : ((p.passTypes || [2])[0] || 2) + '关') + '</div><div>' + (p.betCount || '--') + '注 ×' + (p.multiplier || 1) + '倍</div></div>' +
+            stampHtml +
+            '</div>' +
+            '<div class="plan-match-section">' +
+            '<table class="plan-match-table"><thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th></tr></thead><tbody>' +
+            matchRows +
+            '</tbody></table></div>' +
+            '<div class="mp-actions">' +
+            '<button class="mp-delete-btn" onclick="deletePlanCard(\'' + p.id + '\')">&#x1F5D1; 删除</button>' +
+            '<button class="mp-share-btn" onclick="sharePlanCard(\'' + p.id + '\')">&#x1F4E4; 分享</button>' +
+            '</div>' +
+            '</div>'
+          );
+        })
+        .join('');
+      el.innerHTML = html;
+    })
+    .catch(function (e) {
+      el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);">加载失败: ' + (e && e.message) + '</div>';
+    });
+}
+
+// ═══ 我的方案 — 删除 ═══
+window.deletePlanCard = function (planId) {
+  if (!confirm('确定删除这个方案吗？')) return;
+  api('my-plan-delete', { planId: planId }).then(function () {
+    loadMyPlanList();
+  }).catch(function (e) {
+    alert('删除失败: ' + e.message);
+  });
+};
+
+// ═══ 我的方案 — 分享截图 ═══
+window.sharePlanCard = function (planId) {
+  var card = document.getElementById('upcard-' + planId);
+  if (!card) { alert('方案卡片未找到'); return; }
+
+  var loadHtml2Canvas = window.html2canvas
+    ? Promise.resolve(window.html2canvas)
+    : new Promise(function (resolve, reject) {
+        var script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+        script.onload = function () { resolve(window.html2canvas); };
+        script.onerror = function () { reject(new Error('html2canvas 加载失败')); };
+        document.head.appendChild(script);
+      });
+
+  loadHtml2Canvas.then(function (html2canvas) {
+    var actions = card.querySelector('.mp-actions');
+    if (actions) actions.style.display = 'none';
+
+    html2canvas(card, {
+      backgroundColor: '#0e1822',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      onclone: function (clonedDoc) {
+        var clonedActions = clonedDoc.querySelector('.mp-actions');
+        if (clonedActions) clonedActions.style.display = 'none';
+      },
+    }).then(function (canvas) {
+      if (actions) actions.style.display = '';
+      canvas.toBlob(function (blob) {
+        if (!blob) return;
+        var file = new File([blob], 'plan-' + planId + '.png', { type: 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ title: '竞彩方案分享', text: '来自竞彩推荐监控的自定义方案', files: [file] })
+            .catch(function () { _downloadPlanImage(canvas, planId); });
+        } else {
+          _downloadPlanImage(canvas, planId);
+        }
+      }, 'image/png');
+    }).catch(function (e) {
+      if (actions) actions.style.display = '';
+      alert('截图失败: ' + e.message);
+    });
+  }).catch(function (e) {
+    alert('分享组件加载失败: ' + e.message);
+  });
+};
+
+function _downloadPlanImage(canvas, planId) {
+  var link = document.createElement('a');
+  link.download = 'plan-' + planId + '.png';
+  link.href = canvas.toDataURL('image/png');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 // ========== 比分方案 ==========

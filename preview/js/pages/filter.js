@@ -114,15 +114,34 @@ export function loadFilterLeagues() {
         });
         if (menu) menu.innerHTML = html;
       }
+      // 待回填提示（仅统计全部推荐结果缺失的比赛，不包括部分缺失）
+      var fr = document.getElementById('filterResult');
+      var hintHtml = '';
       if (stats.staleCount > 0) {
-        var fr = document.getElementById('filterResult');
-        if (fr)
-          fr.innerHTML =
-            '<div class="hint-box" style="color:var(--amber);font-size:12px;">' +
-            '\u26A0 ' +
-            stats.staleCount +
-            ' 条推荐结果尚未确定，可能需要回填。<br>' +
-            '<span style="color:var(--text3);">运行 <code>node backfill_results.js</code> 补全数据</span></div>';
+        hintHtml +=
+          '<div class="hint-box" style="color:var(--amber);font-size:12px;padding:20px 0;">' +
+          '\u26A0 ' +
+          stats.staleCount +
+          ' 场比赛的全部推荐结果尚未确定，需要回填。';
+        if (stats.totalMatches !== undefined) {
+          hintHtml +=
+            '<br><span style="color:var(--text3);">共 ' +
+            stats.totalMatches +
+            ' 场比赛，' +
+            stats.matchCount +
+            ' 场已有结果数据</span>';
+        }
+        if (stats.partialStaleCount > 0) {
+          hintHtml +=
+            '<br><span style="color:var(--cyan);">' +
+            stats.partialStaleCount +
+            ' 场比赛部分推荐结果缺失</span>';
+        }
+        hintHtml +=
+          '<br><span style="color:var(--text3);">运行 <code>node backfill_results.js</code> 补全数据</span></div>';
+      }
+      if (fr && hintHtml) {
+        fr.innerHTML = hintHtml;
       }
     })
     .catch(function () {
@@ -174,9 +193,14 @@ export function onRankTypeChange() {
   }
   if (ddRank) {
     ddRank.style.display = 'block';
-    ddRank.setAttribute('data-val', '0');
+    // 默认选中"第一名"（rankTop=1），避免用户选了"每天"但 rankTop=0 过滤不生效
+    ddRank.setAttribute('data-val', '1');
     var textEl = ddRank.querySelector('.filter-dd-text');
-    if (textEl) textEl.textContent = '全部';
+    if (textEl) textEl.textContent = '第一名';
+    // 同步更新下拉菜单选中状态
+    ddRank.querySelectorAll('.filter-dd-option').forEach(function (o) {
+      o.classList.toggle('selected', o.getAttribute('data-val') === '1');
+    });
   }
 }
 
@@ -266,7 +290,7 @@ export function doFilterQuery() {
 
       if (data.dailyResults && data.dailyResults.length > 0) {
         html += '<div class="filter-detail-card">';
-        html += '<div class="filter-detail-head">结果详情</div>';
+        html += '<div class="filter-detail-head">按天汇总</div>';
         html +=
           '<div class="filter-detail-header-row"><span>近15天</span><span>符合场次/命中场次</span><span>命中率</span></div>';
         data.dailyResults.forEach(function (d) {
@@ -285,10 +309,49 @@ export function doFilterQuery() {
         html += '</div>';
       }
 
+      // 明细表格：每场比赛 × 方向命中详情
+      if (data.detailList && data.detailList.length > 0) {
+        // 按日期分组排序
+        var sortedItems = data.detailList.slice().sort(function (a, b) {
+          if (a.date !== b.date) return b.date.localeCompare(a.date);
+          return a.matchId.localeCompare(b.matchId);
+        });
+        // 仅展示前 200 条，避免DOM过大
+        var displayItems = sortedItems.slice(0, 200);
+        html += '<div class="filter-detail-card">';
+        html +=
+          '<div class="filter-detail-head">命中明细' +
+          (sortedItems.length > 200 ? ' <span style="color:var(--text3);font-weight:400;font-size:11px">(仅展示前200条)</span>' : '') +
+          '</div>';
+        html +=
+          '<table class="filter-detail-table"><thead><tr>' +
+          '<th class="fdt-date">日期</th>' +
+          '<th class="fdt-league">联赛</th>' +
+          '<th class="fdt-match">比赛</th>' +
+          '<th class="fdt-dir">方向</th>' +
+          '<th class="fdt-exp">专家数</th>' +
+          '<th class="fdt-res">结果</th>' +
+          '</tr></thead><tbody>';
+        displayItems.forEach(function (item) {
+          var resClass = item.result === 1 ? 'fdt-hit' : 'fdt-miss';
+          var resText = item.result === 1 ? '✓ 命中' : '✗ 未中';
+          html +=
+            '<tr>' +
+            '<td class="fdt-date">' + (item.date || '').slice(5) + '</td>' +
+            '<td class="fdt-league">' + (item.leagueName || '-') + '</td>' +
+            '<td class="fdt-match" title="' + (item.homeName || '') + ' vs ' + (item.visitName || '') + '">' +
+            (item.num || item.matchId || '-') + '</td>' +
+            '<td class="fdt-dir">' + (item.direction || '-') + '</td>' +
+            '<td class="fdt-exp">' + (item.expertCount || 0) + '</td>' +
+            '<td class="fdt-res ' + resClass + '">' + resText + '</td>' +
+            '</tr>';
+        });
+        html += '</tbody></table></div>';
+      }
+
       resultEl.innerHTML = html;
     })
     .catch(function (e) {
       resultEl.innerHTML = '<div class="loading">' + e.message + '</div>';
-      window.incomeLoaded = false;
     });
 }

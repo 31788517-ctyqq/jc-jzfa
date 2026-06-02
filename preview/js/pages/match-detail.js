@@ -5,6 +5,29 @@ import * as state from '../state.js';
 
 // AI 深度解析缓存：{ matchId: { content: ..., hash: ... } }
 var predictionCache = {};
+(function restoreCache() {
+  try {
+    var saved = sessionStorage.getItem('__ai_prediction_cache');
+    if (saved) {
+      var parsed = JSON.parse(saved);
+      var today = formatDate(new Date());
+      Object.keys(parsed).forEach(function (k) {
+        if (parsed[k] && parsed[k]._date === today) predictionCache[k] = parsed[k];
+      });
+    }
+  } catch (e) {}
+})();
+function persistPredictionCache() {
+  try {
+    var toSave = {};
+    var today = formatDate(new Date());
+    Object.keys(predictionCache).forEach(function (k) {
+      var v = predictionCache[k];
+      if (v) toSave[k] = { content: v.content, hash: v.hash, _date: today };
+    });
+    sessionStorage.setItem('__ai_prediction_cache', JSON.stringify(toSave));
+  } catch (e) {}
+}
 
 export function goDetail(matchId) {
   if (state.currentPage === 'home') state.setSavedScrollY(window.scrollY);
@@ -222,32 +245,25 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
   var modalEl = document.getElementById('aiModal');
   var overlayEl = document.getElementById('aiOverlay');
 
-  // ═══ 缓存命中：后台静默检查内容是否变化 ═══
+  // ═══ 缓存命中：直接渲染 + 后台静默检查是否有更新 ═══
   if (predictionCache[matchId]) {
     var cached = predictionCache[matchId];
-    // 先打开弹窗展示加载中（后台静默校验）
-    var cacheLoadingHtml =
-      '<div class="ai-modal-header"><span class="ai-modal-title">AI深度解析</span><button class="ai-modal-close" onclick="closeAI()">&times;</button></div>' +
-      '<div class="ai-content"><div style="text-align:center;padding:60px 20px;color:var(--cyan);"><div style="font-size:40px;margin-bottom:16px;">🔍</div><div style="font-size:16px;font-weight:600;">正在确认最新分析...</div></div></div>';
-    if (modalEl) modalEl.innerHTML = cacheLoadingHtml;
+    // 立即展示缓存内容，跳过加载动画
+    renderCachedContent(cached.content, homeTeam, awayTeam, cached.content);
     if (overlayEl) overlayEl.classList.add('active');
     document.body.style.overflow = 'hidden';
 
+    // 后台静默校验：有变化时无声更新
     api('ai-predict', { matchId: matchId }, { timeout: 15000 })
       .then(function (d) {
         var newHash = JSON.stringify(d.content || '');
-        // 内容无变化，直接用缓存渲染
-        if (newHash === cached.hash && d.content) {
-          renderCachedContent(cached.content, homeTeam, awayTeam, d);
-          return;
+        if (newHash !== cached.hash && d.content) {
+          // 内容有变化，静默更新缓存和 DOM
+          predictionCache[matchId] = { content: d, hash: newHash };
+          persistPredictionCache();
+          renderCachedContent(d, homeTeam, awayTeam, d);
         }
-        // 内容有变化，更新缓存并走模拟加载流程
-        predictionCache[matchId] = { content: d, hash: newHash };
-        doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, d);
-      })
-      .catch(function () {
-        // 网络异常时直接用缓存
-        renderCachedContent(cached.content, homeTeam, awayTeam, null);
+        // hash 未变 → 不做任何事，用户已看到内容
       });
     return;
   }
@@ -297,8 +313,8 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
   if (overlayEl) overlayEl.classList.add('active');
   document.body.style.overflow = 'hidden';
 
-  // ═══ 假进度条：模拟实时 AI 运算耗时（20-25s 随机） ═══
-  var fakeDurationSec = Math.floor(Math.random() * 6) + 20; // 20-25 秒随机
+  // ═══ 假进度条：模拟实时 AI 运算耗时（3-5s） ═══
+  var fakeDurationSec = Math.floor(Math.random() * 3) + 3; // 3-5 秒
   var fakeStartTime = Date.now();
   var pendingResult = preloadedData; // 可能已有预加载数据
   var apiDone = !!preloadedData;     // 如果预加载了数据则标记已完成
@@ -350,6 +366,7 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
         // 存入缓存
         var contentHash = JSON.stringify(d.content || '');
         predictionCache[matchId] = { content: d, hash: contentHash };
+        persistPredictionCache();
       })
       .catch(function (e) {
         apiError = e && e.message ? e.message : '网络连接失败';

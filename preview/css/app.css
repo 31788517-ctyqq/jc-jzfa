@@ -1318,6 +1318,68 @@ body {
 .filter-detail-row span:nth-child(2) { flex: 1; text-align: center; font-weight: 600; color: #fff; }
 .filter-detail-row span:nth-child(3) { width: 70px; text-align: right; flex-shrink: 0; font-weight: 700; color: var(--cyan); }
 
+/* 命中明细表格 */
+.filter-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.filter-detail-table th {
+  color: var(--text3);
+  font-weight: 500;
+  padding: 8px 4px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  white-space: nowrap;
+}
+.filter-detail-table td {
+  padding: 6px 4px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  color: var(--text2);
+}
+.filter-detail-table tr:last-child td { border-bottom: none; }
+.fdt-date { width: 52px; color: var(--text3) !important; font-size: 10px; }
+.fdt-league { width: 52px; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 52px; }
+.fdt-match { max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fdt-dir { font-weight: 600; color: var(--cyan) !important; }
+.fdt-exp { width: 40px; }
+.fdt-res { width: 48px; font-weight: 700; }
+.fdt-hit { color: var(--green) !important; }
+.fdt-miss { color: var(--red) !important; }
+
+/* 日趋势表 */
+.daily-trend-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.daily-trend-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  min-width: 420px;
+}
+.daily-trend-table th {
+  color: var(--text3);
+  font-weight: 500;
+  padding: 8px 4px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  white-space: nowrap;
+}
+.daily-trend-table td {
+  padding: 6px 4px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-weight: 600;
+}
+.daily-trend-table tr:last-child td { border-bottom: none; }
+.dtt-date { color: var(--text3); width: 48px; font-weight: 500 !important; }
+.dtt-dir { color: var(--cyan); min-width: 52px; }
+.dtt-high { color: var(--green) !important; }
+.dtt-mid { color: var(--cyan) !important; }
+.dtt-low { color: var(--red) !important; }
+
 .hint-box { text-align: center; padding: 80px 0; color: var(--text3); font-size: var(--fs-md); }
 
 /* ========== 方案收入样式 ========== */

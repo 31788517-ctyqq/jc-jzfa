@@ -1,0 +1,51 @@
+/**
+ * Jest 测试配置 — JC-ZJFA 项目
+ * 
+ * 运行: npm test                     (全部测试)
+ *       npx jest --testPathPattern=Phase1   (指定阶段)
+ *       npx jest --coverage           (带覆盖率)
+ */
+module.exports = {
+  testEnvironment: 'node',
+  roots: ['<rootDir>/server/tests', '<rootDir>/server/gongshoudao/tests', '<rootDir>/preview/tests'],
+  testMatch: ['**/*.test.js'],
+  // smoke_api 需要运行中的服务器，仅通过 npm run test:smoke 手动执行
+  testPathIgnorePatterns: ['smoke_api'],
+  moduleDirectories: ['node_modules', '<rootDir>/server'],
+  collectCoverageFrom: [
+    'server/core/**/*.js',
+    'server/gongshoudao/**/*.js',
+    'server/prediction_log.js',
+    'server/scheduler_v2.js',
+    '!server/gongshoudao/tests/**',
+    '!server/gongshoudao/test*.js',
+    '!server/gongshoudao/e2e_test.js'
+  ],
+  coverageThreshold: {
+    global: {
+      statements: 30,
+      branches: 25,
+      functions: 30,
+      lines: 30
+    }
+  },
+  // 需要 mock 的模块
+  moduleNameMapper: {
+    // 数据库模块默认 mock
+    '^../database$': '<rootDir>/server/tests/__mocks__/database.js',
+    '^./database$': '<rootDir>/server/tests/__mocks__/database.js',
+    // http-utils mock
+    '^../http-utils$': '<rootDir>/server/tests/__mocks__/http-utils.js',
+    '^./http-utils$': '<rootDir>/server/tests/__mocks__/http-utils.js',
+    // logger mock
+    '^../logger$': '<rootDir>/server/tests/__mocks__/logger.js',
+    '^./logger$': '<rootDir>/server/tests/__mocks__/logger.js',
+    // alert mock
+    '^../alert$': '<rootDir>/server/tests/__mocks__/alert.js',
+    '^./alert$': '<rootDir>/server/tests/__mocks__/alert.js'
+  },
+  transform: {
+    '^.+\\.js$': 'babel-jest'
+  },
+  verbose: true
+};

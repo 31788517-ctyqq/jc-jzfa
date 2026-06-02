@@ -139,11 +139,15 @@ async function ensureData() {
 }
 
 async function ensureRecommends(matchId) {
-  if (!cache.recommCache[matchId]) {
-    cache.recommCache[matchId] = await fetchRecommends(matchId);
-    logger.info(`获取推荐 matchId=${matchId}, ${cache.recommCache[matchId].length} 个方向`);
+  const RECOMM_CACHE_TTL = 10 * 60 * 1000; // 10分钟，与推荐数据刷新间隔对齐
+  const cached = cache.recommCache[matchId];
+  if (cached && (Date.now() - cached.time) < RECOMM_CACHE_TTL) {
+    return cached.data;
   }
-  return cache.recommCache[matchId];
+  const data = await fetchRecommends(matchId);
+  cache.recommCache[matchId] = { data, time: Date.now() };
+  logger.info(`获取推荐 matchId=${matchId}, ${data.length} 个方向`);
+  return data;
 }
 
 // ═══ 容错包装 ═══

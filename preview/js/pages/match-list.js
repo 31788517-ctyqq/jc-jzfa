@@ -59,6 +59,10 @@ function renderMatchHTML(matches) {
         const durText = m.duration || '';
         const yellowText = m.yellow || '';
         const redText = m.red || '';
+        // ★ 让球信息
+        const concedeNum = m.concede != null ? Number(m.concede) : 0;
+        const concedeLabel = concedeNum > 0 ? '<span class="match-handicap-tag rq-pos">+' + concedeNum + '</span>'
+          : concedeNum < 0 ? '<span class="match-handicap-tag rq-neg">' + concedeNum + '</span>' : '';
         var scoreDisplay = '';
         var extraInfo = '';
         if (isLive && scoreText) {
@@ -94,14 +98,17 @@ function renderMatchHTML(matches) {
         <div class="match-teams">
           <span class="team-name">${m.homeName}</span>
           ${isLive && scoreDisplay ? scoreDisplay : '<span class="vs">VS</span>'}
-          <span class="team-name">${m.visitName}</span>
+          <span class="team-name">${m.visitName}${concedeLabel}</span>
         </div>
         <div class="match-info">
           <span class="match-experts">${m.recommNum ? m.recommNum + '位专家推荐' : ''}</span>
           <span class="match-time">${startDate ? startDate.replace('-', '/') + ' ' : ''}${timeStr}</span>
         </div>
         <div class="match-status" style="color:${m.matchStatus === 1 ? 'var(--cyan)' : m.matchStatus === 2 ? 'var(--green)' : m.matchStatus === 3 ? 'var(--red)' : 'var(--text2)'}">${statusText} ${extraInfo}</div>
-        ${m.hasGongshoudao ? `<div class="match-gs-wrap" onclick="event.stopPropagation();showGongshoudao('${m.matchId}','${(m.leagueName || '').replace(/'/g, "\\'")}','${(m.homeName || '').replace(/'/g, "\\'")}','${(m.visitName || '').replace(/'/g, "\\'")}','${m.num || ''}','${(m.startTime || '').replace(/'/g, "\\'")}')"><span class="match-gs-tag">⚔️ 功守道量化</span></div>` : ''}
+        <div class="match-actions">
+          ${m.hasGongshoudao ? `<span class="match-gs-tag" onclick="event.stopPropagation();showGongshoudao('${m.matchId}','${(m.leagueName || '').replace(/'/g, "\\'")}','${(m.homeName || '').replace(/'/g, "\\'")}','${(m.visitName || '').replace(/'/g, "\\'")}','${m.num || ''}','${(m.startTime || '').replace(/'/g, "\\'")}')">⚔️ 功守道</span>` : ''}
+          <span class="match-bet-btn" onclick="event.stopPropagation();window.switchTab('scheme')">我要做方案</span>
+        </div>
       </div>
     `;
       })

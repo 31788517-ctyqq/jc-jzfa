@@ -4423,6 +4423,63 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
             }
 
+            // === 我的方案 ===
+            if (directionFilter === 'my') {
+              const deviceId = (req.headers['x-device-id'] || '').trim();
+              if (deviceId) {
+                const userPlans = readUserPlans(deviceId) || [];
+                let myWon = 0, myIncome = 0;
+                userPlans.forEach(function (p) {
+                  // 只统计已结算的方案（isWon 为 true 或 false）
+                  if (p.isWon !== true && p.isWon !== false) return;
+                  if (planFilter !== 'all') {
+                    // 用户方案没有 plan_1~7 分类，按方案名模糊匹配
+                    const pName = p.note || p.planName || '';
+                    if (pName.indexOf(planFilter) < 0) return;
+                  }
+                  // 日期过滤
+                  const pDate = (p.date || p.createdAt || '').slice(0, 10);
+                  if (daysFilter > 0) {
+                    if (!pDate || pDate < fmtDate2(startDate) || pDate > fmtDate2(endDate)) return;
+                  }
+                  // 金额转换：amount 是元，转换为分（与 expert/score/quant 统一）
+                  const amountFen = Math.round((Number(p.amount) || 0) * 100);
+                  if (p.isWon) {
+                    myWon++;
+                    let prize = 0;
+                    if (p.resultIncome != null && p.resultIncome !== undefined) {
+                      prize = Number(p.resultIncome);
+                    } else if (p.totalOdds && amountFen > 0) {
+                      prize = Math.round(Number(p.totalOdds) * amountFen);
+                    } else {
+                      prize = amountFen;
+                    }
+                    const dayInc = prize - amountFen;
+                    myIncome += dayInc;
+                    results.push({
+                      date: pDate || '未知',
+                      plan: p.note || '我的方案',
+                      status: 'won',
+                      prize: prize,
+                      income: dayInc,
+                    });
+                  } else {
+                    myIncome -= amountFen;
+                    results.push({
+                      date: pDate || '未知',
+                      plan: p.note || '我的方案',
+                      status: 'lose',
+                      prize: 0,
+                      income: -amountFen,
+                    });
+                  }
+                });
+                totalPlans += results.length;
+                totalWon += myWon;
+                totalIncome += myIncome;
+              }
+            }
+
             // Aggregate by date
             const dateMap = {};
             results.forEach((r) => {
@@ -4468,14 +4525,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const rMap = dataFile.r || {};
 
             let matchCount = 0,
+              totalMatches = 0,
               leagueSet = {},
               dirSet = {},
-              staleCount = 0;
+              staleCount = 0,
+              partialStaleCount = 0;
             Object.keys(mMap).forEach(function (k) {
               const m = mMap[k];
               if (!m) return;
-              // Count matches with recs that have results
+              totalMatches++;
               const raw = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
+              if (raw.length === 0) return; // 跳过无推荐的比赛
               const hasResult = raw.some(function (x) {
                 return (
                   (x.rs !== undefined ? x.rs : x.result) !== null &&
@@ -4490,22 +4550,33 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   if (t) dirSet[t] = true;
                 });
               }
-              // Count stale (no result)
-              const hasStale = raw.some(function (x) {
+              // 统计待回填：全部推荐结果都是 null/undefined → 真正需要回填
+              const allStale = raw.length > 0 && raw.every(function (x) {
                 const r = x.rs !== undefined ? x.rs : x.result;
                 return r === null || r === undefined;
               });
-              if (hasStale) staleCount++;
+              if (allStale) staleCount++;
+              else if (!hasResult) {
+                // 部分有结果部分没有（不会发生，因为hasResult检查过了所有都无结果的情况）
+              }
+              // 部分缺失：至少有一条有结果，也至少有一条没结果
+              const someStale = raw.some(function (x) {
+                const r = x.rs !== undefined ? x.rs : x.result;
+                return r === null || r === undefined;
+              });
+              if (hasResult && someStale) partialStaleCount++;
             });
 
             return res.json({
               code: 1,
               data: {
                 matchCount: matchCount,
+                totalMatches: totalMatches,
                 leagueCount: Object.keys(leagueSet).length,
                 directionCount: Object.keys(dirSet).length,
                 leagues: Object.keys(leagueSet).sort(),
                 staleCount: staleCount,
+                partialStaleCount: partialStaleCount,
               },
             });
           } catch (e) {

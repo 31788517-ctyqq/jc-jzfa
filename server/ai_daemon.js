@@ -25,6 +25,9 @@ const aiMerger = require('./ai_merger');
 
 const LOG_FILE = path.join(__dirname, '..', 'logs', 'ai_daemon.log');
 
+// ★ P1-4: AI 缓存最大保留 90 天
+const AI_CACHE_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
+
 function log(msg) {
   const line = '[' + new Date().toISOString().replace('T', ' ').slice(0, 19) + '] ' + msg;
   console.log(line);
@@ -117,7 +120,27 @@ function savePrediction(matchId, matchInfo, mergedResult, dsResult, dbResult) {
           : null,
       },
     };
-    fs.writeFileSync(aiFile, JSON.stringify(cache));
+
+    // ★ P1-4: 写入前清理 90 天前的过期条目
+    const cutoffTime = Date.now() - AI_CACHE_MAX_AGE_MS;
+    const cleaned = {};
+    let purgedCount = 0;
+    Object.keys(cache).forEach(function (k) {
+      const entry = cache[k];
+      if (entry && entry.updatedAt) {
+        const entryTime = new Date(entry.updatedAt).getTime();
+        if (entryTime < cutoffTime) {
+          purgedCount++;
+          return;
+        }
+      }
+      cleaned[k] = entry;
+    });
+    if (purgedCount > 0) {
+      log('清理 ' + purgedCount + ' 个过期 AI 缓存条目');
+    }
+
+    fs.writeFileSync(aiFile, JSON.stringify(cleaned));
     return true;
   } catch (e) {
     log('保存预测失败: ' + e.message);
@@ -287,4 +310,40 @@ if (require.main === module) {
   dailyBatch();
 }
 
-module.exports = { start, stop, dailyBatch, getTodayMatches };
+/**
+ * ★ P1-4: 清理 ai_cache.json 中超过 maxAgeMs 的过期条目
+ * @param {number} maxAgeMs 最大保留时间（默认 90 天）
+ * @returns {number} 清理的条目数
+ */
+function cleanAiCache(maxAgeMs) {
+  maxAgeMs = maxAgeMs || AI_CACHE_MAX_AGE_MS;
+  const aiFile = path.join(__dirname, 'ai_cache.json');
+  if (!fs.existsSync(aiFile)) return 0;
+  try {
+    const cache = JSON.parse(fs.readFileSync(aiFile, 'utf8'));
+    const cutoffTime = Date.now() - maxAgeMs;
+    const cleaned = {};
+    let purgedCount = 0;
+    Object.keys(cache).forEach(function (k) {
+      const entry = cache[k];
+      if (entry && entry.updatedAt) {
+        const entryTime = new Date(entry.updatedAt).getTime();
+        if (entryTime < cutoffTime) {
+          purgedCount++;
+          return;
+        }
+      }
+      cleaned[k] = entry;
+    });
+    if (purgedCount > 0) {
+      fs.writeFileSync(aiFile, JSON.stringify(cleaned));
+      log('cleanAiCache: 清理 ' + purgedCount + ' 个过期条目（剩余 ' + Object.keys(cleaned).length + ' 条）');
+    }
+    return purgedCount;
+  } catch (e) {
+    log('cleanAiCache 失败: ' + e.message);
+    return 0;
+  }
+}
+
+module.exports = { start, stop, dailyBatch, getTodayMatches, cleanAiCache };

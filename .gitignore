@@ -5,6 +5,25 @@ __pycache__/
 $null
 nul)
 
+# ── 临时/输出文件（测试产物、调试输出） ──
+*_output.txt
+*_output.json
+*_results.json
+*_results.txt
+*-err.txt
+*-out.json
+*-out.txt
+tmp_*.json
+tmp_*.txt
+_*.py
+_*.js
+_*.txt
+_*.bat
+!deploy*.bat
+*.b64.txt
+*.pdb
+*.obj
+
 # ── 敏感配置文件（绝对禁止提交） ──
 .env
 .env.*

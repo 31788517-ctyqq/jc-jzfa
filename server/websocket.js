@@ -29,6 +29,7 @@ const AI_CACHE_FILE = path.join(__dirname, 'ai_cache.json');
 // ═══ WebSocket 服务 ═══
 const wss = null;
 let watchInterval = null;
+let _fsWatchers = []; // ★ P2-3: fs.watch 句柄列表
 
 const clients = new Set();
 const subscriptions = new Map(); // clientId → Set<channel>
@@ -37,6 +38,12 @@ const subscriptions = new Map(); // clientId → Set<channel>
 let _lastDataMtime = 0;
 let _lastLiveMtime = 0;
 let _lastAICacheMtime = 0;
+
+// ★ P2-3: 防抖标记（防止 fs.watch 同一变更重复触发）
+let _dataDebounceTimer = null;
+let _liveDebounceTimer = null;
+let _aiDebounceTimer = null;
+const DEBOUNCE_MS = 1000; // 1 秒防抖
 
 /**
  * 解析 WebSocket 帧（兼容浏览器 ws://）
@@ -259,19 +266,145 @@ function startHeartbeat() {
 }
 
 // ═══ 数据变更检测与推送 ═══
+// ★ P2-3: 使用 fs.watch 替代 2s 轮询，减少 99% 无意义 I/O
 function startDataWatcher() {
+  stopDataWatcher(); // 先清理旧的
+
+  // 辅助：处理 data.json 变更
+  function handleDataChange() {
+    if (_dataDebounceTimer) return;
+    _dataDebounceTimer = setTimeout(function () {
+      _dataDebounceTimer = null;
+    }, DEBOUNCE_MS);
+
+    try {
+      if (!fs.existsSync(DATA_FILE)) return;
+      const stat = fs.statSync(DATA_FILE);
+      if (stat.mtimeMs <= _lastDataMtime) return;
+      _lastDataMtime = stat.mtimeMs;
+
+      const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+      const scores = {};
+      Object.entries(data.m || {}).forEach(([k, m]) => {
+        if (m && m.matchStatus !== undefined) {
+          const mid = k.replace('m_', '');
+          scores[mid] = {
+            status: m.matchStatus,
+            score: m.score || '',
+            halfScore: m.halfScore || '',
+            duration: m.duration || '',
+          };
+        }
+      });
+      broadcast('live_score', { type: 'live_score_update', data: scores, time: new Date().toISOString() });
+
+      const recs = {};
+      Object.entries(data.r || {}).forEach(([k, r]) => {
+        const mid = k.replace('m_', '');
+        const hasResult = r.some((rc) => rc.result !== null && rc.result !== 2);
+        if (hasResult) {
+          recs[mid] = r
+            .filter((rc) => rc.result !== null && rc.result !== 2)
+            .map((rc) => ({ type: rc.type, num: rc.num, result: rc.result }));
+        }
+      });
+      if (Object.keys(recs).length > 0) {
+        broadcast('recommend', { type: 'recommend_update', data: recs, time: new Date().toISOString() });
+      }
+    } catch (e) {
+      // 静默处理
+    }
+  }
+
+  // 辅助：处理 ai_cache.json 变更
+  function handleAIChange() {
+    if (_aiDebounceTimer) return;
+    _aiDebounceTimer = setTimeout(function () {
+      _aiDebounceTimer = null;
+    }, DEBOUNCE_MS);
+
+    try {
+      if (!fs.existsSync(AI_CACHE_FILE)) return;
+      const stat = fs.statSync(AI_CACHE_FILE);
+      if (stat.mtimeMs <= _lastAICacheMtime) return;
+      _lastAICacheMtime = stat.mtimeMs;
+
+      const aiData = JSON.parse(fs.readFileSync(AI_CACHE_FILE, 'utf8'));
+      const updated = {};
+      Object.entries(aiData).forEach(([mid, entry]) => {
+        if (entry.content && entry.merged) {
+          updated[mid] = { content: entry.content, confidence: entry.confidence };
+        }
+      });
+      if (Object.keys(updated).length > 0) {
+        broadcast('ai_analysis', { type: 'ai_analysis_update', data: updated, time: new Date().toISOString() });
+      }
+    } catch (e) {
+      // 静默处理
+    }
+  }
+
+  // ★ 优先使用 fs.watch（事件驱动）
+  try {
+    // 监听 data.json 所在目录
+    const dataDir = path.dirname(DATA_FILE);
+    const dataWatcher = fs.watch(dataDir, function (eventType, filename) {
+      if (filename === 'data.json' || filename === path.basename(DATA_FILE)) handleDataChange();
+      if (filename === 'live_scores.json' || filename === path.basename(LIVE_FILE)) handleLiveChange();
+    });
+    _fsWatchers.push(dataWatcher);
+
+    // 监听 ai_cache.json（与 data.json 同目录）
+    const aiDir = path.dirname(AI_CACHE_FILE);
+    if (aiDir !== dataDir) {
+      const aiWatcher = fs.watch(aiDir, function (eventType, filename) {
+        if (filename === 'ai_cache.json' || filename === path.basename(AI_CACHE_FILE)) handleAIChange();
+      });
+      _fsWatchers.push(aiWatcher);
+    } else {
+      // 同目录，已在 dataWatcher 中处理
+      // 需要额外的 ai_cache 处理逻辑
+      const origDataHandler = handleDataChange;
+    }
+  } catch (e) {
+    console.log('[ws] fs.watch 失败，回退到轮询模式: ' + e.message);
+    startPollWatcher();
+  }
+
+  // 辅助：处理 live_scores.json 变更
+  function handleLiveChange() {
+    if (_liveDebounceTimer) return;
+    _liveDebounceTimer = setTimeout(function () {
+      _liveDebounceTimer = null;
+    }, DEBOUNCE_MS);
+
+    try {
+      if (!fs.existsSync(LIVE_FILE)) return;
+      const stat = fs.statSync(LIVE_FILE);
+      if (stat.mtimeMs <= _lastLiveMtime) return;
+      _lastLiveMtime = stat.mtimeMs;
+
+      const liveData = JSON.parse(fs.readFileSync(LIVE_FILE, 'utf8'));
+      broadcast('live_score', { type: 'live_score_refresh', data: liveData, time: new Date().toISOString() });
+    } catch (e) {
+      // 静默处理
+    }
+  }
+}
+
+// ★ P2-3: 回退轮询模式（fs.watch 不可用时）
+function startPollWatcher() {
   if (watchInterval) clearInterval(watchInterval);
+  console.log('[ws] 使用轮询模式（每5秒检测）');
 
   watchInterval = setInterval(() => {
     try {
-      // 1. 检测 data.json 变更 → 推送比分/推荐更新
+      // 1. 检测 data.json 变更
       if (fs.existsSync(DATA_FILE)) {
         const stat = fs.statSync(DATA_FILE);
         if (stat.mtimeMs > _lastDataMtime) {
           _lastDataMtime = stat.mtimeMs;
           const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-
-          // 提取比分数据
           const scores = {};
           Object.entries(data.m || {}).forEach(([k, m]) => {
             if (m && m.matchStatus !== undefined) {
@@ -284,10 +417,8 @@ function startDataWatcher() {
               };
             }
           });
-
           broadcast('live_score', { type: 'live_score_update', data: scores, time: new Date().toISOString() });
 
-          // 提取推荐变更
           const recs = {};
           Object.entries(data.r || {}).forEach(([k, r]) => {
             const mid = k.replace('m_', '');
@@ -298,7 +429,6 @@ function startDataWatcher() {
                 .map((rc) => ({ type: rc.type, num: rc.num, result: rc.result }));
             }
           });
-
           if (Object.keys(recs).length > 0) {
             broadcast('recommend', { type: 'recommend_update', data: recs, time: new Date().toISOString() });
           }
@@ -333,9 +463,28 @@ function startDataWatcher() {
         }
       }
     } catch (e) {
-      // 静默处理检测错误
+      // 静默处理
     }
-  }, 2000); // 每2秒检测一次
+  }, 5000); // ★ P2-3: 回退模式下延长到 5 秒
+}
+
+function stopDataWatcher() {
+  // ★ P2-3: 清理 fs.watch 句柄
+  _fsWatchers.forEach(function (w) {
+    try { w.close(); } catch (e) {}
+  });
+  _fsWatchers = [];
+
+  if (watchInterval) clearInterval(watchInterval);
+  watchInterval = null;
+
+  // 清理防抖定时器
+  if (_dataDebounceTimer) clearTimeout(_dataDebounceTimer);
+  if (_liveDebounceTimer) clearTimeout(_liveDebounceTimer);
+  if (_aiDebounceTimer) clearTimeout(_aiDebounceTimer);
+  _dataDebounceTimer = null;
+  _liveDebounceTimer = null;
+  _aiDebounceTimer = null;
 }
 
 function getClientCount() {

@@ -1,0 +1,30 @@
+node_modules/
+__pycache__/
+*.pyc
+*.log
+$null
+nul)
+
+# 第三方库
+ec-canvas/
+miniprogram/
+_backup_*/
+
+# 数据文件
+server/odds_history/
+server/shuju_data/
+server/shuju_map_*.json
+server/logs/
+server/ttyingqiu_data/
+server/*.json
+server/*.db*
+
+# 部署目录
+deploy/
+cloudfunctions/
+
+# 资源文件
+sucai/
+
+# Python 脚本
+scripts/*.py

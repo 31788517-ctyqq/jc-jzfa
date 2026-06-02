@@ -89,19 +89,51 @@ const MAX_ODDS_CACHE = 10;
 
 function getOddsHistory(dateStr) {
   if (_oddsCache[dateStr]) return _oddsCache[dateStr];
-  const f = path.join(ODDS_DIR, dateStr + '.json');
-  try {
+  // 尝试读取并缓存
+  var load = function (ds, fbFrom) {
+    var f = path.join(ODDS_DIR, ds + '.json');
     if (!fs.existsSync(f)) return null;
-    const raw = JSON.parse(fs.readFileSync(f, 'utf8'));
-    _oddsCache[dateStr] = raw.odds || {};
+    var raw = JSON.parse(fs.readFileSync(f, 'utf8'));
+    var data = raw.odds || {};
+    _oddsCache[dateStr] = data; // 始终用请求日期缓存（避免重复查找）
     _oddsCacheKeys.push(dateStr);
     if (_oddsCacheKeys.length > MAX_ODDS_CACHE) {
       delete _oddsCache[_oddsCacheKeys.shift()];
     }
-    return _oddsCache[dateStr];
+    if (fbFrom) logger.info('[odds-cache] ' + dateStr + ' 无赔率文件，自动降级使用 ' + fbFrom);
+    return data;
+  };
+  try {
+    var result = load(dateStr);
+    if (result) return result;
+    // Auto-fallback: 向前查找最近可用日期（最多 7 天）
+    var parts = dateStr.split('-');
+    var d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+    for (var i = 1; i <= 7; i++) {
+      d.setDate(d.getDate() - 1);
+      var fbDate = localDate(d);
+      result = load(fbDate, fbDate);
+      if (result) return result;
+    }
+    return null;
   } catch (e) {
     return null;
   }
+}
+
+// ═══ 赔率日期降级查找（dateStr 无文件时，向前找最近可用日期） ═══
+function getNearestOddsDate(dateStr, maxDays) {
+  maxDays = maxDays || 7;
+  if (!dateStr) return null;
+  var parts = dateStr.split('-');
+  var d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+  for (var i = 0; i < maxDays; i++) {
+    var checkDate = localDate(d);
+    var f = path.join(ODDS_DIR, checkDate + '.json');
+    if (fs.existsSync(f)) return checkDate;
+    d.setDate(d.getDate() - 1);
+  }
+  return null;
 }
 
 // ═══ 功守道缓存 ═══
@@ -165,6 +197,7 @@ module.exports = {
   getTrendsJson,
   invalidateTrends,
   getOddsHistory,
+  getNearestOddsDate,
   getGongShouDaoCache,
   getHitRateCache,
   setHitRateCache,

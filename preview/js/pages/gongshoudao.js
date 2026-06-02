@@ -72,7 +72,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
       // ====== 实力分析 ======
       html += '<div class="gs-modal-section">';
       html +=
-        '<div class="gs-modal-sec-title"><img src="/assets/gs-power.png" class="gs-title-icon" alt="">实力分析</div>';
+        '<div class="gs-modal-sec-title"><span class="gs-title-icon">⚔️</span>实力分析</div>';
 
       html += gsRow('进攻优势', renderBar(gs.attackAdvantage || '+20%', gs.attackAdvantageValue || 60));
       html += gsRow('防守优势', renderBar(gs.defenseAdvantage || '-10%', gs.defenseAdvantageValue || 40, true));
@@ -119,7 +119,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
       // ====== 大小球分析 ======
       html += '<div class="gs-modal-section">';
       html +=
-        '<div class="gs-modal-sec-title"><img src="/assets/gs-ball.png" class="gs-title-icon" alt="">大小球分析</div>';
+        '<div class="gs-modal-sec-title"><span class="gs-title-icon">⚽</span>大小球分析</div>';
 
       html += gsRow(
         '主客权重',
@@ -188,7 +188,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
         else if (gs.marketRiskLevel === 'caution') mktRiskClass = 'gs-risk-caution';
 
         html += '<div class="gs-modal-section">';
-        html += '<div class="gs-modal-sec-title"><img src="/assets/gs-market.png" class="gs-title-icon" alt="">市场情报交叉验证</div>';
+        html += '<div class="gs-modal-sec-title"><span class="gs-title-icon">📈</span>市场情报交叉验证</div>';
 
         html += gsRow(
           '市场信号',
@@ -260,7 +260,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
       // ====== 净胜球分析 ======
       html += '<div class="gs-modal-section">';
       html +=
-        '<div class="gs-modal-sec-title"><img src="/assets/gs-goal.png" class="gs-title-icon" alt="">让球分析（7场阈值裁决）</div>';
+        '<div class="gs-modal-sec-title"><span class="gs-title-icon">🎯</span>让球分析（7场阈值裁决）</div>';
 
       html += gsRow(
         '主队赢球期望',
@@ -298,7 +298,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
       // ====== 比分 ======
       html += '<div class="gs-modal-section" id="gsScoreSection">';
       html +=
-        '<div class="gs-modal-sec-title"><img src="/assets/gs-score.png" class="gs-title-icon" alt="">比分八阵裂变</div>';
+        '<div class="gs-modal-sec-title"><span class="gs-title-icon">📊</span>比分八阵裂变</div>';
 
       var scores = gs.scores || [
         { score: '1-1', percent: '50%' },

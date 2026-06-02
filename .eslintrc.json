@@ -1,0 +1,125 @@
+{
+  "env": {
+    "node": true,
+    "es2022": true
+  },
+  "globals": {
+    "__dirname": "readonly",
+    "__filename": "readonly",
+    "Buffer": "readonly",
+    "module": "readonly",
+    "process": "readonly",
+    "require": "readonly",
+    "exports": "writable",
+    "setTimeout": "readonly",
+    "clearTimeout": "readonly",
+    "setInterval": "readonly",
+    "clearInterval": "readonly",
+    "console": "readonly",
+    "Promise": "readonly"
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "script"
+  },
+  "rules": {
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "no-undef": "error",
+    "no-console": "off",
+    "no-var": "warn",
+    "prefer-const": "warn",
+    "eqeqeq": ["warn", "always", { "null": "ignore" }],
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-prototype-builtins": "warn",
+    "no-irregular-whitespace": "error",
+    "no-template-curly-in-string": "warn",
+    "array-callback-return": "warn",
+    "no-throw-literal": "error",
+    "no-unreachable": "error",
+    "no-redeclare": "warn",
+    "no-inner-declarations": "warn",
+    "no-empty": "warn",
+    "no-useless-escape": "warn",
+    "no-async-promise-executor": "warn",
+    "no-constant-condition": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["server/tests/**/*.js", "server/gongshoudao/tests/**/*.js"],
+      "env": {
+        "jest": true,
+        "node": true
+      },
+      "rules": {
+        "no-unused-vars": "off"
+      }
+    },
+    {
+      "files": ["preview/js/**/*.js", "!preview/js/api-schema.js"],
+      "parserOptions": {
+        "ecmaVersion": 2022,
+        "sourceType": "module"
+      },
+      "env": {
+        "browser": true,
+        "es2022": true
+      },
+      "globals": {
+        "$": "readonly",
+        "jQuery": "readonly",
+        "echarts": "readonly",
+        "Chart": "readonly",
+        "wx": "readonly",
+        "App": "readonly",
+        "Page": "readonly",
+        "Component": "readonly",
+        "getApp": "readonly",
+        "getCurrentPages": "readonly",
+        "requirePlugin": "readonly",
+        "wxCloud": "readonly",
+        "handleDocClose": "readonly",
+        "handleDocPress": "readonly",
+        "functionDef": "readonly",
+        "selectDD": "readonly",
+        "getDDVal": "readonly",
+        "getGSDateStr": "readonly",
+        "gsDirect": "readonly",
+        "renderMatchPK": "readonly"
+      }
+    },
+    {
+      "files": ["preview/*.js", "preview/js/api-schema.js"],
+      "env": {
+        "browser": true,
+        "es2022": true
+      },
+      "globals": {
+        "updateQuantDateBar": "readonly",
+        "loadQuantRank": "readonly",
+        "renderPlanCards": "readonly",
+        "loadMainPage": "readonly"
+      }
+    },
+    {
+      "files": ["server/database.js"],
+      "parserOptions": {
+        "ecmaVersion": 2022,
+        "sourceType": "module"
+      }
+    },
+    {
+      "files": [
+        "server/simple.js",
+        "server/simple_orig.js",
+        "server/period_daemon.js",
+        "server/index.js"
+      ],
+      "rules": {
+        "no-undef": "warn"
+      }
+    }
+  ]
+}

@@ -33,6 +33,29 @@ export function formatDateCN(d) {
 }
 
 // ═══ sessionStorage 缓存层 ═══
+// ★ P3-4: Schema 版本号（数据结构变更时递增，自动淘汰旧缓存）
+var _CACHE_SCHEMA_VERSION = 1;
+var _CACHE_VERSION_KEY = '_cache:schema_version';
+
+// 检查并清理版本不匹配的缓存
+function checkSchemaVersion() {
+  try {
+    var stored = sessionStorage.getItem(_CACHE_VERSION_KEY);
+    if (stored && parseInt(stored) === _CACHE_SCHEMA_VERSION) return;
+    // 版本不匹配或首次，清除所有缓存
+    var keysToRemove = [];
+    for (var i = 0; i < sessionStorage.length; i++) {
+      var k = sessionStorage.key(i);
+      if (k && k.indexOf('_cache:') === 0) keysToRemove.push(k);
+    }
+    keysToRemove.forEach(function (k) { sessionStorage.removeItem(k); });
+    sessionStorage.setItem(_CACHE_VERSION_KEY, _CACHE_SCHEMA_VERSION);
+    console.log('[cache] Schema v' + _CACHE_SCHEMA_VERSION + ' 已激活, 清理 ' + keysToRemove.length + ' 条旧缓存');
+  } catch (e) {}
+}
+// 页面加载时执行一次
+checkSchemaVersion();
+
 // TTL 映射（毫秒）：不同数据类型的缓存过期时间
 var _CACHE_TTL = {
   'match-list': 120000,       // 2 分钟
@@ -72,4 +95,26 @@ export function setCache(key, data) {
   try {
     sessionStorage.setItem('_cache:' + key, JSON.stringify({ t: Date.now(), d: data }));
   } catch (e) {}
+}
+
+// ═══ 匿名用户标识（Device ID） ═══
+var _deviceId = null;
+export function getDeviceId() {
+  if (_deviceId) return _deviceId;
+  try {
+    _deviceId = localStorage.getItem('_dvid');
+    if (!_deviceId) {
+      // 生成 UUID v4
+      _deviceId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = (Math.random() * 16) | 0;
+        var v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      });
+      localStorage.setItem('_dvid', _deviceId);
+    }
+  } catch (e) {
+    // localStorage 不可用时的降级
+    _deviceId = 'session-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  }
+  return _deviceId;
 }

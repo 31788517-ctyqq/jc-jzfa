@@ -15,10 +15,23 @@
  * @param {Object} item - { gs: 功守道缓存数据 }
  * @returns {Object|false} 筛选结果或 false
  */
+/**
+ * 解析共识类型（优先 fusionConsensusType 英文码，降级中文标签映射）
+ */
+function resolveConsensusType(gs) {
+  const ct = gs.fusionConsensusType;
+  if (ct === 'strong' || ct === 'weak' || ct === 'meltdown') return ct;
+  const cn = gs.fusionConsensus || '';
+  if (cn.startsWith('熔断')) return 'meltdown';
+  if (cn.startsWith('弱一致')) return 'weak';
+  if (cn.startsWith('强一致')) return 'strong';
+  return '';
+}
+
 function qualifyMatch(item) {
   const gs = item.gs;
   if (!gs) return false;
-  const consensus = gs.fusionConsensus || '';
+  const consensus = resolveConsensusType(gs);
   if (consensus === 'meltdown') return false;
   const weakThreshold = consensus === 'weak';
   const stabilityOverall = parseFloat(gs.stabilityOverall) || 0;
@@ -185,7 +198,7 @@ function computeScoreQuality(gs, qual) {
   const xgDiff = Math.abs(qual.xgHome - qual.xgAway);
   score += Math.min(25, (xgDiff / 2.0) * 25);
   score += Math.min(20, (parseFloat(gs.stabilityOverall) || 0) / 5);
-  const consensus = gs.fusionConsensus || '';
+  const consensus = resolveConsensusType(gs);
   if (consensus === 'strong') score += 20;
   else if (consensus === 'weak') score += 10;
   else if (consensus === 'none' || !consensus) score += 5;
