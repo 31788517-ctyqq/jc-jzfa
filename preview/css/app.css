@@ -3272,3 +3272,72 @@ body {
   color: #ccc;
 }
 
+/* ★ 蓝图新增：多模型预测共识条 */
+.consensus-bar {
+  cursor: default;
+}
+.consensus-bar .consensus-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.consensus-bar .consensus-title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--text);
+}
+.consensus-bar .consensus-badge {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  line-height: 1.4;
+}
+.consensus-badge.strong { background: rgba(52,211,153,.12); color: var(--green); }
+.consensus-badge.weak   { background: rgba(251,191,36,.12); color: var(--amber); }
+.consensus-badge.melt   { background: rgba(239,68,68,.12);   color: var(--red); }
+.consensus-badge.neutral { background: rgba(100,116,139,.12); color: var(--text3); }
+.consensus-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  text-align: center;
+}
+.consensus-cell {
+  padding: 8px 4px;
+  background: rgba(255,255,255,.03);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,.05);
+}
+.consensus-cell.agree   { border-color: rgba(52,211,153,.2); background: rgba(52,211,153,.04); }
+.consensus-cell.dissent { border-color: rgba(239,68,68,.15); background: rgba(239,68,68,.04); }
+.consensus-model {
+  font-size: var(--fs-xs);
+  color: var(--text2);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.consensus-result {
+  font-size: var(--fs-base);
+  font-weight: 700;
+  color: var(--text);
+}
+.consensus-confidence {
+  font-size: var(--fs-xs);
+  color: var(--text3);
+  margin-top: 2px;
+}
+.consensus-summary {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.05);
+  font-size: var(--fs-sm);
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+

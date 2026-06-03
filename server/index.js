@@ -984,7 +984,142 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               match = matches.find((m) => m.matchId === matchId) || null;
             } catch {}
           }
-          return res.json({ code: 1, data: { match: match || {}, recommends: recommends } });
+
+          // ★ 蓝图辅助函数（内联，避免顶层污染）
+          async function _getMatchConsensus(m, recs) {
+            try {
+              const gs = getGsGlobalMap();
+              const cacheKey = m.matchId;
+              const gsResult = gs[cacheKey] || gs['m_' + cacheKey] || {};
+              const models = [];
+
+              // 功守道
+              if (gsResult.fusionConsensusType) {
+                models.push({
+                  model: '功守道',
+                  direction: gsResult.directionAdvantage?.direction || '?',
+                  confidence: gsResult.directionAdvantage?.confidence || 50,
+                  goal: gsResult.goalLine,
+                  score: gsResult.predictedScore,
+                });
+              }
+              // 专家共识
+              if (recs.length > 0) {
+                const dirMap = { home: 0, draw: 0, away: 0 };
+                let total = 0;
+                recs.forEach(r => {
+                  total += r.num || 1;
+                  if (['胜','主胜'].includes(r.type)) dirMap.home += r.num || 1;
+                  else if (['平','平局'].includes(r.type)) dirMap.draw += r.num || 1;
+                  else if (['负','客胜'].includes(r.type)) dirMap.away += r.num || 1;
+                });
+                const topDir = Object.entries(dirMap).sort((a,b) => b[1]-a[1])[0];
+                models.push({
+                  model: '专家共识',
+                  direction: topDir[0],
+                  confidence: total > 0 ? Math.round(topDir[1] / total * 100) : 50,
+                });
+              }
+              // AI
+              try {
+                const adp = database.getAdapter();
+                if (adp) {
+                  const aiRow = adp.execOne('SELECT * FROM ai_predictions WHERE matchId=? ORDER BY updatedAt DESC LIMIT 1', m.matchId);
+                  if (aiRow && aiRow.content) {
+                    const dir = aiRow.content.includes(m.homeName + '胜') || aiRow.content.includes('主胜') ? 'home'
+                      : aiRow.content.includes(m.visitName + '胜') || aiRow.content.includes('客胜') ? 'away'
+                      : aiRow.content.includes('平') ? 'draw' : null;
+                    if (dir) models.push({ model: 'DeepSeek', direction: dir, confidence: Math.round((aiRow.confidence || 0.5) * 100) });
+                  }
+                }
+              } catch (e) {}
+
+              const dirPreds = models.filter(m => m.direction);
+              if (dirPreds.length === 0) return null;
+              const dirMap2 = {};
+              dirPreds.forEach(m => { dirMap2[m.direction] = (dirMap2[m.direction] || 0) + 1; });
+              const main = Object.entries(dirMap2).sort((a,b) => b[1] - a[1])[0];
+              const ratio = main[1] / dirPreds.length;
+              return {
+                models,
+                mainDirection: main[0],
+                agreeCount: main[1],
+                totalCount: dirPreds.length,
+                consensus: ratio >= 0.8 ? 'strong' : ratio >= 0.6 ? 'weak' : ratio <= 0.4 ? 'meltdown' : 'neutral',
+              };
+            } catch (e) { return null; }
+          }
+
+          async function _getMatchFeatures(m) {
+            try {
+              const db = database.getAdapter();
+              if (!db) return null;
+              const rows = db.execAll(
+                'SELECT feature_name,feature_value FROM feature_store WHERE match_num=? AND match_date=? AND feature_version=?',
+                m.num, (m.date || '').slice(0, 10), 'v1.0'
+              );
+              if (rows.length === 0) return null;
+              const f = {};
+              rows.forEach(r => { f[r.feature_name] = r.feature_value; });
+              return f;
+            } catch (e) { return null; }
+          }
+
+          async function _getMatchH2H(m) {
+            try {
+              const db = database.getAdapter();
+              if (!db || !m.homeName || !m.visitName) return [];
+              return db.execAll(
+                `SELECT home_team,away_team,match_date,home_score,away_score,spf_result
+                 FROM h2h_history WHERE (home_team=? AND away_team=?) OR (home_team=? AND away_team=?)
+                 ORDER BY match_date DESC LIMIT 10`,
+                m.homeName, m.visitName, m.visitName, m.homeName
+              );
+            } catch (e) { return []; }
+          }
+
+          async function _getMatchStandings(m) {
+            try {
+              const db = database.getAdapter();
+              if (!db || !m.homeName || !m.visitName) return null;
+              const homeRow = db.execOne('SELECT * FROM league_standings WHERE team_name=? ORDER BY fetch_date DESC LIMIT 1', m.homeName);
+              const awayRow = db.execOne('SELECT * FROM league_standings WHERE team_name=? ORDER BY fetch_date DESC LIMIT 1', m.visitName);
+              if (!homeRow && !awayRow) return null;
+              return {
+                home: homeRow ? { rank: homeRow.rank, points: homeRow.points, played: homeRow.played, goalDiff: homeRow.goal_diff } : null,
+                away: awayRow ? { rank: awayRow.rank, points: awayRow.points, played: awayRow.played, goalDiff: awayRow.goal_diff } : null,
+                rankDiff: homeRow && awayRow && homeRow.rank && awayRow.rank ? homeRow.rank - awayRow.rank : null,
+              };
+            } catch (e) { return null; }
+          }
+
+          function _getMatchGsData(m, matchId) {
+            try {
+              const gs = getGsGlobalMap();
+              const cacheKey = matchId;
+              const gsResult = gs[cacheKey] || gs['m_' + cacheKey] || {};
+              if (Object.keys(gsResult).length === 0) return null;
+              return {
+                homePower: gsResult.homePower,
+                guestPower: gsResult.guestPower,
+                fusionConsensus: gsResult.fusionConsensusType,
+                goalLine: gsResult.goalLine,
+                predictedScore: gsResult.predictedScore,
+                directionAdvantage: gsResult.directionAdvantage,
+              };
+            } catch (e) { return null; }
+          }
+
+          return res.json({ code: 1, data: {
+            match: match || {},
+            recommends: recommends,
+            // ★ 蓝图新增字段（全部可选，兜底保护）
+            consensus: await _getMatchConsensus(match || {}, recommends).catch(() => null),
+            features: await _getMatchFeatures(match || {}).catch(() => null),
+            h2h: await _getMatchH2H(match || {}).catch(() => []),
+            standings: await _getMatchStandings(match || {}).catch(() => null),
+            gsData: _getMatchGsData(match || {}, matchId),
+          }});
         }
 
         case 'hit-rate-stats': {

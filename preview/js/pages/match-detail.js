@@ -91,6 +91,20 @@ export function goDetail(matchId) {
       </div>
     `;
 
+    // ★ 蓝图新增：四个数据区块（数据为空自动跳过）
+    if (detail.consensus) {
+      html += renderConsensusBar(detail.consensus);
+    }
+    if (detail.gsData) {
+      html += renderGsSummary(detail.gsData);
+    }
+    if (detail.features && hasRecentForm(detail.features)) {
+      html += renderRecentForm(match, detail.features);
+    }
+    if (detail.standings && (detail.standings.home || detail.standings.away)) {
+      html += renderStandingsContext(match, detail.standings);
+    }
+
     // AI预测核心看点卡片
     html += `
       <div class="ai-card" onclick="showAIPrediction('${matchId}')">
@@ -993,4 +1007,74 @@ export function renderAIContentWithBadge(content, homeTeam, awayTeam, badgeText)
         '</div>',
     );
   }
+}
+
+// =============================================================
+// * 蓝图新增渲染函数
+// =============================================================
+
+function renderConsensusBar(consensus) {
+  if (!consensus || !consensus.models || consensus.models.length === 0) return '';
+  var badgeClass = consensus.consensus === 'strong' ? 'strong'
+    : consensus.consensus === 'weak' ? 'weak'
+    : consensus.consensus === 'meltdown' ? 'melt' : 'neutral';
+  var badgeText = consensus.consensus === 'strong' ? 'STRONG'
+    : consensus.consensus === 'weak' ? 'WEAK'
+    : consensus.consensus === 'meltdown' ? 'MELT' : 'NEUTRAL';
+  var cells = consensus.models.map(function(m) {
+    var icon = m.direction === 'home' ? '\ud83c\udfe0' : m.direction === 'draw' ? '\ud83e\udd1d' : '\u2708\ufe0f';
+    var dirLabel = m.direction === 'home' ? '\u4e3b\u80dc' : m.direction === 'draw' ? '\u5e73\u5c40' : '\u5ba2\u80dc';
+    var cls = m.direction === consensus.mainDirection ? 'agree' : 'dissent';
+    return '<div class="consensus-cell ' + cls + '"><div class="consensus-model">' + m.model + '</div><div class="consensus-result">' + icon + ' ' + dirLabel + '</div><div class="consensus-confidence">' + (m.confidence || '--') + '%</div></div>';
+  }).join('');
+  var mainLabel = consensus.mainDirection === 'home' ? '\u4e3b\u80dc' : consensus.mainDirection === 'draw' ? '\u5e73\u5c40' : '\u5ba2\u80dc';
+  return '<div class="chart-box consensus-bar"><div class="consensus-header"><span class="consensus-title">\u591a\u6a21\u578b\u9884\u6d4b\u5171\u8bc6</span><span class="consensus-badge ' + badgeClass + '">' + badgeText + '</span></div><div class="consensus-grid">' + cells + '</div><div class="consensus-summary">' + consensus.agreeCount + '/' + consensus.totalCount + ' \u6a21\u578b\u4e00\u81f4\u770b <span style="color:var(--cyan);font-weight:700">' + mainLabel + '</span></div></div>';
+}
+
+function renderGsSummary(gsData) {
+  if (!gsData) return '';
+  var parts = [];
+  if (gsData.homePower !== undefined && gsData.guestPower !== undefined) parts.push('\u5b9e\u529b: ' + gsData.homePower + ' vs ' + gsData.guestPower);
+  if (gsData.goalLine !== undefined) parts.push('\u5927\u5c0f\u7403: ' + gsData.goalLine.toFixed(1));
+  if (gsData.predictedScore) parts.push('\u9884\u6d4b\u6bd4\u5206: ' + gsData.predictedScore);
+  if (gsData.fusionConsensus) parts.push('\u5171\u8bc6: ' + gsData.fusionConsensus);
+  if (parts.length === 0) return '';
+  return '<div class="chart-box" style="padding:10px 16px;font-size:var(--fs-sm);color:var(--text2);display:flex;flex-wrap:wrap;gap:12px"><span>\u26a1 \u529f\u5b88\u9053</span>' + parts.map(function(p) { return '<span style="color:var(--cyan)">' + p + '</span>'; }).join('') + '</div>';
+}
+
+function hasRecentForm(features) {
+  return !!(features.home_win_pct_6 !== undefined || features.away_win_pct_6 !== undefined);
+}
+
+function renderRecentForm(match, features) {
+  var homeName = match.homeName || '\u4e3b\u961f';
+  var awayName = match.visitName || '\u5ba2\u961f';
+  function makeDots(prefix) {
+    var wr = features[prefix + '_win_pct_6'];
+    if (wr === undefined) return '<span style="color:var(--text3);font-size:var(--fs-sm)">\u65e0\u6570\u636e</span>';
+    var wins = Math.round(wr * 6);
+    var dots = '';
+    for (var i = 0; i < 6; i++) {
+      var cls = i < wins ? 'w' : 'l';
+      dots += '<span class="ai-form-dot ' + cls + '">' + (cls === 'w' ? 'W' : 'L') + '</span>';
+    }
+    return dots;
+  }
+  function pct(val) { return val !== undefined ? Math.round(val * 100) + '%' : '--'; }
+  return '<div class="chart-box"><div class="chart-header"><span class="chart-title">\u8fd1\u671f\u6218\u7ee9 \u00b7 \u8fd16\u573a</span></div><div class="ai-form-row"><span class="ai-form-label">' + homeName + '</span>' + makeDots('home') + '<span class="ai-form-summary">\u80dc\u7387 ' + pct(features.home_win_pct_6) + ' | \u5747\u8fdb\u7403 ' + (features.home_goal_avg_6 !== undefined ? features.home_goal_avg_6.toFixed(1) : '--') + '</span></div><div class="ai-form-row"><span class="ai-form-label">' + awayName + '</span>' + makeDots('away') + '<span class="ai-form-summary">\u80dc\u7387 ' + pct(features.away_win_pct_6) + ' | \u5747\u8fdb\u7403 ' + (features.away_goal_avg_6 !== undefined ? features.away_goal_avg_6.toFixed(1) : '--') + '</span></div></div>';
+}
+
+function renderStandingsContext(match, standings) {
+  if (!standings || (!standings.home && !standings.away)) return '';
+  var home = standings.home;
+  var away = standings.away;
+  var homeTxt = home ? (match.homeName || '\u4e3b\u961f') + ' \u7b2c' + home.rank + '\u4f4d (' + (home.points || '?') + '\u5206)' : '--';
+  var awayTxt = away ? (match.visitName || '\u5ba2\u961f') + ' \u7b2c' + away.rank + '\u4f4d (' + (away.points || '?') + '\u5206)' : '--';
+  var diffTxt = '';
+  if (standings.rankDiff !== null && standings.rankDiff !== undefined) {
+    diffTxt = ' \u6392\u540d\u5dee: ' + Math.abs(standings.rankDiff);
+    if (Math.abs(standings.rankDiff) <= 2) diffTxt += ' | \ud83d\udd25 \u5173\u952e\u6218';
+    else if (Math.abs(standings.rankDiff) <= 5) diffTxt += ' | \u666e\u901a';
+  }
+  return '<div class="chart-box" style="padding:12px 16px"><div class="chart-header" style="margin-bottom:8px"><span class="chart-title">\ud83c\udfc6 \u8054\u8d5b\u6392\u540d</span></div><div style="font-size:var(--fs-sm);color:var(--text2)">' + homeTxt + '</div><div style="font-size:var(--fs-sm);color:var(--text2)">' + awayTxt + '</div>' + (diffTxt ? '<div style="font-size:var(--fs-xs);color:var(--cyan);margin-top:4px">' + diffTxt + '</div>' : '') + '</div>';
 }

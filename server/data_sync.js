@@ -1407,6 +1407,18 @@ async function finalCheck(dateStr) {
   // 1. 回填所有命中结果
   await backfillResults(dateStr);
 
+  // ★ 蓝图：触发 outcome 回填（prediction_outcomes 表）
+  try {
+    const { backfiller } = require('./core/outcome-backfill');
+    const adp = database.getAdapter();
+    if (adp) {
+      const result = await backfiller.backfill(adp, { date: dateStr });
+      log('[outcome-backfill] ' + JSON.stringify(result));
+    }
+  } catch (e) {
+    log('[outcome-backfill] 跳过: ' + e.message);
+  }
+
   // 2. 500 赔率完整性
   const oddsFile = path.join(ODDS_DIR, dateStr + '.json');
   if (fs.existsSync(oddsFile)) {
