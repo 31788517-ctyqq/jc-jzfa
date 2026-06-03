@@ -334,8 +334,9 @@ export function loadPlanList() {
               '</tr>';
           }
 
+          var cardId = 'expert-' + i;
           return (
-            '<div class="plan-card">' +
+            '<div class="plan-card" id="upcard-' + cardId + '">' +
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
             '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
@@ -405,6 +406,9 @@ export function loadPlanList() {
             matchRows +
             '</tbody>' +
             '</table>' +
+            '</div>' +
+            '<div class="mp-actions">' +
+            '<button class="mp-share-btn" onclick="sharePlanCard(\'' + cardId + '\')">📤 分享</button>' +
             '</div>' +
             '</div>'
           );
@@ -1118,8 +1122,9 @@ export function loadScorePlanList() {
               '</tr>';
           }
 
+          var scoreCardId = 'score-' + i;
           return (
-            '<div class="plan-card score-plan">' +
+            '<div class="plan-card score-plan" id="upcard-' + scoreCardId + '">' +
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
             '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
@@ -1201,6 +1206,9 @@ export function loadScorePlanList() {
             '<span>强队 ' +
             (p.strongSide === 'home' ? '主队' : '客队') +
             '</span>' +
+            '</div>' +
+            '<div class="mp-actions">' +
+            '<button class="mp-share-btn" onclick="sharePlanCard(\'' + scoreCardId + '\')">📤 分享</button>' +
             '</div>' +
             '</div>'
           );
@@ -1424,8 +1432,9 @@ export function loadQuantPlanList() {
               '</tr>';
           }
 
+          var quantCardId = 'quant-' + i;
           return (
-            '<div class="plan-card quant-plan">' +
+            '<div class="plan-card quant-plan" id="upcard-' + quantCardId + '">' +
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
             '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
@@ -1502,6 +1511,9 @@ export function loadQuantPlanList() {
             '<span>' +
             (p.consensus || '--') +
             '</span>' +
+            '</div>' +
+            '<div class="mp-actions">' +
+            '<button class="mp-share-btn" onclick="sharePlanCard(\'' + quantCardId + '\')">📤 分享</button>' +
             '</div>' +
             '</div>'
           );

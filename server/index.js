@@ -5255,8 +5255,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
       }
     }
 
-    // 如果尚未全部开奖，保持原样
-    if (!allSettled) return plan;
+    // ★ 串关逻辑：未全部开奖时，若任一场已确定失败 → 整单判负
+    if (!allSettled) {
+      if (anyLose) {
+        var updated = Object.assign({}, plan);
+        updated.isWon = false;
+        updated.resultIncome = -(plan.amount || 0);
+        return updated;
+      }
+      return plan;
+    }
 
     // 全部已开奖 → 判定中奖结果
     var updated = Object.assign({}, plan);
