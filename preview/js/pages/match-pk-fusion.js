@@ -764,7 +764,7 @@ function renderFusionPK(modal, list) {
   html += renderRiskPanel(ranked);
 
   // ── 底部按钮 ──
-  html += '<div class="pk3-footer"><span class="match-bet-btn" onclick="goFromPKToScheme()" style="cursor:pointer;">我要做方案</span><button class="pk3-done-btn" onclick="closePK()">关闭</button></div>';
+  html += '<div class="pk3-footer" style="display:flex;justify-content:space-between;align-items:center;"><span class="match-bet-btn" onclick="goFromPKToScheme()" style="cursor:pointer;">我要做方案</span><button class="pk3-done-btn" onclick="closePK()">关闭</button></div>';
 
   modal.innerHTML = html;
 }
