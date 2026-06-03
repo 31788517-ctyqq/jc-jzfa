@@ -921,6 +921,39 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           });
         }
 
+        case 'match-top-directions': {
+          const { matchId: mtMid } = data;
+          if (!mtMid) return res.json({ code: 0, msg: '缺少 matchId' });
+
+          let recommendations = [];
+          try {
+            const dataFile = getDataJson();
+            const rMap = dataFile.r || {};
+            const key = 'm_' + mtMid;
+            const raw = rMap[key] || rMap[String(mtMid)] || [];
+            recommendations = raw
+              .filter(r => r && (r.num || r.n) > 0)
+              .map(r => ({
+                direction: r.t || r.type,
+                expertCount: r.n || r.num,
+              }))
+              .sort((a, b) => b.expertCount - a.expertCount)
+              .slice(0, 5);
+          } catch (e) { /* mute */ }
+
+          return res.json({
+            code: 1,
+            data: {
+              matchId: mtMid,
+              directions: recommendations.map((d, i) => ({
+                rank: i + 1,
+                direction: d.direction,
+                expertCount: d.expertCount,
+              })),
+            },
+          });
+        }
+
         case 'match-detail': {
           const { matchId } = data;
           // 从 data.json 读取比赛+推荐（支持历史比赛）

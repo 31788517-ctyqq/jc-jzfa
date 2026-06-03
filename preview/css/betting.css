@@ -370,3 +370,53 @@
 .bet-btn-confirm:disabled:active {
   transform: none;
 }
+
+/* ═══ 推荐排行榜高亮 — 左侧1/6黄色底色 + 排名数字 ═══ */
+.bet-cell.rank-highlight,
+.bet-score-item.rank-highlight,
+.bet-goal-item.rank-highlight {
+  position: relative;
+  overflow: hidden;
+}
+.bet-cell.rank-highlight::before,
+.bet-score-item.rank-highlight::before,
+.bet-goal-item.rank-highlight::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 16.66%;  /* 1/6 */
+  height: 100%;
+  background: rgba(255, 201, 40, 0.35);
+  z-index: 0;
+  pointer-events: none;
+  border-top-left-radius: 9px;
+  border-bottom-left-radius: 9px;
+}
+
+/* ★ 排名数字 badge */
+.rank-badge-num {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #0a1520;
+  background: #FFC928;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+
+/* ★ 选中态叠加高亮 */
+.bet-cell.selected.rank-highlight::before,
+.bet-score-item.selected.rank-highlight::before,
+.bet-goal-item.selected.rank-highlight::before {
+  background: rgba(255, 201, 40, 0.45);
+}
