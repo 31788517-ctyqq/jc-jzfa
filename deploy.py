@@ -95,6 +95,7 @@ DEPLOY_MAP = [
     ('preview/assets/zuqiu_soccer.svg',   'both'),
     ('preview/css/app.css',               'both'),
     ('preview/css/modals.css',            'both'),
+    ('preview/css/betting.css',           'both'),  # ★ 投注弹窗样式
     ('preview/app.js',                    'both'),
     ('preview/js/utils.js',               'both'),  # ★ v3 新增，之前遗漏
     ('preview/js/main.js',                'both'),

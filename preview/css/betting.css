@@ -394,24 +394,20 @@
   border-bottom-left-radius: 9px;
 }
 
-/* ★ 排名数字 badge */
+/* ★ 排名数字 — 蓝色、无圆底、居中在黄色条中间 */
 .rank-badge-num {
   position: absolute;
-  left: 2px;
-  top: 2px;
-  font-size: 9px;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16.666%;
+  text-align: center;
+  font-size: 10px;
   font-weight: 700;
-  color: #0a1520;
-  background: #FFC928;
-  border-radius: 50%;
-  width: 15px;
-  height: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #2288FF;
   z-index: 2;
   line-height: 1;
-  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  pointer-events: none;
 }
 
 /* ★ 选中态叠加高亮 */
