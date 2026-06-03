@@ -90,6 +90,13 @@ npm run preflight
 - 单票最大投注额：可用余额的 5%
 - 每日最大投注额：可用余额的 20%
 
+### 7.6 数据库持久化规则（V8.0 新增）
+
+- **禁止绕过 database.js 适配器直接操作 `raw` 实例**：`database.getDatabase()` 返回 raw 实例，写入操作不触发 `_saveToFile()`，数据在进程重启后丢失
+- **统一使用适配器 API**：`database.getAdapter()` → `adp.execRun/execAll/execOne/execDDL`，每次写操作自动持久化到 `midou_data.db`
+- **SQLite 表必须在 `database.js` 的管理范围之内**：新表不能仅由业务模块建表、插入，必须和适配器交互
+- **教训：prediction_log.js 绕过适配器写数据，导致回测分析页面查不出数据（整个表在 PM2 重启后变空）**
+
 ## 8) 规则来源
 
 - `项目需求文档.md`

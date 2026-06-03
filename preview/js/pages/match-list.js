@@ -106,6 +106,7 @@ function renderMatchHTML(matches) {
         </div>
         <div class="match-status" style="color:${m.matchStatus === 1 ? 'var(--cyan)' : m.matchStatus === 2 ? 'var(--green)' : m.matchStatus === 3 ? 'var(--red)' : 'var(--text2)'}">${statusText} ${extraInfo}</div>
         <div class="match-actions">
+          <span class="match-ai-tag" onclick="event.stopPropagation();showAIPrediction('${m.matchId}','${(m.homeName || '').replace(/'/g, "\\'")}','${(m.visitName || '').replace(/'/g, "\\'")}')">🤖 AI分析</span>
           ${m.hasGongshoudao ? `<span class="match-gs-tag" onclick="event.stopPropagation();showGongshoudao('${m.matchId}','${(m.leagueName || '').replace(/'/g, "\\'")}','${(m.homeName || '').replace(/'/g, "\\'")}','${(m.visitName || '').replace(/'/g, "\\'")}','${m.num || ''}','${(m.startTime || '').replace(/'/g, "\\'")}')">⚔️ 功守道</span>` : ''}
           <span class="match-bet-btn" onclick="event.stopPropagation();window.switchTab('scheme')">我要做方案</span>
         </div>

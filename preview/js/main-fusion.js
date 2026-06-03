@@ -55,13 +55,15 @@ window.closeAI = function () {
       console.error('[JS] closeAI 失败:', e && e.message);
     });
 };
-window.showAIPrediction = function (id) {
+window.showAIPrediction = function () {
+  var args = arguments;
   _mod('match-detail')
     .then(function (m) {
-      m.showAIPrediction(id);
+      m.showAIPrediction.apply(null, args);
     })
     .catch(function (e) {
       console.error('[JS] showAIPrediction 失败:', e && e.message);
+      alert('AI深度解析加载失败，请刷新页面后重试');
     });
 };
 window.showGongshoudao = function () {
@@ -738,7 +740,7 @@ export function switchTab(tab) {
     'quant-rank': '量化数据排行榜',
     rank: '推荐排行榜',
     hit: '命中率统计',
-    filter: '命中率筛选',
+    filter: '推荐方向命中查询',
     income: '方案收入',
     backtest: '回测分析',
     scheme: '方案设计',
@@ -995,17 +997,17 @@ function switchTabLoad(tab) {
     detail: '比赛详情',
     'quant-rank': '量化数据排行榜',
     rank: '推荐排行榜',
-    hit: '命中率统计',
-    filter: '命中率筛选',
-    income: '方案收入',
-    backtest: '回测分析',
-    scheme: '方案设计',
-    'confirm-scheme': '确认方案',
-  };
-  var titleEl = document.getElementById('navTitle');
-  if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
+  hit: '命中率统计',
+  filter: '推荐方向命中查询',
+  income: '方案收入',
+  backtest: '回测分析',
+  scheme: '方案设计',
+  'confirm-scheme': '确认方案',
+};
+var titleEl = document.getElementById('navTitle');
+if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
 
-  // 设置对应 tab-item active
+// 设置对应 tab-item active
   document.querySelectorAll('.tab-item').forEach(function (t) {
     t.classList.remove('active');
   });

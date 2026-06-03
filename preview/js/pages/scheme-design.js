@@ -220,8 +220,34 @@ function loadMatches() {
   var el = document.getElementById('schemeMatchList');
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载场次中...</div>';
-  api('match-list', { date: _schemeDate }).then(function (data) {
-    _matches = data || [];
+  // ★ 方案设计页仅显示未开赛比赛（hideFinished: true）
+  api('match-list', { date: _schemeDate, hideFinished: true }).then(function (data) {
+    var now = new Date();
+    // ★ 前端双重校验：过滤已开赛/已结束比赛（兜底服务端未及时更新）
+    _matches = (data || []).filter(function (m) {
+      if (m.matchStatus !== 0) return false;
+      // 补充：解析开赛时间，排除已过期的比赛
+      if (m.startTime) {
+        var parts = String(m.startTime).match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+        if (parts) {
+          var matchDate = new Date(
+            parseInt(_schemeDate.slice(0, 4)),
+            parseInt(parts[1]) - 1,
+            parseInt(parts[2]),
+            parseInt(parts[3]),
+            parseInt(parts[4])
+          );
+          if (matchDate <= now) return false;
+        }
+      }
+      return true;
+    });
+    // 按开赛时间排序（越近的越靠前）
+    _matches.sort(function (a, b) {
+      var ta = a.startTime || '';
+      var tb = b.startTime || '';
+      return ta.localeCompare(tb);
+    });
     var totalEl = document.getElementById('schemeMatchTotal');
     if (totalEl) totalEl.textContent = '共' + _matches.length + '场比赛';
     var matchIds = _matches.map(function (m) { return m.matchId || m.id; }).filter(Boolean);
@@ -250,7 +276,17 @@ window.switchSchemePlay = function (type) {
 function renderMatchList() {
   var el = document.getElementById('schemeMatchList');
   if (!el) return;
-  if (_matches.length === 0) { el.innerHTML = '<div class="hint-box">当日暂无比赛</div>'; return; }
+  if (_matches.length === 0) {
+    var today = formatDate(new Date());
+    if (_schemeDate < today) {
+      el.innerHTML = '<div class="hint-box">⏰ 该日期比赛已全部结束，请切换到今天或未来日期进行方案设计</div>';
+    } else if (_schemeDate > today) {
+      el.innerHTML = '<div class="hint-box">📅 ' + _schemeDate + ' 暂无开售比赛，请选择更近的日期</div>';
+    } else {
+      el.innerHTML = '<div class="hint-box">当日暂无比赛</div>';
+    }
+    return;
+  }
 
   // ★ 玩法过滤提示
   var filterHint = '';

@@ -251,6 +251,34 @@ function _initBetterSqlite3() {
     if (db) db.close();
   }
 
+  // ═══ 适配器（兼容 prediction_log.js 等模块的统一 API） ═══
+  const _bs3Adp = {
+    execOne: function (sql, ...args) {
+      const params = _normalizeParams(args);
+      const stmt = db.prepare(sql);
+      return stmt.get(...params);
+    },
+    execAll: function (sql, ...args) {
+      const params = _normalizeParams(args);
+      const stmt = db.prepare(sql);
+      return stmt.all(...params);
+    },
+    execRun: function (sql, ...args) {
+      const params = _normalizeParams(args);
+      const stmt = db.prepare(sql);
+      const info = stmt.run(...params);
+      return { changes: info.changes };
+    },
+    execDDL: function (sql) {
+      db.exec(sql);
+    },
+    raw: db,
+  };
+
+  function getAdapter() {
+    return _bs3Adp;
+  }
+
   // ═══ Matches ═══
   function upsertMatch(match) {
     const now = new Date().toISOString();
@@ -502,6 +530,7 @@ function _initBetterSqlite3() {
   return (module.exports = {
     initDatabase,
     getDatabase,
+    getAdapter,
     closeDatabase,
     isAvailable,
     upsertMatch,
@@ -891,9 +920,14 @@ function _initSqlJs() {
     };
   }
 
+  function getAdapter() {
+    return adp;
+  }
+
   module.exports = {
     initDatabase,
     getDatabase,
+    getAdapter,
     closeDatabase,
     isAvailable,
     upsertMatch,
@@ -970,6 +1004,7 @@ const zeroObj = () => ({ matchCount: 0, leagueCount: 0, directionCount: 0 });
 module.exports = {
   initDatabase,
   getDatabase,
+  getAdapter: function () { return null; },
   closeDatabase,
   isAvailable,
   upsertMatch: () => {},

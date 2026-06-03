@@ -286,9 +286,9 @@ function _buildShareCard(cardEl) {
     var away = awayEl ? awayEl.textContent.trim() : '';
     var odds = cells[2].textContent.trim().replace(/\s+/g, ' ').substring(0, 40);
     matchRows +=
-      '<div class="match-row">' +
-      '<div class="round">' + num + '</div>' +
-      '<div class="vs">' + home + '<span>VS</span>' + away + '</div>' +
+      '<div class="table-row">' +
+      '<div class="issue">' + num + '</div>' +
+      '<div class="vs"><div>' + home + '</div><span>VS</span><div>' + away + '</div></div>' +
       '<div class="bet">' + odds + '</div>' +
       '</div>';
   });
@@ -307,92 +307,73 @@ function _buildShareCard(cardEl) {
     '<style>' +
     '*{margin:0;padding:0;box-sizing:border-box;}' +
     '.share-card{' +
-    'width:750px;min-height:1624px;padding:56px 40px 120px;' +
-    'background:' +
-    'linear-gradient(90deg,#02131f 0%,#011a29 25%,#02131f 50%,#011a29 75%,#02131f 100%);' +
+    'width:750px;min-height:1800px;padding:48px 40px 80px;' +
+    'background:linear-gradient(180deg,#03233E 0px,#02131F 260px,#02131F 100%);' +
     'position:relative;overflow:hidden;' +
+    'font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;' +
     '}' +
-    '.share-card::before{' +
-    'content:"";position:absolute;inset:0;' +
-    'background:repeating-linear-gradient(90deg,transparent 0px,rgba(0,255,255,.015) 80px,transparent 160px);' +
-    'pointer-events:none;z-index:0;' +
-    '}' +
-    '.footer-glow{position:absolute;left:0;right:0;bottom:0;height:500px;pointer-events:none;z-index:0;}' +
-    '.glow-1{position:absolute;left:-250px;bottom:-380px;width:1250px;height:650px;border-radius:50%;' +
-    'background:radial-gradient(ellipse at center,rgba(0,220,255,.28) 0%,rgba(0,220,255,.12) 35%,rgba(0,220,255,0) 72%);' +
-    'filter:blur(30px);}' +
-    '.glow-2{position:absolute;left:-120px;bottom:-220px;width:980px;height:420px;border-radius:50%;' +
-    'border:3px solid rgba(0,255,255,.28);' +
-    'box-shadow:0 0 25px rgba(0,255,255,.25),0 0 60px rgba(0,255,255,.18);}' +
-    '.glow-3{position:absolute;left:-60px;bottom:-185px;width:860px;height:360px;border-radius:50%;' +
-    'border:2px solid rgba(0,255,255,.12);filter:blur(1px);}' +
-    '.light-left{position:absolute;left:-80px;bottom:-40px;width:360px;height:260px;' +
-    'background:radial-gradient(ellipse at left bottom,rgba(0,255,255,.22),rgba(0,255,255,0));' +
-    'filter:blur(35px);transform:rotate(-12deg);}' +
-    '.light-right{position:absolute;right:-100px;bottom:-60px;width:420px;height:280px;' +
-    'background:radial-gradient(ellipse at right bottom,rgba(0,255,255,.18),rgba(0,255,255,0));' +
-    'filter:blur(40px);}' +
-    '.particle{position:absolute;right:0;bottom:0;width:240px;height:180px;opacity:.25;' +
-    'background-image:radial-gradient(circle,rgba(0,255,255,.8) 1px,transparent 1px);' +
-    'background-size:12px 12px;' +
-    'mask-image:linear-gradient(to top,#000,transparent);}' +
-    '.sc-header{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;}' +
-    '.sc-title-wrap{display:flex;align-items:center;}' +
-    '.sc-ball{font-size:48px;margin-right:18px;}' +
-    '.sc-title{font-size:54px;font-weight:700;color:#FFFFFF;}' +
-    '.sc-date{font-size:30px;color:#A9B5C3;}' +
-    '.sc-summary{margin-top:56px;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;}' +
-    '.sc-sum-item{flex:1;text-align:center;}' +
-    '.sc-label{color:#A8B5C4;font-size:24px;}' +
-    '.sc-value{margin-top:22px;color:#20EAFF;font-size:56px;font-weight:700;}' +
-    '.sc-value span{font-size:24px;margin-left:4px;}' +
-    '.sc-status{margin-top:22px;color:#FFD322;font-size:56px;font-weight:700;}' +
-    '.sc-divider{width:2px;height:120px;background:rgba(0,220,255,.25);}' +
-    '.sc-info{margin-top:60px;padding-top:42px;border-top:2px solid rgba(0,220,255,.18);position:relative;z-index:1;}' +
-    '.sc-info-row{display:flex;margin-bottom:34px;}' +
-    '.sc-info-left{width:180px;color:#AAB4C0;font-size:28px;}' +
-    '.sc-info-right{font-size:32px;font-weight:600;color:#21EEFF;}' +
-    '.sc-table{margin-top:50px;border-radius:28px;overflow:hidden;' +
-    'border:2px solid rgba(0,220,255,.22);background:rgba(0,15,25,.45);' +
-    'backdrop-filter:blur(6px);position:relative;z-index:1;}' +
-    '.sc-th{height:92px;display:grid;grid-template-columns:120px 1fr 260px;' +
-    'background:rgba(0,220,255,.05);border-bottom:1px solid rgba(0,220,255,.15);}' +
-    '.sc-th div{display:flex;align-items:center;justify-content:center;color:#AEB9C4;font-size:26px;font-weight:600;}' +
-    '.match-row{min-height:220px;display:grid;grid-template-columns:120px 1fr 260px;' +
-    'border-bottom:1px solid rgba(0,220,255,.12);}' +
-    '.match-row:last-child{border-bottom:none;}' +
-    '.round{display:flex;align-items:center;justify-content:center;' +
-    'color:#AEB9C4;font-size:26px;font-weight:600;}' +
+    '.header{display:flex;justify-content:space-between;align-items:center;height:92px;}' +
+    '.header-left{display:flex;align-items:center;}' +
+    '.football-icon{font-size:48px;line-height:1;}' +
+    '.scheme-title{font-size:64px;font-weight:700;color:#FFFFFF;margin-left:16px;}' +
+    '.scheme-date{color:#AAB5C2;font-size:30px;}' +
+    '.stat-panel{margin-top:44px;height:180px;display:flex;align-items:center;}' +
+    '.stat-item{flex:1;text-align:center;}' +
+    '.stat-label{color:#AAB5C2;font-size:24px;}' +
+    '.stat-value{margin-top:28px;color:#18E8FF;font-size:60px;font-weight:700;}' +
+    '.stat-value span{font-size:28px;}' +
+    '.stat-status{margin-top:28px;color:#FFD126;font-size:60px;font-weight:700;}' +
+    '.stat-line{width:2px;height:120px;background:rgba(0,234,255,.20);}' +
+    '.section-divider{margin-top:12px;height:2px;background:rgba(0,234,255,.15);}' +
+    '.base-info{margin-top:42px;}' +
+    '.info-row{display:flex;align-items:center;height:88px;}' +
+    '.label{width:180px;color:#AAB5C2;font-size:28px;}' +
+    '.value{color:#18E8FF;font-size:34px;font-weight:600;}' +
+    '.section-header{margin-top:52px;margin-bottom:20px;display:flex;align-items:center;gap:12px;}' +
+    '.section-icon{font-size:32px;line-height:1;}' +
+    '.section-text{font-size:26px;color:#AAB5C2;font-weight:600;}' +
+    '.match-table{margin-top:0;border-radius:28px;overflow:hidden;' +
+    'border:2px solid rgba(0,234,255,.18);background:rgba(0,20,32,.35);}' +
+    '.table-head{height:92px;display:grid;grid-template-columns:160px 1fr 250px;' +
+    'background:rgba(0,234,255,.04);border-bottom:1px solid rgba(0,234,255,.12);}' +
+    '.table-head div{display:flex;align-items:center;justify-content:center;' +
+    'color:#AAB5C2;font-size:24px;font-weight:600;}' +
+    '.table-row{min-height:220px;display:grid;grid-template-columns:160px 1fr 250px;' +
+    'border-bottom:1px solid rgba(0,234,255,.08);}' +
+    '.table-row:last-child{border-bottom:none;}' +
+    '.issue{display:flex;align-items:center;justify-content:center;' +
+    'color:#AAB5C2;font-size:24px;font-weight:600;}' +
     '.vs{display:flex;flex-direction:column;justify-content:center;align-items:center;' +
-    'color:#FFFFFF;font-size:30px;font-weight:700;line-height:60px;}' +
-    '.vs span{color:#8C96A2;font-size:26px;}' +
-    '.bet{display:flex;align-items:center;justify-content:center;text-align:center;' +
-    'color:#FFFFFF;font-size:26px;font-weight:600;padding:0 20px;line-height:40px;}' +
+    'color:#FFFFFF;font-size:28px;font-weight:700;line-height:56px;}' +
+    '.vs span{color:#8D98A4;font-size:24px;}' +
+    '.bet{display:flex;align-items:center;justify-content:center;' +
+    'color:#FFFFFF;font-size:24px;font-weight:600;}' +
     '</style>' +
     '<div class="share-card">' +
-    '<div class="sc-header">' +
-    '<div class="sc-title-wrap"><div class="sc-ball">&#x26BD;</div><div class="sc-title">' + name + '</div></div>' +
-    '<div class="sc-date">' + date + '</div>' +
+    '<div class="header">' +
+    '<div class="header-left">' +
+    '<div class="football-icon">&#x26BD;</div>' +
+    '<div class="scheme-title">' + name + '</div>' +
     '</div>' +
-    '<div class="sc-summary">' +
-    '<div class="sc-sum-item"><div class="sc-label">' + amountLabel + '</div><div class="sc-value">' + amtNum + '<span>' + amtUnit + '</span></div></div>' +
-    '<div class="sc-divider"></div>' +
-    '<div class="sc-sum-item"><div class="sc-label">' + prizeLabel + '</div><div class="sc-value">' + pNum + '<span>' + pUnit + '</span></div></div>' +
-    '<div class="sc-divider"></div>' +
-    '<div class="sc-sum-item"><div class="sc-label">方案状态</div><div class="sc-status">' + statusText + '</div></div>' +
+    '<div class="scheme-date">' + date + '</div>' +
     '</div>' +
-    '<div class="sc-info">' +
-    '<div class="sc-info-row"><span class="sc-info-left">玩法</span><span class="sc-info-right">' + playType + '</span></div>' +
-    '<div class="sc-info-row"><span class="sc-info-left">场数/过关</span><span class="sc-info-right">' + passType + '</span></div>' +
-    '<div class="sc-info-row"><span class="sc-info-left">注数/倍数</span><span class="sc-info-right">' + betCount + '</span></div>' +
+    '<div class="stat-panel">' +
+    '<div class="stat-item"><div class="stat-label">' + amountLabel + '</div><div class="stat-value">' + amtNum + '<span>' + amtUnit + '</span></div></div>' +
+    '<div class="stat-line"></div>' +
+    '<div class="stat-item"><div class="stat-label">' + prizeLabel + '</div><div class="stat-value">' + pNum + '<span>' + pUnit + '</span></div></div>' +
+    '<div class="stat-line"></div>' +
+    '<div class="stat-item"><div class="stat-label">方案状态</div><div class="stat-status">' + statusText + '</div></div>' +
     '</div>' +
-    '<div class="sc-table"><div class="sc-th"><div>场次</div><div>对阵</div><div>投注(赔率)</div></div>' +
+    '<div class="section-divider"></div>' +
+    '<div class="base-info">' +
+    '<div class="info-row"><div class="label">玩法</div><div class="value">' + playType + '</div></div>' +
+    '<div class="info-row"><div class="label">场数/过关</div><div class="value">' + passType + '</div></div>' +
+    '<div class="info-row"><div class="label">注数/倍数</div><div class="value">' + betCount + '</div></div>' +
+    '</div>' +
+    '<div class="section-header"><div class="section-icon">&#x26BD;</div><div class="section-text">赛事详情</div></div>' +
+    '<div class="match-table">' +
+    '<div class="table-head"><div>场次</div><div>对阵</div><div>投注(赔率)</div></div>' +
     matchRows +
-    '</div>' +
-    '<div class="footer-glow">' +
-    '<div class="glow-1"></div><div class="glow-2"></div><div class="glow-3"></div>' +
-    '<div class="light-left"></div><div class="light-right"></div>' +
-    '<div class="particle"></div>' +
     '</div>' +
     '</div>';
 

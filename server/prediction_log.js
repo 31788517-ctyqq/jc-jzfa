@@ -1,6 +1,9 @@
 /**
  * server/prediction_log.js
  * 预测回测数据层 — prediction_logs 表 CRUD
+ *
+ * V8.0 重构：使用 database.js 适配器 API（execOne/execAll/execRun/execDDL）
+ *           所有写操作自动持久化到 midou_data.db，进程重启不丢数据
  */
 
 const database = require('./database');
@@ -35,204 +38,127 @@ function ensureDatabase() {
   return _ensureReady;
 }
 
-function getDB() {
-  return database.getDatabase();
-}
-
-// ═══ 建表 ═══
-function initTable() {
-  if (!dbReady) return;
-  const db = getDB();
-  if (!db) return;
-  try {
-    // 只有 sql.js 才有 db.run() 方法；better-sqlite3 有 db.prepare().run() 但无 db.run()
-    if (typeof db.run === 'function') {
-      // sql.js
-      db.run(
-        'CREATE TABLE IF NOT EXISTS prediction_logs (' +
-          'id INTEGER PRIMARY KEY AUTOINCREMENT,' +
-          'matchId TEXT NOT NULL,' +
-          'date TEXT,' +
-          'homeName TEXT,' +
-          'visitName TEXT,' +
-          'leagueName TEXT,' +
-          'matchNum TEXT,' +
-          'handicap INTEGER,' +
-          'ai_spf TEXT,' +
-          'ai_overunder TEXT,' +
-          'ai_score TEXT,' +
-          'ai_confidence REAL,' +
-          'ai_content TEXT,' +
-          'pk_composite_score REAL,' +
-          'pk_power_score REAL,' +
-          'pk_goal_score REAL,' +
-          'pk_heat_score REAL,' +
-          'pk_stability_score REAL,' +
-          'pk_direction TEXT,' +
-          'pk_direction_stars INTEGER,' +
-          'pk_direction_desc TEXT,' +
-          'pk_hcp_direction TEXT,' +
-          'pk_goal_direction TEXT,' +
-          'pk_goal_stars INTEGER,' +
-          'pk_fusion_consensus TEXT,' +
-          'pk_batch_date TEXT,' +
-          'gs_scores_json TEXT,' +
-          'gs_top_score TEXT,' +
-          'gs_top_percent REAL,' +
-          'gs_ladder_label TEXT,' +
-          'gs_ladder_level INTEGER,' +
-          'actual_score TEXT,' +
-          'actual_home_goals INTEGER,' +
-          'actual_away_goals INTEGER,' +
-          'actual_spf TEXT,' +
-          'actual_overunder TEXT,' +
-          'actual_corrected_at TEXT,' +
-          "created_at TEXT DEFAULT (datetime('now','localtime'))," +
-          "updated_at TEXT DEFAULT (datetime('now','localtime'))" +
-          ')',
-      );
-      db.run('CREATE INDEX IF NOT EXISTS idx_logs_matchId ON prediction_logs(matchId)');
-      db.run('CREATE INDEX IF NOT EXISTS idx_logs_date ON prediction_logs(date)');
-      db.run('CREATE INDEX IF NOT EXISTS idx_logs_league ON prediction_logs(leagueName)');
-    } else if (typeof db.prepare === 'function') {
-      // better-sqlite3
-      db.prepare(
-        'CREATE TABLE IF NOT EXISTS prediction_logs (' +
-          'id INTEGER PRIMARY KEY AUTOINCREMENT,' +
-          'matchId TEXT NOT NULL, date TEXT, homeName TEXT, visitName TEXT, leagueName TEXT, matchNum TEXT,' +
-          'handicap INTEGER,' +
-          'ai_spf TEXT, ai_overunder TEXT, ai_score TEXT, ai_confidence REAL, ai_content TEXT,' +
-          'pk_composite_score REAL, pk_power_score REAL, pk_goal_score REAL, pk_heat_score REAL, pk_stability_score REAL,' +
-          'pk_direction TEXT, pk_direction_stars INTEGER, pk_direction_desc TEXT, pk_hcp_direction TEXT,' +
-          'pk_goal_direction TEXT, pk_goal_stars INTEGER, pk_fusion_consensus TEXT, pk_batch_date TEXT,' +
-          'gs_scores_json TEXT, gs_top_score TEXT, gs_top_percent REAL, gs_ladder_label TEXT, gs_ladder_level INTEGER,' +
-          'actual_score TEXT, actual_home_goals INTEGER, actual_away_goals INTEGER,' +
-          'actual_spf TEXT, actual_overunder TEXT, actual_corrected_at TEXT,' +
-          "created_at TEXT DEFAULT (datetime('now','localtime')), updated_at TEXT DEFAULT (datetime('now','localtime')))",
-      ).run();
-      db.prepare('CREATE INDEX IF NOT EXISTS idx_logs_matchId ON prediction_logs(matchId)').run();
-      db.prepare('CREATE INDEX IF NOT EXISTS idx_logs_date ON prediction_logs(date)').run();
-      db.prepare('CREATE INDEX IF NOT EXISTS idx_logs_league ON prediction_logs(leagueName)').run();
-    }
-    console.log('[prediction_log] table initialized');
-    // ★ 迁移：添加 handicap 列（如果不存在，忽略已存在的错误）
-    try {
-      if (typeof db.run === 'function') {
-        db.run('ALTER TABLE prediction_logs ADD COLUMN handicap INTEGER');
-      } else if (typeof db.prepare === 'function') {
-        db.prepare('ALTER TABLE prediction_logs ADD COLUMN handicap INTEGER').run();
-      }
-    } catch (e) {
-      // 列已存在则忽略
-    }
-    // ★ V2.0 迁移：添加健康评分列
-    try {
-      if (typeof db.run === 'function') {
-        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_health_score REAL');
-      } else if (typeof db.prepare === 'function') {
-        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_health_score REAL').run();
-      }
-    } catch (e) { /* 忽略 */ }
-    // ★ V2.0 迁移：添加 EV 价值评分列
-    try {
-      if (typeof db.run === 'function') {
-        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_ev_home REAL');
-        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_ev_draw REAL');
-        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_ev_away REAL');
-        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_value_tag TEXT');
-        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_value_score REAL');
-        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_heat_zscore REAL');
-        db.run('ALTER TABLE prediction_logs ADD COLUMN pk_heat_z_overheat INTEGER');
-      } else if (typeof db.prepare === 'function') {
-        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_health_score REAL').run();
-        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_ev_home REAL').run();
-        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_ev_draw REAL').run();
-        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_ev_away REAL').run();
-        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_value_tag TEXT').run();
-        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_value_score REAL').run();
-        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_heat_zscore REAL').run();
-        db.prepare('ALTER TABLE prediction_logs ADD COLUMN pk_heat_z_overheat INTEGER').run();
-      }
-    } catch (e) { /* 列已存在则忽略 */ }
-  } catch (e) {
-    console.error('[prediction_log] init error:', e.message);
+// ═══ 获取适配器 ═══
+function _getAdp() {
+  const adp = database.getAdapter();
+  if (!adp) {
+    // 降级：better-sqlite3 后端下 getAdapter() 返回包装对象
+    // sql.js 后端下返回 _createSqlJsAdapter 创建的对象
+    return null;
   }
+  return adp;
 }
 
-// ═══ 辅助：执行 SQL ═══
-function _exec(sql, params) {
-  const db = getDB();
-  if (!db || !dbReady) return null;
+// ═══ 便捷封装：接受数组参数，内部展开传给适配器 ═══
+function _exec(sql, paramsArr) {
+  if (!dbReady) return null;
+  const adp = _getAdp();
+  if (!adp) return null;
   try {
-    const stmt = db.prepare(sql);
-    if (params && params.length > 0) stmt.bind(params);
-    stmt.step();
-    stmt.free();
-    return { changes: db.getRowsModified ? db.getRowsModified() : 0 };
+    return adp.execRun(sql, ...(paramsArr || []));
   } catch (e) {
     console.error('[prediction_log] exec error:', e.message);
     return null;
   }
 }
 
-function _queryOne(sql, params) {
-  const db = getDB();
-  if (!db || !dbReady) return null;
-  // 统一使用 sql.js 兼容的 step/getAsObject 方式
+function _queryOne(sql, paramsArr) {
+  if (!dbReady) return null;
+  const adp = _getAdp();
+  if (!adp) return null;
   try {
-    const stmt = db.prepare(sql);
-    if (params && params.length > 0) stmt.bind(params);
-    if (stmt.step()) {
-      const obj = stmt.getAsObject();
-      stmt.free();
-      return obj;
-    }
-    stmt.free();
-    return null;
+    return adp.execOne(sql, ...(paramsArr || []));
   } catch (e) {
-    // fallback: exec
-    try {
-      const r = db.exec(sql);
-      if (r && r.length > 0 && r[0].values && r[0].values.length > 0) {
-        return rowToObj(r[0].columns, r[0].values[0]);
-      }
-    } catch (e2) {}
+    console.error('[prediction_log] queryOne error:', e.message);
     return null;
   }
 }
 
-function _queryAll(sql, params) {
-  const db = getDB();
-  if (!db || !dbReady) return [];
+function _queryAll(sql, paramsArr) {
+  if (!dbReady) return [];
+  const adp = _getAdp();
+  if (!adp) return [];
   try {
-    const stmt = db.prepare(sql);
-    if (params && params.length > 0) stmt.bind(params);
-    const results = [];
-    while (stmt.step()) {
-      results.push(stmt.getAsObject());
-    }
-    stmt.free();
-    return results;
+    return adp.execAll(sql, ...(paramsArr || []));
   } catch (e) {
-    // fallback: exec
-    try {
-      const r = db.exec(sql);
-      if (r && r.length > 0) {
-        return r[0].values.map(function (v) {
-          return rowToObj(r[0].columns, v);
-        });
-      }
-    } catch (e2) {}
+    console.error('[prediction_log] queryAll error:', e.message);
     return [];
   }
 }
 
-function rowToObj(cols, vals) {
-  const o = {};
-  for (let i = 0; i < cols.length; i++) {
-    o[cols[i]] = vals[i];
+// ═══ 建表 ═══
+function initTable() {
+  if (!dbReady) return;
+  const adp = _getAdp();
+  if (!adp) return;
+  try {
+    // 统一使用 execRun 执行 DDL（自动持久化）
+    adp.execRun(
+      'CREATE TABLE IF NOT EXISTS prediction_logs (' +
+        'id INTEGER PRIMARY KEY AUTOINCREMENT,' +
+        'matchId TEXT NOT NULL,' +
+        'date TEXT,' +
+        'homeName TEXT,' +
+        'visitName TEXT,' +
+        'leagueName TEXT,' +
+        'matchNum TEXT,' +
+        'handicap INTEGER,' +
+        'ai_spf TEXT,' +
+        'ai_overunder TEXT,' +
+        'ai_score TEXT,' +
+        'ai_confidence REAL,' +
+        'ai_content TEXT,' +
+        'pk_composite_score REAL,' +
+        'pk_power_score REAL,' +
+        'pk_goal_score REAL,' +
+        'pk_heat_score REAL,' +
+        'pk_stability_score REAL,' +
+        'pk_direction TEXT,' +
+        'pk_direction_stars INTEGER,' +
+        'pk_direction_desc TEXT,' +
+        'pk_hcp_direction TEXT,' +
+        'pk_goal_direction TEXT,' +
+        'pk_goal_stars INTEGER,' +
+        'pk_fusion_consensus TEXT,' +
+        'pk_batch_date TEXT,' +
+        'gs_scores_json TEXT,' +
+        'gs_top_score TEXT,' +
+        'gs_top_percent REAL,' +
+        'gs_ladder_label TEXT,' +
+        'gs_ladder_level INTEGER,' +
+        'actual_score TEXT,' +
+        'actual_home_goals INTEGER,' +
+        'actual_away_goals INTEGER,' +
+        'actual_spf TEXT,' +
+        'actual_overunder TEXT,' +
+        'actual_corrected_at TEXT,' +
+        "created_at TEXT DEFAULT (datetime('now','localtime'))," +
+        "updated_at TEXT DEFAULT (datetime('now','localtime'))" +
+        ')'
+    );
+    adp.execRun('CREATE INDEX IF NOT EXISTS idx_logs_matchId ON prediction_logs(matchId)');
+    adp.execRun('CREATE INDEX IF NOT EXISTS idx_logs_date ON prediction_logs(date)');
+    adp.execRun('CREATE INDEX IF NOT EXISTS idx_logs_league ON prediction_logs(leagueName)');
+
+    console.log('[prediction_log] table initialized');
+
+    // ★ 迁移：添加 handicap 列（已存在则忽略）
+    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN handicap INTEGER'); } catch (e) { /* 忽略 */ }
+
+    // ★ V2.0 迁移：添加健康评分列
+    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_health_score REAL'); } catch (e) { /* 忽略 */ }
+
+    // ★ V2.0 迁移：添加 EV 价值评分列
+    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_ev_home REAL'); } catch (e) { /* 忽略 */ }
+    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_ev_draw REAL'); } catch (e) { /* 忽略 */ }
+    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_ev_away REAL'); } catch (e) { /* 忽略 */ }
+    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_value_tag TEXT'); } catch (e) { /* 忽略 */ }
+    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_value_score REAL'); } catch (e) { /* 忽略 */ }
+    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_heat_zscore REAL'); } catch (e) { /* 忽略 */ }
+    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_heat_z_overheat INTEGER'); } catch (e) { /* 忽略 */ }
+  } catch (e) {
+    console.error('[prediction_log] init error:', e.message);
   }
-  return o;
 }
 
 // ═══ 写入预测日志（UPSERT by matchId） ═══
@@ -591,9 +517,8 @@ module.exports = {
   queryBacktest,
   getLeagues,
   getTotalCount,
-  getDB,
   autoEnsure,
   isReady: function () {
-    return dbReady && database.isAvailable();
+    return dbReady && database.isAvailable() && _getAdp() !== null;
   },
 };

@@ -444,9 +444,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               ? new Date().getFullYear() + '-' + data.matchDate
               : data.date || latestDataDate();
 
+            // ★ hideFinished: 仅返回未开赛比赛（方案设计/投注页使用）
+            const hideFinished = data.hideFinished === true || data.hideFinished === 'true';
+            const cacheKey = dateStr + (hideFinished ? ':active' : '');
+
             // P1-6: 请求级缓存（同一日期 1 分钟内命中）
             const now = Date.now();
-            const cached = _matchListCacheByDate[dateStr];
+            const cached = _matchListCacheByDate[cacheKey];
             if (cached && now - cached.time < MATCH_LIST_CACHE_TTL) {
               return res.json(cached.response);
             }
@@ -501,6 +505,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (!m) return;
               const md = (m.date || '').slice(0, 10);
               if (md !== dateStr) return;
+              // ★ hideFinished: 方案设计/投注页仅显示未开赛比赛
+              if (hideFinished && m.matchStatus !== 0) return;
               // 补充单关标识（赔率文件优先，data.json 兜底）
               const fiveOdds = oddsMap[m.num || ''];
               const isSingleGame = (fiveOdds && fiveOdds.isSingleGame === true) || m.isSingleGame === true;
@@ -522,7 +528,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   () => ensureData(),
                   async () => [],
                 );
-                const filtered = liveMatches.filter((m) => (m.date || '').slice(0, 10) === today);
+                const filtered = liveMatches.filter((m) => {
+                  if ((m.date || '').slice(0, 10) !== today) return false;
+                  if (hideFinished && m.matchStatus !== 0) return false;
+                  return true;
+                });
                 if (filtered.length > 0) {
                   return res.json({ code: 1, data: filtered });
                 }
@@ -535,6 +545,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     const m = mMap[k];
                     if (!m) return;
                     if ((m.date || '').slice(0, 10) !== fallbackDate) return;
+                    if (hideFinished && m.matchStatus !== 0) return;
                     const fo = fallbackOdds[m.num || ''] || {};
                     const cgs = gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
                     fallbackList.push(Object.assign({}, m, {
@@ -552,10 +563,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             }
 
             const response = { code: 1, data: list };
-            // ★ P1-6: 缓存结果
-            _matchListCacheByDate[dateStr] = { time: now, response };
+            // ★ P1-6: 缓存结果（cacheKey 区分 hideFinished 模式）
+            _matchListCacheByDate[cacheKey] = { time: now, response };
             // ★ P2-4: LRU 驱逐（最多缓存 MATCH_LIST_CACHE_MAX_KEYS 个日期）
-            _matchListCacheLRU.push(dateStr);
+            _matchListCacheLRU.push(cacheKey);
             while (_matchListCacheLRU.length > MATCH_LIST_CACHE_MAX_KEYS) {
               const oldest = _matchListCacheLRU.shift();
               delete _matchListCacheByDate[oldest];
@@ -4900,6 +4911,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             plans.sort(function (a, b) {
               return new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0);
             });
+            // ★ 重新计算方案开奖状态（基于最新比赛结果）
+            var dirty = false;
+            plans = plans.map(function (p) {
+              var r = recalcPlanResult(p);
+              if (r !== p) dirty = true;
+              return r;
+            });
+            // 如果方案状态有更新，回写到文件
+            if (dirty) {
+              writeUserPlans(deviceId, plans);
+            }
             // 计算统计
             var stats = computeUserPlanStats(plans);
             return res.json({ code: 1, data: { plans: plans, stats: stats } });
@@ -4931,6 +4953,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const deviceId = req.headers['x-device-id'] || data.deviceId;
             if (!deviceId) return res.json({ code: 1, data: { count: 0, income: 0, hitRate: 0 } });
             var plans = readUserPlans(deviceId);
+            // ★ 重新计算方案开奖状态
+            plans = plans.map(function (p) { return recalcPlanResult(p); });
             var stats = computeUserPlanStats(plans);
             return res.json({ code: 1, data: stats });
           } catch (e) {
@@ -5101,6 +5125,201 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     var settled = (plans || []).filter(function (p) { return p.isWon === true || p.isWon === false; });
     var hitRate = settled.length > 0 ? Math.round((won / settled.length) * 100) : 0;
     return { count: count, income: Math.round(income), hitRate: hitRate };
+  }
+
+  // ★ 重新计算单个方案的 isWon / resultIncome（基于最新比赛结果）
+  var _recalcLiveScoresCache = null;
+  var _recalcLiveScoresCacheTime = 0;
+
+  function recalcPlanResult(plan) {
+    var matches = plan.matches || [];
+    if (matches.length === 0) return plan;
+
+    // 如果方案已经有明确的 isWon 结果，不再重算
+    if (plan.isWon === true || plan.isWon === false) return plan;
+
+    var dataFile = getDataJson();
+    var mMap = dataFile.m || {};
+
+    // 构建 matchNum → mMap entry 索引
+    var mByNum = {};
+    Object.keys(mMap).forEach(function (k) {
+      var entry = mMap[k];
+      if (entry && entry.num) {
+        mByNum[entry.num] = entry;
+      }
+    });
+
+    // 加载 live_scores.json（1 分钟缓存）
+    var now = Date.now();
+    if (!_recalcLiveScoresCache || now - _recalcLiveScoresCacheTime > 60000) {
+      _recalcLiveScoresCache = {};
+      try {
+        var lsPath = path.join(__dirname, 'live_scores.json');
+        if (fs.existsSync(lsPath)) {
+          var lsData = JSON.parse(fs.readFileSync(lsPath, 'utf8'));
+          (lsData.matches || []).forEach(function (ls) {
+            if (ls.matchId) _recalcLiveScoresCache[String(ls.matchId)] = ls;
+            if (ls.num) _recalcLiveScoresCache[ls.num] = ls;
+          });
+        }
+      } catch (e) { /* ignore */ }
+      _recalcLiveScoresCacheTime = now;
+    }
+    var liveScores = _recalcLiveScoresCache;
+
+    // 逐场判定
+    var allSettled = true;
+    var allWon = true;
+    var anyLose = false;
+
+    for (var i = 0; i < matches.length; i++) {
+      var mm = matches[i];
+      var matchNum = mm.matchNum || '';
+      var playType = mm.playType || '';
+      var direction = mm.direction || '';
+
+      // 查找比赛数据
+      var matchData = mByNum[matchNum] || null;
+
+      // 兜底：live_scores.json
+      if (!matchData || !matchData.score) {
+        var ls = liveScores[matchNum] || liveScores[String(mm.matchId)];
+        if (ls && ls.score && ls.matchStatus >= 1) {
+          matchData = { score: ls.score, date: ls.date };
+        }
+      }
+
+      // 如果找不到比赛数据或没有比分，标记未开奖
+      if (!matchData || !matchData.score) {
+        allSettled = false;
+        continue;
+      }
+
+      // 获取让球数（RQSPF 需要）
+      var handicap = null;
+      if (playType === 'rqspf') {
+        var matchDate = (matchData.date || '').slice(0, 10);
+        if (!matchDate) {
+          // 尝试从 matchNum 推断日期（如 "周二201" → 最近周二）
+          var recentFiles = [];
+          try {
+            var ohDir = path.join(__dirname, 'odds_history');
+            if (fs.existsSync(ohDir)) {
+              recentFiles = fs.readdirSync(ohDir).filter(function (f) {
+                return f.match(/^\d{4}-\d{2}-\d{2}\.json$/);
+              }).sort().reverse();
+            }
+          } catch (e2) { /* ignore */ }
+          for (var fi = 0; fi < recentFiles.length; fi++) {
+            var odMap = getOddsHistory(recentFiles[fi].replace('.json', ''));
+            if (odMap && odMap[matchNum] && odMap[matchNum].rqspf) {
+              handicap = odMap[matchNum].rqspf.handicap;
+              break;
+            }
+          }
+        } else {
+          var oddsMap = getOddsHistory(matchDate);
+          if (oddsMap && oddsMap[matchNum] && oddsMap[matchNum].rqspf) {
+            handicap = oddsMap[matchNum].rqspf.handicap;
+          }
+        }
+      }
+
+      // 如果 matchData.score 是对象（如 {home:1, away:0}），转为字符串
+      var scoreStr = matchData.score;
+      if (typeof scoreStr === 'object' && scoreStr !== null) {
+        scoreStr = (scoreStr.home || scoreStr.h || '') + ':' + (scoreStr.away || scoreStr.a || '');
+      } else {
+        scoreStr = String(scoreStr || '');
+      }
+
+      // ★ RQSPF 方向映射：方案存的 "胜/平/负" 在让球玩法中表示 "让胜/让平/让负"
+      var effectiveDirection = direction;
+      if (playType === 'rqspf') {
+        if (direction === '胜') effectiveDirection = '让胜';
+        else if (direction === '平') effectiveDirection = '让平';
+        else if (direction === '负') effectiveDirection = '让负';
+      }
+
+      // 使用比分直判
+      var result = _judgeByScore(effectiveDirection, scoreStr, handicap);
+
+      if (result === null) {
+        allSettled = false;
+      } else if (result === true) {
+        // 命中，继续检查下一场
+      } else {
+        allWon = false;
+        anyLose = true;
+      }
+    }
+
+    // 如果尚未全部开奖，保持原样
+    if (!allSettled) return plan;
+
+    // 全部已开奖 → 判定中奖结果
+    var updated = Object.assign({}, plan);
+    if (allWon && !anyLose) {
+      updated.isWon = true;
+      updated.resultIncome = Math.round((plan.amount || 0) * (plan.totalOdds || 1));
+    } else {
+      updated.isWon = false;
+      updated.resultIncome = -(plan.amount || 0);
+    }
+    return updated;
+  }
+
+  /**
+   * 比分直判 — 根据比分判定投注方向是否正确
+   * @param {string} direction - 方向（胜/平/负/让胜/让平/让负/胜平/平负/总进球-N）
+   * @param {string} scoreStr  - 比分字符串（如 "2:1"）
+   * @param {number|null} handicap - 让球数
+   * @returns {boolean|null} true=命中, false=未中, null=无法判定
+   */
+  function _judgeByScore(direction, scoreStr, handicap) {
+    if (!scoreStr || !direction) return null;
+
+    // 复合方向（含、号）：分开判定，任一命中即可
+    if (direction.indexOf('、') >= 0) {
+      var subParts = direction.split(/[、,]/);
+      for (var pi = 0; pi < subParts.length; pi++) {
+        var subR = _judgeByScore(subParts[pi].trim(), scoreStr, handicap);
+        if (subR === true) return true;
+      }
+      return false;
+    }
+
+    var parts = String(scoreStr).replace(/[-:]/g, ':').split(':');
+    var hg = parseInt(parts[0]);
+    var ag = parseInt(parts[1]);
+    if (isNaN(hg) || isNaN(ag)) return null;
+
+    // SPF 基础方向
+    if (direction === '胜') return hg > ag;
+    if (direction === '平') return hg === ag;
+    if (direction === '负') return hg < ag;
+
+    // 双选
+    if (direction === '胜平') return hg > ag || hg === ag;
+    if (direction === '平负') return hg === ag || hg < ag;
+
+    // RQSPF（需要让球数）
+    if (direction === '让胜' || direction === '让平' || direction === '让负') {
+      var hcp = handicap != null ? parseFloat(handicap) || 0 : 0;
+      var effective = hg + hcp;
+      if (direction === '让胜') return effective > ag;
+      if (direction === '让平') return effective === ag;
+      if (direction === '让负') return effective < ag;
+    }
+
+    // 总进球（如 "总进球-2", "总进球-3"）
+    var goalMatch = direction.match(/总进球-(\d+)/);
+    if (goalMatch) {
+      return (hg + ag) === parseInt(goalMatch[1]);
+    }
+
+    return null;
   }
 
   // ==================== 前一天推荐命中信息回填 ====================

@@ -1946,6 +1946,22 @@ body {
   box-shadow: 0 0 12px rgba(24,224,224,0.15);
 }
 
+/* 🤖 AI分析标签 — 紫色渐变 */
+.match-ai-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 14px; border-radius: 14px;
+  background: linear-gradient(135deg, rgba(156,39,176,0.1), rgba(103,58,183,0.1));
+  border: 1px solid rgba(156,39,176,0.2);
+  color: #ce93d8; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  letter-spacing: 0.5px; white-space: nowrap;
+}
+.match-ai-tag:hover {
+  background: linear-gradient(135deg, rgba(156,39,176,0.2), rgba(103,58,183,0.2));
+  border-color: rgba(156,39,176,0.45);
+  box-shadow: 0 0 12px rgba(156,39,176,0.15);
+}
+
 /* ★ 投注按钮 & 比赛操作行 */
 .match-actions {
   display: flex; align-items: center; gap: 8px;
