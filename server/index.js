@@ -4927,28 +4927,45 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             if (dateStr) {
               dayData = allplays[dateStr] || {};
               if (Object.keys(dayData).length === 0) {
-                // ★ 回退: allplays.json 缺失当日数据 → 从 odds_history 加载
+                // ★ 回退: allplays.json 缺失当日数据 → 优先 odds_history_v2 SQLite
                 isAllplays = false;
                 try {
-                  const oddsFile = path.join(__dirname, 'odds_history', dateStr + '.json');
-                  if (fs.existsSync(oddsFile)) {
-                    const raw = JSON.parse(fs.readFileSync(oddsFile, 'utf8'));
-                    const oddsMap = raw.odds || {};
-                    // 将 odds_history 格式转为类 allplays 格式（补充 key 映射）
+                  const adp = database.getAdapter();
+                  const v2Rows = adp ? adp.execAll(
+                    'SELECT * FROM odds_history_v2 WHERE date = ?', dateStr
+                  ) : [];
+                  if (v2Rows.length > 0) {
                     dayData = {};
-                    Object.keys(oddsMap).forEach(function (n) {
-                      const o = oddsMap[n];
-                      const entry = Object.assign({ num: n }, o);
-                      // totalGoals 映射为 jqs（总进球）
-                      if (o.totalGoals && !o.jqs) {
-                        entry.jqs = o.totalGoals;
+                    v2Rows.forEach(function(row) {
+                      const n = row.match_num;
+                      if (!dayData['num_' + n]) {
+                        dayData['num_' + n] = { num: n, homeName: row.home_name, visitName: row.visit_name, handicap: row.handicap };
                       }
-                      // halfFull 映射为 bqc（半全场）
-                      if (o.halfFull && !o.bqc) {
-                        entry.bqc = o.halfFull;
+                      const playData = JSON.parse(row.odds_json);
+                      const entry = dayData['num_' + n];
+                      if (row.play_type === 'spf' || row.play_type === 'rqspf' || row.play_type === 'halfFull') {
+                        entry[row.play_type] = playData;
+                      } else if (row.play_type === 'totalGoals') {
+                        entry.jqs = playData;
+                      } else if (row.play_type === 'scores') {
+                        entry.bf = playData;
                       }
-                      dayData['num_' + n] = entry;
                     });
+                  } else {
+                    // ★ fallback to JSON
+                    const oddsFile = path.join(__dirname, 'odds_history', dateStr + '.json');
+                    if (fs.existsSync(oddsFile)) {
+                      const raw = JSON.parse(fs.readFileSync(oddsFile, 'utf8'));
+                      const oddsMap = raw.odds || {};
+                      dayData = {};
+                      Object.keys(oddsMap).forEach(function (n) {
+                        const o = oddsMap[n];
+                        const entry = Object.assign({ num: n }, o);
+                        if (o.totalGoals && !o.jqs) entry.jqs = o.totalGoals;
+                        if (o.halfFull && !o.bqc) entry.bqc = o.halfFull;
+                        dayData['num_' + n] = entry;
+                      });
+                    }
                   }
                 } catch (e) { /* 回退失败不影响 */ }
               }
