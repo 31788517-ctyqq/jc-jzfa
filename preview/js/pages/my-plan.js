@@ -47,7 +47,7 @@ function renderMyPlanList() {
     var statusCls = isWon ? 'plan-win' : isLose ? 'plan-lose' : 'plan-pending';
     var amountVal = (p.amount || 200).toFixed(0);
     var prizeVal = isWon ? (p.resultIncome != null ? '+' + p.resultIncome : '--')
-      : (isLose ? '-' + amountVal : (function () {
+      : (isLose ? '0' : (function () {
           var totalOdds = Number(p.totalOdds) || 0;
           var amt = Number(p.amount) || 0;
           if (totalOdds > 0 && amt > 0) return Math.round(totalOdds * amt * 100) / 100;

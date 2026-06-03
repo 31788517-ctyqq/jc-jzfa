@@ -474,7 +474,7 @@ export function loadMyPlanList() {
           if (isWon) {
             prizeVal = p.resultIncome != null ? '+' + p.resultIncome : '--';
           } else if (isLose) {
-            prizeVal = '-' + amountVal;
+            prizeVal = '0';
           } else {
             var totalOdds = Number(p.totalOdds) || 0;
             var amount = Number(p.amount) || 0;

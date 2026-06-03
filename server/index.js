@@ -5261,15 +5261,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   }
   function computeUserPlanStats(plans) {
     var count = (plans || []).length;
-    var income = 0, won = 0;
+    var income = 0, won = 0, totalLoss = 0;
     (plans || []).forEach(function (p) {
       if (p.resultIncome != null) income += Number(p.resultIncome) || 0;
       if (p.isWon) won++;
+      else if (p.isWon === false) totalLoss += Number(p.amount) || 0;
     });
     // 只统计有结果的方案（已开奖）
     var settled = (plans || []).filter(function (p) { return p.isWon === true || p.isWon === false; });
     var hitRate = settled.length > 0 ? Math.round((won / settled.length) * 100) : 0;
-    return { count: count, income: Math.round(income), hitRate: hitRate };
+    return { count: count, income: Math.round(income - totalLoss), hitRate: hitRate };
   }
 
   // ★ 重新计算单个方案的 isWon / resultIncome（基于最新比赛结果）
@@ -5409,7 +5410,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
       if (anyLose) {
         var updated = Object.assign({}, plan);
         updated.isWon = false;
-        updated.resultIncome = -(plan.amount || 0);
+        updated.resultIncome = 0;
         return updated;
       }
       return plan;
@@ -5422,7 +5423,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
       updated.resultIncome = Math.round((plan.amount || 0) * (plan.totalOdds || 1));
     } else {
       updated.isWon = false;
-      updated.resultIncome = -(plan.amount || 0);
+      updated.resultIncome = 0;
     }
     return updated;
   }
