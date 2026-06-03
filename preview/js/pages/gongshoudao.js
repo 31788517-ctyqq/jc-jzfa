@@ -298,7 +298,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
       // ====== 比分 ======
       html += '<div class="gs-modal-section" id="gsScoreSection">';
       html +=
-        '<div class="gs-modal-sec-title"><span class="gs-title-icon">📊</span>比分八阵裂变</div>';
+        '<div class="gs-modal-sec-title"><span class="gs-title-icon">📊</span>比分八阵裂变<span class="match-bet-btn" onclick="goFromGSToScheme(\'' + matchId + '\')" style="float:right;cursor:pointer;">我要做方案</span></div>';
 
       var scores = gs.scores || [
         { score: '1-1', percent: '50%' },
@@ -414,8 +414,6 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
       html += '<div id="gsBetTableWrap" style="display:none;"></div>';
       // 提示框
       html += '<div class="gs-score-hint">点击单个或多个比分进行比分投注方案模拟</div>';
-      // ★ 我要做方案按钮（卡片右边）
-      html += '<div style="text-align:right;padding:4px 0 0 0;"><span class="match-bet-btn" onclick="goFromGSToScheme(\'' + matchId + '\')" style="cursor:pointer;">我要做方案</span></div>';
 
       html += '</div>'; // gs-modal-section (比分)
 
