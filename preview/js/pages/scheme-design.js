@@ -607,8 +607,10 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
   }
   if (existingIdx >= 0) {
     _selections.splice(existingIdx, 1);
+    var st1 = window.scrollY || document.documentElement.scrollTop;
     renderMatchList();
     applySchemeHighlights();
+    window.scrollTo(0, st1);
     return;
   }
 
@@ -621,8 +623,10 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
     oddsName: dirName,
     handicap: handicap || 0,
   });
+  var st2 = window.scrollY || document.documentElement.scrollTop;
   renderMatchList();
   applySchemeHighlights();
+  window.scrollTo(0, st2);
 };
 
 function findSelection(matchId) {
