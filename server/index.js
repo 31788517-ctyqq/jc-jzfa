@@ -1114,11 +1114,27 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             try {
               const { engine } = require('./core/prediction-fusion');
               if (!engine._initialized) engine.init();
+
+              // 收集 AI 预测和 prediction_log 上下文
+              let aiPrediction = null, predictionLogRow = null;
+              try {
+                const adp = database.getAdapter();
+                if (adp) {
+                  aiPrediction = adp.execOne('SELECT * FROM ai_predictions WHERE matchId=? ORDER BY updatedAt DESC LIMIT 1', matchId);
+                  // 从 prediction_log 获取 PK/标签评分数据
+                  try {
+                    predictionLogRow = adp.execOne("SELECT * FROM prediction_logs WHERE matchId=? ORDER BY updatedAt DESC LIMIT 1", matchId);
+                  } catch (e) {}
+                }
+              } catch (e) {}
+
               const context = {
                 dataFile: getDataJson(),
                 gsCache: getGsGlobalMap(),
                 odds: getAllplaysData()[m.num] || {},
                 recommends: recs,
+                aiPrediction: aiPrediction,
+                predictionLogRow: predictionLogRow,
               };
               const result = await engine.fuseForMatch({
                 matchId: matchId, num: m.num, date: (m.date || '').slice(0, 10),
@@ -5475,6 +5491,57 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           } catch (e) {
             logger.error('[data-health] ' + e.message);
             return res.json({ code: 0, msg: '数据健康失败: ' + e.message });
+          }
+        }
+
+        // ★ 蓝图：批量共识数据（供 plans.js 过滤用）
+        case 'batch-consensus': {
+          const batchDate = data.date || latestDataDate();
+          try {
+            const dataFile = getDataJson();
+            const mMap = dataFile.m || {};
+            const rMap = dataFile.r || {};
+            const gsMap = getGsGlobalMap();
+            const results = {};
+
+            Object.keys(mMap).forEach(function(k) {
+              const m = mMap[k];
+              if (!m || m.date !== batchDate) return;
+              const matchId = m.matchId || k.replace(/^m_/, '');
+              const key = 'm_' + matchId;
+              const recsRaw = rMap[key] || rMap[String(matchId)] || [];
+              const gs = gsMap[matchId] || gsMap[key] || {};
+
+              // 简单共识计算
+              const models = [];
+              if (gs.fusionConsensusType) {
+                models.push({ model: '功守道', direction: gs.directionAdvantage ? gs.directionAdvantage.direction : null, confidence: gs.directionAdvantage ? gs.directionAdvantage.confidence : null });
+              }
+              // 专家共识
+              if (recsRaw.length > 0) {
+                const dirMap = { home: 0, draw: 0, away: 0 }; let total = 0;
+                recsRaw.forEach(function(r) { const n = r.n || r.num || 1; total += n; const t = r.t || r.type || ''; if (['胜','主胜'].includes(t)) dirMap.home += n; else if (['平','平局'].includes(t)) dirMap.draw += n; else if (['负','客胜'].includes(t)) dirMap.away += n; });
+                const top = Object.entries(dirMap).sort(function(a,b){return b[1]-a[1]})[0];
+                if (top && top[1] > 0) models.push({ model: '专家', direction: top[0], confidence: Math.round(top[1]/total*100) });
+              }
+
+              if (models.length === 0) return;
+              const dirMap2 = {}; models.forEach(function(m) { if (m.direction) dirMap2[m.direction] = (dirMap2[m.direction]||0)+1; });
+              const main = Object.entries(dirMap2).sort(function(a,b){return b[1]-a[1]})[0];
+              if (!main) return;
+              const ratio = main[1] / models.length;
+              results[matchId] = {
+                models: models,
+                direction: main[0],
+                agreeCount: main[1],
+                totalCount: models.length,
+                consensus: ratio >= 0.8 ? 'strong' : ratio >= 0.6 ? 'weak' : 'neutral',
+                gsConsensus: gs.fusionConsensusType || null,
+              };
+            });
+            return res.json({ code: 1, data: results });
+          } catch (e) {
+            return res.json({ code: 0, msg: 'batch-consensus error: ' + e.message });
           }
         }
 

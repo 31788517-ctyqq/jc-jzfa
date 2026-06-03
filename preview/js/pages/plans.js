@@ -84,8 +84,18 @@ export function loadPlanList() {
     return;
   }
 
+  // ★ 蓝图：并行获取共识数据
+  var consensusPromise = api('batch-consensus', { date: state.planDate }).catch(function() { return null; });
+
   api('plan-list', params)
     .then(function (data) {
+      return consensusPromise.then(function(consensusMap) {
+        return { data: data, consensusMap: consensusMap || {} };
+      });
+    })
+    .then(function (ctx) {
+      var data = ctx.data;
+      var consensusMap = ctx.consensusMap;
       // 用服务器返回的实际日期更新显示（日历显式选日时不过度覆盖）
       if (data.date && data.date !== state.planDate && !state.planDateExplicit) {
         state.setPlanDate(data.date);
@@ -140,7 +150,25 @@ export function loadPlanList() {
         return;
       }
 
-      var html = plans
+      // ★ 蓝图：共识过滤
+      var consensusFilter = (window._planConsensusFilter || 'all');
+      var filteredPlans = plans.filter(function(p) {
+        if (consensusFilter === 'all') return true;
+        var matchIds = (p.matches || []).map(function(m) { return m.matchId; });
+        if (consensusFilter === 'strong') return matchIds.some(function(id) { return consensusMap[id] && consensusMap[id].consensus === 'strong'; });
+        if (consensusFilter === 'weak') return matchIds.some(function(id) { return consensusMap[id] && (consensusMap[id].consensus === 'strong' || consensusMap[id].consensus === 'weak'); });
+        if (consensusFilter === 'meltdown') return matchIds.some(function(id) { return consensusMap[id] && consensusMap[id].gsConsensus === 'meltdown'; });
+        return true;
+      });
+
+      var filterBar = buildConsensusFilterBar(Object.keys(consensusMap).length, consensusFilter);
+      var displayPlans = consensusFilter !== 'all' ? filteredPlans : plans;
+      if (displayPlans.length === 0 && consensusFilter !== 'all') {
+        el.innerHTML = filterBar + '<div style="text-align:center;padding:60px 0;color:var(--text3);font-size:14px;">该共识级别暂无匹配方案</div>';
+        return;
+      }
+
+      var html = displayPlans
         .map(function (p, i) {
           var matches = p.matches || [];
           var isWon = false,
@@ -347,6 +375,27 @@ export function loadPlanList() {
             '<span class="plan-pub-time">' +
             cutoffDisplay +
             '</span>' +
+            (function() {
+              var matchIds = matches.map(function(m) { return m.matchId; });
+              var best = null;
+              matchIds.forEach(function(id) { var c = consensusMap[id]; if (c && (!best || (c.consensus === 'strong' && best.consensus !== 'strong') || (c.consensus === 'weak' && best.consensus === 'neutral'))) best = c; });
+              if (!best) return '';
+              var cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
+              var txt = best.consensus === 'strong' ? '共识' + best.agreeCount + '/' + best.totalCount : best.consensus === 'weak' ? '弱共识' : '';
+              return '<span class="consensus-badge ' + cls + '" style="font-size:10px;margin-left:4px">' + txt + '</span>';
+            })() +
+            (function() {
+              var matchIds = matches.map(function(m) { return m.matchId; });
+              var best = null;
+              matchIds.forEach(function(id) {
+                var c = consensusMap[id];
+                if (c && (!best || (c.consensus === 'strong' && best.consensus !== 'strong') || (c.consensus === 'weak' && best.consensus === 'neutral'))) best = c;
+              });
+              if (!best) return '';
+              var cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
+              var txt = best.consensus === 'strong' ? '共识' + best.agreeCount + '/' + best.totalCount : best.consensus === 'weak' ? '弱共识' : '';
+              return '<span class="consensus-badge ' + cls + '" style="font-size:10px;margin-left:6px">' + txt + '</span>';
+            })() +
             '</div>' +
             '<div class="plan-amount-row">' +
             '<div class="plan-amount-col">' +
@@ -415,7 +464,7 @@ export function loadPlanList() {
         })
         .join('');
       setCache(cacheKey, html);
-      el.innerHTML = noticeHtml + html;
+      el.innerHTML = filterBar + noticeHtml + html;
     })
     .catch(function (e) {
       el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);">' + e.message + '</div>';
@@ -1193,6 +1242,18 @@ export function loadScorePlanList() {
             '<span class="plan-pub-time">' +
             cutoffDisplay +
             '</span>' +
+            (function() {
+              var matchIds = matches.map(function(m) { return m.matchId; });
+              var best = null;
+              matchIds.forEach(function(id) {
+                var c = consensusMap[id];
+                if (c && (!best || (c.consensus === 'strong' && best.consensus !== 'strong') || (c.consensus === 'weak' && best.consensus === 'neutral'))) best = c;
+              });
+              if (!best) return '';
+              var cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
+              var txt = best.consensus === 'strong' ? '共识' + best.agreeCount + '/' + best.totalCount : best.consensus === 'weak' ? '弱共识' : '';
+              return '<span class="consensus-badge ' + cls + '" style="font-size:10px;margin-left:6px">' + txt + '</span>';
+            })() +
             '</div>' +
             '<div class="plan-amount-row">' +
             '<div class="plan-amount-col">' +
@@ -1503,6 +1564,18 @@ export function loadQuantPlanList() {
             '<span class="plan-pub-time">' +
             cutoffDisplay +
             '</span>' +
+            (function() {
+              var matchIds = matches.map(function(m) { return m.matchId; });
+              var best = null;
+              matchIds.forEach(function(id) {
+                var c = consensusMap[id];
+                if (c && (!best || (c.consensus === 'strong' && best.consensus !== 'strong') || (c.consensus === 'weak' && best.consensus === 'neutral'))) best = c;
+              });
+              if (!best) return '';
+              var cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
+              var txt = best.consensus === 'strong' ? '共识' + best.agreeCount + '/' + best.totalCount : best.consensus === 'weak' ? '弱共识' : '';
+              return '<span class="consensus-badge ' + cls + '" style="font-size:10px;margin-left:6px">' + txt + '</span>';
+            })() +
             '</div>' +
             '<div class="plan-amount-row">' +
             '<div class="plan-amount-col">' +
@@ -1584,3 +1657,29 @@ export function loadQuantPlanList() {
       el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);">' + e.message + '</div>';
     });
 }
+
+
+// =============================================================
+// * 蓝图：共识过滤控件 + 状态
+// =============================================================
+function buildConsensusFilterBar(consensusCount, active) {
+  var tags = [
+    { id: 'all', label: '\u5168\u90e8', count: '' },
+    { id: 'strong', label: '\u5f3a\u5171\u8bc6', count: '' },
+    { id: 'weak', label: '\u5f31\u5171\u8bc6', count: '' }
+  ];
+  var html = '<div class="filter-row" style="margin-bottom:12px;flex-wrap:wrap;gap:6px">';
+  html += '<span style="font-size:var(--fs-xs);color:var(--text3);margin-right:4px;line-height:28px">\u5171\u8bc6\u8fc7\u6ee4:</span>';
+  tags.forEach(function(t) {
+    var cls = active === t.id ? 'filter-tag active' : 'filter-tag';
+    html += '<div class="' + cls + '" onclick="window.switchConsensusFilter(\'' + t.id + '\')" style="font-size:var(--fs-xs);padding:4px 10px">' + t.label + t.count + '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+if (!window._planConsensusFilter) window._planConsensusFilter = 'all';
+window.switchConsensusFilter = function(level) {
+  window._planConsensusFilter = level;
+  try { state._planConsensusFilter = level; } catch(e) {}
+  loadPlanList();
+};
