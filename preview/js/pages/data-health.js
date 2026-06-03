@@ -18,13 +18,12 @@ export async function loadDataHealth() {
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载健康数据...</div>';
 
   try {
-    const res = await api('data-health');
-    if (!res || res.code !== 1) {
+    const data = await api('data-health');
+    if (!data) {
       el.innerHTML = '<div class="empty-state">数据加载失败</div>';
       return;
     }
 
-    const data = res.data || {};
     el.innerHTML = buildHealthHTML(data);
   } catch (e) {
     console.error('[DataHealth] 加载失败:', e);

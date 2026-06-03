@@ -18,13 +18,12 @@ export async function loadDashboard() {
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载模型数据...</div>';
 
   try {
-    const res = await api('model-dashboard', { days: 30 });
-    if (!res || res.code !== 1) {
-      el.innerHTML = '<div class="empty-state">数据加载失败</div>';
+    const data = await api('model-dashboard', { days: 30 });
+    if (!data) {
+      el.innerHTML = '<div class="empty-state">暂无数据，等待模型回填积累≥2周数据后可见</div>';
       return;
     }
 
-    const data = res.data || {};
     el.innerHTML = buildDashboardHTML(data);
     bindEvents(data);
   } catch (e) {
