@@ -5,7 +5,7 @@ import { formatDate, WEEK_NAMES } from '../utils.js';
 var _matches = [];           // 比赛列表
 var _selections = [];        // [{matchId, playType, direction, odds, oddsName, handicap}]
 var _activePlayType = 'mixed'; // mixed|spf|rqspf|bf|jqs|bqc
-var _multiplier = 1;         // 投注倍数
+var _multiplier = 2;         // 投注倍数（竞彩规则：2-99倍）
 var _passTypes = [2];       // 过关类型数组，默认 2关，支持多选 [2,3,4,...]
 var _schemeDateOffset = 0;
 var _schemeDate = '';
@@ -640,7 +640,7 @@ function updateSummary() {
 }
 
 // ═══ 倍数弹窗 ═══
-var _tempMultiplier = 1;
+var _tempMultiplier = 2;
 
 window.showMultiplierPopup = function() {
   _tempMultiplier = _multiplier;
@@ -658,7 +658,7 @@ window.closeMultiplierPopup = function() {
 };
 
 window.confirmMultiplierPopup = function() {
-  _multiplier = Math.max(1, Math.min(999, parseInt(_tempMultiplier) || 1));
+  _multiplier = Math.max(2, Math.min(99, parseInt(_tempMultiplier) || 2));
   window.closeMultiplierPopup();
   updateSummary();
 };
@@ -674,7 +674,7 @@ window.inputMultiDigit = function(digit) {
   if (!input) return;
   var current = String(_tempMultiplier);
   if (current === '0') current = digit;
-  else if (current.length < 3) current += digit;
+  else if (current.length < 2) current += digit;
   _tempMultiplier = parseInt(current) || 1;
   input.value = _tempMultiplier;
 };
@@ -684,7 +684,7 @@ window.backspaceMulti = function() {
   if (!input) return;
   var current = String(_tempMultiplier);
   if (current.length > 1) current = current.slice(0, -1);
-  else current = '1';
+  else current = '2';
   _tempMultiplier = parseInt(current) || 1;
   input.value = _tempMultiplier;
 };
@@ -765,7 +765,7 @@ window.confirmPassPopup = function() {
 // ═══ 清空 ═══
 window.clearSchemeSelections = function () {
   _selections = [];
-  _multiplier = 1;
+  _multiplier = 2;
   _passTypes = [2];
   renderMatchList();
 };

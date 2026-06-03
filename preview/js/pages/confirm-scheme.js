@@ -5,7 +5,7 @@ var _planData = null;       // 完整方案数据（包含 matches、金额、�
 var _matches = [];          // 已选比赛列表
 var _selections = [];       // 选项列表
 var _passTypes = [2];       // 过关类型
-var _multiplier = 1;        // 倍数
+var _multiplier = 2;        // 倍数（竞彩规则：2-99倍）
 
 // ═══ 页面入口 ═══
 export function loadConfirmScheme() {
@@ -479,13 +479,13 @@ window.confirmTogglePick = function (matchId, playType, direction, oddsVal) {
 
 // ═══ 倍数调整 ═══
 window.confirmAdjustMultiplier = function (delta) {
-  _multiplier = Math.max(1, Math.min(999, _multiplier + delta));
+  _multiplier = Math.max(2, Math.min(99, _multiplier + delta));
   updateSessionStore();
   render();
 };
 
 // ═══ 倍数弹窗 ═══
-var _confirmTempMultiplier = 1;
+var _confirmTempMultiplier = 2;
 
 window.confirmShowMultiplierPopup = function () {
   _confirmTempMultiplier = _multiplier;
@@ -497,8 +497,8 @@ window.confirmShowMultiplierPopup = function () {
     overlay.onclick = function (e) { if (e.target === overlay) confirmCloseMultiplierPopup(); };
     overlay.innerHTML =
       '<div class="ssb-modal ssb-multi-modal">' +
-      '<div class="ssb-modal-header"><div class="ssb-input-wrap"><input type="text" id="confirmSsBMultiInput" readonly value="1"/><span>倍</span></div><button class="ssb-modal-cancel" onclick="confirmCloseMultiplierPopup()">取消</button><button class="ssb-modal-confirm" onclick="confirmConfirmMultiplierPopup()">确定</button></div>' +
-      '<div class="ssb-quick-row"><button onclick="confirmSetMultiQuick(10)">10</button><button onclick="confirmSetMultiQuick(20)">20</button><button onclick="confirmSetMultiQuick(50)">50</button><button onclick="confirmSetMultiQuick(100)">100</button><button onclick="confirmSetMultiQuick(200)">200</button></div>' +
+      '<div class="ssb-modal-header"><div class="ssb-input-wrap"><input type="text" id="confirmSsBMultiInput" readonly value="2"/><span>倍</span></div><button class="ssb-modal-cancel" onclick="confirmCloseMultiplierPopup()">取消</button><button class="ssb-modal-confirm" onclick="confirmConfirmMultiplierPopup()">确定</button></div>' +
+      '<div class="ssb-quick-row"><button onclick="confirmSetMultiQuick(2)">2</button><button onclick="confirmSetMultiQuick(5)">5</button><button onclick="confirmSetMultiQuick(10)">10</button><button onclick="confirmSetMultiQuick(20)">20</button><button onclick="confirmSetMultiQuick(50)">50</button></div>' +
       '<div class="ssb-keyboard">' +
       '<button onclick="confirmInputMultiDigit(\'1\')">1</button><button onclick="confirmInputMultiDigit(\'2\')">2</button><button onclick="confirmInputMultiDigit(\'3\')">3</button>' +
       '<button onclick="confirmInputMultiDigit(\'4\')">4</button><button onclick="confirmInputMultiDigit(\'5\')">5</button><button onclick="confirmInputMultiDigit(\'6\')">6</button>' +
@@ -519,7 +519,7 @@ window.confirmCloseMultiplierPopup = function () {
 };
 
 window.confirmConfirmMultiplierPopup = function () {
-  _multiplier = Math.max(1, Math.min(999, parseInt(_confirmTempMultiplier) || 1));
+  _multiplier = Math.max(2, Math.min(99, parseInt(_confirmTempMultiplier) || 2));
   confirmCloseMultiplierPopup();
   updateSessionStore();
   render();
@@ -536,7 +536,7 @@ window.confirmInputMultiDigit = function (digit) {
   if (!input) return;
   var current = String(_confirmTempMultiplier);
   if (current === '0') current = digit;
-  else if (current.length < 3) current += digit;
+  else if (current.length < 2) current += digit;
   _confirmTempMultiplier = parseInt(current) || 1;
   input.value = _confirmTempMultiplier;
 };
@@ -546,7 +546,7 @@ window.confirmBackspaceMulti = function () {
   if (!input) return;
   var current = String(_confirmTempMultiplier);
   if (current.length > 1) current = current.slice(0, -1);
-  else current = '1';
+  else current = '2';
   _confirmTempMultiplier = parseInt(current) || 1;
   input.value = _confirmTempMultiplier;
 };
@@ -635,15 +635,17 @@ window.confirmSavePlan = function () {
   var uniqueMatches = Object.keys(uniqueMatchIds);
 
   if (uniqueMatches.length === 1) {
-    var selMatch = _matches.find(function (m) { return m.matchId === uniqueMatches[0]; });
-    if (selMatch && selMatch.isSingleGame !== true) {
-      alert('该场比赛不支持单关投注（需带"单关"标签），请至少再选一场组成串关');
-      return;
-    }
-    var _hasRqspf = _selections.some(function (s) { return s.playType === 'rqspf'; });
-    if (_hasRqspf) {
-      alert('单关投注仅支持胜平负(SPF)方向，请移除让球胜平负选择');
-      return;
+    // ★ 检查当前选择中是否包含 SPF 或 RQSPF
+    var hasSpfRqspf = _selections.some(function(s) {
+      return s.playType === 'spf' || s.playType === 'rqspf';
+    });
+    // ★ 纯 BF/JQS/BQC 无需 isSingleGame 标签，直接放行
+    if (hasSpfRqspf) {
+      var selMatch = _matches.find(function (m) { return m.matchId === uniqueMatches[0]; });
+      if (selMatch && selMatch.isSingleGame !== true) {
+        alert('⚽ 胜平负/让球玩法需要该场比赛支持单关投注（带"单关"标签），请至少再选一场组成串关\n\n注：比分/半全场/进球数单场可直接选择，无需单关标签');
+        return;
+      }
     }
   }
 
@@ -651,6 +653,24 @@ window.confirmSavePlan = function () {
   var bets = calcBets(uniqueCount);
   var amount = bets * 2 * _multiplier;
   var maxWin = calcMaxWin(amount);
+
+  // ★ 竞技彩票单张金额上限 20000 元
+  if (amount > 20000) {
+    alert('⚽ 投注金额 ' + amount + ' 元超过单张彩票 20000 元上限，请减少倍数或调整方案');
+    return;
+  }
+
+  // ★ 单注最高奖金限额：单场10万 / 2-3场20万 / 4-5场50万 / 6+场100万
+  var prizeCap;
+  if (uniqueCount === 1) prizeCap = 100000;
+  else if (uniqueCount <= 3) prizeCap = 200000;
+  else if (uniqueCount <= 5) prizeCap = 500000;
+  else prizeCap = 1000000;
+
+  if (maxWin > prizeCap) {
+    alert('⚽ 预计奖金 ' + maxWin.toFixed(2) + ' 元超过 ' + (prizeCap / 10000).toFixed(0) + ' 万元限额（' + uniqueCount + '场过关最高奖金限额），请调整方案');
+    return;
+  }
 
   var matchDetails = _selections.map(function (s) {
     var m = _matches.find(function (x) { return x.matchId === s.matchId; }) || {};

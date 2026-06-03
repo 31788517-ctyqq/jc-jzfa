@@ -680,15 +680,15 @@ function _ensurePage(id) {
         '<div class="ssb-card ssb-selected"><div class="ssb-badge" id="schemeSelCountBadge">0</div><div class="ssb-label">已选</div></div>' +
         '<div class="ssb-card ssb-pass" id="schemePassText" onclick="showPassPopup()">--</div>' +
         '<div class="ssb-card ssb-clear" onclick="clearSchemeSelections()">清空</div>' +
-        '<div class="ssb-card ssb-multi" id="ssbMultiCard" onclick="showMultiplierPopup()"><span id="ssbMultiplier">1</span><span class="ssb-multi-label">倍</span></div>' +
+        '<div class="ssb-card ssb-multi" id="ssbMultiCard" onclick="showMultiplierPopup()"><span id="ssbMultiplier">2</span><span class="ssb-multi-label">倍</span></div>' +
         '<div class="ssb-amount"><div class="ssb-amount-row"><span class="ssb-amount-label">投注金额：</span><span class="ssb-amount-val" id="ssbAmount">0</span><span class="ssb-amount-unit">元</span></div><div class="ssb-amount-row"><span class="ssb-amount-label">理论最高奖金：</span><span class="ssb-amount-val ssb-amount-big" id="ssbMaxWin">0</span><span class="ssb-amount-unit">元</span></div></div>' +
         '<button class="ssb-view-btn" onclick="saveUserPlan()">查看方案</button>' +
         '</div>' +
         '</div>' +
         '<div class="ssb-overlay" id="multiplierOverlay">' +
         '<div class="ssb-modal ssb-multi-modal">' +
-        '<div class="ssb-modal-header"><div class="ssb-input-wrap"><input type="text" id="ssbMultiInput" readonly value="1"/><span>倍</span></div><button class="ssb-modal-cancel" onclick="closeMultiplierPopup()">取消</button><button class="ssb-modal-confirm" onclick="confirmMultiplierPopup()">确定</button></div>' +
-        '<div class="ssb-quick-row"><button onclick="setMultiQuick(10)">10</button><button onclick="setMultiQuick(20)">20</button><button onclick="setMultiQuick(50)">50</button><button onclick="setMultiQuick(100)">100</button><button onclick="setMultiQuick(200)">200</button></div>' +
+        '<div class="ssb-modal-header"><div class="ssb-input-wrap"><input type="text" id="ssbMultiInput" readonly value="2"/><span>倍</span></div><button class="ssb-modal-cancel" onclick="closeMultiplierPopup()">取消</button><button class="ssb-modal-confirm" onclick="confirmMultiplierPopup()">确定</button></div>' +
+        '<div class="ssb-quick-row"><button onclick="setMultiQuick(2)">2</button><button onclick="setMultiQuick(5)">5</button><button onclick="setMultiQuick(10)">10</button><button onclick="setMultiQuick(20)">20</button><button onclick="setMultiQuick(50)">50</button></div>' +
         '<div class="ssb-keyboard">' +
         '<button onclick="inputMultiDigit(\'1\')">1</button><button onclick="inputMultiDigit(\'2\')">2</button><button onclick="inputMultiDigit(\'3\')">3</button>' +
         '<button onclick="inputMultiDigit(\'4\')">4</button><button onclick="inputMultiDigit(\'5\')">5</button><button onclick="inputMultiDigit(\'6\')">6</button>' +
