@@ -2059,7 +2059,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 vals.push(oddsObj.spf.away);
                 return vals;
               }
-              if (direction === '让负' && oddsObj.rqspf) vals.push(oddsObj.rqspf.away);
+              if (direction === '让平' && oddsObj.rqspf) vals.push(oddsObj.rqspf.draw);
+              else if (direction === '平' && oddsObj.spf) vals.push(oddsObj.spf.draw);
+              else if (direction === '让负' && oddsObj.rqspf) vals.push(oddsObj.rqspf.away);
               else if (direction === '让胜' && oddsObj.rqspf) vals.push(oddsObj.rqspf.home);
               else if (direction === '胜' && oddsObj.spf) vals.push(oddsObj.spf.home);
               else if (direction === '负' && oddsObj.spf) vals.push(oddsObj.spf.away);
@@ -2319,10 +2321,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const plans = [];
             const matchCount = mList.length;
 
-            const m1a = findBestMatchForDirection(['平', '让平']);
+            // ★ 方案一：单方向让平（符合竞彩同场不混合规则），无让平时 fallback 到平
+            const m1a_rq = findBestMatchForDirection(['让平']);
+            const m1a = m1a_rq || findBestMatchForDirection(['平']);
+            const m1aDir = m1a_rq ? '让平' : '平';
             const m1b = findBestMatchForDirection(['让负'], m1a ? [m1a.matchId] : null);
             const m2a = findBestMatchForDirection(['总进球-2、3球']);
-            const m2b = findBestMatchForDirection(['让负']);
+            const m2b = findBestMatchForDirection(['让负'], m2a ? [m2a.matchId] : null);
             const m3a = findBestMatchForDirection(['胜']);
             const m3b = findBestMatchForDirection(['胜'], m3a ? [m3a.matchId] : null);
 
@@ -2350,7 +2355,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               });
             }
 
-            push2MatchPlan('方案一', '1', m1a, '平、让平', m1b, '让负', 250, 10);
+            push2MatchPlan('方案一', '1', m1a, m1aDir, m1b, '让负', 250, 10);
             push2MatchPlan('方案二', '2', m2a, '总进球-2、3球', m2b, '让负', 250, 10);
             push2MatchPlan('方案三', '3', m3a, '胜', m3b, '胜', 500, 10, 50);
 
@@ -2398,13 +2403,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             // 方案四～五：仅在 ≥15 场时生成
             if (matchCount >= 15) {
-              const m4a = findBestMatchForDirection(['平', '让平']);
+              const m4a_rq = findBestMatchForDirection(['让平']);
+              const m4a = m4a_rq || findBestMatchForDirection(['平']);
+              const m4aDir = m4a_rq ? '让平' : '平';
               const m4b = findBestMatchForDirection(['胜'], m4a ? [m4a.matchId] : null);
-              push2MatchPlan('方案四', '4', m4a, '平、让平', m4b, '胜', 250, 10);
+              push2MatchPlan('方案四', '4', m4a, m4aDir, m4b, '胜', 250, 10);
 
-              const m5a = findBestMatchForDirection(['平', '让平']);
+              const m5a_rq = findBestMatchForDirection(['让平']);
+              const m5a = m5a_rq || findBestMatchForDirection(['平']);
+              const m5aDir = m5a_rq ? '让平' : '平';
               const m5b = findBestMatchForDirection(['总进球-2、3球'], m5a ? [m5a.matchId] : null);
-              push2MatchPlan('方案五', '5', m5a, '平、让平', m5b, '总进球-2、3球', 125, 5);
+              push2MatchPlan('方案五', '5', m5a, m5aDir, m5b, '总进球-2、3球', 125, 5);
             }
 
             // ========== 方案七：单关双选（胜平/平负） ==========
@@ -5007,6 +5016,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             if (!deviceId) return res.json({ code: 0, msg: '缺少用户标识' });
             const plan = data.plan || {};
             if (!plan.matches || plan.matches.length === 0) return res.json({ code: 0, msg: '方案不能为空' });
+            // ★ 竞彩规则：串关方案中同一场比赛不能出现多次（含不同玩法）
+            const matchIds = plan.matches.map(function (m) { return m.matchId; });
+            const uniqueMatchIds = new Set(matchIds);
+            if (matchIds.length !== uniqueMatchIds.size && matchIds.length >= 2) {
+              return res.json({ code: 0, msg: '串关方案中同一场比赛不能出现多次（含不同玩法），请每场只选一个方向' });
+            }
             const plans = readUserPlans(deviceId);
             const now = new Date().toISOString();
             if (plan.id) {

@@ -892,6 +892,15 @@ window.saveUserPlan = function () {
     // ★ 单关允许所有玩法：SPF/RQSPF（需标签） + BF/JQS/BQC（无需标签）
   }
 
+  // ★ 竞彩规则：多场串关不允许同一场比赛重复出现（含不同玩法）
+  if (uniqueMatches.length >= 2) {
+    var matchIdsList = _selections.map(function (s) { return s.matchId; });
+    if (matchIdsList.length !== uniqueMatches.length) {
+      alert('串关方案不能包含相同场次（含不同玩法）\n\n请确保每场比赛只选择一种玩法方向');
+      return;
+    }
+  }
+
   // ★ 构建 matchDetails 用于确认页面（携带完整赔率数据）
   var matchDetails = _selections.map(function (s) {
     var m = _matches.find(function (x) { return (x.matchId || x.id) === s.matchId; }) || {};
