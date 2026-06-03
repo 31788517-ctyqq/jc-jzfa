@@ -121,6 +121,29 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
       // 让球方向加前缀
       if (s.playType === 'rqspf') dirDisplay = '让' + dirDisplay;
 
+      // ★ 获取 Delta 方向
+      var deltaArrow = '';
+      if (m._odds) {
+        var groupedKey = s.playType + 'Delta'; // spfDelta, rqspfDelta, bfDelta, jqsDelta, bqcDelta
+        var grouped = m._odds[groupedKey];
+        if (grouped) {
+          // 确定 fieldName：SPF/RQSPF 用中文方向名，BF/JQS/BQC 直接用方向值
+          var fieldName = s.direction || s.oddsName || '';
+          if (s.playType === 'rqspf') fieldName = s.direction || s.oddsName || '';
+          // SPF: 胜/平/负, RQSPF: 胜/平/负 → 直接用方向名
+          // BF/JQS/BQC: label 即是 fieldName
+          var deltaDir = grouped[fieldName] || null;
+          if (!deltaDir && s.playType === 'bqc') {
+            // BQC: 尝试反向映射缩写
+            var BQC_MAP_REV = { '胜胜': 'hh', '胜平': 'hd', '胜负': 'ha', '平胜': 'dh', '平平': 'dd', '平负': 'da', '负胜': 'ah', '负平': 'ad', '负负': 'aa' };
+            var abbr = BQC_MAP_REV[fieldName];
+            if (abbr) deltaDir = grouped[abbr] || null;
+          }
+          if (deltaDir === 'up') deltaArrow = ' <span style="color:#FF5B55;font-size:9px;">▲</span>';
+          else if (deltaDir === 'down') deltaArrow = ' <span style="color:#34D399;font-size:9px;">▼</span>';
+        }
+      }
+
       matchRows += '<tr>';
       // 场次列（仅第一行显示）
       matchRows += '<td class="match-info-col">';
@@ -139,8 +162,8 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
       }
       matchRows += '</td>';
 
-      // 投注(赔率)列：每行显示一个方向
-      matchRows += '<td class="odds-col">' + playLabel + '：' + dirDisplay + '  ' + oddsStr + '</td>';
+      // 投注(赔率)列：每行显示一个方向 + Delta 箭头
+      matchRows += '<td class="odds-col">' + playLabel + '：' + dirDisplay + '  ' + oddsStr + deltaArrow + '</td>';
 
       matchRows += '</tr>';
     });

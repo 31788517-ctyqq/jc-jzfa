@@ -99,6 +99,14 @@ async function loadOddsData(matchId) {
         var batchData = batchRes && batchRes[matchId];
         if (batchData && batchData.oddsDelta) {
           _oddsData.oddsDelta = batchData.oddsDelta;
+          // ★ 同时存储按玩法分组的 Delta
+          _oddsData.spfDelta = batchData.spfDelta || {};
+          _oddsData.rqspfDelta = batchData.rqspfDelta || {};
+          _oddsData.bfDelta = batchData.bfDelta || {};
+          _oddsData.jqsDelta = batchData.jqsDelta || {};
+          _oddsData.bqcDelta = batchData.bqcDelta || {};
+          // ★ 走势信号
+          _oddsData.deltaTrend = batchData.deltaTrend || {};
         }
       } catch (e) { /* 非关键 */ }
     } else { _oddsData = {}; }
@@ -144,6 +152,7 @@ function render() {
       '<div class="bet-play-section' + (_activePlayType !== 'mixed' ? ' bet-play-section-dim' : '') + '">' +
         '<div class="bet-play-section-title">胜平负 / 让球胜平负</div>' +
         renderSPFGrid() +
+        renderTrendRow() +
       '</div>' +
 
       /* ─── 比分 ─── */
@@ -173,6 +182,27 @@ function render() {
 
     '</div>' +
   '</div>';
+}
+
+/* ─── 走势信号迷你行 ─── */
+function renderTrendRow() {
+  var trend = (_oddsData && _oddsData.deltaTrend) || {};
+  var spfTrend = trend.spfTrend || '';
+  var rqspfTrend = trend.rqspfTrend || '';
+
+  if (!spfTrend && !rqspfTrend) return '';
+
+  var html = '<div class="bet-trend-row">';
+  if (spfTrend) {
+    html += '<span class="bet-trend-label">SPF走势</span>';
+    html += '<span class="bet-trend-chars">' + escHtml(spfTrend) + '</span>';
+  }
+  if (rqspfTrend) {
+    html += '<span class="bet-trend-label">让球走势</span>';
+    html += '<span class="bet-trend-chars">' + escHtml(rqspfTrend) + '</span>';
+  }
+  html += '</div>';
+  return html;
 }
 
 /* ─── 赛事信息 — 功守道 gs-modal-head 风格 ─── */
@@ -267,6 +297,7 @@ function renderSPFCell(label, odds, playType, handicap, isLose, deltaDir) {
 function renderScoreGrid() {
   var bf = (_oddsData && _oddsData.bf) || [];
   var map = {}; bf.forEach(function (s) { map[s.score] = s.odds; });
+  var bfDelta = (_oddsData && _oddsData.bfDelta) || {};
 
   var html = '<div class="bet-score-grid">';
   ALL_SCORES.forEach(function (score) {
@@ -275,6 +306,15 @@ function renderScoreGrid() {
     var oddsStr = oddsVal != null ? oddsVal.toFixed(2) : '-';
     var noOdd = oddsVal == null;
     var sel = hasSelection('bf', score, null);
+    var deltaDir = bfDelta[score] || null;
+
+    // ★ 赔率变动箭头
+    var arrowHtml = '';
+    if (deltaDir === 'up') {
+      arrowHtml = '<span class="bet-arrow-up">&#9650;</span>';
+    } else if (deltaDir === 'down') {
+      arrowHtml = '<span class="bet-arrow-down">&#9660;</span>';
+    }
 
     var cls = 'bet-score-item';
     if (sel) cls += ' selected';
@@ -284,7 +324,7 @@ function renderScoreGrid() {
       (noOdd ? '' : ' onclick="_betSelect(\'bf\',\'' + escAttr(score) + '\',' + oddsVal + ',null)"') +
       '>' +
       '<span class="bet-score-val">' + escHtml(score) + '</span>' +
-      '<span class="bet-score-odds">' + escHtml(oddsStr) + '</span>' +
+      '<span class="bet-score-odds">' + escHtml(oddsStr) + arrowHtml + '</span>' +
     '</div>';
   });
   return html + '</div>';
@@ -294,6 +334,7 @@ function renderScoreGrid() {
 function renderGoalGrid() {
   var jqs = (_oddsData && _oddsData.jqs) || [];
   var map = {}; jqs.forEach(function (j) { map[j.goals] = j.odds; });
+  var jqsDelta = (_oddsData && _oddsData.jqsDelta) || {};
 
   var html = '<div class="bet-goal-grid">';
   FIXED_JQS.forEach(function (g) {
@@ -302,6 +343,15 @@ function renderGoalGrid() {
     var oddsStr = oddsVal != null ? oddsVal.toFixed(2) : '-';
     var noOdd = oddsVal == null;
     var sel = hasSelection('jqs', g, null);
+    var deltaDir = jqsDelta[g] || null;
+
+    // ★ 赔率变动箭头
+    var arrowHtml = '';
+    if (deltaDir === 'up') {
+      arrowHtml = '<span class="bet-arrow-up">&#9650;</span>';
+    } else if (deltaDir === 'down') {
+      arrowHtml = '<span class="bet-arrow-down">&#9660;</span>';
+    }
 
     var cls = 'bet-goal-item';
     if (sel) cls += ' selected';
@@ -311,7 +361,7 @@ function renderGoalGrid() {
       (noOdd ? '' : ' onclick="_betSelect(\'jqs\',\'' + escAttr(g) + '\',' + oddsVal + ',null)"') +
       '>' +
       escHtml(g) +
-      '<span class="bet-goal-odds">' + escHtml(oddsStr) + '</span>' +
+      '<span class="bet-goal-odds">' + escHtml(oddsStr) + arrowHtml + '</span>' +
     '</div>';
   });
   return html + '</div>';
@@ -321,6 +371,14 @@ function renderGoalGrid() {
 function renderHalfGrid() {
   var bqc = (_oddsData && _oddsData.bqc) || [];
   var map = {}; bqc.forEach(function (b) { map[b.combo] = b.odds; });
+  var bqcDelta = (_oddsData && _oddsData.bqcDelta) || {};
+
+  // ★ BQC delta key 映射：英缩写 → 中标签
+  var BQC_DELTA_MAP = {
+    'hh': '胜胜', 'hd': '胜平', 'ha': '胜负',
+    'dh': '平胜', 'dd': '平平', 'da': '平负',
+    'ah': '负胜', 'ad': '负平', 'aa': '负负',
+  };
 
   var html = '<div class="bet-half-grid">';
   FIXED_BQC.forEach(function (c) {
@@ -330,6 +388,23 @@ function renderHalfGrid() {
     var noOdd = oddsVal == null;
     var sel = hasSelection('bqc', c, null);
 
+    // ★ 查找 delta 方向（先直接匹配，再通过缩写字映射）
+    var deltaDir = bqcDelta[c] || null;
+    if (!deltaDir) {
+      // 反向映射：中文标签 → 缩写
+      for (var abbr in BQC_DELTA_MAP) {
+        if (BQC_DELTA_MAP[abbr] === c) { deltaDir = bqcDelta[abbr] || null; break; }
+      }
+    }
+
+    // ★ 赔率变动箭头
+    var arrowHtml = '';
+    if (deltaDir === 'up') {
+      arrowHtml = '<span class="bet-arrow-up">&#9650;</span>';
+    } else if (deltaDir === 'down') {
+      arrowHtml = '<span class="bet-arrow-down">&#9660;</span>';
+    }
+
     var cls = 'bet-goal-item';
     if (sel) cls += ' selected';
     if (noOdd) cls += ' no-odds';
@@ -338,7 +413,7 @@ function renderHalfGrid() {
       (noOdd ? '' : ' onclick="_betSelect(\'bqc\',\'' + escAttr(c) + '\',' + oddsVal + ',null)"') +
       '>' +
       escHtml(c) +
-      '<span class="bet-goal-odds">' + escHtml(oddsStr) + '</span>' +
+      '<span class="bet-goal-odds">' + escHtml(oddsStr) + arrowHtml + '</span>' +
     '</div>';
   });
   return html + '</div>';

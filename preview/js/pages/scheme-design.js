@@ -314,9 +314,16 @@ function renderMatchList() {
       else timeStr = m.startTime;
     }
 
-    // ★ 获取 delta 方向
-    var deltaSpf = getDeltaForField(delta, 'spf');
-    var deltaRqspf = getDeltaForField(delta, 'rqspf');
+    // ★ 获取 delta 方向（优先使用 API 返回的按玩法分组 Delta）
+    var deltaSpf = odds.spfDelta || {};
+    var deltaRqspf = odds.rqspfDelta || {};
+    // 兜底：从 raw oddsDelta 解析
+    if (Object.keys(deltaSpf).length === 0 && odds.oddsDelta) {
+      deltaSpf = getDeltaRaw(odds.oddsDelta, 'spf');
+    }
+    if (Object.keys(deltaRqspf).length === 0 && odds.oddsDelta) {
+      deltaRqspf = getDeltaRaw(odds.oddsDelta, 'rqspf');
+    }
 
     // ★ 推荐方向黄色标记：根据 maxRecommendDirs 确定哪些按钮需要标记
     var recommTopSet = {};
@@ -412,7 +419,7 @@ function renderOddsBtn(matchId, playType, dirName, oddsVal, handicap, deltaDir, 
     '<span class="sodds-val">' + oddsStr + arrowHtml + '</span></button>';
 }
 
-// ═══ 获取赔率变动方向 ═══
+// ═══ 获取赔率变动方向（扩展支持各玩法前缀） ═══
 function getDeltaForField(delta, playPrefix) {
   if (!delta || Object.keys(delta).length === 0) return {};
   var result = {};
@@ -422,6 +429,43 @@ function getDeltaForField(delta, playPrefix) {
     if (delta[key]) result[d] = delta[key]; // 'up', 'down', or 'flat'
   });
   return result;
+}
+
+// ★ 从 raw oddsDelta（dot 格式）解析 delta
+function getDeltaRaw(rawDelta, playPrefix) {
+  if (!rawDelta || Object.keys(rawDelta).length === 0) return {};
+  var result = {};
+  var directions = ['home', 'draw', 'away'];
+  directions.forEach(function (d) {
+    var key = playPrefix + '.' + d;
+    if (rawDelta[key]) result[d] = rawDelta[key];
+  });
+  return result;
+}
+
+// ★ 获取任意玩法字段的 delta 方向
+function getDeltaDirection(match, playPrefix, fieldName) {
+  if (!match || !match._odds) return null;
+  var groupedKey = playPrefix + 'Delta';
+  var grouped = match._odds[groupedKey];
+  if (grouped && grouped[fieldName]) return grouped[fieldName];
+  // 兜底：从 raw oddsDelta 查找
+  var raw = match._odds.oddsDelta || {};
+  var key = playPrefix + '.' + fieldName;
+  return raw[key] || null;
+}
+
+// ★ 渲染 Delta 摘要提示（用于"其它"区域）
+function renderDeltaSummary(match, playPrefix) {
+  var summaryKey = playPrefix + 'DeltaSummary';
+  var summary = (match._odds && match._odds[summaryKey]) || {};
+  var up = summary.up || 0;
+  var down = summary.down || 0;
+  if (up === 0 && down === 0) return '';
+  var parts = [];
+  if (up > 0) parts.push('<span class="sodds-arrow-up">&#9650;' + up + '</span>');
+  if (down > 0) parts.push('<span class="sodds-arrow-down">&#9660;' + down + '</span>');
+  return '<span class="smc-delta-sum">' + parts.join(' ') + '</span>';
 }
 
 // ═══ 选择 ═══
@@ -499,11 +543,24 @@ function findOtherSelections(matchId) {
 }
 
 function renderOtherSection(matchId) {
+  var m = _matches.find(function (x) { return (x.matchId || x.id) === matchId; });
   var otherSels = findOtherSelections(matchId);
   // ★ SPF / RQSPF 模式下禁用"其它"按钮（只能直接点主页赔率）
   var otherDisabled = _activePlayType === 'spf' || _activePlayType === 'rqspf';
   var dimCls = otherDisabled ? ' smc-other-dim' : '';
   var clickAttr = otherDisabled ? '' : ' onclick="openSchemeBetting(\'' + matchId + '\')"';
+
+  // ★ 构建 Delta 摘要行（BF/JQS/BQC 趋势提示）
+  var deltaHints = [];
+  if (m && m._odds) {
+    var bfSum = renderDeltaSummary(m, 'bf');
+    var jqsSum = renderDeltaSummary(m, 'jqs');
+    var bqcSum = renderDeltaSummary(m, 'bqc');
+    if (bfSum) deltaHints.push('<span class="smc-delta-hint">比分 ' + bfSum + '</span>');
+    if (jqsSum) deltaHints.push('<span class="smc-delta-hint">进球 ' + jqsSum + '</span>');
+    if (bqcSum) deltaHints.push('<span class="smc-delta-hint">半全场 ' + bqcSum + '</span>');
+  }
+  var deltaHintRow = deltaHints.length > 0 ? '<div class="smc-delta-hint-row">' + deltaHints.join('') + '</div>' : '';
 
   if (otherSels.length > 0) {
     var itemsHtml = otherSels.map(function(s) {
@@ -514,9 +571,9 @@ function renderOtherSection(matchId) {
       '<span class="smc-other-label">其它</span>' +
       '<div class="smc-other-sep"></div>' +
       itemsHtml +
-      '</span>';
+      '</span>' + deltaHintRow;
   }
-  return '<span class="smc-other' + dimCls + '"' + clickAttr + '>其它</span>';
+  return '<span class="smc-other' + dimCls + '"' + clickAttr + '>其它</span>' + deltaHintRow;
 }
 
 // ═══ 更新底部栏 ═══

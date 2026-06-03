@@ -555,6 +555,9 @@ export function loadMyPlanList() {
         })
         .join('');
       el.innerHTML = html;
+
+      // ★ 异步刷新赔率变动数据（仅"我的方案"需要实时趋势）
+      refreshMyPlanDelta(plans);
     })
     .catch(function (e) {
       el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);">加载失败: ' + (e && e.message) + '</div>';
@@ -613,6 +616,57 @@ function _confirmDelete(planId, planName, onSuccess) {
       }, 2500);
     });
   };
+}
+
+// ═══ 我的方案 — 赔率变动异步刷新 ═══
+function refreshMyPlanDelta(plans) {
+  if (!plans || plans.length === 0) return;
+
+  // 收集所有未开赛方案的 matchIds
+  var pendingMatchIds = [];
+  plans.forEach(function (p) {
+    if (p.isWon === true || p.isWon === false) return; // 已开奖跳过
+    var matches = p.matches || [];
+    matches.forEach(function (m) {
+      if (m.matchId && pendingMatchIds.indexOf(m.matchId) === -1) {
+        pendingMatchIds.push(m.matchId);
+      }
+    });
+  });
+  if (pendingMatchIds.length === 0) return;
+
+  // 批量获取最新赔率变动
+  api('batch-match-odds', { matchIds: pendingMatchIds }).then(function (oddsMap) {
+    if (!oddsMap) return;
+    // 更新每张方案卡片中对应比赛的 odds-col 显示
+    plans.forEach(function (p) {
+      var card = document.getElementById('upcard-' + p.id);
+      if (!card) return;
+      var matches = p.matches || [];
+      var rows = card.querySelectorAll('.plan-match-table tbody tr');
+      matches.forEach(function (m, idx) {
+        var oData = oddsMap[m.matchId];
+        if (!oData || !oData.oddsDelta) return;
+        var deltaArrow = '';
+        var dirKey = (m.playType || 'spf') + '.' + (m.direction || m.oddsName || '');
+        // RQSPF direction mapping
+        var fieldName = m.direction || m.oddsName || '';
+        if (m.playType === 'rqspf' && fieldName.indexOf('让') === 0) fieldName = fieldName.replace('让', '');
+        var groupedKey = m.playType + 'Delta';
+        var grouped = oData[groupedKey] || {};
+        var deltaDir = grouped[fieldName] || null;
+        if (!deltaDir) deltaDir = (oData.oddsDelta || {})[dirKey] || null;
+        if (deltaDir === 'up') deltaArrow = ' <span style="color:#FF5B55;font-size:9px;">▲</span>';
+        else if (deltaDir === 'down') deltaArrow = ' <span style="color:#34D399;font-size:9px;">▼</span>';
+        if (deltaArrow && rows[idx]) {
+          var oddsCell = rows[idx].querySelector('.odds-col');
+          if (oddsCell && oddsCell.innerHTML.indexOf('▲') === -1 && oddsCell.innerHTML.indexOf('▼') === -1) {
+            oddsCell.innerHTML += deltaArrow;
+          }
+        }
+      });
+    });
+  }).catch(function () { /* 非关键 */ });
 }
 
 // ═══ 我的方案 — 删除 ═══

@@ -207,6 +207,20 @@
 .bet-arrow-up { color: #FF5B55; font-size: 9px; margin-left: 2px; }
 .bet-arrow-down { color: #34D399; font-size: 9px; margin-left: 2px; }
 
+/* ★ 走势信号迷你行 */
+.bet-trend-row {
+  display: flex; align-items: center; gap: 8px; margin-top: 6px;
+  padding: 4px 8px; background: rgba(0,0,0,.15);
+  border-radius: 6px; font-size: 10px;
+}
+.bet-trend-label {
+  color: #556677; font-size: 9px; white-space: nowrap;
+}
+.bet-trend-chars {
+  font-family: monospace; font-size: 10px; letter-spacing: 1px;
+  color: #8899aa;
+}
+
 /* ★ 玩法提示条 */
 .bet-play-hint {
   text-align: center; padding: 6px 12px; margin-bottom: 10px;

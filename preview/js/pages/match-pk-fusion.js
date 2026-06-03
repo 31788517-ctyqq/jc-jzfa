@@ -700,6 +700,26 @@ function renderFusionPK(modal, list) {
     '<span class="pk3-close" onclick="closePK()">✕</span>' +
     '</div>';
 
+  // ★ 异步加载盘口变化数据
+  var matchIds = list.map(function (x) { return x.matchId; }).filter(Boolean);
+  if (matchIds.length > 0) {
+    api('batch-match-odds', { matchIds: matchIds }).then(function (oddsMap) {
+      if (!oddsMap) return;
+      list.forEach(function (item) {
+        var oData = oddsMap[item.matchId];
+        if (oData) {
+          item._odds = oData;
+          item._spfDelta = oData.spfDelta || {};
+          item._rqspfDelta = oData.rqspfDelta || {};
+          item._spfDeltaSummary = oData.spfDeltaSummary || {};
+          item._rqspfDeltaSummary = oData.rqspfDeltaSummary || {};
+        }
+      });
+      // 更新已渲染的 score cards 中的 odds-movement 指示器
+      updatePKMovementIndicators(list);
+    }).catch(function () { /* 非关键 */ });
+  }
+
   // ── 全局熔断预警横幅（P2）──
   var meltCount = ranked.filter(function (s) {
     return s && s.item && s.item.fusionConsensus === 'meltdown';
@@ -863,6 +883,8 @@ function renderScoreCard(scored, rank, ranked) {
     // V2.0: EV 价值标签
     (dirAdvice.valueTag ? '<span class="pk3-sc-ev-tag">' + dirAdvice.valueTag + '</span>' : '') +
     '</div>' +
+    // ★ 盘口变化指示器（异步填充）
+    '<div class="pk3-sc-movement" data-mid="' + (item.matchId || '') + '" style="min-height:16px;"></div>' +
     (tags.length ? '<div class="pk3-sc-tags">' + tags.join('') + '</div>' : '') +
     (fusionBadge ? '<div class="pk3-sc-fusion">' + fusionBadge + '</div>' : '') +
     // V27: 联赛归一化标签
@@ -1720,3 +1742,47 @@ export function closePK() {
 }
 
 export function openPK() {}
+
+// ═══════════════════════════════════════════
+//  盘口变化指示器（异步更新 PK 评分卡）
+// ═══════════════════════════════════════════
+function updatePKMovementIndicators(list) {
+  list.forEach(function (item) {
+    var mid = item.matchId;
+    var el = document.querySelector('.pk3-sc-movement[data-mid="' + mid + '"]');
+    if (!el) return;
+
+    var spfSummary = item._spfDeltaSummary || {};
+    var rqspfSummary = item._rqspfDeltaSummary || {};
+    var upTotal = (spfSummary.up || 0) + (rqspfSummary.up || 0);
+    var downTotal = (spfSummary.down || 0) + (rqspfSummary.down || 0);
+
+    if (upTotal === 0 && downTotal === 0) {
+      el.innerHTML = '';
+      return;
+    }
+
+    var parts = [];
+    if (upTotal > 0) parts.push('<span style="color:#FF5B55;font-size:10px;">▲' + upTotal + '</span>');
+    if (downTotal > 0) parts.push('<span style="color:#34D399;font-size:10px;">▼' + downTotal + '</span>');
+
+    // 判断整体方向：升赔>降赔 = 看衰，降赔>升赔 = 看好
+    var trendLabel = '';
+    var trendColor = '#8899aa';
+    if (downTotal > upTotal + 1) {
+      trendLabel = ' 水位下降（看好）';
+      trendColor = '#34D399';
+    } else if (upTotal > downTotal + 1) {
+      trendLabel = ' 水位上升（看衰）';
+      trendColor = '#FF5B55';
+    } else if (upTotal === downTotal && upTotal > 0) {
+      trendLabel = ' 水位博弈';
+      trendColor = '#FFC928';
+    }
+
+    el.innerHTML = '<span style="font-size:10px;color:' + trendColor + ';display:flex;align-items:center;gap:4px;">'
+      + '📈 ' + parts.join(' ')
+      + ('<span style="font-size:9px;">' + trendLabel + '</span>')
+      + '</span>';
+  });
+}

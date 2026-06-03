@@ -195,6 +195,91 @@ function getScoreOdds(allplays, dateStr, num) {
   return Object.keys(result).length > 0 ? result : null;
 }
 
+// ★ 将 oddsDelta 按玩法分组 + 摘要统计
+function _groupDeltaByPlay(deltaChanges) {
+  var result = {
+    spf: {}, rqspf: {}, halfFull: {}, totalGoals: {}, scores: {},
+    spfSummary: { up: 0, down: 0, flat: 0 },
+    rqspfSummary: { up: 0, down: 0, flat: 0 },
+    halfFullSummary: { up: 0, down: 0, flat: 0 },
+    totalGoalsSummary: { up: 0, down: 0, flat: 0 },
+    scoresSummary: { up: 0, down: 0, flat: 0 },
+  };
+  if (!deltaChanges || Object.keys(deltaChanges).length === 0) return result;
+
+  Object.keys(deltaChanges).forEach(function (k) {
+    var dir = deltaChanges[k]; // 'up' | 'down' | 'flat'
+    var dotIdx = k.indexOf('.');
+    if (dotIdx === -1) return;
+    var prefix = k.slice(0, dotIdx);
+    var field = k.slice(dotIdx + 1);
+
+    // 按玩法前缀分组方向映射
+    if (result[prefix] !== undefined) {
+      result[prefix][field] = dir;
+    }
+
+    // 摘要计数
+    var summaryKey = prefix + 'Summary';
+    if (result[summaryKey] && dir === 'up') result[summaryKey].up++;
+    else if (result[summaryKey] && dir === 'down') result[summaryKey].down++;
+    else if (result[summaryKey] && dir === 'flat') result[summaryKey].flat++;
+  });
+
+  return result;
+}
+
+// ★ 构建赔率走势信号（分析最后 N 条 delta 记录的方向趋势）
+function _buildDeltaTrend(deltaLogs) {
+  var result = { spfTrend: '', rqspfTrend: '', scoresTrend: '', totalGoalsTrend: '', halfFullTrend: '' };
+  if (!deltaLogs || deltaLogs.length === 0) return result;
+
+  // 取最近 6 条记录的 spf.home 方向
+  var maxRecords = Math.min(6, deltaLogs.length);
+  var recent = deltaLogs.slice(-maxRecords);
+
+  var trends = { spf: { home: [], draw: [], away: [] }, rqspf: { home: [], draw: [], away: [] } };
+
+  recent.forEach(function (log) {
+    if (!log.changes) return;
+    Object.keys(log.changes).forEach(function (k) {
+      var val = log.changes[k];
+      // val 可能是 "1.50→1.55" 格式或已经是 'up'/'down'
+      var dir = val;
+      if (typeof val === 'string' && val.indexOf('→') > -1) {
+        var parts = val.split('→');
+        var oldV = parseFloat(parts[0]);
+        var newV = parseFloat(parts[1]);
+        if (oldV > 0 && newV > 0) dir = newV > oldV ? 'up' : newV < oldV ? 'down' : 'flat';
+        else dir = 'flat';
+      }
+      var dotIdx = k.indexOf('.');
+      if (dotIdx === -1) return;
+      var prefix = k.slice(0, dotIdx);
+      var field = k.slice(dotIdx + 1);
+      if (trends[prefix] && trends[prefix][field]) {
+        trends[prefix][field].push(dir === 'up' ? '▲' : dir === 'down' ? '▼' : '→');
+      }
+    });
+  });
+
+  // 合并各玩法方向序列
+  function mergeTrend(pref) {
+    var t = trends[pref];
+    if (!t) return '';
+    var all = (t.home || []).concat(t.draw || []).concat(t.away || []);
+    if (all.length === 0) return '';
+    // 取最后 5 个
+    return all.slice(-5).join('');
+  }
+
+  result.spfTrend = mergeTrend('spf');
+  result.rqspfTrend = mergeTrend('rqspf');
+
+  // BF/JQS/BQC 趋势从 deltaChanges 的原始键聚合
+  return result;
+}
+
 // ★ 获取每场比赛推荐专家数最多的方向（用于方案设计页黄色底色标记）
 function getMaxRecommendDirs(dataFile, matchId) {
   try {
@@ -4644,7 +4729,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   if (fs.existsSync(oddsFile)) {
                     const raw = JSON.parse(fs.readFileSync(oddsFile, 'utf8'));
                     const oddsMap = raw.odds || {};
-                    // 将 odds_history 格式转为类 allplays 格式（补充 jqs 映射）
+                    // 将 odds_history 格式转为类 allplays 格式（补充 key 映射）
                     dayData = {};
                     Object.keys(oddsMap).forEach(function (n) {
                       const o = oddsMap[n];
@@ -4652,6 +4737,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                       // totalGoals 映射为 jqs（总进球）
                       if (o.totalGoals && !o.jqs) {
                         entry.jqs = o.totalGoals;
+                      }
+                      // halfFull 映射为 bqc（半全场）
+                      if (o.halfFull && !o.bqc) {
+                        entry.bqc = o.halfFull;
                       }
                       dayData['num_' + n] = entry;
                     });
@@ -5046,6 +5135,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 var oddsEntryFull = oddsMap[matchNum] || {};
                 isSingleGame = oddsEntryFull.isSingleGame === true || m.isSingleGame === true;
               } catch (e) { /* delta 读取失败不影响主流程 */ }
+
+              // ★ 构建按玩法分组的 Delta 摘要 + 方向映射
+              var deltaChanges = (deltaLogs && deltaLogs.length > 0 && deltaLogs[deltaLogs.length - 1].changes) || {};
+              var groupedDelta = _groupDeltaByPlay(deltaChanges);
+
+              // ★ 构建赔率走势信号（最后 N 次变化的方向趋势）
+              var deltaTrend = _buildDeltaTrend(deltaLogs || []);
+
               var r = {
                 matchId: mid,
                 homeName: m.homeName || '',
@@ -5056,12 +5153,27 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 halfScore: m.half || '',
                 spf: oddsEntry.spf || null,
                 rqspf: oddsEntry.rqspf || null,
-                jqs: oddsEntry.jqs || null,
-                bqc: oddsEntry.bqc || null,
-                bf: oddsEntry.bf || null,
+                // ★ key 映射兼容: odds_history 存 totalGoals/halfFull/scores，allplays.json 额外存 jqs/bqc/bf
+                jqs: oddsEntry.jqs || oddsEntry.totalGoals || null,
+                bqc: oddsEntry.bqc || oddsEntry.halfFull || null,
+                bf: oddsEntry.bf || oddsEntry.scores || null,
                 handicap: oddsEntry.handicap != null ? oddsEntry.handicap : (m.concede || 0),
                 isSingleGame: isSingleGame,
-                oddsDelta: (deltaLogs && deltaLogs.length > 0 && deltaLogs[deltaLogs.length - 1].changes) || {},
+                oddsDelta: deltaChanges,
+                // ★ 赔率走势信号（最近变化趋势，用于前端迷你趋势可视化）
+                deltaTrend: deltaTrend,
+                // ★ 按玩法分组的 Delta（前端用来渲染各区域的箭头和摘要）
+                spfDelta: groupedDelta.spf || {},
+                rqspfDelta: groupedDelta.rqspf || {},
+                bfDelta: groupedDelta.scores || {},
+                jqsDelta: groupedDelta.totalGoals || {},
+                bqcDelta: groupedDelta.halfFull || {},
+                // ★ 各玩法 Delta 摘要（前端显示 ↑N ↓M →K 趋势）
+                spfDeltaSummary: groupedDelta.spfSummary || { up: 0, down: 0, flat: 0 },
+                rqspfDeltaSummary: groupedDelta.rqspfSummary || { up: 0, down: 0, flat: 0 },
+                bfDeltaSummary: groupedDelta.scoresSummary || { up: 0, down: 0, flat: 0 },
+                jqsDeltaSummary: groupedDelta.totalGoalsSummary || { up: 0, down: 0, flat: 0 },
+                bqcDeltaSummary: groupedDelta.halfFullSummary || { up: 0, down: 0, flat: 0 },
                 concede: m.concede || 0,
                 // ★ 推荐方向（用于方案设计页黄色底色标记）
                 maxRecommendDirs: getMaxRecommendDirs(dataFile, mid),

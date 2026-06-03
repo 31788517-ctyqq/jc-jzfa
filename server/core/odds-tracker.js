@@ -30,6 +30,14 @@ function detectChanges(oldOdds, newOdds, matchNum) {
     'totalGoals.0', 'totalGoals.1', 'totalGoals.2',
     'totalGoals.3', 'totalGoals.4', 'totalGoals.5',
     'totalGoals.6', 'totalGoals.7+', 'totalGoals.7',
+    // ★ BF 比分 (scores): 使用冒号分隔的比分标签作 key
+    'scores.1:0', 'scores.2:0', 'scores.2:1', 'scores.3:0', 'scores.3:1', 'scores.3:2',
+    'scores.4:0', 'scores.4:1', 'scores.4:2', 'scores.5:0', 'scores.5:1', 'scores.5:2',
+    'scores.胜其它',
+    'scores.0:0', 'scores.1:1', 'scores.2:2', 'scores.3:3', 'scores.平其它',
+    'scores.0:1', 'scores.0:2', 'scores.1:2', 'scores.0:3', 'scores.1:3', 'scores.2:3',
+    'scores.0:4', 'scores.1:4', 'scores.2:4', 'scores.0:5', 'scores.1:5', 'scores.2:5',
+    'scores.负其它',
   ];
 
   for (const p of paths) {

@@ -2702,6 +2702,19 @@ body {
 .sodds-arrow-up { color: #FF5B55; font-size: 9px; margin-left: 2px; }
 .sodds-arrow-down { color: #34D399; font-size: 9px; margin-left: 2px; }
 
+/* ★ Delta 摘要提示（方案设计页"其它"区域） */
+.smc-delta-hint-row {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; padding: 0 4px;
+}
+.smc-delta-hint {
+  font-size: 9px; color: #8899aa; white-space: nowrap;
+}
+.smc-delta-sum {
+  display: inline-flex; gap: 3px; align-items: center;
+}
+.smc-delta-sum .sodds-arrow-up { font-size: 9px; }
+.smc-delta-sum .sodds-arrow-down { font-size: 9px; }
+
 /* ★ 推荐方向黄色底色标记（靠左 1/6） */
 .sodds-btn.recomm-top { position: relative; overflow: hidden; }
 .sodds-btn.recomm-top::before {
