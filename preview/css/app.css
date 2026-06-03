@@ -44,7 +44,7 @@ body {
 /* 导航栏 — 标题距顶部：桌面端 45px，刘海屏 40~56px 自适应 */
 .navbar {
   width: 100%;
-  padding: 45px 16px 8px;          /* 桌面端 */
+  padding: 45px 16px 3px;          /* 桌面端，pb 8→3 上移5px */
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -546,7 +546,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 20px;
-  padding: 6px 0 14px;
+  padding: 6px 0 19px;
   user-select: none;
 }
 .date-current {
@@ -697,7 +697,7 @@ body {
   scrollbar-width: none;
 }
 .filter-row::-webkit-scrollbar { display: none; }
-#planTabBar.filter-row { margin: 0; padding: 12px 0; }
+#planTabBar.filter-row { margin: 0; padding: 12px 0 17px; }
 .filter-tag {
   white-space: nowrap;
   padding: 6px 14px;
@@ -3031,7 +3031,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 20px;
-  padding: 6px 0 14px;
+  padding: 6px 0 19px;
   user-select: none;
 }
 

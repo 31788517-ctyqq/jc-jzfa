@@ -37,7 +37,7 @@ function injectStyles() {
   var s = document.createElement('style');
   s.id = 'bt-inline-css';
   s.textContent = [
-    '.backtest-page { padding:4px 0 0; }',
+    '.backtest-page { padding:4px 0 20px; }',
 
     // Tab bar
     '.bt-tab-row { display:flex; gap:4px; padding:0 10px 8px; border-bottom:1px solid rgba(255,255,255,0.06); }',
