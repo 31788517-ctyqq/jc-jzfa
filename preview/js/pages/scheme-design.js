@@ -28,6 +28,7 @@ var RECOMM_TO_BTN = {
 };
 
 // ═══ 工具函数 ═══
+function escStr(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 function combination(n, k) {
   if (k > n || k < 0) return 0;
   if (k === 0 || k === n) return 1;
@@ -379,6 +380,10 @@ function renderMatchList() {
       '<div class="smc-teams"><span>' + (m.homeName || '') + '</span><span class="smc-vs">VS</span><span>' + (m.visitName || '') + '</span></div>' +
       '<div class="sodds-matrix">' + spfRow + rqRow + '</div>' +
       '</div>' +
+      '</div>' +
+      '<div class="smc-footer">' +
+        '<button class="smc-ai-btn" onclick="event.stopPropagation();goDetail(\'' + id + '\')">AI分析</button>' +
+        '<button class="smc-gs-btn" onclick="event.stopPropagation();showGongshoudao(\'' + id + '\',\'' + escStr(m.leagueName || '') + '\',\'' + escStr(m.homeName || '') + '\',\'' + escStr(m.visitName || '') + '\',\'' + escStr(m.num || m.matchNum || '') + '\',\'' + escStr(m.startTime || '') + '\')">功守道</button>' +
       '</div></div>';
   }).join('');
   el.innerHTML = html;
