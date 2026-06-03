@@ -5,6 +5,7 @@ import * as state from '../state.js';
 
 // AI 深度解析缓存：{ matchId: { content: ..., hash: ... } }
 var predictionCache = {};
+var _aiModalMatchId = null; // ★ 缓存的 matchId，供"我要做方案"按钮使用
 (function restoreCache() {
   try {
     var saved = sessionStorage.getItem('__ai_prediction_cache');
@@ -235,7 +236,17 @@ export function closeAI() {
   document.body.style.overflow = '';
 }
 
+// ★ 从 AI 弹窗跳转方案设计页
+window.goFromAIToScheme = function() {
+  if (_aiModalMatchId) {
+    try { sessionStorage.setItem('preselectMatch', _aiModalMatchId); } catch(e) {}
+  }
+  closeAI();
+  window.switchTab('scheme');
+};
+
 export function showAIPrediction(matchId, homeTeam, awayTeam) {
+  _aiModalMatchId = matchId; // ★ 缓存 matchId
   if (!homeTeam || !awayTeam) {
     var teams = document.querySelectorAll('#detailContent .team-name');
     homeTeam = (teams[0] ? teams[0].textContent : null) || homeTeam || '主队';
@@ -926,6 +937,11 @@ export function renderAIContent(content, homeTeam, awayTeam) {
       '</span><span class="ai-predict-td check">\u2713</span></div>';
   });
   html += '</div></div>';
+
+  // ★ 我要做方案按钮
+  html += '<div style="text-align:center;padding:8px 0 16px 0;">';
+  html += '<button onclick="goFromAIToScheme()" style="border-radius:24px;padding:10px 32px;background:linear-gradient(135deg,#34D399,#10B981);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(16,185,129,0.3);">我要做方案</button>';
+  html += '</div>';
 
   // ★ P2-1: 空内容兜底 — 如果所有主要 section 都无有效内容，显示提示
   var hasAnyContent = false;

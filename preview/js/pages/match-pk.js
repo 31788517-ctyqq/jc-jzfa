@@ -1,5 +1,7 @@
 import { api } from '../api.js';
 
+var _pkMatchIds = []; // ★ 缓存 PK 弹窗 matchId 列表，供"我要做方案"按钮使用
+
 function esc(str) {
   return String(str || '')
     .replace(/&/g, '&amp;')
@@ -26,6 +28,7 @@ function normalizeConsensus(raw) {
 
 /** 打开多场PK弹窗（不再区分 tab，融合三维度） */
 export function openPKMulti(pickedList) {
+  _pkMatchIds = pickedList.map(function(item) { return item.matchId; }); // ★ 缓存 matchIds
   var overlay = document.getElementById('pkOverlay');
   if (!overlay || pickedList.length < 2) return;
   overlay.classList.add('active');
@@ -661,7 +664,7 @@ function renderFusionPK(modal, list) {
   html += renderRiskPanel(ranked);
 
   // ── 底部按钮 ──
-  html += '<div class="pk3-footer"><button class="pk3-done-btn" onclick="closePK()">关闭</button></div>';
+  html += '<div class="pk3-footer"><button class="pk3-make-plan-btn" onclick="goFromPKToScheme()" style="border-radius:20px;padding:10px 28px;background:linear-gradient(135deg,#34D399,#10B981);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(16,185,129,0.3);">我要做方案</button><button class="pk3-done-btn" onclick="closePK()">关闭</button></div>';
 
   modal.innerHTML = html;
 }
@@ -1592,6 +1595,15 @@ function renderFusionSummary(ranked) {
 // ═══════════════════════════════════════════
 //  关闭弹窗
 // ═══════════════════════════════════════════
+
+// ★ 从 PK 弹窗跳转方案设计页
+window.goFromPKToScheme = function() {
+  if (_pkMatchIds.length > 0) {
+    try { sessionStorage.setItem('preselectMatch', _pkMatchIds[0]); } catch(e) {}
+  }
+  closePK();
+  window.switchTab('scheme');
+};
 
 export function closePK() {
   var overlay = document.getElementById('pkOverlay');
