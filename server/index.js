@@ -1370,15 +1370,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 dailyResults: dailyResults,
               },
             });
-            // ★ P1-1: 缓存量化方案结果
-            _quantPlanCache[dateStr] = { time: qpNow, response: qpResponse };
-            // ★ P2: LRU 清理（最多缓存 10 个日期）
-            const qpKeys = Object.keys(_quantPlanCache);
-            if (qpKeys.length > 10) {
-              qpKeys.sort(function (a, b) { return _quantPlanCache[a].time - _quantPlanCache[b].time; });
-              delete _quantPlanCache[qpKeys[0]];
-            }
-            return res.json(qpResponse);
           } catch (e) {
             return res.json({ code: 0, msg: '查询失败: ' + e.message });
           }
@@ -1639,15 +1630,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 canRetry: true,
               },
             });
-            // ★ P1-1: 缓存量化方案结果
-            _quantPlanCache[dateStr] = { time: qpNow, response: qpResponse };
-            // ★ P2: LRU 清理（最多缓存 10 个日期）
-            const qpKeys = Object.keys(_quantPlanCache);
-            if (qpKeys.length > 10) {
-              qpKeys.sort(function (a, b) { return _quantPlanCache[a].time - _quantPlanCache[b].time; });
-              delete _quantPlanCache[qpKeys[0]];
-            }
-            return res.json(qpResponse);
           } catch (e) {
             logger.error('[ai-predict] ' + e.message);
             return res.json({ code: 0, msg: 'AI 分析异常，请稍后重试' });
@@ -1681,15 +1663,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 canShowCards: totalMatches - finishedMatches > 0,
               },
             });
-            // ★ P1-1: 缓存量化方案结果
-            _quantPlanCache[dateStr] = { time: qpNow, response: qpResponse };
-            // ★ P2: LRU 清理（最多缓存 10 个日期）
-            const qpKeys = Object.keys(_quantPlanCache);
-            if (qpKeys.length > 10) {
-              qpKeys.sort(function (a, b) { return _quantPlanCache[a].time - _quantPlanCache[b].time; });
-              delete _quantPlanCache[qpKeys[0]];
-            }
-            return res.json(qpResponse);
           } catch (e) {
             return res.json({ code: 0, msg: e.message });
           }
@@ -5019,7 +4992,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // ★ 竞彩规则：串关方案中同一场比赛不能出现多次（含不同玩法）
             const matchIds = plan.matches.map(function (m) { return m.matchId; });
             const uniqueMatchIds = new Set(matchIds);
-            if (matchIds.length !== uniqueMatchIds.size && matchIds.length >= 2) {
+            if (matchIds.length !== uniqueMatchIds.size && uniqueMatchIds.size >= 2) {
               return res.json({ code: 0, msg: '串关方案中同一场比赛不能出现多次（含不同玩法），请每场只选一个方向' });
             }
             const plans = readUserPlans(deviceId);

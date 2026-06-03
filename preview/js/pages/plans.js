@@ -1139,7 +1139,7 @@ export function loadScorePlanList() {
           var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高奖金';
           var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
 
-          // 构建比分标签 + 奖金分配（按行显示）
+          // 构建比分标签 + 资金分配（按行显示）
           var scoreRows = '';
           var matchTimeShort = '';
           if (p.startTime) {
@@ -1245,7 +1245,7 @@ export function loadScorePlanList() {
             '</div>' +
             '<div class="plan-match-section">' +
             '<table class="plan-match-table score-table">' +
-            '<thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th><th>奖金分配</th></tr></thead>' +
+            '<thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th><th>资金分配</th></tr></thead>' +
             '<tbody>' +
             scoreRows +
             '</tbody>' +

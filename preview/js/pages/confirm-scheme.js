@@ -26,7 +26,7 @@ export function loadConfirmScheme() {
   }
   _matches = _planData.matches || [];
   _selections = _planData.selections || [];
-  _passTypes = _planData.passTypes || [2];
+  _passTypes = (_planData.passTypes && _planData.passTypes.length) ? _planData.passTypes : [2];
   _multiplier = _planData.multiplier || 1;
 
   render();
@@ -97,6 +97,11 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
     ? _passTypes[0] + '关'
     : (_passTypes.length > 1 ? _passTypes.join('~') + '关' : '2关');
 
+  // ★ 检测是否为单关比分方案
+  var isSingleBf = uniqueCount === 1 && _selections.length > 0 && _selections.every(function(s) { return s.playType === 'bf'; });
+  // 资金分配：默认均分（若已有 allocation 则用已有的）
+  var defaultAllocPerSel = isSingleBf && _selections.length > 0 ? Math.round(amount / _selections.length * 100) / 100 : 0;
+
   // 构建比赛表格行（同场多方向分行，对阵合并）
   var matchRows = '';
   groupedSelections.forEach(function (g) {
@@ -165,6 +170,12 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
       // 投注(赔率)列：每行显示一个方向 + Delta 箭头
       matchRows += '<td class="odds-col">' + playLabel + '：' + dirDisplay + '  ' + oddsStr + deltaArrow + '</td>';
 
+      // ★ 资金分配列（仅单关比分方案）
+      if (isSingleBf) {
+        var allocVal = s.allocation != null ? s.allocation : defaultAllocPerSel;
+        matchRows += '<td class="allocation-col"><span class="plan-alloc-val">' + allocVal.toFixed(0) + '</span><span class="plan-alloc-unit">元</span></td>';
+      }
+
       matchRows += '</tr>';
     });
   });
@@ -198,9 +209,22 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
 
   // 比赛表格
   html += '<div class="plan-match-section">';
-  html += '<table class="plan-match-table"><thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th></tr></thead><tbody>';
+  html += '<table class="plan-match-table' + (isSingleBf ? ' score-table' : '') + '"><thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th>' + (isSingleBf ? '<th>资金分配</th>' : '') + '</tr></thead><tbody>';
   html += matchRows;
   html += '</tbody></table></div>';
+
+  // ★ 比分方案元信息（大球率/进攻优势/进球区间/强队方向）
+  if (isSingleBf) {
+    var sbfBigBall = '--', sbfAttack = '--', sbfGoal = '--', sbfStrong = '--';
+    var sbfMeta = (_planData && _planData.scoreMeta) ? _planData.scoreMeta : (_matches.length > 0 && _matches[0]._meta) ? _matches[0]._meta : null;
+    if (sbfMeta) {
+      sbfBigBall = sbfMeta.bigBallRatio || '--';
+      sbfAttack = sbfMeta.attackAdvantage || '--';
+      sbfGoal = sbfMeta.goalRange || '--';
+      sbfStrong = sbfMeta.strongSide || '--';
+    }
+    html += '<div class="plan-score-meta"><span>大球率 ' + sbfBigBall + '%</span><span>进攻优势 ' + sbfAttack + '</span><span>进球区间 ' + sbfGoal + '</span><span>强队 ' + sbfStrong + '</span></div>';
+  }
 
   html += '</div>';
   return html;
@@ -494,7 +518,7 @@ window.confirmShowMultiplierPopup = function () {
     overlay = document.createElement('div');
     overlay.id = 'confirmMultiplierOverlay';
     overlay.className = 'ssb-overlay';
-    overlay.onclick = function (e) { if (e.target === overlay) confirmCloseMultiplierPopup(); };
+    overlay.onclick = function (e) { if (e.target === overlay) window.confirmCloseMultiplierPopup(); };
     overlay.innerHTML =
       '<div class="ssb-modal ssb-multi-modal">' +
       '<div class="ssb-modal-header"><div class="ssb-input-wrap"><input type="text" id="confirmSsBMultiInput" readonly value="2"/><span>倍</span></div><button class="ssb-modal-cancel" onclick="confirmCloseMultiplierPopup()">取消</button><button class="ssb-modal-confirm" onclick="confirmConfirmMultiplierPopup()">确定</button></div>' +
@@ -520,7 +544,7 @@ window.confirmCloseMultiplierPopup = function () {
 
 window.confirmConfirmMultiplierPopup = function () {
   _multiplier = Math.max(2, Math.min(99, parseInt(_confirmTempMultiplier) || 2));
-  confirmCloseMultiplierPopup();
+  window.confirmCloseMultiplierPopup();
   updateSessionStore();
   render();
 };
@@ -694,7 +718,7 @@ window.confirmSavePlan = function () {
     multiplier: _multiplier,
     betCount: bets,
     passTypes: _passTypes.length > 0 ? _passTypes : [2],
-    note: (_passTypes.length > 1 ? '自由过关 ' : '串关方案 ') +
+    note: (_passTypes.length > 1 ? '自由过关 ' : (_passTypes[0] === 1 ? '单关 ' : '串关方案 ')) +
       (_passTypes.length > 1 ? _passTypes.join('关+') + '关' : _passTypes[0] + '关') +
       '，共' + bets + '注 ×' + _multiplier + '倍',
     matchCount: _selections.length,
@@ -931,9 +955,20 @@ function updateBoAmounts() {
 }
 
 function closeBonusOpt() {
+  // ★ 将奖金优化分配回写到 _selections
+  _boRows.forEach(function(r) {
+    var s = _selections[r.id];
+    if (s) {
+      s.allocation = (r.betCount || 0) * 2;
+    }
+  });
+  updateSessionStore();
+
   var o = document.getElementById('bonusOptOverlay');
   if (o) { o.classList.remove('active'); o.innerHTML = ''; }
   document.body.style.overflow = '';
+  // ★ 重新渲染，让资金分配列立即看到变化
+  render();
 }
 window.closeBonusOpt = closeBonusOpt;
 

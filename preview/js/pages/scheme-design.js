@@ -129,7 +129,7 @@ function derivePassTypes() {
   var maxPass = calcMaxPass();
 
   if (n < 2) {
-    _passTypes = []; // 单关
+    _passTypes = [1]; // 单关（必须为 [1]，空数组会导致 calcMaxWin 无法计算赔率乘积）
   } else {
     // 默认勾选 2关 到 min(n, maxPass, 5)
     var upper = Math.min(n, maxPass, 5);
