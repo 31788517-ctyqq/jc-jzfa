@@ -707,6 +707,11 @@ function _ensurePage(id) {
         '</div>';
     else if (id === 'confirm-scheme')
       el.innerHTML = '<div id="confirmContent"><div class="loading"><div class="loading-spinner"></div>加载方案中...</div></div>';
+    // ★ 蓝图新增页面
+    else if (id === 'model-dashboard')
+      el.innerHTML = '<div class="chart-box"><div class="chart-header"><span class="chart-title">模型表现仪表板</span></div><div id="model-dashboard-content"></div></div>';
+    else if (id === 'data-health')
+      el.innerHTML = '<div id="data-health-content"></div>';
   }
   return el;
 }
@@ -745,6 +750,8 @@ export function switchTab(tab) {
     backtest: '回测分析',
     scheme: '方案设计',
     'confirm-scheme': '确认方案',
+    'model-dashboard': '模型表现仪表板',
+    'data-health': '数据健康监控',
   };
   var titleEl = document.getElementById('navTitle');
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
@@ -829,6 +836,17 @@ export function switchTab(tab) {
     if (backEl2) backEl2.style.display = 'flex';
     _mod('confirm-scheme').then(function (m) {
       m.loadConfirmScheme();
+    });
+  }
+  // ★ 蓝图新增页面
+  if (tab === 'model-dashboard') {
+    _mod('model-dashboard').then(function (m) {
+      m.loadDashboard();
+    });
+  }
+  if (tab === 'data-health') {
+    _mod('data-health').then(function (m) {
+      m.loadDataHealth();
     });
   }
 }
@@ -1086,6 +1104,17 @@ if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
     if (backEl2) backEl2.style.display = 'flex';
     _mod('confirm-scheme').then(function (m) {
       m.loadConfirmScheme();
+    });
+  }
+  // ★ 蓝图新增页面
+  if (tab === 'model-dashboard') {
+    _mod('model-dashboard').then(function (m) {
+      m.loadDashboard();
+    });
+  }
+  if (tab === 'data-health') {
+    _mod('data-health').then(function (m) {
+      m.loadDataHealth();
     });
   }
 }

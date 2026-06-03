@@ -5219,6 +5219,102 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           }
         }
 
+        // ★ 蓝图 P0: 多模型预测共识 API
+        case 'prediction-fusion': {
+          try {
+            const { engine } = require('./core/prediction-fusion');
+            const { matchId, date } = data;
+            const dataFile = getDataJson();
+            const mMap = dataFile.m || {};
+
+            // 查找比赛信息
+            const key = 'm_' + matchId;
+            const match = mMap[key] || mMap[matchId];
+            if (!match) return res.json({ code: 0, msg: '比赛未找到' });
+
+            // 获取上下文数据
+            const context = {
+              dataFile: dataFile,
+              gsCache: getGsGlobalMap(),
+              odds: getAllplaysData()[match.num] || {},
+            };
+
+            const fusionResult = await engine.fuseForMatch(
+              { matchId, num: match.num, date: match.date, homeName: match.homeName, visitName: match.visitName },
+              context
+            );
+
+            return res.json({ code: 1, data: fusionResult });
+          } catch (e) {
+            logger.error('[prediction-fusion] ' + e.message);
+            return res.json({ code: 0, msg: '预测融合失败: ' + e.message });
+          }
+        }
+
+        // ★ 蓝图 P1: 模型表现仪表板 API
+        case 'model-dashboard': {
+          try {
+            const days = parseInt(data.days) || 30;
+            const db = database.getAdapter();
+            if (!db) return res.json({ code: 0, msg: '数据库不可用' });
+
+            const { backfiller } = require('./core/outcome-backfill');
+            const rankings = backfiller.getModelHitRates(db, days);
+
+            // 模型列表
+            const models = rankings.length > 0 ? rankings.map(r => r.modelName) : ['功守道', 'PK评分', 'DeepSeek', '豆包', '专家共识', '赔率信号'];
+
+            return res.json({
+              code: 1,
+              data: {
+                rankings,
+                models,
+                totalPredictions: rankings.reduce((s, r) => s + r.total, 0),
+                topModel: rankings.length > 0 ? rankings[0].modelName : null,
+                leagueHeatmap: {}, // P2 阶段补充分联赛热力图
+                trendData: [],     // P2 阶段补充走势图
+              },
+            });
+          } catch (e) {
+            logger.error('[model-dashboard] ' + e.message);
+            return res.json({ code: 0, msg: '模型仪表板失败: ' + e.message });
+          }
+        }
+
+        // ★ 蓝图 P2: 数据健康监控 API
+        case 'data-health': {
+          try {
+            const db = database.getAdapter();
+            const { monitor } = require('./core/data-quality');
+
+            const today = new Date().toISOString().slice(0, 10);
+            let matchCount = 0, completenessRate = 0;
+
+            if (db) {
+              const dateCheck = monitor.checkDateCompleteness(db, today);
+              matchCount = dateCheck.summary.matches ? dateCheck.summary.matches.count : 0;
+              completenessRate = dateCheck.summary.completeness ? dateCheck.summary.completeness * 100 : 0;
+            }
+
+            const report = monitor.getReport();
+
+            return res.json({
+              code: 1,
+              data: {
+                fetchSources: report.stats.fetch,
+                completeness: Math.round(completenessRate),
+                matchCount,
+                recentAlerts: report.recentAlerts,
+                dbSize: { sizeMB: 0 },
+                thresholds: report.thresholds,
+              },
+            });
+          } catch (e) {
+            logger.error('[data-health] ' + e.message);
+            return res.json({ code: 0, msg: '数据健康失败: ' + e.message });
+          }
+        }
+
         default:
           return res.json({ code: 0, msg: `未知 action: ${action}` });
       }

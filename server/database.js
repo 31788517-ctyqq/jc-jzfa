@@ -20,6 +20,149 @@ let dbAvailable = false;
 let _adapterReady = false; // sql.js 异步初始化完成标志
 
 // ═══════════════════════════════════════════════════════
+// 蓝图新增 7 张表 DDL（两套后端共用）
+// ═══════════════════════════════════════════════════════
+const NEW_TABLES_DDL = `
+  -- 赔率历史 V2（替代 odds_history/*.json 150+ 文件）
+  CREATE TABLE IF NOT EXISTS odds_history_v2 (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    match_num TEXT NOT NULL,
+    date TEXT NOT NULL,
+    fetch_date TEXT NOT NULL,
+    fetch_time TEXT NOT NULL,
+    play_type TEXT NOT NULL,
+    odds_json TEXT NOT NULL,
+    home_name TEXT,
+    visit_name TEXT,
+    handicap REAL,
+    created_at TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(match_num, date, fetch_date, fetch_time, play_type)
+  );
+  CREATE INDEX IF NOT EXISTS idx_odds_match ON odds_history_v2(match_num, date, fetch_time);
+  CREATE INDEX IF NOT EXISTS idx_odds_date ON odds_history_v2(date, play_type);
+
+  -- 交锋历史
+  CREATE TABLE IF NOT EXISTS h2h_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    home_team TEXT NOT NULL,
+    away_team TEXT NOT NULL,
+    match_date TEXT NOT NULL,
+    league TEXT,
+    home_score INTEGER,
+    away_score INTEGER,
+    half_home_score INTEGER,
+    half_away_score INTEGER,
+    spf_result TEXT,
+    created_at TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(home_team, away_team, match_date)
+  );
+  CREATE INDEX IF NOT EXISTS idx_h2h_teams ON h2h_history(home_team, away_team);
+
+  -- 联赛积分榜
+  CREATE TABLE IF NOT EXISTS league_standings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    league_name TEXT NOT NULL,
+    team_name TEXT NOT NULL,
+    rank INTEGER,
+    played INTEGER,
+    won INTEGER,
+    drawn INTEGER,
+    lost INTEGER,
+    goals_for INTEGER,
+    goals_against INTEGER,
+    goal_diff INTEGER,
+    points INTEGER,
+    home_played INTEGER,
+    home_won INTEGER,
+    home_drawn INTEGER,
+    home_lost INTEGER,
+    away_played INTEGER,
+    away_won INTEGER,
+    away_drawn INTEGER,
+    away_lost INTEGER,
+    fetch_date TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(league_name, team_name, fetch_date)
+  );
+  CREATE INDEX IF NOT EXISTS idx_standings_team ON league_standings(team_name, fetch_date);
+
+  -- 数据血缘追踪
+  CREATE TABLE IF NOT EXISTS data_lineage (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    entity_type TEXT NOT NULL,
+    entity_key TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    source TEXT NOT NULL,
+    fetch_batch_id TEXT,
+    data_hash TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now','localtime'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_lineage_entity ON data_lineage(entity_type, entity_key, version DESC);
+
+  -- 特征库
+  CREATE TABLE IF NOT EXISTS feature_store (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    match_num TEXT NOT NULL,
+    match_date TEXT NOT NULL,
+    feature_version TEXT NOT NULL,
+    feature_name TEXT NOT NULL,
+    feature_value REAL,
+    feature_source TEXT,
+    computed_at TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(match_num, match_date, feature_version, feature_name)
+  );
+  CREATE INDEX IF NOT EXISTS idx_feature_match ON feature_store(match_num, match_date, feature_version);
+
+  -- 多模型统一预测记录
+  CREATE TABLE IF NOT EXISTS unified_predictions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    match_num TEXT NOT NULL,
+    match_date TEXT NOT NULL,
+    match_id TEXT,
+    model_name TEXT NOT NULL,
+    model_version TEXT NOT NULL,
+    prediction_id TEXT NOT NULL,
+    direction TEXT,
+    direction_confidence REAL,
+    goal_total REAL,
+    goal_range TEXT,
+    over_under TEXT,
+    predicted_score TEXT,
+    score_probability REAL,
+    features_json TEXT,
+    raw_output_json TEXT,
+    consensus_tag TEXT,
+    fetch_batch_id TEXT,
+    computed_at TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(match_num, match_date, model_name, model_version, prediction_id)
+  );
+  CREATE INDEX IF NOT EXISTS idx_up_match ON unified_predictions(match_num, match_date, model_name, model_version);
+  CREATE INDEX IF NOT EXISTS idx_up_date_model ON unified_predictions(match_date, model_name);
+
+  -- 预测结果回填
+  CREATE TABLE IF NOT EXISTS prediction_outcomes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    prediction_id TEXT NOT NULL,
+    match_num TEXT NOT NULL,
+    match_date TEXT NOT NULL,
+    model_name TEXT NOT NULL,
+    model_version TEXT NOT NULL,
+    actual_home_score INTEGER,
+    actual_away_score INTEGER,
+    actual_result TEXT,
+    actual_total_goals INTEGER,
+    direction_hit INTEGER DEFAULT 0,
+    over_under_hit INTEGER DEFAULT 0,
+    score_hit INTEGER DEFAULT 0,
+    brier_score REAL,
+    log_loss REAL,
+    filled_at TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(prediction_id)
+  );
+  CREATE INDEX IF NOT EXISTS idx_outcome_model ON prediction_outcomes(model_name, model_version, match_date);
+`;
+
+// ═══════════════════════════════════════════════════════
 // sql.js 适配器辅助函数
 // ═══════════════════════════════════════════════════════
 
@@ -235,6 +378,8 @@ function _initBetterSqlite3() {
         updatedAt    TEXT
       );
     `);
+    // ★ 蓝图新增 7 张表
+    db.exec(NEW_TABLES_DDL);
     dbAvailable = true;
     _adapterReady = true;
     console.log('[db] better-sqlite3 初始化成功: ' + DB_PATH);
@@ -628,6 +773,8 @@ function _initSqlJs() {
         updatedAt    TEXT
       );
     `);
+      // ★ 蓝图新增 7 张表
+      adp.execDDL(NEW_TABLES_DDL);
       dbAvailable = true;
       _adapterReady = true;
       console.log('[db] sql.js 初始化成功: ' + DB_PATH);
