@@ -114,6 +114,9 @@ DEPLOY_MAP = [
     ('preview/js/pages/filter.js',        'both'),
     ('preview/js/pages/gongshoudao.js',   'both'),
     ('preview/js/pages/home.js',          'both'),  # ★ v3 新增
+    ('preview/js/pages/scheme-design.js', 'both'),  # ★ 方案设计页
+    ('preview/js/pages/betting.js',       'both'),  # ★ 投注弹窗
+    ('preview/js/pages/confirm-scheme.js','both'),  # ★ 确认方案页
     ('preview/js/charts.js',              'both'),
     ('preview/js/api.js',                 'both'),
     ('preview/js/ws-client.js',           'both'),
