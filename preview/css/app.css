@@ -142,7 +142,7 @@ body {
 .tab-icon svg { width: 100%; height: 100%; }
 
 /* 页面容器 */
-.page { display: none; padding: 0 16px 100px; }
+.page { display: none; padding: 0 16px 110px; }
 .page.active { display: block; animation: fadeUp 0.35s ease; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
