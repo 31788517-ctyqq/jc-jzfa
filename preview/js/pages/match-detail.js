@@ -249,19 +249,19 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
   if (predictionCache[matchId]) {
     var cached = predictionCache[matchId];
     // 立即展示缓存内容，跳过加载动画
-    renderCachedContent(cached.content, homeTeam, awayTeam, cached.content);
+    renderCachedContent(cached.content, homeTeam, awayTeam, cached.content, matchId);
     if (overlayEl) overlayEl.classList.add('active');
     document.body.style.overflow = 'hidden';
 
     // 后台静默校验：有变化时无声更新
-    api('ai-predict', { matchId: matchId }, { timeout: 15000 })
+    api('ai-predict', { matchId: matchId }, 2)
       .then(function (d) {
         var newHash = JSON.stringify(d.content || '');
         if (newHash !== cached.hash && d.content) {
           // 内容有变化，静默更新缓存和 DOM
           predictionCache[matchId] = { content: d, hash: newHash };
           persistPredictionCache();
-          renderCachedContent(d, homeTeam, awayTeam, d);
+          renderCachedContent(d, homeTeam, awayTeam, d, matchId);
         }
         // hash 未变 → 不做任何事，用户已看到内容
       });
@@ -272,7 +272,7 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
   doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, null);
 }
 
-function renderCachedContent(content, homeTeam, awayTeam, newData) {
+function renderCachedContent(content, homeTeam, awayTeam, newData, matchId) {
   // 直接用缓存内容渲染，跳过加载动画
   var resultData = newData || content;
   if (resultData && resultData.content) {
@@ -296,9 +296,9 @@ function renderCachedContent(content, homeTeam, awayTeam, newData) {
       var inr = ac.querySelector('.ai-content');
       if (inr)
         inr.innerHTML =
-          '<div style="text-align:center;padding:60px 20px;color:var(--cyan);"><div style="font-size:48px;margin-bottom:16px;">📋</div><div style="font-size:16px;font-weight:600;">分析生成中</div><div style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.6;">' +
+          '<div style="text-align:center;padding:40px 20px;color:var(--cyan);"><div style="font-size:48px;margin-bottom:16px;">📋</div><div style="font-size:16px;font-weight:600;">分析生成中</div><div style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.6;">' +
           (resultData.msg || 'AI 深度解析由定时任务（11:30 / 16:30）统一生成<br>到时间后刷新页面即可查看') +
-          '</div><button style="margin-top:20px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;" onclick="closeAI()">我知道了</button></div>';
+          '</div><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;margin-right:8px;" onclick="closeAI();showAIPrediction(\'' + (matchId || '') + '\',\'' + (homeTeam || '').replace(/'/g, "\\'") + '\',\'' + (awayTeam || '').replace(/'/g, "\\'") + '\')">刷新重试</button><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.15);cursor:pointer;font-size:14px;" onclick="closeAI()">关闭</button></div>';
     }
   }
 }
@@ -357,96 +357,101 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
     updateFakeProgress();
   }, 200);
 
-  // ★ 后台静默请求（如果还没有预加载数据）
-  if (!preloadedData) {
-    api('ai-predict', { matchId: matchId }, { timeout: 15000 })
-      .then(function (d) {
-        pendingResult = d;
-        apiDone = true;
-        // 存入缓存
-        var contentHash = JSON.stringify(d.content || '');
-        predictionCache[matchId] = { content: d, hash: contentHash };
-        persistPredictionCache();
-      })
-      .catch(function (e) {
-        apiError = e && e.message ? e.message : '网络连接失败';
-      });
-  }
+  // ★ P1-2: 后台静默请求（如果还没有预加载数据）
+  var minAnimMs = 3000; // 最少展示 3 秒加载动画
+  var animStart = Date.now();
+  var resolveTimer = null;
 
-  // ★ 假进度条走完后渲染结果
-  setTimeout(function () {
+  // 统一结果渲染函数（两个条件同时满足：API 完成 + 动画至少跑了 minAnimMs）
+  function tryRenderResult() {
     if (rendered) return;
+    var apiReady = pendingResult || apiError;
+    var animDone = (Date.now() - animStart) >= minAnimMs;
+    if (!apiReady || !animDone) return;
+
     rendered = true;
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    if (resolveTimer) { clearInterval(resolveTimer); resolveTimer = null; }
 
-    // 进度条瞬间填满 100%
-    var inner = modalEl ? modalEl.querySelector('.ai-content') : null;
-    if (inner) {
-      inner.innerHTML =
-        '<div style="text-align:center;padding:60px 20px;">' +
-        '<div style="font-size:40px;margin-bottom:16px;">⏳</div>' +
-        '<div style="font-size:16px;font-weight:600;color:var(--cyan);">分析完成，加载中...</div>' +
-        '<div style="margin-top:20px;width:260px;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin-left:auto;margin-right:auto;">' +
-        '<div style="width:100%;height:100%;background:linear-gradient(90deg,var(--cyan),rgba(0,245,233,0.4));border-radius:3px;"></div>' +
-        '</div></div>';
+    // notReady → 带重试按钮
+    if (pendingResult && pendingResult.notReady) {
+      var ac = document.getElementById('aiModal');
+      if (ac) {
+        var inr = ac.querySelector('.ai-content');
+        if (inr)
+          inr.innerHTML =
+            '<div style="text-align:center;padding:40px 20px;color:var(--cyan);"><div style="font-size:48px;margin-bottom:16px;">📋</div><div style="font-size:16px;font-weight:600;">分析生成中</div><div style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.6;">' +
+            (pendingResult.msg || 'AI 分析正在后台生成，请稍后重试') +
+            '</div><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;margin-right:8px;" onclick="closeAI();showAIPrediction(\'' + matchId + '\',\'' + homeTeam.replace(/'/g, "\\'") + '\',\'' + awayTeam.replace(/'/g, "\\'") + '\')">刷新重试</button><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.15);cursor:pointer;font-size:14px;" onclick="closeAI()">关闭</button></div>';
+      }
+      return;
     }
 
-    // 短暂停顿后展示结果（~300ms，模拟"加载"感）
-    setTimeout(function () {
-      // API 未就绪
-      if (pendingResult && pendingResult.notReady) {
-        var ac = document.getElementById('aiModal');
-        if (ac) {
-          var inr = ac.querySelector('.ai-content');
-          if (inr)
-            inr.innerHTML =
-              '<div style="text-align:center;padding:60px 20px;color:var(--cyan);"><div style="font-size:48px;margin-bottom:16px;">📋</div><div style="font-size:16px;font-weight:600;">分析生成中</div><div style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.6;">' +
-              (pendingResult.msg || 'AI 深度解析由定时任务（11:30 / 16:30）统一生成<br>到时间后刷新页面即可查看') +
-              '</div><button style="margin-top:20px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;" onclick="closeAI()">我知道了</button></div>';
-        }
-        return;
+    // 有内容 → 渲染
+    if (pendingResult && pendingResult.content) {
+      if (pendingResult.dualModel && pendingResult.merged) {
+        renderAIContent(pendingResult.content, homeTeam, awayTeam);
+      } else if (pendingResult.singleModel && pendingResult.failedSource) {
+        var failBadge = (pendingResult.failedSource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 分析未成功，仅展示 ' + (pendingResult.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 结果';
+        renderAIContentWithBadge(pendingResult.content, homeTeam, awayTeam, failBadge);
+      } else if (pendingResult.singleModel || pendingResult.pendingMerge) {
+        var badge = (pendingResult.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 已完成，另一模型分析中...';
+        renderAIContentWithBadge(pendingResult.content, homeTeam, awayTeam, badge);
+        pollForMerge(matchId, homeTeam, awayTeam, 0);
+      } else {
+        renderAIContent(pendingResult.content, homeTeam, awayTeam);
       }
+      if (pendingResult.shujuMissing) {
+        showShujuMissingNotice();
+      }
+      return;
+    }
 
-      // 有缓存结果
-      if (pendingResult && pendingResult.content) {
-        if (pendingResult.dualModel && pendingResult.merged) {
-          renderAIContent(pendingResult.content, homeTeam, awayTeam);
-        } else if (pendingResult.singleModel && pendingResult.failedSource) {
-          var failBadge = (pendingResult.failedSource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 分析未成功，仅展示 ' + (pendingResult.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 结果';
-          renderAIContentWithBadge(pendingResult.content, homeTeam, awayTeam, failBadge);
-        } else if (pendingResult.singleModel || pendingResult.pendingMerge) {
-          var badge = (pendingResult.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 已完成，另一模型分析中...';
-          renderAIContentWithBadge(pendingResult.content, homeTeam, awayTeam, badge);
-          pollForMerge(matchId, homeTeam, awayTeam, 0);
-        } else {
-          renderAIContent(pendingResult.content, homeTeam, awayTeam);
-        }
-        if (pendingResult.shujuMissing) {
-          showShujuMissingNotice();
-        }
-        return;
-      }
+    // API 异常（重试按钮 + 关闭按钮）
+    var ac2 = document.getElementById('aiModal');
+    if (ac2) {
+      var inr2 = ac2.querySelector('.ai-content');
+      var msg = apiError || '分析服务暂时不可用';
+      if (inr2)
+        inr2.innerHTML =
+          '<div style="text-align:center;padding:60px 20px;color:var(--amber);"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="font-size:16px;font-weight:600;">请求失败</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">' +
+          msg +
+          '</div><button style="margin-top:16px;padding:8px 24px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:13px;margin-right:8px;" onclick="closeAI();showAIPrediction(\'' + matchId + '\',\'' + homeTeam.replace(/'/g, "\\'") + '\',\'' + awayTeam.replace(/'/g, "\\'") + '\')">重新加载</button><button style="padding:8px 24px;border-radius:24px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.15);cursor:pointer;font-size:13px;" onclick="closeAI()">关闭</button></div>';
+    }
+  }
 
-      // API 异常
-      var ac2 = document.getElementById('aiModal');
-      if (ac2) {
-        var inr2 = ac2.querySelector('.ai-content');
-        var msg = apiError || '分析服务暂时不可用';
-        if (inr2)
-          inr2.innerHTML =
-            '<div style="text-align:center;padding:60px 20px;color:var(--amber);"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="font-size:16px;font-weight:600;">请求失败</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">' +
-            msg +
-            '</div><button style="margin-top:16px;padding:8px 20px;border-radius:20px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:13px;" onclick="closeAI()">关闭</button></div>';
-      }
-    }, 300);
-  }, fakeDurationSec * 1000 + 200);
+  // API 回调处理
+  function onApiResult(d, errMsg) {
+    if (d) {
+      pendingResult = d;
+      apiDone = true;
+      var contentHash = JSON.stringify(d.content || '');
+      predictionCache[matchId] = { content: d, hash: contentHash };
+      persistPredictionCache();
+    } else if (errMsg) {
+      apiError = errMsg;
+    }
+    tryRenderResult();
+  }
+
+  if (!preloadedData) {
+    api('ai-predict', { matchId: matchId }, 2)
+      .then(function (d) { onApiResult(d, null); })
+      .catch(function (e) { onApiResult(null, (e && e.message) || '网络连接失败'); });
+  }
+
+  // 300ms 轮询检查（取代固定的 setTimeout，API 返回后立即尝试渲染）
+  resolveTimer = setInterval(function () {
+    if (rendered) { clearInterval(resolveTimer); resolveTimer = null; return; }
+    tryRenderResult();
+  }, 300);
 
   function pollForMerge(matchId, homeTeam, awayTeam, retries) {
     retries = retries || 0;
     if (retries >= 15) return;
     var delay = Math.min(1000 * Math.pow(2, retries), 30000);
     setTimeout(function () {
-      api('ai-predict', { matchId: matchId }, { timeout: 15000 })
+      api('ai-predict', { matchId: matchId }, 2)
         .then(function (rd) {
           if (rd.content && !rd.pendingMerge && (rd.dualModel || rd.merged)) {
             renderAIContent(rd.content, homeTeam, awayTeam);
@@ -921,6 +926,34 @@ export function renderAIContent(content, homeTeam, awayTeam) {
       '</span><span class="ai-predict-td check">\u2713</span></div>';
   });
   html += '</div></div>';
+
+  // ★ P2-1: 空内容兜底 — 如果所有主要 section 都无有效内容，显示提示
+  var hasAnyContent = false;
+  ['基础面', '状态面', '动机面', '对位面', '市场面', '核心看点'].forEach(function (sec) {
+    var s = c[sec];
+    if (!s) return;
+    var keys = Object.keys(s).filter(function (k) { return k[0] !== '_'; });
+    keys.forEach(function (k) {
+      var v = s[k];
+      if (v !== undefined && v !== null && v !== '' && (!Array.isArray(v) || v.length > 0)) {
+        hasAnyContent = true;
+      }
+    });
+  });
+  if (!hasAnyContent && (!c['预测建议'] || !c['预测建议'].length)) {
+    html =
+      '<div class="ai-modal-header"><span class="ai-modal-title">AI深度解析</span><button class="ai-modal-close" onclick="closeAI()">&times;</button></div>' +
+      '<div class="ai-content">' +
+      '<div style="text-align:center;padding:40px 20px;color:var(--amber);"><div style="font-size:36px;margin-bottom:12px;">📭</div><div style="font-size:15px;font-weight:600;margin-bottom:8px;">暂无可分析内容</div><div style="font-size:12px;color:var(--text3);">AI 模型尚未生成该比赛的完整分析数据，请稍后重试或刷新页面</div>' +
+      '<button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.15);cursor:pointer;font-size:14px;" onclick="closeAI()">关闭</button>' +
+      '</div>' +
+      '<div class="ai-disclaimer">本分析为AI生成，仅供参考，请理性对待</div>' +
+      '</div>';
+    var modalEl3 = document.getElementById('aiModal');
+    if (modalEl3) modalEl3.innerHTML = html;
+    return;
+  }
+
   html += '<div class="ai-disclaimer">本分析为AI生成，仅供参考，请理性对待</div>';
   html += '</div>';
 

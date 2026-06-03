@@ -1532,7 +1532,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     { content: entry.sources.doubao.content, confidence: entry.sources.doubao.confidence || 70 },
                     matchInfo,
                   );
-                  entry.content = merged.content;
+                  entry.content = merged.content || merged;  // ★ P0-3: mergeAnalyses 返回分析对象本身，可能没有 .content
                   entry.confidence = merged.confidence;
                   entry.merged = true;
                   console.log('[ai] 双模型合并完成: ' + mid);
@@ -1619,13 +1619,24 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               });
             }
 
-            // ★ 无缓存 → 不再触发 AI API（由定时 daemon 统一生成），返回未就绪
+            // ★ P0-2: 无缓存 → 后台触发 daemon 批量生成（fire-and-forget）
+            if (!_aiBatchGenerating) {
+              _aiBatchGenerating = true;
+              const daemon = require('./ai_daemon');
+              setTimeout(function () {
+                daemon.dailyBatch();
+                // 5 分钟后解锁，允许再次触发
+                setTimeout(function () { _aiBatchGenerating = false; }, 300000);
+              }, 500).unref();
+            }
+
             return res.json({
               code: 1,
               data: {
                 matchId: mid,
                 notReady: true,
-                msg: 'AI 分析尚未生成，每日 11:30 / 16:30 定时批量生成，届时刷新即可查看',
+                msg: 'AI 分析已后台触发生成，请等待 30-60 秒后点击"刷新"按钮重试。每日 11:30 / 16:30 也会定时批量生成。',
+                canRetry: true,
               },
             });
             // ★ P1-1: 缓存量化方案结果
@@ -5482,6 +5493,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
   // ==================== 前一天推荐命中信息回填 ====================
   let lastBackfillDate = '';
+  let _aiBatchGenerating = false; // ★ P0-2: 防止并发触发生成
 
   async function backfillPreviousDayResults() {
     try {
@@ -5650,5 +5662,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   if (process.env.NODE_ENV === 'production') {
     const scheduler = require('./scheduler');
     scheduler.start();
+
+    // ★ P0-1: 启动 AI 定时生成守护进程（每日 11:30 / 16:30）
+    const aiDaemon = require('./ai_daemon');
+    aiDaemon.start();
   }
 }
