@@ -501,6 +501,10 @@ export function loadMyPlanList() {
             if (m.playType === 'rqspf') dirDisplay = '让' + dirDisplay;
             var playTypeMap = { spf: '胜平负', rqspf: '让球', jqs: '总进球', bqc: '半全场' };
             var playLabel = playTypeMap[m.playType] || m.playType || '混合';
+            // 赔率颜色：未中奖绿色 / 中奖红色 / 未开奖白色
+            var oddsColor = '#ffffff';
+            if (m.isMatchWon === true) oddsColor = '#EF4444';
+            else if (m.isMatchLose === true) oddsColor = '#22C55E';
             matchRows +=
               '<tr>' +
               '<td class="match-info-col">' +
@@ -511,7 +515,7 @@ export function loadMyPlanList() {
               '<span class="plan-team-vs">vs</span>' +
               '<span class="plan-team-away">' + (m.visitName || '') + '</span>' +
               '</td>' +
-              '<td class="odds-col">' + playLabel + '：' + dirDisplay + '  ' + oddsStr + '</td>' +
+              '<td class="odds-col" style="color:' + oddsColor + '">' + playLabel + '：' + dirDisplay + '  ' + oddsStr + '</td>' +
               '</tr>';
           }
 

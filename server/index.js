@@ -5392,9 +5392,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
       if (result === null) {
         allSettled = false;
+        // 未开奖，不标记
       } else if (result === true) {
-        // 命中，继续检查下一场
+        mm.isMatchWon = true;
+        mm.isMatchLose = false;
       } else {
+        mm.isMatchWon = false;
+        mm.isMatchLose = true;
         allWon = false;
         anyLose = true;
       }
