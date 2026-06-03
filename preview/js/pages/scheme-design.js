@@ -353,17 +353,19 @@ window.switchSchemePlay = function (type) {
   document.querySelectorAll('#schemePlayTabs .filter-tag').forEach(function (t) {
     t.classList.toggle('active', t.getAttribute('data-type') === type);
   });
-  // ★ 防止页面跳动：锁定并恢复滚动位置
+  // ★ 防止页面跳动：保存滚动位置，渲染后通过 rAF 恢复
   var st = window.scrollY || document.documentElement.scrollTop;
   renderMatchList();
   applySchemeHighlights();
-  window.scrollTo(0, st);
+  requestAnimationFrame(function() { window.scrollTo(0, st); });
 };
 
 // ═══ 渲染比赛卡片（按设计图：左侧联赛+编号+时间，右侧对阵+赔率矩阵） ═══
 function renderMatchList() {
   var el = document.getElementById('schemeMatchList');
   if (!el) return;
+  // ★ 禁用浏览器滚动锚定，防止 innerHTML 替换时页面跳动
+  el.style.overflowAnchor = 'none';
   if (_matches.length === 0) {
     var today = formatDate(new Date());
     if (_schemeDate < today) {
@@ -610,7 +612,7 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
     var st1 = window.scrollY || document.documentElement.scrollTop;
     renderMatchList();
     applySchemeHighlights();
-    window.scrollTo(0, st1);
+    requestAnimationFrame(function() { window.scrollTo(0, st1); });
     return;
   }
 
@@ -626,7 +628,7 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
   var st2 = window.scrollY || document.documentElement.scrollTop;
   renderMatchList();
   applySchemeHighlights();
-  window.scrollTo(0, st2);
+  requestAnimationFrame(function() { window.scrollTo(0, st2); });
 };
 
 function findSelection(matchId) {
