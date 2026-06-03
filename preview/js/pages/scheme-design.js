@@ -297,8 +297,7 @@ function loadMatches() {
         _matches.forEach(function (m) { m._odds = (oddsMap && oddsMap[m.matchId || m.id]) || null; });
         return loadAllDirections(matchIds);
       }).then(function () {
-        renderMatchList();
-        applySchemeHighlights();
+        _reRenderSafe();
       });
     }
     renderMatchList();
@@ -347,17 +346,27 @@ function applySchemeHighlights() {
   });
 }
 
+// ═══ 防跳动安全渲染 ═══
+function _reRenderSafe() {
+  var st = window.scrollY || document.documentElement.scrollTop;
+  var prevOverflow = document.documentElement.style.overflow;
+  document.documentElement.style.overflow = 'hidden';  // ★ 锁死滚动
+  renderMatchList();
+  applySchemeHighlights();
+  window.scrollTo(0, st);  // 同步恢复位置
+  // 下一帧恢复 overflow，让浏览器在无滚动状态下完成绘制
+  requestAnimationFrame(function() {
+    document.documentElement.style.overflow = prevOverflow || '';
+  });
+}
+
 // ═══ 玩法切换 ═══
 window.switchSchemePlay = function (type) {
   _activePlayType = type;
   document.querySelectorAll('#schemePlayTabs .filter-tag').forEach(function (t) {
     t.classList.toggle('active', t.getAttribute('data-type') === type);
   });
-  // ★ 防止页面跳动：保存滚动位置，渲染后通过 rAF 恢复
-  var st = window.scrollY || document.documentElement.scrollTop;
-  renderMatchList();
-  applySchemeHighlights();
-  requestAnimationFrame(function() { window.scrollTo(0, st); });
+  _reRenderSafe();
 };
 
 // ═══ 渲染比赛卡片（按设计图：左侧联赛+编号+时间，右侧对阵+赔率矩阵） ═══
@@ -609,10 +618,7 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
   }
   if (existingIdx >= 0) {
     _selections.splice(existingIdx, 1);
-    var st1 = window.scrollY || document.documentElement.scrollTop;
-    renderMatchList();
-    applySchemeHighlights();
-    requestAnimationFrame(function() { window.scrollTo(0, st1); });
+    _reRenderSafe();
     return;
   }
 
@@ -625,10 +631,7 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
     oddsName: dirName,
     handicap: handicap || 0,
   });
-  var st2 = window.scrollY || document.documentElement.scrollTop;
-  renderMatchList();
-  applySchemeHighlights();
-  requestAnimationFrame(function() { window.scrollTo(0, st2); });
+  _reRenderSafe();
 };
 
 function findSelection(matchId) {
@@ -869,8 +872,7 @@ window.clearSchemeSelections = function () {
   _selections = [];
   _multiplier = 2;
   _passTypes = [2];
-  renderMatchList();
-  applySchemeHighlights();
+  _reRenderSafe();
 };
 
 // ═══ 确认方案（跳转到确认页面） ═══
@@ -1012,8 +1014,7 @@ window.openSchemeBetting = function (matchId) {
       });
     });
 
-    renderMatchList();
-    applySchemeHighlights();
+    _reRenderSafe();
     window.removeEventListener('betting-confirm', window._bettingConfirmHandler);
     window._bettingConfirmHandler = null;
   };
