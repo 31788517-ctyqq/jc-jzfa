@@ -5494,6 +5494,64 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           }
         }
 
+        // ★ 蓝图：实验对比（Prompt版本A/B对比）
+        case 'experiment-compare': {
+          try {
+            const adp = database.getAdapter();
+            if (!adp) return res.json({ code: 0, msg: '数据库不可用' });
+
+            // 按 ai_content 的 hash 分组（近似版本分组）
+            const types = ['deepseek', 'doubao', 'ai_combined'];
+            const results = {};
+
+            for (const type of types) {
+              try {
+                const rows = adp.execAll(
+                  `SELECT ai_content, ai_version, COUNT(*) as total,
+                   SUM(CASE WHEN ai_hit=1 THEN 1 ELSE 0 END) as hits,
+                   AVG(CASE WHEN ai_confidence>0 THEN ai_confidence END) as avg_confidence
+                   FROM prediction_logs
+                   WHERE ai_content IS NOT NULL AND ai_content != '' AND ai_hit IS NOT NULL
+                   GROUP BY COALESCE(ai_version, substr(ai_content,1,20))
+                   ORDER BY total DESC LIMIT 10`
+                );
+                if (rows.length > 0) results[type] = rows.map(r => ({
+                  version: r.ai_version || 'unknown',
+                  total: r.total,
+                  hits: r.hits,
+                  hitRate: r.total > 0 ? Math.round(r.hits / r.total * 1000) / 10 : 0,
+                  avgConfidence: r.avg_confidence ? Math.round(r.avg_confidence * 100) / 100 : null,
+                }));
+              } catch (e) {}
+            }
+
+            // Fallback: 从 prediction_logs 查所有记录聚合
+            if (Object.keys(results).length === 0) {
+              try {
+                const allRows = adp.execAll(
+                  `SELECT model_version, COUNT(*) as total,
+                   SUM(direction_hit) as hits
+                   FROM prediction_outcomes
+                   WHERE direction_hit IS NOT NULL
+                   GROUP BY model_version ORDER BY total DESC LIMIT 10`
+                );
+                if (allRows.length > 0) {
+                  results.outcomes = allRows.map(r => ({
+                    version: r.model_version || 'unknown',
+                    total: r.total,
+                    hits: r.hits,
+                    hitRate: r.total > 0 ? Math.round(r.hits / r.total * 1000) / 10 : 0,
+                  }));
+                }
+              } catch (e) {}
+            }
+
+            return res.json({ code: 1, data: results });
+          } catch (e) {
+            return res.json({ code: 0, msg: 'experiment-compare error: ' + e.message });
+          }
+        }
+
         // ★ 蓝图：批量共识数据（供 plans.js 过滤用）
         case 'batch-consensus': {
           const batchDate = data.date || latestDataDate();

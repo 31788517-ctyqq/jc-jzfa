@@ -127,6 +127,7 @@ function renderPage() {
     '<div class="filter-tag active" data-tab="gs" onclick="btSwitchTab(\'gs\')">功守道量化</div>',
     '<div class="filter-tag" data-tab="ai" onclick="btSwitchTab(\'ai\')">AI深度分析</div>',
     '<div class="filter-tag" data-tab="pk" onclick="btSwitchTab(\'pk\')">PK融合分析</div>',
+    '<div class="filter-tag" data-tab="experiment" onclick="btSwitchTab(\'experiment\')">实验对比</div>',
     '</div>',
 
     // Shared filter card
@@ -138,6 +139,8 @@ function renderPage() {
     '<div class="bt-tab-stats" id="btStatsAI">' + renderStatsCard('ai') + '</div>',
     // ── PK Tab Stats ──
     '<div class="bt-tab-stats" id="btStatsPK">' + renderStatsCard('pk') + '</div>',
+    // ── Experiment Tab (蓝图新增) ──
+    '<div class="bt-tab-stats" id="btStatsEXPERIMENT"><div id="btExperimentContent" class="chart-box" style="margin:10px 0"><div class="loading">加载中...</div></div></div>',
 
     // Chart containers (one per tab)
     '<div class="bt-chart-wrap active" id="btChartGS">',
@@ -256,8 +259,12 @@ window.btSwitchTab = function (tab) {
   var chartEl = document.getElementById('btChart' + tab.toUpperCase());
   if (chartEl) chartEl.classList.add('active');
   // Rerender list with tab highlight & render chart
-  renderList(_btItems);
-  renderChart(tab, 'calibration');
+  if (tab !== 'experiment') {
+    renderList(_btItems);
+    renderChart(tab, 'calibration');
+  } else {
+    loadExperimentCompare();
+  }
 };
 
 /* ═══════════════════════ Chart Type Toggle ═══════════════════════ */
@@ -702,4 +709,42 @@ window.btGoPage = function (p) {
 /* ═══════════════════════ Helpers ═══════════════════════ */
 function esc(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+
+// =============================================================
+// * 蓝图：实验对比 tab
+// =============================================================
+async function loadExperimentCompare() {
+  var el = document.getElementById('btExperimentContent');
+  if (!el) return;
+  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载实验数据...</div>';
+
+  try {
+    var data = await api('experiment-compare');
+    if (!data || Object.keys(data).length === 0) {
+      el.innerHTML = '<div class="empty-state">暂无实验对比数据，请等待prediction_logs积累数据后查看</div>';
+      return;
+    }
+    el.innerHTML = buildExperimentHTML(data);
+  } catch (e) {
+    el.innerHTML = '<div class="empty-state">加载失败: ' + e.message + '</div>';
+  }
+}
+
+function buildExperimentHTML(data) {
+  var html = '';
+  Object.keys(data).forEach(function(type) {
+    var rows = data[type];
+    if (!rows || rows.length === 0) return;
+    var typeLabel = type === 'deepseek' ? 'DeepSeek AI' : type === 'doubao' ? '豆包 AI' : type === 'outcomes' ? '模型回测' : type;
+    html += '<div class="chart-box"><div class="chart-header"><span class="chart-title">' + typeLabel + '版本对比</span></div>';
+    html += '<table style="width:100%;font-size:var(--fs-sm)"><thead><tr style="color:var(--text3)"><th style="text-align:left;padding:6px">版本</th><th>总数</th><th>命中</th><th>命中率</th><th>置信度</th></tr></thead><tbody>';
+    rows.forEach(function(r) {
+      var rateColor = r.hitRate >= 60 ? 'var(--green)' : r.hitRate >= 50 ? 'var(--amber)' : 'var(--red)';
+      html += '<tr style="border-top:1px solid rgba(255,255,255,0.04)"><td style="padding:6px;color:var(--text)">' + r.version + '</td><td style="text-align:center;color:var(--text2)">' + r.total + '</td><td style="text-align:center;color:var(--text2)">' + r.hits + '</td><td style="text-align:center;color:' + rateColor + ';font-weight:700">' + r.hitRate + '%</td><td style="text-align:center;color:var(--text3)">' + (r.avgConfidence ? (r.avgConfidence * 100).toFixed(1) + '%' : '--') + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+  });
+  return html;
 }
