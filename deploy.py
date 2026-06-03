@@ -118,6 +118,9 @@ DEPLOY_MAP = [
     ('preview/js/pages/scheme-design.js', 'both'),  # ★ 方案设计页
     ('preview/js/pages/betting.js',       'both'),  # ★ 投注弹窗
     ('preview/js/pages/confirm-scheme.js','both'),  # ★ 确认方案页
+    # ★ 蓝图 V8.2 新增前端页面
+    ('preview/js/pages/model-dashboard.js','both'), # ★ 模型仪表板
+    ('preview/js/pages/data-health.js', 'both'),    # ★ 数据健康监控
     ('preview/js/charts.js',              'both'),
     ('preview/js/api.js',                 'both'),
     ('preview/js/ws-client.js',           'both'),
@@ -171,6 +174,12 @@ DEPLOY_MAP = [
     ('server/core/league-heat-profile.js','both'),
     ('server/core/match-context-collector.js','both'),
     ('server/core/shadow-account.js',     'both'),
+    # ★ 蓝图 V8.2 新增核心模块（预测融合 + 特征工程 + 回填 + 质量监控）
+    ('server/core/prediction-adapter.js', 'both'),
+    ('server/core/prediction-fusion.js', 'both'),
+    ('server/core/feature-engine.js',    'both'),
+    ('server/core/outcome-backfill.js',  'both'),
+    ('server/core/data-quality.js',      'both'),
     ('ecosystem.config.json',             'pm2'),
     ('.gitignore',                        'both'),
 ]
