@@ -9,12 +9,52 @@ var _multiplier = 2;         // 投注倍数（竞彩规则：2-99倍）
 var _passTypes = [2];       // 过关类型数组，默认 2关，支持多选 [2,3,4,...]
 var _schemeDateOffset = 0;
 var _schemeDate = '';
+var _matchDirections = {};   // { matchId: [{rank, direction, expertCount}] } ★ 推荐排行榜Top5
 
 // ═══ 竞彩规则：木桶原则上限 ═══
 var PLAY_LIMITS = { spf: 8, rqspf: 8, jqs: 6, bf: 4, bqc: 4 };
 var PLAY_NAMES = { spf: '胜平负', rqspf: '让球胜平负', bf: '比分', jqs: '总进球', bqc: '半全场', mixed: '混合过关' };
 
-// ★ 推荐方向 → 赔率按钮映射（用于黄色底色标记）
+// ★ 推荐方向 → 赔率按钮映射（用于黄色底色标记 + 排名数字）
+function parseDirectionCards(dir) {
+  if (!dir) return [];
+  var s = String(dir).trim();
+  var results = [];
+  if (s.indexOf('总进球') === 0) {
+    var after = s.replace(/^总进球-/, '');
+    after.split(/[、,]/).forEach(function (g) { var c = g.trim().replace('球', ''); if (c) results.push({ playType: 'jqs', label: c }); });
+    return results;
+  }
+  if (s.indexOf('半全场') === 0) {
+    var after = s.replace(/^半全场-/, '');
+    after.split(/[、,]/).forEach(function (h) { var c = h.trim(); if (c) results.push({ playType: 'bqc', label: c }); });
+    return results;
+  }
+  if (s.indexOf('比分') === 0) {
+    var after = s.replace(/^比分-/, '');
+    after.split(/[、,]/).forEach(function (sc) { var c = sc.trim(); if (c) results.push({ playType: 'bf', label: c }); });
+    return results;
+  }
+  s.split(/[、,]/).forEach(function (p) {
+    var clean = p.trim();
+    if (clean === '让胜' || clean === '让平' || clean === '让负') results.push({ playType: 'rqspf', label: clean });
+    else if (clean === '胜' || clean === '平' || clean === '负') results.push({ playType: 'spf', label: clean });
+  });
+  return results;
+}
+function buildBtnRankMap(directions) {
+  var map = {};
+  directions.forEach(function (item) {
+    var cards = parseDirectionCards(item.direction);
+    cards.forEach(function (card) {
+      var key = card.playType + '|' + card.label;
+      if (map[key] == null || item.rank < map[key]) map[key] = item.rank;
+    });
+  });
+  return map;
+}
+
+// ★ 推荐方向 → 赔率按钮映射（旧兼容，保留）
 var RECOMM_TO_BTN = {
   '胜': [{ playType: 'spf', dirName: '胜' }],
   '平': [{ playType: 'spf', dirName: '平' }],
@@ -255,12 +295,55 @@ function loadMatches() {
     if (matchIds.length > 0) {
       return api('batch-match-odds', { matchIds: matchIds, date: _schemeDate }).then(function (oddsMap) {
         _matches.forEach(function (m) { m._odds = (oddsMap && oddsMap[m.matchId || m.id]) || null; });
+        return loadAllDirections(matchIds);
+      }).then(function () {
         renderMatchList();
+        applySchemeHighlights();
       });
     }
     renderMatchList();
+    applySchemeHighlights();
   }).catch(function (e) {
     if (el) el.innerHTML = '<div class="hint-box">加载失败: ' + (e && e.message) + '</div>';
+  });
+}
+
+// ★ 批量加载所有比赛的Top5推荐方向
+function loadAllDirections(matchIds) {
+  return Promise.all(matchIds.map(function (mid) {
+    return api('match-top-directions', { matchId: mid }).then(function (r) {
+      if (r && r.directions) _matchDirections[mid] = r.directions;
+    }).catch(function () {});
+  }));
+}
+
+// ★ 高亮赔率按钮：注入排名数字 + 黄色底色
+function applySchemeHighlights() {
+  var cards = document.querySelectorAll('#schemeMatchList .sodds-btn');
+  cards.forEach(function (btn) {
+    // 清除旧 badge
+    var old = btn.querySelector('.scheme-rank-badge');
+    if (old) old.remove();
+    btn.classList.remove('rank-highlight');
+
+    var mid = btn.getAttribute('data-mid');
+    var pt = btn.getAttribute('data-play-type');
+    var lb = btn.getAttribute('data-label');
+    if (!mid || !pt || !lb) return;
+
+    var dirs = _matchDirections[mid];
+    if (!dirs || !dirs.length) return;
+
+    var rankMap = buildBtnRankMap(dirs);
+    var key = pt + '|' + lb;
+    var rank = rankMap[key];
+    if (rank != null) {
+      btn.classList.add('rank-highlight');
+      var badge = document.createElement('span');
+      badge.className = 'scheme-rank-badge';
+      badge.textContent = rank;
+      btn.appendChild(badge);
+    }
   });
 }
 
@@ -271,6 +354,7 @@ window.switchSchemePlay = function (type) {
     t.classList.toggle('active', t.getAttribute('data-type') === type);
   });
   renderMatchList();
+  applySchemeHighlights();
 };
 
 // ═══ 渲染比赛卡片（按设计图：左侧联赛+编号+时间，右侧对阵+赔率矩阵） ═══
@@ -419,7 +503,9 @@ function renderOddsBtn(matchId, playType, dirName, oddsVal, handicap, deltaDir, 
       '\',\'' + playType + '\',\'' + dirName + '\',' + oddsVal + ',' + handicap + ')"';
   }
 
-  return '<button class="' + cls + '"' + clickAttr + '>' +
+  return '<button class="' + cls + '"' +
+    ' data-mid="' + matchId + '" data-play-type="' + playType + '" data-label="' + escStr(dirName) + '"' +
+    clickAttr + '>' +
     '<span class="sodds-dir">' + dirName + '</span>' +
     '<span class="sodds-val">' + oddsStr + arrowHtml + '</span></button>';
 }
@@ -519,6 +605,7 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
   if (existingIdx >= 0) {
     _selections.splice(existingIdx, 1);
     renderMatchList();
+    applySchemeHighlights();
     return;
   }
 
@@ -532,6 +619,7 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
     handicap: handicap || 0,
   });
   renderMatchList();
+  applySchemeHighlights();
 };
 
 function findSelection(matchId) {
@@ -773,6 +861,7 @@ window.clearSchemeSelections = function () {
   _multiplier = 2;
   _passTypes = [2];
   renderMatchList();
+  applySchemeHighlights();
 };
 
 // ═══ 确认方案（跳转到确认页面） ═══
@@ -906,6 +995,7 @@ window.openSchemeBetting = function (matchId) {
     });
 
     renderMatchList();
+    applySchemeHighlights();
     window.removeEventListener('betting-confirm', window._bettingConfirmHandler);
     window._bettingConfirmHandler = null;
   };

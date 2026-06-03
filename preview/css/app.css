@@ -2744,6 +2744,25 @@ body {
   border-radius: 10px 0 0 10px; z-index: 0;
 }
 
+/* ★ 推荐排行榜Top5高亮（左侧1/6黄色底色 + 排名数字） */
+.sodds-btn.rank-highlight { position: relative; overflow: hidden; }
+.sodds-btn.rank-highlight::before {
+  content: ''; position: absolute; left: 0; top: 0; width: 16.666%; height: 100%;
+  background: rgba(255,201,40,0.35); z-index: 0; pointer-events: none;
+  border-top-left-radius: 9px; border-bottom-left-radius: 9px;
+}
+.sodds-btn.active.rank-highlight::before {
+  background: rgba(255,201,40,0.45);
+}
+.scheme-rank-badge {
+  position: absolute; left: 2px; top: 2px; z-index: 2;
+  font-size: 9px; font-weight: 700; color: #0a1520; background: #FFC928;
+  border-radius: 50%; width: 14px; height: 14px;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  pointer-events: none;
+}
+
 /* ★ 玩法过滤：暗淡行 */
 .sodds-row-dim { opacity: 0.4; pointer-events: none; }
 .sodds-btn-dim { opacity: 0.4; cursor: not-allowed; }
