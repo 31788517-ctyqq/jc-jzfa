@@ -353,8 +353,11 @@ window.switchSchemePlay = function (type) {
   document.querySelectorAll('#schemePlayTabs .filter-tag').forEach(function (t) {
     t.classList.toggle('active', t.getAttribute('data-type') === type);
   });
+  // ★ 防止页面跳动：锁定并恢复滚动位置
+  var st = window.scrollY || document.documentElement.scrollTop;
   renderMatchList();
   applySchemeHighlights();
+  window.scrollTo(0, st);
 };
 
 // ═══ 渲染比赛卡片（按设计图：左侧联赛+编号+时间，右侧对阵+赔率矩阵） ═══
