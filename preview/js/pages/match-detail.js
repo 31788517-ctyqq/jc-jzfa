@@ -104,6 +104,9 @@ export function goDetail(matchId) {
     if (detail.standings && (detail.standings.home || detail.standings.away)) {
       html += renderStandingsContext(match, detail.standings);
     }
+    if (detail.h2h && detail.h2h.length > 0) {
+      html += renderH2HSummary(match, detail.h2h);
+    }
 
     // AI预测核心看点卡片
     html += `
@@ -1077,4 +1080,38 @@ function renderStandingsContext(match, standings) {
     else if (Math.abs(standings.rankDiff) <= 5) diffTxt += ' | \u666e\u901a';
   }
   return '<div class="chart-box" style="padding:12px 16px"><div class="chart-header" style="margin-bottom:8px"><span class="chart-title">\ud83c\udfc6 \u8054\u8d5b\u6392\u540d</span></div><div style="font-size:var(--fs-sm);color:var(--text2)">' + homeTxt + '</div><div style="font-size:var(--fs-sm);color:var(--text2)">' + awayTxt + '</div>' + (diffTxt ? '<div style="font-size:var(--fs-xs);color:var(--cyan);margin-top:4px">' + diffTxt + '</div>' : '') + '</div>';
+}
+
+
+function renderH2HSummary(match, h2h) {
+  if (!h2h || h2h.length === 0) return '';
+  var last5 = h2h.slice(0, 5);
+  var homeName = match.homeName || '';
+  var awayName = match.visitName || '';
+  var homeWins = 0, awayWins = 0, draws = 0, totalGoals = 0;
+  last5.forEach(function(r) {
+    if (r.home_team === homeName && r.home_score > r.away_score) homeWins++;
+    else if (r.away_team === homeName && r.away_score > r.home_score) homeWins++;
+    else if (r.home_team === awayName && r.home_score > r.away_score) awayWins++;
+    else if (r.away_team === awayName && r.away_score > r.home_score) awayWins++;
+    else draws++;
+    totalGoals += (r.home_score || 0) + (r.away_score || 0);
+  });
+  var avgGoals = last5.length > 0 ? (totalGoals / last5.length).toFixed(1) : '--';
+  var lastMatch = h2h[0];
+  var lastTxt = lastMatch ? lastMatch.match_date + ' ' + lastMatch.home_team + ' ' + lastMatch.home_score + '-' + lastMatch.away_score + ' ' + lastMatch.away_team : '';
+
+  return '<div class="chart-box" style="padding:12px 16px">' +
+    '<div class="chart-header" style="margin-bottom:8px"><span class="chart-title">历史交锋</span><span class="chart-hint">近' + last5.length + '次</span></div>' +
+    '<div class="filter-stats-row">' +
+    '<div class="filter-stat-item"><div class="filter-stat-value" style="color:var(--green)">' + homeWins + '</div><div class="filter-stat-label">' + homeName + '胜</div></div>' +
+    '<div class="filter-stat-divider"></div>' +
+    '<div class="filter-stat-item"><div class="filter-stat-value" style="color:var(--amber)">' + draws + '</div><div class="filter-stat-label">平局</div></div>' +
+    '<div class="filter-stat-divider"></div>' +
+    '<div class="filter-stat-item"><div class="filter-stat-value" style="color:var(--red)">' + awayWins + '</div><div class="filter-stat-label">' + awayName + '胜</div></div>' +
+    '<div class="filter-stat-divider"></div>' +
+    '<div class="filter-stat-item"><div class="filter-stat-value">' + avgGoals + '</div><div class="filter-stat-label">均进球</div></div>' +
+    '</div>' +
+    (lastMatch ? '<div style="font-size:var(--fs-xs);color:var(--text3);margin-top:6px">最近: ' + lastMatch + '</div>' : '') +
+    '</div>';
 }

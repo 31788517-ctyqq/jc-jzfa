@@ -1110,11 +1110,39 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             } catch (e) { return null; }
           }
 
+          async function _getFullFusion(m, matchId, recs) {
+            try {
+              const { engine } = require('./core/prediction-fusion');
+              if (!engine._initialized) engine.init();
+              const context = {
+                dataFile: getDataJson(),
+                gsCache: getGsGlobalMap(),
+                odds: getAllplaysData()[m.num] || {},
+                recommends: recs,
+              };
+              const result = await engine.fuseForMatch({
+                matchId: matchId, num: m.num, date: (m.date || '').slice(0, 10),
+                homeName: m.homeName, visitName: m.visitName,
+                recommends: recs,
+              }, context);
+              // 只返回摘要（减少响应体积）
+              return result.fusion && result.consensus ? {
+                direction: result.fusion.direction,
+                confidence: result.fusion.confidence,
+                overUnder: result.fusion.overUnder,
+                score: result.fusion.score,
+                consensus: result.consensus,
+                modelCount: result.modelPredictions ? result.modelPredictions.length : 0,
+              } : null;
+            } catch (e) { return null; }
+          }
+
           return res.json({ code: 1, data: {
             match: match || {},
             recommends: recommends,
             // ★ 蓝图新增字段（全部可选，兜底保护）
             consensus: await _getMatchConsensus(match || {}, recommends).catch(() => null),
+            fusion: await _getFullFusion(match || {}, matchId, recommends).catch(() => null),
             features: await _getMatchFeatures(match || {}).catch(() => null),
             h2h: await _getMatchH2H(match || {}).catch(() => []),
             standings: await _getMatchStandings(match || {}).catch(() => null),
