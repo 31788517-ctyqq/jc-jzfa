@@ -298,7 +298,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
       // ====== 比分 ======
       html += '<div class="gs-modal-section" id="gsScoreSection">';
       html +=
-        '<div class="gs-modal-sec-title"><span class="gs-title-icon">📊</span>比分八阵裂变<button onclick="goFromGSToScheme(\'' + matchId + '\')" style="float:right;border-radius:20px;padding:6px 20px;background:linear-gradient(135deg,#34D399,#10B981);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(16,185,129,0.25);">我要做方案</button></div>';
+        '<div class="gs-modal-sec-title"><span class="gs-title-icon">📊</span>比分八阵裂变<span class="match-bet-btn" onclick="goFromGSToScheme(\'' + matchId + '\')" style="float:right;cursor:pointer;">我要做方案</span></div>';
 
       var scores = gs.scores || [
         { score: '1-1', percent: '50%' },

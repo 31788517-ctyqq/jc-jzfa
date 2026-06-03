@@ -940,7 +940,7 @@ export function renderAIContent(content, homeTeam, awayTeam) {
 
   // ★ 我要做方案按钮
   html += '<div style="text-align:center;padding:8px 0 16px 0;">';
-  html += '<button onclick="goFromAIToScheme()" style="border-radius:24px;padding:10px 32px;background:linear-gradient(135deg,#34D399,#10B981);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(16,185,129,0.3);">我要做方案</button>';
+  html += '<span class="match-bet-btn" onclick="goFromAIToScheme()" style="cursor:pointer;">我要做方案</span>';
   html += '</div>';
 
   // ★ P2-1: 空内容兜底 — 如果所有主要 section 都无有效内容，显示提示

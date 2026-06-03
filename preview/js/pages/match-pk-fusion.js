@@ -764,7 +764,7 @@ function renderFusionPK(modal, list) {
   html += renderRiskPanel(ranked);
 
   // ── 底部按钮 ──
-  html += '<div class="pk3-footer"><button class="pk3-make-plan-btn" onclick="goFromPKToScheme()" style="border-radius:20px;padding:10px 28px;background:linear-gradient(135deg,#34D399,#10B981);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(16,185,129,0.3);">我要做方案</button><button class="pk3-done-btn" onclick="closePK()">关闭</button></div>';
+  html += '<div class="pk3-footer"><span class="match-bet-btn" onclick="goFromPKToScheme()" style="cursor:pointer;">我要做方案</span><button class="pk3-done-btn" onclick="closePK()">关闭</button></div>';
 
   modal.innerHTML = html;
 }
