@@ -45,7 +45,8 @@ function injectStyles() {
     '.bt-tab-btn.active::after { content:""; position:absolute; bottom:-4px; left:20%; right:20%; height:2px; background:var(--cyan); border-radius:1px; }',
 
     // Stats sub row (below scheme-stats-card)
-    '.bt-stat-sub { font-size:10px; color:var(--text3); margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06); display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }',
+    '.bt-tab-stats .scheme-stats-card { flex-wrap: wrap; }',
+    '.bt-stat-sub { width:100%; font-size:10px; color:var(--text3); margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06); display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }',
     '.bt-stat-sub span { white-space:nowrap; }',
 
     // Tab stats container
