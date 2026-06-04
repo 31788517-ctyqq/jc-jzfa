@@ -187,6 +187,7 @@ async function main() {
 
     const fields = {
       actualScore: m.score,
+      actualHalfScore: m.halfScore || '',
       homeGoals: homeGoals,
       awayGoals: awayGoals,
       actualSpf: actualSpf,

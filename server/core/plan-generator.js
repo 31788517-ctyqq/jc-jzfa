@@ -376,6 +376,26 @@ function judgeByScore(direction, scoreStr, handicap) {
     return hg + ag === parseInt(goalMatch[1]);
   }
 
+  // ★ 总进球复合方向子项（如 "3球"、"4球" — "总进球-2、3球" 拆分后）
+  const simpleGoalMatch = direction.match(/^(\d+)球$/);
+  if (simpleGoalMatch) {
+    return hg + ag === parseInt(simpleGoalMatch[1]);
+  }
+
+  // ★ 半全场方向（如 "半全场-平平" → 半场平 + 全场平）
+  // 注意: judgeByScore 没有半场比分数据，仅能从全场比分判定平/胜/负
+  // 半全场组合需要半场比分才能准确判定，此处返回 null 由调用方 fallback
+  const hfMatch = direction.match(/^半全场-(.+)$/);
+  if (hfMatch) {
+    const pattern = hfMatch[1]; // 如 "平平", "平负", "平胜", "胜胜" 等
+    // 仅判定全场部分：pattern 第二个字
+    const fullChar = pattern.slice(-1);
+    if (fullChar === '胜') return hg > ag;
+    if (fullChar === '平') return hg === ag;
+    if (fullChar === '负') return hg < ag;
+    return null;
+  }
+
   return null;
 }
 
