@@ -45,7 +45,7 @@ function injectStyles() {
     '.bt-tab-btn.active::after { content:""; position:absolute; bottom:-4px; left:20%; right:20%; height:2px; background:var(--cyan); border-radius:1px; }',
 
     // Stats sub row (below scheme-stats-card)
-    '.bt-stat-sub { font-size:10px; color:var(--text3); margin-top:6px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }',
+    '.bt-stat-sub { font-size:10px; color:var(--text3); margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06); display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }',
     '.bt-stat-sub span { white-space:nowrap; }',
 
     // Tab stats container
@@ -181,8 +181,8 @@ function renderStatsCard(tab) {
       '<div class="scheme-stat-item"><div class="scheme-stat-val bt-amber" id="gsScoreHit">-</div><div class="scheme-stat-lbl">比分命中率</div></div>' +
       '<div class="scheme-stat-div"></div>' +
       '<div class="scheme-stat-item"><div class="scheme-stat-val" id="gsSpfHit">-</div><div class="scheme-stat-lbl">方向命中率</div></div>' +
-      '</div>' +
-      '<div class="bt-stat-sub"><span>强一致:<b id="gsStrongHit">-</b></span><span>弱一致:<b id="gsWeakHit">-</b></span><span>熔断:<b id="gsMeltHit">-</b></span></div>';
+      '<div class="bt-stat-sub"><span>强一致:<b id="gsStrongHit">-</b></span><span>弱一致:<b id="gsWeakHit">-</b></span><span>熔断:<b id="gsMeltHit">-</b></span></div>' +
+      '</div>';
   }
   if (tab === 'ai') {
     return '<div class="scheme-stats-card">' +
@@ -191,8 +191,8 @@ function renderStatsCard(tab) {
       '<div class="scheme-stat-item"><div class="scheme-stat-val bt-green" id="aiSpfAcc">-</div><div class="scheme-stat-lbl">SPF命中率</div></div>' +
       '<div class="scheme-stat-div"></div>' +
       '<div class="scheme-stat-item"><div class="scheme-stat-val" id="aiOuAcc">-</div><div class="scheme-stat-lbl">大小球命中</div></div>' +
-      '</div>' +
-      '<div class="bt-stat-sub"><span>比分命中:<b id="aiScAcc">-</b></span><span>高信心:<b id="aiHiConf">-</b></span><span>中信心:<b id="aiMidConf">-</b></span></div>';
+      '<div class="bt-stat-sub"><span>比分命中:<b id="aiScAcc">-</b></span><span>高信心:<b id="aiHiConf">-</b></span><span>中信心:<b id="aiMidConf">-</b></span></div>' +
+      '</div>';
   }
   if (tab === 'pk') {
     return '<div class="scheme-stats-card">' +
@@ -201,8 +201,8 @@ function renderStatsCard(tab) {
       '<div class="scheme-stat-item"><div class="scheme-stat-val bt-green" id="pkDirAcc">-</div><div class="scheme-stat-lbl">方向命中率</div></div>' +
       '<div class="scheme-stat-div"></div>' +
       '<div class="scheme-stat-item"><div class="scheme-stat-val" id="pkHcpAcc">-</div><div class="scheme-stat-lbl">让球命中率</div></div>' +
-      '</div>' +
-      '<div class="bt-stat-sub"><span>大小球:<b id="pkGoalAcc">-</b></span><span>5★:<b id="pkStar5">-</b></span><span>3-4★:<b id="pkStar34">-</b></span></div>';
+      '<div class="bt-stat-sub"><span>大小球:<b id="pkGoalAcc">-</b></span><span>5★:<b id="pkStar5">-</b></span><span>3-4★:<b id="pkStar34">-</b></span></div>' +
+      '</div>';
   }
   return '';
 }
