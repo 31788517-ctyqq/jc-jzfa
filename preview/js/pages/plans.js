@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { WEEK_NAMES, MIN_PLAN_DATE, getCache, setCache } from '../utils.js';
+import { WEEK_NAMES, MIN_PLAN_DATE, formatDate, getCache, setCache } from '../utils.js';
 import * as state from '../state.js';
 
 export function updatePlanDateBar() {
@@ -21,13 +21,23 @@ export function updatePlanDateBar() {
   var mmdd = state.planDate.slice(5).replace('-', '/');
   var week = WEEK_NAMES[new Date(state.planDate).getDay()];
   el.textContent = prefix + mmdd + ' ' + week;
+
+  // 日期导航智能停靠：到达最早/最晚日期时箭头视觉禁用
+  var arrows = document.querySelectorAll('#planDateBar .date-arrow');
+  var bar = document.getElementById('planDateBar');
+  if (bar && arrows.length >= 2) {
+    arrows[0].style.opacity = state.planDate <= MIN_PLAN_DATE ? '0.25' : '0.7';
+    arrows[0].style.pointerEvents = state.planDate <= MIN_PLAN_DATE ? 'none' : 'auto';
+    arrows[1].style.opacity = state.planDate >= todayStr ? '0.25' : '0.7';
+    arrows[1].style.pointerEvents = state.planDate >= todayStr ? 'none' : 'auto';
+  }
 }
 
 function _loadActivePlanTab() {
   if (state.planTab === 'expert') loadPlanList();
+  else if (state.planTab === 'score') loadScorePlanList();
   else if (state.planTab === 'quant') loadQuantPlanList();
-  else if (state.planTab === 'my') loadMyPlanList();
-  else loadScorePlanList();
+  else loadMyPlanList();
 }
 
 export function shiftPlanDate(delta) {
@@ -38,6 +48,9 @@ export function shiftPlanDate(delta) {
   var newDate =
     d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   if (newDate < MIN_PLAN_DATE) return;
+  // 前向限制：不能超过今天
+  var todayStr = formatDate(new Date());
+  if (newDate > todayStr) return;
   state.setPlanDateOffset(newOffset);
   updatePlanDateBar();
   _loadActivePlanTab();
@@ -50,15 +63,40 @@ export function goPlanToday() {
   _loadActivePlanTab();
 }
 
+// 智能日期停靠：页面加载时定位到 weekDates 中 <= 今天的最近日期
+export function _autoSetBestDate() {
+  var weekDates = state.weekDates || [];
+  if (weekDates.length === 0) return;
+  var today = formatDate(new Date());
+  var todayMD = today.slice(5);
+  var dates = weekDates.map(function(w) { return w.matchDate; });
+  // 如果今天有比赛数据，直接待在今天
+  if (dates.indexOf(todayMD) >= 0) return;
+  // 否则找到 <= 今天的最新日期
+  var latestMD = '';
+  dates.forEach(function(md) {
+    if (md <= todayMD && md > latestMD) latestMD = md;
+  });
+  if (latestMD) {
+    var d = new Date();
+    var latestDate = new Date(d.getFullYear(), parseInt(latestMD.slice(0, 2), 10) - 1, parseInt(latestMD.slice(3), 10));
+    var diffDays = Math.ceil((d.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays > 0) {
+      state.setPlanDateOffset(-diffDays);
+      updatePlanDateBar();
+    }
+  }
+}
+
 export function switchPlanTab(tab) {
   state.setPlanTab(tab);
   document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
     btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
   });
   if (tab === 'expert') loadPlanList();
+  else if (tab === 'score') loadScorePlanList();
   else if (tab === 'quant') loadQuantPlanList();
-  else if (tab === 'my') loadMyPlanList();
-  else loadScorePlanList();
+  else loadMyPlanList();
 }
 
 export function loadPlanList() {
@@ -114,14 +152,6 @@ export function loadPlanList() {
           '</div>'
         : '';
       if (plans.length === 0) {
-        // 有 notice 说明是时间限制（16:00前），不跳转到前一天
-        if (data.notice) {
-          el.innerHTML =
-            '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">' +
-            data.notice +
-            '</div>';
-          return;
-        }
         var now = new Date();
         var todayStr =
           now.getFullYear() +
@@ -129,6 +159,7 @@ export function loadPlanList() {
           String(now.getMonth() + 1).padStart(2, '0') +
           '-' +
           String(now.getDate()).padStart(2, '0');
+        // 今天的方案为空 → 自动回退到最近有数据的一天
         if (state.planDate === todayStr) {
           var d2 = new Date();
           d2.setDate(d2.getDate() + state.planDateOffset - 1);
@@ -140,13 +171,28 @@ export function loadPlanList() {
             String(d2.getDate()).padStart(2, '0');
           if (prevDateStr >= MIN_PLAN_DATE) {
             state.setPlanDateOffset(state.planDateOffset - 1);
+            // 强制切到专家博热方案标签
+            if (state.planTab !== 'expert') {
+              state.setPlanTab('expert');
+              document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-tab') === 'expert');
+              });
+            }
             updatePlanDateBar();
             loadPlanList();
             return;
           }
         }
-        el.innerHTML =
-          '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">当日暂无竞彩方案</div>';
+        // 无法回退 或 非今日：显示提示/notice
+        if (data.notice) {
+          el.innerHTML =
+            '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">' +
+            data.notice +
+            '</div>';
+        } else {
+          el.innerHTML =
+            '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">当日暂无竞彩方案</div>';
+        }
         return;
       }
 
@@ -287,6 +333,13 @@ export function loadPlanList() {
                 var gm2 = ft.match(/(\d+\+?)/);
                 if (gm2) val = oddsObj.totalGoals[gm2[1]];
               }
+              // 半全场方向（半全场-胜胜、半全场-平胜 等）
+              if (!val && ft.indexOf('半全场-') === 0 && oddsObj.halfFull) {
+                var hfName = ft.replace('半全场-', '');
+                var hfMap = { '胜胜':'hh','平胜':'dh','胜负':'ha','胜平':'hd','平平':'dd','平负':'da','负胜':'ah','负平':'ad','负负':'aa' };
+                var hfKey = hfMap[hfName];
+                if (hfKey) val = oddsObj.halfFull[hfKey];
+              }
               if (!val && !isRQ) {
                 if (ft.indexOf('胜') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.home;
                 else if (ft.indexOf('平') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.draw;
@@ -308,6 +361,9 @@ export function loadPlanList() {
               if (displayLabel.indexOf('总进球-') === 0) {
                 displayLabel = displayLabel.replace('总进球-', '');
                 if (displayLabel.indexOf('球') < 0) displayLabel += '球';
+              }
+              if (displayLabel.indexOf('半全场-') === 0) {
+                displayLabel = displayLabel.replace('半全场-', '');
               }
               var openP = isPlan7 ? '（' : '(';
               var closeP = isPlan7 ? '）' : ')';
@@ -1101,13 +1157,6 @@ export function loadScorePlanList() {
       var plans = data.plans || [];
       var notice = data.notice || '';
       if (plans.length === 0) {
-        if (notice) {
-          el.innerHTML =
-            '<div class="plan-notice"><span class="notice-icon"><img src="/assets/expressionless-face.svg" width="32" height="32" alt="" decoding="async"/></span>' +
-            notice +
-            '</div>';
-          return;
-        }
         var now = new Date();
         var todayStr =
           now.getFullYear() +
@@ -1115,6 +1164,7 @@ export function loadScorePlanList() {
           String(now.getMonth() + 1).padStart(2, '0') +
           '-' +
           String(now.getDate()).padStart(2, '0');
+        // 今天的方案为空 → 回退并切到专家标签
         if (state.planDate === todayStr) {
           var d2 = new Date();
           d2.setDate(d2.getDate() + state.planDateOffset - 1);
@@ -1126,12 +1176,23 @@ export function loadScorePlanList() {
             String(d2.getDate()).padStart(2, '0');
           if (prevDateStr >= MIN_PLAN_DATE) {
             state.setPlanDateOffset(state.planDateOffset - 1);
+            state.setPlanTab('expert');
+            document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
+              btn.classList.toggle('active', btn.getAttribute('data-tab') === 'expert');
+            });
             updatePlanDateBar();
-            loadScorePlanList();
+            loadPlanList();
             return;
           }
         }
-        el.innerHTML = '<div class="plan-notice"><span class="notice-icon">📊</span>今日暂无符合条件的单关比分方案</div>';
+        if (notice) {
+          el.innerHTML =
+            '<div class="plan-notice"><span class="notice-icon"><img src="/assets/expressionless-face.svg" width="32" height="32" alt="" decoding="async"/></span>' +
+            notice +
+            '</div>';
+        } else {
+          el.innerHTML = '<div class="plan-notice"><span class="notice-icon">📊</span>今日暂无符合条件的单关比分方案</div>';
+        }
         return;
       }
 
@@ -1382,13 +1443,6 @@ export function loadQuantPlanList() {
       var plans = data.plans || [];
       var notice = data.notice || '';
       if (plans.length === 0) {
-        if (notice) {
-          el.innerHTML =
-            '<div class="plan-notice"><span class="notice-icon"><img src="/assets/expressionless-face.svg" width="32" height="32" alt="" decoding="async"/></span>' +
-            notice +
-            '</div>';
-          return;
-        }
         var now = new Date();
         var todayStr =
           now.getFullYear() +
@@ -1396,6 +1450,7 @@ export function loadQuantPlanList() {
           String(now.getMonth() + 1).padStart(2, '0') +
           '-' +
           String(now.getDate()).padStart(2, '0');
+        // 今天的方案为空 → 回退并切到专家标签
         if (state.planDate === todayStr) {
           var d2 = new Date();
           d2.setDate(d2.getDate() + state.planDateOffset - 1);
@@ -1407,12 +1462,23 @@ export function loadQuantPlanList() {
             String(d2.getDate()).padStart(2, '0');
           if (prevDateStr >= MIN_PLAN_DATE) {
             state.setPlanDateOffset(state.planDateOffset - 1);
+            state.setPlanTab('expert');
+            document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
+              btn.classList.toggle('active', btn.getAttribute('data-tab') === 'expert');
+            });
             updatePlanDateBar();
-            loadQuantPlanList();
+            loadPlanList();
             return;
           }
         }
-        el.innerHTML = '<div class="plan-notice"><span class="notice-icon">📊</span>今日暂无符合条件的量化博冷方案</div>';
+        if (notice) {
+          el.innerHTML =
+            '<div class="plan-notice"><span class="notice-icon"><img src="/assets/expressionless-face.svg" width="32" height="32" alt="" decoding="async"/></span>' +
+            notice +
+            '</div>';
+        } else {
+          el.innerHTML = '<div class="plan-notice"><span class="notice-icon">📊</span>今日暂无符合条件的量化博冷方案</div>';
+        }
         return;
       }
 
@@ -1667,20 +1733,29 @@ export function loadQuantPlanList() {
 
 
 // =============================================================
-// * 蓝图：共识过滤控件 + 状态
+// * 蓝图：共识过滤控件 + 状态  (方案收入筛选项风格)
 // =============================================================
 function buildConsensusFilterBar(consensusCount, active) {
-  var tags = [
-    { id: 'all', label: '\u5168\u90e8', count: '' },
-    { id: 'strong', label: '\u5f3a\u5171\u8bc6', count: '' },
-    { id: 'weak', label: '\u5f31\u5171\u8bc6', count: '' }
+  var items = [
+    { id: 'all', label: '全部' },
+    { id: 'strong', label: '强共识' },
+    { id: 'weak', label: '弱共识' }
   ];
-  var html = '<div class="filter-row" style="margin-bottom:12px;flex-wrap:wrap;gap:6px">';
-  html += '<span style="font-size:var(--fs-xs);color:var(--text3);margin-right:4px;line-height:28px">\u5171\u8bc6\u8fc7\u6ee4:</span>';
-  tags.forEach(function(t) {
-    var cls = active === t.id ? 'filter-tag active' : 'filter-tag';
-    html += '<div class="' + cls + '" onclick="window.switchConsensusFilter(\'' + t.id + '\')" style="font-size:var(--fs-xs);padding:4px 10px">' + t.label + t.count + '</div>';
+  var html = '<div class="filter-section-card" style="margin-bottom:14px;padding:16px 18px">';
+  html += '<div class="filter-head" style="margin-bottom:12px;font-size:var(--fs-md)">共识过滤';
+  if (consensusCount > 0) {
+    html += '<span style="font-size:var(--fs-xs);color:var(--text3);margin-left:6px;font-weight:400">（共' + consensusCount + '场共识比赛）</span>';
+  }
+  html += '</div>';
+  html += '<div style="display:flex;gap:8px">';
+  items.forEach(function(t) {
+    var isActive = active === t.id;
+    var btnStyle = isActive
+      ? 'background:var(--cyan);color:#001018;font-weight:600;box-shadow:0 0 10px rgba(24,224,224,0.25)'
+      : 'background:rgba(24,224,224,0.08);color:var(--text2)';
+    html += '<div class="consensus-filter-btn" data-level="' + t.id + '" onclick="window.switchConsensusFilter(\'' + t.id + '\')" style="flex:1;text-align:center;padding:9px 0;border-radius:10px;font-size:var(--fs-sm);cursor:pointer;transition:all 0.25s;border:1px solid ' + (isActive ? 'rgba(24,224,224,0.4)' : 'rgba(255,255,255,0.06)') + ';' + btnStyle + '">' + t.label + '</div>';
   });
+  html += '</div>';
   html += '</div>';
   return html;
 }

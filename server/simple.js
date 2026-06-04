@@ -453,9 +453,9 @@ app.post('/api', function (req, res) {
       const m2a = findBestMatchForDirection(['总进球-2、3球']);
       const m2b = findBestMatchForDirection(['让负']);
 
-      // 方案三：场次1=总进球-2、3球最多专家，场次2=让胜最多专家
-      const m3a = findBestMatchForDirection(['总进球-2、3球']);
-      const m3b = findBestMatchForDirection(['让胜']);
+      // 方案三：场次1=胜最多专家，场次2=让负最多专家
+      const m3a = findBestMatchForDirection(['胜']);
+      const m3b = findBestMatchForDirection(['让负']);
 
       if (m1a && m1b) {
         const m1aObj = buildMatchObj(m1a, '平、让平');
@@ -498,10 +498,10 @@ app.post('/api', function (req, res) {
         });
       }
       if (m3a && m3b) {
-        const m3aObj = buildMatchObj(m3a, '总进球-2、3球');
-        const m3bObj = buildMatchObj(m3b, '让胜');
-        var eff1 = calcEffectiveOdds('总进球-2、3球', m3aObj);
-        var eff2 = calcEffectiveOdds('让胜', m3bObj);
+        const m3aObj = buildMatchObj(m3a, '胜');
+        const m3bObj = buildMatchObj(m3b, '让负');
+        var eff1 = calcEffectiveOdds('胜', m3aObj);
+        var eff2 = calcEffectiveOdds('让负', m3bObj);
         const mp3 = eff1 && eff2 ? Math.round(1000 * eff1 * eff2) : Math.round(1000 * 2.5);
         plans.push({
           planId: 'plan_' + dateStr + '_3',
@@ -715,8 +715,8 @@ app.post('/api', function (req, res) {
         m1b = findBest(['让负'], m1a ? [m1a.matchId] : null);
       const m2a = findBest(['总进球-2、3球']),
         m2b = findBest(['让负'], m2a ? [m2a.matchId] : null);
-      const m3a = findBest(['总进球-2、3球']),
-        m3b = findBest(['让胜'], m3a ? [m3a.matchId] : null);
+      const m3a = findBest(['胜']),
+        m3b = findBest(['让负'], m3a ? [m3a.matchId] : null);
 
       const dayPlans = [];
       if (m1a && m1b)
@@ -735,7 +735,7 @@ app.post('/api', function (req, res) {
         dayPlans.push({
           name: 'plan_3',
           planName: '方案三',
-          matches: [buildMatch(m3a, '总进球-2、3球'), buildMatch(m3b, '让胜')],
+          matches: [buildMatch(m3a, '胜'), buildMatch(m3b, '让负')],
         });
 
       // 按方案过滤：跳过结果未知的方案，已知的继续统计

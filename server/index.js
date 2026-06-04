@@ -2189,6 +2189,18 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 return vals;
               }
               if (direction.indexOf('、') >= 0 || direction.indexOf(',') >= 0) {
+                // 半全场复合方向: "半全场-胜胜、平胜"
+                if (direction.indexOf('半全场-') === 0) {
+                  const hfParts = direction.split(/[、,]/);
+                  const hfMap = { '胜胜':'hh','平胜':'dh','胜负':'ha','胜平':'hd','平平':'dd','平负':'da','负胜':'ah','负平':'ad','负负':'aa' };
+                  hfParts.forEach((pd) => {
+                    pd = pd.trim();
+                    if (pd.indexOf('半全场-') === 0) pd = pd.substring(4);
+                    const hfKey = hfMap[pd];
+                    if (hfKey && oddsObj.halfFull && oddsObj.halfFull[hfKey] !== undefined) vals.push(oddsObj.halfFull[hfKey]);
+                  });
+                  return vals;
+                }
                 const parts = direction.split(/[、,]/);
                 parts.forEach((pd) => {
                   pd = pd.trim();
@@ -2398,6 +2410,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     }
                     var gm = d.match(/总进球-(\d+)/);
                     if (gm) return (hh + aa) === parseInt(gm[1]);
+                    var hfMatch = d.match(/^半全场-(.+)$/);
+                    if (hfMatch) {
+                      var fullChar = hfMatch[1].slice(-1);
+                      if (fullChar === '胜') return hh > aa;
+                      if (fullChar === '平') return hh === aa;
+                      if (fullChar === '负') return hh < aa;
+                      return null;
+                    }
                     return null;
                   }
                   var scoreResult = judgeScoreExp(direction, m.score, hcp);
@@ -2473,15 +2493,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const plans = [];
             const matchCount = mList.length;
 
-            // ★ 方案一：单方向让平（符合竞彩同场不混合规则），无让平时 fallback 到平
-            const m1a_rq = findBestMatchForDirection(['让平']);
-            const m1a = m1a_rq || findBestMatchForDirection(['平']);
-            const m1aDir = m1a_rq ? '让平' : '平';
+            // ★ 方案一：复合方向 "平、让平"（双选，任一命中即算赢）
+            const m1a = findBestMatchForDirection(['平', '让平']);
             const m1b = findBestMatchForDirection(['让负'], m1a ? [m1a.matchId] : null);
             const m2a = findBestMatchForDirection(['总进球-2、3球']);
             const m2b = findBestMatchForDirection(['让负'], m2a ? [m2a.matchId] : null);
+            // ★ 方案三：胜 + 让负
             const m3a = findBestMatchForDirection(['胜']);
-            const m3b = findBestMatchForDirection(['胜'], m3a ? [m3a.matchId] : null);
+            const m3b = findBestMatchForDirection(['让负'], m3a ? [m3a.matchId] : null);
 
             function push2MatchPlan(planName, planSuffix, mA, dirA, mB, dirB, betCount, ticketCount, multiplier) {
               if (!mA || !mB) return;
@@ -2507,21 +2526,26 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               });
             }
 
-            push2MatchPlan('方案一', '1', m1a, m1aDir, m1b, '让负', 250, 10);
+            push2MatchPlan('方案一', '1', m1a, '平、让平', m1b, '让负', 250, 10);
             push2MatchPlan('方案二', '2', m2a, '总进球-2、3球', m2b, '让负', 250, 10);
-            push2MatchPlan('方案三', '3', m3a, '胜', m3b, '胜', 500, 10, 50);
+            push2MatchPlan('方案三', '3', m3a, '胜', m3b, '让负', 250, 10, 25);
 
-            // 方案六：当天专家推"总进球-2、3球"数最多的一场，单关荷兰式投注（二选）
+            // 方案六：当天专家推"半全场-胜胜、平胜"数最多的一场，单关荷兰式投注（二选）
             if (matchCount >= 4) {
-              const targetDir6 = '总进球-2、3球';
+              const targetDir6 = '半全场-胜胜、平胜';
+              const targetDir6Parts = ['半全场-胜胜', '半全场-平胜'];
               let bestM6 = null, bestCount6 = 0;
               for (const m of mList) {
                 const recs = findRecommends(m.matchId);
+                let total6 = 0;
                 for (const r of recs) {
-                  if (r.type === targetDir6 && (r.num || 0) > bestCount6) {
-                    bestCount6 = r.num;
-                    bestM6 = m;
+                  for (const tp of targetDir6Parts) {
+                    if ((r.type || '') === tp) total6 += (r.num || 0);
                   }
+                }
+                if (total6 > bestCount6) {
+                  bestCount6 = total6;
+                  bestM6 = m;
                 }
               }
               if (bestM6 && bestCount6 > 0) {
@@ -2533,8 +2557,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   const invSum6 = subOdds6.reduce((s, o) => s + 1 / o, 0);
                   maxPrize6 = invSum6 > 0 ? Math.round(1000 / invSum6) : 0;
                 } else {
-                  // ★ 赔率缺失兜底：二选总进球用 3.5/2 荷兰式倍率
-                  maxPrize6 = Math.round(1000 * 3.5 / 2);
+                  // ★ 赔率缺失兜底：二选半全场用 3.0/2 荷兰式倍率
+                  maxPrize6 = Math.round(1000 * 3.0 / 2);
                 }
                 plans.push({
                   planId: 'plan_' + dateStr + '_6',
@@ -2555,17 +2579,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             // 方案四～五：仅在 ≥15 场时生成
             if (matchCount >= 15) {
-              const m4a_rq = findBestMatchForDirection(['让平']);
-              const m4a = m4a_rq || findBestMatchForDirection(['平']);
-              const m4aDir = m4a_rq ? '让平' : '平';
+              const m4a = findBestMatchForDirection(['平', '让平']);
               const m4b = findBestMatchForDirection(['胜'], m4a ? [m4a.matchId] : null);
-              push2MatchPlan('方案四', '4', m4a, m4aDir, m4b, '胜', 250, 10);
+              push2MatchPlan('方案四', '4', m4a, '平、让平', m4b, '胜', 250, 10);
 
-              const m5a_rq = findBestMatchForDirection(['让平']);
-              const m5a = m5a_rq || findBestMatchForDirection(['平']);
-              const m5aDir = m5a_rq ? '让平' : '平';
+              const m5a = findBestMatchForDirection(['平', '让平']);
               const m5b = findBestMatchForDirection(['总进球-2、3球'], m5a ? [m5a.matchId] : null);
-              push2MatchPlan('方案五', '5', m5a, m5aDir, m5b, '总进球-2、3球', 125, 5);
+              push2MatchPlan('方案五', '5', m5a, '平、让平', m5b, '总进球-2、3球', 125, 5);
             }
 
             // ========== 方案七：单关双选（胜平/平负） ==========
@@ -3375,6 +3395,18 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                       }
                       var gm = d.match(/总进球-(\d+)/);
                       if (gm) return (hh + aa) === parseInt(gm[1]);
+                      // ★ 总进球复合方向子项（如 "3球"、"4球" — "总进球-2、3球" 拆分后）
+                      var simpleGoal = d.match(/^(\d+)球$/);
+                      if (simpleGoal) return (hh + aa) === parseInt(simpleGoal[1]);
+                      // ★ 半全场方向（如 "半全场-平平" → 仅判定全场部分的平/胜/负）
+                      var hfMatch = d.match(/^半全场-(.+)$/);
+                      if (hfMatch) {
+                        var fullChar = hfMatch[1].slice(-1);
+                        if (fullChar === '胜') return hh > aa;
+                        if (fullChar === '平') return hh === aa;
+                        if (fullChar === '负') return hh < aa;
+                        return null;
+                      }
                       return null;
                     }
                     var scoreResult = judgeScore(direction, mForScore.score, hcp);
@@ -4118,6 +4150,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 const recs = md ? md.recs : [];
                 const subResults = [];
                 const matchedRecs = [];
+                const seenRecIds = new Set(); // 去重：同一 rec 不重复计入
 
                 function recContains(recType, sd) {
                   if (recType === sd) return true;
@@ -4125,12 +4158,22 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   return parts.some((p) => p.trim() === sd);
                 }
 
+                function addRec(r) {
+                  if (!r) return;
+                  const id = r.type + '_' + (r.key || '') + '_' + matchedRecs.length;
+                  if (seenRecIds.has(id)) return;
+                  // 更可靠：通过 r 的引用去重
+                  if (matchedRecs.indexOf(r) >= 0) return;
+                  seenRecIds.add(id);
+                  matchedRecs.push(r);
+                }
+
                 let fullMatch = null;
                 for (const r of recs) {
                   if (r.type === direction) fullMatch = r;
                 }
                 if (fullMatch) {
-                  matchedRecs.push(fullMatch);
+                  addRec(fullMatch);
                   subResults.push({
                     direction: direction,
                     result: fullMatch.result !== undefined ? fullMatch.result : null,
@@ -4157,7 +4200,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                         if (r.type === '总进球-' + num) found = r;
                       }
                     }
-                    if (found) matchedRecs.push(found);
+                    if (found) addRec(found);
                     subResults.push({ direction: s, result: found ? found.result : null });
                   });
                 }
@@ -4245,6 +4288,18 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                       }
                       var gm = d.match(/总进球-(\d+)/);
                       if (gm) return (hh + aa) === parseInt(gm[1]);
+                      // ★ 总进球复合方向子项（如 "3球"、"4球" — "总进球-2、3球" 拆分后）
+                      var simpleGoal = d.match(/^(\d+)球$/);
+                      if (simpleGoal) return (hh + aa) === parseInt(simpleGoal[1]);
+                      // ★ 半全场方向（如 "半全场-平平" → 仅判定全场部分的平/胜/负）
+                      var hfMatch = d.match(/^半全场-(.+)$/);
+                      if (hfMatch) {
+                        var fullChar = hfMatch[1].slice(-1);
+                        if (fullChar === '胜') return hh > aa;
+                        if (fullChar === '平') return hh === aa;
+                        if (fullChar === '负') return hh < aa;
+                        return null;
+                      }
                       return null;
                     }
                     var scoreResult = judgeScoreExp(direction, match.score, hcp);
@@ -4284,22 +4339,21 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 };
               }
 
-              // ★ 与 plan-list 对齐：方案一优先搜 让平，无则 fallback 到 平
-              const m1a_rq = findBest(['让平']);
-              const m1a = m1a_rq || findBest(['平']);
-              const m1aDir = m1a_rq ? '让平' : '平';
+              // ★ 方案一：复合方向 "平、让平"（双选，任一命中即算赢）
+              const m1a = findBest(['平', '让平']);
               const m1b = findBest(['让负'], m1a ? [m1a.matchId] : null);
               const m2a = findBest(['总进球-2、3球']),
                 m2b = findBest(['让负'], m2a ? [m2a.matchId] : null);
+              // ★ 方案三：胜 + 让负
               const m3a = findBest(['胜']),
-                m3b = findBest(['胜'], m3a ? [m3a.matchId] : null);
+                m3b = findBest(['让负'], m3a ? [m3a.matchId] : null);
 
               const dayPlans = [];
               if (m1a && m1b)
                 dayPlans.push({
                   name: 'plan_1',
                   planName: '方案一',
-                  matches: [buildMatch(m1a, m1aDir), buildMatch(m1b, '让负')],
+                  matches: [buildMatch(m1a, '平、让平'), buildMatch(m1b, '让负')],
                 });
               if (m2a && m2b)
                 dayPlans.push({
@@ -4311,23 +4365,28 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 dayPlans.push({
                   name: 'plan_3',
                   planName: '方案三',
-                  matches: [buildMatch(m3a, '胜'), buildMatch(m3b, '胜')],
+                  matches: [buildMatch(m3a, '胜'), buildMatch(m3b, '让负')],
                 });
 
               const dayMatchCount = mList.length;
 
-              // 方案六：专家推"总进球-2、3球"数最多的一场，单关荷兰式投注（二选）
+              // 方案六：专家推"半全场-胜胜、平胜"数最多的一场，单关荷兰式投注（二选）
               if (dayMatchCount >= 4) {
-                const targetDir6 = '总进球-2、3球';
+                const targetDir6 = '半全场-胜胜、平胜';
+                const targetDir6Parts = ['半全场-胜胜', '半全场-平胜'];
                 let bestM6 = null, bestCount6 = 0;
                 for (const k of Object.keys(matchDataMap)) {
                   const mdData = matchDataMap[k];
                   const recs6 = mdData.recs;
+                  let total6 = 0;
                   for (const r of recs6) {
-                    if (r.type === targetDir6 && (r.num || 0) > bestCount6) {
-                      bestCount6 = r.num;
-                      bestM6 = mdData.match;
+                    for (const tp of targetDir6Parts) {
+                      if ((r.type || '') === tp) total6 += (r.num || 0);
                     }
+                  }
+                  if (total6 > bestCount6) {
+                    bestCount6 = total6;
+                    bestM6 = mdData.match;
                   }
                 }
                 if (bestM6 && bestCount6 > 0) {
@@ -4340,10 +4399,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
 
               if (dayMatchCount >= 15) {
-                // ★ 与 plan-list 对齐：方案四/五优先搜 让平，无则 fallback 到 平
-                const m4a_rq = findBest(['让平']);
-                const m4a = m4a_rq || findBest(['平']);
-                const m4aDir = m4a_rq ? '让平' : '平';
+                // ★ 方案四/五第一场方向与 plan-list 对齐：平、让平 双选
+                const m4a = findBest(['平', '让平']);
+                const m4aDir = '平、让平';
                 const m4b = findBest(['胜'], m4a ? [m4a.matchId] : null);
                 if (m4a && m4b)
                   dayPlans.push({
@@ -4351,9 +4409,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     planName: '方案四',
                     matches: [buildMatch(m4a, m4aDir), buildMatch(m4b, '胜')],
                   });
-                const m5a_rq = findBest(['让平']);
-                const m5a = m5a_rq || findBest(['平']);
-                const m5aDir = m5a_rq ? '让平' : '平';
+                const m5a = findBest(['平', '让平']);
+                const m5aDir = '平、让平';
                 const m5b = findBest(['总进球-2、3球'], m5a ? [m5a.matchId] : null);
                 if (m5a && m5b)
                   dayPlans.push({
@@ -4786,6 +4843,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
             }
 
+            // === 工具：读取用户保存的方案 ===
+            function readUserPlans(deviceId) {
+              try {
+                const upFile = path.join(__dirname, 'user_plans', String(deviceId).replace(/[^a-zA-Z0-9_-]/g, '') + '.json');
+                if (!fs.existsSync(upFile)) return [];
+                const raw = fs.readFileSync(upFile, 'utf-8');
+                return JSON.parse(raw);
+              } catch (e) { return []; }
+            }
+
             // === 我的方案 ===
             if (directionFilter === 'my') {
               const deviceId = (req.headers['x-device-id'] || '').trim();
@@ -4805,19 +4872,19 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   if (daysFilter > 0) {
                     if (!pDate || pDate < fmtDate2(startDate) || pDate > fmtDate2(endDate)) return;
                   }
-                  // 金额转换：amount 是元，转换为分（与 expert/score/quant 统一）
-                  const amountFen = Math.round((Number(p.amount) || 0) * 100);
+                  // amount 已是元，与 expert/score/quant 统一以元为单位
+                  const amountYuan = Math.round(Number(p.amount) || 0);
                   if (p.isWon) {
                     myWon++;
                     let prize = 0;
                     if (p.resultIncome != null && p.resultIncome !== undefined) {
                       prize = Number(p.resultIncome);
-                    } else if (p.totalOdds && amountFen > 0) {
-                      prize = Math.round(Number(p.totalOdds) * amountFen);
+                    } else if (p.totalOdds && amountYuan > 0) {
+                      prize = Math.round(Number(p.totalOdds) * amountYuan);
                     } else {
-                      prize = amountFen;
+                      prize = amountYuan;
                     }
-                    const dayInc = prize - amountFen;
+                    const dayInc = prize - amountYuan;
                     myIncome += dayInc;
                     results.push({
                       date: pDate || '未知',
@@ -4827,13 +4894,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                       income: dayInc,
                     });
                   } else {
-                    myIncome -= amountFen;
+                    myIncome -= amountYuan;
                     results.push({
                       date: pDate || '未知',
                       plan: p.note || '我的方案',
                       status: 'lose',
                       prize: 0,
-                      income: -amountFen,
+                      income: -amountYuan,
                     });
                   }
                 });

@@ -2133,6 +2133,13 @@ function loadPlanList() {
                 const gm2 = ft.match(/(\d+\+?)/);
                 if (gm2) val = oddsObj.totalGoals[gm2[1]];
               }
+              // 半全场方向（半全场-胜胜、半全场-平胜 等）
+              if (!val && ft.indexOf('半全场-') === 0 && oddsObj.halfFull) {
+                const hfName = ft.replace('半全场-', '');
+                const hfMap = { '胜胜':'hh','平胜':'dh','胜负':'ha','胜平':'hd','平平':'dd','平负':'da','负胜':'ah','负平':'ad','负负':'aa' };
+                const hfKey = hfMap[hfName];
+                if (hfKey) val = oddsObj.halfFull[hfKey];
+              }
               // SPF fallback 仅对非RQ/非总进球方向生效
               if (!val && !isRQ) {
                 if (ft.indexOf('胜') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.home;

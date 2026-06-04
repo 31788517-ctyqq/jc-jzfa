@@ -28596,5 +28596,23 @@
         "负其它": 65
       }
     }
+  },
+  "2026-06-04": {
+    "周四203": {
+      "num": "周四203",
+      "homeName": "西班牙",
+      "visitName": "伊拉克",
+      "handicap": -3,
+      "isSingleGame": false,
+      "spf": null,
+      "rqspf": {
+        "home": 2.21,
+        "draw": 4.2,
+        "away": 2.28
+      },
+      "totalGoals": {},
+      "halfFull": {},
+      "scores": {}
+    }
   }
 }

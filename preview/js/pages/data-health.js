@@ -89,14 +89,14 @@ function buildHealthHTML(data) {
         <span class="chart-title">门禁状态</span>
       </div>
       <div class="dir-item" style="padding:8px 0">
-        <span>📊 500.com 赔率</span>
+        <span>📊 赔率数据源</span>
         <span style="margin-left:auto;color:${(fetchSources['500.com'] || {}).rate >= 0.9 ? 'var(--green)' : 'var(--red)'}">
           ${((fetchSources['500.com'] || {}).rate * 100 || 0).toFixed(1)}%
           ${(fetchSources['500.com'] || {}).rate >= 0.9 ? ' ✅' : ' ⚠️'}
         </span>
       </div>
       <div class="dir-item" style="padding:8px 0">
-        <span>📈 米斗推荐</span>
+        <span>📈 推荐数据源</span>
         <span style="margin-left:auto;color:${(fetchSources.midou || {}).rate >= 0.9 ? 'var(--green)' : 'var(--red)'}">
           ${((fetchSources.midou || {}).rate * 100 || 0).toFixed(1)}%
           ${(fetchSources.midou || {}).rate >= 0.9 ? ' ✅' : ' ⚠️'}

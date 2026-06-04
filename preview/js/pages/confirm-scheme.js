@@ -97,10 +97,8 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
     ? _passTypes[0] + '关'
     : (_passTypes.length > 1 ? _passTypes.join('~') + '关' : '2关');
 
-  // ★ 检测是否为单关比分方案
-  var isSingleBf = uniqueCount === 1 && _selections.length > 0 && _selections.every(function(s) { return s.playType === 'bf'; });
   // 资金分配：默认均分（若已有 allocation 则用已有的）
-  var defaultAllocPerSel = isSingleBf && _selections.length > 0 ? Math.round(amount / _selections.length * 100) / 100 : 0;
+  var defaultAllocPerSel = _selections.length > 0 ? Math.round(amount / _selections.length * 100) / 100 : 0;
 
   // 构建比赛表格行（同场多方向分行，对阵合并）
   var matchRows = '';
@@ -168,13 +166,11 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
       matchRows += '</td>';
 
       // 投注(赔率)列：每行显示一个方向 + Delta 箭头
-      matchRows += '<td class="odds-col">' + playLabel + '：' + dirDisplay + '  ' + oddsStr + deltaArrow + '</td>';
+      matchRows += '<td class="odds-col">' + dirDisplay + ' ' + oddsStr + deltaArrow + '</td>';
 
-      // ★ 资金分配列（仅单关比分方案）
-      if (isSingleBf) {
-        var allocVal = s.allocation != null ? s.allocation : defaultAllocPerSel;
-        matchRows += '<td class="allocation-col"><span class="plan-alloc-val">' + allocVal.toFixed(0) + '</span><span class="plan-alloc-unit">元</span></td>';
-      }
+      // ★ 资金分配列
+      var allocVal = s.allocation != null ? s.allocation : defaultAllocPerSel;
+      matchRows += '<td class="allocation-col"><span class="plan-alloc-val">' + allocVal.toFixed(0) + '</span><span class="plan-alloc-unit">元</span></td>';
 
       matchRows += '</tr>';
     });
@@ -209,11 +205,12 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
 
   // 比赛表格
   html += '<div class="plan-match-section">';
-  html += '<table class="plan-match-table' + (isSingleBf ? ' score-table' : '') + '"><thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th>' + (isSingleBf ? '<th>资金分配</th>' : '') + '</tr></thead><tbody>';
+  html += '<table class="plan-match-table score-table"><thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th><th>资金分配</th></tr></thead><tbody>';
   html += matchRows;
   html += '</tbody></table></div>';
 
   // ★ 比分方案元信息（大球率/进攻优势/进球区间/强队方向）
+  var isSingleBf = uniqueCount === 1 && _selections.length > 0 && _selections.every(function(s) { return s.playType === 'bf'; });
   if (isSingleBf) {
     var sbfBigBall = '--', sbfAttack = '--', sbfGoal = '--', sbfStrong = '--';
     var sbfMeta = (_planData && _planData.scoreMeta) ? _planData.scoreMeta : (_matches.length > 0 && _matches[0]._meta) ? _matches[0]._meta : null;

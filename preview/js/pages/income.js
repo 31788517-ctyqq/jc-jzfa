@@ -1,6 +1,12 @@
 import { api } from '../api.js';
 import * as state from '../state.js';
 
+// 盈利显示（元，整数，无小数点）
+function _fmtIncome(val) {
+  val = Math.round(val || 0);
+  return val >= 0 ? '+' + val : String(val);
+}
+
 export function loadIncome(force) {
   if (state.incomeLoaded && !force) return;
   state.setIncomeLoaded(true);
@@ -24,7 +30,7 @@ export function loadIncome(force) {
       var incomeEl = document.getElementById('incTotalIncome');
       var income = s.totalIncome || 0;
       if (incomeEl) {
-        incomeEl.textContent = income;
+        incomeEl.textContent = _fmtIncome(income);
         incomeEl.style.color = income >= 0 ? '#EF4444' : '#22C55E';
       }
 
@@ -36,7 +42,7 @@ export function loadIncome(force) {
 
       var html = '<div class="income-list">';
       html +=
-        '<div class="income-header-row"><span>时间</span><span class="inc-col-hit">命中数</span><span class="inc-col-rate">命中率</span><span class="inc-col-income">盈利</span></div>';
+        '<div class="income-header-row"><span>时间</span><span class="inc-col-hit">命中数</span><span class="inc-col-rate">命中率</span><span class="inc-col-income">盈利(元)</span></div>';
 
       records.forEach(function (r) {
         var incColor = r.income >= 0 ? '#EF4444' : '#22C55E';
@@ -58,7 +64,7 @@ export function loadIncome(force) {
           '<span class="income-value" style="color:' +
           incColor +
           '">' +
-          r.income +
+          _fmtIncome(r.income) +
           '</span>' +
           '</div>';
       });
@@ -70,3 +76,6 @@ export function loadIncome(force) {
       state.setIncomeLoaded(false);
     });
 }
+
+// 方向切换回调（下拉选择时触发，仅更新 UI 标记，不自动查询）
+export function onIncDirChange() {}

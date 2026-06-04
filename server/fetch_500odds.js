@@ -100,8 +100,9 @@ function buildHeaders(extraCookies) {
   return headers;
 }
 
-function fetchPage(dateStr, g, retries) {
+function fetchPage(dateStr, g, retries, playid) {
   if (retries === undefined) retries = 2;
+  if (playid === undefined) playid = 312;
   g = g || 2;
 
   return new Promise(async (resolve, reject) => {
@@ -109,7 +110,7 @@ function fetchPage(dateStr, g, retries) {
 
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        const html = await _fetchPageOnce(dateStr, g);
+        const html = await _fetchPageOnce(dateStr, g, playid);
         // v3: 新页面校验 — 用 data-matchnum 或 bet-tb 判断有效性
         if (html && html.length > 500 && (html.indexOf('data-matchnum') > -1 || html.indexOf('bet-tb') > -1)) {
           resolve(html);
@@ -165,13 +166,14 @@ function fetchPage(dateStr, g, retries) {
   });
 }
 
-function _fetchPageOnce(dateStr, g) {
+function _fetchPageOnce(dateStr, g, playid) {
+  if (playid === undefined) playid = 312;
   return new Promise(async (resolve, reject) => {
     if (!_warmedCookies) {
       await warmCookies();
     }
 
-    const url = 'https://trade.500.com/jczq/?playid=312&g=' + g + '&date=' + dateStr;
+    const url = 'https://trade.500.com/jczq/?playid=' + playid + '&g=' + g + '&date=' + dateStr;
     const headers = buildHeaders();
 
     const req = https.request(
@@ -507,43 +509,200 @@ function extractShujuIds(html) {
   return result;
 }
 
-// ═══ 主函数 ═══
-function fetchOdds(dateStr) {
-  const prevDate = new Date(dateStr);
-  prevDate.setDate(prevDate.getDate() - 1);
-  const prevStr = prevDate.toISOString().slice(0, 10);
+// ═══ 通用辅助：从特定 playid 页面提取赔率 ═══
+/**
+ * 从 HTML 中按 data-matchnum 行提取指定 data-type 的赔率
+ * @param {string} html - 页面 HTML
+ * @param {string} dataType - data-type 值，如 "bf"/"jqs"/"bqc"
+ * @param {function} valueParser - (seg, result) => void，自定义解析逻辑
+ * @returns {Object} { 比赛编号: { key: value } }
+ */
+function extractByDataType(html, dataType, valueParser) {
+  const result = {};
 
+  const rowRegex = /<tr[^>]*data-matchnum="([^"]+)"[^>]*>/g;
+  let trMatch;
+  const rows = [];
+
+  while ((trMatch = rowRegex.exec(html)) !== null) {
+    rows.push({ num: trMatch[1], start: trMatch.index });
+  }
+
+  // 回退到旧式匹配
+  if (rows.length === 0) {
+    const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    const legacyRegex = new RegExp('(' + weekDays.join('|') + ')(\\d{3})', 'g');
+    let m;
+    while ((m = legacyRegex.exec(html)) !== null) {
+      rows.push({ num: m[1] + m[2], start: m.index });
+    }
+  }
+
+  for (let i = 0; i < rows.length; i++) {
+    // ★ 用下一场比赛的起始位置作为边界（而非 </tr>），确保捕获跨多行的展开内容
+    const end = (i + 1 < rows.length) ? rows[i + 1].start : html.length;
+    const seg = html.substring(rows[i].start, end);
+    valueParser(seg, result, rows[i].num, dataType);
+  }
+
+  return result;
+}
+
+// ═══ BF 比分赔率解析 (playid=271) ═══
+function extractBfOdds(html) {
+  return extractByDataType(html, 'bf', function (seg, result, num) {
+    const bfRegex = /data-type="bf"\s+data-value="([^"]+)"\s+data-sp="(\d{1,5}\.\d{2})"/g;
+    let m;
+    const scores = {};
+    while ((m = bfRegex.exec(seg)) !== null) {
+      scores[m[1]] = parseFloat(m[2]);
+    }
+    if (Object.keys(scores).length > 0) {
+      if (!result[num]) result[num] = {};
+      result[num].scores = scores;
+    }
+  });
+}
+
+// ═══ JQS 总进球赔率解析 (playid=270) ═══
+function extractJqsOdds(html) {
+  return extractByDataType(html, 'jqs', function (seg, result, num) {
+    const jqsRegex = /data-type="jqs"\s+data-value="(\d+)"\s+data-sp="(\d{1,5}\.\d{2})"/g;
+    let m;
+    const goals = {};
+    while ((m = jqsRegex.exec(seg)) !== null) {
+      const key = m[1] === '7' ? '7+' : m[1];
+      goals[key] = parseFloat(m[2]);
+    }
+    if (Object.keys(goals).length >= 6) {
+      if (!result[num]) result[num] = {};
+      result[num].totalGoals = goals;
+    }
+  });
+}
+
+// ═══ BQC 半全场赔率解析 (playid=272) ═══
+function extractBqcOdds(html) {
+  return extractByDataType(html, 'bqc', function (seg, result, num) {
+    // HTML: data-type="bqc" data-value="3-3" data-sp="5.15"
+    // 顺序: 胜胜(3-3), 胜平(3-1), 胜负(3-0), 平胜(1-3), 平平(1-1), 平负(1-0), 负胜(0-3), 负平(0-1), 负负(0-0)
+    const bqcRegex = /data-type="bqc"\s+data-value="(\d)-(\d)"\s+data-sp="(\d{1,5}\.\d{2})"/g;
+    let m;
+    const halfFull = {};
+    const valueMap = { '3-3': 'hh', '3-1': 'hd', '3-0': 'ha', '1-3': 'dh', '1-1': 'dd', '1-0': 'da', '0-3': 'ah', '0-1': 'ad', '0-0': 'aa' };
+    while ((m = bqcRegex.exec(seg)) !== null) {
+      const combo = m[1] + '-' + m[2];
+      const key = valueMap[combo] || combo;
+      halfFull[key] = parseFloat(m[3]);
+    }
+    if (Object.keys(halfFull).length >= 9) {
+      if (!result[num]) result[num] = {};
+      result[num].halfFull = halfFull;
+    }
+  });
+}
+
+/**
+ * 通用抓取函数：抓取指定 playid 的赔率
+ * @param {string} dateStr
+ * @param {number} playid
+ * @param {function} extractor
+ */
+function fetchPlayOdds(dateStr, playid, extractor) {
   return Promise.all([
-    fetchPage(dateStr, 1)
-      .then(extractOdds)
-      .catch(function () {
-        return {};
-      }),
-    fetchPage(dateStr, 2)
-      .then(extractOdds)
-      .catch(function () {
-        return {};
-      }),
-    fetchPage(prevStr, 1)
-      .then(extractOdds)
-      .catch(function () {
-        return {};
-      }),
-    fetchPage(prevStr, 2)
-      .then(extractOdds)
-      .catch(function () {
-        return {};
-      }),
+    fetchPage(dateStr, 1, 2, playid)
+      .then(extractor)
+      .catch(function () { return {}; }),
+    fetchPage(dateStr, 2, 2, playid)
+      .then(extractor)
+      .catch(function () { return {}; }),
   ]).then(function (results) {
     const merged = {};
     for (let i = 0; i < results.length; i++) {
       const keys = Object.keys(results[i]);
       for (let j = 0; j < keys.length; j++) {
-        merged[keys[j]] = results[i][keys[j]];
+        const k = keys[j];
+        if (!merged[k]) merged[k] = {};
+        Object.assign(merged[k], results[i][k]);
       }
     }
     return merged;
   });
+}
+
+/**
+ * 深度合并辅助：将 playid 专项数据合并到主结果
+ */
+function deepMerge(target, source, defaultKeys) {
+  Object.keys(source).forEach(function (k) {
+    if (!target[k]) {
+      target[k] = {};
+      if (defaultKeys) {
+        defaultKeys.forEach(function (dk) { target[k][dk] = null; });
+      }
+    }
+    Object.assign(target[k], source[k]);
+  });
+}
+
+// ═══ 辅助：逐页抓取 SPF+RQSPF，停止条件=连续2页无新比赛 ═══
+async function fetch312Pages(dateStr, maxPages) {
+  maxPages = maxPages || 6;
+  const results = [];
+  let emptyStreak = 0;
+  for (let g = 1; g <= maxPages; g++) {
+    try {
+      const pageData = await fetchPage(dateStr, g, 312).then(extractOdds);
+      const count = Object.keys(pageData).length;
+      if (count > 0) {
+        results.push(pageData);
+        emptyStreak = 0;
+      } else {
+        emptyStreak++;
+        if (emptyStreak >= 2) break; // 连续2页无数据，停止
+      }
+    } catch (e) {
+      emptyStreak++;
+      if (emptyStreak >= 2) break;
+    }
+  }
+  return results;
+}
+
+// ═══ 主函数 ═══
+async function fetchOdds(dateStr) {
+  const prevDate = new Date(dateStr);
+  prevDate.setDate(prevDate.getDate() - 1);
+  const prevStr = prevDate.toISOString().slice(0, 10);
+
+  // SPF + RQSPF: 逐页抓取直到无新数据
+  const [pages312, prevPages312, jqsData, bqcData, bfData] = await Promise.all([
+    fetch312Pages(dateStr),
+    fetch312Pages(prevStr),
+    fetchPlayOdds(dateStr, 270, extractJqsOdds).catch(function () { return {}; }),
+    fetchPlayOdds(dateStr, 272, extractBqcOdds).catch(function () { return {}; }),
+    fetchPlayOdds(dateStr, 271, extractBfOdds).catch(function () { return {}; }),
+  ]);
+
+  const merged = {};
+  // 合并 SPF+RQSPF 数据（当天 + 前一天）
+  for (const pageData of pages312) {
+    for (const key of Object.keys(pageData)) {
+      merged[key] = pageData[key];
+    }
+  }
+  for (const pageData of prevPages312) {
+    for (const key of Object.keys(pageData)) {
+      merged[key] = pageData[key];
+    }
+  }
+  // JQS 总进球
+  deepMerge(merged, jqsData, ['spf', 'rqspf', 'halfFull', 'totalGoals']);
+  // BQC 半全场
+  deepMerge(merged, bqcData, ['spf', 'rqspf', 'halfFull', 'totalGoals']);
+  // BF 比分
+  deepMerge(merged, bfData, ['halfFull', 'totalGoals', 'scores']);
+  return merged;
 }
 
 function fetchShujuMap(dateStr) {

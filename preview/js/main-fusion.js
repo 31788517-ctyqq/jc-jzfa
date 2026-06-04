@@ -166,6 +166,15 @@ window.loadIncome = function (f) {
       console.error('[JS] loadIncome 失败:', e && e.message);
     });
 };
+window.onIncDirChange = function () {
+  _mod('income')
+    .then(function (m) {
+      if (m.onIncDirChange) m.onIncDirChange();
+    })
+    .catch(function (e) {
+      console.error('[JS] onIncDirChange 失败:', e && e.message);
+    });
+};
 window.switchPlanTab = function (t) {
   _mod('plans')
     .then(function (m) {
@@ -544,9 +553,9 @@ export function selectPlanDateFromPicker(md) {
   }
   _mod('plans').then(function (m) {
     if (state.planTab === 'expert') m.loadPlanList();
+    else if (state.planTab === 'score') m.loadScorePlanList();
     else if (state.planTab === 'quant') m.loadQuantPlanList();
-    else if (state.planTab === 'my') m.loadMyPlanList();
-    else m.loadScorePlanList();
+    else m.loadMyPlanList();
   });
   document.getElementById('planDatePicker').style.display = 'none';
 }
@@ -651,7 +660,7 @@ function _ensurePage(id) {
         '<div class="date-bar" id="dateBar"><span class="date-arrow" onclick="shiftWeek(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="dateCurrent" onclick="toggleDatePicker()"></span><span class="date-arrow" onclick="shiftWeek(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="datePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="datePickerPrev">&lt;</button><span class="date-picker-month" id="datePickerMonth"></span><button class="date-picker-nav" id="datePickerNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="datePickerGrid"></div><div class="date-picker-footer"><button class="date-picker-today" onclick="selectDateFromPicker(\'today\')">今天</button><button class="date-picker-close" onclick="toggleDatePicker()">✕</button></div></div><div id="matchList"></div><div class="quant-pk-bar" id="matchPkBar" style="display:none"><button class="pk-bar-btn" id="mpkBarBtn" onclick="startMatchPK()">场次PK（已选 <b id="mpkBarCount">0</b> 场）</button></div>';
     else if (id === 'plan')
       el.innerHTML =
-        '<div class="filter-row" id="planTabBar"><div class="filter-tag active" data-tab="my" onclick="switchPlanTab(\'my\')">我的方案</div><div class="filter-tag" data-tab="expert" onclick="switchPlanTab(\'expert\')">专家博热方案</div><div class="filter-tag" data-tab="score" onclick="switchPlanTab(\'score\')">单关比分方案</div><div class="filter-tag" data-tab="quant" onclick="switchPlanTab(\'quant\')">量化博冷方案</div></div><div class="date-bar" id="planDateBar"><span class="date-arrow" onclick="shiftPlanDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="planDateCurrent" onclick="togglePlanDatePicker()"></span><span class="date-arrow" onclick="shiftPlanDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="planDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="planDatePrev">&lt;</button><span class="date-picker-month" id="planDateMonth"></span><button class="date-picker-nav" id="planDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="planDateGrid"></div></div><div id="planList"></div>';
+        '<div class="filter-row" id="planTabBar"><div class="filter-tag active" data-tab="expert" onclick="switchPlanTab(\'expert\')">专家博热方案</div><div class="filter-tag" data-tab="score" onclick="switchPlanTab(\'score\')">单关比分方案</div><div class="filter-tag" data-tab="quant" onclick="switchPlanTab(\'quant\')">量化博冷方案</div><div class="filter-tag" data-tab="my" onclick="switchPlanTab(\'my\')">我的方案</div></div><div class="date-bar" id="planDateBar"><span class="date-arrow" onclick="shiftPlanDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="planDateCurrent" onclick="togglePlanDatePicker()"></span><span class="date-arrow" onclick="shiftPlanDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="planDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="planDatePrev">&lt;</button><span class="date-picker-month" id="planDateMonth"></span><button class="date-picker-nav" id="planDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="planDateGrid"></div></div><div id="planList"></div>';
     else if (id === 'detail') el.innerHTML = '<div id="detailContent"></div>';
     else if (id === 'rank')
       el.innerHTML =
@@ -786,11 +795,12 @@ export function switchTab(tab) {
       });
     }
     _mod('plans').then(function (m) {
+      m._autoSetBestDate();
       m.updatePlanDateBar();
       if (state.planTab === 'expert') m.loadPlanList();
+      else if (state.planTab === 'score') m.loadScorePlanList();
       else if (state.planTab === 'quant') m.loadQuantPlanList();
-      else if (state.planTab === 'my') m.loadMyPlanList();
-      else m.loadScorePlanList();
+      else m.loadMyPlanList();
     });
   }
   if (tab === 'quant-rank') {
@@ -1054,11 +1064,12 @@ if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
       });
     }
     _mod('plans').then(function (m) {
+      m._autoSetBestDate();
       m.updatePlanDateBar();
       if (state.planTab === 'expert') m.loadPlanList();
+      else if (state.planTab === 'score') m.loadScorePlanList();
       else if (state.planTab === 'quant') m.loadQuantPlanList();
-      else if (state.planTab === 'my') m.loadMyPlanList();
-      else m.loadScorePlanList();
+      else m.loadMyPlanList();
     });
   }
   if (tab === 'quant-rank') {
