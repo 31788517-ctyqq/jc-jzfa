@@ -1,8 +1,7 @@
 /**
  * preview/js/pages/model-dashboard.js
- * 模型表现仪表板 — 蓝图 §17.6
+ * 模型表现仪表板 — 优化版（对标方案收入页风格）
  *
- * 展示各模型的近30日方向/大小球/比分命中率排行、分联赛热力图、命中率走势
  * 数据来源: API /api/model-dashboard → prediction_outcomes 表
  */
 
@@ -12,24 +11,43 @@ import { api } from '../api.js';
 // 页面入口
 // ═══════════════════════════════════════════════════════
 
-export async function loadDashboard() {
+export async function loadDashboard(force) {
   const el = document.getElementById('model-dashboard-content');
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载模型数据...</div>';
 
   try {
-    const data = await api('model-dashboard', { days: 30 });
+    var timeVal = window.getDDVal ? window.getDDVal('dd-mdTime') : '30';
+    var days = timeVal === 'all' ? 0 : parseInt(timeVal) || 30;
+    var metric = window.getDDVal ? window.getDDVal('dd-mdMetric') || 'direction' : 'direction';
+
+    const data = await api('model-dashboard', { days: days, metric: metric });
     if (!data) {
-      el.innerHTML = '<div class="empty-state">暂无数据，等待模型回填积累≥2周数据后可见</div>';
+      el.innerHTML = '<div class="hint-box">暂无数据，等待模型回填积累≥2周数据后可见</div>';
+      updateStatsCard(null);
       return;
     }
 
+    updateStatsCard(data);
     el.innerHTML = buildDashboardHTML(data);
     bindEvents(data);
   } catch (e) {
     console.error('[ModelDashboard] 加载失败:', e);
-    el.innerHTML = '<div class="empty-state">网络错误，请重试</div>';
+    el.innerHTML = '<div class="hint-box">网络错误，请重试</div>';
   }
+}
+
+// ═══════════════════════════════════════════════════════
+// 统计卡片更新
+// ═══════════════════════════════════════════════════════
+
+function updateStatsCard(data) {
+  var elModels = document.getElementById('mdStatModels');
+  var elTotal = document.getElementById('mdStatTotal');
+  var elBest = document.getElementById('mdStatBest');
+  if (elModels) elModels.textContent = data ? (data.models ? data.models.length : 0) : '--';
+  if (elTotal) elTotal.textContent = data ? (data.totalPredictions || 0) + '+' : '--';
+  if (elBest) elBest.textContent = data ? (data.topModel || '--') : '--';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -40,19 +58,13 @@ function buildDashboardHTML(data) {
   const { rankings = [], leagueHeatmap = {}, trendData = [], models = [] } = data;
 
   return `
-    <!-- 模型排行 -->
+    <!-- 模型排行 — income-list 风格表格 -->
     <div class="chart-box">
       <div class="chart-header">
-        <span class="chart-title">模型排行 (近30日)</span>
-        <select id="md-ranking-metric" class="chart-select" onchange="window._mdSwitchMetric &amp;&amp; window._mdSwitchMetric()">
-          <option value="direction">方向命中率</option>
-          <option value="over_under">大小球命中率</option>
-          <option value="score">比分命中率</option>
-        </select>
+        <span class="chart-title">模型排行</span>
+        <span class="chart-hint">点击查询按钮切换指标</span>
       </div>
-      <div class="md-ranking-table">
-        ${buildRankingTable(rankings)}
-      </div>
+      ${buildRankingTable(rankings)}
     </div>
 
     <!-- 分联赛热力图 -->
@@ -74,75 +86,65 @@ function buildDashboardHTML(data) {
       </div>
       <div id="md-trend-chart" class="md-chart" style="height:240px"></div>
     </div>
-
-    <!-- 统计数据 -->
-    <div class="chart-box">
-      <div class="chart-header">
-        <span class="chart-title">统计概览</span>
-      </div>
-      <div class="filter-stats-row">
-        <div class="filter-stat-item">
-          <div class="filter-stat-value">${models.length || 6}</div>
-          <div class="filter-stat-label">活跃模型</div>
-        </div>
-        <div class="filter-stat-divider"></div>
-        <div class="filter-stat-item">
-          <div class="filter-stat-value">${(data.totalPredictions || 0)}+</div>
-          <div class="filter-stat-label">总预测</div>
-        </div>
-        <div class="filter-stat-divider"></div>
-        <div class="filter-stat-item">
-          <div class="filter-stat-value">${data.topModel || '--'}</div>
-          <div class="filter-stat-label">最佳模型</div>
-        </div>
-      </div>
-    </div>
   `;
 }
 
+// ═══════════════════════════════════════════════════════
+// 排行表格 — income-list 风格
+// ═══════════════════════════════════════════════════════
+
 function buildRankingTable(rankings) {
   if (!rankings || rankings.length === 0) {
-    return '<div class="empty-state">暂无排名数据，请等待回填积累≥2周数据</div>';
+    return '<div class="hint-box">暂无排名数据，请等待回填积累≥2周数据</div>';
   }
 
-  const medals = ['🥇', '🥈', '🥉'];
-  return rankings.slice(0, 10).map((r, i) => {
-    const dirRate = r.directionRate || 0;
-    const trend = r.trend || 0;
-    const trendIcon = trend > 0 ? '↗' : trend < 0 ? '↘' : '→';
-    const trendColor = trend > 0 ? 'var(--green)' : trend < 0 ? 'var(--red)' : 'var(--text2)';
+  var html = '<div class="income-list md-rank-list">';
+  // 表头
+  html += '<div class="income-header-row"><span class="md-rank-col-rank">#</span><span class="md-rank-col-model">模型</span><span class="md-rank-col-rate">命中率</span><span class="md-rank-col-trend">趋势</span><span class="md-rank-col-count">场次</span></div>';
 
-    return `
-      <div class="dir-item" style="padding:10px 0">
-        <span style="width:32px;text-align:center">${medals[i] || (i + 1)}</span>
-        <span class="dir-item-name" style="flex:1">${r.modelName || r.model_name}</span>
-        <span style="width:60px;text-align:center;color:var(--green);font-weight:700">${dirRate}%</span>
-        <span style="width:50px;text-align:center;color:${trendColor}">${trendIcon} ${Math.abs(trend)}%</span>
-        <span style="width:50px;text-align:center;color:var(--text2)">${r.total || 0}场</span>
-      </div>
-    `;
-  }).join('');
+  var medals = ['🥇', '🥈', '🥉'];
+  rankings.slice(0, 10).forEach(function (r, i) {
+    var dirRate = r.directionRate || 0;
+    var trend = r.trend || 0;
+    var trendIcon = trend > 0 ? '↗' : trend < 0 ? '↘' : '→';
+    var trendColor = trend > 0 ? 'var(--green)' : trend < 0 ? 'var(--red)' : 'var(--text3)';
+    var rateColor = dirRate >= 60 ? 'var(--green)' : dirRate >= 50 ? 'var(--cyan)' : 'var(--text2)';
+
+    html += '<div class="income-row">' +
+      '<span class="md-rank-col-rank">' + (medals[i] || (i + 1)) + '</span>' +
+      '<span class="md-rank-col-model">' + (r.modelName || r.model_name || '模型' + (i + 1)) + '</span>' +
+      '<span class="md-rank-col-rate" style="color:' + rateColor + '">' + dirRate + '%</span>' +
+      '<span class="md-rank-col-trend" style="color:' + trendColor + '">' + trendIcon + ' ' + Math.abs(trend) + '%</span>' +
+      '<span class="md-rank-col-count">' + (r.total || 0) + '场</span>' +
+      '</div>';
+  });
+  html += '</div>';
+  return html;
 }
+
+// ═══════════════════════════════════════════════════════
+// 热力图
+// ═══════════════════════════════════════════════════════
 
 function buildHeatmapHTML(heatmap, models) {
   if (!heatmap || Object.keys(heatmap).length === 0) {
-    return '<div class="empty-state">暂无分联赛数据</div>';
+    return '<div class="hint-box">暂无分联赛数据</div>';
   }
 
-  const modelNames = models.length > 0 ? models : Object.keys(heatmap);
-  const leagues = new Set();
-  for (const model of Object.keys(heatmap)) {
-    for (const league of Object.keys(heatmap[model] || {})) {
+  var modelNames = models.length > 0 ? models : Object.keys(heatmap);
+  var leagues = new Set();
+  for (var model of Object.keys(heatmap)) {
+    for (var league of Object.keys(heatmap[model] || {})) {
       leagues.add(league);
     }
   }
 
   if (leagues.size === 0) {
-    return '<div class="empty-state">暂无分联赛数据</div>';
+    return '<div class="hint-box">暂无分联赛数据</div>';
   }
 
-  const leagueList = [...leagues];
-  const getColor = (rate) => {
+  var leagueList = Array.from(leagues);
+  var getColor = function (rate) {
     if (rate === null || rate === undefined) return 'rgba(255,255,255,0.02)';
     if (rate >= 65) return 'rgba(52,211,153,0.25)';
     if (rate >= 55) return 'rgba(52,211,153,0.12)';
@@ -150,23 +152,19 @@ function buildHeatmapHTML(heatmap, models) {
     return 'rgba(239,68,68,0.10)';
   };
 
-  return `
-    <table style="width:100%;font-size:var(--fs-sm);text-align:center;border-collapse:collapse">
-      <tr>
-        <td style="padding:6px;color:var(--text2)">模型</td>
-        ${leagueList.map(l => `<td style="padding:6px;color:var(--text2);font-weight:600">${l}</td>`).join('')}
-      </tr>
-      ${modelNames.map(m => `
-        <tr>
-          <td style="padding:6px;color:var(--text);font-weight:600">${m}</td>
-          ${leagueList.map(l => {
-            const rate = (heatmap[m] && heatmap[m][l]) ? heatmap[m][l] : null;
-            return `<td style="padding:6px;background:${getColor(rate)};border-radius:4px;color:${rate ? 'var(--text)' : 'var(--text3)'}">${rate !== null ? rate + '%' : '-'}</td>`;
-          }).join('')}
-        </tr>
-      `).join('')}
-    </table>
-  `;
+  return '<table style="width:100%;font-size:var(--fs-sm);text-align:center;border-collapse:collapse">' +
+    '<tr><td style="padding:6px;color:var(--text2)">模型</td>' +
+    leagueList.map(function (l) { return '<td style="padding:6px;color:var(--text2);font-weight:600">' + l + '</td>'; }).join('') +
+    '</tr>' +
+    modelNames.map(function (m) {
+      return '<tr><td style="padding:6px;color:var(--text);font-weight:600">' + m + '</td>' +
+        leagueList.map(function (l) {
+          var rate = (heatmap[m] && heatmap[m][l]) ? heatmap[m][l] : null;
+          return '<td style="padding:6px;background:' + getColor(rate) + ';border-radius:4px;color:' + (rate ? 'var(--text)' : 'var(--text3)') + '">' + (rate !== null ? rate + '%' : '-') + '</td>';
+        }).join('') +
+        '</tr>';
+    }).join('') +
+    '</table>';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -174,16 +172,9 @@ function buildHeatmapHTML(heatmap, models) {
 // ═══════════════════════════════════════════════════════
 
 function bindEvents(data) {
-  // 排行榜计量切换
-  window._mdSwitchMetric = function() {
-    const sel = document.getElementById('md-ranking-metric');
-    if (!sel) return;
-    const metric = sel.value;
-    // 重新排列表格行
-    const tbody = document.querySelector('.md-ranking-table');
-    if (tbody) {
-      loadDashboard(); // 简化处理：重新加载
-    }
+  // 查询按钮回调
+  window._mdRefresh = function () {
+    loadDashboard(true);
   };
 
   // 走势图（如果有 ECharts）
@@ -197,23 +188,25 @@ function bindEvents(data) {
 }
 
 function renderTrendChart(trendData) {
-  const el = document.getElementById('md-trend-chart');
+  var el = document.getElementById('md-trend-chart');
   if (!el || typeof echarts === 'undefined') return;
 
-  const chart = echarts.init(el);
-  const series = trendData.map(s => ({
-    name: s.modelName,
-    type: 'line',
-    smooth: true,
-    data: s.values || [],
-    lineStyle: { width: 2 },
-  }));
+  var chart = echarts.init(el);
+  var series = trendData.map(function (s) {
+    return {
+      name: s.modelName,
+      type: 'line',
+      smooth: true,
+      data: s.values || [],
+      lineStyle: { width: 2 },
+    };
+  });
 
   chart.setOption({
     grid: { left: 40, right: 20, top: 10, bottom: 30 },
-    xAxis: { type: 'category', data: trendData[0]?.weeks || [], axisLabel: { color: '#94A3B8', fontSize: 11 } },
+    xAxis: { type: 'category', data: trendData[0] && trendData[0].weeks || [], axisLabel: { color: '#94A3B8', fontSize: 11 } },
     yAxis: { type: 'value', min: 40, max: 70, axisLabel: { color: '#94A3B8', formatter: '{value}%' } },
-    series,
+    series: series,
     legend: { bottom: 0, textStyle: { color: '#94A3B8', fontSize: 11 } },
     backgroundColor: 'transparent',
   });

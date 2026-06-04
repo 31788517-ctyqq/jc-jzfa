@@ -37,8 +37,6 @@ function injectStyles() {
   var s = document.createElement('style');
   s.id = 'bt-inline-css';
   s.textContent = [
-    '.backtest-page { padding:4px 0 20px; }',
-
     // Tab bar
     '.bt-tab-row { display:flex; gap:4px; padding:0 10px 8px; border-bottom:1px solid rgba(255,255,255,0.06); }',
     '.bt-tab-btn { flex:1; text-align:center; padding:8px 4px; font-size:13px; font-weight:600; color:var(--text3); cursor:pointer; border-radius:10px; transition:all .2s; position:relative; }',
@@ -46,16 +44,7 @@ function injectStyles() {
     '.bt-tab-btn.active { color:var(--cyan); background:rgba(24,224,224,0.08); }',
     '.bt-tab-btn.active::after { content:""; position:absolute; bottom:-4px; left:20%; right:20%; height:2px; background:var(--cyan); border-radius:1px; }',
 
-    // Stats card
-    '.bt-stats-card { background:var(--card); border:1px solid var(--card-border); border-radius:22px; padding:16px 16px; margin:10px 0; }',
-    '.bt-stats-row { display:flex; align-items:center; justify-content:space-around; text-align:center; }',
-    '.bt-stat-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; }',
-    '.bt-stat-value { font-size:26px; font-weight:900; color:var(--cyan); text-shadow:0 0 12px rgba(24,224,224,0.18); line-height:1.1; }',
-    '.bt-stat-label { font-size:10px; color:var(--text2); }',
-    '.bt-val-green { color:var(--green) !important; text-shadow:0 0 12px rgba(52,211,153,0.18) !important; }',
-    '.bt-val-amber { color:var(--amber) !important; text-shadow:0 0 12px rgba(251,191,36,0.18) !important; }',
-    '.bt-val-red { color:var(--red) !important; text-shadow:0 0 12px rgba(239,68,68,0.18) !important; }',
-    '.bt-stat-divider { width:1px; height:32px; background:rgba(255,255,255,0.06); flex-shrink:0; }',
+    // Stats sub row (below scheme-stats-card)
     '.bt-stat-sub { font-size:10px; color:var(--text3); margin-top:6px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }',
     '.bt-stat-sub span { white-space:nowrap; }',
 
@@ -71,27 +60,19 @@ function injectStyles() {
     '.bt-chart-toggle-btn { font-size:11px; padding:3px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:var(--text3); cursor:pointer; transition:all .15s; }',
     '.bt-chart-toggle-btn.active { background:rgba(24,224,224,0.12); color:var(--cyan); border-color:var(--cyan); }',
 
-    // Filter card
-    '#btFilterCard .filter-row { min-height:44px; padding:2px 4px; }',
-    '#btFilterCard .filter-head { margin-bottom:6px; }',
-    '#btFilterCard .filter-btn-wrap { margin-top:2px; }',
+    // Pager
+    '.bt-pager-wrap { display:flex; justify-content:center; align-items:center; gap:6px; padding:16px 0; flex-wrap:wrap; }',
+    '.bt-pager-btn { min-width:32px; height:32px; padding:0 6px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:var(--text2); font-size:13px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:all .15s; }',
+    '.bt-pager-btn:hover { border-color:rgba(255,255,255,0.25); color:#fff; }',
+    '.bt-pager-btn.active { background:var(--cyan); color:var(--bg); border-color:var(--cyan); font-weight:700; }',
+    '.bt-pager-btn:disabled { opacity:0.3; cursor:default; pointer-events:none; }',
+    '.bt-pager-ellipsis { min-width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; color:var(--text3); font-size:13px; }',
+    '.bt-pager-nav { min-width:28px; }',
+    '.bt-pager-info { font-size:12px; color:var(--text3); margin:0 8px; white-space:nowrap; }',
 
-    // List table
-    '.bt-list-wrap { margin-top:4px; }',
-    '.bt-header-row { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text3); padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(24,224,224,0.03); border-radius:12px 12px 0 0; }',
-    '.bt-hdr-date { flex:0.6; }',
-    '.bt-hdr-match { flex:0.8; text-align:center; }',
-    '.bt-hdr-teams { flex:1.2; }',
-    '.bt-hdr-pred { flex:1; text-align:right; }',
-
-    '.bt-row { display:flex; align-items:center; gap:6px; font-size:12px; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.02); transition:background .15s; }',
-    '.bt-row:last-child { border-bottom:none; }',
-    '.bt-row:hover { background:rgba(255,255,255,0.02); }',
-    '.bt-col-date { flex:0.6; color:var(--text3); font-size:10px; }',
-    '.bt-col-match { flex:0.8; text-align:center; }',
+    // Prediction highlight
     '.bt-col-num { font-weight:700; font-size:12px; }',
     '.bt-col-league { font-size:9px; color:var(--text3); display:block; line-height:1.3; }',
-    '.bt-col-teams { flex:1.2; min-width:0; }',
     '.bt-col-home { font-weight:500; font-size:12px; line-height:1.4; }',
     '.bt-col-score { font-weight:700; font-size:13px; color:var(--cyan); padding:1px 0; line-height:1.4; }',
     '.bt-col-away { font-weight:500; font-size:12px; color:var(--text2); line-height:1.4; }',
@@ -103,17 +84,6 @@ function injectStyles() {
     '.bt-pred-item .pred-hit { color:var(--green); }',
     '.bt-pred-item .pred-miss { color:var(--red); }',
     '.bt-pred-dim { opacity:0.35; }',
-
-    // Pager
-    '.backtest-pager { margin-top:12px; }',
-    '.bt-pager-wrap { display:flex; justify-content:center; align-items:center; gap:6px; padding:16px 0; flex-wrap:wrap; }',
-    '.bt-pager-btn { min-width:32px; height:32px; padding:0 6px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:var(--text2); font-size:13px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:all .15s; }',
-    '.bt-pager-btn:hover { border-color:rgba(255,255,255,0.25); color:#fff; }',
-    '.bt-pager-btn.active { background:var(--cyan); color:var(--bg); border-color:var(--cyan); font-weight:700; }',
-    '.bt-pager-btn:disabled { opacity:0.3; cursor:default; pointer-events:none; }',
-    '.bt-pager-ellipsis { min-width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; color:var(--text3); font-size:13px; }',
-    '.bt-pager-nav { min-width:28px; }',
-    '.bt-pager-info { font-size:12px; color:var(--text3); margin:0 8px; white-space:nowrap; }',
     '.bt-summary-bar { display:flex; justify-content:flex-start; align-items:center; padding:4px 4px 8px; color:var(--text3); font-size:12px; }',
   ].join('\n');
   document.head.appendChild(s);
@@ -205,40 +175,34 @@ function filterDD(id, label, opts) {
 /* ═══════════════════════ Stats Card Renderers ═══════════════════════ */
 function renderStatsCard(tab) {
   if (tab === 'gs') {
-    return '<div class="bt-stats-card">' +
-      '<div class="bt-stats-row">' +
-      '<div class="bt-stat-item"><div class="bt-stat-value" id="gsTotal">-</div><div class="bt-stat-label">总预测</div></div>' +
-      '<div class="bt-stat-divider"></div>' +
-      '<div class="bt-stat-item"><div class="bt-stat-value bt-val-amber" id="gsScoreHit">-</div><div class="bt-stat-label">比分命中率</div></div>' +
-      '<div class="bt-stat-divider"></div>' +
-      '<div class="bt-stat-item"><div class="bt-stat-value" id="gsSpfHit">-</div><div class="bt-stat-label">方向命中率</div></div>' +
+    return '<div class="scheme-stats-card">' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val" id="gsTotal">-</div><div class="scheme-stat-lbl">总预测</div></div>' +
+      '<div class="scheme-stat-div"></div>' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val bt-amber" id="gsScoreHit">-</div><div class="scheme-stat-lbl">比分命中率</div></div>' +
+      '<div class="scheme-stat-div"></div>' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val" id="gsSpfHit">-</div><div class="scheme-stat-lbl">方向命中率</div></div>' +
       '</div>' +
-      '<div class="bt-stat-sub"><span>强一致:<b id="gsStrongHit">-</b></span><span>弱一致:<b id="gsWeakHit">-</b></span><span>熔断:<b id="gsMeltHit">-</b></span></div>' +
-      '</div>';
+      '<div class="bt-stat-sub"><span>强一致:<b id="gsStrongHit">-</b></span><span>弱一致:<b id="gsWeakHit">-</b></span><span>熔断:<b id="gsMeltHit">-</b></span></div>';
   }
   if (tab === 'ai') {
-    return '<div class="bt-stats-card">' +
-      '<div class="bt-stats-row">' +
-      '<div class="bt-stat-item"><div class="bt-stat-value" id="aiTotal">-</div><div class="bt-stat-label">总预测</div></div>' +
-      '<div class="bt-stat-divider"></div>' +
-      '<div class="bt-stat-item"><div class="bt-stat-value bt-val-green" id="aiSpfAcc">-</div><div class="bt-stat-label">SPF命中率</div></div>' +
-      '<div class="bt-stat-divider"></div>' +
-      '<div class="bt-stat-item"><div class="bt-stat-value" id="aiOuAcc">-</div><div class="bt-stat-label">大小球命中</div></div>' +
+    return '<div class="scheme-stats-card">' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val" id="aiTotal">-</div><div class="scheme-stat-lbl">总预测</div></div>' +
+      '<div class="scheme-stat-div"></div>' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val bt-green" id="aiSpfAcc">-</div><div class="scheme-stat-lbl">SPF命中率</div></div>' +
+      '<div class="scheme-stat-div"></div>' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val" id="aiOuAcc">-</div><div class="scheme-stat-lbl">大小球命中</div></div>' +
       '</div>' +
-      '<div class="bt-stat-sub"><span>比分命中:<b id="aiScAcc">-</b></span><span>高信心:<b id="aiHiConf">-</b></span><span>中信心:<b id="aiMidConf">-</b></span></div>' +
-      '</div>';
+      '<div class="bt-stat-sub"><span>比分命中:<b id="aiScAcc">-</b></span><span>高信心:<b id="aiHiConf">-</b></span><span>中信心:<b id="aiMidConf">-</b></span></div>';
   }
   if (tab === 'pk') {
-    return '<div class="bt-stats-card">' +
-      '<div class="bt-stats-row">' +
-      '<div class="bt-stat-item"><div class="bt-stat-value" id="pkTotal">-</div><div class="bt-stat-label">总预测</div></div>' +
-      '<div class="bt-stat-divider"></div>' +
-      '<div class="bt-stat-item"><div class="bt-stat-value bt-val-green" id="pkDirAcc">-</div><div class="bt-stat-label">方向命中率</div></div>' +
-      '<div class="bt-stat-divider"></div>' +
-      '<div class="bt-stat-item"><div class="bt-stat-value" id="pkHcpAcc">-</div><div class="bt-stat-label">让球命中率</div></div>' +
+    return '<div class="scheme-stats-card">' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val" id="pkTotal">-</div><div class="scheme-stat-lbl">总预测</div></div>' +
+      '<div class="scheme-stat-div"></div>' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val bt-green" id="pkDirAcc">-</div><div class="scheme-stat-lbl">方向命中率</div></div>' +
+      '<div class="scheme-stat-div"></div>' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val" id="pkHcpAcc">-</div><div class="scheme-stat-lbl">让球命中率</div></div>' +
       '</div>' +
-      '<div class="bt-stat-sub"><span>大小球:<b id="pkGoalAcc">-</b></span><span>5★:<b id="pkStar5">-</b></span><span>3-4★:<b id="pkStar34">-</b></span></div>' +
-      '</div>';
+      '<div class="bt-stat-sub"><span>大小球:<b id="pkGoalAcc">-</b></span><span>5★:<b id="pkStar5">-</b></span><span>3-4★:<b id="pkStar34">-</b></span></div>';
   }
   return '';
 }
@@ -585,12 +549,12 @@ function renderList(list) {
     return;
   }
 
-  var html = '<div class="bt-list-wrap">';
-  html += '<div class="bt-header-row">' +
-    '<span class="bt-hdr-date">日期</span>' +
-    '<span class="bt-hdr-match">场次</span>' +
-    '<span class="bt-hdr-teams">对阵 / 比分</span>' +
-    '<span class="bt-hdr-pred">预测结果</span></div>';
+  var html = '<div class="income-list bt-detail-list">';
+  html += '<div class="income-header-row">' +
+    '<span class="bt-col-date">日期</span>' +
+    '<span class="bt-col-match">场次</span>' +
+    '<span class="bt-col-teams">对阵 / 比分</span>' +
+    '<span class="bt-col-pred">预测结果</span></div>';
 
   list.forEach(function (row) {
     var dateDisplay = esc((row.date || '').slice(5));
@@ -602,7 +566,7 @@ function renderList(list) {
     var scoreText = esc(row.actual_score || '-');
     var predParts = buildPredictionItems(row);
 
-    html += '<div class="bt-row">' +
+    html += '<div class="income-row">' +
       '<span class="bt-col-date">' + dateDisplay + '</span>' +
       '<span class="bt-col-match">' +
       '<span class="bt-col-num">' + esc(row.matchNum || '') + '</span>' +

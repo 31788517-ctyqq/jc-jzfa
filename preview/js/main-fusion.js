@@ -718,9 +718,31 @@ function _ensurePage(id) {
       el.innerHTML = '<div id="confirmContent"><div class="loading"><div class="loading-spinner"></div>加载方案中...</div></div>';
     // ★ 蓝图新增页面
     else if (id === 'model-dashboard')
-      el.innerHTML = '<div class="chart-box"><div class="chart-header"><span class="chart-title">模型表现仪表板</span></div><div id="model-dashboard-content"></div></div>';
+      el.innerHTML =
+        '<div class="filter-section-card"><div class="filter-head">筛选条件</div>' +
+        '<div class="filter-row"><span class="filter-label">时间</span>' +
+        '<div class="filter-dd" id="dd-mdTime" data-val="30"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-mdTime\', event)"><span class="filter-dd-text">近30天</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>' +
+        '<ul class="filter-dd-menu"><li data-val="30" class="filter-dd-option selected" onclick="selectDD(\'dd-mdTime\',\'30\',\'近30天\')">近30天</li><li data-val="60" class="filter-dd-option" onclick="selectDD(\'dd-mdTime\',\'60\',\'近60天\')">近60天</li><li data-val="all" class="filter-dd-option" onclick="selectDD(\'dd-mdTime\',\'all\',\'全部\')">全部</li></ul>' +
+        '</div></div>' +
+        '<div class="filter-row"><span class="filter-label">指标</span>' +
+        '<div class="filter-dd" id="dd-mdMetric" data-val="direction"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-mdMetric\', event)"><span class="filter-dd-text">方向命中率</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>' +
+        '<ul class="filter-dd-menu"><li data-val="direction" class="filter-dd-option selected" onclick="selectDD(\'dd-mdMetric\',\'direction\',\'方向命中率\')">方向命中率</li><li data-val="over_under" class="filter-dd-option" onclick="selectDD(\'dd-mdMetric\',\'over_under\',\'大小球命中率\')">大小球命中率</li><li data-val="score" class="filter-dd-option" onclick="selectDD(\'dd-mdMetric\',\'score\',\'比分命中率\')">比分命中率</li></ul>' +
+        '</div></div>' +
+        '<div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="window._mdRefresh && window._mdRefresh()">查询</button></div>' +
+        '</div>' +
+        '<div class="scheme-stats-card" id="mdStatsCard"><div class="scheme-stat-item"><div class="scheme-stat-val" id="mdStatModels">-</div><div class="scheme-stat-lbl">活跃模型</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val" id="mdStatTotal">-</div><div class="scheme-stat-lbl">总预测</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val" id="mdStatBest">-</div><div class="scheme-stat-lbl">最佳模型</div></div></div>' +
+        '<div id="model-dashboard-content"></div>';
     else if (id === 'data-health')
-      el.innerHTML = '<div id="data-health-content"></div>';
+      el.innerHTML =
+        '<div class="filter-section-card"><div class="filter-head">筛选条件</div>' +
+        '<div class="filter-row"><span class="filter-label">时间</span>' +
+        '<div class="filter-dd" id="dd-dhTime" data-val="7"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-dhTime\', event)"><span class="filter-dd-text">近7天</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>' +
+        '<ul class="filter-dd-menu"><li data-val="7" class="filter-dd-option selected" onclick="selectDD(\'dd-dhTime\',\'7\',\'近7天\')">近7天</li><li data-val="30" class="filter-dd-option" onclick="selectDD(\'dd-dhTime\',\'30\',\'近30天\')">近30天</li><li data-val="all" class="filter-dd-option" onclick="selectDD(\'dd-dhTime\',\'all\',\'全部\')">全部</li></ul>' +
+        '</div></div>' +
+        '<div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="window._dhRefresh && window._dhRefresh()">查询</button></div>' +
+        '</div>' +
+        '<div class="scheme-stats-card" id="dhStatsCard"><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatSources">-</div><div class="scheme-stat-lbl">数据源</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatAvgRate">-</div><div class="scheme-stat-lbl">平均成功率</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatAlerts">-</div><div class="scheme-stat-lbl">活跃告警</div></div></div>' +
+        '<div id="data-health-content"></div>';
   }
   return el;
 }
