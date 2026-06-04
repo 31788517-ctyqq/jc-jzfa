@@ -1,6 +1,7 @@
 /**
- * 蓝图测试: prediction-adapter — 6模型适配器
- * 覆盖: Adapter接口规范、方向判定逻辑、幂等ID生成
+ * 蓝图测试: prediction-adapter — 7模型适配器（V9.1 更新）
+ * 覆盖: Adapter接口规范、方向判定逻辑、幂等ID生成、
+ *       GongshoudaoAdapter字段修复、DataFusionAdapter、AI JSON解析
  */
 const {
   PredictionModelAdapter,
@@ -10,6 +11,7 @@ const {
   DoubaoAdapter,
   ExpertConsensusAdapter,
   MarketSignalAdapter,
+  DataFusionAdapter,
 } = require('../core/prediction-adapter');
 
 // Mock database
@@ -18,6 +20,8 @@ jest.mock('../database', () => ({
     execOne: jest.fn().mockReturnValue(null),
     execAll: jest.fn().mockReturnValue([]),
   }),
+  isAvailable: () => true,
+  getJczqBasic: jest.fn().mockReturnValue(null),
 }));
 
 describe('PredictionModelAdapter — 基类', () => {
@@ -68,10 +72,10 @@ describe('PredictionModelAdapter — 基类', () => {
 });
 
 describe('GongshoudaoAdapter', () => {
-  it('modelName 应为 gongshoudao', () => {
+  it('modelName 应为 gongshoudao (V9.1)', () => {
     const a = new GongshoudaoAdapter();
     expect(a.modelName).toBe('gongshoudao');
-    expect(a.modelVersion).toBe('v7.0');
+    expect(a.modelVersion).toBe('v9.1');
     expect(a.dimensions).toContain('direction');
     expect(a.dimensions).toContain('goal');
     expect(a.dimensions).toContain('score');
@@ -83,23 +87,66 @@ describe('GongshoudaoAdapter', () => {
     expect(result).toBeNull();
   });
 
-  it('有完整功守道数据时提取方向/大小球/比分', async () => {
+  it('★ V9.1: 使用 crossSpf/totalGoalsExpect/scores 字段提取预测', async () => {
     const a = new GongshoudaoAdapter();
     const gsCache = {
       M1: {
         fusionConsensusType: 'strong',
-        directionAdvantage: { direction: 'home', confidence: 72 },
-        goalLine: 2.8,
-        predictedScore: '2:1',
-        scoreProbability: 0.35,
+        crossSpfWin: '0.72',
+        crossSpfDraw: '0.18',
+        crossSpfLose: '0.10',
+        totalAdvantageRaw: '0.25',
+        totalGoalsExpect: 2.8,
+        scores: [
+          { score: '2:1', percent: '15.2' },
+          { score: '1:0', percent: '12.8' },
+        ],
       },
     };
-    const result = await a.predict({ matchId: 'M1', date: '2026-06-03' }, { gsCache });
+    const result = await a.predict({ matchId: 'M1', date: '2026-06-04' }, { gsCache });
     expect(result).not.toBeNull();
     expect(result.direction).toBe('home');
-    expect(result.directionConfidence).toBe(0.72);
+    // ★ V9.1: totalAdvantageRaw>0 → directionConfidence *= 1.1 → 0.72*1.1=0.792
+    expect(result.directionConfidence).toBeCloseTo(0.792, 2);
     expect(result.overUnder).toBe('over');
+    expect(result.goalTotal).toBe(2.8);
     expect(result.predictedScore).toBe('2:1');
+  });
+
+  it('★ V9.1: SPF平局最高 → direction=draw', async () => {
+    const a = new GongshoudaoAdapter();
+    const gsCache = {
+      M1: {
+        fusionConsensusType: 'weak',
+        crossSpfWin: '0.30',
+        crossSpfDraw: '0.40',
+        crossSpfLose: '0.30',
+        totalAdvantageRaw: '0.05',
+        totalGoalsExpect: 2.3,
+        scores: [{ score: '1:1', percent: '18.5' }],
+      },
+    };
+    const result = await a.predict({ matchId: 'M1' }, { gsCache });
+    expect(result.direction).toBe('draw');
+    expect(result.overUnder).toBe('under');
+  });
+
+  it('★ V9.1: 无 scores 时预测正常返回', async () => {
+    const a = new GongshoudaoAdapter();
+    const gsCache = {
+      M1: {
+        fusionConsensusType: 'meltdown',
+        crossSpfWin: '0.60',
+        crossSpfDraw: '0.20',
+        crossSpfLose: '0.20',
+        totalGoalsExpect: 2.5,
+        scores: [],
+      },
+    };
+    const result = await a.predict({ matchId: 'M1' }, { gsCache });
+    expect(result).not.toBeNull();
+    expect(result.direction).toBe('home');
+    expect(result.predictedScore).toBeNull();
   });
 });
 
@@ -168,7 +215,29 @@ describe('DeepseekAdapter', () => {
     expect(result).toBeNull();
   });
 
-  it('解析主胜文本', async () => {
+  it('★ V9.1: JavaScript对象content → 方向解析', async () => {
+    const a = new DeepseekAdapter();
+    const info = { matchId: 'M1', homeName: '曼联', visitName: '利物浦' };
+    const context = {
+      aiPrediction: {
+        content: {
+          confidence: 75,
+          '预测建议': [
+            { '玩法': '胜平负', '建议方向': '主胜', '核心逻辑': '实力明显占优' },
+            { '玩法': '大小球', '建议方向': '大球', '核心逻辑': '两队攻击力强' },
+            { '玩法': '比分预测', '建议方向': '2:1', '核心逻辑': '进攻型比赛' },
+          ],
+        },
+      },
+    };
+    const result = await a.predict(info, context);
+    expect(result).not.toBeNull();
+    expect(result.direction).toBe('home');
+    expect(result.predictedScore).toBe('2:1');
+    expect(result.goalTotal).toBe(3);
+  });
+
+  it('★ V9.1: 降级关键词匹配 (无JSON)', async () => {
     const a = new DeepseekAdapter();
     const info = { matchId: 'M1', homeName: '曼联', visitName: '利物浦' };
     const context = {
@@ -177,5 +246,61 @@ describe('DeepseekAdapter', () => {
     const result = await a.predict(info, context);
     expect(result).not.toBeNull();
     expect(result.direction).toBe('home');
+  });
+});
+
+// ═══ V9.1 新增: DataFusionAdapter ═══
+
+describe('DataFusionAdapter (V9.1 新增)', () => {
+  it('modelName 应为 data_fusion', () => {
+    const a = new DataFusionAdapter();
+    expect(a.modelName).toBe('data_fusion');
+    expect(a.modelVersion).toBe('v1.0');
+    expect(a.dimensions).toContain('direction');
+    expect(a.dimensions).toContain('goal');
+  });
+
+  it('无 date/num 时返回 null', async () => {
+    const a = new DataFusionAdapter();
+    const result = await a.predict({ matchId: 'M1' }, {});
+    expect(result).toBeNull();
+  });
+});
+
+// ═══ V9.1: 基类 _parseAIOutput 共享解析 ═══
+
+describe('PredictionModelAdapter — _parseAIOutput (V9.1 T-02)', () => {
+  let adapter;
+  beforeEach(() => { adapter = new PredictionModelAdapter(); });
+
+  it('JSON解析: 提取主胜方向', () => {
+    const obj = {
+      confidence: 72,
+      '预测建议': [
+        { '玩法': '胜平负', '建议方向': '主胜', '核心逻辑': '实力占优' },
+        { '玩法': '比分预测', '建议方向': '2:0', '核心逻辑': '防守稳固' },
+      ],
+    };
+    const content = JSON.stringify(obj);
+    const result = adapter._parseAIOutput(content, { homeName: '曼联', visitName: '利物浦' });
+    expect(result.direction).toBe('home');
+    expect(result.score).toEqual({ home: 2, away: 0 });
+  });
+
+  it('降级关键词: 提取客胜', () => {
+    const result = adapter._parseAIOutput(
+      '利物浦胜，信心80%，预计0:2',
+      { homeName: '曼联', visitName: '利物浦' }
+    );
+    expect(result.direction).toBe('away');
+    // 匹配"信心80%"模式
+    expect(result.confidence).toBe(0.8);
+    expect(result.score).toEqual({ home: 0, away: 2 });
+  });
+
+  it('空内容返回 null', () => {
+    const result = adapter._parseAIOutput('', {});
+    expect(result.direction).toBeNull();
+    expect(result.score).toBeNull();
   });
 });

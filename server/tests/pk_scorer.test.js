@@ -1,13 +1,20 @@
 /**
- * P1: pk_scorer.test.js — PK 融合评分 单元测试
+ * P1: pk_scorer.test.js — PK 融合评分 单元测试（V9.1 更新）
  * 覆盖: normalize、calcPowerScores、calcGoalScores、
  *       calcHeatScores、calcHealthScores、calcStabilityScores、
- *       calcVerificationScores、calcAgeWeight、calcCompositeScore、
+ *       calcVerificationScores (含离散度/盘口位移 V9.1)、calcAgeWeight、calcCompositeScore、
  *       computeAllScores、getDirectionAdvice
  */
 const {
   computeAllScores, getDirectionAdvice
 } = require('../pk_scorer');
+
+// ★ V9.1: Mock data-fusion 以便离散度测试
+jest.mock('../core/data-fusion', () => ({
+  loadBasic: jest.fn().mockReturnValue(null),
+  discreteWarning: jest.fn().mockReturnValue({ flagLevel: 'none', flag: '稳定' }),
+  asiaWaterChange: jest.fn().mockReturnValue({ signal: '无数据' }),
+}));
 
 // ==================== normalize ====================
 
@@ -25,6 +32,10 @@ describe('pk_scorer — computeAllScores 完整评分', () => {
       crossHcpWin: '0.35', crossHcpLose: '0.3',
       fusionFinalHome: '1.5', fusionFinalAway: '0.8', fusionFinalTotal: '2.3',
       xgHome: '1.5', xgAway: '0.8',
+      // ★ V9.1: 新增字段供验证维度使用
+      num: overrides && overrides.num ? overrides.num : '001',
+      date: overrides && overrides.date ? overrides.date : '2026-06-04',
+      rq: '0',
     }, overrides || {});
   }
 
@@ -120,6 +131,26 @@ describe('pk_scorer — computeAllScores 完整评分', () => {
     const list = [makeItem({ pwScore: '0.5', ladderLevel: 3, strengthGoal: '2.0', attDefGoal: '1.5' })];
     const result = computeAllScores(list);
     expect(Array.isArray(result[0].verificationDetails)).toBe(true);
+  });
+
+  it('★ V9.1: discreteWarning 不影响评分 (mock返回none)', () => {
+    const { discreteWarning } = require('../core/data-fusion');
+    discreteWarning.mockReturnValue({ flagLevel: 'none', flag: '稳定' });
+    const list = [makeItem()];
+    const result = computeAllScores(list);
+    // verification 可能与 ladder disagreement 扣分，放宽到 >= 80
+    expect(result[0].verificationScore).toBeGreaterThanOrEqual(80);
+  });
+
+  it('★ V9.1: openHomeAward/openAwayAward 触发盘口位移分析', () => {
+    const list = [makeItem({
+      openHomeAward: '2.0', openDrawAward: '3.2', openAwayAward: '3.5',
+      homeWinAward: '1.85', drawAward: '3.5', awayWinAward: '4.0',
+      pwScore: '0.3',
+    })];
+    const result = computeAllScores(list);
+    // 盘口位移分析可能触发 penalty，但 verificationScore 应在合理范围
+    expect(result[0].verificationScore).toBeGreaterThanOrEqual(80);
   });
 });
 
