@@ -1,8 +1,10 @@
 /**
  * AI 核心看点定时生成脚本
- * - 每天 11:30：批量生成当日所有未结束比赛的五维分析
- * - 每天 16:30：批量生成当日所有未结束比赛的五维分析（二次更新）
+ * - 每天 11:30：批量生成当日所有未结束比赛的五维分析（双模型 DeepSeek + 豆包）
+ * - 每天 16:30：精简刷新（仅豆包 + 缓存命中跳过，大幅降费）
  * - 当天最后一场结束后：不生成新比赛
+ * - 缓存新鲜度：4 小时内已生成则跳过
+ * - 熔断比赛自动跳过（功守道 fusionConsensusType === 'meltdown'）
  */
 const path = require('path');
 const fs = require('fs');
@@ -27,6 +29,8 @@ const LOG_FILE = path.join(__dirname, '..', 'logs', 'ai_daemon.log');
 
 // ★ P1-4: AI 缓存最大保留 90 天
 const AI_CACHE_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
+// ★ 费用优化: 缓存新鲜度阈值（4小时内已分析则跳过）
+const CACHE_FRESH_MS = 4 * 60 * 60 * 1000;
 
 function log(msg) {
   const line = '[' + new Date().toISOString().replace('T', ' ').slice(0, 19) + '] ' + msg;
@@ -148,9 +152,66 @@ function savePrediction(matchId, matchInfo, mergedResult, dsResult, dbResult) {
 }
 
 /**
- * 处理单场比赛（双模型并行 + 合并）
+ * 检查比赛是否在缓存保鲜期内（4小时内已分析）
+ * @returns {boolean}
  */
-function processMatch(match) {
+function isMatchCached(matchId) {
+  try {
+    const aiFile = path.join(__dirname, 'ai_cache.json');
+    if (!fs.existsSync(aiFile)) return false;
+    const cache = JSON.parse(fs.readFileSync(aiFile, 'utf8'));
+    const entry = cache[matchId];
+    if (!entry || !entry.updatedAt) return false;
+    const age = Date.now() - new Date(entry.updatedAt).getTime();
+    return age < CACHE_FRESH_MS;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * 检查比赛是否为功守道熔断（数据质量差，跳过 AI 分析）
+ * @param {string} matchId 
+ * @returns {boolean}
+ */
+function isMeltdown(matchId) {
+  try {
+    const gsPath = path.join(__dirname, 'gongshoudao', 'cache.json');
+    if (!fs.existsSync(gsPath)) return false;
+    const gsCache = JSON.parse(fs.readFileSync(gsPath, 'utf8'));
+    const globalGS = gsCache._global || {};
+    // matchId 可能是 m_123456 或 123456 格式
+    const entry = globalGS[matchId] || globalGS['m_' + matchId];
+    if (entry && entry.fusionConsensusType === 'meltdown') {
+      log('跳过熔断比赛: ' + matchId);
+      return true;
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * 处理单场比赛（双模型并行 + 合并）
+ * 带缓存检查 + 熔断过滤
+ */
+function processMatch(match, options) {
+  options = options || {};
+  const skipCache = options.skipCache !== undefined ? options.skipCache : false;
+
+  // 熔断比赛跳过
+  if (isMeltdown(match.matchId)) {
+    log('熔断跳过: ' + match.matchId);
+    return Promise.resolve({ matchId: match.matchId, success: false, skipped: 'meltdown' });
+  }
+
+  // 缓存命中跳过（11:30 首次分析不跳过，16:30 刷新时跳过）
+  if (!skipCache && isMatchCached(match.matchId)) {
+    log('缓存命中跳过: ' + match.matchId);
+    return Promise.resolve({ matchId: match.matchId, success: true, cached: true });
+  }
+
   log('处理比赛: ' + match.homeName + ' vs ' + match.visitName + ' (' + match.matchId + ')');
 
   return Promise.all([
@@ -219,15 +280,60 @@ function processMatch(match) {
 }
 
 /**
- * 每天 11:30 批量生成
+ * ★ 费用优化: 精简模式 — 仅用豆包（不用 DeepSeek），适合 16:30 二次刷新
+ * 先检查缓存 + 熔断，通过后仅调用豆包
+ */
+function processMatchLight(match) {
+  if (isMeltdown(match.matchId)) {
+    log('[精简] 熔断跳过: ' + match.matchId);
+    return Promise.resolve({ matchId: match.matchId, success: false, skipped: 'meltdown' });
+  }
+  if (isMatchCached(match.matchId)) {
+    log('[精简] 缓存命中跳过: ' + match.matchId);
+    return Promise.resolve({ matchId: match.matchId, success: true, cached: true });
+  }
+
+  log('[精简] 仅豆包: ' + match.homeName + ' vs ' + match.visitName + ' (' + match.matchId + ')');
+
+  return doubao
+    .generateAnalysis(match)
+    .then(function (r) {
+      if (r.content) {
+        savePrediction(match.matchId, match, r, null, { content: r.content, rawResponse: r.rawResponse, tokenUsage: r.tokenUsage });
+        log('[精简] 完成 ' + match.matchId + ' (仅豆包)');
+        return { matchId: match.matchId, success: true, partial: true };
+      }
+      log('[精简] 豆包解析失败 ' + match.matchId);
+      return { matchId: match.matchId, success: false, error: '豆包解析失败' };
+    })
+    .catch(function (err) {
+      log('[精简] 豆包失败 ' + match.matchId + ': ' + err.message);
+      return { matchId: match.matchId, success: false, error: err.message };
+    });
+}
+
+/**
+ * 每天 11:30 批量生成（双模型完整版，skipCache=true 确保首次强制刷新）
  */
 function dailyBatch() {
+  return dailyBatchCore(false, false);
+}
+
+/**
+ * 每天 16:30 批量生成（精简版：仅豆包 + 缓存检查）
+ */
+function dailyBatchLight() {
+  return dailyBatchCore(true, false);
+}
+
+function dailyBatchCore(isLight, skipCache) {
   if (isRunning) {
     log('任务已在运行，跳过');
     return;
   }
   isRunning = true;
-  log('========== 每日 AI 批量分析开始 ==========');
+  const modeLabel = isLight ? '精简刷新（仅豆包）' : '双模型完整分析';
+  log('========== 每日 AI 批量分析开始 [' + modeLabel + '] ==========');
 
   const matches = getTodayMatches();
   log('今日未结束比赛: ' + matches.length + ' 场');
@@ -238,14 +344,26 @@ function dailyBatch() {
     return;
   }
 
+  // 预处理: 统计熔断 + 缓存命中数
+  var meltdownCount = 0;
+  var cacheHitCount = 0;
+  matches.forEach(function (m) {
+    if (isMeltdown(m.matchId)) meltdownCount++;
+    else if (!skipCache && isMatchCached(m.matchId)) cacheHitCount++;
+  });
+  var willProcess = matches.length - meltdownCount - cacheHitCount;
+  log('熔断跳过: ' + meltdownCount + ' 场, 缓存命中: ' + cacheHitCount + ' 场, 实际需处理: ' + willProcess + ' 场');
+
   // 串行处理，每场间隔 2 秒
   function processNext(index) {
     if (index >= matches.length) {
-      log('========== 每日 AI 批量分析完成 ==========');
+      log('========== 每日 AI 批量分析完成 [' + modeLabel + '] ==========');
       isRunning = false;
       return;
     }
-    return processMatch(matches[index])
+    var match = matches[index];
+    var processor = isLight ? processMatchLight : function (m) { return processMatch(m, { skipCache: skipCache }); };
+    return processor(match)
       .then(function () {
         return new Promise(function (r) {
           setTimeout(r, 2000);
@@ -274,24 +392,24 @@ let dailyTimer1130 = null;
 let dailyTimer1630 = null;
 
 function start() {
-  log('AI 定时守护进程启动（每日 11:30 + 16:30）');
+  log('AI 定时守护进程启动（11:30 双模型 + 16:30 仅豆包）');
 
-  // 立即运行一次（如果当前时间在生成点之后且今日未运行）
+  // 立即运行一次（首次启动用完整双模型分析）
   dailyBatch();
 
-  // 设置每天 11:30 定时
+  // 设置每天 11:30 定时（双模型完整分析）
   var delay1130 = getDelayToTarget(11, 30);
-  log('首次 11:30 定时将在 ' + Math.round(delay1130 / 3600000) + ' 小时后触发');
+  log('首次 11:30(双模型) 将在 ' + Math.round(delay1130 / 3600000) + ' 小时后触发');
   dailyTimer1130 = setTimeout(function run1130() {
     dailyBatch();
     dailyTimer1130 = setTimeout(run1130, 24 * 3600000);
   }, delay1130);
 
-  // 设置每天 16:30 定时
+  // 设置每天 16:30 定时（精简刷新：仅豆包 + 缓存检查）
   var delay1630 = getDelayToTarget(16, 30);
-  log('首次 16:30 定时将在 ' + Math.round(delay1630 / 3600000) + ' 小时后触发');
+  log('首次 16:30(仅豆包) 将在 ' + Math.round(delay1630 / 3600000) + ' 小时后触发');
   dailyTimer1630 = setTimeout(function run1630() {
-    dailyBatch();
+    dailyBatchLight();
     dailyTimer1630 = setTimeout(run1630, 24 * 3600000);
   }, delay1630);
 }
@@ -346,4 +464,4 @@ function cleanAiCache(maxAgeMs) {
   }
 }
 
-module.exports = { start, stop, dailyBatch, getTodayMatches, cleanAiCache };
+module.exports = { start, stop, dailyBatch, dailyBatchLight, getTodayMatches, cleanAiCache };

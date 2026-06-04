@@ -8,7 +8,7 @@ const http = require('http');
 
 const API_KEY = process.env.DOUBAO_API_KEY || 'DUMMY_PLACEHOLDER';
 const BASE_URL = process.env.DOUBAO_BASE_URL || 'https://ark.cn-beijing.volces.com/api/v3';
-const MODEL = process.env.DOUBAO_MODEL || 'doubao-seed-2-0-code-preview-260215';
+const MODEL = process.env.DOUBAO_MODEL || 'doubao-seed-character-251128';
 const TIMEOUT = 90000; // 90秒超时（复杂分析需更长时间）
 
 // 复用 deepseek.js 的 Prompt 构建函数（保持两个模型接收完全相同的指令）
@@ -26,7 +26,7 @@ function callDoubao(messages) {
       model: MODEL,
       messages: messages,
       temperature: 0.7,
-      max_tokens: 4096,
+      max_tokens: 2048,
     });
 
     const options = {
