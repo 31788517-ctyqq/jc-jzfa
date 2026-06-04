@@ -180,6 +180,8 @@ DEPLOY_MAP = [
     ('server/core/feature-engine.js',    'both'),
     ('server/core/outcome-backfill.js',  'both'),
     ('server/core/data-quality.js',      'both'),
+    # ★ V9.0 三源数据融合层（被 market/goal/feature-engine/index 依赖）
+    ('server/core/data-fusion.js',       'both'),
     ('ecosystem.config.json',             'pm2'),
     ('.gitignore',                        'both'),
 ]

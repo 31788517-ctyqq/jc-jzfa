@@ -48,7 +48,20 @@ function computeSingleMatch(rawStats, matchInfo) {
   const strengthResult = attack.analyze(vars);
 
   // 第四阶段：大小球 + xG（传入归一化 S 值）
-  const goalResult = goal.analyze(vars, strengthResult.totalAdvantageRaw);
+  const goalResult = goal.analyze(vars, strengthResult.totalAdvantageRaw, matchInfo /* V9.1: 传入 matchInfo 以加载 dxqLastPan */);
+
+  // ★ V9.0 大小球交叉验证（功守道 xG vs 市场大小球盘口）
+  try {
+    const { crossValidateXg, loadBasic } = require('../core/data-fusion');
+    const numStr = (matchInfo.num || '').replace(/^[^\d]*/, '');
+    const num = parseInt(numStr) || 0;
+    if (num > 0) {
+      const basicData = loadBasic((matchInfo.date || '').slice(0, 10), num);
+      if (basicData) {
+        goalResult.dxqValidation = crossValidateXg(goalResult, basicData);
+      }
+    }
+  } catch (e) { /* 静默 */ }
 
   // 第五阶段：净胜球 + 让球分析
   const diffResult = diff.analyze(vars, goalResult.xgHome, goalResult.xgAway);

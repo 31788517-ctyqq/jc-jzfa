@@ -249,9 +249,9 @@ function calcLoseWinCross(totalStrength, homeSeries, awaySeries) {
   };
 }
 
-// ==================== 5.4 三者一致共振裁决 ====================
+// ==================== 5.4 三者一致共振裁决（V9.1: 增加市场面共振纬度） ====================
 
-function calcResonance(diffXG, totalStrength, dim1, dim2) {
+function calcResonance(diffXG, totalStrength, dim1, dim2, marketContext) {
   const diffPositive = diffXG > 0;
   const totalStrong = totalStrength.normalized >= 0.2;
   const totalWeak = totalStrength.normalized <= -0.2;
@@ -260,20 +260,46 @@ function calcResonance(diffXG, totalStrength, dim1, dim2) {
   const dim1Passed = dim1.passed && dim1.prob >= 0.55;
   const dim2Passed = dim2.passed && dim2.prob >= 0.55;
 
+  // ★ V9.1 ZQ-02: 市场面共振纬度
+  let marketResonance = 0; // -1=背离, 0=中性, 1=共振
+  if (marketContext) {
+    const panShift = marketContext.panShift || 0;
+    const spImpHome = marketContext.spImpHome || 0.33;
+    // 盘口位移与实力方向一致 → 市场共振
+    if (diffPositive && panShift > 0 && spImpHome > 0.45) marketResonance = 1;
+    else if (!diffPositive && panShift < 0 && spImpHome < 0.35) marketResonance = 1;
+    // 盘口位移与实力方向相反 → 市场背离
+    else if (diffPositive && panShift < 0) marketResonance = -1;
+    else if (!diffPositive && panShift > 0) marketResonance = -1;
+  }
+
   // 主队共振提振: Diff_exp > 0 && Total_战 ≥ 0.2 && 维度一高概率通过
   if (diffPositive && totalStrong && dim1Passed) {
-    return { verdict: '🔥 三者共振：主队穿盘概率极高 (' + dim1.probPct + ')', level: 'strong_home' };
+    const label = marketResonance === 1
+      ? '🔥 四维共振：主队穿盘+市场验证 (' + dim1.probPct + ')'
+      : '🔥 三者共振：主队穿盘概率极高 (' + dim1.probPct + ')';
+    return { verdict: label, level: marketResonance === 1 ? 'strong_home_verified' : 'strong_home' };
   }
 
   // 客队共振提振: Diff_exp < 0 && Total_战 ≤ -0.2 && 维度二高概率通过
   if (!diffPositive && totalWeak && dim2Passed) {
-    return { verdict: '🛡️ 三者共振：客队不败稳健 (' + dim2.probPct + ')', level: 'strong_away' };
+    const label = marketResonance === 1
+      ? '🛡️ 四维共振：客队不败+市场验证 (' + dim2.probPct + ')'
+      : '🛡️ 三者共振：客队不败稳健 (' + dim2.probPct + ')';
+    return { verdict: label, level: marketResonance === 1 ? 'strong_away_verified' : 'strong_away' };
   }
 
   if (dim1.passed) {
+    // 市场背离时降级
+    if (marketResonance === -1) {
+      return { verdict: '主队盘路偏强(' + dim1.probPct + ')，但市场背离⚠️', level: 'weak_home_divergent' };
+    }
     return { verdict: '主队盘路偏强(' + dim1.probPct + ')，但需谨慎', level: 'weak_home' };
   }
   if (dim2.passed) {
+    if (marketResonance === -1) {
+      return { verdict: '客队韧性(' + dim2.probPct + ')，但市场背离⚠️', level: 'weak_away_divergent' };
+    }
     return { verdict: '客队韧性(' + dim2.probPct + ')，但需谨慎', level: 'weak_away' };
   }
 
@@ -298,8 +324,8 @@ function analyze(vars, xgHome, xgAway) {
   const dim1 = calcWinLoseCross(totalStrength, homeSeries, awaySeries);
   const dim2 = calcLoseWinCross(totalStrength, homeSeries, awaySeries);
 
-  // 5.4 共振裁决
-  const resonance = calcResonance(diffXG, totalStrength, dim1, dim2);
+  // 5.4 共振裁决（V9.1: 传入市场上下文做四维共振判定）
+  const resonance = calcResonance(diffXG, totalStrength, dim1, dim2, null /* market context filled by index.js */);
 
   // Total_战 百分比化显示
   const totalPct = round(totalStrength.normalized * 100, 1);

@@ -112,6 +112,19 @@ function calcHealthScores(list) {
   });
 }
 
+/**
+ * ★ V9.0 赢盘率评分维度（第7维）
+ * 取 homeWinPan / 2 × 100 作为赢盘率评分（0=全输, 50=均衡, 100=全赢）
+ */
+function calcWinPanScores(list) {
+  return list.map(function (item) {
+    const wp = parseFloat(item.homeWinPan);
+    if (isNaN(wp)) return 50;
+    // 赢盘率 / 2 × 100（文档: 0最低 2最高）
+    return parseFloat(Math.max(0, Math.min(100, (wp / 2) * 100)).toFixed(1));
+  });
+}
+
 function calcStabilityScores(list) {
   return list.map(function (item) {
     const s = parseFloat(item.stabilityOverall);
@@ -120,6 +133,18 @@ function calcStabilityScores(list) {
 }
 
 function calcVerificationScores(list) {
+  // ★ V9.1 ZQ-03: 预热离散度数据（批量加载 JczqBasic）
+  let discreteCache = null;
+  try {
+    const { loadBasic, discreteWarning } = require('./core/data-fusion');
+    // 预取第一场比赛的日期用于离散度检测
+    if (list.length > 0 && list[0].date) {
+      const firstDate = list[0].date.slice(0, 10);
+      // 批量计算所有比赛的离散度
+      discreteCache = {};
+    }
+  } catch (e) { /* data-fusion 不可用 */ }
+
   return list.map(function (item) {
     let score = 100;
     const details = [];
@@ -163,16 +188,34 @@ function calcVerificationScores(list) {
       details.push('bigBall vs league mismatch');
     }
 
+    // ═══ V9.1 ZQ-03: 离散度预警检测 ═══
+    try {
+      const { loadBasic, discreteWarning } = require('./core/data-fusion');
+      const dateStr = (item.date || '').slice(0, 10);
+      const matchNum = String(item.num || '').replace(/^[^\\d]*/, '');
+      if (dateStr && matchNum) {
+        const basic = loadBasic(dateStr, matchNum);
+        if (basic) {
+          const discrete = discreteWarning(null, basic);
+          if (discrete.flagLevel === 'warning' && pw > 0.15) {
+            score -= 10;
+            details.push('discrete expanded with PW bias');
+          } else if (discrete.flagLevel === 'caution') {
+            score -= 5;
+            details.push('discrete slightly expanded');
+          }
+        }
+      }
+    } catch (e) { /* skip discrete check */ }
+
     // ═══ V2.0: P4 盘口位移验证 ═══
-    // 如果数据中有初盘/即时盘数据，进行位移分析
     const openHome = parseFloat(item.openHomeAward) || 0;
     const openDraw = parseFloat(item.openDrawAward) || 0;
     const openAway = parseFloat(item.openAwayAward) || 0;
-    const liveHome = hAward; // 当前赔率即即时盘
+    const liveHome = hAward;
     const liveDraw = parseFloat(item.drawAward) || 0;
     const liveAway = aAward;
 
-    // 有初盘数据时才做位移分析
     if (openHome > 1.0 && liveHome > 1.0) {
       const moveResult = oddsMovement.analyzeMovement(
         { home: openHome, draw: openDraw, away: openAway },
@@ -182,6 +225,15 @@ function calcVerificationScores(list) {
       if (moveResult.penalty > 0) {
         score -= moveResult.penalty;
         details.push('odds movement: ' + moveResult.direction + ' (shift=' + moveResult.probShift.toFixed(3) + ')');
+      }
+
+      // ★ V9.1 ZQ-03: 盘口位移与 pw 方向一致 → bonus
+      if (moveResult.penalty === 0 && moveResult.severity !== 'none') {
+        const isSameDirection = (pw > 0 && moveResult.probShift > 0) || (pw < 0 && moveResult.probShift < 0);
+        if (isSameDirection) {
+          score += 5;
+          details.push('movement aligns with PW (+5)');
+        }
       }
     }
 
@@ -211,17 +263,18 @@ function calcAgeWeight(dataAge, dataType) {
 }
 
 // ═══ V2.0: 按玩法切换评分权重 Profile ═══
+// ★ V9.0: 新增第7维 winPan（赢盘率），各玩法微调权重
 const SCORE_PROFILES = {
-  spf: { power: 0.40, goal: 0.10, heat: 0.10, health: 0.10, stability: 0.10, verify: 0.20 },         // 胜平负：实力+验证权重高
-  overUnder: { power: 0.10, goal: 0.35, heat: 0.05, health: 0.25, stability: 0.15, verify: 0.10 },  // 大小球：进球+健康权重高
-  handicap: { power: 0.40, goal: 0.05, heat: 0.05, health: 0.10, stability: 0.10, verify: 0.30 },    // 让球：实力+验证权重高
-  default: { power: 0.30, goal: 0.15, heat: 0.10, health: 0.15, stability: 0.15, verify: 0.15 },     // 默认维衡
+  spf:       { power: 0.35, goal: 0.10, heat: 0.10, health: 0.10, stability: 0.10, verify: 0.15, winPan: 0.10 },
+  overUnder: { power: 0.10, goal: 0.30, heat: 0.05, health: 0.20, stability: 0.15, verify: 0.10, winPan: 0.10 },
+  handicap:  { power: 0.35, goal: 0.05, heat: 0.05, health: 0.10, stability: 0.10, verify: 0.25, winPan: 0.10 },
+  default:   { power: 0.25, goal: 0.15, heat: 0.10, health: 0.15, stability: 0.10, verify: 0.15, winPan: 0.10 },
 };
 
-function calcCompositeScore(pwr, goal, heat, health, stab, verif, playType) {
+function calcCompositeScore(pwr, goal, heat, health, stab, verif, winPan, playType) {
   const p = SCORE_PROFILES[playType] || SCORE_PROFILES.default;
   return parseFloat(
-    (p.power * pwr + p.goal * goal + p.heat * heat + p.health * health + p.stability * stab + p.verify * verif).toFixed(1)
+    (p.power * pwr + p.goal * goal + p.heat * heat + p.health * health + p.stability * stab + p.verify * verif + p.winPan * winPan).toFixed(1)
   );
 }
 
@@ -231,6 +284,7 @@ function computeAllScores(list) {
   const heatScores = calcHeatScores(list);
   const healthScores = calcHealthScores(list);
   const stabilityScores = calcStabilityScores(list);
+  const winPanScores = calcWinPanScores(list);
   const verificationResults = calcVerificationScores(list);
   const verificationScores = verificationResults.map(function (v) {
     return v.score;
@@ -243,10 +297,11 @@ function computeAllScores(list) {
     const health = healthScores[i];
     const stab = stabilityScores[i];
     const verif = verificationScores[i];
+    const winPan = winPanScores[i];
     const da = item.dataAge;
     const heatAdj = heat * calcAgeWeight(da, 'heat');
     const stabAdj = stab * calcAgeWeight(da, 'stats');
-    let comp = calcCompositeScore(pwr, goal, heatAdj, health, stabAdj, verif);
+    let comp = calcCompositeScore(pwr, goal, heatAdj, health, stabAdj, verif, winPan);
     if (da > 240) comp = Math.max(0, comp - 5);
     else if (da > 120) comp = Math.max(0, comp - 3);
     return {
@@ -258,6 +313,7 @@ function computeAllScores(list) {
       stabilityScore: stab,
       verificationScore: verif,
       verificationDetails: verificationResults[i].details,
+      winPanScore: winPan,
       compositeScore: parseFloat(comp.toFixed(1)),
       stars: Math.round(comp / 20),
     };

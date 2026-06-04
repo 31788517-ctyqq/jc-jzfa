@@ -43,6 +43,7 @@ class FeatureEngine {
       Object.assign(features, await this._getOddsFeatures(matchId, context));
       Object.assign(features, await this._getRecommendFeatures(matchId, context));
       Object.assign(features, await this._getContextFeatures(homeName, visitName, db, matchDate));
+      Object.assign(features, await this._getBasicFeatures(matchNum, matchDate, db));
     } catch (e) {
       console.error('[FeatureEngine] computeFeatures 失败:', e.message);
     }
@@ -310,6 +311,72 @@ class FeatureEngine {
     } catch (e) {
       return null;
     }
+  }
+
+  // ═══ V9.0 JczqBasic 基本面特征 ═══
+  async _getBasicFeatures(matchNum, matchDate, db) {
+    const features = {};
+    try {
+      // 优先从 JczqBasic 缓存读取（data-fusion 写入）
+      const { loadBasic, spImpliedProb, asiaWaterChange, discreteWarning } = require('./data-fusion');
+
+      const basic = loadBasic(matchDate, matchNum);
+      if (!basic) return features;
+
+      // 积分均值
+      if (basic.homeJiFenHomeAll != null) features.basic_home_points_avg = basic.homeJiFenHomeAll;
+      if (basic.awayJiFenGuest != null) features.basic_away_points_away = basic.awayJiFenGuest;
+
+      // 赢盘率
+      if (basic.homeWinPan != null) features.basic_home_win_pan_rate = basic.homeWinPan / 2;
+      if (basic.guestWinPan != null) features.basic_guest_win_pan_rate = basic.guestWinPan / 2;
+
+      // 进攻/防守效率
+      if (basic.homeEnterEfficiency != null) features.basic_home_attack_eff = basic.homeEnterEfficiency;
+      if (basic.guestEnterEfficiency != null) features.basic_guest_attack_eff = basic.guestEnterEfficiency;
+      if (basic.homePreventEfficiency != null) features.basic_home_defense_eff = basic.homePreventEfficiency;
+      if (basic.guestPreventEfficiency != null) features.basic_guest_defense_eff = basic.guestPreventEfficiency;
+
+      // 进球分布
+      if (basic.homeWinQiu_0 != null) features.basic_home_goal_0_cnt = basic.homeWinQiu_0;
+      if (basic.homeWinQiu_1 != null) features.basic_home_goal_1_cnt = basic.homeWinQiu_1;
+      if (basic.homeWinQiu_2 != null) features.basic_home_goal_2_cnt = basic.homeWinQiu_2;
+      if (basic.homeLoseQiu_0 != null) features.basic_home_concede_0_cnt = basic.homeLoseQiu_0;
+      if (basic.homeLoseQiu_1 != null) features.basic_home_concede_1_cnt = basic.homeLoseQiu_1;
+      if (basic.homeLoseQiu_2 != null) features.basic_home_concede_2_cnt = basic.homeLoseQiu_2;
+
+      // SP 隐含概率
+      const spProb = spImpliedProb(basic);
+      if (spProb.homeImplied != null) features.basic_sp_home_implied = spProb.homeImplied;
+      if (spProb.drawImplied != null) features.basic_sp_draw_implied = spProb.drawImplied;
+      if (spProb.awayImplied != null) features.basic_sp_away_implied = spProb.awayImplied;
+
+      // 亚指水位变化
+      const asiaWater = asiaWaterChange(basic);
+      if (asiaWater.panShift != null) features.basic_asia_pan_shift = asiaWater.panShift;
+      if (asiaWater.waterChangeHome != null) features.basic_asia_water_home = asiaWater.waterChangeHome;
+      if (asiaWater.waterChangeAway != null) features.basic_asia_water_away = asiaWater.waterChangeAway;
+
+      // 离散度变化
+      const discrete = discreteWarning(null, basic);
+      if (discrete.shift != null) features.basic_discrete_shift = discrete.shift;
+      if (discrete.initDiff != null) features.basic_discrete_init = discrete.initDiff;
+      if (discrete.lastDiff != null) features.basic_discrete_last = discrete.lastDiff;
+
+      // 大小球盘口
+      if (basic.dxqInitPan != null) features.basic_dxq_init_pan = basic.dxqInitPan;
+      if (basic.dxqLastPan != null) features.basic_dxq_last_pan = basic.dxqLastPan;
+
+      // 实力对比
+      if (basic.homePower != null && basic.guestPower != null) {
+        features.basic_home_power = basic.homePower;
+        features.basic_guest_power = basic.guestPower;
+        features.basic_power_diff = basic.homePower - basic.guestPower;
+      }
+    } catch (e) {
+      // 静默失败，该数据源可能不可用
+    }
+    return features;
   }
 
   // ═══════════════════════════════════════════════════════

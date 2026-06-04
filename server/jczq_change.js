@@ -3,6 +3,8 @@
  *
  * 调用 m.100qiu.com/api/JczqChange + JczqBasic（本地直连 127.0.0.1:8080）
  * 按产品文档公式计算冷热指数 / 主客队特征
+ *
+ * V9.0: JczqBasic 全字段持久化到 midou_data.db jczq_basic_cache 表
  */
 const http = require('http');
 const path = require('path');
@@ -15,6 +17,9 @@ const CACHE_PATH = path.join(__dirname, 'jczq_change_cache.json');
 const BATCH_SIZE = 5; // 增加并发数，减少批次等待
 const BATCH_DELAY = 200; // 批次间延迟 ms（原500ms）
 const CACHE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // ★ P1-3: 缓存有效期 30 天
+
+// ★ DB 持久化统计（用于监控）
+let _basicStoreStats = { attempts: 0, stored: 0, skipped: 0, errors: 0 };
 
 // ── 缓存 ──
 
@@ -112,6 +117,138 @@ async function fetchJczqBasic(dateStr, number) {
   const apiPath = '/api/JczqBasic?dateTime=' + dt + '&number=' + number;
   const resp = await fetchJSON(apiPath);
   return resp && resp.data ? resp.data : null;
+}
+
+/**
+ * ★ V9.0 获取 JczqBasic 全字段（40+ 字段，按《竞彩全维度数据_JS字段解释规范》）
+ * @param {string} dateStr  "2026-05-26"
+ * @param {number} number   比赛编号（如 1、19）
+ * @returns {Object|null}   结构化全字段对象，失败返回 null
+ */
+async function fetchJczqBasicFull(dateStr, number) {
+  const dt = dateStr.replace(/-/g, '');
+  const apiPath = '/api/JczqBasic?dateTime=' + dt + '&number=' + number;
+  const resp = await fetchJSON(apiPath);
+  if (!resp || !resp.data) return null;
+  const d = resp.data;
+
+  // 提取所有 40+ 字段，按文档规范分类
+  return {
+    // 一、基础信息与赛事标识
+    lineId: d.lineId || null,
+    matchTimeStr: d.matchTimeStr || null,
+    homeTeam: d.homeTeam || null,
+    guestTeam: d.guestTeam || null,
+    gameShortName: d.gameShortName || null,
+    rq: d.rq !== undefined ? d.rq : null,
+
+    // 二、球队基本面与历史特征
+    homePower: d.homePower != null ? Number(d.homePower) : null,
+    guestPower: d.guestPower != null ? Number(d.guestPower) : null,
+    homeJiFenHomeAll: d.homeJiFenHomeAll != null ? Number(d.homeJiFenHomeAll) : null,
+    homeJiFenHome: d.homeJiFenHome != null ? Number(d.homeJiFenHome) : null,
+    awayJiFenGuest: d.awayJiFenGuest != null ? Number(d.awayJiFenGuest) : null,
+    homeFeature: d.homeFeature || null,
+    guestFeature: d.guestFeature || null,
+    homeEnterEfficiency: d.homeEnterEfficiency != null ? Number(d.homeEnterEfficiency) : null,
+    guestEnterEfficiency: d.guestEnterEfficiency != null ? Number(d.guestEnterEfficiency) : null,
+    homePreventEfficiency: d.homePreventEfficiency != null ? Number(d.homePreventEfficiency) : null,
+    guestPreventEfficiency: d.guestPreventEfficiency != null ? Number(d.guestPreventEfficiency) : null,
+    homeSpf: d.homeSpf || null,
+    guestSpf: d.guestSpf || null,
+    homeWinQiu_0: d.homeWinQiu_0 != null ? Number(d.homeWinQiu_0) : null,
+    homeWinQiu_1: d.homeWinQiu_1 != null ? Number(d.homeWinQiu_1) : null,
+    homeWinQiu_2: d.homeWinQiu_2 != null ? Number(d.homeWinQiu_2) : null,
+    homeLoseQiu_0: d.homeLoseQiu_0 != null ? Number(d.homeLoseQiu_0) : null,
+    homeLoseQiu_1: d.homeLoseQiu_1 != null ? Number(d.homeLoseQiu_1) : null,
+    homeLoseQiu_2: d.homeLoseQiu_2 != null ? Number(d.homeLoseQiu_2) : null,
+    homeWinGap_1: d.homeWinGap_1 != null ? Number(d.homeWinGap_1) : null,
+    homeWinGap_2: d.homeWinGap_2 != null ? Number(d.homeWinGap_2) : null,
+    homeLoseGap_1: d.homeLoseGap_1 != null ? Number(d.homeLoseGap_1) : null,
+    homeLoseGap_2: d.homeLoseGap_2 != null ? Number(d.homeLoseGap_2) : null,
+    homeWinPan: d.homeWinPan != null ? Number(d.homeWinPan) : null,
+    guestWinPan: d.guestWinPan != null ? Number(d.guestWinPan) : null,
+    jiaoFenDesc: d.jiaoFenDesc || null,
+    jiaoFenMatch1: d.jiaoFenMatch1 || null,
+    jiaoFenMatch2: d.jiaoFenMatch2 || null,
+
+    // 三、亚指、大小球与欧指让球
+    initPan: d.initPan != null ? Number(d.initPan) : null,
+    asiaInitAvgWinOdd: d.asiaInitAvgWinOdd != null ? Number(d.asiaInitAvgWinOdd) : null,
+    asiaInitAvgLoseOdd: d.asiaInitAvgLoseOdd != null ? Number(d.asiaInitAvgLoseOdd) : null,
+    lastPan: d.lastPan != null ? Number(d.lastPan) : null,
+    asiaLastAvgWinOdd: d.asiaLastAvgWinOdd != null ? Number(d.asiaLastAvgWinOdd) : null,
+    asiaLastAvgLoseOdd: d.asiaLastAvgLoseOdd != null ? Number(d.asiaLastAvgLoseOdd) : null,
+    dxqInitPan: d.dxqInitPan != null ? Number(d.dxqInitPan) : null,
+    dxqInitAvgWinOdd: d.dxqInitAvgWinOdd != null ? Number(d.dxqInitAvgWinOdd) : null,
+    dxqInitAvgLoseOdd: d.dxqInitAvgLoseOdd != null ? Number(d.dxqInitAvgLoseOdd) : null,
+    dxqLastPan: d.dxqLastPan != null ? Number(d.dxqLastPan) : null,
+    dxqLastAvgWinOdd: d.dxqLastAvgWinOdd != null ? Number(d.dxqLastAvgWinOdd) : null,
+    dxqLastAvgLoseOdd: d.dxqLastAvgLoseOdd != null ? Number(d.dxqLastAvgLoseOdd) : null,
+    initRqWinOdd: d.initRqWinOdd != null ? Number(d.initRqWinOdd) : null,
+    initRqDrawOdd: d.initRqDrawOdd != null ? Number(d.initRqDrawOdd) : null,
+    initRqLoseOdd: d.initRqLoseOdd != null ? Number(d.initRqLoseOdd) : null,
+    lastRqWinOdd: d.lastRqWinOdd != null ? Number(d.lastRqWinOdd) : null,
+    lastRqDrawOdd: d.lastRqDrawOdd != null ? Number(d.lastRqDrawOdd) : null,
+    lastRqLoseOdd: d.lastRqLoseOdd != null ? Number(d.lastRqLoseOdd) : null,
+
+    // 四、欧指概率与离散度分析
+    winRate: d.winRate != null ? Number(d.winRate) : null,
+    drawRate: d.drawRate != null ? Number(d.drawRate) : null,
+    loseRate: d.loseRate != null ? Number(d.loseRate) : null,
+    lastWinRate: d.lastWinRate != null ? Number(d.lastWinRate) : null,
+    lastDrawRate: d.lastDrawRate != null ? Number(d.lastDrawRate) : null,
+    lastLoseRate: d.lastLoseRate != null ? Number(d.lastLoseRate) : null,
+    winDiscrete: d.winDiscrete != null ? Number(d.winDiscrete) : null,
+    drawDiscrete: d.drawDiscrete != null ? Number(d.drawDiscrete) : null,
+    loseDiscrete: d.loseDiscrete != null ? Number(d.loseDiscrete) : null,
+    lastWinDiscrete: d.lastWinDiscrete != null ? Number(d.lastWinDiscrete) : null,
+    lastDrawDiscrete: d.lastDrawDiscrete != null ? Number(d.lastDrawDiscrete) : null,
+    lastLoseDiscrete: d.lastLoseDiscrete != null ? Number(d.lastLoseDiscrete) : null,
+    initDiscreteDiff: d.initDiscreteDiff != null ? Number(d.initDiscreteDiff) : null,
+    lastDiscreteDiff: d.lastDiscreteDiff != null ? Number(d.lastDiscreteDiff) : null,
+    initEuroPay: d.initEuroPay != null ? Number(d.initEuroPay) : null,
+    lastEuroPay: d.lastEuroPay != null ? Number(d.lastEuroPay) : null,
+    initConfi: d.initConfi != null ? Number(d.initConfi) : null,
+    lastConfi: d.lastConfi != null ? Number(d.lastConfi) : null,
+
+    // 五、市场支持率与关注度
+    winPercent: d.winPercent != null ? Number(d.winPercent) : null,
+    drawPercent: d.drawPercent != null ? Number(d.drawPercent) : null,
+    losePercent: d.losePercent != null ? Number(d.losePercent) : null,
+    rqWinPercent: d.rqWinPercent != null ? Number(d.rqWinPercent) : null,
+    rqDrawPercent: d.rqDrawPercent != null ? Number(d.rqDrawPercent) : null,
+    rqLosePercent: d.rqLosePercent != null ? Number(d.rqLosePercent) : null,
+    hotWinRate: d.hotWinRate != null ? Number(d.hotWinRate) : null,
+    hotLoseRate: d.hotLoseRate != null ? Number(d.hotLoseRate) : null,
+    hotFocusNum: d.hotFocusNum != null ? Number(d.hotFocusNum) : null,
+
+    // 六、北单实时奖金与换算比例
+    homeWinAward: d.homeWinAward != null ? Number(d.homeWinAward) : null,
+    drawAward: d.drawAward != null ? Number(d.drawAward) : null,
+    guestWinAward: d.guestWinAward != null ? Number(d.guestWinAward) : null,
+  };
+}
+
+/**
+ * ★ V9.0 将 JczqBasic 全字段静默持久化到 SQLite
+ * 失败不影响主流程，仅记录统计
+ */
+function storeBasicToDB(dateStr, matchNum, basicData) {
+  if (!basicData || !matchNum) return;
+  _basicStoreStats.attempts++;
+  try {
+    const database = require('./database');
+    if (!database.isAvailable || !database.isAvailable()) {
+      // 数据库未就绪，静默跳过
+      return;
+    }
+    database.upsertJczqBasic(dateStr, String(matchNum), basicData);
+    _basicStoreStats.stored++;
+  } catch (e) {
+    _basicStoreStats.errors++;
+    // 静默失败，不阻塞主流程
+  }
 }
 
 // ── 辅助 ──
@@ -314,13 +451,35 @@ async function computeHotData(dateStr, matchList) {
             cache[dateKey][matchId] = cached;
           }
           results[matchId] = cached;
+
+          // ★ V9.0 静默补齐 JczqBasic 到 DB（缓存命中但 DB 可能缺 Basic 数据）
+          try {
+            const database = require('./database');
+            if (database.isAvailable && database.isAvailable() && !database.getJczqBasic(dateStr, String(number))) {
+              fetchJczqBasicFull(dateStr, number).then(function (basicData) {
+                storeBasicToDB(dateStr, String(number), basicData);
+              }).catch(function () {});
+            } else {
+              _basicStoreStats.skipped++;
+            }
+          } catch (e) { /* 静默 */ }
+
           return;
         }
 
-        // 2) 并行获取 JczqChange + JczqYz（减少串行等待）
-        const cdYz = await Promise.all([fetchJczqChange(dateStr, number), jczqYz.fetchJczqYz(dateStr, number)]);
-        const cd = cdYz[0];
-        const yz = cdYz[1];
+        // 2) 并行获取 JczqChange + JczqYz + JczqBasicFull（V9.0 新增）
+        const cdYzBasic = await Promise.all([
+          fetchJczqChange(dateStr, number),
+          jczqYz.fetchJczqYz(dateStr, number),
+          fetchJczqBasicFull(dateStr, number),
+        ]);
+        const cd = cdYzBasic[0];
+        const yz = cdYzBasic[1];
+        const basicFull = cdYzBasic[2];
+
+        // ★ V9.0 持久化 JczqBasic 全字段到 SQLite
+        storeBasicToDB(dateStr, String(number), basicFull);
+
         const hotFocusNum = yz ? yz.hotFocusNum : null;
         const oddsLive = yz ? yz.oddsLive : null;
         // 如果 Yz 有 rq 且传入的 matchList.rq 缺失，则用 Yz 的 rq
@@ -339,11 +498,10 @@ async function computeHotData(dateStr, matchList) {
         if (m.homePower != null && m.guestPower != null) {
           staticDiff = computeStaticDiff(m.homePower, m.guestPower);
         } else {
-          // 降级：从 JczqBasic 取（功守道缓存未命中时才触发）
-          const basic = await fetchJczqBasic(dateStr, number);
+          // 降级：优先用刚获取的 basicFull，无额外 API 请求
           staticDiff = computeStaticDiff(
-            basic && basic.homePower != null ? basic.homePower : 50,
-            basic && basic.guestPower != null ? basic.guestPower : 50,
+            basicFull && basicFull.homePower != null ? basicFull.homePower : 50,
+            basicFull && basicFull.guestPower != null ? basicFull.guestPower : 50,
           );
         }
 
@@ -399,7 +557,10 @@ function makeEmptyResult() {
 module.exports = {
   computeHotData: computeHotData,
   fetchJczqChange: fetchJczqChange,
+  fetchJczqBasicFull: fetchJczqBasicFull,
+  storeBasicToDB: storeBasicToDB,
   computeHeatIndex: computeHeatIndex,
   computeStaticDiff: computeStaticDiff,
   computeFeature: computeFeature,
+  getBasicStoreStats: function () { return Object.assign({}, _basicStoreStats); },
 };

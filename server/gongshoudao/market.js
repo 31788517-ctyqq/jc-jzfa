@@ -239,6 +239,55 @@ function analyze(vars, matchInfo, gsContext) {
   let signalScore = 50;
   let signalFlags = [];
 
+  // ★ V9.0 离散度预警（从 JczqBasic 加载）
+  try {
+    const { discreteWarning: fusionDiscrete, loadBasic, asiaWaterChange } = require('../core/data-fusion');
+    const basicData = loadBasic(dateStr, (num || '').replace(/^[^\\d]*/, ''));
+    if (basicData) {
+      const discrete = fusionDiscrete(null, basicData);
+      if (discrete.flagLevel === 'warning') {
+        signalScore -= 10;
+        signalFlags.push('⚠️ 离散度扩大');
+      } else if (discrete.flagLevel === 'caution') {
+        signalScore -= 5;
+        signalFlags.push('离散度轻微扩大');
+      }
+
+      // ★ V9.1 T-03: 亚指水位变化检测
+      const asiaWater = asiaWaterChange(basicData);
+      if (asiaWater.signal !== '无数据' && asiaWater.signal !== '水位稳定') {
+        // 主队降水+盘口不变 → 市场真实看好
+        if (asiaWater.waterChangeHome != null && asiaWater.waterChangeHome < -0.05 && !asiaWater.panShift) {
+          signalScore += 5;
+          signalFlags.push('主队降水(' + (asiaWater.waterChangeHome * -1).toFixed(2) + ')');
+        } else if (asiaWater.waterChangeHome != null && asiaWater.waterChangeHome > 0.05) {
+          signalScore -= 5;
+          signalFlags.push('主队升水(' + asiaWater.waterChangeHome.toFixed(2) + ')');
+        }
+        if (asiaWater.panShift != null && asiaWater.panShift !== 0) {
+          signalFlags.push(asiaWater.panShift > 0 ? '盘口↑升盘' : '盘口↓降盘');
+        }
+      }
+
+      // ★ V9.1 T-03: 支持率背离检测
+      if (basicData.winPercent != null && basicData.homeWinAward != null) {
+        const winPct = parseFloat(basicData.winPercent) || 0;
+        const hAward = parseFloat(basicData.homeWinAward);
+        const dAward = parseFloat(basicData.drawAward);
+        const aAward = parseFloat(basicData.guestWinAward);
+        if (hAward > 0 && dAward > 0 && aAward > 0) {
+          const totalInv = 1 / hAward + 1 / dAward + 1 / aAward;
+          const spImpHome = (1 / hAward) / totalInv;
+          // 支持率 > 60% 但 SP 隐含概率 < 0.4 → 热度陷阱
+          if (winPct > 60 && spImpHome < 0.4) {
+            signalScore -= 10;
+            signalFlags.push('⚠️ 热度陷阱(支持率' + winPct + '% vs SP隐含' + (spImpHome * 100).toFixed(0) + '%)');
+          }
+        }
+      }
+    }
+  } catch (e) { /* 静默 */ }
+
   // 盘口位移评分
   if (result.movement) {
     const m = result.movement;

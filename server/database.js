@@ -139,6 +139,21 @@ const NEW_TABLES_DDL = `
   CREATE INDEX IF NOT EXISTS idx_up_match ON unified_predictions(match_num, match_date, model_name, model_version);
   CREATE INDEX IF NOT EXISTS idx_up_date_model ON unified_predictions(match_date, model_name);
 
+  -- JczqBasic 全字段缓存（V9.0 三源融合数据层）
+  CREATE TABLE IF NOT EXISTS jczq_basic_cache (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    match_num TEXT NOT NULL,
+    home_team TEXT,
+    guest_team TEXT,
+    league_name TEXT,
+    data_json TEXT NOT NULL,
+    fetch_ts TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(date, match_num)
+  );
+  CREATE INDEX IF NOT EXISTS idx_jczq_basic_date ON jczq_basic_cache(date);
+  CREATE INDEX IF NOT EXISTS idx_jczq_basic_match ON jczq_basic_cache(date, match_num);
+
   -- 预测结果回填
   CREATE TABLE IF NOT EXISTS prediction_outcomes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -653,6 +668,39 @@ function _initBetterSqlite3() {
     };
   }
 
+  // ═══ JczqBasic 全字段缓存（V9.0） ═══
+  function upsertJczqBasic(dateStr, matchNum, dataObj) {
+    const now = new Date().toISOString();
+    db.prepare(
+      `INSERT OR REPLACE INTO jczq_basic_cache (date, match_num, home_team, guest_team, league_name, data_json, fetch_ts)
+      VALUES (?,?,?,?,?,?,?)`,
+    ).run(
+      dateStr,
+      matchNum,
+      dataObj.homeTeam || null,
+      dataObj.guestTeam || null,
+      dataObj.gameShortName || null,
+      JSON.stringify(dataObj),
+      now,
+    );
+  }
+
+  function getJczqBasic(dateStr, matchNum) {
+    const row = db.prepare(
+      'SELECT data_json FROM jczq_basic_cache WHERE date = ? AND match_num = ?',
+    ).get(dateStr, matchNum);
+    if (!row) return null;
+    try { return JSON.parse(row.data_json); } catch { return null; }
+  }
+
+  function getJczqBasicByDate(dateStr) {
+    return db.prepare(
+      'SELECT match_num, data_json FROM jczq_basic_cache WHERE date = ? ORDER BY CAST(match_num AS INTEGER)',
+    ).all(dateStr).map(function (r) {
+      try { return { match_num: r.match_num, data: JSON.parse(r.data_json) }; } catch { return null; }
+    }).filter(Boolean);
+  }
+
   function getTodayUnfinishedMatches() {
     const today = new Date().toISOString().slice(0, 10);
     return db.prepare('SELECT * FROM matches WHERE date = ? AND matchStatus < 2').all(today);
@@ -695,6 +743,9 @@ function _initBetterSqlite3() {
     getFilterRate,
     upsertAIPrediction,
     getAIPrediction,
+    upsertJczqBasic,
+    getJczqBasic,
+    getJczqBasicByDate,
     getTodayUnfinishedMatches,
     getTodayMatchSummary,
   });
@@ -1045,6 +1096,43 @@ function _initSqlJs() {
     };
   }
 
+  // ═══ JczqBasic 全字段缓存（V9.0） ═══
+  function upsertJczqBasic(dateStr, matchNum, dataObj) {
+    if (!_adapterReady) return;
+    const now = new Date().toISOString();
+    adp.execRun(
+      `INSERT OR REPLACE INTO jczq_basic_cache (date, match_num, home_team, guest_team, league_name, data_json, fetch_ts)
+      VALUES (?,?,?,?,?,?,?)`,
+      dateStr,
+      matchNum,
+      dataObj.homeTeam || null,
+      dataObj.guestTeam || null,
+      dataObj.gameShortName || null,
+      JSON.stringify(dataObj),
+      now,
+    );
+  }
+
+  function getJczqBasic(dateStr, matchNum) {
+    if (!_adapterReady) return null;
+    const row = adp.execOne(
+      'SELECT data_json FROM jczq_basic_cache WHERE date = ? AND match_num = ?',
+      dateStr, matchNum,
+    );
+    if (!row) return null;
+    try { return JSON.parse(row.data_json); } catch { return null; }
+  }
+
+  function getJczqBasicByDate(dateStr) {
+    if (!_adapterReady) return [];
+    return adp.execAll(
+      'SELECT match_num, data_json FROM jczq_basic_cache WHERE date = ? ORDER BY CAST(match_num AS INTEGER)',
+      dateStr,
+    ).map(function (r) {
+      try { return { match_num: r.match_num, data: JSON.parse(r.data_json) }; } catch { return null; }
+    }).filter(Boolean);
+  }
+
   function getTodayUnfinishedMatches() {
     if (!_adapterReady) return [];
     const today = new Date().toISOString().slice(0, 10);
@@ -1094,6 +1182,9 @@ function _initSqlJs() {
     getFilterRate,
     upsertAIPrediction,
     getAIPrediction,
+    upsertJczqBasic,
+    getJczqBasic,
+    getJczqBasicByDate,
     getTodayUnfinishedMatches,
     getTodayMatchSummary,
   };
@@ -1178,6 +1269,9 @@ module.exports = {
   }),
   upsertAIPrediction: () => {},
   getAIPrediction: nullFn,
+  upsertJczqBasic: () => {},
+  getJczqBasic: nullFn,
+  getJczqBasicByDate: emptyArr,
   getTodayUnfinishedMatches: emptyArr,
   getTodayMatchSummary: () => ({
     todayDate: '',

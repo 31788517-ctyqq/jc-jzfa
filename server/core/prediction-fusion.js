@@ -18,6 +18,7 @@ const {
   DoubaoAdapter,
   ExpertConsensusAdapter,
   MarketSignalAdapter,
+  DataFusionAdapter,
 } = require('./prediction-adapter');
 const { backfiller } = require('./outcome-backfill');
 
@@ -38,6 +39,7 @@ class PredictionFusionEngine {
     this.register(new DoubaoAdapter());
     this.register(new ExpertConsensusAdapter());
     this.register(new MarketSignalAdapter());
+    this.register(new DataFusionAdapter());
 
     this._initialized = true;
     console.log(`[PredictionFusion] 初始化完成，已注册 ${this.adapters.size} 个模型`);
@@ -132,26 +134,28 @@ class PredictionFusionEngine {
   // ═══════════════════════════════════════════════════════
 
   /**
-   * 维度级加权合成
+   * 维度级加权合成（V9.1: 使用 directionConfidence 参与权重）
    * @param {Prediction[]} predictions
    * @param {Object} weights - { modelName: weight }
    */
   _fuseDimension(predictions, weights) {
     const result = { direction: null, confidence: 0, goalTotal: null, overUnder: null, score: null };
 
-    // ── 方向融合 ──
+    // ── 方向融合（V9.1: w × confidence 替代纯 w） ──
     const dirVotes = { home: 0, draw: 0, away: 0 };
     let dirTotalWeight = 0;
 
     for (const pred of predictions) {
       if (!pred.direction) continue;
-      const w = weights[pred.modelName] || (1 / predictions.length);
+      const baseW = weights[pred.modelName] || (1 / predictions.length);
+      // ★ ZQ-04: 加权融合使用 confidence
+      const confAdjust = typeof pred.directionConfidence === 'number' ? Math.max(0.1, pred.directionConfidence) : 0.5;
+      const w = baseW * confAdjust;
       dirVotes[pred.direction] = (dirVotes[pred.direction] || 0) + w;
       dirTotalWeight += w;
     }
 
     if (dirTotalWeight > 0) {
-      // 找最高投票方向
       const maxDir = Object.entries(dirVotes).reduce((a, b) => a[1] > b[1] ? a : b);
       result.direction = maxDir[0];
       result.confidence = maxDir[1] / dirTotalWeight;
@@ -211,7 +215,7 @@ class PredictionFusionEngine {
   }
 
   /**
-   * 一致性判定
+   * 一致性判定（V9.1: 加权版 — 票数 × confidence 替代纯票数）
    * @param {Prediction[]} predictions
    * @returns {{ level: string, agreeCount: number, totalCount: number, agreeModels: string[], dissentModels: string[] }}
    */
@@ -221,36 +225,47 @@ class PredictionFusionEngine {
       return { level: 'unknown', agreeCount: 0, totalCount: predictions.length, agreeModels: [], dissentModels: [] };
     }
 
-    // 统计方向分布
-    const dirMap = {};
+    // ★ ZQ-04: 加权方向分布（confidence 作为权重）
+    const dirMap = {};   // { direction: { models: [...], weightedSum: number } }
+    const dirCount = {}; // 纯票数（兼容旧字段）
     for (const p of dirPreds) {
-      if (!dirMap[p.direction]) dirMap[p.direction] = [];
-      dirMap[p.direction].push(p.modelName);
+      if (!dirMap[p.direction]) {
+        dirMap[p.direction] = { models: [], weightedSum: 0 };
+      }
+      const conf = typeof p.directionConfidence === 'number' ? Math.max(0.1, p.directionConfidence) : 0.5;
+      dirMap[p.direction].models.push(p.modelName);
+      dirMap[p.direction].weightedSum += conf;
+      dirCount[p.direction] = (dirCount[p.direction] || 0) + 1;
     }
 
-    // 找到主流方向
-    const sortedDirs = Object.entries(dirMap).sort((a, b) => b[1].length - a[1].length);
-    const [mainDir, mainModels] = sortedDirs[0];
-    const agreeCount = mainModels.length;
+    // 加权排序
+    const sortedDirs = Object.entries(dirMap).sort((a, b) => b[1].weightedSum - a[1].weightedSum);
+    const [mainDir, mainData] = sortedDirs[0];
+    const totalWeighted = Object.values(dirMap).reduce((s, d) => s + d.weightedSum, 0);
+    const weightedRatio = totalWeighted > 0 ? mainData.weightedSum / totalWeighted : 0;
+
+    // 纯票数统计（保留兼容）
+    const agreeCount = dirCount[mainDir];
     const totalCount = dirPreds.length;
+    const pureRatio = agreeCount / totalCount;
 
-    // 共识等级判定
+    // ★ 共识等级：综合考虑加权比例和纯票数
     let level = 'neutral';
-    const ratio = agreeCount / totalCount;
+    const effectiveRatio = Math.min(weightedRatio, pureRatio + 0.05); // 加权不会超过纯票数太多
 
-    if (ratio >= 0.8) {
-      level = 'strong';      // >=80% 模型一致 → 强共识
-    } else if (ratio >= 0.6) {
-      level = 'weak';        // >=60% 模型一致 → 弱共识
-    } else if (ratio <= 0.4) {
-      level = 'meltdown';   // <=40% 模型一致 → 模型分歧（熔断）
+    if (effectiveRatio >= 0.8) {
+      level = 'strong';
+    } else if (effectiveRatio >= 0.6) {
+      level = 'weak';
+    } else if (effectiveRatio <= 0.4) {
+      level = 'meltdown';
     }
 
     // 收集一致/分歧模型
-    const agreeModels = mainModels;
+    const agreeModels = mainData.models;
     const dissentModels = [];
-    for (const [dir, models] of sortedDirs.slice(1)) {
-      dissentModels.push(...models.map(m => `${m}(${dir})`));
+    for (const [dir, data] of sortedDirs.slice(1)) {
+      dissentModels.push(...data.models.map(m => m + '(' + dir + ')'));
     }
 
     return {
@@ -258,7 +273,8 @@ class PredictionFusionEngine {
       mainDirection: mainDir,
       agreeCount,
       totalCount,
-      agreeRatio: ratio,
+      agreeRatio: pureRatio,
+      weightedRatio: +weightedRatio.toFixed(3),
       agreeModels,
       dissentModels,
     };

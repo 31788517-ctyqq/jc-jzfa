@@ -272,6 +272,46 @@ async function executeTask(taskName, params, retryCount) {
         }
         break;
       }
+      case 'pk_scorer_compute': {
+        try {
+          const pk = require('./pk_scorer');
+          const date = (params && params.date) || new Date().toISOString().slice(0, 10);
+          const result = await pk.computeAndSave(date);
+          logger.info('[task] PK评分计算完成: ' + JSON.stringify(result));
+        } catch (e) {
+          logger.warn('[task] PK评分计算失败: ' + e.message);
+        }
+        break;
+      }
+      case 'feature_engine_compute': {
+        // ★ J-03: FeatureEngine 调度激活
+        try {
+          const { engine: featureEngine } = require('./core/feature-engine');
+          const date = (params && params.date) || new Date().toISOString().slice(0, 10);
+          // 加载当天比赛列表
+          const fs = require('fs');
+          const path = require('path');
+          const dataFile = path.join(__dirname, 'data.json');
+          if (fs.existsSync(dataFile)) {
+            const data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+            const mMap = data.m || {};
+            let count = 0;
+            for (const k of Object.keys(mMap)) {
+              const m = mMap[k];
+              if (!m || !m.date) continue;
+              if (date && m.date.slice(0, 10) !== date) continue;
+              try {
+                await featureEngine.computeFeatures(m, { dataFile: data });
+                count++;
+              } catch (e2) { /* skip */ }
+            }
+            logger.info('[task] FeatureEngine 完成: ' + count + ' 场比赛特征已计算');
+          }
+        } catch (e) {
+          logger.warn('[task] FeatureEngine 计算失败: ' + e.message);
+        }
+        break;
+      }
       default: {
         logger.warn('[task] 未知任务: ' + taskName);
         return false;
@@ -396,6 +436,25 @@ function scheduleNoonTask() {
           executeTask('merge_shuju', { date: today }).catch((e) => {});
         },
         5 * 60 * 1000,
+      );
+
+      // ★ V9.1: 延后10分钟执行功守道 + PK + FeatureEngine 计算链
+      setTimeout(
+        async () => {
+          try {
+            // 1) 功守道缓存刷新
+            await executeTask('gongshoudao_refresh', { date: today });
+            await sleep(3000);
+            // 2) PK 评分（依赖功守道缓存）
+            await executeTask('pk_scorer_compute', { date: today });
+            await sleep(3000);
+            // 3) FeatureEngine 特征计算（依赖 JczqBasic + 功守道）
+            await executeTask('feature_engine_compute', { date: today });
+          } catch (e) {
+            logger.error('[schedule] 计算链失败: ' + e.message);
+          }
+        },
+        10 * 60 * 1000,
       );
 
       logger.info('[schedule] 12:00 任务链已启动');

@@ -134,6 +134,9 @@ function dutchCombinations(oddsMap, totalCapital, strongIsHome, useBfOdds, qual)
         if (!odd2 || odd2 <= 0) return;
         invSum += 1 / odd2;
         if (useBfOdds) coverageSum += 1 / odd2;
+        else if (qual && qual.calibratedScoreMap && typeof qual.calibratedScoreMap[chosen[i]] !== 'undefined')
+          // ★ V9.0: 优先使用校准后的比分概率（data-fusion 校准）
+          coverageSum += parseFloat(qual.calibratedScoreMap[chosen[i]]) || 0;
         else if (scorePercentMap && typeof scorePercentMap[chosen[i]] !== 'undefined')
           coverageSum += parseFloat(scorePercentMap[chosen[i]]) || 0;
       }

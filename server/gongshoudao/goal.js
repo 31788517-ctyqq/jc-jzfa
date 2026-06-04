@@ -331,7 +331,26 @@ function analyze(vars, S) {
   const xg = calcExpectedGoals(vars, totalExpect, weights);
 
   // ── 四重一致性验证与熔断（zs.md 第6节）──
-  const pAsia = vars.rq ? (vars.rq > 0 ? 2.0 : 3.0) : 2.5; // fallback: 基于让球数推测盘口
+  // ★ V9.1 ZQ-01: P_asia 优先从 JczqBasic 取 dxqLastPan，fallback 保持旧逻辑
+  // matchInfo 为可选第3参数({date, num})，由 index.js computeSingleMatch 传入
+  let pAsia = 2.5;
+  try {
+    const matchInfo = arguments[2]; // optional 3rd param
+    if (matchInfo && matchInfo.date && matchInfo.num) {
+      const database = require('../database');
+      if (database.isAvailable && database.isAvailable()) {
+        const dateStr = matchInfo.date.slice(0, 10);
+        const matchNum = String(matchInfo.num).replace(/^[^\d]*/, '');
+        const basic = database.getJczqBasic(dateStr, matchNum);
+        if (basic && basic.dxqLastPan != null) {
+          pAsia = parseFloat(basic.dxqLastPan);
+        }
+      }
+    }
+  } catch (e) { /* fallback below */ }
+  if (pAsia === 2.5) {
+    pAsia = vars.rq ? (vars.rq > 0 ? 2.0 : 3.0) : 2.5; // fallback: 基于让球数推测
+  }
   // V2.0: 获取动态权重
   let dynWeights;
   try {
@@ -446,6 +465,8 @@ function analyze(vars, S) {
     defStabilityHome: homeDefStability,
     defStabilityAway: awayDefStability,
     stabilityOverall: stabilityOverall,
+    // ★ V9.0 大小球交叉验证（市场数据 vs 功守道自算）
+    dxqValidation: null,
     // 子维度
     _weights: weights,
     _xg: xg,
