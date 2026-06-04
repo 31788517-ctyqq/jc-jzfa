@@ -376,6 +376,7 @@ export function loadPlanList() {
             cutoffDisplay +
             '</span>' +
             (function() {
+              /* eslint-disable no-undef */
               var matchIds = matches.map(function(m) { return m.matchId; });
               var best = null;
               matchIds.forEach(function(id) { var c = consensusMap[id]; if (c && (!best || (c.consensus === 'strong' && best.consensus !== 'strong') || (c.consensus === 'weak' && best.consensus === 'neutral'))) best = c; });
@@ -385,12 +386,14 @@ export function loadPlanList() {
               return '<span class="consensus-badge ' + cls + '" style="font-size:10px;margin-left:4px">' + txt + '</span>';
             })() +
             (function() {
+              /* eslint-disable no-undef */
               var matchIds = matches.map(function(m) { return m.matchId; });
               var best = null;
               matchIds.forEach(function(id) {
                 var c = consensusMap[id];
                 if (c && (!best || (c.consensus === 'strong' && best.consensus !== 'strong') || (c.consensus === 'weak' && best.consensus === 'neutral'))) best = c;
               });
+              /* eslint-enable no-undef */
               if (!best) return '';
               var cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
               var txt = best.consensus === 'strong' ? '共识' + best.agreeCount + '/' + best.totalCount : best.consensus === 'weak' ? '弱共识' : '';
@@ -1243,12 +1246,14 @@ export function loadScorePlanList() {
             cutoffDisplay +
             '</span>' +
             (function() {
+              /* eslint-disable no-undef */
               var matchIds = matches.map(function(m) { return m.matchId; });
               var best = null;
               matchIds.forEach(function(id) {
                 var c = consensusMap[id];
                 if (c && (!best || (c.consensus === 'strong' && best.consensus !== 'strong') || (c.consensus === 'weak' && best.consensus === 'neutral'))) best = c;
               });
+              /* eslint-enable no-undef */
               if (!best) return '';
               var cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
               var txt = best.consensus === 'strong' ? '共识' + best.agreeCount + '/' + best.totalCount : best.consensus === 'weak' ? '弱共识' : '';
@@ -1565,12 +1570,14 @@ export function loadQuantPlanList() {
             cutoffDisplay +
             '</span>' +
             (function() {
+              /* eslint-disable no-undef */
               var matchIds = matches.map(function(m) { return m.matchId; });
               var best = null;
               matchIds.forEach(function(id) {
                 var c = consensusMap[id];
                 if (c && (!best || (c.consensus === 'strong' && best.consensus !== 'strong') || (c.consensus === 'weak' && best.consensus === 'neutral'))) best = c;
               });
+              /* eslint-enable no-undef */
               if (!best) return '';
               var cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
               var txt = best.consensus === 'strong' ? '共识' + best.agreeCount + '/' + best.totalCount : best.consensus === 'weak' ? '弱共识' : '';
@@ -1680,6 +1687,7 @@ function buildConsensusFilterBar(consensusCount, active) {
 if (!window._planConsensusFilter) window._planConsensusFilter = 'all';
 window.switchConsensusFilter = function(level) {
   window._planConsensusFilter = level;
+  /* eslint-disable-next-line no-import-assign */
   try { state._planConsensusFilter = level; } catch(e) {}
   loadPlanList();
 };

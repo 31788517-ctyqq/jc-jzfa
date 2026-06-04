@@ -165,11 +165,31 @@ class MockStatement {
   }
 }
 
+// ── getAdapter mock ──
+function getAdapter() {
+  const adp = {
+    execOne: function () {
+      return null;
+    },
+    execAll: function () {
+      return [];
+    },
+    execRun: function () {
+      return { changes: 0 };
+    },
+    execDDL: function () {},
+    close: function () {},
+    raw: null,
+  };
+  return adp;
+}
+
 // ── 完整导出 mock ──
 module.exports = {
   initDatabase,
   isAvailable,
   getDatabase,
+  getAdapter,
   closeDatabase,
   // Matches
   upsertMatch: () => {},

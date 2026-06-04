@@ -22,9 +22,9 @@ function resolveConsensusType(gs) {
   const ct = gs.fusionConsensusType;
   if (ct === 'strong' || ct === 'weak' || ct === 'meltdown') return ct;
   const cn = gs.fusionConsensus || '';
-  if (cn.startsWith('熔断')) return 'meltdown';
-  if (cn.startsWith('弱一致')) return 'weak';
-  if (cn.startsWith('强一致')) return 'strong';
+  if (cn === 'meltdown' || cn.startsWith('熔断')) return 'meltdown';
+  if (cn === 'weak' || cn.startsWith('弱一致')) return 'weak';
+  if (cn === 'strong' || cn.startsWith('强一致')) return 'strong';
   return '';
 }
 
@@ -370,7 +370,7 @@ function judgeByScore(direction, scoreStr, handicap) {
   // 总进球（如 "总进球-2", "总进球-3"）
   const goalMatch = direction.match(/总进球-(\d+)/);
   if (goalMatch) {
-    return (hg + ag) === parseInt(goalMatch[1]);
+    return hg + ag === parseInt(goalMatch[1]);
   }
 
   return null;
@@ -450,7 +450,7 @@ function checkMatchResult(matchId, direction, rMap, normalizeRecs, mMap) {
   // ★ fallback: 推荐数据无 result 时，用比分直判方向对错
   if (isMatchWon === null && isMatchLose === null) {
     const matchKey = 'm_' + String(matchId);
-    const m = mMap ? (mMap[matchKey] || mMap[String(matchId)] || null) : null;
+    const m = mMap ? mMap[matchKey] || mMap[String(matchId)] || null : null;
     if (m && m.matchStatus >= 1 && m.score) {
       const scoreResult = judgeByScore(direction, m.score, null);
       if (scoreResult !== null) {
@@ -489,7 +489,8 @@ function assessSchemeRisk(selections, passways, scheme) {
   const betFilters = require('./bet-scheme-filters');
   const estimate = betFilters.estimateScheme(selections, passways, parseInt(scheme.multiplier || 1));
 
-  const flags = [], explains = [];
+  const flags = [],
+    explains = [];
 
   if (estimate.selectionCount <= 0) {
     flags.push('empty_scheme');

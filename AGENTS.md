@@ -147,6 +147,14 @@ npm run preflight
 - PM2 进程：jc-sync, jc-zjfa（cluster: 2）
 - 双路径：`/root/server/`（PM2）+ `/var/www/zj.100qiu.com/`（Nginx），功守道需同步
 
+### 9.6 部署方式与认证规则（V8.1 新增）
+
+- **推荐 `python deploy.py --fast`，禁止用 Windows 原生 `scp`/`ssh`**：Windows OpenSSH 与旧版 SSH 服务器 (ssh-rsa) 握手失败，表现长时间卡住
+- 两种认证方式均可连接：密钥 `id_rsa_jczjfa` + 密码 `.env.deploy`，`deploy.py` 的 paramiko 自动回退
+- 部署后必须运行 `python _verify_api.py` 一键验证（4 层：PM2 状态 → 内部健康 → Nginx 代理 → 业务 API）
+- 502 Bad Gateway 排查必须带 `Host: zj.100qiu.com` 头，不带会被路由到默认 server block
+- 外网按 IP 测试 API 时也需带 Host 头
+
 ## 10) 上下文记忆策略（V7.0 新增）
 
 本 IDE 插件的 AI 会话上下文有限（每次新会话白板启动）。通过以下分层机制增强跨会话记忆：
@@ -157,7 +165,7 @@ npm run preflight
 
 | Skill | 触发词 | 携带知识 |
 |-------|--------|---------|
-| deploy-ops | 部署/deploy/nginx/404/500 | 服务器架构、依赖追踪、排查手册 |
+| deploy-ops | 部署/deploy/nginx/404/500 | 服务器架构、依赖追踪、排查手册、认证方式 |
 | jczjfa-test-orchestrator | 测试/test/preflight | 24 套件编排、门禁标准 |
 | backtesting-frameworks | 回测/backtest | Walk-Forward、Monte Carlo |
 | data-pipeline | 数据/抓取/ETL | 数据质量门禁 |
@@ -186,12 +194,15 @@ npm run preflight
 
 ```
 部署完成
-├── HTTP 健康检查 → curl :3000/api/health → 200
-├── PM2 状态验证 → pm2 status（全部 online）
-├── PM2 日志检查 → pm2 logs --lines 10（无 Error/Cannot find module）
-├── 核心 API 冒烟 → match-list API 正常返回比赛数据
+├── L1: PM2 状态 → 全部 online
+├── L2: 内部健康 → curl :3000/api/health → 200
+├── L3: Nginx 代理 → curl -H "Host: zj.100qiu.com" :80/api/health → 200
+├── L4: 业务 API → match-list / prediction-backtest 返回 code=0
+├── L+: PM2 日志 → 无 Error/Cannot find module
 ├── 静态资源验证 → 浏览器检查无 404 破图
 └── 主链路回放 → E2E 或手动验证功守道/方案/PK 三个核心页面
+
+一键执行: python _verify_api.py
 ```
 
 ### 10.5 关键文件索引速查

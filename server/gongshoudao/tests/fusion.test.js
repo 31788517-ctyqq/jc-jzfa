@@ -8,14 +8,24 @@ const { fuse, calcModelA, calcModelC } = require('../fusion');
 // ==================== 辅助函数 ====================
 
 function makeVars(overrides) {
-  return Object.assign({
-    homeRecentGoalAvg: 1.5, awayRecentGoalAvg: 1.2,
-    homeRecentLoseAvg: 1.1, awayRecentLoseAvg: 1.3,
-    homeAttackEfficiency: 0.15, awayAttackEfficiency: 0.12,
-    homeDefendEfficiency: 0.10, awayDefendEfficiency: 0.11,
-    jiaoFenScores: [{ h: 2, a: 1 }, { h: 1, a: 1 }],
-    jiaoFenDesc: '近6次交战 2胜2平2负 进7球失6球',
-  }, overrides || {});
+  return Object.assign(
+    {
+      homeRecentGoalAvg: 1.5,
+      awayRecentGoalAvg: 1.2,
+      homeRecentLoseAvg: 1.1,
+      awayRecentLoseAvg: 1.3,
+      homeAttackEfficiency: 0.15,
+      awayAttackEfficiency: 0.12,
+      homeDefendEfficiency: 0.1,
+      awayDefendEfficiency: 0.11,
+      jiaoFenScores: [
+        { h: 2, a: 1 },
+        { h: 1, a: 1 },
+      ],
+      jiaoFenDesc: '近6次交战 2胜2平2负 进7球失6球',
+    },
+    overrides || {},
+  );
 }
 
 // ==================== 模型A: 射门还原法 ====================
@@ -44,9 +54,12 @@ describe('fusion — calcModelA 射门还原法', () => {
 
   it('攻防效率差异影响主客分配', () => {
     const varsHomeStrong = makeVars({
-      homeAttackEfficiency: 0.3, homeRecentGoalAvg: 3.0,
-      awayAttackEfficiency: 0.05, awayRecentGoalAvg: 0.5,
-      awayDefendEfficiency: 0.3, awayRecentLoseAvg: 0.5,
+      homeAttackEfficiency: 0.3,
+      homeRecentGoalAvg: 3.0,
+      awayAttackEfficiency: 0.05,
+      awayRecentGoalAvg: 0.5,
+      awayDefendEfficiency: 0.3,
+      awayRecentLoseAvg: 0.5,
     });
     const r1 = calcModelA(varsHomeStrong);
     expect(r1.home).toBeGreaterThan(r1.away);
@@ -54,9 +67,12 @@ describe('fusion — calcModelA 射门还原法', () => {
 
   it('客强主弱 → away > home', () => {
     const varsAwayStrong = makeVars({
-      homeAttackEfficiency: 0.05, homeRecentGoalAvg: 0.5,
-      homeDefendEfficiency: 0.3, homeRecentLoseAvg: 3.0,
-      awayAttackEfficiency: 0.3, awayRecentGoalAvg: 3.0,
+      homeAttackEfficiency: 0.05,
+      homeRecentGoalAvg: 0.5,
+      homeDefendEfficiency: 0.3,
+      homeRecentLoseAvg: 3.0,
+      awayAttackEfficiency: 0.3,
+      awayRecentGoalAvg: 3.0,
     });
     const r2 = calcModelA(varsAwayStrong);
     expect(r2.away).toBeGreaterThan(r2.home);
@@ -71,8 +87,10 @@ describe('fusion — calcModelA 射门还原法', () => {
 
   it('极端弱攻防 → 仍返回有限值', () => {
     const vars = makeVars({
-      homeAttackEfficiency: 0, awayAttackEfficiency: 0,
-      homeDefendEfficiency: 0, awayDefendEfficiency: 0,
+      homeAttackEfficiency: 0,
+      awayAttackEfficiency: 0,
+      homeDefendEfficiency: 0,
+      awayDefendEfficiency: 0,
     });
     const result = calcModelA(vars);
     expect(isNaN(result.total)).toBe(false);
@@ -170,10 +188,14 @@ describe('fusion — fuse 四重一致性验证', () => {
     // 需要通过调整 vars 使三个模型值接近
     // 使用一组均衡的 vars
     const vars = makeVars({
-      homeRecentGoalAvg: 1.4, awayRecentGoalAvg: 1.3,
-      homeRecentLoseAvg: 1.2, awayRecentLoseAvg: 1.1,
-      homeAttackEfficiency: 0.14, awayAttackEfficiency: 0.14,
-      homeDefendEfficiency: 0.12, awayDefendEfficiency: 0.12,
+      homeRecentGoalAvg: 1.4,
+      awayRecentGoalAvg: 1.3,
+      homeRecentLoseAvg: 1.2,
+      awayRecentLoseAvg: 1.1,
+      homeAttackEfficiency: 0.14,
+      awayAttackEfficiency: 0.14,
+      homeDefendEfficiency: 0.12,
+      awayDefendEfficiency: 0.12,
       jiaoFenScores: [{ h: 1, a: 1 }],
       jiaoFenDesc: '近期:进8球失7球', // g6 = (8+7)/6 = 2.5
     });
@@ -198,15 +220,19 @@ describe('fusion — fuse 四重一致性验证', () => {
     expect(typeof result.consensus).toBe('string');
   });
 
-  // --- 熔断场景 ---
+  // --- V2.0 熔断场景：保留模型加权结果，不跟随盘口 ---
 
-  it('三模型分歧 → 熔断跟随盘口', () => {
+  it('三模型分歧 → 熔断保留模型加权结果', () => {
     // 极端偏离使三个模型值差异大
     const varsDiff = makeVars({
-      homeAttackEfficiency: 0.01, homeRecentGoalAvg: 0.1,
-      awayAttackEfficiency: 0.5, awayRecentGoalAvg: 5.0,
-      homeDefendEfficiency: 0.5, homeRecentLoseAvg: 5.0,
-      awayDefendEfficiency: 0.01, awayRecentLoseAvg: 0.1,
+      homeAttackEfficiency: 0.01,
+      homeRecentGoalAvg: 0.1,
+      awayAttackEfficiency: 0.5,
+      awayRecentGoalAvg: 5.0,
+      homeDefendEfficiency: 0.5,
+      homeRecentLoseAvg: 5.0,
+      awayDefendEfficiency: 0.01,
+      awayRecentLoseAvg: 0.1,
       jiaoFenScores: [{ h: 5, a: 0 }],
       jiaoFenDesc: '进30球失0球',
     });
@@ -214,8 +240,11 @@ describe('fusion — fuse 四重一致性验证', () => {
     const result = fuse(varsDiff, modelB, 2.25);
     if (result._details.nConsistent <= 1) {
       expect(result.consensus).toContain('熔断');
-      expect(result.fused).toBe(false);
-      expect(result.total).toBeCloseTo(2.25, 1); // 跟随 pAsia
+      // V2.0: fused=true 表示系统仍计算了融合值（模型加权平均）
+      expect(result.fused).toBe(true);
+      // V2.0: 熔断不再覆盖为 pAsia，total 是模型加权平均
+      expect(result.total).toBeGreaterThan(0);
+      expect(isFinite(result.total)).toBe(true);
     }
   });
 
