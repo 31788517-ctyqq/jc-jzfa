@@ -169,6 +169,10 @@ DEPLOY_MAP = [
     ('server/core/odds-movement.js',      'both'),
     ('server/core/market-overlay.js',     'both'),
     ('server/core/odds-tracker.js',       'both'),
+    # ★ V8.0 Phase 8+9 新增核心模块（原子写入 + 文件追踪 + 备份 + 数据质量）
+    ('server/core/file-utils.js',         'both'),
+    ('server/core/file-tracker.js',       'both'),
+    ('server/core/data-quality.js',       'both'),
     ('server/core/bet-scheme-filters.js', 'both'),
     ('server/core/cache-warmer.js',       'both'),
     ('server/core/league-heat-profile.js','both'),
