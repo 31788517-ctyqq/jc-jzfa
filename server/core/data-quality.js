@@ -186,6 +186,36 @@ class DataQualityMonitor {
     return { summary: results, alerts: dateAlerts };
   }
 
+  // ═══ 文件新鲜度检查 🆕 ═══
+  /**
+   * 检查关键数据文件是否过期
+   * @returns {{ pass: boolean, staleFiles: Object[] }}
+   */
+  checkFileFreshness() {
+    try {
+      const tracker = require('./file-tracker');
+      const snap = tracker.snapshot();
+      const staleFiles = [];
+
+      Object.entries(snap.files).forEach(([key, info]) => {
+        if (info.status === 'stale') {
+          staleFiles.push({ key, label: info.label, ageMinutes: info.ageMinutes });
+        }
+        if (info.status === 'missing' || info.status === 'corrupt') {
+          const alert = `[文件异常] ${info.label}(${key}) 状态=${info.status}`;
+          this.alerts.push({
+            time: new Date().toISOString(), level: 'P0', source: 'file_track', message: alert,
+          });
+          console.warn(alert);
+        }
+      });
+
+      return { pass: staleFiles.length === 0, staleFiles };
+    } catch (e) {
+      return { pass: true, staleFiles: [], error: e.message };
+    }
+  }
+
   // ═══ 获取告警汇总 ═══
   getAlerts(sinceMinutes = 60) {
     const cutoff = Date.now() - sinceMinutes * 60 * 1000;

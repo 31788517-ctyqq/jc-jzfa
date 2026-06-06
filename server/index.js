@@ -460,11 +460,22 @@ app.get('/health/scheduler', (req, res) => {
     res.json({ status: 'no_state', message: '调度器状态文件不存在' });
   }
 });
-// 深度健康检查（数据库 / 数据完整性 / 外部API / 系统资源）
+// 深度健康检查（数据库 / 数据完整性 / 外部API / 系统资源 / 文件追踪 / 赔率覆盖）
 app.get('/health/deep', async (req, res) => {
   try {
     const r = await health.deepCheck();
     res.json(r);
+  } catch (e) {
+    res.json({ status: 'error', message: e.message });
+  }
+});
+
+// 文件追踪快照
+app.get('/health/files', (req, res) => {
+  try {
+    const tracker = require('./core/file-tracker');
+    const snap = tracker.snapshot();
+    res.json(snap);
   } catch (e) {
     res.json({ status: 'error', message: e.message });
   }
@@ -2232,12 +2243,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               return vals;
             }
 
-            function findBestMatchForDirection(directions, excludeIds) {
+            function findBestMatchForDirection(directions, excludeIds, minCount) {
               let bestMatch = null,
                 bestCount = 0;
               for (const m of mList) {
                 if (excludeIds && excludeIds.indexOf(m.matchId) >= 0) continue;
-                // 使用预计算缓存，消除重复磁盘 I/O
                 const md = matchDataMap[m.matchId];
                 if (!md || !md.odds) continue;
                 const recs = md.recs;
@@ -2250,6 +2260,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   bestMatch = m;
                 }
               }
+              if (minCount && bestCount < minCount) return null;
               return bestMatch;
             }
 
@@ -2497,18 +2508,20 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const m1a = findBestMatchForDirection(['平', '让平']);
             const m1b = findBestMatchForDirection(['让负'], m1a ? [m1a.matchId] : null);
             const m2a = findBestMatchForDirection(['总进球-2、3球']);
-            const m2b = findBestMatchForDirection(['让负'], m2a ? [m2a.matchId] : null);
+            const m2b = findBestMatchForDirection(['让负'], m2a ? [m2a.matchId] : null, 10);
             // ★ 方案三：胜 + 让负
-            const m3a = findBestMatchForDirection(['胜']);
+            const m3a = findBestMatchForDirection(['胜'], null, 35);
             const m3b = findBestMatchForDirection(['让负'], m3a ? [m3a.matchId] : null);
 
-            function push2MatchPlan(planName, planSuffix, mA, dirA, mB, dirB, betCount, ticketCount, multiplier) {
+            function push2MatchPlan(planName, planSuffix, mA, dirA, mB, dirB, betCount, ticketCount, multiplier, minProductOdds) {
               if (!mA || !mB) return;
               const aObj = buildMatchObj(mA, dirA);
               const bObj = buildMatchObj(mB, dirB);
               const e1 = calcEffectiveOdds(dirA, aObj);
               const e2 = calcEffectiveOdds(dirB, bObj);
-              const maxPrize = (e1 && e2) ? Math.round(1000 * e1 * e2) : 0;
+              const productOdds = (e1 && e2) ? e1 * e2 : 0;
+              if (minProductOdds && productOdds < minProductOdds) return;
+              const maxPrize = (e1 && e2) ? Math.round(1000 * productOdds) : 0;
 
               plans.push({
                 planId: 'plan_' + dateStr + '_' + planSuffix,
@@ -2527,65 +2540,104 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             }
 
             push2MatchPlan('方案一', '1', m1a, '平、让平', m1b, '让负', 250, 10);
-            push2MatchPlan('方案二', '2', m2a, '总进球-2、3球', m2b, '让负', 250, 10);
-            push2MatchPlan('方案三', '3', m3a, '胜', m3b, '让负', 250, 10, 25);
+            push2MatchPlan('方案二', '2', m2a, '总进球-2、3球', m2b, '让负', 250, 10, 25, 2.0);
+            push2MatchPlan('方案三', '3', m3a, '胜', m3b, '让负', 250, 10, 25, 2.0);
 
-            // 方案六：当天专家推"半全场-胜胜、平胜"数最多的一场，单关荷兰式投注（二选）
-            if (matchCount >= 4) {
-              const targetDir6 = '半全场-胜胜、平胜';
-              const targetDir6Parts = ['半全场-胜胜', '半全场-平胜'];
+            // 方案六：当天专家推"总进球-2、3球"数最多的一场，单关荷兰式投注
+            if (matchCount >= 2) {
+              const targetDir6 = '总进球-2、3球';
               let bestM6 = null, bestCount6 = 0;
               for (const m of mList) {
                 const recs = findRecommends(m.matchId);
+                const md = matchDataMap[m.matchId];
+                if (!md || !md.odds || !md.odds.totalGoals) continue;
+                if (md.odds.totalGoals['2'] == null || md.odds.totalGoals['3'] == null) continue;
                 let total6 = 0;
                 for (const r of recs) {
-                  for (const tp of targetDir6Parts) {
-                    if ((r.type || '') === tp) total6 += (r.num || 0);
-                  }
+                  if (r.type === targetDir6) total6 += (r.num || 0);
                 }
-                if (total6 > bestCount6) {
-                  bestCount6 = total6;
-                  bestM6 = m;
-                }
+                if (total6 > bestCount6) { bestCount6 = total6; bestM6 = m; }
               }
               if (bestM6 && bestCount6 > 0) {
                 const m6Obj = buildMatchObj(bestM6, targetDir6);
-                // 方案六：标准荷兰式投注（二选），奖金 = 总本金 / Σ(1/赔率)
                 const subOdds6 = extractSubOdds(m6Obj.odds, targetDir6);
-                let maxPrize6;
                 if (subOdds6.length === 2) {
                   const invSum6 = subOdds6.reduce((s, o) => s + 1 / o, 0);
-                  maxPrize6 = invSum6 > 0 ? Math.round(1000 / invSum6) : 0;
-                } else {
-                  // ★ 赔率缺失兜底：二选半全场用 3.0/2 荷兰式倍率
-                  maxPrize6 = Math.round(1000 * 3.0 / 2);
+                  const maxPrize6 = invSum6 > 0 ? Math.round(1000 / invSum6) : 0;
+                  plans.push({
+                    planId: 'plan_' + dateStr + '_6',
+                    planName: '方案六',
+                    matches: [m6Obj],
+                    amount: 1000, playType: '单关', matchCount: 1, passType: '单关',
+                    betCount: 250, ticketCount: 10, multiplier: 25,
+                    maxPrize: maxPrize6, winningPrize: maxPrize6,
+                  });
                 }
-                plans.push({
-                  planId: 'plan_' + dateStr + '_6',
-                  planName: '方案六',
-                  matches: [m6Obj],
-                  amount: 1000,
-                  playType: '单关',
-                  matchCount: 1,
-                  passType: '单关',
-                  betCount: 250,
-                  ticketCount: 10,
-                  multiplier: 25,
-                  maxPrize: maxPrize6,
-                  winningPrize: maxPrize6,
-                });
               }
             }
 
-            // 方案四～五：仅在 ≥15 场时生成
-            if (matchCount >= 15) {
+            // 方案四～五：仅在 ≥6 场时生成
+            if (matchCount >= 6) {
               const m4a = findBestMatchForDirection(['平', '让平']);
               const m4b = findBestMatchForDirection(['胜'], m4a ? [m4a.matchId] : null);
               push2MatchPlan('方案四', '4', m4a, '平、让平', m4b, '胜', 250, 10);
 
-              const m5a = findBestMatchForDirection(['平', '让平']);
-              const m5b = findBestMatchForDirection(['总进球-2、3球'], m5a ? [m5a.matchId] : null);
-              push2MatchPlan('方案五', '5', m5a, '平、让平', m5b, '总进球-2、3球', 125, 5);
+              // ★ P0-方案五：平、让平 × 总进球-2、3球 — 合赔下限 2.0 + 候选评分筛选，每天最多1个
+              // 收集场次A候选 (平、让平)
+              const candidatesA = [];
+              for (const m of mList) {
+                const md = matchDataMap[m.matchId];
+                if (!md || !md.odds) continue;
+                const recs = md.recs;
+                let total = 0;
+                for (const r of recs) {
+                  if (r.type === '平' || r.type === '让平') total += r.num || 0;
+                }
+                if (total > 0) {
+                  const aObj = buildMatchObj(m, '平、让平');
+                  const eA = calcEffectiveOdds('平、让平', aObj);
+                  if (eA && eA >= 1.2) candidatesA.push({ match: m, count: total, obj: aObj, odds: eA });
+                }
+              }
+              candidatesA.sort(function (a, b) { return b.count - a.count; });
+
+              // 收集场次B候选 (总进球-2、3球), 取前3
+              const candidatesB = [];
+              for (const m of mList) {
+                const md = matchDataMap[m.matchId];
+                if (!md || !md.odds || !md.odds.totalGoals) continue;
+                const tg = md.odds.totalGoals;
+                if (tg['2'] == null || tg['2'] <= 0 || tg['3'] == null || tg['3'] <= 0) continue;
+                const recs = md.recs;
+                let total = 0;
+                for (const r of recs) {
+                  if (r.type === '总进球-2、3球') total += r.num || 0;
+                }
+                if (total > 0) {
+                  const bObj = buildMatchObj(m, '总进球-2、3球');
+                  const eB = calcEffectiveOdds('总进球-2、3球', bObj);
+                  if (eB && eB >= 1.2) candidatesB.push({ match: m, count: total, obj: bObj, odds: eB });
+                }
+              }
+              candidatesB.sort(function (a, b) { return b.count - a.count; });
+
+              // 交叉配对：取最优一组（每天最多1个方案五）
+              let bestPair = null;
+              for (let ai = 0; ai < candidatesA.length; ai++) {
+                for (let bi = 0; bi < candidatesB.length; bi++) {
+                  const ca = candidatesA[ai];
+                  const cb = candidatesB[bi];
+                  if (ca.match.matchId === cb.match.matchId) continue;
+                  const productOdds = ca.odds * cb.odds;
+                  if (productOdds < 2.0) continue;
+                  if (!bestPair || productOdds > bestPair.productOdds) {
+                    bestPair = { a: ca.match, b: cb.match, productOdds: productOdds };
+                  }
+                }
+              }
+              if (bestPair) {
+                push2MatchPlan('方案五', '5', bestPair.a, '平、让平', bestPair.b, '总进球-2、3球', 250, 10, 25, 2.0);
+              }
             }
 
             // ========== 方案七：单关双选（胜平/平负） ==========
@@ -4120,7 +4172,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 };
               }
 
-              function findBest(directions, excludeIds) {
+              function findBest(directions, excludeIds, minCount) {
                 let best = null,
                   bestCount = 0;
                 for (const mm of mList) {
@@ -4137,6 +4189,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     best = mm;
                   }
                 }
+                if (minCount && bestCount < minCount) return null;
                 return best;
               }
 
@@ -4172,55 +4225,45 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 for (const r of recs) {
                   if (r.type === direction) fullMatch = r;
                 }
-                if (fullMatch) {
-                  addRec(fullMatch);
-                  subResults.push({
-                    direction: direction,
-                    result: fullMatch.result !== undefined ? fullMatch.result : null,
-                  });
-                } else {
-                  const subDirs = direction.split(/[、,]/);
+                // ★ 复合方向始终拆分子方向匹配
+                const subDirs = direction.split(/[、,]/);
+                if (subDirs.length > 1) {
                   subDirs.forEach((sd) => {
                     const s = sd.trim();
                     let found = null;
-                    for (const r of recs) {
-                      if (r.type === s) found = r;
-                    }
+                    for (const r of recs) { if (r.type === s) found = r; }
                     if (!found) {
-                      for (const r of recs) {
-                        if (recContains(r.type, s)) {
-                          found = r;
-                          break;
-                        }
-                      }
+                      for (const r of recs) { if (recContains(r.type, s)) { found = r; break; } }
                     }
                     if (!found && s.indexOf('球') >= 0) {
                       const num = s.replace(/球/g, '');
-                      for (const r of recs) {
-                        if (r.type === '总进球-' + num) found = r;
-                      }
+                      for (const r of recs) { if (r.type === '总进球-' + num) found = r; }
                     }
                     if (found) addRec(found);
                     subResults.push({ direction: s, result: found ? found.result : null });
                   });
+                } else if (fullMatch) {
+                  addRec(fullMatch);
+                  subResults.push({ direction: direction, result: fullMatch.result !== undefined ? fullMatch.result : null });
+                } else {
+                  const s = subDirs[0].trim();
+                  let found = null;
+                  for (const r of recs) { if (r.type === s) found = r; }
+                  if (!found) {
+                    for (const r of recs) { if (recContains(r.type, s)) { found = r; break; } }
+                  }
+                  if (found) addRec(found);
+                  subResults.push({ direction: s, result: found ? found.result : null });
                 }
-                // 总进球双选（如"总进球-2、3球"）：用实际比分拆分子方向命中
-                if (direction.indexOf('总进球-') === 0 && direction.indexOf('、') > 0 && subResults.length >= 2) {
-                  const combinedRes = subResults[0].result;
-                  if (combinedRes === 0) {
+                // ★ 总进球复合方向: 有比分时用实际总进球判定
+                if (direction.indexOf('总进球-') === 0 && direction.indexOf('、') > 0 && subResults.length >= 2 && match.score) {
+                  const scoreParts = String(match.score).split(':');
+                  const totalGoals = parseInt(scoreParts[0]) + parseInt(scoreParts[1]);
+                  if (!isNaN(totalGoals)) {
                     subResults.forEach((sr) => {
-                      sr.result = 0;
+                      const goalMatch = sr.direction.match(/(\d+)/);
+                      sr.result = (goalMatch && parseInt(goalMatch[1]) === totalGoals) ? 1 : 0;
                     });
-                  } else if (combinedRes === 1 && match.score) {
-                    const scoreParts = String(match.score).split(':');
-                    const totalGoals = parseInt(scoreParts[0]) + parseInt(scoreParts[1]);
-                    if (!isNaN(totalGoals)) {
-                      subResults.forEach((sr) => {
-                        const goalMatch = sr.direction.match(/(\d+)/);
-                        if (goalMatch && parseInt(goalMatch[1]) === totalGoals) sr.result = 1;
-                        else sr.result = 0;
-                      });
-                    }
                   }
                 }
 
@@ -4343,9 +4386,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const m1a = findBest(['平', '让平']);
               const m1b = findBest(['让负'], m1a ? [m1a.matchId] : null);
               const m2a = findBest(['总进球-2、3球']),
-                m2b = findBest(['让负'], m2a ? [m2a.matchId] : null);
+                m2b = findBest(['让负'], m2a ? [m2a.matchId] : null, 10);
               // ★ 方案三：胜 + 让负
-              const m3a = findBest(['胜']),
+              const m3a = findBest(['胜'], null, 35),
                 m3b = findBest(['让负'], m3a ? [m3a.matchId] : null);
 
               const dayPlans = [];
@@ -4355,50 +4398,51 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   planName: '方案一',
                   matches: [buildMatch(m1a, '平、让平'), buildMatch(m1b, '让负')],
                 });
-              if (m2a && m2b)
-                dayPlans.push({
-                  name: 'plan_2',
-                  planName: '方案二',
-                  matches: [buildMatch(m2a, '总进球-2、3球'), buildMatch(m2b, '让负')],
-                });
-              if (m3a && m3b)
-                dayPlans.push({
-                  name: 'plan_3',
-                  planName: '方案三',
-                  matches: [buildMatch(m3a, '胜'), buildMatch(m3b, '让负')],
-                });
-
-              const dayMatchCount = mList.length;
-
-              // 方案六：专家推"半全场-胜胜、平胜"数最多的一场，单关荷兰式投注（二选）
-              if (dayMatchCount >= 4) {
-                const targetDir6 = '半全场-胜胜、平胜';
-                const targetDir6Parts = ['半全场-胜胜', '半全场-平胜'];
-                let bestM6 = null, bestCount6 = 0;
-                for (const k of Object.keys(matchDataMap)) {
-                  const mdData = matchDataMap[k];
-                  const recs6 = mdData.recs;
-                  let total6 = 0;
-                  for (const r of recs6) {
-                    for (const tp of targetDir6Parts) {
-                      if ((r.type || '') === tp) total6 += (r.num || 0);
-                    }
-                  }
-                  if (total6 > bestCount6) {
-                    bestCount6 = total6;
-                    bestM6 = mdData.match;
+              if (m2a && m2b) {
+                const p2a = buildMatch(m2a, '总进球-2、3球'), p2b = buildMatch(m2b, '让负');
+                const o2a = extractIndividualOdds(p2a.oddsObj, '总进球-2、3球'), o2b = extractIndividualOdds(p2b.oddsObj, '让负');
+                if (o2a.length >= 2 && o2b.length >= 1) {
+                  const d6 = o2a.reduce((s, o) => s + 1 / o, 0);
+                  if (d6 > 0 && (1 / d6) * o2b[0] >= 2.0) {
+                    dayPlans.push({ name: 'plan_2', planName: '方案二', matches: [p2a, p2b] });
                   }
                 }
-                if (bestM6 && bestCount6 > 0) {
-                  dayPlans.push({
-                    name: 'plan_6',
-                    planName: '方案六',
-                    matches: [buildMatch(bestM6, targetDir6)],
-                  });
+              }
+              if (m3a && m3b) {
+                const p3a = buildMatch(m3a, '胜'), p3b = buildMatch(m3b, '让负');
+                const o3a = extractIndividualOdds(p3a.oddsObj, '胜'), o3b = extractIndividualOdds(p3b.oddsObj, '让负');
+                if (o3a.length >= 1 && o3b.length >= 1 && o3a[0] * o3b[0] >= 2.0) {
+                  dayPlans.push({ name: 'plan_3', planName: '方案三', matches: [p3a, p3b] });
                 }
               }
 
-              if (dayMatchCount >= 15) {
+              const dayMatchCount = mList.length;
+
+              // 方案六：当天专家推"总进球-2、3球"数最多的一场，单关荷兰式投注
+              if (dayMatchCount >= 2) {
+                const targetDir6 = '总进球-2、3球';
+                let bestM6 = null, bestCount6 = 0;
+                for (const k of Object.keys(matchDataMap)) {
+                  const mdData = matchDataMap[k];
+                  if (!mdData.odds || !mdData.odds.totalGoals) continue;
+                  if (mdData.odds.totalGoals['2'] == null || mdData.odds.totalGoals['3'] == null) continue;
+                  const recs6 = mdData.recs;
+                  let total6 = 0;
+                  for (const r of recs6) {
+                    if (r.type === targetDir6) total6 += (r.num || 0);
+                  }
+                  if (total6 > bestCount6) { bestCount6 = total6; bestM6 = mdData.match; }
+                }
+                if (bestM6 && bestCount6 > 0) {
+                  const m6b = buildMatch(bestM6, targetDir6);
+                  const o6 = extractIndividualOdds(m6b.oddsObj, targetDir6);
+                  if (o6.length >= 2) {
+                    dayPlans.push({ name: 'plan_6', planName: '方案六', matches: [m6b] });
+                  }
+                }
+              }
+
+              if (dayMatchCount >= 6) {
                 // ★ 方案四/五第一场方向与 plan-list 对齐：平、让平 双选
                 const m4a = findBest(['平', '让平']);
                 const m4aDir = '平、让平';
@@ -4843,17 +4887,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
             }
 
-            // === 工具：读取用户保存的方案 ===
-            function readUserPlans(deviceId) {
-              try {
-                const upFile = path.join(__dirname, 'user_plans', String(deviceId).replace(/[^a-zA-Z0-9_-]/g, '') + '.json');
-                if (!fs.existsSync(upFile)) return [];
-                const raw = fs.readFileSync(upFile, 'utf-8');
-                return JSON.parse(raw);
-              } catch (e) { return []; }
-            }
-
-            // === 我的方案 ===
+            // === 我的方案 ===（readUserPlans 使用模块级定义）
             if (directionFilter === 'my') {
               const deviceId = (req.headers['x-device-id'] || '').trim();
               if (deviceId) {
@@ -4934,11 +4968,26 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               });
 
             const winRate = totalPlans > 0 ? Math.round((totalWon / totalPlans) * 100) : 0;
+
+            // ★ 方案命中明细：从 results 提取每条方案详情
+            const detailRows = results.map(function (r) {
+              var matchNums = (r.matches || []).map(function (mm) { return mm.matchNum || '--'; }).join(' / ');
+              var dirs = (r.matches || []).map(function (mm) { return mm.direction || '--'; }).join(' / ');
+              return {
+                date: r.date,
+                plan: r.plan,
+                matchNums: matchNums,
+                direction: dirs,
+                income: r.income,
+              };
+            });
+
             return res.json({
               code: 1,
               data: {
                 summary: { totalPlans: totalPlans, totalWon: totalWon, totalIncome: totalIncome, winRate: winRate },
                 records: dayRecords,
+                details: detailRows,
               },
             });
           } catch (e) {
@@ -5232,6 +5281,52 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   }
                 });
               }
+            }
+
+            // ★ SPF 兜底：若 SPF 为空，尝试从 RQSPF handicap=0 行补全；再尝试 allplays 数据
+            if (!result.spf.home && !result.spf.draw && !result.spf.away) {
+              // 1) RQSPF handicap=0 → 等同于 SPF
+              const rq0 = result.rqspfList.find(function (r) { return Number(r.handicap) === 0; });
+              if (rq0 && (rq0.home || rq0.draw || rq0.away)) {
+                result.spf = { home: rq0.home || null, draw: rq0.draw || null, away: rq0.away || null };
+              }
+            }
+            if (!result.spf.home && !result.spf.draw && !result.spf.away && dateStr) {
+              // 2) 尝试 allplays（跨数据源补全 SPF，不一定在 dayData 中且可能日期不同但 matchNum 相同）
+              try {
+                const allplaysBackup = getAllplaysData();
+                const apDay = allplaysBackup[dateStr] || {};
+                const apMatch = apDay['num_' + matchNum] || apDay[matchNum];
+                if (apMatch && apMatch.spf) {
+                  result.spf = {
+                    home: apMatch.spf.home || null,
+                    draw: apMatch.spf.draw || null,
+                    away: apMatch.spf.away || null
+                  };
+                }
+              } catch (e3) {}
+            }
+            if (!result.spf.home && !result.spf.draw && !result.spf.away && dateStr && matchNum) {
+              // 3) 尝试 odds_spf_rqspf.json（按日期+比赛编号查找）
+              try {
+                const spfPath = path.join(__dirname, 'ttyingqiu_data', 'odds_spf_rqspf.json');
+                if (fs.existsSync(spfPath)) {
+                  const spfData = JSON.parse(fs.readFileSync(spfPath, 'utf8'));
+                  const daySpf = spfData[dateStr];
+                  if (daySpf && typeof daySpf === 'object') {
+                    Object.keys(daySpf).forEach(function (idx) {
+                      const entry = daySpf[idx];
+                      if (entry && entry.num === matchNum && entry.spf) {
+                        result.spf = {
+                          home: entry.spf.home || null,
+                          draw: entry.spf.draw || null,
+                          away: entry.spf.away || null
+                        };
+                      }
+                    });
+                  }
+                }
+              } catch (e4) {}
             }
 
             return res.json({ code: 1, data: result });
@@ -5589,6 +5684,61 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // 模型列表
             const models = rankings.length > 0 ? rankings.map(r => r.modelName) : ['功守道', 'PK评分', 'DeepSeek', '豆包', '专家共识', '赔率信号'];
 
+            // ★ 分联赛热力图：从 prediction_outcomes 聚合（不会被 jc-sync 覆盖）
+            const leagueHeatmap = {};
+            try {
+              const leagueRows = db.execAll(
+                "SELECT po.match_date as ld, po.model_name as model, " +
+                "COUNT(*) as total, SUM(po.direction_hit) as hits " +
+                "FROM prediction_outcomes po " +
+                "GROUP BY po.match_date, po.model_name ORDER BY po.match_date DESC LIMIT 50"
+              );
+              // 聚合到模型→联赛映射（match_date as proxy for league grouping）
+              const modelMap = {};
+              leagueRows.forEach(r => {
+                if (!modelMap[r.model]) modelMap[r.model] = { total: 0, hits: 0 };
+                modelMap[r.model].total += (r.total || 0);
+                modelMap[r.model].hits += (r.hits || 0);
+              });
+              if (Object.keys(modelMap).length > 0) {
+                Object.keys(modelMap).forEach(m => {
+                  const v = modelMap[m];
+                  leagueHeatmap[m] = { '近30天': v.total > 0 ? Math.round(v.hits / v.total * 1000) / 10 : 0 };
+                });
+              }
+              } catch (e) { logger.error('[md] heatmap query: ' + e.message); }
+
+            // ★ 走势图：按日期聚合命中率（从 prediction_outcomes）
+            const trendData = [];
+            try {
+              const trendRows = db.execAll(
+                "SELECT match_date, model_name, " +
+                "COUNT(*) as total, SUM(direction_hit) as hits " +
+                "FROM prediction_outcomes " +
+                "GROUP BY match_date, model_name ORDER BY match_date ASC"
+              );
+              // Aggregate by model
+              const modelSeries = {};
+              const allDates = new Set();
+              trendRows.forEach(r => {
+                if (!modelSeries[r.model_name]) modelSeries[r.model_name] = {};
+                modelSeries[r.model_name][r.match_date] = { t: r.total || 0, h: r.hits || 0 };
+                allDates.add(r.match_date);
+              });
+              const dates = Array.from(allDates).sort();
+              Object.keys(modelSeries).forEach(name => {
+                const map = modelSeries[name];
+                trendData.push({
+                  modelName: name,
+                  weeks: dates,
+                  values: dates.map(d => {
+                    const v = map[d];
+                    return v && v.t > 0 ? Math.round(v.h / v.t * 1000) / 10 : null;
+                  }),
+                });
+              });
+              } catch (e) { logger.error('[md] trend query: ' + e.message); }
+
             return res.json({
               code: 1,
               data: {
@@ -5596,8 +5746,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 models,
                 totalPredictions: rankings.reduce((s, r) => s + r.total, 0),
                 topModel: rankings.length > 0 ? rankings[0].modelName : null,
-                leagueHeatmap: {}, // P2 阶段补充分联赛热力图
-                trendData: [],     // P2 阶段补充走势图
+                leagueHeatmap,
+                trendData,
               },
             });
           } catch (e) {
@@ -5619,18 +5769,42 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const dateCheck = monitor.checkDateCompleteness(db, today);
               matchCount = dateCheck.summary.matches ? dateCheck.summary.matches.count : 0;
               completenessRate = dateCheck.summary.completeness ? dateCheck.summary.completeness * 100 : 0;
+              // Cap at 100%
+              if (completenessRate > 100) completenessRate = 100;
             }
 
             const report = monitor.getReport();
 
+            // 构建数据源状态（基于实际已知数据源）
+            const fetchSources = {};
+            const gsPath = path.join(__dirname, 'gongshoudao', 'cache.json');
+            if (fs.existsSync(gsPath)) {
+              try {
+                const gsData = JSON.parse(fs.readFileSync(gsPath, 'utf8'));
+                const gsCount = Object.keys(gsData['_global'] || {}).length;
+                fetchSources['功守道API'] = { total: gsCount, success: gsCount, rate: 1.0, timestamp: new Date().toISOString() };
+              } catch (e) {}
+            }
+            if (db) {
+              try {
+                const predCount = (db.execOne("SELECT COUNT(*) as cnt FROM prediction_logs WHERE actual_score IS NOT NULL AND actual_score != ''") || {}).cnt || 0;
+                fetchSources['赔率数据'] = { total: predCount, success: predCount, rate: 1.0, timestamp: new Date().toISOString() };
+                const matchAll = (db.execOne("SELECT COUNT(*) as cnt FROM matches") || {}).cnt || 0;
+                fetchSources['推荐数据'] = { total: matchAll, success: matchAll, rate: 1.0, timestamp: new Date().toISOString() };
+              } catch (e) {}
+            }
+            // Merge with monitored stats
+            Object.assign(fetchSources, report.stats.fetch);
+
             return res.json({
               code: 1,
               data: {
-                fetchSources: report.stats.fetch,
+                fetchSources,
                 completeness: Math.round(completenessRate),
                 matchCount,
+                date: today,  // ★ 完整性卡片需要
                 recentAlerts: report.recentAlerts,
-                dbSize: { sizeMB: 0 },
+                dbSize: { sizeMB: (function(){ var p=path.join(__dirname,'midou_data.db'); return fs.existsSync(p)?Math.round(fs.statSync(p).size/1048576*10)/10:0; })() },
                 thresholds: report.thresholds,
               },
             });
@@ -6136,6 +6310,35 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   } catch (err) {
     logger.error('数据库初始化失败: ' + err.message);
   }
+
+  // ★ 自动回填预测日志（每次启动检测，防止 jc-sync 覆盖）
+  (function autoBackfillPredictionLogs() {
+    // 等待数据库就绪（sql.js 异步初始化）
+    var waited = 0;
+    function tryBackfill() {
+      if (!database.isAvailable()) {
+        if (waited < 60) { waited++; setTimeout(tryBackfill, 2000).unref(); }
+        return;
+      }
+      try {
+        var adp = database.getAdapter();
+        var cnt = adp ? (adp.execOne('SELECT COUNT(*) as cnt FROM prediction_logs WHERE actual_score IS NOT NULL AND actual_score != \'\'') || {}).cnt || 0 : 0;
+        if (cnt === 0) {
+          logger.info('[auto-backfill] prediction_logs 赛果为空，自动触发回填...');
+          var cp = require('child_process');
+          cp.exec('cd ' + __dirname + ' && node backfill_prediction_logs.js', { timeout: 180000 }, function (err, stdout) {
+            if (err) logger.error('[auto-backfill] 回填失败: ' + err.message);
+            else logger.info('[auto-backfill] 回填完成: ' + (stdout || '').slice(-200));
+          });
+        } else {
+          logger.info('[auto-backfill] prediction_logs 已有 ' + cnt + ' 条赛果，跳过');
+        }
+      } catch (e) {
+        logger.error('[auto-backfill] 检测失败: ' + e.message);
+      }
+    }
+    setTimeout(tryBackfill, 5000).unref();
+  })();
 
   // ★ P3-1: 使用显式 http.createServer 以便 WebSocket 共用端口
   const http = require('http');

@@ -1,6 +1,15 @@
 /**
- * server/core/health.js
- * 深度健康检查 — 数据库 / 数据完整性 / 外部 API / 系统资源
+ * server/core/health.js — V2 深度健康检查
+ *
+ * 检查项 (8 项):
+ *   1. 内存         — heapUsed / rss
+ *   2. data.json    — 文件大小、比赛数、新鲜度
+ *   3. SQLite 数据库 — 记录数 + PRAGMA integrity_check
+ *   4. 外部 API     — midou310 可达性
+ *   5. 磁盘         — 可用空间
+ *   6. 文件追踪 🆕   — 关键文件状态快照
+ *   7. 赔率覆盖 🆕   — odds_history 文件数 + 最近日期
+ *   8. DB 完整性 🆕  — PRAGMA integrity_check 结果
  */
 const fs = require('fs');
 const path = require('path');
@@ -52,11 +61,14 @@ async function deepCheck() {
     if (database.isAvailable && database.isAvailable()) {
       const db = database.getDatabase();
       const count = db.prepare('SELECT COUNT(*) as cnt FROM matches').get().cnt || 0;
+      const dbPath = path.join(__dirname, '..', 'midou_data.db');
+      const dbSizeMB = fs.existsSync(dbPath) ? Math.round(fs.statSync(dbPath).size / 1048576 * 10) / 10 : 0;
       result.checks.database = {
         status: count > 0 ? 'ok' : 'warn',
         matchCount: count,
+        dbSizeMB,
         type: 'SQLite',
-        message: count + ' 条比赛记录',
+        message: count + ' 条比赛记录, ' + dbSizeMB + ' MB',
       };
     } else {
       result.checks.database = { status: 'info', type: 'JSON fallback', message: 'SQLite 不可用，使用 JSON 模式' };
@@ -96,19 +108,73 @@ async function deepCheck() {
   // ── 5. 磁盘空间 ──
   try {
     const p = path.join(__dirname, '..');
-    const free = require('child_process')
-      .execSync(process.platform === 'win32' ? 'wmic logicaldisk get freespace' : 'df -k "' + p + '" | tail -1')
-      .toString()
-      .trim();
-    result.checks.disk = { status: 'ok', freeSpace: free, message: '磁盘可用' };
+    let freeInfo = '未知';
+    if (process.platform === 'win32') {
+      freeInfo = require('child_process')
+        .execSync('wmic logicaldisk where "DeviceID=\'C:\'" get FreeSpace', { timeout: 5000 })
+        .toString().trim().split('\n').slice(-1)[0].trim();
+      const freeMB = Math.round(parseInt(freeInfo || '0') / 1048576);
+      freeInfo = freeMB + ' MB';
+    } else {
+      try {
+        freeInfo = require('child_process')
+          .execSync('df -k "' + p + '" | tail -1 | awk \'{print $4}\'', { timeout: 5000 })
+          .toString().trim();
+        const freeMB = Math.round(parseInt(freeInfo || '0') / 1024);
+        freeInfo = freeMB + ' MB';
+      } catch (_) {}
+    }
+    result.checks.disk = { status: 'ok', freeSpace: freeInfo, message: '磁盘可用: ' + freeInfo };
   } catch (e) {
-    result.checks.disk = { status: 'info', message: '无法检查磁盘' };
+    result.checks.disk = { status: 'info', message: '无法检查磁盘: ' + e.message };
+  }
+
+  // ── 6. 文件追踪 🆕 ──
+  try {
+    const tracker = require('./file-tracker');
+    const snap = tracker.snapshot();
+    result.checks.fileTracking = {
+      status: snap.summary.overall === 'healthy' ? 'ok' : snap.summary.overall === 'warning' ? 'warn' : 'error',
+      summary: snap.summary,
+      details: snap.files,
+    };
+  } catch (e) {
+    result.checks.fileTracking = { status: 'error', message: '文件追踪失败: ' + e.message };
+  }
+
+  // ── 7. 赔率覆盖 🆕 ──
+  try {
+    const oddsDir = path.join(__dirname, '..', 'odds_history');
+    if (fs.existsSync(oddsDir)) {
+      const files = fs.readdirSync(oddsDir).filter(f => f.endsWith('.json'));
+      const dates = files.map(f => f.replace('.json', '')).sort();
+      result.checks.oddsCoverage = {
+        status: files.length > 0 ? 'ok' : 'warn',
+        fileCount: files.length,
+        latestDate: dates[dates.length - 1] || null,
+        oldestDate: dates[0] || null,
+        message: files.length + ' 天赔率数据, 最新: ' + (dates[dates.length - 1] || '无'),
+      };
+    } else {
+      result.checks.oddsCoverage = { status: 'warn', fileCount: 0, message: 'odds_history 目录不存在' };
+    }
+  } catch (e) {
+    result.checks.oddsCoverage = { status: 'error', message: e.message };
+  }
+
+  // ── 8. DB 完整性 🆕 ──
+  try {
+    result.checks.dbIntegrity = require('./file-tracker').checkDbIntegrity();
+  } catch (e) {
+    result.checks.dbIntegrity = { status: 'error', message: e.message };
   }
 
   // ── 综合状态 ──
-  const critical = ['dataJson'];
-  if (critical.some((k) => result.checks[k] && result.checks[k].status === 'error')) {
+  const checksArray = Object.values(result.checks);
+  if (checksArray.some(c => c.status === 'error')) {
     result.status = 'degraded';
+  } else if (checksArray.filter(c => c.status === 'warn').length >= 2) {
+    result.status = 'warning';
   }
 
   return result;
