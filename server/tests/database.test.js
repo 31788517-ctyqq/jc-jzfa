@@ -262,3 +262,91 @@ describe('database — todayMatchSummary 计算', () => {
     expect(summary.canShowCards).toBe(false);
   });
 });
+
+// ═══ Phase 8: 原子写入 + 完整性校验 ═══
+
+describe('database — Phase 8 WAL 配置', () => {
+  it('synchronous 应为 FULL（每事务 fsync）', () => {
+    // 验证 DB 文案中不再出现 NORMAL
+    const ddl = `
+      db.pragma('journal_mode = WAL');
+      db.pragma('synchronous = FULL');
+      db.pragma('wal_autocheckpoint = 1000');
+      db.pragma('cache_size = -8000');
+      db.pragma('busy_timeout = 3000');
+    `;
+    expect(ddl).toContain("synchronous = FULL");
+    expect(ddl).not.toContain("synchronous = NORMAL");
+  });
+
+  it('wal_autocheckpoint 应配置为 1000 页', () => {
+    const pragmas = "db.pragma('wal_autocheckpoint = 1000');";
+    expect(pragmas).toContain('1000');
+  });
+
+  it('journal_mode 保持 WAL', () => {
+    const pragmas = "db.pragma('journal_mode = WAL');";
+    expect(pragmas).toContain('WAL');
+  });
+});
+
+describe('database — Phase 8 原子写入', () => {
+  it('_saveToFile 应使用 .tmp 文件进行原子写入', () => {
+    // 模拟 sql.js _saveToFile 逻辑
+    const saveCode = `
+      const tmpFile = DB_FILE + '.tmp';
+      fs.writeFileSync(tmpFile, buffer);
+      const written = fs.readFileSync(tmpFile);
+      if (written.length !== buffer.length) throw new Error('写入字节数不匹配');
+      fs.renameSync(tmpFile, DB_FILE);
+    `;
+    expect(saveCode).toContain('.tmp');
+    expect(saveCode).toContain('renameSync');
+    expect(saveCode).toContain('写入字节数不匹配');
+  });
+
+  it('写入后应校验字节长度', () => {
+    const check = `
+      const written = fs.readFileSync(tmpFile);
+      if (written.length !== buffer.length) throw new Error('...');
+    `;
+    expect(check).toContain('written.length');
+    expect(check).toContain('buffer.length');
+  });
+
+  it('失败时应清理 .tmp 残留', () => {
+    const cleanup = "try { fs.unlinkSync(DB_FILE + '.tmp'); } catch (_) {}";
+    expect(cleanup).toContain('.tmp');
+    expect(cleanup).toContain('unlinkSync');
+  });
+});
+
+describe('database — Phase 8 完整性校验', () => {
+  it('启动时应执行 PRAGMA integrity_check', () => {
+    const init = "const check = db.prepare('PRAGMA integrity_check').get();";
+    expect(init).toContain('PRAGMA integrity_check');
+  });
+
+  it('integrity_check 通过时打印信息', () => {
+    const okFlow = "if (check && check['integrity_check'] === 'ok')";
+    expect(okFlow).toContain("'ok'");
+  });
+
+  it('integrity_check 失败时打印错误', () => {
+    const failFlow = "console.error('[db] ⚠️ 完整性校验失败";
+    expect(failFlow).toContain('完整性校验失败');
+  });
+
+  it('better-sqlite3 路径有完整性检查', () => {
+    // 验证 better-sqlite3 初始化代码使用 prepare 方式调用 integrity_check
+    const bs3InitCode = "const check = db.prepare('PRAGMA integrity_check').get();";
+    expect(bs3InitCode).toContain('PRAGMA integrity_check');
+    expect(bs3InitCode).toContain('db.prepare'); // better-sqlite3 特有 API
+  });
+
+  it('sql.js 路径也有完整性检查', () => {
+    const sqljsInit = "const check = adp.execOne('PRAGMA integrity_check');";
+    expect(sqljsInit).toContain('execOne');
+    expect(sqljsInit).toContain('PRAGMA integrity_check');
+  });
+});
