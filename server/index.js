@@ -2020,6 +2020,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             // Add league list and total count
             result.leagues = predictionLog.getLeagues();
+            // ★ SPF 未开售状态检测：RQSPF 有数据但 SPF 为空 → 标记"暂未开售"
+            if (!result.spf.home && !result.spf.draw && !result.spf.away && result.rqspfList.length > 0) {
+              result.spfStatus = 'pending';
+              result.spfNote = 'SPF暂未开售';
+            }
+
             return res.json({ code: 1, data: result });
           } catch (e) {
             return res.json({ code: 0, msg: '回测查询失败: ' + e.message });
@@ -5471,6 +5477,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
             }
 
+            // ★ SPF 未开售状态检测：RQSPF 有数据但 SPF 为空 → 标记"暂未开售"
+            if (!result.spf.home && !result.spf.draw && !result.spf.away && result.rqspfList.length > 0) {
+              result.spfStatus = 'pending';
+              result.spfNote = 'SPF暂未开售';
+            }
+
             return res.json({ code: 1, data: result });
           } catch (e) {
             logger.error('[match-odds] ' + e.message);
@@ -5777,6 +5789,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               };
               result[mid] = r;
             }
+            // ★ SPF 未开售状态检测：RQSPF 有数据但 SPF 为空 → 标记"暂未开售"
+            if (!result.spf.home && !result.spf.draw && !result.spf.away && result.rqspfList.length > 0) {
+              result.spfStatus = 'pending';
+              result.spfNote = 'SPF暂未开售';
+            }
+
             return res.json({ code: 1, data: result });
           } catch (e) {
             logger.error('[batch-match-odds] ' + e.message);

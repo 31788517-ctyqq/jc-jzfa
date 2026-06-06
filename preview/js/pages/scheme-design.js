@@ -443,12 +443,20 @@ function renderMatchList() {
     // SPF 行：[0]
     var spfRow = '';
     if (showSpfRow) {
-      spfRow = '<div class="sodds-row ' + (_activePlayType !== 'mixed' && _activePlayType !== 'spf' ? 'sodds-row-dim' : '') + '">' +
-        '<span class="sodds-hcp">[0]</span>' +
-        renderOddsBtn(id, 'spf', '胜', spf.home, handicap, deltaSpf.home, recommTopSet['spf|胜']) +
-        renderOddsBtn(id, 'spf', '平', spf.draw, handicap, deltaSpf.draw, recommTopSet['spf|平']) +
-        renderOddsBtn(id, 'spf', '负', spf.away, handicap, deltaSpf.away, recommTopSet['spf|负']) +
-        '</div>';
+      var spfPending = odds.spfStatus === 'pending' && (!spf.home && !spf.draw && !spf.away);
+      if (spfPending) {
+        spfRow = '<div class="sodds-row ' + (_activePlayType !== 'mixed' && _activePlayType !== 'spf' ? 'sodds-row-dim' : '') + '">' +
+          '<span class="sodds-hcp">[0]</span>' +
+          '<span class="sodds-pending" style="display:flex;align-items:center;justify-content:center;flex:1;color:var(--text3);font-size:12px;padding:8px 0">⏳ 暂未开售</span>' +
+          '</div>';
+      } else {
+        spfRow = '<div class="sodds-row ' + (_activePlayType !== 'mixed' && _activePlayType !== 'spf' ? 'sodds-row-dim' : '') + '">' +
+          '<span class="sodds-hcp">[0]</span>' +
+          renderOddsBtn(id, 'spf', '胜', spf.home, handicap, deltaSpf.home, recommTopSet['spf|胜']) +
+          renderOddsBtn(id, 'spf', '平', spf.draw, handicap, deltaSpf.draw, recommTopSet['spf|平']) +
+          renderOddsBtn(id, 'spf', '负', spf.away, handicap, deltaSpf.away, recommTopSet['spf|负']) +
+          '</div>';
+      }
     }
 
     // RQSPF 行：[handicap]
@@ -625,8 +633,8 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
     return;
   }
 
-  // ★ 混合过关：允许同一场选不同玩法（如 SPF平 + RQSPF让平）
-  // 木桶原则在 _selections 组建后统一校验上限
+  // ★ 群彩风格：同场不同玩法 → 静默替换（清除同场旧选择后再添加新选择）
+  _selections = _selections.filter(function(s) { return s.matchId !== matchId; });
 
   _selections.push({
     matchId: matchId,
@@ -890,25 +898,17 @@ window.saveUserPlan = function () {
   var uniqueMatches = Object.keys(_uniqueMatchIds);
 
   if (uniqueMatches.length === 1) {
-    // ★ 检查当前选择中是否包含 SPF 或 RQSPF
-    var hasSpfRqspf = _selections.some(function(s) {
-      return s.playType === 'spf' || s.playType === 'rqspf';
-    });
-
     var selMatch = _matches.find(function(m) { return (m.matchId || m.id) === uniqueMatches[0]; });
 
-    // ★ 纯 BF/JQS/BQC 组合无需 isSingleGame 标签，直接放行
-    if (hasSpfRqspf) {
-      // 包含 SPF/RQSPF 时，需要该场比赛支持单关（带"单关"标签）
-      if (selMatch && selMatch.isSingleGame !== true) {
-        alert('⚽ 胜平负/让球玩法需要该场比赛支持单关投注（带"单关"标签），请至少再选一场组成串关\n\n注：比分/半全场/进球数单场可直接选择，无需单关标签');
-        return;
-      }
+    // ★ 竞彩规则：所有玩法单关均需该场比赛标记为"单关"场次
+    if (selMatch && selMatch.isSingleGame !== true) {
+      alert('⚽ 单关投注需要该场比赛标记为「单关」场次，当前比赛不支持单关\n\n' +
+        '请至少再选一场比赛组成串关，或选择带「单关」标签的比赛。');
+      return;
     }
-    // ★ 单关允许所有玩法：SPF/RQSPF（需标签） + BF/JQS/BQC（无需标签）
   }
 
-  // ★ 混合过关：允许同一场选不同玩法（如 SPF平 + RQSPF让平）
+  // ★ 群彩风格：同场点击自动替换（不是禁止混合），跨场自由混合不同玩法
   // 木桶原则（每种玩法上限）在 _selections 组建时已校验
 
   // ★ 构建 matchDetails 用于确认页面（携带完整赔率数据）
@@ -999,7 +999,8 @@ window.openSchemeBetting = function (matchId) {
     }
     if (incomingSelections.length === 0) return;
 
-    // ★ 弹窗代表该场最终选择，直接替换全场
+    // ★ 群彩风格：弹窗结果直接替换同场旧选择（静默替换，不再弹窗拦截）
+    // 竞彩场次隔离：弹窗内只允许操作一种玩法（betting.js 传入 _activePlayType 限制）
     _selections = _selections.filter(function (s) { return s.matchId !== matchId; });
 
     incomingSelections.forEach(function (s) {
