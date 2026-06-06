@@ -5413,9 +5413,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             }
 
             // ★★★ P8: sporttery 兜底赔率 ★★★
-            // 当所有其他数据源（allplays/odds_history_v2/JSON/ttyingqiu）都为 0 时，
+            // 当其他数据源缺失 SPF、RQSPF 或完全无数据时，
             // 从 sporttery_odds_snapshot 提取最新快照作为兜底
-            if (!oddsEntry || (!result.spf.home && !result.spf.draw && !result.spf.away)) {
+            if (!oddsEntry || (!result.spf.home && !result.spf.draw && !result.spf.away) || result.rqspfList.length === 0) {
               try {
                 const adpFallback = database.getAdapter();
                 if (adpFallback) {

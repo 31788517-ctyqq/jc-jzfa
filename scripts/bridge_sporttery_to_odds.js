@@ -15,11 +15,24 @@
 const fs = require('fs');
 const path = require('path');
 
-const ODDS_DIR = path.join(__dirname, '..', 'server', 'sporttery_odds');
-const PREVIEW_DIR = path.join(__dirname, '..', 'server', 'sporttery_preview');
+// 兼容本地(scripts/../server/sporttery_odds)和服务器(scripts/../sporttery_odds)两种目录结构
+const ODDS_DIR = (function() {
+  var serverPath = path.join(__dirname, '..', 'server', 'sporttery_odds');
+  var directPath = path.join(__dirname, '..', 'sporttery_odds');
+  if (fs.existsSync(directPath)) return directPath;
+  return serverPath;
+})();
+const PREVIEW_DIR = (function() {
+  var serverPath = path.join(__dirname, '..', 'server', 'sporttery_preview');
+  var directPath = path.join(__dirname, '..', 'sporttery_preview');
+  if (fs.existsSync(directPath)) return directPath;
+  return serverPath;
+})();
 const DRY_RUN = process.argv.includes('--dry');
 const SINGLE_MATCH = process.argv.includes('--match') ? (process.argv[process.argv.indexOf('--match') + 1] || '') : '';
-const database = require('../server/database');
+// 兼容本地(scripts/)和服务器(/root/server/scripts/)两种路径
+var database;
+try { database = require('../server/database'); } catch (e) { database = require('../database'); }
 
 // ★ 初始化数据库（better-sqlite3 同步 / sql.js 异步）
 function initDb() {
@@ -125,7 +138,8 @@ function parseOddsSnapshots(matchId, matchNum, date, home, away, league, data) {
       const oddsData = {};
       const trends = [];
 
-      const rowStart = pubIdx >= 0 ? pubIdx + 1 : 1;
+      // ★ 数据行：column 0 始终是时间戳，赔率值从 column 1 开始
+      const rowStart = 1;
       for (let c = 0; c < dataCols.length && rowStart + c < row.length; c++) {
         const rawVal = String(row[rowStart + c] || '').trim();
         const trendMatch = rawVal.match(/([↑↓])$/);
