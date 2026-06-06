@@ -395,7 +395,7 @@ function renderMatchList() {
   }
 
   var html = filterHint + _matches.map(function (m) {
-    var id = m.matchId || m.id || '';
+    var id = m.matchId || m.id || m.num || m.matchNum || '';
     var odds = m._odds || {};
     var spf = odds.spf || {};
     var rqspf = odds.rqspf || {};
@@ -575,6 +575,9 @@ function renderDeltaSummary(match, playPrefix) {
 
 // ═══ 选择 ═══
 window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handicap) {
+  // ★ 防止空 matchId 导致误判为同一场比赛
+  if (!matchId) { console.warn('selectSchemeOdds: matchId 为空，忽略选择'); return; }
+
   // ★ 木桶原则：检查玩法上限
   if (_activePlayType !== 'mixed') {
     // 在特定玩法下，按"同玩法上限"检查
@@ -622,7 +625,9 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
     return;
   }
 
-  // ★ 同场可多玩法共存，直接追加
+  // ★ 混合过关：允许同一场选不同玩法（如 SPF平 + RQSPF让平）
+  // 木桶原则在 _selections 组建后统一校验上限
+
   _selections.push({
     matchId: matchId,
     playType: playType,
