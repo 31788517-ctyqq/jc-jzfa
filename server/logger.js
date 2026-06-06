@@ -1,21 +1,24 @@
 /**
- * 统一日志模块 v2（winston）
+ * 统一日志模块 v3（winston + winston-daily-rotate-file）
  *
- * 增强 (P2-1):
+ * V3 增强:
+ *   - DailyRotateFile: 按天切割 + 30天自动清理（替代单一大文件）
+ *   - getLogger(name): 一行创建带标签的子 Logger
  *   - JSON 格式输出（可选，便于 ELK/Loki 分析）
  *   - 性能计时器（startTimer / endTimer）
  *   - 每日数据统计日志（stats.json）
- *   - 向上兼容原有接口
+ *   - 向后兼容所有 v2 API
  *
  * 用法：
- *   const logger = require('./logger');              // 通用日志
- *   const logger = require('./logger').child('data_sync'); // 带标签的进程日志
- *   const timer = logger.startTimer('sync_odds');     // 性能计时
- *   // ... 执行操作 ...
- *   timer.end({ count: 20 });                        // 记录耗时
+ *   const logger = require('./logger');                    // 通用日志
+ *   const log = require('./logger').getLogger('data_sync'); // 带标签的子 Logger（推荐）
+ *   const log = require('./logger').child('data_sync');     // 同上（兼容旧 API）
+ *   const timer = logger.startTimer('sync_odds');           // 性能计时
+ *   timer.end({ count: 20 });                               // 记录耗时
  */
 
 const winston = require('winston');
+const DailyRotateFile = require('winston-daily-rotate-file');
 const path = require('path');
 const fs = require('fs');
 
@@ -55,6 +58,7 @@ const textFormat = winston.format.combine(
 const useJson = process.env.LOG_FORMAT === 'json' || process.env.NODE_ENV === 'production';
 
 const transports = [
+  // ── Console（开发环境彩色输出） ──
   new winston.transports.Console({
     format: winston.format.combine(
       winston.format.colorize(),
@@ -73,28 +77,36 @@ const transports = [
       }),
     ),
   }),
-  new winston.transports.File({
-    filename: path.join(logDir, 'error.log'),
+  // ── 错误日志：按日切割 + 保留30天 ──
+  new DailyRotateFile({
+    filename: path.join(logDir, 'error-%DATE%.log'),
+    datePattern: 'YYYY-MM-DD',
     level: 'error',
-    maxsize: 5 * 1024 * 1024,
-    maxFiles: 10,
+    maxSize: '20m',
+    maxFiles: '30d',
+    zippedArchive: false,
     format: useJson ? jsonFormat : textFormat,
   }),
-  new winston.transports.File({
-    filename: path.join(logDir, 'combined.log'),
-    maxsize: 10 * 1024 * 1024,
-    maxFiles: 15,
+  // ── 综合日志：按日切割 + 保留30天 ──
+  new DailyRotateFile({
+    filename: path.join(logDir, 'combined-%DATE%.log'),
+    datePattern: 'YYYY-MM-DD',
+    maxSize: '30m',
+    maxFiles: '30d',
+    zippedArchive: false,
     format: useJson ? jsonFormat : textFormat,
   }),
 ];
 
-// 如果启用JSON格式，额外输出一个 JSON 日志文件
+// ── JSON 结构化日志（按日切割） ──
 if (useJson) {
   transports.push(
-    new winston.transports.File({
-      filename: path.join(logDir, 'json.log'),
-      maxsize: 20 * 1024 * 1024,
-      maxFiles: 5,
+    new DailyRotateFile({
+      filename: path.join(logDir, 'json-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '30m',
+      maxFiles: '14d',
+      zippedArchive: false,
       format: jsonFormat,
     }),
   );
@@ -104,6 +116,16 @@ const logger = winston.createLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
   transports,
 });
+
+logger.on('error', (err) => {
+  // 日志写入失败不崩溃进程
+  console.error('[logger] transport error:', err.message);
+});
+
+// ═══ getLogger(name) = child(name) — 推荐的简写 ═══
+function getLogger(label) {
+  return child(label);
+}
 
 // ═══ 向前兼容的 child() 方法 ═══
 function child(label) {
@@ -198,6 +220,7 @@ function getDailyStats(date) {
 
 // ═══ 导出 ═══
 module.exports = logger;
-module.exports.child = child;
+module.exports.getLogger = getLogger;   // ★ V3 推荐: getLogger('name')
+module.exports.child = child;           // 向后兼容
 module.exports.recordDailyStats = recordDailyStats;
 module.exports.getDailyStats = getDailyStats;
