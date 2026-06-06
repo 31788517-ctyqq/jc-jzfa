@@ -47,6 +47,24 @@
       "merge_logs": true,
       "autorestart": true,
       "watch": false
+    },
+    {
+      "name": "jc-scheduler",
+      "script": "scheduler_v2.js",
+      "cwd": "/root/server",
+      "instances": 1,
+      "exec_mode": "fork",
+      "env": {
+        "NODE_ENV": "production",
+        "BEHIND_PROXY": "1"
+      },
+      "max_memory_restart": "128M",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss",
+      "error_file": "./logs/scheduler_error.log",
+      "out_file": "./logs/scheduler_out.log",
+      "merge_logs": true,
+      "autorestart": true,
+      "watch": false
     }
   ]
 }

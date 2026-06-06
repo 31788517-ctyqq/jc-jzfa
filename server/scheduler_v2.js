@@ -210,8 +210,68 @@ async function processQueue() {
   return done;
 }
 
+// ═══ 3.5 熔断器 ═══
+const _circuitBreaker = {};
+const CB_CONFIG = {
+  backoffAfter: 3,      // 连续失败 3 次 → 退避 30 分钟
+  breakAfter: 10,       // 连续失败 10 次 → 熔断 2 小时
+  backoffMinutes: 30,
+  breakMinutes: 120,
+};
+
+function _recordTaskResult(taskName, success) {
+  if (!_circuitBreaker[taskName]) {
+    _circuitBreaker[taskName] = { consecutiveFailures: 0, openUntil: 0 };
+  }
+  const cb = _circuitBreaker[taskName];
+  if (success) {
+    cb.consecutiveFailures = 0;
+    cb.openUntil = 0;
+  } else {
+    cb.consecutiveFailures++;
+    if (cb.consecutiveFailures >= CB_CONFIG.breakAfter) {
+      cb.openUntil = Date.now() + CB_CONFIG.breakMinutes * 60 * 1000;
+      logger.error('[cb] 熔断: ' + taskName + ' 连续失败 ' + cb.consecutiveFailures + ' 次, 熔断 ' + CB_CONFIG.breakMinutes + ' 分钟');
+      alert.taskCircuitBreaker({ taskName, consecutiveFailures: cb.consecutiveFailures });
+    }
+  }
+}
+
+function _isCircuitOpen(taskName) {
+  const cb = _circuitBreaker[taskName];
+  if (!cb || cb.openUntil === 0) return false;
+  if (Date.now() >= cb.openUntil) {
+    cb.consecutiveFailures = 0;
+    cb.openUntil = 0;
+    logger.info('[cb] 熔断恢复: ' + taskName);
+    return false;
+  }
+  return true;
+}
+
+function _getBackoffDelay(taskName) {
+  const cb = _circuitBreaker[taskName] || { consecutiveFailures: 0 };
+  if (cb.consecutiveFailures >= CB_CONFIG.breakAfter) return CB_CONFIG.breakMinutes * 60 * 1000;
+  if (cb.consecutiveFailures >= CB_CONFIG.backoffAfter) return CB_CONFIG.backoffMinutes * 60 * 1000;
+  return 0;
+}
+
 // ═══ 4. 任务执行器 ═══
 async function executeTask(taskName, params, retryCount) {
+  // 熔断检查
+  if (_isCircuitOpen(taskName)) {
+    const msg = '[cb] 任务熔断中: ' + taskName;
+    logger.warn(msg);
+    return false;
+  }
+
+  const backoff = _getBackoffDelay(taskName);
+  if (backoff > 0) {
+    logger.warn('[cb] 任务退避 ' + taskName + ' (' + Math.round(backoff / 60000) + 'min)');
+    enqueueTask(taskName, params, retryCount, Math.round(backoff / 60000));
+    return false;
+  }
+
   const ds = loadDataSync();
   if (!ds) throw new Error('data_sync 模块不可用');
 
@@ -318,6 +378,8 @@ async function executeTask(taskName, params, retryCount) {
       }
     }
 
+    _recordTaskResult(taskName, true);
+
     const duration = timer.end();
     logger.info('[task] ' + taskName + ' 完成 [' + duration + 'ms]');
 
@@ -334,6 +396,8 @@ async function executeTask(taskName, params, retryCount) {
 
     return true;
   } catch (e) {
+    _recordTaskResult(taskName, false);
+
     const duration = timer.end();
     logger.error('[task] ' + taskName + ' 失败: ' + e.message);
 

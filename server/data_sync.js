@@ -118,12 +118,30 @@ async function sync500Odds(dateStr) {
 
   const filePath = path.join(ODDS_DIR, dateStr + '.json');
 
-  // 已有有效数据跳过
+  // 内容感知刷新：文件存在 + 大小 > 100B + 内容有效 → 跳过
   if (fs.existsSync(filePath)) {
     const stat = fs.statSync(filePath);
     if (stat.size > 100) {
-      log('[500odds] ' + dateStr + ' 已有数据，跳过');
-      return;
+      try {
+        const existing = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        const oddsCount = Object.keys(existing.odds || {}).length;
+        // 从 matches 表获取当天预期比赛数
+        const db = database.getAdapter();
+        const expectedCount = db
+          ? (db.execOne('SELECT COUNT(*) as cnt FROM matches WHERE date = ?', dateStr) || {}).cnt || 0
+          : 0;
+        // 赔率 >= 预期比赛数 80% 且文件 1 小时内写过 → 跳过
+        if (oddsCount > 0 && (!expectedCount || oddsCount >= expectedCount * 0.8)) {
+          var age = Date.now() - stat.mtimeMs;
+          if (age < 3600000) {
+            log('[500odds] ' + dateStr + ' 有效数据 (' + oddsCount + '/' + expectedCount + '场)，跳过');
+            return;
+          }
+        }
+        log('[500odds] ' + dateStr + ' 数据需刷新 (odds=' + oddsCount + '/match=' + expectedCount + ', age=' + Math.round(age / 60000) + 'min)');
+      } catch (e) {
+        log('[500odds] ' + dateStr + ' 文件损坏，重新抓取');
+      }
     }
   }
 
@@ -1460,6 +1478,26 @@ async function finalCheck(dateStr) {
   }
 
   log('══════ 最终核对 [' + dateStr + '] 完成 ══════');
+
+  // ★ 自动触发回填：补充历史缺失赔率数据
+  try {
+    const { exec } = require('child_process');
+    log('[final] 自动触发历史数据回填...');
+    exec('node ' + path.join(__dirname, 'catch_up.js') + ' --date ' + dateStr + ' --odds-only --timeout 300', {
+      timeout: 360000,
+      cwd: __dirname,
+    }, (err, stdout, stderr) => {
+      if (err) {
+        log('[final] 回填异常: ' + (err.message || ''));
+      } else {
+        const lines = (stdout || '').trim().split('\n').slice(-3);
+        log('[final] 回填完成: ' + lines.join(' '));
+      }
+    });
+  } catch (e) {
+    log('[final] 回填启动失败: ' + e.message);
+  }
+
   notifyReload();
 }
 
