@@ -5749,6 +5749,26 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               // ★ 构建赔率走势信号（最后 N 次变化的方向趋势）
               var deltaTrend = _buildDeltaTrend(deltaLogs || []);
 
+              // ★ sporttery RQSPF 兜底：500.com 数据无 RQSPF 时从 sporttery_odds_snapshot 取
+              var sportteryRqspf = null;
+              var sportteryHandicap = null;
+              if (!oddsEntry.rqspf) {
+                try {
+                  var adp2 = database.getAdapter();
+                  if (adp2) {
+                    var sRow = adp2.execOne(
+                      'SELECT odds_json FROM sporttery_odds_snapshot WHERE match_num = ? AND play_type = ? ORDER BY snapshot_time DESC LIMIT 1',
+                      matchNum, 'rqspf'
+                    );
+                    if (sRow && sRow.odds_json) {
+                      var sOdds = JSON.parse(sRow.odds_json);
+                      sportteryRqspf = { home: sOdds['胜'] || null, draw: sOdds['平'] || null, away: sOdds['负'] || null };
+                      sportteryHandicap = sOdds._handicap != null ? sOdds._handicap : null;
+                    }
+                  }
+                } catch (eSporttery) {}
+              }
+
               var r = {
                 matchId: mid,
                 homeName: m.homeName || '',
@@ -5758,15 +5778,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 matchNum: matchNum,
                 halfScore: m.half || '',
                 spf: oddsEntry.spf || null,
-                rqspf: oddsEntry.rqspf || null,
+                rqspf: oddsEntry.rqspf || sportteryRqspf || null,
                 // ★ key 映射兼容: odds_history 存 totalGoals/halfFull/scores，allplays.json 额外存 jqs/bqc/bf
                 jqs: oddsEntry.jqs || oddsEntry.totalGoals || null,
                 bqc: oddsEntry.bqc || oddsEntry.halfFull || null,
                 bf: oddsEntry.bf || oddsEntry.scores || null,
-                // ★ 修复：三级降级链 — 顶层handicap → rqspf.handicap → match.concede → 0
+                // ★ 四级降级链 — 顶层handicap → sporttery → rqspf.handicap → match.concede → 0
                 handicap: oddsEntry.handicap != null ? oddsEntry.handicap
+                  : (sportteryHandicap != null ? sportteryHandicap
                   : (oddsEntry.rqspf && oddsEntry.rqspf.handicap != null ? oddsEntry.rqspf.handicap
-                  : (m.concede || 0)),
+                  : (m.concede || 0))),
                 isSingleGame: isSingleGame,
                 oddsDelta: deltaChanges,
                 // ★ 赔率走势信号（最近变化趋势，用于前端迷你趋势可视化）
@@ -5792,11 +5813,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // ★ SPF 未开售状态检测（逐场检查）
             Object.keys(result).forEach(function(k) {
               var entry = result[k];
-              if (!entry || !entry.spf || (entry.spf && !entry.spf.home && !entry.spf.draw && !entry.spf.away)) {
-                if (entry && entry.rqspf && (entry.rqspf.home || entry.rqspf.draw || entry.rqspf.away)) {
-                  entry.spfStatus = 'pending';
-                  entry.spfNote = 'SPF暂未开售';
-                }
+              if (!entry) return;
+              var spfEmpty = !entry.spf || (!entry.spf.home && !entry.spf.draw && !entry.spf.away);
+              if (spfEmpty) {
+                entry.spfStatus = 'pending';
+                entry.spfNote = 'SPF暂未开售';
               }
             });
 

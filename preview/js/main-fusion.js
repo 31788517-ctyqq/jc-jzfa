@@ -10,7 +10,7 @@ import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/matc
 var _modCache = {};
 function _mod(name) {
   if (_modCache[name]) return Promise.resolve(_modCache[name]);
-  return import('./pages/' + name + '.js?v=24060218')
+  return import('./pages/' + name + '.js?v=202606062200')
     .then(function (m) {
       _modCache[name] = m;
       return m;
@@ -787,7 +787,8 @@ export function switchTab(tab) {
   var titleEl = document.getElementById('navTitle');
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
   var backEl = document.getElementById('navBack');
-  if (backEl) backEl.style.display = tab === 'detail' || tab === 'filter' ? 'flex' : 'none';
+  // 所有非首页页面均显示返回键
+  if (backEl) backEl.style.display = tab !== 'home' ? 'flex' : 'none';
 
   if (tab === 'home') {
     var cameBack = state.savedScrollY > 0;
@@ -815,6 +816,9 @@ export function switchTab(tab) {
       document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === 'my');
       });
+      // ★ 自动滚动使「我的方案」标签完整可见
+      var myTag = document.querySelector('#planTabBar .filter-tag[data-tab="my"]');
+      if (myTag) myTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
     }
     _mod('plans').then(function (m) {
       m._autoSetBestDate();
@@ -844,8 +848,9 @@ export function switchTab(tab) {
   }
   if (tab === 'filter') {
     _mod('filter').then(function (m) {
-      m.loadFilterLeagues();
-      m.resetFilterResult();
+      m.loadFilterLeagues().then(function () {
+        m.doFilterQuery();
+      });
     });
   }
   if (tab === 'income') {
@@ -1066,7 +1071,8 @@ if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
 
   // 设置返回按钮显示
   var backEl = document.getElementById('navBack');
-  if (backEl) backEl.style.display = tab === 'detail' || tab === 'filter' ? 'flex' : 'none';
+  // 所有非首页页面均显示返回键
+  if (backEl) backEl.style.display = tab !== 'home' ? 'flex' : 'none';
 
   if (tab === 'match') {
     if (state.weekDates.length > 0) {
@@ -1084,6 +1090,9 @@ if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
       document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === 'my');
       });
+      // ★ 自动滚动使「我的方案」标签完整可见
+      var myTag = document.querySelector('#planTabBar .filter-tag[data-tab="my"]');
+      if (myTag) myTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
     }
     _mod('plans').then(function (m) {
       m._autoSetBestDate();
@@ -1113,8 +1122,9 @@ if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
   }
   if (tab === 'filter') {
     _mod('filter').then(function (m) {
-      m.loadFilterLeagues();
-      m.resetFilterResult();
+      m.loadFilterLeagues().then(function () {
+        m.doFilterQuery();
+      });
     });
   }
   if (tab === 'income') {
