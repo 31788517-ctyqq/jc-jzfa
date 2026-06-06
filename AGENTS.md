@@ -115,7 +115,13 @@ npm run preflight
 - 部署前使用 `node -e "..."` 脚本扫描依赖链（详见 deploy-ops Skill）
 - **教训：遗漏 core/ 依赖会导致 match-list API 全线 500，用户完全不可用**
 
-### 9.2 静态资源（强制）
+### 9.2 npm 依赖同步（强制）🆕
+
+- **新增 npm 依赖必须在服务器上同步安装**：`npm install <pkg> --save` 后，部署前必须在服务器 `/root/server/` 目录执行相同的 `npm install`
+- **教训**：V8.0 引入 `winston-daily-rotate-file`，本地 `npm install` 后未在服务器安装 → PM2 崩溃循环 300+ 次 → 站点不可用 10 分钟
+- **部署流程补充**：新增依赖时，`deploy.py` 应自动执行或提醒 `npm install`
+
+### 9.3 静态资源（强制）
 
 - 图标/图片等静态资源优先使用 emoji 内联字符（免部署、不 404）
 - 若使用文件资源，必须确认 nginx 路径映射正确
