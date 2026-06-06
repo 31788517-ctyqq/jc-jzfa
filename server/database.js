@@ -217,16 +217,26 @@ function _createSqlJsAdapter(sqlDb) {
     dbInstance = new sqlDb.Database();
   }
 
-  // 自动保存到文件（事务中跳过）
+  // 自动保存到文件（事务中跳过）—— V3.0 原子写入防损坏
   let _inTransaction = false;
   function _saveToFile() {
     if (_inTransaction) return; // 事务中不保存，等 COMMIT
     try {
       const data = dbInstance.export();
       const buffer = Buffer.from(data);
-      fs.writeFileSync(DB_FILE, buffer);
+      const tmpFile = DB_FILE + '.tmp';
+      fs.writeFileSync(tmpFile, buffer);
+      // 写入后校验完整性
+      const written = fs.readFileSync(tmpFile);
+      if (written.length !== buffer.length) {
+        throw new Error('写入字节数不匹配(' + written.length + '≠' + buffer.length + ')');
+      }
+      // 原子替换
+      fs.renameSync(tmpFile, DB_FILE);
     } catch (e) {
       console.error('[db] 保存数据库失败: ' + e.message);
+      // 清理残留 .tmp 文件
+      try { fs.unlinkSync(DB_FILE + '.tmp'); } catch (_) {}
     }
   }
 
@@ -331,7 +341,8 @@ function _initBetterSqlite3() {
   function initDatabase() {
     db = new Database(DB_PATH);
     db.pragma('journal_mode = WAL');
-    db.pragma('synchronous = NORMAL');
+    db.pragma('synchronous = FULL');    // ★ NORMAL→FULL，每次提交 fsync
+    db.pragma('wal_autocheckpoint = 1000');  // ★ WAL 超 1000 页自动 checkpoint
     db.pragma('cache_size = -8000');
     db.pragma('busy_timeout = 3000');
 
@@ -398,6 +409,15 @@ function _initBetterSqlite3() {
     dbAvailable = true;
     _adapterReady = true;
     console.log('[db] better-sqlite3 初始化成功: ' + DB_PATH);
+    // ★ 启动完整性校验
+    try {
+      const check = db.prepare('PRAGMA integrity_check').get();
+      if (check && check['integrity_check'] === 'ok') {
+        console.log('[db] 完整性校验通过');
+      } else {
+        console.error('[db] ⚠️ 完整性校验失败: ' + JSON.stringify(check));
+      }
+    } catch (e) { console.error('[db] 完整性校验异常: ' + e.message); }
     return true;
   }
 
@@ -829,6 +849,15 @@ function _initSqlJs() {
       dbAvailable = true;
       _adapterReady = true;
       console.log('[db] sql.js 初始化成功: ' + DB_PATH);
+      // ★ 启动完整性校验
+      try {
+        const check = adp.execOne('PRAGMA integrity_check');
+        if (check && check['integrity_check'] === 'ok') {
+          console.log('[db] 完整性校验通过');
+        } else {
+          console.error('[db] ⚠️ 完整性校验失败: ' + JSON.stringify(check));
+        }
+      } catch (e) { console.error('[db] 完整性校验异常: ' + e.message); }
     })
     .catch((e) => {
       console.log('[db] sql.js 初始化失败: ' + e.message);

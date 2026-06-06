@@ -11,6 +11,7 @@ const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { atomicWriteJson } = require('../core/file-utils');
 
 const API_BASE = 'https://m.100qiu.com';
 

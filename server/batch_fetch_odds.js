@@ -5,6 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const { fetchOdds } = require('./fetch_500odds');
+const { atomicWriteJson } = require('./core/file-utils');
 
 // 数据存储目录
 const DATA_DIR = path.join(__dirname, 'odds_history');
@@ -45,12 +46,12 @@ async function fetchOneDay(dateStr) {
 
     if (matches.length === 0) {
       console.log(`[EMPTY] ${dateStr} - no matches`);
-      fs.writeFileSync(filePath, JSON.stringify({ date: dateStr, matches: [], empty: true }));
+      atomicWriteJson(filePath, { date: dateStr, matches: [], empty: true });
       return { date: dateStr, status: 'empty', count: 0 };
     }
 
     // 保存完整数据
-    fs.writeFileSync(filePath, JSON.stringify({ date: dateStr, odds }, null, 2));
+    atomicWriteJson(filePath, { date: dateStr, odds });
     console.log(`[SUCCESS] ${dateStr} - ${matches.length} matches saved`);
     return { date: dateStr, status: 'success', count: matches.length };
   } catch (e) {

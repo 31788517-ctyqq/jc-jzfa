@@ -5,6 +5,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { atomicWriteJson } = require('../core/file-utils');
 const parser = require('./parser');
 const attack = require('./attack');
 const goal = require('./goal');
@@ -28,7 +29,7 @@ function readCache() {
 }
 
 function writeCache(data) {
-  fs.writeFileSync(CACHE_PATH, JSON.stringify(data, null, 2), 'utf8');
+  atomicWriteJson(CACHE_PATH, data);
 }
 
 // ==================== 单场比赛计算 ====================
@@ -73,6 +74,38 @@ function computeSingleMatch(rawStats, matchInfo) {
     xgAway: goalResult.xgAway,
     fusionConsensusType: goalResult.fusionConsensusType,
   });
+
+  // ★ V9.1 P0修复: 用市场数据重新计算共振裁决（原来传null，市场面未激活）
+  const resonanceWithMarket = (() => {
+    try {
+      const marketContext = {};
+      // 盘口位移
+      if (marketResult.movement) {
+        marketContext.panShift = marketResult.movement.probShift || 0;
+      } else {
+        marketContext.panShift = 0;
+      }
+      // SP 隐含主胜概率（从赔率反推）
+      const homeAward = vars.homeWinAward || 2.5;
+      const drawAward = vars.drawAward || 3.2;
+      const awayAward = vars.awayWinAward || 2.8;
+      const totalInv = 1 / homeAward + 1 / drawAward + 1 / awayAward;
+      marketContext.spImpHome = totalInv > 0 ? (1 / homeAward) / totalInv : 0.33;
+      // 如果市场情报有离散度或亚指水位数据，一起传入
+      if (marketResult.signalFlags && marketResult.signalFlags.length > 0) {
+        marketContext.signalFlags = marketResult.signalFlags;
+      }
+      return diff.calcResonance(
+        diffResult._diffXG,
+        diffResult._totalStrength,
+        diffResult.sevenMatch.dimension1,
+        diffResult.sevenMatch.dimension2,
+        marketContext,
+      );
+    } catch (e) {
+      return diffResult.resonance; // 降级回原值
+    }
+  })();
 
   // 组装弹窗数据
   return {
@@ -147,6 +180,7 @@ function computeSingleMatch(rawStats, matchInfo) {
     // ★ 四重熔断
     fusionConsensus: goalResult.fusionConsensus,
     fusionConsensusType: goalResult.fusionConsensusType, // 英文代码: strong/weak/meltdown
+    fusionConsensusScore: goalResult.fusionConsensusScore || 0, // V9.1: 连续置信度 [0, 1]
     fusionFinalHome: goalResult.fusionFinalHome,
     fusionFinalAway: goalResult.fusionFinalAway,
     fusionFinalTotal: goalResult.fusionFinalTotal, // V25新增：熔断后融合总进球（备用预期进球指标）
@@ -319,8 +353,8 @@ function computeSingleMatch(rawStats, matchInfo) {
     verifyResult: diffResult.verifyResult,
     verifyValue: diffResult.verifyValue,
 
-    // 谐振裁决
-    resonance: diffResult.resonance,
+    // 谐振裁决（V9.1: 含市场面四维共振）
+    resonance: resonanceWithMarket,
     sevenMatch: diffResult.sevenMatch,
     anchor: diffResult.anchor,
 
@@ -342,7 +376,7 @@ function computeSingleMatch(rawStats, matchInfo) {
     })(),
 
     // 建议
-    suggestion: diffResult.resonance.verdict || '基于历史数据的量化分析，仅供参考',
+    suggestion: resonanceWithMarket.verdict || '基于历史数据的量化分析，仅供参考',
 
     // ★ V7.0 第七阶段输出：市场情报交叉验证
     marketMovement: marketResult.movement || null,
@@ -360,6 +394,11 @@ function computeSingleMatch(rawStats, matchInfo) {
     fusedXgAway: (marketResult.marketXg && marketResult.marketXg.valid)
       ? +(goalResult.xgAway * 0.7 + marketResult.marketXg.away * 0.3).toFixed(2)
       : goalResult.xgAway,
+
+    // ★ V9.1: 模型原始预测总值（供 model-weights 真实代理指标）
+    gsModelATotal: goalResult.fusionDetails ? (goalResult.fusionDetails.modelA ? goalResult.fusionDetails.modelA.total : null) : null,
+    gsModelBTotal: goalResult.fusionDetails ? (goalResult.fusionDetails.modelB ? goalResult.fusionDetails.modelB.total : null) : null,
+    gsModelCTotal: goalResult.fusionDetails ? (goalResult.fusionDetails.modelC ? goalResult.fusionDetails.modelC.total : null) : null,
   };
 }
 
@@ -389,16 +428,31 @@ function computeFallbackMatch(m) {
     if (ln.indexOf(keys[i]) !== -1) { avgGoals = LEAGUE_GOALS[keys[i]]; break; }
   }
 
-  // 根据让球偏移估算两队实力
-  const hdc = handicap || 0;
-  const homeAdv = hdc > 0 ? 0.55 : hdc < 0 ? 0.45 : 0.50;
-  const hdcStrength = Math.abs(hdc) > 1 ? 0.35 : Math.abs(hdc) > 0.5 ? 0.20 : 0.08;
+  // ★ V9.1: 注入比赛特异性 — 用 matchId + homeName 双哈希生成扰动
+  // 避免所有同让球的降级比赛返回完全相同的数值
+  const seed = (m.matchId || '').replace(/\D/g, '').slice(-4) || '0';
+  const nameSeed = (m.homeName || '').length + (m.visitName || '').length;
+  const seedVal = ((parseInt(seed) || 0) + nameSeed * 13) % 10000 / 10000; // 0~0.9999
+
+  // ★ 强扰动: 联赛基线 ±10%, hdcStrength ±40%, xg ±0.25
+  const leaguePerturbation = (seedVal - 0.5) * 0.20; // [-0.10, +0.10] 联赛偏离
+  const hdcPerturbation = (seedVal - 0.5) * 0.30;    // [-0.15, +0.15] 实力偏离
+  avgGoals = +(avgGoals * (1 + leaguePerturbation)).toFixed(2);
+
+  const hdcStrength = Math.abs(hdc) > 1 ? 0.35 + hdcPerturbation : Math.abs(hdc) > 0.5 ? 0.20 + hdcPerturbation : 0.08 + hdcPerturbation;
 
   // 基于联赛场均进球做保守 Xg 估算（确保最小差距 1.0 以通过弱一致门槛）
   const baseXg = avgGoals / 2;
   const xgDelta = Math.max(1.0, Math.abs(hdc) * 0.5);
-  const xgHome = baseXg + (hdc >= 0 ? xgDelta / 2 : -xgDelta / 2);
-  const xgAway = baseXg + (hdc >= 0 ? -xgDelta / 2 : xgDelta / 2);
+  let xgHome = baseXg + (hdc >= 0 ? xgDelta / 2 : -xgDelta / 2);
+  let xgAway = baseXg + (hdc >= 0 ? -xgDelta / 2 : xgDelta / 2);
+  // ★ 对 xg 值做额外扰动（用 seed 的另一部分）
+  const xgPerturbation = ((seedVal * 13) % 1 - 0.5) * 0.50; // [-0.25, +0.25]
+  xgHome = +(xgHome + xgPerturbation).toFixed(2);
+  xgAway = +(xgAway - xgPerturbation).toFixed(2);
+  // 确保 xg 在合理范围
+  xgHome = Math.max(0.15, Math.min(3.5, xgHome));
+  xgAway = Math.max(0.15, Math.min(3.5, xgAway));
 
   const hWins = Math.round(4 + hdc * 2);
   const hLosses = Math.round(4 - hdc * 2);
@@ -418,9 +472,9 @@ function computeFallbackMatch(m) {
     computedAt: Date.now(),
     _fallback: true, // 标记为降级数据
 
-    // 实力维度
-    homePower: Math.round(50 + hdc * 15),
-    guestPower: Math.round(50 - hdc * 15),
+    // ★ V9.1: 实力维度加比赛特异性
+    homePower: Math.round(50 + hdc * 15 + hdcPerturbation * 50),
+    guestPower: Math.round(50 - hdc * 15 - hdcPerturbation * 50),
     attackAdvantage: (hdc >= 0 ? '+' : '') + Math.round(hdcStrength * 100) + '%',
     attackAdvantageValue: Math.round(50 + hdcStrength * 100),
     attackAdvantageRaw: hdcStrength * (hdc >= 0 ? 1 : -1), // 正负号指示方向
@@ -435,9 +489,9 @@ function computeFallbackMatch(m) {
     ladderLabel: Math.abs(hdc) > 1 ? (hdc > 0 ? '⚔️ 主队中等优势' : '⚔️ 客队中等优势') : '⚖️ 双方均势',
     ladderLevel: Math.abs(hdc) > 1 ? 2 : 1,
     totalStrength: hdcStrength,
-    crossSpfWin: 0.35 + hdc * 0.08,
-    crossSpfDraw: 0.30,
-    crossSpfLose: 0.35 - hdc * 0.08,
+    crossSpfWin: +(0.35 + hdc * 0.08 + hdcPerturbation * 0.5).toFixed(2),
+    crossSpfDraw: +(0.30 - Math.abs(hdcPerturbation) * 0.3).toFixed(2),
+    crossSpfLose: +(0.35 - hdc * 0.08 - hdcPerturbation * 0.5).toFixed(2),
     crossHcpWin: 0.5 + hdc * 0.1,
     crossHcpDraw: 0.25,
     crossHcpLose: 0.25 - hdc * 0.1,
@@ -478,14 +532,50 @@ function computeFallbackMatch(m) {
     fusionFinalTotal: parseFloat((xgHome + xgAway).toFixed(1)),
     fusionFused: true,
 
-    // 比分
-    scores: [
-      { score: '1-1', percent: '22%' },
-      { score: hdc > 0 ? '2-1' : '1-2', percent: '18%' },
-      { score: hdc > 0 ? '2-0' : '0-2', percent: '14%' },
-      { score: '1-0', percent: '12%' },
-      { score: '2-2', percent: '10%' }
-    ],
+    // ★ V9.1: 比分动态计算（不再硬编码）
+    // 使用泊松+联赛基线+让球偏移，生成8种比分
+    scores: (function() {
+      try {
+        const score = require('./score');
+        // 构造简化 vars 供 score.analyze 使用
+        const fakeVars = {
+          homeWinGap_1: hWins, homeWinGap_2: Math.round(hWins / 2), homeLoseGap_1: hLosses, homeLoseGap_2: Math.round(hLosses / 2),
+          awayWinGap_1: aWins, awayWinGap_2: Math.round(aWins / 2), awayLoseGap_1: aLosses, awayLoseGap_2: Math.round(aLosses / 2),
+          homeDraw: Math.round((10 - hWins - hLosses) / 2),
+          awayDraw: Math.round((10 - aWins - aLosses) / 2),
+          homeSpf: hWins+'胜'+(10-hWins-hLosses)+'平'+hLosses+'负',
+          guestSpf: aWins+'胜'+(10-aWins-aLosses)+'平'+aLosses+'负',
+          homeGoal0: 3, homeGoal1: 4, homeGoal2Plus: 3,
+          homeLose0: 3, homeLose1: 4, homeLose2Plus: 3,
+          awayGoal0: 3, awayGoal1: 4, awayGoal2Plus: 3,
+          awayLose0: 3, awayLose1: 4, awayLose2Plus: 3,
+          homeRecentGoalAvg: xgHome, homeRecentLoseAvg: xgAway,
+          awayRecentGoalAvg: xgAway, awayRecentLoseAvg: xgHome,
+          homeAttackEfficiency: 0.1, homeDefendEfficiency: 0.1,
+          awayAttackEfficiency: 0.1, awayDefendEfficiency: 0.1,
+          homeOverRate: 0.5, awayOverRate: 0.5,
+          homeWinAward: homeWinAward, guestWinAward: awayWinAward, drawAward: drawAward,
+          jiaoFenScores: [],
+          homeGoalDiffSeries: [1,1,1,1,0,0,-1,-1,-1,-1],
+          awayGoalDiffSeries: [1,1,1,1,0,0,-1,-1,-1,-1],
+          rq: hdc, homePower: 50+hdc*15, awayPower: 50-hdc*15,
+          homeWinPanRate: homeWinPanRate, awayWinPanRate: awayWinPanRate,
+          homeWinGap_1: hWins, awayWinGap_1: aWins,
+        };
+        // 用实际让球数对应的 level 传参（>0: level>0, <0: level<0, =0: level=0）
+        const fallbackLevel = hdc > 0.8 ? 2 : hdc > 0.2 ? 1 : hdc < -0.8 ? -2 : hdc < -0.2 ? -1 : 0;
+        const goalRange = { lower: Math.max(0, Math.floor(avgGoals) - 1), upper: Math.ceil(avgGoals) + 1 };
+        const s = score.analyze(fakeVars, xgHome, xgAway, goalRange, fallbackLevel, null);
+        if (s && s.length > 0) return s;
+      } catch(e) { /* fall through */ }
+      // 兜底：仍然按让球方向输出基础比分
+      const fallbackScores = hdc > 0
+        ? [{ score: '2-1', percent: '20%' }, { score: '1-0', percent: '17%' }, { score: '2-0', percent: '15%' }, { score: '1-1', percent: '13%' }, { score: '3-1', percent: '11%' }, { score: '3-0', percent: '9%' }, { score: '2-2', percent: '8%' }, { score: '0-0', percent: '7%' }]
+        : hdc < 0
+          ? [{ score: '1-2', percent: '20%' }, { score: '0-1', percent: '17%' }, { score: '0-2', percent: '15%' }, { score: '1-1', percent: '13%' }, { score: '1-3', percent: '11%' }, { score: '0-3', percent: '9%' }, { score: '2-2', percent: '8%' }, { score: '0-0', percent: '7%' }]
+          : [{ score: '1-1', percent: '20%' }, { score: '1-0', percent: '16%' }, { score: '0-1', percent: '16%' }, { score: '2-1', percent: '13%' }, { score: '1-2', percent: '13%' }, { score: '0-0', percent: '9%' }, { score: '2-0', percent: '7%' }, { score: '0-2', percent: '6%' }];
+      return fallbackScores;
+    })(),
     suggestion: '基于联赛均值降级估算，仅供参考',
     resonance: { verdict: '⚠️ 数据源缺失，使用联赛均值降级估算', level: 'weak' },
     sevenMatch: {
@@ -693,6 +783,10 @@ async function computeAll() {
         ladderLabel: gs.ladderLabel || '',
         ladderLevel: gs.ladderLevel || 0,
         handicap: m.handicap !== undefined ? m.handicap : (m.rq !== undefined ? m.rq : undefined),
+        // ★ V9.1: 模型原始预测总值
+        modelATotal: gs.gsModelATotal || gs.modelATotal || null,
+        modelBTotal: gs.gsModelBTotal || gs.modelBTotal || null,
+        modelCTotal: gs.gsModelCTotal || gs.modelCTotal || null,
       });
     });
   } catch (e) {
