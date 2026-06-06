@@ -5789,11 +5789,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               };
               result[mid] = r;
             }
-            // ★ SPF 未开售状态检测：RQSPF 有数据但 SPF 为空 → 标记"暂未开售"
-            if (!result.spf.home && !result.spf.draw && !result.spf.away && result.rqspfList.length > 0) {
-              result.spfStatus = 'pending';
-              result.spfNote = 'SPF暂未开售';
-            }
+            // ★ SPF 未开售状态检测（逐场检查）
+            Object.keys(result).forEach(function(k) {
+              var entry = result[k];
+              if (!entry || !entry.spf || (entry.spf && !entry.spf.home && !entry.spf.draw && !entry.spf.away)) {
+                if (entry && entry.rqspf && (entry.rqspf.home || entry.rqspf.draw || entry.rqspf.away)) {
+                  entry.spfStatus = 'pending';
+                  entry.spfNote = 'SPF暂未开售';
+                }
+              }
+            });
 
             return res.json({ code: 1, data: result });
           } catch (e) {
