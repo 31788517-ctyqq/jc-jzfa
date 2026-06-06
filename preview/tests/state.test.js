@@ -28,8 +28,8 @@ describe('state — 默认值', () => {
     expect(selectedWeekIdx).toBe(0);
   });
 
-  it('planTab 默认 my', () => {
-    expect(planTab).toBe('my');
+  it('planTab 默认 expert', () => {
+    expect(planTab).toBe('expert');
   });
 
   it('incomeLoaded 默认 false', () => {
@@ -136,7 +136,7 @@ describe('state — Setters', () => {
   it('setPlanTab 更新 planTab', () => {
     setPlanTab('score');
     expect(planTab).toBe('score');
-    setPlanTab('my');
+    setPlanTab('expert');
   });
 
   it('setIncomeLoaded 更新 incomeLoaded', () => {

@@ -9,6 +9,8 @@ describe('frontend modules — 蓝图验证', () => {
   });
 
   it('data-health 模块可被静态加载', () => {
+    // data-health.js 引用 window._dhRefresh，Node 环境需 mock
+    global.window = global.window || {};
     const d = require('../js/pages/data-health.js');
     expect(typeof d.loadDataHealth).toBe('function');
   });
