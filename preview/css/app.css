@@ -222,7 +222,7 @@ body {
   border: 1px solid rgba(24, 224, 224, 0.2);
   color: #A78BFA;
 }
-.menu-icon svg { width: 17px; height: 17px; }
+.menu-icon svg { width: 20px; height: 20px; }
 .menu-content { flex: 1; }
 .menu-title {
   font-size: var(--fs-md);
@@ -697,7 +697,8 @@ body {
   scrollbar-width: none;
 }
 .filter-row::-webkit-scrollbar { display: none; }
-#planTabBar.filter-row { margin: 0; padding: 12px 0 17px; }
+#planTabBar.filter-row { margin: 0; padding: 12px 0 17px; gap: 6px; }
+#planTabBar .filter-tag { padding: 6px 10px; }
 .filter-tag {
   white-space: nowrap;
   padding: 6px 14px;
@@ -1342,11 +1343,15 @@ body {
 .fdt-date { width: 52px; color: var(--text3) !important; font-size: 10px; }
 .fdt-league { width: 52px; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 52px; }
 .fdt-match { max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chart-box .fdt-match { max-width: none; overflow: visible; text-overflow: clip; white-space: normal; line-height: 1.5; }
 .fdt-dir { font-weight: 600; color: var(--cyan) !important; }
+.chart-box .fdt-dir { white-space: normal; line-height: 1.5; }
 .fdt-exp { width: 40px; }
 .fdt-res { width: 48px; font-weight: 700; }
-.fdt-hit { color: var(--green) !important; }
-.fdt-miss { color: var(--red) !important; }
+.fdt-hit { color: var(--red) !important; }
+.fdt-miss { color: var(--green) !important; }
+/* 方案收入 — 盈利列 */
+.fdt-income { width: 60px; font-weight: 700; white-space: nowrap; }
 
 /* 日趋势表 */
 .daily-trend-wrap {
@@ -1447,6 +1452,14 @@ body {
 .dh-col-gate-icon { width: 32px; text-align: center; flex-shrink: 0; }
 .dh-col-gate-name { flex: 1; color: var(--text); font-weight: 600; }
 .dh-col-gate-rate { width: 62px; text-align: center; flex-shrink: 0; font-weight: 700; }
+
+/* ========== 方案收入明细列表列宽 ========== */
+.dh-inc-detail .income-header-row > * { flex-shrink: 0; }
+.dh-inc-detail .dh-col-alert-time { width: 64px; text-align: left; }
+.dh-inc-detail .dh-col-name { flex: 0 0 72px; color: var(--text); font-weight: 600; }
+.dh-inc-detail .dh-col-detail { flex: 1; min-width: 160px; text-align: left; font-size: var(--fs-sm); color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dh-inc-detail .dh-col-rate { width: 70px; text-align: center; font-weight: 700; }
+.dh-col-income { width: 64px; text-align: right; flex-shrink: 0; font-weight: 700; font-size: var(--fs-sm); }
 .dh-col-gate-status { width: 72px; text-align: right; flex-shrink: 0; font-size: var(--fs-sm); }
 
 /* ========== 回测分析列表列宽 ========== */
@@ -2639,7 +2652,7 @@ body {
   padding: 18px 10px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-around; cursor: pointer;
 }
 .scheme-stat-item { flex: 1; text-align: center; }
-.scheme-stat-val { font-size: 22px; font-weight: 900; color: var(--cyan); text-shadow: 0 0 10px rgba(24,224,224,0.2); line-height: 1.1; }
+.scheme-stat-val { font-size: 16px; font-weight: 800; color: var(--cyan); line-height: 1.2; }
 .scheme-stat-val.scheme-stat-pos { color: var(--green); }
 .scheme-stat-val.scheme-stat-neg { color: var(--red); }
 .scheme-stat-lbl { font-size: var(--fs-xs); color: var(--text3); margin-top: 4px; }
@@ -3078,6 +3091,7 @@ body {
 
 /* ==================== 确认方案页面 ==================== */
 #page-confirm-scheme { padding-bottom: 260px; }
+#page-data-health { padding-bottom: 128px; }
 
 /* 顶部导航栏 */
 .confirm-top-bar {

@@ -372,6 +372,23 @@ async function executeTask(taskName, params, retryCount) {
         }
         break;
       }
+      case 'scrape_sporttery_today': {
+        // ★ P8: 竞彩官网每日赔率抓取+入库（10:00运行,11:00前完成）
+        try {
+          const { execSync } = require('child_process');
+          const today = (params && params.date) || new Date().toISOString().slice(0, 10);
+          logger.info('[sporttery] 开始抓取今日(' + today + ')实盘赔率...');
+          const cmd = 'python scripts/scrape_sporttery.py --today --bridge --headless';
+          const output = execSync(cmd, { cwd: require('path').join(__dirname, '..'), timeout: 45 * 60 * 1000, encoding: 'utf8' });
+          // 提取关键行
+          const lines = output.split('\n').filter(function(l) { return l.includes('✅') || l.includes('[Done]'); });
+          logger.info('[sporttery] ' + lines.slice(-3).join(' | '));
+        } catch (e) {
+          logger.error('[sporttery] 抓取失败: ' + (e.stderr || e.message || '').slice(0, 300));
+          throw e;  // 触发重试队列
+        }
+        break;
+      }
       default: {
         logger.warn('[task] 未知任务: ' + taskName);
         return false;
@@ -529,6 +546,42 @@ function scheduleNoonTask() {
     }
 
     scheduleNoonTask();
+  }, delay);
+  timers.push(tid);
+}
+
+// ═══ 6.5 10:00 竞彩官网数据抓取 ═══
+function getNext10AMDelay() {
+  const now = new Date();
+  const target = new Date(now);
+  target.setHours(10, 0, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  return target.getTime() - now.getTime();
+}
+
+function schedule10AMTask() {
+  const delay = getNext10AMDelay();
+  logger.info('[schedule] 下次10:00 sporttery抓取: ' + Math.round(delay / 3600000) + ' 小时后');
+
+  const tid = setTimeout(async () => {
+    if (!running) return;
+    if (!acquireLock()) {
+      enqueueTask('scrape_sporttery_today', { date: new Date().toISOString().slice(0, 10) }, 0, 30);
+      schedule10AMTask();
+      return;
+    }
+
+    logger.info('[schedule] ⏰ 10:00 竞彩官网赔率抓取启动');
+    try {
+      await executeTask('scrape_sporttery_today', { date: new Date().toISOString().slice(0, 10) });
+      recordFetchAttempt(true, 'scrape_sporttery_today');
+    } catch (e) {
+      logger.error('[schedule] sporttery抓取失败: ' + e.message);
+      recordFetchAttempt(false, 'scrape_sporttery_today', e.message);
+      enqueueTask('scrape_sporttery_today', { date: new Date().toISOString().slice(0, 10) }, 0, 30);
+    }
+
+    schedule10AMTask();
   }, delay);
   timers.push(tid);
 }
@@ -718,6 +771,9 @@ async function start() {
       enqueueTask('sync_recommends', { date: today }, 0, 5);
     }
   });
+
+  // 10:00 sporttery 赔率抓取（11:00前完成）
+  schedule10AMTask();
 
   // 12:00 定时
   scheduleNoonTask();

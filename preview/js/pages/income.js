@@ -35,12 +35,16 @@ export function loadIncome(force) {
       }
 
       var records = data.records || [];
+      var details = data.details || [];
+
+      var html = '';
       if (records.length === 0) {
         resultEl.innerHTML = '<div class="hint-box">暂无方案收入数据</div>';
         return;
       }
 
-      var html = '<div class="income-list">';
+      // ====== 日汇总表格 ======
+      html += '<div class="income-list">';
       html +=
         '<div class="income-header-row"><span>时间</span><span class="inc-col-hit">命中数</span><span class="inc-col-rate">命中率</span><span class="inc-col-income">盈利(元)</span></div>';
 
@@ -69,6 +73,39 @@ export function loadIncome(force) {
           '</div>';
       });
       html += '</div>';
+
+      // ====== 方案命中明细（与推荐方向命中查询同款表格样式） ======
+      if (details.length > 0) {
+        html += '<div class="chart-box" style="margin-top:20px">';
+        html += '<div class="chart-header"><span class="chart-title">方案命中明细</span></div>';
+        html += '<table class="filter-detail-table"><thead><tr>' +
+          '<th class="fdt-date">时间</th>' +
+          '<th>方案名</th>' +
+          '<th class="fdt-match">场次</th>' +
+          '<th class="fdt-dir">方向</th>' +
+          '<th class="fdt-income">盈利(元)</th>' +
+          '</tr></thead><tbody>';
+
+        // 按时间倒序（最新在前）
+        details.sort(function (a, b) {
+          return (b.date || '').localeCompare(a.date || '');
+        });
+        details.forEach(function (d) {
+          var incColor = d.income > 0 ? 'var(--red)' : d.income < 0 ? 'var(--green)' : 'var(--text3)';
+          var dateShort = d.date.slice(5).replace('-', '/');
+
+          html +=
+            '<tr>' +
+            '<td class="fdt-date">' + dateShort + '</td>' +
+            '<td style="color:' + incColor + ';font-weight:600">' + (d.plan || '--') + '</td>' +
+            '<td class="fdt-match">' + ((d.matchNums || '--').split(' / ').join('<br>')) + '</td>' +
+            '<td class="fdt-dir">' + ((d.direction || '--').split(' / ').join('<br>')) + '</td>' +
+            '<td class="fdt-income" style="color:' + incColor + '">' + _fmtIncome(d.income) + '</td>' +
+            '</tr>';
+        });
+        html += '</tbody></table></div>';
+      }
+
       resultEl.innerHTML = html;
     })
     .catch(function (e) {

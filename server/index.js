@@ -5063,6 +5063,89 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           }
         }
 
+        // ★ 赔率走势：获取竞彩官网赔率时间序列 (sporttery_odds_snapshot)
+        case 'odds-trend': {
+          try {
+            const matchNum = data.matchNum || data.match_num || '';
+            const matchId = data.matchId || '';
+            if (!matchNum && !matchId) return res.json({ code: 0, msg: '缺少 matchNum 或 matchId' });
+
+            const adp = database.getAdapter();
+            if (!adp) return res.json({ code: 0, msg: '数据库未就绪' });
+
+            let rows;
+            if (matchNum) {
+              rows = adp.execAll(
+                'SELECT play_type, snapshot_time, odds_json, trend FROM sporttery_odds_snapshot WHERE match_num = ? ORDER BY play_type, snapshot_time',
+                matchNum
+              );
+            } else {
+              rows = adp.execAll(
+                'SELECT play_type, snapshot_time, odds_json, trend FROM sporttery_odds_snapshot WHERE match_id = ? ORDER BY play_type, snapshot_time',
+                matchId
+              );
+            }
+
+            // 按玩法分组
+            const grouped = {};
+            (rows || []).forEach(function(r) {
+              const pt = r.play_type;
+              if (!grouped[pt]) grouped[pt] = [];
+              grouped[pt].push({
+                time: r.snapshot_time,
+                odds: JSON.parse(r.odds_json || '{}'),
+                trend: r.trend || '',
+              });
+            });
+
+            return res.json({ code: 1, data: grouped });
+          } catch (e) {
+            return res.json({ code: 0, msg: '获取赔率走势失败: ' + e.message });
+          }
+        }
+
+        // ★ 赛事前瞻：获取竞彩官网 7 大分析模块 (sporttery_preview)
+        case 'match-preview': {
+          try {
+            const matchNum = data.matchNum || data.match_num || '';
+            const matchId = data.matchId || data.id || '';
+            if (!matchNum && !matchId) return res.json({ code: 0, msg: '缺少 matchNum 或 matchId' });
+
+            const adp = database.getAdapter();
+            if (!adp) return res.json({ code: 0, msg: '数据库未就绪' });
+
+            let row;
+            if (matchNum) {
+              row = adp.execOne('SELECT * FROM sporttery_preview WHERE match_num = ?', matchNum);
+            }
+            if (!row && matchId) {
+              row = adp.execOne('SELECT * FROM sporttery_preview WHERE match_id = ?', matchId);
+            }
+            if (!row) return res.json({ code: 0, msg: '暂无该比赛的赛事前瞻数据' });
+
+            return res.json({
+              code: 1,
+              data: {
+                matchId: row.match_id,
+                matchNum: row.match_num,
+                date: row.date,
+                homeTeam: row.home_team,
+                awayTeam: row.away_team,
+                league: row.league,
+                featureAnalysis: row.feature_analysis ? JSON.parse(row.feature_analysis) : null,
+                h2h: row.h2h_history ? JSON.parse(row.h2h_history) : null,
+                standings: row.standings ? JSON.parse(row.standings) : null,
+                recentForm: row.recent_form ? JSON.parse(row.recent_form) : null,
+                futureMatches: row.future_matches ? JSON.parse(row.future_matches) : null,
+                scorers: row.scorers ? JSON.parse(row.scorers) : null,
+                injuries: row.injuries ? JSON.parse(row.injuries) : null,
+              },
+            });
+          } catch (e) {
+            return res.json({ code: 0, msg: '获取赛事前瞻失败: ' + e.message });
+          }
+        }
+
         // ★ 投注弹窗：获取比赛赔率数据 (SPF/RQSPF/BF/JQS/BQC)
         case 'match-odds': {
           try {
@@ -5187,7 +5270,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 // 单个让球对象
                 if (typeof rq.home !== 'undefined') {
                   result.rqspfList.push({
-                    handicap: rq.handicap != null ? rq.handicap : 0,
+                    handicap: rq.handicap != null ? rq.handicap : (oddsEntry.handicap != null ? oddsEntry.handicap : 0),
                     home: rq.home || null,
                     draw: rq.draw || null,
                     away: rq.away || null,
@@ -5198,7 +5281,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (oddsEntry.rqspfList) {
                 oddsEntry.rqspfList.forEach(function (rq) {
                   result.rqspfList.push({
-                    handicap: rq.handicap != null ? rq.handicap : 0,
+                    handicap: rq.handicap != null ? rq.handicap : (oddsEntry.handicap != null ? oddsEntry.handicap : 0),
                     home: rq.home || null,
                     draw: rq.draw || null,
                     away: rq.away || null,
@@ -5327,6 +5410,65 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   }
                 }
               } catch (e4) {}
+            }
+
+            // ★★★ P8: sporttery 兜底赔率 ★★★
+            // 当所有其他数据源（allplays/odds_history_v2/JSON/ttyingqiu）都为 0 时，
+            // 从 sporttery_odds_snapshot 提取最新快照作为兜底
+            if (!oddsEntry || (!result.spf.home && !result.spf.draw && !result.spf.away)) {
+              try {
+                const adpFallback = database.getAdapter();
+                if (adpFallback) {
+                  const sRows = adpFallback.execAll(
+                    'SELECT play_type, odds_json, snapshot_time FROM sporttery_odds_snapshot WHERE match_num = ? ORDER BY snapshot_time DESC LIMIT 50',
+                    matchNum
+                  );
+                  if (sRows && sRows.length > 0) {
+                    // 按玩法取最新一条
+                    var spfSnapshot, rqspfSnapshot, bfSnapshot, jqsSnapshot, bqcSnapshot, handiFromOdds = null;
+                    for (var si = 0; si < sRows.length; si++) {
+                      var sr = sRows[si];
+                      try {
+                        var sOdds = JSON.parse(sr.odds_json || '{}');
+                        if (sr.play_type === 'rqspf' && !rqspfSnapshot) {
+                          rqspfSnapshot = sOdds;
+                          handiFromOdds = sOdds._handicap;
+                        }
+                        if (sr.play_type === 'spf' && !spfSnapshot) spfSnapshot = sOdds;
+                        if (sr.play_type === 'jqs' && !jqsSnapshot) jqsSnapshot = sOdds;
+                        if (sr.play_type === 'bqc' && !bqcSnapshot) bqcSnapshot = sOdds;
+                      } catch (ee) {}
+                    }
+                    logger.info('[match-odds] sporttery fallback ' + matchNum + ' spf=' + JSON.stringify(spfSnapshot) + ' rq=' + JSON.stringify(rqspfSnapshot) + ' hcp=' + handiFromOdds);
+                    
+                    if (spfSnapshot) {
+                      result.spf = { home: spfSnapshot['胜'] || null, draw: spfSnapshot['平'] || null, away: spfSnapshot['负'] || null };
+                    }
+                    if (rqspfSnapshot && result.rqspfList.length === 0) {
+                      var hcpGuess = handiFromOdds != null ? handiFromOdds : 0;
+                      result.rqspfList.push({
+                        handicap: hcpGuess,
+                        home: rqspfSnapshot['胜'] || null,
+                        draw: rqspfSnapshot['平'] || null,
+                        away: rqspfSnapshot['负'] || null,
+                      });
+                    }
+                    if (jqsSnapshot) {
+                      for (var gk in jqsSnapshot) {
+                        if (!String(gk).startsWith('_')) result.jqs.push({ goals: gk, odds: jqsSnapshot[gk] });
+                      }
+                    }
+                    if (bqcSnapshot) {
+                      for (var bk in bqcSnapshot) {
+                        if (!String(bk).startsWith('_')) result.bqc.push({ combo: bk, odds: bqcSnapshot[bk] });
+                      }
+                    }
+                    result._source = 'sporttery_fallback';
+                  }
+                }
+              } catch (eSporttery) {
+                logger.warn('[match-odds] sporttery 兜底失败: ' + eSporttery.message);
+              }
             }
 
             return res.json({ code: 1, data: result });
@@ -5609,7 +5751,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 jqs: oddsEntry.jqs || oddsEntry.totalGoals || null,
                 bqc: oddsEntry.bqc || oddsEntry.halfFull || null,
                 bf: oddsEntry.bf || oddsEntry.scores || null,
-                handicap: oddsEntry.handicap != null ? oddsEntry.handicap : (m.concede || 0),
+                // ★ 修复：三级降级链 — 顶层handicap → rqspf.handicap → match.concede → 0
+                handicap: oddsEntry.handicap != null ? oddsEntry.handicap
+                  : (oddsEntry.rqspf && oddsEntry.rqspf.handicap != null ? oddsEntry.rqspf.handicap
+                  : (m.concede || 0)),
                 isSingleGame: isSingleGame,
                 oddsDelta: deltaChanges,
                 // ★ 赔率走势信号（最近变化趋势，用于前端迷你趋势可视化）
