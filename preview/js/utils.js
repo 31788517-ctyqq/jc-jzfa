@@ -118,3 +118,75 @@ export function getDeviceId() {
   }
   return _deviceId;
 }
+
+// ═══ SWR 缓存策略（Stale-While-Revalidate） ═══
+/**
+ * 立即返回过期缓存 → 后台刷新 → 静默更新 DOM
+ * @param {string} cacheKey - 缓存键
+ * @param {function} fetcher  - 数据获取函数 () => Promise<data>
+ * @param {function} renderer - 渲染函数 (data, isStale) => void
+ * @param {number}   ttl      - 缓存有效期（毫秒），默认 2 分钟
+ */
+export function swrFetch(cacheKey, fetcher, renderer, ttl) {
+  ttl = ttl || 120000;
+  // 1) 尝试从缓存立即渲染
+  var cached = getCache(cacheKey);
+  if (cached !== null) {
+    renderer(cached, true); // isStale=true（可能过期）
+  }
+  // 2) 网络请求
+  return fetcher().then(function (fresh) {
+    if (fresh !== null && fresh !== undefined) {
+      setCache(cacheKey, fresh);
+      renderer(fresh, false);
+    }
+    return fresh;
+  }).catch(function (err) {
+    console.warn('[swr] ' + cacheKey + ' 刷新失败:', err.message);
+    // 如果有缓存，不抛错（用户至少看到旧数据）
+    if (cached === null) throw err;
+  });
+}
+
+// ═══ 统一渲染状态工具 ═══
+/**
+ * 为容器设置加载中/错误/空态/正常四种状态
+ * @param {HTMLElement} el      - 容器元素
+ * @param {string} state        - 'loading' | 'error' | 'empty' | 'ok'
+ * @param {Object}   opts       - { msg, retryFn, emptyMsg }
+ */
+export function renderState(el, state, opts) {
+  if (!el) return;
+  opts = opts || {};
+  switch (state) {
+    case 'loading':
+      el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3);">' +
+        '<div class="loading-spinner" style="margin:0 auto 16px;width:32px;height:32px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--cyan);border-radius:50%;animation:spin 0.8s linear infinite;"></div>' +
+        '加载中...</div>';
+      break;
+    case 'error':
+      el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);">' +
+        '⚠️ ' + (opts.msg || '请求失败') +
+        (opts.retryFn ? '<br><button onclick="(' + opts.retryFn.toString() + ')()" style="margin-top:12px;padding:6px 20px;border-radius:8px;border:1px solid var(--amber);background:transparent;color:var(--amber);cursor:pointer;">重试</button>' : '') +
+        '</div>';
+      break;
+    case 'empty':
+      el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3);">' +
+        (opts.emptyMsg || '暂无数据') + '</div>';
+      break;
+    case 'ok':
+      // 正常状态下由渲染函数接管
+      break;
+  }
+}
+
+// ═══ CSS 注入（loading spinner 动画） ═══
+if (typeof document !== 'undefined') {
+  (function injectSpinnerCSS() {
+    if (document.getElementById('utils-spinner-css')) return;
+    var style = document.createElement('style');
+    style.id = 'utils-spinner-css';
+    style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(style);
+  })();
+}
