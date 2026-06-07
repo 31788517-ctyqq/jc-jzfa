@@ -986,10 +986,10 @@ function generateExpertPlans(mList, matchDataMap, dateStr) {
       const recs = md.recs;
       let total = 0;
       for (const r of recs) { if (r.type === '平、让平') total += r.num || 0; }
-      if (total > 0) {
+      if (total >= 2) {
         const aObj = buildMatchObj(m, '平、让平');
         const eA = calcEffectiveOdds('平、让平', aObj);
-        if (eA && eA >= 1.2) candidatesA.push({ match: m, count: total, obj: aObj, odds: eA });
+        if (eA && eA >= 1.0) candidatesA.push({ match: m, count: total, obj: aObj, odds: eA });
       }
     }
     candidatesA.sort(function (a, b) { return b.count - a.count; });
@@ -1006,7 +1006,7 @@ function generateExpertPlans(mList, matchDataMap, dateStr) {
       if (total > 0) {
         const bObj = buildMatchObj(m, '总进球-2、3球');
         const eB = calcEffectiveOdds('总进球-2、3球', bObj);
-        if (eB && eB >= 1.2) candidatesB.push({ match: m, count: total, obj: bObj, odds: eB });
+        if (eB && eB >= 1.0) candidatesB.push({ match: m, count: total, obj: bObj, odds: eB });
       }
     }
     candidatesB.sort(function (a, b) { return b.count - a.count; });
@@ -1019,14 +1019,14 @@ function generateExpertPlans(mList, matchDataMap, dateStr) {
         const cb = candidatesB[bi];
         if (ca.match.matchId === cb.match.matchId) continue;
         const productOdds = ca.odds * cb.odds;
-        if (productOdds < 2.0) continue;
+        if (productOdds < 1.5) continue;
         if (!bestPair || productOdds > bestPair.productOdds) {
           bestPair = { a: ca.match, b: cb.match, productOdds: productOdds };
         }
       }
     }
     if (bestPair) {
-      push2MatchPlan('方案五', '5', bestPair.a, '平、让平', bestPair.b, '总进球-2、3球', 250, 10, 25, 2.0);
+      push2MatchPlan('方案五', '5', bestPair.a, '平、让平', bestPair.b, '总进球-2、3球', 250, 10, 25, 1.5);
     }
   }
 
