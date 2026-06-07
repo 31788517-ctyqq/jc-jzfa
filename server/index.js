@@ -28,6 +28,12 @@ const cacheModule = require('./core/cache');
 const midouModule = require('./core/midou');
 const aiTiming = require('./core/ai-timing');
 const health = require('./core/health');
+
+// ── AI/GS 缓存内存加速（避免每次请求同步读大文件） ──
+let _aiCacheData = null;
+let _aiCacheTime = 0;
+let _gsCacheData = null;
+let _gsCacheTime = 0;
 const { getDeltaHistory } = require('./core/odds-tracker');
 
 // ── 函数别名（保持 POST /api 路由中引用兼容） ──
@@ -1646,14 +1652,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const fs = require('fs');
             const path = require('path');
 
-            const cacheFile = path.join(__dirname, 'ai_cache.json');
-            var cache = {};
-            if (fs.existsSync(cacheFile)) {
-              try {
-                cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
-              } catch (e) {}
+            // ★ 内存缓存缓存文件内容（30s TTL）
+            if (!_aiCacheData || Date.now() - _aiCacheTime > 30000) {
+              const cacheFile = path.join(__dirname, 'ai_cache.json');
+              _aiCacheData = {};
+              if (fs.existsSync(cacheFile)) {
+                try { _aiCacheData = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
+              }
+              _aiCacheTime = Date.now();
             }
-            let cachedEntry = cache[mid];
+            let cachedEntry = _aiCacheData[mid];
             const hasDS =
               cachedEntry &&
               cachedEntry.sources &&
@@ -1677,6 +1685,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   num: m.num,
                 };
             } catch (e) {}
+            // ★ 回退: data.json 无历史比赛时从 prediction_logs 补全
+            if (!matchInfo.homeName) {
+              try {
+                const adp = database.getAdapter();
+                const pm = adp ? adp.execOne(
+                  "SELECT matchId,homeName,visitName,leagueName,date,matchNum FROM prediction_logs WHERE matchId = ? LIMIT 1",
+                  mid
+                ) : null;
+                if (pm) matchInfo = { matchId: mid, homeName: pm.homeName, visitName: pm.visitName, leagueName: pm.leagueName, date: pm.date, num: pm.matchNum };
+              } catch (e3) {}
+            }
 
             // ★ 检查 500.com 数据是否存在
             let shujuMissing = true;
@@ -1862,20 +1881,35 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           const mid = data.matchId;
           if (!mid) return res.json({ code: 0, msg: '缺少 matchId' });
           try {
-            // 优先从功守道引擎缓存读取（★ 10秒超时保护，防止外部API挂死）
+            // ★ 内存缓存 cache.json（30s TTL），避免每次请求同步读大文件
+            if (!_gsCacheData || Date.now() - _gsCacheTime > 30000) {
+              try {
+                const gsCachePath = path.join(__dirname, 'gongshoudao', 'cache.json');
+                if (fs.existsSync(gsCachePath)) {
+                  _gsCacheData = JSON.parse(fs.readFileSync(gsCachePath, 'utf8'));
+                  _gsCacheTime = Date.now();
+                }
+              } catch (e) { _gsCacheData = null; }
+            }
+            // 直接从内存缓存查找（兼容 m_ 前缀）
             let gsResult = null;
-            try {
-              const gsEngine = require('./gongshoudao/index');
-              gsResult = await Promise.race([
-                gsEngine.getMatchResult(mid),
-                new Promise(function (_, reject) {
-                  setTimeout(function () {
-                    reject(new Error('GS timeout'));
-                  }, 10000);
-                }),
-              ]);
-            } catch (gsErr) {
-              logger.warn('[gongshoudao] 引擎异常/超时: ' + gsErr.message);
+            if (_gsCacheData && _gsCacheData._global) {
+              const g = _gsCacheData._global;
+              gsResult = g[mid] || g['m_' + mid] || g[String(mid).replace(/^m_/, '')] || null;
+            }
+            // 内存缓存未命中 → 回退到引擎查询
+            if (!gsResult) {
+              try {
+                const gsEngine = require('./gongshoudao/index');
+                gsResult = await Promise.race([
+                  gsEngine.getMatchResult(mid),
+                  new Promise(function (_, reject) {
+                    setTimeout(function () { reject(new Error('GS timeout')); }, 10000);
+                  }),
+                ]);
+              } catch (gsErr) {
+                logger.warn('[gongshoudao] 引擎异常/超时: ' + gsErr.message);
+              }
             }
 
             if (gsResult) {
@@ -2020,11 +2054,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             // Add league list and total count
             result.leagues = predictionLog.getLeagues();
-            // ★ SPF 未开售状态检测：RQSPF 有数据但 SPF 为空 → 标记"暂未开售"
-            if (!result.spf.home && !result.spf.draw && !result.spf.away && result.rqspfList.length > 0) {
-              result.spfStatus = 'pending';
-              result.spfNote = 'SPF暂未开售';
-            }
 
             return res.json({ code: 1, data: result });
           } catch (e) {
@@ -2471,6 +2500,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 }
               }
 
+              // ★ 已出结果的比赛带上实际比分
+              var actualScore = '';
+              if (isMatchWon !== null || isMatchLose !== null) {
+                actualScore = (m.score || '').replace(/:/g, '-');
+              }
+
               return {
                 matchId: m.matchId,
                 homeName: m.homeName,
@@ -2485,6 +2520,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 isMatchLose: isMatchLose,
                 subResults: subResults,
                 odds: getMatchOdds(m, direction),
+                actualScore: actualScore,
               };
             }
 
@@ -3208,6 +3244,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
               const winningPrize = isScoreWon ? Math.round(winAlloc * winOdds) : 0;
 
+              // ★ 已出结果的比赛带上实际比分
+              var actualScore = '';
+              if (isScoreWon || isScoreLose) {
+                actualScore = (match.score || '').replace(/:/g, '-');
+              }
+
               return {
                 planId: 'score_plan_' + dateStr + '_' + (idx + 1),
                 planName: '单关比分方案 ' + (idx + 1),
@@ -3217,6 +3259,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 visitName: match.visitName || '',
                 leagueName: match.leagueName || '',
                 startTime: match.startTime || '',
+                actualScore: actualScore,
                 strongSide: strongSide,
                 selectedScores: combo.scores,
                 totalCapital: 1000,
@@ -3880,6 +3923,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 compositeScore: ca.compositeScore,
                 coldScore: ca.coldScore,
                 coldDirScore: ca.coldDirScore,
+                actualScore: (resultA.isMatchWon !== null || resultA.isMatchLose !== null) ? ((ca.match.score || '').replace(/:/g, '-')) : '',
               };
 
               const matchB = {
@@ -3896,6 +3940,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 subResults: resultB.subResults,
                 heatIndex: cb.heatIndex,
                 heatLabel: cb.heatLabel,
+                actualScore: (resultB.isMatchWon !== null || resultB.isMatchLose !== null) ? ((cb.match.score || '').replace(/:/g, '-')) : '',
                 consensus: cb.consensusLabel,
                 compositeScore: cb.compositeScore,
                 coldScore: cb.coldScore,
@@ -5182,6 +5227,27 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 }
               } catch (e2) { /* 实时数据获取失败，继续走原有逻辑 */ }
             }
+            // ★ 回退: data.json 无历史比赛时，从 prediction_logs 补全
+            if (!match) {
+              try {
+                const adp = database.getAdapter();
+                const predMatch = adp ? adp.execOne(
+                  "SELECT matchId, date, homeName, visitName, leagueName, matchNum, handicap FROM prediction_logs WHERE matchId = ? LIMIT 1",
+                  matchId
+                ) : null;
+                if (predMatch) {
+                  match = {
+                    matchId: predMatch.matchId,
+                    date: predMatch.date,
+                    homeName: predMatch.homeName,
+                    visitName: predMatch.visitName,
+                    leagueName: predMatch.leagueName,
+                    num: predMatch.matchNum,
+                    handicap: predMatch.handicap,
+                  };
+                }
+              } catch (e3) {}
+            }
             if (!match) return res.json({ code: 0, msg: '未找到比赛' });
 
             const dateStr = (match.date || '').slice(0, 10);
@@ -5863,7 +5929,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         // ★ 蓝图 P1: 模型表现仪表板 API
         case 'model-dashboard': {
           try {
-            const days = parseInt(data.days) || 30;
+            const isAllMd = data.days === 0 || data.days === '0' || data.days === 'all';
+            const days = isAllMd ? 365 : (parseInt(data.days) || 30);
             const db = database.getAdapter();
             if (!db) return res.json({ code: 0, msg: '数据库不可用' });
 
@@ -5951,39 +6018,77 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const db = database.getAdapter();
             const { monitor } = require('./core/data-quality');
 
+            // "全部" → days=0 或 "0" → 365天全覆盖
+            const isAll = data.days === 0 || data.days === '0' || data.days === 'all';
+            const days = isAll ? 365 : (parseInt(data.days) || 1);
             const today = new Date().toISOString().slice(0, 10);
+            // 筛选起始日期
+            const startDate = new Date(); startDate.setDate(startDate.getDate() - days + 1);
+            const targetDate = startDate.toISOString().slice(0, 10);
             let matchCount = 0, completenessRate = 0;
 
             if (db) {
-              const dateCheck = monitor.checkDateCompleteness(db, today);
-              matchCount = dateCheck.summary.matches ? dateCheck.summary.matches.count : 0;
-              completenessRate = dateCheck.summary.completeness ? dateCheck.summary.completeness * 100 : 0;
-              // Cap at 100%
+              // Use prediction_logs for historical data coverage stats
+              let totalCompleteness = 0;
+              let dateCount = 0;
+              let totalMatches = 0;
+              for (let d = 0; d < days; d++) {
+                const checkDate = new Date();
+                checkDate.setDate(checkDate.getDate() - d);
+                const dateStr = checkDate.toISOString().slice(0, 10);
+
+                // Count completed matches on that date from prediction_logs
+                const dayMatch = db.execOne(
+                  "SELECT COUNT(*) as cnt FROM prediction_logs WHERE date = ? AND actual_score IS NOT NULL AND actual_score != ''",
+                  dateStr
+                );
+                const mc = (dayMatch && dayMatch.cnt) || 0;
+                totalMatches += mc;
+
+                // Count how many have AI + GS + PK
+                const dayComplete = db.execOne(
+                  "SELECT COUNT(*) as cnt FROM prediction_logs WHERE date = ? AND actual_score IS NOT NULL AND actual_score != '' AND ai_spf IS NOT NULL AND ai_spf != '' AND gs_top_score IS NOT NULL AND pk_direction IS NOT NULL",
+                  dateStr
+                );
+                const complete = (dayComplete && dayComplete.cnt) || 0;
+                totalCompleteness += mc > 0 ? (complete / mc) : 0;
+                dateCount++;
+              }
+              matchCount = totalMatches;
+              completenessRate = dateCount > 0 ? Math.round(totalCompleteness / dateCount * 100) : 0;
               if (completenessRate > 100) completenessRate = 100;
             }
 
             const report = monitor.getReport();
 
-            // 构建数据源状态（基于实际已知数据源）
+            // 构建数据源状态（跟随筛选范围）
             const fetchSources = {};
+            if (db) {
+              try {
+                // 筛选范围内的 prediction_logs 赛果数
+                const filteredPredCount = (db.execOne(
+                  "SELECT COUNT(*) as cnt FROM prediction_logs WHERE actual_score IS NOT NULL AND actual_score != '' AND date >= ?",
+                  targetDate
+                ) || {}).cnt || 0;
+                fetchSources['筛选赛果'] = { total: filteredPredCount, success: filteredPredCount, rate: 1.0, timestamp: new Date().toISOString() };
+
+                // 筛选范围内的三模型齐数
+                const filteredTriple = (db.execOne(
+                  "SELECT COUNT(*) as cnt FROM prediction_logs WHERE actual_score IS NOT NULL AND actual_score != '' AND ai_spf IS NOT NULL AND ai_spf != '' AND gs_top_score IS NOT NULL AND pk_direction IS NOT NULL AND date >= ?",
+                  targetDate
+                ) || {}).cnt || 0;
+                fetchSources['三模型齐全'] = { total: filteredPredCount, success: filteredTriple, rate: filteredPredCount > 0 ? Math.round(filteredTriple / filteredPredCount * 100) / 100 : 0, timestamp: new Date().toISOString() };
+              } catch (e) {}
+            }
+            // 功守道全量缓存（始终显示全部）
             const gsPath = path.join(__dirname, 'gongshoudao', 'cache.json');
             if (fs.existsSync(gsPath)) {
               try {
                 const gsData = JSON.parse(fs.readFileSync(gsPath, 'utf8'));
                 const gsCount = Object.keys(gsData['_global'] || {}).length;
-                fetchSources['功守道API'] = { total: gsCount, success: gsCount, rate: 1.0, timestamp: new Date().toISOString() };
+                fetchSources['功守道缓存'] = { total: gsCount, success: gsCount, rate: 1.0, timestamp: new Date().toISOString() };
               } catch (e) {}
             }
-            if (db) {
-              try {
-                const predCount = (db.execOne("SELECT COUNT(*) as cnt FROM prediction_logs WHERE actual_score IS NOT NULL AND actual_score != ''") || {}).cnt || 0;
-                fetchSources['赔率数据'] = { total: predCount, success: predCount, rate: 1.0, timestamp: new Date().toISOString() };
-                const matchAll = (db.execOne("SELECT COUNT(*) as cnt FROM matches") || {}).cnt || 0;
-                fetchSources['推荐数据'] = { total: matchAll, success: matchAll, rate: 1.0, timestamp: new Date().toISOString() };
-              } catch (e) {}
-            }
-            // Merge with monitored stats
-            Object.assign(fetchSources, report.stats.fetch);
 
             return res.json({
               code: 1,
@@ -5991,7 +6096,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 fetchSources,
                 completeness: Math.round(completenessRate),
                 matchCount,
-                date: today,  // ★ 完整性卡片需要
+                date: targetDate,  // ★ 筛选起始日期
+                dateLabel: isAll ? '全部历史' : ('近' + days + '天'),
                 recentAlerts: report.recentAlerts,
                 dbSize: { sizeMB: (function(){ var p=path.join(__dirname,'midou_data.db'); return fs.existsSync(p)?Math.round(fs.statSync(p).size/1048576*10)/10:0; })() },
                 thresholds: report.thresholds,

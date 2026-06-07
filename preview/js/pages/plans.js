@@ -2,6 +2,26 @@ import { api } from '../api.js';
 import { WEEK_NAMES, MIN_PLAN_DATE, formatDate, getCache, setCache } from '../utils.js';
 import * as state from '../state.js';
 
+/**
+ * 渲染对阵文本：有比分则显示蓝色比分替代 VS，否则显示 VS
+ * @param {Object} m - match 对象 (含 homeName, visitName, actualScore, isMatchWon/isMatchLose)
+ */
+function renderMatchTeams(m) {
+  var hasResult = (m.isMatchWon !== null && m.isMatchWon !== undefined) ||
+                  (m.isMatchLose !== null && m.isMatchLose !== undefined) ||
+                  (m.isScoreWon !== null && m.isScoreWon !== undefined) ||
+                  (m.isScoreLose !== null && m.isScoreLose !== undefined);
+  var score = m.actualScore || '';
+  if (hasResult && score) {
+    return '<span class="plan-team-home">' + (m.homeName || '') +
+           '</span><span class="plan-score-blue">' + score + '</span>' +
+           '<span class="plan-team-away">' + (m.visitName || '') + '</span>';
+  }
+  return '<span class="plan-team-home">' + (m.homeName || '') +
+         '</span><span class="plan-team-vs">vs</span>' +
+         '<span class="plan-team-away">' + (m.visitName || '') + '</span>';
+}
+
 export function updatePlanDateBar() {
   var d = new Date();
   d.setDate(d.getDate() + state.planDateOffset);
@@ -93,6 +113,11 @@ export function switchPlanTab(tab) {
   document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
     btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
   });
+  // ★ 自动滚动使激活标签完整可见（4标签在小屏上可能溢出）
+  var activeTag = document.querySelector('#planTabBar .filter-tag[data-tab="' + tab + '"]');
+  if (activeTag) {
+    activeTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
+  }
   if (tab === 'expert') loadPlanList();
   else if (tab === 'score') loadScorePlanList();
   else if (tab === 'quant') loadQuantPlanList();
@@ -196,23 +221,9 @@ export function loadPlanList() {
         return;
       }
 
-      // ★ 蓝图：共识过滤
-      var consensusFilter = (window._planConsensusFilter || 'all');
-      var filteredPlans = plans.filter(function(p) {
-        if (consensusFilter === 'all') return true;
-        var matchIds = (p.matches || []).map(function(m) { return m.matchId; });
-        if (consensusFilter === 'strong') return matchIds.some(function(id) { return consensusMap[id] && consensusMap[id].consensus === 'strong'; });
-        if (consensusFilter === 'weak') return matchIds.some(function(id) { return consensusMap[id] && (consensusMap[id].consensus === 'strong' || consensusMap[id].consensus === 'weak'); });
-        if (consensusFilter === 'meltdown') return matchIds.some(function(id) { return consensusMap[id] && consensusMap[id].gsConsensus === 'meltdown'; });
-        return true;
-      });
-
-      var filterBar = buildConsensusFilterBar(Object.keys(consensusMap).length, consensusFilter);
-      var displayPlans = consensusFilter !== 'all' ? filteredPlans : plans;
-      if (displayPlans.length === 0 && consensusFilter !== 'all') {
-        el.innerHTML = filterBar + '<div style="text-align:center;padding:60px 0;color:var(--text3);font-size:14px;">该共识级别暂无匹配方案</div>';
-        return;
-      }
+      // ★ 共识过滤版块已隐藏
+      var filterBar = '';
+      var displayPlans = plans;
 
       var html = displayPlans
         .map(function (p, i) {
@@ -334,13 +345,15 @@ export function loadPlanList() {
                 if (gm2) val = oddsObj.totalGoals[gm2[1]];
               }
               // 半全场方向（半全场-胜胜、半全场-平胜 等）
-              if (!val && ft.indexOf('半全场-') === 0 && oddsObj.halfFull) {
+              var isHalfFull = ft.indexOf('半全场-') === 0;
+              if (!val && isHalfFull && oddsObj.halfFull) {
                 var hfName = ft.replace('半全场-', '');
                 var hfMap = { '胜胜':'hh','平胜':'dh','胜负':'ha','胜平':'hd','平平':'dd','平负':'da','负胜':'ah','负平':'ad','负负':'aa' };
                 var hfKey = hfMap[hfName];
                 if (hfKey) val = oddsObj.halfFull[hfKey];
               }
-              if (!val && !isRQ) {
+              // ★ 半全场无赔率数据时不回退到SPF（SPF赔率与半全场差异太大）
+              if (!val && !isRQ && !isHalfFull) {
                 if (ft.indexOf('胜') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.home;
                 else if (ft.indexOf('平') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.draw;
                 else if (ft.indexOf('负') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.away;
@@ -404,13 +417,7 @@ export function loadPlanList() {
               (timeDisp ? '<div class="match-time-sub">' + timeDisp + '</div>' : '') +
               '</td>' +
               '<td class="team-col">' +
-              '<span class="plan-team-home">' +
-              (m.homeName || '') +
-              '</span>' +
-              '<span class="plan-team-vs">vs</span>' +
-              '<span class="plan-team-away">' +
-              (m.visitName || '') +
-              '</span>' +
+              renderMatchTeams(m) +
               '</td>' +
               '<td class="odds-col">' +
               matchOddsHtml +
@@ -619,9 +626,7 @@ export function loadMyPlanList() {
               '<div class="match-num-text">' + (m.matchNum || '') + '</div>' +
               '</td>' +
               '<td class="team-col">' +
-              '<span class="plan-team-home">' + (m.homeName || '') + '</span>' +
-              '<span class="plan-team-vs">vs</span>' +
-              '<span class="plan-team-away">' + (m.visitName || '') + '</span>' +
+              renderMatchTeams(m) +
               '</td>' +
               '<td class="odds-col" style="color:' + oddsColor + '">' + playLabel + '：' + dirDisplay + '  ' + oddsStr + '</td>' +
               '</tr>';
@@ -1271,11 +1276,7 @@ export function loadScorePlanList() {
               '</td>' +
               '<td class="team-col">' +
               (si === 0
-                ? '<span class="plan-team-home">' +
-                  (p.homeName || '') +
-                  '</span><span class="plan-team-vs">vs</span><span class="plan-team-away">' +
-                  (p.visitName || '') +
-                  '</span>'
+                ? renderMatchTeams(p)
                 : '') +
               '</td>' +
               '<td class="odds-col">' +
@@ -1608,13 +1609,7 @@ export function loadQuantPlanList() {
               (timeDisp ? '<div class="match-time-sub">' + timeDisp + '</div>' : '') +
               '</td>' +
               '<td class="team-col">' +
-              '<span class="plan-team-home">' +
-              (m.homeName || '') +
-              '</span>' +
-              '<span class="plan-team-vs">vs</span>' +
-              '<span class="plan-team-away">' +
-              (m.visitName || '') +
-              '</span>' +
+              renderMatchTeams(m) +
               '</td>' +
               '<td class="odds-col">' +
               oddsDisplay +

@@ -411,6 +411,7 @@ function computeSingleMatch(rawStats, matchInfo) {
 function computeFallbackMatch(m) {
   const ln = (m.leagueName || '').trim();
   const handicap = m.handicap !== undefined ? Number(m.handicap) : (m.rq !== undefined ? Number(m.rq) : 0);
+  const hdc = handicap; // 别名兼容历史代码
 
   // 联赛场均进球基准
   const LEAGUE_GOALS = {
@@ -845,6 +846,7 @@ async function refreshCache() {
 
 module.exports = {
   computeSingleMatch,
+  computeFallbackMatch,
   computeAll,
   getMatchResult,
   refreshCache,
