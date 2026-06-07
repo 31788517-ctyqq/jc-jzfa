@@ -463,8 +463,9 @@ function renderMatchList() {
     });
 
     // 赔率矩阵：根据玩法类型决定显示哪些行
-    var showSpfRow = _activePlayType === 'mixed' || _activePlayType === 'spf' || _activePlayType === 'bf' || _activePlayType === 'jqs' || _activePlayType === 'bqc';
-    var showRqRow = _activePlayType === 'mixed' || _activePlayType === 'rqspf' || _activePlayType === 'bf' || _activePlayType === 'jqs' || _activePlayType === 'bqc';
+    // ★ BF/JQS/BQC 模式下隐藏 SPF/RQ，铺满专用赔率区域
+    var showSpfRow = _activePlayType === 'mixed' || _activePlayType === 'spf';
+    var showRqRow = _activePlayType === 'mixed' || _activePlayType === 'rqspf';
 
     // SPF 行：[0]
     var spfRow = '';
@@ -510,7 +511,7 @@ function renderMatchList() {
       '</div>' +
       '<div class="smc-right">' +
       '<div class="smc-teams"><span>' + (m.homeName || '') + '</span><span class="smc-vs">VS</span><span>' + (m.visitName || '') + '</span></div>' +
-      '<div class="sodds-matrix">' + spfRow + rqRow + renderSpecialOddsRow(m, id) + '</div>' +
+      '<div class="sodds-matrix">' + (renderSpecialOddsRow(m, id) || (spfRow + rqRow)) + '</div>' +
       '</div>' +
       '</div>' +
       '<div class="smc-footer">' +
@@ -686,7 +687,7 @@ function findOtherSelections(matchId) {
   });
 }
 
-// ★ BF/JQS/BQC 专用赔率按钮行（标签切换后直接展示，无需弹窗）
+// ★ BF/JQS/BQC 专用赔率按钮行（标签切换后铺满整个选择区）
 function renderSpecialOddsRow(m, matchId) {
   var odds = m._odds || {};
   
