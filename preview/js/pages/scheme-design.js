@@ -773,22 +773,10 @@ var FIXED_BQC = ['胜胜','胜平','胜负','平胜','平平','平负','负胜',
 function renderOtherSection(matchId) {
   var m = _matches.find(function (x) { return (x.matchId || x.id) === matchId; });
   var otherSels = findOtherSelections(matchId);
-  // ★ SPF / RQSPF 模式下禁用"其它"按钮（只能直接点主页赔率）
-  var otherDisabled = _activePlayType === 'spf' || _activePlayType === 'rqspf';
+  // ★ SPF/RQSPF/BF/JQS/BQC 模式下禁用"其它"按钮（使用主页赔率或专用网格）
+  var otherDisabled = _activePlayType !== 'mixed';
   var dimCls = otherDisabled ? ' smc-other-dim' : '';
   var clickAttr = otherDisabled ? '' : ' onclick="openSchemeBetting(\'' + matchId + '\')"';
-
-  // ★ 构建 Delta 摘要行（BF/JQS/BQC 趋势提示）
-  var deltaHints = [];
-  if (m && m._odds) {
-    var bfSum = renderDeltaSummary(m, 'bf');
-    var jqsSum = renderDeltaSummary(m, 'jqs');
-    var bqcSum = renderDeltaSummary(m, 'bqc');
-    if (bfSum) deltaHints.push('<span class="smc-delta-hint">比分 ' + bfSum + '</span>');
-    if (jqsSum) deltaHints.push('<span class="smc-delta-hint">进球 ' + jqsSum + '</span>');
-    if (bqcSum) deltaHints.push('<span class="smc-delta-hint">半全场 ' + bqcSum + '</span>');
-  }
-  var deltaHintRow = deltaHints.length > 0 ? '<div class="smc-delta-hint-row">' + deltaHints.join('') + '</div>' : '';
 
   if (otherSels.length > 0) {
     var itemsHtml = otherSels.map(function(s) {
@@ -799,9 +787,9 @@ function renderOtherSection(matchId) {
       '<span class="smc-other-label">其它</span>' +
       '<div class="smc-other-sep"></div>' +
       itemsHtml +
-      '</span>' + deltaHintRow;
+      '</span>';
   }
-  return '<span class="smc-other' + dimCls + '"' + clickAttr + '>其它</span>' + deltaHintRow;
+  return '<span class="smc-other' + dimCls + '"' + clickAttr + '>其它</span>';
 }
 
 // ═══ 更新底部栏 ═══
