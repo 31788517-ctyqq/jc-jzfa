@@ -22,7 +22,7 @@ function renderMatchTeams(m) {
   }
   var handicapStr = '';
   if (handicap !== null && handicap !== 0) {
-    handicapStr = '(+' + handicap + ')';
+    handicapStr = handicap > 0 ? '(+' + handicap + ')' : '(' + handicap + ')';
   } else if (handicap === 0) {
     handicapStr = '(0)';
   }

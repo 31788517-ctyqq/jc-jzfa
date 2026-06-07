@@ -616,7 +616,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const cachedGS =
                 gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
               const hasGS = !!(cachedGS && cachedGS.attackPattern);
-              list.push(Object.assign({}, m, { isSingleGame: isSingleGame, hasGongshoudao: hasGS }));
+              // ★ 让球数：从赔率数据提取
+              const concede = (fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null)
+                ? fiveOdds.rqspf.handicap : null;
+              list.push(Object.assign({}, m, { isSingleGame: isSingleGame, hasGongshoudao: hasGS, concede: concede }));
             });
 
             // 按比赛编号排序
