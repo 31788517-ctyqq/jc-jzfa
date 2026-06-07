@@ -985,7 +985,7 @@ function generateExpertPlans(mList, matchDataMap, dateStr) {
       if (!md || !md.odds) continue;
       const recs = md.recs;
       let total = 0;
-      for (const r of recs) { if (r.type === '平' || r.type === '让平') total += r.num || 0; }
+      for (const r of recs) { if (r.type === '平、让平') total += r.num || 0; }
       if (total > 0) {
         const aObj = buildMatchObj(m, '平、让平');
         const eA = calcEffectiveOdds('平、让平', aObj);
