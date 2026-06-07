@@ -4793,6 +4793,32 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           }
         }
 
+        // ★ BF/JQS/BQC 数据格式转换（对象→数组），供 batch-match-odds / match-odds 复用
+        function _convertBfToArray(source) {
+          if (!source) return null;
+          if (Array.isArray(source)) return source; // 已是数组
+          if (typeof source === 'object') {
+            return Object.keys(source).map(function (k) { return { score: k, odds: source[k] }; });
+          }
+          return null;
+        }
+        function _convertJqsToArray(source) {
+          if (!source) return null;
+          if (Array.isArray(source)) return source;
+          if (typeof source === 'object') {
+            return Object.keys(source).map(function (k) { return { goals: k, odds: source[k] }; });
+          }
+          return null;
+        }
+        function _convertBqcToArray(source) {
+          if (!source) return null;
+          if (Array.isArray(source)) return source;
+          if (typeof source === 'object') {
+            return Object.keys(source).map(function (k) { return { combo: k, odds: source[k] }; });
+          }
+          return null;
+        }
+
         case 'batch-match-odds': {
           try {
             var matchIds = data.matchIds || [];
@@ -4914,10 +4940,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 halfScore: m.half || '',
                 spf: oddsEntry.spf || null,
                 rqspf: oddsEntry.rqspf || sportteryRqspf || null,
-                // ★ key 映射兼容: odds_history 存 totalGoals/halfFull/scores，allplays.json 额外存 jqs/bqc/bf
-                jqs: oddsEntry.jqs || oddsEntry.totalGoals || null,
-                bqc: oddsEntry.bqc || oddsEntry.halfFull || null,
-                bf: oddsEntry.bf || oddsEntry.scores || null,
+                // ★ 转换为前端期望的数组格式
+                jqs: _convertJqsToArray(oddsEntry.jqs || oddsEntry.totalGoals),
+                bqc: _convertBqcToArray(oddsEntry.bqc || oddsEntry.halfFull),
+                bf: _convertBfToArray(oddsEntry.bf || oddsEntry.scores),
                 // ★ 四级降级链 — 顶层handicap → sporttery → rqspf.handicap → match.concede → 0
                 handicap: oddsEntry.handicap != null ? oddsEntry.handicap
                   : (sportteryHandicap != null ? sportteryHandicap
