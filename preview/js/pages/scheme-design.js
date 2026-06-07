@@ -744,9 +744,14 @@ function renderSpecialOddsRow(m, matchId) {
   
   // 半全场
   if (_activePlayType === 'bqc') {
+    var BQC_ABBR_MAP = { hh:'胜胜', hd:'胜平', ha:'胜负', dh:'平胜', dd:'平平', da:'平负', ah:'负胜', ad:'负平', aa:'负负' };
     var bqcItems = [];
+    var rawBqc = odds.bqc || [];
     FIXED_BQC.forEach(function(c) {
-      var item = (odds.bqc || []).find(function(x) { return (x.combo || x.label || x.key || '') === c; });
+      var item = rawBqc.find(function(x) {
+        var key = x.combo || x.label || x.key || '';
+        return key === c || BQC_ABBR_MAP[key] === c;
+      });
       if (item) bqcItems.push({ combo: c, odds: item.odds });
     });
     if (bqcItems.length === 0) return '<div class="sodds-grid-4col" style="display:flex;align-items:center;justify-content:center;flex:1;color:var(--text3);font-size:11px;padding:12px 0">赔率加载中，请稍候</div>';
