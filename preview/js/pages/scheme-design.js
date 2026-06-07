@@ -386,6 +386,8 @@ function preloadOtherOdds(playType) {
       var data = r[mid];
       if (data) {
         m._odds = m._odds || {};
+        // ★ 同步 isSingleGame（batch-match-odds 返回单关标识，双写兼容）
+        if (data.isSingleGame === true) { m.isSingleGame = true; m._odds.isSingleGame = true; }
         if (playType === 'bf') { m._odds.bf = data.bf || []; m._odds.bfDelta = data.bfDelta || {}; }
         if (playType === 'jqs') { m._odds.jqs = data.jqs || []; m._odds.jqsDelta = data.jqsDelta || {}; }
         if (playType === 'bqc') { m._odds.bqc = data.bqc || []; m._odds.bqcDelta = data.bqcDelta || {}; }
