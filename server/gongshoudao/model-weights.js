@@ -1,14 +1,16 @@
 /**
  * server/gongshoudao/model-weights.js
- * V2.0 动态模型权重引擎 — 基于近30天命中率驱动 Softmax 权重
+ * V3.0 动态模型权重引擎 — 基于真实模型预测值驱动 Softmax 权重
  *
- * 从 prediction_logs 读取各模型的预测 vs 实际总进球，按误差统计命中率，
- * 通过 Softmax 温度缩放生成动态权重。
+ * V3.0 变更（P0 修复）：
+ *   - 改用 gs_modelA_total/gs_modelB_total/gs_modelC_total（储存在 prediction_log）
+ *   - 对比 actual_home_goals + actual_away_goals，|误差| ≤ 0.5 球 = 命中
+ *   - 不再使用 pk_hit / pk_ou_hit 等不相关代理指标
  *
  * 模型对应关系：
- *   ModelA (射门还原法) → fusion 中 calcModelA() 的 total
- *   ModelB (攻守权重法) → goal.js 中 xgHome + xgAway → modelB.total
- *   ModelC (交锋预测法) → fusion 中 calcModelC() 的 total
+ *   ModelA (射门还原法) → gs_modelA_total
+ *   ModelB (攻守权重法) → gs_modelB_total
+ *   ModelC (交锋预测法) → gs_modelC_total
  *
  * 命中定义：|predictedTotal - actualTotal| ≤ 0.5 球
  */
@@ -22,7 +24,7 @@ const DEFAULT_WEIGHTS = { wA: 1 / 3, wB: 1 / 3, wC: 1 / 3 };
 const TEMPERATURE = 0.5; // 越小差异越显著
 
 /**
- * 从 prediction_log 计算近 N 天各模型命中率
+ * 从 prediction_log 计算近 N 天各模型命中率（V3.0: 使用真实模型预测值）
  * @param {Object} predLog prediction_log 模块引用
  * @param {number} days 统计天数，默认 30
  * @returns {{ wA: number, wB: number, wC: number, stats: Object }}
@@ -33,7 +35,7 @@ function computeDynamicWeights(predLog, days) {
   // 命中定义：预测总进球 vs 实际总进球偏差 ≤ 0.5
   const HIT_THRESHOLD = 0.5;
 
-  // ★ 从 prediction_log 读取有赛果的记录
+  // ★ 从 prediction_log 读取有赛果且含模型预测值的记录
   var rows = [];
   try {
     if (predLog && typeof predLog.queryBacktest === 'function') {
@@ -41,79 +43,51 @@ function computeDynamicWeights(predLog, days) {
       rows = (result && result.items) ? result.items : [];
     }
   } catch (e) {
-    // prediction_log 不可用时回退到等权
     console.warn('[model-weights] prediction_log 不可用，使用等权:', e.message);
     return { wA: DEFAULT_WEIGHTS.wA, wB: DEFAULT_WEIGHTS.wB, wC: DEFAULT_WEIGHTS.wC, stats: null, source: 'fallback' };
   }
 
   if (rows.length < 20) {
-    // 样本不足20场，回退到等权
     console.log('[model-weights] 样本不足(' + rows.length + '场)，使用等权');
     return { wA: DEFAULT_WEIGHTS.wA, wB: DEFAULT_WEIGHTS.wB, wC: DEFAULT_WEIGHTS.wC, stats: null, source: 'insufficient' };
   }
 
-  // ═══ 统计各模型命中率 ═══
-  // 从 gs_scores_json 和 actual_score 反推各模型预测值
-  // gs_scores_json 存储了融合后的预测，但我们这里用 totals
-  // 实际中从 prediction_log 的 fusionDetails 字段（如果有）或直接重算
-  //
-  // 替代方案：直接从 pk_scorer 的 computeAllScores 输出反推
-  // 这里我们统计 pk_direction 命中作为 ModelB 权重（主逻辑）
-  // 同时尝试解析 actual_score 计算总进球误差
-
+  // ═══ V3.0: 使用真实模型预测值统计命中率 ═══
   var stats = { modelA: { total: 0, hits: 0 }, modelB: { total: 0, hits: 0 }, modelC: { total: 0, hits: 0 } };
 
   rows.forEach(function (row) {
-    var actScore = row.actual_score || '';
-    var gsTop = row.gs_top_score || '';
-    var actParts = actScore.split(/[-:]/);
-    if (actParts.length < 2) return;
-    var actHome = parseInt(actParts[0]) || 0;
-    var actAway = parseInt(actParts[1]) || 0;
+    // 计算实际总进球
+    var actHome = row.actual_home_goals;
+    var actAway = row.actual_away_goals;
+    if (actHome == null || actAway == null || isNaN(actHome) || isNaN(actAway)) return;
     var actTotal = actHome + actAway;
 
-    // 解析 gs_scores_json 获取 ModelA/C 独立预测
-    // ModelB 对应 pk_direction (胜平负方向) — 这里统计胜负方向命中率作为 ModelB 代理
-    // ModelA 射门还原法 — 从 gs_scores_json 推断
-    // ModelC 交锋预测法 — 从 headToHeadGoal 推断
+    // ModelA: 射门还原法预测总进球
+    var modelATotal = row.gs_modelA_total;
+    if (modelATotal != null && !isNaN(modelATotal)) {
+      stats.modelA.total++;
+      if (Math.abs(modelATotal - actTotal) <= HIT_THRESHOLD) stats.modelA.hits++;
+    }
 
-    try {
-      var gsJson = row.gs_scores_json;
-      if (!gsJson) return;
-
-      // ★ 简化：使用 pk_power_score / pk_goal_score / pk_heat_score 作为三个维度
-      // ModelA 权重代理 = pk_power_score 方向命中
-      // ModelB 权重代理 = pk_direction 命中  
-      // ModelC 权重代理 = pk_goal_direction 命中
-
-      // ModelB: 胜平负方向
+    // ModelB: 攻守权重法预测总进球
+    var modelBTotal = row.gs_modelB_total;
+    if (modelBTotal != null && !isNaN(modelBTotal)) {
       stats.modelB.total++;
-      if (row.pk_hit) stats.modelB.hits++;
+      if (Math.abs(modelBTotal - actTotal) <= HIT_THRESHOLD) stats.modelB.hits++;
+    }
 
-      // 尝试从 actual_home_goals/actual_away_goals 检测总进球预测
-      if (row.gs_top_score) {
-        stats.modelA.total++;
-        var gsParts = String(gsTop).split(/[-:]/);
-        if (gsParts.length >= 2) {
-          var gsH = parseInt(gsParts[0]) || 0;
-          var gsA = parseInt(gsParts[1]) || 0;
-          var gsTotal = gsH + gsA;
-          if (Math.abs(gsTotal - actTotal) <= HIT_THRESHOLD) stats.modelA.hits++;
-        }
-
-        // ModelC: 用 headToHeadGoal 方向
-        stats.modelC.total++;
-        if (row.pk_ou_hit) stats.modelC.hits++;
-      }
-    } catch (e) {
-      // skip
+    // ModelC: 交锋预测法预测总进球
+    var modelCTotal = row.gs_modelC_total;
+    if (modelCTotal != null && !isNaN(modelCTotal)) {
+      stats.modelC.total++;
+      if (Math.abs(modelCTotal - actTotal) <= HIT_THRESHOLD) stats.modelC.hits++;
     }
   });
 
   // 确保最少样本数，避免除零
   var minSamples = 10;
   if (stats.modelA.total < minSamples || stats.modelB.total < minSamples || stats.modelC.total < minSamples) {
-    console.log('[model-weights] 某模型样本不足，使用等权');
+    console.log('[model-weights] 某模型样本不足(A=' + stats.modelA.total + ' B=' + stats.modelB.total + ' C=' + stats.modelC.total + ')，使用等权');
     return { wA: DEFAULT_WEIGHTS.wA, wB: DEFAULT_WEIGHTS.wB, wC: DEFAULT_WEIGHTS.wC, stats: stats, source: 'partial' };
   }
 
@@ -137,8 +111,7 @@ function computeDynamicWeights(predLog, days) {
   var wB = +(sB / sum).toFixed(4);
   var wC = +(sC / sum).toFixed(4);
 
-  console.log('[model-weights] ' + days + '天命中 → A=' + (accA * 100).toFixed(1) + '% B=' + (accB * 100).toFixed(1) +
-    '% C=' + (accC * 100).toFixed(1) + '% → 权重 wA=' + wA + ' wB=' + wB + ' wC=' + wC);
+  console.log('[model-weights] V3.0 ' + days + '天真实模型命中 → A=' + (accA * 100).toFixed(1) + '%(' + stats.modelA.total + '场) B=' + (accB * 100).toFixed(1) + '%(' + stats.modelB.total + '场) C=' + (accC * 100).toFixed(1) + '%(' + stats.modelC.total + '场) → 权重 wA=' + wA + ' wB=' + wB + ' wC=' + wC);
 
   return {
     wA: wA,
@@ -149,7 +122,7 @@ function computeDynamicWeights(predLog, days) {
       modelB: { accuracy: +(accB * 100).toFixed(1), total: stats.modelB.total, hits: stats.modelB.hits },
       modelC: { accuracy: +(accC * 100).toFixed(1), total: stats.modelC.total, hits: stats.modelC.hits },
     },
-    source: 'dynamic',
+    source: 'dynamic_v3',
   };
 }
 

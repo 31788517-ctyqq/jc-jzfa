@@ -6,6 +6,7 @@
  */
 
 import { api } from '../api.js';
+import { loadECharts, echartsReady } from '../charts.js';
 
 // ═══════════════════════════════════════════════════════
 // 页面入口
@@ -47,7 +48,7 @@ function updateStatsCard(data) {
   var elBest = document.getElementById('mdStatBest');
   if (elModels) elModels.textContent = data ? (data.models ? data.models.length : 0) : '--';
   if (elTotal) elTotal.textContent = data ? (data.totalPredictions || 0) + '+' : '--';
-  if (elBest) elBest.textContent = data ? (data.topModel || '--') : '--';
+  if (elBest) elBest.textContent = data ? data.topModel || '--' : '--';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -62,7 +63,6 @@ function buildDashboardHTML(data) {
     <div class="chart-box">
       <div class="chart-header">
         <span class="chart-title">模型排行</span>
-        <span class="chart-hint">点击查询按钮切换指标</span>
       </div>
       ${buildRankingTable(rankings)}
     </div>
@@ -71,7 +71,6 @@ function buildDashboardHTML(data) {
     <div class="chart-box">
       <div class="chart-header">
         <span class="chart-title">分联赛表现热力图</span>
-        <span class="chart-hint">绿色=高命中 红色=低命中</span>
       </div>
       <div id="md-heatmap" class="md-heatmap-wrap">
         ${buildHeatmapHTML(leagueHeatmap, models)}
@@ -82,7 +81,6 @@ function buildDashboardHTML(data) {
     <div class="chart-box">
       <div class="chart-header">
         <span class="chart-title">命中率走势</span>
-        <span class="chart-hint">周级滚动窗口</span>
       </div>
       <div id="md-trend-chart" class="md-chart" style="height:240px"></div>
     </div>
@@ -100,7 +98,8 @@ function buildRankingTable(rankings) {
 
   var html = '<div class="income-list md-rank-list">';
   // 表头
-  html += '<div class="income-header-row"><span class="md-rank-col-rank">#</span><span class="md-rank-col-model">模型</span><span class="md-rank-col-rate">命中率</span><span class="md-rank-col-trend">趋势</span><span class="md-rank-col-count">场次</span></div>';
+  html +=
+    '<div class="income-header-row"><span class="md-rank-col-rank">排名</span><span class="md-rank-col-model">模型</span><span class="md-rank-col-rate">命中率</span><span class="md-rank-col-trend">趋势</span><span class="md-rank-col-count">场次</span></div>';
 
   var medals = ['🥇', '🥈', '🥉'];
   rankings.slice(0, 10).forEach(function (r, i) {
@@ -110,12 +109,29 @@ function buildRankingTable(rankings) {
     var trendColor = trend > 0 ? 'var(--green)' : trend < 0 ? 'var(--red)' : 'var(--text3)';
     var rateColor = dirRate >= 60 ? 'var(--green)' : dirRate >= 50 ? 'var(--cyan)' : 'var(--text2)';
 
-    html += '<div class="income-row">' +
-      '<span class="md-rank-col-rank">' + (medals[i] || (i + 1)) + '</span>' +
-      '<span class="md-rank-col-model">' + (r.modelName || r.model_name || '模型' + (i + 1)) + '</span>' +
-      '<span class="md-rank-col-rate" style="color:' + rateColor + '">' + dirRate + '%</span>' +
-      '<span class="md-rank-col-trend" style="color:' + trendColor + '">' + trendIcon + ' ' + Math.abs(trend) + '%</span>' +
-      '<span class="md-rank-col-count">' + (r.total || 0) + '场</span>' +
+    html +=
+      '<div class="income-row">' +
+      '<span class="md-rank-col-rank">' +
+      (medals[i] || i + 1) +
+      '</span>' +
+      '<span class="md-rank-col-model">' +
+      (r.modelName || r.model_name || '模型' + (i + 1)) +
+      '</span>' +
+      '<span class="md-rank-col-rate" style="color:' +
+      rateColor +
+      '">' +
+      dirRate +
+      '%</span>' +
+      '<span class="md-rank-col-trend" style="color:' +
+      trendColor +
+      '">' +
+      trendIcon +
+      ' ' +
+      Math.abs(trend) +
+      '%</span>' +
+      '<span class="md-rank-col-count">' +
+      (r.total || 0) +
+      '场</span>' +
       '</div>';
   });
   html += '</div>';
@@ -152,19 +168,41 @@ function buildHeatmapHTML(heatmap, models) {
     return 'rgba(239,68,68,0.10)';
   };
 
-  return '<table style="width:100%;font-size:var(--fs-sm);text-align:center;border-collapse:collapse">' +
+  return (
+    '<table style="width:100%;font-size:var(--fs-sm);text-align:center;border-collapse:collapse">' +
     '<tr><td style="padding:6px;color:var(--text2)">模型</td>' +
-    leagueList.map(function (l) { return '<td style="padding:6px;color:var(--text2);font-weight:600">' + l + '</td>'; }).join('') +
+    leagueList
+      .map(function (l) {
+        return '<td style="padding:6px;color:var(--text2);font-weight:600">' + l + '</td>';
+      })
+      .join('') +
     '</tr>' +
-    modelNames.map(function (m) {
-      return '<tr><td style="padding:6px;color:var(--text);font-weight:600">' + m + '</td>' +
-        leagueList.map(function (l) {
-          var rate = (heatmap[m] && heatmap[m][l]) ? heatmap[m][l] : null;
-          return '<td style="padding:6px;background:' + getColor(rate) + ';border-radius:4px;color:' + (rate ? 'var(--text)' : 'var(--text3)') + '">' + (rate !== null ? rate + '%' : '-') + '</td>';
-        }).join('') +
-        '</tr>';
-    }).join('') +
-    '</table>';
+    modelNames
+      .map(function (m) {
+        return (
+          '<tr><td style="padding:6px;color:var(--text);font-weight:600">' +
+          m +
+          '</td>' +
+          leagueList
+            .map(function (l) {
+              var rate = heatmap[m] && heatmap[m][l] ? heatmap[m][l] : null;
+              return (
+                '<td style="padding:6px;background:' +
+                getColor(rate) +
+                ';border-radius:4px;color:' +
+                (rate ? 'var(--text)' : 'var(--text3)') +
+                '">' +
+                (rate !== null ? rate + '%' : '-') +
+                '</td>'
+              );
+            })
+            .join('') +
+          '</tr>'
+        );
+      })
+      .join('') +
+    '</table>'
+  );
 }
 
 // ═══════════════════════════════════════════════════════
@@ -177,13 +215,20 @@ function bindEvents(data) {
     loadDashboard(true);
   };
 
-  // 走势图（如果有 ECharts）
+  // 走势图（等待 ECharts 加载后再渲染）
   if (data.trendData && data.trendData.length > 0) {
-    try {
-      renderTrendChart(data.trendData);
-    } catch (e) {
-      console.log('[ModelDashboard] 走势图渲染跳过（ECharts 可能未加载）');
-    }
+    var tryRender = function () {
+      var el = document.getElementById('md-trend-chart');
+      if (!el || el.offsetHeight === 0) {
+        // DOM 尚未就绪，延迟重试
+        setTimeout(tryRender, 200);
+        return;
+      }
+      loadECharts().then(function () {
+        renderTrendChart(data.trendData);
+      });
+    };
+    tryRender();
   }
 }
 
@@ -191,23 +236,82 @@ function renderTrendChart(trendData) {
   var el = document.getElementById('md-trend-chart');
   if (!el || typeof echarts === 'undefined') return;
 
-  var chart = echarts.init(el);
-  var series = trendData.map(function (s) {
+  // 销毁旧实例（DOM 被替换时避免泄漏）
+  if (el._echartInstance) {
+    el._echartInstance.dispose();
+    el._echartInstance = null;
+  }
+  el._echartInstance = echarts.init(el);
+  var chart = el._echartInstance;
+
+  var colors = ['#A78BFA', '#06B6D4', '#F59E0B', '#EF4444'];
+  var series = trendData.map(function (s, i) {
     return {
       name: s.modelName,
       type: 'line',
       smooth: true,
       data: s.values || [],
-      lineStyle: { width: 2 },
+      lineStyle: { width: 2, color: colors[i % colors.length] },
+      itemStyle: { color: colors[i % colors.length] },
+      symbol: 'circle',
+      symbolSize: 5,
     };
   });
 
+  // 动态 Y 轴范围
+  var allVals = [];
+  trendData.forEach(function (s) {
+    allVals = allVals.concat(s.values || []);
+  });
+  allVals = allVals.filter(function (v) {
+    return v != null;
+  });
+  var yMin = allVals.length > 0 ? Math.max(0, Math.floor(Math.min.apply(null, allVals) / 5) * 5 - 5) : 0;
+  var yMax = allVals.length > 0 ? Math.ceil(Math.max.apply(null, allVals) / 5) * 5 + 5 : 100;
+
   chart.setOption({
-    grid: { left: 40, right: 20, top: 10, bottom: 30 },
-    xAxis: { type: 'category', data: trendData[0] && trendData[0].weeks || [], axisLabel: { color: '#94A3B8', fontSize: 11 } },
-    yAxis: { type: 'value', min: 40, max: 70, axisLabel: { color: '#94A3B8', formatter: '{value}%' } },
+    tooltip: {
+      trigger: 'axis',
+      formatter: function (params) {
+        var s = params[0].axisValue + '<br/>';
+        params.forEach(function (p) {
+          s +=
+            '<span style=\"display:inline-block;width:8px;height:8px;border-radius:50%;background:' +
+            p.color +
+            ';margin-right:4px\"></span>' +
+            p.seriesName +
+            ': <b>' +
+            (p.value != null ? p.value + '%' : '--') +
+            '</b><br/>';
+        });
+        return s;
+      },
+      textStyle: { fontSize: 12 },
+    },
+    grid: { left: 45, right: 20, top: 20, bottom: 45 },
+    xAxis: {
+      type: 'category',
+      data: (trendData[0] && trendData[0].weeks) || [],
+      axisLabel: {
+        color: '#94A3B8',
+        fontSize: 10,
+        rotate: 0,
+        interval: Math.floor(((trendData[0] && trendData[0].weeks && trendData[0].weeks.length) || 0) / 6) || 0,
+      },
+    },
+    yAxis: {
+      type: 'value',
+      min: yMin,
+      max: yMax,
+      axisLabel: { color: '#94A3B8', fontSize: 10, formatter: '{value}%' },
+      splitLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } },
+    },
     series: series,
-    legend: { bottom: 0, textStyle: { color: '#94A3B8', fontSize: 11 } },
+    legend: { bottom: 5, textStyle: { color: '#94A3B8', fontSize: 11 }, itemWidth: 14, itemHeight: 8 },
     backgroundColor: 'transparent',
+  });
+
+  window.addEventListener('resize', function () {
+    chart.resize();
   });
 }

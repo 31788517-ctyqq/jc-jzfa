@@ -30,6 +30,178 @@ function persistPredictionCache() {
   } catch (e) {}
 }
 
+// ★ 赔率辅助函数
+
+// ── SPF 方向 ──
+function _spfKey(dir) {
+  if (dir === '胜' || dir === '主胜') return 'home';
+  if (dir === '平' || dir === '和局') return 'draw';
+  if (dir === '负' || dir === '客胜') return 'away';
+  return null;
+}
+function _rqspfKey(dir) {
+  if (dir === '让胜') return 'home';
+  if (dir === '让平') return 'draw';
+  if (dir === '让负') return 'away';
+  return null;
+}
+function _singleOdds(odds, dir) {
+  if (!odds) return null;
+  var spfK = _spfKey(dir);
+  if (spfK && odds.spf) return odds.spf[spfK] || null;
+  var rqK = _rqspfKey(dir);
+  if (rqK && odds.rqspfList && odds.rqspfList.length > 0) {
+    var rq = odds.rqspfList.find(function (r) {
+      return Number(r.handicap) === 0;
+    });
+    if (!rq) rq = odds.rqspfList[0];
+    return rq[rqK] || null;
+  }
+  return null;
+}
+
+// ── Dutch 合并 ──
+function _dutchOdds(arr) {
+  if (!arr || arr.length === 0) return null;
+  if (arr.length === 1) return arr[0];
+  var invSum = 0;
+  arr.forEach(function (o) {
+    invSum += 1 / o;
+  });
+  return invSum > 0 ? 1 / invSum : null;
+}
+
+// ── 总进球解析 ("总进球-2、3球" → ["2","3"]) ──
+function _parseJqs(dir) {
+  if (!dir || dir.indexOf('总进球') !== 0) return null;
+  // 去掉 "总进球-" 前缀，再按分隔符拆分
+  var body = dir.replace(/^总进球-?/, '').replace(/球$/, '');
+  var subs = body.split(/[、,]/).filter(function (s) {
+    return s && s.trim();
+  });
+  if (subs.length === 0) return null;
+  return subs.map(function (s) {
+    return s.trim();
+  });
+}
+function _jqsOdds(odds, goals) {
+  if (!odds || !odds.jqs || odds.jqs.length === 0) return null;
+  if (goals.length === 1) {
+    var found = odds.jqs.find(function (r) {
+      return String(r.goals) === String(goals[0]);
+    });
+    return found ? found.odds : null;
+  }
+  var vals = [];
+  goals.forEach(function (g) {
+    var f = odds.jqs.find(function (r) {
+      return String(r.goals) === String(g);
+    });
+    if (f) vals.push(f.odds);
+  });
+  return vals.length > 0 ? _dutchOdds(vals) : null;
+}
+
+// ── 半全场解析 ("半全场-胜胜" → ["胜胜"]) ──
+function _parseBqc(dir) {
+  if (!dir || dir.indexOf('半全场') !== 0) return null;
+  var body = dir.replace(/^半全场-?/, '');
+  var subs = body.split(/[、,]/).filter(function (s) {
+    return s && s.trim();
+  });
+  if (subs.length === 0) return null;
+  return subs.map(function (s) {
+    return s.trim();
+  });
+}
+function _bqcOdds(odds, combos) {
+  if (!odds || !odds.bqc || odds.bqc.length === 0) return null;
+  if (combos.length === 1) {
+    var found = odds.bqc.find(function (r) {
+      return r.combo === combos[0];
+    });
+    return found ? found.odds : null;
+  }
+  var vals = [];
+  combos.forEach(function (c) {
+    var f = odds.bqc.find(function (r) {
+      return r.combo === c;
+    });
+    if (f) vals.push(f.odds);
+  });
+  return vals.length > 0 ? _dutchOdds(vals) : null;
+}
+
+// ── 比分解析 ("比分-1:0" → ["1:0"]) ──
+function _parseBf(dir) {
+  if (!dir || dir.indexOf('比分') !== 0) return null;
+  var body = dir.replace(/^比分-?/, '');
+  var subs = body.split(/[、,]/).filter(function (s) {
+    return s && s.trim();
+  });
+  if (subs.length === 0) return null;
+  return subs.map(function (s) {
+    return s.trim();
+  });
+}
+function _bfOdds(odds, scores) {
+  if (!odds || !odds.bf || odds.bf.length === 0) return null;
+  if (scores.length === 1) {
+    var found = odds.bf.find(function (r) {
+      return r.score === scores[0];
+    });
+    return found ? found.odds : null;
+  }
+  var vals = [];
+  scores.forEach(function (s) {
+    var f = odds.bf.find(function (r) {
+      return r.score === s;
+    });
+    if (f) vals.push(f.odds);
+  });
+  return vals.length > 0 ? _dutchOdds(vals) : null;
+}
+
+// ── 主调度 ──
+function _dirOdds(odds, direction) {
+  if (!odds) return null;
+  if (!direction) return null;
+
+  // 1) SPF/RQSPF 单方向
+  var single = _singleOdds(odds, direction);
+  if (single !== null) return single;
+
+  // 2) JQS 总进球
+  var jqsParts = _parseJqs(direction);
+  if (jqsParts) return _jqsOdds(odds, jqsParts);
+
+  // 3) BQC 半全场
+  var bqcParts = _parseBqc(direction);
+  if (bqcParts) return _bqcOdds(odds, bqcParts);
+
+  // 4) BF 比分
+  var bfParts = _parseBf(direction);
+  if (bfParts) return _bfOdds(odds, bfParts);
+
+  // 5) SPF/RQSPF 组合方向（带分隔符如"胜、平"，或连写如"胜平"）
+  var parts = direction.split(/[、,]/).filter(function (s) {
+    return s && s.trim();
+  });
+  if (parts.length === 1 && parts[0] === direction) {
+    parts = direction.split('').filter(function (s) {
+      return s;
+    });
+  }
+  if (parts.length <= 1) return null;
+
+  var vals = [];
+  parts.forEach(function (d) {
+    var v = _singleOdds(odds, d);
+    if (v !== null) vals.push(v);
+  });
+  return vals.length > 0 ? _dutchOdds(vals) : null;
+}
+
 export function goDetail(matchId) {
   if (state.currentPage === 'home') state.setSavedScrollY(window.scrollY);
   state.setLastPage(state.currentPage);
@@ -40,7 +212,13 @@ export function goDetail(matchId) {
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
 
-  Promise.all([api('match-detail', { matchId }), api('recommend-trend', { matchId })]).then(([detail, trend]) => {
+  Promise.all([
+    api('match-detail', { matchId }),
+    api('recommend-trend', { matchId }),
+    api('match-odds', { matchId }).catch(function (e) {
+      return null;
+    }),
+  ]).then(([detail, trend, oddsData]) => {
     const match = detail.match || detail;
     const recommends = detail.recommends || [];
     const hasResults = recommends.some(function (r) {
@@ -154,9 +332,14 @@ export function goDetail(matchId) {
         var isHit = isFinished && hitMap[r.type];
         var hitFlag = isHit ? '<img src="/assets/worldcup/flag-hit.png" class="hit-flag" alt="">' : '';
         var hitClass = isHit ? ' hit' : '';
+        var oddsText = '';
+        var ov = _dirOdds(oddsData, r.type);
+        if (ov !== null) {
+          oddsText = ' <span style="color:#60A5FA;font-size:13px;font-weight:500;">(' + ov.toFixed(1) + ')</span>';
+        }
         html += `
         <div class="dir-item${hitClass}">
-          <span class="dir-name">${hitFlag}${r.type}</span>
+          <span class="dir-name">${hitFlag}${r.type}${oddsText}</span>
           <span class="dir-count">${r.num}位</span>
         </div>
       `;
@@ -254,9 +437,11 @@ export function closeAI() {
 }
 
 // ★ 从 AI 弹窗跳转方案设计页
-window.goFromAIToScheme = function() {
+window.goFromAIToScheme = function () {
   if (_aiModalMatchId) {
-    try { sessionStorage.setItem('preselectMatch', _aiModalMatchId); } catch(e) {}
+    try {
+      sessionStorage.setItem('preselectMatch', _aiModalMatchId);
+    } catch (e) {}
   }
   closeAI();
   window.switchTab('scheme');
@@ -282,17 +467,16 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
     document.body.style.overflow = 'hidden';
 
     // 后台静默校验：有变化时无声更新
-    api('ai-predict', { matchId: matchId }, 2)
-      .then(function (d) {
-        var newHash = JSON.stringify(d.content || '');
-        if (newHash !== cached.hash && d.content) {
-          // 内容有变化，静默更新缓存和 DOM
-          predictionCache[matchId] = { content: d, hash: newHash };
-          persistPredictionCache();
-          renderCachedContent(d, homeTeam, awayTeam, d, matchId);
-        }
-        // hash 未变 → 不做任何事，用户已看到内容
-      });
+    api('ai-predict', { matchId: matchId }, 2).then(function (d) {
+      var newHash = JSON.stringify(d.content || '');
+      if (newHash !== cached.hash && d.content) {
+        // 内容有变化，静默更新缓存和 DOM
+        predictionCache[matchId] = { content: d, hash: newHash };
+        persistPredictionCache();
+        renderCachedContent(d, homeTeam, awayTeam, d, matchId);
+      }
+      // hash 未变 → 不做任何事，用户已看到内容
+    });
     return;
   }
 
@@ -307,7 +491,11 @@ function renderCachedContent(content, homeTeam, awayTeam, newData, matchId) {
     if (resultData.dualModel && resultData.merged) {
       renderAIContent(resultData.content, homeTeam, awayTeam);
     } else if (resultData.singleModel && resultData.failedSource) {
-      var failBadge = (resultData.failedSource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 分析未成功，仅展示 ' + (resultData.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 结果';
+      var failBadge =
+        (resultData.failedSource === 'deepseek' ? 'DeepSeek' : '豆包') +
+        ' 分析未成功，仅展示 ' +
+        (resultData.readySource === 'deepseek' ? 'DeepSeek' : '豆包') +
+        ' 结果';
       renderAIContentWithBadge(resultData.content, homeTeam, awayTeam, failBadge);
     } else if (resultData.singleModel || resultData.pendingMerge) {
       var badge = (resultData.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 已完成，另一模型分析中...';
@@ -326,7 +514,13 @@ function renderCachedContent(content, homeTeam, awayTeam, newData, matchId) {
         inr.innerHTML =
           '<div style="text-align:center;padding:40px 20px;color:var(--cyan);"><div style="font-size:48px;margin-bottom:16px;">📋</div><div style="font-size:16px;font-weight:600;">分析生成中</div><div style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.6;">' +
           (resultData.msg || 'AI 深度解析由定时任务（11:30 / 16:30）统一生成<br>到时间后刷新页面即可查看') +
-          '</div><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;margin-right:8px;" onclick="closeAI();showAIPrediction(\'' + (matchId || '') + '\',\'' + (homeTeam || '').replace(/'/g, "\\'") + '\',\'' + (awayTeam || '').replace(/'/g, "\\'") + '\')">刷新重试</button><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.15);cursor:pointer;font-size:14px;" onclick="closeAI()">关闭</button></div>';
+          '</div><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;margin-right:8px;" onclick="closeAI();showAIPrediction(\'' +
+          (matchId || '') +
+          "','" +
+          (homeTeam || '').replace(/'/g, "\\'") +
+          "','" +
+          (awayTeam || '').replace(/'/g, "\\'") +
+          '\')">刷新重试</button><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.15);cursor:pointer;font-size:14px;" onclick="closeAI()">关闭</button></div>';
     }
   }
 }
@@ -345,10 +539,10 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
   var fakeDurationSec = Math.floor(Math.random() * 3) + 3; // 3-5 秒
   var fakeStartTime = Date.now();
   var pendingResult = preloadedData; // 可能已有预加载数据
-  var apiDone = !!preloadedData;     // 如果预加载了数据则标记已完成
-  var apiError = null;               // API 异常暂存
+  var apiDone = !!preloadedData; // 如果预加载了数据则标记已完成
+  var apiError = null; // API 异常暂存
   var pollTimer = null;
-  var rendered = false;              // 防止重复渲染
+  var rendered = false; // 防止重复渲染
 
   function updateFakeProgress() {
     var elapsed = (Date.now() - fakeStartTime) / 1000;
@@ -369,19 +563,31 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
       '<div style="text-align:center;padding:60px 20px;">' +
       '<div style="font-size:40px;margin-bottom:16px;">⏳</div>' +
       '<div style="font-size:16px;font-weight:600;color:var(--cyan);">正在交叉分析中...</div>' +
-      '<div style="font-size:12px;color:var(--text3);margin-top:6px;">' + descText + '</div>' +
-      '<div style="margin-top:20px;width:260px;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin-left:auto;margin-right:auto;">' +
-      '<div style="width:' + progress + '%;height:100%;background:linear-gradient(90deg,var(--cyan),rgba(0,245,233,0.4));border-radius:3px;transition:width 0.3s ease;"></div>' +
+      '<div style="font-size:12px;color:var(--text3);margin-top:6px;">' +
+      descText +
       '</div>' +
-      '<div style="font-size:11px;color:var(--text3);margin-top:10px;">预计还需约 ' + remaining + ' 秒</div>' +
-      '<div style="font-size:10px;color:var(--text3);margin-top:4px;opacity:0.6;">已分析 ' + Math.floor(elapsed) + ' 秒</div>' +
+      '<div style="margin-top:20px;width:260px;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin-left:auto;margin-right:auto;">' +
+      '<div style="width:' +
+      progress +
+      '%;height:100%;background:linear-gradient(90deg,var(--cyan),rgba(0,245,233,0.4));border-radius:3px;transition:width 0.3s ease;"></div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--text3);margin-top:10px;">预计还需约 ' +
+      remaining +
+      ' 秒</div>' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:4px;opacity:0.6;">已分析 ' +
+      Math.floor(elapsed) +
+      ' 秒</div>' +
       '</div>';
   }
 
   // 进度条更新频率（200ms 更平滑）
   updateFakeProgress();
   pollTimer = setInterval(function () {
-    if (rendered) { clearInterval(pollTimer); pollTimer = null; return; }
+    if (rendered) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+      return;
+    }
     updateFakeProgress();
   }, 200);
 
@@ -394,12 +600,18 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
   function tryRenderResult() {
     if (rendered) return;
     var apiReady = pendingResult || apiError;
-    var animDone = (Date.now() - animStart) >= minAnimMs;
+    var animDone = Date.now() - animStart >= minAnimMs;
     if (!apiReady || !animDone) return;
 
     rendered = true;
-    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-    if (resolveTimer) { clearInterval(resolveTimer); resolveTimer = null; }
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+    if (resolveTimer) {
+      clearInterval(resolveTimer);
+      resolveTimer = null;
+    }
 
     // notReady → 带重试按钮
     if (pendingResult && pendingResult.notReady) {
@@ -410,7 +622,13 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
           inr.innerHTML =
             '<div style="text-align:center;padding:40px 20px;color:var(--cyan);"><div style="font-size:48px;margin-bottom:16px;">📋</div><div style="font-size:16px;font-weight:600;">分析生成中</div><div style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.6;">' +
             (pendingResult.msg || 'AI 分析正在后台生成，请稍后重试') +
-            '</div><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;margin-right:8px;" onclick="closeAI();showAIPrediction(\'' + matchId + '\',\'' + homeTeam.replace(/'/g, "\\'") + '\',\'' + awayTeam.replace(/'/g, "\\'") + '\')">刷新重试</button><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.15);cursor:pointer;font-size:14px;" onclick="closeAI()">关闭</button></div>';
+            '</div><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;margin-right:8px;" onclick="closeAI();showAIPrediction(\'' +
+            matchId +
+            "','" +
+            homeTeam.replace(/'/g, "\\'") +
+            "','" +
+            awayTeam.replace(/'/g, "\\'") +
+            '\')">刷新重试</button><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.15);cursor:pointer;font-size:14px;" onclick="closeAI()">关闭</button></div>';
       }
       return;
     }
@@ -420,7 +638,11 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
       if (pendingResult.dualModel && pendingResult.merged) {
         renderAIContent(pendingResult.content, homeTeam, awayTeam);
       } else if (pendingResult.singleModel && pendingResult.failedSource) {
-        var failBadge = (pendingResult.failedSource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 分析未成功，仅展示 ' + (pendingResult.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 结果';
+        var failBadge =
+          (pendingResult.failedSource === 'deepseek' ? 'DeepSeek' : '豆包') +
+          ' 分析未成功，仅展示 ' +
+          (pendingResult.readySource === 'deepseek' ? 'DeepSeek' : '豆包') +
+          ' 结果';
         renderAIContentWithBadge(pendingResult.content, homeTeam, awayTeam, failBadge);
       } else if (pendingResult.singleModel || pendingResult.pendingMerge) {
         var badge = (pendingResult.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 已完成，另一模型分析中...';
@@ -444,7 +666,13 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
         inr2.innerHTML =
           '<div style="text-align:center;padding:60px 20px;color:var(--amber);"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="font-size:16px;font-weight:600;">请求失败</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">' +
           msg +
-          '</div><button style="margin-top:16px;padding:8px 24px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:13px;margin-right:8px;" onclick="closeAI();showAIPrediction(\'' + matchId + '\',\'' + homeTeam.replace(/'/g, "\\'") + '\',\'' + awayTeam.replace(/'/g, "\\'") + '\')">重新加载</button><button style="padding:8px 24px;border-radius:24px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.15);cursor:pointer;font-size:13px;" onclick="closeAI()">关闭</button></div>';
+          '</div><button style="margin-top:16px;padding:8px 24px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:13px;margin-right:8px;" onclick="closeAI();showAIPrediction(\'' +
+          matchId +
+          "','" +
+          homeTeam.replace(/'/g, "\\'") +
+          "','" +
+          awayTeam.replace(/'/g, "\\'") +
+          '\')">重新加载</button><button style="padding:8px 24px;border-radius:24px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.15);cursor:pointer;font-size:13px;" onclick="closeAI()">关闭</button></div>';
     }
   }
 
@@ -464,13 +692,21 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
 
   if (!preloadedData) {
     api('ai-predict', { matchId: matchId }, 2)
-      .then(function (d) { onApiResult(d, null); })
-      .catch(function (e) { onApiResult(null, (e && e.message) || '网络连接失败'); });
+      .then(function (d) {
+        onApiResult(d, null);
+      })
+      .catch(function (e) {
+        onApiResult(null, (e && e.message) || '网络连接失败');
+      });
   }
 
   // 300ms 轮询检查（取代固定的 setTimeout，API 返回后立即尝试渲染）
   resolveTimer = setInterval(function () {
-    if (rendered) { clearInterval(resolveTimer); resolveTimer = null; return; }
+    if (rendered) {
+      clearInterval(resolveTimer);
+      resolveTimer = null;
+      return;
+    }
     tryRenderResult();
   }, 300);
 
@@ -507,7 +743,7 @@ function showShujuMissingNotice() {
     dis.insertAdjacentHTML(
       'afterend',
       '<div style="margin:8px 20px;padding:10px 14px;border-radius:8px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);font-size:12px;color:#FBBF24;text-align:center;">' +
-        '📊 500.com 近10场及交战数据尚未入库，攻防对比和近期战绩图表可能基于AI知识预估。已触发后台数据抓取，稍后重试可获得精确统计。' +
+        '📊 近10场及交战数据尚未入库，攻防对比和近期战绩图表可能基于AI知识预估。已触发后台数据抓取，稍后重试可获得精确统计。' +
         '</div>',
     );
   }
@@ -965,7 +1201,9 @@ export function renderAIContent(content, homeTeam, awayTeam) {
   ['基础面', '状态面', '动机面', '对位面', '市场面', '核心看点'].forEach(function (sec) {
     var s = c[sec];
     if (!s) return;
-    var keys = Object.keys(s).filter(function (k) { return k[0] !== '_'; });
+    var keys = Object.keys(s).filter(function (k) {
+      return k[0] !== '_';
+    });
     keys.forEach(function (k) {
       var v = s[k];
       if (v !== undefined && v !== null && v !== '' && (!Array.isArray(v) || v.length > 0)) {
@@ -1018,31 +1256,80 @@ export function renderAIContentWithBadge(content, homeTeam, awayTeam, badgeText)
 
 function renderConsensusBar(consensus) {
   if (!consensus || !consensus.models || consensus.models.length === 0) return '';
-  var badgeClass = consensus.consensus === 'strong' ? 'strong'
-    : consensus.consensus === 'weak' ? 'weak'
-    : consensus.consensus === 'meltdown' ? 'melt' : 'neutral';
-  var badgeText = consensus.consensus === 'strong' ? 'STRONG'
-    : consensus.consensus === 'weak' ? 'WEAK'
-    : consensus.consensus === 'meltdown' ? 'MELT' : 'NEUTRAL';
-  var cells = consensus.models.map(function(m) {
-    var icon = m.direction === 'home' ? '\ud83c\udfe0' : m.direction === 'draw' ? '\ud83e\udd1d' : '\u2708\ufe0f';
-    var dirLabel = m.direction === 'home' ? '\u4e3b\u80dc' : m.direction === 'draw' ? '\u5e73\u5c40' : '\u5ba2\u80dc';
-    var cls = m.direction === consensus.mainDirection ? 'agree' : 'dissent';
-    return '<div class="consensus-cell ' + cls + '"><div class="consensus-model">' + m.model + '</div><div class="consensus-result">' + icon + ' ' + dirLabel + '</div><div class="consensus-confidence">' + (m.confidence || '--') + '%</div></div>';
-  }).join('');
-  var mainLabel = consensus.mainDirection === 'home' ? '\u4e3b\u80dc' : consensus.mainDirection === 'draw' ? '\u5e73\u5c40' : '\u5ba2\u80dc';
-  return '<div class="chart-box consensus-bar"><div class="consensus-header"><span class="consensus-title">\u591a\u6a21\u578b\u9884\u6d4b\u5171\u8bc6</span><span class="consensus-badge ' + badgeClass + '">' + badgeText + '</span></div><div class="consensus-grid">' + cells + '</div><div class="consensus-summary">' + consensus.agreeCount + '/' + consensus.totalCount + ' \u6a21\u578b\u4e00\u81f4\u770b <span style="color:var(--cyan);font-weight:700">' + mainLabel + '</span></div></div>';
+  var badgeClass =
+    consensus.consensus === 'strong'
+      ? 'strong'
+      : consensus.consensus === 'weak'
+        ? 'weak'
+        : consensus.consensus === 'meltdown'
+          ? 'melt'
+          : 'neutral';
+  var badgeText =
+    consensus.consensus === 'strong'
+      ? 'STRONG'
+      : consensus.consensus === 'weak'
+        ? 'WEAK'
+        : consensus.consensus === 'meltdown'
+          ? 'MELT'
+          : 'NEUTRAL';
+  var cells = consensus.models
+    .map(function (m) {
+      var dirLabel = m.direction === 'home' ? '\u4e3b\u80dc' : m.direction === 'draw' ? '\u5e73\u5c40' : '\u5ba2\u80dc';
+      var cls = m.direction === consensus.mainDirection ? 'agree' : 'dissent';
+      return (
+        '<div class="consensus-cell ' +
+        cls +
+        '"><div class="consensus-model">' +
+        m.model +
+        '</div><div class="consensus-result">' +
+        dirLabel +
+        '</div><div class="consensus-confidence">' +
+        (m.confidence || '--') +
+        '%</div></div>'
+      );
+    })
+    .join('');
+  var mainLabel =
+    consensus.mainDirection === 'home'
+      ? '\u4e3b\u80dc'
+      : consensus.mainDirection === 'draw'
+        ? '\u5e73\u5c40'
+        : '\u5ba2\u80dc';
+  return (
+    '<div class="chart-box consensus-bar"><div class="consensus-header"><span class="consensus-title">\u591a\u6a21\u578b\u9884\u6d4b\u5171\u8bc6</span><span class="consensus-badge ' +
+    badgeClass +
+    '">' +
+    badgeText +
+    '</span></div><div class="consensus-grid">' +
+    cells +
+    '</div><div class="consensus-summary">' +
+    consensus.agreeCount +
+    '/' +
+    consensus.totalCount +
+    ' \u6a21\u578b\u4e00\u81f4\u770b <span style="color:var(--cyan);font-weight:700">' +
+    mainLabel +
+    '</span></div></div>'
+  );
 }
 
 function renderGsSummary(gsData) {
   if (!gsData) return '';
   var parts = [];
-  if (gsData.homePower !== undefined && gsData.guestPower !== undefined) parts.push('\u5b9e\u529b: ' + gsData.homePower + ' vs ' + gsData.guestPower);
+  if (gsData.homePower !== undefined && gsData.guestPower !== undefined)
+    parts.push('\u5b9e\u529b: ' + gsData.homePower + ' vs ' + gsData.guestPower);
   if (gsData.goalLine !== undefined) parts.push('\u5927\u5c0f\u7403: ' + gsData.goalLine.toFixed(1));
   if (gsData.predictedScore) parts.push('\u9884\u6d4b\u6bd4\u5206: ' + gsData.predictedScore);
   if (gsData.fusionConsensus) parts.push('\u5171\u8bc6: ' + gsData.fusionConsensus);
   if (parts.length === 0) return '';
-  return '<div class="chart-box" style="padding:10px 16px;font-size:var(--fs-sm);color:var(--text2);display:flex;flex-wrap:wrap;gap:12px"><span>\u26a1 \u529f\u5b88\u9053</span>' + parts.map(function(p) { return '<span style="color:var(--cyan)">' + p + '</span>'; }).join('') + '</div>';
+  return (
+    '<div class="chart-box" style="padding:10px 16px;font-size:var(--fs-sm);color:var(--text2);display:flex;flex-wrap:wrap;gap:12px"><span>\u26a1 \u529f\u5b88\u9053</span>' +
+    parts
+      .map(function (p) {
+        return '<span style="color:var(--cyan)">' + p + '</span>';
+      })
+      .join('') +
+    '</div>'
+  );
 }
 
 function hasRecentForm(features) {
@@ -1063,33 +1350,67 @@ function renderRecentForm(match, features) {
     }
     return dots;
   }
-  function pct(val) { return val !== undefined ? Math.round(val * 100) + '%' : '--'; }
-  return '<div class="chart-box"><div class="chart-header"><span class="chart-title">\u8fd1\u671f\u6218\u7ee9 \u00b7 \u8fd16\u573a</span></div><div class="ai-form-row"><span class="ai-form-label">' + homeName + '</span>' + makeDots('home') + '<span class="ai-form-summary">\u80dc\u7387 ' + pct(features.home_win_pct_6) + ' | \u5747\u8fdb\u7403 ' + (features.home_goal_avg_6 !== undefined ? features.home_goal_avg_6.toFixed(1) : '--') + '</span></div><div class="ai-form-row"><span class="ai-form-label">' + awayName + '</span>' + makeDots('away') + '<span class="ai-form-summary">\u80dc\u7387 ' + pct(features.away_win_pct_6) + ' | \u5747\u8fdb\u7403 ' + (features.away_goal_avg_6 !== undefined ? features.away_goal_avg_6.toFixed(1) : '--') + '</span></div></div>';
+  function pct(val) {
+    return val !== undefined ? Math.round(val * 100) + '%' : '--';
+  }
+  return (
+    '<div class="chart-box"><div class="chart-header"><span class="chart-title">\u8fd1\u671f\u6218\u7ee9 \u00b7 \u8fd16\u573a</span></div><div class="ai-form-row"><span class="ai-form-label">' +
+    homeName +
+    '</span>' +
+    makeDots('home') +
+    '<span class="ai-form-summary">\u80dc\u7387 ' +
+    pct(features.home_win_pct_6) +
+    ' | \u5747\u8fdb\u7403 ' +
+    (features.home_goal_avg_6 !== undefined ? features.home_goal_avg_6.toFixed(1) : '--') +
+    '</span></div><div class="ai-form-row"><span class="ai-form-label">' +
+    awayName +
+    '</span>' +
+    makeDots('away') +
+    '<span class="ai-form-summary">\u80dc\u7387 ' +
+    pct(features.away_win_pct_6) +
+    ' | \u5747\u8fdb\u7403 ' +
+    (features.away_goal_avg_6 !== undefined ? features.away_goal_avg_6.toFixed(1) : '--') +
+    '</span></div></div>'
+  );
 }
 
 function renderStandingsContext(match, standings) {
   if (!standings || (!standings.home && !standings.away)) return '';
   var home = standings.home;
   var away = standings.away;
-  var homeTxt = home ? (match.homeName || '\u4e3b\u961f') + ' \u7b2c' + home.rank + '\u4f4d (' + (home.points || '?') + '\u5206)' : '--';
-  var awayTxt = away ? (match.visitName || '\u5ba2\u961f') + ' \u7b2c' + away.rank + '\u4f4d (' + (away.points || '?') + '\u5206)' : '--';
+  var homeTxt = home
+    ? (match.homeName || '\u4e3b\u961f') + ' \u7b2c' + home.rank + '\u4f4d (' + (home.points || '?') + '\u5206)'
+    : '--';
+  var awayTxt = away
+    ? (match.visitName || '\u5ba2\u961f') + ' \u7b2c' + away.rank + '\u4f4d (' + (away.points || '?') + '\u5206)'
+    : '--';
   var diffTxt = '';
   if (standings.rankDiff !== null && standings.rankDiff !== undefined) {
     diffTxt = ' \u6392\u540d\u5dee: ' + Math.abs(standings.rankDiff);
     if (Math.abs(standings.rankDiff) <= 2) diffTxt += ' | \ud83d\udd25 \u5173\u952e\u6218';
     else if (Math.abs(standings.rankDiff) <= 5) diffTxt += ' | \u666e\u901a';
   }
-  return '<div class="chart-box" style="padding:12px 16px"><div class="chart-header" style="margin-bottom:8px"><span class="chart-title">\ud83c\udfc6 \u8054\u8d5b\u6392\u540d</span></div><div style="font-size:var(--fs-sm);color:var(--text2)">' + homeTxt + '</div><div style="font-size:var(--fs-sm);color:var(--text2)">' + awayTxt + '</div>' + (diffTxt ? '<div style="font-size:var(--fs-xs);color:var(--cyan);margin-top:4px">' + diffTxt + '</div>' : '') + '</div>';
+  return (
+    '<div class="chart-box" style="padding:12px 16px"><div class="chart-header" style="margin-bottom:8px"><span class="chart-title">\ud83c\udfc6 \u8054\u8d5b\u6392\u540d</span></div><div style="font-size:var(--fs-sm);color:var(--text2)">' +
+    homeTxt +
+    '</div><div style="font-size:var(--fs-sm);color:var(--text2)">' +
+    awayTxt +
+    '</div>' +
+    (diffTxt ? '<div style="font-size:var(--fs-xs);color:var(--cyan);margin-top:4px">' + diffTxt + '</div>' : '') +
+    '</div>'
+  );
 }
-
 
 function renderH2HSummary(match, h2h) {
   if (!h2h || h2h.length === 0) return '';
   var last5 = h2h.slice(0, 5);
   var homeName = match.homeName || '';
   var awayName = match.visitName || '';
-  var homeWins = 0, awayWins = 0, draws = 0, totalGoals = 0;
-  last5.forEach(function(r) {
+  var homeWins = 0,
+    awayWins = 0,
+    draws = 0,
+    totalGoals = 0;
+  last5.forEach(function (r) {
     if (r.home_team === homeName && r.home_score > r.away_score) homeWins++;
     else if (r.away_team === homeName && r.away_score > r.home_score) homeWins++;
     else if (r.home_team === awayName && r.home_score > r.away_score) awayWins++;
@@ -1099,19 +1420,47 @@ function renderH2HSummary(match, h2h) {
   });
   var avgGoals = last5.length > 0 ? (totalGoals / last5.length).toFixed(1) : '--';
   var lastMatch = h2h[0];
-  var lastTxt = lastMatch ? lastMatch.match_date + ' ' + lastMatch.home_team + ' ' + lastMatch.home_score + '-' + lastMatch.away_score + ' ' + lastMatch.away_team : '';
+  var lastTxt = lastMatch
+    ? lastMatch.match_date +
+      ' ' +
+      lastMatch.home_team +
+      ' ' +
+      lastMatch.home_score +
+      '-' +
+      lastMatch.away_score +
+      ' ' +
+      lastMatch.away_team
+    : '';
 
-  return '<div class="chart-box" style="padding:12px 16px">' +
-    '<div class="chart-header" style="margin-bottom:8px"><span class="chart-title">历史交锋</span><span class="chart-hint">近' + last5.length + '次</span></div>' +
+  return (
+    '<div class="chart-box" style="padding:12px 16px">' +
+    '<div class="chart-header" style="margin-bottom:8px"><span class="chart-title">历史交锋</span><span class="chart-hint">近' +
+    last5.length +
+    '次</span></div>' +
     '<div class="filter-stats-row">' +
-    '<div class="filter-stat-item"><div class="filter-stat-value" style="color:var(--green)">' + homeWins + '</div><div class="filter-stat-label">' + homeName + '胜</div></div>' +
+    '<div class="filter-stat-item"><div class="filter-stat-value" style="color:var(--green)">' +
+    homeWins +
+    '</div><div class="filter-stat-label">' +
+    homeName +
+    '胜</div></div>' +
     '<div class="filter-stat-divider"></div>' +
-    '<div class="filter-stat-item"><div class="filter-stat-value" style="color:var(--amber)">' + draws + '</div><div class="filter-stat-label">平局</div></div>' +
+    '<div class="filter-stat-item"><div class="filter-stat-value" style="color:var(--amber)">' +
+    draws +
+    '</div><div class="filter-stat-label">平局</div></div>' +
     '<div class="filter-stat-divider"></div>' +
-    '<div class="filter-stat-item"><div class="filter-stat-value" style="color:var(--red)">' + awayWins + '</div><div class="filter-stat-label">' + awayName + '胜</div></div>' +
+    '<div class="filter-stat-item"><div class="filter-stat-value" style="color:var(--red)">' +
+    awayWins +
+    '</div><div class="filter-stat-label">' +
+    awayName +
+    '胜</div></div>' +
     '<div class="filter-stat-divider"></div>' +
-    '<div class="filter-stat-item"><div class="filter-stat-value">' + avgGoals + '</div><div class="filter-stat-label">均进球</div></div>' +
+    '<div class="filter-stat-item"><div class="filter-stat-value">' +
+    avgGoals +
+    '</div><div class="filter-stat-label">均进球</div></div>' +
     '</div>' +
-    (lastMatch ? '<div style="font-size:var(--fs-xs);color:var(--text3);margin-top:6px">最近: ' + lastMatch + '</div>' : '') +
-    '</div>';
+    (lastMatch
+      ? '<div style="font-size:var(--fs-xs);color:var(--text3);margin-top:6px">最近: ' + lastMatch + '</div>'
+      : '') +
+    '</div>'
+  );
 }

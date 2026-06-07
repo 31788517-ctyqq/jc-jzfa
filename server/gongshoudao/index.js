@@ -555,13 +555,12 @@ function computeFallbackMatch(m) {
           homeAttackEfficiency: 0.1, homeDefendEfficiency: 0.1,
           awayAttackEfficiency: 0.1, awayDefendEfficiency: 0.1,
           homeOverRate: 0.5, awayOverRate: 0.5,
-          homeWinAward: homeWinAward, guestWinAward: awayWinAward, drawAward: drawAward,
+          homeWinAward: 1.0, guestWinAward: 1.0, drawAward: 1.0,
           jiaoFenScores: [],
           homeGoalDiffSeries: [1,1,1,1,0,0,-1,-1,-1,-1],
           awayGoalDiffSeries: [1,1,1,1,0,0,-1,-1,-1,-1],
           rq: hdc, homePower: 50+hdc*15, awayPower: 50-hdc*15,
-          homeWinPanRate: homeWinPanRate, awayWinPanRate: awayWinPanRate,
-          homeWinGap_1: hWins, awayWinGap_1: aWins,
+          homeWinPanRate: 0, awayWinPanRate: 0,
         };
         // 用实际让球数对应的 level 传参（>0: level>0, <0: level<0, =0: level=0）
         const fallbackLevel = hdc > 0.8 ? 2 : hdc > 0.2 ? 1 : hdc < -0.8 ? -2 : hdc < -0.2 ? -1 : 0;

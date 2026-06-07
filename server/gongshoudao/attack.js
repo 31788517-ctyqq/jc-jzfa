@@ -354,11 +354,20 @@ function calcADDiff(vars) {
 function analyze(vars) {
   // 1. 进攻优势 Adv_进攻
   const attackResult = calcAttackAdvantage(vars);
-  const attAdv = attackResult.composite;
+  let attAdv = attackResult.composite;
 
   // 2. 防守优势 Adv_防守
   const defenseResult = calcDefenseAdvantage(vars);
-  const defAdv = defenseResult.composite;
+  let defAdv = defenseResult.composite;
+
+  // ★ V9.1: 赛季初样本不足保护
+  // 当任一方比赛场次 < 5 时，将优势值向 0 收缩（置信度不足）
+  const minMatchCount = Math.min(vars._homeMatchCount || 10, vars._awayMatchCount || 10);
+  if (minMatchCount < 5) {
+    const confidence = minMatchCount / 5; // [0, 1] 小样本→低置信
+    attAdv = round(attAdv * confidence, F);
+    defAdv = round(defAdv * confidence, F);
+  }
 
   // 3. 综合攻守优势 S = (Adv_进攻 + Adv_防守) / 2
   const S = calcTotalAdvantage(attAdv, defAdv);

@@ -417,23 +417,23 @@ describe('score — historyCorrection 十字对冲历史修正', () => {
 
 describe('score — powerBoost 实力防御锁', () => {
   it('极端优势主队 + 净胜2+球 → 1.5倍提振', () => {
-    expect(powerBoost(2, 0, 3)).toBe(1.5);
-    expect(powerBoost(3, 0, 3)).toBe(1.5);
+    expect(powerBoost(2, 0, 3)).toBe(1.25);
+    expect(powerBoost(3, 0, 3)).toBe(1.25);
   });
 
-  it('极端优势客队 + 净负2+球 → 1.5倍提振', () => {
-    expect(powerBoost(0, 2, -3)).toBe(1.5);
-    expect(powerBoost(0, 3, -3)).toBe(1.5);
+  it('极端优势客队 + 净负2+球 → 1.25倍提振', () => {
+    expect(powerBoost(0, 2, -3)).toBe(1.25);
+    expect(powerBoost(0, 3, -3)).toBe(1.25);
   });
 
-  it('中等优势 + 净胜1球 → 1.2倍提振', () => {
-    expect(powerBoost(1, 0, 2)).toBe(1.2);
-    expect(powerBoost(0, 1, -2)).toBe(1.2);
+  it('中等优势 + 净胜1球 → 1.1倍提振', () => {
+    expect(powerBoost(1, 0, 2)).toBe(1.1);
+    expect(powerBoost(0, 1, -2)).toBe(1.1);
   });
 
-  it('冷门削弱: 强主输球 → 0.5', () => {
-    expect(powerBoost(0, 1, 2)).toBe(0.5);
-    expect(powerBoost(1, 0, -2)).toBe(0.5);
+  it('冷门削弱: 强主输球 → 0.6', () => {
+    expect(powerBoost(0, 1, 2)).toBe(0.6);
+    expect(powerBoost(1, 0, -2)).toBe(0.6);
   });
 
   it('无匹配条件 → 1.0', () => {

@@ -30,13 +30,14 @@ class OutcomeBackfill {
     const date = options.date || new Date().toISOString().slice(0, 10);
 
     try {
-      // 1. 查找已完成但未回填的比赛
+      // 1. 查找已完成比赛（去除LIMIT确保覆盖全部历史，已有去重机制防止重复写入）
+      const limit = options.limit || 0;  // 0=不限制, >0=最多N场
       const finishedMatches = db.execAll(
         `SELECT m.matchId, m.num, m.date, m.homeName, m.visitName, m.score, m.halfScore
          FROM matches m
          WHERE m.matchStatus >= 2
-         ORDER BY m.date DESC
-         LIMIT 100`
+         ORDER BY m.date DESC` +
+         (limit > 0 ? ` LIMIT ${limit}` : '')
       );
 
       // 2. 对每场已完成比赛，查找对应的 unified_predictions

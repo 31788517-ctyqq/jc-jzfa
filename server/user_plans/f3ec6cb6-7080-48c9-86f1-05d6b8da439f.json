@@ -3,82 +3,6 @@
     "type": "user",
     "matches": [
       {
-        "matchId": "2040085",
-        "homeName": "克罗地亚",
-        "visitName": "比利时",
-        "league": "国际赛",
-        "matchNum": "周二201",
-        "playType": "rqspf",
-        "direction": "平",
-        "odds": 4.45,
-        "oddsName": "平"
-      },
-      {
-        "matchId": "2040086",
-        "homeName": "格鲁吉亚",
-        "visitName": "罗马尼亚",
-        "league": "国际赛",
-        "matchNum": "周二202",
-        "playType": "rqspf",
-        "direction": "平",
-        "odds": 3.6,
-        "oddsName": "平"
-      }
-    ],
-    "amount": 4,
-    "multiplier": 1,
-    "passTypes": [2],
-    "note": "串关方案 2关，共1注 ×1倍",
-    "matchCount": 2,
-    "totalOdds": 16.02,
-    "isWon": null,
-    "resultIncome": null,
-    "id": "up_1780409217028_j9zq",
-    "createdAt": "2026-06-02T14:06:57.028Z",
-    "updatedAt": "2026-06-02T14:06:57.028Z"
-  },
-  {
-    "type": "user",
-    "matches": [
-      {
-        "matchId": "2040085",
-        "homeName": "克罗地亚",
-        "visitName": "比利时",
-        "league": "国际赛",
-        "matchNum": "周二201",
-        "playType": "rqspf",
-        "direction": "平",
-        "odds": 4.45,
-        "oddsName": "平"
-      },
-      {
-        "matchId": "2040086",
-        "homeName": "格鲁吉亚",
-        "visitName": "罗马尼亚",
-        "league": "国际赛",
-        "matchNum": "周二202",
-        "playType": "rqspf",
-        "direction": "平",
-        "odds": 3.6,
-        "oddsName": "平"
-      }
-    ],
-    "amount": 4,
-    "multiplier": 1,
-    "passTypes": [2],
-    "note": "串关方案 2关，共1注 ×1倍",
-    "matchCount": 2,
-    "totalOdds": 16.02,
-    "isWon": null,
-    "resultIncome": null,
-    "id": "up_1780409971295_9a3g",
-    "createdAt": "2026-06-02T14:19:31.295Z",
-    "updatedAt": "2026-06-02T14:19:31.295Z"
-  },
-  {
-    "type": "user",
-    "matches": [
-      {
         "matchId": "2040086",
         "homeName": "格鲁吉亚",
         "visitName": "罗马尼亚",
@@ -87,7 +11,9 @@
         "playType": "spf",
         "direction": "平",
         "odds": 3.08,
-        "oddsName": "平"
+        "oddsName": "平",
+        "isMatchWon": true,
+        "isMatchLose": false
       },
       {
         "matchId": "2040085",
@@ -98,19 +24,111 @@
         "playType": "rqspf",
         "direction": "平",
         "odds": 4.45,
-        "oddsName": "平"
+        "oddsName": "平",
+        "isMatchWon": false,
+        "isMatchLose": true
       }
     ],
     "amount": 100,
     "multiplier": 50,
-    "passTypes": [2],
+    "passTypes": [
+      2
+    ],
     "note": "串关方案 2关，共1注 ×50倍",
     "matchCount": 2,
     "totalOdds": 13.71,
-    "isWon": null,
-    "resultIncome": null,
+    "isWon": false,
+    "resultIncome": 0,
     "id": "up_1780410691105_87cf",
     "createdAt": "2026-06-02T14:31:31.105Z",
     "updatedAt": "2026-06-02T14:31:31.105Z"
+  },
+  {
+    "type": "user",
+    "matches": [
+      {
+        "matchId": "2040085",
+        "homeName": "克罗地亚",
+        "visitName": "比利时",
+        "league": "国际赛",
+        "matchNum": "周二201",
+        "playType": "rqspf",
+        "direction": "平",
+        "odds": 4.45,
+        "oddsName": "平",
+        "isMatchWon": false,
+        "isMatchLose": true
+      },
+      {
+        "matchId": "2040086",
+        "homeName": "格鲁吉亚",
+        "visitName": "罗马尼亚",
+        "league": "国际赛",
+        "matchNum": "周二202",
+        "playType": "rqspf",
+        "direction": "平",
+        "odds": 3.6,
+        "oddsName": "平",
+        "isMatchWon": false,
+        "isMatchLose": true
+      }
+    ],
+    "amount": 4,
+    "multiplier": 1,
+    "passTypes": [
+      2
+    ],
+    "note": "串关方案 2关，共1注 ×1倍",
+    "matchCount": 2,
+    "totalOdds": 16.02,
+    "isWon": false,
+    "resultIncome": 0,
+    "id": "up_1780409971295_9a3g",
+    "createdAt": "2026-06-02T14:19:31.295Z",
+    "updatedAt": "2026-06-02T14:19:31.295Z"
+  },
+  {
+    "type": "user",
+    "matches": [
+      {
+        "matchId": "2040085",
+        "homeName": "克罗地亚",
+        "visitName": "比利时",
+        "league": "国际赛",
+        "matchNum": "周二201",
+        "playType": "rqspf",
+        "direction": "平",
+        "odds": 4.45,
+        "oddsName": "平",
+        "isMatchWon": false,
+        "isMatchLose": true
+      },
+      {
+        "matchId": "2040086",
+        "homeName": "格鲁吉亚",
+        "visitName": "罗马尼亚",
+        "league": "国际赛",
+        "matchNum": "周二202",
+        "playType": "rqspf",
+        "direction": "平",
+        "odds": 3.6,
+        "oddsName": "平",
+        "isMatchWon": false,
+        "isMatchLose": true
+      }
+    ],
+    "amount": 4,
+    "multiplier": 1,
+    "passTypes": [
+      2
+    ],
+    "note": "串关方案 2关，共1注 ×1倍",
+    "matchCount": 2,
+    "totalOdds": 16.02,
+    "isWon": false,
+    "resultIncome": 0,
+    "id": "up_1780409217028_j9zq",
+    "createdAt": "2026-06-02T14:06:57.028Z",
+    "updatedAt": "2026-06-02T14:06:57.028Z"
   }
 ]

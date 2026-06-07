@@ -360,19 +360,17 @@ function renderTable() {
   if (currentTab === 'power') {
     cols = [
       { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
-      { key: 'rank', label: '\u603b排序', sortable: true, colCls: 'q-col-rk' },
       { key: 'goalDiff', label: '净胜球\n量化', sortable: false, colCls: 'q-col-gd' },
       { key: 'cross', label: '胜平负\n交叉', sortable: false, colCls: 'q-col-cross' },
       { key: 'power', label: '综合\n实力', sortable: false, colCls: 'q-col-power' },
       { key: 'ad', label: '攻守\n实力', sortable: false, colCls: 'q-col-ad' },
     ];
     renderRow = function (item) {
-      return renderRank(item.totalScore) + renderGoalDiff(item) + renderCrossValue(item) + renderPower(item) + renderAdCombined(item);
+      return renderGoalDiff(item) + renderCrossValue(item) + renderPower(item) + renderAdCombined(item);
     };
   } else if (currentTab === 'goal') {
     cols = [
       { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
-      { key: 'totalSum', label: '\u5408\u8ba1', sortable: true, colCls: 'q-col-sum' },
       { key: 'bigBallRatio', label: '综合大球\n比例', sortable: true, colCls: 'q-col-big' },
       { key: 'attDefGoal', label: '攻防\n进球', sortable: true, colCls: 'q-col-ag' },
       { key: 'strengthGoal', label: '实力\n进球', sortable: true, colCls: 'q-col-sg' },
@@ -381,7 +379,6 @@ function renderTable() {
     ];
     renderRow = function (item) {
       return (
-        renderGoalCell(item, 'totalSum') +
         renderGoalCell(item, 'bigBallRatio') +
         renderGoalCell(item, 'attDefGoal') +
         renderGoalCell(item, 'strengthGoal') +
@@ -455,10 +452,6 @@ function renderTable() {
   var toggle = document.getElementById('quantViewToggle');
   if (toggle && allData.length > 0) {
     toggle.style.display = 'flex';
-    // P2-6: 平板+ 默认图表视图
-    if (window.innerWidth >= 768 && currentView === 'table') {
-      switchQuantView('chart');
-    }
   }
 }
 
@@ -889,10 +882,12 @@ function _doRenderChart(container) {
       if (def.divide) raw = raw / def.divide;
       return raw;
     });
-    var valid = rawVals.filter(function (v) { return v !== null; });
+    var valid = rawVals.filter(function (v) {
+      return v !== null;
+    });
     var min = valid.length ? Math.min.apply(null, valid) : 0;
     var max = valid.length ? Math.max.apply(null, valid) : 1;
-    var range = (max - min) || 1;
+    var range = max - min || 1;
     // 给范围加 10% 双向 padding，避免极端值贴边
     var pad = range * 0.1;
     var paddedMin = min - pad;
@@ -919,7 +914,9 @@ function _doRenderChart(container) {
 
       var tags = computeTags(item);
       var tagStr = tags
-        .map(function (t) { return t.e + t.t; })
+        .map(function (t) {
+          return t.e + t.t;
+        })
         .join(' ');
 
       // 格式化原始值（tooltip 用）
@@ -1028,7 +1025,9 @@ function _doRenderChart(container) {
       },
     },
     legend: {
-      data: seriesDefs.map(function (d) { return d.name; }),
+      data: seriesDefs.map(function (d) {
+        return d.name;
+      }),
       textStyle: { color: '#94A3B8', fontSize: 11 },
       top: 4,
       left: 'center',

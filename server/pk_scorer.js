@@ -143,7 +143,9 @@ function calcVerificationScores(list) {
       // 批量计算所有比赛的离散度
       discreteCache = {};
     }
-  } catch (e) { /* data-fusion 不可用 */ }
+  } catch (e) {
+    /* data-fusion 不可用 */
+  }
 
   return list.map(function (item) {
     let score = 100;
@@ -206,7 +208,9 @@ function calcVerificationScores(list) {
           }
         }
       }
-    } catch (e) { /* skip discrete check */ }
+    } catch (e) {
+      /* skip discrete check */
+    }
 
     // ═══ V2.0: P4 盘口位移验证 ═══
     const openHome = parseFloat(item.openHomeAward) || 0;
@@ -220,7 +224,7 @@ function calcVerificationScores(list) {
       const moveResult = oddsMovement.analyzeMovement(
         { home: openHome, draw: openDraw, away: openAway },
         { home: liveHome, draw: liveDraw, away: liveAway },
-        pw
+        pw,
       );
       if (moveResult.penalty > 0) {
         score -= moveResult.penalty;
@@ -240,11 +244,7 @@ function calcVerificationScores(list) {
     // ═══ V2.0: P4 欧亚一致性检测 ═══
     const rq = parseFloat(item.rq) || parseFloat(item.handicap) || 0;
     if (hAward > 1.0 && aAward > 1.0) {
-      const euroAsia = oddsMovement.checkEuroAsiaConsistency(
-        { home: hAward, draw: liveDraw, away: aAward },
-        rq,
-        pw
-      );
+      const euroAsia = oddsMovement.checkEuroAsiaConsistency({ home: hAward, draw: liveDraw, away: aAward }, rq, pw);
       if (euroAsia.penalty > 0) {
         score -= euroAsia.penalty;
         details.push(euroAsia.detail);
@@ -265,16 +265,24 @@ function calcAgeWeight(dataAge, dataType) {
 // ═══ V2.0: 按玩法切换评分权重 Profile ═══
 // ★ V9.0: 新增第7维 winPan（赢盘率），各玩法微调权重
 const SCORE_PROFILES = {
-  spf:       { power: 0.35, goal: 0.10, heat: 0.10, health: 0.10, stability: 0.10, verify: 0.15, winPan: 0.10 },
-  overUnder: { power: 0.10, goal: 0.30, heat: 0.05, health: 0.20, stability: 0.15, verify: 0.10, winPan: 0.10 },
-  handicap:  { power: 0.35, goal: 0.05, heat: 0.05, health: 0.10, stability: 0.10, verify: 0.25, winPan: 0.10 },
-  default:   { power: 0.25, goal: 0.15, heat: 0.10, health: 0.15, stability: 0.10, verify: 0.15, winPan: 0.10 },
+  spf: { power: 0.35, goal: 0.1, heat: 0.1, health: 0.1, stability: 0.1, verify: 0.15, winPan: 0.1 },
+  overUnder: { power: 0.1, goal: 0.3, heat: 0.05, health: 0.2, stability: 0.15, verify: 0.1, winPan: 0.1 },
+  handicap: { power: 0.35, goal: 0.05, heat: 0.05, health: 0.1, stability: 0.1, verify: 0.25, winPan: 0.1 },
+  default: { power: 0.25, goal: 0.15, heat: 0.1, health: 0.15, stability: 0.1, verify: 0.15, winPan: 0.1 },
 };
 
 function calcCompositeScore(pwr, goal, heat, health, stab, verif, winPan, playType) {
   const p = SCORE_PROFILES[playType] || SCORE_PROFILES.default;
   return parseFloat(
-    (p.power * pwr + p.goal * goal + p.heat * heat + p.health * health + p.stability * stab + p.verify * verif + p.winPan * winPan).toFixed(1)
+    (
+      p.power * pwr +
+      p.goal * goal +
+      p.heat * heat +
+      p.health * health +
+      p.stability * stab +
+      p.verify * verif +
+      p.winPan * winPan
+    ).toFixed(1),
   );
 }
 
@@ -361,7 +369,8 @@ function getDirectionAdvice(scored, ranked) {
       result = { dir: '主胜（防冷）', stars: 3, desc: '过热预警(HI-Z=' + (heatZ ? heatZ.zScore : '?') + ')' };
     } else {
       result = { dir: '主胜', stars: 4, desc: '明显优势' };
-      if (!isNaNHi && isCold) result = { dir: '主胜', stars: 4, desc: '冷门高赔(HI-Z=' + (heatZ ? heatZ.zScore : '?') + ')' };
+      if (!isNaNHi && isCold)
+        result = { dir: '主胜', stars: 4, desc: '冷门高赔(HI-Z=' + (heatZ ? heatZ.zScore : '?') + ')' };
     }
   } else if (pw <= -0.25 && !isNaNHi && !isOverheat) {
     result = { dir: '客胜', stars: 5, desc: '绝对优势' };
@@ -397,7 +406,8 @@ function getDirectionAdvice(scored, ranked) {
   if (totalGoals > 3.0) {
     result.goalDir = '大球';
     result.goalStars = 4;
-  } else if (totalGoals > 2.5) {
+  } else if (totalGoals >= 2.5) {
+    // ★ V9.1 fix: >= 2.5 应为倾向大球
     result.goalDir = '倾向大球';
     result.goalStars = 3;
   } else {
@@ -415,12 +425,18 @@ function getDirectionAdvice(scored, ranked) {
   result.valueScore = 0;
 
   if (hAward > 1.0 && aAward > 1.0 && drawAward > 1.0) {
-    // sigmoid 映射 pwScore → 主胜概率
-    const sigmoid = function (x) { return 1 / (1 + Math.exp(-x * 6)); };
-    const pWin = sigmoid(pw);
+    // ★ V9.1: sigmoid 校准 — 陡峭度从 6→3.5，使 pWin 更接近实际命中率
+    // pw=0.25 → pWin≈0.68（原 0.82 过度乐观）
+    // pw=0.08 → pWin≈0.56（原 0.62）
+    const sigmoid = function (x) {
+      return 1 / (1 + Math.exp(-x * 3.5));
+    };
+    // 从 [0.5, 1] 重新映射到 [0.33, 0.80]，使 baseline 合理
+    const rawPWin = sigmoid(pw);
+    const pWin = +(0.33 + (rawPWin - 0.5) * 0.94).toFixed(4); // [0.33, ~0.80]
     // 平局概率基于实力均衡度估算
-    const pDraw = Math.max(0.18, Math.min(0.32, 0.25 - Math.abs(pw) * 0.3));
-    const pLose = 1 - pWin - pDraw;
+    const pDraw = +Math.max(0.18, Math.min(0.32, 0.25 - Math.abs(pw) * 0.25)).toFixed(4);
+    const pLose = +(1 - pWin - pDraw).toFixed(4);
 
     const evHome = +(pWin * hAward - 1).toFixed(3);
     const evDraw = +(pDraw * drawAward - 1).toFixed(3);
@@ -474,25 +490,52 @@ function loadGSFields(gsCache, matchId) {
   const gs = (gsCache._global || {})[matchId];
   if (!gs) return {};
 
+  // ★ V9.1 修复: 字段名映射对齐 GS cache 实际 key
+  // crossValue 不在 GS 中，从 hWins/hLosses/aWins/aLosses 计算
+  const crossValue =
+    gs.hWins !== undefined && gs.aLosses !== undefined && gs.hLosses !== undefined && gs.aWins !== undefined
+      ? gs.hWins + gs.aLosses - gs.hLosses - gs.aWins
+      : 0;
+
+  // dataAge 从 computedAt 计算（分钟数）
+  const dataAge = gs.computedAt ? Math.round((Date.now() - new Date(gs.computedAt).getTime()) / 60000) : -1;
+
+  // ★ V9.1: heatIndex 从 jczq_change_cache 加载
+  let heatIndex = gs.heatIndex || gs.heatScore || '1.00';
+  try {
+    if (heatIndex === '1.00') {
+      const changeCachePath = path.join(__dirname, 'jczq_change_cache.json');
+      if (fs.existsSync(changeCachePath)) {
+        const changeCache = JSON.parse(fs.readFileSync(changeCachePath, 'utf8'));
+        const entry = changeCache[matchId] || changeCache['m_' + matchId];
+        if (entry && entry.heatIndex != null) {
+          heatIndex = String(entry.heatIndex);
+        }
+      }
+    }
+  } catch (e) {
+    /* ignore */
+  }
+
   return {
-    gdScore: gs.gdScore !== undefined ? gs.gdScore : 0,
-    crossValue: gs.crossValue !== undefined ? gs.crossValue : 0,
-    pwScore: gs.pwScore !== undefined ? gs.pwScore : 0,
-    adCombined: gs.adCombined !== undefined ? gs.adCombined : 0,
+    gdScore: gs.gdQ !== undefined ? gs.gdQ : 0, // ★ gdQ, not gdScore
+    crossValue: crossValue, // ★ 从原始字段计算
+    pwScore: gs.totalStrength !== undefined ? gs.totalStrength : 0, // ★ totalStrength, not pwScore
+    adCombined: gs.adWeightedComposite !== undefined ? gs.adWeightedComposite : 0, // ★ adWeightedComposite, not adCombined
     bigBallRatio: gs.bigBallRatio !== undefined ? gs.bigBallRatio : 50,
     attDefGoal: gs.attDefGoal !== undefined ? gs.attDefGoal : 0,
-    headToHeadGoal: gs.headToHeadGoal !== undefined ? gs.headToHeadGoal : 2.5,
-    breakArmor: gs.breakArmor !== undefined ? gs.breakArmor : 0,
-    heatIndex: gs.heatIndex || '1.00',
-    fusionConsensus: gs.fusionConsensus || '',
-    dataAge: gs.dataAge !== undefined ? gs.dataAge : -1,
+    headToHeadGoal: gs.h2hGoalAvg !== undefined ? gs.h2hGoalAvg : 2.5, // ★ h2hGoalAvg, not headToHeadGoal
+    breakArmor: gs.breakArmorSum !== undefined ? gs.breakArmorSum : 0, // ★ breakArmorSum, not breakArmor
+    heatIndex: heatIndex,
+    fusionConsensus: gs.fusionConsensusType || gs.fusionConsensus || '', // ★ 优先用英文代码
+    dataAge: dataAge, // ★ 从 computedAt 计算
     stabilityOverall: gs.stabilityOverall !== undefined ? gs.stabilityOverall : 50,
     ladderLevel: gs.ladderLevel || 0,
     homeWinAward: gs.homeWinAward || 0,
     awayWinAward: gs.awayWinAward || 0,
     drawAward: gs.drawAward || 0,
-    homeWinPan: gs.homeWinPanRate || 0,
-    awayWinPan: gs.awayWinPanRate || 0,
+    homeWinPan: gs.homeWinPanRate || 0, // homeWinPanRate → homeWinPan
+    awayWinPan: gs.awayWinPanRate || 0, // awayWinPanRate → awayWinPan
     strengthGoal: gs.strengthGoal || 0,
     leagueCalibration: gs.leagueCalibration || 1.0,
     leagueAvgGoals: gs.leagueAvgGoals || 2.65,
@@ -508,6 +551,11 @@ function loadGSFields(gsCache, matchId) {
     xgHome: gs.xgHome || 0,
     xgAway: gs.xgAway || 0,
     _rawAttDefGoal: gs._rawAttDefGoal,
+    // ★ 补充: 传递原始 win/loss 统计供 crossValue 验算
+    hWins: gs.hWins,
+    hLosses: gs.hLosses,
+    aWins: gs.aWins,
+    aLosses: gs.aLosses,
   };
 }
 
@@ -597,7 +645,7 @@ function computeAndSave(dateStr) {
             goalStars: adv.goalStars || 0,
             fusionConsensus: item.fusionConsensus || '',
             batchDate: dateStr || new Date().toISOString().slice(0, 10),
-            handicap: item.handicap !== undefined ? item.handicap : (item.rq !== undefined ? item.rq : undefined),
+            handicap: item.handicap !== undefined ? item.handicap : item.rq !== undefined ? item.rq : undefined,
             // V2.0: EV 价值字段
             evHome: adv.ev ? adv.ev.evHome : null,
             evDraw: adv.ev ? adv.ev.evDraw : null,
@@ -623,4 +671,4 @@ function computeAndSave(dateStr) {
   });
 }
 
-module.exports = { computeAllScores, getDirectionAdvice, computeAndSave };
+module.exports = { computeAllScores, getDirectionAdvice, computeAndSave, _loadGSFields: loadGSFields };

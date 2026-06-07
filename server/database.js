@@ -175,6 +175,45 @@ const NEW_TABLES_DDL = `
     UNIQUE(prediction_id)
   );
   CREATE INDEX IF NOT EXISTS idx_outcome_model ON prediction_outcomes(model_name, model_version, match_date);
+
+  -- 竞彩赛事前瞻（7大模块：特征分析/历史交锋/积分榜/近况/未来赛事/射手/伤停）
+  CREATE TABLE IF NOT EXISTS sporttery_preview (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    match_id TEXT NOT NULL,
+    match_num TEXT,
+    date TEXT NOT NULL,
+    home_team TEXT,
+    away_team TEXT,
+    league TEXT,
+    feature_analysis TEXT,
+    h2h_history TEXT,
+    standings TEXT,
+    recent_form TEXT,
+    future_matches TEXT,
+    scorers TEXT,
+    injuries TEXT,
+    created_at TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(match_id)
+  );
+  CREATE INDEX IF NOT EXISTS idx_sp_match_num ON sporttery_preview(match_num);
+
+  -- 竞彩赔率时间序列快照（SPF/RQSPF/BF/JQS/BQC 变更历史含涨跌标记）
+  CREATE TABLE IF NOT EXISTS sporttery_odds_snapshot (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    match_id TEXT NOT NULL,
+    match_num TEXT,
+    date TEXT NOT NULL,
+    home_team TEXT,
+    away_team TEXT,
+    league TEXT,
+    play_type TEXT NOT NULL,
+    snapshot_time TEXT NOT NULL,
+    odds_json TEXT NOT NULL,
+    trend TEXT,
+    created_at TEXT DEFAULT (datetime('now','localtime'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_sos_match ON sporttery_odds_snapshot(match_id, date, play_type);
+  CREATE INDEX IF NOT EXISTS idx_sos_match_num ON sporttery_odds_snapshot(match_num);
 `;
 
 // ═══════════════════════════════════════════════════════
@@ -236,7 +275,9 @@ function _createSqlJsAdapter(sqlDb) {
     } catch (e) {
       console.error('[db] 保存数据库失败: ' + e.message);
       // 清理残留 .tmp 文件
-      try { fs.unlinkSync(DB_FILE + '.tmp'); } catch (_) {}
+      try {
+        fs.unlinkSync(DB_FILE + '.tmp');
+      } catch (_) {}
     }
   }
 
@@ -341,8 +382,8 @@ function _initBetterSqlite3() {
   function initDatabase() {
     db = new Database(DB_PATH);
     db.pragma('journal_mode = WAL');
-    db.pragma('synchronous = FULL');    // ★ NORMAL→FULL，每次提交 fsync
-    db.pragma('wal_autocheckpoint = 1000');  // ★ WAL 超 1000 页自动 checkpoint
+    db.pragma('synchronous = FULL'); // ★ NORMAL→FULL，每次提交 fsync
+    db.pragma('wal_autocheckpoint = 1000'); // ★ WAL 超 1000 页自动 checkpoint
     db.pragma('cache_size = -8000');
     db.pragma('busy_timeout = 3000');
 
@@ -417,7 +458,9 @@ function _initBetterSqlite3() {
       } else {
         console.error('[db] ⚠️ 完整性校验失败: ' + JSON.stringify(check));
       }
-    } catch (e) { console.error('[db] 完整性校验异常: ' + e.message); }
+    } catch (e) {
+      console.error('[db] 完整性校验异常: ' + e.message);
+    }
     return true;
   }
 
@@ -706,19 +749,29 @@ function _initBetterSqlite3() {
   }
 
   function getJczqBasic(dateStr, matchNum) {
-    const row = db.prepare(
-      'SELECT data_json FROM jczq_basic_cache WHERE date = ? AND match_num = ?',
-    ).get(dateStr, matchNum);
+    const row = db
+      .prepare('SELECT data_json FROM jczq_basic_cache WHERE date = ? AND match_num = ?')
+      .get(dateStr, matchNum);
     if (!row) return null;
-    try { return JSON.parse(row.data_json); } catch { return null; }
+    try {
+      return JSON.parse(row.data_json);
+    } catch {
+      return null;
+    }
   }
 
   function getJczqBasicByDate(dateStr) {
-    return db.prepare(
-      'SELECT match_num, data_json FROM jczq_basic_cache WHERE date = ? ORDER BY CAST(match_num AS INTEGER)',
-    ).all(dateStr).map(function (r) {
-      try { return { match_num: r.match_num, data: JSON.parse(r.data_json) }; } catch { return null; }
-    }).filter(Boolean);
+    return db
+      .prepare('SELECT match_num, data_json FROM jczq_basic_cache WHERE date = ? ORDER BY CAST(match_num AS INTEGER)')
+      .all(dateStr)
+      .map(function (r) {
+        try {
+          return { match_num: r.match_num, data: JSON.parse(r.data_json) };
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean);
   }
 
   function getTodayUnfinishedMatches() {
@@ -857,7 +910,9 @@ function _initSqlJs() {
         } else {
           console.error('[db] ⚠️ 完整性校验失败: ' + JSON.stringify(check));
         }
-      } catch (e) { console.error('[db] 完整性校验异常: ' + e.message); }
+      } catch (e) {
+        console.error('[db] 完整性校验异常: ' + e.message);
+      }
     })
     .catch((e) => {
       console.log('[db] sql.js 初始化失败: ' + e.message);
@@ -1146,20 +1201,32 @@ function _initSqlJs() {
     if (!_adapterReady) return null;
     const row = adp.execOne(
       'SELECT data_json FROM jczq_basic_cache WHERE date = ? AND match_num = ?',
-      dateStr, matchNum,
+      dateStr,
+      matchNum,
     );
     if (!row) return null;
-    try { return JSON.parse(row.data_json); } catch { return null; }
+    try {
+      return JSON.parse(row.data_json);
+    } catch {
+      return null;
+    }
   }
 
   function getJczqBasicByDate(dateStr) {
     if (!_adapterReady) return [];
-    return adp.execAll(
-      'SELECT match_num, data_json FROM jczq_basic_cache WHERE date = ? ORDER BY CAST(match_num AS INTEGER)',
-      dateStr,
-    ).map(function (r) {
-      try { return { match_num: r.match_num, data: JSON.parse(r.data_json) }; } catch { return null; }
-    }).filter(Boolean);
+    return adp
+      .execAll(
+        'SELECT match_num, data_json FROM jczq_basic_cache WHERE date = ? ORDER BY CAST(match_num AS INTEGER)',
+        dateStr,
+      )
+      .map(function (r) {
+        try {
+          return { match_num: r.match_num, data: JSON.parse(r.data_json) };
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean);
   }
 
   function getTodayUnfinishedMatches() {
@@ -1251,63 +1318,64 @@ if (!_backendSelected) {
 // Tier 3: JSON 降级模式
 // ═══════════════════════════════════════════════════════
 if (!_backendSelected) {
+  function isAvailable() {
+    return false;
+  }
+  function initDatabase() {
+    console.log('[db] JSON 降级模式就绪');
+    return true;
+  }
+  function getDatabase() {
+    return null;
+  }
+  function closeDatabase() {}
 
-function isAvailable() {
-  return false;
-}
-function initDatabase() {
-  console.log('[db] JSON 降级模式就绪');
-  return true;
-}
-function getDatabase() {
-  return null;
-}
-function closeDatabase() {}
+  const emptyArr = () => [];
+  const nullFn = () => null;
+  const zeroObj = () => ({ matchCount: 0, leagueCount: 0, directionCount: 0 });
 
-const emptyArr = () => [];
-const nullFn = () => null;
-const zeroObj = () => ({ matchCount: 0, leagueCount: 0, directionCount: 0 });
-
-module.exports = {
-  initDatabase,
-  getDatabase,
-  getAdapter: function () { return null; },
-  closeDatabase,
-  isAvailable,
-  upsertMatch: () => {},
-  batchUpsertMatches: () => {},
-  getMatchesByDate: emptyArr,
-  getAllMatches: emptyArr,
-  getAllLeagues: emptyArr,
-  batchUpsertRecommends: () => {},
-  getRecommendsByMatchId: emptyArr,
-  updateRecommendResult: () => {},
-  getStaleRecommendations: emptyArr,
-  logCrawl: () => {},
-  getCrawledDates: emptyArr,
-  getHitRateStats: emptyArr,
-  getDailyTrend: emptyArr,
-  getFilterStats: zeroObj,
-  getFilterRate: () => ({
-    hitCount: 0,
-    totalCount: 0,
-    hitRate: 0,
-    conditionSummary: '',
-    detailList: [],
-    dailyResults: [],
-  }),
-  upsertAIPrediction: () => {},
-  getAIPrediction: nullFn,
-  upsertJczqBasic: () => {},
-  getJczqBasic: nullFn,
-  getJczqBasicByDate: emptyArr,
-  getTodayUnfinishedMatches: emptyArr,
-  getTodayMatchSummary: () => ({
-    todayDate: '',
-    totalMatches: 0,
-    finishedMatches: 0,
-    unfinishedMatches: 0,
-    canShowCards: false,
-  }),
-};
+  module.exports = {
+    initDatabase,
+    getDatabase,
+    getAdapter: function () {
+      return null;
+    },
+    closeDatabase,
+    isAvailable,
+    upsertMatch: () => {},
+    batchUpsertMatches: () => {},
+    getMatchesByDate: emptyArr,
+    getAllMatches: emptyArr,
+    getAllLeagues: emptyArr,
+    batchUpsertRecommends: () => {},
+    getRecommendsByMatchId: emptyArr,
+    updateRecommendResult: () => {},
+    getStaleRecommendations: emptyArr,
+    logCrawl: () => {},
+    getCrawledDates: emptyArr,
+    getHitRateStats: emptyArr,
+    getDailyTrend: emptyArr,
+    getFilterStats: zeroObj,
+    getFilterRate: () => ({
+      hitCount: 0,
+      totalCount: 0,
+      hitRate: 0,
+      conditionSummary: '',
+      detailList: [],
+      dailyResults: [],
+    }),
+    upsertAIPrediction: () => {},
+    getAIPrediction: nullFn,
+    upsertJczqBasic: () => {},
+    getJczqBasic: nullFn,
+    getJczqBasicByDate: emptyArr,
+    getTodayUnfinishedMatches: emptyArr,
+    getTodayMatchSummary: () => ({
+      todayDate: '',
+      totalMatches: 0,
+      finishedMatches: 0,
+      unfinishedMatches: 0,
+      canShowCards: false,
+    }),
+  };
 } // end _backendSelected

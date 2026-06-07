@@ -138,7 +138,17 @@ async function sync500Odds(dateStr) {
             return;
           }
         }
-        log('[500odds] ' + dateStr + ' 数据需刷新 (odds=' + oddsCount + '/match=' + expectedCount + ', age=' + Math.round(age / 60000) + 'min)');
+        log(
+          '[500odds] ' +
+            dateStr +
+            ' 数据需刷新 (odds=' +
+            oddsCount +
+            '/match=' +
+            expectedCount +
+            ', age=' +
+            Math.round(age / 60000) +
+            'min)',
+        );
       } catch (e) {
         log('[500odds] ' + dateStr + ' 文件损坏，重新抓取');
       }
@@ -185,7 +195,9 @@ async function sync500OddsDelta(dateStr) {
         const raw = JSON.parse(fs.readFileSync(filePath, 'utf8'));
         oldOdds = raw.odds || {};
         isFirstSnapshot = false;
-      } catch (e) { /* 解析失败则重新创建 */ }
+      } catch (e) {
+        /* 解析失败则重新创建 */
+      }
     }
 
     const { detectChanges, appendDeltaLog } = require('./core/odds-tracker');
@@ -1168,7 +1180,7 @@ async function backfillResults(dateStr) {
               matchNum: m.num || '',
               confidence: entry.confidence || 0,
               content: JSON.stringify(entry.content || ''),
-              handicap: m.handicap !== undefined ? m.handicap : (m.rq !== undefined ? m.rq : undefined),
+              handicap: m.handicap !== undefined ? m.handicap : m.rq !== undefined ? m.rq : undefined,
             };
             preds.forEach(function (p) {
               if (p['玩法'] === '胜平负') aiFields.spf = p['建议方向'];
@@ -1195,7 +1207,7 @@ async function backfillResults(dateStr) {
               topPercent: gs.scores && gs.scores[0] ? parseFloat(gs.scores[0].percent) || 0 : 0,
               ladderLabel: gs.ladderLabel || '',
               ladderLevel: gs.ladderLevel || 0,
-              handicap: m.handicap !== undefined ? m.handicap : (m.rq !== undefined ? m.rq : undefined),
+              handicap: m.handicap !== undefined ? m.handicap : m.rq !== undefined ? m.rq : undefined,
             });
           } catch (e) {}
         }
@@ -1221,7 +1233,7 @@ async function backfillResults(dateStr) {
             awayGoals: awayGoals,
             actualSpf: actualSpf,
             actualOverunder: actualOverunder,
-            handicap: m.handicap !== undefined ? m.handicap : (m.rq !== undefined ? m.rq : undefined),
+            handicap: m.handicap !== undefined ? m.handicap : m.rq !== undefined ? m.rq : undefined,
           });
           logsUpdated++;
         } catch (e2) {
@@ -1289,7 +1301,9 @@ async function refreshTodayAI() {
     const cacheFile = path.join(__dirname, 'ai_cache.json');
     // ★ P1-1: 引入 prediction_log 用于 AI 预测持久化
     let predictionLog;
-    try { predictionLog = require('./prediction_log'); } catch (e) {}
+    try {
+      predictionLog = require('./prediction_log');
+    } catch (e) {}
 
     function saveAICache(mid, source, content, conf) {
       try {
@@ -1339,7 +1353,9 @@ async function refreshTodayAI() {
                 if (p['玩法'] === '比分预测') aiFields.score = p['建议方向'];
               });
               predictionLog.upsertAI(mid, aiFields);
-            } catch (e) { /* 单条失败不影响整体 */ }
+            } catch (e) {
+              /* 单条失败不影响整体 */
+            }
           }
         } else {
           entry.content = content;
@@ -1418,12 +1434,203 @@ function getDayEndTime(dateStr) {
   }
 }
 
+/** 增量同步 prediction_logs → unified_predictions（只补新记录） */
+async function incrementalSyncToUnified(adp, dateStr) {
+  try {
+    // 只查有赛果的记录
+    const rows = adp.execAll(
+      `SELECT * FROM prediction_logs
+       WHERE actual_score IS NOT NULL AND actual_score != ''
+       AND date = ?
+       ORDER BY date, matchNum`,
+      dateStr,
+    );
+    if (!rows || rows.length === 0) return { added: 0, skipped: 0 };
+
+    const mapDirection = (cn) => {
+      if (!cn) return null;
+      // 主胜方向
+      if (cn === '主胜' || cn.startsWith('主胜') || cn === '主队不败' || cn === '胜平' || cn === '胜/平双选')
+        return 'home';
+      // 客胜方向
+      if (
+        cn === '客胜' ||
+        cn.startsWith('客胜') ||
+        cn === '客队不败' ||
+        cn === '客队胜' ||
+        cn === '平负' ||
+        cn.includes('客胜')
+      )
+        return 'away';
+      // 纯平
+      if (cn === '平' || cn === '平局') return 'draw';
+      return null;
+    };
+    const scoreToDirection = (score) => {
+      if (!score) return null;
+      const parts = String(score).split(/[-:：]/);
+      if (parts.length < 2) return null;
+      const h = parseInt(parts[0]),
+        a = parseInt(parts[1]);
+      if (isNaN(h) || isNaN(a)) return null;
+      if (h > a) return 'home';
+      if (h < a) return 'away';
+      return 'draw';
+    };
+    const mapOverUnder = (s) => {
+      if (!s) return null;
+      if (s.includes('大球') || s.includes('over')) return 'over';
+      if (s.includes('小球') || s.includes('under')) return 'under';
+      return null;
+    };
+
+    let added = 0,
+      skipped = 0;
+    for (const row of rows) {
+      const mid = (row.matchId || '').replace(/^m_/, '');
+      const date = row.date || '';
+      const num = row.matchNum || '';
+
+      // 模型1: AI预测
+      const aiDir = mapDirection(row.ai_spf);
+      if (aiDir) {
+        const predId = `ai_${mid}_${date}`;
+        const existing = adp.execOne('SELECT id FROM unified_predictions WHERE prediction_id = ?', predId);
+        if (!existing) {
+          adp.execRun(
+            `INSERT INTO unified_predictions
+             (match_num, match_date, match_id, model_name, model_version, prediction_id,
+              direction, direction_confidence, over_under, predicted_score,
+              raw_output_json, consensus_tag, computed_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            num,
+            date,
+            mid,
+            'AI预测',
+            'v1.0',
+            predId,
+            aiDir,
+            row.ai_confidence || 50,
+            mapOverUnder(row.ai_overunder),
+            row.ai_score || '',
+            row.ai_content || null,
+            null,
+            row.created_at || date,
+          );
+          added++;
+        } else {
+          skipped++;
+        }
+      }
+
+      // 模型2: 功守道
+      if (row.gs_top_score || row.gs_scores_json) {
+        let gsDir = scoreToDirection(row.gs_top_score);
+        if (!gsDir && row.gs_scores_json) {
+          try {
+            const sj = JSON.parse(row.gs_scores_json);
+            if (Array.isArray(sj) && sj.length > 0) gsDir = scoreToDirection(sj[0].score);
+          } catch (_) {}
+        }
+        if (gsDir) {
+          const predId = `gs_${mid}_${date}`;
+          const existing = adp.execOne('SELECT id FROM unified_predictions WHERE prediction_id = ?', predId);
+          if (!existing) {
+            adp.execRun(
+              `INSERT INTO unified_predictions
+               (match_num, match_date, match_id, model_name, model_version, prediction_id,
+                direction, direction_confidence, over_under, predicted_score,
+                raw_output_json, consensus_tag, computed_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              num,
+              date,
+              mid,
+              '功守道',
+              'v1.0',
+              predId,
+              gsDir,
+              row.gs_top_percent || 50,
+              null,
+              null,
+              row.gs_scores_json || null,
+              row.pk_fusion_consensus || null,
+              row.created_at || date,
+            );
+            added++;
+          } else {
+            skipped++;
+          }
+        }
+      }
+
+      // 模型3: PK评分
+      const pkDir = mapDirection(row.pk_direction);
+      if (pkDir) {
+        const predId = `pk_${mid}_${date}`;
+        const existing = adp.execOne('SELECT id FROM unified_predictions WHERE prediction_id = ?', predId);
+        if (!existing) {
+          adp.execRun(
+            `INSERT INTO unified_predictions
+             (match_num, match_date, match_id, model_name, model_version, prediction_id,
+              direction, direction_confidence, over_under, predicted_score,
+              raw_output_json, consensus_tag, computed_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            num,
+            date,
+            mid,
+            'PK评分',
+            'v1.0',
+            predId,
+            pkDir,
+            row.pk_composite_score || 50,
+            mapOverUnder(row.pk_goal_direction),
+            null,
+            JSON.stringify({
+              composite: row.pk_composite_score,
+              power: row.pk_power_score,
+              goal: row.pk_goal_score,
+              heat: row.pk_heat_score,
+              stability: row.pk_stability_score,
+              hcp: row.pk_hcp_direction,
+              value: row.pk_value_score,
+              ev_home: row.pk_ev_home,
+              ev_draw: row.pk_ev_draw,
+              ev_away: row.pk_ev_away,
+            }),
+            row.pk_fusion_consensus || null,
+            row.created_at || date,
+          );
+          added++;
+        } else {
+          skipped++;
+        }
+      }
+    }
+    if (added > 0) log('[sync-unified] 写入 ' + added + ' 条 (跳过 ' + skipped + ')');
+    return { added, skipped };
+  } catch (e) {
+    log('[sync-unified] 异常: ' + e.message);
+    return { added: 0, skipped: 0 };
+  }
+}
+
 /** 全量核对收尾：回填命中 + 赔率完整性 + 状态修正 */
 async function finalCheck(dateStr) {
   log('══════ 最终核对 [' + dateStr + '] 开始 ══════');
 
-  // 1. 回填所有命中结果
+  // 1. 回填所有命中结果（prediction_logs 写入 actual_score）
   await backfillResults(dateStr);
+
+  // ★ V8.1: 增量同步 prediction_logs → unified_predictions（再补新记录）
+  try {
+    const adp = database.getAdapter();
+    if (adp) {
+      const syncRes = await incrementalSyncToUnified(adp, dateStr);
+      if (syncRes.added > 0) log('[final] unified_predictions 增量同步: +' + syncRes.added + ' 条');
+    }
+  } catch (e) {
+    log('[final] unified_predictions 同步跳过: ' + e.message);
+  }
 
   // ★ 蓝图：触发 outcome 回填（prediction_outcomes 表）
   try {
@@ -1483,17 +1690,21 @@ async function finalCheck(dateStr) {
   try {
     const { exec } = require('child_process');
     log('[final] 自动触发历史数据回填...');
-    exec('node ' + path.join(__dirname, 'catch_up.js') + ' --date ' + dateStr + ' --odds-only --timeout 300', {
-      timeout: 360000,
-      cwd: __dirname,
-    }, (err, stdout, stderr) => {
-      if (err) {
-        log('[final] 回填异常: ' + (err.message || ''));
-      } else {
-        const lines = (stdout || '').trim().split('\n').slice(-3);
-        log('[final] 回填完成: ' + lines.join(' '));
-      }
-    });
+    exec(
+      'node ' + path.join(__dirname, 'catch_up.js') + ' --date ' + dateStr + ' --odds-only --timeout 300',
+      {
+        timeout: 360000,
+        cwd: __dirname,
+      },
+      (err, stdout, stderr) => {
+        if (err) {
+          log('[final] 回填异常: ' + (err.message || ''));
+        } else {
+          const lines = (stdout || '').trim().split('\n').slice(-3);
+          log('[final] 回填完成: ' + lines.join(' '));
+        }
+      },
+    );
   } catch (e) {
     log('[final] 回填启动失败: ' + e.message);
   }

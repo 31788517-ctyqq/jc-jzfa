@@ -95,11 +95,33 @@ function parse(raw) {
   // 交锋数据
   vars.jiaoFenDesc = raw.jiaoFenDesc || '';
   vars.jiaoFenScores = [];
-  if (raw.jiaoFenMatch1) vars.jiaoFenScores.push(extractScore(raw.jiaoFenMatch1));
-  if (raw.jiaoFenMatch2) vars.jiaoFenScores.push(extractScore(raw.jiaoFenMatch2));
+  // 主字段: jiaoFenMatch1-2（原有字段）
+  for (let i = 1; i <= 6; i++) {
+    const key = 'jiaoFenMatch' + i;
+    if (raw[key]) {
+      const score = extractScore(raw[key]);
+      if (score) vars.jiaoFenScores.push(score);
+    }
+  }
+  // 备用字段: 部分数据源可能用 jiaoFenHistory1-6 等命名
+  if (vars.jiaoFenScores.length === 0) {
+    for (let i = 1; i <= 6; i++) {
+      const altKey = 'jiaoFenHistory' + i;
+      if (raw[altKey]) {
+        const score = extractScore(raw[altKey]);
+        if (score) vars.jiaoFenScores.push(score);
+      }
+    }
+  }
   // 扩充：从 jiaoFenDesc 中正则提取更多交锋统计字段
   // 典型格式: "近6次交战 2胜3平1负 进8球失6球 大球2次"
   vars.jiaoFenExtended = extractJiaoFenExtended(vars.jiaoFenDesc);
+
+  // ★ V9.1: 比赛场次计数（用于赛季初保护）
+  vars._homeMatchCount = (vars.homeWinGap_1 || 0) + (vars.homeWinGap_2 || 0) +
+    (vars.homeLoseGap_1 || 0) + (vars.homeLoseGap_2 || 0) + (vars.homeDraw || 0);
+  vars._awayMatchCount = (vars.awayWinGap_1 || 0) + (vars.awayWinGap_2 || 0) +
+    (vars.awayLoseGap_1 || 0) + (vars.awayLoseGap_2 || 0) + (vars.awayDraw || 0);
 
   // 标准化净胜球序列（用于7场阈值）
   vars.homeGoalDiffSeries = buildGoalDiffSeries(

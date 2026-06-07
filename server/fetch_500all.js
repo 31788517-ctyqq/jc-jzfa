@@ -50,11 +50,24 @@ function extractByDataSp(html, dataType, handler) {
   return result;
 }
 
-/** 解析SPF+让球 (playid=312) */
+/** 解析SPF+让球 (playid=312) — ★ 修复：SPF未开售时仍保留RQSPF */
 function parseSPF(seg) {
-  const dataSps = seg.match(/data-sp="(\d{1,3}\.\d{2})"/g);
-  const nums = (dataSps || []).map((s) => parseFloat(s.match(/"([^"]+)"/)[1]));
-  if (nums.length < 6) return null;
+  // ★ 分玩法提取：nspf（不让球胜平负）和 spf（让球胜平负）独立匹配
+  const nspfValues = [];
+  const nspfRegex = /data-type="nspf"[^>]*data-sp="([^"]*)"/g;
+  let m;
+  while ((m = nspfRegex.exec(seg)) !== null) {
+    nspfValues.push(parseFloat(m[1]));
+  }
+
+  const rqspfValues = [];
+  const rqRegex = /data-type="spf"[^>]*data-sp="([^"]*)"/g;
+  while ((m = rqRegex.exec(seg)) !== null) {
+    rqspfValues.push(parseFloat(m[1]));
+  }
+
+  // ★ 至少要有一种玩法有数据（SPF 或 RQSPF），否则丢弃
+  if (nspfValues.length < 3 && rqspfValues.length < 3) return null;
 
   // Extract team names from title attributes
   const teamMatch = seg.match(
@@ -75,8 +88,8 @@ function parseSPF(seg) {
     visitName,
     handicap,
     isSingleGame: isSingle,
-    spf: { home: nums[0], draw: nums[1], away: nums[2] },
-    rqspf: { home: nums[3], draw: nums[4], away: nums[5] },
+    spf: nspfValues.length >= 3 ? { home: nspfValues[0], draw: nspfValues[1], away: nspfValues[2] } : null,
+    rqspf: rqspfValues.length >= 3 ? { home: rqspfValues[0], draw: rqspfValues[1], away: rqspfValues[2], handicap: handicap } : null,
   };
 }
 

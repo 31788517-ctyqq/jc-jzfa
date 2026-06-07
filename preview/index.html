@@ -1,163 +1,428 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>竞彩推荐监控</title>
-<link rel="preconnect" href="https://zj.100qiu.com">
-<link rel="preload" href="/js/main-fusion.js?v=202606062200" as="script" crossorigin="anonymous">
-<link rel="preload" href="/css/app.css?v=202606062200" as="style">
-<link rel="stylesheet" href="/css/app.css?v=202606062200">
-<!-- ★ P1-5: 非首屏弹窗样式异步加载，不阻塞 FCP -->
-<link rel="stylesheet" href="/css/modals.css?v=1" media="print" onload="this.media='all'; this.onload=null;">
-<noscript><link rel="stylesheet" href="/css/modals.css?v=1"></noscript>
-<link rel="stylesheet" href="/css/betting.css?v=7" media="print" onload="this.media='all'; this.onload=null;">
-<noscript><link rel="stylesheet" href="/css/betting.css?v=7"></noscript>
-<!-- ECharts lazy-loaded by charts.js -->
-
-
-</head>
-<body>
-
-<!-- 导航栏 -->
-<div class="navbar" id="navbar">
-  <span class="nav-logo"><img src="/assets/worldcup/logo.png" alt="" decoding="async" loading="eager" width="36" height="36" style="width:100%;height:100%;object-fit:contain;" /></span>
-  <span class="nav-title" id="navTitle">竞彩推荐监控</span>
-  <span class="nav-back" id="navBack" onclick="goBack()" style="display:none"><svg width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M31 36L19 24L31 12" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-</div>
-
-<!-- 首页 -->
-<div class="page" id="page-home">
-  <div class="hero-section"></div>
-
-  <div class="stats-grid">
-    <div class="stat-box" onclick="switchTab('match')">
-      <div class="stat-value" id="matchCount">-</div>
-      <div class="stat-label">今日比赛</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>竞彩推荐监控</title>
+    <link rel="preconnect" href="https://zj.100qiu.com" />
+    <link rel="preload" href="/js/main-fusion.js?v=202606071740" as="script" crossorigin="anonymous" />
+    <link rel="preload" href="/css/app.css?v=202606071740" as="style" />
+    <link rel="stylesheet" href="/css/app.css?v=202606071740" />
+    <!-- ★ P1-5: 非首屏弹窗样式异步加载，不阻塞 FCP -->
+    <link
+      rel="stylesheet"
+      href="/css/modals.css?v=1"
+      media="print"
+      onload="
+        this.media = 'all';
+        this.onload = null;
+      "
+    />
+    <noscript><link rel="stylesheet" href="/css/modals.css?v=1" /></noscript>
+    <link
+      rel="stylesheet"
+      href="/css/betting.css?v=7"
+      media="print"
+      onload="
+        this.media = 'all';
+        this.onload = null;
+      "
+    />
+    <noscript><link rel="stylesheet" href="/css/betting.css?v=7" /></noscript>
+    <!-- ECharts lazy-loaded by charts.js -->
+  </head>
+  <body>
+    <!-- 导航栏 -->
+    <div class="navbar" id="navbar">
+      <span class="nav-logo"
+        ><img
+          src="/assets/worldcup/logo.png"
+          alt=""
+          decoding="async"
+          loading="eager"
+          width="36"
+          height="36"
+          style="width: 100%; height: 100%; object-fit: contain"
+      /></span>
+      <span class="nav-title" id="navTitle">竞彩推荐监控</span>
+      <span class="nav-back" id="navBack" onclick="goBack()" style="display: none"
+        ><svg width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M31 36L19 24L31 12"
+            stroke="currentColor"
+            stroke-width="4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          /></svg
+      ></span>
     </div>
-    <div class="stat-box" onclick="switchTab('rank')">
-      <div class="stat-value" id="maxRankCount">-</div>
-      <div class="stat-label">最多推荐</div>
-    </div>
-  </div>
 
-  <div class="quick-menu">
-    <!-- 我要做方案 -->
-    <div class="menu-item" onclick="switchTab('scheme')">
-      <div class="menu-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><polyline points="18,34 28,44 46,22" fill="none" stroke="#3B82F6" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="menu-content">
-        <div class="menu-title">我要做方案</div>
-        <div class="menu-desc">自定义方案和专家方案PK</div>
+    <!-- 首页 -->
+    <div class="page" id="page-home">
+      <div class="hero-section"></div>
+
+      <div class="stats-grid">
+        <div class="stat-box" onclick="switchTab('match')">
+          <div class="stat-value" id="matchCount">-</div>
+          <div class="stat-label">今日比赛</div>
+        </div>
+        <div class="stat-box" onclick="switchTab('rank')">
+          <div class="stat-value" id="maxRankCount">-</div>
+          <div class="stat-label">最多推荐</div>
+        </div>
       </div>
-      <div class="menu-arrow">›</div>
-    </div>
-    <div class="menu-item" onclick="switchTab('income')">
-      <div class="menu-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><polyline points="18,34 28,44 46,22" fill="none" stroke="#3B82F6" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="menu-content">
-        <div class="menu-title">方案收入比较</div>
-        <div class="menu-desc">查看比较各类方案盈利情况</div>
-      </div>
-      <div class="menu-arrow">›</div>
-    </div>
-    <div class="menu-item" onclick="switchTab('quant-rank')">
-      <div class="menu-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><polyline points="18,34 28,44 46,22" fill="none" stroke="#3B82F6" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="menu-content">
-        <div class="menu-title">量化数据排行榜</div>
-        <div class="menu-desc">量化数据排行及场次数据PK</div>
-      </div>
-      <div class="menu-arrow">›</div>
-    </div>
-    <div class="menu-item" onclick="switchTab('filter')">
-      <div class="menu-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><polyline points="18,34 28,44 46,22" fill="none" stroke="#3B82F6" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="menu-content">
-        <div class="menu-title">推荐方向命中查询</div>
-        <div class="menu-desc">查询推荐方向命中结果</div>
-      </div>
-      <div class="menu-arrow">›</div>
-    </div>
-    <!-- 回测入口 -->
-    <div class="menu-item" onclick="switchTab('backtest')">
-      <div class="menu-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><polyline points="18,34 28,44 46,22" fill="none" stroke="#3B82F6" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="menu-content">
-        <div class="menu-title">历史数据回测</div>
-        <div class="menu-desc">融合AI和量化数据预测查询与分析</div>
-      </div>
-      <div class="menu-arrow">›</div>
-    </div>
-    <!-- ★ 蓝图新增：模型表现仪表板 -->
-    <div class="menu-item" onclick="switchTab('model-dashboard')">
-      <div class="menu-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><polyline points="18,34 28,44 46,22" fill="none" stroke="#3B82F6" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="menu-content">
-        <div class="menu-title">模型表现仪表板</div>
-        <div class="menu-desc">各模型实时命中率排行与趋势</div>
-      </div>
-      <div class="menu-arrow">›</div>
-    </div>
-    <!-- ★ 蓝图新增：数据健康监控 -->
-    <div class="menu-item" onclick="switchTab('data-health')">
-      <div class="menu-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><polyline points="18,34 28,44 46,22" fill="none" stroke="#3B82F6" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="menu-content">
-        <div class="menu-title">数据健康监控</div>
-        <div class="menu-desc">数据源抓取质量与告警</div>
-      </div>
-      <div class="menu-arrow">›</div>
-    </div>
-  </div>
-</div>
 
-<!-- 页面容器按需创建，由 main-fusion.js 中 _ensurePage() 动态生成 -->
+      <div class="quick-menu">
+        <!-- 我要做方案 -->
+        <div class="menu-item" onclick="switchTab('scheme')">
+          <div class="menu-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+              <polyline
+                points="18,34 28,44 46,22"
+                fill="none"
+                stroke="#3B82F6"
+                stroke-width="5.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="menu-content">
+            <div class="menu-title">我要做方案</div>
+            <div class="menu-desc">自定义方案和专家方案PK</div>
+          </div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <div class="menu-item" onclick="switchTab('income')">
+          <div class="menu-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+              <polyline
+                points="18,34 28,44 46,22"
+                fill="none"
+                stroke="#3B82F6"
+                stroke-width="5.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="menu-content">
+            <div class="menu-title">方案收入比较</div>
+            <div class="menu-desc">查看比较各类方案盈利情况</div>
+          </div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <div class="menu-item" onclick="switchTab('quant-rank')">
+          <div class="menu-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+              <polyline
+                points="18,34 28,44 46,22"
+                fill="none"
+                stroke="#3B82F6"
+                stroke-width="5.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="menu-content">
+            <div class="menu-title">量化数据排行榜</div>
+            <div class="menu-desc">量化数据排行及场次数据PK</div>
+          </div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <div class="menu-item" onclick="switchTab('filter')">
+          <div class="menu-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+              <polyline
+                points="18,34 28,44 46,22"
+                fill="none"
+                stroke="#3B82F6"
+                stroke-width="5.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="menu-content">
+            <div class="menu-title">推荐方向命中查询</div>
+            <div class="menu-desc">查询推荐方向命中结果</div>
+          </div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <!-- 回测入口 -->
+        <div class="menu-item" onclick="switchTab('backtest')">
+          <div class="menu-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+              <polyline
+                points="18,34 28,44 46,22"
+                fill="none"
+                stroke="#3B82F6"
+                stroke-width="5.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="menu-content">
+            <div class="menu-title">历史数据回测</div>
+            <div class="menu-desc">融合AI和量化数据预测查询与分析</div>
+          </div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <!-- ★ 蓝图新增：模型表现仪表板 -->
+        <div class="menu-item" onclick="switchTab('model-dashboard')">
+          <div class="menu-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+              <polyline
+                points="18,34 28,44 46,22"
+                fill="none"
+                stroke="#3B82F6"
+                stroke-width="5.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="menu-content">
+            <div class="menu-title">模型表现仪表板</div>
+            <div class="menu-desc">各模型实时命中率排行与趋势</div>
+          </div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <!-- ★ 蓝图新增：数据健康监控 -->
+        <div class="menu-item" onclick="switchTab('data-health')">
+          <div class="menu-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+              <polyline
+                points="18,34 28,44 46,22"
+                fill="none"
+                stroke="#3B82F6"
+                stroke-width="5.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="menu-content">
+            <div class="menu-title">数据健康监控</div>
+            <div class="menu-desc">数据源抓取质量与告警</div>
+          </div>
+          <div class="menu-arrow">›</div>
+        </div>
+      </div>
+    </div>
 
-<!-- TabBar -->
-  <div class="tabbar">
-  <div class="tab-item" onclick="switchTab('home')" id="tab-home">
-    <span class="tab-icon"><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M44 44V20L24 4L4 20V44H16V26H32V44H44Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M24 44V34" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-  </div>
-  <div class="tab-item" onclick="switchTab('match')" id="tab-match">
-    <span class="tab-icon"><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.82 4.98C7.31 8.39 1.57 19.68 4.98 30.18 8.39 40.67 19.68 46.42 30.17 43.01 40.68 39.6 46.42 28.32 43.01 17.82 39.6 7.31 28.32 1.57 17.82 4.98Z" stroke="currentColor" stroke-width="4" stroke-miterlimit="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M34 21L24 13L14 21L18 33H30L34 21Z" fill="none" stroke="currentColor" stroke-width="4" stroke-miterlimit="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M34 21L43 18" stroke="currentColor" stroke-width="4" stroke-miterlimit="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M36 40L30 33" stroke="currentColor" stroke-width="4" stroke-miterlimit="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 33L12 40" stroke="currentColor" stroke-width="4" stroke-miterlimit="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 21L5 18" stroke="currentColor" stroke-width="4" stroke-miterlimit="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 13V4" stroke="currentColor" stroke-width="4" stroke-miterlimit="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-  </div>
-  <div class="tab-item" onclick="switchTab('rank')" id="tab-rank">
-    <span class="tab-icon"><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 18H4V42H17V18Z" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 6H17V42H30V6Z" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M43 26H30V42H43V26Z" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-  </div>
-  <div class="tab-item" onclick="switchTab('hit')" id="tab-hit">
-    <span class="tab-icon"><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 24C5 34.49 13.51 43 24 43V26C24 24.9 24.9 24 26 24H43C43 13.51 34.49 5 24 5 13.51 5 5 13.51 5 24Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="30" y="30" width="12" height="12" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-  </div>
-  <div class="tab-item" onclick="switchTab('plan')" id="tab-plan">
-    <span class="tab-icon"><svg width="24" height="24" viewBox="0 0 48 48" fill="none"><path d="M20 10H44" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 24H44" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 38H44" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="24" r="4" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="38" r="4" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10L7 13L13 7" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-  </div>
-</div>
+    <!-- 页面容器按需创建，由 main-fusion.js 中 _ensurePage() 动态生成 -->
 
+    <!-- TabBar -->
+    <div class="tabbar">
+      <div class="tab-item" onclick="switchTab('home')" id="tab-home">
+        <span class="tab-icon"
+          ><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M44 44V20L24 4L4 20V44H16V26H32V44H44Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M24 44V34"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            /></svg
+        ></span>
+      </div>
+      <div class="tab-item" onclick="switchTab('match')" id="tab-match">
+        <span class="tab-icon"
+          ><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M17.82 4.98C7.31 8.39 1.57 19.68 4.98 30.18 8.39 40.67 19.68 46.42 30.17 43.01 40.68 39.6 46.42 28.32 43.01 17.82 39.6 7.31 28.32 1.57 17.82 4.98Z"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-miterlimit="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M34 21L24 13L14 21L18 33H30L34 21Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-miterlimit="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M34 21L43 18"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-miterlimit="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M36 40L30 33"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-miterlimit="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M18 33L12 40"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-miterlimit="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M14 21L5 18"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-miterlimit="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M24 13V4"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-miterlimit="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            /></svg
+        ></span>
+      </div>
+      <div class="tab-item" onclick="switchTab('rank')" id="tab-rank">
+        <span class="tab-icon"
+          ><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M17 18H4V42H17V18Z"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path d="M30 6H17V42H30V6Z" stroke="currentColor" stroke-width="4" stroke-linejoin="round" />
+            <path
+              d="M43 26H30V42H43V26Z"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            /></svg
+        ></span>
+      </div>
+      <div class="tab-item" onclick="switchTab('hit')" id="tab-hit">
+        <span class="tab-icon"
+          ><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M5 24C5 34.49 13.51 43 24 43V26C24 24.9 24.9 24 26 24H43C43 13.51 34.49 5 24 5 13.51 5 5 13.51 5 24Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <rect
+              x="30"
+              y="30"
+              width="12"
+              height="12"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            /></svg
+        ></span>
+      </div>
+      <div class="tab-item" onclick="switchTab('plan')" id="tab-plan">
+        <span class="tab-icon"
+          ><svg width="24" height="24" viewBox="0 0 48 48" fill="none">
+            <path d="M20 10H44" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M20 24H44" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M20 38H44" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            <circle
+              cx="8"
+              cy="24"
+              r="4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <circle
+              cx="8"
+              cy="38"
+              r="4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M4 10L7 13L13 7"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            /></svg
+        ></span>
+      </div>
+    </div>
 
-<script>
-// ★ 阻塞脚本：恢复上次页面状态（主页为默认，其他页面由JS动态创建）
-(function () {
-  try {
-    var last = sessionStorage.getItem('lastPage');
-    if (last && last !== 'home' && last !== 'detail') {
-      var tb = document.getElementById('tab-' + last);
-      if (tb) tb.classList.add('active');
-      var titles = { match:'今日比赛', plan:'今日方案', 'quant-rank':'量化数据排行榜', rank:'推荐排行榜', hit:'命中率统计', filter:'推荐方向命中查询', income:'方案收入', backtest:'回测分析', scheme:'方案设计' };
-      var titleEl = document.getElementById('navTitle');
-      if (titleEl && titles[last]) titleEl.textContent = titles[last];
-    } else {
-      var tb = document.getElementById('tab-home');
-      if (tb) tb.classList.add('active');
-    }
-  } catch (e) {}
-})();
-</script>
+    <script>
+      // ★ 阻塞脚本：恢复上次页面状态（主页为默认，其他页面由JS动态创建）
+      (function () {
+        try {
+          var last = sessionStorage.getItem('lastPage');
+          if (last && last !== 'home' && last !== 'detail') {
+            var tb = document.getElementById('tab-' + last);
+            if (tb) tb.classList.add('active');
+            var titles = {
+              match: '今日比赛',
+              plan: '今日方案',
+              'quant-rank': '量化数据排行榜',
+              rank: '推荐排行榜',
+              hit: '命中率统计',
+              filter: '推荐方向命中查询',
+              income: '方案收入',
+              backtest: '回测分析',
+              scheme: '方案设计',
+            };
+            var titleEl = document.getElementById('navTitle');
+            if (titleEl && titles[last]) titleEl.textContent = titles[last];
+          } else {
+            var tb = document.getElementById('tab-home');
+            if (tb) tb.classList.add('active');
+          }
+        } catch (e) {}
+      })();
+    </script>
 
-<!-- 全局弹窗（模态层） -->
-<div class="pk-overlay" id="pkOverlay" onclick="if(event.target===this)closePK()"><div class="pk-modal" id="pkModal"></div></div>
-<div class="ai-overlay" id="aiOverlay" onclick="if(event.target===this)closeAI()"><div class="ai-modal" id="aiModal"></div></div>
+    <!-- 全局弹窗（模态层） -->
+    <div class="pk-overlay" id="pkOverlay" onclick="if (event.target === this) closePK();">
+      <div class="pk-modal" id="pkModal"></div>
+    </div>
+    <div class="ai-overlay" id="aiOverlay" onclick="if (event.target === this) closeAI();">
+      <div class="ai-modal" id="aiModal"></div>
+    </div>
 
-<script type="module">
-console.log('[INLINE-MODULE] loaded OK');
-window.inlineModuleWorks = true;
-</script>
-<script type="module" src="/js/main-fusion.js?v=202606062200"></script>
-<!-- V5.0-FUSION-PK final-202605311423 -->
-</body>
+    <script type="module">
+      console.log('[INLINE-MODULE] loaded OK');
+      window.inlineModuleWorks = true;
+    </script>
+    <script type="module" src="/js/main-fusion.js?v=202606071740"></script>
+    <!-- V5.0-FUSION-PK final-202605311423 -->
+  </body>
 </html>

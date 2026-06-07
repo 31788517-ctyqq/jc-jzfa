@@ -330,21 +330,21 @@ function powerBoost(h, a, ladderLevel) {
   const gd = h - a;
   const homeStrength = ladderLevel > 0;
 
-  // 顺应战力的比分提振
+  // ★ V9.1: 降低提振力度，减少同梯级比分趋同
+  // 极端优势仍然提振，但幅度减半（1.5→1.25, 1.2→1.1）
   if (Math.abs(ladderLevel) >= 3) {
-    // 极端优势：净胜2+球提振1.5倍
-    if (homeStrength && gd >= 2) return 1.5;
-    if (!homeStrength && gd <= -2) return 1.5;
+    if (homeStrength && gd >= 2) return 1.25;
+    if (!homeStrength && gd <= -2) return 1.25;
   }
 
   if (Math.abs(ladderLevel) >= 2) {
-    if (homeStrength && gd >= 1) return 1.2;
-    if (!homeStrength && gd <= -1) return 1.2;
+    if (homeStrength && gd >= 1) return 1.1;
+    if (!homeStrength && gd <= -1) return 1.1;
   }
 
-  // 冷门削弱
-  if (homeStrength && ladderLevel >= 2 && gd < 0) return 0.5;
-  if (!homeStrength && ladderLevel <= -2 && gd > 0) return 0.5;
+  // 冷门削弱也适度放宽
+  if (homeStrength && ladderLevel >= 2 && gd < 0) return 0.6;
+  if (!homeStrength && ladderLevel <= -2 && gd > 0) return 0.6;
 
   return 1.0;
 }

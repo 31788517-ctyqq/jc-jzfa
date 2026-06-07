@@ -112,11 +112,22 @@ describe('prediction_log', () => {
       }).not.toThrow();
     });
 
-    it('stats 字段存在时值在合法范围', () => {
+    it('stats 字段存在时值在合法范围 (V9 三层结构)', () => {
       const result = predictionLog.queryBacktest({ dateRange: 'all' });
       if (result.stats) {
-        expect(result.stats.ai_accuracy).toBeGreaterThanOrEqual(0);
-        expect(result.stats.ai_accuracy).toBeLessThanOrEqual(1);
+        // V9 结构: stats.gs / stats.ai / stats.pk 三层
+        if (result.stats.ai) {
+          expect(result.stats.ai.spf_accuracy).toBeGreaterThanOrEqual(0);
+          expect(result.stats.ai.spf_accuracy).toBeLessThanOrEqual(1);
+        }
+        if (result.stats.gs) {
+          expect(result.stats.gs.score_hit_rate).toBeGreaterThanOrEqual(0);
+          expect(result.stats.gs.score_hit_rate).toBeLessThanOrEqual(1);
+        }
+        if (result.stats.pk) {
+          expect(result.stats.pk.direction_accuracy).toBeGreaterThanOrEqual(0);
+          expect(result.stats.pk.direction_accuracy).toBeLessThanOrEqual(1);
+        }
         expect(Array.isArray(result.stats.byLeague)).toBe(true);
       }
     });

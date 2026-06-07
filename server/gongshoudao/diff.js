@@ -372,4 +372,4 @@ function analyze(vars, xgHome, xgAway) {
   };
 }
 
-module.exports = { analyze, betaBinomialProb };
+module.exports = { analyze, calcResonance, betaBinomialProb };

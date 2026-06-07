@@ -87,7 +87,7 @@ export function resetFilterResult() {
 }
 
 export function loadFilterLeagues() {
-  api('filter-stats', {})
+  return api('filter-stats', {})
     .then(function (stats) {
       var sm = document.getElementById('statMatches');
       var sl = document.getElementById('statLeagues');
@@ -133,9 +133,7 @@ export function loadFilterLeagues() {
         }
         if (stats.partialStaleCount > 0) {
           hintHtml +=
-            '<br><span style="color:var(--cyan);">' +
-            stats.partialStaleCount +
-            ' 场比赛部分推荐结果缺失</span>';
+            '<br><span style="color:var(--cyan);">' + stats.partialStaleCount + ' 场比赛部分推荐结果缺失</span>';
         }
         hintHtml +=
           '<br><span style="color:var(--text3);">运行 <code>node backfill_results.js</code> 补全数据</span></div>';
@@ -321,7 +319,9 @@ export function doFilterQuery() {
         html += '<div class="filter-detail-card">';
         html +=
           '<div class="filter-detail-head">命中明细' +
-          (sortedItems.length > 200 ? ' <span style="color:var(--text3);font-weight:400;font-size:11px">(仅展示前200条)</span>' : '') +
+          (sortedItems.length > 200
+            ? ' <span style="color:var(--text3);font-weight:400;font-size:11px">(仅展示前200条)</span>'
+            : '') +
           '</div>';
         html +=
           '<table class="filter-detail-table"><thead><tr>' +
@@ -337,13 +337,30 @@ export function doFilterQuery() {
           var resText = item.result === 1 ? '✓ 命中' : '✗ 未中';
           html +=
             '<tr>' +
-            '<td class="fdt-date">' + (item.date || '').slice(5) + '</td>' +
-            '<td class="fdt-league">' + (item.leagueName || '-') + '</td>' +
-            '<td class="fdt-match" title="' + (item.homeName || '') + ' vs ' + (item.visitName || '') + '">' +
-            (item.num || item.matchId || '-') + '</td>' +
-            '<td class="fdt-dir">' + (item.direction || '-') + '</td>' +
-            '<td class="fdt-exp">' + (item.expertCount || 0) + '</td>' +
-            '<td class="fdt-res ' + resClass + '">' + resText + '</td>' +
+            '<td class="fdt-date">' +
+            (item.date || '').slice(5) +
+            '</td>' +
+            '<td class="fdt-league">' +
+            (item.leagueName || '-') +
+            '</td>' +
+            '<td class="fdt-match" title="' +
+            (item.homeName || '') +
+            ' vs ' +
+            (item.visitName || '') +
+            '">' +
+            (item.num || item.matchId || '-') +
+            '</td>' +
+            '<td class="fdt-dir">' +
+            (item.direction || '-') +
+            '</td>' +
+            '<td class="fdt-exp">' +
+            (item.expertCount || 0) +
+            '</td>' +
+            '<td class="fdt-res ' +
+            resClass +
+            '">' +
+            resText +
+            '</td>' +
             '</tr>';
         });
         html += '</tbody></table></div>';

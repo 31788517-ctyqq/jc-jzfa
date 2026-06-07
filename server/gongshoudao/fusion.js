@@ -137,6 +137,11 @@ function fuse(vars, modelB, pAsia, weights) {
   });
   const nConsistent = consistent.length;
 
+  // ★ V9.1 P2: 连续共识置信度
+  // consensusScore = 1 - maxDiff/0.3, 范围 [0, 1], 越高越一致
+  const maxPairDiff = Math.max(pairs[0].diff, pairs[1].diff, pairs[2].diff);
+  const consensusScore = round(Math.max(0, Math.min(1, 1 - maxPairDiff / 0.3)), 4);
+
   let finalTotal, consensusLabel, consensusType, fused;
 
   if (nConsistent >= 3) {
@@ -178,6 +183,7 @@ function fuse(vars, modelB, pAsia, weights) {
     away: finalAway,
     consensus: consensusLabel,
     consensusType: consensusType, // V2.0: 'strong' | 'weak' | 'meltdown'
+    consensusScore: consensusScore, // V9.1: 连续置信度 [0, 1]
     fused,
     _details: {
       modelA: mA,

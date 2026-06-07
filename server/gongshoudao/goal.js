@@ -444,6 +444,7 @@ function analyze(vars, S) {
     // 四重熔断后最终值（替代 λ_total 供下游使用）
     fusionConsensus: consensus.consensus,
     fusionConsensusType: consensus.consensusType, // V2.0: strong/weak/meltdown
+    fusionConsensusScore: consensus.consensusScore || 0, // V9.1: 连续置信度 [0, 1]
     fusionFused: consensus.fused,
     fusionFinalTotal: consensus.total,
     fusionFinalHome: consensus.home,

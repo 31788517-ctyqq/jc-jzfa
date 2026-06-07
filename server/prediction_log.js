@@ -135,7 +135,7 @@ function initTable() {
         'actual_corrected_at TEXT,' +
         "created_at TEXT DEFAULT (datetime('now','localtime'))," +
         "updated_at TEXT DEFAULT (datetime('now','localtime'))" +
-        ')'
+        ')',
     );
     adp.execRun('CREATE INDEX IF NOT EXISTS idx_logs_matchId ON prediction_logs(matchId)');
     adp.execRun('CREATE INDEX IF NOT EXISTS idx_logs_date ON prediction_logs(date)');
@@ -144,22 +144,79 @@ function initTable() {
     console.log('[prediction_log] table initialized');
 
     // ★ 迁移：添加 handicap 列（已存在则忽略）
-    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN handicap INTEGER'); } catch (e) { /* 忽略 */ }
+    try {
+      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN handicap INTEGER');
+    } catch (e) {
+      /* 忽略 */
+    }
 
     // ★ V2.0 迁移：添加健康评分列
-    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_health_score REAL'); } catch (e) { /* 忽略 */ }
+    try {
+      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_health_score REAL');
+    } catch (e) {
+      /* 忽略 */
+    }
 
     // ★ V2.0 迁移：添加 EV 价值评分列
-    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_ev_home REAL'); } catch (e) { /* 忽略 */ }
-    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_ev_draw REAL'); } catch (e) { /* 忽略 */ }
-    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_ev_away REAL'); } catch (e) { /* 忽略 */ }
-    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_value_tag TEXT'); } catch (e) { /* 忽略 */ }
-    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_value_score REAL'); } catch (e) { /* 忽略 */ }
-    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_heat_zscore REAL'); } catch (e) { /* 忽略 */ }
-    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_heat_z_overheat INTEGER'); } catch (e) { /* 忽略 */ }
+    try {
+      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_ev_home REAL');
+    } catch (e) {
+      /* 忽略 */
+    }
+    try {
+      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_ev_draw REAL');
+    } catch (e) {
+      /* 忽略 */
+    }
+    try {
+      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_ev_away REAL');
+    } catch (e) {
+      /* 忽略 */
+    }
+    try {
+      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_value_tag TEXT');
+    } catch (e) {
+      /* 忽略 */
+    }
+    try {
+      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_value_score REAL');
+    } catch (e) {
+      /* 忽略 */
+    }
+    try {
+      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_heat_zscore REAL');
+    } catch (e) {
+      /* 忽略 */
+    }
+    try {
+      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_heat_z_overheat INTEGER');
+    } catch (e) {
+      /* 忽略 */
+    }
 
     // ★ V9.1 迁移：添加半场比分列（半全场方向判定需要）
-    try { adp.execRun('ALTER TABLE prediction_logs ADD COLUMN actual_half_score TEXT'); } catch (e) { /* 忽略 */ }
+    try {
+      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN actual_half_score TEXT');
+    } catch (e) {
+      /* 忽略 */
+    }
+
+    // ★ V9.1 迁移：添加模型预测总值列（model-weights 真实代理指标）
+    try {
+      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN gs_modelA_total REAL');
+    } catch (e) {
+      /* 忽略 */
+    }
+    try {
+      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN gs_modelB_total REAL');
+    } catch (e) {
+      /* 忽略 */
+    }
+    try {
+      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN gs_modelC_total REAL');
+    } catch (e) {
+      /* 忽略 */
+    }
   } catch (e) {
     console.error('[prediction_log] init error:', e.message);
   }
@@ -256,6 +313,10 @@ function upsertGS(matchId, fields) {
   if (fields.topPercent !== undefined) data.gs_top_percent = fields.topPercent;
   if (fields.ladderLabel) data.gs_ladder_label = fields.ladderLabel;
   if (fields.ladderLevel !== undefined) data.gs_ladder_level = fields.ladderLevel;
+  // ★ V9.1: 模型预测总值（供 model-weights 真实代理指标）
+  if (fields.modelATotal !== undefined && fields.modelATotal !== null) data.gs_modelA_total = fields.modelATotal;
+  if (fields.modelBTotal !== undefined && fields.modelBTotal !== null) data.gs_modelB_total = fields.modelBTotal;
+  if (fields.modelCTotal !== undefined && fields.modelCTotal !== null) data.gs_modelC_total = fields.modelCTotal;
   if (fields.date) data.date = fields.date;
   if (fields.homeName) data.homeName = fields.homeName;
   if (fields.visitName) data.visitName = fields.visitName;
@@ -351,7 +412,7 @@ function queryBacktest(filters) {
     // 提前解析比分数据（供后续所有分支使用）
     var hg = row.actual_home_goals;
     var ag = row.actual_away_goals;
-    var totalGoals = (hg != null && ag != null && !isNaN(hg) && !isNaN(ag)) ? hg + ag : null;
+    var totalGoals = hg != null && ag != null && !isNaN(hg) && !isNaN(ag) ? hg + ag : null;
 
     // ── 无分隔符双选 "胜平" / "平负" ──
     if (direction === '胜平' && actSpf) return actSpf === '主胜' || actSpf === '平';
@@ -375,7 +436,14 @@ function queryBacktest(filters) {
 
     // ── 复合方向（含 、 / , 分隔符） ──
     const hasSep = direction.indexOf('、') >= 0 || direction.indexOf('/') >= 0 || direction.indexOf(',') >= 0;
-    const subParts = hasSep ? direction.split(/[、\/,]/).map(function (s) { return s.trim(); }).filter(Boolean) : [direction];
+    const subParts = hasSep
+      ? direction
+          .split(/[、\/,]/)
+          .map(function (s) {
+            return s.trim();
+          })
+          .filter(Boolean)
+      : [direction];
     for (var si = 0; si < subParts.length; si++) {
       var sub = subParts[si];
       if (!sub) continue;
@@ -387,8 +455,12 @@ function queryBacktest(filters) {
         if (sub === '胜' && actSpf === '主胜') return true;
         if (sub === '负' && actSpf === '客胜') return true;
         // 无分隔符双选："胜平" / "平负" 简化
-        if (sub === '胜平') { if (actSpf === '主胜' || actSpf === '平') return true; }
-        if (sub === '平负') { if (actSpf === '平' || actSpf === '客胜') return true; }
+        if (sub === '胜平') {
+          if (actSpf === '主胜' || actSpf === '平') return true;
+        }
+        if (sub === '平负') {
+          if (actSpf === '平' || actSpf === '客胜') return true;
+        }
         // 让球方向（让平/让胜/让负）：用让球数计算有效比分
         if (sub === '让平' || sub === '让胜' || sub === '让负') {
           var hcp = row.handicap != null ? parseFloat(row.handicap) || 0 : 0;
@@ -403,9 +475,13 @@ function queryBacktest(filters) {
       // ── 总进球方向（"总进球-2" / "3球"） ──
       if (totalGoals != null) {
         var gm = sub.match(/^总进球-(\d+)/);
-        if (gm) { if (totalGoals === parseInt(gm[1])) return true; }
+        if (gm) {
+          if (totalGoals === parseInt(gm[1])) return true;
+        }
         var sgm = sub.match(/^(\d+)球$/);
-        if (sgm) { if (totalGoals === parseInt(sgm[1])) return true; }
+        if (sgm) {
+          if (totalGoals === parseInt(sgm[1])) return true;
+        }
       }
     }
     return false;
@@ -416,7 +492,8 @@ function queryBacktest(filters) {
     var halfResult = null;
     if (halfScore && halfScore.trim()) {
       var hp = String(halfScore).replace(/[-:]/g, ':').split(':');
-      var hh = parseInt(hp[0]), ha = parseInt(hp[1]);
+      var hh = parseInt(hp[0]),
+        ha = parseInt(hp[1]);
       if (!isNaN(hh) && !isNaN(ha)) {
         halfResult = hh > ha ? '主胜' : hh < ha ? '客胜' : '平';
       }
@@ -436,12 +513,14 @@ function queryBacktest(filters) {
     if (pat.length < 2) return false;
     var halfChar = pat[0]; // 第一个字=半场
     var fullChar = pat[1]; // 第二个字=全场
-    var halfOk = (halfChar === '胜' && hfResult.half === '主胜') ||
-                 (halfChar === '平' && hfResult.half === '平') ||
-                 (halfChar === '负' && hfResult.half === '客胜');
-    var fullOk = (fullChar === '胜' && hfResult.full === '主胜') ||
-                 (fullChar === '平' && hfResult.full === '平') ||
-                 (fullChar === '负' && hfResult.full === '客胜');
+    var halfOk =
+      (halfChar === '胜' && hfResult.half === '主胜') ||
+      (halfChar === '平' && hfResult.half === '平') ||
+      (halfChar === '负' && hfResult.half === '客胜');
+    var fullOk =
+      (fullChar === '胜' && hfResult.full === '主胜') ||
+      (fullChar === '平' && hfResult.full === '平') ||
+      (fullChar === '负' && hfResult.full === '客胜');
     return halfOk && fullOk;
   }
 
@@ -505,15 +584,31 @@ function computeStats(list, type) {
     return total > 0 ? parseFloat((hits / total).toFixed(2)) : 0;
   }
 
-  const aiList = list.filter(function (r) { return r.ai_spf; });
-  const pkList = list.filter(function (r) { return r.pk_direction; });
-  const gsList = list.filter(function (r) { return r.gs_top_score; });
+  const aiList = list.filter(function (r) {
+    return r.ai_spf;
+  });
+  const pkList = list.filter(function (r) {
+    return r.pk_direction;
+  });
+  const gsList = list.filter(function (r) {
+    return r.gs_top_score;
+  });
 
   // ── GS 功守道统计 ──
   stats.gs = {
     total: gsList.length,
-    score_hit_rate: pct(gsList.length, gsList.filter(function (r) { return r.gs_hit; }).length),
-    spf_hit_rate: pct(gsList.length, gsList.filter(function (r) { return r.gs_spf_hit; }).length),
+    score_hit_rate: pct(
+      gsList.length,
+      gsList.filter(function (r) {
+        return r.gs_hit;
+      }).length,
+    ),
+    spf_hit_rate: pct(
+      gsList.length,
+      gsList.filter(function (r) {
+        return r.gs_spf_hit;
+      }).length,
+    ),
     // 共识分级
     byConsensus: (function () {
       var map = { strong: { t: 0, h: 0 }, weak: { t: 0, h: 0 }, meltdown: { t: 0, h: 0 } };
@@ -523,7 +618,10 @@ function computeStats(list, type) {
         else if (c === 'weak' || c === '弱一致') c = 'weak';
         else if (c === 'meltdown' || c === '熔断') c = 'meltdown';
         else c = null;
-        if (c && map[c]) { map[c].t++; if (r.gs_hit) map[c].h++; }
+        if (c && map[c]) {
+          map[c].t++;
+          if (r.gs_hit) map[c].h++;
+        }
       });
       return {
         strong: { total: map.strong.t, hit: map.strong.h, rate: pct(map.strong.t, map.strong.h) },
@@ -532,7 +630,15 @@ function computeStats(list, type) {
       };
     })(),
     // 概率校准曲线数据（预测概率 vs 实际命中率）
-    calibration: buildCalibration(gsList, function (r) { return r.gs_top_percent || 0; }, function (r) { return r.gs_hit; }),
+    calibration: buildCalibration(
+      gsList,
+      function (r) {
+        return r.gs_top_percent || 0;
+      },
+      function (r) {
+        return r.gs_hit;
+      },
+    ),
     // 按联赛分组
     byLeague: groupByLeague(gsList, 'gs_hit', 'gs_score'),
   };
@@ -540,17 +646,40 @@ function computeStats(list, type) {
   // ── AI 深度分析统计 ──
   stats.ai = {
     total: aiList.length,
-    spf_accuracy: pct(aiList.length, aiList.filter(function (r) { return r.ai_hit; }).length),
+    spf_accuracy: pct(
+      aiList.length,
+      aiList.filter(function (r) {
+        return r.ai_hit;
+      }).length,
+    ),
     ou_accuracy: (function () {
-      var ouList = aiList.filter(function (r) { return r.ai_overunder; });
-      return pct(ouList.length, ouList.filter(function (r) { return r.ai_ou_hit; }).length);
+      var ouList = aiList.filter(function (r) {
+        return r.ai_overunder;
+      });
+      return pct(
+        ouList.length,
+        ouList.filter(function (r) {
+          return r.ai_ou_hit;
+        }).length,
+      );
     })(),
-    ou_total: aiList.filter(function (r) { return r.ai_overunder; }).length,
+    ou_total: aiList.filter(function (r) {
+      return r.ai_overunder;
+    }).length,
     score_accuracy: (function () {
-      var scList = aiList.filter(function (r) { return r.ai_score; });
-      return pct(scList.length, scList.filter(function (r) { return r.ai_score_hit; }).length);
+      var scList = aiList.filter(function (r) {
+        return r.ai_score;
+      });
+      return pct(
+        scList.length,
+        scList.filter(function (r) {
+          return r.ai_score_hit;
+        }).length,
+      );
     })(),
-    score_total: aiList.filter(function (r) { return r.ai_score; }).length,
+    score_total: aiList.filter(function (r) {
+      return r.ai_score;
+    }).length,
     // 置信度分级
     byConfidence: (function () {
       var buckets = [
@@ -575,7 +704,15 @@ function computeStats(list, type) {
       });
     })(),
     // 置信度校准曲线
-    calibration: buildCalibration(aiList, function (r) { return parseFloat(r.ai_confidence) || 0; }, function (r) { return r.ai_hit; }),
+    calibration: buildCalibration(
+      aiList,
+      function (r) {
+        return parseFloat(r.ai_confidence) || 0;
+      },
+      function (r) {
+        return r.ai_hit;
+      },
+    ),
     // 按联赛分组
     byLeague: groupByLeague(aiList, 'ai_hit', 'ai_spf'),
   };
@@ -583,17 +720,40 @@ function computeStats(list, type) {
   // ── PK 融合分析统计 ──
   stats.pk = {
     total: pkList.length,
-    direction_accuracy: pct(pkList.length, pkList.filter(function (r) { return r.pk_hit; }).length),
+    direction_accuracy: pct(
+      pkList.length,
+      pkList.filter(function (r) {
+        return r.pk_hit;
+      }).length,
+    ),
     hcp_accuracy: (function () {
-      var hcpList = pkList.filter(function (r) { return r.pk_hcp_direction; });
-      return pct(hcpList.length, hcpList.filter(function (r) { return r.pk_hcp_hit; }).length);
+      var hcpList = pkList.filter(function (r) {
+        return r.pk_hcp_direction;
+      });
+      return pct(
+        hcpList.length,
+        hcpList.filter(function (r) {
+          return r.pk_hcp_hit;
+        }).length,
+      );
     })(),
-    hcp_total: pkList.filter(function (r) { return r.pk_hcp_direction; }).length,
+    hcp_total: pkList.filter(function (r) {
+      return r.pk_hcp_direction;
+    }).length,
     goal_accuracy: (function () {
-      var gList = pkList.filter(function (r) { return r.pk_goal_direction; });
-      return pct(gList.length, gList.filter(function (r) { return r.pk_ou_hit; }).length);
+      var gList = pkList.filter(function (r) {
+        return r.pk_goal_direction;
+      });
+      return pct(
+        gList.length,
+        gList.filter(function (r) {
+          return r.pk_ou_hit;
+        }).length,
+      );
     })(),
-    goal_total: pkList.filter(function (r) { return r.pk_goal_direction; }).length,
+    goal_total: pkList.filter(function (r) {
+      return r.pk_goal_direction;
+    }).length,
     // 星级校准
     byStars: (function () {
       var stars = {};
@@ -627,7 +787,15 @@ function computeStats(list, type) {
       return result;
     })(),
     // 综合信心分校准曲线
-    calibration: buildCalibration(pkList, function (r) { return parseFloat(r.pk_composite_score) || 0; }, function (r) { return r.pk_hit; }),
+    calibration: buildCalibration(
+      pkList,
+      function (r) {
+        return parseFloat(r.pk_composite_score) || 0;
+      },
+      function (r) {
+        return r.pk_hit;
+      },
+    ),
     // 按联赛分组
     byLeague: groupByLeague(pkList, 'pk_hit', 'pk_dir'),
   };
@@ -636,11 +804,30 @@ function computeStats(list, type) {
   const leagueMap = {};
   list.forEach(function (r) {
     const lg = r.leagueName || '未知';
-    if (!leagueMap[lg]) leagueMap[lg] = { league: lg, total: 0, ai_hits: 0, pk_hits: 0, gs_hits: 0, ai_total: 0, pk_total: 0, gs_total: 0 };
+    if (!leagueMap[lg])
+      leagueMap[lg] = {
+        league: lg,
+        total: 0,
+        ai_hits: 0,
+        pk_hits: 0,
+        gs_hits: 0,
+        ai_total: 0,
+        pk_total: 0,
+        gs_total: 0,
+      };
     leagueMap[lg].total++;
-    if (r.ai_spf) { leagueMap[lg].ai_total++; if (r.ai_hit) leagueMap[lg].ai_hits++; }
-    if (r.pk_direction) { leagueMap[lg].pk_total++; if (r.pk_hit) leagueMap[lg].pk_hits++; }
-    if (r.gs_top_score) { leagueMap[lg].gs_total++; if (r.gs_hit) leagueMap[lg].gs_hits++; }
+    if (r.ai_spf) {
+      leagueMap[lg].ai_total++;
+      if (r.ai_hit) leagueMap[lg].ai_hits++;
+    }
+    if (r.pk_direction) {
+      leagueMap[lg].pk_total++;
+      if (r.pk_hit) leagueMap[lg].pk_hits++;
+    }
+    if (r.gs_top_score) {
+      leagueMap[lg].gs_total++;
+      if (r.gs_hit) leagueMap[lg].gs_hits++;
+    }
   });
   stats.byLeague = Object.values(leagueMap).map(function (l) {
     return {
@@ -671,9 +858,15 @@ function buildCalibration(list, scoreFn, hitFn) {
   var buckets = [];
   if (isProb) {
     // 0-1 概率分 5 档
-    var cuts = [0, 0.05, 0.10, 0.15, 0.20, 0.30, 1.01];
+    var cuts = [0, 0.05, 0.1, 0.15, 0.2, 0.3, 1.01];
     for (var i = 0; i < cuts.length - 1; i++) {
-      buckets.push({ min: cuts[i], max: cuts[i + 1], label: Math.round(cuts[i] * 100) + '-' + Math.round((cuts[i + 1] - 0.01) * 100) + '%', t: 0, h: 0 });
+      buckets.push({
+        min: cuts[i],
+        max: cuts[i + 1],
+        label: Math.round(cuts[i] * 100) + '-' + Math.round((cuts[i + 1] - 0.01) * 100) + '%',
+        t: 0,
+        h: 0,
+      });
     }
   } else if (isPct) {
     // 0-100 信心分分 6 档
@@ -699,12 +892,17 @@ function buildCalibration(list, scoreFn, hitFn) {
   });
 
   return buckets
-    .filter(function (b) { return b.t >= 3; }) // 至少3个样本
+    .filter(function (b) {
+      return b.t >= 3;
+    }) // 至少3个样本
     .map(function (b) {
+      var midpoint = (b.min + b.max) / 2;
+      // 归一化为 0-1 概率（兼容百分比输入）
+      var prob = isPct ? midpoint / 100 : midpoint;
       return {
         label: b.label,
         total: b.t,
-        predictProb: parseFloat((b.min + b.max) / 2).toFixed(3), // 区间中点作为预测概率
+        predictProb: parseFloat(prob.toFixed(4)),
         actualRate: b.t > 0 ? parseFloat((b.h / b.t).toFixed(4)) : 0,
         hit: b.h,
       };
@@ -721,8 +919,12 @@ function groupByLeague(subList, hitField, typeField) {
     if (r[hitField]) map[lg].hits++;
   });
   return Object.values(map)
-    .filter(function (l) { return l.total >= 2; })
-    .sort(function (a, b) { return b.total - a.total; })
+    .filter(function (l) {
+      return l.total >= 2;
+    })
+    .sort(function (a, b) {
+      return b.total - a.total;
+    })
     .map(function (l) {
       return {
         league: l.league,

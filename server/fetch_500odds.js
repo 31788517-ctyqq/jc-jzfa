@@ -273,9 +273,12 @@ function parseMatchRow(segment, matchNum) {
     rqspfValues.push(parseFloat(m[1]));
   }
 
-  if (nspfValues.length < 3) return null;
+  // ★ 修复：SPF 未开售时 nspf 可能为空，但 RQSPF 可能已开售——不允许丢弃整行
+  if (nspfValues.length < 3 && rqspfValues.length < 3) return null;
 
-  const spf = { home: nspfValues[0], draw: nspfValues[1], away: nspfValues[2] };
+  const spf = nspfValues.length >= 3
+    ? { home: nspfValues[0], draw: nspfValues[1], away: nspfValues[2] }
+    : null;
   const rqspf =
     rqspfValues.length >= 3
       ? { home: rqspfValues[0], draw: rqspfValues[1], away: rqspfValues[2], handicap: handicap }

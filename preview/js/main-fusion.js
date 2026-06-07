@@ -10,7 +10,7 @@ import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/matc
 var _modCache = {};
 function _mod(name) {
   if (_modCache[name]) return Promise.resolve(_modCache[name]);
-  return import('./pages/' + name + '.js?v=202606071700')
+  return import('./pages/' + name + '.js?v=202606071740')
     .then(function (m) {
       _modCache[name] = m;
       return m;
@@ -715,7 +715,8 @@ function _ensurePage(id) {
         '</div>' +
         '</div>';
     else if (id === 'confirm-scheme')
-      el.innerHTML = '<div id="confirmContent"><div class="loading"><div class="loading-spinner"></div>加载方案中...</div></div>';
+      el.innerHTML =
+        '<div id="confirmContent"><div class="loading"><div class="loading-spinner"></div>加载方案中...</div></div>';
     // ★ 蓝图新增页面
     else if (id === 'model-dashboard')
       el.innerHTML =
@@ -751,7 +752,9 @@ function _ensurePage(id) {
 export function switchTab(tab) {
   // 重定向：独立 myplan 页面已废弃，统一跳转到今日方案 → 我的方案标签
   if (tab === 'myplan') {
-    try { sessionStorage.setItem('pendingPlanTab', 'my'); } catch (e) {}
+    try {
+      sessionStorage.setItem('pendingPlanTab', 'my');
+    } catch (e) {}
     switchTab('plan');
     return;
   }
@@ -809,7 +812,10 @@ export function switchTab(tab) {
   if (tab === 'plan') {
     // 如果从"保存方案"跳转过来，强制切到"我的方案"
     var pendingTab;
-    try { pendingTab = sessionStorage.getItem('pendingPlanTab'); sessionStorage.removeItem('pendingPlanTab'); } catch (e) {}
+    try {
+      pendingTab = sessionStorage.getItem('pendingPlanTab');
+      sessionStorage.removeItem('pendingPlanTab');
+    } catch (e) {}
     if (pendingTab === 'my') {
       state.setPlanTab('my');
       // 更新 tab 栏高亮
@@ -910,8 +916,8 @@ window.togglePlanDatePicker = togglePlanDatePicker;
 window.selectPlanDateFromPicker = selectPlanDateFromPicker;
 
 // ★ 懒加载代理：方案设计页玩法切换（确保模块未加载时也能响应点击）
-window.switchSchemePlay = function(type) {
-  _mod('scheme-design').then(function() {
+window.switchSchemePlay = function (type) {
+  _mod('scheme-design').then(function () {
     window.switchSchemePlay(type);
   });
 };
@@ -1018,17 +1024,23 @@ function _preloadData(current) {
   tabs.forEach(function (tab) {
     if (tab === 'match') {
       // 触发 match-list 加载（会被缓存拦截）
-      import('./pages/match-list.js').then(function (m) {
-        m.loadMatchList();
-      }).catch(function () {});
+      import('./pages/match-list.js')
+        .then(function (m) {
+          m.loadMatchList();
+        })
+        .catch(function () {});
     } else if (tab === 'plan') {
-      import('./pages/plans.js').then(function (m) {
-        if (m.loadPlanList) m.loadPlanList();
-      }).catch(function () {});
+      import('./pages/plans.js')
+        .then(function (m) {
+          if (m.loadPlanList) m.loadPlanList();
+        })
+        .catch(function () {});
     } else if (tab === 'quant-rank') {
-      import('./pages/quant-rank-fusion.js').then(function (m) {
-        if (m.loadQuantRank) m.loadQuantRank();
-      }).catch(function () {});
+      import('./pages/quant-rank-fusion.js')
+        .then(function (m) {
+          if (m.loadQuantRank) m.loadQuantRank();
+        })
+        .catch(function () {});
     }
   });
 }
@@ -1052,17 +1064,17 @@ function switchTabLoad(tab) {
     detail: '比赛详情',
     'quant-rank': '量化数据排行榜',
     rank: '推荐排行榜',
-  hit: '命中率统计',
-  filter: '推荐方向命中查询',
-  income: '方案收入',
-  backtest: '回测分析',
-  scheme: '方案设计',
-  'confirm-scheme': '确认方案',
-};
-var titleEl = document.getElementById('navTitle');
-if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
+    hit: '命中率统计',
+    filter: '推荐方向命中查询',
+    income: '方案收入',
+    backtest: '回测分析',
+    scheme: '方案设计',
+    'confirm-scheme': '确认方案',
+  };
+  var titleEl = document.getElementById('navTitle');
+  if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
 
-// 设置对应 tab-item active
+  // 设置对应 tab-item active
   document.querySelectorAll('.tab-item').forEach(function (t) {
     t.classList.remove('active');
   });
@@ -1083,7 +1095,10 @@ if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
   if (tab === 'plan') {
     // 如果从"保存方案"跳转过来，强制切到"我的方案"
     var pendingTab;
-    try { pendingTab = sessionStorage.getItem('pendingPlanTab'); sessionStorage.removeItem('pendingPlanTab'); } catch (e) {}
+    try {
+      pendingTab = sessionStorage.getItem('pendingPlanTab');
+      sessionStorage.removeItem('pendingPlanTab');
+    } catch (e) {}
     if (pendingTab === 'my') {
       state.setPlanTab('my');
       // 更新 tab 栏高亮
