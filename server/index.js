@@ -2555,6 +2555,19 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const m3a = findBestMatchForDirection(['胜'], null, 35);
             const m3b = findBestMatchForDirection(['让负'], m3a ? [m3a.matchId] : null);
 
+            // ★ 方案级中奖判定：2串1 = 两场都对才中，任一场错则未中
+            function computePlanResult(matches) {
+              let allWon = true, anyLose = false, anyUnknown = false;
+              for (const m of matches) {
+                if (m.isMatchWon === true) continue;        // 命中，继续
+                if (m.isMatchLose === true) { anyLose = true; allWon = false; }
+                else { anyUnknown = true; allWon = false; }
+              }
+              if (anyUnknown) return { isPlanWon: null, isPlanLose: null };
+              if (allWon) return { isPlanWon: true, isPlanLose: false };
+              return { isPlanWon: false, isPlanLose: true };
+            }
+
             function push2MatchPlan(planName, planSuffix, mA, dirA, mB, dirB, betCount, ticketCount, multiplier, minProductOdds) {
               if (!mA || !mB) return;
               const aObj = buildMatchObj(mA, dirA);
@@ -2564,6 +2577,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const productOdds = (e1 && e2) ? e1 * e2 : 0;
               if (minProductOdds && productOdds < minProductOdds) return;
               const maxPrize = (e1 && e2) ? Math.round(1000 * productOdds) : 0;
+
+              const planResult = computePlanResult([aObj, bObj]);
+              const winningPrize = planResult.isPlanWon === true ? maxPrize : 0;
 
               plans.push({
                 planId: 'plan_' + dateStr + '_' + planSuffix,
@@ -2577,7 +2593,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 ticketCount: ticketCount,
                 multiplier: multiplier || 25,
                 maxPrize: maxPrize,
-                winningPrize: maxPrize,
+                winningPrize: winningPrize,
+                isPlanWon: planResult.isPlanWon,
+                isPlanLose: planResult.isPlanLose,
               });
             }
 
@@ -2606,13 +2624,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 if (subOdds6.length === 2) {
                   const invSum6 = subOdds6.reduce((s, o) => s + 1 / o, 0);
                   const maxPrize6 = invSum6 > 0 ? Math.round(1000 / invSum6) : 0;
+                  const plan6Result = computePlanResult([m6Obj]);
                   plans.push({
                     planId: 'plan_' + dateStr + '_6',
                     planName: '方案六',
                     matches: [m6Obj],
                     amount: 1000, playType: '单关', matchCount: 1, passType: '单关',
                     betCount: 250, ticketCount: 10, multiplier: 25,
-                    maxPrize: maxPrize6, winningPrize: maxPrize6,
+                    maxPrize: maxPrize6, winningPrize: plan6Result.isPlanWon === true ? maxPrize6 : 0,
+                    isPlanWon: plan6Result.isPlanWon,
+                    isPlanLose: plan6Result.isPlanLose,
                   });
                 }
               }
@@ -2707,6 +2728,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 const subOdds7 = extractSubOdds(m7Obj.odds, bestM7Dir);
                 const invSum7 = subOdds7.reduce((s, o) => s + 1 / o, 0);
                 const maxPrize7 = invSum7 > 0 ? Math.round(1000 / invSum7) : 0;
+                const plan7Result = computePlanResult([m7Obj]);
                 plans.push({
                   planId: 'plan_' + dateStr + '_7',
                   planName: '方案七',
@@ -2719,7 +2741,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   ticketCount: 10,
                   multiplier: 25,
                   maxPrize: maxPrize7,
-                  winningPrize: maxPrize7,
+                  winningPrize: plan7Result.isPlanWon === true ? maxPrize7 : 0,
+                  isPlanWon: plan7Result.isPlanWon,
+                  isPlanLose: plan7Result.isPlanLose,
                 });
               }
             }
