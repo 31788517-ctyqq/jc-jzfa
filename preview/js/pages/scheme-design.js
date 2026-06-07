@@ -778,14 +778,14 @@ function renderOtherSection(matchId) {
   var clickAttr = otherDisabled ? '' : ' onclick="openSchemeBetting(\'' + matchId + '\')"';
 
   if (otherSels.length > 0) {
-    var itemsHtml = otherSels.map(function(s) {
-      var label = s.direction + '  ' + (s.odds > 0 ? Number(s.odds).toFixed(2) : '-');
-      return '<span class="smc-other-info">' + label + '</span>';
-    }).join('');
+    // ★ BF/JQS/BQC 聚合显示：比分+4 / 总进球+5 / 半全场+3
+    var _otPlay = otherSels[0].playType;
+    var _otLabel = { bf: '比分', jqs: '总进球', bqc: '半全场' }[_otPlay] || _otPlay;
+    var itemHtml = '<span class="smc-other-info">' + _otLabel + ' +' + otherSels.length + '</span>';
     return '<span class="smc-other has-selection' + dimCls + '"' + clickAttr + '>' +
       '<span class="smc-other-label">其它</span>' +
       '<div class="smc-other-sep"></div>' +
-      itemsHtml +
+      itemHtml +
       '</span>';
   }
   return '<span class="smc-other' + dimCls + '"' + clickAttr + '>其它</span>';
