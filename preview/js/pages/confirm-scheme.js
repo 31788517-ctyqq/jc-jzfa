@@ -698,9 +698,10 @@ window.confirmSavePlan = function () {
   if (uniqueMatches.length === 1) {
     var selMatch = _matches.find(function (m) { return m.matchId === uniqueMatches[0]; });
 
-    // ★ 竞彩规则：仅标记为"单关"的场次允许单场投注，支持 SPF/RQSPF/BF/JQS/BQC 全部玩法
-    if (!selMatch || selMatch.isSingleGame !== true) {
-      alert('⚽ 该场比赛未标记为「单关」场次，不支持单关投注\n\n请至少再选一场比赛组成串关。');
+    // ★ BF/JQS/BQC 天生单关，无需 isSingleGame 标记；SPF/RQSPF 需要单关标记
+    var hasSPF_RQSPF = _selections.some(function(s) { return s.playType === 'spf' || s.playType === 'rqspf'; });
+    if (hasSPF_RQSPF && (!selMatch || selMatch.isSingleGame !== true)) {
+      alert('⚽ 该场比赛未标记为「单关」场次，不支持单关胜平负投注\n\n请至少再选一场比赛组成串关。');
       return;
     }
   }

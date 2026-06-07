@@ -4698,13 +4698,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             if (!deviceId) return res.json({ code: 0, msg: '缺少用户标识' });
             const plan = data.plan || {};
             if (!plan.matches || plan.matches.length === 0) return res.json({ code: 0, msg: '方案不能为空' });
-            // ★ 单关校验：仅标记为"单关"的场次允许单场投注
+            // ★ 单关校验：BF/JQS/BQC 天生单关，SPF/RQSPF 需要 isSingleGame 标记
             var _uniqueMatchIds = {};
             plan.matches.forEach(function(m) { _uniqueMatchIds[m.matchId] = true; });
             var _uniqueCount = Object.keys(_uniqueMatchIds).length;
             if (_uniqueCount === 1) {
-              if (plan.matches[0].isSingleGame !== true) {
-                return res.json({ code: 0, msg: '该场比赛未标记为单关场次，不支持单关投注' });
+              var _hasSPF_RQSPF = plan.matches.some(function(m) { return m.playType === 'spf' || m.playType === 'rqspf'; });
+              if (_hasSPF_RQSPF && plan.matches[0].isSingleGame !== true) {
+                return res.json({ code: 0, msg: '该场比赛未标记为单关场次，不支持单关胜平负投注' });
               }
             }
             // ★ 串关规则：同场比赛只能用同一玩法
