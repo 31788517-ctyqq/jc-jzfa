@@ -12,9 +12,24 @@ function renderMatchTeams(m) {
                   (m.isScoreWon !== null && m.isScoreWon !== undefined) ||
                   (m.isScoreLose !== null && m.isScoreLose !== undefined);
   var score = m.actualScore || '';
+
+  // ★ 提取让球数：优先从 odds.rqspf.handicap，其次 odds.handicap
+  var handicap = null;
+  if (m.odds && m.odds.rqspf && m.odds.rqspf.handicap != null) {
+    handicap = Number(m.odds.rqspf.handicap);
+  } else if (m.odds && m.odds.handicap != null) {
+    handicap = Number(m.odds.handicap);
+  }
+  var handicapStr = '';
+  if (handicap !== null && handicap !== 0) {
+    handicapStr = '(+' + handicap + ')';
+  } else if (handicap === 0) {
+    handicapStr = '(0)';
+  }
+
   if (hasResult && score) {
     return '<span class="plan-team-home">' + (m.homeName || '') +
-           '</span><span class="plan-score-blue">' + score + '</span>' +
+           '</span><span class="plan-score-blue">' + score + handicapStr + '</span>' +
            '<span class="plan-team-away">' + (m.visitName || '') + '</span>';
   }
   return '<span class="plan-team-home">' + (m.homeName || '') +

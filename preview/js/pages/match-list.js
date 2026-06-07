@@ -81,6 +81,10 @@ function renderMatchHTML(matches) {
         if (halfText) {
           extraInfo += '<span class="match-half">(半 ' + halfText + ')</span>';
         }
+        // ★ 让球数显示在半场比分后面
+        if (concedeLabel) {
+          extraInfo += ' ' + concedeLabel;
+        }
         return `
       <div class="match-card" id="mc-${m.matchId}" onclick="goDetail('${m.matchId}')">
         <div class="match-header">
@@ -98,7 +102,7 @@ function renderMatchHTML(matches) {
         <div class="match-teams">
           <span class="team-name">${m.homeName}</span>
           ${isLive && scoreDisplay ? scoreDisplay : '<span class="vs">VS</span>'}
-          <span class="team-name">${m.visitName}${concedeLabel}</span>
+          <span class="team-name">${m.visitName}</span>
         </div>
         <div class="match-info">
           <span class="match-experts">${m.recommNum ? m.recommNum + '位专家推荐' : ''}</span>
