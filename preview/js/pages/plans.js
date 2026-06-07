@@ -404,7 +404,7 @@ export function loadPlanList() {
                   '<span style="color:' + subColor + '">' + displayLabel + openP + '-' + closeP + '</span>',
                 );
             });
-            return resolved.join('<span style="color:#fff">' + (isPlan7 ? '+' : '、') + '</span>');
+            return resolved.join('<span style="color:#fff"> + </span>');
           }
 
           var matchRows = '';

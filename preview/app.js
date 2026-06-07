@@ -2134,14 +2134,16 @@ function loadPlanList() {
                 if (gm2) val = oddsObj.totalGoals[gm2[1]];
               }
               // 半全场方向（半全场-胜胜、半全场-平胜 等）
-              if (!val && ft.indexOf('半全场-') === 0 && oddsObj.halfFull) {
+              const isHalfFull = ft.indexOf('半全场-') === 0;
+              if (!val && isHalfFull && oddsObj.halfFull) {
                 const hfName = ft.replace('半全场-', '');
                 const hfMap = { '胜胜':'hh','平胜':'dh','胜负':'ha','胜平':'hd','平平':'dd','平负':'da','负胜':'ah','负平':'ad','负负':'aa' };
                 const hfKey = hfMap[hfName];
                 if (hfKey) val = oddsObj.halfFull[hfKey];
               }
               // SPF fallback 仅对非RQ/非总进球方向生效
-              if (!val && !isRQ) {
+              // ★ 半全场无赔率数据时不回退到SPF（SPF赔率与半全场差异太大）
+              if (!val && !isRQ && !isHalfFull) {
                 if (ft.indexOf('胜') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.home;
                 else if (ft.indexOf('平') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.draw;
                 else if (ft.indexOf('负') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.away;
@@ -2169,7 +2171,7 @@ function loadPlanList() {
               if (val) resolved.push('<span style=\"color:' + subColor + '\">' + displayLabel + '(' + val + ')</span>');
               else resolved.push('<span style=\"color:' + subColor + '\">' + displayLabel + '(-)</span>');
             });
-            return resolved.join('<span style=\"color:#fff\">、</span>');
+            return resolved.join('<span style=\"color:#fff\"> + </span>');
           }
 
           // 构建比赛表格行
