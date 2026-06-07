@@ -660,8 +660,17 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
     return;
   }
 
-  // ★ 群彩风格：同场不同玩法 → 静默替换（清除同场旧选择后再添加新选择）
-  _selections = _selections.filter(function(s) { return s.matchId !== matchId; });
+  // ★ BF/JQS/BQC 支持单场多选（同一玩法允许多个选项）
+  var isMultiSelect = playType === 'bf' || playType === 'jqs' || playType === 'bqc';
+  if (isMultiSelect) {
+    // 多选模式：仅清除同玩法+m同方向的重复，不移除同场其他选择
+    _selections = _selections.filter(function(s) {
+      return !(s.matchId === matchId && s.playType === playType && s.direction === dirName);
+    });
+  } else {
+    // SPF/RQSPF：同场不同方向 → 静默替换（清除同场旧选择后再添加）
+    _selections = _selections.filter(function(s) { return s.matchId !== matchId; });
+  }
 
   _selections.push({
     matchId: matchId,
@@ -687,64 +696,65 @@ function findOtherSelections(matchId) {
   });
 }
 
-// ★ BF/JQS/BQC 专用赔率按钮行（标签切换后铺满整个选择区）
+// ★ BF/JQS/BQC 专用赔率按钮行（4列网格 + 单场多选）
 function renderSpecialOddsRow(m, matchId) {
   var odds = m._odds || {};
+  
+  // 通用渲染函数：4列网格
+  function render4ColGrid(playType, items, getLabel, getOdds, getScore) {
+    if (!items || items.length === 0) return '';
+    var delta = odds[playType + 'Delta'] || {};
+    var selSet = {};
+    _selections.filter(function(s) { return s.matchId === matchId && s.playType === playType; }).forEach(function(s) { selSet[s.direction] = true; });
+    var btns = items.map(function(item) {
+      var label = getLabel(item), score = getScore ? getScore(item) : label;
+      var o = getOdds(item);
+      var oddsStr = o != null ? Number(o).toFixed(2) : '-';
+      var sel = selSet[score] ? ' selected' : '';
+      var arrow = delta[score] === 'up' ? ' ▲' : delta[score] === 'down' ? ' ▼' : '';
+      var noOdd = o == null;
+      var cls = 'sodds-btn' + (sel ? ' selected' : '') + (noOdd ? ' sodds-btn-no-odds' : '');
+      var onClick = noOdd ? '' : ' onclick="event.stopPropagation();selectSchemeOdds(\'' + matchId + '\',\'' + playType + '\',\'' + escStr(score) + '\',' + o + ',null)"';
+      return '<button class="' + cls + '"' + onClick + ' style="width:25%;font-size:10px;padding:5px 2px;box-sizing:border-box">' + label + '<br><span style="font-size:9px;opacity:0.9">' + oddsStr + arrow + '</span></button>';
+    }).join('');
+    return '<div class="sodds-grid-4col" style="display:flex;flex-wrap:wrap;width:100%">' + btns + '</div>';
+  }
   
   // 比分
   if (_activePlayType === 'bf') {
     var bfList = odds.bf || [];
-    if (bfList.length === 0) return '<div class="sodds-row sodds-row-dim"><span class="sodds-hcp">[比分]</span><span class="sodds-pending" style="display:flex;align-items:center;justify-content:center;flex:1;color:var(--text3);font-size:11px;padding:8px 0">赔率加载中，请稍候或点"其它"手动选择</span></div>';
-    // 取前8个比分
-    var topScores = bfList.slice(0, 8);
-    var delta = odds.bfDelta || {};
-    var selSet = {};
-    _selections.filter(function(s) { return s.matchId === matchId && s.playType === 'bf'; }).forEach(function(s) { selSet[s.direction] = true; });
-    var btns = topScores.map(function(s) {
-      var o = s.odds != null ? Number(s.odds).toFixed(2) : '-';
-      var sel = selSet[s.score] ? ' selected' : '';
-      var arrow = delta[s.score] === 'up' ? ' ▲' : delta[s.score] === 'down' ? ' ▼' : '';
-      return '<button class="sodds-btn' + sel + '" onclick="event.stopPropagation();selectSchemeOdds(\'' + matchId + '\',\'bf\',\'' + s.score + '\',' + s.odds + ',null)" style="font-size:10px;padding:4px 6px;flex:0 0 auto;min-width:42px">' + s.score + '<br>' + o + arrow + '</button>';
-    }).join('');
-    return '<div class="sodds-row"><span class="sodds-hcp">[比分]</span>' + btns + '</div>';
+    if (bfList.length === 0) return '<div class="sodds-grid-4col" style="display:flex;align-items:center;justify-content:center;flex:1;color:var(--text3);font-size:11px;padding:12px 0">赔率加载中，请稍候</div>';
+    return render4ColGrid('bf', bfList,
+      function(s) { return s.score; },
+      function(s) { return s.odds; },
+      function(s) { return s.score; }
+    );
   }
   
   // 总进球
   if (_activePlayType === 'jqs') {
-    var jqsList = odds.jqs || [];
-    if (jqsList.length === 0) return '<div class="sodds-row sodds-row-dim"><span class="sodds-hcp">[进球]</span><span class="sodds-pending" style="display:flex;align-items:center;justify-content:center;flex:1;color:var(--text3);font-size:11px;padding:8px 0">赔率加载中，请稍候或点"其它"手动选择</span></div>';
-    var deltaJ = odds.jqsDelta || {};
-    var selSetJ = {};
-    _selections.filter(function(s) { return s.matchId === matchId && s.playType === 'jqs'; }).forEach(function(s) { selSetJ[s.direction] = true; });
-    var btns = FIXED_JQS.map(function(g) {
-      var item = jqsList.find(function(x) { return String(x.goals) === String(g); });
-      var o = item ? Number(item.odds).toFixed(2) : '-';
-      var sel = selSetJ[g] ? ' selected' : '';
-      var arrow = deltaJ[g] === 'up' ? ' ▲' : deltaJ[g] === 'down' ? ' ▼' : '';
-      var disabled = !item ? ' sodds-btn-no-odds' : '';
-      var onClick = item ? ' onclick="event.stopPropagation();selectSchemeOdds(\'' + matchId + '\',\'jqs\',\'' + g + '\',' + item.odds + ',null)"' : '';
-      return '<button class="sodds-btn' + sel + disabled + '"' + onClick + ' style="font-size:10px;padding:4px 8px;flex:0 0 auto">' + g.replace('+','&#43;') + '<br>' + o + arrow + '</button>';
-    }).join('');
-    return '<div class="sodds-row"><span class="sodds-hcp">[进球]</span>' + btns + '</div>';
+    var jqsList = (odds.jqs || []).filter(function(x) { return FIXED_JQS.indexOf(String(x.goals)) >= 0; });
+    if (jqsList.length === 0) return '<div class="sodds-grid-4col" style="display:flex;align-items:center;justify-content:center;flex:1;color:var(--text3);font-size:11px;padding:12px 0">赔率加载中，请稍候</div>';
+    return render4ColGrid('jqs', jqsList,
+      function(s) { return String(s.goals).replace('+','+'); },
+      function(s) { return s.odds; },
+      function(s) { return String(s.goals); }
+    );
   }
   
   // 半全场
   if (_activePlayType === 'bqc') {
-    var bqcList = odds.bqc || [];
-    if (bqcList.length === 0) return '<div class="sodds-row sodds-row-dim"><span class="sodds-hcp">[半全]</span><span class="sodds-pending" style="display:flex;align-items:center;justify-content:center;flex:1;color:var(--text3);font-size:11px;padding:8px 0">赔率加载中，请稍候或点"其它"手动选择</span></div>';
-    var deltaB = odds.bqcDelta || {};
-    var selSetB = {};
-    _selections.filter(function(s) { return s.matchId === matchId && s.playType === 'bqc'; }).forEach(function(s) { selSetB[s.direction] = true; });
-    var btns = FIXED_BQC.slice(0, 9).map(function(c) {
-      var item = bqcList.find(function(x) { return (x.combo || x.label || '') === c || (x.key || '') === c; }) || bqcList.find(function(x) { return (x.combo || x.label || '') === c; });
-      var o = item ? Number(item.odds).toFixed(2) : '-';
-      var sel = selSetB[c] ? ' selected' : '';
-      var arrow = deltaB[c] === 'up' ? ' ▲' : deltaB[c] === 'down' ? ' ▼' : '';
-      var disabled = !item ? ' sodds-btn-no-odds' : '';
-      var onClick = item ? ' onclick="event.stopPropagation();selectSchemeOdds(\'' + matchId + '\',\'bqc\',\'' + c + '\',' + item.odds + ',null)"' : '';
-      return '<button class="sodds-btn' + sel + disabled + '"' + onClick + ' style="font-size:9px;padding:4px 5px;flex:0 0 auto;min-width:36px">' + c + '<br>' + o + arrow + '</button>';
-    }).join('');
-    return '<div class="sodds-row"><span class="sodds-hcp">[半全]</span>' + btns + '</div>';
+    var bqcItems = [];
+    FIXED_BQC.forEach(function(c) {
+      var item = (odds.bqc || []).find(function(x) { return (x.combo || x.label || x.key || '') === c; });
+      if (item) bqcItems.push({ combo: c, odds: item.odds });
+    });
+    if (bqcItems.length === 0) return '<div class="sodds-grid-4col" style="display:flex;align-items:center;justify-content:center;flex:1;color:var(--text3);font-size:11px;padding:12px 0">赔率加载中，请稍候</div>';
+    return render4ColGrid('bqc', bqcItems,
+      function(s) { return s.combo; },
+      function(s) { return s.odds; },
+      function(s) { return s.combo; }
+    );
   }
   
   return '';
