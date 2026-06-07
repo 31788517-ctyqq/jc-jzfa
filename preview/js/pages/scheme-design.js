@@ -625,7 +625,7 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
     // 检查是否已有该场比赛的选择
     var hasThisMatch = _selections.some(function (s) { return s.matchId === matchId; });
     if (!hasThisMatch && samePlayCount >= limit) {
-      alert('⚽ ' + PLAY_NAMES[playType] + '玩法最多选择 ' + limit + ' 场比赛（木桶原则）');
+      alert('⚽ ' + PLAY_NAMES[playType] + '玩法最多选择 ' + limit + ' 场比赛');
       return;
     }
   } else {
@@ -644,8 +644,8 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
     if (newPlayLimit < minLimit) minLimit = newPlayLimit;
     var hasThisMatch = totalMatchIds[matchId];
     if (!hasThisMatch && totalMatches >= minLimit) {
-      alert('⚽ 当前混合过关方案受玩法限制，最多选择 ' + minLimit + ' 场比赛（木桶原则：' +
-        _selections.map(function (s) { return PLAY_NAMES[s.playType] + '(' + PLAY_LIMITS[s.playType] + ')'; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join('+') + '）');
+      alert('⚽ 当前方案受玩法限制，最多选择 ' + minLimit + ' 场比赛（' +
+        _selections.map(function (s) { return PLAY_NAMES[s.playType] + '上限' + PLAY_LIMITS[s.playType] + '场'; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join('，') + '）');
       return;
     }
   }

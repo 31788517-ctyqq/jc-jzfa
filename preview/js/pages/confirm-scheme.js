@@ -624,7 +624,7 @@ window.confirmShowPassPopup = function () {
   });
   var bucketHint = '';
   if (maxPass < n && maxPass < 8) {
-    bucketHint = '（' + playLimitParts.join('+') + ' → 木桶上限' + maxPass + '关）';
+    bucketHint = '（' + playLimitParts.join('+') + ' → 上限' + maxPass + '关）';
   }
 
   var html = '<div class="ssb-modal ssb-pass-modal">';

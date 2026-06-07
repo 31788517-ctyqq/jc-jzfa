@@ -10,7 +10,7 @@ import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/matc
 var _modCache = {};
 function _mod(name) {
   if (_modCache[name]) return Promise.resolve(_modCache[name]);
-  return import('./pages/' + name + '.js?v=202606071630')
+  return import('./pages/' + name + '.js?v=202606071700')
     .then(function (m) {
       _modCache[name] = m;
       return m;

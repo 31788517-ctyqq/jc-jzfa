@@ -239,19 +239,20 @@ function getCardKey(card) {
 function render() {
   var overlay = document.getElementById('betOverlay');
   if (!overlay || !_currentMatch) return;
+
   var m = _currentMatch;
 
   // ★ 玩法上下文提示标题
   var playTitle = _activePlayType !== 'mixed' ? '竞彩·' + (PLAY_NAMES[_activePlayType] || '混合过关') : '竞彩·混合过关';
 
-  // ★ 玩法提示
+  // ★ 玩法提示（对齐群彩：跨场可混合不同玩法，同场自动替换）
   var playHint = '';
   if (_activePlayType !== 'mixed') {
     var limit = PLAY_LIMITS[_activePlayType] || 8;
     playHint = '<div class="bet-play-hint">当前玩法：<b>' + PLAY_NAMES[_activePlayType] +
-      '</b>（上限 ' + limit + ' 场） | 同一场比赛的不同玩法不能混合过关</div>';
+      '</b>（上限 ' + limit + ' 场） | 同场比赛仅保留一种玩法</div>';
   } else {
-    playHint = '<div class="bet-play-hint">⚽ 木桶原则：含比分/半全场上限4场，含总进球上限6场，仅SPF上限8场</div>';
+    playHint = '<div class="bet-play-hint">⚽ 支持跨场混合不同玩法 | 同场比赛点击新玩法自动替换 | 比分/半全场上限4场，总进球上限6场，SPF上限8场</div>';
   }
 
   overlay.innerHTML =
@@ -557,7 +558,21 @@ function _betSelect(playType, label, odds, handicap) {
   } else {
     _selectedBets.push({ key: key, playType: playType, label: label, odds: odds, handicap: handicap });
   }
-  render();
+  // ★ 不全量 render()，仅切换 DOM class + 更新按钮状态，避免页面跳动
+  var overlay = document.getElementById('betOverlay');
+  if (overlay) {
+    var card = overlay.querySelector('[data-play-type="' + playType + '"][data-label="' + label + '"]');
+    if (card) {
+      if (existingIdx >= 0) {
+        card.classList.remove('selected');
+      } else {
+        card.classList.add('selected');
+      }
+    }
+    // 更新确定按钮 disabled 状态
+    var btn = document.getElementById('betConfirmBtn');
+    if (btn) btn.disabled = _selectedBets.length === 0;
+  }
   applyDirectionHighlights();
 }
 window._betSelect = _betSelect;
