@@ -4253,7 +4253,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 for (const mm of mList) {
                   if (excludeIds && excludeIds.indexOf(mm.matchId) >= 0) continue;
                   const md = matchDataMap[mm.matchId];
-                  if (!md || !md.odds) continue;
+                  if (!md) continue;
                   const recs = md.recs;
                   let total = 0;
                   for (const r of recs) {
