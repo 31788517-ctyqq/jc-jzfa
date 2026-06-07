@@ -4001,7 +4001,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const deviceId = (req.headers['x-device-id'] || '').trim();
               if (deviceId) {
                 const userPlans = readUserPlans(deviceId) || [];
-                let myWon = 0, myIncome = 0;
+                let myWon = 0, myIncome = 0, myPlanIdx = 0;
+                const cnNums = ['','一','二','三','四','五','六','七','八','九','十',
+                  '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
+                  '二十一','二十二','二十三','二十四','二十五','二十六','二十七','二十八','二十九','三十'];
                 userPlans.forEach(function (p) {
                   // 只统计已结算的方案（isWon 为 true 或 false）
                   if (p.isWon !== true && p.isWon !== false) return;
@@ -4015,8 +4018,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   if (daysFilter > 0) {
                     if (!pDate || pDate < fmtDate2(startDate) || pDate > fmtDate2(endDate)) return;
                   }
+                  myPlanIdx++;
+                  const planDisplayName = '方案' + (myPlanIdx <= 30 ? cnNums[myPlanIdx] : String(myPlanIdx));
                   // amount 已是元，与 expert/score/quant 统一以元为单位
                   const amountYuan = Math.round(Number(p.amount) || 0);
+                  // 提取 matches 信息（供明细表格展示场次/方向）
+                  const matchInfos = (p.matches || []).map(function (mm) {
+                    return { matchNum: mm.matchNum || '--', direction: mm.direction || mm.oddsName || '--' };
+                  });
                   if (p.isWon) {
                     myWon++;
                     let prize = 0;
@@ -4031,8 +4040,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     myIncome += dayInc;
                     results.push({
                       date: pDate || '未知',
-                      plan: p.note || '我的方案',
+                      plan: planDisplayName,
                       status: 'won',
+                      matches: matchInfos,
                       prize: prize,
                       income: dayInc,
                     });
@@ -4040,8 +4050,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     myIncome -= amountYuan;
                     results.push({
                       date: pDate || '未知',
-                      plan: p.note || '我的方案',
+                      plan: planDisplayName,
                       status: 'lose',
+                      matches: matchInfos,
                       prize: 0,
                       income: -amountYuan,
                     });
