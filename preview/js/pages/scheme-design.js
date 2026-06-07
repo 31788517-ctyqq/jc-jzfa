@@ -713,7 +713,7 @@ function renderSpecialOddsRow(m, matchId) {
       var o = getOdds(item);
       var oddsStr = o != null ? Number(o).toFixed(2) : '-';
       var sel = selSet[score];
-      var arrow = delta[score] === 'up' ? ' ▲' : delta[score] === 'down' ? ' ▼' : '';
+      var arrow = delta[score] === 'up' ? ' <span style=\"color:#EF4444\">▲</span>' : delta[score] === 'down' ? ' <span style=\"color:#22C55E\">▼</span>' : '';
       var noOdd = o == null;
       var bgColor = sel ? 'background:#1E3A5F;border-color:#3B82F6;' : '';
       var cls = 'sodds-btn' + (sel ? ' selected' : '') + (noOdd ? ' sodds-btn-no-odds' : '');
