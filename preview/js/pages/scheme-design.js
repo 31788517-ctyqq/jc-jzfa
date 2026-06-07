@@ -615,11 +615,13 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
   // ★ 防止空 matchId 导致误判为同一场比赛
   if (!matchId) { console.warn('selectSchemeOdds: matchId 为空，忽略选择'); return; }
 
-  // ★ 木桶原则：检查玩法上限
+  // ★ 木桶原则：检查玩法上限（按唯一比赛数，非选项数）
   if (_activePlayType !== 'mixed') {
-    // 在特定玩法下，按"同玩法上限"检查
+    // 在特定玩法下，按"同玩法唯一比赛数"检查
     var limit = PLAY_LIMITS[playType] || 8;
-    var samePlayCount = _selections.filter(function (s) { return s.playType === playType; }).length;
+    var samePlayMatches = {};
+    _selections.forEach(function (s) { if (s.playType === playType) samePlayMatches[s.matchId] = true; });
+    var samePlayCount = Object.keys(samePlayMatches).length;
     // 检查是否已有该场比赛的选择
     var hasThisMatch = _selections.some(function (s) { return s.matchId === matchId; });
     if (!hasThisMatch && samePlayCount >= limit) {
@@ -662,17 +664,13 @@ window.selectSchemeOdds = function (matchId, playType, dirName, oddsVal, handica
     return;
   }
 
-  // ★ BF/JQS/BQC 支持单场多选（同一玩法允许多个选项）
-  var isMultiSelect = playType === 'bf' || playType === 'jqs' || playType === 'bqc';
-  if (isMultiSelect) {
-    // 多选模式：仅清除同玩法+m同方向的重复，不移除同场其他选择
-    _selections = _selections.filter(function(s) {
-      return !(s.matchId === matchId && s.playType === playType && s.direction === dirName);
-    });
-  } else {
-    // SPF/RQSPF：同场不同方向 → 静默替换（清除同场旧选择后再添加）
-    _selections = _selections.filter(function(s) { return s.matchId !== matchId; });
-  }
+  // ★ 同场比赛只能用同一玩法 + 移除重复方向
+  _selections = _selections.filter(function(s) {
+    if (s.matchId !== matchId) return true;
+    if (s.playType !== playType) return false; // 同场不同玩法 → 清除
+    if (s.direction === dirName) return false;  // 重复方向 → 清除
+    return true;
+  });
 
   _selections.push({
     matchId: matchId,
@@ -999,11 +997,26 @@ window.saveUserPlan = function () {
   if (uniqueMatches.length === 1) {
     var selMatch = _matches.find(function(m) { return (m.matchId || m.id) === uniqueMatches[0]; });
 
-    // ★ 竞彩规则：所有玩法单关均需该场比赛标记为"单关"场次
-    if (selMatch && selMatch.isSingleGame !== true) {
-      alert('⚽ 单关投注需要该场比赛标记为「单关」场次，当前比赛不支持单关\n\n' +
-        '请至少再选一场比赛组成串关，或选择带「单关」标签的比赛。');
+    // ★ 竞彩规则：仅标记为"单关"的场次允许单场投注，支持 SPF/RQSPF/BF/JQS/BQC 全部玩法
+    if (!selMatch || selMatch.isSingleGame !== true) {
+      alert('⚽ 该场比赛未标记为「单关」场次，不支持单关投注\n\n请至少再选一场比赛组成串关。');
       return;
+    }
+  }
+
+  // ★ 串关规则：同场比赛只能用同一玩法
+  if (uniqueMatches.length >= 2) {
+    var _spMap = {};
+    for (var _si = 0; _si < _selections.length; _si++) {
+      var _s = _selections[_si];
+      if (!_spMap[_s.matchId]) {
+        _spMap[_s.matchId] = _s.playType;
+      } else if (_spMap[_s.matchId] !== _s.playType) {
+        var _sm = _matches.find(function(x) { return (x.matchId || x.id) === _s.matchId; });
+        var _sLabel = _sm ? (_sm.homeName + ' vs ' + _sm.visitName) : _s.matchId;
+        alert('⚽ 串关规则：同场比赛只能用同一玩法\n\n' + _sLabel + ' 已同时选择了 ' + (PLAY_NAMES[_spMap[_s.matchId]] || _spMap[_s.matchId]) + ' 和 ' + (PLAY_NAMES[_s.playType] || _s.playType) + '，请统一为同一玩法。');
+        return;
+      }
     }
   }
 

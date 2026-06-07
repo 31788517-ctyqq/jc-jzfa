@@ -10,7 +10,7 @@ import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/matc
 var _modCache = {};
 function _mod(name) {
   if (_modCache[name]) return Promise.resolve(_modCache[name]);
-  return import('./pages/' + name + '.js?v=202606062200')
+  return import('./pages/' + name + '.js?v=202606071630')
     .then(function (m) {
       _modCache[name] = m;
       return m;
@@ -722,11 +722,11 @@ function _ensurePage(id) {
         '<div class="filter-section-card"><div class="filter-head">筛选条件</div>' +
         '<div class="filter-row"><span class="filter-label">时间</span>' +
         '<div class="filter-dd" id="dd-mdTime" data-val="30"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-mdTime\', event)"><span class="filter-dd-text">近30天</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>' +
-        '<ul class="filter-dd-menu"><li data-val="30" class="filter-dd-option selected" onclick="selectDD(\'dd-mdTime\',\'30\',\'近30天\')">近30天</li><li data-val="60" class="filter-dd-option" onclick="selectDD(\'dd-mdTime\',\'60\',\'近60天\')">近60天</li><li data-val="all" class="filter-dd-option" onclick="selectDD(\'dd-mdTime\',\'all\',\'全部\')">全部</li></ul>' +
+        '<ul class="filter-dd-menu"><li data-val="1" class="filter-dd-option" onclick="selectDD(\'dd-mdTime\',\'1\',\'今天\')">今天</li><li data-val="7" class="filter-dd-option" onclick="selectDD(\'dd-mdTime\',\'7\',\'近7天\')">近7天</li><li data-val="30" class="filter-dd-option selected" onclick="selectDD(\'dd-mdTime\',\'30\',\'近30天\')">近30天</li><li data-val="60" class="filter-dd-option" onclick="selectDD(\'dd-mdTime\',\'60\',\'近60天\')">近60天</li><li data-val="all" class="filter-dd-option" onclick="selectDD(\'dd-mdTime\',\'all\',\'全部\')">全部</li></ul>' +
         '</div></div>' +
         '<div class="filter-row"><span class="filter-label">指标</span>' +
         '<div class="filter-dd" id="dd-mdMetric" data-val="direction"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-mdMetric\', event)"><span class="filter-dd-text">方向命中率</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>' +
-        '<ul class="filter-dd-menu"><li data-val="direction" class="filter-dd-option selected" onclick="selectDD(\'dd-mdMetric\',\'direction\',\'方向命中率\')">方向命中率</li><li data-val="over_under" class="filter-dd-option" onclick="selectDD(\'dd-mdMetric\',\'over_under\',\'大小球命中率\')">大小球命中率</li><li data-val="score" class="filter-dd-option" onclick="selectDD(\'dd-mdMetric\',\'score\',\'比分命中率\')">比分命中率</li></ul>' +
+        '<ul class="filter-dd-menu"><li data-val="direction" class="filter-dd-option selected" onclick="selectDD(\'dd-mdMetric\',\'direction\',\'方向命中率\')">方向命中率</li><li data-val="over_under" class="filter-dd-option" onclick="selectDD(\'dd-mdMetric\',\'over_under\',\'大小球命中率\')">大小球命中率</li><li data-val="score" class="filter-dd-option" onclick="selectDD(\'dd-mdMetric\',\'score\',\'比分命中率\')">比分命中率</li><li data-val="all" class="filter-dd-option" onclick="selectDD(\'dd-mdMetric\',\'all\',\'综合\')">综合</li></ul>' +
         '</div></div>' +
         '<div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="window._mdRefresh && window._mdRefresh()">查询</button></div>' +
         '</div>' +
@@ -736,8 +736,8 @@ function _ensurePage(id) {
       el.innerHTML =
         '<div class="filter-section-card"><div class="filter-head">筛选条件</div>' +
         '<div class="filter-row"><span class="filter-label">时间</span>' +
-        '<div class="filter-dd" id="dd-dhTime" data-val="7"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-dhTime\', event)"><span class="filter-dd-text">近7天</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>' +
-        '<ul class="filter-dd-menu"><li data-val="7" class="filter-dd-option selected" onclick="selectDD(\'dd-dhTime\',\'7\',\'近7天\')">近7天</li><li data-val="30" class="filter-dd-option" onclick="selectDD(\'dd-dhTime\',\'30\',\'近30天\')">近30天</li><li data-val="all" class="filter-dd-option" onclick="selectDD(\'dd-dhTime\',\'all\',\'全部\')">全部</li></ul>' +
+        '<div class="filter-dd" id="dd-dhTime" data-val="1"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-dhTime\', event)"><span class="filter-dd-text">今天</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div>' +
+        '<ul class="filter-dd-menu"><li data-val="1" class="filter-dd-option selected" onclick="selectDD(\'dd-dhTime\',\'1\',\'今天\')">今天</li><li data-val="7" class="filter-dd-option" onclick="selectDD(\'dd-dhTime\',\'7\',\'近7天\')">近7天</li><li data-val="30" class="filter-dd-option" onclick="selectDD(\'dd-dhTime\',\'30\',\'近30天\')">近30天</li><li data-val="all" class="filter-dd-option" onclick="selectDD(\'dd-dhTime\',\'all\',\'全部\')">全部</li></ul>' +
         '</div></div>' +
         '<div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="window._dhRefresh && window._dhRefresh()">查询</button></div>' +
         '</div>' +

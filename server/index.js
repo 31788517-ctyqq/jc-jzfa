@@ -4698,12 +4698,29 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             if (!deviceId) return res.json({ code: 0, msg: '缺少用户标识' });
             const plan = data.plan || {};
             if (!plan.matches || plan.matches.length === 0) return res.json({ code: 0, msg: '方案不能为空' });
-            // ★ 竞彩规则：串关方案中同一场比赛不能出现多次（含不同玩法）
-            const matchIds = plan.matches.map(function (m) { return m.matchId; });
-            const uniqueMatchIds = new Set(matchIds);
-            if (matchIds.length !== uniqueMatchIds.size && uniqueMatchIds.size >= 2) {
-              return res.json({ code: 0, msg: '串关方案中同一场比赛不能出现多次（含不同玩法），请每场只选一个方向' });
+            // ★ 单关校验：仅标记为"单关"的场次允许单场投注
+            var _uniqueMatchIds = {};
+            plan.matches.forEach(function(m) { _uniqueMatchIds[m.matchId] = true; });
+            var _uniqueCount = Object.keys(_uniqueMatchIds).length;
+            if (_uniqueCount === 1) {
+              if (plan.matches[0].isSingleGame !== true) {
+                return res.json({ code: 0, msg: '该场比赛未标记为单关场次，不支持单关投注' });
+              }
             }
+            // ★ 串关规则：同场比赛只能用同一玩法
+            if (_uniqueCount >= 2) {
+              var _matchPlayMap = {};
+              var _playNames = { spf: '胜平负', rqspf: '让球胜平负', bf: '比分', jqs: '总进球', bqc: '半全场' };
+              for (var _mi = 0; _mi < plan.matches.length; _mi++) {
+                var _pm = plan.matches[_mi];
+                if (!_matchPlayMap[_pm.matchId]) {
+                  _matchPlayMap[_pm.matchId] = _pm.playType;
+                } else if (_matchPlayMap[_pm.matchId] !== _pm.playType) {
+                  return res.json({ code: 0, msg: '串关规则：同场比赛只能用同一玩法（' + (_pm.homeName || '') + ' vs ' + (_pm.visitName || '') + ' 同时选择了 ' + (_playNames[_matchPlayMap[_pm.matchId]] || _matchPlayMap[_pm.matchId]) + ' 和 ' + (_playNames[_pm.playType] || _pm.playType) + '）' });
+                }
+              }
+            }
+            // ★ 允许串关方案中同场多次选择（比分/总进球/半全场可多选方向）
             const plans = readUserPlans(deviceId);
             const now = new Date().toISOString();
             if (plan.id) {
