@@ -715,10 +715,9 @@ function renderSpecialOddsRow(m, matchId) {
       var sel = selSet[score];
       var arrow = delta[score] === 'up' ? ' <span style=\"color:#EF4444\">▲</span>' : delta[score] === 'down' ? ' <span style=\"color:#22C55E\">▼</span>' : '';
       var noOdd = o == null;
-      var bgColor = sel ? 'background:#1E3A5F;border-color:#3B82F6;' : '';
-      var cls = 'sodds-btn' + (sel ? ' selected' : '') + (noOdd ? ' sodds-btn-no-odds' : '');
+      var cls = 'sodds-btn' + (sel ? ' active' : '') + (noOdd ? ' sodds-btn-no-odds' : '');
       var onClick = noOdd ? '' : ' onclick="event.stopPropagation();selectSchemeOdds(\'' + matchId + '\',\'' + playType + '\',\'' + escStr(score) + '\',' + o + ',null)"';
-      return '<button class="' + cls + '"' + onClick + ' style="flex:0 0 calc(25% - 2px);max-width:calc(25% - 2px);margin:1px;font-size:10px;padding:5px 2px;box-sizing:border-box;' + bgColor + '">' + label + '<br><span style="font-size:9px;color:#00E5FF">' + oddsStr + arrow + '</span></button>';
+      return '<button class="' + cls + '"' + onClick + ' style="flex:0 0 calc(25% - 2px);max-width:calc(25% - 2px);margin:1px;font-size:10px;padding:5px 2px;box-sizing:border-box">' + label + '<br><span style="font-size:9px;color:#00E5FF">' + oddsStr + arrow + '</span></button>';
     }).join('');
     return '<div class="sodds-grid-4col" style="display:flex;flex-wrap:wrap;width:100%">' + btns + '</div>';
   }
