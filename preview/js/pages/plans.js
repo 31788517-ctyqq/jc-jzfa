@@ -313,11 +313,9 @@ export function loadPlanList() {
 
           function resolveMatchOddsHtml(match, planIdx) {
             var dir = match.direction || '';
-            var origDir = dir;
             // 单关双选方向展开：胜平→胜、平，平负→平、负
             if (dir === '胜平') dir = '胜、平';
             else if (dir === '平负') dir = '平、负';
-            var isPlan7 = origDir === '胜平' || origDir === '平负';
             var oddsObj = match.odds || {};
             var parts = dir ? dir.split(/[、，,]/) : [];
             var subResults = match.subResults || [];
@@ -393,15 +391,13 @@ export function loadPlanList() {
               if (displayLabel.indexOf('半全场-') === 0) {
                 displayLabel = displayLabel.replace('半全场-', '');
               }
-              var openP = isPlan7 ? '（' : '(';
-              var closeP = isPlan7 ? '）' : ')';
               if (val)
                 resolved.push(
-                  '<span style="color:' + subColor + '">' + displayLabel + openP + val + closeP + '</span>',
+                  '<span style="color:' + subColor + '">' + displayLabel + '(' + val + ')</span>',
                 );
               else
                 resolved.push(
-                  '<span style="color:' + subColor + '">' + displayLabel + openP + '-' + closeP + '</span>',
+                  '<span style="color:' + subColor + '">' + displayLabel + '(-)</span>',
                 );
             });
             return resolved.join('<span style="color:#fff"> + </span>');
@@ -531,7 +527,7 @@ export function loadPlanList() {
             '</div>' +
             '<div class="plan-match-section">' +
             '<table class="plan-match-table">' +
-            '<thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th></tr></thead>' +
+            '<thead><tr><th>场次</th><th>对阵</th><th>方向(赔率)</th></tr></thead>' +
             '<tbody>' +
             matchRows +
             '</tbody>' +
@@ -675,7 +671,7 @@ export function loadMyPlanList() {
             stampHtml +
             '</div>' +
             '<div class="plan-match-section">' +
-            '<table class="plan-match-table"><thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th></tr></thead><tbody>' +
+            '<table class="plan-match-table"><thead><tr><th>场次</th><th>对阵</th><th>方向(赔率)</th></tr></thead><tbody>' +
             matchRows +
             '</tbody></table></div>' +
             '<div class="mp-actions">' +
@@ -996,7 +992,7 @@ function _buildShareCard(cardEl) {
     '</div>' +
     '<div class="section-header"><div class="section-icon">&#x26BD;</div><div class="section-text">赛事详情</div></div>' +
     '<div class="match-table">' +
-    '<div class="table-head"><div>场次</div><div>对阵</div><div>投注(赔率)</div></div>' +
+    '<div class="table-head"><div>场次</div><div>对阵</div><div>方向(赔率)</div></div>' +
     matchRows +
     '</div>' +
     '</div>';
@@ -1388,7 +1384,7 @@ export function loadScorePlanList() {
             '</div>' +
             '<div class="plan-match-section">' +
             '<table class="plan-match-table score-table">' +
-            '<thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th><th>资金分配</th></tr></thead>' +
+            '<thead><tr><th>场次</th><th>对阵</th><th>方向(赔率)</th><th>资金分配</th></tr></thead>' +
             '<tbody>' +
             scoreRows +
             '</tbody>' +

@@ -2287,7 +2287,7 @@ function loadPlanList() {
             // ═══ 比赛表格 ═══
             '<div class="plan-match-section">' +
             '<table class="plan-match-table">' +
-            '<thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th></tr></thead>' +
+            '<thead><tr><th>场次</th><th>对阵</th><th>方向(赔率)</th></tr></thead>' +
             '<tbody>' +
             matchRows +
             '</tbody>' +
@@ -2488,7 +2488,7 @@ function loadScorePlanList() {
             // 比赛表格
             '<div class="plan-match-section">' +
             '<table class="plan-match-table">' +
-            '<thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th></tr></thead>' +
+            '<thead><tr><th>场次</th><th>对阵</th><th>方向(赔率)</th></tr></thead>' +
             '<tbody>' +
             '<tr>' +
             '<td class="match-info-col">' +
