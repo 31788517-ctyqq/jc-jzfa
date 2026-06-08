@@ -471,7 +471,9 @@ function startPollWatcher() {
 function stopDataWatcher() {
   // ★ P2-3: 清理 fs.watch 句柄
   _fsWatchers.forEach(function (w) {
-    try { w.close(); } catch (e) {}
+    try {
+      w.close();
+    } catch (e) {}
   });
   _fsWatchers = [];
 
