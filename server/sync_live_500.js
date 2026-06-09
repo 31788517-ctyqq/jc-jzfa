@@ -77,9 +77,9 @@ function parse500Live(html) {
     // 第4列 (index 4): 状态 (完/中/推迟/取消)
     let statusStr = tds[4] ? tds[4].replace(/<[^>]+>/g, '').trim() : '';
     let matchStatus = 0;
-    if (statusStr === '中') matchStatus = 1;
-    else if (statusStr === '完') matchStatus = 2;
-    else if (statusStr === '推迟' || statusStr === '取消') matchStatus = 3;
+    if (statusStr === '中' || statusStr === '进行' || statusStr === '1') matchStatus = 1;
+    else if (statusStr === '完' || statusStr === '结束' || statusStr === '2') matchStatus = 2;
+    else if (statusStr === '推迟' || statusStr === '取消' || statusStr === '3') matchStatus = 3;
 
     // ★ 提取红黄牌: 在球队名列中查找 <span class="yellowcard">/<span class="redcard">
     let homeYellow = '', homeRed = '', awayYellow = '', awayRed = '';
@@ -164,14 +164,12 @@ function parse500Live(html) {
 
     // ═══ 比赛进行时间 ═══
     let duration = '';
-    if (matchStatus === 1) {
-      for (const td of tds) {
-        const t = td.replace(/<[^>]+>/g, '').trim();
-        if (/(\d+)\s*['\u2018\u2019′分]/.test(t)) {
-          const m = t.match(/(\d+)/);
-          if (m) duration = m[1] + "'";
-          break;
-        }
+    for (const td of tds) {
+      const t = td.replace(/<[^>]+>/g, '').trim();
+      if (/(\d+)\s*['\u2018\u2019′分]/.test(t)) {
+        const m = t.match(/(\d+)/);
+        if (m) duration = m[1] + "'";
+        break;
       }
     }
 
