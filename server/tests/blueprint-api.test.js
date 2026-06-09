@@ -26,6 +26,25 @@ describe('蓝图 API — 响应结构规范', () => {
       expect(response.code).toBe(0);
       expect(response.msg).toBeTruthy();
     });
+
+    it('普通模型仪表盘不应展示系统派生模型', () => {
+      const hidden = ['data_fusion', 'expert_consensus', 'market_signal'];
+      const response = {
+        code: 1,
+        data: {
+          rankings: [{ modelName: '功守道' }, { modelName: 'PK评分' }],
+          models: ['功守道', 'PK评分'],
+          leagueHeatmap: { 功守道: { 近30天: 50 } },
+          trendData: [{ modelName: '功守道', values: [50] }],
+        },
+      };
+      const shownNames = []
+        .concat(response.data.rankings.map((r) => r.modelName))
+        .concat(response.data.models)
+        .concat(Object.keys(response.data.leagueHeatmap))
+        .concat(response.data.trendData.map((r) => r.modelName));
+      hidden.forEach((name) => expect(shownNames).not.toContain(name));
+    });
   });
 
   describe('data-health API', () => {
@@ -73,9 +92,7 @@ describe('蓝图 API — 响应结构规范', () => {
       const response = {
         code: 1,
         data: {
-          deepseek: [
-            { version: 'v4.2', total: 120, hits: 75, hitRate: 62.5 },
-          ],
+          deepseek: [{ version: 'v4.2', total: 120, hits: 75, hitRate: 62.5 }],
         },
       };
       expect(response.code).toBe(1);
@@ -121,7 +138,9 @@ describe('蓝图 API — 响应结构规范', () => {
           recommends: [],
         },
       };
-      fields.forEach((f) => { response.data[f] = null; });
+      fields.forEach((f) => {
+        response.data[f] = null;
+      });
       expect(response.data).toHaveProperty('consensus');
       expect(response.data).toHaveProperty('fusion');
       expect(response.data).toHaveProperty('features');

@@ -1,0 +1,504 @@
+{
+  "match_id": "2033060",
+  "featureAnalysis": {
+    "labels": [
+      "近9场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "5胜/1平/3负",
+      "3胜/0平/1负",
+      "4胜/3平/3负",
+      "2胜/5平/3负",
+      "1.9个",
+      "1.0个"
+    ],
+    "away": [
+      "3胜/1平/5负",
+      "1胜/0平/3负",
+      "3胜/3平/4负",
+      "2胜/3平/5负",
+      "1.0个",
+      "1.4个"
+    ]
+  },
+  "h2h": {
+    "title": "近9场布雷达5胜 (56%) | 1平 (11%) | 3负 (33%)",
+    "rows": [
+      {
+        "date": "2025-05-11",
+        "league": "荷甲",
+        "teams": "福图纳 1:0 （半 1:0） 布雷达",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2024-09-15",
+        "league": "荷甲",
+        "teams": "布雷达 1:0 （半 0:0） 福图纳",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2019-04-21",
+        "league": "荷甲",
+        "teams": "福图纳 2:1 （半 1:0） 布雷达",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2018-09-16",
+        "league": "荷甲",
+        "teams": "布雷达 2:3 （半 1:1） 福图纳",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2017-03-14",
+        "league": "荷乙",
+        "teams": "福图纳 0:2 （半 0:0） 布雷达",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2016-10-22",
+        "league": "荷乙",
+        "teams": "布雷达 3:1 （半 2:0） 福图纳",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2016-02-20",
+        "league": "荷乙",
+        "teams": "布雷达 5:0 （半 3:0） 福图纳",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2015-09-27",
+        "league": "荷乙",
+        "teams": "福图纳 1:2 （半 1:2） 布雷达",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2014-10-29",
+        "league": "荷兰杯",
+        "teams": "福图纳 2:2 （半 0:2） 布雷达",
+        "totalGoals": "4"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "布雷达",
+      "title": "Regular Season 第17名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "6/11/17",
+          "winRate": "18%",
+          "goals": "35/58",
+          "gd": "-23",
+          "points": "29",
+          "rank": "17"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "5/5/7",
+          "winRate": "29%",
+          "goals": "20/23",
+          "gd": "-3",
+          "points": "20",
+          "rank": "16"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "1/6/10",
+          "winRate": "6%",
+          "goals": "15/35",
+          "gd": "-20",
+          "points": "9",
+          "rank": "15"
+        }
+      ]
+    },
+    {
+      "team": "福图纳",
+      "title": "Regular Season 第11名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "11/6/17",
+          "winRate": "32%",
+          "goals": "49/63",
+          "gd": "-14",
+          "points": "39",
+          "rank": "11"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "7/4/6",
+          "winRate": "41%",
+          "goals": "28/29",
+          "gd": "-1",
+          "points": "25",
+          "rank": "12"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "4/2/11",
+          "winRate": "24%",
+          "goals": "21/34",
+          "gd": "-13",
+          "points": "14",
+          "rank": "13"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "布雷达",
+      "summary": "布雷达近10场4胜 (40%) | 3平 (30%) | 3负 (30%) 进19球，失10球，净进9球",
+      "matches": [
+        {
+          "date": "2025-08-10",
+          "league": "荷甲",
+          "vs": "费耶诺德 2 : 0 （半 1:0） 布雷达",
+          "result": "负"
+        },
+        {
+          "date": "2025-08-02",
+          "league": "俱乐部赛",
+          "vs": "诺维奇 0 : 1 （半 ） 布雷达",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-30",
+          "league": "俱乐部赛",
+          "vs": "布雷达 0 : 0 （半 ） Volos NFC",
+          "result": "平"
+        },
+        {
+          "date": "2025-07-26",
+          "league": "俱乐部赛",
+          "vs": "布雷达 6 : 1 （半 ） 福伦丹",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-24",
+          "league": "俱乐部赛",
+          "vs": "布雷达 0 : 1 （半 ） 萨火车头",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-19",
+          "league": "俱乐部赛",
+          "vs": "布雷达 2 : 3 （半 ） 奥林匹亚",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-11",
+          "league": "俱乐部赛",
+          "vs": "布雷达 2 : 0 （半 ） Lokeren-Temse",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-05",
+          "league": "俱乐部赛",
+          "vs": "奥斯 2 : 2 （半 ） 布雷达",
+          "result": "平"
+        },
+        {
+          "date": "2025-07-04",
+          "league": "俱乐部赛",
+          "vs": "巴罗尼 0 : 5 （半 ） 布雷达",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "荷甲",
+          "vs": "布雷达 1 : 1 （半 1:1） 威廉二世",
+          "result": "平"
+        }
+      ]
+    },
+    {
+      "team": "福图纳",
+      "summary": "福图纳近10场3胜 (30%) | 3平 (30%) | 4负 (40%) 进10球，失14球，净进-4球",
+      "matches": [
+        {
+          "date": "2025-08-09",
+          "league": "荷甲",
+          "vs": "福图纳 2 : 2 （半 1:1） 前进之鹰",
+          "result": "平"
+        },
+        {
+          "date": "2025-08-02",
+          "league": "俱乐部赛",
+          "vs": "福图纳 1 : 2 （半 ） 勒沃库森",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-26",
+          "league": "俱乐部赛",
+          "vs": "埃沃斯堡 2 : 3 （半 ） 福图纳",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-05",
+          "league": "俱乐部赛",
+          "vs": "福图纳 0 : 1 （半 ） 亨克",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "荷甲",
+          "vs": "福图纳 0 : 0 （半 0:0） 乌德勒支",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-15",
+          "league": "荷甲",
+          "vs": "阿尔梅勒 1 : 1 （半 1:0） 福图纳",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-11",
+          "league": "荷甲",
+          "vs": "福图纳 1 : 0 （半 1:0） 布雷达",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-04",
+          "league": "荷甲",
+          "vs": "埃因霍温 4 : 1 （半 2:0） 福图纳",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-27",
+          "league": "荷甲",
+          "vs": "福图纳 1 : 0 （半 0:0） 威廉二世",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-12",
+          "league": "荷甲",
+          "vs": "福图纳 0 : 2 （半 0:0） 费耶诺德",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "布雷达",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-09",
+          "俱乐部赛",
+          "布雷达\nVS\n埃因FC",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-18",
+          "俱乐部赛",
+          "布雷达\nVS\nSBV精英",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-25",
+          "俱乐部赛",
+          "Lokeren-Temse\nVS\n布雷达",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-08-01",
+          "俱乐部赛",
+          "博尔顿\nVS\n布雷达",
+          "Club Friendlies 3"
+        ]
+      ]
+    },
+    {
+      "team": "福图纳",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-04",
+          "俱乐部赛",
+          "福图纳\nVS\nLierse K",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "布雷达",
+      "players": [
+        {
+          "player": "4-B. Kemper(后卫)",
+          "apps": "32 (32/0)",
+          "goals": "5 (15%)",
+          "assists": "3 (13%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "10-M. Nassoh(中场)",
+          "apps": "28 (20/8)",
+          "goals": "5 (15%)",
+          "assists": "1 (4%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "9-M. Soumano(前锋)伤",
+          "apps": "16 (9/7)",
+          "goals": "5 (15%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        }
+      ]
+    },
+    {
+      "team": "福图纳",
+      "players": [
+        {
+          "player": "9-K. Sierhuis(前锋)伤",
+          "apps": "30 (25/5)",
+          "goals": "12 (25%)",
+          "assists": "1 (3%)",
+          "avg": "0.4/0"
+        },
+        {
+          "player": "52-伊哈塔伦(中场)",
+          "apps": "28 (23/5)",
+          "goals": "6 (13%)",
+          "assists": "10 (28%)",
+          "avg": "0.2/0.4"
+        },
+        {
+          "player": "19-P. Gladon(前锋)伤",
+          "apps": "31 (5/26)",
+          "goals": "5 (10%)",
+          "assists": "1 (3%)",
+          "avg": "0.2/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "布雷达",
+      "players": [
+        {
+          "player": "5-孔戈洛(后卫)",
+          "totalApps": "5",
+          "starts": "1",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "20-F·詹森(中场)",
+          "totalApps": "11",
+          "starts": "9",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "12-L. Greiml(后卫)",
+          "totalApps": "14",
+          "starts": "14",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "7-C.布莱姆(前锋)",
+          "totalApps": "24",
+          "starts": "17",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "9-M. Soumano(前锋)",
+          "totalApps": "16",
+          "starts": "9",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "9-M. Soumano(前锋)",
+          "totalApps": "16",
+          "starts": "9",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "18-D. van Reeuwijk(后卫)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "福图纳",
+      "players": [
+        {
+          "player": "85-Umaro Embaló(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "停"
+        },
+        {
+          "player": "19-P. Gladon(前锋)",
+          "totalApps": "31",
+          "starts": "5",
+          "subs": "26",
+          "status": "伤"
+        },
+        {
+          "player": "10-A. Halilović(中场)",
+          "totalApps": "5",
+          "starts": "0",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "24-D. Sinkgraven(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "9-K. Sierhuis(前锋)",
+          "totalApps": "30",
+          "starts": "25",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "6-S.范 奥特尔(后卫)",
+          "totalApps": "15",
+          "starts": "9",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "40-R. Bayram(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

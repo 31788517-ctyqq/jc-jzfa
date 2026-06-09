@@ -1,0 +1,506 @@
+{
+  "match_id": "2037057",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "1胜/3平/6负",
+      "1胜/6平/3负",
+      "2胜/2平/6负",
+      "3胜/1平/6负",
+      "1.4个",
+      "1.5个"
+    ],
+    "away": [
+      "6胜/3平/1负",
+      "3胜/6平/1负",
+      "4胜/3平/3负",
+      "3胜/1平/6负",
+      "1.7个",
+      "1.5个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场狼队1胜 (10%) | 3平 (30%) | 6负 (60%)",
+    "rows": [
+      {
+        "date": "2025-09-13",
+        "league": "英超",
+        "teams": "纽卡斯尔 1:0 （半 1:0） 狼队",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2025-01-16",
+        "league": "英超",
+        "teams": "纽卡斯尔 3:0 （半 1:0） 狼队",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2024-09-15",
+        "league": "英超",
+        "teams": "狼队 1:2 （半 1:0） 纽卡斯尔",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2024-03-02",
+        "league": "英超",
+        "teams": "纽卡斯尔 3:0 （半 2:0） 狼队",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2023-10-29",
+        "league": "英超",
+        "teams": "狼队 2:2 （半 1:2） 纽卡斯尔",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2023-03-13",
+        "league": "英超",
+        "teams": "纽卡斯尔 2:1 （半 1:0） 狼队",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2022-08-28",
+        "league": "英超",
+        "teams": "狼队 1:1 （半 1:0） 纽卡斯尔",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2022-04-09",
+        "league": "英超",
+        "teams": "纽卡斯尔 1:0 （半 0:0） 狼队",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2021-10-02",
+        "league": "英超",
+        "teams": "狼队 2:1 （半 1:1） 纽卡斯尔",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2021-02-28",
+        "league": "英超",
+        "teams": "纽卡斯尔 1:1 （半 0:0） 狼队",
+        "totalGoals": "2"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "狼队",
+      "title": "Regular Season 第20名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "3/11/24",
+          "winRate": "8%",
+          "goals": "27/68",
+          "gd": "-41",
+          "points": "20",
+          "rank": "20"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "3/5/11",
+          "winRate": "16%",
+          "goals": "19/34",
+          "gd": "-15",
+          "points": "14",
+          "rank": "19"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "0/6/13",
+          "winRate": "0%",
+          "goals": "8/34",
+          "gd": "-26",
+          "points": "6",
+          "rank": "20"
+        }
+      ]
+    },
+    {
+      "team": "纽卡斯尔",
+      "title": "Regular Season 第12名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "14/7/17",
+          "winRate": "37%",
+          "goals": "53/55",
+          "gd": "-2",
+          "points": "49",
+          "rank": "12"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "10/2/7",
+          "winRate": "53%",
+          "goals": "36/30",
+          "gd": "6",
+          "points": "32",
+          "rank": "11"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "4/5/10",
+          "winRate": "21%",
+          "goals": "17/25",
+          "gd": "-8",
+          "points": "17",
+          "rank": "15"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "狼队",
+      "summary": "狼队近10场2胜 (20%) | 2平 (20%) | 6负 (60%) 进14球，失15球，净进-1球",
+      "matches": [
+        {
+          "date": "2026-01-10",
+          "league": "英足总杯",
+          "vs": "狼队 6 : 1 （半 3:1） 什鲁斯",
+          "result": "胜"
+        },
+        {
+          "date": "2026-01-08",
+          "league": "英超",
+          "vs": "埃弗顿 1 : 1 （半 1:0） 狼队",
+          "result": "平"
+        },
+        {
+          "date": "2026-01-03",
+          "league": "英超",
+          "vs": "狼队 3 : 0 （半 3:0） 西汉姆联",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-31",
+          "league": "英超",
+          "vs": "曼联 1 : 1 （半 1:1） 狼队",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-27",
+          "league": "英超",
+          "vs": "利物浦 2 : 1 （半 2:0） 狼队",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-20",
+          "league": "英超",
+          "vs": "狼队 0 : 2 （半 0:0） 布伦特",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-14",
+          "league": "英超",
+          "vs": "阿森纳 2 : 1 （半 0:0） 狼队",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-09",
+          "league": "英超",
+          "vs": "狼队 1 : 4 （半 1:1） 曼联",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-04",
+          "league": "英超",
+          "vs": "狼队 0 : 1 （半 0:0） 诺丁汉",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-30",
+          "league": "英超",
+          "vs": "维拉 1 : 0 （半 0:0） 狼队",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "纽卡斯尔",
+      "summary": "纽卡斯尔近10场4胜 (40%) | 3平 (30%) | 3负 (30%) 进17球，失15球，净进2球",
+      "matches": [
+        {
+          "date": "2026-01-14",
+          "league": "英联赛杯",
+          "vs": "纽卡斯尔 0 : 2 （半 0:0） 曼城",
+          "result": "负"
+        },
+        {
+          "date": "2026-01-10",
+          "league": "英足总杯",
+          "vs": "纽卡斯尔 2 : 2 （半 0:0） 伯恩茅斯",
+          "result": "平"
+        },
+        {
+          "date": "2026-01-08",
+          "league": "英超",
+          "vs": "纽卡斯尔 4 : 3 （半 1:2） 利兹联",
+          "result": "胜"
+        },
+        {
+          "date": "2026-01-04",
+          "league": "英超",
+          "vs": "纽卡斯尔 2 : 0 （半 0:0） 水晶宫",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-31",
+          "league": "英超",
+          "vs": "伯恩利 1 : 3 （半 1:2） 纽卡斯尔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-27",
+          "league": "英超",
+          "vs": "曼联 1 : 0 （半 1:0） 纽卡斯尔",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-20",
+          "league": "英超",
+          "vs": "纽卡斯尔 2 : 2 （半 2:0） 切尔西",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-18",
+          "league": "英联赛杯",
+          "vs": "纽卡斯尔 2 : 1 （半 1:1） 富勒姆",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-14",
+          "league": "英超",
+          "vs": "桑德兰 1 : 0 （半 0:0） 纽卡斯尔",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-11",
+          "league": "欧冠",
+          "vs": "勒沃库森 2 : 2 （半 1:0） 纽卡斯尔",
+          "result": "平"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "狼队",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "纽卡斯尔",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-13",
+          "俱乐部赛",
+          "纽卡斯尔\nVS\n埃弗顿",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "狼队",
+      "players": [
+        {
+          "player": "9-J. Larsen(前锋)",
+          "apps": "36 (26/10)",
+          "goals": "4 (14%)",
+          "assists": "1 (6%)",
+          "avg": "0.1/0"
+        },
+        {
+          "player": "14-T. Arokodare(前锋)",
+          "apps": "33 (13/20)",
+          "goals": "3 (10%)",
+          "assists": "1 (6%)",
+          "avg": "0.1/0"
+        },
+        {
+          "player": "36-M. Mane(前锋)",
+          "apps": "27 (19/8)",
+          "goals": "3 (10%)",
+          "assists": "1 (6%)",
+          "avg": "0.1/0"
+        }
+      ]
+    },
+    {
+      "team": "纽卡斯尔",
+      "players": [
+        {
+          "player": "39-Bruno Guimarães(中场)",
+          "apps": "29 (27/2)",
+          "goals": "9 (17%)",
+          "assists": "5 (15%)",
+          "avg": "0.3/0.2"
+        },
+        {
+          "player": "27-N. Woltemade(前锋)",
+          "apps": "33 (24/9)",
+          "goals": "8 (15%)",
+          "assists": "3 (9%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "11-H. Barnes(中场)",
+          "apps": "37 (19/18)",
+          "goals": "7 (13%)",
+          "assists": "1 (3%)",
+          "avg": "0.2/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "狼队",
+      "players": [
+        {
+          "player": "22-塞梅多(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "27-贝尔格莱德(中场)",
+          "totalApps": "26",
+          "starts": "15",
+          "subs": "11",
+          "status": "伤"
+        },
+        {
+          "player": "5-M·芒西(中场)",
+          "totalApps": "13",
+          "starts": "9",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "24-托蒂(后卫)",
+          "totalApps": "19",
+          "starts": "17",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "6-B·特劳雷(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "3-雨果 布埃诺(后卫)",
+          "totalApps": "35",
+          "starts": "26",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "23-T. Chirewa(前锋)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "纽卡斯尔",
+      "players": [
+        {
+          "player": "5-F. Schär(后卫)",
+          "totalApps": "16",
+          "starts": "11",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "33-丹·伯恩(后卫)",
+          "totalApps": "29",
+          "starts": "25",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "17-E. Krafth(后卫)",
+          "totalApps": "1",
+          "starts": "1",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "6-J. Lascelles(后卫)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "1-波佩(守门员)",
+          "totalApps": "27",
+          "starts": "27",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "23-雅克布·墨菲(中场)",
+          "totalApps": "33",
+          "starts": "19",
+          "subs": "14",
+          "status": "伤"
+        },
+        {
+          "player": "14-A. Isak(前锋)",
+          "totalApps": "4",
+          "starts": "3",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "21-V.利弗拉门托(后卫)",
+          "totalApps": "17",
+          "starts": "14",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "18-W. Osula(前锋)",
+          "totalApps": "24",
+          "starts": "8",
+          "subs": "16",
+          "status": "伤"
+        },
+        {
+          "player": "37-A. Murphy(后卫)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

@@ -32,13 +32,16 @@ describe('model-weights — computeDynamicWeights 动态权重计算', () => {
   }
 
   function makeRow(overrides) {
-    return Object.assign({
-      actual_home_goals: 2,
-      actual_away_goals: 1,
-      gs_modelA_total: 2.5,
-      gs_modelB_total: 2.8,
-      gs_modelC_total: 3.0,
-    }, overrides || {});
+    return Object.assign(
+      {
+        actual_home_goals: 2,
+        actual_away_goals: 1,
+        gs_modelA_total: 2.5,
+        gs_modelB_total: 2.8,
+        gs_modelC_total: 3.0,
+      },
+      overrides || {},
+    );
   }
 
   it('predLog 为 null → 回退等权 (rows为空→insufficient)', () => {
@@ -69,7 +72,9 @@ describe('model-weights — computeDynamicWeights 动态权重计算', () => {
 
   it('queryBacktest 抛出异常 → 回退等权', () => {
     const badPredLog = {
-      queryBacktest: function () { throw new Error('DB error'); },
+      queryBacktest: function () {
+        throw new Error('DB error');
+      },
     };
     const result = computeDynamicWeights(badPredLog);
     expect(result.source).toBe('fallback');
@@ -82,11 +87,13 @@ describe('model-weights — computeDynamicWeights 动态权重计算', () => {
     // ModelC: gs_modelC_total=3.0 → |3.0-3|=0.0 → HIT
     // ModelA: gs_modelA_total=2.5 → |2.5-3|=0.5 → HIT
     for (let i = 0; i < 30; i++) {
-      rows.push(makeRow({
-        gs_modelA_total: 2.5 + (i % 5) * 0.2,
-        gs_modelB_total: 2.8 + (i % 3) * 0.1,
-        gs_modelC_total: 3.0,
-      }));
+      rows.push(
+        makeRow({
+          gs_modelA_total: 2.5 + (i % 5) * 0.2,
+          gs_modelB_total: 2.8 + (i % 3) * 0.1,
+          gs_modelC_total: 3.0,
+        }),
+      );
     }
     const result = computeDynamicWeights(mockPredLog(rows));
     expect(result.source).toBe('dynamic_v3');
@@ -117,11 +124,13 @@ describe('model-weights — computeDynamicWeights 动态权重计算', () => {
     // ModelC: gs_modelC_total=3.0 vs actual=3 (|3.0-3|=0.0 ≤ 0.5) → 命中 → accuracy=1.0→缩尾至0.7
     const rows = [];
     for (let i = 0; i < 30; i++) {
-      rows.push(makeRow({
-        gs_modelA_total: 10,
-        gs_modelB_total: 2.8,
-        gs_modelC_total: 3.0,
-      }));
+      rows.push(
+        makeRow({
+          gs_modelA_total: 10,
+          gs_modelB_total: 2.8,
+          gs_modelC_total: 3.0,
+        }),
+      );
     }
     const result = computeDynamicWeights(mockPredLog(rows));
     // 权重范围为 [0, 1]
@@ -136,11 +145,13 @@ describe('model-weights — computeDynamicWeights 动态权重计算', () => {
   it('全未命中 → accuracy 缩尾到 0.3', () => {
     const rows = [];
     for (let i = 0; i < 30; i++) {
-      rows.push(makeRow({
-        gs_modelA_total: 10,
-        gs_modelB_total: 10,
-        gs_modelC_total: 10,
-      }));
+      rows.push(
+        makeRow({
+          gs_modelA_total: 10,
+          gs_modelB_total: 10,
+          gs_modelC_total: 10,
+        }),
+      );
     }
     const result = computeDynamicWeights(mockPredLog(rows));
     // accuracy 全部缩尾到 0.3，Softmax 后权重应该相等
@@ -162,13 +173,15 @@ describe('model-weights — computeDynamicWeights 动态权重计算', () => {
   it('无 actual_home_goals 的行被跳过统计', () => {
     const rows = [];
     for (let i = 0; i < 30; i++) {
-      rows.push(makeRow({
-        actual_home_goals: null,
-        actual_away_goals: null,
-        gs_modelA_total: null,
-        gs_modelB_total: null,
-        gs_modelC_total: null,
-      }));
+      rows.push(
+        makeRow({
+          actual_home_goals: null,
+          actual_away_goals: null,
+          gs_modelA_total: null,
+          gs_modelB_total: null,
+          gs_modelC_total: null,
+        }),
+      );
     }
     // 所有行都被跳过 → model A/B/C total=0，样本不足 → partial
     const result = computeDynamicWeights(mockPredLog(rows));
@@ -191,7 +204,9 @@ describe('model-weights — getWeights 缓存权重获取', () => {
 
   it('forceRefresh=true → 重新计算', () => {
     const predLog = {
-      queryBacktest: function () { return { items: [] }; },
+      queryBacktest: function () {
+        return { items: [] };
+      },
     };
     // 样本不足 → insufficient
     const result = getWeights(predLog, true);
@@ -200,7 +215,9 @@ describe('model-weights — getWeights 缓存权重获取', () => {
 
   it('predLog 抛出异常 → 回退 default 权重', () => {
     const badPredLog = {
-      queryBacktest: function () { throw new Error('boom'); },
+      queryBacktest: function () {
+        throw new Error('boom');
+      },
     };
     const result = getWeights(badPredLog, true);
     // computeDynamicWeights 内部 catch → fallback

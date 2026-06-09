@@ -1,0 +1,532 @@
+{
+  "match_id": "2036174",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "4胜/2平/4负",
+      "6胜/1平/3负",
+      "5胜/2平/3负",
+      "8胜/1平/1负",
+      "1.8个",
+      "1.4个"
+    ],
+    "away": [
+      "4胜/2平/4负",
+      "3胜/1平/6负",
+      "5胜/3平/2负",
+      "6胜/2平/2负",
+      "1.8个",
+      "0.9个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场纽卡斯尔4胜 (40%) | 2平 (20%) | 4负 (40%)",
+    "rows": [
+      {
+        "date": "2025-05-11",
+        "league": "英超",
+        "teams": "纽卡斯尔 2:0 （半 1:0） 切尔西",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2024-10-31",
+        "league": "英联赛杯",
+        "teams": "纽卡斯尔 2:0 （半 2:0） 切尔西",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2024-10-27",
+        "league": "英超",
+        "teams": "切尔西 2:1 （半 1:1） 纽卡斯尔",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2024-03-12",
+        "league": "英超",
+        "teams": "切尔西 3:2 （半 1:1） 纽卡斯尔",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2023-12-20",
+        "league": "英联赛杯",
+        "teams": "切尔西 1:1 （半 0:1） 纽卡斯尔",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2023-11-25",
+        "league": "英超",
+        "teams": "纽卡斯尔 4:1 （半 1:1） 切尔西",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2023-05-28",
+        "league": "英超",
+        "teams": "切尔西 1:1 （半 1:1） 纽卡斯尔",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2022-11-13",
+        "league": "英超",
+        "teams": "纽卡斯尔 1:0 （半 0:0） 切尔西",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2022-03-13",
+        "league": "英超",
+        "teams": "切尔西 1:0 （半 0:0） 纽卡斯尔",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2021-10-30",
+        "league": "英超",
+        "teams": "纽卡斯尔 0:3 （半 0:0） 切尔西",
+        "totalGoals": "3"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "纽卡斯尔",
+      "title": "Regular Season 第12名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "14/7/17",
+          "winRate": "37%",
+          "goals": "53/55",
+          "gd": "-2",
+          "points": "49",
+          "rank": "12"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "10/2/7",
+          "winRate": "53%",
+          "goals": "36/30",
+          "gd": "6",
+          "points": "32",
+          "rank": "11"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "4/5/10",
+          "winRate": "21%",
+          "goals": "17/25",
+          "gd": "-8",
+          "points": "17",
+          "rank": "15"
+        }
+      ]
+    },
+    {
+      "team": "切尔西",
+      "title": "Regular Season 第10名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "14/10/14",
+          "winRate": "37%",
+          "goals": "58/52",
+          "gd": "6",
+          "points": "52",
+          "rank": "10"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "7/5/7",
+          "winRate": "37%",
+          "goals": "26/25",
+          "gd": "1",
+          "points": "26",
+          "rank": "13"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "7/5/7",
+          "winRate": "37%",
+          "goals": "32/27",
+          "gd": "5",
+          "points": "26",
+          "rank": "5"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "纽卡斯尔",
+      "summary": "纽卡斯尔近10场5胜 (50%) | 2平 (20%) | 3负 (30%) 进18球，失14球，净进4球",
+      "matches": [
+        {
+          "date": "2025-12-18",
+          "league": "英联赛杯",
+          "vs": "纽卡斯尔 2 : 1 （半 1:1） 富勒姆",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-14",
+          "league": "英超",
+          "vs": "桑德兰 1 : 0 （半 0:0） 纽卡斯尔",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-11",
+          "league": "欧冠",
+          "vs": "勒沃库森 2 : 2 （半 1:0） 纽卡斯尔",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-06",
+          "league": "英超",
+          "vs": "纽卡斯尔 2 : 1 （半 2:0） 伯恩利",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-03",
+          "league": "英超",
+          "vs": "纽卡斯尔 2 : 2 （半 0:0） 热刺",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-30",
+          "league": "英超",
+          "vs": "埃弗顿 1 : 4 （半 0:3） 纽卡斯尔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-26",
+          "league": "欧冠",
+          "vs": "马赛 2 : 1 （半 0:1） 纽卡斯尔",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-23",
+          "league": "英超",
+          "vs": "纽卡斯尔 2 : 1 （半 0:0） 曼城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-09",
+          "league": "英超",
+          "vs": "布伦特 3 : 1 （半 0:1） 纽卡斯尔",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-06",
+          "league": "欧冠",
+          "vs": "纽卡斯尔 2 : 0 （半 1:0） 毕尔巴鄂",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "切尔西",
+      "summary": "切尔西近10场5胜 (50%) | 3平 (30%) | 2负 (20%) 进18球，失9球，净进9球",
+      "matches": [
+        {
+          "date": "2025-12-17",
+          "league": "英联赛杯",
+          "vs": "加的夫城 1 : 3 （半 0:0） 切尔西",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-13",
+          "league": "英超",
+          "vs": "切尔西 2 : 0 （半 2:0） 埃弗顿",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-10",
+          "league": "欧冠",
+          "vs": "亚特兰大 2 : 1 （半 0:1） 切尔西",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-06",
+          "league": "英超",
+          "vs": "伯恩茅斯 0 : 0 （半 0:0） 切尔西",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-04",
+          "league": "英超",
+          "vs": "利兹联 3 : 1 （半 2:0） 切尔西",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-01",
+          "league": "英超",
+          "vs": "切尔西 1 : 1 （半 0:0） 阿森纳",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-26",
+          "league": "欧冠",
+          "vs": "切尔西 3 : 0 （半 1:0） 巴萨",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-22",
+          "league": "英超",
+          "vs": "伯恩利 0 : 2 （半 0:1） 切尔西",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-09",
+          "league": "英超",
+          "vs": "切尔西 3 : 0 （半 0:0） 狼队",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-06",
+          "league": "欧冠",
+          "vs": "卡拉巴赫 2 : 2 （半 2:1） 切尔西",
+          "result": "平"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "纽卡斯尔",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-13",
+          "俱乐部赛",
+          "纽卡斯尔\nVS\n埃弗顿",
+          "Club Friendlies 3"
+        ]
+      ]
+    },
+    {
+      "team": "切尔西",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-05",
+          "俱乐部赛",
+          "切尔西\nVS\n尤文图斯",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-08-08",
+          "俱乐部赛",
+          "切尔西\nVS\nAC米兰",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-08-11",
+          "俱乐部赛",
+          "柔佛\nVS\n切尔西",
+          "Club Friendlies 1"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "纽卡斯尔",
+      "players": [
+        {
+          "player": "39-Bruno Guimarães(中场)",
+          "apps": "29 (27/2)",
+          "goals": "9 (17%)",
+          "assists": "5 (15%)",
+          "avg": "0.3/0.2"
+        },
+        {
+          "player": "27-N. Woltemade(前锋)",
+          "apps": "33 (24/9)",
+          "goals": "8 (15%)",
+          "assists": "3 (9%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "11-H. Barnes(中场)",
+          "apps": "37 (19/18)",
+          "goals": "7 (13%)",
+          "assists": "1 (3%)",
+          "avg": "0.2/0"
+        }
+      ]
+    },
+    {
+      "team": "切尔西",
+      "players": [
+        {
+          "player": "20-João Pedro(前锋)",
+          "apps": "35 (31/4)",
+          "goals": "15 (26%)",
+          "assists": "5 (13%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "8-E. Fernández(中场)",
+          "apps": "36 (35/1)",
+          "goals": "10 (18%)",
+          "assists": "4 (10%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "10-帕尔默(中场)",
+          "apps": "26 (24/2)",
+          "goals": "10 (18%)",
+          "assists": "1 (3%)",
+          "avg": "0.4/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "纽卡斯尔",
+      "players": [
+        {
+          "player": "2-K. Trippier(后卫)",
+          "totalApps": "21",
+          "starts": "18",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "33-丹·伯恩(后卫)",
+          "totalApps": "29",
+          "starts": "25",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "17-E. Krafth(后卫)",
+          "totalApps": "1",
+          "starts": "1",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "1-波佩(守门员)",
+          "totalApps": "27",
+          "starts": "27",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "36-S. Longstaff(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "4-博特曼(后卫)",
+          "totalApps": "25",
+          "starts": "21",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "21-V.利弗拉门托(后卫)",
+          "totalApps": "17",
+          "starts": "14",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "18-W. Osula(前锋)",
+          "totalApps": "24",
+          "starts": "8",
+          "subs": "16",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "切尔西",
+      "players": [
+        {
+          "player": "22-K.德兹伯里-霍尔(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "5-B. Badiashile(后卫)",
+          "totalApps": "8",
+          "starts": "6",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "25-凯塞多(中场)",
+          "totalApps": "33",
+          "starts": "32",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "9-L. Delap(前锋)",
+          "totalApps": "28",
+          "starts": "12",
+          "subs": "16",
+          "status": "伤"
+        },
+        {
+          "player": "6-列维 科尔威尔(后卫)",
+          "totalApps": "3",
+          "starts": "2",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "45-R. Lavia(中场)",
+          "totalApps": "12",
+          "starts": "4",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "19-M.萨尔(后卫)",
+          "totalApps": "3",
+          "starts": "1",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "14-Dario Essugo(中场)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "30-A. Anselmino(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "41-Estêvão(前锋)",
+          "totalApps": "22",
+          "starts": "12",
+          "subs": "10",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

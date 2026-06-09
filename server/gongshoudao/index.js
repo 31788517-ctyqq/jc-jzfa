@@ -15,6 +15,7 @@ const market = require('./market');
 const fetch = require('./fetch');
 
 const CACHE_PATH = path.join(__dirname, 'cache.json');
+let _lastRefreshAt = 0;
 
 // ==================== 缓存管理 ====================
 
@@ -30,6 +31,85 @@ function readCache() {
 
 function writeCache(data) {
   atomicWriteJson(CACHE_PATH, data);
+}
+
+function getCacheTimestamp(cache) {
+  const metaTs = cache && cache._meta && cache._meta.gongshoudao && cache._meta.gongshoudao.updatedAt;
+  const parsedMetaTs = metaTs ? Date.parse(metaTs) : 0;
+  if (parsedMetaTs > 0) return parsedMetaTs;
+  try {
+    if (fs.existsSync(CACHE_PATH)) return fs.statSync(CACHE_PATH).mtimeMs;
+  } catch (e) {
+    /* ignore */
+  }
+  return 0;
+}
+
+function isCacheFresh(cache, ttlMs) {
+  if (!ttlMs || ttlMs <= 0) return false;
+  const now = Date.now();
+  if (_lastRefreshAt > 0 && now - _lastRefreshAt <= ttlMs) return true;
+  const ts = getCacheTimestamp(cache);
+  return ts > 0 && now - ts <= ttlMs;
+}
+
+function buildGsPredictionPayload(mid, gs, m) {
+  return {
+    matchId: String(mid).replace(/^m_/, ''),
+    fields: {
+      date: (m.date || '').slice(0, 10),
+      homeName: m.homeName || '',
+      visitName: m.visitName || '',
+      leagueName: m.leagueName || '',
+      matchNum: m.num || '',
+      scoresJson: JSON.stringify(gs.scores),
+      topScore: gs.scores && gs.scores[0] ? gs.scores[0].score : '',
+      topPercent: gs.scores && gs.scores[0] ? parseFloat(gs.scores[0].percent) || 0 : 0,
+      ladderLabel: gs.ladderLabel || '',
+      ladderLevel: gs.ladderLevel || 0,
+      handicap: m.handicap !== undefined ? m.handicap : m.rq !== undefined ? m.rq : undefined,
+      modelATotal: gs.gsModelATotal || gs.modelATotal || null,
+      modelBTotal: gs.gsModelBTotal || gs.modelBTotal || null,
+      modelCTotal: gs.gsModelCTotal || gs.modelCTotal || null,
+    },
+  };
+}
+
+function isSameGsResult(a, b) {
+  if (!a || !b) return false;
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch (e) {
+    return false;
+  }
+}
+
+function persistGsPredictionChanges(changedIds, existing, mMap) {
+  if (!changedIds || changedIds.length === 0) return 0;
+
+  try {
+    const predLog = require('../prediction_log');
+    const seen = new Set();
+    const records = [];
+    changedIds.forEach(function (mid) {
+      if (seen.has(mid)) return;
+      seen.add(mid);
+      const gs = existing[mid];
+      if (!gs || !gs.scores) return;
+      records.push(buildGsPredictionPayload(mid, gs, mMap[mid] || {}));
+    });
+    if (records.length === 0) return 0;
+    if (typeof predLog.upsertGSBatch === 'function') {
+      return predLog.upsertGSBatch(records);
+    }
+    records.forEach(function (record) {
+      predLog.upsertGS(record.matchId, record.fields);
+    });
+    return records.length;
+  } catch (e) {
+    console.error('[gs] predLog save error:', e.message);
+    return 0;
+  }
 }
 
 // ==================== 单场比赛计算 ====================
@@ -49,7 +129,11 @@ function computeSingleMatch(rawStats, matchInfo) {
   const strengthResult = attack.analyze(vars);
 
   // 第四阶段：大小球 + xG（传入归一化 S 值）
-  const goalResult = goal.analyze(vars, strengthResult.totalAdvantageRaw, matchInfo /* V9.1: 传入 matchInfo 以加载 dxqLastPan */);
+  const goalResult = goal.analyze(
+    vars,
+    strengthResult.totalAdvantageRaw,
+    matchInfo /* V9.1: 传入 matchInfo 以加载 dxqLastPan */,
+  );
 
   // ★ V9.0 大小球交叉验证（功守道 xG vs 市场大小球盘口）
   try {
@@ -62,7 +146,9 @@ function computeSingleMatch(rawStats, matchInfo) {
         goalResult.dxqValidation = crossValidateXg(goalResult, basicData);
       }
     }
-  } catch (e) { /* 静默 */ }
+  } catch (e) {
+    /* 静默 */
+  }
 
   // 第五阶段：净胜球 + 让球分析
   const diffResult = diff.analyze(vars, goalResult.xgHome, goalResult.xgAway);
@@ -90,7 +176,7 @@ function computeSingleMatch(rawStats, matchInfo) {
       const drawAward = vars.drawAward || 3.2;
       const awayAward = vars.awayWinAward || 2.8;
       const totalInv = 1 / homeAward + 1 / drawAward + 1 / awayAward;
-      marketContext.spImpHome = totalInv > 0 ? (1 / homeAward) / totalInv : 0.33;
+      marketContext.spImpHome = totalInv > 0 ? 1 / homeAward / totalInv : 0.33;
       // 如果市场情报有离散度或亚指水位数据，一起传入
       if (marketResult.signalFlags && marketResult.signalFlags.length > 0) {
         marketContext.signalFlags = marketResult.signalFlags;
@@ -388,17 +474,31 @@ function computeSingleMatch(rawStats, matchInfo) {
     marketRiskDetail: marketResult.riskDetail,
     marketSignalFlags: marketResult.signalFlags || [],
     // Market_xG 融合后的 xG（如果可用）
-    fusedXgHome: (marketResult.marketXg && marketResult.marketXg.valid)
-      ? +(goalResult.xgHome * 0.7 + marketResult.marketXg.home * 0.3).toFixed(2)
-      : goalResult.xgHome,
-    fusedXgAway: (marketResult.marketXg && marketResult.marketXg.valid)
-      ? +(goalResult.xgAway * 0.7 + marketResult.marketXg.away * 0.3).toFixed(2)
-      : goalResult.xgAway,
+    fusedXgHome:
+      marketResult.marketXg && marketResult.marketXg.valid
+        ? +(goalResult.xgHome * 0.7 + marketResult.marketXg.home * 0.3).toFixed(2)
+        : goalResult.xgHome,
+    fusedXgAway:
+      marketResult.marketXg && marketResult.marketXg.valid
+        ? +(goalResult.xgAway * 0.7 + marketResult.marketXg.away * 0.3).toFixed(2)
+        : goalResult.xgAway,
 
     // ★ V9.1: 模型原始预测总值（供 model-weights 真实代理指标）
-    gsModelATotal: goalResult.fusionDetails ? (goalResult.fusionDetails.modelA ? goalResult.fusionDetails.modelA.total : null) : null,
-    gsModelBTotal: goalResult.fusionDetails ? (goalResult.fusionDetails.modelB ? goalResult.fusionDetails.modelB.total : null) : null,
-    gsModelCTotal: goalResult.fusionDetails ? (goalResult.fusionDetails.modelC ? goalResult.fusionDetails.modelC.total : null) : null,
+    gsModelATotal: goalResult.fusionDetails
+      ? goalResult.fusionDetails.modelA
+        ? goalResult.fusionDetails.modelA.total
+        : null
+      : null,
+    gsModelBTotal: goalResult.fusionDetails
+      ? goalResult.fusionDetails.modelB
+        ? goalResult.fusionDetails.modelB.total
+        : null
+      : null,
+    gsModelCTotal: goalResult.fusionDetails
+      ? goalResult.fusionDetails.modelC
+        ? goalResult.fusionDetails.modelC.total
+        : null
+      : null,
   };
 }
 
@@ -410,37 +510,67 @@ function computeSingleMatch(rawStats, matchInfo) {
  */
 function computeFallbackMatch(m) {
   const ln = (m.leagueName || '').trim();
-  const handicap = m.handicap !== undefined ? Number(m.handicap) : (m.rq !== undefined ? Number(m.rq) : 0);
+  const handicap = m.handicap !== undefined ? Number(m.handicap) : m.rq !== undefined ? Number(m.rq) : 0;
   const hdc = handicap; // 别名兼容历史代码
 
   // 联赛场均进球基准
   const LEAGUE_GOALS = {
-    英超:2.72, 西甲:2.63, 意甲:2.56, 德甲:3.18, 法甲:2.55,
-    荷甲:3.05, 葡超:2.67, 挪超:2.92, 瑞典超:2.85, 日职:2.62,
-    日乙:2.58, 韩职:2.48, 美职:2.78, 俄超:2.48, 比甲:2.82,
-    奥甲:2.72, 苏超:2.65, 中超:2.78, 墨超:2.68, 巴甲:2.42,
-    阿甲:2.18, 欧冠:2.82, 欧罗巴:2.72, 亚冠:2.65, 澳洲甲:2.88,
-    德乙:2.82, 法乙:2.42, 英冠:2.55, 土超:2.75, 波兰超:2.62,
-    瑞士超:2.82, 希腊超:2.32, 丹麦超:2.78
+    英超: 2.72,
+    西甲: 2.63,
+    意甲: 2.56,
+    德甲: 3.18,
+    法甲: 2.55,
+    荷甲: 3.05,
+    葡超: 2.67,
+    挪超: 2.92,
+    瑞典超: 2.85,
+    日职: 2.62,
+    日乙: 2.58,
+    韩职: 2.48,
+    美职: 2.78,
+    俄超: 2.48,
+    比甲: 2.82,
+    奥甲: 2.72,
+    苏超: 2.65,
+    中超: 2.78,
+    墨超: 2.68,
+    巴甲: 2.42,
+    阿甲: 2.18,
+    欧冠: 2.82,
+    欧罗巴: 2.72,
+    亚冠: 2.65,
+    澳洲甲: 2.88,
+    德乙: 2.82,
+    法乙: 2.42,
+    英冠: 2.55,
+    土超: 2.75,
+    波兰超: 2.62,
+    瑞士超: 2.82,
+    希腊超: 2.32,
+    丹麦超: 2.78,
   };
   let avgGoals = 2.65; // 默认
   const keys = Object.keys(LEAGUE_GOALS);
   for (let i = 0; i < keys.length; i++) {
-    if (ln.indexOf(keys[i]) !== -1) { avgGoals = LEAGUE_GOALS[keys[i]]; break; }
+    if (ln.indexOf(keys[i]) !== -1) {
+      avgGoals = LEAGUE_GOALS[keys[i]];
+      break;
+    }
   }
 
   // ★ V9.1: 注入比赛特异性 — 用 matchId + homeName 双哈希生成扰动
   // 避免所有同让球的降级比赛返回完全相同的数值
   const seed = (m.matchId || '').replace(/\D/g, '').slice(-4) || '0';
   const nameSeed = (m.homeName || '').length + (m.visitName || '').length;
-  const seedVal = ((parseInt(seed) || 0) + nameSeed * 13) % 10000 / 10000; // 0~0.9999
+  const seedVal = (((parseInt(seed) || 0) + nameSeed * 13) % 10000) / 10000; // 0~0.9999
 
   // ★ 强扰动: 联赛基线 ±10%, hdcStrength ±40%, xg ±0.25
-  const leaguePerturbation = (seedVal - 0.5) * 0.20; // [-0.10, +0.10] 联赛偏离
-  const hdcPerturbation = (seedVal - 0.5) * 0.30;    // [-0.15, +0.15] 实力偏离
+  const leaguePerturbation = (seedVal - 0.5) * 0.2; // [-0.10, +0.10] 联赛偏离
+  const hdcPerturbation = (seedVal - 0.5) * 0.3; // [-0.15, +0.15] 实力偏离
   avgGoals = +(avgGoals * (1 + leaguePerturbation)).toFixed(2);
 
-  const hdcStrength = Math.abs(hdc) > 1 ? 0.35 + hdcPerturbation : Math.abs(hdc) > 0.5 ? 0.20 + hdcPerturbation : 0.08 + hdcPerturbation;
+  const hdcStrength =
+    Math.abs(hdc) > 1 ? 0.35 + hdcPerturbation : Math.abs(hdc) > 0.5 ? 0.2 + hdcPerturbation : 0.08 + hdcPerturbation;
 
   // 基于联赛场均进球做保守 Xg 估算（确保最小差距 1.0 以通过弱一致门槛）
   const baseXg = avgGoals / 2;
@@ -448,7 +578,7 @@ function computeFallbackMatch(m) {
   let xgHome = baseXg + (hdc >= 0 ? xgDelta / 2 : -xgDelta / 2);
   let xgAway = baseXg + (hdc >= 0 ? -xgDelta / 2 : xgDelta / 2);
   // ★ 对 xg 值做额外扰动（用 seed 的另一部分）
-  const xgPerturbation = ((seedVal * 13) % 1 - 0.5) * 0.50; // [-0.25, +0.25]
+  const xgPerturbation = (((seedVal * 13) % 1) - 0.5) * 0.5; // [-0.25, +0.25]
   xgHome = +(xgHome + xgPerturbation).toFixed(2);
   xgAway = +(xgAway - xgPerturbation).toFixed(2);
   // 确保 xg 在合理范围
@@ -491,7 +621,7 @@ function computeFallbackMatch(m) {
     ladderLevel: Math.abs(hdc) > 1 ? 2 : 1,
     totalStrength: hdcStrength,
     crossSpfWin: +(0.35 + hdc * 0.08 + hdcPerturbation * 0.5).toFixed(2),
-    crossSpfDraw: +(0.30 - Math.abs(hdcPerturbation) * 0.3).toFixed(2),
+    crossSpfDraw: +(0.3 - Math.abs(hdcPerturbation) * 0.3).toFixed(2),
     crossSpfLose: +(0.35 - hdc * 0.08 - hdcPerturbation * 0.5).toFixed(2),
     crossHcpWin: 0.5 + hdc * 0.1,
     crossHcpDraw: 0.25,
@@ -522,7 +652,7 @@ function computeFallbackMatch(m) {
       lambdaActual: avgGoals,
       homeOverRate: 0.4,
       awayOverRate: 0.4,
-      h2hOverRate: 0.5
+      h2hOverRate: 0.5,
     },
 
     // 融合共识
@@ -535,52 +665,124 @@ function computeFallbackMatch(m) {
 
     // ★ V9.1: 比分动态计算（不再硬编码）
     // 使用泊松+联赛基线+让球偏移，生成8种比分
-    scores: (function() {
+    scores: (function () {
       try {
         const score = require('./score');
         // 构造简化 vars 供 score.analyze 使用
         const fakeVars = {
-          homeWinGap_1: hWins, homeWinGap_2: Math.round(hWins / 2), homeLoseGap_1: hLosses, homeLoseGap_2: Math.round(hLosses / 2),
-          awayWinGap_1: aWins, awayWinGap_2: Math.round(aWins / 2), awayLoseGap_1: aLosses, awayLoseGap_2: Math.round(aLosses / 2),
+          homeWinGap_1: hWins,
+          homeWinGap_2: Math.round(hWins / 2),
+          homeLoseGap_1: hLosses,
+          homeLoseGap_2: Math.round(hLosses / 2),
+          awayWinGap_1: aWins,
+          awayWinGap_2: Math.round(aWins / 2),
+          awayLoseGap_1: aLosses,
+          awayLoseGap_2: Math.round(aLosses / 2),
           homeDraw: Math.round((10 - hWins - hLosses) / 2),
           awayDraw: Math.round((10 - aWins - aLosses) / 2),
-          homeSpf: hWins+'胜'+(10-hWins-hLosses)+'平'+hLosses+'负',
-          guestSpf: aWins+'胜'+(10-aWins-aLosses)+'平'+aLosses+'负',
-          homeGoal0: 3, homeGoal1: 4, homeGoal2Plus: 3,
-          homeLose0: 3, homeLose1: 4, homeLose2Plus: 3,
-          awayGoal0: 3, awayGoal1: 4, awayGoal2Plus: 3,
-          awayLose0: 3, awayLose1: 4, awayLose2Plus: 3,
-          homeRecentGoalAvg: xgHome, homeRecentLoseAvg: xgAway,
-          awayRecentGoalAvg: xgAway, awayRecentLoseAvg: xgHome,
-          homeAttackEfficiency: 0.1, homeDefendEfficiency: 0.1,
-          awayAttackEfficiency: 0.1, awayDefendEfficiency: 0.1,
-          homeOverRate: 0.5, awayOverRate: 0.5,
-          homeWinAward: 1.0, guestWinAward: 1.0, drawAward: 1.0,
+          homeSpf: hWins + '胜' + (10 - hWins - hLosses) + '平' + hLosses + '负',
+          guestSpf: aWins + '胜' + (10 - aWins - aLosses) + '平' + aLosses + '负',
+          homeGoal0: 3,
+          homeGoal1: 4,
+          homeGoal2Plus: 3,
+          homeLose0: 3,
+          homeLose1: 4,
+          homeLose2Plus: 3,
+          awayGoal0: 3,
+          awayGoal1: 4,
+          awayGoal2Plus: 3,
+          awayLose0: 3,
+          awayLose1: 4,
+          awayLose2Plus: 3,
+          homeRecentGoalAvg: xgHome,
+          homeRecentLoseAvg: xgAway,
+          awayRecentGoalAvg: xgAway,
+          awayRecentLoseAvg: xgHome,
+          homeAttackEfficiency: 0.1,
+          homeDefendEfficiency: 0.1,
+          awayAttackEfficiency: 0.1,
+          awayDefendEfficiency: 0.1,
+          homeOverRate: 0.5,
+          awayOverRate: 0.5,
+          homeWinAward: 1.0,
+          guestWinAward: 1.0,
+          drawAward: 1.0,
           jiaoFenScores: [],
-          homeGoalDiffSeries: [1,1,1,1,0,0,-1,-1,-1,-1],
-          awayGoalDiffSeries: [1,1,1,1,0,0,-1,-1,-1,-1],
-          rq: hdc, homePower: 50+hdc*15, awayPower: 50-hdc*15,
-          homeWinPanRate: 0, awayWinPanRate: 0,
+          homeGoalDiffSeries: [1, 1, 1, 1, 0, 0, -1, -1, -1, -1],
+          awayGoalDiffSeries: [1, 1, 1, 1, 0, 0, -1, -1, -1, -1],
+          rq: hdc,
+          homePower: 50 + hdc * 15,
+          awayPower: 50 - hdc * 15,
+          homeWinPanRate: 0,
+          awayWinPanRate: 0,
         };
         // 用实际让球数对应的 level 传参（>0: level>0, <0: level<0, =0: level=0）
         const fallbackLevel = hdc > 0.8 ? 2 : hdc > 0.2 ? 1 : hdc < -0.8 ? -2 : hdc < -0.2 ? -1 : 0;
         const goalRange = { lower: Math.max(0, Math.floor(avgGoals) - 1), upper: Math.ceil(avgGoals) + 1 };
         const s = score.analyze(fakeVars, xgHome, xgAway, goalRange, fallbackLevel, null);
         if (s && s.length > 0) return s;
-      } catch(e) { /* fall through */ }
+      } catch (e) {
+        /* fall through */
+      }
       // 兜底：仍然按让球方向输出基础比分
-      const fallbackScores = hdc > 0
-        ? [{ score: '2-1', percent: '20%' }, { score: '1-0', percent: '17%' }, { score: '2-0', percent: '15%' }, { score: '1-1', percent: '13%' }, { score: '3-1', percent: '11%' }, { score: '3-0', percent: '9%' }, { score: '2-2', percent: '8%' }, { score: '0-0', percent: '7%' }]
-        : hdc < 0
-          ? [{ score: '1-2', percent: '20%' }, { score: '0-1', percent: '17%' }, { score: '0-2', percent: '15%' }, { score: '1-1', percent: '13%' }, { score: '1-3', percent: '11%' }, { score: '0-3', percent: '9%' }, { score: '2-2', percent: '8%' }, { score: '0-0', percent: '7%' }]
-          : [{ score: '1-1', percent: '20%' }, { score: '1-0', percent: '16%' }, { score: '0-1', percent: '16%' }, { score: '2-1', percent: '13%' }, { score: '1-2', percent: '13%' }, { score: '0-0', percent: '9%' }, { score: '2-0', percent: '7%' }, { score: '0-2', percent: '6%' }];
+      const fallbackScores =
+        hdc > 0
+          ? [
+              { score: '2-1', percent: '20%' },
+              { score: '1-0', percent: '17%' },
+              { score: '2-0', percent: '15%' },
+              { score: '1-1', percent: '13%' },
+              { score: '3-1', percent: '11%' },
+              { score: '3-0', percent: '9%' },
+              { score: '2-2', percent: '8%' },
+              { score: '0-0', percent: '7%' },
+            ]
+          : hdc < 0
+            ? [
+                { score: '1-2', percent: '20%' },
+                { score: '0-1', percent: '17%' },
+                { score: '0-2', percent: '15%' },
+                { score: '1-1', percent: '13%' },
+                { score: '1-3', percent: '11%' },
+                { score: '0-3', percent: '9%' },
+                { score: '2-2', percent: '8%' },
+                { score: '0-0', percent: '7%' },
+              ]
+            : [
+                { score: '1-1', percent: '20%' },
+                { score: '1-0', percent: '16%' },
+                { score: '0-1', percent: '16%' },
+                { score: '2-1', percent: '13%' },
+                { score: '1-2', percent: '13%' },
+                { score: '0-0', percent: '9%' },
+                { score: '2-0', percent: '7%' },
+                { score: '0-2', percent: '6%' },
+              ];
       return fallbackScores;
     })(),
     suggestion: '基于联赛均值降级估算，仅供参考',
     resonance: { verdict: '⚠️ 数据源缺失，使用联赛均值降级估算', level: 'weak' },
     sevenMatch: {
-      dimension1: { hCount: hWins, aCount: aLosses, total: hWins + aLosses, prob: 0.55, probPct: '55.0%', passed: true, label: '⚠️ 降级估算', confidence: '低' },
-      dimension2: { hCount: hLosses, aCount: aWins, total: hLosses + aWins, prob: 0.48, probPct: '48.0%', passed: false, label: '⚠️ 降级估算', confidence: '低' }
+      dimension1: {
+        hCount: hWins,
+        aCount: aLosses,
+        total: hWins + aLosses,
+        prob: 0.55,
+        probPct: '55.0%',
+        passed: true,
+        label: '⚠️ 降级估算',
+        confidence: '低',
+      },
+      dimension2: {
+        hCount: hLosses,
+        aCount: aWins,
+        total: hLosses + aWins,
+        prob: 0.48,
+        probPct: '48.0%',
+        passed: false,
+        label: '⚠️ 降级估算',
+        confidence: '低',
+      },
     },
     anchor: { anchor: 0.3, label: '弱一致盘面', judgment: '参考' },
     verifyResult: '⚠️ 降级估算',
@@ -674,7 +876,11 @@ async function crossMatchAll() {
 /**
  * 对全量匹配结果执行批量计算（增量更新：保留已有缓存，只计算新匹配）
  */
-async function computeAll() {
+async function computeAll(options) {
+  const opts = options || {};
+  const forceRefresh = opts.forceRefresh === true;
+  const cacheTtlMs = opts.cacheTtlMs !== undefined ? Number(opts.cacheTtlMs) : 10 * 60 * 1000;
+  const skipPredLog = opts.skipPredLog === true;
   console.log('[gs] === 全量计算（增量模式） ===');
 
   const cache = readCache();
@@ -685,6 +891,11 @@ async function computeAll() {
   const hasAny = Object.values(existing).some((v) => v && v.attackPattern);
   if (hasAny) {
     console.log('[gs] 已有缓存', Object.keys(existing).length, '场，增量更新...');
+  }
+
+  if (!forceRefresh && hasAny && isCacheFresh(cache, cacheTtlMs)) {
+    console.log('[gs] 缓存仍在 TTL 内，直接返回缓存结果');
+    return existing;
   }
 
   // 2. 交叉匹配 API ↔ data.json
@@ -702,24 +913,29 @@ async function computeAll() {
   // 3. 读取 data.json
   const mMap = loadDataJsonM();
 
-  // 4. 只计算缓存中没有的匹配（增量）
+  // 4. 只计算缓存中没有的匹配（forceRefresh 时刷新 API 命中的比赛）
   let newCount = 0;
+  const changedIds = [];
   const toCompute = [];
   Object.entries(statsMap).forEach(([mid, rawStats]) => {
-    if (existing[mid] && existing[mid].attackPattern) {
-      // 已有有效缓存，跳过（除非要强制刷新）
+    if (!forceRefresh && existing[mid] && existing[mid].attackPattern) {
       return;
     }
     toCompute.push([mid, rawStats]);
   });
 
   if (toCompute.length > 0) {
-    console.log('[gs] 需计算', toCompute.length, '场新匹配...');
+    console.log('[gs] 需计算', toCompute.length, '场匹配...');
     toCompute.forEach(([mid, rawStats]) => {
       const m = mMap[mid] || {};
       try {
-        existing[mid] = computeSingleMatch(rawStats, m);
-        newCount++;
+        const computed = computeSingleMatch(rawStats, m);
+        if (computed) {
+          const previous = existing[mid];
+          existing[mid] = computed;
+          if (!isSameGsResult(previous, computed)) changedIds.push(mid);
+          newCount++;
+        }
       } catch (e) {
         console.error('[gs] 计算失败:', mid, e.message);
       }
@@ -739,15 +955,20 @@ async function computeAll() {
     if (d < recentDateStr) return;
 
     // 检查是否已有有效缓存
-    if (existing[mid] && existing[mid].attackPattern) return;
+    if (!forceRefresh && existing[mid] && existing[mid].attackPattern) return;
 
     // 检查 statsMap 中是否有待计算的数据
     if (statsMap[mid] || statsMap['m_' + mid]) return;
 
     // 生成降级估算
     try {
-      existing[mid] = computeFallbackMatch(m);
-      fallbackCount++;
+      const fallback = computeFallbackMatch(m);
+      if (fallback) {
+        const previous = existing[mid];
+        existing[mid] = fallback;
+        if (!isSameGsResult(previous, fallback)) changedIds.push(mid);
+        fallbackCount++;
+      }
     } catch (e) {
       console.error('[gs] 降级估算失败:', mid, e.message);
     }
@@ -757,42 +978,29 @@ async function computeAll() {
     console.log('[gs] 降级估算新增:', fallbackCount, '场（无API数据源，使用联赛均值）');
   }
 
-  console.log('[gs] 增量完成:', newCount, '场新增,', fallbackCount, '场降级, 共', Object.keys(existing).length, '场');
+  console.log('[gs] 增量完成:', newCount, '场计算,', fallbackCount, '场降级, 共', Object.keys(existing).length, '场');
 
-  // 5. 写入缓存
-  cache[cacheKey] = existing;
-  writeCache(cache);
-
-  // ★ 回测钩子: 功守道预测持久化
-  try {
-    const predLog = require('../prediction_log');
-    const mMap2 = loadDataJsonM();
-    Object.keys(existing).forEach(function (mid) {
-      const gs = existing[mid];
-      if (!gs || !gs.scores) return;
-      const m = mMap2[mid] || {};
-      predLog.upsertGS(mid.replace(/^m_/, ''), {
-        date: (m.date || '').slice(0, 10),
-        homeName: m.homeName || '',
-        visitName: m.visitName || '',
-        leagueName: m.leagueName || '',
-        matchNum: m.num || '',
-        scoresJson: JSON.stringify(gs.scores),
-        topScore: gs.scores && gs.scores[0] ? gs.scores[0].score : '',
-        topPercent: gs.scores && gs.scores[0] ? parseFloat(gs.scores[0].percent) || 0 : 0,
-        ladderLabel: gs.ladderLabel || '',
-        ladderLevel: gs.ladderLevel || 0,
-        handicap: m.handicap !== undefined ? m.handicap : (m.rq !== undefined ? m.rq : undefined),
-        // ★ V9.1: 模型原始预测总值
-        modelATotal: gs.gsModelATotal || gs.modelATotal || null,
-        modelBTotal: gs.gsModelBTotal || gs.modelBTotal || null,
-        modelCTotal: gs.gsModelCTotal || gs.modelCTotal || null,
-      });
-    });
-  } catch (e) {
-    console.error('[gs] predLog save error:', e.message);
+  if (changedIds.length > 0) {
+    cache[cacheKey] = existing;
+    cache._meta = cache._meta || {};
+    cache._meta.gongshoudao = {
+      updatedAt: new Date().toISOString(),
+      total: Object.keys(existing).length,
+      changed: changedIds.length,
+      forceRefresh: forceRefresh,
+    };
+    writeCache(cache);
+  } else {
+    console.log('[gs] 无新增/变化，跳过 cache.json 写入');
   }
 
+  // ★ 回测钩子: 只持久化本轮新增/变化的功守道预测
+  if (!skipPredLog && changedIds.length > 0) {
+    const savedCount = persistGsPredictionChanges(changedIds, existing, mMap);
+    console.log('[gs] predLog 增量写入:', savedCount, '场');
+  }
+
+  _lastRefreshAt = Date.now();
   return existing;
 }
 
@@ -839,8 +1047,8 @@ async function getMatchResult(matchId) {
 /**
  * 刷新缓存（增量模式：保留旧数据，只计算新匹配）
  */
-async function refreshCache() {
-  return computeAll();
+async function refreshCache(options) {
+  return computeAll(Object.assign({ forceRefresh: true }, options || {}));
 }
 
 module.exports = {

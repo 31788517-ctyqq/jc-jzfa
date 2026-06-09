@@ -1,10 +1,10 @@
-/**
+﻿/**
  * preview/js/pages/backtest.js — V9 三Tab回测分析页
  * Tab: GS功守道 | AI深度分析 | PK融合分析
  * 每个Tab独立：统计卡片 + ECharts图表 + 明细列表
  */
 import { api } from '../api.js';
-import { loadECharts } from '../charts.js';
+import { loadECharts } from '../charts.js?v=202606080308';
 
 var _btPage = 1,
   _btPageSize = 20,
@@ -154,6 +154,15 @@ function renderFilterCard() {
     '</div>',
     '<ul class="filter-dd-menu" id="dd-btLeague-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-btLeague\',\'all\',\'全部\')">全部</li></ul>',
     '</div></div>',
+    '<div class="filter-row" id="btModelRow">',
+    '<span class="filter-label">模型</span>',
+    '<div class="filter-dd" id="dd-btModel" data-val="all">',
+    '<div class="filter-dd-trigger" onclick="toggleDD(\'dd-btModel\', event)">',
+    '<span class="filter-dd-text">全部</span>',
+    '<svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg>',
+    '</div>',
+    '<ul class="filter-dd-menu" id="dd-btModel-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-btModel\',\'all\',\'全部\')">全部</li></ul>',
+    '</div></div>',
     '<div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="doBTQuery()">查询</button></div>',
     '</div>',
   ].join('');
@@ -294,6 +303,7 @@ function getBTFilters() {
     type: 'all',
     dateRange: v('dd-btRange'),
     league: v('dd-btLeague'),
+    model: v('dd-btModel'),
     direction: 'all',
     aiConf: 'all',
     pkConf: 'all',
@@ -323,6 +333,33 @@ function populateLeagues(leagues) {
   menu.innerHTML = html;
 }
 
+function populateModels(models) {
+  if (!models || !models.length) return;
+  var menu = document.getElementById('dd-btModel-menu');
+  if (!menu) return;
+  var html =
+    '<li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-btModel\',\'all\',\'全部\')">全部</li>';
+  models.forEach(function (m) {
+    var label = m;
+    if (m === 'expert_consensus') label = '专家共识';
+    else if (m === 'DeepSeek') label = 'DeepSeek AI';
+    else if (m === 'doubao') label = '豆包 AI';
+    else if (m === '功守道') label = '功守道量化';
+    else if (m === 'PK评分') label = 'PK融合评分';
+    html +=
+      '<li data-val="' +
+      esc(m) +
+      '" class="filter-dd-option" onclick="selectDD(\'dd-btModel\',\'' +
+      esc(m) +
+      "','" +
+      esc(label) +
+      '\')">' +
+      esc(label) +
+      '</li>';
+  });
+  menu.innerHTML = html;
+}
+
 function fetchData() {
   var el = document.getElementById('btList');
   if (el)
@@ -334,6 +371,7 @@ function fetchData() {
     type: f.type,
     dateRange: f.dateRange,
     league: f.league,
+    model: f.model,
     direction: f.direction,
     aiConf: f.aiConf,
     pkConf: f.pkConf,
@@ -343,6 +381,7 @@ function fetchData() {
   })
     .then(function (res) {
       if (res.leagues) populateLeagues(res.leagues);
+      if (res.models) populateModels(res.models);
       _btStats = res.stats;
       _btItems = res.items || [];
       updateAllStats(res.stats);

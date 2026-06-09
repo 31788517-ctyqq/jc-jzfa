@@ -1,0 +1,519 @@
+{
+  "match_id": "1027813",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "1胜/1平/8负",
+      "1胜/1平/5负",
+      "3胜/4平/3负",
+      "5胜/3平/2负",
+      "1.7个",
+      "1.8个"
+    ],
+    "away": [
+      "8胜/1平/1负",
+      "5胜/1平/1负",
+      "6胜/1平/3负",
+      "5胜/2平/3负",
+      "2.1个",
+      "1.3个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场布赖顿1胜 (10%) | 1平 (10%) | 8负 (80%)",
+    "rows": [
+      {
+        "date": "2024-04-26",
+        "league": "英超",
+        "teams": "布赖顿 0:4 （半 0:3） 曼城",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2023-10-21",
+        "league": "英超",
+        "teams": "曼城 2:1 （半 2:0） 布赖顿",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2023-05-25",
+        "league": "英超",
+        "teams": "布赖顿 1:1 （半 1:1） 曼城",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2022-10-22",
+        "league": "英超",
+        "teams": "曼城 3:1 （半 2:0） 布赖顿",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2022-04-21",
+        "league": "英超",
+        "teams": "曼城 3:0 （半 0:0） 布赖顿",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2021-10-24",
+        "league": "英超",
+        "teams": "布赖顿 1:4 （半 0:3） 曼城",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2021-05-19",
+        "league": "英超",
+        "teams": "布赖顿 3:2 （半 0:1） 曼城",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2021-01-14",
+        "league": "英超",
+        "teams": "曼城 1:0 （半 1:0） 布赖顿",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2020-07-12",
+        "league": "英超",
+        "teams": "布赖顿 0:5 （半 0:2） 曼城",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2019-08-31",
+        "league": "英超",
+        "teams": "曼城 4:0 （半 2:0） 布赖顿",
+        "totalGoals": "4"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "布赖顿",
+      "title": "常规赛 第8名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "16/13/9",
+          "winRate": "42%",
+          "goals": "66/59",
+          "gd": "7",
+          "points": "61",
+          "rank": "8"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "8/8/3",
+          "winRate": "42%",
+          "goals": "30/26",
+          "gd": "4",
+          "points": "32",
+          "rank": "8"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "8/5/6",
+          "winRate": "42%",
+          "goals": "36/33",
+          "gd": "3",
+          "points": "29",
+          "rank": "5"
+        }
+      ]
+    },
+    {
+      "team": "曼城",
+      "title": "常规赛 第3名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "21/8/9",
+          "winRate": "55%",
+          "goals": "72/44",
+          "gd": "28",
+          "points": "71",
+          "rank": "3"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "13/3/3",
+          "winRate": "68%",
+          "goals": "43/23",
+          "gd": "20",
+          "points": "42",
+          "rank": "2"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "8/5/6",
+          "winRate": "42%",
+          "goals": "29/21",
+          "gd": "8",
+          "points": "29",
+          "rank": "4"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "布赖顿",
+      "summary": "布赖顿近10场3胜 (30%) | 4平 (40%) | 3负 (30%) 进17球，失18球，净进-1球",
+      "matches": [
+        {
+          "date": "2024-11-02",
+          "league": "英超",
+          "vs": "利物浦 2 : 1 （半 0:1） 布赖顿",
+          "result": "负"
+        },
+        {
+          "date": "2024-10-31",
+          "league": "英联赛杯",
+          "vs": "布赖顿 2 : 3 （半 0:0） 利物浦",
+          "result": "负"
+        },
+        {
+          "date": "2024-10-26",
+          "league": "英超",
+          "vs": "布赖顿 2 : 2 （半 1:0） 狼队",
+          "result": "平"
+        },
+        {
+          "date": "2024-10-19",
+          "league": "英超",
+          "vs": "纽卡斯尔 0 : 1 （半 0:1） 布赖顿",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-06",
+          "league": "英超",
+          "vs": "布赖顿 3 : 2 （半 0:2） 热刺",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-28",
+          "league": "英超",
+          "vs": "切尔西 4 : 2 （半 4:2） 布赖顿",
+          "result": "负"
+        },
+        {
+          "date": "2024-09-22",
+          "league": "英超",
+          "vs": "布赖顿 2 : 2 （半 2:1） 诺丁汉",
+          "result": "平"
+        },
+        {
+          "date": "2024-09-19",
+          "league": "英联赛杯",
+          "vs": "布赖顿 3 : 2 （半 2:1） 狼队",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-14",
+          "league": "英超",
+          "vs": "布赖顿 0 : 0 （半 0:0） 伊普斯",
+          "result": "平"
+        },
+        {
+          "date": "2024-08-31",
+          "league": "英超",
+          "vs": "阿森纳 1 : 1 （半 1:0） 布赖顿",
+          "result": "平"
+        }
+      ]
+    },
+    {
+      "team": "曼城",
+      "summary": "曼城近10场6胜 (60%) | 1平 (10%) | 3负 (30%) 进21球，失13球，净进8球",
+      "matches": [
+        {
+          "date": "2024-11-06",
+          "league": "欧冠",
+          "vs": "里斯本 4 : 1 （半 1:1） 曼城",
+          "result": "负"
+        },
+        {
+          "date": "2024-11-02",
+          "league": "英超",
+          "vs": "伯恩茅斯 2 : 1 （半 1:0） 曼城",
+          "result": "负"
+        },
+        {
+          "date": "2024-10-31",
+          "league": "英联赛杯",
+          "vs": "热刺 2 : 1 （半 2:1） 曼城",
+          "result": "负"
+        },
+        {
+          "date": "2024-10-26",
+          "league": "英超",
+          "vs": "曼城 1 : 0 （半 1:0） 南安普敦",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-24",
+          "league": "欧冠",
+          "vs": "曼城 5 : 0 （半 1:0） 布斯巴达",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-20",
+          "league": "英超",
+          "vs": "狼队 1 : 2 （半 1:1） 曼城",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-05",
+          "league": "英超",
+          "vs": "曼城 3 : 2 （半 1:1） 富勒姆",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-02",
+          "league": "欧冠",
+          "vs": "布拉迪斯 0 : 4 （半 0:2） 曼城",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-28",
+          "league": "英超",
+          "vs": "纽卡斯尔 1 : 1 （半 0:1） 曼城",
+          "result": "平"
+        },
+        {
+          "date": "2024-09-25",
+          "league": "英联赛杯",
+          "vs": "曼城 2 : 1 （半 2:0） 沃特福德",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "布赖顿",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "曼城",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-01",
+          "俱乐部赛",
+          "曼城\nVS\n国际米兰",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-08-16",
+          "英社区盾",
+          "阿森纳\nVS\n曼城",
+          "Final"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "布赖顿",
+      "players": [
+        {
+          "player": "9-João Pedro(前锋)",
+          "apps": "27 (23/4)",
+          "goals": "10 (15%)",
+          "assists": "6 (14%)",
+          "avg": "0.4/0.2"
+        },
+        {
+          "player": "18-D. Welbeck(前锋)",
+          "apps": "30 (24/6)",
+          "goals": "10 (15%)",
+          "assists": "4 (9%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "22-三笘薫(中场)",
+          "apps": "36 (28/8)",
+          "goals": "10 (15%)",
+          "assists": "4 (9%)",
+          "avg": "0.3/0.1"
+        }
+      ]
+    },
+    {
+      "team": "曼城",
+      "players": [
+        {
+          "player": "9-E. Håland(前锋)",
+          "apps": "31 (31/0)",
+          "goals": "22 (31%)",
+          "assists": "3 (6%)",
+          "avg": "0.7/0.1"
+        },
+        {
+          "player": "47-福登(中场)",
+          "apps": "28 (20/8)",
+          "goals": "7 (10%)",
+          "assists": "2 (4%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "7-奥马尔·马尔穆什(前锋)",
+          "apps": "16 (14/2)",
+          "goals": "7 (10%)",
+          "assists": "0 (0%)",
+          "avg": "0.4/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "布赖顿",
+      "players": [
+        {
+          "player": "6-J. Milner(中场)",
+          "totalApps": "4",
+          "starts": "3",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "4-韦伯斯特(后卫)",
+          "totalApps": "14",
+          "starts": "11",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "5-邓克(后卫)",
+          "totalApps": "25",
+          "starts": "23",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "7-马奇(中场)",
+          "totalApps": "8",
+          "starts": "1",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "21-温达夫(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "26-Y.阿亚里(中场)",
+          "totalApps": "34",
+          "starts": "22",
+          "subs": "12",
+          "status": "伤"
+        },
+        {
+          "player": "31-A.西玛(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "33-A. Cozier-Duberry(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "17-Y. Minteh(前锋)",
+          "totalApps": "32",
+          "starts": "20",
+          "subs": "12",
+          "status": "伤"
+        },
+        {
+          "player": "51-M. O’Mahony(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "曼城",
+      "players": [
+        {
+          "player": "17-K. De Bruyne(中场)",
+          "totalApps": "28",
+          "starts": "19",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "5-斯通斯(后卫)",
+          "totalApps": "11",
+          "starts": "6",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "10-格里利什(中场)",
+          "totalApps": "20",
+          "starts": "7",
+          "subs": "13",
+          "status": "伤"
+        },
+        {
+          "player": "3-迪亚斯(后卫)",
+          "totalApps": "27",
+          "starts": "25",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "16-Rodri Hernández(中场)",
+          "totalApps": "3",
+          "starts": "1",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "21-Sergio Gómez(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "52-O.鲍勃(中场)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "32-M. Perrone(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

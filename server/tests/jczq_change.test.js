@@ -1,11 +1,7 @@
 /**
  * P2: jczq_change.test.js — 竞彩冷热指数计算单元测试
  */
-const {
-  computeHeatIndex,
-  computeFeature,
-  computeStaticDiff,
-} = require('../jczq_change');
+const { computeHeatIndex, computeFeature, computeStaticDiff } = require('../jczq_change');
 
 // ─── computeHeatIndex ───
 describe('jczq_change — computeHeatIndex 冷热指数', () => {

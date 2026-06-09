@@ -30,7 +30,9 @@ function atomicWrite(filePath, content) {
     return true;
   } catch (e) {
     console.error('[file-utils] 原子写入失败: ' + filePath + ' — ' + e.message);
-    try { fs.unlinkSync(tmpFile); } catch (_) {}
+    try {
+      fs.unlinkSync(tmpFile);
+    } catch (_) {}
     return false;
   }
 }

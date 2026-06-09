@@ -34,7 +34,7 @@ export function formatDateCN(d) {
 
 // ═══ sessionStorage 缓存层 ═══
 // ★ P3-4: Schema 版本号（数据结构变更时递增，自动淘汰旧缓存）
-var _CACHE_SCHEMA_VERSION = 1;
+var _CACHE_SCHEMA_VERSION = 2;
 var _CACHE_VERSION_KEY = '_cache:schema_version';
 
 // 检查并清理版本不匹配的缓存
@@ -48,7 +48,9 @@ function checkSchemaVersion() {
       var k = sessionStorage.key(i);
       if (k && k.indexOf('_cache:') === 0) keysToRemove.push(k);
     }
-    keysToRemove.forEach(function (k) { sessionStorage.removeItem(k); });
+    keysToRemove.forEach(function (k) {
+      sessionStorage.removeItem(k);
+    });
     sessionStorage.setItem(_CACHE_VERSION_KEY, _CACHE_SCHEMA_VERSION);
     console.log('[cache] Schema v' + _CACHE_SCHEMA_VERSION + ' 已激活, 清理 ' + keysToRemove.length + ' 条旧缓存');
   } catch (e) {}
@@ -58,11 +60,11 @@ checkSchemaVersion();
 
 // TTL 映射（毫秒）：不同数据类型的缓存过期时间
 var _CACHE_TTL = {
-  'match-list': 120000,       // 2 分钟
-  'plan-list': 300000,        // 5 分钟
-  'score-plan-list': 300000,  // 5 分钟
-  'quant-plan-list': 300000,  // 5 分钟
-  'quant-rank': 300000,       // 5 分钟
+  'match-list': 120000, // 2 分钟
+  'plan-list': 300000, // 5 分钟
+  'score-plan-list': 300000, // 5 分钟
+  'quant-plan-list': 300000, // 5 分钟
+  'quant-rank': 300000, // 5 分钟
   default: 120000,
 };
 
@@ -135,17 +137,19 @@ export function swrFetch(cacheKey, fetcher, renderer, ttl) {
     renderer(cached, true); // isStale=true（可能过期）
   }
   // 2) 网络请求
-  return fetcher().then(function (fresh) {
-    if (fresh !== null && fresh !== undefined) {
-      setCache(cacheKey, fresh);
-      renderer(fresh, false);
-    }
-    return fresh;
-  }).catch(function (err) {
-    console.warn('[swr] ' + cacheKey + ' 刷新失败:', err.message);
-    // 如果有缓存，不抛错（用户至少看到旧数据）
-    if (cached === null) throw err;
-  });
+  return fetcher()
+    .then(function (fresh) {
+      if (fresh !== null && fresh !== undefined) {
+        setCache(cacheKey, fresh);
+        renderer(fresh, false);
+      }
+      return fresh;
+    })
+    .catch(function (err) {
+      console.warn('[swr] ' + cacheKey + ' 刷新失败:', err.message);
+      // 如果有缓存，不抛错（用户至少看到旧数据）
+      if (cached === null) throw err;
+    });
 }
 
 // ═══ 统一渲染状态工具 ═══
@@ -160,19 +164,28 @@ export function renderState(el, state, opts) {
   opts = opts || {};
   switch (state) {
     case 'loading':
-      el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3);">' +
+      el.innerHTML =
+        '<div style="text-align:center;padding:60px 20px;color:var(--text3);">' +
         '<div class="loading-spinner" style="margin:0 auto 16px;width:32px;height:32px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--cyan);border-radius:50%;animation:spin 0.8s linear infinite;"></div>' +
         '加载中...</div>';
       break;
     case 'error':
-      el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--amber);">' +
-        '⚠️ ' + (opts.msg || '请求失败') +
-        (opts.retryFn ? '<br><button onclick="(' + opts.retryFn.toString() + ')()" style="margin-top:12px;padding:6px 20px;border-radius:8px;border:1px solid var(--amber);background:transparent;color:var(--amber);cursor:pointer;">重试</button>' : '') +
+      el.innerHTML =
+        '<div style="text-align:center;padding:60px 20px;color:var(--amber);">' +
+        '⚠️ ' +
+        (opts.msg || '请求失败') +
+        (opts.retryFn
+          ? '<br><button onclick="(' +
+            opts.retryFn.toString() +
+            ')()" style="margin-top:12px;padding:6px 20px;border-radius:8px;border:1px solid var(--amber);background:transparent;color:var(--amber);cursor:pointer;">重试</button>'
+          : '') +
         '</div>';
       break;
     case 'empty':
-      el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text3);">' +
-        (opts.emptyMsg || '暂无数据') + '</div>';
+      el.innerHTML =
+        '<div style="text-align:center;padding:60px 20px;color:var(--text3);">' +
+        (opts.emptyMsg || '暂无数据') +
+        '</div>';
       break;
     case 'ok':
       // 正常状态下由渲染函数接管

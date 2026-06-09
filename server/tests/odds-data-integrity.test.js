@@ -33,14 +33,23 @@ describe('allplays.json — 2026-06-04 数据完整性', () => {
   const has20260604 = !!dayData && Object.keys(dayData).length > 0;
 
   it('2026-06-04 日期键存在', () => {
-    if (!has20260604) { console.log('本地 allplays.json 无 2026-06-04 数据（仅服务端存在）'); return; }
+    if (!has20260604) {
+      console.log('本地 allplays.json 无 2026-06-04 数据（仅服务端存在）');
+      return;
+    }
     expect(allplaysRaw).toHaveProperty('2026-06-04');
   });
 
   it('包含 5 个场次（周四201-205）', () => {
-    if (!has20260604) { console.log('本地 allplays.json 无 2026-06-04 数据'); return; }
+    if (!has20260604) {
+      console.log('本地 allplays.json 无 2026-06-04 数据');
+      return;
+    }
     const keys = Object.keys(dayData);
-    if (keys.length < 5) { console.log('本地仅 ' + keys.length + ' 场（完整数据在服务端）'); return; }
+    if (keys.length < 5) {
+      console.log('本地仅 ' + keys.length + ' 场（完整数据在服务端）');
+      return;
+    }
     expect(keys.length).toBeGreaterThanOrEqual(5);
     ['周四201', '周四202', '周四203', '周四204', '周四205'].forEach(function (k) {
       expect(dayData[k] || dayData['num_' + k]).toBeTruthy();
@@ -48,7 +57,7 @@ describe('allplays.json — 2026-06-04 数据完整性', () => {
   });
 
   describe('周四203 — 特殊边界场景', () => {
-    const entry = (dayData['周四203'] || dayData['num_周四203']) || {};
+    const entry = dayData['周四203'] || dayData['num_周四203'] || {};
     const hasEntry = Object.keys(entry).length > 0;
 
     it('存在并含有所有玩法 key', () => {
@@ -65,7 +74,7 @@ describe('allplays.json — 2026-06-04 数据完整性', () => {
     it('RQSPF 为 {home:2.21, draw:4.20, away:2.28}', () => {
       const rq = entry.rqspf || {};
       expect(rq.home).toBeCloseTo(2.21, 2);
-      expect(rq.draw).toBeCloseTo(4.20, 2);
+      expect(rq.draw).toBeCloseTo(4.2, 2);
       expect(rq.away).toBeCloseTo(2.28, 2);
     });
 
@@ -76,7 +85,10 @@ describe('allplays.json — 2026-06-04 数据完整性', () => {
     it('scores 包含 31 个比分（含胜其他/平其他/负其他）', () => {
       const sc = entry.scores || {};
       const keys = Object.keys(sc);
-      if (keys.length < 5) { console.log('本地 allplays 未包含 scores 数据'); return; }
+      if (keys.length < 5) {
+        console.log('本地 allplays 未包含 scores 数据');
+        return;
+      }
       expect(keys.length).toBe(31);
       expect(sc).toHaveProperty('胜其它');
       expect(sc).toHaveProperty('平其它');
@@ -85,7 +97,10 @@ describe('allplays.json — 2026-06-04 数据完整性', () => {
 
     it('totalGoals 包含 8 个进球档位（0~7+）', () => {
       const tg = entry.totalGoals || {};
-      if (Object.keys(tg).length < 5) { console.log('本地 allplays 未包含 totalGoals 数据'); return; }
+      if (Object.keys(tg).length < 5) {
+        console.log('本地 allplays 未包含 totalGoals 数据');
+        return;
+      }
       expect(Object.keys(tg).length).toBe(8);
       expect(tg).toHaveProperty('0');
       expect(tg).toHaveProperty('7+');
@@ -93,7 +108,10 @@ describe('allplays.json — 2026-06-04 数据完整性', () => {
 
     it('halfFull 包含 9 个半全场组合', () => {
       const hf = entry.halfFull || {};
-      if (Object.keys(hf).length < 5) { console.log('本地 allplays 未包含 halfFull 数据'); return; }
+      if (Object.keys(hf).length < 5) {
+        console.log('本地 allplays 未包含 halfFull 数据');
+        return;
+      }
       expect(Object.keys(hf).length).toBe(9);
       ['hh', 'hd', 'ha', 'dh', 'dd', 'da', 'ah', 'ad', 'aa'].forEach(function (k) {
         expect(hf).toHaveProperty(k);
@@ -112,21 +130,30 @@ describe('allplays.json — 2026-06-04 数据完整性', () => {
 
       it(num + ' 有 scores（比分）', () => {
         const sc = entry.scores || {};
-        if (Object.keys(sc).length === 0) { console.log('scores 数据未就绪'); return; }
+        if (Object.keys(sc).length === 0) {
+          console.log('scores 数据未就绪');
+          return;
+        }
         expect(entry.scores).toBeTruthy();
         expect(Object.keys(entry.scores).length).toBeGreaterThanOrEqual(25);
       });
 
       it(num + ' 有 totalGoals（总进球）', () => {
         const tg = entry.totalGoals || {};
-        if (Object.keys(tg).length === 0) { console.log('totalGoals 数据未就绪'); return; }
+        if (Object.keys(tg).length === 0) {
+          console.log('totalGoals 数据未就绪');
+          return;
+        }
         expect(entry.totalGoals).toBeTruthy();
         expect(Object.keys(entry.totalGoals).length).toBe(8);
       });
 
       it(num + ' 有 halfFull（半全场）', () => {
         const hf = entry.halfFull || {};
-        if (Object.keys(hf).length === 0) { console.log('halfFull 数据未就绪'); return; }
+        if (Object.keys(hf).length === 0) {
+          console.log('halfFull 数据未就绪');
+          return;
+        }
         expect(entry.halfFull).toBeTruthy();
         expect(Object.keys(entry.halfFull).length).toBe(9);
       });
@@ -187,7 +214,10 @@ describe('odds_history/2026-06-04.json — 数据完整性', () => {
 
   it('odds 对象包含至少 5 个场次', () => {
     const oddsKeys = Object.keys(oddsData.odds);
-    if (oddsKeys.length < 5) { console.log('本地 odds_history 仅 ' + oddsKeys.length + ' 场（完整数据在服务端）'); return; }
+    if (oddsKeys.length < 5) {
+      console.log('本地 odds_history 仅 ' + oddsKeys.length + ' 场（完整数据在服务端）');
+      return;
+    }
     expect(oddsKeys.length).toBeGreaterThanOrEqual(5);
   });
 
@@ -198,7 +228,7 @@ describe('odds_history/2026-06-04.json — 数据完整性', () => {
     const rq = m.rqspf || {};
     if (Object.keys(rq).length > 0) {
       expect(rq.home).toBeCloseTo(2.21, 2);
-      expect(rq.draw).toBeCloseTo(4.20, 2);
+      expect(rq.draw).toBeCloseTo(4.2, 2);
       expect(rq.away).toBeCloseTo(2.28, 2);
     }
   });

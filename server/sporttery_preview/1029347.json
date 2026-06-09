@@ -1,0 +1,450 @@
+{
+  "match_id": "1029347",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "2胜/1平/7负",
+      "2胜/0平/4负",
+      "4胜/3平/3负",
+      "4胜/4平/2负",
+      "1.3个",
+      "1.0个"
+    ],
+    "away": [
+      "7胜/1平/2负",
+      "4胜/0平/2负",
+      "4胜/1平/5负",
+      "2胜/3平/5负",
+      "1.7个",
+      "1.8个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场布城2胜 (20%) | 1平 (10%) | 7负 (70%)",
+    "rows": [
+      {
+        "date": "2019-02-17",
+        "league": "英足总杯",
+        "teams": "布城 0:1 （半 0:1） 狼队",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2017-12-31",
+        "league": "英冠",
+        "teams": "布城 1:2 （半 0:0） 狼队",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2017-09-13",
+        "league": "英冠",
+        "teams": "狼队 3:3 （半 1:1） 布城",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2017-04-08",
+        "league": "英冠",
+        "teams": "布城 3:1 （半 2:0） 狼队",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2016-12-26",
+        "league": "英冠",
+        "teams": "狼队 3:2 （半 1:2） 布城",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2016-03-09",
+        "league": "英冠",
+        "teams": "狼队 2:1 （半 0:0） 布城",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2015-11-04",
+        "league": "英冠",
+        "teams": "布城 1:0 （半 1:0） 狼队",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2014-01-25",
+        "league": "英甲",
+        "teams": "狼队 3:1 （半 2:1） 布城",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2013-08-17",
+        "league": "英甲",
+        "teams": "布城 1:2 （半 0:1） 狼队",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2013-03-16",
+        "league": "英冠",
+        "teams": "狼队 2:1 （半 0:1） 布城",
+        "totalGoals": "3"
+      }
+    ]
+  },
+  "standings": [],
+  "recentForm": [
+    {
+      "team": "布城",
+      "summary": "布城近10场4胜 (40%) | 3平 (30%) | 3负 (30%) 进13球，失10球，净进3球",
+      "matches": [
+        {
+          "date": "2025-01-04",
+          "league": "英冠",
+          "vs": "布城 1 : 0 （半 1:0） 德比郡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-01-01",
+          "league": "英冠",
+          "vs": "普利茅斯 2 : 2 （半 0:1） 布城",
+          "result": "平"
+        },
+        {
+          "date": "2024-12-29",
+          "league": "英冠",
+          "vs": "布城 3 : 0 （半 3:0） 朴次茅斯",
+          "result": "胜"
+        },
+        {
+          "date": "2024-12-26",
+          "league": "英冠",
+          "vs": "布城 1 : 0 （半 0:0） 卢顿",
+          "result": "胜"
+        },
+        {
+          "date": "2024-12-22",
+          "league": "英冠",
+          "vs": "西布罗姆 2 : 0 （半 2:0） 布城",
+          "result": "负"
+        },
+        {
+          "date": "2024-12-14",
+          "league": "英冠",
+          "vs": "布城 1 : 1 （半 0:0） 女王巡游",
+          "result": "平"
+        },
+        {
+          "date": "2024-12-11",
+          "league": "英冠",
+          "vs": "桑德兰 1 : 1 （半 0:0） 布城",
+          "result": "平"
+        },
+        {
+          "date": "2024-12-07",
+          "league": "英冠",
+          "vs": "朴次茅斯 3 : 0 （半 1:0） 布城",
+          "result": "负"
+        },
+        {
+          "date": "2024-11-30",
+          "league": "英冠",
+          "vs": "布城 4 : 0 （半 0:0） 普利茅斯",
+          "result": "胜"
+        },
+        {
+          "date": "2024-11-27",
+          "league": "英冠",
+          "vs": "沃特福德 1 : 0 （半 0:0） 布城",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "狼队",
+      "summary": "狼队近10场4胜 (40%) | 1平 (10%) | 5负 (50%) 进17球，失18球，净进-1球",
+      "matches": [
+        {
+          "date": "2025-01-07",
+          "league": "英超",
+          "vs": "狼队 0 : 3 （半 0:2） 诺丁汉",
+          "result": "负"
+        },
+        {
+          "date": "2024-12-29",
+          "league": "英超",
+          "vs": "热刺 2 : 2 （半 2:1） 狼队",
+          "result": "平"
+        },
+        {
+          "date": "2024-12-27",
+          "league": "英超",
+          "vs": "狼队 2 : 0 （半 0:0） 曼联",
+          "result": "胜"
+        },
+        {
+          "date": "2024-12-22",
+          "league": "英超",
+          "vs": "莱切斯特 0 : 3 （半 0:3） 狼队",
+          "result": "胜"
+        },
+        {
+          "date": "2024-12-14",
+          "league": "英超",
+          "vs": "狼队 1 : 2 （半 0:1） 伊普斯",
+          "result": "负"
+        },
+        {
+          "date": "2024-12-10",
+          "league": "英超",
+          "vs": "西汉姆联 2 : 1 （半 0:0） 狼队",
+          "result": "负"
+        },
+        {
+          "date": "2024-12-05",
+          "league": "英超",
+          "vs": "埃弗顿 4 : 0 （半 2:0） 狼队",
+          "result": "负"
+        },
+        {
+          "date": "2024-11-30",
+          "league": "英超",
+          "vs": "狼队 2 : 4 （半 1:3） 伯恩茅斯",
+          "result": "负"
+        },
+        {
+          "date": "2024-11-23",
+          "league": "英超",
+          "vs": "富勒姆 1 : 4 （半 1:1） 狼队",
+          "result": "胜"
+        },
+        {
+          "date": "2024-11-09",
+          "league": "英超",
+          "vs": "狼队 2 : 0 （半 1:0） 南安普敦",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "布城",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-25",
+          "俱乐部赛",
+          "布城\nVS\n斯文登",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-30",
+          "俱乐部赛",
+          "绿色森林\nVS\n布城",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-08-01",
+          "俱乐部赛",
+          "普利茅斯\nVS\n布城",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-08-02",
+          "俱乐部赛",
+          "埃克塞特\nVS\n布城",
+          "Club Friendlies 3"
+        ]
+      ]
+    },
+    {
+      "team": "狼队",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-22",
+          "俱乐部赛",
+          "梅登黑德\nVS\n狼队",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-08-01",
+          "俱乐部赛",
+          "海伦芬\nVS\n狼队",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "布城",
+      "players": [
+        {
+          "player": "10-特温(中场)",
+          "apps": "1 (1/0)",
+          "goals": "1 (100%)",
+          "assists": "0 (0%)",
+          "avg": "1.0/0"
+        }
+      ]
+    },
+    {
+      "team": "狼队",
+      "players": [
+        {
+          "player": "C. Campbell(中场)",
+          "apps": "2 (1/1)",
+          "goals": "2 (29%)",
+          "assists": "0 (0%)",
+          "avg": "1.0/0"
+        },
+        {
+          "player": "10-马特乌斯·库尼亚(前锋)伤",
+          "apps": "2 (2/0)",
+          "goals": "2 (29%)",
+          "assists": "0 (0%)",
+          "avg": "1.0/0"
+        },
+        {
+          "player": "8-戈麦斯(中场)",
+          "apps": "3 (3/0)",
+          "goals": "1 (14%)",
+          "assists": "1 (20%)",
+          "avg": "0.3/0.3"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "布城",
+      "players": [
+        {
+          "player": "4-奈史密斯(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "17-德佳(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "8-乔·威廉姆斯(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "15-康韦(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "18-A. Benarous(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "30-S. Armstrong(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "狼队",
+      "players": [
+        {
+          "player": "15-C. Dawson(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "22-塞梅多(后卫)",
+          "totalApps": "2",
+          "starts": "2",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "18-卡莱季奇(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "10-马特乌斯·库尼亚(前锋)",
+          "totalApps": "2",
+          "starts": "2",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "35-K.胡弗(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "24-托蒂(后卫)",
+          "totalApps": "2",
+          "starts": "2",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "6-B·特劳雷(中场)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "28-T. Chirewa(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "14-Y. Mosquera(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "7-André(中场)",
+          "totalApps": "3",
+          "starts": "1",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "30-E. González(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

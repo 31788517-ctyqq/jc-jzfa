@@ -20,7 +20,7 @@ describe('market — inferMarketXg 市场xG反推', () => {
 
   it('有效 totalGoals → valid=true, 返回市场xG', () => {
     const odds = {
-      totalGoals: { 0: 13, 1: 5.25, 2: 3.50, 3: 3.00, 4: 5.30, 5: 10 },
+      totalGoals: { 0: 13, 1: 5.25, 2: 3.5, 3: 3.0, 4: 5.3, 5: 10 },
     };
     const result = inferMarketXg(odds, 0.5);
     expect(result.valid).toBe(true);
@@ -32,7 +32,7 @@ describe('market — inferMarketXg 市场xG反推', () => {
 
   it('让球影响主客分配 (主让→主队占比高)', () => {
     const odds = {
-      totalGoals: { 0: 13, 1: 5.25, 2: 3.50, 3: 3.00, 4: 5.30, 5: 10 },
+      totalGoals: { 0: 13, 1: 5.25, 2: 3.5, 3: 3.0, 4: 5.3, 5: 10 },
     };
     const homeHandicap = inferMarketXg(odds, 1.5);
     const awayHandicap = inferMarketXg(odds, -1.5);
@@ -42,7 +42,7 @@ describe('market — inferMarketXg 市场xG反推', () => {
   it('赔率最低的进球数决定 overUnderLine', () => {
     // bestOdds 对应 key=3 (赔率3.00最低) → overUnderLine = 3.5
     const odds = {
-      totalGoals: { 0: 13, 1: 6.00, 2: 4.00, 3: 2.50, 4: 5.00, 5: 10 },
+      totalGoals: { 0: 13, 1: 6.0, 2: 4.0, 3: 2.5, 4: 5.0, 5: 10 },
     };
     const result = inferMarketXg(odds, 0);
     expect(result.overUnderLine).toBe(3.5);
@@ -59,19 +59,28 @@ describe('market — loadMatchOdds 赔率加载', () => {
   });
 
   // 需要 mock odds-movement
-  jest.mock('../core/odds-movement', function () {
-    return {
-      analyzeMovement: function () {
-        return {
-          direction: '盘口稳定', severity: 'none', penalty: 0,
-          probShift: 0.01, waterChange: 0, openHomeWinProb: 0.42, liveHomeWinProb: 0.43,
-        };
-      },
-      checkEuroAsiaConsistency: function () {
-        return { consistent: true, detail: '欧亚一致', penalty: 0 };
-      },
-    };
-  }, { virtual: true });
+  jest.mock(
+    '../core/odds-movement',
+    function () {
+      return {
+        analyzeMovement: function () {
+          return {
+            direction: '盘口稳定',
+            severity: 'none',
+            penalty: 0,
+            probShift: 0.01,
+            waterChange: 0,
+            openHomeWinProb: 0.42,
+            liveHomeWinProb: 0.43,
+          };
+        },
+        checkEuroAsiaConsistency: function () {
+          return { consistent: true, detail: '欧亚一致', penalty: 0 };
+        },
+      };
+    },
+    { virtual: true },
+  );
 
   // 注意: market.js 在顶部使用了 require('../core/odds-movement')
   // mock 必须在 require market 之前注册

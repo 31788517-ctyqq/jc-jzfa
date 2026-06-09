@@ -1,0 +1,535 @@
+{
+  "match_id": "2032413",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "2胜/4平/4负",
+      "1胜/3平/1负",
+      "1胜/5平/4负",
+      "1胜/5平/4负",
+      "0.6个",
+      "1.7个"
+    ],
+    "away": [
+      "4胜/4平/2负",
+      "1胜/3平/1负",
+      "7胜/3平/0负",
+      "5胜/2平/3负",
+      "1.9个",
+      "1.1个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场华盛顿2胜 (20%) | 4平 (40%) | 4负 (40%)",
+    "rows": [
+      {
+        "date": "2025-05-18",
+        "league": "美职",
+        "teams": "纳什维尔 0:0 （半 0:0） 华盛顿",
+        "totalGoals": ""
+      },
+      {
+        "date": "2024-10-03",
+        "league": "美职",
+        "teams": "纳什维尔 3:4 （半 2:1） 华盛顿",
+        "totalGoals": "7"
+      },
+      {
+        "date": "2024-07-14",
+        "league": "美职",
+        "teams": "华盛顿 2:1 （半 0:1） 纳什维尔",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2023-07-02",
+        "league": "美职",
+        "teams": "纳什维尔 2:0 （半 2:0） 华盛顿",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2023-05-14",
+        "league": "美职",
+        "teams": "华盛顿 1:1 （半 0:0） 纳什维尔",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2022-06-26",
+        "league": "美职",
+        "teams": "华盛顿 1:3 （半 0:2） 纳什维尔",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2021-10-17",
+        "league": "美职",
+        "teams": "华盛顿 0:0 （半 0:0） 纳什维尔",
+        "totalGoals": ""
+      },
+      {
+        "date": "2021-08-16",
+        "league": "美职",
+        "teams": "纳什维尔 5:2 （半 3:2） 华盛顿",
+        "totalGoals": "7"
+      },
+      {
+        "date": "2020-09-24",
+        "league": "美职",
+        "teams": "纳什维尔 1:0 （半 0:0） 华盛顿",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2020-02-20",
+        "league": "俱乐部赛",
+        "teams": "华盛顿 1:1 （半 -:-） 纳什维尔",
+        "totalGoals": "2"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "华盛顿",
+      "title": "Regular Season 第15名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "5/11/18",
+          "winRate": "15%",
+          "goals": "30/66",
+          "gd": "-36",
+          "points": "26",
+          "rank": "15"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "2/7/8",
+          "winRate": "12%",
+          "goals": "13/31",
+          "gd": "-18",
+          "points": "13",
+          "rank": "14"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "3/4/10",
+          "winRate": "18%",
+          "goals": "17/35",
+          "gd": "-18",
+          "points": "13",
+          "rank": "13"
+        }
+      ]
+    },
+    {
+      "team": "纳什维尔",
+      "title": "Regular Season 第6名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "16/6/12",
+          "winRate": "47%",
+          "goals": "58/45",
+          "gd": "13",
+          "points": "54",
+          "rank": "6"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "11/3/3",
+          "winRate": "65%",
+          "goals": "36/17",
+          "gd": "19",
+          "points": "36",
+          "rank": "3"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "5/3/9",
+          "winRate": "29%",
+          "goals": "22/28",
+          "gd": "-6",
+          "points": "18",
+          "rank": "10"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "华盛顿",
+      "summary": "华盛顿近10场1胜 (10%) | 5平 (50%) | 4负 (40%) 进6球，失17球，净进-11球",
+      "matches": [
+        {
+          "date": "2025-06-15",
+          "league": "美职",
+          "vs": "盐湖城 2 : 0 （半 1:0） 华盛顿",
+          "result": "负"
+        },
+        {
+          "date": "2025-06-08",
+          "league": "美职",
+          "vs": "华盛顿 1 : 7 （半 0:4） 芝加哥",
+          "result": "负"
+        },
+        {
+          "date": "2025-06-01",
+          "league": "美职",
+          "vs": "辛辛那提 1 : 2 （半 1:2） 华盛顿",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-29",
+          "league": "美职",
+          "vs": "华盛顿 1 : 1 （半 0:1） 新英格兰",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-25",
+          "league": "美职",
+          "vs": "华盛顿 0 : 2 （半 0:1） 纽约红牛",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-22",
+          "league": "公开赛杯",
+          "vs": "华盛顿 2 : 2 （半 1:0） 夏洛特FC",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "美职",
+          "vs": "纳什维尔 0 : 0 （半 0:0） 华盛顿",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-15",
+          "league": "美职",
+          "vs": "华盛顿 0 : 0 （半 0:0） 纽约城",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-11",
+          "league": "美职",
+          "vs": "多伦多 2 : 0 （半 0:0） 华盛顿",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-07",
+          "league": "公开赛杯",
+          "vs": "华盛顿 0 : 0 （半 0:0） 查尔斯顿",
+          "result": "平"
+        }
+      ]
+    },
+    {
+      "team": "纳什维尔",
+      "summary": "纳什维尔近10场7胜 (70%) | 3平 (30%) | 0负 (0%) 进19球，失11球，净进8球",
+      "matches": [
+        {
+          "date": "2025-06-26",
+          "league": "美职",
+          "vs": "新英格兰 2 : 3 （半 1:1） 纳什维尔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-15",
+          "league": "美职",
+          "vs": "芝加哥 0 : 2 （半 0:0） 纳什维尔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-01",
+          "league": "美职",
+          "vs": "纳什维尔 2 : 2 （半 2:0） 纽约城",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-29",
+          "league": "美职",
+          "vs": "哥伦布 2 : 2 （半 0:1） 纳什维尔",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-25",
+          "league": "美职",
+          "vs": "多伦多 1 : 2 （半 0:0） 纳什维尔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-22",
+          "league": "公开赛杯",
+          "vs": "奥兰多 2 : 3 （半 1:2） 纳什维尔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "美职",
+          "vs": "纳什维尔 0 : 0 （半 0:0） 华盛顿",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-15",
+          "league": "美职",
+          "vs": "纳什维尔 2 : 1 （半 1:0） 纽约红牛",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-11",
+          "league": "美职",
+          "vs": "纳什维尔 2 : 1 （半 0:0） 夏洛特FC",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-07",
+          "league": "公开赛杯",
+          "vs": "纳什维尔 1 : 0 （半 1:0） Red Wolves",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "华盛顿",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-12",
+          "俱乐部赛",
+          "华盛顿\nVS\n埃塞俄比",
+          ""
+        ],
+        [
+          "2026-07-23",
+          "美职",
+          "休斯敦\nVS\n华盛顿",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "华盛顿\nVS\n多伦多",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "华盛顿\nVS\n纳什维尔",
+          "Regular Season"
+        ]
+      ]
+    },
+    {
+      "team": "纳什维尔",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-18",
+          "美职",
+          "纳什维尔\nVS\n亚特联",
+          "Regular Season"
+        ],
+        [
+          "2026-07-23",
+          "美职",
+          "纳什维尔\nVS\n蒙特利尔",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "奥兰多\nVS\n纳什维尔",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "华盛顿\nVS\n纳什维尔",
+          "Regular Season"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "华盛顿",
+      "players": [
+        {
+          "player": "20-C. Benteke(前锋)伤",
+          "apps": "25 (23/2)",
+          "goals": "9 (30%)",
+          "assists": "3 (13%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "10-加布里埃尔 皮拉尼(中场)",
+          "apps": "28 (22/6)",
+          "goals": "7 (23%)",
+          "assists": "3 (13%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "7-João Peglow(前锋)伤",
+          "apps": "24 (21/3)",
+          "goals": "3 (10%)",
+          "assists": "3 (13%)",
+          "avg": "0.1/0.1"
+        }
+      ]
+    },
+    {
+      "team": "纳什维尔",
+      "players": [
+        {
+          "player": "9-萨里奇(前锋)伤",
+          "apps": "37 (36/1)",
+          "goals": "25 (42%)",
+          "assists": "3 (8%)",
+          "avg": "0.7/0.1"
+        },
+        {
+          "player": "10-H. Mukhtar(中场)",
+          "apps": "37 (37/0)",
+          "goals": "17 (28%)",
+          "assists": "8 (20%)",
+          "avg": "0.5/0.2"
+        },
+        {
+          "player": "14-沙费尔堡(前锋)",
+          "apps": "26 (13/13)",
+          "goals": "4 (7%)",
+          "assists": "2 (5%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "华盛顿",
+      "players": [
+        {
+          "player": "20-C. Benteke(前锋)",
+          "totalApps": "25",
+          "starts": "23",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "22-A. Herrera(后卫)",
+          "totalApps": "26",
+          "starts": "24",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "16-G.塔布斯(后卫)",
+          "totalApps": "8",
+          "starts": "7",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "7-João Peglow(前锋)",
+          "totalApps": "24",
+          "starts": "21",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "5-L. MacNaughton(后卫)",
+          "totalApps": "11",
+          "starts": "9",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "25-J. Hopkins(中场)",
+          "totalApps": "17",
+          "starts": "11",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "1-Kim Joon-Hong(守门员)",
+          "totalApps": "8",
+          "starts": "8",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "27-K. Fletcher(前锋)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "17-J. Murrell(前锋)",
+          "totalApps": "24",
+          "starts": "7",
+          "subs": "17",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "纳什维尔",
+      "players": [
+        {
+          "player": "20-E.塔吉斯(中场)",
+          "totalApps": "36",
+          "starts": "32",
+          "subs": "4",
+          "status": "停"
+        },
+        {
+          "player": "11-T. Boyd(前锋)",
+          "totalApps": "6",
+          "starts": "1",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "9-萨里奇(前锋)",
+          "totalApps": "37",
+          "starts": "36",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "23-华盛顿特区(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "21-M. Ekk(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "28-W. Meyer(后卫)",
+          "totalApps": "6",
+          "starts": "3",
+          "subs": "3",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

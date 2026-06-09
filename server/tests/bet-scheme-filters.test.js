@@ -5,11 +5,20 @@
  *       groupSelections/estimateScheme/applySchemeFilters
  */
 const {
-  safeFloat, safeInt, safeBool,
-  listTokenSet, normalizeSelectionCode, selectionScore,
-  matchesBaseFilters, matchesValueGate, matchesCalibratedConfidence,
-  matchesOddsRelation, groupSelections, estimateScheme,
-  applySchemeFilters, SELECTION_LABELS,
+  safeFloat,
+  safeInt,
+  safeBool,
+  listTokenSet,
+  normalizeSelectionCode,
+  selectionScore,
+  matchesBaseFilters,
+  matchesValueGate,
+  matchesCalibratedConfidence,
+  matchesOddsRelation,
+  groupSelections,
+  estimateScheme,
+  applySchemeFilters,
+  SELECTION_LABELS,
 } = require('../core/bet-scheme-filters');
 
 // ==================== 工具函数 ====================
@@ -97,11 +106,19 @@ describe('bet-scheme-filters — 工具函数', () => {
 
 describe('bet-scheme-filters — matchesBaseFilters 基础阈值筛选', () => {
   function sel(overrides) {
-    return Object.assign({
-      confidence: 0.8, edgeValue: 0.15, odds: 1.85,
-      league: '英超', leagueName: '英超', recommended: true,
-      context: {}, contextJson: {},
-    }, overrides || {});
+    return Object.assign(
+      {
+        confidence: 0.8,
+        edgeValue: 0.15,
+        odds: 1.85,
+        league: '英超',
+        leagueName: '英超',
+        recommended: true,
+        context: {},
+        contextJson: {},
+      },
+      overrides || {},
+    );
   }
 
   it('所有条件通过 → 返回空数组', () => {
@@ -140,26 +157,21 @@ describe('bet-scheme-filters — matchesBaseFilters 基础阈值筛选', () => {
   });
 
   it('排除回退结果 (excludeFallback + fallback=true) → fallback_selection', () => {
-    const reasons = matchesBaseFilters(
-      sel({ context: { fallback: true } }),
-      { excludeFallback: true }
-    );
+    const reasons = matchesBaseFilters(sel({ context: { fallback: true } }), { excludeFallback: true });
     expect(reasons).toContain('fallback_selection');
   });
 
   it('仅AI推荐 (onlyAiRecommended + recommended=false) → not_ai_recommended', () => {
-    const reasons = matchesBaseFilters(
-      sel({ recommended: false }),
-      { onlyAiRecommended: true }
-    );
+    const reasons = matchesBaseFilters(sel({ recommended: false }), { onlyAiRecommended: true });
     expect(reasons).toContain('not_ai_recommended');
   });
 
   it('多个条件同时失败 → 返回多个原因', () => {
-    const reasons = matchesBaseFilters(
-      sel({ confidence: 0.2, odds: 1.2, league: '巴甲' }),
-      { confidenceMin: 0.5, oddsMin: 1.5, leagueWhitelist: '英超,西甲' }
-    );
+    const reasons = matchesBaseFilters(sel({ confidence: 0.2, odds: 1.2, league: '巴甲' }), {
+      confidenceMin: 0.5,
+      oddsMin: 1.5,
+      leagueWhitelist: '英超,西甲',
+    });
     expect(reasons.length).toBe(3);
   });
 });
@@ -168,11 +180,15 @@ describe('bet-scheme-filters — matchesBaseFilters 基础阈值筛选', () => {
 
 describe('bet-scheme-filters — matchesValueGate 价值门控', () => {
   function sel(overrides) {
-    return Object.assign({
-      edgeValue: 0.15, odds: 1.85,
-      context: { modelProbability: 0.62 },
-      contextJson: {},
-    }, overrides || {});
+    return Object.assign(
+      {
+        edgeValue: 0.15,
+        odds: 1.85,
+        context: { modelProbability: 0.62 },
+        contextJson: {},
+      },
+      overrides || {},
+    );
   }
 
   it('mode=off → 返回空数组', () => {
@@ -186,10 +202,7 @@ describe('bet-scheme-filters — matchesValueGate 价值门控', () => {
   });
 
   it('edge_only: edge 不通过 → edge_below_min', () => {
-    const reasons = matchesValueGate(
-      sel({ edgeValue: 0.02 }),
-      { valueGateMode: 'edge_only', valueEdgeMin: 0.1 }
-    );
+    const reasons = matchesValueGate(sel({ edgeValue: 0.02 }), { valueGateMode: 'edge_only', valueEdgeMin: 0.1 });
     expect(reasons).toContain('value_gate_edge_below_min');
   });
 
@@ -200,10 +213,7 @@ describe('bet-scheme-filters — matchesValueGate 价值门控', () => {
   });
 
   it('ev_only: EV 不通过 → ev_below_min', () => {
-    const reasons = matchesValueGate(
-      sel({ odds: 1.5 }),
-      { valueGateMode: 'ev_only', evMin: 0.2 }
-    );
+    const reasons = matchesValueGate(sel({ odds: 1.5 }), { valueGateMode: 'ev_only', evMin: 0.2 });
     expect(reasons).toContain('value_gate_ev_below_min');
   });
 
@@ -211,24 +221,22 @@ describe('bet-scheme-filters — matchesValueGate 价值门控', () => {
     // edge=0.15 ≥ 0.1 pass, ev maybe fail
     const reasons = matchesValueGate(
       sel({ odds: 1.2 }), // EV may fail but edge passes
-      { valueGateMode: 'edge_or_ev', valueEdgeMin: 0.1, evMin: 0.3 }
+      { valueGateMode: 'edge_or_ev', valueEdgeMin: 0.1, evMin: 0.3 },
     );
     expect(reasons).toEqual([]);
   });
 
   it('edge_and_ev: 两者都通过 → 返回空数组', () => {
-    const reasons = matchesValueGate(
-      sel(),
-      { valueGateMode: 'edge_and_ev', valueEdgeMin: 0.1, evMin: 0.05 }
-    );
+    const reasons = matchesValueGate(sel(), { valueGateMode: 'edge_and_ev', valueEdgeMin: 0.1, evMin: 0.05 });
     expect(reasons).toEqual([]);
   });
 
   it('edge_and_ev: edge 失败 → edge_below_min', () => {
-    const reasons = matchesValueGate(
-      sel({ edgeValue: 0.02 }),
-      { valueGateMode: 'edge_and_ev', valueEdgeMin: 0.1, evMin: 0.05 }
-    );
+    const reasons = matchesValueGate(sel({ edgeValue: 0.02 }), {
+      valueGateMode: 'edge_and_ev',
+      valueEdgeMin: 0.1,
+      evMin: 0.05,
+    });
     expect(reasons).toContain('value_gate_edge_below_min');
   });
 });
@@ -237,11 +245,14 @@ describe('bet-scheme-filters — matchesValueGate 价值门控', () => {
 
 describe('bet-scheme-filters — matchesCalibratedConfidence 校准置信度', () => {
   function sel(overrides) {
-    return Object.assign({
-      confidence: 0.70,
-      context: { confidenceCalibrated: 0.65 },
-      contextJson: {},
-    }, overrides || {});
+    return Object.assign(
+      {
+        confidence: 0.7,
+        context: { confidenceCalibrated: 0.65 },
+        contextJson: {},
+      },
+      overrides || {},
+    );
   }
 
   it('threshold 为 null → 返回空数组', () => {
@@ -253,35 +264,36 @@ describe('bet-scheme-filters — matchesCalibratedConfidence 校准置信度', (
   });
 
   it('校准值 < 门槛 → confidence_calibrated_below_min', () => {
-    const reasons = matchesCalibratedConfidence(
-      sel({ context: { confidenceCalibrated: 0.3 } }),
-      { confidenceCalibratedMin: 0.5 }
-    );
+    const reasons = matchesCalibratedConfidence(sel({ context: { confidenceCalibrated: 0.3 } }), {
+      confidenceCalibratedMin: 0.5,
+    });
     expect(reasons).toContain('confidence_calibrated_below_min');
   });
 
   it('校准值缺失 strategy=keep → 返回空数组', () => {
-    const reasons = matchesCalibratedConfidence(
-      sel({ context: {} }),
-      { confidenceCalibratedMin: 0.5, confidenceCalibratedMissingStrategy: 'keep' }
-    );
+    const reasons = matchesCalibratedConfidence(sel({ context: {} }), {
+      confidenceCalibratedMin: 0.5,
+      confidenceCalibratedMissingStrategy: 'keep',
+    });
     expect(reasons).toEqual([]);
   });
 
   it('校准值缺失 strategy=drop → confidence_calibrated_missing', () => {
-    const reasons = matchesCalibratedConfidence(
-      sel({ context: {} }),
-      { confidenceCalibratedMin: 0.5, confidenceCalibratedMissingStrategy: 'drop' }
-    );
+    const reasons = matchesCalibratedConfidence(sel({ context: {} }), {
+      confidenceCalibratedMin: 0.5,
+      confidenceCalibratedMissingStrategy: 'drop',
+    });
     expect(reasons).toContain('confidence_calibrated_missing');
   });
 
   it('校准值缺失 strategy=fallback_confidence → 使用 selection.confidence', () => {
     // selection.confidence=0.70 ≥ 0.5 → 通过
-    expect(matchesCalibratedConfidence(
-      sel({ context: {} }),
-      { confidenceCalibratedMin: 0.5, confidenceCalibratedMissingStrategy: 'fallback_confidence' }
-    )).toEqual([]);
+    expect(
+      matchesCalibratedConfidence(sel({ context: {} }), {
+        confidenceCalibratedMin: 0.5,
+        confidenceCalibratedMissingStrategy: 'fallback_confidence',
+      }),
+    ).toEqual([]);
   });
 });
 
@@ -300,33 +312,24 @@ describe('bet-scheme-filters — matchesOddsRelation 首赔关系', () => {
   });
 
   it('relation=first_only, rank=1 → 通过', () => {
-    expect(matchesOddsRelation(
-      sel({ rank: 1, totalCount: 5 }),
-      { firstSecondOddsRelation: 'first_only' }
-    )).toEqual([]);
+    expect(matchesOddsRelation(sel({ rank: 1, totalCount: 5 }), { firstSecondOddsRelation: 'first_only' })).toEqual([]);
   });
 
   it('relation=first_only, rank!=1 → odds_rank_not_first', () => {
-    const reasons = matchesOddsRelation(
-      sel({ rank: 2, totalCount: 5 }),
-      { firstSecondOddsRelation: 'first_only' }
-    );
+    const reasons = matchesOddsRelation(sel({ rank: 2, totalCount: 5 }), { firstSecondOddsRelation: 'first_only' });
     expect(reasons).toContain('odds_rank_not_first');
   });
 
   it('relation=exclude_last, rank=totalCount → odds_rank_is_last', () => {
-    const reasons = matchesOddsRelation(
-      sel({ rank: 5, totalCount: 5 }),
-      { firstSecondOddsRelation: 'exclude_last' }
-    );
+    const reasons = matchesOddsRelation(sel({ rank: 5, totalCount: 5 }), { firstSecondOddsRelation: 'exclude_last' });
     expect(reasons).toContain('odds_rank_is_last');
   });
 
   it('首赔和为/积范围检查', () => {
-    const reasons = matchesOddsRelation(
-      sel({ rank: 1, totalCount: 3, firstOddsSum: 3.5, firstOddsProduct: 6.0 }),
-      { firstOddsSumMin: 4.0, firstOddsProductMax: 5.0 }
-    );
+    const reasons = matchesOddsRelation(sel({ rank: 1, totalCount: 3, firstOddsSum: 3.5, firstOddsProduct: 6.0 }), {
+      firstOddsSumMin: 4.0,
+      firstOddsProductMax: 5.0,
+    });
     expect(reasons).toContain('first_odds_sum_below_min');
     expect(reasons).toContain('first_odds_product_above_max');
   });
@@ -397,9 +400,9 @@ describe('bet-scheme-filters — applySchemeFilters 主入口', () => {
         selectionCode: codes[i % 3],
         selectionName: { home: '主胜', draw: '平', away: '客胜' }[codes[i % 3]],
         matchNo: String(matchIdx + 1).padStart(3, '0'),
-        odds: (1.6 + (i * 0.2)).toFixed(2),
-        confidence: (0.9 - (i * 0.08)).toFixed(2),
-        edgeValue: (0.2 - (i * 0.03)).toFixed(2),
+        odds: (1.6 + i * 0.2).toFixed(2),
+        confidence: (0.9 - i * 0.08).toFixed(2),
+        edgeValue: (0.2 - i * 0.03).toFixed(2),
         recommended: true,
         league: ['英超', '西甲', '德意', '法甲', '荷甲'][matchIdx % 5],
         leagueName: ['英超', '西甲', '德意', '法甲', '荷甲'][matchIdx % 5],
@@ -422,7 +425,11 @@ describe('bet-scheme-filters — applySchemeFilters 主入口', () => {
     const selections = makeSelections(9);
     const result = applySchemeFilters(selections, ['3x1'], { confidenceMin: 0.7 }, 1);
     expect(result.keptSelections.length).toBeLessThan(9);
-    expect(result.droppedItems.some(function (d) { return d.reasons.includes('confidence_below_min'); })).toBe(true);
+    expect(
+      result.droppedItems.some(function (d) {
+        return d.reasons.includes('confidence_below_min');
+      }),
+    ).toBe(true);
   });
 
   it('leagueWhitelist 过滤 → 仅保留指定联赛', () => {
@@ -455,7 +462,11 @@ describe('bet-scheme-filters — applySchemeFilters 主入口', () => {
   it('value_gate 模式 → edge_only', () => {
     const selections = makeSelections(9);
     const result = applySchemeFilters(selections, ['single'], { valueGateMode: 'edge_only', valueEdgeMin: 0.15 }, 1);
-    expect(result.ruleImpacts.some(function (r) { return r.rule === 'value_gate'; })).toBe(true);
+    expect(
+      result.ruleImpacts.some(function (r) {
+        return r.rule === 'value_gate';
+      }),
+    ).toBe(true);
   });
 
   it('返回完整的筛选报告结构', () => {

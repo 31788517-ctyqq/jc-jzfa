@@ -35,6 +35,52 @@ export function startMatchPK() {
 }
 window.startMatchPK = startMatchPK;
 
+function readPendingMatchFocus() {
+  try {
+    var raw = sessionStorage.getItem('pendingMatchFocus');
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function clearPendingMatchFocus() {
+  try {
+    sessionStorage.removeItem('pendingMatchFocus');
+  } catch (e) {}
+}
+
+function focusPendingMatch(matches) {
+  var pending = readPendingMatchFocus();
+  if (!pending) return;
+  var currentWeek = state.weekDates[state.selectedWeekIdx] || null;
+  var targetId = String(pending.matchId || '').trim();
+  var card = targetId ? document.getElementById('mc-' + targetId) : null;
+  if (!card) {
+    var targetNum = String(pending.matchNum || '').trim();
+    var matched = (Array.isArray(matches) ? matches : []).find(function (m) {
+      var matchId = String(m.matchId || m.dataId || '').trim();
+      var matchNum = String(m.num || m.matchNum || m.matchId || m.dataId || '').trim();
+      return (targetId && matchId === targetId) || (targetNum && matchNum === targetNum);
+    });
+    if (matched) card = document.getElementById('mc-' + matched.matchId);
+  }
+  if (!card && pending.matchDate && currentWeek && currentWeek.matchDate && pending.matchDate !== currentWeek.matchDate)
+    return;
+  if (!card) return;
+  document.querySelectorAll('.match-card.match-focus-target').forEach(function (el) {
+    el.classList.remove('match-focus-target');
+  });
+  card.classList.add('match-focus-target');
+  requestAnimationFrame(function () {
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  window.setTimeout(function () {
+    card.classList.remove('match-focus-target');
+  }, 2600);
+  clearPendingMatchFocus();
+}
+
 // 渲染比赛列表 HTML（共用逻辑）
 function renderMatchHTML(matches) {
   allMatchesData = matches;
@@ -43,7 +89,7 @@ function renderMatchHTML(matches) {
   if (bar) bar.style.display = 'none';
   var pkHint =
     matches.length > 0
-      ? '<div class="pk-hint"><span class="pk-hint-icon">💡</span><span class="pk-hint-text">选择两场以上比赛进行量化数据PK，自动生成PK方案</span></div>'
+      ? '<div class="pk-hint"><span class="pk-hint-icon">💡</span><span class="pk-hint-text">选择两场以上进行PK，自动生成PK方案建议</span></div>'
       : '';
   return (
     pkHint +
@@ -61,8 +107,12 @@ function renderMatchHTML(matches) {
         const redText = m.red || '';
         // ★ 让球信息
         const concedeNum = m.concede != null ? Number(m.concede) : 0;
-        const concedeLabel = concedeNum > 0 ? '<span class="match-handicap-tag rq-pos">+' + concedeNum + '</span>'
-          : concedeNum < 0 ? '<span class="match-handicap-tag rq-neg">' + concedeNum + '</span>' : '';
+        const concedeLabel =
+          concedeNum > 0
+            ? '<span class="match-handicap-tag rq-pos">+' + concedeNum + '</span>'
+            : concedeNum < 0
+              ? '<span class="match-handicap-tag rq-neg">' + concedeNum + '</span>'
+              : '';
         var scoreDisplay = '';
         var extraInfo = '';
         if (isLive && scoreText) {
@@ -125,7 +175,9 @@ function renderMatchHTML(matches) {
 export function loadMatchListFromData(matches) {
   var el = document.getElementById('matchList');
   if (!el) return;
-  el.innerHTML = renderMatchHTML(matches || []);
+  var list = matches || [];
+  el.innerHTML = renderMatchHTML(list);
+  focusPendingMatch(list);
 }
 
 export function loadMatchList() {
@@ -140,6 +192,7 @@ export function loadMatchList() {
   var cached = getCache(cacheKey);
   if (cached) {
     el.innerHTML = renderMatchHTML(cached);
+    focusPendingMatch(cached);
     return;
   }
 
@@ -155,6 +208,7 @@ export function loadMatchList() {
     .then((matches) => {
       setCache(cacheKey, matches);
       el.innerHTML = renderMatchHTML(matches);
+      focusPendingMatch(matches);
     })
     .catch((e) => {
       el.innerHTML = '<div class="loading">' + e.message + '</div>';

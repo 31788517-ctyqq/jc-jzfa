@@ -1,0 +1,349 @@
+{
+  "match_id": "2032158",
+  "featureAnalysis": {
+    "labels": [
+      "近0场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "6胜/3平/1负",
+      "6胜/3平/1负",
+      "2.2个",
+      "1.1个"
+    ],
+    "away": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "7胜/1平/2负",
+      "5胜/2平/3负",
+      "2.3个",
+      "1.0个"
+    ]
+  },
+  "h2h": {
+    "title": "近0场意大利210胜 (0%) | 0平 (0%) | 0负 (0%)",
+    "rows": []
+  },
+  "standings": [
+    {
+      "team": "意大利21",
+      "title": "Group A 第2名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "3",
+          "wdl": "2/1/0",
+          "winRate": "67%",
+          "goals": "3/1",
+          "gd": "2",
+          "points": "7",
+          "rank": "2"
+        },
+        {
+          "where": "主",
+          "played": "1",
+          "wdl": "1/0/0",
+          "winRate": "100%",
+          "goals": "1/0",
+          "gd": "1",
+          "points": "3",
+          "rank": "2"
+        },
+        {
+          "where": "客",
+          "played": "2",
+          "wdl": "1/1/0",
+          "winRate": "50%",
+          "goals": "2/1",
+          "gd": "1",
+          "points": "4",
+          "rank": "1"
+        }
+      ]
+    },
+    {
+      "team": "罗马尼21",
+      "title": "Group A 第4名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "3",
+          "wdl": "0/0/3",
+          "winRate": "0%",
+          "goals": "2/5",
+          "gd": "-3",
+          "points": "0",
+          "rank": "4"
+        },
+        {
+          "where": "主",
+          "played": "1",
+          "wdl": "0/0/1",
+          "winRate": "0%",
+          "goals": "1/2",
+          "gd": "-1",
+          "points": "0",
+          "rank": "4"
+        },
+        {
+          "where": "客",
+          "played": "2",
+          "wdl": "0/0/2",
+          "winRate": "0%",
+          "goals": "1/3",
+          "gd": "-2",
+          "points": "0",
+          "rank": "4"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "意大利21",
+      "summary": "意大利21近10场6胜 (60%) | 3平 (30%) | 1负 (10%) 进22球，失11球，净进11球",
+      "matches": [
+        {
+          "date": "2024-10-16",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "意大利21 1 : 1 （半 1:0） 爱尔兰21",
+          "result": "平"
+        },
+        {
+          "date": "2024-09-11",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "挪威21 0 : 3 （半 0:1） 意大利21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-05",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "意大利21 7 : 0 （半 2:0） 圣马力21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-06-16",
+          "league": "土伦世界青年锦标赛",
+          "vs": "意大利21 1 : 0 （半 0:0） 法国20",
+          "result": "胜"
+        },
+        {
+          "date": "2024-06-13",
+          "league": "土伦世界青年锦标赛",
+          "vs": "意大利21 1 : 0 （半 1:0） Indonesia U20",
+          "result": "胜"
+        },
+        {
+          "date": "2024-06-11",
+          "league": "土伦世界青年锦标赛",
+          "vs": "意大利21 2 : 2 （半 1:2） 巴拿马U23",
+          "result": "平"
+        },
+        {
+          "date": "2024-06-06",
+          "league": "土伦世界青年锦标赛",
+          "vs": "乌克兰奥 4 : 0 （半 1:0） 意大利21",
+          "result": "负"
+        },
+        {
+          "date": "2024-06-04",
+          "league": "土伦世界青年锦标赛",
+          "vs": "意大利21 4 : 3 （半 2:1） 日本U19",
+          "result": "胜"
+        },
+        {
+          "date": "2024-03-27",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "意大利21 1 : 1 （半 0:0） 土耳其21",
+          "result": "平"
+        },
+        {
+          "date": "2024-03-23",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "意大利21 2 : 0 （半 1:0） Latvia",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "罗马尼21",
+      "summary": "罗马尼21近10场7胜 (70%) | 1平 (10%) | 2负 (20%) 进23球，失10球，净进13球",
+      "matches": [
+        {
+          "date": "2024-10-16",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "罗马尼21 3 : 1 （半 2:0） 瑞士21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-11",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "黑山21 2 : 6 （半 1:2） 罗马尼21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-10",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "芬兰21 2 : 0 （半 1:0） 罗马尼21",
+          "result": "负"
+        },
+        {
+          "date": "2024-09-07",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "罗马尼21 1 : 0 （半 1:0） 黑山21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-03-26",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "Armenia U21 0 : 1 （半 0:0） 罗马尼21",
+          "result": "胜"
+        },
+        {
+          "date": "2023-11-22",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "瑞士21 2 : 2 （半 1:2） 罗马尼21",
+          "result": "平"
+        },
+        {
+          "date": "2023-11-18",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "罗马尼21 5 : 0 （半 3:0） 阿尔巴21",
+          "result": "胜"
+        },
+        {
+          "date": "2023-10-17",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "罗马尼21 1 : 0 （半 0:0） 芬兰21",
+          "result": "胜"
+        },
+        {
+          "date": "2023-10-14",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "罗马尼21 2 : 0 （半 1:0） Armenia U21",
+          "result": "胜"
+        },
+        {
+          "date": "2023-09-13",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "阿尔巴21 3 : 2 （半 0:0） 罗马尼21",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "意大利21",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-10-01",
+          "UEFA U21 Championship Qualification",
+          "Armenia U21\nVS\n意大利21",
+          "Group Stage Group E"
+        ],
+        [
+          "2026-10-05",
+          "UEFA U21 Championship Qualification",
+          "意大利21\nVS\n波兰21",
+          "Group Stage Group E"
+        ]
+      ]
+    },
+    {
+      "team": "罗马尼21",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-09-25",
+          "UEFA U21 Championship Qualification",
+          "Cyprus U21\nVS\n罗马尼21",
+          "Group Stage Group A"
+        ],
+        [
+          "2026-09-30",
+          "UEFA U21 Championship Qualification",
+          "罗马尼21\nVS\n芬兰21",
+          "Group Stage Group A"
+        ],
+        [
+          "2026-10-06",
+          "UEFA U21 Championship Qualification",
+          "西班牙21\nVS\n罗马尼21",
+          "Group Stage Group A"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "意大利21",
+      "players": [
+        {
+          "player": "11-T. Baldanzi(中场)",
+          "apps": "2 (2/0)",
+          "goals": "1 (20%)",
+          "assists": "0 (0%)",
+          "avg": "0.5/0"
+        },
+        {
+          "player": "20-N. Pisilli(中场)",
+          "apps": "4 (1/3)",
+          "goals": "1 (20%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        },
+        {
+          "player": "8-C. Casadei(中场)",
+          "apps": "4 (1/3)",
+          "goals": "1 (20%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        }
+      ]
+    },
+    {
+      "team": "罗马尼21",
+      "players": [
+        {
+          "player": "5-Ü. Akdağ(后卫)",
+          "apps": "3 (3/0)",
+          "goals": "1 (50%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        },
+        {
+          "player": "9-L.蒙塔努(前锋)",
+          "apps": "3 (3/0)",
+          "goals": "1 (50%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        },
+        {
+          "player": "11-A. Borza(后卫)",
+          "apps": "3 (3/0)",
+          "goals": "0 (0%)",
+          "assists": "1 (100%)",
+          "avg": "0/0.3"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "意大利21",
+      "status": "暂无数据"
+    },
+    {
+      "team": "罗马尼21",
+      "status": "暂无数据"
+    }
+  ]
+}

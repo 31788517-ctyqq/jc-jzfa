@@ -4,14 +4,26 @@ export function loadHitRate() {
   const el = document.getElementById('hitContent');
   if (!el) return;
 
-  // 立即显示骨架屏
+  // 立即显示骨架屏（带色块，减少白屏感知）
   el.innerHTML = `
     <div class="hit-skeleton">
       <div class="hit-sk-summary">
-        <div class="hit-sk-card"></div>
-        <div class="hit-sk-card"></div>
+        <div class="hit-sk-card hit-sk-card--color"></div>
+        <div class="hit-sk-card hit-sk-card--color"></div>
       </div>
-      <div class="hit-sk-rank"></div>
+      <div class="hit-sk-rank">
+        ${Array.from({ length: 6 }, (_, i) => {
+          const styles = [
+            'hit-sk-bar hit-sk-bar--high',
+            'hit-sk-bar hit-sk-bar--mid',
+            'hit-sk-bar hit-sk-bar--high',
+            'hit-sk-bar hit-sk-bar--low',
+            'hit-sk-bar hit-sk-bar--mid',
+            'hit-sk-bar hit-sk-bar--low',
+          ];
+          return '<div class="hit-sk-bar-row"><span class="hit-sk-dot"></span><div class="' + styles[i] + '"></div></div>';
+        }).join('')}
+      </div>
       <div class="hit-sk-table"></div>
     </div>
   `;
@@ -69,9 +81,7 @@ function fetchHitRateStats(data, retries = 2) {
       if (err.name === 'AbortError') err = new Error('请求超时');
       if (retries > 0) {
         console.warn(`[HitRate] 请求失败，重试中 (${2 - retries + 1}/2):`, err.message);
-        return new Promise((resolve) => setTimeout(resolve, 800)).then(() =>
-          fetchHitRateStats(data, retries - 1)
-        );
+        return new Promise((resolve) => setTimeout(resolve, 800)).then(() => fetchHitRateStats(data, retries - 1));
       }
       throw err;
     });
@@ -80,6 +90,17 @@ function fetchHitRateStats(data, retries = 2) {
 /**
  * 渲染命中率数据
  */
+function getHitRateBarStyle(rate) {
+  const value = Number(rate || 0);
+  if (value >= 60) {
+    return 'linear-gradient(90deg, #a7eee6 0%, #5bd4c8 100%)';
+  }
+  if (value >= 45) {
+    return 'linear-gradient(90deg, #d7ebee 0%, #7faeb6 100%)';
+  }
+  return 'linear-gradient(90deg, #ffd9d0 0%, #f46f59 100%)';
+}
+
 function renderHitRate(el, data) {
   const top3Rate = data.top3HitRate !== undefined ? data.top3HitRate : 0;
 
@@ -101,18 +122,18 @@ function renderHitRate(el, data) {
 
   const top10 = data.directionStats.slice(0, 10);
   let rankHTML = `<div class="hit-ranking-card" style="animation: fadeUp 0.4s ease;">
-    <div class="hit-ranking-title">各方向命中场次排名</div>`;
+    <div class="hit-ranking-title">各方向命中排名</div>`;
 
   top10.forEach((d, i) => {
     const r = i + 1;
-    const barColor = d.hitRate >= 60 ? '#38E5D0' : d.hitRate >= 45 ? '#38E5D0' : '#E84141';
+    const barStyle = getHitRateBarStyle(d.hitRate);
     const top3Class = r <= 3 ? ' top3' : '';
     rankHTML += `
       <div class="hit-rank-row">
         <span class="hit-rank-num${top3Class}">${r}</span>
         <span class="hit-rank-label">${d.direction}</span>
         <div class="hit-rank-bar-bg">
-          <div class="hit-rank-bar" style="background-color:${barColor};" data-width="${d.hitRate}"></div>
+          <div class="hit-rank-bar" style="background:${barStyle};" data-width="${d.hitRate}"></div>
         </div>
         <span class="hit-rank-pct">${d.hitRate}%</span>
       </div>`;
@@ -151,6 +172,29 @@ function renderHitRate(el, data) {
 
   html += '</tbody></table></div>';
 
+  // ★ 模型维度命中率（from prediction_outcomes）
+  if (data.modelStats && data.modelStats.length > 0) {
+    html += '<div class="chart-box" style="margin-top:16px; animation:fadeUp 0.55s ease;">';
+    html += '<div class="chart-title" style="margin-bottom:12px;">模型维度 · 方向命中率</div>';
+    html += '<table class="data-table" style="display:table;"><thead><tr>';
+    html += '<th>模型</th><th>总预测</th><th>命中</th><th>命中率</th>';
+    html += '</tr></thead><tbody>';
+    data.modelStats.forEach(function (m) {
+      var label = m.modelName;
+      if (label === 'expert_consensus') label = '专家共识';
+      else if (label === 'DeepSeek') label = 'DeepSeek AI';
+      else if (label === 'doubao') label = '豆包 AI';
+      var color = m.hitRate >= 60 ? 'var(--green)' : m.hitRate >= 50 ? 'var(--cyan)' : m.hitRate >= 40 ? 'var(--amber)' : 'var(--red)';
+      html += '<tr>';
+      html += '<td style="font-weight:600;">' + label + '</td>';
+      html += '<td>' + m.total + '</td>';
+      html += '<td style="color:var(--green)">' + m.hits + '</td>';
+      html += '<td style="color:' + color + ';font-weight:700;">' + m.hitRate + '%</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
   // 日趋势图：近30天各方向命中率走势
   if (data.dailyTrend && data.dailyTrend.length > 0) {
     html += '<div class="chart-box" style="margin-top:16px; animation:fadeUp 0.6s ease;">';
@@ -174,7 +218,9 @@ function renderHitRate(el, data) {
     trendDates.forEach(function (day) {
       html += '<tr><td class="dtt-date">' + day.date.slice(5) + '</td>';
       dirNames.forEach(function (dir) {
-        var found = (day.directions || []).find(function (d) { return d.direction === dir; });
+        var found = (day.directions || []).find(function (d) {
+          return d.direction === dir;
+        });
         var rate = found ? found.hitRate : null;
         var cls = rate !== null ? (rate >= 60 ? 'dtt-high' : rate >= 45 ? 'dtt-mid' : 'dtt-low') : '';
         html += '<td class="' + cls + '">' + (rate !== null ? rate + '%' : '-') + '</td>';

@@ -1,0 +1,372 @@
+{
+  "match_id": "2032276",
+  "featureAnalysis": {
+    "labels": [
+      "近0场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "5胜/5平/0负",
+      "6胜/3平/1负",
+      "2.7个",
+      "0.8个"
+    ],
+    "away": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "5胜/2平/3负",
+      "3胜/4平/3负",
+      "1.6个",
+      "2.0个"
+    ]
+  },
+  "h2h": {
+    "title": "近0场本菲卡0胜 (0%) | 0平 (0%) | 0负 (0%)",
+    "rows": []
+  },
+  "standings": [
+    {
+      "team": "本菲卡",
+      "title": "C组 第1名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "3",
+          "wdl": "2/1/0",
+          "winRate": "67%",
+          "goals": "9/2",
+          "gd": "7",
+          "points": "7",
+          "rank": "1"
+        },
+        {
+          "where": "主",
+          "played": "2",
+          "wdl": "2/0/0",
+          "winRate": "100%",
+          "goals": "7/0",
+          "gd": "7",
+          "points": "6",
+          "rank": "1"
+        },
+        {
+          "where": "客",
+          "played": "1",
+          "wdl": "0/1/0",
+          "winRate": "0%",
+          "goals": "2/2",
+          "gd": "0",
+          "points": "1",
+          "rank": "1"
+        }
+      ]
+    },
+    {
+      "team": "奥克兰城",
+      "title": "C组 第4名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "3",
+          "wdl": "0/1/2",
+          "winRate": "0%",
+          "goals": "1/17",
+          "gd": "-16",
+          "points": "1",
+          "rank": "4"
+        },
+        {
+          "where": "主",
+          "played": "1",
+          "wdl": "0/1/0",
+          "winRate": "0%",
+          "goals": "1/1",
+          "gd": "0",
+          "points": "1",
+          "rank": "4"
+        },
+        {
+          "where": "客",
+          "played": "2",
+          "wdl": "0/0/2",
+          "winRate": "0%",
+          "goals": "0/16",
+          "gd": "-16",
+          "points": "0",
+          "rank": "4"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "本菲卡",
+      "summary": "本菲卡近10场5胜 (50%) | 5平 (50%) | 0负 (0%) 进27球，失8球，净进19球",
+      "matches": [
+        {
+          "date": "2025-06-17",
+          "league": "俱世界杯",
+          "vs": "博卡 2 : 2 （半 2:1） 本菲卡",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-26",
+          "league": "葡萄牙杯",
+          "vs": "本菲卡 1 : 1 （半 0:0） 里斯本",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "葡超",
+          "vs": "布拉加 1 : 1 （半 1:0） 本菲卡",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-11",
+          "league": "葡超",
+          "vs": "本菲卡 1 : 1 （半 0:1） 里斯本",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-04",
+          "league": "葡超",
+          "vs": "埃斯托里 1 : 2 （半 0:2） 本菲卡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-28",
+          "league": "葡超",
+          "vs": "本菲卡 6 : 0 （半 4:0） 阿维SAD",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-24",
+          "league": "葡萄牙杯",
+          "vs": "本菲卡 4 : 0 （半 1:0） Tirsense",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-20",
+          "league": "葡超",
+          "vs": "吉马良斯 0 : 3 （半 0:1） 本菲卡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-14",
+          "league": "葡超",
+          "vs": "本菲卡 2 : 2 （半 0:0） 阿罗卡",
+          "result": "平"
+        },
+        {
+          "date": "2025-04-10",
+          "league": "葡萄牙杯",
+          "vs": "Tirsense 0 : 5 （半 0:2） 本菲卡",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "奥克兰城",
+      "summary": "奥克兰城近10场5胜 (50%) | 2平 (20%) | 3负 (30%) 进16球，失20球，净进-4球",
+      "matches": [
+        {
+          "date": "2025-06-16",
+          "league": "俱世界杯",
+          "vs": "拜仁 10 : 0 （半 6:0） 奥克兰城",
+          "result": "负"
+        },
+        {
+          "date": "2025-06-14",
+          "league": "Chatham Cup",
+          "vs": "奥克兰城 1 : 2 （半 ） Waiheke United",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-31",
+          "league": "Chatham Cup",
+          "vs": "Onehunga Mangere United 0 : 4 （半 ） 奥克兰城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-12",
+          "league": "大洋洲冠军联赛",
+          "vs": "奥克兰城 2 : 0 （半 1:0） 赫卡里联",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-09",
+          "league": "大洋洲冠军联赛",
+          "vs": "奥克兰城 2 : 0 （半 1:0） Ifira Black Bird",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-05",
+          "league": "大洋洲冠军联赛",
+          "vs": "Rewa 1 : 1 （半 0:1） 奥克兰城",
+          "result": "平"
+        },
+        {
+          "date": "2025-04-02",
+          "league": "大洋洲冠军联赛",
+          "vs": "奥克兰城 2 : 0 （半 1:0） Tiga Sport",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-30",
+          "league": "大洋洲冠军联赛",
+          "vs": "奥克兰城 1 : 0 （半 1:0） Pirae",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-23",
+          "league": "杯赛",
+          "vs": "阿布艾因 6 : 2 （半 3:1） 奥克兰城",
+          "result": "负"
+        },
+        {
+          "date": "2024-09-07",
+          "league": "Chatham Cup",
+          "vs": "Wellington Olympic 1 : 1 （半 ） 奥克兰城",
+          "result": "平"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "本菲卡",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "奥克兰城",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-06-13",
+          "Chatham Cup",
+          "奥克兰城\nVS\nEast Coast Bays",
+          ""
+        ],
+        [
+          "2026-08-10",
+          "大洋洲冠军联赛",
+          "Central Coast\nVS\n奥克兰城",
+          "第1轮"
+        ],
+        [
+          "2026-08-13",
+          "大洋洲冠军联赛",
+          "Tiga Sport\nVS\n奥克兰城",
+          "第2轮"
+        ],
+        [
+          "2026-08-16",
+          "大洋洲冠军联赛",
+          "奥克兰城\nVS\nVénus",
+          "第3轮"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "本菲卡",
+      "players": [
+        {
+          "player": "11-迪马里亚(中场)",
+          "apps": "4 (4/0)",
+          "goals": "4 (40%)",
+          "assists": "0 (0%)",
+          "avg": "1.0/0"
+        },
+        {
+          "player": "18-L. Barreiro(中场)",
+          "apps": "4 (3/1)",
+          "goals": "2 (20%)",
+          "assists": "0 (0%)",
+          "avg": "0.5/0"
+        },
+        {
+          "player": "14-E·帕弗利迪斯(前锋)",
+          "apps": "4 (4/0)",
+          "goals": "1 (10%)",
+          "assists": "1 (17%)",
+          "avg": "0.3/0.3"
+        }
+      ]
+    },
+    {
+      "team": "奥克兰城",
+      "players": [
+        {
+          "player": "4-C.格雷(后卫)",
+          "apps": "2 (1/1)",
+          "goals": "1 (100%)",
+          "assists": "0 (0%)",
+          "avg": "0.5/0"
+        },
+        {
+          "player": "17-J. Lagos Giraldo(前锋)",
+          "apps": "3 (2/1)",
+          "goals": "0 (0%)",
+          "assists": "1 (100%)",
+          "avg": "0/0.3"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "本菲卡",
+      "players": [
+        {
+          "player": "61-Florentino Luís(中场)",
+          "totalApps": "2",
+          "starts": "2",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "巴(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "Tomás Araújo(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "Manu(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "奥克兰城",
+      "players": [
+        {
+          "player": "9-A.基尔科利(前锋)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

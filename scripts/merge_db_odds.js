@@ -20,12 +20,16 @@ console.log((DRY_RUN ? '[DRY RUN] ' : '') + '从 DB odds_history_v2 补全 odds_
 
 // Read all DB data
 const db = new Database(DB_PATH, { readonly: true });
-const rows = db.prepare(`
+const rows = db
+  .prepare(
+    `
   SELECT date, match_num, play_type, odds_json
   FROM odds_history_v2
   WHERE date >= '2026-03-19'
   ORDER BY date, match_num, play_type
-`).all();
+`,
+  )
+  .all();
 db.close();
 
 console.log(`DB: ${rows.length} records`);
@@ -43,10 +47,15 @@ for (const r of rows) {
 }
 
 const dates = Object.keys(dbMap).sort();
-console.log(`DB dates: ${dates.length} (${dates[0]} ~ ${dates[dates.length-1]})\n`);
+console.log(`DB dates: ${dates.length} (${dates[0]} ~ ${dates[dates.length - 1]})\n`);
 
-let totalNewFiles = 0, totalNewMatches = 0, totalUpdated = 0;
-let missingCount = 0, hfCount = 0, tgCount = 0, scCount = 0;
+let totalNewFiles = 0,
+  totalNewMatches = 0,
+  totalUpdated = 0;
+let missingCount = 0,
+  hfCount = 0,
+  tgCount = 0,
+  scCount = 0;
 
 for (const dt of dates) {
   const jsonPath = path.join(ODDS_DIR, dt + '.json');
@@ -56,13 +65,19 @@ for (const dt of dates) {
   // Read existing
   let existing = null;
   if (fs.existsSync(jsonPath)) {
-    try { existing = JSON.parse(fs.readFileSync(jsonPath, 'utf8')); } catch (e) {}
+    try {
+      existing = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    } catch (e) {}
   }
 
-  const odds = existing ? (existing.odds || existing) : {};
-  const existingNums = Object.keys(odds).filter(k => k !== 'date' && odds[k] && typeof odds[k] === 'object');
+  const odds = existing ? existing.odds || existing : {};
+  const existingNums = Object.keys(odds).filter((k) => k !== 'date' && odds[k] && typeof odds[k] === 'object');
 
-  let dayNew = 0, dayUpd = 0, dayHF = 0, dayTG = 0, daySC = 0;
+  let dayNew = 0,
+    dayUpd = 0,
+    dayHF = 0,
+    dayTG = 0,
+    daySC = 0;
 
   for (const mn of dbMatchNums) {
     const dbEntry = dayData[mn];
@@ -76,7 +91,8 @@ for (const dt of dates) {
         visitName: '',
         leagueName: '',
         handicap: 0,
-        spf: null, rqspf: null,
+        spf: null,
+        rqspf: null,
         halfFull: dbEntry.halfFull || null,
         totalGoals: dbEntry.totalGoals || null,
         scores: dbEntry.scores || null,
@@ -89,24 +105,39 @@ for (const dt of dates) {
 
     // Case 2: Existing entry missing play type data
     let changed = false;
-    if (dbEntry.halfFull && Object.keys(dbEntry.halfFull).length > 0 &&
-        (!target.halfFull || Object.keys(target.halfFull || {}).length === 0)) {
-      target.halfFull = dbEntry.halfFull; changed = true; dayHF++;
+    if (
+      dbEntry.halfFull &&
+      Object.keys(dbEntry.halfFull).length > 0 &&
+      (!target.halfFull || Object.keys(target.halfFull || {}).length === 0)
+    ) {
+      target.halfFull = dbEntry.halfFull;
+      changed = true;
+      dayHF++;
     }
-    if (dbEntry.totalGoals && Object.keys(dbEntry.totalGoals).length > 0 &&
-        (!target.totalGoals || Object.keys(target.totalGoals || {}).length === 0)) {
-      target.totalGoals = dbEntry.totalGoals; changed = true; dayTG++;
+    if (
+      dbEntry.totalGoals &&
+      Object.keys(dbEntry.totalGoals).length > 0 &&
+      (!target.totalGoals || Object.keys(target.totalGoals || {}).length === 0)
+    ) {
+      target.totalGoals = dbEntry.totalGoals;
+      changed = true;
+      dayTG++;
     }
-    if (dbEntry.scores && Object.keys(dbEntry.scores).length > 0 &&
-        (!target.scores || Object.keys(target.scores || {}).length === 0)) {
-      target.scores = dbEntry.scores; changed = true; daySC++;
+    if (
+      dbEntry.scores &&
+      Object.keys(dbEntry.scores).length > 0 &&
+      (!target.scores || Object.keys(target.scores || {}).length === 0)
+    ) {
+      target.scores = dbEntry.scores;
+      changed = true;
+      daySC++;
     }
     if (changed) dayUpd++;
     else missingCount++;
   }
 
   if (dayNew > 0 || dayUpd > 0) {
-    const totalMatches = Object.keys(odds).filter(k => k !== 'date').length;
+    const totalMatches = Object.keys(odds).filter((k) => k !== 'date').length;
     if (!DRY_RUN) {
       const toSave = existing && existing.date ? existing : { date: dt, odds };
       if (!toSave.date) toSave.date = dt;
@@ -120,7 +151,9 @@ for (const dt of dates) {
     }
     totalNewMatches += dayNew;
     totalUpdated += dayUpd;
-    hfCount += dayHF; tgCount += dayTG; scCount += daySC;
+    hfCount += dayHF;
+    tgCount += dayTG;
+    scCount += daySC;
   }
 }
 

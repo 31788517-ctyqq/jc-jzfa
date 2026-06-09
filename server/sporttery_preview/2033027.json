@@ -1,0 +1,478 @@
+{
+  "match_id": "2033027",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "3胜/5平/2负",
+      "5胜/3平/2负",
+      "5胜/1平/4负",
+      "7胜/1平/2负",
+      "1.9个",
+      "1.5个"
+    ],
+    "away": [
+      "2胜/5平/3负",
+      "2胜/3平/5负",
+      "2胜/4平/4负",
+      "3胜/2平/5负",
+      "0.9个",
+      "1.7个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场尼斯3胜 (30%) | 5平 (50%) | 2负 (20%)",
+    "rows": [
+      {
+        "date": "2025-02-02",
+        "league": "法甲",
+        "teams": "图卢兹 1:1 （半 0:1） 尼斯",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2024-08-25",
+        "league": "法甲",
+        "teams": "尼斯 1:1 （半 0:0） 图卢兹",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2024-03-03",
+        "league": "法甲",
+        "teams": "图卢兹 2:1 （半 0:1） 尼斯",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2023-11-26",
+        "league": "法甲",
+        "teams": "尼斯 1:0 （半 0:0） 图卢兹",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2023-05-21",
+        "league": "法甲",
+        "teams": "尼斯 0:0 （半 0:0） 图卢兹",
+        "totalGoals": ""
+      },
+      {
+        "date": "2022-08-07",
+        "league": "法甲",
+        "teams": "图卢兹 1:1 （半 1:0） 尼斯",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2020-02-16",
+        "league": "法甲",
+        "teams": "图卢兹 0:2 （半 0:1） 尼斯",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2019-12-22",
+        "league": "法甲",
+        "teams": "尼斯 3:0 （半 3:0） 图卢兹",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2019-03-16",
+        "league": "法甲",
+        "teams": "尼斯 1:1 （半 1:0） 图卢兹",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2019-01-07",
+        "league": "法国杯",
+        "teams": "图卢兹 4:1 （半 2:0） 尼斯",
+        "totalGoals": "5"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "尼斯",
+      "title": "Regular Season 第16名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "7/11/16",
+          "winRate": "21%",
+          "goals": "37/60",
+          "gd": "-23",
+          "points": "32",
+          "rank": "16"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "4/8/5",
+          "winRate": "24%",
+          "goals": "19/27",
+          "gd": "-8",
+          "points": "20",
+          "rank": "16"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "3/3/11",
+          "winRate": "18%",
+          "goals": "18/33",
+          "gd": "-15",
+          "points": "12",
+          "rank": "16"
+        }
+      ]
+    },
+    {
+      "team": "图卢兹",
+      "title": "Regular Season 第10名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "33",
+          "wdl": "12/8/13",
+          "winRate": "36%",
+          "goals": "47/46",
+          "gd": "1",
+          "points": "44",
+          "rank": "10"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "6/6/5",
+          "winRate": "35%",
+          "goals": "25/24",
+          "gd": "1",
+          "points": "24",
+          "rank": "12"
+        },
+        {
+          "where": "客",
+          "played": "16",
+          "wdl": "6/2/8",
+          "winRate": "38%",
+          "goals": "22/22",
+          "gd": "0",
+          "points": "20",
+          "rank": "9"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "尼斯",
+      "summary": "尼斯近10场5胜 (50%) | 1平 (10%) | 4负 (40%) 进19球，失15球，净进4球",
+      "matches": [
+        {
+          "date": "2025-08-13",
+          "league": "欧冠",
+          "vs": "本菲卡 2 : 0 （半 2:0） 尼斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-08-07",
+          "league": "欧冠",
+          "vs": "尼斯 0 : 2 （半 0:0） 本菲卡",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-31",
+          "league": "俱乐部赛",
+          "vs": "尼斯 3 : 2 （半 ） 谢菲联",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-26",
+          "league": "俱乐部赛",
+          "vs": "圣保利 2 : 0 （半 ） 尼斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-26",
+          "league": "俱乐部赛",
+          "vs": "尼斯 2 : 1 （半 1:1） 费耶诺德",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-19",
+          "league": "俱乐部赛",
+          "vs": "尼斯 3 : 3 （半 ） 南锡",
+          "result": "平"
+        },
+        {
+          "date": "2025-07-16",
+          "league": "俱乐部赛",
+          "vs": "尼斯 3 : 0 （半 ） Aubagne",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-12",
+          "league": "俱乐部赛",
+          "vs": "尼斯 2 : 1 （半 ） 色格拉",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "法甲",
+          "vs": "尼斯 6 : 0 （半 3:0） 布雷斯特",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-11",
+          "league": "法甲",
+          "vs": "雷恩 2 : 0 （半 1:0） 尼斯",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "图卢兹",
+      "summary": "图卢兹近10场2胜 (20%) | 4平 (40%) | 4负 (40%) 进9球，失17球，净进-8球",
+      "matches": [
+        {
+          "date": "2025-08-11",
+          "league": "俱乐部赛",
+          "vs": "图卢兹 1 : 1 （半 ） 塞维利亚",
+          "result": "平"
+        },
+        {
+          "date": "2025-07-30",
+          "league": "俱乐部赛",
+          "vs": "利雅胜利 2 : 1 （半 1:1） 图卢兹",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-26",
+          "league": "俱乐部赛",
+          "vs": "莱红牛 7 : 0 （半 ） 图卢兹",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-19",
+          "league": "俱乐部赛",
+          "vs": "图卢兹 1 : 2 （半 ） 女王巡游",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-12",
+          "league": "俱乐部赛",
+          "vs": "图卢兹 0 : 0 （半 ） 波城FC",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "法甲",
+          "vs": "圣埃蒂安 2 : 3 （半 1:2） 图卢兹",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-11",
+          "league": "法甲",
+          "vs": "图卢兹 1 : 1 （半 0:0） 朗斯",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-04",
+          "league": "法甲",
+          "vs": "图卢兹 2 : 1 （半 1:0） 雷恩",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-27",
+          "league": "法甲",
+          "vs": "南特 0 : 0 （半 0:0） 图卢兹",
+          "result": "平"
+        },
+        {
+          "date": "2025-04-20",
+          "league": "法甲",
+          "vs": "兰斯 1 : 0 （半 1:0） 图卢兹",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "尼斯",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "图卢兹",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-25",
+          "俱乐部赛",
+          "图卢兹\nVS\n罗德兹",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "尼斯",
+      "players": [
+        {
+          "player": "10-迪奥普(中场)",
+          "apps": "33 (26/7)",
+          "goals": "8 (23%)",
+          "assists": "2 (8%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "11-S. Wahi(前锋)",
+          "apps": "14 (11/3)",
+          "goals": "5 (14%)",
+          "assists": "1 (4%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "25-M. Cho(前锋)伤",
+          "apps": "24 (20/4)",
+          "goals": "4 (11%)",
+          "assists": "3 (12%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    },
+    {
+      "team": "图卢兹",
+      "players": [
+        {
+          "player": "10-Y.博霍(前锋)",
+          "apps": "32 (31/1)",
+          "goals": "8 (17%)",
+          "assists": "3 (9%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "20-Emersonn(前锋)",
+          "apps": "28 (19/9)",
+          "goals": "6 (13%)",
+          "assists": "2 (6%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "9-F. Magri(前锋)",
+          "apps": "17 (16/1)",
+          "goals": "5 (11%)",
+          "assists": "1 (3%)",
+          "avg": "0.3/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "尼斯",
+      "players": [
+        {
+          "player": "4-Dante(后卫)",
+          "totalApps": "12",
+          "starts": "9",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "2-A. Abdi(后卫)",
+          "totalApps": "22",
+          "starts": "13",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "8-M. Sanson(中场)",
+          "totalApps": "31",
+          "starts": "20",
+          "subs": "11",
+          "status": "伤"
+        },
+        {
+          "player": "22-T. NDombèlé(中场)",
+          "totalApps": "8",
+          "starts": "3",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "55-卡利恩斯(中场)",
+          "totalApps": "2",
+          "starts": "1",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "5-穆罕默德 阿卜杜勒 莫内姆(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "25-M. Cho(前锋)",
+          "totalApps": "24",
+          "starts": "20",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "64-邦比托(后卫)",
+          "totalApps": "2",
+          "starts": "2",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "图卢兹",
+      "players": [
+        {
+          "player": "23-卡塞雷斯(中场)",
+          "totalApps": "31",
+          "starts": "29",
+          "subs": "2",
+          "status": "停"
+        },
+        {
+          "player": "8-N. Schmidt(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "2-R. Nicolaisen(后卫)",
+          "totalApps": "33",
+          "starts": "31",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "22-R. Messali(中场)",
+          "totalApps": "12",
+          "starts": "5",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "37-阿齐兹(前锋)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

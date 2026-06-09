@@ -7,6 +7,19 @@ function _fmtIncome(val) {
   return val >= 0 ? '+' + val : String(val);
 }
 
+function _getIncomeColor(val) {
+  return Number(val || 0) >= 0 ? 'var(--red)' : 'var(--green)';
+}
+
+function _setIncomeColor(el, val) {
+  if (!el) return;
+  el.style.setProperty('color', _getIncomeColor(val), 'important');
+}
+
+function _normalizeIncomeDirection(direction) {
+  return direction === 'all' || direction === 'expert' || direction === 'my' ? direction : 'expert';
+}
+
 export function loadIncome(force) {
   if (state.incomeLoaded && !force) return;
   state.setIncomeLoaded(true);
@@ -17,7 +30,13 @@ export function loadIncome(force) {
   var timeVal = window.getDDVal ? window.getDDVal('dd-incTime') : 'all';
   var days = timeVal === 'all' ? 0 : parseInt(timeVal) || 0;
   var plan = window.getDDVal ? window.getDDVal('dd-incPlan') || 'all' : 'all';
-  var direction = window.getDDVal ? window.getDDVal('dd-incDir') || 'all' : 'all';
+  var rawDirection = window.getDDVal ? window.getDDVal('dd-incDir') || 'all' : 'all';
+  var direction = _normalizeIncomeDirection(rawDirection);
+
+  if (direction !== rawDirection && window.selectDD) {
+    var directionText = direction === 'all' ? '全部' : direction === 'my' ? '我的方案' : '专家博热方案';
+    window.selectDD('dd-incDir', direction, directionText);
+  }
 
   api('income-stats', { days: days, plan: plan, direction: direction })
     .then(function (data) {
@@ -31,7 +50,7 @@ export function loadIncome(force) {
       var income = s.totalIncome || 0;
       if (incomeEl) {
         incomeEl.textContent = _fmtIncome(income);
-        incomeEl.style.color = income >= 0 ? '#EF4444' : '#22C55E';
+        _setIncomeColor(incomeEl, income);
       }
 
       var records = data.records || [];
@@ -49,7 +68,7 @@ export function loadIncome(force) {
         '<div class="income-header-row"><span>时间</span><span class="inc-col-hit">命中数</span><span class="inc-col-rate">命中率</span><span class="inc-col-income">盈利(元)</span></div>';
 
       records.forEach(function (r) {
-        var incColor = r.income >= 0 ? '#EF4444' : '#22C55E';
+        var incColor = _getIncomeColor(r.income);
         var dateShort = r.date.slice(5).replace('-', '/');
 
         html +=
@@ -67,7 +86,7 @@ export function loadIncome(force) {
           '%</span>' +
           '<span class="income-value" style="color:' +
           incColor +
-          '">' +
+          ' !important">' +
           _fmtIncome(r.income) +
           '</span>' +
           '</div>';
@@ -78,7 +97,8 @@ export function loadIncome(force) {
       if (details.length > 0) {
         html += '<div class="chart-box" style="margin-top:20px">';
         html += '<div class="chart-header"><span class="chart-title">方案命中明细</span></div>';
-        html += '<table class="filter-detail-table"><thead><tr>' +
+        html +=
+          '<table class="filter-detail-table"><thead><tr>' +
           '<th class="fdt-date">时间</th>' +
           '<th>方案名</th>' +
           '<th class="fdt-match">场次</th>' +
@@ -91,16 +111,30 @@ export function loadIncome(force) {
           return (b.date || '').localeCompare(a.date || '');
         });
         details.forEach(function (d) {
-          var incColor = d.income > 0 ? 'var(--red)' : d.income < 0 ? 'var(--green)' : 'var(--text3)';
+          var incColor = _getIncomeColor(d.income);
           var dateShort = d.date.slice(5).replace('-', '/');
 
           html +=
             '<tr>' +
-            '<td class="fdt-date">' + dateShort + '</td>' +
-            '<td style="color:' + incColor + ';font-weight:600">' + (d.plan || '--') + '</td>' +
-            '<td class="fdt-match">' + ((d.matchNums || '--').split(' / ').join('<br>')) + '</td>' +
-            '<td class="fdt-dir">' + ((d.direction || '--').split(' / ').join('<br>')) + '</td>' +
-            '<td class="fdt-income" style="color:' + incColor + '">' + _fmtIncome(d.income) + '</td>' +
+            '<td class="fdt-date">' +
+            dateShort +
+            '</td>' +
+            '<td style="color:' +
+            incColor +
+            ';font-weight:600">' +
+            (d.plan || '--') +
+            '</td>' +
+            '<td class="fdt-match">' +
+            (d.matchNums || '--').split(' / ').join('<br>') +
+            '</td>' +
+            '<td class="fdt-dir">' +
+            (d.direction || '--').split(' / ').join('<br>') +
+            '</td>' +
+            '<td class="fdt-income" style="color:' +
+            incColor +
+            ' !important">' +
+            _fmtIncome(d.income) +
+            '</td>' +
             '</tr>';
         });
         html += '</tbody></table></div>';

@@ -1,0 +1,507 @@
+{
+  "match_id": "2034679",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "3胜/2平/5负",
+      "1胜/1平/3负",
+      "3胜/1平/6负",
+      "4胜/4平/2负",
+      "1.3个",
+      "1.8个"
+    ],
+    "away": [
+      "5胜/2平/3负",
+      "3胜/1平/1负",
+      "7胜/2平/1负",
+      "5胜/4平/1负",
+      "2.4个",
+      "1.0个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场奥斯汀FC3胜 (30%) | 2平 (20%) | 5负 (50%)",
+    "rows": [
+      {
+        "date": "2025-10-30",
+        "league": "美职",
+        "teams": "洛杉矶FC 2:1 （半 1:0） 奥斯汀FC",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2025-03-16",
+        "league": "美职",
+        "teams": "洛杉矶FC 0:1 （半 0:1） 奥斯汀FC",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2024-09-19",
+        "league": "美职",
+        "teams": "洛杉矶FC 1:1 （半 0:1） 奥斯汀FC",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2024-06-20",
+        "league": "美职",
+        "teams": "奥斯汀FC 1:1 （半 1:0） 洛杉矶FC",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2023-10-08",
+        "league": "美职",
+        "teams": "奥斯汀FC 2:4 （半 0:2） 洛杉矶FC",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2023-04-09",
+        "league": "美职",
+        "teams": "洛杉矶FC 3:0 （半 1:0） 奥斯汀FC",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2022-10-31",
+        "league": "美职",
+        "teams": "洛杉矶FC 3:0 （半 1:0） 奥斯汀FC",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2022-08-27",
+        "league": "美职",
+        "teams": "奥斯汀FC 4:1 （半 1:0） 洛杉矶FC",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2022-05-19",
+        "league": "美职",
+        "teams": "洛杉矶FC 1:2 （半 0:1） 奥斯汀FC",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2021-09-16",
+        "league": "美职",
+        "teams": "奥斯汀FC 1:2 （半 0:0） 洛杉矶FC",
+        "totalGoals": "3"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "奥斯汀FC",
+      "title": "Regular Season 第6名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "13/8/13",
+          "winRate": "38%",
+          "goals": "37/45",
+          "gd": "-8",
+          "points": "47",
+          "rank": "6"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "7/7/3",
+          "winRate": "41%",
+          "goals": "18/16",
+          "gd": "2",
+          "points": "28",
+          "rank": "7"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "6/1/10",
+          "winRate": "35%",
+          "goals": "19/29",
+          "gd": "-10",
+          "points": "19",
+          "rank": "7"
+        }
+      ]
+    },
+    {
+      "team": "洛杉矶FC",
+      "title": "Regular Season 第3名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "17/9/8",
+          "winRate": "50%",
+          "goals": "65/40",
+          "gd": "25",
+          "points": "60",
+          "rank": "3"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "11/2/4",
+          "winRate": "65%",
+          "goals": "31/13",
+          "gd": "18",
+          "points": "35",
+          "rank": "2"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "6/7/4",
+          "winRate": "35%",
+          "goals": "34/27",
+          "gd": "7",
+          "points": "25",
+          "rank": "4"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "奥斯汀FC",
+      "summary": "奥斯汀FC近10场3胜 (30%) | 1平 (10%) | 6负 (60%) 进13球，失18球，净进-5球",
+      "matches": [
+        {
+          "date": "2025-10-30",
+          "league": "美职",
+          "vs": "洛杉矶FC 2 : 1 （半 1:0） 奥斯汀FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-19",
+          "league": "美职",
+          "vs": "圣何塞 2 : 1 （半 0:1） 奥斯汀FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-05",
+          "league": "美职",
+          "vs": "奥斯汀FC 1 : 3 （半 1:2） 圣路易城",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-02",
+          "league": "公开赛杯",
+          "vs": "奥斯汀FC 1 : 2 （半 1:1） 纳什维尔",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-28",
+          "league": "美职",
+          "vs": "盐湖城 3 : 1 （半 1:0） 奥斯汀FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-22",
+          "league": "美职",
+          "vs": "奥斯汀FC 2 : 1 （半 1:0） 西雅图",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-18",
+          "league": "公开赛杯",
+          "vs": "明尼苏达 1 : 1 （半 0:1） 奥斯汀FC",
+          "result": "平"
+        },
+        {
+          "date": "2025-09-14",
+          "league": "美职",
+          "vs": "达拉斯 2 : 0 （半 1:0） 奥斯汀FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-08",
+          "league": "美职",
+          "vs": "堪萨斯城 1 : 2 （半 1:1） 奥斯汀FC",
+          "result": "胜"
+        },
+        {
+          "date": "2025-08-31",
+          "league": "美职",
+          "vs": "奥斯汀FC 3 : 1 （半 2:0） 圣何塞",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "洛杉矶FC",
+      "summary": "洛杉矶FC近10场7胜 (70%) | 2平 (20%) | 1负 (10%) 进24球，失10球，净进14球",
+      "matches": [
+        {
+          "date": "2025-10-30",
+          "league": "美职",
+          "vs": "洛杉矶FC 2 : 1 （半 1:0） 奥斯汀FC",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-19",
+          "league": "美职",
+          "vs": "科罗拉多 2 : 2 （半 0:1） 洛杉矶FC",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-09",
+          "league": "美职",
+          "vs": "洛杉矶FC 2 : 0 （半 1:0） 多伦多",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-06",
+          "league": "美职",
+          "vs": "洛杉矶FC 1 : 0 （半 0:0） 亚特联",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-28",
+          "league": "美职",
+          "vs": "圣路易城 0 : 3 （半 0:2） 洛杉矶FC",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-22",
+          "league": "美职",
+          "vs": "洛杉矶FC 4 : 1 （半 2:1） 盐湖城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-18",
+          "league": "美职",
+          "vs": "盐湖城 1 : 4 （半 0:2） 洛杉矶FC",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-14",
+          "league": "美职",
+          "vs": "圣何塞 2 : 4 （半 1:3） 洛杉矶FC",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-01",
+          "league": "美职",
+          "vs": "洛杉矶FC 1 : 2 （半 1:1） 圣迭戈FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-08-24",
+          "league": "美职",
+          "vs": "达拉斯 1 : 1 （半 1:1） 洛杉矶FC",
+          "result": "平"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "奥斯汀FC",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-23",
+          "美职",
+          "奥斯汀FC\nVS\n西雅图",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "休斯敦\nVS\n奥斯汀FC",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "科罗拉多\nVS\n奥斯汀FC",
+          "Regular Season"
+        ],
+        [
+          "2026-08-17",
+          "美职",
+          "奥斯汀FC\nVS\n达拉斯",
+          "Regular Season"
+        ]
+      ]
+    },
+    {
+      "team": "洛杉矶FC",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-18",
+          "美职",
+          "洛城银河\nVS\n洛杉矶FC",
+          "Regular Season"
+        ],
+        [
+          "2026-07-23",
+          "美职",
+          "洛杉矶FC\nVS\n盐湖城",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "洛杉矶FC\nVS\n堪萨斯城",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "温哥华\nVS\n洛杉矶FC",
+          "Regular Season"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "奥斯汀FC",
+      "players": [
+        {
+          "player": "33-O.沃尔夫(中场)",
+          "apps": "36 (33/3)",
+          "goals": "7 (18%)",
+          "assists": "8 (29%)",
+          "avg": "0.2/0.2"
+        },
+        {
+          "player": "10-M. Uzuni(前锋)",
+          "apps": "29 (25/4)",
+          "goals": "6 (16%)",
+          "assists": "3 (11%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "9-B. Vázquez(前锋)伤",
+          "apps": "19 (19/0)",
+          "goals": "5 (13%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        }
+      ]
+    },
+    {
+      "team": "洛杉矶FC",
+      "players": [
+        {
+          "player": "99-丹尼斯·博安加(前锋)",
+          "apps": "34 (32/2)",
+          "goals": "26 (36%)",
+          "assists": "8 (18%)",
+          "avg": "0.8/0.2"
+        },
+        {
+          "player": "7-孙兴慜(前锋)",
+          "apps": "13 (12/1)",
+          "goals": "12 (16%)",
+          "assists": "3 (7%)",
+          "avg": "0.9/0.2"
+        },
+        {
+          "player": "27-N. Ordaz(前锋)",
+          "apps": "29 (17/12)",
+          "goals": "6 (8%)",
+          "assists": "3 (7%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "奥斯汀FC",
+      "players": [
+        {
+          "player": "21-鲁比奥(前锋)",
+          "totalApps": "25",
+          "starts": "11",
+          "subs": "14",
+          "status": "伤"
+        },
+        {
+          "player": "10-德里乌西(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "15-L. Väisänen(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "9-B. Vázquez(前锋)",
+          "totalApps": "19",
+          "starts": "19",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "洛杉矶FC",
+      "players": [
+        {
+          "player": "25-M. Chanot(后卫)",
+          "totalApps": "1",
+          "starts": "1",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "14-Sergi Palencia(后卫)",
+          "totalApps": "36",
+          "starts": "35",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "33-阿龙·朗(后卫)",
+          "totalApps": "15",
+          "starts": "15",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "43-A. Saldana(中场)",
+          "totalApps": "2",
+          "starts": "2",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "23-F. Amaya(中场)",
+          "totalApps": "20",
+          "starts": "3",
+          "subs": "17",
+          "status": "伤"
+        },
+        {
+          "player": "80-O. Holm(中场)",
+          "totalApps": "3",
+          "starts": "1",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "6-Igor(中场)",
+          "totalApps": "24",
+          "starts": "22",
+          "subs": "2",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

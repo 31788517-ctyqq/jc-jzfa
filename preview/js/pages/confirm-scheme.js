@@ -1,11 +1,11 @@
 // ==================== 确认方案页面 ====================
 import { api } from '../api.js';
 
-var _planData = null;       // 完整方案数据（包含 matches、金额、过关等）
-var _matches = [];          // 已选比赛列表
-var _selections = [];       // 选项列表
-var _passTypes = [2];       // 过关类型
-var _multiplier = 2;        // 倍数（竞彩规则：2-99倍）
+var _planData = null; // 完整方案数据（包含 matches、金额、过关等）
+var _matches = []; // 已选比赛列表
+var _selections = []; // 选项列表
+var _passTypes = [2]; // 过关类型
+var _multiplier = 2; // 倍数（竞彩规则：2-99倍）
 
 // ★ 竞彩木桶原则配置（与 scheme-design.js 保持一致）
 var PLAY_LIMITS = { spf: 8, rqspf: 8, jqs: 6, bf: 4, bqc: 4 };
@@ -13,12 +13,14 @@ var PLAY_NAMES = { spf: '胜平负', rqspf: '让球胜平负', bf: '比分', jqs
 
 function calcConfirmMaxPass() {
   var matchIds = {};
-  _selections.forEach(function(s) { matchIds[s.matchId] = true; });
+  _selections.forEach(function (s) {
+    matchIds[s.matchId] = true;
+  });
   var uniqueCount = Object.keys(matchIds).length;
   if (uniqueCount < 2) return 1;
 
   var minLimit = 8;
-  _selections.forEach(function(s) {
+  _selections.forEach(function (s) {
     var limit = PLAY_LIMITS[s.playType] || 8;
     if (limit < minLimit) minLimit = limit;
   });
@@ -31,7 +33,9 @@ export function loadConfirmScheme() {
   var raw = sessionStorage.getItem('pendingConfirmPlan');
   if (!raw) {
     var el = document.getElementById('confirmContent');
-    if (el) el.innerHTML = '<div class="hint-box" style="padding:60px 20px;text-align:center;color:#8899aa;">暂无方案数据，请返回方案设计页面重新选择比赛</div>';
+    if (el)
+      el.innerHTML =
+        '<div class="hint-box" style="padding:60px 20px;text-align:center;color:#8899aa;">暂无方案数据，请返回方案设计页面重新选择比赛</div>';
     return;
   }
   try {
@@ -39,12 +43,14 @@ export function loadConfirmScheme() {
   } catch (e) {
     console.error('解析方案数据失败:', e);
     var el = document.getElementById('confirmContent');
-    if (el) el.innerHTML = '<div class="hint-box" style="padding:60px 20px;text-align:center;color:#8899aa;">方案数据异常，请返回方案设计页面重新选择比赛</div>';
+    if (el)
+      el.innerHTML =
+        '<div class="hint-box" style="padding:60px 20px;text-align:center;color:#8899aa;">方案数据异常，请返回方案设计页面重新选择比赛</div>';
     return;
   }
   _matches = _planData.matches || [];
   _selections = _planData.selections || [];
-  _passTypes = (_planData.passTypes && _planData.passTypes.length) ? _planData.passTypes : [2];
+  _passTypes = _planData.passTypes && _planData.passTypes.length ? _planData.passTypes : [2];
   _multiplier = _planData.multiplier || 1;
 
   render();
@@ -57,7 +63,9 @@ function render() {
 
   // 计算统计数据
   var uniqueMatchIds = {};
-  _selections.forEach(function (s) { uniqueMatchIds[s.matchId] = true; });
+  _selections.forEach(function (s) {
+    uniqueMatchIds[s.matchId] = true;
+  });
   var uniqueCount = Object.keys(uniqueMatchIds).length;
 
   var bets = calcBets(uniqueCount);
@@ -81,7 +89,9 @@ function render() {
 // ═══ 按 matchId 分组 selections ═══
 function buildGroupedSelections() {
   var matchMap = {};
-  _matches.forEach(function (m) { matchMap[m.matchId] = m; });
+  _matches.forEach(function (m) {
+    matchMap[m.matchId] = m;
+  });
 
   var groups = [];
   var visited = {};
@@ -111,12 +121,11 @@ function buildGroupedSelections() {
 function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelections) {
   var playLabels = { spf: '胜平负', rqspf: '让球胜平负', bf: '比分', jqs: '总进球', bqc: '半全场' };
 
-  var passLabel = _passTypes.length === 1
-    ? _passTypes[0] + '关'
-    : (_passTypes.length > 1 ? _passTypes.join('~') + '关' : '2关');
+  var passLabel =
+    _passTypes.length === 1 ? _passTypes[0] + '关' : _passTypes.length > 1 ? _passTypes.join('~') + '关' : '2关';
 
   // 资金分配：默认均分（若已有 allocation 则用已有的）
-  var defaultAllocPerSel = _selections.length > 0 ? Math.round(amount / _selections.length * 100) / 100 : 0;
+  var defaultAllocPerSel = _selections.length > 0 ? Math.round((amount / _selections.length) * 100) / 100 : 0;
 
   // 构建比赛表格行（同场多方向分行，对阵合并）
   var matchRows = '';
@@ -125,7 +134,8 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
     var numText = m.matchNum || '';
 
     // 开赛时间
-    var matchDateShort = '', matchTime = '';
+    var matchDateShort = '',
+      matchTime = '';
     if (m.timeStr) {
       var tm = m.timeStr.match(/(\d{2}:\d{2})/);
       if (tm) matchTime = tm[1];
@@ -156,7 +166,17 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
           var deltaDir = grouped[fieldName] || null;
           if (!deltaDir && s.playType === 'bqc') {
             // BQC: 尝试反向映射缩写
-            var BQC_MAP_REV = { '胜胜': 'hh', '胜平': 'hd', '胜负': 'ha', '平胜': 'dh', '平平': 'dd', '平负': 'da', '负胜': 'ah', '负平': 'ad', '负负': 'aa' };
+            var BQC_MAP_REV = {
+              胜胜: 'hh',
+              胜平: 'hd',
+              胜负: 'ha',
+              平胜: 'dh',
+              平平: 'dd',
+              平负: 'da',
+              负胜: 'ah',
+              负平: 'ad',
+              负负: 'aa',
+            };
             var abbr = BQC_MAP_REV[fieldName];
             if (abbr) deltaDir = grouped[abbr] || null;
           }
@@ -177,9 +197,14 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
       // 对阵列（仅第一行显示）
       matchRows += '<td class="team-col">';
       if (si === 0) {
-        matchRows += '<span class="plan-team-home">' + (m.homeName || '') + '</span>'
-          + '<span class="plan-team-vs">vs</span>'
-          + '<span class="plan-team-away">' + (m.visitName || '') + '</span>';
+        matchRows +=
+          '<span class="plan-team-home">' +
+          (m.homeName || '') +
+          '</span>' +
+          '<span class="plan-team-vs">vs</span>' +
+          '<span class="plan-team-away">' +
+          (m.visitName || '') +
+          '</span>';
       }
       matchRows += '</td>';
 
@@ -188,7 +213,10 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
 
       // ★ 资金分配列
       var allocVal = s.allocation != null ? s.allocation : defaultAllocPerSel;
-      matchRows += '<td class="allocation-col"><span class="plan-alloc-val">' + allocVal.toFixed(0) + '</span><span class="plan-alloc-unit">元</span></td>';
+      matchRows +=
+        '<td class="allocation-col"><span class="plan-alloc-val">' +
+        allocVal.toFixed(0) +
+        '</span><span class="plan-alloc-unit">元</span></td>';
 
       matchRows += '</tr>';
     });
@@ -202,14 +230,22 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
   html += '<span class="plan-soccer-icon">&#x26BD;</span>';
   html += '<span class="plan-name">我的方案</span>';
   html += '</div>';
-  html += '<span class="bonus-opt-badge" onclick="event.stopPropagation();showBonusOptimize()" title="点击查看奖金优化方案">奖金优化</span>';
+  html +=
+    '<span class="bonus-opt-badge" onclick="event.stopPropagation();showBonusOptimize()" title="点击查看奖金优化方案">奖金优化</span>';
   html += '</div>';
 
   // 金额行（3列）
   html += '<div class="plan-amount-row">';
-  html += '<div class="plan-amount-col"><div class="plan-amount-label">方案金额</div><div class="plan-amount-value">' + amount + '<span class="unit">元</span></div></div>';
-  html += '<div class="plan-amount-col"><div class="plan-amount-label">预计奖金</div><div class="plan-amount-value">' + maxWin + '<span class="unit">元</span></div></div>';
-  html += '<div class="plan-amount-col"><div class="plan-amount-label">方案状态</div><div class="plan-amount-value" style="color:#FFC928;">待确认</div></div>';
+  html +=
+    '<div class="plan-amount-col"><div class="plan-amount-label">方案金额</div><div class="plan-amount-value">' +
+    amount +
+    '<span class="unit">元</span></div></div>';
+  html +=
+    '<div class="plan-amount-col"><div class="plan-amount-label">预计奖金</div><div class="plan-amount-value">' +
+    maxWin +
+    '<span class="unit">元</span></div></div>';
+  html +=
+    '<div class="plan-amount-col"><div class="plan-amount-label">方案状态</div><div class="plan-amount-value" style="color:#FFC928;">待确认</div></div>';
   html += '</div>';
 
   // 分割线
@@ -218,27 +254,59 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
   // 信息网格
   html += '<div class="plan-info-grid">';
   html += '<div class="plan-info-left"><div>玩法</div><div>场数/过关</div><div>注数/倍数</div></div>';
-  html += '<div class="plan-info-right"><div>混合投注</div><div>' + uniqueCount + '场 ' + passLabel + '</div><div>' + bets + '注 ×' + _multiplier + '倍</div></div>';
+  html +=
+    '<div class="plan-info-right"><div>混合投注</div><div>' +
+    uniqueCount +
+    '场 ' +
+    passLabel +
+    '</div><div>' +
+    bets +
+    '注 ×' +
+    _multiplier +
+    '倍</div></div>';
   html += '</div>';
 
   // 比赛表格
   html += '<div class="plan-match-section">';
-  html += '<table class="plan-match-table score-table"><thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th><th>资金分配</th></tr></thead><tbody>';
+  html +=
+    '<table class="plan-match-table score-table"><thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th><th>资金分配</th></tr></thead><tbody>';
   html += matchRows;
   html += '</tbody></table></div>';
 
   // ★ 比分方案元信息（大球率/进攻优势/进球区间/强队方向）
-  var isSingleBf = uniqueCount === 1 && _selections.length > 0 && _selections.every(function(s) { return s.playType === 'bf'; });
+  var isSingleBf =
+    uniqueCount === 1 &&
+    _selections.length > 0 &&
+    _selections.every(function (s) {
+      return s.playType === 'bf';
+    });
   if (isSingleBf) {
-    var sbfBigBall = '--', sbfAttack = '--', sbfGoal = '--', sbfStrong = '--';
-    var sbfMeta = (_planData && _planData.scoreMeta) ? _planData.scoreMeta : (_matches.length > 0 && _matches[0]._meta) ? _matches[0]._meta : null;
+    var sbfBigBall = '--',
+      sbfAttack = '--',
+      sbfGoal = '--',
+      sbfStrong = '--';
+    var sbfMeta =
+      _planData && _planData.scoreMeta
+        ? _planData.scoreMeta
+        : _matches.length > 0 && _matches[0]._meta
+          ? _matches[0]._meta
+          : null;
     if (sbfMeta) {
       sbfBigBall = sbfMeta.bigBallRatio || '--';
       sbfAttack = sbfMeta.attackAdvantage || '--';
       sbfGoal = sbfMeta.goalRange || '--';
       sbfStrong = sbfMeta.strongSide || '--';
     }
-    html += '<div class="plan-score-meta"><span>大球率 ' + sbfBigBall + '%</span><span>进攻优势 ' + sbfAttack + '</span><span>进球区间 ' + sbfGoal + '</span><span>强队 ' + sbfStrong + '</span></div>';
+    html +=
+      '<div class="plan-score-meta"><span>大球率 ' +
+      sbfBigBall +
+      '%</span><span>进攻优势 ' +
+      sbfAttack +
+      '</span><span>进球区间 ' +
+      sbfGoal +
+      '</span><span>强队 ' +
+      sbfStrong +
+      '</span></div>';
   }
 
   html += '</div>';
@@ -281,13 +349,31 @@ function renderMatchCard(m, sel, idx) {
   // 三列对阵 + 赔率
   html += '<div class="cfm-card-body">';
   // 主队列
-  html += '<div class="' + homeCls + '" onclick="confirmTogglePick(\'' + matchId + '\',\'' + (sel.playType || 'spf') + '\',\'\胜\',\'' + homeOdds + '\')">';
+  html +=
+    '<div class="' +
+    homeCls +
+    '" onclick="confirmTogglePick(\'' +
+    matchId +
+    "','" +
+    (sel.playType || 'spf') +
+    "','\胜','" +
+    homeOdds +
+    '\')">';
   html += '<div class="cfm-opt-team">' + (m.homeName || '') + '</div>';
   html += '<div class="cfm-opt-odds">' + homeOdds + '</div>';
   html += '</div>';
   // 中间列：平 + 联赛时间
   html += '<div class="cfm-vs-wrap">';
-  html += '<div class="' + drawCls + '" onclick="confirmTogglePick(\'' + matchId + '\',\'' + (sel.playType || 'spf') + '\',\'\平\',\'' + drawOdds + '\')">';
+  html +=
+    '<div class="' +
+    drawCls +
+    '" onclick="confirmTogglePick(\'' +
+    matchId +
+    "','" +
+    (sel.playType || 'spf') +
+    "','\平','" +
+    drawOdds +
+    '\')">';
   html += '<span class="cfm-opt-label">平</span>';
   html += '<span class="cfm-opt-odds">' + drawOdds + '</span>';
   html += '</div>';
@@ -297,7 +383,16 @@ function renderMatchCard(m, sel, idx) {
   html += '</div>';
   html += '</div>';
   // 客队列
-  html += '<div class="' + awayCls + '" onclick="confirmTogglePick(\'' + matchId + '\',\'' + (sel.playType || 'spf') + '\',\'\负\',\'' + awayOdds + '\')">';
+  html +=
+    '<div class="' +
+    awayCls +
+    '" onclick="confirmTogglePick(\'' +
+    matchId +
+    "','" +
+    (sel.playType || 'spf') +
+    "','\负','" +
+    awayOdds +
+    '\')">';
   html += '<div class="cfm-opt-team">' + (m.visitName || '') + '</div>';
   html += '<div class="cfm-opt-odds">' + awayOdds + '</div>';
   html += '</div>';
@@ -334,13 +429,17 @@ function renderBottomBar(bets, amount, maxWin, uniqueCount) {
   html += '<div class="cfm-bb-row">';
   html += '<div class="cfm-bb-item">';
   html += '<span class="cfm-bb-label">过关</span>';
-  html += '<span class="cfm-bb-pass" onclick="confirmShowPassPopup()">' + passLabel + ' <span class="cfm-bb-arrow">&#x25BE;</span></span>';
+  html +=
+    '<span class="cfm-bb-pass" onclick="confirmShowPassPopup()">' +
+    passLabel +
+    ' <span class="cfm-bb-arrow">&#x25BE;</span></span>';
   html += '</div>';
   html += '<div class="cfm-bb-item">';
   html += '<span class="cfm-bb-label">倍数</span>';
   html += '<div class="cfm-bb-multi">';
   html += '<button class="cfm-bb-mbtn" onclick="confirmAdjustMultiplier(-1)">-</button>';
-  html += '<span class="cfm-bb-mval" id="cfmMultiVal" onclick="confirmShowMultiplierPopup()">' + _multiplier + '</span>';
+  html +=
+    '<span class="cfm-bb-mval" id="cfmMultiVal" onclick="confirmShowMultiplierPopup()">' + _multiplier + '</span>';
   html += '<button class="cfm-bb-mbtn" onclick="confirmAdjustMultiplier(1)">+</button>';
   html += '</div>';
   html += '</div>';
@@ -374,7 +473,7 @@ function combination(n, k) {
   k = Math.min(k, n - k);
   var res = 1;
   for (var i = 1; i <= k; i++) {
-    res = res * (n - i + 1) / i;
+    res = (res * (n - i + 1)) / i;
   }
   return Math.round(res);
 }
@@ -407,7 +506,7 @@ function calcExpandedBets(matchGroups, matchIds, k) {
 // ═══ 计算注数和金额 ═══
 function calcBets(uniqueCount) {
   var matchGroups = {};
-  _selections.forEach(function(s) {
+  _selections.forEach(function (s) {
     if (!matchGroups[s.matchId]) matchGroups[s.matchId] = [];
     matchGroups[s.matchId].push(s);
   });
@@ -419,7 +518,7 @@ function calcBets(uniqueCount) {
   }
 
   var total = 0;
-  _passTypes.forEach(function(k) {
+  _passTypes.forEach(function (k) {
     total += calcExpandedBets(matchGroups, matchIds, k);
   });
   return total || 1;
@@ -428,7 +527,7 @@ function calcBets(uniqueCount) {
 // ═══ 计算最高奖金 ═══
 function calcMaxWin(amount) {
   var matchGroups = {};
-  _selections.forEach(function(s) {
+  _selections.forEach(function (s) {
     if (!matchGroups[s.matchId]) matchGroups[s.matchId] = [];
     matchGroups[s.matchId].push(s.odds || 1);
   });
@@ -437,24 +536,28 @@ function calcMaxWin(amount) {
 
   // 每场比赛的最大赔率
   var maxOddsPerMatch = {};
-  matchIds.forEach(function(mid) {
+  matchIds.forEach(function (mid) {
     maxOddsPerMatch[mid] = Math.max.apply(null, matchGroups[mid]);
   });
 
   // 找所有过关类型中赔率乘积最高的 k-组合
   var bestProduct = 1;
-  _passTypes.forEach(function(k) {
+  _passTypes.forEach(function (k) {
     if (k > n) return;
     // 按最大赔率降序取前 k 场
     var sorted = matchIds
-      .map(function(mid) { return maxOddsPerMatch[mid]; })
-      .sort(function(a, b) { return b - a; });
+      .map(function (mid) {
+        return maxOddsPerMatch[mid];
+      })
+      .sort(function (a, b) {
+        return b - a;
+      });
     var product = 1;
     for (var i = 0; i < k; i++) product *= sorted[i];
     if (product > bestProduct) bestProduct = product;
   });
 
-  // 理论最高奖金 = 单注金额 × 最佳赔率乘积
+  // 最高奖金 = 单注金额 × 最佳赔率乘积
   var singleBetAmount = 2 * _multiplier;
   return singleBetAmount > 0 ? Math.round(singleBetAmount * bestProduct * 100) / 100 : 0;
 }
@@ -466,8 +569,12 @@ window.goSchemeDesign = function () {
 
 // ═══ 删除一场比赛 ═══
 window.confirmRemoveMatch = function (matchId) {
-  _selections = _selections.filter(function (s) { return s.matchId !== matchId; });
-  _matches = _matches.filter(function (m) { return m.matchId !== matchId; });
+  _selections = _selections.filter(function (s) {
+    return s.matchId !== matchId;
+  });
+  _matches = _matches.filter(function (m) {
+    return m.matchId !== matchId;
+  });
 
   if (_matches.length === 0 && _selections.length === 0) {
     // 全部删除，返回方案设计页
@@ -478,9 +585,13 @@ window.confirmRemoveMatch = function (matchId) {
 
   // 更新过关类型（移除超出子比赛数量的过关）
   var uniqueMatchIds = {};
-  _selections.forEach(function (s) { uniqueMatchIds[s.matchId] = true; });
+  _selections.forEach(function (s) {
+    uniqueMatchIds[s.matchId] = true;
+  });
   var uniqueCount = Object.keys(uniqueMatchIds).length;
-  _passTypes = _passTypes.filter(function (k) { return k <= uniqueCount; });
+  _passTypes = _passTypes.filter(function (k) {
+    return k <= uniqueCount;
+  });
   if (_passTypes.length === 0 && uniqueCount >= 2) _passTypes = [2];
   if (_passTypes.length === 0 && uniqueCount === 1) _passTypes = [1];
 
@@ -533,7 +644,9 @@ window.confirmShowMultiplierPopup = function () {
     overlay = document.createElement('div');
     overlay.id = 'confirmMultiplierOverlay';
     overlay.className = 'ssb-overlay';
-    overlay.onclick = function (e) { if (e.target === overlay) window.confirmCloseMultiplierPopup(); };
+    overlay.onclick = function (e) {
+      if (e.target === overlay) window.confirmCloseMultiplierPopup();
+    };
     overlay.innerHTML =
       '<div class="ssb-modal ssb-multi-modal">' +
       '<div class="ssb-modal-header"><div class="ssb-input-wrap"><input type="text" id="confirmSsBMultiInput" readonly value="2"/><span>倍</span></div><button class="ssb-modal-cancel" onclick="confirmCloseMultiplierPopup()">取消</button><button class="ssb-modal-confirm" onclick="confirmConfirmMultiplierPopup()">确定</button></div>' +
@@ -593,12 +706,14 @@ window.confirmBackspaceMulti = function () {
 // ═══ 过关弹窗 ═══
 window.confirmShowPassPopup = function () {
   var uniqueMatchIds = {};
-  _selections.forEach(function (s) { uniqueMatchIds[s.matchId] = true; });
+  _selections.forEach(function (s) {
+    uniqueMatchIds[s.matchId] = true;
+  });
   var n = Object.keys(uniqueMatchIds).length;
   if (n < 2) return;
 
   var matchGroups = {};
-  _selections.forEach(function(s) {
+  _selections.forEach(function (s) {
     if (!matchGroups[s.matchId]) matchGroups[s.matchId] = [];
     matchGroups[s.matchId].push(s);
   });
@@ -609,7 +724,9 @@ window.confirmShowPassPopup = function () {
     overlay = document.createElement('div');
     overlay.id = 'confirmPassOverlay';
     overlay.className = 'ssb-overlay';
-    overlay.onclick = function (e) { if (e.target === overlay) overlay.classList.remove('active'); };
+    overlay.onclick = function (e) {
+      if (e.target === overlay) overlay.classList.remove('active');
+    };
     document.body.appendChild(overlay);
   }
 
@@ -618,8 +735,10 @@ window.confirmShowPassPopup = function () {
 
   // 构建木桶提示信息：说明各玩法上限
   var playTypes = {};
-  _selections.forEach(function(s) { playTypes[s.playType] = true; });
-  var playLimitParts = Object.keys(playTypes).map(function(pt) {
+  _selections.forEach(function (s) {
+    playTypes[s.playType] = true;
+  });
+  var playLimitParts = Object.keys(playTypes).map(function (pt) {
     return (PLAY_NAMES[pt] || pt) + '上限' + PLAY_LIMITS[pt] + '场';
   });
   var bucketHint = '';
@@ -628,19 +747,28 @@ window.confirmShowPassPopup = function () {
   }
 
   var html = '<div class="ssb-modal ssb-pass-modal">';
-  html += '<div class="ssb-modal-title">选择过关方式<button class="ssb-modal-close" onclick="closeConfirmPassPopup()">&#x2715;</button></div>';
+  html +=
+    '<div class="ssb-modal-title">选择过关方式<button class="ssb-modal-close" onclick="closeConfirmPassPopup()">&#x2715;</button></div>';
   html += '<div class="ssb-pass-hint">当前：' + n + '场，上限：' + maxPass + '关' + bucketHint + '</div>';
   html += '<div class="ssb-pass-list">';
   for (var k = 2; k <= maxPass; k++) {
     var checked = _passTypes.indexOf(k) !== -1;
     var count = calcExpandedBets(matchGroups, matchIds, k) + '注';
     html += '<div class="ssb-pass-item">';
-    html += '<label><input type="checkbox"' + (checked ? ' checked' : '') + ' onchange="confirmTogglePassType(' + k + ')"> ' + k + '关</label>';
+    html +=
+      '<label><input type="checkbox"' +
+      (checked ? ' checked' : '') +
+      ' onchange="confirmTogglePassType(' +
+      k +
+      ')"> ' +
+      k +
+      '关</label>';
     html += '<span class="ssb-pass-count">' + count + '</span>';
     html += '</div>';
   }
   html += '</div>';
-  html += '<div class="ssb-modal-footer"><button class="ssb-modal-cancel" onclick="closeConfirmPassPopup()">取消</button><button class="ssb-modal-confirm" onclick="confirmConfirmPass()">确定</button></div>';
+  html +=
+    '<div class="ssb-modal-footer"><button class="ssb-modal-cancel" onclick="closeConfirmPassPopup()">取消</button><button class="ssb-modal-confirm" onclick="confirmConfirmPass()">确定</button></div>';
   html += '</div>';
   overlay.innerHTML = html;
   overlay.classList.add('active');
@@ -656,7 +784,9 @@ window.confirmTogglePassType = function (k) {
     _passTypes.splice(idx, 1);
   } else {
     _passTypes.push(k);
-    _passTypes.sort(function (a, b) { return a - b; });
+    _passTypes.sort(function (a, b) {
+      return a - b;
+    });
   }
   updateSessionStore();
 };
@@ -669,11 +799,15 @@ window.closeConfirmPassPopup = function () {
 window.confirmConfirmPass = function () {
   // ★ 过滤超出木桶上限的过关类型（防止残留脏数据）
   var maxPass = calcConfirmMaxPass();
-  _passTypes = _passTypes.filter(function(k) { return k <= maxPass; });
+  _passTypes = _passTypes.filter(function (k) {
+    return k <= maxPass;
+  });
 
   if (_passTypes.length === 0) {
     var uniqueMatchIds = {};
-    _selections.forEach(function (s) { uniqueMatchIds[s.matchId] = true; });
+    _selections.forEach(function (s) {
+      uniqueMatchIds[s.matchId] = true;
+    });
     var n = Object.keys(uniqueMatchIds).length;
     _passTypes = [Math.min(n, 2, maxPass)];
   }
@@ -692,14 +826,20 @@ window.confirmSavePlan = function () {
 
   // 单关校验
   var uniqueMatchIds = {};
-  _selections.forEach(function (s) { uniqueMatchIds[s.matchId] = true; });
+  _selections.forEach(function (s) {
+    uniqueMatchIds[s.matchId] = true;
+  });
   var uniqueMatches = Object.keys(uniqueMatchIds);
 
   if (uniqueMatches.length === 1) {
-    var selMatch = _matches.find(function (m) { return m.matchId === uniqueMatches[0]; });
+    var selMatch = _matches.find(function (m) {
+      return m.matchId === uniqueMatches[0];
+    });
 
     // ★ BF/JQS/BQC 天生单关，无需 isSingleGame 标记；SPF/RQSPF 需要单关标记
-    var hasSPF_RQSPF = _selections.some(function(s) { return s.playType === 'spf' || s.playType === 'rqspf'; });
+    var hasSPF_RQSPF = _selections.some(function (s) {
+      return s.playType === 'spf' || s.playType === 'rqspf';
+    });
     if (hasSPF_RQSPF && (!selMatch || selMatch.isSingleGame !== true)) {
       alert('⚽ 该场比赛未标记为「单关」场次，不支持单关胜平负投注\n\n请至少再选一场比赛组成串关。');
       return;
@@ -714,9 +854,19 @@ window.confirmSavePlan = function () {
       if (!_spMap[_s.matchId]) {
         _spMap[_s.matchId] = _s.playType;
       } else if (_spMap[_s.matchId] !== _s.playType) {
-        var _sm = _matches.find(function(x) { return x.matchId === _s.matchId; });
-        var _sLabel = _sm ? (_sm.homeName + ' vs ' + _sm.visitName) : _s.matchId;
-        alert('⚽ 串关规则：同场比赛只能用同一玩法\n\n' + _sLabel + ' 已同时选择了 ' + (PLAY_NAMES[_spMap[_s.matchId]] || _spMap[_s.matchId]) + ' 和 ' + (PLAY_NAMES[_s.playType] || _s.playType) + '，请统一为同一玩法。');
+        var _sm = _matches.find(function (x) {
+          return x.matchId === _s.matchId;
+        });
+        var _sLabel = _sm ? _sm.homeName + ' vs ' + _sm.visitName : _s.matchId;
+        alert(
+          '⚽ 串关规则：同场比赛只能用同一玩法\n\n' +
+            _sLabel +
+            ' 已同时选择了 ' +
+            (PLAY_NAMES[_spMap[_s.matchId]] || _spMap[_s.matchId]) +
+            ' 和 ' +
+            (PLAY_NAMES[_s.playType] || _s.playType) +
+            '，请统一为同一玩法。',
+        );
         return;
       }
     }
@@ -741,12 +891,23 @@ window.confirmSavePlan = function () {
   else prizeCap = 1000000;
 
   if (maxWin > prizeCap) {
-    alert('⚽ 预计奖金 ' + maxWin.toFixed(2) + ' 元超过 ' + (prizeCap / 10000).toFixed(0) + ' 万元限额（' + uniqueCount + '场过关最高奖金限额），请调整方案');
+    alert(
+      '⚽ 预计奖金 ' +
+        maxWin.toFixed(2) +
+        ' 元超过 ' +
+        (prizeCap / 10000).toFixed(0) +
+        ' 万元限额（' +
+        uniqueCount +
+        '场过关最高奖金限额），请调整方案',
+    );
     return;
   }
 
   var matchDetails = _selections.map(function (s) {
-    var m = _matches.find(function (x) { return x.matchId === s.matchId; }) || {};
+    var m =
+      _matches.find(function (x) {
+        return x.matchId === s.matchId;
+      }) || {};
     return {
       matchId: s.matchId,
       homeName: m.homeName || '',
@@ -767,11 +928,21 @@ window.confirmSavePlan = function () {
     multiplier: _multiplier,
     betCount: bets,
     passTypes: _passTypes.length > 0 ? _passTypes : [2],
-    note: (_passTypes.length > 1 ? '自由过关 ' : (_passTypes[0] === 1 ? '单关 ' : '串关方案 ')) +
+    note:
+      (_passTypes.length > 1 ? '自由过关 ' : _passTypes[0] === 1 ? '单关 ' : '串关方案 ') +
       (_passTypes.length > 1 ? _passTypes.join('关+') + '关' : _passTypes[0] + '关') +
-      '，共' + bets + '注 ×' + _multiplier + '倍',
-    matchCount: Object.keys(_selections.reduce(function(acc, s) { acc[s.matchId] = true; return acc; }, {})).length,
-    totalOdds: amount > 0 ? Math.round(maxWin / amount * 100) / 100 : 0,
+      '，共' +
+      bets +
+      '注 ×' +
+      _multiplier +
+      '倍',
+    matchCount: Object.keys(
+      _selections.reduce(function (acc, s) {
+        acc[s.matchId] = true;
+        return acc;
+      }, {}),
+    ).length,
+    totalOdds: amount > 0 ? Math.round((maxWin / amount) * 100) / 100 : 0,
     isWon: null,
     resultIncome: null,
   };
@@ -781,7 +952,9 @@ window.confirmSavePlan = function () {
       // 清除临时数据
       sessionStorage.removeItem('pendingConfirmPlan');
       // 标记跳转目标为"我的方案"标签
-      try { sessionStorage.setItem('pendingPlanTab', 'my'); } catch (e) {}
+      try {
+        sessionStorage.setItem('pendingPlanTab', 'my');
+      } catch (e) {}
       window.switchTab('plan');
     })
     .catch(function (e) {
@@ -792,7 +965,9 @@ window.confirmSavePlan = function () {
 // ═══ 同步到 sessionStorage ═══
 function updateSessionStore() {
   var uniqueMatchIds = {};
-  _selections.forEach(function (s) { uniqueMatchIds[s.matchId] = true; });
+  _selections.forEach(function (s) {
+    uniqueMatchIds[s.matchId] = true;
+  });
 
   _planData.selections = _selections;
   _planData.passTypes = _passTypes;
@@ -807,24 +982,32 @@ function updateSessionStore() {
 
 // ═══ 奖金优化弹窗 ═══
 var _boStrategy = 'balanced'; // balanced | hot | cold
-var _boRows = [];             // [{ pickId, playType, direction, matchLabel, odds, handicap, betCount }]
+var _boRows = []; // [{ pickId, playType, direction, matchLabel, odds, handicap, betCount }]
 var _boBaseAmount = 0;
 
 window.showBonusOptimize = function () {
-  var bets = calcBets(Object.keys(
-    _selections.reduce(function (acc, s) { acc[s.matchId] = true; return acc; }, {})
-  ).length);
+  var bets = calcBets(
+    Object.keys(
+      _selections.reduce(function (acc, s) {
+        acc[s.matchId] = true;
+        return acc;
+      }, {}),
+    ).length,
+  );
   _boBaseAmount = bets * 2 * (_multiplier || 1);
   if (!_boBaseAmount) _boBaseAmount = 2;
 
   // 构建行数据：每个选择一行
   _boRows = _selections.map(function (s, idx) {
-    var m = _matches.find(function (x) { return x.matchId === s.matchId; }) || {};
-    var playLabel = ({ spf: '', rqspf: '让', bf: '比分', jqs: '总进球', bqc: '半全场' })[s.playType] || '';
+    var m =
+      _matches.find(function (x) {
+        return x.matchId === s.matchId;
+      }) || {};
+    var playLabel = { spf: '', rqspf: '让', bf: '比分', jqs: '总进球', bqc: '半全场' }[s.playType] || '';
     var numText = (m.matchNum || '').replace(/^[周一二三四五六日]+/, '');
     var matchLabel = (m.homeName || '') + ' vs ' + (m.visitName || '');
     var dirLabel = (s.playType === 'rqspf' ? '让' : '') + (s.direction || s.oddsName || '');
-    var desc = playLabel ? (playLabel + ' ' + dirLabel) : dirLabel;
+    var desc = playLabel ? playLabel + ' ' + dirLabel : dirLabel;
     return {
       id: idx,
       matchNum: numText,
@@ -836,7 +1019,10 @@ window.showBonusOptimize = function () {
     };
   });
 
-  if (_boRows.length === 0) { alert('暂无方案数据'); return; }
+  if (_boRows.length === 0) {
+    alert('暂无方案数据');
+    return;
+  }
 
   _boStrategy = 'balanced';
   applyStrategy();
@@ -866,14 +1052,18 @@ function applyStrategy() {
   if (_boStrategy === 'balanced') {
     // 奖金平均：weight_i = 1/odds_i / sum(1/odds_j)
     var totalInv = 0;
-    rows.forEach(function (r) { totalInv += 1 / r.odds; });
     rows.forEach(function (r) {
-      var weight = (1 / r.odds) / totalInv;
-      r.betCount = Math.round(total * weight / 2);
+      totalInv += 1 / r.odds;
+    });
+    rows.forEach(function (r) {
+      var weight = 1 / r.odds / totalInv;
+      r.betCount = Math.round((total * weight) / 2);
       r.projected = Math.round(r.betCount * 2 * r.odds * 100) / 100;
     });
     // 修正取整误差
-    var actualTotal = rows.reduce(function (s, r) { return s + r.betCount * 2; }, 0);
+    var actualTotal = rows.reduce(function (s, r) {
+      return s + r.betCount * 2;
+    }, 0);
     var diff = total - actualTotal;
     if (diff !== 0 && rows.length > 0) {
       rows[0].betCount += Math.round(diff / 2);
@@ -883,7 +1073,9 @@ function applyStrategy() {
     // 博彩保本：热门（最低赔率）最大，其他保本
     // 找热门 = 最低赔率
     var hotIdx = 0;
-    for (var i = 1; i < n; i++) { if (rows[i].odds < rows[hotIdx].odds) hotIdx = i; }
+    for (var i = 1; i < n; i++) {
+      if (rows[i].odds < rows[hotIdx].odds) hotIdx = i;
+    }
     // 其他行保本：betCount * 2 * odds >= total → betCount = ceil(total / 2 / odds)
     var safeguard = 0;
     rows.forEach(function (r, i) {
@@ -899,7 +1091,9 @@ function applyStrategy() {
   } else if (_boStrategy === 'cold') {
     // 奖金最高：冷门（最高赔率）最大，其他保本
     var coldIdx = 0;
-    for (var j = 1; j < n; j++) { if (rows[j].odds > rows[coldIdx].odds) coldIdx = j; }
+    for (var j = 1; j < n; j++) {
+      if (rows[j].odds > rows[coldIdx].odds) coldIdx = j;
+    }
     var safeguard2 = 0;
     rows.forEach(function (r, i) {
       if (i === coldIdx) return;
@@ -925,46 +1119,100 @@ function renderBonusOpt() {
 
   var persecond = total.toFixed(2) + '元 · ' + _boRows.length + '个选项';
 
-  var rowsHtml = _boRows.map(function (r, idx) {
-    // 判断基准行（热门/冷门标记）
-    var isTarget = false;
-    if (_boStrategy === 'hot') {
-      var hotMin = Math.min.apply(null, _boRows.map(function (rr) { return rr.odds; }));
-      isTarget = r.odds === hotMin;
-    } else if (_boStrategy === 'cold') {
-      var coldMax = Math.max.apply(null, _boRows.map(function (rr) { return rr.odds; }));
-      isTarget = r.odds === coldMax;
-    }
-    var stepperCls = isTarget ? ' active' : '';
-    var amountCls = r.projected >= _boBaseAmount ? ' bo-amount-hot' : '';
+  var rowsHtml = _boRows
+    .map(function (r, idx) {
+      // 判断基准行（热门/冷门标记）
+      var isTarget = false;
+      if (_boStrategy === 'hot') {
+        var hotMin = Math.min.apply(
+          null,
+          _boRows.map(function (rr) {
+            return rr.odds;
+          }),
+        );
+        isTarget = r.odds === hotMin;
+      } else if (_boStrategy === 'cold') {
+        var coldMax = Math.max.apply(
+          null,
+          _boRows.map(function (rr) {
+            return rr.odds;
+          }),
+        );
+        isTarget = r.odds === coldMax;
+      }
+      var stepperCls = isTarget ? ' active' : '';
+      var amountCls = r.projected >= _boBaseAmount ? ' bo-amount-hot' : '';
 
-    return '<div class="bo-row' + (idx === _boRows.length - 1 ? '' : '') + '">' +
-      '<div class="bo-cell bo-cell-pass"><span class="bo-pass-tag">' + (_passTypes.length > 0 && _passTypes[0] > 1 ? _passTypes[0] + '关' : '单关') + '</span></div>' +
-      '<div class="bo-cell bo-cell-desc"><span class="bo-desc-line1">' + (r.matchNum || '') + ' ' + r.matchLabel + '</span><span class="bo-desc-line2">' + r.desc + '(' + r.odds.toFixed(2) + ')</span></div>' +
-      '<div class="bo-cell bo-cell-bet"><div class="bo-stepper' + stepperCls + '">' +
-        '<button class="bo-step-btn" onclick="boStep(' + idx + ',-10)">-</button>' +
-        '<input class="bo-step-input" id="bo-inp-' + idx + '" value="' + r.betCount + '" onchange="boInput(' + idx + ',this.value)">' +
-        '<button class="bo-step-btn" onclick="boStep(' + idx + ',10)">+</button>' +
-      '</div></div>' +
-      '<div class="bo-cell bo-cell-amount' + amountCls + '">' + r.projected.toFixed(2) + '</div>' +
-      '</div>';
-  }).join('');
+      return (
+        '<div class="bo-row' +
+        (idx === _boRows.length - 1 ? '' : '') +
+        '">' +
+        '<div class="bo-cell bo-cell-pass"><span class="bo-pass-tag">' +
+        (_passTypes.length > 0 && _passTypes[0] > 1 ? _passTypes[0] + '关' : '单关') +
+        '</span></div>' +
+        '<div class="bo-cell bo-cell-desc"><span class="bo-desc-line1">' +
+        (r.matchNum || '') +
+        ' ' +
+        r.matchLabel +
+        '</span><span class="bo-desc-line2">' +
+        r.desc +
+        '(' +
+        r.odds.toFixed(2) +
+        ')</span></div>' +
+        '<div class="bo-cell bo-cell-bet"><div class="bo-stepper' +
+        stepperCls +
+        '">' +
+        '<button class="bo-step-btn" onclick="boStep(' +
+        idx +
+        ',-10)">-</button>' +
+        '<input class="bo-step-input" id="bo-inp-' +
+        idx +
+        '" value="' +
+        r.betCount +
+        '" onchange="boInput(' +
+        idx +
+        ',this.value)">' +
+        '<button class="bo-step-btn" onclick="boStep(' +
+        idx +
+        ',10)">+</button>' +
+        '</div></div>' +
+        '<div class="bo-cell bo-cell-amount' +
+        amountCls +
+        '">' +
+        r.projected.toFixed(2) +
+        '</div>' +
+        '</div>'
+      );
+    })
+    .join('');
 
   overlay.innerHTML =
     '<div class="ai-modal bo-modal-wrap" onclick="event.stopPropagation()">' +
     '<div class="bo-panel">' +
     '<div class="bo-header">' +
-      '<span class="bo-title">奖金优化</span>' +
-      '<button class="bo-close" onclick="closeBonusOpt()">&times;</button>' +
+    '<span class="bo-title">奖金优化</span>' +
+    '<button class="bo-close" onclick="closeBonusOpt()">&times;</button>' +
     '</div>' +
     '<div class="bo-tab-wrap">' +
-      '<div class="bo-tab' + tabBal + '" onclick="boSwitchTab(\'balanced\')">奖金平均</div>' +
-      '<div class="bo-tab' + tabHot + '" onclick="boSwitchTab(\'hot\')">博彩保本</div>' +
-      '<div class="bo-tab' + tabCold + '" onclick="boSwitchTab(\'cold\')">奖金最高</div>' +
+    '<div class="bo-tab' +
+    tabBal +
+    '" onclick="boSwitchTab(\'balanced\')">奖金平均</div>' +
+    '<div class="bo-tab' +
+    tabHot +
+    '" onclick="boSwitchTab(\'hot\')">博彩保本</div>' +
+    '<div class="bo-tab' +
+    tabCold +
+    '" onclick="boSwitchTab(\'cold\')">奖金最高</div>' +
     '</div>' +
-    '<div class="bo-desc-row"><span>总预算：<b>' + total.toFixed(2) + '</b> 元</span><span>' + persecond + '</span></div>' +
+    '<div class="bo-desc-row"><span>总预算：<b>' +
+    total.toFixed(2) +
+    '</b> 元</span><span>' +
+    persecond +
+    '</span></div>' +
     '<div class="bo-thead"><div class="bo-th col-pass">过关</div><div class="bo-th col-desc">单注组合</div><div class="bo-th col-bet">注数分布</div><div class="bo-th col-amount">预测奖金</div></div>' +
-    '<div class="bo-tbody">' + rowsHtml + '</div>' +
+    '<div class="bo-tbody">' +
+    rowsHtml +
+    '</div>' +
     '<div class="bo-footer"><button class="bet-btn-confirm" onclick="closeBonusOpt()">确认</button></div>' +
     '</div></div>';
 }
@@ -979,34 +1227,76 @@ window.boSwitchTab = function (tab) {
 
   // 1) 切换标签 active
   var tabs = overlay.querySelectorAll('.bo-tab');
-  tabs.forEach(function(t) { t.classList.remove('active'); });
+  tabs.forEach(function (t) {
+    t.classList.remove('active');
+  });
   var tabIdx = tab === 'balanced' ? 0 : tab === 'hot' ? 1 : 2;
   if (tabs[tabIdx]) tabs[tabIdx].classList.add('active');
 
   // 2) 重建表格行
   var total = _boBaseAmount;
-  var rowsHtml = _boRows.map(function (r, idx) {
-    var isTarget = false;
-    if (_boStrategy === 'hot') {
-      var hotMin = Math.min.apply(null, _boRows.map(function (rr) { return rr.odds; }));
-      isTarget = r.odds === hotMin;
-    } else if (_boStrategy === 'cold') {
-      var coldMax = Math.max.apply(null, _boRows.map(function (rr) { return rr.odds; }));
-      isTarget = r.odds === coldMax;
-    }
-    var stepperCls = isTarget ? ' active' : '';
-    var amountCls = r.projected >= _boBaseAmount ? ' bo-amount-hot' : '';
-    return '<div class="bo-row">' +
-      '<div class="bo-cell bo-cell-pass"><span class="bo-pass-tag">' + (_passTypes.length > 0 && _passTypes[0] > 1 ? _passTypes[0] + '关' : '单关') + '</span></div>' +
-      '<div class="bo-cell bo-cell-desc"><span class="bo-desc-line1">' + (r.matchNum || '') + ' ' + r.matchLabel + '</span><span class="bo-desc-line2">' + r.desc + '(' + r.odds.toFixed(2) + ')</span></div>' +
-      '<div class="bo-cell bo-cell-bet"><div class="bo-stepper' + stepperCls + '">' +
-        '<button class="bo-step-btn" onclick="boStep(' + idx + ',-10)">-</button>' +
-        '<input class="bo-step-input" id="bo-inp-' + idx + '" value="' + r.betCount + '" onchange="boInput(' + idx + ',this.value)">' +
-        '<button class="bo-step-btn" onclick="boStep(' + idx + ',10)">+</button>' +
-      '</div></div>' +
-      '<div class="bo-cell bo-cell-amount' + amountCls + '">' + r.projected.toFixed(2) + '</div>' +
-      '</div>';
-  }).join('');
+  var rowsHtml = _boRows
+    .map(function (r, idx) {
+      var isTarget = false;
+      if (_boStrategy === 'hot') {
+        var hotMin = Math.min.apply(
+          null,
+          _boRows.map(function (rr) {
+            return rr.odds;
+          }),
+        );
+        isTarget = r.odds === hotMin;
+      } else if (_boStrategy === 'cold') {
+        var coldMax = Math.max.apply(
+          null,
+          _boRows.map(function (rr) {
+            return rr.odds;
+          }),
+        );
+        isTarget = r.odds === coldMax;
+      }
+      var stepperCls = isTarget ? ' active' : '';
+      var amountCls = r.projected >= _boBaseAmount ? ' bo-amount-hot' : '';
+      return (
+        '<div class="bo-row">' +
+        '<div class="bo-cell bo-cell-pass"><span class="bo-pass-tag">' +
+        (_passTypes.length > 0 && _passTypes[0] > 1 ? _passTypes[0] + '关' : '单关') +
+        '</span></div>' +
+        '<div class="bo-cell bo-cell-desc"><span class="bo-desc-line1">' +
+        (r.matchNum || '') +
+        ' ' +
+        r.matchLabel +
+        '</span><span class="bo-desc-line2">' +
+        r.desc +
+        '(' +
+        r.odds.toFixed(2) +
+        ')</span></div>' +
+        '<div class="bo-cell bo-cell-bet"><div class="bo-stepper' +
+        stepperCls +
+        '">' +
+        '<button class="bo-step-btn" onclick="boStep(' +
+        idx +
+        ',-10)">-</button>' +
+        '<input class="bo-step-input" id="bo-inp-' +
+        idx +
+        '" value="' +
+        r.betCount +
+        '" onchange="boInput(' +
+        idx +
+        ',this.value)">' +
+        '<button class="bo-step-btn" onclick="boStep(' +
+        idx +
+        ',10)">+</button>' +
+        '</div></div>' +
+        '<div class="bo-cell bo-cell-amount' +
+        amountCls +
+        '">' +
+        r.projected.toFixed(2) +
+        '</div>' +
+        '</div>'
+      );
+    })
+    .join('');
 
   var tbody = overlay.querySelector('.bo-tbody');
   if (tbody) tbody.innerHTML = rowsHtml;
@@ -1042,7 +1332,7 @@ function updateBoAmounts() {
 
 function closeBonusOpt() {
   // ★ 将奖金优化分配回写到 _selections
-  _boRows.forEach(function(r) {
+  _boRows.forEach(function (r) {
     var s = _selections[r.id];
     if (s) {
       s.allocation = (r.betCount || 0) * 2;
@@ -1051,10 +1341,12 @@ function closeBonusOpt() {
   updateSessionStore();
 
   var o = document.getElementById('bonusOptOverlay');
-  if (o) { o.classList.remove('active'); o.innerHTML = ''; }
+  if (o) {
+    o.classList.remove('active');
+    o.innerHTML = '';
+  }
   document.body.style.overflow = '';
   // ★ 重新渲染，让资金分配列立即看到变化
   render();
 }
 window.closeBonusOpt = closeBonusOpt;
-

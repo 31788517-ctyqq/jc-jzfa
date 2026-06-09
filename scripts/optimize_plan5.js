@@ -1,6 +1,6 @@
 /**
  * 方案五参数优化 — 网格搜索最大化 (投入*0.07 + 盈利)
- * 
+ *
  * 可调参数:
  *   minExpertA      场次A专家推荐数下限 (平、让平)
  *   minExpertB      场次B专家推荐数下限 (总进球-2、3球)
@@ -15,7 +15,7 @@ const path = require('path');
 // ── 工具函数（与 plan-generator.js 完全一致）──
 
 function normalizeRecs(recs) {
-  return (recs || []).map(x => {
+  return (recs || []).map((x) => {
     const raw = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
     return { type: x.t || x.type, num: x.n || x.num, result: raw === 0 || raw === 1 ? raw : null };
   });
@@ -42,13 +42,14 @@ function calcEffectiveOdds(odds, direction) {
 function judgeByScore(direction, scoreStr, handicap) {
   if (!scoreStr || !direction) return null;
   const parts = String(scoreStr).replace(/[-:]/g, ':').split(':');
-  const hg = parseInt(parts[0]), ag = parseInt(parts[1]);
+  const hg = parseInt(parts[0]),
+    ag = parseInt(parts[1]);
   if (isNaN(hg) || isNaN(ag)) return null;
 
   // 平、让平 = SPF平 OR RQSPF让平
   if (direction === '平、让平') {
     const rqHcp = handicap != null ? parseFloat(handicap) || 0 : 0;
-    return (hg === ag) || (hg + rqHcp === ag);
+    return hg === ag || hg + rqHcp === ag;
   }
   // 总进球-2、3球
   if (direction === '总进球-2、3球') {
@@ -62,7 +63,7 @@ function getOddsHistory(dateStr) {
   const f = path.join(__dirname, '..', 'server', 'odds_history', dateStr + '.json');
   if (fs.existsSync(f)) {
     const raw = JSON.parse(fs.readFileSync(f, 'utf8'));
-    return raw.odds || raw;  // odds_history v2 wraps under .odds
+    return raw.odds || raw; // odds_history v2 wraps under .odds
   }
   return null;
 }
@@ -84,8 +85,11 @@ function evaluatePlan5(params) {
 
   const minDate = '2026-03-19';
   const maxDate = '2026-06-06';
-  
-  let totalInvested = 0, totalIncome = 0, totalPlans = 0, totalWon = 0;
+
+  let totalInvested = 0,
+    totalIncome = 0,
+    totalPlans = 0,
+    totalWon = 0;
   const details = [];
 
   const start = new Date(minDate);
@@ -95,7 +99,7 @@ function evaluatePlan5(params) {
 
     // 当天比赛
     const mList = [];
-    Object.keys(mMap).forEach(k => {
+    Object.keys(mMap).forEach((k) => {
       const m = mMap[k];
       if (m && (m.date || '').slice(0, 10) === ds) mList.push(m);
     });
@@ -165,9 +169,12 @@ function evaluatePlan5(params) {
     if (!bestPair) continue;
 
     // 判定命中
-    const am = bestPair.a, bm = bestPair.b;
-    const aHcp = (matchDataMap[am.matchId].odds && matchDataMap[am.matchId].odds.rqspf)
-      ? matchDataMap[am.matchId].odds.rqspf.handicap : null;
+    const am = bestPair.a,
+      bm = bestPair.b;
+    const aHcp =
+      matchDataMap[am.matchId].odds && matchDataMap[am.matchId].odds.rqspf
+        ? matchDataMap[am.matchId].odds.rqspf.handicap
+        : null;
     const aWon = am.matchStatus >= 1 && am.score ? judgeByScore('平、让平', am.score, aHcp) : null;
     const bWon = bm.matchStatus >= 1 && bm.score ? judgeByScore('总进球-2、3球', bm.score, null) : null;
 
@@ -186,7 +193,9 @@ function evaluatePlan5(params) {
       a: am.matchNum + ' ' + am.homeName + ' vs ' + am.visitName + ' (' + bestPair.aOdds.toFixed(1) + ')',
       b: bm.matchNum + ' ' + bm.homeName + ' vs ' + bm.visitName + ' (' + bestPair.bOdds.toFixed(1) + ')',
       productOdds: bestPair.productOdds.toFixed(1),
-      aWon, bWon, income,
+      aWon,
+      bWon,
+      income,
     });
   }
 
@@ -194,17 +203,23 @@ function evaluatePlan5(params) {
   const hitRate = totalPlans > 0 ? Math.round((totalWon / totalPlans) * 100) : 0;
 
   return {
-    params, totalInvested, totalIncome, totalPlans, totalWon, hitRate, objective,
+    params,
+    totalInvested,
+    totalIncome,
+    totalPlans,
+    totalWon,
+    hitRate,
+    objective,
   };
 }
 
 // ── 网格搜索 ──
 
 const paramGrid = {
-  minExpertA: [0, 1, 2, 3, 5],        // 平、让平 专家推荐数下限
-  minExpertB: [0, 1, 2, 3],            // 总进球-2、3球 专家推荐数下限
-  minOddsA: [1.0, 1.2, 1.3, 1.5],     // 场次A 赔率下限
-  minOddsB: [1.0, 1.2, 1.3, 1.5],     // 场次B 赔率下限
+  minExpertA: [0, 1, 2, 3, 5], // 平、让平 专家推荐数下限
+  minExpertB: [0, 1, 2, 3], // 总进球-2、3球 专家推荐数下限
+  minOddsA: [1.0, 1.2, 1.3, 1.5], // 场次A 赔率下限
+  minOddsB: [1.0, 1.2, 1.3, 1.5], // 场次B 赔率下限
   minProductOdds: [1.5, 1.8, 2.0, 2.2, 2.5], // 合赔下限
 };
 
@@ -213,9 +228,12 @@ const results = [];
 // 生成所有参数组合
 function* cartesian(grid) {
   const keys = Object.keys(grid);
-  const values = keys.map(k => grid[k]);
+  const values = keys.map((k) => grid[k]);
   function* recurse(idx, current) {
-    if (idx >= keys.length) { yield { ...current }; return; }
+    if (idx >= keys.length) {
+      yield { ...current };
+      return;
+    }
     for (const v of values[idx]) {
       current[keys[idx]] = v;
       yield* recurse(idx + 1, current);
@@ -255,22 +273,27 @@ for (let i = 0; i < Math.min(20, results.length); i++) {
   const p = r.params;
   console.log(
     `  ${String(p.minExpertA).padStart(4)}  ${String(p.minExpertB).padStart(4)}` +
-    `  ${p.minOddsA.toFixed(1).padStart(5)}  ${p.minOddsB.toFixed(1).padStart(5)}` +
-    `  ${p.minProductOdds.toFixed(1).padStart(4)}  ${String(r.totalPlans).padStart(5)}` +
-    `  ${String(r.hitRate + '%').padStart(5)}  ${String(r.totalInvested).padStart(6)}` +
-    `  ${String(r.totalIncome).padStart(7)}  ${String(r.objective).padStart(6)}`
+      `  ${p.minOddsA.toFixed(1).padStart(5)}  ${p.minOddsB.toFixed(1).padStart(5)}` +
+      `  ${p.minProductOdds.toFixed(1).padStart(4)}  ${String(r.totalPlans).padStart(5)}` +
+      `  ${String(r.hitRate + '%').padStart(5)}  ${String(r.totalInvested).padStart(6)}` +
+      `  ${String(r.totalIncome).padStart(7)}  ${String(r.objective).padStart(6)}`,
   );
 }
 
 // 当前参数对比
 console.log('\n── 当前参数（基线）──');
-const current = results.find(r =>
-  r.params.minExpertA === 0 && r.params.minExpertB === 0 &&
-  r.params.minOddsA === 1.2 && r.params.minOddsB === 1.2 &&
-  r.params.minProductOdds === 2.0
+const current = results.find(
+  (r) =>
+    r.params.minExpertA === 0 &&
+    r.params.minExpertB === 0 &&
+    r.params.minOddsA === 1.2 &&
+    r.params.minOddsB === 1.2 &&
+    r.params.minProductOdds === 2.0,
 );
 if (current) {
-  console.log(`  方案数: ${current.totalPlans} | 命中率: ${current.hitRate}% | 盈利: ${current.totalIncome} | 目标: ${current.objective}`);
+  console.log(
+    `  方案数: ${current.totalPlans} | 命中率: ${current.hitRate}% | 盈利: ${current.totalIncome} | 目标: ${current.objective}`,
+  );
 } else {
   console.log('  (未在网格中找到精确匹配)');
 }
@@ -279,5 +302,9 @@ if (current) {
 const best = results[0];
 console.log('\n── ★ 最佳参数 ★ ──');
 console.log(`  minExpertA=${best.params.minExpertA}  minExpertB=${best.params.minExpertB}`);
-console.log(`  minOddsA=${best.params.minOddsA}  minOddsB=${best.params.minOddsB}  minProductOdds=${best.params.minProductOdds}`);
-console.log(`  方案数: ${best.totalPlans} | 命中率: ${best.hitRate}% | 盈利: ${best.totalIncome} | 目标: ${best.objective}`);
+console.log(
+  `  minOddsA=${best.params.minOddsA}  minOddsB=${best.params.minOddsB}  minProductOdds=${best.params.minProductOdds}`,
+);
+console.log(
+  `  方案数: ${best.totalPlans} | 命中率: ${best.hitRate}% | 盈利: ${best.totalIncome} | 目标: ${best.objective}`,
+);

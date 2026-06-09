@@ -1,0 +1,431 @@
+{
+  "match_id": "2034522",
+  "featureAnalysis": {
+    "labels": [
+      "近0场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "0胜/5平/5负",
+      "4胜/3平/3负",
+      "0.5个",
+      "1.3个"
+    ],
+    "away": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "5胜/2平/3负",
+      "4胜/3平/3负",
+      "1.4个",
+      "0.7个"
+    ]
+  },
+  "h2h": {
+    "title": "近0场比萨0胜 (0%) | 0平 (0%) | 0负 (0%)",
+    "rows": []
+  },
+  "standings": [
+    {
+      "team": "比萨",
+      "title": "Regular Season 第20名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "2/12/24",
+          "winRate": "5%",
+          "goals": "26/71",
+          "gd": "-45",
+          "points": "18",
+          "rank": "20"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "2/4/13",
+          "winRate": "11%",
+          "goals": "9/26",
+          "gd": "-17",
+          "points": "10",
+          "rank": "19"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "0/8/11",
+          "winRate": "0%",
+          "goals": "17/45",
+          "gd": "-28",
+          "points": "8",
+          "rank": "20"
+        }
+      ]
+    },
+    {
+      "team": "拉齐奥",
+      "title": "Regular Season 第9名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "14/12/12",
+          "winRate": "37%",
+          "goals": "41/40",
+          "gd": "1",
+          "points": "54",
+          "rank": "9"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "8/6/5",
+          "winRate": "42%",
+          "goals": "27/25",
+          "gd": "2",
+          "points": "30",
+          "rank": "8"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "6/6/7",
+          "winRate": "32%",
+          "goals": "14/15",
+          "gd": "-1",
+          "points": "24",
+          "rank": "10"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "比萨",
+      "summary": "比萨近10场0胜 (0%) | 5平 (50%) | 5负 (50%) 进5球，失13球，净进-8球",
+      "matches": [
+        {
+          "date": "2025-10-25",
+          "league": "意甲",
+          "vs": "AC米兰 2 : 2 （半 1:0） 比萨",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-18",
+          "league": "意甲",
+          "vs": "比萨 0 : 0 （半 0:0） 维罗纳",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-05",
+          "league": "意甲",
+          "vs": "博洛尼亚 4 : 0 （半 3:0） 比萨",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-28",
+          "league": "意甲",
+          "vs": "比萨 0 : 0 （半 0:0） 佛罗伦萨",
+          "result": "平"
+        },
+        {
+          "date": "2025-09-26",
+          "league": "意大利杯",
+          "vs": "都灵 1 : 0 （半 1:0） 比萨",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-23",
+          "league": "意甲",
+          "vs": "那不勒斯 3 : 2 （半 1:0） 比萨",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-14",
+          "league": "意甲",
+          "vs": "比萨 0 : 1 （半 0:1） 乌迪内斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-08-31",
+          "league": "意甲",
+          "vs": "比萨 0 : 1 （半 0:0） 罗马",
+          "result": "负"
+        },
+        {
+          "date": "2025-08-25",
+          "league": "意甲",
+          "vs": "亚特兰大 1 : 1 （半 0:1） 比萨",
+          "result": "平"
+        },
+        {
+          "date": "2025-08-18",
+          "league": "意大利杯",
+          "vs": "切塞纳 0 : 0 （半 0:0） 比萨",
+          "result": "平"
+        }
+      ]
+    },
+    {
+      "team": "拉齐奥",
+      "summary": "拉齐奥近10场5胜 (50%) | 2平 (20%) | 3负 (30%) 进14球，失7球，净进7球",
+      "matches": [
+        {
+          "date": "2025-10-27",
+          "league": "意甲",
+          "vs": "拉齐奥 1 : 0 （半 1:0） 尤文图斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-20",
+          "league": "意甲",
+          "vs": "亚特兰大 0 : 0 （半 0:0） 拉齐奥",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-04",
+          "league": "意甲",
+          "vs": "拉齐奥 3 : 3 （半 2:1） 都灵",
+          "result": "平"
+        },
+        {
+          "date": "2025-09-30",
+          "league": "意甲",
+          "vs": "热那亚 0 : 3 （半 0:2） 拉齐奥",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-21",
+          "league": "意甲",
+          "vs": "拉齐奥 0 : 1 （半 0:1） 罗马",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-15",
+          "league": "意甲",
+          "vs": "萨索洛 1 : 0 （半 0:0） 拉齐奥",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-01",
+          "league": "意甲",
+          "vs": "拉齐奥 4 : 0 （半 3:0） 维罗纳",
+          "result": "胜"
+        },
+        {
+          "date": "2025-08-25",
+          "league": "意甲",
+          "vs": "科莫 2 : 0 （半 0:0） 拉齐奥",
+          "result": "负"
+        },
+        {
+          "date": "2025-08-17",
+          "league": "俱乐部赛",
+          "vs": "拉齐奥 2 : 0 （半 ） 阿特罗米",
+          "result": "胜"
+        },
+        {
+          "date": "2025-08-09",
+          "league": "俱乐部赛",
+          "vs": "伯恩利 0 : 1 （半 ） 拉齐奥",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "比萨",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "拉齐奥",
+      "content": "暂无数据",
+      "matches": []
+    }
+  ],
+  "scorers": [
+    {
+      "team": "比萨",
+      "players": [
+        {
+          "player": "32-S. Moreo(前锋)",
+          "apps": "37 (29/8)",
+          "goals": "7 (27%)",
+          "assists": "1 (7%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "18-M. N'Zola(前锋)",
+          "apps": "29 (15/14)",
+          "goals": "4 (15%)",
+          "assists": "1 (7%)",
+          "avg": "0.1/0"
+        },
+        {
+          "player": "7-M. Léris(中场)",
+          "apps": "34 (21/13)",
+          "goals": "2 (8%)",
+          "assists": "3 (21%)",
+          "avg": "0.1/0.1"
+        }
+      ]
+    },
+    {
+      "team": "拉齐奥",
+      "players": [
+        {
+          "player": "9-Pedro(前锋)",
+          "apps": "29 (9/20)",
+          "goals": "5 (13%)",
+          "assists": "2 (7%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "18-G. Isaksen(前锋)",
+          "apps": "30 (18/12)",
+          "goals": "5 (13%)",
+          "assists": "1 (4%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "14-T. Noslin(前锋)",
+          "apps": "29 (9/20)",
+          "goals": "4 (10%)",
+          "assists": "2 (7%)",
+          "avg": "0.1/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "比萨",
+      "players": [
+        {
+          "player": "39-阿尔维奥尔(后卫)",
+          "totalApps": "8",
+          "starts": "5",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "P. Beruatto(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "23-斯滕斯(中场)",
+          "totalApps": "4",
+          "starts": "0",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "19-Tomás Esteves(后卫)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "45-A.林德(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "47-Mateus Lusuardi(后卫)",
+          "totalApps": "3",
+          "starts": "3",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "拉齐奥",
+      "players": [
+        {
+          "player": "23-希萨伊(后卫)",
+          "totalApps": "5",
+          "starts": "1",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "J. Akpa Akpro(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "4-Patric(后卫)",
+          "totalApps": "14",
+          "starts": "6",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "2-吉奥特(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "7-F.德勒-巴希鲁(中场)",
+          "totalApps": "24",
+          "starts": "11",
+          "subs": "13",
+          "status": "伤"
+        },
+        {
+          "player": "D. Kamenović(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "11-V. Castellanos(前锋)",
+          "totalApps": "11",
+          "starts": "8",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "17-Nuno Tavares(后卫)",
+          "totalApps": "23",
+          "starts": "17",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "6-N·罗维拉(中场)",
+          "totalApps": "11",
+          "starts": "6",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "22-M. Cancellieri(前锋)",
+          "totalApps": "30",
+          "starts": "21",
+          "subs": "9",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

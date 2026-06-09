@@ -1,0 +1,524 @@
+{
+  "match_id": "2033064",
+  "featureAnalysis": {
+    "labels": [
+      "近7场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "2胜/2平/3负",
+      "2胜/1平/0负",
+      "5胜/2平/3负",
+      "7胜/0平/3负",
+      "1.9个",
+      "1.5个"
+    ],
+    "away": [
+      "3胜/2平/2负",
+      "0胜/1平/2负",
+      "6胜/1平/3负",
+      "5胜/2平/3负",
+      "1.8个",
+      "1.2个"
+    ]
+  },
+  "h2h": {
+    "title": "近7场纽约城2胜 (29%) | 2平 (29%) | 3负 (43%)",
+    "rows": [
+      {
+        "date": "2025-06-01",
+        "league": "美职",
+        "teams": "纳什维尔 2:2 （半 2:0） 纽约城",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2024-10-07",
+        "league": "美职",
+        "teams": "纽约城 3:1 （半 3:0） 纳什维尔",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2024-06-23",
+        "league": "美职",
+        "teams": "纳什维尔 1:0 （半 1:0） 纽约城",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2023-04-16",
+        "league": "美职",
+        "teams": "纽约城 2:1 （半 2:0） 纳什维尔",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2023-02-26",
+        "league": "美职",
+        "teams": "纳什维尔 2:0 （半 1:0） 纽约城",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2021-10-04",
+        "league": "美职",
+        "teams": "纽约城 0:0 （半 0:0） 纳什维尔",
+        "totalGoals": ""
+      },
+      {
+        "date": "2021-09-04",
+        "league": "美职",
+        "teams": "纳什维尔 3:1 （半 2:0） 纽约城",
+        "totalGoals": "4"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "纽约城",
+      "title": "Regular Season 第5名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "17/5/12",
+          "winRate": "50%",
+          "goals": "50/44",
+          "gd": "6",
+          "points": "56",
+          "rank": "5"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "11/0/6",
+          "winRate": "65%",
+          "goals": "28/21",
+          "gd": "7",
+          "points": "33",
+          "rank": "5"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "6/5/6",
+          "winRate": "35%",
+          "goals": "22/23",
+          "gd": "-1",
+          "points": "23",
+          "rank": "6"
+        }
+      ]
+    },
+    {
+      "team": "纳什维尔",
+      "title": "Regular Season 第6名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "16/6/12",
+          "winRate": "47%",
+          "goals": "58/45",
+          "gd": "13",
+          "points": "54",
+          "rank": "6"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "11/3/3",
+          "winRate": "65%",
+          "goals": "36/17",
+          "gd": "19",
+          "points": "36",
+          "rank": "3"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "5/3/9",
+          "winRate": "29%",
+          "goals": "22/28",
+          "gd": "-6",
+          "points": "18",
+          "rank": "10"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "纽约城",
+      "summary": "纽约城近10场5胜 (50%) | 2平 (20%) | 3负 (30%) 进19球，失15球，净进4球",
+      "matches": [
+        {
+          "date": "2025-07-26",
+          "league": "美职",
+          "vs": "达拉斯 3 : 4 （半 3:2） 纽约城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-20",
+          "league": "美职",
+          "vs": "堪萨斯城 1 : 1 （半 0:1） 纽约城",
+          "result": "平"
+        },
+        {
+          "date": "2025-07-17",
+          "league": "美职",
+          "vs": "奥兰多 1 : 2 （半 1:0） 纽约城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-13",
+          "league": "美职",
+          "vs": "夏洛特FC 2 : 0 （半 1:0） 纽约城",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-04",
+          "league": "美职",
+          "vs": "纽约城 3 : 1 （半 1:0） 多伦多",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-29",
+          "league": "美职",
+          "vs": "蒙特利尔 1 : 0 （半 1:0） 纽约城",
+          "result": "负"
+        },
+        {
+          "date": "2025-06-13",
+          "league": "美职",
+          "vs": "纽约城 4 : 0 （半 1:0） 亚特联",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-01",
+          "league": "美职",
+          "vs": "纳什维尔 2 : 2 （半 2:0） 纽约城",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-29",
+          "league": "美职",
+          "vs": "纽约城 0 : 3 （半 0:1） 休斯敦",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-26",
+          "league": "美职",
+          "vs": "纽约城 3 : 1 （半 0:1） 芝加哥",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "纳什维尔",
+      "summary": "纳什维尔近10场6胜 (60%) | 1平 (10%) | 3负 (30%) 进18球，失12球，净进6球",
+      "matches": [
+        {
+          "date": "2025-08-10",
+          "league": "美职",
+          "vs": "圣路易城 3 : 1 （半 2:0） 纳什维尔",
+          "result": "负"
+        },
+        {
+          "date": "2025-08-03",
+          "league": "俱乐部赛",
+          "vs": "纳什维尔 2 : 2 （半 ） 维拉",
+          "result": "平"
+        },
+        {
+          "date": "2025-07-26",
+          "league": "美职",
+          "vs": "圣迭戈FC 1 : 0 （半 0:0） 纳什维尔",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-20",
+          "league": "美职",
+          "vs": "纳什维尔 1 : 0 （半 1:0） 多伦多",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-17",
+          "league": "美职",
+          "vs": "纳什维尔 3 : 0 （半 2:0） 哥伦布",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-13",
+          "league": "美职",
+          "vs": "迈国际 2 : 1 （半 1:0） 纳什维尔",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-10",
+          "league": "公开赛杯",
+          "vs": "纳什维尔 5 : 2 （半 1:2） 华盛顿",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-06",
+          "league": "美职",
+          "vs": "纳什维尔 1 : 0 （半 0:0） 费城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-29",
+          "league": "美职",
+          "vs": "华盛顿 0 : 1 （半 0:1） 纳什维尔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-26",
+          "league": "美职",
+          "vs": "新英格兰 2 : 3 （半 1:1） 纳什维尔",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "纽约城",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-23",
+          "美职",
+          "哥伦布\nVS\n纽约城",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "纽约城\nVS\n芝加哥",
+          "Regular Season"
+        ],
+        [
+          "2026-08-01",
+          "美职",
+          "纽约城\nVS\n多伦多",
+          "Regular Season"
+        ],
+        [
+          "2026-08-17",
+          "美职",
+          "纽约城\nVS\n费城",
+          "Regular Season"
+        ]
+      ]
+    },
+    {
+      "team": "纳什维尔",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-18",
+          "美职",
+          "纳什维尔\nVS\n亚特联",
+          "Regular Season"
+        ],
+        [
+          "2026-07-23",
+          "美职",
+          "纳什维尔\nVS\n蒙特利尔",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "奥兰多\nVS\n纳什维尔",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "华盛顿\nVS\n纳什维尔",
+          "Regular Season"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "纽约城",
+      "players": [
+        {
+          "player": "16-A. Martínez(前锋)",
+          "apps": "33 (32/1)",
+          "goals": "19 (35%)",
+          "assists": "1 (3%)",
+          "avg": "0.6/0"
+        },
+        {
+          "player": "17-H. Wolf(前锋)",
+          "apps": "38 (34/4)",
+          "goals": "11 (20%)",
+          "assists": "6 (15%)",
+          "avg": "0.3/0.2"
+        },
+        {
+          "player": "7-N. Fernández(中场)",
+          "apps": "16 (15/1)",
+          "goals": "5 (9%)",
+          "assists": "2 (5%)",
+          "avg": "0.3/0.1"
+        }
+      ]
+    },
+    {
+      "team": "纳什维尔",
+      "players": [
+        {
+          "player": "9-萨里奇(前锋)伤",
+          "apps": "37 (36/1)",
+          "goals": "25 (42%)",
+          "assists": "3 (8%)",
+          "avg": "0.7/0.1"
+        },
+        {
+          "player": "10-H. Mukhtar(中场)",
+          "apps": "37 (37/0)",
+          "goals": "17 (28%)",
+          "assists": "8 (20%)",
+          "avg": "0.5/0.2"
+        },
+        {
+          "player": "14-沙费尔堡(前锋)",
+          "apps": "26 (13/13)",
+          "goals": "4 (7%)",
+          "assists": "2 (5%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "纽约城",
+      "players": [
+        {
+          "player": "10-M. Moralez(中场)",
+          "totalApps": "39",
+          "starts": "39",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "13-蒂亚戈·马丁斯(后卫)",
+          "totalApps": "36",
+          "starts": "35",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "55-K. Parks(中场)",
+          "totalApps": "14",
+          "starts": "10",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "6-J.桑兹(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "24-T.格雷(后卫)",
+          "totalApps": "31",
+          "starts": "27",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "88-M. Jones(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "2-N. Cavallo(后卫)",
+          "totalApps": "15",
+          "starts": "2",
+          "subs": "13",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "纳什维尔",
+      "players": [
+        {
+          "player": "19-穆耶尔(中场)",
+          "totalApps": "35",
+          "starts": "30",
+          "subs": "5",
+          "status": "停"
+        },
+        {
+          "player": "11-T. Boyd(前锋)",
+          "totalApps": "6",
+          "starts": "1",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "25-齐默尔曼(后卫)",
+          "totalApps": "24",
+          "starts": "19",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "2-洛维茨(后卫)",
+          "totalApps": "33",
+          "starts": "31",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "9-萨里奇(前锋)",
+          "totalApps": "37",
+          "starts": "36",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "23-华盛顿特区(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "29-J. Gaines(后卫)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "21-M. Ekk(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "28-W. Meyer(后卫)",
+          "totalApps": "6",
+          "starts": "3",
+          "subs": "3",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

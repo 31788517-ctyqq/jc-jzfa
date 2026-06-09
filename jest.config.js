@@ -31,6 +31,8 @@ module.exports = {
   },
   // 需要 mock 的模块
   moduleNameMapper: {
+    // 兼容前端资源版本号导入（如 ./foo.js?v=202606080441）
+    '^(\\.{1,2}/.*)\\.js\\?v=.*$': '$1.js',
     // 数据库模块默认 mock
     '^../database$': '<rootDir>/server/tests/__mocks__/database.js',
     '^./database$': '<rootDir>/server/tests/__mocks__/database.js',

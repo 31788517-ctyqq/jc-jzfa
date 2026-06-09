@@ -42,7 +42,7 @@ if ($LASTEXITCODE -eq 0) { Pass } else { Fail "ESLint errors found. Run: npm run
 
 # ── Step 2: Prettier ──
 Write-Step "Prettier format check"
-$output = npx prettier --check "server/**/*.js" "preview/js/**/*.js" "preview/*.js" "scripts/*.js" --loglevel error 2>&1 | Out-String
+$output = npx prettier --check "server/**/*.js" "preview/js/**/*.js" "preview/*.js" "scripts/*.js" --log-level error 2>&1 | Out-String
 if ($LASTEXITCODE -eq 0) { Pass } else { Fail "Format mismatch. Run: npm run format" }
 
 # ── Step 3: P0 Core Tests ──

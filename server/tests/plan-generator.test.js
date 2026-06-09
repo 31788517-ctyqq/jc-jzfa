@@ -5,36 +5,46 @@
  *       computeColdScore、checkCorrelation、parseKickoffTime、checkMatchResult
  */
 const {
-  qualifyMatch, buildScorePercentMap, dutchCombinations,
-  computeScoreQuality, getMatchOdds, getColdDirection,
-  computeColdScore, checkCorrelation, parseKickoffTime, checkMatchResult
+  qualifyMatch,
+  buildScorePercentMap,
+  dutchCombinations,
+  computeScoreQuality,
+  getMatchOdds,
+  getColdDirection,
+  computeColdScore,
+  checkCorrelation,
+  parseKickoffTime,
+  checkMatchResult,
 } = require('../core/plan-generator');
 
 // ==================== 辅助函数 ====================
 
 function makeGS(overrides) {
-  return Object.assign({
-    fusionConsensus: 'strong',
-    stabilityOverall: '75',
-    bigBallRatio: '45',
-    totalGoalsExpect: '2.85',
-    attackAdvantageRaw: '0.15',
-    defenseAdvantageRaw: '0.08',
-    xgHome: '2.0',
-    xgAway: '0.8',
-    scores: [
-      { score: '2-0', percent: '15.2' },
-      { score: '1-0', percent: '12.8' },
-      { score: '2-1', percent: '10.5' },
-      { score: '3-0', percent: '8.3' },
-      { score: '3-1', percent: '6.7' },
-      { score: '1-1', percent: '5.2' },
-      { score: '2-2', percent: '3.1' },
-      { score: '0-0', percent: '2.0' },
-    ],
-    goalRange: { overRate: '42' },
-    leagueAvgGoals: '2.8',
-  }, overrides || {});
+  return Object.assign(
+    {
+      fusionConsensus: 'strong',
+      stabilityOverall: '75',
+      bigBallRatio: '45',
+      totalGoalsExpect: '2.85',
+      attackAdvantageRaw: '0.15',
+      defenseAdvantageRaw: '0.08',
+      xgHome: '2.0',
+      xgAway: '0.8',
+      scores: [
+        { score: '2-0', percent: '15.2' },
+        { score: '1-0', percent: '12.8' },
+        { score: '2-1', percent: '10.5' },
+        { score: '3-0', percent: '8.3' },
+        { score: '3-1', percent: '6.7' },
+        { score: '1-1', percent: '5.2' },
+        { score: '2-2', percent: '3.1' },
+        { score: '0-0', percent: '2.0' },
+      ],
+      goalRange: { overRate: '42' },
+      leagueAvgGoals: '2.8',
+    },
+    overrides || {},
+  );
 }
 
 // ==================== qualifyMatch ====================
@@ -51,36 +61,44 @@ describe('plan-generator — qualifyMatch 比分方案筛选', () => {
   });
 
   it('大球率不足 → 返回 false', () => {
-    const item = { gs: makeGS({
-      bigBallRatio: '20',
-      totalGoalsExpect: '1.2',
-      goalRange: { overRate: '15' },
-    })};
+    const item = {
+      gs: makeGS({
+        bigBallRatio: '20',
+        totalGoalsExpect: '1.2',
+        goalRange: { overRate: '15' },
+      }),
+    };
     expect(qualifyMatch(item)).toBe(false);
   });
 
   it('攻防符号相同 → 返回 false', () => {
-    const item = { gs: makeGS({
-      attackAdvantageRaw: '0.15',
-      defenseAdvantageRaw: '0.08',
-    })};
+    const item = {
+      gs: makeGS({
+        attackAdvantageRaw: '0.15',
+        defenseAdvantageRaw: '0.08',
+      }),
+    };
     // 两个都正数 → attRaw*defRaw > 0 → 通过
     expect(qualifyMatch(item)).not.toBe(false);
   });
 
   it('攻防符号相反(attRaw*defRaw<=0) → 返回 false', () => {
-    const item = { gs: makeGS({
-      attackAdvantageRaw: '0.15',
-      defenseAdvantageRaw: '-0.05',
-    })};
+    const item = {
+      gs: makeGS({
+        attackAdvantageRaw: '0.15',
+        defenseAdvantageRaw: '-0.05',
+      }),
+    };
     expect(qualifyMatch(item)).toBe(false);
   });
 
   it('攻防强度不足 → 返回 false', () => {
-    const item = { gs: makeGS({
-      attackAdvantageRaw: '0.02',
-      defenseAdvantageRaw: '0.004',
-    })};
+    const item = {
+      gs: makeGS({
+        attackAdvantageRaw: '0.02',
+        defenseAdvantageRaw: '0.004',
+      }),
+    };
     expect(qualifyMatch(item)).toBe(false);
   });
 
@@ -90,22 +108,26 @@ describe('plan-generator — qualifyMatch 比分方案筛选', () => {
   });
 
   it('weak共识 + stability<55 → 返回 false', () => {
-    const item = { gs: makeGS({
-      fusionConsensus: 'weak',
-      stabilityOverall: '50',
-      xgHome: '2.2',
-      xgAway: '0.6',
-    })};
+    const item = {
+      gs: makeGS({
+        fusionConsensus: 'weak',
+        stabilityOverall: '50',
+        xgHome: '2.2',
+        xgAway: '0.6',
+      }),
+    };
     expect(qualifyMatch(item)).toBe(false);
   });
 
   it('弱侧xg>1.5 → 返回 false', () => {
-    const item = { gs: makeGS({
-      xgHome: '2.0',
-      xgAway: '1.8',
-      attackAdvantageRaw: '0.3',
-      defenseAdvantageRaw: '0.03',
-    })};
+    const item = {
+      gs: makeGS({
+        xgHome: '2.0',
+        xgAway: '1.8',
+        attackAdvantageRaw: '0.3',
+        defenseAdvantageRaw: '0.03',
+      }),
+    };
     expect(qualifyMatch(item)).toBe(false);
   });
 
@@ -123,10 +145,12 @@ describe('plan-generator — qualifyMatch 比分方案筛选', () => {
   });
 
   it('客队优势 → strongIsHome=false', () => {
-    const item = { gs: makeGS({
-      attackAdvantageRaw: '-0.2',
-      defenseAdvantageRaw: '-0.08',
-    })};
+    const item = {
+      gs: makeGS({
+        attackAdvantageRaw: '-0.2',
+        defenseAdvantageRaw: '-0.08',
+      }),
+    };
     const result = qualifyMatch(item);
     if (result) expect(result.strongIsHome).toBe(false);
   });
@@ -136,7 +160,12 @@ describe('plan-generator — qualifyMatch 比分方案筛选', () => {
 
 describe('plan-generator — buildScorePercentMap', () => {
   it('正常scores → 构建映射', () => {
-    const gs = { scores: [{ score: '2-0', percent: '15.2' }, { score: '1-0', percent: '12.8' }] };
+    const gs = {
+      scores: [
+        { score: '2-0', percent: '15.2' },
+        { score: '1-0', percent: '12.8' },
+      ],
+    };
     const map = buildScorePercentMap(gs);
     expect(map).toEqual({ '2-0': 15.2, '1-0': 12.8 });
   });
@@ -155,13 +184,20 @@ describe('plan-generator — buildScorePercentMap', () => {
 
 describe('plan-generator — dutchCombinations 荷兰式组合', () => {
   const oddsMap = {
-    '2-0': 8.5, '1-0': 7.0, '2-1': 9.0, '3-0': 12.0,
-    '3-1': 15.0, '1-1': 7.5, '0-0': 11.0, '2-2': 13.0,
+    '2-0': 8.5,
+    '1-0': 7.0,
+    '2-1': 9.0,
+    '3-0': 12.0,
+    '3-1': 15.0,
+    '1-1': 7.5,
+    '0-0': 11.0,
+    '2-2': 13.0,
   };
   const qual = {
     scorePercentMap: { '2-0': 15.2, '1-0': 12.8, '2-1': 10.5, '3-0': 8.3, '3-1': 6.7, '1-1': 5.2 },
     goalUpper: 4,
-    xgHome: 2.0, xgAway: 0.8,
+    xgHome: 2.0,
+    xgAway: 0.8,
     totalStrength: 0.3,
   };
 
@@ -194,8 +230,12 @@ describe('plan-generator — dutchCombinations 荷兰式组合', () => {
     const results = dutchCombinations(oddsMap, 100, true, false, qual);
     if (results.length >= 2) {
       // 3组合应排在更前面
-      const first3Idx = results.findIndex(function (r) { return r.comboLength === 3; });
-      const first2Idx = results.findIndex(function (r) { return r.comboLength === 2; });
+      const first3Idx = results.findIndex(function (r) {
+        return r.comboLength === 3;
+      });
+      const first2Idx = results.findIndex(function (r) {
+        return r.comboLength === 2;
+      });
       if (first3Idx >= 0 && first2Idx >= 0) {
         expect(first3Idx).toBeLessThan(first2Idx);
       }
@@ -265,13 +305,13 @@ describe('plan-generator — getMatchOdds', () => {
 
   it('按 num_X 匹配(allplays)', () => {
     const m = { num: '001' };
-    const ap = { 'num_001': { spf: { home: 2.0 } } };
+    const ap = { num_001: { spf: { home: 2.0 } } };
     expect(getMatchOdds(m, null, ap)).toEqual({ spf: { home: 2.0 } });
   });
 
   it('按 matchId 匹配', () => {
     const m = { num: '', matchId: 'm123' };
-    const ap = { 'm123': { spf: { home: 1.5 } } };
+    const ap = { m123: { spf: { home: 1.5 } } };
     expect(getMatchOdds(m, null, ap)).toEqual({ spf: { home: 1.5 } });
   });
 
@@ -326,8 +366,9 @@ describe('plan-generator — computeColdScore 冷门评分', () => {
     const gsUnbalanced = { totalStrength: '0.5', fusionConsensus: 'strong' };
     const modds = { spf: { home: 2.0, draw: 3.2, away: 3.5 } };
     const coldDir = { dir: '负', odds: 3.5 };
-    expect(computeColdScore(null, gsBalanced, modds, coldDir))
-      .toBeGreaterThan(computeColdScore(null, gsUnbalanced, modds, coldDir));
+    expect(computeColdScore(null, gsBalanced, modds, coldDir)).toBeGreaterThan(
+      computeColdScore(null, gsUnbalanced, modds, coldDir),
+    );
   });
 
   it('weak共识比strong共识得分高', () => {
@@ -418,11 +459,13 @@ describe('plan-generator — checkCorrelation 组合相关性', () => {
 // ==================== checkMatchResult ====================
 
 describe('plan-generator — checkMatchResult 单场结果判定', () => {
-  function normRecs(arr) { return arr; }
+  function normRecs(arr) {
+    return arr;
+  }
 
   it('精确匹配方向 → 返回结果', () => {
     const rMap = {
-      'm_123': [{ type: '胜', result: 1 }],
+      m_123: [{ type: '胜', result: 1 }],
     };
     const result = checkMatchResult('123', '胜', rMap, normRecs);
     expect(result.isWon).toBe(true);
@@ -431,7 +474,7 @@ describe('plan-generator — checkMatchResult 单场结果判定', () => {
 
   it('方向失败 → isLose=true', () => {
     const rMap = {
-      'm_123': [{ type: '胜', result: 0 }],
+      m_123: [{ type: '胜', result: 0 }],
     };
     const result = checkMatchResult('123', '胜', rMap, normRecs);
     expect(result.isWon).toBe(false);
@@ -440,7 +483,7 @@ describe('plan-generator — checkMatchResult 单场结果判定', () => {
 
   it('result=null(未知) → isWon/isLose 均为 null', () => {
     const rMap = {
-      'm_123': [{ type: '胜', result: null }],
+      m_123: [{ type: '胜', result: null }],
     };
     const result = checkMatchResult('123', '胜', rMap, normRecs);
     expect(result.isWon).toBe(null);
@@ -449,7 +492,7 @@ describe('plan-generator — checkMatchResult 单场结果判定', () => {
 
   it('双选方向 → 任一命中即可', () => {
     const rMap = {
-      'm_123': [
+      m_123: [
         { type: '胜', result: 0 },
         { type: '平', result: 1 },
       ],

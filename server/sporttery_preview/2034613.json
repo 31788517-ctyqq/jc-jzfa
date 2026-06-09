@@ -1,0 +1,509 @@
+{
+  "match_id": "2034613",
+  "featureAnalysis": {
+    "labels": [
+      "近4场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "3胜/1平/0负",
+      "2胜/0平/0负",
+      "1胜/5平/4负",
+      "1胜/5平/4负",
+      "1.0个",
+      "1.5个"
+    ],
+    "away": [
+      "0胜/1平/3负",
+      "0胜/0平/2负",
+      "3胜/3平/4负",
+      "3胜/4平/3负",
+      "1.3个",
+      "1.3个"
+    ]
+  },
+  "h2h": {
+    "title": "近4场南安普敦3胜 (75%) | 1平 (25%) | 0负 (0%)",
+    "rows": [
+      {
+        "date": "2024-04-17",
+        "league": "英冠",
+        "teams": "南安普敦 3:0 （半 3:0） 普雷斯顿",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2023-10-26",
+        "league": "英冠",
+        "teams": "普雷斯顿 2:2 （半 0:1） 南安普敦",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2019-07-20",
+        "league": "俱乐部赛",
+        "teams": "普雷斯顿 1:3 （半 -:-） 南安普敦",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2011-09-22",
+        "league": "英联赛杯",
+        "teams": "南安普敦 2:1 （半 1:0） 普雷斯顿",
+        "totalGoals": "3"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "南安普敦",
+      "title": "Regular Season 第4名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "46",
+          "wdl": "22/14/10",
+          "winRate": "48%",
+          "goals": "82/56",
+          "gd": "26",
+          "points": "80",
+          "rank": "4"
+        },
+        {
+          "where": "主",
+          "played": "23",
+          "wdl": "12/8/3",
+          "winRate": "52%",
+          "goals": "38/19",
+          "gd": "19",
+          "points": "44",
+          "rank": "3"
+        },
+        {
+          "where": "客",
+          "played": "23",
+          "wdl": "10/6/7",
+          "winRate": "43%",
+          "goals": "44/37",
+          "gd": "7",
+          "points": "36",
+          "rank": "4"
+        }
+      ]
+    },
+    {
+      "team": "普雷斯顿",
+      "title": "Regular Season 第14名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "46",
+          "wdl": "15/15/16",
+          "winRate": "33%",
+          "goals": "55/62",
+          "gd": "-7",
+          "points": "60",
+          "rank": "14"
+        },
+        {
+          "where": "主",
+          "played": "23",
+          "wdl": "8/7/8",
+          "winRate": "35%",
+          "goals": "28/30",
+          "gd": "-2",
+          "points": "31",
+          "rank": "17"
+        },
+        {
+          "where": "客",
+          "played": "23",
+          "wdl": "7/8/8",
+          "winRate": "30%",
+          "goals": "27/32",
+          "gd": "-5",
+          "points": "29",
+          "rank": "13"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "南安普敦",
+      "summary": "南安普敦近10场1胜 (10%) | 5平 (50%) | 4负 (40%) 进10球，失15球，净进-5球",
+      "matches": [
+        {
+          "date": "2025-10-25",
+          "league": "英冠",
+          "vs": "布莱克本 2 : 1 （半 0:1） 南安普敦",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-22",
+          "league": "英冠",
+          "vs": "布城 3 : 1 （半 1:1） 南安普敦",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-18",
+          "league": "英冠",
+          "vs": "南安普敦 0 : 0 （半 0:0） 斯旺西",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-04",
+          "league": "英冠",
+          "vs": "德比郡 1 : 1 （半 1:1） 南安普敦",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-01",
+          "league": "英冠",
+          "vs": "谢菲联 1 : 2 （半 1:0） 南安普敦",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-27",
+          "league": "英冠",
+          "vs": "南安普敦 1 : 1 （半 0:0） 米堡",
+          "result": "平"
+        },
+        {
+          "date": "2025-09-24",
+          "league": "英联赛杯",
+          "vs": "利物浦 2 : 1 （半 1:0） 南安普敦",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-20",
+          "league": "英冠",
+          "vs": "赫尔城 3 : 1 （半 1:0） 南安普敦",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-14",
+          "league": "英冠",
+          "vs": "南安普敦 0 : 0 （半 0:0） 朴次茅斯",
+          "result": "平"
+        },
+        {
+          "date": "2025-08-30",
+          "league": "英冠",
+          "vs": "沃特福德 2 : 2 （半 0:1） 南安普敦",
+          "result": "平"
+        }
+      ]
+    },
+    {
+      "team": "普雷斯顿",
+      "summary": "普雷斯顿近10场3胜 (30%) | 3平 (30%) | 4负 (40%) 进13球，失13球，净进0球",
+      "matches": [
+        {
+          "date": "2025-10-25",
+          "league": "英冠",
+          "vs": "普雷斯顿 3 : 2 （半 1:2） 谢菲联",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-22",
+          "league": "英冠",
+          "vs": "普雷斯顿 0 : 1 （半 0:1） 伯明翰",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-18",
+          "league": "英冠",
+          "vs": "西布罗姆 2 : 1 （半 1:0） 普雷斯顿",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-04",
+          "league": "英冠",
+          "vs": "普雷斯顿 2 : 0 （半 0:0） 查尔顿",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-01",
+          "league": "英冠",
+          "vs": "赫尔城 2 : 2 （半 0:2） 普雷斯顿",
+          "result": "平"
+        },
+        {
+          "date": "2025-09-27",
+          "league": "英冠",
+          "vs": "普雷斯顿 0 : 0 （半 0:0） 布城",
+          "result": "平"
+        },
+        {
+          "date": "2025-09-20",
+          "league": "英冠",
+          "vs": "德比郡 0 : 1 （半 0:1） 普雷斯顿",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-13",
+          "league": "英冠",
+          "vs": "普雷斯顿 2 : 2 （半 1:0） 米堡",
+          "result": "平"
+        },
+        {
+          "date": "2025-08-30",
+          "league": "英冠",
+          "vs": "朴次茅斯 1 : 0 （半 1:0） 普雷斯顿",
+          "result": "负"
+        },
+        {
+          "date": "2025-08-27",
+          "league": "英联赛杯",
+          "vs": "普雷斯顿 2 : 3 （半 2:1） 雷克斯",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "南安普敦",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "普雷斯顿",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-15",
+          "俱乐部赛",
+          "普雷斯顿\nVS\n巴姆贝尔布里奇",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-16",
+          "俱乐部赛",
+          "普雷斯顿\nVS\n乔利",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-24",
+          "俱乐部赛",
+          "普雷斯顿\nVS\n剑桥联",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-08-01",
+          "俱乐部赛",
+          "斯托克港\nVS\n普雷斯顿",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "南安普敦",
+      "players": [
+        {
+          "player": "10-F. Azaz(中场)",
+          "apps": "45 (39/6)",
+          "goals": "11 (12%)",
+          "assists": "8 (12%)",
+          "avg": "0.2/0.2"
+        },
+        {
+          "player": "9-亚当·阿姆斯特朗(前锋)",
+          "apps": "29 (24/5)",
+          "goals": "11 (12%)",
+          "assists": "4 (6%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "11-斯图尔特(前锋)伤",
+          "apps": "27 (12/15)",
+          "goals": "9 (9%)",
+          "assists": "2 (3%)",
+          "avg": "0.3/0.1"
+        }
+      ]
+    },
+    {
+      "team": "普雷斯顿",
+      "players": [
+        {
+          "player": "17-L. Dobbin(前锋)",
+          "apps": "39 (33/6)",
+          "goals": "10 (18%)",
+          "assists": "8 (18%)",
+          "avg": "0.3/0.2"
+        },
+        {
+          "player": "21-A. Devine(中场)",
+          "apps": "45 (36/9)",
+          "goals": "8 (14%)",
+          "assists": "6 (13%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "28-M. Osmajić(前锋)",
+          "apps": "28 (20/8)",
+          "goals": "8 (14%)",
+          "assists": "1 (2%)",
+          "avg": "0.3/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "南安普敦",
+      "players": [
+        {
+          "player": "34-Welington(后卫)",
+          "totalApps": "19",
+          "starts": "12",
+          "subs": "7",
+          "status": "停"
+        },
+        {
+          "player": "7-阿里波(中场)",
+          "totalApps": "13",
+          "starts": "1",
+          "subs": "12",
+          "status": "伤"
+        },
+        {
+          "player": "11-斯图尔特(前锋)",
+          "totalApps": "27",
+          "starts": "12",
+          "subs": "15",
+          "status": "伤"
+        },
+        {
+          "player": "4-唐尼斯(中场)",
+          "totalApps": "38",
+          "starts": "33",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "4-唐尼斯(中场)",
+          "totalApps": "38",
+          "starts": "33",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "19-C.阿切尔(前锋)",
+          "totalApps": "30",
+          "starts": "11",
+          "subs": "19",
+          "status": "伤"
+        },
+        {
+          "player": "18-T. Fellows(中场)",
+          "totalApps": "41",
+          "starts": "29",
+          "subs": "12",
+          "status": "伤"
+        },
+        {
+          "player": "20-C. Jander(中场)",
+          "totalApps": "38",
+          "starts": "34",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "23-S.埃多兹(中场)",
+          "totalApps": "14",
+          "starts": "2",
+          "subs": "12",
+          "status": "伤"
+        },
+        {
+          "player": "24-S. Charles(中场)",
+          "totalApps": "33",
+          "starts": "22",
+          "subs": "11",
+          "status": "伤"
+        },
+        {
+          "player": "38-E. Jelert(后卫)",
+          "totalApps": "8",
+          "starts": "3",
+          "subs": "5",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "普雷斯顿",
+      "players": [
+        {
+          "player": "11-布拉迪(中场)",
+          "totalApps": "5",
+          "starts": "0",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "7-威尔·基恩(前锋)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "44-波茨(中场)",
+          "totalApps": "16",
+          "starts": "9",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "3-A. Vukčević(后卫)",
+          "totalApps": "29",
+          "starts": "16",
+          "subs": "13",
+          "status": "伤"
+        },
+        {
+          "player": "15-汤普森(中场)",
+          "totalApps": "20",
+          "starts": "10",
+          "subs": "10",
+          "status": "伤"
+        },
+        {
+          "player": "2-Pol Valentín(后卫)",
+          "totalApps": "33",
+          "starts": "22",
+          "subs": "11",
+          "status": "伤"
+        },
+        {
+          "player": "8-布兰登·道耶尔(中场)",
+          "totalApps": "26",
+          "starts": "20",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "19-L. Gibson(后卫)",
+          "totalApps": "27",
+          "starts": "25",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "36-J. Seary(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

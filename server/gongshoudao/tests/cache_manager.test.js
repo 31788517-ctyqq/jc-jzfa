@@ -10,12 +10,20 @@ const path = require('path');
 
 // 需要在 mock fs 生效后 require
 const {
-  getBatchIndex, updateBatchIndex, invalidateBatch, getValidBatches,
-  writeRawCache, readRawCache,
-  writeMatchCache, readMatchCache,
-  writeComputedCache, readComputedCache,
-  getCacheStats, purgeExpired,
-  TTL, compressCache,
+  getBatchIndex,
+  updateBatchIndex,
+  invalidateBatch,
+  getValidBatches,
+  writeRawCache,
+  readRawCache,
+  writeMatchCache,
+  readMatchCache,
+  writeComputedCache,
+  readComputedCache,
+  getCacheStats,
+  purgeExpired,
+  TTL,
+  compressCache,
 } = require('../cache_manager');
 
 // ═══ 测试辅助 ═══
@@ -53,7 +61,9 @@ describe('cache_manager — 批次索引 (L0)', () => {
     updateBatchIndex('26061', [{}, {}]);
     const valid = getValidBatches();
     expect(valid.length).toBeGreaterThanOrEqual(0);
-    valid.forEach(function (b) { expect(b.valid).toBe(true); });
+    valid.forEach(function (b) {
+      expect(b.valid).toBe(true);
+    });
   });
 });
 

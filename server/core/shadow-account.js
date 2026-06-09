@@ -17,8 +17,8 @@ const crypto = require('crypto');
 
 const DEFAULT_INITIAL_BALANCE_CENT = 1000_0000; // 10万元(分)
 const DEFAULT_VIRTUAL_ACCOUNT_CODE = 'system-shadow-main';
-const DEFAULT_DAILY_CAPACITY_RATIO = 0.20;  // 每日上限 20%
-const DEFAULT_SINGLE_TICKET_RATIO = 0.05;   // 单票上限 5%
+const DEFAULT_DAILY_CAPACITY_RATIO = 0.2; // 每日上限 20%
+const DEFAULT_SINGLE_TICKET_RATIO = 0.05; // 单票上限 5%
 
 const BALANCE_BUCKETS = {
   book_balance: 'bookBalanceCent',
@@ -170,7 +170,11 @@ function getAccount(db, accountId) {
   try {
     const stmt = db.prepare('SELECT * FROM shadow_virtual_accounts WHERE account_id = ?');
     stmt.bind([accountId]);
-    if (stmt.step()) { const obj = stmt.getAsObject(); stmt.free(); return obj; }
+    if (stmt.step()) {
+      const obj = stmt.getAsObject();
+      stmt.free();
+      return obj;
+    }
     stmt.free();
   } catch (e) {}
   return null;
@@ -180,7 +184,11 @@ function getAccountByCode(db, code) {
   try {
     const stmt = db.prepare('SELECT * FROM shadow_virtual_accounts WHERE account_code = ?');
     stmt.bind([code]);
-    if (stmt.step()) { const obj = stmt.getAsObject(); stmt.free(); return obj; }
+    if (stmt.step()) {
+      const obj = stmt.getAsObject();
+      stmt.free();
+      return obj;
+    }
     stmt.free();
   } catch (e) {}
   return null;
@@ -190,10 +198,13 @@ function updateBalances(db, accountId, balances) {
   const sets = [];
   const vals = [];
   Object.keys(balances).forEach(function (key) {
-    if (balances[key] != null) { sets.push(key + ' = ?'); vals.push(balances[key]); }
+    if (balances[key] != null) {
+      sets.push(key + ' = ?');
+      vals.push(balances[key]);
+    }
   });
   if (sets.length === 0) return;
-  sets.push("updated_at = ?");
+  sets.push('updated_at = ?');
   vals.push(nowISO());
   vals.push(accountId);
 
@@ -218,10 +229,11 @@ function postJournal(db, opts) {
 
   // 计算新余额
   const balances = {};
-  BALANCE_BUCKETS && Object.keys(BALANCE_BUCKETS).forEach(function (bucket) {
-    const field = BALANCE_BUCKETS[bucket];
-    balances[field] = parseInt(account[field] || 0);
-  });
+  BALANCE_BUCKETS &&
+    Object.keys(BALANCE_BUCKETS).forEach(function (bucket) {
+      const field = BALANCE_BUCKETS[bucket];
+      balances[field] = parseInt(account[field] || 0);
+    });
 
   opts.entries.forEach(function (entry) {
     const bucket = entry.balanceBucket || entry.balance_bucket;
@@ -245,8 +257,16 @@ function postJournal(db, opts) {
   db.run(
     `INSERT INTO shadow_ledger_journals (journal_id, account_id, journal_type, biz_ref_type, biz_ref_id, amount_cent, summary_json, created_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [journalId, opts.accountId, opts.journalType, opts.bizRefType || null, opts.bizRefId || null, totalAmount,
-     JSON.stringify(opts.summary || {}), now],
+    [
+      journalId,
+      opts.accountId,
+      opts.journalType,
+      opts.bizRefType || null,
+      opts.bizRefId || null,
+      totalAmount,
+      JSON.stringify(opts.summary || {}),
+      now,
+    ],
   );
 
   // 创建分录
@@ -255,9 +275,16 @@ function postJournal(db, opts) {
     db.run(
       `INSERT INTO shadow_ledger_entries (journal_id, account_id, balance_bucket, amount_cent, direction, biz_ref_type, biz_ref_id, memo)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [journalId, opts.accountId, entry.balanceBucket || entry.balance_bucket, amountCent,
-       amountCent >= 0 ? 'credit' : 'debit',
-       opts.bizRefType || null, opts.bizRefId || null, entry.memo || null],
+      [
+        journalId,
+        opts.accountId,
+        entry.balanceBucket || entry.balance_bucket,
+        amountCent,
+        amountCent >= 0 ? 'credit' : 'debit',
+        opts.bizRefType || null,
+        opts.bizRefId || null,
+        entry.memo || null,
+      ],
     );
   });
 
@@ -325,10 +352,10 @@ function releaseStake(db, accountId, schemeId, holdId, reason) {
   });
 
   // 更新 hold 状态
-  db.run(
-    "UPDATE shadow_account_holds SET hold_status = 'released', released_at = ? WHERE hold_id = ?",
-    [nowISO(), holdId],
-  );
+  db.run("UPDATE shadow_account_holds SET hold_status = 'released', released_at = ? WHERE hold_id = ?", [
+    nowISO(),
+    holdId,
+  ]);
 
   return result;
 }
@@ -367,10 +394,10 @@ function settleTicket(db, accountId, schemeId, holdId, result, payoutAmount, fee
   });
 
   // 更新 hold
-  db.run(
-    "UPDATE shadow_account_holds SET hold_status = 'settled', settled_at = ? WHERE hold_id = ?",
-    [nowISO(), holdId],
-  );
+  db.run("UPDATE shadow_account_holds SET hold_status = 'settled', settled_at = ? WHERE hold_id = ?", [
+    nowISO(),
+    holdId,
+  ]);
 
   // 记录收入
   recordIncome(db, {
@@ -388,7 +415,11 @@ function getHold(db, holdId) {
   try {
     const stmt = db.prepare('SELECT * FROM shadow_account_holds WHERE hold_id = ?');
     stmt.bind([holdId]);
-    if (stmt.step()) { const obj = stmt.getAsObject(); stmt.free(); return obj; }
+    if (stmt.step()) {
+      const obj = stmt.getAsObject();
+      stmt.free();
+      return obj;
+    }
     stmt.free();
   } catch (e) {}
   return null;
@@ -401,7 +432,7 @@ function recordIncome(db, opts) {
   if (!account) return;
 
   const balanceCent = parseInt(account.available_balance_cent || 0) + parseInt(account.frozen_balance_cent || 0);
-  const roi = opts.stakeCent > 0 ? (opts.pnlCent / opts.stakeCent) : 0;
+  const roi = opts.stakeCent > 0 ? opts.pnlCent / opts.stakeCent : 0;
 
   // 计算最大资金和回撤
   const prevMax = getRunningMax(db, opts.accountId);
@@ -415,9 +446,21 @@ function recordIncome(db, opts) {
     `INSERT INTO shadow_income_records
      (record_id, account_id, scheme_id, date, ticket_count, stake_amount_cent, payout_amount_cent, pnl_cent, roi, running_balance_cent, running_max_cent, drawdown, created_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [recordId, opts.accountId, opts.schemeId || null, new Date().toISOString().slice(0, 10),
-     1, opts.stakeCent, opts.payoutCent, opts.pnlCent, +roi.toFixed(4),
-     balanceCent, runningMax, +drawdown.toFixed(4), now],
+    [
+      recordId,
+      opts.accountId,
+      opts.schemeId || null,
+      new Date().toISOString().slice(0, 10),
+      1,
+      opts.stakeCent,
+      opts.payoutCent,
+      opts.pnlCent,
+      +roi.toFixed(4),
+      balanceCent,
+      runningMax,
+      +drawdown.toFixed(4),
+      now,
+    ],
   );
 }
 
@@ -427,7 +470,11 @@ function getRunningMax(db, accountId) {
       'SELECT MAX(running_balance_cent) as max_bal FROM shadow_income_records WHERE account_id = ?',
     );
     stmt.bind([accountId]);
-    if (stmt.step()) { const obj = stmt.getAsObject(); stmt.free(); return parseInt(obj.max_bal || 0); }
+    if (stmt.step()) {
+      const obj = stmt.getAsObject();
+      stmt.free();
+      return parseInt(obj.max_bal || 0);
+    }
     stmt.free();
   } catch (e) {}
   return DEFAULT_INITIAL_BALANCE_CENT;
@@ -442,39 +489,62 @@ function getIncomeSummary(db, accountId) {
   var records = [];
 
   try {
-    const stmt = db.prepare(
-      'SELECT * FROM shadow_income_records WHERE account_id = ? ORDER BY created_at ASC',
-    );
+    const stmt = db.prepare('SELECT * FROM shadow_income_records WHERE account_id = ? ORDER BY created_at ASC');
     stmt.bind([accountId]);
     while (stmt.step()) records.push(stmt.getAsObject());
     stmt.free();
-  } catch (e) { return null; }
+  } catch (e) {
+    return null;
+  }
 
-  if (records.length === 0) return {
-    totalSchemes: 0,
-    totalStake: 0,
-    totalPayout: 0,
-    totalPnl: 0,
-    roi: 0,
-    maxDrawdown: 0,
-    winRate: 0,
-    profitFactor: 0,
-  };
+  if (records.length === 0)
+    return {
+      totalSchemes: 0,
+      totalStake: 0,
+      totalPayout: 0,
+      totalPnl: 0,
+      roi: 0,
+      maxDrawdown: 0,
+      winRate: 0,
+      profitFactor: 0,
+    };
 
-  const totalStake = records.reduce(function (s, r) { return s + parseInt(r.stake_amount_cent || 0); }, 0);
-  const totalPayout = records.reduce(function (s, r) { return s + parseInt(r.payout_amount_cent || 0); }, 0);
-  const totalPnl = records.reduce(function (s, r) { return s + parseInt(r.pnl_cent || 0); }, 0);
+  const totalStake = records.reduce(function (s, r) {
+    return s + parseInt(r.stake_amount_cent || 0);
+  }, 0);
+  const totalPayout = records.reduce(function (s, r) {
+    return s + parseInt(r.payout_amount_cent || 0);
+  }, 0);
+  const totalPnl = records.reduce(function (s, r) {
+    return s + parseInt(r.pnl_cent || 0);
+  }, 0);
   const roi = totalStake > 0 ? totalPnl / totalStake : 0;
 
-  const wins = records.filter(function (r) { return parseInt(r.pnl_cent || 0) > 0; });
-  const losses = records.filter(function (r) { return parseInt(r.pnl_cent || 0) < 0; });
+  const wins = records.filter(function (r) {
+    return parseInt(r.pnl_cent || 0) > 0;
+  });
+  const losses = records.filter(function (r) {
+    return parseInt(r.pnl_cent || 0) < 0;
+  });
   const winRate = records.length > 0 ? wins.length / records.length : 0;
-  const profitFactor = losses.length > 0
-    ? wins.reduce(function (s, r) { return s + parseInt(r.pnl_cent || 0); }, 0) / Math.abs(losses.reduce(function (s, r) { return s + parseInt(r.pnl_cent || 0); }, 0))
-    : (wins.length > 0 ? Infinity : 0);
+  const profitFactor =
+    losses.length > 0
+      ? wins.reduce(function (s, r) {
+          return s + parseInt(r.pnl_cent || 0);
+        }, 0) /
+        Math.abs(
+          losses.reduce(function (s, r) {
+            return s + parseInt(r.pnl_cent || 0);
+          }, 0),
+        )
+      : wins.length > 0
+        ? Infinity
+        : 0;
 
   // 最大回撤
-  const maxDD = records.reduce(function (min, r) { return Math.min(min, parseFloat(r.drawdown || 0)); }, 0);
+  const maxDD = records.reduce(function (min, r) {
+    return Math.min(min, parseFloat(r.drawdown || 0));
+  }, 0);
 
   return {
     totalSchemes: records.length,
@@ -498,15 +568,17 @@ function getEquityCurve(db, accountId, days) {
   try {
     const stmt = db.prepare(
       'SELECT date, SUM(CASE WHEN pnl_cent > 0 THEN 1 ELSE 0 END) as wins, ' +
-      'COUNT(*) as total, SUM(pnl_cent) as daily_pnl_cent, ' +
-      'MAX(running_balance_cent) as balance_cent, MAX(drawdown) as dd ' +
-      'FROM shadow_income_records WHERE account_id = ? ' +
-      'GROUP BY date ORDER BY date DESC LIMIT ?',
+        'COUNT(*) as total, SUM(pnl_cent) as daily_pnl_cent, ' +
+        'MAX(running_balance_cent) as balance_cent, MAX(drawdown) as dd ' +
+        'FROM shadow_income_records WHERE account_id = ? ' +
+        'GROUP BY date ORDER BY date DESC LIMIT ?',
     );
     stmt.bind([accountId, days]);
     while (stmt.step()) records.push(stmt.getAsObject());
     stmt.free();
-  } catch (e) { return []; }
+  } catch (e) {
+    return [];
+  }
 
   return records.reverse().map(function (r) {
     return {
@@ -534,9 +606,10 @@ function getRiskLimits(db, accountId) {
   const riskLimit = parseRiskLimit(account.risk_limit_json);
 
   const configuredSingleMax = parseInt(riskLimit.single_ticket_max_cent || 0);
-  const singleTicketMax = configuredSingleMax > 0
-    ? Math.min(configuredSingleMax, Math.floor(availableCent * DEFAULT_SINGLE_TICKET_RATIO))
-    : Math.floor(availableCent * DEFAULT_SINGLE_TICKET_RATIO);
+  const singleTicketMax =
+    configuredSingleMax > 0
+      ? Math.min(configuredSingleMax, Math.floor(availableCent * DEFAULT_SINGLE_TICKET_RATIO))
+      : Math.floor(availableCent * DEFAULT_SINGLE_TICKET_RATIO);
 
   return {
     availableBalance: amountFromCents(availableCent),

@@ -41,9 +41,10 @@ describe('gongshoudao/index — 模块加载', () => {
 });
 
 describe('gongshoudao/index — refreshCache', () => {
-  it('refreshCache 返回 Promise', function () {
-    const result = gsIndex.refreshCache({});
+  it('refreshCache 返回 Promise', async function () {
+    const result = gsIndex.refreshCache({ forceRefresh: false, cacheTtlMs: 365 * 24 * 3600 * 1000, skipPredLog: true });
     expect(result).toBeInstanceOf(Promise);
+    await result;
   });
 });
 

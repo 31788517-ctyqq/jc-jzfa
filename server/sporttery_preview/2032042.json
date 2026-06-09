@@ -1,0 +1,432 @@
+{
+  "match_id": "2032042",
+  "featureAnalysis": {
+    "labels": [
+      "近1场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/0平/1负",
+      "0胜/0平/0负",
+      "5胜/1平/4负",
+      "6胜/3平/1负",
+      "1.7个",
+      "1.2个"
+    ],
+    "away": [
+      "1胜/0平/0负",
+      "0胜/0平/0负",
+      "3胜/4平/3负",
+      "2胜/2平/6负",
+      "1.1个",
+      "1.3个"
+    ]
+  },
+  "h2h": {
+    "title": "近1场圣迭戈FC0胜 (0%) | 0平 (0%) | 1负 (100%)",
+    "rows": [
+      {
+        "date": "2025-03-24",
+        "league": "美职",
+        "teams": "奥斯汀FC 2:1 （半 2:1） 圣迭戈FC",
+        "totalGoals": "3"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "圣迭戈FC",
+      "title": "Regular Season 第1名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "19/6/9",
+          "winRate": "56%",
+          "goals": "64/41",
+          "gd": "23",
+          "points": "63",
+          "rank": "1"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "7/5/5",
+          "winRate": "41%",
+          "goals": "25/17",
+          "gd": "8",
+          "points": "26",
+          "rank": "9"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "12/1/4",
+          "winRate": "71%",
+          "goals": "39/24",
+          "gd": "15",
+          "points": "37",
+          "rank": "1"
+        }
+      ]
+    },
+    {
+      "team": "奥斯汀FC",
+      "title": "Regular Season 第6名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "13/8/13",
+          "winRate": "38%",
+          "goals": "37/45",
+          "gd": "-8",
+          "points": "47",
+          "rank": "6"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "7/7/3",
+          "winRate": "41%",
+          "goals": "18/16",
+          "gd": "2",
+          "points": "28",
+          "rank": "7"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "6/1/10",
+          "winRate": "35%",
+          "goals": "19/29",
+          "gd": "-10",
+          "points": "19",
+          "rank": "7"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "圣迭戈FC",
+      "summary": "圣迭戈FC近10场5胜 (50%) | 1平 (10%) | 4负 (40%) 进17球，失12球，净进5球",
+      "matches": [
+        {
+          "date": "2025-05-29",
+          "league": "美职",
+          "vs": "西雅图 1 : 0 （半 0:0） 圣迭戈FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-25",
+          "league": "美职",
+          "vs": "圣迭戈FC 2 : 1 （半 1:1） 洛城银河",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "美职",
+          "vs": "圣迭戈FC 0 : 0 （半 0:0） 堪萨斯城",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-15",
+          "league": "美职",
+          "vs": "圣迭戈FC 2 : 0 （半 1:0） 科罗拉多",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-11",
+          "league": "美职",
+          "vs": "圣路易城 1 : 2 （半 0:0） 圣迭戈FC",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-04",
+          "league": "美职",
+          "vs": "圣迭戈FC 5 : 0 （半 2:0） 达拉斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-27",
+          "league": "美职",
+          "vs": "圣迭戈FC 1 : 3 （半 1:1） 盐湖城",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-20",
+          "league": "美职",
+          "vs": "夏洛特FC 3 : 0 （半 2:0） 圣迭戈FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-13",
+          "league": "美职",
+          "vs": "科罗拉多 3 : 2 （半 1:0） 圣迭戈FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-06",
+          "league": "美职",
+          "vs": "圣迭戈FC 3 : 0 （半 3:0） 西雅图",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "奥斯汀FC",
+      "summary": "奥斯汀FC近10场3胜 (30%) | 4平 (40%) | 3负 (30%) 进11球，失13球，净进-2球",
+      "matches": [
+        {
+          "date": "2025-05-29",
+          "league": "美职",
+          "vs": "奥斯汀FC 1 : 1 （半 0:0） 盐湖城",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-25",
+          "league": "美职",
+          "vs": "明尼苏达 1 : 1 （半 1:1） 奥斯汀FC",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-22",
+          "league": "公开赛杯",
+          "vs": "奥斯汀FC 3 : 1 （半 1:0） 休斯敦",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "美职",
+          "vs": "奥斯汀FC 0 : 0 （半 0:0） 温哥华",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-15",
+          "league": "美职",
+          "vs": "奥斯汀FC 1 : 1 （半 0:0） 亚特联",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-11",
+          "league": "美职",
+          "vs": "辛辛那提 2 : 1 （半 1:0） 奥斯汀FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-08",
+          "league": "公开赛杯",
+          "vs": "奥斯汀FC 3 : 2 （半 0:2） El Paso Loco",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-04",
+          "league": "美职",
+          "vs": "奥斯汀FC 0 : 3 （半 0:2） 明尼苏达",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-27",
+          "league": "美职",
+          "vs": "休斯敦 2 : 0 （半 0:0） 奥斯汀FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-20",
+          "league": "美职",
+          "vs": "奥斯汀FC 1 : 0 （半 0:0） 洛城银河",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "圣迭戈FC",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-23",
+          "美职",
+          "科罗拉多\nVS\n圣迭戈FC",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "圣迭戈FC\nVS\n达拉斯",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "明尼苏达\nVS\n圣迭戈FC",
+          "Regular Season"
+        ],
+        [
+          "2026-08-16",
+          "美职",
+          "洛杉矶FC\nVS\n圣迭戈FC",
+          "Regular Season"
+        ]
+      ]
+    },
+    {
+      "team": "奥斯汀FC",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-23",
+          "美职",
+          "奥斯汀FC\nVS\n西雅图",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "休斯敦\nVS\n奥斯汀FC",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "科罗拉多\nVS\n奥斯汀FC",
+          "Regular Season"
+        ],
+        [
+          "2026-08-17",
+          "美职",
+          "奥斯汀FC\nVS\n达拉斯",
+          "Regular Season"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "圣迭戈FC",
+      "players": [
+        {
+          "player": "10-德赖尔(中场)",
+          "apps": "39 (39/0)",
+          "goals": "23 (29%)",
+          "assists": "17 (26%)",
+          "avg": "0.6/0.4"
+        },
+        {
+          "player": "32-M.伊洛斯基(前锋)",
+          "apps": "26 (13/13)",
+          "goals": "13 (17%)",
+          "assists": "6 (9%)",
+          "avg": "0.5/0.2"
+        },
+        {
+          "player": "11-洛萨诺(前锋)",
+          "apps": "31 (22/9)",
+          "goals": "11 (14%)",
+          "assists": "9 (14%)",
+          "avg": "0.4/0.3"
+        }
+      ]
+    },
+    {
+      "team": "奥斯汀FC",
+      "players": [
+        {
+          "player": "33-O.沃尔夫(中场)",
+          "apps": "36 (33/3)",
+          "goals": "7 (18%)",
+          "assists": "8 (29%)",
+          "avg": "0.2/0.2"
+        },
+        {
+          "player": "10-M. Uzuni(前锋)",
+          "apps": "29 (25/4)",
+          "goals": "6 (16%)",
+          "assists": "3 (11%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "9-B. Vázquez(前锋)",
+          "apps": "19 (19/0)",
+          "goals": "5 (13%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "圣迭戈FC",
+      "players": [
+        {
+          "player": "7-M. Ingvartsen(前锋)",
+          "totalApps": "13",
+          "starts": "5",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "24-博阿滕(中场)",
+          "totalApps": "13",
+          "starts": "0",
+          "subs": "13",
+          "status": "伤"
+        },
+        {
+          "player": "4-A. Reyes(后卫)",
+          "totalApps": "1",
+          "starts": "1",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "70-A.阿尔瓦拉多(前锋)",
+          "totalApps": "12",
+          "starts": "6",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "9-T. Ángel(前锋)",
+          "totalApps": "22",
+          "starts": "9",
+          "subs": "13",
+          "status": "伤"
+        },
+        {
+          "player": "2-W. Kumado(后卫)",
+          "totalApps": "19",
+          "starts": "7",
+          "subs": "12",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "奥斯汀FC",
+      "players": [
+        {
+          "player": "14-B. Sabovic(中场)",
+          "totalApps": "34",
+          "starts": "19",
+          "subs": "15",
+          "status": "停"
+        },
+        {
+          "player": "15-L. Väisänen(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,513 @@
+{
+  "match_id": "2035584",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "3胜/3平/4负",
+      "3胜/3平/3负",
+      "4胜/2平/4负",
+      "4胜/2平/4负",
+      "1.5个",
+      "1.3个"
+    ],
+    "away": [
+      "4胜/3平/3负",
+      "3胜/3平/3负",
+      "5胜/3平/2负",
+      "3胜/3平/4负",
+      "2.1个",
+      "1.2个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场诺丁汉3胜 (30%) | 3平 (30%) | 4负 (40%)",
+    "rows": [
+      {
+        "date": "2025-03-30",
+        "league": "英足总杯",
+        "teams": "布赖顿 0:0 （半 0:0） 诺丁汉",
+        "totalGoals": ""
+      },
+      {
+        "date": "2025-02-01",
+        "league": "英超",
+        "teams": "诺丁汉 7:0 （半 3:0） 布赖顿",
+        "totalGoals": "7"
+      },
+      {
+        "date": "2024-09-22",
+        "league": "英超",
+        "teams": "布赖顿 2:2 （半 2:1） 诺丁汉",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2024-03-10",
+        "league": "英超",
+        "teams": "布赖顿 1:0 （半 1:0） 诺丁汉",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2023-11-25",
+        "league": "英超",
+        "teams": "诺丁汉 2:3 （半 1:2） 布赖顿",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2023-04-27",
+        "league": "英超",
+        "teams": "诺丁汉 3:1 （半 1:1） 布赖顿",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2022-10-19",
+        "league": "英超",
+        "teams": "布赖顿 0:0 （半 0:0） 诺丁汉",
+        "totalGoals": ""
+      },
+      {
+        "date": "2017-03-04",
+        "league": "英冠",
+        "teams": "诺丁汉 3:0 （半 0:0） 布赖顿",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2016-08-13",
+        "league": "英冠",
+        "teams": "布赖顿 3:0 （半 1:0） 诺丁汉",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2016-04-12",
+        "league": "英冠",
+        "teams": "诺丁汉 1:2 （半 0:1） 布赖顿",
+        "totalGoals": "3"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "诺丁汉",
+      "title": "Regular Season 第16名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "11/11/16",
+          "winRate": "29%",
+          "goals": "48/51",
+          "gd": "-3",
+          "points": "44",
+          "rank": "16"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "4/8/7",
+          "winRate": "21%",
+          "goals": "20/23",
+          "gd": "-3",
+          "points": "20",
+          "rank": "17"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "7/3/9",
+          "winRate": "37%",
+          "goals": "28/28",
+          "gd": "0",
+          "points": "24",
+          "rank": "9"
+        }
+      ]
+    },
+    {
+      "team": "布赖顿",
+      "title": "Regular Season 第8名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "14/11/13",
+          "winRate": "37%",
+          "goals": "52/46",
+          "gd": "6",
+          "points": "53",
+          "rank": "8"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "9/6/4",
+          "winRate": "47%",
+          "goals": "30/20",
+          "gd": "10",
+          "points": "33",
+          "rank": "7"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "5/5/9",
+          "winRate": "26%",
+          "goals": "22/26",
+          "gd": "-4",
+          "points": "20",
+          "rank": "14"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "诺丁汉",
+      "summary": "诺丁汉近10场4胜 (40%) | 2平 (20%) | 4负 (40%) 进15球，失13球，净进2球",
+      "matches": [
+        {
+          "date": "2025-11-28",
+          "league": "欧罗巴",
+          "vs": "诺丁汉 3 : 0 （半 2:0） 马尔默",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-22",
+          "league": "英超",
+          "vs": "利物浦 0 : 3 （半 0:1） 诺丁汉",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-09",
+          "league": "英超",
+          "vs": "诺丁汉 3 : 1 （半 1:1） 利兹联",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-07",
+          "league": "欧罗巴",
+          "vs": "格风暴 0 : 0 （半 0:0） 诺丁汉",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-01",
+          "league": "英超",
+          "vs": "诺丁汉 2 : 2 （半 0:1） 曼联",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-26",
+          "league": "英超",
+          "vs": "伯恩茅斯 2 : 0 （半 2:0） 诺丁汉",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-24",
+          "league": "欧罗巴",
+          "vs": "诺丁汉 2 : 0 （半 1:0） 波尔图",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-18",
+          "league": "英超",
+          "vs": "诺丁汉 0 : 3 （半 0:0） 切尔西",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-05",
+          "league": "英超",
+          "vs": "纽卡斯尔 2 : 0 （半 0:0） 诺丁汉",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-03",
+          "league": "欧罗巴",
+          "vs": "诺丁汉 2 : 3 （半 1:2） 中日德兰",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "布赖顿",
+      "summary": "布赖顿近10场5胜 (50%) | 3平 (30%) | 2负 (20%) 进21球，失12球，净进9球",
+      "matches": [
+        {
+          "date": "2025-11-22",
+          "league": "英超",
+          "vs": "布赖顿 2 : 1 （半 0:1） 布伦特",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-09",
+          "league": "英超",
+          "vs": "水晶宫 0 : 0 （半 0:0） 布赖顿",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-01",
+          "league": "英超",
+          "vs": "布赖顿 3 : 0 （半 1:0） 利兹联",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-30",
+          "league": "英联赛杯",
+          "vs": "阿森纳 2 : 0 （半 0:0） 布赖顿",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-26",
+          "league": "英超",
+          "vs": "曼联 4 : 2 （半 2:0） 布赖顿",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-18",
+          "league": "英超",
+          "vs": "布赖顿 2 : 1 （半 1:0） 纽卡斯尔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-05",
+          "league": "英超",
+          "vs": "狼队 1 : 1 （半 1:0） 布赖顿",
+          "result": "平"
+        },
+        {
+          "date": "2025-09-27",
+          "league": "英超",
+          "vs": "切尔西 1 : 3 （半 1:0） 布赖顿",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-24",
+          "league": "英联赛杯",
+          "vs": "巴恩斯利 0 : 6 （半 0:3） 布赖顿",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-20",
+          "league": "英超",
+          "vs": "布赖顿 2 : 2 （半 2:1） 热刺",
+          "result": "平"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "诺丁汉",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "布赖顿",
+      "content": "暂无数据",
+      "matches": []
+    }
+  ],
+  "scorers": [
+    {
+      "team": "诺丁汉",
+      "players": [
+        {
+          "player": "10-吉布斯-怀特(中场)伤",
+          "apps": "37 (35/2)",
+          "goals": "15 (31%)",
+          "assists": "4 (12%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "19-Igor Jesus(前锋)",
+          "apps": "37 (28/9)",
+          "goals": "6 (13%)",
+          "assists": "4 (12%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "8-E. Anderson(中场)伤",
+          "apps": "38 (37/1)",
+          "goals": "4 (8%)",
+          "assists": "4 (12%)",
+          "avg": "0.1/0.1"
+        }
+      ]
+    },
+    {
+      "team": "布赖顿",
+      "players": [
+        {
+          "player": "18-D. Welbeck(前锋)",
+          "apps": "37 (26/11)",
+          "goals": "13 (25%)",
+          "assists": "1 (3%)",
+          "avg": "0.4/0"
+        },
+        {
+          "player": "25-D.戈麦斯(中场)",
+          "apps": "32 (26/6)",
+          "goals": "5 (10%)",
+          "assists": "1 (3%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "13-J. Hinshelwood(中场)",
+          "apps": "27 (20/7)",
+          "goals": "4 (8%)",
+          "assists": "3 (9%)",
+          "avg": "0.1/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "诺丁汉",
+      "players": [
+        {
+          "player": "11-伍德(前锋)",
+          "totalApps": "15",
+          "starts": "11",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "18-冈恩(守门员)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "34-艾纳(后卫)",
+          "totalApps": "18",
+          "starts": "18",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "35-津琴科(后卫)",
+          "totalApps": "5",
+          "starts": "4",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "9-T. Awoniyi(前锋)",
+          "totalApps": "17",
+          "starts": "3",
+          "subs": "14",
+          "status": "伤"
+        },
+        {
+          "player": "8-E. Anderson(中场)",
+          "totalApps": "38",
+          "starts": "37",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "12-道格拉斯.路易斯(中场)",
+          "totalApps": "21",
+          "starts": "12",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "10-吉布斯-怀特(中场)",
+          "totalApps": "37",
+          "starts": "35",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "38-鲍勒(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "29-D.巴夸(前锋)",
+          "totalApps": "14",
+          "starts": "6",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "5-Murillo(后卫)",
+          "totalApps": "25",
+          "starts": "25",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "5-Murillo(后卫)",
+          "totalApps": "25",
+          "starts": "25",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "布赖顿",
+      "players": [
+        {
+          "player": "20-J. Milner(中场)",
+          "totalApps": "20",
+          "starts": "7",
+          "subs": "13",
+          "status": "伤"
+        },
+        {
+          "player": "4-韦伯斯特(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "7-马奇(中场)",
+          "totalApps": "4",
+          "starts": "0",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "2-T.兰普蒂(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "22-三笘薫(中场)",
+          "totalApps": "25",
+          "starts": "19",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "32-萨缅托(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "Yoon Do-Yong(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

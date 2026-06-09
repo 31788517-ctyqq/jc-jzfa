@@ -36,11 +36,11 @@ const AGENT = new https.Agent({ keepAlive: true, rejectUnauthorized: false });
 
 // ─── 配置 ────────────────────────────────────────────
 const CONFIG = {
-  DISCOVER_PAGES: 30,           // 发现专家时最多翻页数
-  DISCOVER_PER_PAGE: 20,        // 每页文章数
-  TARGET_EXPERTS: 200,          // 目标专家数
-  HISTORY_PAGE_SIZE: 20,        // 历史推荐每页数
-  SINCE: '2026-01-01',          // 抓取起始日期
+  DISCOVER_PAGES: 30, // 发现专家时最多翻页数
+  DISCOVER_PER_PAGE: 20, // 每页文章数
+  TARGET_EXPERTS: 200, // 目标专家数
+  HISTORY_PAGE_SIZE: 20, // 历史推荐每页数
+  SINCE: '2026-01-01', // 抓取起始日期
   DELAY_MIN: 800,
   DELAY_MAX: 2000,
   DISCOVER_DELAY_MIN: 500,
@@ -52,29 +52,39 @@ const CONFIG = {
 // ─── HTTPS 工具 ──────────────────────────────────────
 function httpPost(host, path, body, referer) {
   return new Promise((resolve, reject) => {
-    const req = https.request({
-      method: 'POST', hostname: host, path, agent: AGENT,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36',
-        'Accept': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Referer: referer || `https://${host}/`,
-        Origin: `https://${host}`,
+    const req = https.request(
+      {
+        method: 'POST',
+        hostname: host,
+        path,
+        agent: AGENT,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36',
+          Accept: 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Referer: referer || `https://${host}/`,
+          Origin: `https://${host}`,
+        },
+        timeout: 15000,
       },
-      timeout: 15000,
-    }, res => {
-      const chunks = [];
-      res.on('data', c => chunks.push(c));
-      res.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
-    });
+      (res) => {
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+      },
+    );
     req.on('error', reject);
     if (body) req.write(body);
     req.end();
   });
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function rand(a, b) { return a + Math.random() * (b - a); }
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+function rand(a, b) {
+  return a + Math.random() * (b - a);
+}
 
 // ─── 阶段1: 发现专家 ─────────────────────────────────
 async function fetchArticlePage(pn) {
@@ -83,7 +93,7 @@ async function fetchArticlePage(pn) {
   try {
     const j = JSON.parse(text);
     if (j.status === '100' && j.data && j.data.articles) return j.data.articles;
-  } catch (e) { }
+  } catch (e) {}
   return [];
 }
 
@@ -102,22 +112,25 @@ function extractExpertFromArticle(article) {
   if (article.targetsnew_v2) {
     for (const t of article.targetsnew_v2) {
       const m = (t || '').match(/近(\d+单)\+(\d+)%/);
-      if (m) { recentReturn = m[0]; break; }
+      if (m) {
+        recentReturn = m[0];
+        break;
+      }
     }
   }
   // 提取连红数
   let streak = 0;
-  const streakM = (article.targetsnew_v2 || []).find(t => (t || '').includes('竞足连中'));
+  const streakM = (article.targetsnew_v2 || []).find((t) => (t || '').includes('竞足连中'));
   if (streakM) {
     const sm = streakM.match(/^(\d+)/);
     if (sm) streak = parseInt(sm[1]);
   }
   // 提取命中率
   let hitRate = 0;
-  const hrM = (article.targetsnew_v2 || []).find(t => (t || '').includes('近') && (t || '').includes('中'));
+  const hrM = (article.targetsnew_v2 || []).find((t) => (t || '').includes('近') && (t || '').includes('中'));
   if (hrM) {
     const hm = hrM.match(/近(\d+)中(\d+)/);
-    if (hm) hitRate = Math.round(parseInt(hm[2]) / parseInt(hm[1]) * 100);
+    if (hm) hitRate = Math.round((parseInt(hm[2]) / parseInt(hm[1])) * 100);
   }
   return {
     eid: String(article.eid),
@@ -181,10 +194,12 @@ async function discoverExperts() {
       }
     }
 
-    console.log(`  第 ${pageNum} 页: ${articles.length} 篇文章, 新增 ${newExperts} 位专家, 累计 ${Object.keys(expertMap).length}`);
+    console.log(
+      `  第 ${pageNum} 页: ${articles.length} 篇文章, 新增 ${newExperts} 位专家, 累计 ${Object.keys(expertMap).length}`,
+    );
 
     if (newExperts === 0) {
-      const realNew = articles.filter(a => a.eid && !expertMap[String(a.eid)]).length;
+      const realNew = articles.filter((a) => a.eid && !expertMap[String(a.eid)]).length;
       if (realNew === 0) {
         console.log('  本页无新专家');
       }
@@ -203,8 +218,8 @@ async function discoverExperts() {
   console.log(`  总发现: ${experts.length} 位专家`);
   console.log(`  入选 Top ${CONFIG.TARGET_EXPERTS}: ${top200.length} 位`);
   console.log(`  人气排名范围: ${top200[0]?.hot_rank} ~ ${top200[top200.length - 1]?.hot_rank}`);
-  console.log(`  有明确人气排名: ${experts.filter(e => e.hot_rank < 9999).length} 位`);
-  console.log(`  无排名(兜底): ${experts.filter(e => e.hot_rank >= 9999).length} 位`);
+  console.log(`  有明确人气排名: ${experts.filter((e) => e.hot_rank < 9999).length} 位`);
+  console.log(`  无排名(兜底): ${experts.filter((e) => e.hot_rank >= 9999).length} 位`);
 
   // 兜底: 如果没有足够的有排名的专家，把无排名的也加进来
   const selected = [];
@@ -214,7 +229,7 @@ async function discoverExperts() {
   }
   // 如果不够200，补充无排名的
   if (selected.length < CONFIG.TARGET_EXPERTS) {
-    const unranked = top200.filter(e => e.hot_rank >= 9999);
+    const unranked = top200.filter((e) => e.hot_rank >= 9999);
     for (const e of unranked) {
       if (selected.length >= CONFIG.TARGET_EXPERTS) break;
       selected.push(e);
@@ -222,12 +237,19 @@ async function discoverExperts() {
   }
 
   // 保存
-  fs.writeFileSync(CONFIG.OUTPUT, JSON.stringify({
-    generated_at: new Date().toISOString(),
-    total_found: experts.length,
-    selected_count: selected.length,
-    experts: selected,
-  }, null, 2));
+  fs.writeFileSync(
+    CONFIG.OUTPUT,
+    JSON.stringify(
+      {
+        generated_at: new Date().toISOString(),
+        total_found: experts.length,
+        selected_count: selected.length,
+        experts: selected,
+      },
+      null,
+      2,
+    ),
+  );
 
   console.log(`\n  最终入选: ${selected.length} 位 (已保存到 ${CONFIG.OUTPUT})`);
 
@@ -237,19 +259,25 @@ async function discoverExperts() {
 // ─── 阶段2: 批量抓取推荐 ─────────────────────────────
 async function fetchExpertHistory(eid, pn) {
   const body = `commresource=${encodeURIComponent(JSON.stringify({ channel: 'mesport', platform: 'pc' }))}&eid=${eid}&pn=${pn}&rn=${CONFIG.HISTORY_PAGE_SIZE}&articletype=`;
-  const text = await httpPost(HOST, '/transpondsanyol/api/meweb/expert/expert_history_articles', body,
-    `https://${HOST}/zhuanjia/${eid}`);
+  const text = await httpPost(
+    HOST,
+    '/transpondsanyol/api/meweb/expert/expert_history_articles',
+    body,
+    `https://${HOST}/zhuanjia/${eid}`,
+  );
   try {
     const j = JSON.parse(text);
     if (j.status === '100' && j.data && j.data.articles) return j.data.articles;
-  } catch (e) { }
+  } catch (e) {}
   return [];
 }
 
 function parseArticle(raw, eid) {
   let rc = null;
   if (raw.resultcontent) {
-    try { rc = typeof raw.resultcontent === 'string' ? JSON.parse(raw.resultcontent) : raw.resultcontent; } catch (e) { }
+    try {
+      rc = typeof raw.resultcontent === 'string' ? JSON.parse(raw.resultcontent) : raw.resultcontent;
+    } catch (e) {}
   }
   const proinfo = (rc && rc.proinfo) || [];
   const gamedetail = raw.gamedetail || [];
@@ -257,7 +285,7 @@ function parseArticle(raw, eid) {
   const recommendations = [];
   if (proinfo.length > 0) {
     for (const m of proinfo) {
-      const gd = gamedetail.find(g => g.gameid === m.gameid || g.matchnum === m.matchnum);
+      const gd = gamedetail.find((g) => g.gameid === m.gameid || g.matchnum === m.matchnum);
       recommendations.push({
         matchnum: m.matchnum || '',
         home: m.home || (gd ? gd.home : ''),
@@ -341,16 +369,16 @@ async function scrapeExpert(eid, index, total) {
   }
 
   // 过滤 2026年后的
-  const filtered = allArticles.filter(a => {
+  const filtered = allArticles.filter((a) => {
     if (!a.publishtime) return true;
     return new Date(a.publishtime.replace(' ', 'T') + '+08:00') >= since;
   });
 
   // 统计
   const totalRecs = filtered.reduce((s, a) => s + a.rec_count, 0);
-  const hits = filtered.filter(a => a.overall_hit === 1).length;
-  const misses = filtered.filter(a => a.overall_hit === 0).length;
-  const rate = (hits + misses) > 0 ? (hits / (hits + misses) * 100).toFixed(1) : 'N/A';
+  const hits = filtered.filter((a) => a.overall_hit === 1).length;
+  const misses = filtered.filter((a) => a.overall_hit === 0).length;
+  const rate = hits + misses > 0 ? ((hits / (hits + misses)) * 100).toFixed(1) : 'N/A';
 
   console.log(`  → ${filtered.length} 条方案, ${totalRecs} 场推荐, 命中率 ${rate}%`);
 
@@ -361,9 +389,8 @@ async function scrapeExpert(eid, index, total) {
     hit_count: hits,
     miss_count: misses,
     hit_rate: rate,
-    date_range: filtered.length > 0
-      ? `${filtered[filtered.length - 1].publishtime} ~ ${filtered[0].publishtime}`
-      : 'N/A',
+    date_range:
+      filtered.length > 0 ? `${filtered[filtered.length - 1].publishtime} ~ ${filtered[0].publishtime}` : 'N/A',
     articles: filtered,
   };
 }
@@ -417,17 +444,24 @@ function saveResults(results, errors, experts) {
   }
 
   const outputPath = path.join(__dirname, '..', 'server', 'experts_batch_2026.json');
-  fs.writeFileSync(outputPath, JSON.stringify({
-    generated_at: new Date().toISOString(),
-    since: CONFIG.SINCE,
-    total_experts_scanned: experts.length,
-    success_count: results.length,
-    error_count: errors.length,
-    total_articles: fullData.reduce((s, e) => s + e.article_count, 0),
-    total_recommendations: fullData.reduce((s, e) => s + e.recommendation_count, 0),
-    experts: fullData,
-    errors: errors,
-  }, null, 2));
+  fs.writeFileSync(
+    outputPath,
+    JSON.stringify(
+      {
+        generated_at: new Date().toISOString(),
+        since: CONFIG.SINCE,
+        total_experts_scanned: experts.length,
+        success_count: results.length,
+        error_count: errors.length,
+        total_articles: fullData.reduce((s, e) => s + e.article_count, 0),
+        total_recommendations: fullData.reduce((s, e) => s + e.recommendation_count, 0),
+        experts: fullData,
+        errors: errors,
+      },
+      null,
+      2,
+    ),
+  );
 
   const sizeKb = (fs.statSync(outputPath).size / 1024).toFixed(1);
   console.log(`\n✅ 数据已保存: ${outputPath} (${sizeKb} KB)`);
@@ -437,7 +471,9 @@ function saveResults(results, errors, experts) {
   console.log(`  成功: ${results.length} | 失败: ${errors.length}`);
   console.log(`  总方案: ${fullData.reduce((s, e) => s + e.article_count, 0)}`);
   console.log(`  总场次: ${fullData.reduce((s, e) => s + e.recommendation_count, 0)}`);
-  console.log(`  平均命中率: ${(fullData.reduce((s, e) => s + parseFloat(e.hit_rate || 0), 0) / fullData.filter(e => parseFloat(e.hit_rate) > 0).length || 0).toFixed(1)}%`);
+  console.log(
+    `  平均命中率: ${(fullData.reduce((s, e) => s + parseFloat(e.hit_rate || 0), 0) / fullData.filter((e) => parseFloat(e.hit_rate) > 0).length || 0).toFixed(1)}%`,
+  );
 }
 
 // ─── 增量更新 ─────────────────────────────────────────
@@ -460,17 +496,17 @@ async function updateExperts() {
     try {
       // 只抓第一页最新数据
       const arts = await fetchExpertHistory(expert.eid, 1);
-      const newArts = arts.map(raw => parseArticle(raw, expert.eid));
+      const newArts = arts.map((raw) => parseArticle(raw, expert.eid));
       const since = new Date(CONFIG.SINCE + 'T00:00:00+08:00');
-      const filtered = newArts.filter(a => {
+      const filtered = newArts.filter((a) => {
         if (!a.publishtime) return true;
         return new Date(a.publishtime.replace(' ', 'T') + '+08:00') >= since;
       });
 
       const totalRecs = filtered.reduce((s, a) => s + a.rec_count, 0);
-      const hits = filtered.filter(a => a.overall_hit === 1).length;
-      const misses = filtered.filter(a => a.overall_hit === 0).length;
-      const rate = (hits + misses) > 0 ? (hits / (hits + misses) * 100).toFixed(1) : 'N/A';
+      const hits = filtered.filter((a) => a.overall_hit === 1).length;
+      const misses = filtered.filter((a) => a.overall_hit === 0).length;
+      const rate = hits + misses > 0 ? ((hits / (hits + misses)) * 100).toFixed(1) : 'N/A';
 
       results.push({
         eid: String(expert.eid),
@@ -539,7 +575,7 @@ async function main() {
   console.log(`\n总耗时: ${elapsed} 分钟`);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('❌ 失败:', err);
   process.exit(1);
 });

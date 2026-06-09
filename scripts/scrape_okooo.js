@@ -37,10 +37,10 @@ let globalCookies = '';
 
 // ─── 配置 ────────────────────────────────────────────
 const CONFIG = {
-  SINCE: '2026-03-01',            // 抓取起始日期（okooot 平台仅保留 ~3 个月数据）
-  ATTITUDE_PAGE_SIZE: 10,          // 态度列表每页数
-  MAX_ATTITUDE_PAGES: 45,          // 最大翻页数
-  MAX_NOTE_DETAILS: 0,             // 笔记详情最大数（0=不限）
+  SINCE: '2026-03-01', // 抓取起始日期（okooot 平台仅保留 ~3 个月数据）
+  ATTITUDE_PAGE_SIZE: 10, // 态度列表每页数
+  MAX_ATTITUDE_PAGES: 45, // 最大翻页数
+  MAX_NOTE_DETAILS: 0, // 笔记详情最大数（0=不限）
   DELAY_MIN: 1200,
   DELAY_MAX: 2500,
   OUTPUT_DIR: path.join(__dirname, '..', 'server'),
@@ -84,79 +84,87 @@ const CONFIG = {
 function httpGet(host, path, referer) {
   return new Promise((resolve, reject) => {
     const headers = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
       'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
       'Cache-Control': 'no-cache',
-      'Pragma': 'no-cache',
+      Pragma: 'no-cache',
       Referer: referer || `https://${host}/`,
       Origin: `https://${host}`,
     };
     if (globalCookies) {
       headers.Cookie = globalCookies;
     }
-    const req = https.request({
-      method: 'GET',
-      hostname: host,
-      path,
-      agent: AGENT,
-      headers,
-      timeout: 20000,
-    }, res => {
-      // 保存 Cookie
-      const setCookie = res.headers['set-cookie'];
-      if (setCookie) {
-        const newCookies = (Array.isArray(setCookie) ? setCookie : [setCookie])
-          .map(c => c.split(';')[0])
-          .join('; ');
-        if (newCookies) {
-          const existing = globalCookies.split('; ').filter(Boolean);
-          for (const nc of newCookies.split('; ')) {
-            const key = nc.split('=')[0];
-            const idx = existing.findIndex(c => c.startsWith(key + '='));
-            if (idx >= 0) existing[idx] = nc;
-            else existing.push(nc);
+    const req = https.request(
+      {
+        method: 'GET',
+        hostname: host,
+        path,
+        agent: AGENT,
+        headers,
+        timeout: 20000,
+      },
+      (res) => {
+        // 保存 Cookie
+        const setCookie = res.headers['set-cookie'];
+        if (setCookie) {
+          const newCookies = (Array.isArray(setCookie) ? setCookie : [setCookie])
+            .map((c) => c.split(';')[0])
+            .join('; ');
+          if (newCookies) {
+            const existing = globalCookies.split('; ').filter(Boolean);
+            for (const nc of newCookies.split('; ')) {
+              const key = nc.split('=')[0];
+              const idx = existing.findIndex((c) => c.startsWith(key + '='));
+              if (idx >= 0) existing[idx] = nc;
+              else existing.push(nc);
+            }
+            globalCookies = existing.join('; ');
           }
-          globalCookies = existing.join('; ');
         }
-      }
 
-      const chunks = [];
-      res.on('data', c => chunks.push(c));
-      res.on('end', () => {
-        const raw = Buffer.concat(chunks);
-        // 检测 WAF 拦截页面
-        const rawStr = raw.toString('utf-8', 0, Math.min(raw.length, 500));
-        if (rawStr.includes('aliyun_waf') || rawStr.includes('__aliyun') || rawStr.includes('challenge')) {
-          console.error(`  ⚠ WAF 拦截: ${path}`);
-          reject(new Error('WAF_BLOCK'));
-          return;
-        }
-        // 检测 charset，优先 GBK（okooot.com 默认编码）
-        const contentType = (res.headers['content-type'] || '').toLowerCase();
-        let html;
-        if (contentType.includes('gbk') || contentType.includes('gb2312') || contentType.includes('gb18030')) {
-          html = iconv.decode(raw, 'gbk');
-        } else {
-          try {
-            html = raw.toString('utf-8');
-            if (html.includes('\ufffd')) {
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => {
+          const raw = Buffer.concat(chunks);
+          // 检测 WAF 拦截页面
+          const rawStr = raw.toString('utf-8', 0, Math.min(raw.length, 500));
+          if (rawStr.includes('aliyun_waf') || rawStr.includes('__aliyun') || rawStr.includes('challenge')) {
+            console.error(`  ⚠ WAF 拦截: ${path}`);
+            reject(new Error('WAF_BLOCK'));
+            return;
+          }
+          // 检测 charset，优先 GBK（okooot.com 默认编码）
+          const contentType = (res.headers['content-type'] || '').toLowerCase();
+          let html;
+          if (contentType.includes('gbk') || contentType.includes('gb2312') || contentType.includes('gb18030')) {
+            html = iconv.decode(raw, 'gbk');
+          } else {
+            try {
+              html = raw.toString('utf-8');
+              if (html.includes('\ufffd')) {
+                html = iconv.decode(raw, 'gbk');
+              }
+            } catch (e) {
               html = iconv.decode(raw, 'gbk');
             }
-          } catch (e) {
-            html = iconv.decode(raw, 'gbk');
           }
-        }
-        resolve(html);
-      });
-    });
+          resolve(html);
+        });
+      },
+    );
     req.on('error', reject);
     req.end();
   });
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function rand(a, b) { return a + Math.random() * (b - a); }
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+function rand(a, b) {
+  return a + Math.random() * (b - a);
+}
 
 // ─── 阶段1: 发现专家 ─────────────────────────────────
 async function fetchGaoshouPage() {
@@ -194,7 +202,7 @@ function extractExpertsFromHtml(html) {
     let name = (m[3] || '').replace(/[\s\n\r\t]+/g, ' ').trim();
     if (name && name.length >= 2 && name.length < 20) {
       // 更新已有记录的名字
-      const existing = experts.find(e => e.id === id);
+      const existing = experts.find((e) => e.id === id);
       if (existing && !existing.name) {
         existing.name = name;
       }
@@ -236,7 +244,9 @@ async function discoverExperts() {
       if (!allExperts[e.id]) allExperts[e.id] = e;
     }
     console.log(`  → ${scraped.length} 位专家 (member IDs)`);
-  } catch (e) { console.error(`  错误: ${e.message}`); }
+  } catch (e) {
+    console.error(`  错误: ${e.message}`);
+  }
   await sleep(rand(CONFIG.DELAY_MIN, CONFIG.DELAY_MAX));
 
   // 来源2: 连红达人
@@ -246,10 +256,15 @@ async function discoverExperts() {
     const scraped = extractExpertsFromHtml(html);
     let added = 0;
     for (const e of scraped) {
-      if (!allExperts[e.id]) { allExperts[e.id] = e; added++; }
+      if (!allExperts[e.id]) {
+        allExperts[e.id] = e;
+        added++;
+      }
     }
     console.log(`  → ${scraped.length} 位专家 (新增 ${added})`);
-  } catch (e) { console.error(`  错误: ${e.message}`); }
+  } catch (e) {
+    console.error(`  错误: ${e.message}`);
+  }
   await sleep(rand(CONFIG.DELAY_MIN, CONFIG.DELAY_MAX));
 
   // 来源3: 十剑客
@@ -259,10 +274,15 @@ async function discoverExperts() {
     const scraped = extractExpertsFromHtml(html);
     let added = 0;
     for (const e of scraped) {
-      if (!allExperts[e.id]) { allExperts[e.id] = e; added++; }
+      if (!allExperts[e.id]) {
+        allExperts[e.id] = e;
+        added++;
+      }
     }
     console.log(`  → ${scraped.length} 位专家 (新增 ${added})`);
-  } catch (e) { console.error(`  错误: ${e.message}`); }
+  } catch (e) {
+    console.error(`  错误: ${e.message}`);
+  }
 
   // 与内置列表合并
   const scrapedList = Object.values(allExperts);
@@ -275,19 +295,26 @@ async function discoverExperts() {
   for (const e of merged) {
     if (!e.name || e.name.length < 2) {
       // 尝试从其他来源查找名字
-      const builtin = CONFIG.BUILTIN_EXPERTS.find(b => b.id === e.id);
+      const builtin = CONFIG.BUILTIN_EXPERTS.find((b) => b.id === e.id);
       if (builtin) e.name = builtin.name;
     }
   }
 
   // 保存
   const outPath = path.join(CONFIG.OUTPUT_DIR, CONFIG.EXPERTS_JSON);
-  fs.writeFileSync(outPath, JSON.stringify({
-    generated_at: new Date().toISOString(),
-    total: merged.length,
-    sources: ['builtin', 'gaoshou', 'daren', 'shijianke'],
-    experts: merged,
-  }, null, 2));
+  fs.writeFileSync(
+    outPath,
+    JSON.stringify(
+      {
+        generated_at: new Date().toISOString(),
+        total: merged.length,
+        sources: ['builtin', 'gaoshou', 'daren', 'shijianke'],
+        experts: merged,
+      },
+      null,
+      2,
+    ),
+  );
   console.log(`  已保存: ${outPath}`);
 
   return merged;
@@ -307,15 +334,20 @@ function parseAttitudeItem(html_snippet) {
   // 去掉 style 属性和 class 属性的干扰，只保留文本中的 []
   const cleanText = html_snippet
     .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/<[^>]+>/g, ' ')  // 先转成纯文本
+    .replace(/<[^>]+>/g, ' ') // 先转成纯文本
     .replace(/[\s\n\r]+/g, ' ');
   const leagueMatches = cleanText.match(/\[([^\]]{1,20})\]/g);
   if (leagueMatches) {
     for (const lm of leagueMatches) {
       const raw = lm.replace(/[\[\]]/g, '').trim();
       // 只接受中文/英文联赛名，过滤数字/路径/JS代码片段
-      if (raw.length >= 2 && /[\u4e00-\u9fff]/.test(raw) && 
-          !raw.includes('object') && !raw.includes('function') && !raw.includes('http')) {
+      if (
+        raw.length >= 2 &&
+        /[\u4e00-\u9fff]/.test(raw) &&
+        !raw.includes('object') &&
+        !raw.includes('function') &&
+        !raw.includes('http')
+      ) {
         league = raw;
         break;
       }
@@ -344,9 +376,7 @@ function parseAttitudeItem(html_snippet) {
   const noteIdMatch = html_snippet.match(/\/soccer\/note\/([a-f0-9]+)\//);
 
   // 提取比分（如果已完成）
-  const scoreLine = matchLine
-    ? matchLine[3].replace(':', '-')
-    : '';
+  const scoreLine = matchLine ? matchLine[3].replace(':', '-') : '';
   const isCompleted = scoreLine && /\d+-\d+/.test(scoreLine);
 
   return {
@@ -457,8 +487,8 @@ async function scrapeExpertAttitudes(expert, index, total) {
   }
 
   // 统计
-  const completed = allAttitudes.filter(a => a.is_completed);
-  const withPick = allAttitudes.filter(a => a.pick);
+  const completed = allAttitudes.filter((a) => a.is_completed);
+  const withPick = allAttitudes.filter((a) => a.pick);
 
   return {
     expert_id: id,
@@ -498,7 +528,9 @@ async function batchScrapeAttitudes(experts) {
     try {
       const result = await scrapeExpertAttitudes(experts[i], i + 1, experts.length);
       const a = result.attitudes;
-      console.log(`  → ${a.length}条态度 (${result.completed_count}已完成, ${result.with_pick_count}有方向), ${result.pages_visited}页`);
+      console.log(
+        `  → ${a.length}条态度 (${result.completed_count}已完成, ${result.with_pick_count}有方向), ${result.pages_visited}页`,
+      );
       results.push(result);
     } catch (e) {
       if (e.message === 'WAF_BLOCK') {
@@ -529,7 +561,8 @@ function parseNoteDetail(html) {
   // 提取所有比赛块
   const matchBlocks = [];
   // 比赛块模式: 编号 + 联赛 + 主队 + 比分 + 客队 + 让球 + SPF赔率
-  const matchRegex = /周[一二三四五六日]\d+\s+(\S+)\s+(\S+?)\s+(\d+:\d+|\d+-\d+|-)\s+(\S+?)\s+([\s\S]*?)(?=周[一二三四五六日]\d+|【|$)/g;
+  const matchRegex =
+    /周[一二三四五六日]\d+\s+(\S+)\s+(\S+?)\s+(\d+:\d+|\d+-\d+|-)\s+(\S+?)\s+([\s\S]*?)(?=周[一二三四五六日]\d+|【|$)/g;
   let m;
   while ((m = matchRegex.exec(html))) {
     const block = m[5] || '';
@@ -551,7 +584,10 @@ function parseNoteDetail(html) {
   }
 
   // 提取分析文本中的推荐方向
-  const analysisText = html.replace(/<[^>]+>/g, ' ').replace(/[\s\n\r]+/g, ' ').trim();
+  const analysisText = html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/[\s\n\r]+/g, ' ')
+    .trim();
 
   // 提取各项推荐方向
   const directions = [];
@@ -597,7 +633,7 @@ async function scrapeNoteDetails(attitudesData) {
 
   for (const expert of attitudesData) {
     const { expert_id, expert_name, attitudes } = expert;
-    const completedAttitudes = attitudes.filter(a => a.is_completed && a.note_id);
+    const completedAttitudes = attitudes.filter((a) => a.is_completed && a.note_id);
     console.log(`\n  ${expert_name}(${expert_id}): ${completedAttitudes.length}条已完成笔记`);
 
     for (let i = 0; i < completedAttitudes.length; i++) {
@@ -658,18 +694,25 @@ function saveAttitudes(results, errors, experts) {
   }
 
   const outPath = path.join(CONFIG.OUTPUT_DIR, CONFIG.ATTITUDES_JSON);
-  fs.writeFileSync(outPath, JSON.stringify({
-    generated_at: new Date().toISOString(),
-    since: CONFIG.SINCE,
-    total_experts_scanned: experts.length,
-    success_count: results.length,
-    error_count: errors.length,
-    total_attitudes: allAttitudes.length,
-    completed_attitudes: allAttitudes.filter(a => a.is_completed).length,
-    with_pick_attitudes: allAttitudes.filter(a => a.pick).length,
-    experts: results,
-    errors: errors,
-  }, null, 2));
+  fs.writeFileSync(
+    outPath,
+    JSON.stringify(
+      {
+        generated_at: new Date().toISOString(),
+        since: CONFIG.SINCE,
+        total_experts_scanned: experts.length,
+        success_count: results.length,
+        error_count: errors.length,
+        total_attitudes: allAttitudes.length,
+        completed_attitudes: allAttitudes.filter((a) => a.is_completed).length,
+        with_pick_attitudes: allAttitudes.filter((a) => a.pick).length,
+        experts: results,
+        errors: errors,
+      },
+      null,
+      2,
+    ),
+  );
 
   const sizeKb = (fs.statSync(outPath).size / 1024).toFixed(1);
   console.log(`\n✅ 态度数据已保存: ${outPath} (${sizeKb} KB)`);
@@ -677,11 +720,18 @@ function saveAttitudes(results, errors, experts) {
 
 function saveNoteDetails(details) {
   const outPath = path.join(CONFIG.OUTPUT_DIR, 'okooo_note_details.json');
-  fs.writeFileSync(outPath, JSON.stringify({
-    generated_at: new Date().toISOString(),
-    total: details.length,
-    details,
-  }, null, 2));
+  fs.writeFileSync(
+    outPath,
+    JSON.stringify(
+      {
+        generated_at: new Date().toISOString(),
+        total: details.length,
+        details,
+      },
+      null,
+      2,
+    ),
+  );
 
   const sizeKb = (fs.statSync(outPath).size / 1024).toFixed(1);
   console.log(`✅ 笔记详情已保存: ${outPath} (${sizeKb} KB)`);
@@ -734,7 +784,7 @@ function printSummary(results, errors) {
   console.log(`  总翻页: ${totalPages}`);
   if (errors.length > 0) {
     console.log(`\n  失败列表:`);
-    errors.forEach(e => console.log(`    ${e.name}(${e.expert_id}): ${e.error}`));
+    errors.forEach((e) => console.log(`    ${e.name}(${e.expert_id}): ${e.error}`));
   }
 }
 
@@ -783,10 +833,14 @@ async function main() {
     console.log(`\n增量更新: ${allAttitudes} 条最新态度`);
     fs.writeFileSync(
       path.join(CONFIG.OUTPUT_DIR, 'okooo_attitudes_update.json'),
-      JSON.stringify({
-        generated_at: new Date().toISOString(),
-        experts: attitudeResults,
-      }, null, 2)
+      JSON.stringify(
+        {
+          generated_at: new Date().toISOString(),
+          experts: attitudeResults,
+        },
+        null,
+        2,
+      ),
     );
   }
 
@@ -813,7 +867,7 @@ async function main() {
   console.log(`\n总耗时: ${elapsed} 分钟`);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('❌ 失败:', err);
   process.exit(1);
 });

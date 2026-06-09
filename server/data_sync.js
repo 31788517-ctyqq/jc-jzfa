@@ -26,8 +26,10 @@ const { fetchShujuData } = require('./fetch_shuju');
 const { mergeShuju } = require('./merge_shuju');
 const { execSync } = require('child_process');
 const alert = require('./alert');
+const { fetchLive500 } = require('./sync_live_500');
 const logger = require('./logger').child('data_sync');
 const database = require('./database');
+const autoHeal = require('./auto_heal');
 
 // AI 模块（用于定时刷新）
 let deepseek, doubao, aiMerger;
@@ -421,6 +423,25 @@ async function sync500ShujuStandings(dateStr) {
   }
 }
 
+// ═══ Task 1F: SP官方赛程同步（作为主数据源） ═══
+async function syncGovScheduleWrap() {
+  log('[gov_sch] 开始SP官方赛程同步（主数据源）...');
+  try {
+    const { main } = require('./sync_gov_schedule');
+    const result = await main();
+    if (result && result.success) {
+      log('[gov_sch] ✓ SP赛程同步完成: +' + (result.added || 0) + '新, ' + (result.updated || 0) + '更新, ' + (result.skipped || 0) + '跳过');
+      return result;
+    } else {
+      log('[gov_sch] ✗ SP赛程同步失败: ' + (result ? result.reason : 'unknown'));
+      return null;
+    }
+  } catch (e) {
+    log('[gov_sch] SP赛程同步异常: ' + e.message);
+    return null;
+  }
+}
+
 // ═══ Task 2: 赛程信息同步（每天 12:00，替换旧的 footballDataList 全量更新） ═══
 async function syncMatchList(dateStr) {
   // 支持指定日期，默认为当前日期
@@ -571,6 +592,51 @@ async function syncMatchList(dateStr) {
 }
 
 // ═══ Task 3: 推荐方向同步（每 20 分钟） ═══
+// ★ V9: 同时从 midou310 获取黄红牌数据（比分已改用 500.com）
+async function syncMidouCards() {
+  try {
+    const token = await getToken();
+    const matchRes = await getWithUA(
+      MIDOU_BASE + '/score/footballDataList.do',
+      { time: Date.now(), order: 'status desc, start_datetime asc, data_id asc' },
+      { Cookie: 'token=' + token },
+    );
+    if (matchRes.code !== 1 || !matchRes.data) return 0;
+
+    let data = {};
+    try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) { return 0; }
+    if (!data.m) data.m = {};
+
+    const numIndex = {};
+    Object.keys(data.m).forEach(k => { const m = data.m[k]; if (m && m.num) numIndex[m.num] = true; });
+
+    let cardUpdated = 0;
+    (matchRes.data || []).forEach(m => {
+      const num = m.num || '';
+      if (!num || !numIndex[num]) return;
+
+      const key = Object.keys(data.m).find(k => data.m[k] && data.m[k].num === num);
+      if (!key) return;
+
+      const old = data.m[key];
+      if ((m.yellow || '') !== (old.yellow || '') || (m.red || '') !== (old.red || '')) {
+        old.yellow = m.yellow || '';
+        old.red = m.red || '';
+        cardUpdated++;
+      }
+    });
+
+    if (cardUpdated > 0) {
+      atomicWrite(DATA_FILE, data);
+      log('[cards] midou 黄红牌更新: ' + cardUpdated + ' 场');
+    }
+    return cardUpdated;
+  } catch (e) {
+    // 静默失败，不影响推荐同步
+    return 0;
+  }
+}
+
 async function syncRecommends(dateStr) {
   let targetDate;
   if (dateStr) {
@@ -1247,6 +1313,19 @@ async function backfillResults(dateStr) {
       log('[backfill] prediction_logs 同步异常: ' + e.message);
     }
 
+    // ★ P2-2: 回填历史比赛详情（半场比分/红黄牌/duration）
+    //   昨天及更早的比赛不会出现在今天的500live页面，需要主动补抓
+    const todayStr = fmtLocal(new Date());
+    if (dateStr !== todayStr) {
+      try {
+        log('[backfill] 尝试补抓 ' + dateStr + ' 比赛详情(半场/红黄牌)...');
+        await fetchLive500(dateStr);
+        log('[backfill] ' + dateStr + ' 比赛详情回填完成');
+      } catch (e) {
+        log('[backfill] 比赛详情回填失败: ' + e.message);
+      }
+    }
+
     // ★ 处理重试队列
     await processBackfillQueue();
   } catch (e) {
@@ -1712,68 +1791,82 @@ async function finalCheck(dateStr) {
   notifyReload();
 }
 
-// ═══ 辅助：确保当天比赛数据存在（启动后每30分钟重试，最多5次） ═══
-let _ensureRetries = 0;
-const _ensureMaxRetries = 5;
-let _ensureTimer = null;
+// ═══ Task 0: 今日赛程高频检查器（多源，5分钟间隔，找到即停） ═══
+let _scheduleWatcherTimer = null;
+let _scheduleWatcherRunning = false;
 
-function startEnsureTodayMatches() {
-  if (_ensureTimer) clearInterval(_ensureTimer);
-  _ensureTimer = setInterval(
-    async () => {
-      if (_ensureRetries >= _ensureMaxRetries) {
-        clearInterval(_ensureTimer);
-        _ensureTimer = null;
-        return;
-      }
-      const today = new Date().toISOString().slice(0, 10);
-      const hasData = todayHasMatches(today);
-      if (hasData) {
-        log('[ensure] ' + today + ' 已有 ' + countTodayMatches(today) + ' 场比赛数据，重试停止');
-        clearInterval(_ensureTimer);
-        _ensureTimer = null;
-        _ensureRetries = 0;
-        return;
-      }
-      _ensureRetries++;
-      log('[ensure] ' + today + ' 无比赛数据，尝试同步 (第' + _ensureRetries + '/' + _ensureMaxRetries + '次)...');
-      try {
-        await syncMatchList();
-        await sleep(jitter(2000));
-        // 同步后立即检查
-        if (todayHasMatches(today)) {
-          log('[ensure] ✓ 赛程同步成功，' + countTodayMatches(today) + ' 场比赛已入库');
-          clearInterval(_ensureTimer);
-          _ensureTimer = null;
-          _ensureRetries = 0;
-          return;
-        }
-      } catch (e) {
-        log('[ensure] 尝试失败: ' + e.message);
-      }
-    },
-    30 * 60 * 1000,
-  ); // 30 分钟间隔
+async function runTodayScheduleCheck() {
+  if (_scheduleWatcherRunning) return;
+  _scheduleWatcherRunning = true;
+  
+  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const hour = now.getHours();
+  
+  // 仅在 6:00~12:00 期间高频检查（太早没必要，太晚有12:00同步覆盖）
+  if (hour < 6 || hour >= 12) {
+    _scheduleWatcherRunning = false;
+    return;
+  }
 
-  // 立即执行一次
-  _ensureTimer._onTimeout(); // Node.js 内部触发，用个简单的方式
-}
-// Python 式的简单实现
-function kickEnsure() {
-  if (!_ensureTimer) return;
-  // 立即触发一次检查
-  setTimeout(async () => {
-    if (_ensureRetries >= _ensureMaxRetries) return;
-    const today = new Date().toISOString().slice(0, 10);
-    if (todayHasMatches(today)) return;
-    _ensureRetries++;
-    log('[ensure] 立即重试同步 (' + _ensureRetries + '/' + _ensureMaxRetries + ')...');
-    try {
-      await syncMatchList();
-    } catch (e) {
-      log('[ensure] 立即重试失败: ' + e.message);
+  if (todayHasMatches(today)) {
+    log('[sch_watcher] ✓ 今日已有 ' + countTodayMatches(today) + ' 场比赛，停止检查');
+    if (_scheduleWatcherTimer) { clearInterval(_scheduleWatcherTimer); _scheduleWatcherTimer = null; }
+    _scheduleWatcherRunning = false;
+    return;
+  }
+
+  log('[sch_watcher] 检查今日赛程（多源: 500.com→SP→midou）...');
+  try {
+    const { checkTodaySchedule } = require('./sync_today_schedule');
+    const result = await checkTodaySchedule(today);
+    if (result && result.success) {
+      log('[sch_watcher] ✓ 赛程获取成功! 来源:' + result.source + ' 共' + result.matches + '场 新增' + (result.added || 0));
+      if (_scheduleWatcherTimer) { clearInterval(_scheduleWatcherTimer); _scheduleWatcherTimer = null; }
+      notifyReload();
+    } else {
+      log('[sch_watcher] 暂未获取到赛程数据，5分钟后重试');
     }
-  }, 5000);
+  } catch (e) {
+    log('[sch_watcher] 检查失败: ' + e.message);
+  }
+  _scheduleWatcherRunning = false;
+}
+
+function startTodayScheduleWatcher() {
+  const now = new Date();
+  const hour = now.getHours();
+  const today = now.toISOString().slice(0, 10);
+
+  // 如果已有数据或不在检查窗口，跳过
+  if (todayHasMatches(today) || hour < 6 || hour >= 12) {
+    log('[sch_watcher] 跳过: 已有数据=' + todayHasMatches(today) + ' 时间=' + hour + 'h');
+    return;
+  }
+
+  if (_scheduleWatcherTimer) clearInterval(_scheduleWatcherTimer);
+  
+  log('[sch_watcher] 启动高频赛程检查 (每5分钟, 6:00~12:00)');
+  
+  // 立即执行一次
+  runTodayScheduleCheck();
+  
+  // 每5分钟检查
+  _scheduleWatcherTimer = setInterval(() => {
+    const h = new Date().getHours();
+    if (h >= 12) {
+      log('[sch_watcher] 已过12:00，停止高频检查（由12:00定时任务接管）');
+      clearInterval(_scheduleWatcherTimer);
+      _scheduleWatcherTimer = null;
+      return;
+    }
+    runTodayScheduleCheck();
+  }, 5 * 60 * 1000);
+}
+
+// 兼容旧接口
+function kickEnsure() {
+  runTodayScheduleCheck();
 }
 
 function todayHasMatches(dateStr) {
@@ -1808,6 +1901,7 @@ function autoInferStatus(dateStr) {
     const now = Date.now();
     const year = new Date().getFullYear();
     let fixed = 0;
+    let usedScoreMethod = false;
 
     Object.keys(data.m).forEach((k) => {
       const m = data.m[k];
@@ -1816,11 +1910,20 @@ function autoInferStatus(dateStr) {
 
       let shouldFix = false;
 
+      // ★ 方法0: 比分格式直接检测（最可靠——有比分=比赛已结束）
+      //   支持 1-0、2:1、6-9（两位数）等所有比分格式
+      if (!shouldFix && m.score && /\d+[:\-]\d+/.test(String(m.score.trim()))) {
+        shouldFix = true;
+        usedScoreMethod = true;
+      }
+
       // 方法1: 时间推断——开赛时间+120分钟已过 + 比分有值
-      if (m.startTime && m.score && m.score.trim()) {
+      if (!shouldFix && m.startTime && m.score && m.score.trim()) {
         try {
-          const st = m.startTime.replace(/\//g, '-');
-          const dt = new Date(year + '-' + st.slice(0, 2) + '-' + st.slice(3, 5) + 'T' + st.slice(6, 11) + ':00+08:00');
+          const raw = m.startTime.replace(/\//g, '-');
+          // 兼容 "06-08 21:00" 和 "06-08T21:00" 两种格式（去掉空格再拼接）
+          const clean = raw.replace(/\s+/g, '');
+          const dt = new Date(year + '-' + clean.slice(0, 2) + '-' + clean.slice(3, 5) + 'T' + clean.slice(5, 10) + ':00+08:00');
           if (!isNaN(dt.getTime())) {
             const endTime = dt.getTime() + 120 * 60 * 1000; // 开赛+120分钟
             if (now > endTime) {
@@ -1842,8 +1945,9 @@ function autoInferStatus(dateStr) {
       // 方法3: 所有比赛时间都已过去超过6小时（兜底）
       if (!shouldFix && m.startTime) {
         try {
-          const st = m.startTime.replace(/\//g, '-');
-          const dt = new Date(year + '-' + st.slice(0, 2) + '-' + st.slice(3, 5) + 'T' + st.slice(6, 11) + ':00+08:00');
+          const raw = m.startTime.replace(/\//g, '-');
+          const clean = raw.replace(/\s+/g, '');
+          const dt = new Date(year + '-' + clean.slice(0, 2) + '-' + clean.slice(3, 5) + 'T' + clean.slice(5, 10) + ':00+08:00');
           if (!isNaN(dt.getTime())) {
             if (now > dt.getTime() + 6 * 3600 * 1000) {
               shouldFix = true;
@@ -1860,7 +1964,8 @@ function autoInferStatus(dateStr) {
 
     if (fixed > 0) {
       atomicWrite(DATA_FILE, data);
-      log('[auto_status] ' + dateStr + ' 自动推断 ' + fixed + ' 场比赛状态为"已结束"');
+      const methodTag = usedScoreMethod ? ' method:score' : '';
+      log('[auto_status] ' + dateStr + ' 自动推断 ' + fixed + ' 场比赛状态为"已结束"' + methodTag);
       notifyReload();
     }
     return fixed;
@@ -1954,6 +2059,11 @@ async function start() {
       log('[init] 当前' + currentDate + '缺少比赛数据，提前触发赛程同步');
     }
     try {
+      // ★ P1: 先尝试 SP 官方源（主数据源，轻量 HTTP）
+      await syncGovScheduleWrap();
+      await sleep(jitter(2000));
+      
+      // 再尝试 midou 补充（推荐数等字段）
       await syncMatchList();
       await sleep(jitter(2000));
       await sync500Odds(currentDate);
@@ -2005,20 +2115,21 @@ async function start() {
     }
   } catch (e) {}
 
-  // ═══ 启动重试保障：如果启动时就有数据缺失，启动 30 分钟重试 ═══
+  // ═══ 启动高频赛程检查器（6:00~12:00，每5分钟多源检查） ═══
   if (!todayHasMatches(currentDate)) {
-    log('[init] ⚠️ 今日仍无数据，启动重试机制（每30分钟，最多5次）');
-    kickEnsure();
-    startEnsureTodayMatches();
+    log('[init] ⚠️ 今日' + currentDate + '仍无赛程数据');
+    startTodayScheduleWatcher();
   }
 
-  // ═══ 循环1: 每2分钟 — 实时比分 ═══
+  // ═══ 循环1: 每2分钟 — 实时比分 (500.com 直播页，无需认证) ═══
   async function liveScoreLoop() {
     if (liveScoreRunning) return;
     liveScoreRunning = true;
     try {
-      await syncLiveScores();
-    } catch (e) {}
+      await fetchLive500();  // ★ 500.com 直播页 (比分/半场/状态)
+    } catch (e) {
+      log('[live_score] 500.com 失败: ' + e.message);
+    }
     liveScoreRunning = false;
     setTimeout(liveScoreLoop, 120000);
   }
@@ -2067,6 +2178,20 @@ async function start() {
 
       log('[scheduler] ⏰ 12:00 定时任务触发');
       try {
+        // ★ SP官方全量同步: 赛程→详情(赔率+前瞻)→桥接
+        log('[scheduler] 开始SP全量数据同步...');
+        try {
+          const { main: spFullSync } = require('./sync_sp_full');
+          spFullSync().catch(e => log('[sp] 全量同步异常: ' + e.message));
+        } catch (e) {
+          log('[sp] 全量同步启动失败: ' + e.message);
+        }
+        await sleep(jitter(3000));
+        
+        // SP 官方源赛程同步（HTTP快速检查）
+        await syncGovScheduleWrap();
+        await sleep(jitter(2000));
+        
         await syncMatchList();
         await sleep(jitter(2000));
         await sync500Odds(today);
@@ -2105,8 +2230,7 @@ async function start() {
         log('[scheduler] 12:00 任务失败: ' + e.message);
         // 失败后启动重试
         if (!todayHasMatches(today)) {
-          kickEnsure();
-          startEnsureTodayMatches();
+          startTodayScheduleWatcher();
         }
       }
 
@@ -2138,8 +2262,7 @@ async function start() {
       finalCheckDone = false;
       _ensureRetries = 0;
       if (!todayHasMatches(today)) {
-        kickEnsure();
-        startEnsureTodayMatches();
+        startTodayScheduleWatcher();
       }
       // 日期变更时也检查昨天回填
       const yd = fmtLocal(new Date(Date.now() - 86400000));
@@ -2161,9 +2284,10 @@ async function start() {
     if (new Date().getMinutes() === 0) {
       const yd = fmtLocal(new Date(Date.now() - 86400000));
       log('[health] ' + today + ' 数据状态: ' + getTodayStatusSummary(today) + ' | 昨天: ' + getTodayStatusSummary(yd));
-      // ★ P1-1: 整点时自动推断比赛状态
+      // ★ P1-1: 整点时自动推断最近3天比赛状态（防止比分格式异常导致状态滞后）
       autoInferStatus(today);
       autoInferStatus(yd);
+      autoInferStatus(fmtLocal(new Date(Date.now() - 2 * 86400000)));
       // ★ P2-1: 记录每日统计快照
       try {
         const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
@@ -2173,6 +2297,17 @@ async function start() {
           matchesTotal: Object.keys(data.m || {}).length,
           recsTotal: Object.keys(data.r || {}).length,
           statusSummary: getTodayStatusSummary(today),
+        });
+      } catch (e) {}
+      
+      // ★ P2: auto_heal 自动补漏检查（每整点）
+      try {
+        autoHeal.checkAndHeal({ days: 7 }).then(result => {
+          if (result.gaps.match > 0 || result.gaps.odds > 0 || result.gaps.allplays > 0) {
+            log('[auto_heal] 缺口检查: 赛程' + result.gaps.match + ' 赔率' + result.gaps.odds + ' allplays' + result.gaps.allplays);
+          }
+        }).catch(e => {
+          log('[auto_heal] 检查异常: ' + e.message);
         });
       } catch (e) {}
     }
@@ -2209,6 +2344,7 @@ module.exports = {
   },
   backfillResults,
   syncMatchList,
+  syncGovScheduleWrap,
   syncRecommends,
   sync500Odds,
   sync500OddsDelta,

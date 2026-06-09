@@ -118,8 +118,11 @@ function checkEuroAsiaConsistency(openOdds, asianHandicap, pwScore) {
 
   if (euroFavorsHome !== asianFavorsHome) {
     result.consistent = false;
-    result.detail = '欧亚不一致：欧赔' + (euroFavorsHome ? '看好主队' : '看好客队') +
-      '，亚盘' + (asianFavorsHome ? '主让' : (rq < 0 ? '客让' : '平手'));
+    result.detail =
+      '欧亚不一致：欧赔' +
+      (euroFavorsHome ? '看好主队' : '看好客队') +
+      '，亚盘' +
+      (asianFavorsHome ? '主让' : rq < 0 ? '客让' : '平手');
     result.penalty = 12;
   } else {
     // 一致，进一步检测与模型方向是否一致

@@ -1,4 +1,7 @@
-/** 批量从500.com抓取全部赔率: SPF/RQSPF/BQC/BF/JQS */
+/** 批量从500.com抓取全部赔率: SPF/RQSPF/BQC/BF/JQS
+ *  日期范围: 默认过去90天 ~ 明天（动态计算，避免硬编码遗漏）
+ *  用法: node server/batch_fetch_500all.js [startDate] [endDate]
+ */
 const fs = require('fs');
 const path = require('path');
 const { fetchAllOdds } = require('./fetch_500all');
@@ -17,11 +20,31 @@ function genDates(s, e) {
   return d;
 }
 
+function fmtLocal(d) {
+  return d.toISOString().slice(0, 10);
+}
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function main() {
-  const dates = genDates('2026-04-28', '2026-05-25');
-  console.log(`Dates: ${dates.length} days\n`);
+  // ── 动态日期计算（支持命令行参数覆盖） ──
+  const args = process.argv.slice(2);
+  let startDate, endDate;
+  
+  if (args.length >= 2) {
+    startDate = args[0];
+    endDate = args[1];
+  } else {
+    // 默认: 过去90天 ~ 明天（确保覆盖所有可能遗漏的日期）
+    const now = new Date();
+    now.setDate(now.getDate() + 1);
+    endDate = fmtLocal(now);
+    now.setDate(now.getDate() - 91);
+    startDate = fmtLocal(now);
+  }
+
+  const dates = genDates(startDate, endDate);
+  console.log(`Dates: ${startDate} ~ ${endDate} (${dates.length} days)\n`);
 
   const all = {};
   for (let i = 0; i < dates.length; i++) {

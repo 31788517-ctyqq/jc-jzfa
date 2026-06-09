@@ -169,10 +169,7 @@ describe('ExpertConsensusAdapter', () => {
       { type: '平', num: 30 },
       { type: '负', num: 20 },
     ];
-    const result = await a.predict(
-      { matchId: 'M1', recommends: recs },
-      { recommends: recs }
-    );
+    const result = await a.predict({ matchId: 'M1', recommends: recs }, { recommends: recs });
     expect(result).not.toBeNull();
     expect(result.direction).toBe('home');
     expect(result.directionConfidence).toBeCloseTo(100 / 150, 2);
@@ -193,10 +190,7 @@ describe('MarketSignalAdapter', () => {
 
   it('主胜赔率最低时判定为主胜', async () => {
     const a = new MarketSignalAdapter();
-    const result = await a.predict(
-      { matchId: 'M1' },
-      { odds: { spf: [1.5, 3.5, 5.0] } }
-    );
+    const result = await a.predict({ matchId: 'M1' }, { odds: { spf: [1.5, 3.5, 5.0] } });
     expect(result).not.toBeNull();
     expect(result.direction).toBe('home');
   });
@@ -222,10 +216,10 @@ describe('DeepseekAdapter', () => {
       aiPrediction: {
         content: {
           confidence: 75,
-          '预测建议': [
-            { '玩法': '胜平负', '建议方向': '主胜', '核心逻辑': '实力明显占优' },
-            { '玩法': '大小球', '建议方向': '大球', '核心逻辑': '两队攻击力强' },
-            { '玩法': '比分预测', '建议方向': '2:1', '核心逻辑': '进攻型比赛' },
+          预测建议: [
+            { 玩法: '胜平负', 建议方向: '主胜', 核心逻辑: '实力明显占优' },
+            { 玩法: '大小球', 建议方向: '大球', 核心逻辑: '两队攻击力强' },
+            { 玩法: '比分预测', 建议方向: '2:1', 核心逻辑: '进攻型比赛' },
           ],
         },
       },
@@ -271,14 +265,16 @@ describe('DataFusionAdapter (V9.1 新增)', () => {
 
 describe('PredictionModelAdapter — _parseAIOutput (V9.1 T-02)', () => {
   let adapter;
-  beforeEach(() => { adapter = new PredictionModelAdapter(); });
+  beforeEach(() => {
+    adapter = new PredictionModelAdapter();
+  });
 
   it('JSON解析: 提取主胜方向', () => {
     const obj = {
       confidence: 72,
-      '预测建议': [
-        { '玩法': '胜平负', '建议方向': '主胜', '核心逻辑': '实力占优' },
-        { '玩法': '比分预测', '建议方向': '2:0', '核心逻辑': '防守稳固' },
+      预测建议: [
+        { 玩法: '胜平负', 建议方向: '主胜', 核心逻辑: '实力占优' },
+        { 玩法: '比分预测', 建议方向: '2:0', 核心逻辑: '防守稳固' },
       ],
     };
     const content = JSON.stringify(obj);
@@ -288,10 +284,7 @@ describe('PredictionModelAdapter — _parseAIOutput (V9.1 T-02)', () => {
   });
 
   it('降级关键词: 提取客胜', () => {
-    const result = adapter._parseAIOutput(
-      '利物浦胜，信心80%，预计0:2',
-      { homeName: '曼联', visitName: '利物浦' }
-    );
+    const result = adapter._parseAIOutput('利物浦胜，信心80%，预计0:2', { homeName: '曼联', visitName: '利物浦' });
     expect(result.direction).toBe('away');
     // 匹配"信心80%"模式
     expect(result.confidence).toBe(0.8);

@@ -171,7 +171,7 @@ function isMatchCached(matchId) {
 
 /**
  * 检查比赛是否为功守道熔断（数据质量差，跳过 AI 分析）
- * @param {string} matchId 
+ * @param {string} matchId
  * @returns {boolean}
  */
 function isMeltdown(matchId) {
@@ -299,7 +299,11 @@ function processMatchLight(match) {
     .generateAnalysis(match)
     .then(function (r) {
       if (r.content) {
-        savePrediction(match.matchId, match, r, null, { content: r.content, rawResponse: r.rawResponse, tokenUsage: r.tokenUsage });
+        savePrediction(match.matchId, match, r, null, {
+          content: r.content,
+          rawResponse: r.rawResponse,
+          tokenUsage: r.tokenUsage,
+        });
         log('[精简] 完成 ' + match.matchId + ' (仅豆包)');
         return { matchId: match.matchId, success: true, partial: true };
       }
@@ -362,7 +366,11 @@ function dailyBatchCore(isLight, skipCache) {
       return;
     }
     var match = matches[index];
-    var processor = isLight ? processMatchLight : function (m) { return processMatch(m, { skipCache: skipCache }); };
+    var processor = isLight
+      ? processMatchLight
+      : function (m) {
+          return processMatch(m, { skipCache: skipCache });
+        };
     return processor(match)
       .then(function () {
         return new Promise(function (r) {

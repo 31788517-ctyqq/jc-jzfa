@@ -29,43 +29,52 @@ const agent = new https.Agent({ keepAlive: true, rejectUnauthorized: false });
 // ─── HTTP 工具 ────────────────────────────────────────
 function httpPost(host, path, body, referer) {
   return new Promise((resolve, reject) => {
-    const req = https.request({
-      method: 'POST', hostname: host, path, agent,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36',
-        'Accept': 'application/json',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Referer: referer || `https://${host}/zhuanjia/${CONFIG.EID}`,
-        Origin: `https://${host}`,
+    const req = https.request(
+      {
+        method: 'POST',
+        hostname: host,
+        path,
+        agent,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36',
+          Accept: 'application/json',
+          'Accept-Language': 'zh-CN,zh;q=0.9',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Referer: referer || `https://${host}/zhuanjia/${CONFIG.EID}`,
+          Origin: `https://${host}`,
+        },
+        timeout: 15000,
       },
-      timeout: 15000,
-    }, (res) => {
-      const chunks = [];
-      res.on('data', c => chunks.push(c));
-      res.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
-    });
+      (res) => {
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+      },
+    );
     req.on('error', reject);
     if (body) req.write(body);
     req.end();
   });
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function rand(a, b) { return a + Math.random() * (b - a); }
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+function rand(a, b) {
+  return a + Math.random() * (b - a);
+}
 
 // ─── 抓取一页历史数据 ─────────────────────────────────
 async function fetchHistoryPage(pageNum) {
   const commresource = encodeURIComponent(JSON.stringify({ channel: 'mesport', platform: 'pc' }));
   const body = `commresource=${commresource}&eid=${CONFIG.EID}&pn=${pageNum}&rn=${CONFIG.PAGE_SIZE}&articletype=`;
 
-  const text = await httpPost(CONFIG.HOST,
-    '/transpondsanyol/api/meweb/expert/expert_history_articles',
-    body
-  );
+  const text = await httpPost(CONFIG.HOST, '/transpondsanyol/api/meweb/expert/expert_history_articles', body);
 
   let json;
-  try { json = JSON.parse(text); } catch (e) {
+  try {
+    json = JSON.parse(text);
+  } catch (e) {
     return { error: `JSON parse failed: ${e.message}`, articles: [] };
   }
 
@@ -81,7 +90,9 @@ function parseArticle(raw) {
   // 解析 resultcontent JSON
   let rc = null;
   if (raw.resultcontent) {
-    try { rc = typeof raw.resultcontent === 'string' ? JSON.parse(raw.resultcontent) : raw.resultcontent; } catch (e) {}
+    try {
+      rc = typeof raw.resultcontent === 'string' ? JSON.parse(raw.resultcontent) : raw.resultcontent;
+    } catch (e) {}
   }
 
   const proinfo = (rc && rc.proinfo) || [];
@@ -91,7 +102,7 @@ function parseArticle(raw) {
   const recommendations = [];
   if (proinfo.length > 0) {
     for (const m of proinfo) {
-      const gd = gamedetail.find(g => g.gameid === m.gameid || g.matchnum === m.matchnum);
+      const gd = gamedetail.find((g) => g.gameid === m.gameid || g.matchnum === m.matchnum);
       recommendations.push({
         matchnum: m.matchnum || '',
         home: m.home || (gd ? gd.home : ''),
@@ -104,7 +115,7 @@ function parseArticle(raw) {
         handicap: m.rangqiu || '',
         halfscore: m.halfscore || '',
         score: m.score || '',
-        hit: m.result === 1 ? '✓ 命中' : (m.result === 0 ? '✗ 错误' : ''),
+        hit: m.result === 1 ? '✓ 命中' : m.result === 0 ? '✗ 错误' : '',
       });
     }
   } else if (gamedetail.length > 0) {
@@ -129,7 +140,7 @@ function parseArticle(raw) {
   // 整体命中状态
   let overallResult = '待揭晓';
   if (proinfo.length > 0) {
-    const hitCount = proinfo.filter(m => m.result === 1).length;
+    const hitCount = proinfo.filter((m) => m.result === 1).length;
     const total = proinfo.length;
     if (raw.result === '2') overallResult = `✓ 命中(${hitCount}/${total})`;
     else if (raw.result === '0') overallResult = `✗ 错误(${hitCount}/${total})`;
@@ -152,7 +163,7 @@ function parseArticle(raw) {
 }
 
 function fmtDirection(m) {
-  const dirMap = { '3': '主胜', '1': '平局', '0': '客胜' };
+  const dirMap = { 3: '主胜', 1: '平局', 0: '客胜' };
   const choice = m.choice || '';
   let dir = dirMap[choice] || choice;
   if (m.rangqiu && m.rangqiu !== '') {
@@ -229,7 +240,7 @@ async function main() {
   }
 
   // ── 过滤 2026-01-01 之后 ──
-  const filtered = allArticles.filter(a => {
+  const filtered = allArticles.filter((a) => {
     if (!a.publishtime) return true;
     return new Date(a.publishtime.replace(' ', 'T') + '+08:00') >= CONFIG.SINCE;
   });
@@ -239,17 +250,18 @@ async function main() {
 
   // ── 统计 ────────────────────────────────────────────
   const totalRecs = filtered.reduce((s, a) => s + a.recommendation_count, 0);
-  const hitArts = filtered.filter(a => a.result.startsWith('✓'));
-  const missArts = filtered.filter(a => a.result.startsWith('✗'));
-  const pending = filtered.filter(a => a.result === '待揭晓');
+  const hitArts = filtered.filter((a) => a.result.startsWith('✓'));
+  const missArts = filtered.filter((a) => a.result.startsWith('✗'));
+  const pending = filtered.filter((a) => a.result === '待揭晓');
 
   console.log('\n══════ 统计 ══════');
   console.log(`  方案数: ${filtered.length}`);
   console.log(`  场次数: ${totalRecs}`);
   console.log(`  命中: ${hitArts.length}  |  错误: ${missArts.length}  |  待揭晓: ${pending.length}`);
-  const hitRate = (hitArts.length + missArts.length) > 0
-    ? (hitArts.length / (hitArts.length + missArts.length) * 100).toFixed(1)
-    : 'N/A';
+  const hitRate =
+    hitArts.length + missArts.length > 0
+      ? ((hitArts.length / (hitArts.length + missArts.length)) * 100).toFixed(1)
+      : 'N/A';
   console.log(`  命中率: ${hitRate}% (排除待揭晓)`);
   if (filtered.length > 0) {
     console.log(`  时间: ${filtered[filtered.length - 1].publishtime} ~ ${filtered[0].publishtime}`);
@@ -267,9 +279,8 @@ async function main() {
       miss_count: missArts.length,
       pending_count: pending.length,
       hit_rate: hitRate,
-      date_range: filtered.length > 0
-        ? `${filtered[filtered.length - 1].publishtime} ~ ${filtered[0].publishtime}`
-        : 'N/A',
+      date_range:
+        filtered.length > 0 ? `${filtered[filtered.length - 1].publishtime} ~ ${filtered[0].publishtime}` : 'N/A',
       elapsed_seconds: ((Date.now() - startTime) / 1000).toFixed(1),
     },
     articles: filtered,
@@ -280,7 +291,7 @@ async function main() {
   console.log(`\n✅ 已保存: ${CONFIG.OUTPUT} (${sizeKb} KB, 耗时 ${output.summary.elapsed_seconds}s)`);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('❌ 失败:', err.message);
   process.exit(1);
 });

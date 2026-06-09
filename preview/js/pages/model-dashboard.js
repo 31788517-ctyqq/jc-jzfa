@@ -1,4 +1,4 @@
-/**
+﻿/**
  * preview/js/pages/model-dashboard.js
  * 模型表现仪表板 — 优化版（对标方案收入页风格）
  *
@@ -6,9 +6,43 @@
  */
 
 import { api } from '../api.js';
-import { loadECharts, echartsReady } from '../charts.js';
+import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
+
+var INTERNAL_MODEL_NAMES = ['data_fusion', 'market_signal'];
+
+function isInternalModelName(name) {
+  return INTERNAL_MODEL_NAMES.indexOf(String(name || '')) >= 0;
+}
+
+function filterDashboardData(data) {
+  if (!data) return data;
+  var rankings = (data.rankings || []).filter(function (r) {
+    return !isInternalModelName(r.modelName || r.model_name);
+  });
+  var models = (data.models || []).filter(function (name) {
+    return !isInternalModelName(name);
+  });
+  var heatmap = {};
+  Object.keys(data.leagueHeatmap || {}).forEach(function (name) {
+    if (!isInternalModelName(name)) heatmap[name] = data.leagueHeatmap[name];
+  });
+  var trendData = (data.trendData || []).filter(function (item) {
+    return !isInternalModelName(item.modelName || item.model_name);
+  });
+  return Object.assign({}, data, {
+    rankings: rankings,
+    models: models,
+    leagueHeatmap: heatmap,
+    trendData: trendData,
+    totalPredictions: rankings.reduce(function (sum, r) {
+      return sum + (r.total || 0);
+    }, 0),
+    topModel: rankings.length > 0 ? rankings[0].modelName || rankings[0].model_name : null,
+  });
+}
 
 // ═══════════════════════════════════════════════════════
+
 // 页面入口
 // ═══════════════════════════════════════════════════════
 
@@ -22,7 +56,7 @@ export async function loadDashboard(force) {
     var days = timeVal === 'all' ? 0 : parseInt(timeVal) || 30;
     var metric = window.getDDVal ? window.getDDVal('dd-mdMetric') || 'direction' : 'direction';
 
-    const data = await api('model-dashboard', { days: days, metric: metric });
+    const data = filterDashboardData(await api('model-dashboard', { days: days, metric: metric }));
     if (!data) {
       el.innerHTML = '<div class="hint-box">暂无数据，等待模型回填积累≥2周数据后可见</div>';
       updateStatsCard(null);

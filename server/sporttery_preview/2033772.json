@@ -1,0 +1,556 @@
+{
+  "match_id": "2033772",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "5胜/2平/3负",
+      "6胜/1平/3负",
+      "6胜/3平/1负",
+      "6胜/3平/1负",
+      "2.7个",
+      "0.8个"
+    ],
+    "away": [
+      "3胜/2平/5负",
+      "3胜/1平/6负",
+      "2胜/3平/5负",
+      "1胜/4平/5负",
+      "0.8个",
+      "1.2个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场温哥华5胜 (50%) | 2平 (20%) | 3负 (30%)",
+    "rows": [
+      {
+        "date": "2025-02-24",
+        "league": "美职",
+        "teams": "波特兰 1:4 （半 0:2） 温哥华",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2024-10-24",
+        "league": "美职",
+        "teams": "温哥华 5:0 （半 3:0） 波特兰",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2024-09-29",
+        "league": "美职",
+        "teams": "温哥华 1:1 （半 1:1） 波特兰",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2024-06-23",
+        "league": "美职",
+        "teams": "波特兰 2:0 （半 2:0） 温哥华",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2024-03-31",
+        "league": "美职",
+        "teams": "温哥华 3:2 （半 2:0） 波特兰",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2023-08-27",
+        "league": "美职",
+        "teams": "波特兰 2:3 （半 0:2） 温哥华",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2023-05-14",
+        "league": "美职",
+        "teams": "波特兰 3:1 （半 2:1） 温哥华",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2023-04-09",
+        "league": "美职",
+        "teams": "温哥华 1:0 （半 0:0） 波特兰",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2022-07-18",
+        "league": "美职",
+        "teams": "波特兰 1:1 （半 0:1） 温哥华",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2022-04-10",
+        "league": "美职",
+        "teams": "温哥华 2:3 （半 0:1） 波特兰",
+        "totalGoals": "5"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "温哥华",
+      "title": "Regular Season 第2名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "18/9/7",
+          "winRate": "53%",
+          "goals": "66/38",
+          "gd": "28",
+          "points": "63",
+          "rank": "2"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "10/4/3",
+          "winRate": "59%",
+          "goals": "42/20",
+          "gd": "22",
+          "points": "34",
+          "rank": "3"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "8/5/4",
+          "winRate": "47%",
+          "goals": "24/18",
+          "gd": "6",
+          "points": "29",
+          "rank": "3"
+        }
+      ]
+    },
+    {
+      "team": "波特兰",
+      "title": "Regular Season 第8名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "11/11/12",
+          "winRate": "32%",
+          "goals": "41/48",
+          "gd": "-7",
+          "points": "44",
+          "rank": "8"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "7/6/4",
+          "winRate": "41%",
+          "goals": "25/26",
+          "gd": "-1",
+          "points": "27",
+          "rank": "8"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "4/5/8",
+          "winRate": "24%",
+          "goals": "16/22",
+          "gd": "-6",
+          "points": "17",
+          "rank": "10"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "温哥华",
+      "summary": "温哥华近10场6胜 (60%) | 3平 (30%) | 1负 (10%) 进27球，失8球，净进19球",
+      "matches": [
+        {
+          "date": "2025-09-21",
+          "league": "美职",
+          "vs": "堪萨斯城 0 : 2 （半 0:2） 温哥华",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-17",
+          "league": "杯赛",
+          "vs": "温哥华 4 : 0 （半 2:0） Forge",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-14",
+          "league": "美职",
+          "vs": "温哥华 7 : 0 （半 4:0） 费城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-08-24",
+          "league": "美职",
+          "vs": "温哥华 3 : 2 （半 1:1） 圣路易城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-08-18",
+          "league": "美职",
+          "vs": "温哥华 1 : 1 （半 1:0） 休斯敦",
+          "result": "平"
+        },
+        {
+          "date": "2025-08-14",
+          "league": "杯赛",
+          "vs": "Forge 2 : 2 （半 2:2） 温哥华",
+          "result": "平"
+        },
+        {
+          "date": "2025-08-10",
+          "league": "美职",
+          "vs": "圣何塞 2 : 1 （半 0:0） 温哥华",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-27",
+          "league": "美职",
+          "vs": "温哥华 3 : 0 （半 2:0） 堪萨斯城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-20",
+          "league": "美职",
+          "vs": "圣迭戈FC 1 : 1 （半 0:1） 温哥华",
+          "result": "平"
+        },
+        {
+          "date": "2025-07-17",
+          "league": "美职",
+          "vs": "休斯敦 0 : 3 （半 0:2） 温哥华",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "波特兰",
+      "summary": "波特兰近10场2胜 (20%) | 3平 (30%) | 5负 (50%) 进8球，失12球，净进-4球",
+      "matches": [
+        {
+          "date": "2025-09-21",
+          "league": "美职",
+          "vs": "休斯敦 1 : 0 （半 1:0） 波特兰",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-14",
+          "league": "美职",
+          "vs": "波特兰 2 : 1 （半 1:0） 纽约红牛",
+          "result": "胜"
+        },
+        {
+          "date": "2025-08-31",
+          "league": "美职",
+          "vs": "明尼苏达 1 : 1 （半 0:0） 波特兰",
+          "result": "平"
+        },
+        {
+          "date": "2025-08-24",
+          "league": "美职",
+          "vs": "圣迭戈FC 0 : 0 （半 0:0） 波特兰",
+          "result": "平"
+        },
+        {
+          "date": "2025-08-17",
+          "league": "美职",
+          "vs": "波特兰 2 : 3 （半 1:3） 辛辛那提",
+          "result": "负"
+        },
+        {
+          "date": "2025-08-10",
+          "league": "美职",
+          "vs": "达拉斯 2 : 0 （半 1:0） 波特兰",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-26",
+          "league": "美职",
+          "vs": "洛杉矶FC 0 : 1 （半 0:1） 波特兰",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-20",
+          "league": "美职",
+          "vs": "波特兰 1 : 1 （半 0:0） 明尼苏达",
+          "result": "平"
+        },
+        {
+          "date": "2025-07-17",
+          "league": "美职",
+          "vs": "波特兰 0 : 1 （半 0:0） 盐湖城",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-14",
+          "league": "美职",
+          "vs": "圣路易城 2 : 1 （半 0:1） 波特兰",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "温哥华",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-09",
+          "杯赛",
+          "温哥华\nVS\nCavalry",
+          "Quarter-finals"
+        ],
+        [
+          "2026-07-14",
+          "杯赛",
+          "Cavalry\nVS\n温哥华",
+          "Quarter-finals"
+        ],
+        [
+          "2026-07-17",
+          "美职",
+          "芝加哥\nVS\n温哥华",
+          "Regular Season"
+        ],
+        [
+          "2026-07-23",
+          "美职",
+          "辛辛那提\nVS\n温哥华",
+          "Regular Season"
+        ]
+      ]
+    },
+    {
+      "team": "波特兰",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-17",
+          "美职",
+          "西雅图\nVS\n波特兰",
+          "Regular Season"
+        ],
+        [
+          "2026-07-23",
+          "美职",
+          "波特兰\nVS\n达拉斯",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "波特兰\nVS\n盐湖城",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "波特兰\nVS\n西雅图",
+          "Regular Season"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "温哥华",
+      "players": [
+        {
+          "player": "24-B.怀特(前锋)伤",
+          "apps": "24 (21/3)",
+          "goals": "18 (24%)",
+          "assists": "2 (4%)",
+          "avg": "0.8/0.1"
+        },
+        {
+          "player": "13-穆勒(前锋)伤",
+          "apps": "12 (11/1)",
+          "goals": "8 (11%)",
+          "assists": "3 (6%)",
+          "avg": "0.7/0.3"
+        },
+        {
+          "player": "11-E. Sabbi(前锋)伤",
+          "apps": "33 (28/5)",
+          "goals": "8 (11%)",
+          "assists": "3 (6%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    },
+    {
+      "team": "波特兰",
+      "players": [
+        {
+          "player": "11-Antony(前锋)",
+          "apps": "32 (30/2)",
+          "goals": "7 (16%)",
+          "assists": "7 (18%)",
+          "avg": "0.2/0.2"
+        },
+        {
+          "player": "9-莫拉(前锋)",
+          "apps": "37 (22/15)",
+          "goals": "7 (16%)",
+          "assists": "3 (8%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "19-K. Kelsy(前锋)",
+          "apps": "37 (19/18)",
+          "goals": "7 (16%)",
+          "assists": "1 (3%)",
+          "avg": "0.2/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "温哥华",
+      "players": [
+        {
+          "player": "20-库瓦斯(中场)",
+          "totalApps": "31",
+          "starts": "30",
+          "subs": "1",
+          "status": "停"
+        },
+        {
+          "player": "18-É. Ocampo(后卫)",
+          "totalApps": "35",
+          "starts": "31",
+          "subs": "4",
+          "status": "停"
+        },
+        {
+          "player": "13-穆勒(前锋)",
+          "totalApps": "12",
+          "starts": "11",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "26-S. Armstrong(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "25-R. Gauld(中场)",
+          "totalApps": "11",
+          "starts": "3",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "15-B. Utvik(后卫)",
+          "totalApps": "16",
+          "starts": "12",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "3-阿德库贝(后卫)",
+          "totalApps": "7",
+          "starts": "4",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "15-S·施洛(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "14-D. Ríos(前锋)",
+          "totalApps": "33",
+          "starts": "18",
+          "subs": "15",
+          "status": "伤"
+        },
+        {
+          "player": "4-R. Veselinović(后卫)",
+          "totalApps": "21",
+          "starts": "20",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "11-E. Sabbi(前锋)",
+          "totalApps": "33",
+          "starts": "28",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "33-T. Blackmon(后卫)",
+          "totalApps": "27",
+          "starts": "25",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "6-R.普利索-姆邦格(中场)",
+          "totalApps": "33",
+          "starts": "19",
+          "subs": "14",
+          "status": "伤"
+        },
+        {
+          "player": "24-B.怀特(前锋)",
+          "totalApps": "24",
+          "starts": "21",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "32-I. Boehmer(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "波特兰",
+      "players": [
+        {
+          "player": "16-克雷波(守门员)",
+          "totalApps": "15",
+          "starts": "15",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "14-J. Rodríguez(前锋)",
+          "totalApps": "6",
+          "starts": "0",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "33-F. Carballo(中场)",
+          "totalApps": "18",
+          "starts": "12",
+          "subs": "6",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

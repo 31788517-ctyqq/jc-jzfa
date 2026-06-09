@@ -5,10 +5,15 @@ var validBatches = [];
 Object.keys(bank).forEach(function (k) {
   if (!k.startsWith('_raw_')) return;
   var entry = bank[k];
-  var data = entry && entry.data ? entry.data : (Array.isArray(entry) ? entry : []);
+  var data = entry && entry.data ? entry.data : Array.isArray(entry) ? entry : [];
   if (!Array.isArray(data) || data.length === 0) return;
 
-  var dates = data.map(function (d) { return d.matchTimeStr || d.matchDate || ''; }).filter(Boolean).sort();
+  var dates = data
+    .map(function (d) {
+      return d.matchTimeStr || d.matchDate || '';
+    })
+    .filter(Boolean)
+    .sort();
   validBatches.push({
     dt: k.replace('_raw_', ''),
     count: data.length,
@@ -17,7 +22,9 @@ Object.keys(bank).forEach(function (k) {
   });
 });
 
-validBatches.sort(function (a, b) { return a.dt.localeCompare(b.dt); });
+validBatches.sort(function (a, b) {
+  return a.dt.localeCompare(b.dt);
+});
 console.log('有效批次: ' + validBatches.length);
 console.log('');
 validBatches.forEach(function (b) {
@@ -39,12 +46,18 @@ validBatches.forEach(function (b) {
 console.log('');
 console.log('按月份汇总:');
 var months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-Object.keys(byMonth).sort().forEach(function (m) {
-  var info = byMonth[m];
-  var name = months[parseInt(m)] || (m + '月');
-  console.log('  ' + name + ': ' + info.batches + ' 批次, ' + info.matches + ' 场, ' + info.minDate + ' ~ ' + info.maxDate);
-});
+Object.keys(byMonth)
+  .sort()
+  .forEach(function (m) {
+    var info = byMonth[m];
+    var name = months[parseInt(m)] || m + '月';
+    console.log(
+      '  ' + name + ': ' + info.batches + ' 批次, ' + info.matches + ' 场, ' + info.minDate + ' ~ ' + info.maxDate,
+    );
+  });
 
-var total = validBatches.reduce(function (s, b) { return s + b.count; }, 0);
+var total = validBatches.reduce(function (s, b) {
+  return s + b.count;
+}, 0);
 console.log('');
 console.log('总计: ' + validBatches.length + ' 批次, ' + total + ' 场比赛数据');

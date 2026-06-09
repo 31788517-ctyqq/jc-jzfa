@@ -22,21 +22,61 @@ const path = require('path');
 function detectChanges(oldOdds, newOdds, matchNum) {
   const changes = {};
   const paths = [
-    'spf.home', 'spf.draw', 'spf.away',
-    'rqspf.home', 'rqspf.draw', 'rqspf.away',
-    'halfFull.hh', 'halfFull.hd', 'halfFull.ha',
-    'halfFull.dh', 'halfFull.dd', 'halfFull.da',
-    'halfFull.ah', 'halfFull.ad', 'halfFull.aa',
-    'totalGoals.0', 'totalGoals.1', 'totalGoals.2',
-    'totalGoals.3', 'totalGoals.4', 'totalGoals.5',
-    'totalGoals.6', 'totalGoals.7+', 'totalGoals.7',
+    'spf.home',
+    'spf.draw',
+    'spf.away',
+    'rqspf.home',
+    'rqspf.draw',
+    'rqspf.away',
+    'halfFull.hh',
+    'halfFull.hd',
+    'halfFull.ha',
+    'halfFull.dh',
+    'halfFull.dd',
+    'halfFull.da',
+    'halfFull.ah',
+    'halfFull.ad',
+    'halfFull.aa',
+    'totalGoals.0',
+    'totalGoals.1',
+    'totalGoals.2',
+    'totalGoals.3',
+    'totalGoals.4',
+    'totalGoals.5',
+    'totalGoals.6',
+    'totalGoals.7+',
+    'totalGoals.7',
     // ★ BF 比分 (scores): 使用冒号分隔的比分标签作 key
-    'scores.1:0', 'scores.2:0', 'scores.2:1', 'scores.3:0', 'scores.3:1', 'scores.3:2',
-    'scores.4:0', 'scores.4:1', 'scores.4:2', 'scores.5:0', 'scores.5:1', 'scores.5:2',
+    'scores.1:0',
+    'scores.2:0',
+    'scores.2:1',
+    'scores.3:0',
+    'scores.3:1',
+    'scores.3:2',
+    'scores.4:0',
+    'scores.4:1',
+    'scores.4:2',
+    'scores.5:0',
+    'scores.5:1',
+    'scores.5:2',
     'scores.胜其它',
-    'scores.0:0', 'scores.1:1', 'scores.2:2', 'scores.3:3', 'scores.平其它',
-    'scores.0:1', 'scores.0:2', 'scores.1:2', 'scores.0:3', 'scores.1:3', 'scores.2:3',
-    'scores.0:4', 'scores.1:4', 'scores.2:4', 'scores.0:5', 'scores.1:5', 'scores.2:5',
+    'scores.0:0',
+    'scores.1:1',
+    'scores.2:2',
+    'scores.3:3',
+    'scores.平其它',
+    'scores.0:1',
+    'scores.0:2',
+    'scores.1:2',
+    'scores.0:3',
+    'scores.1:3',
+    'scores.2:3',
+    'scores.0:4',
+    'scores.1:4',
+    'scores.2:4',
+    'scores.0:5',
+    'scores.1:5',
+    'scores.2:5',
     'scores.负其它',
   ];
 
@@ -60,11 +100,12 @@ function detectChanges(oldOdds, newOdds, matchNum) {
  */
 function appendDeltaLog(oddsDir, dateStr, matchNum, changes) {
   const logPath = path.join(oddsDir, dateStr + '_delta.jsonl');
-  const entry = JSON.stringify({
-    ts: new Date().toISOString(),
-    num: matchNum,
-    changes: changes,
-  }) + '\n';
+  const entry =
+    JSON.stringify({
+      ts: new Date().toISOString(),
+      num: matchNum,
+      changes: changes,
+    }) + '\n';
   try {
     fs.appendFileSync(logPath, entry, 'utf-8');
   } catch (e) {
@@ -85,9 +126,19 @@ function getDeltaHistory(oddsDir, dateStr, matchNum) {
   try {
     const lines = fs.readFileSync(logPath, 'utf-8').split('\n').filter(Boolean);
     return lines
-      .map(function (l) { try { return JSON.parse(l); } catch (e) { return null; } })
-      .filter(function (e) { return e && e.num === matchNum; })
-      .sort(function (a, b) { return a.ts.localeCompare(b.ts); });
+      .map(function (l) {
+        try {
+          return JSON.parse(l);
+        } catch (e) {
+          return null;
+        }
+      })
+      .filter(function (e) {
+        return e && e.num === matchNum;
+      })
+      .sort(function (a, b) {
+        return a.ts.localeCompare(b.ts);
+      });
   } catch (e) {
     return [];
   }
@@ -105,7 +156,13 @@ function getAllDeltaLogs(oddsDir, dateStr) {
   try {
     const lines = fs.readFileSync(logPath, 'utf-8').split('\n').filter(Boolean);
     return lines
-      .map(function (l) { try { return JSON.parse(l); } catch (e) { return null; } })
+      .map(function (l) {
+        try {
+          return JSON.parse(l);
+        } catch (e) {
+          return null;
+        }
+      })
       .filter(Boolean);
   } catch (e) {
     return [];

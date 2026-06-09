@@ -87,12 +87,7 @@ describe('cache — 路径常量', () => {
   });
 
   it('所有路径是绝对路径或包含 server 目录', () => {
-    const paths = [
-      cache.DATA_JSON_PATH,
-      cache.TRENDS_PATH,
-      cache.ODDS_DIR,
-      cache.GS_CACHE_PATH,
-    ];
+    const paths = [cache.DATA_JSON_PATH, cache.TRENDS_PATH, cache.ODDS_DIR, cache.GS_CACHE_PATH];
     paths.forEach(function (p) {
       expect(typeof p).toBe('string');
       expect(p.length).toBeGreaterThan(10);

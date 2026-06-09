@@ -4,7 +4,9 @@ var d = JSON.parse(fs.readFileSync('server/data.json', 'utf8'));
 var rMap = d.r || {};
 
 var totalEntries = 0;
-var rs0 = 0, rs1 = 0, rsOther = 0;
+var rs0 = 0,
+  rs1 = 0,
+  rsOther = 0;
 var sampleEntries = [];
 
 var keys = Object.keys(rMap);
@@ -19,9 +21,9 @@ for (var i = 0; i < keys.length; i++) {
     var rs = r.rs;
     if (rs === 0) rs0++;
     else if (rs === 1) rs1++;
-    else { 
+    else {
       rsOther++;
-      if (sampleEntries.length < 5) sampleEntries.push({key: keys[i], r: r});
+      if (sampleEntries.length < 5) sampleEntries.push({ key: keys[i], r: r });
     }
   }
 }
@@ -49,7 +51,8 @@ var recentDates = sortedDates.slice(-5);
 for (var di = 0; di < recentDates.length; di++) {
   var ds = recentDates[di];
   var mids = matchDates[ds];
-  var dayTotal = 0, dayRs1 = 0;
+  var dayTotal = 0,
+    dayRs1 = 0;
   for (var mi = 0; mi < mids.length; mi++) {
     var recs = rMap[mids[mi]] || [];
     for (var ri = 0; ri < recs.length; ri++) {

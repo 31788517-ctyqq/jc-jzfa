@@ -1,0 +1,499 @@
+{
+  "match_id": "2036182",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/5平/5负",
+      "1胜/3平/4负",
+      "3胜/2平/5负",
+      "5胜/2平/3负",
+      "1.0个",
+      "1.6个"
+    ],
+    "away": [
+      "5胜/5平/0负",
+      "4胜/3平/1负",
+      "3胜/4平/3负",
+      "3胜/3平/4负",
+      "1.0个",
+      "1.7个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场汉堡0胜 (0%) | 5平 (50%) | 5负 (50%)",
+    "rows": [
+      {
+        "date": "2018-05-05",
+        "league": "德甲",
+        "teams": "法兰克福 3:0 （半 1:0） 汉堡",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2017-12-13",
+        "league": "德甲",
+        "teams": "汉堡 1:2 （半 1:2） 法兰克福",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2017-03-19",
+        "league": "德甲",
+        "teams": "法兰克福 0:0 （半 0:0） 汉堡",
+        "totalGoals": ""
+      },
+      {
+        "date": "2016-10-22",
+        "league": "德甲",
+        "teams": "汉堡 0:3 （半 0:1） 法兰克福",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2016-02-20",
+        "league": "德甲",
+        "teams": "法兰克福 0:0 （半 0:0） 汉堡",
+        "totalGoals": ""
+      },
+      {
+        "date": "2015-09-19",
+        "league": "德甲",
+        "teams": "汉堡 0:0 （半 0:0） 法兰克福",
+        "totalGoals": ""
+      },
+      {
+        "date": "2015-03-01",
+        "league": "德甲",
+        "teams": "法兰克福 2:1 （半 1:1） 汉堡",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2014-09-28",
+        "league": "德甲",
+        "teams": "汉堡 1:2 （半 0:1） 法兰克福",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2014-03-08",
+        "league": "德甲",
+        "teams": "汉堡 1:1 （半 0:1） 法兰克福",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2013-09-29",
+        "league": "德甲",
+        "teams": "法兰克福 2:2 （半 1:1） 汉堡",
+        "totalGoals": "4"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "汉堡",
+      "title": "Regular Season 第13名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "9/11/14",
+          "winRate": "26%",
+          "goals": "40/54",
+          "gd": "-14",
+          "points": "38",
+          "rank": "13"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "6/6/5",
+          "winRate": "35%",
+          "goals": "25/22",
+          "gd": "3",
+          "points": "24",
+          "rank": "10"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "3/5/9",
+          "winRate": "18%",
+          "goals": "15/32",
+          "gd": "-17",
+          "points": "14",
+          "rank": "14"
+        }
+      ]
+    },
+    {
+      "team": "法兰克福",
+      "title": "Regular Season 第8名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "11/11/12",
+          "winRate": "32%",
+          "goals": "61/65",
+          "gd": "-4",
+          "points": "44",
+          "rank": "8"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "7/4/6",
+          "winRate": "41%",
+          "goals": "29/27",
+          "gd": "2",
+          "points": "25",
+          "rank": "9"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "4/7/6",
+          "winRate": "24%",
+          "goals": "32/38",
+          "gd": "-6",
+          "points": "19",
+          "rank": "8"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "汉堡",
+      "summary": "汉堡近10场3胜 (30%) | 2平 (20%) | 5负 (50%) 进10球，失16球，净进-6球",
+      "matches": [
+        {
+          "date": "2025-12-13",
+          "league": "德甲",
+          "vs": "霍芬海姆 4 : 1 （半 2:0） 汉堡",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-07",
+          "league": "德甲",
+          "vs": "汉堡 3 : 2 （半 0:1） 不来梅",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-04",
+          "league": "德国杯",
+          "vs": "汉堡 0 : 0 （半 0:0） 基尔",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-30",
+          "league": "德甲",
+          "vs": "汉堡 2 : 1 （半 1:0） 斯图加特",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-22",
+          "league": "德甲",
+          "vs": "奥格斯堡 1 : 0 （半 0:0） 汉堡",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-08",
+          "league": "德甲",
+          "vs": "汉堡 1 : 1 （半 0:0） 多特蒙德",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-02",
+          "league": "德甲",
+          "vs": "科隆 4 : 1 （半 1:0） 汉堡",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-29",
+          "league": "德国杯",
+          "vs": "海登海姆 0 : 1 （半 0:0） 汉堡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-25",
+          "league": "德甲",
+          "vs": "汉堡 0 : 1 （半 0:1） 沃夫斯堡",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-18",
+          "league": "德甲",
+          "vs": "莱红牛 2 : 1 （半 1:0） 汉堡",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "法兰克福",
+      "summary": "法兰克福近10场3胜 (30%) | 4平 (40%) | 3负 (30%) 进10球，失17球，净进-7球",
+      "matches": [
+        {
+          "date": "2025-12-13",
+          "league": "德甲",
+          "vs": "法兰克福 1 : 0 （半 0:0） 奥格斯堡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-10",
+          "league": "欧冠",
+          "vs": "巴萨 2 : 1 （半 0:1） 法兰克福",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-07",
+          "league": "德甲",
+          "vs": "莱红牛 6 : 0 （半 2:0） 法兰克福",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-01",
+          "league": "德甲",
+          "vs": "法兰克福 1 : 1 （半 0:0） 沃夫斯堡",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-27",
+          "league": "欧冠",
+          "vs": "法兰克福 0 : 3 （半 0:0） 亚特兰大",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-23",
+          "league": "德甲",
+          "vs": "科隆 3 : 4 （半 1:2） 法兰克福",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-10",
+          "league": "德甲",
+          "vs": "法兰克福 1 : 0 （半 0:0） 美因茨",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-05",
+          "league": "欧冠",
+          "vs": "那不勒斯 0 : 0 （半 0:0） 法兰克福",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-01",
+          "league": "德甲",
+          "vs": "海登海姆 1 : 1 （半 1:0） 法兰克福",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-29",
+          "league": "德国杯",
+          "vs": "法兰克福 1 : 1 （半 1:0） 多特蒙德",
+          "result": "平"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "汉堡",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "法兰克福",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-15",
+          "俱乐部赛",
+          "布伦特\nVS\n法兰克福",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "汉堡",
+      "players": [
+        {
+          "player": "20-Fabio Vieira(中场)",
+          "apps": "29 (25/4)",
+          "goals": "7 (18%)",
+          "assists": "5 (18%)",
+          "avg": "0.2/0.2"
+        },
+        {
+          "player": "44-L. Vušković(后卫)",
+          "apps": "28 (27/1)",
+          "goals": "6 (15%)",
+          "assists": "0 (0%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "14-R.菲利普(前锋)",
+          "apps": "28 (13/15)",
+          "goals": "5 (13%)",
+          "assists": "0 (0%)",
+          "avg": "0.2/0"
+        }
+      ]
+    },
+    {
+      "team": "法兰克福",
+      "players": [
+        {
+          "player": "9-J. Burkardt(前锋)伤",
+          "apps": "22 (15/7)",
+          "goals": "13 (21%)",
+          "assists": "1 (2%)",
+          "avg": "0.6/0"
+        },
+        {
+          "player": "42-C. Uzun(中场)",
+          "apps": "21 (15/6)",
+          "goals": "8 (13%)",
+          "assists": "4 (10%)",
+          "avg": "0.4/0.2"
+        },
+        {
+          "player": "25-A·穆因加(前锋)",
+          "apps": "19 (17/2)",
+          "goals": "6 (10%)",
+          "assists": "1 (2%)",
+          "avg": "0.3/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "汉堡",
+      "players": [
+        {
+          "player": "15-尤拉里(前锋)",
+          "totalApps": "15",
+          "starts": "1",
+          "subs": "14",
+          "status": "伤"
+        },
+        {
+          "player": "9-R·格拉策尔(前锋)",
+          "totalApps": "19",
+          "starts": "7",
+          "subs": "12",
+          "status": "伤"
+        },
+        {
+          "player": "7-多姆佩(前锋)",
+          "totalApps": "20",
+          "starts": "12",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "13-Guilherme Ramos(后卫)",
+          "totalApps": "8",
+          "starts": "0",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "30-S·赫夫蒂(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "17-W. Omari(后卫)",
+          "totalApps": "20",
+          "starts": "17",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "6-Ł. Poręba(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "40-H. Hermann(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "38-A. Røssing-Lelesiit(前锋)",
+          "totalApps": "11",
+          "starts": "5",
+          "subs": "6",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "法兰克福",
+      "players": [
+        {
+          "player": "3-泰亚特(后卫)",
+          "totalApps": "24",
+          "starts": "24",
+          "subs": "0",
+          "status": "停"
+        },
+        {
+          "player": "22-T. Chandler(中场)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "30-巴楚亚伊(前锋)",
+          "totalApps": "6",
+          "starts": "1",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "4-科赫(后卫)",
+          "totalApps": "32",
+          "starts": "32",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "9-J. Burkardt(前锋)",
+          "totalApps": "22",
+          "starts": "15",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "17-S. Wahi(前锋)",
+          "totalApps": "10",
+          "starts": "3",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "16-H. Larsson(中场)",
+          "totalApps": "25",
+          "starts": "21",
+          "subs": "4",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

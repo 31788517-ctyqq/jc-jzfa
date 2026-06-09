@@ -1,0 +1,528 @@
+{
+  "match_id": "2032191",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "1胜/4平/5负",
+      "1胜/1平/4负",
+      "3胜/4平/3负",
+      "5胜/4平/1负",
+      "1.7个",
+      "1.9个"
+    ],
+    "away": [
+      "5胜/4平/1负",
+      "4胜/1平/1负",
+      "5胜/4平/1负",
+      "4胜/5平/1负",
+      "1.8个",
+      "1.4个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场哥伦布1胜 (10%) | 4平 (40%) | 5负 (50%)",
+    "rows": [
+      {
+        "date": "2022-02-27",
+        "league": "美职",
+        "teams": "哥伦布 4:0 （半 2:0） 温哥华",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2020-01-29",
+        "league": "俱乐部赛",
+        "teams": "哥伦布 1:1 （半 -:-） 温哥华",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2019-09-22",
+        "league": "美职",
+        "teams": "温哥华 1:1 （半 0:1） 哥伦布",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2018-04-01",
+        "league": "美职",
+        "teams": "哥伦布 1:2 （半 1:0） 温哥华",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2017-09-17",
+        "league": "美职",
+        "teams": "温哥华 2:2 （半 1:1） 哥伦布",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2016-09-11",
+        "league": "美职",
+        "teams": "哥伦布 1:3 （半 1:1） 温哥华",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2015-04-09",
+        "league": "美职",
+        "teams": "温哥华 2:2 （半 1:1） 哥伦布",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2014-05-11",
+        "league": "美职",
+        "teams": "哥伦布 0:1 （半 0:1） 温哥华",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2013-03-10",
+        "league": "美职",
+        "teams": "温哥华 2:1 （半 1:0） 哥伦布",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2012-04-29",
+        "league": "美职",
+        "teams": "哥伦布 0:1 （半 0:0） 温哥华",
+        "totalGoals": "1"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "哥伦布",
+      "title": "Regular Season 第7名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "14/12/8",
+          "winRate": "41%",
+          "goals": "55/51",
+          "gd": "4",
+          "points": "54",
+          "rank": "7"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "9/5/3",
+          "winRate": "53%",
+          "goals": "29/20",
+          "gd": "9",
+          "points": "32",
+          "rank": "7"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "5/7/5",
+          "winRate": "29%",
+          "goals": "26/31",
+          "gd": "-5",
+          "points": "22",
+          "rank": "7"
+        }
+      ]
+    },
+    {
+      "team": "温哥华",
+      "title": "Regular Season 第2名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "18/9/7",
+          "winRate": "53%",
+          "goals": "66/38",
+          "gd": "28",
+          "points": "63",
+          "rank": "2"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "10/4/3",
+          "winRate": "59%",
+          "goals": "42/20",
+          "gd": "22",
+          "points": "34",
+          "rank": "3"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "8/5/4",
+          "winRate": "47%",
+          "goals": "24/18",
+          "gd": "6",
+          "points": "29",
+          "rank": "3"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "哥伦布",
+      "summary": "哥伦布近10场3胜 (30%) | 4平 (40%) | 3负 (30%) 进17球，失19球，净进-2球",
+      "matches": [
+        {
+          "date": "2025-06-01",
+          "league": "美职",
+          "vs": "迈国际 5 : 1 （半 3:0） 哥伦布",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-29",
+          "league": "美职",
+          "vs": "哥伦布 2 : 2 （半 0:1） 纳什维尔",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-25",
+          "league": "美职",
+          "vs": "夏洛特FC 3 : 2 （半 2:1） 哥伦布",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "美职",
+          "vs": "哥伦布 1 : 1 （半 0:1） 辛辛那提",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-15",
+          "league": "美职",
+          "vs": "蒙特利尔 1 : 1 （半 1:0） 哥伦布",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-11",
+          "league": "美职",
+          "vs": "费城 2 : 2 （半 1:0） 哥伦布",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-04",
+          "league": "美职",
+          "vs": "哥伦布 4 : 2 （半 2:1） 夏洛特FC",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-27",
+          "league": "美职",
+          "vs": "哥伦布 2 : 1 （半 1:1） 圣何塞",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-20",
+          "league": "美职",
+          "vs": "哥伦布 0 : 1 （半 0:1） 迈国际",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-14",
+          "league": "美职",
+          "vs": "圣路易城 1 : 2 （半 1:1） 哥伦布",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "温哥华",
+      "summary": "温哥华近10场5胜 (50%) | 4平 (40%) | 1负 (10%) 进18球，失14球，净进4球",
+      "matches": [
+        {
+          "date": "2025-06-09",
+          "league": "美职",
+          "vs": "温哥华 3 : 0 （半 1:0） 西雅图",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-02",
+          "league": "中北美冠",
+          "vs": "蓝十字 5 : 0 （半 4:0） 温哥华",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-29",
+          "league": "美职",
+          "vs": "温哥华 0 : 0 （半 0:0） 明尼苏达",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-25",
+          "league": "美职",
+          "vs": "盐湖城 2 : 3 （半 2:2） 温哥华",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-21",
+          "league": "杯赛",
+          "vs": "Valour 2 : 2 （半 1:1） 温哥华",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "美职",
+          "vs": "奥斯汀FC 0 : 0 （半 0:0） 温哥华",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-12",
+          "league": "美职",
+          "vs": "温哥华 2 : 2 （半 1:2） 洛杉矶FC",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-04",
+          "league": "美职",
+          "vs": "温哥华 2 : 1 （半 1:0） 盐湖城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-01",
+          "league": "中北美冠",
+          "vs": "迈国际 1 : 3 （半 1:0） 温哥华",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-28",
+          "league": "美职",
+          "vs": "明尼苏达 1 : 3 （半 0:0） 温哥华",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "哥伦布",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-12",
+          "俱乐部赛",
+          "哥伦布\nVS\n伯恩利",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-23",
+          "美职",
+          "哥伦布\nVS\n纽约城",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "哥伦布\nVS\n辛辛那提",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "迈国际\nVS\n哥伦布",
+          "Regular Season"
+        ]
+      ]
+    },
+    {
+      "team": "温哥华",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-09",
+          "杯赛",
+          "温哥华\nVS\nCavalry",
+          "Quarter-finals"
+        ],
+        [
+          "2026-07-14",
+          "杯赛",
+          "Cavalry\nVS\n温哥华",
+          "Quarter-finals"
+        ],
+        [
+          "2026-07-17",
+          "美职",
+          "芝加哥\nVS\n温哥华",
+          "Regular Season"
+        ],
+        [
+          "2026-07-23",
+          "美职",
+          "辛辛那提\nVS\n温哥华",
+          "Regular Season"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "哥伦布",
+      "players": [
+        {
+          "player": "10-D. Rossi(中场)",
+          "apps": "32 (32/0)",
+          "goals": "16 (27%)",
+          "assists": "4 (9%)",
+          "avg": "0.5/0.1"
+        },
+        {
+          "player": "19-罗(前锋)",
+          "apps": "34 (19/15)",
+          "goals": "9 (15%)",
+          "assists": "2 (4%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "8-高兹道格(中场)",
+          "apps": "35 (29/6)",
+          "goals": "6 (10%)",
+          "assists": "5 (11%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    },
+    {
+      "team": "温哥华",
+      "players": [
+        {
+          "player": "24-B.怀特(前锋)",
+          "apps": "24 (21/3)",
+          "goals": "18 (24%)",
+          "assists": "2 (4%)",
+          "avg": "0.8/0.1"
+        },
+        {
+          "player": "13-穆勒(前锋)",
+          "apps": "12 (11/1)",
+          "goals": "8 (11%)",
+          "assists": "3 (6%)",
+          "avg": "0.7/0.3"
+        },
+        {
+          "player": "11-E. Sabbi(前锋)伤",
+          "apps": "33 (28/5)",
+          "goals": "8 (11%)",
+          "assists": "3 (6%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "哥伦布",
+      "players": [
+        {
+          "player": "4-R. Camacho(后卫)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "9-J. Hernández(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "18-阿蒙森(后卫)",
+          "totalApps": "27",
+          "starts": "24",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "28-P.舒尔特(守门员)",
+          "totalApps": "28",
+          "starts": "28",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "温哥华",
+      "players": [
+        {
+          "player": "26-S. Armstrong(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "25-R. Gauld(中场)",
+          "totalApps": "11",
+          "starts": "3",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "15-B. Utvik(后卫)",
+          "totalApps": "16",
+          "starts": "12",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "3-阿德库贝(后卫)",
+          "totalApps": "7",
+          "starts": "4",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "4-R. Veselinović(后卫)",
+          "totalApps": "21",
+          "starts": "20",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "11-E. Sabbi(前锋)",
+          "totalApps": "33",
+          "starts": "28",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "6-R.普利索-姆邦格(中场)",
+          "totalApps": "33",
+          "starts": "19",
+          "subs": "14",
+          "status": "伤"
+        },
+        {
+          "player": "32-I. Boehmer(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "18-É. Ocampo(后卫)",
+          "totalApps": "35",
+          "starts": "31",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "59-J. Badwal(中场)",
+          "totalApps": "27",
+          "starts": "9",
+          "subs": "18",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

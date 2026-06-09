@@ -28,7 +28,11 @@ describe('token_manager — 模块导出', () => {
 
 describe('token_manager — 重复调用行为', () => {
   it('连续调用 getToken 不抛异常', () => {
-    expect(function () { getToken(); }).not.toThrow();
-    expect(function () { getToken(); }).not.toThrow();
+    expect(function () {
+      getToken();
+    }).not.toThrow();
+    expect(function () {
+      getToken();
+    }).not.toThrow();
   });
 });

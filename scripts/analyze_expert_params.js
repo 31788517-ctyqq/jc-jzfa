@@ -21,7 +21,9 @@ const AMOUNT = 1000; // 每注 1000 元
 
 // ── 工具函数 ──
 function fmtDate2(dd) {
-  return dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0');
+  return (
+    dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0')
+  );
 }
 
 // ── 加载 data.json ──
@@ -53,7 +55,9 @@ for (const ds of allDates) {
       const od = JSON.parse(fs.readFileSync(file, 'utf8'));
       oddsCache[ds] = od;
       oddsLoaded++;
-    } catch (e) { /* skip */ }
+    } catch (e) {
+      /* skip */
+    }
   }
 }
 console.log('  loaded:', oddsLoaded, '/', allDates.length);
@@ -71,7 +75,9 @@ function getOddsForMatch(ds, matchNum) {
  * @param {number} minExpertCnt findBest 需要的最低专家数
  */
 function analyzeParams(minDayCount, minExpertCnt) {
-  let totalPlans = 0, totalWon = 0, totalIncome = 0;
+  let totalPlans = 0,
+    totalWon = 0,
+    totalIncome = 0;
 
   for (const ds of allDates) {
     const mList = dateMap[ds];
@@ -88,7 +94,7 @@ function analyzeParams(minDayCount, minExpertCnt) {
       const recs = recsRaw.map((x) => ({
         type: x.t || x.type || '',
         num: x.n || x.num || 0,
-        result: (x.rs === 0 || x.rs === 1) ? x.rs : null,
+        result: x.rs === 0 || x.rs === 1 ? x.rs : null,
       }));
 
       // 从 odds_history 加载赔率
@@ -114,7 +120,8 @@ function analyzeParams(minDayCount, minExpertCnt) {
 
     // ── findBest（与线上逻辑一致，增加专家数门槛）──
     function findBest(directions, excludeIds) {
-      let best = null, bestCount = 0;
+      let best = null,
+        bestCount = 0;
       for (const mm of mList) {
         if (excludeIds && excludeIds.indexOf(mm.matchId) >= 0) continue;
         const md = matchDataMap[mm.matchId];
@@ -139,29 +146,54 @@ function analyzeParams(minDayCount, minExpertCnt) {
     // 方案一
     const m1a = findBest(['平', '让平']);
     const m1b = findBest(['让负'], m1a ? [m1a.matchId] : null);
-    if (m1a && m1b) dayPlans.push({ name: 'plan_1', matches: [{ m: m1a, dir: '平、让平' }, { m: m1b, dir: '让负' }] });
+    if (m1a && m1b)
+      dayPlans.push({
+        name: 'plan_1',
+        matches: [
+          { m: m1a, dir: '平、让平' },
+          { m: m1b, dir: '让负' },
+        ],
+      });
 
     // 方案二
     const m2a = findBest(['总进球-2、3球']);
     const m2b = findBest(['让负'], m2a ? [m2a.matchId] : null);
-    if (m2a && m2b) dayPlans.push({ name: 'plan_2', matches: [{ m: m2a, dir: '总进球-2、3球' }, { m: m2b, dir: '让负' }] });
+    if (m2a && m2b)
+      dayPlans.push({
+        name: 'plan_2',
+        matches: [
+          { m: m2a, dir: '总进球-2、3球' },
+          { m: m2b, dir: '让负' },
+        ],
+      });
 
     // 方案三
     const m3a = findBest(['胜']);
     const m3b = findBest(['让负'], m3a ? [m3a.matchId] : null);
-    if (m3a && m3b) dayPlans.push({ name: 'plan_3', matches: [{ m: m3a, dir: '胜' }, { m: m3b, dir: '让负' }] });
+    if (m3a && m3b)
+      dayPlans.push({
+        name: 'plan_3',
+        matches: [
+          { m: m3a, dir: '胜' },
+          { m: m3b, dir: '让负' },
+        ],
+      });
 
     // 方案六: dayMatchCount >= 4
     if (dayMatchCount >= 4) {
       const targetParts = ['半全场-胜胜', '半全场-平胜'];
-      let bestM6 = null, bestCount6 = 0;
+      let bestM6 = null,
+        bestCount6 = 0;
       for (const k of Object.keys(matchDataMap)) {
         const md = matchDataMap[k];
         let total6 = 0;
         for (const r of md.recs) {
-          for (const tp of targetParts) if ((r.type || '') === tp) total6 += (r.num || 0);
+          for (const tp of targetParts) if ((r.type || '') === tp) total6 += r.num || 0;
         }
-        if (total6 > bestCount6) { bestCount6 = total6; bestM6 = md.match; }
+        if (total6 > bestCount6) {
+          bestCount6 = total6;
+          bestM6 = md.match;
+        }
       }
       if (bestM6 && bestCount6 >= minExpertCnt) {
         dayPlans.push({ name: 'plan_6', matches: [{ m: bestM6, dir: '半全场-胜胜、平胜' }] });
@@ -172,11 +204,25 @@ function analyzeParams(minDayCount, minExpertCnt) {
     if (dayMatchCount >= 6) {
       const m4a = findBest(['平', '让平']);
       const m4b = findBest(['胜'], m4a ? [m4a.matchId] : null);
-      if (m4a && m4b) dayPlans.push({ name: 'plan_4', matches: [{ m: m4a, dir: '平、让平' }, { m: m4b, dir: '胜' }] });
+      if (m4a && m4b)
+        dayPlans.push({
+          name: 'plan_4',
+          matches: [
+            { m: m4a, dir: '平、让平' },
+            { m: m4b, dir: '胜' },
+          ],
+        });
 
       const m5a = findBest(['平', '让平']);
       const m5b = findBest(['总进球-2、3球'], m5a ? [m5a.matchId] : null);
-      if (m5a && m5b) dayPlans.push({ name: 'plan_5', matches: [{ m: m5a, dir: '平、让平' }, { m: m5b, dir: '总进球-2、3球' }] });
+      if (m5a && m5b)
+        dayPlans.push({
+          name: 'plan_5',
+          matches: [
+            { m: m5a, dir: '平、让平' },
+            { m: m5b, dir: '总进球-2、3球' },
+          ],
+        });
     }
 
     // 裁切: dayMatchCount < 5 时只保留前2个
@@ -195,7 +241,9 @@ function analyzeParams(minDayCount, minExpertCnt) {
 
         // 拆分复合方向
         const subDirs = direction.split(/[、,]/);
-        let anyWon = false, anyLose = false, anyUnknown = false;
+        let anyWon = false,
+          anyLose = false,
+          anyUnknown = false;
 
         for (const sd of subDirs) {
           const s = sd.trim();
@@ -214,7 +262,7 @@ function analyzeParams(minDayCount, minExpertCnt) {
             // 尝试拆分 rec 的 type（rec 中的 type 可能是 "总进球-2、3球"）
             for (const r of recs) {
               const recSubs = (r.type || '').split(/[、,]/);
-              if (recSubs.some(rs => rs.trim() === s) || r.type === s) {
+              if (recSubs.some((rs) => rs.trim() === s) || r.type === s) {
                 found = true;
                 if (r.result === 1) anyWon = true;
                 else if (r.result === 0) anyLose = true;
@@ -262,10 +310,14 @@ function analyzeParams(minDayCount, minExpertCnt) {
       }
 
       // 多场联合判定
-      let allWon = true, anyUnknown = false;
+      let allWon = true,
+        anyUnknown = false;
       for (const mi of pp.matches) {
         const res = extractRecResult(mi.m.matchId, mi.dir);
-        if (res.won === null) { anyUnknown = true; break; }
+        if (res.won === null) {
+          anyUnknown = true;
+          break;
+        }
         if (!res.won) allWon = false;
       }
       if (anyUnknown) continue; // 跳过结果未知的方案
@@ -289,7 +341,10 @@ function analyzeParams(minDayCount, minExpertCnt) {
             const md = matchDataMap[mi.m.matchId];
             const odds = extractIndividualOdds(md ? md.odds : null, mi.dir);
             const eff = dutchOdds(odds);
-            if (eff <= 0) { hasOdds = false; break; }
+            if (eff <= 0) {
+              hasOdds = false;
+              break;
+            }
             product *= eff;
           }
           prize = hasOdds ? Math.round(AMOUNT * product) : Math.round(AMOUNT * 4);
@@ -301,7 +356,7 @@ function analyzeParams(minDayCount, minExpertCnt) {
     }
   }
 
-  const winRate = totalPlans > 0 ? (totalWon / totalPlans * 100).toFixed(1) : '0.0';
+  const winRate = totalPlans > 0 ? ((totalWon / totalPlans) * 100).toFixed(1) : '0.0';
   return { totalPlans, totalWon, winRate: parseFloat(winRate), totalIncome };
 }
 
@@ -316,7 +371,17 @@ function extractOddsVal(oddsObj, direction) {
   if (direction === '负') return oddsObj.spf ? oddsObj.spf.away : null;
   if (direction === '胜平') return oddsObj.spf ? oddsObj.spf.home : null;
   if (direction === '平负') return oddsObj.spf ? oddsObj.spf.away : null;
-  const hfMap = { '胜胜': 'hh', '平胜': 'dh', '胜负': 'ha', '胜平': 'hd', '平平': 'dd', '平负': 'da', '负胜': 'ah', '负平': 'ad', '负负': 'aa' };
+  const hfMap = {
+    胜胜: 'hh',
+    平胜: 'dh',
+    胜负: 'ha',
+    胜平: 'hd',
+    平平: 'dd',
+    平负: 'da',
+    负胜: 'ah',
+    负平: 'ad',
+    负负: 'aa',
+  };
   if (direction.indexOf('半全场-') === 0 && oddsObj.halfFull) {
     const hfName = direction.replace('半全场-', '');
     const hfKey = hfMap[hfName];
@@ -394,12 +459,20 @@ console.log('-'.repeat(80));
 for (const r of results) {
   const sign = r.totalIncome >= 0 ? '+' : '';
   console.log(
-    '  ' + String(r.minDay).padStart(13) +
-    ' | ' + String(r.minExp).padStart(14) +
-    ' | ' + String(r.totalPlans).padStart(6) +
-    ' | ' + String(r.totalWon).padStart(6) +
-    ' | ' + String(r.winRate).padStart(5) + '%' +
-    '  | ' + sign + r.totalIncome
+    '  ' +
+      String(r.minDay).padStart(13) +
+      ' | ' +
+      String(r.minExp).padStart(14) +
+      ' | ' +
+      String(r.totalPlans).padStart(6) +
+      ' | ' +
+      String(r.totalWon).padStart(6) +
+      ' | ' +
+      String(r.winRate).padStart(5) +
+      '%' +
+      '  | ' +
+      sign +
+      r.totalIncome,
   );
 }
 
@@ -408,10 +481,21 @@ console.log('');
 console.log('='.repeat(80));
 results.sort((a, b) => b.totalIncome - a.totalIncome);
 const best = results[0];
-const profitable = results.filter(r => r.totalIncome > 0);
+const profitable = results.filter((r) => r.totalIncome > 0);
 
-console.log('  Best: dayMatchCount>=' + best.minDay + ', expert>=' + best.minExp +
-  '  →  ' + best.totalPlans + ' plans, ' + best.winRate + '% hit, +' + best.totalIncome + ' 元');
+console.log(
+  '  Best: dayMatchCount>=' +
+    best.minDay +
+    ', expert>=' +
+    best.minExp +
+    '  →  ' +
+    best.totalPlans +
+    ' plans, ' +
+    best.winRate +
+    '% hit, +' +
+    best.totalIncome +
+    ' 元',
+);
 
 if (profitable.length > 0) {
   console.log('');
@@ -419,11 +503,20 @@ if (profitable.length > 0) {
   console.log('  Rank | day>= | expert>= | Plans | HitRate | Profit');
   console.log('  ' + '-'.repeat(55));
   profitable.slice(0, 10).forEach((r, i) => {
-    console.log('  ' + String(i + 1).padStart(4) + ' | ' +
-      String(r.minDay).padStart(5) + ' | ' +
-      String(r.minExp).padStart(8) + ' | ' +
-      String(r.totalPlans).padStart(5) + ' | ' +
-      String(r.winRate).padStart(6) + '% | +' + r.totalIncome);
+    console.log(
+      '  ' +
+        String(i + 1).padStart(4) +
+        ' | ' +
+        String(r.minDay).padStart(5) +
+        ' | ' +
+        String(r.minExp).padStart(8) +
+        ' | ' +
+        String(r.totalPlans).padStart(5) +
+        ' | ' +
+        String(r.winRate).padStart(6) +
+        '% | +' +
+        r.totalIncome,
+    );
   });
 } else {
   console.log('  WARNING: No profitable combination found!');
@@ -436,7 +529,7 @@ console.log('='.repeat(80));
 console.log('  RECOMMENDATION:');
 if (profitable.length > 0) {
   // 找方案数适中的最佳组合
-  const good = profitable.filter(r => r.totalPlans >= 20);
+  const good = profitable.filter((r) => r.totalPlans >= 20);
   if (good.length > 0) {
     good.sort((a, b) => b.totalIncome - a.totalIncome);
     const g = good[0];

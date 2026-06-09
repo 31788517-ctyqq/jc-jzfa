@@ -113,7 +113,8 @@ function parseAnalysisPage(html, matchNum, shujuId) {
   }
 
   // ★ 解析近10场战绩 (4个实例: 主全联赛/客全联赛/主同赛事/客同赛事)
-  const rec10Pattern = /([\u4e00-\u9fa5a-zA-Z]+)\s*近10场战绩\s*(\d+)\s*胜\s*(\d+)\s*平\s*(\d+)\s*负\s*进\s*(\d+)\s*球\s*失\s*(\d+)\s*球/g;
+  const rec10Pattern =
+    /([\u4e00-\u9fa5a-zA-Z]+)\s*近10场战绩\s*(\d+)\s*胜\s*(\d+)\s*平\s*(\d+)\s*负\s*进\s*(\d+)\s*球\s*失\s*(\d+)\s*球/g;
   let rec10match;
   const rec10Results = [];
   while ((rec10match = rec10Pattern.exec(html)) !== null) {
@@ -130,7 +131,7 @@ function parseAnalysisPage(html, matchNum, shujuId) {
   // Map 4 instances → homeAll, awayAll, homeLeague, awayLeague
   let stats = { homeAll: {}, awayAll: {}, homeLeague: {}, awayLeague: {} };
   const statKeys = ['homeAll', 'awayAll', 'homeLeague', 'awayLeague'];
-  rec10Results.forEach(function(r, idx) {
+  rec10Results.forEach(function (r, idx) {
     if (idx < 4) stats[statKeys[idx]] = r;
   });
 

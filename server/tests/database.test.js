@@ -275,8 +275,8 @@ describe('database — Phase 8 WAL 配置', () => {
       db.pragma('cache_size = -8000');
       db.pragma('busy_timeout = 3000');
     `;
-    expect(ddl).toContain("synchronous = FULL");
-    expect(ddl).not.toContain("synchronous = NORMAL");
+    expect(ddl).toContain('synchronous = FULL');
+    expect(ddl).not.toContain('synchronous = NORMAL');
   });
 
   it('wal_autocheckpoint 应配置为 1000 页', () => {

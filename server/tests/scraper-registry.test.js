@@ -49,7 +49,18 @@ describe('scraper-registry — schema 验证', () => {
 
   it('category 应为已知值', () => {
     if (!registry || !registry.scrapers) return;
-    const knownCategories = ['odds', 'analysis', 'schedule', 'h2h', 'standings', 'backfill', 'migration', 'mapping', 'merge', 'diagnostic'];
+    const knownCategories = [
+      'odds',
+      'analysis',
+      'schedule',
+      'h2h',
+      'standings',
+      'backfill',
+      'migration',
+      'mapping',
+      'merge',
+      'diagnostic',
+    ];
     Object.values(registry.scrapers).forEach((cfg) => {
       expect(knownCategories).toContain(cfg.category);
     });
@@ -76,11 +87,11 @@ describe('scraper-registry — cron 合法性', () => {
       if (cfg.schedule && cfg.schedule.cron) {
         const parts = cfg.schedule.cron.split(' ');
         const ranges = [
-          [0, 59],   // minute
-          [0, 23],   // hour
-          [1, 31],   // day
-          [1, 12],   // month
-          [0, 7],    // weekday (0或7=周日)
+          [0, 59], // minute
+          [0, 23], // hour
+          [1, 31], // day
+          [1, 12], // month
+          [0, 7], // weekday (0或7=周日)
         ];
         parts.slice(0, 5).forEach((p, i) => {
           // 跳过 * 和含字母的表达式
@@ -172,9 +183,7 @@ describe('scraper-registry — pipelines DAG', () => {
       steps.forEach((step) => {
         (step.depends_on || []).forEach((dep) => {
           // depends_on 中的爬虫应在本 pipeline 的 steps 中出现（或为外部触发）
-          expect([...stepNames, 'sync_match_list', 'sync_500odds'].some(
-            (n) => n === dep
-          )).toBeTruthy();
+          expect([...stepNames, 'sync_match_list', 'sync_500odds'].some((n) => n === dep)).toBeTruthy();
         });
       });
     });

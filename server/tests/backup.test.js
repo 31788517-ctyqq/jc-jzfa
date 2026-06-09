@@ -48,13 +48,13 @@ describe('backup — 清理策略', () => {
     // 模拟：6 天前的备份应保留
     const recentBackup = { time: now - 6 * dayMs };
     const isWeekly = new Date(recentBackup.time).getDay() === 0;
-    const keep = isWeekly || (now - recentBackup.time < BACKUP_CONFIG.KEEP_DAILY * dayMs);
+    const keep = isWeekly || now - recentBackup.time < BACKUP_CONFIG.KEEP_DAILY * dayMs;
     expect(keep).toBe(true);
 
     // 模拟：10 天前的非周日备份应清理
     const oldBackup = { time: now - 10 * dayMs };
     const oldIsWeekly = new Date(oldBackup.time).getDay() === 0;
-    const shouldKeep = oldIsWeekly || (now - oldBackup.time < BACKUP_CONFIG.KEEP_DAILY * dayMs);
+    const shouldKeep = oldIsWeekly || now - oldBackup.time < BACKUP_CONFIG.KEEP_DAILY * dayMs;
     expect(shouldKeep).toBe(false);
   });
 
@@ -67,7 +67,7 @@ describe('backup — 清理策略', () => {
     // 3周前的周日（在KEEP_WEEKLY=4范围内）
     const threeWeeksAgoSunday = Date.now() - (daysSinceLastSunday + 21) * dayMs;
     const isWeekly = new Date(threeWeeksAgoSunday).getDay() === 0;
-    const keep = isWeekly && (Date.now() - threeWeeksAgoSunday < BACKUP_CONFIG.KEEP_WEEKLY * 7 * dayMs);
+    const keep = isWeekly && Date.now() - threeWeeksAgoSunday < BACKUP_CONFIG.KEEP_WEEKLY * 7 * dayMs;
     expect(keep).toBe(true);
   });
 });
@@ -91,7 +91,7 @@ describe('backup — 旧格式清理', () => {
 
 describe('backup — SQLite 备份方式', () => {
   it('应优先使用 sqlite3 .backup API', () => {
-    const cmd = "sqlite3 /root/server/midou_data.db \".backup '/root/backups/backup_xxx/midou_data.db'\"";
+    const cmd = 'sqlite3 /root/server/midou_data.db ".backup \'/root/backups/backup_xxx/midou_data.db\'"';
     expect(cmd).toContain('.backup');
     expect(cmd).toContain('sqlite3');
   });
@@ -121,12 +121,12 @@ describe('backup — 元信息', () => {
 
 describe('backup — 触发点', () => {
   it('应支持 daily 自动备份', () => {
-    const trigger = 'backup(\'daily\')';
+    const trigger = "backup('daily')";
     expect(trigger).toContain('daily');
   });
 
   it('应支持 pre_deploy 备份', () => {
-    const trigger = 'backup(\'pre_deploy\')';
+    const trigger = "backup('pre_deploy')";
     expect(trigger).toContain('pre_deploy');
   });
 

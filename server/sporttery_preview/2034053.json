@@ -1,0 +1,505 @@
+{
+  "match_id": "2034053",
+  "featureAnalysis": {
+    "labels": [
+      "近5场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "1胜/1平/3负",
+      "1胜/0平/2负",
+      "5胜/3平/2负",
+      "4胜/2平/4负",
+      "2.0个",
+      "1.6个"
+    ],
+    "away": [
+      "3胜/1平/1负",
+      "2胜/0平/1负",
+      "6胜/4平/0负",
+      "3胜/3平/4负",
+      "3.0个",
+      "1.1个"
+    ]
+  },
+  "h2h": {
+    "title": "近5场奥兰多1胜 (20%) | 1平 (20%) | 3负 (60%)",
+    "rows": [
+      {
+        "date": "2019-04-21",
+        "league": "美职",
+        "teams": "奥兰多 1:0 （半 0:0） 温哥华",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2018-06-10",
+        "league": "美职",
+        "teams": "温哥华 5:2 （半 1:0） 奥兰多",
+        "totalGoals": "7"
+      },
+      {
+        "date": "2017-08-27",
+        "league": "美职",
+        "teams": "奥兰多 1:2 （半 0:1） 温哥华",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2016-07-17",
+        "league": "美职",
+        "teams": "温哥华 2:2 （半 2:1） 奥兰多",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2015-03-22",
+        "league": "美职",
+        "teams": "奥兰多 0:1 （半 0:0） 温哥华",
+        "totalGoals": "1"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "奥兰多",
+      "title": "Regular Season 第9名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "14/11/9",
+          "winRate": "41%",
+          "goals": "63/51",
+          "gd": "12",
+          "points": "53",
+          "rank": "9"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "8/4/5",
+          "winRate": "47%",
+          "goals": "36/26",
+          "gd": "10",
+          "points": "28",
+          "rank": "9"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "6/7/4",
+          "winRate": "35%",
+          "goals": "27/25",
+          "gd": "2",
+          "points": "25",
+          "rank": "5"
+        }
+      ]
+    },
+    {
+      "team": "温哥华",
+      "title": "Regular Season 第2名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "18/9/7",
+          "winRate": "53%",
+          "goals": "66/38",
+          "gd": "28",
+          "points": "63",
+          "rank": "2"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "10/4/3",
+          "winRate": "59%",
+          "goals": "42/20",
+          "gd": "22",
+          "points": "34",
+          "rank": "3"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "8/5/4",
+          "winRate": "47%",
+          "goals": "24/18",
+          "gd": "6",
+          "points": "29",
+          "rank": "3"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "奥兰多",
+      "summary": "奥兰多近10场5胜 (50%) | 3平 (30%) | 2负 (20%) 进20球，失16球，净进4球",
+      "matches": [
+        {
+          "date": "2025-10-05",
+          "league": "美职",
+          "vs": "奥兰多 1 : 1 （半 1:1） 哥伦布",
+          "result": "平"
+        },
+        {
+          "date": "2025-09-29",
+          "league": "美职",
+          "vs": "辛辛那提 1 : 1 （半 0:0） 奥兰多",
+          "result": "平"
+        },
+        {
+          "date": "2025-09-21",
+          "league": "美职",
+          "vs": "奥兰多 3 : 2 （半 2:1） 纳什维尔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-14",
+          "league": "美职",
+          "vs": "华盛顿 1 : 1 （半 1:0） 奥兰多",
+          "result": "平"
+        },
+        {
+          "date": "2025-08-24",
+          "league": "美职",
+          "vs": "纳什维尔 5 : 1 （半 4:0） 奥兰多",
+          "result": "负"
+        },
+        {
+          "date": "2025-08-17",
+          "league": "美职",
+          "vs": "奥兰多 3 : 1 （半 1:1） 堪萨斯城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-08-11",
+          "league": "美职",
+          "vs": "奥兰多 4 : 1 （半 1:1） 迈国际",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-26",
+          "league": "美职",
+          "vs": "哥伦布 1 : 3 （半 0:0） 奥兰多",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-20",
+          "league": "美职",
+          "vs": "新英格兰 1 : 2 （半 0:1） 奥兰多",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-17",
+          "league": "美职",
+          "vs": "奥兰多 1 : 2 （半 1:0） 纽约城",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "温哥华",
+      "summary": "温哥华近10场6胜 (60%) | 4平 (40%) | 0负 (0%) 进30球，失11球，净进19球",
+      "matches": [
+        {
+          "date": "2025-10-06",
+          "league": "美职",
+          "vs": "温哥华 4 : 1 （半 1:0） 圣何塞",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-02",
+          "league": "杯赛",
+          "vs": "温哥华 4 : 2 （半 3:1） Vancouver FC",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-28",
+          "league": "美职",
+          "vs": "西雅图 2 : 2 （半 0:0） 温哥华",
+          "result": "平"
+        },
+        {
+          "date": "2025-09-25",
+          "league": "美职",
+          "vs": "温哥华 1 : 1 （半 0:1） 波特兰",
+          "result": "平"
+        },
+        {
+          "date": "2025-09-21",
+          "league": "美职",
+          "vs": "堪萨斯城 0 : 2 （半 0:2） 温哥华",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-17",
+          "league": "杯赛",
+          "vs": "温哥华 4 : 0 （半 2:0） Forge",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-14",
+          "league": "美职",
+          "vs": "温哥华 7 : 0 （半 4:0） 费城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-08-24",
+          "league": "美职",
+          "vs": "温哥华 3 : 2 （半 1:1） 圣路易城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-08-18",
+          "league": "美职",
+          "vs": "温哥华 1 : 1 （半 1:0） 休斯敦",
+          "result": "平"
+        },
+        {
+          "date": "2025-08-14",
+          "league": "杯赛",
+          "vs": "Forge 2 : 2 （半 2:2） 温哥华",
+          "result": "平"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "奥兰多",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-23",
+          "美职",
+          "圣何塞\nVS\n奥兰多",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "奥兰多\nVS\n纳什维尔",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "纽约红牛\nVS\n奥兰多",
+          "Regular Season"
+        ],
+        [
+          "2026-08-16",
+          "美职",
+          "奥兰多\nVS\n辛辛那提",
+          "Regular Season"
+        ]
+      ]
+    },
+    {
+      "team": "温哥华",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-09",
+          "杯赛",
+          "温哥华\nVS\nCavalry",
+          "Quarter-finals"
+        ],
+        [
+          "2026-07-14",
+          "杯赛",
+          "Cavalry\nVS\n温哥华",
+          "Quarter-finals"
+        ],
+        [
+          "2026-07-17",
+          "美职",
+          "芝加哥\nVS\n温哥华",
+          "Regular Season"
+        ],
+        [
+          "2026-07-23",
+          "美职",
+          "辛辛那提\nVS\n温哥华",
+          "Regular Season"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "奥兰多",
+      "players": [
+        {
+          "player": "10-马塞利诺·莫雷诺(中场)",
+          "apps": "34 (31/3)",
+          "goals": "16 (24%)",
+          "assists": "9 (19%)",
+          "avg": "0.5/0.3"
+        },
+        {
+          "player": "87-帕沙利奇(前锋)",
+          "apps": "34 (33/1)",
+          "goals": "12 (18%)",
+          "assists": "5 (10%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "9-L. Muriel(前锋)",
+          "apps": "34 (25/9)",
+          "goals": "9 (13%)",
+          "assists": "5 (10%)",
+          "avg": "0.3/0.1"
+        }
+      ]
+    },
+    {
+      "team": "温哥华",
+      "players": [
+        {
+          "player": "24-B.怀特(前锋)伤",
+          "apps": "24 (21/3)",
+          "goals": "18 (24%)",
+          "assists": "2 (4%)",
+          "avg": "0.8/0.1"
+        },
+        {
+          "player": "13-穆勒(前锋)",
+          "apps": "12 (11/1)",
+          "goals": "8 (11%)",
+          "assists": "3 (6%)",
+          "avg": "0.7/0.3"
+        },
+        {
+          "player": "11-E. Sabbi(前锋)",
+          "apps": "33 (28/5)",
+          "goals": "8 (11%)",
+          "assists": "3 (6%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "奥兰多",
+      "players": [
+        {
+          "player": "16-卡塔赫纳(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "5-C.阿劳霍(中场)",
+          "totalApps": "23",
+          "starts": "21",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "29-T. Reid-Brown(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "34-Y. Tsukada(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "96-Z. Taifi(中场)",
+          "totalApps": "6",
+          "starts": "0",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "35-J. Gerbet(中场)",
+          "totalApps": "20",
+          "starts": "13",
+          "subs": "7",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "温哥华",
+      "players": [
+        {
+          "player": "26-S. Armstrong(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "15-B. Utvik(后卫)",
+          "totalApps": "16",
+          "starts": "12",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "3-阿德库贝(后卫)",
+          "totalApps": "7",
+          "starts": "4",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "15-S·施洛(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "4-R. Veselinović(后卫)",
+          "totalApps": "21",
+          "starts": "20",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "33-T. Blackmon(后卫)",
+          "totalApps": "27",
+          "starts": "25",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "6-R.普利索-姆邦格(中场)",
+          "totalApps": "33",
+          "starts": "19",
+          "subs": "14",
+          "status": "伤"
+        },
+        {
+          "player": "24-B.怀特(前锋)",
+          "totalApps": "24",
+          "starts": "21",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "32-I. Boehmer(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

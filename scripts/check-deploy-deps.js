@@ -24,9 +24,16 @@ const DEPLOY_GS = path.join(PROJECT_ROOT, 'deploy_gs.bat');
 const DEPLOY_PY = path.join(PROJECT_ROOT, 'deploy.py');
 
 // ── 颜色输出 ──
-const C = process.env.NO_COLOR ? {} : {
-  R: '\x1b[91m', G: '\x1b[92m', Y: '\x1b[93m', C: '\x1b[96m', B: '\x1b[0m', D: '\x1b[2m'
-};
+const C = process.env.NO_COLOR
+  ? {}
+  : {
+      R: '\x1b[91m',
+      G: '\x1b[92m',
+      Y: '\x1b[93m',
+      C: '\x1b[96m',
+      B: '\x1b[0m',
+      D: '\x1b[2m',
+    };
 function c(color, text) {
   if (!process.env.NO_COLOR) return (C[color] || '') + text + C.B;
   return text;
@@ -92,9 +99,7 @@ function scanExternalRequires(fileList) {
       // 只跟踪 ../ 相对路径（跳出 gongshoudao/ 目录的外部依赖）
       if (modulePath.startsWith('../')) {
         // 解析绝对路径
-        const resolved = path.resolve(
-          path.dirname(filePath), modulePath
-        );
+        const resolved = path.resolve(path.dirname(filePath), modulePath);
         // 计算相对于 server/ 的路径
         const relToServer = path.relative(path.join(PROJECT_ROOT, 'server'), resolved);
         if (!relToServer.startsWith('..')) {
@@ -168,7 +173,7 @@ function main() {
 
   if (!outputJSON) {
     console.log(c('D', '\n[1] deploy_gs.bat 覆盖的 gongshoudao 文件: ' + gsFiles.length + ' 个'));
-    gsFiles.forEach(f => console.log('      - ' + f));
+    gsFiles.forEach((f) => console.log('      - ' + f));
   }
 
   // 2. 解析 deploy.py core/ 覆盖
@@ -192,7 +197,9 @@ function main() {
   if (!outputJSON) {
     if (covered.length > 0) {
       console.log(c('D', '\n[4] 已覆盖的依赖:'));
-      covered.forEach(r => console.log('      ' + c('G', '✓') + ' ' + r.file + ' → ' + r.dep + ' [' + r.source + ']'));
+      covered.forEach((r) =>
+        console.log('      ' + c('G', '✓') + ' ' + r.file + ' → ' + r.dep + ' [' + r.source + ']'),
+      );
     }
   }
 
@@ -201,10 +208,10 @@ function main() {
   }
 
   if (missing.length > 0) {
-    const msg = missing.map(r => r.file + ' → ' + r.dep).join('; ');
-    const fullMsg = missing.map(r =>
-      '  ✗ ' + r.file + ' 依赖 ' + r.dep + ' — 不在 deploy_gs.bat 或 deploy.py 覆盖范围内'
-    ).join('\n');
+    const msg = missing.map((r) => r.file + ' → ' + r.dep).join('; ');
+    const fullMsg = missing
+      .map((r) => '  ✗ ' + r.file + ' 依赖 ' + r.dep + ' — 不在 deploy_gs.bat 或 deploy.py 覆盖范围内')
+      .join('\n');
 
     if (!outputJSON) {
       console.log('\n' + c('R', '[!] 发现 ' + missing.length + ' 个遗漏依赖！'));
@@ -213,7 +220,16 @@ function main() {
       console.log('');
       console.log(c('Y', '修复方法: 在 deploy_gs.bat 中添加以下 scp 命令:'));
       for (const m of missing) {
-        console.log(c('C', '  scp server\\' + m.dep.replace(/\//g, '\\') + ' root@119.23.51.159:/root/server/' + path.dirname(m.dep).replace(/\\/g, '/') + '/'));
+        console.log(
+          c(
+            'C',
+            '  scp server\\' +
+              m.dep.replace(/\//g, '\\') +
+              ' root@119.23.51.159:/root/server/' +
+              path.dirname(m.dep).replace(/\\/g, '/') +
+              '/',
+          ),
+        );
       }
     }
 
@@ -221,7 +237,7 @@ function main() {
   }
 
   if (!outputJSON) {
-    console.log('\n' + c('G', '✅ 依赖检查全部通过 — 共 ' + (gsFiles.length) + ' 个文件，外部依赖均已覆盖'));
+    console.log('\n' + c('G', '✅ 依赖检查全部通过 — 共 ' + gsFiles.length + ' 个文件，外部依赖均已覆盖'));
   }
 
   return 0;

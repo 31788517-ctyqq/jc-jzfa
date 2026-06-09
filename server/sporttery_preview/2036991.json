@@ -1,0 +1,478 @@
+{
+  "match_id": "2036991",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "5胜/0平/5负",
+      "6胜/1平/3负",
+      "5胜/0平/5负",
+      "3胜/2平/5负",
+      "1.3个",
+      "1.0个"
+    ],
+    "away": [
+      "5胜/0平/5负",
+      "3胜/1平/6负",
+      "4胜/2平/4负",
+      "4胜/3平/3负",
+      "0.9个",
+      "1.0个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场珀斯5胜 (50%) | 0平 (0%) | 5负 (50%)",
+    "rows": [
+      {
+        "date": "2025-03-15",
+        "league": "澳超",
+        "teams": "珀斯 1:3 （半 1:1） 布里斯班",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2024-12-21",
+        "league": "澳超",
+        "teams": "布里斯班 0:1 （半 0:0） 珀斯",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2024-07-23",
+        "league": "澳大利亚杯",
+        "teams": "布里斯班 2:4 （半 1:1） 珀斯",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2024-02-17",
+        "league": "澳超",
+        "teams": "珀斯 3:2 （半 1:2） 布里斯班",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2023-11-26",
+        "league": "澳超",
+        "teams": "布里斯班 2:1 （半 0:0） 珀斯",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2023-02-26",
+        "league": "澳超",
+        "teams": "布里斯班 2:1 （半 2:1） 珀斯",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2023-01-10",
+        "league": "澳超",
+        "teams": "珀斯 2:1 （半 1:0） 布里斯班",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2022-03-19",
+        "league": "澳超",
+        "teams": "珀斯 1:4 （半 0:1） 布里斯班",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2022-02-20",
+        "league": "澳超",
+        "teams": "珀斯 2:0 （半 1:0） 布里斯班",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2022-01-19",
+        "league": "澳超",
+        "teams": "布里斯班 1:0 （半 0:0） 珀斯",
+        "totalGoals": "1"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "珀斯",
+      "title": "Regular Season 第10名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "26",
+          "wdl": "8/7/11",
+          "winRate": "31%",
+          "goals": "32/39",
+          "gd": "-7",
+          "points": "31",
+          "rank": "10"
+        },
+        {
+          "where": "主",
+          "played": "13",
+          "wdl": "5/2/6",
+          "winRate": "38%",
+          "goals": "16/16",
+          "gd": "0",
+          "points": "17",
+          "rank": "8"
+        },
+        {
+          "where": "客",
+          "played": "13",
+          "wdl": "3/5/5",
+          "winRate": "23%",
+          "goals": "16/23",
+          "gd": "-7",
+          "points": "14",
+          "rank": "10"
+        }
+      ]
+    },
+    {
+      "team": "布里斯班",
+      "title": "Regular Season 第11名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "26",
+          "wdl": "6/8/12",
+          "winRate": "23%",
+          "goals": "27/36",
+          "gd": "-9",
+          "points": "26",
+          "rank": "11"
+        },
+        {
+          "where": "主",
+          "played": "13",
+          "wdl": "3/4/6",
+          "winRate": "23%",
+          "goals": "14/18",
+          "gd": "-4",
+          "points": "13",
+          "rank": "11"
+        },
+        {
+          "where": "客",
+          "played": "13",
+          "wdl": "3/4/6",
+          "winRate": "23%",
+          "goals": "13/18",
+          "gd": "-5",
+          "points": "13",
+          "rank": "11"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "珀斯",
+      "summary": "珀斯近10场5胜 (50%) | 0平 (0%) | 5负 (50%) 进13球，失10球，净进3球",
+      "matches": [
+        {
+          "date": "2026-01-10",
+          "league": "澳超",
+          "vs": "珀斯 3 : 0 （半 2:0） 中央海岸",
+          "result": "胜"
+        },
+        {
+          "date": "2026-01-02",
+          "league": "澳超",
+          "vs": "墨胜利 3 : 2 （半 1:1） 珀斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-28",
+          "league": "澳超",
+          "vs": "墨尔本城 1 : 3 （半 0:2） 珀斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-20",
+          "league": "澳超",
+          "vs": "珀斯 0 : 1 （半 0:1） 阿德莱德",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-13",
+          "league": "澳超",
+          "vs": "珀斯 0 : 1 （半 0:1） 悉尼FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-05",
+          "league": "澳超",
+          "vs": "珀斯 1 : 0 （半 1:0） 西悉尼",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-30",
+          "league": "澳超",
+          "vs": "麦克阿瑟 0 : 2 （半 0:0） 珀斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-23",
+          "league": "澳超",
+          "vs": "纽喷气机 1 : 2 （半 1:1） 珀斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-07",
+          "league": "澳超",
+          "vs": "珀斯 0 : 1 （半 0:0） 中央海岸",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-31",
+          "league": "澳超",
+          "vs": "珀斯 0 : 2 （半 0:1） 墨胜利",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "布里斯班",
+      "summary": "布里斯班近10场4胜 (40%) | 2平 (20%) | 4负 (40%) 进9球，失10球，净进-1球",
+      "matches": [
+        {
+          "date": "2026-01-09",
+          "league": "澳超",
+          "vs": "布里斯班 0 : 2 （半 0:1） 奥克兰FC",
+          "result": "负"
+        },
+        {
+          "date": "2026-01-06",
+          "league": "澳超",
+          "vs": "墨尔本城 1 : 0 （半 1:0） 布里斯班",
+          "result": "负"
+        },
+        {
+          "date": "2026-01-03",
+          "league": "澳超",
+          "vs": "布里斯班 0 : 3 （半 0:1） 惠灵顿",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-31",
+          "league": "澳超",
+          "vs": "中央海岸 1 : 2 （半 1:1） 布里斯班",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-19",
+          "league": "澳超",
+          "vs": "麦克阿瑟 2 : 1 （半 0:0） 布里斯班",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-13",
+          "league": "澳超",
+          "vs": "西悉尼 0 : 0 （半 0:0） 布里斯班",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-07",
+          "league": "澳超",
+          "vs": "阿德莱德 0 : 1 （半 0:0） 布里斯班",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-28",
+          "league": "澳超",
+          "vs": "布里斯班 1 : 0 （半 1:0） 墨胜利",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-23",
+          "league": "澳超",
+          "vs": "奥克兰FC 1 : 1 （半 1:1） 布里斯班",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-09",
+          "league": "澳超",
+          "vs": "布里斯班 3 : 0 （半 1:0） 纽喷气机",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "珀斯",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "布里斯班",
+      "content": "暂无数据",
+      "matches": []
+    }
+  ],
+  "scorers": [
+    {
+      "team": "珀斯",
+      "players": [
+        {
+          "player": "34-劳伦斯(前锋)",
+          "apps": "13 (13/0)",
+          "goals": "5 (15%)",
+          "assists": "2 (8%)",
+          "avg": "0.4/0.2"
+        },
+        {
+          "player": "22-威廉姆斯(前锋)",
+          "apps": "22 (15/7)",
+          "goals": "5 (15%)",
+          "assists": "2 (8%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "7-N. Pennington(中场)",
+          "apps": "23 (17/6)",
+          "goals": "5 (15%)",
+          "assists": "0 (0%)",
+          "avg": "0.2/0"
+        }
+      ]
+    },
+    {
+      "team": "布里斯班",
+      "players": [
+        {
+          "player": "17-J. Vidic(前锋)",
+          "apps": "23 (13/10)",
+          "goals": "4 (15%)",
+          "assists": "2 (13%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "9-C. Long(前锋)",
+          "apps": "17 (14/3)",
+          "goals": "4 (15%)",
+          "assists": "1 (6%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "8-S. Klein(中场)",
+          "apps": "25 (25/0)",
+          "goals": "4 (15%)",
+          "assists": "0 (0%)",
+          "avg": "0.2/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "珀斯",
+      "players": [
+        {
+          "player": "6-布兰登·奥尼尔(中场)",
+          "totalApps": "4",
+          "starts": "2",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "3-S.萨顿(后卫)",
+          "totalApps": "19",
+          "starts": "18",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "11-威尔士(中场)",
+          "totalApps": "6",
+          "starts": "5",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "8-C. Timmins(后卫)",
+          "totalApps": "12",
+          "starts": "7",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "13-C.库克(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "9-J. Kucharski(前锋)",
+          "totalApps": "19",
+          "starts": "15",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "31-J. Anasmo(中场)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "25-S. Despotovski(前锋)",
+          "totalApps": "18",
+          "starts": "13",
+          "subs": "5",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "布里斯班",
+      "players": [
+        {
+          "player": "26-奥谢(中场)",
+          "totalApps": "21",
+          "starts": "19",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "21-A. Gilroy(后卫)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "5-M.费克拉努斯(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "7-J. Brazete(前锋)",
+          "totalApps": "4",
+          "starts": "0",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "77-M. Stajić(中场)",
+          "totalApps": "6",
+          "starts": "6",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "22-N. Amanatidis(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

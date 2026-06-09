@@ -26,10 +26,10 @@ const LOCK_DIR = path.join(CACHE_DIR, '..', '.cache_locks'); // ★ P2-5: 文件
 
 // TTL 配置（毫秒）
 const TTL = {
-  raw: 14 * 24 * 3600 * 1000,      // 原始API: 14天
-  batch: 30 * 24 * 3600 * 1000,     // 批次索引: 30天
-  match: 7 * 24 * 3600 * 1000,      // 匹配结果: 7天
-  computed: 0,                       // 计算结果: 永久（不过期，依赖增量更新）
+  raw: 14 * 24 * 3600 * 1000, // 原始API: 14天
+  batch: 30 * 24 * 3600 * 1000, // 批次索引: 30天
+  match: 7 * 24 * 3600 * 1000, // 匹配结果: 7天
+  computed: 0, // 计算结果: 永久（不过期，依赖增量更新）
 };
 
 // ═══ 基础文件操作 ═══
@@ -43,7 +43,9 @@ function acquireLock(lockName, timeoutMs) {
 
   // 确保锁目录存在
   if (!fs.existsSync(LOCK_DIR)) {
-    try { fs.mkdirSync(LOCK_DIR, { recursive: true }); } catch (e) {}
+    try {
+      fs.mkdirSync(LOCK_DIR, { recursive: true });
+    } catch (e) {}
   }
 
   while (Date.now() - startTime < timeoutMs) {
@@ -55,7 +57,9 @@ function acquireLock(lockName, timeoutMs) {
       const stat = fs.statSync(lockPath, { throwIfNoEntry: false });
       if (stat && Date.now() - stat.mtimeMs > 30000) {
         // 锁超过 30 秒未释放（死锁），强制清理
-        try { fs.rmdirSync(lockPath); } catch (e2) {}
+        try {
+          fs.rmdirSync(lockPath);
+        } catch (e2) {}
       }
     }
     // 等待 10-30ms 随机延迟后重试
@@ -69,7 +73,9 @@ function acquireLock(lockName, timeoutMs) {
 
 function releaseLock(lockName) {
   const lockPath = path.join(LOCK_DIR, lockName + '.lock');
-  try { fs.rmdirSync(lockPath); } catch (e) {}
+  try {
+    fs.rmdirSync(lockPath);
+  } catch (e) {}
 }
 
 // ★ P2-5: 带锁的安全写入（Read-Modify-Write 防并发）
@@ -129,7 +135,7 @@ function updateBatchIndex(dt, data) {
     const now = Date.now();
     index[dt] = {
       valid: true,
-      matchCount: Array.isArray(data) ? data.length : (data && typeof data === 'object' ? Object.keys(data).length : 0),
+      matchCount: Array.isArray(data) ? data.length : data && typeof data === 'object' ? Object.keys(data).length : 0,
       discoveredAt: now,
       expiresAt: now + TTL.batch,
     };
@@ -341,7 +347,8 @@ function getCacheStats() {
 
   // 计算过期条目
   const now = Date.now();
-  let expiredRaw = 0, expiredMatch = 0;
+  let expiredRaw = 0,
+    expiredMatch = 0;
   Object.keys(bank).forEach((key) => {
     if (key.startsWith('_raw_')) {
       const entry = bank[key];
@@ -359,12 +366,8 @@ function getCacheStats() {
       L2_matchResults: { path: 'stats_bank.json', entries: matchCount, expired: expiredMatch, ttl: TTL.match },
       L3_computed: { path: 'cache.json', entries: computedCount, global: globalCount, ttl: TTL.computed || -1 },
     },
-    bankSize: fs.existsSync(STATS_BANK_PATH)
-      ? (fs.statSync(STATS_BANK_PATH).size / 1024).toFixed(1) + ' KB'
-      : 'N/A',
-    cacheSize: fs.existsSync(CACHE_PATH)
-      ? (fs.statSync(CACHE_PATH).size / 1024).toFixed(1) + ' KB'
-      : 'N/A',
+    bankSize: fs.existsSync(STATS_BANK_PATH) ? (fs.statSync(STATS_BANK_PATH).size / 1024).toFixed(1) + ' KB' : 'N/A',
+    cacheSize: fs.existsSync(CACHE_PATH) ? (fs.statSync(CACHE_PATH).size / 1024).toFixed(1) + ' KB' : 'N/A',
   };
 }
 
@@ -464,7 +467,7 @@ function compressCache() {
     const entry = cache[k];
     // 尝试从 key 中提取日期（格式: matchId 或 m_matchId）
     // 如果 entry 有 _ts 字段，优先使用
-    const ts = (entry && entry._ts) ? new Date(entry._ts).getTime() : null;
+    const ts = entry && entry._ts ? new Date(entry._ts).getTime() : null;
 
     if (ts && ts < now - cutoffMs) {
       // 归档到日期文件
@@ -483,7 +486,9 @@ function compressCache() {
       const archivePath = path.join(archiveDir, ds + '.json');
       let existing = {};
       if (fs.existsSync(archivePath)) {
-        try { existing = JSON.parse(fs.readFileSync(archivePath, 'utf8')); } catch (e) {}
+        try {
+          existing = JSON.parse(fs.readFileSync(archivePath, 'utf8'));
+        } catch (e) {}
       }
       Object.assign(existing, archiveData[ds]);
       writeJSON(archivePath, existing);
@@ -492,11 +497,21 @@ function compressCache() {
     // 写入精简后的主缓存
     writeWithLock(CACHE_PATH, 'cache_computed', function (c) {
       // 清空并重建（因为 modifier 收到的是当前 cache）
-      Object.keys(c).forEach(function (k) { delete c[k]; });
-      Object.keys(keep).forEach(function (k) { c[k] = keep[k]; });
+      Object.keys(c).forEach(function (k) {
+        delete c[k];
+      });
+      Object.keys(keep).forEach(function (k) {
+        c[k] = keep[k];
+      });
     });
 
-    console.log('[cache_mgr] cache.json 压缩完成: 归档 ' + archived + ' 条, 保留 ' + (Object.keys(keep).length - 1) + ' 条（不含_global）');
+    console.log(
+      '[cache_mgr] cache.json 压缩完成: 归档 ' +
+        archived +
+        ' 条, 保留 ' +
+        (Object.keys(keep).length - 1) +
+        ' 条（不含_global）',
+    );
   }
 
   return { archived, remaining: Object.keys(keep).length - 1 };

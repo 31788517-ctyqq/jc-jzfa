@@ -36,9 +36,7 @@ describe('midou — 缓存管理', () => {
 
 describe('midou — safeApiCall', () => {
   it('正常函数 → 返回结果', async () => {
-    const result = await midou.safeApiCall(
-      () => Promise.resolve('success'),
-    );
+    const result = await midou.safeApiCall(() => Promise.resolve('success'));
     expect(result).toBe('success');
   });
 
@@ -51,9 +49,7 @@ describe('midou — safeApiCall', () => {
   });
 
   it('函数失败 + 无fallback → 抛出异常', async () => {
-    await expect(
-      midou.safeApiCall(() => Promise.reject(new Error('fail'))),
-    ).rejects.toThrow('fail');
+    await expect(midou.safeApiCall(() => Promise.reject(new Error('fail')))).rejects.toThrow('fail');
   });
 
   it('同步函数也支持', async () => {

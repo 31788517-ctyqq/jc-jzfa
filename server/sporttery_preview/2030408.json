@@ -1,0 +1,510 @@
+{
+  "match_id": "2030408",
+  "featureAnalysis": {
+    "labels": [
+      "近1场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "1胜/0平/0负",
+      "0胜/0平/0负",
+      "6胜/2平/2负",
+      "8胜/1平/1负",
+      "1.5个",
+      "0.9个"
+    ],
+    "away": [
+      "0胜/0平/1负",
+      "0胜/0平/0负",
+      "3胜/3平/4负",
+      "3胜/3平/4负",
+      "0.9个",
+      "1.4个"
+    ]
+  },
+  "h2h": {
+    "title": "近1场国际米兰1胜 (100%) | 0平 (0%) | 0负 (0%)",
+    "rows": [
+      {
+        "date": "2025-03-06",
+        "league": "欧冠",
+        "teams": "费耶诺德 0:2 （半 0:1） 国际米兰",
+        "totalGoals": "2"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "国际米兰",
+      "title": "League Stage 第4名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "6/1/1",
+          "winRate": "75%",
+          "goals": "11/1",
+          "gd": "10",
+          "points": "19",
+          "rank": "4"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "4/0/0",
+          "winRate": "100%",
+          "goals": "9/0",
+          "gd": "9",
+          "points": "12",
+          "rank": "4"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "2/1/1",
+          "winRate": "50%",
+          "goals": "2/1",
+          "gd": "1",
+          "points": "7",
+          "rank": "7"
+        }
+      ]
+    },
+    {
+      "team": "费耶诺德",
+      "title": "League Stage 第19名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "4/1/3",
+          "winRate": "50%",
+          "goals": "18/21",
+          "gd": "-3",
+          "points": "13",
+          "rank": "19"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "2/0/2",
+          "winRate": "50%",
+          "goals": "8/9",
+          "gd": "-1",
+          "points": "6",
+          "rank": "22"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "2/1/1",
+          "winRate": "50%",
+          "goals": "10/12",
+          "gd": "-2",
+          "points": "7",
+          "rank": "8"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "国际米兰",
+      "summary": "国际米兰近10场6胜 (60%) | 2平 (20%) | 2负 (20%) 进15球，失9球，净进6球",
+      "matches": [
+        {
+          "date": "2025-03-09",
+          "league": "意甲",
+          "vs": "国际米兰 3 : 2 （半 1:2） 蒙扎",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-06",
+          "league": "欧冠",
+          "vs": "费耶诺德 0 : 2 （半 0:1） 国际米兰",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-02",
+          "league": "意甲",
+          "vs": "那不勒斯 1 : 1 （半 0:1） 国际米兰",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-26",
+          "league": "意大利杯",
+          "vs": "国际米兰 2 : 0 （半 1:0） 拉齐奥",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-23",
+          "league": "意甲",
+          "vs": "国际米兰 1 : 0 （半 0:0） 热那亚",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-17",
+          "league": "意甲",
+          "vs": "尤文图斯 1 : 0 （半 0:0） 国际米兰",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-11",
+          "league": "意甲",
+          "vs": "国际米兰 2 : 1 （半 1:1） 佛罗伦萨",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-07",
+          "league": "意甲",
+          "vs": "佛罗伦萨 3 : 0 （半 0:0） 国际米兰",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-03",
+          "league": "意甲",
+          "vs": "AC米兰 1 : 1 （半 1:0） 国际米兰",
+          "result": "平"
+        },
+        {
+          "date": "2025-01-30",
+          "league": "欧冠",
+          "vs": "国际米兰 3 : 0 （半 2:0） 摩纳哥",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "费耶诺德",
+      "summary": "费耶诺德近10场3胜 (30%) | 3平 (30%) | 4负 (40%) 进9球，失14球，净进-5球",
+      "matches": [
+        {
+          "date": "2025-03-06",
+          "league": "欧冠",
+          "vs": "费耶诺德 0 : 2 （半 0:1） 国际米兰",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-02",
+          "league": "荷甲",
+          "vs": "费耶诺德 0 : 0 （半 0:0） 奈梅亨",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-23",
+          "league": "荷甲",
+          "vs": "费耶诺德 2 : 1 （半 1:1） 阿尔梅勒",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-19",
+          "league": "欧冠",
+          "vs": "AC米兰 1 : 1 （半 1:0） 费耶诺德",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-16",
+          "league": "荷甲",
+          "vs": "布雷达 0 : 0 （半 0:0） 费耶诺德",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-13",
+          "league": "欧冠",
+          "vs": "费耶诺德 1 : 0 （半 1:0） AC米兰",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-09",
+          "league": "荷甲",
+          "vs": "费耶诺德 3 : 0 （半 1:0） 鹿斯巴达",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-06",
+          "league": "荷兰杯",
+          "vs": "埃因霍温 2 : 0 （半 1:0） 费耶诺德",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-02",
+          "league": "荷甲",
+          "vs": "阿贾克斯 2 : 1 （半 1:0） 费耶诺德",
+          "result": "负"
+        },
+        {
+          "date": "2025-01-30",
+          "league": "欧冠",
+          "vs": "里尔 6 : 1 （半 2:1） 费耶诺德",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "国际米兰",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-26",
+          "俱乐部赛",
+          "卡斯鲁厄\nVS\n国际米兰",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-08-01",
+          "俱乐部赛",
+          "曼城\nVS\n国际米兰",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-08-05",
+          "俱乐部赛",
+          "AC米兰\nVS\n国际米兰",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-08-08",
+          "俱乐部赛",
+          "尤文图斯\nVS\n国际米兰",
+          "Club Friendlies 1"
+        ]
+      ]
+    },
+    {
+      "team": "费耶诺德",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-04",
+          "俱乐部赛",
+          "多德勒支\nVS\n费耶诺德",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-07-11",
+          "俱乐部赛",
+          "费耶诺德\nVS\n布鲁日",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-07-17",
+          "俱乐部赛",
+          "费耶诺德\nVS\n沙勒罗瓦",
+          "Club Friendlies 1"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "国际米兰",
+      "players": [
+        {
+          "player": "10-劳塔罗(前锋)伤",
+          "apps": "14 (10/4)",
+          "goals": "9 (36%)",
+          "assists": "0 (0%)",
+          "avg": "0.6/0"
+        },
+        {
+          "player": "20-H. Çalhanoğlu(中场)",
+          "apps": "12 (11/1)",
+          "goals": "4 (16%)",
+          "assists": "2 (12%)",
+          "avg": "0.3/0.2"
+        },
+        {
+          "player": "9-图拉姆(前锋)",
+          "apps": "14 (11/3)",
+          "goals": "4 (16%)",
+          "assists": "1 (6%)",
+          "avg": "0.3/0.1"
+        }
+      ]
+    },
+    {
+      "team": "费耶诺德",
+      "players": [
+        {
+          "player": "29-希门尼斯(前锋)",
+          "apps": "7 (6/1)",
+          "goals": "6 (30%)",
+          "assists": "1 (8%)",
+          "avg": "0.9/0.1"
+        },
+        {
+          "player": "27-A. Milambo(中场)伤",
+          "apps": "9 (9/0)",
+          "goals": "3 (15%)",
+          "assists": "1 (8%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "23-A. Hadj Moussa(前锋)",
+          "apps": "11 (8/3)",
+          "goals": "3 (15%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "国际米兰",
+      "players": [
+        {
+          "player": "36-达尔米安(后卫)",
+          "totalApps": "10",
+          "starts": "5",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "6-德弗赖(后卫)",
+          "totalApps": "9",
+          "starts": "8",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "7-P. Zieliński(中场)",
+          "totalApps": "10",
+          "starts": "6",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "32-迪马尔科(后卫)",
+          "totalApps": "10",
+          "starts": "7",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "10-劳塔罗(前锋)",
+          "totalApps": "14",
+          "starts": "10",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "48-M. Satriano(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "费耶诺德",
+      "players": [
+        {
+          "player": "38-I. Osman(前锋)",
+          "totalApps": "7",
+          "starts": "4",
+          "subs": "3",
+          "status": "停"
+        },
+        {
+          "player": "18-特劳纳(后卫)",
+          "totalApps": "9",
+          "starts": "7",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "2-B. Nieuwkoop(后卫)",
+          "totalApps": "5",
+          "starts": "5",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "1-拜洛(守门员)",
+          "totalApps": "2",
+          "starts": "2",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "4-黄在范(中场)",
+          "totalApps": "7",
+          "starts": "7",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "30-J. Lotomba(后卫)",
+          "totalApps": "5",
+          "starts": "4",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "10-斯滕斯(中场)",
+          "totalApps": "3",
+          "starts": "1",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "8-Q.廷伯(中场)",
+          "totalApps": "7",
+          "starts": "7",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "19-J. Carranza(前锋)",
+          "totalApps": "7",
+          "starts": "2",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "14-Igor Paixão(前锋)",
+          "totalApps": "11",
+          "starts": "11",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "6-R. Zerrouki(中场)",
+          "totalApps": "4",
+          "starts": "1",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "27-A. Milambo(中场)",
+          "totalApps": "9",
+          "starts": "9",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "15-F. González(后卫)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "34-C. Nadje(中场)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

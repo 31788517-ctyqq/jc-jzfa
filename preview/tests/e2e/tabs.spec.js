@@ -36,7 +36,7 @@ test.describe('TabBar — 首页', () => {
     // 等数据渲染
     await page.waitForTimeout(1000);
 
-    const matchCount = page.locator('#matchCount');
+    const matchCount = page.locator('#homeMatchCount');
     await expect(matchCount).toBeVisible();
     const text = await matchCount.textContent();
     expect(text).not.toBe('-');

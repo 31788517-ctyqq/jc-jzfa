@@ -28,7 +28,9 @@ function normalizeConsensus(raw) {
 
 /** 打开多场PK弹窗（不再区分 tab，融合三维度） */
 export function openPKMulti(pickedList) {
-  _pkMatchIds = pickedList.map(function(item) { return item.matchId; }); // ★ 缓存 matchIds
+  _pkMatchIds = pickedList.map(function (item) {
+    return item.matchId;
+  }); // ★ 缓存 matchIds
   var overlay = document.getElementById('pkOverlay');
   if (!overlay || pickedList.length < 2) return;
   overlay.classList.add('active');
@@ -554,7 +556,9 @@ function getDirectionAdvice(scored, ranked) {
   result.ev = null;
   result.valueTag = '';
   if (hAward > 1.0 && aAward > 1.0 && dAward > 1.0) {
-    var sigmoid = function (x) { return 1 / (1 + Math.exp(-x * 6)); };
+    var sigmoid = function (x) {
+      return 1 / (1 + Math.exp(-x * 6));
+    };
     var pWinEv = sigmoid(pw);
     var pDrawEv = Math.max(0.18, Math.min(0.32, 0.25 - Math.abs(pw) * 0.3));
     var pLoseEv = 1 - pWinEv - pDrawEv;
@@ -563,7 +567,14 @@ function getDirectionAdvice(scored, ranked) {
     var evDraw = +(pDrawEv * dAward - 1).toFixed(3);
     var evAway = +(pLoseEv * aAward - 1).toFixed(3);
 
-    result.ev = { evHome: evHome, evDraw: evDraw, evAway: evAway, pWin: +pWinEv.toFixed(4), pDraw: +pDrawEv.toFixed(4), pAway: +pLoseEv.toFixed(4) };
+    result.ev = {
+      evHome: evHome,
+      evDraw: evDraw,
+      evAway: evAway,
+      pWin: +pWinEv.toFixed(4),
+      pDraw: +pDrawEv.toFixed(4),
+      pAway: +pLoseEv.toFixed(4),
+    };
 
     if (result.dir.indexOf('主胜') === 0) {
       if (evHome > 0.15) result.valueTag = '💰超值';
@@ -704,23 +715,31 @@ function renderFusionPK(modal, list) {
     '</div>';
 
   // ★ 异步加载盘口变化数据
-  var matchIds = list.map(function (x) { return x.matchId; }).filter(Boolean);
+  var matchIds = list
+    .map(function (x) {
+      return x.matchId;
+    })
+    .filter(Boolean);
   if (matchIds.length > 0) {
-    api('batch-match-odds', { matchIds: matchIds }).then(function (oddsMap) {
-      if (!oddsMap) return;
-      list.forEach(function (item) {
-        var oData = oddsMap[item.matchId];
-        if (oData) {
-          item._odds = oData;
-          item._spfDelta = oData.spfDelta || {};
-          item._rqspfDelta = oData.rqspfDelta || {};
-          item._spfDeltaSummary = oData.spfDeltaSummary || {};
-          item._rqspfDeltaSummary = oData.rqspfDeltaSummary || {};
-        }
+    api('batch-match-odds', { matchIds: matchIds })
+      .then(function (oddsMap) {
+        if (!oddsMap) return;
+        list.forEach(function (item) {
+          var oData = oddsMap[item.matchId];
+          if (oData) {
+            item._odds = oData;
+            item._spfDelta = oData.spfDelta || {};
+            item._rqspfDelta = oData.rqspfDelta || {};
+            item._spfDeltaSummary = oData.spfDeltaSummary || {};
+            item._rqspfDeltaSummary = oData.rqspfDeltaSummary || {};
+          }
+        });
+        // 更新已渲染的 score cards 中的 odds-movement 指示器
+        updatePKMovementIndicators(list);
+      })
+      .catch(function () {
+        /* 非关键 */
       });
-      // 更新已渲染的 score cards 中的 odds-movement 指示器
-      updatePKMovementIndicators(list);
-    }).catch(function () { /* 非关键 */ });
   }
 
   // ── 全局熔断预警横幅（P2）──
@@ -764,7 +783,8 @@ function renderFusionPK(modal, list) {
   html += renderRiskPanel(ranked);
 
   // ── 底部按钮 ──
-  html += '<div class="pk3-footer" style="display:flex;justify-content:space-between;align-items:center;gap:12px;"><span class="match-bet-btn" onclick="goFromPKToScheme()" style="cursor:pointer;height:46px;width:130px;display:inline-flex;align-items:center;justify-content:center;border-radius:23px;font-size:14px;flex-shrink:0;">我要做方案</span><button class="pk3-done-btn" onclick="closePK()" style="width:130px;flex-shrink:0;">关闭</button></div>';
+  html +=
+    '<div class="pk3-footer" style="display:flex;justify-content:space-between;align-items:center;gap:12px;"><span class="match-bet-btn" onclick="goFromPKToScheme()" style="cursor:pointer;height:46px;width:130px;display:inline-flex;align-items:center;justify-content:center;border-radius:23px;font-size:14px;flex-shrink:0;">我要做方案</span><button class="pk3-done-btn" onclick="closePK()" style="width:130px;flex-shrink:0;">关闭</button></div>';
 
   modal.innerHTML = html;
 }
@@ -887,7 +907,9 @@ function renderScoreCard(scored, rank, ranked) {
     (dirAdvice.valueTag ? '<span class="pk3-sc-ev-tag">' + dirAdvice.valueTag + '</span>' : '') +
     '</div>' +
     // ★ 盘口变化指示器（异步填充）
-    '<div class="pk3-sc-movement" data-mid="' + (item.matchId || '') + '" style="min-height:16px;"></div>' +
+    '<div class="pk3-sc-movement" data-mid="' +
+    (item.matchId || '') +
+    '" style="min-height:16px;"></div>' +
     (tags.length ? '<div class="pk3-sc-tags">' + tags.join('') + '</div>' : '') +
     (fusionBadge ? '<div class="pk3-sc-fusion">' + fusionBadge + '</div>' : '') +
     // V27: 联赛归一化标签
@@ -1173,9 +1195,16 @@ function renderBettingAdviceList(ranked) {
     var evRow = '';
     if (dirAdvice.ev) {
       var ev = dirAdvice.ev;
-      evRow = '<div class="pk3-adv-row pk3-adv-info">💹 EV: 主' + ev.evHome.toFixed(3) +
-        ' / 平' + ev.evDraw.toFixed(3) + ' / 客' + ev.evAway.toFixed(3) +
-        ' (P主' + (ev.pWin * 100).toFixed(0) + '%)</div>';
+      evRow =
+        '<div class="pk3-adv-row pk3-adv-info">💹 EV: 主' +
+        ev.evHome.toFixed(3) +
+        ' / 平' +
+        ev.evDraw.toFixed(3) +
+        ' / 客' +
+        ev.evAway.toFixed(3) +
+        ' (P主' +
+        (ev.pWin * 100).toFixed(0) +
+        '%)</div>';
     }
 
     // V27: 稳定性低预警
@@ -1739,9 +1768,11 @@ function renderFusionSummary(ranked) {
 // ═══════════════════════════════════════════
 
 // ★ 从 PK 弹窗跳转方案设计页
-window.goFromPKToScheme = function() {
+window.goFromPKToScheme = function () {
   if (_pkMatchIds.length > 0) {
-    try { sessionStorage.setItem('preselectMatch', _pkMatchIds[0]); } catch(e) {}
+    try {
+      sessionStorage.setItem('preselectMatch', _pkMatchIds[0]);
+    } catch (e) {}
   }
   closePK();
   window.switchTab('scheme');
@@ -1792,9 +1823,13 @@ function updatePKMovementIndicators(list) {
       trendColor = '#FFC928';
     }
 
-    el.innerHTML = '<span style="font-size:10px;color:' + trendColor + ';display:flex;align-items:center;gap:4px;">'
-      + '📈 ' + parts.join(' ')
-      + ('<span style="font-size:9px;">' + trendLabel + '</span>')
-      + '</span>';
+    el.innerHTML =
+      '<span style="font-size:10px;color:' +
+      trendColor +
+      ';display:flex;align-items:center;gap:4px;">' +
+      '📈 ' +
+      parts.join(' ') +
+      ('<span style="font-size:9px;">' + trendLabel + '</span>') +
+      '</span>';
   });
 }

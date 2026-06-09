@@ -124,13 +124,13 @@ function betaBinomialProb(successes, total, alphaPrior, betaPrior) {
   if (prob >= 0.75) {
     label = '🔥 极高概率(' + probPct + ')';
     passed = true;
-  } else if (prob >= 0.60) {
+  } else if (prob >= 0.6) {
     label = '📊 高概率(' + probPct + ')';
     passed = true;
-  } else if (prob >= 0.50) {
+  } else if (prob >= 0.5) {
     label = '⚖️ 边际概率(' + probPct + ')';
     passed = false;
-  } else if (prob >= 0.40) {
+  } else if (prob >= 0.4) {
     label = '⚠️ 低概率(' + probPct + ')';
     passed = false;
   } else {
@@ -275,17 +275,19 @@ function calcResonance(diffXG, totalStrength, dim1, dim2, marketContext) {
 
   // 主队共振提振: Diff_exp > 0 && Total_战 ≥ 0.2 && 维度一高概率通过
   if (diffPositive && totalStrong && dim1Passed) {
-    const label = marketResonance === 1
-      ? '🔥 四维共振：主队穿盘+市场验证 (' + dim1.probPct + ')'
-      : '🔥 三者共振：主队穿盘概率极高 (' + dim1.probPct + ')';
+    const label =
+      marketResonance === 1
+        ? '🔥 四维共振：主队穿盘+市场验证 (' + dim1.probPct + ')'
+        : '🔥 三者共振：主队穿盘概率极高 (' + dim1.probPct + ')';
     return { verdict: label, level: marketResonance === 1 ? 'strong_home_verified' : 'strong_home' };
   }
 
   // 客队共振提振: Diff_exp < 0 && Total_战 ≤ -0.2 && 维度二高概率通过
   if (!diffPositive && totalWeak && dim2Passed) {
-    const label = marketResonance === 1
-      ? '🛡️ 四维共振：客队不败+市场验证 (' + dim2.probPct + ')'
-      : '🛡️ 三者共振：客队不败稳健 (' + dim2.probPct + ')';
+    const label =
+      marketResonance === 1
+        ? '🛡️ 四维共振：客队不败+市场验证 (' + dim2.probPct + ')'
+        : '🛡️ 三者共振：客队不败稳健 (' + dim2.probPct + ')';
     return { verdict: label, level: marketResonance === 1 ? 'strong_away_verified' : 'strong_away' };
   }
 

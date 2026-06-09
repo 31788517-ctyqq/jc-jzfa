@@ -1,0 +1,396 @@
+{
+  "match_id": "2032254",
+  "featureAnalysis": {
+    "labels": [
+      "近3场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "2胜/1平/0负",
+      "2胜/1平/0负",
+      "7胜/2平/1负",
+      "9胜/1平/0负",
+      "3.2个",
+      "0.6个"
+    ],
+    "away": [
+      "0胜/1平/2负",
+      "0胜/1平/2负",
+      "8胜/2平/0负",
+      "6胜/2平/2负",
+      "3.6个",
+      "1.0个"
+    ]
+  },
+  "h2h": {
+    "title": "近3场英格兰212胜 (67%) | 1平 (33%) | 0负 (0%)",
+    "rows": [
+      {
+        "date": "2023-06-29",
+        "league": "欧锦赛21",
+        "teams": "英格兰21 2:0 （半 2:0） 德国21",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2017-06-28",
+        "league": "欧锦赛21",
+        "teams": "英格兰21 2:2 （半 1:1） 德国21",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2015-03-31",
+        "league": "青年友谊赛",
+        "teams": "英格兰21 3:2 （半 0:0） 德国21",
+        "totalGoals": "5"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "英格兰21",
+      "title": "Group B 第2名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "3",
+          "wdl": "1/1/1",
+          "winRate": "33%",
+          "goals": "4/3",
+          "gd": "1",
+          "points": "4",
+          "rank": "2"
+        },
+        {
+          "where": "主",
+          "played": "2",
+          "wdl": "0/1/1",
+          "winRate": "0%",
+          "goals": "1/2",
+          "gd": "-1",
+          "points": "1",
+          "rank": "2"
+        },
+        {
+          "where": "客",
+          "played": "1",
+          "wdl": "1/0/0",
+          "winRate": "100%",
+          "goals": "3/1",
+          "gd": "2",
+          "points": "3",
+          "rank": "2"
+        }
+      ]
+    },
+    {
+      "team": "德国21",
+      "title": "Group B 第1名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "3",
+          "wdl": "3/0/0",
+          "winRate": "100%",
+          "goals": "9/3",
+          "gd": "6",
+          "points": "9",
+          "rank": "1"
+        },
+        {
+          "where": "主",
+          "played": "1",
+          "wdl": "1/0/0",
+          "winRate": "100%",
+          "goals": "3/0",
+          "gd": "3",
+          "points": "3",
+          "rank": "1"
+        },
+        {
+          "where": "客",
+          "played": "2",
+          "wdl": "2/0/0",
+          "winRate": "100%",
+          "goals": "6/3",
+          "gd": "3",
+          "points": "6",
+          "rank": "1"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "英格兰21",
+      "summary": "英格兰21近10场7胜 (70%) | 2平 (20%) | 1负 (10%) 进32球，失6球，净进26球",
+      "matches": [
+        {
+          "date": "2025-06-16",
+          "league": "欧锦赛21",
+          "vs": "英格兰21 0 : 0 （半 0:0） 斯洛文21",
+          "result": "平"
+        },
+        {
+          "date": "2025-06-13",
+          "league": "欧锦赛21",
+          "vs": "捷克21 1 : 3 （半 0:1） 英格兰21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-16",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "英格兰21 7 : 0 （半 2:0） 阿塞拜21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-12",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "英格兰21 2 : 1 （半 0:0） 乌克兰21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-07",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "北爱21 0 : 0 （半 0:0） 英格兰21",
+          "result": "平"
+        },
+        {
+          "date": "2024-03-27",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "英格兰21 7 : 0 （半 2:0） Luxembourg",
+          "result": "胜"
+        },
+        {
+          "date": "2024-03-22",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "阿塞拜21 1 : 5 （半 0:2） 英格兰21",
+          "result": "胜"
+        },
+        {
+          "date": "2023-11-22",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "英格兰21 3 : 0 （半 1:0） 北爱21",
+          "result": "胜"
+        },
+        {
+          "date": "2023-11-19",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "塞尔维21 0 : 3 （半 0:2） 英格兰21",
+          "result": "胜"
+        },
+        {
+          "date": "2023-10-17",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "乌克兰21 3 : 2 （半 2:0） 英格兰21",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "德国21",
+      "summary": "德国21近10场8胜 (80%) | 2平 (20%) | 0负 (0%) 进36球，失10球，净进26球",
+      "matches": [
+        {
+          "date": "2025-06-16",
+          "league": "欧锦赛21",
+          "vs": "捷克21 2 : 4 （半 0:2） 德国21",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-13",
+          "league": "欧锦赛21",
+          "vs": "德国21 3 : 0 （半 2:0） 斯洛文21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-15",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "波兰21 3 : 3 （半 1:3） 德国21",
+          "result": "平"
+        },
+        {
+          "date": "2024-10-12",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "德国21 2 : 1 （半 1:1） 保加利21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-11",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "Estonia 1 : 10 （半 0:5） 德国21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-05",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "以色列21 1 : 5 （半 0:3） 德国21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-03-27",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "德国21 2 : 0 （半 1:0） 以色列21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-03-23",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "德国21 0 : 0 （半 0:0） Kosovo",
+          "result": "平"
+        },
+        {
+          "date": "2023-11-22",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "德国21 3 : 1 （半 0:1） 波兰21",
+          "result": "胜"
+        },
+        {
+          "date": "2023-11-18",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "德国21 4 : 1 （半 1:0） Estonia",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "英格兰21",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-09-25",
+          "UEFA U21 Championship Qualification",
+          "英格兰21\nVS\n哈萨克21",
+          "Group Stage Group D"
+        ],
+        [
+          "2026-10-02",
+          "UEFA U21 Championship Qualification",
+          "英格兰21\nVS\n斯洛伐21",
+          "Group Stage Group D"
+        ],
+        [
+          "2026-10-06",
+          "UEFA U21 Championship Qualification",
+          "爱尔兰21\nVS\n英格兰21",
+          "Group Stage Group D"
+        ]
+      ]
+    },
+    {
+      "team": "德国21",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-09-26",
+          "UEFA U21 Championship Qualification",
+          "Latvia\nVS\n德国21",
+          "Group Stage Group F"
+        ],
+        [
+          "2026-09-30",
+          "UEFA U21 Championship Qualification",
+          "马耳他U21\nVS\n德国21",
+          "Group Stage Group F"
+        ],
+        [
+          "2026-10-06",
+          "UEFA U21 Championship Qualification",
+          "德国21\nVS\n格鲁吉21",
+          "Group Stage Group F"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "英格兰21",
+      "players": [
+        {
+          "player": "19-H.埃利奥特(中场)伤",
+          "apps": "6 (6/0)",
+          "goals": "5 (42%)",
+          "assists": "0 (0%)",
+          "avg": "0.8/0"
+        },
+        {
+          "player": "9-J.罗威(前锋)",
+          "apps": "6 (3/3)",
+          "goals": "2 (17%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        },
+        {
+          "player": "10-J.麦卡特(中场)",
+          "apps": "6 (5/1)",
+          "goals": "1 (8%)",
+          "assists": "2 (25%)",
+          "avg": "0.2/0.3"
+        }
+      ]
+    },
+    {
+      "team": "德国21",
+      "players": [
+        {
+          "player": "10-N. Woltemade(前锋)",
+          "apps": "5 (5/0)",
+          "goals": "6 (35%)",
+          "assists": "3 (23%)",
+          "avg": "1.2/0.6"
+        },
+        {
+          "player": "19-N. Weiper(前锋)",
+          "apps": "6 (3/3)",
+          "goals": "4 (24%)",
+          "assists": "0 (0%)",
+          "avg": "0.7/0"
+        },
+        {
+          "player": "20-P. Nebel(中场)",
+          "apps": "6 (5/1)",
+          "goals": "2 (12%)",
+          "assists": "1 (8%)",
+          "avg": "0.3/0.2"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "英格兰21",
+      "players": [
+        {
+          "player": "8-E. Anderson(中场)",
+          "totalApps": "6",
+          "starts": "5",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "19-H.埃利奥特(中场)",
+          "totalApps": "6",
+          "starts": "6",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "13-T. Simkim(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "德国21",
+      "status": "暂无数据"
+    }
+  ]
+}

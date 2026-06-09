@@ -164,7 +164,8 @@ function buildRecentFormWDL(shujuData) {
  * 构建五维分析的 System Prompt
  */
 function buildSystemPrompt() {
-  return '你是专业足球分析师，按"五维分析框架"生成中文 JSON。\n' +
+  return (
+    '你是专业足球分析师，按"五维分析框架"生成中文 JSON。\n' +
     '1.基础面：积分排名、攻防数据、核心结论\n' +
     '2.状态面：主客近况、历史对阵、伤病、氛围、核心结论\n' +
     '3.动机面：战意强度\n' +
@@ -172,7 +173,8 @@ function buildSystemPrompt() {
     '5.市场面：盘口赔率、大小球、变化解读、诱导、核心结论\n' +
     '6.核心看点：关键博弈点、变数提醒\n' +
     '7.预测建议：胜平负建议、大小球建议、比分预测\n' +
-    '要求：数据基于提供的信息和知识库，每字段≤100字，表格用Markdown，仅输出JSON不含其他文字';
+    '要求：数据基于提供的信息和知识库，每字段≤100字，表格用Markdown，仅输出JSON不含其他文字'
+  );
 }
 
 /**
@@ -301,18 +303,32 @@ function buildSystemDataSection(matchInfo) {
         const basic = database.getJczqBasic(dateStr, matchNum);
         if (basic) {
           parts.push('一、基本面（来源：竞彩 JczqBasic 官方数据）');
-          if (basic.homePower != null) parts.push('- 战力指数: 主队 ' + basic.homePower + '/100，客队 ' + basic.guestPower + '/100');
-          if (basic.homeJiFenHomeAll != null) parts.push('- 积分均值: 主队场均 ' + basic.homeJiFenHomeAll + ' 分，客队客场场均 ' + basic.awayJiFenGuest + ' 分');
+          if (basic.homePower != null)
+            parts.push('- 战力指数: 主队 ' + basic.homePower + '/100，客队 ' + basic.guestPower + '/100');
+          if (basic.homeJiFenHomeAll != null)
+            parts.push(
+              '- 积分均值: 主队场均 ' + basic.homeJiFenHomeAll + ' 分，客队客场场均 ' + basic.awayJiFenGuest + ' 分',
+            );
           if (basic.homeWinPan != null) {
-            parts.push('- 赢盘率: 主队约 ' + Math.round(basic.homeWinPan / 2 * 100) + '%，客队约 ' + Math.round(basic.guestWinPan / 2 * 100) + '%');
+            parts.push(
+              '- 赢盘率: 主队约 ' +
+                Math.round((basic.homeWinPan / 2) * 100) +
+                '%，客队约 ' +
+                Math.round((basic.guestWinPan / 2) * 100) +
+                '%',
+            );
           }
-          if (basic.homeEnterEfficiency != null) parts.push('- 进攻效率: 主 ' + basic.homeEnterEfficiency + '，客 ' + basic.guestEnterEfficiency);
-          if (basic.homePreventEfficiency != null) parts.push('- 防守效率: 主 ' + basic.homePreventEfficiency + '，客 ' + basic.guestPreventEfficiency);
+          if (basic.homeEnterEfficiency != null)
+            parts.push('- 进攻效率: 主 ' + basic.homeEnterEfficiency + '，客 ' + basic.guestEnterEfficiency);
+          if (basic.homePreventEfficiency != null)
+            parts.push('- 防守效率: 主 ' + basic.homePreventEfficiency + '，客 ' + basic.guestPreventEfficiency);
           if (basic.jiaoFenDesc) parts.push('- 历史交锋: ' + basic.jiaoFenDesc);
           parts.push('');
         }
       }
-    } catch (e) { /* 静默 */ }
+    } catch (e) {
+      /* 静默 */
+    }
 
     // ── 二、功守道量化 ──
     try {
@@ -326,23 +342,37 @@ function buildSystemDataSection(matchInfo) {
         if (gs) {
           parts.push('二、功守道量化分析（系统预计算）');
           if (gs.ladderLabel) parts.push('- 实力阶梯: ' + gs.ladderLabel);
-          if (gs.totalAdvantageRaw != null) parts.push('- 实力优势度: ' + (gs.totalAdvantageRaw >= 0 ? '+' : '') + gs.totalAdvantageRaw);
-          if (gs.xgHome != null && gs.xgAway != null) parts.push('- 预期进球(xG): 主 ' + gs.xgHome + ' - ' + gs.xgAway + ' 客');
-          if (gs.fusionConsensusType) parts.push('- 融合共识: ' + gs.fusionConsensusType + ' (strong=强一致/weak=弱一致/meltdown=熔断待定)');
+          if (gs.totalAdvantageRaw != null)
+            parts.push('- 实力优势度: ' + (gs.totalAdvantageRaw >= 0 ? '+' : '') + gs.totalAdvantageRaw);
+          if (gs.xgHome != null && gs.xgAway != null)
+            parts.push('- 预期进球(xG): 主 ' + gs.xgHome + ' - ' + gs.xgAway + ' 客');
+          if (gs.fusionConsensusType)
+            parts.push('- 融合共识: ' + gs.fusionConsensusType + ' (strong=强一致/weak=弱一致/meltdown=熔断待定)');
           if (gs.stabilityOverall != null) parts.push('- 进球分布稳定性: ' + gs.stabilityOverall + '/100');
 
           // 比分 TOP3
           const scores = gs.scores || [];
-          const top3 = scores.slice(0, 3).filter(function (s) { return s && s.score && s.score !== '--'; });
+          const top3 = scores.slice(0, 3).filter(function (s) {
+            return s && s.score && s.score !== '--';
+          });
           if (top3.length > 0) {
-            parts.push('- 比分概率 TOP' + top3.length + ': ' + top3.map(function (s) {
-              return s.score + '(' + (s.percent || '?') + ')';
-            }).join(', '));
+            parts.push(
+              '- 比分概率 TOP' +
+                top3.length +
+                ': ' +
+                top3
+                  .map(function (s) {
+                    return s.score + '(' + (s.percent || '?') + ')';
+                  })
+                  .join(', '),
+            );
           }
           parts.push('');
         }
       }
-    } catch (e) { /* 静默 */ }
+    } catch (e) {
+      /* 静默 */
+    }
 
     // ── 三、市场面（JczqBasic 真实赔率数据） ──
     try {
@@ -360,14 +390,30 @@ function buildSystemDataSection(matchInfo) {
             const lwR = basic.lastWinRate ? (basic.lastWinRate * 100).toFixed(1) : '?';
             const ldR = basic.lastDrawRate ? (basic.lastDrawRate * 100).toFixed(1) : '?';
             const llR = basic.lastLoseRate ? (basic.lastLoseRate * 100).toFixed(1) : '?';
-            parts.push('- 欧指隐含概率: 初盘 主' + wR + '%/平' + dR + '%/客' + lR + '% → 临盘 主' + lwR + '%/平' + ldR + '%/客' + llR + '%');
+            parts.push(
+              '- 欧指隐含概率: 初盘 主' +
+                wR +
+                '%/平' +
+                dR +
+                '%/客' +
+                lR +
+                '% → 临盘 主' +
+                lwR +
+                '%/平' +
+                ldR +
+                '%/客' +
+                llR +
+                '%',
+            );
           }
 
           // 离散度
           if (basic.initDiscreteDiff != null && basic.lastDiscreteDiff != null) {
             const shift = (basic.lastDiscreteDiff - basic.initDiscreteDiff).toFixed(3);
             const trend = parseFloat(shift) > 0 ? '扩大' : '收窄';
-            parts.push('- 离散度变化: 初盘 ' + basic.initDiscreteDiff + ' → 临盘 ' + basic.lastDiscreteDiff + ' (' + trend + ')');
+            parts.push(
+              '- 离散度变化: 初盘 ' + basic.initDiscreteDiff + ' → 临盘 ' + basic.lastDiscreteDiff + ' (' + trend + ')',
+            );
           }
 
           // 亚指盘口
@@ -397,10 +443,24 @@ function buildSystemDataSection(matchInfo) {
             const dA = basic.drawAward;
             const aA = basic.guestWinAward;
             const totalInv = 1 / hA + 1 / dA + 1 / aA;
-            const hImp = (1 / hA / totalInv * 100).toFixed(1);
-            const dImp = (1 / dA / totalInv * 100).toFixed(1);
-            const aImp = (1 / aA / totalInv * 100).toFixed(1);
-            parts.push('- 北单 SP: 主 ' + hA + ' (隐含概率 ' + hImp + '%) / 平 ' + dA + ' (' + dImp + '%) / 客 ' + aA + ' (' + aImp + '%)');
+            const hImp = ((1 / hA / totalInv) * 100).toFixed(1);
+            const dImp = ((1 / dA / totalInv) * 100).toFixed(1);
+            const aImp = ((1 / aA / totalInv) * 100).toFixed(1);
+            parts.push(
+              '- 北单 SP: 主 ' +
+                hA +
+                ' (隐含概率 ' +
+                hImp +
+                '%) / 平 ' +
+                dA +
+                ' (' +
+                dImp +
+                '%) / 客 ' +
+                aA +
+                ' (' +
+                aImp +
+                '%)',
+            );
           }
 
           // 热度
@@ -409,7 +469,9 @@ function buildSystemDataSection(matchInfo) {
           parts.push('');
         }
       }
-    } catch (e) { /* 静默 */ }
+    } catch (e) {
+      /* 静默 */
+    }
 
     if (parts.length <= 2) return null; // 无有效数据
     return parts.join('\n');

@@ -1,0 +1,484 @@
+{
+  "match_id": "2035532",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "4胜/3平/3负",
+      "5胜/4平/1负",
+      "4胜/2平/4负",
+      "3胜/2平/5负",
+      "1.1个",
+      "1.5个"
+    ],
+    "away": [
+      "3胜/3平/4负",
+      "1胜/4平/5负",
+      "2胜/2平/6负",
+      "5胜/2平/3负",
+      "1.6个",
+      "2.2个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场不来梅4胜 (40%) | 3平 (30%) | 3负 (30%)",
+    "rows": [
+      {
+        "date": "2024-02-17",
+        "league": "德甲",
+        "teams": "科隆 0:1 （半 0:0） 不来梅",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2023-09-24",
+        "league": "德甲",
+        "teams": "不来梅 2:1 （半 1:1） 科隆",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2023-05-20",
+        "league": "德甲",
+        "teams": "不来梅 1:1 （半 0:1） 科隆",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2023-01-22",
+        "league": "德甲",
+        "teams": "科隆 7:1 （半 5:1） 不来梅",
+        "totalGoals": "8"
+      },
+      {
+        "date": "2021-03-07",
+        "league": "德甲",
+        "teams": "科隆 1:1 （半 0:0） 不来梅",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2020-11-07",
+        "league": "德甲",
+        "teams": "不来梅 1:1 （半 0:0） 科隆",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2020-06-27",
+        "league": "德甲",
+        "teams": "不来梅 6:1 （半 3:0） 科隆",
+        "totalGoals": "7"
+      },
+      {
+        "date": "2019-12-21",
+        "league": "德甲",
+        "teams": "科隆 1:0 （半 1:0） 不来梅",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2019-07-20",
+        "league": "俱乐部赛",
+        "teams": "不来梅 1:0 （半 -:-） 科隆",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2018-07-21",
+        "league": "俱乐部赛",
+        "teams": "不来梅 0:1 （半 -:-） 科隆",
+        "totalGoals": "1"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "不来梅",
+      "title": "Regular Season 第15名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "8/8/18",
+          "winRate": "24%",
+          "goals": "37/60",
+          "gd": "-23",
+          "points": "32",
+          "rank": "15"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "5/4/8",
+          "winRate": "29%",
+          "goals": "19/31",
+          "gd": "-12",
+          "points": "19",
+          "rank": "14"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "3/4/10",
+          "winRate": "18%",
+          "goals": "18/29",
+          "gd": "-11",
+          "points": "13",
+          "rank": "15"
+        }
+      ]
+    },
+    {
+      "team": "科隆",
+      "title": "Regular Season 第14名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "7/11/16",
+          "winRate": "21%",
+          "goals": "49/63",
+          "gd": "-14",
+          "points": "32",
+          "rank": "14"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "5/4/8",
+          "winRate": "29%",
+          "goals": "30/30",
+          "gd": "0",
+          "points": "19",
+          "rank": "13"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "2/7/8",
+          "winRate": "12%",
+          "goals": "19/33",
+          "gd": "-14",
+          "points": "13",
+          "rank": "16"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "不来梅",
+      "summary": "不来梅近10场4胜 (40%) | 2平 (20%) | 4负 (40%) 进11球，失15球，净进-4球",
+      "matches": [
+        {
+          "date": "2025-11-23",
+          "league": "德甲",
+          "vs": "莱红牛 2 : 0 （半 0:0） 不来梅",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-08",
+          "league": "德甲",
+          "vs": "不来梅 2 : 1 （半 0:1） 沃夫斯堡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-01",
+          "league": "德甲",
+          "vs": "美因茨 1 : 1 （半 1:0） 不来梅",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-25",
+          "league": "德甲",
+          "vs": "不来梅 1 : 0 （半 0:0） 柏林联合",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-18",
+          "league": "德甲",
+          "vs": "海登海姆 2 : 2 （半 0:0） 不来梅",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-04",
+          "league": "德甲",
+          "vs": "不来梅 1 : 0 （半 1:0） 圣保利",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-27",
+          "league": "德甲",
+          "vs": "拜仁 4 : 0 （半 2:0） 不来梅",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-20",
+          "league": "德甲",
+          "vs": "不来梅 0 : 3 （半 0:1） 弗赖堡",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-14",
+          "league": "德甲",
+          "vs": "门兴 0 : 4 （半 0:2） 不来梅",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-05",
+          "league": "俱乐部赛",
+          "vs": "不来梅 0 : 2 （半 ） 明斯特",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "科隆",
+      "summary": "科隆近10场2胜 (20%) | 2平 (20%) | 6负 (60%) 进16球，失22球，净进-6球",
+      "matches": [
+        {
+          "date": "2025-11-23",
+          "league": "德甲",
+          "vs": "科隆 3 : 4 （半 1:2） 法兰克福",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-09",
+          "league": "德甲",
+          "vs": "门兴 3 : 1 （半 1:0） 科隆",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-02",
+          "league": "德甲",
+          "vs": "科隆 4 : 1 （半 1:0） 汉堡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-30",
+          "league": "德国杯",
+          "vs": "科隆 1 : 4 （半 1:2） 拜仁",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-26",
+          "league": "德甲",
+          "vs": "多特蒙德 1 : 0 （半 0:0） 科隆",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-18",
+          "league": "德甲",
+          "vs": "科隆 1 : 1 （半 0:0） 奥格斯堡",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-04",
+          "league": "德甲",
+          "vs": "霍芬海姆 0 : 1 （半 0:1） 科隆",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-28",
+          "league": "德甲",
+          "vs": "科隆 1 : 2 （半 1:1） 斯图加特",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-21",
+          "league": "德甲",
+          "vs": "莱红牛 3 : 1 （半 3:1） 科隆",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-13",
+          "league": "德甲",
+          "vs": "沃夫斯堡 3 : 3 （半 1:1） 科隆",
+          "result": "平"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "不来梅",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-18",
+          "俱乐部赛",
+          "Verden 04\nVS\n不来梅",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-08-01",
+          "俱乐部赛",
+          "科特布斯\nVS\n不来梅",
+          "Club Friendlies 3"
+        ]
+      ]
+    },
+    {
+      "team": "科隆",
+      "content": "暂无数据",
+      "matches": []
+    }
+  ],
+  "scorers": [
+    {
+      "team": "不来梅",
+      "players": [
+        {
+          "player": "6-J. Stage(中场)",
+          "apps": "29 (29/0)",
+          "goals": "10 (28%)",
+          "assists": "2 (7%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "11-J. Njinmah(前锋)",
+          "apps": "33 (22/11)",
+          "goals": "5 (14%)",
+          "assists": "0 (0%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "20-R. Schmid(中场)",
+          "apps": "34 (34/0)",
+          "goals": "4 (11%)",
+          "assists": "8 (29%)",
+          "avg": "0.1/0.2"
+        }
+      ]
+    },
+    {
+      "team": "科隆",
+      "players": [
+        {
+          "player": "13-S. El Mala(中场)",
+          "apps": "34 (20/14)",
+          "goals": "13 (28%)",
+          "assists": "4 (12%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "9-R. Ache(前锋)伤",
+          "apps": "29 (18/11)",
+          "goals": "7 (15%)",
+          "assists": "4 (12%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "16-J. Kamiński(中场)",
+          "apps": "34 (34/0)",
+          "goals": "7 (15%)",
+          "assists": "3 (9%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "不来梅",
+      "players": [
+        {
+          "player": "8-魏泽(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "39-韦贝尔(后卫)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "27-F. Agu(后卫)",
+          "totalApps": "11",
+          "starts": "9",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "2-O.德曼(后卫)",
+          "totalApps": "16",
+          "starts": "14",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "22-J. Malatini(后卫)",
+          "totalApps": "11",
+          "starts": "5",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "37-S. Smarkalev(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "29-S. Musah(前锋)",
+          "totalApps": "8",
+          "starts": "2",
+          "subs": "6",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "科隆",
+      "players": [
+        {
+          "player": "4-T. Hübers(后卫)",
+          "totalApps": "8",
+          "starts": "8",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "9-R. Ache(前锋)",
+          "totalApps": "29",
+          "starts": "18",
+          "subs": "11",
+          "status": "伤"
+        },
+        {
+          "player": "15-L. Kilian(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "2-J.施密德(后卫)",
+          "totalApps": "16",
+          "starts": "13",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "18-Í. Jóhannesson(中场)",
+          "totalApps": "31",
+          "starts": "21",
+          "subs": "10",
+          "status": "伤"
+        },
+        {
+          "player": "19-M. El Mala(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

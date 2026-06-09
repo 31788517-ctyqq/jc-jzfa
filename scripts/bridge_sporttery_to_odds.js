@@ -16,27 +16,31 @@ const fs = require('fs');
 const path = require('path');
 
 // 兼容本地(scripts/../server/sporttery_odds)和服务器(scripts/../sporttery_odds)两种目录结构
-const ODDS_DIR = (function() {
+const ODDS_DIR = (function () {
   var serverPath = path.join(__dirname, '..', 'server', 'sporttery_odds');
   var directPath = path.join(__dirname, '..', 'sporttery_odds');
   if (fs.existsSync(directPath)) return directPath;
   return serverPath;
 })();
-const PREVIEW_DIR = (function() {
+const PREVIEW_DIR = (function () {
   var serverPath = path.join(__dirname, '..', 'server', 'sporttery_preview');
   var directPath = path.join(__dirname, '..', 'sporttery_preview');
   if (fs.existsSync(directPath)) return directPath;
   return serverPath;
 })();
 const DRY_RUN = process.argv.includes('--dry');
-const SINGLE_MATCH = process.argv.includes('--match') ? (process.argv[process.argv.indexOf('--match') + 1] || '') : '';
+const SINGLE_MATCH = process.argv.includes('--match') ? process.argv[process.argv.indexOf('--match') + 1] || '' : '';
 // 兼容本地(scripts/)和服务器(/root/server/scripts/)两种路径
 var database;
-try { database = require('../server/database'); } catch (e) { database = require('../database'); }
+try {
+  database = require('../server/database');
+} catch (e) {
+  database = require('../database');
+}
 
 // ★ 初始化数据库（better-sqlite3 同步 / sql.js 异步）
 function initDb() {
-  return new Promise(function(resolve) {
+  return new Promise(function (resolve) {
     database.initDatabase();
     if (database.isAvailable()) {
       resolve(database.getAdapter());
@@ -44,7 +48,7 @@ function initDb() {
     }
     // sql.js 异步初始化
     var attempts = 0;
-    var timer = setInterval(function() {
+    var timer = setInterval(function () {
       attempts++;
       if (database.isAvailable()) {
         clearInterval(timer);
@@ -86,8 +90,8 @@ function extractDate(raw) {
 // ═══ 赔率时间序列解析 ═══
 const PLAY_TABLE_MAP = [
   { index: 1, playType: 'rqspf', headerPattern: ['胜', '平', '负'] },
-  { index: 3, playType: 'jqs',   headerPattern: ['0', '1', '2'] },
-  { index: 4, playType: 'bqc',   headerPattern: ['胜胜', '胜平', '胜负'] },
+  { index: 3, playType: 'jqs', headerPattern: ['0', '1', '2'] },
+  { index: 4, playType: 'bqc', headerPattern: ['胜胜', '胜平', '胜负'] },
 ];
 
 function extractHandicap(headerRow) {
@@ -114,24 +118,35 @@ function parseOddsSnapshots(matchId, matchNum, date, home, away, league, data) {
     for (let i = 0; i < Math.min(5, table.length); i++) {
       const row = table[i];
       if (!Array.isArray(row)) continue;
-      const allMatch = cfg.headerPattern.every(function(pat) {
-        return row.some(function(cell) { return String(cell).trim() === pat; });
+      const allMatch = cfg.headerPattern.every(function (pat) {
+        return row.some(function (cell) {
+          return String(cell).trim() === pat;
+        });
       });
-      if (allMatch) { headerIdx = i; break; }
+      if (allMatch) {
+        headerIdx = i;
+        break;
+      }
     }
     if (headerIdx < 0) continue;
 
     const header = table[headerIdx];
     // Find column indices: header columns after "发布时间"
-    const pubIdx = header.findIndex(function(c) { return String(c).includes('发布时间'); });
-    const dataCols = header.slice(pubIdx + 1).map(function(c) { return String(c).trim(); });
+    const pubIdx = header.findIndex(function (c) {
+      return String(c).includes('发布时间');
+    });
+    const dataCols = header.slice(pubIdx + 1).map(function (c) {
+      return String(c).trim();
+    });
 
     // Parse each time row
     for (let r = headerIdx + 1; r < table.length; r++) {
       const row = table[r];
       if (!Array.isArray(row) || row.length < 3) continue;
 
-      const timeCell = String(row[0] || '').replace(/\n/g, ' ').trim();
+      const timeCell = String(row[0] || '')
+        .replace(/\n/g, ' ')
+        .trim();
       if (!timeCell.match(/\d{2}:\d{2}/)) continue;
 
       const snapTime = timeCell;
@@ -193,10 +208,13 @@ async function main() {
 
   // ═══ Phase A: 赔率时间序列 ═══
   console.log('[1/3] 迁移赔率时间序列...');
-  const oddsFiles = fs.readdirSync(ODDS_DIR)
-    .filter(function(f) { return f.endsWith('.json'); });
+  const oddsFiles = fs.readdirSync(ODDS_DIR).filter(function (f) {
+    return f.endsWith('.json');
+  });
   if (SINGLE_MATCH) {
-    const filtered = oddsFiles.filter(function(f) { return f.includes(SINGLE_MATCH); });
+    const filtered = oddsFiles.filter(function (f) {
+      return f.includes(SINGLE_MATCH);
+    });
     oddsFiles.length = 0;
     oddsFiles.push.apply(oddsFiles, filtered);
   }
@@ -228,7 +246,18 @@ async function main() {
         for (const snap of snapshots) {
           adp.execRun(
             'INSERT OR REPLACE INTO sporttery_odds_snapshot (match_id, match_num, date, home_team, away_team, league, play_type, snapshot_time, odds_json, trend) VALUES (?,?,?,?,?,?,?,?,?,?)',
-            [snap.match_id, snap.match_num, snap.date, snap.home_team, snap.away_team, snap.league, snap.play_type, snap.snapshot_time, snap.odds_json, snap.trend]
+            [
+              snap.match_id,
+              snap.match_num,
+              snap.date,
+              snap.home_team,
+              snap.away_team,
+              snap.league,
+              snap.play_type,
+              snap.snapshot_time,
+              snap.odds_json,
+              snap.trend,
+            ],
           );
         }
       }
@@ -241,10 +270,13 @@ async function main() {
 
   // ═══ Phase B: 赛事前瞻 ═══
   console.log('\n[2/3] 迁移赛事前瞻...');
-  const previewFiles = fs.readdirSync(PREVIEW_DIR)
-    .filter(function(f) { return f.endsWith('.json'); });
+  const previewFiles = fs.readdirSync(PREVIEW_DIR).filter(function (f) {
+    return f.endsWith('.json');
+  });
   if (SINGLE_MATCH) {
-    const filtered = previewFiles.filter(function(f) { return f.includes(SINGLE_MATCH); });
+    const filtered = previewFiles.filter(function (f) {
+      return f.includes(SINGLE_MATCH);
+    });
     previewFiles.length = 0;
     previewFiles.push.apply(previewFiles, filtered);
   }
@@ -266,9 +298,15 @@ async function main() {
     // 从 featureAnalysis 尝试推导 matchNum（需另查映射表）
     // 先走 odds 表反查
     let matchNum = '';
-    let home = '', away = '', league = '', date = '';
+    let home = '',
+      away = '',
+      league = '',
+      date = '';
     if (!DRY_RUN) {
-      const row = adp.execOne('SELECT match_num, home_team, away_team, league, date FROM sporttery_odds_snapshot WHERE match_id = ? LIMIT 1', matchId);
+      const row = adp.execOne(
+        'SELECT match_num, home_team, away_team, league, date FROM sporttery_odds_snapshot WHERE match_id = ? LIMIT 1',
+        matchId,
+      );
       if (row) {
         matchNum = row.match_num || '';
         home = row.home_team || '';
@@ -283,7 +321,12 @@ async function main() {
       adp.execRun(
         'INSERT OR REPLACE INTO sporttery_preview (match_id, match_num, date, home_team, away_team, league, feature_analysis, h2h_history, standings, recent_form, future_matches, scorers, injuries) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
-          matchId, matchNum, date, home, away, league,
+          matchId,
+          matchNum,
+          date,
+          home,
+          away,
+          league,
           JSON.stringify(data.featureAnalysis || null),
           JSON.stringify(data.h2h || null),
           JSON.stringify(data.standings || null),
@@ -291,7 +334,7 @@ async function main() {
           JSON.stringify(data.futureMatches || null),
           JSON.stringify(data.scorers || null),
           JSON.stringify(data.injuries || null),
-        ]
+        ],
       );
     }
 
@@ -308,7 +351,8 @@ async function main() {
   } else {
     const odTotal = (adp.execOne('SELECT COUNT(*) as cnt FROM sporttery_odds_snapshot') || {}).cnt || 0;
     const pvTotal = (adp.execOne('SELECT COUNT(*) as cnt FROM sporttery_preview') || {}).cnt || 0;
-    const odMatches = (adp.execOne('SELECT COUNT(DISTINCT match_id) as cnt FROM sporttery_odds_snapshot') || {}).cnt || 0;
+    const odMatches =
+      (adp.execOne('SELECT COUNT(DISTINCT match_id) as cnt FROM sporttery_odds_snapshot') || {}).cnt || 0;
     const pvMatches = (adp.execOne('SELECT COUNT(DISTINCT match_id) as cnt FROM sporttery_preview') || {}).cnt || 0;
     console.log('  sporttery_odds_snapshot: ' + odTotal + ' 条快照 (' + odMatches + ' 场比赛)');
     console.log('  sporttery_preview:      ' + pvTotal + ' 条前瞻 (' + pvMatches + ' 场比赛)');
@@ -316,7 +360,7 @@ async function main() {
   console.log('\nDone.');
 }
 
-main().catch(function(e) {
+main().catch(function (e) {
   console.error('错误:', e);
   process.exit(1);
 });

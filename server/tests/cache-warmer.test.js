@@ -20,7 +20,11 @@ describe('cache-warmer — warmUp 基础流程', () => {
 
   it('自定义 log 函数被调用', () => {
     const calls = [];
-    warmUp({ log: function (msg) { calls.push(msg); } });
+    warmUp({
+      log: function (msg) {
+        calls.push(msg);
+      },
+    });
     // 至少会输出"预热完成"
     const lastCall = calls[calls.length - 1];
     expect(lastCall).toContain('预热完成');
@@ -46,11 +50,17 @@ describe('cache-warmer — warmUp 基础流程', () => {
   });
 
   it('连续调用不抛异常', () => {
-    expect(function () { warmUp(); }).not.toThrow();
-    expect(function () { warmUp(); }).not.toThrow();
+    expect(function () {
+      warmUp();
+    }).not.toThrow();
+    expect(function () {
+      warmUp();
+    }).not.toThrow();
   });
 
   it('无参数调用使用默认 log', () => {
-    expect(function () { warmUp(); }).not.toThrow();
+    expect(function () {
+      warmUp();
+    }).not.toThrow();
   });
 });

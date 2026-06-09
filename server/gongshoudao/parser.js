@@ -118,10 +118,18 @@ function parse(raw) {
   vars.jiaoFenExtended = extractJiaoFenExtended(vars.jiaoFenDesc);
 
   // ★ V9.1: 比赛场次计数（用于赛季初保护）
-  vars._homeMatchCount = (vars.homeWinGap_1 || 0) + (vars.homeWinGap_2 || 0) +
-    (vars.homeLoseGap_1 || 0) + (vars.homeLoseGap_2 || 0) + (vars.homeDraw || 0);
-  vars._awayMatchCount = (vars.awayWinGap_1 || 0) + (vars.awayWinGap_2 || 0) +
-    (vars.awayLoseGap_1 || 0) + (vars.awayLoseGap_2 || 0) + (vars.awayDraw || 0);
+  vars._homeMatchCount =
+    (vars.homeWinGap_1 || 0) +
+    (vars.homeWinGap_2 || 0) +
+    (vars.homeLoseGap_1 || 0) +
+    (vars.homeLoseGap_2 || 0) +
+    (vars.homeDraw || 0);
+  vars._awayMatchCount =
+    (vars.awayWinGap_1 || 0) +
+    (vars.awayWinGap_2 || 0) +
+    (vars.awayLoseGap_1 || 0) +
+    (vars.awayLoseGap_2 || 0) +
+    (vars.awayDraw || 0);
 
   // 标准化净胜球序列（用于7场阈值）
   vars.homeGoalDiffSeries = buildGoalDiffSeries(

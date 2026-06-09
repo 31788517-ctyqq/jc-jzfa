@@ -62,7 +62,7 @@ async function deepCheck() {
       const db = database.getDatabase();
       const count = db.prepare('SELECT COUNT(*) as cnt FROM matches').get().cnt || 0;
       const dbPath = path.join(__dirname, '..', 'midou_data.db');
-      const dbSizeMB = fs.existsSync(dbPath) ? Math.round(fs.statSync(dbPath).size / 1048576 * 10) / 10 : 0;
+      const dbSizeMB = fs.existsSync(dbPath) ? Math.round((fs.statSync(dbPath).size / 1048576) * 10) / 10 : 0;
       result.checks.database = {
         status: count > 0 ? 'ok' : 'warn',
         matchCount: count,
@@ -112,14 +112,19 @@ async function deepCheck() {
     if (process.platform === 'win32') {
       freeInfo = require('child_process')
         .execSync('wmic logicaldisk where "DeviceID=\'C:\'" get FreeSpace', { timeout: 5000 })
-        .toString().trim().split('\n').slice(-1)[0].trim();
+        .toString()
+        .trim()
+        .split('\n')
+        .slice(-1)[0]
+        .trim();
       const freeMB = Math.round(parseInt(freeInfo || '0') / 1048576);
       freeInfo = freeMB + ' MB';
     } else {
       try {
         freeInfo = require('child_process')
-          .execSync('df -k "' + p + '" | tail -1 | awk \'{print $4}\'', { timeout: 5000 })
-          .toString().trim();
+          .execSync('df -k "' + p + "\" | tail -1 | awk '{print $4}'", { timeout: 5000 })
+          .toString()
+          .trim();
         const freeMB = Math.round(parseInt(freeInfo || '0') / 1024);
         freeInfo = freeMB + ' MB';
       } catch (_) {}
@@ -146,8 +151,8 @@ async function deepCheck() {
   try {
     const oddsDir = path.join(__dirname, '..', 'odds_history');
     if (fs.existsSync(oddsDir)) {
-      const files = fs.readdirSync(oddsDir).filter(f => f.endsWith('.json'));
-      const dates = files.map(f => f.replace('.json', '')).sort();
+      const files = fs.readdirSync(oddsDir).filter((f) => f.endsWith('.json'));
+      const dates = files.map((f) => f.replace('.json', '')).sort();
       result.checks.oddsCoverage = {
         status: files.length > 0 ? 'ok' : 'warn',
         fileCount: files.length,
@@ -171,9 +176,9 @@ async function deepCheck() {
 
   // ── 综合状态 ──
   const checksArray = Object.values(result.checks);
-  if (checksArray.some(c => c.status === 'error')) {
+  if (checksArray.some((c) => c.status === 'error')) {
     result.status = 'degraded';
-  } else if (checksArray.filter(c => c.status === 'warn').length >= 2) {
+  } else if (checksArray.filter((c) => c.status === 'warn').length >= 2) {
     result.status = 'warning';
   }
 

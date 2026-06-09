@@ -5,11 +5,20 @@
  * ★ 使用内存 mock DB 避免 better-sqlite3 原生模块兼容问题
  */
 const {
-  centsFromAmount, amountFromCents,
-  ensureTables, ensureVirtualAccount,
-  getAccount, getAccountByCode,
-  postJournal, freezeStake, releaseStake, settleTicket,
-  getHold, getIncomeSummary, getEquityCurve, getRiskLimits,
+  centsFromAmount,
+  amountFromCents,
+  ensureTables,
+  ensureVirtualAccount,
+  getAccount,
+  getAccountByCode,
+  postJournal,
+  freezeStake,
+  releaseStake,
+  settleTicket,
+  getHold,
+  getIncomeSummary,
+  getEquityCurve,
+  getRiskLimits,
   DEFAULT_INITIAL_BALANCE_CENT,
 } = require('../core/shadow-account');
 
@@ -32,40 +41,40 @@ function createMockDB() {
     if (!row) return row;
     // 常见 underscore → camelCase 别名
     const aliasMap = {
-      'book_balance_cent': 'bookBalanceCent',
-      'available_balance_cent': 'availableBalanceCent',
-      'frozen_balance_cent': 'frozenBalanceCent',
-      'reserved_balance_cent': 'reservedBalanceCent',
-      'pending_pnl_cent': 'pendingPnlCent',
-      'realized_pnl_cent': 'realizedPnlCent',
-      'account_id': 'accountId',
-      'account_code': 'accountCode',
-      'account_name': 'accountName',
-      'risk_limit_json': 'riskLimitJson',
-      'created_at': 'createdAt',
-      'updated_at': 'updatedAt',
-      'journal_id': 'journalId',
-      'journal_type': 'journalType',
-      'biz_ref_type': 'bizRefType',
-      'biz_ref_id': 'bizRefId',
-      'amount_cent': 'amountCent',
-      'summary_json': 'summaryJson',
-      'entry_id': 'entryId',
-      'balance_bucket': 'balanceBucket',
-      'hold_id': 'holdId',
-      'hold_type': 'holdType',
-      'hold_status': 'holdStatus',
-      'released_at': 'releasedAt',
-      'settled_at': 'settledAt',
-      'record_id': 'recordId',
-      'scheme_id': 'schemeId',
-      'stake_amount_cent': 'stakeAmountCent',
-      'payout_amount_cent': 'payoutAmountCent',
-      'pnl_cent': 'pnlCent',
-      'running_balance_cent': 'runningBalanceCent',
-      'running_max_cent': 'runningMaxCent',
-      'ticket_count': 'ticketCount',
-      'daily_pnl_cent': 'dailyPnlCent',
+      book_balance_cent: 'bookBalanceCent',
+      available_balance_cent: 'availableBalanceCent',
+      frozen_balance_cent: 'frozenBalanceCent',
+      reserved_balance_cent: 'reservedBalanceCent',
+      pending_pnl_cent: 'pendingPnlCent',
+      realized_pnl_cent: 'realizedPnlCent',
+      account_id: 'accountId',
+      account_code: 'accountCode',
+      account_name: 'accountName',
+      risk_limit_json: 'riskLimitJson',
+      created_at: 'createdAt',
+      updated_at: 'updatedAt',
+      journal_id: 'journalId',
+      journal_type: 'journalType',
+      biz_ref_type: 'bizRefType',
+      biz_ref_id: 'bizRefId',
+      amount_cent: 'amountCent',
+      summary_json: 'summaryJson',
+      entry_id: 'entryId',
+      balance_bucket: 'balanceBucket',
+      hold_id: 'holdId',
+      hold_type: 'holdType',
+      hold_status: 'holdStatus',
+      released_at: 'releasedAt',
+      settled_at: 'settledAt',
+      record_id: 'recordId',
+      scheme_id: 'schemeId',
+      stake_amount_cent: 'stakeAmountCent',
+      payout_amount_cent: 'payoutAmountCent',
+      pnl_cent: 'pnlCent',
+      running_balance_cent: 'runningBalanceCent',
+      running_max_cent: 'runningMaxCent',
+      ticket_count: 'ticketCount',
+      daily_pnl_cent: 'dailyPnlCent',
     };
     Object.keys(aliasMap).forEach(function (k) {
       if (row[k] !== undefined && row[aliasMap[k]] === undefined) {
@@ -92,7 +101,9 @@ function createMockDB() {
       const insMatch = norm.match(/INSERT\s+INTO\s+(\w+)\s*\((.+?)\)\s*VALUES\s*\((.+?)\)/i);
       if (insMatch) {
         const tableName = insMatch[1];
-        const colNames = insMatch[2].split(',').map(function (s) { return s.trim(); });
+        const colNames = insMatch[2].split(',').map(function (s) {
+          return s.trim();
+        });
         ensureTable(tableName);
         const row = {};
         colNames.forEach(function (col, idx) {
@@ -122,7 +133,9 @@ function createMockDB() {
           const whereVal = params.shift();
           tables[tableName].forEach(function (row) {
             if (row[whereCol[1]] === whereVal) {
-              sets.forEach(function (s) { row[s.col] = s.val; });
+              sets.forEach(function (s) {
+                row[s.col] = s.val;
+              });
             }
           });
         }
@@ -167,7 +180,9 @@ function createMockDB() {
         const maxMatch = norm.match(/MAX\((\w+)\)\s+as\s+(\w+)/i);
         if (maxMatch && rows.length > 0) {
           const col = maxMatch[1];
-          const maxVal = rows.reduce(function (m, r) { return Math.max(m, parseInt(r[col] || 0)); }, 0);
+          const maxVal = rows.reduce(function (m, r) {
+            return Math.max(m, parseInt(r[col] || 0));
+          }, 0);
           resultSet = [{ [maxMatch[2]]: maxVal }];
         }
         // SUM with CASE
@@ -182,7 +197,9 @@ function createMockDB() {
           if (isSelect && _whereCol) {
             const whereVal = params[0];
             const rows = (dbRef[_tableForBind] || []).slice();
-            resultSet = rows.filter(function (r) { return r[_whereCol] === whereVal; });
+            resultSet = rows.filter(function (r) {
+              return r[_whereCol] === whereVal;
+            });
             if (norm.toUpperCase().includes('ORDER BY') && norm.toUpperCase().includes('DESC')) {
               resultSet.reverse();
             }
@@ -236,8 +253,8 @@ describe('shadow-account — 工具函数', () => {
   });
 
   it('amountFromCents: 分 → 元', () => {
-    expect(amountFromCents(1000)).toBe(10.00);
-    expect(amountFromCents(350)).toBe(3.50);
+    expect(amountFromCents(1000)).toBe(10.0);
+    expect(amountFromCents(350)).toBe(3.5);
     expect(amountFromCents(1)).toBe(0.01);
   });
 
@@ -251,10 +268,14 @@ describe('shadow-account — 工具函数', () => {
 
 describe('shadow-account — 虚拟账户创建/查询 (Mock DB)', () => {
   let db;
-  beforeEach(function () { db = makeDB(); });
+  beforeEach(function () {
+    db = makeDB();
+  });
 
   it('ensureTables → 创建所有表不报错', () => {
-    expect(function () { ensureTables(db); }).not.toThrow();
+    expect(function () {
+      ensureTables(db);
+    }).not.toThrow();
   });
 
   it('ensureVirtualAccount: 创建新账户', () => {
@@ -319,8 +340,12 @@ describe('shadow-account — 资金冻结/释放/结算 (Mock DB)', () => {
   });
 
   it('freezeStake: 金额<=0 → 抛出异常', () => {
-    expect(function () { freezeStake(db, accountId, 's1', 0); }).toThrow();
-    expect(function () { freezeStake(db, accountId, 's1', -1); }).toThrow();
+    expect(function () {
+      freezeStake(db, accountId, 's1', 0);
+    }).toThrow();
+    expect(function () {
+      freezeStake(db, accountId, 's1', -1);
+    }).toThrow();
   });
 
   it('releaseStake: 释放冻结 → available恢复 frozen减少', () => {

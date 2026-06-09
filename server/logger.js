@@ -220,7 +220,7 @@ function getDailyStats(date) {
 
 // ═══ 导出 ═══
 module.exports = logger;
-module.exports.getLogger = getLogger;   // ★ V3 推荐: getLogger('name')
-module.exports.child = child;           // 向后兼容
+module.exports.getLogger = getLogger; // ★ V3 推荐: getLogger('name')
+module.exports.child = child; // 向后兼容
 module.exports.recordDailyStats = recordDailyStats;
 module.exports.getDailyStats = getDailyStats;

@@ -40,7 +40,7 @@ function computeDynamicWeights(predLog, days) {
   try {
     if (predLog && typeof predLog.queryBacktest === 'function') {
       var result = predLog.queryBacktest({ dateRange: days + 'd', type: 'all' });
-      rows = (result && result.items) ? result.items : [];
+      rows = result && result.items ? result.items : [];
     }
   } catch (e) {
     console.warn('[model-weights] prediction_log 不可用，使用等权:', e.message);
@@ -49,7 +49,13 @@ function computeDynamicWeights(predLog, days) {
 
   if (rows.length < 20) {
     console.log('[model-weights] 样本不足(' + rows.length + '场)，使用等权');
-    return { wA: DEFAULT_WEIGHTS.wA, wB: DEFAULT_WEIGHTS.wB, wC: DEFAULT_WEIGHTS.wC, stats: null, source: 'insufficient' };
+    return {
+      wA: DEFAULT_WEIGHTS.wA,
+      wB: DEFAULT_WEIGHTS.wB,
+      wC: DEFAULT_WEIGHTS.wC,
+      stats: null,
+      source: 'insufficient',
+    };
   }
 
   // ═══ V3.0: 使用真实模型预测值统计命中率 ═══
@@ -87,7 +93,15 @@ function computeDynamicWeights(predLog, days) {
   // 确保最少样本数，避免除零
   var minSamples = 10;
   if (stats.modelA.total < minSamples || stats.modelB.total < minSamples || stats.modelC.total < minSamples) {
-    console.log('[model-weights] 某模型样本不足(A=' + stats.modelA.total + ' B=' + stats.modelB.total + ' C=' + stats.modelC.total + ')，使用等权');
+    console.log(
+      '[model-weights] 某模型样本不足(A=' +
+        stats.modelA.total +
+        ' B=' +
+        stats.modelB.total +
+        ' C=' +
+        stats.modelC.total +
+        ')，使用等权',
+    );
     return { wA: DEFAULT_WEIGHTS.wA, wB: DEFAULT_WEIGHTS.wB, wC: DEFAULT_WEIGHTS.wC, stats: stats, source: 'partial' };
   }
 
@@ -111,7 +125,28 @@ function computeDynamicWeights(predLog, days) {
   var wB = +(sB / sum).toFixed(4);
   var wC = +(sC / sum).toFixed(4);
 
-  console.log('[model-weights] V3.0 ' + days + '天真实模型命中 → A=' + (accA * 100).toFixed(1) + '%(' + stats.modelA.total + '场) B=' + (accB * 100).toFixed(1) + '%(' + stats.modelB.total + '场) C=' + (accC * 100).toFixed(1) + '%(' + stats.modelC.total + '场) → 权重 wA=' + wA + ' wB=' + wB + ' wC=' + wC);
+  console.log(
+    '[model-weights] V3.0 ' +
+      days +
+      '天真实模型命中 → A=' +
+      (accA * 100).toFixed(1) +
+      '%(' +
+      stats.modelA.total +
+      '场) B=' +
+      (accB * 100).toFixed(1) +
+      '%(' +
+      stats.modelB.total +
+      '场) C=' +
+      (accC * 100).toFixed(1) +
+      '%(' +
+      stats.modelC.total +
+      '场) → 权重 wA=' +
+      wA +
+      ' wB=' +
+      wB +
+      ' wC=' +
+      wC,
+  );
 
   return {
     wA: wA,
@@ -135,7 +170,7 @@ var CACHE_TTL_MS = 10 * 60 * 1000; // 10分钟
 
 function getWeights(predLog, forceRefresh) {
   var now = Date.now();
-  if (!forceRefresh && _cachedWeights && (now - _cacheTime) < CACHE_TTL_MS) {
+  if (!forceRefresh && _cachedWeights && now - _cacheTime < CACHE_TTL_MS) {
     return _cachedWeights;
   }
   try {

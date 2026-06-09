@@ -1,0 +1,395 @@
+{
+  "match_id": "2034793",
+  "featureAnalysis": {
+    "labels": [
+      "近0场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "6胜/3平/1负",
+      "4胜/2平/4负",
+      "2.3个",
+      "0.9个"
+    ],
+    "away": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "6胜/2平/2负",
+      "3胜/2平/5负",
+      "1.5个",
+      "0.9个"
+    ]
+  },
+  "h2h": {
+    "title": "近0场贝蒂斯0胜 (0%) | 0平 (0%) | 0负 (0%)",
+    "rows": []
+  },
+  "standings": [
+    {
+      "team": "贝蒂斯",
+      "title": "League Stage 第4名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "5/2/1",
+          "winRate": "63%",
+          "goals": "13/7",
+          "gd": "6",
+          "points": "17",
+          "rank": "4"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "3/1/0",
+          "winRate": "75%",
+          "goals": "8/4",
+          "gd": "4",
+          "points": "10",
+          "rank": "7"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "2/1/1",
+          "winRate": "50%",
+          "goals": "5/3",
+          "gd": "2",
+          "points": "7",
+          "rank": "10"
+        }
+      ]
+    },
+    {
+      "team": "里昂",
+      "title": "League Stage 第1名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "7/0/1",
+          "winRate": "88%",
+          "goals": "18/5",
+          "gd": "13",
+          "points": "21",
+          "rank": "1"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "4/0/0",
+          "winRate": "100%",
+          "goals": "10/3",
+          "gd": "7",
+          "points": "12",
+          "rank": "2"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "3/0/1",
+          "winRate": "75%",
+          "goals": "8/2",
+          "gd": "6",
+          "points": "9",
+          "rank": "2"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "贝蒂斯",
+      "summary": "贝蒂斯近10场6胜 (60%) | 3平 (30%) | 1负 (10%) 进23球，失9球，净进14球",
+      "matches": [
+        {
+          "date": "2025-11-03",
+          "league": "西甲",
+          "vs": "贝蒂斯 3 : 0 （半 3:0） 马洛卡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-31",
+          "league": "西国王杯",
+          "vs": "Palma del Río 1 : 7 （半 0:3） 贝蒂斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-28",
+          "league": "西甲",
+          "vs": "贝蒂斯 0 : 2 （半 0:2） 马竞",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-24",
+          "league": "欧罗巴",
+          "vs": "亨克 0 : 0 （半 0:0） 贝蒂斯",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-19",
+          "league": "西甲",
+          "vs": "比利亚雷 2 : 2 （半 1:0） 贝蒂斯",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-06",
+          "league": "西甲",
+          "vs": "西班牙人 1 : 2 （半 1:0） 贝蒂斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-03",
+          "league": "欧罗巴",
+          "vs": "卢多戈雷 0 : 2 （半 0:1） 贝蒂斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-29",
+          "league": "西甲",
+          "vs": "贝蒂斯 2 : 0 （半 2:0） 奥萨苏纳",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-25",
+          "league": "欧罗巴",
+          "vs": "贝蒂斯 2 : 2 （半 1:2） 诺丁汉",
+          "result": "平"
+        },
+        {
+          "date": "2025-09-20",
+          "league": "西甲",
+          "vs": "贝蒂斯 3 : 1 （半 1:1） 皇家社会",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "里昂",
+      "summary": "里昂近10场6胜 (60%) | 2平 (20%) | 2负 (20%) 进15球，失9球，净进6球",
+      "matches": [
+        {
+          "date": "2025-11-03",
+          "league": "法甲",
+          "vs": "布雷斯特 0 : 0 （半 0:0） 里昂",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-30",
+          "league": "法甲",
+          "vs": "巴黎FC 3 : 3 （半 0:1） 里昂",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-27",
+          "league": "法甲",
+          "vs": "里昂 2 : 1 （半 1:1） 斯特拉斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-24",
+          "league": "欧罗巴",
+          "vs": "里昂 2 : 0 （半 1:0） 巴塞尔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-18",
+          "league": "法甲",
+          "vs": "尼斯 3 : 2 （半 2:1） 里昂",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-05",
+          "league": "法甲",
+          "vs": "里昂 1 : 2 （半 1:0） 图卢兹",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-03",
+          "league": "欧罗巴",
+          "vs": "里昂 2 : 0 （半 1:0） 萨尔茨堡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-28",
+          "league": "法甲",
+          "vs": "里尔 0 : 1 （半 0:1） 里昂",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-26",
+          "league": "欧罗巴",
+          "vs": "乌德勒支 0 : 1 （半 0:0） 里昂",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-20",
+          "league": "法甲",
+          "vs": "里昂 1 : 0 （半 0:0） 昂热",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "贝蒂斯",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-23",
+          "俱乐部赛",
+          "韦尔瓦\nVS\n贝蒂斯",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-08-06",
+          "俱乐部赛",
+          "阿森纳\nVS\n贝蒂斯",
+          "Club Friendlies 1"
+        ]
+      ]
+    },
+    {
+      "team": "里昂",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-08",
+          "俱乐部赛",
+          "里昂\nVS\nMâcon",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "贝蒂斯",
+      "players": [
+        {
+          "player": "7-Antony(前锋)",
+          "apps": "10 (9/1)",
+          "goals": "6 (33%)",
+          "assists": "3 (25%)",
+          "avg": "0.6/0.3"
+        },
+        {
+          "player": "10-埃扎勒祖利(前锋)",
+          "apps": "12 (9/3)",
+          "goals": "4 (22%)",
+          "assists": "1 (8%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "19-J. Hernández(前锋)伤",
+          "apps": "7 (5/2)",
+          "goals": "3 (17%)",
+          "assists": "0 (0%)",
+          "avg": "0.4/0"
+        }
+      ]
+    },
+    {
+      "team": "里昂",
+      "players": [
+        {
+          "player": "8-C. Tolisso(中场)",
+          "apps": "7 (6/1)",
+          "goals": "4 (21%)",
+          "assists": "0 (0%)",
+          "avg": "0.6/0"
+        },
+        {
+          "player": "7-A. Karabec(中场)",
+          "apps": "9 (5/4)",
+          "goals": "2 (11%)",
+          "assists": "3 (20%)",
+          "avg": "0.2/0.3"
+        },
+        {
+          "player": "17-Afonso Moreira(前锋)",
+          "apps": "7 (3/4)",
+          "goals": "2 (11%)",
+          "assists": "2 (13%)",
+          "avg": "0.3/0.3"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "贝蒂斯",
+      "players": [
+        {
+          "player": "22-Isco(中场)",
+          "totalApps": "1",
+          "starts": "1",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "25-Pau López(守门员)",
+          "totalApps": "7",
+          "starts": "7",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "23-胡尼奥尔·菲尔波(后卫)",
+          "totalApps": "3",
+          "starts": "2",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "19-J. Hernández(前锋)",
+          "totalApps": "7",
+          "starts": "5",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "14-Iker Losada(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "里昂",
+      "players": [
+        {
+          "player": "5-曼加拉(中场)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "11-M. Fofana(前锋)",
+          "totalApps": "4",
+          "starts": "2",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "37-E. Nuamah(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

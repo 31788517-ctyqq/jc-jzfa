@@ -1,0 +1,409 @@
+{
+  "match_id": "2032327",
+  "featureAnalysis": {
+    "labels": [
+      "近0场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "6胜/1平/3负",
+      "5胜/2平/3负",
+      "2.0个",
+      "1.5个"
+    ],
+    "away": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "6胜/3平/1负",
+      "5胜/3平/2负",
+      "3.0个",
+      "1.3个"
+    ]
+  },
+  "h2h": {
+    "title": "近0场萨尔茨堡0胜 (0%) | 0平 (0%) | 0负 (0%)",
+    "rows": []
+  },
+  "standings": [
+    {
+      "team": "萨尔茨堡",
+      "title": "H组 第3名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "3",
+          "wdl": "1/1/1",
+          "winRate": "33%",
+          "goals": "2/4",
+          "gd": "-2",
+          "points": "4",
+          "rank": "3"
+        },
+        {
+          "where": "主",
+          "played": "2",
+          "wdl": "0/1/1",
+          "winRate": "0%",
+          "goals": "0/3",
+          "gd": "-3",
+          "points": "1",
+          "rank": "3"
+        },
+        {
+          "where": "客",
+          "played": "1",
+          "wdl": "1/0/0",
+          "winRate": "100%",
+          "goals": "2/1",
+          "gd": "1",
+          "points": "3",
+          "rank": "2"
+        }
+      ]
+    },
+    {
+      "team": "利雅新月",
+      "title": "H组 第2名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "3",
+          "wdl": "1/2/0",
+          "winRate": "33%",
+          "goals": "3/1",
+          "gd": "2",
+          "points": "5",
+          "rank": "2"
+        },
+        {
+          "where": "主",
+          "played": "1",
+          "wdl": "1/0/0",
+          "winRate": "100%",
+          "goals": "2/0",
+          "gd": "2",
+          "points": "3",
+          "rank": "2"
+        },
+        {
+          "where": "客",
+          "played": "2",
+          "wdl": "0/2/0",
+          "winRate": "0%",
+          "goals": "1/1",
+          "gd": "0",
+          "points": "2",
+          "rank": "3"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "萨尔茨堡",
+      "summary": "萨尔茨堡近10场6胜 (60%) | 1平 (10%) | 3负 (30%) 进20球，失15球，净进5球",
+      "matches": [
+        {
+          "date": "2025-06-19",
+          "league": "俱世界杯",
+          "vs": "帕丘卡 1 : 2 （半 0:1） 萨尔茨堡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-24",
+          "league": "奥甲",
+          "vs": "萨尔茨堡 4 : 2 （半 3:1） 维快速",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "奥甲",
+          "vs": "Blau-Weiß Linz 1 : 2 （半 1:0） 萨尔茨堡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-10",
+          "league": "奥甲",
+          "vs": "格风暴 4 : 2 （半 2:1） 萨尔茨堡",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-04",
+          "league": "奥甲",
+          "vs": "萨尔茨堡 2 : 0 （半 0:0） 维也纳",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-27",
+          "league": "奥甲",
+          "vs": "沃尔夫斯 2 : 1 （半 1:0） 萨尔茨堡",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-24",
+          "league": "奥甲",
+          "vs": "萨尔茨堡 1 : 1 （半 0:1） 沃尔夫斯",
+          "result": "平"
+        },
+        {
+          "date": "2025-04-20",
+          "league": "奥甲",
+          "vs": "维也纳 1 : 3 （半 1:2） 萨尔茨堡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-13",
+          "league": "奥甲",
+          "vs": "萨尔茨堡 1 : 2 （半 1:0） 格风暴",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-06",
+          "league": "奥甲",
+          "vs": "萨尔茨堡 2 : 1 （半 0:0） Blau-Weiß Linz",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "利雅新月",
+      "summary": "利雅新月近10场6胜 (60%) | 3平 (30%) | 1负 (10%) 进30球，失13球，净进17球",
+      "matches": [
+        {
+          "date": "2025-06-19",
+          "league": "俱世界杯",
+          "vs": "皇马 1 : 1 （半 1:1） 利雅新月",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-27",
+          "league": "沙职",
+          "vs": "利雅新月 2 : 0 （半 1:0） 胡巴卡德",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-22",
+          "league": "沙职",
+          "vs": "艾尔瓦赫达 1 : 1 （半 0:0） 利雅新月",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-16",
+          "league": "沙职",
+          "vs": "穆拜征服 3 : 4 （半 2:0） 利雅新月",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-13",
+          "league": "沙职",
+          "vs": "利雅新月 4 : 0 （半 1:0） Orubah",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-08",
+          "league": "沙职",
+          "vs": "Raed 3 : 5 （半 1:2） 利雅新月",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-30",
+          "league": "亚冠精英",
+          "vs": "利雅新月 1 : 3 （半 1:2） 吉达国民",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-26",
+          "league": "亚冠精英",
+          "vs": "利雅新月 7 : 0 （半 3:0） 光州FC",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-21",
+          "league": "沙职",
+          "vs": "利雅新月 2 : 2 （半 1:1） 利雅青年",
+          "result": "平"
+        },
+        {
+          "date": "2025-04-17",
+          "league": "沙职",
+          "vs": "利雅新月 3 : 0 （半 1:0） 赛哈海湾",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "萨尔茨堡",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-06-26",
+          "俱乐部赛",
+          "西基臣\nVS\n萨尔茨堡",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-04",
+          "俱乐部赛",
+          "萨尔茨堡\nVS\nGórnik",
+          "Club Friendlies 3"
+        ]
+      ]
+    },
+    {
+      "team": "利雅新月",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-16",
+          "沙特冠杯",
+          "Raed\nVS\n利雅新月",
+          "16th Finals"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "萨尔茨堡",
+      "players": [
+        {
+          "player": "9-K. Onisiwo(前锋)",
+          "apps": "3 (1/2)",
+          "goals": "1 (50%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        },
+        {
+          "player": "30-O. Gloukh(中场)",
+          "apps": "3 (3/0)",
+          "goals": "1 (50%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        },
+        {
+          "player": "38-V. Sulzbacher(中场)",
+          "apps": "1 (1/0)",
+          "goals": "0 (0%)",
+          "assists": "1 (50%)",
+          "avg": "0/1.0"
+        }
+      ]
+    },
+    {
+      "team": "利雅新月",
+      "players": [
+        {
+          "player": "11-马科斯 莱昂纳多(前锋)",
+          "apps": "5 (5/0)",
+          "goals": "4 (50%)",
+          "assists": "0 (0%)",
+          "avg": "0.8/0"
+        },
+        {
+          "player": "8-内维斯(中场)",
+          "apps": "5 (5/0)",
+          "goals": "1 (13%)",
+          "assists": "2 (40%)",
+          "avg": "0.2/0.4"
+        },
+        {
+          "player": "3-库利巴利(后卫)",
+          "apps": "5 (5/0)",
+          "goals": "1 (13%)",
+          "assists": "1 (20%)",
+          "avg": "0.2/0.2"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "萨尔茨堡",
+      "players": [
+        {
+          "player": "1-A. Schlager(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "16-T. Kawamura(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "K. Piątkowski(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "N. Capaldo(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "K. Konaté(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "D. Kameri(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "49-M. Yeo(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "H. Blank(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "利雅新月",
+      "players": [
+        {
+          "player": "9-米特罗维奇(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "27-Kaio César(前锋)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

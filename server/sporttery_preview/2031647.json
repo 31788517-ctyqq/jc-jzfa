@@ -1,0 +1,505 @@
+{
+  "match_id": "2031647",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "1胜/6平/3负",
+      "0胜/4平/5负",
+      "1胜/2平/7负",
+      "3胜/2平/5负",
+      "1.0个",
+      "2.3个"
+    ],
+    "away": [
+      "3胜/6平/1负",
+      "5胜/4平/0负",
+      "4胜/3平/3负",
+      "1胜/3平/6负",
+      "1.6个",
+      "1.5个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场瓦尔韦克1胜 (10%) | 6平 (60%) | 3负 (30%)",
+    "rows": [
+      {
+        "date": "2024-11-30",
+        "league": "荷甲",
+        "teams": "海伦芬 1:1 （半 1:0） 瓦尔韦克",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2024-03-31",
+        "league": "荷甲",
+        "teams": "瓦尔韦克 1:1 （半 0:0） 海伦芬",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2023-08-13",
+        "league": "荷甲",
+        "teams": "海伦芬 3:1 （半 3:0） 瓦尔韦克",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2023-02-26",
+        "league": "荷甲",
+        "teams": "海伦芬 1:4 （半 1:0） 瓦尔韦克",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2023-01-07",
+        "league": "荷甲",
+        "teams": "瓦尔韦克 0:0 （半 0:0） 海伦芬",
+        "totalGoals": ""
+      },
+      {
+        "date": "2022-03-13",
+        "league": "荷甲",
+        "teams": "瓦尔韦克 0:0 （半 0:0） 海伦芬",
+        "totalGoals": ""
+      },
+      {
+        "date": "2021-08-22",
+        "league": "荷甲",
+        "teams": "海伦芬 3:2 （半 3:0） 瓦尔韦克",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2021-01-15",
+        "league": "荷甲",
+        "teams": "海伦芬 1:1 （半 1:0） 瓦尔韦克",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2020-11-22",
+        "league": "荷甲",
+        "teams": "瓦尔韦克 1:1 （半 0:1） 海伦芬",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2019-12-08",
+        "league": "荷甲",
+        "teams": "瓦尔韦克 1:3 （半 0:1） 海伦芬",
+        "totalGoals": "4"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "瓦尔韦克",
+      "title": "Regular Season 第17名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "6/7/21",
+          "winRate": "18%",
+          "goals": "44/74",
+          "gd": "-30",
+          "points": "25",
+          "rank": "17"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "5/3/9",
+          "winRate": "29%",
+          "goals": "25/31",
+          "gd": "-6",
+          "points": "18",
+          "rank": "16"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "1/4/12",
+          "winRate": "6%",
+          "goals": "19/43",
+          "gd": "-24",
+          "points": "7",
+          "rank": "17"
+        }
+      ]
+    },
+    {
+      "team": "海伦芬",
+      "title": "Regular Season 第9名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "12/7/15",
+          "winRate": "35%",
+          "goals": "42/57",
+          "gd": "-15",
+          "points": "43",
+          "rank": "9"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "10/6/1",
+          "winRate": "59%",
+          "goals": "30/15",
+          "gd": "15",
+          "points": "36",
+          "rank": "4"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "2/1/14",
+          "winRate": "12%",
+          "goals": "12/42",
+          "gd": "-30",
+          "points": "7",
+          "rank": "18"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "瓦尔韦克",
+      "summary": "瓦尔韦克近10场1胜 (10%) | 2平 (20%) | 7负 (70%) 进10球，失23球，净进-13球",
+      "matches": [
+        {
+          "date": "2025-05-04",
+          "league": "荷甲",
+          "vs": "格罗宁根 6 : 1 （半 2:0） 瓦尔韦克",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-26",
+          "league": "荷甲",
+          "vs": "瓦尔韦克 0 : 4 （半 0:3） 乌德勒支",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-12",
+          "league": "荷甲",
+          "vs": "奈梅亨 2 : 1 （半 0:0） 瓦尔韦克",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-06",
+          "league": "荷甲",
+          "vs": "瓦尔韦克 0 : 0 （半 0:0） 赫拉克勒",
+          "result": "平"
+        },
+        {
+          "date": "2025-04-02",
+          "league": "荷甲",
+          "vs": "阿尔克马 2 : 2 （半 1:0） 瓦尔韦克",
+          "result": "平"
+        },
+        {
+          "date": "2025-03-30",
+          "league": "荷甲",
+          "vs": "兹沃勒 2 : 0 （半 0:0） 瓦尔韦克",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-16",
+          "league": "荷甲",
+          "vs": "瓦尔韦克 0 : 3 （半 0:2） 埃因霍温",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-01",
+          "league": "荷甲",
+          "vs": "瓦尔韦克 1 : 2 （半 0:1） 福图纳",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-16",
+          "league": "荷甲",
+          "vs": "特温特 2 : 0 （半 1:0） 瓦尔韦克",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-09",
+          "league": "荷甲",
+          "vs": "瓦尔韦克 5 : 0 （半 3:0） 布雷达",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "海伦芬",
+      "summary": "海伦芬近10场4胜 (40%) | 3平 (30%) | 3负 (30%) 进16球，失15球，净进1球",
+      "matches": [
+        {
+          "date": "2025-04-27",
+          "league": "荷甲",
+          "vs": "海伦芬 1 : 0 （半 0:0） 奈梅亨",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-20",
+          "league": "荷甲",
+          "vs": "海伦芬 2 : 1 （半 2:1） 阿尔梅勒",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-13",
+          "league": "荷甲",
+          "vs": "鹿斯巴达 3 : 1 （半 1:0） 海伦芬",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-05",
+          "league": "荷甲",
+          "vs": "海伦芬 3 : 1 （半 2:0） 威廉二世",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-30",
+          "league": "荷甲",
+          "vs": "乌德勒支 2 : 0 （半 1:0） 海伦芬",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-16",
+          "league": "荷甲",
+          "vs": "海伦芬 1 : 1 （半 1:1） 赫拉克勒",
+          "result": "平"
+        },
+        {
+          "date": "2025-03-09",
+          "league": "荷甲",
+          "vs": "埃因霍温 2 : 1 （半 1:0） 海伦芬",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-02",
+          "league": "荷甲",
+          "vs": "海伦芬 3 : 1 （半 1:0） 阿尔克马",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-16",
+          "league": "荷甲",
+          "vs": "兹沃勒 1 : 1 （半 1:0） 海伦芬",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-09",
+          "league": "荷甲",
+          "vs": "海伦芬 3 : 3 （半 1:2） 特温特",
+          "result": "平"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "瓦尔韦克",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "海伦芬",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-18",
+          "俱乐部赛",
+          "布鲁日\nVS\n海伦芬",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-08-01",
+          "俱乐部赛",
+          "海伦芬\nVS\n狼队",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "瓦尔韦克",
+      "players": [
+        {
+          "player": "9-O. Zawada(前锋)伤",
+          "apps": "26 (24/2)",
+          "goals": "9 (22%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        },
+        {
+          "player": "6-Y. Oukili(中场)",
+          "apps": "32 (26/6)",
+          "goals": "6 (15%)",
+          "assists": "3 (13%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "19-马哈雷特(前锋)",
+          "apps": "34 (28/6)",
+          "goals": "5 (12%)",
+          "assists": "7 (29%)",
+          "avg": "0.1/0.2"
+        }
+      ]
+    },
+    {
+      "team": "海伦芬",
+      "players": [
+        {
+          "player": "18-I. Nicolăescu(前锋)",
+          "apps": "26 (13/13)",
+          "goals": "9 (21%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        },
+        {
+          "player": "20-J.特伦斯科(前锋)",
+          "apps": "26 (21/5)",
+          "goals": "6 (14%)",
+          "assists": "3 (11%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "30-雅汉布什(前锋)伤",
+          "apps": "19 (16/3)",
+          "goals": "3 (7%)",
+          "assists": "2 (7%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "瓦尔韦克",
+      "players": [
+        {
+          "player": "23-范德文纳(中场)",
+          "totalApps": "17",
+          "starts": "8",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "9-O. Zawada(前锋)",
+          "totalApps": "26",
+          "starts": "24",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "21-范奥施(守门员)",
+          "totalApps": "3",
+          "starts": "3",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "34-L. Wouters(后卫)",
+          "totalApps": "12",
+          "starts": "8",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "20-I.塔基丁(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "15-N. Cheung(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "30-D. Weidmann(中场)",
+          "totalApps": "12",
+          "starts": "8",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "31-L. Vogels(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "海伦芬",
+      "players": [
+        {
+          "player": "8-L. Brouwers(中场)",
+          "totalApps": "25",
+          "starts": "24",
+          "subs": "1",
+          "status": "停"
+        },
+        {
+          "player": "30-雅汉布什(前锋)",
+          "totalApps": "19",
+          "starts": "16",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "3-乔尔迪·德维斯(后卫)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "5-P.博赫涅维茨(后卫)",
+          "totalApps": "13",
+          "starts": "13",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "7-C. Nunnely(前锋)",
+          "totalApps": "16",
+          "starts": "1",
+          "subs": "15",
+          "status": "伤"
+        },
+        {
+          "player": "15-H.阿里(后卫)",
+          "totalApps": "7",
+          "starts": "1",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "28-H. Petrov(后卫)",
+          "totalApps": "7",
+          "starts": "5",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "27-M. Milovanović(后卫)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

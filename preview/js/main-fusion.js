@@ -1,16 +1,16 @@
-// ==================== 主入口：路由导航 + 全局状态管理 ====================
+﻿// ==================== 主入口：路由导航 + 全局状态管理 ====================
 console.log('[V6.0-LAZY] main-fusion.js loaded');
 import { api } from './api.js';
-import { WEEK_NAMES, formatDate } from './utils.js';
+import { WEEK_NAMES, formatDate, getCache, setCache } from './utils.js';
 import * as state from './state.js';
-import { loadHome } from './pages/home.js';
-import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js';
+import { loadHome } from './pages/home.js?v=202606090335';
+import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js?v=202606090335';
 
 // ═══ 模块懒加载：非核心页面模块按需动态导入 ═══
 var _modCache = {};
 function _mod(name) {
   if (_modCache[name]) return Promise.resolve(_modCache[name]);
-  return import('./pages/' + name + '.js?v=202606071740')
+  return import('./pages/' + name + '.js?v=202606090335')
     .then(function (m) {
       _modCache[name] = m;
       return m;
@@ -18,7 +18,7 @@ function _mod(name) {
     .catch(function (e) {
       console.error('[JS] 模块加载失败: ' + name + ' - ' + (e && e.message));
       // 重试一次（可能是网络波动或文件刚部署）
-      return import('./pages/' + name + '.js').then(function (m) {
+      return import('./pages/' + name + '.js?v=202606090335').then(function (m) {
         _modCache[name] = m;
         console.warn('[JS] 模块重试成功: ' + name);
         return m;
@@ -337,6 +337,27 @@ export function updateDateBar() {
   }
 }
 
+function readPendingMatchFocus() {
+  try {
+    var raw = sessionStorage.getItem('pendingMatchFocus');
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function applyPendingMatchWeek() {
+  var pending = readPendingMatchFocus();
+  if (!pending || !pending.matchDate || !Array.isArray(state.weekDates) || state.weekDates.length === 0) return false;
+  for (var i = 0; i < state.weekDates.length; i++) {
+    if (state.weekDates[i] && state.weekDates[i].matchDate === pending.matchDate) {
+      state.setSelectedWeekIdx(i);
+      return true;
+    }
+  }
+  return false;
+}
+
 export function shiftWeek(delta) {
   var newIdx = state.selectedWeekIdx + delta;
   if (newIdx < 0 || newIdx >= state.weekDates.length) return;
@@ -552,10 +573,11 @@ export function selectPlanDateFromPicker(md) {
     el.textContent = mmdd + ' ' + week;
   }
   _mod('plans').then(function (m) {
-    if (state.planTab === 'expert') m.loadPlanList();
-    else if (state.planTab === 'score') m.loadScorePlanList();
-    else if (state.planTab === 'quant') m.loadQuantPlanList();
-    else m.loadMyPlanList();
+    if (state.planTab === 'my') m.loadMyPlanList();
+    else {
+      state.setPlanTab('expert');
+      m.loadPlanList();
+    }
   });
   document.getElementById('planDatePicker').style.display = 'none';
 }
@@ -613,29 +635,63 @@ export function goToday() {
   loadMatchList();
 }
 
+function _setBestWeekIndex() {
+  var today = formatDate(new Date()).slice(5);
+  state.setSelectedWeekIdx(0);
+  state.weekDates.forEach(function (w, i) {
+    if (w.matchDate <= today) state.setSelectedWeekIdx(i);
+  });
+}
+
+function _cacheMatchListForDates(matches, fallbackDate) {
+  if (!Array.isArray(matches) || matches.length === 0) return;
+  var raw = matches[0].date || matches[0].matchDate || matches[0].startTime || fallbackDate || '';
+  var full = String(raw).match(/\d{4}-\d{2}-\d{2}/);
+  var short = String(raw).match(/\d{2}-\d{2}/);
+  if (full) {
+    setCache('match-list:' + full[0], matches);
+    setCache('match-list:' + full[0].slice(5), matches);
+  } else if (short) {
+    setCache('match-list:' + short[0], matches);
+  }
+}
+
 export function initWeekDates() {
-  // 并行发起 week-dates 和 match-list，减少串行等待时间
-  var datesP = api('week-dates', {}).catch(function () {
-    return [];
-  });
-  var matchP = api('match-list', { date: formatDate(new Date()) }).catch(function () {
-    return [];
-  });
-  Promise.all([datesP, matchP])
-    .then(function (r) {
-      var list = r[0] || [],
-        matches = r[1] || [];
+  var cachedDates = getCache('week-dates');
+  if (Array.isArray(cachedDates) && cachedDates.length) {
+    state.setWeekDates(cachedDates);
+    _setBestWeekIndex();
+    applyPendingMatchWeek();
+    updateDateBar();
+    var selected = state.weekDates[state.selectedWeekIdx];
+    var cachedMatches = selected ? getCache('match-list:' + selected.matchDate) : null;
+    if (cachedMatches) {
+      loadMatchListFromData(cachedMatches);
+      return;
+    }
+    loadMatchList();
+    return;
+  }
+
+  var todayFull = formatDate(new Date());
+  api('week-dates', {})
+    .then(function (list) {
+      list = list || [];
+      if (list.length) setCache('week-dates', list);
       state.setWeekDates(list.length ? list : []);
       if (state.weekDates.length) {
-        var today = formatDate(new Date()).slice(5);
-        state.setSelectedWeekIdx(0);
-        state.weekDates.forEach(function (w, i) {
-          if (w.matchDate <= today) state.setSelectedWeekIdx(i);
-        });
+        _setBestWeekIndex();
       } else {
-        state.setWeekDates([{ weekNum: WEEK_NAMES[new Date().getDay()], matchDate: formatDate(new Date()).slice(5) }]);
+        state.setWeekDates([{ weekNum: WEEK_NAMES[new Date().getDay()], matchDate: todayFull.slice(5) }]);
       }
+      applyPendingMatchWeek();
       updateDateBar();
+      var selected = state.weekDates[state.selectedWeekIdx];
+      var cachedMatches = selected ? getCache('match-list:' + selected.matchDate) : null;
+      if (cachedMatches) {
+        loadMatchListFromData(cachedMatches);
+        return;
+      }
       loadMatchList();
     })
     .catch(function () {
@@ -660,11 +716,11 @@ function _ensurePage(id) {
         '<div class="date-bar" id="dateBar"><span class="date-arrow" onclick="shiftWeek(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="dateCurrent" onclick="toggleDatePicker()"></span><span class="date-arrow" onclick="shiftWeek(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="datePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="datePickerPrev">&lt;</button><span class="date-picker-month" id="datePickerMonth"></span><button class="date-picker-nav" id="datePickerNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="datePickerGrid"></div><div class="date-picker-footer"><button class="date-picker-today" onclick="selectDateFromPicker(\'today\')">今天</button><button class="date-picker-close" onclick="toggleDatePicker()">✕</button></div></div><div id="matchList"></div><div class="quant-pk-bar" id="matchPkBar" style="display:none"><button class="pk-bar-btn" id="mpkBarBtn" onclick="startMatchPK()">场次PK（已选 <b id="mpkBarCount">0</b> 场）</button></div>';
     else if (id === 'plan')
       el.innerHTML =
-        '<div class="filter-row" id="planTabBar"><div class="filter-tag active" data-tab="expert" onclick="switchPlanTab(\'expert\')">专家博热方案</div><div class="filter-tag" data-tab="score" onclick="switchPlanTab(\'score\')">单关比分方案</div><div class="filter-tag" data-tab="quant" onclick="switchPlanTab(\'quant\')">量化博冷方案</div><div class="filter-tag" data-tab="my" onclick="switchPlanTab(\'my\')">我的方案</div></div><div class="date-bar" id="planDateBar"><span class="date-arrow" onclick="shiftPlanDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="planDateCurrent" onclick="togglePlanDatePicker()"></span><span class="date-arrow" onclick="shiftPlanDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="planDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="planDatePrev">&lt;</button><span class="date-picker-month" id="planDateMonth"></span><button class="date-picker-nav" id="planDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="planDateGrid"></div></div><div id="planList"></div>';
+        '<div class="filter-row" id="planTabBar" style="justify-content:flex-start;gap:6px"><div class="filter-tag active" data-tab="expert" onclick="switchPlanTab(\'expert\')">专家博热方案</div><div class="filter-tag" data-tab="my" onclick="switchPlanTab(\'my\')">我的方案</div></div><div class="date-bar" id="planDateBar"><span class="date-arrow" onclick="shiftPlanDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="planDateCurrent" onclick="togglePlanDatePicker()"></span><span class="date-arrow" onclick="shiftPlanDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="planDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="planDatePrev">&lt;</button><span class="date-picker-month" id="planDateMonth"></span><button class="date-picker-nav" id="planDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="planDateGrid"></div></div><div id="planList"></div>';
     else if (id === 'detail') el.innerHTML = '<div id="detailContent"></div>';
     else if (id === 'rank')
       el.innerHTML =
-        '<div class="filter-row" id="catFilterBar"></div><div class="filter-row" id="subFilterBar" style="display:none;padding-top:0;"></div><div class="date-bar" id="rankDateBar"><span class="date-arrow" onclick="shiftRankDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="rankDateCurrent" onclick="toggleRankDatePicker()"></span><span class="date-arrow" onclick="shiftRankDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="rankDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="rankDatePrev">&lt;</button><span class="date-picker-month" id="rankDateMonth"></span><button class="date-picker-nav" id="rankDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="rankDateGrid"></div></div><div class="rank-list" id="rankList"></div>';
+        '<div class="filter-row" id="catFilterBar"></div><div class="filter-row" id="subFilterBar" style="display:none;padding-top:0;justify-content:flex-start;gap:6px"></div><div class="date-bar" id="rankDateBar"><span class="date-arrow" onclick="shiftRankDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="rankDateCurrent" onclick="toggleRankDatePicker()"></span><span class="date-arrow" onclick="shiftRankDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="rankDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="rankDatePrev">&lt;</button><span class="date-picker-month" id="rankDateMonth"></span><button class="date-picker-nav" id="rankDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="rankDateGrid"></div></div><div class="rank-list" id="rankList"></div>';
     else if (id === 'quant-rank')
       el.innerHTML =
         '<div class="filter-row" id="quantFilterBar"><div class="filter-tag active" data-tab="power" onclick="switchQuantTab(\'power\')">实力排行榜</div><div class="filter-tag" data-tab="goal" onclick="switchQuantTab(\'goal\')">进球排行榜</div><div class="filter-tag" data-tab="hot" onclick="switchQuantTab(\'hot\')">热点排行榜</div></div><div class="date-bar" id="quantDateBar"><span class="date-arrow" onclick="shiftQuantDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="quantDateCurrent" onclick="toggleQuantDatePicker()"></span><span class="date-arrow" onclick="shiftQuantDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="quant-table-wrap" id="quantTableWrap"></div><div class="quant-chart-wrap" id="quantChartWrap" style="display:none"><div class="quant-chart-inner" id="quantChart"></div></div><div class="quant-view-toggle" id="quantViewToggle" style="display:none"><button class="qt-view-btn active" data-view="table" onclick="switchQuantView(\'table\')">📋 表格</button><button class="qt-view-btn" data-view="chart" onclick="switchQuantView(\'chart\')">📊 图表</button></div><div class="quant-pk-bar" id="quantPkBar" style="display:none"><span class="pk-bar-hint" id="pkBarHint" style="display:none">已选 <b id="pkSelectCount">0</b> 场</span><button class="pk-bar-btn" id="pkBarBtn" onclick="startPK()">场次PK（已选 <b id="pkBarCount">0</b> 场）</button></div>';
@@ -674,7 +730,7 @@ function _ensurePage(id) {
         '<div class="filter-stats-card"><div class="stats-subtitle">数据概览</div><div class="filter-stats-row"><div class="filter-stat-item"><div class="filter-stat-value" id="statMatches">-</div><div class="filter-stat-label">比赛场次</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="statLeagues">-</div><div class="filter-stat-label">联赛数</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="statDirs">-</div><div class="filter-stat-label">方向数</div></div></div></div><div class="filter-section-card"><div class="filter-head">筛选条件</div><div class="filter-row"><span class="filter-label">联赛</span><div class="filter-dd" id="dd-league" data-val=""><div class="filter-dd-trigger" onclick="toggleDD(\'dd-league\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"></ul></div></div><div class="filter-row"><span class="filter-label">时间</span><div class="filter-dd" id="dd-time" data-val="all"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-time\', event)"><span class="filter-dd-text">全部时间</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-time\',\'all\',\'全部时间\')">全部时间</li><li data-val="30" class="filter-dd-option" onclick="selectDD(\'dd-time\',\'30\',\'近30天\')">近30天</li><li data-val="60" class="filter-dd-option" onclick="selectDD(\'dd-time\',\'60\',\'近60天\')">近60天</li><li data-val="90" class="filter-dd-option" onclick="selectDD(\'dd-time\',\'90\',\'近90天\')">近90天</li></ul></div></div><div class="filter-row"><span class="filter-label">方向</span><div class="filter-row-inline"><div class="filter-dd" id="dd-dirType" data-val=""><div class="filter-dd-trigger" onclick="toggleDD(\'dd-dirType\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="" class="filter-dd-option selected" onclick="selectDD(\'dd-dirType\',\'\',\'全部\');onDDTypeChange()">全部</li><li data-val="综合排名" class="filter-dd-option" onclick="selectDD(\'dd-dirType\',\'综合排名\',\'综合排名\');onDDTypeChange()">综合排名</li><li data-val="胜平负" class="filter-dd-option" onclick="selectDD(\'dd-dirType\',\'胜平负\',\'胜平负\');onDDTypeChange()">胜平负</li><li data-val="让球" class="filter-dd-option" onclick="selectDD(\'dd-dirType\',\'让球\',\'让球\');onDDTypeChange()">让球</li><li data-val="进球数" class="filter-dd-option" onclick="selectDD(\'dd-dirType\',\'进球数\',\'进球数\');onDDTypeChange()">进球数</li><li data-val="双选" class="filter-dd-option" onclick="selectDD(\'dd-dirType\',\'双选\',\'双选\');onDDTypeChange()">双选</li><li data-val="半全场" class="filter-dd-option" onclick="selectDD(\'dd-dirType\',\'半全场\',\'半全场\');onDDTypeChange()">半全场</li></ul></div><div class="filter-dd" id="dd-dir" data-val="" style="display:none"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-dir\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"></ul></div></div></div><div class="filter-row"><span class="filter-label">排名</span><div class="filter-row-inline"><div class="filter-dd" id="dd-rankType" data-val="全部"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-rankType\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="全部" class="filter-dd-option selected" onclick="selectDD(\'dd-rankType\',\'全部\',\'全部\');onRankTypeChange()">全部</li><li data-val="每天" class="filter-dd-option" onclick="selectDD(\'dd-rankType\',\'每天\',\'每天\');onRankTypeChange()">每天</li><li data-val="每场" class="filter-dd-option" onclick="selectDD(\'dd-rankType\',\'每场\',\'当天所有场次\');onRankTypeChange()">当天所有场次</li></ul></div><div class="filter-dd" id="dd-rank" data-val="0" style="display:none"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-rank\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="0" class="filter-dd-option selected" onclick="selectDD(\'dd-rank\',\'0\',\'全部\')">全部</li><li data-val="1" class="filter-dd-option" onclick="selectDD(\'dd-rank\',\'1\',\'第一名\')">第一名</li><li data-val="2" class="filter-dd-option" onclick="selectDD(\'dd-rank\',\'2\',\'前二名\')">前二名</li><li data-val="3" class="filter-dd-option" onclick="selectDD(\'dd-rank\',\'3\',\'前三名\')">前三名</li><li data-val="4" class="filter-dd-option" onclick="selectDD(\'dd-rank\',\'4\',\'前四名\')">前四名</li><li data-val="5" class="filter-dd-option" onclick="selectDD(\'dd-rank\',\'5\',\'前五名\')">前五名</li><li data-val="6" class="filter-dd-option" onclick="selectDD(\'dd-rank\',\'6\',\'前六名\')">前六名</li></ul></div></div></div><div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="doFilterQuery()">查询</button></div></div><div id="filterResult"></div>';
     else if (id === 'income')
       el.innerHTML =
-        '<div class="filter-section-card"><div class="filter-head">筛选条件</div><div class="filter-row"><span class="filter-label">方向</span><div class="filter-dd" id="dd-incDir" data-val="expert"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incDir\', event)"><span class="filter-dd-text">专家博热方案</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'all\',\'全部\');onIncDirChange()">全部</li><li data-val="expert" class="filter-dd-option selected" onclick="selectDD(\'dd-incDir\',\'expert\',\'专家博热方案\');onIncDirChange()">专家博热方案</li><li data-val="score" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'score\',\'单场比分方案\');onIncDirChange()">单场比分方案</li><li data-val="quant" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'quant\',\'量化博冷方案\');onIncDirChange()">量化博冷方案</li><li data-val="my" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'my\',\'我的方案\');onIncDirChange()">我的方案</li></ul></div></div><div class="filter-row"><span class="filter-label">时间</span><div class="filter-dd" id="dd-incTime" data-val="all"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incTime\', event)"><span class="filter-dd-text">全部时间</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incTime\',\'all\',\'全部时间\')">全部时间</li><li data-val="30" class="filter-dd-option" onclick="selectDD(\'dd-incTime\',\'30\',\'近30天\')">近30天</li><li data-val="60" class="filter-dd-option" onclick="selectDD(\'dd-incTime\',\'60\',\'近60天\')">近60天</li></ul></div></div><div class="filter-row"><span class="filter-label">方案</span><div class="filter-dd" id="dd-incPlan" data-val="all"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incPlan\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incPlan\',\'all\',\'全部\')">全部</li><li data-val="plan_1" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_1\',\'方案一\')">方案一</li><li data-val="plan_2" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_2\',\'方案二\')">方案二</li><li data-val="plan_3" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_3\',\'方案三\')">方案三</li><li data-val="plan_4" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_4\',\'方案四\')">方案四</li><li data-val="plan_5" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_5\',\'方案五\')">方案五</li><li data-val="plan_6" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_6\',\'方案六\')">方案六</li><li data-val="plan_7" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_7\',\'方案七\')">方案七</li></ul></div></div><div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="loadIncome(true)">查询</button></div></div><div class="filter-stats-card inc-stats-card" id="incStatsCard"><div class="stats-subtitle">筛选结果</div><div class="filter-stats-row"><div class="filter-stat-item"><div class="filter-stat-value" id="incTotalPlans">-</div><div class="filter-stat-label">执行方案</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="incWinRate">-</div><div class="filter-stat-label">中奖率</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="incTotalIncome">-</div><div class="filter-stat-label">总盈利(元)</div></div></div></div><div id="incomeResult"></div>';
+        '<div class="filter-section-card"><div class="filter-head">筛选条件</div><div class="filter-row"><span class="filter-label">方向</span><div class="filter-dd" id="dd-incDir" data-val="expert"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incDir\', event)"><span class="filter-dd-text">专家博热方案</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'all\',\'全部\');onIncDirChange()">全部</li><li data-val="expert" class="filter-dd-option selected" onclick="selectDD(\'dd-incDir\',\'expert\',\'专家博热方案\');onIncDirChange()">专家博热方案</li><li data-val="my" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'my\',\'我的方案\');onIncDirChange()">我的方案</li></ul></div></div><div class="filter-row"><span class="filter-label">时间</span><div class="filter-dd" id="dd-incTime" data-val="all"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incTime\', event)"><span class="filter-dd-text">全部时间</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incTime\',\'all\',\'全部时间\')">全部时间</li><li data-val="30" class="filter-dd-option" onclick="selectDD(\'dd-incTime\',\'30\',\'近30天\')">近30天</li><li data-val="60" class="filter-dd-option" onclick="selectDD(\'dd-incTime\',\'60\',\'近60天\')">近60天</li></ul></div></div><div class="filter-row"><span class="filter-label">方案</span><div class="filter-dd" id="dd-incPlan" data-val="all"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incPlan\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incPlan\',\'all\',\'全部\')">全部</li><li data-val="plan_1" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_1\',\'方案一\')">方案一</li><li data-val="plan_2" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_2\',\'方案二\')">方案二</li><li data-val="plan_3" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_3\',\'方案三\')">方案三</li><li data-val="plan_4" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_4\',\'方案四\')">方案四</li><li data-val="plan_5" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_5\',\'方案五\')">方案五</li><li data-val="plan_6" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_6\',\'方案六\')">方案六</li><li data-val="plan_7" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_7\',\'方案七\')">方案七</li></ul></div></div><div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="loadIncome(true)">查询</button></div></div><div class="filter-stats-card inc-stats-card" id="incStatsCard"><div class="stats-subtitle">筛选结果</div><div class="filter-stats-row"><div class="filter-stat-item"><div class="filter-stat-value" id="incTotalPlans">-</div><div class="filter-stat-label">执行方案</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="incWinRate">-</div><div class="filter-stat-label">中奖率</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="incTotalIncome">-</div><div class="filter-stat-label">总盈利(元)</div></div></div></div><div id="incomeResult"></div>';
     else if (id === 'scheme')
       el.innerHTML =
         '<div class="scheme-stats-card" id="schemeStats"><div class="scheme-stat-item"><div class="scheme-stat-val">0</div><div class="scheme-stat-lbl">历史方案</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val">0</div><div class="scheme-stat-lbl">方案收入(分)</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val">0%</div><div class="scheme-stat-lbl">命中率</div></div></div>' +
@@ -690,7 +746,7 @@ function _ensurePage(id) {
         '<div class="ssb-card ssb-pass" id="schemePassText" onclick="showPassPopup()">--</div>' +
         '<div class="ssb-card ssb-clear" onclick="clearSchemeSelections()">清空</div>' +
         '<div class="ssb-card ssb-multi" id="ssbMultiCard" onclick="showMultiplierPopup()"><span id="ssbMultiplier">2</span><span class="ssb-multi-label">倍</span></div>' +
-        '<div class="ssb-amount"><div class="ssb-amount-row"><span class="ssb-amount-label">投注金额：</span><span class="ssb-amount-val" id="ssbAmount">0</span><span class="ssb-amount-unit">元</span></div><div class="ssb-amount-row"><span class="ssb-amount-label">理论最高奖金：</span><span class="ssb-amount-val ssb-amount-big" id="ssbMaxWin">0</span><span class="ssb-amount-unit">元</span></div></div>' +
+        '<div class="ssb-amount"><div class="ssb-amount-row"><span class="ssb-amount-label">投注金额</span><span class="ssb-amount-meta"><span class="ssb-amount-val" id="ssbAmount">0</span><span class="ssb-amount-unit">元</span></span></div><div class="ssb-amount-row"><span class="ssb-amount-label">最高奖金</span><span class="ssb-amount-meta"><span class="ssb-amount-val ssb-amount-big" id="ssbMaxWin">0</span><span class="ssb-amount-unit">元</span></span></div></div>' +
         '<button class="ssb-view-btn" onclick="saveUserPlan()">查看方案</button>' +
         '</div>' +
         '</div>' +
@@ -792,6 +848,8 @@ export function switchTab(tab) {
   var backEl = document.getElementById('navBack');
   // 所有非首页页面均显示返回键
   if (backEl) backEl.style.display = tab !== 'home' ? 'flex' : 'none';
+  var navbarEl = document.getElementById('navbar');
+  if (navbarEl) navbarEl.classList.toggle('home-mode', tab === 'home');
 
   if (tab === 'home') {
     var cameBack = state.savedScrollY > 0;
@@ -805,6 +863,7 @@ export function switchTab(tab) {
   }
   if (tab === 'match') {
     if (state.weekDates.length > 0) {
+      applyPendingMatchWeek();
       updateDateBar();
       loadMatchList();
     } else initWeekDates();
@@ -822,17 +881,18 @@ export function switchTab(tab) {
       document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === 'my');
       });
-      // ★ 自动滚动使「我的方案」标签完整可见
+      // ★ 自动滚动使「我的方案」标签完整可见，但保持标签栏靠左
       var myTag = document.querySelector('#planTabBar .filter-tag[data-tab="my"]');
-      if (myTag) myTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
+      if (myTag) myTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }
     _mod('plans').then(function (m) {
       m._autoSetBestDate();
       m.updatePlanDateBar();
-      if (state.planTab === 'expert') m.loadPlanList();
-      else if (state.planTab === 'score') m.loadScorePlanList();
-      else if (state.planTab === 'quant') m.loadQuantPlanList();
-      else m.loadMyPlanList();
+      if (state.planTab === 'my') m.loadMyPlanList();
+      else {
+        state.setPlanTab('expert');
+        m.loadPlanList();
+      }
     });
   }
   if (tab === 'quant-rank') {
@@ -952,6 +1012,10 @@ document.addEventListener('touchend', function (e) {
 // ── 方案收入方向切换：动态更新 dd-incPlan 下拉菜单 ──
 window.onIncDirChange = function () {
   var incDir = window.getDDVal ? window.getDDVal('dd-incDir') : 'expert';
+  if (incDir !== 'all' && incDir !== 'expert' && incDir !== 'my') {
+    selectDD('dd-incDir', 'expert', '专家博热方案');
+    incDir = 'expert';
+  }
   var ddPlan = document.getElementById('dd-incPlan');
   if (!ddPlan) return;
   var menu = ddPlan.querySelector('.filter-dd-menu');
@@ -961,7 +1025,7 @@ window.onIncDirChange = function () {
   selectDD('dd-incPlan', 'all', '全部');
 
   if (incDir === 'expert' || incDir === 'all') {
-    // 专家博热方案：显示 plan_1 ~ plan_7 + 全部
+    // 专家博热方案 / 全部：显示 plan_1 ~ plan_7 + 全部
     menu.innerHTML =
       '<li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incPlan\',\'all\',\'全部\')">全部</li>' +
       '<li data-val="plan_1" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_1\',\'方案一\')">方案一</li>' +
@@ -971,12 +1035,8 @@ window.onIncDirChange = function () {
       '<li data-val="plan_5" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_5\',\'方案五\')">方案五</li>' +
       '<li data-val="plan_6" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_6\',\'方案六\')">方案六</li>' +
       '<li data-val="plan_7" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_7\',\'方案七\')">方案七</li>';
-  } else if (incDir === 'my') {
-    // 我的方案：仅显示"全部"
-    menu.innerHTML =
-      '<li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incPlan\',\'all\',\'全部\')">全部</li>';
   } else {
-    // 单场比分方案 / 量化博冷方案：仅显示"全部"
+    // 我的方案：仅显示"全部"
     menu.innerHTML =
       '<li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incPlan\',\'all\',\'全部\')">全部</li>';
   }
@@ -1023,20 +1083,21 @@ function _preloadData(current) {
   var tabs = preloadMap[current] || [];
   tabs.forEach(function (tab) {
     if (tab === 'match') {
-      // 触发 match-list 加载（会被缓存拦截）
-      import('./pages/match-list.js')
-        .then(function (m) {
-          m.loadMatchList();
-        })
-        .catch(function () {});
+      if (!getCache('week-dates')) {
+        api('week-dates', {})
+          .then(function (list) {
+            if (Array.isArray(list) && list.length) setCache('week-dates', list);
+          })
+          .catch(function () {});
+      }
     } else if (tab === 'plan') {
-      import('./pages/plans.js')
+      import('./pages/plans.js?v=202606090335')
         .then(function (m) {
           if (m.loadPlanList) m.loadPlanList();
         })
         .catch(function () {});
     } else if (tab === 'quant-rank') {
-      import('./pages/quant-rank-fusion.js')
+      import('./pages/quant-rank-fusion.js?v=202606090335')
         .then(function (m) {
           if (m.loadQuantRank) m.loadQuantRank();
         })
@@ -1070,6 +1131,8 @@ function switchTabLoad(tab) {
     backtest: '回测分析',
     scheme: '方案设计',
     'confirm-scheme': '确认方案',
+    'model-dashboard': '模型表现仪表板',
+    'data-health': '数据健康监控',
   };
   var titleEl = document.getElementById('navTitle');
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
@@ -1088,6 +1151,7 @@ function switchTabLoad(tab) {
 
   if (tab === 'match') {
     if (state.weekDates.length > 0) {
+      applyPendingMatchWeek();
       updateDateBar();
       loadMatchList();
     } else initWeekDates();
@@ -1105,17 +1169,18 @@ function switchTabLoad(tab) {
       document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === 'my');
       });
-      // ★ 自动滚动使「我的方案」标签完整可见
+      // ★ 自动滚动使「我的方案」标签完整可见，但保持标签栏靠左
       var myTag = document.querySelector('#planTabBar .filter-tag[data-tab="my"]');
-      if (myTag) myTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
+      if (myTag) myTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }
     _mod('plans').then(function (m) {
       m._autoSetBestDate();
       m.updatePlanDateBar();
-      if (state.planTab === 'expert') m.loadPlanList();
-      else if (state.planTab === 'score') m.loadScorePlanList();
-      else if (state.planTab === 'quant') m.loadQuantPlanList();
-      else m.loadMyPlanList();
+      if (state.planTab === 'my') m.loadMyPlanList();
+      else {
+        state.setPlanTab('expert');
+        m.loadPlanList();
+      }
     });
   }
   if (tab === 'quant-rank') {

@@ -23,19 +23,29 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:p0": "jest --testPathPattern=\"server/tests/(index_api|data_sync|prediction_log|database|scheduler_v2|cache|pk_scorer|plan-generator)\"",
-    "test:p1": "jest --testPathPattern=\"server/tests/(ai_daemon|ai-timing|main-fusion|health|http-utils|websocket|midou|cloudfunctions)\"",
+    "test:coverage:gaps": "node scripts/coverage-gaps.js",
+    "test:p0": "jest --testPathPattern=\"server/tests/(index_api|api-contract|data_sync|prediction_log|database|scheduler_v2|cache|pk_scorer|plan-generator|error-codes|file-utils|odds-match-handler|odds-data-integrity|bet-scheme-filters)\"",
+    "test:p1": "jest --testPathPattern=\"server/tests/(ai_daemon|ai-timing|main-fusion|health|http-utils|websocket|midou|cloudfunctions|shadow-account|blueprint-api|blueprint-prediction-adapter|blueprint-outcome-backfill|feature-engine|match-context-collector|market-overlay)\"",
     "test:p2": "jest --testPathPattern=\"gongshoudao/tests\"",
+    "test:frontend": "jest --testPathPattern=\"preview/tests\" --forceExit --no-coverage",
+    "test:api-contract": "jest --testPathPattern=\"server/tests/(api-contract|blueprint-api|odds-match-handler)\" --forceExit --no-coverage",
+    "test:routes": "jest --testPathPattern=\"preview/tests/(main-fusion-routes|plans-render-contract|blueprint-pages|main-fusion)\" --forceExit --no-coverage",
+    "test:critical": "npm run test:p0 && npm run test:api-contract && npm run test:routes",
     "lint": "eslint \"server/**/*.js\" \"preview/js/**/*.js\" \"preview/*.js\" \"scripts/*.js\"",
     "lint:fix": "eslint --fix \"server/**/*.js\" \"preview/js/**/*.js\" \"preview/*.js\" \"scripts/*.js\"",
     "format": "prettier --write \"server/**/*.js\" \"preview/js/**/*.js\" \"preview/*.js\" \"scripts/*.js\"",
     "format:check": "prettier --check \"server/**/*.js\" \"preview/js/**/*.js\" \"preview/*.js\" \"scripts/*.js\" --log-level error",
     "test:e2e": "npx playwright test",
+    "test:e2e:critical": "npx playwright test preview/tests/e2e/main.spec.js preview/tests/e2e/tabs.spec.js preview/tests/e2e/plans.spec.js preview/tests/e2e/critical-flows.spec.js",
     "test:e2e:ui": "npx playwright test --ui",
     "test:e2e:report": "npx playwright show-report",
     "test:smoke": "jest --testPathPattern=\"smoke_api\" --testPathIgnorePatterns=node_modules --forceExit --no-coverage",
     "setup:githooks": "git config core.hooksPath .githooks",
     "preflight": "powershell -ExecutionPolicy Bypass -File scripts/release-preflight.ps1",
-    "benchmark": "node scripts/benchmark_gongshoudao.js"
+    "preflight:full": "npm run preflight && npm run test:frontend && npm run test:api-contract && npm run test:smoke && npm run test:e2e:critical && npm run benchmark",
+    "benchmark": "node scripts/benchmark_gongshoudao.js --mode=gate",
+    "benchmark:refresh": "node scripts/benchmark_gongshoudao.js --mode=refresh",
+    "benchmark:cold": "node scripts/benchmark_gongshoudao.js --mode=cold --network"
+
   }
 }

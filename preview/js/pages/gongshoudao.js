@@ -71,8 +71,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
 
       // ====== 实力分析 ======
       html += '<div class="gs-modal-section">';
-      html +=
-        '<div class="gs-modal-sec-title"><span class="gs-title-icon">⚔️</span>实力分析</div>';
+      html += '<div class="gs-modal-sec-title"><span class="gs-title-icon">⚔️</span>实力分析</div>';
 
       html += gsRow('进攻优势', renderBar(gs.attackAdvantage || '+20%', gs.attackAdvantageValue || 60));
       html += gsRow('防守优势', renderBar(gs.defenseAdvantage || '-10%', gs.defenseAdvantageValue || 40, true));
@@ -118,8 +117,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
 
       // ====== 大小球分析 ======
       html += '<div class="gs-modal-section">';
-      html +=
-        '<div class="gs-modal-sec-title"><span class="gs-title-icon">⚽</span>大小球分析</div>';
+      html += '<div class="gs-modal-sec-title"><span class="gs-title-icon">⚽</span>大小球分析</div>';
 
       html += gsRow(
         '主客权重',
@@ -194,9 +192,11 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
           '市场信号',
           '<span class="gs-vs-row"><span class="gs-bar-group">' +
             renderBar(gs.marketScore, gs.marketScore) +
-            '</span><span class="gs-note ' + mktRiskClass + '">' +
+            '</span><span class="gs-note ' +
+            mktRiskClass +
+            '">' +
             (gs.marketSignal || '--') +
-            '</span></span>'
+            '</span></span>',
         );
 
         // 盘口位移
@@ -206,8 +206,19 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
           var movClass = gs.marketMovement.severity === 'significant' ? 'gs-risk-warning' : '';
           html += gsRow(
             '盘口位移',
-            '<span class="gs-val-text ' + movClass + '">' + movIcon + ' ' + movDir + '</span>' +
-            (gs.marketMovement.probShift ? '<span class="gs-note"> 偏移 ' + (gs.marketMovement.probShift > 0 ? '+' : '') + (gs.marketMovement.probShift * 100).toFixed(1) + '%</span>' : '')
+            '<span class="gs-val-text ' +
+              movClass +
+              '">' +
+              movIcon +
+              ' ' +
+              movDir +
+              '</span>' +
+              (gs.marketMovement.probShift
+                ? '<span class="gs-note"> 偏移 ' +
+                  (gs.marketMovement.probShift > 0 ? '+' : '') +
+                  (gs.marketMovement.probShift * 100).toFixed(1) +
+                  '%</span>'
+                : ''),
           );
         }
 
@@ -216,7 +227,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
           var eaClass = gs.marketEuroAsia.consistent ? '' : 'gs-risk-danger';
           html += gsRow(
             '欧亚一致性',
-            '<span class="gs-val-text ' + eaClass + '">' + gs.marketEuroAsia.detail + '</span>'
+            '<span class="gs-val-text ' + eaClass + '">' + gs.marketEuroAsia.detail + '</span>',
           );
         }
 
@@ -226,30 +237,37 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
             '市场隐含xG',
             '<span class="gs-vs-row"><span class="gs-bar-group">' +
               renderBar(gs.marketXg.total.toFixed(2), Math.min(100, Math.round((gs.marketXg.total / 6) * 100))) +
-              '</span><span class="gs-note">λ_market (盘口: ' + gs.marketXg.overUnderLine + ')</span></span>'
+              '</span><span class="gs-note">λ_market (盘口: ' +
+              gs.marketXg.overUnderLine +
+              ')</span></span>',
           );
           html += gsRow(
             '融合 xG',
-            '<span class="gs-vs">H:' + (gs.fusedXgHome || '--').toFixed(2) +
-              ' / A:' + (gs.fusedXgAway || '--').toFixed(2) +
-              ' <i>（70%模型 + 30%市场）</i></span>'
+            '<span class="gs-vs">H:' +
+              (gs.fusedXgHome || '--').toFixed(2) +
+              ' / A:' +
+              (gs.fusedXgAway || '--').toFixed(2) +
+              ' <i>（70%模型 + 30%市场）</i></span>',
           );
         }
 
         // 信号标签
         if (gs.marketSignalFlags && gs.marketSignalFlags.length > 0) {
-          var flagsHtml = gs.marketSignalFlags.map(function(f) {
-            var fc = 'gs-signal-tag';
-            if (f.indexOf('⚠️') >= 0 || f.indexOf('背离') >= 0) fc += ' gs-signal-danger';
-            else if (f.indexOf('支撑') >= 0 || f.indexOf('一致') >= 0) fc += ' gs-signal-good';
-            return '<span class="' + fc + '">' + f + '</span>';
-          }).join(' ');
+          var flagsHtml = gs.marketSignalFlags
+            .map(function (f) {
+              var fc = 'gs-signal-tag';
+              if (f.indexOf('⚠️') >= 0 || f.indexOf('背离') >= 0) fc += ' gs-signal-danger';
+              else if (f.indexOf('支撑') >= 0 || f.indexOf('一致') >= 0) fc += ' gs-signal-good';
+              return '<span class="' + fc + '">' + f + '</span>';
+            })
+            .join(' ');
           html += gsRow('信号标签', '<span class="gs-vs-row">' + flagsHtml + '</span>');
         }
 
         // 风险提示
         if (gs.marketRiskDetail) {
-          html += '<div class="gs-modal-note" style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(255,152,0,0.08);color:var(--amber);font-size:12px;">' +
+          html +=
+            '<div class="gs-modal-note" style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(255,152,0,0.08);color:var(--amber);font-size:12px;">' +
             gs.marketRiskDetail +
             '</div>';
         }
@@ -259,8 +277,7 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
 
       // ====== 净胜球分析 ======
       html += '<div class="gs-modal-section">';
-      html +=
-        '<div class="gs-modal-sec-title"><span class="gs-title-icon">🎯</span>让球分析（7场阈值裁决）</div>';
+      html += '<div class="gs-modal-sec-title"><span class="gs-title-icon">🎯</span>让球分析（7场阈值裁决）</div>';
 
       html += gsRow(
         '主队赢球期望',
@@ -281,15 +298,20 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
       html += gsRow('输赢球分布', renderBar(gs.goalCount || '±0', gs.goalCountValue || 50, false));
       html += gsRow(
         '7场阈值判定',
-        '<span class="gs-val-text">' + (gs.sevenMatch ? (gs.sevenMatch.dimension1.label || '--') : '--') + '</span>'
+        '<span class="gs-val-text">' + (gs.sevenMatch ? gs.sevenMatch.dimension1.label || '--' : '--') + '</span>',
       );
       // ★ V7.0: 显示概率 + 置信度
       if (gs.sevenMatch && gs.sevenMatch.dimension1.prob !== undefined) {
         html += gsRow(
           '穿盘概率(Beta-Binomial)',
           '<span class="gs-vs-row"><span class="gs-bar-group">' +
-            renderBar(gs.sevenMatch.dimension1.probPct || '50%', Math.round((gs.sevenMatch.dimension1.prob || 0.5) * 100)) +
-            '</span><span class="gs-note">置信度: ' + (gs.sevenMatch.dimension1.confidence || '--') + '</span></span>'
+            renderBar(
+              gs.sevenMatch.dimension1.probPct || '50%',
+              Math.round((gs.sevenMatch.dimension1.prob || 0.5) * 100),
+            ) +
+            '</span><span class="gs-note">置信度: ' +
+            (gs.sevenMatch.dimension1.confidence || '--') +
+            '</span></span>',
         );
       }
 
@@ -298,7 +320,9 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
       // ====== 比分 ======
       html += '<div class="gs-modal-section" id="gsScoreSection">';
       html +=
-        '<div class="gs-modal-sec-title"><span class="gs-title-icon">📊</span>比分八阵裂变<span class="match-bet-btn" onclick="goFromGSToScheme(\'' + matchId + '\')" style="float:right;cursor:pointer;">我要做方案</span></div>';
+        '<div class="gs-modal-sec-title"><span class="gs-title-icon">📊</span>比分八阵裂变<span class="match-bet-btn" onclick="goFromGSToScheme(\'' +
+        matchId +
+        '\')" style="float:right;cursor:pointer;">我要做方案</span></div>';
 
       var scores = gs.scores || [
         { score: '1-1', percent: '50%' },
@@ -584,9 +608,11 @@ function fmtCross(v) {
 }
 
 // ★ 从功守道弹窗跳转方案设计页
-window.goFromGSToScheme = function(matchId) {
+window.goFromGSToScheme = function (matchId) {
   if (matchId) {
-    try { sessionStorage.setItem('preselectMatch', matchId); } catch(e) {}
+    try {
+      sessionStorage.setItem('preselectMatch', matchId);
+    } catch (e) {}
   }
   // 关闭功守道弹窗
   var o = document.getElementById('gongshoudaoOverlay');

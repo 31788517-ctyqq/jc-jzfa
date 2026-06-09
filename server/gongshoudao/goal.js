@@ -152,7 +152,9 @@ function timeDecayWeights(totalMatches, halfLifeK) {
     raw.push(w);
     sum += w;
   }
-  return raw.map(function (w) { return w / sum; });
+  return raw.map(function (w) {
+    return w / sum;
+  });
 }
 
 /**
@@ -233,18 +235,16 @@ function calcExpectedGoals(vars, totalExpect, weights) {
   const awayTrendRatio = inferRecentTrendRatio(vars, 'away');
 
   // 应用时间衰减（仅当比赛场次≥4时有效）
-  const gh = homeTotalMatches >= 4
-    ? applyTimeDecayToAvg(ghRaw, homeTotalMatches, homeTrendRatio)
-    : ghRaw;
-  const ga = awayTotalMatches >= 4
-    ? applyTimeDecayToAvg(gaRaw, awayTotalMatches, awayTrendRatio)
-    : gaRaw;
-  const lh = homeTotalMatches >= 4
-    ? applyTimeDecayToAvg(lhRaw, homeTotalMatches, homeTrendRatio > 1 ? 1 / homeTrendRatio : homeTrendRatio)
-    : lhRaw;
-  const la = awayTotalMatches >= 4
-    ? applyTimeDecayToAvg(laRaw, awayTotalMatches, awayTrendRatio > 1 ? 1 / awayTrendRatio : awayTrendRatio)
-    : laRaw;
+  const gh = homeTotalMatches >= 4 ? applyTimeDecayToAvg(ghRaw, homeTotalMatches, homeTrendRatio) : ghRaw;
+  const ga = awayTotalMatches >= 4 ? applyTimeDecayToAvg(gaRaw, awayTotalMatches, awayTrendRatio) : gaRaw;
+  const lh =
+    homeTotalMatches >= 4
+      ? applyTimeDecayToAvg(lhRaw, homeTotalMatches, homeTrendRatio > 1 ? 1 / homeTrendRatio : homeTrendRatio)
+      : lhRaw;
+  const la =
+    awayTotalMatches >= 4
+      ? applyTimeDecayToAvg(laRaw, awayTotalMatches, awayTrendRatio > 1 ? 1 / awayTrendRatio : awayTrendRatio)
+      : laRaw;
   // ── 时间衰减结束 ──
 
   // 还原底层攻防次数（分母 +0.001 防除零）
@@ -347,7 +347,9 @@ function analyze(vars, S) {
         }
       }
     }
-  } catch (e) { /* fallback below */ }
+  } catch (e) {
+    /* fallback below */
+  }
   if (pAsia === 2.5) {
     pAsia = vars.rq ? (vars.rq > 0 ? 2.0 : 3.0) : 2.5; // fallback: 基于让球数推测
   }

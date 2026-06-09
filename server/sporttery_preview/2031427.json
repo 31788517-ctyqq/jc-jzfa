@@ -1,0 +1,513 @@
+{
+  "match_id": "2031427",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "5胜/3平/2负",
+      "7胜/2平/1负",
+      "4胜/0平/6负",
+      "4胜/1平/5负",
+      "1.0个",
+      "1.5个"
+    ],
+    "away": [
+      "2胜/3平/5负",
+      "1胜/2平/7负",
+      "4胜/3平/3负",
+      "3胜/2平/5负",
+      "1.4个",
+      "1.2个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场朗斯5胜 (50%) | 3平 (30%) | 2负 (20%)",
+    "rows": [
+      {
+        "date": "2024-12-15",
+        "league": "法甲",
+        "teams": "欧塞尔 2:2 （半 1:2） 朗斯",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2023-06-04",
+        "league": "法甲",
+        "teams": "欧塞尔 1:3 （半 0:1） 朗斯",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2023-01-15",
+        "league": "法甲",
+        "teams": "朗斯 1:0 （半 0:0） 欧塞尔",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2019-10-22",
+        "league": "法乙",
+        "teams": "朗斯 0:0 （半 0:0） 欧塞尔",
+        "totalGoals": ""
+      },
+      {
+        "date": "2019-03-09",
+        "league": "法乙",
+        "teams": "朗斯 2:0 （半 1:0） 欧塞尔",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2018-10-06",
+        "league": "法乙",
+        "teams": "欧塞尔 1:2 （半 0:1） 朗斯",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2018-05-12",
+        "league": "法乙",
+        "teams": "朗斯 2:1 （半 0:0） 欧塞尔",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2017-08-01",
+        "league": "法乙",
+        "teams": "欧塞尔 1:0 （半 0:0） 朗斯",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2017-04-15",
+        "league": "法乙",
+        "teams": "朗斯 0:1 （半 0:1） 欧塞尔",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2016-11-19",
+        "league": "法乙",
+        "teams": "欧塞尔 1:1 （半 0:1） 朗斯",
+        "totalGoals": "2"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "朗斯",
+      "title": "常规赛 第8名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "15/7/12",
+          "winRate": "44%",
+          "goals": "42/39",
+          "gd": "3",
+          "points": "52",
+          "rank": "8"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "7/2/8",
+          "winRate": "41%",
+          "goals": "19/22",
+          "gd": "-3",
+          "points": "23",
+          "rank": "11"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "8/5/4",
+          "winRate": "47%",
+          "goals": "23/17",
+          "gd": "6",
+          "points": "29",
+          "rank": "3"
+        }
+      ]
+    },
+    {
+      "team": "欧塞尔",
+      "title": "常规赛 第11名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "11/9/14",
+          "winRate": "32%",
+          "goals": "48/51",
+          "gd": "-3",
+          "points": "42",
+          "rank": "11"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "7/6/4",
+          "winRate": "41%",
+          "goals": "24/17",
+          "gd": "7",
+          "points": "27",
+          "rank": "10"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "4/3/10",
+          "winRate": "24%",
+          "goals": "24/34",
+          "gd": "-10",
+          "points": "15",
+          "rank": "14"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "朗斯",
+      "summary": "朗斯近10场4胜 (40%) | 0平 (0%) | 6负 (60%) 进10球，失15球，净进-5球",
+      "matches": [
+        {
+          "date": "2025-04-20",
+          "league": "法甲",
+          "vs": "布雷斯特 1 : 3 （半 1:2） 朗斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-12",
+          "league": "法甲",
+          "vs": "朗斯 0 : 2 （半 0:1） 兰斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-06",
+          "league": "法甲",
+          "vs": "朗斯 1 : 0 （半 0:0） 圣埃蒂安",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-31",
+          "league": "法甲",
+          "vs": "里尔 1 : 0 （半 1:0） 朗斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-16",
+          "league": "法甲",
+          "vs": "朗斯 1 : 0 （半 0:0） 雷恩",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-09",
+          "league": "法甲",
+          "vs": "马赛 0 : 1 （半 0:0） 朗斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-02",
+          "league": "法甲",
+          "vs": "朗斯 3 : 4 （半 2:2） 勒阿弗尔",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-23",
+          "league": "法甲",
+          "vs": "南特 3 : 1 （半 1:0） 朗斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-17",
+          "league": "法甲",
+          "vs": "朗斯 0 : 2 （半 0:0） 斯特拉斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-09",
+          "league": "法甲",
+          "vs": "尼斯 2 : 0 （半 1:0） 朗斯",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "欧塞尔",
+      "summary": "欧塞尔近10场4胜 (40%) | 3平 (30%) | 3负 (30%) 进14球，失12球，净进2球",
+      "matches": [
+        {
+          "date": "2025-04-20",
+          "league": "法甲",
+          "vs": "里尔 3 : 1 （半 2:0） 欧塞尔",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-14",
+          "league": "法甲",
+          "vs": "欧塞尔 1 : 3 （半 0:0） 里昂",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-06",
+          "league": "法甲",
+          "vs": "雷恩 0 : 1 （半 0:0） 欧塞尔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-30",
+          "league": "法甲",
+          "vs": "欧塞尔 1 : 0 （半 0:0） 蒙彼利埃",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-15",
+          "league": "法甲",
+          "vs": "尼斯 1 : 1 （半 1:0） 欧塞尔",
+          "result": "平"
+        },
+        {
+          "date": "2025-03-10",
+          "league": "法甲",
+          "vs": "兰斯 0 : 2 （半 0:2） 欧塞尔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-03",
+          "league": "法甲",
+          "vs": "欧塞尔 0 : 1 （半 0:0） 斯特拉斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-23",
+          "league": "法甲",
+          "vs": "欧塞尔 3 : 0 （半 1:0） 马赛",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-15",
+          "league": "法甲",
+          "vs": "布雷斯特 2 : 2 （半 0:1） 欧塞尔",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-10",
+          "league": "法甲",
+          "vs": "欧塞尔 2 : 2 （半 0:0） 图卢兹",
+          "result": "平"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "朗斯",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-17",
+          "法超杯",
+          "朗斯\nVS\n巴黎圣曼",
+          "Final"
+        ]
+      ]
+    },
+    {
+      "team": "欧塞尔",
+      "content": "暂无数据",
+      "matches": []
+    }
+  ],
+  "scorers": [
+    {
+      "team": "朗斯",
+      "players": [
+        {
+          "player": "23-N. El Aynaoui(中场)",
+          "apps": "24 (17/7)",
+          "goals": "8 (20%)",
+          "assists": "1 (4%)",
+          "avg": "0.3/0"
+        },
+        {
+          "player": "8-M. N'Zola(前锋)",
+          "apps": "21 (16/5)",
+          "goals": "6 (15%)",
+          "assists": "1 (4%)",
+          "avg": "0.3/0"
+        },
+        {
+          "player": "29-弗兰科夫斯基(中场)",
+          "apps": "18 (16/2)",
+          "goals": "4 (10%)",
+          "assists": "2 (8%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    },
+    {
+      "team": "欧塞尔",
+      "players": [
+        {
+          "player": "10-G. Perrin(前锋)",
+          "apps": "34 (31/3)",
+          "goals": "10 (21%)",
+          "assists": "11 (31%)",
+          "avg": "0.3/0.3"
+        },
+        {
+          "player": "25-H. Traorè(中场)",
+          "apps": "26 (26/0)",
+          "goals": "10 (21%)",
+          "assists": "2 (6%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "4-Jubal(后卫)",
+          "apps": "30 (30/0)",
+          "goals": "6 (13%)",
+          "assists": "0 (0%)",
+          "avg": "0.2/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "朗斯",
+      "players": [
+        {
+          "player": "14-梅迪纳(后卫)",
+          "totalApps": "29",
+          "starts": "29",
+          "subs": "0",
+          "status": "停"
+        },
+        {
+          "player": "1-D. Petrić(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "7-F. Sotoca(前锋)",
+          "totalApps": "31",
+          "starts": "22",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "19-J. Cabot(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "3-马查多(后卫)",
+          "totalApps": "27",
+          "starts": "20",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "21-扎鲁里(前锋)",
+          "totalApps": "28",
+          "starts": "16",
+          "subs": "12",
+          "status": "伤"
+        },
+        {
+          "player": "13-J. Chávez(后卫)",
+          "totalApps": "10",
+          "starts": "7",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "36-R. Labeau Lascary(前锋)",
+          "totalApps": "14",
+          "starts": "6",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "25-J. Agbonifo(前锋)",
+          "totalApps": "8",
+          "starts": "1",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "27-J. Bah(后卫)",
+          "totalApps": "10",
+          "starts": "8",
+          "subs": "2",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "欧塞尔",
+      "players": [
+        {
+          "player": "5-T. Pellenard(后卫)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "42-奥乌苏(中场)",
+          "totalApps": "28",
+          "starts": "28",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "3-G. Osho(后卫)",
+          "totalApps": "20",
+          "starts": "20",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "12-F. Oppegård(后卫)",
+          "totalApps": "9",
+          "starts": "2",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "28-O. Camara(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "27-K. Danois(中场)",
+          "totalApps": "22",
+          "starts": "16",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "8-N. Buayi-Kiala(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "21-L. Coulibaly(中场)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

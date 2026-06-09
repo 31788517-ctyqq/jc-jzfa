@@ -17,11 +17,17 @@ const CONFIG = {
 // 启动时校验凭据
 (function validateCredentials() {
   if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
-    logger.error('[midou] ⚠️ 主账户凭据缺失！MIDOU_MOBILE=%s, MIDOU_PASSWORD=%s',
-      CONFIG.MOBILE ? '已设置' : '空', CONFIG.PASSWORD ? `已设置(${CONFIG.PASSWORD.length}字符)` : '空');
+    logger.error(
+      '[midou] ⚠️ 主账户凭据缺失！MIDOU_MOBILE=%s, MIDOU_PASSWORD=%s',
+      CONFIG.MOBILE ? '已设置' : '空',
+      CONFIG.PASSWORD ? `已设置(${CONFIG.PASSWORD.length}字符)` : '空',
+    );
   } else {
-    logger.info('[midou] 主账户凭据已配置: MIDOU_MOBILE=%s, MIDOU_PASSWORD=%s',
-      CONFIG.MOBILE, `***(${CONFIG.PASSWORD.length}字符)`);
+    logger.info(
+      '[midou] 主账户凭据已配置: MIDOU_MOBILE=%s, MIDOU_PASSWORD=%s',
+      CONFIG.MOBILE,
+      `***(${CONFIG.PASSWORD.length}字符)`,
+    );
   }
   if (/^[a-f0-9]{32}$/i.test(CONFIG.PASSWORD)) {
     logger.warn('[midou] ⚠️ 主账户密码看起来是 MD5 哈希值(32位hex)，请确认 API 是否接受 MD5 格式');
@@ -36,8 +42,11 @@ let _lastLoginAlert = 0;
 // ═══ 登录 ═══
 async function _doLogin(mobile, password, label) {
   if (!mobile || !password) {
-    logger.error(`[midou] [${label}] ⚠️ 凭据为空！mobile=%s, password=%s`,
-      mobile || '(空)', password ? `***(${password.length}字符)` : '(空)');
+    logger.error(
+      `[midou] [${label}] ⚠️ 凭据为空！mobile=%s, password=%s`,
+      mobile || '(空)',
+      password ? `***(${password.length}字符)` : '(空)',
+    );
     return null;
   }
   const res = await get(`${CONFIG.MIDOU_BASE}/gduser/login.do`, { mobile, password });
@@ -45,7 +54,9 @@ async function _doLogin(mobile, password, label) {
     logger.info(`[${label}] 登录成功, token: ${(res.data.token || '').slice(0, 16)}...`);
     return res.data.token;
   }
-  logger.warn(`[midou] [${label}] 登录失败: code=${res.code}, msg=${res.msg || '未知'}, 完整响应: ${JSON.stringify(res).slice(0, 500)}`);
+  logger.warn(
+    `[midou] [${label}] 登录失败: code=${res.code}, msg=${res.msg || '未知'}, 完整响应: ${JSON.stringify(res).slice(0, 500)}`,
+  );
   return null;
 }
 
@@ -141,7 +152,7 @@ async function ensureData() {
 async function ensureRecommends(matchId) {
   const RECOMM_CACHE_TTL = 10 * 60 * 1000; // 10分钟，与推荐数据刷新间隔对齐
   const cached = cache.recommCache[matchId];
-  if (cached && (Date.now() - cached.time) < RECOMM_CACHE_TTL) {
+  if (cached && Date.now() - cached.time < RECOMM_CACHE_TTL) {
     return cached.data;
   }
   const data = await fetchRecommends(matchId);

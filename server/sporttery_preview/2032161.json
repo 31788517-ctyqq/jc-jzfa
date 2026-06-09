@@ -1,0 +1,327 @@
+{
+  "match_id": "2032161",
+  "featureAnalysis": {
+    "labels": [
+      "近0场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "8胜/2平/0负",
+      "6胜/4平/0负",
+      "3.5个",
+      "1.0个"
+    ],
+    "away": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "5胜/3平/2负",
+      "3胜/5平/2负",
+      "1.4个",
+      "1.2个"
+    ]
+  },
+  "h2h": {
+    "title": "近0场德国210胜 (0%) | 0平 (0%) | 0负 (0%)",
+    "rows": []
+  },
+  "standings": [
+    {
+      "team": "德国21",
+      "title": "Group B 第1名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "3",
+          "wdl": "3/0/0",
+          "winRate": "100%",
+          "goals": "9/3",
+          "gd": "6",
+          "points": "9",
+          "rank": "1"
+        },
+        {
+          "where": "主",
+          "played": "1",
+          "wdl": "1/0/0",
+          "winRate": "100%",
+          "goals": "3/0",
+          "gd": "3",
+          "points": "3",
+          "rank": "1"
+        },
+        {
+          "where": "客",
+          "played": "2",
+          "wdl": "2/0/0",
+          "winRate": "100%",
+          "goals": "6/3",
+          "gd": "3",
+          "points": "6",
+          "rank": "1"
+        }
+      ]
+    },
+    {
+      "team": "斯洛文21",
+      "title": "Group B 第4名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "3",
+          "wdl": "0/1/2",
+          "winRate": "0%",
+          "goals": "0/5",
+          "gd": "-5",
+          "points": "1",
+          "rank": "4"
+        },
+        {
+          "where": "主",
+          "played": "1",
+          "wdl": "0/0/1",
+          "winRate": "0%",
+          "goals": "0/2",
+          "gd": "-2",
+          "points": "0",
+          "rank": "4"
+        },
+        {
+          "where": "客",
+          "played": "2",
+          "wdl": "0/1/1",
+          "winRate": "0%",
+          "goals": "0/3",
+          "gd": "-3",
+          "points": "1",
+          "rank": "4"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "德国21",
+      "summary": "德国21近10场8胜 (80%) | 2平 (20%) | 0负 (0%) 进35球，失10球，净进25球",
+      "matches": [
+        {
+          "date": "2024-10-15",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "波兰21 3 : 3 （半 1:3） 德国21",
+          "result": "平"
+        },
+        {
+          "date": "2024-10-12",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "德国21 2 : 1 （半 1:1） 保加利21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-11",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "Estonia 1 : 10 （半 0:5） 德国21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-05",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "以色列21 1 : 5 （半 0:3） 德国21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-03-27",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "德国21 2 : 0 （半 1:0） 以色列21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-03-23",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "德国21 0 : 0 （半 0:0） Kosovo",
+          "result": "平"
+        },
+        {
+          "date": "2023-11-22",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "德国21 3 : 1 （半 0:1） 波兰21",
+          "result": "胜"
+        },
+        {
+          "date": "2023-11-18",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "德国21 4 : 1 （半 1:0） Estonia",
+          "result": "胜"
+        },
+        {
+          "date": "2023-10-14",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "保加利21 2 : 3 （半 1:1） 德国21",
+          "result": "胜"
+        },
+        {
+          "date": "2023-09-13",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "Kosovo 0 : 3 （半 0:0） 德国21",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "斯洛文21",
+      "summary": "斯洛文21近10场5胜 (50%) | 3平 (30%) | 2负 (20%) 进14球，失12球，净进2球",
+      "matches": [
+        {
+          "date": "2024-10-12",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "奥地利21 1 : 1 （半 0:0） 斯洛文21",
+          "result": "平"
+        },
+        {
+          "date": "2024-09-11",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "斯洛文21 2 : 0 （半 1:0） Cyprus U21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-07",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "法国21 1 : 1 （半 0:1） 斯洛文21",
+          "result": "平"
+        },
+        {
+          "date": "2024-03-23",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "斯洛文21 3 : 0 （半 2:0） 波黑21",
+          "result": "胜"
+        },
+        {
+          "date": "2023-10-18",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "斯洛文21 1 : 0 （半 0:0） 奥地利21",
+          "result": "胜"
+        },
+        {
+          "date": "2023-10-14",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "Cyprus U21 0 : 3 （半 0:2） 斯洛文21",
+          "result": "胜"
+        },
+        {
+          "date": "2023-09-12",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "斯洛文21 0 : 4 （半 0:1） 法国21",
+          "result": "负"
+        },
+        {
+          "date": "2023-09-08",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "波黑21 1 : 2 （半 0:0） 斯洛文21",
+          "result": "胜"
+        },
+        {
+          "date": "2021-03-31",
+          "league": "欧锦赛21",
+          "vs": "斯洛文21 0 : 4 （半 0:3） 意大利21",
+          "result": "负"
+        },
+        {
+          "date": "2021-03-28",
+          "league": "欧锦赛21",
+          "vs": "斯洛文21 1 : 1 （半 1:0） 捷克21",
+          "result": "平"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "德国21",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-09-26",
+          "UEFA U21 Championship Qualification",
+          "Latvia\nVS\n德国21",
+          "Group Stage Group F"
+        ],
+        [
+          "2026-09-30",
+          "UEFA U21 Championship Qualification",
+          "马耳他U21\nVS\n德国21",
+          "Group Stage Group F"
+        ],
+        [
+          "2026-10-06",
+          "UEFA U21 Championship Qualification",
+          "德国21\nVS\n格鲁吉21",
+          "Group Stage Group F"
+        ]
+      ]
+    },
+    {
+      "team": "斯洛文21",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-09-29",
+          "UEFA U21 Championship Qualification",
+          "斯洛文21\nVS\n以色列21",
+          "Group Stage Group G"
+        ],
+        [
+          "2026-10-02",
+          "UEFA U21 Championship Qualification",
+          "斯洛文21\nVS\n荷兰21",
+          "Group Stage Group G"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "德国21",
+      "players": [
+        {
+          "player": "10-N. Woltemade(前锋)",
+          "apps": "5 (5/0)",
+          "goals": "6 (35%)",
+          "assists": "3 (23%)",
+          "avg": "1.2/0.6"
+        },
+        {
+          "player": "19-N. Weiper(前锋)",
+          "apps": "6 (3/3)",
+          "goals": "4 (24%)",
+          "assists": "0 (0%)",
+          "avg": "0.7/0"
+        },
+        {
+          "player": "20-P. Nebel(中场)",
+          "apps": "6 (5/1)",
+          "goals": "2 (12%)",
+          "assists": "1 (8%)",
+          "avg": "0.3/0.2"
+        }
+      ]
+    },
+    {
+      "team": "斯洛文21",
+      "players": []
+    }
+  ],
+  "injuries": [
+    {
+      "team": "德国21",
+      "status": "暂无数据"
+    },
+    {
+      "team": "斯洛文21",
+      "status": "暂无数据"
+    }
+  ]
+}

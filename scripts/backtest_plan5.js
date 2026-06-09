@@ -1,6 +1,6 @@
 /**
  * 方案五回测 — 平、让平 × 总进球-2、3球 (2串1) — 3D网格搜索版
- * 
+ *
  * 规则:
  *   场次1: 平、让平 (Dutch 混合双选: SPF-平 + RQSPF-让平)
  *   场次2: 总进球-2、3球 (Dutch 双选)
@@ -19,18 +19,18 @@ const AMOUNT = 1000;
 const START_DATE = '2026-03-19';
 
 // ★ 方案五方向
-const DIR_A = ['平', '让平'];  // 场次1: Dutch 混合双选
-const DIR_B_SINGLE = '总进球-2、3球';  // 场次2: Dutch 双选
+const DIR_A = ['平', '让平']; // 场次1: Dutch 混合双选
+const DIR_B_SINGLE = '总进球-2、3球'; // 场次2: Dutch 双选
 
 // ── 网格搜索范围 ──
-const DAY_RANGE   = process.argv[2] ? [parseInt(process.argv[2])] : [2,3,4,5,6,7,8,9,10];
-const ODDS_RANGE  = process.argv[3] ? [parseFloat(process.argv[3])] : [1.0, 1.3, 1.5, 1.8, 2.0, 2.3, 2.5, 2.8, 3.0];
-const VARIANT_MAX = 1;  // ★ 最多生成几个方案变体（临时改为1验证单方案盈利）
+const DAY_RANGE = process.argv[2] ? [parseInt(process.argv[2])] : [2, 3, 4, 5, 6, 7, 8, 9, 10];
+const ODDS_RANGE = process.argv[3] ? [parseFloat(process.argv[3])] : [1.0, 1.3, 1.5, 1.8, 2.0, 2.3, 2.5, 2.8, 3.0];
+const VARIANT_MAX = 1; // ★ 最多生成几个方案变体（临时改为1验证单方案盈利）
 
 // ── 赔率提取 ──
 function extractOdds(oddsObj, direction) {
   if (!oddsObj) return [];
-  
+
   // 总进球方向
   if (typeof direction === 'string' && direction.indexOf('总进球-') === 0) {
     const tg = oddsObj.totalGoals;
@@ -87,8 +87,10 @@ function hasTG23Odds(oddsObj) {
 
 // ── 赛果判定 ──
 function extractMultiResult(recs, dirs, matchScore) {
-  let anyWon = false, anyLose = false, anyUnknown = false;
-  
+  let anyWon = false,
+    anyLose = false,
+    anyUnknown = false;
+
   for (const d of dirs) {
     let found = false;
     for (const r of recs) {
@@ -102,7 +104,7 @@ function extractMultiResult(recs, dirs, matchScore) {
     }
     if (!found) anyUnknown = true;
   }
-  
+
   if (anyUnknown) return { won: null };
   if (anyWon) return { won: true };
   return { won: false };
@@ -125,7 +127,9 @@ function extractRecResult(recs, direction, matchScore) {
       }
     }
     // 回退rec匹配
-    let anyWon = false, anyLose = false, anyUnknown = false;
+    let anyWon = false,
+      anyLose = false,
+      anyUnknown = false;
     for (const sd of subDirs) {
       const s = sd.trim();
       let found = false;
@@ -148,24 +152,31 @@ function extractRecResult(recs, direction, matchScore) {
 
 // ── 回测核心函数 (支持多变体) ──
 function runBacktest(minDayMatches, minProdOdds) {
-  let totalSchemes = 0, totalWon = 0, totalIncome = 0;
-  let skipDay = 0, skipData = 0, skipOdds = 0;
+  let totalSchemes = 0,
+    totalWon = 0,
+    totalIncome = 0;
+  let skipDay = 0,
+    skipData = 0,
+    skipOdds = 0;
   let variantCount = 0;
 
   for (const ds of allDates) {
     const mList = dateMap[ds];
-    if (mList.length < minDayMatches) { skipDay++; continue; }
+    if (mList.length < minDayMatches) {
+      skipDay++;
+      continue;
+    }
 
     // ── 构建比赛数据 ──
     const matchDataMap = {};
     for (const mm of mList) {
       const recsRaw = rMap['m_' + mm.matchId] || rMap[String(mm.matchId)] || [];
       const recs = recsRaw.map((x) => {
-        const rawRes = x.rs !== undefined ? x.rs : (x.result !== undefined ? x.result : null);
+        const rawRes = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
         return {
           type: x.t || x.type || '',
           num: x.n || x.num || 0,
-          result: (rawRes === 0 || rawRes === 1) ? rawRes : null,
+          result: rawRes === 0 || rawRes === 1 ? rawRes : null,
         };
       });
       const oddsObjRaw = getOddsForMatch(ds, mm.num || '');
@@ -197,7 +208,10 @@ function runBacktest(minDayMatches, minProdOdds) {
         candidatesA.push({ match: mm, data: md, expertCount: totalA, dutchOdds: dd });
       }
     }
-    if (candidatesA.length === 0) { skipData++; continue; }
+    if (candidatesA.length === 0) {
+      skipData++;
+      continue;
+    }
     candidatesA.sort((a, b) => b.expertCount - a.expertCount);
 
     // ── 收集场次B候选 (总进球-2、3球) ──
@@ -215,23 +229,26 @@ function runBacktest(minDayMatches, minProdOdds) {
         candidatesB.push({ match: mm, data: md, expertCount: totalB, dutchOdds: dd });
       }
     }
-    if (candidatesB.length === 0) { skipData++; continue; }
+    if (candidatesB.length === 0) {
+      skipData++;
+      continue;
+    }
     candidatesB.sort((a, b) => b.expertCount - a.expertCount);
 
     // ── 生成方案变体: 交叉配对 ──
     let daySchemeCount = 0;
     const usedPairs = new Set();
-    
+
     for (let ai = 0; ai < Math.min(candidatesA.length, VARIANT_MAX); ai++) {
       for (let bi = 0; bi < Math.min(candidatesB.length, VARIANT_MAX); bi++) {
         if (daySchemeCount >= VARIANT_MAX) break;
-        
+
         const ca = candidatesA[ai];
         const cb = candidatesB[bi];
-        
+
         // 不能是同一场
         if (ca.match.matchId === cb.match.matchId) continue;
-        
+
         const pairKey = ca.match.matchId + '_' + cb.match.matchId;
         if (usedPairs.has(pairKey)) continue;
         usedPairs.add(pairKey);
@@ -264,7 +281,7 @@ function runBacktest(minDayMatches, minProdOdds) {
     if (daySchemeCount === 0) skipOdds++;
   }
 
-  const winRate = totalSchemes > 0 ? (totalWon / totalSchemes * 100).toFixed(1) : '0.0';
+  const winRate = totalSchemes > 0 ? ((totalWon / totalSchemes) * 100).toFixed(1) : '0.0';
   return { totalSchemes, totalWon, winRate, totalIncome, skipDay, skipData, skipOdds, variantCount };
 }
 
@@ -303,8 +320,12 @@ let oddsLoaded = 0;
 for (const ds of allDates) {
   const file = path.join(ODDS_DIR, ds + '.json');
   if (fs.existsSync(file)) {
-    try { oddsCache[ds] = JSON.parse(fs.readFileSync(file, 'utf8')); oddsLoaded++; }
-    catch (e) { /* skip */ }
+    try {
+      oddsCache[ds] = JSON.parse(fs.readFileSync(file, 'utf8'));
+      oddsLoaded++;
+    } catch (e) {
+      /* skip */
+    }
   }
 }
 console.log('  odds_history: ' + oddsLoaded + '/' + allDates.length + ' days loaded');
@@ -316,17 +337,30 @@ function getOddsForMatch(ds, matchNum) {
 }
 
 // ── 网格搜索 ──
-console.log('\n[2/2] Grid search (' + DAY_RANGE.length + '×' + ODDS_RANGE.length + ' = ' + (DAY_RANGE.length * ODDS_RANGE.length) + ' combos)...\n');
+console.log(
+  '\n[2/2] Grid search (' +
+    DAY_RANGE.length +
+    '×' +
+    ODDS_RANGE.length +
+    ' = ' +
+    DAY_RANGE.length * ODDS_RANGE.length +
+    ' combos)...\n',
+);
 
 const grid = [];
 for (const minDay of DAY_RANGE) {
   for (const minOdds of ODDS_RANGE) {
     const r = runBacktest(minDay, minOdds);
     grid.push({
-      minDay, minOdds,
-      total: r.totalSchemes, won: r.totalWon,
-      rate: r.winRate, income: r.totalIncome,
-      skipDay: r.skipDay, skipData: r.skipData, skipOdds: r.skipOdds,
+      minDay,
+      minOdds,
+      total: r.totalSchemes,
+      won: r.totalWon,
+      rate: r.winRate,
+      income: r.totalIncome,
+      skipDay: r.skipDay,
+      skipData: r.skipData,
+      skipOdds: r.skipOdds,
     });
   }
 }
@@ -345,32 +379,61 @@ for (let i = 0; i < Math.min(grid.length, 30); i++) {
   const g = grid[i];
   const incomeStr = (g.income > 0 ? '+' : '') + g.income.toLocaleString();
   console.log(
-    '│' + String(g.minDay).padStart(9) +
-    ' │' + g.minOdds.toFixed(1).padStart(9) +
-    ' │' + String(g.total).padStart(8) +
-    ' │' + String(g.won).padStart(8) +
-    ' │' + String(g.rate + '%').padStart(8) +
-    ' │' + String(incomeStr).padStart(10) +
-    ' │' + String(g.skipDay + g.skipData + g.skipOdds).padStart(9) + ' │');
+    '│' +
+      String(g.minDay).padStart(9) +
+      ' │' +
+      g.minOdds.toFixed(1).padStart(9) +
+      ' │' +
+      String(g.total).padStart(8) +
+      ' │' +
+      String(g.won).padStart(8) +
+      ' │' +
+      String(g.rate + '%').padStart(8) +
+      ' │' +
+      String(incomeStr).padStart(10) +
+      ' │' +
+      String(g.skipDay + g.skipData + g.skipOdds).padStart(9) +
+      ' │',
+  );
 }
 console.log('└──────────┴──────────┴─────────┴─────────┴─────────┴───────────┴──────────┘');
 console.log('');
 
 // ── 推荐 ──
 const best = grid[0];
-const positive = grid.filter(g => g.income >= 0 && g.total >= 5);
+const positive = grid.filter((g) => g.income >= 0 && g.total >= 5);
 positive.sort((a, b) => b.total - a.total);
 
 console.log('═══ 推荐参数（盈利能力优先） ═══');
 if (best) {
   console.log('  最优: 日门槛=' + best.minDay + ' 合赔下限=' + best.minOdds.toFixed(1));
-  console.log('  方案数=' + best.total + ' 命中=' + best.won + ' 命中率=' + best.rate + '% 净收入=' + (best.income > 0 ? '+' : '') + best.income.toLocaleString());
+  console.log(
+    '  方案数=' +
+      best.total +
+      ' 命中=' +
+      best.won +
+      ' 命中率=' +
+      best.rate +
+      '% 净收入=' +
+      (best.income > 0 ? '+' : '') +
+      best.income.toLocaleString(),
+  );
 }
 if (positive.length > 0) {
   const p = positive[0];
   console.log('');
   console.log('  推荐(方案数优先): 日门槛=' + p.minDay + ' 合赔下限=' + p.minOdds.toFixed(1));
-  console.log('  方案数=' + p.total + ' 命中=' + p.won + ' 命中率=' + p.rate + '% 净收入=' + (p.income > 0 ? '+' : '') + p.income.toLocaleString());
+  console.log(
+    '  方案数=' +
+      p.total +
+      ' 命中=' +
+      p.won +
+      ' 命中率=' +
+      p.rate +
+      '% 净收入=' +
+      (p.income > 0 ? '+' : '') +
+      p.income.toLocaleString(),
+  );
 }
 console.log('');
 console.log('✅ 可通过命令行参数固定参数: node scripts/backtest_plan5.js <日门槛> <合赔下限>');

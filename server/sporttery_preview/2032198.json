@@ -1,0 +1,528 @@
+{
+  "match_id": "2032198",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "5胜/2平/3负",
+      "3胜/2平/0负",
+      "1胜/3平/6负",
+      "3胜/2平/5负",
+      "0.9个",
+      "1.4个"
+    ],
+    "away": [
+      "3胜/2平/5负",
+      "0胜/2平/3负",
+      "2胜/5平/3负",
+      "3胜/3平/4负",
+      "0.8个",
+      "1.6个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场盐湖城5胜 (50%) | 2平 (20%) | 3负 (30%)",
+    "rows": [
+      {
+        "date": "2023-06-18",
+        "league": "美职",
+        "teams": "华盛顿 1:2 （半 0:1） 盐湖城",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2022-09-11",
+        "league": "美职",
+        "teams": "盐湖城 0:0 （半 0:0） 华盛顿",
+        "totalGoals": ""
+      },
+      {
+        "date": "2019-03-17",
+        "league": "美职",
+        "teams": "华盛顿 5:0 （半 2:0） 盐湖城",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2018-05-13",
+        "league": "美职",
+        "teams": "盐湖城 3:2 （半 2:1） 华盛顿",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2017-08-13",
+        "league": "美职",
+        "teams": "华盛顿 0:1 （半 0:0） 盐湖城",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2016-07-02",
+        "league": "美职",
+        "teams": "盐湖城 1:1 （半 0:0） 华盛顿",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2015-08-02",
+        "league": "美职",
+        "teams": "华盛顿 6:4 （半 1:2） 盐湖城",
+        "totalGoals": "10"
+      },
+      {
+        "date": "2014-08-10",
+        "league": "美职",
+        "teams": "盐湖城 3:0 （半 3:0） 华盛顿",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2013-03-10",
+        "league": "美职",
+        "teams": "华盛顿 1:0 （半 0:0） 盐湖城",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2012-09-02",
+        "league": "美职",
+        "teams": "盐湖城 1:0 （半 0:0） 华盛顿",
+        "totalGoals": "1"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "盐湖城",
+      "title": "Regular Season 第9名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "12/5/17",
+          "winRate": "35%",
+          "goals": "38/49",
+          "gd": "-11",
+          "points": "41",
+          "rank": "9"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "9/1/7",
+          "winRate": "53%",
+          "goals": "23/21",
+          "gd": "2",
+          "points": "28",
+          "rank": "4"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "3/4/10",
+          "winRate": "18%",
+          "goals": "15/28",
+          "gd": "-13",
+          "points": "13",
+          "rank": "12"
+        }
+      ]
+    },
+    {
+      "team": "华盛顿",
+      "title": "Regular Season 第15名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "5/11/18",
+          "winRate": "15%",
+          "goals": "30/66",
+          "gd": "-36",
+          "points": "26",
+          "rank": "15"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "2/7/8",
+          "winRate": "12%",
+          "goals": "13/31",
+          "gd": "-18",
+          "points": "13",
+          "rank": "14"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "3/4/10",
+          "winRate": "18%",
+          "goals": "17/35",
+          "gd": "-18",
+          "points": "13",
+          "rank": "13"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "盐湖城",
+      "summary": "盐湖城近10场1胜 (10%) | 3平 (30%) | 6负 (60%) 进9球，失14球，净进-5球",
+      "matches": [
+        {
+          "date": "2025-06-01",
+          "league": "美职",
+          "vs": "洛城银河 2 : 0 （半 1:0） 盐湖城",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-29",
+          "league": "美职",
+          "vs": "奥斯汀FC 1 : 1 （半 0:0） 盐湖城",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-25",
+          "league": "美职",
+          "vs": "盐湖城 2 : 3 （半 2:2） 温哥华",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "美职",
+          "vs": "科罗拉多 1 : 0 （半 0:0） 盐湖城",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-15",
+          "league": "美职",
+          "vs": "盐湖城 0 : 0 （半 0:0） 波特兰",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-11",
+          "league": "美职",
+          "vs": "达拉斯 1 : 1 （半 0:1） 盐湖城",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-04",
+          "league": "美职",
+          "vs": "温哥华 2 : 1 （半 1:0） 盐湖城",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-27",
+          "league": "美职",
+          "vs": "圣迭戈FC 1 : 3 （半 1:1） 盐湖城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-20",
+          "league": "美职",
+          "vs": "盐湖城 0 : 1 （半 0:1） 多伦多",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-13",
+          "league": "美职",
+          "vs": "纳什维尔 2 : 1 （半 1:1） 盐湖城",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "华盛顿",
+      "summary": "华盛顿近10场2胜 (20%) | 5平 (50%) | 3负 (30%) 进8球，失16球，净进-8球",
+      "matches": [
+        {
+          "date": "2025-06-08",
+          "league": "美职",
+          "vs": "华盛顿 1 : 7 （半 0:4） 芝加哥",
+          "result": "负"
+        },
+        {
+          "date": "2025-06-01",
+          "league": "美职",
+          "vs": "辛辛那提 1 : 2 （半 1:2） 华盛顿",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-29",
+          "league": "美职",
+          "vs": "华盛顿 1 : 1 （半 0:1） 新英格兰",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-25",
+          "league": "美职",
+          "vs": "华盛顿 0 : 2 （半 0:1） 纽约红牛",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-22",
+          "league": "公开赛杯",
+          "vs": "华盛顿 2 : 2 （半 1:0） 夏洛特FC",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "美职",
+          "vs": "纳什维尔 0 : 0 （半 0:0） 华盛顿",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-15",
+          "league": "美职",
+          "vs": "华盛顿 0 : 0 （半 0:0） 纽约城",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-11",
+          "league": "美职",
+          "vs": "多伦多 2 : 0 （半 0:0） 华盛顿",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-07",
+          "league": "公开赛杯",
+          "vs": "华盛顿 0 : 0 （半 0:0） 查尔斯顿",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-04",
+          "league": "美职",
+          "vs": "华盛顿 2 : 1 （半 2:1） 科罗拉多",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "盐湖城",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-16",
+          "俱乐部赛",
+          "盐湖城\nVS\n伯恩利",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-23",
+          "美职",
+          "洛杉矶FC\nVS\n盐湖城",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "波特兰\nVS\n盐湖城",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "圣路易城\nVS\n盐湖城",
+          "Regular Season"
+        ]
+      ]
+    },
+    {
+      "team": "华盛顿",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-12",
+          "俱乐部赛",
+          "华盛顿\nVS\n埃塞俄比",
+          ""
+        ],
+        [
+          "2026-07-23",
+          "美职",
+          "休斯敦\nVS\n华盛顿",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "华盛顿\nVS\n多伦多",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "华盛顿\nVS\n纳什维尔",
+          "Regular Season"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "盐湖城",
+      "players": [
+        {
+          "player": "8-D. Luna(中场)",
+          "apps": "28 (28/0)",
+          "goals": "9 (25%)",
+          "assists": "3 (10%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "10-Diogo Gonçalves(中场)伤",
+          "apps": "30 (27/3)",
+          "goals": "4 (11%)",
+          "assists": "5 (17%)",
+          "avg": "0.1/0.2"
+        },
+        {
+          "player": "72-Z. Gozo(前锋)",
+          "apps": "26 (22/4)",
+          "goals": "4 (11%)",
+          "assists": "3 (10%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    },
+    {
+      "team": "华盛顿",
+      "players": [
+        {
+          "player": "20-C. Benteke(前锋)伤",
+          "apps": "25 (23/2)",
+          "goals": "9 (30%)",
+          "assists": "3 (13%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "10-加布里埃尔 皮拉尼(中场)",
+          "apps": "28 (22/6)",
+          "goals": "7 (23%)",
+          "assists": "3 (13%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "7-João Peglow(前锋)伤",
+          "apps": "24 (21/3)",
+          "goals": "3 (10%)",
+          "assists": "3 (13%)",
+          "avg": "0.1/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "盐湖城",
+      "players": [
+        {
+          "player": "18-麦克麦斯(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "15-J. Glad(后卫)",
+          "totalApps": "32",
+          "starts": "32",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "10-Diogo Gonçalves(中场)",
+          "totalApps": "30",
+          "starts": "27",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "91-J. Brown(后卫)",
+          "totalApps": "3",
+          "starts": "3",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "3-K. Henry(后卫)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "14-E. Eneli(中场)",
+          "totalApps": "29",
+          "starts": "19",
+          "subs": "10",
+          "status": "伤"
+        },
+        {
+          "player": "12-M. Bell(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "华盛顿",
+      "players": [
+        {
+          "player": "20-C. Benteke(前锋)",
+          "totalApps": "25",
+          "starts": "23",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "22-A. Herrera(后卫)",
+          "totalApps": "26",
+          "starts": "24",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "7-João Peglow(前锋)",
+          "totalApps": "24",
+          "starts": "21",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "5-L. MacNaughton(后卫)",
+          "totalApps": "11",
+          "starts": "9",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "25-J. Hopkins(中场)",
+          "totalApps": "17",
+          "starts": "11",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "1-Kim Joon-Hong(守门员)",
+          "totalApps": "8",
+          "starts": "8",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "17-J. Murrell(前锋)",
+          "totalApps": "24",
+          "starts": "7",
+          "subs": "17",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

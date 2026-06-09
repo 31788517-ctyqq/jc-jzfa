@@ -31,24 +31,38 @@ export function toggleDD(id, evt) {
     var trigger = dd.querySelector('.filter-dd-trigger');
     if (!menu || !trigger) return;
     var rect = trigger.getBoundingClientRect();
-    var vh = window.innerHeight;
-    var menuH = Math.min(menu.scrollHeight || 220, 220);
-    var spaceBelow = vh - rect.bottom - 6;
-    var spaceAbove = rect.top - 6;
-    menu.style.position = 'fixed';
-    menu.style.left = rect.left + 'px';
-    menu.style.width = rect.width + 'px';
-    menu.style.right = 'auto';
-    menu.style.maxHeight = menuH + 'px';
-    menu.style.overflowY = 'auto';
-    menu.style.WebkitOverflowScrolling = 'touch';
+    var vw = window.innerWidth || document.documentElement.clientWidth || 0;
+    var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+    var menuW = Math.max(rect.width, 156);
+    var menuH = Math.min(menu.scrollHeight || 240, Math.max(180, vh - 36));
+    var spaceBelow = vh - rect.bottom - 8;
+    var spaceAbove = rect.top - 8;
+    var left = Math.max(10, Math.min(rect.left, vw - menuW - 10));
+
+    // Portal 到 body，彻底脱离卡片/页面/动画产生的 stacking context 和 overflow 裁剪。
+    var portal = menu.cloneNode(true);
+    portal.classList.add('filter-dd-portal');
+    portal.setAttribute('data-owner-dd', id);
+    portal.style.display = 'block';
+    portal.style.position = 'fixed';
+    portal.style.zIndex = '2147483647';
+    portal.style.left = left + 'px';
+    portal.style.width = menuW + 'px';
+    portal.style.right = 'auto';
+    portal.style.maxHeight = menuH + 'px';
+    portal.style.overflowY = 'auto';
+    portal.style.WebkitOverflowScrolling = 'touch';
+    portal.style.pointerEvents = 'auto';
     if (spaceBelow >= menuH || spaceBelow >= spaceAbove) {
-      menu.style.top = rect.bottom + 6 + 'px';
-      menu.style.bottom = 'auto';
+      portal.style.top = rect.bottom + 8 + 'px';
+      portal.style.bottom = 'auto';
     } else {
-      menu.style.bottom = vh - rect.top + 6 + 'px';
-      menu.style.top = 'auto';
+      portal.style.bottom = vh - rect.top + 8 + 'px';
+      portal.style.top = 'auto';
     }
+    menu.style.display = 'none';
+    menu.setAttribute('data-portal-hidden', '1');
+    document.body.appendChild(portal);
   }
 }
 
@@ -73,12 +87,20 @@ export function closeAllDD() {
   document.querySelectorAll('.filter-dd.open').forEach(function (d) {
     d.classList.remove('open');
   });
+  document.querySelectorAll('.filter-dd-menu[data-portal-hidden="1"]').forEach(function (m) {
+    m.style.display = '';
+    m.removeAttribute('data-portal-hidden');
+  });
+  document.querySelectorAll('.filter-dd-portal').forEach(function (p) {
+    p.remove();
+  });
 }
 
 export function handleDocClose(e) {
   if (!e.target) return;
   var inDD = e.target.closest('.filter-dd');
-  if (!inDD) closeAllDD();
+  var inPortal = e.target.closest('.filter-dd-portal');
+  if (!inDD && !inPortal) closeAllDD();
 }
 
 export function resetFilterResult() {
@@ -241,7 +263,7 @@ export function doFilterQuery() {
         var ringColor = rateVal >= 50 ? '#34D399' : rateVal >= 40 ? '#FBBF24' : '#EF4444';
         var r = 36,
           c = 2 * Math.PI * r;
-        var dashVal = c * (1 - rateVal / 100);
+        var dashLen = (c * rateVal) / 100;
 
         var condTags = data.conditionSummary.split(' | ');
         var condHtml = '<div class="filter-cond-tags">';
@@ -268,10 +290,10 @@ export function doFilterQuery() {
           '" stroke="' +
           ringColor +
           '" stroke-dasharray="' +
+          dashLen +
+          ' ' +
           c +
-          '" stroke-dashoffset="' +
-          dashVal +
-          '"/>';
+          '" stroke-dashoffset="0"/>';
         html +=
           '<text class="filter-ring-pct" x="40" y="40" text-anchor="middle" dominant-baseline="central" fill="' +
           ringColor +

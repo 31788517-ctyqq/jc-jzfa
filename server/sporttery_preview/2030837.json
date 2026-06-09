@@ -1,0 +1,484 @@
+{
+  "match_id": "2030837",
+  "featureAnalysis": {
+    "labels": [
+      "近5场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "3胜/2平/0负",
+      "2胜/0平/0负",
+      "5胜/4平/1负",
+      "6胜/1平/3负",
+      "1.2个",
+      "0.5个"
+    ],
+    "away": [
+      "0胜/2平/3负",
+      "0胜/0平/2负",
+      "5胜/2平/3负",
+      "3胜/2平/5负",
+      "1.2个",
+      "0.7个"
+    ]
+  },
+  "h2h": {
+    "title": "近5场圣路易城3胜 (60%) | 2平 (40%) | 0负 (0%)",
+    "rows": [
+      {
+        "date": "2025-02-09",
+        "league": "俱乐部赛",
+        "teams": "奥斯汀FC 1:1 （半 -:-） 圣路易城",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2024-04-15",
+        "league": "美职",
+        "teams": "圣路易城 1:0 （半 0:0） 奥斯汀FC",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2024-03-10",
+        "league": "美职",
+        "teams": "奥斯汀FC 2:2 （半 1:0） 圣路易城",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2023-08-21",
+        "league": "美职",
+        "teams": "圣路易城 6:3 （半 2:0） 奥斯汀FC",
+        "totalGoals": "9"
+      },
+      {
+        "date": "2023-02-26",
+        "league": "美职",
+        "teams": "奥斯汀FC 2:3 （半 1:1） 圣路易城",
+        "totalGoals": "5"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "圣路易城",
+      "title": "Regular Season 第13名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "8/8/18",
+          "winRate": "24%",
+          "goals": "44/58",
+          "gd": "-14",
+          "points": "32",
+          "rank": "13"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "4/6/7",
+          "winRate": "24%",
+          "goals": "23/28",
+          "gd": "-5",
+          "points": "18",
+          "rank": "14"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "4/2/11",
+          "winRate": "24%",
+          "goals": "21/30",
+          "gd": "-9",
+          "points": "14",
+          "rank": "11"
+        }
+      ]
+    },
+    {
+      "team": "奥斯汀FC",
+      "title": "Regular Season 第6名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "13/8/13",
+          "winRate": "38%",
+          "goals": "37/45",
+          "gd": "-8",
+          "points": "47",
+          "rank": "6"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "7/7/3",
+          "winRate": "41%",
+          "goals": "18/16",
+          "gd": "2",
+          "points": "28",
+          "rank": "7"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "6/1/10",
+          "winRate": "35%",
+          "goals": "19/29",
+          "gd": "-10",
+          "points": "19",
+          "rank": "7"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "圣路易城",
+      "summary": "圣路易城近10场5胜 (50%) | 4平 (40%) | 1负 (10%) 进12球，失5球，净进7球",
+      "matches": [
+        {
+          "date": "2025-03-23",
+          "league": "美职",
+          "vs": "费城 1 : 0 （半 1:0） 圣路易城",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-16",
+          "league": "美职",
+          "vs": "圣路易城 1 : 0 （半 1:0） 西雅图",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-10",
+          "league": "美职",
+          "vs": "洛城银河 0 : 3 （半 0:1） 圣路易城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-02",
+          "league": "美职",
+          "vs": "圣迭戈FC 0 : 0 （半 0:0） 圣路易城",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-23",
+          "league": "美职",
+          "vs": "圣路易城 0 : 0 （半 0:0） 科罗拉多",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-16",
+          "league": "俱乐部赛",
+          "vs": "圣路易城 2 : 1 （半 ） 圣何塞",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-13",
+          "league": "俱乐部赛",
+          "vs": "纽约城 1 : 3 （半 ） 圣路易城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-09",
+          "league": "俱乐部赛",
+          "vs": "奥斯汀FC 1 : 1 （半 ） 圣路易城",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-06",
+          "league": "俱乐部赛",
+          "vs": "盐湖城 1 : 1 （半 ） 圣路易城",
+          "result": "平"
+        },
+        {
+          "date": "2025-01-30",
+          "league": "俱乐部赛",
+          "vs": "圣路易城 1 : 0 （半 ） 纽约红牛",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "奥斯汀FC",
+      "summary": "奥斯汀FC近10场5胜 (50%) | 2平 (20%) | 3负 (30%) 进12球，失7球，净进5球",
+      "matches": [
+        {
+          "date": "2025-03-24",
+          "league": "美职",
+          "vs": "奥斯汀FC 2 : 1 （半 2:1） 圣迭戈FC",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-16",
+          "league": "美职",
+          "vs": "洛杉矶FC 0 : 1 （半 0:1） 奥斯汀FC",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-09",
+          "league": "美职",
+          "vs": "奥斯汀FC 0 : 1 （半 0:1） 科罗拉多",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-02",
+          "league": "美职",
+          "vs": "波特兰 1 : 0 （半 0:0） 奥斯汀FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-23",
+          "league": "美职",
+          "vs": "奥斯汀FC 1 : 0 （半 0:0） 堪萨斯城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-13",
+          "league": "俱乐部赛",
+          "vs": "夏洛特FC 1 : 0 （半 ） 奥斯汀FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-09",
+          "league": "俱乐部赛",
+          "vs": "奥斯汀FC 1 : 1 （半 ） 圣路易城",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-06",
+          "league": "俱乐部赛",
+          "vs": "洛城银河 1 : 1 （半 ） 奥斯汀FC",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-02",
+          "league": "俱乐部赛",
+          "vs": "奥斯汀FC 3 : 1 （半 ） 路易斯城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-01-25",
+          "league": "俱乐部赛",
+          "vs": "奥斯汀FC 3 : 0 （半 ） 查尔斯顿",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "圣路易城",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-17",
+          "美职",
+          "圣路易城\nVS\n堪萨斯城",
+          "Regular Season"
+        ],
+        [
+          "2026-07-23",
+          "美职",
+          "洛城银河\nVS\n圣路易城",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "圣路易城\nVS\n科罗拉多",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "圣路易城\nVS\n盐湖城",
+          "Regular Season"
+        ]
+      ]
+    },
+    {
+      "team": "奥斯汀FC",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-23",
+          "美职",
+          "奥斯汀FC\nVS\n西雅图",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "休斯敦\nVS\n奥斯汀FC",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "科罗拉多\nVS\n奥斯汀FC",
+          "Regular Season"
+        ],
+        [
+          "2026-08-17",
+          "美职",
+          "奥斯汀FC\nVS\n达拉斯",
+          "Regular Season"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "圣路易城",
+      "players": [
+        {
+          "player": "9-Klauss(前锋)",
+          "apps": "33 (29/4)",
+          "goals": "10 (23%)",
+          "assists": "2 (6%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "17-M. Hartel(中场)",
+          "apps": "34 (34/0)",
+          "goals": "9 (21%)",
+          "assists": "4 (13%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "10-E. Löwen(中场)伤停",
+          "apps": "19 (16/3)",
+          "goals": "6 (14%)",
+          "assists": "3 (10%)",
+          "avg": "0.3/0.2"
+        }
+      ]
+    },
+    {
+      "team": "奥斯汀FC",
+      "players": [
+        {
+          "player": "33-O.沃尔夫(中场)",
+          "apps": "36 (33/3)",
+          "goals": "7 (18%)",
+          "assists": "8 (29%)",
+          "avg": "0.2/0.2"
+        },
+        {
+          "player": "10-M. Uzuni(前锋)",
+          "apps": "29 (25/4)",
+          "goals": "6 (16%)",
+          "assists": "3 (11%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "9-B. Vázquez(前锋)",
+          "apps": "19 (19/0)",
+          "goals": "5 (13%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "圣路易城",
+      "players": [
+        {
+          "player": "10-E. Löwen(中场)",
+          "totalApps": "19",
+          "starts": "16",
+          "subs": "3",
+          "status": "停"
+        },
+        {
+          "player": "1-R. Bürki(守门员)",
+          "totalApps": "25",
+          "starts": "25",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "21-R. Alm(中场)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "36-C. Teuchert(前锋)",
+          "totalApps": "22",
+          "starts": "17",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "10-E. Löwen(中场)",
+          "totalApps": "19",
+          "starts": "16",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "14-T. Totland(后卫)",
+          "totalApps": "17",
+          "starts": "12",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "13-M.温策尔(后卫)",
+          "totalApps": "2",
+          "starts": "1",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "3-J. Girdwood-Reich(中场)",
+          "totalApps": "10",
+          "starts": "5",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "99-J. Reid(后卫)",
+          "totalApps": "8",
+          "starts": "5",
+          "subs": "3",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "奥斯汀FC",
+      "players": [
+        {
+          "player": "3-M. Desler(后卫)",
+          "totalApps": "22",
+          "starts": "20",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "15-L. Väisänen(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "26-J. Farkarlun(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

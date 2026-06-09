@@ -1,0 +1,468 @@
+{
+  "match_id": "1029224",
+  "featureAnalysis": {
+    "labels": [
+      "近6场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "3胜/0平/3负",
+      "2胜/0平/0负",
+      "3胜/2平/5负",
+      "3胜/4平/3负",
+      "1.6个",
+      "1.7个"
+    ],
+    "away": [
+      "3胜/0平/3负",
+      "0胜/0平/2负",
+      "4胜/3平/3负",
+      "2胜/2平/6负",
+      "1.5个",
+      "1.2个"
+    ]
+  },
+  "h2h": {
+    "title": "近6场斯特拉斯3胜 (50%) | 0平 (0%) | 3负 (50%)",
+    "rows": [
+      {
+        "date": "2023-03-19",
+        "league": "法甲",
+        "teams": "斯特拉斯 2:0 （半 1:0） 欧塞尔",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2022-08-27",
+        "league": "法甲",
+        "teams": "欧塞尔 1:0 （半 1:0） 斯特拉斯",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2017-03-21",
+        "league": "法乙",
+        "teams": "欧塞尔 0:2 （半 0:0） 斯特拉斯",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2016-10-22",
+        "league": "法乙",
+        "teams": "斯特拉斯 2:1 （半 1:0） 欧塞尔",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2016-08-24",
+        "league": "法联赛杯",
+        "teams": "欧塞尔 2:0 （半 1:0） 斯特拉斯",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2015-01-04",
+        "league": "法国杯",
+        "teams": "欧塞尔 1:0 （半 1:0） 斯特拉斯",
+        "totalGoals": "1"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "斯特拉斯",
+      "title": "常规赛 第7名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "16/9/9",
+          "winRate": "47%",
+          "goals": "56/44",
+          "gd": "12",
+          "points": "57",
+          "rank": "7"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "10/5/2",
+          "winRate": "59%",
+          "goals": "33/20",
+          "gd": "13",
+          "points": "35",
+          "rank": "6"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "6/4/7",
+          "winRate": "35%",
+          "goals": "23/24",
+          "gd": "-1",
+          "points": "22",
+          "rank": "10"
+        }
+      ]
+    },
+    {
+      "team": "欧塞尔",
+      "title": "常规赛 第11名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "11/9/14",
+          "winRate": "32%",
+          "goals": "48/51",
+          "gd": "-3",
+          "points": "42",
+          "rank": "11"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "7/6/4",
+          "winRate": "41%",
+          "goals": "24/17",
+          "gd": "7",
+          "points": "27",
+          "rank": "10"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "4/3/10",
+          "winRate": "24%",
+          "goals": "24/34",
+          "gd": "-10",
+          "points": "15",
+          "rank": "14"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "斯特拉斯",
+      "summary": "斯特拉斯近10场3胜 (30%) | 2平 (20%) | 5负 (50%) 进16球，失17球，净进-1球",
+      "matches": [
+        {
+          "date": "2024-12-22",
+          "league": "法国杯",
+          "vs": "RC Calais 0 : 3 （半 0:0） 斯特拉斯",
+          "result": "胜"
+        },
+        {
+          "date": "2024-12-16",
+          "league": "法甲",
+          "vs": "勒阿弗尔 0 : 3 （半 0:2） 斯特拉斯",
+          "result": "胜"
+        },
+        {
+          "date": "2024-12-09",
+          "league": "法甲",
+          "vs": "斯特拉斯 0 : 0 （半 0:0） 兰斯",
+          "result": "平"
+        },
+        {
+          "date": "2024-12-01",
+          "league": "法甲",
+          "vs": "布雷斯特 3 : 1 （半 2:0） 斯特拉斯",
+          "result": "负"
+        },
+        {
+          "date": "2024-11-25",
+          "league": "法甲",
+          "vs": "尼斯 2 : 1 （半 0:1） 斯特拉斯",
+          "result": "负"
+        },
+        {
+          "date": "2024-11-10",
+          "league": "法甲",
+          "vs": "斯特拉斯 1 : 3 （半 1:0） 摩纳哥",
+          "result": "负"
+        },
+        {
+          "date": "2024-11-03",
+          "league": "法甲",
+          "vs": "圣埃蒂安 2 : 0 （半 0:0） 斯特拉斯",
+          "result": "负"
+        },
+        {
+          "date": "2024-10-28",
+          "league": "法甲",
+          "vs": "斯特拉斯 3 : 1 （半 1:0） 南特",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-20",
+          "league": "法甲",
+          "vs": "巴黎圣曼 4 : 2 （半 1:0） 斯特拉斯",
+          "result": "负"
+        },
+        {
+          "date": "2024-10-06",
+          "league": "法甲",
+          "vs": "斯特拉斯 2 : 2 （半 1:2） 朗斯",
+          "result": "平"
+        }
+      ]
+    },
+    {
+      "team": "欧塞尔",
+      "summary": "欧塞尔近10场4胜 (40%) | 3平 (30%) | 3负 (30%) 进15球，失12球，净进3球",
+      "matches": [
+        {
+          "date": "2024-12-22",
+          "league": "法国杯",
+          "vs": "欧塞尔 0 : 1 （半 0:1） 敦刻尔克",
+          "result": "负"
+        },
+        {
+          "date": "2024-12-15",
+          "league": "法甲",
+          "vs": "欧塞尔 2 : 2 （半 1:2） 朗斯",
+          "result": "平"
+        },
+        {
+          "date": "2024-12-07",
+          "league": "法甲",
+          "vs": "欧塞尔 0 : 0 （半 0:0） 巴黎圣曼",
+          "result": "平"
+        },
+        {
+          "date": "2024-12-02",
+          "league": "法甲",
+          "vs": "图卢兹 2 : 0 （半 2:0） 欧塞尔",
+          "result": "负"
+        },
+        {
+          "date": "2024-11-25",
+          "league": "法甲",
+          "vs": "欧塞尔 1 : 0 （半 0:0） 昂热",
+          "result": "胜"
+        },
+        {
+          "date": "2024-11-09",
+          "league": "法甲",
+          "vs": "马赛 1 : 3 （半 0:3） 欧塞尔",
+          "result": "胜"
+        },
+        {
+          "date": "2024-11-04",
+          "league": "法甲",
+          "vs": "欧塞尔 4 : 0 （半 2:0） 雷恩",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-27",
+          "league": "法甲",
+          "vs": "里昂 2 : 2 （半 1:0） 欧塞尔",
+          "result": "平"
+        },
+        {
+          "date": "2024-10-20",
+          "league": "法甲",
+          "vs": "欧塞尔 2 : 1 （半 1:0） 兰斯",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-05",
+          "league": "法甲",
+          "vs": "圣埃蒂安 3 : 1 （半 1:0） 欧塞尔",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "斯特拉斯",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "欧塞尔",
+      "content": "暂无数据",
+      "matches": []
+    }
+  ],
+  "scorers": [
+    {
+      "team": "斯特拉斯",
+      "players": [
+        {
+          "player": "10-E. Emegha(前锋)",
+          "apps": "27 (27/0)",
+          "goals": "14 (25%)",
+          "assists": "3 (7%)",
+          "avg": "0.5/0.1"
+        },
+        {
+          "player": "8-Andrey Santos(中场)",
+          "apps": "32 (32/0)",
+          "goals": "10 (18%)",
+          "assists": "3 (7%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "26-D.巴夸(前锋)",
+          "apps": "30 (29/1)",
+          "goals": "6 (11%)",
+          "assists": "8 (18%)",
+          "avg": "0.2/0.3"
+        }
+      ]
+    },
+    {
+      "team": "欧塞尔",
+      "players": [
+        {
+          "player": "10-G. Perrin(前锋)",
+          "apps": "34 (31/3)",
+          "goals": "10 (21%)",
+          "assists": "11 (31%)",
+          "avg": "0.3/0.3"
+        },
+        {
+          "player": "25-H. Traorè(中场)",
+          "apps": "26 (26/0)",
+          "goals": "10 (21%)",
+          "assists": "2 (6%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "4-Jubal(后卫)",
+          "apps": "30 (30/0)",
+          "goals": "6 (13%)",
+          "assists": "0 (0%)",
+          "avg": "0.2/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "斯特拉斯",
+      "players": [
+        {
+          "player": "9-K. Gameiro(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "莫蒂巴(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "4-K. Fila(后卫)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "36-A. Bellaarouch(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "12-C.威利(后卫)",
+          "totalApps": "6",
+          "starts": "3",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "11-D. Sahi(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "42-G. Ouattara(中场)",
+          "totalApps": "17",
+          "starts": "3",
+          "subs": "14",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "欧塞尔",
+      "players": [
+        {
+          "player": "97-R·雷夫洛森(中场)",
+          "totalApps": "13",
+          "starts": "7",
+          "subs": "6",
+          "status": "停"
+        },
+        {
+          "player": "16-D. Léon(守门员)",
+          "totalApps": "32",
+          "starts": "32",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "3-G. Osho(后卫)",
+          "totalApps": "20",
+          "starts": "20",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "28-O. Camara(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "6-S. Agouzoul(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "27-K. Danois(中场)",
+          "totalApps": "22",
+          "starts": "16",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "8-N. Buayi-Kiala(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "21-L. Coulibaly(中场)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "24-A. N’Gatta(后卫)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

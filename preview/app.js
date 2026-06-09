@@ -2137,7 +2137,17 @@ function loadPlanList() {
               const isHalfFull = ft.indexOf('半全场-') === 0;
               if (!val && isHalfFull && oddsObj.halfFull) {
                 const hfName = ft.replace('半全场-', '');
-                const hfMap = { '胜胜':'hh','平胜':'dh','胜负':'ha','胜平':'hd','平平':'dd','平负':'da','负胜':'ah','负平':'ad','负负':'aa' };
+                const hfMap = {
+                  胜胜: 'hh',
+                  平胜: 'dh',
+                  胜负: 'ha',
+                  胜平: 'hd',
+                  平平: 'dd',
+                  平负: 'da',
+                  负胜: 'ah',
+                  负平: 'ad',
+                  负负: 'aa',
+                };
                 const hfKey = hfMap[hfName];
                 if (hfKey) val = oddsObj.halfFull[hfKey];
               }
@@ -2410,8 +2420,8 @@ function loadScorePlanList() {
           }
 
           const amountVal = (p.amount || 1000).toFixed(0);
-          const prizeNum = isWon ? (p.winningPrize || 0) : (p.maxPrize || 0);
-          const prizeVal = prizeNum > 0 ? prizeNum.toFixed(0) : (isWon ? '--' : '0');
+          const prizeNum = isWon ? p.winningPrize || 0 : p.maxPrize || 0;
+          const prizeVal = prizeNum > 0 ? prizeNum.toFixed(0) : isWon ? '--' : '0';
           const prizeLabel = isWon ? '中奖金额' : isLose ? '预计奖金' : '预计最高奖金';
           const statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
 

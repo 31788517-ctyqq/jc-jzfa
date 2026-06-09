@@ -16,7 +16,11 @@ const path = require('path');
  */
 function warmUp(options) {
   options = options || {};
-  const log = options.log || function (msg) { console.log('[cache-warmer] ' + msg); };
+  const log =
+    options.log ||
+    function (msg) {
+      console.log('[cache-warmer] ' + msg);
+    };
   const stats = { steps: 0, errors: 0, files: {} };
 
   function step(name, fn) {

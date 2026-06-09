@@ -102,6 +102,64 @@ describe('OutcomeBackfill — 命中判定', () => {
     });
   });
 
+  describe('getModelHitRates — 模型展示过滤', () => {
+    it('默认隐藏系统模型，但 includeInternal=true 时保留', () => {
+      const rows = [
+        {
+          model_name: 'data_fusion',
+          model_version: 'v1.0',
+          total: 10,
+          dir_hits: 6,
+          ou_hits: 0,
+          score_hits: 0,
+          dir_rate: 60,
+          ou_rate: 0,
+          score_rate: 0,
+        },
+        {
+          model_name: 'expert_consensus',
+          model_version: 'v1.0',
+          total: 10,
+          dir_hits: 5,
+          ou_hits: 0,
+          score_hits: 0,
+          dir_rate: 50,
+          ou_rate: 0,
+          score_rate: 0,
+        },
+        {
+          model_name: 'market_signal',
+          model_version: 'v2.0',
+          total: 10,
+          dir_hits: 4,
+          ou_hits: 0,
+          score_hits: 0,
+          dir_rate: 40,
+          ou_rate: 0,
+          score_rate: 0,
+        },
+        {
+          model_name: '功守道',
+          model_version: 'v1.0',
+          total: 10,
+          dir_hits: 7,
+          ou_hits: 0,
+          score_hits: 0,
+          dir_rate: 70,
+          ou_rate: 0,
+          score_rate: 0,
+        },
+      ];
+      const db = { execAll: jest.fn().mockReturnValue(rows) };
+      const visible = backfiller.getModelHitRates(db, 30);
+      // ★ V9.5: expert_consensus 已从 INTERNAL_MODEL_NAMES 移除，默认可见
+      expect(visible.map((r) => r.modelName)).toEqual(['expert_consensus', '功守道']);
+
+      const all = backfiller.getModelHitRates(db, 30, { includeInternal: true });
+      expect(all.map((r) => r.modelName)).toEqual(['data_fusion', 'expert_consensus', 'market_signal', '功守道']);
+    });
+  });
+
   describe('computeDynamicWeights — Softmax', () => {
     it('无数据时返回空数组', () => {
       const result = backfiller.computeDynamicWeights(null);

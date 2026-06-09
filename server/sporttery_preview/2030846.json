@@ -1,0 +1,470 @@
+{
+  "match_id": "2030846",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "6胜/2平/2负",
+      "4胜/1平/0负",
+      "4胜/4平/2负",
+      "6胜/2平/2负",
+      "1.5个",
+      "1.3个"
+    ],
+    "away": [
+      "2胜/2平/6负",
+      "0胜/1平/4负",
+      "0胜/3平/7负",
+      "3胜/2平/5负",
+      "0.9个",
+      "2.0个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场塞尔塔6胜 (60%) | 2平 (20%) | 2负 (20%)",
+    "rows": [
+      {
+        "date": "2024-10-06",
+        "league": "西甲",
+        "teams": "拉帕马斯 0:1 （半 0:1） 塞尔塔",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2024-04-20",
+        "league": "西甲",
+        "teams": "塞尔塔 4:1 （半 2:1） 拉帕马斯",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2023-10-03",
+        "league": "西甲",
+        "teams": "拉帕马斯 2:1 （半 0:0） 塞尔塔",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2018-03-06",
+        "league": "西甲",
+        "teams": "塞尔塔 2:1 （半 0:0） 拉帕马斯",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2017-10-17",
+        "league": "西甲",
+        "teams": "拉帕马斯 2:5 （半 0:2） 塞尔塔",
+        "totalGoals": "7"
+      },
+      {
+        "date": "2017-04-04",
+        "league": "西甲",
+        "teams": "塞尔塔 3:1 （半 2:0） 拉帕马斯",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2016-10-31",
+        "league": "西甲",
+        "teams": "拉帕马斯 3:3 （半 0:3） 塞尔塔",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2016-02-01",
+        "league": "西甲",
+        "teams": "拉帕马斯 2:1 （半 1:1） 塞尔塔",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2015-09-14",
+        "league": "西甲",
+        "teams": "塞尔塔 3:3 （半 2:1） 拉帕马斯",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2014-12-17",
+        "league": "西国王杯",
+        "teams": "塞尔塔 3:1 （半 1:0） 拉帕马斯",
+        "totalGoals": "4"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "塞尔塔",
+      "title": "常规赛 第7名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "16/7/15",
+          "winRate": "42%",
+          "goals": "59/57",
+          "gd": "2",
+          "points": "55",
+          "rank": "7"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "11/3/5",
+          "winRate": "58%",
+          "goals": "32/21",
+          "gd": "11",
+          "points": "36",
+          "rank": "5"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "5/4/10",
+          "winRate": "26%",
+          "goals": "27/36",
+          "gd": "-9",
+          "points": "19",
+          "rank": "10"
+        }
+      ]
+    },
+    {
+      "team": "拉帕马斯",
+      "title": "常规赛 第19名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "8/8/22",
+          "winRate": "21%",
+          "goals": "40/61",
+          "gd": "-21",
+          "points": "32",
+          "rank": "19"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "4/5/10",
+          "winRate": "21%",
+          "goals": "21/29",
+          "gd": "-8",
+          "points": "17",
+          "rank": "19"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "4/3/12",
+          "winRate": "21%",
+          "goals": "19/32",
+          "gd": "-13",
+          "points": "15",
+          "rank": "16"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "塞尔塔",
+      "summary": "塞尔塔近10场4胜 (40%) | 4平 (40%) | 2负 (20%) 进15球，失13球，净进2球",
+      "matches": [
+        {
+          "date": "2025-03-15",
+          "league": "西甲",
+          "vs": "巴利亚多 0 : 1 （半 0:0） 塞尔塔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-08",
+          "league": "西甲",
+          "vs": "塞尔塔 2 : 1 （半 2:1） 莱加内斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-01",
+          "league": "西甲",
+          "vs": "赫罗纳 2 : 2 （半 1:1） 塞尔塔",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-22",
+          "league": "西甲",
+          "vs": "塞尔塔 1 : 0 （半 0:0） 奥萨苏纳",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-16",
+          "league": "西甲",
+          "vs": "马竞 1 : 1 （半 0:0） 塞尔塔",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-08",
+          "league": "西甲",
+          "vs": "塞尔塔 3 : 2 （半 0:2） 贝蒂斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-02",
+          "league": "西甲",
+          "vs": "巴伦西亚 2 : 1 （半 1:0） 塞尔塔",
+          "result": "负"
+        },
+        {
+          "date": "2025-01-28",
+          "league": "西甲",
+          "vs": "阿拉维斯 1 : 1 （半 1:0） 塞尔塔",
+          "result": "平"
+        },
+        {
+          "date": "2025-01-19",
+          "league": "西甲",
+          "vs": "塞尔塔 1 : 2 （半 0:0） 毕尔巴鄂",
+          "result": "负"
+        },
+        {
+          "date": "2025-01-17",
+          "league": "西国王杯",
+          "vs": "皇马 2 : 2 （半 1:0） 塞尔塔",
+          "result": "平"
+        }
+      ]
+    },
+    {
+      "team": "拉帕马斯",
+      "summary": "拉帕马斯近10场0胜 (0%) | 3平 (30%) | 7负 (70%) 进9球，失20球，净进-11球",
+      "matches": [
+        {
+          "date": "2025-03-15",
+          "league": "西甲",
+          "vs": "拉帕马斯 2 : 2 （半 0:1） 阿拉维斯",
+          "result": "平"
+        },
+        {
+          "date": "2025-03-10",
+          "league": "西甲",
+          "vs": "贝蒂斯 1 : 0 （半 0:0） 拉帕马斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-01",
+          "league": "西甲",
+          "vs": "巴利亚多 1 : 1 （半 0:1） 拉帕马斯",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-23",
+          "league": "西甲",
+          "vs": "拉帕马斯 0 : 2 （半 0:0） 巴萨",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-17",
+          "league": "西甲",
+          "vs": "马洛卡 3 : 1 （半 3:0） 拉帕马斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-09",
+          "league": "西甲",
+          "vs": "拉帕马斯 1 : 2 （半 0:0） 比利亚雷",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-04",
+          "league": "西甲",
+          "vs": "赫罗纳 2 : 1 （半 1:0） 拉帕马斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-01-25",
+          "league": "西甲",
+          "vs": "拉帕马斯 1 : 1 （半 0:0） 奥萨苏纳",
+          "result": "平"
+        },
+        {
+          "date": "2025-01-19",
+          "league": "西甲",
+          "vs": "皇马 4 : 1 （半 3:1） 拉帕马斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-01-12",
+          "league": "西甲",
+          "vs": "拉帕马斯 1 : 2 （半 0:0） 赫塔费",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "塞尔塔",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "拉帕马斯",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-06-08",
+          "西乙",
+          "拉帕马斯\nVS\n马拉加",
+          "Promotion Play-offs - Semi-finals"
+        ],
+        [
+          "2026-06-11",
+          "西乙",
+          "马拉加\nVS\n拉帕马斯",
+          "Promotion Play-offs - Semi-finals"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "塞尔塔",
+      "players": [
+        {
+          "player": "7-Borja Iglesias(前锋)",
+          "apps": "37 (24/13)",
+          "goals": "11 (19%)",
+          "assists": "3 (8%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "10-Iago Aspas(前锋)",
+          "apps": "30 (19/11)",
+          "goals": "10 (17%)",
+          "assists": "5 (13%)",
+          "avg": "0.3/0.2"
+        },
+        {
+          "player": "12-Alfon González(前锋)",
+          "apps": "26 (14/12)",
+          "goals": "5 (9%)",
+          "assists": "2 (5%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    },
+    {
+      "team": "拉帕马斯",
+      "players": [
+        {
+          "player": "37-Fábio Silva(前锋)",
+          "apps": "24 (22/2)",
+          "goals": "10 (26%)",
+          "assists": "3 (11%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "19-Sandro Ramírez(前锋)",
+          "apps": "31 (25/6)",
+          "goals": "9 (24%)",
+          "assists": "3 (11%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "10-阿尔伯托 莫莱罗(中场)伤",
+          "apps": "35 (32/3)",
+          "goals": "6 (16%)",
+          "assists": "1 (4%)",
+          "avg": "0.2/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "塞尔塔",
+      "players": [
+        {
+          "player": "3-Óscar Mingueza(后卫)",
+          "totalApps": "34",
+          "starts": "31",
+          "subs": "3",
+          "status": "停"
+        },
+        {
+          "player": "40-Javier Rueda(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "23-T. Allende(前锋)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "19-W.斯威德伯格(中场)",
+          "totalApps": "32",
+          "starts": "15",
+          "subs": "17",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "拉帕马斯",
+      "players": [
+        {
+          "player": "22-D. Sinkgraven(后卫)",
+          "totalApps": "2",
+          "starts": "1",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "11-Benito Ramírez(中场)",
+          "totalApps": "19",
+          "starts": "2",
+          "subs": "17",
+          "status": "伤"
+        },
+        {
+          "player": "14-Álvaro Lemos(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "6-A·佩尔玛德(后卫)",
+          "totalApps": "4",
+          "starts": "2",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "20-Kirian Rodríguez(中场)",
+          "totalApps": "21",
+          "starts": "21",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "21-Iván Gil(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "10-阿尔伯托 莫莱罗(中场)",
+          "totalApps": "35",
+          "starts": "32",
+          "subs": "3",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,499 @@
+{
+  "match_id": "2031797",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "2胜/4平/4负",
+      "0胜/3平/2负",
+      "4胜/2平/4负",
+      "4胜/0平/6负",
+      "0.8个",
+      "1.3个"
+    ],
+    "away": [
+      "4胜/4平/2负",
+      "2胜/3平/0负",
+      "6胜/2平/2负",
+      "4胜/4平/2负",
+      "2.0个",
+      "0.9个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场福图纳2胜 (20%) | 4平 (40%) | 4负 (40%)",
+    "rows": [
+      {
+        "date": "2024-12-22",
+        "league": "荷甲",
+        "teams": "乌德勒支 2:5 （半 1:0） 福图纳",
+        "totalGoals": "7"
+      },
+      {
+        "date": "2024-02-11",
+        "league": "荷甲",
+        "teams": "乌德勒支 4:0 （半 1:0） 福图纳",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2023-10-29",
+        "league": "荷甲",
+        "teams": "福图纳 0:0 （半 0:0） 乌德勒支",
+        "totalGoals": ""
+      },
+      {
+        "date": "2023-03-04",
+        "league": "荷甲",
+        "teams": "乌德勒支 1:2 （半 0:0） 福图纳",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2022-09-03",
+        "league": "荷甲",
+        "teams": "福图纳 3:4 （半 0:0） 乌德勒支",
+        "totalGoals": "7"
+      },
+      {
+        "date": "2022-04-10",
+        "league": "荷甲",
+        "teams": "乌德勒支 1:1 （半 1:0） 福图纳",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2021-12-18",
+        "league": "荷甲",
+        "teams": "福图纳 2:2 （半 1:1） 乌德勒支",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2021-08-07",
+        "league": "俱乐部赛",
+        "teams": "乌德勒支 7:0 （半 -:-） 福图纳",
+        "totalGoals": "7"
+      },
+      {
+        "date": "2021-03-20",
+        "league": "荷甲",
+        "teams": "福图纳 0:1 （半 0:0） 乌德勒支",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2020-12-20",
+        "league": "荷甲",
+        "teams": "乌德勒支 1:1 （半 0:0） 福图纳",
+        "totalGoals": "2"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "福图纳",
+      "title": "Regular Season 第11名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "11/8/15",
+          "winRate": "32%",
+          "goals": "37/54",
+          "gd": "-17",
+          "points": "41",
+          "rank": "11"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "8/1/8",
+          "winRate": "47%",
+          "goals": "17/24",
+          "gd": "-7",
+          "points": "25",
+          "rank": "12"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "3/7/7",
+          "winRate": "18%",
+          "goals": "20/30",
+          "gd": "-10",
+          "points": "16",
+          "rank": "10"
+        }
+      ]
+    },
+    {
+      "team": "乌德勒支",
+      "title": "Regular Season 第4名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "18/10/6",
+          "winRate": "53%",
+          "goals": "62/45",
+          "gd": "17",
+          "points": "64",
+          "rank": "4"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "9/3/5",
+          "winRate": "53%",
+          "goals": "28/24",
+          "gd": "4",
+          "points": "30",
+          "rank": "8"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "9/7/1",
+          "winRate": "53%",
+          "goals": "34/21",
+          "gd": "13",
+          "points": "34",
+          "rank": "3"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "福图纳",
+      "summary": "福图纳近10场4胜 (40%) | 2平 (20%) | 4负 (40%) 进8球，失13球，净进-5球",
+      "matches": [
+        {
+          "date": "2025-05-15",
+          "league": "荷甲",
+          "vs": "阿尔梅勒 1 : 1 （半 1:0） 福图纳",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-11",
+          "league": "荷甲",
+          "vs": "福图纳 1 : 0 （半 1:0） 布雷达",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-04",
+          "league": "荷甲",
+          "vs": "埃因霍温 4 : 1 （半 2:0） 福图纳",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-27",
+          "league": "荷甲",
+          "vs": "福图纳 1 : 0 （半 0:0） 威廉二世",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-12",
+          "league": "荷甲",
+          "vs": "福图纳 0 : 2 （半 0:0） 费耶诺德",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-06",
+          "league": "荷甲",
+          "vs": "特温特 1 : 1 （半 1:0） 福图纳",
+          "result": "平"
+        },
+        {
+          "date": "2025-03-30",
+          "league": "荷甲",
+          "vs": "福图纳 0 : 3 （半 0:2） 鹿斯巴达",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-16",
+          "league": "荷甲",
+          "vs": "格罗宁根 1 : 0 （半 0:0） 福图纳",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-08",
+          "league": "荷甲",
+          "vs": "福图纳 1 : 0 （半 0:0） 赫拉克勒",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-01",
+          "league": "荷甲",
+          "vs": "瓦尔韦克 1 : 2 （半 0:1） 福图纳",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "乌德勒支",
+      "summary": "乌德勒支近10场6胜 (60%) | 2平 (20%) | 2负 (20%) 进20球，失9球，净进11球",
+      "matches": [
+        {
+          "date": "2025-05-15",
+          "league": "荷甲",
+          "vs": "乌德勒支 1 : 1 （半 1:1） 鹿斯巴达",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-11",
+          "league": "荷甲",
+          "vs": "特温特 2 : 0 （半 1:0） 乌德勒支",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-26",
+          "league": "荷甲",
+          "vs": "瓦尔韦克 0 : 4 （半 0:3） 乌德勒支",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-20",
+          "league": "荷甲",
+          "vs": "乌德勒支 4 : 0 （半 1:0） 阿贾克斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-13",
+          "league": "荷甲",
+          "vs": "乌德勒支 3 : 1 （半 3:1） 格罗宁根",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-06",
+          "league": "荷甲",
+          "vs": "前进之鹰 2 : 2 （半 2:2） 乌德勒支",
+          "result": "平"
+        },
+        {
+          "date": "2025-03-30",
+          "league": "荷甲",
+          "vs": "乌德勒支 2 : 0 （半 1:0） 海伦芬",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-15",
+          "league": "荷甲",
+          "vs": "乌德勒支 0 : 1 （半 0:0） 奈梅亨",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-09",
+          "league": "荷甲",
+          "vs": "威廉二世 2 : 3 （半 1:0） 乌德勒支",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-01",
+          "league": "荷甲",
+          "vs": "乌德勒支 1 : 0 （半 0:0） 布雷达",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "福图纳",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-04",
+          "俱乐部赛",
+          "福图纳\nVS\nLierse K",
+          "Club Friendlies 3"
+        ]
+      ]
+    },
+    {
+      "team": "乌德勒支",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-06-27",
+          "俱乐部赛",
+          "乌德勒支\nVS\n格拉夫",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "福图纳",
+      "players": [
+        {
+          "player": "7-彼得森(前锋)",
+          "apps": "30 (22/8)",
+          "goals": "7 (19%)",
+          "assists": "2 (8%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "33-E.布拉德(中场)",
+          "apps": "28 (25/3)",
+          "goals": "6 (17%)",
+          "assists": "1 (4%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "23-德科鲁兹(中场)伤",
+          "apps": "18 (13/5)",
+          "goals": "4 (11%)",
+          "assists": "1 (4%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    },
+    {
+      "team": "乌德勒支",
+      "players": [
+        {
+          "player": "21-P.亚伦森(中场)",
+          "apps": "33 (30/3)",
+          "goals": "8 (14%)",
+          "assists": "4 (9%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "22-米格尔 罗德里格斯(前锋)",
+          "apps": "22 (15/7)",
+          "goals": "7 (12%)",
+          "assists": "3 (7%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "20-Y.凯瑟琳(前锋)",
+          "apps": "25 (23/2)",
+          "goals": "6 (10%)",
+          "assists": "5 (11%)",
+          "avg": "0.2/0.2"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "福图纳",
+      "players": [
+        {
+          "player": "10-A. Halilović(中场)",
+          "totalApps": "27",
+          "starts": "23",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "24-D. Sinkgraven(后卫)",
+          "totalApps": "2",
+          "starts": "1",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "22-巴斯蒂安(中场)",
+          "totalApps": "23",
+          "starts": "13",
+          "subs": "10",
+          "status": "伤"
+        },
+        {
+          "player": "23-德科鲁兹(中场)",
+          "totalApps": "18",
+          "starts": "13",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "11-M. Aiko(前锋)",
+          "totalApps": "22",
+          "starts": "13",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "4-S·阿杜维(后卫)",
+          "totalApps": "24",
+          "starts": "20",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "17-O. Demir(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "71-R. Bayram(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "乌德勒支",
+      "players": [
+        {
+          "player": "25-M. Brouwer(守门员)",
+          "totalApps": "3",
+          "starts": "3",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "2-S. Horemans(后卫)",
+          "totalApps": "29",
+          "starts": "26",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "8-C. Bozdogan(中场)",
+          "totalApps": "9",
+          "starts": "4",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "42-R. van Hees(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "14-Z. Iqbal(中场)",
+          "totalApps": "18",
+          "starts": "18",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "43-R. el Arguioui(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "26-M. Jonathans(前锋)",
+          "totalApps": "8",
+          "starts": "3",
+          "subs": "5",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

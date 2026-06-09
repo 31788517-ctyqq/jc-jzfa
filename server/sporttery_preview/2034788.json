@@ -1,0 +1,420 @@
+{
+  "match_id": "2034788",
+  "featureAnalysis": {
+    "labels": [
+      "近0场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "4胜/2平/4负",
+      "4胜/3平/3负",
+      "1.6个",
+      "1.4个"
+    ],
+    "away": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "5胜/1平/4负",
+      "2胜/3平/5负",
+      "1.5个",
+      "1.1个"
+    ]
+  },
+  "h2h": {
+    "title": "近0场萨尔茨堡0胜 (0%) | 0平 (0%) | 0负 (0%)",
+    "rows": []
+  },
+  "standings": [
+    {
+      "team": "萨尔茨堡",
+      "title": "League Stage 第31名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "2/0/6",
+          "winRate": "25%",
+          "goals": "10/15",
+          "gd": "-5",
+          "points": "6",
+          "rank": "31"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "2/0/2",
+          "winRate": "50%",
+          "goals": "7/5",
+          "gd": "2",
+          "points": "6",
+          "rank": "22"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "0/0/4",
+          "winRate": "0%",
+          "goals": "3/10",
+          "gd": "-7",
+          "points": "0",
+          "rank": "33"
+        }
+      ]
+    },
+    {
+      "team": "前进之鹰",
+      "title": "League Stage 第28名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "2/1/5",
+          "winRate": "25%",
+          "goals": "6/14",
+          "gd": "-8",
+          "points": "7",
+          "rank": "28"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "1/1/2",
+          "winRate": "25%",
+          "goals": "2/6",
+          "gd": "-4",
+          "points": "4",
+          "rank": "32"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "1/0/3",
+          "winRate": "25%",
+          "goals": "4/8",
+          "gd": "-4",
+          "points": "3",
+          "rank": "25"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "萨尔茨堡",
+      "summary": "萨尔茨堡近10场4胜 (40%) | 2平 (20%) | 4负 (40%) 进16球，失14球，净进2球",
+      "matches": [
+        {
+          "date": "2025-11-02",
+          "league": "奥甲",
+          "vs": "萨尔茨堡 4 : 1 （半 2:1） 里德",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-31",
+          "league": "奥地利杯",
+          "vs": "萨尔茨堡 1 : 1 （半 0:0） WSG Tirol",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-27",
+          "league": "奥甲",
+          "vs": "维也纳 0 : 3 （半 0:2） 萨尔茨堡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-24",
+          "league": "欧罗巴",
+          "vs": "萨尔茨堡 2 : 3 （半 1:0） 费伦茨",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-19",
+          "league": "奥甲",
+          "vs": "萨尔茨堡 2 : 2 （半 1:1） 阿特阿赫",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-05",
+          "league": "奥甲",
+          "vs": "萨尔茨堡 2 : 1 （半 1:1） 维快速",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-03",
+          "league": "欧罗巴",
+          "vs": "里昂 2 : 0 （半 1:0） 萨尔茨堡",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-28",
+          "league": "奥甲",
+          "vs": "WSG Tirol 1 : 2 （半 0:1） 萨尔茨堡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-26",
+          "league": "欧罗巴",
+          "vs": "萨尔茨堡 0 : 1 （半 0:0） 波尔图",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-20",
+          "league": "奥甲",
+          "vs": "萨尔茨堡 0 : 2 （半 0:1） 格风暴",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "前进之鹰",
+      "summary": "前进之鹰近10场5胜 (50%) | 1平 (10%) | 4负 (40%) 进15球，失11球，净进4球",
+      "matches": [
+        {
+          "date": "2025-11-02",
+          "league": "荷甲",
+          "vs": "布雷达 1 : 0 （半 0:0） 前进之鹰",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-27",
+          "league": "荷甲",
+          "vs": "前进之鹰 2 : 0 （半 0:0） SBV精英",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-24",
+          "league": "欧罗巴",
+          "vs": "前进之鹰 2 : 1 （半 1:1） 维拉",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-19",
+          "league": "荷甲",
+          "vs": "埃因霍温 2 : 1 （半 1:0） 前进之鹰",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-06",
+          "league": "荷甲",
+          "vs": "前进之鹰 1 : 1 （半 0:1） 奈梅亨",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-03",
+          "league": "欧罗巴",
+          "vs": "帕纳辛纳 1 : 2 （半 0:0） 前进之鹰",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-28",
+          "league": "荷甲",
+          "vs": "特尔斯达 4 : 2 （半 2:1） 前进之鹰",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-26",
+          "league": "欧罗巴",
+          "vs": "前进之鹰 0 : 1 （半 0:1） 布星",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-21",
+          "league": "荷甲",
+          "vs": "兹沃勒 0 : 2 （半 0:0） 前进之鹰",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-14",
+          "league": "荷甲",
+          "vs": "前进之鹰 3 : 0 （半 3:0） 福伦丹",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "萨尔茨堡",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-06-26",
+          "俱乐部赛",
+          "西基臣\nVS\n萨尔茨堡",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-04",
+          "俱乐部赛",
+          "萨尔茨堡\nVS\nGórnik",
+          "Club Friendlies 3"
+        ]
+      ]
+    },
+    {
+      "team": "前进之鹰",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-04",
+          "俱乐部赛",
+          "奥斯\nVS\n前进之鹰",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-09",
+          "俱乐部赛",
+          "前进之鹰\nVS\n阿尔梅勒",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-18",
+          "俱乐部赛",
+          "洛默尔联\nVS\n前进之鹰",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-08-02",
+          "俱乐部赛",
+          "卢顿\nVS\n前进之鹰",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "萨尔茨堡",
+      "players": [
+        {
+          "player": "11-Y.维特森(前锋)",
+          "apps": "7 (5/2)",
+          "goals": "3 (33%)",
+          "assists": "0 (0%)",
+          "avg": "0.4/0"
+        },
+        {
+          "player": "27-K. Alajbegović(前锋)",
+          "apps": "7 (4/3)",
+          "goals": "2 (22%)",
+          "assists": "1 (17%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "49-M. Yeo(中场)",
+          "apps": "8 (4/4)",
+          "goals": "1 (11%)",
+          "assists": "1 (17%)",
+          "avg": "0.1/0.1"
+        }
+      ]
+    },
+    {
+      "team": "前进之鹰",
+      "players": [
+        {
+          "player": "9-M. Smit(前锋)",
+          "apps": "6 (5/1)",
+          "goals": "3 (50%)",
+          "assists": "0 (0%)",
+          "avg": "0.5/0"
+        },
+        {
+          "player": "27-F. Stokkers(前锋)",
+          "apps": "6 (0/6)",
+          "goals": "1 (17%)",
+          "assists": "0 (0%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "2-M. Deijl(后卫)",
+          "apps": "7 (7/0)",
+          "goals": "1 (17%)",
+          "assists": "0 (0%)",
+          "avg": "0.1/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "萨尔茨堡",
+      "players": [
+        {
+          "player": "16-T. Kawamura(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "19-K. Konaté(前锋)",
+          "totalApps": "4",
+          "starts": "1",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "38-V. Sulzbacher(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "91-A. Chase(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "前进之鹰",
+      "players": [
+        {
+          "player": "3-G. Nauber(后卫)",
+          "totalApps": "3",
+          "starts": "3",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "16-爱德华森(前锋)",
+          "totalApps": "5",
+          "starts": "3",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "10-S. Tengstedt(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "7-J. Breum(中场)",
+          "totalApps": "6",
+          "starts": "5",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "28-P. Saathof(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

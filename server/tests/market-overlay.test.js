@@ -4,10 +4,17 @@
  *       inferOverlayScores/aggregateScores/compareOverlayScore
  */
 const {
-  OVERLAY_SCORE_FIELDS, FIELD_LABELS, FIELD_CATEGORIES,
-  buildEvidenceRow, parseScoreExplain, ensureScoreFields,
-  hasOffFieldEvidence, inferOverlayScores, aggregateScores,
-  compareOverlayScore, getCategoryLabel,
+  OVERLAY_SCORE_FIELDS,
+  FIELD_LABELS,
+  FIELD_CATEGORIES,
+  buildEvidenceRow,
+  parseScoreExplain,
+  ensureScoreFields,
+  hasOffFieldEvidence,
+  inferOverlayScores,
+  aggregateScores,
+  compareOverlayScore,
+  getCategoryLabel,
 } = require('../core/market-overlay');
 
 // ==================== 常量 ====================
@@ -118,12 +125,13 @@ describe('market-overlay — ensureScoreFields 确保15维字段', () => {
   it('空输入 → 补齐15个字段', () => {
     const result = ensureScoreFields({});
     expect(Object.keys(result).length).toBe(15);
-    result && Object.values(result).forEach(function (entry) {
-      expect(entry).toHaveProperty('explain_text');
-      expect(entry).toHaveProperty('evidence');
-      expect(entry).toHaveProperty('confidence');
-      expect(entry).toHaveProperty('updated_by');
-    });
+    result &&
+      Object.values(result).forEach(function (entry) {
+        expect(entry).toHaveProperty('explain_text');
+        expect(entry).toHaveProperty('evidence');
+        expect(entry).toHaveProperty('confidence');
+        expect(entry).toHaveProperty('updated_by');
+      });
   });
 
   it('部分字段已有值 → 保留', () => {
@@ -210,7 +218,9 @@ describe('market-overlay — inferOverlayScores 评分推断', () => {
 describe('market-overlay — aggregateScores 综合评估', () => {
   function makeScores(base) {
     const s = {};
-    OVERLAY_SCORE_FIELDS.forEach(function (f) { s[f] = base || 50; });
+    OVERLAY_SCORE_FIELDS.forEach(function (f) {
+      s[f] = base || 50;
+    });
     return s;
   }
 
@@ -245,7 +255,9 @@ describe('market-overlay — aggregateScores 综合评估', () => {
 describe('market-overlay — compareOverlayScore 主客对比', () => {
   function makeScores(base) {
     const s = {};
-    OVERLAY_SCORE_FIELDS.forEach(function (f) { s[f] = base || 50; });
+    OVERLAY_SCORE_FIELDS.forEach(function (f) {
+      s[f] = base || 50;
+    });
     return s;
   }
 

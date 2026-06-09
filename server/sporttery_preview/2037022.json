@@ -1,0 +1,464 @@
+{
+  "match_id": "2037022",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "5胜/2平/3负",
+      "7胜/1平/2负",
+      "6胜/0平/4负",
+      "8胜/0平/2负",
+      "2.2个",
+      "1.5个"
+    ],
+    "away": [
+      "3胜/2平/5负",
+      "2胜/1平/7负",
+      "2胜/2平/6负",
+      "4胜/2平/4负",
+      "0.8个",
+      "1.3个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场皇马5胜 (50%) | 2平 (20%) | 3负 (30%)",
+    "rows": [
+      {
+        "date": "2025-09-24",
+        "league": "西甲",
+        "teams": "莱万特 1:4 （半 0:2） 皇马",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2022-05-13",
+        "league": "西甲",
+        "teams": "皇马 6:0 （半 4:0） 莱万特",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2021-08-23",
+        "league": "西甲",
+        "teams": "莱万特 3:3 （半 0:1） 皇马",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2021-01-30",
+        "league": "西甲",
+        "teams": "皇马 1:2 （半 1:1） 莱万特",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2020-10-04",
+        "league": "西甲",
+        "teams": "莱万特 0:2 （半 0:1） 皇马",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2020-02-23",
+        "league": "西甲",
+        "teams": "莱万特 1:0 （半 0:0） 皇马",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2019-09-14",
+        "league": "西甲",
+        "teams": "皇马 3:2 （半 3:0） 莱万特",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2019-02-25",
+        "league": "西甲",
+        "teams": "莱万特 1:2 （半 0:1） 皇马",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2018-10-20",
+        "league": "西甲",
+        "teams": "皇马 1:2 （半 0:2） 莱万特",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2018-02-04",
+        "league": "西甲",
+        "teams": "莱万特 2:2 （半 1:1） 皇马",
+        "totalGoals": "4"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "皇马",
+      "title": "Regular Season 第2名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "27/5/6",
+          "winRate": "71%",
+          "goals": "77/35",
+          "gd": "42",
+          "points": "86",
+          "rank": "2"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "16/1/2",
+          "winRate": "84%",
+          "goals": "45/16",
+          "gd": "29",
+          "points": "49",
+          "rank": "2"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "11/4/4",
+          "winRate": "58%",
+          "goals": "32/19",
+          "gd": "13",
+          "points": "37",
+          "rank": "1"
+        }
+      ]
+    },
+    {
+      "team": "莱万特",
+      "title": "Regular Season 第16名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "11/9/18",
+          "winRate": "29%",
+          "goals": "47/61",
+          "gd": "-14",
+          "points": "42",
+          "rank": "16"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "7/5/7",
+          "winRate": "37%",
+          "goals": "26/28",
+          "gd": "-2",
+          "points": "26",
+          "rank": "15"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "4/4/11",
+          "winRate": "21%",
+          "goals": "21/33",
+          "gd": "-12",
+          "points": "16",
+          "rank": "14"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "皇马",
+      "summary": "皇马近10场6胜 (60%) | 0平 (0%) | 4负 (40%) 进22球，失15球，净进7球",
+      "matches": [
+        {
+          "date": "2026-01-15",
+          "league": "西国王杯",
+          "vs": "阿瓦塞特 3 : 2 （半 1:1） 皇马",
+          "result": "负"
+        },
+        {
+          "date": "2026-01-12",
+          "league": "西超杯",
+          "vs": "巴萨 3 : 2 （半 2:2） 皇马",
+          "result": "负"
+        },
+        {
+          "date": "2026-01-09",
+          "league": "西超杯",
+          "vs": "马竞 1 : 2 （半 0:1） 皇马",
+          "result": "胜"
+        },
+        {
+          "date": "2026-01-04",
+          "league": "西甲",
+          "vs": "皇马 5 : 1 （半 1:0） 贝蒂斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-21",
+          "league": "西甲",
+          "vs": "皇马 2 : 0 （半 1:0） 塞维利亚",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-18",
+          "league": "西国王杯",
+          "vs": "塔拉维拉 2 : 3 （半 0:2） 皇马",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-15",
+          "league": "西甲",
+          "vs": "阿拉维斯 1 : 2 （半 0:1） 皇马",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-11",
+          "league": "欧冠",
+          "vs": "皇马 1 : 2 （半 1:2） 曼城",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-08",
+          "league": "西甲",
+          "vs": "皇马 0 : 2 （半 0:0） 塞尔塔",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-04",
+          "league": "西甲",
+          "vs": "毕尔巴鄂 0 : 3 （半 0:2） 皇马",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "莱万特",
+      "summary": "莱万特近10场2胜 (20%) | 2平 (20%) | 6负 (60%) 进8球，失13球，净进-5球",
+      "matches": [
+        {
+          "date": "2026-01-11",
+          "league": "西甲",
+          "vs": "莱万特 1 : 1 （半 0:0） 西班牙人",
+          "result": "平"
+        },
+        {
+          "date": "2026-01-04",
+          "league": "西甲",
+          "vs": "塞维利亚 0 : 3 （半 0:1） 莱万特",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-20",
+          "league": "西甲",
+          "vs": "莱万特 1 : 1 （半 0:1） 皇家社会",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-18",
+          "league": "西国王杯",
+          "vs": "莱昂内萨 1 : 0 （半 1:0） 莱万特",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-09",
+          "league": "西甲",
+          "vs": "奥萨苏纳 2 : 0 （半 2:0） 莱万特",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-04",
+          "league": "西国王杯",
+          "vs": "西耶扎 0 : 1 （半 0:0） 莱万特",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-30",
+          "league": "西甲",
+          "vs": "莱万特 0 : 2 （半 0:2） 毕尔巴鄂",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-22",
+          "league": "西甲",
+          "vs": "巴伦西亚 1 : 0 （半 0:0） 莱万特",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-09",
+          "league": "西甲",
+          "vs": "马竞 3 : 1 （半 1:1） 莱万特",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-02",
+          "league": "西甲",
+          "vs": "莱万特 1 : 2 （半 0:1） 塞尔塔",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "皇马",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "莱万特",
+      "content": "暂无数据",
+      "matches": []
+    }
+  ],
+  "scorers": [
+    {
+      "team": "皇马",
+      "players": [
+        {
+          "player": "10-K. Mbappé(前锋)",
+          "apps": "31 (29/2)",
+          "goals": "25 (32%)",
+          "assists": "5 (9%)",
+          "avg": "0.8/0.2"
+        },
+        {
+          "player": "7-Vinícius Júnior(前锋)",
+          "apps": "36 (32/4)",
+          "goals": "16 (21%)",
+          "assists": "5 (9%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "5-贝林厄姆(中场)",
+          "apps": "28 (22/6)",
+          "goals": "6 (8%)",
+          "assists": "4 (7%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    },
+    {
+      "team": "莱万特",
+      "players": [
+        {
+          "player": "19-Carlos Espí(前锋)",
+          "apps": "25 (13/12)",
+          "goals": "11 (23%)",
+          "assists": "0 (0%)",
+          "avg": "0.4/0"
+        },
+        {
+          "player": "21-Etta Eyong(前锋)",
+          "apps": "33 (18/15)",
+          "goals": "7 (15%)",
+          "assists": "4 (12%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "9-Iván Romero(前锋)",
+          "apps": "32 (28/4)",
+          "goals": "7 (15%)",
+          "assists": "1 (3%)",
+          "avg": "0.2/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "皇马",
+      "players": [
+        {
+          "player": "22-吕迪格(后卫)",
+          "totalApps": "18",
+          "starts": "16",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "23-F. Mendy(后卫)",
+          "totalApps": "5",
+          "starts": "3",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "12-阿诺德(后卫)",
+          "totalApps": "21",
+          "starts": "14",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "3-米利唐(后卫)",
+          "totalApps": "16",
+          "starts": "14",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "11-Rodrygo(前锋)",
+          "totalApps": "19",
+          "starts": "6",
+          "subs": "13",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "莱万特",
+      "players": [
+        {
+          "player": "5-Unai Elgezabal(后卫)",
+          "totalApps": "12",
+          "starts": "11",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "21-Sergio Lozano(中场)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "6-Diego Pampín(后卫)",
+          "totalApps": "8",
+          "starts": "6",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "13-Alfonso Pastor(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "7-Brugui(中场)",
+          "totalApps": "19",
+          "starts": "10",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "17-Víctor García(后卫)",
+          "totalApps": "21",
+          "starts": "12",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "18-Iker Losada(前锋)",
+          "totalApps": "23",
+          "starts": "10",
+          "subs": "13",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

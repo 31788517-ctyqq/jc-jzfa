@@ -1,0 +1,369 @@
+{
+  "match_id": "2032374",
+  "featureAnalysis": {
+    "labels": [
+      "近0场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "7胜/3平/0负",
+      "6胜/4平/0负",
+      "3.3个",
+      "1.1个"
+    ],
+    "away": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "6胜/2平/2负",
+      "7胜/1平/2负",
+      "2.6个",
+      "1.0个"
+    ]
+  },
+  "h2h": {
+    "title": "近0场德国210胜 (0%) | 0平 (0%) | 0负 (0%)",
+    "rows": []
+  },
+  "standings": [
+    {
+      "team": "德国21",
+      "title": "Group B 第1名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "3",
+          "wdl": "3/0/0",
+          "winRate": "100%",
+          "goals": "9/3",
+          "gd": "6",
+          "points": "9",
+          "rank": "1"
+        },
+        {
+          "where": "主",
+          "played": "1",
+          "wdl": "1/0/0",
+          "winRate": "100%",
+          "goals": "3/0",
+          "gd": "3",
+          "points": "3",
+          "rank": "1"
+        },
+        {
+          "where": "客",
+          "played": "2",
+          "wdl": "2/0/0",
+          "winRate": "100%",
+          "goals": "6/3",
+          "gd": "3",
+          "points": "6",
+          "rank": "1"
+        }
+      ]
+    },
+    {
+      "team": "法国21",
+      "title": "Group C 第2名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "3",
+          "wdl": "2/1/0",
+          "winRate": "67%",
+          "goals": "7/3",
+          "gd": "4",
+          "points": "7",
+          "rank": "2"
+        },
+        {
+          "where": "主",
+          "played": "2",
+          "wdl": "2/0/0",
+          "winRate": "100%",
+          "goals": "7/3",
+          "gd": "4",
+          "points": "6",
+          "rank": "1"
+        },
+        {
+          "where": "客",
+          "played": "1",
+          "wdl": "0/1/0",
+          "winRate": "0%",
+          "goals": "0/0",
+          "gd": "0",
+          "points": "1",
+          "rank": "3"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "德国21",
+      "summary": "德国21近10场7胜 (70%) | 3平 (30%) | 0负 (0%) 进33球，失11球，净进22球",
+      "matches": [
+        {
+          "date": "2025-06-23",
+          "league": "欧锦赛21",
+          "vs": "德国21 2 : 2 （半 0:0） 意大利21",
+          "result": "平"
+        },
+        {
+          "date": "2025-06-19",
+          "league": "欧锦赛21",
+          "vs": "英格兰21 1 : 2 （半 0:2） 德国21",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-16",
+          "league": "欧锦赛21",
+          "vs": "捷克21 2 : 4 （半 0:2） 德国21",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-13",
+          "league": "欧锦赛21",
+          "vs": "德国21 3 : 0 （半 2:0） 斯洛文21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-15",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "波兰21 3 : 3 （半 1:3） 德国21",
+          "result": "平"
+        },
+        {
+          "date": "2024-10-12",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "德国21 2 : 1 （半 1:1） 保加利21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-11",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "Estonia 1 : 10 （半 0:5） 德国21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-05",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "以色列21 1 : 5 （半 0:3） 德国21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-03-27",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "德国21 2 : 0 （半 1:0） 以色列21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-03-23",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "德国21 0 : 0 （半 0:0） Kosovo",
+          "result": "平"
+        }
+      ]
+    },
+    {
+      "team": "法国21",
+      "summary": "法国21近10场6胜 (60%) | 2平 (20%) | 2负 (20%) 进26球，失10球，净进16球",
+      "matches": [
+        {
+          "date": "2025-06-23",
+          "league": "欧锦赛21",
+          "vs": "丹麦21 2 : 3 （半 1:1） 法国21",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-18",
+          "league": "欧锦赛21",
+          "vs": "法国21 4 : 1 （半 3:0） 波兰21",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-15",
+          "league": "欧锦赛21",
+          "vs": "法国21 3 : 2 （半 1:0） 格鲁吉21",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-12",
+          "league": "欧锦赛21",
+          "vs": "葡萄牙21 0 : 0 （半 0:0） 法国21",
+          "result": "平"
+        },
+        {
+          "date": "2024-10-16",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "法国21 1 : 2 （半 0:0） 奥地利21",
+          "result": "负"
+        },
+        {
+          "date": "2024-10-12",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "Cyprus U21 0 : 3 （半 0:1） 法国21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-11",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "法国21 2 : 0 （半 1:0） 波黑21",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-07",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "法国21 1 : 1 （半 0:1） 斯洛文21",
+          "result": "平"
+        },
+        {
+          "date": "2023-11-18",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "奥地利21 2 : 0 （半 1:0） 法国21",
+          "result": "负"
+        },
+        {
+          "date": "2023-10-18",
+          "league": "UEFA U21 Championship Qualification",
+          "vs": "法国21 9 : 0 （半 4:0） Cyprus U21",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "德国21",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-09-26",
+          "UEFA U21 Championship Qualification",
+          "Latvia\nVS\n德国21",
+          "Group Stage Group F"
+        ],
+        [
+          "2026-09-30",
+          "UEFA U21 Championship Qualification",
+          "马耳他U21\nVS\n德国21",
+          "Group Stage Group F"
+        ],
+        [
+          "2026-10-06",
+          "UEFA U21 Championship Qualification",
+          "德国21\nVS\n格鲁吉21",
+          "Group Stage Group F"
+        ]
+      ]
+    },
+    {
+      "team": "法国21",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-09-25",
+          "UEFA U21 Championship Qualification",
+          "冰岛21\nVS\n法国21",
+          "Group Stage Group C"
+        ],
+        [
+          "2026-09-29",
+          "UEFA U21 Championship Qualification",
+          "Estonia\nVS\n法国21",
+          "Group Stage Group C"
+        ],
+        [
+          "2026-10-03",
+          "UEFA U21 Championship Qualification",
+          "法国21\nVS\nLuxembourg",
+          "Group Stage Group C"
+        ],
+        [
+          "2026-10-06",
+          "UEFA U21 Championship Qualification",
+          "法国21\nVS\n瑞士21",
+          "Group Stage Group C"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "德国21",
+      "players": [
+        {
+          "player": "10-N. Woltemade(前锋)",
+          "apps": "5 (5/0)",
+          "goals": "6 (35%)",
+          "assists": "3 (23%)",
+          "avg": "1.2/0.6"
+        },
+        {
+          "player": "19-N. Weiper(前锋)",
+          "apps": "6 (3/3)",
+          "goals": "4 (24%)",
+          "assists": "0 (0%)",
+          "avg": "0.7/0"
+        },
+        {
+          "player": "20-P. Nebel(中场)",
+          "apps": "6 (5/1)",
+          "goals": "2 (12%)",
+          "assists": "1 (8%)",
+          "avg": "0.3/0.2"
+        }
+      ]
+    },
+    {
+      "team": "法国21",
+      "players": [
+        {
+          "player": "18-D. Cissé(中场)",
+          "apps": "4 (3/1)",
+          "goals": "3 (30%)",
+          "assists": "0 (0%)",
+          "avg": "0.8/0"
+        },
+        {
+          "player": "7-M. Tel(前锋)",
+          "apps": "4 (4/0)",
+          "goals": "2 (20%)",
+          "assists": "0 (0%)",
+          "avg": "0.5/0"
+        },
+        {
+          "player": "9-M. Abline(前锋)",
+          "apps": "5 (2/3)",
+          "goals": "1 (10%)",
+          "assists": "1 (17%)",
+          "avg": "0.2/0.2"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "德国21",
+      "status": "暂无数据"
+    },
+    {
+      "team": "法国21",
+      "players": [
+        {
+          "player": "13-J. Bahoya(前锋)",
+          "totalApps": "1",
+          "starts": "1",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

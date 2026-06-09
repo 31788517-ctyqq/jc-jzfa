@@ -28,8 +28,12 @@ const BATCH_INDEX_PATH = path.join(SERVER_DIR, 'batch_index.json');
 // 格式: YY + 0 + M + batchNo
 //   26011 = 26 + 0 + 1 + 1
 //   260121 = 26 + 0 + 1 + 21
-const START_YEAR = 2026, START_MONTH = 1, START_BATCH = 1;
-const END_YEAR = 2026, END_MONTH = 6, END_BATCH = 10;
+const START_YEAR = 2026,
+  START_MONTH = 1,
+  START_BATCH = 1;
+const END_YEAR = 2026,
+  END_MONTH = 6,
+  END_BATCH = 10;
 
 // 请求设置
 const TIMEOUT_MS = 15000;
@@ -51,7 +55,7 @@ function makeDateTime(year, month, batch) {
 function generateAllBatches() {
   const batches = [];
   for (let m = START_MONTH; m <= END_MONTH; m++) {
-    const maxBatch = (m === END_MONTH) ? END_BATCH : 30; // 每月最多30期
+    const maxBatch = m === END_MONTH ? END_BATCH : 30; // 每月最多30期
     for (let b = START_BATCH; b <= maxBatch; b++) {
       // 月+批次号拼到两位数
       const dt = makeDateTime(START_YEAR, m, b);
@@ -75,22 +79,25 @@ function httpGetJSON(url, timeoutMs) {
         Host: 'm.100qiu.com',
       },
     };
-    http.get(opts, (res) => {
-      const chunks = [];
-      res.on('data', (c) => chunks.push(c));
-      res.on('end', () => {
-        try {
-          const data = JSON.parse(Buffer.concat(chunks).toString('utf-8'));
-          resolve(data);
-        } catch (e) {
-          reject(new Error('JSON parse: ' + e.message));
-        }
+    http
+      .get(opts, (res) => {
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => {
+          try {
+            const data = JSON.parse(Buffer.concat(chunks).toString('utf-8'));
+            resolve(data);
+          } catch (e) {
+            reject(new Error('JSON parse: ' + e.message));
+          }
+        });
+      })
+      .on('error', (err) => {
+        reject(err);
+      })
+      .setTimeout(timeoutMs, () => {
+        reject(new Error('timeout(' + timeoutMs + 'ms)'));
       });
-    }).on('error', (err) => {
-      reject(err);
-    }).setTimeout(timeoutMs, () => {
-      reject(new Error('timeout(' + timeoutMs + 'ms)'));
-    });
   });
 }
 
@@ -143,9 +150,7 @@ function updateBatchIndex(dt, rawData) {
 
   let index = readJSON(BATCH_INDEX_PATH);
   const now = Date.now();
-  const matchCount = Array.isArray(rawData)
-    ? rawData.length
-    : (rawData && rawData.data ? rawData.data.length : 0);
+  const matchCount = Array.isArray(rawData) ? rawData.length : rawData && rawData.data ? rawData.data.length : 0;
   index[dt] = {
     valid: true,
     matchCount: matchCount,
@@ -196,7 +201,9 @@ async function main() {
   }
 
   // 批量抓取
-  let success = 0, empty = 0, failed = 0;
+  let success = 0,
+    empty = 0,
+    failed = 0;
   const results = { success: [], empty: [], failed: [] };
 
   for (let i = 0; i < pending.length; i++) {
@@ -216,7 +223,13 @@ async function main() {
       } else if (resp && resp.code !== undefined) {
         // API 返回了错误码
         if (resp.code !== 0 && resp.code !== 200) {
-          console.log(progress, dt, `(M${month}B${batch})`, '→ API错误:', resp.msg || resp.message || 'code=' + resp.code);
+          console.log(
+            progress,
+            dt,
+            `(M${month}B${batch})`,
+            '→ API错误:',
+            resp.msg || resp.message || 'code=' + resp.code,
+          );
           failed++;
           results.failed.push({ dt, month, batch, error: 'API code=' + resp.code });
           await sleep(GAP_MS);
@@ -329,7 +342,7 @@ function printSummary(allBatches) {
     if (!k.startsWith('_raw_')) return;
     const dt = k.replace('_raw_', '');
     const entry = bank[k];
-    const dataList = entry && entry.data ? entry.data : (Array.isArray(entry) ? entry : []);
+    const dataList = entry && entry.data ? entry.data : Array.isArray(entry) ? entry : [];
     const cnt = Array.isArray(dataList) ? dataList.length : 0;
     totalRawEntries++;
     totalMatchCount += cnt;
@@ -343,10 +356,12 @@ function printSummary(allBatches) {
   });
 
   console.log('\n📊 缓存统计:');
-  Object.keys(byMonth).sort().forEach((m) => {
-    const name = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][parseInt(m)] || m + '月';
-    console.log('  ' + name + ': ' + byMonth[m].batches + ' 批次, ' + byMonth[m].matches + ' 条比赛数据');
-  });
+  Object.keys(byMonth)
+    .sort()
+    .forEach((m) => {
+      const name = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][parseInt(m)] || m + '月';
+      console.log('  ' + name + ': ' + byMonth[m].batches + ' 批次, ' + byMonth[m].matches + ' 条比赛数据');
+    });
   console.log('  总计: ' + totalRawEntries + ' 批次, ' + totalMatchCount + ' 条比赛数据');
 }
 

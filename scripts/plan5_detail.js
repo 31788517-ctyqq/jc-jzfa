@@ -35,14 +35,17 @@ const oddsCache = {};
 for (const ds of allDates) {
   const file = path.join(ODDS_DIR, ds + '.json');
   if (fs.existsSync(file)) {
-    try { oddsCache[ds] = JSON.parse(fs.readFileSync(file, 'utf8')); }
-    catch (e) { /* skip */ }
+    try {
+      oddsCache[ds] = JSON.parse(fs.readFileSync(file, 'utf8'));
+    } catch (e) {
+      /* skip */
+    }
   }
 }
 
 function getOddsForMatch(ds, matchNum) {
   const od = oddsCache[ds];
-  return od && od.odds ? (od.odds[matchNum] || null) : null;
+  return od && od.odds ? od.odds[matchNum] || null : null;
 }
 
 // ── 赔率提取 ──
@@ -77,15 +80,17 @@ function dutchOdds(subOdds) {
 
 // ── 赛果判定 ──
 function resultA(recs) {
-  let anyWon = false, anyUnknown = false;
+  let anyWon = false,
+    anyUnknown = false;
   for (const d of ['平', '让平']) {
     let found = false;
     for (const r of recs) {
       if (r.type === d) {
         found = true;
         if (r.result === 1) anyWon = true;
-        else if (r.result === 0) { /* lose */ }
-        else anyUnknown = true;
+        else if (r.result === 0) {
+          /* lose */
+        } else anyUnknown = true;
         break;
       }
     }
@@ -101,15 +106,17 @@ function resultB(recs, score) {
     const total = parseInt(parts[0]) + parseInt(parts[1]);
     if (!isNaN(total)) return total === 2 || total === 3 ? '✓' : '✗';
   }
-  let anyWon = false, anyUnknown = false;
+  let anyWon = false,
+    anyUnknown = false;
   for (const d of ['总进球-2', '总进球-3']) {
     let found = false;
     for (const r of recs) {
       if (r.type === d) {
         found = true;
         if (r.result === 1) anyWon = true;
-        else if (r.result === 0) { /* lose */ }
-        else anyUnknown = true;
+        else if (r.result === 0) {
+          /* lose */
+        } else anyUnknown = true;
         break;
       }
     }
@@ -121,16 +128,24 @@ function resultB(recs, score) {
 
 // ── 主循环 ──
 console.log('╔══════════════════════════════════════════════════════════════════════════════╗');
-console.log('║     方案五详细清单 — ' + START_DATE + ' ~ ' + END_DATE + '（日门槛≥' + MIN_DAY_MATCHES + '场，每天1个）  ║');
+console.log(
+  '║     方案五详细清单 — ' + START_DATE + ' ~ ' + END_DATE + '（日门槛≥' + MIN_DAY_MATCHES + '场，每天1个）  ║',
+);
 console.log('╚══════════════════════════════════════════════════════════════════════════════╝');
 console.log('');
 
-let totalSchemes = 0, totalWon = 0, totalIncome = 0;
-let dayCount = 0, skipCount = 0;
+let totalSchemes = 0,
+  totalWon = 0,
+  totalIncome = 0;
+let dayCount = 0,
+  skipCount = 0;
 
 for (const ds of allDates) {
   const mList = dateMap[ds];
-  if (mList.length < MIN_DAY_MATCHES) { skipCount++; continue; }
+  if (mList.length < MIN_DAY_MATCHES) {
+    skipCount++;
+    continue;
+  }
   dayCount++;
 
   // 构建 matchDataMap
@@ -138,8 +153,12 @@ for (const ds of allDates) {
   for (const mm of mList) {
     const recsRaw = rMap[String(mm.matchId)] || rMap['m_' + mm.matchId] || [];
     const recs = recsRaw.map((x) => {
-      const rawRes = x.rs !== undefined ? x.rs : (x.result !== undefined ? x.result : null);
-      return { type: x.t || x.type || '', num: x.n || x.num || 0, result: (rawRes === 0 || rawRes === 1) ? rawRes : null };
+      const rawRes = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
+      return {
+        type: x.t || x.type || '',
+        num: x.n || x.num || 0,
+        result: rawRes === 0 || rawRes === 1 ? rawRes : null,
+      };
     });
     const oddsObjRaw = getOddsForMatch(ds, mm.num || '');
     let oddsObj = null;
@@ -166,7 +185,10 @@ for (const ds of allDates) {
     }
     if (totalA > 0) candidatesA.push({ match: mm, data: md, expertCount: totalA, dutchOdds: dutchOdds(ods) });
   }
-  if (candidatesA.length === 0) { skipCount++; continue; }
+  if (candidatesA.length === 0) {
+    skipCount++;
+    continue;
+  }
   candidatesA.sort((a, b) => b.expertCount - a.expertCount);
 
   // 收集场次B候选 (总进球-2、3球)
@@ -182,7 +204,10 @@ for (const ds of allDates) {
     }
     if (totalB > 0) candidatesB.push({ match: mm, data: md, expertCount: totalB, dutchOdds: dutchOdds(ods) });
   }
-  if (candidatesB.length === 0) { skipCount++; continue; }
+  if (candidatesB.length === 0) {
+    skipCount++;
+    continue;
+  }
   candidatesB.sort((a, b) => b.expertCount - a.expertCount);
 
   // 取最优配对（排除同一场）
@@ -197,7 +222,10 @@ for (const ds of allDates) {
     }
     if (bestPair) break;
   }
-  if (!bestPair) { skipCount++; continue; }
+  if (!bestPair) {
+    skipCount++;
+    continue;
+  }
 
   totalSchemes++;
 
@@ -222,22 +250,38 @@ for (const ds of allDates) {
   const awayB = matchB.visitName || matchB.visit_name || '';
 
   const statusIcon = won ? '✅' : '❌';
-  const profitStr = (won ? '+' + (Math.round(AMOUNT * productOdds) - AMOUNT) : '-' + AMOUNT);
+  const profitStr = won ? '+' + (Math.round(AMOUNT * productOdds) - AMOUNT) : '-' + AMOUNT;
 
   console.log(
-    statusIcon + ' ' + ds.padEnd(12) +
-    '┃ A:' + homeA.padEnd(6) + 'vs ' + awayA.padEnd(6) +
-    'B:' + homeB.padEnd(6) + 'vs ' + awayB.padEnd(6) +
-    '┃ 合赔 ' + productOdds.toFixed(2) +
-    '┃ 平/让平=' + ra + '  进球2,3=' + rb +
-    '┃ ' + profitStr + '元'
+    statusIcon +
+      ' ' +
+      ds.padEnd(12) +
+      '┃ A:' +
+      homeA.padEnd(6) +
+      'vs ' +
+      awayA.padEnd(6) +
+      'B:' +
+      homeB.padEnd(6) +
+      'vs ' +
+      awayB.padEnd(6) +
+      '┃ 合赔 ' +
+      productOdds.toFixed(2) +
+      '┃ 平/让平=' +
+      ra +
+      '  进球2,3=' +
+      rb +
+      '┃ ' +
+      profitStr +
+      '元',
   );
 }
 
 console.log('');
 console.log('═══════════════════════════════════════════════════════════════');
 console.log('  📊 汇总: ' + allDates.length + ' 天 | 达标 ' + dayCount + ' 天 | 产出 ' + totalSchemes + ' 个方案');
-console.log('  命中 ' + totalWon + ' | 命中率 ' + (totalSchemes > 0 ? (totalWon / totalSchemes * 100).toFixed(1) : '0.0') + '%');
+console.log(
+  '  命中 ' + totalWon + ' | 命中率 ' + (totalSchemes > 0 ? ((totalWon / totalSchemes) * 100).toFixed(1) : '0.0') + '%',
+);
 const sign = totalIncome >= 0 ? '+' : '';
 console.log('  总盈亏: ' + sign + totalIncome + ' 元');
 console.log('═══════════════════════════════════════════════════════════════');

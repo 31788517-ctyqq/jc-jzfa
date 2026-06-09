@@ -1,6 +1,6 @@
-import { api } from '../api.js';
+﻿import { api } from '../api.js';
 import { getCache, setCache } from '../utils.js';
-import { loadECharts, echartsReady } from '../charts.js';
+import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
 
 var quantDate = '';
 var quantDateOffset = 0;
@@ -225,7 +225,9 @@ export function loadQuantRank() {
         sortAsc = true;
         renderTable();
         // ★ P1: 缓存合并后的数据
-        try { setCache(cacheKey, allData); } catch (e) {}
+        try {
+          setCache(cacheKey, allData);
+        } catch (e) {}
       });
     })
     .catch(function () {
@@ -373,7 +375,13 @@ function renderTable() {
       { key: 'ad', label: '攻守\n实力', sortable: false, colCls: 'q-col-ad' },
     ];
     renderRow = function (item) {
-      return renderRank(item.totalScore) + renderGoalDiff(item) + renderCrossValue(item) + renderPower(item) + renderAdCombined(item);
+      return (
+        renderRank(item.totalScore) +
+        renderGoalDiff(item) +
+        renderCrossValue(item) +
+        renderPower(item) +
+        renderAdCombined(item)
+      );
     };
   } else if (currentTab === 'goal') {
     cols = [
@@ -877,6 +885,40 @@ function renderChart() {
   });
 }
 
+function getQuantChartPalettes(tab) {
+  if (tab === 'power') {
+    return [
+      { start: '#a7eee6', end: '#5bd4c8', shadow: 'rgba(91, 212, 200, 0.26)' },
+      { start: '#d7ebee', end: '#7faeb6', shadow: 'rgba(127, 174, 182, 0.24)' },
+      { start: '#f7e8c9', end: '#d9b36c', shadow: 'rgba(217, 179, 108, 0.24)' },
+      { start: '#ffd9d0', end: '#f46f59', shadow: 'rgba(244, 111, 89, 0.24)' },
+    ];
+  }
+  if (tab === 'goal') {
+    return [
+      { start: '#c7f1ea', end: '#67c9b7', shadow: 'rgba(103, 201, 183, 0.24)' },
+      { start: '#d9ecef', end: '#6faab2', shadow: 'rgba(111, 170, 178, 0.24)' },
+      { start: '#faecd0', end: '#d8ba78', shadow: 'rgba(216, 186, 120, 0.24)' },
+      { start: '#ffe3db', end: '#ef8b77', shadow: 'rgba(239, 139, 119, 0.24)' },
+    ];
+  }
+  return [
+    { start: '#ffd9d0', end: '#f46f59', shadow: 'rgba(244, 111, 89, 0.24)' },
+    { start: '#f7e8c9', end: '#d9b36c', shadow: 'rgba(217, 179, 108, 0.24)' },
+  ];
+}
+
+function buildQuantBarColor(palette) {
+  if (!palette) return '#5bd4c8';
+  if (window.echarts && window.echarts.graphic && typeof window.echarts.graphic.LinearGradient === 'function') {
+    return new window.echarts.graphic.LinearGradient(0, 0, 1, 0, [
+      { offset: 0, color: palette.start },
+      { offset: 1, color: palette.end },
+    ]);
+  }
+  return palette.end;
+}
+
 function _doRenderChart(container) {
   // 准备数据
   var filtered = allData.filter(function (item) {
@@ -899,7 +941,7 @@ function _doRenderChart(container) {
   });
 
   // ═══ 根据 tab 定义指标组 + 配色 ═══
-  var seriesDefs, colors;
+  var seriesDefs, palettes;
   if (currentTab === 'power') {
     seriesDefs = [
       { name: '综合实力', key: 'pwScore', fmt: 4, unit: '' },
@@ -907,7 +949,7 @@ function _doRenderChart(container) {
       { name: '胜平负交叉', key: 'crossValue', fmt: 0, unit: '' },
       { name: '攻守实力', key: 'adCombined', fmt: 4, unit: '' },
     ];
-    colors = ['#18E0E0', '#3B82F6', '#F59E0B', '#8B5CF6'];
+    palettes = getQuantChartPalettes('power');
   } else if (currentTab === 'goal') {
     seriesDefs = [
       { name: '综合大球比例', key: 'bigBallRatio', fmt: 1, unit: '%' },
@@ -915,13 +957,13 @@ function _doRenderChart(container) {
       { name: '交锋进球', key: 'headToHeadGoal', fmt: 1, unit: '' },
       { name: '破甲和', key: 'breakArmor', fmt: 1, unit: '' },
     ];
-    colors = ['#22C55E', '#3B82F6', '#EAB308', '#EF4444'];
+    palettes = getQuantChartPalettes('goal');
   } else {
     seriesDefs = [
       { name: '关注热度', key: 'hotFocusNum', fmt: 1, unit: '万', divide: 10000 },
       { name: '冷热指数', key: 'heatIndex', fmt: 2, unit: '' },
     ];
-    colors = ['#18E0E0', '#F59E0B'];
+    palettes = getQuantChartPalettes('hot');
   }
 
   // ═══ 提取原始值 + 带padding的min-max归一化（防止极端值贴0%/100%） ═══
@@ -938,10 +980,12 @@ function _doRenderChart(container) {
       if (def.divide) raw = raw / def.divide;
       return raw;
     });
-    var valid = rawVals.filter(function (v) { return v !== null; });
+    var valid = rawVals.filter(function (v) {
+      return v !== null;
+    });
     var min = valid.length ? Math.min.apply(null, valid) : 0;
     var max = valid.length ? Math.max.apply(null, valid) : 1;
-    var range = (max - min) || 1;
+    var range = max - min || 1;
     // 给范围加 10% 双向 padding，避免极端值贴边
     var pad = range * 0.1;
     var paddedMin = min - pad;
@@ -957,9 +1001,15 @@ function _doRenderChart(container) {
   });
 
   // ═══ 构建统一单图 series（分组柱状图） ═══
+  var chartColors = palettes.map(function (palette) {
+    return buildQuantBarColor(palette);
+  });
+
   var allSeries = seriesDefs.map(function (def, i) {
     var md = metricsData[i];
-    var baseColor = colors[i];
+    var palette = palettes[i] || palettes[palettes.length - 1];
+    var baseColor = chartColors[i];
+    var shadowColor = palette && palette.shadow ? palette.shadow : 'rgba(91, 212, 200, 0.18)';
 
     var data = filtered.map(function (item, j) {
       var raw = md.rawVals[j];
@@ -968,7 +1018,9 @@ function _doRenderChart(container) {
 
       var tags = computeTags(item);
       var tagStr = tags
-        .map(function (t) { return t.e + t.t; })
+        .map(function (t) {
+          return t.e + t.t;
+        })
         .join(' ');
 
       // 格式化原始值（tooltip 用）
@@ -1005,13 +1057,20 @@ function _doRenderChart(container) {
       barMaxWidth: 18,
       barCategoryGap: '10%',
       barGap: '6%',
-      emphasis: { itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.4)' } },
+      showBackground: true,
+      backgroundStyle: {
+        color: 'rgba(130, 158, 164, 0.08)',
+        borderRadius: [0, 6, 6, 0],
+      },
+      emphasis: { itemStyle: { shadowBlur: 12, shadowColor: shadowColor } },
       itemStyle: {
         color: function (params) {
           if (!params.data || params.data.value == null) return 'transparent';
           return baseColor;
         },
-        borderRadius: [0, 3, 3, 0],
+        borderColor: 'rgba(255, 255, 255, 0.34)',
+        borderWidth: 1,
+        borderRadius: [0, 6, 6, 0],
       },
       label: {
         show: true,
@@ -1039,6 +1098,7 @@ function _doRenderChart(container) {
 
   chartInstance = echarts.init(container);
   chartInstance.setOption({
+    color: chartColors,
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
@@ -1077,7 +1137,9 @@ function _doRenderChart(container) {
       },
     },
     legend: {
-      data: seriesDefs.map(function (d) { return d.name; }),
+      data: seriesDefs.map(function (d) {
+        return d.name;
+      }),
       textStyle: { color: '#94A3B8', fontSize: 11 },
       top: 4,
       left: 'center',

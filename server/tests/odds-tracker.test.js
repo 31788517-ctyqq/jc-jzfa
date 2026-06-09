@@ -9,20 +9,35 @@ const fs = require('fs');
 
 // 辅助：创建赔率快照
 function makeOdds(overrides) {
-  return Object.assign({
-    spf: { home: 2.10, draw: 3.30, away: 3.20 },
-    rqspf: { home: 4.50, draw: 3.80, away: 1.60 },
-    halfFull: {
-      hh: 2.80, hd: 5.50, ha: 15.0,
-      dh: 4.20, dd: 4.80, da: 5.00,
-      ah: 25.0, ad: 12.0, aa: 7.00,
+  return Object.assign(
+    {
+      spf: { home: 2.1, draw: 3.3, away: 3.2 },
+      rqspf: { home: 4.5, draw: 3.8, away: 1.6 },
+      halfFull: {
+        hh: 2.8,
+        hd: 5.5,
+        ha: 15.0,
+        dh: 4.2,
+        dd: 4.8,
+        da: 5.0,
+        ah: 25.0,
+        ad: 12.0,
+        aa: 7.0,
+      },
+      totalGoals: { 0: 13, 1: 5.25, 2: 3.5, 3: 3.0, 4: 5.3, 5: 10, 6: 25, 7: 50 },
+      scores: {
+        '1:0': 7.0,
+        '2:0': 8.0,
+        '2:1': 8.5,
+        '0:0': 10,
+        '1:1': 6.5,
+        '0:1': 12,
+        '0:2': 25,
+        '1:2': 20,
+      },
     },
-    totalGoals: { 0: 13, 1: 5.25, 2: 3.50, 3: 3.00, 4: 5.30, 5: 10, 6: 25, 7: 50 },
-    scores: {
-      '1:0': 7.0, '2:0': 8.0, '2:1': 8.5, '0:0': 10, '1:1': 6.5,
-      '0:1': 12, '0:2': 25, '1:2': 20,
-    },
-  }, overrides || {});
+    overrides || {},
+  );
 }
 
 // ═══ 在每个测试前重置 fs mock ═══
@@ -38,7 +53,7 @@ describe('odds-tracker — detectChanges 变化检测', () => {
 
   it('SPF 赔率变化 → 返回变化记录', () => {
     const oldOdds = makeOdds();
-    const newOdds = makeOdds({ spf: { home: 2.00, draw: 3.50, away: 3.50 } });
+    const newOdds = makeOdds({ spf: { home: 2.0, draw: 3.5, away: 3.5 } });
     const result = detectChanges(oldOdds, newOdds, '周一001');
     expect(result).not.toBe(null);
     // key 包含点号，使用直接属性访问
@@ -47,7 +62,7 @@ describe('odds-tracker — detectChanges 变化检测', () => {
 
   it('totalGoals 变化 → 检测到', () => {
     const oldOdds = makeOdds();
-    const newOdds = makeOdds({ totalGoals: { 0: 15, 1: 5.50, 2: 3.30, 3: 3.10, 4: 5.30, 5: 10, 6: 25, 7: 50 } });
+    const newOdds = makeOdds({ totalGoals: { 0: 15, 1: 5.5, 2: 3.3, 3: 3.1, 4: 5.3, 5: 10, 6: 25, 7: 50 } });
     const result = detectChanges(oldOdds, newOdds, '周一002');
     expect(result).not.toBe(null);
     // 变化超过 0.001 的字段至少有一个
@@ -56,7 +71,7 @@ describe('odds-tracker — detectChanges 变化检测', () => {
 
   it('halfFull 比分赔率变化 → 检测到', () => {
     const oldOdds = makeOdds();
-    const newOdds = makeOdds({ halfFull: Object.assign({}, oldOdds.halfFull, { hh: 3.50 }) });
+    const newOdds = makeOdds({ halfFull: Object.assign({}, oldOdds.halfFull, { hh: 3.5 }) });
     const result = detectChanges(oldOdds, newOdds, '周一003');
     expect(result).not.toBe(null);
     expect(result['halfFull.hh']).toBeDefined();
@@ -65,7 +80,7 @@ describe('odds-tracker — detectChanges 变化检测', () => {
   it('scores 比分变化 → 检测到', () => {
     const oldOdds = makeOdds();
     const newOdds = makeOdds({
-      scores: Object.assign({}, oldOdds.scores, { '1:0': 6.00, '2:0': 7.00 }),
+      scores: Object.assign({}, oldOdds.scores, { '1:0': 6.0, '2:0': 7.0 }),
     });
     const result = detectChanges(oldOdds, newOdds, '周一004');
     expect(result).not.toBe(null);
@@ -80,7 +95,7 @@ describe('odds-tracker — detectChanges 变化检测', () => {
 
   it('变化值记录格式为 "旧值→新值"', () => {
     const oldOdds = makeOdds();
-    const newOdds = makeOdds({ spf: { home: 2.00, draw: 3.30, away: 3.20 } });
+    const newOdds = makeOdds({ spf: { home: 2.0, draw: 3.3, away: 3.2 } });
     const result = detectChanges(oldOdds, newOdds, '周一006');
     const val = result['spf.home'];
     expect(val).toContain('→');

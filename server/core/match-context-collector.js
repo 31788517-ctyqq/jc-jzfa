@@ -37,7 +37,9 @@ function safeInt(v, defaultVal) {
 
 function safeBool(v, defaultVal) {
   if (typeof v === 'boolean') return v;
-  const t = String(v || '').trim().toLowerCase();
+  const t = String(v || '')
+    .trim()
+    .toLowerCase();
   if (t === '1' || t === 'true' || t === 'yes' || t === 'on') return true;
   if (t === '0' || t === 'false' || t === 'no' || t === 'off') return false;
   return defaultVal != null ? defaultVal : false;
@@ -48,7 +50,9 @@ function nowISO() {
 }
 
 function normalizeToken(v) {
-  var text = String(v || '').trim().toLowerCase();
+  var text = String(v || '')
+    .trim()
+    .toLowerCase();
   if (!text) return '';
   text = text.replace(/\s+/g, '');
   text = text.replace(/[^\w\u4e00-\u9fff]+/g, '');
@@ -168,9 +172,17 @@ function calcInjuryScore(injuries, side) {
   let total = 0;
   injuries.forEach(function (item) {
     if (!item || typeof item !== 'object') return;
-    const status = String(item.status || '').trim().toLowerCase();
+    const status = String(item.status || '')
+      .trim()
+      .toLowerCase();
     let factor = 0.25;
-    if (status === 'out' || status === 'injured' || status === 'suspended' || status === 'absent' || status === 'unavailable') {
+    if (
+      status === 'out' ||
+      status === 'injured' ||
+      status === 'suspended' ||
+      status === 'absent' ||
+      status === 'unavailable'
+    ) {
       factor = 1.0;
     } else if (status === 'questionable' || status === 'doubtful') {
       factor = 0.65;
@@ -244,14 +256,20 @@ function extractPartialContext(record, kind) {
   if (!record || typeof record !== 'object') return null;
 
   const payload = {
-    captured_at: String(takeFirst(record, 'captured_at', 'capturedAt', 'updated_at', 'timestamp', 'kickoff') || nowISO()),
+    captured_at: String(
+      takeFirst(record, 'captured_at', 'capturedAt', 'updated_at', 'timestamp', 'kickoff') || nowISO(),
+    ),
     quality_score: safeFloat(takeFirst(record, 'quality_score', 'qualityScore', 'quality', 'score')),
     notes: [],
   };
 
   var rawNotes = takeFirst(record, 'notes', 'note');
   if (Array.isArray(rawNotes)) {
-    payload.notes = rawNotes.map(function (n) { return String(n).trim(); }).filter(Boolean);
+    payload.notes = rawNotes
+      .map(function (n) {
+        return String(n).trim();
+      })
+      .filter(Boolean);
   } else if (rawNotes) {
     payload.notes = [String(rawNotes).trim()];
   }
@@ -261,8 +279,10 @@ function extractPartialContext(record, kind) {
   // 阵容
   if (kind === 'lineup' || kind === 'combined' || kind === 'all') {
     ['home_lineup', 'away_lineup'].forEach(function (key) {
-      if (key in record) { payload[key] = parseLineup(record[key]); hasPayload = true; }
-      else if ((key + 's') in record && record[key + 's'] && record[key + 's'][key.replace('_lineup', '')]) {
+      if (key in record) {
+        payload[key] = parseLineup(record[key]);
+        hasPayload = true;
+      } else if (key + 's' in record && record[key + 's'] && record[key + 's'][key.replace('_lineup', '')]) {
         payload[key] = parseLineup(record[key + 's'][key.replace('_lineup', '')]);
         hasPayload = true;
       }
@@ -272,8 +292,10 @@ function extractPartialContext(record, kind) {
   // 伤病
   if (kind === 'injury' || kind === 'combined' || kind === 'all') {
     ['home_injuries', 'away_injuries'].forEach(function (key) {
-      if (key in record) { payload[key] = parsePlayers(record[key]); hasPayload = true; }
-      else if ((key.replace('s', '') in record || key in record) && Array.isArray(record[key])) {
+      if (key in record) {
+        payload[key] = parsePlayers(record[key]);
+        hasPayload = true;
+      } else if ((key.replace('s', '') in record || key in record) && Array.isArray(record[key])) {
         payload[key] = parsePlayers(record[key]);
         hasPayload = true;
       }
@@ -283,7 +305,10 @@ function extractPartialContext(record, kind) {
   // 赛程
   if (kind === 'schedule' || kind === 'combined' || kind === 'all') {
     ['home_schedule', 'away_schedule'].forEach(function (key) {
-      if (key in record) { payload[key] = parseSchedule(record[key]); hasPayload = true; }
+      if (key in record) {
+        payload[key] = parseSchedule(record[key]);
+        hasPayload = true;
+      }
     });
   }
 
@@ -303,28 +328,28 @@ function mergeContext(existing, partial, opts) {
     sourceType: opts.sourceType || 'real',
     provider: opts.provider || 'unknown',
     capturedAt: partial.captured_at || (existing ? existing.capturedAt : null) || nowISO(),
-    qualityScore: partial.quality_score != null ? partial.quality_score : (existing ? existing.qualityScore : null),
+    qualityScore: partial.quality_score != null ? partial.quality_score : existing ? existing.qualityScore : null,
   };
 
   // 合并阵容
   ['home_lineup', 'away_lineup'].forEach(function (key) {
     const partialVal = partial[key];
     const existingVal = existing ? existing[key.replace(/_lineup/, 'Lineup')] : null;
-    merged[key] = partialVal != null ? partialVal : (existingVal != null ? existingVal : {});
+    merged[key] = partialVal != null ? partialVal : existingVal != null ? existingVal : {};
   });
 
   // 合并伤病
   ['home_injuries', 'away_injuries'].forEach(function (key) {
     const partialVal = partial[key];
     const existingVal = existing ? existing[key.replace(/_injuries/, 'Injuries')] : null;
-    merged[key] = partialVal != null ? partialVal : (existingVal != null ? existingVal : []);
+    merged[key] = partialVal != null ? partialVal : existingVal != null ? existingVal : [];
   });
 
   // 合并赛程
   ['home_schedule', 'away_schedule'].forEach(function (key) {
     const partialVal = partial[key];
     const existingVal = existing ? existing[key.replace(/_schedule/, 'Schedule')] : null;
-    merged[key] = partialVal != null ? partialVal : (existingVal != null ? existingVal : {});
+    merged[key] = partialVal != null ? partialVal : existingVal != null ? existingVal : {};
   });
 
   // 合并备注
@@ -393,12 +418,14 @@ function mergeAllSources(sourceContexts, opts) {
     merged = mergeContext(merged, partial, opts);
   });
 
-  return merged || {
-    matchId: opts.matchId || '',
-    sourceType: opts.sourceType || 'real',
-    capturedAt: nowISO(),
-    notes: [],
-  };
+  return (
+    merged || {
+      matchId: opts.matchId || '',
+      sourceType: opts.sourceType || 'real',
+      capturedAt: nowISO(),
+      notes: [],
+    }
+  );
 }
 
 // ═══ 上下文用于 AI 分析 ═══
@@ -424,12 +451,28 @@ function toAIPrompt(context) {
       if (lineup.formation) parts.push('- 阵型: ' + lineup.formation);
       if (lineup.confirmed) parts.push('- 状态: 已确认');
       if (lineup.confirmed_starters && lineup.confirmed_starters.length > 0) {
-        parts.push('- 首发 (' + lineup.confirmed_starters.length + '人): ' +
-          lineup.confirmed_starters.map(function (p) { return p.player_name; }).join('、'));
+        parts.push(
+          '- 首发 (' +
+            lineup.confirmed_starters.length +
+            '人): ' +
+            lineup.confirmed_starters
+              .map(function (p) {
+                return p.player_name;
+              })
+              .join('、'),
+        );
       }
       if (lineup.predicted_starters && lineup.predicted_starters.length > 0 && !lineup.confirmed) {
-        parts.push('- 预测首发 (' + lineup.predicted_starters.length + '人): ' +
-          lineup.predicted_starters.map(function (p) { return p.player_name; }).join('、'));
+        parts.push(
+          '- 预测首发 (' +
+            lineup.predicted_starters.length +
+            '人): ' +
+            lineup.predicted_starters
+              .map(function (p) {
+                return p.player_name;
+              })
+              .join('、'),
+        );
       }
     });
   }

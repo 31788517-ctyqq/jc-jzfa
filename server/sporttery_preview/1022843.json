@@ -1,0 +1,484 @@
+{
+  "match_id": "1022843",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "1胜/3平/6负",
+      "0胜/3平/3负",
+      "2胜/3平/5负",
+      "1胜/2平/7负",
+      "0.9个",
+      "1.4个"
+    ],
+    "away": [
+      "6胜/3平/1负",
+      "3胜/3平/0负",
+      "6胜/2平/2负",
+      "3胜/4平/3负",
+      "2.1个",
+      "1.3个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场恩波利1胜 (10%) | 3平 (30%) | 6负 (60%)",
+    "rows": [
+      {
+        "date": "2023-04-08",
+        "league": "意甲",
+        "teams": "AC米兰 0:0 （半 0:0） 恩波利",
+        "totalGoals": ""
+      },
+      {
+        "date": "2022-10-02",
+        "league": "意甲",
+        "teams": "恩波利 1:3 （半 0:0） AC米兰",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2022-03-13",
+        "league": "意甲",
+        "teams": "AC米兰 1:0 （半 1:0） 恩波利",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2021-12-23",
+        "league": "意甲",
+        "teams": "恩波利 2:4 （半 1:2） AC米兰",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2019-02-23",
+        "league": "意甲",
+        "teams": "AC米兰 3:0 （半 0:0） 恩波利",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2018-09-28",
+        "league": "意甲",
+        "teams": "恩波利 1:1 （半 0:1） AC米兰",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2017-04-23",
+        "league": "意甲",
+        "teams": "AC米兰 1:2 （半 0:1） 恩波利",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2016-11-27",
+        "league": "意甲",
+        "teams": "恩波利 1:4 （半 1:1） AC米兰",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2016-01-24",
+        "league": "意甲",
+        "teams": "恩波利 2:2 （半 1:1） AC米兰",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2015-08-30",
+        "league": "意甲",
+        "teams": "AC米兰 2:1 （半 1:1） 恩波利",
+        "totalGoals": "3"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "恩波利",
+      "title": "常规赛 第17名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "9/9/20",
+          "winRate": "24%",
+          "goals": "29/54",
+          "gd": "-25",
+          "points": "36",
+          "rank": "17"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "5/5/9",
+          "winRate": "26%",
+          "goals": "15/23",
+          "gd": "-8",
+          "points": "20",
+          "rank": "17"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "4/4/11",
+          "winRate": "21%",
+          "goals": "14/31",
+          "gd": "-17",
+          "points": "16",
+          "rank": "14"
+        }
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "title": "常规赛 第2名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "22/9/7",
+          "winRate": "58%",
+          "goals": "76/49",
+          "gd": "27",
+          "points": "75",
+          "rank": "2"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "12/4/3",
+          "winRate": "63%",
+          "goals": "38/17",
+          "gd": "21",
+          "points": "40",
+          "rank": "4"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "10/5/4",
+          "winRate": "53%",
+          "goals": "38/32",
+          "gd": "6",
+          "points": "35",
+          "rank": "2"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "恩波利",
+      "summary": "恩波利近10场2胜 (20%) | 3平 (30%) | 5负 (50%) 进9球，失14球，净进-5球",
+      "matches": [
+        {
+          "date": "2023-12-30",
+          "league": "意甲",
+          "vs": "卡利亚里 0 : 0 （半 0:0） 恩波利",
+          "result": "平"
+        },
+        {
+          "date": "2023-12-23",
+          "league": "意甲",
+          "vs": "恩波利 0 : 2 （半 0:1） 拉齐奥",
+          "result": "负"
+        },
+        {
+          "date": "2023-12-17",
+          "league": "意甲",
+          "vs": "都灵 1 : 0 （半 1:0） 恩波利",
+          "result": "负"
+        },
+        {
+          "date": "2023-12-12",
+          "league": "意甲",
+          "vs": "恩波利 1 : 1 （半 0:0） 莱切",
+          "result": "平"
+        },
+        {
+          "date": "2023-12-02",
+          "league": "意甲",
+          "vs": "热那亚 1 : 1 （半 1:0） 恩波利",
+          "result": "平"
+        },
+        {
+          "date": "2023-11-26",
+          "league": "意甲",
+          "vs": "恩波利 3 : 4 （半 2:2） 萨索洛",
+          "result": "负"
+        },
+        {
+          "date": "2023-11-12",
+          "league": "意甲",
+          "vs": "那不勒斯 0 : 1 （半 0:0） 恩波利",
+          "result": "胜"
+        },
+        {
+          "date": "2023-11-07",
+          "league": "意甲",
+          "vs": "弗洛西诺 2 : 1 （半 0:0） 恩波利",
+          "result": "负"
+        },
+        {
+          "date": "2023-10-31",
+          "league": "意甲",
+          "vs": "恩波利 0 : 3 （半 0:2） 亚特兰大",
+          "result": "负"
+        },
+        {
+          "date": "2023-10-24",
+          "league": "意甲",
+          "vs": "佛罗伦萨 0 : 2 （半 0:1） 恩波利",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "summary": "AC米兰近10场6胜 (60%) | 2平 (20%) | 2负 (20%) 进21球，失13球，净进8球",
+      "matches": [
+        {
+          "date": "2024-01-03",
+          "league": "意大利杯",
+          "vs": "AC米兰 4 : 1 （半 2:0） 卡利亚里",
+          "result": "胜"
+        },
+        {
+          "date": "2023-12-31",
+          "league": "意甲",
+          "vs": "AC米兰 1 : 0 （半 0:0） 萨索洛",
+          "result": "胜"
+        },
+        {
+          "date": "2023-12-23",
+          "league": "意甲",
+          "vs": "萨勒尼塔 2 : 2 （半 1:1） AC米兰",
+          "result": "平"
+        },
+        {
+          "date": "2023-12-17",
+          "league": "意甲",
+          "vs": "AC米兰 3 : 0 （半 2:0） 蒙扎",
+          "result": "胜"
+        },
+        {
+          "date": "2023-12-14",
+          "league": "欧冠",
+          "vs": "纽卡斯尔 1 : 2 （半 1:0） AC米兰",
+          "result": "胜"
+        },
+        {
+          "date": "2023-12-10",
+          "league": "意甲",
+          "vs": "亚特兰大 3 : 2 （半 1:1） AC米兰",
+          "result": "负"
+        },
+        {
+          "date": "2023-12-03",
+          "league": "意甲",
+          "vs": "AC米兰 3 : 1 （半 1:0） 弗洛西诺",
+          "result": "胜"
+        },
+        {
+          "date": "2023-11-29",
+          "league": "欧冠",
+          "vs": "AC米兰 1 : 3 （半 1:1） 多特蒙德",
+          "result": "负"
+        },
+        {
+          "date": "2023-11-26",
+          "league": "意甲",
+          "vs": "AC米兰 1 : 0 （半 1:0） 佛罗伦萨",
+          "result": "胜"
+        },
+        {
+          "date": "2023-11-11",
+          "league": "意甲",
+          "vs": "莱切 2 : 2 （半 0:2） AC米兰",
+          "result": "平"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "恩波利",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "AC米兰",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-05",
+          "俱乐部赛",
+          "AC米兰\nVS\n国际米兰",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-08-08",
+          "俱乐部赛",
+          "切尔西\nVS\nAC米兰",
+          "Club Friendlies 1"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "恩波利",
+      "players": [
+        {
+          "player": "10-尼昂(前锋)",
+          "apps": "14 (5/9)",
+          "goals": "6 (17%)",
+          "assists": "1 (5%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "91-R. Piccoli(前锋)",
+          "apps": "37 (12/25)",
+          "goals": "5 (14%)",
+          "assists": "0 (0%)",
+          "avg": "0.1/0"
+        },
+        {
+          "player": "20-M. Cancellieri(前锋)",
+          "apps": "36 (18/18)",
+          "goals": "4 (11%)",
+          "assists": "2 (11%)",
+          "avg": "0.1/0.1"
+        }
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "players": [
+        {
+          "player": "9-吉鲁(前锋)",
+          "apps": "35 (28/7)",
+          "goals": "15 (20%)",
+          "assists": "8 (14%)",
+          "avg": "0.4/0.2"
+        },
+        {
+          "player": "11-普利希奇(中场)",
+          "apps": "36 (32/4)",
+          "goals": "12 (16%)",
+          "assists": "8 (14%)",
+          "avg": "0.3/0.2"
+        },
+        {
+          "player": "10-Rafael Leão(前锋)",
+          "apps": "34 (29/5)",
+          "goals": "9 (12%)",
+          "assists": "9 (16%)",
+          "avg": "0.3/0.3"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "恩波利",
+      "players": [
+        {
+          "player": "13-L.卡塞斯(后卫)",
+          "totalApps": "31",
+          "starts": "18",
+          "subs": "13",
+          "status": "停"
+        },
+        {
+          "player": "19-B. Bereszyński(后卫)",
+          "totalApps": "24",
+          "starts": "22",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "8-V. Kovalenko(中场)",
+          "totalApps": "17",
+          "starts": "4",
+          "subs": "13",
+          "status": "伤"
+        },
+        {
+          "player": "30-S. Bastoni(中场)",
+          "totalApps": "16",
+          "starts": "9",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "3-G. Pezzella(后卫)",
+          "totalApps": "19",
+          "starts": "14",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "21-J. Fazzini(中场)",
+          "totalApps": "31",
+          "starts": "14",
+          "subs": "17",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "players": [
+        {
+          "player": "23-托莫里(后卫)",
+          "totalApps": "26",
+          "starts": "24",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "4-班纳格(中场)",
+          "totalApps": "20",
+          "starts": "13",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "32-T. Pobega(中场)",
+          "totalApps": "11",
+          "starts": "3",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "17-奥卡福尔(前锋)",
+          "totalApps": "28",
+          "starts": "6",
+          "subs": "22",
+          "status": "伤"
+        },
+        {
+          "player": "20-P. Kalulu(后卫)",
+          "totalApps": "9",
+          "starts": "4",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "28-M. Thiaw(后卫)",
+          "totalApps": "21",
+          "starts": "19",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "31-M.佩莱格里诺(后卫)",
+          "totalApps": "11",
+          "starts": "5",
+          "subs": "6",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

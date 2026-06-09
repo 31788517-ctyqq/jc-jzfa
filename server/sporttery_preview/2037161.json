@@ -1,0 +1,444 @@
+{
+  "match_id": "2037161",
+  "featureAnalysis": {
+    "labels": [
+      "近0场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "6胜/0平/4负",
+      "6胜/0平/4负",
+      "1.6个",
+      "0.8个"
+    ],
+    "away": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "6胜/2平/2负",
+      "6胜/1平/3负",
+      "2.2个",
+      "1.4个"
+    ]
+  },
+  "h2h": {
+    "title": "近0场罗马0胜 (0%) | 0平 (0%) | 0负 (0%)",
+    "rows": []
+  },
+  "standings": [
+    {
+      "team": "罗马",
+      "title": "League Stage 第8名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "5/1/2",
+          "winRate": "63%",
+          "goals": "13/6",
+          "gd": "7",
+          "points": "16",
+          "rank": "8"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "2/0/2",
+          "winRate": "50%",
+          "goals": "5/4",
+          "gd": "1",
+          "points": "6",
+          "rank": "25"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "3/1/0",
+          "winRate": "75%",
+          "goals": "8/2",
+          "gd": "6",
+          "points": "10",
+          "rank": "1"
+        }
+      ]
+    },
+    {
+      "team": "斯图加特",
+      "title": "League Stage 第11名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "5/0/3",
+          "winRate": "63%",
+          "goals": "15/9",
+          "gd": "6",
+          "points": "15",
+          "rank": "11"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "4/0/0",
+          "winRate": "100%",
+          "goals": "11/4",
+          "gd": "7",
+          "points": "12",
+          "rank": "1"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "1/0/3",
+          "winRate": "25%",
+          "goals": "4/5",
+          "gd": "-1",
+          "points": "3",
+          "rank": "21"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "罗马",
+      "summary": "罗马近10场6胜 (60%) | 0平 (0%) | 4负 (40%) 进16球，失8球，净进8球",
+      "matches": [
+        {
+          "date": "2026-01-19",
+          "league": "意甲",
+          "vs": "都灵 0 : 2 （半 0:1） 罗马",
+          "result": "胜"
+        },
+        {
+          "date": "2026-01-14",
+          "league": "意大利杯",
+          "vs": "罗马 2 : 3 （半 0:1） 都灵",
+          "result": "负"
+        },
+        {
+          "date": "2026-01-11",
+          "league": "意甲",
+          "vs": "罗马 2 : 0 （半 0:0） 萨索洛",
+          "result": "胜"
+        },
+        {
+          "date": "2026-01-07",
+          "league": "意甲",
+          "vs": "莱切 0 : 2 （半 0:1） 罗马",
+          "result": "胜"
+        },
+        {
+          "date": "2026-01-04",
+          "league": "意甲",
+          "vs": "亚特兰大 1 : 0 （半 1:0） 罗马",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-30",
+          "league": "意甲",
+          "vs": "罗马 3 : 1 （半 3:0） 热那亚",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-21",
+          "league": "意甲",
+          "vs": "尤文图斯 2 : 1 （半 1:0） 罗马",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-16",
+          "league": "意甲",
+          "vs": "罗马 1 : 0 （半 0:0） 科莫",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-12",
+          "league": "欧罗巴",
+          "vs": "凯尔特人 0 : 3 （半 0:3） 罗马",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-07",
+          "league": "意甲",
+          "vs": "卡利亚里 1 : 0 （半 0:0） 罗马",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "斯图加特",
+      "summary": "斯图加特近10场6胜 (60%) | 2平 (20%) | 2负 (20%) 进22球，失14球，净进8球",
+      "matches": [
+        {
+          "date": "2026-01-18",
+          "league": "德甲",
+          "vs": "斯图加特 1 : 1 （半 0:0） 柏林联合",
+          "result": "平"
+        },
+        {
+          "date": "2026-01-14",
+          "league": "德甲",
+          "vs": "斯图加特 3 : 2 （半 2:1） 法兰克福",
+          "result": "胜"
+        },
+        {
+          "date": "2026-01-11",
+          "league": "德甲",
+          "vs": "勒沃库森 1 : 4 （半 0:4） 斯图加特",
+          "result": "胜"
+        },
+        {
+          "date": "2026-01-05",
+          "league": "俱乐部赛",
+          "vs": "斯图加特 3 : 2 （半 ） 卢塞恩",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-20",
+          "league": "德甲",
+          "vs": "斯图加特 0 : 0 （半 0:0） 霍芬海姆",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-15",
+          "league": "德甲",
+          "vs": "不来梅 0 : 4 （半 0:2） 斯图加特",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-12",
+          "league": "欧罗巴",
+          "vs": "斯图加特 4 : 1 （半 2:0） 特马卡比",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-06",
+          "league": "德甲",
+          "vs": "斯图加特 0 : 5 （半 0:1） 拜仁",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-04",
+          "league": "德国杯",
+          "vs": "波鸿 0 : 2 （半 0:1） 斯图加特",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-30",
+          "league": "德甲",
+          "vs": "汉堡 2 : 1 （半 1:0） 斯图加特",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "罗马",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-15",
+          "俱乐部赛",
+          "多特蒙德\nVS\n罗马",
+          "Club Friendlies 1"
+        ]
+      ]
+    },
+    {
+      "team": "斯图加特",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-23",
+          "俱乐部赛",
+          "Balingen\nVS\n斯图加特",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-30",
+          "俱乐部赛",
+          "奥踢球者\nVS\n斯图加特",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "罗马",
+      "players": [
+        {
+          "player": "14-马伦(前锋)",
+          "apps": "8 (6/2)",
+          "goals": "4 (19%)",
+          "assists": "0 (0%)",
+          "avg": "0.5/0"
+        },
+        {
+          "player": "7-Lorenzo Pellegrini(中场)",
+          "apps": "9 (5/4)",
+          "goals": "3 (14%)",
+          "assists": "2 (14%)",
+          "avg": "0.3/0.2"
+        },
+        {
+          "player": "11-E.弗格森(前锋)伤",
+          "apps": "6 (3/3)",
+          "goals": "2 (10%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        }
+      ]
+    },
+    {
+      "team": "斯图加特",
+      "players": [
+        {
+          "player": "11-汉努斯(中场)",
+          "apps": "11 (7/4)",
+          "goals": "5 (25%)",
+          "assists": "0 (0%)",
+          "avg": "0.5/0"
+        },
+        {
+          "player": "26-温达夫(前锋)",
+          "apps": "10 (9/1)",
+          "goals": "3 (15%)",
+          "assists": "6 (38%)",
+          "avg": "0.3/0.6"
+        },
+        {
+          "player": "18-J. Leweling(前锋)",
+          "apps": "11 (7/4)",
+          "goals": "3 (15%)",
+          "assists": "1 (6%)",
+          "avg": "0.3/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "罗马",
+      "players": [
+        {
+          "player": "92-沙拉维(前锋)",
+          "totalApps": "7",
+          "starts": "3",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "95-P. Gollini(守门员)",
+          "totalApps": "1",
+          "starts": "1",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "22-Mario Hermoso(后卫)",
+          "totalApps": "7",
+          "starts": "5",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "19-切利克(后卫)",
+          "totalApps": "10",
+          "starts": "10",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "9-多夫比克(前锋)",
+          "totalApps": "4",
+          "starts": "3",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "31-贝利(前锋)",
+          "totalApps": "5",
+          "starts": "0",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "11-E.弗格森(前锋)",
+          "totalApps": "6",
+          "starts": "3",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "35-T. Baldanzi(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "斯图加特",
+      "players": [
+        {
+          "player": "23-D. Zagadou(后卫)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "6-A. Stiller(中场)",
+          "totalApps": "11",
+          "starts": "10",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "8-Tiago Tomás(前锋)",
+          "totalApps": "9",
+          "starts": "5",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "17-J. Diehl(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "45-L. Jovanović(前锋)",
+          "totalApps": "3",
+          "starts": "1",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "14-L. Jaquez(后卫)",
+          "totalApps": "8",
+          "starts": "4",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "19-N. Darvich(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

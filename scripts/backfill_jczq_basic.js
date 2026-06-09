@@ -31,10 +31,22 @@ const REQUEST_TIMEOUT = 10000;
 const argv = process.argv.slice(2);
 const args = {};
 for (let i = 0; i < argv.length; i++) {
-  if (argv[i] === '--date' && argv[i + 1]) { args.date = argv[++i]; continue; }
-  if (argv[i] === '--from' && argv[i + 1]) { args.from = argv[++i]; continue; }
-  if (argv[i] === '--to' && argv[i + 1]) { args.to = argv[++i]; continue; }
-  if (argv[i] === '--dry-run') { args.dryRun = true; continue; }
+  if (argv[i] === '--date' && argv[i + 1]) {
+    args.date = argv[++i];
+    continue;
+  }
+  if (argv[i] === '--from' && argv[i + 1]) {
+    args.from = argv[++i];
+    continue;
+  }
+  if (argv[i] === '--to' && argv[i + 1]) {
+    args.to = argv[++i];
+    continue;
+  }
+  if (argv[i] === '--dry-run') {
+    args.dryRun = true;
+    continue;
+  }
 }
 
 // ── HTTP 请求 ──
@@ -51,7 +63,9 @@ function fetchJSON(apiPath, timeoutMs) {
     http
       .get(opts, function (res) {
         const chunks = [];
-        res.on('data', function (c) { chunks.push(c); });
+        res.on('data', function (c) {
+          chunks.push(c);
+        });
         res.on('end', function () {
           try {
             resolve(JSON.parse(Buffer.concat(chunks).toString('utf-8')));
@@ -60,8 +74,12 @@ function fetchJSON(apiPath, timeoutMs) {
           }
         });
       })
-      .on('error', function () { resolve(null); })
-      .setTimeout(timeoutMs, function () { resolve(null); });
+      .on('error', function () {
+        resolve(null);
+      })
+      .setTimeout(timeoutMs, function () {
+        resolve(null);
+      });
   });
 }
 
@@ -170,7 +188,9 @@ function extractMatchNum(numStr) {
 }
 
 function sleep(ms) {
-  return new Promise(function (r) { setTimeout(r, ms); });
+  return new Promise(function (r) {
+    setTimeout(r, ms);
+  });
 }
 
 // ═══════════════════════════════════════
@@ -185,13 +205,19 @@ async function main() {
 
   // 初始化数据库（兼容本地 scripts/../server/ 和服务器 scripts/../ = server/ 两种路径）
   let db;
-  try { db = require('../server/database'); } catch (e) { db = require('../database'); }
+  try {
+    db = require('../server/database');
+  } catch (e) {
+    db = require('../database');
+  }
   db.initDatabase();
 
   // sql.js 是异步初始化，轮询等待就绪（最多 10 秒）
   let waitAttempts = 0;
   while ((!db.isAvailable || !db.isAvailable()) && waitAttempts < 20) {
-    await new Promise(function (r) { setTimeout(r, 500); });
+    await new Promise(function (r) {
+      setTimeout(r, 500);
+    });
     waitAttempts++;
   }
 
@@ -221,14 +247,13 @@ async function main() {
     // 范围模式
     matches = adp.execAll(
       'SELECT matchId, num, date FROM matches WHERE date >= ? AND date <= ? ORDER BY date, CAST(num AS INTEGER)',
-      args.from, args.to,
+      args.from,
+      args.to,
     );
     console.log('  日期范围: ' + args.from + ' ~ ' + args.to + ' → ' + matches.length + ' 场');
   } else {
     // 全量模式
-    matches = adp.execAll(
-      'SELECT matchId, num, date FROM matches ORDER BY date, CAST(num AS INTEGER)',
-    );
+    matches = adp.execAll('SELECT matchId, num, date FROM matches ORDER BY date, CAST(num AS INTEGER)');
     console.log('  全量回填 → ' + matches.length + ' 场');
   }
 
@@ -321,8 +346,22 @@ async function main() {
     });
 
     const done = Math.min(i + BATCH_SIZE, toFetch.length);
-    const pct = Math.round(done / toFetch.length * 100);
-    console.log('  ── 进度: ' + done + '/' + toFetch.length + ' (' + pct + '%)  成功:' + successCount + '  无数据:' + emptyCount + '  失败:' + failCount + ' ──\n');
+    const pct = Math.round((done / toFetch.length) * 100);
+    console.log(
+      '  ── 进度: ' +
+        done +
+        '/' +
+        toFetch.length +
+        ' (' +
+        pct +
+        '%)  成功:' +
+        successCount +
+        '  无数据:' +
+        emptyCount +
+        '  失败:' +
+        failCount +
+        ' ──\n',
+    );
 
     // 批次间延迟
     if (i + BATCH_SIZE < toFetch.length) {

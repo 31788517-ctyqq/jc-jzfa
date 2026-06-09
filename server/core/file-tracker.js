@@ -21,24 +21,24 @@ const SERVER_DIR = path.join(__dirname, '..');
 // ═══ 追踪文件清单 ═══
 const FILES_LIST = [
   // ── 核心数据文件 ──
-  { key: 'midou_data.db',  path: 'midou_data.db',           tag: 'db',    staleMin: 120, label: 'SQLite 主数据库' },
-  { key: 'data.json',      path: 'data.json',               tag: 'data',  staleMin: 120, label: '比赛+推荐数据' },
-  { key: 'trends.json',    path: 'trends.json',             tag: 'data',  staleMin: 360, label: '趋势统计' },
-  { key: 'ai_cache.json',  path: 'ai_cache.json',           tag: 'data',  staleMin: 360, label: 'AI 分析缓存' },
+  { key: 'midou_data.db', path: 'midou_data.db', tag: 'db', staleMin: 120, label: 'SQLite 主数据库' },
+  { key: 'data.json', path: 'data.json', tag: 'data', staleMin: 120, label: '比赛+推荐数据' },
+  { key: 'trends.json', path: 'trends.json', tag: 'data', staleMin: 360, label: '趋势统计' },
+  { key: 'ai_cache.json', path: 'ai_cache.json', tag: 'data', staleMin: 360, label: 'AI 分析缓存' },
 
   // ── 功守道缓存 ──
-  { key: 'gs_cache',       path: 'gongshoudao/cache.json',  tag: 'gs',    staleMin: 120, label: '功守道融合缓存' },
-  { key: 'stats_bank',     path: 'stats_bank.json',         tag: 'gs',    staleMin: 360, label: '功守道统计银行' },
+  { key: 'gs_cache', path: 'gongshoudao/cache.json', tag: 'gs', staleMin: 120, label: '功守道融合缓存' },
+  { key: 'stats_bank', path: 'stats_bank.json', tag: 'gs', staleMin: 360, label: '功守道统计银行' },
 
   // ── 赔率数据 ──
-  { key: 'odds_dir',       path: 'odds_history',            tag: 'odds',  staleMin: 60,  label: '赔率历史目录' },
+  { key: 'odds_dir', path: 'odds_history', tag: 'odds', staleMin: 60, label: '赔率历史目录' },
 
   // ── 运行状态 ──
-  { key: 'crawl_logs',     path: 'midou_data.db',           tag: 'meta',  staleMin: 1440, label: '爬取日志 (DB)' },
-  { key: 'scheduler_json', path: 'scheduler_state.json',    tag: 'meta',  staleMin: 120, label: '调度器状态' },
+  { key: 'crawl_logs', path: 'midou_data.db', tag: 'meta', staleMin: 1440, label: '爬取日志 (DB)' },
+  { key: 'scheduler_json', path: 'scheduler_state.json', tag: 'meta', staleMin: 120, label: '调度器状态' },
 
   // ── 配置文件 ──
-  { key: 'ecosystem_json', path: '../ecosystem.config.json',tag: 'cfg',   staleMin: 99999, label: 'PM2 配置' },
+  { key: 'ecosystem_json', path: '../ecosystem.config.json', tag: 'cfg', staleMin: 99999, label: 'PM2 配置' },
 ];
 
 // ═══ 快速指纹（首尾 512 字节 + 文件大小） ═══
@@ -75,12 +75,12 @@ function check(filePath, staleMin) {
   try {
     const stat = fs.statSync(fullPath);
     if (stat.isDirectory()) {
-      const files = fs.readdirSync(fullPath).filter(f => f.endsWith('.json'));
+      const files = fs.readdirSync(fullPath).filter((f) => f.endsWith('.json'));
       if (files.length === 0) {
         return { status: 'error', category: 'dir', fileCount: 0, message: '目录为空（无 JSON 文件）' };
       }
       let newestMtime = 0;
-      files.forEach(f => {
+      files.forEach((f) => {
         const mtime = fs.statSync(path.join(fullPath, f)).mtimeMs;
         if (mtime > newestMtime) newestMtime = mtime;
       });
@@ -123,7 +123,7 @@ function check(filePath, staleMin) {
     return {
       status: fileStatus,
       category: 'file',
-      sizeKB: Math.round(stat.size / 1024 * 10) / 10,
+      sizeKB: Math.round((stat.size / 1024) * 10) / 10,
       ageMinutes: ageMin,
       lastModified: new Date(stat.mtimeMs).toISOString(),
       fingerprint: fp ? fp.hash.slice(0, 8) : null,
@@ -142,7 +142,7 @@ function snapshot() {
     files: {},
   };
 
-  FILES_LIST.forEach(f => {
+  FILES_LIST.forEach((f) => {
     const s = check(f.path, f.staleMin);
     result.summary.total++;
     result.summary[s.status]++;
@@ -192,7 +192,7 @@ function checkDbIntegrity() {
 
 // ═══ 获取追踪文件清单（供 API 使用） ═══
 function getFileList() {
-  return FILES_LIST.map(f => ({ key: f.key, label: f.label, tag: f.tag, staleMin: f.staleMin }));
+  return FILES_LIST.map((f) => ({ key: f.key, label: f.label, tag: f.tag, staleMin: f.staleMin }));
 }
 
 module.exports = { snapshot, check, checkDbIntegrity, getFileList, FILES_LIST };

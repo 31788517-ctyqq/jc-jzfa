@@ -93,6 +93,9 @@ DEPLOY_MAP = [
     ('preview/assets/plan_icon.png',      'both'),
     ('preview/assets/tab_plan.svg',       'both'),
     ('preview/assets/zuqiu_soccer.svg',   'both'),
+    # /assets/ URL 由 Nginx 映射到 miniprogram/images/，首页 banner 和 ECharts 库须部署到该目录
+    ('miniprogram/images/worldcup/banner3.webp', 'nginx'),
+    ('miniprogram/images/echarts.min.js',      'nginx'),
     ('preview/css/app.css',               'both'),
     ('preview/css/modals.css',            'both'),
     ('preview/css/betting.css',           'both'),  # ★ 投注弹窗样式
@@ -130,6 +133,15 @@ DEPLOY_MAP = [
     ('server/jczqYz_fetcher.js',          'both'),
     ('server/jczq_change.js',             'both'),
     ('server/data_sync.js',               'both'),
+    ('server/sync_gov_schedule.js',        'both'),  # ★ V9 P1: SP官方赛程轻量抓取
+    ('server/bridge_sporttery_local.js',   'both'),  # ★ V9: SP本地数据桥接
+    ('server/bridge_sp_gap_dates.js',      'both'),  # ★ V9: SP缺口日期修复
+    ('server/sync_live_500.js',             'both'),  # ★ V9: 500.com 即时比分抓取
+    ('server/sync_today_schedule.js',       'both'),  # ★ V9: 今日赛程高频检查器
+    ('server/sync_sp_full.js',              'both'),  # ★ V9: SP全量数据每日同步(赛程+赔率+前瞻)
+    ('server/auto_heal.js',               'both'),  # ★ V9 P2: 数据自动补漏
+    ('server/batch_fetch_500all.js',       'both'),  # ★ V9 P2: 全玩法赔率批量抓取
+    ('server/fetch_500all.js',             'both'),  # ★ V9 P2: 全玩法赔率抓取依赖
     ('server/oneshot_sync.js',            'both'),
     ('server/scheduler.js',               'both'),
     ('server/scraper.js',                 'both'),
@@ -153,6 +165,7 @@ DEPLOY_MAP = [
     ('server/gongshoudao/model-weights.js','both'),
     ('server/gongshoudao/cache_manager.js','both'),
     ('server/core/plan-generator.js',     'both'),
+    ('server/core/sp_data_adapter.js',      'both'),  # ★ V9: SP官方数据统一访问层
     # ★ v3 核心模块（index.js 直接 require，遗漏会导致运行时崩溃）
     ('server/core/cache.js',              'both'),
     ('server/core/midou.js',              'both'),
@@ -180,6 +193,7 @@ DEPLOY_MAP = [
     ('server/core/shadow-account.js',     'both'),
     # ★ 蓝图 V8.2 新增核心模块（预测融合 + 特征工程 + 回填 + 质量监控）
     ('server/core/prediction-adapter.js', 'both'),
+    ('server/backfill_expert_consensus.js', 'both'),  # ★ V9: 专家共识回填
     ('server/core/prediction-fusion.js', 'both'),
     ('server/core/feature-engine.js',    'both'),
     ('server/core/outcome-backfill.js',  'both'),

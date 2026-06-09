@@ -52,7 +52,7 @@ class PredictionFusionEngine {
 
   /** 获取已注册模型列表 */
   getModels() {
-    return [...this.adapters.values()].map(a => ({
+    return [...this.adapters.values()].map((a) => ({
       modelName: a.modelName,
       modelVersion: a.modelVersion,
       dimensions: a.dimensions,
@@ -147,7 +147,7 @@ class PredictionFusionEngine {
 
     for (const pred of predictions) {
       if (!pred.direction) continue;
-      const baseW = weights[pred.modelName] || (1 / predictions.length);
+      const baseW = weights[pred.modelName] || 1 / predictions.length;
       // ★ ZQ-04: 加权融合使用 confidence
       const confAdjust = typeof pred.directionConfidence === 'number' ? Math.max(0.1, pred.directionConfidence) : 0.5;
       const w = baseW * confAdjust;
@@ -156,7 +156,7 @@ class PredictionFusionEngine {
     }
 
     if (dirTotalWeight > 0) {
-      const maxDir = Object.entries(dirVotes).reduce((a, b) => a[1] > b[1] ? a : b);
+      const maxDir = Object.entries(dirVotes).reduce((a, b) => (a[1] > b[1] ? a : b));
       result.direction = maxDir[0];
       result.confidence = maxDir[1] / dirTotalWeight;
     }
@@ -195,20 +195,21 @@ class PredictionFusionEngine {
     const scores = Object.entries(scoreCounts).sort((a, b) => b[1] - a[1]);
     if (scores.length > 0) {
       result.score = scores[0][0];
-      result.scoreConfidence = scores[0][1] / predictions.filter(p => p.predictedScore).length || 0;
+      result.scoreConfidence = scores[0][1] / predictions.filter((p) => p.predictedScore).length || 0;
     }
 
     // ── 总进球加权平均 ──
-    let goalSum = 0, goalCount = 0;
+    let goalSum = 0,
+      goalCount = 0;
     for (const pred of predictions) {
       if (pred.goalTotal !== null && pred.goalTotal !== undefined) {
-        const w = weights[pred.modelName] || (1 / predictions.length);
+        const w = weights[pred.modelName] || 1 / predictions.length;
         goalSum += pred.goalTotal * w;
         goalCount += w;
       }
     }
     if (goalCount > 0) {
-      result.goalTotal = Math.round(goalSum / goalCount * 10) / 10;
+      result.goalTotal = Math.round((goalSum / goalCount) * 10) / 10;
     }
 
     return result;
@@ -220,13 +221,13 @@ class PredictionFusionEngine {
    * @returns {{ level: string, agreeCount: number, totalCount: number, agreeModels: string[], dissentModels: string[] }}
    */
   _assessConsensus(predictions) {
-    const dirPreds = predictions.filter(p => p.direction);
+    const dirPreds = predictions.filter((p) => p.direction);
     if (dirPreds.length === 0) {
       return { level: 'unknown', agreeCount: 0, totalCount: predictions.length, agreeModels: [], dissentModels: [] };
     }
 
     // ★ ZQ-04: 加权方向分布（confidence 作为权重）
-    const dirMap = {};   // { direction: { models: [...], weightedSum: number } }
+    const dirMap = {}; // { direction: { models: [...], weightedSum: number } }
     const dirCount = {}; // 纯票数（兼容旧字段）
     for (const p of dirPreds) {
       if (!dirMap[p.direction]) {
@@ -265,7 +266,7 @@ class PredictionFusionEngine {
     const agreeModels = mainData.models;
     const dissentModels = [];
     for (const [dir, data] of sortedDirs.slice(1)) {
-      dissentModels.push(...data.models.map(m => m + '(' + dir + ')'));
+      dissentModels.push(...data.models.map((m) => m + '(' + dir + ')'));
     }
 
     return {
@@ -350,7 +351,7 @@ class PredictionFusionEngine {
         prediction.featuresSnapshot ? JSON.stringify(prediction.featuresSnapshot) : null,
         prediction.rawOutput ? prediction.rawOutput.slice(0, 5000) : null,
         prediction.consensusTag,
-        batchId
+        batchId,
       );
     } catch (e) {
       console.error(`[PredictionFusion] _savePrediction 失败: ${prediction.modelName}`, e.message);
@@ -364,7 +365,8 @@ class PredictionFusionEngine {
       `SELECT * FROM unified_predictions
        WHERE match_num = ? AND match_date = ?
        ORDER BY model_name`,
-      matchNum, matchDate
+      matchNum,
+      matchDate,
     );
   }
 }

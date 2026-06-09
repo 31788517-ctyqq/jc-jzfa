@@ -19,6 +19,43 @@ const API_BASE = 'https://m.100qiu.com';
 const USE_LOCAL = process.env.GONGSHOUDAO_LOCAL === 'true';
 const LOCAL_API = 'http://127.0.0.1:19880';
 const STATS_BANK_PATH = path.join(__dirname, '..', 'stats_bank.json');
+const BATCH_INDEX_PATH = path.join(__dirname, '..', 'batch_index.json');
+const DATA_FILE_PATH = path.join(__dirname, '..', 'data.json');
+
+const DEFAULT_DEPS = {
+  fs,
+  http,
+  https,
+  atomicWriteJson,
+  now: () => Date.now(),
+};
+
+let _deps = { ...DEFAULT_DEPS };
+
+function _setDeps(overrides) {
+  _deps = { ..._deps, ...(overrides || {}) };
+}
+
+function _resetDeps() {
+  _deps = { ...DEFAULT_DEPS };
+}
+
+function _existsSync(filePath) {
+  return _deps.fs.existsSync(filePath);
+}
+
+function _readJsonFile(filePath, fallbackValue) {
+  try {
+    if (!_existsSync(filePath)) return fallbackValue;
+    return JSON.parse(_deps.fs.readFileSync(filePath, 'utf8'));
+  } catch (e) {
+    return fallbackValue;
+  }
+}
+
+function _writeJsonFile(filePath, data) {
+  _deps.fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+}
 
 // ★ 抓取成功率监控
 const _fetchStats = {
@@ -36,9 +73,7 @@ function recordFetchStats(success, latencyMs, errMsg) {
     _fetchStats.successes++;
     // 加权移动平均
     _fetchStats.avgLatencyMs =
-      _fetchStats.totalAttempts === 1
-        ? latencyMs
-        : _fetchStats.avgLatencyMs * 0.9 + latencyMs * 0.1;
+      _fetchStats.totalAttempts === 1 ? latencyMs : _fetchStats.avgLatencyMs * 0.9 + latencyMs * 0.1;
   } else {
     _fetchStats.failures++;
     _fetchStats.errors.push({
@@ -54,8 +89,13 @@ function recordFetchStats(success, latencyMs, errMsg) {
     const rate = (_fetchStats.successes / _fetchStats.totalAttempts) * 100;
     if (rate < 90) {
       console.warn(
-        '[fetch] ⚠️ API抓取成功率低于90%: ' + rate.toFixed(1) + '% (' +
-          _fetchStats.successes + '/' + _fetchStats.totalAttempts + ')',
+        '[fetch] ⚠️ API抓取成功率低于90%: ' +
+          rate.toFixed(1) +
+          '% (' +
+          _fetchStats.successes +
+          '/' +
+          _fetchStats.totalAttempts +
+          ')',
       );
     }
   }
@@ -65,7 +105,7 @@ function getFetchStats() {
   const total = _fetchStats.totalAttempts;
   return {
     ..._fetchStats,
-    successRate: total > 0 ? (_fetchStats.successes / total * 100).toFixed(1) + '%' : 'N/A',
+    successRate: total > 0 ? ((_fetchStats.successes / total) * 100).toFixed(1) + '%' : 'N/A',
     avgLatency: Math.round(_fetchStats.avgLatencyMs) + 'ms',
     recentErrors: _fetchStats.errors.slice(-3).map((e) => e.time + ' ' + e.error),
   };
@@ -130,9 +170,9 @@ function getRequestOptions() {
 
 function httpGetJSON(url, timeoutMs) {
   timeoutMs = timeoutMs || 15000;
-  const startTime = Date.now();
+  const startTime = _deps.now();
   const isLocal = url.startsWith('http://');
-  const lib = isLocal ? http : https;
+  const lib = isLocal ? _deps.http : _deps.https;
   return new Promise((resolve, reject) => {
     const urlObj = new URL(url);
     const opts = {
@@ -151,7 +191,7 @@ function httpGetJSON(url, timeoutMs) {
         const chunks = [];
         res.on('data', (c) => chunks.push(c));
         res.on('end', () => {
-          const latencyMs = Date.now() - startTime;
+          const latencyMs = _deps.now() - startTime;
           try {
             const data = JSON.parse(Buffer.concat(chunks).toString('utf-8'));
             recordFetchStats(true, latencyMs);
@@ -163,12 +203,12 @@ function httpGetJSON(url, timeoutMs) {
         });
       })
       .on('error', (err) => {
-        const latencyMs = Date.now() - startTime;
+        const latencyMs = _deps.now() - startTime;
         recordFetchStats(false, latencyMs, err.message);
         reject(err);
       })
       .setTimeout(timeoutMs, () => {
-        const latencyMs = Date.now() - startTime;
+        const latencyMs = _deps.now() - startTime;
         recordFetchStats(false, latencyMs, 'timeout(' + timeoutMs + 'ms)');
         reject(new Error('timeout'));
       });
@@ -196,7 +236,7 @@ function getDiscoverMetrics() {
   return {
     hits: _discoverHits,
     misses: _discoverMisses,
-    hitRate: total > 0 ? (_discoverHits / total * 100).toFixed(1) + '%' : 'N/A',
+    hitRate: total > 0 ? ((_discoverHits / total) * 100).toFixed(1) + '%' : 'N/A',
     total,
   };
 }
@@ -338,10 +378,8 @@ async function autoDiscoverBatch() {
   // 阶段 1) 优先复用上次成功的批次
   let lastBatch = null;
   try {
-    if (fs.existsSync(STATS_BANK_PATH)) {
-      const bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
-      lastBatch = bank[LAST_BATCH_KEY];
-    }
+    const bank = _readJsonFile(STATS_BANK_PATH, {});
+    lastBatch = bank[LAST_BATCH_KEY];
   } catch (e) {}
 
   if (lastBatch) {
@@ -391,12 +429,9 @@ async function autoDiscoverBatch() {
 
     // 记录到缓存
     try {
-      let bank = {};
-      if (fs.existsSync(STATS_BANK_PATH)) {
-        bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
-      }
+      const bank = _readJsonFile(STATS_BANK_PATH, {});
       bank[LAST_BATCH_KEY] = bestBatch;
-      fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
+      _writeJsonFile(STATS_BANK_PATH, bank);
     } catch (e) {}
 
     return bestBatch;
@@ -408,12 +443,9 @@ async function autoDiscoverBatch() {
     const dt = await findLatestBatch(y, m, 15);
     if (dt) {
       try {
-        let bank = {};
-        if (fs.existsSync(STATS_BANK_PATH)) {
-          bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
-        }
+        const bank = _readJsonFile(STATS_BANK_PATH, {});
         bank[LAST_BATCH_KEY] = dt;
-        fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
+        _writeJsonFile(STATS_BANK_PATH, bank);
       } catch (e) {}
       return dt;
     }
@@ -648,11 +680,10 @@ async function fetchAndRelateByBatch(dateTime) {
   console.log('[fetch] 批次', dateTime, '返回', apiList.length, '场');
 
   // 加载 data.json
-  const dataFilePath = path.join(__dirname, '..', 'data.json');
   let mMap = {};
-  if (fs.existsSync(dataFilePath)) {
+  if (_existsSync(DATA_FILE_PATH)) {
     try {
-      mMap = JSON.parse(fs.readFileSync(dataFilePath, 'utf8')).m || {};
+      mMap = (_readJsonFile(DATA_FILE_PATH, {}) || {}).m || {};
     } catch (e) {
       console.error('[fetch] data.json 读取失败:', e.message);
     }
@@ -769,11 +800,10 @@ async function fetchAndRelateMultiBatch(primaryDT) {
   }
 
   // 2. 加载 data.json，找出仍未匹配的最新日期比赛
-  const dataFilePath = path.join(__dirname, '..', 'data.json');
   let mMap = {};
   try {
-    if (fs.existsSync(dataFilePath)) {
-      mMap = JSON.parse(fs.readFileSync(dataFilePath, 'utf8')).m || {};
+    if (_existsSync(DATA_FILE_PATH)) {
+      mMap = (_readJsonFile(DATA_FILE_PATH, {}) || {}).m || {};
     }
   } catch (e) {
     return primaryResult;
@@ -801,9 +831,10 @@ async function fetchAndRelateMultiBatch(primaryDT) {
   // 检查缓存中是否已有这些比赛（来自之前的批次）
   let fromExistingCache = 0;
   const supplementaryNeeded = [];
+  const primaryStatsCache = loadStatsCache(primaryDT) || {};
   stillUnmatched.forEach(({ mid, m }) => {
-    const cached = loadStatsCache(primaryDT);
-    const existing = cached ? (cached[mid] || cached['m_' + mid] || cached[mid.replace(/^m_/, '')]) : null;
+    const existing =
+      primaryStatsCache[mid] || primaryStatsCache['m_' + mid] || primaryStatsCache[mid.replace(/^m_/, '')];
     if (existing) {
       primaryResult[mid] = existing;
       fromExistingCache++;
@@ -835,7 +866,8 @@ async function fetchAndRelateMultiBatch(primaryDT) {
   const candidateBatches = [];
   for (let m = primaryMonth + 1; m >= primaryMonth - 1; m--) {
     if (m < 1 || m > 12) continue;
-    const y = m > primaryMonth ? (primaryMonth === 12 ? primaryYear + 1 : primaryYear) : m < 1 ? primaryYear - 1 : primaryYear;
+    const y =
+      m > primaryMonth ? (primaryMonth === 12 ? primaryYear + 1 : primaryYear) : m < 1 ? primaryYear - 1 : primaryYear;
     for (let b = 15; b >= 1; b--) {
       const dt = makeDateTime(y, m, b);
       if (dt !== primaryDT) candidateBatches.push(dt);
@@ -915,12 +947,8 @@ async function fetchAndRelateMultiBatch(primaryDT) {
  */
 function syncBatchIndex(dateTime, rawData) {
   try {
-    const BATCH_INDEX_PATH = path.join(__dirname, '..', 'batch_index.json');
-    let index = {};
-    if (fs.existsSync(BATCH_INDEX_PATH)) {
-      index = JSON.parse(fs.readFileSync(BATCH_INDEX_PATH, 'utf8'));
-    }
-    const now = Date.now();
+    const index = _readJsonFile(BATCH_INDEX_PATH, {});
+    const now = _deps.now();
     const matchCount = Array.isArray(rawData) ? rawData.length : (rawData && rawData.length) || 0;
     index[dateTime] = {
       valid: true,
@@ -929,7 +957,7 @@ function syncBatchIndex(dateTime, rawData) {
       updatedAt: now,
       expiresAt: now + 30 * 24 * 3600 * 1000, // 30天过期
     };
-    fs.writeFileSync(BATCH_INDEX_PATH, JSON.stringify(index, null, 2), 'utf8');
+    _writeJsonFile(BATCH_INDEX_PATH, index);
   } catch (e) {
     // 静默失败，不影响主流程
   }
@@ -945,29 +973,24 @@ function syncBatchIndex(dateTime, rawData) {
  * 写入时使用新格式（带 TTL），读取时兼容两种格式。
  */
 function saveRawCache(dateTime, rawData) {
-  let bank = {};
-  if (fs.existsSync(STATS_BANK_PATH)) {
-    try {
-      bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
-    } catch (e) {}
-  }
+  const bank = _readJsonFile(STATS_BANK_PATH, {});
   // ★ 新格式：带 TTL 包装
-  const now = Date.now();
+  const now = _deps.now();
   bank['_raw_' + dateTime] = {
     data: rawData,
     createdAt: now,
     expiresAt: now + 14 * 24 * 3600 * 1000, // 14天过期
   };
-  fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
+  _writeJsonFile(STATS_BANK_PATH, bank);
 
   // ★ 同步更新批次索引
   syncBatchIndex(dateTime, rawData);
 }
 
 function loadRawCache(dateTime) {
-  if (!fs.existsSync(STATS_BANK_PATH)) return null;
+  if (!_existsSync(STATS_BANK_PATH)) return null;
   try {
-    const bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
+    const bank = _readJsonFile(STATS_BANK_PATH, {});
     const entry = bank['_raw_' + dateTime];
     if (!entry) return null;
 
@@ -975,10 +998,10 @@ function loadRawCache(dateTime) {
     if (Array.isArray(entry)) return entry;
 
     // 新格式：检查 TTL
-    if (entry.expiresAt && entry.expiresAt < Date.now()) {
+    if (entry.expiresAt && entry.expiresAt < _deps.now()) {
       console.log('[fetch] 原始缓存过期:', dateTime);
       delete bank['_raw_' + dateTime];
-      fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
+      _writeJsonFile(STATS_BANK_PATH, bank);
       return null;
     }
 
@@ -992,26 +1015,21 @@ function loadRawCache(dateTime) {
  * ★ 匹配结果缓存（带 TTL + 格式兼容）
  */
 function saveStatsCache(dateTime, data) {
-  let bank = {};
-  if (fs.existsSync(STATS_BANK_PATH)) {
-    try {
-      bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
-    } catch (e) {}
-  }
-  const now = Date.now();
+  const bank = _readJsonFile(STATS_BANK_PATH, {});
+  const now = _deps.now();
   bank[dateTime] = {
     data: data,
     createdAt: now,
     expiresAt: now + 7 * 24 * 3600 * 1000, // 7天过期
     count: Object.keys(data || {}).length,
   };
-  fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
+  _writeJsonFile(STATS_BANK_PATH, bank);
 }
 
 function loadStatsCache(dateTime) {
-  if (!fs.existsSync(STATS_BANK_PATH)) return null;
+  if (!_existsSync(STATS_BANK_PATH)) return null;
   try {
-    const bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
+    const bank = _readJsonFile(STATS_BANK_PATH, {});
     const entry = bank[dateTime];
     if (!entry) return null;
 
@@ -1021,10 +1039,10 @@ function loadStatsCache(dateTime) {
     }
 
     // 新格式：检查 TTL
-    if (entry.expiresAt && entry.expiresAt < Date.now()) {
+    if (entry.expiresAt && entry.expiresAt < _deps.now()) {
       console.log('[fetch] 匹配缓存过期:', dateTime);
       delete bank[dateTime];
-      fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
+      _writeJsonFile(STATS_BANK_PATH, bank);
       return null;
     }
 
@@ -1039,10 +1057,10 @@ function loadStatsCache(dateTime) {
  * 建议每次写入后异步调用
  */
 function cleanupExpiredCache() {
-  if (!fs.existsSync(STATS_BANK_PATH)) return;
+  if (!_existsSync(STATS_BANK_PATH)) return;
   try {
-    const bank = JSON.parse(fs.readFileSync(STATS_BANK_PATH, 'utf8'));
-    const now = Date.now();
+    const bank = _readJsonFile(STATS_BANK_PATH, {});
+    const now = _deps.now();
     let cleaned = 0;
 
     Object.keys(bank).forEach((key) => {
@@ -1055,7 +1073,7 @@ function cleanupExpiredCache() {
     });
 
     if (cleaned > 0) {
-      fs.writeFileSync(STATS_BANK_PATH, JSON.stringify(bank, null, 2), 'utf8');
+      _writeJsonFile(STATS_BANK_PATH, bank);
       console.log('[fetch] 自动清理过期缓存:', cleaned, '条');
     }
   } catch (e) {
@@ -1088,4 +1106,16 @@ module.exports = {
   getFetchStats,
   recordFetchStats,
   JUMP_SEQUENCE,
+  __test: {
+    setDeps: _setDeps,
+    resetDeps: _resetDeps,
+    buildApiUrl,
+    getRequestOptions,
+    httpGetJSON,
+    paths: {
+      STATS_BANK_PATH,
+      BATCH_INDEX_PATH,
+      DATA_FILE_PATH,
+    },
+  },
 };

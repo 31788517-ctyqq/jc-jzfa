@@ -92,7 +92,12 @@ class FeatureEngine {
     }
 
     const last6 = recent.slice(0, 6);
-    let wins = 0, draws = 0, losses = 0, totalGoals = 0, totalConceded = 0, count = 0;
+    let wins = 0,
+      draws = 0,
+      losses = 0,
+      totalGoals = 0,
+      totalConceded = 0,
+      count = 0;
 
     for (const r of last6) {
       const result = r.result || '';
@@ -100,8 +105,8 @@ class FeatureEngine {
       else if (result === 'draw' || result === 'D') draws++;
       else if (result === 'loss' || result === 'L') losses++;
 
-      totalGoals += (r.goalsFor || r.homeScore || 0);
-      totalConceded += (r.goalsAgainst || r.awayScore || 0);
+      totalGoals += r.goalsFor || r.homeScore || 0;
+      totalConceded += r.goalsAgainst || r.awayScore || 0;
       count++;
     }
 
@@ -118,7 +123,11 @@ class FeatureEngine {
       const dir = path.join(__dirname, '..', 'shuju_data');
       if (!fs.existsSync(dir)) return null;
 
-      const files = fs.readdirSync(dir).filter(f => f.endsWith('.json')).sort().reverse();
+      const files = fs
+        .readdirSync(dir)
+        .filter((f) => f.endsWith('.json'))
+        .sort()
+        .reverse();
       if (files.length === 0) return null;
 
       const latest = path.join(dir, files[0]);
@@ -138,17 +147,24 @@ class FeatureEngine {
         `SELECT * FROM h2h_history
          WHERE (home_team = ? AND away_team = ?) OR (home_team = ? AND away_team = ?)
          ORDER BY match_date DESC LIMIT 10`,
-        homeName, visitName, visitName, homeName
+        homeName,
+        visitName,
+        visitName,
+        homeName,
       );
 
       if (h2hRows.length === 0) return features;
 
-      let homeWins = 0, totalGoals = 0, count = 0;
+      let homeWins = 0,
+        totalGoals = 0,
+        count = 0;
       const last5 = h2hRows.slice(0, 5);
 
       for (const row of last5) {
-        if ((row.home_team === homeName && row.home_score > row.away_score) ||
-            (row.away_team === homeName && row.away_score > row.home_score)) {
+        if (
+          (row.home_team === homeName && row.home_score > row.away_score) ||
+          (row.away_team === homeName && row.away_score > row.home_score)
+        ) {
           homeWins++;
         }
         totalGoals += (row.home_score || 0) + (row.away_score || 0);
@@ -173,17 +189,19 @@ class FeatureEngine {
       // 获取最新的积分榜数据
       const homeRow = db.execOne(
         `SELECT * FROM league_standings WHERE team_name = ? ORDER BY fetch_date DESC LIMIT 1`,
-        homeName
+        homeName,
       );
       const awayRow = db.execOne(
         `SELECT * FROM league_standings WHERE team_name = ? ORDER BY fetch_date DESC LIMIT 1`,
-        visitName
+        visitName,
       );
 
       if (homeRow) {
         features.home_league_rank = homeRow.rank || null;
         features.home_points = homeRow.points || null;
-        features.home_home_form_pts_5 = homeRow.home_played ? (homeRow.home_won * 3 + homeRow.home_drawn) / (homeRow.home_played * 3) : null;
+        features.home_home_form_pts_5 = homeRow.home_played
+          ? (homeRow.home_won * 3 + homeRow.home_drawn) / (homeRow.home_played * 3)
+          : null;
         features.home_goal_diff = homeRow.goal_diff || null;
       }
       if (awayRow) {
@@ -215,9 +233,9 @@ class FeatureEngine {
         features.odds_draw = odds.spf[1];
         features.odds_away = odds.spf[2];
         // 隐含概率（去水分）
-        const totalProb = (1 / odds.spf[0]) + (1 / odds.spf[1]) + (1 / odds.spf[2]);
-        features.odds_home_implied_prob = totalProb > 0 ? (1 / odds.spf[0]) / totalProb : null;
-        features.odds_away_implied_prob = totalProb > 0 ? (1 / odds.spf[2]) / totalProb : null;
+        const totalProb = 1 / odds.spf[0] + 1 / odds.spf[1] + 1 / odds.spf[2];
+        features.odds_home_implied_prob = totalProb > 0 ? 1 / odds.spf[0] / totalProb : null;
+        features.odds_away_implied_prob = totalProb > 0 ? 1 / odds.spf[2] / totalProb : null;
         features.odds_margin = totalProb - 1; // 水分
       }
 
@@ -244,7 +262,10 @@ class FeatureEngine {
       if (recs.length === 0) return features;
 
       // 统计方向分布
-      let homeCount = 0, drawCount = 0, awayCount = 0, totalCount = 0;
+      let homeCount = 0,
+        drawCount = 0,
+        awayCount = 0,
+        totalCount = 0;
       let maxNum = 0;
 
       for (const r of recs) {
@@ -271,7 +292,7 @@ class FeatureEngine {
 
   _calcEntropy(home, draw, away, total) {
     if (total === 0) return null;
-    const p = [home / total, draw / total, away / total].filter(x => x > 0);
+    const p = [home / total, draw / total, away / total].filter((x) => x > 0);
     return -p.reduce((sum, x) => sum + x * Math.log2(x), 0);
   }
 
@@ -283,11 +304,15 @@ class FeatureEngine {
       if (db) {
         const homeLastMatch = db.execOne(
           `SELECT date FROM matches WHERE (homeName = ? OR visitName = ?) AND date < ? ORDER BY date DESC LIMIT 1`,
-          homeName, homeName, matchDate
+          homeName,
+          homeName,
+          matchDate,
         );
         const awayLastMatch = db.execOne(
           `SELECT date FROM matches WHERE (homeName = ? OR visitName = ?) AND date < ? ORDER BY date DESC LIMIT 1`,
-          visitName, visitName, matchDate
+          visitName,
+          visitName,
+          matchDate,
         );
 
         if (homeLastMatch && homeLastMatch.date) {
@@ -396,14 +421,21 @@ class FeatureEngine {
         if (name.startsWith('odds_')) source = '500.com';
         else if (name.startsWith('h2h_')) source = '500.com';
         else if (name.startsWith('recomm_')) source = 'midou';
-        else if (name.startsWith('home_league') || name.startsWith('away_league') || name === 'rank_diff') source = '500.com';
+        else if (name.startsWith('home_league') || name.startsWith('away_league') || name === 'rank_diff')
+          source = '500.com';
         else if (name.endsWith('_win_pct_6') || name.endsWith('_goal_avg_6')) source = '500.com';
 
         db.execRun(
           `INSERT OR REPLACE INTO feature_store
            (match_num, match_date, feature_version, feature_name, feature_value, feature_source, computed_at)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          matchNum, matchDate, this.featureVersion, name, value, source, now
+          matchNum,
+          matchDate,
+          this.featureVersion,
+          name,
+          value,
+          source,
+          now,
         );
       }
     } catch (e) {
@@ -418,7 +450,9 @@ class FeatureEngine {
       const rows = db.execAll(
         `SELECT feature_name, feature_value FROM feature_store
          WHERE match_num = ? AND match_date = ? AND feature_version = ?`,
-        matchNum, matchDate, this.featureVersion
+        matchNum,
+        matchDate,
+        this.featureVersion,
       );
       const features = {};
       for (const row of rows) {

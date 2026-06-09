@@ -213,8 +213,8 @@ async function processQueue() {
 // ═══ 3.5 熔断器 ═══
 const _circuitBreaker = {};
 const CB_CONFIG = {
-  backoffAfter: 3,      // 连续失败 3 次 → 退避 30 分钟
-  breakAfter: 10,       // 连续失败 10 次 → 熔断 2 小时
+  backoffAfter: 3, // 连续失败 3 次 → 退避 30 分钟
+  breakAfter: 10, // 连续失败 10 次 → 熔断 2 小时
   backoffMinutes: 30,
   breakMinutes: 120,
 };
@@ -231,7 +231,15 @@ function _recordTaskResult(taskName, success) {
     cb.consecutiveFailures++;
     if (cb.consecutiveFailures >= CB_CONFIG.breakAfter) {
       cb.openUntil = Date.now() + CB_CONFIG.breakMinutes * 60 * 1000;
-      logger.error('[cb] 熔断: ' + taskName + ' 连续失败 ' + cb.consecutiveFailures + ' 次, 熔断 ' + CB_CONFIG.breakMinutes + ' 分钟');
+      logger.error(
+        '[cb] 熔断: ' +
+          taskName +
+          ' 连续失败 ' +
+          cb.consecutiveFailures +
+          ' 次, 熔断 ' +
+          CB_CONFIG.breakMinutes +
+          ' 分钟',
+      );
       alert.taskCircuitBreaker({ taskName, consecutiveFailures: cb.consecutiveFailures });
     }
   }
@@ -254,6 +262,10 @@ function _getBackoffDelay(taskName) {
   if (cb.consecutiveFailures >= CB_CONFIG.breakAfter) return CB_CONFIG.breakMinutes * 60 * 1000;
   if (cb.consecutiveFailures >= CB_CONFIG.backoffAfter) return CB_CONFIG.backoffMinutes * 60 * 1000;
   return 0;
+}
+
+function _resetCircuitBreaker() {
+  Object.keys(_circuitBreaker).forEach((key) => delete _circuitBreaker[key]);
 }
 
 // ═══ 4. 任务执行器 ═══
@@ -363,7 +375,9 @@ async function executeTask(taskName, params, retryCount) {
               try {
                 await featureEngine.computeFeatures(m, { dataFile: data });
                 count++;
-              } catch (e2) { /* skip */ }
+              } catch (e2) {
+                /* skip */
+              }
             }
             logger.info('[task] FeatureEngine 完成: ' + count + ' 场比赛特征已计算');
           }
@@ -379,13 +393,19 @@ async function executeTask(taskName, params, retryCount) {
           const today = (params && params.date) || new Date().toISOString().slice(0, 10);
           logger.info('[sporttery] 开始抓取今日(' + today + ')实盘赔率...');
           const cmd = 'python scripts/scrape_sporttery.py --today --bridge --headless';
-          const output = execSync(cmd, { cwd: require('path').join(__dirname, '..'), timeout: 45 * 60 * 1000, encoding: 'utf8' });
+          const output = execSync(cmd, {
+            cwd: require('path').join(__dirname, '..'),
+            timeout: 45 * 60 * 1000,
+            encoding: 'utf8',
+          });
           // 提取关键行
-          const lines = output.split('\n').filter(function(l) { return l.includes('✅') || l.includes('[Done]'); });
+          const lines = output.split('\n').filter(function (l) {
+            return l.includes('✅') || l.includes('[Done]');
+          });
           logger.info('[sporttery] ' + lines.slice(-3).join(' | '));
         } catch (e) {
           logger.error('[sporttery] 抓取失败: ' + (e.stderr || e.message || '').slice(0, 300));
-          throw e;  // 触发重试队列
+          throw e; // 触发重试队列
         }
         break;
       }
@@ -609,12 +629,12 @@ function isMatchPeakHours() {
 
 function getMatchPhaseLabel() {
   const hour = new Date().getHours();
-  if (hour >= 8 && hour < 12) return 'morning_prep';   // 上午准备
-  if (hour >= 12 && hour < 14) return 'noon_sync';      // 中午全量同步
+  if (hour >= 8 && hour < 12) return 'morning_prep'; // 上午准备
+  if (hour >= 12 && hour < 14) return 'noon_sync'; // 中午全量同步
   if (hour >= 14 && hour < 18) return 'afternoon_build'; // 下午建仓
-  if (hour >= 18 && hour < 20) return 'pre_match';       // 赛前2h窗口
-  if (hour >= 20 || hour < 2) return 'match_active';     // 比赛密集
-  return 'off_hours';                                    // 休赛期
+  if (hour >= 18 && hour < 20) return 'pre_match'; // 赛前2h窗口
+  if (hour >= 20 || hour < 2) return 'match_active'; // 比赛密集
+  return 'off_hours'; // 休赛期
 }
 
 /**
@@ -645,7 +665,7 @@ function getDynamicIntervals() {
   // 非比赛日放宽
   if (phase === 'off_hours') {
     base.l2_batch_discover = 4 * 60 * 60 * 1000; // 4小时
-    base.l3_full_match = 12 * 60 * 60 * 1000;    // 12小时
+    base.l3_full_match = 12 * 60 * 60 * 1000; // 12小时
   }
 
   return { phase, peak, ...base };
@@ -686,19 +706,37 @@ function recordFetchAttempt(success, taskName, errMsg) {
   if (_fetchMetrics.totalAttempts >= 10) {
     const rate = _fetchMetrics.successes / _fetchMetrics.totalAttempts;
     if (rate < 0.9 && _fetchMetrics.totalAttempts % 10 === 0) {
-      logger.warn('[metrics] ⚠️ 抓取成功率低于90%: ' + (rate * 100).toFixed(1) + '% (' +
-        _fetchMetrics.successes + '/' + _fetchMetrics.totalAttempts + ')');
+      logger.warn(
+        '[metrics] ⚠️ 抓取成功率低于90%: ' +
+          (rate * 100).toFixed(1) +
+          '% (' +
+          _fetchMetrics.successes +
+          '/' +
+          _fetchMetrics.totalAttempts +
+          ')',
+      );
     }
   }
 }
 
 function getFetchMetrics() {
   const total = _fetchMetrics.totalAttempts;
-  const rate = total > 0 ? (_fetchMetrics.successes / total * 100).toFixed(1) : 'N/A';
+  const rate = total > 0 ? ((_fetchMetrics.successes / total) * 100).toFixed(1) : 'N/A';
   return {
     ..._fetchMetrics,
     successRate: rate + '%',
     errors: _fetchMetrics.errors.slice(-5), // 最近5条
+  };
+}
+
+function _resetFetchMetrics() {
+  _fetchMetrics = {
+    totalAttempts: 0,
+    successes: 0,
+    failures: 0,
+    lastSuccess: null,
+    lastFailure: null,
+    errors: [],
   };
 }
 
@@ -795,14 +833,31 @@ async function start() {
       apiFetchStats = fs.successRate + ' avgLatency=' + fs.avgLatency;
     } catch (e) {}
 
-    logger.info('[health] 时段:' + intervals.phase + ' | 频率:' +
-      ' L1=' + Math.round(intervals.l1_jczqyz / 1000) + 's' +
-      ' L2=' + Math.round(intervals.l2_batch_discover / 60000) + 'min' +
-      ' L3=' + Math.round(intervals.l3_full_match / 60000) + 'min');
+    logger.info(
+      '[health] 时段:' +
+        intervals.phase +
+        ' | 频率:' +
+        ' L1=' +
+        Math.round(intervals.l1_jczqyz / 1000) +
+        's' +
+        ' L2=' +
+        Math.round(intervals.l2_batch_discover / 60000) +
+        'min' +
+        ' L3=' +
+        Math.round(intervals.l3_full_match / 60000) +
+        'min',
+    );
     logger.info('[health] 任务统计: ' + summary);
-    logger.info('[health] 调度抓取: ' + fetchM.successRate +
-      ' (' + fetchM.successes + '/' + fetchM.totalAttempts + ')' +
-      (fetchM.lastFailure ? ' 最近失败:' + fetchM.lastFailure : ''));
+    logger.info(
+      '[health] 调度抓取: ' +
+        fetchM.successRate +
+        ' (' +
+        fetchM.successes +
+        '/' +
+        fetchM.totalAttempts +
+        ')' +
+        (fetchM.lastFailure ? ' 最近失败:' + fetchM.lastFailure : ''),
+    );
     logger.info('[health] API直连: ' + apiFetchStats);
   });
 
@@ -848,15 +903,17 @@ async function start() {
   if (hasLock) {
     // 首次立即执行（延迟5秒等待初始化完成）
     setTimeout(() => {
-      executeTask('gongshoudao_refresh', {}).then(() => {
-        recordFetchAttempt(true, 'gongshoudao_refresh_init');
-        // 首次成功后启动动态调度
-        scheduleGSRefresh();
-      }).catch((e) => {
-        logger.warn('[init] 首次功守道刷新失败: ' + e.message);
-        recordFetchAttempt(false, 'gongshoudao_refresh_init', e.message);
-        scheduleGSRefresh();
-      });
+      executeTask('gongshoudao_refresh', {})
+        .then(() => {
+          recordFetchAttempt(true, 'gongshoudao_refresh_init');
+          // 首次成功后启动动态调度
+          scheduleGSRefresh();
+        })
+        .catch((e) => {
+          logger.warn('[init] 首次功守道刷新失败: ' + e.message);
+          recordFetchAttempt(false, 'gongshoudao_refresh_init', e.message);
+          scheduleGSRefresh();
+        });
     }, 5000);
   } else {
     scheduleGSRefresh();
@@ -872,12 +929,24 @@ async function start() {
     // 频率策略：赛前2h窗口 → 3min / 比赛密集 → 5min / 建仓期 → 10min / 准备期 → 30min / 休赛期 → 2h
     let delay;
     switch (phase) {
-      case 'pre_match':      delay = 3 * 60 * 1000; break;
-      case 'match_active':   delay = 5 * 60 * 1000; break;
-      case 'noon_sync':      delay = 5 * 60 * 1000; break;
-      case 'afternoon_build': delay = 10 * 60 * 1000; break;
-      case 'morning_prep':   delay = 30 * 60 * 1000; break;
-      default:               delay = 2 * 60 * 60 * 1000; break; // off_hours
+      case 'pre_match':
+        delay = 3 * 60 * 1000;
+        break;
+      case 'match_active':
+        delay = 5 * 60 * 1000;
+        break;
+      case 'noon_sync':
+        delay = 5 * 60 * 1000;
+        break;
+      case 'afternoon_build':
+        delay = 10 * 60 * 1000;
+        break;
+      case 'morning_prep':
+        delay = 30 * 60 * 1000;
+        break;
+      default:
+        delay = 2 * 60 * 60 * 1000;
+        break; // off_hours
     }
 
     logger.info('[schedule] 赔率追踪间隔: ' + Math.round(delay / 60000) + 'min (时段:' + phase + ')');
@@ -934,8 +1003,16 @@ async function start() {
     try {
       const { getBatchDiscoveryReport } = require('./gongshoudao/fetch');
       const report = getBatchDiscoveryReport();
-      logger.info('[discovery] 批次发现: 命中率=' + report.hitRate +
-        ' (' + report.hits + '/' + report.total + ') 策略=' + report.strategy);
+      logger.info(
+        '[discovery] 批次发现: 命中率=' +
+          report.hitRate +
+          ' (' +
+          report.hits +
+          '/' +
+          report.total +
+          ') 策略=' +
+          report.strategy,
+      );
     } catch (e) {}
   });
 
@@ -947,10 +1024,18 @@ async function start() {
       const cleaned = purgeExpired();
       if (cleaned > 0) {
         const after = getCacheStats();
-        logger.info('[cache] 自动淘汰完成: ' + cleaned + '条 | L1_raw=' +
-          after.layers.L1_rawAPI.entries + '(-' + before.layers.L1_rawAPI.expired +
-          ') L2_match=' + after.layers.L2_matchResults.entries +
-          ' bankSize=' + after.bankSize);
+        logger.info(
+          '[cache] 自动淘汰完成: ' +
+            cleaned +
+            '条 | L1_raw=' +
+            after.layers.L1_rawAPI.entries +
+            '(-' +
+            before.layers.L1_rawAPI.expired +
+            ') L2_match=' +
+            after.layers.L2_matchResults.entries +
+            ' bankSize=' +
+            after.bankSize,
+        );
       }
 
       // ★ P1-4 + P2: 清理 AI 缓存过期条目（每次 cache_purge 顺带执行）
@@ -1039,4 +1124,20 @@ module.exports = {
   getMatchPhaseLabel,
   recordFetchAttempt,
   getFetchMetrics,
+  __test: {
+    acquireLock,
+    renewLock,
+    releaseLock,
+    processQueue,
+    _recordTaskResult,
+    _isCircuitOpen,
+    _getBackoffDelay,
+    _resetCircuitBreaker,
+    _resetFetchMetrics,
+    paths: {
+      LOCK_FILE,
+      STATE_FILE,
+      QUEUE_FILE,
+    },
+  },
 };

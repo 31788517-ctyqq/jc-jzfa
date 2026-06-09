@@ -3,7 +3,15 @@
  * API 错误码标准化测试
  * 覆盖: 错误码常量定义、分类完整性、前端 switch 分支
  */
-const EXP_ERR_LABELS = ['OK','NO_DATA','INVALID_PARAM','SERVER_ERROR','THIRD_PARTY_ERR','DB_CORRUPT','UNAUTHORIZED'];
+const EXP_ERR_LABELS = [
+  'OK',
+  'NO_DATA',
+  'INVALID_PARAM',
+  'SERVER_ERROR',
+  'THIRD_PARTY_ERR',
+  'DB_CORRUPT',
+  'UNAUTHORIZED',
+];
 
 describe('error-codes — 错误码定义', () => {
   let ERROR_CODES;
@@ -12,9 +20,13 @@ describe('error-codes — 错误码定义', () => {
   } catch (e) {
     // 模块可能尚未创建，在这里定义期望的结构
     ERROR_CODES = {
-      OK: 0, NO_DATA: 1,
-      INVALID_PARAM: -1, SERVER_ERROR: -2, THIRD_PARTY_ERR: -3,
-      DB_CORRUPT: -4, UNAUTHORIZED: -5,
+      OK: 0,
+      NO_DATA: 1,
+      INVALID_PARAM: -1,
+      SERVER_ERROR: -2,
+      THIRD_PARTY_ERR: -3,
+      DB_CORRUPT: -4,
+      UNAUTHORIZED: -5,
     };
   }
 
@@ -71,7 +83,7 @@ describe('error-codes — 分类逻辑', () => {
   });
 
   it('DB_CORRUPT(-4) 应有特殊处理提示', () => {
-    const dbCorruptMsg = (code) => code === -4 ? '数据库异常，已自动恢复中...' : null;
+    const dbCorruptMsg = (code) => (code === -4 ? '数据库异常，已自动恢复中...' : null);
     expect(dbCorruptMsg(-4)).toBeTruthy();
     expect(dbCorruptMsg(-2)).toBeNull();
   });

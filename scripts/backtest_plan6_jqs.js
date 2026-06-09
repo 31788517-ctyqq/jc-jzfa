@@ -1,12 +1,12 @@
 /**
  * 方案六回测 — 总进球2、3球 (JQS) — 3D网格搜索版
- * 
+ *
  * 规则:
  *   方向: 总进球-2、3球 (Dutch 双选，任一命中即赢)
  *   决胜: L1 方向专家数（平局按遍历顺序取第一个）
  *   赔率缺失: 不生成方案
  *   投注额: 1000 元/期
- * 
+ *
  * 网格搜索: 遍历 [日比赛门槛] × [赔率下限]（专家门槛已知无效，固定为1）
  */
 
@@ -23,7 +23,7 @@ const PLAN6_DIRECTION = '总进球-2、3球';
 const TARGET_PARTS = ['总进球-2', '总进球-3'];
 
 // ── 网格搜索范围 ──
-const DAY_RANGE  = process.argv[2] ? [parseInt(process.argv[2])] : [2];   // 默认盈利组合: 日≥2
+const DAY_RANGE = process.argv[2] ? [parseInt(process.argv[2])] : [2]; // 默认盈利组合: 日≥2
 const ODDS_RANGE = process.argv[3] ? [parseFloat(process.argv[3])] : [1.8]; // 默认盈利组合: 合赔≥1.8
 
 // ── 赔率提取 ──
@@ -53,7 +53,9 @@ function dutchOdds(subOdds) {
 // ── 赛果判定 ──
 function extractRecResult(recs, direction) {
   const subDirs = direction.split(/[、,]/);
-  let anyWon = false, anyLose = false, anyUnknown = false;
+  let anyWon = false,
+    anyLose = false,
+    anyUnknown = false;
 
   for (const sd of subDirs) {
     const s = sd.trim();
@@ -70,7 +72,7 @@ function extractRecResult(recs, direction) {
     if (!found) {
       for (const r of recs) {
         const recSubs = (r.type || '').split(/[、,]/);
-        if (recSubs.some(rs => rs.trim() === s)) {
+        if (recSubs.some((rs) => rs.trim() === s)) {
           found = true;
           if (r.result === 1) anyWon = true;
           else if (r.result === 0) anyLose = true;
@@ -96,14 +98,21 @@ function hasTG23Odds(oddsObj) {
 // ── 回测核心函数 ──
 function runBacktest(minDayMatches, minExpertCount, minDutchOdds) {
   const results = [];
-  let totalPlan6 = 0, totalWon = 0, totalIncome = 0;
-  let skippedNoOdds = 0, skippedLowExpert = 0, skippedLowDay = 0;
+  let totalPlan6 = 0,
+    totalWon = 0,
+    totalIncome = 0;
+  let skippedNoOdds = 0,
+    skippedLowExpert = 0,
+    skippedLowDay = 0;
 
   for (const ds of allDates) {
     const mList = dateMap[ds];
     const dayMatchCount = mList.length;
 
-    if (dayMatchCount < minDayMatches) { skippedLowDay++; continue; }
+    if (dayMatchCount < minDayMatches) {
+      skippedLowDay++;
+      continue;
+    }
 
     const matchDataMap = {};
     for (const mm of mList) {
@@ -111,7 +120,7 @@ function runBacktest(minDayMatches, minExpertCount, minDutchOdds) {
       const recs = recsRaw.map((x) => ({
         type: x.t || x.type || '',
         num: x.n || x.num || 0,
-        result: (x.rs === 0 || x.rs === 1) ? x.rs : null,
+        result: x.rs === 0 || x.rs === 1 ? x.rs : null,
       }));
       const oddsObjRaw = getOddsForMatch(ds, mm.num || '');
       let oddsObj = null;
@@ -128,7 +137,8 @@ function runBacktest(minDayMatches, minExpertCount, minDutchOdds) {
     }
 
     // ★ L1 方向专家数决胜
-    let bestM6 = null, bestCount6 = 0;
+    let bestM6 = null,
+      bestCount6 = 0;
 
     for (const mm of mList) {
       const md = matchDataMap[mm.matchId];
@@ -149,14 +159,23 @@ function runBacktest(minDayMatches, minExpertCount, minDutchOdds) {
       }
     }
 
-    if (bestCount6 < minExpertCount) { skippedLowExpert++; continue; }
+    if (bestCount6 < minExpertCount) {
+      skippedLowExpert++;
+      continue;
+    }
 
     // 赔率检查
     const md6 = matchDataMap[bestM6 ? bestM6.matchId : ''];
     const odds6 = extractIndividualOdds(md6 ? md6.odds : null, PLAN6_DIRECTION);
     const eff6 = dutchOdds(odds6);
-    if (odds6.length < 2 || eff6 <= 0) { skippedNoOdds++; continue; }
-    if (eff6 < minDutchOdds) { skippedNoOdds++; continue; }
+    if (odds6.length < 2 || eff6 <= 0) {
+      skippedNoOdds++;
+      continue;
+    }
+    if (eff6 < minDutchOdds) {
+      skippedNoOdds++;
+      continue;
+    }
 
     // 赛果判定
     const recs6 = md6 ? md6.recs : [];
@@ -179,14 +198,19 @@ function runBacktest(minDayMatches, minExpertCount, minDutchOdds) {
     const home = (bestM6.homeName || '').slice(0, 6);
     const visit = (bestM6.visitName || '').slice(0, 6);
     results.push({
-      date: ds, num: bestM6.num || '', matchId: bestM6.matchId,
-      home, visit,
+      date: ds,
+      num: bestM6.num || '',
+      matchId: bestM6.matchId,
+      home,
+      visit,
       expertCount6: bestCount6,
-      oddsEff: eff6.toFixed(2), won, profit: won ? (prize - AMOUNT) : -AMOUNT,
+      oddsEff: eff6.toFixed(2),
+      won,
+      profit: won ? prize - AMOUNT : -AMOUNT,
     });
   }
 
-  const winRate = totalPlan6 > 0 ? (totalWon / totalPlan6 * 100).toFixed(1) : '0.0';
+  const winRate = totalPlan6 > 0 ? ((totalWon / totalPlan6) * 100).toFixed(1) : '0.0';
   return { totalPlan6, totalWon, winRate, totalIncome, skippedLowDay, skippedLowExpert, skippedNoOdds, results };
 }
 
@@ -223,8 +247,12 @@ let oddsLoaded = 0;
 for (const ds of allDates) {
   const file = path.join(ODDS_DIR, ds + '.json');
   if (fs.existsSync(file)) {
-    try { oddsCache[ds] = JSON.parse(fs.readFileSync(file, 'utf8')); oddsLoaded++; }
-    catch (e) { /* skip */ }
+    try {
+      oddsCache[ds] = JSON.parse(fs.readFileSync(file, 'utf8'));
+      oddsLoaded++;
+    } catch (e) {
+      /* skip */
+    }
   }
 }
 console.log('  odds_history: ' + oddsLoaded + '/' + allDates.length + ' days loaded');
@@ -236,7 +264,15 @@ function getOddsForMatch(ds, matchNum) {
 }
 
 // ── 3D网格搜索 ──
-console.log('\n[2/2] 3D Grid search (' + DAY_RANGE.length + '×' + ODDS_RANGE.length + ' = ' + (DAY_RANGE.length * ODDS_RANGE.length) + ' combos)...\n');
+console.log(
+  '\n[2/2] 3D Grid search (' +
+    DAY_RANGE.length +
+    '×' +
+    ODDS_RANGE.length +
+    ' = ' +
+    DAY_RANGE.length * ODDS_RANGE.length +
+    ' combos)...\n',
+);
 
 const grid = [];
 
@@ -244,10 +280,14 @@ for (const minDay of DAY_RANGE) {
   for (const minOdds of ODDS_RANGE) {
     const r = runBacktest(minDay, 1, minOdds);
     grid.push({
-      minDay, minOdds,
-      total: r.totalPlan6, won: r.totalWon,
-      rate: r.winRate, income: r.totalIncome,
-      skipDay: r.skippedLowDay, skipOdds: r.skippedNoOdds,
+      minDay,
+      minOdds,
+      total: r.totalPlan6,
+      won: r.totalWon,
+      rate: r.winRate,
+      income: r.totalIncome,
+      skipDay: r.skippedLowDay,
+      skipOdds: r.skippedNoOdds,
     });
   }
 }
@@ -266,7 +306,7 @@ let bestGrid = null;
 for (const minDay of DAY_RANGE) {
   let row = String(minDay).padStart(3) + ' │';
   for (const minOdds of ODDS_RANGE) {
-    const g = grid.find(x => x.minDay === minDay && x.minOdds === minOdds);
+    const g = grid.find((x) => x.minDay === minDay && x.minOdds === minOdds);
     if (g && g.total > 0) {
       const sign = g.income >= 0 ? '+' : '';
       const cell = (sign + g.income).padStart(8);
@@ -285,14 +325,26 @@ for (const minDay of DAY_RANGE) {
 console.log('\n═══ 详情 (日↓ 赔率→ 期数:命中数/命中率/盈亏) ═══\n');
 for (const minDay of DAY_RANGE) {
   for (const minOdds of ODDS_RANGE) {
-    const g = grid.find(x => x.minDay === minDay && x.minOdds === minOdds);
+    const g = grid.find((x) => x.minDay === minDay && x.minOdds === minOdds);
     if (!g || g.total === 0) continue;
     const mark = g.income > 0 ? ' ✅' : '';
-    console.log('  日≥' + String(minDay).padStart(2) + ' | 合赔≥' + String(minOdds.toFixed(1)).padStart(4) +
-      ' | ' + String(g.total).padStart(3) + '期 ' +
-      String(g.won).padStart(2) + '中 ' +
-      String(g.rate).padStart(5) + '% ' +
-      (g.income >= 0 ? '+' : '') + g.income + '元' + mark);
+    console.log(
+      '  日≥' +
+        String(minDay).padStart(2) +
+        ' | 合赔≥' +
+        String(minOdds.toFixed(1)).padStart(4) +
+        ' | ' +
+        String(g.total).padStart(3) +
+        '期 ' +
+        String(g.won).padStart(2) +
+        '中 ' +
+        String(g.rate).padStart(5) +
+        '% ' +
+        (g.income >= 0 ? '+' : '') +
+        g.income +
+        '元' +
+        mark,
+    );
   }
 }
 

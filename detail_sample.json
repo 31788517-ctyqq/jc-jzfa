@@ -1,0 +1,183 @@
+{
+  "data": {
+    "allTakeRedNum": 3385,
+    "amount": 88.0,
+    "billType": 2,
+    "buyCount": 384,
+    "buyEndTime": 1780840200000,
+    "canBuy": false,
+    "icon": "https://ur.ttyingqiu.com/upload/memberphoto/311/tn_1763016564859_160_160.jpg",
+    "id": 40057,
+    "last10Record": "1111111111",
+    "lhCount": 71,
+    "looked": false,
+    "maxLhCount": 71,
+    "memberId": 9150419,
+    "nickName": "今晚必中",
+    "periodNo": 71,
+    "periodType": 2,
+    "phase": 2,
+    "phaseList": [
+      {
+        "cost": 2.0,
+        "id": 94433,
+        "itemVos": [
+          {
+            "endSale": false,
+            "fxId": "114541792",
+            "gameId": 4072,
+            "guestImgPath": "https://r.ttyingqiu.com/upload/sportdata/teamLogo/sdxg_4ccc41b4d4d3a4ee77c0729a72776db6.png",
+            "guestTeam": "斯洛文尼亚",
+            "homeImgPath": "https://r.ttyingqiu.com/upload/sportdata/teamLogo/sdxg_29af77da9c86e3580fff75f75f0798fc.png",
+            "homeTeam": "克罗地亚",
+            "id": 9048239,
+            "leagueType": 2032,
+            "matchName": "国际友谊",
+            "matchNo": 201,
+            "matchTime": 1780857900000,
+            "playList": [
+              {
+                "gameId": 4072,
+                "valueList": [
+                  {
+                    "raceSp": "3.45",
+                    "raceValue": "3",
+                    "raceValueDesc": "3球",
+                    "selected": false,
+                    "win": true
+                  },
+                  {
+                    "raceSp": "5.10",
+                    "raceValue": "4",
+                    "raceValueDesc": "4球",
+                    "selected": false,
+                    "win": false
+                  }
+                ]
+              },
+              {
+                "gameId": 4073,
+                "valueList": [
+                  {
+                    "raceSp": "7.75",
+                    "raceValue": "30",
+                    "raceValueDesc": "3:0",
+                    "selected": false,
+                    "win": false
+                  },
+                  {
+                    "raceSp": "10.50",
+                    "raceValue": "31",
+                    "raceValueDesc": "3:1",
+                    "selected": false,
+                    "win": false
+                  }
+                ]
+              }
+            ],
+            "raceType": 1,
+            "saleCG": false,
+            "saleDG": false,
+            "saleEndTime": 1780840200000,
+            "status": 6,
+            "valueList": [],
+            "weekName": "周日",
+            "wholeScore": "2:1",
+            "winStatus": 2
+          }
+        ],
+        "looked": true,
+        "matchTime": 1780857900000,
+        "minPrize": 3.45,
+        "openStatus": 1,
+        "phase": 2,
+        "prize": 0.0,
+        "prize2": 3.45,
+        "raceStatus": 6,
+        "winStatus": 2
+      },
+      {
+        "cost": 2.0,
+        "id": 94017,
+        "itemVos": [
+          {
+            "endSale": false,
+            "fxId": "114545844",
+            "gameId": 4072,
+            "guestImgPath": "https://r.ttyingqiu.com/upload/sportdata/teamLogo/fa4105f0408ef893d941e70ae003ab4c.png",
+            "guestTeam": "清水心跳",
+            "homeImgPath": "https://r.ttyingqiu.com/upload/sportdata/teamLogo/78ddaaa79d9502f5e2df0fbb6261f937.png",
+            "homeTeam": "横滨水手",
+            "id": 9047017,
+            "leagueType": 2558,
+            "matchName": "日职联",
+            "matchNo": 204,
+            "matchTime": 1780732800000,
+            "playList": [
+              {
+                "gameId": 4072,
+                "valueList": [
+                  {
+                    "raceSp": "4.20",
+                    "raceValue": "1",
+                    "raceValueDesc": "1球",
+                    "selected": false,
+                    "win": false
+                  },
+                  {
+                    "raceSp": "3.25",
+                    "raceValue": "2",
+                    "raceValueDesc": "2球",
+                    "selected": false,
+                    "win": false
+                  }
+                ]
+              },
+              {
+                "gameId": 4073,
+                "valueList": [
+                  {
+                    "raceSp": "6.50",
+                    "raceValue": "10",
+                    "raceValueDesc": "1:0",
+                    "selected": false,
+                    "win": false
+                  },
+                  {
+                    "raceSp": "10.00",
+                    "raceValue": "20",
+                    "raceValueDesc": "2:0",
+                    "selected": false,
+                    "win": false
+                  }
+                ]
+              }
+            ],
+            "raceType": 1,
+            "saleCG": false,
+            "saleDG": false,
+            "saleEndTime": 1780732200000,
+            "status": 6,
+            "valueList": [],
+            "weekName": "周六",
+            "wholeScore": "3:0",
+            "winStatus": 1
+          }
+        ],
+        "looked": true,
+        "matchTime": 1780732800000,
+        "minPrize": 3.25,
+        "openStatus": 1,
+        "phase": 1,
+        "prize": 0.0,
+        "prize2": 0.0,
+        "raceStatus": 6,
+        "winStatus": 1
+      }
+    ],
+    "record": "近50中50",
+    "status": 2,
+    "takeRedNum": 92
+  },
+  "isSuccess": true
+}

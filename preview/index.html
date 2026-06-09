@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -8,47 +8,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>竞彩推荐监控</title>
     <link rel="preconnect" href="https://zj.100qiu.com" />
-    <link rel="preload" href="/js/main-fusion.js?v=202606071740" as="script" crossorigin="anonymous" />
-    <link rel="preload" href="/css/app.css?v=202606071740" as="style" />
-    <link rel="stylesheet" href="/css/app.css?v=202606071740" />
+    <link rel="modulepreload" href="/js/main-fusion.js?v=202606090335" />
+    <link rel="preload" href="/css/app.css?v=202606090335" as="style" />
+    <link rel="stylesheet" href="/css/app.css?v=202606090335" />
     <!-- ★ P1-5: 非首屏弹窗样式异步加载，不阻塞 FCP -->
     <link
       rel="stylesheet"
-      href="/css/modals.css?v=1"
+      href="/css/modals.css?v=202606090335"
       media="print"
       onload="
         this.media = 'all';
         this.onload = null;
       "
     />
-    <noscript><link rel="stylesheet" href="/css/modals.css?v=1" /></noscript>
+    <noscript><link rel="stylesheet" href="/css/modals.css?v=202606090335" /></noscript>
     <link
       rel="stylesheet"
-      href="/css/betting.css?v=7"
+      href="/css/betting.css?v=202606090335"
       media="print"
       onload="
         this.media = 'all';
         this.onload = null;
       "
     />
-    <noscript><link rel="stylesheet" href="/css/betting.css?v=7" /></noscript>
+    <noscript><link rel="stylesheet" href="/css/betting.css?v=202606090335" /></noscript>
+
     <!-- ECharts lazy-loaded by charts.js -->
   </head>
   <body>
     <!-- 导航栏 -->
-    <div class="navbar" id="navbar">
+    <div class="navbar home-mode" id="navbar">
       <span class="nav-logo"
-        ><img
-          src="/assets/worldcup/logo.png"
-          alt=""
-          decoding="async"
-          loading="eager"
-          width="36"
-          height="36"
-          style="width: 100%; height: 100%; object-fit: contain"
+        ><img src="/assets/worldcup/logo.png" alt="" decoding="async" loading="eager" width="42" height="42"
       /></span>
       <span class="nav-title" id="navTitle">竞彩推荐监控</span>
-      <span class="nav-back" id="navBack" onclick="goBack()" style="display: none"
+      <div class="home-actions" id="homeActions">
+        <button class="home-update-btn" type="button" onclick="switchTab('data-health')" aria-label="打开数据健康监控">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h3l2-5 4 9 2-4h5" /></svg>
+          <span>实时更新</span>
+        </button>
+        <button class="home-bell" type="button" aria-label="通知">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+            <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+          </svg>
+          <span>2</span>
+        </button>
+      </div>
+      <span class="nav-back" id="navBack" onclick="goBack()"
         ><svg width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
             d="M31 36L19 24L31 12"
@@ -62,156 +69,218 @@
 
     <!-- 首页 -->
     <div class="page" id="page-home">
-      <div class="hero-section"></div>
+      <!-- Banner -->
+      <div class="home-banner">
+        <img src="/assets/worldcup/banner3.webp" alt="世界杯首页横幅" decoding="async" loading="eager" />
+      </div>
 
-      <div class="stats-grid">
-        <div class="stat-box" onclick="switchTab('match')">
-          <div class="stat-value" id="matchCount">-</div>
-          <div class="stat-label">今日比赛</div>
+      <!-- Stats -->
+      <div class="home-stats">
+        <div class="home-stat-card" onclick="switchTab('match')">
+          <div class="home-stat-top">
+            <div class="home-stat-num" id="homeMatchCount">-</div>
+          </div>
+          <div class="home-stat-title">今日比赛</div>
+          <div class="home-stat-desc" id="homeMatchMeta">进行中 - 场</div>
         </div>
-        <div class="stat-box" onclick="switchTab('rank')">
-          <div class="stat-value" id="maxRankCount">-</div>
-          <div class="stat-label">最多推荐</div>
+        <div class="home-stat-card" onclick="switchTab('rank')">
+          <div class="home-stat-top">
+            <div class="home-stat-num" id="homeMaxRank">-</div>
+          </div>
+          <div class="home-stat-title">最多推荐</div>
+          <div class="home-stat-desc" id="homeMaxRankMeta">-</div>
+        </div>
+        <div class="home-stat-card" onclick="goHomeHottestMatch()">
+          <div class="home-stat-top">
+            <div class="home-stat-num" id="homeHottest">-</div>
+          </div>
+          <div class="home-stat-title">最热场次</div>
+          <div class="home-stat-desc" id="homeHottestMeta">-</div>
         </div>
       </div>
 
-      <div class="quick-menu">
-        <!-- 我要做方案 -->
-        <div class="menu-item" onclick="switchTab('scheme')">
-          <div class="menu-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-              <polyline
-                points="18,34 28,44 46,22"
-                fill="none"
-                stroke="#3B82F6"
-                stroke-width="5.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
+      <!-- Function -->
+      <div class="home-function-wrap">
+        <!-- 左侧主卡：做个方案 -->
+        <div class="home-left-card" onclick="switchTab('scheme')">
+          <div class="home-left-main">
+            <div class="home-plus-icon">+</div>
+            <div class="home-left-content">
+              <div class="home-left-title">做个方案</div>
+              <div class="home-left-desc">PK 专家推荐方案</div>
+            </div>
+            <div class="home-chess-bg" aria-hidden="true"></div>
           </div>
-          <div class="menu-content">
-            <div class="menu-title">我要做方案</div>
-            <div class="menu-desc">自定义方案和专家方案PK</div>
+          <div class="home-data-core">
+            <div class="home-core-title">数据量化核心</div>
+            <div class="home-bottom-tools">
+              <div
+                class="home-tool"
+                onclick="
+                  event.stopPropagation();
+                  switchTab('backtest');
+                "
+              >
+                <span class="home-tool-icon home-tool-backtest"
+                  ><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5v14h16" />
+                    <path d="M7 15l4-4 3 3 5-7" />
+                    <path d="M16 7h3v3" /></svg
+                ></span>
+                <span>回测</span>
+              </div>
+              <div
+                class="home-tool"
+                onclick="
+                  event.stopPropagation();
+                  switchTab('model-dashboard');
+                "
+              >
+                <span class="home-tool-icon home-tool-model"
+                  ><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3l7 4v10l-7 4-7-4V7l7-4Z" />
+                    <path d="M12 8v8M8.5 10l7 4M15.5 10l-7 4" /></svg
+                ></span>
+                <span>模型</span>
+              </div>
+              <div
+                class="home-tool"
+                onclick="
+                  event.stopPropagation();
+                  switchTab('quant-rank');
+                "
+              >
+                <span class="home-tool-icon home-tool-quant"
+                  ><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 19V9" />
+                    <path d="M12 19V5" />
+                    <path d="M19 19v-7" />
+                    <path d="M3 19h18" /></svg
+                ></span>
+                <span>量化</span>
+              </div>
+            </div>
           </div>
-          <div class="menu-arrow">›</div>
         </div>
-        <div class="menu-item" onclick="switchTab('income')">
-          <div class="menu-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-              <polyline
-                points="18,34 28,44 46,22"
-                fill="none"
-                stroke="#3B82F6"
-                stroke-width="5.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
+
+        <!-- 右侧功能卡 -->
+        <div class="home-right-wrap">
+          <div class="home-right-card home-card-income" onclick="switchTab('income')">
+            <div class="home-right-icon home-icon-money">
+              <svg viewBox="0 0 48 48" aria-hidden="true">
+                <ellipse cx="24" cy="14" rx="13" ry="6" fill="none" stroke="white" stroke-width="4" />
+                <path
+                  d="M11 14v10c0 3.3 5.8 6 13 6s13-2.7 13-6V14"
+                  fill="none"
+                  stroke="white"
+                  stroke-width="4"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M11 24v8c0 3.3 5.8 6 13 6s13-2.7 13-6v-8"
+                  fill="none"
+                  stroke="white"
+                  stroke-width="4"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M19 14c1.2 1.1 8.8 1.1 10 0"
+                  fill="none"
+                  stroke="white"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+            <div class="home-right-text">
+              <div class="home-right-title">方案收入</div>
+              <div class="home-right-desc">查询方案盈利情况</div>
+            </div>
+            <span class="home-right-arrow">›</span>
           </div>
-          <div class="menu-content">
-            <div class="menu-title">方案收入比较</div>
-            <div class="menu-desc">查看比较各类方案盈利情况</div>
+
+          <div class="home-right-card home-card-hit" onclick="switchTab('filter')">
+            <div class="home-right-icon home-icon-green">
+              <svg viewBox="0 0 48 48" aria-hidden="true">
+                <circle cx="23" cy="25" r="15" fill="none" stroke="white" stroke-width="4" />
+                <circle cx="23" cy="25" r="6" fill="none" stroke="white" stroke-width="4" />
+                <path
+                  d="M32 16l8-8M36 8h4v4"
+                  fill="none"
+                  stroke="white"
+                  stroke-width="4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <div class="home-right-text">
+              <div class="home-right-title">方向命中</div>
+              <div class="home-right-desc">查询各方向命中率</div>
+            </div>
+            <span class="home-right-arrow">›</span>
           </div>
-          <div class="menu-arrow">›</div>
         </div>
-        <div class="menu-item" onclick="switchTab('quant-rank')">
-          <div class="menu-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-              <polyline
-                points="18,34 28,44 46,22"
-                fill="none"
-                stroke="#3B82F6"
-                stroke-width="5.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
+      </div>
+
+      <!-- 近7日推荐盈利图表 -->
+      <div class="profit-card-wrap" id="homeProfitChartSection" style="display:none;margin-top:16px">
+        <div class="profit-card">
+          <!-- Header -->
+          <div class="profit-header">
+            <h2 class="profit-title">专家方案盈利</h2>
+            <div class="profit-filter">近7日</div>
+          </div>
+
+          <!-- Legend -->
+          <div class="profit-legend">
+            <div class="profit-legend-item">
+              <i class="profit-dot profit-dot-win"></i><span>盈利</span>
+            </div>
+            <div class="profit-legend-item">
+              <i class="profit-dot profit-dot-loss"></i><span>亏损</span>
+            </div>
+            <div class="profit-legend-unit">单位：元</div>
+          </div>
+
+          <!-- 图表区域 -->
+          <div class="profit-chart">
+            <!-- 网格 -->
+            <div class="profit-grid"></div>
+            <!-- SVG 曲线 -->
+            <svg class="profit-svg" id="profitSvg" viewBox="0 0 320 260" preserveAspectRatio="none">
+              <defs id="profitDefs"></defs>
+              <g id="profitPaths"></g>
             </svg>
+            <!-- 数据标签（JS 动态生成） -->
+            <div class="profit-tags" id="profitTags"></div>
+            <!-- Y 轴 -->
+            <div class="profit-yaxis" id="profitYaxis"></div>
+            <!-- X 轴 -->
+            <div class="profit-xaxis" id="profitXaxis"></div>
           </div>
-          <div class="menu-content">
-            <div class="menu-title">量化数据排行榜</div>
-            <div class="menu-desc">量化数据排行及场次数据PK</div>
+
+          <!-- KPI 统计卡片 -->
+          <div class="profit-stats" id="profitStats">
+            <div class="profit-stat">
+              <label>总盈利</label>
+              <strong id="statsTotal">--</strong>
+              <span>元</span>
+            </div>
+            <div class="profit-divider"></div>
+            <div class="profit-stat">
+              <label>较前7日</label>
+              <strong id="statsGrowth">--</strong>
+              <span>增长</span>
+            </div>
+            <div class="profit-divider"></div>
+            <div class="profit-stat">
+              <label>最高单日盈利</label>
+              <strong id="statsMax">--</strong>
+              <span id="statsMaxDate">--</span>
+            </div>
+
           </div>
-          <div class="menu-arrow">›</div>
-        </div>
-        <div class="menu-item" onclick="switchTab('filter')">
-          <div class="menu-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-              <polyline
-                points="18,34 28,44 46,22"
-                fill="none"
-                stroke="#3B82F6"
-                stroke-width="5.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
-          <div class="menu-content">
-            <div class="menu-title">推荐方向命中查询</div>
-            <div class="menu-desc">查询推荐方向命中结果</div>
-          </div>
-          <div class="menu-arrow">›</div>
-        </div>
-        <!-- 回测入口 -->
-        <div class="menu-item" onclick="switchTab('backtest')">
-          <div class="menu-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-              <polyline
-                points="18,34 28,44 46,22"
-                fill="none"
-                stroke="#3B82F6"
-                stroke-width="5.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
-          <div class="menu-content">
-            <div class="menu-title">历史数据回测</div>
-            <div class="menu-desc">融合AI和量化数据预测查询与分析</div>
-          </div>
-          <div class="menu-arrow">›</div>
-        </div>
-        <!-- ★ 蓝图新增：模型表现仪表板 -->
-        <div class="menu-item" onclick="switchTab('model-dashboard')">
-          <div class="menu-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-              <polyline
-                points="18,34 28,44 46,22"
-                fill="none"
-                stroke="#3B82F6"
-                stroke-width="5.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
-          <div class="menu-content">
-            <div class="menu-title">模型表现仪表板</div>
-            <div class="menu-desc">各模型实时命中率排行与趋势</div>
-          </div>
-          <div class="menu-arrow">›</div>
-        </div>
-        <!-- ★ 蓝图新增：数据健康监控 -->
-        <div class="menu-item" onclick="switchTab('data-health')">
-          <div class="menu-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-              <polyline
-                points="18,34 28,44 46,22"
-                fill="none"
-                stroke="#3B82F6"
-                stroke-width="5.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
-          <div class="menu-content">
-            <div class="menu-title">数据健康监控</div>
-            <div class="menu-desc">数据源抓取质量与告警</div>
-          </div>
-          <div class="menu-arrow">›</div>
         </div>
       </div>
     </div>
@@ -238,6 +307,28 @@
               stroke-linejoin="round"
             /></svg
         ></span>
+        <span class="tab-label">首页</span>
+      </div>
+      <div class="tab-item" onclick="switchTab('rank')" id="tab-rank">
+        <span class="tab-icon"
+          ><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M17 18H4V42H17V18Z"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path d="M30 6H17V42H30V6Z" stroke="currentColor" stroke-width="4" stroke-linejoin="round" />
+            <path
+              d="M43 26H30V42H43V26Z"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            /></svg
+        ></span>
+        <span class="tab-label">排行</span>
       </div>
       <div class="tab-item" onclick="switchTab('match')" id="tab-match">
         <span class="tab-icon"
@@ -300,26 +391,7 @@
               stroke-linejoin="round"
             /></svg
         ></span>
-      </div>
-      <div class="tab-item" onclick="switchTab('rank')" id="tab-rank">
-        <span class="tab-icon"
-          ><svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M17 18H4V42H17V18Z"
-              stroke="currentColor"
-              stroke-width="4"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path d="M30 6H17V42H30V6Z" stroke="currentColor" stroke-width="4" stroke-linejoin="round" />
-            <path
-              d="M43 26H30V42H43V26Z"
-              stroke="currentColor"
-              stroke-width="4"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            /></svg
-        ></span>
+        <span class="tab-label">比赛</span>
       </div>
       <div class="tab-item" onclick="switchTab('hit')" id="tab-hit">
         <span class="tab-icon"
@@ -343,6 +415,7 @@
               stroke-linejoin="round"
             /></svg
         ></span>
+        <span class="tab-label">数据</span>
       </div>
       <div class="tab-item" onclick="switchTab('plan')" id="tab-plan">
         <span class="tab-icon"
@@ -378,8 +451,8 @@
               stroke-linejoin="round"
             /></svg
         ></span>
+        <span class="tab-label">方案</span>
       </div>
-    </div>
 
     <script>
       // ★ 阻塞脚本：恢复上次页面状态（主页为默认，其他页面由JS动态创建）
@@ -402,9 +475,15 @@
             };
             var titleEl = document.getElementById('navTitle');
             if (titleEl && titles[last]) titleEl.textContent = titles[last];
+            var nav = document.getElementById('navbar');
+            if (nav) nav.classList.remove('home-mode');
+            var backEl = document.getElementById('navBack');
+            if (backEl) backEl.style.display = 'flex';
           } else {
             var tb = document.getElementById('tab-home');
             if (tb) tb.classList.add('active');
+            var nav = document.getElementById('navbar');
+            if (nav) nav.classList.add('home-mode');
           }
         } catch (e) {}
       })();
@@ -422,7 +501,7 @@
       console.log('[INLINE-MODULE] loaded OK');
       window.inlineModuleWorks = true;
     </script>
-    <script type="module" src="/js/main-fusion.js?v=202606071740"></script>
+    <script type="module" src="/js/main-fusion.js?v=202606090335"></script>
     <!-- V5.0-FUSION-PK final-202605311423 -->
   </body>
 </html>

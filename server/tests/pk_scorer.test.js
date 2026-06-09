@@ -5,9 +5,7 @@
  *       calcVerificationScores (含离散度/盘口位移 V9.1)、calcAgeWeight、calcCompositeScore、
  *       computeAllScores、getDirectionAdvice
  */
-const {
-  computeAllScores, getDirectionAdvice
-} = require('../pk_scorer');
+const { computeAllScores, getDirectionAdvice } = require('../pk_scorer');
 
 // ★ V9.1: Mock data-fusion 以便离散度测试
 jest.mock('../core/data-fusion', () => ({
@@ -20,23 +18,47 @@ jest.mock('../core/data-fusion', () => ({
 
 describe('pk_scorer — computeAllScores 完整评分', () => {
   function makeItem(overrides) {
-    return Object.assign({
-      gdScore: '0.3', crossValue: '0.15', pwScore: '0.2', adCombined: '0.1',
-      bigBallRatio: '55', attDefGoal: '2.8', headToHeadGoal: '2.5',
-      breakArmor: '1.2', heatIndex: '1.05', fusionConsensus: 'strong',
-      dataAge: 30, stabilityOverall: '72', ladderLevel: 2,
-      homeWinAward: '1.85', awayWinAward: '3.5', drawAward: '3.2',
-      homeWinPan: '65', awayWinPan: '58', strengthGoal: '1.5',
-      leagueCalibration: '1.0', leagueAvgGoals: '2.65', leagueOverBaseline: '55',
-      attackPattern: '', crossSpfWin: '0.4', crossSpfLose: '0.3',
-      crossHcpWin: '0.35', crossHcpLose: '0.3',
-      fusionFinalHome: '1.5', fusionFinalAway: '0.8', fusionFinalTotal: '2.3',
-      xgHome: '1.5', xgAway: '0.8',
-      // ★ V9.1: 新增字段供验证维度使用
-      num: overrides && overrides.num ? overrides.num : '001',
-      date: overrides && overrides.date ? overrides.date : '2026-06-04',
-      rq: '0',
-    }, overrides || {});
+    return Object.assign(
+      {
+        gdScore: '0.3',
+        crossValue: '0.15',
+        pwScore: '0.2',
+        adCombined: '0.1',
+        bigBallRatio: '55',
+        attDefGoal: '2.8',
+        headToHeadGoal: '2.5',
+        breakArmor: '1.2',
+        heatIndex: '1.05',
+        fusionConsensus: 'strong',
+        dataAge: 30,
+        stabilityOverall: '72',
+        ladderLevel: 2,
+        homeWinAward: '1.85',
+        awayWinAward: '3.5',
+        drawAward: '3.2',
+        homeWinPan: '65',
+        awayWinPan: '58',
+        strengthGoal: '1.5',
+        leagueCalibration: '1.0',
+        leagueAvgGoals: '2.65',
+        leagueOverBaseline: '55',
+        attackPattern: '',
+        crossSpfWin: '0.4',
+        crossSpfLose: '0.3',
+        crossHcpWin: '0.35',
+        crossHcpLose: '0.3',
+        fusionFinalHome: '1.5',
+        fusionFinalAway: '0.8',
+        fusionFinalTotal: '2.3',
+        xgHome: '1.5',
+        xgAway: '0.8',
+        // ★ V9.1: 新增字段供验证维度使用
+        num: overrides && overrides.num ? overrides.num : '001',
+        date: overrides && overrides.date ? overrides.date : '2026-06-04',
+        rq: '0',
+      },
+      overrides || {},
+    );
   }
 
   it('返回与输入相同的数组长度', () => {
@@ -143,11 +165,17 @@ describe('pk_scorer — computeAllScores 完整评分', () => {
   });
 
   it('★ V9.1: openHomeAward/openAwayAward 触发盘口位移分析', () => {
-    const list = [makeItem({
-      openHomeAward: '2.0', openDrawAward: '3.2', openAwayAward: '3.5',
-      homeWinAward: '1.85', drawAward: '3.5', awayWinAward: '4.0',
-      pwScore: '0.3',
-    })];
+    const list = [
+      makeItem({
+        openHomeAward: '2.0',
+        openDrawAward: '3.2',
+        openAwayAward: '3.5',
+        homeWinAward: '1.85',
+        drawAward: '3.5',
+        awayWinAward: '4.0',
+        pwScore: '0.3',
+      }),
+    ];
     const result = computeAllScores(list);
     // 盘口位移分析可能触发 penalty，但 verificationScore 应在合理范围
     expect(result[0].verificationScore).toBeGreaterThanOrEqual(80);
@@ -158,56 +186,38 @@ describe('pk_scorer — computeAllScores 完整评分', () => {
 
 describe('pk_scorer — getDirectionAdvice 方向推荐', () => {
   it('meltdown 无明确方向 → 观望/避开 (V2.0)', () => {
-    const result = getDirectionAdvice(
-      { item: { fusionConsensus: 'meltdown', pwScore: '0.02' } },
-      [],
-    );
+    const result = getDirectionAdvice({ item: { fusionConsensus: 'meltdown', pwScore: '0.02' } }, []);
     expect(result.dir).toContain('观望');
     expect(result.stars).toBe(0);
   });
 
   it('meltdown 有明确方向 → 2星参考 (V2.0 降级)', () => {
-    const result = getDirectionAdvice(
-      { item: { fusionConsensus: 'meltdown', pwScore: '0.2' } },
-      [],
-    );
+    const result = getDirectionAdvice({ item: { fusionConsensus: 'meltdown', pwScore: '0.2' } }, []);
     expect(result.dir).toContain('主胜');
     expect(result.dir).toContain('参考');
     expect(result.stars).toBe(2);
   });
 
   it('绝对主胜优势 (pw≥0.25, hi<1.4)', () => {
-    const result = getDirectionAdvice(
-      { item: { pwScore: '0.3', heatIndex: '1.2', fusionConsensus: 'strong' } },
-      [],
-    );
+    const result = getDirectionAdvice({ item: { pwScore: '0.3', heatIndex: '1.2', fusionConsensus: 'strong' } }, []);
     expect(result.dir).toBe('主胜');
     expect(result.stars).toBe(5);
   });
 
   it('绝对客胜优势 (pw≤-0.25, hi<1.4)', () => {
-    const result = getDirectionAdvice(
-      { item: { pwScore: '-0.3', heatIndex: '1.2', fusionConsensus: 'strong' } },
-      [],
-    );
+    const result = getDirectionAdvice({ item: { pwScore: '-0.3', heatIndex: '1.2', fusionConsensus: 'strong' } }, []);
     expect(result.dir).toBe('客胜');
     expect(result.stars).toBe(5);
   });
 
   it('过热预警 (pw≥0.08, hi≥1.4)', () => {
-    const result = getDirectionAdvice(
-      { item: { pwScore: '0.15', heatIndex: '1.5', fusionConsensus: 'strong' } },
-      [],
-    );
+    const result = getDirectionAdvice({ item: { pwScore: '0.15', heatIndex: '1.5', fusionConsensus: 'strong' } }, []);
     expect(result.dir).toContain('防冷');
     expect(result.stars).toBe(3);
   });
 
   it('实力均衡 → 双选', () => {
-    const result = getDirectionAdvice(
-      { item: { pwScore: '0.03', heatIndex: '1.0', fusionConsensus: 'strong' } },
-      [],
-    );
+    const result = getDirectionAdvice({ item: { pwScore: '0.03', heatIndex: '1.0', fusionConsensus: 'strong' } }, []);
     expect(result.dir).toContain('双选');
   });
 
@@ -224,8 +234,11 @@ describe('pk_scorer — getDirectionAdvice 方向推荐', () => {
     const result = getDirectionAdvice(
       {
         item: {
-          pwScore: '0.3', heatIndex: '1.0', fusionConsensus: 'strong',
-          crossHcpWin: '0.45', crossHcpLose: '0.3',
+          pwScore: '0.3',
+          heatIndex: '1.0',
+          fusionConsensus: 'strong',
+          crossHcpWin: '0.45',
+          crossHcpLose: '0.3',
         },
       },
       [],
@@ -238,8 +251,12 @@ describe('pk_scorer — getDirectionAdvice 方向推荐', () => {
     const result = getDirectionAdvice(
       {
         item: {
-          pwScore: '0.3', heatIndex: '1.0', fusionConsensus: 'strong',
-          homeWinAward: '1.80', awayWinAward: '4.20', drawAward: '3.50',
+          pwScore: '0.3',
+          heatIndex: '1.0',
+          fusionConsensus: 'strong',
+          homeWinAward: '1.80',
+          awayWinAward: '4.20',
+          drawAward: '3.50',
         },
       },
       [],
@@ -252,10 +269,7 @@ describe('pk_scorer — getDirectionAdvice 方向推荐', () => {
   });
 
   it('V2.0 EV: 无赔率时 ev 为 null', () => {
-    const result = getDirectionAdvice(
-      { item: { pwScore: '0.3', heatIndex: '1.0', fusionConsensus: 'strong' } },
-      [],
-    );
+    const result = getDirectionAdvice({ item: { pwScore: '0.3', heatIndex: '1.0', fusionConsensus: 'strong' } }, []);
     expect(result.ev).toBe(null);
     expect(result.valueTag).toBe('');
   });
@@ -264,8 +278,12 @@ describe('pk_scorer — getDirectionAdvice 方向推荐', () => {
     const result = getDirectionAdvice(
       {
         item: {
-          pwScore: '0.3', heatIndex: '1.0', fusionConsensus: 'strong',
-          homeWinAward: '1.08', awayWinAward: '10.0', drawAward: '8.0', // 主胜赔率极低，EV为负
+          pwScore: '0.3',
+          heatIndex: '1.0',
+          fusionConsensus: 'strong',
+          homeWinAward: '1.08',
+          awayWinAward: '10.0',
+          drawAward: '8.0', // 主胜赔率极低，EV为负
         },
       },
       [],
@@ -278,7 +296,9 @@ describe('pk_scorer — getDirectionAdvice 方向推荐', () => {
     const result = getDirectionAdvice(
       {
         item: {
-          pwScore: '0.3', heatIndex: '1.6', fusionConsensus: 'strong',
+          pwScore: '0.3',
+          heatIndex: '1.6',
+          fusionConsensus: 'strong',
           leagueName: '英超',
         },
       },

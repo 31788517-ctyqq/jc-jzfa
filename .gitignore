@@ -2,8 +2,6 @@ node_modules/
 __pycache__/
 *.pyc
 *.log
-$null
-nul)
 
 # ── 临时/输出文件（测试产物、调试输出） ──
 *_output.txt
@@ -58,4 +56,9 @@ coverage/
 test-results/
 playwright-report/
 playwright/.cache/
-
+blob-report/
+.nyc_output/
+logs/
+server/backup_backfill/
+test_*.txt
+test_*.json

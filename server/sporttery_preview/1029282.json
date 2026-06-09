@@ -1,0 +1,435 @@
+{
+  "match_id": "1029282",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "5胜/3平/2负",
+      "2胜/1平/2负",
+      "6胜/2平/2负",
+      "8胜/1平/1负",
+      "1.5个",
+      "0.8个"
+    ],
+    "away": [
+      "2胜/3平/5负",
+      "2胜/1平/2负",
+      "1胜/5平/4负",
+      "1胜/6平/3负",
+      "1.1个",
+      "1.7个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场谢菲联5胜 (50%) | 3平 (30%) | 2负 (20%)",
+    "rows": [
+      {
+        "date": "2024-12-21",
+        "league": "英冠",
+        "teams": "加的夫城 0:2 （半 0:0） 谢菲联",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2023-04-15",
+        "league": "英冠",
+        "teams": "谢菲联 4:1 （半 1:1） 加的夫城",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2022-11-12",
+        "league": "英冠",
+        "teams": "加的夫城 0:1 （半 0:0） 谢菲联",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2022-04-23",
+        "league": "英冠",
+        "teams": "谢菲联 1:0 （半 0:0） 加的夫城",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2021-12-04",
+        "league": "英冠",
+        "teams": "加的夫城 2:3 （半 1:0） 谢菲联",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2018-04-03",
+        "league": "英冠",
+        "teams": "谢菲联 1:1 （半 1:0） 加的夫城",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2017-08-16",
+        "league": "英冠",
+        "teams": "加的夫城 2:0 （半 1:0） 谢菲联",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2011-04-13",
+        "league": "英冠",
+        "teams": "谢菲联 0:2 （半 0:1） 加的夫城",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2010-08-08",
+        "league": "英冠",
+        "teams": "加的夫城 1:1 （半 0:1） 谢菲联",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2010-03-25",
+        "league": "英冠",
+        "teams": "加的夫城 1:1 （半 1:0） 谢菲联",
+        "totalGoals": "2"
+      }
+    ]
+  },
+  "standings": [],
+  "recentForm": [
+    {
+      "team": "谢菲联",
+      "summary": "谢菲联近10场6胜 (60%) | 2平 (20%) | 2负 (20%) 进15球，失8球，净进7球",
+      "matches": [
+        {
+          "date": "2025-01-04",
+          "league": "英冠",
+          "vs": "沃特福德 1 : 2 （半 1:1） 谢菲联",
+          "result": "胜"
+        },
+        {
+          "date": "2025-01-02",
+          "league": "英冠",
+          "vs": "桑德兰 2 : 1 （半 2:1） 谢菲联",
+          "result": "负"
+        },
+        {
+          "date": "2024-12-29",
+          "league": "英冠",
+          "vs": "谢菲联 1 : 1 （半 1:1） 西布罗姆",
+          "result": "平"
+        },
+        {
+          "date": "2024-12-26",
+          "league": "英冠",
+          "vs": "谢菲联 0 : 2 （半 0:1） 伯恩利",
+          "result": "负"
+        },
+        {
+          "date": "2024-12-21",
+          "league": "英冠",
+          "vs": "加的夫城 0 : 2 （半 0:0） 谢菲联",
+          "result": "胜"
+        },
+        {
+          "date": "2024-12-14",
+          "league": "英冠",
+          "vs": "谢菲联 2 : 0 （半 1:0） 普利茅斯",
+          "result": "胜"
+        },
+        {
+          "date": "2024-12-12",
+          "league": "英冠",
+          "vs": "米尔沃尔 0 : 1 （半 0:1） 谢菲联",
+          "result": "胜"
+        },
+        {
+          "date": "2024-12-08",
+          "league": "英冠",
+          "vs": "西布罗姆 2 : 2 （半 1:2） 谢菲联",
+          "result": "平"
+        },
+        {
+          "date": "2024-11-30",
+          "league": "英冠",
+          "vs": "谢菲联 1 : 0 （半 0:0） 桑德兰",
+          "result": "胜"
+        },
+        {
+          "date": "2024-11-27",
+          "league": "英冠",
+          "vs": "谢菲联 3 : 0 （半 2:0） 牛津联",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "加的夫城",
+      "summary": "加的夫城近10场1胜 (10%) | 5平 (50%) | 4负 (40%) 进11球，失17球，净进-6球",
+      "matches": [
+        {
+          "date": "2025-01-04",
+          "league": "英冠",
+          "vs": "米堡 1 : 1 （半 1:1） 加的夫城",
+          "result": "平"
+        },
+        {
+          "date": "2025-01-01",
+          "league": "英冠",
+          "vs": "加的夫城 1 : 1 （半 1:0） 考文垂",
+          "result": "平"
+        },
+        {
+          "date": "2024-12-29",
+          "league": "英冠",
+          "vs": "沃特福德 1 : 2 （半 1:2） 加的夫城",
+          "result": "胜"
+        },
+        {
+          "date": "2024-12-26",
+          "league": "英冠",
+          "vs": "牛津联 3 : 2 （半 1:0） 加的夫城",
+          "result": "负"
+        },
+        {
+          "date": "2024-12-21",
+          "league": "英冠",
+          "vs": "加的夫城 0 : 2 （半 0:0） 谢菲联",
+          "result": "负"
+        },
+        {
+          "date": "2024-12-14",
+          "league": "英冠",
+          "vs": "斯托克城 2 : 2 （半 1:1） 加的夫城",
+          "result": "平"
+        },
+        {
+          "date": "2024-12-12",
+          "league": "英冠",
+          "vs": "加的夫城 0 : 2 （半 0:0） 普雷斯顿",
+          "result": "负"
+        },
+        {
+          "date": "2024-11-30",
+          "league": "英冠",
+          "vs": "考文垂 2 : 2 （半 1:1） 加的夫城",
+          "result": "平"
+        },
+        {
+          "date": "2024-11-28",
+          "league": "英冠",
+          "vs": "加的夫城 0 : 2 （半 0:1） 女王巡游",
+          "result": "负"
+        },
+        {
+          "date": "2024-11-23",
+          "league": "英冠",
+          "vs": "谢周三 1 : 1 （半 1:1） 加的夫城",
+          "result": "平"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "谢菲联",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-04",
+          "俱乐部赛",
+          "哈利法克\nVS\n谢菲联",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-11",
+          "俱乐部赛",
+          "切菲尔德\nVS\n谢菲联",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-21",
+          "俱乐部赛",
+          "谢菲联\nVS\n哈德斯",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-25",
+          "俱乐部赛",
+          "罗瑟汉姆\nVS\n谢菲联",
+          "Club Friendlies 3"
+        ]
+      ]
+    },
+    {
+      "team": "加的夫城",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-11",
+          "俱乐部赛",
+          "加的夫城\nVS\n中日德兰",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-25",
+          "俱乐部赛",
+          "加的夫城\nVS\n绿色森林",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "谢菲联",
+      "players": []
+    },
+    {
+      "team": "加的夫城",
+      "players": [
+        {
+          "player": "34-J. Colwill(中场)",
+          "apps": "2 (2/0)",
+          "goals": "2 (33%)",
+          "assists": "0 (0%)",
+          "avg": "1.0/0"
+        },
+        {
+          "player": "27-科尔威尔(中场)",
+          "apps": "3 (3/0)",
+          "goals": "2 (33%)",
+          "assists": "0 (0%)",
+          "avg": "0.7/0"
+        },
+        {
+          "player": "45-C. Ashford(中场)",
+          "apps": "2 (1/1)",
+          "goals": "1 (17%)",
+          "assists": "0 (0%)",
+          "avg": "0.5/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "谢菲联",
+      "players": [
+        {
+          "player": "6-苏图亚尔(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "23-T.坎贝尔(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "8-G. Hamer(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "21-Vinicius Souza(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "11-J. Rak-Sakyi(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "38-F. Seriki(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "25-本苏莱曼(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "4-O. Arblaster(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "45-S. Sachdev(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "加的夫城",
+      "players": [
+        {
+          "player": "10-拉姆齐(中场)",
+          "totalApps": "2",
+          "starts": "2",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "14-D. Turnbull(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "5-J.达兰德(后卫)",
+          "totalApps": "2",
+          "starts": "1",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "39-I. Davies(前锋)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "9-K. Etete(前锋)",
+          "totalApps": "1",
+          "starts": "1",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "33-R. Tsunoda(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "46-M. Reindorf(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

@@ -276,9 +276,7 @@ function parseMatchRow(segment, matchNum) {
   // ★ 修复：SPF 未开售时 nspf 可能为空，但 RQSPF 可能已开售——不允许丢弃整行
   if (nspfValues.length < 3 && rqspfValues.length < 3) return null;
 
-  const spf = nspfValues.length >= 3
-    ? { home: nspfValues[0], draw: nspfValues[1], away: nspfValues[2] }
-    : null;
+  const spf = nspfValues.length >= 3 ? { home: nspfValues[0], draw: nspfValues[1], away: nspfValues[2] } : null;
   const rqspf =
     rqspfValues.length >= 3
       ? { home: rqspfValues[0], draw: rqspfValues[1], away: rqspfValues[2], handicap: handicap }
@@ -412,8 +410,7 @@ function parseSegment(segment, matchNum) {
   // ★ 总进球数赔率 (JQS): 0,1,2,3,4,5,6,7+
   const totalGoals =
     nums.length >= 23
-      ? { '0': nums[15], '1': nums[16], '2': nums[17], '3': nums[18],
-          '4': nums[19], '5': nums[20], '6': nums[21], '7+': nums[22] }
+      ? { 0: nums[15], 1: nums[16], 2: nums[17], 3: nums[18], 4: nums[19], 5: nums[20], 6: nums[21], '7+': nums[22] }
       : null;
 
   return {
@@ -543,7 +540,7 @@ function extractByDataType(html, dataType, valueParser) {
 
   for (let i = 0; i < rows.length; i++) {
     // ★ 用下一场比赛的起始位置作为边界（而非 </tr>），确保捕获跨多行的展开内容
-    const end = (i + 1 < rows.length) ? rows[i + 1].start : html.length;
+    const end = i + 1 < rows.length ? rows[i + 1].start : html.length;
     const seg = html.substring(rows[i].start, end);
     valueParser(seg, result, rows[i].num, dataType);
   }
@@ -592,7 +589,17 @@ function extractBqcOdds(html) {
     const bqcRegex = /data-type="bqc"\s+data-value="(\d)-(\d)"\s+data-sp="(\d{1,5}\.\d{2})"/g;
     let m;
     const halfFull = {};
-    const valueMap = { '3-3': 'hh', '3-1': 'hd', '3-0': 'ha', '1-3': 'dh', '1-1': 'dd', '1-0': 'da', '0-3': 'ah', '0-1': 'ad', '0-0': 'aa' };
+    const valueMap = {
+      '3-3': 'hh',
+      '3-1': 'hd',
+      '3-0': 'ha',
+      '1-3': 'dh',
+      '1-1': 'dd',
+      '1-0': 'da',
+      '0-3': 'ah',
+      '0-1': 'ad',
+      '0-0': 'aa',
+    };
     while ((m = bqcRegex.exec(seg)) !== null) {
       const combo = m[1] + '-' + m[2];
       const key = valueMap[combo] || combo;
@@ -615,10 +622,14 @@ function fetchPlayOdds(dateStr, playid, extractor) {
   return Promise.all([
     fetchPage(dateStr, 1, 2, playid)
       .then(extractor)
-      .catch(function () { return {}; }),
+      .catch(function () {
+        return {};
+      }),
     fetchPage(dateStr, 2, 2, playid)
       .then(extractor)
-      .catch(function () { return {}; }),
+      .catch(function () {
+        return {};
+      }),
   ]).then(function (results) {
     const merged = {};
     for (let i = 0; i < results.length; i++) {
@@ -641,7 +652,9 @@ function deepMerge(target, source, defaultKeys) {
     if (!target[k]) {
       target[k] = {};
       if (defaultKeys) {
-        defaultKeys.forEach(function (dk) { target[k][dk] = null; });
+        defaultKeys.forEach(function (dk) {
+          target[k][dk] = null;
+        });
       }
     }
     Object.assign(target[k], source[k]);
@@ -682,9 +695,15 @@ async function fetchOdds(dateStr) {
   const [pages312, prevPages312, jqsData, bqcData, bfData] = await Promise.all([
     fetch312Pages(dateStr),
     fetch312Pages(prevStr),
-    fetchPlayOdds(dateStr, 270, extractJqsOdds).catch(function () { return {}; }),
-    fetchPlayOdds(dateStr, 272, extractBqcOdds).catch(function () { return {}; }),
-    fetchPlayOdds(dateStr, 271, extractBfOdds).catch(function () { return {}; }),
+    fetchPlayOdds(dateStr, 270, extractJqsOdds).catch(function () {
+      return {};
+    }),
+    fetchPlayOdds(dateStr, 272, extractBqcOdds).catch(function () {
+      return {};
+    }),
+    fetchPlayOdds(dateStr, 271, extractBfOdds).catch(function () {
+      return {};
+    }),
   ]);
 
   const merged = {};

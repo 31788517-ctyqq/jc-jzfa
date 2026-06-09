@@ -4,35 +4,74 @@
  *       十字对冲历史修正、实力防御锁、市场赔率校准、完整analyze集成
  */
 const {
-  analyze, poissonProb, dixonColesCorrection, conditionalGoalAdjust,
-  softThreshold, totalGoalsLock, singleTeamLock, goalDiffLock,
-  singleTeamPenalty, goalDiffPenalty, historyCorrection,
-  powerBoost, marketDirection, marketCalibration, generateValidCells, round
+  analyze,
+  poissonProb,
+  dixonColesCorrection,
+  conditionalGoalAdjust,
+  softThreshold,
+  totalGoalsLock,
+  singleTeamLock,
+  goalDiffLock,
+  singleTeamPenalty,
+  goalDiffPenalty,
+  historyCorrection,
+  powerBoost,
+  marketDirection,
+  marketCalibration,
+  generateValidCells,
+  round,
 } = require('../score');
 
 // ==================== 辅助函数 ====================
 
 function makeVars(overrides) {
-  return Object.assign({
-    homeRecentGoalAvg: 1.5, awayRecentGoalAvg: 1.2,
-    homeRecentLoseAvg: 1.1, awayRecentLoseAvg: 1.3,
-    homeAttackEfficiency: 0.15, awayAttackEfficiency: 0.12,
-    homeDefendEfficiency: 0.10, awayDefendEfficiency: 0.11,
-    homeGoal0: 2, homeGoal1: 4, homeGoal2Plus: 2,
-    awayGoal0: 3, awayGoal1: 3, awayGoal2Plus: 1,
-    homeWinGap_1: 3, homeWinGap_2: 1,
-    homeLoseGap_1: 2, homeLoseGap_2: 0,
-    awayWinGap_1: 2, awayWinGap_2: 1,
-    awayLoseGap_1: 1, awayLoseGap_2: 1,
-    homeDraw: 3, awayDraw: 2,
-    homeWinAward: 1.85, drawAward: 3.40, awayWinAward: 4.20,
-    jiaoFenScores: [{ h: 2, a: 1 }, { h: 1, a: 1 }],
-    jiaoFenDesc: '近6次交战 2胜2平2负 进7球失6球 大球2次',
-    jiaoFenExtended: {
-      parsed: true, totalMatches: 6, wins: 2, draws: 2, losses: 2,
-      goalsFor: 7, goalsAgainst: 6, overCount: 2,
+  return Object.assign(
+    {
+      homeRecentGoalAvg: 1.5,
+      awayRecentGoalAvg: 1.2,
+      homeRecentLoseAvg: 1.1,
+      awayRecentLoseAvg: 1.3,
+      homeAttackEfficiency: 0.15,
+      awayAttackEfficiency: 0.12,
+      homeDefendEfficiency: 0.1,
+      awayDefendEfficiency: 0.11,
+      homeGoal0: 2,
+      homeGoal1: 4,
+      homeGoal2Plus: 2,
+      awayGoal0: 3,
+      awayGoal1: 3,
+      awayGoal2Plus: 1,
+      homeWinGap_1: 3,
+      homeWinGap_2: 1,
+      homeLoseGap_1: 2,
+      homeLoseGap_2: 0,
+      awayWinGap_1: 2,
+      awayWinGap_2: 1,
+      awayLoseGap_1: 1,
+      awayLoseGap_2: 1,
+      homeDraw: 3,
+      awayDraw: 2,
+      homeWinAward: 1.85,
+      drawAward: 3.4,
+      awayWinAward: 4.2,
+      jiaoFenScores: [
+        { h: 2, a: 1 },
+        { h: 1, a: 1 },
+      ],
+      jiaoFenDesc: '近6次交战 2胜2平2负 进7球失6球 大球2次',
+      jiaoFenExtended: {
+        parsed: true,
+        totalMatches: 6,
+        wins: 2,
+        draws: 2,
+        losses: 2,
+        goalsFor: 7,
+        goalsAgainst: 6,
+        overCount: 2,
+      },
     },
-  }, overrides || {});
+    overrides || {},
+  );
 }
 
 // ==================== 泊松概率 ====================
@@ -51,7 +90,7 @@ describe('score — poissonProb 泊松概率', () => {
   });
 
   it('k=2, lambda=1.5 ~0.251', () => {
-    expect(poissonProb(2, 1.5)).toBeCloseTo(0.2510, 2);
+    expect(poissonProb(2, 1.5)).toBeCloseTo(0.251, 2);
   });
 
   it('k=3, lambda=1.5 ~0.126', () => {
@@ -203,8 +242,10 @@ describe('score — singleTeamLock 单队进球锁(硬过滤)', () => {
     // penH = atkH/(shotAgainstA+0.5), 需要 penH ≥ 2.0
     // atkH = gh/eh = 10/0.5=20, shotAgainstA = la/da = 0.1/0.05=2, penH = 20/2.5=8
     const vars = makeVars({
-      homeAttackEfficiency: 0.5, homeRecentGoalAvg: 10.0,
-      awayDefendEfficiency: 0.05, awayRecentLoseAvg: 0.1,
+      homeAttackEfficiency: 0.5,
+      homeRecentGoalAvg: 10.0,
+      awayDefendEfficiency: 0.05,
+      awayRecentLoseAvg: 0.1,
     });
     expect(singleTeamLock(0, 1, vars)).toBe(false);
     expect(singleTeamLock(1, 0, vars)).toBe(true);
@@ -213,8 +254,10 @@ describe('score — singleTeamLock 单队进球锁(硬过滤)', () => {
   it('极度哑火(penH≤0.3)时 h≥3 被过滤', () => {
     // penH = atkH/(shotAgainstA+0.5), atkH=0.1/0.5=0.2, shotAgainstA=10/0.05=200, penH=0.2/200.5≈0.001
     const vars = makeVars({
-      homeAttackEfficiency: 0.5, homeRecentGoalAvg: 0.1,
-      awayDefendEfficiency: 0.05, awayRecentLoseAvg: 10.0,
+      homeAttackEfficiency: 0.5,
+      homeRecentGoalAvg: 0.1,
+      awayDefendEfficiency: 0.05,
+      awayRecentLoseAvg: 10.0,
     });
     expect(singleTeamLock(3, 0, vars)).toBe(false);
     expect(singleTeamLock(1, 0, vars)).toBe(true);
@@ -271,8 +314,10 @@ describe('score — singleTeamPenalty 单队进球惩罚(软化版)', () => {
     // penH = atkH/(shotAgainstA+0.5), atkH = gh/eh = 20/0.5=40, shotAgainstA=la/da=0.1/0.05=2
     // penH = 40/2.5 = 16 ≥ 1.2 → 触发强力破甲
     const vars = makeVars({
-      homeAttackEfficiency: 0.5, homeRecentGoalAvg: 20.0,
-      awayDefendEfficiency: 0.05, awayRecentLoseAvg: 0.1,
+      homeAttackEfficiency: 0.5,
+      homeRecentGoalAvg: 20.0,
+      awayDefendEfficiency: 0.05,
+      awayRecentLoseAvg: 0.1,
     });
     const p0 = singleTeamPenalty(0, 1, vars);
     const p1 = singleTeamPenalty(1, 1, vars);
@@ -282,8 +327,10 @@ describe('score — singleTeamPenalty 单队进球惩罚(软化版)', () => {
 
   it('防线哑火(pen≤0.7)时 h=0/低比分=较高惩罚, h=2=较轻惩罚', () => {
     const vars = makeVars({
-      homeAttackEfficiency: 0.5, homeRecentGoalAvg: 0.1,
-      awayDefendEfficiency: 0.05, awayRecentLoseAvg: 20.0,
+      homeAttackEfficiency: 0.5,
+      homeRecentGoalAvg: 0.1,
+      awayDefendEfficiency: 0.05,
+      awayRecentLoseAvg: 20.0,
     });
     const p0 = singleTeamPenalty(0, 0, vars);
     const p2 = singleTeamPenalty(2, 0, vars);
@@ -305,8 +352,10 @@ describe('score — singleTeamPenalty 单队进球惩罚(软化版)', () => {
 
   it('客队攻防同样影响惩罚', () => {
     const varsA = makeVars({
-      awayAttackEfficiency: 0.5, awayRecentGoalAvg: 20.0,
-      homeDefendEfficiency: 0.05, homeRecentLoseAvg: 0.1,
+      awayAttackEfficiency: 0.5,
+      awayRecentGoalAvg: 20.0,
+      homeDefendEfficiency: 0.05,
+      homeRecentLoseAvg: 0.1,
     });
     const p0 = singleTeamPenalty(1, 0, varsA);
     const p1 = singleTeamPenalty(1, 1, varsA);
@@ -368,7 +417,11 @@ describe('score — historyCorrection 十字对冲历史修正', () => {
 
   it('交锋历史精确匹配2+次 → 强提振', () => {
     const vars = makeVars({
-      jiaoFenScores: [{ h: 1, a: 0 }, { h: 1, a: 0 }, { h: 2, a: 1 }],
+      jiaoFenScores: [
+        { h: 1, a: 0 },
+        { h: 1, a: 0 },
+        { h: 2, a: 1 },
+      ],
     });
     const boost = historyCorrection(1, 0, vars);
     expect(boost).toBeGreaterThanOrEqual(1.3); // 2次匹配 → 1.3
@@ -376,7 +429,10 @@ describe('score — historyCorrection 十字对冲历史修正', () => {
 
   it('交锋历史匹配1次 → 轻微提振(1.15)', () => {
     const vars = makeVars({
-      jiaoFenScores: [{ h: 1, a: 0 }, { h: 2, a: 1 }],
+      jiaoFenScores: [
+        { h: 1, a: 0 },
+        { h: 2, a: 1 },
+      ],
     });
     const boost = historyCorrection(1, 0, vars);
     // 1次匹配 + 维度修正 → 约1.15×小维度修正
@@ -396,8 +452,12 @@ describe('score — historyCorrection 十字对冲历史修正', () => {
 
   it('修正因子不超过上限 2.5', () => {
     const vars = makeVars({
-      homeGoal0: 20, homeGoal1: 20, homeGoal2Plus: 20,
-      awayGoal0: 20, awayGoal1: 20, awayGoal2Plus: 20,
+      homeGoal0: 20,
+      homeGoal1: 20,
+      homeGoal2Plus: 20,
+      awayGoal0: 20,
+      awayGoal1: 20,
+      awayGoal2Plus: 20,
       jiaoFenScores: Array(5).fill({ h: 2, a: 1 }),
     });
     const boost = historyCorrection(2, 1, vars);
@@ -540,8 +600,7 @@ describe('score — round 辅助函数', () => {
 describe('score — analyze 完整集成', () => {
   it('正常输入 → 返回 TOP8 比分', () => {
     const vars = makeVars();
-    const result = analyze(vars, 1.5, 1.2,
-      { lower: 1, upper: 4, overRate: 55 }, 1);
+    const result = analyze(vars, 1.5, 1.2, { lower: 1, upper: 4, overRate: 55 }, 1);
     expect(Array.isArray(result)).toBe(true);
     expect(result.length).toBeGreaterThan(0);
     expect(result.length).toBeLessThanOrEqual(8);
@@ -556,8 +615,7 @@ describe('score — analyze 完整集成', () => {
 
   it('TOP8 按概率降序排列', () => {
     const vars = makeVars();
-    const result = analyze(vars, 1.5, 1.2,
-      { lower: 1, upper: 4, overRate: 55 }, 1);
+    const result = analyze(vars, 1.5, 1.2, { lower: 1, upper: 4, overRate: 55 }, 1);
     if (result.length >= 2) {
       const p0 = parseFloat(result[0].percent);
       const p1 = parseFloat(result[1].percent);
@@ -567,14 +625,19 @@ describe('score — analyze 完整集成', () => {
 
   it('极端强主 → 高净胜球比分概率更高', () => {
     const vars = makeVars({
-      homeAttackEfficiency: 0.3, homeRecentGoalAvg: 2.5,
-      awayDefendEfficiency: 0.05, awayRecentLoseAvg: 2.0,
-      homeWinAward: 1.5, drawAward: 4.0, awayWinAward: 7.0,
+      homeAttackEfficiency: 0.3,
+      homeRecentGoalAvg: 2.5,
+      awayDefendEfficiency: 0.05,
+      awayRecentLoseAvg: 2.0,
+      homeWinAward: 1.5,
+      drawAward: 4.0,
+      awayWinAward: 7.0,
     });
-    const result = analyze(vars, 2.5, 0.8,
-      { lower: 2, upper: 5, overRate: 60 }, 2);
+    const result = analyze(vars, 2.5, 0.8, { lower: 2, upper: 5, overRate: 60 }, 2);
     // 大概率有主胜大比分
-    const scores = result.map(function (r) { return r.score; });
+    const scores = result.map(function (r) {
+      return r.score;
+    });
     const hasBigHomeWin = scores.some(function (s) {
       const parts = s.split('-');
       return parseInt(parts[0]) > parseInt(parts[1]);
@@ -584,15 +647,22 @@ describe('score — analyze 完整集成', () => {
 
   it('极端客优 → 客胜比分概率更高', () => {
     const vars = makeVars({
-      homeAttackEfficiency: 0.05, homeRecentGoalAvg: 0.8,
-      awayDefendEfficiency: 0.3, awayRecentLoseAvg: 0.5,
-      awayAttackEfficiency: 0.3, awayRecentGoalAvg: 2.5,
-      homeDefendEfficiency: 0.05, homeRecentLoseAvg: 2.0,
-      homeWinAward: 7.0, drawAward: 4.0, awayWinAward: 1.5,
+      homeAttackEfficiency: 0.05,
+      homeRecentGoalAvg: 0.8,
+      awayDefendEfficiency: 0.3,
+      awayRecentLoseAvg: 0.5,
+      awayAttackEfficiency: 0.3,
+      awayRecentGoalAvg: 2.5,
+      homeDefendEfficiency: 0.05,
+      homeRecentLoseAvg: 2.0,
+      homeWinAward: 7.0,
+      drawAward: 4.0,
+      awayWinAward: 1.5,
     });
-    const result = analyze(vars, 0.8, 2.5,
-      { lower: 2, upper: 5, overRate: 60 }, -2);
-    const scores = result.map(function (r) { return r.score; });
+    const result = analyze(vars, 0.8, 2.5, { lower: 2, upper: 5, overRate: 60 }, -2);
+    const scores = result.map(function (r) {
+      return r.score;
+    });
     const hasAwayWin = scores.some(function (s) {
       const parts = s.split('-');
       return parseInt(parts[1]) > parseInt(parts[0]);
@@ -602,8 +672,7 @@ describe('score — analyze 完整集成', () => {
 
   it('TOP 比分概率之和接近100%', () => {
     const vars = makeVars();
-    const result = analyze(vars, 1.5, 1.2,
-      { lower: 1, upper: 4, overRate: 55 }, 1);
+    const result = analyze(vars, 1.5, 1.2, { lower: 1, upper: 4, overRate: 55 }, 1);
     const total = result.reduce(function (s, r) {
       return s + parseFloat(r.percent);
     }, 0);
@@ -614,21 +683,29 @@ describe('score — analyze 完整集成', () => {
 
   it('空格点 → 返回空数组或仅含fallback项', () => {
     // 极其严苛的过滤条件 → 可能无合法比分
-    const result = analyze(makeVars({
-      homeAttackEfficiency: 0.001, homeRecentGoalAvg: 0.001,
-      awayAttackEfficiency: 0.001, awayRecentGoalAvg: 0.001,
-    }), 0.001, 0.001,
-      { lower: 15, upper: 15, overRate: 0 }, 10);
+    const result = analyze(
+      makeVars({
+        homeAttackEfficiency: 0.001,
+        homeRecentGoalAvg: 0.001,
+        awayAttackEfficiency: 0.001,
+        awayRecentGoalAvg: 0.001,
+      }),
+      0.001,
+      0.001,
+      { lower: 15, upper: 15, overRate: 0 },
+      10,
+    );
     // 过于严格的条件可能导致无结果或只有 fallback
     expect(Array.isArray(result)).toBe(true);
   });
 
   it('包含 market calibration 的完整验证', () => {
     const vars = makeVars({
-      homeWinAward: 1.8, drawAward: 3.5, awayWinAward: 4.0,
+      homeWinAward: 1.8,
+      drawAward: 3.5,
+      awayWinAward: 4.0,
     });
-    const result = analyze(vars, 1.5, 1.2,
-      { lower: 1, upper: 4, overRate: 55 }, 1);
+    const result = analyze(vars, 1.5, 1.2, { lower: 1, upper: 4, overRate: 55 }, 1);
     expect(result.length).toBeGreaterThan(0);
   });
 });

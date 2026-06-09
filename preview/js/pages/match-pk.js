@@ -28,7 +28,9 @@ function normalizeConsensus(raw) {
 
 /** 打开多场PK弹窗（不再区分 tab，融合三维度） */
 export function openPKMulti(pickedList) {
-  _pkMatchIds = pickedList.map(function(item) { return item.matchId; }); // ★ 缓存 matchIds
+  _pkMatchIds = pickedList.map(function (item) {
+    return item.matchId;
+  }); // ★ 缓存 matchIds
   var overlay = document.getElementById('pkOverlay');
   if (!overlay || pickedList.length < 2) return;
   overlay.classList.add('active');
@@ -664,7 +666,8 @@ function renderFusionPK(modal, list) {
   html += renderRiskPanel(ranked);
 
   // ── 底部按钮 ──
-  html += '<div class="pk3-footer" style="display:flex;justify-content:space-between;align-items:center;gap:12px;"><span class="match-bet-btn" onclick="goFromPKToScheme()" style="cursor:pointer;height:46px;width:130px;display:inline-flex;align-items:center;justify-content:center;border-radius:23px;font-size:14px;flex-shrink:0;">我要做方案</span><button class="pk3-done-btn" onclick="closePK()" style="width:130px;flex-shrink:0;">关闭</button></div>';
+  html +=
+    '<div class="pk3-footer" style="display:flex;justify-content:space-between;align-items:center;gap:12px;"><span class="match-bet-btn" onclick="goFromPKToScheme()" style="cursor:pointer;height:46px;width:130px;display:inline-flex;align-items:center;justify-content:center;border-radius:23px;font-size:14px;flex-shrink:0;">我要做方案</span><button class="pk3-done-btn" onclick="closePK()" style="width:130px;flex-shrink:0;">关闭</button></div>';
 
   modal.innerHTML = html;
 }
@@ -1597,9 +1600,11 @@ function renderFusionSummary(ranked) {
 // ═══════════════════════════════════════════
 
 // ★ 从 PK 弹窗跳转方案设计页
-window.goFromPKToScheme = function() {
+window.goFromPKToScheme = function () {
   if (_pkMatchIds.length > 0) {
-    try { sessionStorage.setItem('preselectMatch', _pkMatchIds[0]); } catch(e) {}
+    try {
+      sessionStorage.setItem('preselectMatch', _pkMatchIds[0]);
+    } catch (e) {}
   }
   closePK();
   window.switchTab('scheme');

@@ -1,0 +1,8 @@
+  ⚠ WAF 拦截: /member/30067671/?entity_type=attitude&page=1
+  ⚠ 语末Yumo(30067671): WAF 拦截 (#1)
+  ⚠ WAF 拦截: /member/30179958/?entity_type=attitude&page=1
+  ⚠ 朱锦宸(30179958): WAF 拦截 (#2)
+  ⚠ WAF 拦截: /member/31552690/?entity_type=attitude&page=1
+  ⚠ 红单韬略(31552690): WAF 拦截 (#3)
+
+  ❌ WAF 连续拦截 3 次，停止抓取。请稍后重试。

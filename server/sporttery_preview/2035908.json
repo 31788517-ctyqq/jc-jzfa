@@ -1,0 +1,435 @@
+{
+  "match_id": "2035908",
+  "featureAnalysis": {
+    "labels": [
+      "近0场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "5胜/1平/4负",
+      "7胜/2平/1负",
+      "1.7个",
+      "1.4个"
+    ],
+    "away": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "7胜/2平/1负",
+      "6胜/2平/2负",
+      "2.1个",
+      "0.7个"
+    ]
+  },
+  "h2h": {
+    "title": "近0场布鲁日0胜 (0%) | 0平 (0%) | 0负 (0%)",
+    "rows": []
+  },
+  "standings": [
+    {
+      "team": "布鲁日",
+      "title": "League Stage 第19名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "3/1/4",
+          "winRate": "38%",
+          "goals": "15/17",
+          "gd": "-2",
+          "points": "10",
+          "rank": "19"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "2/1/1",
+          "winRate": "50%",
+          "goals": "10/7",
+          "gd": "3",
+          "points": "7",
+          "rank": "15"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "1/0/3",
+          "winRate": "25%",
+          "goals": "5/10",
+          "gd": "-5",
+          "points": "3",
+          "rank": "28"
+        }
+      ]
+    },
+    {
+      "team": "阿森纳",
+      "title": "League Stage 第1名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "8/0/0",
+          "winRate": "100%",
+          "goals": "23/4",
+          "gd": "19",
+          "points": "24",
+          "rank": "1"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "4/0/0",
+          "winRate": "100%",
+          "goals": "12/3",
+          "gd": "9",
+          "points": "12",
+          "rank": "3"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "4/0/0",
+          "winRate": "100%",
+          "goals": "11/1",
+          "gd": "10",
+          "points": "12",
+          "rank": "1"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "布鲁日",
+      "summary": "布鲁日近10场5胜 (50%) | 1平 (10%) | 4负 (40%) 进17球，失14球，净进3球",
+      "matches": [
+        {
+          "date": "2025-12-07",
+          "league": "比甲",
+          "vs": "圣图尔登 3 : 2 （半 2:1） 布鲁日",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-04",
+          "league": "比利时杯",
+          "vs": "勒芬 1 : 2 （半 0:1） 布鲁日",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-30",
+          "league": "比甲",
+          "vs": "布鲁日 0 : 1 （半 0:0） 安特卫普",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-27",
+          "league": "欧冠",
+          "vs": "里斯本 3 : 0 （半 2:0） 布鲁日",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-23",
+          "league": "比甲",
+          "vs": "布鲁日 1 : 0 （半 0:0） 沙勒罗瓦",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-09",
+          "league": "比甲",
+          "vs": "安德莱 1 : 0 （半 1:0） 布鲁日",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-06",
+          "league": "欧冠",
+          "vs": "布鲁日 3 : 3 （半 2:1） 巴萨",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-02",
+          "league": "比甲",
+          "vs": "布鲁日 2 : 1 （半 2:0） Dender",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-30",
+          "league": "比利时杯",
+          "vs": "布鲁日 6 : 1 （半 3:0） Jong Lede",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-26",
+          "league": "比甲",
+          "vs": "安特卫普 0 : 1 （半 0:1） 布鲁日",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "阿森纳",
+      "summary": "阿森纳近10场7胜 (70%) | 2平 (20%) | 1负 (10%) 进21球，失7球，净进14球",
+      "matches": [
+        {
+          "date": "2025-12-06",
+          "league": "英超",
+          "vs": "维拉 2 : 1 （半 1:0） 阿森纳",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-04",
+          "league": "英超",
+          "vs": "阿森纳 2 : 0 （半 1:0） 布伦特",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-01",
+          "league": "英超",
+          "vs": "切尔西 1 : 1 （半 0:0） 阿森纳",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-27",
+          "league": "欧冠",
+          "vs": "阿森纳 3 : 1 （半 1:1） 拜仁",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-24",
+          "league": "英超",
+          "vs": "阿森纳 4 : 1 （半 2:0） 热刺",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-09",
+          "league": "英超",
+          "vs": "桑德兰 2 : 2 （半 1:0） 阿森纳",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-05",
+          "league": "欧冠",
+          "vs": "斯拉维亚 0 : 3 （半 0:1） 阿森纳",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-01",
+          "league": "英超",
+          "vs": "伯恩利 0 : 2 （半 0:2） 阿森纳",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-30",
+          "league": "英联赛杯",
+          "vs": "阿森纳 2 : 0 （半 0:0） 布赖顿",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-26",
+          "league": "英超",
+          "vs": "阿森纳 1 : 0 （半 1:0） 水晶宫",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "布鲁日",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-04",
+          "俱乐部赛",
+          "布鲁日\nVS\n科特赖克",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-11",
+          "俱乐部赛",
+          "费耶诺德\nVS\n布鲁日",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-07-18",
+          "俱乐部赛",
+          "布鲁日\nVS\n海伦芬",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-26",
+          "俱乐部赛",
+          "雷恩\nVS\n布鲁日",
+          "Club Friendlies 3"
+        ]
+      ]
+    },
+    {
+      "team": "阿森纳",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-06",
+          "俱乐部赛",
+          "阿森纳\nVS\n贝蒂斯",
+          "Club Friendlies 1"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "布鲁日",
+      "players": [
+        {
+          "player": "7-N. Tresoldi(前锋)",
+          "apps": "10 (7/3)",
+          "goals": "3 (16%)",
+          "assists": "1 (7%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "9-C. Borges(前锋)",
+          "apps": "9 (9/0)",
+          "goals": "2 (11%)",
+          "assists": "3 (21%)",
+          "avg": "0.2/0.3"
+        },
+        {
+          "player": "20-范那肯(中场)",
+          "apps": "10 (10/0)",
+          "goals": "2 (11%)",
+          "assists": "3 (21%)",
+          "avg": "0.2/0.3"
+        }
+      ]
+    },
+    {
+      "team": "阿森纳",
+      "players": [
+        {
+          "player": "11-马蒂内利(前锋)",
+          "apps": "14 (7/7)",
+          "goals": "6 (20%)",
+          "assists": "2 (9%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "14-V. Gyökeres(前锋)",
+          "apps": "13 (11/2)",
+          "goals": "5 (17%)",
+          "assists": "1 (5%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "29-哈弗茨(前锋)伤",
+          "apps": "6 (2/4)",
+          "goals": "4 (13%)",
+          "assists": "1 (5%)",
+          "avg": "0.7/0.2"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "布鲁日",
+      "players": [
+        {
+          "player": "29-雅克尔(守门员)",
+          "totalApps": "6",
+          "starts": "5",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "6-赖斯(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "62-L. Audoor(中场)",
+          "totalApps": "3",
+          "starts": "1",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "2-Z. Romero(后卫)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "17-R. Vermant(前锋)",
+          "totalApps": "8",
+          "starts": "3",
+          "subs": "5",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "阿森纳",
+      "players": [
+        {
+          "player": "19-特罗萨德(前锋)",
+          "totalApps": "11",
+          "starts": "8",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "41-赖斯(中场)",
+          "totalApps": "13",
+          "starts": "11",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "6-Gabriel(后卫)",
+          "totalApps": "12",
+          "starts": "11",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "29-哈弗茨(前锋)",
+          "totalApps": "6",
+          "starts": "2",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "2-W.萨利巴(后卫)",
+          "totalApps": "12",
+          "starts": "12",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "3-Cristhian Mosquera(后卫)",
+          "totalApps": "10",
+          "starts": "6",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "56-M. Dowman(中场)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,509 @@
+{
+  "match_id": "2032723",
+  "featureAnalysis": {
+    "labels": [
+      "近8场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "1胜/4平/3负",
+      "1胜/2平/1负",
+      "2胜/3平/5负",
+      "3胜/2平/5负",
+      "1.7个",
+      "1.9个"
+    ],
+    "away": [
+      "3胜/4平/1负",
+      "1胜/2平/1负",
+      "5胜/2平/3负",
+      "2胜/3平/5负",
+      "1.7个",
+      "1.2个"
+    ]
+  },
+  "h2h": {
+    "title": "近8场达拉斯1胜 (13%) | 4平 (50%) | 3负 (38%)",
+    "rows": [
+      {
+        "date": "2023-04-23",
+        "league": "美职",
+        "teams": "纽约城 3:1 （半 1:0） 达拉斯",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2022-07-14",
+        "league": "美职",
+        "teams": "达拉斯 0:1 （半 0:1） 纽约城",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2021-09-15",
+        "league": "美职",
+        "teams": "纽约城 3:3 （半 1:1） 达拉斯",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2019-09-23",
+        "league": "美职",
+        "teams": "达拉斯 1:1 （半 0:1） 纽约城",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2018-04-30",
+        "league": "美职",
+        "teams": "纽约城 3:1 （半 2:1） 达拉斯",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2017-05-15",
+        "league": "美职",
+        "teams": "达拉斯 1:1 （半 1:0） 纽约城",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2016-09-18",
+        "league": "美职",
+        "teams": "纽约城 2:2 （半 1:1） 达拉斯",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2015-09-13",
+        "league": "美职",
+        "teams": "达拉斯 2:1 （半 2:0） 纽约城",
+        "totalGoals": "3"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "达拉斯",
+      "title": "Regular Season 第7名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "11/11/12",
+          "winRate": "32%",
+          "goals": "52/55",
+          "gd": "-3",
+          "points": "44",
+          "rank": "7"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "6/3/8",
+          "winRate": "35%",
+          "goals": "25/25",
+          "gd": "0",
+          "points": "21",
+          "rank": "11"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "5/8/4",
+          "winRate": "29%",
+          "goals": "27/30",
+          "gd": "-3",
+          "points": "23",
+          "rank": "5"
+        }
+      ]
+    },
+    {
+      "team": "纽约城",
+      "title": "Regular Season 第5名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "17/5/12",
+          "winRate": "50%",
+          "goals": "50/44",
+          "gd": "6",
+          "points": "56",
+          "rank": "5"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "11/0/6",
+          "winRate": "65%",
+          "goals": "28/21",
+          "gd": "7",
+          "points": "33",
+          "rank": "5"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "6/5/6",
+          "winRate": "35%",
+          "goals": "22/23",
+          "gd": "-1",
+          "points": "23",
+          "rank": "6"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "达拉斯",
+      "summary": "达拉斯近10场2胜 (20%) | 3平 (30%) | 5负 (50%) 进17球，失19球，净进-2球",
+      "matches": [
+        {
+          "date": "2025-07-20",
+          "league": "美职",
+          "vs": "达拉斯 3 : 0 （半 1:0） 圣路易城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-17",
+          "league": "美职",
+          "vs": "圣何塞 2 : 2 （半 1:1） 达拉斯",
+          "result": "平"
+        },
+        {
+          "date": "2025-07-13",
+          "league": "美职",
+          "vs": "洛杉矶FC 2 : 0 （半 2:0） 达拉斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-05",
+          "league": "美职",
+          "vs": "达拉斯 1 : 2 （半 0:1） 明尼苏达",
+          "result": "负"
+        },
+        {
+          "date": "2025-06-29",
+          "league": "美职",
+          "vs": "达拉斯 2 : 3 （半 1:1） 圣迭戈FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-06-26",
+          "league": "美职",
+          "vs": "达拉斯 2 : 4 （半 1:0） 圣何塞",
+          "result": "负"
+        },
+        {
+          "date": "2025-06-15",
+          "league": "美职",
+          "vs": "堪萨斯城 2 : 4 （半 1:1） 达拉斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-01",
+          "league": "美职",
+          "vs": "达拉斯 0 : 0 （半 0:0） 费城",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-29",
+          "league": "美职",
+          "vs": "辛辛那提 3 : 3 （半 2:0） 达拉斯",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-25",
+          "league": "美职",
+          "vs": "西雅图 1 : 0 （半 0:0） 达拉斯",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "纽约城",
+      "summary": "纽约城近10场5胜 (50%) | 2平 (20%) | 3负 (30%) 进17球，失12球，净进5球",
+      "matches": [
+        {
+          "date": "2025-07-20",
+          "league": "美职",
+          "vs": "堪萨斯城 1 : 1 （半 0:1） 纽约城",
+          "result": "平"
+        },
+        {
+          "date": "2025-07-17",
+          "league": "美职",
+          "vs": "奥兰多 1 : 2 （半 1:0） 纽约城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-13",
+          "league": "美职",
+          "vs": "夏洛特FC 2 : 0 （半 1:0） 纽约城",
+          "result": "负"
+        },
+        {
+          "date": "2025-07-04",
+          "league": "美职",
+          "vs": "纽约城 3 : 1 （半 1:0） 多伦多",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-29",
+          "league": "美职",
+          "vs": "蒙特利尔 1 : 0 （半 1:0） 纽约城",
+          "result": "负"
+        },
+        {
+          "date": "2025-06-13",
+          "league": "美职",
+          "vs": "纽约城 4 : 0 （半 1:0） 亚特联",
+          "result": "胜"
+        },
+        {
+          "date": "2025-06-01",
+          "league": "美职",
+          "vs": "纳什维尔 2 : 2 （半 2:0） 纽约城",
+          "result": "平"
+        },
+        {
+          "date": "2025-05-29",
+          "league": "美职",
+          "vs": "纽约城 0 : 3 （半 0:1） 休斯敦",
+          "result": "负"
+        },
+        {
+          "date": "2025-05-26",
+          "league": "美职",
+          "vs": "纽约城 3 : 1 （半 0:1） 芝加哥",
+          "result": "胜"
+        },
+        {
+          "date": "2025-05-18",
+          "league": "美职",
+          "vs": "纽约城 2 : 0 （半 1:0） 纽约红牛",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "达拉斯",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-23",
+          "美职",
+          "波特兰\nVS\n达拉斯",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "圣迭戈FC\nVS\n达拉斯",
+          "Regular Season"
+        ],
+        [
+          "2026-08-02",
+          "美职",
+          "洛城银河\nVS\n达拉斯",
+          "Regular Season"
+        ],
+        [
+          "2026-08-17",
+          "美职",
+          "奥斯汀FC\nVS\n达拉斯",
+          "Regular Season"
+        ]
+      ]
+    },
+    {
+      "team": "纽约城",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-23",
+          "美职",
+          "哥伦布\nVS\n纽约城",
+          "Regular Season"
+        ],
+        [
+          "2026-07-26",
+          "美职",
+          "纽约城\nVS\n芝加哥",
+          "Regular Season"
+        ],
+        [
+          "2026-08-01",
+          "美职",
+          "纽约城\nVS\n多伦多",
+          "Regular Season"
+        ],
+        [
+          "2026-08-17",
+          "美职",
+          "纽约城\nVS\n费城",
+          "Regular Season"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "达拉斯",
+      "players": [
+        {
+          "player": "9-P. Musa(前锋)",
+          "apps": "32 (29/3)",
+          "goals": "19 (37%)",
+          "assists": "6 (18%)",
+          "avg": "0.6/0.2"
+        },
+        {
+          "player": "11-胡利奥(前锋)伤",
+          "apps": "27 (18/9)",
+          "goals": "6 (12%)",
+          "assists": "1 (3%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "23-L. Farrington(前锋)",
+          "apps": "34 (19/15)",
+          "goals": "5 (10%)",
+          "assists": "3 (9%)",
+          "avg": "0.1/0.1"
+        }
+      ]
+    },
+    {
+      "team": "纽约城",
+      "players": [
+        {
+          "player": "16-A. Martínez(前锋)",
+          "apps": "33 (32/1)",
+          "goals": "19 (35%)",
+          "assists": "1 (3%)",
+          "avg": "0.6/0"
+        },
+        {
+          "player": "17-H. Wolf(前锋)伤",
+          "apps": "38 (34/4)",
+          "goals": "11 (20%)",
+          "assists": "6 (15%)",
+          "avg": "0.3/0.2"
+        },
+        {
+          "player": "7-N. Fernández(中场)",
+          "apps": "16 (15/1)",
+          "goals": "5 (9%)",
+          "assists": "2 (5%)",
+          "avg": "0.3/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "达拉斯",
+      "players": [
+        {
+          "player": "11-胡利奥(前锋)",
+          "totalApps": "27",
+          "starts": "18",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "19-P. Pomykal(中场)",
+          "totalApps": "4",
+          "starts": "0",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "2-Geovane(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "32-N. Norris(后卫)",
+          "totalApps": "14",
+          "starts": "9",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "27-H. Endeley(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "29-E. Newman(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "纽约城",
+      "players": [
+        {
+          "player": "10-M. Moralez(中场)",
+          "totalApps": "39",
+          "starts": "39",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "13-蒂亚戈·马丁斯(后卫)",
+          "totalApps": "36",
+          "starts": "35",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "55-K. Parks(中场)",
+          "totalApps": "14",
+          "starts": "10",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "17-H. Wolf(前锋)",
+          "totalApps": "38",
+          "starts": "34",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "6-J.桑兹(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "32-J. Shore(中场)",
+          "totalApps": "30",
+          "starts": "16",
+          "subs": "14",
+          "status": "伤"
+        },
+        {
+          "player": "88-M. Jones(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

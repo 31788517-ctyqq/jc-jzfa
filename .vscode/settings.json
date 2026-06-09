@@ -13,5 +13,6 @@
     "**/_backup_*": true,
     "**/*.b64.txt": true
   },
-  "files.maxMemoryForLargeFilesMB": 256
+  "files.maxMemoryForLargeFilesMB": 256,
+  "git.ignoreLimitWarning": true
 }

@@ -86,6 +86,24 @@ function _queryAll(sql, paramsArr) {
   }
 }
 
+function _getTableColumns(adp, tableName) {
+  try {
+    return new Set(
+      (adp.execAll('PRAGMA table_info(' + tableName + ')') || []).map(function (row) {
+        return row.name;
+      }),
+    );
+  } catch (e) {
+    return new Set();
+  }
+}
+
+function _addColumnIfMissing(adp, columns, tableName, columnName, columnDef) {
+  if (columns.has(columnName)) return;
+  adp.execRun('ALTER TABLE ' + tableName + ' ADD COLUMN ' + columnName + ' ' + columnDef);
+  columns.add(columnName);
+}
+
 // ═══ 建表 ═══
 function initTable() {
   if (!dbReady) return;
@@ -108,6 +126,10 @@ function initTable() {
         'ai_score TEXT,' +
         'ai_confidence REAL,' +
         'ai_content TEXT,' +
+        'ai_version TEXT,' +
+        'ai_hit INTEGER,' +
+        'model_version TEXT,' +
+        'feature_version TEXT,' +
         'pk_composite_score REAL,' +
         'pk_power_score REAL,' +
         'pk_goal_score REAL,' +
@@ -143,80 +165,28 @@ function initTable() {
 
     console.log('[prediction_log] table initialized');
 
-    // ★ 迁移：添加 handicap 列（已存在则忽略）
-    try {
-      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN handicap INTEGER');
-    } catch (e) {
-      /* 忽略 */
-    }
-
-    // ★ V2.0 迁移：添加健康评分列
-    try {
-      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_health_score REAL');
-    } catch (e) {
-      /* 忽略 */
-    }
-
-    // ★ V2.0 迁移：添加 EV 价值评分列
-    try {
-      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_ev_home REAL');
-    } catch (e) {
-      /* 忽略 */
-    }
-    try {
-      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_ev_draw REAL');
-    } catch (e) {
-      /* 忽略 */
-    }
-    try {
-      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_ev_away REAL');
-    } catch (e) {
-      /* 忽略 */
-    }
-    try {
-      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_value_tag TEXT');
-    } catch (e) {
-      /* 忽略 */
-    }
-    try {
-      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_value_score REAL');
-    } catch (e) {
-      /* 忽略 */
-    }
-    try {
-      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_heat_zscore REAL');
-    } catch (e) {
-      /* 忽略 */
-    }
-    try {
-      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN pk_heat_z_overheat INTEGER');
-    } catch (e) {
-      /* 忽略 */
-    }
-
-    // ★ V9.1 迁移：添加半场比分列（半全场方向判定需要）
-    try {
-      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN actual_half_score TEXT');
-    } catch (e) {
-      /* 忽略 */
-    }
-
-    // ★ V9.1 迁移：添加模型预测总值列（model-weights 真实代理指标）
-    try {
-      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN gs_modelA_total REAL');
-    } catch (e) {
-      /* 忽略 */
-    }
-    try {
-      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN gs_modelB_total REAL');
-    } catch (e) {
-      /* 忽略 */
-    }
-    try {
-      adp.execRun('ALTER TABLE prediction_logs ADD COLUMN gs_modelC_total REAL');
-    } catch (e) {
-      /* 忽略 */
-    }
+    const columns = _getTableColumns(adp, 'prediction_logs');
+    [
+      ['handicap', 'INTEGER'],
+      ['ai_version', 'TEXT'],
+      ['ai_hit', 'INTEGER'],
+      ['model_version', 'TEXT'],
+      ['feature_version', 'TEXT'],
+      ['pk_health_score', 'REAL'],
+      ['pk_ev_home', 'REAL'],
+      ['pk_ev_draw', 'REAL'],
+      ['pk_ev_away', 'REAL'],
+      ['pk_value_tag', 'TEXT'],
+      ['pk_value_score', 'REAL'],
+      ['pk_heat_zscore', 'REAL'],
+      ['pk_heat_z_overheat', 'INTEGER'],
+      ['actual_half_score', 'TEXT'],
+      ['gs_modelA_total', 'REAL'],
+      ['gs_modelB_total', 'REAL'],
+      ['gs_modelC_total', 'REAL'],
+    ].forEach(function (item) {
+      _addColumnIfMissing(adp, columns, 'prediction_logs', item[0], item[1]);
+    });
   } catch (e) {
     console.error('[prediction_log] init error:', e.message);
   }
@@ -326,6 +296,28 @@ function upsertGS(matchId, fields) {
   return upsert(data);
 }
 
+function upsertGSBatch(records) {
+  if (!Array.isArray(records) || records.length === 0) return 0;
+  let count = 0;
+
+  function runOne(record) {
+    if (!record || !record.matchId) return;
+    const ok = upsertGS(record.matchId, record.fields || {});
+    if (ok !== false) count++;
+  }
+
+  const adp = _getAdp();
+  if (dbReady && adp && typeof adp.transaction === 'function') {
+    adp.transaction(function () {
+      records.forEach(runOne);
+    })();
+    return count;
+  }
+
+  records.forEach(runOne);
+  return count;
+}
+
 // 赛果回填
 function backfillResult(matchId, fields) {
   const data = { matchId: matchId };
@@ -398,6 +390,10 @@ function queryBacktest(filters) {
   if (filters.consensus && filters.consensus !== 'all') {
     conditions.push('pk_fusion_consensus = ?');
     params.push(filters.consensus);
+  }
+  if (filters.model && filters.model !== 'all') {
+    conditions.push('matchNum IN (SELECT DISTINCT match_num FROM prediction_outcomes WHERE model_name = ?)');
+    params.push(filters.model);
   }
 
   const where = conditions.length > 0 ? ' WHERE ' + conditions.join(' AND ') : '';
@@ -951,6 +947,15 @@ function getTotalCount() {
   return r ? r.cnt : 0;
 }
 
+// 获取可用模型列表（from prediction_outcomes）
+function getModels() {
+  return _queryAll(
+    "SELECT DISTINCT model_name FROM prediction_outcomes WHERE model_name NOT IN ('data_fusion','market_signal') ORDER BY model_name",
+  ).map(function (r) {
+    return r.model_name;
+  });
+}
+
 // 初始化
 ensureDatabase().then(function (ready) {
   if (ready) {
@@ -1004,9 +1009,11 @@ module.exports = {
   upsertAI,
   upsertPK,
   upsertGS,
+  upsertGSBatch,
   backfillResult,
   queryBacktest,
   getLeagues,
+  getModels,
   getTotalCount,
   autoEnsure,
   isReady: function () {

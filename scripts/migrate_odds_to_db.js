@@ -10,7 +10,9 @@ const path = require('path');
 const ODDS_DIR = path.join(__dirname, '..', 'server', 'odds_history');
 const database = require('../server/database');
 
-function log(msg) { console.log('[' + new Date().toISOString().slice(11, 19) + '] ' + msg); }
+function log(msg) {
+  console.log('[' + new Date().toISOString().slice(11, 19) + '] ' + msg);
+}
 
 async function main() {
   const args = process.argv.slice(2);
@@ -23,16 +25,30 @@ async function main() {
   // 初始化数据库
   database.initDatabase();
   const start = Date.now();
-  while (!database.isAvailable() && Date.now() - start < 15000) { /* wait for sql.js async */ }
-  if (!database.isAvailable()) { log('数据库不可用'); process.exit(1); }
+  while (!database.isAvailable() && Date.now() - start < 15000) {
+    /* wait for sql.js async */
+  }
+  if (!database.isAvailable()) {
+    log('数据库不可用');
+    process.exit(1);
+  }
   const adp = database.getAdapter();
-  if (!adp) { log('getAdapter 返回 null'); process.exit(1); }
+  if (!adp) {
+    log('getAdapter 返回 null');
+    process.exit(1);
+  }
 
   // 列出所有 JSON 文件
-  const files = fs.readdirSync(ODDS_DIR).filter(f => f.endsWith('.json') && f !== 'batch_report.json').sort();
+  const files = fs
+    .readdirSync(ODDS_DIR)
+    .filter((f) => f.endsWith('.json') && f !== 'batch_report.json')
+    .sort();
   log('找到 ' + files.length + ' 个 JSON 文件');
 
-  let totalMatches = 0, totalRecords = 0, skipped = 0, errors = 0;
+  let totalMatches = 0,
+    totalRecords = 0,
+    skipped = 0,
+    errors = 0;
   const playTypes = ['spf', 'rqspf', 'halfFull', 'totalGoals', 'scores'];
 
   for (const filename of files) {
@@ -45,7 +61,10 @@ async function main() {
       const odds = raw.odds || {};
       const matchNums = Object.keys(odds);
 
-      if (matchNums.length === 0) { log(filename + ': 无数据'); continue; }
+      if (matchNums.length === 0) {
+        log(filename + ': 无数据');
+        continue;
+      }
 
       for (const matchNum of matchNums) {
         const entry = odds[matchNum];
@@ -75,13 +94,24 @@ async function main() {
                 `INSERT OR IGNORE INTO odds_history_v2
                  (match_num, date, fetch_date, fetch_time, play_type, odds_json, home_name, visit_name, handicap)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                record.match_num, record.date, record.fetch_date, record.fetch_time,
-                record.play_type, record.odds_json, record.home_name, record.visit_name, record.handicap
+                record.match_num,
+                record.date,
+                record.fetch_date,
+                record.fetch_time,
+                record.play_type,
+                record.odds_json,
+                record.home_name,
+                record.visit_name,
+                record.handicap,
               );
               totalRecords++;
             } catch (e) {
-              if (e.message && e.message.includes('UNIQUE')) { skipped++; }
-              else { errors++; console.error('Insert error:', e.message.slice(0, 100)); }
+              if (e.message && e.message.includes('UNIQUE')) {
+                skipped++;
+              } else {
+                errors++;
+                console.error('Insert error:', e.message.slice(0, 100));
+              }
             }
           } else {
             totalRecords++;
@@ -96,7 +126,9 @@ async function main() {
   }
 
   log('---');
-  log('完成: ' + totalRecords + ' records, ' + totalMatches + ' matches, ' + skipped + ' skipped, ' + errors + ' errors');
+  log(
+    '完成: ' + totalRecords + ' records, ' + totalMatches + ' matches, ' + skipped + ' skipped, ' + errors + ' errors',
+  );
 
   // 验证
   if (!dryRun && adp) {
@@ -108,4 +140,7 @@ async function main() {
   process.exit(errors > 0 ? 1 : 0);
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

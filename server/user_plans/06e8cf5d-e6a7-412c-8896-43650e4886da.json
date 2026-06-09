@@ -1,0 +1,43 @@
+[
+  {
+    "type": "user",
+    "matches": [
+      {
+        "matchId": "2040124",
+        "homeName": "鹿岛鹿角",
+        "visitName": "神户胜利船",
+        "league": "日职",
+        "matchNum": "周六201",
+        "playType": "spf",
+        "direction": "胜",
+        "odds": 2.11,
+        "oddsName": "胜"
+      },
+      {
+        "matchId": "2040125",
+        "homeName": "町田泽维亚",
+        "visitName": "名古屋鲸八",
+        "league": "日职",
+        "matchNum": "周六202",
+        "playType": "spf",
+        "direction": "胜",
+        "odds": 1.93,
+        "oddsName": "胜"
+      }
+    ],
+    "amount": 4,
+    "multiplier": 2,
+    "betCount": 1,
+    "passTypes": [
+      2
+    ],
+    "note": "串关方案 2关，共1注 ×2倍",
+    "matchCount": 2,
+    "totalOdds": 4.07,
+    "isWon": null,
+    "resultIncome": null,
+    "id": "up_1780720741414_rax2",
+    "createdAt": "2026-06-06T04:39:01.414Z",
+    "updatedAt": "2026-06-06T04:39:01.414Z"
+  }
+]

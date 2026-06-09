@@ -1,0 +1,525 @@
+{
+  "match_id": "1028291",
+  "featureAnalysis": {
+    "labels": [
+      "近6场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "1胜/2平/3负",
+      "1胜/1平/1负",
+      "2胜/3平/5负",
+      "3胜/4平/3负",
+      "1.2个",
+      "2.0个"
+    ],
+    "away": [
+      "3胜/2平/1负",
+      "1胜/1平/1负",
+      "2胜/3平/5负",
+      "1胜/4平/5负",
+      "1.1个",
+      "1.3个"
+    ]
+  },
+  "h2h": {
+    "title": "近6场科莫1胜 (17%) | 2平 (33%) | 3负 (50%)",
+    "rows": [
+      {
+        "date": "2022-04-03",
+        "league": "意乙",
+        "teams": "科莫 2:0 （半 0:0） 蒙扎",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2021-11-21",
+        "league": "意乙",
+        "teams": "蒙扎 3:2 （半 2:0） 科莫",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2020-01-19",
+        "league": "丙级1",
+        "teams": "蒙扎 1:1 （半 0:1） 科莫",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2019-09-08",
+        "league": "丙级1",
+        "teams": "科莫 0:1 （半 0:0） 蒙扎",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2015-03-07",
+        "league": "丙级1",
+        "teams": "科莫 0:0 （半 0:0） 蒙扎",
+        "totalGoals": ""
+      },
+      {
+        "date": "2014-10-18",
+        "league": "丙级1",
+        "teams": "蒙扎 2:1 （半 2:0） 科莫",
+        "totalGoals": "3"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "科莫",
+      "title": "常规赛 第10名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "13/10/15",
+          "winRate": "34%",
+          "goals": "49/52",
+          "gd": "-3",
+          "points": "49",
+          "rank": "10"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "8/5/6",
+          "winRate": "42%",
+          "goals": "28/26",
+          "gd": "2",
+          "points": "29",
+          "rank": "10"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "5/5/9",
+          "winRate": "26%",
+          "goals": "21/26",
+          "gd": "-5",
+          "points": "20",
+          "rank": "11"
+        }
+      ]
+    },
+    {
+      "team": "蒙扎",
+      "title": "常规赛 第20名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "3/9/26",
+          "winRate": "8%",
+          "goals": "28/69",
+          "gd": "-41",
+          "points": "18",
+          "rank": "20"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "1/5/13",
+          "winRate": "5%",
+          "goals": "13/31",
+          "gd": "-18",
+          "points": "8",
+          "rank": "20"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "2/4/13",
+          "winRate": "11%",
+          "goals": "15/38",
+          "gd": "-23",
+          "points": "10",
+          "rank": "19"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "科莫",
+      "summary": "科莫近10场2胜 (20%) | 3平 (30%) | 5负 (50%) 进12球，失20球，净进-8球",
+      "matches": [
+        {
+          "date": "2024-11-24",
+          "league": "意甲",
+          "vs": "科莫 0 : 2 （半 0:1） 佛罗伦萨",
+          "result": "负"
+        },
+        {
+          "date": "2024-11-08",
+          "league": "意甲",
+          "vs": "热那亚 1 : 1 （半 0:1） 科莫",
+          "result": "平"
+        },
+        {
+          "date": "2024-11-05",
+          "league": "意甲",
+          "vs": "恩波利 1 : 0 （半 0:0） 科莫",
+          "result": "负"
+        },
+        {
+          "date": "2024-11-01",
+          "league": "意甲",
+          "vs": "科莫 1 : 5 （半 0:2） 拉齐奥",
+          "result": "负"
+        },
+        {
+          "date": "2024-10-26",
+          "league": "意甲",
+          "vs": "都灵 1 : 0 （半 0:0） 科莫",
+          "result": "负"
+        },
+        {
+          "date": "2024-10-19",
+          "league": "意甲",
+          "vs": "科莫 1 : 1 （半 1:1） 帕尔马",
+          "result": "平"
+        },
+        {
+          "date": "2024-10-05",
+          "league": "意甲",
+          "vs": "那不勒斯 3 : 1 （半 1:1） 科莫",
+          "result": "负"
+        },
+        {
+          "date": "2024-09-29",
+          "league": "意甲",
+          "vs": "科莫 3 : 2 （半 1:0） 维罗纳",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-25",
+          "league": "意甲",
+          "vs": "亚特兰大 2 : 3 （半 1:0） 科莫",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-14",
+          "league": "意甲",
+          "vs": "科莫 2 : 2 （半 1:0） 博洛尼亚",
+          "result": "平"
+        }
+      ]
+    },
+    {
+      "team": "蒙扎",
+      "summary": "蒙扎近10场2胜 (20%) | 3平 (30%) | 5负 (50%) 进11球，失13球，净进-2球",
+      "matches": [
+        {
+          "date": "2024-11-24",
+          "league": "意甲",
+          "vs": "都灵 1 : 1 （半 0:0） 蒙扎",
+          "result": "平"
+        },
+        {
+          "date": "2024-11-11",
+          "league": "意甲",
+          "vs": "蒙扎 0 : 1 （半 0:1） 拉齐奥",
+          "result": "负"
+        },
+        {
+          "date": "2024-11-03",
+          "league": "意甲",
+          "vs": "蒙扎 0 : 1 （半 0:1） AC米兰",
+          "result": "负"
+        },
+        {
+          "date": "2024-10-31",
+          "league": "意甲",
+          "vs": "亚特兰大 2 : 0 （半 0:0） 蒙扎",
+          "result": "负"
+        },
+        {
+          "date": "2024-10-27",
+          "league": "意甲",
+          "vs": "蒙扎 2 : 2 （半 2:2） 威尼斯",
+          "result": "平"
+        },
+        {
+          "date": "2024-10-22",
+          "league": "意甲",
+          "vs": "维罗纳 0 : 3 （半 0:1） 蒙扎",
+          "result": "胜"
+        },
+        {
+          "date": "2024-10-07",
+          "league": "意甲",
+          "vs": "蒙扎 1 : 1 （半 0:0） 罗马",
+          "result": "平"
+        },
+        {
+          "date": "2024-09-30",
+          "league": "意甲",
+          "vs": "那不勒斯 2 : 0 （半 2:0） 蒙扎",
+          "result": "负"
+        },
+        {
+          "date": "2024-09-27",
+          "league": "意大利杯",
+          "vs": "蒙扎 3 : 1 （半 3:0） 布雷西亚",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-22",
+          "league": "意甲",
+          "vs": "蒙扎 1 : 2 （半 1:1） 博洛尼亚",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "科莫",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-17",
+          "俱乐部赛",
+          "利物浦\nVS\n科莫",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-08-23",
+          "意甲",
+          "乌迪内斯\nVS\n科莫",
+          "Regular Season 第1轮"
+        ],
+        [
+          "2026-08-30",
+          "意甲",
+          "那不勒斯\nVS\n科莫",
+          "Regular Season 第2轮"
+        ],
+        [
+          "2026-09-06",
+          "意甲",
+          "热那亚\nVS\n科莫",
+          "Regular Season 第3轮"
+        ]
+      ]
+    },
+    {
+      "team": "蒙扎",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-23",
+          "意甲",
+          "国际米兰\nVS\n蒙扎",
+          "Regular Season 第1轮"
+        ],
+        [
+          "2026-08-30",
+          "意甲",
+          "蒙扎\nVS\n乌迪内斯",
+          "Regular Season 第2轮"
+        ],
+        [
+          "2026-09-06",
+          "意甲",
+          "帕尔马\nVS\n蒙扎",
+          "Regular Season 第3轮"
+        ],
+        [
+          "2026-09-13",
+          "意甲",
+          "莱切\nVS\n蒙扎",
+          "Regular Season 第4轮"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "科莫",
+      "players": [
+        {
+          "player": "38-Assane Diao(前锋)",
+          "apps": "15 (14/1)",
+          "goals": "8 (18%)",
+          "assists": "1 (3%)",
+          "avg": "0.5/0.1"
+        },
+        {
+          "player": "10-P. Cutrone(前锋)",
+          "apps": "33 (23/10)",
+          "goals": "7 (16%)",
+          "assists": "4 (10%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "79-N. Paz(中场)",
+          "apps": "35 (30/5)",
+          "goals": "6 (14%)",
+          "assists": "8 (21%)",
+          "avg": "0.2/0.2"
+        }
+      ]
+    },
+    {
+      "team": "蒙扎",
+      "players": [
+        {
+          "player": "47-D. Carvalho(前锋)",
+          "apps": "31 (24/7)",
+          "goals": "5 (17%)",
+          "assists": "2 (11%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "11-M. Đurić(前锋)",
+          "apps": "27 (16/11)",
+          "goals": "5 (17%)",
+          "assists": "1 (6%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "14-D. Maldini(前锋)伤",
+          "apps": "29 (17/12)",
+          "goals": "4 (13%)",
+          "assists": "0 (0%)",
+          "avg": "0.1/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "科莫",
+      "players": [
+        {
+          "player": "13-多塞纳(后卫)",
+          "totalApps": "23",
+          "starts": "20",
+          "subs": "3",
+          "status": "停"
+        },
+        {
+          "player": "36-L. Mazzitelli(中场)",
+          "totalApps": "11",
+          "starts": "3",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "9-A. Gabrielloni(前锋)",
+          "totalApps": "15",
+          "starts": "0",
+          "subs": "15",
+          "status": "伤"
+        },
+        {
+          "player": "28-O·阿比尔德加德(中场)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "7-Espeto(前锋)",
+          "totalApps": "37",
+          "starts": "32",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "4-B. Kone(中场)",
+          "totalApps": "4",
+          "starts": "0",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "77-I.布伦特(后卫)",
+          "totalApps": "20",
+          "starts": "14",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "23-M. Perrone(中场)",
+          "totalApps": "26",
+          "starts": "20",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "14-Ali Jasim(中场)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "蒙扎",
+      "players": [
+        {
+          "player": "4-A. Izzo(后卫)",
+          "totalApps": "30",
+          "starts": "28",
+          "subs": "2",
+          "status": "停"
+        },
+        {
+          "player": "33-D. D'Ambrosio(后卫)",
+          "totalApps": "20",
+          "starts": "12",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "1-A. Cragno(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "6-R. Gagliardini(中场)",
+          "totalApps": "8",
+          "starts": "0",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "32-M. Pessina(中场)",
+          "totalApps": "11",
+          "starts": "10",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "7-佩平(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "18-D.贝泰拉(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "14-D. Maldini(前锋)",
+          "totalApps": "29",
+          "starts": "17",
+          "subs": "12",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

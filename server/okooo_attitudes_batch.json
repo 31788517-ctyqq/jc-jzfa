@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-06-06T18:22:25.958Z",
+  "since": "2026-03-01",
+  "total_experts_scanned": 29,
+  "success_count": 0,
+  "error_count": 2,
+  "total_attitudes": 0,
+  "completed_attitudes": 0,
+  "with_pick_attitudes": 0,
+  "experts": [],
+  "errors": [
+    {
+      "expert_id": "30067671",
+      "name": "语末Yumo",
+      "error": "WAF_BLOCK"
+    },
+    {
+      "expert_id": "30179958",
+      "name": "朱锦宸",
+      "error": "WAF_BLOCK"
+    }
+  ]
+}

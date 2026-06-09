@@ -89,7 +89,10 @@ function parseSPF(seg) {
     handicap,
     isSingleGame: isSingle,
     spf: nspfValues.length >= 3 ? { home: nspfValues[0], draw: nspfValues[1], away: nspfValues[2] } : null,
-    rqspf: rqspfValues.length >= 3 ? { home: rqspfValues[0], draw: rqspfValues[1], away: rqspfValues[2], handicap: handicap } : null,
+    rqspf:
+      rqspfValues.length >= 3
+        ? { home: rqspfValues[0], draw: rqspfValues[1], away: rqspfValues[2], handicap: handicap }
+        : null,
   };
 }
 

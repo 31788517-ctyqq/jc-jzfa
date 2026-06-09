@@ -35,6 +35,7 @@ let _aiCacheTime = 0;
 let _gsCacheData = null;
 let _gsCacheTime = 0;
 const { getDeltaHistory } = require('./core/odds-tracker');
+const spAdapter = require('./core/sp_data_adapter'); // ★ V9: SP官方数据统一访问
 
 // ── 函数别名（保持 POST /api 路由中引用兼容） ──
 const localDate = cacheModule.localDate;
@@ -138,6 +139,7 @@ function getCoreCacheStats() {
 // ★ P1-4: week-dates 预计算缓存（通过 data.json mtime 自动失效）
 let _cachedWeekDates = null;
 let _cachedWeekDatesMtime = 0;
+const WEEK_DAYS = ['周日','周一','周二','周三','周四','周五','周六'];
 function getWeekDates() {
   // 检查 data.json 是否已更新，自动失效缓存
   let mtime = 0;
@@ -149,21 +151,34 @@ function getWeekDates() {
   try {
     const dataFile = getDataJson();
     const mMap = dataFile.m || {};
-    const seen = {},
-      list = [];
+
+    // ★ V9: 按日历日生成连续日期（从最早有数据的日期到今天）
+    // 先找最早日期，再按日历逐日列出，日期标签用日历星期几
+    const dateSet = new Set();
     Object.keys(mMap).forEach((k) => {
       const m = mMap[k];
       if (!m || !m.date) return;
-      const md = m.date.slice(5) || '';
-      const num = (m.num || '').slice(0, 2) || '';
-      if (!md || !num || num.length < 2) return;
-      const key = md + '_' + num;
-      if (!seen[key]) {
-        seen[key] = true;
-        list.push({ weekNum: num, matchDate: md });
-      }
+      const md = m.date.slice(0, 10);
+      if (md.length === 10) dateSet.add(md);
     });
-    list.sort((a, b) => (a.matchDate > b.matchDate ? 1 : -1));
+
+    const sortedDates = Array.from(dateSet).sort();
+    if (sortedDates.length === 0) return [];
+
+    // 从最早有数据的日期到今天的日历范围
+    const today = localDate();
+    const startDate = sortedDates[0] < today ? new Date(sortedDates[0]) : new Date(today);
+    const endDate = new Date(today);
+
+    const list = [];
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      const ds = d.toISOString().slice(0, 10);
+      if (!dateSet.has(ds)) continue; // 跳过无比赛日
+      const md = ds.slice(5);
+      const weekNum = WEEK_DAYS[d.getDay()];
+      list.push({ weekNum: weekNum, matchDate: md });
+    }
+
     _cachedWeekDates = list;
     _cachedWeekDatesMtime = mtime;
     return list;
@@ -358,7 +373,10 @@ app.use('/api', (req, res, next) => {
     chunks.push(c);
   });
   req.on('end', function () {
-    if (chunks.length === 0) return next();
+    if (chunks.length === 0) {
+      req.body = {};
+      return next();
+    }
     try {
       req.body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
     } catch (e) {
@@ -535,7 +553,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   });
 
   app.post('/api', async (req, res) => {
-    const { action, data: wrappedData = {} } = req.body;
+    const { action, data: wrappedData = {} } = req.body || {};
     // 前端传参格式兼容: {action, date, days} 和 {action, data: {date, days}} 都支持
     const data = Object.assign({}, wrappedData, req.body);
     logger.info(`API: ${action} ${JSON.stringify(data).slice(0, 100)}`);
@@ -606,21 +624,24 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // ★ P0-1: 功守道 _global 内存缓存，不再每次读磁盘
             const gsCacheMap = getGsGlobalMap();
 
-            // ⭐ 检测当前日期是否有未缓存的功守道比赛
+            // ⭐ 仅今天/最近日期允许后台补算，历史页不触发全量刷新，避免拖慢页面打开
             let gsNeedCompute = false;
-            const allKeys = Object.keys(mMap);
-            for (let ki = 0; ki < allKeys.length; ki++) {
-              const k = allKeys[ki];
-              const m = mMap[k];
-              if (!m) continue;
-              const md = (m.date || '').slice(0, 10);
-              if (md !== dateStr) continue;
-              // 兼容缓存 key 带或不带 m_ 前缀
-              const cachedGS =
-                gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
-              if (!(cachedGS && cachedGS.attackPattern)) {
-                gsNeedCompute = true;
-                break;
+            const shouldCheckGsCompute = dateStr === localDate() || dateStr === latestDataDate();
+            if (shouldCheckGsCompute) {
+              const allKeys = Object.keys(mMap);
+              for (let ki = 0; ki < allKeys.length; ki++) {
+                const k = allKeys[ki];
+                const m = mMap[k];
+                if (!m) continue;
+                const md = (m.date || '').slice(0, 10);
+                if (md !== dateStr) continue;
+                // 兼容缓存 key 带或不带 m_ 前缀
+                const cachedGS =
+                  gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
+                if (!(cachedGS && cachedGS.attackPattern)) {
+                  gsNeedCompute = true;
+                  break;
+                }
               }
             }
 
@@ -853,6 +874,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
           // ====== 收集所有方向及专家数 ======
           const dirStats = {}; // { type: { totalNum: number, matches: [] } }
+          const matchTotalMap = {}; // matchId → 该比赛所有方向专家数之和
           for (const m of matches) {
             let recomms;
             try {
@@ -860,6 +882,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             } catch {
               continue;
             }
+            // 计算该比赛的总推荐专家数
+            matchTotalMap[m.matchId] = recomms.reduce((s, r) => s + (r.num || 0), 0);
             for (const r of recomms) {
               if (!r.type || !r.num) continue;
               if (!dirStats[r.type]) dirStats[r.type] = { totalNum: 0, matches: [] };
@@ -873,6 +897,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 num: m.num,
                 direction: r.type,
                 expertCount: r.num,
+                totalExpertCount: matchTotalMap[m.matchId],
                 isHit: r.result === 1,
               });
             }
@@ -930,6 +955,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   num: m.num,
                   direction: maxDir.type,
                   expertCount: maxDir.num,
+                  totalExpertCount: matchTotalMap[m.matchId] || maxDir.num,
                   isHit: maxDir.result === 1,
                 });
               }
@@ -943,6 +969,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               } catch {
                 continue;
               }
+              const totalExpertCount = recomms.reduce((sum, r) => sum + (r.num || 0), 0);
               const maxDir = recomms.reduce((a, b) => ((b.num || 0) > ((a && a.num) || 0) ? b : a), null);
               if (maxDir && maxDir.num > 0)
                 // ★ P0-3: 只存前端需要的字段
@@ -954,6 +981,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   num: m.num,
                   direction: maxDir.type,
                   expertCount: maxDir.num,
+                  totalExpertCount: totalExpertCount,
                   isHit: maxDir.result === 1,
                 });
             }
@@ -1078,10 +1106,20 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 const dirMap = { home: 0, draw: 0, away: 0 };
                 let total = 0;
                 recs.forEach((r) => {
-                  total += r.num || 1;
-                  if (['胜', '主胜'].includes(r.type)) dirMap.home += r.num || 1;
-                  else if (['平', '平局'].includes(r.type)) dirMap.draw += r.num || 1;
-                  else if (['负', '客胜'].includes(r.type)) dirMap.away += r.num || 1;
+                  const t = (r.type || '').trim();
+                  const n = r.num || 1;
+                  total += n;
+                  // SPF: 胜/主胜 → home, 平/平局 → draw, 负/客胜 → away
+                  if (t === '胜' || t === '主胜') dirMap.home += n;
+                  else if (t === '平' || t === '平局') dirMap.draw += n;
+                  else if (t === '负' || t === '客胜') dirMap.away += n;
+                  // RQSPF: 让胜 → home, 让平 → draw, 让负 → away
+                  else if (t === '让胜') dirMap.home += n;
+                  else if (t === '让平') dirMap.draw += n;
+                  else if (t === '让负') dirMap.away += n;
+                  // 组合: 胜平 → home+draw 均分
+                  else if (t === '胜平') { dirMap.home += n/2; dirMap.draw += n/2; }
+                  else if (t === '平负') { dirMap.draw += n/2; dirMap.away += n/2; }
                 });
                 const topDir = Object.entries(dirMap).sort((a, b) => b[1] - a[1])[0];
                 models.push({
@@ -1282,11 +1320,35 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             }
           }
 
+          // ★ V9: SP官方数据注入（优先使用官网数据）
+          let spData = null;
+          try {
+            if (match && match.num) {
+              spData = spAdapter.getFullSPData(
+                match.num,
+                (match.date || '').slice(0, 10),
+              );
+            }
+          } catch(e) {}
+
           return res.json({
             code: 1,
             data: {
               match: match || {},
               recommends: recommends,
+              // ★ V9: SP官方数据（优先级最高）
+              sp_odds: (spData && spData.odds) ? {
+                spf: spData.odds.spf,
+                rqspf: spData.odds.rqspf,
+                handicap: spData.odds.handicap,
+                jqs: spData.odds.jqs,
+                bqc: spData.odds.bqc,
+                lottery: spData.odds.lottery,
+                score: spData.odds.score,
+                homeRecord: spData.odds.homeRecord,
+                awayRecord: spData.odds.awayRecord,
+              } : null,
+              sp_preview: (spData && spData.preview) ? spData.preview : null,
               // ★ 蓝图新增字段（全部可选，兜底保护）
               consensus: await _getMatchConsensus(match || {}, recommends).catch(() => null),
               fusion: await _getFullFusion(match || {}, matchId, recommends).catch(() => null),
@@ -1453,6 +1515,34 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               dailyTrend: dailyTrend,
               top3HitRate: top3HitRate,
             };
+
+            // ★ 模型维度命中率（from prediction_outcomes）
+            try {
+              const db = database.getAdapter();
+              if (db) {
+                const modelRows = db.execAll(
+                  "SELECT model_name, COUNT(*) as total, SUM(direction_hit) as hits, " +
+                    "ROUND(SUM(direction_hit) * 100.0 / COUNT(*), 1) as hit_rate " +
+                    "FROM prediction_outcomes " +
+                    "WHERE model_name NOT IN ('data_fusion','market_signal') " +
+                    "AND match_date >= date('now', '-" + days + " days') " +
+                    "GROUP BY model_name ORDER BY hit_rate DESC",
+                );
+                if (modelRows && modelRows.length > 0) {
+                  resultPayload.modelStats = modelRows.map(function (r) {
+                    return {
+                      modelName: r.model_name,
+                      total: r.total,
+                      hits: r.hits,
+                      hitRate: r.hit_rate,
+                    };
+                  });
+                }
+              }
+            } catch (e) {
+              // 模型维度查询失败不影响主流程
+              console.error('[hit-rate] modelStats query failed:', e.message);
+            }
 
             // 写入内存缓存
             setHitRateCache({ days: days, data: resultPayload });
@@ -1769,6 +1859,227 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             return res.json({ code: 1, data: { hint: '已启动后台同步 ' + syncDate + ', 请稍候查看' } });
           } catch (e) {
             return res.json({ code: 0, msg: '同步触发失败: ' + e.message });
+          }
+        }
+
+        case 'sync-gov-schedule': {
+          // ★ P1: 手动触发SP官方赛程同步（轻量 HTTP，主数据源）
+          try {
+            const ds = require('./data_sync');
+            logger.info('[api] 手动触发 SP 赛程同步...');
+            ds.syncGovScheduleWrap()
+              .then(function (result) {
+                if (result && result.success) {
+                  logger.info('[api] SP赛程同步完成: +' + (result.added || 0) + '新 ' + (result.updated || 0) + '更新');
+                } else {
+                  logger.warn('[api] SP赛程同步未成功: ' + JSON.stringify(result));
+                }
+              })
+              .catch(function (e) {
+                logger.error('[api] SP赛程同步失败: ' + e.message);
+              });
+            return res.json({ code: 1, data: { hint: '已启动 SP 赛程同步，请稍候查看 data.json' } });
+          } catch (e) {
+            return res.json({ code: 0, msg: 'SP赛程同步触发失败: ' + e.message });
+          }
+        }
+
+        case 'daily-profit-7d': {
+          // ★ V9: 近7日专家博热方案盈利统计（调用共享方案生成模块）
+          try {
+            const days = parseInt(data.days) || 7;
+            const fs = require('fs');
+            const path = require('path');
+            const dataFile = getDataJson();
+            const mMap = dataFile.m || {};
+            const rMap = dataFile.r || {};
+
+            // ★ 从数据中提取最近N个有比赛的日期（与收入方案页实际显示对齐）
+            const allDates = new Set();
+            Object.keys(mMap).forEach(k => {
+              const m = mMap[k];
+              const d = (m && m.date || '').slice(0, 10);
+              if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) allDates.add(d);
+            });
+            const sortedDates = Array.from(allDates).sort().reverse(); // 降序
+            const dates = sortedDates.slice(0, days).reverse(); // 取最近N天，再升序
+
+            const dateLabels = [];
+            const dateProfits = [];
+            const AMOUNT = 1000; // 每方案1000分（10元）
+
+            function findRecommends(matchId) {
+              const raw = rMap['m_' + matchId] || rMap[String(matchId)] || [];
+              return (raw || []).map(x => {
+                const rawVal = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
+                const r = rawVal === 0 || rawVal === 1 ? rawVal : null;
+                return { type: x.t || x.type, num: x.n || x.num, result: r };
+              });
+            }
+
+            const PG = require('./core/plan-generator');
+
+            for (const ds of dates) {
+              const mList = [];
+              Object.keys(mMap).forEach(k => {
+                const m = mMap[k];
+                if (!m || (m.date || '').slice(0, 10) !== ds) return;
+                mList.push(m);
+              });
+
+              // 当天没有比赛 → 利润为0，但日期仍然显示（保证7天连续）
+              if (mList.length === 0) {
+                dateLabels.push(ds.slice(5));
+                dateProfits.push(0);
+                continue;
+              }
+
+              // 构建 matchDataMap（与 income-stats 完全一致）
+              const histOdds = getOddsHistory(ds);
+              const matchDataMap = {};
+              for (const m of mList) {
+                const num = m.num || '';
+                let oddsObj = null;
+                if (histOdds && histOdds[num]) {
+                  const od = histOdds[num];
+                  oddsObj = {
+                    spf: od.spf || null,
+                    rqspf: od.rqspf || null,
+                    totalGoals: od.totalGoals || null,
+                    isSingleGame: od.isSingleGame || false,
+                  };
+                }
+                matchDataMap[m.matchId] = {
+                  match: m,
+                  recs: findRecommends(m.matchId),
+                  odds: oddsObj,
+                };
+              }
+
+              // 生成专家博热方案 & 计算日盈利
+              const plans = PG.generateExpertPlans(mList, matchDataMap, ds);
+              let dayProfit = 0;
+              plans.forEach(pp => {
+                if (pp.isPlanWon === null && pp.isPlanLose === null) return;
+                if (pp.isPlanWon === true) dayProfit += (pp.winningPrize || 0) - AMOUNT;
+                else if (pp.isPlanLose === true) dayProfit -= AMOUNT;
+              });
+
+              dateLabels.push(ds.slice(5));
+              dateProfits.push(Math.round(dayProfit));
+            }
+
+            return res.json({ code: 1, data: { dates: dateLabels, profits: dateProfits } });
+          } catch (e) {
+            logger.error('[daily-profit-7d] ' + e.message);
+            return res.json({ code: 0, msg: '获取盈利数据失败: ' + e.message });
+          }
+        }
+
+        case 'auto-heal': {
+          // ★ P2: 手动触发自动补漏检查
+          try {
+            const autoHeal = require('./auto_heal');
+            logger.info('[api] 手动触发 auto_heal 检查...');
+            autoHeal.checkAndHeal({ days: 7 })
+              .then(function (result) {
+                logger.info('[api] auto_heal 完成: ' + JSON.stringify(result.gaps));
+              })
+              .catch(function (e) {
+                logger.error('[api] auto_heal 失败: ' + e.message);
+              });
+            return res.json({ code: 1, data: { hint: 'auto_heal 检查已启动' } });
+          } catch (e) {
+            return res.json({ code: 0, msg: 'auto_heal 失败: ' + e.message });
+          }
+        }
+
+        case 'refill-expert-consensus': {
+          // ★ V9.1: 删除旧专家共识记录 + 重新回填（进程内执行，避免子进程DB冲突）
+          try {
+            const db = database.getAdapter();
+            if (!db) return res.json({ code: 0, msg: '数据库不可用' });
+
+            // 删除旧记录
+            const poDel = db.execRun("DELETE FROM prediction_outcomes WHERE model_name='专家共识'");
+            const upDel = db.execRun("DELETE FROM unified_predictions WHERE model_name='专家共识'");
+            logger.info('[api] 已删除专家共识旧记录: outcomes=' + poDel + ', unified=' + upDel);
+
+            // ★ 进程内回填：读取 data.json → computeConsensus → insert unified_predictions
+            const fs = require('fs');
+            const DATA_FILE = path.join(__dirname, 'data.json');
+            const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+            const rMap = data.r || {}, mMap = data.m || {};
+            const keys = Object.keys(rMap).filter(k => Array.isArray(rMap[k]) && rMap[k].length > 0);
+
+            // 同 backfill_expert_consensus.js 的 computeConsensus
+            const computeConsensus = (recs) => {
+              const dirs = { home: 0, draw: 0, away: 0 };
+              let total = 0;
+              recs.forEach(r => {
+                const type = r.type || '', num = Number(r.num) || 1;
+                total += num;
+                if (type === '胜' || type === '主胜') dirs.home += num;
+                else if (type === '平' || type === '平局') dirs.draw += num;
+                else if (type === '负' || type === '客胜') dirs.away += num;
+                else if (type === '让胜') dirs.home += num;
+                else if (type === '让平') dirs.draw += num;
+                else if (type === '让负') dirs.away += num;
+                else if (type === '胜平') { dirs.home += num / 2; dirs.draw += num / 2; }
+                else if (type === '平负') { dirs.draw += num / 2; dirs.away += num / 2; }
+                else total -= num;
+              });
+              if (total <= 0) return null;
+              let top = 'home', topCount = dirs.home;
+              if (dirs.draw > topCount) { top = 'draw'; topCount = dirs.draw; }
+              if (dirs.away > topCount) { top = 'away'; topCount = dirs.away; }
+              const conf = topCount / total;
+              return {
+                direction: top, confidence: Math.min(conf, 1),
+                consensusTag: conf >= 0.6 ? 'strong' : conf >= 0.4 ? 'weak' : 'neutral',
+                homeCount: dirs.home, drawCount: dirs.draw, awayCount: dirs.away, total
+              };
+            };
+
+            let inserted = 0, skipped = 0;
+            keys.forEach(k => {
+              const recs = rMap[k] || [];
+              const m = mMap[k] || {};
+              const mid = (m.matchId || '').replace(/^m_/, '');
+              const date = (m.date || '').substring(0, 10);
+              const num = m.num || '';
+              const cons = computeConsensus(recs);
+              if (!cons) return;
+              const predId = 'expert_consensus_v1.0_' + mid + '_' + date;
+              const exists = db.execOne('SELECT id FROM unified_predictions WHERE prediction_id=?', predId);
+              if (exists) { skipped++; return; }
+              db.execRun(
+                'INSERT INTO unified_predictions (match_num,match_date,match_id,model_name,model_version,prediction_id,direction,direction_confidence,consensus_tag,raw_output_json,computed_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                num, date, mid, '专家共识', 'v1.0', predId,
+                cons.direction, cons.confidence, cons.consensusTag,
+                JSON.stringify({ homeCount: cons.homeCount, drawCount: cons.drawCount, awayCount: cons.awayCount, total: cons.total }),
+                new Date().toISOString()
+              );
+              inserted++;
+            });
+
+            // Outcome backfill
+            const { backfiller } = require('./core/outcome-backfill');
+            const bfResult = await backfiller.backfill(db, { dryRun: false });
+            const roCount = db.execOne("SELECT COUNT(*) as c FROM prediction_outcomes WHERE model_name='专家共识'");
+
+            logger.info('[api] 专家共识回填完成: inserted=' + inserted + ' skipped=' + skipped + ' outcomes=' + (roCount ? roCount.c : 0));
+            return res.json({
+              code: 1,
+              data: {
+                inserted, skipped, deletedPo: poDel, deletedUp: upDel,
+                outcomes: roCount ? roCount.c : 0,
+                backfillResult: bfResult
+              }
+            });
+          } catch (e) {
+            logger.error('[api] 专家共识回填失败: ' + e.message);
+            return res.json({ code: 0, msg: '专家共识回填失败: ' + e.message });
           }
         }
 
@@ -2180,6 +2491,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               aiConf: data.aiConf || 'all',
               pkConf: data.pkConf || 'all',
               consensus: data.consensus || 'all',
+              model: data.model || 'all',
               page: parseInt(data.page) || 1,
               pageSize: parseInt(data.pageSize) || 20,
             });
@@ -2205,6 +2517,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             // Add league list and total count
             result.leagues = predictionLog.getLeagues();
+            result.models = predictionLog.getModels();
 
             return res.json({ code: 1, data: result });
           } catch (e) {
@@ -3191,10 +3504,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // ==================== P0-方案一：冷门方向验证 ====================
             // 不再纯赔率驱动，结合模型信号（实力/共识）做交叉验证
             function getColdDirectionWithValidation(modds, gs) {
+              if (!modds || !modds.spf) return null;
+              const spf = modds.spf;
+              const hOdds = spf.home != null ? parseFloat(spf.home) : 0;
+              const dOdds = spf.draw != null ? parseFloat(spf.draw) : 0;
+              const aOdds = spf.away != null ? parseFloat(spf.away) : 0;
+              if (!hOdds || !dOdds || !aOdds) return null;
+
               const directions = [
-                { dir: '胜', odds: parseFloat(modds.spf.home), signal: 0 },
-                { dir: '平', odds: parseFloat(modds.spf.draw), signal: 0 },
-                { dir: '负', odds: parseFloat(modds.spf.away), signal: 0 },
+                { dir: '胜', odds: hOdds, signal: 0 },
+                { dir: '平', odds: dOdds, signal: 0 },
+                { dir: '负', odds: aOdds, signal: 0 },
               ];
 
               const totalStrength = gs && gs.totalStrength != null ? parseFloat(gs.totalStrength) : 0;
@@ -3386,9 +3706,15 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               } else {
                 // ===== P1-方案五：无热度数据降级增强 =====
                 // 用赔率推导冷门可能性 + 共识状态过滤，替代原全纳入策略
-                var impliedHome = 1 / parseFloat(spf.home);
-                var impliedDraw = 1 / parseFloat(spf.draw);
-                var impliedAway = 1 / parseFloat(spf.away);
+                // ★ V9.1: null-safe, SPF未开售时跳过此逻辑（已在 getMatchOdds 中补齐）
+                var safeHome = parseFloat(spf.home) || 0;
+                var safeDraw = parseFloat(spf.draw) || 0;
+                var safeAway = parseFloat(spf.away) || 0;
+                if (!safeHome || !safeDraw || !safeAway) continue;
+
+                var impliedHome = 1 / safeHome;
+                var impliedDraw = 1 / safeDraw;
+                var impliedAway = 1 / safeAway;
                 var totalImplied = impliedHome + impliedDraw + impliedAway;
                 const fairHome = impliedHome / totalImplied;
                 const fairAway = impliedAway / totalImplied;
@@ -5350,7 +5676,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const db = database.getAdapter();
             if (!db) return res.json({ code: 0, msg: '数据库不可用' });
 
-            const { backfiller } = require('./core/outcome-backfill');
+            const { backfiller, INTERNAL_MODEL_NAMES } = require('./core/outcome-backfill');
+            const internalModelSql = "'" + INTERNAL_MODEL_NAMES.join("','") + "'";
             const rankings = backfiller.getModelHitRates(db, days);
 
             // 模型列表
@@ -5366,6 +5693,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 'SELECT po.match_date as ld, po.model_name as model, ' +
                   'COUNT(*) as total, SUM(po.direction_hit) as hits ' +
                   'FROM prediction_outcomes po ' +
+                  'WHERE po.model_name NOT IN (' +
+                  internalModelSql +
+                  ') ' +
                   'GROUP BY po.match_date, po.model_name ORDER BY po.match_date DESC LIMIT 50',
               );
               // 聚合到模型→联赛映射（match_date as proxy for league grouping）
@@ -5392,6 +5722,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 'SELECT match_date, model_name, ' +
                   'COUNT(*) as total, SUM(direction_hit) as hits ' +
                   'FROM prediction_outcomes ' +
+                  'WHERE model_name NOT IN (' +
+                  internalModelSql +
+                  ') ' +
                   'GROUP BY match_date, model_name ORDER BY match_date ASC',
               );
               // Aggregate by model
@@ -5999,8 +6332,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
       // 按日期检查近7天（不依赖matchStatus）
       database.initDatabase();
-      const db = database.getDatabase();
-      if (!db || !db.prepare) return; // 数据库不可用时跳过
+      const adp = database.getAdapter && database.getAdapter();
+      if (!adp || !adp.execOne || !adp.execAll) return; // 数据库不可用时跳过
       const sevenAgo = new Date(today);
       sevenAgo.setDate(sevenAgo.getDate() - 7);
       const minDate =
@@ -6010,25 +6343,25 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         '-' +
         String(sevenAgo.getDate()).padStart(2, '0');
 
-      const row = db
-        .prepare(
-          `SELECT COUNT(DISTINCT r.matchId) as cnt FROM recommends r JOIN matches m ON r.matchId=m.matchId WHERE m.date >= ? AND m.date < ? AND r.result IS NULL`,
-        )
-        .get(minDate, todayStr);
+      const row = adp.execOne(
+        `SELECT COUNT(DISTINCT r.matchId) as cnt FROM recommends r JOIN matches m ON r.matchId=m.matchId WHERE m.date >= ? AND m.date < ? AND r.result IS NULL`,
+        minDate,
+        todayStr,
+      );
       if (!row || row.cnt === 0) return;
 
       logger.info('[backfill] 近7天有' + row.cnt + '场比赛结果不全, 开始回填...');
 
-      const stale = db
-        .prepare(
-          `
+      const stale = adp.execAll(
+        `
       SELECT DISTINCT r.matchId, m.homeName, m.visitName
       FROM recommends r JOIN matches m ON r.matchId=m.matchId
       WHERE m.date >= ? AND m.date < ? AND r.result IS NULL
       LIMIT 50
     `,
-        )
-        .all(minDate, todayStr);
+        minDate,
+        todayStr,
+      );
 
       if (!stale || stale.length === 0) return;
 
@@ -6058,15 +6391,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             { Cookie: 'token=' + token },
           );
           if (recRes.code === 1 && recRes.data) {
-            const fetchDate = yDate;
+            const fetchDate = todayStr;
             const recomms = recRes.data
               .filter((x) => x && x.type && x.num > 0)
               .map((x) => ({
+                matchId: s.matchId,
                 type: x.type,
                 num: x.num,
                 result: x.result !== undefined ? x.result : null,
+                fetchDate: fetchDate,
               }));
-            database.batchUpsertRecommends(s.matchId, recomms, fetchDate);
+            database.batchUpsertRecommends(recomms);
             const nulls = recomms.filter((r) => r.result === null).length;
             if (nulls === 0) updated++;
             logger.info('[backfill] ' + s.matchId + ' ' + s.homeName + ' vs ' + s.visitName + ' OK');

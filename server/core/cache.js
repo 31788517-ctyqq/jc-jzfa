@@ -154,7 +154,9 @@ let _hitRateCacheMtime = 0;
 function getHitRateCache() {
   const now = Date.now();
   let mtime = 0;
-  try { mtime = fs.statSync(DATA_JSON_PATH).mtimeMs; } catch (e) {}
+  try {
+    mtime = fs.statSync(DATA_JSON_PATH).mtimeMs;
+  } catch (e) {}
   if (_hitRateCache && now - _hitRateCacheTime < 60000 && mtime === _hitRateCacheMtime) {
     return _hitRateCache;
   }
@@ -164,7 +166,9 @@ function getHitRateCache() {
 function setHitRateCache(data) {
   _hitRateCache = data;
   _hitRateCacheTime = Date.now();
-  try { _hitRateCacheMtime = fs.statSync(DATA_JSON_PATH).mtimeMs; } catch (e) {}
+  try {
+    _hitRateCacheMtime = fs.statSync(DATA_JSON_PATH).mtimeMs;
+  } catch (e) {}
 }
 
 function invalidateHitRateCache() {

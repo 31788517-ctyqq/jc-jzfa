@@ -1,6 +1,6 @@
-import { api } from '../api.js';
+﻿import { api } from '../api.js';
 import { formatDate } from '../utils.js';
-import { loadECharts, echartsReady } from '../charts.js';
+import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
 import * as state from '../state.js';
 
 // AI 深度解析缓存：{ matchId: { content: ..., hash: ... } }
@@ -362,15 +362,17 @@ export function goDetail(matchId) {
       if (!chartEl) return;
       const top5 = (trend.lastResult || []).sort((a, b) => b.num - a.num).slice(0, 5);
 
-      // 少于2个数据点时不渲染（线图需≥2个点才可读）
-      if (!trend || !trend.timeLabels || trend.timeLabels.length < 2 || (trend.series || []).length === 0) {
+      // 无数据点时不渲染
+      if (!trend || !trend.timeLabels || trend.timeLabels.length < 1 || (trend.series || []).length === 0) {
         chartEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:#64748B;">
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.5"><path d="M14 25C14 27 15.07 32 29 32C42.93 32 44 27 44 25C44 23 44 10 44 10H29H14C14 10 14 23 14 25Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M29 16H23V21L26 24L29 21V16Z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M26 16V10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 40L43 40" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 14H4C4 14 5 19 6 22C7 25 14 24 14 24" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/></svg>
-          <div style="margin-top:12px;font-size:13px;color:#94A3B8;">趋势数据收集中</div>
-          <div style="margin-top:4px;font-size:11px;color:#4B5563;">每20分钟更新一个数据点</div>
+          <div style="margin-top:12px;font-size:13px;color:#94A3B8;">暂无趋势数据</div>
         </div>`;
         return;
       }
+
+      // 单点快照标记：仅1个数据点时用柱状图（折线图需≥2点才有意义）
+      var isSingleShot = trend.timeLabels.length === 1;
 
       loadECharts().then(function () {
         if (!echartsReady) return;
@@ -386,6 +388,17 @@ export function goDetail(matchId) {
         });
         if (matchedSeries.length === 0) matchedSeries = trend.series.slice(0, 5);
         const series = matchedSeries.slice(0, 5).map(function (s, i) {
+          // 单点快照：用柱状图 + 显示数值标签，更直观
+          if (isSingleShot) {
+            return {
+              name: s.name,
+              type: 'bar',
+              barMaxWidth: 40,
+              label: { show: true, position: 'top', fontSize: 10, color: '#94A3B8' },
+              itemStyle: { color: colors[i], borderRadius: [4, 4, 0, 0] },
+              data: s.data,
+            };
+          }
           return {
             name: s.name,
             type: 'line',
@@ -398,17 +411,21 @@ export function goDetail(matchId) {
           };
         });
 
-        chart.setOption({
+        var option = {
           color: colors,
           tooltip: { trigger: 'axis' },
           legend: {
+            type: 'scroll',  // 图例多时自动滚动，防止溢出
             bottom: 0,
             icon: 'circle',
             itemWidth: 8,
             itemHeight: 8,
             textStyle: { fontSize: 10, color: '#94A3B8' },
+            pageTextStyle: { color: '#64748B' },
+            pageIconColor: '#94A3B8',
+            pageIconInactiveColor: '#475569',
           },
-          grid: { left: '2%', right: '4%', bottom: '18%', top: '5%', containLabel: true },
+          grid: { left: '2%', right: '4%', bottom: isSingleShot ? '28%' : '18%', top: isSingleShot ? '18%' : '5%', containLabel: true },
           xAxis: {
             type: 'category',
             data: trend.timeLabels,
@@ -424,7 +441,26 @@ export function goDetail(matchId) {
             splitLine: { lineStyle: { color: 'rgba(255,255,255,0.03)' } },
           },
           series,
-        });
+        };
+
+        // 单点快照时在图表内部左上角加轻量标记
+        if (isSingleShot) {
+          option.graphic = [
+            {
+              type: 'text',
+              left: 8,
+              top: 6,
+              style: {
+                text: '\u5b9e\u65f6\u5feb\u7167 \u00B7 \u6bcf20\u5206\u949f\u66f4\u65b0',
+                fontSize: 10,
+                fill: '#FBBF24',
+                fontWeight: 500,
+              },
+            },
+          ];
+        }
+
+        chart.setOption(option);
       });
     }, 100);
   });

@@ -88,7 +88,9 @@ class PredictionModelAdapter {
         if (braceMatch) cleaned = braceMatch[1];
       }
       parsed = JSON.parse(cleaned.trim());
-    } catch (e) { /* 降级为关键词匹配 */ }
+    } catch (e) {
+      /* 降级为关键词匹配 */
+    }
 
     // 从 JSON 提取方向
     if (parsed) {
@@ -124,16 +126,25 @@ class PredictionModelAdapter {
 
     let direction = null;
     for (const p of homeWinPatterns) {
-      if (content.includes(p)) { direction = 'home'; break; }
+      if (content.includes(p)) {
+        direction = 'home';
+        break;
+      }
     }
     if (!direction) {
       for (const p of drawPatterns) {
-        if (content.includes(p)) { direction = 'draw'; break; }
+        if (content.includes(p)) {
+          direction = 'draw';
+          break;
+        }
       }
     }
     if (!direction) {
       for (const p of awayWinPatterns) {
-        if (content.includes(p)) { direction = 'away'; break; }
+        if (content.includes(p)) {
+          direction = 'away';
+          break;
+        }
       }
     }
 
@@ -156,7 +167,7 @@ class PredictionModelAdapter {
 // ═══════════════════════════════════════════════════════
 
 class GongshoudaoAdapter extends PredictionModelAdapter {
-  modelName = 'gongshoudao';
+  modelName = '功守道';
   modelVersion = 'v9.1';
   dimensions = ['direction', 'goal', 'score'];
 
@@ -288,8 +299,8 @@ class DeepseekAdapter extends PredictionModelAdapter {
         const adp = database.getAdapter();
         if (adp) {
           aiPrediction = adp.execOne(
-            "SELECT * FROM ai_predictions WHERE matchId = ? ORDER BY updatedAt DESC LIMIT 1",
-            matchInfo.matchId
+            'SELECT * FROM ai_predictions WHERE matchId = ? ORDER BY updatedAt DESC LIMIT 1',
+            matchInfo.matchId,
           );
         }
       } catch (e) {
@@ -303,15 +314,14 @@ class DeepseekAdapter extends PredictionModelAdapter {
       if (!aiPrediction || !aiPrediction.content) return null;
 
       // ★ T-02: 使用共享 _parseAIOutput（先尝试 JSON.parse，失败降级关键词匹配）
-      const content = typeof aiPrediction.content === 'string'
-        ? aiPrediction.content
-        : JSON.stringify(aiPrediction.content);
+      const content =
+        typeof aiPrediction.content === 'string' ? aiPrediction.content : JSON.stringify(aiPrediction.content);
       const parsed = this._parseAIOutput(content, matchInfo);
 
       return this._buildPrediction(matchInfo, {
         direction: parsed.direction || null,
         directionConfidence: parsed.confidence || this._estimateConfidence(content),
-        goalTotal: parsed.score ? (parsed.score.home + parsed.score.away) : null,
+        goalTotal: parsed.score ? parsed.score.home + parsed.score.away : null,
         predictedScore: parsed.score ? `${parsed.score.home}:${parsed.score.away}` : null,
         rawOutput: JSON.stringify(aiPrediction.content).slice(0, 5000),
       });
@@ -380,7 +390,7 @@ class DoubaoAdapter extends PredictionModelAdapter {
       return this._buildPrediction(matchInfo, {
         direction,
         directionConfidence: directionConfidence || 0.5,
-        goalTotal: score ? (score.home + score.away) : null,
+        goalTotal: score ? score.home + score.away : null,
         predictedScore: score ? `${score.home}:${score.away}` : null,
       });
     } catch (e) {
@@ -395,7 +405,7 @@ class DoubaoAdapter extends PredictionModelAdapter {
 // ═══════════════════════════════════════════════════════
 
 class ExpertConsensusAdapter extends PredictionModelAdapter {
-  modelName = 'expert_consensus';
+  modelName = '专家共识';
   modelVersion = 'v1.0';
   dimensions = ['direction'];
 
@@ -413,18 +423,34 @@ class ExpertConsensusAdapter extends PredictionModelAdapter {
         const num = rec.num || 1;
         totalNum += num;
 
-        if (['胜', '主胜'].includes(type)) dirCounts.home += num;
-        else if (['平', '平局'].includes(type)) dirCounts.draw += num;
-        else if (['负', '客胜'].includes(type)) dirCounts.away += num;
+        // SPF: 胜/主胜 → home, 平/平局 → draw, 负/客胜 → away
+        if (type === '胜' || type === '主胜') dirCounts.home += num;
+        else if (type === '平' || type === '平局') dirCounts.draw += num;
+        else if (type === '负' || type === '客胜') dirCounts.away += num;
+        // RQSPF: 让胜 → home, 让平 → draw, 让负 → away (midou310主力推荐类型)
+        else if (type === '让胜') dirCounts.home += num;
+        else if (type === '让平') dirCounts.draw += num;
+        else if (type === '让负') dirCounts.away += num;
+        // 组合类型: 胜平 → home+draw 均分, 平负 → draw+away 均分
+        else if (type === '胜平') { dirCounts.home += num / 2; dirCounts.draw += num / 2; }
+        else if (type === '平负') { dirCounts.draw += num / 2; dirCounts.away += num / 2; }
+        // 总进球/比分等非方向型推荐不计入方向统计
+        else totalNum -= num;  // 不计入总票数
       }
 
-      if (totalNum === 0) return null;
+      if (totalNum <= 0) return null;
 
       // 找最大方向
       let topDir = 'home';
       let topCount = dirCounts.home;
-      if (dirCounts.draw > topCount) { topDir = 'draw'; topCount = dirCounts.draw; }
-      if (dirCounts.away > topCount) { topDir = 'away'; topCount = dirCounts.away; }
+      if (dirCounts.draw > topCount) {
+        topDir = 'draw';
+        topCount = dirCounts.draw;
+      }
+      if (dirCounts.away > topCount) {
+        topDir = 'away';
+        topCount = dirCounts.away;
+      }
 
       const direction = topDir === 'home' ? 'home' : topDir === 'draw' ? 'draw' : 'away';
       const confidence = topCount / totalNum;
@@ -501,7 +527,7 @@ class MarketSignalAdapter extends PredictionModelAdapter {
               dirScores[asiaDirection] = (dirScores[asiaDirection] || 0) + asiaStrength;
             }
 
-            const maxDir = Object.entries(dirScores).reduce((a, b) => a[1] > b[1] ? a : b);
+            const maxDir = Object.entries(dirScores).reduce((a, b) => (a[1] > b[1] ? a : b));
             if (maxDir[1] > 0.25) {
               direction = maxDir[0];
               confidence = Math.min(0.85, maxDir[1] * discreteFactor);
@@ -511,7 +537,11 @@ class MarketSignalAdapter extends PredictionModelAdapter {
               direction,
               directionConfidence: confidence,
               rawOutput: JSON.stringify({
-                spProb: { home: +(spHome * 100).toFixed(1) + '%', draw: +(spDraw * 100).toFixed(1) + '%', away: +(spAway * 100).toFixed(1) + '%' },
+                spProb: {
+                  home: +(spHome * 100).toFixed(1) + '%',
+                  draw: +(spDraw * 100).toFixed(1) + '%',
+                  away: +(spAway * 100).toFixed(1) + '%',
+                },
                 discrete: discrete.flag,
                 asiaSignal: asiaWater.signal,
                 discreteFactor,

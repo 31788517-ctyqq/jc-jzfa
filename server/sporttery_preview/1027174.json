@@ -1,0 +1,545 @@
+{
+  "match_id": "1027174",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "5胜/1平/4负",
+      "7胜/1平/2负",
+      "4胜/2平/4负",
+      "4胜/0平/6负",
+      "1.8个",
+      "1.7个"
+    ],
+    "away": [
+      "4胜/1平/5负",
+      "2胜/1平/7负",
+      "6胜/2平/2负",
+      "6胜/2平/2负",
+      "3.3个",
+      "1.6个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场沃夫斯堡5胜 (50%) | 1平 (10%) | 4负 (40%)",
+    "rows": [
+      {
+        "date": "2024-03-03",
+        "league": "德甲",
+        "teams": "沃夫斯堡 2:3 （半 0:1） 斯图加特",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2023-10-07",
+        "league": "德甲",
+        "teams": "斯图加特 3:1 （半 0:1） 沃夫斯堡",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2023-03-18",
+        "league": "德甲",
+        "teams": "斯图加特 0:1 （半 0:0） 沃夫斯堡",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2022-10-01",
+        "league": "德甲",
+        "teams": "沃夫斯堡 3:2 （半 2:2） 斯图加特",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2022-04-30",
+        "league": "德甲",
+        "teams": "斯图加特 1:1 （半 0:1） 沃夫斯堡",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2021-12-12",
+        "league": "德甲",
+        "teams": "沃夫斯堡 0:2 （半 0:1） 斯图加特",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2021-04-22",
+        "league": "德甲",
+        "teams": "斯图加特 1:3 （半 0:2） 沃夫斯堡",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2020-12-21",
+        "league": "德甲",
+        "teams": "沃夫斯堡 1:0 （半 0:0） 斯图加特",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2019-05-11",
+        "league": "德甲",
+        "teams": "斯图加特 3:0 （半 1:0） 沃夫斯堡",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2018-12-19",
+        "league": "德甲",
+        "teams": "沃夫斯堡 2:0 （半 2:0） 斯图加特",
+        "totalGoals": "2"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "沃夫斯堡",
+      "title": "常规赛 第11名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "11/10/13",
+          "winRate": "32%",
+          "goals": "56/54",
+          "gd": "2",
+          "points": "43",
+          "rank": "11"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "3/7/7",
+          "winRate": "18%",
+          "goals": "27/30",
+          "gd": "-3",
+          "points": "16",
+          "rank": "14"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "8/3/6",
+          "winRate": "47%",
+          "goals": "29/24",
+          "gd": "5",
+          "points": "27",
+          "rank": "4"
+        }
+      ]
+    },
+    {
+      "team": "斯图加特",
+      "title": "常规赛 第9名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "14/8/12",
+          "winRate": "41%",
+          "goals": "64/53",
+          "gd": "11",
+          "points": "50",
+          "rank": "9"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "7/2/8",
+          "winRate": "41%",
+          "goals": "35/27",
+          "gd": "8",
+          "points": "23",
+          "rank": "9"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "7/6/4",
+          "winRate": "41%",
+          "goals": "29/26",
+          "gd": "3",
+          "points": "27",
+          "rank": "5"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "沃夫斯堡",
+      "summary": "沃夫斯堡近10场4胜 (40%) | 2平 (20%) | 4负 (40%) 进18球，失17球，净进1球",
+      "matches": [
+        {
+          "date": "2024-09-22",
+          "league": "德甲",
+          "vs": "勒沃库森 4 : 3 （半 2:3） 沃夫斯堡",
+          "result": "负"
+        },
+        {
+          "date": "2024-09-14",
+          "league": "德甲",
+          "vs": "沃夫斯堡 1 : 2 （半 0:1） 法兰克福",
+          "result": "负"
+        },
+        {
+          "date": "2024-09-06",
+          "league": "俱乐部赛",
+          "vs": "沃夫斯堡 2 : 1 （半 ） 汉诺威96",
+          "result": "胜"
+        },
+        {
+          "date": "2024-08-31",
+          "league": "德甲",
+          "vs": "基尔 0 : 2 （半 0:2） 沃夫斯堡",
+          "result": "胜"
+        },
+        {
+          "date": "2024-08-25",
+          "league": "德甲",
+          "vs": "沃夫斯堡 2 : 3 （半 0:1） 拜仁",
+          "result": "负"
+        },
+        {
+          "date": "2024-08-20",
+          "league": "德国杯",
+          "vs": "科布伦茨 0 : 1 （半 0:1） 沃夫斯堡",
+          "result": "胜"
+        },
+        {
+          "date": "2024-08-10",
+          "league": "俱乐部赛",
+          "vs": "布伦特 4 : 4 （半 2:2） 沃夫斯堡",
+          "result": "平"
+        },
+        {
+          "date": "2024-08-03",
+          "league": "俱乐部赛",
+          "vs": "科莫 0 : 0 （半 ） 沃夫斯堡",
+          "result": "平"
+        },
+        {
+          "date": "2024-07-27",
+          "league": "俱乐部赛",
+          "vs": "汉诺威96 3 : 2 （半 ） 沃夫斯堡",
+          "result": "负"
+        },
+        {
+          "date": "2024-07-24",
+          "league": "俱乐部赛",
+          "vs": "沃夫斯堡 1 : 0 （半 ） 里尔",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "斯图加特",
+      "summary": "斯图加特近10场6胜 (60%) | 2平 (20%) | 2负 (20%) 进33球，失16球，净进17球",
+      "matches": [
+        {
+          "date": "2024-09-22",
+          "league": "德甲",
+          "vs": "斯图加特 5 : 1 （半 2:0） 多特蒙德",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-18",
+          "league": "欧冠",
+          "vs": "皇马 3 : 1 （半 0:0） 斯图加特",
+          "result": "负"
+        },
+        {
+          "date": "2024-09-14",
+          "league": "德甲",
+          "vs": "门兴 1 : 3 （半 1:1） 斯图加特",
+          "result": "胜"
+        },
+        {
+          "date": "2024-09-05",
+          "league": "俱乐部赛",
+          "vs": "斯图加特 4 : 1 （半 ） 凯泽",
+          "result": "胜"
+        },
+        {
+          "date": "2024-08-31",
+          "league": "德甲",
+          "vs": "斯图加特 3 : 3 （半 2:1） 美因茨",
+          "result": "平"
+        },
+        {
+          "date": "2024-08-28",
+          "league": "德国杯",
+          "vs": "明斯特 0 : 5 （半 0:3） 斯图加特",
+          "result": "胜"
+        },
+        {
+          "date": "2024-08-24",
+          "league": "德甲",
+          "vs": "弗赖堡 3 : 1 （半 1:1） 斯图加特",
+          "result": "负"
+        },
+        {
+          "date": "2024-08-18",
+          "league": "德超杯",
+          "vs": "勒沃库森 2 : 2 （半 1:1） 斯图加特",
+          "result": "平"
+        },
+        {
+          "date": "2024-08-10",
+          "league": "俱乐部赛",
+          "vs": "斯图加特 4 : 0 （半 ） 毕尔巴鄂",
+          "result": "胜"
+        },
+        {
+          "date": "2024-08-01",
+          "league": "俱乐部赛",
+          "vs": "广岛三箭 2 : 5 （半 ） 斯图加特",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "沃夫斯堡",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-11",
+          "俱乐部赛",
+          "Schöningen\nVS\n沃夫斯堡",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-08-21",
+          "德国杯",
+          "Altglienicke\nVS\n沃夫斯堡",
+          "1st Round"
+        ]
+      ]
+    },
+    {
+      "team": "斯图加特",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-23",
+          "俱乐部赛",
+          "Balingen\nVS\n斯图加特",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-30",
+          "俱乐部赛",
+          "奥踢球者\nVS\n斯图加特",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-08-21",
+          "德国杯",
+          "罗斯托克\nVS\n斯图加特",
+          "1st Round"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "沃夫斯堡",
+      "players": [
+        {
+          "player": "9-M.阿莫拉(前锋)",
+          "apps": "31 (29/2)",
+          "goals": "10 (18%)",
+          "assists": "9 (21%)",
+          "avg": "0.3/0.3"
+        },
+        {
+          "player": "23-温德(前锋)",
+          "apps": "31 (21/10)",
+          "goals": "9 (16%)",
+          "assists": "3 (7%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "11-Tiago Tomás(前锋)伤",
+          "apps": "32 (23/9)",
+          "goals": "6 (11%)",
+          "assists": "1 (2%)",
+          "avg": "0.2/0"
+        }
+      ]
+    },
+    {
+      "team": "斯图加特",
+      "players": [
+        {
+          "player": "9-E. Demirović(前锋)",
+          "apps": "34 (20/14)",
+          "goals": "15 (22%)",
+          "assists": "1 (2%)",
+          "avg": "0.4/0"
+        },
+        {
+          "player": "11-N. Woltemade(前锋)",
+          "apps": "28 (17/11)",
+          "goals": "12 (18%)",
+          "assists": "2 (4%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "26-温达夫(前锋)",
+          "apps": "27 (20/7)",
+          "goals": "9 (13%)",
+          "assists": "3 (6%)",
+          "avg": "0.3/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "沃夫斯堡",
+      "players": [
+        {
+          "player": "31-Y. Gerhardt(中场)",
+          "totalApps": "29",
+          "starts": "15",
+          "subs": "14",
+          "status": "停"
+        },
+        {
+          "player": "10-L·恩梅查(前锋)",
+          "totalApps": "19",
+          "starts": "3",
+          "subs": "16",
+          "status": "伤"
+        },
+        {
+          "player": "20-R. Baku(中场)",
+          "totalApps": "34",
+          "starts": "29",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "13-Rogério(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "19-马耶尔(中场)",
+          "totalApps": "9",
+          "starts": "3",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "21-J·马勒(后卫)",
+          "totalApps": "28",
+          "starts": "25",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "11-Tiago Tomás(前锋)",
+          "totalApps": "32",
+          "starts": "23",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "40-K.帕雷德斯(中场)",
+          "totalApps": "2",
+          "starts": "2",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "14-B.比亚韦克(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "33-D. Odogu(后卫)",
+          "totalApps": "3",
+          "starts": "2",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "41-K. Amoako(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "斯图加特",
+      "players": [
+        {
+          "player": "23-D. Zagadou(后卫)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "25-L.费弗(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "28-N.纳尔泰(中场)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "20-斯特尔伊乌(后卫)",
+          "totalApps": "12",
+          "starts": "11",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "29-A. Rouault(后卫)",
+          "totalApps": "18",
+          "starts": "14",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "43-R. Paula(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "17-J. Diehl(前锋)",
+          "totalApps": "6",
+          "starts": "0",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "46-S. Di Benedetto(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

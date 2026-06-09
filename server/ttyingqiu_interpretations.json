@@ -1,0 +1,3515 @@
+{
+  "generated_at": "2026-06-08T15:52:33.733Z",
+  "since": "2026-01-01",
+  "experts_scanned": 2,
+  "success": 2,
+  "errors": 0,
+  "total_interpretations": 119,
+  "completed_interpretations": 0,
+  "experts": [
+    {
+      "expert_id": "202400",
+      "expert_name": "足球刀客",
+      "interpretations": [
+        {
+          "interpretation_id": 3796795,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-06-02T07:05:37.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40567,\"item_sum_cost\":2.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "国际友谊",
+              "match_no": 203,
+              "home_team": "威尔士",
+              "away_team": "加纳",
+              "match_time": "2026-06-02T18:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.09,
+                "draw": 2.86,
+                "lose": 3.32
+              },
+              "handicap": "0;-1;5000;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "20900-28600-33200;46500-37100-15500;_;_;_;0.97-0.87;0.95-0.87",
+              "match_id": "114542668"
+            },
+            {
+              "match_name": "国际友谊",
+              "match_no": 203,
+              "home_team": "威尔士",
+              "away_team": "加纳",
+              "match_time": "2026-06-02T18:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.09,
+                "draw": 2.86,
+                "lose": 3.32
+              },
+              "handicap": "0;-1;5000;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "20900-28600-33200;46500-37100-15500;_;_;_;0.97-0.87;0.95-0.87",
+              "match_id": "114542668"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3796793,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-06-02T07:03:24.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40567,\"item_sum_cost\":2.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "国际友谊",
+              "match_no": 202,
+              "home_team": "格鲁吉亚",
+              "away_team": "罗马尼亚",
+              "match_time": "2026-06-02T17:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.07,
+                "draw": 3.02,
+                "lose": 3.17
+              },
+              "handicap": "0;-1;2500;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "20700-30200-31700;46600-36500-15600;_;_;_;0.95-0.89;0.96-0.86",
+              "match_id": "114544836"
+            },
+            {
+              "match_name": "国际友谊",
+              "match_no": 202,
+              "home_team": "格鲁吉亚",
+              "away_team": "罗马尼亚",
+              "match_time": "2026-06-02T17:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.07,
+                "draw": 3.02,
+                "lose": 3.17
+              },
+              "handicap": "0;-1;2500;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "20700-30200-31700;46600-36500-15600;_;_;_;0.95-0.89;0.96-0.86",
+              "match_id": "114544836"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3796789,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-06-02T07:00:35.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40567,\"item_sum_cost\":2.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "国际友谊",
+              "match_no": 201,
+              "home_team": "克罗地亚",
+              "away_team": "比利时",
+              "match_time": "2026-06-02T16:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.57,
+                "draw": 2.85,
+                "lose": 2.57
+              },
+              "handicap": "0;-1;0;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "25700-28500-25700;55000-44800-13800;_;_;_;0.97-0.87;0.80-1.02",
+              "match_id": "114512480"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3792977,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-30T07:17:36.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40036,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧冠",
+              "match_no": 14,
+              "home_team": "巴黎圣日耳曼",
+              "away_team": "阿森纳",
+              "match_time": "2026-05-30T16:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.04,
+                "draw": 3.2,
+                "lose": 3.06
+              },
+              "handicap": "0;-1;2500;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "20400-32000-30600;45000-36500-15800;_;_;_;1.09-0.79;0.97-0.90",
+              "match_id": "114531815"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3788927,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-27T00:13:44.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40592,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "解放者杯",
+              "match_no": 4,
+              "home_team": "玻利瓦尔",
+              "away_team": "门多萨独立",
+              "match_time": "2026-05-28T00:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.38,
+                "draw": 2.95,
+                "lose": 2.7
+              },
+              "handicap": "0;-1;0;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "23800-29500-27000;54000-41000-14300;_;_;_;0.91-0.96;0.97-0.89",
+              "match_id": "114518307"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3786951,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-25T07:11:34.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40090,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "法乙",
+              "match_no": 2,
+              "home_team": "圣埃蒂安",
+              "away_team": "尼斯",
+              "match_time": "2026-05-26T18:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.3,
+                "draw": 3,
+                "lose": 2.77
+              },
+              "handicap": "0;-1;0;20000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "23000-30000-27700;50500-41500-14500;_;_;_;0.94-0.93;0.77-1.11",
+              "match_id": "114543646"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3766177,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-10T09:33:13.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40113,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "西甲",
+              "match_no": 26,
+              "home_team": "巴萨",
+              "away_team": "皇马",
+              "match_time": "2026-05-10T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.54,
+                "draw": 4.25,
+                "lose": 4.1
+              },
+              "handicap": "0;-1;10000;35000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "15400-42500-41000;25000-37800-21500;_;_;_;0.80-1.08;0.99-0.89",
+              "match_id": "114358331"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3766171,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-10T09:29:52.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 19,
+              "home_team": "西汉姆联",
+              "away_team": "阿森纳",
+              "match_time": "2026-05-10T15:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 5.8,
+                "draw": 4.4,
+                "lose": 1.37
+              },
+              "handicap": "0;+1;-10000;25000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "58000-44000-13700;25400-33500-22900;_;_;_;0.81-1.07;0.91-0.97",
+              "match_id": "114343269"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3766169,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-10T09:27:51.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 10,
+              "home_team": "水晶宫",
+              "away_team": "埃弗顿",
+              "match_time": "2026-05-10T13:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.72,
+                "draw": 2.8,
+                "lose": 2.48
+              },
+              "handicap": "0;+1;0;25000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "27200-28000-24800;14000-42200-56000;_;_;_;1.04-0.84;1.04-0.84",
+              "match_id": "114343250"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3766165,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-10T09:25:13.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 9,
+              "home_team": "伯恩利",
+              "away_team": "阿斯顿维拉",
+              "match_time": "2026-05-10T13:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 5.95,
+                "draw": 4.65,
+                "lose": 1.34
+              },
+              "handicap": "0;+1;-10000;27500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "59500-46500-13400;26500-32500-22500;_;_;_;1.06-0.82;0.94-0.94",
+              "match_id": "114343246"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3758063,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-04T06:21:25.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40113,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "西甲",
+              "match_no": 10,
+              "home_team": "塞维利亚",
+              "away_team": "皇家社会",
+              "match_time": "2026-05-04T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.4,
+                "draw": 2.95,
+                "lose": 2.68
+              },
+              "handicap": "0;+1;2500;22500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "24000-29500-26800;13500-42500-65000;_;_;_;1.07-0.81;0.93-0.95",
+              "match_id": "114358401"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3758053,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-04T06:18:44.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39999,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "意甲",
+              "match_no": 8,
+              "home_team": "罗马",
+              "away_team": "佛罗伦萨",
+              "match_time": "2026-05-04T18:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.42,
+                "draw": 3.95,
+                "lose": 5.8
+              },
+              "handicap": "0;-1;10000;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "14200-39500-58000;26200-30200-24000;_;_;_;0.93-0.95;0.87-1.01",
+              "match_id": "114339707"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3758049,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-04T06:16:32.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 1,
+              "home_team": "切尔西",
+              "away_team": "诺丁汉森林",
+              "match_time": "2026-05-04T14:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.33,
+                "draw": 4.5,
+                "lose": 6.5
+              },
+              "handicap": "0;-1;12500;30000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "13300-45000-65000;20500-35300-27900;_;_;_;0.90-0.98;1.04-0.84",
+              "match_id": "114343339"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3757007,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-03T12:04:00.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40113,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "西甲",
+              "match_no": 28,
+              "home_team": "西班牙人",
+              "away_team": "皇马",
+              "match_time": "2026-05-03T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 4.4,
+                "draw": 4.1,
+                "lose": 1.52
+              },
+              "handicap": "0;+1;-7500;30000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "44000-41000-15200;21500-35000-26500;_;_;_;0.83-1.05;1.04-0.84",
+              "match_id": "114358393"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3753931,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-01T11:21:19.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40113,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "西甲",
+              "match_no": 23,
+              "home_team": "阿拉维斯",
+              "away_team": "毕尔巴鄂",
+              "match_time": "2026-05-02T16:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.72,
+                "draw": 3,
+                "lose": 2.34
+              },
+              "handicap": "0;+1;0;22500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "27200-30000-23400;14400-41500-51500;_;_;_;1.00-0.88;0.97-0.91",
+              "match_id": "114358382"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3753925,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-01T11:18:47.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40053,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "德甲",
+              "match_no": 13,
+              "home_team": "柏林联合",
+              "away_team": "科隆",
+              "match_time": "2026-05-02T13:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.57,
+                "draw": 3.05,
+                "lose": 2.43
+              },
+              "handicap": "0;-1;0;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "25700-30500-24300;58000-45000-13600;_;_;_;1.00-0.88;0.94-0.94",
+              "match_id": "114347631"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3753923,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-01T11:16:46.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40053,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "德甲",
+              "match_no": 12,
+              "home_team": "霍芬海姆",
+              "away_team": "斯图加特",
+              "match_time": "2026-05-02T13:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.1,
+                "draw": 3.75,
+                "lose": 2.59
+              },
+              "handicap": "0;-1;2500;35000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "21000-37500-25900;39500-43500-15500;_;_;_;0.93-0.95;0.90-0.98",
+              "match_id": "114347665"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3753917,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-01T11:14:10.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40623,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "日职联",
+              "match_no": 3,
+              "home_team": "大阪钢巴",
+              "away_team": "神户胜利船",
+              "match_time": "2026-05-02T06:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 3,
+                "draw": 3.25,
+                "lose": 2.05
+              },
+              "handicap": "0;+1;-2500;25000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "30000-32500-20500;16000-35500-45000;_;_;_;0.86-1.02;0.98-0.89",
+              "match_id": "114470798"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3753913,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-01T11:11:04.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40113,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "西甲",
+              "match_no": 5,
+              "home_team": "赫罗纳",
+              "away_team": "马洛卡",
+              "match_time": "2026-05-01T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.92,
+                "draw": 3.18,
+                "lose": 3.4
+              },
+              "handicap": "0;-1;5000;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "19200-31800-34000;40800-35500-16600;_;_;_;0.94-0.94;0.97-0.91",
+              "match_id": "114358396"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3753911,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-05-01T11:08:43.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39999,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "意甲",
+              "match_no": 3,
+              "home_team": "比萨",
+              "away_team": "莱切",
+              "match_time": "2026-05-01T18:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 3.55,
+                "draw": 2.78,
+                "lose": 2.05
+              },
+              "handicap": "0;+1;-2500;20000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "35500-27800-20500;16000-33200-50000;_;_;_;0.84-1.04;1.00-0.88",
+              "match_id": "114339715"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3752353,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-04-30T06:25:17.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40035,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧联",
+              "match_no": 4,
+              "home_team": "诺丁汉森林",
+              "away_team": "阿斯顿维拉",
+              "match_time": "2026-04-30T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.78,
+                "draw": 3.08,
+                "lose": 2.25
+              },
+              "handicap": "0;-1;0;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "27800-30800-22500;67500-46000-13100;_;_;_;1.13-0.76;0.94-0.94",
+              "match_id": "114532048"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3751477,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-04-29T12:28:00.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40036,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧冠",
+              "match_no": 9,
+              "home_team": "马竞",
+              "away_team": "阿森纳",
+              "match_time": "2026-04-29T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.87,
+                "draw": 3.1,
+                "lose": 2.18
+              },
+              "handicap": "0;+1;-2500;22500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "28700-31000-21800;15100-39000-47500;_;_;_;0.85-1.03;0.96-0.92",
+              "match_id": "114531804"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3748783,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-04-27T12:05:09.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 7,
+              "home_team": "曼联",
+              "away_team": "布伦特福德",
+              "match_time": "2026-04-27T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.73,
+                "draw": 3.65,
+                "lose": 3.6
+              },
+              "handicap": "0;-1;5000;30000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "17300-36500-36000;32700-35500-18500;_;_;_;1.04-0.84;0.91-0.97",
+              "match_id": "114343392"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3747385,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-04-26T12:42:31.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39999,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "意甲",
+              "match_no": 25,
+              "home_team": "AC米兰",
+              "away_team": "尤文",
+              "match_time": "2026-04-26T18:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.66,
+                "draw": 2.86,
+                "lose": 2.48
+              },
+              "handicap": "0;-1;0;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "26600-28600-24800;64000-42000-13600;_;_;_;0.94-0.94;0.84-1.04",
+              "match_id": "114339719"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3743707,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-04-24T06:16:53.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 13,
+              "home_team": "桑德兰",
+              "away_team": "诺丁汉森林",
+              "match_time": "2026-04-24T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.65,
+                "draw": 2.84,
+                "lose": 2.5
+              },
+              "handicap": "0;+1;0;22500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "26500-28400-25000;13800-41500-61000;_;_;_;0.85-1.03;1.03-0.85",
+              "match_id": "114343404"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3737099,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-04-19T11:30:43.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 13,
+              "home_team": "埃弗顿",
+              "away_team": "利物浦",
+              "match_time": "2026-04-19T13:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 3.02,
+                "draw": 3.2,
+                "lose": 2.06
+              },
+              "handicap": "0;+1;-2500;27500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "30200-32000-20600;15700-39500-41800;_;_;_;0.90-0.98;1.08-0.80",
+              "match_id": "114343384"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3735361,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-04-18T13:10:14.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39999,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "意甲",
+              "match_no": 23,
+              "home_team": "罗马",
+              "away_team": "亚特兰大",
+              "match_time": "2026-04-18T18:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.27,
+                "draw": 3,
+                "lose": 2.82
+              },
+              "handicap": "0;-1;0;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "22700-30000-28200;52000-39000-14700;_;_;_;0.81-1.07;0.96-0.92",
+              "match_id": "114339742"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3735359,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-04-18T13:07:19.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40052,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "法甲",
+              "match_no": 19,
+              "home_team": "洛里昂",
+              "away_team": "马赛",
+              "match_time": "2026-04-18T15:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 4.65,
+                "draw": 4.05,
+                "lose": 1.5
+              },
+              "handicap": "0;+1;-10000;32500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "46500-40500-15000;22200-33500-26300;_;_;_;0.83-1.05;0.95-0.93",
+              "match_id": "114347946"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3735351,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-04-18T13:03:22.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 18,
+              "home_team": "纽卡斯尔联",
+              "away_team": "伯恩茅斯",
+              "match_time": "2026-04-18T14:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.01,
+                "draw": 3.5,
+                "lose": 2.9
+              },
+              "handicap": "0;-1;2500;32500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "20100-35000-29000;39500-40000-16000;_;_;_;1.00-0.88;1.04-0.84",
+              "match_id": "114343393"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3719353,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-04-07T12:42:36.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40036,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧冠",
+              "match_no": 4,
+              "home_team": "皇马",
+              "away_team": "拜仁",
+              "match_time": "2026-04-07T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.5,
+                "draw": 3.85,
+                "lose": 2.13
+              },
+              "handicap": "0;+1;-2500;35000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "25000-38500-21300;15400-42500-41000;_;_;_;0.85-1.03;0.83-1.05",
+              "match_id": "114517578"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3719351,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-04-07T12:39:47.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40036,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧冠",
+              "match_no": 3,
+              "home_team": "葡萄牙体育",
+              "away_team": "阿森纳",
+              "match_time": "2026-04-07T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 4.42,
+                "draw": 3.55,
+                "lose": 1.61
+              },
+              "handicap": "0;+1;-5000;25000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "44200-35500-16100;19900-34000-30200;_;_;_;1.07-0.81;1.02-0.86",
+              "match_id": "114517187"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3697337,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-21T06:53:39.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40113,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "西甲",
+              "match_no": 16,
+              "home_team": "西班牙人",
+              "away_team": "赫塔菲",
+              "match_time": "2026-03-21T15:15:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.28,
+                "draw": 2.6,
+                "lose": 3.27
+              },
+              "handicap": "0;-1;2500;17500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "22800-26000-32700;60500-35800-14600;_;_;_;1.04-0.84;0.94-0.94",
+              "match_id": "114358913"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3697335,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-21T06:50:06.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 14,
+              "home_team": "富勒姆",
+              "away_team": "伯恩利",
+              "match_time": "2026-03-21T15:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.44,
+                "draw": 3.9,
+                "lose": 5.6
+              },
+              "handicap": "0;-1;10000;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "14400-39000-56000;24300-34000-23600;_;_;_;0.91-0.97;0.88-1.00",
+              "match_id": "114343327"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3697333,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-21T06:45:41.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40053,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "德甲",
+              "match_no": 12,
+              "home_team": "沃尔夫斯堡",
+              "away_team": "云达不莱梅",
+              "match_time": "2026-03-21T14:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.27,
+                "draw": 3.4,
+                "lose": 2.53
+              },
+              "handicap": "0;-1;2500;30000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "22700-34000-25300;49000-41000-14700;_;_;_;1.06-0.82;1.02-0.86",
+              "match_id": "114347636"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3697321,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-21T06:41:23.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39999,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "意甲",
+              "match_no": 9,
+              "home_team": "帕尔马",
+              "away_team": "克雷莫纳",
+              "match_time": "2026-03-21T14:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.02,
+                "draw": 2.9,
+                "lose": 3.45
+              },
+              "handicap": "0;-1;2500;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "20200-29000-34500;43500-36500-16000;_;_;_;0.97-0.91;0.88-1.00",
+              "match_id": "114339814"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3694853,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-19T12:35:28.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40035,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧联",
+              "match_no": 4,
+              "home_team": "中日德兰",
+              "away_team": "诺丁汉森林",
+              "match_time": "2026-03-19T17:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.53,
+                "draw": 3.35,
+                "lose": 2.3
+              },
+              "handicap": "0;+1;0;25000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "25300-33500-23000;14500-42500-49000;_;_;_;1.11-0.78;1.05-0.83",
+              "match_id": "114504835"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3691417,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-17T06:28:02.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40036,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧冠",
+              "match_no": 9,
+              "home_team": "热刺",
+              "away_team": "马竞",
+              "match_time": "2026-03-18T20:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.32,
+                "draw": 3.62,
+                "lose": 2.37
+              },
+              "handicap": "0;-1;2500;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "23200-36200-23700;50500-41500-14500;_;_;_;1.07-0.81;0.90-0.98",
+              "match_id": "114503858"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3691415,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-17T06:25:35.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40036,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧冠",
+              "match_no": 7,
+              "home_team": "巴萨",
+              "away_team": "纽卡斯尔联",
+              "match_time": "2026-03-18T17:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.42,
+                "draw": 4.3,
+                "lose": 5.2
+              },
+              "handicap": "0;-1;10000;32500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "14200-43000-52000;22000-37500-24500;_;_;_;1.03-0.85;0.88-1.00",
+              "match_id": "114503857"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3691413,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-17T06:22:01.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40036,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧冠",
+              "match_no": 8,
+              "home_team": "曼城",
+              "away_team": "皇马",
+              "match_time": "2026-03-17T20:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.37,
+                "draw": 5,
+                "lose": 5
+              },
+              "handicap": "0;-1;15000;32500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "13700-50000-50000;20800-37500-26200;_;_;_;1.04-0.84;0.88-1.00",
+              "match_id": "114503855"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3691409,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-17T06:19:06.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40036,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧冠",
+              "match_no": 7,
+              "home_team": "切尔西",
+              "away_team": "巴黎圣日耳曼",
+              "match_time": "2026-03-17T20:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.92,
+                "draw": 4.05,
+                "lose": 2.78
+              },
+              "handicap": "0;-1;2500;32500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "19200-40500-27800;35800-40000-16700;_;_;_;1.01-0.87;0.89-0.99",
+              "match_id": "114503853"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3691399,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-17T06:15:10.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40036,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧冠",
+              "match_no": 6,
+              "home_team": "阿森纳",
+              "away_team": "勒沃库森",
+              "match_time": "2026-03-17T20:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.15,
+                "draw": 5.7,
+                "lose": 11.8
+              },
+              "handicap": "0;-2;15000;27500;-2;0;0;0;0;0;0;0",
+              "sp_raw": "11500-57000-118000;29700-36000-19400;_;_;_;0.90-0.98;0.86-1.02",
+              "match_id": "114503860"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3691395,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-17T06:11:22.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40036,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧冠",
+              "match_no": 4,
+              "home_team": "葡萄牙体育",
+              "away_team": "博德闪耀",
+              "match_time": "2026-03-17T17:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.34,
+                "draw": 5,
+                "lose": 5.5
+              },
+              "handicap": "0;-1;12500;35000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "13400-50000-55000;20600-37700-26500;_;_;_;0.89-0.99;1.01-0.87",
+              "match_id": "114503859"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3688063,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-15T00:04:45.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39999,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "意甲",
+              "match_no": 16,
+              "home_team": "萨索洛",
+              "away_team": "博洛尼亚",
+              "match_time": "2026-03-15T14:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.3,
+                "draw": 2.89,
+                "lose": 2.87
+              },
+              "handicap": "0;-1;2500;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "23000-28900-28700;53500-39500-14500;_;_;_;1.04-0.84;0.95-0.93",
+              "match_id": "114339828"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3688033,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-14T23:59:12.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 12,
+              "home_team": "水晶宫",
+              "away_team": "利兹联",
+              "match_time": "2026-03-15T14:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.59,
+                "draw": 2.92,
+                "lose": 2.5
+              },
+              "handicap": "0;-1;0;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "25900-29200-25000;60000-43000-13700;_;_;_;0.93-0.95;0.87-1.01",
+              "match_id": "114343313"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3685273,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-13T06:32:07.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40031,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "荷甲",
+              "match_no": 6,
+              "home_team": "兹沃勒",
+              "away_team": "格罗宁根",
+              "match_time": "2026-03-13T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.45,
+                "draw": 3.3,
+                "lose": 2.39
+              },
+              "handicap": "0;+1;0;27500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "24500-33000-23900;14400-42000-51000;_;_;_;1.04-0.84;0.90-0.98",
+              "match_id": "114344743"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3682211,
+          "expert_id": "202400",
+          "expert_name": "足球刀客",
+          "create_time": "2026-03-11T00:02:06.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40036,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧冠",
+              "match_no": 7,
+              "home_team": "博德闪耀",
+              "away_team": "葡萄牙体育",
+              "match_time": "2026-03-11T20:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.16,
+                "draw": 3.35,
+                "lose": 2.72
+              },
+              "handicap": "0;-1;2500;30000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "21600-33500-27200;42800-42000-15200;_;_;_;1.02-0.86;0.96-0.92",
+              "match_id": "114503851"
+            }
+          ]
+        }
+      ],
+      "total_count": 46,
+      "completed_count": 46,
+      "pages": 5
+    },
+    {
+      "expert_id": "202412",
+      "expert_name": "老魏",
+      "interpretations": [
+        {
+          "interpretation_id": 3800515,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-06-05T14:31:09.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40623,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "日职联",
+              "match_no": 202,
+              "home_team": "町田泽维亚",
+              "away_team": "名古屋鲸鱼",
+              "match_time": "2026-06-06T06:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.85,
+                "draw": 3.2,
+                "lose": 3.62
+              },
+              "handicap": "0;-1;2500;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "18500-32000-36200;43000-31700-17200;_;_;_;0.80-1.07;1.09-0.78",
+              "match_id": "114545839"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3795283,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-31T17:19:40.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40567,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "国际友谊",
+              "match_no": 2,
+              "home_team": "挪威",
+              "away_team": "瑞典",
+              "match_time": "2026-06-01T17:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.6,
+                "draw": 3.43,
+                "lose": 4.7
+              },
+              "handicap": "0;-1;7500;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "16000-34300-47000;31500-31800-20100;_;_;_;0.87-0.95;0.80-1.00",
+              "match_id": "114531723"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3794061,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-31T02:18:16.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40603,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "瑞典超",
+              "match_no": 6,
+              "home_team": "代格福什",
+              "away_team": "布洛马波卡纳",
+              "match_time": "2026-05-31T12:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.05,
+                "draw": 3.15,
+                "lose": 3.08
+              },
+              "handicap": "0;-1;2500;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "20500-31500-30800;46000-36500-15700;_;_;_;0.94-0.93;1.03-0.83",
+              "match_id": "114467073"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3792301,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-29T16:07:45.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40623,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "日职联",
+              "match_no": 2,
+              "home_team": "大阪钢巴",
+              "away_team": "东京绿茵",
+              "match_time": "2026-05-30T07:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.11,
+                "draw": 2.84,
+                "lose": 3.3
+              },
+              "handicap": "0;-1;2500;20000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "21100-28400-33000;50500-35500-15400;_;_;_;1.13-0.75;0.97-0.90",
+              "match_id": "114545832"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3792003,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-29T12:42:58.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40623,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "日职联",
+              "match_no": 1,
+              "home_team": "神户胜利船",
+              "away_team": "鹿岛鹿角",
+              "match_time": "2026-05-30T05:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.32,
+                "draw": 2.9,
+                "lose": 2.83
+              },
+              "handicap": "0;-1;2500;20000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "23200-29000-28300;55000-38000-14600;_;_;_;1.03-0.84;0.97-0.90",
+              "match_id": "114545818"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3791073,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-28T15:12:03.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40604,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "挪超",
+              "match_no": 7,
+              "home_team": "布兰",
+              "away_team": "萨普斯堡",
+              "match_time": "2026-05-29T17:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.52,
+                "draw": 4.15,
+                "lose": 4.35
+              },
+              "handicap": "0;-1;7500;32500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "15200-41500-43500;27700-33000-21500;_;_;_;0.87-1.00;0.93-0.94",
+              "match_id": "114467501"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3790599,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-28T12:16:21.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40604,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "挪超",
+              "match_no": 3,
+              "home_team": "腓特烈斯塔",
+              "away_team": "斯达",
+              "match_time": "2026-05-29T17:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.61,
+                "draw": 3.7,
+                "lose": 4.2
+              },
+              "handicap": "0;-1;5000;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "16100-37000-42000;31600-32000-20000;_;_;_;0.95-0.92;0.95-0.92",
+              "match_id": "114467506"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3787603,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-25T14:45:06.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40603,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "瑞典超",
+              "match_no": 6,
+              "home_team": "哥德堡",
+              "away_team": "米亚尔比",
+              "match_time": "2026-05-25T17:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.59,
+                "draw": 3.1,
+                "lose": 2.38
+              },
+              "handicap": "0;+1;2500;25000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "25900-31000-23800;14200-40000-57000;_;_;_;1.07-0.80;1.01-0.86",
+              "match_id": "114467066"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3784473,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-23T15:01:25.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 10,
+              "home_team": "利物浦",
+              "away_team": "布伦特福德",
+              "match_time": "2026-05-24T15:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.62,
+                "draw": 3.85,
+                "lose": 3.96
+              },
+              "handicap": "0;-1;7500;35000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "16200-38500-39600;28900-36000-19800;_;_;_;1.03-0.85;0.99-0.89",
+              "match_id": "114343168"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3783929,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-23T12:21:41.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 16,
+              "home_team": "热刺",
+              "away_team": "埃弗顿",
+              "match_time": "2026-05-24T15:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.69,
+                "draw": 3.4,
+                "lose": 4.1
+              },
+              "handicap": "0;-1;5000;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "16900-34000-41000;34500-32500-18800;_;_;_;0.93-0.95;1.05-0.83",
+              "match_id": "114343183"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3782991,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-22T14:54:40.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40113,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "西甲",
+              "match_no": 17,
+              "home_team": "赫罗纳",
+              "away_team": "埃尔切",
+              "match_time": "2026-05-23T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.65,
+                "draw": 3.65,
+                "lose": 4.02
+              },
+              "handicap": "0;-1;5000;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "16500-36500-40200;32000-33500-19300;_;_;_;0.79-1.09;1.06-0.82",
+              "match_id": "114358259"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3782677,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-22T11:52:07.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40623,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "日职联",
+              "match_no": 3,
+              "home_team": "柏太阳神",
+              "away_team": "千叶市原",
+              "match_time": "2026-05-23T09:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.47,
+                "draw": 3.65,
+                "lose": 5.75
+              },
+              "handicap": "0;-1;10000;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "14700-36500-57500;28000-29500-23100;_;_;_;0.94-0.93;0.98-0.89",
+              "match_id": "114470727"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3781393,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-21T12:40:50.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40607,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "芬超",
+              "match_no": 2,
+              "home_team": "VPS瓦萨",
+              "away_team": "赫尔辛基",
+              "match_time": "2026-05-22T16:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 3.53,
+                "draw": 3.02,
+                "lose": 1.94
+              },
+              "handicap": "0;+1;-5000;27500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "35300-30200-19400;16500-36200-40500;_;_;_;0.86-1.01;0.96-0.91",
+              "match_id": "114468098"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3781387,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-21T12:33:44.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40448,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "法国杯",
+              "match_no": 6,
+              "home_team": "朗斯",
+              "away_team": "尼斯",
+              "match_time": "2026-05-22T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.43,
+                "draw": 3.92,
+                "lose": 5.7
+              },
+              "handicap": "0;-1;12500;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "14300-39200-57000;24500-32300-24300;_;_;_;1.06-0.81;0.90-0.97",
+              "match_id": "114534498"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3779997,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-20T11:41:06.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40031,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "荷甲",
+              "match_no": 6,
+              "home_team": "阿贾克斯",
+              "away_team": "格罗宁根",
+              "match_time": "2026-05-21T16:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.64,
+                "draw": 3.78,
+                "lose": 3.92
+              },
+              "handicap": "0;-1;5000;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "16400-37800-39200;30000-35300-19500;_;_;_;0.85-1.02;0.83-1.04",
+              "match_id": "114543843"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3779991,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-20T11:34:16.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40031,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "荷甲",
+              "match_no": 8,
+              "home_team": "乌德勒支",
+              "away_team": "海伦芬",
+              "match_time": "2026-05-21T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.71,
+                "draw": 3.6,
+                "lose": 3.75
+              },
+              "handicap": "0;-1;5000;30000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "17100-36000-37500;31500-36500-18600;_;_;_;0.93-0.94;1.01-0.86",
+              "match_id": "114543844"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3778927,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-19T14:30:34.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 1,
+              "home_team": "伯恩茅斯",
+              "away_team": "曼城",
+              "match_time": "2026-05-19T18:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 4.55,
+                "draw": 4.12,
+                "lose": 1.5
+              },
+              "handicap": "0;+1;-7500;30000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "45500-41200-15000;22500-32800-26300;_;_;_;1.07-0.81;0.90-0.98",
+              "match_id": "114343192"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3778893,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-19T14:24:49.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 2,
+              "home_team": "切尔西",
+              "away_team": "热刺",
+              "match_time": "2026-05-19T19:15:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.89,
+                "draw": 3.15,
+                "lose": 3.55
+              },
+              "handicap": "0;-1;2500;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "18900-31500-35500;38500-36500-16800;_;_;_;0.96-0.92;0.96-0.92",
+              "match_id": "114343210"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3775487,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-17T02:54:00.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 16,
+              "home_team": "布伦特福德",
+              "away_team": "水晶宫",
+              "match_time": "2026-05-17T14:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.56,
+                "draw": 3.8,
+                "lose": 4.45
+              },
+              "handicap": "0;-1;7500;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "15600-38000-44500;28600-33500-20800;_;_;_;0.97-0.91;0.92-0.96",
+              "match_id": "114343209"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3775395,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-17T01:17:08.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39999,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "意甲",
+              "match_no": 5,
+              "home_team": "热那亚",
+              "away_team": "AC米兰",
+              "match_time": "2026-05-17T10:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 5.3,
+                "draw": 3.55,
+                "lose": 1.52
+              },
+              "handicap": "0;+1;-7500;22500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "53000-35500-15200;21500-31000-29300;_;_;_;0.95-0.93;0.90-0.98",
+              "match_id": "114339664"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3775025,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-16T15:33:35.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40656,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "韩K联",
+              "match_no": 2,
+              "home_team": "全北现代",
+              "away_team": "金泉尚武",
+              "match_time": "2026-05-17T07:40:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.58,
+                "draw": 3.6,
+                "lose": 4.58
+              },
+              "handicap": "0;-1;5000;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "15800-36000-45800;31800-30000-20800;_;_;_;0.83-1.04;0.90-0.97",
+              "match_id": "114480415"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3773639,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-16T01:24:43.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40623,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "日职联",
+              "match_no": 4,
+              "home_team": "横滨水手",
+              "away_team": "柏太阳神",
+              "match_time": "2026-05-16T08:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.9,
+                "draw": 3.2,
+                "lose": 2.12
+              },
+              "handicap": "0;+1;-2500;25000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "29000-32000-21200;15500-37500-46000;_;_;_;0.93-0.94;1.02-0.85",
+              "match_id": "114470725"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3773117,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-15T13:05:58.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 5,
+              "home_team": "阿斯顿维拉",
+              "away_team": "利物浦",
+              "match_time": "2026-05-15T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.85,
+                "draw": 3.01,
+                "lose": 2.24
+              },
+              "handicap": "0;+1;0;25000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "28500-30100-22400;14800-40500-48500;_;_;_;0.96-0.92;0.89-0.99",
+              "match_id": "114343205"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3771031,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-13T15:19:28.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40308,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "沙特联",
+              "match_no": 2,
+              "home_team": "达曼协作",
+              "away_team": "吉达联合",
+              "match_time": "2026-05-14T18:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 3.14,
+                "draw": 3.3,
+                "lose": 1.97
+              },
+              "handicap": "0;+1;-5000;30000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "31400-33000-19700;16200-38000-40200;_;_;_;0.89-0.98;0.80-1.06",
+              "match_id": "114404634"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3769109,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-12T11:42:44.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40623,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "日职联",
+              "match_no": 1,
+              "home_team": "神户胜利船",
+              "away_team": "京都不死鸟",
+              "match_time": "2026-05-13T10:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.72,
+                "draw": 3.25,
+                "lose": 4.16
+              },
+              "handicap": "0;-1;5000;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "17200-32500-41600;36200-32000-18500;_;_;_;0.87-1.00;1.02-0.85",
+              "match_id": "114470790"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3769107,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-12T11:35:56.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40113,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "西甲",
+              "match_no": 3,
+              "home_team": "比利亚雷亚尔",
+              "away_team": "塞维利亚",
+              "match_time": "2026-05-13T17:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.79,
+                "draw": 3.4,
+                "lose": 3.62
+              },
+              "handicap": "0;-1;2500;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "17900-34000-36200;37000-34000-17700;_;_;_;0.86-1.02;0.86-1.02",
+              "match_id": "114358319"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3766403,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-10T12:16:58.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40031,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "荷甲",
+              "match_no": 17,
+              "home_team": "阿贾克斯",
+              "away_team": "乌德勒支",
+              "match_time": "2026-05-10T14:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.45,
+                "draw": 4.36,
+                "lose": 4.75
+              },
+              "handicap": "0;-1;10000;32500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "14500-43600-47500;23600-37000-23000;_;_;_;1.06-0.82;0.96-0.91",
+              "match_id": "114344796"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3766371,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-10T11:39:54.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40052,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "法甲",
+              "match_no": 29,
+              "home_team": "摩纳哥",
+              "away_team": "里尔",
+              "match_time": "2026-05-10T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.32,
+                "draw": 3.25,
+                "lose": 2.56
+              },
+              "handicap": "0;-1;0;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "23200-32500-25600;50500-41500-14500;_;_;_;1.02-0.86;0.91-0.96",
+              "match_id": "114347975"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3765709,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-10T03:24:05.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40623,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "日职联",
+              "match_no": 4,
+              "home_team": "千叶市原",
+              "away_team": "町田泽维亚",
+              "match_time": "2026-05-10T08:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 4,
+                "draw": 3.25,
+                "lose": 1.75
+              },
+              "handicap": "0;+1;-5000;22500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "40000-32500-17500;18300-32000-37000;_;_;_;0.93-0.94;1.01-0.86",
+              "match_id": "114470717"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3763607,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-08T15:35:44.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40656,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "韩K联",
+              "match_no": 4,
+              "home_team": "大田市民",
+              "away_team": "浦项铁人",
+              "match_time": "2026-05-09T10:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.91,
+                "draw": 3,
+                "lose": 3.68
+              },
+              "handicap": "0;-1;5000;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "19100-30000-36800;43200-33500-16700;_;_;_;1.04-0.84;1.11-0.77",
+              "match_id": "114480416"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3763307,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-08T11:52:21.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40603,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "瑞典超",
+              "match_no": 5,
+              "home_team": "埃尔夫斯堡",
+              "away_team": "布洛马波卡纳",
+              "match_time": "2026-05-08T17:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.67,
+                "draw": 3.5,
+                "lose": 4.1
+              },
+              "handicap": "0;-1;5000;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "16700-35000-41000;33600-32400-19100;_;_;_;0.80-1.08;0.92-0.95",
+              "match_id": "114467050"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3762087,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-07T14:05:01.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40035,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧联",
+              "match_no": 3,
+              "home_team": "阿斯顿维拉",
+              "away_team": "诺丁汉森林",
+              "match_time": "2026-05-07T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.58,
+                "draw": 3.68,
+                "lose": 4.45
+              },
+              "handicap": "0;-1;7500;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "15800-36800-44500;30000-31500-20900;_;_;_;1.03-0.85;1.00-0.88",
+              "match_id": "114532051"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3760917,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-06T12:31:44.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40058,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "荷乙",
+              "match_no": 5,
+              "home_team": "阿尔梅勒城",
+              "away_team": "格拉夫夏普",
+              "match_time": "2026-05-06T16:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.83,
+                "draw": 3.9,
+                "lose": 3.06
+              },
+              "handicap": "0;-1;2500;32500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "18300-39000-30600;34500-38200-17300;_;_;_;0.87-1.01;0.98-0.88",
+              "match_id": "114538654"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3757887,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-04T02:31:35.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40656,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "韩K联",
+              "match_no": 3,
+              "home_team": "FC首尔",
+              "away_team": "安养FC",
+              "match_time": "2026-05-05T10:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.5,
+                "draw": 3.7,
+                "lose": 5.2
+              },
+              "handicap": "0;-1;7500;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "15000-37000-52000;28500-30200-22400;_;_;_;0.87-1.01;0.91-0.96",
+              "match_id": "114480385"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3757157,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-03T14:08:34.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 1,
+              "home_team": "切尔西",
+              "away_team": "诺丁汉森林",
+              "match_time": "2026-05-04T14:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.33,
+                "draw": 4.5,
+                "lose": 6.5
+              },
+              "handicap": "0;-1;12500;30000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "13300-45000-65000;20500-35300-27900;_;_;_;0.90-0.98;1.04-0.84",
+              "match_id": "114343339"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3755311,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-02T13:12:29.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40623,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "日职联",
+              "match_no": 1,
+              "home_team": "大阪樱花",
+              "away_team": "福冈黄蜂",
+              "match_time": "2026-05-03T06:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.63,
+                "draw": 3.45,
+                "lose": 4.42
+              },
+              "handicap": "0;-1;7500;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "16300-34500-44200;31200-33500-19600;_;_;_;0.83-1.05;0.95-0.92",
+              "match_id": "114470796"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3754025,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-01T14:12:57.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 16,
+              "home_team": "布伦特福德",
+              "away_team": "西汉姆联",
+              "match_time": "2026-05-02T14:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.78,
+                "draw": 3.6,
+                "lose": 3.45
+              },
+              "handicap": "0;-1;5000;30000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "17800-36000-34500;33600-37000-17800;_;_;_;0.85-1.03;0.95-0.93",
+              "match_id": "114343336"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3753163,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-05-01T02:43:21.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40656,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "韩K联",
+              "match_no": 2,
+              "home_team": "蔚山HD",
+              "away_team": "浦项铁人",
+              "match_time": "2026-05-02T05:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.93,
+                "draw": 3.1,
+                "lose": 3.46
+              },
+              "handicap": "0;-1;2500;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "19300-31000-34600;42000-35000-16500;_;_;_;0.92-0.96;0.97-0.90",
+              "match_id": "114480357"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3752575,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-30T11:17:01.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40113,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "西甲",
+              "match_no": 5,
+              "home_team": "赫罗纳",
+              "away_team": "马洛卡",
+              "match_time": "2026-05-01T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.92,
+                "draw": 3.18,
+                "lose": 3.4
+              },
+              "handicap": "0;-1;5000;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "19200-31800-34000;40800-35500-16600;_;_;_;0.94-0.94;0.97-0.91",
+              "match_id": "114358396"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3750087,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-28T13:53:46.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40623,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "日职联",
+              "match_no": 1,
+              "home_team": "神户胜利船",
+              "away_team": "大阪樱花",
+              "match_time": "2026-04-29T05:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.4,
+                "draw": 4.2,
+                "lose": 5.65
+              },
+              "handicap": "0;-1;10000;30000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "14000-42000-56500;24300-31500-25000;_;_;_;0.86-1.02;0.92-0.95",
+              "match_id": "114470795"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3748741,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-27T10:40:53.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40113,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "西甲",
+              "match_no": 8,
+              "home_team": "西班牙人",
+              "away_team": "莱万特",
+              "match_time": "2026-04-27T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.85,
+                "draw": 3.3,
+                "lose": 3.5
+              },
+              "handicap": "0;-1;2500;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "18500-33000-35000;38500-34300-17300;_;_;_;0.84-1.04;0.93-0.95",
+              "match_id": "114358452"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3747457,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-26T13:27:14.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39999,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "意甲",
+              "match_no": 1,
+              "home_team": "卡利亚里",
+              "away_team": "亚特兰大",
+              "match_time": "2026-04-27T16:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 4.8,
+                "draw": 3.62,
+                "lose": 1.55
+              },
+              "handicap": "0;+1;-7500;25000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "48000-36200-15500;21000-30400-30800;_;_;_;0.90-0.98;0.97-0.91",
+              "match_id": "114339723"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3744091,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-24T12:24:17.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39999,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "意甲",
+              "match_no": 9,
+              "home_team": "帕尔马",
+              "away_team": "比萨",
+              "match_time": "2026-04-25T13:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.93,
+                "draw": 3,
+                "lose": 3.6
+              },
+              "handicap": "0;-1;2500;20000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "19300-30000-36000;44500-33500-16500;_;_;_;0.87-1.01;0.87-1.01",
+              "match_id": "114339732"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3742699,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-23T13:49:54.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40094,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "德乙",
+              "match_no": 5,
+              "home_team": "凯泽斯劳滕",
+              "away_team": "布伦瑞克",
+              "match_time": "2026-04-24T16:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.04,
+                "draw": 3.4,
+                "lose": 2.9
+              },
+              "handicap": "0;-1;2500;30000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "20400-34000-29000;41200-39500-15800;_;_;_;1.03-0.85;0.99-0.88",
+              "match_id": "114355833"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3742697,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-23T13:44:52.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40090,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "法乙",
+              "match_no": 7,
+              "home_team": "亚眠",
+              "away_team": "蒙彼利埃",
+              "match_time": "2026-04-24T18:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 3.65,
+                "draw": 3.55,
+                "lose": 1.75
+              },
+              "handicap": "0;+1;-5000;27500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "36500-35500-17500;18100-34400-35000;_;_;_;0.84-1.04;0.99-0.87",
+              "match_id": "114401176"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3738531,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-20T12:21:08.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40656,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "韩K联",
+              "match_no": 1,
+              "home_team": "全北现代",
+              "away_team": "仁川联",
+              "match_time": "2026-04-21T10:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.62,
+                "draw": 3.4,
+                "lose": 4.6
+              },
+              "handicap": "0;-1;7500;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "16200-34000-46000;31500-31600-20200;_;_;_;0.97-0.91;0.88-0.99",
+              "match_id": "114480384"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3736279,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-19T02:38:10.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40156,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "葡超",
+              "match_no": 27,
+              "home_team": "布拉加",
+              "away_team": "法马利康",
+              "match_time": "2026-04-19T19:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.86,
+                "draw": 3.15,
+                "lose": 3.65
+              },
+              "handicap": "0;-1;5000;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "18600-31500-36500;37500-35500-17200;_;_;_;0.96-0.92;0.84-1.03",
+              "match_id": "114369049"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3733781,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-17T12:22:57.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40052,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "法甲",
+              "match_no": 19,
+              "home_team": "洛里昂",
+              "away_team": "马赛",
+              "match_time": "2026-04-18T15:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 4.65,
+                "draw": 4.05,
+                "lose": 1.5
+              },
+              "handicap": "0;+1;-10000;32500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "46500-40500-15000;22200-33500-26300;_;_;_;0.83-1.05;0.95-0.93",
+              "match_id": "114347946"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3732313,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-16T12:10:30.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40399,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "澳超",
+              "match_no": 1,
+              "home_team": "墨尔本胜利",
+              "away_team": "纽卡斯尔喷气机",
+              "match_time": "2026-04-17T09:35:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.1,
+                "draw": 3.72,
+                "lose": 2.6
+              },
+              "handicap": "0;-1;2500;35000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "21000-37200-26000;39000-42300-15700;_;_;_;1.02-0.86;0.97-0.90",
+              "match_id": "114426737"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3729655,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-14T11:55:07.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40036,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "欧冠",
+              "match_no": 2,
+              "home_team": "马竞",
+              "away_team": "巴萨",
+              "match_time": "2026-04-14T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 3.95,
+                "draw": 4.58,
+                "lose": 1.52
+              },
+              "handicap": "0;+1;-7500;35000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "39500-45800-15200;21500-40500-24000;_;_;_;0.88-1.00;1.00-0.88",
+              "match_id": "114517582"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3725985,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-12T02:46:42.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39999,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "意甲",
+              "match_no": 15,
+              "home_team": "帕尔马",
+              "away_team": "那不勒斯",
+              "match_time": "2026-04-12T13:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 5.6,
+                "draw": 3.52,
+                "lose": 1.5
+              },
+              "handicap": "0;+1;-10000;20000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "56000-35200-15000;22300-30500-28300;_;_;_;0.78-1.11;0.86-1.02",
+              "match_id": "114339776"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3722055,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-09T12:03:41.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40003,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英超",
+              "match_no": 13,
+              "home_team": "西汉姆联",
+              "away_team": "狼队",
+              "match_time": "2026-04-10T19:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.58,
+                "draw": 3.68,
+                "lose": 4.45
+              },
+              "handicap": "0;-1;7500;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "15800-36800-44500;30600-32000-20400;_;_;_;1.01-0.87;0.84-1.04",
+              "match_id": "114343367"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3717275,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-06T02:38:57.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39999,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "意甲",
+              "match_no": 7,
+              "home_team": "莱切",
+              "away_team": "亚特兰大",
+              "match_time": "2026-04-06T13:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 5.4,
+                "draw": 3.8,
+                "lose": 1.47
+              },
+              "handicap": "0;+1;-7500;25000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "54000-38000-14700;22500-32200-26700;_;_;_;1.07-0.81;0.99-0.89",
+              "match_id": "114339788"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3716449,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-05T13:08:13.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39999,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "意甲",
+              "match_no": 2,
+              "home_team": "乌迪内斯",
+              "away_team": "科莫",
+              "match_time": "2026-04-06T10:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 5.25,
+                "draw": 3.75,
+                "lose": 1.49
+              },
+              "handicap": "0;+1;-7500;25000;+1;0;0;0;0;0;0;0",
+              "sp_raw": "52500-37500-14900;22500-30500-28000;_;_;_;1.01-0.87;1.09-0.79",
+              "match_id": "114339794"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3716007,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-05T08:21:46.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40052,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "法甲",
+              "match_no": 13,
+              "home_team": "昂热",
+              "away_team": "里昂",
+              "match_time": "2026-04-05T13:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 5.5,
+                "draw": 3.8,
+                "lose": 1.46
+              },
+              "handicap": "0;+1;-10000;27500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "55000-38000-14600;23000-31500-26500;_;_;_;0.88-1.00;0.97-0.91",
+              "match_id": "114347923"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3715423,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-05T00:06:48.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40031,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "荷甲",
+              "match_no": 6,
+              "home_team": "前进之鹰",
+              "away_team": "兹沃勒",
+              "match_time": "2026-04-05T10:15:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.69,
+                "draw": 3.45,
+                "lose": 4.05
+              },
+              "handicap": "0;-1;5000;30000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "16900-34500-40500;31700-35500-18800;_;_;_;0.81-1.07;0.88-1.00",
+              "match_id": "114344774"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3713959,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-04T03:06:04.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39999,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "意甲",
+              "match_no": 10,
+              "home_team": "萨索洛",
+              "away_team": "卡利亚里",
+              "match_time": "2026-04-04T13:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.98,
+                "draw": 2.8,
+                "lose": 3.75
+              },
+              "handicap": "0;-1;2500;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "19800-28000-37500;41000-37500-16200;_;_;_;0.80-1.08;1.03-0.85",
+              "match_id": "114339793"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3713235,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-03T12:05:27.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40058,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "荷乙",
+              "match_no": 9,
+              "home_team": "多德勒支",
+              "away_team": "罗达JC",
+              "match_time": "2026-04-03T18:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.18,
+                "draw": 3.35,
+                "lose": 2.69
+              },
+              "handicap": "0;-1;0;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "21800-33500-26900;44000-41000-15200;_;_;_;0.94-0.94;1.00-0.86",
+              "match_id": "114426473"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3711761,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-04-02T12:07:56.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40060,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英冠",
+              "match_no": 2,
+              "home_team": "米德尔斯堡",
+              "away_team": "米尔沃尔",
+              "match_time": "2026-04-03T11:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.63,
+                "draw": 3.82,
+                "lose": 3.95
+              },
+              "handicap": "0;-1;7500;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "16300-38200-39500;30200-33500-20000;_;_;_;0.99-0.89;1.01-0.86",
+              "match_id": "114351656"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3709395,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-31T12:07:06.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40399,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "澳超",
+              "match_no": 2,
+              "home_team": "布里斯班狮吼",
+              "away_team": "悉尼FC",
+              "match_time": "2026-04-02T10:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.53,
+                "draw": 3.45,
+                "lose": 2.25
+              },
+              "handicap": "0;+1;0;27500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "25300-34500-22500;14900-42000-45500;_;_;_;0.90-0.98;0.94-0.93",
+              "match_id": "114426723"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3708103,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-30T11:49:06.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40623,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "日职联",
+              "match_no": 1,
+              "home_team": "神户胜利船",
+              "away_team": "清水心跳",
+              "match_time": "2026-04-01T10:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.76,
+                "draw": 3.3,
+                "lose": 3.87
+              },
+              "handicap": "0;-1;5000;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "17600-33000-38700;36000-32500-18400;_;_;_;0.92-0.96;0.84-1.04",
+              "match_id": "114470782"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3705979,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-28T12:49:08.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40058,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "荷乙",
+              "match_no": 12,
+              "home_team": "威廉二世",
+              "away_team": "格拉夫夏普",
+              "match_time": "2026-03-28T17:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.01,
+                "draw": 3.75,
+                "lose": 2.75
+              },
+              "handicap": "0;-1;0;32500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "20100-37500-27500;38000-41500-16000;_;_;_;0.82-1.06;0.91-0.95",
+              "match_id": "114426469"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3705975,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-28T12:46:36.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40061,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英甲",
+              "match_no": 6,
+              "home_team": "斯托克港",
+              "away_team": "AFC温布尔登",
+              "match_time": "2026-03-28T15:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.39,
+                "draw": 4.2,
+                "lose": 5.8
+              },
+              "handicap": "0;-1;10000;30000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "13900-42000-58000;24100-31000-25500;_;_;_;0.78-1.11;1.04-0.82",
+              "match_id": "114350669"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3705973,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-28T12:43:33.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40061,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英甲",
+              "match_no": 5,
+              "home_team": "雷丁",
+              "away_team": "维冈竞技",
+              "match_time": "2026-03-28T15:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.02,
+                "draw": 3.12,
+                "lose": 3.19
+              },
+              "handicap": "0;-1;2500;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "20200-31200-31900;45700-35500-15900;_;_;_;1.11-0.78;1.00-0.86",
+              "match_id": "114350643"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3702293,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-25T12:29:05.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":39655,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "世欧预",
+              "match_no": 5,
+              "home_team": "波兰",
+              "away_team": "阿尔巴尼亚",
+              "match_time": "2026-03-26T19:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.48,
+                "draw": 3.45,
+                "lose": 6.1
+              },
+              "handicap": "0;-1;7500;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "14800-34500-61000;27900-31000-22300;_;_;_;0.78-1.11;1.01-0.87",
+              "match_id": "114455350"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3700513,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-23T12:01:37.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40061,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "英甲",
+              "match_no": 2,
+              "home_team": "唐卡斯特",
+              "away_team": "维尔港",
+              "match_time": "2026-03-24T19:45:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.6,
+                "draw": 3.58,
+                "lose": 4.45
+              },
+              "handicap": "0;-1;7500;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "16000-35800-44500;31500-31800-20100;_;_;_;0.95-0.93;0.96-0.90",
+              "match_id": "114349951"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3696315,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-20T11:37:29.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40399,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "澳超",
+              "match_no": 1,
+              "home_team": "布里斯班狮吼",
+              "away_team": "惠灵顿凤凰",
+              "match_time": "2026-03-21T04:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.02,
+                "draw": 3.32,
+                "lose": 3
+              },
+              "handicap": "0;-1;2500;27500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "20200-33200-30000;41000-38900-15900;_;_;_;0.88-1.00;0.92-0.95",
+              "match_id": "114426711"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3694827,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-19T12:04:21.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40399,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "澳超",
+              "match_no": 1,
+              "home_team": "西悉尼流浪者",
+              "away_team": "阿德莱德联",
+              "match_time": "2026-03-20T08:35:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.76,
+                "draw": 3.95,
+                "lose": 3.25
+              },
+              "handicap": "0;-1;5000;32500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "17600-39500-32500;31500-39000-18000;_;_;_;0.87-1.01;0.94-0.93",
+              "match_id": "114426709"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3691803,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-17T12:11:09.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40656,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "韩K联",
+              "match_no": 5,
+              "home_team": "全北现代",
+              "away_team": "安养FC",
+              "match_time": "2026-03-18T10:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.43,
+                "draw": 3.85,
+                "lose": 5.9
+              },
+              "handicap": "0;-1;10000;25000;-1;0;0;0;0;0;0;0",
+              "sp_raw": "14300-38500-59000;28500-28500-23500;_;_;_;1.08-0.80;0.99-0.88",
+              "match_id": "114480362"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3690363,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-16T12:27:10.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40656,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "韩K联",
+              "match_no": 3,
+              "home_team": "金泉尚武",
+              "away_team": "光州FC",
+              "match_time": "2026-03-17T10:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 1.6,
+                "draw": 3.3,
+                "lose": 5
+              },
+              "handicap": "0;-1;7500;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "16000-33000-50000;33500-30000-20100;_;_;_;0.96-0.92;1.04-0.83",
+              "match_id": "114480393"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3686481,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-14T03:42:27.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40113,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "西甲",
+              "match_no": 9,
+              "home_team": "马洛卡",
+              "away_team": "西班牙人",
+              "match_time": "2026-03-15T13:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.25,
+                "draw": 2.9,
+                "lose": 2.94
+              },
+              "handicap": "0;-1;0;22500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "22500-29000-29400;55500-37200-14700;_;_;_;1.08-0.80;1.11-0.78",
+              "match_id": "114358964"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3685643,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-13T11:47:17.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40656,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "韩K联",
+              "match_no": 3,
+              "home_team": "光州FC",
+              "away_team": "全北现代",
+              "match_time": "2026-03-14T05:00:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 4.15,
+                "draw": 3.15,
+                "lose": 1.75
+              },
+              "handicap": "0;+1;-5000;22500;+1;0;0;0;0;0;0;0",
+              "sp_raw": "41500-31500-17500;18400-32200-36500;_;_;_;0.94-0.94;1.04-0.83",
+              "match_id": "114480354"
+            }
+          ]
+        },
+        {
+          "interpretation_id": 3684153,
+          "expert_id": "202412",
+          "expert_name": "老魏",
+          "create_time": "2026-03-12T11:14:05.000Z",
+          "game_desc": "足球",
+          "improv_status": 2,
+          "features": "{\"pfofitRatio\":0.40,\"seasonId\":40094,\"item_sum_cost\":1.0,\"pfofitRatioConfigId\":710}",
+          "race_count": 1,
+          "matches": [
+            {
+              "match_name": "德乙",
+              "match_no": 3,
+              "home_team": "马格德堡",
+              "away_team": "达姆施塔特",
+              "match_time": "2026-03-13T17:30:00.000Z",
+              "status": "已开奖",
+              "status_code": 6,
+              "odds": {
+                "win": 2.34,
+                "draw": 3.55,
+                "lose": 2.38
+              },
+              "handicap": "0;-1;2500;32500;-1;0;0;0;0;0;0;0",
+              "sp_raw": "23400-35500-23800;46500-45500-14400;_;_;_;1.03-0.85;0.91-0.97",
+              "match_id": "114355790"
+            }
+          ]
+        }
+      ],
+      "total_count": 73,
+      "completed_count": 73,
+      "pages": 8
+    }
+  ],
+  "error_details": []
+}

@@ -31,8 +31,11 @@ try {
 
 // 启动时校验凭据
 if (!CONFIG.MIDOU_MOBILE || !CONFIG.MIDOU_PASSWORD) {
-  console.error('[token_manager] ⚠️ 主账户凭据缺失！MIDOU_MOBILE=%s, MIDOU_PASSWORD=%s',
-    CONFIG.MIDOU_MOBILE ? '已设置' : '空', CONFIG.MIDOU_PASSWORD ? `已设置(${CONFIG.MIDOU_PASSWORD.length}字符)` : '空');
+  console.error(
+    '[token_manager] ⚠️ 主账户凭据缺失！MIDOU_MOBILE=%s, MIDOU_PASSWORD=%s',
+    CONFIG.MIDOU_MOBILE ? '已设置' : '空',
+    CONFIG.MIDOU_PASSWORD ? `已设置(${CONFIG.MIDOU_PASSWORD.length}字符)` : '空',
+  );
 } else {
   console.log('[token_manager] 主账户凭据已配置: MIDOU_MOBILE=%s', CONFIG.MIDOU_MOBILE);
 }
@@ -111,8 +114,11 @@ function get(url, params, headers) {
 
 async function _doLogin(mobile, password, label) {
   if (!mobile || !password) {
-    console.error(`[token_manager] [${label}] ⚠️ 凭据为空！mobile=%s, password=%s`, 
-      mobile || '(空)', password ? `***(${password.length}字符)` : '(空)');
+    console.error(
+      `[token_manager] [${label}] ⚠️ 凭据为空！mobile=%s, password=%s`,
+      mobile || '(空)',
+      password ? `***(${password.length}字符)` : '(空)',
+    );
     return null;
   }
   const res = await get('https://midou310.com/mdsj/gduser/login.do', { mobile, password });
@@ -120,7 +126,10 @@ async function _doLogin(mobile, password, label) {
     console.log(`[token_manager] [${label}] 登录成功`);
     return res.data.token;
   }
-  console.warn(`[token_manager] [${label}] 登录失败: code=${res.code}, msg=${res.msg || 'unknown'}, 完整响应:`, JSON.stringify(res).slice(0, 500));
+  console.warn(
+    `[token_manager] [${label}] 登录失败: code=${res.code}, msg=${res.msg || 'unknown'}, 完整响应:`,
+    JSON.stringify(res).slice(0, 500),
+  );
   return null;
 }
 

@@ -221,7 +221,7 @@ function calcAmountAndPrize() {
     if (product > bestProduct) bestProduct = product;
   });
 
-  // 理论最高奖金 = 单注金额 × 最佳赔率乘积
+  // 最高奖金 = 单注金额 × 最佳赔率乘积
   var singleBetAmount = 2 * _multiplier;
   var maxWin = Math.round(singleBetAmount * bestProduct * 100) / 100;
 

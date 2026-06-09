@@ -1,0 +1,57 @@
+{
+  "26051": {
+    "valid": true,
+    "matchCount": 393,
+    "discoveredAt": 1780297485163,
+    "expiresAt": 1782889485163
+  },
+  "26052": {
+    "valid": true,
+    "matchCount": 61,
+    "discoveredAt": 1780297485163,
+    "expiresAt": 1782889485163
+  },
+  "26053": {
+    "valid": true,
+    "matchCount": 334,
+    "discoveredAt": 1780297485163,
+    "expiresAt": 1782889485163
+  },
+  "26054": {
+    "valid": true,
+    "matchCount": 97,
+    "discoveredAt": 1780297485163,
+    "expiresAt": 1782889485163
+  },
+  "26055": {
+    "valid": true,
+    "matchCount": 297,
+    "discoveredAt": 1780297485163,
+    "expiresAt": 1782889485163
+  },
+  "26056": {
+    "valid": true,
+    "matchCount": 75,
+    "discoveredAt": 1780297485163,
+    "expiresAt": 1782889485163
+  },
+  "26057": {
+    "valid": true,
+    "matchCount": 205,
+    "discoveredAt": 1780297485163,
+    "expiresAt": 1782889485163
+  },
+  "26058": {
+    "valid": true,
+    "matchCount": 42,
+    "discoveredAt": 1780297485163,
+    "expiresAt": 1782889485163
+  },
+  "26061": {
+    "valid": true,
+    "matchCount": 132,
+    "discoveredAt": 1780297485163,
+    "updatedAt": 1780717836304,
+    "expiresAt": 1783309836304
+  }
+}

@@ -456,13 +456,17 @@ async function computeHotData(dateStr, matchList) {
           try {
             const database = require('./database');
             if (database.isAvailable && database.isAvailable() && !database.getJczqBasic(dateStr, String(number))) {
-              fetchJczqBasicFull(dateStr, number).then(function (basicData) {
-                storeBasicToDB(dateStr, String(number), basicData);
-              }).catch(function () {});
+              fetchJczqBasicFull(dateStr, number)
+                .then(function (basicData) {
+                  storeBasicToDB(dateStr, String(number), basicData);
+                })
+                .catch(function () {});
             } else {
               _basicStoreStats.skipped++;
             }
-          } catch (e) { /* 静默 */ }
+          } catch (e) {
+            /* 静默 */
+          }
 
           return;
         }
@@ -562,5 +566,7 @@ module.exports = {
   computeHeatIndex: computeHeatIndex,
   computeStaticDiff: computeStaticDiff,
   computeFeature: computeFeature,
-  getBasicStoreStats: function () { return Object.assign({}, _basicStoreStats); },
+  getBasicStoreStats: function () {
+    return Object.assign({}, _basicStoreStats);
+  },
 };

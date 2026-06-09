@@ -100,7 +100,7 @@ function extractGSPrediction(mid, m) {
     topPercent: gs.scores && gs.scores[0] ? parseFloat(gs.scores[0].percent) || 0 : 0,
     ladderLabel: gs.ladderLabel || '',
     ladderLevel: gs.ladderLevel || 0,
-    handicap: m.handicap !== undefined ? m.handicap : (m.rq !== undefined ? m.rq : undefined),
+    handicap: m.handicap !== undefined ? m.handicap : m.rq !== undefined ? m.rq : undefined,
   };
 }
 
@@ -192,7 +192,7 @@ async function main() {
       awayGoals: awayGoals,
       actualSpf: actualSpf,
       actualOverunder: actualOverunder,
-      handicap: m.handicap !== undefined ? m.handicap : (m.rq !== undefined ? m.rq : undefined),
+      handicap: m.handicap !== undefined ? m.handicap : m.rq !== undefined ? m.rq : undefined,
     };
 
     const info = {
@@ -214,12 +214,18 @@ async function main() {
         // ★ P1-2: 同时补写 AI 预测（如果 ai_cache 有数据）
         const aiFields = extractAIPrediction(mid, m);
         if (aiFields) {
-          try { predictionLog.upsertAI(mid, aiFields); aiWritten++; } catch (e) {}
+          try {
+            predictionLog.upsertAI(mid, aiFields);
+            aiWritten++;
+          } catch (e) {}
         }
         // ★ P1-2: 同时补写 GS 预测（如果功守道缓存有数据）
         const gsFields = extractGSPrediction(mid, m);
         if (gsFields) {
-          try { predictionLog.upsertGS(mid.replace(/^m_/, ''), gsFields); gsWritten++; } catch (e) {}
+          try {
+            predictionLog.upsertGS(mid.replace(/^m_/, ''), gsFields);
+            gsWritten++;
+          } catch (e) {}
         }
         updated++;
         details.push(info);

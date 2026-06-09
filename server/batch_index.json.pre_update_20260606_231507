@@ -1,0 +1,37 @@
+{
+  "26051": {
+    "valid": true,
+    "matchCount": 393,
+    "discoveredAt": 1780301230876,
+    "updatedAt": 1780301230876,
+    "expiresAt": 1782893230876
+  },
+  "26052": {
+    "valid": true,
+    "matchCount": 61,
+    "discoveredAt": 1780301229720,
+    "updatedAt": 1780301229720,
+    "expiresAt": 1782893229720
+  },
+  "26061": {
+    "valid": true,
+    "matchCount": 132,
+    "discoveredAt": 1780301191886,
+    "updatedAt": 1780635032404,
+    "expiresAt": 1783227032404
+  },
+  "26062": {
+    "valid": true,
+    "matchCount": 12,
+    "discoveredAt": 1780595167203,
+    "updatedAt": 1780595167203,
+    "expiresAt": 1783187167203
+  },
+  "26063": {
+    "valid": true,
+    "matchCount": 51,
+    "discoveredAt": 1780635038022,
+    "updatedAt": 1780757090924,
+    "expiresAt": 1783349090924
+  }
+}

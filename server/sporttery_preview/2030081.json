@@ -1,0 +1,584 @@
+{
+  "match_id": "2030081",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/3平/7负",
+      "0胜/3平/7负",
+      "5胜/4平/1负",
+      "7胜/1平/2负",
+      "1.5个",
+      "1.0个"
+    ],
+    "away": [
+      "7胜/3平/0负",
+      "7胜/3平/0负",
+      "5胜/2平/3负",
+      "5胜/0平/5负",
+      "1.4个",
+      "1.0个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场博洛尼亚0胜 (0%) | 3平 (30%) | 7负 (70%)",
+    "rows": [
+      {
+        "date": "2024-01-28",
+        "league": "意甲",
+        "teams": "AC米兰 2:2 （半 1:1） 博洛尼亚",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2023-08-22",
+        "league": "意甲",
+        "teams": "博洛尼亚 0:2 （半 0:2） AC米兰",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2023-04-15",
+        "league": "意甲",
+        "teams": "博洛尼亚 1:1 （半 1:1） AC米兰",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2022-08-28",
+        "league": "意甲",
+        "teams": "AC米兰 2:0 （半 1:0） 博洛尼亚",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2022-04-05",
+        "league": "意甲",
+        "teams": "AC米兰 0:0 （半 0:0） 博洛尼亚",
+        "totalGoals": ""
+      },
+      {
+        "date": "2021-10-24",
+        "league": "意甲",
+        "teams": "博洛尼亚 2:4 （半 0:2） AC米兰",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2021-01-30",
+        "league": "意甲",
+        "teams": "博洛尼亚 1:2 （半 0:1） AC米兰",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2020-09-22",
+        "league": "意甲",
+        "teams": "AC米兰 2:0 （半 1:0） 博洛尼亚",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2020-07-19",
+        "league": "意甲",
+        "teams": "AC米兰 5:1 （半 2:1） 博洛尼亚",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2019-12-09",
+        "league": "意甲",
+        "teams": "博洛尼亚 2:3 （半 1:2） AC米兰",
+        "totalGoals": "5"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "博洛尼亚",
+      "title": "常规赛 第9名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "16/14/8",
+          "winRate": "42%",
+          "goals": "57/47",
+          "gd": "10",
+          "points": "62",
+          "rank": "9"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "10/7/2",
+          "winRate": "53%",
+          "goals": "33/18",
+          "gd": "15",
+          "points": "37",
+          "rank": "6"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "6/7/6",
+          "winRate": "32%",
+          "goals": "24/29",
+          "gd": "-5",
+          "points": "25",
+          "rank": "9"
+        }
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "title": "常规赛 第8名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "18/9/11",
+          "winRate": "47%",
+          "goals": "61/43",
+          "gd": "18",
+          "points": "63",
+          "rank": "8"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "9/7/3",
+          "winRate": "47%",
+          "goals": "30/16",
+          "gd": "14",
+          "points": "34",
+          "rank": "7"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "9/2/8",
+          "winRate": "47%",
+          "goals": "31/27",
+          "gd": "4",
+          "points": "29",
+          "rank": "6"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "博洛尼亚",
+      "summary": "博洛尼亚近10场5胜 (50%) | 4平 (40%) | 1负 (10%) 进15球，失10球，净进5球",
+      "matches": [
+        {
+          "date": "2025-02-22",
+          "league": "意甲",
+          "vs": "帕尔马 2 : 0 （半 1:0） 博洛尼亚",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-15",
+          "league": "意甲",
+          "vs": "博洛尼亚 3 : 2 （半 1:1） 都灵",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-10",
+          "league": "意甲",
+          "vs": "莱切 0 : 0 （半 0:0） 博洛尼亚",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-05",
+          "league": "意大利杯",
+          "vs": "亚特兰大 0 : 1 （半 0:0） 博洛尼亚",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-02",
+          "league": "意甲",
+          "vs": "博洛尼亚 2 : 0 （半 1:0） 科莫",
+          "result": "胜"
+        },
+        {
+          "date": "2025-01-30",
+          "league": "欧冠",
+          "vs": "里斯本 1 : 1 （半 0:1） 博洛尼亚",
+          "result": "平"
+        },
+        {
+          "date": "2025-01-26",
+          "league": "意甲",
+          "vs": "恩波利 1 : 1 （半 1:1） 博洛尼亚",
+          "result": "平"
+        },
+        {
+          "date": "2025-01-22",
+          "league": "欧冠",
+          "vs": "博洛尼亚 2 : 1 （半 0:1） 多特蒙德",
+          "result": "胜"
+        },
+        {
+          "date": "2025-01-18",
+          "league": "意甲",
+          "vs": "博洛尼亚 3 : 1 （半 2:1） 蒙扎",
+          "result": "胜"
+        },
+        {
+          "date": "2025-01-16",
+          "league": "意甲",
+          "vs": "国际米兰 2 : 2 （半 2:1） 博洛尼亚",
+          "result": "平"
+        }
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "summary": "AC米兰近10场5胜 (50%) | 2平 (20%) | 3负 (30%) 进14球，失10球，净进4球",
+      "matches": [
+        {
+          "date": "2025-02-23",
+          "league": "意甲",
+          "vs": "都灵 2 : 1 （半 1:0） AC米兰",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-19",
+          "league": "欧冠",
+          "vs": "AC米兰 1 : 1 （半 1:0） 费耶诺德",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-16",
+          "league": "意甲",
+          "vs": "AC米兰 1 : 0 （半 0:0） 维罗纳",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-13",
+          "league": "欧冠",
+          "vs": "费耶诺德 1 : 0 （半 1:0） AC米兰",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-09",
+          "league": "意甲",
+          "vs": "恩波利 0 : 2 （半 0:0） AC米兰",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-06",
+          "league": "意大利杯",
+          "vs": "AC米兰 3 : 1 （半 2:0） 罗马",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-03",
+          "league": "意甲",
+          "vs": "AC米兰 1 : 1 （半 1:0） 国际米兰",
+          "result": "平"
+        },
+        {
+          "date": "2025-01-30",
+          "league": "欧冠",
+          "vs": "萨迪纳摩 2 : 1 （半 1:0） AC米兰",
+          "result": "负"
+        },
+        {
+          "date": "2025-01-26",
+          "league": "意甲",
+          "vs": "AC米兰 3 : 2 （半 1:1） 帕尔马",
+          "result": "胜"
+        },
+        {
+          "date": "2025-01-23",
+          "league": "欧冠",
+          "vs": "AC米兰 1 : 0 （半 1:0） 赫罗纳",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "博洛尼亚",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-23",
+          "意甲",
+          "博洛尼亚\nVS\n拉齐奥",
+          "Regular Season 第1轮"
+        ],
+        [
+          "2026-08-30",
+          "意甲",
+          "亚特兰大\nVS\n博洛尼亚",
+          "Regular Season 第2轮"
+        ],
+        [
+          "2026-09-06",
+          "意甲",
+          "博洛尼亚\nVS\n萨索洛",
+          "Regular Season 第3轮"
+        ],
+        [
+          "2026-09-13",
+          "意甲",
+          "那不勒斯\nVS\n博洛尼亚",
+          "Regular Season 第4轮"
+        ]
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-05",
+          "俱乐部赛",
+          "AC米兰\nVS\n国际米兰",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-08-08",
+          "俱乐部赛",
+          "切尔西\nVS\nAC米兰",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-08-23",
+          "意甲",
+          "都灵\nVS\nAC米兰",
+          "Regular Season 第1轮"
+        ],
+        [
+          "2026-08-30",
+          "意甲",
+          "AC米兰\nVS\n威尼斯",
+          "Regular Season 第2轮"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "博洛尼亚",
+      "players": [
+        {
+          "player": "7-R·奥索里尼(前锋)",
+          "apps": "30 (23/7)",
+          "goals": "15 (26%)",
+          "assists": "4 (9%)",
+          "avg": "0.5/0.1"
+        },
+        {
+          "player": "11-恩多耶(前锋)",
+          "apps": "30 (26/4)",
+          "goals": "8 (14%)",
+          "assists": "4 (9%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "9-S. Castro(前锋)",
+          "apps": "36 (27/9)",
+          "goals": "8 (14%)",
+          "assists": "4 (9%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "players": [
+        {
+          "player": "11-普利希奇(中场)",
+          "apps": "34 (29/5)",
+          "goals": "11 (15%)",
+          "assists": "9 (16%)",
+          "avg": "0.3/0.3"
+        },
+        {
+          "player": "14-赖因德斯(中场)",
+          "apps": "37 (36/1)",
+          "goals": "10 (14%)",
+          "assists": "4 (7%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "10-Rafael Leão(前锋)",
+          "apps": "34 (25/9)",
+          "goals": "8 (11%)",
+          "assists": "8 (14%)",
+          "avg": "0.2/0.2"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "博洛尼亚",
+      "players": [
+        {
+          "player": "22-C. Lykogiannis(后卫)",
+          "totalApps": "17",
+          "starts": "12",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "K. Bonifazi(后卫)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "5-M. Erlić(后卫)",
+          "totalApps": "8",
+          "starts": "5",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "21-奥戈尔德(前锋)",
+          "totalApps": "29",
+          "starts": "24",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "20-埃比舍尔(中场)",
+          "totalApps": "14",
+          "starts": "9",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "17-O. El Azzouzi(中场)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "33-卡拉菲奥里(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "2-E.霍尔姆(后卫)",
+          "totalApps": "21",
+          "starts": "12",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "28-N. Cambiaghi(前锋)",
+          "totalApps": "18",
+          "starts": "4",
+          "subs": "14",
+          "status": "伤"
+        },
+        {
+          "player": "39-Estanis(前锋)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "players": [
+        {
+          "player": "32-沃克(后卫)",
+          "totalApps": "11",
+          "starts": "7",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "7-Álvaro Morata(前锋)",
+          "totalApps": "16",
+          "starts": "13",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "7-Álvaro Morata(前锋)",
+          "totalApps": "16",
+          "starts": "13",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "24-A. Florenzi(后卫)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "8-R. Loftus-Cheek(中场)",
+          "totalApps": "19",
+          "starts": "10",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "9-约维奇(前锋)",
+          "totalApps": "15",
+          "starts": "6",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "4-班纳格(中场)",
+          "totalApps": "6",
+          "starts": "4",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "90-亚布拉罕(前锋)",
+          "totalApps": "29",
+          "starts": "12",
+          "subs": "17",
+          "status": "伤"
+        },
+        {
+          "player": "94-Y. Adli(中场)",
+          "totalApps": "26",
+          "starts": "15",
+          "subs": "11",
+          "status": "伤"
+        },
+        {
+          "player": "56-A·塞勒梅克(前锋)",
+          "totalApps": "22",
+          "starts": "17",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "22-埃莫森(后卫)",
+          "totalApps": "17",
+          "starts": "16",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "5-P. Kalulu(后卫)",
+          "totalApps": "29",
+          "starts": "25",
+          "subs": "4",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

@@ -11,9 +11,13 @@ const { atomicWrite, atomicWriteJson } = require('../core/file-utils');
 const TEST_DIR = path.join(os.tmpdir(), 'jczjfa-file-utils-test-' + Date.now());
 const TEST_FILE = path.join(TEST_DIR, 'test.json');
 
-beforeAll(() => { fs.mkdirSync(TEST_DIR, { recursive: true }); });
+beforeAll(() => {
+  fs.mkdirSync(TEST_DIR, { recursive: true });
+});
 afterAll(() => {
-  try { fs.rmSync(TEST_DIR, { recursive: true, force: true }); } catch (_) {}
+  try {
+    fs.rmSync(TEST_DIR, { recursive: true, force: true });
+  } catch (_) {}
 });
 
 beforeEach(() => {

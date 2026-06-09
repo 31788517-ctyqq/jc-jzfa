@@ -1,4 +1,4 @@
-/* betting.css v6 — 参考方案设计页字号 + 功守道弹窗头 + 去蓝色遮罩 */
+﻿/* betting.css v6 — 参考方案设计页字号 + 功守道弹窗头 + 去蓝色遮罩 */
 
 /* ═══ 弹窗容器 ═══ */
 .bet-popup {
@@ -18,7 +18,7 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #0a1520;
+  background: #131b24;
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   margin: 0 -16px;
@@ -62,11 +62,11 @@
 }
 .bet-league-name {
   font-size: 13px;
-  color: #64748B;
+  color: #586575;
 }
 .bet-match-num {
   font-size: 12px;
-  color: #64748B;
+  color: #586575;
 }
 .bet-teams {
   display: flex;
@@ -75,24 +75,24 @@
   gap: 8px;
   font-size: 17px;
   font-weight: 700;
-  color: #F1F5F9;
+  color: #e2e0dc;
   margin: 6px 0;
 }
 .bet-teams .bet-rank {
   font-size: 12px;
   font-weight: 400;
-  color: #64748B;
+  color: #586575;
 }
 .bet-match-time-text {
   font-size: 13px;
-  color: #94A3B8;
+  color: #8996a6;
   margin-top: 4px;
 }
 
 /* ═══ 玩法分区 — 1px 细线 ═══ */
 .bet-play-section {
   position: relative;
-  border: 1px solid #F3C83D;
+  border: 1px solid #b89a60;
   border-radius: 12px;
   margin-top: 16px;
   padding: 16px 10px 10px;
@@ -104,14 +104,14 @@
   border-color: rgba(255,255,255,.06);
 }
 .bet-play-section-dim .bet-play-section-title {
-  color: #556677;
+  color: #586575;
 }
 .bet-play-section-title {
   position: absolute;
   top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  background: #0a1520;
+  background: #131b24;
   padding: 0 12px;
   color: #FFF;
   font-size: 14px;
@@ -152,37 +152,37 @@
 .bet-cell.selected,
 .bet-score-item.selected,
 .bet-goal-item.selected {
-  border-color: #FFC928;
-  background: rgba(255, 201, 40, 0.08);
-  box-shadow: 0 0 10px rgba(255, 201, 40, 0.12);
+  border-color: #b89a60;
+  background: rgba(184, 154, 96, 0.08);
+  box-shadow: 0 0 10px rgba(184, 154, 96, 0.12);
 }
 
 /* 标签和赔率 */
 .bet-cell .bet-name {
-  color: #8899aa;
+  color: #8996a6;
   font-size: 12px;
   font-weight: 600;
 }
 .bet-cell .bet-odds {
   margin-top: 2px;
-  color: #00E5FF;
+  color: #7ea6bd;
   font-size: 12px;
   font-weight: 400;
 }
 .bet-cell.selected .bet-name,
 .bet-cell.selected .bet-odds {
-  color: #FFC928;
+  color: #b89a60;
 }
 
 /* 负 = 默认蓝色赔率（与正/平统一） */
 .bet-cell.lose .bet-odds {
-  color: #00E5FF;
+  color: #7ea6bd;
 }
 .bet-cell.lose.selected .bet-name {
-  color: #FFC928;
+  color: #b89a60;
 }
 .bet-cell.lose.selected .bet-odds {
-  color: #00E5FF;
+  color: #7ea6bd;
 }
 
 /* 让球列 — 只读 */
@@ -198,14 +198,14 @@
   transform: none;
 }
 .bet-cell.handicap.rq {
-  color: #FFC928;
+  color: #b89a60;
   font-weight: 700;
   font-size: 13px;
 }
 
 /* ★ 赔率变动箭头 */
-.bet-arrow-up { color: #FF5B55; font-size: 9px; margin-left: 2px; }
-.bet-arrow-down { color: #34D399; font-size: 9px; margin-left: 2px; }
+.bet-arrow-up { color: #b87070; font-size: 9px; margin-left: 2px; }
+.bet-arrow-down { color: #7aaa96; font-size: 9px; margin-left: 2px; }
 
 /* ★ 走势信号迷你行 */
 .bet-trend-row {
@@ -214,21 +214,21 @@
   border-radius: 6px; font-size: 10px;
 }
 .bet-trend-label {
-  color: #556677; font-size: 9px; white-space: nowrap;
+  color: #586575; font-size: 9px; white-space: nowrap;
 }
 .bet-trend-chars {
   font-family: monospace; font-size: 10px; letter-spacing: 1px;
-  color: #8899aa;
+  color: #8996a6;
 }
 
 /* ★ 玩法提示条 */
 .bet-play-hint {
   text-align: center; padding: 6px 12px; margin-bottom: 10px;
-  border-radius: 10px; border: 1px solid rgba(255,201,40,0.15);
-  background: rgba(255,201,40,0.04); color: #8899aa;
+  border-radius: 10px; border: 1px solid rgba(184, 154, 96,0.15);
+  background: rgba(184, 154, 96,0.04); color: #8996a6;
   font-size: 11px; line-height: 1.5;
 }
-.bet-play-hint b { color: #FFC928; }
+.bet-play-hint b { color: #b89a60; }
 
 /* ═══ 比分 — 7列 ═══ */
 .bet-score-grid {
@@ -246,13 +246,13 @@
 }
 .bet-score-item .bet-score-odds {
   margin-top: 4px;
-  color: #00E5FF;
+  color: #7ea6bd;
   font-size: 11px;
   font-weight: 400;
 }
 .bet-score-item.selected .bet-score-val,
 .bet-score-item.selected .bet-score-odds {
-  color: #FFC928;
+  color: #b89a60;
 }
 
 /* ═══ 总进球 — 4列 ═══ */
@@ -270,21 +270,21 @@
 }
 .bet-goal-item {
   height: 52px;
-  color: #8899aa;
+  color: #8996a6;
   font-size: 13px;
   font-weight: 600;
 }
 .bet-goal-item .bet-goal-odds {
   margin-top: 4px;
-  color: #00E5FF;
+  color: #7ea6bd;
   font-size: 12px;
   font-weight: 400;
 }
 .bet-goal-item.selected {
-  color: #FFC928;
+  color: #b89a60;
 }
 .bet-goal-item.selected .bet-goal-odds {
-  color: #FFC928;
+  color: #b89a60;
 }
 
 /* ═══ 无赔率 — 仅不可点，轻量暗化 ═══ */
@@ -314,10 +314,10 @@
   padding: 3px 0;
 }
 .bet-summary-label {
-  color: #64748B;
+  color: #586575;
 }
 .bet-summary-value {
-  color: #FFC928;
+  color: #b89a60;
   font-weight: 600;
 }
 .bet-summary-value.prize {
@@ -336,7 +336,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.04);
-  color: #8899aa;
+  color: #8996a6;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -350,13 +350,13 @@
   height: 46px;
   border: none;
   border-radius: 12px;
-  background: linear-gradient(135deg, #FFC928, #E5A800);
+  background: linear-gradient(135deg, #b89a60, #b89a60);
   color: #1a1a1a;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s;
-  box-shadow: 0 4px 14px rgba(255, 201, 40, 0.25);
+  box-shadow: 0 4px 14px rgba(184, 154, 96, 0.25);
 }
 .bet-btn-confirm:active {
   transform: scale(0.97);
@@ -364,7 +364,7 @@
 .bet-btn-confirm:disabled {
   background: rgba(255, 255, 255, 0.06);
   box-shadow: none;
-  color: #556677;
+  color: #586575;
   cursor: not-allowed;
 }
 .bet-btn-confirm:disabled:active {
@@ -387,7 +387,7 @@
   top: 0;
   width: 16.66%;  /* 1/6 */
   height: 100%;
-  background: rgba(255, 201, 40, 0.35);
+  background: rgba(184, 154, 96, 0.35);
   z-index: 0;
   pointer-events: none;
   border-top-left-radius: 9px;
@@ -404,7 +404,7 @@
   text-align: center;
   font-size: 10px;
   font-weight: 700;
-  color: #2288FF;
+  color: #7ea6bd;
   z-index: 2;
   line-height: 1;
   pointer-events: none;
@@ -414,5 +414,315 @@
 .bet-cell.selected.rank-highlight::before,
 .bet-score-item.selected.rank-highlight::before,
 .bet-goal-item.selected.rank-highlight::before {
-  background: rgba(255, 201, 40, 0.45);
+  background: rgba(184, 154, 96, 0.45);
 }
+
+
+/* Morandi blue betting comprehensive polish (202606080148) */
+.bet-popup {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+.bet-popup-header,
+.bet-play-section-title {
+  background: rgba(19, 27, 36, 0.96);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+.bet-popup-header {
+  border-bottom-color: rgba(126, 166, 189, 0.10);
+}
+.bet-popup-title,
+.bet-teams {
+  color: #ece8e0;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+}
+.bet-popup-close {
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(126, 166, 189, 0.10);
+  color: #aab4c1;
+}
+.bet-popup-close:hover {
+  background: rgba(126, 166, 189, 0.11);
+  color: #e2e0dc;
+}
+.bet-match-section {
+  border-bottom-color: rgba(126, 166, 189, 0.10);
+  margin-bottom: 16px;
+}
+.bet-league-name,
+.bet-match-num,
+.bet-teams .bet-rank {
+  color: #667486;
+}
+.bet-match-time-text {
+  color: #93a0af;
+}
+.bet-play-section {
+  margin-top: 18px;
+  padding: 18px 11px 12px;
+  border-color: rgba(184, 154, 96, 0.42);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(184, 154, 96, 0.028), rgba(126, 166, 189, 0.018));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+.bet-play-section-title {
+  top: -11px;
+  padding: 0 14px;
+  color: #d0cbc0;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+}
+.bet-spf-grid,
+.bet-score-grid,
+.bet-goal-grid {
+  gap: 8px;
+}
+.bet-cell,
+.bet-score-item,
+.bet-goal-item {
+  height: 58px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.028);
+  border-color: rgba(126, 166, 189, 0.11);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.028);
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+.bet-cell:active,
+.bet-score-item:active,
+.bet-goal-item:active {
+  transform: scale(0.97);
+}
+.bet-cell.selected,
+.bet-score-item.selected,
+.bet-goal-item.selected {
+  border-color: rgba(184, 154, 96, 0.68);
+  background: rgba(184, 154, 96, 0.10);
+  box-shadow: 0 8px 18px rgba(184, 154, 96, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.bet-cell .bet-name,
+.bet-score-item .bet-score-val,
+.bet-goal-item .bet-goal-val {
+  color: #9aa6b5;
+  line-height: 1.2;
+}
+.bet-cell .bet-odds,
+.bet-cell.lose .bet-odds,
+.bet-score-odds,
+.bet-goal-odds {
+  color: #7ea6bd;
+  line-height: 1.2;
+}
+.bet-cell.selected .bet-name,
+.bet-cell.selected .bet-odds,
+.bet-score-item.selected .bet-score-val,
+.bet-score-item.selected .bet-score-odds,
+.bet-goal-item.selected,
+.bet-goal-item.selected .bet-goal-odds {
+  color: #c4a870;
+}
+.bet-cell.handicap {
+  border-color: rgba(126, 166, 189, 0.16);
+  background: rgba(126, 166, 189, 0.045);
+}
+.bet-play-section-dim {
+  opacity: 0.34;
+}
+.bet-cell.no-odds,
+.bet-score-item.no-odds,
+.bet-goal-item.no-odds {
+  opacity: 0.42;
+  background: rgba(255, 255, 255, 0.018);
+}
+.bet-cell.rank-highlight,
+.bet-score-item.rank-highlight,
+.bet-goal-item.rank-highlight {
+  border-color: rgba(126, 166, 189, 0.30);
+}
+
+/* Alpine Mint betting drawer theme (202606080216) */
+.bet-popup {
+  color: var(--alpine-text-main, #243238);
+  background: linear-gradient(180deg, #f8fbfb 0%, #edf4f4 100%);
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+}
+.bet-popup-header,
+.bet-play-section-title {
+  background: rgba(247, 251, 251, 0.88);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+.bet-popup-header {
+  border-bottom-color: rgba(130, 158, 164, 0.16);
+}
+.bet-popup-title,
+.bet-teams,
+.bet-score-item .bet-score-val,
+.bet-goal-item,
+.bet-cell.handicap {
+  color: var(--alpine-text-main, #243238);
+}
+.bet-popup-close {
+  background: rgba(255, 255, 255, 0.62);
+  border-color: rgba(130, 158, 164, 0.18);
+  color: var(--alpine-text-sub, #4f646a);
+}
+.bet-popup-close:hover {
+  background: rgba(114, 221, 208, 0.16);
+  color: var(--alpine-mint-deep, #08746f);
+}
+.bet-match-section,
+.bet-summary {
+  border-color: rgba(130, 158, 164, 0.14);
+}
+.bet-league-name,
+.bet-match-num,
+.bet-teams .bet-rank,
+.bet-match-time-text,
+.bet-summary-label,
+.bet-trend-label,
+.bet-trend-chars {
+  color: var(--alpine-text-sub, #4f646a);
+}
+.bet-play-section {
+  border-color: rgba(130, 158, 164, 0.18);
+  background: rgba(255, 255, 255, 0.54);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62), 0 10px 24px rgba(48, 72, 78, 0.10);
+}
+.bet-play-section-title {
+  color: var(--alpine-mint-deep, #08746f);
+}
+.bet-cell,
+.bet-score-item,
+.bet-goal-item {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(130, 158, 164, 0.16);
+  color: var(--alpine-text-main, #243238);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.60);
+}
+.bet-cell.selected,
+.bet-score-item.selected,
+.bet-goal-item.selected {
+  background: rgba(114, 221, 208, 0.22);
+  border-color: rgba(47, 159, 154, 0.40);
+  box-shadow: 0 10px 22px rgba(47, 159, 154, 0.18);
+}
+.bet-cell .bet-name,
+.bet-score-item .bet-score-val,
+.bet-goal-item .bet-goal-val {
+  color: var(--alpine-text-main, #243238);
+}
+.bet-cell .bet-odds,
+.bet-cell.lose .bet-odds,
+.bet-score-odds,
+.bet-goal-odds,
+.bet-score-item .bet-score-odds,
+.bet-goal-item .bet-goal-odds,
+.rank-badge-num {
+  color: var(--alpine-mint-deep, #08746f);
+}
+.bet-cell.selected .bet-name,
+.bet-cell.selected .bet-odds,
+.bet-cell.lose.selected .bet-name,
+.bet-cell.lose.selected .bet-odds,
+.bet-score-item.selected .bet-score-val,
+.bet-score-item.selected .bet-score-odds,
+.bet-goal-item.selected,
+.bet-goal-item.selected .bet-goal-odds {
+  color: var(--alpine-mint-deep, #08746f);
+}
+.bet-cell.handicap,
+.bet-cell.handicap.rq {
+  color: var(--alpine-coral-deep, #b94739);
+  background: rgba(255, 127, 104, 0.10);
+  border-color: rgba(255, 127, 104, 0.18);
+}
+.bet-trend-row,
+.bet-play-hint {
+  background: rgba(255, 255, 255, 0.58);
+  border-color: rgba(130, 158, 164, 0.16);
+  color: var(--alpine-text-sub, #4f646a);
+}
+.bet-play-hint b,
+.bet-summary-value,
+.bet-arrow-up {
+  color: var(--alpine-coral-deep, #b94739);
+}
+.bet-arrow-down { color: var(--alpine-mint-deep, #08746f); }
+.bet-btn-cancel {
+  background: rgba(255, 255, 255, 0.58);
+  border-color: rgba(130, 158, 164, 0.20);
+  color: var(--alpine-text-sub, #4f646a);
+}
+.bet-btn-cancel:active { background: rgba(255, 255, 255, 0.76); }
+.bet-btn-confirm {
+  background: linear-gradient(135deg, var(--alpine-mint-soft, #a7eee6), var(--alpine-mint, #72ddd0));
+  color: #163238;
+  box-shadow: 0 12px 24px rgba(47, 159, 154, 0.22);
+}
+.bet-btn-confirm:disabled {
+  background: rgba(130, 158, 164, 0.12);
+  color: var(--alpine-text-muted, #9aa8ac);
+}
+.bet-cell.rank-highlight::before,
+.bet-score-item.rank-highlight::before,
+.bet-goal-item.rank-highlight::before {
+  background: rgba(255, 127, 104, 0.24);
+}
+.bet-cell.selected.rank-highlight::before,
+.bet-score-item.selected.rank-highlight::before,
+.bet-goal-item.selected.rank-highlight::before {
+  background: rgba(114, 221, 208, 0.32);
+}
+
+/* Alpine Mint betting final polish */
+.bet-popup * {
+  text-shadow: none !important;
+}
+.bet-popup,
+.bet-popup-header,
+.bet-play-section-title {
+  color: var(--alpine-text-main, #243238);
+}
+.bet-play-section,
+.bet-cell,
+.bet-score-item,
+.bet-goal-item,
+.bet-trend-row,
+.bet-play-hint,
+.bet-summary {
+  border-color: rgba(130, 158, 164, 0.16) !important;
+}
+.bet-cell .bet-name,
+.bet-score-item .bet-score-val,
+.bet-goal-item .bet-goal-val,
+.bet-goal-item,
+.bet-teams {
+  color: var(--alpine-text-main, #243238) !important;
+  font-weight: 700;
+}
+.bet-cell .bet-odds,
+.bet-score-item .bet-score-odds,
+.bet-goal-item .bet-goal-odds,
+.bet-summary-value {
+  color: var(--alpine-mint-deep, #08746f) !important;
+  font-weight: 750;
+}
+.bet-league-name,
+.bet-match-num,
+.bet-teams .bet-rank,
+.bet-match-time-text,
+.bet-summary-label,
+.bet-trend-label,
+.bet-trend-chars {
+  color: var(--alpine-text-sub, #4f646a) !important;
+}
+.bet-btn-cancel,
+.bet-btn-confirm {
+  border-radius: 999px;
+}
+
+

@@ -1,0 +1,227 @@
+{
+  "generated_at": "2026-06-06T17:08:43.932Z",
+  "total_found": 200,
+  "selected_count": 20,
+  "experts": [
+    {
+      "eid": "6632",
+      "nickname": "大毛看彩",
+      "hot_rank": 1,
+      "hit_rate": 79,
+      "streak": 0,
+      "recent_return": "近17单+146%",
+      "headimg": "https://img.sanyol.cn/headimg/u78/d7b127f8b5abb4388b74194ead4bd49e.jpg?t=1666236253.42",
+      "verify": "0",
+      "identity": "民间高手"
+    },
+    {
+      "eid": "5548",
+      "nickname": "七哥侃彩",
+      "hot_rank": 3,
+      "hit_rate": 88,
+      "streak": 0,
+      "recent_return": "",
+      "headimg": "https://img.sanyol.cn/headimg/u85/83b730f6b5ad5d875da37239c0471d65.jpg?t=1747302750.37",
+      "verify": "0",
+      "identity": "草根达人"
+    },
+    {
+      "eid": "6348",
+      "nickname": "冷门策略",
+      "hot_rank": 6,
+      "hit_rate": 69,
+      "streak": 0,
+      "recent_return": "近21单+114%",
+      "headimg": "https://img.sanyol.cn/headimg/u79/53a56cc9fb80803b6d0452e9890338a7.jpg?t=1666658463.32",
+      "verify": "0",
+      "identity": "民间高手"
+    },
+    {
+      "eid": "7258",
+      "nickname": "林勇",
+      "hot_rank": 22,
+      "hit_rate": 60,
+      "streak": 0,
+      "recent_return": "近4单+634%",
+      "headimg": "https://img.sanyol.cn/headimg/u95c74d97b01eae257e44aa9d5bade97baf.jpg?t=1728733174.32",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "17553",
+      "nickname": "亚平宁达人",
+      "hot_rank": 29,
+      "hit_rate": 83,
+      "streak": 0,
+      "recent_return": "近6单+386%",
+      "headimg": "https://img.sanyol.cn/headimg/u61/4a91b986a09bd8cf5f80e82f2c0ecb89.png?t=1765510342.9",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "5244",
+      "nickname": "袁守诚",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 0,
+      "recent_return": "近3单+120%",
+      "headimg": "https://img.sanyol.cn/headimg/u63/5f64660ee58246c32b908db71a777f37.jpg?t=1666250041.25",
+      "verify": "0",
+      "identity": "民间高手"
+    },
+    {
+      "eid": "5317",
+      "nickname": "重注大绝杀",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 0,
+      "recent_return": "近3单+207%",
+      "headimg": "https://img.sanyol.cn/avatar/2b/7d/2b7dcb18b7f511e7b301.jpg",
+      "verify": "0",
+      "identity": "民间高手"
+    },
+    {
+      "eid": "7181",
+      "nickname": "阿锋解码",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 0,
+      "recent_return": "近3单+168%",
+      "headimg": "https://tradeimg.500.com/upimages/wap/img/20240618174359283.jpeg",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "7182",
+      "nickname": "足球战神",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 0,
+      "recent_return": "近3单+173%",
+      "headimg": "https://tradeimg.500.com/upimages/wap/img/20240619182217046.jpeg",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "7183",
+      "nickname": "射手阿飞",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 0,
+      "recent_return": "近6单+169%",
+      "headimg": "https://tradeimg.500.com/upimages/wap/img/20240618185744610.jpeg",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "7184",
+      "nickname": "晖老师",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 0,
+      "recent_return": "近5单+216%",
+      "headimg": "https://tradeimg.500.com/upimages/wap/img/20240619115431976.jpeg",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "7186",
+      "nickname": "赏金猎人",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 0,
+      "recent_return": "近4单+164%",
+      "headimg": "https://tradeimg.500.com/upimages/wap/img/20240618172111914.png",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "7187",
+      "nickname": "足影先锋",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 0,
+      "recent_return": "近4单+189%",
+      "headimg": "https://tradeimg.500.com/upimages/wap/img/20240618174953387.jpeg",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "7189",
+      "nickname": "懂球王",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 0,
+      "recent_return": "近5单+194%",
+      "headimg": "https://tradeimg.500.com/upimages/wap/img/20240619115227238.jpeg",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "7349",
+      "nickname": "一航足球",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 0,
+      "recent_return": "近3单+216%",
+      "headimg": "https://tradeimg.500.com/upimages/wap/img/20250422111854839.png",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "7382",
+      "nickname": "发哥聊球",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 6,
+      "recent_return": "近3单+221%",
+      "headimg": "https://tradeimg.500.com/upimages/wap/img/20250422160720269.png",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "7391",
+      "nickname": "凯哥",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 0,
+      "recent_return": "近7单+186%",
+      "headimg": "https://tradeimg.500.com/upimages/wap/img/20250512182237366.jpeg",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "11539",
+      "nickname": "俊哥侃球",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 0,
+      "recent_return": "",
+      "headimg": "https://img.sanyol.cn/headimg/u42/dd21ea0927af4e5a5d5779dec94040a6.jpg?t=1780743124.06",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "11640",
+      "nickname": "认证老牛",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 7,
+      "recent_return": "近3单+165%",
+      "headimg": "https://img.sanyol.cn/headimg/u57/15993574cfd528a31747b56272a48421.jpg?t=1780759779.48",
+      "verify": "0",
+      "identity": ""
+    },
+    {
+      "eid": "11658",
+      "nickname": "日月明红大师",
+      "hot_rank": 9999,
+      "hit_rate": 100,
+      "streak": 0,
+      "recent_return": "",
+      "headimg": "https://img.sanyol.cn/headimg/u55/9f731d1c9cb6ba2052b513c1ad934013.jpg?t=1780763476.21",
+      "verify": "0",
+      "identity": ""
+    }
+  ]
+}

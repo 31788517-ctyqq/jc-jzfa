@@ -15,48 +15,64 @@ let COOKIES = '';
 
 async function initSession() {
   return new Promise((resolve) => {
-    https.get({
-      hostname: HOST, path: '/', agent: AGENT,
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-      timeout: 10000,
-    }, (res) => {
-      const sc = res.headers['set-cookie'];
-      if (sc) COOKIES = (Array.isArray(sc) ? sc : [sc]).map(c => c.split(';')[0]).join('; ');
-      res.resume(); resolve();
-    }).on('error', () => resolve());
+    https
+      .get(
+        {
+          hostname: HOST,
+          path: '/',
+          agent: AGENT,
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+          timeout: 10000,
+        },
+        (res) => {
+          const sc = res.headers['set-cookie'];
+          if (sc) COOKIES = (Array.isArray(sc) ? sc : [sc]).map((c) => c.split(';')[0]).join('; ');
+          res.resume();
+          resolve();
+        },
+      )
+      .on('error', () => resolve());
   });
 }
 
 function probe(id) {
   return new Promise((resolve) => {
     const body = `exportId=${id}&searchIndex=100&raceTypeId=1`;
-    const req = https.request({
-      method: 'POST', hostname: HOST,
-      path: '/expert/home/interpretation2/1',
-      agent: AGENT,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Requested-With': 'XMLHttpRequest',
-        'User-Agent': 'Mozilla/5.0',
-        Cookie: COOKIES,
-        Referer: 'https://' + HOST + '/',
+    const req = https.request(
+      {
+        method: 'POST',
+        hostname: HOST,
+        path: '/expert/home/interpretation2/1',
+        agent: AGENT,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'XMLHttpRequest',
+          'User-Agent': 'Mozilla/5.0',
+          Cookie: COOKIES,
+          Referer: 'https://' + HOST + '/',
+        },
+        timeout: 8000,
       },
-      timeout: 8000,
-    }, (res) => {
-      let d = '';
-      res.on('data', c => d += c);
-      res.on('end', () => {
-        try {
-          const j = JSON.parse(d);
-          const list = j?.page?.dataList;
-          if (list && list.length > 0) {
-            const name = list[0]?.jcobMember?.nickName || '';
-            const pages = j.page.totalPages || 0;
-            resolve({ id: String(id), name, totalPages: pages });
-          } else { resolve(null); }
-        } catch (e) { resolve(null); }
-      });
-    });
+      (res) => {
+        let d = '';
+        res.on('data', (c) => (d += c));
+        res.on('end', () => {
+          try {
+            const j = JSON.parse(d);
+            const list = j?.page?.dataList;
+            if (list && list.length > 0) {
+              const name = list[0]?.jcobMember?.nickName || '';
+              const pages = j.page.totalPages || 0;
+              resolve({ id: String(id), name, totalPages: pages });
+            } else {
+              resolve(null);
+            }
+          } catch (e) {
+            resolve(null);
+          }
+        });
+      },
+    );
     req.on('error', () => resolve(null));
     req.write(body);
     req.end();
@@ -78,7 +94,9 @@ async function main() {
 
   const experts = [];
   let probed = 0;
-  console.log(`Range: ${start}-${end}, Step: ${step}, IDs: ${ids.length}, Concurrent: ${CONCURRENT}, Target: ${target}\n`);
+  console.log(
+    `Range: ${start}-${end}, Step: ${step}, IDs: ${ids.length}, Concurrent: ${CONCURRENT}, Target: ${target}\n`,
+  );
 
   for (let i = 0; i < ids.length; i += CONCURRENT) {
     const batch = ids.slice(i, i + CONCURRENT);
@@ -110,4 +128,7 @@ async function main() {
   console.log(`\n\nDone: ${experts.length} experts saved to ${OUT}`);
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

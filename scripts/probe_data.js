@@ -38,5 +38,16 @@ console.log('\n=== m 字段抽样 (前3条) ===');
 var mSample = mKeys.slice(0, 3);
 for (var i = 0; i < mSample.length; i++) {
   var mi = d.m[mSample[i]];
-  console.log('m[' + i + '] matchId:', mi.matchId, 'num:', mi.num, 'date:', mi.date, 'score:', mi.score, 'hcp:', mi.hcp);
+  console.log(
+    'm[' + i + '] matchId:',
+    mi.matchId,
+    'num:',
+    mi.num,
+    'date:',
+    mi.date,
+    'score:',
+    mi.score,
+    'hcp:',
+    mi.hcp,
+  );
 }

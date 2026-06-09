@@ -8,6 +8,12 @@
 
 const database = require('../database');
 
+const INTERNAL_MODEL_NAMES = ['data_fusion', 'market_signal'];
+
+function isInternalModelName(name) {
+  return INTERNAL_MODEL_NAMES.includes(String(name || ''));
+}
+
 class OutcomeBackfill {
   constructor() {
     this.lastBackfillDate = null;
@@ -31,13 +37,12 @@ class OutcomeBackfill {
 
     try {
       // 1. 查找已完成比赛（去除LIMIT确保覆盖全部历史，已有去重机制防止重复写入）
-      const limit = options.limit || 0;  // 0=不限制, >0=最多N场
+      const limit = options.limit || 0; // 0=不限制, >0=最多N场
       const finishedMatches = db.execAll(
         `SELECT m.matchId, m.num, m.date, m.homeName, m.visitName, m.score, m.halfScore
          FROM matches m
          WHERE m.matchStatus >= 2
-         ORDER BY m.date DESC` +
-         (limit > 0 ? ` LIMIT ${limit}` : '')
+         ORDER BY m.date DESC` + (limit > 0 ? ` LIMIT ${limit}` : ''),
       );
 
       // 2. 对每场已完成比赛，查找对应的 unified_predictions
@@ -47,7 +52,9 @@ class OutcomeBackfill {
             `SELECT * FROM unified_predictions
              WHERE (match_num = ? AND match_date = ?) OR match_id = ?
              ORDER BY computed_at ASC`,
-            match.num, match.date, match.matchId
+            match.num,
+            match.date,
+            match.matchId,
           );
 
           if (predictions.length === 0) continue;
@@ -56,7 +63,7 @@ class OutcomeBackfill {
             // 检查是否已回填
             const existing = db.execOne(
               'SELECT id FROM prediction_outcomes WHERE prediction_id = ?',
-              pred.prediction_id
+              pred.prediction_id,
             );
             if (existing) {
               results.skipped++;
@@ -84,7 +91,7 @@ class OutcomeBackfill {
                 outcome.actualTotalGoals,
                 outcome.directionHit,
                 outcome.overUnderHit,
-                outcome.scoreHit
+                outcome.scoreHit,
               );
             }
 
@@ -99,7 +106,9 @@ class OutcomeBackfill {
       this.backfillCount += results.backfilled;
 
       if (results.backfilled > 0 || results.errors.length > 0) {
-        console.log(`[OutcomeBackfill] ${date}: ${results.backfilled} filled, ${results.skipped} skipped, ${results.errors.length} errors`);
+        console.log(
+          `[OutcomeBackfill] ${date}: ${results.backfilled} filled, ${results.skipped} skipped, ${results.errors.length} errors`,
+        );
       }
     } catch (e) {
       results.errors.push(`backfill failed: ${e.message}`);
@@ -132,20 +141,20 @@ class OutcomeBackfill {
     // 方向命中
     let directionHit = 0;
     if (prediction.direction && actualResult !== 'pending') {
-      directionHit = (prediction.direction === actualResult) ? 1 : 0;
+      directionHit = prediction.direction === actualResult ? 1 : 0;
     }
 
     // 大小球命中（阈值 2.5）
     let overUnderHit = 0;
     if (prediction.over_under) {
       const actualOverUnder = actualTotalGoals > 2.5 ? 'over' : 'under';
-      overUnderHit = (prediction.over_under === actualOverUnder) ? 1 : 0;
+      overUnderHit = prediction.over_under === actualOverUnder ? 1 : 0;
     }
 
     // 比分命中
     let scoreHit = 0;
     if (prediction.predicted_score && score) {
-      scoreHit = (prediction.predicted_score === score) ? 1 : 0;
+      scoreHit = prediction.predicted_score === score ? 1 : 0;
     }
 
     return {
@@ -166,7 +175,7 @@ class OutcomeBackfill {
     try {
       const predictions = db.execAll(
         `SELECT * FROM unified_predictions WHERE match_id = ? ORDER BY computed_at ASC`,
-        matchId
+        matchId,
       );
 
       const outcomes = [];
@@ -180,11 +189,17 @@ class OutcomeBackfill {
             direction_hit, over_under_hit, score_hit)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           pred.prediction_id,
-          pred.match_num, pred.match_date,
-          pred.model_name, pred.model_version,
-          outcome.actualHomeScore, outcome.actualAwayScore,
-          outcome.actualResult, outcome.actualTotalGoals,
-          outcome.directionHit, outcome.overUnderHit, outcome.scoreHit
+          pred.match_num,
+          pred.match_date,
+          pred.model_name,
+          pred.model_version,
+          outcome.actualHomeScore,
+          outcome.actualAwayScore,
+          outcome.actualResult,
+          outcome.actualTotalGoals,
+          outcome.directionHit,
+          outcome.overUnderHit,
+          outcome.scoreHit,
         );
 
         outcomes.push({ predictionId: pred.prediction_id, ...outcome });
@@ -201,6 +216,10 @@ class OutcomeBackfill {
     if (!db) return [];
 
     try {
+      const includeInternal = options.includeInternal === true;
+      const excludeInternalSql = includeInternal
+        ? ''
+        : " AND model_name NOT IN ('" + INTERNAL_MODEL_NAMES.join("','") + "')";
       const rows = db.execAll(`
         SELECT model_name, model_version,
           COUNT(*) as total,
@@ -211,20 +230,22 @@ class OutcomeBackfill {
           ROUND(SUM(over_under_hit) * 100.0 / COUNT(*), 1) as ou_rate,
           ROUND(SUM(score_hit) * 100.0 / COUNT(*), 1) as score_rate
         FROM prediction_outcomes
-        WHERE match_date >= date('now', '-${days} days')
+        WHERE match_date >= date('now', '-${days} days')${excludeInternalSql}
         GROUP BY model_name, model_version
         ORDER BY dir_rate DESC
       `);
 
-      return rows.map(r => ({
-        modelName: r.model_name,
-        modelVersion: r.model_version,
-        total: r.total,
-        directionHits: r.dir_hits,
-        directionRate: r.dir_rate,
-        overUnderRate: r.ou_rate,
-        scoreRate: r.score_rate,
-      }));
+      return rows
+        .filter((r) => includeInternal || !isInternalModelName(r.model_name))
+        .map((r) => ({
+          modelName: r.model_name,
+          modelVersion: r.model_version,
+          total: r.total,
+          directionHits: r.dir_hits,
+          directionRate: r.dir_rate,
+          overUnderRate: r.ou_rate,
+          scoreRate: r.score_rate,
+        }));
     } catch (e) {
       console.error('[OutcomeBackfill] getModelHitRates 失败:', e.message);
       return [];
@@ -233,13 +254,14 @@ class OutcomeBackfill {
 
   // ═══ 计算动态权重 ═══
   computeDynamicWeights(db, days = 30) {
-    const hitRates = this.getModelHitRates(db, days);
+    const hitRates = this.getModelHitRates(db, days, { includeInternal: true });
+
     if (hitRates.length === 0) return [];
 
     // Softmax 温度缩放
     const temperature = 0.5;
-    const rates = hitRates.map(r => r.directionRate);
-    const expRates = rates.map(r => Math.exp(r / 10 / temperature));
+    const rates = hitRates.map((r) => r.directionRate);
+    const expRates = rates.map((r) => Math.exp(r / 10 / temperature));
     const sumExp = expRates.reduce((a, b) => a + b, 0);
 
     return hitRates.map((r, i) => ({
@@ -258,4 +280,6 @@ const backfiller = new OutcomeBackfill();
 module.exports = {
   OutcomeBackfill,
   backfiller,
+  INTERNAL_MODEL_NAMES,
+  isInternalModelName,
 };

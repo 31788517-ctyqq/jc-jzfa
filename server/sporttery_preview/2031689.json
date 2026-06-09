@@ -1,0 +1,519 @@
+{
+  "match_id": "2031689",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "8胜/1平/1负",
+      "6胜/1平/3负",
+      "3胜/2平/5负",
+      "3胜/0平/7负",
+      "1.9个",
+      "1.8个"
+    ],
+    "away": [
+      "1胜/1平/8负",
+      "3胜/1平/6负",
+      "4胜/3平/3负",
+      "5胜/3平/2负",
+      "1.0个",
+      "1.0个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场斯图加特8胜 (80%) | 1平 (10%) | 1负 (10%)",
+    "rows": [
+      {
+        "date": "2025-02-05",
+        "league": "德国杯",
+        "teams": "斯图加特 1:0 （半 1:0） 奥格斯堡",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2025-01-13",
+        "league": "德甲",
+        "teams": "奥格斯堡 0:1 （半 0:0） 斯图加特",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2024-05-11",
+        "league": "德甲",
+        "teams": "奥格斯堡 0:1 （半 0:0） 斯图加特",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2023-12-21",
+        "league": "德甲",
+        "teams": "斯图加特 3:0 （半 2:0） 奥格斯堡",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2023-04-22",
+        "league": "德甲",
+        "teams": "奥格斯堡 1:1 （半 1:0） 斯图加特",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2022-10-29",
+        "league": "德甲",
+        "teams": "斯图加特 2:1 （半 1:1） 奥格斯堡",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2022-03-19",
+        "league": "德甲",
+        "teams": "斯图加特 3:2 （半 1:2） 奥格斯堡",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2021-10-31",
+        "league": "德甲",
+        "teams": "奥格斯堡 4:1 （半 1:1） 斯图加特",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2021-05-08",
+        "league": "德甲",
+        "teams": "斯图加特 2:1 （半 1:0） 奥格斯堡",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2021-01-10",
+        "league": "德甲",
+        "teams": "奥格斯堡 1:4 （半 0:2） 斯图加特",
+        "totalGoals": "5"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "斯图加特",
+      "title": "常规赛 第9名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "14/8/12",
+          "winRate": "41%",
+          "goals": "64/53",
+          "gd": "11",
+          "points": "50",
+          "rank": "9"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "7/2/8",
+          "winRate": "41%",
+          "goals": "35/27",
+          "gd": "8",
+          "points": "23",
+          "rank": "9"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "7/6/4",
+          "winRate": "41%",
+          "goals": "29/26",
+          "gd": "3",
+          "points": "27",
+          "rank": "5"
+        }
+      ]
+    },
+    {
+      "team": "奥格斯堡",
+      "title": "常规赛 第12名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "34",
+          "wdl": "11/10/13",
+          "winRate": "32%",
+          "goals": "35/51",
+          "gd": "-16",
+          "points": "43",
+          "rank": "12"
+        },
+        {
+          "where": "主",
+          "played": "17",
+          "wdl": "6/5/6",
+          "winRate": "35%",
+          "goals": "18/20",
+          "gd": "-2",
+          "points": "23",
+          "rank": "10"
+        },
+        {
+          "where": "客",
+          "played": "17",
+          "wdl": "5/5/7",
+          "winRate": "29%",
+          "goals": "17/31",
+          "gd": "-14",
+          "points": "20",
+          "rank": "12"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "斯图加特",
+      "summary": "斯图加特近10场3胜 (30%) | 2平 (20%) | 5负 (50%) 进19球，失18球，净进1球",
+      "matches": [
+        {
+          "date": "2025-05-03",
+          "league": "德甲",
+          "vs": "圣保利 0 : 1 （半 0:0） 斯图加特",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-26",
+          "league": "德甲",
+          "vs": "斯图加特 0 : 1 （半 0:0） 海登海姆",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-20",
+          "league": "德甲",
+          "vs": "柏林联合 4 : 4 （半 4:4） 斯图加特",
+          "result": "平"
+        },
+        {
+          "date": "2025-04-13",
+          "league": "德甲",
+          "vs": "斯图加特 1 : 2 （半 1:1） 不来梅",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-05",
+          "league": "德甲",
+          "vs": "波鸿 0 : 4 （半 0:2） 斯图加特",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-03",
+          "league": "德国杯",
+          "vs": "斯图加特 3 : 1 （半 1:0） 莱红牛",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-30",
+          "league": "德甲",
+          "vs": "法兰克福 1 : 0 （半 0:0） 斯图加特",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-17",
+          "league": "德甲",
+          "vs": "斯图加特 3 : 4 （半 1:0） 勒沃库森",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-08",
+          "league": "德甲",
+          "vs": "基尔 2 : 2 （半 1:1） 斯图加特",
+          "result": "平"
+        },
+        {
+          "date": "2025-03-01",
+          "league": "德甲",
+          "vs": "斯图加特 1 : 3 （半 1:1） 拜仁",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "奥格斯堡",
+      "summary": "奥格斯堡近10场4胜 (40%) | 3平 (30%) | 3负 (30%) 进10球，失10球，净进0球",
+      "matches": [
+        {
+          "date": "2025-05-04",
+          "league": "德甲",
+          "vs": "奥格斯堡 1 : 3 （半 0:2） 基尔",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-26",
+          "league": "德甲",
+          "vs": "勒沃库森 2 : 0 （半 2:0） 奥格斯堡",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-20",
+          "league": "德甲",
+          "vs": "奥格斯堡 0 : 0 （半 0:0） 法兰克福",
+          "result": "平"
+        },
+        {
+          "date": "2025-04-12",
+          "league": "德甲",
+          "vs": "波鸿 1 : 2 （半 0:1） 奥格斯堡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-05",
+          "league": "德甲",
+          "vs": "奥格斯堡 1 : 3 （半 1:1） 拜仁",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-29",
+          "league": "德甲",
+          "vs": "霍芬海姆 1 : 1 （半 0:0） 奥格斯堡",
+          "result": "平"
+        },
+        {
+          "date": "2025-03-15",
+          "league": "德甲",
+          "vs": "奥格斯堡 1 : 0 （半 0:0） 沃夫斯堡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-08",
+          "league": "德甲",
+          "vs": "多特蒙德 0 : 1 （半 0:1） 奥格斯堡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-03",
+          "league": "德甲",
+          "vs": "奥格斯堡 0 : 0 （半 0:0） 弗赖堡",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-22",
+          "league": "德甲",
+          "vs": "门兴 0 : 3 （半 0:0） 奥格斯堡",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "斯图加特",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-23",
+          "俱乐部赛",
+          "Balingen\nVS\n斯图加特",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-30",
+          "俱乐部赛",
+          "奥踢球者\nVS\n斯图加特",
+          "Club Friendlies 3"
+        ]
+      ]
+    },
+    {
+      "team": "奥格斯堡",
+      "content": "暂无数据",
+      "matches": []
+    }
+  ],
+  "scorers": [
+    {
+      "team": "斯图加特",
+      "players": [
+        {
+          "player": "9-E. Demirović(前锋)",
+          "apps": "34 (20/14)",
+          "goals": "15 (22%)",
+          "assists": "1 (2%)",
+          "avg": "0.4/0"
+        },
+        {
+          "player": "11-N. Woltemade(前锋)",
+          "apps": "28 (17/11)",
+          "goals": "12 (18%)",
+          "assists": "2 (4%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "26-温达夫(前锋)",
+          "apps": "27 (20/7)",
+          "goals": "9 (13%)",
+          "assists": "3 (6%)",
+          "avg": "0.3/0.1"
+        }
+      ]
+    },
+    {
+      "team": "奥格斯堡",
+      "players": [
+        {
+          "player": "20-A. Claude Maurice(中场)",
+          "apps": "28 (25/3)",
+          "goals": "9 (24%)",
+          "assists": "2 (7%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "9-埃森德(前锋)",
+          "apps": "30 (21/9)",
+          "goals": "7 (18%)",
+          "assists": "2 (7%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "21-P. Tietz(前锋)",
+          "apps": "34 (19/15)",
+          "goals": "7 (18%)",
+          "assists": "2 (7%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "斯图加特",
+      "players": [
+        {
+          "player": "23-D. Zagadou(后卫)",
+          "totalApps": "2",
+          "starts": "0",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "25-L.费弗(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "10-郑优泳(中场)",
+          "totalApps": "23",
+          "starts": "17",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "8-E.米洛(中场)",
+          "totalApps": "29",
+          "starts": "22",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "2-A. Al Dakhil(后卫)",
+          "totalApps": "7",
+          "starts": "6",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "20-斯特尔伊乌(后卫)",
+          "totalApps": "12",
+          "starts": "11",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "10-E·图雷(前锋)",
+          "totalApps": "12",
+          "starts": "3",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "17-J. Diehl(前锋)",
+          "totalApps": "6",
+          "starts": "0",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "45-A. Chase(后卫)",
+          "totalApps": "12",
+          "starts": "7",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "46-S. Di Benedetto(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "40-L. Raimund(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "奥格斯堡",
+      "players": [
+        {
+          "player": "32-R. Framberger(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "14-M. Okugawa(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "37-M·贝里沙(前锋)",
+          "totalApps": "13",
+          "starts": "3",
+          "subs": "10",
+          "status": "伤"
+        },
+        {
+          "player": "16-巴尔加斯(中场)",
+          "totalApps": "8",
+          "starts": "3",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "7-Y. Kabadayı(前锋)",
+          "totalApps": "5",
+          "starts": "0",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "42-M. Kücüksahin(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "40-N. Banks(后卫)",
+          "totalApps": "8",
+          "starts": "2",
+          "subs": "6",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

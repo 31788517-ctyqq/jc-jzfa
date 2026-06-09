@@ -36,7 +36,7 @@ function loadMatchOdds(dateStr, num) {
     const oddsFile = path.join(ODDS_DIR, dateStr + '.json');
     if (!fs.existsSync(oddsFile)) return null;
     const raw = JSON.parse(fs.readFileSync(oddsFile, 'utf8'));
-    const odds = (raw && raw.odds) ? raw.odds : {};
+    const odds = raw && raw.odds ? raw.odds : {};
     return odds[num] || null;
   } catch (e) {
     return null;
@@ -94,7 +94,14 @@ function estimateOddsMovement(odds, matchInfo) {
  * @returns {{ marketTotal: number, marketHome: number, marketAway: number, overUnderLine: number, overProb: number, valid: boolean }}
  */
 function inferMarketXg(odds, handicap) {
-  const result = { marketTotal: 2.5, marketHome: 1.3, marketAway: 1.2, overUnderLine: 2.5, overProb: 0.5, valid: false };
+  const result = {
+    marketTotal: 2.5,
+    marketHome: 1.3,
+    marketAway: 1.2,
+    overUnderLine: 2.5,
+    overProb: 0.5,
+    valid: false,
+  };
 
   if (!odds || !odds.totalGoals) return result;
 
@@ -123,7 +130,7 @@ function inferMarketXg(odds, handicap) {
   const upperKey = String(bestLine + 1);
   const lowerOdds = tg[lowerKey] ? parseFloat(tg[lowerKey]) : bestOdds * 1.3;
   const upperOdds = tg[upperKey] ? parseFloat(tg[upperKey]) : bestOdds * 1.3;
-  const overProb = (1 / bestOdds) / (1 / bestOdds + 1 / upperOdds);
+  const overProb = 1 / bestOdds / (1 / bestOdds + 1 / upperOdds);
 
   // 泊松 CDF 累计概率
   function poissonCDF(k, lambda) {
@@ -190,7 +197,7 @@ function analyze(vars, matchInfo, gsContext) {
 
   const num = matchInfo.num || '';
   const dateStr = (matchInfo.date || '').slice(0, 10);
-  const handicap = matchInfo.handicap !== undefined ? Number(matchInfo.handicap) : (vars.rq || 0);
+  const handicap = matchInfo.handicap !== undefined ? Number(matchInfo.handicap) : vars.rq || 0;
 
   // 1. 加载赔率数据
   const odds = loadMatchOdds(dateStr, num);
@@ -277,7 +284,7 @@ function analyze(vars, matchInfo, gsContext) {
         const aAward = parseFloat(basicData.guestWinAward);
         if (hAward > 0 && dAward > 0 && aAward > 0) {
           const totalInv = 1 / hAward + 1 / dAward + 1 / aAward;
-          const spImpHome = (1 / hAward) / totalInv;
+          const spImpHome = 1 / hAward / totalInv;
           // 支持率 > 60% 但 SP 隐含概率 < 0.4 → 热度陷阱
           if (winPct > 60 && spImpHome < 0.4) {
             signalScore -= 10;
@@ -286,7 +293,9 @@ function analyze(vars, matchInfo, gsContext) {
         }
       }
     }
-  } catch (e) { /* 静默 */ }
+  } catch (e) {
+    /* 静默 */
+  }
 
   // 盘口位移评分
   if (result.movement) {

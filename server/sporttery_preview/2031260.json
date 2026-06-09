@@ -1,0 +1,450 @@
+{
+  "match_id": "2031260",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "5胜/3平/2负",
+      "8胜/1平/1负",
+      "8胜/1平/1负",
+      "7胜/3平/0负",
+      "2.3个",
+      "0.8个"
+    ],
+    "away": [
+      "2胜/3平/5负",
+      "1胜/1平/8负",
+      "5胜/3平/2负",
+      "3胜/4平/3负",
+      "1.4个",
+      "1.2个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场巴萨5胜 (50%) | 3平 (30%) | 2负 (20%)",
+    "rows": [
+      {
+        "date": "2024-11-24",
+        "league": "西甲",
+        "teams": "塞尔塔 2:2 （半 0:1） 巴萨",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2024-02-18",
+        "league": "西甲",
+        "teams": "塞尔塔 1:2 （半 0:1） 巴萨",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2023-09-24",
+        "league": "西甲",
+        "teams": "巴萨 3:2 （半 0:1） 塞尔塔",
+        "totalGoals": "5"
+      },
+      {
+        "date": "2023-06-05",
+        "league": "西甲",
+        "teams": "塞尔塔 2:1 （半 1:0） 巴萨",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2022-10-10",
+        "league": "西甲",
+        "teams": "巴萨 1:0 （半 1:0） 塞尔塔",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2022-05-11",
+        "league": "西甲",
+        "teams": "巴萨 3:1 （半 2:0） 塞尔塔",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2021-11-06",
+        "league": "西甲",
+        "teams": "塞尔塔 3:3 （半 0:3） 巴萨",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2021-05-17",
+        "league": "西甲",
+        "teams": "巴萨 1:2 （半 1:1） 塞尔塔",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2020-10-02",
+        "league": "西甲",
+        "teams": "塞尔塔 0:3 （半 0:1） 巴萨",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2020-06-27",
+        "league": "西甲",
+        "teams": "塞尔塔 2:2 （半 0:1） 巴萨",
+        "totalGoals": "4"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "巴萨",
+      "title": "常规赛 第1名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "28/4/6",
+          "winRate": "74%",
+          "goals": "102/39",
+          "gd": "63",
+          "points": "88",
+          "rank": "1"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "14/1/4",
+          "winRate": "74%",
+          "goals": "52/20",
+          "gd": "32",
+          "points": "43",
+          "rank": "3"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "14/3/2",
+          "winRate": "74%",
+          "goals": "50/19",
+          "gd": "31",
+          "points": "45",
+          "rank": "1"
+        }
+      ]
+    },
+    {
+      "team": "塞尔塔",
+      "title": "常规赛 第7名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "16/7/15",
+          "winRate": "42%",
+          "goals": "59/57",
+          "gd": "2",
+          "points": "55",
+          "rank": "7"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "11/3/5",
+          "winRate": "58%",
+          "goals": "32/21",
+          "gd": "11",
+          "points": "36",
+          "rank": "5"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "5/4/10",
+          "winRate": "26%",
+          "goals": "27/36",
+          "gd": "-9",
+          "points": "19",
+          "rank": "10"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "巴萨",
+      "summary": "巴萨近10场8胜 (80%) | 1平 (10%) | 1负 (10%) 进23球，失8球，净进15球",
+      "matches": [
+        {
+          "date": "2025-04-16",
+          "league": "欧冠",
+          "vs": "多特蒙德 3 : 1 （半 1:0） 巴萨",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-13",
+          "league": "西甲",
+          "vs": "莱加内斯 0 : 1 （半 0:0） 巴萨",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-10",
+          "league": "欧冠",
+          "vs": "巴萨 4 : 0 （半 1:0） 多特蒙德",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-06",
+          "league": "西甲",
+          "vs": "巴萨 1 : 1 （半 1:1） 贝蒂斯",
+          "result": "平"
+        },
+        {
+          "date": "2025-04-03",
+          "league": "西国王杯",
+          "vs": "马竞 0 : 1 （半 0:1） 巴萨",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-30",
+          "league": "西甲",
+          "vs": "巴萨 4 : 1 （半 1:0） 赫罗纳",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-28",
+          "league": "西甲",
+          "vs": "巴萨 3 : 0 （半 2:0） 奥萨苏纳",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-17",
+          "league": "西甲",
+          "vs": "马竞 2 : 4 （半 1:0） 巴萨",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-12",
+          "league": "欧冠",
+          "vs": "巴萨 3 : 1 （半 3:1） 本菲卡",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-06",
+          "league": "欧冠",
+          "vs": "本菲卡 0 : 1 （半 0:0） 巴萨",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "塞尔塔",
+      "summary": "塞尔塔近10场5胜 (50%) | 3平 (30%) | 2负 (20%) 进14球，失12球，净进2球",
+      "matches": [
+        {
+          "date": "2025-04-13",
+          "league": "西甲",
+          "vs": "塞尔塔 0 : 2 （半 0:1） 西班牙人",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-06",
+          "league": "西甲",
+          "vs": "马洛卡 1 : 2 （半 1:0） 塞尔塔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-01",
+          "league": "西甲",
+          "vs": "塞尔塔 1 : 1 （半 1:0） 拉帕马斯",
+          "result": "平"
+        },
+        {
+          "date": "2025-03-15",
+          "league": "西甲",
+          "vs": "巴利亚多 0 : 1 （半 0:0） 塞尔塔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-08",
+          "league": "西甲",
+          "vs": "塞尔塔 2 : 1 （半 2:1） 莱加内斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-01",
+          "league": "西甲",
+          "vs": "赫罗纳 2 : 2 （半 1:1） 塞尔塔",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-22",
+          "league": "西甲",
+          "vs": "塞尔塔 1 : 0 （半 0:0） 奥萨苏纳",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-16",
+          "league": "西甲",
+          "vs": "马竞 1 : 1 （半 0:0） 塞尔塔",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-08",
+          "league": "西甲",
+          "vs": "塞尔塔 3 : 2 （半 0:2） 贝蒂斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-02",
+          "league": "西甲",
+          "vs": "巴伦西亚 2 : 1 （半 1:0） 塞尔塔",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "巴萨",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "塞尔塔",
+      "content": "暂无数据",
+      "matches": []
+    }
+  ],
+  "scorers": [
+    {
+      "team": "巴萨",
+      "players": [
+        {
+          "player": "9-R. Lewandowski(前锋)伤",
+          "apps": "34 (32/2)",
+          "goals": "27 (26%)",
+          "assists": "2 (3%)",
+          "avg": "0.8/0.1"
+        },
+        {
+          "player": "11-拉菲尼亚(前锋)",
+          "apps": "36 (32/4)",
+          "goals": "18 (17%)",
+          "assists": "9 (12%)",
+          "avg": "0.5/0.3"
+        },
+        {
+          "player": "7-托雷斯(前锋)",
+          "apps": "27 (12/15)",
+          "goals": "10 (10%)",
+          "assists": "6 (8%)",
+          "avg": "0.4/0.2"
+        }
+      ]
+    },
+    {
+      "team": "塞尔塔",
+      "players": [
+        {
+          "player": "7-Borja Iglesias(前锋)",
+          "apps": "37 (24/13)",
+          "goals": "11 (19%)",
+          "assists": "3 (8%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "10-Iago Aspas(前锋)",
+          "apps": "30 (19/11)",
+          "goals": "10 (17%)",
+          "assists": "5 (13%)",
+          "avg": "0.3/0.2"
+        },
+        {
+          "player": "12-Alfon González(前锋)",
+          "apps": "26 (14/12)",
+          "goals": "5 (9%)",
+          "assists": "2 (5%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "巴萨",
+      "players": [
+        {
+          "player": "9-R. Lewandowski(前锋)",
+          "totalApps": "34",
+          "starts": "32",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "1-M. ter Stegen(守门员)",
+          "totalApps": "8",
+          "starts": "8",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "20-Sergi Roberto(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "3-Alejandro Balde Martínez(后卫)",
+          "totalApps": "32",
+          "starts": "26",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "17-Marc Casadó(中场)",
+          "totalApps": "23",
+          "starts": "20",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "28-Marc Bernal(中场)",
+          "totalApps": "3",
+          "starts": "3",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "塞尔塔",
+      "players": [
+        {
+          "player": "Gonçalo Paciência(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "2-C.斯塔菲特(后卫)",
+          "totalApps": "28",
+          "starts": "26",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "6-Carlos Dotor(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "39-J. El-Abdellaoui(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

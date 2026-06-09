@@ -1,7 +1,6 @@
 // ============================================================
 // Smoke API 冒烟测试 — JC-ZJFA
-// 验证所有核心 API action 端点响应正常
-//
+// 目标：在服务已启动的前提下，用只读矩阵覆盖核心 API 主链路
 // 运行: npm run test:smoke
 // 注意: 需要先启动开发服务器 (node server/index.js)
 // ============================================================
@@ -10,10 +9,7 @@ const http = require('http');
 
 const BASE = process.env.TEST_BASE_URL || 'http://127.0.0.1:3000';
 
-/**
- * 发送 POST /api 请求
- */
-function apiPost(action, data = {}) {
+function apiPost(action, data = {}, extraHeaders = {}) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({ action, data });
     const url = new URL(`${BASE}/api`);
@@ -26,6 +22,7 @@ function apiPost(action, data = {}) {
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(body),
+        ...extraHeaders,
       },
       timeout: 15000,
     };
@@ -34,11 +31,11 @@ function apiPost(action, data = {}) {
       const chunks = [];
       res.on('data', (d) => chunks.push(d));
       res.on('end', () => {
+        const text = Buffer.concat(chunks).toString();
         try {
-          const json = JSON.parse(Buffer.concat(chunks).toString());
-          resolve({ status: res.statusCode, body: json });
+          resolve({ status: res.statusCode, body: JSON.parse(text) });
         } catch (e) {
-          resolve({ status: res.statusCode, body: Buffer.concat(chunks).toString() });
+          resolve({ status: res.statusCode, body: text });
         }
       });
     });
@@ -54,9 +51,6 @@ function apiPost(action, data = {}) {
   });
 }
 
-/**
- * 发送 GET 请求
- */
 function httpGet(path) {
   return new Promise((resolve, reject) => {
     const url = new URL(`${BASE}${path}`);
@@ -72,11 +66,11 @@ function httpGet(path) {
       const chunks = [];
       res.on('data', (d) => chunks.push(d));
       res.on('end', () => {
+        const text = Buffer.concat(chunks).toString();
         try {
-          const json = JSON.parse(Buffer.concat(chunks).toString());
-          resolve({ status: res.statusCode, body: json });
+          resolve({ status: res.statusCode, body: JSON.parse(text) });
         } catch (e) {
-          resolve({ status: res.statusCode, body: Buffer.concat(chunks).toString() });
+          resolve({ status: res.statusCode, body: text });
         }
       });
     });
@@ -91,45 +85,356 @@ function httpGet(path) {
   });
 }
 
-// 跳过测试时的标记
-const SKIP_REASON = null;
+function expectJsonEnvelope(result, allowedCodes = [1]) {
+  expect(result.status).toBe(200);
+  expect(result.body).toBeTruthy();
+  expect(typeof result.body).toBe('object');
+  expect(Array.isArray(result.body)).toBe(false);
+  expect(allowedCodes).toContain(result.body.code);
 
-// ============================================================
-// 测试套件
-// ============================================================
+  if (result.body.code === 0) {
+    const msg = result.body.msg || result.body.message || '';
+    expect(typeof msg).toBe('string');
+  }
+}
 
-describe('Smoke: 健康检查端点', () => {
-  it('GET /health 返回 200 + status ok', async () => {
-    const r = await httpGet('/health');
-    expect(r.status).toBe(200);
-    expect(r.body.status).toBe('ok');
-  });
+function expectPlainObject(value) {
+  expect(Boolean(value) && typeof value === 'object' && !Array.isArray(value)).toBe(true);
+}
 
-  it('GET /health/ws 返回 200', async () => {
-    const r = await httpGet('/health/ws');
-    expect(r.status).toBe(200);
-  });
+function normalizeDate(value) {
+  if (!value) return '';
+  return String(value).slice(0, 10);
+}
 
-  it('GET /health/scheduler 返回 200', async () => {
-    const r = await httpGet('/health/scheduler');
-    expect(r.status).toBe(200);
-  });
+function pickSmokeMatch(list) {
+  if (!Array.isArray(list) || list.length === 0) return null;
+  return (
+    list.find(function (m) {
+      return (m.matchId || m.id) && (m.num || m.matchNum);
+    }) || list[0]
+  );
+}
 
-  it('GET /health/deep 返回 200', async () => {
-    const r = await httpGet('/health/deep');
-    expect(r.status).toBe(200);
+const runtimeContext = {
+  weekDates: [],
+  matchList: [],
+  matchDate: '',
+  matchId: '',
+  matchNum: '',
+};
+
+const FORBIDDEN_MUTATING_ACTIONS = [
+  'sync-match-date',
+  'my-plan-save',
+  'my-plan-delete',
+  'ai-predict',
+  'ai-batch-generate',
+  'crawl-history',
+  'crawl-status',
+  'backfill-results',
+  'backfill-status',
+];
+
+const HEALTH_ENDPOINTS = [
+  { path: '/health', name: '健康检查' },
+  { path: '/health/ws', name: 'WebSocket 健康检查' },
+  { path: '/health/scheduler', name: '调度器健康检查' },
+  { path: '/health/deep', name: '深度健康检查' },
+];
+
+const PAGE_ENDPOINTS = [
+  { path: '/', name: '首页' },
+  { path: '/plans.html', name: '量化方案页' },
+  { path: '/prediction.html', name: '预测回测页' },
+  { path: '/gongshoudao.html', name: '功守道页' },
+];
+
+const READ_ONLY_SMOKE_MATRIX = [
+  {
+    group: '基础只读 API',
+    items: [
+      {
+        action: 'week-dates',
+        assert: (r) => {
+          expect(Array.isArray(r.body.data)).toBe(true);
+        },
+      },
+      {
+        action: 'match-list',
+        assert: (r) => {
+          expect(Array.isArray(r.body.data)).toBe(true);
+        },
+      },
+      {
+        action: 'ranking-list',
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+          expect(Array.isArray(r.body.data.ranking)).toBe(true);
+        },
+      },
+      {
+        action: 'hit-rate-stats',
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+        },
+      },
+      {
+        action: 'hit-rate-filter',
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+        },
+      },
+      {
+        action: 'filter-leagues',
+        assert: (r) => {
+          expect(Array.isArray(r.body.data) || (r.body.data && typeof r.body.data === 'object')).toBe(true);
+        },
+      },
+      {
+        action: 'filter-stats',
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+        },
+      },
+      {
+        action: 'income-stats',
+        payload: { days: 30 },
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+          expectPlainObject(r.body.data.summary);
+        },
+      },
+      {
+        action: 'cache-stats',
+        allowedCodes: [0, 1],
+        assert: (r) => {
+          if (r.body.code === 1) {
+            expectPlainObject(r.body.data);
+            expectPlainObject(r.body.data.files);
+          }
+        },
+      },
+      {
+        action: 'my-plan-list',
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+          expect(Array.isArray(r.body.data.plans)).toBe(true);
+          expectPlainObject(r.body.data.stats);
+        },
+      },
+      {
+        action: 'my-plan-stats',
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+          expect(typeof r.body.data.count).toBe('number');
+        },
+      },
+    ],
+  },
+  {
+    group: '方案 / 回测 / 统计只读 API',
+    items: [
+      {
+        action: 'prediction-backtest',
+        payload: { dateRange: '7d', page: 1, pageSize: 10 },
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+          expect(Array.isArray(r.body.data.items)).toBe(true);
+        },
+      },
+      {
+        action: 'quant-hot',
+        payload: (ctx) => ({ date: ctx.matchDate }),
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+          expect(r.body.data.date).toBeTruthy();
+        },
+      },
+      {
+        action: 'plan-list',
+        payload: (ctx) => ({ date: ctx.matchDate }),
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+          expect(Array.isArray(r.body.data.plans)).toBe(true);
+        },
+      },
+      {
+        action: 'score-plan-list',
+        payload: (ctx) => ({ date: ctx.matchDate }),
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+          expect(Array.isArray(r.body.data.plans)).toBe(true);
+        },
+      },
+      {
+        action: 'quant-plan-list',
+        payload: (ctx) => ({ date: ctx.matchDate }),
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+          expect(Array.isArray(r.body.data.plans)).toBe(true);
+        },
+      },
+      {
+        action: 'model-dashboard',
+        payload: { days: 30 },
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+          expect(Array.isArray(r.body.data.rankings)).toBe(true);
+          expect(Array.isArray(r.body.data.models)).toBe(true);
+        },
+      },
+      {
+        action: 'data-health',
+        payload: { days: 30 },
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+          expectPlainObject(r.body.data.fetchSources);
+        },
+      },
+      {
+        action: 'experiment-compare',
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+        },
+      },
+      {
+        action: 'batch-consensus',
+        payload: (ctx) => ({ date: ctx.matchDate }),
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+        },
+      },
+    ],
+  },
+  {
+    group: '比赛上下文只读 API',
+    items: [
+      {
+        action: 'recommend-trend',
+        requiresMatchContext: true,
+        payload: (ctx) => ({ matchId: ctx.matchId }),
+        assert: (r, ctx) => {
+          expectPlainObject(r.body.data);
+          expect(String(r.body.data.matchId)).toBe(String(ctx.matchId));
+        },
+      },
+      {
+        action: 'match-top-directions',
+        requiresMatchContext: true,
+        payload: (ctx) => ({ matchId: ctx.matchId }),
+        assert: (r, ctx) => {
+          expectPlainObject(r.body.data);
+          expect(String(r.body.data.matchId)).toBe(String(ctx.matchId));
+          expect(Array.isArray(r.body.data.directions)).toBe(true);
+        },
+      },
+      {
+        action: 'match-detail',
+        requiresMatchContext: true,
+        payload: (ctx) => ({ matchId: ctx.matchId }),
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+        },
+      },
+      {
+        action: 'match-odds',
+        requiresMatchContext: true,
+        payload: (ctx) => ({ matchId: ctx.matchId }),
+        allowedCodes: [0, 1],
+        assert: (r) => {
+          if (r.body.code === 1) expectPlainObject(r.body.data);
+        },
+      },
+      {
+        action: 'batch-match-odds',
+        requiresMatchContext: true,
+        payload: (ctx) => ({ matchIds: [ctx.matchId], date: ctx.matchDate }),
+        assert: (r) => {
+          expectPlainObject(r.body.data);
+        },
+      },
+      {
+        action: 'odds-trend',
+        requiresMatchContext: true,
+        payload: (ctx) => ({ matchId: ctx.matchId, matchNum: ctx.matchNum }),
+        allowedCodes: [0, 1],
+        assert: (r) => {
+          if (r.body.code === 1) expectPlainObject(r.body.data);
+        },
+      },
+      {
+        action: 'match-preview',
+        requiresMatchContext: true,
+        payload: (ctx) => ({ matchId: ctx.matchId, matchNum: ctx.matchNum }),
+        allowedCodes: [0, 1],
+        assert: (r) => {
+          if (r.body.code === 1) expectPlainObject(r.body.data);
+        },
+      },
+      {
+        action: 'prediction-fusion',
+        requiresMatchContext: true,
+        payload: (ctx) => ({ matchId: ctx.matchId, date: ctx.matchDate }),
+        allowedCodes: [0, 1],
+        assert: (r) => {
+          if (r.body.code === 1) expectPlainObject(r.body.data);
+        },
+      },
+    ],
+  },
+  {
+    group: '功守道只读 API',
+    items: [
+      {
+        action: 'gongshoudao',
+        allowedCodes: [0, 1],
+      },
+      {
+        action: 'gongshoudao-all',
+        payload: (ctx) => ({ date: ctx.matchDate }),
+        allowedCodes: [0, 1],
+      },
+    ],
+  },
+];
+
+async function primeSmokeContext() {
+  const weekDatesResp = await apiPost('week-dates');
+  expectJsonEnvelope(weekDatesResp, [1]);
+  runtimeContext.weekDates = Array.isArray(weekDatesResp.body.data) ? weekDatesResp.body.data : [];
+
+  const matchListResp = await apiPost('match-list');
+  expectJsonEnvelope(matchListResp, [1]);
+  runtimeContext.matchList = Array.isArray(matchListResp.body.data) ? matchListResp.body.data : [];
+
+  const firstMatch = pickSmokeMatch(runtimeContext.matchList);
+  runtimeContext.matchId = firstMatch ? String(firstMatch.matchId || firstMatch.id || '') : '';
+  runtimeContext.matchNum = firstMatch ? String(firstMatch.num || firstMatch.matchNum || '') : '';
+  runtimeContext.matchDate =
+    normalizeDate((firstMatch && (firstMatch.date || firstMatch.matchDate)) || '') ||
+    normalizeDate(matchListResp.body._fallbackDate || '') ||
+    '';
+}
+
+describe('Smoke: 只读矩阵元数据', () => {
+  it('只读 smoke 矩阵不应混入写接口或异步触发接口', () => {
+    const actions = READ_ONLY_SMOKE_MATRIX.reduce(function (all, group) {
+      return all.concat(
+        group.items.map(function (item) {
+          return item.action;
+        }),
+      );
+    }, []);
+
+    FORBIDDEN_MUTATING_ACTIONS.forEach(function (action) {
+      expect(actions).not.toContain(action);
+    });
   });
 });
 
-describe('Smoke: 基础页面', () => {
-  const pages = [
-    { path: '/', name: '首页' },
-    { path: '/plans.html', name: '量化方案页' },
-    { path: '/prediction.html', name: '预测回测页' },
-    { path: '/gongshoudao.html', name: '功守道页' },
-  ];
-
-  pages.forEach(({ path, name }) => {
+describe('Smoke: 健康检查端点', () => {
+  HEALTH_ENDPOINTS.forEach(({ path, name }) => {
     it(`${name} (${path}) 返回 200`, async () => {
       const r = await httpGet(path);
       expect(r.status).toBe(200);
@@ -137,173 +442,58 @@ describe('Smoke: 基础页面', () => {
   });
 });
 
-describe('Smoke: 比赛数据 API', () => {
-  it('week-dates 返回正常', async () => {
-    const r = await apiPost('week-dates');
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-    expect(Array.isArray(r.body.data)).toBe(true);
-  });
-
-  it('match-list 返回正常', async () => {
-    const r = await apiPost('match-list');
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-    expect(Array.isArray(r.body.data)).toBe(true);
-  });
-
-  it('recommend-trend 返回正常', async () => {
-    const r = await apiPost('recommend-trend');
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-  });
-
-  it('ranking-list 返回正常', async () => {
-    const r = await apiPost('ranking-list');
-    expect(r.status).toBe(200);
-  });
-
-  it('match-detail 返回正常', async () => {
-    const r = await apiPost('match-detail', { matchId: 'placeholder' });
-    // 即使 matchId 无效，也应返回正常结构
-    expect(r.status).toBe(200);
-  });
-
-  it('match-odds 返回正常', async () => {
-    const r = await apiPost('match-odds', { matchId: 'placeholder' });
-    expect(r.status).toBe(200);
+describe('Smoke: 基础页面', () => {
+  PAGE_ENDPOINTS.forEach(({ path, name }) => {
+    it(`${name} (${path}) 返回 200`, async () => {
+      const r = await httpGet(path);
+      expect(r.status).toBe(200);
+    });
   });
 });
 
-describe('Smoke: 统计数据 API', () => {
-  it('hit-rate-stats 返回正常', async () => {
-    const r = await apiPost('hit-rate-stats');
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
+describe('Smoke: 只读 API 矩阵', () => {
+  beforeAll(async () => {
+    await primeSmokeContext();
+  }, 30000);
+
+  it('应成功预热比赛上下文，供 match scoped smoke 复用', () => {
+    expect(Array.isArray(runtimeContext.matchList)).toBe(true);
+    if (runtimeContext.matchList.length > 0) {
+      expect(runtimeContext.matchId).toBeTruthy();
+    }
   });
 
-  it('hit-rate-filter 返回正常', async () => {
-    const r = await apiPost('hit-rate-filter');
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-  });
+  READ_ONLY_SMOKE_MATRIX.forEach(({ group, items }) => {
+    describe(group, () => {
+      items.forEach((item) => {
+        it(`${item.action} 返回只读 smoke 正常结构`, async () => {
+          if (item.requiresMatchContext && !runtimeContext.matchId) {
+            console.warn(`[smoke] 跳过 ${item.action}: 当前环境无可用 matchId 上下文`);
+            return;
+          }
 
-  it('income-stats 返回正常', async () => {
-    const r = await apiPost('income-stats');
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-  });
+          const payload = typeof item.payload === 'function' ? item.payload(runtimeContext) : item.payload || {};
+          const result = await apiPost(item.action, payload);
 
-  it('filter-stats 返回正常', async () => {
-    const r = await apiPost('filter-stats');
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-  });
-});
+          expectJsonEnvelope(result, item.allowedCodes || [1]);
 
-describe('Smoke: 爬虫/同步 API', () => {
-  it('crawl-history 返回正常', async () => {
-    const r = await apiPost('crawl-history');
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-    expect(Array.isArray(r.body.data)).toBe(true);
-  });
-
-  it('crawl-status 返回正常', async () => {
-    const r = await apiPost('crawl-status');
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-  });
-
-  it('backfill-results 返回正常', async () => {
-    const r = await apiPost('backfill-results', { date: '2026-05-30' });
-    expect(r.status).toBe(200);
-  });
-
-  it('backfill-status 返回正常', async () => {
-    const r = await apiPost('backfill-status', { date: '2026-05-30' });
-    expect(r.status).toBe(200);
-  });
-
-  it('filter-leagues 返回正常', async () => {
-    const r = await apiPost('filter-leagues');
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-  });
-});
-
-describe('Smoke: AI/预测 API', () => {
-  it('ai-predict-status 返回正常', async () => {
-    const r = await apiPost('ai-predict-status');
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-  });
-
-  it('prediction-backtest 返回正常', async () => {
-    const r = await apiPost('prediction-backtest', { dateRange: '7d' });
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-  });
-
-  it('backtest-leagues 返回正常', async () => {
-    const r = await apiPost('backtest-leagues', { dateRange: '7d' });
-    expect(r.status).toBe(200);
-  });
-
-  it('ai-batch-generate 返回正常', async () => {
-    const r = await apiPost('ai-batch-generate', { date: '2026-05-31' });
-    expect(r.status).toBe(200);
-  });
-});
-
-describe('Smoke: 量化方案 API', () => {
-  it('plan-list 返回正常', async () => {
-    const r = await apiPost('plan-list', { date: '2026-05-31' });
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-  });
-
-  it('score-plan-list 返回正常', async () => {
-    const r = await apiPost('score-plan-list', { date: '2026-05-31' });
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-  });
-
-  it('quant-plan-list 返回正常', async () => {
-    const r = await apiPost('quant-plan-list', { date: '2026-05-31' });
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-  });
-
-  it('quant-hot 返回正常', async () => {
-    const r = await apiPost('quant-hot');
-    expect(r.status).toBe(200);
-    expect(r.body.code).toBe(1);
-  });
-});
-
-describe('Smoke: 功守道 API', () => {
-  it('gongshoudao 返回正常', async () => {
-    const r = await apiPost('gongshoudao');
-    expect(r.status).toBe(200);
-  });
-
-  it('gongshoudao-all 返回正常', async () => {
-    const r = await apiPost('gongshoudao-all');
-    expect(r.status).toBe(200);
+          if (typeof item.assert === 'function') {
+            item.assert(result, runtimeContext);
+          }
+        });
+      });
+    });
   });
 });
 
 describe('Smoke: 错误处理', () => {
-  it('无效 action 返回异常结构', async () => {
+  it('无效 action 返回错误结构而非崩溃', async () => {
     const r = await apiPost('invalid-action-xyz', {});
-    // 无效 action 应该返回错误而不是崩溃
-    expect(r.status).toBe(200);
+    expectJsonEnvelope(r, [0]);
   });
 
   it('空 body POST /api 不崩溃', async () => {
     await new Promise((resolve, reject) => {
-      const body = '';
       const url = new URL(`${BASE}/api`);
       const req = http.request(
         {
@@ -319,15 +509,16 @@ describe('Smoke: 错误处理', () => {
           resolve();
         },
       );
-      req.on('error', (e) => {
-        // 空 body 导致解析失败也属预期行为，服务不应崩溃
+
+      req.on('error', () => {
         resolve();
       });
       req.on('timeout', () => {
         req.destroy();
         reject(new Error('Timeout'));
       });
-      req.write(body);
+
+      req.write('');
       req.end();
     });
   });

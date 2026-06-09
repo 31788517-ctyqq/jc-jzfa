@@ -1,0 +1,410 @@
+{
+  "match_id": "2037141",
+  "featureAnalysis": {
+    "labels": [
+      "近0场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "7胜/1平/2负",
+      "6胜/2平/2负",
+      "1.6个",
+      "0.7个"
+    ],
+    "away": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "1胜/4平/5负",
+      "1胜/4平/5负",
+      "0.8个",
+      "1.9个"
+    ]
+  },
+  "h2h": {
+    "title": "近0场亚特兰大0胜 (0%) | 0平 (0%) | 0负 (0%)",
+    "rows": []
+  },
+  "standings": [
+    {
+      "team": "亚特兰大",
+      "title": "League Stage 第15名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "4/1/3",
+          "winRate": "50%",
+          "goals": "10/10",
+          "gd": "0",
+          "points": "13",
+          "rank": "15"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "2/1/1",
+          "winRate": "50%",
+          "goals": "6/5",
+          "gd": "1",
+          "points": "7",
+          "rank": "19"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "2/0/2",
+          "winRate": "50%",
+          "goals": "4/5",
+          "gd": "-1",
+          "points": "6",
+          "rank": "11"
+        }
+      ]
+    },
+    {
+      "team": "毕尔巴鄂",
+      "title": "League Stage 第29名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "2/2/4",
+          "winRate": "25%",
+          "goals": "9/14",
+          "gd": "-5",
+          "points": "8",
+          "rank": "29"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "1/1/2",
+          "winRate": "25%",
+          "goals": "5/6",
+          "gd": "-1",
+          "points": "4",
+          "rank": "29"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "1/1/2",
+          "winRate": "25%",
+          "goals": "4/8",
+          "gd": "-4",
+          "points": "4",
+          "rank": "23"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "亚特兰大",
+      "summary": "亚特兰大近10场7胜 (70%) | 1平 (10%) | 2负 (20%) 进16球，失7球，净进9球",
+      "matches": [
+        {
+          "date": "2026-01-17",
+          "league": "意甲",
+          "vs": "比萨 1 : 1 （半 0:0） 亚特兰大",
+          "result": "平"
+        },
+        {
+          "date": "2026-01-11",
+          "league": "意甲",
+          "vs": "亚特兰大 2 : 0 （半 1:0） 都灵",
+          "result": "胜"
+        },
+        {
+          "date": "2026-01-08",
+          "league": "意甲",
+          "vs": "博洛尼亚 0 : 2 （半 0:1） 亚特兰大",
+          "result": "胜"
+        },
+        {
+          "date": "2026-01-04",
+          "league": "意甲",
+          "vs": "亚特兰大 1 : 0 （半 1:0） 罗马",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-29",
+          "league": "意甲",
+          "vs": "亚特兰大 0 : 1 （半 0:0） 国际米兰",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-22",
+          "league": "意甲",
+          "vs": "热那亚 0 : 1 （半 0:0） 亚特兰大",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-14",
+          "league": "意甲",
+          "vs": "亚特兰大 2 : 1 （半 1:0） 卡利亚里",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-10",
+          "league": "欧冠",
+          "vs": "亚特兰大 2 : 1 （半 0:1） 切尔西",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-07",
+          "league": "意甲",
+          "vs": "维罗纳 3 : 1 （半 2:0） 亚特兰大",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-03",
+          "league": "意大利杯",
+          "vs": "亚特兰大 4 : 0 （半 1:0） 热那亚",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "毕尔巴鄂",
+      "summary": "毕尔巴鄂近10场1胜 (10%) | 4平 (40%) | 5负 (50%) 进8球，失19球，净进-11球",
+      "matches": [
+        {
+          "date": "2026-01-17",
+          "league": "西甲",
+          "vs": "马洛卡 3 : 2 （半 2:2） 毕尔巴鄂",
+          "result": "负"
+        },
+        {
+          "date": "2026-01-14",
+          "league": "西国王杯",
+          "vs": "莱昂内萨 3 : 3 （半 3:3） 毕尔巴鄂",
+          "result": "平"
+        },
+        {
+          "date": "2026-01-08",
+          "league": "西超杯",
+          "vs": "巴萨 5 : 0 （半 4:0） 毕尔巴鄂",
+          "result": "负"
+        },
+        {
+          "date": "2026-01-03",
+          "league": "西甲",
+          "vs": "奥萨苏纳 1 : 1 （半 1:0） 毕尔巴鄂",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-23",
+          "league": "西甲",
+          "vs": "毕尔巴鄂 1 : 2 （半 1:1） 西班牙人",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-19",
+          "league": "西国王杯",
+          "vs": "Ourense 0 : 0 （半 0:0） 毕尔巴鄂",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-14",
+          "league": "西甲",
+          "vs": "塞尔塔 2 : 0 （半 0:0） 毕尔巴鄂",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-11",
+          "league": "欧冠",
+          "vs": "毕尔巴鄂 0 : 0 （半 0:0） 巴黎圣曼",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-07",
+          "league": "西甲",
+          "vs": "毕尔巴鄂 1 : 0 （半 0:0） 马竞",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-04",
+          "league": "西甲",
+          "vs": "毕尔巴鄂 0 : 3 （半 0:2） 皇马",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "亚特兰大",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "毕尔巴鄂",
+      "content": "暂无数据",
+      "matches": []
+    }
+  ],
+  "scorers": [
+    {
+      "team": "亚特兰大",
+      "players": [
+        {
+          "player": "10-萨马尔季奇(中场)",
+          "apps": "10 (2/8)",
+          "goals": "4 (22%)",
+          "assists": "0 (0%)",
+          "avg": "0.4/0"
+        },
+        {
+          "player": "8-帕沙利奇(中场)",
+          "apps": "9 (6/3)",
+          "goals": "3 (17%)",
+          "assists": "1 (8%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "9-斯卡马卡(前锋)",
+          "apps": "10 (7/3)",
+          "goals": "3 (17%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        }
+      ]
+    },
+    {
+      "team": "毕尔巴鄂",
+      "players": [
+        {
+          "player": "11-Gorka Guruzeta(前锋)",
+          "apps": "7 (5/2)",
+          "goals": "5 (56%)",
+          "assists": "0 (0%)",
+          "avg": "0.7/0"
+        },
+        {
+          "player": "23-Robert Navarro(中场)",
+          "apps": "7 (6/1)",
+          "goals": "2 (22%)",
+          "assists": "2 (33%)",
+          "avg": "0.3/0.3"
+        },
+        {
+          "player": "8-Oihan Sancet(中场)",
+          "apps": "6 (5/1)",
+          "goals": "1 (11%)",
+          "assists": "1 (17%)",
+          "avg": "0.2/0.2"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "亚特兰大",
+      "players": [
+        {
+          "player": "16-贝拉诺瓦(后卫)",
+          "totalApps": "9",
+          "starts": "6",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "5-M. Bakker(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "毕尔巴鄂",
+      "players": [
+        {
+          "player": "17-Yuri(后卫)",
+          "totalApps": "4",
+          "starts": "3",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "14-拉波特(后卫)",
+          "totalApps": "2",
+          "starts": "1",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "9-Iñaki Williams(前锋)",
+          "totalApps": "3",
+          "starts": "3",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "6-Mikel Vesga(中场)",
+          "totalApps": "6",
+          "starts": "2",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "7-Álex Berenguer(前锋)",
+          "totalApps": "6",
+          "starts": "4",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "24-Beñat Prados(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "10-威廉斯(前锋)",
+          "totalApps": "3",
+          "starts": "2",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "14-Malcom Adu(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "27-Á. Padilla(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "29-Unai Eguíluz(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "21-Maroan Sannadi(前锋)",
+          "totalApps": "1",
+          "starts": "1",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

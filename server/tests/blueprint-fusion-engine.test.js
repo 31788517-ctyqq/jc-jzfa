@@ -33,7 +33,7 @@ describe('PredictionFusionEngine', () => {
       expect(models[0]).toHaveProperty('modelName');
       expect(models[0]).toHaveProperty('dimensions');
       // ★ V9.1: 确认 DataFusionAdapter 存在
-      const modelNames = models.map(m => m.modelName);
+      const modelNames = models.map((m) => m.modelName);
       expect(modelNames).toContain('data_fusion');
     });
   });
@@ -45,9 +45,12 @@ describe('PredictionFusionEngine', () => {
 
     it('7/7 一致 → strong', () => {
       const preds = [
-        mockPred('a', 'home', 0.9), mockPred('b', 'home', 0.9),
-        mockPred('c', 'home', 0.8), mockPred('d', 'home', 0.85),
-        mockPred('e', 'home', 0.7), mockPred('f', 'home', 0.75),
+        mockPred('a', 'home', 0.9),
+        mockPred('b', 'home', 0.9),
+        mockPred('c', 'home', 0.8),
+        mockPred('d', 'home', 0.85),
+        mockPred('e', 'home', 0.7),
+        mockPred('f', 'home', 0.75),
         mockPred('g', 'home', 0.6),
       ];
       const result = engine._assessConsensus(preds);
@@ -57,10 +60,13 @@ describe('PredictionFusionEngine', () => {
 
     it('5/7 一致 → weak (≥60%)', () => {
       const preds = [
-        mockPred('a', 'home'), mockPred('b', 'home'),
-        mockPred('c', 'home'), mockPred('d', 'home'),
+        mockPred('a', 'home'),
+        mockPred('b', 'home'),
+        mockPred('c', 'home'),
+        mockPred('d', 'home'),
         mockPred('e', 'home'),
-        mockPred('f', 'away'), mockPred('g', 'away'),
+        mockPred('f', 'away'),
+        mockPred('g', 'away'),
       ];
       const result = engine._assessConsensus(preds);
       expect(result.level).toBe('weak');
@@ -69,10 +75,13 @@ describe('PredictionFusionEngine', () => {
     it('★ V9.1: 高度分散 → meltdown (加权后 ≤ 40%)', () => {
       // 2+2+3 模式，3个方向分散，加权合并后不到 40% 有效方向
       const preds = [
-        mockPred('a', 'home', 0.3), mockPred('b', 'home', 0.3),
-        mockPred('c', 'draw', 0.7), mockPred('d', 'draw', 0.8),
+        mockPred('a', 'home', 0.3),
+        mockPred('b', 'home', 0.3),
+        mockPred('c', 'draw', 0.7),
+        mockPred('d', 'draw', 0.8),
         mockPred('e', 'draw', 0.6),
-        mockPred('f', 'away', 0.3), mockPred('g', 'away', 0.3),
+        mockPred('f', 'away', 0.3),
+        mockPred('g', 'away', 0.3),
       ];
       const result = engine._assessConsensus(preds);
       // draw 加权后约为 2.1/(0.6+2.1+0.6) = 2.1/3.3 = 63.6% → weak
@@ -86,7 +95,7 @@ describe('PredictionFusionEngine', () => {
       // 2个高置信度 home + 5个低置信度 away → 加权后home更重
       const preds = [
         mockPred('a', 'home', 0.95),
-        mockPred('b', 'home', 0.90), // weightedSum home = 1.85
+        mockPred('b', 'home', 0.9), // weightedSum home = 1.85
         mockPred('c', 'away', 0.3),
         mockPred('d', 'away', 0.3),
         mockPred('e', 'away', 0.3),
@@ -105,10 +114,7 @@ describe('PredictionFusionEngine', () => {
     });
 
     it('返回分歧模型列表', () => {
-      const preds = [
-        mockPred('a', 'home'), mockPred('b', 'home'),
-        mockPred('c', 'draw'),
-      ];
+      const preds = [mockPred('a', 'home'), mockPred('b', 'home'), mockPred('c', 'draw')];
       const result = engine._assessConsensus(preds);
       expect(result.agreeModels).toEqual(['a', 'b']);
       expect(result.dissentModels.length).toBe(1);

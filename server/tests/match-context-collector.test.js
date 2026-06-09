@@ -60,11 +60,7 @@ describe('match-context-collector — parsePlayer', () => {
 // ─── parsePlayers ───
 describe('match-context-collector — parsePlayers', () => {
   it('批量解析球员列表', () => {
-    const items = [
-      { player_name: 'A' },
-      { player_name: 'B' },
-      { player: 'C' },
-    ];
+    const items = [{ player_name: 'A' }, { player_name: 'B' }, { player: 'C' }];
     const result = parsePlayers(items);
     expect(result.length).toBe(3);
     expect(result[0].player_name).toBe('A');
@@ -206,7 +202,11 @@ describe('match-context-collector — mergeContext', () => {
   });
 
   it('notes 上限 20', () => {
-    const partial = { notes: Array.from({ length: 25 }, function (_, i) { return 'note' + i; }) };
+    const partial = {
+      notes: Array.from({ length: 25 }, function (_, i) {
+        return 'note' + i;
+      }),
+    };
     const result = mergeContext(null, partial, {});
     expect(result.notes.length).toBeLessThanOrEqual(20);
   });

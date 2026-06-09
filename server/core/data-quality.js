@@ -14,10 +14,10 @@ const path = require('path');
 // ═══════════════════════════════════════════════════════
 
 const THRESHOLDS = {
-  FETCH_SUCCESS_RATE: 0.90,    // 抓取成功率 < 90% 触发告警
-  COMPLETENESS_RATE: 0.85,     // 数据完整性 < 85% 触发告警
-  ODDS_CHANGE_THRESHOLD: 0.30, // 赔率单次变化 > 30% 记录异常
-  DB_SIZE_WARN_MB: 500,        // DB 体积 > 500MB 告警
+  FETCH_SUCCESS_RATE: 0.9, // 抓取成功率 < 90% 触发告警
+  COMPLETENESS_RATE: 0.85, // 数据完整性 < 85% 触发告警
+  ODDS_CHANGE_THRESHOLD: 0.3, // 赔率单次变化 > 30% 记录异常
+  DB_SIZE_WARN_MB: 500, // DB 体积 > 500MB 告警
 };
 
 class DataQualityMonitor {
@@ -153,16 +153,16 @@ class DataQualityMonitor {
       results.matches = { count: matchCount };
 
       // 检查 recommends 表
-      const recCount = (db.execOne(
-        'SELECT COUNT(DISTINCT matchId) as cnt FROM recommends WHERE fetchDate = ?', date
-      ) || {}).cnt || 0;
+      const recCount =
+        (db.execOne('SELECT COUNT(DISTINCT matchId) as cnt FROM recommends WHERE fetchDate = ?', date) || {}).cnt || 0;
       results.recommends = { count: recCount };
-      results.completeness = recCount > 0 && matchCount > 0 ? Math.round(recCount / matchCount * 100) / 100 : 0;
+      results.completeness = recCount > 0 && matchCount > 0 ? Math.round((recCount / matchCount) * 100) / 100 : 0;
 
       if (matchCount > 0 && results.completeness < 0.85) {
         dateAlerts.push({
-          date, level: 'P1',
-          message: `[完整性] ${date} 推荐覆盖率 ${(results.completeness * 100).toFixed(1)}% < 85%`
+          date,
+          level: 'P1',
+          message: `[完整性] ${date} 推荐覆盖率 ${(results.completeness * 100).toFixed(1)}% < 85%`,
         });
       }
 
@@ -178,7 +178,6 @@ class DataQualityMonitor {
           results.gongshoudao = { error: e.message };
         }
       }
-
     } catch (e) {
       results.error = e.message;
     }
@@ -204,7 +203,10 @@ class DataQualityMonitor {
         if (info.status === 'missing' || info.status === 'corrupt') {
           const alert = `[文件异常] ${info.label}(${key}) 状态=${info.status}`;
           this.alerts.push({
-            time: new Date().toISOString(), level: 'P0', source: 'file_track', message: alert,
+            time: new Date().toISOString(),
+            level: 'P0',
+            source: 'file_track',
+            message: alert,
           });
           console.warn(alert);
         }
@@ -219,7 +221,7 @@ class DataQualityMonitor {
   // ═══ 获取告警汇总 ═══
   getAlerts(sinceMinutes = 60) {
     const cutoff = Date.now() - sinceMinutes * 60 * 1000;
-    return this.alerts.filter(a => new Date(a.time).getTime() >= cutoff);
+    return this.alerts.filter((a) => new Date(a.time).getTime() >= cutoff);
   }
 
   // ═══ 获取质量报告 ═══

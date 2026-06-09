@@ -1,0 +1,436 @@
+{
+  "match_id": "1024004",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "3胜/4平/3负",
+      "2胜/5平/1负",
+      "5胜/2平/3负",
+      "5胜/2平/3负",
+      "0.8个",
+      "0.7个"
+    ],
+    "away": [
+      "3胜/4平/3负",
+      "1胜/5平/2负",
+      "3胜/5平/2负",
+      "2胜/4平/4负",
+      "1.0个",
+      "0.9个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场光州FC3胜 (30%) | 4平 (40%) | 3负 (30%)",
+    "rows": [
+      {
+        "date": "2023-10-08",
+        "league": "韩职",
+        "teams": "光州FC 1:0 （半 0:0） 江原FC",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2023-07-07",
+        "league": "韩职",
+        "teams": "江原FC 1:1 （半 0:0） 光州FC",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2023-04-23",
+        "league": "韩职",
+        "teams": "光州FC 0:0 （半 0:0） 江原FC",
+        "totalGoals": ""
+      },
+      {
+        "date": "2021-10-31",
+        "league": "韩职",
+        "teams": "光州FC 2:2 （半 0:1） 江原FC",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2021-10-17",
+        "league": "韩职",
+        "teams": "江原FC 2:1 （半 1:1） 光州FC",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2021-07-21",
+        "league": "韩职",
+        "teams": "光州FC 3:1 （半 1:0） 江原FC",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2021-04-20",
+        "league": "韩职",
+        "teams": "江原FC 0:1 （半 0:0） 光州FC",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2020-08-16",
+        "league": "韩职",
+        "teams": "光州FC 2:2 （半 1:1） 江原FC",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2020-07-15",
+        "league": "韩国杯",
+        "teams": "光州FC 2:4 （半 0:3） 江原FC",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2020-07-12",
+        "league": "韩职",
+        "teams": "江原FC 4:1 （半 2:1） 光州FC",
+        "totalGoals": "5"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "光州FC",
+      "title": "Relegation Round 第3名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "14/5/19",
+          "winRate": "37%",
+          "goals": "42/49",
+          "gd": "-7",
+          "points": "47",
+          "rank": "3"
+        },
+        {
+          "where": "主",
+          "played": "3",
+          "wdl": "0/3/0",
+          "winRate": "0%",
+          "goals": "2/2",
+          "gd": "0",
+          "points": "3",
+          "rank": "5"
+        },
+        {
+          "where": "客",
+          "played": "2",
+          "wdl": "0/1/1",
+          "winRate": "0%",
+          "goals": "0/1",
+          "gd": "-1",
+          "points": "1",
+          "rank": "6"
+        }
+      ]
+    },
+    {
+      "team": "江原FC",
+      "title": "Championship Round 第2名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "19/7/12",
+          "winRate": "50%",
+          "goals": "62/56",
+          "gd": "6",
+          "points": "64",
+          "rank": "2"
+        },
+        {
+          "where": "主",
+          "played": "3",
+          "wdl": "3/0/0",
+          "winRate": "100%",
+          "goals": "3/0",
+          "gd": "3",
+          "points": "9",
+          "rank": "1"
+        },
+        {
+          "where": "客",
+          "played": "2",
+          "wdl": "0/0/2",
+          "winRate": "0%",
+          "goals": "1/6",
+          "gd": "-5",
+          "points": "0",
+          "rank": "6"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "光州FC",
+      "summary": "光州FC近10场5胜 (50%) | 2平 (20%) | 3负 (30%) 进8球，失7球，净进1球",
+      "matches": [
+        {
+          "date": "2024-03-02",
+          "league": "韩职",
+          "vs": "光州FC 2 : 0 （半 1:0） 首尔FC",
+          "result": "胜"
+        },
+        {
+          "date": "2023-12-03",
+          "league": "韩职",
+          "vs": "光州FC 0 : 0 （半 0:0） 浦项制铁",
+          "result": "平"
+        },
+        {
+          "date": "2023-11-25",
+          "league": "韩职",
+          "vs": "全北现代 2 : 0 （半 2:0） 光州FC",
+          "result": "负"
+        },
+        {
+          "date": "2023-11-11",
+          "league": "韩职",
+          "vs": "大邱FC 1 : 1 （半 1:1） 光州FC",
+          "result": "平"
+        },
+        {
+          "date": "2023-10-28",
+          "league": "韩职",
+          "vs": "光州FC 0 : 2 （半 0:0） 仁川联",
+          "result": "负"
+        },
+        {
+          "date": "2023-10-21",
+          "league": "韩职",
+          "vs": "光州FC 1 : 0 （半 0:0） 蔚山现代",
+          "result": "胜"
+        },
+        {
+          "date": "2023-10-08",
+          "league": "韩职",
+          "vs": "光州FC 1 : 0 （半 0:0） 江原FC",
+          "result": "胜"
+        },
+        {
+          "date": "2023-10-01",
+          "league": "韩职",
+          "vs": "济州SK 1 : 2 （半 0:0） 光州FC",
+          "result": "胜"
+        },
+        {
+          "date": "2023-09-24",
+          "league": "韩职",
+          "vs": "光州FC 0 : 1 （半 0:0） 全北现代",
+          "result": "负"
+        },
+        {
+          "date": "2023-09-17",
+          "league": "韩职",
+          "vs": "首尔FC 0 : 1 （半 0:1） 光州FC",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "江原FC",
+      "summary": "江原FC近10场3胜 (30%) | 5平 (50%) | 2负 (20%) 进10球，失9球，净进1球",
+      "matches": [
+        {
+          "date": "2024-03-02",
+          "league": "韩职",
+          "vs": "江原FC 1 : 1 （半 1:1） 济州SK",
+          "result": "平"
+        },
+        {
+          "date": "2024-02-15",
+          "league": "俱乐部赛",
+          "vs": "喀山 2 : 0 （半 ） 江原FC",
+          "result": "负"
+        },
+        {
+          "date": "2024-02-05",
+          "league": "俱乐部赛",
+          "vs": "保德比斯基 0 : 1 （半 ） 江原FC",
+          "result": "胜"
+        },
+        {
+          "date": "2024-02-04",
+          "league": "俱乐部赛",
+          "vs": "莫迪纳摩 2 : 2 （半 ） 江原FC",
+          "result": "平"
+        },
+        {
+          "date": "2024-01-31",
+          "league": "俱乐部赛",
+          "vs": "纳普里达克 0 : 0 （半 ） 江原FC",
+          "result": "平"
+        },
+        {
+          "date": "2024-01-26",
+          "league": "俱乐部赛",
+          "vs": "LKS洛兹 3 : 2 （半 ） 江原FC",
+          "result": "负"
+        },
+        {
+          "date": "2023-12-09",
+          "league": "Play-offs 1/2",
+          "vs": "江原FC 2 : 1 （半 0:0） Gimpo",
+          "result": "胜"
+        },
+        {
+          "date": "2023-12-06",
+          "league": "Play-offs 1/2",
+          "vs": "Gimpo 0 : 0 （半 0:0） 江原FC",
+          "result": "平"
+        },
+        {
+          "date": "2023-12-02",
+          "league": "韩职",
+          "vs": "水原三星 0 : 0 （半 0:0） 江原FC",
+          "result": "平"
+        },
+        {
+          "date": "2023-11-25",
+          "league": "韩职",
+          "vs": "江原FC 2 : 0 （半 1:0） 水原FC",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "光州FC",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-05",
+          "韩职",
+          "光州FC\nVS\n蔚山现代",
+          "Regular Season 第16轮"
+        ],
+        [
+          "2026-07-11",
+          "韩职",
+          "光州FC\nVS\n浦项制铁",
+          "Regular Season 第17轮"
+        ],
+        [
+          "2026-07-19",
+          "韩职",
+          "安养FC\nVS\n光州FC",
+          "Regular Season 第18轮"
+        ],
+        [
+          "2026-07-22",
+          "韩职",
+          "光州FC\nVS\n金泉尚武",
+          "Regular Season 第19轮"
+        ]
+      ]
+    },
+    {
+      "team": "江原FC",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-04",
+          "韩职",
+          "全北现代\nVS\n江原FC",
+          "Regular Season 第16轮"
+        ],
+        [
+          "2026-07-12",
+          "韩职",
+          "首尔FC\nVS\n江原FC",
+          "Regular Season 第17轮"
+        ],
+        [
+          "2026-07-18",
+          "韩职",
+          "江原FC\nVS\n金泉尚武",
+          "Regular Season 第18轮"
+        ],
+        [
+          "2026-07-21",
+          "韩职",
+          "济州SK\nVS\n江原FC",
+          "Regular Season 第19轮"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "光州FC",
+      "players": [
+        {
+          "player": "11-Gabriel Tigrão(前锋)",
+          "apps": "33 (13/20)",
+          "goals": "7 (18%)",
+          "assists": "5 (20%)",
+          "avg": "0.2/0.2"
+        },
+        {
+          "player": "20-Lee Geon-hee(前锋)",
+          "apps": "30 (20/10)",
+          "goals": "5 (13%)",
+          "assists": "1 (4%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "10-Lee Hee-Gyeon(中场)",
+          "apps": "29 (15/14)",
+          "goals": "5 (13%)",
+          "assists": "0 (0%)",
+          "avg": "0.2/0"
+        }
+      ]
+    },
+    {
+      "team": "江原FC",
+      "players": [
+        {
+          "player": "22-李相宪(前锋)",
+          "apps": "37 (33/4)",
+          "goals": "13 (21%)",
+          "assists": "8 (18%)",
+          "avg": "0.4/0.2"
+        },
+        {
+          "player": "47-Yang Min-Hyeok(中场)",
+          "apps": "38 (37/1)",
+          "goals": "12 (19%)",
+          "assists": "5 (11%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "99-Yago Caju(前锋)",
+          "apps": "28 (21/7)",
+          "goals": "12 (19%)",
+          "assists": "2 (4%)",
+          "avg": "0.4/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "光州FC",
+      "players": [
+        {
+          "player": "9-João Magno(前锋)",
+          "totalApps": "9",
+          "starts": "1",
+          "subs": "8",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "江原FC",
+      "status": "暂无数据"
+    }
+  ]
+}

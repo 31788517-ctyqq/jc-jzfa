@@ -33,7 +33,7 @@ function log(msg) {
 }
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function httpGet(url) {
@@ -45,11 +45,14 @@ function httpGet(url) {
         return;
       }
       let data = '';
-      res.on('data', chunk => data += chunk);
+      res.on('data', (chunk) => (data += chunk));
       res.on('end', () => resolve(data));
     });
     req.on('error', reject);
-    req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('timeout'));
+    });
   });
 }
 
@@ -59,7 +62,10 @@ function httpGet(url) {
 
 function normalizeTeamName(name) {
   if (!name) return '';
-  return name.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
+  return name
+    .replace(/\(.*?\)/g, '')
+    .replace(/\[.*?\]/g, '')
+    .trim();
 }
 
 function loadTeamAliases() {
@@ -103,7 +109,7 @@ function getTodayMatches(adp, date) {
     return adp.execAll(
       `SELECT matchId, num, homeName, visitName, leagueName, date
        FROM matches WHERE date = ? ORDER BY CAST(num AS INTEGER) ASC`,
-      date
+      date,
     );
   } catch (e) {
     log(`查询比赛失败: ${e.message}`);
@@ -119,10 +125,15 @@ function saveH2H(adp, record) {
        (home_team, away_team, match_date, league, home_score, away_score,
         half_home_score, half_away_score, spf_result)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      record.homeTeam, record.awayTeam, record.matchDate, record.league,
-      record.homeScore, record.awayScore,
-      record.halfHomeScore || null, record.halfAwayScore || null,
-      record.result
+      record.homeTeam,
+      record.awayTeam,
+      record.matchDate,
+      record.league,
+      record.homeScore,
+      record.awayScore,
+      record.halfHomeScore || null,
+      record.halfAwayScore || null,
+      record.result,
     );
     return true;
   } catch (e) {
@@ -172,7 +183,11 @@ function generateMockH2H(homeTeam, awayTeam) {
   try {
     const shujuDir = path.join(__dirname, '..', 'server', 'shuju_data');
     if (fs.existsSync(shujuDir)) {
-      const files = fs.readdirSync(shujuDir).filter(f => f.endsWith('.json')).sort().reverse();
+      const files = fs
+        .readdirSync(shujuDir)
+        .filter((f) => f.endsWith('.json'))
+        .sort()
+        .reverse();
       if (files.length > 0) {
         const shuju = JSON.parse(fs.readFileSync(path.join(shujuDir, files[0]), 'utf8'));
         // TODO: 从 shuju_data 中提取 h2h 数据
@@ -198,7 +213,10 @@ async function fetchH2HForMatch(adp, match, options = {}) {
   if (adp) {
     const existing = adp.execOne(
       'SELECT COUNT(*) as cnt FROM h2h_history WHERE (home_team = ? AND away_team = ?) OR (home_team = ? AND away_team = ?)',
-      match.homeName, match.visitName, match.visitName, match.homeName
+      match.homeName,
+      match.visitName,
+      match.visitName,
+      match.homeName,
     );
     if (existing && existing.cnt > 0) {
       return { match: `${match.homeName} vs ${match.visitName}`, status: 'skip', count: existing.cnt };
@@ -224,10 +242,17 @@ async function fetchH2HForMatch(adp, match, options = {}) {
       else if (rec.homeScore === rec.awayScore) result = 'draw';
       else result = 'away';
 
-      if (saveH2H(adp, {
-        homeTeam, awayTeam, matchDate: rec.matchDate, league: rec.league || match.leagueName,
-        homeScore: rec.homeScore, awayScore: rec.awayScore, result,
-      })) {
+      if (
+        saveH2H(adp, {
+          homeTeam,
+          awayTeam,
+          matchDate: rec.matchDate,
+          league: rec.league || match.leagueName,
+          homeScore: rec.homeScore,
+          awayScore: rec.awayScore,
+          result,
+        })
+      ) {
         saved++;
       }
     }
@@ -294,7 +319,9 @@ async function main() {
 
   // 关闭数据库
   if (adp && adp.close) {
-    try { adp.close(); } catch (e) {}
+    try {
+      adp.close();
+    } catch (e) {}
   }
 }
 
@@ -308,7 +335,7 @@ if (require.main === module) {
       log('抓取完成');
       process.exit(0);
     })
-    .catch(err => {
+    .catch((err) => {
       console.error('抓取失败:', err.message);
       process.exit(1);
     });

@@ -57,7 +57,7 @@ function mergeShuju(dateStr) {
     let h10, a10, h10L, a10L, games10;
     const ad = s.attackDefense;
     const st = s.stats;
-    
+
     if (ad) {
       // Python parser format
       h10 = (ad.home || {}).recent10 || {};
@@ -71,11 +71,18 @@ function mergeShuju(dateStr) {
       h10L = st.homeLeague || {};
       a10L = st.awayLeague || {};
       games10 = {
-        homeWins: st.homeAll && st.homeAll.wins, homeDraws: st.homeAll && st.homeAll.draws, homeLosses: st.homeAll && st.homeAll.losses,
-        awayWins: st.awayAll && st.awayAll.wins, awayDraws: st.awayAll && st.awayAll.draws, awayLosses: st.awayAll && st.awayAll.losses,
+        homeWins: st.homeAll && st.homeAll.wins,
+        homeDraws: st.homeAll && st.homeAll.draws,
+        homeLosses: st.homeAll && st.homeAll.losses,
+        awayWins: st.awayAll && st.awayAll.wins,
+        awayDraws: st.awayAll && st.awayAll.draws,
+        awayLosses: st.awayAll && st.awayAll.losses,
       };
     } else {
-      h10 = {}; a10 = {}; h10L = {}; a10L = {};
+      h10 = {};
+      a10 = {};
+      h10L = {};
+      a10L = {};
     }
 
     // 近6场数据（来自Selenium）

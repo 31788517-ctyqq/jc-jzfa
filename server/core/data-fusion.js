@@ -16,10 +16,10 @@ const fs = require('fs');
 
 // ═══ 权重常量（可调参） ═══
 const FUSION_WEIGHTS = {
-  winPan: 0.5,       // 赢盘率维度中外源权重（功守道自算:外源 = 1:1）
-  scoreProb: 0.3,    // 进球分布校准中的外源权重（7:3 加权）
+  winPan: 0.5, // 赢盘率维度中外源权重（功守道自算:外源 = 1:1）
+  scoreProb: 0.3, // 进球分布校准中的外源权重（7:3 加权）
   dxqThreshold: 1.0, // 大小球背离判定阈值（球）
-  discreteShift: 0.1,// 离散度扩大阈值
+  discreteShift: 0.1, // 离散度扩大阈值
 };
 
 // ═══ 数据加载 ═══
@@ -44,7 +44,7 @@ function loadChangeCache(dateStr) {
     const cachePath = path.join(__dirname, '..', 'jczq_change_cache.json');
     if (!fs.existsSync(cachePath)) return {};
     const cache = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
-    return (cache && cache[dateStr]) ? cache[dateStr] : {};
+    return cache && cache[dateStr] ? cache[dateStr] : {};
   } catch (e) {
     return {};
   }
@@ -172,7 +172,7 @@ function calibrateScoreProb(scoreMatrix, basic) {
 
   const calibrated = {};
   const extWeight = FUSION_WEIGHTS.scoreProb; // 0.3
-  const gsWeight = 1 - extWeight;               // 0.7
+  const gsWeight = 1 - extWeight; // 0.7
 
   // 从 JczqBasic 构建进球分布比例
   const basicScoreDist = {};
@@ -195,7 +195,8 @@ function calibrateScoreProb(scoreMatrix, basic) {
     for (const score of Object.keys(scoreMatrix)) {
       const parts = score.split('-');
       if (parts.length !== 2) continue;
-      const h = parseInt(parts[0]), a = parseInt(parts[1]);
+      const h = parseInt(parts[0]),
+        a = parseInt(parts[1]);
       if (isNaN(h) || isNaN(a)) continue;
 
       // 找到对应进球范围

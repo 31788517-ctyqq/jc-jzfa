@@ -118,7 +118,8 @@ function fuse(vars, modelB, pAsia, weights) {
 
   // 加权融合辅助函数
   function weightedAvg(indices) {
-    var sum = 0, ws = 0;
+    var sum = 0,
+      ws = 0;
     indices.forEach(function (k) {
       sum += totals[k] * wNorm[k];
       ws += wNorm[k];

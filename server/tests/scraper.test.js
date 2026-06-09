@@ -44,7 +44,7 @@ describe('scraper — generateDateRange 日期范围生成', () => {
   it('日期已排序递增', () => {
     const dates = generateDateRange('2026-05-01', '2026-05-10');
     for (let i = 1; i < dates.length; i++) {
-      // 日期字符串直接比较: "2026-05-02" > "2026-05-01" 
+      // 日期字符串直接比较: "2026-05-02" > "2026-05-01"
       expect(dates[i] > dates[i - 1]).toBe(true);
     }
   });

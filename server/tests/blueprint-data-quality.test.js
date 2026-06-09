@@ -99,7 +99,7 @@ describe('DataQualityMonitor', () => {
 
   describe('THRESHOLDS 常量', () => {
     it('抓取成功率门禁为 0.90', () => {
-      expect(THRESHOLDS.FETCH_SUCCESS_RATE).toBe(0.90);
+      expect(THRESHOLDS.FETCH_SUCCESS_RATE).toBe(0.9);
     });
 
     it('完整度门禁为 0.85', () => {
@@ -107,7 +107,7 @@ describe('DataQualityMonitor', () => {
     });
 
     it('赔率异常阈值为 0.30', () => {
-      expect(THRESHOLDS.ODDS_CHANGE_THRESHOLD).toBe(0.30);
+      expect(THRESHOLDS.ODDS_CHANGE_THRESHOLD).toBe(0.3);
     });
   });
 });

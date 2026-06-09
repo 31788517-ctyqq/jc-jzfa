@@ -1,0 +1,317 @@
+{
+  "match_id": "2035395",
+  "featureAnalysis": {
+    "labels": [
+      "近1场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "1胜/0平/0负",
+      "0胜/0平/0负",
+      "5胜/1平/4负",
+      "5胜/1平/4负",
+      "1.4个",
+      "1.2个"
+    ],
+    "away": [
+      "0胜/0平/1负",
+      "0胜/0平/0负",
+      "4胜/0平/6负",
+      "3胜/2平/5负",
+      "0.8个",
+      "1.6个"
+    ]
+  },
+  "h2h": {
+    "title": "近1场巴格扎乌1胜 (100%) | 0平 (0%) | 0负 (0%)",
+    "rows": [
+      {
+        "date": "2025-09-17",
+        "league": "亚冠乙",
+        "teams": "果阿FC 0:2 （半 0:1） 巴格扎乌",
+        "totalGoals": "2"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "巴格扎乌",
+      "title": "Group D 第2名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "6",
+          "wdl": "3/0/3",
+          "winRate": "50%",
+          "goals": "8/11",
+          "gd": "-3",
+          "points": "9",
+          "rank": "2"
+        },
+        {
+          "where": "主",
+          "played": "3",
+          "wdl": "2/0/1",
+          "winRate": "67%",
+          "goals": "4/4",
+          "gd": "0",
+          "points": "6",
+          "rank": "2"
+        },
+        {
+          "where": "客",
+          "played": "3",
+          "wdl": "1/0/2",
+          "winRate": "33%",
+          "goals": "4/7",
+          "gd": "-3",
+          "points": "3",
+          "rank": "2"
+        }
+      ]
+    },
+    {
+      "team": "果阿FC",
+      "title": "Group D 第4名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "6",
+          "wdl": "0/0/6",
+          "winRate": "0%",
+          "goals": "3/14",
+          "gd": "-11",
+          "points": "0",
+          "rank": "4"
+        },
+        {
+          "where": "主",
+          "played": "3",
+          "wdl": "0/0/3",
+          "winRate": "0%",
+          "goals": "2/6",
+          "gd": "-4",
+          "points": "0",
+          "rank": "4"
+        },
+        {
+          "where": "客",
+          "played": "3",
+          "wdl": "0/0/3",
+          "winRate": "0%",
+          "goals": "1/8",
+          "gd": "-7",
+          "points": "0",
+          "rank": "4"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "巴格扎乌",
+      "summary": "巴格扎乌近10场5胜 (50%) | 1平 (10%) | 4负 (40%) 进14球，失12球，净进2球",
+      "matches": [
+        {
+          "date": "2025-11-21",
+          "league": "伊拉克联赛",
+          "vs": "巴格扎乌 2 : 1 （半 ） Newroz",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-06",
+          "league": "亚冠乙",
+          "vs": "巴格扎乌 2 : 1 （半 1:0） 杜独立",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-01",
+          "league": "伊拉克联赛",
+          "vs": "阿尔摩苏尔 1 : 3 （半 ） 巴格扎乌",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-28",
+          "league": "伊拉克联赛",
+          "vs": "Al-Qasim 0 : 2 （半 ） 巴格扎乌",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-22",
+          "league": "亚冠乙",
+          "vs": "杜独立 2 : 1 （半 1:1） 巴格扎乌",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-06",
+          "league": "伊拉克联赛",
+          "vs": "巴格扎乌 0 : 2 （半 ） Quwa",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-02",
+          "league": "亚冠乙",
+          "vs": "巴格扎乌 0 : 2 （半 0:0） 利雅胜利",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-22",
+          "league": "伊拉克联赛",
+          "vs": "巴格扎乌 1 : 1 （半 ） Al Talaba",
+          "result": "平"
+        },
+        {
+          "date": "2025-09-17",
+          "league": "亚冠乙",
+          "vs": "果阿FC 0 : 2 （半 0:1） 巴格扎乌",
+          "result": "胜"
+        },
+        {
+          "date": "2025-07-03",
+          "league": "伊拉克联赛",
+          "vs": "Naft 2 : 1 （半 1:0） 巴格扎乌",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "果阿FC",
+      "summary": "果阿FC近10场4胜 (40%) | 0平 (0%) | 6负 (60%) 进8球，失16球，净进-8球",
+      "matches": [
+        {
+          "date": "2025-11-06",
+          "league": "亚冠乙",
+          "vs": "利雅胜利 4 : 0 （半 1:0） 果阿FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-22",
+          "league": "亚冠乙",
+          "vs": "果阿FC 1 : 2 （半 1:2） 利雅胜利",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-01",
+          "league": "亚冠乙",
+          "vs": "杜独立 2 : 0 （半 0:0） 果阿FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-17",
+          "league": "亚冠乙",
+          "vs": "果阿FC 0 : 2 （半 0:1） 巴格扎乌",
+          "result": "负"
+        },
+        {
+          "date": "2025-08-13",
+          "league": "亚冠乙",
+          "vs": "果阿FC 2 : 1 （半 1:0） Seeb",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-06",
+          "league": "Indian Super League",
+          "vs": "果阿FC 2 : 1 （半 0:0） Bengaluru",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-02",
+          "league": "Indian Super League",
+          "vs": "Bengaluru 2 : 0 （半 1:0） 果阿FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-08",
+          "league": "Indian Super League",
+          "vs": "Mohun Bagan 2 : 0 （半 0:0） 果阿FC",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-04",
+          "league": "Indian Super League",
+          "vs": "果阿FC 2 : 0 （半 1:0） Mohammedan",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-27",
+          "league": "Indian Super League",
+          "vs": "Punjab FC 0 : 1 （半 0:1） 果阿FC",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "巴格扎乌",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "果阿FC",
+      "content": "暂无数据",
+      "matches": []
+    }
+  ],
+  "scorers": [
+    {
+      "team": "巴格扎乌",
+      "players": [
+        {
+          "player": "49-I.巴达莫西(前锋)",
+          "apps": "8 (7/1)",
+          "goals": "5 (36%)",
+          "assists": "1 (17%)",
+          "avg": "0.6/0.1"
+        },
+        {
+          "player": "10-Hasan Sayyid(中场)",
+          "apps": "8 (7/1)",
+          "goals": "2 (14%)",
+          "assists": "1 (17%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "71-Amer Jamous(后卫)",
+          "apps": "7 (7/0)",
+          "goals": "2 (14%)",
+          "assists": "1 (17%)",
+          "avg": "0.3/0.1"
+        }
+      ]
+    },
+    {
+      "team": "果阿FC",
+      "players": [
+        {
+          "player": "71-D. Dražić(中场)",
+          "apps": "6 (6/0)",
+          "goals": "1 (50%)",
+          "assists": "1 (100%)",
+          "avg": "0.2/0.2"
+        },
+        {
+          "player": "42-B. Fernandes(中场)",
+          "apps": "6 (3/3)",
+          "goals": "1 (50%)",
+          "assists": "0 (0%)",
+          "avg": "0.2/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "巴格扎乌",
+      "status": "暂无数据"
+    },
+    {
+      "team": "果阿FC",
+      "status": "暂无数据"
+    }
+  ]
+}

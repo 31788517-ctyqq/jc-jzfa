@@ -67,11 +67,11 @@ describe('league-heat-profile — getOverheatThreshold 过热阈值', () => {
   });
 
   it('挪超 → 0.92 + 1.5*0.12 = 1.10', () => {
-    expect(getOverheatThreshold('挪超')).toBeCloseTo(1.10, 1);
+    expect(getOverheatThreshold('挪超')).toBeCloseTo(1.1, 1);
   });
 
   it('欧冠 → 1.30 + 1.5*0.20 = 1.60', () => {
-    expect(getOverheatThreshold('欧冠')).toBeCloseTo(1.60, 1);
+    expect(getOverheatThreshold('欧冠')).toBeCloseTo(1.6, 1);
   });
 
   it('未知联赛 → 1.05 + 1.5*0.15 = 1.275 ≈ 1.28', () => {

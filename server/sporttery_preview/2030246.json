@@ -1,0 +1,438 @@
+{
+  "match_id": "2030246",
+  "featureAnalysis": {
+    "labels": [
+      "近1场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "1胜/0平/0负",
+      "1胜/0平/0负",
+      "8胜/0平/2负",
+      "7胜/1平/2负",
+      "1.7个",
+      "0.5个"
+    ],
+    "away": [
+      "0胜/0平/1负",
+      "0胜/0平/1负",
+      "4胜/3平/3负",
+      "3胜/2平/5负",
+      "1.6个",
+      "1.6个"
+    ]
+  },
+  "h2h": {
+    "title": "近1场阿贾克斯1胜 (100%) | 0平 (0%) | 0负 (0%)",
+    "rows": [
+      {
+        "date": "2020-08-30",
+        "league": "俱乐部赛",
+        "teams": "阿贾克斯 2:1 （半 1:0） 法兰克福",
+        "totalGoals": "3"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "阿贾克斯",
+      "title": "League Stage 第12名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "4/1/3",
+          "winRate": "50%",
+          "goals": "16/8",
+          "gd": "8",
+          "points": "13",
+          "rank": "12"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "3/0/1",
+          "winRate": "75%",
+          "goals": "12/4",
+          "gd": "8",
+          "points": "9",
+          "rank": "10"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "1/1/2",
+          "winRate": "25%",
+          "goals": "4/4",
+          "gd": "0",
+          "points": "4",
+          "rank": "16"
+        }
+      ]
+    },
+    {
+      "team": "法兰克福",
+      "title": "League Stage 第5名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "5/1/2",
+          "winRate": "63%",
+          "goals": "14/10",
+          "gd": "4",
+          "points": "16",
+          "rank": "5"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "3/1/0",
+          "winRate": "75%",
+          "goals": "7/3",
+          "gd": "4",
+          "points": "10",
+          "rank": "8"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "2/0/2",
+          "winRate": "50%",
+          "goals": "7/7",
+          "gd": "0",
+          "points": "6",
+          "rank": "11"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "阿贾克斯",
+      "summary": "阿贾克斯近10场8胜 (80%) | 0平 (0%) | 2负 (20%) 进17球，失5球，净进12球",
+      "matches": [
+        {
+          "date": "2025-03-02",
+          "league": "荷甲",
+          "vs": "阿尔梅勒 0 : 1 （半 0:1） 阿贾克斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-23",
+          "league": "荷甲",
+          "vs": "阿贾克斯 2 : 0 （半 0:0） 前进之鹰",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-21",
+          "league": "欧罗巴",
+          "vs": "阿贾克斯 0 : 2 （半 0:2） 圣吉联合",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-16",
+          "league": "荷甲",
+          "vs": "阿贾克斯 4 : 0 （半 2:0） 赫拉克勒",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-14",
+          "league": "欧罗巴",
+          "vs": "圣吉联合 0 : 2 （半 0:0） 阿贾克斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-09",
+          "league": "荷甲",
+          "vs": "福图纳 0 : 2 （半 0:0） 阿贾克斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-02",
+          "league": "荷甲",
+          "vs": "阿贾克斯 2 : 1 （半 1:0） 费耶诺德",
+          "result": "胜"
+        },
+        {
+          "date": "2025-01-31",
+          "league": "欧罗巴",
+          "vs": "阿贾克斯 2 : 1 （半 1:0） 加拉塔萨",
+          "result": "胜"
+        },
+        {
+          "date": "2025-01-24",
+          "league": "欧罗巴",
+          "vs": "里加足校 1 : 0 （半 0:0） 阿贾克斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-01-19",
+          "league": "荷甲",
+          "vs": "海伦芬 0 : 2 （半 0:1） 阿贾克斯",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "法兰克福",
+      "summary": "法兰克福近10场4胜 (40%) | 3平 (30%) | 3负 (30%) 进16球，失16球，净进0球",
+      "matches": [
+        {
+          "date": "2025-03-02",
+          "league": "德甲",
+          "vs": "法兰克福 1 : 4 （半 1:3） 勒沃库森",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-24",
+          "league": "德甲",
+          "vs": "拜仁 4 : 0 （半 1:0） 法兰克福",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-17",
+          "league": "德甲",
+          "vs": "法兰克福 3 : 1 （半 2:0） 基尔",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-09",
+          "league": "德甲",
+          "vs": "门兴 1 : 1 （半 1:1） 法兰克福",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-02",
+          "league": "德甲",
+          "vs": "法兰克福 1 : 1 （半 0:0） 沃夫斯堡",
+          "result": "平"
+        },
+        {
+          "date": "2025-01-31",
+          "league": "欧罗巴",
+          "vs": "罗马 2 : 0 （半 1:0） 法兰克福",
+          "result": "负"
+        },
+        {
+          "date": "2025-01-26",
+          "league": "德甲",
+          "vs": "霍芬海姆 2 : 2 （半 0:1） 法兰克福",
+          "result": "平"
+        },
+        {
+          "date": "2025-01-24",
+          "league": "欧罗巴",
+          "vs": "法兰克福 2 : 0 （半 0:0） 费伦茨",
+          "result": "胜"
+        },
+        {
+          "date": "2025-01-18",
+          "league": "德甲",
+          "vs": "法兰克福 2 : 0 （半 1:0） 多特蒙德",
+          "result": "胜"
+        },
+        {
+          "date": "2025-01-15",
+          "league": "德甲",
+          "vs": "法兰克福 4 : 1 （半 1:1） 弗赖堡",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "阿贾克斯",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "法兰克福",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-15",
+          "俱乐部赛",
+          "布伦特\nVS\n法兰克福",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "阿贾克斯",
+      "players": [
+        {
+          "player": "8-泰勒(中场)",
+          "apps": "11 (8/3)",
+          "goals": "5 (24%)",
+          "assists": "1 (7%)",
+          "avg": "0.5/0.1"
+        },
+        {
+          "player": "11-M. Godts(前锋)",
+          "apps": "11 (8/3)",
+          "goals": "3 (14%)",
+          "assists": "2 (14%)",
+          "avg": "0.3/0.2"
+        },
+        {
+          "player": "20-特拉奥雷(前锋)",
+          "apps": "10 (7/3)",
+          "goals": "3 (14%)",
+          "assists": "2 (14%)",
+          "avg": "0.3/0.2"
+        }
+      ]
+    },
+    {
+      "team": "法兰克福",
+      "players": [
+        {
+          "player": "11-H. Ekitike(前锋)",
+          "apps": "12 (9/3)",
+          "goals": "4 (17%)",
+          "assists": "3 (17%)",
+          "avg": "0.3/0.3"
+        },
+        {
+          "player": "7-奥马尔·马尔穆什(前锋)",
+          "apps": "6 (5/1)",
+          "goals": "4 (17%)",
+          "assists": "2 (11%)",
+          "avg": "0.7/0.3"
+        },
+        {
+          "player": "16-H. Larsson(中场)",
+          "apps": "11 (9/2)",
+          "goals": "3 (13%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "阿贾克斯",
+      "players": [
+        {
+          "player": "6-亨德森(中场)",
+          "totalApps": "9",
+          "starts": "7",
+          "subs": "2",
+          "status": "停"
+        },
+        {
+          "player": "18-D. Klaassen(中场)",
+          "totalApps": "3",
+          "starts": "3",
+          "subs": "0",
+          "status": "停"
+        },
+        {
+          "player": "25-韦霍斯特(前锋)",
+          "totalApps": "5",
+          "starts": "1",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "5-维扬达尔(后卫)",
+          "totalApps": "3",
+          "starts": "0",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "37-舒塔洛(后卫)",
+          "totalApps": "10",
+          "starts": "9",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "44-Y.雷格尔(中场)",
+          "totalApps": "6",
+          "starts": "6",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "29-C.拉斯穆森(前锋)",
+          "totalApps": "9",
+          "starts": "4",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "27-A. van Axel Dongen(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "47-G. Alders(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "法兰克福",
+      "players": [
+        {
+          "player": "22-T. Chandler(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "4-科赫(后卫)",
+          "totalApps": "10",
+          "starts": "10",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "9-I. Matanović(前锋)",
+          "totalApps": "7",
+          "starts": "3",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "5-A. Amenda(后卫)",
+          "totalApps": "4",
+          "starts": "1",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "23-K. Lisztes(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "38-E. İş(中场)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,567 @@
+{
+  "match_id": "2036647",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "2胜/3平/5负",
+      "3胜/2平/2负",
+      "5胜/1平/4负",
+      "5胜/2平/3负",
+      "1.4个",
+      "1.4个"
+    ],
+    "away": [
+      "5胜/3平/2负",
+      "2胜/2平/3负",
+      "6胜/3平/1负",
+      "3胜/3平/4负",
+      "1.8个",
+      "1.1个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场赫尔城2胜 (20%) | 3平 (30%) | 5负 (50%)",
+    "rows": [
+      {
+        "date": "2025-09-27",
+        "league": "英冠",
+        "teams": "沃特福德 2:1 （半 0:1） 赫尔城",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2025-04-09",
+        "league": "英冠",
+        "teams": "沃特福德 1:0 （半 0:0） 赫尔城",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2024-12-12",
+        "league": "英冠",
+        "teams": "赫尔城 1:1 （半 0:0） 沃特福德",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2024-04-20",
+        "league": "英冠",
+        "teams": "沃特福德 0:0 （半 0:0） 赫尔城",
+        "totalGoals": ""
+      },
+      {
+        "date": "2023-12-02",
+        "league": "英冠",
+        "teams": "赫尔城 1:2 （半 1:1） 沃特福德",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2023-04-22",
+        "league": "英冠",
+        "teams": "赫尔城 1:0 （半 1:0） 沃特福德",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2022-12-11",
+        "league": "英冠",
+        "teams": "沃特福德 0:0 （半 0:0） 赫尔城",
+        "totalGoals": ""
+      },
+      {
+        "date": "2017-04-22",
+        "league": "英超",
+        "teams": "赫尔城 2:0 （半 0:0） 沃特福德",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2016-10-29",
+        "league": "英超",
+        "teams": "沃特福德 1:0 （半 0:0） 赫尔城",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2013-04-03",
+        "league": "英冠",
+        "teams": "赫尔城 0:1 （半 0:1） 沃特福德",
+        "totalGoals": "1"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "赫尔城",
+      "title": "Regular Season 第6名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "46",
+          "wdl": "21/10/15",
+          "winRate": "46%",
+          "goals": "70/66",
+          "gd": "4",
+          "points": "73",
+          "rank": "6"
+        },
+        {
+          "where": "主",
+          "played": "23",
+          "wdl": "11/5/7",
+          "winRate": "48%",
+          "goals": "35/34",
+          "gd": "1",
+          "points": "38",
+          "rank": "8"
+        },
+        {
+          "where": "客",
+          "played": "23",
+          "wdl": "10/5/8",
+          "winRate": "43%",
+          "goals": "35/32",
+          "gd": "3",
+          "points": "35",
+          "rank": "6"
+        }
+      ]
+    },
+    {
+      "team": "沃特福德",
+      "title": "Regular Season 第16名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "46",
+          "wdl": "14/15/17",
+          "winRate": "30%",
+          "goals": "53/65",
+          "gd": "-12",
+          "points": "57",
+          "rank": "16"
+        },
+        {
+          "where": "主",
+          "played": "23",
+          "wdl": "10/7/6",
+          "winRate": "43%",
+          "goals": "30/27",
+          "gd": "3",
+          "points": "37",
+          "rank": "10"
+        },
+        {
+          "where": "客",
+          "played": "23",
+          "wdl": "4/8/11",
+          "winRate": "17%",
+          "goals": "23/38",
+          "gd": "-15",
+          "points": "20",
+          "rank": "20"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "赫尔城",
+      "summary": "赫尔城近10场5胜 (50%) | 1平 (10%) | 4负 (40%) 进14球，失14球，净进0球",
+      "matches": [
+        {
+          "date": "2026-01-01",
+          "league": "英冠",
+          "vs": "赫尔城 0 : 1 （半 0:1） 斯托克城",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-30",
+          "league": "英冠",
+          "vs": "米堡 0 : 1 （半 0:1） 赫尔城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-26",
+          "league": "英冠",
+          "vs": "谢周三 2 : 2 （半 1:1） 赫尔城",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-20",
+          "league": "英冠",
+          "vs": "赫尔城 1 : 0 （半 1:0） 西布罗姆",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-13",
+          "league": "英冠",
+          "vs": "米尔沃尔 1 : 3 （半 0:2） 赫尔城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-11",
+          "league": "英冠",
+          "vs": "赫尔城 2 : 0 （半 1:0） 雷克斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-06",
+          "league": "英冠",
+          "vs": "赫尔城 1 : 4 （半 0:4） 米堡",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-29",
+          "league": "英冠",
+          "vs": "斯托克城 1 : 2 （半 1:0） 赫尔城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-26",
+          "league": "英冠",
+          "vs": "赫尔城 0 : 2 （半 0:0） 伊普斯",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-22",
+          "league": "英冠",
+          "vs": "女王巡游 3 : 2 （半 1:1） 赫尔城",
+          "result": "负"
+        }
+      ]
+    },
+    {
+      "team": "沃特福德",
+      "summary": "沃特福德近10场6胜 (60%) | 3平 (30%) | 1负 (10%) 进18球，失11球，净进7球",
+      "matches": [
+        {
+          "date": "2026-01-01",
+          "league": "英冠",
+          "vs": "沃特福德 3 : 0 （半 2:0） 伯明翰",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-30",
+          "league": "英冠",
+          "vs": "诺维奇 0 : 1 （半 0:0） 沃特福德",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-26",
+          "league": "英冠",
+          "vs": "莱切斯特 1 : 2 （半 1:1） 沃特福德",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-20",
+          "league": "英冠",
+          "vs": "沃特福德 1 : 0 （半 0:0） 斯托克城",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-13",
+          "league": "英冠",
+          "vs": "雷克斯 2 : 2 （半 1:2） 沃特福德",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-10",
+          "league": "英冠",
+          "vs": "沃特福德 1 : 1 （半 0:1） 谢周三",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-06",
+          "league": "英冠",
+          "vs": "沃特福德 3 : 2 （半 1:2） 诺维奇",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-02",
+          "league": "英冠",
+          "vs": "伯明翰 2 : 1 （半 2:0） 沃特福德",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-26",
+          "league": "英冠",
+          "vs": "沃特福德 1 : 1 （半 1:1） 普雷斯顿",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-22",
+          "league": "英冠",
+          "vs": "德比郡 2 : 3 （半 1:0） 沃特福德",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "赫尔城",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "沃特福德",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-11",
+          "俱乐部赛",
+          "沃特福德\nVS\n博勒姆",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-16",
+          "俱乐部赛",
+          "巴尼特\nVS\n沃特福德",
+          "Club Friendlies 3"
+        ],
+        [
+          "2026-07-25",
+          "俱乐部赛",
+          "沃特福德\nVS\n罗斯托克",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "赫尔城",
+      "players": [
+        {
+          "player": "9-O. McBurnie(前锋)",
+          "apps": "40 (35/5)",
+          "goals": "18 (25%)",
+          "assists": "7 (13%)",
+          "avg": "0.5/0.2"
+        },
+        {
+          "player": "21-J. Gelhardt(前锋)伤",
+          "apps": "42 (36/6)",
+          "goals": "15 (21%)",
+          "assists": "4 (7%)",
+          "avg": "0.4/0.1"
+        },
+        {
+          "player": "22-K. Joseph(前锋)",
+          "apps": "46 (28/18)",
+          "goals": "8 (11%)",
+          "assists": "5 (9%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    },
+    {
+      "team": "沃特福德",
+      "players": [
+        {
+          "player": "9-L. Kjerrumgaard(前锋)",
+          "apps": "43 (35/8)",
+          "goals": "9 (17%)",
+          "assists": "1 (3%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "10-I. Louza(中场)",
+          "apps": "42 (41/1)",
+          "goals": "7 (13%)",
+          "assists": "9 (26%)",
+          "avg": "0.2/0.2"
+        },
+        {
+          "player": "20-Mamadou Doumbia(前锋)",
+          "apps": "33 (17/16)",
+          "goals": "5 (10%)",
+          "assists": "0 (0%)",
+          "avg": "0.2/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "赫尔城",
+      "players": [
+        {
+          "player": "25-克鲁克斯(中场)",
+          "totalApps": "34",
+          "starts": "31",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "5-伦德斯特拉姆(中场)",
+          "totalApps": "32",
+          "starts": "16",
+          "subs": "16",
+          "status": "伤"
+        },
+        {
+          "player": "6-阿贾伊(后卫)",
+          "totalApps": "24",
+          "starts": "20",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "45-帕尔默(中场)",
+          "totalApps": "9",
+          "starts": "3",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "2-科伊尔(后卫)",
+          "totalApps": "42",
+          "starts": "40",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "23-A. Famewo(后卫)",
+          "totalApps": "15",
+          "starts": "7",
+          "subs": "8",
+          "status": "伤"
+        },
+        {
+          "player": "3-R·吉尔斯(后卫)",
+          "totalApps": "35",
+          "starts": "33",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "30-B.威廉姆斯(后卫)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "18-C. Drameh(后卫)",
+          "totalApps": "23",
+          "starts": "16",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "8-E.马塔佐(中场)",
+          "totalApps": "1",
+          "starts": "1",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "21-J. Gelhardt(前锋)",
+          "totalApps": "42",
+          "starts": "36",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "33-T. Collier(中场)",
+          "totalApps": "17",
+          "starts": "4",
+          "subs": "13",
+          "status": "伤"
+        },
+        {
+          "player": "24-D. Gyabi(中场)",
+          "totalApps": "20",
+          "starts": "6",
+          "subs": "14",
+          "status": "伤"
+        },
+        {
+          "player": "17-A. Kamara(前锋)",
+          "totalApps": "2",
+          "starts": "1",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "10-M. Belloumi(前锋)",
+          "totalApps": "25",
+          "starts": "12",
+          "subs": "13",
+          "status": "伤"
+        },
+        {
+          "player": "47-N. Tinsdale(中场)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "沃特福德",
+      "players": [
+        {
+          "player": "1-E. Selvik(守门员)",
+          "totalApps": "40",
+          "starts": "40",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "5-H. Kyprianou(中场)",
+          "totalApps": "25",
+          "starts": "22",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "6-M. Pollock(后卫)",
+          "totalApps": "35",
+          "starts": "32",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "26-C.威利(后卫)",
+          "totalApps": "5",
+          "starts": "3",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "15-E. Bove(中场)",
+          "totalApps": "11",
+          "starts": "2",
+          "subs": "9",
+          "status": "伤"
+        },
+        {
+          "player": "11-R. Vata(前锋)",
+          "totalApps": "12",
+          "starts": "6",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "11-R. Vata(前锋)",
+          "totalApps": "12",
+          "starts": "6",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "42-O. Maamma(前锋)",
+          "totalApps": "25",
+          "starts": "21",
+          "subs": "4",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

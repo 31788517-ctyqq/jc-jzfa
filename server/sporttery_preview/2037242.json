@@ -1,0 +1,464 @@
+{
+  "match_id": "2037242",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "2胜/7平/1负",
+      "6胜/3平/1负",
+      "3胜/5平/2负",
+      "3胜/5平/2负",
+      "1.2个",
+      "1.1个"
+    ],
+    "away": [
+      "1胜/7平/2负",
+      "1胜/3平/6负",
+      "5胜/1平/4负",
+      "5胜/2平/3负",
+      "0.8个",
+      "1.0个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场巴伦西亚2胜 (20%) | 7平 (70%) | 1负 (10%)",
+    "rows": [
+      {
+        "date": "2025-09-24",
+        "league": "西甲",
+        "teams": "西班牙人 2:2 （半 0:1） 巴伦西亚",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2025-04-23",
+        "league": "西甲",
+        "teams": "巴伦西亚 1:1 （半 0:1） 西班牙人",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2024-12-19",
+        "league": "西甲",
+        "teams": "西班牙人 1:1 （半 1:0） 巴伦西亚",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2023-05-29",
+        "league": "西甲",
+        "teams": "巴伦西亚 2:2 （半 1:1） 西班牙人",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2022-10-02",
+        "league": "西甲",
+        "teams": "西班牙人 2:2 （半 0:0） 巴伦西亚",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2022-05-15",
+        "league": "西甲",
+        "teams": "西班牙人 1:1 （半 1:1） 巴伦西亚",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2021-12-31",
+        "league": "西甲",
+        "teams": "巴伦西亚 1:2 （半 0:0） 西班牙人",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2020-07-17",
+        "league": "西甲",
+        "teams": "巴伦西亚 1:0 （半 1:0） 西班牙人",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2019-11-02",
+        "league": "西甲",
+        "teams": "西班牙人 1:2 （半 1:0） 巴伦西亚",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2019-02-17",
+        "league": "西甲",
+        "teams": "巴伦西亚 0:0 （半 0:0） 西班牙人",
+        "totalGoals": ""
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "巴伦西亚",
+      "title": "Regular Season 第9名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "13/10/15",
+          "winRate": "34%",
+          "goals": "46/55",
+          "gd": "-9",
+          "points": "49",
+          "rank": "9"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "8/6/5",
+          "winRate": "42%",
+          "goals": "27/23",
+          "gd": "4",
+          "points": "30",
+          "rank": "10"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "5/4/10",
+          "winRate": "26%",
+          "goals": "19/32",
+          "gd": "-13",
+          "points": "19",
+          "rank": "10"
+        }
+      ]
+    },
+    {
+      "team": "西班牙人",
+      "title": "Regular Season 第11名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "12/10/16",
+          "winRate": "32%",
+          "goals": "43/55",
+          "gd": "-12",
+          "points": "46",
+          "rank": "11"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "7/5/7",
+          "winRate": "37%",
+          "goals": "21/24",
+          "gd": "-3",
+          "points": "26",
+          "rank": "16"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "5/5/9",
+          "winRate": "26%",
+          "goals": "22/31",
+          "gd": "-9",
+          "points": "20",
+          "rank": "8"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "巴伦西亚",
+      "summary": "巴伦西亚近10场3胜 (30%) | 5平 (50%) | 2负 (20%) 进12球，失11球，净进1球",
+      "matches": [
+        {
+          "date": "2026-01-18",
+          "league": "西甲",
+          "vs": "赫塔费 0 : 1 （半 0:0） 巴伦西亚",
+          "result": "胜"
+        },
+        {
+          "date": "2026-01-16",
+          "league": "西国王杯",
+          "vs": "博格斯 0 : 2 （半 0:1） 巴伦西亚",
+          "result": "胜"
+        },
+        {
+          "date": "2026-01-11",
+          "league": "西甲",
+          "vs": "巴伦西亚 1 : 1 （半 0:0） 埃尔切",
+          "result": "平"
+        },
+        {
+          "date": "2026-01-03",
+          "league": "西甲",
+          "vs": "塞尔塔 4 : 1 （半 1:0） 巴伦西亚",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-20",
+          "league": "西甲",
+          "vs": "巴伦西亚 1 : 1 （半 0:1） 马洛卡",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-17",
+          "league": "西国王杯",
+          "vs": "希洪竞技 0 : 2 （半 0:1） 巴伦西亚",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-13",
+          "league": "西甲",
+          "vs": "马竞 2 : 1 （半 1:0） 巴伦西亚",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-07",
+          "league": "西甲",
+          "vs": "巴伦西亚 1 : 1 （半 0:0） 塞维利亚",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-05",
+          "league": "西国王杯",
+          "vs": "卡塔赫纳 1 : 1 （半 1:0） 巴伦西亚",
+          "result": "平"
+        },
+        {
+          "date": "2025-12-02",
+          "league": "西甲",
+          "vs": "巴列卡诺 1 : 1 （半 1:0） 巴伦西亚",
+          "result": "平"
+        }
+      ]
+    },
+    {
+      "team": "西班牙人",
+      "summary": "西班牙人近10场5胜 (50%) | 1平 (10%) | 4负 (40%) 进8球，失10球，净进-2球",
+      "matches": [
+        {
+          "date": "2026-01-17",
+          "league": "西甲",
+          "vs": "西班牙人 0 : 2 （半 0:1） 赫罗纳",
+          "result": "负"
+        },
+        {
+          "date": "2026-01-11",
+          "league": "西甲",
+          "vs": "莱万特 1 : 1 （半 0:0） 西班牙人",
+          "result": "平"
+        },
+        {
+          "date": "2026-01-04",
+          "league": "西甲",
+          "vs": "西班牙人 0 : 2 （半 0:0） 巴萨",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-23",
+          "league": "西甲",
+          "vs": "毕尔巴鄂 1 : 2 （半 1:1） 西班牙人",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-14",
+          "league": "西甲",
+          "vs": "赫塔费 0 : 1 （半 0:0） 西班牙人",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-08",
+          "league": "西甲",
+          "vs": "西班牙人 1 : 0 （半 1:0） 巴列卡诺",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-05",
+          "league": "西国王杯",
+          "vs": "Baleares 1 : 0 （半 0:0） 西班牙人",
+          "result": "负"
+        },
+        {
+          "date": "2025-12-01",
+          "league": "西甲",
+          "vs": "塞尔塔 0 : 1 （半 0:0） 西班牙人",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-25",
+          "league": "西甲",
+          "vs": "西班牙人 2 : 1 （半 0:0） 塞维利亚",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-09",
+          "league": "西甲",
+          "vs": "西班牙人 0 : 2 （半 0:1） 比利亚雷",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "巴伦西亚",
+      "content": "暂无数据",
+      "matches": []
+    },
+    {
+      "team": "西班牙人",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-07-19",
+          "俱乐部赛",
+          "Olot\nVS\n西班牙人",
+          "Club Friendlies 3"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "巴伦西亚",
+      "players": [
+        {
+          "player": "9-Hugo Duro(前锋)",
+          "apps": "36 (22/14)",
+          "goals": "10 (22%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        },
+        {
+          "player": "17-L.拉马扎尼(前锋)",
+          "apps": "27 (11/16)",
+          "goals": "6 (13%)",
+          "assists": "1 (3%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "8-Javi Guerra(中场)",
+          "apps": "36 (25/11)",
+          "goals": "4 (9%)",
+          "assists": "6 (19%)",
+          "avg": "0.1/0.2"
+        }
+      ]
+    },
+    {
+      "team": "西班牙人",
+      "players": [
+        {
+          "player": "19-Kike(前锋)",
+          "apps": "37 (17/20)",
+          "goals": "8 (19%)",
+          "assists": "1 (3%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "9-Roberto Fernández(前锋)",
+          "apps": "38 (25/13)",
+          "goals": "7 (17%)",
+          "assists": "3 (10%)",
+          "avg": "0.2/0.1"
+        },
+        {
+          "player": "11-Pere Milla(中场)",
+          "apps": "33 (24/9)",
+          "goals": "7 (17%)",
+          "assists": "1 (3%)",
+          "avg": "0.2/0"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "巴伦西亚",
+      "players": [
+        {
+          "player": "14-José Gayá(后卫)",
+          "totalApps": "32",
+          "starts": "31",
+          "subs": "1",
+          "status": "停"
+        },
+        {
+          "player": "14-José Gayá(后卫)",
+          "totalApps": "32",
+          "starts": "31",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "M. Diakhaby(后卫)",
+          "totalApps": "8",
+          "starts": "7",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "19-Dani Raba(前锋)",
+          "totalApps": "13",
+          "starts": "3",
+          "subs": "10",
+          "status": "伤"
+        },
+        {
+          "player": "12-Thierry Correia(后卫)",
+          "totalApps": "24",
+          "starts": "17",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "25-朱伦 阿吉雷扎巴拉(守门员)",
+          "totalApps": "18",
+          "starts": "18",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "5-César Tárrega(后卫)",
+          "totalApps": "32",
+          "starts": "29",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "33-Pablo López(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "西班牙人",
+      "players": [
+        {
+          "player": "23-O. El Hilali(后卫)",
+          "totalApps": "36",
+          "starts": "32",
+          "subs": "4",
+          "status": "停"
+        },
+        {
+          "player": "7-Javi Puado(前锋)",
+          "totalApps": "10",
+          "starts": "8",
+          "subs": "2",
+          "status": "伤"
+        },
+        {
+          "player": "Hugo Pérez(后卫)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

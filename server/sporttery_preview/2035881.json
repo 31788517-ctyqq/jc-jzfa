@@ -1,0 +1,407 @@
+{
+  "match_id": "2035881",
+  "featureAnalysis": {
+    "labels": [
+      "近0场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "4胜/2平/4负",
+      "5胜/3平/2负",
+      "1.5个",
+      "1.6个"
+    ],
+    "away": [
+      "0胜/0平/0负",
+      "0胜/0平/0负",
+      "8胜/1平/1负",
+      "6胜/1平/3负",
+      "2.8个",
+      "0.9个"
+    ]
+  },
+  "h2h": {
+    "title": "近0场阿拉木图0胜 (0%) | 0平 (0%) | 0负 (0%)",
+    "rows": []
+  },
+  "standings": [
+    {
+      "team": "阿拉木图",
+      "title": "League Stage 第36名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "0/1/7",
+          "winRate": "0%",
+          "goals": "7/22",
+          "gd": "-15",
+          "points": "1",
+          "rank": "36"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "0/1/3",
+          "winRate": "0%",
+          "goals": "1/10",
+          "gd": "-9",
+          "points": "1",
+          "rank": "35"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "0/0/4",
+          "winRate": "0%",
+          "goals": "6/12",
+          "gd": "-6",
+          "points": "0",
+          "rank": "35"
+        }
+      ]
+    },
+    {
+      "team": "奥林匹亚",
+      "title": "League Stage 第18名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "8",
+          "wdl": "3/2/3",
+          "winRate": "38%",
+          "goals": "10/14",
+          "gd": "-4",
+          "points": "11",
+          "rank": "18"
+        },
+        {
+          "where": "主",
+          "played": "4",
+          "wdl": "1/2/1",
+          "winRate": "25%",
+          "goals": "6/5",
+          "gd": "1",
+          "points": "5",
+          "rank": "25"
+        },
+        {
+          "where": "客",
+          "played": "4",
+          "wdl": "2/0/2",
+          "winRate": "50%",
+          "goals": "4/9",
+          "gd": "-5",
+          "points": "6",
+          "rank": "13"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "阿拉木图",
+      "summary": "阿拉木图近10场4胜 (40%) | 2平 (20%) | 4负 (40%) 进15球，失16球，净进-1球",
+      "matches": [
+        {
+          "date": "2025-11-27",
+          "league": "欧冠",
+          "vs": "哥本哈根 3 : 2 （半 1:0） 阿拉木图",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-06",
+          "league": "欧冠",
+          "vs": "国际米兰 2 : 1 （半 1:0） 阿拉木图",
+          "result": "负"
+        },
+        {
+          "date": "2025-10-26",
+          "league": "哈萨超",
+          "vs": "阿拉木图 1 : 1 （半 0:1） 阿斯塔纳",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-22",
+          "league": "欧冠",
+          "vs": "阿拉木图 0 : 0 （半 0:0） 帕福斯",
+          "result": "平"
+        },
+        {
+          "date": "2025-10-17",
+          "league": "哈萨超",
+          "vs": "Kyzyl-Zhar 0 : 1 （半 0:1） 阿拉木图",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-05",
+          "league": "哈萨超",
+          "vs": "阿拉木图 5 : 0 （半 4:0） Zhetysu",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-01",
+          "league": "欧冠",
+          "vs": "阿拉木图 0 : 5 （半 0:1） 皇马",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-22",
+          "league": "哈萨超",
+          "vs": "阿拉木图 3 : 1 （半 2:0） Zhenys",
+          "result": "胜"
+        },
+        {
+          "date": "2025-09-19",
+          "league": "欧冠",
+          "vs": "里斯本 4 : 1 （半 1:0） 阿拉木图",
+          "result": "负"
+        },
+        {
+          "date": "2025-09-14",
+          "league": "哈萨超",
+          "vs": "阿拉木图 1 : 0 （半 0:0） 阿克托比",
+          "result": "胜"
+        }
+      ]
+    },
+    {
+      "team": "奥林匹亚",
+      "summary": "奥林匹亚近10场8胜 (80%) | 1平 (10%) | 1负 (10%) 进28球，失9球，净进19球",
+      "matches": [
+        {
+          "date": "2025-12-06",
+          "league": "希超",
+          "vs": "奥林匹亚 3 : 0 （半 2:0） OFI",
+          "result": "胜"
+        },
+        {
+          "date": "2025-12-03",
+          "league": "杯赛",
+          "vs": "Ellas Syros 2 : 5 （半 0:1） 奥林匹亚",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-30",
+          "league": "希超",
+          "vs": "Panaitolikos 0 : 1 （半 0:0） 奥林匹亚",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-27",
+          "league": "欧冠",
+          "vs": "奥林匹亚 3 : 4 （半 1:3） 皇马",
+          "result": "负"
+        },
+        {
+          "date": "2025-11-23",
+          "league": "希超",
+          "vs": "奥林匹亚 3 : 0 （半 1:0） 阿特罗米",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-09",
+          "league": "希超",
+          "vs": "Kifisia 1 : 3 （半 0:1） 奥林匹亚",
+          "result": "胜"
+        },
+        {
+          "date": "2025-11-05",
+          "league": "欧冠",
+          "vs": "奥林匹亚 1 : 1 （半 1:0） 埃因霍温",
+          "result": "平"
+        },
+        {
+          "date": "2025-11-02",
+          "league": "希超",
+          "vs": "奥林匹亚 2 : 1 （半 0:0） 阿里斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-29",
+          "league": "杯赛",
+          "vs": "奥林匹亚 5 : 0 （半 4:0） Volos NFC",
+          "result": "胜"
+        },
+        {
+          "date": "2025-10-27",
+          "league": "希超",
+          "vs": "奥林匹亚 2 : 0 （半 1:0） 雅典AEK",
+          "result": "胜"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "阿拉木图",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-06-13",
+          "哈萨超",
+          "阿拉木图\nVS\nAtyrau",
+          "第13轮"
+        ],
+        [
+          "2026-06-17",
+          "哈萨超",
+          "阿拉木图\nVS\nKyzyl-Zhar",
+          "第17轮"
+        ],
+        [
+          "2026-06-21",
+          "哈萨超",
+          "Kyzyl-Zhar\nVS\n阿拉木图",
+          "第14轮"
+        ],
+        [
+          "2026-06-27",
+          "哈萨超",
+          "奥肯咸特普斯\nVS\n阿拉木图",
+          "第16轮"
+        ]
+      ]
+    },
+    {
+      "team": "奥林匹亚",
+      "content": "暂无数据",
+      "matches": []
+    }
+  ],
+  "scorers": [
+    {
+      "team": "阿拉木图",
+      "players": [
+        {
+          "player": "99-Ricardinho(前锋)",
+          "apps": "8 (1/7)",
+          "goals": "1 (14%)",
+          "assists": "1 (20%)",
+          "avg": "0.1/0.1"
+        },
+        {
+          "player": "6-A. Sadybekov(中场)",
+          "apps": "5 (1/4)",
+          "goals": "1 (14%)",
+          "assists": "0 (0%)",
+          "avg": "0.2/0"
+        },
+        {
+          "player": "17-O. Baybek(中场)",
+          "apps": "4 (1/3)",
+          "goals": "1 (14%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        }
+      ]
+    },
+    {
+      "team": "奥林匹亚",
+      "players": [
+        {
+          "player": "10-Gelson Martins(中场)",
+          "apps": "9 (9/0)",
+          "goals": "3 (30%)",
+          "assists": "0 (0%)",
+          "avg": "0.3/0"
+        },
+        {
+          "player": "99-塔雷米(前锋)",
+          "apps": "10 (4/6)",
+          "goals": "2 (20%)",
+          "assists": "2 (22%)",
+          "avg": "0.2/0.2"
+        },
+        {
+          "player": "9-A.卡埃比(前锋)",
+          "apps": "10 (8/2)",
+          "goals": "2 (20%)",
+          "assists": "1 (11%)",
+          "avg": "0.2/0.1"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "阿拉木图",
+      "players": [
+        {
+          "player": "João Paulo(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "Élder Santana(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "1-A.扎鲁茨基(守门员)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "9-D. Satpaev(前锋)",
+          "totalApps": "5",
+          "starts": "5",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "奥林匹亚",
+      "players": [
+        {
+          "player": "23-罗迪内(后卫)",
+          "totalApps": "8",
+          "starts": "8",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "11-亚列姆丘克(前锋)",
+          "totalApps": "1",
+          "starts": "0",
+          "subs": "1",
+          "status": "伤"
+        },
+        {
+          "player": "45-P. Retsos(后卫)",
+          "totalApps": "9",
+          "starts": "9",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "27-Espeto(前锋)",
+          "totalApps": "4",
+          "starts": "1",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "81-K. Angelakis(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

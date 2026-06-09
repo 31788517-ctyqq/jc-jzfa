@@ -1,0 +1,528 @@
+{
+  "match_id": "2031588",
+  "featureAnalysis": {
+    "labels": [
+      "近10场交锋",
+      "同主客交锋",
+      "近10场战况",
+      "同主客战况",
+      "场均进球",
+      "场均失球"
+    ],
+    "home": [
+      "1胜/4平/5负",
+      "3胜/1平/6负",
+      "3胜/4平/3负",
+      "5胜/4平/1负",
+      "0.8个",
+      "0.7个"
+    ],
+    "away": [
+      "5胜/4平/1负",
+      "6胜/1平/3负",
+      "5胜/2平/3负",
+      "5胜/0平/5负",
+      "1.9个",
+      "1.1个"
+    ]
+  },
+  "h2h": {
+    "title": "近10场热那亚1胜 (10%) | 4平 (40%) | 5负 (50%)",
+    "rows": [
+      {
+        "date": "2024-12-16",
+        "league": "意甲",
+        "teams": "AC米兰 0:0 （半 0:0） 热那亚",
+        "totalGoals": ""
+      },
+      {
+        "date": "2024-05-06",
+        "league": "意甲",
+        "teams": "AC米兰 3:3 （半 1:1） 热那亚",
+        "totalGoals": "6"
+      },
+      {
+        "date": "2023-10-08",
+        "league": "意甲",
+        "teams": "热那亚 0:1 （半 0:0） AC米兰",
+        "totalGoals": "1"
+      },
+      {
+        "date": "2022-04-16",
+        "league": "意甲",
+        "teams": "AC米兰 2:0 （半 1:0） 热那亚",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2022-01-14",
+        "league": "意大利杯",
+        "teams": "AC米兰 1:1 （半 0:1） 热那亚",
+        "totalGoals": "2"
+      },
+      {
+        "date": "2021-12-02",
+        "league": "意甲",
+        "teams": "热那亚 0:3 （半 0:2） AC米兰",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2021-04-18",
+        "league": "意甲",
+        "teams": "AC米兰 2:1 （半 1:1） 热那亚",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2020-12-17",
+        "league": "意甲",
+        "teams": "热那亚 2:2 （半 0:0） AC米兰",
+        "totalGoals": "4"
+      },
+      {
+        "date": "2020-03-08",
+        "league": "意甲",
+        "teams": "AC米兰 1:2 （半 0:2） 热那亚",
+        "totalGoals": "3"
+      },
+      {
+        "date": "2019-10-06",
+        "league": "意甲",
+        "teams": "热那亚 1:2 （半 1:0） AC米兰",
+        "totalGoals": "3"
+      }
+    ]
+  },
+  "standings": [
+    {
+      "team": "热那亚",
+      "title": "常规赛 第13名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "10/13/15",
+          "winRate": "26%",
+          "goals": "37/49",
+          "gd": "-12",
+          "points": "43",
+          "rank": "13"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "5/7/7",
+          "winRate": "26%",
+          "goals": "21/25",
+          "gd": "-4",
+          "points": "22",
+          "rank": "14"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "5/6/8",
+          "winRate": "26%",
+          "goals": "16/24",
+          "gd": "-8",
+          "points": "21",
+          "rank": "10"
+        }
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "title": "常规赛 第8名",
+      "rows": [
+        {
+          "where": "总",
+          "played": "38",
+          "wdl": "18/9/11",
+          "winRate": "47%",
+          "goals": "61/43",
+          "gd": "18",
+          "points": "63",
+          "rank": "8"
+        },
+        {
+          "where": "主",
+          "played": "19",
+          "wdl": "9/7/3",
+          "winRate": "47%",
+          "goals": "30/16",
+          "gd": "14",
+          "points": "34",
+          "rank": "7"
+        },
+        {
+          "where": "客",
+          "played": "19",
+          "wdl": "9/2/8",
+          "winRate": "47%",
+          "goals": "31/27",
+          "gd": "4",
+          "points": "29",
+          "rank": "6"
+        }
+      ]
+    }
+  ],
+  "recentForm": [
+    {
+      "team": "热那亚",
+      "summary": "热那亚近10场3胜 (30%) | 4平 (40%) | 3负 (30%) 进8球，失7球，净进1球",
+      "matches": [
+        {
+          "date": "2025-04-27",
+          "league": "意甲",
+          "vs": "科莫 1 : 0 （半 0:0） 热那亚",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-13",
+          "league": "意甲",
+          "vs": "维罗纳 0 : 0 （半 0:0） 热那亚",
+          "result": "平"
+        },
+        {
+          "date": "2025-04-05",
+          "league": "意甲",
+          "vs": "热那亚 1 : 0 （半 0:0） 乌迪内斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-30",
+          "league": "意甲",
+          "vs": "尤文图斯 1 : 0 （半 1:0） 热那亚",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-15",
+          "league": "意甲",
+          "vs": "热那亚 2 : 1 （半 2:0） 莱切",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-08",
+          "league": "意甲",
+          "vs": "卡利亚里 1 : 1 （半 1:0） 热那亚",
+          "result": "平"
+        },
+        {
+          "date": "2025-03-02",
+          "league": "意甲",
+          "vs": "热那亚 1 : 1 （半 0:1） 恩波利",
+          "result": "平"
+        },
+        {
+          "date": "2025-02-23",
+          "league": "意甲",
+          "vs": "国际米兰 1 : 0 （半 0:0） 热那亚",
+          "result": "负"
+        },
+        {
+          "date": "2025-02-18",
+          "league": "意甲",
+          "vs": "热那亚 2 : 0 （半 0:0） 威尼斯",
+          "result": "胜"
+        },
+        {
+          "date": "2025-02-09",
+          "league": "意甲",
+          "vs": "都灵 1 : 1 （半 1:0） 热那亚",
+          "result": "平"
+        }
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "summary": "AC米兰近10场5胜 (50%) | 2平 (20%) | 3负 (30%) 进19球，失11球，净进8球",
+      "matches": [
+        {
+          "date": "2025-04-27",
+          "league": "意甲",
+          "vs": "威尼斯 0 : 2 （半 0:1） AC米兰",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-24",
+          "league": "意大利杯",
+          "vs": "国际米兰 0 : 3 （半 0:1） AC米兰",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-21",
+          "league": "意甲",
+          "vs": "AC米兰 0 : 1 （半 0:0） 亚特兰大",
+          "result": "负"
+        },
+        {
+          "date": "2025-04-12",
+          "league": "意甲",
+          "vs": "乌迪内斯 0 : 4 （半 0:2） AC米兰",
+          "result": "胜"
+        },
+        {
+          "date": "2025-04-06",
+          "league": "意甲",
+          "vs": "AC米兰 2 : 2 （半 1:2） 佛罗伦萨",
+          "result": "平"
+        },
+        {
+          "date": "2025-04-03",
+          "league": "意大利杯",
+          "vs": "AC米兰 1 : 1 （半 0:0） 国际米兰",
+          "result": "平"
+        },
+        {
+          "date": "2025-03-31",
+          "league": "意甲",
+          "vs": "那不勒斯 2 : 1 （半 2:0） AC米兰",
+          "result": "负"
+        },
+        {
+          "date": "2025-03-16",
+          "league": "意甲",
+          "vs": "AC米兰 2 : 1 （半 0:1） 科莫",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-09",
+          "league": "意甲",
+          "vs": "莱切 2 : 3 （半 1:0） AC米兰",
+          "result": "胜"
+        },
+        {
+          "date": "2025-03-03",
+          "league": "意甲",
+          "vs": "AC米兰 1 : 2 （半 0:1） 拉齐奥",
+          "result": "负"
+        }
+      ]
+    }
+  ],
+  "futureMatches": [
+    {
+      "team": "热那亚",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-23",
+          "意甲",
+          "热那亚\nVS\n那不勒斯",
+          "Regular Season 第1轮"
+        ],
+        [
+          "2026-08-30",
+          "意甲",
+          "拉齐奥\nVS\n热那亚",
+          "Regular Season 第2轮"
+        ],
+        [
+          "2026-09-06",
+          "意甲",
+          "热那亚\nVS\n科莫",
+          "Regular Season 第3轮"
+        ],
+        [
+          "2026-09-13",
+          "意甲",
+          "热那亚\nVS\n弗洛西诺",
+          "Regular Season 第4轮"
+        ]
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "content": "has data",
+      "matches": [
+        [
+          "2026-08-05",
+          "俱乐部赛",
+          "AC米兰\nVS\n国际米兰",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-08-08",
+          "俱乐部赛",
+          "切尔西\nVS\nAC米兰",
+          "Club Friendlies 1"
+        ],
+        [
+          "2026-08-23",
+          "意甲",
+          "都灵\nVS\nAC米兰",
+          "Regular Season 第1轮"
+        ],
+        [
+          "2026-08-30",
+          "意甲",
+          "AC米兰\nVS\n威尼斯",
+          "Regular Season 第2轮"
+        ]
+      ]
+    }
+  ],
+  "scorers": [
+    {
+      "team": "热那亚",
+      "players": [
+        {
+          "player": "19-A. Pinamonti(前锋)",
+          "apps": "36 (33/3)",
+          "goals": "10 (27%)",
+          "assists": "1 (3%)",
+          "avg": "0.3/0"
+        },
+        {
+          "player": "23-F. Miretti(中场)伤",
+          "apps": "25 (22/3)",
+          "goals": "3 (8%)",
+          "assists": "3 (10%)",
+          "avg": "0.1/0.1"
+        },
+        {
+          "player": "4-K. De Winter(后卫)",
+          "apps": "25 (23/2)",
+          "goals": "3 (8%)",
+          "assists": "0 (0%)",
+          "avg": "0.1/0"
+        }
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "players": [
+        {
+          "player": "11-普利希奇(中场)",
+          "apps": "34 (29/5)",
+          "goals": "11 (15%)",
+          "assists": "9 (16%)",
+          "avg": "0.3/0.3"
+        },
+        {
+          "player": "14-赖因德斯(中场)",
+          "apps": "37 (36/1)",
+          "goals": "10 (14%)",
+          "assists": "4 (7%)",
+          "avg": "0.3/0.1"
+        },
+        {
+          "player": "10-Rafael Leão(前锋)",
+          "apps": "34 (25/9)",
+          "goals": "8 (11%)",
+          "assists": "8 (14%)",
+          "avg": "0.2/0.2"
+        }
+      ]
+    }
+  ],
+  "injuries": [
+    {
+      "team": "热那亚",
+      "players": [
+        {
+          "player": "45-M. Balotelli(前锋)",
+          "totalApps": "6",
+          "starts": "0",
+          "subs": "6",
+          "status": "伤"
+        },
+        {
+          "player": "17-马利诺夫斯基(中场)",
+          "totalApps": "9",
+          "starts": "4",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "70-科内特(前锋)",
+          "totalApps": "7",
+          "starts": "2",
+          "subs": "5",
+          "status": "伤"
+        },
+        {
+          "player": "18-埃库班(前锋)",
+          "totalApps": "18",
+          "starts": "3",
+          "subs": "15",
+          "status": "伤"
+        },
+        {
+          "player": "14-A. Vogliacco(后卫)",
+          "totalApps": "22",
+          "starts": "18",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "M. Ellertsson(中场)",
+          "totalApps": "36",
+          "starts": "29",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "27-K. Yeboah(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "5-J.奥纳纳(中场)",
+          "totalApps": "9",
+          "starts": "2",
+          "subs": "7",
+          "status": "伤"
+        },
+        {
+          "player": "23-F. Miretti(中场)",
+          "totalApps": "25",
+          "starts": "22",
+          "subs": "3",
+          "status": "伤"
+        },
+        {
+          "player": "33-A. Matturro(后卫)",
+          "totalApps": "13",
+          "starts": "9",
+          "subs": "4",
+          "status": "伤"
+        },
+        {
+          "player": "30-H. Cuenca(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        }
+      ]
+    },
+    {
+      "team": "AC米兰",
+      "players": [
+        {
+          "player": "18-L. Romero(前锋)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "91-H. Cuenca(中场)",
+          "totalApps": "0",
+          "starts": "0",
+          "subs": "0",
+          "status": "伤"
+        },
+        {
+          "player": "18-K. Zeroli(中场)",
+          "totalApps": "9",
+          "starts": "4",
+          "subs": "5",
+          "status": "伤"
+        }
+      ]
+    }
+  ]
+}

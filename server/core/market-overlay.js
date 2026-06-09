@@ -98,7 +98,7 @@ function buildEvidenceRow(opts) {
 
   const value = cleanText(opts.value || '');
   const capturedAt = String(opts.capturedAt || opts.default_captured_at || nowISO());
-  const requestId = String(opts.requestId || opts.default_request_id || ('overlay-evidence:' + Date.now()));
+  const requestId = String(opts.requestId || opts.default_request_id || 'overlay-evidence:' + Date.now());
   const ruleVersion = String(opts.ruleVersion || opts.default_rule_version || OVERLAY_EVIDENCE_RULE_VERSION);
 
   // 生成 source_hash
@@ -124,7 +124,16 @@ function buildEvidenceRow(opts) {
  * @returns {Object} 各字段的标准化解释
  */
 function parseScoreExplain(raw) {
-  const payload = typeof raw === 'string' ? (function () { try { return JSON.parse(raw); } catch (e) { return null; } })() : raw;
+  const payload =
+    typeof raw === 'string'
+      ? (function () {
+          try {
+            return JSON.parse(raw);
+          } catch (e) {
+            return null;
+          }
+        })()
+      : raw;
   if (!payload || typeof payload !== 'object') return {};
 
   const normalized = {};
@@ -180,12 +189,24 @@ function ensureScoreFields(payload, opts) {
 
   OVERLAY_SCORE_FIELDS.forEach(function (fieldKey) {
     const entry = current[fieldKey];
-    const explainText = (entry && typeof entry === 'object' ? String(entry.explain_text || entry.explainText || '') : '') || OVERLAY_SCORE_EXPLAIN_DEFAULT;
+    const explainText =
+      (entry && typeof entry === 'object' ? String(entry.explain_text || entry.explainText || '') : '') ||
+      OVERLAY_SCORE_EXPLAIN_DEFAULT;
     const confidence = entry && typeof entry === 'object' ? safeFloat(entry.confidence) : null;
-    const evidence = entry && typeof entry === 'object' ? (entry.evidence || []) : [];
-    const evidenceRows = Array.isArray(evidence) ? evidence.filter(function (r) { return r && typeof r === 'object'; }) : [];
-    const updatedBy = (entry && typeof entry === 'object' ? String(entry.updated_by || entry.updatedBy || '') : '') || opts.default_updated_by || 'system';
-    const updatedAt = (entry && typeof entry === 'object' ? String(entry.updated_at || entry.updatedAt || '') : '') || opts.default_updated_at || null;
+    const evidence = entry && typeof entry === 'object' ? entry.evidence || [] : [];
+    const evidenceRows = Array.isArray(evidence)
+      ? evidence.filter(function (r) {
+          return r && typeof r === 'object';
+        })
+      : [];
+    const updatedBy =
+      (entry && typeof entry === 'object' ? String(entry.updated_by || entry.updatedBy || '') : '') ||
+      opts.default_updated_by ||
+      'system';
+    const updatedAt =
+      (entry && typeof entry === 'object' ? String(entry.updated_at || entry.updatedAt || '') : '') ||
+      opts.default_updated_at ||
+      null;
 
     const normEvidence = [];
     evidenceRows.forEach(function (row) {
@@ -224,7 +245,9 @@ function hasOffFieldEvidence(entry) {
   if (!Array.isArray(evidence)) return false;
   return evidence.some(function (item) {
     if (!item || typeof item !== 'object') return false;
-    const src = String(item.source || '').trim().toLowerCase();
+    const src = String(item.source || '')
+      .trim()
+      .toLowerCase();
     const val = String(item.value || '').trim();
     return src.startsWith('offfield.') && val && val !== '-';
   });
@@ -303,20 +326,26 @@ function aggregateScores(scores) {
   const result = { categories: {}, total: 0, fieldScores: {} };
 
   const weights = {
-    basic: { w: 0.20, fields: FIELD_CATEGORIES.basic },
-    form: { w: 0.20, fields: FIELD_CATEGORIES.form },
+    basic: { w: 0.2, fields: FIELD_CATEGORIES.basic },
+    form: { w: 0.2, fields: FIELD_CATEGORIES.form },
     motivation: { w: 0.15, fields: FIELD_CATEGORIES.motivation },
-    matchup: { w: 0.20, fields: FIELD_CATEGORIES.matchup },
+    matchup: { w: 0.2, fields: FIELD_CATEGORIES.matchup },
     market: { w: 0.25, fields: FIELD_CATEGORIES.market },
   };
 
-  let totalWeighted = 0, totalWeight = 0;
+  let totalWeighted = 0,
+    totalWeight = 0;
   Object.keys(weights).forEach(function (cat) {
     const { w, fields: catFields } = weights[cat];
-    let sum = 0, count = 0;
+    let sum = 0,
+      count = 0;
     catFields.forEach(function (field) {
       const s = scores[field];
-      if (s != null) { sum += s; count++; result.fieldScores[field] = s; }
+      if (s != null) {
+        sum += s;
+        count++;
+        result.fieldScores[field] = s;
+      }
     });
     const avg = count > 0 ? sum / count : 50;
     result.categories[cat] = { label: getCategoryLabel(cat), score: Math.round(avg), weight: w };

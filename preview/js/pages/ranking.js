@@ -51,6 +51,8 @@ export function loadRanking(cat, dir) {
     if (state.selectedCategory && data.categories && data.categories[state.selectedCategory]) {
       if (subEl) {
         subEl.style.display = 'flex';
+        subEl.style.justifyContent = 'flex-start';
+        subEl.style.gap = '6px';
         const dirs = data.categories[state.selectedCategory].directions;
         subEl.innerHTML = dirs
           .map((d) => {
