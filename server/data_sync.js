@@ -1248,7 +1248,7 @@ async function backfillResults(dateStr) {
       Object.keys(data.m).forEach(function (k) {
         const m = data.m[k];
         if (!m || !m.date || m.date.slice(0, 10) !== dateStr) return;
-        if (m.matchStatus < 2) return; // 只处理已结束比赛
+        if (m.matchStatus < 2 && !(m.score && m.score.trim())) return; // 只处理已结束比赛或有比分的
         if (!m.score || !m.score.trim()) return;
         const mid = String(m.matchId || '');
         if (!mid) return;

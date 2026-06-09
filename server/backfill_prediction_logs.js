@@ -34,6 +34,7 @@ if (!data.m) {
 
 // 初始化 prediction_log 模块
 const predictionLog = require('./prediction_log');
+const database = require('./database');
 predictionLog.autoEnsure();
 
 // ★ P1-2: 加载 AI 缓存和功守道缓存，用于补写预测数据
@@ -143,95 +144,129 @@ async function main() {
   let gsWritten = 0; // ★ P1-2: GS 预测写入数
   const details = [];
 
-  for (const k of allKeys) {
-    const m = matchMap[k];
-    if (!m || !m.matchId) continue;
+  // ★ V9: 使用数据库事务批量写入，避免每次写盘触发 _saveToFile 全量导出
+  const adp = database.getAdapter();
+  const useTx = adp && typeof adp.transaction === 'function' && !dryRun;
 
-    total++;
+  if (useTx) {
+    adp.transaction(function () {
+      for (const k of allKeys) {
+        const m = matchMap[k];
+        if (!m || !m.matchId) continue;
 
-    // 跳过未结束的比赛
-    if (m.matchStatus < 2) {
-      skipped++;
-      continue;
-    }
+        total++;
 
-    // 跳过没有比分的比赛
-    if (!m.score || !m.score.trim() || m.score === '-') {
-      skipped++;
-      continue;
-    }
+        // 跳过未结束的比赛（但有比分则视为已完赛）
+        if (m.matchStatus >= 2) { /* 正常完赛 */ }
+        else if (m.score && m.score.trim() && m.score !== '-') { /* 有比分，按完赛处理 */ }
+        else { skipped++; continue; }
 
-    const mid = String(m.matchId);
-    const scoreStr = m.score.replace('-', ':');
-    const parts = scoreStr.split(':');
-    const homeGoals = parseInt(parts[0]);
-    const awayGoals = parseInt(parts[1]);
-
-    if (isNaN(homeGoals) || isNaN(awayGoals)) {
-      skipped++;
-      continue;
-    }
-
-    // 推断胜平负
-    let actualSpf = '';
-    if (homeGoals > awayGoals) actualSpf = '主胜';
-    else if (homeGoals < awayGoals) actualSpf = '客胜';
-    else actualSpf = '平';
-
-    // 推断大小球（以 2.5 盘口为准）
-    const totalGoals = homeGoals + awayGoals;
-    let actualOverunder = '';
-    if (totalGoals > 2) actualOverunder = '大球';
-    else if (totalGoals < 2) actualOverunder = '小球';
-    else actualOverunder = '走';
-
-    const fields = {
-      actualScore: m.score,
-      actualHalfScore: m.halfScore || '',
-      homeGoals: homeGoals,
-      awayGoals: awayGoals,
-      actualSpf: actualSpf,
-      actualOverunder: actualOverunder,
-      handicap: m.handicap !== undefined ? m.handicap : m.rq !== undefined ? m.rq : undefined,
-    };
-
-    const info = {
-      mid: mid,
-      num: m.num || '',
-      match: (m.homeName || '?') + ' vs ' + (m.visitName || '?'),
-      score: m.score,
-      spf: actualSpf,
-      ou: actualOverunder,
-    };
-
-    if (dryRun) {
-      details.push(info);
-      updated++;
-    } else {
-      try {
-        // ★ P1-2: 赛果回填
-        predictionLog.backfillResult(mid, fields);
-        // ★ P1-2: 同时补写 AI 预测（如果 ai_cache 有数据）
-        const aiFields = extractAIPrediction(mid, m);
-        if (aiFields) {
-          try {
-            predictionLog.upsertAI(mid, aiFields);
-            aiWritten++;
-          } catch (e) {}
+        // 跳过没有比分的比赛
+        if (!m.score || !m.score.trim() || m.score === '-') {
+          skipped++;
+          continue;
         }
-        // ★ P1-2: 同时补写 GS 预测（如果功守道缓存有数据）
-        const gsFields = extractGSPrediction(mid, m);
-        if (gsFields) {
-          try {
-            predictionLog.upsertGS(mid.replace(/^m_/, ''), gsFields);
-            gsWritten++;
-          } catch (e) {}
+
+        const mid = String(m.matchId);
+        const scoreStr = m.score.replace('-', ':');
+        const parts = scoreStr.split(':');
+        const homeGoals = parseInt(parts[0]);
+        const awayGoals = parseInt(parts[1]);
+
+        if (isNaN(homeGoals) || isNaN(awayGoals)) {
+          skipped++;
+          continue;
         }
-        updated++;
-        details.push(info);
-      } catch (e) {
-        errors++;
-        console.error('  ✗ ' + mid + ' 写入失败: ' + e.message);
+
+        // 推断胜平负
+        let actualSpf = '';
+        if (homeGoals > awayGoals) actualSpf = '主胜';
+        else if (homeGoals < awayGoals) actualSpf = '客胜';
+        else actualSpf = '平';
+
+        // 推断大小球（以 2.5 盘口为准）
+        const totalGoals = homeGoals + awayGoals;
+        let actualOverunder = '';
+        if (totalGoals > 2) actualOverunder = '大球';
+        else if (totalGoals < 2) actualOverunder = '小球';
+        else actualOverunder = '走';
+
+        const fields = {
+          actualScore: m.score,
+          actualHalfScore: m.halfScore || '',
+          homeGoals: homeGoals,
+          awayGoals: awayGoals,
+          actualSpf: actualSpf,
+          actualOverunder: actualOverunder,
+          handicap: m.handicap !== undefined ? m.handicap : m.rq !== undefined ? m.rq : undefined,
+        };
+
+        try {
+          predictionLog.backfillResult(mid, fields);
+          const aiFields = extractAIPrediction(mid, m);
+          if (aiFields) {
+            try { predictionLog.upsertAI(mid, aiFields); aiWritten++; } catch (e) {}
+          }
+          const gsFields = extractGSPrediction(mid, m);
+          if (gsFields) {
+            try { predictionLog.upsertGS(mid.replace(/^m_/, ''), gsFields); gsWritten++; } catch (e) {}
+          }
+          updated++;
+        } catch (e) {
+          errors++;
+          console.error('  ✗ ' + mid + ' 写入失败: ' + e.message);
+        }
+      }
+    })();
+  } else {
+    // 非事务模式（dry run 或适配器不支持事务）
+    for (const k of allKeys) {
+      const m = matchMap[k];
+      if (!m || !m.matchId) continue;
+
+      total++;
+
+      if (m.matchStatus < 2 && !(m.score && m.score.trim() && m.score !== '-')) { skipped++; continue; }
+      if (!m.score || !m.score.trim() || m.score === '-') { skipped++; continue; }
+
+      const mid = String(m.matchId);
+      const scoreStr = m.score.replace('-', ':');
+      const parts = scoreStr.split(':');
+      const homeGoals = parseInt(parts[0]);
+      const awayGoals = parseInt(parts[1]);
+
+      if (isNaN(homeGoals) || isNaN(awayGoals)) { skipped++; continue; }
+
+      let actualSpf = '';
+      if (homeGoals > awayGoals) actualSpf = '主胜';
+      else if (homeGoals < awayGoals) actualSpf = '客胜';
+      else actualSpf = '平';
+
+      const totalGoals = homeGoals + awayGoals;
+      let actualOverunder = '';
+      if (totalGoals > 2) actualOverunder = '大球';
+      else if (totalGoals < 2) actualOverunder = '小球';
+      else actualOverunder = '走';
+
+      const fields = {
+        actualScore: m.score, actualHalfScore: m.halfScore || '',
+        homeGoals: homeGoals, awayGoals: awayGoals,
+        actualSpf: actualSpf, actualOverunder: actualOverunder,
+        handicap: m.handicap !== undefined ? m.handicap : m.rq !== undefined ? m.rq : undefined,
+      };
+      const info = { mid: mid, num: m.num || '', match: (m.homeName || '?') + ' vs ' + (m.visitName || '?'), score: m.score, spf: actualSpf, ou: actualOverunder };
+
+      if (dryRun) {
+        details.push(info); updated++;
+      } else {
+        try {
+          predictionLog.backfillResult(mid, fields);
+          const aiFields = extractAIPrediction(mid, m);
+          if (aiFields) { try { predictionLog.upsertAI(mid, aiFields); aiWritten++; } catch (e) {} }
+          const gsFields = extractGSPrediction(mid, m);
+          if (gsFields) { try { predictionLog.upsertGS(mid.replace(/^m_/, ''), gsFields); gsWritten++; } catch (e) {} }
+          updated++; details.push(info);
+        } catch (e) { errors++; console.error('  ✗ ' + mid + ' 写入失败: ' + e.message); }
       }
     }
   }

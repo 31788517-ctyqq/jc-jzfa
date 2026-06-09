@@ -264,6 +264,8 @@ function _createSqlJsAdapter(sqlDb) {
       const data = dbInstance.export();
       const buffer = Buffer.from(data);
       const tmpFile = DB_FILE + '.tmp';
+      // ★ 写入前清理旧 .tmp，避免重叠写导致读回 0 字节
+      try { fs.unlinkSync(tmpFile); } catch (_) {}
       fs.writeFileSync(tmpFile, buffer);
       // 写入后校验完整性
       const written = fs.readFileSync(tmpFile);
