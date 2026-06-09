@@ -984,6 +984,7 @@ function updateSessionStore() {
 var _boStrategy = 'balanced'; // balanced | hot | cold
 var _boRows = []; // [{ pickId, playType, direction, matchLabel, odds, handicap, betCount }]
 var _boBaseAmount = 0;
+var _boPlanAmount = 500; // 计划购买金额（元）
 
 window.showBonusOptimize = function () {
   var bets = calcBets(
@@ -1025,6 +1026,7 @@ window.showBonusOptimize = function () {
   }
 
   _boStrategy = 'balanced';
+  _boPlanAmount = _boBaseAmount || 500;
   applyStrategy();
 
   // 弹窗容器
@@ -1213,9 +1215,49 @@ function renderBonusOpt() {
     '<div class="bo-tbody">' +
     rowsHtml +
     '</div>' +
+    '<div class="bo-plan-purchase">' +
+    '<span class="bo-plan-label">计划购买</span>' +
+    '<div class="bo-plan-stepper">' +
+    '<button class="bo-plan-btn" onclick="boPlanStep(-10)">-</button>' +
+    '<input class="bo-plan-input" id="boPlanInput" value="' + _boPlanAmount + '" onchange="boPlanInput(this.value)">' +
+    '<button class="bo-plan-btn" onclick="boPlanStep(10)">+</button>' +
+    '</div>' +
+    '<span class="bo-plan-unit">元</span>' +
+    '</div>' +
+    '<div class="bo-plan-summary">共<b>' + _boPlanAmount + '</b>元  预计奖金:<span class="bo-plan-prize">' + calcPlanPrizeRange() + '</span></div>' +
     '<div class="bo-footer"><button class="bet-btn-confirm" onclick="closeBonusOpt()">确认</button></div>' +
     '</div></div>';
 }
+
+function calcPlanPrizeRange() {
+  if (!_boRows.length) return '-';
+  var minP = Infinity, maxP = -Infinity;
+  _boRows.forEach(function (r) {
+    if (r.projected < minP) minP = r.projected;
+    if (r.projected > maxP) maxP = r.projected;
+  });
+  if (minP === Infinity) return '-';
+  return minP.toFixed(2) + '~' + maxP.toFixed(2) + '元';
+}
+
+function updateBoPlanSummary() {
+  var summary = document.querySelector('#bonusOptOverlay .bo-plan-summary');
+  if (summary) {
+    summary.innerHTML = '共<b>' + _boPlanAmount + '</b>元  预计奖金:<span class="bo-plan-prize">' + calcPlanPrizeRange() + '</span>';
+  }
+}
+
+window.boPlanStep = function (delta) {
+  _boPlanAmount = Math.max(0, _boPlanAmount + delta);
+  var inp = document.getElementById('boPlanInput');
+  if (inp) inp.value = _boPlanAmount;
+  updateBoPlanSummary();
+};
+
+window.boPlanInput = function (val) {
+  _boPlanAmount = Math.max(0, parseInt(val) || 0);
+  updateBoPlanSummary();
+};
 
 window.boSwitchTab = function (tab) {
   _boStrategy = tab;
@@ -1300,6 +1342,8 @@ window.boSwitchTab = function (tab) {
 
   var tbody = overlay.querySelector('.bo-tbody');
   if (tbody) tbody.innerHTML = rowsHtml;
+  // 更新计划购买摘要（切换策略后预测奖金会变）
+  updateBoPlanSummary();
 };
 
 window.boStep = function (idx, delta) {
