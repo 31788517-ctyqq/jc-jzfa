@@ -5765,7 +5765,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         case 'model-dashboard': {
           try {
             const isAllMd = data.days === 0 || data.days === '0' || data.days === 'all';
-            const days = isAllMd ? 365 : parseInt(data.days) || 30;
+            const days = isAllMd ? 3650 : parseInt(data.days) || 30; // 全部=3650天(10年)覆盖2024-2026
             const db = database.getAdapter();
             if (!db) return res.json({ code: 0, msg: '数据库不可用' });
 
