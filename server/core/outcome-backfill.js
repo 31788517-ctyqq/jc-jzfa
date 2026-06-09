@@ -235,17 +235,50 @@ class OutcomeBackfill {
         ORDER BY dir_rate DESC
       `);
 
-      return rows
+      // ★ V9.5: 模型名归一化映射，合并 expert_consensus → 专家共识
+      const NAME_NORMALIZE = {
+        'expert_consensus': '专家共识',
+      };
+
+      // 先归一化，再按模型名聚合
+      const merged = {};
+      rows
         .filter((r) => includeInternal || !isInternalModelName(r.model_name))
-        .map((r) => ({
-          modelName: r.model_name,
-          modelVersion: r.model_version,
-          total: r.total,
-          directionHits: r.dir_hits,
-          directionRate: r.dir_rate,
-          overUnderRate: r.ou_rate,
-          scoreRate: r.score_rate,
-        }));
+        .forEach((r) => {
+          const normalized = NAME_NORMALIZE[r.model_name] || r.model_name;
+          if (!merged[normalized]) {
+            merged[normalized] = {
+              modelName: normalized,
+              modelVersion: r.model_version,
+              total: 0,
+              dirHits: 0,
+              ouHits: 0,
+              scoreHits: 0,
+              totalDir: 0,
+              totalOu: 0,
+              totalScore: 0,
+            };
+          }
+          const m = merged[normalized];
+          m.total += r.total;
+          m.dirHits += r.dir_hits;
+          m.ouHits += r.ou_hits;
+          m.scoreHits += r.score_hits;
+          // track denominator per metric for accurate rate
+          m.totalDir += r.total;
+          m.totalOu += r.total;
+          m.totalScore += r.total;
+        });
+
+      return Object.values(merged).map((m) => ({
+        modelName: m.modelName,
+        modelVersion: m.modelVersion,
+        total: m.total,
+        directionHits: m.dirHits,
+        directionRate: m.totalDir > 0 ? parseFloat((m.dirHits * 100 / m.totalDir).toFixed(1)) : 0,
+        overUnderRate: m.totalOu > 0 ? parseFloat((m.ouHits * 100 / m.totalOu).toFixed(1)) : 0,
+        scoreRate: m.totalScore > 0 ? parseFloat((m.scoreHits * 100 / m.totalScore).toFixed(1)) : 0,
+      }));
     } catch (e) {
       console.error('[OutcomeBackfill] getModelHitRates 失败:', e.message);
       return [];
