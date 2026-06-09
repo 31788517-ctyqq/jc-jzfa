@@ -721,22 +721,18 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 list.forEach(function (m) {
                   var ls = _lsCache[m.num] || _lsCache[String(m.matchId)];
                   if (ls && ls.matchStatus !== undefined) {
-                    // ★ 推断进度：有比分/时长但 matchStatus=0 → 推断为进行中
-                    var inferredStatus = ls.matchStatus;
-                    if (inferredStatus === 0) {
-                      var hasLiveScore = (ls.score && ls.score !== '-' && ls.score !== '') || (ls.duration && ls.duration !== '');
-                      var hasHalfScore = ls.halfScore && ls.halfScore !== '';
-                      if (hasLiveScore) inferredStatus = 1;
-                      if (ls.matchStatus >= 2) inferredStatus = 2;
+                    // ★ 只使用可靠的 matchStatus: 500.com 明确标记"中"(1) 或有时长
+                    var reliableLive = ls.matchStatus === 1 && ls.duration && ls.duration !== '';
+                    if (reliableLive) {
+                      m.matchStatus = 1;
+                      m.duration = ls.duration || '';
+                      m.score = ls.score || m.score || '';
+                      m.halfScore = ls.halfScore || m.halfScore || '';
+                      m.homeScore = ls.homeScore !== undefined ? ls.homeScore : m.homeScore;
+                      m.visitScore = ls.visitScore !== undefined ? ls.visitScore : m.visitScore;
+                      m.yellow = ls.yellow || m.yellow || '';
+                      m.red = ls.red || m.red || '';
                     }
-                    m.matchStatus = inferredStatus;
-                    m.duration = ls.duration || '';
-                    m.score = ls.score || m.score || '';
-                    m.halfScore = ls.halfScore || m.halfScore || '';
-                    m.homeScore = ls.homeScore !== undefined ? ls.homeScore : m.homeScore;
-                    m.visitScore = ls.visitScore !== undefined ? ls.visitScore : m.visitScore;
-                    m.yellow = ls.yellow || m.yellow || '';
-                    m.red = ls.red || m.red || '';
                   }
                 });
               }

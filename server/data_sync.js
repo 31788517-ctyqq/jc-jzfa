@@ -858,8 +858,10 @@ function syncLiveToData(liveMatches) {
         old = data.m[key];
       }
       if (old) {
+        // ★ 已完赛的比赛不因 matchStatus=0 而回退
+        var liveStatus = (old.matchStatus >= 2 && lm.matchStatus === 0) ? old.matchStatus : lm.matchStatus;
         if (
-          old.matchStatus !== lm.matchStatus ||
+          old.matchStatus !== liveStatus ||
           old.score !== lm.score ||
           old.duration !== lm.duration ||
           old.yellow !== lm.yellow ||
@@ -869,7 +871,7 @@ function syncLiveToData(liveMatches) {
         ) {
           updated++;
           data.m[key] = Object.assign({}, old, {
-            matchStatus: lm.matchStatus,
+            matchStatus: liveStatus,
             score: lm.score,
             halfScore: lm.halfScore,
             duration: lm.duration,

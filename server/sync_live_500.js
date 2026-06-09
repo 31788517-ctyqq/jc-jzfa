@@ -231,6 +231,8 @@ function syncToDataJson(liveMatches, dateStr) {
 
     for (const [field, val] of Object.entries(fields)) {
       if (val !== undefined && val !== null && val !== '' && String(old[field]) !== String(val)) {
+        // ★ 已完赛的比赛不因 matchStatus=0 而回退
+        if (field === 'matchStatus' && old.matchStatus >= 2 && val === 0) continue;
         old[field] = val;
         changed = true;
       }
