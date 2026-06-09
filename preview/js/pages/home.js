@@ -101,9 +101,11 @@ export function loadHome() {
       maxRankMetaEl.textContent = topLabel && topDirection ? topLabel + '@' + topDirection : topLabel || '-';
     }
 
-    // 最热场次（专家推荐数最多的比赛场次标签，显示该比赛所有方向推荐专家总数）
+    // 最热场次（按该场比赛所有方向推荐专家总数排序，取总数最多的）
     var hottest = ranking.reduce(function (best, item) {
-      if (!best || (item.expertCount || 0) > (best.expertCount || 0)) return item;
+      var bestTotal = best ? (best.totalExpertCount || best.expertCount || 0) : 0;
+      var itemTotal = item.totalExpertCount || item.expertCount || 0;
+      if (!best || itemTotal > bestTotal) return item;
       return best;
     }, null);
     var hmEl = document.getElementById('homeHottest');
