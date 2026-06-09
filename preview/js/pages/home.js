@@ -123,16 +123,21 @@ export function loadHome() {
 
 // ═══ 近7日推荐盈利 SVG 折线图 ═══
 function loadHomeProfitChart() {
+  var skel = document.getElementById('profitSkeleton');
+  if (skel) skel.style.display = 'block';
   api('daily-profit-7d', { days: 7 }).then(function (data) {
-    if (!data || !data.dates || !data.profits || data.dates.length === 0) return;
+    if (!data || !data.dates || !data.profits || data.dates.length === 0) { hideSkel(); return; }
     var dates = data.dates.slice(0, 7),
       profits = data.profits.slice(0, 7).map(function (v) { return v === null ? 0 : v; });
-    // ★ 补齐到 7 天：不足 7 天时在前方补空
     while (dates.length < 7) { dates.unshift('--'); profits.unshift(0); }
     var section = document.getElementById('homeProfitChartSection');
     if (section) section.style.display = 'block';
+    hideSkel();
     renderProfitChartNative(dates, profits);
-  }).catch(function () {});
+    var card = section && section.querySelector('.profit-card');
+    if (card) { card.classList.remove('chart-anim-in'); void card.offsetWidth; card.classList.add('chart-anim-in'); }
+  }).catch(function () { hideSkel(); });
+  function hideSkel() { var s = document.getElementById('profitSkeleton'); if (s) s.style.display = 'none'; }
 }
 
 function renderProfitChartNative(dates, profits) {
