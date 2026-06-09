@@ -249,7 +249,12 @@ function renderProfitChartNative(dates, profits) {
       var vy = toY(profits[i]), vx = xs[i];
       var xP = ((vx / svgW) * 100).toFixed(2);
       var yOff = yOffs[i];
-      var yP = (((vy + yOff) / svgH) * 100).toFixed(2);
+      // 边界感知：标签靠近上下边界时反转偏移方向
+      var rawTop = ((vy + yOff) / svgH) * 100;
+      if (rawTop < 4) { yOff = Math.abs(yOff); }
+      else if (rawTop > 92) { yOff = -Math.abs(yOff); }
+      var yP = (((vy + yOff) / svgH) * 100);
+      yP = Math.max(3, Math.min(94, yP)).toFixed(2);
       var c = profits[i] >= 0 ? 'win' : 'loss';
       tHtml += '<div class="profit-tag ' + c + '" style="left:' + xP + '%;top:' + yP + '%">'
         + (profits[i] >= 0 ? '+' : '') + profits[i].toFixed(0) + '</div>';
@@ -257,11 +262,18 @@ function renderProfitChartNative(dates, profits) {
     tagsEl.innerHTML = tHtml;
   }
 
-  // ── 7. X 轴日期 ──
+  // ── 7. X 轴日期（n>5 时隔一个显示，避免拥挤） ──
   var xEl = document.getElementById('profitXaxis');
   if (xEl) {
     var dHtml = '';
-    for (var i = 0; i < n; i++) dHtml += '<span>' + (dates[i] || '') + '</span>';
+    var showStep = n > 5 ? 2 : 1;
+    for (var i = 0; i < n; i += showStep) {
+      dHtml += '<span>' + (dates[i] || '') + '</span>';
+    }
+    // 确保最后一个日期始终显示
+    if (showStep > 1 && (n - 1) % showStep !== 0) {
+      dHtml += '<span>' + (dates[n - 1] || '') + '</span>';
+    }
     xEl.innerHTML = dHtml;
   }
 

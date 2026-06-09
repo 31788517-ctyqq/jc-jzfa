@@ -184,6 +184,9 @@ function initTable() {
       ['gs_modelA_total', 'REAL'],
       ['gs_modelB_total', 'REAL'],
       ['gs_modelC_total', 'REAL'],
+      ['pk_scorer_version', 'TEXT'],
+      ['experiment_id', 'TEXT'],
+      ['experiment_group', 'TEXT'],
     ].forEach(function (item) {
       _addColumnIfMissing(adp, columns, 'prediction_logs', item[0], item[1]);
     });
@@ -272,6 +275,10 @@ function upsertPK(matchId, fields) {
   if (fields.valueScore !== undefined) data.pk_value_score = fields.valueScore;
   if (fields.heatZScore !== undefined && fields.heatZScore !== null) data.pk_heat_zscore = fields.heatZScore;
   if (fields.heatZOverheat !== undefined) data.pk_heat_z_overheat = fields.heatZOverheat;
+  // ★ 版本追踪字段
+  if (fields.pkScorerVersion) data.pk_scorer_version = fields.pkScorerVersion;
+  if (fields.experimentId) data.experiment_id = fields.experimentId;
+  if (fields.experimentGroup) data.experiment_group = fields.experimentGroup;
   return upsert(data);
 }
 
@@ -330,6 +337,127 @@ function backfillResult(matchId, fields) {
   if (fields.handicap !== undefined) data.handicap = fields.handicap;
   data.actual_corrected_at = new Date().toISOString();
   return upsert(data);
+}
+
+// ★ 复合方向命中判断辅助函数（模块级 — queryBacktest 和 queryPKVersionCompare 共享）
+// 支持 "平、让平" / "胜/平双选" / "总进球-2、3球" / "半全场-平负/平胜/平平" 等复合方向
+// 支持无分隔符双选 "胜平" / "平负"：任一命中即算赢
+function _checkDirectionHit(direction, actSpf, row) {
+  if (!direction) return false;
+
+  // 提前解析比分数据（供后续所有分支使用）
+  var hg = row.actual_home_goals;
+  var ag = row.actual_away_goals;
+  var totalGoals = hg != null && ag != null && !isNaN(hg) && !isNaN(ag) ? hg + ag : null;
+
+  // ── 无分隔符双选 "胜平" / "平负" ──
+  if (direction === '胜平' && actSpf) return actSpf === '主胜' || actSpf === '平';
+  if (direction === '平负' && actSpf) return actSpf === '平' || actSpf === '客胜';
+
+  // ── 半全场方向（"半全场-平负、平胜、平平"） ──
+  var hfResult = _getHalfFullResult(row.actual_half_score, hg, ag);
+  if (direction.indexOf('半全场-') === 0) {
+    // 复合半全场（如 "半全场-平负、平胜、平平"）
+    if (direction.indexOf('、') >= 0 || direction.indexOf(',') >= 0) {
+      var hfParts = direction.split(/[、,]/);
+      for (var hfi = 0; hfi < hfParts.length; hfi++) {
+        var hfSub = hfParts[hfi].trim();
+        if (_matchHalfFullPattern(hfSub, hfResult)) return true;
+      }
+      return false;
+    }
+    // 单一半全场（如 "半全场-平负"）
+    return _matchHalfFullPattern(direction, hfResult);
+  }
+
+  // ── 复合方向（含 、 / , 分隔符） ──
+  const hasSep = direction.indexOf('、') >= 0 || direction.indexOf('/') >= 0 || direction.indexOf(',') >= 0;
+  const subParts = hasSep
+    ? direction
+        .split(/[、\/,]/)
+        .map(function (s) {
+          return s.trim();
+        })
+        .filter(Boolean)
+    : [direction];
+  for (var si = 0; si < subParts.length; si++) {
+    var sub = subParts[si];
+    if (!sub) continue;
+    // ── SPF 方向 ──
+    if (actSpf) {
+      // 直接 SPF 匹配
+      if (sub === actSpf) return true;
+      // 胜→主胜 / 负→客胜 映射（兼容 PK 双选："胜/平双选"）
+      if (sub === '胜' && actSpf === '主胜') return true;
+      if (sub === '负' && actSpf === '客胜') return true;
+      // 无分隔符双选："胜平" / "平负" 简化
+      if (sub === '胜平') {
+        if (actSpf === '主胜' || actSpf === '平') return true;
+      }
+      if (sub === '平负') {
+        if (actSpf === '平' || actSpf === '客胜') return true;
+      }
+      // 让球方向（让平/让胜/让负）：用让球数计算有效比分
+      if (sub === '让平' || sub === '让胜' || sub === '让负') {
+        var hcp = row.handicap != null ? parseFloat(row.handicap) || 0 : 0;
+        if (hg != null && ag != null && !isNaN(hg) && !isNaN(ag)) {
+          var effective = hg + hcp;
+          if (sub === '让平' && effective === ag) return true;
+          if (sub === '让胜' && effective > ag) return true;
+          if (sub === '让负' && effective < ag) return true;
+        }
+      }
+    }
+    // ── 总进球方向（"总进球-2" / "3球"） ──
+    if (totalGoals != null) {
+      var gm = sub.match(/^总进球-(\d+)/);
+      if (gm) {
+        if (totalGoals === parseInt(gm[1])) return true;
+      }
+      var sgm = sub.match(/^(\d+)球$/);
+      if (sgm) {
+        if (totalGoals === parseInt(sgm[1])) return true;
+      }
+    }
+  }
+  return false;
+}
+
+// ★ 辅: 解析半场比分得到半全场结果（主胜/平/客胜）
+function _getHalfFullResult(halfScore, hg, ag) {
+  var halfResult = null;
+  if (halfScore && halfScore.trim()) {
+    var hp = String(halfScore).replace(/[-:]/g, ':').split(':');
+    var hh = parseInt(hp[0]),
+      ha = parseInt(hp[1]);
+    if (!isNaN(hh) && !isNaN(ha)) {
+      halfResult = hh > ha ? '主胜' : hh < ha ? '客胜' : '平';
+    }
+  }
+  var fullResult = null;
+  if (hg != null && ag != null && !isNaN(hg) && !isNaN(ag)) {
+    fullResult = hg > ag ? '主胜' : hg < ag ? '客胜' : '平';
+  }
+  return { half: halfResult, full: fullResult };
+}
+
+// ★ 辅: 匹配半全场模式（如 "半全场-平负" → 半场平+全场客胜）
+function _matchHalfFullPattern(direction, hfResult) {
+  var pm = direction.match(/^半全场-(.+)$/);
+  if (!pm || !hfResult.half || !hfResult.full) return false;
+  var pat = pm[1]; // 如 "平负"、"平平"、"平胜"
+  if (pat.length < 2) return false;
+  var halfChar = pat[0]; // 第一个字=半场
+  var fullChar = pat[1]; // 第二个字=全场
+  var halfOk =
+    (halfChar === '胜' && hfResult.half === '主胜') ||
+    (halfChar === '平' && hfResult.half === '平') ||
+    (halfChar === '负' && hfResult.half === '客胜');
+  var fullOk =
+    (fullChar === '胜' && hfResult.full === '主胜') ||
+    (fullChar === '平' && hfResult.full === '平') ||
+    (fullChar === '负' && hfResult.full === '客胜');
+  return halfOk && fullOk;
 }
 
 // ═══ 回测查询 ═══
@@ -398,127 +526,6 @@ function queryBacktest(filters) {
 
   const where = conditions.length > 0 ? ' WHERE ' + conditions.join(' AND ') : '';
   const list = _queryAll('SELECT * FROM prediction_logs' + where + ' ORDER BY date DESC, matchNum ASC', params);
-
-  // ★ 复合方向命中判断辅助函数
-  // 支持 "平、让平" / "胜/平双选" / "总进球-2、3球" / "半全场-平负/平胜/平平" 等复合方向
-  // 支持无分隔符双选 "胜平" / "平负"：任一命中即算赢
-  function _checkDirectionHit(direction, actSpf, row) {
-    if (!direction) return false;
-
-    // 提前解析比分数据（供后续所有分支使用）
-    var hg = row.actual_home_goals;
-    var ag = row.actual_away_goals;
-    var totalGoals = hg != null && ag != null && !isNaN(hg) && !isNaN(ag) ? hg + ag : null;
-
-    // ── 无分隔符双选 "胜平" / "平负" ──
-    if (direction === '胜平' && actSpf) return actSpf === '主胜' || actSpf === '平';
-    if (direction === '平负' && actSpf) return actSpf === '平' || actSpf === '客胜';
-
-    // ── 半全场方向（"半全场-平负、平胜、平平"） ──
-    var hfResult = _getHalfFullResult(row.actual_half_score, hg, ag);
-    if (direction.indexOf('半全场-') === 0) {
-      // 复合半全场（如 "半全场-平负、平胜、平平"）
-      if (direction.indexOf('、') >= 0 || direction.indexOf(',') >= 0) {
-        var hfParts = direction.split(/[、,]/);
-        for (var hfi = 0; hfi < hfParts.length; hfi++) {
-          var hfSub = hfParts[hfi].trim();
-          if (_matchHalfFullPattern(hfSub, hfResult)) return true;
-        }
-        return false;
-      }
-      // 单一半全场（如 "半全场-平负"）
-      return _matchHalfFullPattern(direction, hfResult);
-    }
-
-    // ── 复合方向（含 、 / , 分隔符） ──
-    const hasSep = direction.indexOf('、') >= 0 || direction.indexOf('/') >= 0 || direction.indexOf(',') >= 0;
-    const subParts = hasSep
-      ? direction
-          .split(/[、\/,]/)
-          .map(function (s) {
-            return s.trim();
-          })
-          .filter(Boolean)
-      : [direction];
-    for (var si = 0; si < subParts.length; si++) {
-      var sub = subParts[si];
-      if (!sub) continue;
-      // ── SPF 方向 ──
-      if (actSpf) {
-        // 直接 SPF 匹配
-        if (sub === actSpf) return true;
-        // 胜→主胜 / 负→客胜 映射（兼容 PK 双选："胜/平双选"）
-        if (sub === '胜' && actSpf === '主胜') return true;
-        if (sub === '负' && actSpf === '客胜') return true;
-        // 无分隔符双选："胜平" / "平负" 简化
-        if (sub === '胜平') {
-          if (actSpf === '主胜' || actSpf === '平') return true;
-        }
-        if (sub === '平负') {
-          if (actSpf === '平' || actSpf === '客胜') return true;
-        }
-        // 让球方向（让平/让胜/让负）：用让球数计算有效比分
-        if (sub === '让平' || sub === '让胜' || sub === '让负') {
-          var hcp = row.handicap != null ? parseFloat(row.handicap) || 0 : 0;
-          if (hg != null && ag != null && !isNaN(hg) && !isNaN(ag)) {
-            var effective = hg + hcp;
-            if (sub === '让平' && effective === ag) return true;
-            if (sub === '让胜' && effective > ag) return true;
-            if (sub === '让负' && effective < ag) return true;
-          }
-        }
-      }
-      // ── 总进球方向（"总进球-2" / "3球"） ──
-      if (totalGoals != null) {
-        var gm = sub.match(/^总进球-(\d+)/);
-        if (gm) {
-          if (totalGoals === parseInt(gm[1])) return true;
-        }
-        var sgm = sub.match(/^(\d+)球$/);
-        if (sgm) {
-          if (totalGoals === parseInt(sgm[1])) return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  // ★ 辅: 解析半场比分得到半全场结果（主胜/平/客胜）
-  function _getHalfFullResult(halfScore, hg, ag) {
-    var halfResult = null;
-    if (halfScore && halfScore.trim()) {
-      var hp = String(halfScore).replace(/[-:]/g, ':').split(':');
-      var hh = parseInt(hp[0]),
-        ha = parseInt(hp[1]);
-      if (!isNaN(hh) && !isNaN(ha)) {
-        halfResult = hh > ha ? '主胜' : hh < ha ? '客胜' : '平';
-      }
-    }
-    var fullResult = null;
-    if (hg != null && ag != null && !isNaN(hg) && !isNaN(ag)) {
-      fullResult = hg > ag ? '主胜' : hg < ag ? '客胜' : '平';
-    }
-    return { half: halfResult, full: fullResult };
-  }
-
-  // ★ 辅: 匹配半全场模式（如 "半全场-平负" → 半场平+全场客胜）
-  function _matchHalfFullPattern(direction, hfResult) {
-    var pm = direction.match(/^半全场-(.+)$/);
-    if (!pm || !hfResult.half || !hfResult.full) return false;
-    var pat = pm[1]; // 如 "平负"、"平平"、"平胜"
-    if (pat.length < 2) return false;
-    var halfChar = pat[0]; // 第一个字=半场
-    var fullChar = pat[1]; // 第二个字=全场
-    var halfOk =
-      (halfChar === '胜' && hfResult.half === '主胜') ||
-      (halfChar === '平' && hfResult.half === '平') ||
-      (halfChar === '负' && hfResult.half === '客胜');
-    var fullOk =
-      (fullChar === '胜' && hfResult.full === '主胜') ||
-      (fullChar === '平' && hfResult.full === '平') ||
-      (fullChar === '负' && hfResult.full === '客胜');
-    return halfOk && fullOk;
-  }
 
   // 计算命中
   list.forEach(function (row) {
@@ -956,7 +963,134 @@ function getModels() {
   });
 }
 
-// 初始化
+// ═══ PK 版本对比查询 ═══
+function queryPKVersionCompare(filters) {
+  filters = filters || {};
+  const versions = Array.isArray(filters.versions) && filters.versions.length > 0 ? filters.versions : [];
+  if (versions.length === 0) {
+    // 自动发现所有有数据的版本
+    const avail = _queryAll(
+      "SELECT DISTINCT pk_scorer_version FROM prediction_logs WHERE pk_scorer_version IS NOT NULL AND pk_scorer_version != '' ORDER BY pk_scorer_version",
+    );
+    return { versions: (avail || []).map(function (r) { return r.pk_scorer_version; }), stats: {} };
+  }
+
+  const results = [];
+  const statsByVersion = {};
+
+  versions.forEach(function (ver) {
+    const conditions = [
+      "actual_score IS NOT NULL AND actual_score != ''",
+      'pk_scorer_version = ?',
+    ];
+    const params = [ver];
+
+    if (filters.dateRange && filters.dateRange !== 'all') {
+      const days = filters.dateRange === '7d' ? 7 : filters.dateRange === '30d' ? 30 : filters.dateRange === '60d' ? 60 : filters.dateRange === '90d' ? 90 : parseInt(filters.dateRange) || 30;
+      const since = new Date();
+      since.setDate(since.getDate() - days);
+      conditions.push('date >= ?');
+      params.push(since.toISOString().slice(0, 10));
+    }
+    if (filters.league && filters.league !== 'all') {
+      conditions.push('leagueName = ?');
+      params.push(filters.league);
+    }
+
+    const where = ' WHERE ' + conditions.join(' AND ');
+    const list = _queryAll('SELECT * FROM prediction_logs' + where, params) || [];
+
+    const total = list.length;
+    const hits = list.filter(function (r) { return _checkDirectionHit(r.pk_direction, r.actual_spf || '', r); }).length;
+    const goalTotal = list.filter(function (r) { return r.pk_goal_direction; }).length;
+    const goalHits = list.filter(function (r) { return r.pk_goal_direction && r.actual_overunder && r.pk_goal_direction === r.actual_overunder; }).length;
+    const avgScore = total > 0 ? parseFloat((list.reduce(function (s, r) { return s + (parseFloat(r.pk_composite_score) || 0); }, 0) / total).toFixed(1)) : 0;
+
+    // 按联赛细分
+    const leagueMap = {};
+    list.forEach(function (r) {
+      const lg = r.leagueName || '未知';
+      if (!leagueMap[lg]) leagueMap[lg] = { total: 0, hits: 0 };
+      leagueMap[lg].total++;
+      if (_checkDirectionHit(r.pk_direction, r.actual_spf || '', r)) leagueMap[lg].hits++;
+    });
+    const byLeague = Object.keys(leagueMap).map(function (lg) {
+      return {
+        league: lg,
+        total: leagueMap[lg].total,
+        accuracy: leagueMap[lg].total > 0 ? parseFloat((leagueMap[lg].hits / leagueMap[lg].total).toFixed(4)) : 0,
+      };
+    }).sort(function (a, b) { return b.total - a.total; });
+
+    // 按星级细分
+    const starsMap = {};
+    list.forEach(function (r) {
+      const s = r.pk_direction_stars;
+      if (s === undefined || s === null || s === 0) return;
+      if (!starsMap[s]) starsMap[s] = { total: 0, hits: 0 };
+      starsMap[s].total++;
+      if (_checkDirectionHit(r.pk_direction, r.actual_spf || '', r)) starsMap[s].hits++;
+    });
+    const byStars = Object.keys(starsMap).sort(function (a, b) { return parseInt(b) - parseInt(a); }).map(function (s) {
+      return {
+        stars: parseInt(s),
+        total: starsMap[s].total,
+        accuracy: starsMap[s].total > 0 ? parseFloat((starsMap[s].hits / starsMap[s].total).toFixed(4)) : 0,
+      };
+    });
+
+    statsByVersion[ver] = {
+      total: total,
+      hits: hits,
+      hitRate: total > 0 ? parseFloat((hits / total).toFixed(4)) : 0,
+      goalTotal: goalTotal,
+      goalHits: goalHits,
+      goalHitRate: goalTotal > 0 ? parseFloat((goalHits / goalTotal).toFixed(4)) : 0,
+      avgCompositeScore: avgScore,
+      byLeague: byLeague,
+      byStars: byStars,
+      samples: list.slice(0, 100).map(function (r) {
+        return {
+          matchId: r.matchId,
+          date: r.date,
+          homeName: r.homeName,
+          visitName: r.visitName,
+          leagueName: r.leagueName,
+          direction: r.pk_direction,
+          stars: r.pk_direction_stars,
+          score: r.pk_composite_score,
+          actual: r.actual_spf,
+          hit: _checkDirectionHit(r.pk_direction, r.actual_spf || '', r),
+        };
+      }),
+    };
+  });
+
+  // 汇总对比
+  const comparison = [];
+  Object.keys(statsByVersion).forEach(function (ver) {
+    comparison.push({ version: ver, stats: statsByVersion[ver] });
+  });
+
+  // 版本间差异分析
+  var diffData = null;
+  if (comparison.length >= 2) {
+    diffData = {};
+    for (var ci = 1; ci < comparison.length; ci++) {
+      var prev = comparison[ci - 1].stats;
+      var curr = comparison[ci].stats;
+      diffData[comparison[ci].version + '_vs_' + comparison[ci - 1].version] = {
+        hitRateDiff: parseFloat(((curr.hitRate - prev.hitRate) * 100).toFixed(2)) + '%',
+        goalHitRateDiff: parseFloat(((curr.goalHitRate - prev.goalHitRate) * 100).toFixed(2)) + '%',
+        sampleCountDiff: curr.total - prev.total,
+        avgScoreDiff: parseFloat((curr.avgCompositeScore - prev.avgCompositeScore).toFixed(1)),
+        direction: curr.hitRate > prev.hitRate ? (curr.total >= 30 ? '✅ 优化有效' : '⚠️ 样本不足') : (curr.total >= 30 ? '❌ 需要回滚' : '⚠️ 样本不足'),
+      };
+    }
+  }
+
+  return { versions: versions, stats: statsByVersion, comparison: comparison, diff: diffData };
+}
 ensureDatabase().then(function (ready) {
   if (ready) {
     initTable();
@@ -1012,6 +1146,7 @@ module.exports = {
   upsertGSBatch,
   backfillResult,
   queryBacktest,
+  queryPKVersionCompare,
   getLeagues,
   getModels,
   getTotalCount,

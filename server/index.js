@@ -197,10 +197,13 @@ let _quantHotCache = null;
 let _quantHotCacheTime = 0;
 // ★ P1-1: quant-plan-list 响应缓存
 let _quantPlanCache = {};
+let _profit7dCache = null; // ★ P2: daily-profit-7d 响应缓存
+let _profit7dCacheTime = 0;
 const CACHE_TTL_5MIN = 5 * 60 * 1000;
 const CACHE_TTL_10MIN = 10 * 60 * 1000; // ★ P2: 用于 quant-plan-list（计算最密集）
 const MATCH_LIST_CACHE_TTL = 5 * 60 * 1000; // 5 分钟（原 1 分钟，P1 延长减少磁盘 I/O）
 const MATCH_LIST_CACHE_MAX_KEYS = 30; // ★ P2: 最多缓存 30 个日期
+const PROFIT_7D_CACHE_TTL = 10 * 60 * 1000; // 10 分钟（计算密集，命中后复用）
 // 根据 date + num 获取比分赔率，格式转换 "1:0" → "1-0"
 function getScoreOdds(allplays, dateStr, num) {
   if (!allplays || !dateStr || !num) return null;
@@ -617,6 +620,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             const dataFile = getDataJson();
             const mMap = dataFile.m || {};
+            const rMap = dataFile.r || {}; // ★ 用于实时计算 recommNum
 
             // 读取 500.com 赔率数据获取单关标识（缓存内置自动降级）
             const oddsMap = getOddsHistory(dateStr) || {};
@@ -680,7 +684,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               // ★ 让球数：从赔率数据提取
               const concede =
                 fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null ? fiveOdds.rqspf.handicap : null;
-              list.push(Object.assign({}, m, { isSingleGame: isSingleGame, hasGongshoudao: hasGS, concede: concede }));
+              // ★ 从 rMap 实时计算该比赛所有方向的专家数总和，覆盖 data.json 中可能过时的 recommNum
+              const rawRecs = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
+              const actualRecommNum = rawRecs.reduce((s, r) => s + (r.n || r.num || 0), 0);
+              list.push(
+                Object.assign({}, m, {
+                  isSingleGame: isSingleGame,
+                  hasGongshoudao: hasGS,
+                  concede: concede,
+                  recommNum: actualRecommNum || m.recommNum || 0,
+                }),
+              );
             });
 
             // 按比赛编号排序
@@ -715,10 +729,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     const fo = fallbackOdds[m.num || ''] || {};
                     const cgs =
                       gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
+                    const fbRecs = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
+                    const fbRecommNum = fbRecs.reduce((s, r) => s + (r.n || r.num || 0), 0);
                     fallbackList.push(
                       Object.assign({}, m, {
                         isSingleGame: fo && fo.isSingleGame === true,
                         hasGongshoudao: !!(cgs && cgs.attackPattern),
+                        recommNum: fbRecommNum || m.recommNum || 0,
                       }),
                     );
                   });
@@ -1628,6 +1645,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     expertCount: r.num,
                     result: r.result,
                     dirType: classifyDir(r.type),
+                    matchStatus: m.matchStatus || 0,
                   });
                 }
               });
@@ -1888,6 +1906,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           // ★ V9: 近7日专家博热方案盈利统计（调用共享方案生成模块）
           try {
             const days = parseInt(data.days) || 7;
+
+            // ★ P2: 响应级缓存（10 分钟），避免重复同步计算阻塞事件循环
+            const profitCacheKey = 'd' + days;
+            const profitNow = Date.now();
+            if (_profit7dCache && _profit7dCache.key === profitCacheKey && profitNow - _profit7dCacheTime < PROFIT_7D_CACHE_TTL) {
+              return res.json(_profit7dCache.response);
+            }
+
             const fs = require('fs');
             const path = require('path');
             const dataFile = getDataJson();
@@ -1969,7 +1995,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               dateProfits.push(Math.round(dayProfit));
             }
 
-            return res.json({ code: 1, data: { dates: dateLabels, profits: dateProfits } });
+            const profitResponse = { code: 1, data: { dates: dateLabels, profits: dateProfits } };
+            _profit7dCache = { key: profitCacheKey, response: profitResponse };
+            _profit7dCacheTime = profitNow;
+            return res.json(profitResponse);
           } catch (e) {
             logger.error('[daily-profit-7d] ' + e.message);
             return res.json({ code: 0, msg: '获取盈利数据失败: ' + e.message });
@@ -2534,6 +2563,30 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             return res.json({ code: 1, data: { leagues: leagues, total: total } });
           } catch (e) {
             return res.json({ code: 0, msg: e.message });
+          }
+        }
+
+        // ========== PK 版本对比（pk_scorer v1.0 vs v2.0） ==========
+        case 'pk-version-compare': {
+          try {
+            await predictionLog.asyncEnsure();
+            const pk = require('./pk_scorer');
+            const versions = data.versions || [];
+
+            const compareData = predictionLog.queryPKVersionCompare({
+              versions: versions,
+              dateRange: data.dateRange || 'all',
+              league: data.league || 'all',
+            });
+
+            return res.json({
+              code: 1,
+              data: compareData,
+              currentVersion: pk.PK_SCORER_VERSION,
+              msg: compareData.versions && compareData.versions.length > 0 ? '' : '暂无版本对比数据',
+            });
+          } catch (e) {
+            return res.json({ code: 0, msg: 'PK版本对比失败: ' + e.message });
           }
         }
 

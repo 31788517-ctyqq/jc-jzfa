@@ -312,21 +312,31 @@ export function doFilterQuery() {
         html += '<div class="filter-detail-card">';
         html += '<div class="filter-detail-head">按天汇总</div>';
         html +=
-          '<div class="filter-detail-header-row"><span>近15天</span><span>符合场次/命中场次</span><span>命中率</span></div>';
+          '<table class="filter-detail-table"><thead><tr>' +
+          '<th class="fdt-date">日期</th>' +
+          '<th class="fdt-match">符合场次</th>' +
+          '<th class="fdt-match">命中场次</th>' +
+          '<th class="fdt-res">命中率</th>' +
+          '</tr></thead><tbody>';
         data.dailyResults.forEach(function (d) {
           var dr = parseFloat(d.hitRate) || 0;
           html +=
-            '<div class="filter-detail-row"><span>' +
+            '<tr>' +
+            '<td class="fdt-date">' +
             d.date.slice(5).replace('-', '/') +
-            '</span><span>' +
+            '</td>' +
+            '<td class="fdt-match">' +
             d.totalMatch +
-            '/' +
+            '</td>' +
+            '<td class="fdt-match">' +
             d.hitMatch +
-            '</span><span>' +
+            '</td>' +
+            '<td class="fdt-res">' +
             dr.toFixed(1) +
-            '%</span></div>';
+            '%</td>' +
+            '</tr>';
         });
-        html += '</div>';
+        html += '</tbody></table></div>';
       }
 
       // 明细表格：每场比赛 × 方向命中详情
@@ -355,8 +365,18 @@ export function doFilterQuery() {
           '<th class="fdt-res">结果</th>' +
           '</tr></thead><tbody>';
         displayItems.forEach(function (item) {
-          var resClass = item.result === 1 ? 'fdt-hit' : 'fdt-miss';
-          var resText = item.result === 1 ? '✓ 命中' : '✗ 未中';
+          var isFinished = (item.matchStatus || 0) >= 2;
+          var resClass = '';
+          var resText = '-';
+          if (isFinished) {
+            if (item.result == 1) {
+              resClass = 'fdt-hit';
+              resText = '✓ 命中';
+            } else if (item.result == 0) {
+              resClass = 'fdt-miss';
+              resText = '✗ 未中';
+            }
+          }
           html +=
             '<tr>' +
             '<td class="fdt-date">' +

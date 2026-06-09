@@ -13,6 +13,14 @@ const oddsMovement = require('./core/odds-movement');
 const leagueHeat = require('./core/league-heat-profile');
 
 // ═══════════════════════════════════════
+//  PK Scorer 版本管理 — 每次优化修改此处
+// ═══════════════════════════════════════
+const PK_SCORER_VERSION = 'pk_v2.0';      // ★ 版本号，修改算法时递增
+const PK_SCORER_HASH = '';                // 可选：算法内容哈希（CI 自动计算）
+const EXPERIMENT_ID = '';                 // 实验 ID（空 = 非实验模式）
+const EXPERIMENT_GROUP = '';              // 'control' 或 'treatment'
+
+// ═══════════════════════════════════════
 //  评分算法（从前端迁移）
 // ═══════════════════════════════════════
 
@@ -47,10 +55,10 @@ function calcPowerScores(list) {
   return list.map(function (item, i) {
     return parseFloat(
       (
-        normalize(gds[i], gdMin, gdMax) * 0.3 +
-        normalize(cvs[i], cvMin, cvMax) * 0.2 +
-        normalize(pws[i], pwMin, pwMax) * 0.3 +
-        normalize(ads[i], adMin, adMax) * 0.2
+        normalize(gds[i], gdMin, gdMax) * 0.25 +
+        normalize(cvs[i], cvMin, cvMax) * 0.15 +
+        normalize(pws[i], pwMin, pwMax) * 0.35 +
+        normalize(ads[i], adMin, adMax) * 0.25
       ).toFixed(1),
     );
   });
@@ -82,8 +90,8 @@ function calcGoalScores(list) {
   return list.map(function (item, i) {
     return parseFloat(
       (
-        normalize(bbrs[i], bbMin, bbMax) * 0.3 +
-        normalize(atts[i], atMin, atMax) * 0.3 +
+        normalize(bbrs[i], bbMin, bbMax) * 0.35 +
+        normalize(atts[i], atMin, atMax) * 0.25 +
         normalize(h2hs[i], h2Min, h2Max) * 0.2 +
         normalize(bkas[i], bkMin, bkMax) * 0.2
       ).toFixed(1),
@@ -312,6 +320,8 @@ function computeAllScores(list) {
     let comp = calcCompositeScore(pwr, goal, heatAdj, health, stabAdj, verif, winPan);
     if (da > 240) comp = Math.max(0, comp - 5);
     else if (da > 120) comp = Math.max(0, comp - 3);
+    // ★ pk_v2.0: strong 共识 + 验证高分 → 奖励 +3
+    if (item.fusionConsensus === 'strong' && verif >= 85 && comp < 95) comp += 3;
     return {
       item: item,
       powerScore: pwr,
@@ -655,6 +665,10 @@ function computeAndSave(dateStr) {
             // V2.0: 联赛热度 Z-Score
             heatZScore: adv.heatZ ? adv.heatZ.zScore : null,
             heatZOverheat: adv.heatZ ? (adv.heatZ.isOverheat ? 1 : 0) : 0,
+            // ★ 版本追踪
+            pkScorerVersion: PK_SCORER_VERSION,
+            experimentId: EXPERIMENT_ID,
+            experimentGroup: EXPERIMENT_GROUP,
           });
           saved++;
         } catch (e) {
@@ -671,4 +685,12 @@ function computeAndSave(dateStr) {
   });
 }
 
-module.exports = { computeAllScores, getDirectionAdvice, computeAndSave, _loadGSFields: loadGSFields };
+// ── CLI: 版本查询 ──
+if (require.main === module && process.argv.includes('--version')) {
+  console.log('PK_SCORER_VERSION=' + PK_SCORER_VERSION);
+  console.log('EXPERIMENT_ID=' + EXPERIMENT_ID);
+  console.log('EXPERIMENT_GROUP=' + EXPERIMENT_GROUP);
+  process.exit(0);
+}
+
+module.exports = { computeAllScores, getDirectionAdvice, computeAndSave, _loadGSFields: loadGSFields, PK_SCORER_VERSION, PK_SCORER_HASH, EXPERIMENT_ID, EXPERIMENT_GROUP };

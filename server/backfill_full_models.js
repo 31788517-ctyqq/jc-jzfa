@@ -391,6 +391,8 @@ async function phase3PK() {
   console.log('━━━ Phase 3: PK 评分回填 ━━━\n');
 
   const pk = require('./pk_scorer');
+  // ★ 输出当前 PK Scorer 版本
+  console.log('  PK Scorer 版本: ' + (pk.PK_SCORER_VERSION || 'pk_v1.0 (default)'));
   const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
   const mMap = data.m || {};
 

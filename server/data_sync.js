@@ -1091,6 +1091,26 @@ async function backfillResults(dateStr) {
         if (statusFixed > 0) {
           log('[backfill] 修正 ' + statusFixed + ' 场比赛状态为"已结束"');
         }
+
+        // ★ 第二遍：无条件补填缺失的半场/红黄牌/duration（不依赖status变更）
+        let detailsFilled = 0;
+        (matchRes.data || []).forEach(function (m) {
+          const mid = String(m.matchId || m.dataId || '');
+          const old = data.m['m_' + mid] || data.m[mid];
+          if (!old || old.matchStatus < 2) return;
+          let changed = false;
+          // 半场比分
+          if (!old.halfScore && m.halfScore) { old.halfScore = m.halfScore; changed = true; }
+          // duration
+          if ((!old.duration || old.duration === '未') && m.duration) { old.duration = m.duration; changed = true; }
+          // 红黄牌
+          if (!old.yellow && m.yellow) { old.yellow = m.yellow; changed = true; }
+          if (!old.red && m.red) { old.red = m.red; changed = true; }
+          if (changed) detailsFilled++;
+        });
+        if (detailsFilled > 0) {
+          log('[backfill] 补填 ' + detailsFilled + ' 场比赛缺失详情(半场/红黄牌/duration)');
+        }
       }
     } catch (e) {
       log('[backfill] 状态刷新失败: ' + e.message);
@@ -2023,6 +2043,7 @@ let currentDate = '';
 let recommendRunning = false;
 let liveScoreRunning = false;
 let finalCheckDone = false;
+let _ensureRetries = 0;
 
 /** 计算到下一个12:00的毫秒数 */
 function getNextNoonDelay() {

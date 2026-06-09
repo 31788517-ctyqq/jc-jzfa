@@ -125,7 +125,7 @@ class OutcomeBackfill {
   _judgeOutcome(prediction, match) {
     // 解析实际赛果
     const score = match.score || '';
-    const scoreParts = score.split(':');
+    const scoreParts = score.replace(/[-:]/g, ':').split(':');
     const actualHomeScore = parseInt(scoreParts[0]) || 0;
     const actualAwayScore = parseInt(scoreParts[1]) || 0;
     const actualTotalGoals = actualHomeScore + actualAwayScore;

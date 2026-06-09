@@ -814,7 +814,7 @@ function generateExpertPlans(mList, matchDataMap, dateStr) {
           sr.result = 0;
         });
       } else if (combinedRes === 1 && m.score) {
-        const scoreParts = String(m.score).split(':');
+        const scoreParts = String(m.score).replace(/[-:]/g, ':').split(':');
         const totalGoals = parseInt(scoreParts[0]) + parseInt(scoreParts[1]);
         if (!isNaN(totalGoals)) {
           subResults.forEach((sr) => {
