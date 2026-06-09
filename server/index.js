@@ -700,6 +700,50 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // 按比赛编号排序
             list.sort((a, b) => (a.num || '').localeCompare(b.num || ''));
 
+            // ★ 合并 live_scores.json 即时比分（1 分钟缓存）
+            try {
+              var _lsCache = _recalcLiveScoresCache;
+              var _lsNow = Date.now();
+              if (!_lsCache || _lsNow - _recalcLiveScoresCacheTime > 60000) {
+                var _lsPath = path.join(__dirname, 'live_scores.json');
+                if (fs.existsSync(_lsPath)) {
+                  var _lsData = JSON.parse(fs.readFileSync(_lsPath, 'utf8'));
+                  _recalcLiveScoresCache = {};
+                  (_lsData.matches || []).forEach(function (ls) {
+                    if (ls.matchId) _recalcLiveScoresCache[String(ls.matchId)] = ls;
+                    if (ls.num) _recalcLiveScoresCache[ls.num] = ls;
+                  });
+                }
+                _recalcLiveScoresCacheTime = _lsNow;
+                _lsCache = _recalcLiveScoresCache;
+              }
+              if (_lsCache) {
+                list.forEach(function (m) {
+                  var ls = _lsCache[m.num] || _lsCache[String(m.matchId)];
+                  if (ls && ls.matchStatus !== undefined) {
+                    // ★ 推断进度：有比分/时长但 matchStatus=0 → 推断为进行中
+                    var inferredStatus = ls.matchStatus;
+                    if (inferredStatus === 0) {
+                      var hasLiveScore = (ls.score && ls.score !== '-' && ls.score !== '') || (ls.duration && ls.duration !== '');
+                      var hasHalfScore = ls.halfScore && ls.halfScore !== '';
+                      if (hasLiveScore) inferredStatus = 1;
+                      if (ls.matchStatus >= 2) inferredStatus = 2;
+                    }
+                    m.matchStatus = inferredStatus;
+                    m.duration = ls.duration || '';
+                    m.score = ls.score || m.score || '';
+                    m.halfScore = ls.halfScore || m.halfScore || '';
+                    m.homeScore = ls.homeScore !== undefined ? ls.homeScore : m.homeScore;
+                    m.visitScore = ls.visitScore !== undefined ? ls.visitScore : m.visitScore;
+                    m.yellow = ls.yellow || m.yellow || '';
+                    m.red = ls.red || m.red || '';
+                  }
+                });
+              }
+            } catch (_ls_e) {
+              /* live_scores.json 缺失或损坏时忽略 */
+            }
+
             // 如果没有找到数据，尝试实时抓取（仅限今天）
             if (list.length === 0) {
               const today = localDate();
