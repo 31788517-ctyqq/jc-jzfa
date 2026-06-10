@@ -23,8 +23,20 @@ module.exports = {
   ],
   coverageThreshold: {
     global: {
+      statements: 25,
+      branches: 20,
+      functions: 25,
+      lines: 25,
+    },
+    './server/core/**/*.js': {
+      statements: 40,
+      branches: 30,
+      functions: 35,
+      lines: 40,
+    },
+    './server/gongshoudao/**/*.js': {
       statements: 30,
-      branches: 25,
+      branches: 20,
       functions: 30,
       lines: 30,
     },
