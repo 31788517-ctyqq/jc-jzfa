@@ -51,8 +51,12 @@ describe('backup — 清理策略', () => {
     const keep = isWeekly || now - recentBackup.time < BACKUP_CONFIG.KEEP_DAILY * dayMs;
     expect(keep).toBe(true);
 
-    // 模拟：10 天前的非周日备份应清理
-    const oldBackup = { time: now - 10 * dayMs };
+    // 模拟：10 天前且明确非周日的备份应清理（避免日期落在周日造成偶发失败）
+    let oldTime = now - 10 * dayMs;
+    while (new Date(oldTime).getDay() === 0) {
+      oldTime -= dayMs;
+    }
+    const oldBackup = { time: oldTime };
     const oldIsWeekly = new Date(oldBackup.time).getDay() === 0;
     const shouldKeep = oldIsWeekly || now - oldBackup.time < BACKUP_CONFIG.KEEP_DAILY * dayMs;
     expect(shouldKeep).toBe(false);

@@ -1,5 +1,20 @@
 ﻿/* betting.css v6 — 参考方案设计页字号 + 功守道弹窗头 + 去蓝色遮罩 */
 
+/* ═══ 投注弹窗居中覆盖（默认 ai-overlay 是底部抽屉 flex-end） ═══ */
+#betOverlay.active {
+  align-items: center;
+}
+#betOverlay > .ai-modal {
+  max-height: 85vh;
+  border-radius: 16px;
+  animation: betFadeIn 0.25s ease;
+  height: auto;
+}
+@keyframes betFadeIn {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
 /* ═══ 弹窗容器 ═══ */
 .bet-popup {
   width: 100%;

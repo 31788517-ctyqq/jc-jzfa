@@ -114,7 +114,7 @@ function renderMyPlanList() {
       '\')">🗑 删除</button>' +
       '<button class="mp-share-btn" onclick="shareUserPlan(\'' +
       p.id +
-      '\')">📤 分享</button>' +
+      '\')">✨ 分享</button>' +
       '</div>' +
       '</div>';
   });
@@ -266,7 +266,7 @@ window.shareUserPlan = function (planId) {
 
       setTimeout(function () {
         html2canvas(shareEl, {
-          scale: 1,
+          scale: 2,
           useCORS: true,
           allowTaint: true,
           backgroundColor: null,
@@ -286,8 +286,264 @@ window.shareUserPlan = function (planId) {
     });
 };
 
-// ═══ 构建 750px 高品质分享卡片 DOM ═══
+// ═══ 构建 440px 新版分享海报（按分享参考图还原） ═══
 function _buildShareCard(cardEl) {
+  function pickText(root, selector) {
+    var el = root.querySelector(selector);
+    return el ? el.textContent.trim().replace(/\s+/g, ' ') : '';
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function splitNumberUnit(value, defaultUnit) {
+    var text = String(value || '').replace(/\s+/g, '');
+    var match = text.match(/^([+\-]?[\d.]+)(.*)$/);
+    if (!match) return { num: text || '--', unit: '' };
+    return { num: match[1], unit: match[2] || defaultUnit || '' };
+  }
+
+  function normalizeDate(value) {
+    var text = String(value || '');
+    var m = text.match(/(\d{1,2})[\/\-](\d{1,2})/);
+    if (!m) return '';
+    return String(m[1]).padStart(2, '0') + '-' + String(m[2]).padStart(2, '0');
+  }
+
+  function parseBet(rawValue) {
+    var raw = String(rawValue || '').replace(/[▲▼]/g, '').replace(/\s+/g, ' ').trim();
+    var label = '胜平负：';
+    var value = raw;
+    var colon = raw.match(/^([^：:]{2,10})[：:]\s*(.+)$/);
+    if (colon) {
+      label = colon[1] + '：';
+      value = colon[2];
+    } else if (raw.indexOf('让球胜平负') >= 0 || /^让[胜平负]/.test(raw)) {
+      label = '让球：';
+      value = raw.replace(/让球胜平负/g, '');
+    } else if (raw.indexOf('比分') >= 0 || /^\d+\s*[:：]\s*\d+/.test(raw)) {
+      label = '比分：';
+      value = raw.replace(/单场比分|比分/g, '');
+    } else if (raw.indexOf('总进球') >= 0 || /\d\+?球/.test(raw)) {
+      label = '总进球：';
+      value = raw.replace(/总进球[-：:]?/g, '');
+    } else if (raw.indexOf('半全场') >= 0) {
+      label = '半全场：';
+      value = raw.replace(/半全场[-：:]?/g, '');
+    } else if (raw.indexOf('胜平负') >= 0) {
+      label = '胜平负：';
+      value = raw.replace(/胜平负/g, '');
+    }
+    value = value
+      .replace(/@/g, ' ')
+      .replace(/[（(]\s*([\d.]+)\s*[）)]/g, ' $1')
+      .replace(/\s*\+\s*/g, ' + ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return { label: label, value: value || '--' };
+  }
+
+  var name = pickText(cardEl, '.plan-name') || '方案一';
+  var rawDate = pickText(cardEl, '.plan-pub-time');
+  var amountCols = cardEl.querySelectorAll('.plan-amount-col');
+
+  var amountLabel = amountCols[0] ? pickText(amountCols[0], '.plan-amount-label') : '方案金额';
+  var amountValue = amountCols[0] ? pickText(amountCols[0], '.plan-amount-value') : '--元';
+  var prizeLabel = amountCols[1] ? pickText(amountCols[1], '.plan-amount-label') : '预计最高奖金';
+  var prizeValue = amountCols[1] ? pickText(amountCols[1], '.plan-amount-value') : '--元';
+  var statusLabel = amountCols[2] ? pickText(amountCols[2], '.plan-amount-label') : '方案状态';
+  var statusValue = amountCols[2] ? pickText(amountCols[2], '.plan-amount-value') : '未开奖';
+  var statusText = statusValue || '未开奖';
+  if (statusLabel.indexOf('状态') < 0) {
+    statusText = statusValue.indexOf('+') === 0 ? '已中奖' : statusValue === '0' ? '未中奖' : '未开奖';
+  }
+
+  var infoRights = cardEl.querySelectorAll('.plan-info-right > div');
+  var playType = infoRights[0] ? infoRights[0].textContent.trim().replace(/\s+/g, ' ') : '混合投注';
+  var passType = infoRights[1] ? infoRights[1].textContent.trim().replace(/\s+/g, ' ') : '';
+  var betCount = infoRights[2] ? infoRights[2].textContent.trim().replace(/\s+/g, ' ') : '';
+
+  var matchRowsData = [];
+  var last = { num: '', time: '', home: '', away: '' };
+  cardEl.querySelectorAll('.plan-match-table tbody tr').forEach(function (row) {
+    var cells = row.querySelectorAll('td');
+    if (cells.length < 3) return;
+    var num = pickText(cells[0], '.match-num-text') || last.num;
+    var time = pickText(cells[0], '.match-time-sub') || last.time;
+    var home = pickText(cells[1], '.plan-team-home') || last.home;
+    var away = pickText(cells[1], '.plan-team-away') || last.away;
+    if ((!home || !away) && cells[1]) {
+      var teamText = cells[1].textContent.trim().replace(/\s+/g, ' ');
+      var teamParts = teamText.split(/\s*(?:vs|VS)\s*/);
+      if (!home && teamParts[0]) home = teamParts[0];
+      if (!away && teamParts[1]) away = teamParts[1];
+    }
+    var bet = parseBet(cells[2].textContent);
+    if (num) last.num = num;
+    if (time) last.time = time;
+    if (home) last.home = home;
+    if (away) last.away = away;
+    matchRowsData.push({ num: num, time: time, home: home, away: away, bet: bet });
+  });
+
+  if (!passType) passType = (matchRowsData.length || 1) + '场';
+  if (!betCount) betCount = '--';
+
+  var shareDate = normalizeDate(rawDate) || (matchRowsData[0] ? normalizeDate(matchRowsData[0].time) : '');
+  function formatMatchTime(value) {
+    var text = String(value || '').trim();
+    var m = text.match(/(\d{1,2})[\/\-](\d{1,2})\s+(\d{2}:\d{2})/);
+    if (m) return String(m[1]).padStart(2, '0') + '-' + String(m[2]).padStart(2, '0') + ' ' + m[3];
+    if (/^\d{2}:\d{2}$/.test(text) && shareDate) return shareDate + ' ' + text;
+    return text.replace(/\//g, '-');
+  }
+
+  var amountParts = splitNumberUnit(amountValue, '元');
+  var prizeParts = splitNumberUnit(prizeValue, '元');
+  var statusCls = statusText.indexOf('未中奖') >= 0 ? 'lost' : statusText.indexOf('已中奖') >= 0 ? 'won' : 'pending';
+
+  var targetIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.6"></circle><path d="M19 5l-4 4M18.5 4.5h-3.5v3.5"></path></svg>';
+  var ticketIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"></rect><path d="M9 5v14M15 5v14M5 10h14M5 15h14"></path><circle cx="12" cy="12" r="1.5"></circle></svg>';
+  var coinIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="7" rx="6" ry="3"></ellipse><path d="M6 7v6c0 1.7 2.7 3 6 3s6-1.3 6-3V7"></path><path d="M6 13c0 1.7 2.7 3 6 3s6-1.3 6-3"></path></svg>';
+  var calendarIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="5.5" width="15" height="14" rx="2"></rect><path d="M8 3.8v4M16 3.8v4M4.5 10h15M9 14l2 2 4-4"></path></svg>';
+
+  var matchRowsHtml = matchRowsData.length
+    ? matchRowsData
+        .map(function (item) {
+          return (
+            '<div class="sp-match-row">' +
+            '<div class="sp-issue"><span class="sp-cal">' +
+            calendarIcon +
+            '</span><div><div class="sp-issue-num">' +
+            escapeHtml(item.num || '--') +
+            '</div><div class="sp-issue-time">' +
+            escapeHtml(formatMatchTime(item.time) || (shareDate ? shareDate + ' 03:00' : '--')) +
+            '</div></div></div>' +
+            '<div class="sp-teams"><div>' +
+            escapeHtml(item.home || '--') +
+            '</div><span>VS</span><div>' +
+            escapeHtml(item.away || '--') +
+            '</div></div>' +
+            '<div class="sp-bet"><span class="sp-bet-label">' +
+            escapeHtml(item.bet.label) +
+            '</span><span class="sp-bet-value">' +
+            escapeHtml(item.bet.value) +
+            '</span></div>' +
+            '</div>'
+          );
+        })
+        .join('')
+    : '<div class="sp-empty-row">暂无赛事详情</div>';
+
+  var css = [
+    '*{margin:0;padding:0;box-sizing:border-box;}',
+    '.sp-page{width:440px;min-height:780px;padding:30px 24px 40px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% -10%,#ffffff 0%,#effcfc 38%,#f7ffff 70%,#ffffff 100%);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#152235;}',
+    '.sp-page:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(30,176,172,.08),transparent 28%,rgba(30,176,172,.05) 72%,transparent);pointer-events:none;}',
+    '.sp-card{position:relative;background:rgba(255,255,255,.93);border:1px solid rgba(255,255,255,.9);border-radius:18px;box-shadow:0 10px 30px rgba(36,128,138,.10),0 1px 0 rgba(255,255,255,.95) inset;overflow:hidden;}',
+    '.sp-top{padding:16px 14px 12px;}',
+    '.sp-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}',
+    '.sp-title-wrap{display:flex;align-items:center;gap:12px;}',
+    '.sp-logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(145deg,#35df57 0%,#13b93f 72%);display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;box-shadow:0 10px 18px rgba(20,186,61,.25);position:relative;}',
+    '.sp-logo:after{content:"★";position:absolute;right:2px;bottom:0;color:#ffd44d;font-size:10px;text-shadow:0 1px 2px rgba(0,0,0,.15);}',
+    '.sp-name{font-size:19px;font-weight:900;letter-spacing:.2px;color:#142235;line-height:36px;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+    '.sp-date{font-size:12px;color:#667790;font-weight:500;padding-top:11px;}',
+    '.sp-stats{display:grid;grid-template-columns:repeat(3,1fr);align-items:center;margin:0 0 14px;}',
+    '.sp-stat{height:61px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;}',
+    '.sp-stat+.sp-stat{border-left:1px solid #e3ebf0;}',
+    '.sp-stat-label{font-size:12px;line-height:1;color:#4d5d70;font-weight:700;margin-bottom:10px;}',
+    '.sp-stat-value{font-size:24px;line-height:1;font-weight:900;color:#108c86;letter-spacing:.2px;white-space:nowrap;}',
+    '.sp-stat-value span{font-size:13px;font-weight:700;margin-left:3px;color:#203043;}',
+    '.sp-status{font-size:23px;line-height:1;font-weight:900;white-space:nowrap;}',
+    '.sp-status.pending{color:#ff9708;}.sp-status.won{color:#0c9f72;}.sp-status.lost{color:#9aa6b2;}',
+    '.sp-info{height:140px;border-radius:15px;border:1px solid #e8eff3;background:rgba(255,255,255,.58);position:relative;overflow:hidden;box-shadow:0 6px 18px rgba(67,151,162,.06) inset;}',
+    '.sp-info:before{content:"";position:absolute;right:-38px;bottom:3px;width:170px;height:92px;background:repeating-linear-gradient(160deg,rgba(83,203,198,.16) 0 8px,transparent 8px 19px);transform:skewX(-18deg);opacity:.75;}',
+    '.sp-info-ball{position:absolute;right:18px;bottom:14px;width:72px;height:72px;border-radius:50%;opacity:.18;display:flex;align-items:center;justify-content:center;font-size:64px;filter:grayscale(.15);}',
+    '.sp-info-row{height:46.66px;display:flex;align-items:center;padding:0 18px;position:relative;z-index:1;}',
+    '.sp-info-row+.sp-info-row{border-top:1px solid #edf2f5;}',
+    '.sp-i{width:28px;height:28px;border-radius:9px;background:rgba(33,189,180,.10);display:flex;align-items:center;justify-content:center;margin-right:13px;}',
+    '.sp-i svg{width:18px;height:18px;fill:none;stroke:#0e918b;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}',
+    '.sp-info-label{width:84px;color:#48596c;font-size:13px;font-weight:800;}',
+    '.sp-info-value{font-size:14px;color:#0e918b;font-weight:900;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+    '.sp-section{height:40px;display:flex;align-items:center;justify-content:center;gap:12px;margin:16px 0 0;color:#142235;font-size:16px;font-weight:900;letter-spacing:.5px;}',
+    '.sp-section:before,.sp-section:after{content:"";width:36px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#0e918b 45%,#0e918b 70%,transparent);}',
+    '.sp-matches{position:relative;border-radius:19px;background:rgba(255,255,255,.94);box-shadow:0 10px 30px rgba(36,128,138,.10),0 1px 0 rgba(255,255,255,.95) inset;overflow:hidden;border:1px solid rgba(255,255,255,.9);}',
+    '.sp-match-row{min-height:78px;display:grid;grid-template-columns:112px 1fr 120px;align-items:center;padding:0 12px;border-bottom:1px solid #edf2f5;}',
+    '.sp-match-row:last-child{border-bottom:0;}',
+    '.sp-issue{height:56px;display:flex;align-items:center;gap:9px;min-width:0;}',
+    '.sp-cal{width:28px;height:28px;border-radius:9px;background:rgba(33,189,180,.09);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}',
+    '.sp-cal svg{width:18px;height:18px;fill:none;stroke:#0e918b;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}',
+    '.sp-issue-num{font-size:13px;font-weight:900;color:#26374b;white-space:nowrap;}',
+    '.sp-issue-time{font-size:11px;color:#748299;margin-top:5px;white-space:nowrap;}',
+    '.sp-teams{min-height:56px;border-left:1px solid #e3ebf0;border-right:1px solid #e3ebf0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 8px;}',
+    '.sp-teams div{max-width:116px;font-size:14px;line-height:1.25;font-weight:900;color:#142235;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+    '.sp-teams span{font-size:11px;line-height:1.5;color:#56677c;font-weight:800;}',
+    '.sp-bet{padding-left:16px;font-size:13px;line-height:1.6;font-weight:900;color:#142235;}',
+    '.sp-bet-label{white-space:nowrap;}.sp-bet-value{color:#0e918b;word-break:break-word;}',
+    '.sp-empty-row{height:92px;display:flex;align-items:center;justify-content:center;color:#748299;font-size:13px;}',
+    '.sp-footer-ball{position:absolute;left:-20px;bottom:-23px;width:112px;height:112px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:94px;opacity:.14;filter:grayscale(.1);}',
+  ].join('');
+
+  var wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;width:440px;background:transparent;';
+  wrapper.innerHTML =
+    '<style>' +
+    css +
+    '</style>' +
+    '<div class="sp-page">' +
+    '<div class="sp-card sp-top">' +
+    '<div class="sp-head"><div class="sp-title-wrap"><div class="sp-logo">⚽</div><div class="sp-name">' +
+    escapeHtml(name) +
+    '</div></div><div class="sp-date">' +
+    escapeHtml(shareDate || '--') +
+    '</div></div>' +
+    '<div class="sp-stats"><div class="sp-stat"><div class="sp-stat-label">' +
+    escapeHtml(amountLabel || '方案金额') +
+    '</div><div class="sp-stat-value">' +
+    escapeHtml(amountParts.num) +
+    '<span>' +
+    escapeHtml(amountParts.unit) +
+    '</span></div></div><div class="sp-stat"><div class="sp-stat-label">' +
+    escapeHtml(prizeLabel || '预计最高奖金') +
+    '</div><div class="sp-stat-value">' +
+    escapeHtml(prizeParts.num) +
+    '<span>' +
+    escapeHtml(prizeParts.unit) +
+    '</span></div></div><div class="sp-stat"><div class="sp-stat-label">方案状态</div><div class="sp-status ' +
+    statusCls +
+    '">' +
+    escapeHtml(statusText) +
+    '</div></div></div>' +
+    '<div class="sp-info"><div class="sp-info-ball">⚽</div><div class="sp-info-row"><span class="sp-i">' +
+    targetIcon +
+    '</span><span class="sp-info-label">玩法</span><span class="sp-info-value">' +
+    escapeHtml(playType || '混合投注') +
+    '</span></div><div class="sp-info-row"><span class="sp-i">' +
+    ticketIcon +
+    '</span><span class="sp-info-label">场数/过关</span><span class="sp-info-value">' +
+    escapeHtml(passType || '--') +
+    '</span></div><div class="sp-info-row"><span class="sp-i">' +
+    coinIcon +
+    '</span><span class="sp-info-label">注数/倍数</span><span class="sp-info-value">' +
+    escapeHtml(betCount || '--') +
+    '</span></div></div>' +
+    '</div>' +
+    '<div class="sp-section">赛事详情</div>' +
+    '<div class="sp-matches">' +
+    matchRowsHtml +
+    '</div>' +
+    '<div class="sp-footer-ball">⚽</div>' +
+    '</div>';
+  return wrapper;
+}
+
+// ═══ 旧版 750px 分享卡片 DOM（保留兼容回退） ═══
+function _buildLegacyShareCard(cardEl) {
   var name = '';
   var nameEl = cardEl.querySelector('.plan-name');
   if (nameEl) name = nameEl.textContent.trim();
@@ -410,114 +666,84 @@ function _buildShareCard(cardEl) {
   else if (statusText.indexOf('已中奖') !== -1) statusCls = 'status-won';
 
   var wrapper = document.createElement('div');
+
   wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;width:750px;';
   wrapper.innerHTML =
     '<style>' +
     '*{margin:0;padding:0;box-sizing:border-box;}' +
     '.share-card{' +
-    'width:750px;min-height:1680px;padding:42px 40px 72px;' +
-    'background:radial-gradient(circle at 16% 0%,rgba(10,216,255,.18),transparent 26%),radial-gradient(circle at 88% 18%,rgba(0,120,255,.10),transparent 24%),linear-gradient(180deg,#021b31 0%,#031224 24%,#020c18 100%);' +
-    'position:relative;overflow:hidden;color:#fff;' +
-    'font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;' +
+    'width:750px;min-height:auto;padding:36px;background:linear-gradient(180deg,#eff6fb 0%,#f7fafc 40%,#ffffff 100%);' +
+    'font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;color:#1e293b;' +
     '}' +
-    '.share-card::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,234,255,.02),transparent 22%,transparent 78%,rgba(0,234,255,.02));pointer-events:none;}' +
-    '.share-card::after{content:"";position:absolute;inset:24px;border:1px solid rgba(0,234,255,.12);border-radius:28px;box-shadow:inset 0 0 32px rgba(0,234,255,.06);pointer-events:none;}' +
-    '.header{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;}' +
-    '.header-left{display:flex;align-items:flex-start;gap:16px;}' +
-    '.football-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);color:#fff;font-size:34px;box-shadow:0 0 18px rgba(0,234,255,.16);}' +
-    '.title-block{display:flex;flex-direction:column;gap:10px;}' +
-    '.scheme-title{font-size:60px;line-height:1;font-weight:800;color:#fff;letter-spacing:2px;text-shadow:0 0 12px rgba(255,255,255,.08);}' +
-    '.title-mark{display:flex;align-items:center;gap:8px;padding-left:2px;}' +
-    '.title-mark b{display:block;width:92px;height:5px;border-radius:999px;background:linear-gradient(90deg,#21e8ff,#0fb3ff);box-shadow:0 0 14px rgba(33,232,255,.35);}' +
-    '.title-mark i{display:block;width:54px;height:5px;border-radius:999px;background:repeating-linear-gradient(90deg,rgba(33,232,255,.92),rgba(33,232,255,.92) 6px,transparent 6px,transparent 11px);opacity:.92;}' +
-    '.scheme-date{padding-top:4px;color:#c6d3de;font-size:28px;font-weight:500;letter-spacing:1px;}' +
-    '.stat-panel{margin-top:34px;padding:28px 0 26px;border-top:1px solid rgba(0,234,255,.14);border-bottom:1px solid rgba(0,234,255,.16);display:flex;align-items:stretch;position:relative;z-index:1;}' +
-    '.stat-item{flex:1;text-align:center;padding:0 18px;}' +
-    '.stat-label{color:#a7b9c8;font-size:24px;line-height:1.2;}' +
-    '.stat-value{margin-top:18px;color:#1ee9ff;font-size:58px;font-weight:800;letter-spacing:1px;text-shadow:0 0 14px rgba(30,233,255,.18);}' +
-    '.stat-value span{font-size:26px;color:#dbe8f4;margin-left:4px;}' +
-    '.stat-status{margin-top:18px;font-size:56px;font-weight:800;letter-spacing:1px;}' +
-    '.stat-status.status-pending{color:#ffd126;text-shadow:0 0 12px rgba(255,209,38,.18);}' +
-    '.stat-status.status-won{color:#ff9a4e;text-shadow:0 0 12px rgba(255,154,78,.16);}' +
-    '.stat-status.status-lost{color:#74e3c8;text-shadow:0 0 12px rgba(116,227,200,.14);}' +
-    '.stat-line{width:1px;background:linear-gradient(180deg,transparent,rgba(0,234,255,.38),transparent);}' +
-    '.base-info{margin-top:34px;position:relative;z-index:1;}' +
-    '.info-row{display:grid;grid-template-columns:50px 170px 1fr;align-items:center;height:96px;border-bottom:1px dashed rgba(0,234,255,.14);}' +
+    '.main-card{background:#fff;border-radius:24px;padding:32px 28px 26px;box-shadow:0 4px 24px rgba(15,23,42,.06),0 1px 4px rgba(15,23,42,.04);position:relative;overflow:hidden;}' +
+    '.main-card::after{content:"";position:absolute;right:-20px;top:50%;transform:translateY(-50%);width:200px;height:200px;pointer-events:none;opacity:.07;' +
+    'background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'46\' fill=\'none\' stroke=\'%230d9488\' stroke-width=\'2.5\'/%3E%3Cpath d=\'M50 4 L61 22 L82 22 L66 35 L72 55 L50 43 L28 55 L34 35 L18 22 L39 22 Z\' fill=\'none\' stroke=\'%230d9488\' stroke-width=\'1.8\'/%3E%3Cpath d=\'M18 22 L28 55 M82 22 L72 55 M39 22 L50 43 L61 22 M34 35 L66 35 M50 4 L50 43 M18 22 L82 22 M28 55 L72 55\' stroke=\'%230d9488\' stroke-width=\'1.2\' opacity=\'.6\'/%3E%3C/svg%3E");' +
+    'background-size:contain;background-repeat:no-repeat;}' +
+    '.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}' +
+    '.header-left{display:flex;align-items:center;gap:14px;}' +
+    '.football-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;' +
+    'background:linear-gradient(135deg,#10b981 0%,#34d399 50%,#6ee7b7 100%);box-shadow:0 2px 10px rgba(16,185,129,.25);font-size:28px;color:#fff;}' +
+    '.scheme-title{font-size:30px;font-weight:800;color:#0f172a;letter-spacing:.5px;line-height:1.2;}' +
+    '.scheme-date{font-size:24px;font-weight:600;color:#94a3b8;letter-spacing:.5px;}' +
+    '.stat-panel{display:flex;padding:20px 0;border-top:1px solid #eef2f6;border-bottom:1px solid #eef2f6;margin-bottom:0;}' +
+    '.stat-item{flex:1;text-align:center;padding:0 8px;}' +
+    '.stat-label{font-size:22px;color:#94a3b8;font-weight:500;line-height:1.2;}' +
+    '.stat-value{margin-top:10px;font-size:44px;font-weight:800;color:#0d9488;letter-spacing:-.5px;line-height:1.1;}' +
+    '.stat-value span{font-size:22px;color:#94a3b8;font-weight:500;margin-left:2px;}' +
+    '.stat-status{margin-top:10px;font-size:42px;font-weight:800;letter-spacing:-.5px;}' +
+    '.stat-status.status-pending{color:#f59e0b;}' +
+    '.stat-status.status-won{color:#10b981;}' +
+    '.stat-status.status-lost{color:#ef4444;}' +
+    '.base-info{padding-top:20px;}' +
+    '.info-row{display:flex;align-items:center;height:76px;' +
+    (amountCols.length > 1 ? 'border-bottom:1px solid #f1f5f9;' : '') +
+    '}' +
     '.info-row:last-child{border-bottom:none;}' +
-    '.info-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,234,255,.22);background:rgba(0,234,255,.05);color:#1ee9ff;font-size:22px;box-shadow:inset 0 0 12px rgba(0,234,255,.05);}' +
-    '.label{color:#a7b9c8;font-size:28px;}' +
-    '.value{color:#1ee9ff;font-size:34px;font-weight:700;letter-spacing:.5px;text-shadow:0 0 12px rgba(30,233,255,.14);}' +
-    '.section-header{margin:34px 0 22px;display:flex;align-items:center;justify-content:center;gap:16px;position:relative;z-index:1;}' +
-    '.section-line{width:74px;height:5px;border-radius:999px;background:linear-gradient(90deg,transparent,#1ee9ff 24%,#1ee9ff 76%,transparent);position:relative;}' +
-    '.section-line::after{content:"";position:absolute;right:8px;top:0;width:24px;height:5px;border-radius:999px;background:repeating-linear-gradient(90deg,rgba(30,233,255,.9),rgba(30,233,255,.9) 5px,transparent 5px,transparent 9px);}' +
-    '.section-text{font-size:34px;color:#fff;font-weight:700;letter-spacing:2px;}' +
-    '.match-table{border:1px solid rgba(0,234,255,.16);border-radius:22px;background:linear-gradient(180deg,rgba(2,20,36,.72),rgba(1,12,24,.76));box-shadow:inset 0 0 22px rgba(0,234,255,.05);overflow:hidden;position:relative;z-index:1;}' +
-    '.table-row{display:grid;grid-template-columns:150px 1fr 244px;min-height:152px;padding:0 8px;border-bottom:1px solid rgba(0,234,255,.10);}' +
+    '.info-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;' +
+    'background:linear-gradient(135deg,#ecfdf5,#d1fae5);color:#059669;font-size:20px;margin-right:14px;flex-shrink:0;}' +
+    '.label{color:#64748b;font-size:24px;width:120px;flex-shrink:0;font-weight:500;}' +
+    '.value{color:#0d9488;font-size:26px;font-weight:700;flex:1;}' +
+    '.section-header{margin:28px 0 18px;display:flex;align-items:center;justify-content:center;gap:14px;}' +
+    '.section-line{width:80px;height:1px;background:repeating-linear-gradient(90deg,#cbd5e1 0,#cbd5e1 4px,transparent 4px,transparent 8px);}' +
+    '.section-text{font-size:26px;color:#475569;font-weight:700;letter-spacing:2px;}' +
+    '.match-table{background:#fff;border-radius:22px;box-shadow:0 4px 24px rgba(15,23,42,.06),0 1px 4px rgba(15,23,42,.04);overflow:hidden;}' +
+    '.table-row{display:grid;grid-template-columns:150px 1fr 240px;min-height:130px;padding:0 12px;' +
+    'border-bottom:1px solid #f1f5f9;align-items:center;}' +
     '.table-row:last-child{border-bottom:none;}' +
-    '.issue,.vs,.bet{display:flex;align-items:center;justify-content:center;min-width:0;}' +
-    '.issue{flex-direction:column;gap:8px;border-right:1px solid rgba(0,234,255,.10);}' +
-    '.issue-num{color:#d7e3ee;font-size:22px;font-weight:700;}' +
-    '.issue-time{color:#7d93a8;font-size:18px;font-weight:500;}' +
-    '.vs{flex-direction:column;gap:8px;padding:20px 12px;}' +
-    '.vs-team{color:#fff;font-size:26px;font-weight:700;line-height:1.25;text-align:center;word-break:break-all;}' +
-    '.vs-mid{color:#8ea3b7;font-size:20px;font-weight:700;letter-spacing:1px;}' +
-    '.bet{padding:20px 12px;border-left:1px solid rgba(0,234,255,.10);color:#fff;font-size:22px;font-weight:600;line-height:1.5;text-align:center;word-break:break-word;}' +
-    '.bet strong{color:#1ee9ff;font-size:24px;text-shadow:0 0 10px rgba(30,233,255,.14);font-weight:800;}' +
-    '.share-footer{margin-top:24px;display:flex;justify-content:center;position:relative;z-index:1;}' +
-    '.share-footer span{width:160px;height:10px;border-radius:999px;border:1px solid rgba(0,234,255,.22);position:relative;display:block;}' +
-    '.share-footer span::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:14px;border:1px solid rgba(0,234,255,.42);border-radius:999px;background:rgba(0,234,255,.10);box-shadow:0 0 14px rgba(0,234,255,.20);}' +
+    '.issue,.vs,.bet{display:flex;align-items:center;min-width:0;}' +
+    '.issue{flex-direction:column;gap:6px;padding:14px 8px 14px 0;}' +
+    '.issue-num{color:#334155;font-size:22px;font-weight:700;}' +
+    '.issue-time{color:#94a3b8;font-size:18px;font-weight:400;}' +
+    '.vs{flex-direction:column;gap:6px;padding:14px 10px;}' +
+    '.vs-team{color:#1e293b;font-size:24px;font-weight:700;line-height:1.3;text-align:center;}' +
+    '.vs-mid{color:#94a3b8;font-size:18px;font-weight:600;letter-spacing:1px;}' +
+    '.bet{padding:14px 8px 14px 0;justify-content:flex-end;}' +
+    '.bet strong{color:#0d9488;font-size:24px;font-weight:700;}' +
     '</style>' +
     '<div class="share-card">' +
+    '<div class="main-card">' +
     '<div class="header">' +
     '<div class="header-left">' +
     '<div class="football-icon">&#x26BD;</div>' +
-    '<div class="title-block"><div class="scheme-title">' +
-    name +
-    '</div><div class="title-mark"><b></b><i></i></div></div>' +
+    '<div class="scheme-title">' + name + '</div>' +
     '</div>' +
-    '<div class="scheme-date">' +
-    shareDate +
-    '</div>' +
+    '<div class="scheme-date">' + shareDate + '</div>' +
     '</div>' +
     '<div class="stat-panel">' +
-    '<div class="stat-item"><div class="stat-label">' +
-    amountLabel +
-    '</div><div class="stat-value">' +
-    amtNum +
-    '<span>' +
-    amtUnit +
-    '</span></div></div>' +
-    '<div class="stat-line"></div>' +
-    '<div class="stat-item"><div class="stat-label">' +
-    prizeLabel +
-    '</div><div class="stat-value">' +
-    pNum +
-    '<span>' +
-    pUnit +
-    '</span></div></div>' +
-    '<div class="stat-line"></div>' +
-    '<div class="stat-item"><div class="stat-label">方案状态</div><div class="stat-status ' +
-    statusCls +
-    '">' +
-    statusText +
-    '</div></div>' +
+    '<div class="stat-item"><div class="stat-label">' + amountLabel + '</div><div class="stat-value">' + amtNum + '<span>' + amtUnit + '</span></div></div>' +
+    '<div class="stat-item"><div class="stat-label">' + prizeLabel + '</div><div class="stat-value">' + pNum + '<span>' + pUnit + '</span></div></div>' +
+    '<div class="stat-item"><div class="stat-label">方案状态</div><div class="stat-status ' + statusCls + '">' + statusText + '</div></div>' +
     '</div>' +
     '<div class="base-info">' +
-    '<div class="info-row"><div class="info-icon">&#x2316;</div><div class="label">玩法</div><div class="value">' +
-    playType +
-    '</div></div>' +
-    '<div class="info-row"><div class="info-icon">&#x25A3;</div><div class="label">场数/过关</div><div class="value">' +
-    passType +
-    '</div></div>' +
-    '<div class="info-row"><div class="info-icon">&#x25CE;</div><div class="label">注数/倍数</div><div class="value">' +
-    betCount +
-    '</div></div>' +
+    '<div class="info-row"><div class="info-icon">&#x1F3CB;&#xFE0F;</div><div class="label">玩法</div><div class="value">' + playType + '</div></div>' +
+    '<div class="info-row"><div class="info-icon">&#x1F3CF;&#xFE0F;</div><div class="label">场数/过关</div><div class="value">' + passType + '</div></div>' +
+    '<div class="info-row"><div class="info-icon">&#x1F4B0;</div><div class="label">注数/倍数</div><div class="value">' + betCount + '</div></div>' +
+    '</div>' +
     '</div>' +
     '<div class="section-header"><div class="section-line"></div><div class="section-text">赛事详情</div><div class="section-line"></div></div>' +
     '<div class="match-table">' +
     matchRows +
     '</div>' +
-    '<div class="share-footer"><span></span></div>' +
     '</div>';
 
   return wrapper;
@@ -534,7 +760,7 @@ function _showShareModal(planId, canvas, cardEl) {
   overlay.innerHTML =
     '<div class="share-modal">' +
     '<div class="share-modal-header">' +
-    '<span class="share-modal-title">&#x1F4E4; 分享方案</span>' +
+    '<span class="share-modal-title">✨ 分享方案</span>' +
     '<button class="share-modal-close">&times;</button>' +
     '</div>' +
     '<div class="share-modal-body">' +

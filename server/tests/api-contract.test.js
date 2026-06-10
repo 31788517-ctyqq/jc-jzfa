@@ -35,8 +35,10 @@ const ACTION_MATRIX = {
     'data-health',
     'experiment-compare',
     'batch-consensus',
+    'daily-profit-7d',
+    'pk-version-compare',
   ],
-  mutatingOrRequiresState: ['sync-match-date', 'my-plan-save', 'my-plan-delete'],
+  mutatingOrRequiresState: ['sync-match-date', 'sync-gov-schedule', 'my-plan-save', 'my-plan-delete'],
   heavyOrAsync: [
     'crawl-history',
     'crawl-status',
@@ -46,6 +48,8 @@ const ACTION_MATRIX = {
     'ai-predict-status',
     'backtest-leagues',
     'ai-batch-generate',
+    'auto-heal',
+    'refill-expert-consensus',
   ],
 };
 

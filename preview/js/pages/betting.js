@@ -114,7 +114,7 @@ async function loadOddsData(matchId) {
       if (_oddsData.handicap == null) {
         _oddsData.handicap = targetHcp;
       }
-      // ★ 获取赔率变动趋势
+      // ★ 获取赔率变动趋势 + BF/JQS/BQC 完整赔率
       try {
         var batchRes = await api('batch-match-odds', { matchIds: [matchId] });
         var batchData = batchRes && batchRes[matchId];
@@ -128,12 +128,78 @@ async function loadOddsData(matchId) {
           _oddsData.bqcDelta = batchData.bqcDelta || {};
           // ★ 走势信号
           _oddsData.deltaTrend = batchData.deltaTrend || {};
+
+          // ★ 关键修复：补充 BF/JQS/BQC 完整赔率数据（match-odds API 不返回这些）
+          if (batchData.bf && Array.isArray(batchData.bf)) _oddsData.bf = batchData.bf;
+          if (batchData.jqs && Array.isArray(batchData.jqs)) _oddsData.jqs = batchData.jqs;
+          if (batchData.bqc && Array.isArray(batchData.bqc)) _oddsData.bqc = batchData.bqc;
+
+          // ★ 关键修复：补充 RQSPF 赔率（match-odds 的 rqspfList 可能为空，
+          //   但 batch-match-odds 有 sporttery_odds_snapshot 兜底，rqspf 字段更可靠）
+          if (batchData.rqspf && !_oddsData.rqspf) {
+            var bRq = batchData.rqspf;
+            // rqspf 可能是 {home, draw, away} 或 {胜, 平, 负} 格式
+            _oddsData.rqspf = {
+              home: bRq.home || bRq['胜'] || null,
+              draw: bRq.draw || bRq['平'] || null,
+              away: bRq.away || bRq['负'] || null,
+            };
+            // 同时修正 handicap（batch-match-odds 有 4 级降级链）
+            if (batchData.handicap != null && (_oddsData.handicap == null || _oddsData.handicap === 0)) {
+              _oddsData.handicap = Number(batchData.handicap);
+            }
+          } else if (batchData.rqspf && _oddsData.rqspf) {
+            // 已有 rqspf 但可能值为空（rqspfList 匹配失败），用 batch 覆盖
+            var existing = _oddsData.rqspf;
+            if (!existing.home && !existing.draw && !existing.away) {
+              var bRq2 = batchData.rqspf;
+              _oddsData.rqspf = {
+                home: bRq2.home || bRq2['胜'] || null,
+                draw: bRq2.draw || bRq2['平'] || null,
+                away: bRq2.away || bRq2['负'] || null,
+              };
+            }
+          }
         }
       } catch (e) {
         /* 非关键 */
       }
+
+      // ★ 二级兜底：从 scheme-design 预加载的 _currentMatch._odds 补充（batch-match-odds 也可能没有）
+      var cachedOdds = (_currentMatch && _currentMatch._odds) || {};
+      if ((!_oddsData.bf || _oddsData.bf.length === 0) && cachedOdds.bf && cachedOdds.bf.length > 0) {
+        _oddsData.bf = cachedOdds.bf;
+        if (!_oddsData.bfDelta || Object.keys(_oddsData.bfDelta).length === 0) _oddsData.bfDelta = cachedOdds.bfDelta || {};
+      }
+      if ((!_oddsData.jqs || _oddsData.jqs.length === 0) && cachedOdds.jqs && cachedOdds.jqs.length > 0) {
+        _oddsData.jqs = cachedOdds.jqs;
+        if (!_oddsData.jqsDelta || Object.keys(_oddsData.jqsDelta).length === 0) _oddsData.jqsDelta = cachedOdds.jqsDelta || {};
+      }
+      if ((!_oddsData.bqc || _oddsData.bqc.length === 0) && cachedOdds.bqc && cachedOdds.bqc.length > 0) {
+        _oddsData.bqc = cachedOdds.bqc;
+        if (!_oddsData.bqcDelta || Object.keys(_oddsData.bqcDelta).length === 0) _oddsData.bqcDelta = cachedOdds.bqcDelta || {};
+      }
+      // ★ 二级兜底 RQSPF：从 scheme-design 预加载的 _currentMatch._odds 补充
+      var currentRq = _oddsData.rqspf;
+      var rqEmpty = !currentRq || (!currentRq.home && !currentRq.draw && !currentRq.away);
+      if (rqEmpty && cachedOdds.rqspf) {
+        var cRq = cachedOdds.rqspf;
+        _oddsData.rqspf = {
+          home: cRq.home || cRq['胜'] || null,
+          draw: cRq.draw || cRq['平'] || null,
+          away: cRq.away || cRq['负'] || null,
+        };
+      }
     } else {
       _oddsData = {};
+      // ★ match-odds 完全失败时，尝试直接用 _currentMatch._odds 作为兜底
+      var fallbackOdds = (_currentMatch && _currentMatch._odds) || {};
+      if (fallbackOdds.spf) _oddsData.spf = fallbackOdds.spf;
+      if (fallbackOdds.rqspf) _oddsData.rqspf = fallbackOdds.rqspf;
+      if (fallbackOdds.handicap != null) _oddsData.handicap = fallbackOdds.handicap;
+      if (fallbackOdds.bf) _oddsData.bf = fallbackOdds.bf;
+      if (fallbackOdds.jqs) _oddsData.jqs = fallbackOdds.jqs;
+      if (fallbackOdds.bqc) _oddsData.bqc = fallbackOdds.bqc;
     }
   } catch (e) {
     console.warn(e);
@@ -587,13 +653,8 @@ function renderGoalGrid() {
 /* ─── 半全场 3列 ─── */
 function renderHalfGrid() {
   var bqc = (_oddsData && _oddsData.bqc) || [];
-  var map = {};
-  bqc.forEach(function (b) {
-    map[b.combo] = b.odds;
-  });
-  var bqcDelta = (_oddsData && _oddsData.bqcDelta) || {};
 
-  // ★ BQC delta key 映射：英缩写 → 中标签
+  // ★ BQC key 映射：后端兜底可能返回 hh/hd/ha...，弹窗统一转为中文标签
   var BQC_DELTA_MAP = {
     hh: '胜胜',
     hd: '胜平',
@@ -605,6 +666,14 @@ function renderHalfGrid() {
     ad: '负平',
     aa: '负负',
   };
+
+  var map = {};
+  bqc.forEach(function (b) {
+    var key = b.combo || b.label || b.key || '';
+    var label = BQC_DELTA_MAP[key] || key;
+    if (label) map[label] = b.odds;
+  });
+  var bqcDelta = (_oddsData && _oddsData.bqcDelta) || {};
 
   var html = '<div class="bet-half-grid">';
   FIXED_BQC.forEach(function (c) {

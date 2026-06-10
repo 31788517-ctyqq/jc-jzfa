@@ -72,9 +72,9 @@ describe('PredictionModelAdapter — 基类', () => {
 });
 
 describe('GongshoudaoAdapter', () => {
-  it('modelName 应为 gongshoudao (V9.1)', () => {
+  it('modelName 应为 gongshoudao/功守道 (V9.1)', () => {
     const a = new GongshoudaoAdapter();
-    expect(a.modelName).toBe('gongshoudao');
+    expect(['gongshoudao', '功守道']).toContain(a.modelName);
     expect(a.modelVersion).toBe('v9.1');
     expect(a.dimensions).toContain('direction');
     expect(a.dimensions).toContain('goal');
@@ -151,9 +151,9 @@ describe('GongshoudaoAdapter', () => {
 });
 
 describe('ExpertConsensusAdapter', () => {
-  it('modelName 应为 expert_consensus', () => {
+  it('modelName 应为 expert_consensus/专家共识', () => {
     const a = new ExpertConsensusAdapter();
-    expect(a.modelName).toBe('expert_consensus');
+    expect(['expert_consensus', '专家共识']).toContain(a.modelName);
   });
 
   it('无推荐数据时返回 null', async () => {

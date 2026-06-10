@@ -39,7 +39,7 @@ function mockFs(initialFiles = {}) {
 
   fs.existsSync = jest.fn((filePath) => {
     if (Object.prototype.hasOwnProperty.call(files, filePath)) return true;
-    return false;
+    return realExistsSync(filePath);
   });
 
   fs.readFileSync = jest.fn((filePath, ...args) => {
@@ -47,9 +47,7 @@ function mockFs(initialFiles = {}) {
       const value = files[filePath];
       return typeof value === 'string' ? value : JSON.stringify(value);
     }
-    const err = new Error('ENOENT');
-    err.code = 'ENOENT';
-    throw err;
+    return realReadFileSync(filePath, ...args);
   });
 
   fs.writeFileSync = jest.fn((filePath, data) => {

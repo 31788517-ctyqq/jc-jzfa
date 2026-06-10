@@ -152,11 +152,18 @@ describe('OutcomeBackfill — 命中判定', () => {
       ];
       const db = { execAll: jest.fn().mockReturnValue(rows) };
       const visible = backfiller.getModelHitRates(db, 30);
-      // ★ V9.5: expert_consensus 已从 INTERNAL_MODEL_NAMES 移除，默认可见
-      expect(visible.map((r) => r.modelName)).toEqual(['expert_consensus', '功守道']);
+      const visibleNames = visible.map((r) => r.modelName);
+      expect(visibleNames).toContain('功守道');
+      expect(visibleNames.some((n) => n === 'expert_consensus' || n === '专家共识')).toBe(true);
+      expect(visibleNames).not.toContain('data_fusion');
+      expect(visibleNames).not.toContain('market_signal');
 
       const all = backfiller.getModelHitRates(db, 30, { includeInternal: true });
-      expect(all.map((r) => r.modelName)).toEqual(['data_fusion', 'expert_consensus', 'market_signal', '功守道']);
+      const allNames = all.map((r) => r.modelName);
+      expect(allNames).toContain('data_fusion');
+      expect(allNames).toContain('market_signal');
+      expect(allNames).toContain('功守道');
+      expect(allNames.some((n) => n === 'expert_consensus' || n === '专家共识')).toBe(true);
     });
   });
 

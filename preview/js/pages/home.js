@@ -119,6 +119,9 @@ export function loadHome() {
 
   // ── 近7日推荐盈利图表 ──
   loadHomeProfitChart();
+
+  // ── 消息提醒引擎（仅首页加载时运行） ──
+  NotiEngine.run();
 }
 
 // ═══ 近7日推荐盈利 SVG 折线图 ═══
@@ -129,7 +132,10 @@ function loadHomeProfitChart() {
     if (!data || !data.dates || !data.profits || data.dates.length === 0) { hideSkel(); return; }
     var dates = data.dates.slice(0, 7),
       profits = data.profits.slice(0, 7).map(function (v) { return v === null ? 0 : v; });
-    while (dates.length < 7) { dates.unshift('--'); profits.unshift(0); }
+
+    // ★ 至少保留 2 个点才能画线
+    if (dates.length < 2) { hideSkel(); return; }
+
     var section = document.getElementById('homeProfitChartSection');
     if (section) section.style.display = 'block';
     hideSkel();
@@ -195,20 +201,33 @@ function renderProfitChartNative(dates, profits) {
       + '<stop offset="100%" stop-color="#29c782" stop-opacity="0"/>'
       + '</linearGradient>';
   }
-  if (pathsEl) {
+    if (pathsEl) {
     var pathHtml = '';
     // 零线
     pathHtml += '<line x1="0" y1="' + baseY.toFixed(1) + '" x2="' + svgW + '" y2="' + baseY.toFixed(1)
       + '" stroke="#dce2e5" stroke-width="1" stroke-dasharray="4,3"/>';
-    // 填充 + 描边
+
+    // ★ 构建一条连续路径（贯穿所有点，用于描边连线）
+    var continuousPath = 'M' + xs[0].toFixed(1) + ',' + toY(profits[0]).toFixed(1);
+    for (var ci = 1; ci < n; ci++) {
+      var px = xs[ci - 1], py = toY(profits[ci - 1]);
+      var cx_ = xs[ci], cy_ = toY(profits[ci]);
+      var d_ = (cx_ - px) / 3;
+      continuousPath += ' C' + (px + d_).toFixed(1) + ',' + py.toFixed(1) + ' '
+        + (cx_ - d_).toFixed(1) + ',' + cy_.toFixed(1) + ' '
+        + cx_.toFixed(1) + ',' + cy_.toFixed(1);
+    }
+
+    // ★ 连续描边线（全量连接所有红绿点）— 浅色不抢数字注意力
+    pathHtml += '<path class="profit-stroke" fill="none" stroke="#c0cad6" stroke-width="1.8"'
+      + ' stroke-linecap="round" stroke-linejoin="round" d="' + continuousPath + '"/>';
+
+    // 分段填充区域（按正负着色）
     segs.forEach(function (s) {
       var grad = s.up ? 'url(#profitG)' : 'url(#lossG)';
-      var stk = s.up ? '#ff5858' : '#22c878';
       var fillD = s.path + ' L' + s.lx.toFixed(1) + ',' + baseY.toFixed(1)
         + ' L' + s.pts[0][0].toFixed(1) + ',' + baseY.toFixed(1) + ' Z';
-      pathHtml += '<path fill="' + grad + '" d="' + fillD + '"/>'
-        + '<path fill="none" stroke="' + stk + '" stroke-width="2.5"'
-        + ' stroke-linecap="round" stroke-linejoin="round" d="' + s.path + '"/>';
+      pathHtml += '<path class="profit-area" fill="' + grad + '" d="' + fillD + '"/>';
     });
     // 数据点空心圆
     for (var i = 0; i < n; i++) {
@@ -217,6 +236,28 @@ function renderProfitChartNative(dates, profits) {
       pathHtml += '<circle cx="' + cx + '" cy="' + cy + '" r="4.5" fill="#fff" stroke="' + cs + '" stroke-width="2"/>';
     }
     pathsEl.innerHTML = pathHtml;
+
+    // ★ 动画：计算连续描边路径的实际长度，设置精确的 dasharray（总时长 1.6s，延迟 0.4s 后开始）
+    var allStrokes = pathsEl.querySelectorAll('.profit-stroke');
+    allStrokes.forEach(function (sp) {
+      var len = sp.getTotalLength();
+      sp.style.strokeDasharray = len;
+      sp.style.strokeDashoffset = len;
+      requestAnimationFrame(function () {
+        setTimeout(function () {
+          sp.style.transition = 'stroke-dashoffset 1.6s cubic-bezier(0.22,1,0.36,1)';
+          sp.style.strokeDashoffset = '0';
+        }, 400);
+      });
+    });
+
+    // ★ 填充区域延迟淡入（线条画完后 0.3s 开始，即 t≈2.3s）
+    var areaPaths = pathsEl.querySelectorAll('.profit-area');
+    areaPaths.forEach(function (ap) {
+      ap.style.opacity = '0';
+      ap.style.transition = 'none';
+      setTimeout(function () { ap.style.transition = 'opacity 0.7s ease'; ap.style.opacity = '1'; }, 2300);
+    });
   }
 
   // ── 5. Y 轴标签 ──
@@ -307,3 +348,436 @@ function renderProfitChartNative(dates, profits) {
   var mdEl = document.getElementById('statsMaxDate');
   if (mdEl) mdEl.textContent = maxI >= 0 ? dates[maxI] : '--';
 }
+
+// ═══════════════════════════════════════════════════════════
+// ★ 消息提醒引擎 (NotiEngine)
+// 核心原则：不打扰用户，每天最多推送一条消息
+// ═══════════════════════════════════════════════════════════
+
+var APP_VERSION = '20260610';
+
+var NotiEngine = {
+  _candidates: [],
+  _consumed: false,
+
+  /** 首页加载时调用 — 仅收集+Badge，不弹窗 */
+  run: function () {
+    this._collect().then(
+      function (msgs) {
+        var filtered = NotiEngine._dedupeAndExpire(msgs);
+        var sorted = NotiEngine._prioritize(filtered);
+        var result = NotiEngine._dailyGuard(sorted);
+        NotiEngine._updateBadge(result);
+      }.bind(this)
+    ).catch(function () {});
+  },
+
+  /** 收集所有满足触发条件的消息 */
+  _collect: function () {
+    var msgs = [];
+    var self = this;
+
+    // 1. 首次欢迎消息 (P0)
+    if (!localStorage.getItem('noti:welcome_seen')) {
+      msgs.push(self._buildWelcome());
+    }
+
+    // 异步收集需要 API 的消息类型
+    return api('daily-profit-7d', { days: 7 }).then(function (data) {
+      // 2. 专家博热5连红 (P1) - 基于多日数据聚合
+      if (data && data.profits && Array.isArray(data.profits)) {
+        var streakResult = self._checkStreak(data.profits);
+        if (streakResult && !self._isRead('streak', streakResult.startDate)) {
+          msgs.push(self._buildStreak(streakResult));
+        }
+
+        // 3. 7日盈利突破 (P1)
+        var total = data.total || 0;
+        if (total >= 1000) {
+          var todayStr = new Date().toISOString().slice(0, 10);
+          if (!self._isRead('profit', todayStr)) {
+            msgs.push(self._buildProfitBreakthrough(data));
+          }
+        }
+      }
+
+      // 4. 系统版本更新 (P2)
+      var seenVer = localStorage.getItem('noti:version_seen');
+      if (seenVer !== APP_VERSION) {
+        msgs.push(self._buildVersionUpdate());
+      }
+
+      return msgs;
+    }).catch(function () {
+      // API 失败时返回仅本地类型的消息（欢迎 + 版本）
+      var seenVer = localStorage.getItem('noti:version_seen');
+      if (seenVer !== APP_VERSION) {
+        msgs.push(self._buildVersionUpdate());
+      }
+      return msgs;
+    });
+  },
+
+  /** 检查连续盈利天数（5天） */
+  _checkStreak: function (profits) {
+    if (!Array.isArray(profits)) return null;
+    var streak = 0;
+    var startDate = null;
+    for (var i = profits.length - 1; i >= 0; i--) {
+      if ((profits[i] || 0) > 0) {
+        streak++;
+        startDate = this._dateOffset(i - profits.length + 1);
+      } else break;
+    }
+    if (streak >= 5) {
+      var days = [];
+      var dayTotal = 0;
+      for (var j = 0; j < Math.min(streak, 5); j++) {
+        var idx = profits.length - streak + j;
+        var val = profits[idx] || 0;
+        dayTotal += val;
+        days.push({ date: this._dateOffset(idx - profits.length + 1), profit: val });
+      }
+      return { startDate: startDate, days: days, total: dayTotal };
+    }
+    return null;
+  },
+
+  /** 计算日期偏移字符串 */
+  _dateOffset: function (offsetDays) {
+    var d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    return d.toISOString().slice(5, 10); // MM-DD
+  },
+
+  /** 构建欢迎消息 */
+  _buildWelcome: function () {
+    return {
+      id: 'welcome',
+      type: 'welcome',
+      priority: 'P0',
+      title: '\u{1F389} \u6B22\u8FCE\u4F7F\u7528\u7ADEE5F69\u63A8\u8350\u76D1\u63A7\u7CFB\u7EDF\uFF01',
+      body: '\u8FD9\u91CC\u662F\u60A8\u7684\u667A\u80FD\u65B9\u6848\u51B3\u7B56\u52A9\u624B\uFF1A\n' +
+            '\n' +
+            '\u{1F4CA} \u4E13\u5BB6\u535A\u70ED\u65B9\u6848 \u2014 \uFFFD\uFFFD\uFFFD\u8D44\u6DF1\u4E13\u5BB6\u7684\u70ED\u95E8\u63A8\u8350\u65B9\u5411\uFF1B\n' +
+            'AI\u6DF1\u5EA6\u5206\u6790-\u53CCAI\u6A21\u578B\u878D\u5408\uFF0C\u4E94\u7EF4\u5206\u6790\u9884\u6D4B\uFF1B\n' +
+            '\u2694\uFE0F \u529F\u5B88\u9053\u5206\u6790 \u2014 \u653B\u5B88\u6570\u636E\u5EFA\u6A21\uFF0C\u9884\u5224\u6BD4\u8D5B\u8D70\u52BF\uFF1B\n' +
+            '\u{1F504} \u591A\u6A21\u578B\u7ADE\u4E89 \u2014 \u6A21\u578bPK\u7ADE\u4E89\uFF0C\u63D0\u9AD8\u547D\u4E2D\u7387\uFF1B\n' +
+            '\n' +
+            '\u5F00\u59CB\u63A2\u7D22\u5427\uFF0C\u795D\u60A8\u76C8\u5229\u957F\u7EA2 \u{1F340}',
+      btnText: '\u77E5\u9053\u4E86',
+      action: 'welcome_dismiss',
+      storageKey: 'noti:welcome_seen',
+      expiresAt: null,
+      createdAt: new Date().toISOString()
+    };
+  },
+
+  /** 构建连红消息 */
+  _buildStreak: function (data) {
+    var lines = data.days.map(function (d) {
+      return '\u2022 ' + d.date + ' \u65E5\u76C8\u5229 +' + d.profit.toFixed(0) + ' \u5143 \u2705';
+    }).join('\n');
+
+    return {
+      id: 'streak_' + data.startDate,
+      type: 'streak',
+      priority: 'P1',
+      title: '\u{1F525} \u4E13\u5BB6\u535A\u70ED 5 \u8FDE\u7EA2\uFF01',
+      body: '\u4E13\u5BB6\u535A\u70ED\u65B9\u6848\u8FDE\u7EED 5 \u5929\u76C8\u5229\u4E3A\u6B63\uFF0C\u72B6\u6001\u6781\u4F73\uFF1A\n' + lines +
+            '\n\u2022 5\u65E5\u7D2F\u8BA1 +' + data.total.toFixed(0) + ' \u5143 \u{1F3AF}\n\n' +
+            '\u8FDE\u7EA2\u52BF\u5934\u5F3A\u52B2\uFF0C\u67E5\u770B\u4ECA\u65E5\u65B9\u6848\u8DD1\u4E0A\u8282\u594F \u2192',
+      btnText: '\u67E5\u770B',
+      action: 'nav_plan',
+      storageKey: 'noti:streak_' + data.startDate,
+      expiresAt: Date.now() + 3 * 24 * 3600000,
+      createdAt: new Date().toISOString()
+    };
+  },
+
+  /** 构建盈利突破消息 */
+  _buildProfitBreakthrough: function (data) {
+    var total = data.total || 0;
+    var maxDayProfit = 0, maxDate = '';
+    var winDays = 0;
+    if (data.profits && Array.isArray(data.profits)) {
+      for (var i = 0; i < data.profits.length; i++) {
+        if (data.profits[i] > maxDayProfit) {
+          maxDayProfit = data.profits[i];
+          maxDate = data.dates ? (data.dates[i] || '') : '';
+        }
+        if ((data.profits[i] || 0) > 0) winDays++;
+      }
+    }
+    var yieldRate = total > 0 ? ((total / 7000) * 100).toFixed(1) : '0';
+
+    return {
+      id: 'profit_' + new Date().toISOString().slice(0, 10),
+      type: 'profit',
+      priority: 'P1',
+      title: '\u{1F4B0} \u4E13\u5BB6\u65B9\u6848\u76C8\u5229\u7A81\u7834\uFF01',
+      body: '\u8FD1 7 \u65E5\u4E13\u5BB6\u535A\u70ED\u65B9\u6848\u603B\u76C8\u5229 +' + total.toFixed(0) + ' \u5143 \u{1F3AF}\n' +
+            '\u2022 \u6700\u9AD8\u5355\u65E5 +' + maxDayProfit.toFixed(0) + ' \u5143\uFF08' + maxDate + '\uFF09\n' +
+            '\u2022 \u76C8\u5229\u5929\u6570 ' + winDays + '/7 \u5929\n' +
+            '\u2022 \u7D2F\u8BA1\u6536\u76CA\u7387 ' + yieldRate + '%\n\n' +
+            '\u7A33\u5B9A\u76C8\u5229\u4E2D\uFF0C\u4FDD\u6301\u8DDF\u8FDB \u2192',
+      btnText: '\u67E5\u770B',
+      action: 'nav_income',
+      storageKey: 'noti:profit_' + new Date().toISOString().slice(0, 10),
+      expiresAt: Date.now() + 24 * 3600000,
+      createdAt: new Date().toISOString()
+    };
+  },
+
+  /** 构建版本更新消息 */
+  _buildVersionUpdate: function () {
+    return {
+      id: 'ver_' + APP_VERSION,
+      type: 'version',
+      priority: 'P2',
+      title: '\u{1F195} \u7CFB\u7EDF\u66F4\u65B0 V' + APP_VERSION,
+      body: '\u672C\u6B21\u66F4\u65B0\u5185\u5BB9\uFF1A\n' +
+            '\u2728 \u65B0\u589E\u6D88\u606F\u63D0\u9192\u4E2D\u5FC3\uFF0C\u652F\u6301\u591A\u7C7B\u6D88\u606F\u81EA\u52A8\u6536\u96C6\u4E0E\u4F18\u5148\u7EA7\u6392\u5E8F\n' +
+            '\u{1F4CA} \u6BCF\u5929\u6700\u591A\u63A8\u90011\u6761\u6D88\u606F\uFF0C\u4E25\u683C\u9075\u5FAA\u201C\u4E0D\u6253\u6270\u201D\u539F\u5219\n' +
+            '\u{1FAE7} \u4F18\u5316\u7528\u6237\u4F53\u9A8C\uFF0CBadge+\u5F39\u7A97\u5206\u79BB\u5C55\u793A\n\n' +
+            '\u66F4\u591A\u7EC6\u8282\u8BF7\u7EE7\u7EED\u63A2\u7D22\u65B0\u529F\u80FD \u2192',
+      btnText: '\u77E5\u9053\u4E86',
+      action: 'version_dismiss',
+      storageKey: 'noti:version_seen',
+      expiresAt: Date.now() + 7 * 24 * 3600000,
+      createdAt: new Date().toISOString(),
+      extraData: APP_VERSION
+    };
+  },
+
+  /** 检查某条消息是否已读 */
+  _isRead: function (type, key) {
+    var lsKey = 'noti:' + type + '_' + (key || '');
+    return !!localStorage.getItem(lsKey);
+  },
+
+  /** 去重 + 过期清理 */
+  _dedupeAndExpire: function (msgs) {
+    var now = Date.now();
+    var self = this;
+    return msgs.filter(function (msg) {
+      // 已消费的过滤
+      if (msg.consumed) return false;
+      // 过期的清理并移除标记
+      if (msg.expiresAt && now > msg.expiresAt) {
+        try { localStorage.removeItem(msg.storageKey); } catch(e) {}
+        return false;
+      }
+      return true;
+    });
+  },
+
+  /** 优先级排序 P0 > P1 > P2 */
+  _prioritize: function (msgs) {
+    var order = { P0: 0, P1: 1, P2: 2 };
+    return msgs.sort(function (a, b) {
+      var pa = order[a.priority] !== undefined ? order[a.priority] : 99;
+      var pb = order[b.priority] !== undefined ? order[b.priority] : 99;
+      if (pa !== pb) return pa - pb;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+  },
+
+  /**
+   * ⭐ 日限守卫 — 每天最多推送1条消息
+   * @param {Array} sortedMessages 已排序候选列表
+   * @returns {{ pushed: Object|null, waiting: Array }}
+   */
+  _dailyGuard: function (sortedMessages) {
+    var markerStr = localStorage.getItem('noti:daily_push_marker');
+    var marker = null;
+    try { marker = markerStr ? JSON.parse(markerStr) : null; } catch(e) {}
+    var today = new Date().toISOString().slice(0, 10);
+
+    // 今天已经推送过 → 全部降级为静候
+    if (marker && marker.date === today) {
+      this._candidates = sortedMessages;
+      return { pushed: null, waiting: sortedMessages };
+    }
+
+    // 今天还没推送 → 取第一名
+    var pushed = sortedMessages.length > 0 ? sortedMessages[0] : null;
+    var waiting = sortedMessages.slice(1);
+
+    if (pushed) {
+      localStorage.setItem('noti:daily_push_marker', JSON.stringify({
+        date: today,
+        pushedId: pushed.id,
+        pushedAt: new Date().toISOString()
+      }));
+    }
+
+    this._candidates = sortedMessages;
+    return { pushed: pushed, waiting: waiting };
+  },
+
+  /**
+   * 更新 Badge 数字（含静候消息的总数）
+   * 不自动弹出弹窗！
+   */
+  _updateBadge: function (result) {
+    var totalCount = (result.pushed ? 1 : 0) + (result.waiting ? result.waiting.length : 0);
+    var badgeEl = document.getElementById('notiBadge');
+    if (!badgeEl) return;
+
+    if (totalCount <= 0) {
+      badgeEl.style.display = 'none';
+      badgeEl.textContent = '';
+      badgeEl.classList.remove('bell-pulse');
+    } else {
+      badgeEl.style.display = 'inline-flex';
+      badgeEl.textContent = totalCount > 9 ? '9+' : String(totalCount);
+      badgeEl.classList.add('bell-pulse');
+    }
+  },
+
+  // ── UI 渲染方法（由 App.showNotifications 调用） ──
+
+  showNotifications: function () {
+    if (!this._candidates || this._candidates.length === 0) return;
+
+    var overlay = document.getElementById('notiOverlay');
+    var body = document.getElementById('notiBody');
+    var countEl = document.getElementById('notiCount');
+
+    if (!overlay || !body) return;
+
+    // 顶部对齐首页三个统计卡片：按实际 DOM 位置动态计算，避免不同屏幕高度偏移
+    var homeStats = document.querySelector('#page-home .home-stats');
+    if (homeStats) {
+      var statsTop = Math.round(homeStats.getBoundingClientRect().top);
+      overlay.style.setProperty('--noti-top', Math.max(16, statsTop) + 'px');
+    }
+
+    // 更新计数
+    countEl.textContent = this._candidates.length;
+
+    // 渲染卡片
+    var html = '';
+    for (var i = 0; i < this._candidates.length; i++) {
+      var msg = this._candidates[i];
+      html += '<div class="noti-card" data-id="' + msg.id + '">' +
+        '<div class="noti-card-title">' + this._escapeHtml(msg.title) + '</div>' +
+        '<div class="noti-card-body">' + this._formatBody(msg.body) + '</div>' +
+        '<button class="noti-card-btn" onclick=\"App.consumeNoti(\'' + msg.id + '\', \'' + (msg.action || '') + '\')\">' +
+        (msg.btnText || '\u77E5\u9053\u4E86') + '</button></div>';
+    }
+    body.innerHTML = html;
+
+    overlay.classList.add('active');
+  },
+
+  closeNotifications: function () {
+    var overlay = document.getElementById('notiOverlay');
+    if (overlay) overlay.classList.remove('active');
+  },
+
+  consumeNoti: function (msgId, action) {
+    var idx = -1;
+    for (var i = 0; i < this._candidates.length; i++) {
+      if (this._candidates[i].id === msgId) { idx = i; break; }
+    }
+    if (idx < 0) return;
+
+    var msg = this._candidates[idx];
+
+    // 标记已读
+    if (msg.storageKey) {
+      if (msg.extraData) {
+        localStorage.setItem(msg.storageKey, msg.extraData);
+      } else {
+        localStorage.setItem(msg.storageKey, '1');
+      }
+    }
+
+    // 执行动作
+    this._doAction(action);
+
+    // 移除该条消息
+    this._candidates.splice(idx, 1);
+    msg.consumed = true;
+
+    // 更新 UI
+    this._refreshModal();
+    this._updateBadge({ pushed: null, waiting: this._candidates });
+  },
+
+  markAllRead: function () {
+    for (var i = 0; i < this._candidates.length; i++) {
+      var msg = this._candidates[i];
+      if (msg.storageKey) {
+        if (msg.extraData) {
+          localStorage.setItem(msg.storageKey, msg.extraData);
+        } else {
+          localStorage.setItem(msg.storageKey, '1');
+        }
+      }
+    }
+    this._candidates = [];
+    this.closeNotifications();
+    this._updateBadge({ pushed: null, waiting: [] });
+  },
+
+  _refreshModal: function () {
+    var body = document.getElementById('notiBody');
+    var countEl = document.getElementById('notiCount');
+    if (!body) return;
+
+    countEl.textContent = this._candidates.length;
+
+    if (this._candidates.length === 0) {
+      this.closeNotifications();
+      return;
+    }
+
+    var html = '';
+    for (var i = 0; i < this._candidates.length; i++) {
+      var msg = this._candidates[i];
+      html += '<div class="noti-card" data-id="' + msg.id + '">' +
+        '<div class="noti-card-title">' + this._escapeHtml(msg.title) + '</div>' +
+        '<div class="noti-card-body">' + this._formatBody(msg.body) + '</div>' +
+        '<button class="noti-card-btn" onclick=\"App.consumeNoti(\'' + msg.id + '\', \'' + (msg.action || '') + '\')\">' +
+        (msg.btnText || '\u77E5\u9053\u4E86') + '</button></div>';
+    }
+    body.innerHTML = html;
+  },
+
+  _doAction: function (action) {
+    switch (action) {
+      case 'nav_plan':
+        this.closeNotifications();
+        if (typeof window.switchTab === 'function') window.switchTab('plan');
+        break;
+      case 'nav_income':
+        this.closeNotifications();
+        if (typeof window.switchTab === 'function') window.switchTab('income');
+        break;
+      case 'welcome_dismiss':
+      case 'version_dismiss':
+      default:
+        break;
+    }
+  },
+
+  _escapeHtml: function (s) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(s));
+    return div.innerHTML;
+  },
+
+  _formatBody: function (text) {
+    return text.replace(/\n/g, '<br>');
+  }
+};
+
+/** 全局挂载点 — 被 index.html 中的 onclick 调用 */
+window.App = window.App || {};
+window.App.showNotifications = function () { NotiEngine.showNotifications(); };
+window.App.closeNotifications = function () { NotiEngine.closeNotifications(); };
+window.App.consumeNoti = function (id, action) { NotiEngine.consumeNoti(id, action); };
+window.App.markAllRead = function () { NotiEngine.markAllRead(); };

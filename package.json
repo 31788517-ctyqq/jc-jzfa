@@ -37,8 +37,12 @@
     "format:check": "prettier --check \"server/**/*.js\" \"preview/js/**/*.js\" \"preview/*.js\" \"scripts/*.js\" --log-level error",
     "test:e2e": "npx playwright test",
     "test:e2e:critical": "npx playwright test preview/tests/e2e/main.spec.js preview/tests/e2e/tabs.spec.js preview/tests/e2e/plans.spec.js preview/tests/e2e/critical-flows.spec.js",
+    "test:e2e:perf": "npx playwright test preview/tests/e2e/perf-pages.spec.js --workers=1 --reporter=line",
+    "test:e2e:perf:gate": "cmd /c \"npx playwright test preview/tests/e2e/perf-pages.spec.js --workers=1 --reporter=json > E:\\JC-ZJFA\\.codebuddy\\e2e_perf_report.json\" && node scripts/e2e-perf-gate.js E:/JC-ZJFA/.codebuddy/e2e_perf_report.json 3000",
+    "preflight:perf": "npm run test:e2e:critical && npm run test:e2e:perf:gate",
     "test:e2e:ui": "npx playwright test --ui",
     "test:e2e:report": "npx playwright show-report",
+
     "test:smoke": "jest --testPathPattern=\"smoke_api\" --testPathIgnorePatterns=node_modules --forceExit --no-coverage",
     "setup:githooks": "git config core.hooksPath .githooks",
     "preflight": "powershell -ExecutionPolicy Bypass -File scripts/release-preflight.ps1",

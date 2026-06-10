@@ -1,119 +1,119 @@
 // ============================================================
-// E2E: 首页快捷菜单页面 (income / quant-rank / filter / backtest)
+// E2E: 首页快捷入口页面 (income / quant-rank / filter / backtest)
 // ============================================================
 const { test, expect } = require('@playwright/test');
 
-// 辅助：通过首页菜单项点击进入页面
-async function clickMenu(page, menuText) {
+async function gotoHome(page) {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
-
-  // 定位对应菜单项
-  const menuItem = page.locator('.menu-item', { hasText: menuText });
-  await expect(menuItem).toBeVisible({ timeout: 5000 });
-  await menuItem.click();
-  await page.waitForTimeout(800); // 等异步渲染
+  await page.waitForFunction(() => typeof window.switchTab === 'function');
 }
 
-test.describe('快捷菜单 — 方案收入 (income)', () => {
+async function openRoute(page, route, readySelector) {
+  await gotoHome(page);
+  await page.evaluate((r) => window.switchTab(r), route);
+  await page.waitForFunction(
+    (r) => {
+      const el = document.getElementById('page-' + r);
+      return !!el && el.classList.contains('active');
+    },
+    route,
+    { timeout: 10000 }
+  );
+  if (readySelector) {
+    await expect(page.locator(readySelector).first()).toBeVisible({ timeout: 10000 });
+  }
+}
+
+const ROUTES = {
+  income: { title: '方案收入', ready: '#page-income #incomeResult, #page-income #dd-incDir' },
+  'quant-rank': { title: '量化数据排行榜', ready: '#page-quant-rank #quantFilterBar, #page-quant-rank #quantTableWrap' },
+  filter: { title: '命中率筛选', ready: '#page-filter #filterResult, #page-filter #dd-league' },
+  backtest: { title: '历史数据回测', ready: '#page-backtest #btTabRow, #page-backtest #btList' },
+};
+
+test.describe('首页快捷入口UI', () => {
+  test('首页应显示快捷入口卡片与工具按钮', async ({ page }) => {
+    await gotoHome(page);
+    await expect(page.locator('.home-right-card.home-card-income')).toBeVisible();
+    await expect(page.locator('.home-right-card.home-card-hit')).toBeVisible();
+    await expect(page.locator('.home-tool', { hasText: '回测' })).toBeVisible();
+    await expect(page.locator('.home-tool', { hasText: '量化' })).toBeVisible();
+  });
+});
+
+test.describe('快捷入口 — 方案收入 (income)', () => {
   test('进入方案收入页无控制台错误', async ({ page }) => {
     const errors = [];
     page.on('pageerror', (err) => errors.push(err.message));
-
-    await clickMenu(page, '方案收入');
+    await openRoute(page, 'income', ROUTES.income.ready);
     expect(errors).toEqual([]);
   });
 
   test('方案收入页渲染内容', async ({ page }) => {
-    await clickMenu(page, '方案收入');
-    await page.waitForTimeout(1500);
-
+    await openRoute(page, 'income', ROUTES.income.ready);
     const html = await page.content();
     expect(html.length).toBeGreaterThan(1000);
-
-    // 导航标题应更新
-    const navTitle = page.locator('#navTitle');
-    await expect(navTitle).toBeVisible();
+    await expect(page.locator('#navTitle')).toContainText(ROUTES.income.title);
   });
 
   test('方案收入 API 无失败', async ({ page }) => {
     const failedRequests = [];
     page.on('response', (r) => {
-      if (r.status() >= 400 && r.url().includes('/api/')) {
-        failedRequests.push({ url: r.url(), status: r.status() });
-      }
+      if (r.status() >= 400 && r.url().includes('/api/')) failedRequests.push({ url: r.url(), status: r.status() });
     });
-
-    await clickMenu(page, '方案收入');
-    await page.waitForTimeout(1000);
-
+    await openRoute(page, 'income', ROUTES.income.ready);
     expect(failedRequests.length).toBe(0);
   });
 });
 
-test.describe('快捷菜单 — 量化数据排行榜 (quant-rank)', () => {
+test.describe('快捷入口 — 量化数据排行榜 (quant-rank)', () => {
   test('进入量化排行页无控制台错误', async ({ page }) => {
     const errors = [];
     page.on('pageerror', (err) => errors.push(err.message));
-
-    await clickMenu(page, '量化数据排行榜');
+    await openRoute(page, 'quant-rank', ROUTES['quant-rank'].ready);
     expect(errors).toEqual([]);
   });
 
   test('量化排行页渲染内容', async ({ page }) => {
-    await clickMenu(page, '量化数据排行榜');
-    await page.waitForTimeout(1500);
-
+    await openRoute(page, 'quant-rank', ROUTES['quant-rank'].ready);
     const html = await page.content();
     expect(html.length).toBeGreaterThan(1000);
   });
 
   test('量化排行页内容含场次数据', async ({ page }) => {
-    await clickMenu(page, '量化数据排行榜');
-    await page.waitForTimeout(2000);
-
+    await openRoute(page, 'quant-rank', ROUTES['quant-rank'].ready);
     const html = await page.content();
-    // 应该有比赛编号或队伍名
-    const hasContent =
-      html.includes('周一') ||
-      html.includes('matchNum') ||
-      html.includes('编号') ||
-      html.length > 2000;
+    const hasContent = html.includes('周') || html.includes('matchNum') || html.includes('编号') || html.length > 2000;
     expect(hasContent).toBe(true);
   });
 });
 
-test.describe('快捷菜单 — 命中率筛选 (filter)', () => {
+test.describe('快捷入口 — 命中率筛选 (filter)', () => {
   test('进入命中率筛选页无控制台错误', async ({ page }) => {
     const errors = [];
     page.on('pageerror', (err) => errors.push(err.message));
-
-    await clickMenu(page, '命中率筛选');
+    await openRoute(page, 'filter', ROUTES.filter.ready);
     expect(errors).toEqual([]);
   });
 
   test('命中率筛选页渲染筛选控件', async ({ page }) => {
-    await clickMenu(page, '命中率筛选');
-    await page.waitForTimeout(1000);
-
+    await openRoute(page, 'filter', ROUTES.filter.ready);
     const html = await page.content();
     expect(html.length).toBeGreaterThan(1000);
   });
 });
 
-test.describe('快捷菜单 — 历史数据回测 (backtest)', () => {
+test.describe('快捷入口 — 历史数据回测 (backtest)', () => {
   test('进入回测页无控制台错误', async ({ page }) => {
     const errors = [];
     page.on('pageerror', (err) => errors.push(err.message));
-
-    await clickMenu(page, '历史数据回测');
+    await openRoute(page, 'backtest', ROUTES.backtest.ready);
     expect(errors).toEqual([]);
   });
 
   test('回测页渲染内容', async ({ page }) => {
-    await clickMenu(page, '历史数据回测');
-    await page.waitForTimeout(2000);
-
+    await openRoute(page, 'backtest', ROUTES.backtest.ready);
     const html = await page.content();
     expect(html.length).toBeGreaterThan(1000);
   });
@@ -121,14 +121,9 @@ test.describe('快捷菜单 — 历史数据回测 (backtest)', () => {
   test('回测页 API 无失败', async ({ page }) => {
     const failedRequests = [];
     page.on('response', (r) => {
-      if (r.status() >= 400 && r.url().includes('/api/')) {
-        failedRequests.push({ url: r.url(), status: r.status() });
-      }
+      if (r.status() >= 400 && r.url().includes('/api/')) failedRequests.push({ url: r.url(), status: r.status() });
     });
-
-    await clickMenu(page, '历史数据回测');
-    await page.waitForTimeout(1000);
-
+    await openRoute(page, 'backtest', ROUTES.backtest.ready);
     expect(failedRequests.length).toBe(0);
   });
 });
@@ -141,36 +136,23 @@ test.describe('跨页面导航', () => {
     const errors = [];
     page.on('pageerror', (err) => errors.push(err.message));
 
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
+    await gotoHome(page);
     const tabs = ['home', 'match', 'rank', 'hit', 'plan', 'home'];
     for (const tab of tabs) {
       await page.click('#tab-' + tab);
-      await page.waitForTimeout(400);
+      await page.waitForTimeout(300);
     }
 
     expect(errors).toEqual([]);
   });
 
-  test('连续切换4个菜单页不崩溃', async ({ page }) => {
+  test('连续切换4个快捷入口页不崩溃', async ({ page }) => {
     const errors = [];
     page.on('pageerror', (err) => errors.push(err.message));
 
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    const menus = ['方案收入', '量化数据排行榜', '命中率筛选', '历史数据回测'];
-    for (const menuText of menus) {
-      // 每次都重新回到首页
-      await page.click('#tab-home');
-      await page.waitForTimeout(300);
-
-      const menuItem = page.locator('.menu-item', { hasText: menuText });
-      if (await menuItem.isVisible()) {
-        await menuItem.click();
-        await page.waitForTimeout(500);
-      }
+    const routes = ['income', 'quant-rank', 'filter', 'backtest'];
+    for (const route of routes) {
+      await openRoute(page, route, ROUTES[route].ready);
     }
 
     expect(errors).toEqual([]);

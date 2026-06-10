@@ -306,13 +306,13 @@ describe('plan-generator — getMatchOdds', () => {
   it('按 num_X 匹配(allplays)', () => {
     const m = { num: '001' };
     const ap = { num_001: { spf: { home: 2.0 } } };
-    expect(getMatchOdds(m, null, ap)).toEqual({ spf: { home: 2.0 } });
+    expect(getMatchOdds(m, null, ap)).toEqual({ spf: { home: 2.0, draw: 1.01, away: 1.01 } });
   });
 
   it('按 matchId 匹配', () => {
     const m = { num: '', matchId: 'm123' };
     const ap = { m123: { spf: { home: 1.5 } } };
-    expect(getMatchOdds(m, null, ap)).toEqual({ spf: { home: 1.5 } });
+    expect(getMatchOdds(m, null, ap)).toEqual({ spf: { home: 1.5, draw: 1.01, away: 1.01 } });
   });
 
   it('无匹配 → null', () => {

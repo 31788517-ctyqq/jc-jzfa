@@ -76,6 +76,82 @@ function getAllplaysData() {
   return _allplaysCache || {};
 }
 
+// 方案页赛果叠加：优先使用 prediction_logs / live_scores 中的最新可靠比分，修正 data.json 历史比分滞后
+const _planOutcomeOverlayCache = {};
+function normalizeScoreText(score) {
+  if (score === null || score === undefined) return '';
+  return String(score).trim().replace(/\s+/g, '').replace(/:/g, '-');
+}
+function buildScoreFromGoals(homeGoals, awayGoals) {
+  if (homeGoals === null || homeGoals === undefined || awayGoals === null || awayGoals === undefined) return '';
+  const h = parseInt(homeGoals, 10);
+  const a = parseInt(awayGoals, 10);
+  if (Number.isNaN(h) || Number.isNaN(a)) return '';
+  return h + '-' + a;
+}
+function getPlanOutcomeOverlay(dateStr) {
+  if (!dateStr) return { byId: {}, byNum: {} };
+  const now = Date.now();
+  const cached = _planOutcomeOverlayCache[dateStr];
+  if (cached && now - cached.time < 60000) return cached.data;
+  const overlay = { byId: {}, byNum: {} };
+  function addOutcome(row, source) {
+    if (!row) return;
+    const score = normalizeScoreText(row.score || row.actual_score) || buildScoreFromGoals(row.homeScore || row.actual_home_goals, row.visitScore || row.actual_away_goals);
+    if (!score) return;
+    const item = {
+      score: score,
+      matchStatus: row.matchStatus != null ? row.matchStatus : 2,
+      halfScore: row.halfScore || row.actual_half_score || '',
+      source: source,
+    };
+    const mid = row.matchId || row.match_id;
+    const num = row.matchNum || row.match_num || row.num;
+    if (mid) overlay.byId[String(mid).replace(/^m_/, '')] = item;
+    if (num) overlay.byNum[String(num)] = item;
+  }
+  try {
+    const livePath = path.join(__dirname, 'live_scores.json');
+    if (fs.existsSync(livePath)) {
+      const live = JSON.parse(fs.readFileSync(livePath, 'utf8'));
+      if (!live.date || live.date === dateStr) {
+        (live.matches || []).forEach(function (m) {
+          addOutcome(m, 'live_scores');
+        });
+      }
+    }
+  } catch (e) {}
+  try {
+    const adp = database.getAdapter();
+    if (adp) {
+      const rows = adp.execAll(
+        "SELECT matchId, matchNum, actual_score, actual_home_goals, actual_away_goals FROM prediction_logs WHERE date = ? AND ((actual_score IS NOT NULL AND actual_score != '') OR (actual_home_goals IS NOT NULL AND actual_away_goals IS NOT NULL))",
+        dateStr,
+      );
+      rows.forEach(function (r) {
+        addOutcome(r, 'prediction_logs');
+      });
+    }
+  } catch (e) {}
+  _planOutcomeOverlayCache[dateStr] = { time: now, data: overlay };
+  return overlay;
+}
+function applyPlanOutcomeOverlay(dateStr, match) {
+  if (!match) return match;
+  const overlay = getPlanOutcomeOverlay(dateStr);
+  const idKey = match.matchId ? String(match.matchId).replace(/^m_/, '') : '';
+  const numKey = match.num || match.matchNum || '';
+  const out = (idKey && overlay.byId[idKey]) || (numKey && overlay.byNum[numKey]);
+  if (!out || !out.score) return match;
+  const next = Object.assign({}, match);
+  next.score = out.score;
+  next.actualScore = out.score;
+  next.matchStatus = out.matchStatus != null ? out.matchStatus : next.matchStatus || 2;
+  if (out.halfScore) next.halfScore = out.halfScore;
+  next._scoreSource = out.source;
+  return next;
+}
+
 // ★ P0-1: 功守道 cache.json _global 内存缓存 — 避免 match-list 每次请求读磁盘
 let _gsGlobalCache = null;
 let _gsGlobalCacheTime = 0;
@@ -591,6 +667,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           });
         }
         return null;
+      }
+      // ★ 空数组 → null（解决 [] || fallback 不触发的问题：[] 是 truthy）
+      function _safeArray(arr) {
+        if (!arr || !Array.isArray(arr)) return null;
+        return arr.length > 0 ? arr : null;
       }
 
       switch (action) {
@@ -1968,7 +2049,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) allDates.add(d);
             });
             const sortedDates = Array.from(allDates).sort().reverse(); // 降序
-            const dates = sortedDates.slice(0, days).reverse(); // 取最近N天，再升序
+            // ★ 多取2天作为缓冲：如果最新日期比赛未完成（所有方案isPlanWon=null），跳过后再取最新的 days 条
+            const fetchDays = Math.min(days + 2, sortedDates.length);
+            const dates = sortedDates.slice(0, fetchDays).reverse(); // 取最近fetchDays天，再升序
 
             const dateLabels = [];
             const dateProfits = [];
@@ -1985,7 +2068,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             const PG = require('./core/plan-generator');
 
-            for (const ds of dates) {
+            // ★ 从最新日期向最旧日期遍历，确保展示的是"最近N天"而非"最早N天"
+            for (let di = dates.length - 1; di >= 0; di--) {
+              const ds = dates[di];
               const mList = [];
               Object.keys(mMap).forEach(k => {
                 const m = mMap[k];
@@ -2025,15 +2110,27 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               // 生成专家博热方案 & 计算日盈利
               const plans = PG.generateExpertPlans(mList, matchDataMap, ds);
               let dayProfit = 0;
+              let hasResolvedPlan = false; // ★ 标记当天是否有方案已完成
               plans.forEach(pp => {
                 if (pp.isPlanWon === null && pp.isPlanLose === null) return;
+                hasResolvedPlan = true; // ★ 有方案已出结果
                 if (pp.isPlanWon === true) dayProfit += (pp.winningPrize || 0) - AMOUNT;
                 else if (pp.isPlanLose === true) dayProfit -= AMOUNT;
               });
 
+              // ★ 跳过"有比赛、有方案、但全部未完成"的日期（比赛未结束）
+              if (mList.length > 0 && plans.length > 0 && !hasResolvedPlan) continue;
+
               dateLabels.push(ds.slice(5));
               dateProfits.push(Math.round(dayProfit));
+
+              // ★ 收集够 days 条有效数据就提前退出
+              if (dateLabels.length >= days) break;
             }
+
+            // ★ 反转回时间升序（从新到旧收集后，恢复正序供前端图表使用）
+            dateLabels.reverse();
+            dateProfits.reverse();
 
             const profitResponse = { code: 1, data: { dates: dateLabels, profits: dateProfits } };
             _profit7dCache = { key: profitCacheKey, response: profitResponse };
@@ -2729,7 +2826,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const mList = [];
             Object.keys(mMap).forEach((k) => {
               const m = mMap[k];
-              if (m && (m.date || '').slice(0, 10) === dateStr) mList.push(m);
+              if (m && (m.date || '').slice(0, 10) === dateStr) mList.push(applyPlanOutcomeOverlay(dateStr, m));
             });
 
             // 2) 工具函数
@@ -2810,7 +2907,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 // 兼容缓存 key 格式
                 const mid = m.matchId || k.replace(/^m_/, '');
                 const cached = gsCacheMap[k] || gsCacheMap['m_' + mid] || gsCacheMap[mid] || null;
-                mList.push({ match: m, gs: cached, matchId: mid });
+                mList.push({ match: applyPlanOutcomeOverlay(dateStr, m), gs: cached, matchId: mid });
               }
             });
 
@@ -3374,7 +3471,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const mList = [];
             Object.keys(mMap).forEach((k) => {
               const m = mMap[k];
-              if (m && (m.date || '').slice(0, 10) === dateStr) mList.push(m);
+              if (m && (m.date || '').slice(0, 10) === dateStr) mList.push(applyPlanOutcomeOverlay(dateStr, m));
             });
 
             if (mList.length === 0) {
@@ -5641,30 +5738,49 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               // ★ 构建赔率走势信号（最后 N 次变化的方向趋势）
               var deltaTrend = _buildDeltaTrend(deltaLogs || []);
 
-              // ★ sporttery RQSPF 兜底：500.com 数据无 RQSPF 时从 sporttery_odds_snapshot 取
+              // ★★★ 统一 sporttery 兜底（与 match-odds 同模式：一次查询所有玩法） ★★★
+              // 当 allplays/odds_history 缺少 BF/JQS/BQC/RQSPF 数据时，从 sporttery_odds_snapshot 取
               var sportteryRqspf = null;
               var sportteryHandicap = null;
-              if (!oddsEntry.rqspf) {
-                try {
-                  var adp2 = database.getAdapter();
-                  if (adp2) {
-                    var sRow = adp2.execOne(
-                      'SELECT odds_json FROM sporttery_odds_snapshot WHERE match_num = ? AND play_type = ? ORDER BY snapshot_time DESC LIMIT 1',
-                      matchNum,
-                      'rqspf',
-                    );
-                    if (sRow && sRow.odds_json) {
-                      var sOdds = JSON.parse(sRow.odds_json);
-                      sportteryRqspf = {
-                        home: sOdds['胜'] || null,
-                        draw: sOdds['平'] || null,
-                        away: sOdds['负'] || null,
-                      };
-                      sportteryHandicap = sOdds._handicap != null ? sOdds._handicap : null;
+              var sportteryBqc = null;
+              var sportteryBf = null;
+              var sportteryJqs = null;
+              try {
+                var adpFallback2 = database.getAdapter();
+                if (adpFallback2) {
+                  var sRows2 = adpFallback2.execAll(
+                    'SELECT play_type, odds_json FROM sporttery_odds_snapshot WHERE match_num = ? ORDER BY snapshot_time DESC LIMIT 20',
+                    matchNum,
+                  );
+                  if (sRows2 && sRows2.length > 0) {
+                    for (var si2 = 0; si2 < sRows2.length; si2++) {
+                      var sr2 = sRows2[si2];
+                      try {
+                        var sOdds2 = JSON.parse(sr2.odds_json || '{}');
+                        if (sr2.play_type === 'rqspf' && !sportteryRqspf) {
+                          sportteryRqspf = { home: sOdds2['胜'] || null, draw: sOdds2['平'] || null, away: sOdds2['负'] || null };
+                          if (sOdds2._handicap != null) sportteryHandicap = sOdds2._handicap;
+                        }
+                        if (sr2.play_type === 'bqc' && !sportteryBqc) {
+                          sportteryBqc = Object.keys(sOdds2)
+                            .filter(function (k) { return !String(k).startsWith('_'); })
+                            .map(function (k) { return { combo: k, odds: sOdds2[k] }; });
+                        }
+                        if (sr2.play_type === 'bf' && !sportteryBf) {
+                          sportteryBf = Object.keys(sOdds2)
+                            .filter(function (k) { return !String(k).startsWith('_'); })
+                            .map(function (k) { return { score: k, odds: sOdds2[k] }; });
+                        }
+                        if (sr2.play_type === 'jqs' && !sportteryJqs) {
+                          sportteryJqs = Object.keys(sOdds2)
+                            .filter(function (k) { return !String(k).startsWith('_'); })
+                            .map(function (k) { return { goals: k, odds: sOdds2[k] }; });
+                        }
+                      } catch (eParseSnap) {}
                     }
                   }
-                } catch (eSporttery) {}
-              }
+                }
+              } catch (eSportteryAll) {}
 
               var r = {
                 matchId: mid,
@@ -5677,9 +5793,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 spf: oddsEntry.spf || null,
                 rqspf: oddsEntry.rqspf || sportteryRqspf || null,
                 // ★ 转换为前端期望的数组格式
-                jqs: _convertJqsToArray(oddsEntry.jqs || oddsEntry.totalGoals),
-                bqc: _convertBqcToArray(oddsEntry.bqc || oddsEntry.halfFull),
-                bf: _convertBfToArray(oddsEntry.bf || oddsEntry.scores),
+                // ★ 统一降级链：allplays/odds_history → _safeArray(空数组→null) → sporttery_odds_snapshot
+                jqs: _safeArray(_convertJqsToArray(oddsEntry.jqs || oddsEntry.totalGoals)) || sportteryJqs,
+                bqc: _safeArray(_convertBqcToArray(oddsEntry.bqc || oddsEntry.halfFull)) || sportteryBqc,
+                bf: _safeArray(_convertBfToArray(oddsEntry.bf || oddsEntry.scores)) || sportteryBf,
                 // ★ 四级降级链 — 顶层handicap → sporttery → rqspf.handicap → match.concede → 0
                 handicap:
                   oddsEntry.handicap != null

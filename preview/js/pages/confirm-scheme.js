@@ -68,9 +68,13 @@ function render() {
   });
   var uniqueCount = Object.keys(uniqueMatchIds).length;
 
-  var bets = calcBets(uniqueCount);
-  var amount = bets * 2 * _multiplier;
-  var maxWin = calcMaxWin(amount);
+  var baseBets = calcBets(uniqueCount);
+  var bets = _planData.optimizedBets != null ? _planData.optimizedBets : baseBets;
+  var baseAmount = baseBets * 2 * _multiplier;
+  // ★ 若奖金优化中调整了计划购买金额，则使用调整后的金额
+  var amount = _planData.planAmount != null ? _planData.planAmount : baseAmount;
+  // ★ 若从奖金优化弹窗带回了预计奖金，直接用它（弹窗内已正确计算）
+  var maxWin = _planData.optimizedMaxWin != null ? _planData.optimizedMaxWin : calcMaxWin(amount);
 
   // 按 matchId 分组（同场多方向分行）
   var groupedSelections = buildGroupedSelections();
@@ -595,6 +599,13 @@ window.confirmRemoveMatch = function (matchId) {
   if (_passTypes.length === 0 && uniqueCount >= 2) _passTypes = [2];
   if (_passTypes.length === 0 && uniqueCount === 1) _passTypes = [1];
 
+  // ★ 删除比赛后，弹窗的优化结果失效，清除之
+  if (_planData) {
+    delete _planData.planAmount;
+    delete _planData.optimizedBets;
+    delete _planData.optimizedMaxWin;
+  }
+
   updateSessionStore();
   render();
 };
@@ -630,6 +641,12 @@ window.confirmTogglePick = function (matchId, playType, direction, oddsVal) {
 // ═══ 倍数调整 ═══
 window.confirmAdjustMultiplier = function (delta) {
   _multiplier = Math.max(2, Math.min(99, _multiplier + delta));
+  // ★ 手动调倍数后，弹窗的优化结果失效，清除之
+  if (_planData) {
+    delete _planData.planAmount;
+    delete _planData.optimizedBets;
+    delete _planData.optimizedMaxWin;
+  }
   updateSessionStore();
   render();
 };
@@ -672,6 +689,12 @@ window.confirmCloseMultiplierPopup = function () {
 
 window.confirmConfirmMultiplierPopup = function () {
   _multiplier = Math.max(2, Math.min(99, parseInt(_confirmTempMultiplier) || 2));
+  // ★ 手动调倍数后，弹窗的优化结果失效，清除之
+  if (_planData) {
+    delete _planData.planAmount;
+    delete _planData.optimizedBets;
+    delete _planData.optimizedMaxWin;
+  }
   window.confirmCloseMultiplierPopup();
   updateSessionStore();
   render();
@@ -811,6 +834,12 @@ window.confirmConfirmPass = function () {
     var n = Object.keys(uniqueMatchIds).length;
     _passTypes = [Math.min(n, 2, maxPass)];
   }
+  // ★ 过关类型改变后，弹窗的优化结果失效，清除之
+  if (_planData) {
+    delete _planData.planAmount;
+    delete _planData.optimizedBets;
+    delete _planData.optimizedMaxWin;
+  }
   var overlay = document.getElementById('confirmPassOverlay');
   if (overlay) overlay.classList.remove('active');
   updateSessionStore();
@@ -873,9 +902,11 @@ window.confirmSavePlan = function () {
   }
 
   var uniqueCount = uniqueMatches.length;
-  var bets = calcBets(uniqueCount);
-  var amount = bets * 2 * _multiplier;
-  var maxWin = calcMaxWin(amount);
+  var baseBets = calcBets(uniqueCount);
+  var bets = _planData.optimizedBets != null ? _planData.optimizedBets : baseBets;
+  var baseAmount = baseBets * 2 * _multiplier;
+  var amount = _planData.planAmount != null ? _planData.planAmount : baseAmount;
+  var maxWin = _planData.optimizedMaxWin != null ? _planData.optimizedMaxWin : calcMaxWin(amount);
 
   // ★ 竞技彩票单张金额上限 20000 元
   if (amount > 20000) {
@@ -1004,7 +1035,7 @@ window.showBonusOptimize = function () {
       _matches.find(function (x) {
         return x.matchId === s.matchId;
       }) || {};
-    var playLabel = { spf: '', rqspf: '让', bf: '比分', jqs: '总进球', bqc: '半全场' }[s.playType] || '';
+    var playLabel = { spf: '', rqspf: '', bf: '比分', jqs: '总进球', bqc: '半全场' }[s.playType] || '';
     var numText = (m.matchNum || '').replace(/^[周一二三四五六日]+/, '');
     var matchLabel = (m.homeName || '') + ' vs ' + (m.visitName || '');
     var dirLabel = (s.playType === 'rqspf' ? '让' : '') + (s.direction || s.oddsName || '');
@@ -1026,7 +1057,8 @@ window.showBonusOptimize = function () {
   }
 
   _boStrategy = 'balanced';
-  _boPlanAmount = _boBaseAmount || 500;
+  // ★ 若已有调整过的计划购买金额则沿用，否则用基础金额
+  _boPlanAmount = _planData.planAmount != null ? _planData.planAmount : (_boBaseAmount || 500);
   applyStrategy();
 
   // 弹窗容器
@@ -1046,7 +1078,7 @@ window.showBonusOptimize = function () {
 };
 
 function applyStrategy() {
-  var total = _boBaseAmount;
+  var total = _boPlanAmount;
   var rows = _boRows;
   var n = rows.length;
   if (n === 0) return;
@@ -1113,7 +1145,7 @@ function applyStrategy() {
 function renderBonusOpt() {
   var overlay = document.getElementById('bonusOptOverlay');
   if (!overlay) return;
-  var total = _boBaseAmount;
+  var total = _boPlanAmount;
 
   var tabBal = _boStrategy === 'balanced' ? ' active' : '';
   var tabHot = _boStrategy === 'hot' ? ' active' : '';
@@ -1143,7 +1175,7 @@ function renderBonusOpt() {
         isTarget = r.odds === coldMax;
       }
       var stepperCls = isTarget ? ' active' : '';
-      var amountCls = r.projected >= _boBaseAmount ? ' bo-amount-hot' : '';
+      var amountCls = r.projected >= _boPlanAmount ? ' bo-amount-hot' : '';
 
       return (
         '<div class="bo-row' +
@@ -1249,14 +1281,14 @@ function updateBoPlanSummary() {
 
 window.boPlanStep = function (delta) {
   _boPlanAmount = Math.max(0, _boPlanAmount + delta);
-  var inp = document.getElementById('boPlanInput');
-  if (inp) inp.value = _boPlanAmount;
-  updateBoPlanSummary();
+  applyStrategy();
+  renderBonusOpt();
 };
 
 window.boPlanInput = function (val) {
   _boPlanAmount = Math.max(0, parseInt(val) || 0);
-  updateBoPlanSummary();
+  applyStrategy();
+  renderBonusOpt();
 };
 
 window.boSwitchTab = function (tab) {
@@ -1298,7 +1330,7 @@ window.boSwitchTab = function (tab) {
         isTarget = r.odds === coldMax;
       }
       var stepperCls = isTarget ? ' active' : '';
-      var amountCls = r.projected >= _boBaseAmount ? ' bo-amount-hot' : '';
+      var amountCls = r.projected >= _boPlanAmount ? ' bo-amount-hot' : '';
       return (
         '<div class="bo-row">' +
         '<div class="bo-cell bo-cell-pass"><span class="bo-pass-tag">' +
@@ -1346,33 +1378,63 @@ window.boSwitchTab = function (tab) {
   updateBoPlanSummary();
 };
 
+function redistributeExcept(fixedIdx) {
+  var fixedRow = _boRows[fixedIdx];
+  var fixedAmount = fixedRow.betCount * 2;
+  var remaining = _boPlanAmount - fixedAmount;
+  var otherRows = _boRows.filter(function(_, i) { return i !== fixedIdx; });
+  var otherCount = otherRows.length;
+
+  if (otherCount === 0) {
+    if (fixedAmount > _boPlanAmount) {
+      fixedRow.betCount = Math.max(0, Math.floor(_boPlanAmount / 2));
+    }
+    fixedRow.projected = Math.round(fixedRow.betCount * 2 * fixedRow.odds * 100) / 100;
+    return;
+  }
+
+  if (remaining < 0) {
+    fixedRow.betCount = Math.max(0, Math.floor(_boPlanAmount / 2));
+    fixedAmount = fixedRow.betCount * 2;
+    remaining = _boPlanAmount - fixedAmount;
+  }
+
+  var totalInv = 0;
+  otherRows.forEach(function(r) {
+    totalInv += 1 / r.odds;
+  });
+
+  otherRows.forEach(function(r) {
+    var weight = totalInv > 0 ? (1 / r.odds / totalInv) : (1 / otherCount);
+    r.betCount = Math.round((remaining * weight) / 2);
+    r.projected = Math.round(r.betCount * 2 * r.odds * 100) / 100;
+  });
+
+  var actualOtherTotal = otherRows.reduce(function(s, r) {
+    return s + r.betCount * 2;
+  }, 0);
+  var diff = remaining - actualOtherTotal;
+  if (diff !== 0 && otherRows.length > 0) {
+    otherRows[0].betCount += Math.round(diff / 2);
+    otherRows[0].projected = Math.round(otherRows[0].betCount * 2 * otherRows[0].odds * 100) / 100;
+  }
+
+  fixedRow.projected = Math.round(fixedRow.betCount * 2 * fixedRow.odds * 100) / 100;
+}
+
 window.boStep = function (idx, delta) {
   var row = _boRows[idx];
   row.betCount = Math.max(0, row.betCount + Math.round(delta / 10));
-  row.projected = Math.round(row.betCount * 2 * row.odds * 100) / 100;
-  var inp = document.getElementById('bo-inp-' + idx);
-  if (inp) inp.value = row.betCount;
-  // 更新金额列
-  updateBoAmounts();
+  redistributeExcept(idx);
+  renderBonusOpt();
 };
 
 window.boInput = function (idx, val) {
   var row = _boRows[idx];
   row.betCount = Math.max(0, parseInt(val) || 0);
-  row.projected = Math.round(row.betCount * 2 * row.odds * 100) / 100;
-  updateBoAmounts();
+  redistributeExcept(idx);
+  renderBonusOpt();
 };
-
-function updateBoAmounts() {
-  _boRows.forEach(function (r, idx) {
-    var cell = document.querySelector('#bonusOptOverlay .bo-row:nth-child(' + (idx + 1) + ') .bo-cell-amount');
-    if (cell) {
-      cell.textContent = r.projected.toFixed(2);
-      if (r.projected >= _boBaseAmount) cell.classList.add('bo-amount-hot');
-      else cell.classList.remove('bo-amount-hot');
-    }
-  });
-}
 
 function closeBonusOpt() {
   // ★ 将奖金优化分配回写到 _selections
@@ -1382,6 +1444,17 @@ function closeBonusOpt() {
       s.allocation = (r.betCount || 0) * 2;
     }
   });
+  // ★ 保存计划购买金额和优化注数到方案数据
+  var totalBets = _boRows.reduce(function(s, r) {
+    return s + (r.betCount || 0);
+  }, 0);
+  var maxProj = -Infinity;
+  _boRows.forEach(function(r) {
+    if (r.projected > maxProj) maxProj = r.projected;
+  });
+  _planData.planAmount = _boPlanAmount;
+  _planData.optimizedBets = totalBets;
+  _planData.optimizedMaxWin = maxProj > -Infinity ? maxProj : 0;
   updateSessionStore();
 
   var o = document.getElementById('bonusOptOverlay');

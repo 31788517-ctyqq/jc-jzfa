@@ -379,7 +379,42 @@ export function goDetail(matchId) {
         var existInstance = echarts.getInstanceByDom(chartEl);
         if (existInstance) existInstance.dispose();
         const chart = echarts.init(chartEl);
-        const colors = ['#EF4444', '#FBBF24', '#34D399', '#18E0E0', '#A78BFA'];
+        // ★ 5 色语义渐变体系 — 每个方向独立色相，保留渐变质感
+        // 配色策略：高饱和主色 → 渐淡底部，视觉区分 + 统一风格
+        var DIR_PALETTE = [
+          { r:99, g:102, b:241 },   // 0: 靛蓝 #6366F1
+          { r:236, g:72, b:153 },   // 1: 玫红 #EC4899
+          { r:34, g:197, b:94 },    // 2: 翠绿 #22C55E
+          { r:251, g:191, b:36 },   // 3: 琥珀 #FBBF24
+          { r:126, g:166, b:189 },  // 4: 青 #7EA6BD
+        ];
+        function buildBarColor(index, value, maxVal) {
+          var c = DIR_PALETTE[index % DIR_PALETTE.length];
+          var ratio = maxVal > 0 ? Math.min(value / maxVal, 1) : 0;
+          return {
+            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + (0.65 + ratio * 0.30) + ')' },
+              { offset: 1, color: 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + (0.12 + ratio * 0.18) + ')' },
+            ],
+          };
+        }
+        function barBorderColor(cIndex) {
+          var c = DIR_PALETTE[cIndex % DIR_PALETTE.length];
+          return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',0.28)';
+        }
+        function barShadowColor(cIndex) {
+          var c = DIR_PALETTE[cIndex % DIR_PALETTE.length];
+          return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',0.14)';
+        }
+        function hexFromPalette(i) {
+          var c = DIR_PALETTE[i % DIR_PALETTE.length];
+          return '#' +
+            ('0' + c.r.toString(16)).slice(-2) +
+            ('0' + c.g.toString(16)).slice(-2) +
+            ('0' + c.b.toString(16)).slice(-2);
+        }
+        var colors = DIR_PALETTE.map(function (_, i) { return hexFromPalette(i); });
 
         var matchedSeries = trend.series.filter(function (s) {
           return top5.some(function (t) {
@@ -387,60 +422,125 @@ export function goDetail(matchId) {
           });
         });
         if (matchedSeries.length === 0) matchedSeries = trend.series.slice(0, 5);
-        const series = matchedSeries.slice(0, 5).map(function (s, i) {
-          // 单点快照：用柱状图 + 显示数值标签，更直观
+        var activeSeries = matchedSeries.slice(0, 5);
+
+        // 计算最大值用于颜色映射
+        var allVals = [];
+        activeSeries.forEach(function (s) { s.data.forEach(function (v) { if (v != null) allVals.push(v); }); });
+        var maxVal = Math.max.apply(null, allVals.length ? allVals : [1]);
+
+        const series = activeSeries.map(function (s, i) {
           if (isSingleShot) {
+            var val = s.data[0] || 0;
             return {
               name: s.name,
               type: 'bar',
-              barMaxWidth: 40,
-              label: { show: true, position: 'top', fontSize: 10, color: '#94A3B8' },
-              itemStyle: { color: colors[i], borderRadius: [4, 4, 0, 0] },
+              barMaxWidth: 44,
+              barGap: '30%',
+              showBackground: true,
+              backgroundStyle: {
+                color: 'rgba(126,166,189,0.04)',
+                borderRadius: [8, 8, 0, 0],
+              },
+              label: {
+                show: true,
+                position: 'top',
+                fontSize: 11,
+                fontWeight: 700,
+                fontFamily: 'DIN Alternate, Bahnschrift, sans-serif',
+                fontVariantNumeric: 'tabular-nums',
+                formatter: function (p) { return p.value + ' 位'; },
+                color: '#A0B4C4',
+              },
+              itemStyle: {
+                color: buildBarColor(i, val, maxVal),
+                borderRadius: [8, 8, 0, 0],
+                borderColor: barBorderColor(i),
+                borderWidth: 0.5,
+                shadowBlur: 10,
+                shadowColor: barShadowColor(i),
+                shadowOffsetY: 3,
+              },
               data: s.data,
             };
           }
+          // 折线图模式：每条线用对应色相
           return {
             name: s.name,
             type: 'line',
-            smooth: true,
+            smooth: 0.35,
             symbol: 'circle',
             symbolSize: 6,
-            lineStyle: { width: 2, color: colors[i] },
-            itemStyle: { color: colors[i] },
+            lineStyle: { width: 2.2, color: hexFromPalette(i) },
+            itemStyle: { color: hexFromPalette(i) },
+            areaStyle: i === 0 ? {
+              color: {
+                type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+                colorStops: [
+                  { offset: 0, color: 'rgba(99,102,241,0.10)' },
+                  { offset: 1, color: 'rgba(99,102,241,0)' },
+                ],
+              },
+            } : null,
             data: s.data,
           };
         });
 
         var option = {
           color: colors,
-          tooltip: { trigger: 'axis' },
-          legend: {
-            type: 'scroll',  // 图例多时自动滚动，防止溢出
-            bottom: 0,
-            icon: 'circle',
-            itemWidth: 8,
-            itemHeight: 8,
-            textStyle: { fontSize: 10, color: '#94A3B8' },
-            pageTextStyle: { color: '#64748B' },
-            pageIconColor: '#94A3B8',
-            pageIconInactiveColor: '#475569',
+          tooltip: {
+            trigger: 'axis',
+            backgroundColor: 'rgba(17,24,32,0.94)',
+            borderColor: 'rgba(126,166,189,0.18)',
+            borderWidth: 1,
+            borderRadius: 10,
+            padding: [10, 14],
+            textStyle: { color: '#E2E0DC', fontSize: 12 },
+            extraCssText: 'box-shadow: 0 6px 20px rgba(0,0,0,0.25);',
+            formatter: function (params) {
+              var h = '<div style="font-weight:700;margin-bottom:6px;font-size:13px;">' +
+                      (params[0] ? params[0].axisValue : '') + '</div>';
+              params.forEach(function (p) {
+                h += '<div style="display:flex;justify-content:space-between;gap:24px;margin-top:4px;">' +
+                     '<span>' + p.marker + ' ' + p.seriesName + '</span>' +
+                     '<span style="font-weight:600;color:' + (p.color || '#A0B4C4') + ';">' + p.value + ' 位</span></div>';
+              });
+              return h;
+            },
           },
-          grid: { left: '2%', right: '4%', bottom: isSingleShot ? '28%' : '18%', top: isSingleShot ? '18%' : '5%', containLabel: true },
+          legend: {
+            type: 'scroll',
+            bottom: 0,
+            icon: 'roundRect',
+            itemWidth: 12,
+            itemHeight: 5,
+            borderRadius: 2,
+            textStyle: { fontSize: 10, color: '#7A8B9C', fontWeight: 500 },
+            pageTextStyle: { color: '#586575' },
+            pageIconColor: '#7EA6BD',
+            pageIconInactiveColor: '#2a3a44',
+            selector: false,
+          },
+          grid: { left: '3%', right: '5%', bottom: isSingleShot ? '30%' : '18%', top: isSingleShot ? '20%' : '6%', containLabel: true },
           xAxis: {
             type: 'category',
             data: trend.timeLabels,
             axisLine: { show: false },
             axisTick: { show: false },
-            axisLabel: { fontSize: 10, color: '#64748B' },
+            axisLabel: { fontSize: 11, color: '#7A8B9C', fontWeight: 600 },
           },
           yAxis: {
             type: 'value',
             axisLine: { show: false },
             axisTick: { show: false },
-            axisLabel: { fontSize: 10, color: '#64748B' },
-            splitLine: { lineStyle: { color: 'rgba(255,255,255,0.03)' } },
+            axisLabel: {
+              fontSize: 10, color: '#586575',
+              fontFamily: 'DIN Alternate, Bahnschrift, sans-serif',
+              fontVariantNumeric: 'tabular-nums',
+            },
+            splitLine: { lineStyle: { color: 'rgba(126,166,189,0.06)', type: 'dashed' } },
           },
-          series,
+          series: series,
         };
 
         // 单点快照时在图表内部左上角加轻量标记

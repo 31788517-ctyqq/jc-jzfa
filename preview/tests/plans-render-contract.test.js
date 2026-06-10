@@ -7,7 +7,18 @@ const APP_CSS_FILE = path.join(__dirname, '..', 'css', 'app.css');
 const MODALS_CSS_FILE = path.join(__dirname, '..', 'css', 'modals.css');
 
 function readSource(filePath) {
-  return fs.readFileSync(filePath, 'utf8');
+  const buf = fs.readFileSync(filePath);
+  const utf8 = buf.toString('utf8');
+
+  // 兼容 UTF-16LE（历史文件编码），避免合同测试把样式误判为缺失
+  if (utf8.includes('\u0000') || utf8.includes('�')) {
+    const utf16 = buf.toString('utf16le');
+    if (utf16.includes('.share-overlay') || utf16.includes('.share-modal') || utf16.includes('.share-btn-save')) {
+      return utf16;
+    }
+  }
+
+  return utf8;
 }
 
 function sliceBetween(source, startToken, endToken) {
