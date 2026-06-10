@@ -771,10 +771,8 @@ function _ensurePage(id) {
         '<div class="ssb-modal-footer"><button class="ssb-modal-cancel" onclick="closePassPopup()">取消</button><button class="ssb-modal-confirm" onclick="confirmPassPopup()">确定</button></div>' +
         '</div>' +
         '</div>';
-    else if (id === 'login')
-      el.innerHTML = '<div id="loginContent"></div>';
-    else if (id === 'account-security')
-      el.innerHTML = '<div id="accountSecurityContent"></div>';
+    else if (id === 'login') el.innerHTML = '<div id="loginContent"></div>';
+    else if (id === 'account-security') el.innerHTML = '<div id="accountSecurityContent"></div>';
     else if (id === 'confirm-scheme')
       el.innerHTML =
         '<div id="confirmContent"><div class="loading"><div class="loading-spinner"></div>加载方案中...</div></div>';

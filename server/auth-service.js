@@ -123,7 +123,10 @@ function nowIso() {
 }
 
 function sha256(text) {
-  return crypto.createHash('sha256').update(String(text || '')).digest('hex');
+  return crypto
+    .createHash('sha256')
+    .update(String(text || ''))
+    .digest('hex');
 }
 
 function randomSecret(len = 32) {
