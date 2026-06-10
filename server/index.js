@@ -60,15 +60,20 @@ const CONFIG = midouModule.CONFIG;
 // 500.com 全玩法数据缓存（含 BF 比分赔率）
 let _allplaysCache = null;
 let _allplaysCacheTime = 0;
+let _allplaysCacheMtime = 0;
 const ALLPLAYS_CACHE_TTL = 10 * 60 * 1000; // 10 分钟
 function getAllplaysData() {
   const now = Date.now();
-  if (_allplaysCache && now - _allplaysCacheTime < ALLPLAYS_CACHE_TTL) return _allplaysCache;
   try {
     const ap = path.join(__dirname, 'ttyingqiu_data', 'odds_500_allplays.json');
     if (fs.existsSync(ap)) {
+      const stat = fs.statSync(ap);
+      if (_allplaysCache && stat.mtimeMs === _allplaysCacheMtime && now - _allplaysCacheTime < ALLPLAYS_CACHE_TTL) {
+        return _allplaysCache;
+      }
       _allplaysCache = JSON.parse(fs.readFileSync(ap, 'utf8'));
       _allplaysCacheTime = now;
+      _allplaysCacheMtime = stat.mtimeMs;
       return _allplaysCache;
     }
   } catch (e) {
@@ -77,8 +82,9 @@ function getAllplaysData() {
   return _allplaysCache || {};
 }
 
-// 方案页赛果叠加：优先使用 prediction_logs / live_scores 中的最新可靠比分，修正 data.json 历史比分滞后
+// 方案页赛果叠加：优先使用 prediction_logs / live_scores 中的最新可靠比分
 const _planOutcomeOverlayCache = {};
+let _liveScoresMtime = 0;
 function normalizeScoreText(score) {
   if (score === null || score === undefined) return '';
   return String(score).trim().replace(/\s+/g, '').replace(/:/g, '-');
@@ -94,7 +100,16 @@ function getPlanOutcomeOverlay(dateStr) {
   if (!dateStr) return { byId: {}, byNum: {} };
   const now = Date.now();
   const cached = _planOutcomeOverlayCache[dateStr];
-  if (cached && now - cached.time < 60000) return cached.data;
+  
+  // 检查 live_scores.json 是否有更新
+  let lsMtime = 0;
+  const livePath = path.join(__dirname, 'live_scores.json');
+  try {
+    if (fs.existsSync(livePath)) lsMtime = fs.statSync(livePath).mtimeMs;
+  } catch (e) {}
+
+  if (cached && now - cached.time < 60000 && lsMtime === _liveScoresMtime) return cached.data;
+  
   const overlay = { byId: {}, byNum: {} };
   function addOutcome(row, source) {
     if (!row) return;
@@ -114,9 +129,9 @@ function getPlanOutcomeOverlay(dateStr) {
     if (num) overlay.byNum[String(num)] = item;
   }
   try {
-    const livePath = path.join(__dirname, 'live_scores.json');
     if (fs.existsSync(livePath)) {
       const live = JSON.parse(fs.readFileSync(livePath, 'utf8'));
+      _liveScoresMtime = lsMtime;
       if (!live.date || live.date === dateStr) {
         (live.matches || []).forEach(function (m) {
           addOutcome(m, 'live_scores');
@@ -124,6 +139,7 @@ function getPlanOutcomeOverlay(dateStr) {
       }
     }
   } catch (e) {}
+
   try {
     const adp = database.getAdapter();
     if (adp) {
@@ -163,18 +179,17 @@ function getGsGlobalMap() {
   const now = Date.now();
   if (_gsGlobalCache && now - _gsGlobalCacheTime < GS_GLOBAL_CACHE_TTL) return _gsGlobalCache;
   try {
-    const gsCachePath = path.join(__dirname, 'gongshoudao', 'cache.json');
-    if (fs.existsSync(gsCachePath)) {
-      const gsCache = JSON.parse(fs.readFileSync(gsCachePath, 'utf8'));
-      _gsGlobalCache = gsCache['_global'] || {};
-      _gsGlobalCacheTime = now;
-      return _gsGlobalCache;
-    }
+    const gsEngine = require('./gongshoudao/index');
+    const gsCache = gsEngine.readCache();
+    _gsGlobalCache = gsCache['_global'] || {};
+    _gsGlobalCacheTime = now;
+    return _gsGlobalCache;
   } catch (e) {
     logger.warn('[gs-cache] 读取缓存失败: ' + e.message);
   }
   return _gsGlobalCache || {};
 }
+
 
 // ★ P2-1: 核心内存缓存统计
 function getCoreCacheStats() {
@@ -825,22 +840,44 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // ⭐ 仅今天/最近日期允许后台补算，历史页不触发全量刷新，避免拖慢页面打开
             let gsNeedCompute = false;
             const shouldCheckGsCompute = dateStr === localDate() || dateStr === latestDataDate();
-            if (shouldCheckGsCompute) {
-              const allKeys = Object.keys(mMap);
-              for (let ki = 0; ki < allKeys.length; ki++) {
-                const k = allKeys[ki];
-                const m = mMap[k];
-                if (!m) continue;
-                const md = (m.date || '').slice(0, 10);
-                if (md !== dateStr) continue;
-                // 兼容缓存 key 带或不带 m_ 前缀
-                const cachedGS =
-                  gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
-                if (!(cachedGS && cachedGS.attackPattern)) {
-                  gsNeedCompute = true;
-                  break;
-                }
+            
+            // 构建比赛列表的同时检测是否需要计算，避免两次大循环
+            const list = [];
+            const mMapEntries = Object.entries(mMap);
+            for (let i = 0; i < mMapEntries.length; i++) {
+              const [k, m] = mMapEntries[i];
+              if (!m) continue;
+              const md = (m.date || '').slice(0, 10);
+              if (md !== dateStr) continue;
+
+              // ★ hideFinished: 方案设计/投注页仅显示未开赛比赛
+              if (hideFinished && m.matchStatus !== 0) continue;
+
+              // 检查功守道数据是否可用
+              const cachedGS = gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
+              const hasGS = !!(cachedGS && cachedGS.attackPattern);
+              
+              if (shouldCheckGsCompute && !hasGS) {
+                gsNeedCompute = true;
               }
+
+              // 补充单关标识
+              const fiveOdds = oddsMap[m.num || ''];
+              const isSingleGame = (fiveOdds && fiveOdds.isSingleGame === true) || m.isSingleGame === true;
+              const concede = fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null ? fiveOdds.rqspf.handicap : null;
+              
+              // 实时专家数
+              const rawRecs = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
+              const actualRecommNum = rawRecs.reduce((s, r) => s + (r.n || r.num || 0), 0);
+
+              list.push(
+                Object.assign({}, m, {
+                  isSingleGame: isSingleGame,
+                  hasGongshoudao: hasGS,
+                  concede: concede,
+                  recommNum: actualRecommNum || m.recommNum || 0,
+                }),
+              );
             }
 
             // 如果有未缓存比赛，后台异步触发计算（不阻塞响应）
@@ -860,38 +897,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 });
             }
 
-            const list = [];
-            Object.keys(mMap).forEach((k) => {
-              const m = mMap[k];
-              if (!m) return;
-              const md = (m.date || '').slice(0, 10);
-              if (md !== dateStr) return;
-              // ★ hideFinished: 方案设计/投注页仅显示未开赛比赛
-              if (hideFinished && m.matchStatus !== 0) return;
-              // 补充单关标识（赔率文件优先，data.json 兜底）
-              const fiveOdds = oddsMap[m.num || ''];
-              const isSingleGame = (fiveOdds && fiveOdds.isSingleGame === true) || m.isSingleGame === true;
-              // 检查功守道数据是否可用：兼容 m_ 前缀的 key 格式
-              const cachedGS =
-                gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
-              const hasGS = !!(cachedGS && cachedGS.attackPattern);
-              // ★ 让球数：从赔率数据提取
-              const concede =
-                fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null ? fiveOdds.rqspf.handicap : null;
-              // ★ 从 rMap 实时计算该比赛所有方向的专家数总和，覆盖 data.json 中可能过时的 recommNum
-              const rawRecs = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
-              const actualRecommNum = rawRecs.reduce((s, r) => s + (r.n || r.num || 0), 0);
-              list.push(
-                Object.assign({}, m, {
-                  isSingleGame: isSingleGame,
-                  hasGongshoudao: hasGS,
-                  concede: concede,
-                  recommNum: actualRecommNum || m.recommNum || 0,
-                }),
-              );
-            });
-
             // 按比赛编号排序
+
             list.sort((a, b) => (a.num || '').localeCompare(b.num || ''));
 
             // ★ 合并 live_scores.json 即时比分（1 分钟缓存）

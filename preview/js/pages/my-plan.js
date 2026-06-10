@@ -316,6 +316,18 @@ function _buildShareCard(cardEl) {
     return String(m[1]).padStart(2, '0') + '-' + String(m[2]).padStart(2, '0');
   }
 
+  function formatLastOrderTime(value) {
+    var text = String(value || '').trim();
+    var full = text.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[ T](\d{2}:\d{2})/);
+    if (full) return '最后下单 ' + String(full[2]).padStart(2, '0') + '-' + String(full[3]).padStart(2, '0') + ' ' + full[4];
+    var short = text.match(/(\d{1,2})[\/\-](\d{1,2})\s+(\d{2}:\d{2})/);
+    if (short) return '最后下单 ' + String(short[1]).padStart(2, '0') + '-' + String(short[2]).padStart(2, '0') + ' ' + short[3];
+    var timeOnly = text.match(/(\d{2}:\d{2})/);
+    var day = normalizeDate(text);
+    if (timeOnly && day) return '最后下单 ' + day + ' ' + timeOnly[1];
+    return '';
+  }
+
   function parseBet(rawValue) {
     var raw = String(rawValue || '')
       .replace(/[▲▼]/g, '')
@@ -399,6 +411,7 @@ function _buildShareCard(cardEl) {
   if (!betCount) betCount = '--';
 
   var shareDate = normalizeDate(rawDate) || (matchRowsData[0] ? normalizeDate(matchRowsData[0].time) : '');
+  var lastOrderTime = formatLastOrderTime(rawDate) || shareDate;
   function formatMatchTime(value) {
     var text = String(value || '').trim();
     var m = text.match(/(\d{1,2})[\/\-](\d{1,2})\s+(\d{2}:\d{2})/);
@@ -410,6 +423,7 @@ function _buildShareCard(cardEl) {
   var amountParts = splitNumberUnit(amountValue, '元');
   var prizeParts = splitNumberUnit(prizeValue, '元');
   var statusCls = statusText.indexOf('未中奖') >= 0 ? 'lost' : statusText.indexOf('已中奖') >= 0 ? 'won' : 'pending';
+  var statusColor = statusCls === 'won' ? '#e5484d' : statusCls === 'lost' ? '#26a269' : '#f59e0b';
 
   var targetIcon =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.6"></circle><path d="M19 5l-4 4M18.5 4.5h-3.5v3.5"></path></svg>';
@@ -458,42 +472,43 @@ function _buildShareCard(cardEl) {
     '.sp-title-wrap{display:flex;align-items:center;gap:12px;}',
     '.sp-logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(145deg,#35df57 0%,#13b93f 72%);display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;box-shadow:0 10px 18px rgba(20,186,61,.25);position:relative;}',
     '.sp-logo:after{content:"★";position:absolute;right:2px;bottom:0;color:#ffd44d;font-size:10px;text-shadow:0 1px 2px rgba(0,0,0,.15);}',
-    '.sp-name{font-size:19px;font-weight:900;letter-spacing:.2px;color:#142235;line-height:36px;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
-    '.sp-date{font-size:12px;color:#667790;font-weight:500;padding-top:11px;}',
+    '.sp-name{font-size:19px;font-weight:700;letter-spacing:.1px;color:#142235;line-height:36px;max-width:230px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+    '.sp-date{font-size:11px;color:#667790;font-weight:400;padding-top:5px;text-align:right;line-height:1.35;max-width:132px;}',
     '.sp-stats{display:grid;grid-template-columns:repeat(3,1fr);align-items:center;margin:0 0 14px;}',
     '.sp-stat{height:61px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;}',
     '.sp-stat+.sp-stat{border-left:1px solid #e3ebf0;}',
-    '.sp-stat-label{font-size:12px;line-height:1;color:#4d5d70;font-weight:700;margin-bottom:10px;}',
-    '.sp-stat-value{font-size:24px;line-height:1;font-weight:900;color:#108c86;letter-spacing:.2px;white-space:nowrap;}',
-    '.sp-stat-value span{font-size:13px;font-weight:700;margin-left:3px;color:#203043;}',
-    '.sp-status{font-size:23px;line-height:1;font-weight:900;white-space:nowrap;}',
-    '.sp-status.pending{color:#ff9708;}.sp-status.won{color:#0c9f72;}.sp-status.lost{color:#9aa6b2;}',
-    '.sp-info{height:140px;border-radius:15px;border:1px solid #e8eff3;background:rgba(255,255,255,.58);position:relative;overflow:hidden;box-shadow:0 6px 18px rgba(67,151,162,.06) inset;}',
-    '.sp-info:before{content:"";position:absolute;right:-38px;bottom:3px;width:170px;height:92px;background:repeating-linear-gradient(160deg,rgba(83,203,198,.16) 0 8px,transparent 8px 19px);transform:skewX(-18deg);opacity:.75;}',
-    '.sp-info-ball{position:absolute;right:18px;bottom:14px;width:72px;height:72px;border-radius:50%;opacity:.18;display:flex;align-items:center;justify-content:center;font-size:64px;filter:grayscale(.15);}',
-    '.sp-info-row{height:46.66px;display:flex;align-items:center;padding:0 18px;position:relative;z-index:1;}',
+    '.sp-stat-label{font-size:12px;line-height:1;color:#4d5d70;font-weight:500;margin-bottom:10px;}',
+    '.sp-stat-value{font-size:24px;line-height:1;font-weight:700;color:#108c86;letter-spacing:0;white-space:nowrap;}',
+    '.sp-stat-value span{font-size:13px;font-weight:500;margin-left:3px;color:#203043;}',
+    '.sp-status{font-size:23px;line-height:1;font-weight:700;white-space:nowrap;}',
+    '.sp-status.pending{color:#f59e0b;}.sp-status.won{color:#e5484d;}.sp-status.lost{color:#26a269;}',
+    '.sp-info{height:140px;border-radius:15px;border:1px solid #e8eff3;background:rgba(255,255,255,.78);position:relative;overflow:hidden;box-shadow:none;}',
+    '.sp-info:before{content:"";position:absolute;right:34px;bottom:31px;width:148px;height:44px;background:linear-gradient(100deg,transparent 0%,rgba(14,145,139,.10) 34%,rgba(14,145,139,.06) 54%,transparent 78%);transform:skewX(-18deg) rotate(-10deg);opacity:.42;}',
+    '.sp-info:after{content:"";position:absolute;right:82px;bottom:32px;width:88px;height:2px;background:linear-gradient(90deg,transparent,rgba(14,145,139,.13),transparent);box-shadow:18px 12px 0 rgba(14,145,139,.09),-10px 24px 0 rgba(14,145,139,.06);transform:rotate(-13deg);}',
+    '.sp-info-ball{position:absolute;right:15px;bottom:8px;width:80px;height:80px;border-radius:50%;opacity:.08;display:flex;align-items:center;justify-content:center;font-size:70px;filter:grayscale(.15);transform:rotate(-18deg);}',
+    '.sp-info-row{height:46.66px;display:flex;align-items:center;padding:0 18px;position:relative;z-index:1;background:transparent;}',
     '.sp-info-row+.sp-info-row{border-top:1px solid #edf2f5;}',
     '.sp-i{width:28px;height:28px;border-radius:9px;background:rgba(33,189,180,.10);display:flex;align-items:center;justify-content:center;margin-right:13px;}',
     '.sp-i svg{width:18px;height:18px;fill:none;stroke:#0e918b;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}',
-    '.sp-info-label{width:84px;color:#48596c;font-size:13px;font-weight:800;}',
-    '.sp-info-value{font-size:14px;color:#0e918b;font-weight:900;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
-    '.sp-section{height:40px;display:flex;align-items:center;justify-content:center;gap:12px;margin:16px 0 0;color:#142235;font-size:16px;font-weight:900;letter-spacing:.5px;}',
+    '.sp-info-label{width:84px;color:#48596c;font-size:13px;font-weight:500;}',
+    '.sp-info-value{font-size:14px;color:#0e918b;font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+    '.sp-section{height:40px;display:flex;align-items:center;justify-content:center;gap:12px;margin:16px 0 0;color:#142235;font-size:16px;font-weight:700;letter-spacing:.3px;}',
     '.sp-section:before,.sp-section:after{content:"";width:36px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#0e918b 45%,#0e918b 70%,transparent);}',
     '.sp-matches{position:relative;border-radius:19px;background:rgba(255,255,255,.94);box-shadow:0 10px 30px rgba(36,128,138,.10),0 1px 0 rgba(255,255,255,.95) inset;overflow:hidden;border:1px solid rgba(255,255,255,.9);}',
-    '.sp-match-row{min-height:78px;display:grid;grid-template-columns:112px 1fr 120px;align-items:center;padding:0 12px;border-bottom:1px solid #edf2f5;}',
+    '.sp-match-row{min-height:78px;display:grid;grid-template-columns:112px 1fr 120px;align-items:center;padding:0 12px;border-bottom:1px solid #edf2f5;background:transparent;}',
     '.sp-match-row:last-child{border-bottom:0;}',
     '.sp-issue{height:56px;display:flex;align-items:center;gap:9px;min-width:0;}',
     '.sp-cal{width:28px;height:28px;border-radius:9px;background:rgba(33,189,180,.09);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}',
     '.sp-cal svg{width:18px;height:18px;fill:none;stroke:#0e918b;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}',
-    '.sp-issue-num{font-size:13px;font-weight:900;color:#26374b;white-space:nowrap;}',
+    '.sp-issue-num{font-size:13px;font-weight:600;color:#26374b;white-space:nowrap;}',
     '.sp-issue-time{font-size:11px;color:#748299;margin-top:5px;white-space:nowrap;}',
     '.sp-teams{min-height:56px;border-left:1px solid #e3ebf0;border-right:1px solid #e3ebf0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 8px;}',
-    '.sp-teams div{max-width:116px;font-size:14px;line-height:1.25;font-weight:900;color:#142235;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
-    '.sp-teams span{font-size:11px;line-height:1.5;color:#56677c;font-weight:800;}',
-    '.sp-bet{padding-left:16px;font-size:13px;line-height:1.6;font-weight:900;color:#142235;}',
+    '.sp-teams div{max-width:116px;font-size:14px;line-height:1.25;font-weight:600;color:#142235;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+    '.sp-teams span{font-size:11px;line-height:1.5;color:#56677c;font-weight:500;}',
+    '.sp-bet{padding-left:16px;font-size:13px;line-height:1.6;font-weight:600;color:#142235;}',
     '.sp-bet-label{white-space:nowrap;}.sp-bet-value{color:#0e918b;word-break:break-word;}',
     '.sp-empty-row{height:92px;display:flex;align-items:center;justify-content:center;color:#748299;font-size:13px;}',
-    '.sp-footer-ball{position:absolute;left:-20px;bottom:-23px;width:112px;height:112px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:94px;opacity:.14;filter:grayscale(.1);}',
+    '.sp-footer-ball{position:absolute;left:-20px;bottom:-23px;width:112px;height:112px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:94px;opacity:.08;filter:grayscale(.1);transform:rotate(-16deg);}',
   ].join('');
 
   var wrapper = document.createElement('div');
@@ -507,7 +522,7 @@ function _buildShareCard(cardEl) {
     '<div class="sp-head"><div class="sp-title-wrap"><div class="sp-logo">⚽</div><div class="sp-name">' +
     escapeHtml(name) +
     '</div></div><div class="sp-date">' +
-    escapeHtml(shareDate || '--') +
+    escapeHtml(lastOrderTime || '--') +
     '</div></div>' +
     '<div class="sp-stats"><div class="sp-stat"><div class="sp-stat-label">' +
     escapeHtml(amountLabel || '方案金额') +
@@ -523,6 +538,8 @@ function _buildShareCard(cardEl) {
     escapeHtml(prizeParts.unit) +
     '</span></div></div><div class="sp-stat"><div class="sp-stat-label">方案状态</div><div class="sp-status ' +
     statusCls +
+    '" style="color:' +
+    statusColor +
     '">' +
     escapeHtml(statusText) +
     '</div></div></div>' +

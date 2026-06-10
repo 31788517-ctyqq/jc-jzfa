@@ -18,19 +18,39 @@ const CACHE_PATH = path.join(__dirname, 'cache.json');
 let _lastRefreshAt = 0;
 
 // ==================== 缓存管理 ====================
+let _cacheData = null;
+let _cacheMtime = 0;
+let _cacheTime = 0;
 
 function readCache() {
   if (!fs.existsSync(CACHE_PATH)) return {};
   try {
-    return JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
+    const now = Date.now();
+    const stat = fs.statSync(CACHE_PATH);
+    // 60秒内且文件未变动，直接返回内存数据
+    if (_cacheData && stat.mtimeMs === _cacheMtime && now - _cacheTime < 60000) {
+      return _cacheData;
+    }
+    _cacheData = JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
+    _cacheMtime = stat.mtimeMs;
+    _cacheTime = now;
+    return _cacheData;
   } catch (e) {
     console.error('[gs] 缓存读取失败:', e.message);
-    return {};
+    return _cacheData || {};
   }
 }
 
 function writeCache(data) {
   atomicWriteJson(CACHE_PATH, data);
+  // 写入后立即更新内存缓存，防止下次读取仍走磁盘
+  _cacheData = data;
+  try {
+    _cacheMtime = fs.statSync(CACHE_PATH).mtimeMs;
+  } catch (e) {
+    _cacheMtime = Date.now();
+  }
+  _cacheTime = Date.now();
 }
 
 function getCacheTimestamp(cache) {

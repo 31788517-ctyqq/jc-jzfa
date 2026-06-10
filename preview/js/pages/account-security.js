@@ -7,21 +7,51 @@ function render() {
   const session = getAuthSession() || {};
   const userName = (session.user && session.user.username) || '-';
   root.innerHTML =
-    '<div class="filter-section-card" style="margin-top:18px">' +
-    '<div class="filter-head">账号安全</div>' +
-    '<div class="filter-row"><span class="filter-label">当前账号</span><span style="font-size:14px;color:#374151">' +
+    '<div class="auth-shell auth-shell-account">' +
+    '<div class="login-hero account-login-hero">' +
+    '<div class="login-hero-copy">' +
+    '<div class="login-hero-title">Hello!</div>' +
+    '<div class="login-hero-subtitle">当前账号：' +
     userName +
-    '</span></div>' +
-    '<div class="filter-row"><span class="filter-label">旧密码</span><input id="oldPwd" class="search-input" type="password" placeholder="请输入旧密码"/></div>' +
-    '<div class="filter-row"><span class="filter-label">新密码</span><input id="newPwd" class="search-input" type="password" placeholder="至少8位"/></div>' +
-    '<div class="filter-row"><span class="filter-label">确认新密码</span><input id="newPwd2" class="search-input" type="password" placeholder="请再次输入"/></div>' +
-    '<div id="pwdMsg" style="color:#ef4444;font-size:13px;min-height:20px;padding:6px 0"></div>' +
-    '<div class="filter-btn-wrap" style="display:flex;gap:10px">' +
-    '<button id="pwdSubmit" class="filter-submit-btn">修改密码</button>' +
-    '<button id="logoutBtn" class="filter-submit-btn" style="background:#6b7280">退出登录</button>' +
+    '</div>' +
+    '</div>' +
+    '<img class="login-eagle" src="/assets/login-eagle.png?v=202606101233" alt="" loading="eager" decoding="async" />' +
+    '</div>' +
+    '<div class="auth-card auth-login-card auth-account-card">' +
+
+    '<div class="auth-field auth-field-icon">' +
+
+    '<div class="auth-input-wrap auth-icon-wrap">' +
+    '<span class="auth-input-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 10h-1V8a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2Zm-7-2a2 2 0 1 1 4 0v2h-4V8Zm2 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg></span>' +
+    '<input id="oldPwd" class="search-input auth-input auth-account-input" type="password" placeholder="请输入旧密码" autocomplete="current-password"/>' +
+    '</div>' +
+    '</div>' +
+    '<div class="auth-field auth-field-icon">' +
+    '<div class="auth-input-wrap auth-icon-wrap">' +
+    '<span class="auth-input-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 10h-1V8a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2Zm-7-2a2 2 0 1 1 4 0v2h-4V8Zm2 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg></span>' +
+    '<input id="newPwd" class="search-input auth-input auth-account-input" type="password" placeholder="请输入新密码（至少8位）" autocomplete="new-password"/>' +
+    '</div>' +
+    '</div>' +
+    '<div class="auth-field auth-field-icon">' +
+    '<div class="auth-input-wrap auth-icon-wrap">' +
+    '<span class="auth-input-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 10h-1V8a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2Zm-7-2a2 2 0 1 1 4 0v2h-4V8Zm2 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg></span>' +
+    '<input id="newPwd2" class="search-input auth-input auth-account-input" type="password" placeholder="请再次输入新密码" autocomplete="new-password"/>' +
+    '</div>' +
+    '</div>' +
+    '<div id="pwdMsg" class="auth-msg auth-account-msg"></div>' +
+    '<div class="auth-actions auth-account-actions">' +
+    '<button id="pwdSubmit" class="filter-submit-btn auth-submit auth-account-submit">修改密码</button>' +
+    '<button id="logoutBtn" class="filter-submit-btn auth-secondary auth-account-logout">退出登录</button>' +
+    '</div>' +
     '</div>' +
     '</div>';
   return root;
+}
+
+
+function setMsg(msgEl, text, ok) {
+  msgEl.classList.toggle('ok', !!ok);
+  msgEl.textContent = text || '';
 }
 
 function bindEvents() {
@@ -38,24 +68,23 @@ function bindEvents() {
     const newPassword = String(newPwd.value || '');
     const newPassword2 = String(newPwd2.value || '');
     if (!oldPassword || !newPassword || !newPassword2) {
-      msg.textContent = '请完整填写密码字段';
+      setMsg(msg, '请完整填写密码字段', false);
       return;
     }
     if (newPassword.length < 8) {
-      msg.textContent = '新密码至少8位';
+      setMsg(msg, '新密码至少8位', false);
       return;
     }
     if (newPassword !== newPassword2) {
-      msg.textContent = '两次输入的新密码不一致';
+      setMsg(msg, '两次输入的新密码不一致', false);
       return;
     }
 
     submit.disabled = true;
-    msg.textContent = '提交中...';
+    setMsg(msg, '提交中...', true);
     api('auth-change-password', { oldPassword, newPassword }, 0)
       .then(function () {
-        msg.style.color = '#16a34a';
-        msg.textContent = '修改成功，请重新登录';
+        setMsg(msg, '修改成功，请重新登录', true);
         return api('auth-logout', {}, 0).catch(function () {});
       })
       .then(function () {
@@ -63,8 +92,7 @@ function bindEvents() {
         if (typeof window.switchTab === 'function') window.switchTab('login');
       })
       .catch(function (e) {
-        msg.style.color = '#ef4444';
-        msg.textContent = e && e.message ? e.message : '修改失败';
+        setMsg(msg, e && e.message ? e.message : '修改失败', false);
       })
       .finally(function () {
         submit.disabled = false;
@@ -83,3 +111,4 @@ export function loadAccountSecurity() {
   if (!root) return;
   bindEvents();
 }
+
