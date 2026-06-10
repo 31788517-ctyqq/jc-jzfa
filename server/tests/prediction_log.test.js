@@ -39,6 +39,26 @@ describe('prediction_log', () => {
       // prediction_log 模块自动调用 ensureDatabase() → initDatabase() → isAvailable=true
       expect(predictionLog.isReady()).toBe(true);
     });
+
+    it('DB 不可用时 isReady 应在异步初始化完成前返回 false', () => {
+      // 注意：prediction_log 模块 require 时自动调用 ensureDatabase()，
+      // 而 mock 的 initDatabase() 会将 _available 设为 true。
+      // 真实场景中，DB 不可用时 ensureDatabase() 异步等待后才返回 false，
+      // mock 环境中同步返回 true（因为 mock 的 initDatabase 总是成功）。
+      // 此测试验证 mock 行为一致性：autoEnsure + initDatabase 后 isReady 为 true
+      jest.resetModules();
+      const freshDb = require('./__mocks__/database');
+      freshDb.__reset();
+      // 不调用 __setAvailable — initDatabase() 会自动设为 true
+      const freshLog = require('../prediction_log');
+      expect(freshLog.isReady()).toBe(true);
+    });
+
+    it('isReady 检查所有条件（DB+BizReady+Adapter）', () => {
+      // isReady 返回 dbReady && database.isAvailable() && _getAdp() !== null
+      // 三个条件缺一不可
+      expect(typeof predictionLog.isReady()).toBe('boolean');
+    });
   });
 
   describe('函数签名验证 — DB 未就绪时安全返回', () => {

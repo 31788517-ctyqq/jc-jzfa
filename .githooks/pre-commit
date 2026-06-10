@@ -25,7 +25,7 @@ echo "  ✅ ESLint 通过"
 
 # ── Step 2: P0 核心单元测试 ──
 echo "[2/3] P0 核心单元测试..."
-npx jest --testPathPattern="server/tests/(index_api|data_sync|prediction_log|database|scheduler_v2|cache|pk_scorer|plan-generator)" --forceExit --no-coverage
+CACHE_WARMER_FAST=1 npx jest --testPathPattern="server/tests/(index_api|data_sync|prediction_log|database|scheduler_v2|cache|pk_scorer|plan-generator)" --forceExit --no-coverage
 if [ $? -ne 0 ]; then
   echo ""
   echo "❌ P0 单元测试未通过，请修复后重试。"
@@ -33,13 +33,18 @@ if [ $? -ne 0 ]; then
 fi
 echo "  ✅ P0 测试通过"
 
-# ── Step 3: 确保格式一致 ──
+# ── Step 3: 格式化检查（仅检查本次变更文件）──
 echo "[3/3] 格式化检查..."
-npx prettier --check "server/**/*.js" "preview/js/**/*.js" "preview/*.js" "scripts/*.js" --loglevel error
-if [ $? -ne 0 ]; then
-  echo ""
-  echo "⚠️  代码格式不一致，请运行 npm run format 进行格式化。"
-  exit 1
+STAGED_JS=$(git diff --cached --name-only --diff-filter=ACM | grep '\.js$' || true)
+if [ -n "$STAGED_JS" ]; then
+  echo "$STAGED_JS" | xargs npx prettier --check --loglevel error 2>&1
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "⚠️  本次变更的代码格式不一致，请运行 npm run format 进行格式化。"
+    exit 1
+  fi
+else
+  echo "  (无 JS 文件变更，跳过格式检查)"
 fi
 echo "  ✅ 格式检查通过"
 

@@ -1135,9 +1135,10 @@ function queryPKVersionCompare(filters) {
 ensureDatabase().then(function (ready) {
   if (ready) {
     initTable();
-    console.log('[prediction_log] ready');
+    // 测试环境中跳过模块级日志（避免 Cannot log after tests are done）
+    if (!process.env.JEST_WORKER_ID) console.log('[prediction_log] ready');
   } else {
-    console.log('[prediction_log] DB not available');
+    if (!process.env.JEST_WORKER_ID) console.log('[prediction_log] DB not available');
   }
 });
 
