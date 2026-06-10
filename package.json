@@ -24,10 +24,16 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:coverage:gaps": "node scripts/coverage-gaps.js",
-    "test:p0": "jest --testPathPattern=\"server/tests/(index_api|api-contract|data_sync|prediction_log|database|scheduler_v2|cache|pk_scorer|plan-generator|error-codes|file-utils|odds-match-handler|odds-data-integrity|bet-scheme-filters)\"",
-    "test:p1": "jest --testPathPattern=\"server/tests/(ai_daemon|ai-timing|main-fusion|health|http-utils|websocket|midou|cloudfunctions|shadow-account|blueprint-api|blueprint-prediction-adapter|blueprint-outcome-backfill|feature-engine|match-context-collector|market-overlay)\"",
-    "test:p2": "jest --testPathPattern=\"gongshoudao/tests\"",
+    "test:p0": "jest --testPathPattern=\"server/tests/(index_api|api-contract|data_sync|prediction_log|database|database-adapter-real|atomic-write|backfill-pipeline|scheduler_v2|cache|pk_scorer|plan-generator|error-codes|file-utils|odds-match-handler|odds-data-integrity|bet-scheme-filters)\"",
+    "test:p1": "jest --testPathPattern=\"server/tests/(ai_daemon|ai-timing|main-fusion|health|http-utils|websocket|midou|cloudfunctions|shadow-account|blueprint-api|blueprint-prediction-adapter|blueprint-outcome-backfill|feature-engine|match-context-collector|market-overlay|unified-predictions-inflow|fallback-paths)\"",
+    "test:p2": "jest --testPathPattern=\"gongshoudao/tests|server/tests/(data-pipeline-e2e|file-corruption|consistency-check)\"",
     "test:frontend": "jest --testPathPattern=\"preview/tests\" --forceExit --no-coverage",
+    "test:modals": "jest --testPathPattern=\"preview/tests/(modals-render-contract|modal-loading-states)\" --forceExit --no-coverage",
+    "test:components": "jest --testPathPattern=\"preview/tests/(charts-render-contract|tables-render-contract)\" --forceExit --no-coverage",
+    "test:interaction": "jest --testPathPattern=\"preview/tests/(filter-interaction|dynamic-load-states|state-consistency)\" --forceExit --no-coverage",
+    "test:scheme-flow": "jest preview/tests/scheme-flow.test.js --forceExit --no-coverage",
+    "test:odds-score": "jest preview/tests/odds-score-status.test.js --forceExit --no-coverage",
+    "test:login-auth": "jest preview/tests/login-auth.test.js --forceExit --no-coverage",
     "test:api-contract": "jest --testPathPattern=\"server/tests/(api-contract|blueprint-api|odds-match-handler)\" --forceExit --no-coverage",
     "test:routes": "jest --testPathPattern=\"preview/tests/(main-fusion-routes|plans-render-contract|blueprint-pages|main-fusion)\" --forceExit --no-coverage",
     "test:critical": "npm run test:p0 && npm run test:api-contract && npm run test:routes",
@@ -42,7 +48,10 @@
     "preflight:perf": "npm run test:e2e:critical && npm run test:e2e:perf:gate",
     "test:e2e:ui": "npx playwright test --ui",
     "test:e2e:report": "npx playwright show-report",
-
+    "test:e2e:error-handling": "npx playwright test preview/tests/e2e/api-error-handling.spec.js preview/tests/e2e/module-loading.spec.js preview/tests/e2e/auth-flow.spec.js --workers=1",
+    "test:e2e:qos": "npx playwright test preview/tests/e2e/asset-scan.spec.js preview/tests/e2e/ws-resilience.spec.js preview/tests/e2e/scheme-interaction.spec.js preview/tests/e2e/mobile-viewport.spec.js --workers=1",
+    "test:e2e:all": "npx playwright test --workers=1",
+    "test:contract": "jest preview/tests/contract-snapshot.test.js --forceExit --no-coverage",
     "test:smoke": "jest --testPathPattern=\"smoke_api\" --testPathIgnorePatterns=node_modules --forceExit --no-coverage",
     "setup:githooks": "git config core.hooksPath .githooks",
     "preflight": "powershell -ExecutionPolicy Bypass -File scripts/release-preflight.ps1",
@@ -50,6 +59,5 @@
     "benchmark": "node scripts/benchmark_gongshoudao.js --mode=gate",
     "benchmark:refresh": "node scripts/benchmark_gongshoudao.js --mode=refresh",
     "benchmark:cold": "node scripts/benchmark_gongshoudao.js --mode=cold --network"
-
   }
 }

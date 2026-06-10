@@ -6,14 +6,16 @@
  * 2. 函数在 DB 未就绪时的安全返回
  * 3. 各种筛选参数组合不 crash
  */
-jest.mock('../database');
-const db = require('../database');
+jest.mock('../database', () => require('./__mocks__/database'));
+let db;
 
 describe('prediction_log', () => {
   let predictionLog;
 
   beforeEach(() => {
     jest.resetModules();
+    // ★ 显式引用 mock（绕过 moduleNameMapper 路径变更）
+    db = require('./__mocks__/database');
     db.__reset();
     db.__setAvailable(false);
     predictionLog = require('../prediction_log');
@@ -33,8 +35,9 @@ describe('prediction_log', () => {
       expect(typeof predictionLog.isReady).toBe('function');
     });
 
-    it('DB 未就绪时 isReady 返回 false', () => {
-      expect(predictionLog.isReady()).toBe(false);
+    it('mock 数据库就绪后 isReady 返回 true', () => {
+      // prediction_log 模块自动调用 ensureDatabase() → initDatabase() → isAvailable=true
+      expect(predictionLog.isReady()).toBe(true);
     });
   });
 
