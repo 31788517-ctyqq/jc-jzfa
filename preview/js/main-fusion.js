@@ -2,6 +2,7 @@
 console.log('[V6.0-LAZY] main-fusion.js loaded');
 import { api } from './api.js';
 import { WEEK_NAMES, formatDate, getCache, setCache } from './utils.js';
+import { clearAuthAll, getAuthSession, hasAuthToken, setAuthSession } from './auth-client.js';
 import * as state from './state.js';
 import { loadHome } from './pages/home.js?v=202606090335';
 import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js?v=202606090335';
@@ -770,6 +771,10 @@ function _ensurePage(id) {
         '<div class="ssb-modal-footer"><button class="ssb-modal-cancel" onclick="closePassPopup()">取消</button><button class="ssb-modal-confirm" onclick="confirmPassPopup()">确定</button></div>' +
         '</div>' +
         '</div>';
+    else if (id === 'login')
+      el.innerHTML = '<div id="loginContent"></div>';
+    else if (id === 'account-security')
+      el.innerHTML = '<div id="accountSecurityContent"></div>';
     else if (id === 'confirm-scheme')
       el.innerHTML =
         '<div id="confirmContent"><div class="loading"><div class="loading-spinner"></div>加载方案中...</div></div>';
@@ -814,6 +819,12 @@ export function switchTab(tab) {
     switchTab('plan');
     return;
   }
+
+  var publicTabs = new Set(['login']);
+  if (!publicTabs.has(tab) && !hasAuthToken()) {
+    tab = 'login';
+  }
+
   if (state.currentPage === 'home' && tab !== 'home') state.setSavedScrollY(window.scrollY);
   state.setCurrentPage(tab);
   // 记住当前页，刷新后恢复
@@ -839,6 +850,8 @@ export function switchTab(tab) {
     income: '方案收入',
     backtest: '回测分析',
     scheme: '方案设计',
+    login: '账号登录',
+    'account-security': '账号安全',
     'confirm-scheme': '确认方案',
     'model-dashboard': '模型表现仪表板',
     'data-health': '数据健康监控',
@@ -846,10 +859,25 @@ export function switchTab(tab) {
   var titleEl = document.getElementById('navTitle');
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
   var backEl = document.getElementById('navBack');
-  // 所有非首页页面均显示返回键
-  if (backEl) backEl.style.display = tab !== 'home' ? 'flex' : 'none';
+  // 登录页与首页隐藏返回键
+  if (backEl) backEl.style.display = tab !== 'home' && tab !== 'login' ? 'flex' : 'none';
   var navbarEl = document.getElementById('navbar');
   if (navbarEl) navbarEl.classList.toggle('home-mode', tab === 'home');
+  var tabbarEl = document.querySelector('.tabbar');
+  if (tabbarEl) tabbarEl.style.display = tab === 'login' ? 'none' : 'flex';
+
+  if (tab === 'login') {
+    _mod('login').then(function (m) {
+      m.loadLogin();
+    });
+    return;
+  }
+  if (tab === 'account-security') {
+    _mod('account-security').then(function (m) {
+      m.loadAccountSecurity();
+    });
+    return;
+  }
 
   if (tab === 'home') {
     var cameBack = state.savedScrollY > 0;
@@ -1009,6 +1037,11 @@ document.addEventListener('touchend', function (e) {
   }, 50);
 });
 
+window.addEventListener('auth:unauthorized', function () {
+  clearAuthAll();
+  if (state.currentPage !== 'login') switchTab('login');
+});
+
 // ── 方案收入方向切换：动态更新 dd-incPlan 下拉菜单 ──
 window.onIncDirChange = function () {
   var incDir = window.getDDVal ? window.getDDVal('dd-incDir') : 'expert';
@@ -1044,28 +1077,45 @@ window.onIncDirChange = function () {
 
 // ── 启动：恢复上次页面 ──
 (function initPage() {
-  var last = null;
-  try {
-    last = sessionStorage.getItem('lastPage');
-  } catch (e) {}
-  if (last && last !== 'home' && last !== 'detail') {
-    state.setCurrentPage(last);
-    switchTabLoad(last);
-    // ★ P1: 后台预取其他核心页面数据（非阻塞）
-    setTimeout(function () {
-      _preloadMods(); // 预加载 ranking / match-detail / match-pk-fusion 模块
-      _preloadData(last);
-    }, 500);
-  } else {
+  function startAuthedPage() {
+    var last = null;
+    try {
+      last = sessionStorage.getItem('lastPage');
+    } catch (e) {}
+    if (last && last !== 'home' && last !== 'detail' && last !== 'login') {
+      state.setCurrentPage(last);
+      switchTabLoad(last);
+      setTimeout(function () {
+        _preloadMods();
+        _preloadData(last);
+      }, 500);
+      return;
+    }
     document.getElementById('page-home').classList.add('active');
     state.setCurrentPage('home');
     loadHome();
     _preloadMods();
-    // ★ P1: 从首页预取 match + plan 数据
     setTimeout(function () {
       _preloadData('home');
     }, 500);
   }
+
+  if (!hasAuthToken()) {
+    state.setCurrentPage('login');
+    switchTabLoad('login');
+    return;
+  }
+
+  api('auth-session', {}, 0)
+    .then(function (session) {
+      setAuthSession(session || {});
+      startAuthedPage();
+    })
+    .catch(function () {
+      clearAuthAll();
+      state.setCurrentPage('login');
+      switchTabLoad('login');
+    });
 })();
 
 // ★ P1: 异步预取数据（提前填充 sessionStorage 缓存）
@@ -1130,6 +1180,8 @@ function switchTabLoad(tab) {
     income: '方案收入',
     backtest: '回测分析',
     scheme: '方案设计',
+    login: '账号登录',
+    'account-security': '账号安全',
     'confirm-scheme': '确认方案',
     'model-dashboard': '模型表现仪表板',
     'data-health': '数据健康监控',
@@ -1146,8 +1198,23 @@ function switchTabLoad(tab) {
 
   // 设置返回按钮显示
   var backEl = document.getElementById('navBack');
-  // 所有非首页页面均显示返回键
-  if (backEl) backEl.style.display = tab !== 'home' ? 'flex' : 'none';
+  // 登录页与首页隐藏返回键
+  if (backEl) backEl.style.display = tab !== 'home' && tab !== 'login' ? 'flex' : 'none';
+  var tabbarEl = document.querySelector('.tabbar');
+  if (tabbarEl) tabbarEl.style.display = tab === 'login' ? 'none' : 'flex';
+
+  if (tab === 'login') {
+    _mod('login').then(function (m) {
+      m.loadLogin();
+    });
+    return;
+  }
+  if (tab === 'account-security') {
+    _mod('account-security').then(function (m) {
+      m.loadAccountSecurity();
+    });
+    return;
+  }
 
   if (tab === 'match') {
     if (state.weekDates.length > 0) {

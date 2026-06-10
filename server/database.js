@@ -216,6 +216,89 @@ const NEW_TABLES_DDL = `
   CREATE INDEX IF NOT EXISTS idx_sos_match_num ON sporttery_odds_snapshot(match_num);
 `;
 
+const AUTH_TABLES_DDL = `
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active',
+    must_change_password INTEGER NOT NULL DEFAULT 1,
+    last_login_at TEXT,
+    password_updated_at TEXT,
+    failed_login_count INTEGER NOT NULL DEFAULT 0,
+    locked_until TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+  CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
+
+  CREATE TABLE IF NOT EXISTS roles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    is_builtin INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS permissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE NOT NULL,
+    module TEXT NOT NULL,
+    action TEXT NOT NULL,
+    risk_level TEXT NOT NULL DEFAULT 'medium',
+    description TEXT,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_permissions_module ON permissions(module);
+  CREATE INDEX IF NOT EXISTS idx_permissions_risk_level ON permissions(risk_level);
+
+  CREATE TABLE IF NOT EXISTS role_permissions (
+    role_id INTEGER NOT NULL,
+    permission_id INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(role_id, permission_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS user_roles (
+    user_id INTEGER NOT NULL,
+    role_id INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(user_id, role_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS auth_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    session_token_hash TEXT UNIQUE NOT NULL,
+    issued_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    revoked_at TEXT,
+    ip TEXT,
+    user_agent TEXT,
+    last_seen_at TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_auth_sessions_user_id ON auth_sessions(user_id);
+  CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expires_at);
+
+  CREATE TABLE IF NOT EXISTS audit_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    actor_user_id INTEGER,
+    event_type TEXT NOT NULL,
+    target_type TEXT,
+    target_id TEXT,
+    detail_json TEXT,
+    ip TEXT,
+    user_agent TEXT,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_audit_logs_event_type ON audit_logs(event_type);
+  CREATE INDEX IF NOT EXISTS idx_audit_logs_actor_user_id ON audit_logs(actor_user_id);
+  CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
+`;
+
 // ═══════════════════════════════════════════════════════
 // sql.js 适配器辅助函数
 // ═══════════════════════════════════════════════════════
@@ -451,6 +534,8 @@ function _initBetterSqlite3() {
     `);
     // ★ 蓝图新增 7 张表
     db.exec(NEW_TABLES_DDL);
+    // ★ 登录与权限系统表
+    db.exec(AUTH_TABLES_DDL);
     dbAvailable = true;
     _adapterReady = true;
     console.log('[db] better-sqlite3 初始化成功: ' + DB_PATH);
@@ -903,6 +988,8 @@ function _initSqlJs() {
     `);
       // ★ 蓝图新增 7 张表
       adp.execDDL(NEW_TABLES_DDL);
+      // ★ 登录与权限系统表
+      adp.execDDL(AUTH_TABLES_DDL);
       dbAvailable = true;
       _adapterReady = true;
       console.log('[db] sql.js 初始化成功: ' + DB_PATH);

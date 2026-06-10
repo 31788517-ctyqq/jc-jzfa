@@ -22,6 +22,7 @@ const logger = require('./logger');
 const deepseek = require('./deepseek');
 const doubao = require('./doubao');
 const aiMerger = require('./ai_merger');
+const authService = require('./auth-service');
 
 // ── 核心模块 ──
 const cacheModule = require('./core/cache');
@@ -639,6 +640,23 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     const data = Object.assign({}, wrappedData, req.body);
     logger.info(`API: ${action} ${JSON.stringify(data).slice(0, 100)}`);
     try {
+      let authSession = null;
+      const authToken = authService.resolveSessionToken(req, data);
+
+      if (authService.isActionProtected(action)) {
+        authSession = authService.validateSession(authToken, true);
+        if (!authSession) {
+          return res.json({ code: 401, msg: 'UNAUTHORIZED' });
+        }
+
+        const requiredPermission = authService.getRequiredPermission(action);
+        if (requiredPermission && !authService.hasPermission(authSession, requiredPermission)) {
+          return res.json({ code: 403, msg: 'FORBIDDEN', permission: requiredPermission });
+        }
+      } else if (authToken) {
+        authSession = authService.validateSession(authToken, true);
+      }
+
       // ★ BF/JQS/BQC 数据格式转换（对象→数组），供 batch-match-odds / match-odds 复用
       function _convertBfToArray(source) {
         if (!source) return null;
@@ -677,6 +695,99 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
       }
 
       switch (action) {
+        case 'auth-login': {
+          const username = String(data.username || '').trim();
+          const password = String(data.password || '');
+          if (!username || !password) return res.json({ code: 0, msg: '缺少用户名或密码' });
+          const result = authService.loginWithPassword(username, password, {
+            ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || '',
+            userAgent: req.headers['user-agent'] || '',
+          });
+          if (!result.ok) return res.json({ code: 0, msg: result.msg || '登录失败' });
+          return res.json({
+            code: 1,
+            data: {
+              token: result.token,
+              expiresAt: result.expiresAt,
+              user: result.user,
+              roles: result.roles,
+              permissions: result.permissions,
+            },
+          });
+        }
+
+        case 'auth-session': {
+          if (!authSession) return res.json({ code: 401, msg: 'UNAUTHORIZED' });
+          return res.json({
+            code: 1,
+            data: {
+              user: authSession.user,
+              roles: authSession.roles,
+              permissions: authSession.permissions,
+              expiresAt: authSession.expiresAt,
+            },
+          });
+        }
+
+        case 'auth-logout': {
+          authService.logout(authToken);
+          return res.json({ code: 1, data: { ok: true } });
+        }
+
+        case 'auth-change-password': {
+          if (!authSession) return res.json({ code: 401, msg: 'UNAUTHORIZED' });
+          const oldPassword = String(data.oldPassword || '');
+          const newPassword = String(data.newPassword || '');
+          const result = authService.changePassword(authSession.userId, oldPassword, newPassword);
+          if (!result.ok) return res.json({ code: 0, msg: result.msg || '修改密码失败' });
+          return res.json({ code: 1, data: { ok: true } });
+        }
+
+        case 'user-list': {
+          return res.json({ code: 1, data: authService.listUsers() });
+        }
+
+        case 'user-create': {
+          const username = String(data.username || '').trim();
+          const roleCode = String(data.roleCode || '').trim() || 'viewer';
+          const result = authService.createUser(username, roleCode);
+          if (!result.ok) return res.json({ code: 0, msg: result.msg || '创建账号失败' });
+          return res.json({ code: 1, data: result });
+        }
+
+        case 'user-update-status': {
+          const userId = Number(data.userId || 0);
+          if (!userId) return res.json({ code: 0, msg: '缺少 userId' });
+          if (String(data.op || '').trim() === 'unlock') {
+            return res.json({ code: 1, data: authService.unlockUser(userId) });
+          }
+          const status = String(data.status || '').trim();
+          const result = authService.updateUserStatus(userId, status);
+          if (!result.ok) return res.json({ code: 0, msg: result.msg || '更新失败' });
+          return res.json({ code: 1, data: result });
+        }
+
+        case 'role-list': {
+          return res.json({ code: 1, data: authService.listRolesWithPermissions() });
+        }
+
+        case 'role-permission-update': {
+          const roleCode = String(data.roleCode || '').trim();
+          const permissionCodes = Array.isArray(data.permissionCodes) ? data.permissionCodes : [];
+          const result = authService.updateRolePermissions(roleCode, permissionCodes);
+          if (!result.ok) return res.json({ code: 0, msg: result.msg || '更新角色权限失败' });
+          return res.json({ code: 1, data: result });
+        }
+
+        case 'user-role-update': {
+          const userId = Number(data.userId || 0);
+          const roleCodes = Array.isArray(data.roleCodes) ? data.roleCodes : [];
+          if (!userId) return res.json({ code: 0, msg: '缺少 userId' });
+          const result = authService.updateUserRoles(userId, roleCodes);
+          if (!result.ok) return res.json({ code: 0, msg: result.msg || '更新用户角色失败' });
+          return res.json({ code: 1, data: result });
+        }
+
         case 'week-dates': {
           // ★ P1-4: 使用预计算缓存，避免每次请求都遍历 data.json
           return res.json({ code: 1, data: getWeekDates() });
@@ -6706,6 +6817,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   // 初始化数据库
   try {
     database.initDatabase();
+    try {
+      authService.ensureBootstrapped();
+    } catch (e) {
+      logger.error('认证模块初始化失败: ' + e.message);
+    }
   } catch (err) {
     logger.error('数据库初始化失败: ' + err.message);
   }

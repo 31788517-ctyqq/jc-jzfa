@@ -5,6 +5,7 @@ const INDEX_FILE = path.join(__dirname, '..', 'index.js');
 
 const ACTION_MATRIX = {
   readOnlySafe: [
+    'auth-session',
     'week-dates',
     'match-list',
     'recommend-trend',
@@ -37,8 +38,22 @@ const ACTION_MATRIX = {
     'batch-consensus',
     'daily-profit-7d',
     'pk-version-compare',
+    'user-list',
+    'role-list',
   ],
-  mutatingOrRequiresState: ['sync-match-date', 'sync-gov-schedule', 'my-plan-save', 'my-plan-delete'],
+  mutatingOrRequiresState: [
+    'auth-login',
+    'auth-logout',
+    'auth-change-password',
+    'sync-match-date',
+    'sync-gov-schedule',
+    'my-plan-save',
+    'my-plan-delete',
+    'user-create',
+    'user-update-status',
+    'role-permission-update',
+    'user-role-update',
+  ],
   heavyOrAsync: [
     'crawl-history',
     'crawl-status',
