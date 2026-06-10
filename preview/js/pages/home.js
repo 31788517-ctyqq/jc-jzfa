@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { formatDate, setCache } from '../utils.js';
+import { formatDate, setCache, getCache } from '../utils.js';
 
 function getMatchLabel(item) {
   return String((item && (item.num || item.matchNum || item.matchId || item.dataId)) || '').trim();
@@ -62,9 +62,64 @@ function cacheHomeMatches(matches) {
   }
 }
 
+/** P0-1 优化：纯渲染函数，可从缓存或API数据调用 */
+function _renderHomeStats(matches, rankData) {
+  cacheHomeMatches(matches);
+
+  // 今日比赛
+  var mcEl = document.getElementById('homeMatchCount');
+  if (mcEl) mcEl.textContent = Array.isArray(matches) ? String(matches.length) : '0';
+  var liveCount = Array.isArray(matches)
+    ? matches.filter(function (m) {
+        var status = String(m.matchStatus || m.status || m.state || '').toLowerCase();
+        return /进行|上半|下半|中场|live|playing|in_progress/.test(status);
+      }).length
+    : 0;
+  var metaEl = document.getElementById('homeMatchMeta');
+  if (metaEl) metaEl.textContent = '进行中 ' + liveCount + ' 场';
+
+  // 最多推荐（综合排行第一的场次标签 + 方向）
+  var mrEl = document.getElementById('homeMaxRank');
+  var topExpertCount = rankData.topExpertCount || 0;
+  if (mrEl) mrEl.textContent = topExpertCount;
+  var ranking = Array.isArray(rankData.ranking) ? rankData.ranking : [];
+  var topRank = ranking.length > 0 ? ranking[0] : null;
+  var maxRankMetaEl = document.getElementById('homeMaxRankMeta');
+  if (maxRankMetaEl) {
+    var topLabel = topRank ? topRank.num || topRank.matchNum || topRank.matchId || '' : '';
+    var topDirection = topRank ? topRank.direction || '' : '';
+    maxRankMetaEl.textContent = topLabel && topDirection ? topLabel + '@' + topDirection : topLabel || '-';
+  }
+
+  // 最热场次（按该场比赛所有方向推荐专家总数排序，取总数最多的）
+  var hottest = ranking.reduce(function (best, item) {
+    var bestTotal = best ? best.totalExpertCount || best.expertCount || 0 : 0;
+    var itemTotal = item.totalExpertCount || item.expertCount || 0;
+    if (!best || itemTotal > bestTotal) return item;
+    return best;
+  }, null);
+  var hmEl = document.getElementById('homeHottest');
+  if (hmEl) hmEl.textContent = hottest ? hottest.totalExpertCount || hottest.expertCount || 0 : '-';
+  var hottestMetaEl = document.getElementById('homeHottestMeta');
+  if (hottestMetaEl) {
+    hottestMetaEl.textContent = hottest ? hottest.num || hottest.matchNum || hottest.matchId || '-' : '-';
+  }
+  window.__homeHottestTarget = resolveHottestTarget(hottest, matches);
+}
+
 export function loadHome() {
   var initialMatchCountEl = document.getElementById('homeMatchCount');
   if (initialMatchCountEl && initialMatchCountEl.textContent === '-') initialMatchCountEl.textContent = '0';
+
+  // ★ P0-1 优化：乐观渲染 — 有缓存立即渲染，无缓存等网络（getCache 内置 TTL 检查）
+  var today = new Date().toISOString().slice(0, 10);
+  var cachedMatches = getCache('match-list:' + today) || getCache('match-list:' + today.slice(5));
+  var cachedRank = getCache('ranking-list:home');
+  if (cachedMatches) {
+    _renderHomeStats(cachedMatches, cachedRank || {});
+  }
+
+  // 后台静默刷新（始终发起）
   var rankP = api('ranking-list', {}).catch(function () {
     return {};
   });
@@ -72,49 +127,10 @@ export function loadHome() {
     return [];
   });
   Promise.all([rankP, matchP]).then(function (r) {
-    var rankData = r[0],
-      matches = r[1];
-    cacheHomeMatches(matches);
-
-    // 今日比赛
-    var mcEl = document.getElementById('homeMatchCount');
-    if (mcEl) mcEl.textContent = Array.isArray(matches) ? String(matches.length) : '0';
-    var liveCount = Array.isArray(matches)
-      ? matches.filter(function (m) {
-          var status = String(m.matchStatus || m.status || m.state || '').toLowerCase();
-          return /进行|上半|下半|中场|live|playing|in_progress/.test(status);
-        }).length
-      : 0;
-    var metaEl = document.getElementById('homeMatchMeta');
-    if (metaEl) metaEl.textContent = '进行中 ' + liveCount + ' 场';
-
-    // 最多推荐（综合排行第一的场次标签 + 方向）
-    var mrEl = document.getElementById('homeMaxRank');
-    var topExpertCount = rankData.topExpertCount || 0;
-    if (mrEl) mrEl.textContent = topExpertCount;
-    var ranking = Array.isArray(rankData.ranking) ? rankData.ranking : [];
-    var topRank = ranking.length > 0 ? ranking[0] : null;
-    var maxRankMetaEl = document.getElementById('homeMaxRankMeta');
-    if (maxRankMetaEl) {
-      var topLabel = topRank ? topRank.num || topRank.matchNum || topRank.matchId || '' : '';
-      var topDirection = topRank ? topRank.direction || '' : '';
-      maxRankMetaEl.textContent = topLabel && topDirection ? topLabel + '@' + topDirection : topLabel || '-';
-    }
-
-    // 最热场次（按该场比赛所有方向推荐专家总数排序，取总数最多的）
-    var hottest = ranking.reduce(function (best, item) {
-      var bestTotal = best ? best.totalExpertCount || best.expertCount || 0 : 0;
-      var itemTotal = item.totalExpertCount || item.expertCount || 0;
-      if (!best || itemTotal > bestTotal) return item;
-      return best;
-    }, null);
-    var hmEl = document.getElementById('homeHottest');
-    if (hmEl) hmEl.textContent = hottest ? hottest.totalExpertCount || hottest.expertCount || 0 : '-';
-    var hottestMetaEl = document.getElementById('homeHottestMeta');
-    if (hottestMetaEl) {
-      hottestMetaEl.textContent = hottest ? hottest.num || hottest.matchNum || hottest.matchId || '-' : '-';
-    }
-    window.__homeHottestTarget = resolveHottestTarget(hottest, matches);
+    var rankData = r[0], matches = r[1];
+    // 缓存 ranking 列表（5分钟TTL）
+    setCache('ranking-list:home', rankData);
+    _renderHomeStats(matches, rankData);
   });
 
   // ── 近7日推荐盈利图表 ──
@@ -145,16 +161,10 @@ function loadHomeProfitChart() {
         return;
       }
 
-      var section = document.getElementById('homeProfitChartSection');
-      if (section) section.style.display = 'block';
       hideSkel();
       renderProfitChartNative(dates, profits);
-      var card = section && section.querySelector('.profit-card');
-      if (card) {
-        card.classList.remove('chart-anim-in');
-        void card.offsetWidth;
-        card.classList.add('chart-anim-in');
-      }
+      var section = document.getElementById('homeProfitChartSection');
+      if (section) section.style.display = 'block';
     })
     .catch(function () {
       hideSkel();
@@ -565,17 +575,17 @@ var NotiEngine = {
       id: 'welcome',
       type: 'welcome',
       priority: 'P0',
-      title: '\u{1F389} \u6B22\u8FCE\u4F7F\u7528\u7ADEE5F69\u63A8\u8350\u76D1\u63A7\u7CFB\u7EDF\uFF01',
+      title: '🎉 欢迎使用竞彩推荐监控系统！',
       body:
-        '\u8FD9\u91CC\u662F\u60A8\u7684\u667A\u80FD\u65B9\u6848\u51B3\u7B56\u52A9\u624B\uFF1A\n' +
+        '这是您的智能方案决策助手\n' +
         '\n' +
-        '\u{1F4CA} \u4E13\u5BB6\u535A\u70ED\u65B9\u6848 \u2014 \uFFFD\uFFFD\uFFFD\u8D44\u6DF1\u4E13\u5BB6\u7684\u70ED\u95E8\u63A8\u8350\u65B9\u5411\uFF1B\n' +
-        'AI\u6DF1\u5EA6\u5206\u6790-\u53CCAI\u6A21\u578B\u878D\u5408\uFF0C\u4E94\u7EF4\u5206\u6790\u9884\u6D4B\uFF1B\n' +
-        '\u2694\uFE0F \u529F\u5B88\u9053\u5206\u6790 \u2014 \u653B\u5B88\u6570\u636E\u5EFA\u6A21\uFF0C\u9884\u5224\u6BD4\u8D5B\u8D70\u52BF\uFF1B\n' +
-        '\u{1F504} \u591A\u6A21\u578B\u7ADE\u4E89 \u2014 \u6A21\u578bPK\u7ADE\u4E89\uFF0C\u63D0\u9AD8\u547D\u4E2D\u7387\uFF1B\n' +
+        '专家组方案 — 资深专家组的热门推荐方向；\n' +
+        'AI深度分析 — 双AI模型融合，五维分析预测；\n' +
+        '功守道分析 — 攻守数据建模，预判比赛走势；\n' +
+        '多模型竞争 — 模型PK竞争，提高命中率；\n' +
         '\n' +
-        '\u5F00\u59CB\u63A2\u7D22\u5427\uFF0C\u795D\u60A8\u76C8\u5229\u957F\u7EA2 \u{1F340}',
-      btnText: '\u77E5\u9053\u4E86',
+        '开始探索吧，祝您盈利长红！',
+      btnText: '知道了',
       action: 'welcome_dismiss',
       storageKey: 'noti:welcome_seen',
       expiresAt: null,
@@ -587,7 +597,7 @@ var NotiEngine = {
   _buildStreak: function (data) {
     var lines = data.days
       .map(function (d) {
-        return '\u2022 ' + d.date + ' \u65E5\u76C8\u5229 +' + d.profit.toFixed(0) + ' \u5143 \u2705';
+        return '\u2022 ' + d.date + ' 日盈利 +' + d.profit.toFixed(0) + ' 元 \u2705';
       })
       .join('\n');
 
@@ -595,15 +605,15 @@ var NotiEngine = {
       id: 'streak_' + data.startDate,
       type: 'streak',
       priority: 'P1',
-      title: '\u{1F525} \u4E13\u5BB6\u535A\u70ED 5 \u8FDE\u7EA2\uFF01',
+      title: '🔥 专家博热 5 连红！',
       body:
-        '\u4E13\u5BB6\u535A\u70ED\u65B9\u6848\u8FDE\u7EED 5 \u5929\u76C8\u5229\u4E3A\u6B63\uFF0C\u72B6\u6001\u6781\u4F73\uFF1A\n' +
+        '专家博热方案连续 5 天盈利为正，状态极佳：\n' +
         lines +
-        '\n\u2022 5\u65E5\u7D2F\u8BA1 +' +
+        '\n\u2022 5日累计 +' +
         data.total.toFixed(0) +
-        ' \u5143 \u{1F3AF}\n\n' +
-        '\u8FDE\u7EA2\u52BF\u5934\u5F3A\u52B2\uFF0C\u67E5\u770B\u4ECA\u65E5\u65B9\u6848\u8DD1\u4E0A\u8282\u594F \u2192',
-      btnText: '\u67E5\u770B',
+        ' 元 \n\n' +
+        '连红势头强劲，查看今日方案跑上节奏 →',
+      btnText: '查看',
       action: 'nav_plan',
       storageKey: 'noti:streak_' + data.startDate,
       expiresAt: Date.now() + 3 * 24 * 3600000,
@@ -632,24 +642,24 @@ var NotiEngine = {
       id: 'profit_' + new Date().toISOString().slice(0, 10),
       type: 'profit',
       priority: 'P1',
-      title: '\u{1F4B0} \u4E13\u5BB6\u65B9\u6848\u76C8\u5229\u7A81\u7834\uFF01',
+      title: '💰 专家方案盈利突破！',
       body:
-        '\u8FD1 7 \u65E5\u4E13\u5BB6\u535A\u70ED\u65B9\u6848\u603B\u76C8\u5229 +' +
+        '近 7 日专家博热方案总盈利 +' +
         total.toFixed(0) +
-        ' \u5143 \u{1F3AF}\n' +
-        '\u2022 \u6700\u9AD8\u5355\u65E5 +' +
+        ' 元 \n\n' +
+        '\u2022 最高单日 +' +
         maxDayProfit.toFixed(0) +
-        ' \u5143\uFF08' +
+        ' 元（' +
         maxDate +
-        '\uFF09\n' +
-        '\u2022 \u76C8\u5229\u5929\u6570 ' +
+        '）\n' +
+        '\u2022 盈利天数 ' +
         winDays +
-        '/7 \u5929\n' +
-        '\u2022 \u7D2F\u8BA1\u6536\u76CA\u7387 ' +
+        '/7 天\n' +
+        '\u2022 累计收益率 ' +
         yieldRate +
         '%\n\n' +
-        '\u7A33\u5B9A\u76C8\u5229\u4E2D\uFF0C\u4FDD\u6301\u8DDF\u8FDB \u2192',
-      btnText: '\u67E5\u770B',
+        '稳定盈利中，保持跟进 →',
+      btnText: '查看',
       action: 'nav_income',
       storageKey: 'noti:profit_' + new Date().toISOString().slice(0, 10),
       expiresAt: Date.now() + 24 * 3600000,
@@ -663,14 +673,14 @@ var NotiEngine = {
       id: 'ver_' + APP_VERSION,
       type: 'version',
       priority: 'P2',
-      title: '\u{1F195} \u7CFB\u7EDF\u66F4\u65B0 V' + APP_VERSION,
+      title: '🆕 系统更新 V' + APP_VERSION,
       body:
-        '\u672C\u6B21\u66F4\u65B0\u5185\u5BB9\uFF1A\n' +
-        '\u2728 \u65B0\u589E\u6D88\u606F\u63D0\u9192\u4E2D\u5FC3\uFF0C\u652F\u6301\u591A\u7C7B\u6D88\u606F\u81EA\u52A8\u6536\u96C6\u4E0E\u4F18\u5148\u7EA7\u6392\u5E8F\n' +
-        '\u{1F4CA} \u6BCF\u5929\u6700\u591A\u63A8\u90011\u6761\u6D88\u606F\uFF0C\u4E25\u683C\u9075\u5FAA\u201C\u4E0D\u6253\u6270\u201D\u539F\u5219\n' +
-        '\u{1FAE7} \u4F18\u5316\u7528\u6237\u4F53\u9A8C\uFF0CBadge+\u5F39\u7A97\u5206\u79BB\u5C55\u793A\n\n' +
-        '\u66F4\u591A\u7EC6\u8282\u8BF7\u7EE7\u7EED\u63A2\u7D22\u65B0\u529F\u80FD \u2192',
-      btnText: '\u77E5\u9053\u4E86',
+        '本次更新内容：\n' +
+        '新增消息提醒中心，支持多类消息自动收集与优先级排序\n' +
+        '每天最多推送1条消息，严格遵循"不打扰"原则\n' +
+        '优化用户体验，Badge+弹窗分离展示\n\n' +
+        '更多细节请继续探索新功能！',
+      btnText: '知道了',
       action: 'version_dismiss',
       storageKey: 'noti:version_seen',
       expiresAt: Date.now() + 7 * 24 * 3600000,
@@ -775,45 +785,59 @@ var NotiEngine = {
   // ── UI 渲染方法（由 App.showNotifications 调用） ──
 
   showNotifications: function () {
-    if (!this._candidates || this._candidates.length === 0) return;
-
     var overlay = document.getElementById('notiOverlay');
     var body = document.getElementById('notiBody');
     var countEl = document.getElementById('notiCount');
 
     if (!overlay || !body) return;
 
-    // 顶部对齐首页三个统计卡片：按实际 DOM 位置动态计算，避免不同屏幕高度偏移
+    // 顶部对齐首页统计卡片，上限防止弹窗被推到底部
     var homeStats = document.querySelector('#page-home .home-stats');
+    var notiTop = 80; // fallback
     if (homeStats) {
       var statsTop = Math.round(homeStats.getBoundingClientRect().top);
-      overlay.style.setProperty('--noti-top', Math.max(16, statsTop) + 'px');
+      notiTop = Math.max(16, statsTop);
     }
+    // 保证弹窗至少有 340px 可用高度
+    notiTop = Math.min(notiTop, window.innerHeight - 380);
+    overlay.style.setProperty('--noti-top', notiTop + 'px');
+
+    var hasCandidates = this._candidates && this._candidates.length > 0;
 
     // 更新计数
-    countEl.textContent = this._candidates.length;
+    countEl.textContent = hasCandidates ? this._candidates.length : 0;
 
-    // 渲染卡片
+    // 渲染卡片或空状态
     var html = '';
-    for (var i = 0; i < this._candidates.length; i++) {
-      var msg = this._candidates[i];
-      html +=
-        '<div class="noti-card" data-id="' +
-        msg.id +
-        '">' +
-        '<div class="noti-card-title">' +
-        this._escapeHtml(msg.title) +
-        '</div>' +
-        '<div class="noti-card-body">' +
-        this._formatBody(msg.body) +
-        '</div>' +
-        '<button class="noti-card-btn" onclick=\"App.consumeNoti(\'' +
-        msg.id +
-        "', '" +
-        (msg.action || '') +
-        '\')\">' +
-        (msg.btnText || '\u77E5\u9053\u4E86') +
-        '</button></div>';
+    if (hasCandidates) {
+      for (var i = 0; i < this._candidates.length; i++) {
+        var msg = this._candidates[i];
+        html +=
+          '<div class="noti-card" data-id="' +
+          msg.id +
+          '">' +
+          '<div class="noti-card-title">' +
+          this._escapeHtml(msg.title) +
+          '</div>' +
+          '<div class="noti-card-body">' +
+          this._formatBody(msg.body) +
+          '</div>' +
+          '<button class="noti-card-btn" onclick=\"App.consumeNoti(\'' +
+          msg.id +
+          "', '" +
+          (msg.action || '') +
+          '\')\">' +
+          (msg.btnText || '\u77E5\u9053\u4E86') +
+          '</button></div>';
+      }
+    } else {
+      // 空状态：暂无新消息
+      html =
+        '<div class="noti-empty">' +
+        '<div class="noti-empty-icon">🔔</div>' +
+        '<div class="noti-empty-text">暂无新消息</div>' +
+        '<div class="noti-empty-sub">有新消息时将在此显示</div>' +
+        '</div>';
     }
     body.innerHTML = html;
 
@@ -879,10 +903,17 @@ var NotiEngine = {
     var countEl = document.getElementById('notiCount');
     if (!body) return;
 
-    countEl.textContent = this._candidates.length;
+    var hasCandidates = this._candidates && this._candidates.length > 0;
 
-    if (this._candidates.length === 0) {
-      this.closeNotifications();
+    countEl.textContent = hasCandidates ? this._candidates.length : 0;
+
+    if (!hasCandidates) {
+      body.innerHTML =
+        '<div class="noti-empty">' +
+        '<div class="noti-empty-icon">🔔</div>' +
+        '<div class="noti-empty-text">暂无新消息</div>' +
+        '<div class="noti-empty-sub">有新消息时将在此显示</div>' +
+        '</div>';
       return;
     }
 

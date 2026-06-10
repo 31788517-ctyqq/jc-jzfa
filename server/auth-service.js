@@ -110,7 +110,48 @@ const ACTION_PERMISSION_MAP = {
   'refill-expert-consensus': 'ops:refill_consensus',
 };
 
-const PUBLIC_ACTIONS = new Set(['auth-login', 'auth-session']);
+const PUBLIC_ACTIONS = new Set([
+  'auth-login',
+  'auth-session',
+
+  // 首页只读 API（未登录用户可见）
+  'match-list',
+  'ranking-list',
+  'daily-profit-7d',
+  'week-dates',
+
+  // 方案查看（未登录可浏览）
+  'plan-list',
+  'score-plan-list',
+  'quant-plan-list',
+
+  // 比赛详情与赔率
+  'match-detail',
+  'match-odds',
+  'batch-match-odds',
+  'match-top-directions',
+  'recommend-trend',
+
+  // 功守道 & AI 预测（公开数据）
+  'gongshoudao',
+  'gongshoudao-all',
+  'ai-predict',
+
+  // 统计看板（公开）
+  'hit-rate-stats',
+  'hit-rate-filter',
+  'filter-stats',
+  'income-stats',
+
+  // 回测 & 模型（公开查看）
+  'prediction-backtest',
+  'experiment-compare',
+  'model-dashboard',
+
+  // 健康检查
+  'health',
+  'data-health',
+]);
 
 function getAdapter() {
   const adp = database.getAdapter && database.getAdapter();
@@ -150,6 +191,28 @@ function verifyPassword(password, storedHash) {
   const actualBuf = Buffer.from(actualHex, 'hex');
   if (expectedBuf.length !== actualBuf.length) return false;
   return crypto.timingSafeEqual(expectedBuf, actualBuf);
+}
+
+/** P1-1 优化：异步 scrypt，不阻塞事件循环（用于登录热路径） */
+function verifyPasswordAsync(password, storedHash) {
+  return new Promise(function (resolve) {
+    if (!storedHash || typeof storedHash !== 'string') return resolve(false);
+    const parts = storedHash.split('$');
+    if (parts.length !== 3 || parts[0] !== 'scrypt') return resolve(false);
+    const salt = parts[1];
+    const expectedHex = parts[2];
+    const expectedBuf = Buffer.from(expectedHex, 'hex');
+    crypto.scrypt(String(password || ''), salt, 64, function (err, derivedKey) {
+      if (err) return resolve(false);
+      const actualBuf = Buffer.from(derivedKey);
+      if (expectedBuf.length !== actualBuf.length) return resolve(false);
+      try {
+        resolve(crypto.timingSafeEqual(expectedBuf, actualBuf));
+      } catch (e) {
+        resolve(false);
+      }
+    });
+  });
 }
 
 function sanitizeUser(row) {
@@ -225,7 +288,9 @@ function hasPermission(session, permissionCode) {
   return perms.includes(permissionCode) || perms.includes('*');
 }
 
+var _bootstrapped = false;
 function ensureBootstrapped() {
+  if (_bootstrapped) return;
   const adp = getAdapter();
   const now = nowIso();
 
@@ -297,26 +362,45 @@ function ensureBootstrapped() {
 
   console.log(`[auth] 已初始化管理员账号: ${initUser}`);
   console.log(`[auth] 初始密码(仅显示一次): ${initPass}`);
+  _bootstrapped = true;
+}
+
+/** P0-2 优化：将角色+权限查询合并到用户查询的 JOIN 中，从 3 次 SQL → 1 次 */
+function buildRolesAndPermsFromJoinedRows(rows) {
+  if (!rows || rows.length === 0) return { roles: [], permissions: [] };
+  var roleSet = new Set();
+  var permSet = new Set();
+  for (var i = 0; i < rows.length; i++) {
+    if (rows[i].role_code) roleSet.add(rows[i].role_code);
+    if (rows[i].permission_code) permSet.add(rows[i].permission_code);
+  }
+  return { roles: Array.from(roleSet), permissions: Array.from(permSet) };
 }
 
 function buildSessionInfoByUserId(userId) {
   const adp = getAdapter();
-  const user = adp.execOne(
-    `SELECT id, username, status, must_change_password, last_login_at, password_updated_at
-     FROM users WHERE id = ?`,
+  const rows = adp.execAll(
+    `SELECT u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at,
+            r.code as role_code,
+            p.code as permission_code
+     FROM users u
+     LEFT JOIN user_roles ur ON u.id = ur.user_id
+     LEFT JOIN roles r ON ur.role_id = r.id
+     LEFT JOIN role_permissions rp ON r.id = rp.role_id
+     LEFT JOIN permissions p ON rp.permission_id = p.id
+     WHERE u.id = ?`,
     userId,
   );
-  if (!user) return null;
-  const roles = getUserRoles(userId);
-  const permissions = getRolePermissions(roles);
+  if (!rows || rows.length === 0) return null;
+  var rp = buildRolesAndPermsFromJoinedRows(rows);
   return {
-    user: sanitizeUser(user),
-    roles,
-    permissions,
+    user: sanitizeUser(rows[0]),
+    roles: rp.roles,
+    permissions: rp.permissions,
   };
 }
 
-function loginWithPassword(username, password, meta = {}) {
+async function loginWithPassword(username, password, meta = {}) {
   ensureBootstrapped();
   const adp = getAdapter();
   const now = new Date();
@@ -330,7 +414,8 @@ function loginWithPassword(username, password, meta = {}) {
     return { ok: false, code: 0, msg: '账号已锁定，请稍后重试' };
   }
 
-  const passOk = verifyPassword(password, user.password_hash);
+  // ★ P1-1 优化：异步 scrypt，不阻塞事件循环
+  const passOk = await verifyPasswordAsync(password, user.password_hash);
   if (!passOk) {
     const failCount = Number(user.failed_login_count || 0) + 1;
     if (failCount >= MAX_LOGIN_FAILS) {
@@ -407,14 +492,23 @@ function validateSession(token, touch = true) {
     adp.execRun('UPDATE auth_sessions SET last_seen_at = ? WHERE id = ?', now, row.sid);
   }
 
-  const roles = getUserRoles(row.user_id);
-  const permissions = getRolePermissions(roles);
+  // ★ P0-2 优化：合并角色+权限查询为单次 JOIN
+  var rpRows = adp.execAll(
+    `SELECT r.code as role_code, p.code as permission_code
+     FROM user_roles ur
+     JOIN roles r ON ur.role_id = r.id
+     LEFT JOIN role_permissions rp ON r.id = rp.role_id
+     LEFT JOIN permissions p ON rp.permission_id = p.id
+     WHERE ur.user_id = ?`,
+    row.user_id,
+  );
+  var rp = buildRolesAndPermsFromJoinedRows(rpRows);
   return {
     sid: row.sid,
     userId: row.user_id,
     user: sanitizeUser(row),
-    roles,
-    permissions,
+    roles: rp.roles,
+    permissions: rp.permissions,
     expiresAt: row.expires_at,
   };
 }
@@ -426,11 +520,12 @@ function logout(token) {
   return { ok: true };
 }
 
-function changePassword(userId, oldPassword, newPassword) {
+async function changePassword(userId, oldPassword, newPassword) {
   const adp = getAdapter();
   const user = adp.execOne('SELECT * FROM users WHERE id = ?', userId);
   if (!user) return { ok: false, msg: '用户不存在' };
-  if (!verifyPassword(oldPassword, user.password_hash)) return { ok: false, msg: '旧密码错误' };
+  // ★ P1-1 优化：异步 scrypt
+  if (!(await verifyPasswordAsync(oldPassword, user.password_hash))) return { ok: false, msg: '旧密码错误' };
   if (typeof newPassword !== 'string' || newPassword.length < 8) {
     return { ok: false, msg: '新密码至少8位' };
   }

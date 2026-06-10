@@ -714,7 +714,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           const username = String(data.username || '').trim();
           const password = String(data.password || '');
           if (!username || !password) return res.json({ code: 0, msg: '缺少用户名或密码' });
-          const result = authService.loginWithPassword(username, password, {
+          // ★ P1-2 优化：await 异步登录（scrypt 不阻塞事件循环）
+          const result = await authService.loginWithPassword(username, password, {
             ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || '',
             userAgent: req.headers['user-agent'] || '',
           });
@@ -753,7 +754,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           if (!authSession) return res.json({ code: 401, msg: 'UNAUTHORIZED' });
           const oldPassword = String(data.oldPassword || '');
           const newPassword = String(data.newPassword || '');
-          const result = authService.changePassword(authSession.userId, oldPassword, newPassword);
+          // ★ P1-2 优化：await 异步密码修改
+          const result = await authService.changePassword(authSession.userId, oldPassword, newPassword);
           if (!result.ok) return res.json({ code: 0, msg: result.msg || '修改密码失败' });
           return res.json({ code: 1, data: { ok: true } });
         }

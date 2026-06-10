@@ -95,6 +95,7 @@ DEPLOY_MAP = [
     ('preview/assets/zuqiu_soccer.svg',   'both'),
     # /assets/ URL 由 Nginx 映射到 miniprogram/images/，首页 banner 和 ECharts 库须部署到该目录
     ('miniprogram/images/worldcup/banner3.webp', 'nginx'),
+    ('miniprogram/images/login-eagle.png',   'nginx'),  # ★ V9: 登录页背景图
     ('miniprogram/images/echarts.min.js',      'nginx'),
     ('preview/css/app.css',               'both'),
     ('preview/css/modals.css',            'both'),
@@ -121,11 +122,16 @@ DEPLOY_MAP = [
     ('preview/js/pages/scheme-design.js', 'both'),  # ★ 方案设计页
     ('preview/js/pages/betting.js',       'both'),  # ★ 投注弹窗
     ('preview/js/pages/confirm-scheme.js','both'),  # ★ 确认方案页
+    ('preview/js/pages/login.js',          'both'),  # ★ V9: 登录页
+    ('preview/js/pages/account-security.js','both'), # ★ V9: 账号安全页
     # ★ 蓝图 V8.2 新增前端页面
     ('preview/js/pages/model-dashboard.js','both'), # ★ 模型仪表板
     ('preview/js/pages/data-health.js', 'both'),    # ★ 数据健康监控
     ('preview/js/charts.js',              'both'),
     ('preview/js/api.js',                 'both'),
+    ('preview/js/auth-client.js',         'both'),  # ★ V9: 认证客户端（main-fusion.js import）
+
+
     ('preview/js/ws-client.js',           'both'),
     ('preview/js/api-schema.js',          'both'),  # ★ v3 新增
     # 服务端 → PM2 运行时路径
@@ -175,6 +181,7 @@ DEPLOY_MAP = [
     ('server/deepseek.js',                'both'),
     ('server/doubao.js',                  'both'),
     ('server/ai_merger.js',               'both'),
+    ('server/auth-service.js',            'both'),  # ★ V9: 认证服务（index.js 第25行 require）
     ('server/ai_daemon.js',               'both'),
     ('server/prediction_log.js',          'both'),
     ('server/alert.js',                   'both'),

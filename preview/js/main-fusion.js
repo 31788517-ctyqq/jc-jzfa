@@ -4,14 +4,14 @@ import { api } from './api.js';
 import { WEEK_NAMES, formatDate, getCache, setCache } from './utils.js';
 import { clearAuthAll, getAuthSession, hasAuthToken, setAuthSession } from './auth-client.js';
 import * as state from './state.js';
-import { loadHome } from './pages/home.js?v=202606101233';
+import { loadHome } from './pages/home.js?v=202606101600';
 import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js?v=202606101015';
 
 // ═══ 模块懒加载：非核心页面模块按需动态导入 ═══
 var _modCache = {};
 function _mod(name) {
   if (_modCache[name]) return Promise.resolve(_modCache[name]);
-  return import('./pages/' + name + '.js?v=202606101233')
+  return import('./pages/' + name + '.js?v=202606101600')
     .then(function (m) {
       _modCache[name] = m;
       return m;
@@ -19,7 +19,7 @@ function _mod(name) {
     .catch(function (e) {
       console.error('[JS] 模块加载失败: ' + name + ' - ' + (e && e.message));
       // 重试一次（可能是网络波动或文件刚部署）
-      return import('./pages/' + name + '.js?v=202606101233').then(function (m) {
+      return import('./pages/' + name + '.js?v=202606101600').then(function (m) {
         _modCache[name] = m;
         console.warn('[JS] 模块重试成功: ' + name);
         return m;
@@ -1143,13 +1143,13 @@ function _preloadData(current) {
           .catch(function () {});
       }
     } else if (tab === 'plan') {
-      import('./pages/plans.js?v=202606101233')
+      import('./pages/plans.js?v=202606101600')
         .then(function (m) {
           if (m.loadPlanList) m.loadPlanList();
         })
         .catch(function () {});
     } else if (tab === 'quant-rank') {
-      import('./pages/quant-rank-fusion.js?v=202606101233')
+      import('./pages/quant-rank-fusion.js?v=202606101600')
         .then(function (m) {
           if (m.loadQuantRank) m.loadQuantRank();
         })

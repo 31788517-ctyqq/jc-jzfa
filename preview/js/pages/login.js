@@ -9,7 +9,7 @@ function ensureLoginRoot() {
     '<div class="login-hero">' +
     '<div class="login-hero-copy">' +
     '<div class="login-hero-title">Hello!</div>' +
-    '<div class="login-hero-subtitle">欢迎来到竞彩推荐监控系统</div>' +
+    '<div class="login-hero-subtitle">欢迎来到<br>竞彩推荐监控系统</div>' +
     '</div>' +
     '<img class="login-eagle" src="/assets/login-eagle.png?v=202606101155" alt="" loading="eager" decoding="async" />' +
     '</div>' +

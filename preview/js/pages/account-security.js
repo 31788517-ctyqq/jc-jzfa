@@ -8,6 +8,9 @@ function render() {
   const userName = (session.user && session.user.username) || '-';
   root.innerHTML =
     '<div class="auth-shell auth-shell-account">' +
+    '<button class="auth-home-corner" onclick="switchTab(\'home\')" aria-label="返回首页" title="返回首页">' +
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' +
+    '</button>' +
     '<div class="login-hero account-login-hero">' +
     '<div class="login-hero-copy">' +
     '<div class="login-hero-title">Hello!</div>' +
@@ -15,7 +18,7 @@ function render() {
     userName +
     '</div>' +
     '</div>' +
-    '<img class="login-eagle" src="/assets/login-eagle.png?v=202606101233" alt="" loading="eager" decoding="async" />' +
+    '<img class="login-eagle" src="/assets/login-eagle.png?v=202606101600" alt="" loading="eager" decoding="async" />' +
     '</div>' +
     '<div class="auth-card auth-login-card auth-account-card">' +
 

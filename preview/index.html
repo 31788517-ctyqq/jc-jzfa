@@ -8,30 +8,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>竞彩推荐监控</title>
     <link rel="preconnect" href="https://zj.100qiu.com" />
-    <link rel="modulepreload" href="/js/main-fusion.js?v=202606101233" />
-    <link rel="preload" href="/css/app.css?v=202606101233" as="style" />
-    <link rel="stylesheet" href="/css/app.css?v=202606101233" />
+    <link rel="modulepreload" href="/js/main-fusion.js?v=202606101600" />
+    <link rel="preload" href="/css/app.css?v=202606101600" as="style" />
+    <link rel="stylesheet" href="/css/app.css?v=202606101600" />
     <!-- ★ P1-5: 非首屏弹窗样式异步加载，不阻塞 FCP -->
     <link
       rel="stylesheet"
-      href="/css/modals.css?v=202606101233"
+      href="/css/modals.css?v=202606101600"
       media="print"
       onload="
         this.media = 'all';
         this.onload = null;
       "
     />
-    <noscript><link rel="stylesheet" href="/css/modals.css?v=202606101233" /></noscript>
+    <noscript><link rel="stylesheet" href="/css/modals.css?v=202606101600" /></noscript>
     <link
       rel="stylesheet"
-      href="/css/betting.css?v=202606101233"
+      href="/css/betting.css?v=202606101600"
       media="print"
       onload="
         this.media = 'all';
         this.onload = null;
       "
     />
-    <noscript><link rel="stylesheet" href="/css/betting.css?v=202606101233" /></noscript>
+    <noscript><link rel="stylesheet" href="/css/betting.css?v=202606101600" /></noscript>
 
     <!-- ECharts lazy-loaded by charts.js -->
   </head>
@@ -44,15 +44,17 @@
       <span class="nav-title" id="navTitle">竞彩推荐监控</span>
       <div class="home-actions" id="homeActions">
         <button class="home-update-btn" type="button" onclick="switchTab('data-health')" aria-label="打开数据健康监控">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h3l2-5 4 9 2-4h5" /></svg>
-          <span>实时更新</span>
+          <span>监控</span>
         </button>
-        <button class="home-bell" type="button" onclick="switchTab('account-security')" aria-label="账号安全">
+        <button class="home-my-btn" type="button" onclick="switchTab('account-security')" aria-label="我的账号">
+          <span>我的</span>
+        </button>
+        <button class="home-bell" type="button" onclick="App.showNotifications()" aria-label="消息提醒">
           <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 3 4 7v6c0 5 3.4 7.8 8 9 4.6-1.2 8-4 8-9V7z" />
-            <path d="M9.5 12.5 11 14l3.5-3.5" />
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
-          <span id="notiBadge">我</span>
+          <span id="notiBadge">0</span>
         </button>
       </div>
       <span class="nav-back" id="navBack" onclick="goBack()"
@@ -520,7 +522,7 @@
       console.log('[INLINE-MODULE] loaded OK');
       window.inlineModuleWorks = true;
     </script>
-    <script type="module" src="/js/main-fusion.js?v=202606101233"></script>
+    <script type="module" src="/js/main-fusion.js?v=202606101600"></script>
     <!-- V5.0-FUSION-PK final-202605311423 -->
   </body>
 </html>
