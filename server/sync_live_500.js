@@ -24,19 +24,26 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 // ═══ 工具 ═══
 function httpGet(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
-        'Referer': 'https://live.500.com/',
-      },
-      timeout: 10000,
-      rejectUnauthorized: false,
-    }, (res) => {
-      const chunks = [];
-      res.on('data', c => chunks.push(c));
-      res.on('end', () => resolve(iconv.decode(Buffer.concat(chunks), 'gbk')));
-    }).on('error', reject);
+    https
+      .get(
+        url,
+        {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0',
+            'Accept-Language': 'zh-CN,zh;q=0.9',
+            Referer: 'https://live.500.com/',
+          },
+          timeout: 10000,
+          rejectUnauthorized: false,
+        },
+        (res) => {
+          const chunks = [];
+          res.on('data', (c) => chunks.push(c));
+          res.on('end', () => resolve(iconv.decode(Buffer.concat(chunks), 'gbk')));
+        },
+      )
+      .on('error', reject);
   });
 }
 
@@ -82,12 +89,15 @@ function parse500Live(html) {
     else if (statusStr === '推迟' || statusStr === '取消' || statusStr === '3') matchStatus = 3;
 
     // ★ 提取红黄牌: 在球队名列中查找 <span class="yellowcard">/<span class="redcard">
-    let homeYellow = '', homeRed = '', awayYellow = '', awayRed = '';
+    let homeYellow = '',
+      homeRed = '',
+      awayYellow = '',
+      awayRed = '';
 
     // 遍历所有td，找含 yellowcard/redcard span 的列
     for (let i = 0; i < tds.length; i++) {
       const tdHTML = tds[i] || '';
-      
+
       // 提取黄牌
       const ycMatch = tdHTML.match(/<span[^>]*class\s*=\s*["']yellowcard["'][^>]*>\s*(\d+)\s*<\/span>/i);
       // 提取红牌
@@ -108,26 +118,46 @@ function parse500Live(html) {
 
     // ═══ 提取球队名和比分 ═══
     // 第5列 (index 5): 主队名+排名
-    const col5Text = tds[5] ? tds[5].replace(/<[^>]+>/g, ' ').replace(/\s{2,}/g, ' ').trim() : '';
-    
+    const col5Text = tds[5]
+      ? tds[5]
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/\s{2,}/g, ' ')
+          .trim()
+      : '';
+
     // 第7列 (index 7): 客队名+排名+卡牌
-    const col7Text = tds[7] ? tds[7].replace(/<span[^>]*>.*?<\/span>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s{2,}/g, ' ').trim() : '';
-    
+    const col7Text = tds[7]
+      ? tds[7]
+          .replace(/<span[^>]*>.*?<\/span>/g, '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/\s{2,}/g, ' ')
+          .trim()
+      : '';
+
     // 第8列 (index 8): 比分 (如 "0 - 0")
     let scoreStr = tds[8] ? tds[8].replace(/<[^>]+>/g, '').trim() : '';
     // 如果第8列不是比分，回退查找
     if (!/\d+\s*[-:：]\s*\d+/.test(scoreStr)) {
       for (let i = 6; i < Math.min(12, tds.length); i++) {
         const t = tds[i] ? tds[i].replace(/<[^>]+>/g, '').trim() : '';
-        if (/\d+\s*[-:：]\s*\d+/.test(t)) { scoreStr = t; break; }
+        if (/\d+\s*[-:：]\s*\d+/.test(t)) {
+          scoreStr = t;
+          break;
+        }
       }
     }
 
     // ═══ 提取球队名 ═══
     // 主队: 从 col5 提取，去掉排名标记和数字
-    let homeName = col5Text.replace(/\[[^\]]*\]/g, '').replace(/\d+$/g, '').trim();
+    let homeName = col5Text
+      .replace(/\[[^\]]*\]/g, '')
+      .replace(/\d+$/g, '')
+      .trim();
     // 客队: 从 col7 提取
-    let visitName = col7Text.replace(/\[[^\]]*\]/g, '').replace(/\d+$/g, '').trim();
+    let visitName = col7Text
+      .replace(/\[[^\]]*\]/g, '')
+      .replace(/\d+$/g, '')
+      .trim();
 
     // 如果主队名没找到，用链接中的文字
     if (!homeName) {
@@ -140,14 +170,18 @@ function parse500Live(html) {
     }
 
     // ═══ 解析比分 ═══
-    let homeGoals = -1, awayGoals = -1, score = '';
+    let homeGoals = -1,
+      awayGoals = -1,
+      score = '';
     if (scoreStr) {
       const parts = scoreStr.split(/\s*[-:：]\s*/);
       if (parts.length >= 2) {
         const h = parseInt(parts[0].trim());
         const a = parseInt(parts[1].trim());
         if (!isNaN(h) && !isNaN(a)) {
-          homeGoals = h; awayGoals = a; score = h + '-' + a;
+          homeGoals = h;
+          awayGoals = a;
+          score = h + '-' + a;
         }
       }
     }
@@ -184,9 +218,16 @@ function parse500Live(html) {
     }
 
     matches.push({
-      matchNum, homeName, visitName,
-      score, homeGoals, visitGoals: awayGoals,
-      halfScore, matchStatus, duration, startTime,
+      matchNum,
+      homeName,
+      visitName,
+      score,
+      homeGoals,
+      visitGoals: awayGoals,
+      halfScore,
+      matchStatus,
+      duration,
+      startTime,
       yellow: homeYellow || awayYellow ? `${homeYellow || '0'}/${awayYellow || '0'}` : '',
       red: homeRed || awayRed ? `${homeRed || '0'}/${awayRed || '0'}` : '',
     });
@@ -202,7 +243,9 @@ function syncToDataJson(liveMatches, dateStr) {
     if (fs.existsSync(DATA_FILE)) {
       data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     }
-  } catch (e) { return 0; }
+  } catch (e) {
+    return 0;
+  }
 
   if (!data.m) data.m = {};
 
@@ -272,7 +315,7 @@ async function fetchLive500(dateStr) {
     // 写入 live_scores.json
     const liveData = {
       date: dateStr,
-      matches: matches.map(m => ({
+      matches: matches.map((m) => ({
         num: m.matchNum,
         homeName: m.homeName,
         visitName: m.visitName,
@@ -295,8 +338,8 @@ async function fetchLive500(dateStr) {
     console.log(`[500live] data.json 更新: ${updated} 场`);
 
     // 摘要
-    const liveCount = matches.filter(m => m.matchStatus === 1).length;
-    const finishedCount = matches.filter(m => m.matchStatus >= 2).length;
+    const liveCount = matches.filter((m) => m.matchStatus === 1).length;
+    const finishedCount = matches.filter((m) => m.matchStatus >= 2).length;
     console.log(`[500live] 赛中:${liveCount} 已结束:${finishedCount}`);
 
     return { success: true, matches: matches.length, live: liveCount, finished: finishedCount, updated };
@@ -310,7 +353,7 @@ module.exports = { fetchLive500, parse500Live, syncToDataJson, httpGet };
 
 if (require.main === module) {
   const dateArg = process.argv[2] || null;
-  fetchLive500(dateArg).then(r => {
+  fetchLive500(dateArg).then((r) => {
     console.log(`\nResult: ${JSON.stringify(r)}`);
     if (!r.success) process.exit(1);
   });

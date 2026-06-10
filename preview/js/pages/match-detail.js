@@ -382,19 +382,23 @@ export function goDetail(matchId) {
         // ★ 5 色语义渐变体系 — 每个方向独立色相，保留渐变质感
         // 配色策略：高饱和主色 → 渐淡底部，视觉区分 + 统一风格
         var DIR_PALETTE = [
-          { r:99, g:102, b:241 },   // 0: 靛蓝 #6366F1
-          { r:236, g:72, b:153 },   // 1: 玫红 #EC4899
-          { r:34, g:197, b:94 },    // 2: 翠绿 #22C55E
-          { r:251, g:191, b:36 },   // 3: 琥珀 #FBBF24
-          { r:126, g:166, b:189 },  // 4: 青 #7EA6BD
+          { r: 99, g: 102, b: 241 }, // 0: 靛蓝 #6366F1
+          { r: 236, g: 72, b: 153 }, // 1: 玫红 #EC4899
+          { r: 34, g: 197, b: 94 }, // 2: 翠绿 #22C55E
+          { r: 251, g: 191, b: 36 }, // 3: 琥珀 #FBBF24
+          { r: 126, g: 166, b: 189 }, // 4: 青 #7EA6BD
         ];
         function buildBarColor(index, value, maxVal) {
           var c = DIR_PALETTE[index % DIR_PALETTE.length];
           var ratio = maxVal > 0 ? Math.min(value / maxVal, 1) : 0;
           return {
-            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
             colorStops: [
-              { offset: 0, color: 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + (0.65 + ratio * 0.30) + ')' },
+              { offset: 0, color: 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + (0.65 + ratio * 0.3) + ')' },
               { offset: 1, color: 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + (0.12 + ratio * 0.18) + ')' },
             ],
           };
@@ -409,12 +413,16 @@ export function goDetail(matchId) {
         }
         function hexFromPalette(i) {
           var c = DIR_PALETTE[i % DIR_PALETTE.length];
-          return '#' +
+          return (
+            '#' +
             ('0' + c.r.toString(16)).slice(-2) +
             ('0' + c.g.toString(16)).slice(-2) +
-            ('0' + c.b.toString(16)).slice(-2);
+            ('0' + c.b.toString(16)).slice(-2)
+          );
         }
-        var colors = DIR_PALETTE.map(function (_, i) { return hexFromPalette(i); });
+        var colors = DIR_PALETTE.map(function (_, i) {
+          return hexFromPalette(i);
+        });
 
         var matchedSeries = trend.series.filter(function (s) {
           return top5.some(function (t) {
@@ -426,7 +434,11 @@ export function goDetail(matchId) {
 
         // 计算最大值用于颜色映射
         var allVals = [];
-        activeSeries.forEach(function (s) { s.data.forEach(function (v) { if (v != null) allVals.push(v); }); });
+        activeSeries.forEach(function (s) {
+          s.data.forEach(function (v) {
+            if (v != null) allVals.push(v);
+          });
+        });
         var maxVal = Math.max.apply(null, allVals.length ? allVals : [1]);
 
         const series = activeSeries.map(function (s, i) {
@@ -449,7 +461,9 @@ export function goDetail(matchId) {
                 fontWeight: 700,
                 fontFamily: 'DIN Alternate, Bahnschrift, sans-serif',
                 fontVariantNumeric: 'tabular-nums',
-                formatter: function (p) { return p.value + ' 位'; },
+                formatter: function (p) {
+                  return p.value + ' 位';
+                },
                 color: '#A0B4C4',
               },
               itemStyle: {
@@ -473,15 +487,22 @@ export function goDetail(matchId) {
             symbolSize: 6,
             lineStyle: { width: 2.2, color: hexFromPalette(i) },
             itemStyle: { color: hexFromPalette(i) },
-            areaStyle: i === 0 ? {
-              color: {
-                type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-                colorStops: [
-                  { offset: 0, color: 'rgba(99,102,241,0.10)' },
-                  { offset: 1, color: 'rgba(99,102,241,0)' },
-                ],
-              },
-            } : null,
+            areaStyle:
+              i === 0
+                ? {
+                    color: {
+                      type: 'linear',
+                      x: 0,
+                      y: 0,
+                      x2: 0,
+                      y2: 1,
+                      colorStops: [
+                        { offset: 0, color: 'rgba(99,102,241,0.10)' },
+                        { offset: 1, color: 'rgba(99,102,241,0)' },
+                      ],
+                    },
+                  }
+                : null,
             data: s.data,
           };
         });
@@ -498,12 +519,23 @@ export function goDetail(matchId) {
             textStyle: { color: '#E2E0DC', fontSize: 12 },
             extraCssText: 'box-shadow: 0 6px 20px rgba(0,0,0,0.25);',
             formatter: function (params) {
-              var h = '<div style="font-weight:700;margin-bottom:6px;font-size:13px;">' +
-                      (params[0] ? params[0].axisValue : '') + '</div>';
+              var h =
+                '<div style="font-weight:700;margin-bottom:6px;font-size:13px;">' +
+                (params[0] ? params[0].axisValue : '') +
+                '</div>';
               params.forEach(function (p) {
-                h += '<div style="display:flex;justify-content:space-between;gap:24px;margin-top:4px;">' +
-                     '<span>' + p.marker + ' ' + p.seriesName + '</span>' +
-                     '<span style="font-weight:600;color:' + (p.color || '#A0B4C4') + ';">' + p.value + ' 位</span></div>';
+                h +=
+                  '<div style="display:flex;justify-content:space-between;gap:24px;margin-top:4px;">' +
+                  '<span>' +
+                  p.marker +
+                  ' ' +
+                  p.seriesName +
+                  '</span>' +
+                  '<span style="font-weight:600;color:' +
+                  (p.color || '#A0B4C4') +
+                  ';">' +
+                  p.value +
+                  ' 位</span></div>';
               });
               return h;
             },
@@ -521,7 +553,13 @@ export function goDetail(matchId) {
             pageIconInactiveColor: '#2a3a44',
             selector: false,
           },
-          grid: { left: '3%', right: '5%', bottom: isSingleShot ? '30%' : '18%', top: isSingleShot ? '20%' : '6%', containLabel: true },
+          grid: {
+            left: '3%',
+            right: '5%',
+            bottom: isSingleShot ? '30%' : '18%',
+            top: isSingleShot ? '20%' : '6%',
+            containLabel: true,
+          },
           xAxis: {
             type: 'category',
             data: trend.timeLabels,
@@ -534,7 +572,8 @@ export function goDetail(matchId) {
             axisLine: { show: false },
             axisTick: { show: false },
             axisLabel: {
-              fontSize: 10, color: '#586575',
+              fontSize: 10,
+              color: '#586575',
               fontFamily: 'DIN Alternate, Bahnschrift, sans-serif',
               fontVariantNumeric: 'tabular-nums',
             },

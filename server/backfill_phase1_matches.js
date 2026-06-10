@@ -35,35 +35,56 @@ function parseScore(scoreStr) {
   if (!scoreStr) return null;
   var parts = String(scoreStr).split(/[-:：]/);
   if (parts.length < 2) return null;
-  var h = parseInt(parts[0]), a = parseInt(parts[1]);
+  var h = parseInt(parts[0]),
+    a = parseInt(parts[1]);
   if (isNaN(h) || isNaN(a)) return null;
   return { home: h, away: a };
 }
 
 function sleep(ms) {
-  return new Promise(function(r) { setTimeout(r, ms); });
+  return new Promise(function (r) {
+    setTimeout(r, ms);
+  });
 }
 
 function httpGet(url, params, headers) {
-  return new Promise(function(resolve, reject) {
-    var qs = params ? '?' + Object.keys(params).map(function(k) {
-      return k + '=' + encodeURIComponent(params[k]);
-    }).join('&') : '';
+  return new Promise(function (resolve, reject) {
+    var qs = params
+      ? '?' +
+        Object.keys(params)
+          .map(function (k) {
+            return k + '=' + encodeURIComponent(params[k]);
+          })
+          .join('&')
+      : '';
     var u = new URL(url + qs);
-    var req = https.request({
-      hostname: u.hostname, port: 443, path: u.pathname + u.search,
-      headers: Object.assign({ 'User-Agent': 'Mozilla/5.0', Accept: '*/*' }, headers || {}),
-      rejectUnauthorized: false
-    }, function(res) {
-      var chunks = [];
-      res.on('data', function(d) { chunks.push(d); });
-      res.on('end', function() {
-        try { resolve(JSON.parse(Buffer.concat(chunks).toString())); }
-        catch(e) { resolve({ code: 0, msg: 'parse error' }); }
-      });
-    });
+    var req = https.request(
+      {
+        hostname: u.hostname,
+        port: 443,
+        path: u.pathname + u.search,
+        headers: Object.assign({ 'User-Agent': 'Mozilla/5.0', Accept: '*/*' }, headers || {}),
+        rejectUnauthorized: false,
+      },
+      function (res) {
+        var chunks = [];
+        res.on('data', function (d) {
+          chunks.push(d);
+        });
+        res.on('end', function () {
+          try {
+            resolve(JSON.parse(Buffer.concat(chunks).toString()));
+          } catch (e) {
+            resolve({ code: 0, msg: 'parse error' });
+          }
+        });
+      },
+    );
     req.on('error', reject);
-    req.setTimeout(20000, function() { req.abort(); reject(new Error('timeout')); });
+    req.setTimeout(20000, function () {
+      req.abort();
+      reject(new Error('timeout'));
+    });
     req.end();
   });
 }
@@ -106,7 +127,9 @@ async function main() {
   // ═══ Step 1: 从 sporttery_odds_snapshot 提取去重比赛 ═══
   console.log('── Step 1: 提取去重比赛 ──');
 
-  var matches = db.prepare(`
+  var matches = db
+    .prepare(
+      `
     SELECT DISTINCT
       match_id,
       match_num,
@@ -120,18 +143,22 @@ async function main() {
       AND home_team IS NOT NULL AND home_team != ''
     GROUP BY match_id
     ORDER BY date, match_num
-  `).all(START_DATE, END_DATE);
+  `,
+    )
+    .all(START_DATE, END_DATE);
 
   console.log('  distinct matches: ' + matches.length);
 
   var yearDist = {};
-  matches.forEach(function(m) {
+  matches.forEach(function (m) {
     var yr = (m.match_date || '').slice(0, 4);
     yearDist[yr] = (yearDist[yr] || 0) + 1;
   });
-  Object.entries(yearDist).sort().forEach(function(e) {
-    console.log('    ' + e[0] + ': ' + e[1] + ' 场');
-  });
+  Object.entries(yearDist)
+    .sort()
+    .forEach(function (e) {
+      console.log('    ' + e[0] + ': ' + e[1] + ' 场');
+    });
 
   // ═══ Step 2: 导入 matches 表 ═══
   console.log('\n── Step 2: 写入 matches 表 ──');
@@ -142,13 +169,18 @@ async function main() {
     VALUES (?, ?, ?, ?, ?, ?, 0, datetime('now','localtime'))
   `);
 
-  var inserted = 0, skipped = 0;
+  var inserted = 0,
+    skipped = 0;
   if (!dryRun) {
-    var tx = db.transaction(function() {
-      matches.forEach(function(m) {
+    var tx = db.transaction(function () {
+      matches.forEach(function (m) {
         var result = insertMatch.run(
-          m.match_id, m.match_num || '', m.home_team, m.away_team,
-          m.league || '', m.match_date
+          m.match_id,
+          m.match_num || '',
+          m.home_team,
+          m.away_team,
+          m.league || '',
+          m.match_date,
         );
         if (result.changes > 0) inserted++;
         else skipped++;
@@ -160,7 +192,9 @@ async function main() {
     console.log('  DRY: 将写入 ' + matches.length + ' 场');
   }
 
-  var totalInDb = db.prepare('SELECT COUNT(*) as cnt FROM matches WHERE date >= ? AND date <= ?').get(START_DATE, END_DATE);
+  var totalInDb = db
+    .prepare('SELECT COUNT(*) as cnt FROM matches WHERE date >= ? AND date <= ?')
+    .get(START_DATE, END_DATE);
   console.log('  matches 表该时间段总数: ' + totalInDb.cnt);
 
   // ═══ Step 3: 构建 data.json ═══
@@ -171,7 +205,7 @@ async function main() {
     try {
       existingData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
       console.log('  现有 data.json: ' + Object.keys(existingData.m || {}).length + ' 场比赛');
-    } catch(e) {
+    } catch (e) {
       console.log('  现有 data.json 损坏，重建');
       existingData = { m: {}, r: {}, _meta: {} };
     }
@@ -183,7 +217,7 @@ async function main() {
   }
 
   var newMatches = 0;
-  matches.forEach(function(m) {
+  matches.forEach(function (m) {
     var key = 'm_' + m.match_id;
     if (existingData.m[key] || existingData.m[m.match_id]) return;
 
@@ -262,8 +296,8 @@ async function main() {
 
   var logsInserted = 0;
   if (!dryRun) {
-    var tx2 = db.transaction(function() {
-      matches.forEach(function(m) {
+    var tx2 = db.transaction(function () {
+      matches.forEach(function (m) {
         var r = upsertLog.run(m.match_id, m.match_date, m.home_team, m.away_team, m.league || '', m.match_num || '');
         if (r.changes > 0) logsInserted++;
       });
@@ -306,11 +340,11 @@ async function backfillScoresFromMidou(matches, db, dataJson) {
   var env = {};
   try {
     var envFile = fs.readFileSync(path.join(__dirname, '.env'), 'utf8');
-    envFile.split('\n').forEach(function(l) {
+    envFile.split('\n').forEach(function (l) {
       var p = l.trim().split('=');
       if (p.length === 2) env[p[0]] = p[1];
     });
-  } catch(e) {}
+  } catch (e) {}
 
   var MOBILE = env.MIDOU_MOBILE || process.env.MIDOU_MOBILE;
   var PASSWORD = env.MIDOU_PASSWORD || process.env.MIDOU_PASSWORD;
@@ -325,7 +359,8 @@ async function backfillScoresFromMidou(matches, db, dataJson) {
   var token;
   try {
     var loginRes = await httpGet('https://midou310.com/mdsj/gduser/login.do', {
-      mobile: MOBILE, password: PASSWORD
+      mobile: MOBILE,
+      password: PASSWORD,
     });
     if (loginRes.code !== 1) {
       console.log('  登录失败: ' + JSON.stringify(loginRes));
@@ -333,20 +368,30 @@ async function backfillScoresFromMidou(matches, db, dataJson) {
     }
     token = loginRes.data.token;
     console.log('  登录成功');
-  } catch(e) {
+  } catch (e) {
     console.log('  登录异常: ' + e.message);
     return;
   }
 
-  var dates = [...new Set(matches.map(function(m) { return (m.match_date || '').slice(0, 10); }))].sort();
+  var dates = [
+    ...new Set(
+      matches.map(function (m) {
+        return (m.match_date || '').slice(0, 10);
+      }),
+    ),
+  ].sort();
   console.log('  需回填 ' + dates.length + ' 天');
 
-  var validDates = dates.filter(function(d) { return d >= '2024-01-01'; });
+  var validDates = dates.filter(function (d) {
+    return d >= '2024-01-01';
+  });
   console.log('  有效日期: ' + validDates.length + ' 天');
 
   if (dryRun) {
     console.log('  DRY: 将查询 ' + validDates.length + ' 天');
-    validDates.slice(0, 5).forEach(function(d) { console.log('    ' + d); });
+    validDates.slice(0, 5).forEach(function (d) {
+      console.log('    ' + d);
+    });
     console.log('  ...');
     return;
   }
@@ -361,22 +406,23 @@ async function backfillScoresFromMidou(matches, db, dataJson) {
     WHERE matchId=?
   `);
 
-  var scoreUpdated = 0, apiErrors = 0;
+  var scoreUpdated = 0,
+    apiErrors = 0;
 
   for (var i = 0; i < validDates.length; i++) {
     var d = validDates[i];
-    var pct = Math.round((i + 1) / validDates.length * 100);
+    var pct = Math.round(((i + 1) / validDates.length) * 100);
     try {
       var timestamp = new Date(d + 'T00:00:00+08:00').getTime();
       var res = await httpGet(
         'https://midou310.com/mdsj/score/footballDataList.do',
         { time: timestamp, order: 'status desc, start_datetime asc, data_id asc' },
-        { Cookie: 'token=' + token }
+        { Cookie: 'token=' + token },
       );
 
       if (res.code === 1 && Array.isArray(res.data)) {
         var dayUpdated = 0;
-        res.data.forEach(function(apiM) {
+        res.data.forEach(function (apiM) {
           var mid = String(apiM.matchId || apiM.dataId || '');
           if (!mid) return;
           var score = apiM.score || '';
@@ -408,7 +454,7 @@ async function backfillScoresFromMidou(matches, db, dataJson) {
         apiErrors++;
         if (apiErrors <= 3) console.log('\n  ⚠ ' + d + ': API code=' + res.code);
       }
-    } catch(e) {
+    } catch (e) {
       apiErrors++;
       if (apiErrors <= 3) console.log('\n  ✗ ' + d + ': ' + e.message);
     }
@@ -430,7 +476,7 @@ async function backfillScoresFromMidou(matches, db, dataJson) {
 }
 
 // ═══ 入口 ═══
-main().catch(function(e) {
+main().catch(function (e) {
   console.error('脚本异常: ' + e.message);
   console.error(e.stack);
   process.exit(1);

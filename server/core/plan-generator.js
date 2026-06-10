@@ -236,7 +236,7 @@ function getMatchOdds(m, odArg, allplaysArg) {
         source: 'sp_official',
       };
     }
-  } catch(e) {}
+  } catch (e) {}
 
   // 回退: 传入odds / allplays
   if (!result) {
@@ -250,7 +250,7 @@ function getMatchOdds(m, odArg, allplaysArg) {
   }
 
   if (!result || !result.spf || (result.spf.home == null && result.spf.draw == null && result.spf.away == null)) {
-    return null;  // SPF未开售 → 不参与方案生成
+    return null; // SPF未开售 → 不参与方案生成
   }
 
   // 确保三个值都存在

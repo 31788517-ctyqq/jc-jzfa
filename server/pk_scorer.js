@@ -15,10 +15,10 @@ const leagueHeat = require('./core/league-heat-profile');
 // ═══════════════════════════════════════
 //  PK Scorer 版本管理 — 每次优化修改此处
 // ═══════════════════════════════════════
-const PK_SCORER_VERSION = 'pk_v2.0';      // ★ 版本号，修改算法时递增
-const PK_SCORER_HASH = '';                // 可选：算法内容哈希（CI 自动计算）
-const EXPERIMENT_ID = '';                 // 实验 ID（空 = 非实验模式）
-const EXPERIMENT_GROUP = '';              // 'control' 或 'treatment'
+const PK_SCORER_VERSION = 'pk_v2.0'; // ★ 版本号，修改算法时递增
+const PK_SCORER_HASH = ''; // 可选：算法内容哈希（CI 自动计算）
+const EXPERIMENT_ID = ''; // 实验 ID（空 = 非实验模式）
+const EXPERIMENT_GROUP = ''; // 'control' 或 'treatment'
 
 // ═══════════════════════════════════════
 //  评分算法（从前端迁移）
@@ -693,4 +693,13 @@ if (require.main === module && process.argv.includes('--version')) {
   process.exit(0);
 }
 
-module.exports = { computeAllScores, getDirectionAdvice, computeAndSave, _loadGSFields: loadGSFields, PK_SCORER_VERSION, PK_SCORER_HASH, EXPERIMENT_ID, EXPERIMENT_GROUP };
+module.exports = {
+  computeAllScores,
+  getDirectionAdvice,
+  computeAndSave,
+  _loadGSFields: loadGSFields,
+  PK_SCORER_VERSION,
+  PK_SCORER_HASH,
+  EXPERIMENT_ID,
+  EXPERIMENT_GROUP,
+};

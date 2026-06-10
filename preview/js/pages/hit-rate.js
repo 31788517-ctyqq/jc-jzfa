@@ -21,7 +21,9 @@ export function loadHitRate() {
             'hit-sk-bar hit-sk-bar--mid',
             'hit-sk-bar hit-sk-bar--low',
           ];
-          return '<div class="hit-sk-bar-row"><span class="hit-sk-dot"></span><div class="' + styles[i] + '"></div></div>';
+          return (
+            '<div class="hit-sk-bar-row"><span class="hit-sk-dot"></span><div class="' + styles[i] + '"></div></div>'
+          );
         }).join('')}
       </div>
       <div class="hit-sk-table"></div>
@@ -184,7 +186,14 @@ function renderHitRate(el, data) {
       if (label === 'expert_consensus') label = '专家共识';
       else if (label === 'DeepSeek') label = 'DeepSeek AI';
       else if (label === 'doubao') label = '豆包 AI';
-      var color = m.hitRate >= 60 ? 'var(--green)' : m.hitRate >= 50 ? 'var(--cyan)' : m.hitRate >= 40 ? 'var(--amber)' : 'var(--red)';
+      var color =
+        m.hitRate >= 60
+          ? 'var(--green)'
+          : m.hitRate >= 50
+            ? 'var(--cyan)'
+            : m.hitRate >= 40
+              ? 'var(--amber)'
+              : 'var(--red)';
       html += '<tr>';
       html += '<td style="font-weight:600;">' + label + '</td>';
       html += '<td>' + m.total + '</td>';

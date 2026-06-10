@@ -30,7 +30,7 @@ async function main() {
   // ── 动态日期计算（支持命令行参数覆盖） ──
   const args = process.argv.slice(2);
   let startDate, endDate;
-  
+
   if (args.length >= 2) {
     startDate = args[0];
     endDate = args[1];

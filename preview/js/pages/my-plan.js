@@ -317,7 +317,10 @@ function _buildShareCard(cardEl) {
   }
 
   function parseBet(rawValue) {
-    var raw = String(rawValue || '').replace(/[▲▼]/g, '').replace(/\s+/g, ' ').trim();
+    var raw = String(rawValue || '')
+      .replace(/[▲▼]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
     var label = '胜平负：';
     var value = raw;
     var colon = raw.match(/^([^：:]{2,10})[：:]\s*(.+)$/);
@@ -408,10 +411,14 @@ function _buildShareCard(cardEl) {
   var prizeParts = splitNumberUnit(prizeValue, '元');
   var statusCls = statusText.indexOf('未中奖') >= 0 ? 'lost' : statusText.indexOf('已中奖') >= 0 ? 'won' : 'pending';
 
-  var targetIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.6"></circle><path d="M19 5l-4 4M18.5 4.5h-3.5v3.5"></path></svg>';
-  var ticketIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"></rect><path d="M9 5v14M15 5v14M5 10h14M5 15h14"></path><circle cx="12" cy="12" r="1.5"></circle></svg>';
-  var coinIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="7" rx="6" ry="3"></ellipse><path d="M6 7v6c0 1.7 2.7 3 6 3s6-1.3 6-3V7"></path><path d="M6 13c0 1.7 2.7 3 6 3s6-1.3 6-3"></path></svg>';
-  var calendarIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="5.5" width="15" height="14" rx="2"></rect><path d="M8 3.8v4M16 3.8v4M4.5 10h15M9 14l2 2 4-4"></path></svg>';
+  var targetIcon =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.6"></circle><path d="M19 5l-4 4M18.5 4.5h-3.5v3.5"></path></svg>';
+  var ticketIcon =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"></rect><path d="M9 5v14M15 5v14M5 10h14M5 15h14"></path><circle cx="12" cy="12" r="1.5"></circle></svg>';
+  var coinIcon =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="7" rx="6" ry="3"></ellipse><path d="M6 7v6c0 1.7 2.7 3 6 3s6-1.3 6-3V7"></path><path d="M6 13c0 1.7 2.7 3 6 3s6-1.3 6-3"></path></svg>';
+  var calendarIcon =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="5.5" width="15" height="14" rx="2"></rect><path d="M8 3.8v4M16 3.8v4M4.5 10h15M9 14l2 2 4-4"></path></svg>';
 
   var matchRowsHtml = matchRowsData.length
     ? matchRowsData
@@ -677,7 +684,7 @@ function _buildLegacyShareCard(cardEl) {
     '}' +
     '.main-card{background:#fff;border-radius:24px;padding:32px 28px 26px;box-shadow:0 4px 24px rgba(15,23,42,.06),0 1px 4px rgba(15,23,42,.04);position:relative;overflow:hidden;}' +
     '.main-card::after{content:"";position:absolute;right:-20px;top:50%;transform:translateY(-50%);width:200px;height:200px;pointer-events:none;opacity:.07;' +
-    'background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'46\' fill=\'none\' stroke=\'%230d9488\' stroke-width=\'2.5\'/%3E%3Cpath d=\'M50 4 L61 22 L82 22 L66 35 L72 55 L50 43 L28 55 L34 35 L18 22 L39 22 Z\' fill=\'none\' stroke=\'%230d9488\' stroke-width=\'1.8\'/%3E%3Cpath d=\'M18 22 L28 55 M82 22 L72 55 M39 22 L50 43 L61 22 M34 35 L66 35 M50 4 L50 43 M18 22 L82 22 M28 55 L72 55\' stroke=\'%230d9488\' stroke-width=\'1.2\' opacity=\'.6\'/%3E%3C/svg%3E");' +
+    "background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='none' stroke='%230d9488' stroke-width='2.5'/%3E%3Cpath d='M50 4 L61 22 L82 22 L66 35 L72 55 L50 43 L28 55 L34 35 L18 22 L39 22 Z' fill='none' stroke='%230d9488' stroke-width='1.8'/%3E%3Cpath d='M18 22 L28 55 M82 22 L72 55 M39 22 L50 43 L61 22 M34 35 L66 35 M50 4 L50 43 M18 22 L82 22 M28 55 L72 55' stroke='%230d9488' stroke-width='1.2' opacity='.6'/%3E%3C/svg%3E\");" +
     'background-size:contain;background-repeat:no-repeat;}' +
     '.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}' +
     '.header-left{display:flex;align-items:center;gap:14px;}' +
@@ -725,19 +732,45 @@ function _buildLegacyShareCard(cardEl) {
     '<div class="header">' +
     '<div class="header-left">' +
     '<div class="football-icon">&#x26BD;</div>' +
-    '<div class="scheme-title">' + name + '</div>' +
+    '<div class="scheme-title">' +
+    name +
     '</div>' +
-    '<div class="scheme-date">' + shareDate + '</div>' +
+    '</div>' +
+    '<div class="scheme-date">' +
+    shareDate +
+    '</div>' +
     '</div>' +
     '<div class="stat-panel">' +
-    '<div class="stat-item"><div class="stat-label">' + amountLabel + '</div><div class="stat-value">' + amtNum + '<span>' + amtUnit + '</span></div></div>' +
-    '<div class="stat-item"><div class="stat-label">' + prizeLabel + '</div><div class="stat-value">' + pNum + '<span>' + pUnit + '</span></div></div>' +
-    '<div class="stat-item"><div class="stat-label">方案状态</div><div class="stat-status ' + statusCls + '">' + statusText + '</div></div>' +
+    '<div class="stat-item"><div class="stat-label">' +
+    amountLabel +
+    '</div><div class="stat-value">' +
+    amtNum +
+    '<span>' +
+    amtUnit +
+    '</span></div></div>' +
+    '<div class="stat-item"><div class="stat-label">' +
+    prizeLabel +
+    '</div><div class="stat-value">' +
+    pNum +
+    '<span>' +
+    pUnit +
+    '</span></div></div>' +
+    '<div class="stat-item"><div class="stat-label">方案状态</div><div class="stat-status ' +
+    statusCls +
+    '">' +
+    statusText +
+    '</div></div>' +
     '</div>' +
     '<div class="base-info">' +
-    '<div class="info-row"><div class="info-icon">&#x1F3CB;&#xFE0F;</div><div class="label">玩法</div><div class="value">' + playType + '</div></div>' +
-    '<div class="info-row"><div class="info-icon">&#x1F3CF;&#xFE0F;</div><div class="label">场数/过关</div><div class="value">' + passType + '</div></div>' +
-    '<div class="info-row"><div class="info-icon">&#x1F4B0;</div><div class="label">注数/倍数</div><div class="value">' + betCount + '</div></div>' +
+    '<div class="info-row"><div class="info-icon">&#x1F3CB;&#xFE0F;</div><div class="label">玩法</div><div class="value">' +
+    playType +
+    '</div></div>' +
+    '<div class="info-row"><div class="info-icon">&#x1F3CF;&#xFE0F;</div><div class="label">场数/过关</div><div class="value">' +
+    passType +
+    '</div></div>' +
+    '<div class="info-row"><div class="info-icon">&#x1F4B0;</div><div class="label">注数/倍数</div><div class="value">' +
+    betCount +
+    '</div></div>' +
     '</div>' +
     '</div>' +
     '<div class="section-header"><div class="section-line"></div><div class="section-text">赛事详情</div><div class="section-line"></div></div>' +

@@ -237,7 +237,7 @@ class OutcomeBackfill {
 
       // ★ V9.5: 模型名归一化映射，合并 expert_consensus → 专家共识
       const NAME_NORMALIZE = {
-        'expert_consensus': '专家共识',
+        expert_consensus: '专家共识',
       };
 
       // 先归一化，再按模型名聚合
@@ -275,9 +275,9 @@ class OutcomeBackfill {
         modelVersion: m.modelVersion,
         total: m.total,
         directionHits: m.dirHits,
-        directionRate: m.totalDir > 0 ? parseFloat((m.dirHits * 100 / m.totalDir).toFixed(1)) : 0,
-        overUnderRate: m.totalOu > 0 ? parseFloat((m.ouHits * 100 / m.totalOu).toFixed(1)) : 0,
-        scoreRate: m.totalScore > 0 ? parseFloat((m.scoreHits * 100 / m.totalScore).toFixed(1)) : 0,
+        directionRate: m.totalDir > 0 ? parseFloat(((m.dirHits * 100) / m.totalDir).toFixed(1)) : 0,
+        overUnderRate: m.totalOu > 0 ? parseFloat(((m.ouHits * 100) / m.totalOu).toFixed(1)) : 0,
+        scoreRate: m.totalScore > 0 ? parseFloat(((m.scoreHits * 100) / m.totalScore).toFixed(1)) : 0,
       }));
     } catch (e) {
       console.error('[OutcomeBackfill] getModelHitRates 失败:', e.message);

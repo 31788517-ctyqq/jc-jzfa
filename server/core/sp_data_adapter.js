@@ -30,13 +30,15 @@ const CACHE_TTL = 60000; // 1分钟
 
 function loadDataJson() {
   const now = Date.now();
-  if (_cache.dataJson && (now - _cache.dataJsonTime) < CACHE_TTL) {
+  if (_cache.dataJson && now - _cache.dataJsonTime < CACHE_TTL) {
     return _cache.dataJson;
   }
   try {
     _cache.dataJson = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     _cache.dataJsonTime = now;
-  } catch(e) { _cache.dataJson = { m: {}, r: {} }; }
+  } catch (e) {
+    _cache.dataJson = { m: {}, r: {} };
+  }
   return _cache.dataJson;
 }
 
@@ -45,7 +47,7 @@ function getMatch(matchNum, dateStr) {
   const data = loadDataJson();
   // 按 num 匹配
   for (const [key, m] of Object.entries(data.m || {})) {
-    if (m && m.num === matchNum && m.date && m.date.slice(0,10) === dateStr) {
+    if (m && m.num === matchNum && m.date && m.date.slice(0, 10) === dateStr) {
       return m;
     }
   }
@@ -55,8 +57,7 @@ function getMatch(matchNum, dateStr) {
 // ═══ 2) 获取赔率（优先SP） ═══
 function getOdds(matchNum, dateStr) {
   // 先查 SP odds 文件
-  const oddsFiles = fs.readdirSync(ODDS_DIR)
-    .filter(f => f.startsWith('20') && f.endsWith('.json'));
+  const oddsFiles = fs.readdirSync(ODDS_DIR).filter((f) => f.startsWith('20') && f.endsWith('.json'));
 
   for (const fname of oddsFiles) {
     const cached = _cache.odds[fname];
@@ -67,7 +68,9 @@ function getOdds(matchNum, dateStr) {
       try {
         data = JSON.parse(fs.readFileSync(path.join(ODDS_DIR, fname), 'utf8'));
         _cache.odds[fname] = data;
-      } catch(e) { continue; }
+      } catch (e) {
+        continue;
+      }
     }
 
     const mn = (data.matchNum || '').match(/(周[一二三四五六日]\d{3})/);
@@ -86,21 +89,24 @@ function getOdds(matchNum, dateStr) {
         lottery: data.lotteryResult || null,
         homeRecord: data.homeRecord || null,
         awayRecord: data.awayRecord || null,
-        spf: null, rqspf: null, handicap: null,
-        jqs: null, bqc: null,
+        spf: null,
+        rqspf: null,
+        handicap: null,
+        jqs: null,
+        bqc: null,
       };
 
       for (const table of tables) {
         if (!Array.isArray(table) || table.length < 2) continue;
-        const header = (table[0] || []).map(c => String(c || '')).join(' ');
+        const header = (table[0] || []).map((c) => String(c || '')).join(' ');
 
         // SPF
         if (header.includes('胜') && header.includes('平') && header.includes('负') && !header.includes('让球')) {
           for (let r = table.length - 1; r >= 0; r--) {
             const row = table[r] || [];
-            const nums = row.map(c => parseFloat(String(c).replace(/[↑↓]/g, ''))).filter(n => !isNaN(n) && n > 1);
+            const nums = row.map((c) => parseFloat(String(c).replace(/[↑↓]/g, ''))).filter((n) => !isNaN(n) && n > 1);
             if (nums.length >= 3) {
-              result.spf = { home: nums[nums.length-3], draw: nums[nums.length-2], away: nums[nums.length-1] };
+              result.spf = { home: nums[nums.length - 3], draw: nums[nums.length - 2], away: nums[nums.length - 1] };
               break;
             }
           }
@@ -111,31 +117,47 @@ function getOdds(matchNum, dateStr) {
           if (!isNaN(hcp)) result.handicap = hcp;
           for (let r = table.length - 1; r >= 0; r--) {
             const row = table[r] || [];
-            const nums = row.map(c => parseFloat(String(c).replace(/[↑↓]/g, ''))).filter(n => !isNaN(n) && n > 1);
+            const nums = row.map((c) => parseFloat(String(c).replace(/[↑↓]/g, ''))).filter((n) => !isNaN(n) && n > 1);
             if (nums.length >= 3) {
-              result.rqspf = { home: nums[nums.length-3], draw: nums[nums.length-2], away: nums[nums.length-1] };
+              result.rqspf = { home: nums[nums.length - 3], draw: nums[nums.length - 2], away: nums[nums.length - 1] };
               break;
             }
           }
         }
         // JQS (总进球)
-        if (header.includes('0') && header.includes('1') && header.includes('2') && header.includes('3')
-            && !header.includes('胜') && !header.includes('负') && !header.includes('平平')) {
+        if (
+          header.includes('0') &&
+          header.includes('1') &&
+          header.includes('2') &&
+          header.includes('3') &&
+          !header.includes('胜') &&
+          !header.includes('负') &&
+          !header.includes('平平')
+        ) {
           for (let r = table.length - 1; r >= 0; r--) {
             const row = table[r] || [];
-            const nums = row.map(c => parseFloat(String(c).replace(/[↑↓]/g, ''))).filter(n => !isNaN(n) && n > 1);
+            const nums = row.map((c) => parseFloat(String(c).replace(/[↑↓]/g, ''))).filter((n) => !isNaN(n) && n > 1);
             if (nums.length >= 6) {
-              result.jqs = { '0': nums[0], '1': nums[1], '2': nums[2], '3': nums[3], '4': nums[4], '5': nums[5], '6': nums[6], '7+': nums[7] };
+              result.jqs = {
+                0: nums[0],
+                1: nums[1],
+                2: nums[2],
+                3: nums[3],
+                4: nums[4],
+                5: nums[5],
+                6: nums[6],
+                '7+': nums[7],
+              };
               break;
             }
           }
         }
         // BQC (半全场)
         if (header.includes('胜胜') || header.includes('胜平') || header.includes('胜负')) {
-          const bqcKeys = ['hh','hd','ha','dh','dd','da','ah','ad','aa'];
+          const bqcKeys = ['hh', 'hd', 'ha', 'dh', 'dd', 'da', 'ah', 'ad', 'aa'];
           for (let r = table.length - 1; r >= 0; r--) {
             const row = table[r] || [];
-            const nums = row.map(c => parseFloat(String(c).replace(/[↑↓]/g, ''))).filter(n => !isNaN(n) && n > 1);
+            const nums = row.map((c) => parseFloat(String(c).replace(/[↑↓]/g, ''))).filter((n) => !isNaN(n) && n > 1);
             if (nums.length >= 9) {
               result.bqc = {};
               for (let i = 0; i < 9; i++) result.bqc[bqcKeys[i]] = nums[i];
@@ -157,7 +179,7 @@ function getOdds(matchNum, dateStr) {
       const entry = (hist.odds || {})[matchNum];
       if (entry) return { ...entry, matchId: null, lottery: null, jqs: null, bqc: null, source: 'odds_history' };
     }
-  } catch(e) {}
+  } catch (e) {}
 
   return null;
 }
@@ -165,9 +187,9 @@ function getOdds(matchNum, dateStr) {
 // ═══ 3) 获取前瞻数据 ═══
 function getPreview(matchId) {
   if (!matchId) return null;
-  
+
   const previewFile = path.join(PREVIEW_DIR, matchId + '.json');
-  
+
   const cached = _cache.preview[matchId];
   if (cached) return cached;
 
@@ -186,7 +208,7 @@ function getPreview(matchId) {
       };
       _cache.preview[matchId] = result;
       return result;
-    } catch(e) {}
+    } catch (e) {}
   }
   return null;
 }
@@ -195,7 +217,7 @@ function getPreview(matchId) {
 function getFullSPData(matchNum, dateStr) {
   const match = getMatch(matchNum, dateStr);
   const matchId = match ? match.matchId : null;
-  
+
   return {
     match,
     odds: getOdds(matchNum, dateStr),
@@ -207,12 +229,12 @@ function getFullSPData(matchNum, dateStr) {
 function findMatchIdByNum(matchNum, dateStr) {
   const data = loadDataJson();
   for (const [key, m] of Object.entries(data.m || {})) {
-    if (m && m.num === matchNum && m.date && m.date.slice(0,10) === dateStr) {
+    if (m && m.num === matchNum && m.date && m.date.slice(0, 10) === dateStr) {
       return m.matchId || key.replace('m_', '');
     }
   }
   // 从 sporttery_odds 查找
-  const files = fs.readdirSync(ODDS_DIR).filter(f => f.startsWith('20'));
+  const files = fs.readdirSync(ODDS_DIR).filter((f) => f.startsWith('20'));
   for (const f of files) {
     try {
       const d = JSON.parse(fs.readFileSync(path.join(ODDS_DIR, f), 'utf8'));
@@ -222,7 +244,7 @@ function findMatchIdByNum(matchNum, dateStr) {
       if (mn && mn[1] === matchNum && dm && dm[1] === dateStr) {
         return f.replace('.json', '');
       }
-    } catch(e) {}
+    } catch (e) {}
   }
   return null;
 }
@@ -231,7 +253,7 @@ function findMatchIdByNum(matchNum, dateStr) {
 function getRankings(matchNum, dateStr) {
   const odds = getOdds(matchNum, dateStr);
   if (!odds) return null;
-  
+
   return {
     home: odds.homeRecord || null,
     away: odds.awayRecord || null,
@@ -242,7 +264,7 @@ function getRankings(matchNum, dateStr) {
 function getLotteryResult(matchNum, dateStr) {
   const odds = getOdds(matchNum, dateStr);
   if (!odds || !odds.lottery) return null;
-  
+
   const lr = odds.lottery;
   return {
     spf: lr['胜平负'] || null,
@@ -259,9 +281,9 @@ function getLotteryResult(matchNum, dateStr) {
 function getDailySPData(dateStr) {
   const data = loadDataJson();
   const result = {};
-  
+
   Object.entries(data.m || {}).forEach(([k, m]) => {
-    if (!m || !m.date || m.date.slice(0,10) !== dateStr || !m.num) return;
+    if (!m || !m.date || m.date.slice(0, 10) !== dateStr || !m.num) return;
     const num = m.num;
     result[num] = getFullSPData(num, dateStr);
   });

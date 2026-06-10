@@ -157,9 +157,14 @@ async function main() {
         total++;
 
         // 跳过未结束的比赛（但有比分则视为已完赛）
-        if (m.matchStatus >= 2) { /* 正常完赛 */ }
-        else if (m.score && m.score.trim() && m.score !== '-') { /* 有比分，按完赛处理 */ }
-        else { skipped++; continue; }
+        if (m.matchStatus >= 2) {
+          /* 正常完赛 */
+        } else if (m.score && m.score.trim() && m.score !== '-') {
+          /* 有比分，按完赛处理 */
+        } else {
+          skipped++;
+          continue;
+        }
 
         // 跳过没有比分的比赛
         if (!m.score || !m.score.trim() || m.score === '-') {
@@ -205,11 +210,17 @@ async function main() {
           predictionLog.backfillResult(mid, fields);
           const aiFields = extractAIPrediction(mid, m);
           if (aiFields) {
-            try { predictionLog.upsertAI(mid, aiFields); aiWritten++; } catch (e) {}
+            try {
+              predictionLog.upsertAI(mid, aiFields);
+              aiWritten++;
+            } catch (e) {}
           }
           const gsFields = extractGSPrediction(mid, m);
           if (gsFields) {
-            try { predictionLog.upsertGS(mid.replace(/^m_/, ''), gsFields); gsWritten++; } catch (e) {}
+            try {
+              predictionLog.upsertGS(mid.replace(/^m_/, ''), gsFields);
+              gsWritten++;
+            } catch (e) {}
           }
           updated++;
         } catch (e) {
@@ -226,8 +237,14 @@ async function main() {
 
       total++;
 
-      if (m.matchStatus < 2 && !(m.score && m.score.trim() && m.score !== '-')) { skipped++; continue; }
-      if (!m.score || !m.score.trim() || m.score === '-') { skipped++; continue; }
+      if (m.matchStatus < 2 && !(m.score && m.score.trim() && m.score !== '-')) {
+        skipped++;
+        continue;
+      }
+      if (!m.score || !m.score.trim() || m.score === '-') {
+        skipped++;
+        continue;
+      }
 
       const mid = String(m.matchId);
       const scoreStr = m.score.replace('-', ':');
@@ -235,7 +252,10 @@ async function main() {
       const homeGoals = parseInt(parts[0]);
       const awayGoals = parseInt(parts[1]);
 
-      if (isNaN(homeGoals) || isNaN(awayGoals)) { skipped++; continue; }
+      if (isNaN(homeGoals) || isNaN(awayGoals)) {
+        skipped++;
+        continue;
+      }
 
       let actualSpf = '';
       if (homeGoals > awayGoals) actualSpf = '主胜';
@@ -249,24 +269,49 @@ async function main() {
       else actualOverunder = '走';
 
       const fields = {
-        actualScore: m.score, actualHalfScore: m.halfScore || '',
-        homeGoals: homeGoals, awayGoals: awayGoals,
-        actualSpf: actualSpf, actualOverunder: actualOverunder,
+        actualScore: m.score,
+        actualHalfScore: m.halfScore || '',
+        homeGoals: homeGoals,
+        awayGoals: awayGoals,
+        actualSpf: actualSpf,
+        actualOverunder: actualOverunder,
         handicap: m.handicap !== undefined ? m.handicap : m.rq !== undefined ? m.rq : undefined,
       };
-      const info = { mid: mid, num: m.num || '', match: (m.homeName || '?') + ' vs ' + (m.visitName || '?'), score: m.score, spf: actualSpf, ou: actualOverunder };
+      const info = {
+        mid: mid,
+        num: m.num || '',
+        match: (m.homeName || '?') + ' vs ' + (m.visitName || '?'),
+        score: m.score,
+        spf: actualSpf,
+        ou: actualOverunder,
+      };
 
       if (dryRun) {
-        details.push(info); updated++;
+        details.push(info);
+        updated++;
       } else {
         try {
           predictionLog.backfillResult(mid, fields);
           const aiFields = extractAIPrediction(mid, m);
-          if (aiFields) { try { predictionLog.upsertAI(mid, aiFields); aiWritten++; } catch (e) {} }
+          if (aiFields) {
+            try {
+              predictionLog.upsertAI(mid, aiFields);
+              aiWritten++;
+            } catch (e) {}
+          }
           const gsFields = extractGSPrediction(mid, m);
-          if (gsFields) { try { predictionLog.upsertGS(mid.replace(/^m_/, ''), gsFields); gsWritten++; } catch (e) {} }
-          updated++; details.push(info);
-        } catch (e) { errors++; console.error('  ✗ ' + mid + ' 写入失败: ' + e.message); }
+          if (gsFields) {
+            try {
+              predictionLog.upsertGS(mid.replace(/^m_/, ''), gsFields);
+              gsWritten++;
+            } catch (e) {}
+          }
+          updated++;
+          details.push(info);
+        } catch (e) {
+          errors++;
+          console.error('  ✗ ' + mid + ' 写入失败: ' + e.message);
+        }
       }
     }
   }

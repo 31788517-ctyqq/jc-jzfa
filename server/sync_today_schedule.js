@@ -27,19 +27,25 @@ function fetch500Page(dateStr) {
   return new Promise((resolve, reject) => {
     // 使用开奖详情页 (比 trade 页更早出数据)
     const url = 'https://trade.500.com/jczq/';
-    https.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
-        'Referer': 'https://trade.500.com/',
-      },
-      timeout: 10000,
-      rejectUnauthorized: false,
-    }, (res) => {
-      const chunks = [];
-      res.on('data', c => chunks.push(c));
-      res.on('end', () => resolve(iconv.decode(Buffer.concat(chunks), 'gbk')));
-    }).on('error', reject);
+    https
+      .get(
+        url,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept-Language': 'zh-CN,zh;q=0.9',
+            Referer: 'https://trade.500.com/',
+          },
+          timeout: 10000,
+          rejectUnauthorized: false,
+        },
+        (res) => {
+          const chunks = [];
+          res.on('data', (c) => chunks.push(c));
+          res.on('end', () => resolve(iconv.decode(Buffer.concat(chunks), 'gbk')));
+        },
+      )
+      .on('error', reject);
   });
 }
 
@@ -71,7 +77,7 @@ function getCachedOdds(dateStr) {
 function oddsToSchedule(oddsData, dateStr) {
   const matches = [];
   const odds = oddsData.odds || {};
-  
+
   Object.entries(odds).forEach(([num, data]) => {
     if (!data || !num) return;
     // 只处理竞彩编号格式的 key
@@ -97,16 +103,18 @@ function getCachedSchedule() {
   const scheduleDir = path.join(__dirname, 'sporttery_schedule');
   if (!fs.existsSync(scheduleDir)) return null;
 
-  const files = fs.readdirSync(scheduleDir)
-    .filter(f => f.endsWith('.json'))
+  const files = fs
+    .readdirSync(scheduleDir)
+    .filter((f) => f.endsWith('.json'))
     .sort()
     .reverse();
 
-  for (const f of files.slice(0, 3)) { // 只看最近3个
+  for (const f of files.slice(0, 3)) {
+    // 只看最近3个
     try {
       const data = JSON.parse(fs.readFileSync(path.join(scheduleDir, f), 'utf8'));
       const text = data.text || '';
-      
+
       // 解析日期和比赛数
       const dateGroups = [];
       const pat = /(周[一二三四五六日]) (\d{4}-\d{2}-\d{2}) 共(\d+)场/g;
@@ -138,20 +146,34 @@ function mergeScheduleToData(matches) {
     if (m && m.num) numIndex[m.num] = k;
   });
 
-  let added = 0, skipped = 0, updated = 0;
+  let added = 0,
+    skipped = 0,
+    updated = 0;
   const now = new Date().toISOString();
 
   for (const sp of matches) {
     const existingKey = numIndex[sp.num];
-    
+
     if (existingKey) {
       // 已有记录，只补充信息
       const old = data.m[existingKey];
       let changed = false;
-      if (!old.homeName || old.homeName === '') { old.homeName = sp.homeName; changed = true; }
-      if (!old.visitName || old.visitName === '') { old.visitName = sp.visitName; changed = true; }
-      if (!old.leagueName || old.leagueName === '') { old.leagueName = sp.leagueName; changed = true; }
-      if (!old.matchId) { old.matchId = sp.matchId; changed = true; }
+      if (!old.homeName || old.homeName === '') {
+        old.homeName = sp.homeName;
+        changed = true;
+      }
+      if (!old.visitName || old.visitName === '') {
+        old.visitName = sp.visitName;
+        changed = true;
+      }
+      if (!old.leagueName || old.leagueName === '') {
+        old.leagueName = sp.leagueName;
+        changed = true;
+      }
+      if (!old.matchId) {
+        old.matchId = sp.matchId;
+        changed = true;
+      }
       if (changed) updated++;
       else skipped++;
       if (!changed) continue;
@@ -200,7 +222,7 @@ async function checkTodaySchedule(dateStr) {
     if (fs.existsSync(DATA_FILE)) {
       const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
       let count = 0;
-      Object.values(data.m || {}).forEach(m => {
+      Object.values(data.m || {}).forEach((m) => {
         if (m && m.date && m.date.slice(0, 10) === dateStr) count++;
       });
       if (count > 0) {
@@ -215,11 +237,11 @@ async function checkTodaySchedule(dateStr) {
     const { fetchOdds } = require('./fetch_500odds');
     const odds = await fetchOdds(dateStr);
     const matchNums = Object.keys(odds);
-    
+
     if (matchNums.length > 0) {
-      console.log(`[today_sch] 500.com 发现 ${matchNums.length} 场比赛: ${matchNums.slice(0,5).join(',')}...`);
-      
-      const matches = matchNums.map(num => {
+      console.log(`[today_sch] 500.com 发现 ${matchNums.length} 场比赛: ${matchNums.slice(0, 5).join(',')}...`);
+
+      const matches = matchNums.map((num) => {
         const data = odds[num] || {};
         return {
           num,
@@ -231,7 +253,7 @@ async function checkTodaySchedule(dateStr) {
           matchId: 'f500_' + dateStr.replace(/-/g, '') + '_' + num.replace(/周[一二三四五六日]/, ''),
         };
       });
-      
+
       const result = mergeScheduleToData(matches);
       console.log(`[today_sch] ✓ 500.com: 新增${result.added} 更新${result.updated}`);
       return { success: true, source: '500_odds', matches: matchNums.length, ...result };
@@ -245,7 +267,7 @@ async function checkTodaySchedule(dateStr) {
   try {
     const cached = getCachedSchedule();
     if (cached) {
-      const todayGroup = cached.dates.find(d => d.date === dateStr);
+      const todayGroup = cached.dates.find((d) => d.date === dateStr);
       if (todayGroup && todayGroup.count > 0) {
         // 直接从文本解析比赛（内联，不依赖 sync_gov_schedule 导出）
         const matches = parseSPScheduleText(cached.text, dateStr);
@@ -265,12 +287,12 @@ async function checkTodaySchedule(dateStr) {
   try {
     const { syncMatchList } = require('./data_sync');
     await syncMatchList(dateStr);
-    
+
     // 检查结果
     if (fs.existsSync(DATA_FILE)) {
       const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
       let count = 0;
-      Object.values(data.m || {}).forEach(m => {
+      Object.values(data.m || {}).forEach((m) => {
         if (m && m.date && m.date.slice(0, 10) === dateStr) count++;
       });
       if (count > 0) {
@@ -290,7 +312,7 @@ async function checkTodaySchedule(dateStr) {
 function parseSPScheduleText(text, targetDate) {
   if (!targetDate) targetDate = new Date().toISOString().slice(0, 10);
   const matches = [];
-  
+
   // 匹配: 周日201 联赛 主队VS客队 YYYY-MM-DD HH:MM
   const pat = /(周[一二三四五六日])(\d{3})\s+(\S+)\s+(\S+?)VS(\S+?)\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})/g;
   let m;
@@ -300,13 +322,18 @@ function parseSPScheduleText(text, targetDate) {
     const homeName = m[4].trim();
     const visitName = m[5].trim();
     const date = m[6].slice(0, 10);
-    
+
     if (date !== targetDate) continue;
-    
+
     const matchId = 'sp_' + date.replace(/-/g, '') + '_' + matchNum.replace(/周[一二三四五六日]/, '');
     matches.push({
-      matchId, num: matchNum, homeName, visitName,
-      leagueName: league, date, source: 'sp_schedule',
+      matchId,
+      num: matchNum,
+      homeName,
+      visitName,
+      leagueName: league,
+      date,
+      source: 'sp_schedule',
     });
   }
 
@@ -318,9 +345,14 @@ function parseSPScheduleText(text, targetDate) {
       if (date !== targetDate) continue;
       const matchId = 'sp_' + date.replace(/-/g, '') + '_' + m[2];
       matches.push({
-        matchId, num: m[1] + m[2],
-        homeName: m[3].trim(), visitName: m[4].trim(),
-        leagueName: '', date, source: 'sp_schedule', startTime: `${m[5].slice(5)}/${m[6]}`,
+        matchId,
+        num: m[1] + m[2],
+        homeName: m[3].trim(),
+        visitName: m[4].trim(),
+        leagueName: '',
+        date,
+        source: 'sp_schedule',
+        startTime: `${m[5].slice(5)}/${m[6]}`,
       });
     }
   }
@@ -332,7 +364,7 @@ module.exports = { checkTodaySchedule, mergeScheduleToData, extractMatchNumsFrom
 
 if (require.main === module) {
   const date = process.argv[2] || new Date().toISOString().slice(0, 10);
-  checkTodaySchedule(date).then(r => {
+  checkTodaySchedule(date).then((r) => {
     console.log(`\nResult: ${JSON.stringify(r)}`);
     if (!r.success) process.exit(1);
   });

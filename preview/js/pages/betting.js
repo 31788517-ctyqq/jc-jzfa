@@ -169,15 +169,18 @@ async function loadOddsData(matchId) {
       var cachedOdds = (_currentMatch && _currentMatch._odds) || {};
       if ((!_oddsData.bf || _oddsData.bf.length === 0) && cachedOdds.bf && cachedOdds.bf.length > 0) {
         _oddsData.bf = cachedOdds.bf;
-        if (!_oddsData.bfDelta || Object.keys(_oddsData.bfDelta).length === 0) _oddsData.bfDelta = cachedOdds.bfDelta || {};
+        if (!_oddsData.bfDelta || Object.keys(_oddsData.bfDelta).length === 0)
+          _oddsData.bfDelta = cachedOdds.bfDelta || {};
       }
       if ((!_oddsData.jqs || _oddsData.jqs.length === 0) && cachedOdds.jqs && cachedOdds.jqs.length > 0) {
         _oddsData.jqs = cachedOdds.jqs;
-        if (!_oddsData.jqsDelta || Object.keys(_oddsData.jqsDelta).length === 0) _oddsData.jqsDelta = cachedOdds.jqsDelta || {};
+        if (!_oddsData.jqsDelta || Object.keys(_oddsData.jqsDelta).length === 0)
+          _oddsData.jqsDelta = cachedOdds.jqsDelta || {};
       }
       if ((!_oddsData.bqc || _oddsData.bqc.length === 0) && cachedOdds.bqc && cachedOdds.bqc.length > 0) {
         _oddsData.bqc = cachedOdds.bqc;
-        if (!_oddsData.bqcDelta || Object.keys(_oddsData.bqcDelta).length === 0) _oddsData.bqcDelta = cachedOdds.bqcDelta || {};
+        if (!_oddsData.bqcDelta || Object.keys(_oddsData.bqcDelta).length === 0)
+          _oddsData.bqcDelta = cachedOdds.bqcDelta || {};
       }
       // ★ 二级兜底 RQSPF：从 scheme-design 预加载的 _currentMatch._odds 补充
       var currentRq = _oddsData.rqspf;

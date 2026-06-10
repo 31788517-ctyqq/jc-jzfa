@@ -972,21 +972,32 @@ function queryPKVersionCompare(filters) {
     const avail = _queryAll(
       "SELECT DISTINCT pk_scorer_version FROM prediction_logs WHERE pk_scorer_version IS NOT NULL AND pk_scorer_version != '' ORDER BY pk_scorer_version",
     );
-    return { versions: (avail || []).map(function (r) { return r.pk_scorer_version; }), stats: {} };
+    return {
+      versions: (avail || []).map(function (r) {
+        return r.pk_scorer_version;
+      }),
+      stats: {},
+    };
   }
 
   const results = [];
   const statsByVersion = {};
 
   versions.forEach(function (ver) {
-    const conditions = [
-      "actual_score IS NOT NULL AND actual_score != ''",
-      'pk_scorer_version = ?',
-    ];
+    const conditions = ["actual_score IS NOT NULL AND actual_score != ''", 'pk_scorer_version = ?'];
     const params = [ver];
 
     if (filters.dateRange && filters.dateRange !== 'all') {
-      const days = filters.dateRange === '7d' ? 7 : filters.dateRange === '30d' ? 30 : filters.dateRange === '60d' ? 60 : filters.dateRange === '90d' ? 90 : parseInt(filters.dateRange) || 30;
+      const days =
+        filters.dateRange === '7d'
+          ? 7
+          : filters.dateRange === '30d'
+            ? 30
+            : filters.dateRange === '60d'
+              ? 60
+              : filters.dateRange === '90d'
+                ? 90
+                : parseInt(filters.dateRange) || 30;
       const since = new Date();
       since.setDate(since.getDate() - days);
       conditions.push('date >= ?');
@@ -1001,10 +1012,25 @@ function queryPKVersionCompare(filters) {
     const list = _queryAll('SELECT * FROM prediction_logs' + where, params) || [];
 
     const total = list.length;
-    const hits = list.filter(function (r) { return _checkDirectionHit(r.pk_direction, r.actual_spf || '', r); }).length;
-    const goalTotal = list.filter(function (r) { return r.pk_goal_direction; }).length;
-    const goalHits = list.filter(function (r) { return r.pk_goal_direction && r.actual_overunder && r.pk_goal_direction === r.actual_overunder; }).length;
-    const avgScore = total > 0 ? parseFloat((list.reduce(function (s, r) { return s + (parseFloat(r.pk_composite_score) || 0); }, 0) / total).toFixed(1)) : 0;
+    const hits = list.filter(function (r) {
+      return _checkDirectionHit(r.pk_direction, r.actual_spf || '', r);
+    }).length;
+    const goalTotal = list.filter(function (r) {
+      return r.pk_goal_direction;
+    }).length;
+    const goalHits = list.filter(function (r) {
+      return r.pk_goal_direction && r.actual_overunder && r.pk_goal_direction === r.actual_overunder;
+    }).length;
+    const avgScore =
+      total > 0
+        ? parseFloat(
+            (
+              list.reduce(function (s, r) {
+                return s + (parseFloat(r.pk_composite_score) || 0);
+              }, 0) / total
+            ).toFixed(1),
+          )
+        : 0;
 
     // 按联赛细分
     const leagueMap = {};
@@ -1014,13 +1040,17 @@ function queryPKVersionCompare(filters) {
       leagueMap[lg].total++;
       if (_checkDirectionHit(r.pk_direction, r.actual_spf || '', r)) leagueMap[lg].hits++;
     });
-    const byLeague = Object.keys(leagueMap).map(function (lg) {
-      return {
-        league: lg,
-        total: leagueMap[lg].total,
-        accuracy: leagueMap[lg].total > 0 ? parseFloat((leagueMap[lg].hits / leagueMap[lg].total).toFixed(4)) : 0,
-      };
-    }).sort(function (a, b) { return b.total - a.total; });
+    const byLeague = Object.keys(leagueMap)
+      .map(function (lg) {
+        return {
+          league: lg,
+          total: leagueMap[lg].total,
+          accuracy: leagueMap[lg].total > 0 ? parseFloat((leagueMap[lg].hits / leagueMap[lg].total).toFixed(4)) : 0,
+        };
+      })
+      .sort(function (a, b) {
+        return b.total - a.total;
+      });
 
     // 按星级细分
     const starsMap = {};
@@ -1031,13 +1061,17 @@ function queryPKVersionCompare(filters) {
       starsMap[s].total++;
       if (_checkDirectionHit(r.pk_direction, r.actual_spf || '', r)) starsMap[s].hits++;
     });
-    const byStars = Object.keys(starsMap).sort(function (a, b) { return parseInt(b) - parseInt(a); }).map(function (s) {
-      return {
-        stars: parseInt(s),
-        total: starsMap[s].total,
-        accuracy: starsMap[s].total > 0 ? parseFloat((starsMap[s].hits / starsMap[s].total).toFixed(4)) : 0,
-      };
-    });
+    const byStars = Object.keys(starsMap)
+      .sort(function (a, b) {
+        return parseInt(b) - parseInt(a);
+      })
+      .map(function (s) {
+        return {
+          stars: parseInt(s),
+          total: starsMap[s].total,
+          accuracy: starsMap[s].total > 0 ? parseFloat((starsMap[s].hits / starsMap[s].total).toFixed(4)) : 0,
+        };
+      });
 
     statsByVersion[ver] = {
       total: total,
@@ -1084,7 +1118,14 @@ function queryPKVersionCompare(filters) {
         goalHitRateDiff: parseFloat(((curr.goalHitRate - prev.goalHitRate) * 100).toFixed(2)) + '%',
         sampleCountDiff: curr.total - prev.total,
         avgScoreDiff: parseFloat((curr.avgCompositeScore - prev.avgCompositeScore).toFixed(1)),
-        direction: curr.hitRate > prev.hitRate ? (curr.total >= 30 ? '✅ 优化有效' : '⚠️ 样本不足') : (curr.total >= 30 ? '❌ 需要回滚' : '⚠️ 样本不足'),
+        direction:
+          curr.hitRate > prev.hitRate
+            ? curr.total >= 30
+              ? '✅ 优化有效'
+              : '⚠️ 样本不足'
+            : curr.total >= 30
+              ? '❌ 需要回滚'
+              : '⚠️ 样本不足',
       };
     }
   }

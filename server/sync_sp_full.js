@@ -34,7 +34,7 @@ const PREVIEW_DIR = path.join(__dirname, 'sporttery_preview');
 const DATA_FILE = path.join(__dirname, 'data.json');
 const ODDS_HISTORY_DIR = path.join(__dirname, 'odds_history');
 
-[ODDS_DIR, PREVIEW_DIR, SCHEDULE_DIR].forEach(d => {
+[ODDS_DIR, PREVIEW_DIR, SCHEDULE_DIR].forEach((d) => {
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 });
 
@@ -54,16 +54,18 @@ function scrapeSchedule() {
       maxBuffer: 1024 * 1024,
     });
     logger.info('[sp:schedule] ✓ 抓取完成');
-    
+
     // 读取最新 schedule 文件
-    const files = fs.readdirSync(SCHEDULE_DIR)
-      .filter(f => f.endsWith('.json'))
-      .sort().reverse();
+    const files = fs
+      .readdirSync(SCHEDULE_DIR)
+      .filter((f) => f.endsWith('.json'))
+      .sort()
+      .reverse();
 
     if (files.length > 0) {
       const data = JSON.parse(fs.readFileSync(path.join(SCHEDULE_DIR, files[0]), 'utf8'));
       const text = data.text || '';
-      
+
       // 解析日期和比赛数
       const datePattern = /(周[一二三四五六日]) (\d{4}-\d{2}-\d{2}) 共(\d+)场/g;
       const dates = [];
@@ -71,7 +73,12 @@ function scrapeSchedule() {
       while ((m = datePattern.exec(text)) !== null) {
         dates.push({ dow: m[1], date: m[2], count: parseInt(m[3]) });
       }
-      logger.info(`[sp:schedule] 覆盖 ${dates.length} 天: ${dates.slice(0,3).map(d=>d.date+'('+d.count+'场)').join(', ')}...`);
+      logger.info(
+        `[sp:schedule] 覆盖 ${dates.length} 天: ${dates
+          .slice(0, 3)
+          .map((d) => d.date + '(' + d.count + '场)')
+          .join(', ')}...`,
+      );
       return { success: true, file: files[0], dates };
     }
     return { success: false, reason: 'no_schedule_file' };
@@ -102,8 +109,8 @@ function scrapeDetails(dateStr, matchNumsStr) {
     logger.info('[sp:details] ✓ 抓取完成');
 
     // 统计产出
-    const oddsFiles = fs.readdirSync(ODDS_DIR).filter(f => f.endsWith('.json')).length;
-    const previewFiles = fs.readdirSync(PREVIEW_DIR).filter(f => f.endsWith('.json')).length;
+    const oddsFiles = fs.readdirSync(ODDS_DIR).filter((f) => f.endsWith('.json')).length;
+    const previewFiles = fs.readdirSync(PREVIEW_DIR).filter((f) => f.endsWith('.json')).length;
     logger.info(`[sp:details] 赔率文件: ${oddsFiles}, 前瞻文件: ${previewFiles}`);
     return { success: true, oddsFiles, previewFiles };
   } catch (e) {
@@ -115,9 +122,13 @@ function scrapeDetails(dateStr, matchNumsStr) {
 // ═══ Step 3: 桥接赛程到 data.json ═══
 function bridgeScheduleToData() {
   logger.info('[sp:bridge-sch] 桥接赛程到 data.json...');
-  
+
   // 读取最新 schedule
-  const files = fs.readdirSync(SCHEDULE_DIR).filter(f => f.endsWith('.json')).sort().reverse();
+  const files = fs
+    .readdirSync(SCHEDULE_DIR)
+    .filter((f) => f.endsWith('.json'))
+    .sort()
+    .reverse();
   if (files.length === 0) return { success: false, reason: 'no_schedule' };
 
   const scheduleData = JSON.parse(fs.readFileSync(path.join(SCHEDULE_DIR, files[0]), 'utf8'));
@@ -145,32 +156,58 @@ function bridgeScheduleToData() {
 
   // 合并到 data.json
   let data = {};
-  try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch(e) {}
+  try {
+    data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  } catch (e) {}
   if (!data.m) data.m = {};
 
   const numIndex = {};
-  Object.entries(data.m).forEach(([k, v]) => { if (v && v.num) numIndex[v.num] = k; });
+  Object.entries(data.m).forEach(([k, v]) => {
+    if (v && v.num) numIndex[v.num] = k;
+  });
 
-  let added = 0, updated = 0;
+  let added = 0,
+    updated = 0;
   for (const sp of matches) {
     const existingKey = numIndex[sp.matchNum];
     if (existingKey) {
       const old = data.m[existingKey];
       let ch = false;
-      if (!old.homeName) { old.homeName = sp.home; ch = true; }
-      if (!old.visitName) { old.visitName = sp.away; ch = true; }
-      if (!old.leagueName) { old.leagueName = sp.league; ch = true; }
-      if (!old.startTime) { old.startTime = sp.startTime; ch = true; }
+      if (!old.homeName) {
+        old.homeName = sp.home;
+        ch = true;
+      }
+      if (!old.visitName) {
+        old.visitName = sp.away;
+        ch = true;
+      }
+      if (!old.leagueName) {
+        old.leagueName = sp.league;
+        ch = true;
+      }
+      if (!old.startTime) {
+        old.startTime = sp.startTime;
+        ch = true;
+      }
       if (ch) updated++;
     } else {
       const mid = 'sp_' + sp.date.replace(/-/g, '') + '_' + sp.matchNum.replace(/周[一二三四五六日]/, '');
       data.m['m_' + mid] = {
-        matchId: mid, num: sp.matchNum,
-        homeName: sp.home, visitName: sp.away,
-        leagueName: sp.league, startTime: sp.startTime,
-        date: sp.date, matchStatus: 0,
-        score: '', halfScore: '', duration: '', yellow: '', red: '',
-        recommNum: 0, source: 'sp_schedule',
+        matchId: mid,
+        num: sp.matchNum,
+        homeName: sp.home,
+        visitName: sp.away,
+        leagueName: sp.league,
+        startTime: sp.startTime,
+        date: sp.date,
+        matchStatus: 0,
+        score: '',
+        halfScore: '',
+        duration: '',
+        yellow: '',
+        red: '',
+        recommNum: 0,
+        source: 'sp_schedule',
       };
       added++;
     }
@@ -189,10 +226,10 @@ function bridgeScheduleToData() {
 function bridgeOddsToHistory() {
   logger.info('[sp:bridge-odds] 桥接赔率到 odds_history...');
 
-  const oddsFiles = fs.readdirSync(ODDS_DIR)
-    .filter(f => f.startsWith('20') && f.endsWith('.json'));
+  const oddsFiles = fs.readdirSync(ODDS_DIR).filter((f) => f.startsWith('20') && f.endsWith('.json'));
 
-  let oddsWritten = 0, resultsFixed = 0;
+  let oddsWritten = 0,
+    resultsFixed = 0;
 
   for (const fname of oddsFiles) {
     try {
@@ -202,21 +239,22 @@ function bridgeOddsToHistory() {
       const matchInfo = data.matchInfo || '';
       const dateMatch = matchInfo.match(/(\d{4}-\d{2}-\d{2})/);
       const date = dateMatch ? dateMatch[1] : '';
-      
+
       if (!date || !matchNum) continue;
 
       const oddsFile = path.join(ODDS_HISTORY_DIR, date + '.json');
       let existing = {};
       try {
         if (fs.existsSync(oddsFile)) existing = JSON.parse(fs.readFileSync(oddsFile, 'utf8'));
-      } catch(e) {}
+      } catch (e) {}
       if (!existing.odds) existing.odds = {};
 
       // 不覆盖已有数据
       if (!existing.odds[matchNum]) {
         // 从 tables 提取 SPF 赔率
         const tables = data.tables || [];
-        let spf = {}, handicap = null;
+        let spf = {},
+          handicap = null;
 
         for (const table of tables) {
           if (!Array.isArray(table) || table.length < 2) continue;
@@ -226,9 +264,9 @@ function bridgeOddsToHistory() {
             // SPF table - get last row
             for (let r = table.length - 1; r >= 0; r--) {
               const row = table[r] || [];
-              const nums = row.map(c => parseFloat(String(c).replace(/[↑↓]/g, ''))).filter(n => !isNaN(n) && n > 1);
+              const nums = row.map((c) => parseFloat(String(c).replace(/[↑↓]/g, ''))).filter((n) => !isNaN(n) && n > 1);
               if (nums.length >= 3) {
-                spf = { home: nums[nums.length-3], draw: nums[nums.length-2], away: nums[nums.length-1] };
+                spf = { home: nums[nums.length - 3], draw: nums[nums.length - 2], away: nums[nums.length - 1] };
                 break;
               }
             }
@@ -257,7 +295,7 @@ function bridgeOddsToHistory() {
           let dataJson = {};
           if (fs.existsSync(DATA_FILE)) dataJson = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
           for (const [k, m] of Object.entries(dataJson.m || {})) {
-            if (m && m.num === matchNum && m.date && m.date.slice(0,10) === date) {
+            if (m && m.num === matchNum && m.date && m.date.slice(0, 10) === date) {
               if (!m.score || m.score === '-:-' || m.score === '') {
                 m.score = (lottery['比分'].outcome || '').replace(':', '-');
                 m.matchStatus = 2;
@@ -268,11 +306,11 @@ function bridgeOddsToHistory() {
               break;
             }
           }
-        } catch(e) {}
+        } catch (e) {}
       }
 
       fs.writeFileSync(oddsFile, JSON.stringify({ date, odds: existing.odds }));
-    } catch(e) {}
+    } catch (e) {}
   }
 
   logger.info(`[sp:bridge-odds] ✓ 赔率${oddsWritten} 赛果${resultsFixed}`);
@@ -283,8 +321,7 @@ function bridgeOddsToHistory() {
 function bridgePreviewToDB() {
   logger.info('[sp:bridge-prev] 桥接前瞻数据...');
 
-  const previewFiles = fs.readdirSync(PREVIEW_DIR)
-    .filter(f => f.startsWith('20') && f.endsWith('.json'));
+  const previewFiles = fs.readdirSync(PREVIEW_DIR).filter((f) => f.startsWith('20') && f.endsWith('.json'));
 
   let previewCount = 0;
   const db = require('./database');
@@ -293,9 +330,9 @@ function bridgePreviewToDB() {
     try {
       const data = JSON.parse(fs.readFileSync(path.join(PREVIEW_DIR, fname), 'utf8'));
       const matchId = fname.replace('.json', '');
-      
+
       if (!data.featureAnalysis && !data.h2h && !data.standings) continue;
-      
+
       const adp = db.getAdapter();
       if (adp) {
         adp.execRun(
@@ -311,11 +348,11 @@ function bridgePreviewToDB() {
             JSON.stringify(data.futureMatches || null),
             JSON.stringify(data.scorers || null),
             JSON.stringify(data.injuries || null),
-          ]
+          ],
         );
         previewCount++;
       }
-    } catch(e) {}
+    } catch (e) {}
   }
 
   logger.info(`[sp:bridge-prev] ✓ ${previewCount} 场前瞻入库`);
@@ -324,10 +361,13 @@ function bridgePreviewToDB() {
 
 // ═══ 主流程: 全量 ═══
 async function main() {
-  const mode = process.argv.includes('--schedule') ? 'schedule'
-    : process.argv.includes('--details') ? 'details'
-    : process.argv.includes('--bridge') ? 'bridge'
-    : 'full';
+  const mode = process.argv.includes('--schedule')
+    ? 'schedule'
+    : process.argv.includes('--details')
+      ? 'details'
+      : process.argv.includes('--bridge')
+        ? 'bridge'
+        : 'full';
 
   logger.info('═════════════════════════════');
   logger.info('  SP全量数据同步: ' + mode);
@@ -347,7 +387,9 @@ async function main() {
 
   if (mode === 'bridge' || mode === 'full') {
     bridgeOddsToHistory();
-    try { bridgePreviewToDB(); } catch(e) {
+    try {
+      bridgePreviewToDB();
+    } catch (e) {
       logger.info('[sp:bridge-prev] 跳过: ' + e.message);
     }
   }
@@ -358,5 +400,8 @@ async function main() {
 module.exports = { scrapeSchedule, scrapeDetails, bridgeScheduleToData, bridgeOddsToHistory, main };
 
 if (require.main === module) {
-  main().catch(e => { logger.error('FATAL: ' + e.message); process.exit(1); });
+  main().catch((e) => {
+    logger.error('FATAL: ' + e.message);
+    process.exit(1);
+  });
 }

@@ -22,7 +22,9 @@ var DATA_FILE = path.join(__dirname, 'data.json');
 var GS_CACHE_FILE = path.join(__dirname, 'gongshoudao', 'cache.json');
 
 var dryRun = process.argv.includes('--dry');
-var phaseArg = process.argv.find(function(a) { return a.startsWith('--phase='); });
+var phaseArg = process.argv.find(function (a) {
+  return a.startsWith('--phase=');
+});
 var runGS = !phaseArg || phaseArg.includes('gs') || phaseArg.includes('all');
 var runPK = !phaseArg || phaseArg.includes('pk') || phaseArg.includes('all');
 
@@ -40,12 +42,14 @@ async function main() {
   var data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
   var mMap = data.m || {};
   var allMatches = [];
-  Object.values(mMap).forEach(function(m) {
+  Object.values(mMap).forEach(function (m) {
     if (m && m.matchId && m.date >= START_DATE && m.date <= END_DATE) allMatches.push(m);
   });
   console.log('data.json 中目标时间段比赛: ' + allMatches.length + ' 场');
 
-  var withScore = allMatches.filter(function(m) { return m.score && m.score.trim() && m.score !== '-'; });
+  var withScore = allMatches.filter(function (m) {
+    return m.score && m.score.trim() && m.score !== '-';
+  });
   console.log('  有比分: ' + withScore.length + ' 场, 无比分: ' + (allMatches.length - withScore.length) + ' 场');
 
   // ═══ Phase 2A: GS 功守道 fallback ═══
@@ -65,7 +69,9 @@ async function main() {
     var startExisting = Object.keys(existingGS).length;
     console.log('现有 GS 缓存: ' + startExisting + ' keys');
 
-    var newGS = 0, skippedGS = 0, errorsGS = 0;
+    var newGS = 0,
+      skippedGS = 0,
+      errorsGS = 0;
     var batchSize = 100;
 
     for (var i = 0; i < allMatches.length; i++) {
@@ -102,7 +108,7 @@ async function main() {
           });
         }
         newGS++;
-      } catch(e) {
+      } catch (e) {
         errorsGS++;
         if (errorsGS <= 5) console.log('  ✗ GS ' + mid + ': ' + e.message);
       }
@@ -110,7 +116,9 @@ async function main() {
       if ((i + 1) % batchSize === 0 && !dryRun) {
         cache._global = existingGS;
         writeCache(cache);
-        process.stdout.write('\r  [' + Math.round((i+1)/allMatches.length*100) + '%] GS: ' + newGS + ' 新, ' + skippedGS + ' 跳过');
+        process.stdout.write(
+          '\r  [' + Math.round(((i + 1) / allMatches.length) * 100) + '%] GS: ' + newGS + ' 新, ' + skippedGS + ' 跳过',
+        );
       }
     }
 
@@ -130,27 +138,48 @@ async function main() {
     var pk = require('./pk_scorer');
     var predLog2 = require('./prediction_log');
     predLog2.autoEnsure();
-    await new Promise(function(r) { setTimeout(r, 500); });
+    await new Promise(function (r) {
+      setTimeout(r, 500);
+    });
 
-    var dates = [...new Set(allMatches.map(function(m) { return (m.date || '').slice(0, 10); }))].sort();
+    var dates = [
+      ...new Set(
+        allMatches.map(function (m) {
+          return (m.date || '').slice(0, 10);
+        }),
+      ),
+    ].sort();
     console.log('覆盖日期: ' + dates.length + ' 天');
 
     if (dryRun) {
       console.log('DRY RUN — 将处理以下日期 (前10):');
-      dates.slice(0, 10).forEach(function(d) { console.log('  ' + d); });
+      dates.slice(0, 10).forEach(function (d) {
+        console.log('  ' + d);
+      });
       if (dates.length > 10) console.log('  ... 共 ' + dates.length + ' 天');
       console.log('Phase 2B DRY 完成');
     } else {
-      var totalOk = 0, totalErrors = 0;
+      var totalOk = 0,
+        totalErrors = 0;
       for (var j = 0; j < dates.length; j++) {
         var d = dates[j];
         try {
           var result = await pk.computeAndSave(d);
           if (result && result.ok) totalOk += result.ok;
           if (j % 10 === 0 || j === dates.length - 1) {
-            console.log('  [' + Math.round((j+1)/dates.length*100) + '%] ' + d + ': ' + JSON.stringify(result) + ' (累计: ' + totalOk + ')');
+            console.log(
+              '  [' +
+                Math.round(((j + 1) / dates.length) * 100) +
+                '%] ' +
+                d +
+                ': ' +
+                JSON.stringify(result) +
+                ' (累计: ' +
+                totalOk +
+                ')',
+            );
           }
-        } catch(e) {
+        } catch (e) {
           totalErrors++;
           console.log('  ✗ ' + d + ': ' + e.message);
         }
@@ -165,7 +194,7 @@ async function main() {
   console.log('═══════════════════════════════════════');
 }
 
-main().catch(function(e) {
+main().catch(function (e) {
   console.error('脚本异常: ' + e.message);
   console.error(e.stack);
   process.exit(1);

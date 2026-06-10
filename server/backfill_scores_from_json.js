@@ -13,14 +13,17 @@ var dryRun = process.argv.includes('--dry');
 console.log('=== JSON 比分回填 ===');
 console.log(dryRun ? 'DRY RUN' : '正式执行');
 
-var files = fs.readdirSync(ODDS_DIR).filter(function(f) { return f.endsWith('.json'); });
+var files = fs.readdirSync(ODDS_DIR).filter(function (f) {
+  return f.endsWith('.json');
+});
 console.log('文件数: ' + files.length);
 
 function parseScore(s) {
   if (!s) return null;
   var parts = String(s).split(/[-:：]/);
   if (parts.length < 2) return null;
-  var h = parseInt(parts[0]), a = parseInt(parts[1]);
+  var h = parseInt(parts[0]),
+    a = parseInt(parts[1]);
   if (isNaN(h) || isNaN(a)) return null;
   return { home: h, away: a };
 }
@@ -43,23 +46,37 @@ if (!adp) {
 // Step 1: 从 JSON 提取比分
 console.log('Step 1: 解析 JSON...');
 var scoreMap = {};
-var noResult = 0, errors = 0;
+var noResult = 0,
+  errors = 0;
 
-files.forEach(function(f, i) {
+files.forEach(function (f, i) {
   var mid = f.replace('.json', '');
   try {
     var d = JSON.parse(fs.readFileSync(path.join(ODDS_DIR, f), 'utf8'));
     var lr = d.lotteryResult;
-    if (!lr || Object.keys(lr).length === 0) { noResult++; return; }
+    if (!lr || Object.keys(lr).length === 0) {
+      noResult++;
+      return;
+    }
     var score = d.score || '';
-    if (!score || score === ':') { noResult++; return; }
+    if (!score || score === ':') {
+      noResult++;
+      return;
+    }
     var g = parseScore(score);
-    if (!g) { noResult++; return; }
+    if (!g) {
+      noResult++;
+      return;
+    }
     scoreMap[mid] = {
-      score: score, hg: g.home, ag: g.away,
-      spf: spfText((lr['胜平负'] || {}).outcome)
+      score: score,
+      hg: g.home,
+      ag: g.away,
+      spf: spfText((lr['胜平负'] || {}).outcome),
     };
-  } catch(e) { errors++; }
+  } catch (e) {
+    errors++;
+  }
   if (i % 2000 === 0) process.stdout.write('\r  ' + i);
 });
 console.log('\r  解析完成: ' + files.length + ' 文件, ' + Object.keys(scoreMap).length + ' 有比分');
@@ -73,43 +90,54 @@ if (dryRun) {
 // Step 2: 更新 prediction_logs
 console.log('\nStep 2: 更新 prediction_logs...');
 var mids = Object.keys(scoreMap);
-var plDone = 0, plSkip = 0;
+var plDone = 0,
+  plSkip = 0;
 
-mids.forEach(function(mid) {
+mids.forEach(function (mid) {
   var s = scoreMap[mid];
   try {
     // Check if already has score
-    var existing = adp.execOne("SELECT actual_score FROM prediction_logs WHERE matchId=?", mid);
+    var existing = adp.execOne('SELECT actual_score FROM prediction_logs WHERE matchId=?', mid);
     if (existing && existing.actual_score && existing.actual_score.trim()) {
-      plSkip++; return;
+      plSkip++;
+      return;
     }
     adp.execRun(
       "UPDATE prediction_logs SET actual_score=?, actual_home_goals=?, actual_away_goals=?, actual_spf=?, actual_corrected_at=datetime('now','localtime') WHERE matchId=?",
-      s.score, s.hg, s.ag, s.spf, mid
+      s.score,
+      s.hg,
+      s.ag,
+      s.spf,
+      mid,
     );
     plDone++;
-  } catch(e) { errors++; }
+  } catch (e) {
+    errors++;
+  }
   if (plDone % 2000 === 0) console.log('  ' + plDone + ' 条...');
 });
 console.log('  prediction_logs: ' + plDone + ' 更新, ' + plSkip + ' 已有');
 
 // Step 3: 更新 matches
 console.log('\nStep 3: 更新 matches...');
-var mDone = 0, mSkip = 0;
+var mDone = 0,
+  mSkip = 0;
 
-mids.forEach(function(mid) {
+mids.forEach(function (mid) {
   var s = scoreMap[mid];
   try {
-    var cur = adp.execOne("SELECT score FROM matches WHERE matchId=?", mid);
+    var cur = adp.execOne('SELECT score FROM matches WHERE matchId=?', mid);
     if (cur && cur.score && cur.score.trim() && cur.score !== '-') {
-      mSkip++; return;
+      mSkip++;
+      return;
     }
     adp.execRun(
       "UPDATE matches SET score=?, matchStatus=2, updatedAt=datetime('now','localtime') WHERE matchId=?",
-      s.score, mid
+      s.score,
+      mid,
     );
     mDone++;
-  } catch(e) {}
+  } catch (e) {}
 });
 console.log('  matches: ' + mDone + ' 更新, ' + mSkip + ' 已有');
 
@@ -120,7 +148,7 @@ try {
   var data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
   var mMap = data.m || {};
   var dUpdated = 0;
-  mids.forEach(function(mid) {
+  mids.forEach(function (mid) {
     var s = scoreMap[mid];
     var key = 'm_' + mid;
     if (mMap[key]) {
@@ -133,19 +161,23 @@ try {
   fs.writeFileSync(tmp, JSON.stringify(data));
   fs.renameSync(tmp, dataFile);
   console.log('  data.json: ' + dUpdated + ' 场比分更新');
-} catch(e) {
+} catch (e) {
   console.log('  data.json 跳过: ' + e.message);
 }
 
 // Verify
-var r = adp.execOne("SELECT COUNT(*) as c FROM prediction_logs WHERE date>='2024-01-01' AND date<='2026-03-18' AND actual_score IS NOT NULL AND actual_score!=''");
+var r = adp.execOne(
+  "SELECT COUNT(*) as c FROM prediction_logs WHERE date>='2024-01-01' AND date<='2026-03-18' AND actual_score IS NOT NULL AND actual_score!=''",
+);
 console.log('\n=== 验证 ===');
 console.log('2024-2026.3 prediction_logs 有比分: ' + r.c + ' 条');
 
 r = adp.execOne("SELECT COUNT(*) as c FROM prediction_logs WHERE actual_score IS NOT NULL AND actual_score!=''");
 console.log('全部 prediction_logs 有比分: ' + r.c + ' 条');
 
-r = adp.execOne("SELECT COUNT(*) as c FROM matches WHERE date>='2024-01-01' AND score IS NOT NULL AND score!='' AND score!='-'");
+r = adp.execOne(
+  "SELECT COUNT(*) as c FROM matches WHERE date>='2024-01-01' AND score IS NOT NULL AND score!='' AND score!='-'",
+);
 console.log('2024+ matches 有比分: ' + r.c + ' 场');
 
 if (errors) console.log('错误: ' + errors);

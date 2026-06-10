@@ -97,7 +97,9 @@ function getPlanOutcomeOverlay(dateStr) {
   const overlay = { byId: {}, byNum: {} };
   function addOutcome(row, source) {
     if (!row) return;
-    const score = normalizeScoreText(row.score || row.actual_score) || buildScoreFromGoals(row.homeScore || row.actual_home_goals, row.visitScore || row.actual_away_goals);
+    const score =
+      normalizeScoreText(row.score || row.actual_score) ||
+      buildScoreFromGoals(row.homeScore || row.actual_home_goals, row.visitScore || row.actual_away_goals);
     if (!score) return;
     const item = {
       score: score,
@@ -215,7 +217,7 @@ function getCoreCacheStats() {
 // ★ P1-4: week-dates 预计算缓存（通过 data.json mtime 自动失效）
 let _cachedWeekDates = null;
 let _cachedWeekDatesMtime = 0;
-const WEEK_DAYS = ['周日','周一','周二','周三','周四','周五','周六'];
+const WEEK_DAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 function getWeekDates() {
   // 检查 data.json 是否已更新，自动失效缓存
   let mtime = 0;
@@ -1256,8 +1258,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   else if (t === '让平') dirMap.draw += n;
                   else if (t === '让负') dirMap.away += n;
                   // 组合: 胜平 → home+draw 均分
-                  else if (t === '胜平') { dirMap.home += n/2; dirMap.draw += n/2; }
-                  else if (t === '平负') { dirMap.draw += n/2; dirMap.away += n/2; }
+                  else if (t === '胜平') {
+                    dirMap.home += n / 2;
+                    dirMap.draw += n / 2;
+                  } else if (t === '平负') {
+                    dirMap.draw += n / 2;
+                    dirMap.away += n / 2;
+                  }
                 });
                 const topDir = Object.entries(dirMap).sort((a, b) => b[1] - a[1])[0];
                 models.push({
@@ -1462,12 +1469,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           let spData = null;
           try {
             if (match && match.num) {
-              spData = spAdapter.getFullSPData(
-                match.num,
-                (match.date || '').slice(0, 10),
-              );
+              spData = spAdapter.getFullSPData(match.num, (match.date || '').slice(0, 10));
             }
-          } catch(e) {}
+          } catch (e) {}
 
           return res.json({
             code: 1,
@@ -1475,18 +1479,21 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               match: match || {},
               recommends: recommends,
               // ★ V9: SP官方数据（优先级最高）
-              sp_odds: (spData && spData.odds) ? {
-                spf: spData.odds.spf,
-                rqspf: spData.odds.rqspf,
-                handicap: spData.odds.handicap,
-                jqs: spData.odds.jqs,
-                bqc: spData.odds.bqc,
-                lottery: spData.odds.lottery,
-                score: spData.odds.score,
-                homeRecord: spData.odds.homeRecord,
-                awayRecord: spData.odds.awayRecord,
-              } : null,
-              sp_preview: (spData && spData.preview) ? spData.preview : null,
+              sp_odds:
+                spData && spData.odds
+                  ? {
+                      spf: spData.odds.spf,
+                      rqspf: spData.odds.rqspf,
+                      handicap: spData.odds.handicap,
+                      jqs: spData.odds.jqs,
+                      bqc: spData.odds.bqc,
+                      lottery: spData.odds.lottery,
+                      score: spData.odds.score,
+                      homeRecord: spData.odds.homeRecord,
+                      awayRecord: spData.odds.awayRecord,
+                    }
+                  : null,
+              sp_preview: spData && spData.preview ? spData.preview : null,
               // ★ 蓝图新增字段（全部可选，兜底保护）
               consensus: await _getMatchConsensus(match || {}, recommends).catch(() => null),
               fusion: await _getFullFusion(match || {}, matchId, recommends).catch(() => null),
@@ -1659,12 +1666,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const db = database.getAdapter();
               if (db) {
                 const modelRows = db.execAll(
-                  "SELECT model_name, COUNT(*) as total, SUM(direction_hit) as hits, " +
-                    "ROUND(SUM(direction_hit) * 100.0 / COUNT(*), 1) as hit_rate " +
-                    "FROM prediction_outcomes " +
+                  'SELECT model_name, COUNT(*) as total, SUM(direction_hit) as hits, ' +
+                    'ROUND(SUM(direction_hit) * 100.0 / COUNT(*), 1) as hit_rate ' +
+                    'FROM prediction_outcomes ' +
                     "WHERE model_name NOT IN ('data_fusion','market_signal') " +
-                    "AND match_date >= date('now', '-" + days + " days') " +
-                    "GROUP BY model_name ORDER BY hit_rate DESC",
+                    "AND match_date >= date('now', '-" +
+                    days +
+                    " days') " +
+                    'GROUP BY model_name ORDER BY hit_rate DESC',
                 );
                 if (modelRows && modelRows.length > 0) {
                   resultPayload.modelStats = modelRows.map(function (r) {
@@ -2031,7 +2040,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // ★ P2: 响应级缓存（10 分钟），避免重复同步计算阻塞事件循环
             const profitCacheKey = 'd' + days;
             const profitNow = Date.now();
-            if (_profit7dCache && _profit7dCache.key === profitCacheKey && profitNow - _profit7dCacheTime < PROFIT_7D_CACHE_TTL) {
+            if (
+              _profit7dCache &&
+              _profit7dCache.key === profitCacheKey &&
+              profitNow - _profit7dCacheTime < PROFIT_7D_CACHE_TTL
+            ) {
               return res.json(_profit7dCache.response);
             }
 
@@ -2043,9 +2056,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             // ★ 从数据中提取最近N个有比赛的日期（与收入方案页实际显示对齐）
             const allDates = new Set();
-            Object.keys(mMap).forEach(k => {
+            Object.keys(mMap).forEach((k) => {
               const m = mMap[k];
-              const d = (m && m.date || '').slice(0, 10);
+              const d = ((m && m.date) || '').slice(0, 10);
               if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) allDates.add(d);
             });
             const sortedDates = Array.from(allDates).sort().reverse(); // 降序
@@ -2059,7 +2072,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             function findRecommends(matchId) {
               const raw = rMap['m_' + matchId] || rMap[String(matchId)] || [];
-              return (raw || []).map(x => {
+              return (raw || []).map((x) => {
                 const rawVal = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
                 const r = rawVal === 0 || rawVal === 1 ? rawVal : null;
                 return { type: x.t || x.type, num: x.n || x.num, result: r };
@@ -2072,7 +2085,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             for (let di = dates.length - 1; di >= 0; di--) {
               const ds = dates[di];
               const mList = [];
-              Object.keys(mMap).forEach(k => {
+              Object.keys(mMap).forEach((k) => {
                 const m = mMap[k];
                 if (!m || (m.date || '').slice(0, 10) !== ds) return;
                 mList.push(m);
@@ -2111,7 +2124,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const plans = PG.generateExpertPlans(mList, matchDataMap, ds);
               let dayProfit = 0;
               let hasResolvedPlan = false; // ★ 标记当天是否有方案已完成
-              plans.forEach(pp => {
+              plans.forEach((pp) => {
                 if (pp.isPlanWon === null && pp.isPlanLose === null) return;
                 hasResolvedPlan = true; // ★ 有方案已出结果
                 if (pp.isPlanWon === true) dayProfit += (pp.winningPrize || 0) - AMOUNT;
@@ -2147,7 +2160,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           try {
             const autoHeal = require('./auto_heal');
             logger.info('[api] 手动触发 auto_heal 检查...');
-            autoHeal.checkAndHeal({ days: 7 })
+            autoHeal
+              .checkAndHeal({ days: 7 })
               .then(function (result) {
                 logger.info('[api] auto_heal 完成: ' + JSON.stringify(result.gaps));
               })
@@ -2175,15 +2189,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const fs = require('fs');
             const DATA_FILE = path.join(__dirname, 'data.json');
             const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-            const rMap = data.r || {}, mMap = data.m || {};
-            const keys = Object.keys(rMap).filter(k => Array.isArray(rMap[k]) && rMap[k].length > 0);
+            const rMap = data.r || {},
+              mMap = data.m || {};
+            const keys = Object.keys(rMap).filter((k) => Array.isArray(rMap[k]) && rMap[k].length > 0);
 
             // 同 backfill_expert_consensus.js 的 computeConsensus
             const computeConsensus = (recs) => {
               const dirs = { home: 0, draw: 0, away: 0 };
               let total = 0;
-              recs.forEach(r => {
-                const type = r.type || '', num = Number(r.num) || 1;
+              recs.forEach((r) => {
+                const type = r.type || '',
+                  num = Number(r.num) || 1;
                 total += num;
                 if (type === '胜' || type === '主胜') dirs.home += num;
                 else if (type === '平' || type === '平局') dirs.draw += num;
@@ -2191,24 +2207,40 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 else if (type === '让胜') dirs.home += num;
                 else if (type === '让平') dirs.draw += num;
                 else if (type === '让负') dirs.away += num;
-                else if (type === '胜平') { dirs.home += num / 2; dirs.draw += num / 2; }
-                else if (type === '平负') { dirs.draw += num / 2; dirs.away += num / 2; }
-                else total -= num;
+                else if (type === '胜平') {
+                  dirs.home += num / 2;
+                  dirs.draw += num / 2;
+                } else if (type === '平负') {
+                  dirs.draw += num / 2;
+                  dirs.away += num / 2;
+                } else total -= num;
               });
               if (total <= 0) return null;
-              let top = 'home', topCount = dirs.home;
-              if (dirs.draw > topCount) { top = 'draw'; topCount = dirs.draw; }
-              if (dirs.away > topCount) { top = 'away'; topCount = dirs.away; }
+              let top = 'home',
+                topCount = dirs.home;
+              if (dirs.draw > topCount) {
+                top = 'draw';
+                topCount = dirs.draw;
+              }
+              if (dirs.away > topCount) {
+                top = 'away';
+                topCount = dirs.away;
+              }
               const conf = topCount / total;
               return {
-                direction: top, confidence: Math.min(conf, 1),
+                direction: top,
+                confidence: Math.min(conf, 1),
                 consensusTag: conf >= 0.6 ? 'strong' : conf >= 0.4 ? 'weak' : 'neutral',
-                homeCount: dirs.home, drawCount: dirs.draw, awayCount: dirs.away, total
+                homeCount: dirs.home,
+                drawCount: dirs.draw,
+                awayCount: dirs.away,
+                total,
               };
             };
 
-            let inserted = 0, skipped = 0;
-            keys.forEach(k => {
+            let inserted = 0,
+              skipped = 0;
+            keys.forEach((k) => {
               const recs = rMap[k] || [];
               const m = mMap[k] || {};
               const mid = (m.matchId || '').replace(/^m_/, '');
@@ -2218,13 +2250,28 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (!cons) return;
               const predId = 'expert_consensus_v1.0_' + mid + '_' + date;
               const exists = db.execOne('SELECT id FROM unified_predictions WHERE prediction_id=?', predId);
-              if (exists) { skipped++; return; }
+              if (exists) {
+                skipped++;
+                return;
+              }
               db.execRun(
                 'INSERT INTO unified_predictions (match_num,match_date,match_id,model_name,model_version,prediction_id,direction,direction_confidence,consensus_tag,raw_output_json,computed_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-                num, date, mid, '专家共识', 'v1.0', predId,
-                cons.direction, cons.confidence, cons.consensusTag,
-                JSON.stringify({ homeCount: cons.homeCount, drawCount: cons.drawCount, awayCount: cons.awayCount, total: cons.total }),
-                new Date().toISOString()
+                num,
+                date,
+                mid,
+                '专家共识',
+                'v1.0',
+                predId,
+                cons.direction,
+                cons.confidence,
+                cons.consensusTag,
+                JSON.stringify({
+                  homeCount: cons.homeCount,
+                  drawCount: cons.drawCount,
+                  awayCount: cons.awayCount,
+                  total: cons.total,
+                }),
+                new Date().toISOString(),
               );
               inserted++;
             });
@@ -2234,14 +2281,24 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const bfResult = await backfiller.backfill(db, { dryRun: false });
             const roCount = db.execOne("SELECT COUNT(*) as c FROM prediction_outcomes WHERE model_name='专家共识'");
 
-            logger.info('[api] 专家共识回填完成: inserted=' + inserted + ' skipped=' + skipped + ' outcomes=' + (roCount ? roCount.c : 0));
+            logger.info(
+              '[api] 专家共识回填完成: inserted=' +
+                inserted +
+                ' skipped=' +
+                skipped +
+                ' outcomes=' +
+                (roCount ? roCount.c : 0),
+            );
             return res.json({
               code: 1,
               data: {
-                inserted, skipped, deletedPo: poDel, deletedUp: upDel,
+                inserted,
+                skipped,
+                deletedPo: poDel,
+                deletedUp: upDel,
                 outcomes: roCount ? roCount.c : 0,
-                backfillResult: bfResult
-              }
+                backfillResult: bfResult,
+              },
             });
           } catch (e) {
             logger.error('[api] 专家共识回填失败: ' + e.message);
@@ -5758,23 +5815,39 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                       try {
                         var sOdds2 = JSON.parse(sr2.odds_json || '{}');
                         if (sr2.play_type === 'rqspf' && !sportteryRqspf) {
-                          sportteryRqspf = { home: sOdds2['胜'] || null, draw: sOdds2['平'] || null, away: sOdds2['负'] || null };
+                          sportteryRqspf = {
+                            home: sOdds2['胜'] || null,
+                            draw: sOdds2['平'] || null,
+                            away: sOdds2['负'] || null,
+                          };
                           if (sOdds2._handicap != null) sportteryHandicap = sOdds2._handicap;
                         }
                         if (sr2.play_type === 'bqc' && !sportteryBqc) {
                           sportteryBqc = Object.keys(sOdds2)
-                            .filter(function (k) { return !String(k).startsWith('_'); })
-                            .map(function (k) { return { combo: k, odds: sOdds2[k] }; });
+                            .filter(function (k) {
+                              return !String(k).startsWith('_');
+                            })
+                            .map(function (k) {
+                              return { combo: k, odds: sOdds2[k] };
+                            });
                         }
                         if (sr2.play_type === 'bf' && !sportteryBf) {
                           sportteryBf = Object.keys(sOdds2)
-                            .filter(function (k) { return !String(k).startsWith('_'); })
-                            .map(function (k) { return { score: k, odds: sOdds2[k] }; });
+                            .filter(function (k) {
+                              return !String(k).startsWith('_');
+                            })
+                            .map(function (k) {
+                              return { score: k, odds: sOdds2[k] };
+                            });
                         }
                         if (sr2.play_type === 'jqs' && !sportteryJqs) {
                           sportteryJqs = Object.keys(sOdds2)
-                            .filter(function (k) { return !String(k).startsWith('_'); })
-                            .map(function (k) { return { goals: k, odds: sOdds2[k] }; });
+                            .filter(function (k) {
+                              return !String(k).startsWith('_');
+                            })
+                            .map(function (k) {
+                              return { goals: k, odds: sOdds2[k] };
+                            });
                         }
                       } catch (eParseSnap) {}
                     }

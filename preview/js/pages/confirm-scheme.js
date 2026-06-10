@@ -1058,7 +1058,7 @@ window.showBonusOptimize = function () {
 
   _boStrategy = 'balanced';
   // ★ 若已有调整过的计划购买金额则沿用，否则用基础金额
-  _boPlanAmount = _planData.planAmount != null ? _planData.planAmount : (_boBaseAmount || 500);
+  _boPlanAmount = _planData.planAmount != null ? _planData.planAmount : _boBaseAmount || 500;
   applyStrategy();
 
   // 弹窗容器
@@ -1251,19 +1251,26 @@ function renderBonusOpt() {
     '<span class="bo-plan-label">计划购买</span>' +
     '<div class="bo-plan-stepper">' +
     '<button class="bo-plan-btn" onclick="boPlanStep(-10)">-</button>' +
-    '<input class="bo-plan-input" id="boPlanInput" value="' + _boPlanAmount + '" onchange="boPlanInput(this.value)">' +
+    '<input class="bo-plan-input" id="boPlanInput" value="' +
+    _boPlanAmount +
+    '" onchange="boPlanInput(this.value)">' +
     '<button class="bo-plan-btn" onclick="boPlanStep(10)">+</button>' +
     '</div>' +
     '<span class="bo-plan-unit">元</span>' +
     '</div>' +
-    '<div class="bo-plan-summary">共<b>' + _boPlanAmount + '</b>元  预计奖金:<span class="bo-plan-prize">' + calcPlanPrizeRange() + '</span></div>' +
+    '<div class="bo-plan-summary">共<b>' +
+    _boPlanAmount +
+    '</b>元  预计奖金:<span class="bo-plan-prize">' +
+    calcPlanPrizeRange() +
+    '</span></div>' +
     '<div class="bo-footer"><button class="bet-btn-confirm" onclick="closeBonusOpt()">确认</button></div>' +
     '</div></div>';
 }
 
 function calcPlanPrizeRange() {
   if (!_boRows.length) return '-';
-  var minP = Infinity, maxP = -Infinity;
+  var minP = Infinity,
+    maxP = -Infinity;
   _boRows.forEach(function (r) {
     if (r.projected < minP) minP = r.projected;
     if (r.projected > maxP) maxP = r.projected;
@@ -1275,7 +1282,8 @@ function calcPlanPrizeRange() {
 function updateBoPlanSummary() {
   var summary = document.querySelector('#bonusOptOverlay .bo-plan-summary');
   if (summary) {
-    summary.innerHTML = '共<b>' + _boPlanAmount + '</b>元  预计奖金:<span class="bo-plan-prize">' + calcPlanPrizeRange() + '</span>';
+    summary.innerHTML =
+      '共<b>' + _boPlanAmount + '</b>元  预计奖金:<span class="bo-plan-prize">' + calcPlanPrizeRange() + '</span>';
   }
 }
 
@@ -1382,7 +1390,9 @@ function redistributeExcept(fixedIdx) {
   var fixedRow = _boRows[fixedIdx];
   var fixedAmount = fixedRow.betCount * 2;
   var remaining = _boPlanAmount - fixedAmount;
-  var otherRows = _boRows.filter(function(_, i) { return i !== fixedIdx; });
+  var otherRows = _boRows.filter(function (_, i) {
+    return i !== fixedIdx;
+  });
   var otherCount = otherRows.length;
 
   if (otherCount === 0) {
@@ -1400,17 +1410,17 @@ function redistributeExcept(fixedIdx) {
   }
 
   var totalInv = 0;
-  otherRows.forEach(function(r) {
+  otherRows.forEach(function (r) {
     totalInv += 1 / r.odds;
   });
 
-  otherRows.forEach(function(r) {
-    var weight = totalInv > 0 ? (1 / r.odds / totalInv) : (1 / otherCount);
+  otherRows.forEach(function (r) {
+    var weight = totalInv > 0 ? 1 / r.odds / totalInv : 1 / otherCount;
     r.betCount = Math.round((remaining * weight) / 2);
     r.projected = Math.round(r.betCount * 2 * r.odds * 100) / 100;
   });
 
-  var actualOtherTotal = otherRows.reduce(function(s, r) {
+  var actualOtherTotal = otherRows.reduce(function (s, r) {
     return s + r.betCount * 2;
   }, 0);
   var diff = remaining - actualOtherTotal;
@@ -1445,11 +1455,11 @@ function closeBonusOpt() {
     }
   });
   // ★ 保存计划购买金额和优化注数到方案数据
-  var totalBets = _boRows.reduce(function(s, r) {
+  var totalBets = _boRows.reduce(function (s, r) {
     return s + (r.betCount || 0);
   }, 0);
   var maxProj = -Infinity;
-  _boRows.forEach(function(r) {
+  _boRows.forEach(function (r) {
     if (r.projected > maxProj) maxProj = r.projected;
   });
   _planData.planAmount = _boPlanAmount;

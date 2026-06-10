@@ -432,10 +432,15 @@ class ExpertConsensusAdapter extends PredictionModelAdapter {
         else if (type === '让平') dirCounts.draw += num;
         else if (type === '让负') dirCounts.away += num;
         // 组合类型: 胜平 → home+draw 均分, 平负 → draw+away 均分
-        else if (type === '胜平') { dirCounts.home += num / 2; dirCounts.draw += num / 2; }
-        else if (type === '平负') { dirCounts.draw += num / 2; dirCounts.away += num / 2; }
+        else if (type === '胜平') {
+          dirCounts.home += num / 2;
+          dirCounts.draw += num / 2;
+        } else if (type === '平负') {
+          dirCounts.draw += num / 2;
+          dirCounts.away += num / 2;
+        }
         // 总进球/比分等非方向型推荐不计入方向统计
-        else totalNum -= num;  // 不计入总票数
+        else totalNum -= num; // 不计入总票数
       }
 
       if (totalNum <= 0) return null;

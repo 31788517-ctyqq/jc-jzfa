@@ -44,7 +44,7 @@ function checkMatchCoverage(dates) {
   const gaps = [];
   try {
     if (!fs.existsSync(DATA_FILE)) {
-      dates.forEach(d => gaps.push({ date: d, type: 'match', severity: 'critical', detail: 'data.json 文件不存在' }));
+      dates.forEach((d) => gaps.push({ date: d, type: 'match', severity: 'critical', detail: 'data.json 文件不存在' }));
       return gaps;
     }
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
@@ -52,7 +52,7 @@ function checkMatchCoverage(dates) {
 
     for (const d of dates) {
       let count = 0;
-      Object.values(mMap).forEach(m => {
+      Object.values(mMap).forEach((m) => {
         if (m && m.date && m.date.slice(0, 10) === d) count++;
       });
 
@@ -87,7 +87,7 @@ function checkOddsCoverage(dates) {
         if (fs.existsSync(DATA_FILE)) {
           const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
           let hasMatches = false;
-          Object.values(data.m || {}).forEach(m => {
+          Object.values(data.m || {}).forEach((m) => {
             if (m && m.date && m.date.slice(0, 10) === d) hasMatches = true;
           });
           if (hasMatches) {
@@ -105,7 +105,9 @@ function checkAllplaysCoverage(dates) {
   const gaps = [];
   try {
     if (!fs.existsSync(ALLPLAYS_FILE)) {
-      dates.forEach(d => gaps.push({ date: d, type: 'allplays', severity: 'warning', detail: 'allplays 文件不存在' }));
+      dates.forEach((d) =>
+        gaps.push({ date: d, type: 'allplays', severity: 'warning', detail: 'allplays 文件不存在' }),
+      );
       return gaps;
     }
     const ap = JSON.parse(fs.readFileSync(ALLPLAYS_FILE, 'utf8'));
@@ -116,7 +118,7 @@ function checkAllplaysCoverage(dates) {
           if (fs.existsSync(DATA_FILE)) {
             const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
             let hasMatches = false;
-            Object.values(data.m || {}).forEach(m => {
+            Object.values(data.m || {}).forEach((m) => {
               if (m && m.date && m.date.slice(0, 10) === d) hasMatches = true;
             });
             if (hasMatches) {
@@ -203,14 +205,14 @@ async function checkAndHeal(opts = {}) {
   logger.info('[auto_heal] 检查最近 ' + days + ' 天数据完整性: ' + dates[0] + ' ~ ' + dates[dates.length - 1]);
 
   // 仅检查过去日期（今天可能有比赛但赛程还没出）
-  const pastDates = dates.filter(d => d < now);
+  const pastDates = dates.filter((d) => d < now);
 
   // 1. 赛程检查
   const matchGaps = checkMatchCoverage(pastDates);
   if (matchGaps.length > 0) {
-    logger.warn('[auto_heal] ⚠ 发现 ' + matchGaps.length + ' 天赛程缺口: ' + matchGaps.map(g => g.date).join(', '));
+    logger.warn('[auto_heal] ⚠ 发现 ' + matchGaps.length + ' 天赛程缺口: ' + matchGaps.map((g) => g.date).join(', '));
     // 只修复最近3天的（更旧的需要手动补）
-    const recentGaps = matchGaps.filter(g => {
+    const recentGaps = matchGaps.filter((g) => {
       const diff = Math.floor((new Date(now).getTime() - new Date(g.date).getTime()) / 86400000);
       return diff <= 3;
     });
@@ -219,8 +221,8 @@ async function checkAndHeal(opts = {}) {
       logger.info('[auto_heal] 赛程修复: ' + gap.date + ' → ' + JSON.stringify(result));
     }
     if (recentGaps.length < matchGaps.length) {
-      const oldGaps = matchGaps.filter(g => !recentGaps.includes(g));
-      logger.warn('[auto_heal] ' + oldGaps.length + ' 天较旧缺口需手动修复: ' + oldGaps.map(g => g.date).join(', '));
+      const oldGaps = matchGaps.filter((g) => !recentGaps.includes(g));
+      logger.warn('[auto_heal] ' + oldGaps.length + ' 天较旧缺口需手动修复: ' + oldGaps.map((g) => g.date).join(', '));
     }
   }
 
@@ -248,7 +250,17 @@ async function checkAndHeal(opts = {}) {
   if (totalGaps === 0) {
     logger.info('[auto_heal] ✅ 最近 ' + days + ' 天数据完整');
   } else {
-    logger.warn('[auto_heal] ⚠ 共 ' + totalGaps + ' 个数据缺口 (赛程:' + matchGaps.length + ' 赔率:' + oddsGaps.length + ' allplays:' + apGaps.length + ')');
+    logger.warn(
+      '[auto_heal] ⚠ 共 ' +
+        totalGaps +
+        ' 个数据缺口 (赛程:' +
+        matchGaps.length +
+        ' 赔率:' +
+        oddsGaps.length +
+        ' allplays:' +
+        apGaps.length +
+        ')',
+    );
   }
 
   return {
