@@ -5,8 +5,7 @@
 
 /* ── 容器 ── */
 .adm-wrap {
-  padding: 0 var(--page-px, 16px) 24px;
-  max-width: 440px; margin: 0 auto;
+  padding: 0 8px 24px;
   animation: adm-fade-in .25s ease-out;
 }
 
