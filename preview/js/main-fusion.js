@@ -891,11 +891,11 @@ export function switchTab(tab) {
   if (navbarEl) {
     navbarEl.classList.toggle('home-mode', tab === 'home');
     navbarEl.style.display = tab === 'login' || tab === 'account-security' || tab === 'profile'
-      || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' ? 'none' : 'flex';
+      || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' || tab === 'admin' ? 'none' : 'flex';
   }
   var tabbarEl = document.querySelector('.tabbar');
   if (tabbarEl) tabbarEl.style.display = tab === 'login' || tab === 'account-security' || tab === 'profile'
-    || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' ? 'none' : 'flex';
+    || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' || tab === 'admin' ? 'none' : 'flex';
 
 
   if (tab === 'login') {
@@ -1308,10 +1308,10 @@ function switchTabLoad(tab) {
     && tab !== 'pricing' && tab !== 'payment-result' ? 'flex' : 'none';
   var navbarEl = document.getElementById('navbar');
   if (navbarEl) navbarEl.style.display = tab === 'login' || tab === 'account-security' || tab === 'profile'
-    || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' ? 'none' : 'flex';
+    || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' || tab === 'admin' ? 'none' : 'flex';
   var tabbarEl = document.querySelector('.tabbar');
   if (tabbarEl) tabbarEl.style.display = tab === 'login' || tab === 'account-security' || tab === 'profile'
-    || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' ? 'none' : 'flex';
+    || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' || tab === 'admin' ? 'none' : 'flex';
 
 
   if (tab === 'login') {
