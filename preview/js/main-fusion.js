@@ -1092,6 +1092,12 @@ window.toggleRankDatePicker = toggleRankDatePicker;
 window.selectRankDateFromPicker = selectRankDateFromPicker;
 // 懒加载的 window 代理已在文件顶部定义
 
+// ── hash 路由监听（支持浏览器前进/后退 + 手动改 hash） ──
+window.addEventListener('hashchange', function () {
+  var h = (window.location.hash || '').replace('#', '').split('?')[0].trim();
+  if (h && h !== state.currentPage) switchTab(h);
+});
+
 // ── 导航栏滚动隐藏 ──
 window.addEventListener(
   'scroll',
@@ -1156,17 +1162,26 @@ window.onIncDirChange = function () {
 
 // ── 启动：恢复上次页面 ──
 (function initPage() {
+  // ★ 读取 hash 目标页（如 #admin），优先级高于 sessionStorage
+  var hashTab = '';
+  try {
+    var h = window.location.hash.replace('#', '').split('?')[0].trim();
+    if (h && h !== 'home' && h !== 'detail') hashTab = h;
+  } catch (e) {}
+
   function startAuthedPage() {
     var last = null;
     try {
       last = sessionStorage.getItem('lastPage');
     } catch (e) {}
-    if (last && last !== 'home' && last !== 'detail' && last !== 'login') {
-      state.setCurrentPage(last);
-      switchTabLoad(last);
+    // hash 目标页优先
+    var target = hashTab || last;
+    if (target && target !== 'home' && target !== 'detail' && target !== 'login') {
+      state.setCurrentPage(target);
+      switchTabLoad(target);
       setTimeout(function () {
         _preloadMods();
-        _preloadData(last);
+        _preloadData(target);
       }, 500);
       return;
     }
@@ -1180,6 +1195,10 @@ window.onIncDirChange = function () {
   }
 
   if (!hasAuthToken()) {
+    // 未登录：保存 hash 目标页，登录后跳回
+    if (hashTab) {
+      try { sessionStorage.setItem('pendingAfterLogin', hashTab); } catch (e) {}
+    }
     state.setCurrentPage('login');
     switchTabLoad('login');
     return;
