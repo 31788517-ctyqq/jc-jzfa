@@ -118,8 +118,6 @@ function bindLoginAction() {
       return;
     }
     if (typeof window.switchTab === 'function') window.switchTab('home');
-    }
-    if (typeof window.switchTab === 'function') window.switchTab('home');
   }
 
   const doLogin = function () {
