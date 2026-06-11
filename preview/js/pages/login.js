@@ -109,6 +109,16 @@ function bindLoginAction() {
       window.switchTab('account-security');
       return;
     }
+    // 登录守卫记下的目标页（如用户直接从 #admin 被踢到登录页）
+    var pending = '';
+    try { pending = sessionStorage.getItem('pendingAfterLogin') || ''; } catch (e) {}
+    if (pending) {
+      try { sessionStorage.removeItem('pendingAfterLogin'); } catch (e) {}
+      window.switchTab(pending);
+      return;
+    }
+    if (typeof window.switchTab === 'function') window.switchTab('home');
+    }
     if (typeof window.switchTab === 'function') window.switchTab('home');
   }
 

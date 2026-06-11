@@ -838,6 +838,7 @@ export function switchTab(tab) {
 
   var publicTabs = new Set(['login']);
   if (!publicTabs.has(tab) && !hasAuthToken()) {
+    try { sessionStorage.setItem('pendingAfterLogin', tab); } catch (e) {}
     tab = 'login';
   }
 
