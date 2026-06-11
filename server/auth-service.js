@@ -36,6 +36,10 @@ const PERMISSIONS = [
   'ops:backfill',
   'ops:auto_heal',
   'ops:refill_consensus',
+  'ops:error_log_view',
+  'ops:refresh_predictions',
+  'payment:admin',
+  'referral:admin',
 ];
 
 const ROLE_PERMISSION_MATRIX = {
@@ -63,6 +67,8 @@ const ROLE_PERMISSION_MATRIX = {
     'ops:backfill',
     'ops:auto_heal',
     'ops:refill_consensus',
+    'ops:error_log_view',
+    'ops:refresh_predictions',
   ],
   analyst: [
     'auth:login',
@@ -108,6 +114,16 @@ const ACTION_PERMISSION_MAP = {
   'backfill-results': 'ops:backfill',
   'auto-heal': 'ops:auto_heal',
   'refill-expert-consensus': 'ops:refill_consensus',
+  'error-log-summary': 'ops:error_log_view',
+  'refresh-predictions': 'ops:refresh_predictions',
+
+  // ★ 管理后台: 支付/返利 admin action 权限加固（修复任意登录用户可调用的漏洞）
+  'admin-subscription-list': 'payment:admin',
+  'admin-grant-subscription': 'payment:admin',
+  'admin-referral-commissions': 'referral:admin',
+  'admin-referral-accounts': 'referral:admin',
+  'admin-referral-withdraw-list': 'referral:admin',
+  'admin-referral-withdraw-process': 'referral:admin',
 };
 
 const PUBLIC_ACTIONS = new Set([
@@ -551,10 +567,22 @@ function listUsers() {
     `SELECT id, username, status, must_change_password, last_login_at, password_updated_at, created_at
      FROM users ORDER BY id ASC`,
   );
+  // ★ 管理后台: 一次 JOIN 查出全部用户角色，按 userId 分组（避免 N+1）
+  const roleRows = adp.execAll(
+    `SELECT ur.user_id, r.code
+     FROM user_roles ur JOIN roles r ON ur.role_id = r.id
+     ORDER BY ur.user_id, r.code`,
+  );
+  const rolesByUser = {};
+  (roleRows || []).forEach((rr) => {
+    if (!rolesByUser[rr.user_id]) rolesByUser[rr.user_id] = [];
+    rolesByUser[rr.user_id].push(rr.code);
+  });
   return rows.map((u) => ({
     id: u.id,
     username: u.username,
     status: u.status,
+    roles: rolesByUser[u.id] || [],
     mustChangePassword: Number(u.must_change_password || 0) === 1,
     lastLoginAt: u.last_login_at || null,
     passwordUpdatedAt: u.password_updated_at || null,

@@ -76,3 +76,9 @@ export function setPlanTab(v) {
 export function setIncomeLoaded(v) {
   incomeLoaded = v;
 }
+
+// 支付数据暂存（navigateTo 携带参数）
+export let _paymentData = null;
+export function setPaymentData(v) {
+  _paymentData = v;
+}

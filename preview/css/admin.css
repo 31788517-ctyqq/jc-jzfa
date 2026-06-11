@@ -1,0 +1,190 @@
+/* ═══════════════════════════════════════════════════════
+   管理后台 — 暗色主题样式 (admin.css)
+   前缀 adm- 避免与 payments.css .admin-* 冲突
+   ═══════════════════════════════════════════════════════ */
+
+.adm-wrap { padding: 0 var(--page-px, 16px) 24px; max-width: 440px; margin: 0 auto; }
+
+/* ── Tab 栏 ── */
+.adm-tabs {
+  display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  border-bottom: 1px solid var(--card-border); margin-bottom: 16px;
+  scrollbar-width: none;
+}
+.adm-tabs::-webkit-scrollbar { display: none; }
+.adm-tab {
+  flex: 0 0 auto; padding: 10px 16px; font-size: 13px; color: var(--text2);
+  border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap;
+  min-height: 44px; display: flex; align-items: center; gap: 6px;
+  transition: color .2s, border-color .2s;
+}
+.adm-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+
+/* ── 概览统计卡片 ── */
+.adm-stats { display: flex; gap: 8px; margin-bottom: 16px; }
+.adm-stat {
+  flex: 1; background: var(--card); border: 1px solid var(--card-border);
+  border-radius: var(--radius, 12px); padding: 12px 8px; text-align: center;
+  min-width: 0;
+}
+.adm-stat-num { font-size: 20px; font-weight: 700; color: var(--cyan); line-height: 1.2; }
+.adm-stat-lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+/* ── 搜索/筛选栏 ── */
+.adm-filter {
+  display: flex; gap: 8px; margin-bottom: 12px; position: sticky; top: 0;
+  z-index: 10; background: var(--bg); padding: 8px 0;
+}
+.adm-search {
+  flex: 1; background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 13px;
+  outline: none; min-height: 44px;
+}
+.adm-search::placeholder { color: var(--text3); }
+.adm-select {
+  background: var(--card); border: 1px solid var(--card-border); border-radius: 8px;
+  padding: 8px 10px; color: var(--text); font-size: 13px; min-height: 44px;
+}
+
+/* ── 列表卡片 ── */
+.adm-list { display: flex; flex-direction: column; gap: 8px; }
+.adm-card {
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: var(--radius, 12px); padding: 12px; position: relative;
+}
+.adm-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.adm-card-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.adm-card-sub { font-size: 12px; color: var(--text2); line-height: 1.6; }
+.adm-card-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+
+/* ── 角色标签 ── */
+.adm-role {
+  display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px;
+  font-weight: 500; line-height: 1.4;
+}
+.adm-role-super_admin { background: rgba(184, 112, 112, .2); color: var(--red); }
+.adm-role-ops_admin { background: rgba(184, 154, 96, .2); color: var(--amber); }
+.adm-role-analyst { background: rgba(126, 166, 189, .2); color: var(--cyan); }
+.adm-role-viewer { background: rgba(88, 101, 117, .2); color: var(--text2); }
+
+/* ── 状态标签 ── */
+.adm-status {
+  display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px;
+  font-weight: 500;
+}
+.adm-status-active { background: rgba(122, 170, 150, .2); color: var(--green); }
+.adm-status-disabled { background: rgba(184, 112, 112, .2); color: var(--red); }
+.adm-status-locked { background: rgba(184, 154, 96, .2); color: var(--amber); }
+.adm-status-pending, .adm-status-submitted { background: rgba(184, 154, 96, .2); color: var(--amber); }
+.adm-status-paid { background: rgba(122, 170, 150, .2); color: var(--green); }
+.adm-status-rejected { background: rgba(184, 112, 112, .2); color: var(--red); }
+.adm-status-expiring_soon { background: rgba(184, 154, 96, .2); color: var(--amber); }
+.adm-status-expired { background: rgba(88, 101, 117, .2); color: var(--text3); }
+
+/* ── 按钮 ── */
+.adm-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 36px; padding: 6px 14px; border-radius: 8px; font-size: 12px;
+  font-weight: 500; cursor: pointer; border: none; transition: opacity .2s;
+}
+.adm-btn:active { opacity: .7; }
+.adm-btn-primary { background: var(--cyan); color: #111; }
+.adm-btn-danger { background: var(--red); color: #fff; }
+.adm-btn-ghost {
+  background: transparent; color: var(--cyan);
+  border: 1px solid var(--card-border);
+}
+.adm-btn-sm { min-height: 30px; padding: 4px 10px; font-size: 11px; }
+
+/* ── 快捷操作栏 ── */
+.adm-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+/* ── Bottom Sheet 弹窗 ── */
+.adm-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 999;
+  display: flex; align-items: flex-end; justify-content: center;
+  animation: adm-fade-in .2s;
+}
+.adm-sheet {
+  width: 100%; max-width: 440px; max-height: 80vh; overflow-y: auto;
+  background: var(--bg2, #16202b); border-radius: 16px 16px 0 0;
+  padding: 20px var(--page-px, 16px) 32px;
+  animation: adm-slide-up .25s ease-out;
+}
+.adm-sheet-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 16px; }
+.adm-sheet-close {
+  position: absolute; top: 12px; right: 16px; font-size: 20px; color: var(--text2);
+  cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+}
+
+@keyframes adm-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes adm-slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* ── 表单元素 ── */
+.adm-input {
+  width: 100%; background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 14px;
+  outline: none; box-sizing: border-box; min-height: 44px;
+}
+.adm-input:focus { border-color: var(--cyan); }
+.adm-label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+.adm-form-group { margin-bottom: 14px; }
+
+.adm-checkbox-row {
+  display: flex; align-items: center; gap: 8px; padding: 10px 0;
+  min-height: 44px; border-bottom: 1px solid var(--card-border);
+  cursor: pointer;
+}
+.adm-checkbox-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--cyan); }
+
+/* ── Toast 提示 ── */
+.adm-toast {
+  position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+  background: var(--card); border: 1px solid var(--card-border);
+  color: var(--text); padding: 10px 20px; border-radius: 8px; font-size: 13px;
+  z-index: 9999; animation: adm-fade-in .2s;
+  box-shadow: 0 4px 20px rgba(0,0,0,.4);
+}
+
+/* ── 系统状态看板 ── */
+.adm-health-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--card-border);
+  font-size: 13px;
+}
+.adm-health-name { color: var(--text); flex: 1; }
+.adm-health-rate { font-weight: 600; width: 50px; text-align: right; }
+.adm-health-time { color: var(--text3); font-size: 11px; margin-left: 8px; width: 70px; text-align: right; }
+.adm-health-ok { color: var(--green); }
+.adm-health-warn { color: var(--amber); }
+.adm-health-err { color: var(--red); }
+
+/* ── 错误日志 ── */
+.adm-log-item {
+  font-size: 12px; color: var(--text2); padding: 6px 0;
+  border-bottom: 1px solid var(--card-border);
+  word-break: break-all; line-height: 1.5;
+}
+
+/* ── 手动赠订/表单行 ── */
+.adm-form-inline {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+.adm-form-inline .adm-input { flex: 1; min-width: 80px; }
+.adm-form-inline .adm-select { flex: 0 0 auto; }
+.adm-msg { font-size: 12px; margin-top: 8px; min-height: 1.2em; }
+.adm-msg-ok { color: var(--green); }
+.adm-msg-err { color: var(--red); }
+
+/* ── 加载中 ── */
+.adm-loading { text-align: center; padding: 40px 0; color: var(--text3); font-size: 13px; }
+
+/* 临时密码弹窗高亮 */
+.adm-temp-pw {
+  background: var(--card); border: 2px solid var(--amber);
+  border-radius: 8px; padding: 16px; text-align: center; margin: 16px 0;
+}
+.adm-temp-pw code {
+  display: block; font-size: 22px; font-weight: 700; color: var(--amber);
+  letter-spacing: 2px; margin: 8px 0;
+}

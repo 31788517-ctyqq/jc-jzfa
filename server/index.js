@@ -2294,6 +2294,58 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           }
         }
 
+        case 'error-log-summary': {
+          // ★ 管理后台: 最近错误日志摘要（读 winston error 日志尾部，脱敏返回）
+          try {
+            const fs = require('fs');
+            const limit = Math.min(Number(data.limit) || 5, 20);
+            const logDir = path.join(__dirname, '..', 'logs');
+            const today = new Date();
+            const entries = [];
+            // 最多回看 3 天的 error-YYYY-MM-DD.log，凑够 limit 条为止
+            for (let d = 0; d < 3 && entries.length < limit; d++) {
+              const day = new Date(today.getTime() - d * 86400000);
+              const tag =
+                day.getFullYear() +
+                '-' +
+                String(day.getMonth() + 1).padStart(2, '0') +
+                '-' +
+                String(day.getDate()).padStart(2, '0');
+              const file = path.join(logDir, 'error-' + tag + '.log');
+              if (!fs.existsSync(file)) continue;
+              const lines = fs.readFileSync(file, 'utf8').trim().split('\n').filter(Boolean);
+              for (let i = lines.length - 1; i >= 0 && entries.length < limit; i--) {
+                // 脱敏: token/密码字段抹除 + 单条截断 300 字符
+                const safe = lines[i]
+                  .replace(/(token|password|secret|key)["']?\s*[:=]\s*["']?[\w-]+/gi, '$1=***')
+                  .slice(0, 300);
+                entries.push(safe);
+              }
+            }
+            return res.json({ code: 1, data: { errors: entries } });
+          } catch (e) {
+            return res.json({ code: 0, msg: '读取错误日志失败: ' + e.message });
+          }
+        }
+
+        case 'refresh-predictions': {
+          // ★ 管理后台: 手动触发 AI 预测重跑（异步启动，立即返回）
+          try {
+            const aiDaemon = require('./ai_daemon');
+            logger.info('[api] 手动触发 AI 预测重跑 (dailyBatch)...');
+            Promise.resolve(aiDaemon.dailyBatch())
+              .then(function () {
+                logger.info('[api] refresh-predictions 完成');
+              })
+              .catch(function (e) {
+                logger.error('[api] refresh-predictions 失败: ' + e.message);
+              });
+            return res.json({ code: 1, data: { hint: 'AI 预测重跑已启动，预计数分钟后完成' } });
+          } catch (e) {
+            return res.json({ code: 0, msg: '触发 AI 预测失败: ' + e.message });
+          }
+        }
+
         case 'refill-expert-consensus': {
           // ★ V9.1: 删除旧专家共识记录 + 重新回填（进程内执行，避免子进程DB冲突）
           try {

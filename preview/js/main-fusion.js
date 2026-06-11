@@ -803,6 +803,15 @@ function _ensurePage(id) {
         '</div>' +
         '<div class="scheme-stats-card" id="dhStatsCard"><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatSources">-</div><div class="scheme-stat-lbl">数据源</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatAvgRate">-</div><div class="scheme-stat-lbl">平均成功率</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatAlerts">-</div><div class="scheme-stat-lbl">活跃告警</div></div></div>' +
         '<div id="data-health-content"></div>';
+    // ★ Phase 4: 支付体系页面容器
+    else if (id === 'pricing') el.innerHTML = '<div id="pricingContent"></div>';
+    else if (id === 'payment') el.innerHTML = '<div id="paymentContent"></div>';
+    else if (id === 'payment-result') el.innerHTML = '<div id="paymentResultContent"></div>';
+    else if (id === 'subscription') el.innerHTML = '<div id="subscriptionContent"></div>';
+    else if (id === 'referral') el.innerHTML = '<div id="referralContent"></div>';
+    else if (id === 'admin-payments') el.innerHTML = '<div id="adminPaymentsContent"></div>';
+    else if (id === 'admin-referrals') el.innerHTML = '<div id="adminReferralsContent"></div>';
+    else if (id === 'admin') el.innerHTML = '<div id="adminContent"></div>';
   }
   return el;
 }
@@ -815,6 +824,15 @@ export function switchTab(tab) {
       sessionStorage.setItem('pendingPlanTab', 'my');
     } catch (e) {}
     switchTab('plan');
+    return;
+  }
+
+  // ★ 管理后台: 旧入口重定向到统一后台对应 Tab
+  if (tab === 'admin-payments' || tab === 'admin-referrals') {
+    try {
+      sessionStorage.setItem('pendingAdminTab', tab === 'admin-payments' ? 'payments' : 'referrals');
+    } catch (e) {}
+    switchTab('admin');
     return;
   }
 
@@ -853,19 +871,30 @@ export function switchTab(tab) {
     'confirm-scheme': '确认方案',
     'model-dashboard': '模型表现仪表板',
     'data-health': '数据健康监控',
+    'pricing': '选择套餐',
+    'payment': '确认支付',
+    'payment-result': '支付结果',
+    'subscription': '我的订阅',
+    'referral': '返利中心',
+    'admin-payments': '支付管理',
+    'admin-referrals': '返利管理',
+    'admin': '管理后台',
   };
   var titleEl = document.getElementById('navTitle');
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
   var backEl = document.getElementById('navBack');
   // 登录页与首页隐藏返回键
-  if (backEl) backEl.style.display = tab !== 'home' && tab !== 'login' && tab !== 'account-security' ? 'flex' : 'none';
+  if (backEl) backEl.style.display = tab !== 'home' && tab !== 'login' && tab !== 'account-security' && tab !== 'profile'
+    && tab !== 'pricing' && tab !== 'payment-result' ? 'flex' : 'none';
   var navbarEl = document.getElementById('navbar');
   if (navbarEl) {
     navbarEl.classList.toggle('home-mode', tab === 'home');
-    navbarEl.style.display = tab === 'login' || tab === 'account-security' ? 'none' : 'flex';
+    navbarEl.style.display = tab === 'login' || tab === 'account-security' || tab === 'profile'
+      || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' ? 'none' : 'flex';
   }
   var tabbarEl = document.querySelector('.tabbar');
-  if (tabbarEl) tabbarEl.style.display = tab === 'login' || tab === 'account-security' ? 'none' : 'flex';
+  if (tabbarEl) tabbarEl.style.display = tab === 'login' || tab === 'account-security' || tab === 'profile'
+    || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' ? 'none' : 'flex';
 
 
   if (tab === 'login') {
@@ -982,7 +1011,54 @@ export function switchTab(tab) {
       m.loadDataHealth();
     });
   }
+  // ★ Phase 4 支付体系页面
+  if (tab === 'pricing') {
+    _mod('pricing').then(function (m) {
+      m.loadPricing(document.getElementById('pricingContent'));
+    });
+  }
+  if (tab === 'payment') {
+    _mod('payment').then(function (m) {
+      m.loadPayment(document.getElementById('paymentContent'), state._paymentData || {});
+    });
+  }
+  if (tab === 'payment-result') {
+    _mod('payment-result').then(function (m) {
+      m.loadPaymentResult(document.getElementById('paymentResultContent'));
+    });
+  }
+  if (tab === 'subscription') {
+    _mod('subscription').then(function (m) {
+      m.loadSubscription(document.getElementById('subscriptionContent'));
+    });
+  }
+  if (tab === 'referral') {
+    _mod('referral').then(function (m) {
+      m.loadReferral(document.getElementById('referralContent'));
+    });
+  }
+  if (tab === 'admin-payments') {
+    _mod('admin-payments').then(function (m) {
+      m.loadAdminPayments(document.getElementById('adminPaymentsContent'));
+    });
+  }
+  if (tab === 'admin-referrals') {
+    _mod('admin-referrals').then(function (m) {
+      m.loadAdminReferrals(document.getElementById('adminReferralsContent'));
+    });
+  }
+  if (tab === 'admin') {
+    _mod('admin').then(function (m) {
+      m.loadAdmin(document.getElementById('adminContent'));
+    });
+  }
 }
+
+// ★ Phase 4: 页面导航辅助（支持传递参数）
+window.navigateTo = function (tab, data) {
+  if (data) state._paymentData = data;
+  switchTab(tab);
+};
 
 export function goBack() {
   switchTab(state.lastPage);
@@ -1187,6 +1263,14 @@ function switchTabLoad(tab) {
     'confirm-scheme': '确认方案',
     'model-dashboard': '模型表现仪表板',
     'data-health': '数据健康监控',
+    'pricing': '选择套餐',
+    'payment': '确认支付',
+    'payment-result': '支付结果',
+    'subscription': '我的订阅',
+    'referral': '返利中心',
+    'admin-payments': '支付管理',
+    'admin-referrals': '返利管理',
+    'admin': '管理后台',
   };
   var titleEl = document.getElementById('navTitle');
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
@@ -1200,12 +1284,14 @@ function switchTabLoad(tab) {
 
   // 设置返回按钮显示
   var backEl = document.getElementById('navBack');
-  // 登录页与首页隐藏返回键
-  if (backEl) backEl.style.display = tab !== 'home' && tab !== 'login' && tab !== 'account-security' ? 'flex' : 'none';
+  if (backEl) backEl.style.display = tab !== 'home' && tab !== 'login' && tab !== 'account-security' && tab !== 'profile'
+    && tab !== 'pricing' && tab !== 'payment-result' ? 'flex' : 'none';
   var navbarEl = document.getElementById('navbar');
-  if (navbarEl) navbarEl.style.display = tab === 'login' || tab === 'account-security' ? 'none' : 'flex';
+  if (navbarEl) navbarEl.style.display = tab === 'login' || tab === 'account-security' || tab === 'profile'
+    || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' ? 'none' : 'flex';
   var tabbarEl = document.querySelector('.tabbar');
-  if (tabbarEl) tabbarEl.style.display = tab === 'login' || tab === 'account-security' ? 'none' : 'flex';
+  if (tabbarEl) tabbarEl.style.display = tab === 'login' || tab === 'account-security' || tab === 'profile'
+    || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' ? 'none' : 'flex';
 
 
   if (tab === 'login') {
@@ -1312,6 +1398,47 @@ function switchTabLoad(tab) {
       m.loadDataHealth();
     });
   }
+  // ★ Phase 4 支付体系页面
+  if (tab === 'pricing') {
+    _mod('pricing').then(function (m) {
+      m.loadPricing(document.getElementById('pricingContent'));
+    });
+  }
+  if (tab === 'payment') {
+    _mod('payment').then(function (m) {
+      m.loadPayment(document.getElementById('paymentContent'), state._paymentData || {});
+    });
+  }
+  if (tab === 'payment-result') {
+    _mod('payment-result').then(function (m) {
+      m.loadPaymentResult(document.getElementById('paymentResultContent'));
+    });
+  }
+  if (tab === 'subscription') {
+    _mod('subscription').then(function (m) {
+      m.loadSubscription(document.getElementById('subscriptionContent'));
+    });
+  }
+  if (tab === 'referral') {
+    _mod('referral').then(function (m) {
+      m.loadReferral(document.getElementById('referralContent'));
+    });
+  }
+  if (tab === 'admin-payments') {
+    _mod('admin-payments').then(function (m) {
+      m.loadAdminPayments(document.getElementById('adminPaymentsContent'));
+    });
+  }
+  if (tab === 'admin-referrals') {
+    _mod('admin-referrals').then(function (m) {
+      m.loadAdminReferrals(document.getElementById('adminReferralsContent'));
+    });
+  }
+  if (tab === 'admin') {
+    _mod('admin').then(function (m) {
+      m.loadAdmin(document.getElementById('adminContent'));
+    });
+  }
 }
 
 // 命中率页面重试事件监听
@@ -1319,4 +1446,15 @@ document.addEventListener('retryHitRate', function () {
   _mod('hit-rate').then(function (m) {
     m.loadHitRate();
   });
+});
+
+// ★ Phase 4: 订阅付费引导弹窗
+document.addEventListener('subscription:required', function (e) {
+  var detail = e.detail || {};
+  var redirect = detail.redirect || 'pricing';
+  var msg = detail.msg || '此功能需要订阅会员';
+  var ok = confirm(msg + '\n\n是否查看套餐？');
+  if (ok && typeof switchTab === 'function') {
+    switchTab(redirect);
+  }
 });

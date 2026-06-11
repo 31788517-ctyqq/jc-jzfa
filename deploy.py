@@ -115,6 +115,7 @@ DEPLOY_MAP = [
     ('preview/js/pages/ranking.js',       'both'),
     ('preview/js/pages/income.js',        'both'),
     ('preview/js/pages/plans.js',         'both'),
+    ('preview/js/pages/my-plan.js',       'both'),  # ★ 我的方案页
     ('preview/js/pages/hit-rate.js',      'both'),
     ('preview/js/pages/filter.js',        'both'),
     ('preview/js/pages/gongshoudao.js',   'both'),
@@ -124,9 +125,21 @@ DEPLOY_MAP = [
     ('preview/js/pages/confirm-scheme.js','both'),  # ★ 确认方案页
     ('preview/js/pages/login.js',          'both'),  # ★ V9: 登录页
     ('preview/js/pages/account-security.js','both'), # ★ V9: 账号安全页
+    ('preview/js/pages/profile.js',        'both'),  # ★ V9: 个人主页
     # ★ 蓝图 V8.2 新增前端页面
     ('preview/js/pages/model-dashboard.js','both'), # ★ 模型仪表板
     ('preview/js/pages/data-health.js', 'both'),    # ★ 数据健康监控
+    # ★ Phase 4 支付体系前端页面
+    ('preview/js/pages/pricing.js',        'both'),
+    ('preview/js/pages/payment.js',        'both'),
+    ('preview/js/pages/payment-result.js', 'both'),
+    ('preview/js/pages/subscription.js',   'both'),
+    ('preview/js/pages/referral.js',       'both'),
+    ('preview/js/pages/admin-payments.js', 'both'),
+    ('preview/js/pages/admin-referrals.js','both'),
+    ('preview/js/pages/admin.js',         'both'),  # ★ 统一管理后台
+    ('preview/css/payments.css',           'both'),
+    ('preview/css/admin.css',              'both'),  # ★ 管理后台样式
     ('preview/js/charts.js',              'both'),
     ('preview/js/api.js',                 'both'),
     ('preview/js/auth-client.js',         'both'),  # ★ V9: 认证客户端（main-fusion.js import）
@@ -170,6 +183,22 @@ DEPLOY_MAP = [
     ('server/gongshoudao/fetch.js',       'both'),
     ('server/gongshoudao/model-weights.js','both'),
     ('server/gongshoudao/cache_manager.js','both'),
+    # ★ Phase 4 支付体系服务端
+    ('server/payments/index.js',           'both'),
+    ('server/payments/schema.js',          'both'),
+    ('server/payments/plans.js',           'both'),
+    ('server/payments/orders.js',          'both'),
+    ('server/payments/subscriptions.js',   'both'),
+    ('server/payments/subscription-guard.js','both'),
+    ('server/payments/alipay.js',          'both'),
+    ('server/payments/alipay-callback.js', 'both'),
+    ('server/payments/renewal-scheduler.js','both'),
+    ('server/payments/referral-compute.js','both'),
+    ('server/payments/referral-account.js','both'),
+    ('server/payments/referral-anti-fraud.js','both'),
+    # ★ Phase 3: 路由拆分
+    ('server/routes/auth.js',             'both'),
+    ('server/routes/users.js',            'both'),
     ('server/core/plan-generator.js',     'both'),
     ('server/core/sp_data_adapter.js',      'both'),  # ★ V9: SP官方数据统一访问层
     # ★ v3 核心模块（index.js 直接 require，遗漏会导致运行时崩溃）
