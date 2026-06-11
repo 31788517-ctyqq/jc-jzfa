@@ -1056,7 +1056,7 @@ export function switchTab(tab) {
 
 // ★ Phase 4: 页面导航辅助（支持传递参数）
 window.navigateTo = function (tab, data) {
-  if (data) state._paymentData = data;
+  if (data) state.setPaymentData(data);
   switchTab(tab);
 };
 
