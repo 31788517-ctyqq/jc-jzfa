@@ -37,6 +37,7 @@ let _gsCacheData = null;
 let _gsCacheTime = 0;
 const { getDeltaHistory } = require('./core/odds-tracker');
 const spAdapter = require('./core/sp_data_adapter'); // ★ V9: SP官方数据统一访问
+const payments = require('./payments/index');   // ★ V9.1: 支付/订阅/返利模块
 
 // ── 函数别名（保持 POST /api 路由中引用兼容） ──
 const localDate = cacheModule.localDate;
@@ -6478,6 +6479,32 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           }
         }
 
+        // ★ V9.1: 支付/订阅/返利 action 拦截（由 server/payments/index.js 统一处理）
+        case 'payment-create-order':
+        case 'payment-query-order':
+        case 'plan-catalog':
+        case 'subscription-status':
+        case 'subscription-renew':
+        case 'subscription-cancel-auto-renew':
+        case 'subscription-enable-auto-renew':
+        case 'admin-subscription-list':
+        case 'admin-grant-subscription':
+        case 'referral-info':
+        case 'referral-account':
+        case 'referral-commissions':
+        case 'referral-withdraw-submit':
+        case 'referral-withdraw-history':
+        case 'simulate-pay':
+        case 'admin-referral-commissions':
+        case 'admin-referral-accounts':
+        case 'admin-referral-withdraw-list':
+        case 'admin-referral-withdraw-process': {
+          // 将 authSession 注入 req，供 payments模块复用
+          req.authSession = authSession;
+          const handled = await payments.handleAction(action, req, res);
+          if (handled !== false) return;
+        }
+
         default:
           return res.json({ code: 0, msg: `未知 action: ${action}` });
       }
@@ -6955,6 +6982,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   } catch (e) {
     logger.warn('[cache-warmer] 加载失败: ' + e.message);
   }
+
+  // 初始化支付/订阅/返利模块
+  try { payments.initPayments(); } catch (e) { logger.warn('[startup] payments init 失败: ' + e.message); }
 
   server.listen(PORT, () => {
     const banner = [
