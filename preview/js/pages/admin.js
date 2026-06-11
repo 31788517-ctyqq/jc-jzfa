@@ -11,6 +11,52 @@ import { getAuthSession } from '../auth-client.js';
 var _currentTab = 'users';
 var _container = null;
 var _allUsers = [];
+var _slCssReady = false;
+
+// 局部加载 Shoelace dark.css（仅注入 adminContent 的 Shadow DOM，不影响主站）
+function _ensureSlCss() {
+  if (_slCssReady) return;
+  _slCssReady = true;
+  var id = 'sl-dark-css-inline';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    ':root, :host, .sl-theme-dark { color-scheme: dark;' +
+    '--sl-color-gray-50:rgb(248 250 252);--sl-color-gray-100:rgb(241 245 249);' +
+    '--sl-color-gray-200:rgb(226 232 240);--sl-color-gray-300:rgb(203 213 225);' +
+    '--sl-color-gray-400:rgb(148 163 184);--sl-color-gray-500:rgb(100 116 139);' +
+    '--sl-color-gray-600:rgb(71 85 105);--sl-color-gray-700:rgb(51 65 85);' +
+    '--sl-color-gray-800:rgb(30 41 59);--sl-color-gray-900:rgb(15 23 42);' +
+    '--sl-color-gray-950:rgb(2 6 23);' +
+    '--sl-color-primary-50:rgb(236 253 255);--sl-color-primary-100:rgb(207 250 254);' +
+    '--sl-color-primary-200:rgb(165 243 252);--sl-color-primary-300:rgb(103 232 249);' +
+    '--sl-color-primary-400:rgb(34 211 238);--sl-color-primary-500:rgb(6 182 212);' +
+    '--sl-color-primary-600:rgb(8 145 178);--sl-color-primary-700:rgb(14 116 144);' +
+    '--sl-color-primary-800:rgb(21 94 117);--sl-color-primary-900:rgb(22 78 99);' +
+    '--sl-color-primary-950:rgb(8 51 68);' +
+    '--sl-color-success-50:rgb(240 253 244);--sl-color-success-400:rgb(74 222 128);' +
+    '--sl-color-success-500:rgb(34 197 94);--sl-color-success-600:rgb(22 163 74);' +
+    '--sl-color-warning-50:rgb(254 252 232);--sl-color-warning-400:rgb(250 204 21);' +
+    '--sl-color-warning-500:rgb(234 179 8);--sl-color-warning-600:rgb(202 138 4);' +
+    '--sl-color-danger-50:rgb(254 242 242);--sl-color-danger-400:rgb(248 113 113);' +
+    '--sl-color-danger-500:rgb(239 68 68);--sl-color-danger-600:rgb(220 38 38);' +
+    '--sl-color-neutral-50:rgb(250 250 250);--sl-color-neutral-100:rgb(245 245 245);' +
+    '--sl-color-neutral-200:rgb(229 229 229);--sl-color-neutral-300:rgb(212 212 212);' +
+    '--sl-color-neutral-400:rgb(163 163 163);--sl-color-neutral-500:rgb(115 115 115);' +
+    '--sl-color-neutral-600:rgb(82 82 82);--sl-color-neutral-700:rgb(64 64 64);' +
+    '--sl-color-neutral-800:rgb(38 38 38);--sl-color-neutral-900:rgb(23 23 23);' +
+    '--sl-color-neutral-950:rgb(10 10 10);' +
+    '--sl-color-text:var(--sl-color-neutral-100);--sl-color-bg:var(--sl-color-neutral-950);' +
+    '--sl-border-radius-medium:8px;--sl-border-radius-large:12px;--sl-border-radius-x-large:16px;' +
+    '--sl-input-border-color:var(--sl-color-neutral-700);--sl-input-background-color:var(--sl-color-neutral-900);' +
+    '--sl-input-color:var(--sl-color-neutral-100);' +
+    '--sl-panel-background-color:var(--sl-color-neutral-900);--sl-panel-border-color:var(--sl-color-neutral-800);' +
+    '--sl-overlay-background-color:rgb(0 0 0 / 60%);' +
+    '--sl-tooltip-background-color:var(--sl-color-neutral-800);--sl-tooltip-color:var(--sl-color-neutral-100);' +
+    '}';
+  document.head.appendChild(style);
+}
 
 // ── 工具 ──
 function _isAdmin() {
@@ -43,6 +89,7 @@ function _statusBadge(s) {
 // ── 主入口 ──
 export function loadAdmin(container) {
   _container = container;
+  _ensureSlCss(); // 局部注入 Shoelace 暗色主题变量
   if (!_isAdmin()) {
     _toast('无权限', 'danger');
     if (typeof window.switchTab === 'function') window.switchTab('home');
@@ -52,7 +99,7 @@ export function loadAdmin(container) {
   try { var p = sessionStorage.getItem('pendingAdminTab'); if (p) { tab = p; sessionStorage.removeItem('pendingAdminTab'); } } catch(e){}
 
   container.innerHTML =
-    '<div class="adm-wrap">' +
+    '<div class="adm-wrap sl-theme-dark">' +
     '<sl-tab-group id="admTabs" placement="top" activation="auto" no-scroll-controls>' +
     '<sl-tab slot="nav" panel="users" '   + (tab==='users'?' active':'') + '><sl-icon name="people-fill"></sl-icon> 用户</sl-tab>' +
     '<sl-tab slot="nav" panel="payments"' + (tab==='payments'?' active':'') + '><sl-icon name="credit-card"></sl-icon> 订阅</sl-tab>' +

@@ -61,8 +61,9 @@ describe('用户登录全方位测试', () => {
       expect(lg).toContain('function setPassVisible');
     });
 
-    it('1.8 Enter 键触发登录', () => {
+    it('1.8 Enter 键触发登录（onkeydown 监听）', () => {
       expect(lg).toContain("e.key === 'Enter'");
+      expect(lg).toContain('onkeydown');
     });
 
     it('1.9 空账号/密码校验', () => {

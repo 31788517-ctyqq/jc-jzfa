@@ -1,0 +1,46 @@
+{
+  "inputs": {
+    "model": "claude-opus-4-8",
+    "group": "default",
+    "temperature": 0.7,
+    "top_p": 1,
+    "max_tokens": 4096,
+    "frequency_penalty": 0,
+    "presence_penalty": 0,
+    "seed": null,
+    "stream": true,
+    "imageEnabled": true,
+    "imageUrls": [
+      ""
+    ]
+  },
+  "parameterEnabled": {
+    "temperature": false,
+    "top_p": true,
+    "max_tokens": false,
+    "frequency_penalty": true,
+    "presence_penalty": false,
+    "seed": false
+  },
+  "showDebugPanel": false,
+  "customRequestMode": false,
+  "customRequestBody": "",
+  "messages": [
+    {
+      "role": "user",
+      "id": "2",
+      "createAt": 1715676751919,
+      "content": "你好"
+    },
+    {
+      "role": "assistant",
+      "id": "3",
+      "createAt": 1715676751919,
+      "content": "你好！有什么我可以帮助你的吗？",
+      "reasoningContent": "",
+      "isReasoningExpanded": false
+    }
+  ],
+  "exportTime": "2026-06-11T09:21:12.013Z",
+  "version": "1.0"
+}
