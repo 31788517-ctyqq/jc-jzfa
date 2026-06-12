@@ -874,12 +874,13 @@ function syncLiveToData(liveMatches) {
       }
       if (old) {
         // ★ 已完赛的比赛不因 matchStatus=0 而回退
-        var liveStatus = old.matchStatus >= 2 && lm.matchStatus === 0 ? old.matchStatus : lm.matchStatus;
-        // ★ P1-3 修复：duration 为分钟数（如"27'"）但 API 误报 matchStatus≥2 时，强制保持赛中状态
-        var durNum = parseInt(lm.duration) || 0;
-        if (liveStatus >= 2 && durNum > 0 && durNum < 90) {
-          liveStatus = 1; // 比赛未满90分钟则不视为已结束
+        //    BUT: 如果是有比分但在赛中/未开始（no duration），不信任历史 status=2
+        //    半场时 API 可能误判为结束，比分+无 duration 说明仍在进行
+        var keepOld = old.matchStatus >= 2 && lm.matchStatus === 0;
+        if (keepOld && lm.score && !lm.duration) {
+          keepOld = false; // 半场误判修护：有比分但无 duration → 不锁定为完成
         }
+        var liveStatus = keepOld ? old.matchStatus : lm.matchStatus;
         if (
           old.matchStatus !== liveStatus ||
           old.score !== lm.score ||

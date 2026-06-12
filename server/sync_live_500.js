@@ -275,7 +275,11 @@ function syncToDataJson(liveMatches, dateStr) {
     for (const [field, val] of Object.entries(fields)) {
       if (val !== undefined && val !== null && val !== '' && String(old[field]) !== String(val)) {
         // ★ 已完赛的比赛不因 matchStatus=0 而回退
-        if (field === 'matchStatus' && old.matchStatus >= 2 && val === 0) continue;
+        //    BUT: 有比分但无 duration → 半场误判修护
+        if (field === 'matchStatus' && old.matchStatus >= 2 && val === 0) {
+          if (old.score && !old.duration) { /* 半场误判，允许回退 */ }
+          else continue;
+        }
         old[field] = val;
         changed = true;
       }
