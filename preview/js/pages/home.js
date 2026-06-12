@@ -142,37 +142,22 @@ export function loadHome() {
 
 // ═══ 近7日推荐盈利 SVG 折线图 ═══
 function loadHomeProfitChart() {
-  var skel = document.getElementById('profitSkeleton');
-  if (skel) skel.style.display = 'block';
   api('daily-profit-7d', { days: 7 })
     .then(function (data) {
-      if (!data || !data.dates || !data.profits || data.dates.length === 0) {
-        hideSkel();
-        return;
-      }
+      if (!data || !data.dates || !data.profits || data.dates.length === 0) return;
       var dates = data.dates.slice(0, 7),
         profits = data.profits.slice(0, 7).map(function (v) {
           return v === null ? 0 : v;
         });
 
       // ★ 至少保留 2 个点才能画线
-      if (dates.length < 2) {
-        hideSkel();
-        return;
-      }
+      if (dates.length < 2) return;
 
-      hideSkel();
       renderProfitChartNative(dates, profits);
       var section = document.getElementById('homeProfitChartSection');
       if (section) section.style.display = 'block';
     })
-    .catch(function () {
-      hideSkel();
-    });
-  function hideSkel() {
-    var s = document.getElementById('profitSkeleton');
-    if (s) s.style.display = 'none';
-  }
+    .catch(function () {});
 }
 
 function renderProfitChartNative(dates, profits) {
