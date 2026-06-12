@@ -371,8 +371,8 @@ export function switchTab(tab) {
     plan: '今日方案',
     detail: '比赛详情',
     'quant-rank': '量化数据排行榜',
-    rank: '推荐排行榜',
-    hit: '命中率统计',
+    rank: '今日推荐榜',
+    hit: '命中率数据',
     filter: '命中率筛选',
     income: '方案收入',
   };

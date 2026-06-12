@@ -397,8 +397,8 @@ function switchTab(tab) {
     plan: '今日方案',
     detail: '比赛详情',
     'quant-rank': '量化数据排行榜',
-    rank: '推荐排行榜',
-    hit: '命中率统计',
+    rank: '今日推荐榜',
+    hit: '命中率数据',
     filter: '命中率筛选',
     income: '方案收入',
   };
@@ -879,7 +879,7 @@ function selectDirection(dir) {
   loadRanking();
 }
 
-// 命中率统计
+// 命中率数据
 function loadHitRate() {
   const el = document.getElementById('hitContent');
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
@@ -887,7 +887,7 @@ function loadHitRate() {
   api('hit-rate-stats', { days: 60 })
     .then((data) => {
       if (!data || !data.directionStats) {
-        el.innerHTML = '<div class="loading">命中率统计需要时间积累</div>';
+        el.innerHTML = '<div class="loading">命中率数据需要时间积累</div>';
         return;
       }
 
@@ -2168,9 +2168,9 @@ function loadPlanList() {
                   break;
                 }
               }
-              let subColor = '#fff';
+              let subCls = '';
               if (subR && subR.result !== null && subR.result !== undefined) {
-                subColor = subR.result === 1 ? '#EF4444' : '#22C55E';
+                subCls = subR.result === 1 ? ' plan-direction-hit' : ' plan-direction-miss';
               }
 
               let displayLabel = label;
@@ -2178,8 +2178,8 @@ function loadPlanList() {
                 displayLabel = displayLabel.replace('总进球-', '');
                 if (displayLabel.indexOf('球') < 0) displayLabel += '球';
               }
-              if (val) resolved.push('<span style=\"color:' + subColor + '\">' + displayLabel + '(' + val + ')</span>');
-              else resolved.push('<span style=\"color:' + subColor + '\">' + displayLabel + '(-)</span>');
+              if (val) resolved.push('<span class=\"' + subCls + '\">' + displayLabel + '(' + val + ')</span>');
+              else resolved.push('<span class=\"' + subCls + '\">' + displayLabel + '(-)</span>');
             });
             return resolved.join('<span style=\"color:#fff\"> + </span>');
           }
@@ -2244,7 +2244,7 @@ function loadPlanList() {
             '<div class="plan-amount-row">' +
             '<div class="plan-amount-col">' +
             '<div class="plan-amount-label">方案金额</div>' +
-            '<div class="plan-amount-value">' +
+            '<div class="plan-amount-value plan-money-value">' +
             amountVal +
             '<span class="unit">元</span></div>' +
             '</div>' +
@@ -2252,13 +2252,15 @@ function loadPlanList() {
             '<div class="plan-amount-label">' +
             prizeLabel +
             '</div>' +
-            '<div class="plan-amount-value">' +
+            '<div class="plan-amount-value plan-money-value">' +
             prizeVal +
             '<span class="unit">元</span></div>' +
             '</div>' +
             '<div class="plan-amount-col">' +
             '<div class="plan-amount-label">方案状态</div>' +
-            '<div class="plan-amount-value">' +
+            '<div class="plan-amount-value plan-status-' +
+            (isWon ? 'won' : isLose ? 'lost' : 'pending') +
+            '">' +
             (isWon ? '已中奖' : isLose ? '未中奖' : '未开奖') +
             '</div>' +
             '</div>' +
@@ -2453,7 +2455,7 @@ function loadScorePlanList() {
             '<div class="plan-amount-row">' +
             '<div class="plan-amount-col">' +
             '<div class="plan-amount-label">方案金额</div>' +
-            '<div class="plan-amount-value">' +
+            '<div class="plan-amount-value plan-money-value">' +
             amountVal +
             '<span class="unit">元</span></div>' +
             '</div>' +
@@ -2461,15 +2463,15 @@ function loadScorePlanList() {
             '<div class="plan-amount-label">' +
             prizeLabel +
             '</div>' +
-            '<div class="plan-amount-value" style="color: ' +
-            (isWon ? 'var(--red)' : 'var(--amber)') +
-            ';">' +
+            '<div class="plan-amount-value plan-money-value">' +
             prizeVal +
             '<span class="unit">元</span></div>' +
             '</div>' +
             '<div class="plan-amount-col">' +
             '<div class="plan-amount-label">方案状态</div>' +
-            '<div class="plan-amount-value">' +
+            '<div class="plan-amount-value plan-status-' +
+            (isWon ? 'won' : isLose ? 'lost' : 'pending') +
+            '">' +
             statusText +
             '</div>' +
             '</div>' +

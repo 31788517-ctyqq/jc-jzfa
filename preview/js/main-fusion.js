@@ -48,6 +48,17 @@ window.goDetail = function (id) {
       console.error('[JS] goDetail 失败:', e && e.message);
     });
 };
+window.openAI = function () {
+  var args = arguments;
+  _mod('match-detail')
+    .then(function (m) {
+      m.showAIPrediction.apply(null, args);
+    })
+    .catch(function (e) {
+      console.error('[JS] openAI 失败:', e && e.message);
+      alert('AI深度解析加载失败，请刷新页面后重试');
+    });
+};
 window.closeAI = function () {
   _mod('match-detail')
     .then(function (m) {
@@ -840,7 +851,7 @@ export function switchTab(tab) {
     return;
   }
 
-  var publicTabs = new Set(['login', 'register', 'contact-invite', 'pricing']);
+  var publicTabs = new Set(['login', 'register', 'contact-invite', 'pricing', 'profile']);
 
   if (!publicTabs.has(tab) && !hasAuthToken()) {
     try {
@@ -868,8 +879,8 @@ export function switchTab(tab) {
     plan: '今日方案',
     detail: '比赛详情',
     'quant-rank': '量化数据排行榜',
-    rank: '推荐排行榜',
-    hit: '命中率统计',
+    rank: '今日推荐榜',
+    hit: '命中率数据',
     filter: '推荐方向命中查询',
     income: '方案收入',
     backtest: '回测分析',
@@ -935,7 +946,6 @@ export function switchTab(tab) {
       tab === 'register' ||
       tab === 'contact-invite' ||
       tab === 'account-security' ||
-      tab === 'profile' ||
       tab === 'pricing' ||
       tab === 'payment' ||
       tab === 'payment-result' ||
@@ -1261,18 +1271,27 @@ window.onIncDirChange = function () {
 
   if (!hasAuthToken()) {
     // 未登录：公开页允许直接打开，其余页面登录后跳回
-    if (hashTab === 'login' || hashTab === 'register' || hashTab === 'contact-invite' || hashTab === 'pricing') {
+    if (hashTab === 'login' || hashTab === 'register' || hashTab === 'contact-invite' || hashTab === 'pricing' || hashTab === 'profile') {
       state.setCurrentPage(hashTab);
       switchTabLoad(hashTab);
       return;
     }
+    // ★ 未登录但有指定页面：记住目标页，先显示首页+Tabbar
     if (hashTab) {
       try {
         sessionStorage.setItem('pendingAfterLogin', hashTab);
       } catch (e) {}
     }
-    state.setCurrentPage('login');
-    switchTabLoad('login');
+    // ★ 修复：未登录默认显示首页+Tabbar，不强制跳转登录
+    document.getElementById('page-home').classList.add('active');
+    state.setCurrentPage('home');
+    loadHome();
+    // 显示底部导航
+    var tabbarEl2 = document.querySelector('.tabbar');
+    if (tabbarEl2) tabbarEl2.style.display = 'flex';
+    var navbarEl2 = document.getElementById('navbar');
+    if (navbarEl2) { navbarEl2.style.display = 'flex'; navbarEl2.classList.add('home-mode'); }
+    _preloadMods();
     return;
   }
 
@@ -1344,8 +1363,8 @@ function switchTabLoad(tab) {
     plan: '今日方案',
     detail: '比赛详情',
     'quant-rank': '量化数据排行榜',
-    rank: '推荐排行榜',
-    hit: '命中率统计',
+    rank: '今日推荐榜',
+    hit: '命中率数据',
     filter: '推荐方向命中查询',
     income: '方案收入',
     backtest: '回测分析',
@@ -1417,7 +1436,6 @@ function switchTabLoad(tab) {
       tab === 'register' ||
       tab === 'contact-invite' ||
       tab === 'account-security' ||
-      tab === 'profile' ||
       tab === 'pricing' ||
       tab === 'payment' ||
       tab === 'payment-result' ||
