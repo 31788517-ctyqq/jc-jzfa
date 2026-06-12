@@ -11,7 +11,7 @@ import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/matc
 var _modCache = {};
 function _mod(name) {
   if (_modCache[name]) return Promise.resolve(_modCache[name]);
-  return import('./pages/' + name + '.js?v=202606130336')
+  return import('./pages/' + name + '.js?v=202606130341')
 
     .then(function (m) {
       _modCache[name] = m;
@@ -20,7 +20,7 @@ function _mod(name) {
     .catch(function (e) {
       console.error('[JS] 模块加载失败: ' + name + ' - ' + (e && e.message));
       // 重试一次（可能是网络波动或文件刚部署）
-      return import('./pages/' + name + '.js?v=202606130336').then(function (m) {
+      return import('./pages/' + name + '.js?v=202606130341').then(function (m) {
         _modCache[name] = m;
         console.warn('[JS] 模块重试成功: ' + name);
         return m;

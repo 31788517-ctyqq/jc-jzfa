@@ -601,6 +601,11 @@ function gsBarOption(stats) {
     { name: '弱一致', total: (cs.weak && cs.weak.total) || 0, rate: (cs.weak && cs.weak.rate) || 0 },
     { name: '熔断', total: (cs.meltdown && cs.meltdown.total) || 0, rate: (cs.meltdown && cs.meltdown.rate) || 0 },
   ];
+  // ★ 全零数据兜底：DB 无 pk_fusion_consensus 字段时显示提示
+  var allZero = items.every(function (d) { return d.total === 0; });
+  if (allZero) {
+    return { title: { text: '暂无共识分类数据', subtext: 'prediction_logs 缺少 pk_fusion_consensus', left: 'center', top: 'center', textStyle: { color: '#64748B' }, subtextStyle: { color: '#475569', fontSize: 10 } } };
+  }
   var labels = items.map(function (d) {
     return d.name + '(' + d.total + '场)';
   });
