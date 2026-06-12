@@ -76,7 +76,7 @@ function ensureLoginRoot() {
     '<div id="loginMsg" class="auth-msg"></div>' +
     '<button id="loginBtn" class="filter-submit-btn auth-submit">登录</button>' +
     '<div class="auth-login-assist">' +
-    '<div class="auth-login-invite-note">注册采用邀请制，收到邀请码或邀请链接后即可完成注册</div>' +
+    '<div class="auth-login-invite-note">注册采用邀请制，<br>收到邀请码或邀请链接后即可完成注册</div>' +
     (invitedEntry
       ? ''
       : '<button id="loginNeedInviteBtn" class="auth-login-contact-link" type="button">没有邀请码？联系客服</button>') +

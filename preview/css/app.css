@@ -8910,6 +8910,9 @@ button[class*='btn'] {
 .auth-pass-wrap .auth-pass-input {
   padding-right: 8px;
 }
+.auth-pass-input::-ms-reveal,
+.auth-pass-input::-ms-clear,
+input[type="password"]::-webkit-credentials-auto-fill-button { display: none !important; }
 
 .auth-pass-toggle {
   position: relative;
@@ -12303,10 +12306,16 @@ button[class*='btn'] {
 }
 
 .profile-shell-v2 .profile-home-corner {
+  position: absolute;
   top: 18px;
   right: 16px;
-  width: 54px;
-  height: 54px;
+  width: auto;
+  height: auto;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
   border: 1px solid rgba(125, 148, 173, 0.18);
   background: rgba(255, 255, 255, 0.96);
   color: #49566a;
