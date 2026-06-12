@@ -11,6 +11,53 @@ var _multiplier = 2; // 倍数（竞彩规则：2-99倍）
 var PLAY_LIMITS = { spf: 8, rqspf: 8, jqs: 6, bf: 4, bqc: 4 };
 var PLAY_NAMES = { spf: '胜平负', rqspf: '让球胜平负', bf: '比分', jqs: '总进球', bqc: '半全场' };
 
+function getMatchHandicapValue(m, selection) {
+  var candidates = [
+    m && m._odds && m._odds.rqspf ? m._odds.rqspf.handicap : undefined,
+    m && m._odds ? m._odds.handicap : undefined,
+    m && m.odds && m.odds.rqspf ? m.odds.rqspf.handicap : undefined,
+    m && m.odds ? m.odds.handicap : undefined,
+    m ? m.handicap : undefined,
+    m ? m.rq : undefined,
+    m ? m.concede : undefined,
+    selection ? selection.handicap : undefined,
+  ];
+  for (var i = 0; i < candidates.length; i++) {
+    var raw = candidates[i];
+    if (raw === null || raw === undefined || raw === '') continue;
+    var num = Number(raw);
+    if (!isNaN(num)) return num;
+  }
+  return null;
+}
+
+function formatHandicapText(handicap) {
+  if (handicap === null || handicap === undefined || handicap === '') return '--';
+  var num = Number(handicap);
+  if (isNaN(num)) return '--';
+  if (num > 0) return '+' + num;
+  if (num < 0) return String(num);
+  return '0';
+}
+
+function renderConfirmTeams(m, selection) {
+  var score = m.actualScore || '';
+  var middle = score ? '<span class="plan-score-blue">' + score + '</span>' : '<span class="plan-team-vs">vs</span>';
+  var handicapText = formatHandicapText(getMatchHandicapValue(m, selection));
+  return (
+    '<span class="plan-team-home">' +
+    (m.homeName || '') +
+    '</span>' +
+    middle +
+    '<span class="plan-team-away">' +
+    (m.visitName || '') +
+    '</span>' +
+    '<span class="plan-handicap-badge">让球 ' +
+    handicapText +
+    '</span>'
+  );
+}
+
 function calcConfirmMaxPass() {
   var matchIds = {};
   _selections.forEach(function (s) {
@@ -153,8 +200,10 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
       var dirDisplay = s.direction || s.oddsName || '';
       var oddsStr = s.odds != null ? Number(s.odds).toFixed(2) : '--';
 
-      // 让球方向加前缀
-      if (s.playType === 'rqspf') dirDisplay = '让' + dirDisplay;
+      // 让球方向加前缀并补充让球数
+      if (s.playType === 'rqspf') {
+        dirDisplay = '让' + dirDisplay + '(' + formatHandicapText(getMatchHandicapValue(m, s)) + ')';
+      }
 
       // ★ 获取 Delta 方向
       var deltaArrow = '';
@@ -201,19 +250,12 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
       // 对阵列（仅第一行显示）
       matchRows += '<td class="team-col">';
       if (si === 0) {
-        matchRows +=
-          '<span class="plan-team-home">' +
-          (m.homeName || '') +
-          '</span>' +
-          '<span class="plan-team-vs">vs</span>' +
-          '<span class="plan-team-away">' +
-          (m.visitName || '') +
-          '</span>';
+        matchRows += renderConfirmTeams(m, s);
       }
       matchRows += '</td>';
 
       // 投注(赔率)列：每行显示一个方向 + Delta 箭头
-      matchRows += '<td class="odds-col">' + dirDisplay + ' ' + oddsStr + deltaArrow + '</td>';
+      matchRows += '<td class="odds-col">' + dirDisplay + '(' + oddsStr + ')' + deltaArrow + '</td>';
 
       // ★ 资金分配列
       var allocVal = s.allocation != null ? s.allocation : defaultAllocPerSel;
@@ -241,15 +283,15 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
   // 金额行（3列）
   html += '<div class="plan-amount-row">';
   html +=
-    '<div class="plan-amount-col"><div class="plan-amount-label">方案金额</div><div class="plan-amount-value">' +
+    '<div class="plan-amount-col"><div class="plan-amount-label">方案金额</div><div class="plan-amount-value plan-money-value">' +
     amount +
     '<span class="unit">元</span></div></div>';
   html +=
-    '<div class="plan-amount-col"><div class="plan-amount-label">预计奖金</div><div class="plan-amount-value">' +
+    '<div class="plan-amount-col"><div class="plan-amount-label">预计最高中奖金额</div><div class="plan-amount-value plan-money-value">' +
     maxWin +
     '<span class="unit">元</span></div></div>';
   html +=
-    '<div class="plan-amount-col"><div class="plan-amount-label">方案状态</div><div class="plan-amount-value" style="color:#FFC928;">待确认</div></div>';
+    '<div class="plan-amount-col"><div class="plan-amount-label">方案状态</div><div class="plan-amount-value plan-status-pending">未开奖</div></div>';
   html += '</div>';
 
   // 分割线
@@ -273,7 +315,7 @@ function renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelecti
   // 比赛表格
   html += '<div class="plan-match-section">';
   html +=
-    '<table class="plan-match-table score-table"><thead><tr><th>场次</th><th>对阵</th><th>投注(赔率)</th><th>资金分配</th></tr></thead><tbody>';
+    '<table class="plan-match-table score-table"><thead><tr><th>场次</th><th>对阵</th><th>方向(赔率)</th><th>资金分配</th></tr></thead><tbody>';
   html += matchRows;
   html += '</tbody></table></div>';
 
@@ -455,7 +497,7 @@ function renderBottomBar(bets, amount, maxWin, uniqueCount) {
   html += '<span class="cfm-bb-amount">' + bets + '注 <span class="cfm-bb-yuan">' + amount + '元</span></span>';
   html += '</div>';
   html += '<div class="cfm-bb-item">';
-  html += '<span class="cfm-bb-label">预计奖金</span>';
+  html += '<span class="cfm-bb-label">预计最高中奖金额</span>';
   html += '<span class="cfm-bb-maxwin">' + maxWin + '元</span>';
   html += '</div>';
   html += '</div>';

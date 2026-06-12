@@ -19,16 +19,24 @@ const { initPaymentSchema } = require('./schema');
 const { planCatalog } = require('./plans');
 const { createOrder, queryOrder } = require('./orders');
 const {
-  subscriptionStatus, subscriptionRenew,
-  cancelAutoRenew, enableAutoRenew,
-  adminSubscriptionList, adminGrantSubscription,
+  subscriptionStatus,
+  subscriptionRenew,
+  cancelAutoRenew,
+  enableAutoRenew,
+  adminSubscriptionList,
+  adminGrantSubscription,
 } = require('./subscriptions');
 const { handleSimulatePay, handleAlipayNotify } = require('./alipay-callback');
 const {
-  referralInfo, referralAccount, referralCommissions,
-  withdrawSubmit, withdrawHistory,
-  adminReferralCommissions, adminReferralAccounts,
-  adminWithdrawList, adminWithdrawProcess,
+  referralInfo,
+  referralAccount,
+  referralCommissions,
+  withdrawSubmit,
+  withdrawHistory,
+  adminReferralCommissions,
+  adminReferralAccounts,
+  adminWithdrawList,
+  adminWithdrawProcess,
 } = require('./referral-account');
 
 // 认证要求映射（需要订阅的动作）
@@ -36,9 +44,12 @@ const SUBSCRIPTION_REQUIRED = [];
 
 // 管理员动作
 const ADMIN_ACTIONS = [
-  'admin-subscription-list', 'admin-grant-subscription',
-  'admin-referral-commissions', 'admin-referral-accounts',
-  'admin-referral-withdraw-list', 'admin-referral-withdraw-process',
+  'admin-subscription-list',
+  'admin-grant-subscription',
+  'admin-referral-commissions',
+  'admin-referral-accounts',
+  'admin-referral-withdraw-list',
+  'admin-referral-withdraw-process',
 ];
 
 /**
@@ -134,4 +145,9 @@ async function handleAction(action, req, res) {
   }
 }
 
-module.exports = { initPayments, handleAction };
+module.exports = {
+  initPayments,
+  handleAction,
+  handleSimulatePay,
+  handleAlipayNotify,
+};

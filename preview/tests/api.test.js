@@ -26,7 +26,7 @@ describe('api — 前端 API 封装', () => {
     expect(typeof api).toBe('function');
   });
 
-  it('发送 POST 请求到 /api', async function () {
+  it('发送 POST 请求到 API 端点', async function () {
     mockFetch.mockResolvedValueOnce({
       json: () => Promise.resolve({ code: 1, data: { result: 'ok' } }),
     });
@@ -36,7 +36,9 @@ describe('api — 前端 API 封装', () => {
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const callArgs = mockFetch.mock.calls[0];
-    expect(callArgs[0]).toBe('/api');
+    const requestUrl = String(callArgs[0]);
+    const parsedUrl = new URL(requestUrl, window.location.origin);
+    expect(parsedUrl.pathname).toBe('/api');
     expect(callArgs[1].method).toBe('POST');
     expect(callArgs[1].headers['Content-Type']).toBe('application/json');
   });

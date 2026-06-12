@@ -8,6 +8,13 @@
 
 const database = require('../database');
 
+function getPayload(req) {
+  if (req && req.body && req.body.data && typeof req.body.data === 'object') {
+    return Object.assign({}, req.body.data, req.body);
+  }
+  return (req && req.body) || {};
+}
+
 /**
  * subscription-status — 查询当前用户订阅状态
  */
@@ -22,7 +29,7 @@ async function subscriptionStatus(req, res) {
     const user = adp.execOne(
       `SELECT subscription_status, subscription_expires_at, current_subscription_id 
        FROM users WHERE id = ?`,
-      [userId]
+      [userId],
     );
 
     const status = user?.subscription_status || 'free';
@@ -40,7 +47,7 @@ async function subscriptionStatus(req, res) {
          LEFT JOIN subscription_plans sp ON sp.plan_code = us.plan_code
          WHERE us.user_id = ? AND us.status IN ('active', 'expiring_soon')
          ORDER BY us.id DESC LIMIT 1`,
-        [userId]
+        [userId],
       );
       if (sub) {
         planCode = sub.plan_code;
@@ -80,36 +87,34 @@ async function subscriptionRenew(req, res) {
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
 
     const userId = req.authSession?.userId;
-    const { plan_code } = req.body;
+    if (!userId) return res.json({ code: 401, msg: 'AUTH_REQUIRED' });
+
+    const payload = getPayload(req);
+    const { plan_code } = payload;
     if (!plan_code) return res.json({ code: 400, msg: 'MISSING_PLAN_CODE' });
 
     // 获取当前订阅
     const currentSub = adp.execOne(
       `SELECT * FROM user_subscriptions WHERE user_id = ? AND status IN ('active', 'expiring_soon', 'expired')
        ORDER BY id DESC LIMIT 1`,
-      [userId]
+      [userId],
     );
 
     // 获取套餐信息
-    const plan = adp.execOne(
-      `SELECT * FROM subscription_plans WHERE plan_code = ? AND is_active = 1`,
-      [plan_code]
-    );
+    const plan = adp.execOne(`SELECT * FROM subscription_plans WHERE plan_code = ? AND is_active = 1`, [plan_code]);
     if (!plan) return res.json({ code: 400, msg: 'INVALID_PLAN_CODE' });
 
     // 计算新的有效期
-    const baseDate = (currentSub && currentSub.status === 'active')
-      ? new Date(currentSub.end_date)
-      : new Date();
+    const baseDate = currentSub && currentSub.status === 'active' ? new Date(currentSub.end_date) : new Date();
     const newEndDate = new Date(baseDate);
     newEndDate.setMonth(newEndDate.getMonth() + plan.duration_months);
 
     // 这里应该创建支付订单，续费也走支付流程
     // 暂时返回需要支付的订单信息
     const { createOrder } = require('./orders');
-    
+
     // 构造一个续费订单请求
-    req.body.plan_code = plan_code;
+    req.body = Object.assign({}, payload, { plan_code });
     return createOrder(req, res);
   } catch (e) {
     console.error('[subscriptions] 续费失败:', e.message);
@@ -129,7 +134,7 @@ async function cancelAutoRenew(req, res) {
     adp.execRun(
       `UPDATE user_subscriptions SET auto_renew = 0, updated_at = datetime('now','localtime')
        WHERE user_id = ? AND status = 'active'`,
-      [userId]
+      [userId],
     );
     return res.json({ code: 1, data: { message: '已取消自动续费' } });
   } catch (e) {
@@ -150,7 +155,7 @@ async function enableAutoRenew(req, res) {
     adp.execRun(
       `UPDATE user_subscriptions SET auto_renew = 1, updated_at = datetime('now','localtime')
        WHERE user_id = ? AND status = 'active'`,
-      [userId]
+      [userId],
     );
     return res.json({ code: 1, data: { message: '已开启自动续费' } });
   } catch (e) {
@@ -167,7 +172,8 @@ async function adminSubscriptionList(req, res) {
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
 
-    const { status, page = 1, pageSize = 20 } = req.body;
+    const payload = getPayload(req);
+    const { status, page = 1, pageSize = 20 } = payload;
     const offset = (page - 1) * pageSize;
 
     let whereClause = '';
@@ -177,10 +183,7 @@ async function adminSubscriptionList(req, res) {
       params.push(status);
     }
 
-    const total = adp.execOne(
-      `SELECT COUNT(*) as cnt FROM user_subscriptions us ${whereClause}`,
-      params
-    );
+    const total = adp.execOne(`SELECT COUNT(*) as cnt FROM user_subscriptions us ${whereClause}`, params);
 
     const rows = adp.execAll(
       `SELECT us.*, u.username, sp.plan_name
@@ -190,7 +193,7 @@ async function adminSubscriptionList(req, res) {
        ${whereClause}
        ORDER BY us.id DESC
        LIMIT ? OFFSET ?`,
-      [...params, pageSize, offset]
+      [...params, pageSize, offset],
     );
 
     return res.json({
@@ -211,15 +214,13 @@ async function adminGrantSubscription(req, res) {
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
 
-    const { user_id, plan_code, custom_amount } = req.body;
+    const payload = getPayload(req);
+    const { user_id, plan_code, custom_amount } = payload;
     if (!user_id || !plan_code) {
       return res.json({ code: 400, msg: 'MISSING_PARAMS' });
     }
 
-    const plan = adp.execOne(
-      `SELECT * FROM subscription_plans WHERE plan_code = ? AND is_active = 1`,
-      [plan_code]
-    );
+    const plan = adp.execOne(`SELECT * FROM subscription_plans WHERE plan_code = ? AND is_active = 1`, [plan_code]);
     if (!plan) return res.json({ code: 400, msg: 'INVALID_PLAN_CODE' });
 
     const startDate = new Date().toISOString().slice(0, 10);
@@ -232,19 +233,17 @@ async function adminGrantSubscription(req, res) {
       `INSERT INTO user_subscriptions 
        (user_id, plan_code, period, status, start_date, end_date, source, amount, original_amount)
        VALUES (?, ?, ?, 'active', ?, ?, 'admin_grant', ?, ?)`,
-      [user_id, plan_code, plan.period, startDate, endDate.toISOString().slice(0, 10), amount, plan.price]
+      [user_id, plan_code, plan.period, startDate, endDate.toISOString().slice(0, 10), amount, plan.price],
     );
 
-    const subId = adp.execOne(
-      `SELECT last_insert_rowid() as id FROM user_subscriptions LIMIT 1`
-    );
+    const subId = adp.execOne(`SELECT last_insert_rowid() as id FROM user_subscriptions LIMIT 1`);
 
     // 更新 users 表
     adp.execRun(
       `UPDATE users SET subscription_status = 'active', 
        subscription_expires_at = ?, current_subscription_id = ?
        WHERE id = ?`,
-      [endDate.toISOString().slice(0, 10), subId?.id, user_id]
+      [endDate.toISOString().slice(0, 10), subId?.id, user_id],
     );
 
     return res.json({

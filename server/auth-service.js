@@ -128,6 +128,7 @@ const ACTION_PERMISSION_MAP = {
 
 const PUBLIC_ACTIONS = new Set([
   'auth-login',
+  'auth-register',
   'auth-session',
 
   // 首页只读 API（未登录用户可见）
@@ -186,8 +187,51 @@ function sha256(text) {
     .digest('hex');
 }
 
+const REFERRAL_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+let _registerSchemaReady = false;
+
 function randomSecret(len = 32) {
   return crypto.randomBytes(len).toString('hex');
+}
+
+function ensureRegisterSchemaReady() {
+  if (_registerSchemaReady) return;
+  const adp = getAdapter();
+  const { initPaymentSchema } = require('./payments/schema');
+  initPaymentSchema(adp);
+
+  const cols = adp.execAll('PRAGMA table_info(users)');
+  const colSet = new Set((cols || []).map((item) => item.name));
+  const ensureColumns = [
+    ['subscription_status', "ALTER TABLE users ADD COLUMN subscription_status TEXT DEFAULT 'free'"],
+    ['subscription_expires_at', 'ALTER TABLE users ADD COLUMN subscription_expires_at TEXT'],
+    ['current_subscription_id', 'ALTER TABLE users ADD COLUMN current_subscription_id INTEGER DEFAULT NULL'],
+    ['referral_code', 'ALTER TABLE users ADD COLUMN referral_code TEXT'],
+    ['referred_by', 'ALTER TABLE users ADD COLUMN referred_by INTEGER DEFAULT NULL'],
+    ['device_fingerprint', 'ALTER TABLE users ADD COLUMN device_fingerprint TEXT'],
+    ['registration_ip', 'ALTER TABLE users ADD COLUMN registration_ip TEXT'],
+  ];
+
+  ensureColumns.forEach(([name, sql]) => {
+    if (!colSet.has(name)) adp.execDDL(sql);
+  });
+  adp.execDDL('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code)');
+  adp.execDDL('CREATE INDEX IF NOT EXISTS idx_users_referred_by ON users(referred_by)');
+  adp.execDDL('CREATE INDEX IF NOT EXISTS idx_users_device_fingerprint ON users(device_fingerprint)');
+  _registerSchemaReady = true;
+}
+
+function generateReferralCode(adp, len = 8) {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    let code = '';
+    const bytes = crypto.randomBytes(len);
+    for (let i = 0; i < len; i += 1) {
+      code += REFERRAL_CODE_ALPHABET[bytes[i] % REFERRAL_CODE_ALPHABET.length];
+    }
+    const exists = adp.execOne('SELECT id FROM users WHERE referral_code = ?', code);
+    if (!exists) return code;
+  }
+  throw new Error('邀请码生成失败，请稍后重试');
 }
 
 function hashPassword(password) {
@@ -486,6 +530,87 @@ async function loginWithPassword(username, password, meta = {}) {
   };
 }
 
+function registerUser(username, password, meta = {}) {
+  ensureBootstrapped();
+  ensureRegisterSchemaReady();
+
+  const normalizedUsername = String(username || '').trim();
+  const normalizedPassword = String(password || '');
+  const referralCode = String(meta.referralCode || '')
+    .trim()
+    .toUpperCase();
+  const deviceFingerprint = meta.deviceFingerprint ? String(meta.deviceFingerprint).trim() : null;
+  const registrationIp = meta.ip ? String(meta.ip).trim() : null;
+
+  if (!normalizedUsername || normalizedUsername.length < 3) {
+    return { ok: false, code: 0, msg: '账号至少 3 位' };
+  }
+  if (!normalizedPassword || normalizedPassword.length < 6) {
+    return { ok: false, code: 0, msg: '密码至少 6 位' };
+  }
+  if (!referralCode) {
+    return { ok: false, code: 0, msg: '当前注册需邀请码，请先联系客服获取' };
+  }
+  if (!/^[A-Z0-9]{6,16}$/.test(referralCode)) {
+    return { ok: false, code: 0, msg: '邀请码格式不正确，请检查后再试' };
+  }
+
+  const adp = getAdapter();
+  const exists = adp.execOne('SELECT id FROM users WHERE username = ?', normalizedUsername);
+  if (exists) return { ok: false, code: 0, msg: '用户名已存在' };
+
+  const inviter = adp.execOne('SELECT id, username FROM users WHERE referral_code = ?', referralCode);
+  if (!inviter) {
+    return { ok: false, code: 0, msg: '邀请码不存在或已失效' };
+  }
+
+  const now = nowIso();
+  const ownReferralCode = generateReferralCode(adp, 8);
+  adp.execRun(
+    `INSERT INTO users(
+      username, password_hash, status, must_change_password,
+      password_updated_at, failed_login_count, referral_code, referred_by,
+      device_fingerprint, registration_ip, created_at, updated_at
+    ) VALUES (?, ?, 'active', 0, ?, 0, ?, ?, ?, ?, ?, ?)`,
+    normalizedUsername,
+    hashPassword(normalizedPassword),
+    now,
+    ownReferralCode,
+    inviter.id,
+    deviceFingerprint,
+    registrationIp,
+    now,
+    now,
+  );
+
+  const createdUser = adp.execOne('SELECT id FROM users WHERE username = ?', normalizedUsername);
+  if (!createdUser || !createdUser.id) {
+    return { ok: false, code: 0, msg: '注册失败，请稍后重试' };
+  }
+
+  adp.execRun(
+    `INSERT OR IGNORE INTO user_roles(user_id, role_id, created_at)
+     SELECT ?, r.id, ? FROM roles r WHERE r.code = 'viewer'`,
+    createdUser.id,
+    now,
+  );
+
+  adp.execRun(
+    `INSERT OR IGNORE INTO referral_accounts(user_id, total_earned, total_withdrawn, total_invitees, total_commissions, updated_at)
+     VALUES (?, 0, 0, 0, 0, ?)`,
+    createdUser.id,
+    now,
+  );
+
+  return {
+    ok: true,
+    user: sanitizeUser(adp.execOne('SELECT * FROM users WHERE id = ?', createdUser.id)),
+    referralCode: ownReferralCode,
+    referralUrl: `https://zj.100qiu.com/preview/index.html#register?ref=${ownReferralCode}`,
+    referredBy: inviter.id,
+  };
+}
+
 function validateSession(token, touch = true) {
   if (!token) return null;
   const adp = getAdapter();
@@ -707,7 +832,9 @@ module.exports = {
   getRequiredPermission,
   hasPermission,
   loginWithPassword,
+  registerUser,
   validateSession,
+
   logout,
   changePassword,
   listUsers,

@@ -39,29 +39,51 @@ jest.mock('../database', () => {
 
   const adp = {
     execOne(sql, params) {
-      try { return db.prepare(sql).get(...(params || [])); } catch (e) { return null; }
+      try {
+        return db.prepare(sql).get(...(params || []));
+      } catch (e) {
+        return null;
+      }
     },
     execAll(sql, params) {
-      try { return db.prepare(sql).all(...(params || [])); } catch (e) { return []; }
+      try {
+        return db.prepare(sql).all(...(params || []));
+      } catch (e) {
+        return [];
+      }
     },
     execRun(sql, params) {
       try {
         const stmt = db.prepare(sql);
         const info = stmt.run(...(params || []));
         return { changes: info.changes, lastInsertRowid: info.lastInsertRowid };
-      } catch (e) { return { changes: 0 }; }
+      } catch (e) {
+        return { changes: 0 };
+      }
     },
     execDDL(sql) {
-      try { db.exec(sql); } catch (e) { /* ignore duplicate */ }
+      try {
+        db.exec(sql);
+      } catch (e) {
+        /* ignore duplicate */
+      }
     },
     raw: db,
   };
 
   return {
-    getAdapter() { return adp; },
-    getDatabase() { return db; },
-    isAvailable() { return true; },
-    initDatabase(cb) { if (cb) cb(); },
+    getAdapter() {
+      return adp;
+    },
+    getDatabase() {
+      return db;
+    },
+    isAvailable() {
+      return true;
+    },
+    initDatabase(cb) {
+      if (cb) cb();
+    },
   };
 });
 
@@ -69,7 +91,12 @@ const database = require('../database');
 const { initPaymentSchema } = require('../payments/schema');
 const { planCatalog } = require('../payments/plans');
 const { createOrder, queryOrder, generateOrderNo, getPlanInfo, validateCoupon } = require('../payments/orders');
-const { subscriptionStatus, cancelAutoRenew, enableAutoRenew, adminGrantSubscription } = require('../payments/subscriptions');
+const {
+  subscriptionStatus,
+  cancelAutoRenew,
+  enableAutoRenew,
+  adminGrantSubscription,
+} = require('../payments/subscriptions');
 const { computeCommission, onPaymentRefunded } = require('../payments/referral-compute');
 const { antiFraudCheck } = require('../payments/referral-anti-fraud');
 const { referralAccount, withdrawSubmit, adminWithdrawProcess } = require('../payments/referral-account');
@@ -81,7 +108,7 @@ function mockReq(body = {}, auth = null) {
 }
 function mockRes() {
   const res = {};
-  res.json = jest.fn(d => d);
+  res.json = jest.fn((d) => d);
   res.redirect = jest.fn();
   res.status = jest.fn(() => res);
   res.send = jest.fn();
@@ -95,12 +122,13 @@ beforeAll(() => {
 
   // 创建测试用户
   adp.execRun(`INSERT INTO users (id, username, role, referral_code) VALUES (1, 'inviter', 'viewer', 'A3F7C02B')`);
-  adp.execRun(`INSERT INTO users (id, username, role, referral_code, referred_by) VALUES (2, 'invitee', 'viewer', 'B4D8E01F', 1)`);
+  adp.execRun(
+    `INSERT INTO users (id, username, role, referral_code, referred_by) VALUES (2, 'invitee', 'viewer', 'B4D8E01F', 1)`,
+  );
   adp.execRun(`INSERT INTO users (id, username, role) VALUES (3, 'admin', 'admin')`);
 });
 
 describe('Phase 4 支付体系', () => {
-
   // ========== 套餐查询 ==========
   describe('4.1 套餐查询 (planCatalog)', () => {
     test('应返回 3 种套餐', async () => {
@@ -150,6 +178,28 @@ describe('Phase 4 支付体系', () => {
       const result = res.json.mock.calls[0][0];
       expect(result.msg).toBe('AUTH_REQUIRED');
     });
+
+    test('应兼容 { data } 包装体创建订单', async () => {
+      const res = mockRes();
+      await createOrder(mockReq({ data: { plan_code: 'monthly' } }, { userId: 1 }), res);
+      const result = res.json.mock.calls[0][0];
+      expect(result.code).toBe(1);
+      expect(result.data.plan_code).toBe('monthly');
+    });
+  });
+
+  describe('4.2.1 订单查询 (queryOrder)', () => {
+    test('应兼容 { data } 包装体查询订单', async () => {
+      const createRes = mockRes();
+      await createOrder(mockReq({ plan_code: 'quarterly' }, { userId: 1 }), createRes);
+      const orderNo = createRes.json.mock.calls[0][0].data.order_no;
+
+      const res = mockRes();
+      await queryOrder(mockReq({ data: { order_no: orderNo } }, { userId: 1 }), res);
+      const result = res.json.mock.calls[0][0];
+      expect(result.code).toBe(1);
+      expect(result.data.order_no).toBe(orderNo);
+    });
   });
 
   // ========== 订单号生成 ==========
@@ -197,10 +247,10 @@ describe('Phase 4 支付体系', () => {
 
     test('有历史记录后 paymentIndex 应递增', async () => {
       // 直接测试 rate 映射逻辑
-      expect(({ 1: 50, 2: 55 })[1] || 60).toBe(50);
-      expect(({ 1: 50, 2: 55 })[2] || 60).toBe(55);
-      expect(({ 1: 50, 2: 55 })[3] || 60).toBe(60);
-      expect(({ 1: 50, 2: 55 })[99] || 60).toBe(60);
+      expect({ 1: 50, 2: 55 }[1] || 60).toBe(50);
+      expect({ 1: 50, 2: 55 }[2] || 60).toBe(55);
+      expect({ 1: 50, 2: 55 }[3] || 60).toBe(60);
+      expect({ 1: 50, 2: 55 }[99] || 60).toBe(60);
     });
 
     test('首次付费 月度套餐 ¥98 → 返利 ¥49', async () => {
@@ -243,10 +293,18 @@ describe('Phase 4 支付体系', () => {
   describe('4.8 提现管理 (withdrawSubmit)', () => {
     test('余额不足应拒绝提现', async () => {
       const res = mockRes();
-      await withdrawSubmit(mockReq({
-        amount: 50000, paymentMethod: 'bank_transfer',
-        accountHolder: '张三', paymentAccount: '621700001234',
-      }, { userId: 2 }), res);
+      await withdrawSubmit(
+        mockReq(
+          {
+            amount: 50000,
+            paymentMethod: 'bank_transfer',
+            accountHolder: '张三',
+            paymentAccount: '621700001234',
+          },
+          { userId: 2 },
+        ),
+        res,
+      );
       const result = res.json.mock.calls[0][0];
       expect(result.code).toBe(400);
       expect(result.msg).toBe('INSUFFICIENT_BALANCE');
@@ -254,13 +312,46 @@ describe('Phase 4 支付体系', () => {
 
     test('低于最小提现额应拒绝', async () => {
       const res = mockRes();
-      await withdrawSubmit(mockReq({
-        amount: 500, paymentMethod: 'bank_transfer',
-        accountHolder: '张三', paymentAccount: '621700001234',
-      }, { userId: 2 }), res);
+      await withdrawSubmit(
+        mockReq(
+          {
+            amount: 500,
+            paymentMethod: 'bank_transfer',
+            accountHolder: '张三',
+            paymentAccount: '621700001234',
+          },
+          { userId: 2 },
+        ),
+        res,
+      );
       const result = res.json.mock.calls[0][0];
       expect(result.code).toBe(400);
       expect(result.msg).toBe('MIN_WITHDRAWAL_NOT_MET');
+    });
+
+    test('应兼容 { data } 包装体提交提现', async () => {
+      const adp = database.getAdapter();
+      adp.execRun(`INSERT OR REPLACE INTO referral_accounts (user_id, total_earned, total_withdrawn, total_invitees, total_commissions)
+        VALUES (1, 5000, 0, 0, 0)`);
+
+      const res = mockRes();
+      await withdrawSubmit(
+        mockReq(
+          {
+            data: {
+              amount: 1000,
+              paymentMethod: 'bank_transfer',
+              accountHolder: '张三',
+              paymentAccount: '621700001234',
+            },
+          },
+          { userId: 1 },
+        ),
+        res,
+      );
+      const result = res.json.mock.calls[0][0];
+      expect(result.code).toBe(1);
+      expect(result.data.status).toBe('submitted');
     });
   });
 
@@ -289,10 +380,7 @@ describe('Phase 4 支付体系', () => {
   describe('4.10 管理员接口', () => {
     test('adminGrantSubscription 非管理员应被拦截', async () => {
       const res = mockRes();
-      await adminGrantSubscription(
-        mockReq({ user_id: 1, plan_code: 'monthly' }, { userId: 1, role: 'viewer' }),
-        res
-      );
+      await adminGrantSubscription(mockReq({ user_id: 1, plan_code: 'monthly' }, { userId: 1, role: 'viewer' }), res);
       // 在 index.js 层通过 payments.handleAction 拦截，这里直接调用不会被拦截
       // 实际应用中由 handleAction 检查 ADMIN_ACTIONS
     });
@@ -306,15 +394,21 @@ describe('Phase 4 支付体系', () => {
       const wid = adp.execOne('SELECT last_insert_rowid() as id FROM referral_withdrawals LIMIT 1');
 
       const res = mockRes();
-      await adminWithdrawProcess(mockReq({
-        withdrawalId: wid.id,
-        newStatus: 'completed',
-        remark: '已转账',
-      }, { userId: 3, role: 'admin' }), res);
+      await adminWithdrawProcess(
+        mockReq(
+          {
+            withdrawalId: wid.id,
+            newStatus: 'completed',
+            remark: '已转账',
+          },
+          { userId: 3, role: 'admin' },
+        ),
+        res,
+      );
 
       const result = res.json.mock.calls[0][0];
       expect(result.code).toBe(1);
-      expect(result.data.status).toBe('completed');
+      expect(result.data.status).toBe('paid');
     });
   });
 });

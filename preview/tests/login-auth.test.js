@@ -17,9 +17,9 @@ const APP_CSS = path.join(__dirname, '..', 'css', 'app.css');
 
 function src(f) {
   const buf = fs.readFileSync(f);
-  if (buf.length >= 2 && buf[0] === 0xFF && buf[1] === 0xFE) return buf.toString('utf16le');
+  if (buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xfe) return buf.toString('utf16le');
   let s = buf.toString('utf8');
-  if (s.charCodeAt(0) === 0xFEFF) s = s.slice(1);
+  if (s.charCodeAt(0) === 0xfeff) s = s.slice(1);
   return s;
 }
 
@@ -36,7 +36,7 @@ describe('用户登录全方位测试', () => {
 
     it('1.2 登录页有密码输入框 #loginPass', () => {
       expect(lg).toContain('loginPass');
-      expect(lg).toContain("type=\"password\"");
+      expect(lg).toContain('type="password"');
     });
 
     it('1.3 登录页有登录按钮 #loginBtn', () => {
@@ -89,6 +89,20 @@ describe('用户登录全方位测试', () => {
 
     it('1.14 登录成功 msg 变绿', () => {
       expect(lg).toContain("classList.toggle('ok'");
+    });
+
+    it('1.15 登录页有邀请制说明与条件式邀请码提示', () => {
+      expect(lg).toContain('注册采用邀请制');
+      expect(lg).toContain('没有邀请码？联系客服');
+      expect(lg).toContain('loginNeedInviteBtn');
+      expect(lg).toContain('getInviteEntryCode');
+    });
+
+    it('1.16 登录页占位文案与按钮文案和线上一致', () => {
+      expect(lg).toContain('placeholder="请输入账号"');
+      expect(lg).toContain('placeholder="请输入密码"');
+      expect(lg).toContain('>登录</button>');
+      expect(lg).toContain('登录即代表同意');
     });
   });
 
@@ -188,7 +202,7 @@ describe('用户登录全方位测试', () => {
     });
 
     it('3.8 ops_admin 有完整运维权限', () => {
-      expect(as).toContain("ops_admin: [");
+      expect(as).toContain('ops_admin: [');
       expect(as).toContain("'ops:backfill'");
       expect(as).toContain("'ops:auto_heal'");
     });
@@ -308,6 +322,19 @@ describe('用户登录全方位测试', () => {
     it('7.3 密码切换按钮 .auth-pass-toggle', () => {
       const css = src(APP_CSS);
       expect(css).toContain('auth-pass-toggle');
+    });
+
+    it('7.4 登录按钮后邀请说明样式存在', () => {
+      const css = src(APP_CSS);
+      expect(css).toContain('auth-login-assist');
+      expect(css).toContain('auth-login-contact-link');
+    });
+
+    it('7.5 登录控件尺寸与按钮风格有独立样式合同', () => {
+      const css = src(APP_CSS);
+      expect(css).toContain('.auth-shell-login .auth-icon-wrap');
+      expect(css).toContain('.auth-shell-login .auth-input.search-input::placeholder');
+      expect(css).toContain('.auth-shell-login .auth-submit.filter-submit-btn');
     });
   });
 });

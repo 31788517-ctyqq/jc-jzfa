@@ -2,6 +2,30 @@
 /* global loadAdminSubPage, grantSubscription */
 import { api } from '../api.js';
 
+const STATUS_CN = {
+  active: '活跃',
+  expiring_soon: '即将到期',
+  expired: '已过期',
+  pending: '待处理',
+  submitted: '已提交',
+  settled: '已结算',
+  rejected: '已驳回',
+  paid: '已打款',
+  completed: '已完成',
+};
+
+const PLAN_CN = {
+  monthly: '月度套餐',
+  quarterly: '季度套餐',
+  yearly: '年度套餐',
+};
+
+const SOURCE_CN = {
+  manual: '手动开通',
+  system: '系统发放',
+  wechat_pay: '微信支付',
+};
+
 export async function loadAdminPayments(container, data) {
   container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
 
@@ -57,7 +81,12 @@ window.loadAdminSubPage = async function () {
 
   // 更新统计
   const totalCount = res.data.total;
-  const activeRes = await api('/api', { action: 'admin-subscription-list', token: true, status: 'active', pageSize: 1 });
+  const activeRes = await api('/api', {
+    action: 'admin-subscription-list',
+    token: true,
+    status: 'active',
+    pageSize: 1,
+  });
   document.querySelectorAll('.admin-stat-val')[0].textContent = totalCount || 0;
   document.querySelectorAll('.admin-stat-val')[1].textContent = activeRes.data?.total || 0;
 
@@ -67,17 +96,20 @@ window.loadAdminSubPage = async function () {
     return;
   }
 
-  let rows = list.map(s => `<tr>
-    <td>${s.id}</td><td>${s.username || '--'}</td><td>${s.plan_name || s.plan_code}</td>
-    <td><span class="admin-status admin-status-${s.status}">${s.status}</span></td>
+  let rows = list
+    .map(
+      (s) => `<tr>
+    <td>${s.id}</td><td>${s.username || '--'}</td><td>${s.plan_name || PLAN_CN[s.plan_code] || s.plan_code || '--'}</td>
+    <td><span class="admin-status admin-status-${s.status}">${STATUS_CN[s.status] || s.status || '--'}</span></td>
     <td>${s.start_date}</td><td>${s.end_date}</td>
     <td>¥${((s.amount || 0) / 100).toFixed(2)}</td>
-    <td>${s.source}</td>
-  </tr>`).join('');
+    <td>${SOURCE_CN[s.source] || s.source || '--'}</td>
+  </tr>`,
+    )
+    .join('');
 
-  document.getElementById('adminSubList').innerHTML =
-    `<table class="admin-table"><thead><tr>
-      <th>ID</th><th>用户</th><th>套餐</th><th>状态</th>
+  document.getElementById('adminSubList').innerHTML = `<table class="admin-table"><thead><tr>
+      <th>用户ID</th><th>用户</th><th>套餐</th><th>状态</th>
       <th>开始</th><th>到期</th><th>金额</th><th>来源</th>
     </tr></thead><tbody>${rows}</tbody></table>`;
 };
@@ -86,7 +118,12 @@ window.grantSubscription = async function () {
   const userId = parseInt(document.getElementById('grantUserId').value);
   const planCode = document.getElementById('grantPlan').value;
   if (!userId) return alert('请输入用户ID');
-  const res = await api('/api', { action: 'admin-grant-subscription', token: true, user_id: userId, plan_code: planCode });
+  const res = await api('/api', {
+    action: 'admin-grant-subscription',
+    token: true,
+    user_id: userId,
+    plan_code: planCode,
+  });
   const el = document.getElementById('grantMsg');
   if (res.code === 0) {
     el.textContent = `已开通，到期 ${res.data.end_date}`;

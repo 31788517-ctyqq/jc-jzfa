@@ -1,69 +1,292 @@
-// ==================== 套餐展示页 ====================
 import { api } from '../api.js';
+import { getAuthSession, hasAuthToken } from '../auth-client.js';
 
-export async function loadPricing(container, data) {
+const PLAN_META = {
+  monthly: {
+    tagline: '适合先体验 7~30 天核心能力',
+    badge: '灵活体验',
+    accent: 'mint',
+    scene: '先体验 AI 推荐、今日方案与功守道核心能力',
+  },
+  quarterly: {
+    tagline: '适合稳定跟单与阶段性复盘',
+    badge: '进阶推荐',
+    accent: 'cyan',
+    scene: '更适合连续跟踪比赛、看走势与阶段回测',
+  },
+  yearly: {
+    tagline: '适合长期订阅，性价比最高',
+    badge: '年度主推',
+    accent: 'gold',
+    scene: '适合长期订阅、全年回测与邀请返利协同增长',
+  },
+};
+
+const MEMBER_FEATURES = [
+  '今日方案全量开放',
+  'AI 全量预测与多模型视图',
+  '功守道深度分析',
+  '回测分析与历史回看',
+  '赔率走势与数据导出',
+  '订阅中心与邀请返利能力',
+];
+
+const MEMBER_FAQ = [
+  { q: '开通后可以立即使用吗？', a: '支付成功后会自动激活订阅，可直接查看方案、模型与功守道分析。' },
+  { q: '到期后会怎样？', a: '到期后不会再扣费，会员能力自动恢复为基础访问，可随时续费恢复。' },
+  { q: '邀请返利怎么生效？', a: '好友通过你的邀请链接注册并完成付费后，返利会自动进入你的返利账户。' },
+];
+
+function getMemberHomeIcon() {
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4.5v-5.5h3V21H18a1 1 0 0 0 1-1V9.5"/></svg>';
+}
+
+function formatMoney(value) {
+  return new Intl.NumberFormat('zh-CN', {
+    style: 'currency',
+    currency: 'CNY',
+    minimumFractionDigits: 0,
+  }).format((Number(value) || 0) / 100);
+}
+
+function getStoredPlan() {
+  try {
+    var raw = sessionStorage.getItem('pendingSelectedPlan') || '';
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function setStoredPlan(plan) {
+  try {
+    sessionStorage.setItem('pendingSelectedPlan', JSON.stringify(plan || {}));
+  } catch (e) {}
+}
+
+function pickRecommendedCode(plans) {
+  if (!Array.isArray(plans) || !plans.length) return 'yearly';
+  if (
+    plans.some(function (plan) {
+      return plan.plan_code === 'yearly';
+    })
+  )
+    return 'yearly';
+  return plans.slice().sort(function (a, b) {
+    return Number(b.duration_months || 0) - Number(a.duration_months || 0);
+  })[0].plan_code;
+}
+
+function renderPlanCard(plan, recommendedCode, authed) {
+  var code = plan.plan_code || '';
+  var meta = PLAN_META[code] || {};
+  var isRecommended = code === recommendedCode;
+  var accent = meta.accent || 'mint';
+  var buttonText = authed ? '立即开通' : '注册并开通';
+  var monthly = Number(plan.monthly_equivalent || 0);
+  var discount = plan.discount_label || (monthly > 0 && Number(plan.price || 0) > monthly ? '长期订阅更划算' : '');
+  return (
+    '' +
+    '<div class="pricing-card' +
+    (isRecommended ? ' pricing-card-rec' : '') +
+    ' pricing-card-' +
+    accent +
+    '" onclick="selectPricingPlan(\'' +
+    code +
+    "'," +
+    Number(plan.price || 0) +
+    ",'" +
+    (plan.plan_name || '') +
+    '\')">' +
+    (isRecommended
+      ? '<div class="pricing-badge">' + (meta.badge || '推荐') + '</div>'
+      : '<div class="pricing-lite-badge">' + (meta.badge || '会员套餐') + '</div>') +
+    '<div class="pricing-plan-name">' +
+    (plan.plan_name || code) +
+    '</div>' +
+    '<div class="pricing-tagline">' +
+    (meta.tagline || '覆盖核心会员权益') +
+    '</div>' +
+    '<div class="pricing-price">' +
+    formatMoney(plan.price) +
+    '</div>' +
+    '<div class="pricing-monthly">低至 ' +
+    formatMoney(monthly) +
+    '/月</div>' +
+    '<div class="pricing-discount">' +
+    discount +
+    '</div>' +
+    '<div class="pricing-period">有效期 ' +
+    Number(plan.duration_months || 0) +
+    ' 个月</div>' +
+    '<div class="pricing-scene">' +
+    (meta.scene || '适合日常使用') +
+    '</div>' +
+    '<button class="pricing-btn" type="button" data-plan="' +
+    code +
+    '" data-price="' +
+    Number(plan.price || 0) +
+    '" data-name="' +
+    (plan.plan_name || '') +
+    '">' +
+    buttonText +
+    '</button>' +
+    '</div>'
+  );
+}
+
+function renderEmptyState(authed) {
+  return (
+    '' +
+    '<div class="member-shell member-shell-pricing">' +
+    '<div class="member-page pricing-container">' +
+    '<div class="member-hero">' +
+    '<div class="member-top-badge">会员服务</div>' +
+    '<div class="member-hero-title">套餐暂未开放</div>' +
+    '<div class="member-hero-subtitle">当前还没有可售套餐，请稍后再来查看。</div>' +
+    '</div>' +
+    '<div class="member-section-card member-empty-card">' +
+    '<div class="member-empty-title">暂无套餐数据</div>' +
+    '<div class="member-empty-text">你可以先返回首页继续浏览，或稍后刷新重试。</div>' +
+    '<div class="member-cta-row">' +
+    '<button class="member-primary-btn" type="button" onclick="switchTab(\'' +
+    (authed ? 'home' : 'login') +
+    '\')">' +
+    (authed ? '返回首页' : '去登录') +
+    '</button>' +
+    '</div>' +
+    '</div>' +
+    '</div>' +
+    '</div>'
+  );
+}
+
+export async function loadPricing(container) {
   container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载套餐中...</div>';
 
-  const res = await api('plan-catalog');
-  if (!res?.plans) {
-    container.innerHTML = '<div class="empty-state">暂无套餐数据</div>';
+  try {
+    var session = getAuthSession() || {};
+    var authed = hasAuthToken();
+    var userName = (session.user && session.user.username) || '';
+    var res = await api('plan-catalog', {}, 0);
+    var plans = Array.isArray(res && res.plans) ? res.plans : [];
+
+    if (!plans.length) {
+      container.innerHTML = renderEmptyState(authed);
+      return;
+    }
+
+    var recommendedCode = pickRecommendedCode(plans);
+    var pendingPlan = getStoredPlan();
+
+    var html =
+      '' +
+      '<div class="member-shell member-shell-pricing">' +
+      '<div class="member-page pricing-container">' +
+      '<div class="member-hero pricing-hero member-hero-profilelike">' +
+      '<button class="member-home-corner" type="button" onclick="switchTab(\'profile\')" aria-label="返回个人中心" title="返回个人中心">' +
+      getMemberHomeIcon() +
+      '</button>' +
+      '<div class="member-hero-copy">' +
+      '<div class="member-hero-title">会员套餐</div>' +
+      '<div class="member-hero-subtitle">当前账号：' +
+      (authed ? '<strong>' + userName + '</strong>' : '游客') +
+      '</div>' +
+      '</div>' +
+      '<img class="member-hero-eagle" src="/assets/login-eagle.png?v=202606110300" alt="" loading="eager" decoding="async" />' +
+      (pendingPlan
+        ? '<div class="member-inline-tip">你刚刚选择了 <strong>' +
+          (pendingPlan.plan_name || '会员套餐') +
+          '</strong>，登录后可继续完成支付。</div>'
+        : '') +
+      '</div>' +
+      '<div class="pricing-cards">' +
+      plans
+        .map(function (plan) {
+          return renderPlanCard(plan, recommendedCode, authed);
+        })
+        .join('') +
+      '</div>' +
+      '<div class="member-section-card pricing-benefit-card">' +
+      '<div class="member-section-title">会员权益一览</div>' +
+      '<div class="member-note-list">' +
+      MEMBER_FEATURES.map(function (item) {
+        return '<div class="member-note-item"><span class="member-note-icon">✓</span><span>' + item + '</span></div>';
+      }).join('') +
+      '</div>' +
+      '</div>' +
+      '<div class="member-section-card pricing-faq-card">' +
+      '<div class="member-section-title">常见问题</div>' +
+      '<div class="member-faq-list">' +
+      MEMBER_FAQ.map(function (item) {
+        return (
+          '<div class="member-faq-item"><div class="member-faq-q">' +
+          item.q +
+          '</div><div class="member-faq-a">' +
+          item.a +
+          '</div></div>'
+        );
+      }).join('') +
+      '</div>' +
+      '</div>' +
+      '<div class="member-cta-row">' +
+      (authed
+        ? '<button class="member-secondary-btn" type="button" onclick="switchTab(\'subscription\')">查看订阅中心</button>'
+        : '<button class="member-secondary-btn" type="button" onclick="switchTab(\'login\')">已有账号，去登录</button>') +
+      '<button class="member-primary-btn" type="button" onclick="switchTab(\'' +
+      (authed ? 'referral' : 'contact-invite') +
+      '\')">' +
+      (authed ? '查看邀请返利' : '联系客服获邀') +
+      '</button>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
+
+    container.innerHTML = html;
+
+    Array.prototype.forEach.call(container.querySelectorAll('.pricing-btn'), function (btn) {
+      btn.addEventListener('click', function (event) {
+        event.stopPropagation();
+        window.selectPricingPlan(this.dataset.plan, Number(this.dataset.price || 0), this.dataset.name || '');
+      });
+    });
+  } catch (e) {
+    container.innerHTML =
+      '' +
+      '<div class="member-shell member-shell-pricing">' +
+      '<div class="member-page pricing-container">' +
+      '<div class="member-section-card member-empty-card">' +
+      '<div class="member-empty-title">套餐加载失败</div>' +
+      '<div class="member-empty-text">' +
+      (e && e.message ? e.message : '请稍后重试') +
+      '</div>' +
+      '<div class="member-cta-row">' +
+      '<button class="member-primary-btn" type="button" onclick="switchTab(\'home\')">返回首页</button>' +
+      '</div>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
+  }
+}
+
+window.selectPricingPlan = function (planCode, price, planName) {
+  var planNameMap = { monthly: '月度套餐', quarterly: '季度套餐', yearly: '年度套餐' };
+  var plan = {
+    plan_code: planCode,
+    plan_name: planName || planNameMap[planCode] || planCode,
+    price: Number(price) || 0,
+  };
+  setStoredPlan(plan);
+
+  if (!hasAuthToken()) {
+    try {
+      sessionStorage.setItem('pendingAfterLogin', 'payment');
+    } catch (e) {}
+    if (typeof window.switchTab === 'function') window.switchTab('register');
     return;
   }
 
-  const plans = res.plans;
-  const formatter = new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY', minimumFractionDigits: 0 });
-  const recPlan = 'yearly';
-
-  let html = `<div class="pricing-container">`;
-  html += `<div class="pricing-header"><h2>选择套餐</h2><p>全功能开放，仅按周期区分价格</p></div>`;
-  html += `<div class="pricing-cards">`;
-
-  plans.forEach(plan => {
-    const recClass = plan.plan_code === recPlan ? ' pricing-card-rec' : '';
-    html += `
-      <div class="pricing-card${recClass}" onclick="selectPricingPlan('${plan.plan_code}', ${plan.price})">
-        ${plan.plan_code === recPlan ? '<div class="pricing-badge">⭐ 最划算</div>' : ''}
-        <div class="pricing-plan-name">${plan.plan_name}</div>
-        <div class="pricing-price">${formatter.format(plan.price / 100)}</div>
-        <div class="pricing-monthly">相当于 ${formatter.format(plan.monthly_equivalent / 100)}/月</div>
-        <div class="pricing-discount">${plan.discount_label || ''}</div>
-        <div class="pricing-period">${plan.duration_months} 个月</div>
-        <button class="pricing-btn" data-plan="${plan.plan_code}" data-price="${plan.price}">立即购买</button>
-      </div>`;
-  });
-
-  html += `</div>`;
-  html += `<div class="pricing-features">
-    <h3>所有套餐均享有</h3>
-    <div class="feature-grid">
-      <div class="feature-item">✓ 今日方案全部</div><div class="feature-item">✓ AI 全量预测</div>
-      <div class="feature-item">✓ 功守道分析</div><div class="feature-item">✓ 回测分析</div>
-      <div class="feature-item">✓ 赔率走势图</div><div class="feature-item">✓ 历史回看</div>
-      <div class="feature-item">✓ 数据导出</div><div class="feature-item">✓ 无广告无水印</div>
-    </div>
-  </div>`;
-  html += `</div>`;
-
-  container.innerHTML = html;
-
-  // 绑定购买按钮
-  container.querySelectorAll('.pricing-btn').forEach(btn => {
-    btn.addEventListener('click', function () {
-      const planCode = this.dataset.plan;
-      const price = parseInt(this.dataset.price);
-      window.selectPricingPlan(planCode, price);
-    });
-  });
-}
-
-// 全局函数：选择套餐后跳转支付页
-window.selectPricingPlan = function (planCode, price) {
-  const state = window.__jcState || {};
-  const planNameMap = { monthly: '月度套餐', quarterly: '季度套餐', yearly: '年度套餐' };
-  const planName = planNameMap[planCode] || planCode;
-
-  // 跳转到支付确认页
   if (typeof window.navigateTo === 'function') {
-    window.navigateTo('payment', { plan_code: planCode, plan_name: planName, price });
+    window.navigateTo('payment', plan);
   }
 };

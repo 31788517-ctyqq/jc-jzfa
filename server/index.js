@@ -37,7 +37,7 @@ let _gsCacheData = null;
 let _gsCacheTime = 0;
 const { getDeltaHistory } = require('./core/odds-tracker');
 const spAdapter = require('./core/sp_data_adapter'); // ★ V9: SP官方数据统一访问
-const payments = require('./payments/index');   // ★ V9.1: 支付/订阅/返利模块
+const payments = require('./payments/index'); // ★ V9.1: 支付/订阅/返利模块
 
 // ── 函数别名（保持 POST /api 路由中引用兼容） ──
 const localDate = cacheModule.localDate;
@@ -101,7 +101,7 @@ function getPlanOutcomeOverlay(dateStr) {
   if (!dateStr) return { byId: {}, byNum: {} };
   const now = Date.now();
   const cached = _planOutcomeOverlayCache[dateStr];
-  
+
   // 检查 live_scores.json 是否有更新
   let lsMtime = 0;
   const livePath = path.join(__dirname, 'live_scores.json');
@@ -110,7 +110,7 @@ function getPlanOutcomeOverlay(dateStr) {
   } catch (e) {}
 
   if (cached && now - cached.time < 60000 && lsMtime === _liveScoresMtime) return cached.data;
-  
+
   const overlay = { byId: {}, byNum: {} };
   function addOutcome(row, source) {
     if (!row) return;
@@ -190,7 +190,6 @@ function getGsGlobalMap() {
   }
   return _gsGlobalCache || {};
 }
-
 
 // ★ P2-1: 核心内存缓存统计
 function getCoreCacheStats() {
@@ -513,9 +512,10 @@ app.use('/assets', express.static(path.join(__dirname, '../miniprogram/images'),
 let homeCache = null,
   homeCacheTime = 0;
 const hp = path.join(__dirname, '../preview/index.html');
+const HOME_HTML_CACHE_TTL = process.env.NODE_ENV === 'production' ? 60000 : 0;
 function getHomeHTML(cb) {
   const now = Date.now();
-  if (homeCache && now - homeCacheTime < 60000) return cb(null, homeCache);
+  if (HOME_HTML_CACHE_TTL > 0 && homeCache && now - homeCacheTime < HOME_HTML_CACHE_TTL) return cb(null, homeCache);
   fs.readFile(hp, 'utf8', (err, html) => {
     if (!err) {
       homeCache = html;
@@ -526,10 +526,11 @@ function getHomeHTML(cb) {
 }
 app.get('/', (req, res) => {
   getHomeHTML((err, html) => {
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=60' });
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache, must-revalidate' });
     res.end(html);
   });
 });
+
 app.use(
   express.static(path.join(__dirname, '../preview'), {
     maxAge: '7d',
@@ -611,7 +612,28 @@ app.get('/health/files', (req, res) => {
   }
 });
 
+app.get('/api/payments/simulate-pay', async (req, res) => {
+  try {
+    const authToken = authService.resolveSessionToken(req, req.query || {});
+    req.authSession = authToken ? authService.validateSession(authToken, true) : null;
+    return await payments.handleSimulatePay(req, res);
+  } catch (e) {
+    logger.error('[payments] simulate-pay 路由异常: ' + e.message);
+    return res.status(500).send('支付失败: ' + e.message);
+  }
+});
+
+app.post('/api/payments/notify', express.urlencoded({ extended: false }), async (req, res) => {
+  try {
+    return await payments.handleAlipayNotify(req, res);
+  } catch (e) {
+    logger.error('[payments] notify 路由异常: ' + e.message);
+    return res.send('fail');
+  }
+});
+
 // 启动校验
+
 if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   logger.error('启动失败：缺少 MIDOU_MOBILE / MIDOU_PASSWORD 配置');
   const alert = require('./alert');
@@ -733,6 +755,24 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           });
         }
 
+        case 'auth-register': {
+          const username = String(data.username || '').trim();
+          const password = String(data.password || '');
+          const result = authService.registerUser(username, password, {
+            referralCode: data.referralCode || null,
+            deviceFingerprint: data.deviceFingerprint || null,
+            ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || '',
+          });
+          if (!result.ok) return res.json({ code: 0, msg: result.msg || '注册失败' });
+          return res.json({
+            code: 1,
+            data: {
+              referralCode: result.referralCode,
+              referralUrl: result.referralUrl,
+            },
+          });
+        }
+
         case 'auth-session': {
           if (!authSession) return res.json({ code: 401, msg: 'UNAUTHORIZED' });
           return res.json({
@@ -843,7 +883,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // ⭐ 仅今天/最近日期允许后台补算，历史页不触发全量刷新，避免拖慢页面打开
             let gsNeedCompute = false;
             const shouldCheckGsCompute = dateStr === localDate() || dateStr === latestDataDate();
-            
+
             // 构建比赛列表的同时检测是否需要计算，避免两次大循环
             const list = [];
             const mMapEntries = Object.entries(mMap);
@@ -857,9 +897,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (hideFinished && m.matchStatus !== 0) continue;
 
               // 检查功守道数据是否可用
-              const cachedGS = gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
+              const cachedGS =
+                gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
               const hasGS = !!(cachedGS && cachedGS.attackPattern);
-              
+
               if (shouldCheckGsCompute && !hasGS) {
                 gsNeedCompute = true;
               }
@@ -867,8 +908,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               // 补充单关标识
               const fiveOdds = oddsMap[m.num || ''];
               const isSingleGame = (fiveOdds && fiveOdds.isSingleGame === true) || m.isSingleGame === true;
-              const concede = fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null ? fiveOdds.rqspf.handicap : null;
-              
+              const concede =
+                fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null ? fiveOdds.rqspf.handicap : null;
+
               // 实时专家数
               const rawRecs = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
               const actualRecommNum = rawRecs.reduce((s, r) => s + (r.n || r.num || 0), 0);
@@ -6499,10 +6541,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         case 'admin-referral-accounts':
         case 'admin-referral-withdraw-list':
         case 'admin-referral-withdraw-process': {
-          // 将 authSession 注入 req，供 payments模块复用
+          // 将 authSession 与解包后的 data 注入 req，供 payments 模块复用
           req.authSession = authSession;
+          req.body = data;
           const handled = await payments.handleAction(action, req, res);
           if (handled !== false) return;
+          return res.json({ code: 0, msg: `未知 action: ${action}` });
         }
 
         default:
@@ -6984,7 +7028,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   }
 
   // 初始化支付/订阅/返利模块
-  try { payments.initPayments(); } catch (e) { logger.warn('[startup] payments init 失败: ' + e.message); }
+  try {
+    payments.initPayments();
+  } catch (e) {
+    logger.warn('[startup] payments init 失败: ' + e.message);
+  }
 
   server.listen(PORT, () => {
     const banner = [

@@ -1,9 +1,39 @@
 import { api } from '../api.js';
 import { setAuthToken, setAuthSession } from '../auth-client.js';
 
+function parseLoginParams() {
+  try {
+    var hash = window.location.hash || '';
+    var qIndex = hash.indexOf('?');
+    return {
+      hashParams: new URLSearchParams(qIndex >= 0 ? hash.slice(qIndex + 1) : ''),
+      searchParams: new URLSearchParams((window.location && window.location.search) || ''),
+    };
+  } catch (e) {
+    return {
+      hashParams: new URLSearchParams(''),
+      searchParams: new URLSearchParams(''),
+    };
+  }
+}
+
+function getInviteEntryCode() {
+  var parsed = parseLoginParams();
+  var code =
+    parsed.hashParams.get('ref') ||
+    parsed.hashParams.get('invite') ||
+    parsed.searchParams.get('ref') ||
+    parsed.searchParams.get('invite') ||
+    '';
+  return String(code || '')
+    .trim()
+    .toUpperCase();
+}
+
 function ensureLoginRoot() {
   const root = document.getElementById('loginContent');
   if (!root) return null;
+  const invitedEntry = !!getInviteEntryCode();
   root.innerHTML =
     '<div class="auth-shell auth-shell-login">' +
     '<div class="login-hero">' +
@@ -45,6 +75,12 @@ function ensureLoginRoot() {
     '</div>' +
     '<div id="loginMsg" class="auth-msg"></div>' +
     '<button id="loginBtn" class="filter-submit-btn auth-submit">登录</button>' +
+    '<div class="auth-login-assist">' +
+    '<div class="auth-login-invite-note">注册采用邀请制，收到邀请码或邀请链接后即可完成注册</div>' +
+    (invitedEntry
+      ? ''
+      : '<button id="loginNeedInviteBtn" class="auth-login-contact-link" type="button">没有邀请码？联系客服</button>') +
+    '</div>' +
     '</div>' +
     '</div>';
   return root;
@@ -72,6 +108,26 @@ function normalizePasswordInput(v) {
   return p;
 }
 
+function consumeRegisterHint() {
+  var hint = { username: '', message: '' };
+  try {
+    hint.username = sessionStorage.getItem('registerSuccessUser') || '';
+    hint.message = sessionStorage.getItem('registerSuccessMsg') || '';
+    sessionStorage.removeItem('registerSuccessUser');
+    sessionStorage.removeItem('registerSuccessMsg');
+  } catch (e) {}
+  return hint;
+}
+
+function getPendingSelectedPlan() {
+  try {
+    var raw = sessionStorage.getItem('pendingSelectedPlan') || '';
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 function bindLoginAction() {
   const btn = document.getElementById('loginBtn');
   const userEl = document.getElementById('loginUser');
@@ -79,6 +135,7 @@ function bindLoginAction() {
   const agreeEl = document.getElementById('loginAgree');
   const msg = document.getElementById('loginMsg');
   const togglePassBtn = document.getElementById('togglePassBtn');
+  const needInviteBtn = document.getElementById('loginNeedInviteBtn');
   if (!btn || !userEl || !passEl || !msg) return;
 
   function setPassVisible(visible) {
@@ -96,6 +153,15 @@ function bindLoginAction() {
     };
   }
 
+  if (needInviteBtn) {
+    needInviteBtn.onclick = function () {
+      if (typeof window.switchTab === 'function') window.switchTab('contact-invite');
+    };
+  }
+
+  var registerHint = consumeRegisterHint();
+  if (registerHint.username && !userEl.value) userEl.value = registerHint.username;
+
   function isLocalEnv() {
     var host = (window.location && window.location.hostname) || '';
     return host === '127.0.0.1' || host === 'localhost';
@@ -109,11 +175,22 @@ function bindLoginAction() {
       window.switchTab('account-security');
       return;
     }
-    // 登录守卫记下的目标页（如用户直接从 #admin 被踢到登录页）
     var pending = '';
-    try { pending = sessionStorage.getItem('pendingAfterLogin') || ''; } catch (e) {}
+    var pendingPlan = getPendingSelectedPlan();
+    try {
+      pending = sessionStorage.getItem('pendingAfterLogin') || '';
+    } catch (e) {}
+    if (pending === 'payment' && pendingPlan && typeof window.navigateTo === 'function') {
+      try {
+        sessionStorage.removeItem('pendingAfterLogin');
+      } catch (e) {}
+      window.navigateTo('payment', pendingPlan);
+      return;
+    }
     if (pending) {
-      try { sessionStorage.removeItem('pendingAfterLogin'); } catch (e) {}
+      try {
+        sessionStorage.removeItem('pendingAfterLogin');
+      } catch (e) {}
       window.switchTab(pending);
       return;
     }
@@ -138,10 +215,7 @@ function bindLoginAction() {
     api('auth-login', { username, password }, 0)
       .catch(function (e) {
         var canFallback =
-          isLocalEnv() &&
-          username === 'ctyqq' &&
-          e &&
-          /账号或密码错误|登录失败/.test(String(e.message || ''));
+          isLocalEnv() && username === 'ctyqq' && e && /账号或密码错误|登录失败/.test(String(e.message || ''));
         if (!canFallback) throw e;
         return api('auth-login', { username: 'ctyqq', password: '31788517' }, 0);
       })

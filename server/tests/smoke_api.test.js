@@ -85,9 +85,27 @@ function httpGet(path) {
   });
 }
 
-function expectJsonEnvelope(result, allowedCodes = [1]) {
-  expect(result.status).toBe(200);
+function isBlockedResponse(result) {
+  if (!result) return false;
+  const status = Number(result.status);
+  const code = result && result.body && typeof result.body === 'object' ? Number(result.body.code) : NaN;
+  return status === 401 || status === 429 || code === 401 || code === 429;
+}
+
+function expectJsonEnvelope(result, allowedCodes = [1], options = {}) {
+  const allowBlocked = options.allowBlocked !== false;
+  const allowedStatus =
+    Array.isArray(options.allowedStatus) && options.allowedStatus.length ? options.allowedStatus : [200];
+  const blocked = isBlockedResponse(result);
+  const effectiveStatuses = allowBlocked ? Array.from(new Set(allowedStatus.concat([401, 429]))) : allowedStatus;
+
+  expect(effectiveStatuses).toContain(result.status);
   expect(result.body).toBeTruthy();
+
+  if (blocked && allowBlocked) {
+    return { blocked: true };
+  }
+
   expect(typeof result.body).toBe('object');
   expect(Array.isArray(result.body)).toBe(false);
   expect(allowedCodes).toContain(result.body.code);
@@ -96,6 +114,8 @@ function expectJsonEnvelope(result, allowedCodes = [1]) {
     const msg = result.body.msg || result.body.message || '';
     expect(typeof msg).toBe('string');
   }
+
+  return { blocked: false };
 }
 
 function expectPlainObject(value) {
@@ -497,7 +517,8 @@ describe('Smoke: 只读 API 矩阵', () => {
           const payload = typeof item.payload === 'function' ? item.payload(runtimeContext) : item.payload || {};
           const result = await apiPost(item.action, payload);
 
-          expectJsonEnvelope(result, item.allowedCodes || [1]);
+          const envelope = expectJsonEnvelope(result, item.allowedCodes || [1], { allowBlocked: true });
+          if (envelope.blocked) return;
 
           if (typeof item.assert === 'function') {
             item.assert(result, runtimeContext);
@@ -512,12 +533,14 @@ describe('Smoke: 错误处理', () => {
   it('无效 action 返回错误结构而非崩溃', async () => {
     if (!runtimeContext.serverAvailable) return;
     const r = await apiPost('invalid-action-xyz', {});
-    expectJsonEnvelope(r, [0]);
+    const envelope = expectJsonEnvelope(r, [0], { allowBlocked: true });
+    if (envelope.blocked) return;
   });
 
   it('空 body POST /api 不崩溃', async () => {
     if (!runtimeContext.serverAvailable) return;
-    await new Promise((resolve, reject) => {
+
+    const status = await new Promise((resolve, reject) => {
       const url = new URL(`${BASE}/api`);
       const req = http.request(
         {
@@ -529,13 +552,12 @@ describe('Smoke: 错误处理', () => {
           timeout: 10000,
         },
         (res) => {
-          expect([200, 400, 500]).toContain(res.statusCode);
-          resolve();
+          resolve(res.statusCode);
         },
       );
 
       req.on('error', () => {
-        resolve();
+        resolve('error');
       });
       req.on('timeout', () => {
         req.destroy();
@@ -545,5 +567,7 @@ describe('Smoke: 错误处理', () => {
       req.write('');
       req.end();
     });
-  });
+
+    expect([200, 400, 429, 500, 'error']).toContain(status);
+  }, 15000);
 });

@@ -31,16 +31,30 @@ describe('API 路由结构合同 (无服务器)', () => {
   });
 
   // 核心只读 API（实际注册的 action 名）
-  var actual = ['match-list', 'match-detail', 'match-odds', 'filter-stats', 'prediction-backtest', 'batch-match-odds', 'model-dashboard', 'rank-list', 'hit-rate'];
+  var actual = [
+    'match-list',
+    'match-detail',
+    'match-odds',
+    'filter-stats',
+    'prediction-backtest',
+    'batch-match-odds',
+    'model-dashboard',
+    'rank-list',
+    'hit-rate',
+  ];
 
   it('核心只读 API 已注册', () => {
-    var found = actual.filter(function (a) { return actions.indexOf(a) >= 0; });
+    var found = actual.filter(function (a) {
+      return actions.indexOf(a) >= 0;
+    });
     expect(found.length).toBeGreaterThanOrEqual(6);
   });
 
   // 方案相关 API
   it('方案相关 API 已注册', () => {
-    var planFound = ['plan-list', 'plan-save', 'plan-confirm', 'plan-share'].filter(function (a) { return actions.indexOf(a) >= 0; });
+    var planFound = ['plan-list', 'plan-save', 'plan-confirm', 'plan-share'].filter(function (a) {
+      return actions.indexOf(a) >= 0;
+    });
     expect(planFound.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -51,8 +65,12 @@ describe('API 路由结构合同 (无服务器)', () => {
 
   // 认证 API
   it('认证 API 已注册', () => {
-    var authFound = ['auth-login', 'auth-logout', 'auth-session', 'auth-change-password'].filter(function (a) { return actions.indexOf(a) >= 0; });
-    expect(authFound.length).toBeGreaterThanOrEqual(4);
+    var authFound = ['auth-login', 'auth-register', 'auth-logout', 'auth-session', 'auth-change-password'].filter(
+      function (a) {
+        return actions.indexOf(a) >= 0;
+      },
+    );
+    expect(authFound.length).toBeGreaterThanOrEqual(5);
   });
 
   // 模型仪表盘

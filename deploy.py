@@ -140,7 +140,9 @@ DEPLOY_MAP = [
     ('preview/js/pages/admin.js',         'both'),  # ★ 统一管理后台
     ('preview/css/payments.css',           'both'),
     ('preview/css/admin.css',              'both'),  # ★ 管理后台样式
+    ('preview/css/admin-v2.css',           'both'),  # ★ 管理后台实际加载样式
     ('preview/js/charts.js',              'both'),
+
     ('preview/js/api.js',                 'both'),
     ('preview/js/auth-client.js',         'both'),  # ★ V9: 认证客户端（main-fusion.js import）
 

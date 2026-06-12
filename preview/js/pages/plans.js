@@ -2,51 +2,56 @@ import { api } from '../api.js';
 import { WEEK_NAMES, MIN_PLAN_DATE, formatDate, getCache, setCache } from '../utils.js';
 import * as state from '../state.js';
 
+function getMatchHandicapValue(m, selection) {
+  var candidates = [
+    m && m.odds && m.odds.rqspf ? m.odds.rqspf.handicap : undefined,
+    m && m.odds ? m.odds.handicap : undefined,
+    m ? m.handicap : undefined,
+    m ? m.rq : undefined,
+    m ? m.concede : undefined,
+    selection ? selection.handicap : undefined,
+  ];
+  for (var i = 0; i < candidates.length; i++) {
+    var raw = candidates[i];
+    if (raw === null || raw === undefined || raw === '') continue;
+    var num = Number(raw);
+    if (!isNaN(num)) return num;
+  }
+  return null;
+}
+
+function formatHandicapText(handicap) {
+  if (handicap === null || handicap === undefined || handicap === '') return '--';
+  var num = Number(handicap);
+  if (isNaN(num)) return '--';
+  if (num > 0) return '+' + num;
+  if (num < 0) return String(num);
+  return '0';
+}
+
 /**
- * 渲染对阵文本：有比分则显示蓝色比分替代 VS，否则显示 VS
- * @param {Object} m - match 对象 (含 homeName, visitName, actualScore, isMatchWon/isMatchLose)
+ * 渲染对阵文本：有比分显示比分，无比分显示 VS；每场都展示让球数
  */
-function renderMatchTeams(m) {
+function renderMatchTeams(m, selection) {
   var hasResult =
     (m.isMatchWon !== null && m.isMatchWon !== undefined) ||
     (m.isMatchLose !== null && m.isMatchLose !== undefined) ||
     (m.isScoreWon !== null && m.isScoreWon !== undefined) ||
     (m.isScoreLose !== null && m.isScoreLose !== undefined);
   var score = m.actualScore || '';
-
-  // ★ 提取让球数：优先从 odds.rqspf.handicap，其次 odds.handicap
-  var handicap = null;
-  if (m.odds && m.odds.rqspf && m.odds.rqspf.handicap != null) {
-    handicap = Number(m.odds.rqspf.handicap);
-  } else if (m.odds && m.odds.handicap != null) {
-    handicap = Number(m.odds.handicap);
-  }
-  var handicapStr = '';
-  if (handicap !== null && handicap !== 0) {
-    handicapStr = handicap > 0 ? '(+' + handicap + ')' : '(' + handicap + ')';
-  } else if (handicap === 0) {
-    handicapStr = '(0)';
-  }
-
-  if (hasResult && score) {
-    return (
-      '<span class="plan-team-home">' +
-      (m.homeName || '') +
-      '</span><span class="plan-score-blue">' +
-      score +
-      handicapStr +
-      '</span>' +
-      '<span class="plan-team-away">' +
-      (m.visitName || '') +
-      '</span>'
-    );
-  }
+  var handicapText = formatHandicapText(getMatchHandicapValue(m, selection));
+  var middle =
+    hasResult && score ? '<span class="plan-score-blue">' + score + '</span>' : '<span class="plan-team-vs">vs</span>';
   return (
     '<span class="plan-team-home">' +
     (m.homeName || '') +
-    '</span><span class="plan-team-vs">vs</span>' +
+    '</span>' +
+    middle +
     '<span class="plan-team-away">' +
     (m.visitName || '') +
+    '</span>' +
+    '<span class="plan-handicap-badge">让球 ' +
+    handicapText +
     '</span>'
   );
 }
@@ -278,27 +283,23 @@ export function loadPlanList() {
           var isWon = false,
             isLose = false;
           var allWon = matches.length > 0;
-          var anyLose = false,
-            anyUndetermined = false;
+          var anyLose = false;
           for (var mi2 = 0; mi2 < matches.length; mi2++) {
-            if (!matches[mi2].isMatchWon) allWon = false;
-            if (matches[mi2].isMatchLose) anyLose = true;
-            if (!matches[mi2].isMatchWon && !matches[mi2].isMatchLose) anyUndetermined = true;
+            if (matches[mi2].isMatchWon !== true) allWon = false;
+            if (matches[mi2].isMatchLose === true) anyLose = true;
           }
           isWon = allWon;
-          isLose = anyLose && !isWon;
-          if (anyUndetermined) {
-            isWon = false;
-            isLose = false;
-          }
+          isLose = !isWon && anyLose;
 
           var planName = p.planName || '专家博热方案 ' + (i + 1);
           var amountVal = (p.amount || 1000).toFixed(0);
           // ★ 不要覆盖上面从 matches[].isMatchWon/isMatchLose 计算出的 isWon/isLose
           var prizeNum = isWon ? p.winningPrize || 0 : isLose ? 0 : p.maxPrize || 0;
           var prizeVal = prizeNum > 0 ? prizeNum.toFixed(0) : isWon ? '--' : '0';
-          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高奖金';
+          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
           var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
+          var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
+          var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
 
           var cutoffDisplay = '';
           if (matches.length > 0 && matches[0].startTime) {
@@ -421,9 +422,9 @@ export function loadPlanList() {
                   break;
                 }
               }
-              var subColor = '#fff';
+              var subStyle = '';
               if (subR && subR.result !== null && subR.result !== undefined) {
-                subColor = subR.result === 1 ? '#EF4444' : '#22C55E';
+                subStyle = ' style="color:' + (subR.result === 1 ? '#EF4444' : '#34D399') + '"';
               }
               var displayLabel = label;
               if (displayLabel.indexOf('总进球-') === 0) {
@@ -433,10 +434,13 @@ export function loadPlanList() {
               if (displayLabel.indexOf('半全场-') === 0) {
                 displayLabel = displayLabel.replace('半全场-', '');
               }
-              if (val) resolved.push('<span style="color:' + subColor + '">' + displayLabel + '(' + val + ')</span>');
-              else resolved.push('<span style="color:' + subColor + '">' + displayLabel + '(-)</span>');
+              if (isRQ) {
+                displayLabel += '(' + formatHandicapText(getMatchHandicapValue(match, match)) + ')';
+              }
+              if (val) resolved.push('<span' + subStyle + '>' + displayLabel + '(' + val + ')</span>');
+              else resolved.push('<span' + subStyle + '>' + displayLabel + '(-)</span>');
             });
-            return resolved.join('<span style="color:#fff"> + </span>');
+            return resolved.join('<span class="plan-dir-plus"> + </span>');
           }
 
           var matchRows = '';
@@ -548,7 +552,7 @@ export function loadPlanList() {
             '<div class="plan-amount-row">' +
             '<div class="plan-amount-col">' +
             '<div class="plan-amount-label">方案金额</div>' +
-            '<div class="plan-amount-value">' +
+            '<div class="plan-amount-value plan-money-value">' +
             amountVal +
             '<span class="unit">元</span></div>' +
             '</div>' +
@@ -556,14 +560,16 @@ export function loadPlanList() {
             '<div class="plan-amount-label">' +
             prizeLabel +
             '</div>' +
-            '<div class="plan-amount-value">' +
+            '<div class="plan-amount-value plan-money-value">' +
             prizeVal +
             '<span class="unit">元</span></div>' +
             '</div>' +
             '<div class="plan-amount-col">' +
             '<div class="plan-amount-label">方案状态</div>' +
-            '<div class="plan-amount-value">' +
-            (isWon ? '已中奖' : isLose ? '未中奖' : '未开奖') +
+            '<div class="plan-amount-value ' +
+            statusClass +
+            '">' +
+            statusText +
             '</div>' +
             '</div>' +
             '</div>' +
@@ -572,7 +578,7 @@ export function loadPlanList() {
             '<div class="plan-info-left">' +
             '<div>玩法</div>' +
             '<div>场数/过关</div>' +
-            '<div>注数/倍/票</div>' +
+            '<div>注数/倍</div>' +
             '</div>' +
             '<div class="plan-info-right">' +
             '<div>' +
@@ -583,11 +589,9 @@ export function loadPlanList() {
             '</div>' +
             '<div>' +
             (p.betCount || 250) +
-            '注' +
+            '注 ×' +
             (p.multiplier || 25) +
-            '倍' +
-            (p.ticketCount || 10) +
-            '票</div>' +
+            '倍</div>' +
             '</div>' +
             (isWon
               ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>'
@@ -660,9 +664,9 @@ export function loadMyPlanList() {
           var isWon = p.isWon === true;
           var isLose = p.isWon === false;
           var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
-          var statusColor = isWon ? '#EF4444' : isLose ? '#9AA6B2' : '#FFC928';
+          var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
           var amountVal = (p.amount || 200).toFixed(0);
-          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高奖金';
+          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
           // ★ 修复奖金计算公式：
           // totalOdds = maxWin / amount，所以预计最高奖金 = amount * totalOdds
           // 之前多除了 /p.multiplier 导致奖金被低估
@@ -716,7 +720,7 @@ export function loadMyPlanList() {
           ];
           var seqNum = idx + 1;
           var cnNum = seqNum <= 30 ? _cnNums[seqNum] : String(seqNum);
-          var planName = '方案' + cnNum;
+          var planName = p.planName || p.note || '方案' + cnNum;
           var dateStr = p.date
             ? p.date.slice(5).replace('-', '/')
             : p.createdAt
@@ -728,11 +732,14 @@ export function loadMyPlanList() {
             var m = matches[mi];
             var oddsStr = m.odds != null ? Number(m.odds).toFixed(2) : '--';
             var dirDisplay = m.direction || m.oddsName || '';
-            if (m.playType === 'rqspf') dirDisplay = '让' + dirDisplay;
-            // 赔率颜色：未中奖绿色 / 中奖红色 / 未开奖白色
-            var oddsColor = '#ffffff';
-            if (m.isMatchWon === true) oddsColor = '#EF4444';
-            else if (m.isMatchLose === true) oddsColor = '#22C55E';
+            if (m.playType === 'rqspf') {
+              var hText = formatHandicapText(getMatchHandicapValue(m, m));
+              dirDisplay = '让' + dirDisplay + '(' + hText + ')';
+            }
+            // 赔率颜色：命中红/未命中绿/未开奖原色
+            var oddsStyle = '';
+            if (m.isMatchWon === true) oddsStyle = 'color:#EF4444;';
+            else if (m.isMatchLose === true) oddsStyle = 'color:#34D399;';
             matchRows +=
               '<tr>' +
               '<td class="match-info-col">' +
@@ -741,11 +748,11 @@ export function loadMyPlanList() {
               '</div>' +
               '</td>' +
               '<td class="team-col">' +
-              renderMatchTeams(m) +
+              renderMatchTeams(m, m) +
               '</td>' +
-              '<td class="odds-col" style="color:' +
-              oddsColor +
-              '">' +
+              '<td class="odds-col"' +
+              (oddsStyle ? ' style="' + oddsStyle + '"' : '') +
+              '>' +
               dirDisplay +
               '(' +
               oddsStr +
@@ -779,17 +786,17 @@ export function loadMyPlanList() {
             '</span>' +
             '</div>' +
             '<div class="plan-amount-row">' +
-            '<div class="plan-amount-col"><div class="plan-amount-label">方案金额</div><div class="plan-amount-value">' +
+            '<div class="plan-amount-col"><div class="plan-amount-label">方案金额</div><div class="plan-amount-value plan-money-value">' +
             amountVal +
             '<span class="unit">元</span></div></div>' +
             '<div class="plan-amount-col"><div class="plan-amount-label">' +
             prizeLabel +
-            '</div><div class="plan-amount-value">' +
+            '</div><div class="plan-amount-value plan-money-value">' +
             prizeVal +
             '<span class="unit">元</span></div></div>' +
-            '<div class="plan-amount-col"><div class="plan-amount-label">方案状态</div><div class="plan-amount-value" style="color:' +
-            statusColor +
-            ';">' +
+            '<div class="plan-amount-col"><div class="plan-amount-label">方案状态</div><div class="plan-amount-value ' +
+            statusClass +
+            '">' +
             statusText +
             '</div></div>' +
             '</div>' +
@@ -1046,9 +1053,11 @@ function _buildShareCard(cardEl) {
   function formatLastOrderTime(value) {
     var text = String(value || '').trim();
     var full = text.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[ T](\d{2}:\d{2})/);
-    if (full) return '最后下单 ' + String(full[2]).padStart(2, '0') + '-' + String(full[3]).padStart(2, '0') + ' ' + full[4];
+    if (full)
+      return '最后下单 ' + String(full[2]).padStart(2, '0') + '-' + String(full[3]).padStart(2, '0') + ' ' + full[4];
     var short = text.match(/(\d{1,2})[\/\-](\d{1,2})\s+(\d{2}:\d{2})/);
-    if (short) return '最后下单 ' + String(short[1]).padStart(2, '0') + '-' + String(short[2]).padStart(2, '0') + ' ' + short[3];
+    if (short)
+      return '最后下单 ' + String(short[1]).padStart(2, '0') + '-' + String(short[2]).padStart(2, '0') + ' ' + short[3];
     var timeOnly = text.match(/(\d{2}:\d{2})/);
     var day = normalizeDate(text);
     if (timeOnly && day) return '最后下单 ' + day + ' ' + timeOnly[1];
@@ -1097,7 +1106,7 @@ function _buildShareCard(cardEl) {
 
   var amountLabel = amountCols[0] ? pickText(amountCols[0], '.plan-amount-label') : '方案金额';
   var amountValue = amountCols[0] ? pickText(amountCols[0], '.plan-amount-value') : '--元';
-  var prizeLabel = amountCols[1] ? pickText(amountCols[1], '.plan-amount-label') : '预计最高奖金';
+  var prizeLabel = amountCols[1] ? pickText(amountCols[1], '.plan-amount-label') : '预计最高中奖金额';
   var prizeValue = amountCols[1] ? pickText(amountCols[1], '.plan-amount-value') : '--元';
   var statusLabel = amountCols[2] ? pickText(amountCols[2], '.plan-amount-label') : '方案状态';
   var statusValue = amountCols[2] ? pickText(amountCols[2], '.plan-amount-value') : '未开奖';
@@ -1112,7 +1121,7 @@ function _buildShareCard(cardEl) {
   var betCount = infoRights[2] ? infoRights[2].textContent.trim().replace(/\s+/g, ' ') : '';
 
   var matchRowsData = [];
-  var last = { num: '', time: '', home: '', away: '' };
+  var last = { num: '', time: '', home: '', away: '', score: '', handicap: '' };
   cardEl.querySelectorAll('.plan-match-table tbody tr').forEach(function (row) {
     var cells = row.querySelectorAll('td');
     if (cells.length < 3) return;
@@ -1120,6 +1129,8 @@ function _buildShareCard(cardEl) {
     var time = pickText(cells[0], '.match-time-sub') || last.time;
     var home = pickText(cells[1], '.plan-team-home') || last.home;
     var away = pickText(cells[1], '.plan-team-away') || last.away;
+    var score = pickText(cells[1], '.plan-score-blue') || '';
+    var handicap = pickText(cells[1], '.plan-handicap-badge') || '';
     if ((!home || !away) && cells[1]) {
       var teamText = cells[1].textContent.trim().replace(/\s+/g, ' ');
       var teamParts = teamText.split(/\s*(?:vs|VS)\s*/);
@@ -1127,11 +1138,25 @@ function _buildShareCard(cardEl) {
       if (!away && teamParts[1]) away = teamParts[1];
     }
     var bet = parseBet(cells[2].textContent);
+    var betColor = '';
+    var coloredBet = cells[2].querySelector('span[style*="color"]');
+    if (coloredBet && coloredBet.style && coloredBet.style.color) betColor = coloredBet.style.color;
     if (num) last.num = num;
     if (time) last.time = time;
     if (home) last.home = home;
     if (away) last.away = away;
-    matchRowsData.push({ num: num, time: time, home: home, away: away, bet: bet });
+    if (score) last.score = score;
+    if (handicap) last.handicap = handicap;
+    matchRowsData.push({
+      num: num,
+      time: time,
+      home: home,
+      away: away,
+      score: score,
+      handicap: handicap,
+      bet: bet,
+      betColor: betColor,
+    });
   });
 
   if (!passType) passType = (matchRowsData.length || 1) + '场';
@@ -1150,7 +1175,7 @@ function _buildShareCard(cardEl) {
   var amountParts = splitNumberUnit(amountValue, '元');
   var prizeParts = splitNumberUnit(prizeValue, '元');
   var statusCls = statusText.indexOf('未中奖') >= 0 ? 'lost' : statusText.indexOf('已中奖') >= 0 ? 'won' : 'pending';
-  var statusColor = statusCls === 'won' ? '#e5484d' : statusCls === 'lost' ? '#26a269' : '#f59e0b';
+  var statusColor = statusCls === 'won' ? '#EF4444' : statusCls === 'lost' ? '#9CA3AF' : '#34D399';
 
   var targetIcon =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.6"></circle><path d="M19 5l-4 4M18.5 4.5h-3.5v3.5"></path></svg>';
@@ -1175,12 +1200,18 @@ function _buildShareCard(cardEl) {
             '</div></div></div>' +
             '<div class="sp-teams"><div>' +
             escapeHtml(item.home || '--') +
-            '</div><span>VS</span><div>' +
+            '</div><span>' +
+            escapeHtml(item.score || 'VS') +
+            '</span><div>' +
             escapeHtml(item.away || '--') +
-            '</div></div>' +
+            '</div>' +
+            (item.handicap ? '<div class="sp-handicap">' + escapeHtml(item.handicap) + '</div>' : '') +
+            '</div>' +
             '<div class="sp-bet"><span class="sp-bet-label">' +
             escapeHtml(item.bet.label) +
-            '</span><span class="sp-bet-value">' +
+            '</span><span class="sp-bet-value"' +
+            (item.betColor ? ' style="color:' + item.betColor + ';"' : '') +
+            '>' +
             escapeHtml(item.bet.value) +
             '</span></div>' +
             '</div>'
@@ -1205,10 +1236,10 @@ function _buildShareCard(cardEl) {
     '.sp-stat{height:61px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;}',
     '.sp-stat+.sp-stat{border-left:1px solid #e3ebf0;}',
     '.sp-stat-label{font-size:12px;line-height:1;color:#4d5d70;font-weight:500;margin-bottom:10px;}',
-    '.sp-stat-value{font-size:24px;line-height:1;font-weight:700;color:#108c86;letter-spacing:0;white-space:nowrap;}',
+    '.sp-stat-value{font-size:24px;line-height:1;font-weight:700;color:#EF4444;letter-spacing:0;white-space:nowrap;}',
     '.sp-stat-value span{font-size:13px;font-weight:500;margin-left:3px;color:#203043;}',
     '.sp-status{font-size:23px;line-height:1;font-weight:700;white-space:nowrap;}',
-    '.sp-status.pending{color:#f59e0b;}.sp-status.won{color:#e5484d;}.sp-status.lost{color:#26a269;}',
+    '.sp-status.pending{color:#34D399;}.sp-status.won{color:#EF4444;}.sp-status.lost{color:#9CA3AF;}',
     '.sp-info{height:140px;border-radius:15px;border:1px solid #e8eff3;background:rgba(255,255,255,.78);position:relative;overflow:hidden;box-shadow:none;}',
     '.sp-info:before{content:"";position:absolute;right:34px;bottom:31px;width:148px;height:44px;background:linear-gradient(100deg,transparent 0%,rgba(14,145,139,.10) 34%,rgba(14,145,139,.06) 54%,transparent 78%);transform:skewX(-18deg) rotate(-10deg);opacity:.42;}',
     '.sp-info:after{content:"";position:absolute;right:82px;bottom:32px;width:88px;height:2px;background:linear-gradient(90deg,transparent,rgba(14,145,139,.13),transparent);box-shadow:18px 12px 0 rgba(14,145,139,.09),-10px 24px 0 rgba(14,145,139,.06);transform:rotate(-13deg);}',
@@ -1232,6 +1263,7 @@ function _buildShareCard(cardEl) {
     '.sp-teams{min-height:56px;border-left:1px solid #e3ebf0;border-right:1px solid #e3ebf0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 8px;}',
     '.sp-teams div{max-width:116px;font-size:14px;line-height:1.25;font-weight:600;color:#142235;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
     '.sp-teams span{font-size:11px;line-height:1.5;color:#56677c;font-weight:500;}',
+    '.sp-handicap{margin-top:2px;font-size:10px;color:#4b5e74;font-weight:600;}',
     '.sp-bet{padding-left:16px;font-size:13px;line-height:1.6;font-weight:600;color:#142235;}',
     '.sp-bet-label{white-space:nowrap;}.sp-bet-value{color:#0e918b;word-break:break-word;}',
     '.sp-empty-row{height:92px;display:flex;align-items:center;justify-content:center;color:#748299;font-size:13px;}',
@@ -1258,7 +1290,7 @@ function _buildShareCard(cardEl) {
     '<span>' +
     escapeHtml(amountParts.unit) +
     '</span></div></div><div class="sp-stat"><div class="sp-stat-label">' +
-    escapeHtml(prizeLabel || '预计最高奖金') +
+    escapeHtml(prizeLabel || '预计最高中奖金额') +
     '</div><div class="sp-stat-value">' +
     escapeHtml(prizeParts.num) +
     '<span>' +
@@ -1424,9 +1456,9 @@ function _buildLegacyShareCard(cardEl) {
     '.stat-value{margin-top:10px;font-size:44px;font-weight:800;color:#0d9488;letter-spacing:-.5px;line-height:1.1;}' +
     '.stat-value span{font-size:22px;color:#94a3b8;font-weight:500;margin-left:2px;}' +
     '.stat-status{margin-top:10px;font-size:42px;font-weight:800;letter-spacing:-.5px;}' +
-    '.stat-status.status-pending{color:#f59e0b;}' +
-    '.stat-status.status-won{color:#10b981;}' +
-    '.stat-status.status-lost{color:#ef4444;}' +
+    '.stat-status.status-pending{color:#34D399;}' +
+    '.stat-status.status-won{color:#EF4444;}' +
+    '.stat-status.status-lost{color:#9CA3AF;}' +
     /* ── 信息行 ── */
     '.base-info{padding-top:20px;}' +
     '.info-row{display:flex;align-items:center;height:76px;' +
@@ -1794,8 +1826,9 @@ export function loadScorePlanList() {
           var isLose = p.isScoreLose || false;
           var prizeNum2 = isWon ? p.winningPrize || 0 : isLose ? 0 : p.maxPrize || 0;
           var prizeVal = prizeNum2 > 0 ? prizeNum2.toFixed(0) : isWon ? '--' : '0';
-          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高奖金';
+          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
           var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
+          var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
 
           // 构建比分标签 + 资金分配（按行显示）
           var scoreRows = '';
@@ -1806,6 +1839,10 @@ export function loadScorePlanList() {
           }
           for (var si = 0; si < scores.length; si++) {
             var s = scores[si];
+            var scoreDirStyle = '';
+            if (p.actualScore) {
+              scoreDirStyle = s.score === p.actualScore ? ' style="color:#EF4444;"' : ' style="color:#34D399;"';
+            }
             scoreRows +=
               '<tr>' +
               '<td class="match-info-col">' +
@@ -1818,7 +1855,9 @@ export function loadScorePlanList() {
               (si === 0 ? renderMatchTeams(p) : '') +
               '</td>' +
               '<td class="odds-col">' +
-              '<span class="plan-score-tag">' +
+              '<span class="plan-score-tag"' +
+              scoreDirStyle +
+              '>' +
               s.score +
               ' (' +
               s.odds.toFixed(2) +
@@ -1840,7 +1879,7 @@ export function loadScorePlanList() {
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
             '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
-            '<span class="plan-name" style="color: var(--amber);">' +
+            '<span class="plan-name">' +
             (p.planName || '单关比分方案') +
             '</span>' +
             '</div>' +
@@ -1880,7 +1919,7 @@ export function loadScorePlanList() {
             '<div class="plan-amount-row">' +
             '<div class="plan-amount-col">' +
             '<div class="plan-amount-label">方案金额</div>' +
-            '<div class="plan-amount-value">' +
+            '<div class="plan-amount-value plan-money-value">' +
             amountVal +
             '<span class="unit">元</span></div>' +
             '</div>' +
@@ -1888,15 +1927,15 @@ export function loadScorePlanList() {
             '<div class="plan-amount-label">' +
             prizeLabel +
             '</div>' +
-            '<div class="plan-amount-value" style="color: ' +
-            (isWon ? 'var(--red)' : 'var(--amber)') +
-            ';">' +
+            '<div class="plan-amount-value plan-money-value">' +
             prizeVal +
             '<span class="unit">元</span></div>' +
             '</div>' +
             '<div class="plan-amount-col">' +
             '<div class="plan-amount-label">方案状态</div>' +
-            '<div class="plan-amount-value">' +
+            '<div class="plan-amount-value ' +
+            statusClass +
+            '">' +
             statusText +
             '</div>' +
             '</div>' +
@@ -1905,19 +1944,21 @@ export function loadScorePlanList() {
             '<div class="plan-info-grid">' +
             '<div class="plan-info-left">' +
             '<div>玩法</div>' +
-            '<div>过关</div>' +
-            '<div>赔率组合</div>' +
+            '<div>场数/过关</div>' +
+            '<div>注数/倍</div>' +
             '</div>' +
             '<div class="plan-info-right">' +
             '<div>' +
             (p.playType || '单场比分') +
             '</div>' +
             '<div>' +
-            (p.passType || '比分单关') +
+            ((p.matchCount || 1) + '场 ' + (p.passType || '比分单关')) +
             '</div>' +
-            '<div class="plan-odds-combo">' +
-            (p.oddsDisplay || '') +
-            '</div>' +
+            '<div>' +
+            (p.betCount || scores.length || '--') +
+            '注 ×' +
+            (p.multiplier || 1) +
+            '倍</div>' +
             '</div>' +
             (isWon
               ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>'
@@ -2048,19 +2089,14 @@ export function loadQuantPlanList() {
           var isWon = false,
             isLose = false;
           var allWon = matches.length > 0;
-          var anyLose = false,
-            anyUndetermined = false;
+          var anyLose = false;
           for (var mi2 = 0; mi2 < matches.length; mi2++) {
-            if (!matches[mi2].isMatchWon) allWon = false;
-            if (matches[mi2].isMatchLose) anyLose = true;
-            if (!matches[mi2].isMatchWon && !matches[mi2].isMatchLose) anyUndetermined = true;
+            if (matches[mi2].isMatchWon !== true) allWon = false;
+            if (matches[mi2].isMatchLose === true) anyLose = true;
           }
           isWon = allWon;
-          isLose = anyLose && !isWon;
-          if (anyUndetermined) {
-            isWon = false;
-            isLose = false;
-          }
+          isLose = !isWon && anyLose;
+
           // 截单时间计算（复用 expert plan 逻辑）
           var cutoffDisplay = '';
           if (matches.length > 0 && matches[0].startTime) {
@@ -2110,8 +2146,9 @@ export function loadQuantPlanList() {
           // ★ 不覆盖 isWon/isLose — 上面已从 matches[].isMatchWon/isMatchLose 正确计算
           var prizeNum3 = isWon ? p.winningPrize || p.maxPrize || 0 : isLose ? 0 : p.maxPrize || 0;
           var prizeVal = prizeNum3 > 0 ? prizeNum3.toFixed(0) : isWon || isLose ? '0' : '0';
-          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高奖金';
+          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
           var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
+          var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
 
           // 构建比赛表格行
           var matchRows = '';
@@ -2132,6 +2169,10 @@ export function loadQuantPlanList() {
             var dir = m.direction || '';
             var oddsObj = m.odds || {};
             var oddsVal = '';
+            var dirDisplay = dir;
+            if (dir.indexOf('让') === 0) {
+              dirDisplay = dir + '(' + formatHandicapText(getMatchHandicapValue(m, m)) + ')';
+            }
             if (oddsObj.spf) {
               var dLower = dir.toLowerCase();
               if (dLower === '胜' || dLower.indexOf('胜') === 0) oddsVal = oddsObj.spf.home;
@@ -2150,13 +2191,19 @@ export function loadQuantPlanList() {
                 break;
               }
             }
-            var matchColor = '#fff';
+            var matchColor = '';
             if (subR && subR.result !== null && subR.result !== undefined) {
-              matchColor = subR.result === 1 ? '#EF4444' : '#22C55E';
+              matchColor = subR.result === 1 ? '#EF4444' : '#34D399';
             }
             var oddsDisplay = oddsVal
-              ? '<span style="color:' + matchColor + '">' + dir + '(' + oddsVal + ')</span>'
-              : '<span style="color:' + matchColor + '">' + dir + '</span>';
+              ? '<span' +
+                (matchColor ? ' style="color:' + matchColor + '"' : '') +
+                '>' +
+                dirDisplay +
+                '(' +
+                oddsVal +
+                ')</span>'
+              : '<span' + (matchColor ? ' style="color:' + matchColor + '"' : '') + '>' + dirDisplay + '</span>';
 
             matchRows +=
               '<tr>' +
@@ -2183,7 +2230,7 @@ export function loadQuantPlanList() {
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
             '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
-            '<span class="plan-name" style="color: var(--purple);">' +
+            '<span class="plan-name">' +
             planName +
             '</span>' +
             '</div>' +
@@ -2223,7 +2270,7 @@ export function loadQuantPlanList() {
             '<div class="plan-amount-row">' +
             '<div class="plan-amount-col">' +
             '<div class="plan-amount-label">方案金额</div>' +
-            '<div class="plan-amount-value">' +
+            '<div class="plan-amount-value plan-money-value">' +
             amountVal +
             '<span class="unit">元</span></div>' +
             '</div>' +
@@ -2231,13 +2278,15 @@ export function loadQuantPlanList() {
             '<div class="plan-amount-label">' +
             prizeLabel +
             '</div>' +
-            '<div class="plan-amount-value" style="color: var(--purple);">' +
+            '<div class="plan-amount-value plan-money-value">' +
             prizeVal +
             '<span class="unit">元</span></div>' +
             '</div>' +
             '<div class="plan-amount-col">' +
             '<div class="plan-amount-label">方案状态</div>' +
-            '<div class="plan-amount-value">' +
+            '<div class="plan-amount-value ' +
+            statusClass +
+            '">' +
             statusText +
             '</div>' +
             '</div>' +
@@ -2246,19 +2295,21 @@ export function loadQuantPlanList() {
             '<div class="plan-info-grid">' +
             '<div class="plan-info-left">' +
             '<div>玩法</div>' +
-            '<div>过关</div>' +
-            '<div>赔率组合</div>' +
+            '<div>场数/过关</div>' +
+            '<div>注数/倍</div>' +
             '</div>' +
             '<div class="plan-info-right">' +
             '<div>' +
             (p.playType || '混合投注（搏冷）') +
             '</div>' +
             '<div>' +
-            (p.passType || '2串1') +
+            ((p.matchCount || matches.length || 1) + '场 ' + (p.passType || '2串1')) +
             '</div>' +
-            '<div class="plan-odds-combo">' +
-            (p.oddsDisplay || '') +
-            '</div>' +
+            '<div>' +
+            (p.betCount || '--') +
+            '注 ×' +
+            (p.multiplier || 1) +
+            '倍</div>' +
             '</div>' +
             (isWon
               ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>'

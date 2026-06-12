@@ -1,0 +1,133 @@
+function getInviteContactConfig() {
+  var cfg = window.__inviteContactConfig || {};
+  var contacts =
+    Array.isArray(cfg.contacts) && cfg.contacts.length
+      ? cfg.contacts
+      : [
+          {
+            label: '客服微信',
+            value: '待补充',
+            desc: '建议在此处填写客服微信号或企业微信二维码链接。',
+            copyable: false,
+          },
+          {
+            label: '客服电话',
+            value: '待补充',
+            desc: '建议补充手机号或固定电话，方便非微信场景联系。',
+            copyable: false,
+          },
+          {
+            label: '服务时间',
+            value: '09:00 - 21:00',
+            desc: '邀请制用户可在服务时间内获取专属邀请码或邀请链接。',
+            copyable: false,
+          },
+        ];
+
+  var hasRealContact = contacts.some(function (item) {
+    return item && item.value && item.value !== '待补充';
+  });
+
+  return {
+    contacts: contacts,
+    hasRealContact: hasRealContact,
+    notice: cfg.notice || '当前注册采用邀请制，请先联系客服获取邀请码或专属邀请链接。',
+    tip:
+      cfg.tip ||
+      (hasRealContact
+        ? '联系客服后，将收到专属邀请链接或邀请码；返回注册页填写即可完成注册。'
+        : '当前仓库未内置正式客服联系方式，建议上线前将微信/电话替换为真实客服信息。'),
+  };
+}
+
+function renderContactItems(contacts) {
+  return contacts
+    .map(function (item, index) {
+      var value = item && item.value ? item.value : '待补充';
+      var copyBtn =
+        item && item.copyable && value !== '待补充'
+          ? '<button class="invite-contact-copy" type="button" onclick="copyInviteContact(' + index + ')">复制</button>'
+          : '';
+      var statusClass = value === '待补充' ? ' is-pending' : '';
+      return (
+        '<div class="invite-contact-item">' +
+        '<div class="invite-contact-head">' +
+        '<span class="invite-contact-label">' +
+        (item.label || '联系方式') +
+        '</span>' +
+        '<span class="invite-contact-status' +
+        statusClass +
+        '">' +
+        (value === '待补充' ? '待配置' : '可联系') +
+        '</span>' +
+        '</div>' +
+        '<div class="invite-contact-value">' +
+        value +
+        '</div>' +
+        '<div class="invite-contact-desc">' +
+        (item.desc || '') +
+        '</div>' +
+        copyBtn +
+        '</div>'
+      );
+    })
+    .join('');
+}
+
+window.copyInviteContact = function (index) {
+  var cfg = getInviteContactConfig();
+  var item = cfg.contacts[index];
+  if (!item || !item.value || item.value === '待补充') {
+    alert('当前暂无可复制的客服信息');
+    return;
+  }
+  navigator.clipboard
+    .writeText(String(item.value))
+    .then(function () {
+      alert((item.label || '联系方式') + '已复制');
+    })
+    .catch(function () {
+      alert('复制失败，请手动记录');
+    });
+};
+
+export function loadContactInvite() {
+  var root = document.getElementById('contactInviteContent');
+  if (!root) return;
+
+  var cfg = getInviteContactConfig();
+  root.innerHTML =
+    '<div class="auth-shell auth-shell-login auth-shell-contact">' +
+    '<button class="auth-home-corner" type="button" onclick="switchTab(\'login\')" aria-label="返回登录" title="返回登录">' +
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>' +
+    '</button>' +
+    '<div class="login-hero contact-invite-hero">' +
+    '<div class="login-hero-copy">' +
+    '<div class="login-hero-title">Need Invite?</div>' +
+    '<div class="login-hero-subtitle">没有邀请码<br>先联系客服</div>' +
+    '<div class="auth-invite-badge">邀请制注册入口</div>' +
+    '</div>' +
+    '<img class="login-eagle" src="/assets/login-eagle.png?v=202606101155" alt="" loading="eager" decoding="async" />' +
+    '</div>' +
+    '<div class="auth-card auth-login-card auth-contact-card">' +
+    '<div class="auth-note-card">' +
+    cfg.notice +
+    '</div>' +
+    '<div class="contact-guide-list">' +
+    '<div class="contact-guide-item"><span class="contact-guide-num">1</span><div><strong>联系客服</strong><span>获取邀请码或专属邀请链接</span></div></div>' +
+    '<div class="contact-guide-item"><span class="contact-guide-num">2</span><div><strong>进入注册页</strong><span>邀请码会自动带入，也支持手动填写</span></div></div>' +
+    '<div class="contact-guide-item"><span class="contact-guide-num">3</span><div><strong>完成注册并登录</strong><span>登录后将自动引导至套餐页</span></div></div>' +
+    '</div>' +
+    '<div class="invite-contact-stack">' +
+    renderContactItems(cfg.contacts) +
+    '</div>' +
+    '<div class="auth-note-card auth-note-card-soft">' +
+    cfg.tip +
+    '</div>' +
+    '<div class="auth-secondary-actions">' +
+    '<button class="auth-secondary-btn" type="button" onclick="switchTab(\'register\')">我已有邀请码，去注册</button>' +
+    '<button class="auth-secondary-btn is-ghost" type="button" onclick="switchTab(\'login\')">返回登录</button>' +
+    '</div>' +
+    '</div>' +
+    '</div>';
+}

@@ -25,12 +25,24 @@ async function simulatePayment(orderNo, userId) {
   const adp = database.getAdapter();
   if (!adp) throw new Error('DB_UNAVAILABLE');
 
-  // 查订单
-  const order = adp.execOne(
-    `SELECT * FROM payment_orders WHERE order_no = ? AND user_id = ?`,
-    [orderNo, userId]
-  );
+  // 查订单（浏览器支付跳转可能不会自动携带鉴权头，因此 userId 允许为空）
+  const order = userId
+    ? adp.execOne(`SELECT * FROM payment_orders WHERE order_no = ? AND user_id = ?`, [orderNo, userId])
+    : adp.execOne(`SELECT * FROM payment_orders WHERE order_no = ?`, [orderNo]);
   if (!order) throw new Error('ORDER_NOT_FOUND');
+  if (order.pay_status === 'paid') {
+    const planExisting = adp.execOne(`SELECT * FROM subscription_plans WHERE plan_code = ?`, [order.plan_code]);
+    return {
+      order_id: order.id,
+      user_id: order.user_id,
+      pay_status: 'paid',
+      transaction_id: order.transaction_id,
+      plan_code: order.plan_code,
+      plan_name: planExisting?.plan_name,
+      amount: order.amount,
+      paid_at: order.paid_at,
+    };
+  }
   if (order.pay_status !== 'pending') throw new Error('ORDER_ALREADY_PROCESSED');
 
   // 检查过期
@@ -43,16 +55,14 @@ async function simulatePayment(orderNo, userId) {
   const transactionId = `SIM${Date.now()}${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
   const now = new Date().toISOString();
 
-  adp.execRun(
-    `UPDATE payment_orders SET pay_status = 'paid', transaction_id = ?, paid_at = ? WHERE id = ?`,
-    [transactionId, now, order.id]
-  );
+  adp.execRun(`UPDATE payment_orders SET pay_status = 'paid', transaction_id = ?, paid_at = ? WHERE id = ?`, [
+    transactionId,
+    now,
+    order.id,
+  ]);
 
   // 激活订阅
-  const plan = adp.execOne(
-    `SELECT * FROM subscription_plans WHERE plan_code = ?`,
-    [order.plan_code]
-  );
+  const plan = adp.execOne(`SELECT * FROM subscription_plans WHERE plan_code = ?`, [order.plan_code]);
 
   const startDate = new Date().toISOString().slice(0, 10);
   const endDate = new Date();
@@ -60,31 +70,41 @@ async function simulatePayment(orderNo, userId) {
 
   // 核销优惠码
   if (order.coupon_code) {
-    adp.execRun(
-      `UPDATE coupons SET used_count = used_count + 1 WHERE code = ?`,
-      [order.coupon_code]
-    );
+    adp.execRun(`UPDATE coupons SET used_count = used_count + 1 WHERE code = ?`, [order.coupon_code]);
   }
 
   adp.execRun(
     `INSERT INTO user_subscriptions 
      (user_id, plan_code, period, status, start_date, end_date, source, transaction_id, amount, original_amount, coupon_code)
      VALUES (?, ?, ?, 'active', ?, ?, 'alipay', ?, ?, ?, ?)`,
-    [order.user_id, order.plan_code, plan?.period || 'month', startDate,
-     endDate.toISOString().slice(0, 10), transactionId, order.amount,
-     order.original_amount, order.coupon_code]
+    [
+      order.user_id,
+      order.plan_code,
+      plan?.period || 'month',
+      startDate,
+      endDate.toISOString().slice(0, 10),
+      transactionId,
+      order.amount,
+      order.original_amount,
+      order.coupon_code,
+    ],
   );
+  const subRow = adp.execOne(`SELECT id FROM user_subscriptions WHERE transaction_id = ? ORDER BY id DESC LIMIT 1`, [
+    transactionId,
+  ]);
 
   // 更新 users 表
   adp.execRun(
     `UPDATE users SET subscription_status = 'active', 
-     subscription_expires_at = ? WHERE id = ?`,
-    [endDate.toISOString().slice(0, 10), order.user_id]
+     subscription_expires_at = ?, current_subscription_id = ? WHERE id = ?`,
+    [endDate.toISOString().slice(0, 10), subRow?.id || null, order.user_id],
   );
 
   console.log(`[alipay] 模拟支付成功: ${orderNo}, 用户 ${userId}, 套餐 ${order.plan_code}`);
 
   return {
+    order_id: order.id,
+    user_id: order.user_id,
     pay_status: 'paid',
     transaction_id: transactionId,
     plan_code: order.plan_code,

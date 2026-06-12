@@ -14,9 +14,74 @@
  *   admin-referral-withdraw-process — 管理员处理提现
  */
 
+const crypto = require('crypto');
 const database = require('../database');
+const { initPaymentSchema } = require('./schema');
 
 const MIN_WITHDRAWAL_AMOUNT = 1000; // 最小提现金额 10元（分）
+const REFERRAL_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+let _referralSchemaReady = false;
+
+function ensureReferralSchema(adp) {
+  if (!adp || _referralSchemaReady) return;
+  initPaymentSchema(adp);
+  const userColumns = new Set((adp.execAll('PRAGMA table_info(users)') || []).map((col) => col.name));
+  const ensureColumns = [
+    ['referral_code', 'ALTER TABLE users ADD COLUMN referral_code TEXT'],
+    ['referred_by', 'ALTER TABLE users ADD COLUMN referred_by INTEGER DEFAULT NULL'],
+  ];
+  ensureColumns.forEach(([name, sql]) => {
+    if (!userColumns.has(name)) adp.execDDL(sql);
+  });
+  adp.execDDL('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code)');
+  adp.execDDL('CREATE INDEX IF NOT EXISTS idx_users_referred_by ON users(referred_by)');
+  _referralSchemaReady = true;
+}
+
+function getPayload(req) {
+  if (req && req.body && req.body.data && typeof req.body.data === 'object') {
+    return Object.assign({}, req.body.data, req.body);
+  }
+  return (req && req.body) || {};
+}
+
+function generateReferralCode(adp, len = 8) {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    let code = '';
+    const bytes = crypto.randomBytes(len);
+    for (let i = 0; i < len; i += 1) {
+      code += REFERRAL_CODE_ALPHABET[bytes[i] % REFERRAL_CODE_ALPHABET.length];
+    }
+    const exists = adp.execOne('SELECT id FROM users WHERE referral_code = ?', [code]);
+    if (!exists) return code;
+  }
+  throw new Error('REFERRAL_CODE_GENERATE_FAILED');
+}
+
+function ensureUserReferralCode(adp, userId) {
+  if (!userId) return null;
+  const current = adp.execOne('SELECT referral_code FROM users WHERE id = ?', [userId]);
+  if (current && current.referral_code) return current.referral_code;
+  const code = generateReferralCode(adp, 8);
+  adp.execRun(
+    `UPDATE users
+     SET referral_code = COALESCE(referral_code, ?), updated_at = datetime('now','localtime')
+     WHERE id = ?`,
+    [code, userId],
+  );
+  const refreshed = adp.execOne('SELECT referral_code FROM users WHERE id = ?', [userId]);
+  return (refreshed && refreshed.referral_code) || code;
+}
+
+function ensureReferralAccountRow(adp, userId) {
+  if (!userId) return;
+  adp.execRun(
+    `INSERT OR IGNORE INTO referral_accounts
+     (user_id, total_earned, total_withdrawn, total_invitees, total_commissions, updated_at)
+     VALUES (?, 0, 0, 0, 0, datetime('now','localtime'))`,
+    [userId],
+  );
+}
 
 /**
  * referral-info — 获取邀请码和分享链接
@@ -25,20 +90,14 @@ async function referralInfo(req, res) {
   try {
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
+    ensureReferralSchema(adp);
 
     const userId = req.authSession?.userId;
-    const user = adp.execOne(
-      `SELECT referral_code FROM users WHERE id = ?`,
-      [userId]
-    );
-
-    const code = user?.referral_code || null;
+    if (!userId) return res.json({ code: 401, msg: 'AUTH_REQUIRED' });
+    const code = ensureUserReferralCode(adp, userId);
     const shareUrl = code ? `https://zj.100qiu.com/preview/#register?ref=${code}` : null;
 
-    const inviteCount = adp.execOne(
-      `SELECT COUNT(*) as cnt FROM users WHERE referred_by = ?`,
-      [userId]
-    );
+    const inviteCount = adp.execOne(`SELECT COUNT(*) as cnt FROM users WHERE referred_by = ?`, [userId]);
 
     return res.json({
       code: 1,
@@ -61,18 +120,20 @@ async function referralAccount(req, res) {
   try {
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
+    ensureReferralSchema(adp);
 
     const userId = req.authSession?.userId;
+    if (!userId) return res.json({ code: 401, msg: 'AUTH_REQUIRED' });
 
-    const account = adp.execOne(
-      `SELECT * FROM referral_accounts WHERE user_id = ?`,
-      [userId]
-    );
+    ensureReferralAccountRow(adp, userId);
+    const referralCode = ensureUserReferralCode(adp, userId);
+
+    const account = adp.execOne(`SELECT * FROM referral_accounts WHERE user_id = ?`, [userId]);
 
     const pendingCommissions = adp.execOne(
       `SELECT COALESCE(SUM(commission_amount), 0) as total FROM referral_commissions
        WHERE inviter_user_id = ? AND status = 'pending'`,
-      [userId]
+      [userId],
     );
 
     const recentCommissions = adp.execAll(
@@ -83,24 +144,21 @@ async function referralAccount(req, res) {
        LEFT JOIN subscription_plans spo ON spo.plan_code = us.plan_code
        WHERE rc.inviter_user_id = ?
        ORDER BY rc.id DESC LIMIT 10`,
-      [userId]
+      [userId],
     );
-
-    // 获取邀请码
-    const user = adp.execOne(`SELECT referral_code FROM users WHERE id = ?`, [userId]);
 
     return res.json({
       code: 1,
       data: {
-        referralCode: user?.referral_code || null,
-        shareUrl: user?.referral_code ? `https://zj.100qiu.com/preview/#register?ref=${user.referral_code}` : null,
+        referralCode: referralCode || null,
+        shareUrl: referralCode ? `https://zj.100qiu.com/preview/#register?ref=${referralCode}` : null,
         totalEarned: account?.total_earned || 0,
         totalWithdrawn: account?.total_withdrawn || 0,
         balance: (account?.total_earned || 0) - (account?.total_withdrawn || 0),
         totalInvitees: account?.total_invitees || 0,
         totalCommissions: account?.total_commissions || 0,
         pendingCommissions: pendingCommissions?.total || 0,
-        recentCommissions: (recentCommissions || []).map(c => ({
+        recentCommissions: (recentCommissions || []).map((c) => ({
           invitee: c.invitee_name || 'user_***',
           plan: c.plan_name || '未知',
           amount: c.payment_amount,
@@ -125,9 +183,13 @@ async function referralCommissions(req, res) {
   try {
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
+    ensureReferralSchema(adp);
 
     const userId = req.authSession?.userId;
-    const { page = 1, pageSize = 20, status: filterStatus } = req.body || {};
+    if (!userId) return res.json({ code: 401, msg: 'AUTH_REQUIRED' });
+
+    const payload = getPayload(req);
+    const { page = 1, pageSize = 20, status: filterStatus } = payload;
     const offset = (page - 1) * pageSize;
 
     let where = 'WHERE rc.inviter_user_id = ?';
@@ -137,10 +199,7 @@ async function referralCommissions(req, res) {
       params.push(filterStatus);
     }
 
-    const total = adp.execOne(
-      `SELECT COUNT(*) as cnt FROM referral_commissions rc ${where}`,
-      params
-    );
+    const total = adp.execOne(`SELECT COUNT(*) as cnt FROM referral_commissions rc ${where}`, params);
 
     const rows = adp.execAll(
       `SELECT rc.*, u.username as invitee_name
@@ -148,7 +207,7 @@ async function referralCommissions(req, res) {
        JOIN users u ON u.id = rc.invitee_user_id
        ${where}
        ORDER BY rc.id DESC LIMIT ? OFFSET ?`,
-      [...params, pageSize, offset]
+      [...params, pageSize, offset],
     );
 
     return res.json({
@@ -157,7 +216,7 @@ async function referralCommissions(req, res) {
         total: total?.cnt || 0,
         page,
         pageSize,
-        list: (rows || []).map(r => ({
+        list: (rows || []).map((r) => ({
           id: r.id,
           invitee: r.invitee_name || 'user_***',
           paymentAmount: r.payment_amount,
@@ -182,9 +241,13 @@ async function withdrawSubmit(req, res) {
   try {
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
+    ensureReferralSchema(adp);
 
     const userId = req.authSession?.userId;
-    const { amount, paymentMethod = 'bank_transfer', accountHolder, paymentAccount } = req.body;
+    if (!userId) return res.json({ code: 401, msg: 'AUTH_REQUIRED' });
+
+    const payload = getPayload(req);
+    const { amount, paymentMethod = 'bank_transfer', accountHolder, paymentAccount } = payload;
 
     if (!amount || amount <= 0) return res.json({ code: 400, msg: 'INVALID_AMOUNT' });
     if (amount < MIN_WITHDRAWAL_AMOUNT) {
@@ -195,10 +258,7 @@ async function withdrawSubmit(req, res) {
     }
 
     // 检查余额
-    const account = adp.execOne(
-      `SELECT * FROM referral_accounts WHERE user_id = ?`,
-      [userId]
-    );
+    const account = adp.execOne(`SELECT * FROM referral_accounts WHERE user_id = ?`, [userId]);
     const balance = (account?.total_earned || 0) - (account?.total_withdrawn || 0);
     if (amount > balance) {
       return res.json({ code: 400, msg: 'INSUFFICIENT_BALANCE', data: { balance } });
@@ -207,7 +267,7 @@ async function withdrawSubmit(req, res) {
     adp.execRun(
       `INSERT INTO referral_withdrawals (user_id, amount, status, payment_method, payment_account, account_holder)
        VALUES (?, ?, 'submitted', ?, ?, ?)`,
-      [userId, amount, paymentMethod, paymentAccount, accountHolder]
+      [userId, amount, paymentMethod, paymentAccount, accountHolder],
     );
 
     const wid = adp.execOne(`SELECT last_insert_rowid() as id FROM referral_withdrawals LIMIT 1`);
@@ -233,20 +293,22 @@ async function withdrawHistory(req, res) {
   try {
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
+    ensureReferralSchema(adp);
 
     const userId = req.authSession?.userId;
-    const { page = 1, pageSize = 20 } = req.body || {};
+    if (!userId) return res.json({ code: 401, msg: 'AUTH_REQUIRED' });
+
+    const payload = getPayload(req);
+    const { page = 1, pageSize = 20 } = payload;
     const offset = (page - 1) * pageSize;
 
-    const total = adp.execOne(
-      `SELECT COUNT(*) as cnt FROM referral_withdrawals WHERE user_id = ?`,
-      [userId]
-    );
+    const total = adp.execOne(`SELECT COUNT(*) as cnt FROM referral_withdrawals WHERE user_id = ?`, [userId]);
 
-    const rows = adp.execAll(
-      `SELECT * FROM referral_withdrawals WHERE user_id = ? ORDER BY id DESC LIMIT ? OFFSET ?`,
-      [userId, pageSize, offset]
-    );
+    const rows = adp.execAll(`SELECT * FROM referral_withdrawals WHERE user_id = ? ORDER BY id DESC LIMIT ? OFFSET ?`, [
+      userId,
+      pageSize,
+      offset,
+    ]);
 
     return res.json({
       code: 1,
@@ -268,20 +330,30 @@ async function adminReferralCommissions(req, res) {
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
 
-    const { page = 1, pageSize = 20, status: filterStatus, inviter, invitee } = req.body || {};
+    const payload = getPayload(req);
+    const { page = 1, pageSize = 20, status: filterStatus, inviter, invitee } = payload;
     const offset = (page - 1) * pageSize;
 
     let where = 'WHERE 1=1';
     const params = [];
-    if (filterStatus) { where += ' AND rc.status = ?'; params.push(filterStatus); }
-    if (inviter) { where += ' AND ui.username LIKE ?'; params.push(`%${inviter}%`); }
-    if (invitee) { where += ' AND ue.username LIKE ?'; params.push(`%${invitee}%`); }
+    if (filterStatus) {
+      where += ' AND rc.status = ?';
+      params.push(filterStatus);
+    }
+    if (inviter) {
+      where += ' AND ui.username LIKE ?';
+      params.push(`%${inviter}%`);
+    }
+    if (invitee) {
+      where += ' AND ue.username LIKE ?';
+      params.push(`%${invitee}%`);
+    }
 
     const total = adp.execOne(
       `SELECT COUNT(*) as cnt FROM referral_commissions rc
        LEFT JOIN users ui ON ui.id = rc.inviter_user_id
        LEFT JOIN users ue ON ue.id = rc.invitee_user_id ${where}`,
-      params
+      params,
     );
 
     const rows = adp.execAll(
@@ -290,7 +362,7 @@ async function adminReferralCommissions(req, res) {
        LEFT JOIN users ui ON ui.id = rc.inviter_user_id
        LEFT JOIN users ue ON ue.id = rc.invitee_user_id
        ${where} ORDER BY rc.id DESC LIMIT ? OFFSET ?`,
-      [...params, pageSize, offset]
+      [...params, pageSize, offset],
     );
 
     return res.json({ code: 1, data: { total: total?.cnt || 0, page, pageSize, list: rows || [] } });
@@ -308,7 +380,8 @@ async function adminReferralAccounts(req, res) {
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
 
-    const { page = 1, pageSize = 20 } = req.body || {};
+    const payload = getPayload(req);
+    const { page = 1, pageSize = 20 } = payload;
     const offset = (page - 1) * pageSize;
 
     const total = adp.execOne(`SELECT COUNT(*) as cnt FROM referral_accounts`);
@@ -316,7 +389,7 @@ async function adminReferralAccounts(req, res) {
       `SELECT ra.*, u.username FROM referral_accounts ra
        JOIN users u ON u.id = ra.user_id
        ORDER BY ra.total_earned DESC LIMIT ? OFFSET ?`,
-      [pageSize, offset]
+      [pageSize, offset],
     );
 
     return res.json({ code: 1, data: { total: total?.cnt || 0, page, pageSize, list: rows || [] } });
@@ -334,23 +407,28 @@ async function adminWithdrawList(req, res) {
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
 
-    const { page = 1, pageSize = 20, status: filterStatus } = req.body || {};
+    const payload = getPayload(req);
+    const { page = 1, pageSize = 20, status: filterStatus } = payload;
     const offset = (page - 1) * pageSize;
 
     let where = 'WHERE 1=1';
     const params = [];
-    if (filterStatus) { where += ' AND rw.status = ?'; params.push(filterStatus); }
+    if (filterStatus === 'submitted') {
+      where += ` AND rw.status IN ('submitted', 'processing')`;
+    } else if (filterStatus === 'paid') {
+      where += ` AND rw.status IN ('paid', 'completed')`;
+    } else if (filterStatus) {
+      where += ' AND rw.status = ?';
+      params.push(filterStatus);
+    }
 
-    const total = adp.execOne(
-      `SELECT COUNT(*) as cnt FROM referral_withdrawals rw ${where}`,
-      params
-    );
+    const total = adp.execOne(`SELECT COUNT(*) as cnt FROM referral_withdrawals rw ${where}`, params);
 
     const rows = adp.execAll(
       `SELECT rw.*, u.username FROM referral_withdrawals rw
        JOIN users u ON u.id = rw.user_id
        ${where} ORDER BY rw.id DESC LIMIT ? OFFSET ?`,
-      [...params, pageSize, offset]
+      [...params, pageSize, offset],
     );
 
     return res.json({ code: 1, data: { total: total?.cnt || 0, page, pageSize, list: rows || [] } });
@@ -369,19 +447,20 @@ async function adminWithdrawProcess(req, res) {
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
 
     const adminId = req.authSession?.userId;
-    const { withdrawalId, newStatus, remark } = req.body;
+    const payload = getPayload(req);
+    const { withdrawalId, newStatus, remark } = payload;
+    const normalizedStatus = { paid: 'paid', completed: 'paid', approved: 'paid', rejected: 'rejected' }[
+      String(newStatus || '').trim()
+    ];
 
     if (!withdrawalId || !newStatus) return res.json({ code: 400, msg: 'MISSING_PARAMS' });
-    if (!['processing', 'completed', 'rejected'].includes(newStatus)) {
+    if (!normalizedStatus) {
       return res.json({ code: 400, msg: 'INVALID_STATUS' });
     }
 
-    const withdrawal = adp.execOne(
-      `SELECT * FROM referral_withdrawals WHERE id = ?`,
-      [withdrawalId]
-    );
+    const withdrawal = adp.execOne(`SELECT * FROM referral_withdrawals WHERE id = ?`, [withdrawalId]);
     if (!withdrawal) return res.json({ code: 404, msg: 'WITHDRAWAL_NOT_FOUND' });
-    if (withdrawal.status === 'completed') {
+    if (withdrawal.status === 'completed' || withdrawal.status === 'paid') {
       return res.json({ code: 400, msg: 'ALREADY_COMPLETED' });
     }
 
@@ -389,16 +468,16 @@ async function adminWithdrawProcess(req, res) {
       `UPDATE referral_withdrawals SET status = ?, processed_by = ?, 
        processed_at = datetime('now','localtime'), remark = ?
        WHERE id = ?`,
-      [newStatus, adminId, remark || null, withdrawalId]
+      [normalizedStatus, adminId, remark || null, withdrawalId],
     );
 
-    // 如果是 completed，更新账户已提现额
-    if (newStatus === 'completed') {
+    // 如果是 paid，更新账户已提现额
+    if (normalizedStatus === 'paid') {
       adp.execRun(
         `UPDATE referral_accounts SET total_withdrawn = total_withdrawn + ?, 
          updated_at = datetime('now','localtime')
          WHERE user_id = ?`,
-        [withdrawal.amount, withdrawal.user_id]
+        [withdrawal.amount, withdrawal.user_id],
       );
     }
 
@@ -406,7 +485,7 @@ async function adminWithdrawProcess(req, res) {
       code: 1,
       data: {
         withdrawalId,
-        status: newStatus,
+        status: normalizedStatus,
         processedAt: new Date().toISOString(),
       },
     });

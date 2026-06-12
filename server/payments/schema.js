@@ -152,22 +152,35 @@ function initPaymentSchema(adp) {
 
   // ========== 4.3.8 users 表扩展 ==========
   const extendUsers = [
-    `ALTER TABLE users ADD COLUMN subscription_status TEXT DEFAULT 'free'`,
-    `ALTER TABLE users ADD COLUMN subscription_expires_at TEXT`,
-    `ALTER TABLE users ADD COLUMN current_subscription_id INTEGER DEFAULT NULL`,
-    `ALTER TABLE users ADD COLUMN referral_code TEXT UNIQUE`,
-    `ALTER TABLE users ADD COLUMN referred_by INTEGER DEFAULT NULL`,
-    `ALTER TABLE users ADD COLUMN device_fingerprint TEXT`,
-    `ALTER TABLE users ADD COLUMN registration_ip TEXT`,
+    ['subscription_status', `ALTER TABLE users ADD COLUMN subscription_status TEXT DEFAULT 'free'`],
+    ['subscription_expires_at', `ALTER TABLE users ADD COLUMN subscription_expires_at TEXT`],
+    ['current_subscription_id', `ALTER TABLE users ADD COLUMN current_subscription_id INTEGER DEFAULT NULL`],
+    ['referral_code', `ALTER TABLE users ADD COLUMN referral_code TEXT`],
+    ['referred_by', `ALTER TABLE users ADD COLUMN referred_by INTEGER DEFAULT NULL`],
+    ['device_fingerprint', `ALTER TABLE users ADD COLUMN device_fingerprint TEXT`],
+    ['registration_ip', `ALTER TABLE users ADD COLUMN registration_ip TEXT`],
   ];
-  extendUsers.forEach(sql => {
-    try { adp.execDDL(sql); } catch (e) {
-      // 字段已存在时忽略 (SQLite ALTER TABLE 不支持 IF NOT EXISTS)
-      if (!e.message.includes('duplicate column')) {
+  const userColumns = new Set((adp.execAll('PRAGMA table_info(users)') || []).map((col) => col.name));
+  extendUsers.forEach(([name, sql]) => {
+    if (userColumns.has(name)) return;
+    try {
+      adp.execDDL(sql);
+    } catch (e) {
+      if (!String(e.message || '').includes('duplicate column')) {
         console.warn('[payments/schema] ALTER TABLE 警告:', e.message);
       }
     }
   });
+  try {
+    adp.execDDL('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code)');
+  } catch (e) {
+    console.warn('[payments/schema] referral_code 索引警告:', e.message);
+  }
+  try {
+    adp.execDDL('CREATE INDEX IF NOT EXISTS idx_users_referred_by ON users(referred_by)');
+  } catch (e) {
+    console.warn('[payments/schema] referred_by 索引警告:', e.message);
+  }
 
   // ========== 种子数据：3 种套餐 ==========
   const existingPlans = adp.execOne(`SELECT COUNT(*) as cnt FROM subscription_plans`);

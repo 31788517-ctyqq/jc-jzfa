@@ -1,5 +1,14 @@
 // 颜色常量、工具函数
-export const API = '/api';
+var _LOCAL_API_HOSTS = ['localhost', '127.0.0.1', '::1'];
+var _isLocalPreview = false;
+try {
+  if (typeof window !== 'undefined' && window.location) {
+    var hostname = (window.location.hostname || '').toLowerCase();
+    _isLocalPreview = window.location.protocol === 'file:' || _LOCAL_API_HOSTS.indexOf(hostname) >= 0;
+  }
+} catch (e) {}
+
+export const API = _isLocalPreview ? 'http://127.0.0.1:3000/api' : '/api';
 export const DIR_COLORS = {
   胜: '#EF4444',
   平: '#FBBF24',

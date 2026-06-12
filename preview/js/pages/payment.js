@@ -1,97 +1,231 @@
-// ==================== 支付确认页 ====================
 import { api } from '../api.js';
-import { getAuthSession } from '../auth-client.js';
+import { getAuthSession, hasAuthToken } from '../auth-client.js';
+
+const PLAN_META = {
+  monthly: { plan_name: '月度套餐', duration_months: 1, feature: '适合短期体验核心能力', summary: '30 天会员访问权限' },
+  quarterly: {
+    plan_name: '季度套餐',
+    duration_months: 3,
+    feature: '适合持续跟单和阶段性复盘',
+    summary: '90 天稳定使用周期',
+  },
+  yearly: {
+    plan_name: '年度套餐',
+    duration_months: 12,
+    feature: '适合长期订阅与全年回测',
+    summary: '365 天完整会员体验',
+  },
+};
+
+const PAYMENT_TIPS = [
+  '当前为模拟支付通道，支付成功后会自动回流到支付结果页。',
+  '优惠码会在创建订单时自动验证，若无效会给出明确提示。',
+  '开通成功后，可直接前往订阅中心查看状态并继续邀请返利。',
+];
+
+function formatMoney(value) {
+  return new Intl.NumberFormat('zh-CN', {
+    style: 'currency',
+    currency: 'CNY',
+    minimumFractionDigits: 0,
+  }).format((Number(value) || 0) / 100);
+}
+
+function readStoredPlan() {
+  try {
+    var raw = sessionStorage.getItem('pendingSelectedPlan') || '';
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function writeStoredPlan(plan) {
+  try {
+    sessionStorage.setItem('pendingSelectedPlan', JSON.stringify(plan || {}));
+  } catch (e) {}
+}
+
+function clearStoredPlan() {
+  try {
+    sessionStorage.removeItem('pendingSelectedPlan');
+  } catch (e) {}
+}
+
+function normalizePlan(data) {
+  var incoming = data && data.plan_code ? data : readStoredPlan() || {};
+  var code = incoming.plan_code || 'yearly';
+  var meta = PLAN_META[code] || PLAN_META.yearly;
+  return {
+    plan_code: code,
+    plan_name: incoming.plan_name || meta.plan_name,
+    price: Number(incoming.price || 0) || { monthly: 9800, quarterly: 25800, yearly: 88800 }[code] || 88800,
+    duration_months: Number(incoming.duration_months || meta.duration_months || 12),
+    feature: incoming.feature || meta.feature,
+    summary: incoming.summary || meta.summary,
+  };
+}
+
+function formatPaymentError(message) {
+  var map = {
+    AUTH_REQUIRED: '请先登录后再完成支付。',
+    MISSING_PLAN_CODE: '未识别到套餐信息，请返回重新选择。',
+    INVALID_PLAN_CODE: '套餐信息已失效，请重新选择。',
+    COUPON_NOT_FOUND: '优惠码不存在，请检查后重试。',
+    COUPON_EXPIRED: '优惠码已过期，请更换后重试。',
+    COUPON_EXHAUSTED: '优惠码已用完，请更换后重试。',
+    COUPON_NOT_APPLICABLE: '该优惠码不适用于当前套餐。',
+    MIN_AMOUNT_NOT_MET: '未满足优惠码使用门槛。',
+  };
+  return map[message] || message || '下单失败，请稍后重试';
+}
+
+function renderGuestState(container, plan) {
+  container.innerHTML =
+    '' +
+    '<div class="member-shell member-shell-payment">' +
+    '<div class="member-page payment-container">' +
+    '<div class="member-hero">' +
+    '<div class="member-top-badge">支付前登录</div>' +
+    '<div class="member-hero-title">请先登录或完成注册</div>' +
+    '<div class="member-hero-subtitle">你选择的是 <strong>' +
+    plan.plan_name +
+    '</strong>，登录后将继续当前支付流程。</div>' +
+    '</div>' +
+    '<div class="member-section-card member-empty-card">' +
+    '<div class="member-empty-title">当前套餐</div>' +
+    '<div class="member-empty-text">' +
+    plan.summary +
+    ' · ' +
+    formatMoney(plan.price) +
+    '</div>' +
+    '<div class="member-cta-row">' +
+    '<button class="member-secondary-btn" type="button" onclick="switchTab(\'login\')">已有账号，去登录</button>' +
+    '<button class="member-primary-btn" type="button" onclick="switchTab(\'register\')">邀请码注册</button>' +
+    '</div>' +
+    '</div>' +
+    '</div>' +
+    '</div>';
+}
 
 export async function loadPayment(container, data) {
-  const planCode = data?.plan_code || 'yearly';
-  const planName = data?.plan_name || '年度套餐';
-  const price = data?.price || 88800;
-  const formatter = new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY', minimumFractionDigits: 0 });
+  var plan = normalizePlan(data);
+  writeStoredPlan(plan);
 
-  const session = getAuthSession();
-  if (!session) {
-    container.innerHTML = '<div class="empty-state"><p>请先登录</p><button onclick="window.navigateTo(\'login\')">去登录</button></div>';
+  if (!hasAuthToken() || !getAuthSession()) {
+    renderGuestState(container, plan);
     return;
   }
 
-  let html = `<div class="payment-container">`;
-  html += `<div class="payment-header"><h2>确认订单</h2></div>`;
+  var html =
+    '' +
+    '<div class="member-shell member-shell-payment">' +
+    '<div class="member-page payment-container">' +
+    '<div class="member-hero">' +
+    '<div class="member-top-badge">确认支付</div>' +
+    '<div class="member-hero-title">即将开通 ' +
+    plan.plan_name +
+    '</div>' +
+    '<div class="member-hero-subtitle">确认订单信息后即可跳转支付，完成后系统会自动为你激活会员权限。</div>' +
+    '</div>' +
+    '<div class="member-section-card payment-card">' +
+    '<div class="member-section-title">订单摘要</div>' +
+    '<div class="payment-plan-row"><span class="payment-plan-label">套餐</span><span class="payment-plan-value">' +
+    plan.plan_name +
+    '</span></div>' +
+    '<div class="payment-plan-row"><span class="payment-plan-label">周期</span><span class="payment-plan-value">' +
+    plan.duration_months +
+    ' 个月</span></div>' +
+    '<div class="payment-plan-row"><span class="payment-plan-label">能力说明</span><span class="payment-plan-value">' +
+    plan.feature +
+    '</span></div>' +
+    '<div class="payment-plan-row"><span class="payment-plan-label">应付金额</span><span class="payment-plan-value payment-price">' +
+    formatMoney(plan.price) +
+    '</span></div>' +
+    '<div class="payment-plan-row"><span class="payment-plan-label">支付方式</span><span class="payment-plan-value">支付宝（模拟）</span></div>' +
+    '</div>' +
+    '<div class="member-section-card payment-coupon-card">' +
+    '<div class="member-section-title">优惠码</div>' +
+    '<div class="payment-coupon">' +
+    '<input type="text" id="couponInput" placeholder="输入优惠码（选填）" maxlength="20" />' +
+    '<button id="couponApplyBtn" type="button" onclick="applyCoupon()">应用</button>' +
+    '</div>' +
+    '<div id="couponMsg" class="payment-coupon-msg"></div>' +
+    '</div>' +
+    '<div class="member-section-card payment-tip-card">' +
+    '<div class="member-section-title">支付说明</div>' +
+    '<div class="member-note-list">' +
+    PAYMENT_TIPS.map(function (item) {
+      return '<div class="member-note-item"><span class="member-note-icon">·</span><span>' + item + '</span></div>';
+    }).join('') +
+    '</div>' +
+    '</div>' +
+    '<div class="payment-actions">' +
+    '<button class="payment-submit-btn" id="payBtn" type="button" onclick="submitPayment(\'' +
+    plan.plan_code +
+    "'," +
+    Number(plan.price || 0) +
+    ')">确认支付 ' +
+    formatMoney(plan.price) +
+    '</button>' +
+    '<button class="payment-cancel-btn" type="button" onclick="window.navigateTo(\'pricing\')">返回重选套餐</button>' +
+    '</div>' +
+    '<div id="paymentStatus" class="payment-status-box" style="display:none"><div class="loading-spinner"></div><p id="paymentStatusText">正在生成订单...</p></div>' +
+    '</div>' +
+    '</div>';
 
-  html += `<div class="payment-card">
-    <div class="payment-plan-row">
-      <span class="payment-plan-label">套餐</span>
-      <span class="payment-plan-value">${planName}</span>
-    </div>
-    <div class="payment-plan-row">
-      <span class="payment-plan-label">金额</span>
-      <span class="payment-plan-value payment-price">${formatter.format(price / 100)}</span>
-    </div>
-    <div class="payment-plan-row">
-      <span class="payment-plan-label">支付方式</span>
-      <span class="payment-plan-value">支付宝（模拟）</span>
-    </div>
-  </div>`;
-
-  html += `<div class="payment-coupon">
-    <input type="text" id="couponInput" placeholder="优惠码（选填）" maxlength="20" />
-    <button id="couponApplyBtn" onclick="applyCoupon()">应用</button>
-    <span id="couponMsg" class="payment-coupon-msg"></span>
-  </div>`;
-
-  html += `<div class="payment-actions">
-    <button class="payment-submit-btn" id="payBtn" onclick="submitPayment('${planCode}', ${price})">
-      💳 确认支付 ${formatter.format(price / 100)}
-    </button>
-    <button class="payment-cancel-btn" onclick="window.navigateTo('pricing')">返回</button>
-  </div>`;
-
-  html += `<div id="paymentStatus" style="display:none;text-align:center;padding:20px">
-    <div class="loading-spinner"></div><p>正在处理...</p>
-  </div>`;
-
-  html += `</div>`;
   container.innerHTML = html;
-
-  // 存储当前选中的套餐信息
-  container._planCode = planCode;
-  container._price = price;
 }
 
 window.submitPayment = async function (planCode, price) {
-  const couponCode = document.getElementById('couponInput')?.value?.trim() || null;
-  const payBtn = document.getElementById('payBtn');
-  const statusEl = document.getElementById('paymentStatus');
-  const msgEl = document.getElementById('couponMsg');
+  var couponCode =
+    document.getElementById('couponInput') && document.getElementById('couponInput').value
+      ? document.getElementById('couponInput').value.trim()
+      : '';
+  var payBtn = document.getElementById('payBtn');
+  var statusEl = document.getElementById('paymentStatus');
+  var statusTextEl = document.getElementById('paymentStatusText');
+  var msgEl = document.getElementById('couponMsg');
 
   if (payBtn) payBtn.disabled = true;
-  if (statusEl) statusEl.style.display = 'block';
+  if (statusEl) statusEl.style.display = 'flex';
+  if (statusTextEl) statusTextEl.textContent = '正在生成订单...';
+  if (msgEl) msgEl.textContent = '';
 
   try {
-    const body = { plan_code: planCode };
+    var body = { plan_code: planCode };
     if (couponCode) body.coupon_code = couponCode;
 
-    const res = await api('payment-create-order', body);
-    if (!res) {
-      if (msgEl) msgEl.textContent = '创建订单失败';
-      if (payBtn) payBtn.disabled = false;
-      if (statusEl) statusEl.style.display = 'none';
-      return;
+    var order = await api('payment-create-order', body, 0);
+    if (!order || !order.order_no) {
+      throw new Error('创建订单失败，请稍后重试');
     }
 
-    const order = res;
-    // 跳转到模拟支付链接
-    window.location.href = '/api/payments/simulate-pay?orderNo=' + order.order_no + '&amount=' + order.amount +
-      '&returnUrl=' + encodeURIComponent(location.origin + '/preview/index.html#payment-result?orderNo=' + order.order_no);
+    clearStoredPlan();
+    try {
+      sessionStorage.removeItem('pendingAfterLogin');
+    } catch (e) {}
+    if (statusTextEl) statusTextEl.textContent = '订单已生成，正在跳转支付...';
+
+    var fallbackUrl =
+      '/api/payments/simulate-pay?orderNo=' +
+      order.order_no +
+      '&amount=' +
+      (order.amount || price) +
+      '&returnUrl=' +
+      encodeURIComponent(location.origin + '/preview/index.html#payment-result?orderNo=' + order.order_no);
+    window.location.href = order.payment_url || fallbackUrl;
   } catch (e) {
-    if (statusEl) statusEl.innerHTML = '<p style="color:red">支付失败: ' + e.message + '</p>';
+    if (msgEl) msgEl.textContent = formatPaymentError(e && e.message);
+    if (statusEl) statusEl.style.display = 'none';
     if (payBtn) payBtn.disabled = false;
   }
 };
 
-window.applyCoupon = async function () {
-  const code = document.getElementById('couponInput')?.value?.trim();
-  const msgEl = document.getElementById('couponMsg');
-  if (!code) { if (msgEl) msgEl.textContent = ''; return; }
-  // 优惠码在创建订单时一起验证，这里只做前端预提示
-  if (msgEl) msgEl.textContent = '将在下单时自动验证优惠码';
+window.applyCoupon = function () {
+  var codeEl = document.getElementById('couponInput');
+  var msgEl = document.getElementById('couponMsg');
+  var code = codeEl && codeEl.value ? codeEl.value.trim() : '';
+  if (!msgEl) return;
+  msgEl.textContent = code ? '优惠码会在创建订单时自动验证并计算优惠金额。' : '';
 };

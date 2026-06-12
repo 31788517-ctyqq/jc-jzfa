@@ -1,17 +1,18 @@
-﻿// ==================== 主入口：路由导航 + 全局状态管理 ====================
+// ==================== 主入口：路由导航 + 全局状态管理 ====================
 console.log('[V6.0-LAZY] main-fusion.js loaded');
 import { api } from './api.js';
 import { WEEK_NAMES, formatDate, getCache, setCache } from './utils.js';
 import { clearAuthAll, getAuthSession, hasAuthToken, setAuthSession } from './auth-client.js';
 import * as state from './state.js';
-import { loadHome } from './pages/home.js?v=202606120300';
+import { loadHome } from './pages/home.js?v=202606121103';
 import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js?v=202606101015';
 
 // ═══ 模块懒加载：非核心页面模块按需动态导入 ═══
 var _modCache = {};
 function _mod(name) {
   if (_modCache[name]) return Promise.resolve(_modCache[name]);
-  return import('./pages/' + name + '.js?v=202606120300')
+  return import('./pages/' + name + '.js?v=202606121839')
+
     .then(function (m) {
       _modCache[name] = m;
       return m;
@@ -19,7 +20,7 @@ function _mod(name) {
     .catch(function (e) {
       console.error('[JS] 模块加载失败: ' + name + ' - ' + (e && e.message));
       // 重试一次（可能是网络波动或文件刚部署）
-      return import('./pages/' + name + '.js?v=202606120300').then(function (m) {
+      return import('./pages/' + name + '.js?v=202606121839').then(function (m) {
         _modCache[name] = m;
         console.warn('[JS] 模块重试成功: ' + name);
         return m;
@@ -772,7 +773,10 @@ function _ensurePage(id) {
         '</div>' +
         '</div>';
     else if (id === 'login') el.innerHTML = '<div id="loginContent"></div>';
+    else if (id === 'register') el.innerHTML = '<div id="registerContent"></div>';
+    else if (id === 'contact-invite') el.innerHTML = '<div id="contactInviteContent"></div>';
     else if (id === 'account-security') el.innerHTML = '<div id="accountSecurityContent"></div>';
+    else if (id === 'profile') el.innerHTML = '<div id="profileContent"></div>';
     else if (id === 'confirm-scheme')
       el.innerHTML =
         '<div id="confirmContent"><div class="loading"><div class="loading-spinner"></div>加载方案中...</div></div>';
@@ -836,9 +840,12 @@ export function switchTab(tab) {
     return;
   }
 
-  var publicTabs = new Set(['login']);
+  var publicTabs = new Set(['login', 'register', 'contact-invite', 'pricing']);
+
   if (!publicTabs.has(tab) && !hasAuthToken()) {
-    try { sessionStorage.setItem('pendingAfterLogin', tab); } catch (e) {}
+    try {
+      sessionStorage.setItem('pendingAfterLogin', tab);
+    } catch (e) {}
     tab = 'login';
   }
 
@@ -868,35 +875,75 @@ export function switchTab(tab) {
     backtest: '回测分析',
     scheme: '方案设计',
     login: '账号登录',
+    register: '邀请码注册',
+    'contact-invite': '联系客服',
     'account-security': '账号安全',
+    profile: '个人中心',
+
     'confirm-scheme': '确认方案',
     'model-dashboard': '模型表现仪表板',
     'data-health': '数据健康监控',
-    'pricing': '选择套餐',
-    'payment': '确认支付',
+    pricing: '选择套餐',
+    payment: '确认支付',
     'payment-result': '支付结果',
-    'subscription': '我的订阅',
-    'referral': '返利中心',
+    subscription: '我的订阅',
+    referral: '返利中心',
     'admin-payments': '支付管理',
     'admin-referrals': '返利管理',
-    'admin': '管理后台',
+    admin: '管理后台',
   };
   var titleEl = document.getElementById('navTitle');
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
   var backEl = document.getElementById('navBack');
   // 登录页与首页隐藏返回键
-  if (backEl) backEl.style.display = tab !== 'home' && tab !== 'login' && tab !== 'account-security' && tab !== 'profile'
-    && tab !== 'pricing' && tab !== 'payment-result' ? 'flex' : 'none';
+  if (backEl)
+    backEl.style.display =
+      tab !== 'home' &&
+      tab !== 'login' &&
+      tab !== 'register' &&
+      tab !== 'contact-invite' &&
+      tab !== 'account-security' &&
+      tab !== 'profile' &&
+      tab !== 'pricing' &&
+      tab !== 'payment-result'
+        ? 'flex'
+        : 'none';
+
   var navbarEl = document.getElementById('navbar');
   if (navbarEl) {
     navbarEl.classList.toggle('home-mode', tab === 'home');
-    navbarEl.style.display = tab === 'login' || tab === 'account-security' || tab === 'profile'
-      || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' || tab === 'admin' ? 'none' : 'flex';
+    navbarEl.style.display =
+      tab === 'login' ||
+      tab === 'register' ||
+      tab === 'contact-invite' ||
+      tab === 'account-security' ||
+      tab === 'profile' ||
+      tab === 'pricing' ||
+      tab === 'payment' ||
+      tab === 'payment-result' ||
+      tab === 'admin' ||
+      tab === 'referral' ||
+      tab === 'subscription'
+        ? 'none'
+        : 'flex';
   }
-  var tabbarEl = document.querySelector('.tabbar');
-  if (tabbarEl) tabbarEl.style.display = tab === 'login' || tab === 'account-security' || tab === 'profile'
-    || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' || tab === 'admin' ? 'none' : 'flex';
 
+  var tabbarEl = document.querySelector('.tabbar');
+  if (tabbarEl)
+    tabbarEl.style.display =
+      tab === 'login' ||
+      tab === 'register' ||
+      tab === 'contact-invite' ||
+      tab === 'account-security' ||
+      tab === 'profile' ||
+      tab === 'pricing' ||
+      tab === 'payment' ||
+      tab === 'payment-result' ||
+      tab === 'admin' ||
+      tab === 'referral' ||
+      tab === 'subscription'
+        ? 'none'
+        : 'flex';
 
   if (tab === 'login') {
     _mod('login').then(function (m) {
@@ -904,9 +951,27 @@ export function switchTab(tab) {
     });
     return;
   }
+  if (tab === 'register') {
+    _mod('register').then(function (m) {
+      m.loadRegister();
+    });
+    return;
+  }
+  if (tab === 'contact-invite') {
+    _mod('contact-invite').then(function (m) {
+      m.loadContactInvite();
+    });
+    return;
+  }
   if (tab === 'account-security') {
     _mod('account-security').then(function (m) {
       m.loadAccountSecurity();
+    });
+    return;
+  }
+  if (tab === 'profile') {
+    _mod('profile').then(function (m) {
+      m.loadProfile();
     });
     return;
   }
@@ -1195,9 +1260,16 @@ window.onIncDirChange = function () {
   }
 
   if (!hasAuthToken()) {
-    // 未登录：保存 hash 目标页，登录后跳回
+    // 未登录：公开页允许直接打开，其余页面登录后跳回
+    if (hashTab === 'login' || hashTab === 'register' || hashTab === 'contact-invite' || hashTab === 'pricing') {
+      state.setCurrentPage(hashTab);
+      switchTabLoad(hashTab);
+      return;
+    }
     if (hashTab) {
-      try { sessionStorage.setItem('pendingAfterLogin', hashTab); } catch (e) {}
+      try {
+        sessionStorage.setItem('pendingAfterLogin', hashTab);
+      } catch (e) {}
     }
     state.setCurrentPage('login');
     switchTabLoad('login');
@@ -1239,13 +1311,13 @@ function _preloadData(current) {
           .catch(function () {});
       }
     } else if (tab === 'plan') {
-      import('./pages/plans.js?v=202606120300')
+      import('./pages/plans.js?v=202606121103')
         .then(function (m) {
           if (m.loadPlanList) m.loadPlanList();
         })
         .catch(function () {});
     } else if (tab === 'quant-rank') {
-      import('./pages/quant-rank-fusion.js?v=202606120300')
+      import('./pages/quant-rank-fusion.js?v=202606121103')
         .then(function (m) {
           if (m.loadQuantRank) m.loadQuantRank();
         })
@@ -1279,18 +1351,22 @@ function switchTabLoad(tab) {
     backtest: '回测分析',
     scheme: '方案设计',
     login: '账号登录',
+    register: '邀请码注册',
+    'contact-invite': '联系客服',
     'account-security': '账号安全',
+    profile: '个人中心',
+
     'confirm-scheme': '确认方案',
     'model-dashboard': '模型表现仪表板',
     'data-health': '数据健康监控',
-    'pricing': '选择套餐',
-    'payment': '确认支付',
+    pricing: '选择套餐',
+    payment: '确认支付',
     'payment-result': '支付结果',
-    'subscription': '我的订阅',
-    'referral': '返利中心',
+    subscription: '我的订阅',
+    referral: '返利中心',
     'admin-payments': '支付管理',
     'admin-referrals': '返利管理',
-    'admin': '管理后台',
+    admin: '管理后台',
   };
   var titleEl = document.getElementById('navTitle');
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
@@ -1304,15 +1380,52 @@ function switchTabLoad(tab) {
 
   // 设置返回按钮显示
   var backEl = document.getElementById('navBack');
-  if (backEl) backEl.style.display = tab !== 'home' && tab !== 'login' && tab !== 'account-security' && tab !== 'profile'
-    && tab !== 'pricing' && tab !== 'payment-result' ? 'flex' : 'none';
-  var navbarEl = document.getElementById('navbar');
-  if (navbarEl) navbarEl.style.display = tab === 'login' || tab === 'account-security' || tab === 'profile'
-    || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' || tab === 'admin' ? 'none' : 'flex';
-  var tabbarEl = document.querySelector('.tabbar');
-  if (tabbarEl) tabbarEl.style.display = tab === 'login' || tab === 'account-security' || tab === 'profile'
-    || tab === 'pricing' || tab === 'payment' || tab === 'payment-result' || tab === 'admin' ? 'none' : 'flex';
+  if (backEl)
+    backEl.style.display =
+      tab !== 'home' &&
+      tab !== 'login' &&
+      tab !== 'register' &&
+      tab !== 'contact-invite' &&
+      tab !== 'account-security' &&
+      tab !== 'profile' &&
+      tab !== 'pricing' &&
+      tab !== 'payment-result'
+        ? 'flex'
+        : 'none';
 
+  var navbarEl = document.getElementById('navbar');
+  if (navbarEl)
+    navbarEl.style.display =
+      tab === 'login' ||
+      tab === 'register' ||
+      tab === 'contact-invite' ||
+      tab === 'account-security' ||
+      tab === 'profile' ||
+      tab === 'pricing' ||
+      tab === 'payment' ||
+      tab === 'payment-result' ||
+      tab === 'admin' ||
+      tab === 'referral' ||
+      tab === 'subscription'
+        ? 'none'
+        : 'flex';
+
+  var tabbarEl = document.querySelector('.tabbar');
+  if (tabbarEl)
+    tabbarEl.style.display =
+      tab === 'login' ||
+      tab === 'register' ||
+      tab === 'contact-invite' ||
+      tab === 'account-security' ||
+      tab === 'profile' ||
+      tab === 'pricing' ||
+      tab === 'payment' ||
+      tab === 'payment-result' ||
+      tab === 'admin' ||
+      tab === 'referral' ||
+      tab === 'subscription'
+        ? 'none'
+        : 'flex';
 
   if (tab === 'login') {
     _mod('login').then(function (m) {
@@ -1320,9 +1433,27 @@ function switchTabLoad(tab) {
     });
     return;
   }
+  if (tab === 'register') {
+    _mod('register').then(function (m) {
+      m.loadRegister();
+    });
+    return;
+  }
+  if (tab === 'contact-invite') {
+    _mod('contact-invite').then(function (m) {
+      m.loadContactInvite();
+    });
+    return;
+  }
   if (tab === 'account-security') {
     _mod('account-security').then(function (m) {
       m.loadAccountSecurity();
+    });
+    return;
+  }
+  if (tab === 'profile') {
+    _mod('profile').then(function (m) {
+      m.loadProfile();
     });
     return;
   }

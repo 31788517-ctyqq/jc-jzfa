@@ -1,74 +1,154 @@
-// ==================== 支付结果页 ====================
 import { api } from '../api.js';
 
+const PLAN_NAME_MAP = {
+  monthly: '月度套餐',
+  quarterly: '季度套餐',
+  yearly: '年度套餐',
+};
+
+function formatMoney(value) {
+  return new Intl.NumberFormat('zh-CN', {
+    style: 'currency',
+    currency: 'CNY',
+    minimumFractionDigits: 0,
+  }).format((Number(value) || 0) / 100);
+}
+
+function wait(ms) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function pollOrder(orderNo) {
+  var last = null;
+  for (var i = 0; i < 4; i++) {
+    if (i > 0) await wait(i === 1 ? 1000 : 1500);
+    try {
+      last = await api('payment-query-order', { order_no: orderNo }, 0);
+      if (!last || !last.pay_status) continue;
+      if (last.pay_status === 'paid' || last.pay_status === 'failed' || last.pay_status === 'expired') {
+        return last;
+      }
+    } catch (e) {
+      if (i === 3) throw e;
+    }
+  }
+  return last || { order_no: orderNo, pay_status: 'pending' };
+}
+
+function renderInvalid(container) {
+  container.innerHTML =
+    '' +
+    '<div class="member-shell member-shell-result">' +
+    '<div class="member-page result-container">' +
+    '<div class="member-section-card member-empty-card">' +
+    '<div class="member-empty-title">无效的订单号</div>' +
+    '<div class="member-empty-text">当前没有可查询的支付订单，请返回套餐页重新选择。</div>' +
+    '<div class="member-cta-row">' +
+    '<button class="member-primary-btn" type="button" onclick="window.navigateTo(\'pricing\')">返回套餐页</button>' +
+    '</div>' +
+    '</div>' +
+    '</div>' +
+    '</div>';
+}
+
 export async function loadPaymentResult(container, data) {
-  const urlParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
-  const orderNo = urlParams.get('orderNo') || data?.order_no;
+  var urlParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
+  var orderNo = urlParams.get('orderNo') || (data && data.order_no) || '';
 
   if (!orderNo) {
-    container.innerHTML = '<div class="empty-state">无效的订单号</div>';
+    renderInvalid(container);
     return;
   }
 
   container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>查询支付结果...</div>';
 
-  // 轮询查询支付状态（最多 10 次，每次 3 秒）
-  let payStatus = 'pending';
-  let orderData = null;
+  try {
+    var orderData = await pollOrder(orderNo);
+    var payStatus = (orderData && orderData.pay_status) || 'pending';
+    var planName = PLAN_NAME_MAP[orderData && orderData.plan_code] || '会员套餐';
+    var paidAt = orderData && orderData.paid_at ? new Date(orderData.paid_at).toLocaleString() : '--';
+    var expireAt = orderData && orderData.expired_at ? new Date(orderData.expired_at).toLocaleString() : '--';
 
-  for (let i = 0; i < 10; i++) {
-    await new Promise(r => setTimeout(r, 3000));
-    const res = await api('payment-query-order', { order_no: orderNo });
-    if (res) {
-      payStatus = res.pay_status;
-      orderData = res;
-      if (payStatus === 'paid' || payStatus === 'failed' || payStatus === 'expired') break;
-    }
+    var heroClass =
+      payStatus === 'paid' ? 'result-success' : payStatus === 'pending' ? 'result-waiting' : 'result-failed';
+    var heroIcon = payStatus === 'paid' ? '✅' : payStatus === 'pending' ? '⏳' : payStatus === 'expired' ? '⏰' : '❌';
+    var heroTitle =
+      payStatus === 'paid'
+        ? '支付成功，会员已开通'
+        : payStatus === 'pending'
+          ? '支付确认中'
+          : payStatus === 'expired'
+            ? '订单已过期'
+            : '支付失败';
+    var heroDesc =
+      payStatus === 'paid'
+        ? '系统已为你激活订阅，可继续查看订阅状态或邀请好友返利。'
+        : payStatus === 'pending'
+          ? '订单仍在确认中，你可以稍后返回本页或前往订阅中心查看最新状态。'
+          : payStatus === 'expired'
+            ? '当前订单已超过支付时限，请重新选择套餐后下单。'
+            : '本次支付未成功，可重新下单继续开通。';
+
+    var html =
+      '' +
+      '<div class="member-shell member-shell-result">' +
+      '<div class="member-page result-container">' +
+      '<div class="member-section-card ' +
+      heroClass +
+      '">' +
+      '<div class="result-icon">' +
+      heroIcon +
+      '</div>' +
+      '<h2>' +
+      heroTitle +
+      '</h2>' +
+      '<p class="result-desc">' +
+      heroDesc +
+      '</p>' +
+      '<div class="result-details">' +
+      '<div class="result-row"><span>订单号</span><span>' +
+      orderNo +
+      '</span></div>' +
+      '<div class="result-row"><span>套餐</span><span>' +
+      planName +
+      '</span></div>' +
+      '<div class="result-row"><span>金额</span><span>' +
+      formatMoney(orderData && orderData.amount) +
+      '</span></div>' +
+      (payStatus === 'paid'
+        ? '<div class="result-row"><span>支付时间</span><span>' + paidAt + '</span></div>'
+        : '<div class="result-row"><span>订单失效时间</span><span>' + expireAt + '</span></div>') +
+      '</div>' +
+      '<div class="result-action-group">' +
+      (payStatus === 'paid'
+        ? '<button class="result-btn" type="button" onclick="window.navigateTo(\'subscription\')">查看订阅</button><button class="result-btn result-btn-sub" type="button" onclick="window.navigateTo(\'referral\')">去返利中心</button><button class="result-btn result-btn-sub" type="button" onclick="window.navigateTo(\'home\')">返回首页</button>'
+        : payStatus === 'pending'
+          ? '<button class="result-btn" type="button" onclick="window.navigateTo(\'subscription\')">查看订阅</button><button class="result-btn result-btn-sub" type="button" onclick="window.navigateTo(\'pricing\')">回套餐页</button>'
+          : '<button class="result-btn" type="button" onclick="window.navigateTo(\'pricing\')">重新选购</button><button class="result-btn result-btn-sub" type="button" onclick="window.navigateTo(\'contact-invite\')">联系客服</button>') +
+      '</div>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML =
+      '' +
+      '<div class="member-shell member-shell-result">' +
+      '<div class="member-page result-container">' +
+      '<div class="member-section-card member-empty-card">' +
+      '<div class="member-empty-title">支付结果查询失败</div>' +
+      '<div class="member-empty-text">' +
+      (e && e.message ? e.message : '请稍后重试') +
+      '</div>' +
+      '<div class="member-cta-row">' +
+      '<button class="member-primary-btn" type="button" onclick="window.navigateTo(\'subscription\')">查看订阅中心</button>' +
+      '<button class="member-secondary-btn" type="button" onclick="window.navigateTo(\'pricing\')">返回套餐页</button>' +
+      '</div>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
   }
-
-  const formatter = new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY', minimumFractionDigits: 0 });
-
-  let html = `<div class="result-container">`;
-
-  if (payStatus === 'paid') {
-    html += `
-      <div class="result-success">
-        <div class="result-icon">✅</div>
-        <h2>支付成功</h2>
-        <div class="result-details">
-          <div class="result-row"><span>订单号</span><span>${orderNo}</span></div>
-          <div class="result-row"><span>金额</span><span>${formatter.format((orderData?.amount || 0) / 100)}</span></div>
-          <div class="result-row"><span>套餐</span><span>${orderData?.plan_code === 'monthly' ? '月度套餐' : orderData?.plan_code === 'quarterly' ? '季度套餐' : '年度套餐'}</span></div>
-          <div class="result-row"><span>支付时间</span><span>${orderData?.paid_at ? new Date(orderData.paid_at).toLocaleString() : '--'}</span></div>
-        </div>
-        <button class="result-btn" onclick="window.navigateTo('home')">返回首页</button>
-        <button class="result-btn result-btn-sub" onclick="window.navigateTo('subscription')">查看订阅</button>
-      </div>`;
-  } else if (payStatus === 'pending') {
-    html += `
-      <div class="result-waiting">
-        <div class="result-icon">⏳</div>
-        <h2>支付确认中</h2>
-        <p>请在订阅管理中查看最新状态</p>
-        <button class="result-btn" onclick="window.navigateTo('subscription')">查看订阅</button>
-      </div>`;
-  } else if (payStatus === 'expired') {
-    html += `
-      <div class="result-failed">
-        <div class="result-icon">⏰</div>
-        <h2>订单已过期</h2>
-        <button class="result-btn" onclick="window.navigateTo('pricing')">重新选购</button>
-      </div>`;
-  } else {
-    html += `
-      <div class="result-failed">
-        <div class="result-icon">❌</div>
-        <h2>支付失败</h2>
-        <p>${payStatus}</p>
-        <button class="result-btn" onclick="window.navigateTo('pricing')">重新选购</button>
-      </div>`;
-  }
-
-  html += `</div>`;
-  container.innerHTML = html;
 }

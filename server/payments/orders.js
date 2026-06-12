@@ -6,18 +6,25 @@
 const crypto = require('crypto');
 const database = require('../database');
 
+function getPayload(req) {
+  if (req && req.body && req.body.data && typeof req.body.data === 'object') {
+    return Object.assign({}, req.body.data, req.body);
+  }
+  return (req && req.body) || {};
+}
+
 /**
  * 生成商户订单号
  * 格式: ZJ + 年月日 + 时分秒 + 随机4位
  */
 function generateOrderNo() {
   const now = new Date();
-  const ymd = '' + now.getFullYear()
-    + String(now.getMonth() + 1).padStart(2, '0')
-    + String(now.getDate()).padStart(2, '0');
-  const hms = String(now.getHours()).padStart(2, '0')
-    + String(now.getMinutes()).padStart(2, '0')
-    + String(now.getSeconds()).padStart(2, '0');
+  const ymd =
+    '' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+  const hms =
+    String(now.getHours()).padStart(2, '0') +
+    String(now.getMinutes()).padStart(2, '0') +
+    String(now.getSeconds()).padStart(2, '0');
   const rand = crypto.randomBytes(2).toString('hex').toUpperCase();
   return `ZJ${ymd}${hms}${rand}`;
 }
@@ -41,10 +48,7 @@ function getPlanInfo(planCode) {
 function validateCoupon(adp, code, planCode, amount) {
   if (!code) return { valid: true, discount: 0 };
 
-  const coupon = adp.execOne(
-    `SELECT * FROM coupons WHERE code = ? AND is_active = 1`,
-    [code.toUpperCase()]
-  );
+  const coupon = adp.execOne(`SELECT * FROM coupons WHERE code = ? AND is_active = 1`, [code.toUpperCase()]);
   if (!coupon) return { valid: false, reason: 'COUPON_NOT_FOUND', discount: 0 };
 
   const now = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
@@ -65,7 +69,7 @@ function validateCoupon(adp, code, planCode, amount) {
   if (coupon.discount_type === 'fixed') {
     discount = coupon.discount_value;
   } else if (coupon.discount_type === 'percent') {
-    discount = Math.floor(amount * coupon.discount_value / 100);
+    discount = Math.floor((amount * coupon.discount_value) / 100);
   }
   return { valid: true, discount: Math.min(discount, amount), coupon };
 }
@@ -81,7 +85,8 @@ async function createOrder(req, res) {
     const userId = req.authSession?.userId;
     if (!userId) return res.json({ code: 401, msg: 'AUTH_REQUIRED' });
 
-    const { plan_code, coupon_code } = req.body;
+    const payload = getPayload(req);
+    const { plan_code, coupon_code } = payload;
     if (!plan_code) return res.json({ code: 400, msg: 'MISSING_PLAN_CODE' });
 
     const plan = getPlanInfo(plan_code);
@@ -110,14 +115,13 @@ async function createOrder(req, res) {
       `INSERT INTO payment_orders 
        (order_no, user_id, plan_code, period, amount, original_amount, coupon_code, coupon_discount, pay_channel, pay_status, expired_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'alipay', 'pending', ?)`,
-      [orderNo, userId, plan_code, plan.period, actualAmount, plan.price,
-        appliedCouponCode, couponDiscount, expiredAt]
+      [orderNo, userId, plan_code, plan.period, actualAmount, plan.price, appliedCouponCode, couponDiscount, expiredAt],
     );
 
     // 生成模拟支付链接（后续接入真实支付宝时替换）
     // 支付宝真实接入时：alipaySdk.exec() → result.body 作为 payment_url
     const callbackUrl = encodeURIComponent(
-      `https://zj.100qiu.com/preview/index.html#payment-result?orderNo=${orderNo}`
+      `https://zj.100qiu.com/preview/index.html#payment-result?orderNo=${orderNo}`,
     );
     const paymentUrl = `/api/payments/simulate-pay?orderNo=${orderNo}&amount=${actualAmount}&returnUrl=${callbackUrl}`;
 
@@ -149,13 +153,13 @@ async function queryOrder(req, res) {
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
 
     const userId = req.authSession?.userId;
-    const { order_no } = req.body;
+    if (!userId) return res.json({ code: 401, msg: 'AUTH_REQUIRED' });
+
+    const payload = getPayload(req);
+    const { order_no } = payload;
     if (!order_no) return res.json({ code: 400, msg: 'MISSING_ORDER_NO' });
 
-    const order = adp.execOne(
-      `SELECT * FROM payment_orders WHERE order_no = ? AND user_id = ?`,
-      [order_no, userId]
-    );
+    const order = adp.execOne(`SELECT * FROM payment_orders WHERE order_no = ? AND user_id = ?`, [order_no, userId]);
     if (!order) return res.json({ code: 404, msg: 'ORDER_NOT_FOUND' });
 
     return res.json({

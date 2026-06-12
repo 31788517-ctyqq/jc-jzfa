@@ -16,23 +16,27 @@ const { onPaymentSuccess } = require('./referral-compute');
  */
 async function handleSimulatePay(req, res) {
   try {
-    const { orderNo, returnUrl } = req.query;
+    const query = req.query || {};
+    const body = req.body || {};
+    const orderNo = String(query.orderNo || body.orderNo || body.order_no || '').trim();
+    const returnUrl = query.returnUrl || body.returnUrl || body.return_url;
     if (!orderNo) return res.status(400).send('MISSING_ORDER_NO');
 
-    const userId = req.authSession?.userId;
-    if (!userId) return res.status(401).send('AUTH_REQUIRED');
-
+    const userId = req.authSession?.userId || null;
     const result = await simulatePayment(orderNo, userId);
 
-    // 触发返利计算（异步，不阻塞响应）
-    const refResult = await onPaymentSuccess(orderNo, userId);
+    // 触发返利计算（幂等）
+    if (result && result.order_id) {
+      await onPaymentSuccess(result.order_id, result.user_id || null);
+    }
 
     // 重定向到支付结果页
     const redirectUrl = returnUrl || `/preview/index.html#payment-result?orderNo=${orderNo}`;
     res.redirect(302, redirectUrl);
   } catch (e) {
     console.error('[alipay-callback] 模拟支付失败:', e.message);
-    res.status(500).send(`支付失败: ${e.message}`);
+    const statusCode = e && (e.message === 'MISSING_ORDER_NO' ? 400 : e.message === 'ORDER_NOT_FOUND' ? 404 : 500);
+    res.status(statusCode).send(`支付失败: ${e.message}`);
   }
 }
 
@@ -66,24 +70,18 @@ async function handleAlipayNotify(req, res) {
     if (!adp) return res.send('fail');
 
     // 幂等检查
-    const existing = adp.execOne(
-      `SELECT id FROM payment_orders WHERE transaction_id = ?`,
-      [tradeNo]
-    );
+    const existing = adp.execOne(`SELECT id FROM payment_orders WHERE transaction_id = ?`, [tradeNo]);
     if (existing) return res.send('success'); // 已处理
 
     if (tradeStatus === 'TRADE_SUCCESS' || tradeStatus === 'TRADE_FINISHED') {
-      const order = adp.execOne(
-        `SELECT * FROM payment_orders WHERE order_no = ?`,
-        [outTradeNo]
-      );
+      const order = adp.execOne(`SELECT * FROM payment_orders WHERE order_no = ?`, [outTradeNo]);
       if (!order || order.pay_status !== 'pending') return res.send('success');
 
       // 更新订单状态
       adp.execRun(
         `UPDATE payment_orders SET pay_status = 'paid', transaction_id = ?, paid_at = datetime('now','localtime')
          WHERE order_no = ?`,
-        [tradeNo, outTradeNo]
+        [tradeNo, outTradeNo],
       );
 
       // 激活订阅...（与 simulatePayment 类似）

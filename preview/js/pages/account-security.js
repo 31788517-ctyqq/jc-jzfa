@@ -13,7 +13,7 @@ function render() {
     '</button>' +
     '<div class="login-hero account-login-hero">' +
     '<div class="login-hero-copy">' +
-    '<div class="login-hero-title">Hello!</div>' +
+    '<div class="login-hero-title">账号安全</div>' +
     '<div class="login-hero-subtitle">当前账号：' +
     userName +
     '</div>' +
@@ -21,9 +21,7 @@ function render() {
     '<img class="login-eagle" src="/assets/login-eagle.png?v=202606101600" alt="" loading="eager" decoding="async" />' +
     '</div>' +
     '<div class="auth-card auth-login-card auth-account-card">' +
-
     '<div class="auth-field auth-field-icon">' +
-
     '<div class="auth-input-wrap auth-icon-wrap">' +
     '<span class="auth-input-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 10h-1V8a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2Zm-7-2a2 2 0 1 1 4 0v2h-4V8Zm2 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg></span>' +
     '<input id="oldPwd" class="search-input auth-input auth-account-input" type="password" placeholder="请输入旧密码" autocomplete="current-password"/>' +
@@ -50,7 +48,6 @@ function render() {
     '</div>';
   return root;
 }
-
 
 function setMsg(msgEl, text, ok) {
   msgEl.classList.toggle('ok', !!ok);
@@ -114,4 +111,3 @@ export function loadAccountSecurity() {
   if (!root) return;
   bindEvents();
 }
-
