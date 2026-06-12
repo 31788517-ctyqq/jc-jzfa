@@ -51,6 +51,8 @@
 /* 顶部 Banner */
 .adm-hero {
   position: relative;
+  display: flex;
+  flex-direction: column;
   min-height: 164px;
   margin: 0 0 24px;
   padding: 24px 28px;
@@ -124,17 +126,16 @@
   stroke-width: 2.35;
 }
 
-
 .adm-hero-kicker,
+
 .adm-hero-head,
 .adm-hero-desc {
   position: relative;
   z-index: 1;
 }
 
-
 .adm-hero-kicker {
-  margin: 34px 0 16px;
+  margin-bottom: 16px;
   color: #4cc4b7;
   font-size: 16px;
   font-weight: 600;
@@ -142,10 +143,9 @@
   letter-spacing: .03em;
 }
 
-
 .adm-hero-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
   margin-bottom: 16px;
@@ -162,6 +162,7 @@
 }
 
 .adm-hero-desc {
+  margin-top: auto;
   color: #758294;
   font-size: 15px;
   font-weight: 500;
@@ -171,6 +172,7 @@
 .adm-hero .adm-role {
   min-height: 44px;
   padding: 0 18px;
+  margin-top: 12px;
   border-radius: 24px;
   background: rgba(227, 155, 128, .08);
   border: 1px solid rgba(227, 155, 128, .25);
@@ -745,16 +747,20 @@
 }
 
 .adm-health-title { margin-bottom: 12px; color: #fff; font-size: 16px; font-weight: 900; }
-.adm-health-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; color: #7b8a9c; font-size: 13px; line-height: 1.45; }
+.adm-health-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; color: #7b8a9c; font-size: 14px; line-height: 1.5; }
 .adm-health-row + .adm-health-row { border-top: 1px solid rgba(255, 255, 255, .07); }
-.adm-health-name { flex: 1; min-width: 0; color: #dfe8f0; }
+.adm-health-name { flex: 1; min-width: 0; color: #dfe8f0; display: inline-flex; align-items: center; gap: 8px; }
+.adm-health-icon { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; color: #8bd8d6; opacity: .95; }
+.adm-health-icon svg { width: 16px; height: 16px; stroke-width: 2.05; }
 .adm-health-rate { flex: 0 0 58px; color: var(--adm-cyan); font-weight: 900; text-align: right; font-variant-numeric: tabular-nums; }
-.adm-health-time { flex: 0 0 74px; color: #5f6c7d; font-size: 11px; text-align: right; }
+.adm-health-time { flex: 0 0 74px; color: #5f6c7d; font-size: 12px; text-align: right; }
+
 .adm-health-ok { color: var(--adm-green); }
 .adm-health-warn { color: #e2b86c; }
 .adm-health-err { color: var(--adm-orange); }
 
-.adm-log-item { padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, .07); color: #8b97a8; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; line-height: 1.55; word-break: break-all; }
+.adm-log-item { padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, .07); color: #aab7c8; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; line-height: 1.65; word-break: break-all; }
+
 .adm-log-item:last-child { border-bottom: 0; }
 .adm-temp-pw { margin: 16px 0; text-align: center; border-color: rgba(227, 155, 128, .24); background: rgba(227, 155, 128, .07); }
 .adm-temp-pw code { display: block; margin: 10px 0; color: var(--adm-orange); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 24px; font-weight: 900; letter-spacing: 3px; }

@@ -82,6 +82,9 @@ function getProfileIcon(name) {
   if (name === 'hit') {
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 12l5-5"/></svg>';
   }
+  if (name === 'effort') {
+    return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4.5 14h5l-1 8 9.5-12H13l1-8z"/></svg>';
+  }
   return '';
 }
 
@@ -167,7 +170,7 @@ function renderLayout(root, userName) {
     escapeHtml(userName) +
     '</div>' +
     '</div>' +
-    '<img class="login-eagle profile-eagle" src="/assets/login-eagle.png?v=202606110300" alt="" loading="eager" decoding="async" />' +
+    '<img class="login-eagle profile-eagle" src="/laoying11.png" alt="" loading="eager" decoding="async" />' +
     '</div>' +
     '<div class="auth-card auth-login-card auth-account-card profile-account-card profile-account-card-v2">' +
     '<div class="profile-status-card profile-membership-card status-free" id="profileSubCard">' +
@@ -325,7 +328,9 @@ function renderProfilePlans() {
     el.innerHTML =
       '' +
       '<div class="profile-history-empty">' +
-      '<div class="profile-history-empty-icon">💪</div>' +
+      '<div class="profile-history-empty-icon">' +
+      getProfileIcon('effort') +
+      '</div>' +
       '<div class="profile-history-empty-title">大家都等着你的方案呢</div>' +
       '</div>';
     return;

@@ -509,8 +509,8 @@
       <div class="ai-modal" id="aiModal"></div>
     </div>
     <!-- 消息提醒弹窗 -->
-    <div class="noti-overlay" id="notiOverlay" onclick="if (event.target === this) App.closeNotifications();">
-      <div class="noti-modal" id="notiModal">
+    <div class="noti-overlay" id="notiOverlay" onclick="App.closeNotifications()">
+      <div class="noti-modal" id="notiModal" onclick="event.stopPropagation()">
         <div class="noti-header">
           <span class="noti-title">🔔 消息提醒 (<span id="notiCount">0</span>)</span>
           <button class="noti-close-btn" onclick="App.closeNotifications()" aria-label="关闭">✕</button>

@@ -51,6 +51,8 @@
 /* 顶部 Banner */
 .adm-hero {
   position: relative;
+  display: flex;
+  flex-direction: column;
   min-height: 164px;
   margin: 0 0 24px;
   padding: 24px 28px;
@@ -143,7 +145,7 @@
 
 .adm-hero-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
   margin-bottom: 16px;
@@ -160,6 +162,7 @@
 }
 
 .adm-hero-desc {
+  margin-top: auto;
   color: #758294;
   font-size: 15px;
   font-weight: 500;
@@ -169,6 +172,7 @@
 .adm-hero .adm-role {
   min-height: 44px;
   padding: 0 18px;
+  margin-top: 12px;
   border-radius: 24px;
   background: rgba(227, 155, 128, .08);
   border: 1px solid rgba(227, 155, 128, .25);

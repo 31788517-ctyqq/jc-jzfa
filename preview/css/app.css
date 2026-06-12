@@ -8875,6 +8875,7 @@ button[class*='btn'] {
   height: 20px;
   color: #98a3af;
   flex: 0 0 20px;
+  flex-shrink: 0;
 }
 
 .auth-input-icon svg {
@@ -9420,6 +9421,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
   font-size: 38px;
   line-height: 1.05;
   letter-spacing: -0.03em;
+  white-space: nowrap;
 }
 
 .auth-shell-account .login-hero-subtitle {
@@ -9456,6 +9458,8 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
 }
 
 .auth-shell-account .auth-icon-wrap {
+  display: flex;
+  align-items: center;
   height: 58px;
   padding: 0 16px;
   border-radius: 16px;
@@ -9465,6 +9469,8 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
 }
 
 .auth-shell-account .auth-account-input.search-input {
+  flex: 1;
+  min-width: 0;
   height: 58px;
   padding: 0 8px 0 14px;
   border: 0 !important;
@@ -9472,6 +9478,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
   box-shadow: none !important;
   font-size: 16px;
   font-weight: 600;
+  line-height: 58px;
   color: #f8fafc;
 }
 
@@ -10889,6 +10896,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
   font-size: 42px;
   line-height: 1.04;
   letter-spacing: -0.03em;
+  white-space: nowrap;
 }
 
 .auth-shell-account .login-hero-subtitle {
@@ -10924,6 +10932,8 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
 }
 
 .auth-shell-account .auth-icon-wrap {
+  display: flex;
+  align-items: center;
   height: 68px;
   padding: 0 22px;
   border-radius: 34px;
@@ -10933,6 +10943,8 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
 }
 
 .auth-shell-account .auth-account-input.search-input {
+  flex: 1;
+  min-width: 0;
   height: 68px;
   padding: 0 10px 0 16px;
   border: 0 !important;
@@ -10940,6 +10952,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
   box-shadow: none !important;
   font-size: 18px;
   font-weight: 600;
+  line-height: 68px;
   color: #1f2937;
 }
 
@@ -11563,14 +11576,19 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
   }
 
   .auth-shell-account .auth-icon-wrap {
+    display: flex;
+    align-items: center;
     height: 64px;
     border-radius: 32px;
     padding: 0 18px;
   }
 
   .auth-shell-account .auth-account-input.search-input {
+    flex: 1;
+    min-width: 0;
     height: 64px;
     font-size: 17px;
+    line-height: 64px;
     padding-left: 12px;
   }
 
@@ -12294,9 +12312,9 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
 /* ==================== 个人中心设计稿还原（V2026-06-12-C） ==================== */
 #page-profile {
   background:
-    radial-gradient(circle at 14% 0%, rgba(125, 148, 173, 0.18), transparent 28%),
-    radial-gradient(circle at 84% 8%, rgba(255, 255, 255, 0.7), transparent 22%),
-    linear-gradient(180deg, #edf2f7 0%, #f6f8fb 38%, #f7f8fa 72%, #f5f6f8 100%);
+    radial-gradient(circle at 14% 0%, rgba(31, 122, 104, 0.14), transparent 28%),
+    radial-gradient(circle at 86% 8%, rgba(255, 255, 255, 0.72), transparent 22%),
+    linear-gradient(180deg, #eaf6f1 0%, #f5fbf8 42%, #ffffff 76%);
 }
 
 .profile-shell-v2 {
@@ -12308,65 +12326,80 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
 .profile-shell-v2 .profile-home-corner {
   position: absolute;
   top: 18px;
-  right: 16px;
-  width: auto;
-  height: auto;
-  padding: 8px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.4;
-  border: 1px solid rgba(125, 148, 173, 0.18);
-  background: rgba(255, 255, 255, 0.96);
-  color: #49566a;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+  right: 22px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid rgba(31, 122, 104, 0.12);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  color: #1f7a68;
+  font-size: 0;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(31, 122, 104, 0.1);
+  overflow: visible;
 }
 
 .profile-shell-v2 .profile-home-corner::after {
   content: '';
   position: absolute;
-  top: 9px;
-  right: 9px;
-  width: 8px;
-  height: 8px;
+  top: 6px;
+  right: 6px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: #ff5b5b;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.96);
+  box-shadow: 0 0 0 2.5px #ffffff;
 }
 
 .profile-shell-v2 .profile-home-corner svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 .profile-shell-v2 .profile-hero {
   position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
   overflow: hidden;
-  height: 260px;
-  padding: 58px 22px 0;
+  height: 272px;
+  padding: 86px 28px 0;
+  border-radius: 0 0 36px 36px;
   background:
-    linear-gradient(180deg, rgba(246, 249, 252, 0.92), rgba(232, 237, 244, 0.92)),
-    linear-gradient(135deg, rgba(209, 220, 232, 0.95), rgba(241, 244, 248, 0.98));
+    radial-gradient(ellipse 140% 90% at 70% 30%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 34%),
+    radial-gradient(ellipse 60% 70% at 92% 12%, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(138deg, #eefbf6 0%, #ddf5ea 32%, #c8eedc 64%, #b5e6d0 100%);
 }
 
 .profile-shell-v2 .profile-hero::before {
   content: '';
   position: absolute;
-  left: 18px;
-  right: 96px;
-  bottom: 34px;
-  height: 88px;
-  border-radius: 999px 999px 0 0;
+  left: 12px;
+  right: 130px;
+  bottom: 28px;
+  height: 96px;
+  border-radius: 54% 72% 0 0;
   background:
-    radial-gradient(circle at 20% 86%, rgba(198, 210, 222, 0.42), transparent 26%),
-    linear-gradient(180deg, rgba(189, 202, 216, 0.18), rgba(205, 216, 228, 0.52));
-  filter: blur(1px);
+    radial-gradient(circle at 24% 88%, rgba(31, 122, 104, 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(31, 122, 104, 0.1));
 }
 
 .profile-shell-v2 .profile-hero::after {
   content: '';
   position: absolute;
-  inset: 34px auto auto 110px;
+  inset: 70px auto auto 38%;
   width: 140px;
   height: 140px;
   border-radius: 50%;
@@ -12375,31 +12408,37 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
 
 .profile-shell-v2 .profile-hero-copy {
   position: relative;
-  z-index: 2;
-  max-width: 180px;
+  z-index: 4;
+  display: block;
+  width: 220px;
+  max-width: 220px;
+  margin-left: 0;
 }
 
 .profile-shell-v2 .login-hero-title {
-  color: #101828;
-  font-size: 32px;
+  color: #0f513f;
+  font-size: 38px;
+  line-height: 1.1;
   font-weight: 900;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.05em;
+  text-shadow: 0 3px 10px rgba(31, 122, 104, 0.1);
+  white-space: nowrap;
 }
 
 .profile-shell-v2 .login-hero-subtitle {
   margin-top: 14px;
-  max-width: none;
-  color: #667085;
-  font-size: 15px;
-  line-height: 1.5;
-  font-weight: 600;
+  color: #6b8a7a;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .profile-shell-v2 .profile-eagle {
-  top: 30px;
-  right: -10px;
-  width: 204px;
-  filter: drop-shadow(0 18px 30px rgba(15, 23, 42, 0.12));
+  position: absolute;
+  z-index: 2;
+  top: 58px;
+  right: -38px;
+  width: 240px;
 }
 
 .profile-shell-v2 .profile-account-card-v2 {
@@ -12825,18 +12864,37 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
 
 @media (max-width: 420px) {
   .profile-shell-v2 .profile-hero {
-    height: 244px;
-    padding: 52px 18px 0;
+    height: 232px;
+    padding: 72px 18px 0;
+    border-radius: 0 0 28px 28px;
   }
 
   .profile-shell-v2 .login-hero-title {
     font-size: 30px;
   }
 
+  .profile-shell-v2 .login-hero-subtitle {
+    font-size: 13px;
+  }
+
+  .profile-shell-v2 .profile-hero-copy {
+    width: 190px;
+    max-width: 190px;
+  }
+
   .profile-shell-v2 .profile-eagle {
     width: 192px;
-    top: 38px;
-    right: -20px;
+    top: 52px;
+    right: -36px;
+  }
+
+  .profile-shell-v2 .profile-home-corner {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    top: 16px;
+    right: 18px;
   }
 
   .profile-shell-v2 .profile-account-card-v2 {
@@ -12925,93 +12983,107 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
 
 .profile-shell-v2 .profile-hero {
   position: relative;
-  left: 50%;
-  width: 100vw;
-  height: 306px;
-  margin: -40px 0 0 -50vw;
-  padding: 118px 28px 0;
+  width: 100%;
+  height: 272px;
+  padding: 86px 28px 0;
   border-radius: 0;
   overflow: hidden;
   isolation: isolate;
   background:
-    radial-gradient(circle at 48% 42%, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0) 22%),
-    radial-gradient(circle at 92% 8%, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0) 18%),
-    linear-gradient(135deg, #eefbf6 0%, #d8f5e8 46%, #bcead8 100%);
+    radial-gradient(ellipse 140% 90% at 70% 30%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 34%),
+    radial-gradient(ellipse 60% 70% at 92% 12%, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(138deg, #eefbf6 0%, #ddf5ea 32%, #c8eedc 64%, #b5e6d0 100%);
 }
 
 
 .profile-shell-v2 .profile-hero::before {
-  left: -4vw;
-  right: 140px;
-  bottom: 34px;
-  height: 106px;
+  left: 12px;
+  right: 130px;
+  bottom: 28px;
+  height: 96px;
   border-radius: 54% 72% 0 0;
   background:
-    radial-gradient(circle at 24% 88%, rgba(31, 122, 104, 0.16), transparent 30%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(31, 122, 104, 0.14));
+    radial-gradient(circle at 24% 88%, rgba(31, 122, 104, 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(31, 122, 104, 0.1));
 }
 
 .profile-shell-v2 .profile-hero::after {
-  inset: 82px auto auto 42%;
-  width: 154px;
-  height: 154px;
+  inset: 70px auto auto 38%;
+  width: 140px;
+  height: 140px;
 }
 
 .profile-shell-v2 .profile-hero-copy {
   position: relative;
   z-index: 4;
   display: block;
-  width: 230px;
-  max-width: 230px;
+  width: 220px;
+  max-width: 220px;
   margin-left: 0;
 }
 
-
-
 .profile-shell-v2 .login-hero-title {
   color: #0f513f;
-  font-size: 42px;
-  line-height: 1.08;
-  letter-spacing: -0.055em;
-  text-shadow: 0 4px 12px rgba(31, 122, 104, 0.12);
+  font-size: 38px;
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  text-shadow: 0 3px 10px rgba(31, 122, 104, 0.1);
   white-space: nowrap;
 }
 
-
 .profile-shell-v2 .login-hero-subtitle {
-  margin-top: 18px;
-  color: #4e6b5f;
-  font-size: 17px;
-  font-weight: 800;
+  margin-top: 14px;
+  color: #6b8a7a;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .profile-shell-v2 .profile-home-corner {
   position: absolute;
-  top: 20px;
-  right: 26px;
+  top: 18px;
+  right: 22px;
   z-index: 5;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: auto;
-  height: 38px;
-  min-height: 38px;
-  padding: 0 16px;
-  border: 1px solid rgba(31, 122, 104, 0.18);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
+  gap: 6px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid rgba(31, 122, 104, 0.12);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
   color: #1f7a68;
-  font-size: 13px;
-  font-weight: 900;
-  line-height: 38px;
+  font-size: 0;
+  font-weight: 700;
+  line-height: 1;
   white-space: nowrap;
   cursor: pointer;
-  box-shadow: 0 12px 26px rgba(31, 122, 104, 0.14);
+  box-shadow: 0 8px 22px rgba(31, 122, 104, 0.1);
+  overflow: visible;
 }
 
-
 .profile-shell-v2 .profile-home-corner::after {
-  display: none;
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff5b5b;
+  box-shadow: 0 0 0 2.5px #ffffff;
+  display: block;
+}
+
+.profile-shell-v2 .profile-home-corner svg {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 
@@ -13019,12 +13091,11 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
   display: block;
   position: absolute;
   z-index: 2;
-  top: 62px;
-  right: -54px;
-  width: 268px;
+  top: 58px;
+  right: -38px;
+  width: 240px;
   opacity: 1;
   visibility: visible;
-  filter: drop-shadow(0 20px 34px rgba(31, 64, 45, 0.14));
 }
 
 
@@ -13082,6 +13153,14 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
 
 .profile-shell-v2 .profile-history-empty-icon {
   font-size: 36px;
+  color: #f59e0b;
+}
+
+.profile-shell-v2 .profile-history-empty-icon svg {
+  width: 48px;
+  height: 48px;
+  display: block;
+  margin: 0 auto;
 }
 
 .profile-shell-v2 .profile-filter-btn.is-active {
@@ -13102,45 +13181,47 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
 
 @media (max-width: 420px) {
   .profile-shell-v2 .profile-hero {
-    left: 50%;
-    height: 292px;
-    width: 100vw;
-    margin: -40px 0 0 -50vw;
-    padding: 110px 22px 0;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    height: 252px;
+    padding: 80px 20px 0;
   }
 
 
   .profile-shell-v2 .profile-hero-copy {
-    width: 210px;
-    max-width: 210px;
+    width: 190px;
+    max-width: 190px;
   }
+
 
 
   .profile-shell-v2 .login-hero-title {
-    font-size: 39px;
+    font-size: 30px;
   }
 
   .profile-shell-v2 .login-hero-subtitle {
-    margin-top: 16px;
-    font-size: 16px;
+    margin-top: 12px;
+    font-size: 13px;
   }
 
   .profile-shell-v2 .profile-home-corner {
-    top: 16px;
-    right: 20px;
+    top: 14px;
+    right: 14px;
     width: auto;
-    height: 36px;
-    min-height: 36px;
+    height: 34px;
+    min-height: 34px;
     padding: 0 14px;
-    line-height: 36px;
     font-size: 12px;
+    line-height: 34px;
   }
 
 
+
   .profile-shell-v2 .profile-eagle {
-    top: 66px;
-    right: -70px;
-    width: 254px;
+    top: 56px;
+    right: -50px;
+    width: 210px;
   }
 
   .profile-shell-v2 .profile-account-card-v2 {
@@ -13282,123 +13363,105 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
   }
 }
 
-/* 个人中心头部最终修复：按设计图重排（V2026-06-12-F） */
+/* 个人中心头部按设计图重排（V2026-06-12-F 容器宽度版） */
 #page-profile {
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 15% 0%, rgba(31, 122, 104, 0.16), transparent 30%),
-    radial-gradient(circle at 86% 8%, rgba(255, 255, 255, 0.76), transparent 22%),
-    linear-gradient(180deg, #e9f7f0 0%, #f6fbf8 44%, #ffffff 78%);
+    radial-gradient(circle at 15% 0%, rgba(31, 122, 104, 0.14), transparent 28%),
+    radial-gradient(circle at 86% 8%, rgba(255, 255, 255, 0.72), transparent 22%),
+    linear-gradient(180deg, #eaf6f1 0%, #f5fbf8 42%, #ffffff 76%);
 }
 
 .profile-shell-v2 .profile-hero {
   position: relative;
-  left: auto;
-  width: 100vw;
-  height: 344px;
-  margin: -40px calc(50% - 50vw) 0;
-  padding: 132px 30px 0;
+  width: 100%;
+  height: 272px;
+  padding: 86px 28px 0;
   border-radius: 0;
   overflow: hidden;
   isolation: isolate;
   background:
-    radial-gradient(circle at 38% 45%, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0) 24%),
-    radial-gradient(circle at 75% 31%, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0) 19%),
-    radial-gradient(circle at 92% 8%, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 18%),
-    linear-gradient(135deg, #eefbf6 0%, #d7f3e6 48%, #b8e4d2 100%);
+    radial-gradient(ellipse 140% 90% at 70% 30%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 34%),
+    radial-gradient(ellipse 60% 70% at 92% 12%, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(138deg, #eefbf6 0%, #ddf5ea 32%, #c8eedc 64%, #b5e6d0 100%);
 }
 
 .profile-shell-v2 .profile-hero::before {
-  content: '';
-  position: absolute;
-  left: -12vw;
-  right: 110px;
-  bottom: 48px;
-  height: 112px;
-  border-radius: 56% 72% 0 0;
-  background:
-    radial-gradient(circle at 22% 84%, rgba(255, 255, 255, 0.26), transparent 30%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(31, 122, 104, 0.18));
-  filter: blur(0.5px);
-  z-index: 1;
+  content: none;
 }
 
 .profile-shell-v2 .profile-hero::after {
-  content: '';
-  position: absolute;
-  inset: 72px auto auto 42%;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0));
-  z-index: 1;
+  content: none;
 }
 
 .profile-shell-v2 .profile-hero-copy {
   position: relative;
   z-index: 4;
   display: block;
-  width: 250px;
-  max-width: 250px;
+  width: 220px;
+  max-width: 220px;
+  margin-left: 0;
 }
 
 .profile-shell-v2 .login-hero-title {
-  color: #07543f;
-  font-size: 48px;
-  line-height: 1;
+  color: #111;
+  font-size: 38px;
+  line-height: 1.1;
   font-weight: 900;
-  letter-spacing: 0.18em;
+  letter-spacing: -0.05em;
   white-space: nowrap;
-  text-shadow: 0 7px 16px rgba(7, 84, 63, 0.14);
+  text-shadow: none;
 }
 
 .profile-shell-v2 .login-hero-subtitle {
-  margin-top: 26px;
-  color: #4f5964;
-  font-size: 18px;
+  margin-top: 14px;
+  color: #333;
+  font-size: 14px;
+  font-weight: 700;
   line-height: 1.4;
-  font-weight: 900;
-  white-space: nowrap;
 }
 
 .profile-shell-v2 .profile-home-corner {
   position: absolute;
   top: 18px;
   right: 22px;
-  z-index: 6;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: auto;
   height: 38px;
   min-height: 38px;
-  padding: 0 16px;
+  padding: 0 18px;
   border: 1px solid rgba(31, 122, 104, 0.18);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.94);
   color: #1f7a68;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 12px 26px rgba(31, 122, 104, 0.14);
   font-size: 13px;
   font-weight: 900;
   line-height: 38px;
   white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(31, 122, 104, 0.1);
 }
 
 .profile-shell-v2 .profile-home-corner::after {
   display: none;
 }
 
+.profile-shell-v2 .profile-home-corner svg {
+  display: none;
+}
 
 .profile-shell-v2 .profile-eagle {
   display: block;
   position: absolute;
-  z-index: 3;
-  top: 92px;
-  right: -70px;
-  width: 300px;
+  z-index: 2;
+  top: 58px;
+  right: -38px;
+  width: 240px;
   opacity: 1;
   visibility: visible;
-  filter: drop-shadow(0 22px 34px rgba(84, 61, 38, 0.16));
 }
 
 .profile-shell-v2 .profile-account-card-v2 {
@@ -13409,42 +13472,41 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
 @media (max-width: 420px) {
   .profile-shell-v2 .profile-hero {
     width: 100vw;
-    height: 328px;
-    margin: -40px calc(50% - 50vw) 0;
-    padding: 126px 24px 0;
+    margin: 0 calc(50% - 50vw);
+    height: 232px;
+    padding: 72px 18px 0;
+    border-radius: 0;
   }
 
   .profile-shell-v2 .profile-hero-copy {
-    width: 220px;
-    max-width: 220px;
+    width: 190px;
+    max-width: 190px;
   }
 
   .profile-shell-v2 .login-hero-title {
-    font-size: 43px;
-    letter-spacing: 0.15em;
+    font-size: 30px;
   }
 
   .profile-shell-v2 .login-hero-subtitle {
-    margin-top: 24px;
-    font-size: 17px;
+    margin-top: 12px;
+    font-size: 13px;
   }
 
   .profile-shell-v2 .profile-home-corner {
-    top: 16px;
-    right: 20px;
+    top: 14px;
+    right: 14px;
     width: auto;
-    height: 36px;
-    min-height: 36px;
+    height: 34px;
+    min-height: 34px;
     padding: 0 14px;
     font-size: 12px;
-    line-height: 36px;
+    line-height: 34px;
   }
 
-
   .profile-shell-v2 .profile-eagle {
-    top: 98px;
-    right: -86px;
-    width: 286px;
+    top: 52px;
+    right: -36px;
+    width: 192px;
   }
 
   .profile-shell-v2 .profile-account-card-v2 {

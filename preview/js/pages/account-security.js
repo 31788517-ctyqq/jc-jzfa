@@ -18,7 +18,7 @@ function render() {
     userName +
     '</div>' +
     '</div>' +
-    '<img class="login-eagle" src="/assets/login-eagle.png?v=202606101600" alt="" loading="eager" decoding="async" onclick="switchTab(\'profile\')" style="cursor:pointer" title="返回个人中心" />' +
+    '<img class="login-eagle" src="/laoying11.png" alt="" loading="eager" decoding="async" onclick="switchTab(\'profile\')" style="cursor:pointer" title="返回个人中心" />' +
     '</div>' +
     '<div class="auth-card auth-login-card auth-account-card">' +
     '<div class="auth-field auth-field-icon">' +
