@@ -348,6 +348,38 @@ function hasPermission(session, permissionCode) {
   return perms.includes(permissionCode) || perms.includes('*');
 }
 
+// ★ P1-3 优化：内存 session 缓存，覆盖 DB 防抖写入前的竞态窗口
+//    loginWithPassword 生成 token 后立即存入内存，setImmediate 异步刷新到 DB
+//    validateSession 优先查内存，未命中再查 DB
+var _sessionCache = new Map(); // tokenHash → sessionObj
+var _sessionCacheCleanTimer = null;
+function _cacheSession(tokenHash, sessionObj) {
+  _sessionCache.set(tokenHash, sessionObj);
+  // 定期清理过期缓存（每 5 分钟）
+  if (!_sessionCacheCleanTimer) {
+    _sessionCacheCleanTimer = setInterval(function () {
+      var now = new Date().toISOString();
+      _sessionCache.forEach(function (s, k) {
+        if (s.expiresAt && s.expiresAt < now) _sessionCache.delete(k);
+      });
+      if (_sessionCache.size === 0 && _sessionCacheCleanTimer) {
+        clearInterval(_sessionCacheCleanTimer);
+        _sessionCacheCleanTimer = null;
+      }
+    }, 5 * 60 * 1000);
+  }
+}
+function _getCachedSession(tokenHash) {
+  var s = _sessionCache.get(tokenHash);
+  if (!s) return null;
+  // 检查是否过期
+  if (s.expiresAt && s.expiresAt < new Date().toISOString()) {
+    _sessionCache.delete(tokenHash);
+    return null;
+  }
+  return s;
+}
+
 var _bootstrapped = false;
 function ensureBootstrapped() {
   if (_bootstrapped) return;
@@ -461,6 +493,16 @@ function buildSessionInfoByUserId(userId) {
 }
 
 async function loginWithPassword(username, password, meta = {}) {
+  // ★ 安全加固：拒绝超长用户名/密码，防止 DoS
+  const MAX_USERNAME_LEN = 64;
+  const MAX_PASSWORD_LEN = 128;
+  if (!username || typeof username !== 'string' || username.length > MAX_USERNAME_LEN) {
+    return { ok: false, msg: '用户名格式不正确' };
+  }
+  if (!password || typeof password !== 'string' || password.length > MAX_PASSWORD_LEN) {
+    return { ok: false, msg: '密码格式不正确' };
+  }
+
   ensureBootstrapped();
   const adp = getAdapter();
   const now = new Date();
@@ -508,6 +550,19 @@ async function loginWithPassword(username, password, meta = {}) {
   const tokenHash = sha256(token);
   const expiresAt = new Date(now.getTime() + SESSION_TTL_HOURS * 3600 * 1000).toISOString();
 
+  // ★ P1-3 优化：先查询 session 信息并存入内存缓存，确保防抖写入窗口内可立即验证
+  var sessionInfo = buildSessionInfoByUserId(user.id);
+  if (sessionInfo) {
+    _cacheSession(tokenHash, {
+      sid: tokenHash,
+      userId: user.id,
+      user: sessionInfo.user,
+      roles: sessionInfo.roles,
+      permissions: sessionInfo.permissions,
+      expiresAt: expiresAt,
+    });
+  }
+
   adp.execRun(
     `INSERT INTO auth_sessions(
       user_id, session_token_hash, issued_at, expires_at, ip, user_agent, last_seen_at
@@ -520,8 +575,6 @@ async function loginWithPassword(username, password, meta = {}) {
     meta.userAgent || null,
     nowStr,
   );
-
-  const sessionInfo = buildSessionInfoByUserId(user.id);
   return {
     ok: true,
     token,
@@ -531,6 +584,16 @@ async function loginWithPassword(username, password, meta = {}) {
 }
 
 function registerUser(username, password, meta = {}) {
+  // ★ 安全加固：拒绝超长用户名/密码
+  const MAX_USERNAME_LEN = 64;
+  const MAX_PASSWORD_LEN = 128;
+  if (!username || typeof username !== 'string' || username.length > MAX_USERNAME_LEN || !username.trim()) {
+    return { ok: false, msg: '用户名格式不正确' };
+  }
+  if (!password || typeof password !== 'string' || password.length > MAX_PASSWORD_LEN || !password.trim()) {
+    return { ok: false, msg: '密码格式不正确' };
+  }
+
   ensureBootstrapped();
   ensureRegisterSchemaReady();
 
@@ -616,6 +679,36 @@ function validateSession(token, touch = true) {
   const adp = getAdapter();
   const tokenHash = sha256(token);
   const now = nowIso();
+
+  // ★ P1-3 优化：优先查内存缓存（防抖写入窗口内 session 尚未持久化到磁盘）
+  var cached = _getCachedSession(tokenHash);
+  if (cached) {
+    if (cached.user && cached.user.status !== 'active') return null;
+    if (new Date(cached.expiresAt).getTime() <= Date.now()) {
+      _sessionCache.delete(tokenHash);
+      return null;
+    }
+    // 内存命中：不 touch DB（减少写入），直接返回缓存的 session
+    if (touch) {
+      // 异步 touch 到 DB（不影响响应速度）
+      setImmediate(function () {
+        try {
+          var tNow = new Date().toISOString();
+          adp.execRun('UPDATE auth_sessions SET last_seen_at = ? WHERE session_token_hash = ?', tNow, tokenHash);
+        } catch (_) {}
+      });
+    }
+    return {
+      sid: cached.sid,
+      userId: cached.userId,
+      user: cached.user,
+      roles: cached.roles || [],
+      permissions: cached.permissions || [],
+      expiresAt: cached.expiresAt,
+    };
+  }
+
+  // 内存未命中 → 查 DB
   const row = adp.execOne(
     `SELECT s.id AS sid, s.user_id, s.expires_at, s.revoked_at,
             u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at
