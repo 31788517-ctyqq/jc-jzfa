@@ -115,14 +115,16 @@ function renderHitRate(el, data) {
           <div class="stat-big-label">方向数</div>
         </div>
         <div class="stat-big">
-          <div class="stat-big-value">${top3Rate}%</div>
+          <div class="stat-big-value" style="color:#FF8C00">${top3Rate}%</div>
           <div class="stat-big-label">每日≥3场命中率</div>
         </div>
       </div>
     </div>
   `;
 
-  const top10 = data.directionStats.slice(0, 10);
+  // 过滤掉命中率 0% 的方向
+  const nonZeroDirections = data.directionStats.filter(function (d) { return d.hitRate > 0; });
+  const top10 = nonZeroDirections.slice(0, 10);
   let rankHTML = `<div class="hit-ranking-card" style="animation: fadeUp 0.4s ease;">
     <div class="hit-ranking-title">各方向命中排名</div>`;
 
@@ -160,6 +162,7 @@ function renderHitRate(el, data) {
   `;
 
   data.directionStats.forEach((d) => {
+    if (d.hitRate === 0) return; // 隐藏命中率 0% 的方向
     const color = d.hitRate >= 60 ? 'var(--green)' : d.hitRate >= 45 ? 'var(--cyan)' : 'var(--red)';
     html += `
         <tr>
