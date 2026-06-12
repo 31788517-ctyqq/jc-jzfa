@@ -293,6 +293,30 @@ let _quantHotCacheTime = 0;
 let _quantPlanCache = {};
 let _profit7dCache = null; // ★ P2: daily-profit-7d 响应缓存
 let _profit7dCacheTime = 0;
+
+// ★ P1-3 优化：通用响应缓存（减少重复计算密集 API 的响应时间）
+const RESPONSE_CACHE_TTL = {
+  'income-stats': 5 * 60 * 1000,
+  'hit-rate-stats': 5 * 60 * 1000,
+  'prediction-backtest': 3 * 60 * 1000,
+  'model-dashboard': 5 * 60 * 1000,
+  'data-health': 10 * 60 * 1000,
+};
+const _responseCache = {}; // { cacheKey: { time, response } }
+function getCachedResponse(action, cacheKey) {
+  var entry = _responseCache[cacheKey];
+  var ttl = RESPONSE_CACHE_TTL[action] || 60 * 1000;
+  if (entry && Date.now() - entry.time < ttl) return entry.response;
+  return null;
+}
+function setCachedResponse(action, cacheKey, response) {
+  var keys = Object.keys(_responseCache);
+  if (keys.length > 50) {
+    var oldest = keys.sort(function(a,b){return _responseCache[a].time-_responseCache[b].time})[0];
+    delete _responseCache[oldest];
+  }
+  _responseCache[cacheKey] = { time: Date.now(), response: response };
+}
 const CACHE_TTL_5MIN = 5 * 60 * 1000;
 const CACHE_TTL_10MIN = 10 * 60 * 1000; // ★ P2: 用于 quant-plan-list（计算最密集）
 const MATCH_LIST_CACHE_TTL = 5 * 60 * 1000; // 5 分钟（原 1 分钟，P1 延长减少磁盘 I/O）
@@ -2920,6 +2944,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         // ========== 预测回测 ==========
         case 'prediction-backtest': {
           try {
+            // ★ P1-3: 3 分钟响应缓存
+            var _btCacheKey = 'bt|' + (data.type || 'all') + '|' + (data.dateRange || 'all') + '|' + (data.league || 'all') + '|' + (data.direction || 'all') + '|' + (data.consensus || 'all') + '|' + (data.model || 'all') + '|p' + (parseInt(data.page) || 1);
+            var _btCached = getCachedResponse('prediction-backtest', _btCacheKey);
+            if (_btCached) return res.json(_btCached);
+
             await predictionLog.asyncEnsure();
             const result = predictionLog.queryBacktest({
               type: data.type || 'all',
@@ -2957,7 +2986,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             result.leagues = predictionLog.getLeagues();
             result.models = predictionLog.getModels();
 
-            return res.json({ code: 1, data: result });
+            var _btResp = { code: 1, data: result };
+            setCachedResponse('prediction-backtest', _btCacheKey, _btResp);
+            return res.json(_btResp);
           } catch (e) {
             return res.json({ code: 0, msg: '回测查询失败: ' + e.message });
           }
@@ -4508,6 +4539,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
         case 'income-stats': {
           try {
+            // ★ P1-3: 5 分钟响应缓存（计算最密集的 API 之一）
+            var _incCacheKey = 'income-stats|' + (data.plan || 'all') + '|' + (data.direction || 'all') + '|' + (parseInt(data.days) || 0);
+            var _incCached = getCachedResponse('income-stats', _incCacheKey);
+            if (_incCached) return res.json(_incCached);
+
             const planFilter = data.plan || 'all';
             const directionFilter = data.direction || 'all';
             const daysFilter = parseInt(data.days) || 0;
@@ -5090,14 +5126,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               };
             });
 
-            return res.json({
+            var _incResp = {
               code: 1,
               data: {
                 summary: { totalPlans: totalPlans, totalWon: totalWon, totalIncome: totalIncome, winRate: winRate },
                 records: dayRecords,
                 details: detailRows,
               },
-            });
+            };
+            setCachedResponse('income-stats', _incCacheKey, _incResp);
+            return res.json(_incResp);
           } catch (e) {
             return res.json({ code: 0, msg: '获取收入统计失败: ' + e.message });
           }
@@ -6169,6 +6207,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         // ★ 蓝图 P1: 模型表现仪表板 API
         case 'model-dashboard': {
           try {
+            // ★ P1-3: 5 分钟响应缓存
+            var _mdCacheKey = 'md|' + (data.days || '30') + '|' + (data.model || 'all');
+            var _mdCached = getCachedResponse('model-dashboard', _mdCacheKey);
+            if (_mdCached) return res.json(_mdCached);
+
             const isAllMd = data.days === 0 || data.days === '0' || data.days === 'all';
             const days = isAllMd ? 3650 : parseInt(data.days) || 30; // 全部=3650天(10年)覆盖2024-2026
             const db = database.getAdapter();
@@ -6249,7 +6292,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               logger.error('[md] trend query: ' + e.message);
             }
 
-            return res.json({
+            var _mdResp = {
               code: 1,
               data: {
                 rankings,
@@ -6259,7 +6302,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 leagueHeatmap,
                 trendData,
               },
-            });
+            };
+            setCachedResponse('model-dashboard', _mdCacheKey, _mdResp);
+            return res.json(_mdResp);
           } catch (e) {
             logger.error('[model-dashboard] ' + e.message);
             return res.json({ code: 0, msg: '模型仪表板失败: ' + e.message });
@@ -6269,6 +6314,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         // ★ 蓝图 P2: 数据健康监控 API
         case 'data-health': {
           try {
+            // ★ P1-3: 10 分钟响应缓存
+            var _dhCacheKey = 'dh|' + (data.days || '7');
+            var _dhCached = getCachedResponse('data-health', _dhCacheKey);
+            if (_dhCached) return res.json(_dhCached);
             const db = database.getAdapter();
             const { monitor } = require('./core/data-quality');
 
@@ -6367,13 +6416,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               } catch (e) {}
             }
 
-            return res.json({
+            var _dhResp = {
               code: 1,
               data: {
                 fetchSources,
                 completeness: Math.round(completenessRate),
                 matchCount,
-                date: targetDate, // ★ 筛选起始日期
+                date: targetDate,
                 dateLabel: isAll ? '全部历史' : '近' + days + '天',
                 recentAlerts: report.recentAlerts,
                 dbSize: {
@@ -6384,7 +6433,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 },
                 thresholds: report.thresholds,
               },
-            });
+            };
+            setCachedResponse('data-health', _dhCacheKey, _dhResp);
+            return res.json(_dhResp);
           } catch (e) {
             logger.error('[data-health] ' + e.message);
             return res.json({ code: 0, msg: '数据健康失败: ' + e.message });
