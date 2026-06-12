@@ -193,7 +193,7 @@ export async function loadPricing(container) {
       (authed ? '<strong>' + userName + '</strong>' : '游客') +
       '</div>' +
       '</div>' +
-      '<img class="member-hero-eagle" src="/preview/laoying11.png" alt="" loading="eager" decoding="async" />' +
+      '<img class="member-hero-eagle" src="/laoying11.png" alt="" loading="eager" decoding="async" />' +
       (pendingPlan
         ? '<div class="member-inline-tip">你刚刚选择了 <strong>' +
           (pendingPlan.plan_name || '会员套餐') +

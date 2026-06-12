@@ -150,7 +150,7 @@ export async function loadReferral(container) {
       ((session.user || {}).username || '会员用户') +
       '</strong></div>' +
       '</div>' +
-      '<img class="member-hero-eagle" src="/preview/laoying11.png" alt="" loading="eager" decoding="async" />' +
+      '<img class="member-hero-eagle" src="/laoying11.png" alt="" loading="eager" decoding="async" />' +
       '</div>' +
       '<div class="ref-balance-card">' +
       '<div class="ref-stat-row">' +

@@ -111,7 +111,7 @@ export async function loadSubscription(container) {
       (((getAuthSession() || {}).user || {}).username || '会员用户') +
       '</strong></div>' +
       '</div>' +
-      '<img class="member-hero-eagle" src="/preview/laoying11.png" alt="" loading="eager" decoding="async" />' +
+      '<img class="member-hero-eagle" src="/laoying11.png" alt="" loading="eager" decoding="async" />' +
       '</div>' +
       '<div class="member-section-card sub-card ' +
       meta.className +
