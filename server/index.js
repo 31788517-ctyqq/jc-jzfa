@@ -153,6 +153,31 @@ function getPlanOutcomeOverlay(dateStr) {
       });
     }
   } catch (e) {}
+
+  // ★ P1-3 修复：data.json 作为最权威完赛比分源（覆盖半场误判等过期数据）
+  try {
+    const dataJson = getDataJson();
+    const rawMap = dataJson.m || {};
+    Object.keys(rawMap).forEach(function (k) {
+      var x = rawMap[k];
+      var dt = (x.date || '').slice(0, 10);
+      if (dt !== dateStr) return;
+      // 仅完赛比赛（matchStatus>=2）且有比分才补充
+      if (x.matchStatus < 2 || !x.score) return;
+      var item = {
+        score: normalizeScoreText(x.score),
+        matchStatus: x.matchStatus,
+        halfScore: x.halfScore || '',
+        source: 'data.json',
+      };
+      var mid = x.matchId || x.match_id;
+      var num = x.matchNum || x.match_num || x.num;
+      // 直接覆盖（data.json 是最权威的全场比分源）
+      if (mid) overlay.byId[String(mid).replace(/^m_/, '')] = item;
+      if (num) overlay.byNum[String(num)] = item;
+    });
+  } catch (e) {}
+
   _planOutcomeOverlayCache[dateStr] = { time: now, data: overlay };
   return overlay;
 }
