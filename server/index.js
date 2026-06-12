@@ -992,9 +992,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   var ls = _lsCache[m.num] || _lsCache[String(m.matchId)];
                   if (ls && ls.matchStatus !== undefined) {
                     // ★ 只使用可靠的 matchStatus: 500.com 明确标记"中"(1) 或有时长
-                    var reliableLive = ls.matchStatus === 1 && ls.duration && ls.duration !== '';
-                    if (reliableLive) {
-                      m.matchStatus = 1;
+                    // ★ P1-3 修复：放宽 live 判定条件
+                    //    midou API 经常返回 duration:"" 但 matchStatus=1（赛中）
+                    //    原来的 reliableLive 要求 duration 非空导致大多数赛中比赛被过滤
+                    var hasLive = ls.matchStatus === 1 || (ls.duration && ls.duration !== '');
+                    if (hasLive) {
+                      m.matchStatus = ls.matchStatus || m.matchStatus || 0;
                       m.duration = ls.duration || '';
                       m.score = ls.score || m.score || '';
                       m.halfScore = ls.halfScore || m.halfScore || '';
