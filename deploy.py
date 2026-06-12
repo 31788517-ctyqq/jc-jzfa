@@ -96,6 +96,7 @@ DEPLOY_MAP = [
     # /assets/ URL 由 Nginx 映射到 miniprogram/images/，首页 banner 和 ECharts 库须部署到该目录
     ('miniprogram/images/worldcup/banner3.webp', 'nginx'),
     ('miniprogram/images/login-eagle.png',   'nginx'),  # ★ V9: 登录页背景图
+    ('preview/laoying11.png',                'nginx'),  # ★ 个人中心/套餐/返利页鹰图
     ('miniprogram/images/echarts.min.js',      'nginx'),
     ('preview/css/app.css',               'both'),
     ('preview/css/modals.css',            'both'),
