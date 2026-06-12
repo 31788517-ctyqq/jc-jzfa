@@ -638,6 +638,72 @@ function generateExpertPlans(mList, matchDataMap, dateStr) {
   const matchCount = mList.length;
   const plans = [];
 
+  // ── 世界杯检测与方向排行（基于 recs 数据自建排行，无需外部 API）──
+  const isWorldCup = mList.some(function (m) {
+    return (m.leagueName || '').indexOf('世界杯') >= 0;
+  });
+
+  var _wcRankingCache = null;
+  function getWCRanking() {
+    if (_wcRankingCache) return _wcRankingCache;
+    var entries = [];
+    for (var mi = 0; mi < mList.length; mi++) {
+      var m = mList[mi];
+      var md = matchDataMap[m.matchId];
+      if (!md || !md.recs) continue;
+      for (var ri = 0; ri < md.recs.length; ri++) {
+        var r = md.recs[ri];
+        if (!r.type || !r.num) continue;
+        entries.push({ matchId: m.matchId, direction: r.type, count: r.num });
+      }
+    }
+    entries.sort(function (a, b) {
+      return b.count - a.count;
+    });
+    _wcRankingCache = entries;
+    return entries;
+  }
+
+  // 检查某场比赛的指定方向是否在当日排行前 topN（基于所有比赛全部方向的推荐人数排序）
+  function isDirectionTopN(matchId, directions, topN) {
+    var ranking = getWCRanking();
+    var dirs = Array.isArray(directions)
+      ? directions
+      : directions.split(/[、,]/).map(function (s) {
+          return s.trim();
+        });
+    var bestCount = 0;
+    for (var i = 0; i < ranking.length; i++) {
+      if (ranking[i].matchId === matchId && dirs.indexOf(ranking[i].direction) >= 0) {
+        bestCount = Math.max(bestCount, ranking[i].count);
+      }
+    }
+    if (bestCount === 0) return false;
+    // 统计比 bestCount 严格大的不同计数值
+    var seenCounts = {};
+    for (var j = 0; j < ranking.length; j++) {
+      if (ranking[j].count > bestCount) seenCounts[ranking[j].count] = true;
+    }
+    var higherUnique = Object.keys(seenCounts).length;
+    return higherUnique < topN;
+  }
+
+  // 获取某场比赛指定复合方向的总推荐人数
+  function getWCDirectionCount(matchId, directions) {
+    var md = matchDataMap[matchId];
+    if (!md || !md.recs) return 0;
+    var dirs = Array.isArray(directions)
+      ? directions
+      : directions.split(/[、,]/).map(function (s) {
+          return s.trim();
+        });
+    var total = 0;
+    for (var i = 0; i < md.recs.length; i++) {
+      if (dirs.indexOf(md.recs[i].type) >= 0) total += md.recs[i].num || 0;
+    }
+    return total;
+  }
+
   // ── 工具函数 ──
 
   function findRecommends(matchId) {
@@ -1018,20 +1084,68 @@ function generateExpertPlans(mList, matchDataMap, dateStr) {
 
   // ── 生成方案 ──
 
-  // 方案一：复合方向 "平、让平"（双选）
-  const m1a = findBestMatchForDirection(['平', '让平']);
-  const m1b = findBestMatchForDirection(['让负'], m1a ? [m1a.matchId] : null);
-  const m2a = findBestMatchForDirection(['总进球-2、3球']);
-  const m2b = findBestMatchForDirection(['让负'], m2a ? [m2a.matchId] : null, 10);
-  const m3a = findBestMatchForDirection(['胜'], null, 35);
-  const m3b = findBestMatchForDirection(['让负'], m3a ? [m3a.matchId] : null);
+  if (isWorldCup) {
+    // ═══ 世界杯方案一：平、让平 × 让负（≤3场，双场均前3，各≥10，平赔率有效）═══
+    if (matchCount <= 3) {
+      var _wc1a = findBestMatchForDirection(['平', '让平'], null, 10);
+      // 平赔率门禁：spf.draw 必须有效
+      if (_wc1a) {
+        var _wc1Odds = getMatchOdds(_wc1a);
+        if (!_wc1Odds || !_wc1Odds.spf || !_wc1Odds.spf.draw || _wc1Odds.spf.draw <= 0) _wc1a = null;
+      }
+      var _wc1b = findBestMatchForDirection(['让负'], _wc1a ? [_wc1a.matchId] : null, 10);
+      if (
+        _wc1a &&
+        _wc1b &&
+        isDirectionTopN(_wc1a.matchId, ['平', '让平'], 3) &&
+        isDirectionTopN(_wc1b.matchId, ['让负'], 3)
+      ) {
+        push2MatchPlan('方案一', '1', _wc1a, '平、让平', _wc1b, '让负', 250, 10);
+      }
+    }
 
-  push2MatchPlan('方案一', '1', m1a, '平、让平', m1b, '让负', 250, 10);
-  push2MatchPlan('方案二', '2', m2a, '总进球-2、3球', m2b, '让负', 250, 10, 25, 2.0);
-  push2MatchPlan('方案三', '3', m3a, '胜', m3b, '让负', 250, 10, 25, 2.0);
+    // ═══ 世界杯方案二：总进球-2、3球 × 让负（≤3场，双场均前3，各≥10，合赔≥2.0）═══
+    if (matchCount <= 3) {
+      var _wc2a = findBestMatchForDirection(['总进球-2、3球'], null, 10);
+      // totalGoals[2][3] 赔率有效性检查
+      if (_wc2a) {
+        var _wc2md = matchDataMap[_wc2a.matchId];
+        var _wc2tg = _wc2md && _wc2md.odds && _wc2md.odds.totalGoals;
+        if (!_wc2tg || _wc2tg['2'] == null || _wc2tg['2'] <= 0 || _wc2tg['3'] == null || _wc2tg['3'] <= 0) _wc2a = null;
+      }
+      var _wc2b = findBestMatchForDirection(['让负'], _wc2a ? [_wc2a.matchId] : null, 10);
+      if (
+        _wc2a &&
+        _wc2b &&
+        isDirectionTopN(_wc2a.matchId, ['总进球-2、3球'], 3) &&
+        isDirectionTopN(_wc2b.matchId, ['让负'], 3)
+      ) {
+        push2MatchPlan('方案二', '2', _wc2a, '总进球-2、3球', _wc2b, '让负', 250, 10, 25, 2.0);
+      }
+    }
+
+    // ═══ 世界杯方案三：胜 × 让负（第二场前3，胜≥35，合赔≥2.0）═══
+    var _wc3a = findBestMatchForDirection(['胜'], null, 35);
+    var _wc3b = findBestMatchForDirection(['让负'], _wc3a ? [_wc3a.matchId] : null);
+    if (_wc3a && _wc3b && isDirectionTopN(_wc3b.matchId, ['让负'], 3)) {
+      push2MatchPlan('方案三', '3', _wc3a, '胜', _wc3b, '让负', 250, 10, 25, 2.0);
+    }
+  } else {
+    // ═══ 常规方案一～三 ═══
+    const m1a = findBestMatchForDirection(['平', '让平']);
+    const m1b = findBestMatchForDirection(['让负'], m1a ? [m1a.matchId] : null);
+    const m2a = findBestMatchForDirection(['总进球-2、3球']);
+    const m2b = findBestMatchForDirection(['让负'], m2a ? [m2a.matchId] : null, 10);
+    const m3a = findBestMatchForDirection(['胜'], null, 35);
+    const m3b = findBestMatchForDirection(['让负'], m3a ? [m3a.matchId] : null);
+
+    push2MatchPlan('方案一', '1', m1a, '平、让平', m1b, '让负', 250, 10);
+    push2MatchPlan('方案二', '2', m2a, '总进球-2、3球', m2b, '让负', 250, 10, 25, 2.0);
+    push2MatchPlan('方案三', '3', m3a, '胜', m3b, '让负', 250, 10, 25, 2.0);
+  }
 
   // 方案六：当天专家推"总进球-2、3球"数最多的一场，单关荷兰式投注
-  if (matchCount >= 2) {
+  if (isWorldCup ? matchCount >= 2 : matchCount >= 2) {
     const targetDir6 = '总进球-2、3球';
     let bestM6 = null,
       bestCount6 = 0;
@@ -1049,7 +1163,8 @@ function generateExpertPlans(mList, matchDataMap, dateStr) {
         bestM6 = m;
       }
     }
-    if (bestM6 && bestCount6 > 0) {
+    // 世界杯：该场方向需排前3
+    if (bestM6 && bestCount6 > 0 && (!isWorldCup || isDirectionTopN(bestM6.matchId, [targetDir6], 3))) {
       const m6Obj = buildMatchObj(bestM6, targetDir6);
       const subOdds6 = extractSubOdds(m6Obj.odds, targetDir6);
       if (subOdds6.length === 2) {
@@ -1077,73 +1192,153 @@ function generateExpertPlans(mList, matchDataMap, dateStr) {
     }
   }
 
-  // 方案四～五：仅在 ≥6 场时生成
-  if (matchCount >= 6) {
-    const m4a = findBestMatchForDirection(['平', '让平']);
-    const m4b = findBestMatchForDirection(['胜'], m4a ? [m4a.matchId] : null);
-    push2MatchPlan('方案四', '4', m4a, '平、让平', m4b, '胜', 250, 10);
-
-    // 方案五：平、让平 × 总进球-2、3球 — 交叉配对取最优合赔
-    const candidatesA = [];
-    for (const m of mList) {
-      const md = matchDataMap[m.matchId];
-      if (!md || !md.odds) continue;
-      const recs = md.recs;
-      let total = 0;
-      for (const r of recs) {
-        if (r.type === '平、让平') total += r.num || 0;
-      }
-      if (total >= 3) {
-        const aObj = buildMatchObj(m, '平、让平');
-        const eA = calcEffectiveOdds('平、让平', aObj);
-        if (eA && eA >= 1.0) candidatesA.push({ match: m, count: total, obj: aObj, odds: eA });
+  // ═══ 方案四～五 ═══
+  if (isWorldCup) {
+    // 世界杯方案四：平、让平 × 胜（≥3场，双场均前3，胜≥25）
+    if (matchCount >= 3) {
+      var _wc4a = findBestMatchForDirection(['平', '让平']);
+      var _wc4b = findBestMatchForDirection(['胜'], _wc4a ? [_wc4a.matchId] : null, 25);
+      if (
+        _wc4a &&
+        _wc4b &&
+        isDirectionTopN(_wc4a.matchId, ['平', '让平'], 3) &&
+        isDirectionTopN(_wc4b.matchId, ['胜'], 3)
+      ) {
+        push2MatchPlan('方案四', '4', _wc4a, '平、让平', _wc4b, '胜', 250, 10);
       }
     }
-    candidatesA.sort(function (a, b) {
-      return b.count - a.count;
-    });
 
-    const candidatesB = [];
-    for (const m of mList) {
-      const md = matchDataMap[m.matchId];
-      if (!md || !md.odds || !md.odds.totalGoals) continue;
-      const tg = md.odds.totalGoals;
-      if (tg['2'] == null || tg['2'] <= 0 || tg['3'] == null || tg['3'] <= 0) continue;
-      const recs = md.recs;
-      let total = 0;
-      for (const r of recs) {
-        if (r.type === '总进球-2、3球') total += r.num || 0;
-      }
-      if (total > 0) {
-        const bObj = buildMatchObj(m, '总进球-2、3球');
-        const eB = calcEffectiveOdds('总进球-2、3球', bObj);
-        if (eB && eB >= 1.0) candidatesB.push({ match: m, count: total, obj: bObj, odds: eB });
-      }
-    }
-    candidatesB.sort(function (a, b) {
-      return b.count - a.count;
-    });
-
-    // 交叉配对：选合赔乘积最高的组合
-    let bestPair = null;
-    for (let ai = 0; ai < candidatesA.length; ai++) {
-      for (let bi = 0; bi < candidatesB.length; bi++) {
-        const ca = candidatesA[ai];
-        const cb = candidatesB[bi];
-        if (ca.match.matchId === cb.match.matchId) continue;
-        const productOdds = ca.odds * cb.odds;
-        if (productOdds < 1.5) continue;
-        if (!bestPair || productOdds > bestPair.productOdds) {
-          bestPair = { a: ca.match, b: cb.match, productOdds: productOdds };
+    // 世界杯方案五：平、让平 × 总进球-2、3球（≥6场，双场均前5，交叉配对，合赔≥1.5）
+    if (matchCount >= 6) {
+      var _candidatesA = [];
+      for (var _mi5 = 0; _mi5 < mList.length; _mi5++) {
+        var _m5a = mList[_mi5];
+        var _md5a = matchDataMap[_m5a.matchId];
+        if (!_md5a || !_md5a.odds) continue;
+        var _total5a = 0;
+        for (var _ri5 = 0; _ri5 < _md5a.recs.length; _ri5++) {
+          var _r5a = _md5a.recs[_ri5];
+          if (_r5a.type === '平' || _r5a.type === '让平') _total5a += _r5a.num || 0;
+        }
+        if (_total5a >= 3 && isDirectionTopN(_m5a.matchId, ['平', '让平'], 5)) {
+          var _aObj5 = buildMatchObj(_m5a, '平、让平');
+          var _eA5 = calcEffectiveOdds('平、让平', _aObj5);
+          if (_eA5 && _eA5 >= 1.0) _candidatesA.push({ match: _m5a, count: _total5a, obj: _aObj5, odds: _eA5 });
         }
       }
+      _candidatesA.sort(function (a, b) {
+        return b.count - a.count;
+      });
+
+      var _candidatesB = [];
+      for (var _mj5 = 0; _mj5 < mList.length; _mj5++) {
+        var _m5b = mList[_mj5];
+        var _md5b = matchDataMap[_m5b.matchId];
+        if (!_md5b || !_md5b.odds || !_md5b.odds.totalGoals) continue;
+        var _tg5 = _md5b.odds.totalGoals;
+        if (_tg5['2'] == null || _tg5['2'] <= 0 || _tg5['3'] == null || _tg5['3'] <= 0) continue;
+        var _total5b = 0;
+        for (var _rj5 = 0; _rj5 < _md5b.recs.length; _rj5++) {
+          if (_md5b.recs[_rj5].type === '总进球-2、3球') _total5b += _md5b.recs[_rj5].num || 0;
+        }
+        if (_total5b > 0 && isDirectionTopN(_m5b.matchId, ['总进球-2、3球'], 5)) {
+          var _bObj5 = buildMatchObj(_m5b, '总进球-2、3球');
+          var _eB5 = calcEffectiveOdds('总进球-2、3球', _bObj5);
+          if (_eB5 && _eB5 >= 1.0) _candidatesB.push({ match: _m5b, count: _total5b, obj: _bObj5, odds: _eB5 });
+        }
+      }
+      _candidatesB.sort(function (a, b) {
+        return b.count - a.count;
+      });
+
+      var _bestPair5 = null;
+      for (var _ai5 = 0; _ai5 < _candidatesA.length; _ai5++) {
+        for (var _bi5 = 0; _bi5 < _candidatesB.length; _bi5++) {
+          var _ca5 = _candidatesA[_ai5];
+          var _cb5 = _candidatesB[_bi5];
+          if (_ca5.match.matchId === _cb5.match.matchId) continue;
+          var _prodOdds5 = _ca5.odds * _cb5.odds;
+          if (_prodOdds5 < 1.5) continue;
+          if (!_bestPair5 || _prodOdds5 > _bestPair5.productOdds) {
+            _bestPair5 = { a: _ca5.match, b: _cb5.match, productOdds: _prodOdds5 };
+          }
+        }
+      }
+      if (_bestPair5) {
+        push2MatchPlan('方案五', '5', _bestPair5.a, '平、让平', _bestPair5.b, '总进球-2、3球', 250, 10, 25, 1.5);
+      }
     }
-    if (bestPair) {
-      push2MatchPlan('方案五', '5', bestPair.a, '平、让平', bestPair.b, '总进球-2、3球', 250, 10, 25, 1.5);
+  } else {
+    // 常规方案四～五：仅在 ≥6 场时生成
+    if (matchCount >= 6) {
+      const m4a = findBestMatchForDirection(['平', '让平']);
+      const m4b = findBestMatchForDirection(['胜'], m4a ? [m4a.matchId] : null);
+      push2MatchPlan('方案四', '4', m4a, '平、让平', m4b, '胜', 250, 10);
+
+      // 方案五：平、让平 × 总进球-2、3球 — 交叉配对取最优合赔
+      const candidatesA = [];
+      for (const m of mList) {
+        const md = matchDataMap[m.matchId];
+        if (!md || !md.odds) continue;
+        const recs = md.recs;
+        let total = 0;
+        for (const r of recs) {
+          if (r.type === '平、让平') total += r.num || 0;
+        }
+        if (total >= 3) {
+          const aObj = buildMatchObj(m, '平、让平');
+          const eA = calcEffectiveOdds('平、让平', aObj);
+          if (eA && eA >= 1.0) candidatesA.push({ match: m, count: total, obj: aObj, odds: eA });
+        }
+      }
+      candidatesA.sort(function (a, b) {
+        return b.count - a.count;
+      });
+
+      const candidatesB = [];
+      for (const m of mList) {
+        const md = matchDataMap[m.matchId];
+        if (!md || !md.odds || !md.odds.totalGoals) continue;
+        const tg = md.odds.totalGoals;
+        if (tg['2'] == null || tg['2'] <= 0 || tg['3'] == null || tg['3'] <= 0) continue;
+        const recs = md.recs;
+        let total = 0;
+        for (const r of recs) {
+          if (r.type === '总进球-2、3球') total += r.num || 0;
+        }
+        if (total > 0) {
+          const bObj = buildMatchObj(m, '总进球-2、3球');
+          const eB = calcEffectiveOdds('总进球-2、3球', bObj);
+          if (eB && eB >= 1.0) candidatesB.push({ match: m, count: total, obj: bObj, odds: eB });
+        }
+      }
+      candidatesB.sort(function (a, b) {
+        return b.count - a.count;
+      });
+
+      // 交叉配对：选合赔乘积最高的组合
+      let bestPair = null;
+      for (let ai = 0; ai < candidatesA.length; ai++) {
+        for (let bi = 0; bi < candidatesB.length; bi++) {
+          const ca = candidatesA[ai];
+          const cb = candidatesB[bi];
+          if (ca.match.matchId === cb.match.matchId) continue;
+          const productOdds = ca.odds * cb.odds;
+          if (productOdds < 1.5) continue;
+          if (!bestPair || productOdds > bestPair.productOdds) {
+            bestPair = { a: ca.match, b: cb.match, productOdds: productOdds };
+          }
+        }
+      }
+      if (bestPair) {
+        push2MatchPlan('方案五', '5', bestPair.a, '平、让平', bestPair.b, '总进球-2、3球', 250, 10, 25, 1.5);
+      }
     }
   }
 
-  // 方案七：单关双选（胜平/平负）
+  // ═══ 方案七：单关双选（胜平/平负）═══
+  // 世界杯：推荐人数≥5；常规：无人数下限
+  var _wc7minCount = isWorldCup ? 5 : 0;
   const singleMatches = mList.filter((m) => {
     const md = matchDataMap[m.matchId];
     return md && md.odds && md.odds.isSingleGame === true;
@@ -1162,7 +1357,7 @@ function generateExpertPlans(mList, matchDataMap, dateStr) {
         }
       }
     }
-    if (bestM7 && bestM7Dir) {
+    if (bestM7 && bestM7Dir && bestM7Count >= _wc7minCount) {
       const m7Obj = buildMatchObj(bestM7, bestM7Dir);
       const subOdds7 = extractSubOdds(m7Obj.odds, bestM7Dir);
       const invSum7 = subOdds7.reduce((s, o) => s + 1 / o, 0);
@@ -1185,6 +1380,52 @@ function generateExpertPlans(mList, matchDataMap, dateStr) {
         isPlanWon: plan7Result.isPlanWon,
         isPlanLose: plan7Result.isPlanLose,
       });
+    }
+  }
+
+  // ═══ 方案八：胜（单关）— 仅世界杯 ═══
+  if (isWorldCup) {
+    var _singleMatches8 = mList.filter((m) => {
+      var _md8 = matchDataMap[m.matchId];
+      return _md8 && _md8.odds && _md8.odds.isSingleGame === true;
+    });
+    if (_singleMatches8.length > 0) {
+      var _bestM8 = null,
+        _bestCount8 = 0;
+      for (var _si8 = 0; _si8 < _singleMatches8.length; _si8++) {
+        var _sm8 = _singleMatches8[_si8];
+        var _recs8 = matchDataMap[_sm8.matchId].recs;
+        for (var _ri8 = 0; _ri8 < _recs8.length; _ri8++) {
+          if (_recs8[_ri8].type === '胜' && _recs8[_ri8].num > _bestCount8) {
+            _bestCount8 = _recs8[_ri8].num;
+            _bestM8 = _sm8;
+          }
+        }
+      }
+      if (_bestM8 && _bestCount8 >= 100) {
+        var _m8Obj = buildMatchObj(_bestM8, '胜');
+        var _m8Odds = _m8Obj.odds;
+        var _e8 = _m8Odds && _m8Odds.spf ? _m8Odds.spf.home : null;
+        var _maxPrize8 = _e8 && _e8 > 0 ? Math.round(1000 * _e8) : 0;
+        var _plan8Result = computePlanResult([_m8Obj]);
+        plans.push({
+          planId: 'plan_' + dateStr + '_8',
+          name: 'plan_8',
+          planName: '方案八',
+          matches: [_m8Obj],
+          amount: 1000,
+          playType: '单关',
+          matchCount: 1,
+          passType: '单关',
+          betCount: 250,
+          ticketCount: 10,
+          multiplier: 25,
+          maxPrize: _maxPrize8,
+          winningPrize: _plan8Result.isPlanWon === true ? _maxPrize8 : 0,
+          isPlanWon: _plan8Result.isPlanWon,
+          isPlanLose: _plan8Result.isPlanLose,
+        });
+      }
     }
   }
 
