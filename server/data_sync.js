@@ -875,6 +875,11 @@ function syncLiveToData(liveMatches) {
       if (old) {
         // ★ 已完赛的比赛不因 matchStatus=0 而回退
         var liveStatus = old.matchStatus >= 2 && lm.matchStatus === 0 ? old.matchStatus : lm.matchStatus;
+        // ★ P1-3 修复：duration 为分钟数（如"27'"）但 API 误报 matchStatus≥2 时，强制保持赛中状态
+        var durNum = parseInt(lm.duration) || 0;
+        if (liveStatus >= 2 && durNum > 0 && durNum < 90) {
+          liveStatus = 1; // 比赛未满90分钟则不视为已结束
+        }
         if (
           old.matchStatus !== liveStatus ||
           old.score !== lm.score ||
