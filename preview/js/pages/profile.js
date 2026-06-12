@@ -325,8 +325,8 @@ function renderProfilePlans() {
     el.innerHTML =
       '' +
       '<div class="profile-history-empty">' +
-      '<div class="profile-history-empty-icon">☕</div>' +
-      '<div class="profile-history-empty-title">暂无方案记录</div>' +
+      '<div class="profile-history-empty-icon">💪</div>' +
+      '<div class="profile-history-empty-title">大家都等着你的方案呢</div>' +
       '</div>';
     return;
   }
