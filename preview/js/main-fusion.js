@@ -8,20 +8,14 @@ import { loadHome } from './pages/home.js?v=202606121103';
 import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js?v=202606101015';
 
 // ═══ 模块懒加载：非核心页面模块按需动态导入 ═══
-var _modCache = {};
+// ★ P1-3 修复：移除 _modCache 内存缓存
+//    之前即使版本戳更新，_modCache 命中后直接返回旧模块，永不重新加载
+//    现在每次 import() 按 URL 版本戳自然去重，戳变=重新请求=获取最新文件
 function _mod(name) {
-  if (_modCache[name]) return Promise.resolve(_modCache[name]);
-  return import('./pages/' + name + '.js?v=202606130341')
-
-    .then(function (m) {
-      _modCache[name] = m;
-      return m;
-    })
+  return import('./pages/' + name + '.js?v=202606130345')
     .catch(function (e) {
       console.error('[JS] 模块加载失败: ' + name + ' - ' + (e && e.message));
-      // 重试一次（可能是网络波动或文件刚部署）
-      return import('./pages/' + name + '.js?v=202606130341').then(function (m) {
-        _modCache[name] = m;
+      return import('./pages/' + name + '.js?v=202606130345').then(function (m) {
         console.warn('[JS] 模块重试成功: ' + name);
         return m;
       });
