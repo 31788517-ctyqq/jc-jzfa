@@ -712,14 +712,14 @@ function aiBarOption(stats) {
   if (!leagues.length)
     return { title: { text: '暂无联赛数据', left: 'center', top: 'center', textStyle: { color: '#64748B' } } };
   leagues.sort(function (a, b) {
-    return (b.ai_acc || 0) - (a.ai_acc || 0);
+    return (b.accuracy || 0) - (a.accuracy || 0);
   });
   leagues = leagues.slice(0, 12);
   var labels = leagues.map(function (l) {
     return l.league;
   });
   var rates = leagues.map(function (l) {
-    return ((l.ai_acc || 0) * 100).toFixed(1);
+    return ((l.accuracy || 0) * 100).toFixed(1);
   });
   return {
     tooltip: { trigger: 'axis' },
