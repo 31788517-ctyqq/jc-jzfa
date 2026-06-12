@@ -1,6 +1,6 @@
 import { api } from '../api.js';
 import { formatDate } from '../utils.js';
-import { getAuthSession, clearAuthAll } from '../auth-client.js';
+import { getAuthSession, clearAuthAll, hasAuthToken } from '../auth-client.js';
 
 var _profilePlanFilter = 'today';
 var _allPlans = [];
@@ -149,6 +149,18 @@ export function loadProfile() {
 
   var session = getAuthSession() || {};
   var userName = (session.user && session.user.username) || '-';
+
+  // ★ 修复：未登录显示引导，避免空白页（token 存在 localStorage.auth_token，不在 session 对象中）
+  if (!session || !session.user || !hasAuthToken()) {
+    root.innerHTML =
+      '<div class="profile-shell-v2" style="padding:60px 20px;text-align:center">' +
+      '<div style="font-size:64px;margin-bottom:16px">🔒</div>' +
+      '<div style="font-size:18px;font-weight:700;color:#111;margin-bottom:8px">请先登录</div>' +
+      '<div style="font-size:14px;color:#666;margin-bottom:24px">登录后可查看个人中心、历史方案和会员状态</div>' +
+      '<button onclick="switchTab(\'login\')" style="display:inline-flex;align-items:center;justify-content:center;padding:12px 32px;border:none;border-radius:12px;background:linear-gradient(135deg,#1f7a68,#2ecc71);color:#fff;font-size:16px;font-weight:700;cursor:pointer">立即登录</button>' +
+      '</div>';
+    return;
+  }
 
   _profilePlanFilter = 'today';
   _allPlans = [];
@@ -386,7 +398,7 @@ function renderProfilePlans() {
             return to > 0 && amt > 0 ? formatProfileMoney(Math.round(to * amt * 100) / 100) : '--';
           })();
     var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
-    var statusColor = isWon ? '#ef4444' : isLose ? '#22c55e' : '#475569';
+    var statusCls = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
     var planDate = getPlanDateValue(p);
     var dateStr = planDate ? planDate.slice(5).replace('-', '/') : '--/--';
     var createdAt = p.createdAt ? p.createdAt.slice(0, 16).replace('T', ' ') : '';
@@ -400,28 +412,28 @@ function renderProfilePlans() {
       var oddsStr = m.odds != null ? Number(m.odds).toFixed(2) : '--';
       var dirDisplay = m.direction || m.oddsName || '';
       if (m.playType === 'rqspf') dirDisplay = '让' + dirDisplay;
-      var oddsColor = '#2563eb';
-      if (m.isMatchWon === true) oddsColor = '#ef4444';
-      else if (m.isMatchLose === true) oddsColor = '#22c55e';
-      matchRows +=
-        '' +
-        '<tr>' +
-        '<td class="match-info-col"><span class="match-num-text">' +
-        escapeHtml(m.matchNum || '') +
-        '</span></td>' +
-        '<td class="team-col"><span class="plan-team-home">' +
-        escapeHtml(m.homeName || '') +
-        '</span><span class="plan-team-vs">vs</span><span class="plan-team-away">' +
-        escapeHtml(m.visitName || '') +
-        '</span></td>' +
-        '<td class="odds-col" style="color:' +
-        oddsColor +
-        '">' +
-        escapeHtml(dirDisplay) +
-        '(' +
-        oddsStr +
-        ')</td>' +
-        '</tr>';
+    var oddsCls = '';
+    if (m.isMatchWon === true) oddsCls = ' plan-direction-hit';
+    else if (m.isMatchLose === true) oddsCls = ' plan-direction-miss';
+    matchRows +=
+      '' +
+      '<tr>' +
+      '<td class="match-info-col"><span class="match-num-text">' +
+      escapeHtml(m.matchNum || '') +
+      '</span></td>' +
+      '<td class="team-col"><span class="plan-team-home">' +
+      escapeHtml(m.homeName || '') +
+      '</span><span class="plan-team-vs">vs</span><span class="plan-team-away">' +
+      escapeHtml(m.visitName || '') +
+      '</span></td>' +
+      '<td class="odds-col' +
+      oddsCls +
+      '">' +
+      escapeHtml(dirDisplay) +
+      '(' +
+      oddsStr +
+      ')</td>' +
+      '</tr>';
     }
 
     var stampHtml = '';
@@ -449,15 +461,15 @@ function renderProfilePlans() {
       '</div></div>' +
       '</div></div>' +
       '<div class="plan-amount-row">' +
-      '<div class="plan-amount-col"><div class="plan-amount-label">方案金额</div><div class="plan-amount-value" style="color:#ef4444;">' +
+      '<div class="plan-amount-col"><div class="plan-amount-label">方案金额</div><div class="plan-amount-value plan-money-value">' +
       amountVal +
       '<span class="unit">元</span></div></div>' +
-      '<div class="plan-amount-col"><div class="plan-amount-label">预计最高奖金</div><div class="plan-amount-value" style="color:#ef4444;">' +
+      '<div class="plan-amount-col"><div class="plan-amount-label">预计最高奖金</div><div class="plan-amount-value plan-money-value">' +
       prizeVal +
       '</div></div>' +
-      '<div class="plan-amount-col"><div class="plan-amount-label">方案状态</div><div class="plan-amount-value" style="color:' +
-      statusColor +
-      ';">' +
+      '<div class="plan-amount-col"><div class="plan-amount-label">方案状态</div><div class="plan-amount-value ' +
+      statusCls +
+      '">' +
       statusText +
       '</div>' +
       stampHtml +
