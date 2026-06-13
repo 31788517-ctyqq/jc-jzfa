@@ -25,8 +25,10 @@ function _mod(name) {
 // 预加载常用模块（在首次渲染后异步加载，不阻塞首页）
 function _preloadMods() {
   setTimeout(function () {
-    _mod('ranking'); // 排行榜 → tab-rank
-    _mod('match-detail'); // 比赛详情
+    _mod('ranking');       // 排行榜 → tab-rank
+    _mod('plans');         // ★ P0: 方案页（底部第5 tab）
+    _mod('hit-rate');      // ★ P0: 命中率（底部第4 tab）
+    _mod('match-detail');  // 比赛详情
     _mod('match-pk-fusion'); // PK弹窗
   }, 800);
 }

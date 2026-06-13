@@ -1,14 +1,20 @@
 import { API, getDeviceId } from './utils.js';
 import { getAuthToken, clearAuthAll } from './auth-client.js';
 
+// ★ P0: API 请求去重 — 相同 action+data 的并发请求共享一个 Promise
+var _pendingRequests = {};
+
 export function api(action, data = {}, retries = 2) {
+  var reqKey = action + ':' + JSON.stringify(data || {});
+  if (_pendingRequests[reqKey]) return _pendingRequests[reqKey];
+
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 30000);
   const token = getAuthToken();
   const headers = { 'Content-Type': 'application/json', 'X-Device-Id': getDeviceId() };
   if (token) headers['X-Auth-Token'] = token;
 
-  return fetch(API, {
+  var pending = fetch(API, {
     method: 'POST',
     headers,
     body: JSON.stringify({ action, data }),
@@ -41,4 +47,9 @@ export function api(action, data = {}, retries = 2) {
       throw err;
     });
 
+  // ★ P0: 请求去重 — 缓存 pending promise，完成后自动清除
+  _pendingRequests[reqKey] = pending;
+  var cleanup = function () { delete _pendingRequests[reqKey]; };
+  pending.then(cleanup, cleanup);
+  return pending;
 }
