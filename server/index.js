@@ -129,6 +129,36 @@ function getPlanOutcomeOverlay(dateStr) {
     if (mid) overlay.byId[String(mid).replace(/^m_/, '')] = item;
     if (num) overlay.byNum[String(num)] = item;
   }
+  // ★ P1 Layer 2: 多源赛果核实 — 最高优先级（≥2票才高置信采纳）
+  try {
+    const verifier = require('./core/result-verifier');
+    const dataJson = getDataJson();
+    const vr = verifier.verifyDate(dateStr, { midouDataJson: dataJson });
+    (vr.results || []).forEach(function (r) {
+      var v = r.verified;
+      if (!v || !v.score || r.anchorName === 'skipped') return;
+      // ≥2 票高置信或 ≥1 票低置信 → 都写入 overlay（标注置信度）
+      var verItem = {
+        score: v.score,
+        matchStatus: v.status || 2,
+        halfScore: v.halfScore || '',
+        source: 'verified(' + (v.sourceVotes || []).join('+') + ') c=' + v.confidence.toFixed(2),
+      };
+      // 匹配到 byId 和 byNum
+      // 从 anchorName 解析 num
+      var parts = (r.anchorName || '').split(' ');
+      var verNum = parts[0];
+      // 从 entries 中取 matchId
+      (r._rawEntries || r.entries || []).forEach(function (e) {
+        var raw = e._raw || e.match || {};
+        var mid = raw.matchId;
+        if (mid) overlay.byId[String(mid).replace(/^m_/, '')] = verItem;
+        if (verNum) overlay.byNum[String(verNum)] = verItem;
+      });
+    });
+  } catch (e) {
+    // verifier 不可用时降级
+  }
   try {
     if (fs.existsSync(livePath)) {
       const live = JSON.parse(fs.readFileSync(livePath, 'utf8'));
@@ -6445,6 +6475,41 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           } catch (e) {
             logger.error('[model-dashboard] ' + e.message);
             return res.json({ code: 0, msg: '模型仪表板失败: ' + e.message });
+          }
+        }
+
+        // ★ P1 Layer 2: 多源赛果核实 API
+        case 'verify-results': {
+          try {
+            const verifier = require('./core/result-verifier');
+            const dateStr = data.date || localDate();
+            const dataJson = getDataJson();
+            const vr = verifier.verifyDate(dateStr, { midouDataJson: dataJson });
+            // 汇总
+            var passed = 0, lowConf = 0, empty = 0;
+            vr.results.forEach(function(r) {
+              if (r.verified && r.verified.score) {
+                if (r.verified.confidence >= 0.67) passed++;
+                else lowConf++;
+              } else {
+                empty++;
+              }
+            });
+            return res.json({
+              code: 1,
+              data: {
+                date: dateStr,
+                totalMatches: vr.results.length,
+                verifiedPassed: passed,
+                verifiedLowConf: lowConf,
+                noScore: empty,
+                results: vr.results.map(function(r) {
+                  return { anchor: r.anchorName, score: r.verified.score, confidence: r.verified.confidence, sources: r.verified.sourceVotes };
+                }),
+              },
+            });
+          } catch (e) {
+            return res.json({ code: 0, msg: '核实失败: ' + e.message });
           }
         }
 
