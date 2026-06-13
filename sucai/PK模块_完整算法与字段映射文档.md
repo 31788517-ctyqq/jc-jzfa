@@ -1,8 +1,10 @@
 # PK 模块 — 完整算法与字段映射文档
 
 > 生成时间：2026-06-09  
+> 最后更新：2026-06-13（排除 AI/专家数据）  
 > 源码版本：refactor/phase8-atomic-write  
-> 覆盖范围：`server/pk_scorer.js`、`server/gongshoudao/`、`server/core/`、`preview/js/pages/match-pk.js`
+> 覆盖范围：`server/pk_scorer.js`、`server/gongshoudao/`、`server/core/`、`preview/js/pages/match-pk.js`  
+> **设计原则**：PK 模块为独立计算模块，不依赖任何 AI 预测（DeepSeek/豆包）或专家推荐/共识数据。所有评分、方向判定、融合投票均基于功守道自算 + 市场信号 + 数据融合。
 
 ---
 
@@ -60,17 +62,18 @@ PK 模块涉及 **两层模型体系**：
 | **ModelB** | 攻守权重法 | 复用 `goal.js` B2 的 `xgHome + xgAway` | `fusion.js:108` |
 | **ModelC** | 交锋预测法 | `0.3 × 近6次场均总进球 + 0.7 × 近2次场均总进球` | `fusion.js:69-93` |
 
-### 1.2 融合引擎 7 个模型适配器（预测方向层面）
+### 1.2 融合引擎 4 个模型适配器（预测方向层面）
+
+> **注意**：PK 模块不涉及 AI（DeepSeek/豆包）和专家推荐/专家共识数据。以下仅列出独立计算的模型适配器。
 
 | # | 适配器 | 版本 | 覆盖维度 | 方向来源 |
 |---|--------|------|----------|---------|
 | 1 | **GongshoudaoAdapter** | v9.1 | direction/goal/score | GS `crossSpfWin/Draw/Lose` 概率分布 |
 | 2 | **PKScorerAdapter** | v2.0 | direction/goal | `prediction_logs.pk_direction` |
-| 3 | **DeepseekAdapter** | v4-pro | direction/goal | DeepSeek AI `ai_content` JSON 解析 |
-| 4 | **DoubaoAdapter** | v2 | direction/goal | 豆包 AI `ai_content` 关键词/JSON 解析 |
-| 5 | **ExpertConsensusAdapter** | v1.0 | direction | `recommends[]` 专家推荐聚合投票 |
-| 6 | **MarketSignalAdapter** | v2.0 | direction | JczqBasic 多维市场信号（SP隐含概率+亚指盘口+离散度） |
-| 7 | **DataFusionAdapter** | v1.0 | direction/goal | `data-fusion.fullFusion()` 三源融合 |
+| 3 | **MarketSignalAdapter** | v2.0 | direction | JczqBasic 多维市场信号（SP隐含概率+亚指盘口+离散度） |
+| 4 | **DataFusionAdapter** | v1.0 | direction/goal | `data-fusion.fullFusion()` 三源融合 |
+
+> **已排除**：DeepseekAdapter / DoubaoAdapter（AI 预测）和 ExpertConsensusAdapter（专家推荐）不属于 PK 模块计算范畴。
 
 ---
 
@@ -670,9 +673,9 @@ totalGoals ≥ 2.5 → '倾向大球' ⭐⭐⭐
 totalGoals < 2.5 → '小球' ⭐⭐⭐
 ```
 
-### 6.4 融合引擎 7 模型方向投票
+### 6.4 融合引擎 4 模型方向投票
 
-V9.1 加权版一致性判定：
+V9.1 加权版一致性判定（仅含独立计算模型，不含 AI/专家数据）：
 
 ```js
 effectiveRatio = Σ(w × confidence) / Σw
@@ -681,6 +684,8 @@ effectiveRatio ≥ 0.8 → strong
 effectiveRatio ≥ 0.6 → weak
 effectiveRatio ≤ 0.4 → meltdown
 ```
+
+> **注意**：PK 模块的方向投票仅使用 4 个模型适配器（Gongshoudao / PKScorer / MarketSignal / DataFusion），不引入 DeepSeek/豆包（AI）和 ExpertConsensus（专家推荐）的预测数据。
 
 ---
 
@@ -778,29 +783,29 @@ score = (homeWinPan / 2) × 100
 ## 九、数据流转全链路
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                      数据源（4层）                              │
-├────────────┬──────────────┬──────────────┬────────────────────┤
-│ 功守道自算  │ JczqBasic   │ JczqChange   │   AI 预测          │
-│ GS cache   │ (SQLite)    │ 热度缓存      │ DeepSeek/豆包      │
-│            │ 基本面/亚指 │ 冷热指数      │ ai_content         │
-└─────┬──────┴──────┬───────┴──────┬───────┴─────────┬──────────┘
-      │             │              │                  │
-      ▼             ▼              ▼                  ▼
-┌─────────────────────────────────────────────────────────────┐
-│              data-fusion.js 三源融合层                        │
-│  fundamentalFusion() / heatFusion() / fullFusion()          │
-│  输出: spProb, discrete, asiaWater, xgValidation             │
-└──────────────────────────┬──────────────────────────────────┘
+┌───────────────────────────────────────────────────┐
+│                   数据源（3层）                      │
+├────────────┬──────────────┬───────────────────────┤
+│ 功守道自算  │ JczqBasic   │ JczqChange            │
+│ GS cache   │ (SQLite)    │ 热度缓存               │
+│            │ 基本面/亚指 │ 冷热指数               │
+└─────┬──────┴──────┬───────┴───────┬───────────────┘
+      │             │               │
+      ▼             ▼               ▼
+┌──────────────────────────────────────────────────┐
+│              data-fusion.js 三源融合层             │
+│  fundamentalFusion() / heatFusion() / fullFusion()│
+│  输出: spProb, discrete, asiaWater, xgValidation  │
+└──────────────────────────┬───────────────────────┘
                            │
       ┌────────────────────┼────────────────────┐
       ▼                    ▼                    ▼
 ┌──────────────┐  ┌────────────────┐  ┌──────────────────────┐
 │ fusion.js    │  │  pk_scorer.js  │  │ prediction-fusion.js │
-│ 三模型融合    │  │  7维评分+方向   │  │  7模型适配器融合       │
-│ A/B/C 进球   │  │  loadGSFields  │  │  方向投票+共识判定     │
-│ strong/weak  │  │  computeAll    │  │  unified_predictions  │
-│ /meltdown    │  │  getDirection  │  │                       │
+│ 三模型融合    │  │  7维评分+方向   │  │  4模型适配器融合       │
+│ A/B/C 进球   │  │  loadGSFields  │  │  (不含AI/专家)         │
+│ strong/weak  │  │  computeAll    │  │  方向投票+共识判定     │
+│ /meltdown    │  │  getDirection  │  │  unified_predictions  │
 └──────┬───────┘  └───────┬────────┘  └───────────┬───────────┘
        │                  │                       │
        ▼                  ▼                       ▼
@@ -817,6 +822,8 @@ score = (homeWinPan / 2) × 100
 │  综合评分卡: 6维度雷达 + 星级 + 风险指数                        │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+> **说明**：PK 模块数据源仅 3 层（功守道自算 + JczqBasic 基本面 + JczqChange 热度缓存），不包含 AI 预测（DeepSeek/豆包）和专家推荐数据。prediction-fusion.js 中仅使用 4 个独立模型适配器进行方向投票。
 
 ---
 
@@ -859,11 +866,11 @@ score = (homeWinPan / 2) × 100
 | `server/gongshoudao/model-weights.js` | 动态权重：Softmax 基于真实命中率 |
 | `server/core/data-fusion.js` | 三源融合：SP隐含概率、离散度预警、亚指水位 |
 | `server/core/odds-movement.js` | 盘口位移：概率偏移分析、欧亚一致性检测 |
-| `server/core/prediction-fusion.js` | 7模型融合引擎：适配器注册、方向投票、权重更新 |
-| `server/core/prediction-adapter.js` | 7个模型适配器实现 |
 | `server/core/league-heat-profile.js` | 联赛热度基准：Z-Score 替代固定阈值 |
 | `preview/js/pages/match-pk.js` | 前端PK弹窗（旧版）：三维度横向对比 + 评分卡渲染 |
 | `preview/js/pages/match-pk-fusion.js` | 前端PK弹窗（V5.0 融合版）：完整评分+方向推荐+渲染，含前端独立算法副本 |
+
+> **排除范围说明**：`server/core/prediction-fusion.js` 和 `server/core/prediction-adapter.js` 虽在项目中存在，但其 7 模型适配器中的 DeepSeek / 豆包 / 专家共识适配器的数据**不参与 PK 模块计算**。PK 模块仅使用其中 4 个独立模型适配器（Gongshoudao / PKScorer / MarketSignal / DataFusion），不依赖 AI 或专家推荐数据。
 
 ---
 
@@ -1103,7 +1110,7 @@ scheduler_v2.js (定时任务)
 | 脚本 | 触发场景 | 功能 |
 |------|---------|------|
 | `backfill_pk_from_gs.js` | **历史补填**：有GS方向但无PK方向的记录 | 从 `gs_top_score` 解析方向 → 写入 `pk_direction` + `pk_composite_score` |
-| `backfill_phase2_predict.js` | AI 预测阶段 | 调用 `pk_scorer` 为新比赛生成评分 |
+| `backfill_phase2_predict.js` | 批量预测阶段 | 调用 `pk_scorer` 为新比赛生成评分（PK 评分本身不使用 AI 数据） |
 | `backfill_full_models.js` | 全模型批量回填 | 包含 PK 评分的完整回填流程 |
 | `backfill_unified_predictions.js` | unified 表同步 | 将 `pk_direction` / `pk_composite_score` / 各子维度同步到 `unified_predictions` 表 |
 
