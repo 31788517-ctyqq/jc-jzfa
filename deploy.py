@@ -92,7 +92,9 @@ DEPLOY_MAP = [
     ('preview/assets/expressionless-face.svg', 'both'),
     ('preview/assets/plan_icon.png',      'both'),
     ('preview/assets/tab_plan.svg',       'both'),
+    ('preview/assets/zuqiu_soccer-duose.svg', 'both'),
     ('preview/assets/zuqiu_soccer.svg',   'both'),
+
     # /assets/ URL 由 Nginx 映射到 miniprogram/images/，首页 banner 和 ECharts 库须部署到该目录
     ('miniprogram/images/worldcup/banner3.webp', 'nginx'),
     ('miniprogram/images/login-eagle.png',   'nginx'),  # ★ V9: 登录页背景图
