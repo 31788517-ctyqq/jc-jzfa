@@ -121,7 +121,11 @@ function render() {
   // ★ 若奖金优化中调整了计划购买金额，则使用调整后的金额
   var amount = _planData.planAmount != null ? _planData.planAmount : baseAmount;
   // ★ 若从奖金优化弹窗带回了预计奖金，直接用它（弹窗内已正确计算）
-  var maxWin = _planData.optimizedMaxWin != null ? _planData.optimizedMaxWin : calcMaxWin(amount);
+  var calcWin = _planData.optimizedMaxWin != null ? _planData.optimizedMaxWin : calcMaxWin(amount);
+  var maxWin = (typeof calcWin === 'number') ? calcWin : calcWin;
+  // P1+P2: 分层赔率数据（calcMaxWin 附加属性）
+  var passOdds = calcWin._passOdds || {};
+  var bestProduct = calcWin._bestProduct || 1;
 
   // 按 matchId 分组（同场多方向分行）
   var groupedSelections = buildGroupedSelections();
@@ -498,7 +502,17 @@ function renderBottomBar(bets, amount, maxWin, uniqueCount) {
   html += '</div>';
   html += '<div class="cfm-bb-item">';
   html += '<span class="cfm-bb-label">预计最高中奖金额</span>';
-  html += '<span class="cfm-bb-maxwin">' + maxWin + '元</span>';
+  // P2: 分层展示 — 多过关时加 tooltip
+  var winText = maxWin + '元';
+  var pdTooltip = '';
+  if (maxWin._passOdds) {
+    var pKeys = Object.keys(maxWin._passOdds);
+    if (pKeys.length > 1) {
+      winText += '（' + (maxWin._bestProductK || '') + '关最优）';
+      pdTooltip = pKeys.map(function(k){var p=maxWin._passOdds[k];return k+'关: '+p.maxWinPerNote+'元';}).join('\n');
+    }
+  }
+  html += '<span class="cfm-bb-maxwin"' + (pdTooltip ? ' title="' + pdTooltip + '"' : '') + '>' + winText + '</span>';
   html += '</div>';
   html += '</div>';
   html += '</div>';
@@ -586,26 +600,30 @@ function calcMaxWin(amount) {
     maxOddsPerMatch[mid] = Math.max.apply(null, matchGroups[mid]);
   });
 
-  // 找所有过关类型中赔率乘积最高的 k-组合
+  // P2: 按过关类型分层计算
+  var passOdds = {};
   var bestProduct = 1;
+  var bestProductK = 0;
+  var singleBetAmount = 2 * _multiplier;
+
   _passTypes.forEach(function (k) {
     if (k > n) return;
-    // 按最大赔率降序取前 k 场
-    var sorted = matchIds
-      .map(function (mid) {
-        return maxOddsPerMatch[mid];
-      })
-      .sort(function (a, b) {
-        return b - a;
-      });
+    var sorted = matchIds.map(function (mid) { return maxOddsPerMatch[mid]; }).sort(function (a, b) { return b - a; });
     var product = 1;
     for (var i = 0; i < k; i++) product *= sorted[i];
-    if (product > bestProduct) bestProduct = product;
+    product = Math.round(product * 100) / 100;
+    passOdds[k] = { bestProduct: product, maxWinPerNote: Math.round(singleBetAmount * product * 100) / 100 };
+    if (product > bestProduct) { bestProduct = product; bestProductK = k; }
   });
 
-  // 最高奖金 = 单注金额 × 最佳赔率乘积
-  var singleBetAmount = 2 * _multiplier;
-  return singleBetAmount > 0 ? Math.round(singleBetAmount * bestProduct * 100) / 100 : 0;
+  var maxWin = singleBetAmount > 0 ? Math.round(singleBetAmount * bestProduct * 100) / 100 : 0;
+
+  // 额外返回分层数据供保存用
+  maxWin._passOdds = passOdds;
+  maxWin._bestProductK = bestProductK;
+  maxWin._bestProduct = bestProduct;
+
+  return maxWin;
 }
 
 // ═══ 返回方案设计页 ═══
@@ -948,7 +966,11 @@ window.confirmSavePlan = function () {
   var bets = _planData.optimizedBets != null ? _planData.optimizedBets : baseBets;
   var baseAmount = baseBets * 2 * _multiplier;
   var amount = _planData.planAmount != null ? _planData.planAmount : baseAmount;
-  var maxWin = _planData.optimizedMaxWin != null ? _planData.optimizedMaxWin : calcMaxWin(amount);
+  var calcWin = _planData.optimizedMaxWin != null ? _planData.optimizedMaxWin : calcMaxWin(amount);
+  var maxWin = (typeof calcWin === 'number') ? calcWin : calcWin;
+  // P1+P2: 分层赔率数据（calcMaxWin 附加属性）
+  var passOdds = calcWin._passOdds || {};
+  var bestProduct = calcWin._bestProduct || 1;
 
   // ★ 竞技彩票单张金额上限 20000 元
   if (amount > 20000) {
@@ -1015,7 +1037,8 @@ window.confirmSavePlan = function () {
         return acc;
       }, {}),
     ).length,
-    totalOdds: amount > 0 ? Math.round((maxWin / amount) * 100) / 100 : 0,
+    totalOdds: bets > 0 ? Math.round((maxWin / (bets * 2)) * 100) / 100 : 0,  // P1: 单注平均回报比
+    passOdds: passOdds,  // P1+P2: 分层赔率 {2:{bestProduct, maxWinPerNote}, 3:{...}}
     isWon: null,
     resultIncome: null,
   };

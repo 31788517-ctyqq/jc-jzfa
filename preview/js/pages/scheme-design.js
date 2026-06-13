@@ -204,28 +204,39 @@ function calcAmountAndPrize() {
     maxOddsPerMatch[mid] = Math.max.apply(null, matchGroups[mid]);
   });
 
-  // 找所有过关类型中赔率乘积最高的 k-组合
+  // P2: 按过关类型分层计算最佳赔率乘积
+  var passOdds = {};
   var bestProduct = 1;
+  var bestProductK = 0;
+
   _passTypes.forEach(function (k) {
     if (k > matchIds.length) return;
     // 按最大赔率降序取前 k 场
     var sorted = matchIds
-      .map(function (mid) {
-        return maxOddsPerMatch[mid];
-      })
-      .sort(function (a, b) {
-        return b - a;
-      });
+      .map(function (mid) { return maxOddsPerMatch[mid]; })
+      .sort(function (a, b) { return b - a; });
     var product = 1;
     for (var i = 0; i < k; i++) product *= sorted[i];
-    if (product > bestProduct) bestProduct = product;
+    product = Math.round(product * 100) / 100;
+
+    passOdds[k] = {
+      bestProduct: product,
+      maxWinPerNote: Math.round(2 * _multiplier * product * 100) / 100,
+    };
+    if (product > bestProduct) {
+      bestProduct = product;
+      bestProductK = k;
+    }
   });
 
   // 最高奖金 = 单注金额 × 最佳赔率乘积
   var singleBetAmount = 2 * _multiplier;
   var maxWin = Math.round(singleBetAmount * bestProduct * 100) / 100;
 
-  return { bets: bets, amount: amount, maxWin: maxWin };
+  // P1: totalOdds = 单注最高回报比（maxWin / (betCount × 2元)）
+  var totalOdds = bets > 0 ? Math.round((maxWin / (bets * 2)) * 100) / 100 : 0;
+
+  return { bets: bets, amount: amount, maxWin: maxWin, totalOdds: totalOdds, passOdds: passOdds, bestProductK: bestProductK };
 }
 
 // ═══ 页面入口 ═══
@@ -1106,7 +1117,21 @@ function updateSummary() {
   var amtEl = document.getElementById('ssbAmount');
   var winEl = document.getElementById('ssbMaxWin');
   if (amtEl) amtEl.textContent = calc.amount;
-  if (winEl) winEl.textContent = calc.maxWin;
+  if (winEl) {
+    // P2: 分层展示最高奖金 — 多过关时显示最优关级 + 最高奖金
+    var pd = calc.passOdds || {};
+    var keys = Object.keys(pd);
+    if (keys.length > 1 && calc.bestProductK > 0) {
+      winEl.textContent = calc.maxWin + '（' + calc.bestProductK + '关最优）';
+      winEl.title = keys.map(function (k) {
+        var p = pd[k];
+        return k + '关最高: ' + p.maxWinPerNote + '元（赔率积 ' + p.bestProduct + '）';
+      }).join('\n');
+    } else {
+      winEl.textContent = calc.maxWin;
+      winEl.title = '';
+    }
+  }
 }
 
 // ═══ 倍数弹窗 ═══

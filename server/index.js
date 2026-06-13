@@ -6879,8 +6879,20 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   }
 
   // ★ 重新计算单个方案的 isWon / resultIncome（基于最新比赛结果）
+  // P0: 支持组合过关（passTypes=[2,3]等）按 C(wonCount, k) 判定中奖
   var _recalcLiveScoresCache = null;
   var _recalcLiveScoresCacheTime = 0;
+
+  function combinations(n, k) {
+    if (k > n || k < 0) return 0;
+    if (k === 0 || k === n) return 1;
+    k = Math.min(k, n - k);
+    var result = 1;
+    for (var i = 1; i <= k; i++) {
+      result = result * (n - k + i) / i;
+    }
+    return Math.round(result);
+  }
 
   function recalcPlanResult(plan) {
     var matches = plan.matches || [];
@@ -6921,11 +6933,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     }
     var liveScores = _recalcLiveScoresCache;
 
-    // 逐场判定
-    var allSettled = true;
-    var allWon = true;
-    var anyLose = false;
-
+    // 逐场判定 + subResults
     for (var i = 0; i < matches.length; i++) {
       var mm = matches[i];
       var matchNum = mm.matchNum || '';
@@ -6943,39 +6951,23 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         }
       }
 
-      // 如果找不到比赛数据或没有比分，标记未开奖
-      if (!matchData || !matchData.score) {
-        allSettled = false;
-        continue;
-      }
+      var hasScore = !!(matchData && matchData.score);
 
       // 获取让球数（RQSPF 需要）
       var handicap = null;
-      if (playType === 'rqspf') {
+      if (playType === 'rqspf' && hasScore) {
         var matchDate = (matchData.date || '').slice(0, 10);
         if (!matchDate) {
-          // 尝试从 matchNum 推断日期（如 "周二201" → 最近周二）
           var recentFiles = [];
           try {
             var ohDir = path.join(__dirname, 'odds_history');
             if (fs.existsSync(ohDir)) {
-              recentFiles = fs
-                .readdirSync(ohDir)
-                .filter(function (f) {
-                  return f.match(/^\d{4}-\d{2}-\d{2}\.json$/);
-                })
-                .sort()
-                .reverse();
+              recentFiles = fs.readdirSync(ohDir).filter(function (f) { return f.match(/^\d{4}-\d{2}-\d{2}\.json$/); }).sort().reverse();
             }
-          } catch (e2) {
-            /* ignore */
-          }
+          } catch (e2) {}
           for (var fi = 0; fi < recentFiles.length; fi++) {
             var odMap = getOddsHistory(recentFiles[fi].replace('.json', ''));
-            if (odMap && odMap[matchNum] && odMap[matchNum].rqspf) {
-              handicap = odMap[matchNum].rqspf.handicap;
-              break;
-            }
+            if (odMap && odMap[matchNum] && odMap[matchNum].rqspf) { handicap = odMap[matchNum].rqspf.handicap; break; }
           }
         } else {
           var oddsMap = getOddsHistory(matchDate);
@@ -6985,15 +6977,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         }
       }
 
-      // 如果 matchData.score 是对象（如 {home:1, away:0}），转为字符串
-      var scoreStr = matchData.score;
-      if (typeof scoreStr === 'object' && scoreStr !== null) {
-        scoreStr = (scoreStr.home || scoreStr.h || '') + ':' + (scoreStr.away || scoreStr.a || '');
-      } else {
-        scoreStr = String(scoreStr || '');
+      var scoreStr = '';
+      if (hasScore) {
+        var rawScore = matchData.score;
+        if (typeof rawScore === 'object' && rawScore !== null) {
+          scoreStr = (rawScore.home || rawScore.h || '') + ':' + (rawScore.away || rawScore.a || '');
+        } else {
+          scoreStr = String(rawScore || '');
+        }
       }
 
-      // ★ RQSPF 方向映射：方案存的 "胜/平/负" 在让球玩法中表示 "让胜/让平/让负"
+      // ★ RQSPF 方向映射
       var effectiveDirection = direction;
       if (playType === 'rqspf') {
         if (direction === '胜') effectiveDirection = '让胜';
@@ -7001,44 +6995,74 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         else if (direction === '负') effectiveDirection = '让负';
       }
 
-      // 使用比分直判
-      var result = _judgeByScore(effectiveDirection, scoreStr, handicap);
+      // subResults（支持多方向如 "胜平"）
+      var subDirs = effectiveDirection.split(/[、,]/);
+      mm.subResults = [];
+      for (var sdi = 0; sdi < subDirs.length; sdi++) {
+        var sd = subDirs[sdi].trim();
+        var sdResult = null;
+        if (hasScore && scoreStr) {
+          sdResult = _judgeByScore(sd, scoreStr, handicap);
+        }
+        mm.subResults.push({ direction: sd, result: sdResult === null ? null : sdResult ? 1 : 0 });
+      }
 
-      if (result === null) {
-        allSettled = false;
-        // 未开奖，不标记
-      } else if (result === true) {
-        mm.isMatchWon = true;
-        mm.isMatchLose = false;
-      } else {
-        mm.isMatchWon = false;
-        mm.isMatchLose = true;
-        allWon = false;
-        anyLose = true;
+      if (!hasScore) { mm.isMatchWon = undefined; mm.isMatchLose = undefined; continue; }
+
+      var result = _judgeByScore(effectiveDirection, scoreStr, handicap);
+      if (result === true) { mm.isMatchWon = true; mm.isMatchLose = false; }
+      else if (result === false) { mm.isMatchWon = false; mm.isMatchLose = true; }
+      else { mm.isMatchWon = undefined; mm.isMatchLose = undefined; }
+    }
+
+    // ★ P0: 组合过关中奖判定 — 按 passType 逐级统计中奖组合
+    var matchWinStatus = {};
+    for (var i2 = 0; i2 < matches.length; i2++) {
+      var m2 = matches[i2];
+      var mid = m2.matchId || m2.matchNum || '';
+      if (m2.isMatchWon === true) matchWinStatus[mid] = true;
+      else if (matchWinStatus[mid] !== true) {
+        if (m2.isMatchLose === true) matchWinStatus[mid] = false;
+      }
+    }
+    var wonIds = Object.keys(matchWinStatus).filter(function (k) { return matchWinStatus[k] === true; });
+    var judgedIds = Object.keys(matchWinStatus);
+    var wonCount = wonIds.length;
+    var totalUnique = new Set(matches.map(function (m) { return m.matchId || m.matchNum || ''; })).size;
+
+    var passTypes = plan.passTypes && plan.passTypes.length > 0 ? plan.passTypes : (totalUnique === 1 ? [1] : [2]);
+
+    var totalWinCombs = 0;
+    for (var pi = 0; pi < passTypes.length; pi++) {
+      var passLevel = passTypes[pi];
+      if (wonCount >= passLevel) {
+        totalWinCombs += combinations(wonCount, passLevel);
       }
     }
 
-    // ★ 串关逻辑：未全部开奖时，若任一场已确定失败 → 整单判负
-    if (!allSettled) {
-      if (anyLose) {
-        var updated = Object.assign({}, plan);
+    var isPlanWon = totalWinCombs > 0;
+    var hasPending = judgedIds.length < totalUnique;
+
+    // 全部开奖 或 已有中奖组合 → 确定结果
+    if (!hasPending || isPlanWon) {
+      var updated = Object.assign({}, plan);
+      if (isPlanWon) {
+        updated.isWon = true;
+        var totalBets = plan.betCount || Math.max(1, totalWinCombs);
+        var winRatio = Math.min(1, totalWinCombs / totalBets);
+        updated.resultIncome = Math.round((plan.amount || 0) * (plan.totalOdds || 1) * winRatio);
+      } else if (hasPending) {
+        updated.isWon = null;
+        updated.resultIncome = null;
+      } else {
         updated.isWon = false;
         updated.resultIncome = 0;
-        return updated;
       }
-      return plan;
+      // 附加中奖详情
+      updated._winDetail = { wonCount: wonCount, totalWinCombs: totalWinCombs, passTypes: passTypes };
+      return updated;
     }
-
-    // 全部已开奖 → 判定中奖结果
-    var updated = Object.assign({}, plan);
-    if (allWon && !anyLose) {
-      updated.isWon = true;
-      updated.resultIncome = Math.round((plan.amount || 0) * (plan.totalOdds || 1));
-    } else {
-      updated.isWon = false;
-      updated.resultIncome = 0;
-    }
-    return updated;
+    return plan;
   }
 
   /**
