@@ -1077,9 +1077,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 gsNeedCompute = true;
               }
 
-              // 补充单关标识
+              // 补充单关标识（odds_history → data.json → allplays 三级兜底）
               const fiveOdds = oddsMap[m.num || ''];
-              const isSingleGame = (fiveOdds && fiveOdds.isSingleGame === true) || m.isSingleGame === true;
+              // P0: allplays.json 兜底 — 当日 odds_history 缺失时仍可获取单关标记
+              var apDay = getAllplaysData()[dateStr] || {};
+              var apEntry = apDay[m.num] || (m.num ? apDay['num_' + m.num] : null) || null;
+              var apIsSingle = !!(apEntry && apEntry.isSingleGame);
+              const isSingleGame = (fiveOdds && fiveOdds.isSingleGame === true) || m.isSingleGame === true || apIsSingle;
               const concede =
                 fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null ? fiveOdds.rqspf.handicap : null;
 
@@ -6210,9 +6214,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     });
                   }
                 }
-                // 读取单关标识（赔率文件优先，data.json 兜底）
+                // 读取单关标识（odds_history → data.json → allplays 三级兜底）
                 var oddsEntryFull = oddsMap[matchNum] || {};
-                isSingleGame = oddsEntryFull.isSingleGame === true || m.isSingleGame === true;
+                // P0: allplays.json 兜底 — 当日 odds_history 缺失时仍可获取单关标记
+                var apDayBatch = getAllplaysData()[dateKey] || {};
+                var apEntryBatch = apDayBatch[matchNum] || apDayBatch['num_' + matchNum] || null;
+                var apIsSingleBatch = !!(apEntryBatch && apEntryBatch.isSingleGame);
+                isSingleGame = oddsEntryFull.isSingleGame === true || m.isSingleGame === true || apIsSingleBatch;
               } catch (e) {
                 /* delta 读取失败不影响主流程 */
               }
