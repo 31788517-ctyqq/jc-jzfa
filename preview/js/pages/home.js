@@ -116,14 +116,18 @@ function loadWorldCupSection() {
   var today = formatDate(new Date());
 
   // 卡片3：今日比赛数据（始终有）
-  var matchP = api('match-list', {}).catch(function () { return []; });
+  var matchP = api('match-list', {}).catch(function () {
+    return [];
+  });
 
   // 获取最近有数据的日期列表
-  var datesP = api('week-dates', {}).catch(function () { return []; });
+  var datesP = api('week-dates', {}).catch(function () {
+    return [];
+  });
 
   Promise.all([matchP, datesP]).then(function (r) {
     var matches = r[0] || [];
-    var dateList = (r[1] && r[1].dates) ? r[1].dates : [];
+    var dateList = r[1] && r[1].dates ? r[1].dates : [];
 
     // 卡片3：今日 — 仅统计世界杯联赛标签的比赛
     var wcMatches = (Array.isArray(matches) ? matches : []).filter(function (m) {
@@ -141,28 +145,40 @@ function loadWorldCupSection() {
     if (Array.isArray(dateList)) {
       for (var di = dateList.length - 1; di >= 0; di--) {
         var dd = dateList[di];
-        if (dd && dd < today) { pastDates.push(dd); if (pastDates.length >= 2) break; }
+        if (dd && dd < today) {
+          pastDates.push(dd);
+          if (pastDates.length >= 2) break;
+        }
       }
     }
 
     // 如果没有 dateList，尝试最近的 2 天
     if (pastDates.length < 2) {
-      var d = new Date(); d.setDate(d.getDate() - 1);
+      var d = new Date();
+      d.setDate(d.getDate() - 1);
       for (var ri = 0; ri < 3; ri++) {
         var dd2 = formatDate(d);
-        if (dd2 < today) { pastDates.push(dd2); if (pastDates.length >= 2) break; }
+        if (dd2 < today) {
+          pastDates.push(dd2);
+          if (pastDates.length >= 2) break;
+        }
         d.setDate(d.getDate() - 1);
       }
     }
 
-    if (pastDates.length === 0) { section.style.display = 'block'; return; }
+    if (pastDates.length === 0) {
+      section.style.display = 'block';
+      return;
+    }
 
     // 按日期升序排列（卡片1最早 → 卡片2中间 → 卡片3今天）
     pastDates.sort();
 
     // 批量获取前两天的专家方案数据
     var planPromises = pastDates.map(function (dt) {
-      return api('plan-list', { date: dt }).catch(function () { return {}; });
+      return api('plan-list', { date: dt }).catch(function () {
+        return {};
+      });
     });
 
     Promise.all(planPromises).then(function (planResults) {
@@ -174,10 +190,15 @@ function loadWorldCupSection() {
         var ddText = dt.slice(5).replace('-', '/');
 
         // 统计中奖方案数
-        var wonCount = 0, settledCount = 0;
+        var wonCount = 0,
+          settledCount = 0;
         plans.forEach(function (p) {
-          if (p.isPlanWon === true) { wonCount++; settledCount++; }
-          else if (p.isPlanLose === true || p.isPlanWon === false) { settledCount++; }
+          if (p.isPlanWon === true) {
+            wonCount++;
+            settledCount++;
+          } else if (p.isPlanLose === true || p.isPlanWon === false) {
+            settledCount++;
+          }
         });
 
         var allSettled = settledCount >= plans.length && plans.length > 0;
@@ -226,7 +247,8 @@ export function loadHome() {
     return [];
   });
   Promise.all([rankP, matchP]).then(function (r) {
-    var rankData = r[0], matches = r[1];
+    var rankData = r[0],
+      matches = r[1];
     // 缓存 ranking 列表（5分钟TTL）
     setCache('ranking-list:home', rankData);
     _renderHomeStats(matches, rankData);
@@ -872,8 +894,15 @@ var NotiEngine = {
     var overlay = document.getElementById('notiOverlay');
     var body = document.getElementById('notiBody');
     var countEl = document.getElementById('notiCount');
+    var modal = document.getElementById('notiModal');
 
-    if (!overlay || !body) return;
+    if (!overlay || !body || !modal) return;
+
+    // ★ 关键修复：将弹窗移到 <body> 顶层，打断 DOM 树上的所有包含块关系
+    //    （backdrop-filter / transform / filter 等会破坏 position:fixed 的视口锚定）
+    if (modal.parentElement !== document.body) {
+      document.body.appendChild(modal);
+    }
 
     // 顶部对齐首页统计卡片，上限防止弹窗被推到底部
     var homeStats = document.querySelector('#page-home .home-stats');
@@ -882,12 +911,33 @@ var NotiEngine = {
       var statsTop = Math.round(homeStats.getBoundingClientRect().top);
       notiTop = Math.max(16, statsTop);
     }
-    // 保证弹窗至少有 340px 可用高度，且不超出视口
     notiTop = Math.max(16, Math.min(notiTop, window.innerHeight - 380));
-    overlay.style.setProperty('--noti-top', notiTop + 'px');
+
+    // ★ 用 JS inline style 直接指定视口坐标，防止 CSS 包含块偏移
+    modal.style.cssText =
+      'position:fixed !important;' +
+      'top:' +
+      notiTop +
+      'px;' +
+      'left:50%;' +
+      'transform:translateX(-50%);' +
+      'z-index:100000;' +
+      'width:min(520px, 90vw);' +
+      'max-height:' +
+      Math.min(window.innerHeight * 0.65, window.innerHeight - notiTop - 24) +
+      'px;' +
+      'min-height:160px;' +
+      'display:flex !important;' +
+      'flex-direction:column;' +
+      'overflow-y:auto;' +
+      'visibility:visible !important;' +
+      'opacity:1 !important;' +
+      'background:linear-gradient(180deg, #f8fbfb 0%, #edf4f4 100%);' +
+      'border:1px solid rgba(130,158,164,0.18);' +
+      'border-radius:16px;' +
+      'box-shadow:0 -18px 42px rgba(48,72,78,0.2),inset 0 1px 0 rgba(255,255,255,0.74);';
 
     var hasCandidates = this._candidates && this._candidates.length > 0;
-    console.log('[NotiEngine] showNotifications: candidates=' + (hasCandidates ? this._candidates.length : 0) + ' notiTop=' + notiTop);
 
     // 更新计数
     countEl.textContent = hasCandidates ? this._candidates.length : 0;
@@ -932,6 +982,12 @@ var NotiEngine = {
   closeNotifications: function () {
     var overlay = document.getElementById('notiOverlay');
     if (overlay) overlay.classList.remove('active');
+    var modal = document.getElementById('notiModal');
+    if (modal) modal.style.cssText = '';
+    // 将 modal 移回 overlay 内，保证 HTML 结构完整
+    if (modal && overlay && modal.parentElement === document.body) {
+      overlay.appendChild(modal);
+    }
   },
 
   consumeNoti: function (msgId, action) {
