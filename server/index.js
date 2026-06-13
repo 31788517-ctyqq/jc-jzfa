@@ -985,20 +985,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           return res.json({ code: 1, data: result });
         }
 
-        // ★ TEMP: 重置用户密码（管理后台创建用户未传密码的修复接口）
-        case 'user-reset-password': {
-          const resetUser = String(data.username || '').trim();
-          const resetPwd = String(data.password || '').trim();
-          if (!resetUser || !resetPwd) return res.json({ code: 0, msg: '缺少用户名或密码' });
-          var adp = database.getAdapter();
-          if (!adp) return res.json({ code: 0, msg: '数据库不可用' });
-          var exist = adp.execOne('SELECT id FROM users WHERE username = ?', resetUser);
-          if (!exist) return res.json({ code: 0, msg: '用户不存在' });
-          var h = authService.hashPassword(resetPwd);
-          adp.execRun('UPDATE users SET password_hash = ?, must_change_password = 0, status = ? WHERE id = ?', h, 'active', exist.id);
-          return res.json({ code: 1, data: { ok: true, msg: '密码已重置' } });
-        }
-
         case 'user-update-status': {
           const userId = Number(data.userId || 0);
           if (!userId) return res.json({ code: 0, msg: '缺少 userId' });

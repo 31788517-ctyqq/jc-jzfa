@@ -937,5 +937,4 @@ module.exports = {
   listRolesWithPermissions,
   updateRolePermissions,
   updateUserRoles,
-  hashPassword,
 };
