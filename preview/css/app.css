@@ -8339,6 +8339,118 @@ button[class*='btn'] {
 }
 
 /* ═══════════════════════════════════════════════════
+   世界杯模块
+   ═══════════════════════════════════════════════════ */
+
+.wc-section {
+  width: 100%;
+  padding: 18px 16px 20px;
+  background: #F5F7FB;
+  border-radius: 20px;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+}
+
+.wc-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1B2B34;
+  margin-bottom: 16px;
+}
+
+.wc-icon {
+  font-size: 18px;
+}
+
+.wc-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wc-card {
+  flex: 1;
+  height: 112px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F7FAFC 100%);
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.wc-card:active {
+  transform: scale(0.97);
+}
+
+.wc-tag {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.wc-tag.green {
+  color: #19B394;
+}
+
+.wc-tag.pink {
+  color: #FF3EA5;
+}
+
+.wc-line {
+  width: 28px;
+  height: 3px;
+  border-radius: 2px;
+  background: #19B394;
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+
+.wc-line.pink {
+  background: #FF3EA5;
+}
+
+.wc-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  color: #2E3A44;
+  font-weight: 500;
+}
+
+.wc-cal {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.wc-card:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  top: 30%;
+  width: 1px;
+  height: 40%;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+@media (max-width: 480px) {
+  .wc-section { padding: 14px 12px 16px; }
+  .wc-card { height: 100px; }
+  .wc-tag { font-size: 16px; }
+  .wc-date { font-size: 14px; }
+}
+
+/* ═══════════════════════════════════════════════════
    首页盈利图表 — 精确还原设计稿
    ═══════════════════════════════════════════════════ */
 

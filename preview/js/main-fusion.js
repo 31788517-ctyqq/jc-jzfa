@@ -4,7 +4,7 @@ import { api } from './api.js';
 import { WEEK_NAMES, formatDate, getCache, setCache } from './utils.js';
 import { clearAuthAll, getAuthSession, hasAuthToken, setAuthSession } from './auth-client.js';
 import * as state from './state.js';
-import { loadHome } from './pages/home.js?v=202606121103';
+import { loadHome } from './pages/home.js?v=202606131200';
 import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js?v=202606101015';
 
 // ═══ 模块懒加载：非核心页面模块按需动态导入 ═══

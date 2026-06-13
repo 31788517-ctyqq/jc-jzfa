@@ -107,9 +107,102 @@ function _renderHomeStats(matches, rankData) {
   window.__homeHottestTarget = resolveHottestTarget(hottest, matches);
 }
 
+// ═══ 世界杯区块 ═══
+function loadWorldCupSection() {
+  var section = document.getElementById('wcSection');
+  if (!section) return;
+  section.style.display = 'none'; // 默认隐藏，有数据再显示
+
+  var today = formatDate(new Date());
+
+  // 卡片3：今日比赛数据（始终有）
+  var matchP = api('match-list', {}).catch(function () { return []; });
+
+  // 获取最近有数据的日期列表
+  var datesP = api('week-dates', {}).catch(function () { return []; });
+
+  Promise.all([matchP, datesP]).then(function (r) {
+    var matches = r[0] || [];
+    var dateList = (r[1] && r[1].dates) ? r[1].dates : [];
+
+    // 卡片3：今日
+    var todayCount = Array.isArray(matches) ? matches.length : 0;
+    var todayMM = today.slice(5).replace('-', '/');
+    var tag3 = document.getElementById('wcTag3');
+    var date3 = document.getElementById('wcDate3');
+    if (tag3) tag3.textContent = todayCount + '场';
+    if (date3) date3.textContent = todayMM;
+
+    // 找到今天之前的两个有效日期
+    var pastDates = [];
+    if (Array.isArray(dateList)) {
+      for (var di = dateList.length - 1; di >= 0; di--) {
+        var dd = dateList[di];
+        if (dd && dd < today) { pastDates.push(dd); if (pastDates.length >= 2) break; }
+      }
+    }
+
+    // 如果没有 dateList，尝试最近的 2 天
+    if (pastDates.length < 2) {
+      var d = new Date(); d.setDate(d.getDate() - 1);
+      for (var ri = 0; ri < 3; ri++) {
+        var dd2 = formatDate(d);
+        if (dd2 < today) { pastDates.push(dd2); if (pastDates.length >= 2) break; }
+        d.setDate(d.getDate() - 1);
+      }
+    }
+
+    if (pastDates.length === 0) { section.style.display = 'block'; return; }
+
+    // 批量获取前两天的专家方案数据
+    var planPromises = pastDates.map(function (dt) {
+      return api('plan-list', { date: dt }).catch(function () { return {}; });
+    });
+
+    Promise.all(planPromises).then(function (planResults) {
+      for (var pi = 0; pi < Math.min(planResults.length, 2); pi++) {
+        var cardIdx = pi + 1;
+        var planData = planResults[pi] || {};
+        var plans = planData.plans || [];
+        var dt = pastDates[pi] || '';
+        var ddText = dt.slice(5).replace('-', '/');
+
+        // 统计中奖方案数
+        var wonCount = 0, settledCount = 0;
+        plans.forEach(function (p) {
+          if (p.isPlanWon === true) { wonCount++; settledCount++; }
+          else if (p.isPlanLose === true || p.isPlanWon === false) { settledCount++; }
+        });
+
+        var allSettled = settledCount >= plans.length && plans.length > 0;
+        var tagEl = document.getElementById('wcTag' + cardIdx);
+        var dateEl = document.getElementById('wcDate' + cardIdx);
+
+        if (tagEl) {
+          if (plans.length === 0) {
+            tagEl.textContent = '-';
+            tagEl.className = 'wc-tag green';
+          } else if (allSettled) {
+            tagEl.textContent = plans.length + '中' + wonCount;
+            tagEl.className = wonCount > 0 ? 'wc-tag green' : 'wc-tag pink';
+          } else {
+            tagEl.textContent = plans.length + '场';
+            tagEl.className = 'wc-tag pink';
+          }
+        }
+        if (dateEl) dateEl.textContent = ddText;
+      }
+      section.style.display = 'block';
+    });
+  });
+}
+
 export function loadHome() {
   var initialMatchCountEl = document.getElementById('homeMatchCount');
   if (initialMatchCountEl && initialMatchCountEl.textContent === '-') initialMatchCountEl.textContent = '0';
+
+  // ★ 世界杯区块
+  loadWorldCupSection();
 
   // ★ P0-1 优化：乐观渲染 — 有缓存立即渲染，无缓存等网络（getCache 内置 TTL 检查）
   var today = new Date().toISOString().slice(0, 10);
