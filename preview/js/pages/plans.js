@@ -56,6 +56,27 @@ function renderMatchTeams(m, selection) {
   );
 }
 
+// ★ P0 Layer 5: 方案数据前端兜底 — 渲染前校验
+function guardPlanData(plans) {
+  if (!plans || !Array.isArray(plans)) return plans || [];
+  plans.forEach(function (p) {
+    // 奖金保护
+    if (p.winningPrize === undefined || p.winningPrize === null || isNaN(p.winningPrize)) {
+      p.winningPrize = p.isPlanWon === true ? (p.maxPrize || 0) : 0;
+    }
+    if (p.winningPrize > p.maxPrize && p.maxPrize > 0) p.winningPrize = p.maxPrize;
+    if (p.isPlanWon === true && p.winningPrize === 0 && p.maxPrize > 0) p.winningPrize = p.maxPrize;
+    if (p.isPlanLose && p.winningPrize > 0) p.winningPrize = 0;
+    // 比分兜底
+    (p.matches || []).forEach(function (m) {
+      if (!m.actualScore) m.actualScore = '--';
+      if (m.isMatchWon === true && m.isMatchLose === true) m.isMatchLose = false;
+    });
+    if (p.isPlanWon === true && p.isPlanLose === true) p.isPlanLose = false;
+  });
+  return plans;
+}
+
 export function updatePlanDateBar() {
   var d = new Date();
   d.setDate(d.getDate() + state.planDateOffset);
@@ -221,7 +242,7 @@ export function loadPlanList() {
           planEl.textContent = mmdd + ' ' + week;
         }
       }
-      var plans = data.plans || [];
+      var plans = guardPlanData(data.plans || []);
       // ★ notice 提示条（有方案时嵌入顶部）
       var noticeHtml = data.notice
         ? '<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#fbbf24;text-align:center;">⚠ ' +
@@ -422,9 +443,9 @@ export function loadPlanList() {
                   break;
                 }
               }
-              var subStyle = '';
+              var subCls = '';
               if (subR && subR.result !== null && subR.result !== undefined) {
-                subStyle = ' style="color:' + (subR.result === 1 ? '#EF4444' : '#34D399') + '"';
+                subCls = subR.result === 1 ? ' plan-direction-hit' : ' plan-direction-miss';
               }
               var displayLabel = label;
               if (displayLabel.indexOf('总进球-') === 0) {
@@ -437,8 +458,8 @@ export function loadPlanList() {
               if (isRQ) {
                 displayLabel += '(' + formatHandicapText(getMatchHandicapValue(match, match)) + ')';
               }
-              if (val) resolved.push('<span' + subStyle + '>' + displayLabel + '(' + val + ')</span>');
-              else resolved.push('<span' + subStyle + '>' + displayLabel + '(-)</span>');
+              if (val) resolved.push('<span class="' + subCls + '">' + displayLabel + '(' + val + ')</span>');
+              else resolved.push('<span class="' + subCls + '">' + displayLabel + '(-)</span>');
             });
             return resolved.join('<span class="plan-dir-plus"> + </span>');
           }
@@ -633,7 +654,7 @@ export function loadMyPlanList() {
 
   api('my-plan-list', {})
     .then(function (data) {
-      var plans = (data && data.plans) || [];
+      var plans = guardPlanData((data && data.plans) || []);
 
       // ★ 按当前选择的日期过滤方案
       var curDate = state.planDate || '';
@@ -1730,7 +1751,7 @@ export function loadScorePlanList() {
           planEl.textContent = mmdd + ' ' + WEEK_NAMES[new Date(data.date).getDay()];
         }
       }
-      var plans = data.plans || [];
+      var plans = guardPlanData(data.plans || []);
       var notice = data.notice || '';
       if (plans.length === 0) {
         var now = new Date();
@@ -2039,7 +2060,7 @@ export function loadQuantPlanList() {
           planEl.textContent = mmdd + ' ' + WEEK_NAMES[new Date(data.date).getDay()];
         }
       }
-      var plans = data.plans || [];
+      var plans = guardPlanData(data.plans || []);
       var notice = data.notice || '';
       if (plans.length === 0) {
         var now = new Date();

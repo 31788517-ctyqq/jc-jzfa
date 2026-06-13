@@ -872,34 +872,28 @@ function syncLiveToData(liveMatches) {
         key = numIndex[lm.num];
         old = data.m[key];
       }
-      if (old) {
-        // ★ 已完赛的比赛不因 matchStatus=0 而回退
-        //    BUT: 如果是有比分但在赛中/未开始（no duration），不信任历史 status=2
-        //    半场时 API 可能误判为结束，比分+无 duration 说明仍在进行
-        var keepOld = old.matchStatus >= 2 && lm.matchStatus === 0;
-        if (keepOld && lm.score && !lm.duration) {
-          keepOld = false; // 半场误判修护：有比分但无 duration → 不锁定为完成
+      // ★ P0 Layer 1: 统一摄入门禁（替代分散过滤规则）
+      const guard = require('./core/ingestion-guard');
+      var v = guard.validateLiveMatch(old, lm);
+      if (v.fields === null) {
+        // 门禁裁定：跳过覆盖（保留旧数据）
+        if (v.flags && v.flags.suspectHalftime) {
+          logger.warn('[guard] 疑似半场误判: ' + (lm.num||'') + ' dur=' + (lm.duration||'') + ' score=' + (lm.score||''));
         }
-        var liveStatus = keepOld ? old.matchStatus : lm.matchStatus;
-        if (
-          old.matchStatus !== liveStatus ||
-          old.score !== lm.score ||
-          old.duration !== lm.duration ||
-          old.yellow !== lm.yellow ||
-          old.red !== lm.red ||
-          old.halfScore !== lm.halfScore ||
-          old.recommNum !== lm.recommNum
-        ) {
+      } else {
+        var mergedFields = v.fields;
+        if (old.matchStatus !== mergedFields.matchStatus ||
+            old.score !== mergedFields.score ||
+            old.duration !== mergedFields.duration ||
+            old.yellow !== mergedFields.yellow ||
+            old.red !== mergedFields.red ||
+            old.halfScore !== mergedFields.halfScore ||
+            old.recommNum !== mergedFields.recommNum) {
           updated++;
-          data.m[key] = Object.assign({}, old, {
-            matchStatus: liveStatus,
-            score: lm.score,
-            halfScore: lm.halfScore,
-            duration: lm.duration,
-            yellow: lm.yellow,
-            red: lm.red,
-            recommNum: lm.recommNum,
-          });
+          data.m[key] = Object.assign({}, old, mergedFields);
+          if (v.flags && v.flags.suspectHalftime) {
+            logger.warn('[guard] 半场误判已修正: ' + (lm.num||'') + ' ' + (lm.homeName||'') + ' vs ' + (lm.visitName||''));
+          }
         }
       }
     });

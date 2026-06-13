@@ -197,6 +197,84 @@ function applyPlanOutcomeOverlay(dateStr, match) {
   return next;
 }
 
+// ★ P0 Layer 5: 方案输出一致性门禁 — 响应前校验奖金/比分/中奖状态
+function validatePlanResponse(plans, dateStr) {
+  if (!plans || !Array.isArray(plans)) return plans;
+  var fixed = 0;
+  var dataJson = getDataJson();
+  var mMap = dataJson.m || {};
+
+  plans.forEach(function (p) {
+    // 1. 奖金数值保护
+    if (p.winningPrize === undefined || p.winningPrize === null || isNaN(p.winningPrize)) {
+      p.winningPrize = p.isPlanWon === true ? (p.maxPrize || 0) : 0;
+      fixed++;
+    }
+    if (p.winningPrize > p.maxPrize && p.maxPrize > 0) {
+      p.winningPrize = p.maxPrize;
+      fixed++;
+    }
+    if (p.isPlanWon === true && p.winningPrize === 0 && p.maxPrize > 0) {
+      p.winningPrize = p.maxPrize;
+      fixed++;
+    }
+
+    // 2. 比分/结果校验
+    (p.matches || []).forEach(function (m) {
+      // 查找 data.json 权威比分
+      var authScore = '';
+      var authMatch = null;
+      var keys = Object.keys(mMap);
+      for (var ki = 0; ki < keys.length; ki++) {
+        var x = mMap[keys[ki]];
+        if ((x.matchId && String(x.matchId) === String(m.matchId)) ||
+            (x.num && x.num === m.matchNum)) {
+          if (x.matchStatus >= 2 && x.score) {
+            authScore = x.score.replace(/:/g, '-');
+            authMatch = x;
+          }
+          break;
+        }
+      }
+
+      // actualScore 为空 → 补充
+      if (!m.actualScore && authScore) {
+        m.actualScore = authScore;
+        fixed++;
+      }
+      // actualScore 与权威比分不一致 → 修正
+      if (m.actualScore && authScore && m.actualScore !== authScore) {
+        logger.warn('[guard] actualScore 修正: ' + (m.matchNum||'') + ' ' + m.actualScore + ' → ' + authScore);
+        m.actualScore = authScore;
+        fixed++;
+      }
+
+      // 完赛但 isMatchWon 为空 → 尝试补算
+      if (authMatch && authMatch.matchStatus >= 2 && m.isMatchWon === null && m.isMatchLose === null) {
+        // 无法确定方向结果，只标记
+        logger.warn('[guard] 缺赛果: ' + (m.matchNum||'') + ' 方向=' + (m.direction||''));
+      }
+
+      // isMatchLose 互斥检测
+      if (m.isMatchWon === true && m.isMatchLose === true) {
+        m.isMatchLose = false;
+        fixed++;
+      }
+    });
+
+    // 3. 方案级互斥
+    if (p.isPlanWon === true && p.isPlanLose === true) {
+      p.isPlanLose = false;
+      fixed++;
+    }
+  });
+
+  if (fixed > 0) {
+    logger.warn('[guard] 输出门禁修正了 ' + fixed + ' 个字段 (date=' + dateStr + ')');
+  }
+  return plans;
+}
+
 // ★ P0-1: 功守道 cache.json _global 内存缓存 — 避免 match-list 每次请求读磁盘
 let _gsGlobalCache = null;
 let _gsGlobalCacheTime = 0;
@@ -3206,7 +3284,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const PG = require('./core/plan-generator');
             const plans = PG.generateExpertPlans(mList, matchDataMap, dateStr);
 
-            return res.json({ code: 1, data: { date: dateStr, plans } });
+            // ★ P0 Layer 5: 输出门禁 — 响应前校验比分/奖金/中奖状态
+            var validatedPlans = validatePlanResponse(plans, dateStr);
+
+            return res.json({ code: 1, data: { date: dateStr, plans: validatedPlans } });
           } catch (e) {
             return res.json({ code: 0, msg: '获取方案列表失败: ' + e.message });
           }
@@ -3779,7 +3860,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
             }
 
-            return res.json({ code: 1, data: { date: dateStr, plans: plans, notice: notice } });
+            // ★ P0 Layer 5: 输出门禁
+            var validatedPlans = validatePlanResponse(plans, dateStr);
+            return res.json({ code: 1, data: { date: dateStr, plans: validatedPlans, notice: notice } });
           } catch (e) {
             logger.error('[score-plan-list] ' + e.message);
             return res.json({ code: 0, msg: '获取比分方案失败: ' + e.message });

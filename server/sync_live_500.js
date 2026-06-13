@@ -262,26 +262,33 @@ function syncToDataJson(liveMatches, dateStr) {
     if (!old) continue;
 
     let changed = false;
-    const fields = {
-      matchStatus: lm.matchStatus,
-      score: lm.score,
-      halfScore: lm.halfScore,
-      duration: lm.duration,
-    };
-    // ★ 红黄牌
-    if (lm.yellow) fields.yellow = lm.yellow;
-    if (lm.red) fields.red = lm.red;
+    // ★ P0 Layer 1: 统一摄入门禁（替代分散的 per-field 过滤）
+    const guard = require('./core/ingestion-guard');
+    const v = guard.validateLiveMatch(old, lm);
+    if (v.fields === null) {
+      // 门禁裁定：跳过此比赛
+      if (v.flags && v.flags.suspectHalftime) {
+        console.warn('[guard] 疑似半场误判(sync_500): ' + (lm.num||'') + ' dur=' + (lm.duration||'') + ' score=' + (lm.score||''));
+      }
+      continue;
+    }
+    var mergedFields = v.fields;
+    if (lm.yellow) mergedFields.yellow = lm.yellow;
+    if (lm.red) mergedFields.red = lm.red;
 
-    for (const [field, val] of Object.entries(fields)) {
-      if (val !== undefined && val !== null && val !== '' && String(old[field]) !== String(val)) {
-        // ★ 已完赛的比赛不因 matchStatus=0 而回退
-        //    BUT: 有比分但无 duration → 半场误判修护
-        if (field === 'matchStatus' && old.matchStatus >= 2 && val === 0) {
-          if (old.score && !old.duration) { /* 半场误判，允许回退 */ }
-          else continue;
-        }
+    // 逐字段比对并更新
+    var hasChange = false;
+    Object.keys(mergedFields).forEach(function(field) {
+      var val = mergedFields[field];
+      if (val !== undefined && val !== null && String(old[field]) !== String(val)) {
         old[field] = val;
-        changed = true;
+        hasChange = true;
+      }
+    });
+    if (hasChange) {
+      changed = true;
+      if (v.flags && v.flags.suspectHalftime) {
+        console.warn('[guard] 半场误判已修正(sync_500): ' + (lm.num||'') + ' ' + (lm.homeName||'') + ' vs ' + (lm.visitName||''));
       }
     }
 
