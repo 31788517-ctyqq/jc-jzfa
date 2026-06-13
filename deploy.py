@@ -92,6 +92,7 @@ DEPLOY_MAP = [
     ('preview/assets/expressionless-face.svg', 'both'),
     ('preview/assets/plan_icon.png',      'both'),
     ('preview/assets/tab_plan.svg',       'both'),
+    ('miniprogram/images/zuqiu_soccer-duose.svg', 'nginx'),
     ('preview/assets/zuqiu_soccer-duose.svg', 'both'),
     ('preview/assets/zuqiu_soccer.svg',   'both'),
 
