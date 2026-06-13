@@ -879,11 +879,12 @@ var NotiEngine = {
       var statsTop = Math.round(homeStats.getBoundingClientRect().top);
       notiTop = Math.max(16, statsTop);
     }
-    // 保证弹窗至少有 340px 可用高度
-    notiTop = Math.min(notiTop, window.innerHeight - 380);
+    // 保证弹窗至少有 340px 可用高度，且不超出视口
+    notiTop = Math.max(16, Math.min(notiTop, window.innerHeight - 380));
     overlay.style.setProperty('--noti-top', notiTop + 'px');
 
     var hasCandidates = this._candidates && this._candidates.length > 0;
+    console.log('[NotiEngine] showNotifications: candidates=' + (hasCandidates ? this._candidates.length : 0) + ' notiTop=' + notiTop);
 
     // 更新计数
     countEl.textContent = hasCandidates ? this._candidates.length : 0;

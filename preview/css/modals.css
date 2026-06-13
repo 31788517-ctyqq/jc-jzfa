@@ -3114,11 +3114,9 @@
 .noti-overlay {
   display: none;
   position: fixed;
-  top: 0; right: 0; bottom: 64px; left: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
   z-index: 10500;
-  background: rgba(36, 50, 56, 0.42);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  background: rgba(36, 50, 56, 0.48);
   align-items: flex-start;
   justify-content: center;
   pointer-events: auto;

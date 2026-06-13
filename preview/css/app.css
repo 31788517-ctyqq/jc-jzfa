@@ -247,6 +247,7 @@ body {
   bottom: 40px;
   left: 19px;
   right: 19px;
+  z-index: 10501;
   max-width: 402px;
   margin: 0 auto;
   height: 85px;
