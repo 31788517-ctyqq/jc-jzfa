@@ -173,8 +173,9 @@ function getPlanOutcomeOverlay(dateStr) {
       var mid = x.matchId || x.match_id;
       var num = x.matchNum || x.match_num || x.num;
       // 直接覆盖（data.json 是最权威的全场比分源）
+      // ★ byId 优先于 byNum（matchId 唯一，num 跨日期重复）
       if (mid) overlay.byId[String(mid).replace(/^m_/, '')] = item;
-      if (num) overlay.byNum[String(num)] = item;
+      if (num) overlay.byNum[String(num)] = item; // ← date 过滤后安全，但仅作降级
     });
   } catch (e) {}
 
@@ -222,13 +223,16 @@ function validatePlanResponse(plans, dateStr) {
     // 2. 比分/结果校验
     (p.matches || []).forEach(function (m) {
       // 查找 data.json 权威比分
+      // ★ 只用 matchId 匹配（唯一），不用 num（跨日期重复如周五003）
+      // ★ 附加 date 过滤防跨日期污染
       var authScore = '';
       var authMatch = null;
       var keys = Object.keys(mMap);
       for (var ki = 0; ki < keys.length; ki++) {
         var x = mMap[keys[ki]];
-        if ((x.matchId && String(x.matchId) === String(m.matchId)) ||
-            (x.num && x.num === m.matchNum)) {
+        var xDt = (x.date || '').slice(0, 10);
+        // matchId 唯一匹配 + 必须同日期
+        if (x.matchId && String(x.matchId) === String(m.matchId) && xDt === dateStr) {
           if (x.matchStatus >= 2 && x.score) {
             authScore = x.score.replace(/:/g, '-');
             authMatch = x;
