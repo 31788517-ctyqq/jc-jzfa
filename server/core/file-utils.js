@@ -9,22 +9,27 @@
  */
 
 const fs = require('fs');
+const path = require('path');
 
 /**
  * 原子写入字符串内容到文件
- * 流程: 写入 .tmp → 校验长度 → rename 替换
+ * 流程: 写入唯一 .tmp → 校验字节长度 → rename 替换
  * @param {string} filePath 目标文件路径
  * @param {string} content 要写入的字符串内容
  * @returns {boolean} 是否写入成功
  */
 function atomicWrite(filePath, content) {
-  const tmpFile = filePath + '.tmp';
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) return false;
+
+  const tmpFile = filePath + '.tmp.' + process.pid + '.' + Date.now() + '.' + Math.random().toString(16).slice(2);
   try {
-    fs.writeFileSync(tmpFile, content, 'utf8');
+    const buffer = Buffer.from(typeof content === 'string' ? content : String(content), 'utf8');
+    fs.writeFileSync(tmpFile, buffer);
     // 验证写入完整性
-    const written = fs.readFileSync(tmpFile, 'utf8');
-    if (written.length !== content.length) {
-      throw new Error('写入不完整(' + written.length + '≠' + content.length + ')');
+    const written = fs.readFileSync(tmpFile);
+    if (written.length !== buffer.length) {
+      throw new Error('写入字节数不匹配(' + written.length + '≠' + buffer.length + ')');
     }
     fs.renameSync(tmpFile, filePath);
     return true;

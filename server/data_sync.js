@@ -879,21 +879,27 @@ function syncLiveToData(liveMatches) {
       if (v.fields === null) {
         // 门禁裁定：跳过覆盖（保留旧数据）
         if (v.flags && v.flags.suspectHalftime) {
-          logger.warn('[guard] 疑似半场误判: ' + (lm.num||'') + ' dur=' + (lm.duration||'') + ' score=' + (lm.score||''));
+          logger.warn(
+            '[guard] 疑似半场误判: ' + (lm.num || '') + ' dur=' + (lm.duration || '') + ' score=' + (lm.score || ''),
+          );
         }
       } else {
         var mergedFields = v.fields;
-        if (old.matchStatus !== mergedFields.matchStatus ||
-            old.score !== mergedFields.score ||
-            old.duration !== mergedFields.duration ||
-            old.yellow !== mergedFields.yellow ||
-            old.red !== mergedFields.red ||
-            old.halfScore !== mergedFields.halfScore ||
-            old.recommNum !== mergedFields.recommNum) {
+        if (
+          old.matchStatus !== mergedFields.matchStatus ||
+          old.score !== mergedFields.score ||
+          old.duration !== mergedFields.duration ||
+          old.yellow !== mergedFields.yellow ||
+          old.red !== mergedFields.red ||
+          old.halfScore !== mergedFields.halfScore ||
+          old.recommNum !== mergedFields.recommNum
+        ) {
           updated++;
           data.m[key] = Object.assign({}, old, mergedFields);
           if (v.flags && v.flags.suspectHalftime) {
-            logger.warn('[guard] 半场误判已修正: ' + (lm.num||'') + ' ' + (lm.homeName||'') + ' vs ' + (lm.visitName||''));
+            logger.warn(
+              '[guard] 半场误判已修正: ' + (lm.num || '') + ' ' + (lm.homeName || '') + ' vs ' + (lm.visitName || ''),
+            );
           }
         }
       }
@@ -2348,7 +2354,12 @@ async function start() {
         time: new Date().toISOString(),
         totalMatches: vr.results.length,
         results: vr.results.map(function (r) {
-          return { anchor: r.anchorName, score: r.verified.score, confidence: r.verified.confidence, sources: r.verified.sourceVotes };
+          return {
+            anchor: r.anchorName,
+            score: r.verified.score,
+            confidence: r.verified.confidence,
+            sources: r.verified.sourceVotes,
+          };
         }),
       };
       fs.writeFileSync(VERIFIED_RESULTS_FILE, JSON.stringify(cache, null, 2));

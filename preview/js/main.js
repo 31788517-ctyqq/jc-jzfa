@@ -36,11 +36,12 @@ import {
   goQuantToday,
   toggleQuantDatePicker,
   switchQuantTab,
+  switchQuantOpportunity,
   togglePick,
   startPK,
   sortBy,
   switchQuantView,
-} from './pages/quant-rank.js?v=67';
+} from './pages/quant-rank.js?v=202606131900';
 import { openPK, closePK, openPKMulti } from './pages/match-pk-fusion.js?v=85';
 
 // ── 日期切换 ──
@@ -468,6 +469,7 @@ window.shiftQuantDate = shiftQuantDate;
 window.goQuantToday = goQuantToday;
 window.toggleQuantDatePicker = toggleQuantDatePicker;
 window.switchQuantTab = switchQuantTab;
+window.switchQuantOpportunity = switchQuantOpportunity;
 window.togglePick = togglePick;
 window.startPK = startPK;
 window.sortBy = sortBy;

@@ -247,7 +247,7 @@ function validatePlanResponse(plans, dateStr) {
   plans.forEach(function (p) {
     // 1. 奖金数值保护
     if (p.winningPrize === undefined || p.winningPrize === null || isNaN(p.winningPrize)) {
-      p.winningPrize = p.isPlanWon === true ? (p.maxPrize || 0) : 0;
+      p.winningPrize = p.isPlanWon === true ? p.maxPrize || 0 : 0;
       fixed++;
     }
     if (p.winningPrize > p.maxPrize && p.maxPrize > 0) {
@@ -287,7 +287,7 @@ function validatePlanResponse(plans, dateStr) {
       }
       // actualScore 与权威比分不一致 → 修正
       if (m.actualScore && authScore && m.actualScore !== authScore) {
-        logger.warn('[guard] actualScore 修正: ' + (m.matchNum||'') + ' ' + m.actualScore + ' → ' + authScore);
+        logger.warn('[guard] actualScore 修正: ' + (m.matchNum || '') + ' ' + m.actualScore + ' → ' + authScore);
         m.actualScore = authScore;
         fixed++;
       }
@@ -295,7 +295,7 @@ function validatePlanResponse(plans, dateStr) {
       // 完赛但 isMatchWon 为空 → 尝试补算
       if (authMatch && authMatch.matchStatus >= 2 && m.isMatchWon === null && m.isMatchLose === null) {
         // 无法确定方向结果，只标记
-        logger.warn('[guard] 缺赛果: ' + (m.matchNum||'') + ' 方向=' + (m.direction||''));
+        logger.warn('[guard] 缺赛果: ' + (m.matchNum || '') + ' 方向=' + (m.direction || ''));
       }
 
       // isMatchLose 互斥检测
@@ -335,6 +335,187 @@ function getGsGlobalMap() {
     logger.warn('[gs-cache] 读取缓存失败: ' + e.message);
   }
   return _gsGlobalCache || {};
+}
+
+function buildFallbackPKDecision(reason) {
+  const msg = reason || 'PK标准字段暂缺';
+  return {
+    playType: 'spf',
+    finalDirection: 'watch',
+    decisionLevel: '观望',
+    stars: 0,
+    riskLevel: 'yellow',
+    riskTags: [msg],
+    degradeReasons: [msg],
+    decisionNarrative: 'PK裁判：' + msg + '，当前按观望处理。',
+    finalDecision: 'watch',
+    expectedValue: null,
+    valueEdge: null,
+    pkCompositeScore: null,
+  };
+}
+
+function buildPKDecisionMapForMatches(matches) {
+  const map = {};
+  if (!Array.isArray(matches) || matches.length === 0) return map;
+  try {
+    const pk = require('./pk_scorer');
+    const gsMap = getGsGlobalMap();
+    const input = matches
+      .map(function (m) {
+        const mid = String((m && m.matchId) || '').replace(/^m_/, '');
+        if (!mid) return null;
+        const gsFields = typeof pk._loadGSFields === 'function' ? pk._loadGSFields({ _global: gsMap }, mid) : {};
+        const item = Object.assign({}, m, gsFields);
+        item.matchId = mid;
+        return item;
+      })
+      .filter(Boolean);
+    if (input.length === 0) return map;
+    const scored = pk.computeAllScores(input);
+    const ranked = scored.slice().sort(function (a, b) {
+      return b.compositeScore - a.compositeScore;
+    });
+    scored.forEach(function (s) {
+      const item = s && s.item ? s.item : {};
+      const mid = String(item.matchId || '').replace(/^m_/, '');
+      if (!mid) return;
+      const adv = pk.getDirectionAdvice(s, ranked) || {};
+      map[mid] = {
+        playType: adv.playType || 'spf',
+        finalDirection: adv.finalDirection || adv.dir || 'watch',
+        decisionLevel: adv.decisionLevel || '观望',
+        stars: adv.stars || 0,
+        riskLevel: adv.riskLevel || 'yellow',
+        riskTags: Array.isArray(adv.riskTags) ? adv.riskTags : [],
+        degradeReasons: Array.isArray(adv.degradeReasons) ? adv.degradeReasons : [],
+        decisionNarrative: adv.decisionNarrative || 'PK裁判：基于 PK 综合评分输出。',
+        finalDecision: adv.finalDecision || 'watch',
+        expectedValue: adv.expectedValue !== undefined ? adv.expectedValue : null,
+        valueEdge: adv.valueEdge !== undefined ? adv.valueEdge : null,
+        pkCompositeScore: s.compositeScore,
+      };
+    });
+  } catch (e) {
+    logger.warn('[ranking-list] PK标准字段构建失败: ' + e.message);
+  }
+  return map;
+}
+
+function clampNumber(value, min, max) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return min;
+  return Math.max(min, Math.min(max, n));
+}
+
+function buildModelPlayMatrix(rankings) {
+  return (rankings || []).map(function (r) {
+    const total = Number(r.total) || 0;
+    function metric(rate, sample, note) {
+      return {
+        sample: sample || 0,
+        hitRate: sample > 0 ? Number(rate) || 0 : null,
+        roi: sample > 0 ? ((Number(rate) || 0) / 100) * 2 - 1 : null,
+        sampleNote: note || (sample < 10 ? '样本不足，仅供观察' : ''),
+      };
+    }
+    return {
+      modelName: r.modelName,
+      spf: metric(r.directionRate, total),
+      handicap: metric(null, 0, '让球样本暂未结构化'),
+      overUnder: metric(r.overUnderRate, total),
+      score: metric(r.scoreRate, total),
+    };
+  });
+}
+
+function enrichModelReliability(rankings, trendData) {
+  const trendMap = {};
+  (trendData || []).forEach(function (t) {
+    const values = (t.values || []).filter(function (v) {
+      return v !== null && v !== undefined && !Number.isNaN(Number(v));
+    });
+    const last = values.length ? Number(values[values.length - 1]) : 0;
+    const prev = values.length > 1 ? Number(values[values.length - 2]) : last;
+    const range = values.length ? Math.max.apply(null, values) - Math.min.apply(null, values) : 100;
+    trendMap[t.modelName] = {
+      trend: parseFloat((last - prev).toFixed(1)),
+      stabilityScore: clampNumber(100 - range, 0, 100),
+    };
+  });
+  return (rankings || [])
+    .map(function (r) {
+      const total = Number(r.total) || 0;
+      const dirRate = Number(r.directionRate) || 0;
+      const roi = parseFloat(((dirRate / 100) * 2 - 1).toFixed(4));
+      const trend = trendMap[r.modelName] || { trend: 0, stabilityScore: total >= 10 ? 70 : 40 };
+      const sampleScore = clampNumber((total / 50) * 100, 0, 100);
+      const roiScore = clampNumber((roi + 1) * 50, 0, 100);
+      const calibrationError = Math.abs(dirRate - 50);
+      const calibrationScore = clampNumber(100 - calibrationError, 0, 100);
+      const reliabilityScore = parseFloat(
+        (
+          dirRate * 0.35 +
+          roiScore * 0.2 +
+          trend.stabilityScore * 0.15 +
+          sampleScore * 0.2 +
+          calibrationScore * 0.1
+        ).toFixed(1),
+      );
+      let calibrationStatus = '较准确';
+      if (total < 10) calibrationStatus = '样本不足';
+      else if (dirRate >= 68 && total < 30) calibrationStatus = '偏自信';
+      else if (dirRate < 45) calibrationStatus = '偏保守/需复核';
+      return Object.assign({}, r, {
+        reliabilityScore,
+        roi,
+        stabilityScore: parseFloat(trend.stabilityScore.toFixed(1)),
+        calibrationScore: parseFloat(calibrationScore.toFixed(1)),
+        calibrationStatus,
+        sampleStatus: total < 10 ? '样本不足，仅供观察' : total < 30 ? '样本偏少' : '样本充足',
+        eligibleForRanking: total >= 10,
+        trend: trend.trend,
+      });
+    })
+    .sort(function (a, b) {
+      if (a.eligibleForRanking !== b.eligibleForRanking) return a.eligibleForRanking ? -1 : 1;
+      return b.reliabilityScore - a.reliabilityScore;
+    });
+}
+
+function buildModelReliabilitySummary(rankings) {
+  const eligible = (rankings || []).filter(function (r) {
+    return r.eligibleForRanking;
+  });
+  const bestStable = eligible.slice().sort(function (a, b) {
+    return b.stabilityScore - a.stabilityScore;
+  })[0];
+  return {
+    activeModels: (rankings || []).length,
+    eligibleModels: eligible.length,
+    validSamples: (rankings || []).reduce(function (sum, r) {
+      return sum + (Number(r.total) || 0);
+    }, 0),
+    bestStableModel: bestStable ? bestStable.modelName : null,
+    health: eligible.length >= 2 ? 'stable' : 'sample_insufficient',
+    note: eligible.length >= 2 ? '模型样本可用于可靠性观察' : '样本不足，结论仅供观察',
+  };
+}
+
+function buildReadOnlyWeightSuggestions(rankings) {
+  const eligible = (rankings || []).filter(function (r) {
+    return r.eligibleForRanking;
+  });
+  const totalScore = eligible.reduce(function (sum, r) {
+    return sum + (Number(r.reliabilityScore) || 0);
+  }, 0);
+  return eligible.map(function (r) {
+    return {
+      modelName: r.modelName,
+      suggestedWeight: totalScore > 0 ? parseFloat((r.reliabilityScore / totalScore).toFixed(4)) : 0,
+      reason: '只读建议：基于可靠性评分，不自动覆盖生产规则',
+    };
+  });
 }
 
 // ★ P2-1: 核心内存缓存统计
@@ -671,7 +852,7 @@ app.use(
   '/api',
   rateLimit({
     windowMs: 60 * 1000,
-    max: 60,
+    max: process.env.E2E_TEST === '1' || process.env.NODE_ENV === 'test' ? 1000 : 60,
     message: { code: -1, msg: '请求过于频繁，请稍后再试' },
   }),
 );
@@ -1083,7 +1264,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               var apDay = getAllplaysData()[dateStr] || {};
               var apEntry = apDay[m.num] || (m.num ? apDay['num_' + m.num] : null) || null;
               var apIsSingle = !!(apEntry && apEntry.isSingleGame);
-              const isSingleGame = (fiveOdds && fiveOdds.isSingleGame === true) || m.isSingleGame === true || apIsSingle;
+              const isSingleGame =
+                (fiveOdds && fiveOdds.isSingleGame === true) || m.isSingleGame === true || apIsSingle;
               const concede =
                 fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null ? fiveOdds.rqspf.handicap : null;
 
@@ -1343,6 +1525,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           }
           const filterCategory = data.category || null;
           const filterDirection = data.direction || null;
+          const pkDecisionMap = buildPKDecisionMapForMatches(matches);
 
           // ====== 分类函数 ======
           function classifyType(type) {
@@ -1470,7 +1653,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           }
 
           list.sort((a, b) => b.expertCount - a.expertCount);
-          const ranking = list.map((item, i) => ({ rank: i + 1, ...item }));
+          const ranking = list.map(function (item, i) {
+            const mid = String((item && item.matchId) || '').replace(/^m_/, '');
+            const pkDecision = pkDecisionMap[mid] || buildFallbackPKDecision('PK标准字段暂缺');
+            return { rank: i + 1, ...item, ...pkDecision };
+          });
           const topExpertCount = ranking.length > 0 ? ranking[0].expertCount : 0;
 
           // ★Phase1: 获取 data.json 文件修改时间
@@ -3113,6 +3300,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               (data.consensus || 'all') +
               '|' +
               (data.model || 'all') +
+              '|dl' +
+              (data.decisionLevel || 'all') +
+              '|rl' +
+              (data.riskLevel || 'all') +
+              '|ev' +
+              (data.evRange || 'all') +
+              '|ct' +
+              (data.conflictType || 'all') +
+              '|at' +
+              (data.attributionTag || 'all') +
               '|p' +
               (parseInt(data.page) || 1);
             var _btCached = getCachedResponse('prediction-backtest', _btCacheKey);
@@ -3128,6 +3325,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               pkConf: data.pkConf || 'all',
               consensus: data.consensus || 'all',
               model: data.model || 'all',
+              decisionLevel: data.decisionLevel || 'all',
+              riskLevel: data.riskLevel || 'all',
+              evRange: data.evRange || 'all',
+              conflictType: data.conflictType || 'all',
+              attributionTag: data.attributionTag || 'all',
               page: parseInt(data.page) || 1,
               pageSize: parseInt(data.pageSize) || 20,
             });
@@ -6403,10 +6605,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             const { backfiller, INTERNAL_MODEL_NAMES } = require('./core/outcome-backfill');
             const internalModelSql = "'" + INTERNAL_MODEL_NAMES.join("','") + "'";
-            const rankings = backfiller.getModelHitRates(db, days);
+            let rankings = backfiller.getModelHitRates(db, days);
 
             // 模型列表
-            const models =
+            let models =
               rankings.length > 0
                 ? rankings.map((r) => r.modelName)
                 : ['功守道', 'PK评分', 'DeepSeek', '豆包', '专家共识', '赔率信号'];
@@ -6476,6 +6678,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               logger.error('[md] trend query: ' + e.message);
             }
 
+            rankings = enrichModelReliability(rankings, trendData);
+            models = rankings.length > 0 ? rankings.map((r) => r.modelName) : models;
+            const playMatrix = buildModelPlayMatrix(rankings);
+            const reliabilitySummary = buildModelReliabilitySummary(rankings);
+            const weightSuggestions = buildReadOnlyWeightSuggestions(rankings);
+
             var _mdResp = {
               code: 1,
               data: {
@@ -6483,8 +6691,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 models,
                 totalPredictions: rankings.reduce((s, r) => s + r.total, 0),
                 topModel: rankings.length > 0 ? rankings[0].modelName : null,
+                bestStableModel: reliabilitySummary.bestStableModel,
                 leagueHeatmap,
                 trendData,
+                playMatrix,
+                reliabilitySummary,
+                weightSuggestions,
               },
             };
             setCachedResponse('model-dashboard', _mdCacheKey, _mdResp);
@@ -6503,8 +6715,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const dataJson = getDataJson();
             const vr = verifier.verifyDate(dateStr, { midouDataJson: dataJson });
             // 汇总
-            var passed = 0, lowConf = 0, empty = 0;
-            vr.results.forEach(function(r) {
+            var passed = 0,
+              lowConf = 0,
+              empty = 0;
+            vr.results.forEach(function (r) {
               if (r.verified && r.verified.score) {
                 if (r.verified.confidence >= 0.67) passed++;
                 else lowConf++;
@@ -6520,8 +6734,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 verifiedPassed: passed,
                 verifiedLowConf: lowConf,
                 noScore: empty,
-                results: vr.results.map(function(r) {
-                  return { anchor: r.anchorName, score: r.verified.score, confidence: r.verified.confidence, sources: r.verified.sourceVotes };
+                results: vr.results.map(function (r) {
+                  return {
+                    anchor: r.anchorName,
+                    score: r.verified.score,
+                    confidence: r.verified.confidence,
+                    sources: r.verified.sourceVotes,
+                  };
                 }),
               },
             });
@@ -6889,7 +7108,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     k = Math.min(k, n - k);
     var result = 1;
     for (var i = 1; i <= k; i++) {
-      result = result * (n - k + i) / i;
+      result = (result * (n - k + i)) / i;
     }
     return Math.round(result);
   }
@@ -6962,12 +7181,21 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           try {
             var ohDir = path.join(__dirname, 'odds_history');
             if (fs.existsSync(ohDir)) {
-              recentFiles = fs.readdirSync(ohDir).filter(function (f) { return f.match(/^\d{4}-\d{2}-\d{2}\.json$/); }).sort().reverse();
+              recentFiles = fs
+                .readdirSync(ohDir)
+                .filter(function (f) {
+                  return f.match(/^\d{4}-\d{2}-\d{2}\.json$/);
+                })
+                .sort()
+                .reverse();
             }
           } catch (e2) {}
           for (var fi = 0; fi < recentFiles.length; fi++) {
             var odMap = getOddsHistory(recentFiles[fi].replace('.json', ''));
-            if (odMap && odMap[matchNum] && odMap[matchNum].rqspf) { handicap = odMap[matchNum].rqspf.handicap; break; }
+            if (odMap && odMap[matchNum] && odMap[matchNum].rqspf) {
+              handicap = odMap[matchNum].rqspf.handicap;
+              break;
+            }
           }
         } else {
           var oddsMap = getOddsHistory(matchDate);
@@ -7007,12 +7235,23 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         mm.subResults.push({ direction: sd, result: sdResult === null ? null : sdResult ? 1 : 0 });
       }
 
-      if (!hasScore) { mm.isMatchWon = undefined; mm.isMatchLose = undefined; continue; }
+      if (!hasScore) {
+        mm.isMatchWon = undefined;
+        mm.isMatchLose = undefined;
+        continue;
+      }
 
       var result = _judgeByScore(effectiveDirection, scoreStr, handicap);
-      if (result === true) { mm.isMatchWon = true; mm.isMatchLose = false; }
-      else if (result === false) { mm.isMatchWon = false; mm.isMatchLose = true; }
-      else { mm.isMatchWon = undefined; mm.isMatchLose = undefined; }
+      if (result === true) {
+        mm.isMatchWon = true;
+        mm.isMatchLose = false;
+      } else if (result === false) {
+        mm.isMatchWon = false;
+        mm.isMatchLose = true;
+      } else {
+        mm.isMatchWon = undefined;
+        mm.isMatchLose = undefined;
+      }
     }
 
     // ★ P0: 组合过关中奖判定 — 按 passType 逐级统计中奖组合
@@ -7025,12 +7264,18 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         if (m2.isMatchLose === true) matchWinStatus[mid] = false;
       }
     }
-    var wonIds = Object.keys(matchWinStatus).filter(function (k) { return matchWinStatus[k] === true; });
+    var wonIds = Object.keys(matchWinStatus).filter(function (k) {
+      return matchWinStatus[k] === true;
+    });
     var judgedIds = Object.keys(matchWinStatus);
     var wonCount = wonIds.length;
-    var totalUnique = new Set(matches.map(function (m) { return m.matchId || m.matchNum || ''; })).size;
+    var totalUnique = new Set(
+      matches.map(function (m) {
+        return m.matchId || m.matchNum || '';
+      }),
+    ).size;
 
-    var passTypes = plan.passTypes && plan.passTypes.length > 0 ? plan.passTypes : (totalUnique === 1 ? [1] : [2]);
+    var passTypes = plan.passTypes && plan.passTypes.length > 0 ? plan.passTypes : totalUnique === 1 ? [1] : [2];
 
     var totalWinCombs = 0;
     for (var pi = 0; pi < passTypes.length; pi++) {

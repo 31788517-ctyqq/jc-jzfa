@@ -19,7 +19,7 @@ async function planCatalog(req, res) {
               monthly_equivalent, discount_label, sort_order
        FROM subscription_plans
        WHERE is_active = 1
-       ORDER BY sort_order ASC`
+       ORDER BY sort_order ASC`,
     );
 
     return res.json({

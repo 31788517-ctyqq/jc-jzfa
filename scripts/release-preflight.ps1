@@ -62,7 +62,7 @@ if ($LASTEXITCODE -eq 0) { Pass } else { Fail "P2 tests failed" }
 
 # ── Step 6: Coverage Gate ──
 Write-Step "Coverage Gate"
-$output = npx jest --coverage --forceExit 2>&1 | Out-String
+$output = npm run test:coverage 2>&1 | Out-String
 if ($LASTEXITCODE -eq 0) { Pass } else { Fail "Coverage threshold not met" }
 
 # ── Step 7: npm audit ──

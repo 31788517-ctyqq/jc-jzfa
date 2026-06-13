@@ -412,28 +412,28 @@ function renderProfilePlans() {
       var oddsStr = m.odds != null ? Number(m.odds).toFixed(2) : '--';
       var dirDisplay = m.direction || m.oddsName || '';
       if (m.playType === 'rqspf') dirDisplay = '让' + dirDisplay;
-    var oddsCls = '';
-    if (m.isMatchWon === true) oddsCls = ' plan-direction-hit';
-    else if (m.isMatchLose === true) oddsCls = ' plan-direction-miss';
-    matchRows +=
-      '' +
-      '<tr>' +
-      '<td class="match-info-col"><span class="match-num-text">' +
-      escapeHtml(m.matchNum || '') +
-      '</span></td>' +
-      '<td class="team-col"><span class="plan-team-home">' +
-      escapeHtml(m.homeName || '') +
-      '</span><span class="plan-team-vs">vs</span><span class="plan-team-away">' +
-      escapeHtml(m.visitName || '') +
-      '</span></td>' +
-      '<td class="odds-col' +
-      oddsCls +
-      '">' +
-      escapeHtml(dirDisplay) +
-      '(' +
-      oddsStr +
-      ')</td>' +
-      '</tr>';
+      var oddsCls = '';
+      if (m.isMatchWon === true) oddsCls = ' plan-direction-hit';
+      else if (m.isMatchLose === true) oddsCls = ' plan-direction-miss';
+      matchRows +=
+        '' +
+        '<tr>' +
+        '<td class="match-info-col"><span class="match-num-text">' +
+        escapeHtml(m.matchNum || '') +
+        '</span></td>' +
+        '<td class="team-col"><span class="plan-team-home">' +
+        escapeHtml(m.homeName || '') +
+        '</span><span class="plan-team-vs">vs</span><span class="plan-team-away">' +
+        escapeHtml(m.visitName || '') +
+        '</span></td>' +
+        '<td class="odds-col' +
+        oddsCls +
+        '">' +
+        escapeHtml(dirDisplay) +
+        '(' +
+        oddsStr +
+        ')</td>' +
+        '</tr>';
     }
 
     var stampHtml = '';

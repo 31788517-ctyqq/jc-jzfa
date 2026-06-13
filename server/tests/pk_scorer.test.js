@@ -82,6 +82,13 @@ describe('pk_scorer — computeAllScores 完整评分', () => {
     expect(result[0]).toHaveProperty('stars');
   });
 
+  it('M2: computeAllScores 保持评分输出，不直接依赖外部信号', () => {
+    const list = [makeItem({ fusionConsensus: '', heatIndex: '' })];
+    const result = computeAllScores(list);
+    expect(result[0]).toHaveProperty('compositeScore');
+    expect(result[0]).toHaveProperty('verificationDetails');
+  });
+
   it('评分在 0~100 范围内', () => {
     const list = [makeItem(), makeItem({ pwScore: '-0.5', gdScore: '-0.3' })];
     const result = computeAllScores(list);
@@ -228,6 +235,61 @@ describe('pk_scorer — getDirectionAdvice 方向推荐', () => {
     );
     expect(result).toHaveProperty('goalDir');
     expect(result).toHaveProperty('goalStars');
+  });
+
+  it('M2: 输出 PK 裁判标准字段', () => {
+    const result = getDirectionAdvice(
+      {
+        item: { pwScore: '0.3', heatIndex: '1.0', fusionConsensus: 'strong', attDefGoal: '3.5' },
+        verificationScore: 90,
+      },
+      [],
+    );
+    expect(result).toHaveProperty('playType', 'spf');
+    expect(result).toHaveProperty('finalDirection', '主胜');
+    expect(result).toHaveProperty('decisionLevel', '主推');
+    expect(result).toHaveProperty('riskLevel', 'green');
+    expect(result).toHaveProperty('riskTags');
+    expect(result).toHaveProperty('degradeReasons');
+    expect(Array.isArray(result.riskTags)).toBe(true);
+    expect(Array.isArray(result.degradeReasons)).toBe(true);
+    expect(result.decisionNarrative).toContain('PK裁判');
+  });
+
+  it('M2: meltdown 强制产生风险与降级原因', () => {
+    const result = getDirectionAdvice(
+      {
+        item: { fusionConsensus: 'meltdown', pwScore: '0.2', heatIndex: '1.0' },
+        verificationScore: 90,
+      },
+      [],
+    );
+    expect(result.finalDirection).toContain('主胜');
+    expect(result.decisionLevel).toBe('谨慎');
+    expect(result.riskLevel).toBe('red');
+    expect(result.riskTags).toContain('模型熔断');
+    expect(result.degradeReasons).toContain('功守道融合熔断，禁止主推');
+  });
+
+  it('M2: 负期望不得保持主推', () => {
+    const result = getDirectionAdvice(
+      {
+        item: {
+          pwScore: '0.3',
+          heatIndex: '1.0',
+          fusionConsensus: 'strong',
+          homeWinAward: '1.08',
+          awayWinAward: '10.0',
+          drawAward: '8.0',
+        },
+        verificationScore: 90,
+      },
+      [],
+    );
+    expect(result.valueTag).toBe('⚠️负期望');
+    expect(result.decisionLevel).not.toBe('主推');
+    expect(result.riskTags).toContain('负期望');
+    expect(result.degradeReasons).toContain('EV 为负，不升为主推');
   });
 
   it('hcpDir 基于 crossHcpWin/CrossHcpLose', () => {

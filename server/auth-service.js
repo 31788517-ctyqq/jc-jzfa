@@ -164,6 +164,7 @@ const PUBLIC_ACTIONS = new Set([
   'prediction-backtest',
   'experiment-compare',
   'model-dashboard',
+  'batch-consensus',
 
   // 健康检查
   'health',
@@ -357,16 +358,19 @@ function _cacheSession(tokenHash, sessionObj) {
   _sessionCache.set(tokenHash, sessionObj);
   // 定期清理过期缓存（每 5 分钟）
   if (!_sessionCacheCleanTimer) {
-    _sessionCacheCleanTimer = setInterval(function () {
-      var now = new Date().toISOString();
-      _sessionCache.forEach(function (s, k) {
-        if (s.expiresAt && s.expiresAt < now) _sessionCache.delete(k);
-      });
-      if (_sessionCache.size === 0 && _sessionCacheCleanTimer) {
-        clearInterval(_sessionCacheCleanTimer);
-        _sessionCacheCleanTimer = null;
-      }
-    }, 5 * 60 * 1000);
+    _sessionCacheCleanTimer = setInterval(
+      function () {
+        var now = new Date().toISOString();
+        _sessionCache.forEach(function (s, k) {
+          if (s.expiresAt && s.expiresAt < now) _sessionCache.delete(k);
+        });
+        if (_sessionCache.size === 0 && _sessionCacheCleanTimer) {
+          clearInterval(_sessionCacheCleanTimer);
+          _sessionCacheCleanTimer = null;
+        }
+      },
+      5 * 60 * 1000,
+    );
   }
 }
 function _getCachedSession(tokenHash) {

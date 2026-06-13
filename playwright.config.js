@@ -9,10 +9,7 @@ module.exports = defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
-  reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['list'],
-  ],
+  reporter: [['html', { outputFolder: 'playwright-report' }], ['list']],
   timeout: 30000,
   expect: {
     timeout: 10000,
@@ -32,7 +29,7 @@ module.exports = defineConfig({
 
   // 开发服务器，自动启动和关闭
   webServer: {
-    command: 'node server/index.js',
+    command: "node -e \"process.env.E2E_TEST='1'; require('./server/index.js')\"",
     url: 'http://127.0.0.1:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 30000,

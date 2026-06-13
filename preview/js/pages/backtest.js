@@ -86,6 +86,17 @@ function injectStyles() {
     '.fdt-teams { text-align:left; line-height:1.4; }',
     '.chart-box .fdt-teams { white-space:normal; }',
     '.bt-summary-bar { display:flex; justify-content:flex-start; align-items:center; padding:4px 4px 8px; color:var(--text3); font-size:12px; }',
+    '.bt-pk-judge-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:8px 0 10px; }',
+    '.bt-pk-judge-card { border:1px solid rgba(47,159,154,.18); border-radius:12px; padding:8px; background:linear-gradient(145deg, rgba(255,255,255,.72), rgba(238,246,246,.62)); box-shadow:inset 0 1px 0 rgba(255,255,255,.58), 0 8px 18px rgba(48,72,78,.08); }',
+    '.bt-pk-judge-card b { display:block; color:var(--text2); font-size:12px; }',
+    '.bt-pk-judge-card span { color:var(--cyan); font-size:15px; font-weight:800; }',
+    '.bt-pk-judge-card em { display:block; color:var(--text3); font-size:10px; font-style:normal; margin-top:2px; }',
+    '.bt-pk-snapshot { margin-top:6px; padding:6px 8px; border-radius:10px; background:rgba(126,166,189,.07); color:var(--text3); font-size:10px; line-height:1.5; }',
+    '.bt-pk-snapshot b { color:var(--text2); }',
+    '.bt-pk-chip { display:inline-block; margin:2px 3px 0 0; padding:2px 6px; border-radius:999px; background:rgba(184,112,112,.12); color:#b87070; font-size:9px; }',
+    '.bt-pk-chip.ok { background:rgba(122,170,150,.11); color:#7aaa96; }',
+    '.bt-pk-chip.attr { background:rgba(167,139,250,.12); color:#a78bfa; }',
+    '.bt-pk-sample-note { color:#b89a60; font-size:10px; margin-top:6px; }',
   ].join('\n');
   document.head.appendChild(s);
 }
@@ -97,7 +108,7 @@ function renderPage() {
     '<div class="filter-row" id="btTabRow">',
     '<div class="filter-tag active" data-tab="gs" onclick="btSwitchTab(\'gs\')">功守道量化</div>',
     '<div class="filter-tag" data-tab="ai" onclick="btSwitchTab(\'ai\')">AI深度分析</div>',
-    '<div class="filter-tag" data-tab="pk" onclick="btSwitchTab(\'pk\')">PK融合分析</div>',
+    '<div class="filter-tag" data-tab="pk" onclick="btSwitchTab(\'pk\')">PK裁判验证</div>',
     '<div class="filter-tag" data-tab="experiment" onclick="btSwitchTab(\'experiment\')">实验对比</div>',
     '</div>',
 
@@ -123,7 +134,7 @@ function renderPage() {
     '<div class="bt-chart-inner" id="btChartInnerAI"></div>',
     '</div>',
     '<div class="bt-chart-wrap" id="btChartPK">',
-    '<div class="bt-chart-toggle" id="btChartTogglePK"><button class="bt-chart-toggle-btn active" data-ctype="calibration" onclick="btChartType(\'pk\',\'calibration\')">信心分校准</button><button class="bt-chart-toggle-btn" data-ctype="stars" onclick="btChartType(\'pk\',\'stars\')">星级校准</button></div>',
+    '<div class="bt-chart-toggle" id="btChartTogglePK"><button class="bt-chart-toggle-btn active" data-ctype="calibration" onclick="btChartType(\'pk\',\'calibration\')">信心分校准</button><button class="bt-chart-toggle-btn" data-ctype="decision" onclick="btChartType(\'pk\',\'decision\')">决策等级</button></div>',
     '<div class="bt-chart-inner" id="btChartInnerPK"></div>',
     '</div>',
 
@@ -163,6 +174,41 @@ function renderFilterCard() {
     '</div>',
     '<ul class="filter-dd-menu" id="dd-btModel-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-btModel\',\'all\',\'全部\')">全部</li></ul>',
     '</div></div>',
+    filterDD('dd-btDecision', '决策等级', [
+      { v: 'all', l: '全部' },
+      { v: 'main_pick', l: '主推' },
+      { v: 'playable', l: '可做' },
+      { v: 'cautious', l: '谨慎' },
+      { v: 'watch', l: '观望' },
+    ]),
+    filterDD('dd-btRisk', '风险等级', [
+      { v: 'all', l: '全部' },
+      { v: 'green', l: '低风险' },
+      { v: 'yellow', l: '中风险' },
+      { v: 'red', l: '高风险' },
+    ]),
+    filterDD('dd-btEV', 'EV区间', [
+      { v: 'all', l: '全部' },
+      { v: 'positive', l: '正EV' },
+      { v: 'neutral', l: 'EV缺失/中性' },
+      { v: 'negative', l: '负EV' },
+    ]),
+    filterDD('dd-btConflict', '分歧类型', [
+      { v: 'all', l: '全部' },
+      { v: 'aligned', l: '一致' },
+      { v: 'degraded', l: '降级' },
+      { v: 'gs_meltdown', l: '熔断' },
+      { v: 'negative_ev', l: '负EV' },
+      { v: 'overheat', l: '过热' },
+    ]),
+    filterDD('dd-btAttribution', '归因标签', [
+      { v: 'all', l: '全部' },
+      { v: '方向判断正确', l: '方向正确' },
+      { v: '方向判断失误', l: '方向失误' },
+      { v: '正EV兑现', l: '正EV兑现' },
+      { v: '热度风险', l: '热度风险' },
+      { v: '数据质量风险', l: '数据质量' },
+    ]),
     '<div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="doBTQuery()">查询</button></div>',
     '</div>',
   ].join('');
@@ -242,8 +288,8 @@ function renderStatsCard(tab) {
       '<div class="scheme-stat-div"></div>' +
       '<div class="scheme-stat-item"><div class="scheme-stat-val bt-green" id="pkDirAcc">-</div><div class="scheme-stat-lbl">方向命中率</div></div>' +
       '<div class="scheme-stat-div"></div>' +
-      '<div class="scheme-stat-item"><div class="scheme-stat-val" id="pkHcpAcc">-</div><div class="scheme-stat-lbl">让球命中率</div></div>' +
-      '<div class="bt-stat-sub"><span>大小球:<b id="pkGoalAcc">-</b></span><span>5★:<b id="pkStar5">-</b></span><span>3-4★:<b id="pkStar34">-</b></span></div>' +
+      '<div class="scheme-stat-item"><div class="scheme-stat-val" id="pkMainROI">-</div><div class="scheme-stat-lbl">主推ROI</div></div>' +
+      '<div class="bt-stat-sub"><span>有效样本:<b id="pkJudgeSamples">-</b></span><span>正EV ROI:<b id="pkPositiveEVROI">-</b></span><span>观望避坑:<b id="pkWatchAvoid">-</b></span></div>' +
       '</div>'
     );
   }
@@ -304,6 +350,11 @@ function getBTFilters() {
     dateRange: v('dd-btRange'),
     league: v('dd-btLeague'),
     model: v('dd-btModel'),
+    decisionLevel: v('dd-btDecision'),
+    riskLevel: v('dd-btRisk'),
+    evRange: v('dd-btEV'),
+    conflictType: v('dd-btConflict'),
+    attributionTag: v('dd-btAttribution'),
     direction: 'all',
     aiConf: 'all',
     pkConf: 'all',
@@ -376,6 +427,11 @@ function fetchData() {
     aiConf: f.aiConf,
     pkConf: f.pkConf,
     consensus: f.consensus,
+    decisionLevel: f.decisionLevel,
+    riskLevel: f.riskLevel,
+    evRange: f.evRange,
+    conflictType: f.conflictType,
+    attributionTag: f.attributionTag,
     page: _btPage,
     pageSize: _btPageSize,
   })
@@ -435,27 +491,23 @@ function updateAllStats(stats) {
   }
   // PK
   var pk = stats.pk || {};
-  setText('pkTotal', (pk.total || 0).toLocaleString());
+  var judge = pk.judge || {};
+  var mainPick = findDecisionStat(judge, 'main_pick');
+  setText('pkTotal', (judge.validSamples || pk.total || 0).toLocaleString());
   setText('pkDirAcc', fmtPct(pk.direction_accuracy));
-  setText('pkHcpAcc', fmtPct(pk.hcp_accuracy) + ' (' + (pk.hcp_total || 0) + ')');
-  setText('pkGoalAcc', fmtPct(pk.goal_accuracy) + ' (' + (pk.goal_total || 0) + ')');
-  if (pk.byStars) {
-    var star5 =
-      pk.byStars.find(function (b) {
-        return b.stars === 5;
-      }) || {};
-    var star34 = pk.byStars.filter(function (b) {
-      return b.stars === 3 || b.stars === 4;
-    });
-    var s34t = 0,
-      s34h = 0;
-    star34.forEach(function (s) {
-      s34t += s.total;
-      s34h += s.hit;
-    });
-    setText('pkStar5', fmtPct(star5.rate || 0));
-    setText('pkStar34', fmtPct(s34t > 0 ? s34h / s34t : 0));
-  }
+  setText('pkMainROI', fmtROI(mainPick.roi));
+  setText('pkJudgeSamples', (judge.validSamples || 0) + ' / ' + (judge.settledSamples || 0));
+  setText('pkPositiveEVROI', fmtROI(judge.positiveEV ? judge.positiveEV.roi : 0));
+  setText('pkWatchAvoid', fmtPct(judge.watchAvoidance ? judge.watchAvoidance.avoidRate : 0));
+}
+
+function findDecisionStat(judge, code) {
+  var rows = (judge && judge.byDecisionLevel) || [];
+  return (
+    rows.find(function (x) {
+      return x.code === code;
+    }) || { total: 0, hit: 0, hitRate: 0, roi: 0 }
+  );
 }
 
 function setText(id, text) {
@@ -466,6 +518,12 @@ function setText(id, text) {
 function fmtPct(v) {
   if (v === undefined || v === null || isNaN(v)) return '-';
   return Math.round(v * 100) + '%';
+}
+
+function fmtROI(v) {
+  if (v === undefined || v === null || isNaN(v)) return '-';
+  var n = Number(v) * 100;
+  return (n > 0 ? '+' : '') + Math.round(n) + '%';
 }
 
 /* ═══════════════════════ ECharts Rendering ═══════════════════════ */
@@ -502,6 +560,8 @@ function renderChart(tab, ctype) {
     } else if (tab === 'pk') {
       if (ctype === 'calibration') {
         inst.setOption(Object.assign({}, baseOpt, pkCalibrationOption(_btStats)));
+      } else if (ctype === 'decision') {
+        inst.setOption(Object.assign({}, baseOpt, pkDecisionOption(_btStats)));
       } else if (ctype === 'stars') {
         inst.setOption(Object.assign({}, baseOpt, pkStarsOption(_btStats)));
       }
@@ -602,9 +662,20 @@ function gsBarOption(stats) {
     { name: '熔断', total: (cs.meltdown && cs.meltdown.total) || 0, rate: (cs.meltdown && cs.meltdown.rate) || 0 },
   ];
   // ★ 全零数据兜底：DB 无 pk_fusion_consensus 字段时显示提示
-  var allZero = items.every(function (d) { return d.total === 0; });
+  var allZero = items.every(function (d) {
+    return d.total === 0;
+  });
   if (allZero) {
-    return { title: { text: '暂无共识分类数据', subtext: 'prediction_logs 缺少 pk_fusion_consensus', left: 'center', top: 'center', textStyle: { color: '#64748B' }, subtextStyle: { color: '#475569', fontSize: 10 } } };
+    return {
+      title: {
+        text: '暂无共识分类数据',
+        subtext: 'prediction_logs 缺少 pk_fusion_consensus',
+        left: 'center',
+        top: 'center',
+        textStyle: { color: '#64748B' },
+        subtextStyle: { color: '#475569', fontSize: 10 },
+      },
+    };
   }
   var labels = items.map(function (d) {
     return d.name + '(' + d.total + '场)';
@@ -816,6 +887,55 @@ function pkCalibrationOption(stats) {
   };
 }
 
+/* ── PK 裁判验证：决策等级命中率 + ROI ── */
+function pkDecisionOption(stats) {
+  var rows = (stats && stats.pk && stats.pk.judge && stats.pk.judge.byDecisionLevel) || [];
+  if (!rows.length)
+    return { title: { text: '暂无决策等级数据', left: 'center', top: 'center', textStyle: { color: '#64748B' } } };
+  var labels = rows.map(function (r) {
+    return r.label + '(' + r.total + '场)';
+  });
+  var hitRates = rows.map(function (r) {
+    return ((r.hitRate || 0) * 100).toFixed(1);
+  });
+  var rois = rows.map(function (r) {
+    return ((r.roi || 0) * 100).toFixed(1);
+  });
+  return {
+    tooltip: {
+      trigger: 'axis',
+      formatter: function (params) {
+        var idx = params && params[0] ? params[0].dataIndex : 0;
+        var r = rows[idx] || {};
+        return (
+          r.label +
+          '<br/>样本: ' +
+          (r.total || 0) +
+          '<br/>命中率: ' +
+          ((r.hitRate || 0) * 100).toFixed(1) +
+          '%<br/>ROI: ' +
+          fmtROI(r.roi || 0) +
+          (r.sampleNote ? '<br/><span style="color:#d9b36c">' + r.sampleNote + '</span>' : '')
+        );
+      },
+    },
+    legend: { data: ['命中率', 'ROI'] },
+    grid: { left: 48, right: 24, top: 44, bottom: 36 },
+    xAxis: { type: 'category', data: labels, axisLabel: { fontSize: 10, color: '#64748B' } },
+    yAxis: { type: 'value', name: '%', axisLabel: { fontSize: 10, color: '#64748B' } },
+    series: [
+      {
+        name: '命中率',
+        type: 'bar',
+        data: hitRates,
+        itemStyle: { color: '#A78BFA', borderRadius: [5, 5, 0, 0] },
+        barMaxWidth: 28,
+      },
+      { name: 'ROI', type: 'line', data: rois, itemStyle: { color: '#5BD4C8' }, symbolSize: 7 },
+    ],
+  };
+}
+
 /* ── PK 柱状图：星级命中率 ── */
 function pkStarsOption(stats) {
   var stars = (stats && stats.pk && stats.pk.byStars) || [];
@@ -863,6 +983,7 @@ function renderList(list) {
   }
 
   var html =
+    (_btTab === 'pk' ? renderPKJudgeOverview(_btStats) : '') +
     '<div class="chart-box" style="margin-top:16px">' +
     '<div class="chart-header"><span class="chart-title">回测明细</span></div>' +
     '<table class="filter-detail-table"><thead><tr>' +
@@ -919,6 +1040,53 @@ function renderList(list) {
   el.innerHTML = html;
 }
 
+function renderPKJudgeOverview(stats) {
+  var judge = stats && stats.pk && stats.pk.judge ? stats.pk.judge : {};
+  var mainPick = findDecisionStat(judge, 'main_pick');
+  var playable = findDecisionStat(judge, 'playable');
+  var cautious = findDecisionStat(judge, 'cautious');
+  var positiveEV = judge.positiveEV || {};
+  var watch = judge.watchAvoidance || {};
+  var note =
+    mainPick.sampleNote || positiveEV.sampleNote || watch.sampleNote
+      ? '<div class="bt-pk-sample-note">样本不足时结论仅供观察，未结算样本不计入统计。</div>'
+      : '';
+  return (
+    '<div class="chart-box" id="btPKJudgePanel" style="margin-top:16px">' +
+    '<div class="chart-header"><span class="chart-title">PK裁判验证</span></div>' +
+    '<div class="bt-pk-judge-grid">' +
+    '<div class="bt-pk-judge-card"><b>主推</b><span>' +
+    fmtPct(mainPick.hitRate) +
+    '</span><em>ROI ' +
+    fmtROI(mainPick.roi) +
+    '｜' +
+    mainPick.total +
+    '场</em></div>' +
+    '<div class="bt-pk-judge-card"><b>可做/谨慎</b><span>' +
+    fmtPct(playable.hitRate) +
+    ' / ' +
+    fmtPct(cautious.hitRate) +
+    '</span><em>验证分层是否有效</em></div>' +
+    '<div class="bt-pk-judge-card"><b>正EV</b><span>' +
+    fmtROI(positiveEV.roi) +
+    '</span><em>' +
+    (positiveEV.total || 0) +
+    '场｜命中 ' +
+    fmtPct(positiveEV.hitRate) +
+    '</em></div>' +
+    '<div class="bt-pk-judge-card"><b>观望避坑</b><span>' +
+    fmtPct(watch.avoidRate) +
+    '</span><em>' +
+    (watch.avoided || 0) +
+    '/' +
+    (watch.total || 0) +
+    ' 场</em></div>' +
+    '</div>' +
+    note +
+    '</div>'
+  );
+}
+
 function buildPredictionItems(row) {
   var parts = [];
   var isGS = _btTab === 'gs';
@@ -962,8 +1130,9 @@ function buildPredictionItems(row) {
   }
 
   // PK prediction
-  if (row.pk_direction) {
+  if (row.pk_direction || row.pk_final_direction || row.pk_decision_level) {
     var dimClass3 = isPK ? '' : ' bt-pred-dim';
+    var finalDir = row.pk_final_direction === 'watch' ? '观望' : row.pk_final_direction || row.pk_direction || '观望';
     var extra = '';
     if (isPK && row.pk_direction_stars) extra = ' ' + '★'.repeat(row.pk_direction_stars);
     if (isPK && row.pk_composite_score) extra += ' ' + Math.round(row.pk_composite_score) + '分';
@@ -973,16 +1142,75 @@ function buildPredictionItems(row) {
         '">' +
         '<span class="pred-label">PK</span>' +
         '<span class="pred-val ' +
-        (row.pk_hit ? 'pred-hit' : 'pred-miss') +
+        (row.pk_judge_hit ? 'pred-hit' : 'pred-miss') +
         '">' +
-        esc(row.pk_direction) +
+        esc(finalDir) +
         extra +
-        (row.pk_hit ? ' ✓' : ' ✕') +
+        (row.pk_final_direction === 'watch' ? ' ⏸' : row.pk_judge_hit ? ' ✓' : ' ✕') +
         '</span></div>',
     );
+    if (isPK) parts.push(renderPKSnapshot(row));
   }
 
   return parts;
+}
+
+function renderPKSnapshot(row) {
+  var tags = Array.isArray(row.pk_risk_tags) ? row.pk_risk_tags : [];
+  var reasons = Array.isArray(row.pk_degrade_reasons) ? row.pk_degrade_reasons : [];
+  var attrs = Array.isArray(row.pk_attribution_tags) ? row.pk_attribution_tags : [];
+  var chips = tags.length
+    ? tags
+        .slice(0, 3)
+        .map(function (t) {
+          return '<span class="bt-pk-chip">' + esc(t) + '</span>';
+        })
+        .join('')
+    : '<span class="bt-pk-chip ok">低风险</span>';
+  var reasonText = reasons.length ? reasons.join('、') : '无强制降级原因';
+  var attrChips = attrs.length
+    ? attrs
+        .slice(0, 4)
+        .map(function (t) {
+          return '<span class="bt-pk-chip attr">' + esc(t) + '</span>';
+        })
+        .join('')
+    : '<span class="bt-pk-chip ok">归因待积累</span>';
+  return (
+    '<div class="bt-pk-snapshot">' +
+    '<div><b>赛前裁判</b>：' +
+    esc(row.pk_decision_level || '观望') +
+    '｜风险 ' +
+    esc(row.pk_risk_level || '-') +
+    '｜EV ' +
+    (row.pk_selected_ev == null ? '-' : Number(row.pk_selected_ev).toFixed(3)) +
+    '｜ROI ' +
+    fmtROI(row.pk_unit_roi) +
+    '｜快照 ' +
+    esc(row.pk_snapshot_status || '-') +
+    '</div>' +
+    '<div>' +
+    esc(row.pk_decision_narrative || 'PK裁判：暂无复盘说明') +
+    '</div>' +
+    '<div>' +
+    chips +
+    '</div>' +
+    '<div><b>降级原因</b>：' +
+    esc(reasonText) +
+    '</div>' +
+    '<div><b>归因标签</b>：' +
+    attrChips +
+    '</div>' +
+    '<div><b>分歧类型</b>：' +
+    esc(row.pk_conflict_type || '-') +
+    '</div>' +
+    '<div><b>赛后结果</b>：' +
+    esc(row.actual_spf || '-') +
+    ' / ' +
+    esc(row.actual_score || '-') +
+    '</div>' +
+    '</div>'
+  );
 }
 
 /* ═══════════════════════ Pagination ═══════════════════════ */

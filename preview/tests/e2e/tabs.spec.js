@@ -2,6 +2,11 @@
 // E2E: TabBar 5 个标签页 (home / match / rank / hit / plan)
 // ============================================================
 const { test, expect } = require('@playwright/test');
+const { ensureE2EAuth } = require('./helpers/auth');
+
+test.beforeEach(async ({ page }) => {
+  await ensureE2EAuth(page);
+});
 
 // 辅助：点击 TabBar 按钮并等待内容渲染
 async function clickTab(page, tabName) {

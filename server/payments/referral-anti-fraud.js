@@ -20,7 +20,7 @@ async function antiFraudCheck(inviteeUserId, paymentOrderId) {
     const order = adp.execOne(
       `SELECT po.user_id, u.referred_by FROM payment_orders po
        JOIN users u ON u.id = po.user_id WHERE po.id = ?`,
-      [paymentOrderId]
+      [paymentOrderId],
     );
     if (!order || !order.referred_by) return { passed: false, reason: 'missing_referral_data' };
 
@@ -30,7 +30,7 @@ async function antiFraudCheck(inviteeUserId, paymentOrderId) {
        WHERE id IN (?, ?) AND device_fingerprint IS NOT NULL
        AND device_fingerprint = (SELECT device_fingerprint FROM users WHERE id = ? LIMIT 1)
        AND id != ?`,
-      [order.user_id, order.referred_by, order.user_id, order.referred_by]
+      [order.user_id, order.referred_by, order.user_id, order.referred_by],
     );
     if (sameDevice && sameDevice.cnt > 0) {
       console.warn(`[anti-fraud] 自邀请检测命中: invitee=${order.user_id}, inviter=${order.referred_by}`);
@@ -43,7 +43,7 @@ async function antiFraudCheck(inviteeUserId, paymentOrderId) {
        WHERE id IN (?, ?) AND registration_ip IS NOT NULL
        AND registration_ip = (SELECT registration_ip FROM users WHERE id = ? LIMIT 1)
        AND id != ?`,
-      [order.user_id, order.referred_by, order.user_id, order.referred_by]
+      [order.user_id, order.referred_by, order.user_id, order.referred_by],
     );
     if (sameIp && sameIp.cnt > 0) {
       console.warn(`[anti-fraud] 同IP检测命中: invitee=${order.user_id}, inviter=${order.referred_by}`);

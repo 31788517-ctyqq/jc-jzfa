@@ -86,8 +86,13 @@ async function createOrder(req, res) {
     if (!userId) return res.json({ code: 401, msg: 'AUTH_REQUIRED' });
 
     const payload = getPayload(req);
-    const { plan_code, coupon_code } = payload;
+    const { plan_code, coupon_code, amount } = payload;
     if (!plan_code) return res.json({ code: 400, msg: 'MISSING_PLAN_CODE' });
+
+    // ★ 安全加固：拒绝负数/零金额
+    if (amount !== undefined && amount !== null && amount <= 0) {
+      return res.json({ code: 400, msg: 'INVALID_AMOUNT' });
+    }
 
     const plan = getPlanInfo(plan_code);
     if (!plan) return res.json({ code: 400, msg: 'INVALID_PLAN_CODE' });

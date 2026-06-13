@@ -5,7 +5,7 @@ import { getAuthToken, clearAuthAll } from './auth-client.js';
 var _pendingRequests = {};
 
 export function api(action, data = {}, retries = 2) {
-  var reqKey = action + ':' + JSON.stringify(data || {});
+  var reqKey = action + ':' + JSON.stringify(data || {}) + ':r' + retries;
   if (_pendingRequests[reqKey]) return _pendingRequests[reqKey];
 
   const ctrl = new AbortController();
@@ -49,7 +49,9 @@ export function api(action, data = {}, retries = 2) {
 
   // ★ P0: 请求去重 — 缓存 pending promise，完成后自动清除
   _pendingRequests[reqKey] = pending;
-  var cleanup = function () { delete _pendingRequests[reqKey]; };
+  var cleanup = function () {
+    delete _pendingRequests[reqKey];
+  };
   pending.then(cleanup, cleanup);
   return pending;
 }

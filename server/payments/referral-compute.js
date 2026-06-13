@@ -22,7 +22,7 @@ async function computeCommission(inviteeUserId, paidAmount) {
   const paymentCount = adp.execOne(
     `SELECT COUNT(*) as cnt FROM referral_commissions 
      WHERE invitee_user_id = ? AND status != 'cancelled'`,
-    [inviteeUserId]
+    [inviteeUserId],
   );
 
   // 2. 确定本次是第几次付费（1-based）
@@ -33,7 +33,7 @@ async function computeCommission(inviteeUserId, paidAmount) {
   const rate = rateMap[paymentIndex] || 60;
 
   // 4. 计算返利金额（分），向下取整
-  const commissionAmount = Math.floor(paidAmount * rate / 100);
+  const commissionAmount = Math.floor((paidAmount * rate) / 100);
 
   return { paymentIndex, rate, commissionAmount };
 }
@@ -56,7 +56,7 @@ async function onPaymentSuccess(paymentOrderId, userId) {
          FROM payment_orders po
          JOIN users u ON u.id = po.user_id
          WHERE po.id = ? AND po.user_id = ? AND po.pay_status = 'paid'`,
-        [paymentOrderId, userId]
+        [paymentOrderId, userId],
       );
     } else {
       order = adp.execOne(
@@ -64,7 +64,7 @@ async function onPaymentSuccess(paymentOrderId, userId) {
          FROM payment_orders po
          JOIN users u ON u.id = po.user_id
          WHERE po.id = ? AND po.pay_status = 'paid'`,
-        [paymentOrderId]
+        [paymentOrderId],
       );
     }
 
@@ -79,22 +79,19 @@ async function onPaymentSuccess(paymentOrderId, userId) {
     if (!fraudCheck.passed) return { triggered: false, reason: fraudCheck.reason };
 
     // 3. 幂等检查：此订单是否已计算过返利
-    const existing = adp.execOne(
-      `SELECT id FROM referral_commissions WHERE payment_order_id = ?`,
-      [paymentOrderId]
-    );
+    const existing = adp.execOne(`SELECT id FROM referral_commissions WHERE payment_order_id = ?`, [paymentOrderId]);
     if (existing) return { triggered: false, reason: 'already_computed' };
 
     // 4. 计算返利比例
     const { paymentIndex, rate, commissionAmount } = await computeCommission(
-      order.user_id,  // invitee
-      order.amount
+      order.user_id, // invitee
+      order.amount,
     );
 
     // 5. 写入返利记录
     const subscription = adp.execOne(
       `SELECT id FROM user_subscriptions WHERE transaction_id = ? ORDER BY id DESC LIMIT 1`,
-      [order.transaction_id]
+      [order.transaction_id],
     );
 
     adp.execRun(
@@ -102,15 +99,23 @@ async function onPaymentSuccess(paymentOrderId, userId) {
        (inviter_user_id, invitee_user_id, payment_order_id, subscription_id,
         payment_index, commission_rate, payment_amount, commission_amount, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-      [order.referred_by, order.user_id, paymentOrderId,
-       subscription?.id || null, paymentIndex, rate, order.amount, commissionAmount]
+      [
+        order.referred_by,
+        order.user_id,
+        paymentOrderId,
+        subscription?.id || null,
+        paymentIndex,
+        rate,
+        order.amount,
+        commissionAmount,
+      ],
     );
 
     // 6. 更新邀请人账户
     const isFirstCommission = adp.execOne(
       `SELECT COUNT(*) as cnt FROM referral_commissions 
        WHERE inviter_user_id = ? AND invitee_user_id = ? AND status != 'cancelled'`,
-      [order.referred_by, order.user_id]
+      [order.referred_by, order.user_id],
     );
     const isNewInvitee = (isFirstCommission?.cnt || 0) <= 1;
 
@@ -122,12 +127,12 @@ async function onPaymentSuccess(paymentOrderId, userId) {
          total_commissions = total_commissions + 1,
          total_invitees = total_invitees + ?,
          updated_at = datetime('now','localtime')`,
-      [order.referred_by, commissionAmount, isNewInvitee ? 1 : 0, commissionAmount, isNewInvitee ? 1 : 0]
+      [order.referred_by, commissionAmount, isNewInvitee ? 1 : 0, commissionAmount, isNewInvitee ? 1 : 0],
     );
 
     console.log(
       `[referral] 返利已计算: inviter=${order.referred_by}, invitee=${order.user_id}, ` +
-      `index=${paymentIndex}, rate=${rate}%, commission=${commissionAmount}分`
+        `index=${paymentIndex}, rate=${rate}%, commission=${commissionAmount}分`,
     );
 
     return {
@@ -154,7 +159,7 @@ async function onPaymentRefunded(paymentOrderId) {
   adp.execRun(
     `UPDATE referral_commissions SET status = 'cancelled', remark = '订单已退款'
      WHERE payment_order_id = ? AND status = 'pending'`,
-    [paymentOrderId]
+    [paymentOrderId],
   );
   console.log(`[referral] 退款已取消返利: order=${paymentOrderId}`);
 }

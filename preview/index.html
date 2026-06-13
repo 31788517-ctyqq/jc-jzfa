@@ -8,16 +8,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>竞彩推荐监控</title>
     <link rel="preconnect" href="https://zj.100qiu.com" />
-    <link rel="modulepreload" href="/js/main-fusion.js?v=202606121839" />
+    <link rel="modulepreload" href="/js/main-fusion.js?v=202606131900" />
     <!-- ★ P0: 5 底栏 tab 页面模块预加载 — 浏览器解析 HTML 时就开始下载 -->
-    <link rel="modulepreload" href="/js/pages/home.js?v=202606131200" />
+    <link rel="modulepreload" href="/js/pages/home.js?v=202606131900" />
     <link rel="modulepreload" href="/js/pages/match-list.js?v=202606101015" />
     <link rel="modulepreload" href="/js/pages/ranking.js?v=202606130910" />
     <link rel="modulepreload" href="/js/pages/hit-rate.js?v=202606130910" />
     <link rel="modulepreload" href="/js/pages/plans.js?v=202606130910" />
 
-    <link rel="preload" href="/css/app.css?v=202606131610" as="style" />
-    <link rel="stylesheet" href="/css/app.css?v=202606131610" />
+    <link rel="preload" href="/css/app.css?v=202606131900" as="style" />
+    <link rel="stylesheet" href="/css/app.css?v=202606131900" />
 
 
 
@@ -25,14 +25,14 @@
     <!-- ★ P1-5: 非首屏弹窗样式异步加载，不阻塞 FCP -->
     <link
       rel="stylesheet"
-      href="/css/modals.css?v=202606130037"
+      href="/css/modals.css?v=202606131900"
       media="print"
       onload="
         this.media = 'all';
         this.onload = null;
       "
     />
-    <noscript><link rel="stylesheet" href="/css/modals.css?v=202606130037" /></noscript>
+    <noscript><link rel="stylesheet" href="/css/modals.css?v=202606131900" /></noscript>
     <link
       rel="stylesheet"
       href="/css/betting.css?v=202606120300"
@@ -116,6 +116,8 @@
       <div class="home-banner">
         <img src="/assets/worldcup/banner3.webp" alt="世界杯首页横幅" decoding="async" loading="eager" />
       </div>
+
+      <div class="home-today-brief" id="homeTodayBrief">今日 0 场｜机会 0</div>
 
       <!-- Stats -->
       <div class="home-stats">
@@ -522,7 +524,7 @@
       console.log('[INLINE-MODULE] loaded OK');
       window.inlineModuleWorks = true;
     </script>
-    <script type="module" src="/js/main-fusion.js?v=202606121330"></script>
+    <script type="module" src="/js/main-fusion.js?v=202606131900"></script>
 
     <!-- V5.0-FUSION-PK final-202605311423 -->
   </body>

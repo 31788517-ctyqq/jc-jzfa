@@ -3,6 +3,8 @@ import { API } from '../utils.js';
 export function loadHitRate() {
   const el = document.getElementById('hitContent');
   if (!el) return;
+  el.classList.remove('page-skeleton');
+  el.classList.add('hit-content');
 
   // 立即显示骨架屏（带色块，减少白屏感知）
   el.innerHTML = `
@@ -123,7 +125,9 @@ function renderHitRate(el, data) {
   `;
 
   // 过滤掉命中率 0% 的方向
-  const nonZeroDirections = data.directionStats.filter(function (d) { return d.hitRate > 0; });
+  const nonZeroDirections = data.directionStats.filter(function (d) {
+    return d.hitRate > 0;
+  });
   const top10 = nonZeroDirections.slice(0, 10);
   let rankHTML = `<div class="hit-ranking-card" style="animation: fadeUp 0.4s ease;">
     <div class="hit-ranking-title">各方向命中排名</div>`;

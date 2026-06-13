@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { ensureE2EAuth } = require('./helpers/auth');
 
 function monitorRuntime(page) {
   const pageErrors = [];
@@ -50,6 +51,10 @@ async function switchPlanSubTab(page, tabId) {
 }
 
 test.describe('关键业务链路', () => {
+  test.beforeEach(async ({ page }) => {
+    await ensureE2EAuth(page);
+  });
+
   test('今日方案可见标签页有卡片时都应带分享按钮', async ({ page }) => {
     const runtime = monitorRuntime(page);
     await openHome(page);

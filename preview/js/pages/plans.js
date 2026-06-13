@@ -62,7 +62,7 @@ function guardPlanData(plans) {
   plans.forEach(function (p) {
     // 奖金保护
     if (p.winningPrize === undefined || p.winningPrize === null || isNaN(p.winningPrize)) {
-      p.winningPrize = p.isPlanWon === true ? (p.maxPrize || 0) : 0;
+      p.winningPrize = p.isPlanWon === true ? p.maxPrize || 0 : 0;
     }
     if (p.winningPrize > p.maxPrize && p.maxPrize > 0) p.winningPrize = p.maxPrize;
     if (p.isPlanWon === true && p.winningPrize === 0 && p.maxPrize > 0) p.winningPrize = p.maxPrize;

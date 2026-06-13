@@ -122,7 +122,7 @@ function render() {
   var amount = _planData.planAmount != null ? _planData.planAmount : baseAmount;
   // ★ 若从奖金优化弹窗带回了预计奖金，直接用它（弹窗内已正确计算）
   var calcWin = _planData.optimizedMaxWin != null ? _planData.optimizedMaxWin : calcMaxWin(amount);
-  var maxWin = (typeof calcWin === 'number') ? calcWin : calcWin;
+  var maxWin = typeof calcWin === 'number' ? calcWin : calcWin;
   // P1+P2: 分层赔率数据（calcMaxWin 附加属性）
   var passOdds = calcWin._passOdds || {};
   var bestProduct = calcWin._bestProduct || 1;
@@ -509,7 +509,12 @@ function renderBottomBar(bets, amount, maxWin, uniqueCount) {
     var pKeys = Object.keys(maxWin._passOdds);
     if (pKeys.length > 1) {
       winText += '（' + (maxWin._bestProductK || '') + '关最优）';
-      pdTooltip = pKeys.map(function(k){var p=maxWin._passOdds[k];return k+'关: '+p.maxWinPerNote+'元';}).join('\n');
+      pdTooltip = pKeys
+        .map(function (k) {
+          var p = maxWin._passOdds[k];
+          return k + '关: ' + p.maxWinPerNote + '元';
+        })
+        .join('\n');
     }
   }
   html += '<span class="cfm-bb-maxwin"' + (pdTooltip ? ' title="' + pdTooltip + '"' : '') + '>' + winText + '</span>';
@@ -608,12 +613,21 @@ function calcMaxWin(amount) {
 
   _passTypes.forEach(function (k) {
     if (k > n) return;
-    var sorted = matchIds.map(function (mid) { return maxOddsPerMatch[mid]; }).sort(function (a, b) { return b - a; });
+    var sorted = matchIds
+      .map(function (mid) {
+        return maxOddsPerMatch[mid];
+      })
+      .sort(function (a, b) {
+        return b - a;
+      });
     var product = 1;
     for (var i = 0; i < k; i++) product *= sorted[i];
     product = Math.round(product * 100) / 100;
     passOdds[k] = { bestProduct: product, maxWinPerNote: Math.round(singleBetAmount * product * 100) / 100 };
-    if (product > bestProduct) { bestProduct = product; bestProductK = k; }
+    if (product > bestProduct) {
+      bestProduct = product;
+      bestProductK = k;
+    }
   });
 
   var maxWin = singleBetAmount > 0 ? Math.round(singleBetAmount * bestProduct * 100) / 100 : 0;
@@ -967,7 +981,7 @@ window.confirmSavePlan = function () {
   var baseAmount = baseBets * 2 * _multiplier;
   var amount = _planData.planAmount != null ? _planData.planAmount : baseAmount;
   var calcWin = _planData.optimizedMaxWin != null ? _planData.optimizedMaxWin : calcMaxWin(amount);
-  var maxWin = (typeof calcWin === 'number') ? calcWin : calcWin;
+  var maxWin = typeof calcWin === 'number' ? calcWin : calcWin;
   // P1+P2: 分层赔率数据（calcMaxWin 附加属性）
   var passOdds = calcWin._passOdds || {};
   var bestProduct = calcWin._bestProduct || 1;
@@ -1037,8 +1051,8 @@ window.confirmSavePlan = function () {
         return acc;
       }, {}),
     ).length,
-    totalOdds: bets > 0 ? Math.round((maxWin / (bets * 2)) * 100) / 100 : 0,  // P1: 单注平均回报比
-    passOdds: passOdds,  // P1+P2: 分层赔率 {2:{bestProduct, maxWinPerNote}, 3:{...}}
+    totalOdds: bets > 0 ? Math.round((maxWin / (bets * 2)) * 100) / 100 : 0, // P1: 单注平均回报比
+    passOdds: passOdds, // P1+P2: 分层赔率 {2:{bestProduct, maxWinPerNote}, 3:{...}}
     isWon: null,
     resultIncome: null,
   };

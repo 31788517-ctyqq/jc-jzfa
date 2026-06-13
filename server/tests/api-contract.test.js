@@ -35,6 +35,7 @@ const ACTION_MATRIX = {
     'prediction-fusion',
     'model-dashboard',
     'data-health',
+    'verify-results',
     'experiment-compare',
     'batch-consensus',
     'daily-profit-7d',

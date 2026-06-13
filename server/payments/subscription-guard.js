@@ -52,10 +52,7 @@ function refreshSessionStatus(authSession, userId) {
     const adp = database.getAdapter();
     if (!adp) return authSession;
 
-    const user = adp.execOne(
-      `SELECT subscription_status, subscription_expires_at FROM users WHERE id = ?`,
-      [userId]
-    );
+    const user = adp.execOne(`SELECT subscription_status, subscription_expires_at FROM users WHERE id = ?`, [userId]);
     if (user) {
       authSession.subscription_status = user.subscription_status;
       authSession.subscription_expires_at = user.subscription_expires_at;

@@ -30,8 +30,8 @@ function normalizeMatchKey(match) {
   // 归一化队名：去让球标记、统一大小写、去空格
   function cleanTeamName(name) {
     return name
-      .replace(/\s*\(\+?\d+\)\s*/g, '')   // 去让球 "(+2)" "(-1)"
-      .replace(/\s*\[.*?\]\s*/g, '')       // 去方括号标注
+      .replace(/\s*\(\+?\d+\)\s*/g, '') // 去让球 "(+2)" "(-1)"
+      .replace(/\s*\[.*?\]\s*/g, '') // 去方括号标注
       .trim();
   }
 
@@ -58,12 +58,7 @@ function normalizeMatchKey(match) {
 function tokenize(name) {
   if (!name) return [];
   // 常见后缀/前缀
-  var clean = name
-    .replace(/队$/g, '')
-    .replace(/城$/g, '')
-    .replace(/联$/g, '')
-    .replace(/斯$/g, '')
-    .replace(/亚$/g, '');
+  var clean = name.replace(/队$/g, '').replace(/城$/g, '').replace(/联$/g, '').replace(/斯$/g, '').replace(/亚$/g, '');
   // 2-gram 分词
   var tokens = [];
   for (var i = 0; i < clean.length - 1; i++) {
@@ -94,7 +89,10 @@ function matchTeams(name1, name2) {
   var matched = 0;
   for (var i = 0; i < t1.length; i++) {
     for (var j = 0; j < t2.length; j++) {
-      if (t1[i] === t2[j]) { matched++; break; }
+      if (t1[i] === t2[j]) {
+        matched++;
+        break;
+      }
     }
   }
   var maxLen = Math.max(t1.length, t2.length);
@@ -176,7 +174,7 @@ function voteScore(entries) {
     return {
       score: e.score || '',
       halfScore: e.halfScore || '',
-      status: e.matchStatus != null ? e.matchStatus : (e._raw ? e._raw.matchStatus : 0),
+      status: e.matchStatus != null ? e.matchStatus : e._raw ? e._raw.matchStatus : 0,
       confidence: 0.33,
       totalSources: 1,
       votes: {},
@@ -186,7 +184,7 @@ function voteScore(entries) {
   }
 
   // 多源投票
-  var scores = {};   // { '1-1': [source1, source2], '0-1': [source1] }
+  var scores = {}; // { '1-1': [source1, source2], '0-1': [source1] }
   var halves = {};
   var statuses = {};
   var sourceSet = {};
@@ -198,7 +196,7 @@ function voteScore(entries) {
 
     var sc = raw.score || '';
     var hs = raw.halfScore || raw.half_score || '';
-    var st = raw.matchStatus != null ? raw.matchStatus : (raw.matchStatus !== undefined ? raw.matchStatus : 0);
+    var st = raw.matchStatus != null ? raw.matchStatus : raw.matchStatus !== undefined ? raw.matchStatus : 0;
 
     if (sc) {
       if (!scores[sc]) scores[sc] = [];
@@ -216,7 +214,8 @@ function voteScore(entries) {
   });
 
   function pickWinner(votesMap) {
-    var best = '', bestCount = 0;
+    var best = '',
+      bestCount = 0;
     Object.keys(votesMap).forEach(function (k) {
       if (votesMap[k].length > bestCount) {
         best = k;

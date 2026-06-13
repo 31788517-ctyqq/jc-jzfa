@@ -30,7 +30,7 @@ async function runRenewalCheck() {
       `SELECT us.*, u.username FROM user_subscriptions us
        JOIN users u ON u.id = us.user_id
        WHERE us.status = 'active' AND us.end_date = ?`,
-      [today]
+      [today],
     );
 
     for (const sub of expiringSoon) {
@@ -38,12 +38,9 @@ async function runRenewalCheck() {
       adp.execRun(
         `UPDATE user_subscriptions SET status = 'expiring_soon', updated_at = datetime('now','localtime')
          WHERE id = ?`,
-        [sub.id]
+        [sub.id],
       );
-      adp.execRun(
-        `UPDATE users SET subscription_status = 'expiring_soon' WHERE id = ?`,
-        [sub.user_id]
-      );
+      adp.execRun(`UPDATE users SET subscription_status = 'expiring_soon' WHERE id = ?`, [sub.user_id]);
 
       // TODO: 发送站内通知
       // await sendNotification(sub.user_id, 'subscription_expiring', { end_date: sub.end_date });
@@ -55,7 +52,7 @@ async function runRenewalCheck() {
       `SELECT us.*, u.username FROM user_subscriptions us
        JOIN users u ON u.id = us.user_id
        WHERE us.status = 'active' AND us.end_date = ? AND us.auto_renew = 1`,
-      [threeDaysLater]
+      [threeDaysLater],
     );
 
     for (const sub of needRemind) {
@@ -66,23 +63,22 @@ async function runRenewalCheck() {
     // 3. 宽限期（expiring_soon）超过 3 天 → 标记为 expired
     const expired = adp.execAll(
       `SELECT us.* FROM user_subscriptions us
-       WHERE us.status = 'expiring_soon' AND date(us.end_date, '+3 days') < date('now')`
+       WHERE us.status = 'expiring_soon' AND date(us.end_date, '+3 days') < date('now')`,
     );
 
     for (const sub of expired) {
       adp.execRun(
         `UPDATE user_subscriptions SET status = 'expired', updated_at = datetime('now','localtime')
          WHERE id = ?`,
-        [sub.id]
+        [sub.id],
       );
-      adp.execRun(
-        `UPDATE users SET subscription_status = 'expired' WHERE id = ?`,
-        [sub.user_id]
-      );
+      adp.execRun(`UPDATE users SET subscription_status = 'expired' WHERE id = ?`, [sub.user_id]);
       console.log(`[renewal-scheduler] 用户 ${sub.user_id} 订阅已过期`);
     }
 
-    console.log(`[renewal-scheduler] 检查完成: expiring=${expiringSoon.length}, remind=${needRemind.length}, expired=${expired.length}`);
+    console.log(
+      `[renewal-scheduler] 检查完成: expiring=${expiringSoon.length}, remind=${needRemind.length}, expired=${expired.length}`,
+    );
   } catch (e) {
     console.error('[renewal-scheduler] 检查失败:', e.message);
   }

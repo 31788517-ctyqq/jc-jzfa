@@ -40,6 +40,45 @@ function resolveHottestTarget(hottest, matches) {
   };
 }
 
+function isOpportunityRankItem(item) {
+  if (!item) return false;
+  var level = String(
+    item.decisionLevel || item.finalDecision || item.finalLevel || item.recommendLevel || '',
+  ).toLowerCase();
+  if (!level) return false;
+  return /main_pick|playable|main|strong|主推|可做/.test(level);
+}
+
+function countHomeOpportunities(ranking) {
+  if (!Array.isArray(ranking) || ranking.length === 0) return 0;
+  var hasDecisionLevel = ranking.some(function (item) {
+    return !!(item && (item.decisionLevel || item.finalDecision || item.finalLevel || item.recommendLevel));
+  });
+  if (!hasDecisionLevel) return ranking.length;
+  return ranking.filter(isOpportunityRankItem).length;
+}
+
+function isExplicitRiskRankItem(item) {
+  if (!item) return false;
+  var riskLevel = String(item.riskLevel || item.risk || '').toLowerCase();
+  if (/red|high|高/.test(riskLevel)) return true;
+  if (String(item.fusionConsensus || '').toLowerCase() === 'meltdown') return true;
+  if (Array.isArray(item.riskTags) && item.riskTags.length > 0) return true;
+  if (Array.isArray(item.degradeReasons) && item.degradeReasons.length > 0) return true;
+  return false;
+}
+
+function updateHomeTodayBrief(matchCount, ranking) {
+  var el = document.getElementById('homeTodayBrief');
+  if (!el) return;
+  var safeMatchCount = Number.isFinite(Number(matchCount)) ? Number(matchCount) : 0;
+  var opportunityCount = countHomeOpportunities(ranking);
+  var riskCount = Array.isArray(ranking) ? ranking.filter(isExplicitRiskRankItem).length : 0;
+  var text = '今日 ' + safeMatchCount + ' 场｜机会 ' + opportunityCount;
+  if (riskCount > 0) text += '｜风险 ' + riskCount;
+  el.textContent = text;
+}
+
 window.goHomeHottestMatch = function () {
   var target = window.__homeHottestTarget || null;
   try {
@@ -66,9 +105,13 @@ function cacheHomeMatches(matches) {
 function _renderHomeStats(matches, rankData) {
   cacheHomeMatches(matches);
 
+  var ranking = Array.isArray(rankData.ranking) ? rankData.ranking : [];
+
   // 今日比赛
+  var matchCount = Array.isArray(matches) ? matches.length : 0;
+  updateHomeTodayBrief(matchCount, ranking);
   var mcEl = document.getElementById('homeMatchCount');
-  if (mcEl) mcEl.textContent = Array.isArray(matches) ? String(matches.length) : '0';
+  if (mcEl) mcEl.textContent = String(matchCount);
   var liveCount = Array.isArray(matches)
     ? matches.filter(function (m) {
         var status = String(m.matchStatus || m.status || m.state || '').toLowerCase();
@@ -82,7 +125,6 @@ function _renderHomeStats(matches, rankData) {
   var mrEl = document.getElementById('homeMaxRank');
   var topExpertCount = rankData.topExpertCount || 0;
   if (mrEl) mrEl.textContent = topExpertCount;
-  var ranking = Array.isArray(rankData.ranking) ? rankData.ranking : [];
   var topRank = ranking.length > 0 ? ranking[0] : null;
   var maxRankMetaEl = document.getElementById('homeMaxRankMeta');
   if (maxRankMetaEl) {

@@ -2,6 +2,11 @@
 // E2E: 首页 + 预测回测页
 // ============================================================
 const { test, expect } = require('@playwright/test');
+const { ensureE2EAuth } = require('./helpers/auth');
+
+test.beforeEach(async ({ page }) => {
+  await ensureE2EAuth(page);
+});
 
 test.describe('首页', () => {
   test('首页正常加载', async ({ page }) => {

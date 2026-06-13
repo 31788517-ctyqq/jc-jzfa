@@ -339,6 +339,102 @@ function computeAllScores(list) {
 }
 
 // ═══════════════════════════════════════
+//  裁判层标准字段（M2 开发落地）
+// ═══════════════════════════════════════
+
+function normalizeFinalDirection(dir) {
+  var text = String(dir || '').trim();
+  if (!text || /观望|避开|数据不足/.test(text)) return 'watch';
+  return text;
+}
+
+function resolveExpectedValue(advice) {
+  if (!advice || !advice.ev) return null;
+  var dir = String(advice.dir || '');
+  if (dir.indexOf('主胜') === 0) return advice.ev.evHome;
+  if (dir.indexOf('客胜') === 0) return advice.ev.evAway;
+  if (dir.indexOf('平') === 0) return advice.ev.evDraw;
+  return null;
+}
+
+function buildDecisionNarrative(advice, decisionLevel, riskLevel, degradeReasons) {
+  var dirText = normalizeFinalDirection(advice && advice.dir) === 'watch' ? '观望' : advice.dir;
+  var riskText = riskLevel === 'red' ? '高' : riskLevel === 'yellow' ? '中' : '低';
+  var reason = (advice && advice.desc) || '基于 PK 综合评分输出';
+  var text = 'PK裁判：' + dirText + '，评级' + decisionLevel + '，风险' + riskText + '。理由：' + reason;
+  if (Array.isArray(degradeReasons) && degradeReasons.length > 0) text += '；降级原因：' + degradeReasons.join('、');
+  return text;
+}
+
+function applyStandardDecisionFields(scored, advice) {
+  var item = (scored && scored.item) || {};
+  var riskTags = [];
+  var degradeReasons = [];
+  var expectedValue = resolveExpectedValue(advice);
+  var stars = Math.max(0, Math.min(5, parseInt((advice && advice.stars) || 0, 10) || 0));
+  var finalDirection = normalizeFinalDirection(advice && advice.dir);
+
+  if (item.fusionConsensus === 'meltdown') {
+    riskTags.push('模型熔断');
+    degradeReasons.push('功守道融合熔断，禁止主推');
+  }
+  if (advice && advice.heatZ && advice.heatZ.isOverheat) {
+    riskTags.push('热度过高');
+    degradeReasons.push('热度过高，建议降级观察');
+  }
+  if (advice && advice.valueTag === '⚠️负期望') {
+    riskTags.push('负期望');
+    degradeReasons.push('EV 为负，不升为主推');
+  }
+  if (item.dataAge > 240) {
+    riskTags.push('数据陈旧');
+    degradeReasons.push('数据更新时间超过 240 分钟');
+  } else if (item.dataAge > 120) {
+    riskTags.push('数据偏旧');
+    degradeReasons.push('数据更新时间超过 120 分钟');
+  }
+  if (scored && scored.verificationScore < 70) {
+    riskTags.push('验证分偏低');
+    degradeReasons.push('盘口/交叉验证分偏低');
+  }
+  if (finalDirection === 'watch') {
+    riskTags.push('建议观望');
+  }
+
+  var riskLevel = 'green';
+  if (item.fusionConsensus === 'meltdown' || finalDirection === 'watch' || riskTags.length >= 3) riskLevel = 'red';
+  else if (riskTags.length > 0 || stars <= 2) riskLevel = 'yellow';
+
+  var decisionLevel = '观望';
+  if (finalDirection !== 'watch') {
+    if (stars >= 5) decisionLevel = '主推';
+    else if (stars >= 3) decisionLevel = '可做';
+    else if (stars >= 2) decisionLevel = '谨慎';
+  }
+  if (decisionLevel === '主推' && degradeReasons.length > 0) decisionLevel = '可做';
+  if (item.fusionConsensus === 'meltdown' && decisionLevel !== '观望') decisionLevel = '谨慎';
+
+  advice.playType = advice.playType || 'spf';
+  advice.finalDirection = finalDirection;
+  advice.decisionLevel = decisionLevel;
+  advice.riskLevel = riskLevel;
+  advice.riskTags = riskTags;
+  advice.degradeReasons = degradeReasons;
+  advice.decisionNarrative = buildDecisionNarrative(advice, decisionLevel, riskLevel, degradeReasons);
+  advice.expectedValue = expectedValue;
+  advice.valueEdge = null;
+  advice.finalDecision =
+    decisionLevel === '主推'
+      ? 'main_pick'
+      : decisionLevel === '可做'
+        ? 'playable'
+        : decisionLevel === '谨慎'
+          ? 'cautious'
+          : 'watch';
+  return advice;
+}
+
+// ═══════════════════════════════════════
 //  方向推荐（从前端迁移）
 // ═══════════════════════════════════════
 
@@ -489,7 +585,7 @@ function getDirectionAdvice(scored, ranked) {
   // ═══ V2.0 P5: 联赛热度 Z-Score 附加信息 ═══
   result.heatZ = heatZ;
 
-  return result;
+  return applyStandardDecisionFields(scored, result);
 }
 
 // ═══════════════════════════════════════
@@ -497,7 +593,9 @@ function getDirectionAdvice(scored, ranked) {
 // ═══════════════════════════════════════
 
 function loadGSFields(gsCache, matchId) {
-  const gs = (gsCache._global || {})[matchId];
+  const gsMap = (gsCache && gsCache._global) || gsCache || {};
+  const cleanId = String(matchId || '').replace(/^m_/, '');
+  const gs = gsMap[matchId] || gsMap['m_' + cleanId] || gsMap[cleanId];
   if (!gs) return {};
 
   // ★ V9.1 修复: 字段名映射对齐 GS cache 实际 key
@@ -665,6 +763,32 @@ function computeAndSave(dateStr) {
             // V2.0: 联赛热度 Z-Score
             heatZScore: adv.heatZ ? adv.heatZ.zScore : null,
             heatZOverheat: adv.heatZ ? (adv.heatZ.isOverheat ? 1 : 0) : 0,
+            // M2: PK 裁判标准字段
+            finalDirection: adv.finalDirection,
+            decisionLevel: adv.decisionLevel,
+            riskLevel: adv.riskLevel,
+            riskTags: adv.riskTags,
+            degradeReasons: adv.degradeReasons,
+            decisionNarrative: adv.decisionNarrative,
+            featureSnapshotId:
+              'pkfs_' +
+              String(item.matchId || '').replace(/^m_/, '') +
+              '_' +
+              String(item.date || '')
+                .slice(0, 10)
+                .replace(/-/g, '') +
+              '_' +
+              PK_SCORER_VERSION,
+            conflictType:
+              item.fusionConsensus === 'meltdown'
+                ? 'gs_meltdown'
+                : adv.finalDecision === 'watch'
+                  ? 'watch'
+                  : adv.degradeReasons && adv.degradeReasons.length
+                    ? 'degraded'
+                    : 'aligned',
+            valueEdge: adv.valueEdge,
+            expectedValue: adv.expectedValue,
             // ★ 版本追踪
             pkScorerVersion: PK_SCORER_VERSION,
             experimentId: EXPERIMENT_ID,

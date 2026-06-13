@@ -2,6 +2,11 @@
 // E2E: 量化方案页 (plans.html)
 // ============================================================
 const { test, expect } = require('@playwright/test');
+const { ensureE2EAuth } = require('./helpers/auth');
+
+test.beforeEach(async ({ page }) => {
+  await ensureE2EAuth(page);
+});
 
 test.describe('量化方案页', () => {
   test('页面正常加载，无控制台错误', async ({ page }) => {

@@ -14,12 +14,13 @@ const MODEL_DASH = path.join(__dirname, '..', 'js', 'pages', 'model-dashboard.js
 const INCOME = path.join(__dirname, '..', 'js', 'pages', 'income.js');
 const HIT_RATE = path.join(__dirname, '..', 'js', 'pages', 'hit-rate.js');
 const MATCH_DETAIL = path.join(__dirname, '..', 'js', 'pages', 'match-detail.js');
+const APP_CSS = path.join(__dirname, '..', 'css', 'app.css');
 
 function src(f) {
   const buf = fs.readFileSync(f);
-  if (buf.length >= 2 && buf[0] === 0xFF && buf[1] === 0xFE) return buf.toString('utf16le');
+  if (buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xfe) return buf.toString('utf16le');
   let s = buf.toString('utf8');
-  if (s.charCodeAt(0) === 0xFEFF) s = s.slice(1);
+  if (s.charCodeAt(0) === 0xfeff) s = s.slice(1);
   return s;
 }
 
@@ -137,9 +138,30 @@ describe('P1: charts-render-contract — 图表渲染合同', () => {
   });
 
   // ═══════════════════════════════════════════
-  // 4. match-detail.js 图表
+  // 4. hit-rate.js 命中率页面布局
   // ═══════════════════════════════════════════
-  describe('4. match-detail.js 比赛详情图表', () => {
+  describe('4. hit-rate.js 命中率页面布局', () => {
+    const hit = src(HIT_RATE);
+    const css = src(APP_CSS);
+
+    it('4.1 渲染前应移除 page-skeleton，避免卡片宽度被骨架屏内边距压窄', () => {
+      expect(hit).toContain("el.classList.remove('page-skeleton')");
+      expect(hit).toContain("el.classList.add('hit-content')");
+    });
+
+    it('4.2 命中率页面卡片应显式占满页面内容宽度', () => {
+      expect(css).toContain('#page-hit #hitContent');
+      expect(css).toContain('.hit-content > .stats-header');
+      expect(css).toContain('.hit-content > .hit-ranking-card');
+      expect(css).toContain('.hit-content > .chart-box');
+      expect(css).toContain('box-sizing: border-box;');
+    });
+  });
+
+  // ═══════════════════════════════════════════
+  // 5. match-detail.js 图表
+  // ═══════════════════════════════════════════
+  describe('5. match-detail.js 比赛详情图表', () => {
     const md = src(MATCH_DETAIL);
 
     it('4.1 导入 loadECharts', () => {
@@ -152,9 +174,9 @@ describe('P1: charts-render-contract — 图表渲染合同', () => {
   });
 
   // ═══════════════════════════════════════════
-  // 5. 图表生命周期
+  // 6. 图表生命周期
   // ═══════════════════════════════════════════
-  describe('5. 图表生命周期管理', () => {
+  describe('6. 图表生命周期管理', () => {
     it('5.1 backtest 有 echarts.init 逻辑', () => {
       const bt = src(BACKTEST);
       expect(bt).toContain('echarts') || expect(bt).toContain('init');

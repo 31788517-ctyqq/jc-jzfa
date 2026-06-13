@@ -268,7 +268,14 @@ function syncToDataJson(liveMatches, dateStr) {
     if (v.fields === null) {
       // 门禁裁定：跳过此比赛
       if (v.flags && v.flags.suspectHalftime) {
-        console.warn('[guard] 疑似半场误判(sync_500): ' + (lm.num||'') + ' dur=' + (lm.duration||'') + ' score=' + (lm.score||''));
+        console.warn(
+          '[guard] 疑似半场误判(sync_500): ' +
+            (lm.num || '') +
+            ' dur=' +
+            (lm.duration || '') +
+            ' score=' +
+            (lm.score || ''),
+        );
       }
       continue;
     }
@@ -278,7 +285,7 @@ function syncToDataJson(liveMatches, dateStr) {
 
     // 逐字段比对并更新
     var hasChange = false;
-    Object.keys(mergedFields).forEach(function(field) {
+    Object.keys(mergedFields).forEach(function (field) {
       var val = mergedFields[field];
       if (val !== undefined && val !== null && String(old[field]) !== String(val)) {
         old[field] = val;
@@ -288,7 +295,14 @@ function syncToDataJson(liveMatches, dateStr) {
     if (hasChange) {
       changed = true;
       if (v.flags && v.flags.suspectHalftime) {
-        console.warn('[guard] 半场误判已修正(sync_500): ' + (lm.num||'') + ' ' + (lm.homeName||'') + ' vs ' + (lm.visitName||''));
+        console.warn(
+          '[guard] 半场误判已修正(sync_500): ' +
+            (lm.num || '') +
+            ' ' +
+            (lm.homeName || '') +
+            ' vs ' +
+            (lm.visitName || ''),
+        );
       }
     }
 

@@ -21,16 +21,18 @@ if (!fs.existsSync(GS_CACHE_PATH)) {
 }
 const gsCache = JSON.parse(fs.readFileSync(GS_CACHE_PATH, 'utf8'));
 const gsGlobal = gsCache._global || {};
-const gsKeys = Object.keys(gsGlobal).filter(k => !k.startsWith('_'));
+const gsKeys = Object.keys(gsGlobal).filter((k) => !k.startsWith('_'));
 console.log(`GS 缓存 keys: ${gsKeys.length} 条\n`);
 
 // 2) 初始化 DB (sql.js)
 const initSqlJs = require('sql.js');
-initSqlJs().then(SQL => {
+initSqlJs().then((SQL) => {
   const buf = fs.readFileSync(DB_PATH);
   const db = new SQL.Database(buf);
 
-  let updated = 0, skipped = 0, noGS = 0;
+  let updated = 0,
+    skipped = 0,
+    noGS = 0;
 
   // 3) 遍历 prediction_logs 每条记录
   const rows = db.exec(`
@@ -44,15 +46,24 @@ initSqlJs().then(SQL => {
 
   for (const row of all) {
     const [id, matchId, date, current] = row;
-    if (current && current !== '') { skipped++; continue; }
+    if (current && current !== '') {
+      skipped++;
+      continue;
+    }
 
     // 用 matchId 查 GS 缓存 (兼容 m_ 前缀)
     const mid = String(matchId || '').replace(/^m_/, '');
     let gs = gsGlobal[mid] || gsGlobal['m_' + mid] || gsGlobal[matchId];
-    if (!gs) { noGS++; continue; }
+    if (!gs) {
+      noGS++;
+      continue;
+    }
 
     const consensus = gs.fusionConsensusType || gs.fusionConsensus || null;
-    if (!consensus) { noGS++; continue; }
+    if (!consensus) {
+      noGS++;
+      continue;
+    }
 
     if (!dryRun) {
       db.run('UPDATE prediction_logs SET pk_fusion_consensus = ? WHERE id = ?', [consensus, id]);
@@ -74,7 +85,9 @@ initSqlJs().then(SQL => {
   if (dryRun) console.log(`  (DRY RUN, 未实际写入)`);
 
   // 验证
-  const verify = db.exec("SELECT COUNT(*) as c FROM prediction_logs WHERE pk_fusion_consensus IS NOT NULL AND pk_fusion_consensus != ''");
+  const verify = db.exec(
+    "SELECT COUNT(*) as c FROM prediction_logs WHERE pk_fusion_consensus IS NOT NULL AND pk_fusion_consensus != ''",
+  );
   const count = verify.length > 0 ? verify[0].values[0][0] : 0;
   console.log(`  最终有共识: ${count} / ${all.length + skipped}`);
 

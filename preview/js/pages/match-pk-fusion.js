@@ -384,6 +384,117 @@ function computeAllScores(list) {
 }
 
 // ═══════════════════════════════════════════
+//  M3: PK 裁判解释标准字段
+// ═══════════════════════════════════════════
+
+function normalizeFinalDirection(dir) {
+  var text = String(dir || '').trim();
+  if (!text || /观望|避开|数据不足/.test(text)) return 'watch';
+  return text;
+}
+
+function resolveExpectedValue(advice) {
+  if (!advice || !advice.ev) return null;
+  var dir = String(advice.dir || '');
+  if (dir.indexOf('主胜') === 0) return advice.ev.evHome;
+  if (dir.indexOf('客胜') === 0) return advice.ev.evAway;
+  if (dir.indexOf('平') === 0) return advice.ev.evDraw;
+  return null;
+}
+
+function buildDecisionNarrative(advice, decisionLevel, riskLevel, degradeReasons) {
+  var dirText = normalizeFinalDirection(advice && advice.dir) === 'watch' ? '观望' : advice.dir;
+  var riskText = riskLevel === 'red' ? '高' : riskLevel === 'yellow' ? '中' : '低';
+  var reason = (advice && advice.desc) || '基于 PK 综合评分输出';
+  var text = 'PK裁判：' + dirText + '，评级' + decisionLevel + '，风险' + riskText + '。理由：' + reason;
+  if (Array.isArray(degradeReasons) && degradeReasons.length > 0) text += '；降级原因：' + degradeReasons.join('、');
+  return text;
+}
+
+function applyStandardDecisionFields(scored, advice) {
+  var item = (scored && scored.item) || {};
+  var riskTags = [];
+  var degradeReasons = [];
+  var expectedValue = resolveExpectedValue(advice);
+  var stars = Math.max(0, Math.min(5, parseInt((advice && advice.stars) || 0, 10) || 0));
+  var finalDirection = normalizeFinalDirection(advice && advice.dir);
+
+  if (item.fusionConsensus === 'meltdown') {
+    riskTags.push('模型熔断');
+    degradeReasons.push('功守道融合熔断，禁止主推');
+  }
+  if (advice && advice.valueTag === '⚠️负期望') {
+    riskTags.push('负期望');
+    degradeReasons.push('EV 为负，不升为主推');
+  }
+  if (advice && advice.marketConsistent === false) {
+    riskTags.push('市场分歧');
+    degradeReasons.push(advice.marketDetail || '市场信号与 PK 方向存在分歧');
+  }
+  if (advice && advice.crossOk === false) {
+    riskTags.push('交叉验证分歧');
+    degradeReasons.push(advice.crossDetail || '交叉验证与推荐方向不一致');
+  }
+  if (advice && advice.xgOk === false) {
+    riskTags.push('xG 分歧');
+    degradeReasons.push(advice.xgDetail || 'xG 与推荐方向不一致');
+  }
+  if (item.dataAge > 240) {
+    riskTags.push('数据陈旧');
+    degradeReasons.push('数据更新时间超过 240 分钟');
+  } else if (item.dataAge > 120) {
+    riskTags.push('数据偏旧');
+    degradeReasons.push('数据更新时间超过 120 分钟');
+  }
+  if (scored && scored.verificationScore < 70) {
+    riskTags.push('验证分偏低');
+    degradeReasons.push('盘口/交叉验证分偏低');
+  }
+  if (finalDirection === 'watch') riskTags.push('建议观望');
+
+  var riskLevel = 'green';
+  if (item.fusionConsensus === 'meltdown' || finalDirection === 'watch' || riskTags.length >= 3) riskLevel = 'red';
+  else if (riskTags.length > 0 || stars <= 2) riskLevel = 'yellow';
+
+  var decisionLevel = '观望';
+  if (finalDirection !== 'watch') {
+    if (stars >= 5) decisionLevel = '主推';
+    else if (stars >= 3) decisionLevel = '可做';
+    else if (stars >= 2) decisionLevel = '谨慎';
+  }
+  if (decisionLevel === '主推' && degradeReasons.length > 0) decisionLevel = '可做';
+  if (item.fusionConsensus === 'meltdown' && decisionLevel !== '观望') decisionLevel = '谨慎';
+
+  advice.playType = advice.playType || 'spf';
+  advice.finalDirection = finalDirection;
+  advice.decisionLevel = decisionLevel;
+  advice.riskLevel = riskLevel;
+  advice.riskTags = riskTags;
+  advice.degradeReasons = degradeReasons;
+  advice.decisionNarrative = buildDecisionNarrative(advice, decisionLevel, riskLevel, degradeReasons);
+  advice.expectedValue = expectedValue;
+  advice.valueEdge = null;
+  advice.finalDecision =
+    decisionLevel === '主推'
+      ? 'main_pick'
+      : decisionLevel === '可做'
+        ? 'playable'
+        : decisionLevel === '谨慎'
+          ? 'cautious'
+          : 'watch';
+  return advice;
+}
+
+function renderDecisionTags(items, cls) {
+  if (!Array.isArray(items) || items.length === 0) return '<span class="pk3-decision-empty">暂无</span>';
+  return items
+    .map(function (item) {
+      return '<span class="pk3-decision-tag ' + cls + '">' + esc(item) + '</span>';
+    })
+    .join('');
+}
+
+// ═══════════════════════════════════════════
 //  方向推荐
 // ═══════════════════════════════════════════
 
@@ -404,7 +515,7 @@ function getDirectionAdvice(scored, ranked) {
     } else if (pw <= -0.08) {
       result = { dir: '客胜（参考）', stars: 2, cls: 'dir-away-cold', desc: '模型分歧较大，仅供参考' };
     } else {
-      return {
+      return applyStandardDecisionFields(scored, {
         dir: '观望/避开',
         stars: 0,
         cls: 'dir-avoid',
@@ -414,7 +525,7 @@ function getDirectionAdvice(scored, ranked) {
         crossOk: true,
         xgDetail: '',
         crossDetail: '',
-      };
+      });
     }
   }
 
@@ -589,7 +700,7 @@ function getDirectionAdvice(scored, ranked) {
     }
   }
 
-  return result;
+  return applyStandardDecisionFields(scored, result);
 }
 
 /** P4-⑪: 进球方向+方向推荐联动，|pw|>0.25时大球信心增强 */
@@ -768,6 +879,10 @@ function renderFusionPK(modal, list) {
   // ── 模块二：横向对比总览表 ──
   html += '<div class="pk3-section-label">📈 横向对比总览（按综合信心分排序）</div>';
   html += renderComparisonTable(ranked);
+
+  // ── M3：PK 裁判解释区 ──
+  html += '<div class="pk3-section-label">🧭 PK裁判解释</div>';
+  html += renderDecisionExplanationPanel(ranked);
 
   // ── P3-⑨: 今日焦点战（综合分最高且无风险）──
   html += renderFocusMatch(ranked);
@@ -1048,6 +1163,87 @@ function renderFocusMatch(ranked) {
 // ═══════════════════════════════════════════
 //  模块二：横向对比总览表
 // ═══════════════════════════════════════════
+
+function renderSourceComparisonRows(scored, dirAdvice) {
+  var item = scored.item || {};
+  var consensus =
+    item.fusionConsensus === 'strong'
+      ? '强一致'
+      : item.fusionConsensus === 'weak'
+        ? '弱一致'
+        : item.fusionConsensus === 'meltdown'
+          ? '熔断'
+          : '暂缺';
+  var gsDir = item.fusionConsensus === 'meltdown' ? '观望' : dirAdvice.dir || '暂缺';
+  var marketText = dirAdvice.marketDetail || '市场数据待补充';
+  var marketRisk = dirAdvice.marketConsistent === false ? '分歧' : dirAdvice.marketDetail ? '支持' : '暂缺';
+  return (
+    '<div class="pk3-model-row"><span>专家共识</span><b>暂缺</b><em>外部专家数据未接入本弹窗，不阻断 PK 结论</em></div>' +
+    '<div class="pk3-model-row"><span>功守道</span><b>' +
+    esc(gsDir) +
+    '</b><em>' +
+    esc(consensus) +
+    '｜综合 ' +
+    scored.compositeScore +
+    ' 分</em></div>' +
+    '<div class="pk3-model-row"><span>AI分析</span><b>暂缺</b><em>AI 风险未接入本弹窗，不阻断基础判断</em></div>' +
+    '<div class="pk3-model-row"><span>市场赔率</span><b>' +
+    esc(marketRisk) +
+    '</b><em>' +
+    esc(marketText) +
+    '</em></div>' +
+    '<div class="pk3-model-row pk3-model-row-final"><span>PK裁判</span><b>' +
+    esc(dirAdvice.decisionLevel) +
+    '</b><em>' +
+    esc(dirAdvice.finalDirection === 'watch' ? '观望' : dirAdvice.finalDirection) +
+    '｜' +
+    esc(dirAdvice.riskLevel) +
+    '</em></div>'
+  );
+}
+
+function renderDecisionExplanationPanel(ranked) {
+  var html = '<div class="pk3-decision-panel">';
+  ranked.forEach(function (scored) {
+    if (!scored || !scored.item) return;
+    var item = scored.item;
+    var dirAdvice = getDirectionAdvice(scored, ranked);
+    var finalText = dirAdvice.finalDirection === 'watch' ? '观望' : dirAdvice.finalDirection;
+    html +=
+      '<div class="pk3-decision-card risk-' +
+      esc(dirAdvice.riskLevel) +
+      '">' +
+      '<div class="pk3-decision-head"><span class="pk3-decision-match">' +
+      esc(shortTeam(item.homeName)) +
+      ' vs ' +
+      esc(shortTeam(item.visitName)) +
+      '</span><span class="pk3-decision-badge">' +
+      esc(dirAdvice.decisionLevel) +
+      '</span></div>' +
+      '<div class="pk3-decision-main"><b>' +
+      esc(finalText) +
+      '</b><span>' +
+      starStr(dirAdvice.stars) +
+      '</span><em>风险：' +
+      esc(dirAdvice.riskLevel) +
+      '</em></div>' +
+      '<div class="pk3-decision-narrative">' +
+      esc(dirAdvice.decisionNarrative) +
+      '</div>' +
+      '<div class="pk3-decision-tags"><label>风险标签</label>' +
+      renderDecisionTags(dirAdvice.riskTags, 'risk') +
+      '</div>' +
+      '<div class="pk3-decision-tags"><label>降级原因</label>' +
+      renderDecisionTags(dirAdvice.degradeReasons, 'degrade') +
+      '</div>' +
+      '<div class="pk3-model-compare">' +
+      renderSourceComparisonRows(scored, dirAdvice) +
+      '</div>' +
+      '</div>';
+  });
+  html += '</div>';
+  return html;
+}
 
 function renderComparisonTable(ranked) {
   var html =

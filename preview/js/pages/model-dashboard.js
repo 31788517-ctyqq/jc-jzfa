@@ -29,11 +29,19 @@ function filterDashboardData(data) {
   var trendData = (data.trendData || []).filter(function (item) {
     return !isInternalModelName(item.modelName || item.model_name);
   });
+  var playMatrix = (data.playMatrix || []).filter(function (item) {
+    return !isInternalModelName(item.modelName || item.model_name);
+  });
+  var weightSuggestions = (data.weightSuggestions || []).filter(function (item) {
+    return !isInternalModelName(item.modelName || item.model_name);
+  });
   return Object.assign({}, data, {
     rankings: rankings,
     models: models,
     leagueHeatmap: heatmap,
     trendData: trendData,
+    playMatrix: playMatrix,
+    weightSuggestions: weightSuggestions,
     totalPredictions: rankings.reduce(function (sum, r) {
       return sum + (r.total || 0);
     }, 0),
@@ -80,9 +88,19 @@ function updateStatsCard(data) {
   var elModels = document.getElementById('mdStatModels');
   var elTotal = document.getElementById('mdStatTotal');
   var elBest = document.getElementById('mdStatBest');
-  if (elModels) elModels.textContent = data ? (data.models ? data.models.length : 0) : '--';
-  if (elTotal) elTotal.textContent = data ? (data.totalPredictions || 0) + '+' : '--';
-  if (elBest) elBest.textContent = data ? data.topModel || '--' : '--';
+  if (elModels)
+    elModels.textContent = data
+      ? data.reliabilitySummary
+        ? data.reliabilitySummary.activeModels
+        : data.models
+          ? data.models.length
+          : 0
+      : '--';
+  if (elTotal)
+    elTotal.textContent = data
+      ? (data.reliabilitySummary ? data.reliabilitySummary.validSamples : data.totalPredictions || 0) + '+'
+      : '--';
+  if (elBest) elBest.textContent = data ? data.bestStableModel || data.topModel || '--' : '--';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -90,15 +108,40 @@ function updateStatsCard(data) {
 // ═══════════════════════════════════════════════════════
 
 function buildDashboardHTML(data) {
-  const { rankings = [], leagueHeatmap = {}, trendData = [], models = [] } = data;
+  const {
+    rankings = [],
+    leagueHeatmap = {},
+    trendData = [],
+    models = [],
+    playMatrix = [],
+    reliabilitySummary = {},
+    weightSuggestions = [],
+  } = data;
 
   return `
-    <!-- 模型排行 — income-list 风格表格 -->
+    ${buildReliabilitySummary(reliabilitySummary)}
+    <!-- 模型排行 — reliability 风格表格 -->
     <div class="chart-box">
       <div class="chart-header">
-        <span class="chart-title">模型排行</span>
+        <span class="chart-title">可靠性排行</span>
       </div>
       ${buildRankingTable(rankings)}
+    </div>
+
+    <!-- 玩法矩阵 -->
+    <div class="chart-box">
+      <div class="chart-header">
+        <span class="chart-title">玩法矩阵</span>
+      </div>
+      ${buildPlayMatrix(playMatrix)}
+    </div>
+
+    <!-- 权重建议 -->
+    <div class="chart-box">
+      <div class="chart-header">
+        <span class="chart-title">权重建议（只读）</span>
+      </div>
+      ${buildWeightSuggestions(weightSuggestions)}
     </div>
 
     <!-- 分联赛热力图 -->
@@ -125,6 +168,28 @@ function buildDashboardHTML(data) {
 // 排行表格 — income-list 风格
 // ═══════════════════════════════════════════════════════
 
+function buildReliabilitySummary(summary) {
+  summary = summary || {};
+  return (
+    '<div class="md-reliability-summary" id="mdReliabilitySummary">' +
+    '<div><b>活跃模型</b><span>' +
+    (summary.activeModels || 0) +
+    '</span></div>' +
+    '<div><b>有效样本</b><span>' +
+    (summary.validSamples || 0) +
+    '</span></div>' +
+    '<div><b>最佳稳定模型</b><span>' +
+    esc(summary.bestStableModel || '--') +
+    '</span></div>' +
+    '<div><b>模型健康</b><span>' +
+    (summary.health === 'stable' ? '稳定' : '样本不足') +
+    '</span></div>' +
+    '<em>' +
+    esc(summary.note || '动态权重仅作只读建议，不自动覆盖生产规则') +
+    '</em></div>'
+  );
+}
+
 function buildRankingTable(rankings) {
   if (!rankings || rankings.length === 0) {
     return '<div class="hint-box">暂无排名数据，请等待回填积累≥2周数据</div>';
@@ -133,43 +198,127 @@ function buildRankingTable(rankings) {
   var html = '<div class="income-list md-rank-list">';
   // 表头
   html +=
-    '<div class="income-header-row"><span class="md-rank-col-rank">排名</span><span class="md-rank-col-model">模型</span><span class="md-rank-col-rate">命中率</span><span class="md-rank-col-trend">趋势</span><span class="md-rank-col-count">场次</span></div>';
+    '<div class="income-header-row"><span class="md-rank-col-rank">排名</span><span class="md-rank-col-model">模型</span><span class="md-rank-col-rate">可靠性</span><span class="md-rank-col-trend">ROI</span><span class="md-rank-col-count">样本</span></div>';
 
   var medals = ['🥇', '🥈', '🥉'];
   rankings.slice(0, 10).forEach(function (r, i) {
-    var dirRate = r.directionRate || 0;
+    var reliability = r.reliabilityScore || 0;
+    var roi = r.roi || 0;
     var trend = r.trend || 0;
     var trendIcon = trend > 0 ? '↗' : trend < 0 ? '↘' : '→';
-    var trendColor = trend > 0 ? 'var(--green)' : trend < 0 ? 'var(--red)' : 'var(--text3)';
-    var rateColor = dirRate >= 60 ? 'var(--green)' : dirRate >= 50 ? 'var(--cyan)' : 'var(--text2)';
+    var rateColor = reliability >= 70 ? 'var(--green)' : reliability >= 55 ? 'var(--cyan)' : 'var(--text2)';
+    var roiColor = roi > 0 ? 'var(--green)' : roi < 0 ? 'var(--red)' : 'var(--text3)';
+    var sampleNote = r.sampleStatus || (r.total < 10 ? '样本不足，仅供观察' : '样本充足');
 
     html +=
-      '<div class="income-row">' +
+      '<div class="income-row md-rank-row">' +
       '<span class="md-rank-col-rank">' +
-      (medals[i] || i + 1) +
+      (r.eligibleForRanking === false ? '观察' : medals[i] || i + 1) +
       '</span>' +
       '<span class="md-rank-col-model">' +
-      (r.modelName || r.model_name || '模型' + (i + 1)) +
-      '</span>' +
+      esc(r.modelName || r.model_name || '模型' + (i + 1)) +
+      '<em>' +
+      esc(r.calibrationStatus || '较准确') +
+      '｜稳定 ' +
+      (r.stabilityScore || 0) +
+      '</em></span>' +
       '<span class="md-rank-col-rate" style="color:' +
       rateColor +
       '">' +
-      dirRate +
-      '%</span>' +
+      reliability +
+      '</span>' +
       '<span class="md-rank-col-trend" style="color:' +
-      trendColor +
+      roiColor +
       '">' +
+      fmtROI(roi) +
+      '<em>' +
       trendIcon +
-      ' ' +
       Math.abs(trend) +
-      '%</span>' +
+      '%</em></span>' +
       '<span class="md-rank-col-count">' +
       (r.total || 0) +
-      '场</span>' +
+      '场<em>' +
+      esc(sampleNote) +
+      '</em></span>' +
       '</div>';
   });
   html += '</div>';
   return html;
+}
+
+function fmtROI(v) {
+  if (v === undefined || v === null || isNaN(v)) return '-';
+  var n = Number(v) * 100;
+  return (n > 0 ? '+' : '') + Math.round(n) + '%';
+}
+
+function fmtRate(v) {
+  if (v === null || v === undefined || isNaN(v)) return '-';
+  return Math.round(Number(v)) + '%';
+}
+
+function buildPlayMatrix(playMatrix) {
+  if (!playMatrix || playMatrix.length === 0) return '<div class="hint-box">暂无玩法矩阵数据</div>';
+  var plays = [
+    ['spf', 'SPF'],
+    ['handicap', '让球'],
+    ['overUnder', '大小球'],
+    ['score', '比分'],
+  ];
+  var html = '<div class="md-play-matrix">';
+  html +=
+    '<div class="md-play-row md-play-head"><span>模型</span>' +
+    plays
+      .map(function (p) {
+        return '<span>' + p[1] + '</span>';
+      })
+      .join('') +
+    '</div>';
+  playMatrix.slice(0, 8).forEach(function (m) {
+    html += '<div class="md-play-row"><span class="md-play-model">' + esc(m.modelName || '-') + '</span>';
+    plays.forEach(function (p) {
+      var d = m[p[0]] || {};
+      html +=
+        '<span class="md-play-cell"><b>' +
+        fmtRate(d.hitRate) +
+        '</b><em>' +
+        (d.sample || 0) +
+        '场｜ROI ' +
+        fmtROI(d.roi) +
+        '</em></span>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function buildWeightSuggestions(items) {
+  if (!items || items.length === 0) return '<div class="hint-box">暂无权重建议；样本不足时不生成生产权重</div>';
+  return (
+    '<div class="md-weight-list">' +
+    items
+      .map(function (item) {
+        return (
+          '<div class="md-weight-row"><b>' +
+          esc(item.modelName || '-') +
+          '</b><span>' +
+          Math.round((item.suggestedWeight || 0) * 100) +
+          '%</span><em>' +
+          esc(item.reason || '只读建议') +
+          '</em></div>'
+        );
+      })
+      .join('') +
+    '</div>'
+  );
+}
+
+function esc(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 // ═══════════════════════════════════════════════════════

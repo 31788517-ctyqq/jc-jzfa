@@ -5,6 +5,7 @@ import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
 var quantDate = '';
 var quantDateOffset = 0;
 var currentTab = 'power';
+var opportunityFilter = 'all';
 var allData = [];
 var pickedIds = {};
 var sortKey = 'rank';
@@ -128,6 +129,69 @@ export function sortBy(key) {
   renderTable();
 }
 
+export function switchQuantOpportunity(level) {
+  opportunityFilter = level || 'all';
+  renderTable();
+}
+
+function safeArrayField(value) {
+  if (Array.isArray(value)) return value;
+  if (!value) return [];
+  if (typeof value === 'string') {
+    try {
+      var parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+    return value
+      .split(/[、,，]/)
+      .map(function (x) {
+        return x.trim();
+      })
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function decisionCodeOf(item) {
+  var code = String(item.finalDecision || '').trim();
+  if (code) return code;
+  var level = String(item.decisionLevel || '').trim();
+  if (level === '主推') return 'main_pick';
+  if (level === '可做') return 'playable';
+  if (level === '谨慎') return 'cautious';
+  return 'watch';
+}
+
+function normalizeOpportunityFields(item) {
+  var riskTags = safeArrayField(item.riskTags);
+  var degradeReasons = safeArrayField(item.degradeReasons);
+  var stars = Math.max(0, Math.min(5, parseInt(item.stars || item.directionStars || 0, 10) || 0));
+  var level = item.decisionLevel || '';
+  if (!level) {
+    if (item.finalDecision === 'main_pick') level = '主推';
+    else if (item.finalDecision === 'playable') level = '可做';
+    else if (item.finalDecision === 'cautious') level = '谨慎';
+    else if (stars >= 5) level = '主推';
+    else if (stars >= 3) level = '可做';
+    else if (stars >= 2) level = '谨慎';
+    else level = '观望';
+  }
+  var finalDirection = item.finalDirection || item.direction || 'watch';
+  var riskLevel = item.riskLevel || (riskTags.length > 0 || level === '观望' ? 'yellow' : 'green');
+  if (item.fusionConsensus === 'meltdown') riskLevel = 'red';
+  return Object.assign({}, item, {
+    playType: item.playType || 'spf',
+    finalDirection: finalDirection,
+    decisionLevel: level,
+    finalDecision: item.finalDecision || decisionCodeOf({ decisionLevel: level }),
+    stars: stars,
+    riskLevel: riskLevel,
+    riskTags: riskTags,
+    degradeReasons: degradeReasons,
+    decisionNarrative: item.decisionNarrative || 'PK裁判：基于量化评分输出，详细原因可进入 PK 弹窗查看。',
+  });
+}
+
 // ═══ 数据加载 ═══
 export function loadQuantRank() {
   pickedIds = {}; // 切换日期时清空复选框状态
@@ -143,7 +207,7 @@ export function loadQuantRank() {
   var cachedJson = getCache(cacheKey);
   if (cachedJson) {
     try {
-      allData = cachedJson;
+      allData = (Array.isArray(cachedJson) ? cachedJson : []).map(normalizeOpportunityFields);
       sortKey = 'rank';
       sortAsc = true;
       renderTable();
@@ -219,7 +283,7 @@ export function loadQuantRank() {
           if (merged.hasChange) score += 1;
           if (merged.hasYz) score += 1;
           merged.completenessScore = score;
-          return merged;
+          return normalizeOpportunityFields(merged);
         });
         sortKey = 'rank';
         sortAsc = true;
@@ -341,7 +405,91 @@ function mergeItem(item, gs) {
     guestFeature: '-',
     staticDiff: gs.totalAdvantageValue || 0,
     oddsLive: '-',
+    // M4: PK 裁判标准字段（优先消费后端 ranking-list 输出，缺失时前端兜底）
+    playType: item.playType || 'spf',
+    finalDirection: item.finalDirection || item.direction || 'watch',
+    decisionLevel: item.decisionLevel || '',
+    finalDecision: item.finalDecision || '',
+    stars: item.stars || item.directionStars || 0,
+    riskLevel: item.riskLevel || '',
+    riskTags: safeArrayField(item.riskTags),
+    degradeReasons: safeArrayField(item.degradeReasons),
+    decisionNarrative: item.decisionNarrative || '',
+    expectedValue: item.expectedValue !== undefined ? item.expectedValue : null,
+    valueEdge: item.valueEdge !== undefined ? item.valueEdge : null,
+    pkCompositeScore: item.pkCompositeScore !== undefined ? item.pkCompositeScore : null,
   };
+}
+
+function countByDecision(items) {
+  var counts = { all: 0, main_pick: 0, playable: 0, cautious: 0, watch: 0 };
+  (Array.isArray(items) ? items : []).forEach(function (item) {
+    counts.all += 1;
+    var code = decisionCodeOf(item);
+    if (counts[code] === undefined) counts.watch += 1;
+    else counts[code] += 1;
+  });
+  return counts;
+}
+
+function renderOpportunitySummary(items) {
+  var counts = countByDecision(items);
+  var configs = [
+    ['all', '全部', counts.all],
+    ['main_pick', '主推', counts.main_pick],
+    ['playable', '可做', counts.playable],
+    ['cautious', '谨慎', counts.cautious],
+    ['watch', '观望', counts.watch],
+  ];
+  var h = '<div class="q-opportunity-summary" id="quantOpportunitySummary">';
+  h += '<div class="q-opportunity-title"><b>机会分层</b><span>按 PK 裁判字段识别，风险场次不标稳胆</span></div>';
+  h += '<div class="q-opportunity-tabs">';
+  configs.forEach(function (cfg) {
+    h +=
+      '<button type="button" class="q-opportunity-tab' +
+      (opportunityFilter === cfg[0] ? ' active' : '') +
+      '" onclick="switchQuantOpportunity(\'' +
+      cfg[0] +
+      '\')"><span>' +
+      cfg[1] +
+      '</span><b>' +
+      cfg[2] +
+      '</b></button>';
+  });
+  h += '</div></div>';
+  return h;
+}
+
+function renderDecisionBadge(item) {
+  var code = decisionCodeOf(item);
+  var dir = item.finalDirection === 'watch' ? '观望' : item.finalDirection || '观望';
+  return (
+    '<span class="q-decision-badge q-decision-' +
+    code +
+    '" title="' +
+    esc(item.decisionNarrative || '') +
+    '"><b>' +
+    esc(item.decisionLevel || '观望') +
+    '</b><em>' +
+    esc(dir) +
+    '｜' +
+    '★'.repeat(Math.max(0, Math.min(5, item.stars || 0))) +
+    '</em></span>'
+  );
+}
+
+function renderRiskChips(item) {
+  var tags = safeArrayField(item.riskTags).slice(0, 2);
+  if (!tags.length) return '<span class="q-risk-chips"><i class="q-risk-empty">低风险</i></span>';
+  return (
+    '<span class="q-risk-chips">' +
+    tags
+      .map(function (tag) {
+        return '<i>' + esc(tag) + '</i>';
+      })
+      .join('') +
+    '</span>'
+  );
 }
 
 // ═══ 渲染 — flex 卡片表格 ═══
@@ -349,12 +497,16 @@ function renderTable() {
   var wrap = document.getElementById('quantTableWrap');
   if (!wrap) return;
 
+  var displayData = allData.filter(function (item) {
+    return opportunityFilter === 'all' || decisionCodeOf(item) === opportunityFilter;
+  });
+
   // 排序
   var sorted;
   if (currentTab === 'power') {
-    sorted = allData.slice();
+    sorted = displayData.slice();
   } else {
-    sorted = allData.slice().sort(function (a, b) {
+    sorted = displayData.slice().sort(function (a, b) {
       var va = getSortVal(a, sortKey),
         vb = getSortVal(b, sortKey);
       if (va < vb) return sortAsc ? -1 : 1;
@@ -421,8 +573,14 @@ function renderTable() {
     };
   }
 
-  // 构建卡片表格
-  var h = '<div class="quant-card-list">';
+  // 构建机会分层摘要 + 卡片表格
+  var h = renderOpportunitySummary(allData);
+  if (sorted.length === 0) {
+    wrap.innerHTML = h + '<div style="text-align:center;padding:42px 20px;color:var(--text3)">当前分层暂无比赛</div>';
+    updatePkBar();
+    return;
+  }
+  h += '<div class="quant-card-list">';
 
   // 表头
   h += '<div class="quant-card-header">';
@@ -497,6 +655,8 @@ function renderMatch(item) {
     '">' +
     esc(shortTeam(item.visitName)) +
     '</div>' +
+    renderDecisionBadge(item) +
+    renderRiskChips(item) +
     (tagsHtml ? tagsHtml : '') +
     '</span>'
   );

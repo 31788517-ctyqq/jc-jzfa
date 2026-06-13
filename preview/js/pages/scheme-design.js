@@ -213,8 +213,12 @@ function calcAmountAndPrize() {
     if (k > matchIds.length) return;
     // 按最大赔率降序取前 k 场
     var sorted = matchIds
-      .map(function (mid) { return maxOddsPerMatch[mid]; })
-      .sort(function (a, b) { return b - a; });
+      .map(function (mid) {
+        return maxOddsPerMatch[mid];
+      })
+      .sort(function (a, b) {
+        return b - a;
+      });
     var product = 1;
     for (var i = 0; i < k; i++) product *= sorted[i];
     product = Math.round(product * 100) / 100;
@@ -236,7 +240,14 @@ function calcAmountAndPrize() {
   // P1: totalOdds = 单注最高回报比（maxWin / (betCount × 2元)）
   var totalOdds = bets > 0 ? Math.round((maxWin / (bets * 2)) * 100) / 100 : 0;
 
-  return { bets: bets, amount: amount, maxWin: maxWin, totalOdds: totalOdds, passOdds: passOdds, bestProductK: bestProductK };
+  return {
+    bets: bets,
+    amount: amount,
+    maxWin: maxWin,
+    totalOdds: totalOdds,
+    passOdds: passOdds,
+    bestProductK: bestProductK,
+  };
 }
 
 // ═══ 页面入口 ═══
@@ -1123,10 +1134,12 @@ function updateSummary() {
     var keys = Object.keys(pd);
     if (keys.length > 1 && calc.bestProductK > 0) {
       winEl.textContent = calc.maxWin + '（' + calc.bestProductK + '关最优）';
-      winEl.title = keys.map(function (k) {
-        var p = pd[k];
-        return k + '关最高: ' + p.maxWinPerNote + '元（赔率积 ' + p.bestProduct + '）';
-      }).join('\n');
+      winEl.title = keys
+        .map(function (k) {
+          var p = pd[k];
+          return k + '关最高: ' + p.maxWinPerNote + '元（赔率积 ' + p.bestProduct + '）';
+        })
+        .join('\n');
     } else {
       winEl.textContent = calc.maxWin;
       winEl.title = '';

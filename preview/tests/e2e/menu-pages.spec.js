@@ -2,6 +2,11 @@
 // E2E: 首页快捷入口页面 (income / quant-rank / filter / backtest)
 // ============================================================
 const { test, expect } = require('@playwright/test');
+const { ensureE2EAuth } = require('./helpers/auth');
+
+test.beforeEach(async ({ page }) => {
+  await ensureE2EAuth(page);
+});
 
 async function gotoHome(page) {
   await page.goto('/');
@@ -18,7 +23,7 @@ async function openRoute(page, route, readySelector) {
       return !!el && el.classList.contains('active');
     },
     route,
-    { timeout: 10000 }
+    { timeout: 10000 },
   );
   if (readySelector) {
     await expect(page.locator(readySelector).first()).toBeVisible({ timeout: 10000 });
@@ -27,7 +32,10 @@ async function openRoute(page, route, readySelector) {
 
 const ROUTES = {
   income: { title: '方案收入', ready: '#page-income #incomeResult, #page-income #dd-incDir' },
-  'quant-rank': { title: '量化数据排行榜', ready: '#page-quant-rank #quantFilterBar, #page-quant-rank #quantTableWrap' },
+  'quant-rank': {
+    title: '量化数据排行榜',
+    ready: '#page-quant-rank #quantFilterBar, #page-quant-rank #quantTableWrap',
+  },
   filter: { title: '命中率筛选', ready: '#page-filter #filterResult, #page-filter #dd-league' },
   backtest: { title: '历史数据回测', ready: '#page-backtest #btTabRow, #page-backtest #btList' },
 };

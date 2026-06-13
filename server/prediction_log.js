@@ -180,6 +180,22 @@ function initTable() {
       ['pk_value_score', 'REAL'],
       ['pk_heat_zscore', 'REAL'],
       ['pk_heat_z_overheat', 'INTEGER'],
+      ['pk_final_direction', 'TEXT'],
+      ['pk_decision_level', 'TEXT'],
+      ['pk_risk_level', 'TEXT'],
+      ['pk_risk_tags_json', 'TEXT'],
+      ['pk_degrade_reasons_json', 'TEXT'],
+      ['pk_decision_narrative', 'TEXT'],
+      ['pk_feature_snapshot_id', 'TEXT'],
+      ['pk_feature_snapshot_json', 'TEXT'],
+      ['pk_conflict_type', 'TEXT'],
+      ['pk_value_edge', 'REAL'],
+      ['pk_expected_value', 'REAL'],
+      ['pk_actual_result', 'TEXT'],
+      ['pk_hit_status', 'TEXT'],
+      ['pk_roi_result', 'REAL'],
+      ['pk_attribution_tags_json', 'TEXT'],
+      ['pk_snapshot_status', 'TEXT'],
       ['actual_half_score', 'TEXT'],
       ['gs_modelA_total', 'REAL'],
       ['gs_modelB_total', 'REAL'],
@@ -225,6 +241,138 @@ function upsert(fields) {
     var vals = Object.values(fields);
     return _exec('INSERT INTO prediction_logs (' + cols + ') VALUES (' + placeholders + ')', vals);
   }
+}
+
+function _makeFeatureSnapshotId(matchId, fields) {
+  const date = (fields && (fields.date || fields.batchDate)) || new Date().toISOString().slice(0, 10);
+  const version = (fields && fields.pkScorerVersion) || 'pk_unknown';
+  return (
+    'pkfs_' +
+    String(matchId || '').replace(/^m_/, '') +
+    '_' +
+    String(date).slice(0, 10).replace(/-/g, '') +
+    '_' +
+    version
+  );
+}
+
+function _inferConflictType(fields) {
+  if (!fields) return 'unknown';
+  if (fields.fusionConsensus === 'meltdown') return 'gs_meltdown';
+  const reasons = Array.isArray(fields.degradeReasons) ? fields.degradeReasons.join('、') : '';
+  const tags = Array.isArray(fields.riskTags) ? fields.riskTags.join('、') : '';
+  const all = reasons + '、' + tags;
+  if (/负期望|EV/.test(all)) return 'negative_ev';
+  if (/热度/.test(all)) return 'overheat';
+  if (/市场|赔率/.test(all)) return 'market_conflict';
+  if (/数据/.test(all)) return 'data_quality';
+  if (fields.decisionLevel === '观望') return 'watch';
+  return fields.fusionConsensus === 'weak' ? 'weak_consensus' : 'aligned';
+}
+
+function _buildFeatureSnapshot(matchId, fields) {
+  fields = fields || {};
+  return {
+    matchId: String(matchId || '').replace(/^m_/, ''),
+    playType: fields.playType || 'spf',
+    finalDirection: fields.finalDirection || fields.direction || 'watch',
+    decisionLevel: fields.decisionLevel || '观望',
+    riskLevel: fields.riskLevel || 'yellow',
+    stars: fields.directionStars || fields.stars || 0,
+    compositeScore: fields.compositeScore,
+    scores: {
+      power: fields.powerScore,
+      goal: fields.goalScore,
+      heat: fields.heatScore,
+      stability: fields.stabilityScore,
+      health: fields.healthScore,
+    },
+    fusionConsensus: fields.fusionConsensus || '',
+    valueTag: fields.valueTag || '',
+    valueScore: fields.valueScore,
+    expectedValue: fields.expectedValue !== undefined ? fields.expectedValue : null,
+    valueEdge: fields.valueEdge !== undefined ? fields.valueEdge : null,
+    degradeReasons: Array.isArray(fields.degradeReasons) ? fields.degradeReasons : [],
+    riskTags: Array.isArray(fields.riskTags) ? fields.riskTags : [],
+    pkScorerVersion: fields.pkScorerVersion || '',
+    capturedAt: new Date().toISOString(),
+  };
+}
+
+function _getActualResultFromFields(fields) {
+  const actualSpf = fields && fields.actualSpf;
+  if (actualSpf) return actualSpf;
+  const hg = fields && fields.homeGoals;
+  const ag = fields && fields.awayGoals;
+  if (hg !== undefined && ag !== undefined && !isNaN(hg) && !isNaN(ag)) {
+    if (Number(hg) > Number(ag)) return '主胜';
+    if (Number(hg) < Number(ag)) return '客胜';
+    return '平';
+  }
+  return '';
+}
+
+function _buildAttributionTags(row) {
+  const tags = [];
+  const finalDir = row.pk_final_direction || row.pk_direction || '';
+  const isWatch = finalDir === 'watch' || row.pk_decision_level === '观望';
+  const hit = isWatch ? false : _checkDirectionHit(_getPKFinalDirection(row), row.actual_spf || '', row);
+  const riskTags = _safeJsonArray(row.pk_risk_tags_json);
+  const degradeReasons = _safeJsonArray(row.pk_degrade_reasons_json);
+  const expectedValue = row.pk_expected_value != null ? Number(row.pk_expected_value) : _getSelectedEV(row);
+  if (isWatch && row.pk_direction && !row.pk_hit) tags.push('观望避坑有效');
+  if (isWatch && row.pk_direction && row.pk_hit) tags.push('观望错过命中');
+  if (!isWatch && hit) tags.push('方向判断正确');
+  if (!isWatch && !hit) tags.push('方向判断失误');
+  if (expectedValue != null && expectedValue > 0 && hit) tags.push('正EV兑现');
+  if (expectedValue != null && expectedValue > 0 && !hit && !isWatch) tags.push('正EV未兑现');
+  if (expectedValue != null && expectedValue < 0) tags.push('负EV风险');
+  if ((row.pk_conflict_type || '').indexOf('meltdown') >= 0 || riskTags.indexOf('模型熔断') >= 0) tags.push('熔断归因');
+  if (
+    riskTags.some(function (x) {
+      return /热度/.test(x);
+    }) ||
+    degradeReasons.some(function (x) {
+      return /热度/.test(x);
+    })
+  )
+    tags.push('热度风险');
+  if (
+    riskTags.some(function (x) {
+      return /数据/.test(x);
+    }) ||
+    degradeReasons.some(function (x) {
+      return /数据/.test(x);
+    })
+  )
+    tags.push('数据质量风险');
+  if (
+    riskTags.some(function (x) {
+      return /市场|赔率/.test(x);
+    }) ||
+    degradeReasons.some(function (x) {
+      return /市场|赔率/.test(x);
+    })
+  )
+    tags.push('市场分歧');
+  return Array.from(new Set(tags));
+}
+
+function _buildOutcomeFields(row) {
+  row = row || {};
+  const isWatch = row.pk_final_direction === 'watch' || row.pk_decision_level === '观望';
+  const hit = isWatch ? false : _checkDirectionHit(_getPKFinalDirection(row), row.actual_spf || '', row);
+  const roi = _unitROI(hit, isWatch);
+  const tags = _buildAttributionTags(
+    Object.assign({}, row, { pk_hit: _checkDirectionHit(row.pk_direction, row.actual_spf || '', row) }),
+  );
+  return {
+    pk_actual_result: row.actual_spf || '',
+    pk_hit_status: isWatch ? 'watch' : hit ? 'hit' : 'miss',
+    pk_roi_result: roi,
+    pk_attribution_tags_json: JSON.stringify(tags),
+    pk_snapshot_status: row.pk_feature_snapshot_id ? 'linked' : 'missing_snapshot',
+  };
 }
 
 // AI 预测快捷写入
@@ -277,6 +425,35 @@ function upsertPK(matchId, fields) {
   if (fields.valueScore !== undefined) data.pk_value_score = fields.valueScore;
   if (fields.heatZScore !== undefined && fields.heatZScore !== null) data.pk_heat_zscore = fields.heatZScore;
   if (fields.heatZOverheat !== undefined) data.pk_heat_z_overheat = fields.heatZOverheat;
+  // M2: PK 裁判标准字段
+  if (fields.finalDirection !== undefined) data.pk_final_direction = fields.finalDirection;
+  if (fields.decisionLevel !== undefined) data.pk_decision_level = fields.decisionLevel;
+  if (fields.riskLevel !== undefined) data.pk_risk_level = fields.riskLevel;
+  if (fields.riskTags !== undefined)
+    data.pk_risk_tags_json = JSON.stringify(Array.isArray(fields.riskTags) ? fields.riskTags : []);
+  if (fields.degradeReasons !== undefined)
+    data.pk_degrade_reasons_json = JSON.stringify(Array.isArray(fields.degradeReasons) ? fields.degradeReasons : []);
+  if (fields.decisionNarrative !== undefined) data.pk_decision_narrative = fields.decisionNarrative;
+  // M7: 赛前快照与回测归因字段
+  const snapshotId = fields.featureSnapshotId || _makeFeatureSnapshotId(matchId, fields);
+  data.pk_feature_snapshot_id = snapshotId;
+  data.pk_feature_snapshot_json = JSON.stringify(fields.featureSnapshot || _buildFeatureSnapshot(matchId, fields));
+  data.pk_conflict_type = fields.conflictType || _inferConflictType(fields);
+  if (fields.valueEdge !== undefined && fields.valueEdge !== null) data.pk_value_edge = fields.valueEdge;
+  if (fields.expectedValue !== undefined && fields.expectedValue !== null)
+    data.pk_expected_value = fields.expectedValue;
+  else if (fields.evHome !== undefined || fields.evDraw !== undefined || fields.evAway !== undefined) {
+    const rowForEV = {
+      pk_final_direction: fields.finalDirection || fields.direction,
+      pk_direction: fields.direction,
+      pk_ev_home: fields.evHome,
+      pk_ev_draw: fields.evDraw,
+      pk_ev_away: fields.evAway,
+    };
+    const selectedEV = _getSelectedEV(rowForEV);
+    if (selectedEV !== null) data.pk_expected_value = selectedEV;
+  }
+  data.pk_snapshot_status = 'pre_match';
   // ★ 版本追踪字段
   if (fields.pkScorerVersion) data.pk_scorer_version = fields.pkScorerVersion;
   if (fields.experimentId) data.experiment_id = fields.experimentId;
@@ -340,6 +517,13 @@ function backfillResult(matchId, fields) {
   if (fields.actualOverunder) data.actual_overunder = fields.actualOverunder;
   if (fields.handicap !== undefined) data.handicap = fields.handicap;
   data.actual_corrected_at = new Date().toISOString();
+
+  const existing = _queryOne('SELECT * FROM prediction_logs WHERE matchId = ?', [matchId]) || {};
+  const merged = Object.assign({}, existing, data, {
+    pk_actual_result: fields.actualSpf || _getActualResultFromFields(fields),
+  });
+  const outcomeFields = _buildOutcomeFields(merged);
+  Object.assign(data, outcomeFields);
   return upsert(data);
 }
 
@@ -464,6 +648,145 @@ function _matchHalfFullPattern(direction, hfResult) {
   return halfOk && fullOk;
 }
 
+function _safeJsonArray(value) {
+  if (Array.isArray(value)) return value;
+  if (!value) return [];
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+    return value
+      .split(/[、,，]/)
+      .map(function (x) {
+        return x.trim();
+      })
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function _decisionCode(level) {
+  const text = String(level || '').trim();
+  if (text === '主推' || text === 'main_pick') return 'main_pick';
+  if (text === '可做' || text === 'playable') return 'playable';
+  if (text === '谨慎' || text === 'cautious') return 'cautious';
+  return 'watch';
+}
+
+function _decisionLabel(codeOrLevel) {
+  const code = _decisionCode(codeOrLevel);
+  if (code === 'main_pick') return '主推';
+  if (code === 'playable') return '可做';
+  if (code === 'cautious') return '谨慎';
+  return '观望';
+}
+
+function _getPKFinalDirection(row) {
+  const finalDir = String(row.pk_final_direction || '').trim();
+  if (finalDir && finalDir !== 'watch') return finalDir;
+  return String(row.pk_direction || '').trim();
+}
+
+function _getSelectedEV(row) {
+  const dir = _getPKFinalDirection(row);
+  if (dir.indexOf('主胜') === 0 || dir === '胜') return row.pk_ev_home != null ? Number(row.pk_ev_home) : null;
+  if (dir.indexOf('客胜') === 0 || dir === '负') return row.pk_ev_away != null ? Number(row.pk_ev_away) : null;
+  if (dir.indexOf('平') === 0) return row.pk_ev_draw != null ? Number(row.pk_ev_draw) : null;
+  return null;
+}
+
+function _unitROI(hit, isWatch) {
+  if (isWatch) return 0;
+  return hit ? 1 : -1;
+}
+
+function _pct(total, hits) {
+  return total > 0 ? parseFloat((hits / total).toFixed(2)) : 0;
+}
+
+function _roi(rows) {
+  if (!rows || rows.length === 0) return 0;
+  const sum = rows.reduce(function (s, r) {
+    return s + (Number(r.pk_unit_roi) || 0);
+  }, 0);
+  return parseFloat((sum / rows.length).toFixed(4));
+}
+
+function _buildPKJudgeStats(list) {
+  const settled = list.filter(function (r) {
+    return r.actual_score && r.actual_spf;
+  });
+  const pkJudgeList = settled.filter(function (r) {
+    return r.pk_direction || r.pk_final_direction || r.pk_decision_level;
+  });
+  const levels = [
+    { code: 'main_pick', label: '主推' },
+    { code: 'playable', label: '可做' },
+    { code: 'cautious', label: '谨慎' },
+    { code: 'watch', label: '观望' },
+  ];
+  const byDecisionLevel = levels.map(function (lv) {
+    const rows = pkJudgeList.filter(function (r) {
+      return _decisionCode(r.pk_decision_level) === lv.code;
+    });
+    const hits = rows.filter(function (r) {
+      return r.pk_judge_hit;
+    }).length;
+    return {
+      code: lv.code,
+      label: lv.label,
+      total: rows.length,
+      hit: hits,
+      hitRate: _pct(rows.length, hits),
+      roi: _roi(rows),
+      sampleNote: rows.length < 10 ? '样本不足，仅供观察' : '',
+    };
+  });
+  const positiveEVRows = pkJudgeList.filter(function (r) {
+    return r.pk_selected_ev != null && r.pk_selected_ev > 0;
+  });
+  const positiveEVHits = positiveEVRows.filter(function (r) {
+    return r.pk_judge_hit;
+  }).length;
+  const watchRows = pkJudgeList.filter(function (r) {
+    return _decisionCode(r.pk_decision_level) === 'watch';
+  });
+  const avoided = watchRows.filter(function (r) {
+    return r.pk_direction && !r.pk_hit;
+  }).length;
+  const degradeRows = pkJudgeList.filter(function (r) {
+    return _safeJsonArray(r.pk_degrade_reasons_json).length > 0;
+  });
+  const degradeHits = degradeRows.filter(function (r) {
+    return r.pk_judge_hit;
+  }).length;
+  return {
+    settledSamples: settled.length,
+    validSamples: pkJudgeList.length,
+    byDecisionLevel: byDecisionLevel,
+    positiveEV: {
+      total: positiveEVRows.length,
+      hit: positiveEVHits,
+      hitRate: _pct(positiveEVRows.length, positiveEVHits),
+      roi: _roi(positiveEVRows),
+      sampleNote: positiveEVRows.length < 10 ? '样本不足，仅供观察' : '',
+    },
+    watchAvoidance: {
+      total: watchRows.length,
+      avoided: avoided,
+      avoidRate: _pct(watchRows.length, avoided),
+      sampleNote: watchRows.length < 10 ? '样本不足，仅供观察' : '',
+    },
+    degrade: {
+      total: degradeRows.length,
+      hit: degradeHits,
+      hitRate: _pct(degradeRows.length, degradeHits),
+      roi: _roi(degradeRows),
+    },
+  };
+}
+
 // ═══ 回测查询 ═══
 function queryBacktest(filters) {
   filters = filters || {};
@@ -527,9 +850,26 @@ function queryBacktest(filters) {
     conditions.push('matchNum IN (SELECT DISTINCT match_num FROM prediction_outcomes WHERE model_name = ?)');
     params.push(filters.model);
   }
+  if (filters.conflictType && filters.conflictType !== 'all') {
+    conditions.push('pk_conflict_type = ?');
+    params.push(filters.conflictType);
+  }
+  if (filters.attributionTag && filters.attributionTag !== 'all') {
+    conditions.push('pk_attribution_tags_json LIKE ?');
+    params.push('%' + filters.attributionTag + '%');
+  }
+
+  if (filters.decisionLevel && filters.decisionLevel !== 'all') {
+    conditions.push('pk_decision_level = ?');
+    params.push(_decisionLabel(filters.decisionLevel));
+  }
+  if (filters.riskLevel && filters.riskLevel !== 'all') {
+    conditions.push('pk_risk_level = ?');
+    params.push(filters.riskLevel);
+  }
 
   const where = conditions.length > 0 ? ' WHERE ' + conditions.join(' AND ') : '';
-  const list = _queryAll('SELECT * FROM prediction_logs' + where + ' ORDER BY date DESC, matchNum ASC', params);
+  let list = _queryAll('SELECT * FROM prediction_logs' + where + ' ORDER BY date DESC, matchNum ASC', params);
 
   // 计算命中
   list.forEach(function (row) {
@@ -537,6 +877,23 @@ function queryBacktest(filters) {
     const actOU = row.actual_overunder || '';
     row.ai_hit = _checkDirectionHit(row.ai_spf, actSpf, row);
     row.pk_hit = _checkDirectionHit(row.pk_direction, actSpf, row);
+    row.pk_final_direction = row.pk_final_direction || row.pk_direction || 'watch';
+    row.pk_decision_level =
+      row.pk_decision_level ||
+      _decisionLabel(row.pk_final_direction && row.pk_final_direction !== 'watch' ? 'cautious' : 'watch');
+    row.pk_risk_level = row.pk_risk_level || (row.pk_decision_level === '观望' ? 'yellow' : 'green');
+    row.pk_risk_tags = _safeJsonArray(row.pk_risk_tags_json);
+    row.pk_degrade_reasons = _safeJsonArray(row.pk_degrade_reasons_json);
+    row.pk_decision_narrative = row.pk_decision_narrative || 'PK裁判：历史标准字段暂缺，按当前记录兜底复盘。';
+    row.pk_selected_ev = row.pk_expected_value != null ? Number(row.pk_expected_value) : _getSelectedEV(row);
+    row.pk_judge_hit =
+      row.pk_final_direction === 'watch' ? false : _checkDirectionHit(_getPKFinalDirection(row), actSpf, row);
+    row.pk_unit_roi =
+      row.pk_roi_result != null
+        ? Number(row.pk_roi_result)
+        : _unitROI(row.pk_judge_hit, row.pk_final_direction === 'watch');
+    row.pk_attribution_tags = _safeJsonArray(row.pk_attribution_tags_json);
+    row.pk_snapshot_status = row.pk_snapshot_status || (row.pk_feature_snapshot_id ? 'linked' : 'missing_snapshot');
     row.ai_ou_hit = row.ai_overunder && actOU && row.ai_overunder === actOU;
     row.pk_ou_hit = row.pk_goal_direction && actOU && row.pk_goal_direction === actOU;
     // GS hit: compare score formats
@@ -566,6 +923,15 @@ function queryBacktest(filters) {
       row.pk_hcp_hit = true;
     }
   });
+
+  if (filters.evRange && filters.evRange !== 'all') {
+    list = list.filter(function (row) {
+      if (filters.evRange === 'positive') return row.pk_selected_ev != null && row.pk_selected_ev > 0;
+      if (filters.evRange === 'negative') return row.pk_selected_ev != null && row.pk_selected_ev < 0;
+      if (filters.evRange === 'neutral') return row.pk_selected_ev == null || Math.abs(row.pk_selected_ev) <= 0.001;
+      return true;
+    });
+  }
 
   // 统计
   const stats = computeStats(list, type);
@@ -805,6 +1171,8 @@ function computeStats(list, type) {
     ),
     // 按联赛分组
     byLeague: groupByLeague(pkList, 'pk_hit', 'pk_dir'),
+    // M5: PK 裁判验证统计
+    judge: _buildPKJudgeStats(list),
   };
 
   // ── 全局按联赛统计（用于筛选器） ──
@@ -1193,6 +1561,9 @@ module.exports = {
   backfillResult,
   queryBacktest,
   queryPKVersionCompare,
+  _buildFeatureSnapshot,
+  _buildAttributionTags,
+  _inferConflictType,
   getLeagues,
   getModels,
   getTotalCount,
