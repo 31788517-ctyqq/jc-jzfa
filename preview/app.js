@@ -2231,7 +2231,7 @@ function loadPlanList() {
             // ═══ 头部 ═══
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
-            '<span class="plan-soccer-icon"><img src="/assets/zuqiu_soccer-duose.svg" alt="" decoding="async"/></span>' +
+            '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
             '<span class="plan-name">' +
             planName +
             '</span>' +
@@ -2442,7 +2442,7 @@ function loadScorePlanList() {
             // 头部
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
-            '<span class="plan-soccer-icon"><img src="/assets/zuqiu_soccer-duose.svg" alt="" decoding="async"/></span>' +
+            '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
             '<span class="plan-name" style="color: var(--amber);">' +
             (p.planName || '单关比分方案') +
             '</span>' +
