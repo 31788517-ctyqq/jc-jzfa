@@ -8366,6 +8366,11 @@ button[class*='btn'] {
   font-size: 18px;
 }
 
+.wc-icon.wc-flip {
+  display: inline-block;
+  transform: scaleX(-1);
+}
+
 .wc-grid {
   display: flex;
   justify-content: space-between;
