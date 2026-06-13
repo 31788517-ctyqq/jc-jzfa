@@ -5089,7 +5089,7 @@ body {
   display: flex;
   flex-direction: column;
   margin-bottom: 18px;
-  border-radius: 20px;
+  border-radius: 12px;
   overflow: hidden;
   background: rgba(5, 22, 38, 0.55);
   border: 1px solid rgba(126, 166, 189, 0.12);
