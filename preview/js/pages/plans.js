@@ -504,7 +504,7 @@ export function loadPlanList() {
             '">' +
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
-            '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
+            '<span class="plan-soccer-icon"><img src="/preview/assets/zuqiu_soccer-duose.svg" alt="" decoding="async"/></span>' +
             '<span class="plan-name">' +
             planName +
             '</span>' +
@@ -797,7 +797,7 @@ export function loadMyPlanList() {
             '">' +
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
-            '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
+            '<span class="plan-soccer-icon"><img src="/preview/assets/zuqiu_soccer-duose.svg" alt="" decoding="async"/></span>' +
             '<span class="plan-name">' +
             planName +
             '</span>' +
@@ -1899,7 +1899,7 @@ export function loadScorePlanList() {
             '">' +
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
-            '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
+            '<span class="plan-soccer-icon"><img src="/preview/assets/zuqiu_soccer-duose.svg" alt="" decoding="async"/></span>' +
             '<span class="plan-name">' +
             (p.planName || '单关比分方案') +
             '</span>' +
@@ -2250,7 +2250,7 @@ export function loadQuantPlanList() {
             '">' +
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
-            '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
+            '<span class="plan-soccer-icon"><img src="/preview/assets/zuqiu_soccer-duose.svg" alt="" decoding="async"/></span>' +
             '<span class="plan-name">' +
             planName +
             '</span>' +
