@@ -8747,6 +8747,19 @@ button[class*='btn'] {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+
+/* ★ P1: 通用页面骨架屏 — Tab 切换时立即显示，内容加载后替换 */
+.page-skeleton { padding: 24px 16px; }
+.page-skeleton .skel-bar {
+  height: 14px; border-radius: 7px; margin-bottom: 12px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%);
+  background-size: 200% 100%;
+  animation: skShimmer 1.5s ease infinite;
+}
+.page-skeleton .skel-bar.w60 { width: 60%; }
+.page-skeleton .skel-bar.w80 { width: 80%; }
+.page-skeleton .skel-bar.w40 { width: 40%; }
+.page-skeleton .skel-bar.w100 { width: 100%; }
 .sk-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
 .sk-legend { display:flex; align-items:center; gap:8px; margin-bottom:20px; }
 .sk-line {
