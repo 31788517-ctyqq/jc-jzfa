@@ -12,10 +12,10 @@ import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/matc
 //    之前即使版本戳更新，_modCache 命中后直接返回旧模块，永不重新加载
 //    现在每次 import() 按 URL 版本戳自然去重，戳变=重新请求=获取最新文件
 function _mod(name) {
-  return import('./pages/' + name + '.js?v=202606130910')
+  return import('./pages/' + name + '.js?v=202606131355')
     .catch(function (e) {
       console.error('[JS] 模块加载失败: ' + name + ' - ' + (e && e.message));
-      return import('./pages/' + name + '.js?v=202606130910').then(function (m) {
+      return import('./pages/' + name + '.js?v=202606131355').then(function (m) {
         console.warn('[JS] 模块重试成功: ' + name);
         return m;
       });
@@ -1335,7 +1335,7 @@ function _preloadData(current) {
           .catch(function () {});
       }
     } else if (tab === 'plan') {
-      import('./pages/plans.js?v=202606121103')
+      import('./pages/plans.js?v=202606131350')
         .then(function (m) {
           if (m.loadPlanList) m.loadPlanList();
         })
