@@ -384,6 +384,23 @@ body {
     0 12px 28px rgba(0, 0, 0, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.03);
   display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 最多推荐 + 最热场次 珊瑚色光晕 */
+.home-stat-card:nth-child(2)::before,
+.home-stat-card:nth-child(3)::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -20%;
+  width: 70%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, rgba(244, 111, 89, 0.18), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -403,6 +420,8 @@ body {
   justify-content: center;
   gap: 16px;
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 .home-stat-icon {
   width: 37px;
@@ -472,11 +491,15 @@ body {
   color: #3a4a5a;
   margin-top: 12px;
   font-weight: 600;
+  position: relative;
+  z-index: 1;
 }
 .home-stat-desc {
   margin-top: 8px;
   font-size: 11px;
   color: #6a7a8a;
+  position: relative;
+  z-index: 1;
 }
 #homeMatchMeta,
 #homeMaxRankMeta,
