@@ -8345,10 +8345,14 @@ button[class*='btn'] {
 .wc-section {
   width: 100%;
   padding: 18px 16px 20px;
-  background: #F5F7FB;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(167, 238, 230, 0.28), transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(167, 238, 230, 0.18), transparent 35%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.88), rgba(240, 249, 247, 0.82));
   border-radius: 20px;
   box-sizing: border-box;
   margin-bottom: 16px;
+  box-shadow: 0 8px 30px rgba(122, 141, 145, 0.12);
 }
 
 .wc-title {
