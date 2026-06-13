@@ -1083,6 +1083,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               var apDay = getAllplaysData()[dateStr] || {};
               var apEntry = apDay[m.num] || (m.num ? apDay['num_' + m.num] : null) || null;
               var apIsSingle = !!(apEntry && apEntry.isSingleGame);
+              // ★ DEBUG: 确认 allplays 兜底是否生效
+              if (m.num && (m.num.startsWith('\\u') || m.num.indexOf('六') > -1)) {
+                console.log('[DEBUG-isSingle] num='+m.num+' date='+dateStr+' oddsHas='+!!fiveOdds+' oddsSG='+(fiveOdds&&fiveOdds.isSingleGame)+' mSG='+m.isSingleGame+' apKeys='+Object.keys(apDay||{}).length+' apEntry='+(apEntry?apEntry.isSingleGame:'null')+' apIsSingle='+apIsSingle+' final='+((fiveOdds&&fiveOdds.isSingleGame===true)||m.isSingleGame===true||apIsSingle));
+              }
               const isSingleGame = (fiveOdds && fiveOdds.isSingleGame === true) || m.isSingleGame === true || apIsSingle;
               const concede =
                 fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null ? fiveOdds.rqspf.handicap : null;
