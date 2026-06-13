@@ -8392,67 +8392,44 @@ button[class*='btn'] {
 }
 
 .wc-tag {
-  font-size: 18px;
+  display: inline-block;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.5px;
-  margin-bottom: 10px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 12px;
 }
 
 .wc-tag.green {
   color: #19B394;
+  background: rgba(25, 179, 148, 0.1);
 }
 
 .wc-tag.pink {
   color: #FF3EA5;
+  background: rgba(255, 62, 165, 0.1);
 }
 
 .wc-tag.coral {
-  color: #f46f59;  /* 首页最热场次数字色：alpine-coral */
+  color: #f46f59;
+  background: rgba(244, 111, 89, 0.1);
 }
 
 .wc-tag.gray {
-  color: #8B95A1;  /* 灰色：全部开奖+零中奖 */
+  color: #8B95A1;
+  background: rgba(139, 149, 161, 0.1);
 }
 
 .wc-tag.black {
-  color: #1B2B34;  /* 黑色：无方案 */
-}
-
-.wc-line {
-  width: 28px;
-  height: 3px;
-  border-radius: 2px;
-  background: #19B394;
-  margin-bottom: 10px;
-  opacity: 0.85;
-}
-
-.wc-line.pink {
-  background: #FF3EA5;
+  color: #1B2B34;
+  background: rgba(27, 43, 52, 0.06);
 }
 
 .wc-date {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   font-size: 16px;
   color: #2E3A44;
   font-weight: 500;
-}
-
-.wc-cal {
-  font-size: 14px;
-  opacity: 0.7;
-}
-
-.wc-card:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  right: -6px;
-  top: 30%;
-  width: 1px;
-  height: 40%;
-  background: rgba(0, 0, 0, 0.06);
 }
 
 @media (max-width: 480px) {
