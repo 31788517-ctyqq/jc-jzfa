@@ -221,6 +221,7 @@ function gsFields(gs, m) {
     modelATotal: gs.gsModelATotal || gs.modelATotal || null,
     modelBTotal: gs.gsModelBTotal || gs.modelBTotal || null,
     modelCTotal: gs.gsModelCTotal || gs.modelCTotal || null,
+    fusionConsensus: gs.fusionConsensusType || gs.fusionConsensus || null,
   };
 }
 

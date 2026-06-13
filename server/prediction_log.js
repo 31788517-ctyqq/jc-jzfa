@@ -241,6 +241,8 @@ function upsertAI(matchId, fields) {
   if (fields.leagueName) data.leagueName = fields.leagueName;
   if (fields.matchNum) data.matchNum = fields.matchNum;
   if (fields.handicap !== undefined) data.handicap = fields.handicap;
+  // ★ P0: 共识标记（strong/weak/meltdown/null）→ 回测共识分类图表数据源
+  if (fields.fusionConsensus !== undefined) data.pk_fusion_consensus = fields.fusionConsensus;
   return upsert(data);
 }
 
@@ -300,6 +302,8 @@ function upsertGS(matchId, fields) {
   if (fields.leagueName) data.leagueName = fields.leagueName;
   if (fields.matchNum) data.matchNum = fields.matchNum;
   if (fields.handicap !== undefined) data.handicap = fields.handicap;
+  // ★ P0: 共识标记（strong/weak/meltdown/null）→ 回测共识分类图表数据源
+  if (fields.fusionConsensus !== undefined) data.pk_fusion_consensus = fields.fusionConsensus;
   return upsert(data);
 }
 
