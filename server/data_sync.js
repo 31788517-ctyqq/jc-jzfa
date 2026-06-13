@@ -50,6 +50,7 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 const LIVE_FILE = path.join(__dirname, 'live_scores.json');
 const TREND_FILE = path.join(__dirname, 'trends.json');
 const ODDS_DIR = path.join(__dirname, 'odds_history');
+const VERIFIED_RESULTS_FILE = path.join(__dirname, 'verified_results.json'); // P1 多源核实缓存
 
 const MIDOU_BASE = 'https://midou310.com/mdsj';
 
@@ -2324,6 +2325,38 @@ async function start() {
 
   // ═══ 健康监控：每分钟检查 ═══
   let _lastBackfillCheck = 0;
+  let _resultVerifyDoneToday = false; // P1 每日核实防重
+
+  // ★ P1 Layer 2: 多源赛果核实 — 每日定时触发，缓存到 verified_results.json
+  async function verifyYesterdayResults() {
+    var yd = fmtLocal(new Date(Date.now() - 86400000));
+    log('[verifier] 开始核实昨天 ' + yd + ' 赛果...');
+    try {
+      var verifier = require('./core/result-verifier');
+      var dataJson = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+      var vr = verifier.verifyDate(yd, { midouDataJson: dataJson });
+
+      // 读取现有缓存，合并
+      var cache = {};
+      try {
+        if (fs.existsSync(VERIFIED_RESULTS_FILE)) {
+          cache = JSON.parse(fs.readFileSync(VERIFIED_RESULTS_FILE, 'utf8'));
+        }
+      } catch (e) {}
+
+      cache[yd] = {
+        time: new Date().toISOString(),
+        totalMatches: vr.results.length,
+        results: vr.results.map(function (r) {
+          return { anchor: r.anchorName, score: r.verified.score, confidence: r.verified.confidence, sources: r.verified.sourceVotes };
+        }),
+      };
+      fs.writeFileSync(VERIFIED_RESULTS_FILE, JSON.stringify(cache, null, 2));
+      log('[verifier] ✓ 核实完成: ' + yd + ' ' + vr.results.length + ' 场');
+    } catch (e) {
+      log('[verifier] 核实失败: ' + e.message);
+    }
+  }
   setInterval(() => {
     const today = new Date().toISOString().slice(0, 10);
     if (today !== currentDate) {
@@ -2358,6 +2391,14 @@ async function start() {
       autoInferStatus(today);
       autoInferStatus(yd);
       autoInferStatus(fmtLocal(new Date(Date.now() - 2 * 86400000)));
+      // ★ P1 Layer 2: 每日 2:00 触发多源赛果核实（赛后数据稳定后）
+      if (now.getHours() === 2 && !_resultVerifyDoneToday) {
+        _resultVerifyDoneToday = true;
+        verifyYesterdayResults().catch(function (e) {
+          log('[verifier] 核实失败: ' + e.message);
+        });
+      }
+      if (now.getHours() !== 2) _resultVerifyDoneToday = false;
       // ★ P2-1: 记录每日统计快照
       try {
         const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));

@@ -129,35 +129,44 @@ function getPlanOutcomeOverlay(dateStr) {
     if (mid) overlay.byId[String(mid).replace(/^m_/, '')] = item;
     if (num) overlay.byNum[String(num)] = item;
   }
-  // ★ P1 Layer 2: 多源赛果核实 — 最高优先级（≥2票才高置信采纳）
+  // ★ P1 Layer 2: 多源赛果核实 — 读取 data_sync 定时生成的缓存
   try {
-    const verifier = require('./core/result-verifier');
-    const dataJson = getDataJson();
-    const vr = verifier.verifyDate(dateStr, { midouDataJson: dataJson });
-    (vr.results || []).forEach(function (r) {
-      var v = r.verified;
-      if (!v || !v.score || r.anchorName === 'skipped') return;
-      // ≥2 票高置信或 ≥1 票低置信 → 都写入 overlay（标注置信度）
-      var verItem = {
-        score: v.score,
-        matchStatus: v.status || 2,
-        halfScore: v.halfScore || '',
-        source: 'verified(' + (v.sourceVotes || []).join('+') + ') c=' + v.confidence.toFixed(2),
-      };
-      // 匹配到 byId 和 byNum
-      // 从 anchorName 解析 num
-      var parts = (r.anchorName || '').split(' ');
-      var verNum = parts[0];
-      // 从 entries 中取 matchId
-      (r._rawEntries || r.entries || []).forEach(function (e) {
-        var raw = e._raw || e.match || {};
-        var mid = raw.matchId;
-        if (mid) overlay.byId[String(mid).replace(/^m_/, '')] = verItem;
-        if (verNum) overlay.byNum[String(verNum)] = verItem;
-      });
-    });
+    var verPath = path.join(__dirname, 'verified_results.json');
+    if (fs.existsSync(verPath)) {
+      var verCache = JSON.parse(fs.readFileSync(verPath, 'utf8'));
+      var verDateEntry = verCache[dateStr];
+      if (verDateEntry && verDateEntry.results) {
+        // 解析 data.json 中该日期的比赛，建立 num→matchId 映射
+        var numToMid = {};
+        var dataJson = getDataJson();
+        var rawMap = dataJson.m || {};
+        Object.keys(rawMap).forEach(function (k) {
+          var x = rawMap[k];
+          if ((x.date || '').slice(0, 10) === dateStr && x.num && x.matchId) {
+            numToMid[x.num] = x.matchId;
+          }
+        });
+
+        verDateEntry.results.forEach(function (r) {
+          var score = r.score;
+          if (!score) return;
+          var parts = (r.anchor || '').split(' ');
+          var verNum = parts[0];
+          var verItem = {
+            score: score,
+            matchStatus: 2,
+            halfScore: '',
+            source: 'verified(c=' + (r.confidence || 0).toFixed(2) + ')',
+          };
+          if (verNum && numToMid[verNum]) {
+            overlay.byId[String(numToMid[verNum]).replace(/^m_/, '')] = verItem;
+          }
+          if (verNum) overlay.byNum[String(verNum)] = verItem;
+        });
+      }
+    }
   } catch (e) {
-    // verifier 不可用时降级
+    // verifier cache 不可用时降级
   }
   try {
     if (fs.existsSync(livePath)) {
