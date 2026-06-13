@@ -157,6 +157,9 @@ function loadWorldCupSection() {
 
     if (pastDates.length === 0) { section.style.display = 'block'; return; }
 
+    // 按日期升序排列（卡片1最早 → 卡片2中间 → 卡片3今天）
+    pastDates.sort();
+
     // 批量获取前两天的专家方案数据
     var planPromises = pastDates.map(function (dt) {
       return api('plan-list', { date: dt }).catch(function () { return {}; });
