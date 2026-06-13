@@ -125,8 +125,11 @@ function loadWorldCupSection() {
     var matches = r[0] || [];
     var dateList = (r[1] && r[1].dates) ? r[1].dates : [];
 
-    // 卡片3：今日
-    var todayCount = Array.isArray(matches) ? matches.length : 0;
+    // 卡片3：今日 — 仅统计世界杯联赛标签的比赛
+    var wcMatches = (Array.isArray(matches) ? matches : []).filter(function (m) {
+      return (m.leagueName || '').indexOf('世界杯') >= 0;
+    });
+    var todayCount = wcMatches.length;
     var todayMM = today.slice(5).replace('-', '/');
     var tag3 = document.getElementById('wcTag3');
     var date3 = document.getElementById('wcDate3');

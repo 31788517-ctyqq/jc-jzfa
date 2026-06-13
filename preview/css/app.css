@@ -8407,7 +8407,7 @@ button[class*='btn'] {
 }
 
 .wc-tag.coral {
-  color: #FF3EA5;  /* 珊瑚红：全部开奖+有中奖 */
+  color: #f46f59;  /* 首页最热场次数字色：alpine-coral */
 }
 
 .wc-tag.gray {
