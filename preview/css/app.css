@@ -8406,6 +8406,18 @@ button[class*='btn'] {
   color: #FF3EA5;
 }
 
+.wc-tag.coral {
+  color: #FF3EA5;  /* 珊瑚红：全部开奖+有中奖 */
+}
+
+.wc-tag.gray {
+  color: #8B95A1;  /* 灰色：全部开奖+零中奖 */
+}
+
+.wc-tag.black {
+  color: #1B2B34;  /* 黑色：无方案 */
+}
+
 .wc-line {
   width: 28px;
   height: 3px;

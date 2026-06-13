@@ -181,13 +181,13 @@ function loadWorldCupSection() {
         if (tagEl) {
           if (plans.length === 0) {
             tagEl.textContent = '-';
-            tagEl.className = 'wc-tag green';
+            tagEl.className = 'wc-tag black';
           } else if (allSettled) {
             tagEl.textContent = plans.length + '中' + wonCount;
-            tagEl.className = wonCount > 0 ? 'wc-tag green' : 'wc-tag pink';
+            tagEl.className = wonCount > 0 ? 'wc-tag coral' : 'wc-tag gray';
           } else {
             tagEl.textContent = plans.length + '场';
-            tagEl.className = 'wc-tag pink';
+            tagEl.className = 'wc-tag green';
           }
         }
         if (dateEl) dateEl.textContent = ddText;
