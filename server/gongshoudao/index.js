@@ -17,10 +17,66 @@ const fetch = require('./fetch');
 const CACHE_PATH = path.join(__dirname, 'cache.json');
 let _lastRefreshAt = 0;
 
+// P0-2: 联赛基线数据（单例，免重复定义）
+const LEAGUE_BASELINE = {
+  德甲: 3.18,
+  荷甲: 3.05,
+  挪超: 2.92,
+  瑞典超: 2.85,
+  英超: 2.72,
+  葡超: 2.67,
+  西甲: 2.63,
+  意甲: 2.56,
+  法甲: 2.55,
+  K联赛: 2.48,
+  日职: 2.62,
+  日乙: 2.58,
+  美职: 2.78,
+  俄超: 2.48,
+  比甲: 2.82,
+  奥甲: 2.72,
+  苏超: 2.65,
+  中超: 2.78,
+  墨超: 2.68,
+  巴甲: 2.42,
+  阿甲: 2.18,
+  欧冠: 2.82,
+  欧罗巴: 2.72,
+  亚冠: 2.65,
+  澳洲甲: 2.88,
+  德乙: 2.82,
+  法乙: 2.42,
+  英冠: 2.55,
+  土超: 2.75,
+  波兰超: 2.62,
+  瑞士超: 2.82,
+  希腊超: 2.32,
+  丹麦超: 2.78,
+};
+var _leagueKeys = Object.keys(LEAGUE_BASELINE);
+
+function lookupLeagueStat(matchInfo, defaultVal) {
+  var ln = (matchInfo.leagueName || '').trim();
+  var found = defaultVal;
+  for (var ki = 0; ki < _leagueKeys.length; ki++) {
+    if (ln.indexOf(_leagueKeys[ki]) !== -1) {
+      found = LEAGUE_BASELINE[_leagueKeys[ki]];
+      break;
+    }
+  }
+  return found;
+}
+
+function calcLeagueCalibration(matchInfo) {
+  return parseFloat((lookupLeagueStat(matchInfo, 2.65) / 2.65).toFixed(3));
+}
+
 // ==================== 缓存管理 ====================
 let _cacheData = null;
 let _cacheMtime = 0;
 let _cacheTime = 0;
+// P0-1: L1 快速内存缓存（1秒TTL，适用于高频API查询）
+let _l1Cache = { data: null, time: 0 };
 
 function readCache() {
   if (!fs.existsSync(CACHE_PATH)) return {};
@@ -34,6 +90,9 @@ function readCache() {
     _cacheData = JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
     _cacheMtime = stat.mtimeMs;
     _cacheTime = now;
+    // 刷新L1缓存
+    _l1Cache.data = _cacheData && _cacheData._global ? _cacheData._global : null;
+    _l1Cache.time = now;
     return _cacheData;
   } catch (e) {
     console.error('[gs] 缓存读取失败:', e.message);
@@ -45,12 +104,30 @@ function writeCache(data) {
   atomicWriteJson(CACHE_PATH, data);
   // 写入后立即更新内存缓存，防止下次读取仍走磁盘
   _cacheData = data;
+  _l1Cache.data = data && data._global ? data._global : null;
+  _l1Cache.time = Date.now();
   try {
     _cacheMtime = fs.statSync(CACHE_PATH).mtimeMs;
   } catch (e) {
     _cacheMtime = Date.now();
   }
   _cacheTime = Date.now();
+}
+
+// P0-1: L1 内存极速查询（1s TTL，命中时免磁盘IO+JSON.parse）
+function getMatchFromCache(matchId) {
+  var mid = String(matchId).replace(/^m_/, '');
+  var now = Date.now();
+  // L1: 1秒内存缓存
+  if (_l1Cache.data && now - _l1Cache.time < 1000) {
+    return _l1Cache.data[mid] || _l1Cache.data['m_' + mid] || null;
+  }
+  // L2: 回退到 readCache
+  var cache = readCache();
+  var global = cache && cache._global ? cache._global : {};
+  _l1Cache.data = global;
+  _l1Cache.time = now;
+  return global[mid] || global['m_' + mid] || null;
 }
 
 function getCacheTimestamp(cache) {
@@ -304,138 +381,12 @@ function computeSingleMatch(rawStats, matchInfo) {
     defStabilityAway: goalResult.defStabilityAway || 50,
     stabilityOverall: goalResult.stabilityOverall || 50,
 
-    // ★ V27 新增: 联赛归一化校准
-    leagueCalibration: (function () {
-      const BASELINE = {
-        德甲: 3.18,
-        荷甲: 3.05,
-        挪超: 2.92,
-        瑞典超: 2.85,
-        英超: 2.72,
-        葡超: 2.67,
-        西甲: 2.63,
-        意甲: 2.56,
-        法甲: 2.55,
-        K联赛: 2.48,
-        日职: 2.62,
-        日乙: 2.58,
-        美职: 2.78,
-        俄超: 2.48,
-        比甲: 2.82,
-        奥甲: 2.72,
-        苏超: 2.65,
-        中超: 2.78,
-        墨超: 2.68,
-        巴甲: 2.42,
-        阿甲: 2.18,
-        欧冠: 2.82,
-        欧罗巴: 2.72,
-        亚冠: 2.65,
-        澳洲甲: 2.88,
-        德乙: 2.82,
-        法乙: 2.42,
-        英冠: 2.55,
-        土超: 2.75,
-        波兰超: 2.62,
-        瑞士超: 2.82,
-        希腊超: 2.32,
-        丹麦超: 2.78,
-      };
-      const ln = (matchInfo.leagueName || '').trim();
-      let found = 2.65;
-      const keys = Object.keys(BASELINE);
-      for (let ki = 0; ki < keys.length; ki++) {
-        if (ln.indexOf(keys[ki]) !== -1) found = BASELINE[keys[ki]];
-      }
-      return parseFloat((found / 2.65).toFixed(3));
-    })(),
-    leagueAvgGoals: (function () {
-      const BASELINE = {
-        德甲: 3.18,
-        荷甲: 3.05,
-        挪超: 2.92,
-        瑞典超: 2.85,
-        英超: 2.72,
-        葡超: 2.67,
-        西甲: 2.63,
-        意甲: 2.56,
-        法甲: 2.55,
-        K联赛: 2.48,
-        日职: 2.62,
-        日乙: 2.58,
-        美职: 2.78,
-        俄超: 2.48,
-        比甲: 2.82,
-        奥甲: 2.72,
-        苏超: 2.65,
-        中超: 2.78,
-        墨超: 2.68,
-        巴甲: 2.42,
-        阿甲: 2.18,
-        欧冠: 2.82,
-        欧罗巴: 2.72,
-        亚冠: 2.65,
-        澳洲甲: 2.88,
-        德乙: 2.82,
-        法乙: 2.42,
-        英冠: 2.55,
-        土超: 2.75,
-        波兰超: 2.62,
-        瑞士超: 2.82,
-        希腊超: 2.32,
-        丹麦超: 2.78,
-      };
-      const ln = (matchInfo.leagueName || '').trim();
-      let found = 2.65;
-      const keys = Object.keys(BASELINE);
-      for (let ki = 0; ki < keys.length; ki++) {
-        if (ln.indexOf(keys[ki]) !== -1) found = BASELINE[keys[ki]];
-      }
-      return found;
-    })(),
+    // P0-2: 联赛基线外提为模块常量（三合一，免重复遍历28联赛）
+    leagueCalibration: calcLeagueCalibration(matchInfo),
+    leagueAvgGoals: lookupLeagueStat(matchInfo, 2.65),
     leagueOverBaseline: (function () {
-      const BASELINE = {
-        德甲: 3.18,
-        荷甲: 3.05,
-        挪超: 2.92,
-        瑞典超: 2.85,
-        英超: 2.72,
-        葡超: 2.67,
-        西甲: 2.63,
-        意甲: 2.56,
-        法甲: 2.55,
-        K联赛: 2.48,
-        日职: 2.62,
-        日乙: 2.58,
-        美职: 2.78,
-        俄超: 2.48,
-        比甲: 2.82,
-        奥甲: 2.72,
-        苏超: 2.65,
-        中超: 2.78,
-        墨超: 2.68,
-        巴甲: 2.42,
-        阿甲: 2.18,
-        欧冠: 2.82,
-        欧罗巴: 2.72,
-        亚冠: 2.65,
-        澳洲甲: 2.88,
-        德乙: 2.82,
-        法乙: 2.42,
-        英冠: 2.55,
-        土超: 2.75,
-        波兰超: 2.62,
-        瑞士超: 2.82,
-        希腊超: 2.32,
-        丹麦超: 2.78,
-      };
-      const ln = (matchInfo.leagueName || '').trim();
-      let found = 2.65;
-      const keys = Object.keys(BASELINE);
-      for (let ki = 0; ki < keys.length; ki++) {
-        if (ln.indexOf(keys[ki]) !== -1) found = BASELINE[keys[ki]];
-      }
-      return found >= 2.85 ? 68 : found >= 2.65 ? 55 : 42;
+      var v = lookupLeagueStat(matchInfo, 2.65);
+      return v >= 2.85 ? 68 : v >= 2.65 ? 55 : 42;
     })(),
 
     // ★ V27 新增: 赢盘率 + 赔率（供前端交叉验证用）
@@ -937,9 +888,17 @@ async function computeAll(options) {
   let newCount = 0;
   const changedIds = [];
   const toCompute = [];
+  const todayStr = new Date().toISOString().slice(0, 10);
   Object.entries(statsMap).forEach(([mid, rawStats]) => {
     if (!forceRefresh && existing[mid] && existing[mid].attackPattern) {
       return;
+    }
+    // P1-1: 按日期分级 — 跳过距今超过3天的比赛
+    const m = mMap[mid] || {};
+    const mDate = (m.date || '').slice(0, 10);
+    if (mDate && mDate < todayStr) {
+      var daysAgo = Math.floor((Date.now() - new Date(mDate).getTime()) / 86400000);
+      if (daysAgo > 3) return; // 跳过3天前的旧比赛
     }
     toCompute.push([mid, rawStats]);
   });
@@ -1076,6 +1035,7 @@ module.exports = {
   computeFallbackMatch,
   computeAll,
   getMatchResult,
+  getMatchFromCache,
   refreshCache,
   crossMatchAll,
   readCache,

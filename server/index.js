@@ -1284,16 +1284,18 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const concede =
                 fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null ? fiveOdds.rqspf.handicap : null;
 
-              // 实时专家数
+              // 实时专家数（口径修正：优先取方向汇总，兜底/对齐 match 本身 recommNum）
               const rawRecs = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
-              const actualRecommNum = rawRecs.reduce((s, r) => s + (r.n || r.num || 0), 0);
+              const recFromMap = rawRecs.reduce((s, r) => s + Number(r.n || r.num || 0), 0);
+              const recFromMatch = Number(m.recommNum || 0);
+              const actualRecommNum = Math.max(recFromMap, recFromMatch);
 
               list.push(
                 Object.assign({}, m, {
                   isSingleGame: isSingleGame,
                   hasGongshoudao: hasGS,
                   concede: concede,
-                  recommNum: actualRecommNum || m.recommNum || 0,
+                  recommNum: actualRecommNum,
                 }),
               );
             }
@@ -1431,12 +1433,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     const cgs =
                       gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
                     const fbRecs = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
-                    const fbRecommNum = fbRecs.reduce((s, r) => s + (r.n || r.num || 0), 0);
+                    const fbFromMap = fbRecs.reduce((s, r) => s + Number(r.n || r.num || 0), 0);
+                    const fbFromMatch = Number(m.recommNum || 0);
+                    const fbRecommNum = Math.max(fbFromMap, fbFromMatch);
                     fallbackList.push(
                       Object.assign({}, m, {
                         isSingleGame: fo && fo.isSingleGame === true,
                         hasGongshoudao: !!(cgs && cgs.attackPattern),
-                        recommNum: fbRecommNum || m.recommNum || 0,
+                        recommNum: fbRecommNum,
                       }),
                     );
                   });
@@ -1563,7 +1567,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
           // 日期筛选：默认最新有数据日期，支持指定日期
           const requestDate = data.date || latestDataDate();
-          matches = matches.filter((m) => m.date === requestDate);
+          matches = matches.filter((m) => String((m && m.date) || '').slice(0, 10) === requestDate);
 
           // 获取推荐（缓存 rMap，避免每次读磁盘）
           function getRecs(matchId) {
@@ -1601,12 +1605,15 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             } catch {
               continue;
             }
-            // 计算该比赛的总推荐专家数
-            matchTotalMap[m.matchId] = recomms.reduce((s, r) => s + (r.num || 0), 0);
+            // 计算该比赛推荐总数：取方向明细求和与 match recommNum 的较大值
+            const recTotalFromMap = recomms.reduce((s, r) => s + Number(r.num || 0), 0);
+            const recTotalFromMatch = Number(m.recommNum || 0);
+            matchTotalMap[m.matchId] = Math.max(recTotalFromMap, recTotalFromMatch);
             for (const r of recomms) {
-              if (!r.type || !r.num) continue;
+              const expertNum = Number(r.num || 0);
+              if (!r.type || expertNum <= 0) continue;
               if (!dirStats[r.type]) dirStats[r.type] = { totalNum: 0, matches: [] };
-              dirStats[r.type].totalNum += r.num;
+              dirStats[r.type].totalNum += expertNum;
               // ★ P0-3: 只存前端需要的字段，减少响应体积
               dirStats[r.type].matches.push({
                 matchId: m.matchId,
@@ -1615,8 +1622,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 leagueName: m.leagueName,
                 num: m.num,
                 direction: r.type,
-                expertCount: r.num,
-                totalExpertCount: matchTotalMap[m.matchId],
+                expertCount: expertNum,
+                totalExpertCount: Number(matchTotalMap[m.matchId] || expertNum),
                 isHit: r.result === 1,
               });
             }
@@ -1662,9 +1669,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               } catch {
                 continue;
               }
-              const filtered = recomms.filter((r) => catDirs.has(r.type) && r.num > 0);
+              const filtered = recomms.filter((r) => catDirs.has(r.type) && Number(r.num || 0) > 0);
               if (filtered.length > 0) {
-                const maxDir = filtered.reduce((a, b) => (b.num > a.num ? b : a));
+                const maxDir = filtered.reduce((a, b) => (Number(b.num || 0) > Number(a.num || 0) ? b : a));
                 // ★ P0-3: 只存前端需要的字段
                 list.push({
                   matchId: m.matchId,
@@ -1680,7 +1687,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
             }
           } else {
-            // 综合排名：取每场比赛推荐专家最多的方向
+            // 综合排名：恢复旧规则——每场取“方向专家数”最高的方向，再按 expertCount 排序
             for (const m of matches) {
               let recomms;
               try {
@@ -1688,10 +1695,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               } catch {
                 continue;
               }
-              const totalExpertCount = recomms.reduce((sum, r) => sum + (r.num || 0), 0);
-              const maxDir = recomms.reduce((a, b) => ((b.num || 0) > ((a && a.num) || 0) ? b : a), null);
-              if (maxDir && maxDir.num > 0)
-                // ★ P0-3: 只存前端需要的字段
+              const maxDir = recomms.reduce((a, b) => (Number(b.num || 0) > Number((a && a.num) || 0) ? b : a), null);
+              if (maxDir && maxDir.num > 0) {
                 list.push({
                   matchId: m.matchId,
                   homeName: m.homeName,
@@ -1699,14 +1704,15 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   leagueName: m.leagueName,
                   num: m.num,
                   direction: maxDir.type,
-                  expertCount: maxDir.num,
-                  totalExpertCount: totalExpertCount,
+                  expertCount: Number(maxDir.num || 0),
+                  totalExpertCount: Number(matchTotalMap[m.matchId] || maxDir.num || 0),
                   isHit: maxDir.result === 1,
                 });
+              }
             }
           }
 
-          list.sort((a, b) => b.expertCount - a.expertCount);
+          list.sort((a, b) => Number(b.expertCount || 0) - Number(a.expertCount || 0));
           const ranking = list.map(function (item, i) {
             const mid = String((item && item.matchId) || '').replace(/^m_/, '');
             const pkDecision = pkDecisionMap[mid] || buildFallbackPKDecision('PK标准字段暂缺');
@@ -1736,6 +1742,74 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               topExpertCount,
               ranking,
               categories: sortedCategories,
+            },
+          });
+        }
+
+        case 'home-reconcile-stats': {
+          const requestDate = data.date || latestDataDate() || localDate();
+          let mMap = {};
+          let rMap = {};
+          try {
+            const dataFile = getDataJson();
+            mMap = dataFile.m || {};
+            rMap = dataFile.r || {};
+          } catch {}
+
+          const matches = Object.values(mMap).filter((m) => String((m && m.date) || '').slice(0, 10) === requestDate);
+          function getRecs(matchId) {
+            const raw = rMap['m_' + matchId] || rMap[String(matchId)] || [];
+            return Array.isArray(raw) ? raw : [];
+          }
+
+          const rawTop = { matchId: '', num: '-', value: 0 };
+          const aggTop = { matchId: '', num: '-', value: 0 };
+          const topDirection = { matchId: '', num: '-', direction: '-', value: 0 };
+
+          for (const m of matches) {
+            const rawNum = Number(m.recommNum || 0);
+            if (rawNum > rawTop.value) {
+              rawTop.matchId = String(m.matchId || '');
+              rawTop.num = m.num || m.matchNum || m.matchId || '-';
+              rawTop.value = rawNum;
+            }
+
+            const recs = getRecs(m.matchId);
+            const mapTotal = recs.reduce((sum, r) => sum + Number(r.n || r.num || 0), 0);
+            const aggNum = Math.max(mapTotal, rawNum);
+            if (aggNum > aggTop.value) {
+              aggTop.matchId = String(m.matchId || '');
+              aggTop.num = m.num || m.matchNum || m.matchId || '-';
+              aggTop.value = aggNum;
+            }
+
+            for (const r of recs) {
+              const dirCount = Number(r.n || r.num || 0);
+              if (dirCount > topDirection.value) {
+                topDirection.matchId = String(m.matchId || '');
+                topDirection.num = m.num || m.matchNum || m.matchId || '-';
+                topDirection.direction = r.t || r.type || '-';
+                topDirection.value = dirCount;
+              }
+            }
+          }
+
+          const drift = {
+            matchCount: false,
+            maxRecommend: rawTop.value !== aggTop.value || rawTop.matchId !== aggTop.matchId,
+            hottestMatch: rawTop.value !== aggTop.value || rawTop.matchId !== aggTop.matchId,
+          };
+
+          return res.json({
+            code: 1,
+            data: {
+              date: requestDate,
+              matchCount: { raw: matches.length, aggregated: matches.length },
+              maxRecommend: { raw: rawTop, aggregated: aggTop },
+              hottestMatch: { raw: rawTop, aggregated: aggTop },
+              topDirection,
+              drift,
+              generatedAt: new Date().toISOString(),
             },
           });
         }
@@ -3206,23 +3280,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           const mid = data.matchId;
           if (!mid) return res.json({ code: 0, msg: '缺少 matchId' });
           try {
-            // ★ 内存缓存 cache.json（30s TTL），避免每次请求同步读大文件
-            if (!_gsCacheData || Date.now() - _gsCacheTime > 30000) {
-              try {
-                const gsCachePath = path.join(__dirname, 'gongshoudao', 'cache.json');
-                if (fs.existsSync(gsCachePath)) {
-                  _gsCacheData = JSON.parse(fs.readFileSync(gsCachePath, 'utf8'));
-                  _gsCacheTime = Date.now();
-                }
-              } catch (e) {
-                _gsCacheData = null;
-              }
-            }
-            // 直接从内存缓存查找（兼容 m_ 前缀）
-            let gsResult = null;
-            if (_gsCacheData && _gsCacheData._global) {
-              const g = _gsCacheData._global;
-              gsResult = g[mid] || g['m_' + mid] || g[String(mid).replace(/^m_/, '')] || null;
+            // P0-1: L1 内存极速缓存（1s TTL，免JSON.parse大文件）
+            try {
+              const gsEngine = require('./gongshoudao/index');
+              var gsResult = gsEngine.getMatchFromCache ? gsEngine.getMatchFromCache(mid) : null;
+            } catch (e) {
+              gsResult = null;
             }
             // 内存缓存未命中 → 回退到引擎查询
             if (!gsResult) {
@@ -6304,6 +6367,40 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           }
         }
 
+        case 'my-plan-reconcile': {
+          try {
+            const deviceId = req.headers['x-device-id'] || data.deviceId;
+            if (!deviceId) return res.json({ code: 1, data: { items: {}, total: 0 } });
+
+            var plans = readUserPlans(deviceId) || [];
+            var planIds = Array.isArray(data.planIds) ? data.planIds.map(String) : [];
+            var planId = data.planId != null ? String(data.planId) : '';
+
+            if (planId && planIds.indexOf(planId) < 0) planIds.push(planId);
+            if (planIds.length > 0) {
+              var idSet = {};
+              for (var ii = 0; ii < planIds.length; ii++) idSet[planIds[ii]] = true;
+              plans = plans.filter(function (p) {
+                return !!idSet[String(p.id || '')];
+              });
+            }
+
+            var items = {};
+            plans.forEach(function (p) {
+              try {
+                items[p.id] = buildPlanReconcile(p);
+              } catch (innerErr) {
+                items[p.id] = { planId: p.id, error: innerErr.message, hasDrift: true };
+              }
+            });
+
+            return res.json({ code: 1, data: { items: items, total: Object.keys(items).length } });
+          } catch (e) {
+            logger.error('[my-plan-reconcile] ' + e.message);
+            return res.json({ code: 0, msg: '对账失败: ' + e.message });
+          }
+        }
+
         case 'my-plan-delete': {
           try {
             const deviceId = req.headers['x-device-id'] || data.deviceId;
@@ -7037,6 +7134,193 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
       logger.error('[user_plans] 写入失败: ' + e.message);
     }
   }
+
+  function _round2(v) {
+    return Math.round((Number(v) || 0) * 100) / 100;
+  }
+
+  function _normStatus(v) {
+    if (v === true) return 'won';
+    if (v === false) return 'lost';
+    return 'pending';
+  }
+
+  function _resolvePlanMatchOutcome(match, planDate) {
+    var dateStr = String(match.matchDate || match.date || planDate || '').slice(0, 10);
+    if (!dateStr) return null;
+    var overlay = getPlanOutcomeOverlay(dateStr) || { byId: {}, byNum: {} };
+    var mid = match.matchId != null ? String(match.matchId).replace(/^m_/, '') : '';
+    var num = match.matchNum ? String(match.matchNum) : '';
+    var row = (mid && overlay.byId[mid]) || (num && overlay.byNum[num]) || null;
+    if (!row || !row.score) return null;
+    return {
+      score: normalizeScoreText(row.score),
+      source: row.source || 'unknown',
+      matchStatus: row.matchStatus,
+    };
+  }
+
+  function _calcPlanOddsRaw(plan) {
+    var matches = Array.isArray(plan && plan.matches) ? plan.matches : [];
+    if (matches.length === 0) return { totalOdds: 0, passOdds: {}, bestProductK: 0 };
+
+    var grouped = {};
+    for (var i = 0; i < matches.length; i++) {
+      var m = matches[i] || {};
+      var key = String(m.matchId || m.matchNum || 'unknown_' + i);
+      var od = Number(m.odds);
+      if (!grouped[key]) grouped[key] = [];
+      if (!isNaN(od) && od > 0) grouped[key].push(od);
+    }
+
+    var matchIds = Object.keys(grouped);
+    var maxOdds = {};
+    for (var mi = 0; mi < matchIds.length; mi++) {
+      var mk = matchIds[mi];
+      var arr = grouped[mk] || [];
+      maxOdds[mk] = arr.length ? Math.max.apply(null, arr) : 1;
+    }
+
+    var passTypes =
+      plan && Array.isArray(plan.passTypes) && plan.passTypes.length > 0
+        ? plan.passTypes
+        : matchIds.length <= 1
+          ? [1]
+          : [2];
+
+    var passOdds = {};
+    var bestProduct = 1;
+    var bestProductK = 0;
+
+    for (var pi = 0; pi < passTypes.length; pi++) {
+      var k = Number(passTypes[pi]) || 0;
+      if (k < 1 || k > matchIds.length) continue;
+      var sorted = matchIds
+        .map(function (mid) {
+          return Number(maxOdds[mid]) || 1;
+        })
+        .sort(function (a, b) {
+          return b - a;
+        });
+      var product = 1;
+      for (var sj = 0; sj < k; sj++) product *= sorted[sj];
+      product = _round2(product);
+      passOdds[k] = product;
+      if (product > bestProduct) {
+        bestProduct = product;
+        bestProductK = k;
+      }
+    }
+
+    var betCount = Number(plan && plan.betCount);
+    if (!(betCount > 0)) betCount = 1;
+    var multiplier = Number(plan && plan.multiplier);
+    if (!(multiplier > 0)) multiplier = 1;
+
+    var maxWin = _round2(2 * multiplier * bestProduct);
+    var totalOdds = betCount > 0 ? _round2(maxWin / (betCount * 2)) : 0;
+
+    return { totalOdds: totalOdds, passOdds: passOdds, bestProductK: bestProductK };
+  }
+
+  function buildPlanReconcile(plan) {
+    var safePlan = plan || {};
+    var recalc = recalcPlanResult(JSON.parse(JSON.stringify(safePlan)));
+    var matches = Array.isArray(safePlan.matches) ? safePlan.matches : [];
+
+    var scoreItems = [];
+    var scoreDriftCount = 0;
+    for (var i = 0; i < matches.length; i++) {
+      var m = matches[i] || {};
+      var raw = _resolvePlanMatchOutcome(m, safePlan.date || safePlan.matchDate || '');
+      var rawScore = raw && raw.score ? raw.score : '';
+      var aggScore = normalizeScoreText(m.actualScore || '');
+      var isDrift = rawScore !== aggScore;
+      if (isDrift) scoreDriftCount++;
+      scoreItems.push({
+        matchId: m.matchId || '',
+        matchNum: m.matchNum || '',
+        rawScore: rawScore || '--',
+        aggScore: aggScore || '--',
+        source: (raw && raw.source) || '--',
+        drift: isDrift,
+      });
+    }
+
+    var aggStatus = _normStatus(safePlan.isWon);
+    var rawStatus = _normStatus(recalc.isWon);
+    var aggIncome =
+      safePlan.resultIncome != null
+        ? _round2(safePlan.resultIncome)
+        : aggStatus === 'lost'
+          ? 0
+          : safePlan.totalOdds && safePlan.amount
+            ? _round2(Number(safePlan.totalOdds) * Number(safePlan.amount))
+            : null;
+    var rawIncome =
+      recalc.resultIncome != null
+        ? _round2(recalc.resultIncome)
+        : rawStatus === 'lost'
+          ? 0
+          : recalc.totalOdds && recalc.amount
+            ? _round2(Number(recalc.totalOdds) * Number(recalc.amount))
+            : null;
+    var bonusDrift =
+      rawStatus !== aggStatus ||
+      ((rawIncome != null || aggIncome != null) && _round2(rawIncome || 0) !== _round2(aggIncome || 0));
+
+    var rawOdds = _calcPlanOddsRaw(safePlan);
+    var aggTotalOdds = _round2(safePlan.totalOdds || 0);
+    var rawTotalOdds = _round2(rawOdds.totalOdds || 0);
+    var oddsDrift = aggTotalOdds !== rawTotalOdds;
+    var aggPassOdds = {};
+    var pPass = safePlan.passOdds || {};
+    Object.keys(pPass).forEach(function (k) {
+      var val = pPass[k];
+      aggPassOdds[k] = _round2(val && val.bestProduct != null ? val.bestProduct : val);
+    });
+    var rawPassOdds = {};
+    var passDrifts = [];
+    Object.keys(rawOdds.passOdds || {}).forEach(function (k) {
+      rawPassOdds[k] = _round2(rawOdds.passOdds[k]);
+    });
+    var passKeys = Array.from(new Set(Object.keys(aggPassOdds).concat(Object.keys(rawPassOdds))));
+    for (var pk = 0; pk < passKeys.length; pk++) {
+      var key = passKeys[pk];
+      var aggV = _round2(aggPassOdds[key] || 0);
+      var rawV = _round2(rawPassOdds[key] || 0);
+      if (aggV !== rawV) {
+        oddsDrift = true;
+        passDrifts.push({ passType: key, raw: rawV, agg: aggV });
+      }
+    }
+
+    return {
+      planId: safePlan.id || '',
+      hasDrift: scoreDriftCount > 0 || bonusDrift || oddsDrift,
+      score: {
+        driftCount: scoreDriftCount,
+        total: scoreItems.length,
+        items: scoreItems,
+      },
+      bonus: {
+        rawStatus: rawStatus,
+        aggStatus: aggStatus,
+        rawIncome: rawIncome,
+        aggIncome: aggIncome,
+        drift: bonusDrift,
+      },
+      odds: {
+        rawTotalOdds: rawTotalOdds,
+        aggTotalOdds: aggTotalOdds,
+        rawPassOdds: rawPassOdds,
+        aggPassOdds: aggPassOdds,
+        passDrifts: passDrifts,
+        drift: oddsDrift,
+      },
+    };
+  }
+
   function computeUserPlanStats(plans) {
     var count = (plans || []).length;
     var income = 0,
