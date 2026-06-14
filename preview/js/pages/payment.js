@@ -18,9 +18,9 @@ const PLAN_META = {
 };
 
 const PAYMENT_TIPS = [
-  '当前为模拟支付通道，支付成功后会自动回流到支付结果页。',
+  '当前接入支付宝证书支付；未启用真实通道时会自动使用测试支付兜底。',
   '优惠码会在创建订单时自动验证，若无效会给出明确提示。',
-  '开通成功后，可直接前往订阅中心查看状态并继续邀请返利。',
+  '开通成功以支付宝异步通知验签结果为准，成功后可前往订阅中心查看状态。',
 ];
 
 function formatMoney(value) {
@@ -142,7 +142,7 @@ export async function loadPayment(container, data) {
     '<div class="payment-plan-row"><span class="payment-plan-label">应付金额</span><span class="payment-plan-value payment-price">' +
     formatMoney(plan.price) +
     '</span></div>' +
-    '<div class="payment-plan-row"><span class="payment-plan-label">支付方式</span><span class="payment-plan-value">支付宝（模拟）</span></div>' +
+    '<div class="payment-plan-row"><span class="payment-plan-label">支付方式</span><span class="payment-plan-value">支付宝</span></div>' +
     '</div>' +
     '<div class="member-section-card payment-coupon-card">' +
     '<div class="member-section-title">优惠码</div>' +

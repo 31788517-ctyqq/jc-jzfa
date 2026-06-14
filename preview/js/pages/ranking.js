@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { CAT_NAMES, MIN_PLAN_DATE } from '../utils.js';
+import { CAT_NAMES, MIN_PLAN_DATE, formatDate } from '../utils.js';
 import * as state from '../state.js';
 
 export function loadRanking(cat, dir) {
@@ -29,7 +29,7 @@ export function loadRanking(cat, dir) {
       if (state.rankDate === todayStr2 || state.rankDate === '') {
         var d3 = new Date();
         d3.setDate(d3.getDate() + state.rankDateOffset - 1);
-        if (d3.toISOString().slice(0, 10) >= MIN_PLAN_DATE) {
+        if (formatDate(d3) >= MIN_PLAN_DATE) {
           state.setRankDateOffset(state.rankDateOffset - 1);
           updateRankDateBar();
           loadRanking();
@@ -166,7 +166,7 @@ export function shiftRankDate(delta) {
   var newOffset = state.rankDateOffset + delta;
   var d = new Date();
   d.setDate(d.getDate() + newOffset);
-  var newDate = d.toISOString().slice(0, 10);
+  var newDate = formatDate(d);
   if (newDate < MIN_PLAN_DATE) return;
   state.setRankDateOffset(newOffset);
   updateRankDateBar();

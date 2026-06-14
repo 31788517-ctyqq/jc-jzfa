@@ -1,6 +1,145 @@
 import { api } from '../api.js';
 import { setAuthToken, setAuthSession } from '../auth-client.js';
 
+const VIP_POPUP_PENDING_USER_KEY = 'vipGiftPopupPendingUser';
+const VIP_POPUP_SHOWN_PREFIX = 'vipGiftPopupShown:';
+const VIP_POPUP_FORCE_KEY = 'vipGiftPopupForce';
+const VIP_CLAIM_NOTICE_KEY = 'vipGiftClaimNotice';
+
+function normalizeName(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase();
+}
+
+function shouldShowVipGiftPopup(username) {
+  var uname = normalizeName(username);
+  if (!uname) return false;
+  try {
+    var force = sessionStorage.getItem(VIP_POPUP_FORCE_KEY) === '1';
+    if (force && isLocalDebugHost() && uname === 'ctyqq') return true;
+    var pendingUser = normalizeName(sessionStorage.getItem(VIP_POPUP_PENDING_USER_KEY) || '');
+    if (!pendingUser || pendingUser !== uname) return false;
+    var shown = localStorage.getItem(VIP_POPUP_SHOWN_PREFIX + uname);
+    return shown !== '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function finalizeVipGiftPopupMark(username) {
+  var uname = normalizeName(username);
+  if (!uname) return;
+  try {
+    localStorage.setItem(VIP_POPUP_SHOWN_PREFIX + uname, '1');
+    sessionStorage.removeItem(VIP_POPUP_PENDING_USER_KEY);
+    sessionStorage.removeItem(VIP_POPUP_FORCE_KEY);
+  } catch (e) {}
+}
+
+function showVipGiftPopup(username, onClaim, onLater) {
+  var overlay = document.createElement('div');
+  overlay.className = 'vip-welcome-overlay';
+  overlay.innerHTML =
+    '' +
+    '<div class="vip-welcome-modal" role="dialog" aria-modal="true" aria-label="新用户会员权益">' +
+    '<button class="vip-welcome-close" type="button" aria-label="关闭">✕</button>' +
+    '<div class="vip-welcome-head">欢庆世界杯</div>' +
+    '<div class="vip-welcome-title">领取<span>15天</span>VIP会员权益</div>' +
+    '<div class="vip-welcome-saving"><b>限时免费（7月12日截止领取）</b><strong>省 49 元</strong></div>' +
+    '<div class="vip-welcome-features">' +
+    '<div class="vip-welcome-feature">透视专家组竞猜观点</div>' +
+    '<div class="vip-welcome-feature">AI 和量化数据齐助力</div>' +
+    '</div>' +
+    '<button class="vip-welcome-claim" type="button">立即领取</button>' +
+    '<button class="vip-welcome-later" type="button">以后再说</button>' +
+    '</div>';
+
+  function cleanup() {
+    if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  }
+
+  function doLater() {
+    finalizeVipGiftPopupMark(username);
+    cleanup();
+    if (typeof onLater === 'function') onLater();
+  }
+
+  function doClaim() {
+    var claimBtn = overlay.querySelector('.vip-welcome-claim');
+    if (claimBtn) {
+      claimBtn.disabled = true;
+      claimBtn.textContent = '领取中...';
+    }
+
+    api('vip-gift-claim', {}, 0)
+      .then(function (giftData) {
+        finalizeVipGiftPopupMark(username);
+        try {
+          sessionStorage.setItem(VIP_CLAIM_NOTICE_KEY, JSON.stringify(giftData || {}));
+          sessionStorage.removeItem('pendingAfterLogin');
+        } catch (e) {}
+        cleanup();
+        if (typeof onClaim === 'function') onClaim();
+      })
+      .catch(function (e) {
+        if (claimBtn) {
+          claimBtn.disabled = false;
+          claimBtn.textContent = '立即领取';
+        }
+        var msg = (e && e.message) || '领取失败，请稍后重试';
+        window.alert(msg);
+      });
+  }
+
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) doLater();
+  });
+
+  var closeBtn = overlay.querySelector('.vip-welcome-close');
+  if (closeBtn) closeBtn.addEventListener('click', doLater);
+
+  var laterBtn = overlay.querySelector('.vip-welcome-later');
+  if (laterBtn) laterBtn.addEventListener('click', doLater);
+
+  var claimBtn = overlay.querySelector('.vip-welcome-claim');
+  if (claimBtn) claimBtn.addEventListener('click', doClaim);
+
+  document.body.appendChild(overlay);
+}
+
+function isLocalDebugHost() {
+  try {
+    var host = (window.location && window.location.hostname) || '';
+    return host === '127.0.0.1' || host === 'localhost';
+  } catch (e) {
+    return false;
+  }
+}
+
+function installVipGiftPreviewHelpers() {
+  if (!isLocalDebugHost() || typeof window === 'undefined' || window.__vipGiftPreviewHelpersInstalled) return;
+  window.__vipGiftPreviewHelpersInstalled = true;
+
+  window.previewVipGiftPopup = function (username) {
+    var uname = normalizeName(username || 'ctyqq');
+    if (!uname) return false;
+    try {
+      sessionStorage.setItem(VIP_POPUP_PENDING_USER_KEY, uname);
+      sessionStorage.setItem(VIP_POPUP_FORCE_KEY, uname === 'ctyqq' ? '1' : '0');
+      localStorage.removeItem(VIP_POPUP_SHOWN_PREFIX + uname);
+    } catch (e) {}
+    return true;
+  };
+
+  window.previewVipGiftClaimed = function () {
+    try {
+      sessionStorage.setItem(VIP_CLAIM_NOTICE_KEY, '1');
+    } catch (e) {}
+    if (typeof window.switchTab === 'function') window.switchTab('pricing');
+  };
+}
+
 function parseLoginParams() {
   try {
     var hash = window.location.hash || '';
@@ -167,34 +306,56 @@ function bindLoginAction() {
     return host === '127.0.0.1' || host === 'localhost';
   }
 
-  function applyLoginResult(res) {
+  function applyLoginResult(res, inputUsername) {
     setAuthToken(res.token || '');
     setAuthSession({ user: res.user, roles: res.roles || [], permissions: res.permissions || [] });
     setMsg(msg, '登录成功，正在进入系统...', true);
+
+    function continueAfterLogin() {
+      var pending = '';
+      var pendingPlan = getPendingSelectedPlan();
+      try {
+        pending = sessionStorage.getItem('pendingAfterLogin') || '';
+      } catch (e) {}
+      if (pending === 'payment' && pendingPlan && typeof window.navigateTo === 'function') {
+        try {
+          sessionStorage.removeItem('pendingAfterLogin');
+        } catch (e) {}
+        window.navigateTo('payment', pendingPlan);
+        return;
+      }
+      if (pending) {
+        try {
+          sessionStorage.removeItem('pendingAfterLogin');
+        } catch (e) {}
+        window.switchTab(pending);
+        return;
+      }
+      if (typeof window.switchTab === 'function') window.switchTab('home');
+    }
+
+    var username =
+      (res && res.user && (res.user.username || res.user.user_name || res.user.account)) || inputUsername || '';
+
+    if (shouldShowVipGiftPopup(username)) {
+      showVipGiftPopup(
+        username,
+        function () {
+          if (typeof window.switchTab === 'function') window.switchTab('pricing');
+        },
+        function () {
+          continueAfterLogin();
+        },
+      );
+      return;
+    }
+
     if (res.user && res.user.mustChangePassword && typeof window.switchTab === 'function') {
       window.switchTab('account-security');
       return;
     }
-    var pending = '';
-    var pendingPlan = getPendingSelectedPlan();
-    try {
-      pending = sessionStorage.getItem('pendingAfterLogin') || '';
-    } catch (e) {}
-    if (pending === 'payment' && pendingPlan && typeof window.navigateTo === 'function') {
-      try {
-        sessionStorage.removeItem('pendingAfterLogin');
-      } catch (e) {}
-      window.navigateTo('payment', pendingPlan);
-      return;
-    }
-    if (pending) {
-      try {
-        sessionStorage.removeItem('pendingAfterLogin');
-      } catch (e) {}
-      window.switchTab(pending);
-      return;
-    }
-    if (typeof window.switchTab === 'function') window.switchTab('home');
+
+    continueAfterLogin();
   }
 
   const doLogin = function () {
@@ -209,6 +370,14 @@ function bindLoginAction() {
       return;
     }
 
+    if (isLocalEnv() && normalizeName(username) === 'ctyqq') {
+      try {
+        sessionStorage.setItem(VIP_POPUP_PENDING_USER_KEY, 'ctyqq');
+        sessionStorage.setItem(VIP_POPUP_FORCE_KEY, '1');
+        localStorage.removeItem(VIP_POPUP_SHOWN_PREFIX + 'ctyqq');
+      } catch (e) {}
+    }
+
     btn.disabled = true;
     setMsg(msg, '登录中...', true);
 
@@ -220,7 +389,7 @@ function bindLoginAction() {
         return api('auth-login', { username: 'ctyqq', password: '31788517' }, 0);
       })
       .then(function (res) {
-        applyLoginResult(res);
+        applyLoginResult(res, username);
       })
       .catch(function (e) {
         setMsg(msg, e && e.message ? e.message : '登录失败，请稍后重试', false);
@@ -240,6 +409,7 @@ function bindLoginAction() {
 }
 
 export function loadLogin() {
+  installVipGiftPreviewHelpers();
   const root = ensureLoginRoot();
   if (!root) return;
   bindLoginAction();

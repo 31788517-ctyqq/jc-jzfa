@@ -201,6 +201,13 @@ function bindRegisterAction() {
             hasPendingPlan ? '注册成功，请登录后继续完成支付' : '注册成功，请登录后选择套餐',
           );
           sessionStorage.setItem('pendingAfterLogin', hasPendingPlan ? 'payment' : 'pricing');
+          // 注册后首登权益弹窗触发标记（仅首次登录使用）
+          sessionStorage.setItem(
+            'vipGiftPopupPendingUser',
+            String(username || '')
+              .trim()
+              .toLowerCase(),
+          );
         } catch (e) {}
         setMsg(msgEl, '注册成功，正在前往登录...', true);
         setTimeout(function () {

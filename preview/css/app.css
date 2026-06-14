@@ -14471,3 +14471,173 @@ input[type='password']::-webkit-credentials-auto-fill-button {
   border-color: rgba(255, 127, 104, 0.28);
   color: var(--alpine-coral-deep, #b94739);
 }
+
+/* ===== 注册首登 VIP 领取弹窗 ===== */
+.vip-welcome-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(6, 18, 22, 0.66);
+  backdrop-filter: blur(2px);
+}
+.vip-welcome-modal {
+  width: min(100%, 380px);
+  border-radius: 24px;
+  padding: 18px 16px 16px;
+  background: linear-gradient(180deg, #f5feff 0%, #e6f8fb 100%);
+  box-shadow: 0 22px 60px rgba(6, 46, 56, 0.4);
+  position: relative;
+  text-align: center;
+  animation: vipWelcomeBreath 3.2s ease-in-out infinite;
+}
+@keyframes vipWelcomeBreath {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 22px 60px rgba(6, 46, 56, 0.4);
+  }
+  50% {
+    transform: scale(1.015);
+    box-shadow: 0 28px 68px rgba(6, 46, 56, 0.48);
+  }
+}
+.vip-welcome-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #7e97a1;
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+}
+.vip-welcome-head {
+  margin-top: 2px;
+  font-size: 18px;
+  font-weight: 900;
+  color: #073a45;
+  letter-spacing: 1px;
+}
+.vip-welcome-title {
+  margin-top: 8px;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 900;
+  color: #0b3f4b;
+}
+.vip-welcome-title span {
+  color: #ff9f2f;
+  margin: 0 4px;
+}
+.vip-welcome-saving {
+  margin: 12px auto 10px;
+  width: 100%;
+  max-width: 286px;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(120, 191, 194, 0.22);
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+}
+.vip-welcome-saving b {
+  font-size: 13px;
+  color: #18b6ad;
+  background: rgba(24, 182, 173, 0.1);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+.vip-welcome-saving strong {
+  font-size: 34px;
+  color: #ff5f2c;
+  line-height: 1;
+  font-weight: 900;
+}
+.vip-welcome-features {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.vip-welcome-feature {
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f4e59;
+  background: rgba(255, 255, 255, 0.72);
+}
+.vip-welcome-claim {
+  margin-top: 14px;
+  width: 100%;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 0;
+  font-size: 25px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, #05d5be, #08b4a3);
+  box-shadow: 0 12px 24px rgba(8, 180, 163, 0.35);
+  cursor: pointer;
+}
+.vip-welcome-later {
+  margin-top: 8px;
+  border: 0;
+  background: transparent;
+  color: #7f9299;
+  font-size: 18px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ===== 套餐页领取成功卡片 ===== */
+.member-shell-pricing .pricing-cards.has-vip-claim-card {
+  margin-top: 10px;
+}
+.member-shell-pricing .pricing-cards .vip-claim-card {
+  cursor: default;
+}
+.member-shell-pricing .pricing-cards .vip-claim-card .pricing-lite-badge {
+  width: fit-content;
+}
+.vip-claim-card-title {
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: 900;
+  color: #ea580c;
+}
+.vip-claim-card-desc {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #7c4a20;
+}
+.vip-claim-card-deadline {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #c2410c;
+}
+.vip-claim-card-home {
+  margin-top: 12px;
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(90deg, #f59e0b, #f97316);
+  box-shadow: 0 10px 20px rgba(249, 115, 22, 0.24);
+  cursor: pointer;
+}

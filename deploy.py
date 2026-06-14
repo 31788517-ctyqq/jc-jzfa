@@ -154,6 +154,8 @@ DEPLOY_MAP = [
     ('preview/js/ws-client.js',           'both'),
     ('preview/js/api-schema.js',          'both'),  # ★ v3 新增
     # 服务端 → PM2 运行时路径
+    ('server/package.json',               'pm2'),
+    ('server/package-lock.json',          'pm2'),
     ('server/index.js',                   'both'),
     ('server/jczqYz_fetcher.js',          'both'),
     ('server/jczq_change.js',             'both'),
@@ -212,6 +214,7 @@ DEPLOY_MAP = [
     ('server/core/midou.js',              'both'),
     ('server/core/ai-timing.js',          'both'),
     ('server/core/health.js',             'both'),
+    ('server/core/ingestion-guard.js',    'both'),  # ★ V9: 实时比分摄入门禁（data_sync/sync_live_500 依赖）
     ('server/database.js',                'both'),
     ('server/deepseek.js',                'both'),
     ('server/doubao.js',                  'both'),
@@ -441,6 +444,23 @@ def nginx_reload(ssh):
         ssh_cmd(ssh, 'nginx -s stop 2>/dev/null; sleep 1; nginx 2>/dev/null', 15)
         print('  Nginx 已强制重启')
         return False
+
+
+def ensure_server_dependencies(ssh):
+    """新增 npm 依赖时，确保 /root/server 运行时依赖已安装。"""
+    required = ['sql.js', 'alipay-sdk', 'winston-daily-rotate-file', 'nodemailer', 'iconv-lite']
+    check_js = "const mods={}; for (const m of %s) { try { require(m); mods[m]=true; } catch(e) { mods[m]=false; } } console.log(JSON.stringify(mods)); if (Object.values(mods).some(v=>!v)) process.exit(2);" % repr(required)
+    check_cmd = "cd /root/server && node -e \"{}\" 2>&1".format(check_js.replace('"', '\\"'))
+    out, _ = ssh_cmd(ssh, check_cmd, 10)
+    if all(('\"{}\":true'.format(m) in (out or '')) for m in required):
+        print('  {} server npm 依赖已就绪'.format(c('G', '✓')))
+        return True
+    print('  {} 检测到缺少 server npm 依赖，执行 npm install --omit=dev'.format(c('Y', '⚠')))
+    out, err = ssh_cmd(ssh, 'cd /root/server && npm install --omit=dev --no-audit --no-fund 2>&1', 240)
+    verify_out, _ = ssh_cmd(ssh, check_cmd, 10)
+    ok = all(('\"{}\":true'.format(m) in (verify_out or '')) for m in required)
+    print('  {} {}'.format(c('G', '✓') if ok else c('R', '✗'), (verify_out or out or err or '')[-300:]))
+    return ok
 
 
 # ══════════════════════════════════════════
@@ -676,6 +696,12 @@ def main():
             print(c('C', '[Phase 3.5] 触发功守道缓存刷新（保留旧缓存）'))
             ssh_cmd(ssh, 'curl -s -X POST http://localhost:3000/api -H "Content-Type: application/json" -d \'{"action":"gongshoudao-all","date":"' + datetime.now().strftime('%Y-%m-%d') + '"}\' > /dev/null 2>&1 &', 5)
             print('  已触发')
+        print()
+
+    # ── Phase 3.6: 服务端 npm 依赖 ──
+    if not dry_run and not files_only:
+        print(c('C', '[Phase 3.6] 服务端 npm 依赖检查'))
+        ensure_server_dependencies(ssh)
         print()
 
     sftp.close()

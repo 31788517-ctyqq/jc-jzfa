@@ -141,7 +141,7 @@ function _renderHomeStats(matches, rankData) {
     return best;
   }, null);
   var hmEl = document.getElementById('homeHottest');
-  if (hmEl) hmEl.textContent = hottest ? hottest.totalExpertCount || hottest.expertCount || 0 : '-';
+  if (hmEl) hmEl.textContent = hottest ? hottest.totalExpertCount || hottest.expertCount || 0 : '0';
   var hottestMetaEl = document.getElementById('homeHottestMeta');
   if (hottestMetaEl) {
     hottestMetaEl.textContent = hottest ? hottest.num || hottest.matchNum || hottest.matchId || '-' : '-';
@@ -274,7 +274,7 @@ export function loadHome() {
   loadWorldCupSection();
 
   // ★ P0-1 优化：乐观渲染 — 有缓存立即渲染，无缓存等网络（getCache 内置 TTL 检查）
-  var today = new Date().toISOString().slice(0, 10);
+  var today = formatDate(new Date());
   var cachedMatches = getCache('match-list:' + today) || getCache('match-list:' + today.slice(5));
   var cachedRank = getCache('ranking-list:home');
   if (cachedMatches) {
@@ -660,7 +660,7 @@ var NotiEngine = {
           // 3. 7日盈利突破 (P1)
           var total = data.total || 0;
           if (total >= 1000) {
-            var todayStr = new Date().toISOString().slice(0, 10);
+            var todayStr = formatDate(new Date());
             if (!self._isRead('profit', todayStr)) {
               msgs.push(self._buildProfitBreakthrough(data));
             }
@@ -786,8 +786,9 @@ var NotiEngine = {
     }
     var yieldRate = total > 0 ? ((total / 7000) * 100).toFixed(1) : '0';
 
+    var todayStr = formatDate(new Date());
     return {
-      id: 'profit_' + new Date().toISOString().slice(0, 10),
+      id: 'profit_' + todayStr,
       type: 'profit',
       priority: 'P1',
       title: '💰 专家方案盈利突破！',
@@ -809,7 +810,7 @@ var NotiEngine = {
         '稳定盈利中，保持跟进 →',
       btnText: '查看',
       action: 'nav_income',
-      storageKey: 'noti:profit_' + new Date().toISOString().slice(0, 10),
+      storageKey: 'noti:profit_' + todayStr,
       expiresAt: Date.now() + 24 * 3600000,
       createdAt: new Date().toISOString(),
     };
@@ -883,7 +884,7 @@ var NotiEngine = {
     try {
       marker = markerStr ? JSON.parse(markerStr) : null;
     } catch (e) {}
-    var today = new Date().toISOString().slice(0, 10);
+    var today = formatDate(new Date());
 
     // 今天已经推送过 → 全部降级为静候
     if (marker && marker.date === today) {

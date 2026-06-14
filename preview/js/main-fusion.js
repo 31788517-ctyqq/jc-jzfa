@@ -1,10 +1,10 @@
 // ==================== 主入口：路由导航 + 全局状态管理 ====================
-console.log('[V6.0-LAZY] main-fusion.js loaded');
+console.log('[V6.0-LAZY][202606140912] main-fusion.js loaded');
 import { api } from './api.js';
 import { WEEK_NAMES, formatDate, getCache, setCache } from './utils.js';
 import { clearAuthAll, getAuthSession, hasAuthToken, setAuthSession } from './auth-client.js';
 import * as state from './state.js';
-import { loadHome } from './pages/home.js?v=202606131900';
+import { loadHome } from './pages/home.js?v=202606140912';
 import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js?v=202606101015';
 
 // ═══ 模块懒加载：非核心页面模块按需动态导入 ═══
@@ -12,9 +12,9 @@ import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/matc
 //    之前即使版本戳更新，_modCache 命中后直接返回旧模块，永不重新加载
 //    现在每次 import() 按 URL 版本戳自然去重，戳变=重新请求=获取最新文件
 function _mod(name) {
-  return import('./pages/' + name + '.js?v=202606131900').catch(function (e) {
+  return import('./pages/' + name + '.js?v=202606140912').catch(function (e) {
     console.error('[JS] 模块加载失败: ' + name + ' - ' + (e && e.message));
-    return import('./pages/' + name + '.js?v=202606131900').then(function (m) {
+    return import('./pages/' + name + '.js?v=202606140912').then(function (m) {
       console.warn('[JS] 模块重试成功: ' + name);
       return m;
     });
@@ -1140,7 +1140,7 @@ export function switchTab(tab) {
   // ★ P1: 首页后异步预取相邻 Tab 数据（方案+命中率），切页直接渲染
   if (tab === 'home') {
     setTimeout(function () {
-      var today = new Date().toISOString().slice(0, 10);
+      var today = formatDate(new Date());
       api('plan-list', { date: today }).catch(function () {});
       api('hit-rate-stats', {}).catch(function () {});
     }, 1200);
@@ -1356,13 +1356,13 @@ function _preloadData(current) {
           .catch(function () {});
       }
     } else if (tab === 'plan') {
-      import('./pages/plans.js?v=202606131900')
+      import('./pages/plans.js?v=202606140912')
         .then(function (m) {
           if (m.loadPlanList) m.loadPlanList();
         })
         .catch(function () {});
     } else if (tab === 'quant-rank') {
-      import('./pages/quant-rank-fusion.js?v=202606131900')
+      import('./pages/quant-rank-fusion.js?v=202606140912')
         .then(function (m) {
           if (m.loadQuantRank) m.loadQuantRank();
         })
@@ -1638,7 +1638,7 @@ function switchTabLoad(tab) {
   // ★ P1: 首页后异步预取相邻 Tab 数据（方案+命中率），切页直接渲染
   if (tab === 'home') {
     setTimeout(function () {
-      var today = new Date().toISOString().slice(0, 10);
+      var today = formatDate(new Date());
       api('plan-list', { date: today }).catch(function () {});
       api('hit-rate-stats', {}).catch(function () {});
     }, 1200);

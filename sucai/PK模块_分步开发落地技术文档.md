@@ -1156,6 +1156,77 @@ npm run preflight:full
 结论：命中率页面卡片宽度已统一；未进行部署。
 ```
 
+### 支付宝证书模式沙箱接入记录（2026-06-13）
+
+```text
+用户选择：证书加签方式，接入沙箱。
+应用参数：
+- APPID：2021006161653361
+- 商户 PID / seller_id：2088040915526659
+- 网关：https://openapi-sandbox.dl.alipaydev.com/gateway.do
+
+涉及文件：
+- package.json
+- package-lock.json
+- server/package.json
+- server/package-lock.json
+- server/payments/alipay.js
+- server/payments/alipay-callback.js
+- server/payments/orders.js
+- server/tests/alipay-cert.test.js
+- server/.env.example
+- preview/js/pages/payment.js
+- deploy.py
+- sucai/PK模块_分步开发落地技术文档.md
+
+实现内容：
+1. 安装 alipay-sdk，并同步根目录与 server 目录依赖清单；因线上 Node.js 为 v16.20.2，alipay-sdk 固定为兼容的 3.6.2。
+2. server/payments/alipay.js 支持证书模式配置、沙箱/正式网关、PC page.pay、移动 wap.pay、SDK 验签和模拟支付兜底，并兼容 alipay-sdk v3/v4 导出差异。
+3. payment-create-order 在 ALIPAY_ENABLED=true 时生成真实支付宝支付链接；未启用时继续走可追踪模拟支付。
+4. /api/payments/notify 实现证书模式验签、app_id 校验、seller_id 校验、金额校验、幂等处理、订阅激活和返利触发。
+5. 支付页文案从“支付宝（模拟）”调整为“支付宝”，提示真实通道未启用时使用测试支付兜底。
+6. deploy.py 纳入 server/package.json 与 server/package-lock.json，并在 PM2 重启前检查/安装 server npm 依赖，覆盖 alipay-sdk、winston-daily-rotate-file、nodemailer、iconv-lite，避免新增依赖后线上缺模块。
+7. server/.env.example 补充证书模式沙箱配置模板；私钥与证书文件只通过服务器路径读取，不提交 Git。
+
+待用户完成的外部配置：
+- 将应用私钥和三份证书上传到 /root/server/keys/alipay/
+- 服务器 /root/server/.env 设置 ALIPAY_ENABLED=true，并确认 ALIPAY_APP_PRIVATE_KEY_PATH、ALIPAY_APP_CERT_PATH、ALIPAY_PUBLIC_CERT_PATH、ALIPAY_ROOT_CERT_PATH 指向真实文件
+- 支付宝开放平台配置 notify_url=https://zj.100qiu.com/api/payments/notify
+
+复测结果：
+- npx jest server/tests/alipay-cert.test.js server/tests/payments.test.js --forceExit --no-coverage：通过（2 suites / 27 tests）
+- npm run test:frontend：通过（23 suites / 435 tests）
+- npm run lint：通过（0 errors；存在历史 warnings）
+- python -m py_compile deploy.py：通过
+- npm run preflight：通过（ESLint / Prettier / P0 / P1 / P2 / Coverage 均通过；npm audit high-severity warning 为 non-blocking）
+
+部署验证（2026-06-14 00:32）：
+- python deploy.py --fast：通过（278 文件上传，276 个唯一远程文件 MD5 复验通过）。
+- 部署中发现 server/package.json 运行时依赖不足，曾导致 PM2 缺少 winston-daily-rotate-file / nodemailer 后崩溃；已补齐依赖并重新部署恢复。
+- 线上 Node.js 为 v16.20.2，alipay-sdk v4 要求 Node>=18；已降级并锁定 alipay-sdk@3.6.2，同时兼容 v3 pageExec/default 导出。
+- 已上传本地 server/.env 与 server/keys/alipay/ 下 4 个文件到远程 /root/server/ 与 /root/server/keys/alipay/，并设置权限：私钥 600，证书 644。
+- 发现应用私钥文件为支付宝工具导出的无 PEM 头尾 PKCS8 Base64；已修复 inferKeyType 默认按 PKCS8 包装，避免 ASN.1 wrong tag。
+- PM2：jc-zjfa online，jc-sync online。
+- 内部健康检查：http://127.0.0.1:3000/health 返回 200。
+- HTTPS 健康检查：https://zj.100qiu.com/health 返回 200。
+- 支付宝脱敏配置检查：ALIPAY_ENABLED=true，mode=cert，sandbox=true，APPID 与 seller_id 正确，4 个证书/私钥文件均存在。
+- 沙箱支付链接生成：createPaymentUrl 返回 mode=alipay_sandbox_cert，method=alipay.trade.page.pay，URL 包含 openapi-sandbox 与测试订单号。
+
+登录故障修复（2026-06-14 00:46）：
+- 问题：登录提示“数据库适配器不可用”。
+- 原因：server/package.json 缺少生产 sql.js 依赖，线上 database.js 找不到 better-sqlite3 与 sql.js 后降级到 JSON 模式，getAdapter() 恒为 null。
+- 修复：server/package.json 增加 sql.js；deploy.py 的服务端依赖检查加入 sql.js；server/index.js 的认证模块和支付模块初始化改为等待 database.isAvailable() 后执行，避免 sql.js 异步初始化窗口期误报。
+- 复验：远程 database.isAvailable=true，getAdapter=true，users=13；auth-login 返回 code=1（token 已脱敏）；PM2 jc-zjfa/jc-sync 均 online。
+
+正式环境切换（2026-06-14 00:59）：
+- 已按用户要求将本地 server/.env 与远程 /root/server/.env 切换为 ALIPAY_SANDBOX=false，ALIPAY_GATEWAY=https://openapi.alipay.com/gateway.do，并重启 PM2。
+- 脱敏配置验证：enabled=true，mode=cert，sandbox=false，APPID=2021006161653361，seller_id=2088040915526659，4 个证书/私钥文件存在。
+- createPaymentUrl 验证：返回 mode=alipay_cert，method=alipay.trade.page.pay，URL 包含 openapi.alipay.com 且不包含 sandbox。
+- 正式网关接口验证：alipay.trade.query 已能到达正式网关并完成签名校验，但返回 subCode=isv.not-online-app，subMsg=应用未上线。
+
+结论：支付宝已切换正式环境，当前阻断项不在代码侧，而是支付宝开放平台应用未上线。需在支付宝开放平台完成应用上线/产品能力开通后，正式支付收银台才能正常使用。
+```
+
 ### 模块测试记录
 
 ```text

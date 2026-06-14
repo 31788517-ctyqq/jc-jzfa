@@ -161,6 +161,13 @@ npm run preflight
 - 502 Bad Gateway 排查必须带 `Host: zj.100qiu.com` 头，不带会被路由到默认 server block
 - 外网按 IP 测试 API 时也需带 Host 头
 
+### 9.7 数据同步日期与依赖规则（V9.2 新增）
+
+- **线上同步脚本禁止用 `new Date().toISOString().slice(0,10)` 作为“今天”**：北京时间 00:00~07:59 会被算成 UTC 前一天，导致 `jc-sync` 抓前一天比分、AI/推荐/赛程停在旧日期。必须使用本地日期格式化（如 `fmtLocal(new Date())` / 前端 `formatDate(new Date())`）。
+- **实时比分按竞彩编号回填必须带日期维度**：`周日009` 等编号会跨周/跨日期重复，`num` 回退匹配必须用 `date|num`，禁止全局 `num→match` 覆盖。
+- **`sync_live_500.js` / `data_sync.js` 依赖 `server/core/ingestion-guard.js`**，部署清单必须包含该文件；遗漏会导致 500.com 实时比分抓取报 `Cannot find module './core/ingestion-guard'`。
+- **`data_sync.js` 健康监控 setInterval 内使用时间变量必须在回调内定义**；曾因整点逻辑引用外层 `now` 导致 `jc-sync` 整点崩溃重启。
+
 ## 10) 上下文记忆策略（V7.0 新增）
 
 本 IDE 插件的 AI 会话上下文有限（每次新会话白板启动）。通过以下分层机制增强跨会话记忆：

@@ -58,6 +58,24 @@ function getStoredPlan() {
   }
 }
 
+function consumeVipClaimNotice() {
+  try {
+    var raw = sessionStorage.getItem('vipGiftClaimNotice') || '';
+    if (!raw) return null;
+    sessionStorage.removeItem('vipGiftClaimNotice');
+    if (raw === '1') return { gift_expires_at: null, claim_date: null };
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+function formatDateCn(dateStr) {
+  var s = String(dateStr || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return '';
+  return s.slice(5, 7).replace(/^0/, '') + '月' + s.slice(8, 10).replace(/^0/, '') + '日';
+}
+
 function setStoredPlan(plan) {
   try {
     sessionStorage.setItem('pendingSelectedPlan', JSON.stringify(plan || {}));
@@ -135,6 +153,23 @@ function renderPlanCard(plan, recommendedCode, authed) {
   );
 }
 
+function renderVipClaimCard(notice) {
+  var expiresAt = (notice && notice.gift_expires_at) || '';
+  var deadlineText = formatDateCn(expiresAt);
+  return (
+    '' +
+    '<div class="pricing-card pricing-card-mint vip-claim-card" role="status">' +
+    '<div class="pricing-lite-badge">领取成功</div>' +
+    '<div class="vip-claim-card-title">🎉 15天VIP体验领取成功</div>' +
+    '<div class="vip-claim-card-desc">体验权益已到账：可先查看套餐与会员能力，体验期内可随时升级，不影响已领取权益。</div>' +
+    '<div class="vip-claim-card-deadline">限时优惠截止日期：' +
+    (deadlineText || '已生效，请在会员中心查看到期时间') +
+    '</div>' +
+    '<button class="vip-claim-card-home" type="button" onclick="switchTab(\'home\')">回到首页</button>' +
+    '</div>'
+  );
+}
+
 function renderEmptyState(authed) {
   return (
     '' +
@@ -178,6 +213,18 @@ export async function loadPricing(container) {
 
     var recommendedCode = pickRecommendedCode(plans);
     var pendingPlan = getStoredPlan();
+    var vipClaimNotice = consumeVipClaimNotice();
+    var hasVipClaimCard = !!vipClaimNotice;
+    var planCardsHtml = plans.map(function (plan) {
+      return renderPlanCard(plan, recommendedCode, authed);
+    });
+
+    if (vipClaimNotice) {
+      var monthlyIndex = plans.findIndex(function (plan) {
+        return String((plan && plan.plan_code) || '') === 'monthly';
+      });
+      planCardsHtml.splice(monthlyIndex >= 0 ? monthlyIndex : 0, 0, renderVipClaimCard(vipClaimNotice));
+    }
 
     var html =
       '' +
@@ -200,12 +247,10 @@ export async function loadPricing(container) {
           '</strong>，登录后可继续完成支付。</div>'
         : '') +
       '</div>' +
-      '<div class="pricing-cards">' +
-      plans
-        .map(function (plan) {
-          return renderPlanCard(plan, recommendedCode, authed);
-        })
-        .join('') +
+      '<div class="pricing-cards' +
+      (hasVipClaimCard ? ' has-vip-claim-card' : '') +
+      '">' +
+      planCardsHtml.join('') +
       '</div>' +
       '<div class="member-section-card pricing-benefit-card">' +
       '<div class="member-section-title">会员权益一览</div>' +

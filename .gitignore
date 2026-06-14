@@ -29,6 +29,7 @@ _*.bat
 .env.deploy
 *.pem
 *.key
+server/keys/
 *_secret*
 *_credentials*
 
