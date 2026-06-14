@@ -623,16 +623,16 @@ async function syncMidouCards() {
     const numIndex = {};
     Object.keys(data.m).forEach((k) => {
       const m = data.m[k];
-      if (m && m.num) numIndex[m.num] = true;
+      if (m && m.num) numIndex[((m.date || '').slice(0, 10) || '') + '|' + m.num] = k;
     });
 
     let cardUpdated = 0;
     (matchRes.data || []).forEach((m) => {
       const num = m.num || '';
-      if (!num || !numIndex[num]) return;
-
-      const key = Object.keys(data.m).find((k) => data.m[k] && data.m[k].num === num);
-      if (!key) return;
+      const md =
+        m.bDate && typeof m.bDate === 'string' && m.bDate.length >= 10 ? m.bDate.slice(0, 10) : fmtLocal(new Date());
+      const key = numIndex[md + '|' + num];
+      if (!num || !key) return;
 
       const old = data.m[key];
       if ((m.yellow || '') !== (old.yellow || '') || (m.red || '') !== (old.red || '')) {
@@ -797,7 +797,7 @@ async function syncRecommends(dateStr) {
 async function syncLiveScores() {
   try {
     const token = await getToken();
-    const today = new Date().toISOString().slice(0, 10);
+    const today = fmtLocal(new Date());
 
     const matchRes = await getWithUA(
       MIDOU_BASE + '/score/footballDataList.do',
@@ -856,11 +856,11 @@ function syncLiveToData(liveMatches) {
     }
     if (!data.m) data.m = {};
 
-    // 构建 num→key 的索引，用于 matchId 不匹配时的回退查找
+    // 构建 date|num→key 的索引，用于 matchId 不匹配时的回退查找，避免竞彩编号跨日期串写
     const numIndex = {};
     Object.keys(data.m).forEach((k) => {
       const m = data.m[k];
-      if (m && m.num) numIndex[m.num] = k;
+      if (m && m.num) numIndex[((m.date || '').slice(0, 10) || '') + '|' + m.num] = k;
     });
 
     let updated = 0;
@@ -869,9 +869,12 @@ function syncLiveToData(liveMatches) {
       let key = 'm_' + lm.matchId;
       let old = data.m[key];
       // 回退：用竞彩编号 num 匹配
-      if (!old && lm.num && numIndex[lm.num]) {
-        key = numIndex[lm.num];
-        old = data.m[key];
+      if (!old && lm.num) {
+        const dateKey = ((lm.date || '').slice(0, 10) || '') + '|' + lm.num;
+        if (numIndex[dateKey]) {
+          key = numIndex[dateKey];
+          old = data.m[key];
+        }
       }
       // ★ P0 Layer 1: 统一摄入门禁（替代分散过滤规则）
       const guard = require('./core/ingestion-guard');
@@ -1855,8 +1858,8 @@ async function runTodayScheduleCheck() {
   if (_scheduleWatcherRunning) return;
   _scheduleWatcherRunning = true;
 
-  const today = new Date().toISOString().slice(0, 10);
   const now = new Date();
+  const today = fmtLocal(now);
   const hour = now.getHours();
 
   // 仅在 6:00~12:00 期间高频检查（太早没必要，太晚有12:00同步覆盖）
@@ -1905,7 +1908,7 @@ async function runTodayScheduleCheck() {
 function startTodayScheduleWatcher() {
   const now = new Date();
   const hour = now.getHours();
-  const today = now.toISOString().slice(0, 10);
+  const today = fmtLocal(now);
 
   // 如果已有数据或不在检查窗口，跳过
   if (todayHasMatches(today) || hour < 6 || hour >= 12) {
@@ -2121,7 +2124,7 @@ async function start() {
   database.initDatabase();
   log('[init] SQLite 数据库后端: ' + (database.isAvailable() ? '可用' : 'JSON降级模式'));
 
-  currentDate = new Date().toISOString().slice(0, 10);
+  currentDate = fmtLocal(new Date());
   log('[init] 当前日期: ' + currentDate + ' 数据状态: ' + getTodayStatusSummary(currentDate));
 
   // ═══ 首次启动：如果已过12点 或 今天无数据，立即执行赛程+赔率同步 ═══
@@ -2243,7 +2246,7 @@ async function start() {
     log('[scheduler] 下次12:00定时: ' + Math.round(delay / 3600000) + ' 小时后');
 
     setTimeout(async () => {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = fmtLocal(new Date());
 
       // 日期变更重置
       if (today !== currentDate) {
@@ -2255,13 +2258,13 @@ async function start() {
 
       log('[scheduler] ⏰ 12:00 定时任务触发');
       try {
-        // ★ SP官方全量同步: 赛程→详情(赔率+前瞻)→桥接
+        // ★ SP官方全量同步: 赛程→详情(赔率+前瞻)→桥接（串行 await，避免竞态）
         log('[scheduler] 开始SP全量数据同步...');
         try {
           const { main: spFullSync } = require('./sync_sp_full');
-          spFullSync().catch((e) => log('[sp] 全量同步异常: ' + e.message));
+          await spFullSync({ mode: 'full', date: today, forceSnapshot: true });
         } catch (e) {
-          log('[sp] 全量同步启动失败: ' + e.message);
+          log('[sp] 全量同步失败: ' + e.message);
         }
         await sleep(jitter(3000));
 
@@ -2315,9 +2318,32 @@ async function start() {
     }, delay);
   }
 
+  // ═══ 循环3: 每15分钟 — SP动态赔率快照（赛程存在时执行） ═══
+  let spOddsRunning = false;
+  async function spOddsLoop() {
+    if (spOddsRunning) {
+      setTimeout(spOddsLoop, 15 * 60 * 1000);
+      return;
+    }
+    spOddsRunning = true;
+    try {
+      const today = fmtLocal(new Date());
+      if (todayHasMatches(today)) {
+        const { main: spFullSync } = require('./sync_sp_full');
+        await spFullSync({ mode: 'odds', date: today, forceSnapshot: true });
+        log('[sp-odds] ✓ 动态赔率快照完成: ' + today);
+      }
+    } catch (e) {
+      log('[sp-odds] 失败: ' + e.message);
+    }
+    spOddsRunning = false;
+    setTimeout(spOddsLoop, 15 * 60 * 1000);
+  }
+
   // 启动所有循环（错峰启动，避免同时发起请求）
   setTimeout(liveScoreLoop, 5000); // 5秒后开始比分
   setTimeout(recommendLoop, 30000); // 30秒后开始推荐
+  setTimeout(spOddsLoop, 90000); // 90秒后开始 SP 动态赔率
   scheduleNoon(); // 计算12:00定时
 
   // ═══ 每小时 AI 深度解析刷新（8:00~20:00） ═══
@@ -2340,7 +2366,12 @@ async function start() {
     try {
       var verifier = require('./core/result-verifier');
       var dataJson = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-      var vr = verifier.verifyDate(yd, { midouDataJson: dataJson });
+      var spSources = verifier.extractSportterySource(yd);
+      var live500Sources = verifier.extractLive500Source(yd);
+      var vr = verifier.verifyDate(yd, {
+        midouDataJson: dataJson,
+        extraSources: [].concat(spSources || [], live500Sources || []),
+      });
 
       // 读取现有缓存，合并
       var cache = {};
@@ -2350,17 +2381,29 @@ async function start() {
         }
       } catch (e) {}
 
+      var pendingSpVerify = 0;
       cache[yd] = {
         time: new Date().toISOString(),
         totalMatches: vr.results.length,
+        sourceSummary: {
+          sporttery: (spSources || []).length,
+          live500: (live500Sources || []).length,
+        },
         results: vr.results.map(function (r) {
+          var sources = (r.verified && r.verified.sourceVotes) || [];
+          var hasSp = sources.indexOf('sporttery') >= 0;
+          var has500 = sources.indexOf('live500') >= 0;
+          var pending = !hasSp && has500;
+          if (pending) pendingSpVerify++;
           return {
             anchor: r.anchorName,
             score: r.verified.score,
             confidence: r.verified.confidence,
-            sources: r.verified.sourceVotes,
+            sources: sources,
+            pending_sp_verify: pending,
           };
         }),
+        pendingSpVerify: pendingSpVerify,
       };
       fs.writeFileSync(VERIFIED_RESULTS_FILE, JSON.stringify(cache, null, 2));
       log('[verifier] ✓ 核实完成: ' + yd + ' ' + vr.results.length + ' 场');
@@ -2369,7 +2412,8 @@ async function start() {
     }
   }
   setInterval(() => {
-    const today = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const today = fmtLocal(now);
     if (today !== currentDate) {
       log('[scheduler] 日期变更: ' + currentDate + ' → ' + today);
       currentDate = today;

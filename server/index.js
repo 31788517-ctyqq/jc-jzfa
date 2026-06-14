@@ -37,6 +37,7 @@ let _gsCacheData = null;
 let _gsCacheTime = 0;
 const { getDeltaHistory } = require('./core/odds-tracker');
 const spAdapter = require('./core/sp_data_adapter'); // ★ V9: SP官方数据统一访问
+const oddsProvider = require('./core/odds-provider'); // ★ 统一赔率读取辅助
 const payments = require('./payments/index'); // ★ V9.1: 支付/订阅/返利模块
 
 // ── 函数别名（保持 POST /api 路由中引用兼容） ──
@@ -809,6 +810,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 let wsServer = null; // WebSocket 服务实例（顶层作用域，供 health 检查使用）
 
+// 生产在 Nginx/反代后，必须信任一跳代理，否则 req.ip 会退化为内网地址导致全站共用限流桶
+app.set('trust proxy', 1);
+
 app.disable('x-powered-by');
 if (!process.env.BEHIND_PROXY) {
   app.use(compression());
@@ -847,12 +851,23 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-// 速率限制
+// 速率限制（按真实客户端分桶，避免反代后全站共享 1 个桶）
 app.use(
   '/api',
   rateLimit({
     windowMs: 60 * 1000,
-    max: process.env.E2E_TEST === '1' || process.env.NODE_ENV === 'test' ? 1000 : 60,
+    max: process.env.E2E_TEST === '1' || process.env.NODE_ENV === 'test' ? 1000 : 180,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+      const deviceId = String(req.headers['x-device-id'] || '').trim();
+      const fwd = String(req.headers['x-forwarded-for'] || '')
+        .split(',')[0]
+        .trim();
+      const ipRaw = req.ip || req.socket.remoteAddress || fwd || 'unknown';
+      const ip = String(ipRaw).replace(/^::ffff:/, '');
+      return deviceId ? 'd:' + deviceId + '|ip:' + ip : 'ip:' + ip;
+    },
     message: { code: -1, msg: '请求过于频繁，请稍后再试' },
   }),
 );
@@ -1310,12 +1325,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               var _lsNow = Date.now();
               if (!_lsCache || _lsNow - _recalcLiveScoresCacheTime > 60000) {
                 var _lsPath = path.join(__dirname, 'live_scores.json');
+                _recalcLiveScoresCache = { byId: {}, byDateNum: {}, byNum: {} };
                 if (fs.existsSync(_lsPath)) {
                   var _lsData = JSON.parse(fs.readFileSync(_lsPath, 'utf8'));
-                  _recalcLiveScoresCache = {};
                   (_lsData.matches || []).forEach(function (ls) {
-                    if (ls.matchId) _recalcLiveScoresCache[String(ls.matchId)] = ls;
-                    if (ls.num) _recalcLiveScoresCache[ls.num] = ls;
+                    var lsId = ls && ls.matchId != null ? String(ls.matchId) : '';
+                    var lsNum = ls && ls.num ? String(ls.num) : '';
+                    var lsDate = ls && ls.date ? String(ls.date).slice(0, 10) : '';
+                    if (lsId) _recalcLiveScoresCache.byId[lsId] = ls;
+                    if (lsNum && lsDate) _recalcLiveScoresCache.byDateNum[lsDate + '|' + lsNum] = ls;
+                    if (lsNum && !lsDate) _recalcLiveScoresCache.byNum[lsNum] = ls;
                   });
                 }
                 _recalcLiveScoresCacheTime = _lsNow;
@@ -1323,16 +1342,38 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
               if (_lsCache) {
                 list.forEach(function (m) {
-                  var ls = _lsCache[m.num] || _lsCache[String(m.matchId)];
+                  var mDate = String((m && m.date) || '').slice(0, 10);
+                  var mNum = m && m.num ? String(m.num) : '';
+                  var ls =
+                    (_lsCache.byId && _lsCache.byId[String(m.matchId)]) ||
+                    (_lsCache.byDateNum && mDate && mNum ? _lsCache.byDateNum[mDate + '|' + mNum] : null) ||
+                    (_lsCache.byNum && mNum ? _lsCache.byNum[mNum] : null);
+                  if (ls && ls.date && mDate && String(ls.date).slice(0, 10) !== mDate) return;
                   if (ls && ls.matchStatus !== undefined) {
                     // ★ 只使用可靠的 matchStatus: 500.com 明确标记"中"(1) 或有时长
                     // ★ P1-3 修复：放宽 live 判定条件
                     //    midou API 经常返回 duration:"" 但 matchStatus=1（赛中）
                     //    原来的 reliableLive 要求 duration 非空导致大多数赛中比赛被过滤
-                    var hasLive = ls.matchStatus === 1 || (ls.duration && ls.duration !== '');
+                    // ★ 放宽实时识别：500 有时会给到比分但 status 仍为 0、duration 为空
+                    var hasLive =
+                      ls.matchStatus === 1 ||
+                      (ls.duration && ls.duration !== '') ||
+                      (ls.score && /\d+\s*[-:：]\s*\d+/.test(String(ls.score)));
                     if (hasLive) {
-                      m.matchStatus = ls.matchStatus || m.matchStatus || 0;
-                      m.duration = ls.duration || '';
+                      var hasScore = ls.score && /\d+\s*[-:：]\s*\d+/.test(String(ls.score));
+                      // 500 有时比分已到，但 matchStatus 仍为 0；此时至少标记为赛中，避免前端显示“未开始”
+                      var inferredStatus =
+                        typeof ls.matchStatus === 'number' && ls.matchStatus > 0
+                          ? ls.matchStatus
+                          : hasScore || (ls.duration && ls.duration !== '')
+                            ? 1
+                            : m.matchStatus || 0;
+
+                      m.matchStatus = inferredStatus;
+                      m.duration = ls.duration || m.duration || '';
+                      if (m.matchStatus === 1 && !m.duration) {
+                        m.duration = '进行中';
+                      }
                       m.score = ls.score || m.score || '';
                       m.halfScore = ls.halfScore || m.halfScore || '';
                       m.homeScore = ls.homeScore !== undefined ? ls.homeScore : m.homeScore;
@@ -1346,6 +1387,19 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             } catch (_ls_e) {
               /* live_scores.json 缺失或损坏时忽略 */
             }
+
+            // 兜底归一化：部分上游会出现“score 已有、matchStatus 仍为 0”
+            // 为避免前端误显示“未开始”，只要有合法比分即至少标记为赛中(1)
+            list.forEach(function (m) {
+              if ((m.matchStatus === 0 || m.matchStatus === undefined || m.matchStatus === null) && m.score) {
+                if (/\d+\s*[-:：]\s*\d+/.test(String(m.score))) {
+                  m.matchStatus = 1;
+                }
+              }
+              if (m.matchStatus === 1 && !m.duration) {
+                m.duration = '进行中';
+              }
+            });
 
             // 如果没有找到数据，尝试实时抓取（仅限今天）
             if (list.length === 0) {
@@ -6022,82 +6076,29 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               } catch (e4) {}
             }
 
-            // ★★★ P8: sporttery 兜底赔率 ★★★
-            // 当其他数据源缺失 SPF、RQSPF 或完全无数据时，
-            // 从 sporttery_odds_snapshot 提取最新快照作为兜底
+            // ★★★ P8: sporttery 兜底赔率（统一 odds-provider） ★★★
             if (
               !oddsEntry ||
               (!result.spf.home && !result.spf.draw && !result.spf.away) ||
               result.rqspfList.length === 0
             ) {
               try {
-                const adpFallback = database.getAdapter();
-                if (adpFallback) {
-                  const sRows = adpFallback.execAll(
-                    'SELECT play_type, odds_json, snapshot_time FROM sporttery_odds_snapshot WHERE match_num = ? ORDER BY snapshot_time DESC LIMIT 50',
-                    matchNum,
-                  );
-                  if (sRows && sRows.length > 0) {
-                    // 按玩法取最新一条
-                    var spfSnapshot,
-                      rqspfSnapshot,
-                      bfSnapshot,
-                      jqsSnapshot,
-                      bqcSnapshot,
-                      handiFromOdds = null;
-                    for (var si = 0; si < sRows.length; si++) {
-                      var sr = sRows[si];
-                      try {
-                        var sOdds = JSON.parse(sr.odds_json || '{}');
-                        if (sr.play_type === 'rqspf' && !rqspfSnapshot) {
-                          rqspfSnapshot = sOdds;
-                          handiFromOdds = sOdds._handicap;
-                        }
-                        if (sr.play_type === 'spf' && !spfSnapshot) spfSnapshot = sOdds;
-                        if (sr.play_type === 'jqs' && !jqsSnapshot) jqsSnapshot = sOdds;
-                        if (sr.play_type === 'bqc' && !bqcSnapshot) bqcSnapshot = sOdds;
-                      } catch (ee) {}
-                    }
-                    logger.info(
-                      '[match-odds] sporttery fallback ' +
-                        matchNum +
-                        ' spf=' +
-                        JSON.stringify(spfSnapshot) +
-                        ' rq=' +
-                        JSON.stringify(rqspfSnapshot) +
-                        ' hcp=' +
-                        handiFromOdds,
-                    );
-
-                    if (spfSnapshot) {
-                      result.spf = {
-                        home: spfSnapshot['胜'] || null,
-                        draw: spfSnapshot['平'] || null,
-                        away: spfSnapshot['负'] || null,
-                      };
-                    }
-                    if (rqspfSnapshot && result.rqspfList.length === 0) {
-                      var hcpGuess = handiFromOdds != null ? handiFromOdds : 0;
-                      result.rqspfList.push({
-                        handicap: hcpGuess,
-                        home: rqspfSnapshot['胜'] || null,
-                        draw: rqspfSnapshot['平'] || null,
-                        away: rqspfSnapshot['负'] || null,
-                      });
-                    }
-                    if (jqsSnapshot) {
-                      for (var gk in jqsSnapshot) {
-                        if (!String(gk).startsWith('_')) result.jqs.push({ goals: gk, odds: jqsSnapshot[gk] });
-                      }
-                    }
-                    if (bqcSnapshot) {
-                      for (var bk in bqcSnapshot) {
-                        if (!String(bk).startsWith('_')) result.bqc.push({ combo: bk, odds: bqcSnapshot[bk] });
-                      }
-                    }
-                    result._source = 'sporttery_fallback';
-                  }
+                const fallback = oddsProvider.getSportteryFallback(database, matchNum);
+                if (fallback.spf) {
+                  result.spf = fallback.spf;
                 }
+                if (fallback.rqspf && result.rqspfList.length === 0) {
+                  result.rqspfList.push({
+                    handicap: fallback.handicap != null ? fallback.handicap : 0,
+                    home: fallback.rqspf.home || null,
+                    draw: fallback.rqspf.draw || null,
+                    away: fallback.rqspf.away || null,
+                  });
+                }
+                if (fallback.jqs && result.jqs.length === 0) result.jqs = fallback.jqs;
+                if (fallback.bqc && result.bqc.length === 0) result.bqc = fallback.bqc;
+                if (fallback.bf && result.bf.length === 0) result.bf = fallback.bf;
+                if (fallback.source) result._source = fallback.source;
               } catch (eSporttery) {
                 logger.warn('[match-odds] sporttery 兜底失败: ' + eSporttery.message);
               }
@@ -6379,18 +6380,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               var dateKey = (m.date || '').slice(0, 10);
               // ★ oddsMap 的 key 是竞彩编号（如 "周二201"），需用 m.num 匹配
               var matchNum = m.num || m.matchNum || '';
-              // ★ 赔率查找：直接匹配 → 去星期前缀匹配（跨日期降级兜底）→ dateKey 赔率
-              var oddsEntry = oddsMap[matchNum] || null;
-              if (!oddsEntry) {
-                var numOnly = matchNum.replace(/^[周一二三四五六日]+/, '');
-                var matchKeys = Object.keys(oddsMap);
-                for (var ki2 = 0; ki2 < matchKeys.length; ki2++) {
-                  if (matchKeys[ki2].replace(/^[周一二三四五六日]+/, '') === numOnly) {
-                    oddsEntry = oddsMap[matchKeys[ki2]];
-                    break;
-                  }
-                }
-              }
+              // ★ 赔率查找：统一入口（直接匹配 + 去星期前缀匹配）
+              var oddsEntry = oddsProvider.findOddsEntryByMatchNum(oddsMap, matchNum);
               if (!oddsEntry && dateKey) {
                 var dateOddsMap = getOddsHistory(dateKey);
                 if (dateOddsMap) oddsEntry = dateOddsMap[matchNum] || null;
@@ -6434,65 +6425,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               // ★ 构建赔率走势信号（最后 N 次变化的方向趋势）
               var deltaTrend = _buildDeltaTrend(deltaLogs || []);
 
-              // ★★★ 统一 sporttery 兜底（与 match-odds 同模式：一次查询所有玩法） ★★★
-              // 当 allplays/odds_history 缺少 BF/JQS/BQC/RQSPF 数据时，从 sporttery_odds_snapshot 取
-              var sportteryRqspf = null;
-              var sportteryHandicap = null;
-              var sportteryBqc = null;
-              var sportteryBf = null;
-              var sportteryJqs = null;
-              try {
-                var adpFallback2 = database.getAdapter();
-                if (adpFallback2) {
-                  var sRows2 = adpFallback2.execAll(
-                    'SELECT play_type, odds_json FROM sporttery_odds_snapshot WHERE match_num = ? ORDER BY snapshot_time DESC LIMIT 20',
-                    matchNum,
-                  );
-                  if (sRows2 && sRows2.length > 0) {
-                    for (var si2 = 0; si2 < sRows2.length; si2++) {
-                      var sr2 = sRows2[si2];
-                      try {
-                        var sOdds2 = JSON.parse(sr2.odds_json || '{}');
-                        if (sr2.play_type === 'rqspf' && !sportteryRqspf) {
-                          sportteryRqspf = {
-                            home: sOdds2['胜'] || null,
-                            draw: sOdds2['平'] || null,
-                            away: sOdds2['负'] || null,
-                          };
-                          if (sOdds2._handicap != null) sportteryHandicap = sOdds2._handicap;
-                        }
-                        if (sr2.play_type === 'bqc' && !sportteryBqc) {
-                          sportteryBqc = Object.keys(sOdds2)
-                            .filter(function (k) {
-                              return !String(k).startsWith('_');
-                            })
-                            .map(function (k) {
-                              return { combo: k, odds: sOdds2[k] };
-                            });
-                        }
-                        if (sr2.play_type === 'bf' && !sportteryBf) {
-                          sportteryBf = Object.keys(sOdds2)
-                            .filter(function (k) {
-                              return !String(k).startsWith('_');
-                            })
-                            .map(function (k) {
-                              return { score: k, odds: sOdds2[k] };
-                            });
-                        }
-                        if (sr2.play_type === 'jqs' && !sportteryJqs) {
-                          sportteryJqs = Object.keys(sOdds2)
-                            .filter(function (k) {
-                              return !String(k).startsWith('_');
-                            })
-                            .map(function (k) {
-                              return { goals: k, odds: sOdds2[k] };
-                            });
-                        }
-                      } catch (eParseSnap) {}
-                    }
-                  }
-                }
-              } catch (eSportteryAll) {}
+              // ★★★ 统一 sporttery 兜底（odds-provider）★★★
+              var sportteryFallback = oddsProvider.getSportteryFallback(database, matchNum);
+              var sportteryRqspf = sportteryFallback.rqspf;
+              var sportteryHandicap = sportteryFallback.handicap;
+              var sportteryBqc = sportteryFallback.bqc;
+              var sportteryBf = sportteryFallback.bf;
+              var sportteryJqs = sportteryFallback.jqs;
 
               var r = {
                 matchId: mid,
@@ -6502,7 +6441,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 matchDate: dateKey,
                 matchNum: matchNum,
                 halfScore: m.half || '',
-                spf: oddsEntry.spf || null,
+                spf: oddsEntry.spf || sportteryFallback.spf || null,
                 rqspf: oddsEntry.rqspf || sportteryRqspf || null,
                 // ★ 转换为前端期望的数组格式
                 // ★ 统一降级链：allplays/odds_history → _safeArray(空数组→null) → sporttery_odds_snapshot
@@ -6713,7 +6652,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const verifier = require('./core/result-verifier');
             const dateStr = data.date || localDate();
             const dataJson = getDataJson();
-            const vr = verifier.verifyDate(dateStr, { midouDataJson: dataJson });
+            const extraSources = []
+              .concat(verifier.extractSportterySource ? verifier.extractSportterySource(dateStr) : [])
+              .concat(verifier.extractLive500Source ? verifier.extractLive500Source(dateStr) : []);
+            const vr = verifier.verifyDate(dateStr, { midouDataJson: dataJson, extraSources: extraSources });
             // 汇总
             var passed = 0,
               lowConf = 0,
@@ -7018,6 +6960,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         case 'subscription-renew':
         case 'subscription-cancel-auto-renew':
         case 'subscription-enable-auto-renew':
+        case 'vip-gift-claim':
+        case 'vip-gift-status':
         case 'admin-subscription-list':
         case 'admin-grant-subscription':
         case 'referral-info':
@@ -7123,26 +7067,34 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     var dataFile = getDataJson();
     var mMap = dataFile.m || {};
 
-    // 构建 matchNum → mMap entry 索引
+    // 构建 matchNum 索引（优先 date|num，避免竞彩编号跨日期串写）
     var mByNum = {};
+    var mByDateNum = {};
     Object.keys(mMap).forEach(function (k) {
       var entry = mMap[k];
       if (entry && entry.num) {
-        mByNum[entry.num] = entry;
+        var num = String(entry.num);
+        var dateStr = String(entry.date || '').slice(0, 10);
+        mByNum[num] = entry;
+        if (dateStr) mByDateNum[dateStr + '|' + num] = entry;
       }
     });
 
     // 加载 live_scores.json（1 分钟缓存）
     var now = Date.now();
     if (!_recalcLiveScoresCache || now - _recalcLiveScoresCacheTime > 60000) {
-      _recalcLiveScoresCache = {};
+      _recalcLiveScoresCache = { byId: {}, byDateNum: {}, byNum: {} };
       try {
         var lsPath = path.join(__dirname, 'live_scores.json');
         if (fs.existsSync(lsPath)) {
           var lsData = JSON.parse(fs.readFileSync(lsPath, 'utf8'));
           (lsData.matches || []).forEach(function (ls) {
-            if (ls.matchId) _recalcLiveScoresCache[String(ls.matchId)] = ls;
-            if (ls.num) _recalcLiveScoresCache[ls.num] = ls;
+            var lsId = ls && ls.matchId != null ? String(ls.matchId) : '';
+            var lsNum = ls && ls.num ? String(ls.num) : '';
+            var lsDate = ls && ls.date ? String(ls.date).slice(0, 10) : '';
+            if (lsId) _recalcLiveScoresCache.byId[lsId] = ls;
+            if (lsNum && lsDate) _recalcLiveScoresCache.byDateNum[lsDate + '|' + lsNum] = ls;
+            if (lsNum && !lsDate) _recalcLiveScoresCache.byNum[lsNum] = ls;
           });
         }
       } catch (e) {
@@ -7158,13 +7110,20 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
       var matchNum = mm.matchNum || '';
       var playType = mm.playType || '';
       var direction = mm.direction || '';
+      var matchDate = String(mm.matchDate || mm.date || plan.matchDate || '').slice(0, 10);
 
       // 查找比赛数据
-      var matchData = mByNum[matchNum] || null;
+      var matchData = (matchDate && mByDateNum[matchDate + '|' + matchNum]) || mByNum[matchNum] || null;
 
       // 兜底：live_scores.json
       if (!matchData || !matchData.score) {
-        var ls = liveScores[matchNum] || liveScores[String(mm.matchId)];
+        var ls =
+          (liveScores.byId && liveScores.byId[String(mm.matchId)]) ||
+          (liveScores.byDateNum && matchDate && matchNum ? liveScores.byDateNum[matchDate + '|' + matchNum] : null) ||
+          (liveScores.byNum && matchNum ? liveScores.byNum[matchNum] : null);
+        if (ls && ls.date && matchDate && String(ls.date).slice(0, 10) !== matchDate) {
+          ls = null;
+        }
         if (ls && ls.score && ls.matchStatus >= 1) {
           matchData = { score: ls.score, date: ls.date };
         }
@@ -7485,14 +7444,37 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   }
 
   // ==================== 启动 ====================
+  function runWhenDatabaseReady(label, fn, options) {
+    const maxAttempts = (options && options.maxAttempts) || 60;
+    const delayMs = (options && options.delayMs) || 1000;
+    let attempts = 0;
+
+    function tryRun() {
+      attempts += 1;
+      if (!database.isAvailable || !database.isAvailable()) {
+        if (attempts < maxAttempts) {
+          return setTimeout(tryRun, delayMs).unref();
+        }
+        logger.error(label + ' 初始化失败: 数据库适配器超时不可用');
+        return;
+      }
+      try {
+        fn();
+        logger.info(label + ' 初始化完成');
+      } catch (e) {
+        logger.error(label + ' 初始化失败: ' + e.message);
+      }
+    }
+
+    tryRun();
+  }
+
   // 初始化数据库
   try {
     database.initDatabase();
-    try {
+    runWhenDatabaseReady('认证模块', function () {
       authService.ensureBootstrapped();
-    } catch (e) {
-      logger.error('认证模块初始化失败: ' + e.message);
-    }
+    });
   } catch (err) {
     logger.error('数据库初始化失败: ' + err.message);
   }
@@ -7566,12 +7548,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     logger.warn('[cache-warmer] 加载失败: ' + e.message);
   }
 
-  // 初始化支付/订阅/返利模块
-  try {
+  // 初始化支付/订阅/返利模块（sql.js 生产后端为异步初始化，需等待适配器就绪）
+  runWhenDatabaseReady('支付模块', function () {
     payments.initPayments();
-  } catch (e) {
-    logger.warn('[startup] payments init 失败: ' + e.message);
-  }
+  });
 
   server.listen(PORT, () => {
     const banner = [

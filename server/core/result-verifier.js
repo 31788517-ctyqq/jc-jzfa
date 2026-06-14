@@ -277,6 +277,104 @@ function extractMidouSource(dataJson, dateStr) {
   return entries;
 }
 
+function _extractMatchNum(raw) {
+  var m = String(raw || '').match(/(周[一二三四五六日]\d{3})/);
+  return m ? m[1] : '';
+}
+
+function _extractDate(raw) {
+  var m = String(raw || '').match(/(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : '';
+}
+
+function _normalizeScore(raw) {
+  if (!raw) return '';
+  return String(raw).trim().replace(/\s+/g, '').replace(/:/g, '-').replace(/：/g, '-');
+}
+
+/**
+ * 从 SP 官方详情文件提取赛果源（权威优先）
+ */
+function extractSportterySource(dateStr, opts) {
+  opts = opts || {};
+  var oddsDir = opts.oddsDir || path.join(__dirname, '..', 'sporttery_odds');
+  var entries = [];
+  if (!fs.existsSync(oddsDir)) return entries;
+
+  var files = fs.readdirSync(oddsDir).filter(function (f) {
+    return f.endsWith('.json');
+  });
+
+  files.forEach(function (f) {
+    try {
+      var data = JSON.parse(fs.readFileSync(path.join(oddsDir, f), 'utf8'));
+      var dt = _extractDate(data.matchInfo);
+      if (dt !== dateStr) return;
+
+      var lottery = data.lotteryResult || {};
+      var scoreRaw = lottery['比分'] && lottery['比分'].outcome ? lottery['比分'].outcome : data.score;
+      var score = _normalizeScore(scoreRaw);
+      if (!score || score === '-:-') return;
+
+      entries.push({
+        source: 'sporttery',
+        match: {
+          num: _extractMatchNum(data.matchNum),
+          homeName: data.home || '',
+          visitName: data.away || '',
+          date: dt,
+          score: score,
+          halfScore: '',
+          matchStatus: 2,
+          matchId: f.replace('.json', ''),
+        },
+      });
+    } catch (e) {
+      /* ignore broken file */
+    }
+  });
+
+  return entries;
+}
+
+/**
+ * 从 500 live 文件提取已完赛源（用于 SP 缺失时的暂采纳）
+ */
+function extractLive500Source(dateStr, opts) {
+  opts = opts || {};
+  var liveFile = opts.liveFile || path.join(__dirname, '..', 'live_scores.json');
+  var entries = [];
+  if (!fs.existsSync(liveFile)) return entries;
+
+  try {
+    var live = JSON.parse(fs.readFileSync(liveFile, 'utf8'));
+    (live.matches || []).forEach(function (m) {
+      var dt = (m.date || '').slice(0, 10);
+      if (dt !== dateStr) return;
+      if (!(m.matchStatus >= 2)) return;
+      var score = _normalizeScore(m.score);
+      if (!score || score === '-:-') return;
+      entries.push({
+        source: 'live500',
+        match: {
+          num: m.num || '',
+          homeName: m.homeName || m.home || '',
+          visitName: m.visitName || m.away || '',
+          date: dt,
+          score: score,
+          halfScore: m.halfScore || '',
+          matchStatus: 2,
+          matchId: m.matchId,
+        },
+      });
+    });
+  } catch (e) {
+    return [];
+  }
+
+  return entries;
+}
+
 /**
  * 入口：核实单日赛果
  * @param {string} dateStr  '2026-06-12'
@@ -334,4 +432,6 @@ module.exports = {
   voteScore: voteScore,
   verifyDate: verifyDate,
   extractMidouSource: extractMidouSource,
+  extractSportterySource: extractSportterySource,
+  extractLive500Source: extractLive500Source,
 };

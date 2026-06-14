@@ -39,6 +39,7 @@ parser.add_argument("--schedule", action="store_true", help="抓取赛程页面"
 parser.add_argument("--today", action="store_true", help="抓取今天赛程中的比赛（含赛前赔率+前瞻）")
 parser.add_argument("--bridge", action="store_true", help="抓取后自动桥接到 SQLite")
 parser.add_argument("--match-nums", help="指定match_num列表，逗号分隔（例: 周六213,周六217）")
+parser.add_argument("--force", action="store_true", help="强制重抓，忽略已有文件与24小时跳过规则")
 args = parser.parse_args()
 
 def get_dates():
@@ -130,7 +131,7 @@ def parse_preview_page(match_id, page, dry=False):
     url = f"{DETAIL_BASE}?showType=2&mid={match_id}"
     preview_file = PREVIEW_DIR / f"{match_id}.json"
     
-    if preview_file.exists():
+    if preview_file.exists() and not args.force:
         return preview_file.name  # skip
     
     try:
@@ -399,8 +400,8 @@ def scrape_today_live(dry=False, match_nums_str=None):
             match_num = m['matchNum'] or f"未知{mid[:4]}"
             odds_file = ODDS_DIR / f"{mid}.json"
 
-            # 检查是否已有（24小时内已抓则跳过）
-            if odds_file.exists():
+            # 检查是否已有（24小时内已抓则跳过；--force 时不跳过）
+            if odds_file.exists() and not args.force:
                 age_hours = (time.time() - odds_file.stat().st_mtime) / 3600
                 if age_hours < 24:
                     print(f"  [{idx+1}/{len(matches)}] {match_num} (mid={mid}) — 已存在({age_hours:.1f}h前), 跳过")
