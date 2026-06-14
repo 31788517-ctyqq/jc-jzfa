@@ -6260,7 +6260,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         // P0: AI 健康采样 — force 单场刷新验证优化链路（生产可调）
         case 'ai-health-check': {
           try {
-            const targetDate = data.date || require('./data_sync').fmtLocal(new Date());
+            var d = new Date();
+            var targetDate = data.date || (d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'));
             const deepseek = require('./deepseek');
             const doubao = require('./doubao');
             const dataJson = getDataJson();

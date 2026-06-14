@@ -29,6 +29,16 @@ function getMemberHomeIcon() {
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4.5v-5.5h3V21H18a1 1 0 0 0 1-1V9.5"/></svg>';
 }
 
+function normalizeInviteLink(link, code) {
+  var fallback = code ? 'https://zj.100qiu.com/#register?ref=' + code : '';
+  var raw = String(link || fallback || '').trim();
+  if (!raw) return '';
+  // 兼容历史错误链接：/preview/#register?ref=...
+  raw = raw.replace('https://zj.100qiu.com/preview/#register?', 'https://zj.100qiu.com/#register?');
+  raw = raw.replace('https://zj.100qiu.com/preview/index.html#register?', 'https://zj.100qiu.com/#register?');
+  return raw;
+}
+
 function renderGuestState(container) {
   container.innerHTML =
     '' +
@@ -133,8 +143,7 @@ export async function loadReferral(container) {
 
     var acc = accResult || {};
     var withdrawHistory = (historyResult && historyResult.list) || [];
-    var shareUrl =
-      acc.shareUrl || (acc.referralCode ? 'https://zj.100qiu.com/preview/#register?ref=' + acc.referralCode : '');
+    var shareUrl = normalizeInviteLink(acc.shareUrl, acc.referralCode);
 
     container.innerHTML =
       '' +
@@ -289,7 +298,7 @@ window.copyReferralLink = function (link) {
 };
 
 window.shareReferral = function (code, link) {
-  var finalLink = link || (code ? 'https://zj.100qiu.com/preview/#register?ref=' + code : '');
+  var finalLink = normalizeInviteLink(link, code);
   if (!finalLink) {
     alert('暂无邀请码');
     return;

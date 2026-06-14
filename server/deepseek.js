@@ -433,7 +433,7 @@ function callDeepSeek(messages, options) {
       max_tokens: options.maxTokens || 1024,
     });
 
-    const options = {
+    const httpOpts = {
       hostname: url.hostname,
       port: url.port || (url.protocol === 'https:' ? 443 : 80),
       path: url.pathname,
@@ -447,7 +447,7 @@ function callDeepSeek(messages, options) {
     };
 
     const transport = url.protocol === 'https:' ? https : http;
-    const req = transport.request(options, function (res) {
+    const req = transport.request(httpOpts, function (res) {
       let body = '';
       res.on('data', function (chunk) {
         body += chunk;

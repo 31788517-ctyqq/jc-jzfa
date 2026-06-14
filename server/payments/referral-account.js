@@ -95,7 +95,7 @@ async function referralInfo(req, res) {
     const userId = req.authSession?.userId;
     if (!userId) return res.json({ code: 401, msg: 'AUTH_REQUIRED' });
     const code = ensureUserReferralCode(adp, userId);
-    const shareUrl = code ? `https://zj.100qiu.com/preview/#register?ref=${code}` : null;
+    const shareUrl = code ? `https://zj.100qiu.com/#register?ref=${code}` : null;
 
     const inviteCount = adp.execOne(`SELECT COUNT(*) as cnt FROM users WHERE referred_by = ?`, [userId]);
 
@@ -151,7 +151,7 @@ async function referralAccount(req, res) {
       code: 1,
       data: {
         referralCode: referralCode || null,
-        shareUrl: referralCode ? `https://zj.100qiu.com/preview/#register?ref=${referralCode}` : null,
+        shareUrl: referralCode ? `https://zj.100qiu.com/#register?ref=${referralCode}` : null,
         totalEarned: account?.total_earned || 0,
         totalWithdrawn: account?.total_withdrawn || 0,
         balance: (account?.total_earned || 0) - (account?.total_withdrawn || 0),

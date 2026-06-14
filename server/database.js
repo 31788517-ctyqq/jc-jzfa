@@ -477,7 +477,17 @@ function _createSqlJsAdapter(sqlDb) {
     dbInstance.close();
   }
 
-  return { execOne, execAll, execRun, execDDL, transaction, close, raw: dbInstance };
+  function flush() {
+    if (_saveTimer) {
+      clearImmediate(_saveTimer);
+      _saveTimer = null;
+    }
+    _dirty = false;
+    _saveToFile();
+    return true;
+  }
+
+  return { execOne, execAll, execRun, execDDL, transaction, close, flush, backend: 'sqljs', raw: dbInstance };
 }
 
 // ═══════════════════════════════════════════════════════
@@ -585,6 +595,7 @@ function _initBetterSqlite3() {
 
   // ═══ 适配器（兼容 prediction_log.js 等模块的统一 API） ═══
   const _bs3Adp = {
+    backend: 'better-sqlite3',
     execOne: function (sql, ...args) {
       const params = _normalizeParams(args);
       const stmt = db.prepare(sql);
@@ -603,6 +614,10 @@ function _initBetterSqlite3() {
     },
     execDDL: function (sql) {
       db.exec(sql);
+    },
+    flush: function () {
+      // better-sqlite3 事务提交后已直接落盘（WAL），此处保持兼容接口
+      return true;
     },
     raw: db,
   };

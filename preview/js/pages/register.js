@@ -1,18 +1,30 @@
 import { api } from '../api.js';
 import { getDeviceId } from '../utils.js';
 
-function parseHashParams() {
+function parseInviteParams() {
   try {
     var hash = window.location.hash || '';
     var qIndex = hash.indexOf('?');
-    return new URLSearchParams(qIndex >= 0 ? hash.slice(qIndex + 1) : '');
+    return {
+      hashParams: new URLSearchParams(qIndex >= 0 ? hash.slice(qIndex + 1) : ''),
+      searchParams: new URLSearchParams((window.location && window.location.search) || ''),
+    };
   } catch (e) {
-    return new URLSearchParams('');
+    return {
+      hashParams: new URLSearchParams(''),
+      searchParams: new URLSearchParams(''),
+    };
   }
 }
 
 function parseReferralCode() {
-  var code = parseHashParams().get('ref') || '';
+  var parsed = parseInviteParams();
+  var code =
+    parsed.hashParams.get('ref') ||
+    parsed.hashParams.get('invite') ||
+    parsed.searchParams.get('ref') ||
+    parsed.searchParams.get('invite') ||
+    '';
   return String(code || '')
     .trim()
     .toUpperCase();

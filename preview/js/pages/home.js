@@ -79,6 +79,128 @@ function updateHomeTodayBrief(matchCount, ranking) {
   el.textContent = text;
 }
 
+function _isHomeReconcileEnabled() {
+  try {
+    return localStorage.getItem('home:reconcile:enabled') === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function _setHomeReconcileEnabled(enabled) {
+  try {
+    localStorage.setItem('home:reconcile:enabled', enabled ? '1' : '0');
+  } catch (e) {}
+}
+
+function _setHomeReconcilePanelVisible(visible) {
+  var panel = document.getElementById('homeReconcilePanel');
+  if (!panel) return;
+  panel.style.display = visible ? 'block' : 'none';
+}
+
+function _renderHomeReconcileToggle() {
+  var el = document.getElementById('homeReconcileToggle');
+  if (!el) return;
+  var on = _isHomeReconcileEnabled();
+  el.textContent = on ? '🔎 对账开关：开' : '🔎 对账开关：关';
+  if (on) el.classList.add('on');
+  else el.classList.remove('on');
+}
+
+function _renderHomeReconcilePanel(data, errorMsg) {
+  var panel = document.getElementById('homeReconcilePanel');
+  if (!panel) return;
+  if (errorMsg) {
+    panel.innerHTML = '<div class="home-reconcile-drift-warn">对账失败：' + errorMsg + '</div>';
+    _setHomeReconcilePanelVisible(true);
+    return;
+  }
+  if (!data) {
+    panel.innerHTML = '';
+    _setHomeReconcilePanelVisible(false);
+    return;
+  }
+
+  function fmtEntry(entry) {
+    if (!entry) return '-';
+    var num = entry.num || '-';
+    var val = Number(entry.value || 0);
+    return num + '（' + val + '）';
+  }
+
+  var drift = data.drift || {};
+  var hasDrift = !!(drift.matchCount || drift.maxRecommend || drift.hottestMatch);
+  var driftText = hasDrift
+    ? '⚠ 发现口径漂移：' +
+      [
+        drift.matchCount ? '场次' : '',
+        drift.maxRecommend ? '最多推荐' : '',
+        drift.hottestMatch ? '最热场次' : '',
+      ]
+        .filter(Boolean)
+        .join(' / ')
+    : '✅ 当前原始值与聚合值一致';
+
+  panel.innerHTML =
+    '<div class="home-reconcile-row"><span>日期</span><strong>' +
+    (data.date || '-') +
+    '</strong></div>' +
+    '<div class="home-reconcile-row"><span>今日比赛场次</span><strong>原始 ' +
+    Number((data.matchCount && data.matchCount.raw) || 0) +
+    ' / 聚合 ' +
+    Number((data.matchCount && data.matchCount.aggregated) || 0) +
+    '</strong></div>' +
+    '<div class="home-reconcile-row"><span>最多推荐</span><strong>原始 ' +
+    fmtEntry(data.maxRecommend && data.maxRecommend.raw) +
+    ' / 聚合 ' +
+    fmtEntry(data.maxRecommend && data.maxRecommend.aggregated) +
+    '</strong></div>' +
+    '<div class="home-reconcile-row"><span>最热场次</span><strong>原始 ' +
+    fmtEntry(data.hottestMatch && data.hottestMatch.raw) +
+    ' / 聚合 ' +
+    fmtEntry(data.hottestMatch && data.hottestMatch.aggregated) +
+    '</strong></div>' +
+    '<div class="home-reconcile-row"><span>方向峰值</span><strong>' +
+    ((data.topDirection && data.topDirection.num) || '-') +
+    '@' +
+    ((data.topDirection && data.topDirection.direction) || '-') +
+    '（' +
+    Number((data.topDirection && data.topDirection.value) || 0) +
+    '）</strong></div>' +
+    '<div class="' +
+    (hasDrift ? 'home-reconcile-drift-warn' : 'home-reconcile-drift-ok') +
+    '">' +
+    driftText +
+    '</div>';
+  _setHomeReconcilePanelVisible(true);
+}
+
+function _loadHomeReconcilePanel() {
+  if (!_isHomeReconcileEnabled()) {
+    _renderHomeReconcilePanel(null);
+    return;
+  }
+  _renderHomeReconcilePanel(null, null);
+  _setHomeReconcilePanelVisible(true);
+  var panel = document.getElementById('homeReconcilePanel');
+  if (panel) panel.innerHTML = '<div class="home-reconcile-row"><span>对账中...</span><strong>请稍候</strong></div>';
+  api('home-reconcile-stats', {})
+    .then(function (d) {
+      _renderHomeReconcilePanel(d || {});
+    })
+    .catch(function (e) {
+      _renderHomeReconcilePanel(null, (e && e.message) || '接口异常');
+    });
+}
+
+window.toggleHomeReconcile = function () {
+  var next = !_isHomeReconcileEnabled();
+  _setHomeReconcileEnabled(next);
+  _renderHomeReconcileToggle();
+  _loadHomeReconcilePanel();
+};
+
 window.goHomeHottestMatch = function () {
   var target = window.__homeHottestTarget || null;
   try {
@@ -270,6 +392,9 @@ export function loadHome() {
   var initialMatchCountEl = document.getElementById('homeMatchCount');
   if (initialMatchCountEl && initialMatchCountEl.textContent === '-') initialMatchCountEl.textContent = '0';
 
+  _renderHomeReconcileToggle();
+  _loadHomeReconcilePanel();
+
   // ★ 世界杯区块
   loadWorldCupSection();
 
@@ -294,6 +419,7 @@ export function loadHome() {
     // 缓存 ranking 列表（5分钟TTL）
     setCache('ranking-list:home', rankData);
     _renderHomeStats(matches, rankData);
+    _loadHomeReconcilePanel();
   });
 
   // ── 近7日推荐盈利图表 ──

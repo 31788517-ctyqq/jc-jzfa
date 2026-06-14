@@ -5,21 +5,21 @@ function getInviteContactConfig() {
       ? cfg.contacts
       : [
           {
-            label: '客服微信',
-            value: '待补充',
-            desc: '建议在此处填写客服微信号或企业微信二维码链接。',
-            copyable: false,
+            label: '服务微信',
+            value: 'ty102827',
+            desc: '添加微信请备注“邀请码申请”。',
+            copyable: true,
           },
           {
-            label: '客服电话',
-            value: '待补充',
-            desc: '建议补充手机号或固定电话，方便非微信场景联系。',
-            copyable: false,
+            label: '服务电话',
+            value: '19924790073',
+            desc: '电话咨询请说明注册手机号，便于快速处理。',
+            copyable: true,
           },
           {
             label: '服务时间',
             value: '09:00 - 21:00',
-            desc: '邀请制用户可在服务时间内获取专属邀请码或邀请链接。',
+            desc: '服务时间内优先处理邀请码与支付相关问题。',
             copyable: false,
           },
         ];

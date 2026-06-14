@@ -117,7 +117,7 @@ function renderHitRate(el, data) {
           <div class="stat-big-label">方向数</div>
         </div>
         <div class="stat-big">
-          <div class="stat-big-value" style="color:#FF8C00">${top3Rate}%</div>
+          <div class="stat-big-value" style="color:#FF7F50">${top3Rate}%</div>
           <div class="stat-big-label">每日≥3场命中率</div>
         </div>
       </div>

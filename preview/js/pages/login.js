@@ -46,7 +46,10 @@ function showVipGiftPopup(username, onClaim, onLater) {
     '<button class="vip-welcome-close" type="button" aria-label="关闭">✕</button>' +
     '<div class="vip-welcome-head">欢庆世界杯</div>' +
     '<div class="vip-welcome-title">领取<span>15天</span>VIP会员权益</div>' +
-    '<div class="vip-welcome-saving"><b>限时免费（7月12日截止领取）</b><strong>省 49 元</strong></div>' +
+    '<div class="vip-welcome-saving">' +
+    '<span class="vip-welcome-saving-tag">限时免费</span>' +
+    '<div class="vip-welcome-saving-main"><span>省</span><strong>49</strong><span>元</span></div>' +
+    '</div>' +
     '<div class="vip-welcome-features">' +
     '<div class="vip-welcome-feature">透视专家组竞猜观点</div>' +
     '<div class="vip-welcome-feature">AI 和量化数据齐助力</div>' +

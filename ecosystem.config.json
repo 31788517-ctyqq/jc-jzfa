@@ -9,7 +9,7 @@
       "env": {
         "NODE_ENV": "production",
         "BEHIND_PROXY": "1",
-        "DEEPSEEK_API_KEY": "sk-a4a33977f39547fc89cbdb443539a7c3",
+        "DEEPSEEK_API_KEY": "sk-d222581ac1b544509afbd7bb29ba78ff",
         "DOUBAO_API_KEY": "ark-002bfac0-24c5-4b65-a57f-b52a8fd8d267-53f32",
         "MIDOU_MOBILE": "13570060818",
         "MIDOU_PASSWORD": "936da1e6796530b7a25e55953f1c9a43",
@@ -33,7 +33,7 @@
       "env": {
         "NODE_ENV": "production",
         "BEHIND_PROXY": "1",
-        "DEEPSEEK_API_KEY": "sk-a4a33977f39547fc89cbdb443539a7c3",
+        "DEEPSEEK_API_KEY": "sk-d222581ac1b544509afbd7bb29ba78ff",
         "DOUBAO_API_KEY": "ark-002bfac0-24c5-4b65-a57f-b52a8fd8d267-53f32",
         "MIDOU_MOBILE": "13570060818",
         "MIDOU_PASSWORD": "936da1e6796530b7a25e55953f1c9a43",

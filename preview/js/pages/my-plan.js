@@ -4,6 +4,15 @@ import { WEEK_NAMES, formatDateCN } from '../utils.js';
 
 var _plans = [];
 var _stats = {};
+var _reconcileEnabled = false;
+var _reconcileLoading = false;
+var _reconcileMap = {};
+
+try {
+  _reconcileEnabled = localStorage.getItem('my_plan_reconcile_enabled') === '1';
+} catch (e) {
+  _reconcileEnabled = false;
+}
 
 function getMatchHandicapValue(m, selection) {
   var candidates = [
@@ -55,11 +64,16 @@ export function loadMyPlan() {
   var el = document.getElementById('myPlanContent');
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载方案中...</div>';
+  _reconcileMap = {};
+  _reconcileLoading = false;
   api('my-plan-list', {})
     .then(function (data) {
       _plans = (data && data.plans) || [];
       _stats = (data && data.stats) || {};
       renderMyPlanList();
+      if (_reconcileEnabled) {
+        _loadPlanReconcile();
+      }
     })
     .catch(function (e) {
       if (el) el.innerHTML = '<div class="hint-box">加载失败: ' + (e && e.message) + '</div>';
@@ -76,13 +90,13 @@ function renderMyPlanList() {
   var el = document.getElementById('myPlanContent');
   if (!el) return;
 
+  var html = renderReconcileToolbar();
+
   if (_plans.length === 0) {
     el.innerHTML =
-      '<div class="plan-notice">' + '<span class="notice-icon">&#x1F375;</span>' + '稍稍等，马上就来' + '</div>';
+      html + '<div class="plan-notice">' + '<span class="notice-icon">&#x1F375;</span>' + '稍稍等，马上就来' + '</div>';
     return;
   }
-
-  var html = '';
   _plans.forEach(function (p, idx) {
     var matches = p.matches || [];
     var isWon = p.isWon === true;
@@ -160,6 +174,8 @@ function renderMyPlanList() {
       '</div>' +
       // 比赛表格
       renderPlanMatchesTable(matches) +
+      // 对账详情
+      renderPlanReconcileBlock(p) +
       // 操作栏
       '<div class="mp-actions">' +
       '<button class="mp-delete-btn" onclick="deleteUserPlan(\'' +
@@ -174,6 +190,155 @@ function renderMyPlanList() {
 
   el.innerHTML = html;
 }
+
+function renderReconcileToolbar() {
+  var checked = _reconcileEnabled ? ' checked' : '';
+  var loading = _reconcileEnabled && _reconcileLoading ? '<span class="mp-rec-loading">对账中...</span>' : '';
+  return (
+    '<div class="mp-rec-toolbar">' +
+    '<label class="mp-rec-switch"><input type="checkbox" ' +
+    checked +
+    ' onchange="togglePlanReconcile(this.checked)" /><span>🔎 对账</span></label>' +
+    '<span class="mp-rec-tip">比分 / 中奖金额 / 组合赔率</span>' +
+    loading +
+    '</div>'
+  );
+}
+
+function _fmtMoney(v) {
+  if (v === null || v === undefined || v === '') return '--';
+  var n = Number(v);
+  if (isNaN(n)) return '--';
+  return Math.round(n * 100) / 100;
+}
+
+function _statusCN(st) {
+  if (st === 'won') return '已中';
+  if (st === 'lost') return '未中';
+  return '未开奖';
+}
+
+function _fmtPassOddsMap(map) {
+  if (!map) return '--';
+  var keys = Object.keys(map).sort(function (a, b) {
+    return Number(a) - Number(b);
+  });
+  if (!keys.length) return '--';
+  return keys
+    .map(function (k) {
+      var v = Number(map[k]);
+      return k + '关:' + (isNaN(v) ? '--' : Math.round(v * 100) / 100);
+    })
+    .join(' / ');
+}
+
+function renderPlanReconcileBlock(plan) {
+  if (!_reconcileEnabled) return '';
+  var rec = _reconcileMap[plan.id];
+  if (_reconcileLoading && !rec) {
+    return '<div class="mp-rec-box"><div class="mp-rec-row">⏳ 正在拉取对账数据...</div></div>';
+  }
+  if (!rec) {
+    return '<div class="mp-rec-box"><div class="mp-rec-row">⚠️ 暂无对账数据</div></div>';
+  }
+  if (rec.error) {
+    return '<div class="mp-rec-box"><div class="mp-rec-row">⚠️ 对账失败：' + rec.error + '</div></div>';
+  }
+
+  var score = rec.score || {};
+  var bonus = rec.bonus || {};
+  var odds = rec.odds || {};
+  var scoreCls = score.driftCount > 0 ? ' drift' : '';
+  var bonusCls = bonus.drift ? ' drift' : '';
+  var oddsCls = odds.drift ? ' drift' : '';
+
+  var scoreSample = '';
+  if (score.items && score.items.length) {
+    var top = score.items.slice(0, 2);
+    scoreSample = top
+      .map(function (it) {
+        return (it.matchNum || '--') + ' ' + (it.rawScore || '--') + ' / ' + (it.aggScore || '--');
+      })
+      .join('；');
+  }
+
+  return (
+    '<div class="mp-rec-box">' +
+    '<div class="mp-rec-head">对账结果' +
+    (rec.hasDrift ? '<span class="mp-rec-badge drift">有漂移</span>' : '<span class="mp-rec-badge">一致</span>') +
+    '</div>' +
+    '<div class="mp-rec-row' +
+    scoreCls +
+    '"><b>比分</b><span>原始/聚合：' +
+    (scoreSample || '--') +
+    '（漂移 ' +
+    (score.driftCount || 0) +
+    '/' +
+    (score.total || 0) +
+    '）</span></div>' +
+    '<div class="mp-rec-row' +
+    bonusCls +
+    '"><b>中奖金额</b><span>原始 ' +
+    _fmtMoney(bonus.rawIncome) +
+    ' 元（' +
+    _statusCN(bonus.rawStatus) +
+    '） / 聚合 ' +
+    _fmtMoney(bonus.aggIncome) +
+    ' 元（' +
+    _statusCN(bonus.aggStatus) +
+    '）</span></div>' +
+    '<div class="mp-rec-row' +
+    oddsCls +
+    '"><b>组合赔率</b><span>原始总赔 ' +
+    _fmtMoney(odds.rawTotalOdds) +
+    ' / 聚合总赔 ' +
+    _fmtMoney(odds.aggTotalOdds) +
+    '；原始关级 ' +
+    _fmtPassOddsMap(odds.rawPassOdds) +
+    '；聚合关级 ' +
+    _fmtPassOddsMap(odds.aggPassOdds) +
+    '</span></div>' +
+    '</div>'
+  );
+}
+
+function _loadPlanReconcile() {
+  if (!_reconcileEnabled) return Promise.resolve();
+  if (!_plans || !_plans.length) return Promise.resolve();
+  _reconcileLoading = true;
+  renderMyPlanList();
+  var ids = _plans
+    .map(function (p) {
+      return p.id;
+    })
+    .filter(Boolean);
+  return api('my-plan-reconcile', { planIds: ids }, 0)
+    .then(function (ret) {
+      _reconcileMap = (ret && ret.items) || {};
+    })
+    .catch(function (e) {
+      console.warn('[my-plan-reconcile] ' + (e && e.message));
+      _reconcileMap = {};
+    })
+    .finally(function () {
+      _reconcileLoading = false;
+      renderMyPlanList();
+    });
+}
+
+window.togglePlanReconcile = function (enabled) {
+  _reconcileEnabled = !!enabled;
+  try {
+    localStorage.setItem('my_plan_reconcile_enabled', _reconcileEnabled ? '1' : '0');
+  } catch (e) {}
+  if (_reconcileEnabled) {
+    _loadPlanReconcile();
+  } else {
+    _reconcileLoading = false;
+    _reconcileMap = {};
+    renderMyPlanList();
+  }
+};
 
 // ═══ 方案比赛表格（复用 plan-match-table 样式） ═══
 function renderPlanMatchesTable(matches) {
