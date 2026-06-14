@@ -11,6 +11,7 @@ const predictionLog = require('./prediction_log');
 // V2.0 新增模块
 const oddsMovement = require('./core/odds-movement');
 const leagueHeat = require('./core/league-heat-profile');
+const matchDataPack = require('./core/match-data-pack');
 
 // ═══════════════════════════════════════
 //  PK Scorer 版本管理 — 每次优化修改此处
@@ -710,12 +711,14 @@ function computeAndSave(dateStr) {
         return;
       }
 
-      // Build list with GS fields
+      // Build list with GS fields + P1 统一数据包
       const list = matches.map(function (m) {
         const mid = String(m.matchId || '');
         const gsFields = loadGSFields(gsCache, mid);
+        const pack = matchDataPack.getMatchDataPack({ match: m, date: (m.date || '').slice(0, 10) });
         const item = Object.assign({}, m, gsFields);
         item.matchId = mid;
+        item._dataPack = pack || null;
         return item;
       });
 
@@ -779,6 +782,27 @@ function computeAndSave(dateStr) {
                 .replace(/-/g, '') +
               '_' +
               PK_SCORER_VERSION,
+            featureSnapshot: {
+              matchId: String(item.matchId || '').replace(/^m_/, ''),
+              playType: adv.playType || 'spf',
+              finalDirection: adv.finalDirection || adv.dir || 'watch',
+              decisionLevel: adv.decisionLevel || '观望',
+              riskLevel: adv.riskLevel || 'yellow',
+              stars: adv.stars || 0,
+              compositeScore: s.compositeScore,
+              scores: {
+                power: s.powerScore,
+                goal: s.goalScore,
+                heat: s.heatScore,
+                stability: s.stabilityScore,
+                health: s.healthScore,
+                verify: s.verificationScore,
+                winPan: s.winPanScore,
+              },
+              sourceSnapshot: item._dataPack && item._dataPack.sourceSnapshot ? item._dataPack.sourceSnapshot : null,
+              coverage: item._dataPack && item._dataPack.coverage ? item._dataPack.coverage : null,
+              capturedAt: new Date().toISOString(),
+            },
             conflictType:
               item.fusionConsensus === 'meltdown'
                 ? 'gs_meltdown'

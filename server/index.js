@@ -2584,6 +2584,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 logger.info('[api] ' + syncDate + ' 推荐同步完成');
                 return ds.backfillResults(syncDate).catch(function () {});
               })
+              .then(function () {
+                if (ds.runModelClosure) {
+                  logger.info('[api] ' + syncDate + ' 启动模型补算闭环...');
+                  return ds
+                    .runModelClosure(syncDate, { reason: 'api_sync_match_date', aiDelayMs: 300 })
+                    .catch(function () {});
+                }
+              })
               .catch(function (e) {
                 logger.error('[api] ' + syncDate + ' 同步失败: ' + e.message);
               });
@@ -2602,6 +2610,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               .then(function (result) {
                 if (result && result.success) {
                   logger.info('[api] SP赛程同步完成: +' + (result.added || 0) + '新 ' + (result.updated || 0) + '更新');
+                  if (ds.runModelClosure) {
+                    const targetDate = (data && data.date) || localDate();
+                    return ds
+                      .runModelClosure(targetDate, { reason: 'api_sync_gov_schedule', aiDelayMs: 300 })
+                      .catch(function () {});
+                  }
                 } else {
                   logger.warn('[api] SP赛程同步未成功: ' + JSON.stringify(result));
                 }

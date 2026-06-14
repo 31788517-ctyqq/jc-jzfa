@@ -30,6 +30,7 @@ const { fetchLive500 } = require('./sync_live_500');
 const logger = require('./logger').child('data_sync');
 const database = require('./database');
 const autoHeal = require('./auto_heal');
+const matchDataPack = require('./core/match-data-pack');
 
 // AI 模块（用于定时刷新）
 let deepseek, doubao, aiMerger;
@@ -1395,49 +1396,56 @@ async function backfillResults(dateStr) {
 // ═══ Task 5B: AI 深度解析定时刷新（每小时，8:00~20:00） ═══
 let aiRefreshRunning = false;
 
-async function refreshTodayAI() {
-  if (aiRefreshRunning) return;
+async function refreshTodayAI(options) {
+  options = options || {};
+  if (aiRefreshRunning) return { ok: 0, skipped: 'running' };
+
   const now = new Date();
   const hour = now.getHours();
-  // 仅在 8:00~19:59 之间执行（20:00 前截止）
-  if (hour < 8 || hour >= 20) return;
+  const force = !!options.force;
+  const targetDate = options.date || fmtLocal(now);
+  const delayMs = options.delayMs !== undefined ? options.delayMs : 3000;
+
+  // 仅在 8:00~19:59 之间执行（20:00 前截止），force 模式可跳过时间窗限制
+  if (!force && (hour < 8 || hour >= 20)) return { ok: 0, skipped: 'time_window' };
 
   aiRefreshRunning = true;
-  const today = fmtLocal(now);
-  log('[ai_refresh] 开始刷新 ' + today + ' AI 深度解析...');
+  log('[ai_refresh] 开始刷新 ' + targetDate + ' AI 深度解析' + (force ? ' (force)' : '') + '...');
+
+  let total = 0;
+  let done = 0;
+  let failed = 0;
 
   try {
     loadAIModules();
     if (!deepseek || !doubao || !aiMerger) {
       log('[ai_refresh] AI 模块未加载，跳过');
-      aiRefreshRunning = false;
-      return;
+      return { ok: 0, skipped: 'ai_modules_not_ready' };
     }
 
     if (!fs.existsSync(DATA_FILE)) {
-      aiRefreshRunning = false;
-      return;
+      return { ok: 0, skipped: 'no_data_file' };
     }
+
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     const mMap = data.m || {};
 
-    // 找今天比赛
-    const todayMatches = [];
+    // 找目标日期比赛
+    const targetMatches = [];
     Object.keys(mMap).forEach((k) => {
       const m = mMap[k];
-      if (m && (m.date || '').slice(0, 10) === today) todayMatches.push(m);
+      if (m && (m.date || '').slice(0, 10) === targetDate) targetMatches.push(m);
     });
 
-    if (todayMatches.length === 0) {
-      log('[ai_refresh] ' + today + ' 无比赛，跳过');
-      aiRefreshRunning = false;
-      return;
+    if (targetMatches.length === 0) {
+      log('[ai_refresh] ' + targetDate + ' 无比赛，跳过');
+      return { ok: 0, skipped: 'no_matches' };
     }
 
-    log('[ai_refresh] 共 ' + todayMatches.length + ' 场比赛，开始逐场分析...');
+    total = targetMatches.length;
+    log('[ai_refresh] 共 ' + targetMatches.length + ' 场比赛，开始逐场分析...');
 
     const cacheFile = path.join(__dirname, 'ai_cache.json');
-    // ★ P1-1: 引入 prediction_log 用于 AI 预测持久化
     let predictionLog;
     try {
       predictionLog = require('./prediction_log');
@@ -1449,13 +1457,15 @@ async function refreshTodayAI() {
         try {
           cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
         } catch (e) {}
+
         const entry = cache[mid] || { sources: {} };
         if (!entry.sources) entry.sources = {};
         entry.sources[source] = { content, confidence: conf, generatedAt: new Date().toISOString() };
+
         if (entry.sources.deepseek && entry.sources.doubao) {
           let matchInfo = { matchId: mid };
           const m = mMap['m_' + mid] || mMap[mid];
-          if (m)
+          if (m) {
             matchInfo = {
               matchId: mid,
               homeName: m.homeName,
@@ -1464,6 +1474,8 @@ async function refreshTodayAI() {
               date: m.date,
               num: m.num,
             };
+          }
+
           const merged = aiMerger.mergeAnalyses(
             { content: entry.sources.deepseek.content, confidence: entry.sources.deepseek.confidence || 70 },
             { content: entry.sources.doubao.content, confidence: entry.sources.doubao.confidence || 70 },
@@ -1473,7 +1485,6 @@ async function refreshTodayAI() {
           entry.confidence = merged.confidence;
           entry.merged = true;
 
-          // ★ P1-1: 双模型合并后写入 prediction_logs
           if (predictionLog) {
             try {
               const preds = merged.content && merged.content['预测建议'] ? merged.content['预测建议'] : [];
@@ -1499,6 +1510,7 @@ async function refreshTodayAI() {
           entry.content = content;
           entry.confidence = conf;
         }
+
         entry.updatedAt = new Date().toISOString();
         cache[mid] = entry;
         fs.writeFileSync(cacheFile, JSON.stringify(cache));
@@ -1508,8 +1520,9 @@ async function refreshTodayAI() {
       }
     }
 
-    for (const m of todayMatches) {
+    for (const m of targetMatches) {
       const mid = m.matchId;
+      const pack = matchDataPack.getMatchDataPack({ match: m, date: targetDate }) || null;
       const matchInfo = {
         matchId: mid,
         homeName: m.homeName || '',
@@ -1517,12 +1530,20 @@ async function refreshTodayAI() {
         leagueName: m.leagueName || '',
         date: m.date || '',
         num: m.num || '',
+        sourceSnapshot: pack ? pack.sourceSnapshot : null,
+        coverage: pack ? pack.coverage : null,
+        dataPack: pack,
       };
+
+      let hasAny = false;
 
       try {
         const dsR = await deepseek.generateAnalysis(matchInfo);
         const dsC = dsR && dsR.content ? dsR.content || dsR : null;
-        if (dsC) saveAICache(mid, 'deepseek', dsC, dsC.confidence || 70);
+        if (dsC) {
+          saveAICache(mid, 'deepseek', dsC, dsC.confidence || 70);
+          hasAny = true;
+        }
       } catch (e) {
         log('[ai_refresh] DS ' + mid + ' 失败: ' + e.message.slice(0, 80));
       }
@@ -1530,20 +1551,94 @@ async function refreshTodayAI() {
       try {
         const dbR = await doubao.generateAnalysis(matchInfo);
         const dbC = dbR && dbR.content ? dbR.content || dbR : null;
-        if (dbC) saveAICache(mid, 'doubao', dbC, dbC.confidence || 70);
+        if (dbC) {
+          saveAICache(mid, 'doubao', dbC, dbC.confidence || 70);
+          hasAny = true;
+        }
       } catch (e) {
         log('[ai_refresh] DB ' + mid + ' 失败: ' + e.message.slice(0, 80));
       }
 
+      if (hasAny) done++;
+      else failed++;
+
       log('[ai_refresh] ' + m.num + ' ' + m.homeName + ' vs ' + m.visitName + ' 完成');
-      await sleep(jitter(3000)); // 间隔 3 秒避免限流
+      if (delayMs > 0) await sleep(jitter(delayMs));
     }
 
-    log('[ai_refresh] ' + today + ' AI 刷新完成: ' + todayMatches.length + ' 场');
+    log('[ai_refresh] ' + targetDate + ' AI 刷新完成: done=' + done + '/' + total + ', failed=' + failed);
+    return { ok: 1, total, done, failed, date: targetDate };
   } catch (e) {
     log('[ai_refresh] 异常: ' + e.message);
+    return { ok: 0, error: e.message, date: targetDate };
+  } finally {
+    aiRefreshRunning = false;
   }
-  aiRefreshRunning = false;
+}
+
+// ═══ P0: SP 同步后模型补算闭环（GS → AI → PK） ═══
+async function runModelClosure(dateStr, options) {
+  options = options || {};
+  const d = (dateStr || fmtLocal(new Date())).slice(0, 10);
+  const reason = options.reason || 'sp_sync';
+
+  const summary = {
+    date: d,
+    reason,
+    gs: null,
+    ai: null,
+    pk: null,
+    coverage: null,
+  };
+
+  log('[closure] 开始模型补算闭环 date=' + d + ' reason=' + reason);
+
+  // 1) GS 强制刷新
+  try {
+    const gsEngine = require('./gongshoudao/index');
+    const gsRes = await gsEngine.refreshCache({ forceRefresh: true, cacheTtlMs: 0 });
+    summary.gs = { ok: 1, total: gsRes ? Object.keys(gsRes).length : 0 };
+    log('[closure] GS 刷新完成: ' + JSON.stringify(summary.gs));
+  } catch (e) {
+    summary.gs = { ok: 0, error: e.message };
+    log('[closure] GS 刷新失败: ' + e.message);
+  }
+
+  // 2) AI 刷新（force，允许非 8:00~20:00 时段手动触发）
+  try {
+    summary.ai = await refreshTodayAI({
+      force: true,
+      date: d,
+      delayMs: options.aiDelayMs !== undefined ? options.aiDelayMs : 500,
+    });
+    log('[closure] AI 刷新完成: ' + JSON.stringify(summary.ai));
+  } catch (e) {
+    summary.ai = { ok: 0, error: e.message };
+    log('[closure] AI 刷新失败: ' + e.message);
+  }
+
+  // 3) PK 重算入库
+  try {
+    const pk = require('./pk_scorer');
+    const pkRes = await pk.computeAndSave(d);
+    summary.pk = { ok: 1, result: pkRes };
+    log('[closure] PK 重算完成: ' + JSON.stringify(pkRes));
+  } catch (e) {
+    summary.pk = { ok: 0, error: e.message };
+    log('[closure] PK 重算失败: ' + e.message);
+  }
+
+  // 4) 覆盖率报告（P1 统一数据包）
+  try {
+    summary.coverage = matchDataPack.buildCoverageReport(d);
+    log('[closure] 覆盖率: ' + JSON.stringify(summary.coverage));
+  } catch (e) {
+    summary.coverage = { error: e.message };
+    log('[closure] 覆盖率统计失败: ' + e.message);
+  }
+
+  log('[closure] 结束 date=' + d + ' reason=' + reason);
+  return summary;
 }
 
 // ═══ Task 6: 计算出"最后一场+3h"的时间点 ═══
@@ -2161,6 +2256,9 @@ async function start() {
         },
         5 * 60 * 1000,
       );
+
+      // P0: 首次同步后触发模型补算闭环
+      await runModelClosure(currentDate, { reason: 'init_sync', aiDelayMs: 500 });
     } catch (e) {
       log('[init] 初始同步失败: ' + e.message);
     }
@@ -2306,6 +2404,9 @@ async function start() {
           },
           5 * 60 * 1000,
         );
+
+        // P0: SP 全量同步后，立即触发模型补算闭环
+        await runModelClosure(today, { reason: 'noon_sp_full', aiDelayMs: 500 });
       } catch (e) {
         log('[scheduler] 12:00 任务失败: ' + e.message);
         // 失败后启动重试
@@ -2530,4 +2631,6 @@ module.exports = {
   autoInferStatus,
   processBackfillQueue,
   getTodayStatusSummary,
+  refreshTodayAI,
+  runModelClosure,
 };
