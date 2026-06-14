@@ -28,6 +28,13 @@ const LOCK_FILE = path.join(__dirname, 'scheduler.lock');
 const STATE_FILE = path.join(__dirname, 'scheduler_state.json');
 const QUEUE_FILE = path.join(__dirname, 'scheduler_queue.json');
 
+// A3: 本地日期格式化（北京时间），避免 UTC 偏移导致日期错误
+function fmtLocal(dd) {
+  return (
+    dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0')
+  );
+}
+
 const INSTANCE_ID = crypto.randomBytes(4).toString('hex');
 const LOCK_TTL = 5 * 60 * 1000; // 锁过期时间
 const HEARTBEAT_INTERVAL = 30 * 1000; // 心跳间隔
@@ -776,7 +783,7 @@ async function start() {
 
   // 启动时检查今天是否有数据，没有则触发同步
   if (hasLock) {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = fmtLocal(new Date()); // A3: 使用北京时间，避免 UTC 偏移
     logger.info('[init] 检查 ' + today + ' 数据状态...');
     try {
       await executeTask('sync_match_list', { date: today });
@@ -799,16 +806,7 @@ async function start() {
     true,
   );
 
-  // 推荐同步 (每20分钟)
-  schedule('recommend', 20 * 60 * 1000, async () => {
-    const today = new Date().toISOString().slice(0, 10);
-    try {
-      const ds = loadDataSync();
-      if (ds.syncRecommends) await ds.syncRecommends(today);
-    } catch (e) {
-      enqueueTask('sync_recommends', { date: today }, 0, 5);
-    }
-  });
+  // A2: 推荐同步已由 data_sync.js recommendLoop 统一负责，此处删除避免双写冲突
 
   // 10:00 sporttery 赔率抓取（11:00前完成）
   schedule10AMTask();

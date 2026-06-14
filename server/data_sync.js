@@ -595,6 +595,9 @@ async function syncMatchList(dateStr) {
     }
 
     notifyReload();
+
+    // 今日赛程已更新到 data.json 后，触发一次 AI 缓存计算
+    await triggerAiRefreshWhenTodayScheduleReady(targetDate, 'match_list_sync');
   } catch (e) {
     log('[match_list] 同步失败: ' + e.message);
     await refreshToken();
@@ -715,6 +718,11 @@ async function syncRecommends(dateStr) {
           const oldLen = oldRecs.length;
           const oldResultCount = oldRecs.filter((r) => r.result !== null && r.result !== 2).length;
 
+          // A1: 保护：filter 后为空但已有数据时跳过写入，防止数据漂移
+          if (recs.length === 0 && oldRecs.length > 0) {
+            log('[recommend] ' + mid + ' 过滤后为空，保留原有 ' + oldRecs.length + ' 条推荐数据');
+            continue;
+          }
           data.r[rk] = recs;
           if (recs.length !== oldLen) recChanged++;
 
@@ -1393,8 +1401,11 @@ async function backfillResults(dateStr) {
   }
 }
 
-// ═══ Task 5B: AI 深度解析定时刷新（每小时，8:00~20:00） ═══
+// ═══ Task 5B: AI 深度解析刷新（改为“赛程就绪触发 + 13:00统一计算”） ═══
 let aiRefreshRunning = false;
+let _aiScheduleTriggeredDate = '';
+let _aiScheduleTriggerRunning = false;
+let _aiDaily13DoneDate = '';
 
 async function refreshTodayAI(options) {
   options = options || {};
@@ -1574,6 +1585,72 @@ async function refreshTodayAI(options) {
   } finally {
     aiRefreshRunning = false;
   }
+}
+
+function isTodayDateStr(dateStr) {
+  return String(dateStr || '').slice(0, 10) === fmtLocal(new Date());
+}
+
+async function triggerAiRefreshWhenTodayScheduleReady(dateStr, reason) {
+  const targetDate = String(dateStr || '').slice(0, 10);
+  const triggerReason = reason || 'schedule_ready';
+
+  if (!targetDate || !isTodayDateStr(targetDate)) return { ok: 0, skipped: 'not_today' };
+  if (_aiScheduleTriggeredDate === targetDate) return { ok: 0, skipped: 'already_triggered' };
+  if (_aiScheduleTriggerRunning) return { ok: 0, skipped: 'running' };
+
+  const matches = countTodayMatches(targetDate);
+  if (matches <= 0) return { ok: 0, skipped: 'no_matches' };
+
+  _aiScheduleTriggerRunning = true;
+  log(
+    '[ai_trigger] 今日赛程就绪，触发AI缓存计算 date=' + targetDate + ' reason=' + triggerReason + ' matches=' + matches,
+  );
+  try {
+    const res = await refreshTodayAI({ force: true, date: targetDate, delayMs: 500 });
+    if (res && res.ok === 1) _aiScheduleTriggeredDate = targetDate;
+    return res || { ok: 0, skipped: 'no_result' };
+  } catch (e) {
+    log('[ai_trigger] 赛程就绪触发失败: ' + e.message);
+    return { ok: 0, error: e.message, date: targetDate };
+  } finally {
+    _aiScheduleTriggerRunning = false;
+  }
+}
+
+function getNext13Delay() {
+  const now = new Date();
+  const target = new Date(now);
+  target.setHours(13, 0, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  return target.getTime() - now.getTime();
+}
+
+function scheduleDailyAiRefreshAt13() {
+  const delay = getNext13Delay();
+  log('[scheduler] 下次13:00 AI统一计算: ' + Math.round(delay / 60000) + ' 分钟后');
+
+  setTimeout(async () => {
+    const today = fmtLocal(new Date());
+    if (_aiDaily13DoneDate === today) {
+      scheduleDailyAiRefreshAt13();
+      return;
+    }
+
+    log('[scheduler] ⏰ 13:00 AI统一计算触发: ' + today);
+    try {
+      const res = await refreshTodayAI({ force: true, date: today, delayMs: 500 });
+      if (res && res.ok === 1) {
+        _aiDaily13DoneDate = today;
+      } else {
+        log('[scheduler] 13:00 AI统一计算未完成: ' + JSON.stringify(res || {}));
+      }
+    } catch (e) {
+      log('[scheduler] 13:00 AI统一计算失败: ' + e.message);
+    }
+
+    scheduleDailyAiRefreshAt13();
+  }, delay);
 }
 
 // ═══ P0: SP 同步后模型补算闭环（GS → AI → PK） ═══
@@ -1969,6 +2046,7 @@ async function runTodayScheduleCheck() {
       clearInterval(_scheduleWatcherTimer);
       _scheduleWatcherTimer = null;
     }
+    await triggerAiRefreshWhenTodayScheduleReady(today, 'schedule_watcher_exists');
     _scheduleWatcherRunning = false;
     return;
   }
@@ -1991,6 +2069,7 @@ async function runTodayScheduleCheck() {
         _scheduleWatcherTimer = null;
       }
       notifyReload();
+      await triggerAiRefreshWhenTodayScheduleReady(today, 'schedule_watcher_fetch');
     } else {
       log('[sch_watcher] 暂未获取到赛程数据，5分钟后重试');
     }
@@ -2352,6 +2431,8 @@ async function start() {
         currentDate = today;
         finalCheckDone = false;
         _ensureRetries = 0; // 重置重试计数
+        _aiScheduleTriggeredDate = '';
+        _aiDaily13DoneDate = '';
       }
 
       log('[scheduler] ⏰ 12:00 定时任务触发');
@@ -2446,15 +2527,20 @@ async function start() {
   setTimeout(recommendLoop, 30000); // 30秒后开始推荐
   setTimeout(spOddsLoop, 90000); // 90秒后开始 SP 动态赔率
   scheduleNoon(); // 计算12:00定时
+  scheduleDailyAiRefreshAt13(); // 计算13:00 AI统一计算
 
-  // ═══ 每小时 AI 深度解析刷新（8:00~20:00） ═══
-  async function aiRefreshLoop() {
-    try {
-      await refreshTodayAI();
-    } catch (e) {}
-    setTimeout(aiRefreshLoop, 60 * 60 * 1000);
+  // 若进程在13:00后重启，且今日已有赛程，则补做一次13点统一计算
+  try {
+    const bootNow = new Date();
+    const bootToday = fmtLocal(bootNow);
+    if (bootNow.getHours() >= 13 && todayHasMatches(bootToday) && _aiDaily13DoneDate !== bootToday) {
+      log('[scheduler] 启动补偿: 13点后重启，立即执行今日AI统一计算 ' + bootToday);
+      const bootRes = await refreshTodayAI({ force: true, date: bootToday, delayMs: 500 });
+      if (bootRes && bootRes.ok === 1) _aiDaily13DoneDate = bootToday;
+    }
+  } catch (e) {
+    log('[scheduler] 启动补偿AI统一计算失败: ' + e.message);
   }
-  setTimeout(aiRefreshLoop, 120000); // 2分钟后开始首次，之后每小时
 
   // ═══ 健康监控：每分钟检查 ═══
   let _lastBackfillCheck = 0;
@@ -2520,6 +2606,8 @@ async function start() {
       currentDate = today;
       finalCheckDone = false;
       _ensureRetries = 0;
+      _aiScheduleTriggeredDate = '';
+      _aiDaily13DoneDate = '';
       if (!todayHasMatches(today)) {
         startTodayScheduleWatcher();
       }
