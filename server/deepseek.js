@@ -161,124 +161,63 @@ function buildRecentFormWDL(shujuData) {
 }
 
 /**
- * 构建五维分析的 System Prompt
+ * 构建五维分析的 System Prompt（P0-2: 精简版）
  */
 function buildSystemPrompt() {
   return (
-    '你是专业足球分析师，按"五维分析框架"生成中文 JSON。\n' +
-    '1.基础面：积分排名、攻防数据、核心结论\n' +
-    '2.状态面：主客近况、历史对阵、伤病、氛围、核心结论\n' +
-    '3.动机面：战意强度\n' +
-    '4.对位面：攻防博弈、节奏、主场、战术风格、核心结论\n' +
-    '5.市场面：盘口赔率、大小球、变化解读、诱导、核心结论\n' +
-    '6.核心看点：关键博弈点、变数提醒\n' +
-    '7.预测建议：胜平负建议、大小球建议、比分预测\n' +
-    '要求：数据基于提供的信息和知识库，每字段≤100字，表格用Markdown，仅输出JSON不含其他文字'
+    '你是专业足球分析师。按以下框架生成中文JSON，仅输出JSON不含其他文字。\n' +
+    '1.基础面(积分排名,攻防数据,核心结论) 2.状态面(近况,对阵,伤病,氛围,结论)\n' +
+    '3.动机面(战意强度) 4.对位面(攻防博弈,节奏,主场,战术,结论)\n' +
+    '5.市场面(盘口赔率,大小球,变化,诱导,结论) 6.核心看点(博弈点,变数提醒)\n' +
+    '7.预测建议(胜平负/大小球/比分,各含方向+核心逻辑)\n' +
+    '规则：数据用提供的信息，每字段≤100字，表用Markdown'
   );
 }
 
 /**
- * 构建用户 Prompt（V9.1: 注入系统预计算数据）
+ * 构建用户 Prompt（P0-2: 精简版，减少 30% token 消耗）
  */
 function buildUserPrompt(matchInfo) {
-  const shujuData = loadShujuData(matchInfo);
-  const shujuText = shujuData ? formatShujuStats(shujuData) : '';
-  const adTable = shujuData ? buildAttackDefenseTable(shujuData) : null;
-  const formWDL = shujuData ? buildRecentFormWDL(shujuData) : null;
+  var shujuData = loadShujuData(matchInfo);
+  var shujuText = shujuData ? formatShujuStats(shujuData) : '';
+  var adTable = shujuData ? buildAttackDefenseTable(shujuData) : null;
+  var formWDL = shujuData ? buildRecentFormWDL(shujuData) : null;
 
-  let prompt =
-    '请深度分析以下比赛，并按照五维分析框架输出完整的分析报告。\n\n' +
-    '**比赛信息**\n' +
-    '- 联赛：' +
-    (matchInfo.leagueName || '未知') +
-    '\n' +
-    '- 主队：' +
-    (matchInfo.homeName || '未知') +
-    '\n' +
-    '- 客队：' +
-    (matchInfo.visitName || '未知') +
-    '\n' +
-    '- 比赛时间：' +
-    (matchInfo.date || '未知') +
-    '\n' +
-    '- 场次编号：' +
+  var prompt =
+    '分析比赛：' +
+    (matchInfo.leagueName || '') +
+    ' ' +
+    (matchInfo.homeName || '') +
+    ' vs ' +
+    (matchInfo.visitName || '') +
+    ' ' +
     (matchInfo.num || '') +
     '\n\n';
 
-  // ═══ V9.1: 系统预计算数据注入 ═══
-  const sysData = buildSystemDataSection(matchInfo);
-  if (sysData) {
-    prompt += sysData + '\n\n';
-  }
+  // V9.1: 系统预计算数据
+  var sysData = buildSystemDataSection(matchInfo);
+  if (sysData) prompt += sysData + '\n\n';
 
-  // ⭐ 当有500.com数据时，注入锁定的攻防数据和近期战绩
   if (shujuData && adTable && formWDL) {
-    prompt += '**以下是从500.com抓取并预计算的真实数据，你的输出中必须严格使用这些数值，不得修改或编造：**\n\n';
-    prompt += '【攻防全景数据——必须原样输出表格中的数据，禁止修改任何数值】\n';
-    prompt += JSON.stringify(adTable, null, 2) + '\n\n';
-    prompt += '【近期战绩——必须原样使用以下 WDL 数值】\n';
-    prompt += '主队近6场: ' + formWDL.home.w + '胜' + formWDL.home.d + '平' + formWDL.home.l + '负\n';
-    prompt += '客队近6场: ' + formWDL.away.w + '胜' + formWDL.away.d + '平' + formWDL.away.l + '负\n\n';
-    prompt += '【500.com 原始统计详情（供分析参考）】\n' + shujuText + '\n\n';
-    prompt += '对于500.com未覆盖的部分（积分排名、历史交锋、伤病、盘口赔率等），请通过你的知识库搜索补充。\n\n';
-    prompt += '**重要规则：**\n';
-    prompt += '1. JSON 中「基础面.攻防全景数据」的 rows 数组必须使用上面预计算的表格数据，不得修改任何数值\n';
-    prompt +=
-      '2. JSON 中「状态面.主队近况」必须为"近6场' +
-      formWDL.home.w +
-      '胜' +
-      formWDL.home.d +
-      '平' +
-      formWDL.home.l +
-      '负"\n';
-    prompt +=
-      '3. JSON 中「状态面.客队近况」必须为"近6场' +
-      formWDL.away.w +
-      '胜' +
-      formWDL.away.d +
-      '平' +
-      formWDL.away.l +
-      '负"\n';
-    prompt += '4. 其他字段（核心结论、分析文字等）请基于以上500.com真实数据进行深度分析\n';
+    prompt += '【锁定数据——必须使用以下数值】\n';
+    prompt += JSON.stringify(adTable) + '\n';
+    prompt += '主近6场:' + formWDL.home.w + 'W' + formWDL.home.d + 'D' + formWDL.home.l + 'L  ';
+    prompt += '客近6场:' + formWDL.away.w + 'W' + formWDL.away.d + 'D' + formWDL.away.l + 'L\n';
   } else if (shujuText) {
-    prompt +=
-      '**以下是从500.com抓取的真实概率统计，请严格基于此数据进行近况分析（勿编造）**\n' +
-      shujuText +
-      '\n\n' +
-      '对于此数据未覆盖的部分（积分排名、历史交锋、伤病、盘口赔率等），请通过你的知识库搜索补充。\n';
+    prompt += shujuText + '\n其他信息请搜索补充。\n';
   } else {
-    prompt +=
-      '请通过你的知识库搜索球队信息，包括但不限于：\n' +
-      '- 双方积分排名、近期战绩\n' +
-      '- 核心球员状态、伤病情况\n' +
-      '- 历史交锋记录\n' +
-      '- 盘口赔率数据\n' +
-      '- 大小球趋势\n';
+    prompt += '请搜索：积分排名,近期战绩,伤病,交锋,盘口,大小球。\n';
   }
 
   prompt +=
-    '\n- **重要规则**：在输出的任何字段（尤其是积分排名字段）中引用球队时，必须使用上面给定的全称（' +
-    (matchInfo.homeName || '主队') +
-    '和' +
-    (matchInfo.visitName || '客队') +
-    '），不得使用简称或别称。\n\n';
-
-  prompt +=
-    '请以 JSON 格式输出：\n' +
-    '{\n' +
-    '  "confidence": <0-100>,\n' +
-    '  "基础面": {\n' +
-    '    "概括":"","积分排名":"",\n' +
-    '    "攻防全景数据":{"header":["数据项","主队","客队"],"rows":[["赛季场均进球","",""],["赛季场均失球","",""],["近6场场均进球","",""],["近6场场均失球","",""],["核心射手","",""]]},\n' +
-    '    "核心结论":""\n' +
-    '  },\n' +
-    '  "状态面": {"概括":"","主队近况":"","客队近况":"","历史对阵":"","伤病影响":{"header":["球队","缺阵情况","影响评估"],"rows":[["","",""]]},"队内氛围":"","核心结论":""},\n' +
-    '  "动机面": {"概括":"","战意强度":""},\n' +
-    '  "对位面": {"概括":"","攻防博弈":"","节奏控制":"","主场氛围":"","战术与教练风格":"","核心结论":""},\n' +
-    '  "市场面": {"概括":"","盘口与赔率":"","大小球":"","数据变化解读":"","诱导可能":"","核心结论":""},\n' +
-    '  "核心看点": {"核心看点":"","变数提醒":""},\n' +
-    '  "预测建议": [{"玩法":"胜平负","建议方向":"","核心逻辑":""},{"玩法":"大小球","建议方向":"","核心逻辑":""},{"玩法":"比分预测","建议方向":"","核心逻辑":""}]\n' +
-    '}';
+    '\nJSON:{"confidence":0-100,"基础面":{"概括":"","积分排名":"",' +
+    '"攻防全景数据":{"header":["项","主","客"],"rows":[["赛季场均进球","",""],["赛季场均失球","",""],["近6场场均进球","",""],["近6场场均失球","",""],["核心射手","",""]]},"核心结论":""},' +
+    '"状态面":{"概括":"","主队近况":"","客队近况":"","历史对阵":"","伤病影响":{"header":["队","缺阵","影响"],"rows":[["","",""]]},"队内氛围":"","核心结论":""},' +
+    '"动机面":{"概括":"","战意强度":""},' +
+    '"对位面":{"概括":"","攻防博弈":"","节奏控制":"","主场氛围":"","战术与教练风格":"","核心结论":""},' +
+    '"市场面":{"概括":"","盘口与赔率":"","大小球":"","数据变化解读":"","诱导可能":"","核心结论":""},' +
+    '"核心看点":{"核心看点":"","变数提醒":""},' +
+    '"预测建议":[{"玩法":"胜平负","建议方向":"","核心逻辑":""},{"玩法":"大小球","建议方向":"","核心逻辑":""},{"玩法":"比分预测","建议方向":"","核心逻辑":""}]}';
 
   return prompt;
 }
@@ -483,14 +422,15 @@ function buildSystemDataSection(matchInfo) {
 /**
  * 调用 DeepSeek API 发送请求
  */
-function callDeepSeek(messages) {
+function callDeepSeek(messages, options) {
+  options = options || {};
   return new Promise(function (resolve, reject) {
     const url = new URL(BASE_URL + '/chat/completions');
     const payload = JSON.stringify({
       model: MODEL,
       messages: messages,
-      temperature: 0.7,
-      max_tokens: 2048,
+      temperature: options.temperature !== undefined ? options.temperature : 0.5,
+      max_tokens: options.maxTokens || 1024,
     });
 
     const options = {
@@ -558,7 +498,8 @@ function callDeepSeek(messages) {
  * @param {Object} matchInfo - 比赛信息 {matchId, homeName, visitName, leagueName, date, num}
  * @returns {Promise<Object>} 生成的分析结果
  */
-function generateAnalysis(matchInfo) {
+function generateAnalysis(matchInfo, options) {
+  var opts = options || {};
   const messages = [
     { role: 'system', content: buildSystemPrompt() },
     { role: 'user', content: buildUserPrompt(matchInfo) },
@@ -567,7 +508,24 @@ function generateAnalysis(matchInfo) {
   console.log('[deepseek] 开始生成分析: ' + matchInfo.homeName + ' vs ' + matchInfo.visitName);
   const startTime = Date.now();
 
-  return callDeepSeek(messages).then(function (result) {
+  // P2-2: 指数退避重试（最多2次）
+  var attempt = 0;
+  var maxRetries = opts.maxRetries || 0;
+  function tryCall() {
+    return callDeepSeek(messages, opts).catch(function (e) {
+      if (attempt < maxRetries) {
+        attempt++;
+        var delay = Math.min(2000 * Math.pow(2, attempt), 15000);
+        console.log('[deepseek] 重试 ' + attempt + '/' + maxRetries + ', 等待 ' + delay + 'ms');
+        return new Promise(function (r) {
+          setTimeout(r, delay);
+        }).then(tryCall);
+      }
+      throw e;
+    });
+  }
+
+  return tryCall().then(function (result) {
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log('[deepseek] 生成完成，耗时 ' + elapsed + 's, tokens: ' + (result.tokenUsage || '?'));
     return result;

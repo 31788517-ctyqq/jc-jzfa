@@ -1533,6 +1533,28 @@ async function refreshTodayAI(options) {
 
     for (const m of targetMatches) {
       const mid = m.matchId;
+
+      // P1-2: 增量更新 — 6小时内有效缓存直接跳过
+      var cachedEntry = null;
+      try {
+        var rawCache = fs.readFileSync(cacheFile, 'utf8');
+        var cacheObj = JSON.parse(rawCache);
+        cachedEntry = cacheObj[mid];
+      } catch (e) {}
+      if (cachedEntry && cachedEntry.updatedAt) {
+        var cacheAge = Date.now() - new Date(cachedEntry.updatedAt).getTime();
+        if (cacheAge < 6 * 3600 * 1000 && cachedEntry.merged) {
+          log('[ai_refresh] ' + mid + ' 6h内有效缓存，跳过');
+          done++;
+          continue;
+        }
+      }
+
+      // P1-1: 按推荐数分级 A/B/C
+      var recNum = Number(m.recommNum || 0);
+      var level = recNum >= 100 ? 'A' : recNum >= 30 ? 'B' : 'C';
+      log('[ai_refresh] ' + mid + ' 级别=' + level + ' (推荐数=' + recNum + ')');
+
       const pack = matchDataPack.getMatchDataPack({ match: m, date: targetDate }) || null;
       const matchInfo = {
         matchId: mid,
@@ -1548,32 +1570,52 @@ async function refreshTodayAI(options) {
 
       let hasAny = false;
 
-      try {
-        const dsR = await deepseek.generateAnalysis(matchInfo);
-        const dsC = dsR && dsR.content ? dsR.content || dsR : null;
-        if (dsC) {
-          saveAICache(mid, 'deepseek', dsC, dsC.confidence || 70);
-          hasAny = true;
-        }
-      } catch (e) {
-        log('[ai_refresh] DS ' + mid + ' 失败: ' + e.message.slice(0, 80));
-      }
+      // P2-1: A级双模型+C重试, B级单模型, C级仅豆包
+      var aiOpts = { maxRetries: 1 }; // P2-2: 1次重试
+      var dsPromise = null;
+      var dbPromise = null;
 
-      try {
-        const dbR = await doubao.generateAnalysis(matchInfo);
-        const dbC = dbR && dbR.content ? dbR.content || dbR : null;
+      if (level === 'A' || level === 'B') {
+        dsPromise = deepseek.generateAnalysis(matchInfo, aiOpts).catch(function (e) {
+          log('[ai_refresh] DS ' + mid + ' 失败: ' + e.message.slice(0, 80));
+          return null;
+        });
+      }
+      dbPromise = doubao.generateAnalysis(matchInfo, level === 'C' ? aiOpts : { maxRetries: 0 }).catch(function (e) {
+        log('[ai_refresh] DB ' + mid + ' 失败: ' + e.message.slice(0, 80));
+        return null;
+      });
+
+      var promises = [dsPromise, dbPromise].filter(Boolean);
+      var results = await Promise.all(promises);
+
+      // 处理 DS 结果
+      if (dsPromise) {
+        var dsIdx = 0;
+        var dsR = results[dsIdx];
+        if (dsR) {
+          var dsC = dsR.content || dsR;
+          if (dsC) {
+            saveAICache(mid, 'deepseek', dsC, dsC.confidence || 70);
+            hasAny = true;
+          }
+        }
+      }
+      // 处理 DB 结果
+      var dbIdx = dsPromise ? 1 : 0;
+      var dbR = results[dbIdx];
+      if (dbR) {
+        var dbC = dbR.content || dbR;
         if (dbC) {
           saveAICache(mid, 'doubao', dbC, dbC.confidence || 70);
           hasAny = true;
         }
-      } catch (e) {
-        log('[ai_refresh] DB ' + mid + ' 失败: ' + e.message.slice(0, 80));
       }
 
       if (hasAny) done++;
       else failed++;
 
-      log('[ai_refresh] ' + m.num + ' ' + m.homeName + ' vs ' + m.visitName + ' 完成');
+      log('[ai_refresh] ' + m.num + ' ' + m.homeName + ' vs ' + m.visitName + ' 完成 (级别=' + level + ')');
       if (delayMs > 0) await sleep(jitter(delayMs));
     }
 

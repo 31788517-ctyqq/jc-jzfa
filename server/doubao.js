@@ -19,14 +19,15 @@ const buildUserPrompt = deepseek.buildUserPrompt;
 /**
  * 调用豆包 API 发送请求（OpenAI-compatible）
  */
-function callDoubao(messages) {
+function callDoubao(messages, options) {
+  options = options || {};
   return new Promise(function (resolve, reject) {
     const url = new URL(BASE_URL + '/chat/completions');
     const payload = JSON.stringify({
       model: MODEL,
       messages: messages,
-      temperature: 0.7,
-      max_tokens: 2048,
+      temperature: options.temperature !== undefined ? options.temperature : 0.5,
+      max_tokens: options.maxTokens || 1024,
     });
 
     const options = {
@@ -94,7 +95,8 @@ function callDoubao(messages) {
  * @param {Object} matchInfo - 比赛信息 {matchId, homeName, visitName, leagueName, date, num}
  * @returns {Promise<Object>} 生成的分析结果 { content, rawResponse, tokenUsage }
  */
-function generateAnalysis(matchInfo) {
+function generateAnalysis(matchInfo, options) {
+  var opts = options || {};
   const messages = [
     { role: 'system', content: buildSystemPrompt() },
     { role: 'user', content: buildUserPrompt(matchInfo) },
@@ -103,7 +105,24 @@ function generateAnalysis(matchInfo) {
   console.log('[doubao] 开始生成分析: ' + matchInfo.homeName + ' vs ' + matchInfo.visitName);
   const startTime = Date.now();
 
-  return callDoubao(messages).then(function (result) {
+  // P2-2: 指数退避重试（最多2次）
+  var attempt = 0;
+  var maxRetries = opts.maxRetries || 0;
+  function tryCall() {
+    return callDoubao(messages, opts).catch(function (e) {
+      if (attempt < maxRetries) {
+        attempt++;
+        var delay = Math.min(2000 * Math.pow(2, attempt), 15000);
+        console.log('[doubao] 重试 ' + attempt + '/' + maxRetries + ', 等待 ' + delay + 'ms');
+        return new Promise(function (r) {
+          setTimeout(r, delay);
+        }).then(tryCall);
+      }
+      throw e;
+    });
+  }
+
+  return tryCall().then(function (result) {
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log('[doubao] 生成完成，耗时 ' + elapsed + 's, tokens: ' + (result.tokenUsage || '?'));
     return result;
