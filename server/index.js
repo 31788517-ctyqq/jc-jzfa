@@ -621,6 +621,10 @@ let _quantHotCacheTime = 0;
 let _quantPlanCache = {};
 let _profit7dCache = null; // ★ P2: daily-profit-7d 响应缓存
 let _profit7dCacheTime = 0;
+// ★ P0-2: ranking-list 请求级缓存（减少重复遍历 + buildPKDecisionMap）
+let _rankListCache = {};
+let _rankListCacheTime = {};
+const RANK_LIST_CACHE_TTL = 2 * 60 * 1000; // 2 分钟
 
 // ★ P1-3 优化：通用响应缓存（减少重复计算密集 API 的响应时间）
 const RESPONSE_CACHE_TTL = {
@@ -1549,6 +1553,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         }
 
         case 'ranking-list': {
+          // ★ P0-2: 请求级缓存 — 相同参数 2 分钟内命中
+          const rankCacheKey = (data.date || '') + '|' + (data.category || '') + '|' + (data.direction || '');
+          const rankNow = Date.now();
+          if (_rankListCache[rankCacheKey] && _rankListCacheTime[rankCacheKey] &&
+              rankNow - _rankListCacheTime[rankCacheKey] < RANK_LIST_CACHE_TTL) {
+            return res.json(_rankListCache[rankCacheKey]);
+          }
+
           // 从 data.json 读取比赛（包含历史比赛+推荐结果，确保 isHit 正确）
           let matches = [];
           let cachedRMap = null;
@@ -1731,7 +1743,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             }
           } catch (e) {}
 
-          return res.json({
+          const rankResponse = {
             code: 1,
             data: {
               date: requestDate,
@@ -1743,7 +1755,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               ranking,
               categories: sortedCategories,
             },
-          });
+          };
+          _rankListCache[rankCacheKey] = rankResponse;
+          _rankListCacheTime[rankCacheKey] = Date.now();
+          return res.json(rankResponse);
         }
 
         case 'home-reconcile-stats': {

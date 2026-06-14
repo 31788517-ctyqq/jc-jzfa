@@ -2425,7 +2425,25 @@ async function start() {
     if (liveScoreRunning) return;
     liveScoreRunning = true;
     try {
-      await fetchLive500(); // ★ 500.com 直播页 (比分/半场/状态)
+      await fetchLive500(); // ★ 500.com 直播页 今天 (比分/半场/状态)
+
+      // ★ 修复: 跨日比赛回查 — 竞彩编号归属昨日但实际今日开赛的比赛
+      // 彩票编号如"周日009"在500.com归类于归属日（昨天），不抓昨天页面则比分永久丢失
+      var yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      var yesterdayStr = fmtLocal(yesterday);
+      try {
+        var rawData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+        var hasYesterdayMatches = Object.keys(rawData.m || {}).some(function (k) {
+          var m = rawData.m[k];
+          return m && (m.date || '').slice(0, 10) === yesterdayStr;
+        });
+        if (hasYesterdayMatches) {
+          await fetchLive500(yesterdayStr);
+        }
+      } catch (e2) {
+        log('[live_score] 昨日回查跳过: ' + e2.message);
+      }
     } catch (e) {
       log('[live_score] 500.com 失败: ' + e.message);
     }

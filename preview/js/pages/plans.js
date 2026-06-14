@@ -210,11 +210,12 @@ export function loadPlanList() {
     params = { date: state.planDate };
   }
 
-  // ★ P1: sessionStorage 缓存命中
+  // ★ P1-2: sessionStorage 缓存命中 — 乐观渲染，消除白屏
   var cacheKey = 'plan-list:scorefix-v2:' + state.planDate;
   var cached = getCache(cacheKey);
   if (cached) {
     el.innerHTML = cached;
+    // 缓存 5 分钟内直接使用，过期后下次自动走网络刷新
     return;
   }
 
@@ -854,6 +855,7 @@ export function loadMyPlanList() {
         })
         .join('');
       el.innerHTML = html;
+      setCache('plan-list:scorefix-v2:' + state.planDate, html);
 
       // ★ 异步刷新赔率变动数据（仅"我的方案"需要实时趋势）
       refreshMyPlanDelta(plans);
@@ -2020,6 +2022,7 @@ export function loadScorePlanList() {
         })
         .join('');
       el.innerHTML = html;
+      setCache(cacheKey, html);
       setCache('score-plan-list:scorefix-v2:' + state.planDate, html);
     })
     .catch(function (e) {
@@ -2368,6 +2371,7 @@ export function loadQuantPlanList() {
         })
         .join('');
       el.innerHTML = html;
+      setCache(cacheKey, html);
       setCache('quant-plan-list:scorefix-v2:' + state.planDate, html);
     })
     .catch(function (e) {

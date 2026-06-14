@@ -1,6 +1,6 @@
 // ==================== 我的方案列表页 ====================
 import { api } from '../api.js';
-import { WEEK_NAMES, formatDateCN } from '../utils.js';
+import { WEEK_NAMES, formatDateCN, getCache, setCache } from '../utils.js';
 
 var _plans = [];
 var _stats = {};
@@ -66,6 +66,15 @@ export function loadMyPlan() {
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载方案中...</div>';
   _reconcileMap = {};
   _reconcileLoading = false;
+
+  // ★ P1: sessionStorage 缓存命中
+  var cacheKey = 'my-plan-list:html';
+  var cached = getCache(cacheKey);
+  if (cached) {
+    el.innerHTML = cached;
+    return;
+  }
+
   api('my-plan-list', {})
     .then(function (data) {
       _plans = (data && data.plans) || [];
@@ -189,6 +198,7 @@ function renderMyPlanList() {
   });
 
   el.innerHTML = html;
+  setCache('my-plan-list:html', html);
 }
 
 function renderReconcileToolbar() {

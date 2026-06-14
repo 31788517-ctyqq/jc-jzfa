@@ -1,4 +1,5 @@
 ﻿import { api } from '../api.js';
+import { getCache, setCache } from '../utils.js';
 import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
 
 console.log('[V5.0-FUSION] quant-rank-fusion.js loaded — cross-tab selection enabled');
@@ -203,6 +204,17 @@ export function loadQuantRank() {
   var params = {};
   if (quantDate) params.date = quantDate;
 
+  // ★ P1: sessionStorage 缓存命中（与 quant-rank.js 一致）
+  var cacheKey = 'quant-rank-fusion:' + (quantDate || 'latest');
+  var cachedData = getCache(cacheKey);
+  if (cachedData) {
+    allData = (Array.isArray(cachedData) ? cachedData : []).map(normalizeOpportunityFields);
+    sortKey = 'rank';
+    sortAsc = true;
+    renderTable();
+    return;
+  }
+
   // ★ 三个 API 并行请求，消除串行等待
   Promise.all([
     api('ranking-list', params).catch(function () {
@@ -278,6 +290,7 @@ export function loadQuantRank() {
       });
       sortKey = 'rank';
       sortAsc = true;
+      setCache(cacheKey, allData);
       renderTable();
     })
     .catch(function () {

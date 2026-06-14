@@ -272,17 +272,19 @@ function _renderHomeStats(matches, rankData) {
 }
 
 // ═══ 世界杯区块 ═══
-function loadWorldCupSection() {
+function loadWorldCupSection(matchP) {
   var section = document.getElementById('wcSection');
   if (!section) return;
   section.style.display = 'none'; // 默认隐藏，有数据再显示
 
   var today = formatDate(new Date());
 
-  // 卡片3：今日比赛数据（始终有）
-  var matchP = api('match-list', {}).catch(function () {
-    return [];
-  });
+  // ★ P0-1: 复用 loadHome() 传入的 matchP，避免重复 API 调用
+  if (!matchP) {
+    matchP = api('match-list', {}).catch(function () {
+      return [];
+    });
+  }
 
   // 获取最近有数据的日期列表
   var datesP = api('week-dates', {}).catch(function () {
@@ -338,10 +340,20 @@ function loadWorldCupSection() {
     // 按日期升序排列（卡片1最早 → 卡片2中间 → 卡片3今天）
     pastDates.sort();
 
-    // 批量获取前两天的专家方案数据
+    // 批量获取前两天的专家方案数据（P1-1: sessionStorage 缓存，历史已结算数据不会变）
     var planPromises = pastDates.map(function (dt) {
-      return api('plan-list', { date: dt }).catch(function () {
-        return {};
+      var cacheKey = 'wc-plan:' + dt;
+      var cachedPlans = getCache(cacheKey);
+      if (cachedPlans) return Promise.resolve(cachedPlans);
+      return api('plan-list', { date: dt }).catch(function () { return {}; }).then(function (res) {
+        // 仅缓存已全部结算的结果（isPlanWon/isPlanLose 明确的）
+        if (res && res.plans && res.plans.length > 0) {
+          var settledCount = res.plans.filter(function (p) { return p.isPlanWon === true || p.isPlanLose === true; }).length;
+          if (settledCount >= res.plans.length) {
+            setCache(cacheKey, res);
+          }
+        }
+        return res;
       });
     });
 
@@ -393,12 +405,8 @@ export function loadHome() {
   if (initialMatchCountEl && initialMatchCountEl.textContent === '-') initialMatchCountEl.textContent = '0';
 
   _renderHomeReconcileToggle();
-  _loadHomeReconcilePanel();
 
-  // ★ 世界杯区块
-  loadWorldCupSection();
-
-  // ★ P0-1 优化：乐观渲染 — 有缓存立即渲染，无缓存等网络（getCache 内置 TTL 检查）
+  // ★ P0-1 + P0-3: 发起所有 API 调用并共享结果
   var today = formatDate(new Date());
   var cachedMatches = getCache('match-list:' + today) || getCache('match-list:' + today.slice(5));
   var cachedRank = getCache('ranking-list:home');
@@ -406,30 +414,38 @@ export function loadHome() {
     _renderHomeStats(cachedMatches, cachedRank || {});
   }
 
-  // 后台静默刷新（始终发起）
-  var rankP = api('ranking-list', {}).catch(function () {
-    return {};
-  });
-  var matchP = api('match-list', {}).catch(function () {
-    return [];
-  });
+  var rankP = api('ranking-list', {}).catch(function () { return {}; });
+  var matchP = api('match-list', {}).catch(function () { return []; });
+
+  // ★ P0-1: WC Section 复用 matchP，不再单独请求
+  loadWorldCupSection(matchP);
+
   Promise.all([rankP, matchP]).then(function (r) {
-    var rankData = r[0],
-      matches = r[1];
-    // 缓存 ranking 列表（5分钟TTL）
+    var rankData = r[0], matches = r[1];
     setCache('ranking-list:home', rankData);
     _renderHomeStats(matches, rankData);
-    _loadHomeReconcilePanel();
   });
 
-  // ── 近7日推荐盈利图表 ──
-  loadHomeProfitChart();
+  // ★ P0-3: 统一的盈利数据获取，供图表和通知引擎共享
+  var profitP = api('daily-profit-7d', { days: 7 }).catch(function () { return null; });
 
-  // ── 消息提醒引擎（仅首页加载时运行） ──
-  NotiEngine.run();
+  // 图表渲染
+  profitP.then(function (data) {
+    if (!data || !data.dates || !data.profits || data.dates.length === 0) return;
+    var dates = data.dates.slice(0, 7),
+      profits = data.profits.slice(0, 7).map(function (v) { return v === null ? 0 : v; });
+    if (dates.length < 2) return;
+    renderProfitChartNative(dates, profits);
+    var section = document.getElementById('homeProfitChartSection');
+    if (section) section.style.display = 'block';
+  });
+
+  // ★ P0-3: 消息引擎复用同一份盈利数据
+  NotiEngine.run(profitP);
 }
 
-// ═══ 近7日推荐盈利 SVG 折线图 ═══
+// ── 近7日推荐盈利 SVG 折线图 ──
+// ★ P0-3: 已内联到 loadHome() 中统一处理，保留函数签名供外部调用
 function loadHomeProfitChart() {
   api('daily-profit-7d', { days: 7 })
     .then(function (data) {
@@ -749,9 +765,10 @@ var NotiEngine = {
   _candidates: [],
   _consumed: false,
 
-  /** 首页加载时调用 — 仅收集+Badge，不弹窗 */
-  run: function () {
-    this._collect()
+  /** 首页加载时调用 — 仅收集+Badge，不弹窗
+   *  @param {Promise} profitP - 可选，外部已发起的 daily-profit-7d promise（P0-3 合并调用） */
+  run: function (profitP) {
+    this._collect(profitP)
       .then(
         function (msgs) {
           var filtered = NotiEngine._dedupeAndExpire(msgs);
@@ -763,8 +780,9 @@ var NotiEngine = {
       .catch(function () {});
   },
 
-  /** 收集所有满足触发条件的消息 */
-  _collect: function () {
+  /** 收集所有满足触发条件的消息
+   *  @param {Promise} profitP - 可复用的盈利数据 promise */
+  _collect: function (profitP) {
     var msgs = [];
     var self = this;
 
@@ -773,8 +791,9 @@ var NotiEngine = {
       msgs.push(self._buildWelcome());
     }
 
-    // 异步收集需要 API 的消息类型
-    return api('daily-profit-7d', { days: 7 })
+    // ★ P0-3: 复用外部传入的 profitP，避免重复 API 调用
+    var profitPromise = profitP || api('daily-profit-7d', { days: 7 });
+    return profitPromise
       .then(function (data) {
         // 2. 专家博热5连红 (P1) - 基于多日数据聚合
         if (data && data.profits && Array.isArray(data.profits)) {

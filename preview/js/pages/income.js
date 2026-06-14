@@ -1,4 +1,5 @@
 import { api } from '../api.js';
+import { getCache, setCache } from '../utils.js';
 import * as state from '../state.js';
 
 // 盈利显示（元，整数，无小数点）
@@ -36,6 +37,14 @@ export function loadIncome(force) {
   if (direction !== rawDirection && window.selectDD) {
     var directionText = direction === 'all' ? '全部' : direction === 'my' ? '我的方案' : '专家博热方案';
     window.selectDD('dd-incDir', direction, directionText);
+  }
+
+  // ★ P1: sessionStorage 缓存命中（含筛选参数）
+  var cacheKey = 'income-stats:' + days + ':' + plan + ':' + direction;
+  var cached = getCache(cacheKey);
+  if (cached) {
+    resultEl.innerHTML = cached;
+    return;
   }
 
   api('income-stats', { days: days, plan: plan, direction: direction })
@@ -141,6 +150,7 @@ export function loadIncome(force) {
       }
 
       resultEl.innerHTML = html;
+      setCache(cacheKey, html);
     })
     .catch(function (e) {
       resultEl.innerHTML = '<div class="loading">' + e.message + '</div>';
