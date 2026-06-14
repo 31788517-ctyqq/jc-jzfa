@@ -53,6 +53,9 @@ const ACTION_MATRIX = {
     'admin-referral-commissions',
     'admin-referral-accounts',
     'admin-referral-withdraw-list',
+    'home-reconcile-stats',
+    'my-plan-reconcile',
+    'vip-gift-status',
   ],
   mutatingOrRequiresState: [
     'auth-login',
@@ -76,6 +79,7 @@ const ACTION_MATRIX = {
     'referral-withdraw-submit',
     'simulate-pay',
     'admin-referral-withdraw-process',
+    'vip-gift-claim',
   ],
   heavyOrAsync: [
     'crawl-history',
