@@ -53,6 +53,44 @@ function atomicWrite(filePath, data) {
   fs.renameSync(tmpFile, filePath);
 }
 
+function stripHtmlText(raw) {
+  return String(raw || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function extractScoreFromCell(scoreCellHtml, matchStatus) {
+  const cellHtml = String(scoreCellHtml || '');
+  const plain = stripHtmlText(cellHtml);
+  const m = plain.match(/(\d+)\s*[-:：]\s*(\d+)/);
+  if (!m) return null;
+
+  const h = parseInt(m[1], 10);
+  const a = parseInt(m[2], 10);
+  if (isNaN(h) || isNaN(a)) return null;
+
+  const attrs = cellHtml.toLowerCase();
+  const hasRedMark =
+    /class\s*=\s*["'][^"']*red[^"']*["']/.test(attrs) ||
+    /color\s*:\s*(?:#f00\b|#ff0000\b|#c00\b|#d00\b|red\b)/.test(attrs);
+  const hasBlueMark =
+    /class\s*=\s*["'][^"']*blue[^"']*["']/.test(attrs) ||
+    /color\s*:\s*(?:#00f\b|#0000ff\b|#06c\b|#0099ff\b|blue\b)/.test(attrs);
+
+  // 规则：完赛比分优先来自“完赛状态”；若有颜色标记则按颜色归因
+  const source = hasRedMark ? 'red' : hasBlueMark ? 'blue' : matchStatus >= 2 ? 'status-final' : 'status-live';
+
+  // 非完赛（蓝色/进行中）只作为过程比分，不提升状态
+  if (matchStatus < 2 && source === 'red') {
+    // 极端情况下出现红字但状态未同步，仍按赛中处理，避免误判终场
+    return { score: h + '-' + a, homeGoals: h, awayGoals: a, source: 'live-red' };
+  }
+
+  return { score: h + '-' + a, homeGoals: h, awayGoals: a, source };
+}
+
 // ═══ 解析比赛数据（含红黄牌） ═══
 function parse500Live(html) {
   const matches = [];
@@ -134,18 +172,8 @@ function parse500Live(html) {
           .trim()
       : '';
 
-    // 第8列 (index 8): 比分 (如 "0 - 0")
-    let scoreStr = tds[8] ? tds[8].replace(/<[^>]+>/g, '').trim() : '';
-    // 如果第8列不是比分，回退查找
-    if (!/\d+\s*[-:：]\s*\d+/.test(scoreStr)) {
-      for (let i = 6; i < Math.min(12, tds.length); i++) {
-        const t = tds[i] ? tds[i].replace(/<[^>]+>/g, '').trim() : '';
-        if (/\d+\s*[-:：]\s*\d+/.test(t)) {
-          scoreStr = t;
-          break;
-        }
-      }
-    }
+    // 第8列 (index 8): 比分列（避免从盘口列误提取数字）
+    const parsedScore = extractScoreFromCell(tds[8] || '', matchStatus);
 
     // ═══ 提取球队名 ═══
     // 主队: 从 col5 提取，去掉排名标记和数字
@@ -172,19 +200,18 @@ function parse500Live(html) {
     // ═══ 解析比分 ═══
     let homeGoals = -1,
       awayGoals = -1,
-      score = '';
-    if (scoreStr) {
-      const parts = scoreStr.split(/\s*[-:：]\s*/);
-      if (parts.length >= 2) {
-        const h = parseInt(parts[0].trim());
-        const a = parseInt(parts[1].trim());
-        if (!isNaN(h) && !isNaN(a)) {
-          homeGoals = h;
-          awayGoals = a;
-          score = h + '-' + a;
-        }
-      }
+      score = '',
+      scoreSource = '';
+    if (parsedScore) {
+      homeGoals = parsedScore.homeGoals;
+      awayGoals = parsedScore.awayGoals;
+      score = parsedScore.score;
+      scoreSource = parsedScore.source || '';
     }
+
+    // 状态以“状态列”为准：
+    // - 完赛场次保留终场比分
+    // - 未完赛场次可带过程比分，但不会提升为完赛
 
     // ═══ 半场比分 ═══
     let halfScore = '';
@@ -230,6 +257,7 @@ function parse500Live(html) {
       startTime,
       yellow: homeYellow || awayYellow ? `${homeYellow || '0'}/${awayYellow || '0'}` : '',
       red: homeRed || awayRed ? `${homeRed || '0'}/${awayRed || '0'}` : '',
+      scoreSource,
     });
   }
 
@@ -249,15 +277,35 @@ function syncToDataJson(liveMatches, dateStr) {
 
   if (!data.m) data.m = {};
 
-  // 构建 num→key 索引
-  const numIndex = {};
+  // 构建 num→key 索引：
+  // 1) 赛事归属日期 (m.date)
+  // 2) 实际开赛日期 (m.startTime 的 MM-DD)
+  // 说明：像“周六006”这类赛事可能归属前一日，但实际在次日凌晨开赛。
+  // 若仅按 m.date 匹配，会导致 500 live 次日更新无法回填到该场。
+  const numIndexByMatchDate = {};
+  const numIndexByKickoffDate = {};
+  const y = String(dateStr).slice(0, 4);
+
   Object.entries(data.m).forEach(([k, m]) => {
-    if (m && m.num) numIndex[m.num] = k;
+    if (!m || !m.num) return;
+
+    const matchDate = String(m.date || '').slice(0, 10);
+    if (matchDate === dateStr) {
+      numIndexByMatchDate[m.num] = k;
+    }
+
+    const sm = String(m.startTime || '').match(/^(\d{2})-(\d{2})\s+\d{2}:\d{2}$/);
+    if (sm) {
+      const kickoffDate = `${y}-${sm[1]}-${sm[2]}`;
+      if (kickoffDate === dateStr && !numIndexByKickoffDate[m.num]) {
+        numIndexByKickoffDate[m.num] = k;
+      }
+    }
   });
 
   let updated = 0;
   for (const lm of liveMatches) {
-    let key = numIndex[lm.matchNum];
+    let key = numIndexByMatchDate[lm.matchNum] || numIndexByKickoffDate[lm.matchNum];
     let old = key ? data.m[key] : null;
     if (!old) continue;
 
@@ -319,7 +367,12 @@ function syncToDataJson(liveMatches, dateStr) {
 async function fetchLive500(dateStr) {
   if (!dateStr) {
     const now = new Date();
-    dateStr = now.toISOString().slice(0, 10);
+    dateStr =
+      now.getFullYear() +
+      '-' +
+      String(now.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(now.getDate()).padStart(2, '0');
   }
 
   const url = LIVE_URL + dateStr;
@@ -350,6 +403,7 @@ async function fetchLive500(dateStr) {
         halfScore: m.halfScore,
         yellow: m.yellow,
         red: m.red,
+        scoreSource: m.scoreSource || '',
         matchStatus: m.matchStatus,
         duration: m.duration,
         date: dateStr,

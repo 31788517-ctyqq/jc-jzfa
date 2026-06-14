@@ -181,6 +181,45 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+function toLocalDateString(dateLike) {
+  const d = dateLike ? new Date(dateLike) : new Date();
+  if (Number.isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function isDateExpired(expiresAt) {
+  const exp = String(expiresAt || '').slice(0, 10);
+  if (!exp) return false;
+  return toLocalDateString() > exp;
+}
+
+function normalizeUserSubscriptionStatus(adp, userId) {
+  if (!adp || !userId) return null;
+  const row = adp.execOne(
+    `SELECT subscription_status, subscription_expires_at, vip_gift_claimed_at, vip_gift_expires_at
+     FROM users WHERE id = ?`,
+    userId,
+  );
+  if (!row) return null;
+  if (
+    (row.subscription_status === 'active' || row.subscription_status === 'expiring_soon') &&
+    isDateExpired(row.subscription_expires_at)
+  ) {
+    adp.execRun(
+      `UPDATE users
+       SET subscription_status = 'expired', updated_at = ?
+       WHERE id = ?`,
+      nowIso(),
+      userId,
+    );
+    row.subscription_status = 'expired';
+  }
+  return row;
+}
+
 function sha256(text) {
   return crypto
     .createHash('sha256')
@@ -207,6 +246,8 @@ function ensureRegisterSchemaReady() {
     ['subscription_status', "ALTER TABLE users ADD COLUMN subscription_status TEXT DEFAULT 'free'"],
     ['subscription_expires_at', 'ALTER TABLE users ADD COLUMN subscription_expires_at TEXT'],
     ['current_subscription_id', 'ALTER TABLE users ADD COLUMN current_subscription_id INTEGER DEFAULT NULL'],
+    ['vip_gift_claimed_at', 'ALTER TABLE users ADD COLUMN vip_gift_claimed_at TEXT'],
+    ['vip_gift_expires_at', 'ALTER TABLE users ADD COLUMN vip_gift_expires_at TEXT'],
     ['referral_code', 'ALTER TABLE users ADD COLUMN referral_code TEXT'],
     ['referred_by', 'ALTER TABLE users ADD COLUMN referred_by INTEGER DEFAULT NULL'],
     ['device_fingerprint', 'ALTER TABLE users ADD COLUMN device_fingerprint TEXT'],
@@ -477,6 +518,7 @@ function buildSessionInfoByUserId(userId) {
   const adp = getAdapter();
   const rows = adp.execAll(
     `SELECT u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at,
+            u.subscription_status, u.subscription_expires_at, u.vip_gift_claimed_at, u.vip_gift_expires_at,
             r.code as role_code,
             p.code as permission_code
      FROM users u
@@ -493,6 +535,10 @@ function buildSessionInfoByUserId(userId) {
     user: sanitizeUser(rows[0]),
     roles: rp.roles,
     permissions: rp.permissions,
+    subscription_status: rows[0].subscription_status || 'free',
+    subscription_expires_at: rows[0].subscription_expires_at || null,
+    vip_gift_claimed_at: rows[0].vip_gift_claimed_at || null,
+    vip_gift_expires_at: rows[0].vip_gift_expires_at || null,
   };
 }
 
@@ -550,6 +596,8 @@ async function loginWithPassword(username, password, meta = {}) {
     user.id,
   );
 
+  normalizeUserSubscriptionStatus(adp, user.id);
+
   const token = randomSecret(24);
   const tokenHash = sha256(token);
   const expiresAt = new Date(now.getTime() + SESSION_TTL_HOURS * 3600 * 1000).toISOString();
@@ -563,6 +611,10 @@ async function loginWithPassword(username, password, meta = {}) {
       user: sessionInfo.user,
       roles: sessionInfo.roles,
       permissions: sessionInfo.permissions,
+      subscription_status: sessionInfo.subscription_status,
+      subscription_expires_at: sessionInfo.subscription_expires_at,
+      vip_gift_claimed_at: sessionInfo.vip_gift_claimed_at,
+      vip_gift_expires_at: sessionInfo.vip_gift_expires_at,
       expiresAt: expiresAt,
     });
   }
@@ -708,6 +760,10 @@ function validateSession(token, touch = true) {
       user: cached.user,
       roles: cached.roles || [],
       permissions: cached.permissions || [],
+      subscription_status: cached.subscription_status || 'free',
+      subscription_expires_at: cached.subscription_expires_at || null,
+      vip_gift_claimed_at: cached.vip_gift_claimed_at || null,
+      vip_gift_expires_at: cached.vip_gift_expires_at || null,
       expiresAt: cached.expiresAt,
     };
   }
@@ -715,7 +771,8 @@ function validateSession(token, touch = true) {
   // 内存未命中 → 查 DB
   const row = adp.execOne(
     `SELECT s.id AS sid, s.user_id, s.expires_at, s.revoked_at,
-            u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at
+            u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at,
+            u.subscription_status, u.subscription_expires_at, u.vip_gift_claimed_at, u.vip_gift_expires_at
      FROM auth_sessions s
      JOIN users u ON s.user_id = u.id
      WHERE s.session_token_hash = ?`,
@@ -725,6 +782,14 @@ function validateSession(token, touch = true) {
   if (row.revoked_at) return null;
   if (row.status !== 'active') return null;
   if (new Date(row.expires_at).getTime() <= Date.now()) return null;
+
+  var normalizedSub = normalizeUserSubscriptionStatus(adp, row.user_id);
+  if (normalizedSub) {
+    row.subscription_status = normalizedSub.subscription_status || row.subscription_status;
+    row.subscription_expires_at = normalizedSub.subscription_expires_at || row.subscription_expires_at;
+    row.vip_gift_claimed_at = normalizedSub.vip_gift_claimed_at || row.vip_gift_claimed_at;
+    row.vip_gift_expires_at = normalizedSub.vip_gift_expires_at || row.vip_gift_expires_at;
+  }
 
   if (touch) {
     adp.execRun('UPDATE auth_sessions SET last_seen_at = ? WHERE id = ?', now, row.sid);
@@ -747,6 +812,10 @@ function validateSession(token, touch = true) {
     user: sanitizeUser(row),
     roles: rp.roles,
     permissions: rp.permissions,
+    subscription_status: row.subscription_status || 'free',
+    subscription_expires_at: row.subscription_expires_at || null,
+    vip_gift_claimed_at: row.vip_gift_claimed_at || null,
+    vip_gift_expires_at: row.vip_gift_expires_at || null,
     expiresAt: row.expires_at,
   };
 }

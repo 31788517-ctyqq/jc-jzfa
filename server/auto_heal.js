@@ -200,7 +200,7 @@ async function healAllplaysGap(dateStr) {
 async function checkAndHeal(opts = {}) {
   const days = opts.days || 7;
   const dates = genRecentDates(days);
-  const now = new Date().toISOString().slice(0, 10);
+  const now = fmtLocal(new Date());
 
   logger.info('[auto_heal] 检查最近 ' + days + ' 天数据完整性: ' + dates[0] + ' ~ ' + dates[dates.length - 1]);
 

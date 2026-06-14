@@ -155,6 +155,8 @@ function initPaymentSchema(adp) {
     ['subscription_status', `ALTER TABLE users ADD COLUMN subscription_status TEXT DEFAULT 'free'`],
     ['subscription_expires_at', `ALTER TABLE users ADD COLUMN subscription_expires_at TEXT`],
     ['current_subscription_id', `ALTER TABLE users ADD COLUMN current_subscription_id INTEGER DEFAULT NULL`],
+    ['vip_gift_claimed_at', `ALTER TABLE users ADD COLUMN vip_gift_claimed_at TEXT`],
+    ['vip_gift_expires_at', `ALTER TABLE users ADD COLUMN vip_gift_expires_at TEXT`],
     ['referral_code', `ALTER TABLE users ADD COLUMN referral_code TEXT`],
     ['referred_by', `ALTER TABLE users ADD COLUMN referred_by INTEGER DEFAULT NULL`],
     ['device_fingerprint', `ALTER TABLE users ADD COLUMN device_fingerprint TEXT`],

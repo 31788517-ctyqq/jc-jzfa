@@ -65,6 +65,10 @@ function authSession(req, res, _data, authSession) {
       user: authSession.user,
       roles: authSession.roles,
       permissions: authSession.permissions,
+      subscription_status: authSession.subscription_status || 'free',
+      subscription_expires_at: authSession.subscription_expires_at || null,
+      vip_gift_claimed_at: authSession.vip_gift_claimed_at || null,
+      vip_gift_expires_at: authSession.vip_gift_expires_at || null,
       expiresAt: authSession.expiresAt,
     },
   });

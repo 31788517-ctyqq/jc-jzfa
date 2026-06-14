@@ -54,7 +54,13 @@ function getTodayMatches() {
     const dataFile = path.join(__dirname, 'data.json');
     const data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
     const matches = data.m || {};
-    const today = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const today =
+      now.getFullYear() +
+      '-' +
+      String(now.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(now.getDate()).padStart(2, '0');
     const list = [];
     Object.keys(matches).forEach(function (k) {
       const m = matches[k];

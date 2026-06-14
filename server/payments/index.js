@@ -25,6 +25,8 @@ const {
   enableAutoRenew,
   adminSubscriptionList,
   adminGrantSubscription,
+  vipGiftClaim,
+  vipGiftStatus,
 } = require('./subscriptions');
 const { handleSimulatePay, handleAlipayNotify } = require('./alipay-callback');
 const {
@@ -107,6 +109,10 @@ async function handleAction(action, req, res) {
       return cancelAutoRenew(req, res);
     case 'subscription-enable-auto-renew':
       return enableAutoRenew(req, res);
+    case 'vip-gift-claim':
+      return vipGiftClaim(req, res);
+    case 'vip-gift-status':
+      return vipGiftStatus(req, res);
 
     // ===== 管理员订阅 =====
     case 'admin-subscription-list':

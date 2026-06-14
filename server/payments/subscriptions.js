@@ -15,6 +15,55 @@ function getPayload(req) {
   return (req && req.body) || {};
 }
 
+const VIP_GIFT_ACTIVITY_END_DATE = String(process.env.VIP_GIFT_ACTIVITY_END_DATE || '2026-07-12').slice(0, 10);
+const VIP_GIFT_DURATION_DAYS = Math.max(1, parseInt(process.env.VIP_GIFT_DURATION_DAYS || '15', 10) || 15);
+
+function toLocalDateString(dateLike) {
+  const d = dateLike ? new Date(dateLike) : new Date();
+  if (Number.isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function addDays(dateStr, days) {
+  const base = new Date(`${String(dateStr).slice(0, 10)}T00:00:00`);
+  if (Number.isNaN(base.getTime())) return '';
+  base.setDate(base.getDate() + Number(days || 0));
+  return toLocalDateString(base);
+}
+
+function isDateExpired(expiresAt) {
+  const exp = String(expiresAt || '').slice(0, 10);
+  if (!exp) return false;
+  return toLocalDateString() > exp;
+}
+
+function normalizeUserSubscriptionStatus(adp, userId) {
+  if (!adp || !userId) return null;
+  const user = adp.execOne(
+    `SELECT id, subscription_status, subscription_expires_at, vip_gift_claimed_at, vip_gift_expires_at
+     FROM users WHERE id = ?`,
+    [userId],
+  );
+  if (!user) return null;
+
+  if (
+    (user.subscription_status === 'active' || user.subscription_status === 'expiring_soon') &&
+    isDateExpired(user.subscription_expires_at)
+  ) {
+    adp.execRun(
+      `UPDATE users
+       SET subscription_status = 'expired', updated_at = datetime('now','localtime')
+       WHERE id = ?`,
+      [userId],
+    );
+    user.subscription_status = 'expired';
+  }
+  return user;
+}
+
 /**
  * subscription-status — 查询当前用户订阅状态
  */
@@ -26,14 +75,10 @@ async function subscriptionStatus(req, res) {
     const userId = req.authSession?.userId;
     if (!userId) return res.json({ code: 401, msg: 'AUTH_REQUIRED' });
 
-    const user = adp.execOne(
-      `SELECT subscription_status, subscription_expires_at, current_subscription_id 
-       FROM users WHERE id = ?`,
-      [userId],
-    );
+    const user = normalizeUserSubscriptionStatus(adp, userId) || {};
 
-    const status = user?.subscription_status || 'free';
-    const expiresAt = user?.subscription_expires_at || null;
+    const status = user.subscription_status || 'free';
+    const expiresAt = user.subscription_expires_at || null;
 
     let remainingDays = 0;
     let planCode = null;
@@ -69,6 +114,9 @@ async function subscriptionStatus(req, res) {
         expires_at: expiresAt,
         remaining_days: remainingDays,
         auto_renew: autoRenew,
+        vip_gift_claimed_at: user.vip_gift_claimed_at || null,
+        vip_gift_expires_at: user.vip_gift_expires_at || null,
+        vip_gift_activity_end_date: VIP_GIFT_ACTIVITY_END_DATE,
       },
     });
   } catch (e) {
@@ -256,6 +304,104 @@ async function adminGrantSubscription(req, res) {
   }
 }
 
+async function vipGiftClaim(req, res) {
+  try {
+    const adp = database.getAdapter();
+    if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
+
+    const userId = req.authSession?.userId;
+    if (!userId) return res.json({ code: 401, msg: 'AUTH_REQUIRED' });
+
+    const today = toLocalDateString();
+    if (!today) return res.json({ code: 500, msg: 'DATE_RESOLVE_FAILED' });
+    if (today > VIP_GIFT_ACTIVITY_END_DATE) {
+      return res.json({ code: 400, msg: 'VIP_GIFT_ACTIVITY_ENDED' });
+    }
+
+    const user = normalizeUserSubscriptionStatus(adp, userId);
+    if (!user) return res.json({ code: 404, msg: 'USER_NOT_FOUND' });
+
+    const claimedAt = String(user.vip_gift_claimed_at || '').slice(0, 10);
+    const giftExpiresAt = String(user.vip_gift_expires_at || '').slice(0, 10);
+
+    if (claimedAt && giftExpiresAt && !isDateExpired(giftExpiresAt)) {
+      return res.json({
+        code: 1,
+        data: {
+          claimed: true,
+          claim_date: claimedAt,
+          gift_expires_at: giftExpiresAt,
+          claimable_until: VIP_GIFT_ACTIVITY_END_DATE,
+        },
+      });
+    }
+
+    const expireDate = addDays(today, VIP_GIFT_DURATION_DAYS);
+    adp.execRun(
+      `INSERT INTO user_subscriptions
+       (user_id, plan_code, period, status, start_date, end_date, source, amount, original_amount, coupon_code)
+       VALUES (?, 'vip_gift_15d', 'trial', 'active', ?, ?, 'vip_gift', 0, 0, NULL)`,
+      [userId, today, expireDate],
+    );
+
+    const subId = adp.execOne(`SELECT last_insert_rowid() as id FROM user_subscriptions LIMIT 1`);
+    adp.execRun(
+      `UPDATE users
+       SET subscription_status = 'active',
+           subscription_expires_at = ?,
+           current_subscription_id = ?,
+           vip_gift_claimed_at = ?,
+           vip_gift_expires_at = ?,
+           updated_at = datetime('now','localtime')
+       WHERE id = ?`,
+      [expireDate, subId?.id || null, today, expireDate, userId],
+    );
+
+    return res.json({
+      code: 1,
+      data: {
+        claimed: true,
+        claim_date: today,
+        gift_expires_at: expireDate,
+        claimable_until: VIP_GIFT_ACTIVITY_END_DATE,
+      },
+    });
+  } catch (e) {
+    console.error('[subscriptions] 限时领取失败:', e.message);
+    return res.json({ code: 500, msg: e.message });
+  }
+}
+
+async function vipGiftStatus(req, res) {
+  try {
+    const adp = database.getAdapter();
+    if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
+
+    const userId = req.authSession?.userId;
+    if (!userId) return res.json({ code: 401, msg: 'AUTH_REQUIRED' });
+
+    const user = normalizeUserSubscriptionStatus(adp, userId);
+    if (!user) return res.json({ code: 404, msg: 'USER_NOT_FOUND' });
+
+    const claimedAt = String(user.vip_gift_claimed_at || '').slice(0, 10) || null;
+    const giftExpiresAt = String(user.vip_gift_expires_at || '').slice(0, 10) || null;
+
+    return res.json({
+      code: 1,
+      data: {
+        claimed: !!claimedAt,
+        claim_date: claimedAt,
+        gift_expires_at: giftExpiresAt,
+        gift_active: !!giftExpiresAt && !isDateExpired(giftExpiresAt),
+        claimable_until: VIP_GIFT_ACTIVITY_END_DATE,
+      },
+    });
+  } catch (e) {
+    console.error('[subscriptions] 限时领取状态查询失败:', e.message);
+    return res.json({ code: 500, msg: e.message });
+  }
+}
+
 module.exports = {
   subscriptionStatus,
   subscriptionRenew,
@@ -263,4 +409,9 @@ module.exports = {
   enableAutoRenew,
   adminSubscriptionList,
   adminGrantSubscription,
+  vipGiftClaim,
+  vipGiftStatus,
+  normalizeUserSubscriptionStatus,
+  VIP_GIFT_ACTIVITY_END_DATE,
+  VIP_GIFT_DURATION_DAYS,
 };

@@ -22,6 +22,12 @@ const path = require('path');
 const DATA_FILE = path.join(__dirname, 'data.json');
 const ODDS_DIR = path.join(__dirname, 'odds_history');
 
+function fmtLocal(dd) {
+  return (
+    dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0')
+  );
+}
+
 // ═══ 源1: 500.com 赔率页 → 提取赛程 ═══
 function fetch500Page(dateStr) {
   return new Promise((resolve, reject) => {
@@ -214,7 +220,7 @@ function mergeScheduleToData(matches) {
 // ═══ 主入口: 检查今天赛程 ═══
 async function checkTodaySchedule(dateStr) {
   if (!dateStr) {
-    dateStr = new Date().toISOString().slice(0, 10);
+    dateStr = fmtLocal(new Date());
   }
 
   // 先检查现有数据
@@ -310,7 +316,7 @@ async function checkTodaySchedule(dateStr) {
 
 // ═══ SP schedule 文本解析（内联版） ═══
 function parseSPScheduleText(text, targetDate) {
-  if (!targetDate) targetDate = new Date().toISOString().slice(0, 10);
+  if (!targetDate) targetDate = fmtLocal(new Date());
   const matches = [];
 
   // 匹配: 周日201 联赛 主队VS客队 YYYY-MM-DD HH:MM
@@ -363,7 +369,7 @@ function parseSPScheduleText(text, targetDate) {
 module.exports = { checkTodaySchedule, mergeScheduleToData, extractMatchNumsFrom500 };
 
 if (require.main === module) {
-  const date = process.argv[2] || new Date().toISOString().slice(0, 10);
+  const date = process.argv[2] || fmtLocal(new Date());
   checkTodaySchedule(date).then((r) => {
     console.log(`\nResult: ${JSON.stringify(r)}`);
     if (!r.success) process.exit(1);

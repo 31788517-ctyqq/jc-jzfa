@@ -5,6 +5,7 @@
 
 const crypto = require('crypto');
 const database = require('../database');
+const { createPaymentUrl } = require('./alipay');
 
 function getPayload(req) {
   if (req && req.body && req.body.data && typeof req.body.data === 'object') {
@@ -123,18 +124,22 @@ async function createOrder(req, res) {
       [orderNo, userId, plan_code, plan.period, actualAmount, plan.price, appliedCouponCode, couponDiscount, expiredAt],
     );
 
-    // 生成模拟支付链接（后续接入真实支付宝时替换）
-    // 支付宝真实接入时：alipaySdk.exec() → result.body 作为 payment_url
-    const callbackUrl = encodeURIComponent(
-      `https://zj.100qiu.com/preview/index.html#payment-result?orderNo=${orderNo}`,
-    );
-    const paymentUrl = `/api/payments/simulate-pay?orderNo=${orderNo}&amount=${actualAmount}&returnUrl=${callbackUrl}`;
+    const payment = await createPaymentUrl({
+      orderNo,
+      amount: actualAmount,
+      planCode: plan_code,
+      planName: plan.name,
+      userAgent: req.headers?.['user-agent'] || '',
+    });
+    adp.execRun(`UPDATE payment_orders SET payment_url = ? WHERE order_no = ?`, [payment.paymentUrl, orderNo]);
 
     return res.json({
       code: 1,
       data: {
         order_no: orderNo,
-        payment_url: paymentUrl,
+        payment_url: payment.paymentUrl,
+        pay_mode: payment.mode,
+        pay_method: payment.method,
         amount: actualAmount,
         original_amount: plan.price,
         coupon_discount: couponDiscount,
