@@ -169,12 +169,22 @@ const PUBLIC_ACTIONS = new Set([
   // 健康检查
   'health',
   'data-health',
+  'cache-stats',
+  'ai-health-check',
 ]);
 
 function getAdapter() {
   const adp = database.getAdapter && database.getAdapter();
   if (!adp || !adp.execOne) throw new Error('数据库适配器不可用');
   return adp;
+}
+
+function flushCriticalWrites(adp) {
+  try {
+    if (adp && typeof adp.flush === 'function') adp.flush();
+  } catch (e) {
+    console.warn('[auth] flushCriticalWrites failed:', e && e.message ? e.message : e);
+  }
 }
 
 function nowIso() {
@@ -584,6 +594,7 @@ async function loginWithPassword(username, password, meta = {}) {
     } else {
       adp.execRun('UPDATE users SET failed_login_count = ?, updated_at = ? WHERE id = ?', failCount, nowStr, user.id);
     }
+    flushCriticalWrites(adp);
     return { ok: false, code: 0, msg: '账号或密码错误' };
   }
 
@@ -631,6 +642,7 @@ async function loginWithPassword(username, password, meta = {}) {
     meta.userAgent || null,
     nowStr,
   );
+  flushCriticalWrites(adp);
   return {
     ok: true,
     token,
@@ -721,11 +733,13 @@ function registerUser(username, password, meta = {}) {
     now,
   );
 
+  flushCriticalWrites(adp);
+
   return {
     ok: true,
     user: sanitizeUser(adp.execOne('SELECT * FROM users WHERE id = ?', createdUser.id)),
     referralCode: ownReferralCode,
-    referralUrl: `https://zj.100qiu.com/preview/index.html#register?ref=${ownReferralCode}`,
+    referralUrl: `https://zj.100qiu.com/#register?ref=${ownReferralCode}`,
     referredBy: inviter.id,
   };
 }
@@ -849,6 +863,7 @@ async function changePassword(userId, oldPassword, newPassword) {
     now,
     userId,
   );
+  flushCriticalWrites(adp);
   return { ok: true };
 }
 
@@ -910,6 +925,7 @@ function createUser(username, roleCode) {
     role,
   );
 
+  flushCriticalWrites(adp);
   return { ok: true, username, tempPassword, role, mustChangePassword: true };
 }
 
@@ -918,6 +934,7 @@ function updateUserStatus(userId, status) {
   if (!allow.has(status)) return { ok: false, msg: '非法状态' };
   const adp = getAdapter();
   adp.execRun('UPDATE users SET status = ?, updated_at = ? WHERE id = ?', status, nowIso(), userId);
+  flushCriticalWrites(adp);
   return { ok: true };
 }
 
@@ -930,6 +947,7 @@ function unlockUser(userId) {
     nowIso(),
     userId,
   );
+  flushCriticalWrites(adp);
   return { ok: true };
 }
 

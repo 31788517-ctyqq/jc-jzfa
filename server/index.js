@@ -6257,6 +6257,62 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           }
         }
 
+        // P0: AI 健康采样 — force 单场刷新验证优化链路（生产可调）
+        case 'ai-health-check': {
+          try {
+            const targetDate = data.date || require('./data_sync').fmtLocal(new Date());
+            const deepseek = require('./deepseek');
+            const doubao = require('./doubao');
+            const dataJson = getDataJson();
+            const mMap = dataJson.m || {};
+            const matches = Object.values(mMap).filter((m) => m && (m.date || '').slice(0, 10) === targetDate);
+            if (matches.length === 0) return res.json({ code: 0, msg: '无今日比赛' });
+
+            // 取推荐数最高的一场做采样
+            matches.sort((a, b) => (Number(b.recommNum) || 0) - (Number(a.recommNum) || 0));
+            var sample = matches[0];
+            var mid = String(sample.matchId || '');
+            var level =
+              (Number(sample.recommNum) || 0) >= 100 ? 'A' : (Number(sample.recommNum) || 0) >= 30 ? 'B' : 'C';
+
+            var info = {
+              matchId: mid,
+              homeName: sample.homeName,
+              visitName: sample.visitName,
+              leagueName: sample.leagueName,
+              date: sample.date,
+              num: sample.num,
+            };
+
+            var start = Date.now();
+            var results = await Promise.all([
+              deepseek.generateAnalysis(info).catch(function (e) {
+                return { _err: e.message };
+              }),
+              doubao.generateAnalysis(info).catch(function (e) {
+                return { _err: e.message };
+              }),
+            ]);
+            var elapsed = Math.round((Date.now() - start) / 100) / 10;
+
+            return res.json({
+              code: 1,
+              data: {
+                sample: info.num + ' ' + info.homeName + ' vs ' + info.visitName,
+                level: level,
+                elapsedSec: elapsed,
+                deepseek: results[0]._err ? 'FAIL:' + results[0]._err.slice(0, 40) : 'OK',
+                doubao: results[1]._err ? 'FAIL:' + results[1]._err.slice(0, 40) : 'OK',
+                dbsize: fs.existsSync(path.join(__dirname, 'midou_data.db'))
+                  ? Math.round(fs.statSync(path.join(__dirname, 'midou_data.db')).size / 1024) + 'KB'
+                  : 'N/A',
+              },
+            });
+          } catch (e) {
+            return res.json({ code: 0, msg: 'AI检查失败: ' + e.message });
+          }
+        }
+
         // ═══════════════════════════════════════════
         //  用户自定义方案 API（匿名 deviceId 体系）
         // ═══════════════════════════════════════════
