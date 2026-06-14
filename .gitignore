@@ -63,3 +63,43 @@ logs/
 server/backup_backfill/
 test_*.txt
 test_*.json
+
+# ── 本地调试/快照产物（V10 清理） ──
+.codebuddy/check_*.py
+.codebuddy/live500_*.html
+.codebuddy/smoke_api_result.json
+_snapshots/JC-ZJFA-remote-latest-worktree/
+
+# 运行期产物
+server/allplays_missing.json
+server/user_plans/*.json
+temp_account_security.js
+{console*
+
+# 临时素材（未被业务引用）
+preview/老鹰logo3.png
+preview/assets/老鹰logo3.png
+
+# sucai 设计草稿/截图导出
+sucai/ChatGPT Image *.png
+sucai/adm-final-proof-*.png
+sucai/admin-*.png
+sucai/morandi-admin-dashboard.html
+sucai/worldcup_ui_assets_B/
+sucai/zuqiu_soccer-duose.svg
+sucai/laoying11.png
+sucai/image.png
+sucai/世界杯-草稿.png
+sucai/世界杯区块代码参考.md
+sucai/个人中心新版.png
+sucai/个人中心首页头部.png
+sucai/后台管理-参考1.png
+sucai/后台管理.png
+sucai/后台管理1.png
+sucai/大力神杯.png
+sucai/屏幕截图_12-6-2026_165629_localhost(1).jpeg
+sucai/限时免费.png
+sucai/限时弹窗.md
+sucai/首页世界杯设计图.png
+
+
