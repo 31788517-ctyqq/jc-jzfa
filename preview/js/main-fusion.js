@@ -1,5 +1,5 @@
 // ==================== 主入口：路由导航 + 全局状态管理 ====================
-console.log('[V6.0-LAZY][202606140912] main-fusion.js loaded');
+console.log('[V6.0-LAZY][202606141045] main-fusion.js loaded');
 import { api } from './api.js';
 import { WEEK_NAMES, formatDate, getCache, setCache } from './utils.js';
 import { clearAuthAll, getAuthSession, hasAuthToken, setAuthSession } from './auth-client.js';
@@ -12,9 +12,9 @@ import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/matc
 //    之前即使版本戳更新，_modCache 命中后直接返回旧模块，永不重新加载
 //    现在每次 import() 按 URL 版本戳自然去重，戳变=重新请求=获取最新文件
 function _mod(name) {
-  return import('./pages/' + name + '.js?v=202606140912').catch(function (e) {
+  return import('./pages/' + name + '.js?v=202606141045').catch(function (e) {
     console.error('[JS] 模块加载失败: ' + name + ' - ' + (e && e.message));
-    return import('./pages/' + name + '.js?v=202606140912').then(function (m) {
+    return import('./pages/' + name + '.js?v=202606141045').then(function (m) {
       console.warn('[JS] 模块重试成功: ' + name);
       return m;
     });
@@ -792,7 +792,9 @@ function _ensurePage(id) {
         '</div>' +
         '</div>';
     else if (id === 'login') el.innerHTML = '<div id="loginContent"></div>';
-    else if (id === 'register') el.innerHTML = '<div id="registerContent"></div>';
+    else if (id === 'register')
+      el.innerHTML =
+        '<div class="page-skeleton" id="registerContent"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div>';
     else if (id === 'contact-invite') el.innerHTML = '<div id="contactInviteContent"></div>';
     else if (id === 'account-security') el.innerHTML = '<div id="accountSecurityContent"></div>';
     else if (id === 'profile') el.innerHTML = '<div id="profileContent"></div>';
@@ -825,7 +827,7 @@ function _ensurePage(id) {
         '<div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="window._dhRefresh && window._dhRefresh()">查询</button></div>' +
         '</div>' +
         '<div class="scheme-stats-card" id="dhStatsCard"><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatSources">-</div><div class="scheme-stat-lbl">数据源</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatAvgRate">-</div><div class="scheme-stat-lbl">平均成功率</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatAlerts">-</div><div class="scheme-stat-lbl">活跃告警</div></div></div>' +
-        '<div id="data-health-content"></div>';
+        '<div id="data-health-content"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
     // ★ Phase 4: 支付体系页面容器
     else if (id === 'pricing') el.innerHTML = '<div id="pricingContent"></div>';
     else if (id === 'payment') el.innerHTML = '<div id="paymentContent"></div>';
@@ -835,6 +837,10 @@ function _ensurePage(id) {
     else if (id === 'admin-payments') el.innerHTML = '<div id="adminPaymentsContent"></div>';
     else if (id === 'admin-referrals') el.innerHTML = '<div id="adminReferralsContent"></div>';
     else if (id === 'admin') el.innerHTML = '<div id="adminContent"></div>';
+    // P0-2: 回测分析骨架屏（首次加载时显示）
+    else if (id === 'backtest')
+      el.innerHTML =
+        '<div class="page-skeleton" id="backtestContent"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div>';
   }
   return el;
 }
@@ -1186,7 +1192,7 @@ window.selectRankDateFromPicker = selectRankDateFromPicker;
 
 // ── hash 路由监听（支持浏览器前进/后退 + 手动改 hash） ──
 window.addEventListener('hashchange', function () {
-  var h = (window.location.hash || '').replace('#', '').split('?')[0].trim();
+  var h = (window.location.hash || '').replace('#', '').split('?')[0].replace(/^\/+/, '').trim();
   if (h && h !== state.currentPage) switchTab(h);
 });
 
@@ -1257,7 +1263,7 @@ window.onIncDirChange = function () {
   // ★ 读取 hash 目标页（如 #admin），优先级高于 sessionStorage
   var hashTab = '';
   try {
-    var h = window.location.hash.replace('#', '').split('?')[0].trim();
+    var h = window.location.hash.replace('#', '').split('?')[0].replace(/^\/+/, '').trim();
     if (h && h !== 'home' && h !== 'detail') hashTab = h;
   } catch (e) {}
 
@@ -1662,3 +1668,29 @@ document.addEventListener('subscription:required', function (e) {
     switchTab(redirect);
   }
 });
+
+// P0-1: 首页加载完成后 3 秒静默预加载注册页 JS（加速首次打开）
+(function () {
+  var _registerPreloaded = false;
+  document.addEventListener('home:ready', function () {
+    if (_registerPreloaded) return;
+    _registerPreloaded = true;
+    setTimeout(function () {
+      _mod('register')
+        .then(function (m) {
+          console.log('[prefetch] register.js cached');
+        })
+        .catch(function () {});
+    }, 3000);
+  });
+  // 兜底：如果 home:ready 事件未触发，3 秒后自动尝试
+  setTimeout(function () {
+    if (_registerPreloaded) return;
+    _registerPreloaded = true;
+    _mod('register')
+      .then(function (m) {
+        console.log('[prefetch] register.js cached (fallback)');
+      })
+      .catch(function () {});
+  }, 5000);
+})();

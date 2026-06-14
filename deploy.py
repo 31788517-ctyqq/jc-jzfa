@@ -28,14 +28,16 @@ v3 核心改进:
   4. Nginx reload 替代 stop+start（消除竞态）
   5. SSH 自动选择可用算法
 
-用法: python deploy.py [--dry] [--fast] [--files-only] [--clear-gs-cache]
-  --dry          试运行，不实际部署
-  --fast         跳过备份和环境检查，快速部署（仍会验证）
-  --files-only   仅部署前端文件 (preview/)，跳过服务器重启
-  --clear-gs-cache  强制清除功守道缓存（默认保留旧缓存）
+用法: python deploy.py [--dry] [--fast] [--files-only] [--clear-gs-cache] [--skip-catchup] [--catchup-days N]
+  --dry            试运行，不实际部署
+  --fast           跳过备份和环境检查，快速部署（仍会验证）
+  --files-only     仅部署前端文件 (preview/)，跳过服务器重启
+  --clear-gs-cache 强制清除功守道缓存（默认保留旧缓存）
+  --skip-catchup   跳过部署后自动补算闭环
+  --catchup-days N 部署后补算天数（默认 2：昨天+今天）
 """
-import paramiko, sys, os, io, hashlib, re, time
-from datetime import datetime
+import paramiko, sys, os, io, hashlib, re, time, json
+from datetime import datetime, timedelta
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
@@ -89,6 +91,7 @@ PROTECTED_FILES = [
 DEPLOY_MAP = [
     # 前端静态文件 → Nginx + PM2 双路径
     ('preview/index.html',                'both'),
+    ('preview/sw.js',                     'both'),  # P2-4: Service Worker
     ('preview/assets/expressionless-face.svg', 'both'),
     ('preview/assets/plan_icon.png',      'both'),
     ('preview/assets/tab_plan.svg',       'both'),
@@ -128,8 +131,11 @@ DEPLOY_MAP = [
     ('preview/js/pages/betting.js',       'both'),  # ★ 投注弹窗
     ('preview/js/pages/confirm-scheme.js','both'),  # ★ 确认方案页
     ('preview/js/pages/login.js',          'both'),  # ★ V9: 登录页
+    ('preview/js/pages/register.js',       'both'),  # ★ V9: 注册页（邀请链接）
+    ('preview/js/pages/contact-invite.js', 'both'),  # ★ V9: 邀请制联系客服页（避免线上动态加载404）
     ('preview/js/pages/account-security.js','both'), # ★ V9: 账号安全页
     ('preview/js/pages/profile.js',        'both'),  # ★ V9: 个人主页
+
     # ★ 蓝图 V8.2 新增前端页面
     ('preview/js/pages/model-dashboard.js','both'), # ★ 模型仪表板
     ('preview/js/pages/data-health.js', 'both'),    # ★ 数据健康监控
@@ -215,6 +221,7 @@ DEPLOY_MAP = [
     ('server/core/ai-timing.js',          'both'),
     ('server/core/health.js',             'both'),
     ('server/core/ingestion-guard.js',    'both'),  # ★ V9: 实时比分摄入门禁（data_sync/sync_live_500 依赖）
+    ('server/core/match-data-pack.js',    'both'),  # ★ V9: data_sync 依赖，缺失会导致 jc-sync 启动失败
     ('server/database.js',                'both'),
     ('server/deepseek.js',                'both'),
     ('server/doubao.js',                  'both'),
@@ -463,14 +470,120 @@ def ensure_server_dependencies(ssh):
     return ok
 
 
+def _get_flag_int(flag, default_value):
+    """读取形如 --catchup-days 2 的整数参数。"""
+    try:
+        if flag not in sys.argv:
+            return default_value
+        idx = sys.argv.index(flag)
+        if idx + 1 >= len(sys.argv):
+            return default_value
+        raw = sys.argv[idx + 1]
+        if str(raw).startswith('--'):
+            return default_value
+        return int(raw)
+    except Exception:
+        return default_value
+
+
+def _api_post_json(ssh, payload, timeout=40):
+    """在远端调用本机 API，返回 (json_obj, raw_text, err_text)。"""
+    try:
+        body = json.dumps(payload, ensure_ascii=False)
+        cmd = "curl -s -X POST http://localhost:3000/api -H \"Content-Type: application/json\" -d '{}' 2>&1".format(body)
+        out, err = ssh_cmd(ssh, cmd, timeout)
+        text = (out or '').strip()
+        if not text:
+            return None, text, err
+        try:
+            return json.loads(text), text, err
+        except Exception:
+            return None, text, err
+    except Exception as e:
+        return None, '', str(e)
+
+
+def run_post_deploy_catchup(ssh, catchup_days=2):
+    """部署后触发自动补算闭环：sync-match-date(昨天+今天) + gongshoudao-all + backfill-results。"""
+    today = datetime.now().date()
+    days = max(1, min(7, int(catchup_days or 2)))
+    target_dates = [(today - timedelta(days=delta)).strftime('%Y-%m-%d') for delta in range(days - 1, -1, -1)]
+
+    print(c('C', '[Phase 5.5] 部署后自动补算闭环'))
+    print('  目标日期: {}'.format(', '.join(target_dates)))
+
+    warn_count = 0
+
+    # 1) 指定日期同步（后台异步执行）
+    for ds in target_dates:
+        resp, raw, err = _api_post_json(ssh, {'action': 'sync-match-date', 'date': ds}, timeout=20)
+        if resp and resp.get('code') == 1:
+            hint = ((resp.get('data') or {}).get('hint') or '').strip()
+            print('  {} sync-match-date {} {}'.format(c('G', '✓'), ds, hint))
+        else:
+            warn_count += 1
+            print('  {} sync-match-date {} 触发失败: {}'.format(c('Y', '⚠'), ds, (raw or err or 'N/A')[:160]))
+
+    # 2) 触发当天功守道批量计算
+    today_str = today.strftime('%Y-%m-%d')
+    resp, raw, err = _api_post_json(ssh, {'action': 'gongshoudao-all', 'date': today_str}, timeout=30)
+    if resp and resp.get('code') == 1:
+        print('  {} gongshoudao-all {} 已触发'.format(c('G', '✓'), today_str))
+    else:
+        warn_count += 1
+        print('  {} gongshoudao-all 触发失败: {}'.format(c('Y', '⚠'), (raw or err or 'N/A')[:160]))
+
+    # 3) 触发赛果回填任务
+    resp, raw, err = _api_post_json(ssh, {'action': 'backfill-results'}, timeout=20)
+    if resp and resp.get('code') == 1:
+        print('  {} backfill-results 已触发'.format(c('G', '✓')))
+    else:
+        warn_count += 1
+        print('  {} backfill-results 触发失败: {}'.format(c('Y', '⚠'), (raw or err or 'N/A')[:160]))
+
+    # 4) 数据就绪检查 + 覆盖率阈值告警
+    time.sleep(2)
+    ready_resp, ready_raw, ready_err = _api_post_json(ssh, {'action': 'data-readiness', 'date': today_str}, timeout=20)
+    if ready_resp and ready_resp.get('code') == 1:
+        info = ready_resp.get('data') or {}
+        total_matches = int(info.get('totalMatches') or 0)
+        ai_cov = float(info.get('aiCoverage') or 0)
+        gs_cov = float(info.get('gsCoverage') or 0)
+        pk_cov = float(info.get('pkCoverage') or 0)
+        print('  readiness: 场次={} AI={}% GS={}% PK={}%'.format(total_matches, ai_cov, gs_cov, pk_cov))
+
+        if total_matches > 5:
+            if ai_cov < 80:
+                warn_count += 1
+                print('  {} 覆盖率告警: AI < 80%'.format(c('Y', '⚠')))
+            if gs_cov < 85:
+                warn_count += 1
+                print('  {} 覆盖率告警: GS < 85%'.format(c('Y', '⚠')))
+            if pk_cov < 75:
+                warn_count += 1
+                print('  {} 覆盖率告警: PK < 75%'.format(c('Y', '⚠')))
+    else:
+        warn_count += 1
+        print('  {} data-readiness 查询失败: {}'.format(c('Y', '⚠'), (ready_raw or ready_err or 'N/A')[:160]))
+
+    if warn_count > 0:
+        print(c('Y', '  自动补算已执行，但存在 {} 个告警（不阻断部署）'.format(warn_count)))
+    else:
+        print(c('G', '  自动补算触发完成，无告警'))
+    print()
+
+
 # ══════════════════════════════════════════
 # 主流程
 # ══════════════════════════════════════════
+
 
 def main():
     dry_run = '--dry' in sys.argv
     fast_mode = '--fast' in sys.argv
     files_only = '--files-only' in sys.argv
+    skip_catchup = '--skip-catchup' in sys.argv
+    catchup_days = _get_flag_int('--catchup-days', 2)
     ts = datetime.now().strftime('%Y%m%d_%H%M%S')
 
     if dry_run:
@@ -725,6 +838,18 @@ def main():
         print('  data.json: {}B'.format(out.strip() if out else c('R', 'MISSING!')))
         print()
 
+    # ── Phase 5.5: 部署后自动补算闭环 ──
+    if not dry_run and not files_only:
+        deploy_all_ok = all(r[0] for r in results) if 'results' in dir() else True
+        if skip_catchup:
+            print(c('Y', '[Phase 5.5] 已跳过自动补算（--skip-catchup）'))
+            print()
+        elif not deploy_all_ok:
+            print(c('Y', '[Phase 5.5] 检测到文件上传失败，跳过自动补算'))
+            print()
+        else:
+            run_post_deploy_catchup(ssh, catchup_days=catchup_days)
+
     # ── 汇总 ──
     print(c('D', '═' * 54))
     if dry_run:
@@ -732,6 +857,7 @@ def main():
     else:
         ok_count = sum(1 for r in results if r[0]) if 'results' in dir() else total
     fail_count = total - ok_count if not dry_run else 0
+
 
     if fail_count > 0:
         print(c('R', '⚠ 部署完成，但有 {} 个文件失败'.format(fail_count)))
@@ -744,11 +870,13 @@ def main():
     else:
         print(c('G', '部署成功 — {} 个文件全部验证通过'.format(total)))
 
-    print(c('D', '\n用法: python deploy.py [--dry] [--fast] [--files-only] [--clear-gs-cache]'))
-    print(c('D', '  --dry           试运行'))
-    print(c('D', '  --fast          跳过环境检查/备份'))
-    print(c('D', '  --files-only    仅部署前端文件 (preview/)，跳过服务器重启'))
+    print(c('D', '\n用法: python deploy.py [--dry] [--fast] [--files-only] [--clear-gs-cache] [--skip-catchup] [--catchup-days N]'))
+    print(c('D', '  --dry             试运行'))
+    print(c('D', '  --fast            跳过环境检查/备份'))
+    print(c('D', '  --files-only      仅部署前端文件 (preview/)，跳过服务器重启'))
     print(c('D', '  --clear-gs-cache  强制清除功守道缓存'))
+    print(c('D', '  --skip-catchup    跳过部署后自动补算闭环'))
+    print(c('D', '  --catchup-days N  部署后补算天数（默认 2：昨天+今天，范围 1~7）'))
 
     if files_only:
         print(c('Y', '\n  ★ files-only 模式: 仅上传了前端静态文件，未重启 PM2'))

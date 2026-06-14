@@ -8,7 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>竞彩推荐监控</title>
     <link rel="preconnect" href="https://zj.100qiu.com" />
-    <link rel="modulepreload" href="/js/main-fusion.js?v=202606140912" />
+    <link rel="dns-prefetch" href="https://midou310.com" />
+    <link rel="modulepreload" href="/js/main-fusion.js?v=202606141045" />
     <!-- ★ P0: 5 底栏 tab 页面模块预加载 — 浏览器解析 HTML 时就开始下载 -->
     <link rel="modulepreload" href="/js/pages/home.js?v=202606140912" />
     <link rel="modulepreload" href="/js/pages/match-list.js?v=202606101015" />
@@ -51,25 +52,25 @@
     <!-- ECharts lazy-loaded by charts.js -->
     <script>
       window.__inviteContactConfig = window.__inviteContactConfig || {
-        notice: '当前注册采用邀请制，请先通过你的邀请人、对接客服或运营渠道获取邀请码。',
-        tip: '如需上线正式邀请制，可在此处替换为真实客服微信、企业微信或电话信息。',
+        notice: '当前注册采用邀请制，请先联系客服获取邀请码或专属邀请链接。',
+        tip: '联系客服后，将收到专属邀请链接或邀请码；返回注册页填写即可完成注册。',
         contacts: [
           {
-            label: '邀请码获取',
-            value: '请向你的邀请人或对接客服索取',
-            desc: '支持社群邀请、渠道邀请和一对一客服发放。',
-            copyable: false,
+            label: '服务微信',
+            value: 'ty102827',
+            desc: '添加微信请备注“邀请码申请”。',
+            copyable: true,
           },
           {
-            label: '支付与订阅支持',
-            value: '登录后可在个人中心反馈支付问题',
-            desc: '用于处理支付未到账、订阅状态延迟等问题。',
-            copyable: false,
+            label: '服务电话',
+            value: '19924790073',
+            desc: '电话咨询请说明注册手机号，便于快速处理。',
+            copyable: true,
           },
           {
             label: '服务时间',
             value: '09:00 - 21:00',
-            desc: '工作时段内处理邀请码与会员问题。',
+            desc: '服务时间内优先处理邀请码与支付相关问题。',
             copyable: false,
           },
         ],
@@ -119,6 +120,9 @@
       </div>
 
       <div class="home-today-brief" id="homeTodayBrief">今日 0 场｜机会 0</div>
+
+      <div class="home-reconcile-switch" id="homeReconcileToggle" onclick="toggleHomeReconcile()">🔎 对账开关：关</div>
+      <div class="home-reconcile-panel" id="homeReconcilePanel" style="display: none"></div>
 
       <!-- Stats -->
       <div class="home-stats">
@@ -525,9 +529,19 @@
       console.log('[INLINE-MODULE] loaded OK');
       window.inlineModuleWorks = true;
     </script>
-    <script type="module" src="/js/main-fusion.js?v=202606140912"></script>
+    <script type="module" src="/js/main-fusion.js?v=202606141045"></script>
 
 
     <!-- V5.0-FUSION-PK final-202605311423 -->
+    <!-- P2-4: Service Worker 静态资源缓存 -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').then(function (reg) {
+          console.log('[SW] registered scope=' + reg.scope);
+        }).catch(function (e) {
+          console.log('[SW] skip (dev mode)');
+        });
+      }
+    </script>
   </body>
 </html>
