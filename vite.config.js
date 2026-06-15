@@ -1,7 +1,4 @@
-// ==================== Vite 轻量构建配置 (Phase 2) ====================
-// 目标：Tree-shaking + Minify + Content Hash + 保持页面模块独立（lazy-load）
-// 构建入口：preview/index.html → 输出：preview/dist/
-
+// ==================== Vite 构建配置 (Phase 2) ====================
 import { defineConfig } from 'vite';
 
 export default defineConfig({
@@ -11,20 +8,26 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    rollupOptions: {
-      output: {
-        entryFileNames: 'js/[name]-[hash:8].js',
-        chunkFileNames: 'js/[name]-[hash:8].js',
-        assetFileNames: (assetInfo) => {
-          const name = assetInfo.name || 'asset';
-          if (name.endsWith('.css')) return 'css/[name]-[hash:8][extname]';
-          return 'assets/[name]-[hash:8][extname]';
-        },
-      },
-    },
     minify: 'terser',
     target: 'es2015',
     modulePreload: { polyfill: false },
     cssCodeSplit: true,
   },
+  plugins: [{
+    name: 'force-main-entry',
+    enforce: 'pre',
+    transformIndexHtml(html) {
+      // 移除所有内联 module 脚本
+      html = html.replace(/<script type="module">[\s\S]*?<\/script>/g, '');
+      // 移除旧的 modulepreload 标签
+      html = html.replace(/<link rel="modulepreload"[\s\S]*?\/>/g, '');
+      // 确保 main-fusion.js 入口模块在 </head> 前
+      if (!/<script type="module" src="\/js\/main-fusion\.js">/.test(html)) {
+        html = html.replace('</head>',
+          '  <script type="module" src="/js/main-fusion.js"></script>\n  </head>'
+        );
+      }
+      return html;
+    }
+  }],
 });

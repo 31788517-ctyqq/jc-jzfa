@@ -1,7 +1,7 @@
 // ==================== 主入口：路由导航 + 全局状态管理 ====================
-import { api } from './vendor.js?v=202606152148';
-import { WEEK_NAMES, formatDate } from './vendor.js?v=202606152148';
-import * as state from './vendor.js?v=202606152148';
+import { api } from './vendor.js';
+import { WEEK_NAMES, formatDate } from './vendor.js';
+import * as state from './vendor.js';
 import { loadHome } from './pages/home.js';
 import { loadMatchList } from './pages/match-list.js';
 import { goDetail, closeAI, showAIPrediction } from './pages/match-detail.js';
@@ -41,7 +41,7 @@ import {
   startPK,
   sortBy,
   switchQuantView,
-} from './pages/quant-rank.js?v=202606131900';
+} from './pages/quant-rank.js';
 import { openPK, closePK, openPKMulti } from './pages/match-pk-fusion.js?v=85';
 
 // ── 日期切换 ──

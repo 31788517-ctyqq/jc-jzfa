@@ -1,5 +1,5 @@
-import { api } from '../vendor.js?v=202606152148';
-import { formatDate, setCache, getCache } from '../vendor.js?v=202606152148';
+import { api } from '../vendor.js';
+import { formatDate, setCache, getCache } from '../vendor.js';
 
 function getMatchLabel(item) {
   return String((item && (item.num || item.matchNum || item.matchId || item.dataId)) || '').trim();

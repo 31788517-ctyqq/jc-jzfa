@@ -1,5 +1,5 @@
-import { api } from '../vendor.js?v=202606152148';
-import { setAuthToken, setAuthSession } from '../vendor.js?v=202606152148';
+import { api } from '../vendor.js';
+import { setAuthToken, setAuthSession } from '../vendor.js';
 
 const VIP_POPUP_PENDING_USER_KEY = 'vipGiftPopupPendingUser';
 const VIP_POPUP_SHOWN_PREFIX = 'vipGiftPopupShown:';
@@ -183,7 +183,7 @@ function ensureLoginRoot() {
     '<div class="login-hero-title">Hello!</div>' +
     '<div class="login-hero-subtitle">欢迎来到<br>竞彩推荐监控系统</div>' +
     '</div>' +
-    '<img class="login-eagle" src="/assets/login-eagle.png?v=202606101155" alt="" loading="eager" decoding="async" />' +
+    '<img class="login-eagle" src="/assets/login-eagle.png" alt="" loading="eager" decoding="async" />' +
     '</div>' +
     '<div class="auth-card auth-login-card">' +
     '<div class="auth-field auth-field-icon">' +

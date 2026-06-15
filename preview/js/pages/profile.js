@@ -1,6 +1,6 @@
-import { api } from '../vendor.js?v=202606152148';
-import { formatDate } from '../vendor.js?v=202606152148';
-import { getAuthSession, clearAuthAll, hasAuthToken, hasReferralAccess } from '../vendor.js?v=202606152148';
+import { api } from '../vendor.js';
+import { formatDate } from '../vendor.js';
+import { getAuthSession, clearAuthAll, hasAuthToken, hasReferralAccess } from '../vendor.js';
 
 var _profilePlanFilter = 'today';
 var _allPlans = [];

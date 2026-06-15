@@ -1,4 +1,4 @@
-import { API } from '../vendor.js?v=202606152148';
+import { API } from '../vendor.js';
 
 export function loadHitRate() {
   const el = document.getElementById('hitContent');

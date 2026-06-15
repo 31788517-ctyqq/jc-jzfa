@@ -1,5 +1,5 @@
-import { api } from '../vendor.js?v=202606152148';
-import { getAuthSession, hasAuthToken, hasReferralAccess } from '../vendor.js?v=202606152148';
+import { api } from '../vendor.js';
+import { getAuthSession, hasAuthToken, hasReferralAccess } from '../vendor.js';
 
 function formatMoney(value) {
   return new Intl.NumberFormat('zh-CN', {

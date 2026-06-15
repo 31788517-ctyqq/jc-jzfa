@@ -1,5 +1,5 @@
-import { api } from '../vendor.js?v=202606152148';
-import { getAuthSession, hasAuthToken } from '../vendor.js?v=202606152148';
+import { api } from '../vendor.js';
+import { getAuthSession, hasAuthToken } from '../vendor.js';
 
 const PLAN_META = {
   monthly: { plan_name: '月度套餐', duration_months: 1, feature: '适合短期体验核心能力', summary: '30 天会员访问权限' },

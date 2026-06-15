@@ -1,6 +1,6 @@
-﻿import { api } from '../vendor.js?v=202606152148';
-import { getCache, setCache } from '../vendor.js?v=202606152148';
-import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
+﻿import { api } from '../vendor.js';
+import { getCache, setCache } from '../vendor.js';
+import { loadECharts, echartsReady } from '../charts.js';
 
 console.log('[V5.0-FUSION] quant-rank-fusion.js loaded — cross-tab selection enabled');
 

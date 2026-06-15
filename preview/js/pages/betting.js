@@ -2,7 +2,7 @@
  * 投注弹窗 v7 — 方案设计页风格 + 功守道弹窗头 + 玩法上下文 + 赔率箭头 + 规则提示
  * 字号参考: sodds-btn(11px/16px) | 线条: 1px | 卡片: 白底透明边框(去蓝色遮罩)
  */
-import { api } from '../vendor.js?v=202606152148';
+import { api } from '../vendor.js';
 
 let _currentMatch = null,
   _selectedBets = [],

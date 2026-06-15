@@ -1,7 +1,7 @@
-﻿import { api } from '../vendor.js?v=202606152148';
-import { formatDate } from '../vendor.js?v=202606152148';
-import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
-import * as state from '../vendor.js?v=202606152148';
+﻿import { api } from '../vendor.js';
+import { formatDate } from '../vendor.js';
+import { loadECharts, echartsReady } from '../charts.js';
+import * as state from '../vendor.js';
 
 // AI 深度解析缓存：{ matchId: { content: ..., hash: ... } }
 var predictionCache = {};

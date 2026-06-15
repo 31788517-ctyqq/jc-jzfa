@@ -5,8 +5,8 @@
  * 数据来源: API /api/model-dashboard → prediction_outcomes 表
  */
 
-import { api } from '../vendor.js?v=202606152148';
-import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
+import { api } from '../vendor.js';
+import { loadECharts, echartsReady } from '../charts.js';
 
 var INTERNAL_MODEL_NAMES = ['data_fusion', 'market_signal'];
 
