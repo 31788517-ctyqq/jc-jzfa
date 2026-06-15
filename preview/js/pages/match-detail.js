@@ -347,6 +347,7 @@ export function goDetail(matchId) {
     html += '</div></div>';
 
     el.innerHTML = html;
+    el.classList.remove('page-skeleton'); // 移除骨架屏 padding，卡片宽度对齐今日比赛
 
     // AI 核心看点卡片隐藏逻辑：比赛日期早于今天则隐藏
     var matchDate = (match.date || '').slice(0, 10);

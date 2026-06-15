@@ -360,45 +360,74 @@ function buildPKDecisionMapForMatches(matches) {
   const map = {};
   if (!Array.isArray(matches) || matches.length === 0) return map;
   try {
-    const pk = require('./pk_scorer');
-    const gsMap = getGsGlobalMap();
-    const input = matches
-      .map(function (m) {
-        const mid = String((m && m.matchId) || '').replace(/^m_/, '');
-        if (!mid) return null;
-        const gsFields = typeof pk._loadGSFields === 'function' ? pk._loadGSFields({ _global: gsMap }, mid) : {};
-        const item = Object.assign({}, m, gsFields);
-        item.matchId = mid;
-        return item;
-      })
-      .filter(Boolean);
-    if (input.length === 0) return map;
-    const scored = pk.computeAllScores(input);
-    const ranked = scored.slice().sort(function (a, b) {
-      return b.compositeScore - a.compositeScore;
-    });
-    scored.forEach(function (s) {
-      const item = s && s.item ? s.item : {};
-      const mid = String(item.matchId || '').replace(/^m_/, '');
-      if (!mid) return;
-      const adv = pk.getDirectionAdvice(s, ranked) || {};
-      map[mid] = {
-        playType: adv.playType || 'spf',
-        finalDirection: adv.finalDirection || adv.dir || 'watch',
-        decisionLevel: adv.decisionLevel || '观望',
-        stars: adv.stars || 0,
-        riskLevel: adv.riskLevel || 'yellow',
-        riskTags: Array.isArray(adv.riskTags) ? adv.riskTags : [],
-        degradeReasons: Array.isArray(adv.degradeReasons) ? adv.degradeReasons : [],
-        decisionNarrative: adv.decisionNarrative || 'PK裁判：基于 PK 综合评分输出。',
-        finalDecision: adv.finalDecision || 'watch',
-        expectedValue: adv.expectedValue !== undefined ? adv.expectedValue : null,
-        valueEdge: adv.valueEdge !== undefined ? adv.valueEdge : null,
-        pkCompositeScore: s.compositeScore,
-      };
+    // ★ P1+P2: 优先从 SQLite prediction_logs 读取 pk_scorer 真实输出
+    const adp = database.getAdapter && database.getAdapter();
+    if (adp) {
+      const mids = matches.map(function (m) {
+        return String(m.matchId || '').replace(/^m_/, '');
+      }).filter(Boolean);
+      if (mids.length > 0) {
+        const placeholders = mids.map(function () { return '?'; }).join(',');
+        const rows = adp.execAll(
+          'SELECT matchId, pk_direction, pk_composite_score, pk_final_direction, pk_decision_level, ' +
+          'pk_risk_level, pk_stars, pk_risk_tags, pk_degrade_reasons, pk_decision_narrative, ' +
+          'pk_play_type, pk_expected_value, pk_value_edge ' +
+          'FROM prediction_logs WHERE matchId IN (' + placeholders + ') ORDER BY updated_at DESC',
+          mids,
+        );
+        if (rows && rows.length > 0) {
+          rows.forEach(function (r) {
+            const mid = String(r.matchId || '').replace(/^m_/, '');
+            if (!mid || map[mid]) return; // 已填充则跳过（第一条即最新）
+            var riskTags = [];
+            try { riskTags = JSON.parse(r.pk_risk_tags || '[]'); } catch (e) {}
+            var degradeReasons = [];
+            try { degradeReasons = JSON.parse(r.pk_degrade_reasons || '[]'); } catch (e) {}
+            map[mid] = {
+              playType: r.pk_play_type || 'spf',
+              finalDirection: r.pk_final_direction || r.pk_direction || 'watch',
+              decisionLevel: r.pk_decision_level || (r.pk_direction ? '可做' : '观望'),
+              stars: r.pk_stars || 0,
+              riskLevel: r.pk_risk_level || 'yellow',
+              riskTags: riskTags,
+              degradeReasons: degradeReasons,
+              decisionNarrative: r.pk_decision_narrative || 'PK裁判：基于 PK 融合评分输出。',
+              finalDecision: r.pk_final_direction || r.pk_direction || 'watch',
+              expectedValue: r.pk_expected_value || null,
+              valueEdge: r.pk_value_edge || null,
+              pkCompositeScore: r.pk_composite_score || 0,
+            };
+          });
+        }
+      }
+    }
+
+    // ★ P3: fallback — 仅当 SQLite 无数据时才构造兜底
+    matches.forEach(function (m) {
+      const mid = String(m.matchId || '').replace(/^m_/, '');
+      if (!mid || map[mid]) return;
+      // 有 GS/AI 数据则显示融合摘要，否则显示"待分析"
+      var hasGS = !!(m.attackPattern || (m.totalAdvantageRaw != null));
+      var hasAI = !!(m.aiConfidence); // 从 match 字段读取
+      map[mid] = hasGS || hasAI
+        ? {
+            playType: 'spf',
+            finalDirection: 'watch',
+            decisionLevel: '待分析',
+            stars: 0,
+            riskLevel: 'yellow',
+            riskTags: hasGS ? ['GS功守道已分析'] : ['AI已分析'],
+            degradeReasons: [],
+            decisionNarrative: 'PK裁判：' + (hasGS && hasAI ? 'GS+AI 数据已就绪，等待融合裁判输出' : hasGS ? 'GS 功守道已分析，等待融合裁判' : 'AI 已分析，等待融合裁判') + '。',
+            finalDecision: 'watch',
+            expectedValue: null,
+            valueEdge: null,
+            pkCompositeScore: 0,
+          }
+        : buildFallbackPKDecision('PK数据生成中，请稍后刷新');
     });
   } catch (e) {
-    logger.warn('[ranking-list] PK标准字段构建失败: ' + e.message);
+    logger.warn('[ranking-list] PK数据读取失败: ' + e.message);
   }
   return map;
 }
@@ -625,6 +654,10 @@ let _profit7dCacheTime = 0;
 let _rankListCache = {};
 let _rankListCacheTime = {};
 const RANK_LIST_CACHE_TTL = 2 * 60 * 1000; // 2 分钟
+// ★ P0-1: plan-list 响应缓存（生成计算密集）
+let _planListResponseCache = {};
+let _planListResponseTime = {};
+const PLAN_LIST_CACHE_TTL = 10 * 60 * 1000; // 10 分钟
 
 // ★ P1-3 优化：通用响应缓存（减少重复计算密集 API 的响应时间）
 const RESPONSE_CACHE_TTL = {
@@ -3639,6 +3672,15 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
             }
 
+            // ★ P0-1: 响应缓存命中（10 分钟 TTL，data.json mtime 变更自动失效）
+            const planCacheKey = dateStr;
+            const planNow = Date.now();
+            const planCacheEntry = _planListResponseCache[planCacheKey];
+            if (planCacheEntry && _planListResponseTime[planCacheKey] &&
+                planNow - _planListResponseTime[planCacheKey] < PLAN_LIST_CACHE_TTL) {
+              return res.json(planCacheEntry);
+            }
+
             // 1) 从 data.json 加载比赛和推荐
             const dataFile = getDataJson();
             const mMap = dataFile.m || {};
@@ -3682,7 +3724,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // ★ P0 Layer 5: 输出门禁 — 响应前校验比分/奖金/中奖状态
             var validatedPlans = validatePlanResponse(plans, dateStr);
 
-            return res.json({ code: 1, data: { date: dateStr, plans: validatedPlans } });
+            const planResp = { code: 1, data: { date: dateStr, plans: validatedPlans } };
+            _planListResponseCache[planCacheKey] = planResp;
+            _planListResponseTime[planCacheKey] = Date.now();
+            return res.json(planResp);
           } catch (e) {
             return res.json({ code: 0, msg: '获取方案列表失败: ' + e.message });
           }

@@ -672,6 +672,7 @@ function goDetail(matchId) {
     html += '</div></div>';
 
     el.innerHTML = html;
+    el.classList.remove('page-skeleton');
 
     // AI 核心看点卡片隐藏逻辑：比赛日期早于今天则隐藏
     const matchDate = (match.date || '').slice(0, 10);

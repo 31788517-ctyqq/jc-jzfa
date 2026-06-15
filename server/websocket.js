@@ -465,7 +465,7 @@ function startPollWatcher() {
     } catch (e) {
       // 静默处理
     }
-  }, 5000); // ★ P2-3: 回退模式下延长到 5 秒
+  }, 30000); // ★ P2-3→P3-1: 回退轮询延长至 30 秒，减少磁盘 I/O（fs.watch 优先）
 }
 
 function stopDataWatcher() {

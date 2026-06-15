@@ -4,7 +4,7 @@
       "name": "jc-zjfa",
       "script": "index.js",
       "cwd": "/root/server",
-      "instances": 4,
+      "instances": 2,
       "exec_mode": "cluster",
       "env": {
         "NODE_ENV": "production",
@@ -16,7 +16,9 @@
         "MIDOU_BACKUP_MOBILE": "19924790073",
         "MIDOU_BACKUP_PASSWORD": "936da1e6796530b7a25e55953f1c9a43"
       },
-      "max_memory_restart": "1024M",
+      "max_memory_restart": "512M",
+      "min_uptime": "10000",
+      "max_restarts": 5,
       "log_date_format": "YYYY-MM-DD HH:mm:ss",
       "error_file": "./logs/error.log",
       "out_file": "./logs/out.log",
@@ -41,6 +43,8 @@
         "MIDOU_BACKUP_PASSWORD": "936da1e6796530b7a25e55953f1c9a43"
       },
       "max_memory_restart": "256M",
+      "min_uptime": "10000",
+      "max_restarts": 5,
       "log_date_format": "YYYY-MM-DD HH:mm:ss",
       "error_file": "./logs/sync_error.log",
       "out_file": "./logs/sync_out.log",
@@ -59,6 +63,8 @@
         "BEHIND_PROXY": "1"
       },
       "max_memory_restart": "128M",
+      "min_uptime": "10000",
+      "max_restarts": 5,
       "log_date_format": "YYYY-MM-DD HH:mm:ss",
       "error_file": "./logs/scheduler_error.log",
       "out_file": "./logs/scheduler_out.log",

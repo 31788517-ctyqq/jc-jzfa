@@ -27,8 +27,8 @@ const aiMerger = require('./ai_merger');
 
 const LOG_FILE = path.join(__dirname, '..', 'logs', 'ai_daemon.log');
 
-// ★ P1-4: AI 缓存最大保留 90 天
-const AI_CACHE_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
+// ★ P3-1: AI 缓存最大保留 30 天（降低 ai_cache.json 膨胀速度）
+const AI_CACHE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 // ★ 费用优化: 缓存新鲜度阈值（4小时内已分析则跳过）
 const CACHE_FRESH_MS = 4 * 60 * 60 * 1000;
 
@@ -131,26 +131,8 @@ function savePrediction(matchId, matchInfo, mergedResult, dsResult, dbResult) {
       },
     };
 
-    // ★ P1-4: 写入前清理 90 天前的过期条目
-    const cutoffTime = Date.now() - AI_CACHE_MAX_AGE_MS;
-    const cleaned = {};
-    let purgedCount = 0;
-    Object.keys(cache).forEach(function (k) {
-      const entry = cache[k];
-      if (entry && entry.updatedAt) {
-        const entryTime = new Date(entry.updatedAt).getTime();
-        if (entryTime < cutoffTime) {
-          purgedCount++;
-          return;
-        }
-      }
-      cleaned[k] = entry;
-    });
-    if (purgedCount > 0) {
-      log('清理 ' + purgedCount + ' 个过期 AI 缓存条目');
-    }
-
-    fs.writeFileSync(aiFile, JSON.stringify(cleaned));
+    // ★ P0-3: 写入 ai_cache.json（清洗由每日 cleanAiCache 统一分层归档）
+    fs.writeFileSync(aiFile, JSON.stringify(cache));
     return true;
   } catch (e) {
     log('保存预测失败: ' + e.message);
@@ -369,7 +351,7 @@ function dailyBatchCore(isLight, skipCache) {
     if (index >= matches.length) {
       log('========== 每日 AI 批量分析完成 [' + modeLabel + '] ==========');
       isRunning = false;
-      return;
+      return Promise.resolve(); // 返回 Promise 供上层 await
     }
     var match = matches[index];
     var processor = isLight
@@ -388,7 +370,7 @@ function dailyBatchCore(isLight, skipCache) {
       });
   }
 
-  processNext(0);
+  return processNext(0);
 }
 
 /**
@@ -406,24 +388,39 @@ let dailyTimer1130 = null;
 let dailyTimer1630 = null;
 
 function start() {
-  log('AI 定时守护进程启动（11:30 双模型 + 16:30 仅豆包）');
+  log('AI 定时守护进程启动（11:30/16:30 双模型 + 模型补算闭环）');
 
-  // 立即运行一次（首次启动用完整双模型分析）
+  // 立即运行一次
   dailyBatch();
 
-  // 设置每天 11:30 定时（双模型完整分析）
+  // 设置每天 11:30 定时（双模型 + 模型闭环）
   var delay1130 = getDelayToTarget(11, 30);
-  log('首次 11:30(双模型) 将在 ' + Math.round(delay1130 / 3600000) + ' 小时后触发');
+  log('首次 11:30(双模型+闭环) 将在 ' + Math.round(delay1130 / 3600000) + ' 小时后触发');
   dailyTimer1130 = setTimeout(function run1130() {
-    dailyBatch();
+    dailyBatch().then(function () {
+      // AI 完成后触发模型补算闭环（GS→PK）
+      try {
+        var ds = require('./data_sync');
+        if (ds && ds.runModelClosure) {
+          return ds.runModelClosure(new Date().toISOString().slice(0, 10), { reason: 'ai_1130' });
+        }
+      } catch (e) { log('[1130] 模型闭环触发失败: ' + e.message); }
+    });
     dailyTimer1130 = setTimeout(run1130, 24 * 3600000);
   }, delay1130);
 
-  // 设置每天 16:30 定时（精简刷新：仅豆包 + 缓存检查）
+  // 设置每天 16:30 定时（双模型 + 模型闭环 + 缓存检查）
   var delay1630 = getDelayToTarget(16, 30);
-  log('首次 16:30(仅豆包) 将在 ' + Math.round(delay1630 / 3600000) + ' 小时后触发');
+  log('首次 16:30(双模型+闭环) 将在 ' + Math.round(delay1630 / 3600000) + ' 小时后触发');
   dailyTimer1630 = setTimeout(function run1630() {
-    dailyBatchLight();
+    dailyBatch().then(function () {
+      try {
+        var ds = require('./data_sync');
+        if (ds && ds.runModelClosure) {
+          return ds.runModelClosure(new Date().toISOString().slice(0, 10), { reason: 'ai_1630' });
+        }
+      } catch (e) { log('[1630] 模型闭环触发失败: ' + e.message); }
+    });
     dailyTimer1630 = setTimeout(run1630, 24 * 3600000);
   }, delay1630);
 }
@@ -443,9 +440,11 @@ if (require.main === module) {
 }
 
 /**
- * ★ P1-4: 清理 ai_cache.json 中超过 maxAgeMs 的过期条目
- * @param {number} maxAgeMs 最大保留时间（默认 90 天）
- * @returns {number} 清理的条目数
+ * ★ P1-4→P0-3: 分层归档 ai_cache.json 中超期条目（数据零丢失）
+ * 热层: ai_cache.json 保留最近 maxAgeMs 的条目用于实时查询
+ * 冷层: ai_archive/ 归档超期条目，永久保存
+ * @param {number} maxAgeMs 最大保留时间（默认 30 天）
+ * @returns {number} 归档的条目数
  */
 function cleanAiCache(maxAgeMs) {
   maxAgeMs = maxAgeMs || AI_CACHE_MAX_AGE_MS;
@@ -455,23 +454,38 @@ function cleanAiCache(maxAgeMs) {
     const cache = JSON.parse(fs.readFileSync(aiFile, 'utf8'));
     const cutoffTime = Date.now() - maxAgeMs;
     const cleaned = {};
-    let purgedCount = 0;
+    const archived = {};
+    let archivedCount = 0;
     Object.keys(cache).forEach(function (k) {
       const entry = cache[k];
       if (entry && entry.updatedAt) {
         const entryTime = new Date(entry.updatedAt).getTime();
         if (entryTime < cutoffTime) {
-          purgedCount++;
+          archived[k] = entry; // 移至归档
+          archivedCount++;
           return;
         }
       }
-      cleaned[k] = entry;
+      cleaned[k] = entry; // 保留在热层
     });
-    if (purgedCount > 0) {
+    if (archivedCount > 0) {
+      // 写回热层（不含超期条目）
       fs.writeFileSync(aiFile, JSON.stringify(cleaned));
-      log('cleanAiCache: 清理 ' + purgedCount + ' 个过期条目（剩余 ' + Object.keys(cleaned).length + ' 条）');
+
+      // 归档到冷层
+      const archiveDir = path.join(__dirname, 'ai_archive');
+      if (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true });
+      const archiveFile = path.join(archiveDir, 'ai_archive_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.json');
+      let existing = {};
+      if (fs.existsSync(archiveFile)) {
+        try { existing = JSON.parse(fs.readFileSync(archiveFile, 'utf8')); } catch (e) {}
+      }
+      Object.assign(existing, archived);
+      fs.writeFileSync(archiveFile, JSON.stringify(existing));
+
+      log('cleanAiCache: 分层归档 ' + archivedCount + ' 条 → ' + archiveFile + ' (热层剩余 ' + Object.keys(cleaned).length + ' 条)');
     }
-    return purgedCount;
+    return archivedCount;
   } catch (e) {
     log('cleanAiCache 失败: ' + e.message);
     return 0;

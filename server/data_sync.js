@@ -362,42 +362,10 @@ async function sync500Shuju(dateStr) {
   }
 }
 
-/** Task 1C: Selenium 补充抓取近6场数据 (JS 动态渲染, 速度较慢) */
+/** Task 1C: Selenium 补充抓取 (已停用 — JS 抓取器已覆盖近6场数据) */
 async function sync500ShujuSelenium(dateStr) {
-  log('[500shuju-sel] Selenium 近6场数据: ' + dateStr);
-
-  const selFile = path.join(__dirname, 'shuju_data', 'shuju_selenium_' + dateStr + '.json');
-
-  // 已有数据跳过
-  if (fs.existsSync(selFile) && fs.statSync(selFile).size > 500) {
-    log('[500shuju-sel] ' + dateStr + ' Selenium 数据已存在，跳过');
-    return;
-  }
-
-  // 需要有 shuju_map 才执行
-  const shujuMapFile = path.join(__dirname, 'shuju_map_' + dateStr + '.json');
-  if (!fs.existsSync(shujuMapFile)) {
-    log('[500shuju-sel] 无 shuju_map，跳过');
-    return;
-  }
-
-  try {
-    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-    const scriptPath = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi_selenium.py');
-    // Selenium 较慢, 给 10 分钟超时
-    const pyResult = execSync(pythonCmd + ' "' + scriptPath + '" ' + dateStr, {
-      cwd: path.join(__dirname, '..'),
-      timeout: 600000,
-      encoding: 'utf8',
-      maxBuffer: 1024 * 1024,
-    });
-    if (pyResult) {
-      const lines = pyResult.trim().split('\n');
-      log('[500shuju-sel] ' + lines[lines.length - 1] || 'done');
-    }
-  } catch (e) {
-    log('[500shuju-sel] 失败: ' + e.message);
-  }
+  log('[500shuju-sel] JS 抓取器已覆盖近6场数据，Selenium 路径已停用: ' + dateStr);
+  return;
 }
 
 /** Task 1D: liansai.500.com 积分榜抓取 (补齐赛季表) */
@@ -2193,11 +2161,30 @@ function autoInferStatus(dateStr) {
     const year = new Date().getFullYear();
     let fixed = 0;
     let usedScoreMethod = false;
+    let inferredLive = 0;
 
     Object.keys(data.m).forEach((k) => {
       const m = data.m[k];
       if (!m || m.matchStatus >= 2) return; // 已结束，跳过
       if (!m.date || m.date.slice(0, 10) !== dateStr) return;
+
+      // ★ P3-1: 时间推演进行中 — 开赛>10分钟仍status=0 → 自动标记为进行中
+      if (m.matchStatus === 0 && m.startTime) {
+        try {
+          const raw = m.startTime.replace(/\//g, '-');
+          const clean = raw.replace(/\s+/g, '');
+          const dt = new Date(
+            year + '-' + clean.slice(0, 2) + '-' + clean.slice(3, 5) + 'T' + clean.slice(5, 10) + ':00+08:00',
+          );
+          if (!isNaN(dt.getTime()) && now > dt.getTime() + 10 * 60 * 1000) {
+            m.matchStatus = 1;
+            m.duration = m.duration || '进行中';
+            fixed++;
+            inferredLive++;
+            return; // 已更新为进行中，不继续检查结束状态
+          }
+        } catch (e) {}
+      }
 
       let shouldFix = false;
 
@@ -2259,8 +2246,14 @@ function autoInferStatus(dateStr) {
 
     if (fixed > 0) {
       atomicWrite(DATA_FILE, data);
-      const methodTag = usedScoreMethod ? ' method:score' : '';
-      log('[auto_status] ' + dateStr + ' 自动推断 ' + fixed + ' 场比赛状态为"已结束"' + methodTag);
+      const parts = [];
+      if (inferredLive > 0) parts.push(inferredLive + ' 场→进行中');
+      const finishedCount = fixed - inferredLive;
+      if (finishedCount > 0) {
+        const methodTag = usedScoreMethod ? ' method:score' : '';
+        parts.push(finishedCount + ' 场→已结束' + methodTag);
+      }
+      log('[auto_status] ' + dateStr + ' 自动推断: ' + parts.join(', '));
       notifyReload();
     }
     return fixed;
@@ -2364,8 +2357,6 @@ async function start() {
       await sleep(jitter(2000));
       await sync500Odds(currentDate);
       await sleep(jitter(2000));
-      sync500Shuju(currentDate);
-      sync500ShujuSelenium(currentDate);
       // 延后5分钟合并数据
       setTimeout(
         () => {
@@ -2528,26 +2519,11 @@ async function start() {
           log('[scheduler] shuju 预生成失败: ' + e.message);
         }
 
-        // 旧 Python 路径保留（如环境支持则执行）
-        sync500Shuju(today);
-        sync500ShujuSelenium(today);
-        // 延后 5 分钟合并数据
-        setTimeout(
-          () => {
-            log('[shuju] 开始合并静态+Selenium数据...');
-            try {
-              const { mergeShuju } = require('./merge_shuju');
-              mergeShuju(today);
-              log('[shuju] 合并完成: ' + getTodayStatusSummary(today));
-            } catch (e) {
-              log('[shuju] 合并失败: ' + e.message);
-            }
-          },
-          5 * 60 * 1000,
-        );
+        // ★ 模型补算闭环已移至 ai_daemon 11:30/16:30 定时触发
+        // （AI 完成后→GS刷新→PK计算更自然，不阻塞 SP 同步）
 
-        // P0: SP 全量同步后，立即触发模型补算闭环
-        await runModelClosure(today, { reason: 'noon_sp_full', aiDelayMs: 500 });
+        // P0-2: 每日清理 data.json 旧推荐数据（轻量，不阻塞）
+        trimOldRecommendData();
       } catch (e) {
         log('[scheduler] 12:00 任务失败: ' + e.message);
         // 失败后启动重试
@@ -2782,3 +2758,54 @@ module.exports = {
   refreshTodayAI,
   runModelClosure,
 };
+
+// ★ P0-2: 每日分层归档 data.json 中 >14 天的旧推荐明细
+// 策略：近期数据保留 data.json（热层），历史数据移至 recommends_archive/（冷层）
+// 数据零丢失——仅分层存储，匹配实体 (data.m) 完全不受影响
+function trimOldRecommendData() {
+  try {
+    const maxDays = 14;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - maxDays);
+    const cutoffStr = fmtLocal(cutoff);
+    const cutoffKey = cutoffStr.replace(/-/g, '');
+
+    if (!fs.existsSync(DATA_FILE)) return;
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    const mMap = data.m || {};
+    const rMap = data.r || {};
+    const archive = {};
+    let movedCount = 0;
+
+    Object.keys(rMap).forEach(function (k) {
+      const mid = k.replace('m_', '');
+      const m = mMap[k] || mMap['m_' + mid] || mMap[mid];
+      if (!m || !m.date) return;
+      if (m.date.slice(0, 10) >= cutoffStr) return; // 近期保留
+      // 移至归档（不删除）
+      archive[k] = rMap[k];
+      delete rMap[k];
+      movedCount++;
+    });
+
+    if (movedCount > 0) {
+      data.r = rMap;
+      atomicWrite(DATA_FILE, data);
+
+      // 归档写入
+      const archiveDir = path.join(__dirname, 'recommends_archive');
+      if (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true });
+      const archiveFile = path.join(archiveDir, 'recommends_before_' + cutoffKey + '.json');
+      let existing = {};
+      if (fs.existsSync(archiveFile)) {
+        try { existing = JSON.parse(fs.readFileSync(archiveFile, 'utf8')); } catch (e) {}
+      }
+      Object.assign(existing, archive);
+      fs.writeFileSync(archiveFile, JSON.stringify(existing));
+
+      log('[trim] 分层归档 ' + movedCount + ' 条 >14天推荐 → ' + archiveFile);
+    }
+  } catch (e) {
+    log('[trim] 推荐分层失败: ' + e.message);
+  }
+}
