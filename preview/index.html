@@ -10,16 +10,16 @@
     <link rel="preconnect" href="https://zj.100qiu.com" />
     <link rel="dns-prefetch" href="https://midou310.com" />
     <!-- ★ Phase1: vendor.js 包含 api+utils+state+auth-client，预加载消除模块图解析瀑布 -->
-    <link rel="modulepreload" href="/dist/assets/vendor-DARr4itC.js?v=202606152148" />
-    <link rel="modulepreload" href="/dist/assets/main-fusion-Clssk_Kn.js?v=202606152148" />
+    <link rel="modulepreload" href="/dist/assets/vendor-DARr4itC-DARr4itC-DARr4itC-DARr4itC.js?v=202606152148" />
+    <link rel="modulepreload" href="/dist/assets/main-fusion-Clssk_Kn-Clssk_Kn-Clssk_Kn-Clssk_Kn.js?v=202606152148" />
     <!-- ★ P0: 5 底栏 tab 页面模块预加载 — 浏览器解析 HTML 时就开始下载 -->
-    <link rel="modulepreload" href="/dist/assets/home-BazrGInC.js?v=202606152148" />
-    <link rel="modulepreload" href="/dist/assets/match-list-OiMsm79f.js?v=202606152148" />
-    <link rel="modulepreload" href="/dist/assets/ranking-rA_S61Xu.js?v=202606152148" />
+    <link rel="modulepreload" href="/dist/assets/home-BazrGInC-BazrGInC-BazrGInC-BazrGInC.js?v=202606152148" />
+    <link rel="modulepreload" href="/dist/assets/match-list-OiMsm79f-OiMsm79f-OiMsm79f-OiMsm79f.js?v=202606152148" />
+    <link rel="modulepreload" href="/dist/assets/ranking-rA_S61Xu-rA_S61Xu-rA_S61Xu-rA_S61Xu.js?v=202606152148" />
 
-    <link rel="modulepreload" href="/dist/assets/hit-rate-CAvh0gji.js?v=202606152148" />
-    <link rel="modulepreload" href="/dist/assets/plans-B8O_iV-x.js?v=202606152148" />
-    <link rel="modulepreload" href="/dist/assets/match-detail-1dKpJOgx.js?v=202606152148" />
+    <link rel="modulepreload" href="/dist/assets/hit-rate-CAvh0gji-CAvh0gji-CAvh0gji-CAvh0gji.js?v=202606152148" />
+    <link rel="modulepreload" href="/dist/assets/plans-B8O_iV-x-B8O_iV-x-B8O_iV-x-B8O_iV-x.js?v=202606152148" />
+    <link rel="modulepreload" href="/dist/assets/match-detail-1dKpJOgx-1dKpJOgx-1dKpJOgx-1dKpJOgx.js?v=202606152148" />
 
 
 
@@ -28,7 +28,7 @@
     <!-- ★ P1-5: 非首屏弹窗样式异步加载，不阻塞 FCP -->
     <link
       rel="stylesheet"
-      href="/dist/css/modals-D9iT7H_b.css?v=202606131900"
+      href="/dist/css/modals-D9iT7H_b-D9iT7H_b-D9iT7H_b-D9iT7H_b.css?v=202606131900"
       media="print"
       onload="
         this.media = 'all';
@@ -38,7 +38,7 @@
     <noscript></noscript>
     <link
       rel="stylesheet"
-      href="/dist/css/betting-kHsrAmoL.css?v=202606120300"
+      href="/dist/css/betting-kHsrAmoL-kHsrAmoL-kHsrAmoL-kHsrAmoL.css?v=202606120300"
       media="print"
       onload="
         this.media = 'all';
@@ -77,8 +77,8 @@
         ],
       };
     </script>
-    <script type="module" crossorigin src="/dist/js/index-DqhjpVJD.js"></script>
-    <link rel="stylesheet" crossorigin href="/dist/css/index-CqI4fdBe.css">
+    <script type="module" crossorigin src="/dist/js/index-OUqzlZEE.js"></script>
+    <link rel="stylesheet" crossorigin href="/dist/css/index-CkBpNckE.css">
   </head>
 
   <body>
@@ -103,6 +103,10 @@
           <span id="notiBadge">0</span>
         </button>
       </div>
+      <!-- ★ 排行/比赛/数据/方案 Tab 右上角"我的"按钮（绿色主题，与首页互斥） -->
+      <button class="nav-my-btn" id="navMyBtn" type="button" onclick="switchTab('profile')" aria-label="我的账号" style="display:none">
+        <span>我的</span>
+      </button>
       <span class="nav-back" id="navBack" onclick="goBack()"
         ><svg width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path

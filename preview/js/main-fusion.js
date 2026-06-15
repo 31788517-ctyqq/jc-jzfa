@@ -945,6 +945,13 @@ export function switchTab(tab) {
         ? 'flex'
         : 'none';
 
+  // ★ 排行/比赛/数据/方案 Tab 右上角"我的"按钮（绿色主题）
+  var navMyBtn = document.getElementById('navMyBtn');
+  if (navMyBtn) {
+    var showMy = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
+    navMyBtn.style.display = showMy ? 'flex' : 'none';
+  }
+
   var navbarEl = document.getElementById('navbar');
   if (navbarEl) {
     navbarEl.classList.toggle('home-mode', tab === 'home');
@@ -1486,6 +1493,13 @@ function switchTabLoad(tab) {
       tab !== 'payment-result'
         ? 'flex'
         : 'none';
+
+  // ★ "我的"按钮（排行/比赛/数据/方案）
+  var navMyBtn = document.getElementById('navMyBtn');
+  if (navMyBtn) {
+    var showMy = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
+    navMyBtn.style.display = showMy ? 'flex' : 'none';
+  }
 
   var navbarEl = document.getElementById('navbar');
   if (navbarEl)
