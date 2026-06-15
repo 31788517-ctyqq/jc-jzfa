@@ -6615,6 +6615,21 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 if (dateOddsMap) oddsEntry = dateOddsMap[matchNum] || null;
               }
               oddsEntry = oddsEntry || {};
+              // ★ B: 扩大多日期赔率扫描 — 主链+dateKey都找不到时扫描最近30天
+              if (!oddsEntry.spf && !oddsEntry.rqspf && matchNum) {
+                var scanBase = dateKey || dateStr;
+                if (scanBase) {
+                  var sd2 = localDate(new Date(new Date(scanBase).getTime()));
+                  for (var sdi = 0; sdi < 30 && !(oddsEntry.spf || oddsEntry.rqspf); sdi++) {
+                    sd2 = localDate(new Date(new Date(sd2).getTime() - 86400000));
+                    var scanMap = getOddsHistory(sd2);
+                    if (scanMap) {
+                      var found2 = oddsProvider.findOddsEntryByMatchNum(scanMap, matchNum);
+                      if (found2 && (found2.spf || found2.rqspf)) oddsEntry = found2;
+                    }
+                  }
+                }
+              }
               // ★ 赔率变动方向（Delta）
               var isSingleGame = false;
               try {

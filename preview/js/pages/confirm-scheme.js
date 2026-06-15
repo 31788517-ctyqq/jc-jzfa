@@ -122,10 +122,11 @@ function render() {
   var amount = _planData.planAmount != null ? _planData.planAmount : baseAmount;
   // ★ 若从奖金优化弹窗带回了预计奖金，直接用它（弹窗内已正确计算）
   var calcWin = _planData.optimizedMaxWin != null ? _planData.optimizedMaxWin : calcMaxWin(amount);
-  var maxWin = typeof calcWin === 'number' ? calcWin : calcWin;
-  // P1+P2: 分层赔率数据（calcMaxWin 附加属性）
-  var passOdds = calcWin._passOdds || {};
-  var bestProduct = calcWin._bestProduct || 1;
+  var maxWin = typeof calcWin === 'number' ? calcWin : (calcWin && calcWin.value != null ? calcWin.value : calcWin);
+  // P1+P2: 分层赔率数据（calcMaxWin 返回对象含附加属性）
+  var passOdds = (calcWin && calcWin._passOdds) || {};
+  var bestProduct = (calcWin && calcWin._bestProduct) || 1;
+  var bestProductK = (calcWin && calcWin._bestProductK) || '';
 
   // 按 matchId 分组（同场多方向分行）
   var groupedSelections = buildGroupedSelections();
@@ -136,7 +137,7 @@ function render() {
   html += renderPlanPreviewCard(bets, amount, maxWin, uniqueCount, groupedSelections);
 
   // 底部操作栏
-  html += renderBottomBar(bets, amount, maxWin, uniqueCount);
+  html += renderBottomBar(bets, amount, maxWin, uniqueCount, passOdds, bestProductK);
 
   el.innerHTML = html;
 }
@@ -461,7 +462,7 @@ function findSelectionByMatchId(matchId) {
 }
 
 // ═══ 底部操作栏 ═══
-function renderBottomBar(bets, amount, maxWin, uniqueCount) {
+function renderBottomBar(bets, amount, maxWin, uniqueCount, passOdds, bestProductK) {
   // 过关显示
   var passLabel = '';
   if (_passTypes.length === 1) {
@@ -505,13 +506,13 @@ function renderBottomBar(bets, amount, maxWin, uniqueCount) {
   // P2: 分层展示 — 多过关时加 tooltip
   var winText = maxWin + '元';
   var pdTooltip = '';
-  if (maxWin._passOdds) {
-    var pKeys = Object.keys(maxWin._passOdds);
+  if (passOdds) {
+    var pKeys = Object.keys(passOdds);
     if (pKeys.length > 1) {
-      winText += '（' + (maxWin._bestProductK || '') + '关最优）';
+      winText += '（' + (bestProductK || '') + '关最优）';
       pdTooltip = pKeys
         .map(function (k) {
-          var p = maxWin._passOdds[k];
+          var p = passOdds[k];
           return k + '关: ' + p.maxWinPerNote + '元';
         })
         .join('\n');
@@ -632,12 +633,13 @@ function calcMaxWin(amount) {
 
   var maxWin = singleBetAmount > 0 ? Math.round(singleBetAmount * bestProduct * 100) / 100 : 0;
 
-  // 额外返回分层数据供保存用
-  maxWin._passOdds = passOdds;
-  maxWin._bestProductK = bestProductK;
-  maxWin._bestProduct = bestProduct;
-
-  return maxWin;
+  // 返回对象（primitive number 不能附加属性，严格模式下报错）
+  return {
+    value: maxWin,
+    _passOdds: passOdds,
+    _bestProductK: bestProductK,
+    _bestProduct: bestProduct,
+  };
 }
 
 // ═══ 返回方案设计页 ═══
@@ -981,10 +983,10 @@ window.confirmSavePlan = function () {
   var baseAmount = baseBets * 2 * _multiplier;
   var amount = _planData.planAmount != null ? _planData.planAmount : baseAmount;
   var calcWin = _planData.optimizedMaxWin != null ? _planData.optimizedMaxWin : calcMaxWin(amount);
-  var maxWin = typeof calcWin === 'number' ? calcWin : calcWin;
-  // P1+P2: 分层赔率数据（calcMaxWin 附加属性）
-  var passOdds = calcWin._passOdds || {};
-  var bestProduct = calcWin._bestProduct || 1;
+  var maxWin = typeof calcWin === 'number' ? calcWin : (calcWin && calcWin.value != null ? calcWin.value : calcWin);
+  // P1+P2: 分层赔率数据（calcMaxWin 返回对象含附加属性）
+  var passOdds = (calcWin && calcWin._passOdds) || {};
+  var bestProduct = (calcWin && calcWin._bestProduct) || 1;
 
   // ★ 竞技彩票单张金额上限 20000 元
   if (amount > 20000) {

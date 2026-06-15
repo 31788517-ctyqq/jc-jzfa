@@ -225,8 +225,8 @@ export function goDetail(matchId) {
       return r.result !== null;
     });
     const statusText =
-      match.matchStatus === 2 || hasResults ? '已结束' : { 0: '未开始', 1: '进行中' }[match.matchStatus] || '未知';
-    const roundText = match.num || '';
+      match.matchStatus === 2 ? '已结束' : match.matchStatus === 1 ? '进行中' : '未开始';
+    const roundText = match.num || match.matchNum || '竞彩';
     const isLive = match.matchStatus === 1 || match.matchStatus === 2;
     const scoreText = match.score || '';
     const halfText = match.halfScore || '';
@@ -256,7 +256,7 @@ export function goDetail(matchId) {
       <div class="match-card" style="margin-bottom: 16px;">
         <div class="match-header">
           <span class="match-league">${match.leagueName}</span>
-          <span class="match-num" style="background: ${match.matchStatus === 0 && !hasResults ? 'rgba(34,211,238,0.1)' : 'rgba(52,211,153,0.1)'}; color: ${match.matchStatus === 0 && !hasResults ? 'var(--cyan)' : 'var(--green)'}">${statusText}</span>
+          <span class="match-num" style="background: ${match.matchStatus === 0 ? 'rgba(34,211,238,0.1)' : 'rgba(52,211,153,0.1)'}; color: ${match.matchStatus === 0 ? 'var(--cyan)' : 'var(--green)'}">${statusText}</span>
         </div>
         <div class="match-teams">
           <span class="team-name">${match.homeName}</span>

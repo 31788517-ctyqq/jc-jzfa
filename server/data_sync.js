@@ -2405,6 +2405,15 @@ async function start() {
     }
   } catch (e) {}
 
+  // ★ C: 启动时检查今日赔率文件，缺失则提前抓取（避免 noon 前无赔率可用）
+  var oddsFile = path.join(ODDS_DIR, currentDate + '.json');
+  if (!fs.existsSync(oddsFile) || (fs.existsSync(oddsFile) && fs.statSync(oddsFile).size < 100)) {
+    log('[init] 今日赔率文件缺失/过小，提前触达 500.com 赔率抓取...');
+    sync500Odds(currentDate).catch(function (e) {
+      log('[init] 提前赔率抓取失败: ' + e.message);
+    });
+  }
+
   // ═══ 启动高频赛程检查器（6:00~12:00，每5分钟多源检查） ═══
   if (!todayHasMatches(currentDate)) {
     log('[init] ⚠️ 今日' + currentDate + '仍无赛程数据');

@@ -41,12 +41,32 @@ function getSportteryFallback(database, matchNum) {
   if (!database || !matchNum) return empty;
 
   try {
+    var rows = null;
+
+    // 优先通过适配器查询
     var adp = database.getAdapter && database.getAdapter();
-    if (!adp) return empty;
-    var rows = adp.execAll(
-      'SELECT play_type, odds_json FROM sporttery_odds_snapshot WHERE match_num = ? ORDER BY snapshot_time DESC LIMIT 60',
-      matchNum,
-    );
+    if (adp) {
+      rows = adp.execAll(
+        'SELECT play_type, odds_json FROM sporttery_odds_snapshot WHERE match_num = ? ORDER BY snapshot_time DESC LIMIT 60',
+        matchNum,
+      );
+    } else {
+      // ★ A: 适配器未就绪(sql.js异步初始化)→用raw db直接查询(只读，安全)
+      var rawDb = database.getDatabase && database.getDatabase();
+      if (rawDb) {
+        try {
+          var stmt = rawDb.prepare(
+            'SELECT play_type, odds_json FROM sporttery_odds_snapshot WHERE match_num = ? ORDER BY snapshot_time DESC LIMIT 60',
+          );
+          stmt.bind([matchNum]);
+          rows = [];
+          while (stmt.step()) {
+            rows.push(stmt.getAsObject());
+          }
+          stmt.free();
+        } catch (e) { /* raw db fallback failed */ }
+      }
+    }
     if (!rows || !rows.length) return empty;
 
     var out = {
