@@ -934,22 +934,15 @@ const staticOpts = { maxAge: '7d', etag: true, lastModified: true };
 app.use('/assets/worldcup', express.static(path.join(__dirname, '../miniprogram/images/worldcup'), staticOpts));
 app.use('/assets', express.static(path.join(__dirname, '../miniprogram/images'), staticOpts));
 
-// ★ Phase2 (Vite): 构建输出目录预览路径
-const previewRoot = path.join(__dirname, '../preview/dist');
-// 向后兼容：如果 dist/ 不存在，回退到源码目录（开发/未构建场景）
-const previewSrcRoot = path.join(__dirname, '../preview');
-let _previewPath = previewRoot;
-try {
-  if (!fs.existsSync(previewRoot)) {
-    _previewPath = previewSrcRoot;
-  }
-} catch (e) {
-  _previewPath = previewSrcRoot;
-}
+// ★ Phase2 (Vite): 构建输出在 preview/dist/，base='/dist/' → URL 路径自带 /dist/ 前缀
+const previewRoot = path.join(__dirname, '../preview');
+const previewDistRoot = path.join(previewRoot, 'dist');
+const useDist = fs.existsSync(previewDistRoot);
+const _previewPath = previewRoot;
 
 let homeCache = null,
   homeCacheTime = 0;
-const hp = path.join(_previewPath, 'index.html');
+const hp = useDist ? path.join(previewDistRoot, 'index.html') : path.join(previewRoot, 'index.html');
 const HOME_HTML_CACHE_TTL = process.env.NODE_ENV === 'production' ? 60000 : 0;
 function getHomeHTML(cb) {
   const now = Date.now();
