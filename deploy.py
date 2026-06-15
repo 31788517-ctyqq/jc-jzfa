@@ -90,6 +90,8 @@ PROTECTED_FILES = [
 
 DEPLOY_MAP = [
     # 前端静态文件 → Nginx + PM2 双路径
+    # ★ 修复：Nginx root 直读 index.html（非 preview/ 子目录）
+    ('index.html',                        'nginx'),
     ('preview/index.html',                'both'),
     ('preview/sw.js',                     'both'),  # P2-4: Service Worker
     ('preview/assets/expressionless-face.svg', 'both'),
