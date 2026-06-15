@@ -1,22 +1,32 @@
 // ==================== 主入口：路由导航 + 全局状态管理 ====================
-console.log('[V6.0-LAZY][202606141045] main-fusion.js loaded');
-import { api } from './api.js';
-import { WEEK_NAMES, formatDate, getCache, setCache } from './utils.js';
-import { clearAuthAll, getAuthSession, hasAuthToken, setAuthSession, hasReferralAccess } from './auth-client.js';
-import * as state from './state.js';
+console.log('[V7.0-VITE][Phase2] main-fusion.js loaded');
+import { api, WEEK_NAMES, formatDate, getCache, setCache, clearAuthAll, getAuthSession, hasAuthToken, setAuthSession, hasReferralAccess } from './vendor.js';
+import * as state from './vendor.js';
 import { loadHome } from './pages/home.js';
 import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js';
 
-// ═══ 模块懒加载：非核心页面模块按需动态导入 ═══
-// ★ P1-3 修复：移除 _modCache 内存缓存
-//    之前即使版本戳更新，_modCache 命中后直接返回旧模块，永不重新加载
-//    现在每次 import() 按 URL 版本戳自然去重，戳变=重新请求=获取最新文件
+// ═══ 模块懒加载：import.meta.glob 静态分析所有页面模块 → 每个独立 chunk ═══
+// ★ Phase2 (Vite): import.meta.glob 在构建时展开为静态映射，Rollup 自动 Code-Split
+//     每个页面模块成为独立 chunk，Tree-Shaking 移除未用导出
+const _pageModules = import.meta.glob('./pages/*.js');
+
 function _mod(name) {
-  return import('./pages/' + name + '.js').catch(function (e) {
+  const key = './pages/' + name + '.js';
+  const loader = _pageModules[key];
+  if (!loader) {
+    console.error('[JS] 模块未注册: ' + name);
+    return Promise.reject(new Error('Module not found: ' + name));
+  }
+  return loader().catch(function (e) {
     console.error('[JS] 模块加载失败: ' + name + ' - ' + (e && e.message));
-    return import('./pages/' + name + '.js').then(function (m) {
-      console.warn('[JS] 模块重试成功: ' + name);
-      return m;
+    // 延迟 1s 重试一次（弱网退避）
+    return new Promise(function (resolve, reject) {
+      setTimeout(function () {
+        loader().then(resolve).catch(function (e2) {
+          console.error('[JS] 模块重试也失败: ' + name + ' - ' + (e2 && e2.message));
+          reject(e2);
+        });
+      }, 1000);
     });
   });
 }
@@ -936,10 +946,10 @@ export function switchTab(tab) {
         : 'none';
 
   // navMyBtn (green)
-  var nmb1 = document.getElementById('navMyBtn');
-  if (nmb1) {
-    var sm1 = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
-    nmb1.style.display = sm1 ? 'flex' : 'none';
+  var nmb = document.getElementById('navMyBtn');
+  if (nmb) {
+    var sm = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
+    nmb.style.display = sm ? 'flex' : 'none';
   }
 
   var navbarEl = document.getElementById('navbar');
@@ -1151,6 +1161,10 @@ export function switchTab(tab) {
     });
   }
 
+  // ★ Phase3: 切 Tab 时立即预取 API 数据（与模块加载并行）
+  //     api() 内置请求去重，模块加载后调用同一 API 时共享已发起的请求
+  _prefetchTabData(tab);
+
   // ★ P1: 首页后异步预取相邻 Tab 数据（方案+命中率），切页直接渲染
   if (tab === 'home') {
     setTimeout(function () {
@@ -1161,20 +1175,31 @@ export function switchTab(tab) {
   }
 }
 
-  // Phase3: pre-fetch API data
-  _prefetchTabData(tab);
-
-
+// ★ Phase3: API 数据预取 — 与模块加载并行，api() 去重保证零额外请求
+//     注：此函数在 switchTab 和 switchTabLoad 两处共用（只定义一次）
 function _prefetchTabData(tab) {
   var today = formatDate(new Date());
-  if (tab === 'plan') { var pd = state.planDate || today; api('plan-list', { date: pd }).catch(function () {}); }
-  else if (tab === 'match') { var sel = state.weekDates[state.selectedWeekIdx]; if (sel && sel.matchDate) api('match-list', { date: sel.matchDate }).catch(function () {}); }
-  else if (tab === 'rank') { api('ranking-list', { date: state.rankDate || today }).catch(function () {}); }
-  else if (tab === 'hit') { api('hit-rate-stats', {}).catch(function () {}); }
-  else if (tab === 'quant-rank') { api('quant-rank', {}).catch(function () {}); }
-  else if (tab === 'income') { api('plan-income', {}).catch(function () {}); }
-  else if (tab === 'filter') { api('filter-leagues', {}).catch(function () {}); }
-  else if (tab === 'backtest') { api('prediction-backtest', {}).catch(function () {}); }
+  if (tab === 'plan') {
+    var pd = state.planDate || today;
+    api('plan-list', { date: pd }).catch(function () {});
+  } else if (tab === 'match') {
+    var sel = state.weekDates[state.selectedWeekIdx];
+    if (sel && sel.matchDate) {
+      api('match-list', { date: sel.matchDate }).catch(function () {});
+    }
+  } else if (tab === 'rank') {
+    api('ranking-list', { date: state.rankDate || today }).catch(function () {});
+  } else if (tab === 'hit') {
+    api('hit-rate-stats', {}).catch(function () {});
+  } else if (tab === 'quant-rank') {
+    api('quant-rank', {}).catch(function () {});
+  } else if (tab === 'income') {
+    api('plan-income', {}).catch(function () {});
+  } else if (tab === 'filter') {
+    api('filter-leagues', {}).catch(function () {});
+  } else if (tab === 'backtest') {
+    api('prediction-backtest', {}).catch(function () {});
+  }
 }
 
 // ★ Phase 4: 页面导航辅助（支持传递参数）
@@ -1199,7 +1224,7 @@ window.switchTab = switchTab;
 window.goBack = goBack;
 window._stReal = switchTab;
 window._gbReal = goBack;
-if (window._stQ && window._stQ.length) { var q = window._stQ; window._stQ = []; q.forEach(function(t) { if (t === '__goBack__') goBack(); else switchTab(t); }); }
+if (window._stQ && window._stQ.length) { var _q = window._stQ; window._stQ = []; _q.forEach(function(_t) { if (_t === '__goBack__') goBack(); else switchTab(_t); }); }
 window.goToday = goToday;
 window.shiftWeek = shiftWeek;
 window.toggleDatePicker = toggleDatePicker;
@@ -1389,13 +1414,13 @@ function _preloadData(current) {
           .catch(function () {});
       }
     } else if (tab === 'plan') {
-      import('./pages/plans.js')
+      _mod('plans')
         .then(function (m) {
           if (m.loadPlanList) m.loadPlanList();
         })
         .catch(function () {});
     } else if (tab === 'quant-rank') {
-      import('./pages/quant-rank-fusion.js')
+      _mod('quant-rank-fusion')
         .then(function (m) {
           if (m.loadQuantRank) m.loadQuantRank();
         })
@@ -1473,10 +1498,10 @@ function switchTabLoad(tab) {
         : 'none';
 
   // navMyBtn (green)
-  var nmb1 = document.getElementById('navMyBtn');
-  if (nmb1) {
-    var sm1 = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
-    nmb1.style.display = sm1 ? 'flex' : 'none';
+  var nmb = document.getElementById('navMyBtn');
+  if (nmb) {
+    var sm = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
+    nmb.style.display = sm ? 'flex' : 'none';
   }
 
   var navbarEl = document.getElementById('navbar');
@@ -1676,6 +1701,10 @@ function switchTabLoad(tab) {
     });
   }
 
+  // ★ Phase3: 切 Tab 时立即预取 API 数据（与模块加载并行）
+  //     api() 内置请求去重，模块加载后调用同一 API 时共享已发起的请求
+  _prefetchTabData(tab);
+
   // ★ P1: 首页后异步预取相邻 Tab 数据（方案+命中率），切页直接渲染
   if (tab === 'home') {
     setTimeout(function () {
@@ -1683,6 +1712,33 @@ function switchTabLoad(tab) {
       api('plan-list', { date: today }).catch(function () {});
       api('hit-rate-stats', {}).catch(function () {});
     }, 1200);
+  }
+}
+
+// ★ Phase3: API 数据预取 — 与模块加载并行，api() 去重保证零额外请求
+//     注：此函数在 switchTab 和 switchTabLoad 两处共用（只定义一次）
+function _prefetchTabData(tab) {
+  var today = formatDate(new Date());
+  if (tab === 'plan') {
+    var pd = state.planDate || today;
+    api('plan-list', { date: pd }).catch(function () {});
+  } else if (tab === 'match') {
+    var sel = state.weekDates[state.selectedWeekIdx];
+    if (sel && sel.matchDate) {
+      api('match-list', { date: sel.matchDate }).catch(function () {});
+    }
+  } else if (tab === 'rank') {
+    api('ranking-list', { date: state.rankDate || today }).catch(function () {});
+  } else if (tab === 'hit') {
+    api('hit-rate-stats', {}).catch(function () {});
+  } else if (tab === 'quant-rank') {
+    api('quant-rank', {}).catch(function () {});
+  } else if (tab === 'income') {
+    api('plan-income', {}).catch(function () {});
+  } else if (tab === 'filter') {
+    api('filter-leagues', {}).catch(function () {});
+  } else if (tab === 'backtest') {
+    api('prediction-backtest', {}).catch(function () {});
   }
 }
 

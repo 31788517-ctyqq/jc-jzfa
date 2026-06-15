@@ -9,19 +9,18 @@
     <title>竞彩推荐监控</title>
     <link rel="preconnect" href="https://zj.100qiu.com" />
     <link rel="dns-prefetch" href="https://midou310.com" />
-    <!-- Phase1: vendor chunk preload -->
-    <link rel="modulepreload" href="/js/vendor.js" />
-    <link rel="modulepreload" href="/js/main-fusion.js" />
+    <!-- ★ Phase1: vendor.js 包含 api+utils+state+auth-client，预加载消除模块图解析瀑布 -->
+    <link rel="modulepreload" href="/dist/assets/vendor-DARr4itC.js" />
+    <link rel="modulepreload" href="/dist/assets/main-fusion-Clssk_Kn.js" />
     <!-- ★ P0: 5 底栏 tab 页面模块预加载 — 浏览器解析 HTML 时就开始下载 -->
-    <link rel="modulepreload" href="/js/pages/home.js" />
-    <link rel="modulepreload" href="/js/pages/match-list.js" />
-    <link rel="modulepreload" href="/js/pages/ranking.js" />
+    <link rel="modulepreload" href="/dist/assets/home-BazrGInC.js" />
+    <link rel="modulepreload" href="/dist/assets/match-list-OiMsm79f.js" />
+    <link rel="modulepreload" href="/dist/assets/ranking-rA_S61Xu.js" />
 
-    <link rel="modulepreload" href="/js/pages/hit-rate.js" />
-    <link rel="modulepreload" href="/js/pages/plans.js" />
-
-    <link rel="preload" href="/css/app.css" as="style" />
-    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="modulepreload" href="/dist/assets/hit-rate-CAvh0gji.js" />
+    <link rel="modulepreload" href="/dist/assets/plans-B8O_iV-x.js" />
+    <link rel="modulepreload" href="/dist/assets/match-detail-1dKpJOgx.js" />
+
 
 
 
@@ -29,27 +28,27 @@
     <!-- ★ P1-5: 非首屏弹窗样式异步加载，不阻塞 FCP -->
     <link
       rel="stylesheet"
-      href="/css/modals.css"
+      href="/dist/css/modals-D9iT7H_b.css"
       media="print"
       onload="
         this.media = 'all';
         this.onload = null;
       "
     />
-    <noscript><link rel="stylesheet" href="/css/modals.css" /></noscript>
+    <noscript></noscript>
     <link
       rel="stylesheet"
-      href="/css/betting.css"
+      href="/dist/css/betting-kHsrAmoL.css"
       media="print"
       onload="
         this.media = 'all';
         this.onload = null;
       "
     />
-    <noscript><link rel="stylesheet" href="/css/betting.css" /></noscript>
+    <noscript></noscript>
 
-    <!-- 管理后台样式（低优先级非阻塞加载） -->
-    <link rel="stylesheet" href="/dist/css/admin-v2.css" />
+    <!-- 管理后台样式（低优先级非阻塞加载）-->
+    <!-- admin-v2.css 由 publicDir 拷贝至 dist/css/，不走 Vite 打包 -->
 
     <!-- ECharts lazy-loaded by charts.js -->
     <script>
@@ -78,6 +77,8 @@
         ],
       };
     </script>
+    <script type="module" crossorigin src="/dist/js/index-DqhjpVJD.js"></script>
+    <link rel="stylesheet" crossorigin href="/dist/css/index-CqI4fdBe.css">
   </head>
 
   <body>
@@ -407,7 +408,7 @@
         <span class="tab-label">排行</span>
       </div>
       <div class="tab-item" onclick="switchTab('match')" id="tab-match">
-        <span class="tab-icon"><img src="/assets/zuqiu_soccer-duose.svg" width="24" height="24" alt="比赛" /></span>
+        <span class="tab-icon"><img src="data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3csvg%20width='24'%20height='24'%20viewBox='0%200%2048%2048'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M17.8172%204.97973C7.30905%208.38921%201.57007%2019.6775%204.97947%2030.1758C8.38886%2040.6742%2019.6769%2046.4233%2030.175%2043.0139C40.6831%2039.6044%2046.4221%2028.3161%2043.0127%2017.8178C39.6033%207.30937%2028.3153%201.57026%2017.8172%204.97973Z'%20stroke='%2316887b'%20stroke-width='4'%20stroke-miterlimit='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M34%2021L24%2013L14%2021L18%2033H30L34%2021Z'%20fill='%23e68d2a'%20stroke='%2316887b'%20stroke-width='4'%20stroke-miterlimit='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M34%2021L43%2018'%20stroke='%2316887b'%20stroke-width='4'%20stroke-miterlimit='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M36%2040L30%2033'%20stroke='%2316887b'%20stroke-width='4'%20stroke-miterlimit='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M18%2033L12%2040'%20stroke='%2316887b'%20stroke-width='4'%20stroke-miterlimit='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M14%2021L5%2018'%20stroke='%2316887b'%20stroke-width='4'%20stroke-miterlimit='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M24%2013V4'%20stroke='%2316887b'%20stroke-width='4'%20stroke-miterlimit='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e" width="24" height="24" alt="比赛" /></span>
         <span class="tab-label">比赛</span>
       </div>
       <div class="tab-item" onclick="switchTab('hit')" id="tab-hit">
@@ -526,9 +527,7 @@
         </div>
       </div>
     </div>
-
-    
-    <script type="module" src="/js/main-fusion.js"></script>
+
 
 
     <!-- V5.0-FUSION-PK final-202605311423 -->
@@ -543,6 +542,5 @@
       }
     </script>
   <script>window._stQ=[];window.switchTab=function(t){if(window._stReal)window._stReal(t);else window._stQ.push(t)};window.goBack=function(){if(window._gbReal)window._gbReal();else window._stQ.push("__goBack__")};window.App=window.App||{};window.App.showNotifications=window.App.showNotifications||function(){};window.App.closeNotifications=window.App.closeNotifications||function(){};window.App.markAllRead=window.App.markAllRead||function(){};window.App.consumeNoti=window.App.consumeNoti||function(){};</script>
-<script type="module" src="/js/main-fusion.js"></script>
 </body>
 </html>
