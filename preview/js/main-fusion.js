@@ -8,28 +8,7 @@ import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/matc
 // ═══ 模块懒加载：import.meta.glob 静态分析所有页面模块 → 每个独立 chunk ═══
 // ★ Phase2 (Vite): import.meta.glob 在构建时展开为静态映射，Rollup 自动 Code-Split
 //     每个页面模块成为独立 chunk，Tree-Shaking 移除未用导出
-const _pageModules = import.meta.glob('./pages/*.js');
-
-function _mod(name) {
-  const key = './pages/' + name + '.js';
-  const loader = _pageModules[key];
-  if (!loader) {
-    console.error('[JS] 模块未注册: ' + name);
-    return Promise.reject(new Error('Module not found: ' + name));
-  }
-  return loader().catch(function (e) {
-    console.error('[JS] 模块加载失败: ' + name + ' - ' + (e && e.message));
-    // 延迟 1s 重试一次（弱网退避）
-    return new Promise(function (resolve, reject) {
-      setTimeout(function () {
-        loader().then(resolve).catch(function (e2) {
-          console.error('[JS] 模块重试也失败: ' + name + ' - ' + (e2 && e2.message));
-          reject(e2);
-        });
-      }, 1000);
-    });
-  });
-}
+function _mod(name) { return import('./pages/' + name + '.js').catch(function (e) { console.error('[JS] load fail: ' + name + ' - ' + (e && e.message)); return new Promise(function (resolve, reject) { setTimeout(function () { import('./pages/' + name + '.js').then(resolve).catch(function (e2) { console.error('[JS] retry fail: ' + name + ' - ' + (e2 && e2.message)); reject(e2); }); }, 1000); }); }); }
 
 // 预加载常用模块（在首次渲染后异步加载，不阻塞首页）
 function _preloadMods() {
