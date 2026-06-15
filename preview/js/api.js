@@ -4,7 +4,7 @@ import { getAuthToken, clearAuthAll } from './auth-client.js';
 // ★ P0: API 请求去重 — 相同 action+data 的并发请求共享一个 Promise
 var _pendingRequests = {};
 
-export function api(action, data = {}, retries = 2) {
+export function api(action, data = {}, retries = 3) {
   var reqKey = action + ':' + JSON.stringify(data || {}) + ':r' + retries;
   if (_pendingRequests[reqKey]) return _pendingRequests[reqKey];
 
@@ -41,8 +41,8 @@ export function api(action, data = {}, retries = 2) {
       if (err.name === 'AbortError') err = new Error('请求超时');
       const canRetry = retries > 0 && !err.nonRetryable;
       if (canRetry) {
-        console.warn(`[API] ${action} 请求失败，重试中 (${3 - retries}/2):`, err.message);
-        return new Promise((resolve) => setTimeout(resolve, 1000)).then(() => api(action, data, retries - 1));
+        console.warn(`[API] ${action} 请求失败，重试中 (${4 - retries}/3):`, err.message);
+        return new Promise((resolve) => setTimeout(resolve, 2000)).then(() => api(action, data, retries - 1));
       }
       throw err;
     });

@@ -370,7 +370,7 @@ function buildPKDecisionMapForMatches(matches) {
         const placeholders = mids.map(function () { return '?'; }).join(',');
         const rows = adp.execAll(
           'SELECT matchId, pk_direction, pk_composite_score, pk_final_direction, pk_decision_level, ' +
-          'pk_risk_level, pk_stars, pk_risk_tags, pk_degrade_reasons, pk_decision_narrative, ' +
+          'pk_risk_level, pk_stars, pk_risk_tags_json, pk_degrade_reasons_json, pk_decision_narrative, ' +
           'pk_play_type, pk_expected_value, pk_value_edge ' +
           'FROM prediction_logs WHERE matchId IN (' + placeholders + ') ORDER BY updated_at DESC',
           mids,
@@ -380,9 +380,9 @@ function buildPKDecisionMapForMatches(matches) {
             const mid = String(r.matchId || '').replace(/^m_/, '');
             if (!mid || map[mid]) return; // 已填充则跳过（第一条即最新）
             var riskTags = [];
-            try { riskTags = JSON.parse(r.pk_risk_tags || '[]'); } catch (e) {}
+            try { riskTags = JSON.parse(r.pk_risk_tags_json || '[]'); } catch (e) {}
             var degradeReasons = [];
-            try { degradeReasons = JSON.parse(r.pk_degrade_reasons || '[]'); } catch (e) {}
+            try { degradeReasons = JSON.parse(r.pk_degrade_reasons_json || '[]'); } catch (e) {}
             map[mid] = {
               playType: r.pk_play_type || 'spf',
               finalDirection: r.pk_final_direction || r.pk_direction || 'watch',

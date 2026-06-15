@@ -59,7 +59,7 @@ function getWeekDay(dateStr) {
   return WEEK_NAMES[new Date(dateStr).getDay()];
 }
 
-function api(action, data = {}, retries = 2) {
+function api(action, data = {}, retries = 3) {
   return fetch(API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -74,8 +74,8 @@ function api(action, data = {}, retries = 2) {
     })
     .catch((err) => {
       if (retries > 0) {
-        console.warn(`[API] ${action} 请求失败，重试中 (${3 - retries}/2):`, err.message);
-        return new Promise((resolve) => setTimeout(resolve, 1000)).then(() => api(action, data, retries - 1));
+        console.warn(`[API] ${action} 请求失败，重试中 (${4 - retries}/3):`, err.message);
+        return new Promise((resolve) => setTimeout(resolve, 2000)).then(() => api(action, data, retries - 1));
       }
       throw err;
     });

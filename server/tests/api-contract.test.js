@@ -56,6 +56,7 @@ const ACTION_MATRIX = {
     'home-reconcile-stats',
     'my-plan-reconcile',
     'vip-gift-status',
+    'ai-health-check',
   ],
   mutatingOrRequiresState: [
     'auth-login',
@@ -111,6 +112,7 @@ const READ_ONLY_SMOKE_CANDIDATES = [
   'batch-consensus',
   'odds-trend',
   'match-preview',
+  'ai-health-check',
 ];
 
 function readIndexSource() {

@@ -201,6 +201,8 @@ function initTable() {
       ['gs_modelB_total', 'REAL'],
       ['gs_modelC_total', 'REAL'],
       ['pk_scorer_version', 'TEXT'],
+      ['pk_stars', 'INTEGER'],
+      ['pk_play_type', 'TEXT'],
       ['experiment_id', 'TEXT'],
       ['experiment_group', 'TEXT'],
     ].forEach(function (item) {

@@ -42,7 +42,7 @@
         "MIDOU_BACKUP_MOBILE": "19924790073",
         "MIDOU_BACKUP_PASSWORD": "936da1e6796530b7a25e55953f1c9a43"
       },
-      "max_memory_restart": "256M",
+      "max_memory_restart": "512M",
       "min_uptime": "10000",
       "max_restarts": 5,
       "log_date_format": "YYYY-MM-DD HH:mm:ss",

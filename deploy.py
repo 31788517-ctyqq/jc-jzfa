@@ -234,6 +234,7 @@ DEPLOY_MAP = [
     ('server/core/odds-movement.js',      'both'),
     ('server/core/market-overlay.js',     'both'),
     ('server/core/odds-tracker.js',       'both'),
+    ('server/core/odds-provider.js',      'both'),  # ★ V10: 统一赔率读取+ sporttery rawDB兜底
     # ★ V8.0 Phase 8+9 新增核心模块（原子写入 + 文件追踪 + 备份 + 数据质量）
     ('server/core/file-utils.js',         'both'),
     ('server/core/file-tracker.js',       'both'),
@@ -410,8 +411,8 @@ def pm2_restart_and_verify(ssh):
     except:
         pass
 
-    print('  PM2 重启 {} ...'.format(pm2_name))
-    out, err = ssh_cmd_retry(ssh, 'pm2 restart {} --update-env 2>&1'.format(pm2_name), 15)
+    print('  PM2 零停机重载 {} ...'.format(pm2_name))
+    out, err = ssh_cmd_retry(ssh, 'pm2 reload {} --update-env 2>&1'.format(pm2_name), 15)
     time.sleep(3)
 
     out, _ = ssh_cmd(ssh, 'pm2 jlist 2>/dev/null', 10)
@@ -438,8 +439,35 @@ def pm2_restart_and_verify(ssh):
         return False
 
 
+def inject_nginx_502_retry(ssh):
+    """★ 零停机部署：注入 Nginx 502 自动重试指令"""
+    conf_path = '/etc/nginx/conf.d/zj.100qiu.com.conf'
+    try:
+        _, out, _ = ssh.exec_command('grep -q "proxy_next_upstream" {} 2>/dev/null && echo EXISTS || echo MISSING'.format(conf_path), timeout=5)
+        has_retry = 'EXISTS' in out.read().decode()
+        if has_retry:
+            return  # already injected
+    except:
+        pass
+
+    # Inject retry directives after proxy_read_timeout line
+    cmd = (
+        "sed -i '/proxy_read_timeout/a\\"
+        "        proxy_next_upstream error timeout http_502 http_503;\\n"
+        "        proxy_next_upstream_tries 2;\\n"
+        "        proxy_next_upstream_timeout 3s;'"
+        " {}".format(conf_path)
+    )
+    try:
+        ssh.exec_command(cmd, timeout=5)
+        print('  Nginx 502 重试指令已注入')
+    except:
+        pass
+
+
 def nginx_reload(ssh):
     """v3: 使用 reload 代替 stop+start，消除竞态"""
+    inject_nginx_502_retry(ssh)  # ★ 注入重试指令后 reload
     out, err = ssh_cmd(ssh, 'nginx -t 2>&1', 10)
     if 'test is successful' in out.lower() or 'syntax is ok' in out.lower():
         out2, _ = ssh_cmd(ssh, 'nginx -s reload 2>&1', 10)
@@ -822,8 +850,8 @@ def main():
     # ── Phase 4: PM2 重启 ──
     if not dry_run and not files_only:
         pm2_restart_and_verify(ssh)
-        ssh_cmd(ssh, 'pm2 restart jc-sync 2>&1', 10)
-        print('  PM2 jc-sync 已重启')
+        ssh_cmd(ssh, 'pm2 reload jc-sync --kill-timeout 10000 2>&1', 10)
+        print('  PM2 jc-sync 已重载（10s 优雅关闭）')
         print()
 
     # ── Phase 5: 服务验证 ──

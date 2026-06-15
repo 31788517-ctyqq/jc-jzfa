@@ -2166,9 +2166,49 @@ function autoInferStatus(dateStr) {
     Object.keys(data.m).forEach((k) => {
       const m = data.m[k];
       if (!m || m.matchStatus >= 2) return; // 已结束，跳过
-      if (!m.date || m.date.slice(0, 10) !== dateStr) return;
 
-      // ★ P3-1: 时间推演进行中 — 开赛>10分钟仍status=0 → 自动标记为进行中
+      // ★ P4: 跨日比赛推断 — 不仅匹配 date===dateStr，也匹配开赛时间在今天的跨日比赛
+      var matchDateStr = m.date ? m.date.slice(0, 10) : '';
+      var isTodayMatch = matchDateStr === dateStr;
+
+      // 检查开赛时间是否在今天（处理 date=昨天, startTime=今天的跨日比赛）
+      if (!isTodayMatch && m.startTime) {
+        try {
+          var raw2 = m.startTime.replace(/\//g, '-');
+          var clean2 = raw2.replace(/\s+/g, '');
+          var kickoffDt = new Date(
+            year + '-' + clean2.slice(0, 2) + '-' + clean2.slice(3, 5) + 'T' + clean2.slice(5, 10) + ':00+08:00',
+          );
+          if (!isNaN(kickoffDt.getTime())) {
+            var kickoffDateStr =
+              kickoffDt.getFullYear() +
+              '-' +
+              String(kickoffDt.getMonth() + 1).padStart(2, '0') +
+              '-' +
+              String(kickoffDt.getDate()).padStart(2, '0');
+            if (kickoffDateStr === dateStr) isTodayMatch = true;
+          }
+        } catch (e) {}
+      }
+      if (!isTodayMatch) return;
+
+      // ★ P4: 先检测比分（优先级高于时间推演）— 有比分=比赛已结束
+      var hasValidScore = m.score && /\d+[:\-]\d+/.test(String(m.score.trim()));
+      if (hasValidScore) {
+        // ★ P4-C: 过滤疑似日期字段污染的比分（如 "6-15" → 实际是 06-15 日期）
+        var scoreParts = String(m.score.trim()).split(/[:\-]/);
+        var s1 = parseInt(scoreParts[0]) || 0;
+        var s2 = parseInt(scoreParts[1]) || 0;
+        var isSuspiciousDate = (s1 >= 1 && s1 <= 12) && (s2 >= 1 && s2 <= 31) && (s1 + s2 > 12);
+        if (!isSuspiciousDate) {
+          m.matchStatus = 2;
+          fixed++;
+          usedScoreMethod = true;
+          return; // 比分已确认，无需继续检查
+        }
+      }
+
+      // ★ P3-1: 时间推演进行中 — 无比分 + 开赛>10分钟仍status=0 → 自动标记为进行中
       if (m.matchStatus === 0 && m.startTime) {
         try {
           const raw = m.startTime.replace(/\//g, '-');
@@ -2181,19 +2221,12 @@ function autoInferStatus(dateStr) {
             m.duration = m.duration || '进行中';
             fixed++;
             inferredLive++;
-            return; // 已更新为进行中，不继续检查结束状态
+            return; // 已更新为进行中
           }
         } catch (e) {}
       }
 
       let shouldFix = false;
-
-      // ★ 方法0: 比分格式直接检测（最可靠——有比分=比赛已结束）
-      //   支持 1-0、2:1、6-9（两位数）等所有比分格式
-      if (!shouldFix && m.score && /\d+[:\-]\d+/.test(String(m.score.trim()))) {
-        shouldFix = true;
-        usedScoreMethod = true;
-      }
 
       // 方法1: 时间推断——开赛时间+120分钟已过 + 比分有值
       if (!shouldFix && m.startTime && m.score && m.score.trim()) {
