@@ -391,6 +391,7 @@ function _filterUsers() {
   var status = (document.getElementById('admUserFilter') || {}).value || '';
   var canWrite = _hasPerm('user:disable');
   var canRole = _hasPerm('role:assign');
+  var canReferral = _hasPerm('referral:admin');
 
   var filtered = _allUsers.filter(function (u) {
     if (status && u.status !== status) return false;
@@ -441,6 +442,21 @@ function _filterUsers() {
           '解锁</button>';
     }
 
+    // ★ 返利权限开关
+    if (canReferral) {
+      actions +=
+        '<button class="adm-btn adm-btn-sm ' +
+        (u.referralEnabled ? 'adm-btn-warn' : 'adm-btn-primary') +
+        '" data-action="toggleReferral" data-uid="' +
+        u.id +
+        '" data-enabled="' +
+        (u.referralEnabled ? '1' : '0') +
+        '">' +
+        _admIcon('referrals') +
+        (u.referralEnabled ? '关闭返利' : '开启返利') +
+        '</button>';
+    }
+
     html +=
       '<div class="adm-card adm-user-card">' +
       '<div class="adm-card-header"><div class="adm-user-head"><div class="adm-avatar">' +
@@ -488,6 +504,10 @@ function _handleUserAction(e) {
   else if (action === 'disable') _setUserStatus(uid, 'disabled');
   else if (action === 'enable') _setUserStatus(uid, 'active');
   else if (action === 'unlock') _unlockUser(uid);
+  else if (action === 'toggleReferral') {
+    var enabled = btn.dataset.enabled === '1';
+    _toggleReferral(uid, !enabled);
+  }
 }
 
 async function _setUserStatus(uid, status) {
@@ -507,6 +527,16 @@ async function _unlockUser(uid) {
     _switchTab('users');
   } catch (e) {
     _toast(e.message || '解锁失败');
+  }
+}
+
+async function _toggleReferral(uid, enabled) {
+  try {
+    await api('user-toggle-referral', { userId: uid, enabled: enabled });
+    _toast(enabled ? '已开启返利' : '已关闭返利');
+    _switchTab('users');
+  } catch (e) {
+    _toast(e.message || '操作失败');
   }
 }
 
