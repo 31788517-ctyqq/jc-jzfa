@@ -23,7 +23,7 @@
     "vite": "^8.0.16"
   },
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && node scripts/postbuild.js",
     "build:watch": "vite build --watch",
     "test": "jest",
     "test:watch": "jest --watch",
