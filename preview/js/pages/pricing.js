@@ -138,7 +138,9 @@ function renderPlanCard(plan, recommendedCode, authed) {
     Number(plan.duration_months || 0) +
     ' 个月</div>' +
     '<div class="pricing-scene">' +
-    (meta.scene || '适合日常使用') +
+    (hasReferralAccess()
+      ? meta.scene || '适合日常使用'
+      : (meta.scene || '适合日常使用').replace('与邀请返利协同增长', '')) +
     '</div>' +
     '<button class="pricing-btn" type="button" data-plan="' +
     code +

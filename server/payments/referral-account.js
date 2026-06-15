@@ -97,7 +97,7 @@ function ensureReferralAccountRow(adp, userId) {
  */
 async function referralInfo(req, res) {
   try {
-    if (!guardReferralAccess(req, res)) return;
+    // ★ referralInfo 对所有人开放（邀请码+分享链接属于邀请注册体系，非返利营收）
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
     ensureReferralSchema(adp);

@@ -923,7 +923,8 @@ export function switchTab(tab) {
     admin: '管理后台',
   };
   var titleEl = document.getElementById('navTitle');
-  if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
+  if (titleEl)
+    titleEl.textContent = (tab === 'referral' && !hasReferralAccess() ? '邀请中心' : titles[tab]) || '竞彩推荐监控';
   var backEl = document.getElementById('navBack');
   // 登录页与首页隐藏返回键
   if (backEl)
@@ -1425,7 +1426,8 @@ function switchTabLoad(tab) {
     admin: '管理后台',
   };
   var titleEl = document.getElementById('navTitle');
-  if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
+  if (titleEl)
+    titleEl.textContent = (tab === 'referral' && !hasReferralAccess() ? '邀请中心' : titles[tab]) || '竞彩推荐监控';
 
   // 设置对应 tab-item active
   document.querySelectorAll('.tab-item').forEach(function (t) {

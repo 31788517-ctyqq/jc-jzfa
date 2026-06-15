@@ -104,7 +104,8 @@ const { referralAccount, withdrawSubmit, adminWithdrawProcess } = require('../pa
 // 测试辅助
 function mockReq(body = {}, auth = null) {
   if (auth === null) return { body };
-  return { body, authSession: { userId: auth.userId || 1, role: auth.role || 'viewer', ...auth } };
+  var session = { userId: auth.userId || 1, role: auth.role || 'viewer', referralEnabled: true, ...auth };
+  return { body, authSession: session };
 }
 function mockRes() {
   const res = {};
@@ -281,7 +282,7 @@ describe('Phase 4 支付体系', () => {
   describe('4.7 返利账户 (referralAccount)', () => {
     test('新用户余额应为 0', async () => {
       const res = mockRes();
-      await referralAccount(mockReq({}, { userId: 2 }), res);
+      await referralAccount(mockReq({}, { userId: 2, referralEnabled: true }), res);
       const result = res.json.mock.calls[0][0];
       expect(result.code).toBe(1);
       expect(result.data.totalEarned).toBe(0);

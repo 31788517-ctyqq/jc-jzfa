@@ -201,7 +201,9 @@ function renderLayout(root, userName) {
     '</div>' +
     '<div class="profile-entry-grid">' +
     buildProfileHubCard('subscription', '订阅中心', 'subscription') +
-    (hasReferralAccess() ? buildProfileHubCard('referral', '邀请返利', 'referral') : '') +
+    (hasReferralAccess()
+      ? buildProfileHubCard('referral', '邀请返利', 'referral')
+      : buildProfileHubCard('referral', '邀请好友', 'referral')) +
     buildProfileHubCard('pricing', '会员套餐', 'pricing') +
     renderAdminShortcut() +
     '</div>' +

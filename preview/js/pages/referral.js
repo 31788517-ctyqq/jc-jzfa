@@ -45,8 +45,8 @@ function renderGuestState(container) {
     '<div class="member-shell member-shell-referral">' +
     '<div class="member-page ref-container">' +
     '<div class="member-section-card member-empty-card">' +
-    '<div class="member-empty-title">登录后查看返利中心</div>' +
-    '<div class="member-empty-text">登录后即可查看邀请码、邀请链接、返利收入与提现记录。</div>' +
+    '<div class="member-empty-title">登录后查看邀请码</div>' +
+    '<div class="member-empty-text">登录后即可查看邀请码、邀请链接与邀请记录。</div>' +
     '<div class="member-cta-row">' +
     '<button class="member-secondary-btn" type="button" onclick="window.navigateTo(\'login\')">去登录</button>' +
     '<button class="member-primary-btn" type="button" onclick="window.navigateTo(\'pricing\')">先看套餐</button>' +
@@ -54,6 +54,83 @@ function renderGuestState(container) {
     '</div>' +
     '</div>' +
     '</div>';
+}
+
+/** ★ 轻量版：仅展示邀请码+分享链接+邀请流程，无返利营收模块 */
+async function renderLiteReferral(container) {
+  try {
+    var infoResult = await api('referral-info', {}, 0);
+    var info = infoResult || {};
+    var shareUrl = normalizeInviteLink(info.shareUrl, info.referralCode);
+    var session = getAuthSession() || {};
+
+    container.innerHTML =
+      '' +
+      '<div class="member-shell member-shell-referral">' +
+      '<div class="member-page ref-container">' +
+      '<div class="member-hero member-hero-referral member-hero-profilelike member-hero-referral-plain">' +
+      '<button class="member-home-corner" type="button" onclick="switchTab(\'profile\')" aria-label="返回个人中心" title="返回个人中心">' +
+      getMemberHomeIcon() +
+      '</button>' +
+      '<div class="member-hero-copy">' +
+      '<div class="member-hero-title">邀请好友</div>' +
+      '<div class="member-hero-subtitle">当前账号：<strong>' +
+      ((session.user || {}).username || '会员用户') +
+      '</strong></div>' +
+      '</div>' +
+      '<img class="member-hero-eagle" src="/laoying11.png" alt="" loading="eager" decoding="async" />' +
+      '</div>' +
+      '<div class="member-section-card ref-code-card">' +
+      '<div class="member-section-title">我的邀请码</div>' +
+      '<div class="ref-code-row"><span class="ref-code">' +
+      (info.referralCode || '未生成') +
+      '</span>' +
+      (info.referralCode
+        ? '<button class="ref-code-copy" type="button" onclick="copyReferralCode(\'' +
+          info.referralCode +
+          '\')">复制邀请码</button>'
+        : '') +
+      '</div>' +
+      '<div class="ref-link">' +
+      (shareUrl || '当前暂无可分享链接') +
+      '</div>' +
+      '<div class="member-cta-row member-cta-row-compact">' +
+      '<button class="member-secondary-btn" type="button" onclick="copyReferralLink(\'' +
+      shareUrl +
+      '\')">复制邀请链接</button>' +
+      '<button class="member-primary-btn" type="button" onclick="window.navigateTo(\'pricing\')">查看会员套餐</button>' +
+      '</div>' +
+      '</div>' +
+      '<div class="member-section-card ref-guide-card">' +
+      '<div class="member-section-title">邀请流程</div>' +
+      '<div class="member-note-list">' +
+      '<div class="member-note-item"><span class="member-note-icon">1</span><span>发送邀请码或邀请链接给好友</span></div>' +
+      '<div class="member-note-item"><span class="member-note-icon">2</span><span>好友注册并完成会员开通</span></div>' +
+      '<div class="member-note-item"><span class="member-note-icon">3</span><span>邀请记录可在本页查看</span></div>' +
+      '</div>' +
+      '</div>' +
+      '<div class="member-cta-row">' +
+      '<button class="member-secondary-btn" type="button" onclick="window.navigateTo(\'pricing\')">查看会员套餐</button>' +
+      '<button class="member-primary-btn" type="button" onclick="window.navigateTo(\'profile\')">返回个人中心</button>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
+  } catch (e) {
+    container.innerHTML =
+      '<div class="member-shell member-shell-referral">' +
+      '<div class="member-page ref-container">' +
+      '<div class="member-section-card member-empty-card">' +
+      '<div class="member-empty-title">加载失败</div>' +
+      '<div class="member-empty-text">' +
+      (e && e.message ? e.message : '请稍后重试') +
+      '</div>' +
+      '<div class="member-cta-row">' +
+      '<button class="member-primary-btn" type="button" onclick="window.navigateTo(\'home\')">返回首页</button>' +
+      '</div>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
+  }
 }
 
 function renderCommissionList(list) {
@@ -124,7 +201,7 @@ function renderWithdrawHistory(list) {
 }
 
 export async function loadReferral(container) {
-  container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载返利中心...</div>';
+  container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载邀请码...</div>';
 
   if (!hasAuthToken() || !getAuthSession()) {
     renderGuestState(container);
@@ -132,18 +209,7 @@ export async function loadReferral(container) {
   }
 
   if (!hasReferralAccess()) {
-    container.innerHTML =
-      '<div class="member-shell member-shell-referral">' +
-      '<div class="member-page ref-container">' +
-      '<div class="member-section-card member-empty-card">' +
-      '<div class="member-empty-title">暂无访问权限</div>' +
-      '<div class="member-empty-text">返利功能暂未对当前账号开放。</div>' +
-      '<div class="member-cta-row">' +
-      '<button class="member-primary-btn" type="button" onclick="window.navigateTo(\'profile\')">返回个人中心</button>' +
-      '</div>' +
-      '</div>' +
-      '</div>' +
-      '</div>';
+    renderLiteReferral(container);
     return;
   }
 
