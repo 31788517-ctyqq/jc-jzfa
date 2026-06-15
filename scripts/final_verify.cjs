@@ -11,6 +11,9 @@ catch(e) { all = ok('syntax', false) && all; console.log(e.message.substring(0,2
 
 // 2. main-fusion.js features
 var mf = fs.readFileSync('preview/js/main-fusion.js', 'utf8');
+// Check no executable import.meta.glob (OK if only in comments)
+var hasExecGlob = mf.replace(/\/\/.*/g, '').replace(/\/\*[\s\S]*?\*\//g, '').includes('import.meta.glob');
+all = ok('no executable import.meta.glob', !hasExecGlob) && all;
 all = ok('navMyBtn JS', mf.includes('navMyBtn')) && all;
 all = ok('Phase3', mf.includes('_prefetchTabData')) && all;
 all = ok('_stReal replay', mf.includes('_stReal')) && all;
