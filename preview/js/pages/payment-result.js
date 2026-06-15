@@ -1,5 +1,5 @@
-import { api } from '../api.js';
-import { hasReferralAccess } from '../auth-client.js';
+import { api } from '../vendor.js?v=202606152148';
+import { hasReferralAccess } from '../vendor.js?v=202606152148';
 
 const PLAN_NAME_MAP = {
   monthly: '月度套餐',

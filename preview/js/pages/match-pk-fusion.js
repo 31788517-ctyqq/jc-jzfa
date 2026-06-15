@@ -1,4 +1,4 @@
-import { api } from '../api.js';
+import { api } from '../vendor.js?v=202606152148';
 
 var _pkMatchIds = []; // ★ 缓存 PK 弹窗 matchId 列表，供"我要做方案"按钮使用
 

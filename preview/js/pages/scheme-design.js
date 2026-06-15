@@ -1,6 +1,6 @@
 // ==================== 方案设计页面 (按设计图重构) ====================
-import { api } from '../api.js';
-import { formatDate, WEEK_NAMES } from '../utils.js';
+import { api } from '../vendor.js?v=202606152148';
+import { formatDate, WEEK_NAMES } from '../vendor.js?v=202606152148';
 
 var _matches = []; // 比赛列表
 var _selections = []; // [{matchId, playType, direction, odds, oddsName, handicap}]

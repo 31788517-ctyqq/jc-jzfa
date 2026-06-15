@@ -155,6 +155,7 @@ DEPLOY_MAP = [
 
     ('preview/js/api.js',                 'both'),
     ('preview/js/auth-client.js',         'both'),  # ★ V9: 认证客户端（main-fusion.js import）
+    ('preview/js/vendor.js',              'both'),  # ★ Phase1: 共享模块合并（api+utils+state+auth-client）
 
 
     ('preview/js/ws-client.js',           'both'),
@@ -214,6 +215,7 @@ DEPLOY_MAP = [
     ('server/routes/auth.js',             'both'),
     ('server/routes/users.js',            'both'),
     ('server/core/plan-generator.js',     'both'),
+    ('server/core/plan-cache.js',         'both'),  # ★ 方案缓存共享模块
     ('server/core/sp_data_adapter.js',      'both'),  # ★ V9: SP官方数据统一访问层
     # ★ v3 核心模块（index.js 直接 require，遗漏会导致运行时崩溃）
     ('server/core/cache.js',              'both'),
@@ -728,6 +730,17 @@ def main():
             upload_list.append((local_path, remote_path(NGINX_ROOT, rel_path)))
         if target in ('pm2', 'both') and not files_only:
             upload_list.append((local_path, remote_path(PM2_ROOT, rel_path)))
+
+    # ★ Phase2 (Vite): 遍历 dist/ 目录上传所有构建产物
+    dist_dir = os.path.join(LOCAL_ROOT, 'preview', 'dist')
+    if os.path.isdir(dist_dir):
+        for root, dirs, files in os.walk(dist_dir):
+            for f in files:
+                local_path = os.path.join(root, f)
+                rel_path = os.path.relpath(local_path, LOCAL_ROOT).replace('\\', '/')
+                upload_list.append((local_path, remote_path(NGINX_ROOT, rel_path)))
+                if not files_only:
+                    upload_list.append((local_path, remote_path(PM2_ROOT, rel_path)))
 
     total = len(upload_list)
     if dry_run:

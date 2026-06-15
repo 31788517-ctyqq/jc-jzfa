@@ -934,9 +934,22 @@ const staticOpts = { maxAge: '7d', etag: true, lastModified: true };
 app.use('/assets/worldcup', express.static(path.join(__dirname, '../miniprogram/images/worldcup'), staticOpts));
 app.use('/assets', express.static(path.join(__dirname, '../miniprogram/images'), staticOpts));
 
+// ★ Phase2 (Vite): 构建输出目录预览路径
+const previewRoot = path.join(__dirname, '../preview/dist');
+// 向后兼容：如果 dist/ 不存在，回退到源码目录（开发/未构建场景）
+const previewSrcRoot = path.join(__dirname, '../preview');
+let _previewPath = previewRoot;
+try {
+  if (!fs.existsSync(previewRoot)) {
+    _previewPath = previewSrcRoot;
+  }
+} catch (e) {
+  _previewPath = previewSrcRoot;
+}
+
 let homeCache = null,
   homeCacheTime = 0;
-const hp = path.join(__dirname, '../preview/index.html');
+const hp = path.join(_previewPath, 'index.html');
 const HOME_HTML_CACHE_TTL = process.env.NODE_ENV === 'production' ? 60000 : 0;
 function getHomeHTML(cb) {
   const now = Date.now();
@@ -957,7 +970,7 @@ app.get('/', (req, res) => {
 });
 
 app.use(
-  express.static(path.join(__dirname, '../preview'), {
+  express.static(_previewPath, {
     maxAge: '7d',
     etag: true,
     lastModified: true,
@@ -968,12 +981,12 @@ app.use(
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
       } else {
-        // JS/CSS/图片 强缓存 7 天（文件名带版本号 ?v= 时缓存命中）
-        res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+        // ★ Phase2: JS/CSS content-hash 文件名 → 永久缓存 (1年)
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
       }
       // MIME 设置
       if (fPath.endsWith('.html')) res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      else if (fPath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      else if (fPath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript');
       else if (fPath.endsWith('.css')) res.setHeader('Content-Type', 'text/css; charset=utf-8');
       else if (fPath.endsWith('.svg')) res.setHeader('Content-Type', 'image/svg+xml');
       else if (fPath.endsWith('.png')) res.setHeader('Content-Type', 'image/png');
@@ -984,7 +997,7 @@ app.use(
 
 // SPA fallback: 未匹配的 .html 请求返回 index.html（支持客户端路由）
 app.use((req, res, next) => {
-  if (req.path.endsWith('.html') && !fs.existsSync(path.join(__dirname, '../preview', req.path))) {
+  if (req.path.endsWith('.html') && !fs.existsSync(path.join(_previewPath, req.path))) {
     return getHomeHTML((err, html) => {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache, must-revalidate' });
       res.end(html);

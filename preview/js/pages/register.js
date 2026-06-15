@@ -1,5 +1,5 @@
-import { api } from '../api.js';
-import { getDeviceId } from '../utils.js';
+import { api } from '../vendor.js?v=202606152148';
+import { getDeviceId } from '../vendor.js?v=202606152148';
 
 function parseInviteParams() {
   try {

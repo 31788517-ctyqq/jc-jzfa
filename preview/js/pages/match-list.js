@@ -1,6 +1,6 @@
-import { api } from '../api.js';
-import { formatDate, getCache, setCache } from '../utils.js';
-import * as state from '../state.js';
+import { api } from '../vendor.js?v=202606152148';
+import { formatDate, getCache, setCache } from '../vendor.js?v=202606152148';
+import * as state from '../vendor.js?v=202606152148';
 
 // ═══ PK 选择状态（全局存储，避免模块加载时序问题） ═══
 window.__ms = window.__ms || {};

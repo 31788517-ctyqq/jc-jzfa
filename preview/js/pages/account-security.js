@@ -1,5 +1,5 @@
-import { api } from '../api.js';
-import { clearAuthAll, getAuthSession } from '../auth-client.js';
+import { api } from '../vendor.js?v=202606152148';
+import { clearAuthAll, getAuthSession } from '../vendor.js?v=202606152148';
 
 function render() {
   const root = document.getElementById('accountSecurityContent');

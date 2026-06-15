@@ -1,23 +1,17 @@
-// P2-4→P1-2: Service Worker — 静态资源 + 页面壳离线缓存
-// 策略：Stale-While-Revalidate for JS/CSS/页面模块（版本号控制更新）
-// Phase1: 启用 /pages/ 目录缓存，依赖版本戳 ?v= 自然淘汰旧缓存
-// 注册方式：index.html 中 navigator.serviceWorker.register()
-// v=202606152148
+// P2-4→P1-2→Phase2: Service Worker — Vite 构建后静态资源离线缓存
+// 策略：Stale-While-Revalidate for JS/CSS（内容哈希自动版本控制）
+// ★ Phase2: 配合 Vite content-hash，旧缓存自然淘汰
+// 注册方式：index.html 中 navigator.serviceWorker.register('/sw.js')
 
-var CACHE_NAME = 'jczjfa-static-v3';
+var CACHE_NAME = 'jczjfa-static-v4';
 var STATIC_EXTENSIONS = /\.(js|css|svg|png|webp|woff2?)$/i;
-// P1-2: 页面壳缓存（HTML 首页壳，不含动态内容）
-var PAGE_SHELL_KEY = '/preview/index.html';
+var PAGE_SHELL_KEY = '/index.html';
 
 self.addEventListener('install', function (e) {
-  // P1-2: 预缓存页面壳 + vendor chunk
+  // 预缓存页面壳
   e.waitUntil(
     caches.open(CACHE_NAME).then(function (cache) {
-      return Promise.all([
-        cache.add(PAGE_SHELL_KEY).catch(function () {}),
-        // ★ Phase1: 预缓存 vendor chunk（消除首屏模块解析瀑布）
-        cache.add('/preview/js/vendor.js').catch(function () {}),
-      ]);
+      return cache.add(PAGE_SHELL_KEY).catch(function () {});
     }),
   );
   self.skipWaiting();
@@ -47,8 +41,8 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   var url = new URL(e.request.url);
 
-  // ★ Phase1: JS/CSS 静态资源 + 页面模块 → Stale-While-Revalidate
-  // 立即返回缓存（秒开），后台更新缓存
+  // ★ Phase2: JS/CSS 静态资源 → Stale-While-Revalidate
+  // 内容哈希文件名确保每次构建产生不同 URL，自然淘汰旧缓存
   if (url.origin === self.location.origin && STATIC_EXTENSIONS.test(url.pathname)) {
     e.respondWith(
       caches.open(CACHE_NAME).then(function (cache) {
@@ -59,11 +53,10 @@ self.addEventListener('fetch', function (e) {
             }
             return res;
           });
-          // Stale-While-Revalidate: 有缓存立即返回，无缓存等网络
           return cached || network;
         });
       }),
     );
   }
-  // 页面和 API 请求直通网络，不拦截
+  // API 请求直通网络
 });

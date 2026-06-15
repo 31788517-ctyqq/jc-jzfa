@@ -3,6 +3,9 @@ __pycache__/
 *.pyc
 *.log
 
+# ── Vite 构建产物（每次部署前 npm run build 生成） ──
+preview/dist/
+
 # ── 临时/输出文件（测试产物、调试输出） ──
 *_output.txt
 *_output.json

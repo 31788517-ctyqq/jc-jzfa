@@ -2,7 +2,7 @@
  * 攻守道量化 — 弹窗模式
  * P1-1: 5分钟缓存，避免重复请求同一场比赛
  */
-import { api } from '../api.js';
+import { api } from '../vendor.js?v=202606152148';
 
 var _gsCache = {};
 

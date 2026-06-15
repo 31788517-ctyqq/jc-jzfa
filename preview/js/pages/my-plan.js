@@ -1,6 +1,6 @@
 // ==================== 我的方案列表页 ====================
-import { api } from '../api.js';
-import { WEEK_NAMES, formatDateCN, getCache, setCache } from '../utils.js';
+import { api } from '../vendor.js?v=202606152148';
+import { WEEK_NAMES, formatDateCN, getCache, setCache } from '../vendor.js?v=202606152148';
 
 var _plans = [];
 var _stats = {};

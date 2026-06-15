@@ -1,5 +1,5 @@
-﻿import { api } from '../api.js';
-import { getCache, setCache } from '../utils.js';
+﻿import { api } from '../vendor.js?v=202606152148';
+import { getCache, setCache } from '../vendor.js?v=202606152148';
 import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
 
 var quantDate = '';

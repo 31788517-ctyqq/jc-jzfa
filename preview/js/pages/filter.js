@@ -1,4 +1,4 @@
-import { api } from '../api.js';
+import { api } from '../vendor.js?v=202606152148';
 
 export const filterDirMap = {
   胜平负: ['全部', '胜', '平', '负'],

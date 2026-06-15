@@ -1,5 +1,5 @@
-import { api } from '../api.js';
-import { getAuthSession, hasAuthToken } from '../auth-client.js';
+import { api } from '../vendor.js?v=202606152148';
+import { getAuthSession, hasAuthToken } from '../vendor.js?v=202606152148';
 
 const PLAN_META = {
   monthly: { plan_name: '月度套餐', duration_months: 1, feature: '适合短期体验核心能力', summary: '30 天会员访问权限' },
@@ -144,7 +144,7 @@ export async function loadPayment(container, data) {
     '</span></div>' +
     '<div class="payment-plan-row"><span class="payment-plan-label">支付方式</span><span class="payment-plan-value">支付宝</span></div>' +
     '</div>' +
-    '<div class="member-section-card payment-coupon-card">' +
+    '<div class="member-section-card payment-coupon-card" style="display:none">' +
     '<div class="member-section-title">优惠码</div>' +
     '<div class="payment-coupon">' +
     '<input type="text" id="couponInput" placeholder="输入优惠码（选填）" maxlength="20" />' +

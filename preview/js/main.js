@@ -1,7 +1,7 @@
 // ==================== 主入口：路由导航 + 全局状态管理 ====================
-import { api } from './api.js';
-import { WEEK_NAMES, formatDate } from './utils.js';
-import * as state from './state.js';
+import { api } from './vendor.js?v=202606152148';
+import { WEEK_NAMES, formatDate } from './vendor.js?v=202606152148';
+import * as state from './vendor.js?v=202606152148';
 import { loadHome } from './pages/home.js';
 import { loadMatchList } from './pages/match-list.js';
 import { goDetail, closeAI, showAIPrediction } from './pages/match-detail.js';

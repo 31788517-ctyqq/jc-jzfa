@@ -1,5 +1,5 @@
-import { api } from '../api.js';
-import { setAuthToken, setAuthSession } from '../auth-client.js';
+import { api } from '../vendor.js?v=202606152148';
+import { setAuthToken, setAuthSession } from '../vendor.js?v=202606152148';
 
 const VIP_POPUP_PENDING_USER_KEY = 'vipGiftPopupPendingUser';
 const VIP_POPUP_SHOWN_PREFIX = 'vipGiftPopupShown:';
