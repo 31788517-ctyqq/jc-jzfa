@@ -939,10 +939,12 @@ const previewRoot = path.join(__dirname, '../preview');
 const previewDistRoot = path.join(previewRoot, 'dist');
 const useDist = fs.existsSync(previewDistRoot);
 const _previewPath = previewRoot;
+console.log('[server] __dirname=' + __dirname + ' previewRoot=' + previewRoot + ' distRoot=' + previewDistRoot + ' useDist=' + useDist);
 
 let homeCache = null,
   homeCacheTime = 0;
 const hp = useDist ? path.join(previewDistRoot, 'index.html') : path.join(previewRoot, 'index.html');
+console.log('[server] home html path=' + hp + ' exists=' + fs.existsSync(hp));
 const HOME_HTML_CACHE_TTL = process.env.NODE_ENV === 'production' ? 60000 : 0;
 function getHomeHTML(cb) {
   const now = Date.now();
