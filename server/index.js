@@ -934,6 +934,7 @@ const staticOpts = { maxAge: '7d', etag: true, lastModified: true };
 app.use('/assets/worldcup', express.static(path.join(__dirname, '../miniprogram/images/worldcup'), staticOpts));
 app.use('/assets', express.static(path.join(__dirname, '../miniprogram/images'), staticOpts));
 
+// Phase1: 始终从源码目录读取（不使用 dist/ 构建产物）
 let homeCache = null,
   homeCacheTime = 0;
 const hp = path.join(__dirname, '../preview/index.html');

@@ -2,7 +2,7 @@
 // 策略：Cache-First for JS/CSS/页面壳（版本号控制更新）
 // 注册方式：index.html 中 navigator.serviceWorker.register()
 
-var CACHE_NAME = 'jczjfa-static-v2';
+var CACHE_NAME = 'jczjfa-static-v5'; // v5: Phase1 回滚，清除 Vite 缓存
 var STATIC_EXTENSIONS = /\.(js|css|svg|png|webp|woff2?)$/i;
 // P1-2: 页面壳缓存（HTML 首页壳，不含动态内容）
 var PAGE_SHELL_KEY = '/preview/index.html';
