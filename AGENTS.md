@@ -168,6 +168,34 @@ npm run preflight
 - **`sync_live_500.js` / `data_sync.js` 依赖 `server/core/ingestion-guard.js`**，部署清单必须包含该文件；遗漏会导致 500.com 实时比分抓取报 `Cannot find module './core/ingestion-guard'`。
 - **`data_sync.js` 健康监控 setInterval 内使用时间变量必须在回调内定义**；曾因整点逻辑引用外层 `now` 导致 `jc-sync` 整点崩溃重启。
 
+### 7.7 前端构建与部署规则（V10.0 新增，Phase2 灾难复盘）🔥
+
+#### 禁止事项
+
+1. **禁止构建产物覆盖源文件**：`postbuild` 脚本绝不能将 `dist/index.html` 写回源 `preview/index.html`（导致后续所有 git 提交被污染）
+2. **禁止用字符串补丁脚本修改代码**：始终用 `git checkout <commit> -- <file>` + 精确 `replace_in_file`
+3. **禁止 Service Worker 缓存 HTML 页面壳**：SW 只缓存 JS/CSS 等带 content-hash 的静态资源
+4. **禁止在已有 32 个动态 import 的存量项目引入 Vite**：`import.meta.glob` 不转换、`window.xxx` 赋值被 tree-shake、动态 `import('path/'+var)` 无法静态分析
+
+#### 强制规则
+
+1. **部署前本地验证 4 项**：
+   - `node -c preview/js/main-fusion.js` 语法检查
+   - `index.html` 不含 `/dist/js/index` (Vite 污染)
+   - `sw.js` 不含 `PAGE_SHELL` (页面壳缓存)
+   - 关键功能字符串确认 (navMyBtn, _prefetchTabData, _stReal)
+
+2. **部署后 SW 缓存验证**：先 HTTP 层（`playwright_get`）确认 HTML 正确，再浏览器层（`playwright_navigate`）确认 SW 未拦截
+
+3. **deploy.py 的 DEPLOY_MAP 必须包含根目录 `index.html` → Nginx**：Nginx 根路径读的是 `/var/www/zj.100qiu.com/index.html`，不是 `preview/` 子目录
+
+4. **临时脚本用后即删**：一次性 fix/restore 脚本必须在当次 commit 后从 git 中删除
+
+#### Node.js 24 已知 Bug
+
+- `node -e` 中 `||` 被错误解析为运算符，改用 `.cjs` 脚本文件
+- PowerShell `>` / `Out-File -Encoding utf8` 会添加 BOM，用 `[IO.File]::WriteAllText()` 或 node 写文件
+
 ## 10) 上下文记忆策略（V7.0 新增）
 
 本 IDE 插件的 AI 会话上下文有限（每次新会话白板启动）。通过以下分层机制增强跨会话记忆：
@@ -178,7 +206,7 @@ npm run preflight
 
 | Skill | 触发词 | 携带知识 |
 |-------|--------|---------|
-| deploy-ops | 部署/deploy/nginx/404/500 | 服务器架构、依赖追踪、排查手册、认证方式 |
+| deploy-ops | 部署/deploy/nginx/404/500/SW/缓存/回退 | 服务器架构、依赖追踪、排查手册、认证方式、前端构建灾难复盘 |
 | jczjfa-test-orchestrator | 测试/test/preflight | 24 套件编排、门禁标准 |
 | backtesting-frameworks | 回测/backtest | Walk-Forward、Monte Carlo |
 | data-pipeline | 数据/抓取/ETL | 数据质量门禁 |

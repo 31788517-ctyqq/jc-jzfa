@@ -486,3 +486,115 @@ ssh.close()
 | **V8.1** | **PM2 `online` 不等于服务就绪：重启后服务可能需要 3-8 秒才完全启动，需等待后验证** | **PM2 重启后验证** |
 | V8.1 | 新增页面必须同步检查 `main-fusion.js` 的 `_ensurePage` 和 `switchTab` 是否包含新页面路由 | AGENTS.md §7 |
 | **V8.2** | **SQL dump 导入 4 连坑：字面量 `\n`、表未建、无事务、shell 引号冲突，76 秒导入变秒级的技术细节** | **SQLite 大数据导入陷阱** |
+| **V10.0** | **Phase2 Vite 构建全线失败回退：36 个独立问题，8 个阶段，2 个核心根因 (SW缓存 + postbuild污染)** | **前端构建灾难教训 (下方专节)** |
+
+---
+
+## 🔥 V10.0 Phase2 前端构建灾难完整复盘
+
+2026-06-15~16 尝试为 32 页面存量项目引入 Vite 构建，经历 36 个独立问题后被全面回退。以下为核心教训。
+
+### 根因 1：Service Worker 页面壳缓存拦截根路径
+
+**现象**：部署后 Nginx 文件 MD5 验证通过，但浏览器始终加载 Vite 旧版 HTML。
+
+**原理**：
+```
+浏览器请求 / → SW fetch 拦截 → 检查缓存 match('/') → 返回缓存旧 HTML → 页面加载旧路径
+```
+
+SW 的 `PAGE_SHELL_KEY = '/preview/index.html'` 在 install 时预缓存，fetch 时对 `pathname === '/'` 返回缓存优先。
+
+**检测方法**：
+- `playwright_get`（HTTP 层）→ 返回正确 HTML ✅
+- `playwright_navigate`（浏览器层）→ SW 拦截返回旧缓存 ❌
+
+**修复**：SW 不缓存 HTML 页面壳，仅缓存 JS/CSS 等有 content-hash 的静态资源。
+
+### 根因 2：postbuild 脚本覆盖源文件污染 git 历史
+
+**致命操作**：`postbuild.cjs` 末尾将 `dist/index.html`（含 Vite 路径）写回源 `preview/index.html`。
+
+**后果**：
+- 之后所有 commit（含 `c24de014` Phase3）的 `preview/index.html` 都含 `/dist/js/index-xxx.js` 路径
+- 唯一干净版本在 `4b0fb9e9`（Phase1）
+- 后续 `git checkout` 恢复的"看似正常"版本实际是污染版
+
+**铁律**：**构建产物和源码严格分离，postbuild 绝不能写回源文件。**
+
+### 根因 3：Vite 不适合此类存量项目
+
+| 冲突点 | 详情 |
+|--------|------|
+| `import.meta.glob` | Vite 5/8 在 HTML 入口模式下不转换此宏 |
+| `window.xxx = func` 全局赋值 | Vite 8 Rolldown 误 tree-shake 掉 |
+| 32 个 `import('./pages/' + name)` | Rollup 无法静态分析变量名，chunk 分割不可控 |
+| 内联 `<script type="module">` | 被 Vite 当作入口，实际 entry 被忽略 |
+| Rollup `treeshake: false` | Vite 不传递此选项给 Rollup |
+
+### 根因 4：字符串补丁修改代码绝对不可靠
+
+| 脚本 | 失败原因 |
+|------|---------|
+| `fix_glob.cjs` | 行级替换匹配单行 minified，跳过全部后续代码 |
+| `fix_mf.cjs` | 正则空格不匹配实际文本 |
+| `fix_mf2.cjs` | 替换断开了 `_mod` 函数括号 |
+| `restore_features.cjs` | `\n` 不匹配 `\r\n` 行尾 |
+| `restore_mf.cjs` | `_prefetchTabData(tab)` 放在了 `switchTab` 函数外 |
+
+**铁律**：**代码修改用 `git checkout` 从已知正确提交恢复 + 精确 `replace_in_file`，不用脚本。**
+
+### 环境兼容性问题
+
+| 问题 | 影响 |
+|------|------|
+| Node.js 24 `-e` 中 `\|\|` 被错误解析 | 至少 5 次命令失败，改用 `.cjs` 文件 |
+| PowerShell `>` 输出加 UTF-8 BOM | `index_clean.html` 被污染，后续 6 个替换全失败 |
+| `findstr` 不兼容 UTF-8 | 搜索中文/特殊字符无结果 |
+| `npm run build` 退出码 1 | PowerShell CLIXML 误报 |
+
+### 部署验证的正确方式（5 层）
+
+```
+Layer 0: 本地验证（新增）
+  → node -c 语法检查
+  → 关键字符串确认（不含 dist 路径）
+  → 不在本地验证通过前部署
+
+Layer 1: HTTP 层验证（无 SW 干扰）
+  → playwright_get(url, {Cache-Control: no-cache})
+  → 确认返回的 HTML 内容正确
+
+Layer 2: 浏览器层验证
+  → playwright_navigate → 检查 module scripts 路径
+  → 确认无 SW 缓存干扰
+
+Layer 3: PM2 + Nginx 链路验证
+  → 健康检查 → 业务 API 冒烟
+
+Layer 4: SW 缓存验证
+  → 确认 CACHE_NAME 版本已更新
+  → 确认无页面壳缓存逻辑
+```
+
+### 部署前强制检查清单（新增）
+
+```powershell
+# 1. 语法检查
+node -c preview/js/main-fusion.js
+
+# 2. index.html 无 Vite dist 污染
+node -e "process.exit(require('fs').readFileSync('preview/index.html','utf8').includes('/dist/js/index')?1:0)"
+
+# 3. SW 无页面壳缓存
+node -e "process.exit(require('fs').readFileSync('preview/sw.js','utf8').includes('PAGE_SHELL')?1:0)"
+
+# 4. 关键功能字符串确认
+node -e "var c=require('fs').readFileSync('preview/js/main-fusion.js','utf8');['navMyBtn','_prefetchTabData','_stReal'].forEach(s=>console.log(s, c.includes(s)))"
+```
+
+### 临时文件治理
+
+本次产生 14 个临时文件/脚本需清理：
+- `scripts/clean_*.js`, `fix_*.js`, `restore_*.js`, `final_*.js`, `patch_*.js`（11 个）
+- `preview/index_clean.html`, `preview/index_root.html`, `preview/entry.js`（3 个）
