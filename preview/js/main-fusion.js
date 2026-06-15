@@ -874,11 +874,6 @@ export function switchTab(tab) {
     tab = 'login';
   }
 
-  // ★ 返利功能白名单守卫：无权限用户访问返利中心时跳转到个人中心
-  if (tab === 'referral' && !hasReferralAccess()) {
-    tab = 'profile';
-  }
-
   if (state.currentPage === 'home' && tab !== 'home') state.setSavedScrollY(window.scrollY);
   state.setCurrentPage(tab);
   // 记住当前页，刷新后恢复
