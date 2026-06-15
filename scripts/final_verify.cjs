@@ -14,6 +14,12 @@ var mf = fs.readFileSync('preview/js/main-fusion.js', 'utf8');
 all = ok('navMyBtn JS', mf.includes('navMyBtn')) && all;
 all = ok('Phase3', mf.includes('_prefetchTabData')) && all;
 all = ok('_stReal replay', mf.includes('_stReal')) && all;
+// Check no duplicate function definitions
+var fnNames = ['_prefetchTabData', 'switchTabLoad', 'switchTab', '_initsPage'];
+for (var fi = 0; fi < fnNames.length; fi++) {
+  var cnt = mf.split('function ' + fnNames[fi]).length - 1;
+  if (cnt > 1) { all = false; console.log('  FAIL [dup ' + fnNames[fi] + ': ' + cnt + ']'); }
+}
 
 // 3. index.html
 var html = fs.readFileSync('preview/index.html', 'utf8');

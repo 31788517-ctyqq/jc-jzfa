@@ -1716,31 +1716,7 @@ function switchTabLoad(tab) {
 }
 
 // ★ Phase3: API 数据预取 — 与模块加载并行，api() 去重保证零额外请求
-//     注：此函数在 switchTab 和 switchTabLoad 两处共用（只定义一次）
-function _prefetchTabData(tab) {
-  var today = formatDate(new Date());
-  if (tab === 'plan') {
-    var pd = state.planDate || today;
-    api('plan-list', { date: pd }).catch(function () {});
-  } else if (tab === 'match') {
-    var sel = state.weekDates[state.selectedWeekIdx];
-    if (sel && sel.matchDate) {
-      api('match-list', { date: sel.matchDate }).catch(function () {});
-    }
-  } else if (tab === 'rank') {
-    api('ranking-list', { date: state.rankDate || today }).catch(function () {});
-  } else if (tab === 'hit') {
-    api('hit-rate-stats', {}).catch(function () {});
-  } else if (tab === 'quant-rank') {
-    api('quant-rank', {}).catch(function () {});
-  } else if (tab === 'income') {
-    api('plan-income', {}).catch(function () {});
-  } else if (tab === 'filter') {
-    api('filter-leagues', {}).catch(function () {});
-  } else if (tab === 'backtest') {
-    api('prediction-backtest', {}).catch(function () {});
-  }
-}
+
 
 // 命中率页面重试事件监听
 document.addEventListener('retryHitRate', function () {
