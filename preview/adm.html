@@ -8,34 +8,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>竞彩推荐监控</title>
     <link rel="preconnect" href="https://zj.100qiu.com" />
-    <link rel="modulepreload" href="/js/main-fusion.js" />
+    <link rel="modulepreload" href="/js/main-fusion.js?v=202606131900" />
 
-    <link rel="preload" href="/css/app.css" as="style" />
-    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="preload" href="/css/app.css?v=202606131900" as="style" />
+    <link rel="stylesheet" href="/css/app.css?v=202606131900" />
     <!-- ★ P1-5: 非首屏弹窗样式异步加载，不阻塞 FCP -->
     <link
       rel="stylesheet"
-      href="/css/modals.css"
+      href="/css/modals.css?v=202606131900"
       media="print"
       onload="
         this.media = 'all';
         this.onload = null;
       "
     />
-    <noscript><link rel="stylesheet" href="/css/modals.css" /></noscript>
+    <noscript><link rel="stylesheet" href="/css/modals.css?v=202606131900" /></noscript>
     <link
       rel="stylesheet"
-      href="/css/betting.css"
+      href="/css/betting.css?v=202606120300"
       media="print"
       onload="
         this.media = 'all';
         this.onload = null;
       "
     />
-    <noscript><link rel="stylesheet" href="/css/betting.css" /></noscript>
+    <noscript><link rel="stylesheet" href="/css/betting.css?v=202606120300" /></noscript>
 
     <!-- 管理后台样式（低优先级非阻塞加载） -->
-    <link rel="stylesheet" href="/css/admin-v2.css" />
+    <link rel="stylesheet" href="/css/admin-v2.css?v=202606121203" />
 
     <!-- ECharts lazy-loaded by charts.js -->
   </head>
@@ -61,10 +61,6 @@
           <span id="notiBadge">0</span>
         </button>
       </div>
-      <!-- ★ 排行/比赛/数据/方案 Tab 右上角"我的"按钮 -->
-      <button class="nav-my-btn" id="navMyBtn" type="button" onclick="switchTab('profile')" aria-label="我的账号" style="display:none">
-        <span>我的</span>
-      </button>
       <span class="nav-back" id="navBack" onclick="goBack()"
         ><svg width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
@@ -532,7 +528,7 @@
       console.log('[INLINE-MODULE] loaded OK');
       window.inlineModuleWorks = true;
     </script>
-    <script type="module" src="/js/main-fusion.js"></script>
+    <script type="module" src="/js/main-fusion.js?v=202606131900"></script>
 
     <!-- V5.0-FUSION-PK final-202605311423 -->
   </body>

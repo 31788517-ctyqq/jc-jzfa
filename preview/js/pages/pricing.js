@@ -1,5 +1,5 @@
-import { api } from '../vendor.js';
-import { getAuthSession, hasAuthToken, hasReferralAccess } from '../vendor.js';
+import { api } from '../api.js';
+import { getAuthSession, hasAuthToken, hasReferralAccess } from '../auth-client.js';
 
 const PLAN_META = {
   monthly: {

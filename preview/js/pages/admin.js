@@ -6,8 +6,8 @@
  * API 调用统一用新签名 api(action, data)，token 由 auth-client 自动注入
  */
 
-import { api } from '../vendor.js';
-import { getAuthSession } from '../vendor.js';
+import { api } from '../api.js';
+import { getAuthSession } from '../auth-client.js';
 
 // ═══════════════════════════════════════════════════════
 // 工具函数

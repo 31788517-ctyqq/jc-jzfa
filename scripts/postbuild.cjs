@@ -84,11 +84,6 @@ if (headEnd > 0 && preloadTags) {
 const distHtml = path.join(distDir, 'index.html');
 fs.writeFileSync(distHtml, html, 'utf8');
 
-// ★ 同步到源 preview/index.html（服务器可能从源路径读取）
-const srcHtmlOut = path.resolve(__dirname, '../preview/index.html');
-fs.writeFileSync(srcHtmlOut, html, 'utf8');
-
 console.log('[postbuild] entry: dist/' + (preloadChunks.find(f => f.name.includes('main-fusion')) || {}).relPath);
 console.log('[postbuild] preload: ' + preloadChunks.length + ' chunks (' + preloadChunks.map(f => f.name).join(', ') + ')');
 console.log('[postbuild] CSS: dist/' + ((appCss && appCss.relPath) || 'N/A'));
-console.log('[postbuild] synced -> preview/index.html');

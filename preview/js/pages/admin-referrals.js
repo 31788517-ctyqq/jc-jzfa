@@ -1,6 +1,6 @@
 // ==================== 管理员后台：返利管理 ====================
 /* global loadRefList, processWithdraw */
-import { api } from '../vendor.js';
+import { api } from '../api.js';
 
 const STATUS_CN = {
   pending: '待结算',

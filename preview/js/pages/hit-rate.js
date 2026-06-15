@@ -1,4 +1,4 @@
-import { API } from '../vendor.js';
+import { API } from '../utils.js';
 
 export function loadHitRate() {
   const el = document.getElementById('hitContent');

@@ -1,5 +1,5 @@
-import { api } from '../vendor.js';
-import { getAuthSession, hasAuthToken, hasReferralAccess } from '../vendor.js';
+import { api } from '../api.js';
+import { getAuthSession, hasAuthToken, hasReferralAccess } from '../auth-client.js';
 
 const MEMBER_RIGHTS = [
   '专家方案 / 博热方案 / 量化方案完整访问',

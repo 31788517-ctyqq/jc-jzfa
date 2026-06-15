@@ -3,8 +3,8 @@
  * Tab: GS功守道 | AI深度分析 | PK融合分析
  * 每个Tab独立：统计卡片 + ECharts图表 + 明细列表
  */
-import { api } from '../vendor.js';
-import { loadECharts } from '../charts.js';
+import { api } from '../api.js';
+import { loadECharts } from '../charts.js?v=202606080308';
 
 var _btPage = 1,
   _btPageSize = 20,

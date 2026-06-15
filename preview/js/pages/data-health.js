@@ -6,7 +6,7 @@
  * 数据来源: API /api/data-health → data-quality.js monitor
  */
 
-import { api } from '../vendor.js';
+import { api } from '../api.js';
 
 // ═══════════════════════════════════════════════════════
 // 页面入口

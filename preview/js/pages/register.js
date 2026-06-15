@@ -1,5 +1,5 @@
-import { api } from '../vendor.js';
-import { getDeviceId } from '../vendor.js';
+import { api } from '../api.js';
+import { getDeviceId } from '../utils.js';
 
 function parseInviteParams() {
   try {
@@ -67,7 +67,7 @@ function ensureRegisterRoot() {
     '<div class="login-hero-subtitle">邀请制注册<br>完成开户注册</div>' +
     '<div id="registerInviteBadge" class="auth-invite-badge">请填写邀请码后注册</div>' +
     '</div>' +
-    '<img class="login-eagle" src="/assets/login-eagle.png" alt="" loading="eager" decoding="async" />' +
+    '<img class="login-eagle" src="/assets/login-eagle.png?v=202606101155" alt="" loading="eager" decoding="async" />' +
     '</div>' +
     '<div id="registerForm" class="auth-card auth-login-card auth-register-card">' +
     '<div class="auth-note-card">若你是通过好友邀请进入，邀请码会自动带入；也可以手动填写客服提供的邀请码。</div>' +

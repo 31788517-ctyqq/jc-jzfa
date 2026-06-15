@@ -1,7 +1,7 @@
-﻿import { api } from '../vendor.js';
-import { formatDate } from '../vendor.js';
-import { loadECharts, echartsReady } from '../charts.js';
-import * as state from '../vendor.js';
+﻿import { api } from '../api.js';
+import { formatDate } from '../utils.js';
+import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
+import * as state from '../state.js';
 
 // AI 深度解析缓存：{ matchId: { content: ..., hash: ... } }
 var predictionCache = {};
@@ -256,7 +256,7 @@ export function goDetail(matchId) {
       <div class="match-card" style="margin-bottom: 16px;">
         <div class="match-header">
           <span class="match-league">${match.leagueName}</span>
-          <span class="match-num">${roundText}</span>
+          <span class="match-num" style="background: ${match.matchStatus === 0 ? 'rgba(34,211,238,0.1)' : 'rgba(52,211,153,0.1)'}; color: ${match.matchStatus === 0 ? 'var(--cyan)' : 'var(--green)'}">${statusText}</span>
         </div>
         <div class="match-teams">
           <span class="team-name">${match.homeName}</span>
