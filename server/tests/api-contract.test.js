@@ -81,6 +81,8 @@ const ACTION_MATRIX = {
     'simulate-pay',
     'admin-referral-withdraw-process',
     'vip-gift-claim',
+    'user-toggle-referral',
+    'plan-refresh',
   ],
   heavyOrAsync: [
     'crawl-history',

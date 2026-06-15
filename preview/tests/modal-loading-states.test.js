@@ -17,10 +17,12 @@ const CONFIRM_SCHEME = path.join(__dirname, '..', 'js', 'pages', 'confirm-scheme
 
 function src(f) {
   let s = fs.readFileSync(f, 'utf8');
-  if (s.charCodeAt(0) === 0xFEFF) s = s.slice(1); // strip BOM
+  if (s.charCodeAt(0) === 0xfeff) s = s.slice(1); // strip BOM
   return s;
 }
-function countMatches(source, pattern) { return (source.match(new RegExp(pattern, 'g')) || []).length; }
+function countMatches(source, pattern) {
+  return (source.match(new RegExp(pattern, 'g')) || []).length;
+}
 
 describe('P0: modal-loading-states — 弹窗加载状态', () => {
   // ═══════════════════════════════════════════
@@ -32,9 +34,10 @@ describe('P0: modal-loading-states — 弹窗加载状态', () => {
       expect(source).toContain('loading');
     });
 
-    it('1.2 功守道弹窗有 ⏳ loading', () => {
+    it('1.2 功守道弹窗有骨架屏 loading', () => {
       const source = src(GONGSHOUDAO);
-      expect(source).toContain('加载中');
+      expect(source).toContain('page-skeleton');
+      expect(source).toContain('skel-bar');
     });
 
     it('1.3 方案列表有 loading spinner', () => {
@@ -148,12 +151,12 @@ describe('P0: modal-loading-states — 弹窗加载状态', () => {
       expect(apiPos).toBeGreaterThan(gsStart);
     });
 
-    it('5.3 loading 渲染在内容之前', () => {
+    it('5.3 骨架屏渲染在内容之前', () => {
       const source = src(GONGSHOUDAO);
-      const loadPos = source.indexOf('加载中');
+      const loadPos = source.indexOf('page-skeleton');
       const apiPos = source.indexOf('api(', loadPos);
       expect(loadPos).toBeGreaterThan(0);
-      // loading 在 api 调用之前
+      // 骨架屏 innerHTML 在 api 调用之前
       expect(loadPos).toBeLessThan(source.indexOf('.then', apiPos));
     });
   });
