@@ -757,6 +757,9 @@ def main():
     # ── Phase 2.5: Nginx 缓存清除 ──
     if not dry_run and not files_only:
         print(c('C', '[Phase 2.5] Nginx 缓存清除与重载'))
+        # ★ 清理 Vite dist 残留文件（防止 Nginx 服务旧版本）
+        for dist_dir in ['/var/www/zj.100qiu.com/dist', '/var/www/zj.100qiu.com/preview/dist', '/root/preview/dist']:
+            ssh_cmd(ssh, f'rm -rf {dist_dir} 2>/dev/null && echo "  cleaned {dist_dir}" || echo "  skip {dist_dir}"', 3)
         nginx_reload(ssh)
         # 可选：清除内核页缓存（仅 fast/files-only 跳过）
         if not fast_mode:
