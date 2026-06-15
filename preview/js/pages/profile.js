@@ -1,6 +1,6 @@
 import { api } from '../api.js';
 import { formatDate } from '../utils.js';
-import { getAuthSession, clearAuthAll, hasAuthToken } from '../auth-client.js';
+import { getAuthSession, clearAuthAll, hasAuthToken, hasReferralAccess } from '../auth-client.js';
 
 var _profilePlanFilter = 'today';
 var _allPlans = [];
@@ -201,7 +201,7 @@ function renderLayout(root, userName) {
     '</div>' +
     '<div class="profile-entry-grid">' +
     buildProfileHubCard('subscription', '订阅中心', 'subscription') +
-    buildProfileHubCard('referral', '邀请返利', 'referral') +
+    (hasReferralAccess() ? buildProfileHubCard('referral', '邀请返利', 'referral') : '') +
     buildProfileHubCard('pricing', '会员套餐', 'pricing') +
     renderAdminShortcut() +
     '</div>' +

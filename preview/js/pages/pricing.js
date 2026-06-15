@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { getAuthSession, hasAuthToken } from '../auth-client.js';
+import { getAuthSession, hasAuthToken, hasReferralAccess } from '../auth-client.js';
 
 const PLAN_META = {
   monthly: {
@@ -255,34 +255,42 @@ export async function loadPricing(container) {
       '<div class="member-section-card pricing-benefit-card">' +
       '<div class="member-section-title">会员权益一览</div>' +
       '<div class="member-note-list">' +
-      MEMBER_FEATURES.map(function (item) {
-        return '<div class="member-note-item"><span class="member-note-icon">✓</span><span>' + item + '</span></div>';
-      }).join('') +
+      MEMBER_FEATURES.filter(function (item) {
+        return hasReferralAccess() || item.indexOf('返利') < 0;
+      })
+        .map(function (item) {
+          return '<div class="member-note-item"><span class="member-note-icon">✓</span><span>' + item + '</span></div>';
+        })
+        .join('') +
       '</div>' +
       '</div>' +
       '<div class="member-section-card pricing-faq-card">' +
       '<div class="member-section-title">常见问题</div>' +
       '<div class="member-faq-list">' +
-      MEMBER_FAQ.map(function (item) {
-        return (
-          '<div class="member-faq-item"><div class="member-faq-q">' +
-          item.q +
-          '</div><div class="member-faq-a">' +
-          item.a +
-          '</div></div>'
-        );
-      }).join('') +
+      MEMBER_FAQ.filter(function (item) {
+        return hasReferralAccess() || item.q.indexOf('返利') < 0;
+      })
+        .map(function (item) {
+          return (
+            '<div class="member-faq-item"><div class="member-faq-q">' +
+            item.q +
+            '</div><div class="member-faq-a">' +
+            item.a +
+            '</div></div>'
+          );
+        })
+        .join('') +
       '</div>' +
       '</div>' +
       '<div class="member-cta-row">' +
       (authed
         ? '<button class="member-secondary-btn" type="button" onclick="switchTab(\'subscription\')">查看订阅中心</button>'
         : '<button class="member-secondary-btn" type="button" onclick="switchTab(\'login\')">已有账号，去登录</button>') +
-      '<button class="member-primary-btn" type="button" onclick="switchTab(\'' +
-      (authed ? 'referral' : 'contact-invite') +
-      '\')">' +
-      (authed ? '查看邀请返利' : '联系客服获邀') +
-      '</button>' +
+      (authed && hasReferralAccess()
+        ? '<button class="member-primary-btn" type="button" onclick="switchTab(\'referral\')">查看邀请返利</button>'
+        : authed
+          ? ''
+          : '<button class="member-primary-btn" type="button" onclick="switchTab(\'contact-invite\')">联系客服获邀</button>') +
       '</div>' +
       '</div>' +
       '</div>';

@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { getAuthSession, hasAuthToken } from '../auth-client.js';
+import { getAuthSession, hasAuthToken, hasReferralAccess } from '../auth-client.js';
 
 function formatMoney(value) {
   return new Intl.NumberFormat('zh-CN', {
@@ -128,6 +128,22 @@ export async function loadReferral(container) {
 
   if (!hasAuthToken() || !getAuthSession()) {
     renderGuestState(container);
+    return;
+  }
+
+  if (!hasReferralAccess()) {
+    container.innerHTML =
+      '<div class="member-shell member-shell-referral">' +
+      '<div class="member-page ref-container">' +
+      '<div class="member-section-card member-empty-card">' +
+      '<div class="member-empty-title">暂无访问权限</div>' +
+      '<div class="member-empty-text">返利功能暂未对当前账号开放。</div>' +
+      '<div class="member-cta-row">' +
+      '<button class="member-primary-btn" type="button" onclick="window.navigateTo(\'profile\')">返回个人中心</button>' +
+      '</div>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
     return;
   }
 

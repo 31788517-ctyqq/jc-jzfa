@@ -2,7 +2,7 @@
 console.log('[V6.0-LAZY][202606141045] main-fusion.js loaded');
 import { api } from './api.js';
 import { WEEK_NAMES, formatDate, getCache, setCache } from './utils.js';
-import { clearAuthAll, getAuthSession, hasAuthToken, setAuthSession } from './auth-client.js';
+import { clearAuthAll, getAuthSession, hasAuthToken, setAuthSession, hasReferralAccess } from './auth-client.js';
 import * as state from './state.js';
 import { loadHome } from './pages/home.js?v=202606140912';
 import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js?v=202606101015';
@@ -872,6 +872,11 @@ export function switchTab(tab) {
       sessionStorage.setItem('pendingAfterLogin', tab);
     } catch (e) {}
     tab = 'login';
+  }
+
+  // ★ 返利功能白名单守卫：无权限用户访问返利中心时跳转到个人中心
+  if (tab === 'referral' && !hasReferralAccess()) {
+    tab = 'profile';
   }
 
   if (state.currentPage === 'home' && tab !== 'home') state.setSavedScrollY(window.scrollY);

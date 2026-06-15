@@ -74,6 +74,12 @@ async function onPaymentSuccess(paymentOrderId, userId) {
       return { triggered: false, reason: 'non_commissionable' };
     }
 
+    // ★ 检查邀请人是否开启了返利功能（白名单控制）
+    const inviterAccess = adp.execOne('SELECT referral_enabled FROM users WHERE id = ?', [order.referred_by]);
+    if (!inviterAccess || !inviterAccess.referral_enabled) {
+      return { triggered: false, reason: 'inviter_not_enabled' };
+    }
+
     // 2. 反欺诈检查
     const fraudCheck = await antiFraudCheck(order.user_id, paymentOrderId);
     if (!fraudCheck.passed) return { triggered: false, reason: fraudCheck.reason };

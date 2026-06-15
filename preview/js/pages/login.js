@@ -311,7 +311,12 @@ function bindLoginAction() {
 
   function applyLoginResult(res, inputUsername) {
     setAuthToken(res.token || '');
-    setAuthSession({ user: res.user, roles: res.roles || [], permissions: res.permissions || [] });
+    setAuthSession({
+      user: res.user,
+      roles: res.roles || [],
+      permissions: res.permissions || [],
+      referralEnabled: res.referralEnabled || false,
+    });
     setMsg(msg, '登录成功，正在进入系统...', true);
 
     function continueAfterLogin() {

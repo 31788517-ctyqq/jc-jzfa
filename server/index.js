@@ -363,16 +363,24 @@ function buildPKDecisionMapForMatches(matches) {
     // ★ P1+P2: 优先从 SQLite prediction_logs 读取 pk_scorer 真实输出
     const adp = database.getAdapter && database.getAdapter();
     if (adp) {
-      const mids = matches.map(function (m) {
-        return String(m.matchId || '').replace(/^m_/, '');
-      }).filter(Boolean);
+      const mids = matches
+        .map(function (m) {
+          return String(m.matchId || '').replace(/^m_/, '');
+        })
+        .filter(Boolean);
       if (mids.length > 0) {
-        const placeholders = mids.map(function () { return '?'; }).join(',');
+        const placeholders = mids
+          .map(function () {
+            return '?';
+          })
+          .join(',');
         const rows = adp.execAll(
           'SELECT matchId, pk_direction, pk_composite_score, pk_final_direction, pk_decision_level, ' +
-          'pk_risk_level, pk_stars, pk_risk_tags_json, pk_degrade_reasons_json, pk_decision_narrative, ' +
-          'pk_play_type, pk_expected_value, pk_value_edge ' +
-          'FROM prediction_logs WHERE matchId IN (' + placeholders + ') ORDER BY updated_at DESC',
+            'pk_risk_level, pk_stars, pk_risk_tags_json, pk_degrade_reasons_json, pk_decision_narrative, ' +
+            'pk_play_type, pk_expected_value, pk_value_edge ' +
+            'FROM prediction_logs WHERE matchId IN (' +
+            placeholders +
+            ') ORDER BY updated_at DESC',
           mids,
         );
         if (rows && rows.length > 0) {
@@ -380,9 +388,13 @@ function buildPKDecisionMapForMatches(matches) {
             const mid = String(r.matchId || '').replace(/^m_/, '');
             if (!mid || map[mid]) return; // 已填充则跳过（第一条即最新）
             var riskTags = [];
-            try { riskTags = JSON.parse(r.pk_risk_tags_json || '[]'); } catch (e) {}
+            try {
+              riskTags = JSON.parse(r.pk_risk_tags_json || '[]');
+            } catch (e) {}
             var degradeReasons = [];
-            try { degradeReasons = JSON.parse(r.pk_degrade_reasons_json || '[]'); } catch (e) {}
+            try {
+              degradeReasons = JSON.parse(r.pk_degrade_reasons_json || '[]');
+            } catch (e) {}
             map[mid] = {
               playType: r.pk_play_type || 'spf',
               finalDirection: r.pk_final_direction || r.pk_direction || 'watch',
@@ -407,24 +419,32 @@ function buildPKDecisionMapForMatches(matches) {
       const mid = String(m.matchId || '').replace(/^m_/, '');
       if (!mid || map[mid]) return;
       // 有 GS/AI 数据则显示融合摘要，否则显示"待分析"
-      var hasGS = !!(m.attackPattern || (m.totalAdvantageRaw != null));
-      var hasAI = !!(m.aiConfidence); // 从 match 字段读取
-      map[mid] = hasGS || hasAI
-        ? {
-            playType: 'spf',
-            finalDirection: 'watch',
-            decisionLevel: '待分析',
-            stars: 0,
-            riskLevel: 'yellow',
-            riskTags: hasGS ? ['GS功守道已分析'] : ['AI已分析'],
-            degradeReasons: [],
-            decisionNarrative: 'PK裁判：' + (hasGS && hasAI ? 'GS+AI 数据已就绪，等待融合裁判输出' : hasGS ? 'GS 功守道已分析，等待融合裁判' : 'AI 已分析，等待融合裁判') + '。',
-            finalDecision: 'watch',
-            expectedValue: null,
-            valueEdge: null,
-            pkCompositeScore: 0,
-          }
-        : buildFallbackPKDecision('PK数据生成中，请稍后刷新');
+      var hasGS = !!(m.attackPattern || m.totalAdvantageRaw != null);
+      var hasAI = !!m.aiConfidence; // 从 match 字段读取
+      map[mid] =
+        hasGS || hasAI
+          ? {
+              playType: 'spf',
+              finalDirection: 'watch',
+              decisionLevel: '待分析',
+              stars: 0,
+              riskLevel: 'yellow',
+              riskTags: hasGS ? ['GS功守道已分析'] : ['AI已分析'],
+              degradeReasons: [],
+              decisionNarrative:
+                'PK裁判：' +
+                (hasGS && hasAI
+                  ? 'GS+AI 数据已就绪，等待融合裁判输出'
+                  : hasGS
+                    ? 'GS 功守道已分析，等待融合裁判'
+                    : 'AI 已分析，等待融合裁判') +
+                '。',
+              finalDecision: 'watch',
+              expectedValue: null,
+              valueEdge: null,
+              pkCompositeScore: 0,
+            }
+          : buildFallbackPKDecision('PK数据生成中，请稍后刷新');
     });
   } catch (e) {
     logger.warn('[ranking-list] PK数据读取失败: ' + e.message);
@@ -1187,6 +1207,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               roles: authSession.roles,
               permissions: authSession.permissions,
               expiresAt: authSession.expiresAt,
+              referralEnabled: authSession.referralEnabled || false,
             },
           });
         }
@@ -1248,6 +1269,15 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           if (!userId) return res.json({ code: 0, msg: '缺少 userId' });
           const result = authService.updateUserRoles(userId, roleCodes);
           if (!result.ok) return res.json({ code: 0, msg: result.msg || '更新用户角色失败' });
+          return res.json({ code: 1, data: result });
+        }
+
+        // ★ 管理员：开启/关闭用户返利功能
+        case 'user-toggle-referral': {
+          const userId = Number(data.userId || 0);
+          const enabled = data.enabled !== false;
+          if (!userId) return res.json({ code: 0, msg: '缺少 userId' });
+          const result = authService.toggleUserReferral(userId, enabled);
           return res.json({ code: 1, data: result });
         }
 
@@ -1589,8 +1619,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           // ★ P0-2: 请求级缓存 — 相同参数 2 分钟内命中
           const rankCacheKey = (data.date || '') + '|' + (data.category || '') + '|' + (data.direction || '');
           const rankNow = Date.now();
-          if (_rankListCache[rankCacheKey] && _rankListCacheTime[rankCacheKey] &&
-              rankNow - _rankListCacheTime[rankCacheKey] < RANK_LIST_CACHE_TTL) {
+          if (
+            _rankListCache[rankCacheKey] &&
+            _rankListCacheTime[rankCacheKey] &&
+            rankNow - _rankListCacheTime[rankCacheKey] < RANK_LIST_CACHE_TTL
+          ) {
             return res.json(_rankListCache[rankCacheKey]);
           }
 
@@ -1614,8 +1647,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           const requestDate = data.date || latestDataDate();
           matches = matches.filter((m) => String((m && m.date) || '').slice(0, 10) === requestDate);
 
-          // 获取推荐（缓存 rMap，避免每次读磁盘）
-          function getRecs(matchId) {
+          // 获取推荐（优先 live API → 回退 data.json.r）
+          async function getRecs(matchId) {
+            // ★ 方案B: 优先实时 API（与详情页保持一致），10分钟缓存
+            try {
+              return await ensureRecommends(matchId);
+            } catch (e) {
+              logger.warn('[ranking-list] 实时推荐获取失败(' + matchId + ')，回退 data.json: ' + e.message);
+            }
             if (cachedRMap) {
               const raw = cachedRMap['m_' + matchId] || cachedRMap[String(matchId)] || [];
               return raw.map((x) => ({
@@ -1643,13 +1682,23 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           // ====== 收集所有方向及专家数 ======
           const dirStats = {}; // { type: { totalNum: number, matches: [] } }
           const matchTotalMap = {}; // matchId → 该比赛所有方向专家数之和
+
+          // ★ 方案B: 并行获取所有比赛的实时推荐（10分钟缓存）
+          const recsCache = {};
+          await Promise.all(
+            matches.map(function (m) {
+              return getRecs(m.matchId)
+                .then(function (r) {
+                  recsCache[m.matchId] = r;
+                })
+                .catch(function () {
+                  recsCache[m.matchId] = [];
+                });
+            }),
+          );
+
           for (const m of matches) {
-            let recomms;
-            try {
-              recomms = getRecs(m.matchId);
-            } catch {
-              continue;
-            }
+            const recomms = recsCache[m.matchId] || [];
             // 计算该比赛推荐总数：取方向明细求和与 match recommNum 的较大值
             const recTotalFromMap = recomms.reduce((s, r) => s + Number(r.num || 0), 0);
             const recTotalFromMatch = Number(m.recommNum || 0);
@@ -1708,12 +1757,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // 按分类筛选：取该分类下所有方向的比赛的 TOP 方向
             const catDirs = new Set(categories[filterCategory].directions.map((d) => d.name));
             for (const m of matches) {
-              let recomms;
-              try {
-                recomms = getRecs(m.matchId);
-              } catch {
-                continue;
-              }
+              const recomms = recsCache[m.matchId] || [];
               const filtered = recomms.filter((r) => catDirs.has(r.type) && Number(r.num || 0) > 0);
               if (filtered.length > 0) {
                 const maxDir = filtered.reduce((a, b) => (Number(b.num || 0) > Number(a.num || 0) ? b : a));
@@ -1734,12 +1778,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           } else {
             // 综合排名：恢复旧规则——每场取“方向专家数”最高的方向，再按 expertCount 排序
             for (const m of matches) {
-              let recomms;
-              try {
-                recomms = getRecs(m.matchId);
-              } catch {
-                continue;
-              }
+              const recomms = recsCache[m.matchId] || [];
               const maxDir = recomms.reduce((a, b) => (Number(b.num || 0) > Number((a && a.num) || 0) ? b : a), null);
               if (maxDir && maxDir.num > 0) {
                 list.push({
@@ -3652,6 +3691,63 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           return res.json({ code: 1, data: { message: 'AI批量生成已启动' } });
         }
 
+        // ========== 手动刷新方案 ==========
+        case 'plan-refresh': {
+          try {
+            var refDate = data.date || latestDataDate();
+            // 清除缓存
+            _planListResponseCache = {};
+            _planListResponseTime = {};
+            require('./core/plan-cache').bumpCache();
+            // 删除快照（允许重新生成）
+            try {
+              var fs2 = require('fs');
+              var snapFile = require('path').join(__dirname, 'plan_snapshots', refDate + '.json');
+              if (fs2.existsSync(snapFile)) fs2.unlinkSync(snapFile);
+            } catch (e) {}
+            // 触发重新生成并返回新方案
+            var dataFile = getDataJson();
+            var mM = dataFile.m || {};
+            var rM = dataFile.r || {};
+            var mL = [];
+            Object.keys(mM).forEach(function (k) {
+              var m2 = mM[k];
+              if (m2 && (m2.date || '').slice(0, 10) === refDate) mL.push(m2);
+            });
+            var mdMap = {};
+            mL.forEach(function (mm2) {
+              var raw2 = rM['m_' + mm2.matchId] || rM[String(mm2.matchId)] || [];
+              var recs2 = (raw2 || []).map(function (x) {
+                var rv = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
+                return { type: x.t || x.type, num: x.n || x.num, result: rv === 0 || rv === 1 ? rv : null };
+              });
+              var histO = getOddsHistory(refDate);
+              var num2 = mm2.num || '';
+              var odObj = null;
+              if (histO && histO[num2]) {
+                var o2 = histO[num2];
+                odObj = {
+                  spf: o2.spf || null,
+                  rqspf: o2.rqspf || null,
+                  totalGoals: o2.totalGoals || null,
+                  halfFull: o2.halfFull || null,
+                  isSingleGame: o2.isSingleGame || false,
+                };
+              }
+              mdMap[mm2.matchId] = { match: mm2, recs: recs2, odds: odObj };
+            });
+            var PG = require('./core/plan-generator');
+            var freshPlans = PG.generateExpertPlans(mL, mdMap, refDate);
+            var valPlans = validatePlanResponse(freshPlans, refDate);
+            var resp = { code: 1, data: { date: refDate, plans: valPlans, refreshed: true } };
+            _planListResponseCache[refDate] = resp;
+            _planListResponseTime[refDate] = Date.now();
+            return res.json(resp);
+          } catch (e) {
+            return res.json({ code: 0, msg: '刷新方案失败: ' + e.message });
+          }
+        }
+
         // ========== 今日方案列表 ==========
         case 'plan-list': {
           try {
@@ -3672,12 +3768,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
             }
 
-            // ★ P0-1: 响应缓存命中（10 分钟 TTL，data.json mtime 变更自动失效）
+            // ★ P0-1: 响应缓存命中（10 分钟 TTL，方案刷新/快照变更自动失效）
             const planCacheKey = dateStr;
             const planNow = Date.now();
+            const planCacheBuster = require('./core/plan-cache').getCacheBuster();
             const planCacheEntry = _planListResponseCache[planCacheKey];
-            if (planCacheEntry && _planListResponseTime[planCacheKey] &&
-                planNow - _planListResponseTime[planCacheKey] < PLAN_LIST_CACHE_TTL) {
+            if (
+              planCacheEntry &&
+              _planListResponseTime[planCacheKey] &&
+              planNow - _planListResponseTime[planCacheKey] < PLAN_LIST_CACHE_TTL &&
+              _planListResponseTime[planCacheKey] >= planCacheBuster
+            ) {
               return res.json(planCacheEntry);
             }
 
@@ -3719,7 +3820,31 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             // 3) 调用共享方案生成模块
             const PG = require('./core/plan-generator');
-            const plans = PG.generateExpertPlans(mList, matchDataMap, dateStr);
+            var plans;
+
+            // ★ 方案快照模式：锁定后从快照加载（含结果回填）
+            var snap = null;
+            if (dateStr === today) {
+              snap = PG.loadPlanSnapshot(dateStr);
+            }
+            if (snap && snap.plans && snap.plans.length > 0) {
+              // 锁定后：快照身份 + 当前结果回填
+              var histOdds = getOddsHistory(dateStr);
+              plans = PG.hydrateSnapshotWithResults(snap, mMap, rMap, histOdds);
+            } else {
+              // 未锁定或无快照：实时生成
+              plans = PG.generateExpertPlans(mList, matchDataMap, dateStr);
+              // 检查是否需要保存快照（锁定时间已过）
+              if (dateStr === today) {
+                var unstartedList = mList.filter(function (m) {
+                  return (m.matchStatus || 0) < 1;
+                });
+                if (unstartedList.length === 0) {
+                  // 全部已开赛，保存快照
+                  PG.savePlanSnapshot(dateStr, plans, new Date().toISOString());
+                }
+              }
+            }
 
             // ★ P0 Layer 5: 输出门禁 — 响应前校验比分/奖金/中奖状态
             var validatedPlans = validatePlanResponse(plans, dateStr);
@@ -5219,8 +5344,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 };
               }
 
-              // 使用共享方案生成模块，与 plan-list 完全一致
-              const plans = PG.generateExpertPlans(mList, matchDataMap, ds);
+              // ★ 收入统计：优先用快照（锁定版方案身份），fallback 实时生成
+              var plans;
+              var snap2 = PG.loadPlanSnapshot(ds);
+              if (snap2 && snap2.plans && snap2.plans.length > 0) {
+                plans = PG.hydrateSnapshotWithResults(snap2, mMap, rMap, histOdds);
+              } else {
+                plans = PG.generateExpertPlans(mList, matchDataMap, ds);
+              }
 
               // ===== 专家博热方案 =====
               if (directionFilter === 'all' || directionFilter === 'expert') {
@@ -6321,7 +6452,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         case 'ai-health-check': {
           try {
             var d = new Date();
-            var targetDate = data.date || (d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'));
+            var targetDate =
+              data.date ||
+              d.getFullYear() +
+                '-' +
+                String(d.getMonth() + 1).padStart(2, '0') +
+                '-' +
+                String(d.getDate()).padStart(2, '0');
             const deepseek = require('./deepseek');
             const doubao = require('./doubao');
             const dataJson = getDataJson();

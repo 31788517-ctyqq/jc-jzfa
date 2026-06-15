@@ -124,6 +124,7 @@ const ACTION_PERMISSION_MAP = {
   'admin-referral-accounts': 'referral:admin',
   'admin-referral-withdraw-list': 'referral:admin',
   'admin-referral-withdraw-process': 'referral:admin',
+  'user-toggle-referral': 'referral:admin',
 };
 
 const PUBLIC_ACTIONS = new Set([
@@ -262,6 +263,7 @@ function ensureRegisterSchemaReady() {
     ['referred_by', 'ALTER TABLE users ADD COLUMN referred_by INTEGER DEFAULT NULL'],
     ['device_fingerprint', 'ALTER TABLE users ADD COLUMN device_fingerprint TEXT'],
     ['registration_ip', 'ALTER TABLE users ADD COLUMN registration_ip TEXT'],
+    ['referral_enabled', 'ALTER TABLE users ADD COLUMN referral_enabled INTEGER DEFAULT 0'],
   ];
 
   ensureColumns.forEach(([name, sql]) => {
@@ -529,6 +531,7 @@ function buildSessionInfoByUserId(userId) {
   const rows = adp.execAll(
     `SELECT u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at,
             u.subscription_status, u.subscription_expires_at, u.vip_gift_claimed_at, u.vip_gift_expires_at,
+            u.referral_enabled,
             r.code as role_code,
             p.code as permission_code
      FROM users u
@@ -549,6 +552,7 @@ function buildSessionInfoByUserId(userId) {
     subscription_expires_at: rows[0].subscription_expires_at || null,
     vip_gift_claimed_at: rows[0].vip_gift_claimed_at || null,
     vip_gift_expires_at: rows[0].vip_gift_expires_at || null,
+    referralEnabled: rows[0].referral_enabled === 1,
   };
 }
 
@@ -626,6 +630,7 @@ async function loginWithPassword(username, password, meta = {}) {
       subscription_expires_at: sessionInfo.subscription_expires_at,
       vip_gift_claimed_at: sessionInfo.vip_gift_claimed_at,
       vip_gift_expires_at: sessionInfo.vip_gift_expires_at,
+      referralEnabled: sessionInfo.referralEnabled,
       expiresAt: expiresAt,
     });
   }
@@ -778,6 +783,7 @@ function validateSession(token, touch = true) {
       subscription_expires_at: cached.subscription_expires_at || null,
       vip_gift_claimed_at: cached.vip_gift_claimed_at || null,
       vip_gift_expires_at: cached.vip_gift_expires_at || null,
+      referralEnabled: cached.referralEnabled || false,
       expiresAt: cached.expiresAt,
     };
   }
@@ -786,7 +792,8 @@ function validateSession(token, touch = true) {
   const row = adp.execOne(
     `SELECT s.id AS sid, s.user_id, s.expires_at, s.revoked_at,
             u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at,
-            u.subscription_status, u.subscription_expires_at, u.vip_gift_claimed_at, u.vip_gift_expires_at
+            u.subscription_status, u.subscription_expires_at, u.vip_gift_claimed_at, u.vip_gift_expires_at,
+            u.referral_enabled
      FROM auth_sessions s
      JOIN users u ON s.user_id = u.id
      WHERE s.session_token_hash = ?`,
@@ -830,6 +837,7 @@ function validateSession(token, touch = true) {
     subscription_expires_at: row.subscription_expires_at || null,
     vip_gift_claimed_at: row.vip_gift_claimed_at || null,
     vip_gift_expires_at: row.vip_gift_expires_at || null,
+    referralEnabled: row.referral_enabled === 1,
     expiresAt: row.expires_at,
   };
 }
@@ -870,7 +878,7 @@ async function changePassword(userId, oldPassword, newPassword) {
 function listUsers() {
   const adp = getAdapter();
   const rows = adp.execAll(
-    `SELECT id, username, status, must_change_password, last_login_at, password_updated_at, created_at
+    `SELECT id, username, status, must_change_password, last_login_at, password_updated_at, created_at, referral_enabled
      FROM users ORDER BY id ASC`,
   );
   // ★ 管理后台: 一次 JOIN 查出全部用户角色，按 userId 分组（避免 N+1）
@@ -893,6 +901,7 @@ function listUsers() {
     lastLoginAt: u.last_login_at || null,
     passwordUpdatedAt: u.password_updated_at || null,
     createdAt: u.created_at || null,
+    referralEnabled: u.referral_enabled === 1,
   }));
 }
 
@@ -1009,6 +1018,16 @@ function updateUserRoles(userId, roleCodes) {
   return { ok: true };
 }
 
+/** ★ 管理员：开启/关闭指定用户的返利功能 */
+function toggleUserReferral(userId, enabled) {
+  if (!userId) return { ok: false, msg: 'MISSING_USER_ID' };
+  const val = enabled ? 1 : 0;
+  const adp = getAdapter();
+  adp.execRun('UPDATE users SET referral_enabled = ?, updated_at = ? WHERE id = ?', val, nowIso(), userId);
+  flushCriticalWrites(adp);
+  return { ok: true, userId, referralEnabled: val === 1 };
+}
+
 module.exports = {
   ensureBootstrapped,
   resolveSessionToken,
@@ -1028,4 +1047,5 @@ module.exports = {
   listRolesWithPermissions,
   updateRolePermissions,
   updateUserRoles,
+  toggleUserReferral,
 };

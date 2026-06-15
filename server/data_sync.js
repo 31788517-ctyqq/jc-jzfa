@@ -21,6 +21,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const { getWithUA, getWithRetry, jitter, sleep } = require('./http-utils');
 const { getToken, refreshToken } = require('./token_manager');
+const { login, fetchRecommends } = require('./core/midou'); // ★ 方案A: 统一数据源
 const { fetchOdds: fetch500Odds, fetchShujuMap } = require('./fetch_500odds');
 const { fetchShujuData } = require('./fetch_shuju');
 const { mergeShuju } = require('./merge_shuju');
@@ -31,6 +32,7 @@ const logger = require('./logger').child('data_sync');
 const database = require('./database');
 const autoHeal = require('./auto_heal');
 const matchDataPack = require('./core/match-data-pack');
+const { getOddsHistory } = require('./core/cache');
 
 // AI 模块（用于定时刷新）
 let deepseek, doubao, aiMerger;
@@ -661,44 +663,37 @@ async function syncRecommends(dateStr) {
     let recChanged = 0,
       resultUpdated = 0;
 
+    // ★ 方案A: 使用 midou.js fetchRecommends（与详情页同一 auth，10min 缓存）
     for (let i = 0; i < dateMatches.length; i++) {
       const m = dateMatches[i];
       const mid = String(m.matchId || '');
 
       try {
-        const recRes = await getWithUA(
-          MIDOU_BASE + '/score/getExpertRecommData.do',
-          { dataId: mid, type: 0 },
-          { Cookie: 'token=' + token },
-        );
+        const recs = await fetchRecommends(mid);
 
-        if (recRes.code === 1 && recRes.data && recRes.data.length) {
-          const recs = recRes.data
-            .filter((x) => x && x.type && x.num > 0)
-            .map((x) => ({
-              type: x.type,
-              num: x.num,
-              result: x.result !== undefined ? x.result : null,
-            }));
+        const rk = 'm_' + mid;
+        const oldRecs = data.r[rk] || [];
+        const oldLen = oldRecs.length;
+        const oldResultCount = oldRecs.filter((r) => r.result !== null && r.result !== 2).length;
 
-          const rk = 'm_' + mid;
-          const oldRecs = data.r[rk] || [];
-          const oldLen = oldRecs.length;
-          const oldResultCount = oldRecs.filter((r) => r.result !== null && r.result !== 2).length;
-
-          // A1: 保护：filter 后为空但已有数据时跳过写入，防止数据漂移
-          if (recs.length === 0 && oldRecs.length > 0) {
-            log('[recommend] ' + mid + ' 过滤后为空，保留原有 ' + oldRecs.length + ' 条推荐数据');
-            continue;
-          }
-          data.r[rk] = recs;
-          if (recs.length !== oldLen) recChanged++;
-
-          const newResultCount = recs.filter((r) => r.result !== null && r.result !== 2).length;
-          if (newResultCount > oldResultCount) resultUpdated++;
-
-          saveTrendSnapshot(mid, recs);
+        // A1: 保护：filter 后为空但已有数据时跳过写入，防止数据漂移
+        if (recs.length === 0 && oldRecs.length > 0) {
+          log('[recommend] ' + mid + ' 过滤后为空，保留原有 ' + oldRecs.length + ' 条推荐数据');
+          continue;
         }
+        data.r[rk] = recs;
+        // ★ 方案A: recommNum 使用 midou 实时数据（fetchRecommends 返回正确 num）
+        if (data.m[rk]) {
+          data.m[rk].recommNum = recs.reduce(function (s, r) {
+            return s + (r.num || 0);
+          }, 0);
+        }
+        if (recs.length !== oldLen) recChanged++;
+
+        const newResultCount = recs.filter((r) => r.result !== null && r.result !== 2).length;
+        if (newResultCount > oldResultCount) resultUpdated++;
+
+        saveTrendSnapshot(mid, recs);
       } catch (e) {
         log('[recommend] ' + mid + ' 获取失败: ' + e.message);
       }
@@ -1021,9 +1016,15 @@ async function processBackfillQueue() {
           .filter((x) => x && x.type && x.num > 0)
           .map((x) => ({ type: x.type, num: x.num, result: x.result !== undefined ? x.result : null }));
 
-        const rk = 'm_' + mid;
-        const oldStale = (data.r[rk] || []).filter((r) => r.result === null || r.result === 2).length;
-        data.r[rk] = newRecs;
+        const rk2 = 'm_' + mid;
+        const oldStale = (data.r[rk2] || []).filter((r) => r.result === null || r.result === 2).length;
+        data.r[rk2] = newRecs;
+        // ★ 同步更新 match.recommNum
+        if (data.m[rk2]) {
+          data.m[rk2].recommNum = newRecs.reduce(function (s, r) {
+            return s + (r.num || 0);
+          }, 0);
+        }
         const newStale = newRecs.filter((r) => r.result === null || r.result === 2).length;
         if (newStale < oldStale) {
           success++;
@@ -1197,6 +1198,12 @@ async function backfillResults(dateStr) {
           const rk = 'm_' + item.mid;
           const oldStale = (data.r[rk] || []).filter((r) => r.result === null || r.result === 2).length;
           data.r[rk] = newRecs;
+          // ★ 同步更新 match.recommNum
+          if (data.m[rk]) {
+            data.m[rk].recommNum = newRecs.reduce(function (s, r) {
+              return s + (r.num || 0);
+            }, 0);
+          }
           const newStale = newRecs.filter((r) => r.result === null || r.result === 2).length;
           if (newStale < oldStale) {
             updated++;
@@ -2199,7 +2206,7 @@ function autoInferStatus(dateStr) {
         var scoreParts = String(m.score.trim()).split(/[:\-]/);
         var s1 = parseInt(scoreParts[0]) || 0;
         var s2 = parseInt(scoreParts[1]) || 0;
-        var isSuspiciousDate = (s1 >= 1 && s1 <= 12) && (s2 >= 1 && s2 <= 31) && (s1 + s2 > 12);
+        var isSuspiciousDate = s1 >= 1 && s1 <= 12 && s2 >= 1 && s2 <= 31 && s1 + s2 > 12;
         if (!isSuspiciousDate) {
           m.matchStatus = 2;
           fixed++;
@@ -2453,6 +2460,20 @@ async function start() {
     startTodayScheduleWatcher();
   }
 
+  // ★ 启动时强制刷新一次推荐数据（确保 plan-generator 基于最新数据）
+  if (todayHasMatches(currentDate)) {
+    log('[init] 启动时强制同步今日推荐数据...');
+    syncRecommends(currentDate)
+      .catch(function (e) {
+        log('[init] 推荐同步失败: ' + e.message);
+      })
+      .then(function () {
+        startPlanAutoRefresh();
+      });
+  } else {
+    startPlanAutoRefresh();
+  }
+
   // ═══ 循环1: 每2分钟 — 实时比分 (500.com 直播页，无需认证) ═══
   async function liveScoreLoop() {
     if (liveScoreRunning) return;
@@ -2510,6 +2531,196 @@ async function start() {
     setTimeout(recommendLoop, 20 * 60 * 1000);
   }
 
+  // ═══ 方案自动刷新（每30分钟，至锁定时间） ═══
+  var _planRefreshTimer = null;
+  var _planLocked = false;
+  var _planLockTime = 0;
+  var _planEarliestKickoff = 0;
+
+  function computeLockTime(dateStr) {
+    try {
+      var data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+      var mMap = data.m || {};
+      var year = new Date().getFullYear();
+      var earliestUnstarted = Infinity;
+
+      Object.keys(mMap).forEach(function (k) {
+        var m = mMap[k];
+        if (!m || !m.date || m.date.slice(0, 10) !== dateStr) return;
+        if (m.matchStatus >= 1) return; // 已开赛或已结束，跳过
+        if (!m.startTime) return;
+        try {
+          var raw = m.startTime.replace(/\//g, '-');
+          var clean = raw.replace(/\s+/g, '');
+          var dt = new Date(
+            year + '-' + clean.slice(0, 2) + '-' + clean.slice(3, 5) + 'T' + clean.slice(5, 10) + ':00+08:00',
+          );
+          if (!isNaN(dt.getTime()) && dt.getTime() < earliestUnstarted) {
+            earliestUnstarted = dt.getTime();
+          }
+        } catch (e) {}
+      });
+
+      if (earliestUnstarted === Infinity) {
+        return { lockTime: Date.now(), earliestKickoff: 0, locked: true, reason: 'all_started' };
+      }
+
+      var lockTime = earliestUnstarted - 20 * 60 * 1000; // 首场开赛前20分钟
+      if (lockTime <= Date.now()) {
+        return { lockTime: Date.now(), earliestKickoff: earliestUnstarted, locked: true, reason: 'past_lock' };
+      }
+      return { lockTime: lockTime, earliestKickoff: earliestUnstarted, locked: false, reason: 'pending' };
+    } catch (e) {
+      return { lockTime: Date.now(), earliestKickoff: 0, locked: true, reason: 'error' };
+    }
+  }
+
+  async function refreshPlanCache() {
+    if (_planLocked) return;
+    log('[plan-refresh] 开始刷新方案缓存...');
+
+    // 计算锁定时间
+    var lockInfo = computeLockTime(currentDate);
+    _planLockTime = lockInfo.lockTime;
+    _planEarliestKickoff = lockInfo.earliestKickoff;
+
+    if (lockInfo.locked) {
+      _planLocked = true;
+      if (lockInfo.earliestKickoff > 0) {
+        log('[plan-refresh] 方案已锁定 (reason=' + lockInfo.reason + ')，保存快照');
+        // 锁定时刻：保存快照
+        try {
+          var PG = require('./core/plan-generator');
+          var data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+          var mMap = data.m || {};
+          var rMap = data.r || {};
+          var mList = [];
+          Object.keys(mMap).forEach(function (k) {
+            var m = mMap[k];
+            if (m && (m.date || '').slice(0, 10) === currentDate) mList.push(m);
+          });
+          var matchDataMap = {};
+          mList.forEach(function (mm) {
+            var raw = rMap['m_' + mm.matchId] || rMap[String(mm.matchId)] || [];
+            var recs = (raw || []).map(function (x) {
+              var r = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
+              return { type: x.t || x.type, num: x.n || x.num, result: r === 0 || r === 1 ? r : null };
+            });
+            var oddsEntry = getOddsHistory(currentDate);
+            var num = mm.num || '';
+            var oddsObj = null;
+            if (oddsEntry && oddsEntry[num]) {
+              var od = oddsEntry[num];
+              oddsObj = {
+                spf: od.spf || null,
+                rqspf: od.rqspf || null,
+                totalGoals: od.totalGoals || null,
+                halfFull: od.halfFull || null,
+                isSingleGame: od.isSingleGame || false,
+              };
+            }
+            matchDataMap[mm.matchId] = { match: mm, recs: recs, odds: oddsObj };
+          });
+          var plans = PG.generateExpertPlans(mList, matchDataMap, currentDate);
+          PG.savePlanSnapshot(currentDate, plans, new Date(_planEarliestKickoff).toISOString());
+          log('[plan-refresh] 方案快照已保存: ' + plans.length + ' 个方案');
+        } catch (e2) {
+          log('[plan-refresh] 快照保存失败: ' + e2.message);
+        }
+        clearPlanRefreshTimer();
+      } else {
+        log('[plan-refresh] 方案已锁定 (全部已开赛)');
+      }
+    } else {
+      var minUntilLock = Math.round((_planLockTime - Date.now()) / 60000);
+      log('[plan-refresh] 缓存已刷新，距锁定还有 ' + minUntilLock + ' 分钟');
+    }
+
+    // 失效 index.js 缓存
+    try {
+      require('./core/plan-cache').bumpCache();
+    } catch (e) {}
+  }
+
+  function clearPlanRefreshTimer() {
+    if (_planRefreshTimer) {
+      clearTimeout(_planRefreshTimer);
+      _planRefreshTimer = null;
+    }
+  }
+
+  function schedulePlanAutoRefresh() {
+    clearPlanRefreshTimer();
+    var now = Date.now();
+    var nowDate = fmtLocal(new Date());
+
+    // 当前不是"今天"，则等明天16:30
+    if (nowDate !== currentDate) {
+      var next1630 = new Date();
+      next1630.setHours(16, 30, 0, 0);
+      if (next1630.getTime() <= now) next1630.setDate(next1630.getDate() + 1);
+      var delay = next1630.getTime() - now;
+      log('[plan-refresh] 非当日，下次方案刷新在 ' + Math.round(delay / 3600000) + ' 小时后');
+      _planRefreshTimer = setTimeout(function () {
+        startPlanAutoRefresh();
+      }, delay);
+      return;
+    }
+
+    // 如果已锁定，不再调度
+    if (_planLocked) return;
+
+    // 如果在16:30之前，等到16:30
+    var h = new Date().getHours();
+    var m = new Date().getMinutes();
+    if (h < 16 || (h === 16 && m < 30)) {
+      var to1630 = new Date();
+      to1630.setHours(16, 30, 0, 0);
+      var d1630 = to1630.getTime() - now;
+      log('[plan-refresh] 等待首次刷新(16:30)，' + Math.round(d1630 / 60000) + ' 分钟后');
+      _planRefreshTimer = setTimeout(function () {
+        startPlanAutoRefresh();
+      }, d1630);
+      return;
+    }
+
+    // 计算锁定时间
+    var lockInfo = computeLockTime(currentDate);
+    _planLockTime = lockInfo.lockTime;
+    _planEarliestKickoff = lockInfo.earliestKickoff;
+    _planLocked = lockInfo.locked;
+
+    if (_planLocked) {
+      log('[plan-refresh] 当前已是锁定状态: ' + lockInfo.reason);
+      refreshPlanCache();
+      return;
+    }
+
+    // 立即刷新一次
+    refreshPlanCache();
+
+    // 30分钟后再次刷新（如果未锁定）
+    var nextMs = now + 30 * 60 * 1000;
+    if (nextMs >= _planLockTime) {
+      // 下次刷新会在锁定时间之后 → 调整为锁定时间
+      nextMs = _planLockTime;
+      log('[plan-refresh] 下次(锁定触发)，' + Math.round((nextMs - now) / 60000) + ' 分钟后');
+    } else {
+      log('[plan-refresh] 下次(30min)，' + Math.round((nextMs - now) / 60000) + ' 分钟后');
+    }
+    _planRefreshTimer = setTimeout(function () {
+      startPlanAutoRefresh();
+    }, nextMs - now);
+  }
+
+  function startPlanAutoRefresh() {
+    _planLocked = false;
+    _planLockTime = 0;
+    _planEarliestKickoff = 0;
+    clearPlanRefreshTimer();
+    schedulePlanAutoRefresh();
+  }
+
   // ═══ 每日12:00定时：赔率+赛程 ═══
   function scheduleNoon() {
     const delay = getNextNoonDelay();
@@ -2526,6 +2737,8 @@ async function start() {
         _ensureRetries = 0; // 重置重试计数
         _aiScheduleTriggeredDate = '';
         _aiDaily13DoneDate = '';
+        // ★ 方案刷新重置（新日期重新调度）
+        startPlanAutoRefresh();
       }
 
       log('[scheduler] ⏰ 12:00 定时任务触发');
@@ -2840,7 +3053,9 @@ function trimOldRecommendData() {
       const archiveFile = path.join(archiveDir, 'recommends_before_' + cutoffKey + '.json');
       let existing = {};
       if (fs.existsSync(archiveFile)) {
-        try { existing = JSON.parse(fs.readFileSync(archiveFile, 'utf8')); } catch (e) {}
+        try {
+          existing = JSON.parse(fs.readFileSync(archiveFile, 'utf8'));
+        } catch (e) {}
       }
       Object.assign(existing, archive);
       fs.writeFileSync(archiveFile, JSON.stringify(existing));

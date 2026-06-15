@@ -22,6 +22,15 @@ const MIN_WITHDRAWAL_AMOUNT = 1000; // 最小提现金额 10元（分）
 const REFERRAL_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let _referralSchemaReady = false;
 
+/** ★ 返利功能白名单守卫：检查 session 中 referralEnabled 标志 */
+function guardReferralAccess(req, res) {
+  if (!req.authSession || !req.authSession.referralEnabled) {
+    res.json({ code: 403, msg: 'REFERRAL_NOT_ENABLED' });
+    return false;
+  }
+  return true;
+}
+
 function ensureReferralSchema(adp) {
   if (!adp || _referralSchemaReady) return;
   initPaymentSchema(adp);
@@ -88,6 +97,7 @@ function ensureReferralAccountRow(adp, userId) {
  */
 async function referralInfo(req, res) {
   try {
+    if (!guardReferralAccess(req, res)) return;
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
     ensureReferralSchema(adp);
@@ -118,6 +128,7 @@ async function referralInfo(req, res) {
  */
 async function referralAccount(req, res) {
   try {
+    if (!guardReferralAccess(req, res)) return;
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
     ensureReferralSchema(adp);
@@ -181,6 +192,7 @@ async function referralAccount(req, res) {
  */
 async function referralCommissions(req, res) {
   try {
+    if (!guardReferralAccess(req, res)) return;
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
     ensureReferralSchema(adp);
@@ -239,6 +251,7 @@ async function referralCommissions(req, res) {
  */
 async function withdrawSubmit(req, res) {
   try {
+    if (!guardReferralAccess(req, res)) return;
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
     ensureReferralSchema(adp);
@@ -291,6 +304,7 @@ async function withdrawSubmit(req, res) {
  */
 async function withdrawHistory(req, res) {
   try {
+    if (!guardReferralAccess(req, res)) return;
     const adp = database.getAdapter();
     if (!adp) return res.json({ code: 500, msg: 'DB_UNAVAILABLE' });
     ensureReferralSchema(adp);

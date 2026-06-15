@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { getAuthSession, hasAuthToken } from '../auth-client.js';
+import { getAuthSession, hasAuthToken, hasReferralAccess } from '../auth-client.js';
 
 const MEMBER_RIGHTS = [
   '专家方案 / 博热方案 / 量化方案完整访问',
@@ -40,7 +40,9 @@ function statusMeta(sub) {
         icon: '⚪',
         text: '未开通',
         className: 'status-free',
-        desc: '开通会员后可查看完整方案、AI 预测与返利中心。',
+        desc: hasReferralAccess()
+          ? '开通会员后可查看完整方案、AI 预测与返利中心。'
+          : '开通会员后可查看完整方案与 AI 预测。',
       };
   }
 }
@@ -134,13 +136,20 @@ export async function loadSubscription(container) {
       '</div>' +
       '<div class="sub-actions">' +
       actions +
-      '<button class="sub-btn sub-btn-secondary" type="button" onclick="window.navigateTo(\'referral\')">查看邀请返利</button></div>' +
+      (hasReferralAccess()
+        ? '<button class="sub-btn sub-btn-secondary" type="button" onclick="window.navigateTo(\'referral\')">查看邀请返利</button>'
+        : '') +
+      '</div>' +
       '<div class="member-section-card sub-feature-card">' +
       '<div class="member-section-title">会员权益</div>' +
       '<div class="member-note-list">' +
-      MEMBER_RIGHTS.map(function (item) {
-        return '<div class="member-note-item"><span class="member-note-icon">✓</span><span>' + item + '</span></div>';
-      }).join('') +
+      MEMBER_RIGHTS.filter(function (item) {
+        return hasReferralAccess() || item.indexOf('返利') < 0;
+      })
+        .map(function (item) {
+          return '<div class="member-note-item"><span class="member-note-icon">✓</span><span>' + item + '</span></div>';
+        })
+        .join('') +
       '</div>' +
       '</div>' +
       '<div class="member-cta-row">' +

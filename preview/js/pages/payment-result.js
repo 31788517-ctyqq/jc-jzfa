@@ -1,4 +1,5 @@
 import { api } from '../api.js';
+import { hasReferralAccess } from '../auth-client.js';
 
 const PLAN_NAME_MAP = {
   monthly: '月度套餐',
@@ -84,7 +85,9 @@ export async function loadPaymentResult(container, data) {
             : '支付失败';
     var heroDesc =
       payStatus === 'paid'
-        ? '系统已为你激活订阅，可继续查看订阅状态或邀请好友返利。'
+        ? hasReferralAccess()
+          ? '系统已为你激活订阅，可继续查看订阅状态或邀请好友返利。'
+          : '系统已为你激活订阅，可前往订阅中心查看状态。'
         : payStatus === 'pending'
           ? '订单仍在确认中，你可以稍后返回本页或前往订阅中心查看最新状态。'
           : payStatus === 'expired'
@@ -123,7 +126,11 @@ export async function loadPaymentResult(container, data) {
       '</div>' +
       '<div class="result-action-group">' +
       (payStatus === 'paid'
-        ? '<button class="result-btn" type="button" onclick="window.navigateTo(\'subscription\')">查看订阅</button><button class="result-btn result-btn-sub" type="button" onclick="window.navigateTo(\'referral\')">去返利中心</button><button class="result-btn result-btn-sub" type="button" onclick="window.navigateTo(\'home\')">返回首页</button>'
+        ? '<button class="result-btn" type="button" onclick="window.navigateTo(\'subscription\')">查看订阅</button>' +
+          (hasReferralAccess()
+            ? '<button class="result-btn result-btn-sub" type="button" onclick="window.navigateTo(\'referral\')">去返利中心</button>'
+            : '') +
+          '<button class="result-btn result-btn-sub" type="button" onclick="window.navigateTo(\'home\')">返回首页</button>'
         : payStatus === 'pending'
           ? '<button class="result-btn" type="button" onclick="window.navigateTo(\'subscription\')">查看订阅</button><button class="result-btn result-btn-sub" type="button" onclick="window.navigateTo(\'pricing\')">回套餐页</button>'
           : '<button class="result-btn" type="button" onclick="window.navigateTo(\'pricing\')">重新选购</button><button class="result-btn result-btn-sub" type="button" onclick="window.navigateTo(\'contact-invite\')">联系客服</button>') +
