@@ -1,6 +1,17 @@
 // ==================== 主入口：路由导航 + 全局状态管理 ====================
 console.log('[V7.0-VITE][Phase2] main-fusion.js loaded');
-import { api, WEEK_NAMES, formatDate, getCache, setCache, clearAuthAll, getAuthSession, hasAuthToken, setAuthSession, hasReferralAccess } from './vendor.js';
+import {
+  api,
+  WEEK_NAMES,
+  formatDate,
+  getCache,
+  setCache,
+  clearAuthAll,
+  getAuthSession,
+  hasAuthToken,
+  setAuthSession,
+  hasReferralAccess,
+} from './vendor.js';
 import * as state from './vendor.js';
 import { loadHome } from './pages/home.js';
 import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js';
@@ -8,7 +19,19 @@ import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/matc
 // ═══ 模块懒加载：import.meta.glob 静态分析所有页面模块 → 每个独立 chunk ═══
 // ★ Phase2 (Vite): import.meta.glob 在构建时展开为静态映射，Rollup 自动 Code-Split
 //     每个页面模块成为独立 chunk，Tree-Shaking 移除未用导出
-function _mod(name) { return import('./pages/' + name + '.js').catch(function (e) { console.error('[JS] load fail: ' + name + ' - ' + (e && e.message)); return new Promise(function (resolve, reject) { setTimeout(function () { import('./pages/' + name + '.js').then(resolve).catch(function (e2) { console.error('[JS] retry fail: ' + name + ' - ' + (e2 && e2.message)); reject(e2); }); }, 1000); }); }); }
+function _mod(name) {
+  return import('./pages/' + name + '.js').catch(function (e) {
+    console.error('[JS] load fail: ' + name + ' - ' + (e && e.message));
+    return new Promise(function (resolve, reject) {
+      setTimeout(function () {
+        import('./pages/' + name + '.js').then(resolve).catch(function (e2) {
+          console.error('[JS] retry fail: ' + name + ' - ' + (e2 && e2.message));
+          reject(e2);
+        });
+      }, 1000);
+    });
+  });
+}
 
 // 预加载常用模块（在首次渲染后异步加载，不阻塞首页）
 function _preloadMods() {
@@ -926,9 +949,13 @@ export function switchTab(tab) {
 
   // navMyBtn (green)
   var nmb = document.getElementById('navMyBtn');
+  var sm = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
   if (nmb) {
-    var sm = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
     nmb.style.display = sm ? 'flex' : 'none';
+    nmb.style.marginLeft = sm ? 'auto' : '0';
+  }
+  if (backEl) {
+    backEl.style.marginLeft = sm ? '8px' : 'auto';
   }
 
   var navbarEl = document.getElementById('navbar');
@@ -1203,7 +1230,14 @@ window.switchTab = switchTab;
 window.goBack = goBack;
 window._stReal = switchTab;
 window._gbReal = goBack;
-if (window._stQ && window._stQ.length) { var _q = window._stQ; window._stQ = []; _q.forEach(function(_t) { if (_t === '__goBack__') goBack(); else switchTab(_t); }); }
+if (window._stQ && window._stQ.length) {
+  var _q = window._stQ;
+  window._stQ = [];
+  _q.forEach(function (_t) {
+    if (_t === '__goBack__') goBack();
+    else switchTab(_t);
+  });
+}
 window.goToday = goToday;
 window.shiftWeek = shiftWeek;
 window.toggleDatePicker = toggleDatePicker;
@@ -1478,9 +1512,13 @@ function switchTabLoad(tab) {
 
   // navMyBtn (green)
   var nmb = document.getElementById('navMyBtn');
+  var sm = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
   if (nmb) {
-    var sm = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
     nmb.style.display = sm ? 'flex' : 'none';
+    nmb.style.marginLeft = sm ? 'auto' : '0';
+  }
+  if (backEl) {
+    backEl.style.marginLeft = sm ? '8px' : 'auto';
   }
 
   var navbarEl = document.getElementById('navbar');
@@ -1695,7 +1733,6 @@ function switchTabLoad(tab) {
 }
 
 // ★ Phase3: API 数据预取 — 与模块加载并行，api() 去重保证零额外请求
-
 
 // 命中率页面重试事件监听
 document.addEventListener('retryHitRate', function () {
