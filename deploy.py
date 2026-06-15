@@ -90,9 +90,13 @@ PROTECTED_FILES = [
 
 DEPLOY_MAP = [
     # 前端静态文件 → Nginx + PM2 双路径
-    # ★ 修复：Nginx root 直读 index.html（非 preview/ 子目录）
+    # ★ 修复：Nginx root 直读 index.html + JS/CSS（非 preview/ 子目录）
     ('index.html',                        'nginx'),
     ('preview/index.html',                'both'),
+    # Nginx 从 root 目录读取 js/css，需要额外映射
+    ('preview/js/main-fusion.js',         'nginx'),  # ★ 关键入口
+    ('preview/js/vendor.js',              'nginx'),  # Phase1 vendor chunk
+    ('preview/css/app.css',               'nginx'),  # 主样式
     ('preview/sw.js',                     'both'),  # P2-4: Service Worker
     ('preview/assets/expressionless-face.svg', 'both'),
     ('preview/assets/plan_icon.png',      'both'),
@@ -752,6 +756,15 @@ def main():
         results = batch_upload_v3(sftp, ssh, upload_list)
 
     print('  上传完成: {} 文件'.format(total))
+
+    # ★ 修复：将 preview/js/ + preview/css/ 复制到 Nginx 根目录
+    #   Nginx root 为 /var/www/zj.100qiu.com/，直接从根读 /js/main-fusion.js
+    if not dry_run:
+        print(c('C', '[Phase 2.4] 同步 JS/CSS 到 Nginx 根目录'))
+        for sub in ['js', 'css']:
+            src = f'{NGINX_ROOT}/preview/{sub}/'
+            dst = f'{NGINX_ROOT}/{sub}/'
+            ssh_cmd(ssh, f'mkdir -p {dst} 2>/dev/null; cp -rf {src}* {dst} && echo "  synced {sub}" || echo "  skip {sub}"', 5)
     print()
 
     # ── Phase 2.5: Nginx 缓存清除 ──
