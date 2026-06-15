@@ -188,9 +188,9 @@ body {
   height: 28px;
   padding: 0 10px;
   border-radius: 15px;
-  background: var(--green);
+  background: var(--green) !important;
   border: 1px solid rgba(129, 164, 214, 0.18);
-  color: #fff;
+  color: #fff !important;
   font-size: 11px;
   font-weight: 600;
   display: flex;
@@ -7417,14 +7417,6 @@ body {
 }
 .home-update-btn span {
   color: var(--alpine-mint-deep);
-}
-.home-my-btn {
-  color: var(--alpine-text-sub);
-  background: rgba(255, 255, 255, 0.58);
-  border-color: rgba(130, 158, 164, 0.18);
-}
-.home-my-btn span {
-  color: var(--alpine-text-sub);
 }
 .home-bell {
   color: var(--alpine-text-sub);
