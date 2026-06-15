@@ -1154,6 +1154,10 @@ export function switchTab(tab) {
     });
   }
 
+  // ★ Phase3: 切 Tab 时立即预取 API 数据（与模块加载并行）
+  //     api() 内置请求去重，模块加载后调用同一 API 时共享已发起的请求
+  _prefetchTabData(tab);
+
   // ★ P1: 首页后异步预取相邻 Tab 数据（方案+命中率），切页直接渲染
   if (tab === 'home') {
     setTimeout(function () {
@@ -1161,6 +1165,33 @@ export function switchTab(tab) {
       api('plan-list', { date: today }).catch(function () {});
       api('hit-rate-stats', {}).catch(function () {});
     }, 1200);
+  }
+}
+
+// ★ Phase3: API 数据预取 — 与模块加载并行，api() 去重保证零额外请求
+//     注：此函数在 switchTab 和 switchTabLoad 两处共用（只定义一次）
+function _prefetchTabData(tab) {
+  var today = formatDate(new Date());
+  if (tab === 'plan') {
+    var pd = state.planDate || today;
+    api('plan-list', { date: pd }).catch(function () {});
+  } else if (tab === 'match') {
+    var sel = state.weekDates[state.selectedWeekIdx];
+    if (sel && sel.matchDate) {
+      api('match-list', { date: sel.matchDate }).catch(function () {});
+    }
+  } else if (tab === 'rank') {
+    api('ranking-list', { date: state.rankDate || today }).catch(function () {});
+  } else if (tab === 'hit') {
+    api('hit-rate-stats', {}).catch(function () {});
+  } else if (tab === 'quant-rank') {
+    api('quant-rank', {}).catch(function () {});
+  } else if (tab === 'income') {
+    api('plan-income', {}).catch(function () {});
+  } else if (tab === 'filter') {
+    api('filter-leagues', {}).catch(function () {});
+  } else if (tab === 'backtest') {
+    api('prediction-backtest', {}).catch(function () {});
   }
 }
 
@@ -1653,6 +1684,10 @@ function switchTabLoad(tab) {
     });
   }
 
+  // ★ Phase3: 切 Tab 时立即预取 API 数据（与模块加载并行）
+  //     api() 内置请求去重，模块加载后调用同一 API 时共享已发起的请求
+  _prefetchTabData(tab);
+
   // ★ P1: 首页后异步预取相邻 Tab 数据（方案+命中率），切页直接渲染
   if (tab === 'home') {
     setTimeout(function () {
@@ -1660,6 +1695,33 @@ function switchTabLoad(tab) {
       api('plan-list', { date: today }).catch(function () {});
       api('hit-rate-stats', {}).catch(function () {});
     }, 1200);
+  }
+}
+
+// ★ Phase3: API 数据预取 — 与模块加载并行，api() 去重保证零额外请求
+//     注：此函数在 switchTab 和 switchTabLoad 两处共用（只定义一次）
+function _prefetchTabData(tab) {
+  var today = formatDate(new Date());
+  if (tab === 'plan') {
+    var pd = state.planDate || today;
+    api('plan-list', { date: pd }).catch(function () {});
+  } else if (tab === 'match') {
+    var sel = state.weekDates[state.selectedWeekIdx];
+    if (sel && sel.matchDate) {
+      api('match-list', { date: sel.matchDate }).catch(function () {});
+    }
+  } else if (tab === 'rank') {
+    api('ranking-list', { date: state.rankDate || today }).catch(function () {});
+  } else if (tab === 'hit') {
+    api('hit-rate-stats', {}).catch(function () {});
+  } else if (tab === 'quant-rank') {
+    api('quant-rank', {}).catch(function () {});
+  } else if (tab === 'income') {
+    api('plan-income', {}).catch(function () {});
+  } else if (tab === 'filter') {
+    api('filter-leagues', {}).catch(function () {});
+  } else if (tab === 'backtest') {
+    api('prediction-backtest', {}).catch(function () {});
   }
 }
 
