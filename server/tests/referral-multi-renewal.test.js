@@ -65,6 +65,10 @@ describe('referral-renewal: 阶梯返利 (1次50% / 2次55% / 3次+60%)', () => 
     if (login.code !== 1) throw new Error('ctyqq 登录失败');
     inviterToken = login.data.token;
 
+    // ★ 管理员开启自己的返利功能
+    const toggle = await api('user-toggle-referral', { userId: login.data.user.id, enabled: true }, inviterToken);
+    if (toggle.code !== 1) throw new Error('开启返利失败: ' + toggle.msg);
+
     const info = await api('referral-info', {}, inviterToken);
     refCode = info.data.referralCode;
 

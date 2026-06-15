@@ -72,6 +72,10 @@ describe('ultra-e2e: 超严格全链路验证', () => {
     inviterToken = login.data.token;
     inviter = login.data.user;
     expect(inviter.username).toBe('ctyqq');
+
+    // ★ 管理员开启自己的返利功能
+    const toggle = await api('user-toggle-referral', { userId: inviter.id, enabled: true }, inviterToken);
+    if (toggle.code !== 1) throw new Error('开启返利失败: ' + JSON.stringify(toggle));
   }, 30000);
 
   // ═══ 1. 获取邀请信息 ═══

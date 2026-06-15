@@ -61,6 +61,11 @@ describe('edge-e2e: 边界与异常全覆盖', () => {
     const r = await api('auth-login', { username: 'ctyqq', password: '31788517' });
     if (r.code !== 1) throw new Error('ctyqq 登录失败');
     token = r.data.token;
+
+    // ★ 管理员开启自己的返利功能
+    const toggle = await api('user-toggle-referral', { userId: r.data.user.id, enabled: true }, token);
+    if (toggle.code !== 1) console.warn('[edge-e2e] 开启返利失败:', toggle.msg);
+
     const info = await api('referral-info', {}, token);
     if (info.code === 1) refCode = info.data.referralCode;
   }, 30000);

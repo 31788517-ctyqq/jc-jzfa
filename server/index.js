@@ -709,6 +709,36 @@ const CACHE_TTL_10MIN = 10 * 60 * 1000; // ★ P2: 用于 quant-plan-list（计�
 const MATCH_LIST_CACHE_TTL = 5 * 60 * 1000; // 5 分钟（原 1 分钟，P1 延长减少磁盘 I/O）
 const MATCH_LIST_CACHE_MAX_KEYS = 30; // ★ P2: 最多缓存 30 个日期
 const PROFIT_7D_CACHE_TTL = 10 * 60 * 1000; // 10 分钟（计算密集，命中后复用）
+
+// ★ 生产端性能优化：当天空列表时后台预热，避免首屏阻塞等待 ensureData
+let _matchListWarmupInFlight = false;
+let _matchListWarmupLastAt = 0;
+let _matchListWarmupLastDate = '';
+function triggerMatchListWarmup(dateStr) {
+  const now = Date.now();
+  if (!dateStr) return;
+  if (_matchListWarmupInFlight) return;
+  if (_matchListWarmupLastDate === dateStr && now - _matchListWarmupLastAt < 60000) return; // 60s 冷却
+
+  _matchListWarmupInFlight = true;
+  _matchListWarmupLastAt = now;
+  _matchListWarmupLastDate = dateStr;
+
+  safeApiCall(
+    () => ensureData(),
+    async () => [],
+  )
+    .then(() => {
+      logger.info('[match-list] 已触发后台预热 ensureData date=' + dateStr);
+    })
+    .catch((e) => {
+      logger.warn('[match-list] 后台预热失败: ' + (e && e.message ? e.message : e));
+    })
+    .finally(() => {
+      _matchListWarmupInFlight = false;
+    });
+}
+
 // 根据 date + num 获取比分赔率，格式转换 "1:0" → "1-0"
 function getScoreOdds(allplays, dateStr, num) {
   if (!allplays || !dateStr || !num) return null;
@@ -1471,23 +1501,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
             });
 
-            // 如果没有找到数据，尝试实时抓取（仅限今天）
+            // 如果没有找到数据，今天场景走“快速返回 + 后台预热”，避免阻塞首屏
             if (list.length === 0) {
               const today = localDate();
               if (dateStr === today) {
-                const liveMatches = await safeApiCall(
-                  () => ensureData(),
-                  async () => [],
-                );
-                const filtered = liveMatches.filter((m) => {
-                  if ((m.date || '').slice(0, 10) !== today) return false;
-                  if (hideFinished && m.matchStatus !== 0) return false;
-                  return true;
-                });
-                if (filtered.length > 0) {
-                  return res.json({ code: 1, data: filtered });
-                }
-                // ★ 兜底: 实时 API 也无数据 → 回退到 data.json 最近有数据的日期
+                // ★ 关键优化：不等待 ensureData，转为后台预热
+                triggerMatchListWarmup(today);
+
+                // ★ 兜底：优先回退到最近有数据日期，确保页面可展示
                 const fallbackDate = latestDataDate();
                 if (fallbackDate && fallbackDate !== today) {
                   const fallbackList = [];
@@ -1514,10 +1535,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   });
                   fallbackList.sort((a, b) => (a.num || '').localeCompare(b.num || ''));
                   if (fallbackList.length > 0) {
-                    return res.json({ code: 1, data: fallbackList, _fallbackDate: fallbackDate });
+                    return res.json({ code: 1, data: fallbackList, _fallbackDate: fallbackDate, _warmup: true });
                   }
                 }
-                return res.json({ code: 1, data: filtered });
+
+                // 无可回退数据时快速返回空，避免请求长时间阻塞
+                return res.json({ code: 1, data: [], _warmup: true });
               }
             }
 
@@ -6402,7 +6425,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             }
 
             // 3) 文件缓存大小
-            const frc = tryRequire;
             const cacheFiles = [
               { name: 'cache.json', path: path.join(__dirname, 'gongshoudao', 'cache.json') },
               { name: 'stats_bank.json', path: path.join(__dirname, 'stats_bank.json') },

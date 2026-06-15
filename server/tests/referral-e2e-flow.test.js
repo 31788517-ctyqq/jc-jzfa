@@ -56,6 +56,12 @@ describe('referral-e2e: 邀请→注册→充值→返利→提现', () => {
       console.warn('[e2e] 服务器不可用，跳过后续');
       return;
     }
+    // ★ 管理员开启自己的返利功能
+    const session = await api('auth-session', {}, token);
+    if (session.code === 1 && session.data && session.data.user) {
+      const toggle = await api('user-toggle-referral', { userId: session.data.user.id, enabled: true }, token);
+      if (toggle.code !== 1) console.warn('[e2e] 开启返利失败:', toggle.msg);
+    }
     const r = await api('referral-info', {}, token);
     expect(r.code).toBe(1);
     expect(r.data.referralCode).toBeTruthy();

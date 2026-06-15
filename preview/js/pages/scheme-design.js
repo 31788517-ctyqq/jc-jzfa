@@ -10,6 +10,7 @@ var _passTypes = [2]; // 过关类型数组，默认 2关，支持多选 [2,3,4,
 var _schemeDateOffset = 0;
 var _schemeDate = '';
 var _matchDirections = {}; // { matchId: [{rank, direction, expertCount}] } ★ 推荐排行榜Top5
+var _loadMatchesToken = 0; // ★ 防止异步回包串页
 
 // ═══ 竞彩规则：木桶原则上限 ═══
 var PLAY_LIMITS = { spf: 8, rqspf: 8, jqs: 6, bf: 4, bqc: 4 };
@@ -328,10 +329,15 @@ function loadStats() {
 function loadMatches() {
   var el = document.getElementById('schemeMatchList');
   if (!el) return;
+  var token = ++_loadMatchesToken;
+  _matchDirections = {}; // 切日期时清空推荐映射，避免旧高亮残留
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载场次中...</div>';
+
   // ★ 方案设计页仅显示未开赛比赛（hideFinished: true）
   api('match-list', { date: _schemeDate, hideFinished: true })
     .then(function (data) {
+      if (token !== _loadMatchesToken) return;
+
       var now = new Date();
       // ★ 前端双重校验：过滤已开赛/已结束比赛（兜底服务端未及时更新）
       _matches = (data || []).filter(function (m) {
@@ -352,50 +358,73 @@ function loadMatches() {
         }
         return true;
       });
+
       // 按开赛时间排序（越近的越靠前）
       _matches.sort(function (a, b) {
         var ta = a.startTime || '';
         var tb = b.startTime || '';
         return ta.localeCompare(tb);
       });
+
       var totalEl = document.getElementById('schemeMatchTotal');
       if (totalEl) totalEl.textContent = '共' + _matches.length + '场比赛';
+
+      // ★ 首屏优化：先渲染卡片，再异步补赔率/高亮方向
+      renderMatchList();
+      applySchemeHighlights();
+
       var matchIds = _matches
         .map(function (m) {
           return m.matchId || m.id;
         })
         .filter(Boolean);
-      if (matchIds.length > 0) {
-        return api('batch-match-odds', { matchIds: matchIds, date: _schemeDate })
-          .then(function (oddsMap) {
-            _matches.forEach(function (m) {
-              m._odds = (oddsMap && oddsMap[m.matchId || m.id]) || null;
-            });
-            return loadAllDirections(matchIds);
-          })
-          .then(function () {
-            _reRenderSafe();
+      if (matchIds.length === 0) return;
+
+      // 1) 异步补赔率（不阻塞首屏）
+      api('batch-match-odds', { matchIds: matchIds, date: _schemeDate })
+        .then(function (oddsMap) {
+          if (token !== _loadMatchesToken) return;
+          _matches.forEach(function (m) {
+            m._odds = (oddsMap && oddsMap[m.matchId || m.id]) || null;
           });
-      }
-      renderMatchList();
-      applySchemeHighlights();
+          _reRenderSafe();
+        })
+        .catch(function () {});
+
+      // 2) 异步补推荐方向高亮（不阻塞首屏）
+      loadAllDirections(matchIds)
+        .then(function () {
+          if (token !== _loadMatchesToken) return;
+          _reRenderSafe();
+        })
+        .catch(function () {});
     })
     .catch(function (e) {
+      if (token !== _loadMatchesToken) return;
       if (el) el.innerHTML = '<div class="hint-box">加载失败: ' + (e && e.message) + '</div>';
     });
 }
 
-// ★ 批量加载所有比赛的Top5推荐方向
+// ★ 批量加载所有比赛的Top5推荐方向（并发受控，避免瞬时打爆接口）
 function loadAllDirections(matchIds) {
-  return Promise.all(
-    matchIds.map(function (mid) {
-      return api('match-top-directions', { matchId: mid })
-        .then(function (r) {
-          if (r && r.directions) _matchDirections[mid] = r.directions;
-        })
-        .catch(function () {});
-    }),
-  );
+  var queue = (matchIds || []).slice();
+  var workerCount = Math.min(6, queue.length || 0);
+  if (workerCount <= 0) return Promise.resolve();
+
+  function worker() {
+    var mid = queue.shift();
+    if (!mid) return Promise.resolve();
+    return api('match-top-directions', { matchId: mid })
+      .then(function (r) {
+        if (r && r.directions) _matchDirections[mid] = r.directions;
+      })
+      .catch(function () {})
+      .then(worker);
+  }
+
+  var tasks = [];
+  for (var i = 0; i < workerCount; i++) tasks.push(worker());
+  return Promise.all(tasks);
 }
 
 // ★ 高亮赔率按钮：注入排名数字 + 黄色底色

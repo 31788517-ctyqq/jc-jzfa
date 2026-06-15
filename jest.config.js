@@ -9,8 +9,20 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/server/tests', '<rootDir>/server/gongshoudao/tests', '<rootDir>/preview/tests'],
   testMatch: ['**/*.test.js'],
-  // smoke_api 需要运行中的服务器，仅通过 npm run test:smoke 手动执行
-  testPathIgnorePatterns: ['smoke_api'],
+  // smoke_api / referral-e2e / today-full-flow / admin-full-check 等需要运行中的服务器 (<html>localhost:3000</html>)
+  // 仅通过 npm run test:smoke 或手动启动服务器后执行
+  testPathIgnorePatterns: [
+    'smoke_api',
+    'referral-multi-renewal',
+    'referral-e2e-ultra',
+    'referral-e2e-edge',
+    'referral-e2e-strict',
+    'referral-e2e-flow',
+    'today-full-flow',
+    'admin-full-check',
+    'data-pipeline-odds-score',
+    'plan-design-flow',
+  ],
   moduleDirectories: ['node_modules', '<rootDir>/server'],
   collectCoverageFrom: [
     'server/core/**/*.js',

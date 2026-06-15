@@ -68,6 +68,12 @@ describe('strict-e2e: 邀请→注册→充值→返利→提现', () => {
     ctyqq = r.data;
   });
 
+  // ★ 管理员开启自己的返利功能
+  it('1b. 开启返利功能', async () => {
+    const toggle = await api('user-toggle-referral', { userId: ctyqq.user.id, enabled: true }, ctyqq.token);
+    assertOk(toggle);
+  });
+
   // ═══ 2. 获取邀请码 ═══
   it('2. 获取邀请链接', async () => {
     const r = await api('referral-info', {}, ctyqq.token);

@@ -16,9 +16,9 @@ const PLANS = path.join(__dirname, '..', 'js', 'pages', 'plans.js');
 
 function src(f) {
   const buf = fs.readFileSync(f);
-  if (buf.length >= 2 && buf[0] === 0xFF && buf[1] === 0xFE) return buf.toString('utf16le');
+  if (buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xfe) return buf.toString('utf16le');
   let s = buf.toString('utf8');
-  if (s.charCodeAt(0) === 0xFEFF) s = s.slice(1);
+  if (s.charCodeAt(0) === 0xfeff) s = s.slice(1);
   return s;
 }
 
@@ -33,8 +33,9 @@ describe('P2: dynamic-load-states — 动态加载状态', () => {
       expect(mf).toContain('_mod');
     });
 
-    it('1.2 模块缓存 _modCache', () => {
-      expect(mf).toContain('_modCache');
+    it('1.2 ES 模块原生缓存 + 加载失败重试延迟', () => {
+      // _mod() 利用 ES import() 原生缓存，失败后 setTimeout 延迟重试
+      expect(mf).toContain('setTimeout');
     });
 
     it('1.3 动态导入 import() 用法', () => {
