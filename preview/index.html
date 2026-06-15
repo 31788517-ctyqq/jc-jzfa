@@ -9,17 +9,19 @@
     <title>竞彩推荐监控</title>
     <link rel="preconnect" href="https://zj.100qiu.com" />
     <link rel="dns-prefetch" href="https://midou310.com" />
-    <link rel="modulepreload" href="/js/main-fusion.js?v=202606141045" />
+    <!-- Phase1: vendor chunk preload -->
+    <link rel="modulepreload" href="/js/vendor.js" />
+    <link rel="modulepreload" href="/js/main-fusion.js" />
     <!-- ★ P0: 5 底栏 tab 页面模块预加载 — 浏览器解析 HTML 时就开始下载 -->
-    <link rel="modulepreload" href="/js/pages/home.js?v=202606140912" />
-    <link rel="modulepreload" href="/js/pages/match-list.js?v=202606101015" />
-    <link rel="modulepreload" href="/js/pages/ranking.js?v=202606140912" />
+    <link rel="modulepreload" href="/js/pages/home.js" />
+    <link rel="modulepreload" href="/js/pages/match-list.js" />
+    <link rel="modulepreload" href="/js/pages/ranking.js" />
 
-    <link rel="modulepreload" href="/js/pages/hit-rate.js?v=202606130910" />
-    <link rel="modulepreload" href="/js/pages/plans.js?v=202606130910" />
+    <link rel="modulepreload" href="/js/pages/hit-rate.js" />
+    <link rel="modulepreload" href="/js/pages/plans.js" />
 
-    <link rel="preload" href="/css/app.css?v=202606140912" as="style" />
-    <link rel="stylesheet" href="/css/app.css?v=202606140912" />
+    <link rel="preload" href="/css/app.css" as="style" />
+    <link rel="stylesheet" href="/css/app.css" />
 
 
 
@@ -27,27 +29,27 @@
     <!-- ★ P1-5: 非首屏弹窗样式异步加载，不阻塞 FCP -->
     <link
       rel="stylesheet"
-      href="/css/modals.css?v=202606131900"
+      href="/css/modals.css"
       media="print"
       onload="
         this.media = 'all';
         this.onload = null;
       "
     />
-    <noscript><link rel="stylesheet" href="/css/modals.css?v=202606131900" /></noscript>
+    <noscript><link rel="stylesheet" href="/css/modals.css" /></noscript>
     <link
       rel="stylesheet"
-      href="/css/betting.css?v=202606120300"
+      href="/css/betting.css"
       media="print"
       onload="
         this.media = 'all';
         this.onload = null;
       "
     />
-    <noscript><link rel="stylesheet" href="/css/betting.css?v=202606120300" /></noscript>
+    <noscript><link rel="stylesheet" href="/css/betting.css" /></noscript>
 
     <!-- 管理后台样式（低优先级非阻塞加载） -->
-    <link rel="stylesheet" href="/css/admin-v2.css?v=202606121203" />
+    <link rel="stylesheet" href="/dist/css/admin-v2.css" />
 
     <!-- ECharts lazy-loaded by charts.js -->
     <script>
@@ -100,7 +102,7 @@
           <span id="notiBadge">0</span>
         </button>
       </div>
-      <span class="nav-back" id="navBack" onclick="goBack()"
+      <button class="nav-my-btn" id="navMyBtn" type="button" onclick="switchTab('profile')" style="display:none"><span>我的</span></button><span class="nav-back" id="navBack" onclick="goBack()"
         ><svg width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
             d="M31 36L19 24L31 12"
@@ -525,11 +527,8 @@
       </div>
     </div>
 
-    <script type="module">
-      console.log('[INLINE-MODULE] loaded OK');
-      window.inlineModuleWorks = true;
-    </script>
-    <script type="module" src="/js/main-fusion.js?v=202606141045"></script>
+    
+    <script type="module" src="/js/main-fusion.js"></script>
 
 
     <!-- V5.0-FUSION-PK final-202605311423 -->
@@ -543,5 +542,7 @@
         });
       }
     </script>
-  </body>
+  <script>window._stQ=[];window.switchTab=function(t){if(window._stReal)window._stReal(t);else window._stQ.push(t)};window.goBack=function(){if(window._gbReal)window._gbReal();else window._stQ.push("__goBack__")};window.App=window.App||{};window.App.showNotifications=window.App.showNotifications||function(){};window.App.closeNotifications=window.App.closeNotifications||function(){};window.App.markAllRead=window.App.markAllRead||function(){};window.App.consumeNoti=window.App.consumeNoti||function(){};</script>
+<script type="module" src="/js/main-fusion.js"></script>
+</body>
 </html>

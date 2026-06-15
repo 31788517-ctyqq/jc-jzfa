@@ -4,17 +4,17 @@ import { api } from './api.js';
 import { WEEK_NAMES, formatDate, getCache, setCache } from './utils.js';
 import { clearAuthAll, getAuthSession, hasAuthToken, setAuthSession, hasReferralAccess } from './auth-client.js';
 import * as state from './state.js';
-import { loadHome } from './pages/home.js?v=202606140912';
-import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js?v=202606101015';
+import { loadHome } from './pages/home.js';
+import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js';
 
 // ═══ 模块懒加载：非核心页面模块按需动态导入 ═══
 // ★ P1-3 修复：移除 _modCache 内存缓存
 //    之前即使版本戳更新，_modCache 命中后直接返回旧模块，永不重新加载
 //    现在每次 import() 按 URL 版本戳自然去重，戳变=重新请求=获取最新文件
 function _mod(name) {
-  return import('./pages/' + name + '.js?v=202606141045').catch(function (e) {
+  return import('./pages/' + name + '.js').catch(function (e) {
     console.error('[JS] 模块加载失败: ' + name + ' - ' + (e && e.message));
-    return import('./pages/' + name + '.js?v=202606141045').then(function (m) {
+    return import('./pages/' + name + '.js').then(function (m) {
       console.warn('[JS] 模块重试成功: ' + name);
       return m;
     });
@@ -935,6 +935,13 @@ export function switchTab(tab) {
         ? 'flex'
         : 'none';
 
+  // navMyBtn (green)
+  var nmb1 = document.getElementById('navMyBtn');
+  if (nmb1) {
+    var sm1 = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
+    nmb1.style.display = sm1 ? 'flex' : 'none';
+  }
+
   var navbarEl = document.getElementById('navbar');
   if (navbarEl) {
     navbarEl.classList.toggle('home-mode', tab === 'home');
@@ -1154,6 +1161,22 @@ export function switchTab(tab) {
   }
 }
 
+  // Phase3: pre-fetch API data
+  _prefetchTabData(tab);
+
+
+function _prefetchTabData(tab) {
+  var today = formatDate(new Date());
+  if (tab === 'plan') { var pd = state.planDate || today; api('plan-list', { date: pd }).catch(function () {}); }
+  else if (tab === 'match') { var sel = state.weekDates[state.selectedWeekIdx]; if (sel && sel.matchDate) api('match-list', { date: sel.matchDate }).catch(function () {}); }
+  else if (tab === 'rank') { api('ranking-list', { date: state.rankDate || today }).catch(function () {}); }
+  else if (tab === 'hit') { api('hit-rate-stats', {}).catch(function () {}); }
+  else if (tab === 'quant-rank') { api('quant-rank', {}).catch(function () {}); }
+  else if (tab === 'income') { api('plan-income', {}).catch(function () {}); }
+  else if (tab === 'filter') { api('filter-leagues', {}).catch(function () {}); }
+  else if (tab === 'backtest') { api('prediction-backtest', {}).catch(function () {}); }
+}
+
 // ★ Phase 4: 页面导航辅助（支持传递参数）
 window.navigateTo = function (tab, data) {
   if (data) state.setPaymentData(data);
@@ -1174,6 +1197,9 @@ export function goBack() {
 // ── 本地函数注册到 window ──
 window.switchTab = switchTab;
 window.goBack = goBack;
+window._stReal = switchTab;
+window._gbReal = goBack;
+if (window._stQ && window._stQ.length) { var q = window._stQ; window._stQ = []; q.forEach(function(t) { if (t === '__goBack__') goBack(); else switchTab(t); }); }
 window.goToday = goToday;
 window.shiftWeek = shiftWeek;
 window.toggleDatePicker = toggleDatePicker;
@@ -1363,13 +1389,13 @@ function _preloadData(current) {
           .catch(function () {});
       }
     } else if (tab === 'plan') {
-      import('./pages/plans.js?v=202606140912')
+      import('./pages/plans.js')
         .then(function (m) {
           if (m.loadPlanList) m.loadPlanList();
         })
         .catch(function () {});
     } else if (tab === 'quant-rank') {
-      import('./pages/quant-rank-fusion.js?v=202606140912')
+      import('./pages/quant-rank-fusion.js')
         .then(function (m) {
           if (m.loadQuantRank) m.loadQuantRank();
         })
@@ -1445,6 +1471,13 @@ function switchTabLoad(tab) {
       tab !== 'payment-result'
         ? 'flex'
         : 'none';
+
+  // navMyBtn (green)
+  var nmb1 = document.getElementById('navMyBtn');
+  if (nmb1) {
+    var sm1 = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
+    nmb1.style.display = sm1 ? 'flex' : 'none';
+  }
 
   var navbarEl = document.getElementById('navbar');
   if (navbarEl)
