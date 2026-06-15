@@ -4,8 +4,6 @@ import { api, WEEK_NAMES, formatDate, getCache, setCache, clearAuthAll, getAuthS
 import * as state from './vendor.js';
 import { loadHome } from './pages/home.js';
 import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js';
-// ★ 全局样式（原 index.html 同步加载，确保管理后台等页面样式正常）
-import '../css/admin-v2.css';
 
 // ═══ 模块懒加载：import.meta.glob 静态分析所有页面模块 → 每个独立 chunk ═══
 // ★ Phase2 (Vite): import.meta.glob 在构建时展开为静态映射，Rollup 自动 Code-Split

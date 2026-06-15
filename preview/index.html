@@ -49,8 +49,9 @@
     />
     <noscript><link rel="stylesheet" href="/css/betting.css?v=202606120300" /></noscript>
 
-    <!-- 管理后台样式（低优先级非阻塞加载） -->
-    <link rel="stylesheet" href="/css/admin-v2.css?v=202606121203" />
+    <!-- 管理后台样式（低优先级非阻塞加载）-->
+    <!-- admin-v2.css 由 publicDir 拷贝至 dist/css/，不走 Vite 打包 -->
+    <link rel="stylesheet" href="/dist/css/admin-v2.css" />
 
     <!-- ECharts lazy-loaded by charts.js -->
     <script>

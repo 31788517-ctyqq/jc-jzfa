@@ -13,7 +13,6 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        // 内容哈希 8 位，自动 Cache-Busting
         entryFileNames: 'js/[name]-[hash:8].js',
         chunkFileNames: 'js/[name]-[hash:8].js',
         assetFileNames: (assetInfo) => {
@@ -25,9 +24,7 @@ export default defineConfig({
     },
     minify: 'terser',
     target: 'es2015',
-    modulePreload: {
-      polyfill: false,
-    },
+    modulePreload: { polyfill: false },
     cssCodeSplit: true,
   },
 });
