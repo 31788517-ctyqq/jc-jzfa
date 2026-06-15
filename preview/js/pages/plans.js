@@ -150,6 +150,28 @@ export function goPlanToday() {
   _loadActivePlanTab();
 }
 
+// ★ 手动刷新方案（带冷却）
+var _lastPlanRefreshMs = 0;
+export function refreshPlanList() {
+  var now = Date.now();
+  if (now - _lastPlanRefreshMs < 180000) {
+    console.log('[plans] 刷新冷却中，3分钟内仅允许一次');
+    return;
+  }
+  _lastPlanRefreshMs = now;
+  var el = document.getElementById('planList');
+  if (el) el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>刷新方案中...</div>';
+  api('plan-refresh', { date: state.planDate })
+    .then(function () {
+      _loadActivePlanTab();
+    })
+    .catch(function () {
+      _loadActivePlanTab(); // 失败时重新加载
+    });
+}
+// 暴露到全局供 onclick 调用
+if (typeof window !== 'undefined') window._refreshPlanList = refreshPlanList;
+
 // 智能日期停靠：页面加载时定位到 weekDates 中 <= 今天的最近日期
 export function _autoSetBestDate() {
   var weekDates = state.weekDates || [];
@@ -298,6 +320,12 @@ export function loadPlanList() {
       // ★ 共识过滤版块已隐藏
       var filterBar = '';
       var displayPlans = plans;
+
+      // ★ 方案刷新按钮
+      var refreshBtn =
+        '<div style="text-align:center;margin-top:16px;">' +
+        '<span class="filter-tag" onclick="window._refreshPlanList()" style="cursor:pointer;">🔄 刷新方案</span>' +
+        '</div>';
 
       var html = displayPlans
         .map(function (p, i) {
@@ -640,7 +668,7 @@ export function loadPlanList() {
         })
         .join('');
       setCache(cacheKey, html);
-      el.innerHTML = filterBar + noticeHtml + html;
+      el.innerHTML = filterBar + noticeHtml + html + refreshBtn;
     })
     .catch(function (e) {
       el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);">' + e.message + '</div>';
