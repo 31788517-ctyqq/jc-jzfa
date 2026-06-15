@@ -441,6 +441,8 @@ var _bootstrapped = false;
 function ensureBootstrapped() {
   if (_bootstrapped) return;
   const adp = getAdapter();
+  // ★ 确保 users 表 schema 是最新的（自动添加 referral_enabled 等列）
+  ensureRegisterSchemaReady();
   const now = nowIso();
 
   ROLES.forEach((code) => {

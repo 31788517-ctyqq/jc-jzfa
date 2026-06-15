@@ -602,7 +602,7 @@ function goDetail(matchId) {
       <div class="match-card" style="margin-bottom: 16px;">
         <div class="match-header">
           <span class="match-league">${match.leagueName}</span>
-          <span class="match-num" style="background: ${match.matchStatus === 0 ? 'rgba(34,211,238,0.1)' : 'rgba(52,211,153,0.1)'}; color: ${match.matchStatus === 0 ? 'var(--cyan)' : 'var(--green)'}">${statusText}</span>
+          <span class="match-num">${roundText}</span>
         </div>
         <div class="match-teams">
           <span class="team-name">${match.homeName}</span>

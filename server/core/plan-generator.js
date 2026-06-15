@@ -1437,6 +1437,139 @@ function generateExpertPlans(mList, matchDataMap, dateStr) {
   return plans;
 }
 
+// ═══ 方案快照（用于锁定后固化方案身份） ═══
+var SNAPSHOT_DIR = require('path').join(__dirname, '..', 'plan_snapshots');
+
+/**
+ * 提取方案身份（仅 matches+directions，不含结果/赔率）
+ */
+function snapshotPlanIdentity(plan) {
+  return {
+    planId: plan.planId,
+    name: plan.name,
+    planName: plan.planName,
+    playType: plan.playType,
+    passType: plan.passType,
+    multiplier: plan.multiplier,
+    amount: plan.amount,
+    matches: (plan.matches || []).map(function (m) {
+      return { matchId: m.matchId, direction: m.direction, homeName: m.homeName, visitName: m.visitName, matchNum: m.matchNum };
+    }),
+  };
+}
+
+/**
+ * 保存方案快照
+ */
+function savePlanSnapshot(dateStr, plans, earliestKickoff, lockedAt) {
+  try {
+    var fs = require('fs');
+    var path = require('path');
+    if (!fs.existsSync(SNAPSHOT_DIR)) fs.mkdirSync(SNAPSHOT_DIR, { recursive: true });
+    var snap = {
+      lockedAt: lockedAt || new Date().toISOString(),
+      earliestKickoff: earliestKickoff,
+      date: dateStr,
+      plans: plans.map(snapshotPlanIdentity),
+    };
+    fs.writeFileSync(path.join(SNAPSHOT_DIR, dateStr + '.json'), JSON.stringify(snap, null, 2), 'utf8');
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * 加载方案快照
+ */
+function loadPlanSnapshot(dateStr) {
+  try {
+    var fs = require('fs');
+    var path = require('path');
+    var file = path.join(SNAPSHOT_DIR, dateStr + '.json');
+    if (!fs.existsSync(file)) return null;
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * 将快照身份 + 当前推荐结果 → 带有结果的方案对象
+ * 供 income-stats 使用：方案身份用快照，结果从 data.json.r 回填
+ */
+function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
+  if (!snapshot || !snapshot.plans) return [];
+  var dateStr = snapshot.date;
+  return snapshot.plans.map(function (sp) {
+    var matches = (sp.matches || []).map(function (sm) {
+      var m = mMap['m_' + sm.matchId] || mMap[sm.matchId] || {};
+      var raw = rMap['m_' + sm.matchId] || rMap[sm.matchId] || [];
+      var rec = null;
+      for (var i = 0; i < raw.length; i++) {
+        var rt = raw[i].t || raw[i].type;
+        if (rt === sm.direction || (sm.direction.indexOf(rt) >= 0) || (rt && rt.indexOf(sm.direction) >= 0)) {
+          rec = raw[i];
+          break;
+        }
+      }
+      var rawResult = rec ? (rec.rs !== undefined ? rec.rs : rec.result) : null;
+      var result = rawResult === 0 || rawResult === 1 ? rawResult : null;
+      var isMatchWon = result === 1 ? true : result === 0 ? false : null;
+      var isMatchLose = result === 0 ? true : result === 1 ? false : null;
+      var num = sm.matchNum || m.num || '';
+      var oddsObj = null;
+      if (histOdds && histOdds[num]) {
+        var od = histOdds[num];
+        oddsObj = { spf: od.spf || null, rqspf: od.rqspf || null, totalGoals: od.totalGoals || null, halfFull: od.halfFull || null };
+      }
+      return {
+        matchId: sm.matchId, homeName: sm.homeName || m.homeName || '', visitName: sm.visitName || m.visitName || '',
+        matchNum: sm.matchNum || m.num || '', direction: sm.direction, isMatchWon: isMatchWon, isMatchLose: isMatchLose,
+        subResults: [{ direction: sm.direction, result: result }],
+        odds: oddsObj, actualScore: (m.score || '').replace(/:/g, '-'),
+      };
+    });
+
+    var allWon = true, anyLose = false, anyUnknown = false;
+    for (var j = 0; j < matches.length; j++) {
+      var mm = matches[j];
+      if (mm.isMatchWon === true) continue;
+      if (mm.isMatchLose === true) { anyLose = true; allWon = false; }
+      else { anyUnknown = true; allWon = false; }
+    }
+    var isPlanWon = anyUnknown ? null : allWon;
+    var isPlanLose = anyUnknown ? null : (!allWon && anyLose);
+
+    // 粗略计算奖金（使用方案中记录的赔率）
+    var maxPrize = 0;
+    if (sp.amount && sp.multiplier) {
+      var productOdds = 1;
+      for (var k = 0; k < matches.length; k++) {
+        var od = matches[k].odds;
+        if (!od) { productOdds = 0; break; }
+        var dir = matches[k].direction;
+        if (dir === '胜' && od.spf) productOdds *= od.spf.home || 1;
+        else if (dir === '平' && od.spf) productOdds *= od.spf.draw || 1;
+        else if (dir === '负' && od.spf) productOdds *= od.spf.away || 1;
+        else if (dir === '让平' && od.rqspf) productOdds *= od.rqspf.draw || 1;
+        else if (dir === '让负' && od.rqspf) productOdds *= od.rqspf.away || 1;
+        else if (dir === '让胜' && od.rqspf) productOdds *= od.rqspf.home || 1;
+      }
+      if (productOdds > 0) maxPrize = Math.round(sp.amount * productOdds * 100) / 100;
+    }
+
+    return {
+      planId: sp.planId, name: sp.name, planName: sp.planName,
+      playType: sp.playType, passType: sp.passType,
+      multiplier: sp.multiplier || 25, amount: sp.amount || 1000,
+      matches: matches, matchCount: matches.length,
+      isPlanWon: isPlanWon, isPlanLose: isPlanLose,
+      maxPrize: maxPrize, winningPrize: isPlanWon === true ? maxPrize : 0,
+    };
+  });
+}
+
 // ═══ 导出 ═══
 module.exports = {
   // 比分方案
@@ -1457,4 +1590,10 @@ module.exports = {
   assessSchemeRisk,
   // 专家博热方案
   generateExpertPlans,
+  // 方案快照
+  snapshotPlanIdentity,
+  savePlanSnapshot,
+  loadPlanSnapshot,
+  hydrateSnapshotWithResults,
+  SNAPSHOT_DIR,
 };
