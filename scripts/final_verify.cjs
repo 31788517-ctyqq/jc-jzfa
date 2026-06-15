@@ -27,7 +27,13 @@ for (var fi = 0; fi < fnNames.length; fi++) {
 
 // 3. index.html
 var html = fs.readFileSync('preview/index.html', 'utf8');
-all = ok('no /dist/js/index', !html.includes('/dist/js/index')) && all;
+// Check ALL /dist/ path references in HTML (not just JS entry)
+var distRefs = html.match(/\/dist\/[^"'\s>]+/g) || [];
+if (distRefs.length > 0) {
+  all = false; console.log('  FAIL [/dist/ refs in index.html: ' + distRefs.join(', ') + ']');
+} else {
+  all = ok('no /dist/ refs in index.html', true) && all;
+}
 all = ok('navMyBtn HTML', html.includes('navMyBtn')) && all;
 all = ok('bridge script', html.includes('_stQ')) && all;
 all = ok('main-fusion.js ref', html.includes('main-fusion.js')) && all;
