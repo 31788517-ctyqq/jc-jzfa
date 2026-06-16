@@ -1,45 +1,46 @@
----
-name: backtesting-frameworks
-description: >
-  足彩预测回测系统。触发词：回测/backtest/命中率/ROI/方案参数/调参/minExpertA/minOdds/minProduct/Walk-Forward/Monte Carlo/参数优化。
-  ⚠️ 涉及方案参数调优时必须**同时加载** `experiment-tracking` Skill。
-  代码示例见 references/patterns.md。
+# backtesting-frameworks · 回测系统
+
+> ⚠️ 涉及方案参数调优时必须**同时加载 experiment-tracking** Skill
+
 ---
 
-# 回测框架 · 速查卡
-
-## 核心概念
-
-| 偏差 | 描述 | 缓解 |
-|------|------|------|
-| 前视偏差 | 用未来信息预测过去 | 预测时间戳 < 比赛时间 |
-| 幸存者偏差 | 只统计有结果比赛 | 统计所有已预测场次 |
-| 过拟合 | 对历史数据调参过度 | 保留 OOS 测试集 |
-| 选择偏差 | 只挑高命中场次 | 全量统计 |
-
-## 数据集分割
+## 🔴 强制检查清单
 
 ```
-训练集 60% → 验证集 20% → 测试集 20%
-  ↑ Prompt 开发      ↑ 参数选择      ↑ 最终评估（不可窥探）
+□ 1. 双 Skill 加载？     → backtesting-frameworks + experiment-tracking 必须同时加载
+□ 2. 基线对比？          → 变更前后命中率/ROI/利润对比
+□ 3. 实验记录？          → 参数变更写入 experiment-tracking
+□ 4. Walk-Forward 验证？ → 参数优化后做前向验证防过拟合
 ```
 
-## 方案参数调优流程（★ 必须执行）
+---
 
-1. 获取当前参数值（minExpertA / minOdds / minProduct）
-2. `WalkForwardAnalyzer` 在 60 天历史上 Walk-Forward（train=30d, test=7d）
-3. 网格搜索 ±20% 范围找最优参数
-4. OOS 测试集验证 → 不通过则拒绝上线
-5. 记录到 `experiment-tracking` → 对比旧参数
+## ⚡ 回测命令
 
-## 性能指标
+```powershell
+node scripts/backtest_v2.cjs                    # 标准回测
+node scripts/backtest_v2.cjs --walk-forward     # Walk-Forward 验证
+node scripts/backtest_v2.cjs --monte-carlo      # Monte Carlo 模拟
+```
 
-- 命中率 (Hit Rate)
-- 总回报率 (Total Return) / 年化回报 / 夏普比率
-- 最大回撤 (Max Drawdown)
-- 胜率 / 盈亏比 (Profit Factor)
-- Monte Carlo 95% 置信区间
+---
 
-## 代码参考
+## 🔑 关键参数
 
-- `references/patterns.md` — PredictionBacktester / MonteCarloIncome / WalkForwardAnalyzer 完整实现
+| 参数 | 含义 | 默认值 |
+|------|------|--------|
+| `minExpertA` | 专家最低评级 | A |
+| `minOdds` | 最低赔率阈值 | 1.50 |
+| `minProduct` | 最低乘积 | 2.0 |
+
+---
+
+## 📊 输出指标
+
+- **命中率**：方案命中场次 / 总场次
+- **ROI**：净利润 / 总投入
+- **利润曲线**：累计利润随时间变化
+
+---
+
+深度文档：`.codebuddy/skills/backtesting-frameworks/references/patterns.md`

@@ -1,71 +1,50 @@
+# data-pipeline · 数据管线
+
+> ⚠️ 加载后必须先确认数据入口统一 + 回填脚本幂等
+
 ---
-name: data-pipeline
-description: >
-  数据管线与ETL。触发词：数据/抓取/ETL/同步/修复/回填/backfill/缺失/数据丢失/data_sync/fetch/爬虫/清洗。加载后必须确认数据入口统一 + 回填脚本幂等。ETL 配置详情见 references/etl-specs.md。
+
+## 🔴 强制检查清单
+
+```
+□ 1. 数据入口统一？     → 所有抓取/同步走 server/core/data_sync.js
+□ 2. 回填脚本幂等？     → 重复运行不产生脏数据（WHERE 条件保护）
+□ 3. incrementalSyncToUnified？ → data_sync.js finalCheck() 已自动触发
+□ 4. outcome-backfill？  → 增量同步后自动回填，无需手动
+```
+
 ---
 
-# 数据管线 · 速查卡
+## 📥 数据入口（必须统一）
 
-## ETL 流程
+| 入口 | 文件 | 说明 |
+|------|------|------|
+| 主抓取 | `scripts/fetch_500_main.cjs` | 500.com 主数据源 |
+| 赔率 | `scripts/scrape_odds_500.cjs` | odds 数据 |
+| 同步 | `server/core/data_sync.js` | 统一同步入口（含自愈管道） |
 
-```
-EXTRACT                      TRANSFORM                LOAD
-500.com / 米斗 / sporttery → 队名映射 / 赔率归一化 → SQLite + data.json + cache.json
-```
+---
 
-## 数据质量门禁
+## 🔄 回填脚本（必须幂等）
 
-| 检查项 | 阈值 |
-|--------|:---:|
-| extract 成功率 | ≥ 90% |
-| load 成功率 | ≥ 90% |
-| null_rate | < 5% |
-| duplicate_rate | < 1% |
+| 脚本 | 用途 |
+|------|------|
+| `server/backfill_full_models.js` | 全模型回填 |
+| `server/backfill_outcomes.js` | 赛果回填 |
+| `scripts/fix_consensus_name.py` | 共识名称修复（已归档） |
 
-低于阈值 → 阻断同步 + 告警
+---
 
-## 回填入口（★ 统一）
-
-```
-server/backfill/
-  ├── index.js      ← 统一入口
-  ├── outcomes.js   ← 赛果回填
-  ├── consensus.js  ← 共识回填
-  └── models.js     ← 模型回填
-```
-
-所有回填操作必须 **幂等**（INSERT OR IGNORE / UPSERT）。
-
-## 数据源
-
-| 源 | 用途 | 表/文件 |
-|----|------|--------|
-| **sporttery (sp)** ⭐ | 主数据源，最全 | `jczq_basic_cache`（竞彩缓存）, `sporttery_preview`（预览）, `_sporttery_sync.sql.gz`（备份） |
-| 500.com | 实时比分 | `live_scores.json`, `sync_live_500.js` |
-| 米斗 | 推荐指数 | `midou API` |
-| ttyingqiu | 赔率补充 | `scrape_ttyingqiu.py` |
-
-## 🔍 数据恢复流程（赛果缺失时的标准动作）
+## 🚨 自愈管道
 
 ```
-发现数据缺失
-  │
-  ├── Step 1: 查生产 DB
-  │     SSH → cd /root/server → node -e "adp.execAll('SELECT...FROM jczq_basic_cache WHERE date=?...')"
-  │     若 jczq_basic_cache 有但 matches 没有 → 执行回填
-  │
-  ├── Step 2: 查备份 DB
-  │     ls /root/server/_sporttery_*.sql.gz
-  │     ls /root/server/midou_data.db.bak_*
-  │     若有备份且含数据 → 导入恢复
-  │
-  └── Step 3: 补抓（前两步都无数据时）
-        触发 500.com 实时比分抓取 → sync_live_500.js
-        或 竞彩 API 补抓 → jczq_basic 爬虫
+data_sync.js finalCheck()
+  → incrementalSyncToUnified()
+    → outcome-backfill (自动)
 ```
 
-**铁律**：先查 DB → 再查备份 → 最后才补抓。避免无效网络请求。
+新增回填逻辑 → 接入此管道，不要单独调用。
 
-## 深度文档
+---
 
-- `references/etl-specs.md` — ETL 工作流 YAML 配置 + 调度 + 监控详情
+深度文档：`.codebuddy/skills/data-pipeline/references/etl-specs.md`

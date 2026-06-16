@@ -1,44 +1,39 @@
----
-name: experiment-tracking
-description: >
-  AI 预测实验追踪。触发词：实验/prompt/AI模型/DeepSeek/豆包/temperature/费用优化/命中率对比/A-B/test/模型切换/模型变更。
-  ⚠️ 涉及 AI 模型或 prompt 变更时必须**同时加载** `backtesting-frameworks` Skill。
-  代码实现见 references/tracker-code.md。
+# experiment-tracking · 实验追踪
+
+> ⚠️ 涉及 AI 模型/prompt 变更时必须**同时加载 backtesting-frameworks** Skill
+
 ---
 
-# 实验追踪 · 速查卡
+## 🔴 强制检查清单
 
-## 追踪维度
+```
+□ 1. 双 Skill 加载？     → experiment-tracking + backtesting-frameworks 必须同时加载
+□ 2. 记录对比数据？      → 变更前后：模型/耗时/费用/命中率
+□ 3. ai_timing.json？    → 更新当前基线配置
+□ 4. 降级策略？          → 确认超时/fallback 策略
+```
 
-| 类别 | 示例 |
-|------|------|
-| Prompt | 版本 / content hash / temperature / max_tokens |
-| 模型 | deepseek-chat / 豆包 / 双模型并行 |
-| 数据源 | gs_cache_version / pk_scorer_version |
-| 指标 | SPF 命中率 / 比分命中率 / 大小球命中率 |
-| 成本 | 日费用 / 单次调用费用 |
+---
 
-## AI 变更流程（★ 必须执行）
+## 📊 当前 AI 基线
 
-1. 记录当前配置为基线（命中率 + 日成本）
-2. 创建新实验组 → `experiment_registry` 表
-3. 新配置在 `prediction_logs` 打 `experiment_id` + `experiment_group`
-4. 收集 ≥ 60 场数据后 → `compareExperiment()` → 生成报告
+| 项目 | 值 |
+|------|-----|
+| 模型 | DeepSeek（avg 33s）+ 豆包（avg 31s） |
+| 合并耗时 | ~10s |
+| 总耗时 | ~46s（960 次采样） |
+| 降级 | 16:30 后仅豆包，deepseek-chat + 精简 Prompt |
 
-## 决策指南
+---
 
-| 命中率变化 | 决策 |
-|-----------|------|
-| > +3% | ✅ 立即采纳 |
-| +1%~3% | A/B 测试扩大样本 |
-| < ±1% | 保留现用配置 |
-| 下降 | ❌ 回滚 |
+## 📝 变更记录格式
 
-## 记录字段
+每次模型/prompt 变更在 `server/ai_timing.json` 记录：
 
-`prediction_logs` 表需包含: `ai_prompt_version`, `ai_model`, `experiment_id`, `experiment_group`
-`experiment_registry` 表: experiment 元数据 + 结果 JSON
+```
+{ model, temperature, prompt_version, avg_time, cost_per_call, date }
+```
 
-## 代码参考
+---
 
-- `references/tracker-code.md` — ExperimentTracker 类完整实现
+深度文档：`.codebuddy/skills/experiment-tracking/references/tracker-code.md`
