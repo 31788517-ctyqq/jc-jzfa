@@ -16,22 +16,39 @@ import * as state from './vendor.js';
 import { loadHome } from './pages/home.js';
 import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js';
 
-// ═══ 模块懒加载：import.meta.glob 静态分析所有页面模块 → 每个独立 chunk ═══
-// ★ P0-2 (Vite): import.meta.glob 在构建时展开为静态映射
-//     Vite/Rollup 自动 Code-Split + Tree-Shaking，每个页面独立 chunk
-var pageModules = import.meta.glob('./pages/*.js');
+// ═══ 模块懒加载 · 双模式兼容 ═══
+// ★ P0-2 (Vite build): import.meta.glob → Vite 构建时展开为静态映射，每个页面独立 chunk
+// ★ Browser (raw ES module): 动态 import() → HTTP/2 并行加载源文件
+//   try-catch 兜底保证两套路径（旧 /js/ + 新 /dist/）同时可用
+var pageModules;
+try {
+  pageModules = import.meta.glob('./pages/*.js');
+} catch (e) {
+  pageModules = {};
+}
 function _mod(name) {
   var key = './pages/' + name + '.js';
   var loader = pageModules[key];
-  if (!loader) {
-    console.error('[JS] unknown module: ' + name);
-    return Promise.reject(new Error('Unknown module: ' + name));
+  // Vite build path: 静态注册的 chunk
+  if (loader) {
+    return loader().catch(function (e) {
+      console.error('[JS] chunk load fail: ' + name + ' - ' + (e && e.message));
+      return new Promise(function (resolve, reject) {
+        setTimeout(function () {
+          loader().then(resolve).catch(function (e2) {
+            console.error('[JS] chunk retry fail: ' + name + ' - ' + (e2 && e2.message));
+            reject(e2);
+          });
+        }, 1000);
+      });
+    });
   }
-  return loader().catch(function (e) {
+  // Browser path: 动态 import（兼容旧 /js/ 路径）
+  return import('./pages/' + name + '.js').catch(function (e) {
     console.error('[JS] load fail: ' + name + ' - ' + (e && e.message));
     return new Promise(function (resolve, reject) {
       setTimeout(function () {
-        loader().then(resolve).catch(function (e2) {
+        import('./pages/' + name + '.js').then(resolve).catch(function (e2) {
           console.error('[JS] retry fail: ' + name + ' - ' + (e2 && e2.message));
           reject(e2);
         });
