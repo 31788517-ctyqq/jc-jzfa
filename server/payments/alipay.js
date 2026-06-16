@@ -43,10 +43,11 @@ function getAlipayConfig() {
   const gateway = process.env.ALIPAY_GATEWAY || (sandbox ? SANDBOX_GATEWAY : PROD_GATEWAY);
   const appPrivateKeyPath = process.env.ALIPAY_APP_PRIVATE_KEY_PATH || process.env.ALIPAY_PRIVATE_KEY_PATH || '';
   const appPrivateKey = process.env.ALIPAY_APP_PRIVATE_KEY || process.env.ALIPAY_PRIVATE_KEY || '';
+  const mode = String(process.env.ALIPAY_MODE || 'cert').toLowerCase();
 
   return {
     enabled: isAlipayEnabled(),
-    mode: String(process.env.ALIPAY_MODE || 'cert').toLowerCase(),
+    mode,
     sandbox,
     appId: process.env.ALIPAY_APP_ID || '',
     sellerId: process.env.ALIPAY_SELLER_ID || '',
@@ -56,9 +57,12 @@ function getAlipayConfig() {
     returnUrl: process.env.ALIPAY_RETURN_URL || 'https://zj.100qiu.com/preview/index.html#payment-result',
     appPrivateKeyPath,
     appPrivateKey,
+    // cert 模式专用
     appCertPath: process.env.ALIPAY_APP_CERT_PATH || '',
     alipayPublicCertPath: process.env.ALIPAY_PUBLIC_CERT_PATH || process.env.ALIPAY_ALIPAY_PUBLIC_CERT_PATH || '',
     alipayRootCertPath: process.env.ALIPAY_ROOT_CERT_PATH || '',
+    // key 模式专用（RSA 密钥字符串，无证书文件）
+    alipayPublicKey: process.env.ALIPAY_ALIPAY_PUBLIC_KEY || '',
   };
 }
 
@@ -87,35 +91,64 @@ function assertCertConfig(config) {
   if (missing.length) throw new Error('ALIPAY_CERT_CONFIG_MISSING: ' + missing.join(','));
 }
 
+function assertKeyConfig(config) {
+  const missing = [];
+  if (!config.appId) missing.push('ALIPAY_APP_ID');
+  if (!config.sellerId) missing.push('ALIPAY_SELLER_ID');
+  if (!config.appPrivateKey && !config.appPrivateKeyPath) missing.push('ALIPAY_APP_PRIVATE_KEY_PATH');
+  if (!config.alipayPublicKey) missing.push('ALIPAY_ALIPAY_PUBLIC_KEY');
+  if (missing.length) throw new Error('ALIPAY_KEY_CONFIG_MISSING: ' + missing.join(','));
+}
+
 function getAlipaySdk() {
   const config = getAlipayConfig();
   if (!config.enabled) return null;
-  if (config.mode !== 'cert') throw new Error('ALIPAY_MODE_MUST_BE_CERT');
-  assertCertConfig(config);
+
+  if (config.mode === 'cert') {
+    assertCertConfig(config);
+  } else if (config.mode === 'key') {
+    assertKeyConfig(config);
+  } else {
+    throw new Error('ALIPAY_MODE_MUST_BE_CERT_OR_KEY');
+  }
 
   const cacheKey = JSON.stringify({
+    mode: config.mode,
     appId: config.appId,
     gateway: config.gateway,
     appPrivateKeyPath: config.appPrivateKeyPath,
+    appPrivateKey: config.appPrivateKey ? '[inline]' : undefined,
     appCertPath: config.appCertPath,
     alipayPublicCertPath: config.alipayPublicCertPath,
     alipayRootCertPath: config.alipayRootCertPath,
+    alipayPublicKey: config.alipayPublicKey ? '[inline]' : undefined,
   });
   if (sdkCache && sdkCacheKey === cacheKey) return sdkCache;
 
   const alipaySdkModule = require('alipay-sdk');
   const AlipaySdk = alipaySdkModule.AlipaySdk || alipaySdkModule.default || alipaySdkModule;
   const privateKey = readPrivateKey(config);
-  sdkCache = new AlipaySdk({
+
+  const sdkOptions = {
     appId: config.appId,
     privateKey,
     keyType: process.env.ALIPAY_KEY_TYPE || inferKeyType(privateKey),
     signType: config.signType,
     gateway: config.gateway,
-    appCertPath: config.appCertPath,
-    alipayPublicCertPath: config.alipayPublicCertPath,
-    alipayRootCertPath: config.alipayRootCertPath,
-  });
+  };
+
+  if (config.mode === 'cert') {
+    Object.assign(sdkOptions, {
+      appCertPath: config.appCertPath,
+      alipayPublicCertPath: config.alipayPublicCertPath,
+      alipayRootCertPath: config.alipayRootCertPath,
+    });
+  } else {
+    // key 模式：直接传支付宝公钥字符串
+    sdkOptions.alipayPublicKey = config.alipayPublicKey.replace(/\\n/g, '\n');
+  }
+
+  sdkCache = new AlipaySdk(sdkOptions);
   sdkCacheKey = cacheKey;
   return sdkCache;
 }
@@ -278,6 +311,8 @@ function _resetAlipaySdkCache() {
 module.exports = {
   activatePaidOrder,
   appendOrderNo,
+  assertCertConfig,
+  assertKeyConfig,
   centsToYuan,
   createPaymentUrl,
   createSimulatedPaymentUrl,

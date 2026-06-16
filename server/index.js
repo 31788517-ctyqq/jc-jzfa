@@ -7558,6 +7558,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         case 'admin-referral-commissions':
         case 'admin-referral-accounts':
         case 'admin-referral-withdraw-list':
+        case 'admin-update-plan-price':
         case 'admin-referral-withdraw-process': {
           // 将 authSession 与解包后的 data 注入 req，供 payments 模块复用
           req.authSession = authSession;

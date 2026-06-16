@@ -18,7 +18,7 @@ const PLAN_META = {
 };
 
 const PAYMENT_TIPS = [
-  '当前接入支付宝证书支付；未启用真实通道时会自动使用测试支付兜底。',
+  '当前通过支付宝RSA密钥模式接入生产环境，支付后系统自动验签激活会员。',
   '优惠码会在创建订单时自动验证，若无效会给出明确提示。',
   '开通成功以支付宝异步通知验签结果为准，成功后可前往订阅中心查看状态。',
 ];
@@ -59,7 +59,7 @@ function normalizePlan(data) {
   return {
     plan_code: code,
     plan_name: incoming.plan_name || meta.plan_name,
-    price: Number(incoming.price || 0) || { monthly: 9800, quarterly: 25800, yearly: 88800 }[code] || 88800,
+    price: Number(incoming.price || 0) || { monthly: 98, quarterly: 25800, yearly: 88800 }[code] || 88800,
     duration_months: Number(incoming.duration_months || meta.duration_months || 12),
     feature: incoming.feature || meta.feature,
     summary: incoming.summary || meta.summary,

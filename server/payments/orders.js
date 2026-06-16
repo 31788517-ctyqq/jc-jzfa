@@ -35,7 +35,7 @@ function generateOrderNo() {
  */
 function getPlanInfo(planCode) {
   const map = {
-    monthly: { price: 9800, name: '月度套餐', period: 'month' },
+    monthly: { price: 98, name: '月度套餐', period: 'month' },
     quarterly: { price: 25800, name: '季度套餐', period: 'quarter' },
     yearly: { price: 88800, name: '年度套餐', period: 'year' },
   };

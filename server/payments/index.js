@@ -146,6 +146,23 @@ async function handleAction(action, req, res) {
     case 'admin-referral-withdraw-process':
       return adminWithdrawProcess(req, res);
 
+    // ===== 管理员更新套餐价格 =====
+    case 'admin-update-plan-price':
+      return (async () => {
+        try {
+          const adp = database.getAdapter();
+          const body = req.body?.data || req.body || {};
+          const { plan_code, price, monthly_equivalent } = body;
+          if (!plan_code || price == null) return res.json({ code: 400, msg: 'MISSING_PARAMS' });
+          adp.execRun('UPDATE subscription_plans SET price=?, monthly_equivalent=? WHERE plan_code=?',
+            [Number(price), monthly_equivalent != null ? Number(monthly_equivalent) : Number(price), plan_code]);
+          const updated = adp.execOne('SELECT * FROM subscription_plans WHERE plan_code=?', [plan_code]);
+          return res.json({ code: 1, data: updated });
+        } catch (e) {
+          return res.json({ code: 500, msg: e.message });
+        }
+      })();
+
     default:
       return false; // 未匹配
   }

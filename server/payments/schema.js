@@ -188,7 +188,7 @@ function initPaymentSchema(adp) {
   const existingPlans = adp.execOne(`SELECT COUNT(*) as cnt FROM subscription_plans`);
   if (!existingPlans || existingPlans.cnt === 0) {
     adp.execRun(`INSERT INTO subscription_plans (plan_code, plan_name, period, duration_months, price, monthly_equivalent, discount_label, sort_order)
-      VALUES ('monthly', '月度套餐', 'month', 1, 9800, 9800, '基准价', 1)`);
+      VALUES ('monthly', '月度套餐', 'month', 1, 98, 98, '基准价', 1)`);
     adp.execRun(`INSERT INTO subscription_plans (plan_code, plan_name, period, duration_months, price, monthly_equivalent, discount_label, sort_order)
       VALUES ('quarterly', '季度套餐', 'quarter', 3, 25800, 8600, '省36元', 2)`);
     adp.execRun(`INSERT INTO subscription_plans (plan_code, plan_name, period, duration_months, price, monthly_equivalent, discount_label, sort_order)
