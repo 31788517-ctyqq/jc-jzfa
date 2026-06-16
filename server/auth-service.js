@@ -650,6 +650,8 @@ async function loginWithPassword(username, password, meta = {}) {
     meta.userAgent || null,
     nowStr,
   );
+  // ★ V12: PM2 cluster 修复 — 强制 WAL checkpoint 确保其他 worker 可读到 session
+  try { adp.execDDL('PRAGMA wal_checkpoint(PASSIVE)'); } catch (_) {}
   flushCriticalWrites(adp);
   return {
     ok: true,
@@ -792,7 +794,7 @@ function validateSession(token, touch = true) {
   }
 
   // 内存未命中 → 查 DB
-  const row = adp.execOne(
+  var row = adp.execOne(
     `SELECT s.id AS sid, s.user_id, s.expires_at, s.revoked_at,
             u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at,
             u.subscription_status, u.subscription_expires_at, u.vip_gift_claimed_at, u.vip_gift_expires_at,
@@ -802,6 +804,19 @@ function validateSession(token, touch = true) {
      WHERE s.session_token_hash = ?`,
     tokenHash,
   );
+  // ★ V12: PM2 cluster 竞态兜底 — 另一 worker 写入后 WAL 未同步则重试一次
+  if (!row) {
+    row = adp.execOne(
+      `SELECT s.id AS sid, s.user_id, s.expires_at, s.revoked_at,
+              u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at,
+              u.subscription_status, u.subscription_expires_at, u.vip_gift_claimed_at, u.vip_gift_expires_at,
+              u.referral_enabled
+       FROM auth_sessions s
+       JOIN users u ON s.user_id = u.id
+       WHERE s.session_token_hash = ?`,
+      tokenHash,
+    );
+  }
   if (!row) return null;
   if (row.revoked_at) return null;
   if (row.status !== 'active') return null;
