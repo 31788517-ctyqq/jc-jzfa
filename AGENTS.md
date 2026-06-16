@@ -153,3 +153,27 @@ sucai/
 1. **每会话启动时**：AI 已自动读取本文件（AGENTS.md），即获知全部文档索引
 2. **遇到具体任务时**：根据上表 `read_file` 对应文档，获取完整上下文
 3. **不确定时**：先读 `本地优化与规范建设计划.md`（主计划涵盖最全）
+
+---
+
+## 🔧 本地开发时改动不生效？三层缓存排查
+
+| 改了什么 | 需要重启Node | 需要 Ctrl+Shift+R | 需要 SW Unregister |
+|---------|:---:|:---:|:---:|
+| 前端 JS/CSS | — | ✅ 首次 | —（v7 dev模式跳过） |
+| HTML | — | ✅ | — |
+| 后端 JS | ✅ 重启 | — | — |
+| sw.js | — | ✅ | ✅ F12→Application→Unregister |
+
+### 快速清除
+
+```
+1. F12 → Application → Service Workers → Unregister
+2. F12 → Application → Clear storage → Clear site data
+3. Ctrl+Shift+R 强制刷新
+```
+
+### SW v7 改进
+
+- `localhost` / `127.0.0.1` → 开发模式完全跳过 SW 缓存
+- 生产模式 → 仅缓存 JS/CSS（带 `?v=` 版本戳自动刷新）
