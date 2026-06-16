@@ -47,8 +47,15 @@ function _buildDateIndex(dataJson) {
 
 function getDataJson(forceRefresh) {
   const now = Date.now();
+  // ★ V12: TTL 内也检查 mtime，避免 jc-sync 回写后缓存不更新
   if (!forceRefresh && _dataJsonCache && now - _dataJsonCacheTime < 60000) {
-    return _dataJsonCache;
+    try {
+      const stat = fs.statSync(DATA_JSON_PATH);
+      if (stat.mtimeMs === _dataJsonCacheMtime) {
+        return _dataJsonCache;
+      }
+      // mtime 已变化 → 降级到重载
+    } catch (e) { /* stat 失败也降级 */ }
   }
   // 使用同步读取以保持 API 兼容（Node.js 文件缓存使 sync 性能可接受）
   try {
