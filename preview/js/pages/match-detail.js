@@ -1,7 +1,7 @@
 ﻿import { api } from '../api.js';
 import { formatDate } from '../utils.js';
 import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
-import * as state from '../state.js';
+import * as state from '../vendor.js';
 
 // AI 深度解析缓存：{ matchId: { content: ..., hash: ... } }
 var predictionCache = {};

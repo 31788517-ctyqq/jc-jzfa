@@ -1,6 +1,6 @@
 import { api } from '../api.js';
 import { WEEK_NAMES, MIN_PLAN_DATE, formatDate, getCache, setCache } from '../utils.js';
-import * as state from '../state.js';
+import * as state from '../vendor.js';
 
 function getMatchHandicapValue(m, selection) {
   var candidates = [

@@ -1,6 +1,6 @@
 import { api } from '../api.js';
 import { getCache, setCache } from '../utils.js';
-import * as state from '../state.js';
+import * as state from '../vendor.js';
 
 // 盈利显示（元，整数，无小数点）
 function _fmtIncome(val) {

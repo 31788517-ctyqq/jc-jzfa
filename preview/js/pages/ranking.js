@@ -1,6 +1,6 @@
 import { api } from '../api.js';
 import { CAT_NAMES, MIN_PLAN_DATE, formatDate } from '../utils.js';
-import * as state from '../state.js';
+import * as state from '../vendor.js';
 
 export function loadRanking(cat, dir) {
   if (cat !== undefined) state.setSelectedCategory(cat);
