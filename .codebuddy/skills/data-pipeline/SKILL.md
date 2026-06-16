@@ -47,4 +47,16 @@ data_sync.js finalCheck()
 
 ---
 
+## 🆘 Fallback（检查清单某项不通过时）
+
+| 失败项 | 降级路径 |
+|--------|---------|
+| 主数据源不可用（500.com） | 切换到备用源 sporttery → `scripts/fetch_sporttery.cjs` |
+| 回填脚本报错 | 检查 SQLite 锁 → `fuser server/midou_data.db` → kill 僵尸进程后重试 |
+| 同步管道阻塞 | 检查 `data_sync.js` 日志 → 确认 cron 状态 → 手动触发 `node server/core/data_sync.js` |
+| 数据入口不统一 | 必须在 `server/core/data_sync.js` 注册新入口后再运行 |
+
+> 所有 fallback 均失败 → 中止操作，向用户报告瓶颈。
+
+---
 深度文档：`.codebuddy/skills/data-pipeline/references/etl-specs.md`

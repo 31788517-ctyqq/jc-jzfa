@@ -36,4 +36,16 @@
 
 ---
 
+## 🆘 Fallback（检查清单某项不通过时）
+
+| 失败项 | 降级路径 |
+|--------|---------|
+| ai_timing.json 格式错误 | `JSON.parse` 校验 → 修复 → 重新写入 |
+| 模型调用超时（>60s） | 检查 API key + 网络 → 自动降级到备用模型 |
+| 对比数据不一致 | 重新采样（相同 seed） → 排除网络抖动 |
+| 双 Skill 漏加载 | 始终 backtesting-frameworks + experiment-tracking 配对 |
+
+> 所有 fallback 均失败 → 中止模型变更，向用户报告瓶颈。
+
+---
 深度文档：`.codebuddy/skills/experiment-tracking/references/tracker-code.md`

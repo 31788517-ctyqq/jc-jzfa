@@ -49,3 +49,15 @@ playwright_navigate → zj.100qiu.com
 → playwright_click("排行") → playwright_screenshot
 → 无 401 / 无白屏 = 通过
 ```
+
+---
+## 🆘 Fallback（检查清单某项不通过时）
+
+| 失败项 | 降级路径 |
+|--------|---------|
+| preflight 某步不通过 | 定位失败步骤 → 修复 → 重新 `npm run preflight` |
+| Jest P0 测试失败 | `npx jest -- --testPathPattern=<file>` 单文件定位 |
+| Playwright 截图超时 | 检查网络 → 确认服务器可达 → 缩小截图范围 |
+| 覆盖率不达标 | 补充关键路径测试 → 重新 `npm run test:coverage` |
+
+> 所有 fallback 均失败 → 中止提交，向用户报告瓶颈。

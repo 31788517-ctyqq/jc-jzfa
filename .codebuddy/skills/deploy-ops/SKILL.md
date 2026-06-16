@@ -57,4 +57,16 @@ python _verify_api.py            # L1-L6 验证
 
 ---
 
+## 🆘 Fallback（检查清单某项不通过时）
+
+| 失败项 | 降级路径 |
+|--------|---------|
+| preflight 不通过 | 修复 lint/test 问题 → 重新 preflight |
+| dry-run 不通过 | 检查 deploy.py 语法 + DEPLOY_MAP 映射 |
+| 部署后 _verify_api 失败 | SSH 直连 → `pm2 status` + `tail /var/log/nginx/error.log` |
+| Playwright 截图超时 | 检查服务器连通性 → `curl -H "Host: zj.100qiu.com" http://119.23.51.159/` |
+
+> 所有 fallback 均失败 → 中止部署，向用户报告瓶颈。
+
+---
 深度文档：`.codebuddy/skills/deploy-ops/references/lessons.md`
