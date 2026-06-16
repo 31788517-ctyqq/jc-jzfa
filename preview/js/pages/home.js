@@ -220,6 +220,21 @@ function cacheHomeMatches(matches) {
   }
 }
 
+/** V12 Strategy B: 轻量首屏 — 仅更新比赛数+元数据，延迟完整渲染 */
+function _renderHomeStatsBrief(matches, rankData) {
+  var matchCount = Array.isArray(matches) ? matches.length : 0;
+  var mcEl = document.getElementById('homeMatchCount');
+  if (mcEl) mcEl.textContent = String(matchCount);
+  var liveCount = Array.isArray(matches)
+    ? matches.filter(function (m) {
+        var status = String(m.matchStatus || m.status || m.state || '').toLowerCase();
+        return /进行|上半|下半|中场|live|playing|in_progress/.test(status);
+      }).length : 0;
+  var metaEl = document.getElementById('homeMatchMeta');
+  if (metaEl) metaEl.textContent = '进行中 ' + liveCount + ' 场';
+  cacheHomeMatches(matches);
+}
+
 /** P0-1 优化：纯渲染函数，可从缓存或API数据调用 */
 function _renderHomeStats(matches, rankData) {
   cacheHomeMatches(matches);
@@ -422,16 +437,20 @@ export function loadHome() {
       var d = bundle.data;
       // 注入 weekDates 到全局 state
       if (d.weekDates && d.weekDates.length) {
-        try {
-          setWeekDates(d.weekDates);
-        } catch (e) {}
+        try { setWeekDates(d.weekDates); } catch (e) {}
         setCache('week-dates', d.weekDates);
       }
       if (d.matches) setCache('match-list:' + today, d.matches);
       if (d.ranking) setCache('ranking-list:home', d.ranking);
-      _renderHomeStats(d.matches || [], d.ranking || {});
+
+      // ★ V12 Strategy B: 渐进式渲染 — 先显示骨架+比赛数, 排名延后一帧渲染
+      _renderHomeStatsBrief(d.matches || [], d.ranking || []);
       loadWorldCupSection(Promise.resolve(d.matches || []));
-      return; // bundle 成功，跳过原有独立请求
+      // 排名渲染较慢(大量DOM), 延迟到下一帧让页面先可交互
+      requestAnimationFrame(function () {
+        _renderHomeStats(d.matches || [], d.ranking || []);
+      });
+      return;
     }
     // 回退：原有 3 次独立请求
     _fallbackLoadHome(today);
