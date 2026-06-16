@@ -35,6 +35,7 @@ description: >
 
 ### 部署前
 - [ ] 依赖追踪: 新增 `require()` 的模块是否在 `deploy.py` 范围？
+- [ ] **部署清单完整性**: 运行 `node scripts/check-deploy-files.cjs` 验证 deploy.py 中所有文件本地存在
 - [ ] npm 依赖: 新增的包是否已在服务器 `npm install`？
 - [ ] 本地验证 4 项: `node -c` + index.html 无 dist + sw.js 无 PAGE_SHELL + 关键字符串
 
