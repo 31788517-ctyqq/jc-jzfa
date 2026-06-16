@@ -650,14 +650,7 @@ async function loginWithPassword(username, password, meta = {}) {
     meta.userAgent || null,
     nowStr,
   );
-  // ★ V12: PM2 cluster 修复 — 强制 WAL checkpoint + 同步等待确保跨 worker 可读
-  try { adp.execDDL('PRAGMA wal_checkpoint(RESTART)'); } catch (_) {}
   flushCriticalWrites(adp);
-  try { adp.execDDL('PRAGMA wal_checkpoint(PASSIVE)'); } catch (_) {}
-
-  // DEBUG: verify write
-  var verifyRow = adp.execOne('SELECT COUNT(*) as cnt FROM auth_sessions WHERE session_token_hash = ?', tokenHash);
-  try { require('./logger').info('[auth] login session written: tokenHash=' + tokenHash.substring(0,8) + '... verify=' + (verifyRow ? verifyRow.cnt : 'NULL')); } catch(_) {}
   return {
     ok: true,
     token,
@@ -809,8 +802,9 @@ function validateSession(token, touch = true) {
      WHERE s.session_token_hash = ?`,
     tokenHash,
   );
-  // ★ V12: PM2 cluster 竞态兜底 — 另一 worker 写入后 DB 未被本连接可见则重试
-  if (!row) {
+  // ★ V12: sql.js 跨 worker 共享 — DB 未命中时从磁盘重载再查
+  if (!row && typeof adp.reload === 'function') {
+    adp.reload();
     row = adp.execOne(
       `SELECT s.id AS sid, s.user_id, s.expires_at, s.revoked_at,
               u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at,
@@ -822,11 +816,7 @@ function validateSession(token, touch = true) {
       tokenHash,
     );
   }
-  if (!row) {
-    // ★ V12 DEBUG: 记录失败原因
-    try { require('./logger').warn('[auth] validateSession DB miss: tokenHash=' + tokenHash.substring(0,8) + '... adapter=' + (adp ? 'OK' : 'NULL')); } catch(_) {}
-    return null;
-  }
+  if (!row) return null;
   if (row.revoked_at) return null;
   if (row.status !== 'active') return null;
   if (new Date(row.expires_at).getTime() <= Date.now()) return null;

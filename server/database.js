@@ -487,7 +487,22 @@ function _createSqlJsAdapter(sqlDb) {
     return true;
   }
 
-  return { execOne, execAll, execRun, execDDL, transaction, close, flush, backend: 'sqljs', raw: dbInstance };
+  // ★ V12: sql.js 跨 worker 共享 — 从磁盘重载数据库
+  function reload() {
+    if (!fs.existsSync(DB_FILE)) return false;
+    try {
+      var fileBuf = fs.readFileSync(DB_FILE);
+      var newDb = new sqlDb.Database(fileBuf);
+      dbInstance.close();
+      dbInstance = newDb;
+      _dirty = false;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  return { execOne, execAll, execRun, execDDL, transaction, close, flush, reload, backend: 'sqljs', raw: dbInstance };
 }
 
 // ═══════════════════════════════════════════════════════
