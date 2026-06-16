@@ -1265,10 +1265,24 @@ async function backfillResults(dateStr) {
       log('[backfill] matches 表同步失败: ' + e.message);
     }
 
-    if (updated > 0) {
+    // ★ V12: 多源赛果校正 — sporttery + 500.com 结果页交叉对账
+    try {
+      var corrector = require('./core/score-corrector');
+      var cr = await corrector.correctDate(dateStr, data.m);
+      if (cr && cr.corrected > 0) {
+        log('[backfill] 多源校正: ' + cr.corrected + ' 场 (sporttery:' + (cr.sourceCounts.sporttery||0) + ' 500res:' + (cr.sourceCounts['500results']||0) + ')');
+        corrector.applyCorrections(cr);
+        // 重载 data.json 以同步 corrector 的修改
+        try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch(e) {}
+      }
+    } catch (e) {
+      log('[backfill] 多源校正异常(不阻断): ' + e.message);
+    }
+
+    if (updated > 0 || (cr && cr.corrected > 0)) {
       atomicWrite(DATA_FILE, data);
       notifyReload();
-      log('[backfill] 完成, 更新了 ' + updated + ' 场比赛');
+      log('[backfill] 完成, 更新了 ' + updated + ' 场比赛' + (cr && cr.corrected ? ', 校正' + cr.corrected + '场' : ''));
     } else {
       log('[backfill] 无新增命中');
     }
@@ -2911,6 +2925,34 @@ async function start() {
       };
       fs.writeFileSync(VERIFIED_RESULTS_FILE, JSON.stringify(cache, null, 2));
       log('[verifier] ✓ 核实完成: ' + yd + ' ' + vr.results.length + ' 场');
+
+      // ★ V12: 核实后自动纠正半场误判（halfScore===score 且非0-0）
+      try {
+        var guard = require('./core/ingestion-guard');
+        var suspiciousMatches = [];
+        Object.keys(dataJson.m || {}).forEach(function (rk) {
+          var m = dataJson.m[rk];
+          if (!m || !m.date || m.date.slice(0, 10) !== yd) return;
+          if (m.matchStatus < 2 || !m.score) return;
+          var audit = guard.postMatchAudit(m);
+          audit.forEach(function (issue) {
+            if (issue.type === 'half_equals_final_non_zero') {
+              suspiciousMatches.push(m);
+            }
+          });
+        });
+        if (suspiciousMatches.length > 0) {
+          log('[verifier] 发现 ' + suspiciousMatches.length + ' 场半场误判，触发多源校正...');
+          var corrector = require('./core/score-corrector');
+          var cr = await corrector.correctDate(yd, dataJson.m);
+          if (cr && cr.corrected > 0) {
+            corrector.applyCorrections(cr);
+            log('[verifier] 半场误判已修正: ' + cr.corrected + ' 场');
+          }
+        }
+      } catch (e) {
+        log('[verifier] 半场校正异常(不阻断): ' + e.message);
+      }
     } catch (e) {
       log('[verifier] 核实失败: ' + e.message);
     }

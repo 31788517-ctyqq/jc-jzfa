@@ -127,8 +127,16 @@ function postMatchAudit(match) {
     issues.push({ type: 'missing_duration', matchId: match.matchId, num: match.num });
   }
   if (match.halfScore && match.halfScore === match.score && match.score !== '0:0' && match.score !== '0-0') {
-    // 半场=全场 且非0:0 → 可能半场比分被当终场（不是bug，但记录以供排查）
-    issues.push({ type: 'half_equals_final_non_zero', matchId: match.matchId, num: match.num, score: match.score });
+    // ★ V12: 半场=全场 且非0:0 → 高概率半场比分被当终场，触发多源复核
+    issues.push({
+      type: 'half_equals_final_non_zero',
+      matchId: match.matchId,
+      num: match.num,
+      score: match.score,
+      halfScore: match.halfScore,
+      date: match.date ? match.date.slice(0, 10) : '',
+      severity: 'P1',  // 需要多源复核修正
+    });
   }
 
   return issues;
