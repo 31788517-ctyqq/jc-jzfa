@@ -14,7 +14,13 @@
         "MIDOU_MOBILE": "13570060818",
         "MIDOU_PASSWORD": "936da1e6796530b7a25e55953f1c9a43",
         "MIDOU_BACKUP_MOBILE": "19924790073",
-        "MIDOU_BACKUP_PASSWORD": "936da1e6796530b7a25e55953f1c9a43"
+        "MIDOU_BACKUP_PASSWORD": "936da1e6796530b7a25e55953f1c9a43",
+        "ALERT_ENABLED": "true",
+        "ALERT_RECIPIENT": "31788517@qq.com",
+        "ALERT_SMTP_HOST": "smtp.qq.com",
+        "ALERT_SMTP_PORT": "465",
+        "ALERT_SMTP_USER": "31788517@qq.com",
+        "ALERT_SMTP_PASS": "rgxxcjrzullycaff"
       },
       "max_memory_restart": "512M",
       "min_uptime": "10000",
@@ -40,7 +46,13 @@
         "MIDOU_MOBILE": "13570060818",
         "MIDOU_PASSWORD": "936da1e6796530b7a25e55953f1c9a43",
         "MIDOU_BACKUP_MOBILE": "19924790073",
-        "MIDOU_BACKUP_PASSWORD": "936da1e6796530b7a25e55953f1c9a43"
+        "MIDOU_BACKUP_PASSWORD": "936da1e6796530b7a25e55953f1c9a43",
+        "ALERT_ENABLED": "true",
+        "ALERT_RECIPIENT": "31788517@qq.com",
+        "ALERT_SMTP_HOST": "smtp.qq.com",
+        "ALERT_SMTP_PORT": "465",
+        "ALERT_SMTP_USER": "31788517@qq.com",
+        "ALERT_SMTP_PASS": "rgxxcjrzullycaff"
       },
       "max_memory_restart": "512M",
       "min_uptime": "10000",
