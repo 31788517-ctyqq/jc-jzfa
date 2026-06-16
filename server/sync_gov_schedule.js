@@ -294,7 +294,7 @@ async function main() {
     console.log('[Schedule] 尝试 python scripts/scrape_sporttery.py --schedule ...');
     try {
       const { execSync } = require('child_process');
-      const pyCmd = process.platform === 'win32' ? 'python' : 'python3';
+      const pyCmd = 'python';
       const scriptPath = path.join(__dirname, '..', 'scripts', 'scrape_sporttery.py');
       execSync(`${pyCmd} "${scriptPath}" --schedule`, {
         cwd: path.join(__dirname, '..'),

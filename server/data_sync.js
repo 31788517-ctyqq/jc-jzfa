@@ -375,7 +375,7 @@ async function sync500ShujuStandings(dateStr) {
   log('[500shuju-standings] 积分榜抓取: ' + dateStr);
 
   try {
-    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    const pythonCmd = 'python';
     const scriptPath = path.join(__dirname, '..', 'scripts', 'fetch_league_standings.py');
     const pyResult = execSync(pythonCmd + ' "' + scriptPath + '" ' + dateStr, {
       cwd: path.join(__dirname, '..'),

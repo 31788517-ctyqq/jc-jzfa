@@ -43,7 +43,7 @@ function runCommand(cmd, timeout) {
 }
 
 function runPythonScraper(args, timeout) {
-  const pyCmd = process.platform === 'win32' ? 'python' : 'python3';
+  const pyCmd = 'python';
   const script = path.join(ROOT, 'scripts', 'scrape_sporttery.py');
   const cmd = `${pyCmd} "${script}" ${args.join(' ')}`;
   return runCommand(cmd, timeout);

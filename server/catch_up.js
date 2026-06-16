@@ -133,7 +133,7 @@ async function catchUpShuju(dates, cp) {
     failed = 0,
     noData = 0;
 
-  const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+  const pythonCmd = 'python';
   const fenxiScript = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi.py');
   const selScript = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi_selenium.py');
 

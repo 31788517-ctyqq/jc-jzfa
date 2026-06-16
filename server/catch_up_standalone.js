@@ -91,7 +91,7 @@ async function catchUpShuju(dates) {
     failed = 0,
     noOdds = 0;
 
-  const py3 = 'python3';
+  const py3 = 'python';
   const fenxiPy = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi.py');
   const selPy = path.join(__dirname, '..', 'scripts', 'fetch_500_fenxi_selenium.py');
 
