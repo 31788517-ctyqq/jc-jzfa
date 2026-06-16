@@ -70,7 +70,16 @@ description: >
 - [ ] L2: `curl :3000/api/health` → 200？
 - [ ] L3: `curl -H "Host:zj.100qiu.com" :80/api/health` → 200？
 - [ ] L4: 业务 API(match-list) → code=0 + 数据非空？
-- [ ] L5: 浏览器验证：SW 未拦截、无 404 破图
+- [ ] L5: **MUST** 用 Playwright MCP 验证关键用户流程：
+
+```
+playwright_navigate → https://zj.100qiu.com/#home
+playwright_fill → 登录表单
+playwright_click → 点击"我的" → 检查 profileContent 无 401/UNAUTHORIZED
+playwright_click → 点击"排行"/"比赛"/"方案" 标签 → 检查页面正常渲染
+playwright_screenshot → 全页截图存档
+playwright_console_logs → 确认无新增 JS 错误
+```
 
 ## 🚨 风险操作协议（⚠️ 必须逐项执行）
 

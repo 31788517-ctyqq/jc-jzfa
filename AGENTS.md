@@ -198,8 +198,9 @@ sucai/
 3. cp midou_data.db midou_data.db.bak  # DB备份
 4. python deploy.py --dry          # 试运行
 5. python deploy.py --fast         # 正式部署
-6. python _verify_api.py           # 6层验证
-7. 全部通过 → 宣布成功，否则 → 回滚
+6. python _verify_api.py           # L1-L6 一键验证
+7. Playwright MCP: 导航 zj.100qiu.com → 登录 → 点击"我的"+"排行"+"比赛" → 截图 → 无 401
+8. 全部通过 → 宣布成功，否则 → 回滚
 8. 回滚: git checkout <上tag> -- <失败文件> → python deploy.py --fast
 ```
 
