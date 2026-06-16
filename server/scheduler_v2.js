@@ -416,6 +416,34 @@ async function executeTask(taskName, params, retryCount) {
         }
         break;
       }
+      case 'warm_api_cache': {
+        // ★ P1-1: 定时预热 API 响应缓存（冷启动 5s→50ms）
+        const date = (params && params.date) || fmtLocal(new Date());
+        const http = require('http');
+        const warmEndpoint = async (action) => {
+          return new Promise((resolve) => {
+            const url = '/api?action=' + action + '&date=' + date;
+            const req = http.get({ hostname: '127.0.0.1', port: 3000, path: url, timeout: 30000 }, (res) => {
+              let body = '';
+              res.on('data', (chunk) => { body += chunk; });
+              res.on('end', () => {
+                const brief = body.slice(0, 200).replace(/\s+/g, ' ');
+                logger.info('[warm] ' + action + ' → ' + res.statusCode + ' (' + brief.length + 'B)');
+                resolve(true);
+              });
+            });
+            req.on('error', (e) => { logger.warn('[warm] ' + action + ' 失败: ' + e.message); resolve(false); });
+            req.on('timeout', () => { req.destroy(); resolve(false); });
+          });
+        };
+        await warmEndpoint('home-bundle');
+        await sleep(3000);
+        await warmEndpoint('ranking-list');
+        await sleep(2000);
+        await warmEndpoint('plan-list');
+        break;
+      }
+
       default: {
         logger.warn('[task] 未知任务: ' + taskName);
         return false;
@@ -544,6 +572,19 @@ function scheduleNoonTask() {
           executeTask('merge_shuju', { date: today }).catch((e) => {});
         },
         5 * 60 * 1000,
+      );
+
+      // ★ P1-1: 延后 15 分钟预热 API 响应缓存（冷启动 5s→50ms）
+      setTimeout(
+        async () => {
+          try {
+            logger.info('[schedule] 🔥 开始 API 缓存预热...');
+            await executeTask('warm_api_cache', { date: today });
+          } catch (e) {
+            logger.error('[schedule] 预热失败: ' + e.message);
+          }
+        },
+        15 * 60 * 1000,
       );
 
       // ★ V9.1: 延后10分钟执行功守道 + PK + FeatureEngine 计算链
