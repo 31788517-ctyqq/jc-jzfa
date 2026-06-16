@@ -1441,31 +1441,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           return res.json({ code: 1, data: getWeekDates() });
         }
 
-        // ★ V12 DEBUG: 直接读取磁盘 data.json 指定日期的赛果
-        case 'debug-scores': {
-          try {
-            var fs = require('fs');
-            var path = require('path');
-            var debugDate = data.date || '2026-06-15';
-            var raw = JSON.parse(fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8'));
-            var rawMatches = Object.values(raw.m || {}).filter(function(m) {
-              return m && m.date && m.date.slice(0, 10) === debugDate && m.matchStatus >= 2;
-            });
-            rawMatches.sort(function(a,b) { return (a.num||'').localeCompare(b.num||''); });
-            // Also check cache layer
-            var cacheMod = require('./core/cache');
-            var cacheMatches = cacheMod.getMatchesByDate(debugDate);
-            var diskMatches = rawMatches.map(function(m) { return { num: m.num, score: m.score, half: m.halfScore }; });
-            var cacheList = cacheMatches.map(function(m) { return { num: m.num, score: m.score, half: m.halfScore }; });
-            return res.json({
-              code: 1,
-              disk: diskMatches,
-              cache: cacheList,
-              _cacheMatch: JSON.stringify(diskMatches) === JSON.stringify(cacheList),
-            });
-          } catch(e) { return res.json({ code: 0, msg: e.message }); }
-        }
-
         case 'match-list': {
           // 从 data.json 读取比赛列表（支持历史日期切换）
           // ★ P0-1 + P1-6: 使用内存缓存避免每次读磁盘 + 请求级缓存
