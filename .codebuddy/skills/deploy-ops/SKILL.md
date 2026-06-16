@@ -30,6 +30,19 @@ description: >
 1. 修改前端文件后 → 启动本地服务器 `node server/index.js`
 2. 用 Playwright 导航到 `http://localhost:3000/` 截图
 3. 将截图与改动前对比，确认：布局无挤压、字体大小正常、颜色正确
+
+## 🐛 Bug 排查必须页面端复现（铁律）
+
+**用户报告线上问题时，AI 必须用 Playwright MCP 模拟真实用户操作，不能仅凭代码分析。**
+
+1. `playwright_navigate` → 打开生产端页面
+2. `playwright_fill` → 填写表单（登录/输入数据）
+3. `playwright_click` → 点击按钮/链接，按用户描述路径操作
+4. `playwright_screenshot` → 每步截图存档
+5. `playwright_console_logs` → 查看 JS 错误/API 响应
+6. `playwright_get_visible_text` → 检查页面实际渲染内容
+
+> 教训：auth 401 问题仅靠代码分析花了 20 分钟，如果直接用 Playwright 点击"我的"按钮 + 截图 + 看日志，5 分钟就能定位到 `subscription-status` 返回 401。
 4. 确认无误后，才向用户展示变更 + 请求部署确认
 5. **未经过页面端确认的前端改动，禁止提交部署请求**
 

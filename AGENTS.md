@@ -169,6 +169,12 @@ sucai/
 
 > V12 教训：CSS 变量替换污染了 font-size/gap/padding，未经截图就直接部署导致全站按钮挤压变形
 
+### 🐛 Bug 排查必须先页面复现
+
+用户报告问题 → Playwright MCP 模拟真实用户操作（填表/点击/截图/看日志）→ 定位根因 → 再改代码
+
+> V12 教训：auth 401 问题代码分析 20 分钟未果，Playwright 点击"我的"后立即看到 `subscription-status:401`
+
 ### 🔒 部署确认
 
 部署是最高风险操作，**AI 绝对禁止自行部署（包括 --files-only 热修复）**：
