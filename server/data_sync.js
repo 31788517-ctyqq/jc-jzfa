@@ -1239,6 +1239,32 @@ async function backfillResults(dateStr) {
       await sleep(jitter(500)); // 批次间隔
     }
 
+    // ★ V12: matches 表 score/half/duration/yellow/red 回写
+    let scoreSyncCount = 0;
+    try {
+      const adp = database.getAdapter();
+      if (adp) {
+        Object.keys(data.m).forEach(function (rk) {
+          var m = data.m[rk];
+          if (!m || !m.matchId || !m.date || m.date.slice(0, 10) !== dateStr) return;
+          if (m.matchStatus < 2) return;
+          if (m.score || m.halfScore || m.duration || m.yellow || m.red) {
+            adp.execRun(
+              `UPDATE matches SET score=?, halfScore=?, duration=?, yellow=?, red=?, matchStatus=2 WHERE matchId=?`,
+              m.score || '', m.halfScore || '', m.duration || '', m.yellow || '', m.red || '', m.matchId,
+            );
+            scoreSyncCount++;
+          }
+        });
+        if (scoreSyncCount > 0) {
+          database.flushCriticalWrites(adp);
+          log('[backfill] matches 表同步完成: ' + scoreSyncCount + ' 场赛果');
+        }
+      }
+    } catch (e) {
+      log('[backfill] matches 表同步失败: ' + e.message);
+    }
+
     if (updated > 0) {
       atomicWrite(DATA_FILE, data);
       notifyReload();
