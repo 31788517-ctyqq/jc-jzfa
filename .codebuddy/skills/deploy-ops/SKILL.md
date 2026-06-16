@@ -37,6 +37,76 @@ description: >
 - [ ] L4: 业务 API(match-list) → code=0 + 数据非空？
 - [ ] L5: 浏览器验证：SW 未拦截、无 404 破图
 
+## 🚨 风险操作协议（⚠️ 必须逐项执行）
+
+### 风险等级定义
+
+| 等级 | 示例 | 协议 |
+|:---:|------|------|
+| 🔴 高 | 部署、DB迁移、删除文件、PM2重启 | 备份→执行→验证→确认，禁止跳过任何步骤 |
+| 🟡 中 | deploy.py改动、回填操作、新增npm包 | 先 `--dry` 试运行，确认后再执行 |
+| 🟢 低 | CSS颜色替换、新增文件 | 正常流程，但保持 git 可回退 |
+
+### 🔴 高风险操作强制流程
+
+```
+1. 备份（执行前）
+   ├── DB备份: cp midou_data.db midou_data.db.$(date +%Y%m%d_%H%M).bak
+   ├── 代码备份: git tag 当前commit → git push
+   └── 关键文件: deploy.py 保留上一版本副本
+
+2. 试运行
+   ├── python deploy.py --dry  或  node xxx.js --dry
+   └── 检查输出无明显错误
+
+3. 执行
+   └── 确认备份完成 → 执行
+
+4. 验证（执行后）— 5层验证
+   ├── L1: PM2 online
+   ├── L2: curl :3000/api/health → 200
+   ├── L3: curl -H "Host:zj.100qiu.com" :80/api/health → 200
+   ├── L4: 业务 API (match-list) → code=0
+   └── L5: 浏览器 → SW未拦截 + 无404
+
+5. 确认
+   ├── 全部通过 → 宣布成功
+   └── 任一层失败 → 进入回滚流程
+```
+
+### 🔙 回滚流程
+
+```
+L1-L3 失败（服务未启动）:
+  → pm2 restart all
+  → 等待 10s
+  → 重新验证
+  → 仍失败 → git checkout 上一tag → python deploy.py --fast
+
+L4 失败（业务API错误）:
+  → pm2 logs --lines 30 查错误
+  → 评估影响范围 → 决定回滚 or 快速修复
+
+L5 失败（缓存/静态资源）:
+  → SW Unregister + Nginx reload + Ctrl+Shift+R
+  → 仍失败 → 检查新文件是否在 deploy.py 范围
+
+回滚方法:
+  git checkout <上一stable tag> -- <失败的文件>
+  python deploy.py --fast -- <仅失败的文件>
+```
+
+### 📋 部署前检查清单（完整版）
+
+- [ ] 代码已提交: `git status` 干净
+- [ ] 测试通过: `npm run preflight` 全绿
+- [ ] 备份完成: DB + 关键文件已备份
+- [ ] dry-run 通过: `python deploy.py --dry` 无异常
+- [ ] 依赖追踪: 新增模块在 deploy.py 范围内
+- [ ] npm 依赖: 服务器已 `npm install`
+- [ ] 本地验证 4 项: node -c + index.html + sw.js + 关键字符串
+- [ ] 回退 tag 已打: `git tag deploy-backup-$(date +%Y%m%d%H%M)`
+
 ## 故障速查
 
 | 症状 | 排查 |

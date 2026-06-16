@@ -156,6 +156,33 @@ sucai/
 
 ---
 
+## 🚨 风险操作强制协议
+
+以下操作必须先执行备份/试运行，禁止直接执行：
+
+| 风险等级 | 操作 | 必须 |
+|:---:|------|------|
+| 🔴 | 部署上线、删除文件、DB变更、PM2重启 | 备份 → dry-run → 执行 → 5层验证 |
+| 🟡 | deploy.py修改、回填操作、大文件清理 | dry-run → 确认 → 执行 |
+| 🟢 | 新增文件、CSS替换 | 正常提交即可 |
+
+### 🔴 部署执行顺序
+
+```
+1. npm run preflight              # 测试全绿
+2. git tag deploy-backup-YYYYMMDDHHMM  # 打回退标记
+3. cp midou_data.db midou_data.db.bak  # DB备份
+4. python deploy.py --dry          # 试运行
+5. python deploy.py --fast         # 正式部署
+6. python _verify_api.py           # 6层验证
+7. 全部通过 → 宣布成功，否则 → 回滚
+8. 回滚: git checkout <上tag> -- <失败文件> → python deploy.py --fast
+```
+
+详见：`use_skill deploy-ops` → 🚨 风险操作协议
+
+---
+
 ## 🔧 本地开发时改动不生效？三层缓存排查
 
 | 改了什么 | 需要重启Node | 需要 Ctrl+Shift+R | 需要 SW Unregister |
