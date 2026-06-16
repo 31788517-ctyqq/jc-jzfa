@@ -336,6 +336,10 @@ function syncToDataJson(liveMatches, dateStr) {
     Object.keys(mergedFields).forEach(function (field) {
       var val = mergedFields[field];
       if (val !== undefined && val !== null && String(old[field]) !== String(val)) {
+        // ★ V12: 半场比分保护 — 新比分=旧半场比分 → 跳过
+        if (field === 'score' && old.halfScore && String(val).replace(/[:：]/, '-') === String(old.halfScore).replace(/[:：]/, '-') && old.score && old.score !== val) {
+          return; // skip this field update
+        }
         old[field] = val;
         hasChange = true;
       }
