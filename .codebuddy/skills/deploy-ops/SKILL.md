@@ -49,6 +49,7 @@ description: >
 - [ ] 依赖追踪: 新增 `require()` 的模块是否在 `deploy.py` 范围？
 - [ ] **部署清单完整性**: 运行 `node scripts/check-deploy-files.cjs` 验证 deploy.py 中所有文件本地存在
 - [ ] npm 依赖: 新增的包是否已在服务器 `npm install`？
+- [ ] **文件编码**: deploy.py 必须是 UTF-8（不能是 UTF-16 LE）→ `node scripts/check-deploy-files.cjs` 自动检测
 - [ ] 本地验证 4 项: `node -c` + index.html 无 dist + sw.js 无 PAGE_SHELL + 关键字符串
 
 ### 部署后
@@ -132,6 +133,7 @@ L5 失败（缓存/静态资源）:
 
 | 症状 | 排查 |
 |------|------|
+| deploy.py 无法运行 | UTF-16 BOM 编码 → `python -c "open('deploy.py','r',encoding='utf-16').read()"` 转 UTF-8 |
 | match-list 全线 500 | 模块依赖遗漏 → `pm2 logs --lines 30 --nostream` 查 Cannot find module |
 | 部署后不生效 | 多层缓存 → Nginx reload + SW 版本 + `?v=` 参数 |
 | 502 Bad Gateway | 必须带 `Host: zj.100qiu.com` 头 |

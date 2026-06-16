@@ -36,6 +36,14 @@ const checks = [
     if (!fs.existsSync('server/core/datetime.js'))
       console.warn('  ⚠️ datetime.js 不存在（时区工具未创建）');
   }, fatal: false },
+  { name: 'deploy.py 编码(UTF-8)', run: () => {
+    // ★ V12: deploy.py 必须是 UTF-8，不能是 UTF-16 LE（Python 无法解析）
+    const buf = fs.readFileSync('deploy.py');
+    if (buf[0] === 0xFF && buf[1] === 0xFE)
+      throw new Error('deploy.py 是 UTF-16 LE! 转换为 UTF-8: python -c "src=open(\"deploy.py\",encoding=\"utf-16\").read();open(\"deploy.py\",\"w\",encoding=\"utf-8\").write(src)"');
+    if (buf.length > 2 && buf[0] !== 0x23 && buf[1] !== 0x20 && buf[0] !== 0x69)
+      console.warn('  ⚠️ deploy.py 首字节异常，检查编码');
+  }, fatal: true },
 ];
 
 console.log('🔍 部署前验证中...\n');
