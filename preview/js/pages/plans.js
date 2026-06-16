@@ -101,10 +101,10 @@ export function updatePlanDateBar() {
   var arrows = document.querySelectorAll('#planDateBar .date-arrow');
   var bar = document.getElementById('planDateBar');
   if (bar && arrows.length >= 2) {
-    arrows[0].style.opacity = state.planDate <= MIN_PLAN_DATE ? '0.25' : '0.7';
-    arrows[0].style.pointerEvents = state.planDate <= MIN_PLAN_DATE ? 'none' : 'auto';
-    arrows[1].style.opacity = state.planDate >= todayStr ? '0.25' : '0.7';
-    arrows[1].style.pointerEvents = state.planDate >= todayStr ? 'none' : 'auto';
+    arrows[0].className = arrows[0].className.replace(/\s*(arrow-disabled|arrow-active)/g,'') +
+      (state.planDate <= MIN_PLAN_DATE ? ' arrow-disabled' : ' arrow-active');
+    arrows[1].className = arrows[1].className.replace(/\s*(arrow-disabled|arrow-active)/g,'') +
+      (state.planDate >= todayStr ? ' arrow-disabled' : ' arrow-active');
   }
 }
 
@@ -1731,14 +1731,11 @@ function _toast(msg, type) {
     document.body.appendChild(el);
   }
   if (type === 'err') {
-    el.style.background = 'rgba(239,68,68,0.9)';
-    el.style.color = '#fff';
+    el.className = 'toast-error';
   } else if (type === 'ok') {
-    el.style.background = 'rgba(34,197,94,0.9)';
-    el.style.color = '#fff';
+    el.className = 'toast-success';
   } else {
-    el.style.background = 'rgba(0,0,0,0.8)';
-    el.style.color = '#fff';
+    el.className = 'toast-info';
   }
   el.textContent = msg;
   el.style.opacity = '1';

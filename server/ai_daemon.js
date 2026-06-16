@@ -5,9 +5,15 @@
  * - 当天最后一场结束后：不生成新比赛
  * - 缓存新鲜度：4 小时内已生成则跳过
  * - 熔断比赛自动跳过（功守道 fusionConsensusType === 'meltdown'）
+ *
+ * ★ P0-1 降级开关:
+ *   FEATURE_RICH_PROMPT=1 → AI Prompt 注入全维度数据（赔率趋势/基本面/热度/融合特征）
+ *   FEATURE_RICH_PROMPT=0 (默认) → 仅注入 500.com 战绩（当前行为）
  */
 const path = require('path');
 const fs = require('fs');
+
+const RICH_PROMPT_ENABLED = String(process.env.FEATURE_RICH_PROMPT || '0') === '1';
 
 // 尝试加载 database（SQLite模式），失败则 fallback 到 data.json 模式
 let database = null;

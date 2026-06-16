@@ -4,11 +4,16 @@
  *
  * 支持 SQLite → JSON 双模读取（优先 DB，降级 JSON）
  * V2: TTL 延长至 60s + 异步 fs 操作
+ *
+ * ★ P0-2 降级开关: DATA_JSON_AGGRESSIVE_CACHE=1 启用激进缓存（延长TTL+跳过stat）
  */
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
 const logger = require('../logger');
+
+const AGGRESSIVE_CACHE = String(process.env.DATA_JSON_AGGRESSIVE_CACHE || '0') === '1';
+const CACHE_TTL = AGGRESSIVE_CACHE ? 300000 : 60000; // 300s (激进) vs 60s (默认)
 
 // ═══ 路径常量 ═══
 const DATA_JSON_PATH = path.join(__dirname, '..', 'data.json');
@@ -48,7 +53,7 @@ function _buildDateIndex(dataJson) {
 function getDataJson(forceRefresh) {
   const now = Date.now();
   // ★ V12: TTL 内也检查 mtime，避免 jc-sync 回写后缓存不更新
-  if (!forceRefresh && _dataJsonCache && now - _dataJsonCacheTime < 60000) {
+  if (!forceRefresh && _dataJsonCache && now - _dataJsonCacheTime < CACHE_TTL) {
     try {
       const stat = fs.statSync(DATA_JSON_PATH);
       if (stat.mtimeMs === _dataJsonCacheMtime) {

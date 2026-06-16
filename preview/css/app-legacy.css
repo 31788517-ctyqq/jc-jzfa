@@ -44,60 +44,9 @@
   --jczj-bg-page:         #0F172A;
   --jczj-bg-card:         #1E293B;
   --jczj-bg-hover:        #334155;
-  --border-subtle:        rgba(255, 255, 255, 0.06);
-  --divider-strong:       rgba(126, 166, 189, 0.18);
-  --divider-default:      rgba(126, 166, 189, 0.12);
-  --glass-bg:             rgba(18, 27, 39, 0.91);
-  /* ★ P0-2: z-index 层级标准化 (低→高) */
-  --z-page:               1;
-  --z-dropdown:           50;
-  --z-tabbar:             100;
-  --z-overlay:            1000;
-  --z-modal:              10000;
-  --z-toast:              11000;
-  /* ★ P2: 间距尺 — 统一 gap/padding/margin 使用 */
-  --space-xs:             4px;
-  --space-sm:             8px;
-  --space-md:             12px;
-  --space-lg:             16px;
-  --space-xl:             20px;
-  --space-2xl:            24px;
-  --space-3xl:            32px;
-  --space-section:        40px;
-  /* ★ P2: 阴影层级 — 统一 box-shadow 使用 */
-  --shadow-sm:            0 2px 8px rgba(0,0,0,0.15);
-  --shadow-md:            0 4px 16px rgba(0,0,0,0.25);
-  --shadow-lg:            0 8px 32px rgba(0,0,0,0.35);
-  --shadow-glow:          0 0 24px rgba(126,166,189,0.12);
-  /* ★ P2: 过渡标准化 */
-  --transition-fast:      0.15s ease;
-  --transition-base:      0.25s ease;
-  --transition-slow:      0.4s ease;
-  /* ★ P2: 字体权重层级 */
-  --fw-normal:            400;
-  --fw-medium:            500;
-  --fw-semibold:          600;
-  --fw-bold:              700;
-  --fw-extrabold:         800;
-  --fw-black:             900;
-}
-/* ★ P2: :focus-visible 可访问性 — 键盘导航视觉反馈 */
-:focus-visible {
-  outline: 2px solid var(--jczj-accent);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-/* 交互元素 — 更显眼的焦点环 */
-button:focus-visible,
-a:focus-visible,
-[tabindex]:focus-visible {
-  outline: 2px solid var(--jczj-brand);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(255,140,0,0.15);
 }
 
 /* ═══ 全局空状态 ═══ */
-/* ★ P2-1: 统一空状态组件 — 全站所有 empty/loading/error 使用 empty-state 或 hint-box 模式 */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -226,7 +175,7 @@ body {
   border-radius: 15px;
   background: rgba(255, 255, 255, 0.048);
   border: 1px solid rgba(129, 164, 214, 0.18);
-  color: var(--green);
+  color: #7aaa96;
   font-size: 11px;
   display: flex;
   align-items: center;
@@ -237,13 +186,13 @@ body {
   width: 12px;
   height: 12px;
   fill: none;
-  stroke: var(--red);
+  stroke: #b87070;
   stroke-width: 2.6;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 .home-update-btn span {
-  color: var(--green);
+  color: #7aaa96;
 }
 .home-bell {
   position: relative;
@@ -273,7 +222,7 @@ body {
   height: 18px;
   padding: 0 5px;
   border-radius: 10px;
-  background: var(--red);
+  background: #b87070;
   color: #fff;
   font-size: 11px;
   font-weight: 700;
@@ -362,7 +311,7 @@ body {
   bottom: 40px;
   left: 19px;
   right: 19px;
-  z-index: var(--z-tabbar, 10501);
+  z-index: 10501;
   max-width: 402px;
   margin: 0 auto;
   height: 85px;
@@ -377,6 +326,7 @@ body {
   justify-content: space-around;
   align-items: center;
   padding: 8px 12px;
+  z-index: 100;
   box-shadow:
     0 0 22px rgba(134, 166, 196, 0.08),
     0 16px 44px rgba(0, 0, 0, 0.54);
@@ -453,13 +403,7 @@ body {
 }
 .page.active {
   display: block;
-  content-visibility: visible;
   animation: fadeUp 0.35s ease;
-}
-/* ★ P0-2: 非活跃页面 content-visibility:auto 减少渲染开销 */
-.page:not(.active) {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 500px;
 }
 @keyframes fadeUp {
   from {
@@ -637,12 +581,12 @@ body {
   stroke-linejoin: round;
 }
 .home-stat-calendar {
-  color: var(--cyan);
+  color: #7ea6bd;
   background: rgba(70, 103, 255, 0.16);
   box-shadow: 0 0 20px rgba(126, 166, 189, 0.16);
 }
 .home-stat-fire {
-  color: var(--purple);
+  color: #86a6c4;
   background: rgba(134, 166, 196, 0.16);
   box-shadow: 0 0 20px rgba(134, 166, 196, 0.16);
 }
@@ -651,7 +595,7 @@ body {
   stroke: none;
 }
 .home-stat-bars {
-  color: var(--green);
+  color: #7aaa96;
   background: rgba(122, 170, 150, 0.15);
   box-shadow: 0 0 20px rgba(122, 170, 150, 0.13);
 }
@@ -673,13 +617,13 @@ body {
   text-shadow: 0 0 14px rgba(134, 166, 196, 0.22);
 }
 #homeMatchCount {
-  color: var(--cyan);
+  color: #7ea6bd;
 }
 #homeMaxRank {
-  color: var(--purple);
+  color: #86a6c4;
 }
 #homeHottest {
-  color: var(--green);
+  color: #7aaa96;
 }
 .home-stat-title {
   font-size: 13px;
@@ -796,7 +740,7 @@ body {
 .home-left-desc {
   margin-top: 5px;
   font-size: 12px;
-  color: var(--text2);
+  color: #8996a6;
   white-space: nowrap;
 }
 .home-chess-bg {
@@ -829,7 +773,7 @@ body {
   z-index: 1;
 }
 .home-core-title {
-  color: var(--text);
+  color: #e2e0dc;
   font-size: 13px;
   font-weight: 700;
   margin-bottom: 14px;
@@ -845,7 +789,7 @@ body {
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.045);
   border: 1px solid rgba(255, 255, 255, 0.055);
-  color: var(--text);
+  color: #e2e0dc;
   font-size: 11px;
   display: flex;
   flex-direction: column;
@@ -878,13 +822,13 @@ body {
   stroke-linejoin: round;
 }
 .home-tool-backtest {
-  color: var(--cyan);
+  color: #7ea6bd;
 }
 .home-tool-model {
-  color: var(--purple);
+  color: #86a6c4;
 }
 .home-tool-quant {
-  color: var(--green);
+  color: #7aaa96;
 }
 .home-tool:active {
   background: rgba(255, 255, 255, 0.1);
@@ -961,7 +905,7 @@ body {
 }
 .home-icon-green {
   background: rgba(122, 170, 150, 0.17);
-  color: var(--green);
+  color: #7aaa96;
   box-shadow: 0 0 24px rgba(122, 170, 150, 0.16);
 }
 .home-right-text {
@@ -1028,7 +972,7 @@ body {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(126, 166, 189, 0.2);
-  color: var(--purple);
+  color: #86a6c4;
 }
 .menu-icon svg {
   width: 20px;
@@ -1184,7 +1128,7 @@ body {
 }
 .match-single-badge {
   font-size: 10px;
-  color: var(--red);
+  color: #b87070;
   background: rgba(184, 112, 112, 0.12);
   padding: 2px 10px;
   border-radius: 999px;
@@ -1205,11 +1149,11 @@ body {
   line-height: 1.2;
 }
 .match-handicap-tag.rq-pos {
-  color: var(--red);
+  color: #b87070;
   background: rgba(184, 112, 112, 0.12);
 }
 .match-handicap-tag.rq-neg {
-  color: var(--green);
+  color: #7aaa96;
   background: rgba(122, 170, 150, 0.12);
 }
 .match-teams {
@@ -1390,8 +1334,8 @@ body {
   justify-content: center;
   font-size: 16px;
   font-weight: 900;
-  color: var(--red);
-  border: 1.5px solid var(--red);
+  color: #b87070;
+  border: 1.5px solid #b87070;
   border-radius: 50%;
   transform: rotate(-10deg);
   margin-left: auto;
@@ -1407,13 +1351,13 @@ body {
   flex-shrink: 0;
 }
 .rank-badge.gold {
-  background: linear-gradient(135deg, var(--amber), var(--amber));
+  background: linear-gradient(135deg, #b89a60, #b89a60);
 }
 .rank-badge.silver {
   background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
 }
 .rank-badge.bronze {
-  background: linear-gradient(135deg, #cd7f32, var(--amber));
+  background: linear-gradient(135deg, #cd7f32, #b89a60);
 }
 .rank-badge.normal {
   background: rgba(255, 255, 255, 0.08);
@@ -1646,7 +1590,7 @@ body {
   margin: 0;
   padding: 12px 0 17px;
   gap: 6px;
-  justify-content: flex-start;
+  justify-content: flex-start !important;
   scroll-padding-left: 0;
 }
 #planTabBar .filter-tag {
@@ -1850,7 +1794,7 @@ body {
 .hit-rank-label {
   width: 120px;
   font-size: var(--fs-md);
-  color: var(--text);
+  color: #e2e0dc;
   flex-shrink: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1924,7 +1868,7 @@ body {
 }
 
 body {
-  background: linear-gradient(180deg, var(--bg) 0%, #0f151d 100%);
+  background: linear-gradient(180deg, #111820 0%, #0f151d 100%);
 }
 .navbar {
   background: linear-gradient(180deg, rgba(0, 16, 24, 0.86), rgba(0, 16, 24, 0));
@@ -2014,7 +1958,7 @@ body {
 }
 .filter-stat-label {
   font-size: var(--fs-xs);
-  color: var(--text3);
+  color: #586575;
   margin-top: 4px;
 }
 .filter-stat-divider {
@@ -2261,14 +2205,14 @@ body {
 .filter-result-num {
   font-size: 38px;
   font-weight: 900;
-  color: var(--green);
+  color: #7aaa96;
   text-shadow: 0 0 11px rgba(122, 170, 150, 0.18);
   line-height: 1.1;
   margin-bottom: 2px;
 }
 .filter-result-label {
   font-size: var(--fs-xs);
-  color: var(--text3);
+  color: #586575;
 }
 /* 环形图 */
 .filter-ring-wrap {
@@ -2512,7 +2456,7 @@ body {
   display: flex;
   align-items: center;
   font-size: 11px;
-  color: var(--text3);
+  color: #586575;
   padding: 12px 18px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(0, 255, 255, 0.03);
@@ -3042,7 +2986,7 @@ body {
   border-radius: 50%;
   background: rgba(130, 158, 164, 0.1);
   border: none;
-  color: var(--text3);
+  color: #586575;
   font-size: 16px;
   cursor: pointer;
 }
@@ -3051,7 +2995,7 @@ body {
 .bo-tab-wrap {
   display: flex;
   margin: 14px 16px 0;
-  border: 1px solid var(--red);
+  border: 1px solid #b87070;
   border-radius: 14px;
   overflow: hidden;
 }
@@ -3063,9 +3007,9 @@ body {
   height: 42px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--red);
+  color: #b87070;
   background: transparent;
-  border-right: 1px solid var(--red);
+  border-right: 1px solid #b87070;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -3073,7 +3017,7 @@ body {
   border-right: none;
 }
 .bo-tab.active {
-  background: var(--red);
+  background: #b87070;
   color: #fff;
 }
 
@@ -3083,10 +3027,10 @@ body {
   justify-content: space-between;
   padding: 12px 19px 4px;
   font-size: 12px;
-  color: var(--text3);
+  color: #586575;
 }
 .bo-desc-row b {
-  color: var(--red);
+  color: #b87070;
 }
 
 /* 表头 */
@@ -3105,7 +3049,7 @@ body {
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
-  color: var(--text3);
+  color: #586575;
 }
 .col-pass {
   width: 64px;
@@ -3147,7 +3091,7 @@ body {
   height: 22px;
   border-radius: 14px;
   background: rgba(184, 112, 112, 0.1);
-  color: var(--red);
+  color: #b87070;
   font-size: 11px;
   font-weight: 700;
 }
@@ -3174,7 +3118,7 @@ body {
 }
 .bo-desc-line2 {
   font-size: 11px;
-  color: var(--text3);
+  color: #586575;
   text-align: center;
 }
 
@@ -3193,7 +3137,7 @@ body {
   overflow: hidden;
 }
 .bo-stepper.active {
-  border-color: var(--green);
+  border-color: #7aaa96;
   box-shadow: 0 0 8px rgba(22, 160, 133, 0.15);
 }
 .bo-step-btn {
@@ -3201,7 +3145,7 @@ body {
   border: none;
   background: rgba(255, 255, 255, 0.04);
   font-size: 20px;
-  color: var(--text2);
+  color: #8996a6;
   cursor: pointer;
   line-height: 1;
 }
@@ -3227,10 +3171,10 @@ body {
   justify-content: center;
   font-size: 17px;
   font-weight: 600;
-  color: var(--cyan);
+  color: #7ea6bd;
 }
 .bo-amount-hot {
-  color: var(--red);
+  color: #b87070;
   font-weight: 700;
   font-size: 18px;
 }
@@ -3326,7 +3270,7 @@ body {
   height: 44px;
   border: none;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--amber), var(--amber));
+  background: linear-gradient(135deg, #b89a60, #b89a60);
   color: #1a1a1a;
   font-size: 15px;
   font-weight: 700;
@@ -3363,7 +3307,7 @@ body {
 .plan-amount-value {
   font-size: 18px;
   font-weight: 700;
-  color: var(--cyan);
+  color: #7ea6bd;
   text-shadow: 0 0 8px rgba(126, 166, 189, 0.2);
 }
 .plan-amount-value .unit {
@@ -3413,7 +3357,7 @@ body {
   flex-direction: column;
   gap: 9px;
   font-size: 11px;
-  color: var(--cyan);
+  color: #7ea6bd;
   text-shadow: 0 0 6px rgba(126, 166, 189, 0.15);
 }
 /* 中奖/未中图标 - plan-info-grid右侧垂直居中 */
@@ -3501,7 +3445,7 @@ body {
 .plan-score-blue {
   font-size: 11px;
   font-weight: 700;
-  color: var(--cyan);
+  color: #7ea6bd;
   padding: 0 6px;
 }
 .plan-match-table .odds-col {
@@ -3683,7 +3627,7 @@ body {
   border-radius: 14px;
   background: linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(103, 58, 183, 0.1));
   border: 1px solid rgba(156, 39, 176, 0.2);
-  color: var(--purple);
+  color: #86a6c4;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -3909,7 +3853,7 @@ body {
   display: flex;
   align-items: center;
   font-size: 11px;
-  color: var(--text2);
+  color: #8996a6;
   font-weight: 600;
   padding: 11px 16px;
   gap: 6px;
@@ -4060,7 +4004,7 @@ body {
 .q-cell-num {
   font-weight: 600;
   font-size: 13px;
-  color: var(--text2);
+  color: #8996a6;
 }
 .q-cell-num.pos {
   color: var(--cyan);
@@ -4070,7 +4014,7 @@ body {
   color: var(--red);
 }
 .q-cell-num.cool {
-  color: var(--cyan);
+  color: #7ea6bd;
 }
 /* ═══ P0-1: 智能标签 ═══ */
 .q-decision-badge {
@@ -4130,7 +4074,7 @@ body {
   max-width: 62px;
   padding: 2px 4px;
   border-radius: 999px;
-  color: var(--red);
+  color: #b87070;
   background: rgba(184, 112, 112, 0.12);
   font-size: 8px;
   font-style: normal;
@@ -4140,7 +4084,7 @@ body {
   text-overflow: ellipsis;
 }
 .q-risk-chips .q-risk-empty {
-  color: var(--green);
+  color: #7aaa96;
   background: rgba(122, 170, 150, 0.1);
 }
 .q-match-tags {
@@ -4167,23 +4111,23 @@ body {
 }
 .q-tag.tag-meltdown {
   background: rgba(184, 112, 112, 0.15);
-  color: var(--red);
+  color: #b87070;
 }
 .q-tag.tag-balanced {
   background: rgba(122, 170, 150, 0.12);
-  color: var(--green);
+  color: #7aaa96;
 }
 .q-tag.tag-overheat {
   background: rgba(184, 112, 112, 0.15);
-  color: var(--red);
+  color: #b87070;
 }
 .q-tag.tag-cold {
   background: rgba(126, 166, 189, 0.15);
-  color: var(--cyan);
+  color: #7ea6bd;
 }
 .q-tag.tag-defense {
   background: rgba(100, 181, 246, 0.15);
-  color: var(--cyan);
+  color: #7ea6bd;
 }
 .q-tag.tag-attack {
   background: rgba(255, 138, 80, 0.15);
@@ -4193,7 +4137,7 @@ body {
 .q-cell-rank {
   font-weight: 700;
   font-size: 13px;
-  color: var(--text2);
+  color: #8996a6;
 }
 .q-cell-rank.r1 {
   color: #c8981e;
@@ -4402,7 +4346,7 @@ body {
 
 /* 占比颜色 */
 .pk2-pct-pos {
-  color: var(--green);
+  color: #7aaa96;
   font-weight: 600;
 }
 .pk2-pct-neg {
@@ -4421,10 +4365,10 @@ body {
   border-radius: 2px;
 }
 .pk2-pct-bar.pk2-pct-pos {
-  background: linear-gradient(90deg, var(--green), var(--green));
+  background: linear-gradient(90deg, #7aaa96, #7aaa96);
 }
 .pk2-pct-bar.pk2-pct-neg {
-  background: linear-gradient(90deg, var(--red), var(--amber));
+  background: linear-gradient(90deg, var(--red), #b89a60);
 }
 
 /* ── PK结果卡片 ── */
@@ -4488,7 +4432,7 @@ body {
   text-align: right;
 }
 .pk2-win {
-  color: var(--green) !important;
+  color: #7aaa96 !important;
   font-weight: 700 !important;
 }
 .pk2-lose {
@@ -4589,10 +4533,10 @@ body {
   font-weight: 700;
 }
 .pk2-combo-card.combo-positive .pk2-combo-tag {
-  color: var(--green);
+  color: #7aaa96;
 }
 .pk2-combo-card.combo-cold .pk2-combo-tag {
-  color: var(--cyan);
+  color: #7ea6bd;
 }
 .pk2-combo-card.combo-double .pk2-combo-tag {
   color: #c8981e;
@@ -4735,13 +4679,13 @@ body {
   background: linear-gradient(90deg, var(--red), rgba(184, 112, 112, 0.5));
 }
 .bar-green {
-  background: linear-gradient(90deg, var(--green), rgba(122, 170, 150, 0.5));
+  background: linear-gradient(90deg, #7aaa96, rgba(122, 170, 150, 0.5));
 }
 .bar-amber {
   background: linear-gradient(90deg, var(--amber), rgba(184, 154, 96, 0.5));
 }
 .bar-blue {
-  background: linear-gradient(90deg, var(--cyan), rgba(126, 166, 189, 0.5));
+  background: linear-gradient(90deg, #7ea6bd, rgba(126, 166, 189, 0.5));
 }
 .pk3-sc-val {
   width: 34px;
@@ -4790,11 +4734,11 @@ body {
 }
 .pk3-tag-t.tag-red {
   background: rgba(184, 112, 112, 0.12);
-  color: var(--red);
+  color: #b87070;
 }
 .pk3-tag-t.tag-green {
   background: rgba(122, 170, 150, 0.12);
-  color: var(--green);
+  color: #7aaa96;
 }
 .pk3-tag-t.tag-amber {
   background: rgba(184, 154, 96, 0.12);
@@ -4802,7 +4746,7 @@ body {
 }
 .pk3-tag-t.tag-blue {
   background: rgba(126, 166, 189, 0.12);
-  color: var(--cyan);
+  color: #7ea6bd;
 }
 .pk3-tag-t.tag-orange {
   background: rgba(249, 115, 22, 0.12);
@@ -4810,7 +4754,7 @@ body {
 }
 .pk3-tag-t.tag-indigo {
   background: rgba(134, 166, 196, 0.12);
-  color: var(--purple);
+  color: #86a6c4;
 }
 .pk3-fusion-tag {
   display: inline-block;
@@ -4821,7 +4765,7 @@ body {
 }
 .fusion-ok {
   background: rgba(76, 175, 80, 0.12);
-  color: var(--green);
+  color: #7aaa96;
 }
 .fusion-warn {
   background: rgba(184, 154, 96, 0.12);
@@ -4829,22 +4773,22 @@ body {
 }
 .fusion-bad {
   background: rgba(184, 112, 112, 0.12);
-  color: var(--red);
+  color: #b87070;
 }
 
 /* 推荐方向颜色 */
 .dir-home,
 .pk3-advice-card.dir-home {
-  border-left-color: var(--green);
+  border-left-color: #7aaa96;
 }
 .dir-home-caut {
-  color: var(--amber) !important;
+  color: #b89a60 !important;
 }
 .dir-away {
-  color: var(--amber) !important;
+  color: #b89a60 !important;
 }
 .dir-away-cold {
-  color: var(--cyan) !important;
+  color: #7ea6bd !important;
 }
 .dir-draw {
   color: var(--text2) !important;
@@ -4853,10 +4797,10 @@ body {
   color: var(--red) !important;
 }
 .dir-big {
-  color: var(--green) !important;
+  color: #7aaa96 !important;
 }
 .dir-small {
-  color: var(--purple) !important;
+  color: #86a6c4 !important;
 }
 
 /* ── 模块二：横向对比总览表 ── */
@@ -4952,13 +4896,13 @@ body {
 
 /* 数值颜色 */
 .val-good {
-  color: var(--green) !important;
+  color: #7aaa96 !important;
 }
 .val-warn {
-  color: var(--amber) !important;
+  color: #b89a60 !important;
 }
 .val-bad {
-  color: var(--red) !important;
+  color: #b87070 !important;
 }
 
 /* ── 模块三：投注建议列表 ── */
@@ -4976,15 +4920,15 @@ body {
   border-left: 3px solid rgba(126, 166, 189, 0.2);
 }
 .pk3-advice-card.dir-home {
-  border-left-color: var(--green);
+  border-left-color: #7aaa96;
   background: rgba(122, 170, 150, 0.03);
 }
 .pk3-advice-card.dir-away {
-  border-left-color: var(--amber);
+  border-left-color: #b89a60;
   background: rgba(249, 115, 22, 0.03);
 }
 .pk3-advice-card.dir-avoid {
-  border-left-color: var(--red);
+  border-left-color: #b87070;
   background: rgba(184, 112, 112, 0.03);
 }
 .pk3-advice-card.dir-draw {
@@ -5040,7 +4984,7 @@ body {
   flex: 1;
 }
 .pk3-adv-warn {
-  color: var(--red);
+  color: #b87070;
   font-size: 10px;
   padding: 4px 0;
   background: rgba(184, 112, 112, 0.06);
@@ -5049,7 +4993,7 @@ body {
   margin-top: 2px;
 }
 .pk3-adv-info {
-  color: var(--cyan);
+  color: #7ea6bd;
   font-size: 10px;
   padding: 4px 0;
   background: rgba(126, 166, 189, 0.06);
@@ -5099,14 +5043,14 @@ body {
   font-size: 11px;
   font-weight: 900;
   color: #10212a;
-  background: var(--green);
+  background: #7aaa96;
 }
 .pk3-decision-card.risk-yellow .pk3-decision-badge {
   background: #d9b36c;
 }
 .pk3-decision-card.risk-red .pk3-decision-badge {
   color: #fff;
-  background: var(--red);
+  background: #b87070;
 }
 .pk3-decision-main {
   margin-top: 8px;
@@ -5126,7 +5070,7 @@ body {
   margin-top: 8px;
   padding: 8px 10px;
   border-radius: 10px;
-  color: var(--cyan);
+  color: #7ea6bd;
   background: rgba(126, 166, 189, 0.08);
   font-size: 11px;
   line-height: 1.55;
@@ -5151,11 +5095,11 @@ body {
   font-weight: 800;
 }
 .pk3-decision-tag.risk {
-  color: var(--red);
+  color: #b87070;
   background: rgba(184, 112, 112, 0.12);
 }
 .pk3-decision-tag.degrade {
-  color: var(--amber);
+  color: #b89a60;
   background: rgba(184, 154, 96, 0.13);
 }
 .pk3-decision-empty {
@@ -5199,7 +5143,7 @@ body {
   background: rgba(122, 170, 150, 0.07);
 }
 .pk3-model-row-final b {
-  color: var(--green);
+  color: #7aaa96;
 }
 
 /* ── 模块四：串关推荐 ── */
@@ -5234,10 +5178,10 @@ body {
   font-weight: 700;
 }
 .pk3-combo-card.combo-positive .pk3-combo-tag {
-  color: var(--green);
+  color: #7aaa96;
 }
 .pk3-combo-card.combo-cold .pk3-combo-tag {
-  color: var(--cyan);
+  color: #7ea6bd;
 }
 .pk3-combo-card.combo-steady .pk3-combo-tag {
   color: #c8981e;
@@ -5272,19 +5216,19 @@ body {
   border-bottom: none;
 }
 .pk3-risk-item.danger {
-  color: var(--red);
+  color: #b87070;
   font-weight: 600;
 }
 .pk3-risk-item.warn {
   color: #c8981e;
 }
 .pk3-risk-item.info {
-  color: var(--cyan);
+  color: #7ea6bd;
 }
 .pk3-risk-clear {
   padding: 12px 14px;
   font-size: 12px;
-  color: var(--green);
+  color: #7aaa96;
   font-weight: 600;
   text-align: center;
 }
@@ -5378,7 +5322,7 @@ body {
 }
 .pattern-badge.def {
   background: rgba(21, 101, 192, 0.18);
-  color: var(--cyan);
+  color: #7ea6bd;
 }
 .pattern-badge.bal {
   background: rgba(117, 117, 117, 0.18);
@@ -5396,7 +5340,7 @@ body {
 }
 .fusion-badge.fusion-strong {
   background: rgba(46, 125, 50, 0.18);
-  color: var(--green);
+  color: #7aaa96;
 }
 .fusion-badge.fusion-weak {
   background: rgba(249, 168, 37, 0.18);
@@ -5404,7 +5348,7 @@ body {
 }
 .fusion-badge.fusion-meltdown {
   background: rgba(198, 40, 40, 0.18);
-  color: var(--red);
+  color: #b87070;
 }
 
 /* ═══ P1-1: PK弹窗四重验证行 ═══ */
@@ -5717,7 +5661,7 @@ body {
 }
 .smc-league {
   font-size: 12px;
-  color: var(--cyan);
+  color: #7ea6bd;
   font-weight: 600;
   text-align: center;
 }
@@ -5766,7 +5710,7 @@ body {
   pointer-events: none;
   border-color: rgba(255, 255, 255, 0.06);
   background: rgba(255, 255, 255, 0.02);
-  color: var(--text3);
+  color: #586575;
 }
 .smc-other-sep {
   width: 100%;
@@ -5775,7 +5719,7 @@ body {
 }
 .smc-other-info {
   font-size: 11px;
-  color: var(--cyan);
+  color: #7ea6bd;
   white-space: nowrap;
   font-weight: 600;
 }
@@ -5812,7 +5756,7 @@ body {
 }
 .smc-vs {
   font-size: 13px;
-  color: var(--cyan);
+  color: #7ea6bd;
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -5832,7 +5776,7 @@ body {
   width: 22px;
   flex-shrink: 0;
   font-size: 10px;
-  color: var(--text3);
+  color: #586575;
   font-weight: 600;
   text-align: center;
 }
@@ -5860,7 +5804,7 @@ body {
 }
 .smc-ai-btn {
   background: linear-gradient(135deg, rgba(126, 166, 189, 0.15), rgba(0, 180, 219, 0.08));
-  color: var(--cyan);
+  color: #7ea6bd;
   border: 1px solid rgba(126, 166, 189, 0.25);
 }
 .smc-ai-btn:active {
@@ -5905,20 +5849,20 @@ body {
   background: rgba(126, 166, 189, 0.05);
 }
 .sodds-btn.active {
-  border-color: var(--amber);
+  border-color: #b89a60;
   background: rgba(184, 154, 96, 0.08);
   box-shadow: 0 0 10px rgba(184, 154, 96, 0.15);
 }
 .sodds-dir {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text2);
+  color: #8996a6;
   white-space: nowrap;
 }
 .sodds-val {
   font-size: 11px;
   font-weight: 500;
-  color: var(--cyan);
+  color: #7ea6bd;
   white-space: nowrap;
 }
 .sodds-btn.active .sodds-dir {
@@ -5930,12 +5874,12 @@ body {
 
 /* ★ 赔率变动箭头 */
 .sodds-arrow-up {
-  color: var(--red);
+  color: #b87070;
   font-size: 9px;
   margin-left: 2px;
 }
 .sodds-arrow-down {
-  color: var(--green);
+  color: #7aaa96;
   font-size: 9px;
   margin-left: 2px;
 }
@@ -5950,7 +5894,7 @@ body {
 }
 .smc-delta-hint {
   font-size: 9px;
-  color: var(--text2);
+  color: #8996a6;
   white-space: nowrap;
 }
 .smc-delta-sum {
@@ -5996,7 +5940,7 @@ body {
   z-index: 2;
   font-size: 10px;
   font-weight: 700;
-  color: var(--cyan);
+  color: #7ea6bd;
   line-height: 1;
   pointer-events: none;
   line-height: 1;
@@ -6025,7 +5969,7 @@ body {
   display: inline-block;
   font-size: 10px;
   font-weight: 700;
-  color: var(--red);
+  color: #b87070;
   background: rgba(184, 112, 112, 0.12);
   padding: 2px 10px;
   border-radius: 999px;
@@ -6130,7 +6074,7 @@ body {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--amber);
+  background: #b89a60;
   color: #111;
   font-size: 15px;
   font-weight: 700;
@@ -6203,7 +6147,7 @@ body {
 
 /* 查看方案按钮 */
 .ssb-view-btn {
-  border: 2px solid var(--amber);
+  border: 2px solid #b89a60;
   border-radius: 8px;
   background: transparent;
   color: #c8981e;
@@ -6284,7 +6228,7 @@ body {
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.06);
-  color: var(--text2);
+  color: #8996a6;
   font-size: 15px;
   cursor: pointer;
 }
@@ -6292,7 +6236,7 @@ body {
   padding: 10px 22px;
   border-radius: 8px;
   border: none;
-  background: var(--amber);
+  background: #b89a60;
   color: #111;
   font-size: 15px;
   font-weight: 700;
@@ -6402,7 +6346,7 @@ body {
 .ssb-pass-item input[type='checkbox'] {
   width: 20px;
   height: 20px;
-  accent-color: var(--amber);
+  accent-color: #b89a60;
 }
 .ssb-pass-count {
   color: #8fa6bc;
@@ -6446,7 +6390,7 @@ body {
   border-radius: 14px;
   border: 1px solid rgba(184, 112, 112, 0.3);
   background: rgba(184, 112, 112, 0.08);
-  color: var(--red);
+  color: #b87070;
   font-size: var(--fs-xs);
   font-weight: 500;
   cursor: pointer;
@@ -6461,7 +6405,7 @@ body {
   border-radius: 14px;
   border: 1px solid rgba(126, 166, 189, 0.3);
   background: rgba(126, 166, 189, 0.08);
-  color: var(--cyan);
+  color: #7ea6bd;
   font-size: var(--fs-xs);
   font-weight: 500;
   cursor: pointer;
@@ -6491,7 +6435,7 @@ body {
   font-weight: 600;
 }
 .mp-rec-switch input[type='checkbox'] {
-  accent-color: var(--cyan);
+  accent-color: #7ea6bd;
 }
 .mp-rec-tip {
   color: #7b93a8;
@@ -6530,7 +6474,7 @@ body {
 }
 .mp-rec-badge.drift {
   border-color: rgba(239, 68, 68, 0.35);
-  color: var(--jczj-danger);
+  color: #ef4444;
 }
 .mp-rec-row {
   display: flex;
@@ -6559,10 +6503,10 @@ body {
 
 /* 方案金额颜色 */
 .plan-win-amount {
-  color: var(--jczj-danger) !important;
+  color: #ef4444 !important;
 }
 .plan-lose-amount {
-  color: var(--jczj-danger) !important;
+  color: #ef4444 !important;
 }
 
 /* Scheme 日期栏 */
@@ -6594,7 +6538,7 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .confirm-back {
-  color: var(--cyan);
+  color: #7ea6bd;
   font-size: 14px;
   cursor: pointer;
   display: flex;
@@ -6607,7 +6551,7 @@ body {
   font-weight: 700;
 }
 .confirm-count {
-  color: var(--text2);
+  color: #8996a6;
   font-size: 13px;
 }
 
@@ -6654,7 +6598,7 @@ body {
   height: 24px;
   border-radius: 50%;
   background: rgba(184, 112, 112, 0.15);
-  color: var(--red);
+  color: #b87070;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6668,7 +6612,7 @@ body {
 }
 .cfm-match-num {
   font-size: 12px;
-  color: var(--text3);
+  color: #586575;
   flex-shrink: 0;
 }
 .cfm-play-tag {
@@ -6710,7 +6654,7 @@ body {
   background: rgba(126, 166, 189, 0.06);
 }
 .cfm-opt.active {
-  border-color: var(--red);
+  border-color: #b87070;
   background: rgba(184, 112, 112, 0.1);
   box-shadow: 0 0 12px rgba(184, 112, 112, 0.15);
 }
@@ -6725,15 +6669,15 @@ body {
   width: 100%;
 }
 .cfm-opt.active .cfm-opt-team {
-  color: var(--red);
+  color: #b87070;
 }
 .cfm-opt-odds {
   font-size: 16px;
   font-weight: 800;
-  color: var(--cyan);
+  color: #7ea6bd;
 }
 .cfm-opt.active .cfm-opt-odds {
-  color: var(--red);
+  color: #b87070;
 }
 
 /* VS+平 中间列 */
@@ -6763,20 +6707,20 @@ body {
   background: rgba(126, 166, 189, 0.06);
 }
 .cfm-vs-wrap > div:first-child.active {
-  border-color: var(--red);
+  border-color: #b87070;
   background: rgba(184, 112, 112, 0.1);
   box-shadow: 0 0 12px rgba(184, 112, 112, 0.15);
 }
 .cfm-opt-label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text2);
+  color: #8996a6;
 }
 .cfm-vs-wrap > div:first-child.active .cfm-opt-label {
-  color: var(--red);
+  color: #b87070;
 }
 .cfm-vs-wrap > div:first-child.active .cfm-opt-odds {
-  color: var(--red);
+  color: #b87070;
 }
 .cfm-game-info {
   display: flex;
@@ -6786,12 +6730,12 @@ body {
 }
 .cfm-league {
   font-size: 10px;
-  color: var(--cyan);
+  color: #7ea6bd;
   text-align: center;
 }
 .cfm-time {
   font-size: 10px;
-  color: var(--text3);
+  color: #586575;
   text-align: center;
 }
 
@@ -6903,14 +6847,14 @@ body {
 .cfm-bb-maxwin {
   font-size: 16px;
   font-weight: 800;
-  color: var(--red);
+  color: #b87070;
 }
 .cfm-save-btn {
   flex: 1;
   padding: 14px;
   border-radius: 10px;
   border: none;
-  background: var(--red);
+  background: #b87070;
   color: #fff;
   font-size: 17px;
   font-weight: 700;
@@ -6918,10 +6862,10 @@ body {
   transition: background 0.2s;
 }
 .cfm-save-btn:hover {
-  background: var(--red);
+  background: #b87070;
 }
 .cfm-save-btn:active {
-  background: var(--red);
+  background: #b87070;
 }
 
 /* ─── 确认方案双按钮 ─── */
@@ -6935,7 +6879,7 @@ body {
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.05);
-  color: var(--text2);
+  color: #8996a6;
   font-size: 17px;
   font-weight: 600;
   cursor: pointer;
@@ -7083,7 +7027,7 @@ textarea {
   padding-right: var(--page-px);
 }
 .nav-title {
-  color: var(--text);
+  color: #e2e0dc;
   font-size: 21px;
   line-height: 1.22;
   text-shadow: 0 2px 12px rgba(134, 166, 196, 0.12);
@@ -7255,8 +7199,8 @@ textarea {
 .income-filter-btn.active,
 .bo-tab.active,
 .sodds-btn.active {
-  color: var(--bg);
-  background: linear-gradient(135deg, var(--cyan), #94adbf);
+  color: #111820;
+  background: linear-gradient(135deg, #7ea6bd, #94adbf);
   border-color: rgba(148, 173, 191, 0.55);
   box-shadow: 0 8px 18px rgba(126, 166, 189, 0.18);
 }
@@ -7288,7 +7232,7 @@ textarea {
 .date-picker-today,
 .smc-ai-btn,
 .cfm-save-btn {
-  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  background: linear-gradient(135deg, #7ea6bd, #86a6c4);
   border-color: rgba(134, 166, 196, 0.35);
   color: #11151f;
   box-shadow: 0 8px 18px rgba(134, 166, 196, 0.18);
@@ -7363,7 +7307,7 @@ textarea {
 .smc-vs,
 .sodds-val,
 .loading-text {
-  color: var(--cyan);
+  color: #7ea6bd;
   text-shadow: none;
 }
 .cfm-match-list,
@@ -7413,7 +7357,7 @@ textarea {
   font-weight: 700;
 }
 .rank-badge {
-  color: var(--text);
+  color: #e2e0dc;
 }
 .rank-badge.gold,
 .rank-badge.silver,
@@ -7430,7 +7374,7 @@ textarea {
   border-color: var(--divider);
 }
 .loading-spinner {
-  border-top-color: var(--cyan);
+  border-top-color: #7ea6bd;
 }
 @media (max-width: 380px) {
   :root {
@@ -8560,11 +8504,11 @@ button[class*='btn'] {
   align-items: stretch;
 }
 #planTabBar.filter-row {
-  justify-content: flex-start;
+  justify-content: flex-start !important;
   gap: 6px;
 }
 #subFilterBar.filter-row {
-  justify-content: flex-start;
+  justify-content: flex-start !important;
   gap: 6px;
 }
 .home-left-card,
@@ -8797,24 +8741,24 @@ button[class*='btn'] {
 }
 #schemeDateBar {
   padding: 10px 14px !important;
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(123, 141, 149, 0.92), rgba(108, 126, 134, 0.88));
-  border: 1px solid rgba(130, 158, 164, 0.18);
-  box-shadow: 0 14px 28px rgba(48, 72, 78, 0.14);
+  border-radius: 22px !important;
+  background: linear-gradient(180deg, rgba(123, 141, 149, 0.92), rgba(108, 126, 134, 0.88)) !important;
+  border: 1px solid rgba(130, 158, 164, 0.18) !important;
+  box-shadow: 0 14px 28px rgba(48, 72, 78, 0.14) !important;
 }
 #schemeDateBar .date-current {
-  min-width: 0;
+  min-width: 0 !important;
   padding: 8px 16px !important;
-  border-radius: 12px;
-  background: rgba(248, 251, 251, 0.84);
-  color: var(--alpine-text-main);
-  font-weight: 700;
+  border-radius: 12px !important;
+  background: rgba(248, 251, 251, 0.84) !important;
+  color: var(--alpine-text-main) !important;
+  font-weight: 700 !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
     0 8px 18px rgba(48, 72, 78, 0.1);
 }
 #schemeDateBar #schemeMatchTotal {
-  color: var(--alpine-text-sub);
+  color: var(--alpine-text-sub) !important;
 }
 .scheme-summary-bar {
   background: linear-gradient(180deg, rgba(209, 221, 224, 0.98), rgba(190, 205, 209, 0.96)) !important;
@@ -9022,16 +8966,16 @@ button[class*='btn'] {
 
 /* ═══ 首页数字暖色补丁（方案B：三色暖系渐变） ═══ */
 #homeMatchCount {
-  color: #ff8c00;
-  text-shadow: 0 0 10px rgba(255, 140, 0, 0.15);
+  color: #ff8c00 !important;
+  text-shadow: 0 0 10px rgba(255, 140, 0, 0.15) !important;
 }
 #homeMaxRank {
-  color: var(--alpine-coral-deep, #b94739);
-  text-shadow: 0 0 10px rgba(185, 71, 57, 0.15);
+  color: var(--alpine-coral-deep, #b94739) !important;
+  text-shadow: 0 0 10px rgba(185, 71, 57, 0.15) !important;
 }
 #homeHottest {
-  color: var(--alpine-coral, #f46f59);
-  text-shadow: 0 0 10px rgba(244, 111, 89, 0.15);
+  color: var(--alpine-coral, #f46f59) !important;
+  text-shadow: 0 0 10px rgba(244, 111, 89, 0.15) !important;
 }
 .filter-result-num {
   color: var(--alpine-coral, #f46f59) !important;
@@ -9736,7 +9680,7 @@ button[class*='btn'] {
 }
 
 .auth-secondary.filter-submit-btn {
-  background: linear-gradient(180deg, #9ca3af, var(--jczj-text-muted));
+  background: linear-gradient(180deg, #9ca3af, #6b7280);
 }
 
 /* 登录页专属 */
@@ -9984,7 +9928,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .auth-agreement-text {
-  color: var(--jczj-text-muted);
+  color: #6b7280;
   letter-spacing: 0;
 }
 
@@ -10086,7 +10030,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .auth-link-btn.auth-link-btn-muted {
-  color: var(--jczj-text-muted);
+  color: #6b7280;
   font-weight: 600;
 }
 
@@ -10186,7 +10130,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 .contact-guide-item span:last-child {
   display: block;
   margin-top: 4px;
-  color: var(--jczj-text-muted);
+  color: #6b7280;
   font-size: 13px;
   line-height: 1.45;
 }
@@ -10257,7 +10201,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 
 .invite-contact-desc {
   margin-top: 8px;
-  color: var(--jczj-text-muted);
+  color: #6b7280;
   font-size: 13px;
   line-height: 1.5;
 }
@@ -10468,9 +10412,9 @@ input[type='password']::-webkit-credentials-auto-fill-button {
   min-width: 0;
   height: 58px;
   padding: 0 8px 0 14px;
-  border: 0;
+  border: 0 !important;
   background: transparent;
-  box-shadow: none;
+  box-shadow: none !important;
   font-size: 16px;
   font-weight: 600;
   line-height: 58px;
@@ -10478,8 +10422,8 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .auth-shell-account .auth-account-input.search-input:focus {
-  border: 0;
-  box-shadow: none;
+  border: 0 !important;
+  box-shadow: none !important;
   outline: none;
 }
 
@@ -10519,7 +10463,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .auth-account-submit.filter-submit-btn {
-  background: linear-gradient(135deg, var(--jczj-warning) 0%, #ea580c 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
   color: #fff;
   border: 0;
   box-shadow: 0 16px 28px rgba(234, 88, 12, 0.28);
@@ -10621,12 +10565,12 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 
 /* ==================== 方案卡片统一规范（V2026-06-12） ==================== */
 .plan-money-value {
-  color: var(--jczj-danger) !important;
+  color: #ef4444 !important;
   text-shadow: none !important;
 }
 
 .plan-status-won {
-  color: var(--jczj-danger) !important;
+  color: #ef4444 !important;
 }
 
 .plan-status-lost {
@@ -10638,7 +10582,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .plan-direction-hit {
-  color: var(--jczj-danger) !important;
+  color: #ef4444 !important;
 }
 
 .plan-direction-miss {
@@ -10662,13 +10606,13 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 .plan-card.quant-plan .plan-amount-col .plan-amount-value.plan-money-value,
 .cfm-bb-yuan,
 .cfm-bb-maxwin {
-  color: var(--jczj-danger) !important;
+  color: #ef4444 !important;
 }
 
 .plan-card .plan-amount-col .plan-amount-value.plan-status-won,
 .plan-card .plan-amount-col .plan-amount-value.plan-status-lost,
 .plan-card .plan-amount-col .plan-amount-value.plan-status-pending {
-  text-shadow: none;
+  text-shadow: none !important;
 }
 
 /* ==================== 会员 / 支付 / 返利统一体验（V2026-06-12） ==================== */
@@ -10923,7 +10867,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 .ref-btn-withdraw,
 .profile-membership-btn.is-primary,
 .ref-modal-confirm {
-  background: linear-gradient(135deg, var(--jczj-warning) 0%, #ea580c 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
   color: #fff;
   box-shadow: 0 16px 28px rgba(234, 88, 12, 0.28);
 }
@@ -10998,7 +10942,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
   border-left: 4px solid #22d3ee;
 }
 .pricing-card-gold {
-  border-left: 4px solid var(--jczj-warning);
+  border-left: 4px solid #f59e0b;
 }
 
 .pricing-badge,
@@ -11047,7 +10991,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 
 .pricing-monthly {
   margin-top: 6px;
-  color: var(--jczj-warning);
+  color: #f59e0b;
   font-size: 14px;
   font-weight: 700;
 }
@@ -11971,9 +11915,9 @@ input[type='password']::-webkit-credentials-auto-fill-button {
   min-width: 0;
   height: 68px;
   padding: 0 10px 0 16px;
-  border: 0;
+  border: 0 !important;
   background: transparent;
-  box-shadow: none;
+  box-shadow: none !important;
   font-size: 18px;
   font-weight: 600;
   line-height: 68px;
@@ -11981,8 +11925,8 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .auth-shell-account .auth-account-input.search-input:focus {
-  border: 0;
-  box-shadow: none;
+  border: 0 !important;
+  box-shadow: none !important;
   outline: none;
 }
 
@@ -12867,7 +12811,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
   position: absolute;
   inset: 0 0 auto 0;
   height: 5px;
-  background: linear-gradient(90deg, var(--jczj-warning), #f97316);
+  background: linear-gradient(90deg, #f59e0b, #f97316);
 }
 
 .member-shell-pricing .pricing-card-mint,
@@ -12879,7 +12823,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 .member-shell-pricing .pricing-card-mint::before,
 .member-shell-pricing .pricing-card-cyan::before,
 .member-shell-pricing .pricing-card-gold::before {
-  background: linear-gradient(90deg, var(--jczj-warning), #f97316);
+  background: linear-gradient(90deg, #f59e0b, #f97316);
 }
 
 .member-shell-pricing .pricing-card-rec {
@@ -12889,7 +12833,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .member-shell-pricing .pricing-badge {
-  background: linear-gradient(90deg, var(--jczj-warning), #f97316);
+  background: linear-gradient(90deg, #f59e0b, #f97316);
   color: #ffffff;
   box-shadow: 0 10px 24px rgba(249, 115, 22, 0.22);
 }
@@ -12920,7 +12864,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 
 .member-shell-pricing .pricing-btn,
 .member-shell-pricing .member-primary-btn {
-  background: linear-gradient(90deg, var(--jczj-warning), #f97316);
+  background: linear-gradient(90deg, #f59e0b, #f97316);
   box-shadow: 0 14px 28px rgba(249, 115, 22, 0.18);
 }
 
@@ -13011,7 +12955,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 
 .member-shell-payment .payment-submit-btn,
 .member-shell-payment .member-primary-btn {
-  background: linear-gradient(90deg, var(--jczj-warning), #f97316);
+  background: linear-gradient(90deg, #f59e0b, #f97316);
   color: #ffffff;
   box-shadow: 0 14px 28px rgba(249, 115, 22, 0.2);
 }
@@ -13075,7 +13019,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .member-shell-referral .ref-btn-withdraw {
-  background: linear-gradient(135deg, var(--jczj-warning), #f97316);
+  background: linear-gradient(135deg, #f59e0b, #f97316);
   box-shadow: 0 14px 26px rgba(249, 115, 22, 0.18);
 }
 
@@ -13845,7 +13789,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .profile-shell-v2 .profile-setting-icon.is-red {
-  color: var(--jczj-danger);
+  color: #ef4444;
   background: linear-gradient(180deg, #ffe8e8 0%, #ffdede 100%);
 }
 
@@ -14151,7 +14095,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 
 .profile-shell-v2 .profile-history-empty-icon {
   font-size: 36px;
-  color: var(--jczj-warning);
+  color: #f59e0b;
 }
 
 .profile-shell-v2 .profile-history-empty-icon svg {
@@ -14167,7 +14111,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .profile-shell-v2 .profile-filter-btn[data-filter='today'].is-active {
-  background: linear-gradient(180deg, var(--jczj-warning) 0%, #f97316 100%);
+  background: linear-gradient(180deg, #f59e0b 0%, #f97316 100%);
   box-shadow: 0 10px 20px rgba(249, 115, 22, 0.22);
 }
 
@@ -14966,25 +14910,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
   font-size: 12px;
   font-weight: 800;
   color: #fff;
-  background: linear-gradient(90deg, var(--jczj-warning), #f97316);
- box-shadow: 0 10px 20px rgba(249, 115, 22, 0.24);
- cursor: pointer;
+  background: linear-gradient(90deg, #f59e0b, #f97316);
+  box-shadow: 0 10px 20px rgba(249, 115, 22, 0.24);
+  cursor: pointer;
 }
-/* ═══ P1-2: JS 样式收敛工具类 ═══ */
-/* 箭头禁用态 */
-.arrow-disabled { opacity: 0.25; pointer-events: none; }
-.arrow-active  { opacity: 0.7; pointer-events: auto; }
-/* Toast 通知 */
-.toast-error   { background: rgba(239,68,68,0.9); color: #fff; }
-.toast-success { background: rgba(34,197,94,0.9); color: #fff; }
-.toast-info    { background: rgba(0,0,0,0.8); color: #fff; }
-/* 进度条 — 通过 CSS 变量控制宽度 */
-.progress-fill  { height: 100%; border-radius: inherit; transition: width 0.4s; }
-.progress-hit   { background: var(--jczj-success); }
-.progress-miss  { background: var(--jczj-danger); }
-/* 方案卡片状态色 */
-.plan-profit-up   { color: var(--jczj-success); }
-.plan-profit-down { color: var(--jczj-danger); }
-/* 分享按钮 hover 态 */
-.share-hover { opacity: 0.7; }
-

@@ -356,6 +356,8 @@ DEPLOY_MAP = [
 
     ('server/data_sync.js',               'both'),
 
+    ('server/sync/utils.js',               'both'),  # ★ P1-2: 数据同步共享工具
+
     ('server/sync_gov_schedule.js',        'both'),  # ★ V9 P1: SP官方赛程轻量抓取
 
     ('server/bridge_sporttery_local.js',   'both'),  # ★ V9: SP本地数据桥接

@@ -43,24 +43,10 @@
   font-weight: 800;
   color: #fff;
 }
+/* ★ P2-1: 视觉继承 modals.css 的 .ai-modal-close 统一规则，此处仅含位置覆盖 */
 .bet-popup-close {
   position: absolute;
   right: 20px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  border: none;
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-.bet-popup-close:hover {
-  background: rgba(255, 255, 255, 0.12);
 }
 
 /* ═══ 赛事信息 — 借鉴功守道 gs-modal-head ═══ */

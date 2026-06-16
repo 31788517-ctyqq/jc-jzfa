@@ -28,12 +28,12 @@ const LOCK_FILE = path.join(__dirname, 'scheduler.lock');
 const STATE_FILE = path.join(__dirname, 'scheduler_state.json');
 const QUEUE_FILE = path.join(__dirname, 'scheduler_queue.json');
 
-// A3: 本地日期格式化（北京时间），避免 UTC 偏移导致日期错误
-function fmtLocal(dd) {
-  return (
-    dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0')
-  );
-}
+// ★ P0/P1 降级开关（环境变量控制，默认关闭）
+const FEATURE_ENGINE_ENABLED = String(process.env.FEATURE_ENGINE_ENABLED || '0') === '1';
+const DATA_FUSION_ENABLED = String(process.env.DATA_FUSION_ENABLED || '0') === '1';
+
+// ★ P1-2: fmtLocal 已提取到 sync/utils.js
+const { fmtLocal } = require('./sync/utils');
 
 const INSTANCE_ID = crypto.randomBytes(4).toString('hex');
 const LOCK_TTL = 5 * 60 * 1000; // 锁过期时间
@@ -364,6 +364,7 @@ async function executeTask(taskName, params, retryCount) {
       }
       case 'feature_engine_compute': {
         // ★ J-03: FeatureEngine 调度激活
+        if (!FEATURE_ENGINE_ENABLED) { logger.info('[task] FeatureEngine 未启用(FEATURE_ENGINE_ENABLED=0), 跳过'); return true; }
         try {
           const { engine: featureEngine } = require('./core/feature-engine');
           const date = (params && params.date) || new Date().toISOString().slice(0, 10);

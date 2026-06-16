@@ -1180,14 +1180,11 @@ function _toast(msg, type) {
     document.body.appendChild(el);
   }
   if (type === 'err') {
-    el.style.background = 'rgba(239,68,68,0.9)';
-    el.style.color = '#fff';
+    el.className = 'toast-error';
   } else if (type === 'ok') {
-    el.style.background = 'rgba(34,197,94,0.9)';
-    el.style.color = '#fff';
+    el.className = 'toast-success';
   } else {
-    el.style.background = 'rgba(0,0,0,0.8)';
-    el.style.color = '#fff';
+    el.className = 'toast-info';
   }
   el.textContent = msg;
   el.style.opacity = '1';

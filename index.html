@@ -53,8 +53,9 @@
     />
     <noscript><link rel="stylesheet" href="/css/betting.css" /></noscript>
 
-    <!-- 管理后台样式（低优先级非阻塞加载） -->
-    <link rel="stylesheet" href="/css/admin-v2.css" />
+    <!-- 管理后台样式（异步加载，仅管理员页面需要） -->
+    <link rel="stylesheet" href="/css/admin-v2.css" media="print" onload="this.media='all';this.onload=null" />
+    <noscript><link rel="stylesheet" href="/css/admin-v2.css" /></noscript>
 
     <!-- ECharts lazy-loaded by charts.js -->
     <script>

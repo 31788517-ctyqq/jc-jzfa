@@ -49,7 +49,11 @@
   font-weight: 800;
   color: #fff;
 }
-.ai-modal-close {
+/* ★ P2-1: 统一关闭按钮 — 所有弹窗共用此基类 */
+.ai-modal-close,
+.bet-popup-close,
+.ssb-modal-close,
+.share-modal-close {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -63,7 +67,10 @@
   justify-content: center;
   transition: background 0.2s;
 }
-.ai-modal-close:hover {
+.ai-modal-close:hover,
+.bet-popup-close:hover,
+.ssb-modal-close:hover,
+.share-modal-close:hover {
   background: rgba(255, 255, 255, 0.12);
 }
 .ai-content {
@@ -1433,14 +1440,7 @@
   overflow-y: auto;
   animation: pkSlideUp 0.28s ease;
 }
-@keyframes pkSlideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
+/* pkSlideUp — 定义在 app.css，此处使用 */
 .pk2-header {
   display: flex;
   align-items: center;
@@ -2555,14 +2555,7 @@
   justify-content: center;
   animation: delFadeIn 0.2s ease;
 }
-@keyframes delFadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
+/* delFadeIn — 定义在 app.css，此处使用 */
 .del-modal {
   width: 85%;
   max-width: 320px;

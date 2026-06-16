@@ -1,0 +1,9 @@
+{
+  "extends": [],
+  "rules": {
+    "color-no-hex": [true, { "severity": "warning" }],
+    "declaration-no-important": [true, { "severity": "warning" }],
+    "function-disallowed-list": [],
+    "unit-disallowed-list": []
+  }
+}

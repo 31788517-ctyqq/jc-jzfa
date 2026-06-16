@@ -64,34 +64,11 @@ let _lastRecError = 0;
 if (!fs.existsSync(ODDS_DIR)) fs.mkdirSync(ODDS_DIR, { recursive: true });
 
 // ═══ 工具函数 ═══
+const { fmtLocal, getCurrentPeriod, atomicWrite, notifyReload } = require('./sync/utils');
+if (!logger.info) logger.info = function (msg) { logger.log('info', msg); };
+
 function log(msg) {
   logger.info(msg);
-}
-
-function fmtLocal(dd) {
-  return (
-    dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0')
-  );
-}
-
-function getCurrentPeriod() {
-  const weekMap = { 0: '周日', 1: '周一', 2: '周二', 3: '周三', 4: '周四', 5: '周五', 6: '周六' };
-  const now = new Date();
-  return { date: fmtLocal(now), week: weekMap[now.getDay()] };
-}
-
-/** 原子写入：先写 .tmp 再 rename */
-function atomicWrite(filePath, data) {
-  const tmpFile = filePath + '.tmp';
-  fs.writeFileSync(tmpFile, JSON.stringify(data));
-  fs.renameSync(tmpFile, filePath);
-}
-
-/** 数据已写入 data.json，服务端通过 mtimeMs 自动检测重载，无需额外通知 */
-function notifyReload() {
-  // 数据同步进程通过 atomicWrite 更新 data.json
-  // Express 服务端 getDataJson() 通过 stat.mtimeMs 自动检测变更并重载
-  // 无需 PM2 重启
 }
 
 /** 保存推荐趋势快照（每个 matchId 最多保留 48 条 = 16 小时） */
@@ -173,6 +150,36 @@ async function sync500Odds(dateStr) {
 
     fs.writeFileSync(filePath, JSON.stringify({ date: dateStr, odds }));
     log('[500odds] ' + dateStr + ' 抓取完成: ' + matchNums.length + ' 场');
+
+    // ★ P0-3: JSON→SQLite 双写 — 同时写入 odds_history_v2 表
+    try {
+      const adp = database.getAdapter();
+      if (adp) {
+        const fetchTime = new Date().toISOString().slice(11, 16); // HH:mm
+        let dbCount = 0;
+        const PLAY_TYPES = ['spf', 'rqspf', 'totalGoals', 'halfFull', 'score'];
+        matchNums.forEach(function (num) {
+          const entry = odds[num];
+          if (!entry) return;
+          PLAY_TYPES.forEach(function (pt) {
+            if (!entry[pt]) return;
+            try {
+              adp.execRun(
+                'INSERT OR REPLACE INTO odds_history_v2 (match_num, date, fetch_date, fetch_time, play_type, odds_json, home_name, visit_name, handicap) VALUES (?,?,?,?,?,?,?,?,?)',
+                num, dateStr, dateStr, fetchTime, pt,
+                JSON.stringify(entry[pt]),
+                entry.homeName || null, entry.visitName || null,
+                entry.handicap != null ? entry.handicap : null
+              );
+              dbCount++;
+            } catch (e2) { /* skip single insert failure */ }
+          });
+        });
+        if (dbCount > 0) log('[500odds] SQLite 双写: ' + dbCount + ' 条→odds_history_v2');
+      }
+    } catch (dbErr) {
+      log('[500odds] SQLite 双写跳过: ' + (dbErr.message || dbErr));
+    }
 
     // 完整性校验
     await validate500Odds(dateStr, odds);

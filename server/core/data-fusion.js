@@ -14,6 +14,9 @@ const database = require('../database');
 const path = require('path');
 const fs = require('fs');
 
+// ★ P1-1 降级开关: DATA_FUSION_ENABLED=1 启用三源融合增强
+const FUSION_ENABLED = String(process.env.DATA_FUSION_ENABLED || '0') === '1';
+
 // ═══ 权重常量（可调参） ═══
 const FUSION_WEIGHTS = {
   winPan: 0.5, // 赢盘率维度中外源权重（功守道自算:外源 = 1:1）
