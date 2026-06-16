@@ -807,11 +807,8 @@ function validateSession(token, touch = true) {
      WHERE s.session_token_hash = ?`,
     tokenHash,
   );
-  // ★ V12: PM2 cluster 竞态兜底 — 另一 worker 写入后 WAL 未同步则重试（最多3次）
-  var retries = 3;
-  while (!row && retries-- > 0) {
-    // 短暂等待让其他 worker 完成 flush
-    var t0 = Date.now(); while (Date.now() - t0 < 10);
+  // ★ V12: PM2 cluster 竞态兜底 — 另一 worker 写入后 DB 未被本连接可见则重试
+  if (!row) {
     row = adp.execOne(
       `SELECT s.id AS sid, s.user_id, s.expires_at, s.revoked_at,
               u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at,
