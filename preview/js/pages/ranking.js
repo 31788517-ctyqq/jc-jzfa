@@ -43,7 +43,7 @@ export function loadRanking(cat, dir) {
       catEl.innerHTML = catOrder
         .map((c) => {
           const isActive = (c === '综合排名' && !state.selectedCategory) || c === state.selectedCategory;
-          return `<div class="filter-tag ${isActive ? 'active' : ''}" onclick="selectCategory('${c}')">${c}</div>`;
+          return '<div class="filter-tag ' + (isActive ? 'active' : '') + '" onclick="selectCategory(\'' + c + '\')">' + c + '</div>';
         })
         .join('');
     }
@@ -57,7 +57,7 @@ export function loadRanking(cat, dir) {
         subEl.innerHTML = dirs
           .map((d) => {
             const isActive = d.name === state.selectedDirection;
-            return `<div class="filter-tag ${isActive ? 'active' : ''}" onclick="selectDirection('${d.name.replace(/'/g, "\\'")}')">${d.name}</div>`;
+            return '<div class="filter-tag ' + (isActive ? 'active' : '') + '" onclick="selectDirection(\'' + d.name.replace(/'/g, "\\'") + '\')">' + d.name + '</div>';
           })
           .join('');
       }
@@ -127,6 +127,9 @@ export function loadRanking(cat, dir) {
         }, 80);
       });
     });
+  }).catch(function (e) {
+    el.innerHTML = '<p style="color:#dc2626;text-align:center;padding:20px">加载失败，请重试</p>';
+    console.error('[ranking]', e.message);
   });
 }
 

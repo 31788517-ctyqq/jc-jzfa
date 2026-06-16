@@ -73,63 +73,76 @@ export async function loadAdminPayments(container, data) {
 
 window.loadAdminSubPage = async function () {
   const status = document.getElementById('subStatusFilter')?.value || '';
-  const res = await api('/api', { action: 'admin-subscription-list', token: true, status, pageSize: 30 });
-  if (res.code !== 0) {
-    document.getElementById('adminSubList').innerHTML = '<p>加载失败</p>';
-    return;
-  }
+  try {
+    const res = await api('/api', { action: 'admin-subscription-list', token: true, status, pageSize: 30 });
+    if (res.code !== 0) {
+      document.getElementById('adminSubList').innerHTML = '<p>加载失败</p>';
+      return;
+    }
 
-  // 更新统计
-  const totalCount = res.data.total;
-  const activeRes = await api('/api', {
-    action: 'admin-subscription-list',
-    token: true,
-    status: 'active',
-    pageSize: 1,
-  });
-  document.querySelectorAll('.admin-stat-val')[0].textContent = totalCount || 0;
-  document.querySelectorAll('.admin-stat-val')[1].textContent = activeRes.data?.total || 0;
+    // 更新统计
+    const totalCount = res.data.total;
+    const activeRes = await api('/api', {
+      action: 'admin-subscription-list',
+      token: true,
+      status: 'active',
+      pageSize: 1,
+    });
+    document.querySelectorAll('.admin-stat-val')[0].textContent = totalCount || 0;
+    document.querySelectorAll('.admin-stat-val')[1].textContent = activeRes.data?.total || 0;
 
-  const list = res.data.list || [];
-  if (list.length === 0) {
-    document.getElementById('adminSubList').innerHTML = '<p style="color:#999">暂无数据</p>';
-    return;
-  }
+    const list = res.data.list || [];
+    if (list.length === 0) {
+      document.getElementById('adminSubList').innerHTML = '<p style="color:#999">暂无数据</p>';
+      return;
+    }
 
-  let rows = list
-    .map(
-      (s) => `<tr>
+    let rows = list
+      .map(
+        (s) => `<tr>
     <td>${s.id}</td><td>${s.username || '--'}</td><td>${s.plan_name || PLAN_CN[s.plan_code] || s.plan_code || '--'}</td>
     <td><span class="admin-status admin-status-${s.status}">${STATUS_CN[s.status] || s.status || '--'}</span></td>
     <td>${s.start_date}</td><td>${s.end_date}</td>
     <td>¥${((s.amount || 0) / 100).toFixed(2)}</td>
     <td>${SOURCE_CN[s.source] || s.source || '--'}</td>
   </tr>`,
-    )
-    .join('');
+      )
+      .join('');
 
-  document.getElementById('adminSubList').innerHTML = `<table class="admin-table"><thead><tr>
+    document.getElementById('adminSubList').innerHTML = `<table class="admin-table"><thead><tr>
       <th>用户ID</th><th>用户</th><th>套餐</th><th>状态</th>
       <th>开始</th><th>到期</th><th>金额</th><th>来源</th>
     </tr></thead><tbody>${rows}</tbody></table>`;
+  } catch (e) {
+    document.getElementById('adminSubList').innerHTML = '<p style="color:#dc2626">加载失败，请重试</p>';
+    console.error('[admin-payments]', e.message);
+  }
 };
 
 window.grantSubscription = async function () {
   const userId = parseInt(document.getElementById('grantUserId').value);
   const planCode = document.getElementById('grantPlan').value;
   if (!userId) return alert('请输入用户ID');
-  const res = await api('/api', {
-    action: 'admin-grant-subscription',
-    token: true,
-    user_id: userId,
-    plan_code: planCode,
-  });
-  const el = document.getElementById('grantMsg');
-  if (res.code === 0) {
-    el.textContent = `已开通，到期 ${res.data.end_date}`;
-    loadAdminSubPage();
-  } else {
-    el.textContent = res.msg || '开通失败';
+  try {
+    const res = await api('/api', {
+      action: 'admin-grant-subscription',
+      token: true,
+      user_id: userId,
+      plan_code: planCode,
+    });
+    const el = document.getElementById('grantMsg');
+    if (res.code === 0) {
+      el.textContent = '已开通，到期 ' + res.data.end_date;
+      el.style.color = '#059669';
+      loadAdminSubPage();
+    } else {
+      el.textContent = res.msg || '开通失败';
+      el.style.color = '#dc2626';
+    }
+  } catch (e) {
+    var el = document.getElementById('grantMsg');
+    el.textContent = '请求失败，请重试';
     el.style.color = '#dc2626';
+    console.error('[admin-payments]', e.message);
   }
 };
