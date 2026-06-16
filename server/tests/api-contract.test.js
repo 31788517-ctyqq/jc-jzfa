@@ -38,6 +38,7 @@ const ACTION_MATRIX = {
     'verify-results',
     'experiment-compare',
     'batch-consensus',
+    'home-bundle',
     'daily-profit-7d',
     'pk-version-compare',
     'user-list',
@@ -193,6 +194,7 @@ describe('API action contract', () => {
       'data-health',
       'experiment-compare',
       'batch-consensus',
+    'home-bundle',
     ].forEach(function (action) {
       expect(extractedActions).toContain(action);
     });

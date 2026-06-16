@@ -1,0 +1,16 @@
+#!/bin/sh
+# .githooks/commit-msg
+# 强制 Conventional Commits 格式 + 禁止模糊提交
+
+PATTERN='^(feat|fix|refactor|docs|test|chore|perf|ci|revert|style)(\(.+\))?: .+'
+if ! grep -qE "$PATTERN" "$1"; then
+  echo "❌ Commit message 必须符合格式: type(scope): description"
+  echo "   允许类型: feat|fix|refactor|docs|test|chore|perf|ci|revert|style"
+  exit 1
+fi
+
+# 禁止模糊提交
+if grep -qiE "同步所有|sync all|WIP|tmp|temp" "$1"; then
+  echo "❌ 禁止模糊提交，请拆分为独立的功能 commit"
+  exit 1
+fi

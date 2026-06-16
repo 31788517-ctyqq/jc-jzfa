@@ -1,238 +1,50 @@
 ---
 name: jczjfa-test-orchestrator
 description: >
-  JC-ZJFA ÏîÄ¿È«ÉúÃüÖÜÆÚ²âÊÔ±àÅÅÆ÷¡£¸Ã Skill Ó¦±»ÓÃÓÚÒÔÏÂ³¡¾°£º
-  ¿ª·¢±àÂëÍê³ÉºóÖ´ĞĞ pre-commit ¼ì²é¡¢±¾µØ²âÊÔµ÷ÊÔ¡¢·¢²¼Ç° preflight ÖÊÁ¿ÃÅ½û¡¢
-  ²¿ÊğÑéÖ¤¡¢ĞÔÄÜ»Ø¹é²âÊÔ¡£¸²¸Ç 24 ¸ö²âÊÔÌ×¼ş / 469+ tests ÔÚ SDLC ¸÷»·½ÚµÄ±àÅÅ£¬
-  °üº¬ P0(ºËĞÄ/8 suites)/P1(¼¯³É/8 suites)/P2(¹¦·¨µÀ/6 suites)+ E2E + Smoke + Benchmark¡£
+  JC-ZJFA æµ‹è¯•ç¼–æ’ã€‚è§¦å‘è¯ï¼šæµ‹è¯•/test/å•å…ƒ/E2E/jest/playwright/å†’çƒŸ/é—¨ç¦/preflight/è¦†ç›–ç‡/lint/å›å½’ã€‚åŠ è½½åå¿…é¡»å¯¹ç…§æ£€æŸ¥æ¸…å•ã€‚
 ---
 
-# JC-ZJFA ²âÊÔ±àÅÅÆ÷
+# æµ‹è¯•ç¼–æ’ Â· é€ŸæŸ¥å¡
 
-## ¸ÅÊö
-
-±¾ Skill Îª JC-ZJFA ÏîÄ¿Ìá¹©È«ÉúÃüÖÜÆÚ£¨SDLC£©µÄ²âÊÔ±àÅÅÄÜÁ¦£¬¸²¸Ç¿ª·¢¡¢µ÷ÊÔ¡¢·¢²¼²¿Êğ¡¢ÔËÎ¬¼à¿ØËÄ¸ö½×¶Î¡£
-²âÊÔÌåÏµ°üº¬ 17 ¸ö·şÎñ¶Ëµ¥Ôª²âÊÔÌ×¼ş + 6 ¸ö¹¦·¨µÀÁìÓò²âÊÔÌ×¼ş + 3 ¸ö E2E spec + 1 ¸ö Smoke API ²âÊÔ + ĞÔÄÜ»ù×¼½Å±¾¡£
-
-## ´¥·¢Ìõ¼ş
-
-µ±ÓÃ»§Ìáµ½ÒÔÏÂ¹Ø¼ü´ÊÊ±¼ÓÔØ±¾ Skill£º
-- ²âÊÔ¡¢test¡¢µ¥Ôª²âÊÔ¡¢Ã°ÑÌ²âÊÔ¡¢E2E¡¢»Ø¹é²âÊÔ
-- pre-commit¡¢Ìá½»Ç°¼ì²é
-- preflight¡¢·¢²¼Ç°¼ì²é¡¢ÖÊÁ¿ÃÅ½û
-- benchmark¡¢ĞÔÄÜ²âÊÔ¡¢ĞÔÄÜ»ù×¼
-- ²¿Êğ¡¢deploy¡¢·¢²¼¡¢release
-- ¸²¸ÇÂÊ¡¢coverage¡¢lint
-
-## ¿ìËÙÃüÁî²Î¿¼
-
-### ¿ª·¢½×¶Î
+## å¿«é€Ÿå‘½ä»¤
 
 ```bash
-# È«Á¿µ¥Ôª²âÊÔ (469+ tests)
-npm test
-
-# Watch Ä£Ê½ ¡ª ¿ª·¢Ê±ÊµÊ±·´À¡
-npm run test:watch
-
-# ½ö P0 ºËĞÄ²âÊÔ (8 suites, ¿ìËÙ)
-npm run test:p0
-
-# ´úÂë¼ì²é + ĞŞ¸´
-npm run lint:fix
-npm run format
+npm run test:p0      # æ ¸å¿ƒ 8 suitesï¼ˆæœ€å¿«ï¼‰
+npm run test:p1      # é›†æˆ 8 suites
+npm run test:p2      # åŠŸæ³•é“ 6 suites
+npm test             # å…¨é‡ 469+ tests
+npm run preflight    # å‘å¸ƒå‰ 7 æ­¥é—¨ç¦
+npm run test:smoke   # 35 API å†’çƒŸï¼ˆéœ€å…ˆå¯åŠ¨æœåŠ¡å™¨ï¼‰
+npm run test:e2e     # Playwright E2Eï¼ˆè‡ªåŠ¨å¯åŠ¨æœåŠ¡å™¨ï¼‰
+npm run benchmark    # æ€§èƒ½åŸºå‡†
 ```
 
-### µ÷ÊÔ/ÑéÖ¤½×¶Î
+## å‘å¸ƒå‰æ£€æŸ¥æ¸…å•
 
-```bash
-# P1 ¼¯³É²ã²âÊÔ (8 suites)
-npm run test:p1
+- [ ] `npm run lint` â†’ 0 errors
+- [ ] `npm run format:check` â†’ é€šè¿‡
+- [ ] `npm run test:p0` â†’ å…¨ç»¿
+- [ ] `npm run test:p1` â†’ å…¨ç»¿
+- [ ] `npm run test:p2` â†’ å…¨ç»¿
+- [ ] è¦†ç›–ç‡: statementsâ‰¥30%, branchesâ‰¥25%, functionsâ‰¥30%, linesâ‰¥30%
+- [ ] `npm audit --audit-level=high` æ— é˜»æ–­
 
-# P2 ¹¦·¨µÀÁìÓò²âÊÔ (6 suites)
-npm run test:p2
+## é—¨ç¦æ ‡å‡†
 
-# ·şÎñÃ°ÑÌ²âÊÔ (ĞèÒªÏÈÆô¶¯·şÎñÆ÷)
-npm run test:smoke
+| é˜¶æ®µ | é˜»å¡æ€§ | è¶…æ—¶ |
+|------|:---:|:---:|
+| ESLint | âœ… | â€” |
+| P0 8 suites | âœ… | 120s |
+| P1 8 suites | âœ… | 120s |
+| P2 6 suites | âœ… | 180s |
+| è¦†ç›–ç‡ | âœ… | 300s |
+| npm audit | âš ï¸ éé˜»å¡ | â€” |
 
-# E2E ¶Ëµ½¶Ë²âÊÔ (×Ô¶¯Æô¶¯·şÎñÆ÷)
-npm run test:e2e
+## P0 æµ‹è¯•è¦†ç›–
 
-# ¸²¸ÇÂÊ±¨¸æ
-npm run test:coverage
+`index_api` `data_sync` `prediction_log` `database` `scheduler_v2` `cache` `pk_scorer` `plan-generator`
 
-# ĞÔÄÜ»ù×¼
-npm run benchmark
-```
+## æ·±åº¦æ–‡æ¡£
 
-### ²¿Êğ½×¶Î
-
-```bash
-# Preflight ·¢²¼Ç°ÖÊÁ¿ÃÅ½û (7 ²½)
-npm run preflight
-
-# ²¿ÊğÖ´ĞĞ
-python deploy.py
-```
-
-### CI/Ò»´ÎĞÔ
-
-```bash
-# ÍêÕûÖÊÁ¿Á÷Ë®Ïß (¿É´®ÁªÖ´ĞĞ)
-npm run lint && npm run test:coverage && npm run test:smoke && npm run preflight
-```
-
-## ÃüÁîÏê½â
-
-### `npm run test:p0` ¡ª P0 ºËĞÄ²ã
-
-¸²¸ÇÊı¾İ´æ´¢¡¢µ÷¶È¡¢ÆÀ·Ö¡¢¼Æ»®Éú³ÉµÄºËĞÄÁ´Â·£º
-
-| ²âÊÔÎÄ¼ş | ¸²¸ÇÄÚÈİ |
-|----------|---------|
-| `server/tests/index_api.test.js` | API Â·ÓÉË÷Òı |
-| `server/tests/data_sync.test.js` | Êı¾İÍ¬²½Âß¼­ |
-| `server/tests/prediction_log.test.js` | Ô¤²âÈÕÖ¾¼ÇÂ¼ |
-| `server/tests/database.test.js` | Êı¾İ¿â²ã |
-| `server/tests/scheduler_v2.test.js` | V2 µ÷¶ÈÆ÷ |
-| `server/tests/cache.test.js` | »º´æ²ã |
-| `server/tests/pk_scorer.test.js` | PK ÆÀ·ÖÒıÇæ |
-| `server/tests/plan-generator.test.js` | ·½°¸Éú³ÉÆ÷ |
-
-### `npm run test:p1` ¡ª P1 ¼¯³É²ã
-
-¸²¸Ç AI¡¢WebSocket¡¢HTTP¡¢ÈÚºÏµÈ¼¯³ÉÄÜÁ¦£º
-
-| ²âÊÔÎÄ¼ş | ¸²¸ÇÄÚÈİ |
-|----------|---------|
-| `server/tests/ai_daemon.test.js` | AI ÊØ»¤½ø³Ì |
-| `server/tests/ai-timing.test.js` | AI Ê±Ğò |
-| `server/tests/main-fusion.test.js` | ÈÚºÏÖ÷Âß¼­ |
-| `server/tests/health.test.js` | ½¡¿µ¼ì²é |
-| `server/tests/http-utils.test.js` | HTTP ¹¤¾ß |
-| `server/tests/websocket.test.js` | WebSocket |
-| `server/tests/midou.test.js` | Midou Âß¼­ |
-| `server/tests/cloudfunctions.test.js` | ÔÆº¯ÊıÂß¼­ |
-
-### `npm run test:p2` ¡ª P2 ¹¦·¨µÀÁìÓò
-
-| ²âÊÔÎÄ¼ş | ¸²¸ÇÄÚÈİ |
-|----------|---------|
-| `server/gongshoudao/tests/score.test.js` | ÆÀ·ÖÂß¼­ |
-| `server/gongshoudao/tests/fusion.test.js` | ÈÚºÏÂß¼­ |
-| `server/gongshoudao/tests/parser.test.js` | Êı¾İ½âÎö |
-| `server/gongshoudao/tests/attack.test.js` | ¹¥»÷Âß¼­ |
-| `server/gongshoudao/tests/diff.test.js` | ²îÒì±È½Ï |
-| `server/gongshoudao/tests/goal.test.js` | Ä¿±êÂß¼­ |
-
-### `npm run test:smoke` ¡ª ·şÎñÃ°ÑÌ
-
-ĞèÒªÏÈÆô¶¯·şÎñÆ÷ `node server/index.js`£¬ÑéÖ¤ 35 ¸ö API ¶Ëµã¡£
-
-### `npm run test:e2e` ¡ª E2E ¶Ëµ½¶Ë
-
-Playwright ×Ô¶¯Æô¶¯¿ª·¢·şÎñÆ÷£¬Ö´ĞĞ 3 ¸ö spec£º
-- `main.spec.js` ¡ª Ö÷Ò³Ãæ¼ÓÔØÓë»ù´¡½»»¥
-- `gongshoudao.spec.js` ¡ª ¹¦·¨µÀÒ³Ãæ
-- `plans.spec.js` ¡ª ·½°¸Ò³Ãæ
-
-### `npm run preflight` ¡ª ·¢²¼Ç°ÖÊÁ¿ÃÅ½û
-
-7 ²½¼ì²éÁ÷Ë®Ïß£º
-1. ESLint ´úÂë¹æ·¶
-2. Prettier ¸ñÊ½¼ì²é
-3. P0 ºËĞÄ²âÊÔ
-4. P1 ¼¯³É²âÊÔ
-5. P2 ¹¦·¨µÀ²âÊÔ
-6. ¸²¸ÇÂÊÃÅ¼÷ (statements¡İ30%, branches¡İ25%, functions¡İ30%, lines¡İ30%)
-7. npm audit (high ¼¶±ğ¸æ¾¯·Ç×èÈû)
-
-### `npm run benchmark` ¡ª ĞÔÄÜ»ù×¼
-
-ÔËĞĞ¹¦·¨µÀ¼ÆËãĞÔÄÜ»ù×¼²âÊÔ£¬ÓÃÓÚ»Ø¹é¼ì²â¡£
-
-## SDLC ±àÅÅ¾ö²ßÊ÷
-
-```
-ÓÃ»§²Ù×÷ÇëÇó
-©À©¤©¤ ±àÂëÍê³É ¡ú Ö´ĞĞ `npm run lint:fix && npm run test:p0`
-©¦   (¿ìËÙ·´À¡£¬ÑéÖ¤ºËĞÄÁ´Â·)
-©¦
-©À©¤©¤ ×¼±¸Ìá½» (git commit)
-©¦   ©À©¤©¤ pre-commit hook ×Ô¶¯Ö´ĞĞ: lint + P0 + prettier
-©¦   ©¸©¤©¤ ÈôÎ´ÅäÖÃ hooks ¡ú `npm run setup:githooks`
-©¦
-©À©¤©¤ ±¾µØµ÷ÊÔ
-©¦   ©À©¤©¤ È«Á¿µ¥Ôª ¡ú `npm test`
-©¦   ©À©¤©¤ Ö»²âÄ³²ã ¡ú `npm run test:p0|p1|p2`
-©¦   ©À©¤©¤ ·şÎñ¼¶ÑéÖ¤ ¡ú Æô¶¯·şÎñÆ÷ + `npm run test:smoke`
-©¦   ©¸©¤©¤ UI ÊÖ¶¯ÑéÖ¤ ¡ú `npm run test:e2e:ui`
-©¦
-©À©¤©¤ ×¼±¸·¢²¼
-©¦   ©À©¤©¤ ÖÊÁ¿ÃÅ½û ¡ú `npm run preflight`
-©¦   ©À©¤©¤ E2E ÑéÖ¤ ¡ú `npm run test:e2e`
-©¦   ©À©¤©¤ ĞÔÄÜ»Ø¹é ¡ú `npm run benchmark`
-©¦   ©¸©¤©¤ ÃÅ½ûÍ¨¹ı ¡ú `python deploy.py` Ö´ĞĞ²¿Êğ
-©¦
-©À©¤©¤ ²¿ÊğºóÑéÖ¤£¨V7.0 ÔöÇ¿ ¡ª Ç¿ÖÆÖğÏîÖ´ĞĞ£©
-©¦   ©À©¤©¤ HTTP ½¡¿µ¼ì²é ¡ú `curl :3000/api/health` È·ÈÏ 200
-©¦   ©À©¤©¤ PM2 ×´Ì¬ ¡ú `pm2 status` È«²¿ online
-©¦   ©À©¤©¤ PM2 ÈÕÖ¾ ¡ú `pm2 logs --lines 10` ÎŞ Error/Cannot find module
-©¦   ©À©¤©¤ ºËĞÄ API Ã°ÑÌ ¡ú `curl POST /api match-list` Õı³£·µ»Ø±ÈÈüÊı¾İ
-©¦   ©À©¤©¤ ¾²Ì¬×ÊÔ´ÑéÖ¤ ¡ú ä¯ÀÀÆ÷ F12 Network ¼ì²éÎŞ 404
-©¦   ©À©¤©¤ Smoke ×Ô¶¯»¯ ¡ú `npm run test:smoke`£¨ĞèÒª·şÎñÆ÷¿É¹«Íø·ÃÎÊ£©
-©¦   ©¸©¤©¤ Ö÷Á´Â·»Ø·Å ¡ú E2E »òÊÖ¶¯ÑéÖ¤¹¦ÊØµÀ/·½°¸/PK Èı¸öºËĞÄÒ³Ãæ
-©¦
-©¸©¤©¤ ĞÔÄÜÎÊÌâÅÅ²é
-    ©À©¤©¤ »ù×¼»Ø¹é ¡ú `npm run benchmark` ¶Ô±ÈÀúÊ·
-    ©¸©¤©¤ ĞÔÄÜ½Å±¾ ¡ú `node scripts/perf_test.js`
-```
-
-## ²âÊÔ¾ØÕó
-
-ÍêÕûµÄ 24 ¸ö²âÊÔÌ×¼ş / 469+ ²âÊÔÓÃÀıµÄÏêÏ¸ËµÃ÷²Î¼û `references/test-matrix.md`¡£
-
-## ÖÊÁ¿ÃÅ½û±ê×¼
-
-Pre-commit / Preflight / ²¿ÊğÑéÖ¤µÄ×¼ÈëÅĞ¶¨±ê×¼²Î¼û `references/quality-gates.md`¡£
-
-## ²¿ÊğºóÑéÖ¤Á÷Ë®Ïß£¨V7.0 ĞÂÔö£©
-
-²¿ÊğÍê³Éºó±ØĞë°´ÒÔÏÂË³ĞòÖğÏîÑéÖ¤£¬È«²¿Í¨¹ı²ÅËã²¿Êğ³É¹¦£º
-
-```bash
-# Step 1: HTTP ½¡¿µ¼ì²é£¨30s ÄÚÏìÓ¦ 200 ¼´Í¨¹ı£©
-ssh root@119.23.51.159 "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/health"
-# ÆÚÍû£º200
-
-# Step 2: PM2 ½ø³Ì×´Ì¬£¨È«²¿ online£©
-ssh root@119.23.51.159 "pm2 status"
-# ÆÚÍû£ºjc-sync=online, jc-zjfa=online¡Á2
-
-# Step 3: ´íÎóÈÕÖ¾¼ì²é£¨×î½ü 10 ĞĞÎŞ Error/Cannot find module£©
-ssh root@119.23.51.159 "pm2 logs jc-zjfa --lines 10 --nostream 2>&1 | grep -i 'error\|cannot find\|uncaught' || echo 'NO ERRORS'"
-# ÆÚÍû£ºNO ERRORS
-
-# Step 4: ºËĞÄ API Ã°ÑÌ£¨match-list Õı³£·µ»Ø±ÈÈüÊı¾İ£©
-ssh root@119.23.51.159 "curl -s -X POST http://localhost:3000/api -H 'Content-Type: application/json' -d '{\"action\":\"match-list\"}' | python3 -c 'import sys,json; d=json.load(sys.stdin); print(\"matches:\",len(str(d)))'"
-# ÆÚÍû£º·µ»ØÊı¾İ³¤¶È > 0
-
-# Step 5: ¾²Ì¬×ÊÔ´¼ì²é£¨ä¯ÀÀÆ÷ F12 ¡ú Network ¡ú Ë¢ĞÂ ¡ú ÎŞºìÉ« 404£©
-
-# Step 6: Ö÷Á´Â·ÊÖ¶¯»Ø·Å
-#   6a. ´ò¿ª https://zj.100qiu.com ¡ú Ò³ÃæÕı³£¼ÓÔØ
-#   6b. ½øÈë¹¦ÊØµÀÒ³Ãæ ¡ú µ¯´°Êı¾İÕı³£Õ¹Ê¾
-#   6c. ½øÈë·½°¸Ò³Ãæ ¡ú ·½°¸ÁĞ±íÕı³£
-#   6d. ½øÈë PK Ò³Ãæ ¡ú PK Êı¾İÕı³£
-```
-
-### ÑéÖ¤²»¹ıµÄ´¦ÖÃ
-
-| Ê§°Ü²½Öè | ³£¼ûÔ­Òò | ´¦ÖÃ |
-|---------|---------|------|
-| Step 1 ·Ç 200 | PM2 ½ø³ÌÎ´Æô¶¯ | `pm2 restart all` |
-| Step 2 ·Ç online | ½ø³Ì±ÀÀ£ | `pm2 logs` ²é±ÀÀ£Ô­Òò |
-| Step 3 ÓĞ Error | Ä£¿éÈ±Ê§/Óï·¨´íÎó | ²¹³äÉÏ´«È±Ê§ÎÄ¼ş |
-| Step 4 ·µ»Ø¿Õ | cache.json Ëğ»µ/Êı¾İ¹ıÆÚ | Çå³ı»º´æÖØÆô |
-| Step 5 ÓĞ 404 | ¾²Ì¬×ÊÔ´Î´²¿Êğ»òÂ·¾¶´íÎó | ¼ì²é nginx Ó³Éä |
-| Step 6 ¹¦ÄÜÒì³£ | JS/CSS »º´æÎ´Ë¢ĞÂ | Ctrl+Shift+R Ç¿ÖÆË¢ĞÂ |
+- `references/test-matrix.md` â€” 24 å¥—ä»¶ / 469+ tests è¯¦è¡¨
+- `references/quality-gates.md` â€” å„çº§é—¨ç¦æ ‡å‡†è¯¦è§£
