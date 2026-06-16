@@ -1804,7 +1804,8 @@ document.addEventListener('subscription:required', function (e) {
         var txt = icon + " [" + a.level + "] " + a.title;
         if(a.detail) txt += " | " + a.detail;
         if(a.action) txt += " | " + a.action;
-        document.getElementById("alertBannerText").textContent = txt;
+        var abt = document.getElementById("alertBannerText");
+        if(abt) abt.textContent = txt;
         bar.style.display = "block";
       }
       lastCount = unread.length;
@@ -1812,17 +1813,20 @@ document.addEventListener('subscription:required', function (e) {
   }
   checkAlerts();
   setInterval(checkAlerts, POLL_MS);
-  document.getElementById("alertBannerRead").addEventListener("click",function(e){
+  var abr = document.getElementById("alertBannerRead");
+  var abc = document.getElementById("alertBannerClose");
+  var ab = document.getElementById("alertBanner");
+  if (abr) abr.addEventListener("click",function(e){
     e.stopPropagation();
-    document.getElementById("alertBanner").style.display="none";
+    if (ab) ab.style.display="none";
     fetch("/api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"alerts",data:{subAction:"readAll",username:"ctyqq"}})});
   });
-  document.getElementById("alertBannerClose").addEventListener("click",function(e){
+  if (abc) abc.addEventListener("click",function(e){
     e.stopPropagation();
-    document.getElementById("alertBanner").style.display="none";
+    if (ab) ab.style.display="none";
   });
-  document.getElementById("alertBanner").addEventListener("click",function(){
-    document.getElementById("alertBanner").style.display="none";
+  if (ab) ab.addEventListener("click",function(){
+    ab.style.display="none";
     fetch("/api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"alerts",data:{subAction:"readAll",username:"ctyqq"}})});
   });
 })();
