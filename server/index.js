@@ -1371,10 +1371,20 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             });
 
             // ── 子模块3: ranking-list (简化版：仅当天综合排名，不含 PK 决策) ──
+            // ★ V12 Strategy D: 支持 limit 参数，首次加载仅处理前 N 场
+            var limit = data.limit ? parseInt(data.limit, 10) : 0;
+            var rankedMatches = dayMatches;
+            if (limit > 0 && dayMatches.length > limit) {
+              // 按 recommNum 预排序，取 top N 做 PK 决策
+              rankedMatches = dayMatches.slice().sort(function (a, b) {
+                return (Number(b.recommNum) || 0) - (Number(a.recommNum) || 0);
+              }).slice(0, limit);
+            }
             var ranking = [];
+            var hasMore = limit > 0 && dayMatches.length > limit;
             try {
-              var pkDecisionMap = buildPKDecisionMapForMatches(dayMatches);
-              for (var ri = 0; ri < dayMatches.length; ri++) {
+              var pkDecisionMap = buildPKDecisionMapForMatches(rankedMatches);
+              for (var ri = 0; ri < rankedMatches.length; ri++) {
                 var rm = dayMatches[ri];
                 if (!rm || !rm.matchId) continue;
                 var raw = rMap['m_' + rm.matchId] || rMap[String(rm.matchId)] || [];
@@ -1414,6 +1424,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 matches: matches,
                 ranking: ranking,
                 date: dateStr,
+                hasMore: hasMore,
+                totalMatches: dayMatches.length,
               },
             };
             _homeBundleCache = { key: bundleCacheKey, time: now, response: bundleResponse };

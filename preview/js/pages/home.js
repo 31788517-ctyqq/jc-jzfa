@@ -412,8 +412,8 @@ export function loadHome() {
   var today = formatDate(new Date());
 
   // ★ P1-1: 优先使用 home-bundle（一次请求替代 3 次独立 API）
-  //     失败或超时时自动回退到原有 3 次独立请求
-  var bundlePromise = api('home-bundle', { date: today }).catch(function () {
+  // ★ V12 Strategy D: limit=8 仅处理前8场PK决策, 首屏更快
+  var bundlePromise = api('home-bundle', { date: today, limit: 8 }).catch(function () {
     return null;
   });
 
