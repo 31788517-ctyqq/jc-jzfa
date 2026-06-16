@@ -4,74 +4,54 @@ $ErrorActionPreference = 'Stop'
 $Port = 3000
 $ServerScript = "$PSScriptRoot/server/index.js"
 
-function Test-PortListening {
+function Test-Port {
     param([int]$Port)
-    $conn = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue | Where-Object { $_.State -eq 'Listen' }
-    return $conn
+    try { $conn = Get-NetTCPConnection -LocalPort $Port -ErrorAction Stop | Where-Object { $_.State -eq 'Listen' }; return $conn }
+    catch { return $null }
 }
 
-function Stop-ProcessOnPort {
-    param([int]$Port)
-    $conn = Test-PortListening -Port $Port
-    if ($conn) {
-        $proc = Get-Process -Id $conn.OwningProcess -ErrorAction SilentlyContinue
-        if ($proc) {
-            Write-Host "[WARN] Port $Port occupied by PID $($proc.Id) ($($proc.ProcessName)), stopping..." -ForegroundColor Yellow
-            Stop-Process -Id $proc.Id -Force
-            Start-Sleep -Seconds 2
-        }
-    }
-}
+# ★ V12: 开发模式提示
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "  JC-ZJFA 本地开发服务器" -ForegroundColor Cyan
+Write-Host "  SW v7: localhost 自动跳过缓存" -ForegroundColor Green
+Write-Host "  改前端→刷新 | 改后端→重启 | 改SW→F12 Unregister" -ForegroundColor DarkGray
+Write-Host "============================================" -ForegroundColor Cyan
 
-function Start-LocalServer {
-    if (!(Get-Command node -ErrorAction SilentlyContinue)) {
-        Write-Host "[ERROR] node not found" -ForegroundColor Red
-        exit 1
-    }
-
-    if (!(Test-Path $ServerScript)) {
-        Write-Host "[ERROR] Script not found: $ServerScript" -ForegroundColor Red
-        exit 1
-    }
-
-    Stop-ProcessOnPort -Port $Port
-
-    Write-Host "[INFO] Starting local server on port $Port..." -ForegroundColor Cyan
-
-    $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = 'node'
-    $psi.Arguments = $ServerScript
-    $psi.WorkingDirectory = $PSScriptRoot
-    $psi.UseShellExecute = $false
-    $psi.RedirectStandardOutput = $true
-    $psi.RedirectStandardError = $true
-    $psi.CreateNoWindow = $true
-
-    $proc = [System.Diagnostics.Process]::Start($psi)
-    Start-Sleep -Seconds 3
-
-    $retry = 0
-    $maxRetry = 10
-    while ($retry -lt $maxRetry) {
-        $conn = Test-PortListening -Port $Port
-        if ($conn -and $conn.OwningProcess -eq $proc.Id) {
-            Write-Host "[OK] Server started" -ForegroundColor Green
-            Write-Host "  API:    http://localhost:$Port/api" -ForegroundColor Green
-            Write-Host "  Web:    http://localhost:$Port/" -ForegroundColor Green
-            Write-Host "  PID:    $($proc.Id)" -ForegroundColor DarkGray
-            Write-Host "  Stop:   Stop-Process -Id $($proc.Id)" -ForegroundColor DarkGray
-            return
-        }
-        Start-Sleep -Milliseconds 500
-        $retry++
-    }
-
-    $stderr = $proc.StandardError.ReadToEnd()
-    $stdout = $proc.StandardOutput.ReadToEnd()
-    Write-Host "[ERROR] Server failed to start on port $Port" -ForegroundColor Red
-    if ($stdout) { Write-Host "STDOUT:`n$stdout" -ForegroundColor DarkGray }
-    if ($stderr) { Write-Host "STDERR:`n$stderr" -ForegroundColor DarkGray }
+# 检查 Node
+if (!(Get-Command node -ErrorAction SilentlyContinue)) {
+    Write-Host "[ERROR] node 未找到" -ForegroundColor Red
     exit 1
 }
 
-Start-LocalServer
+# 检查脚本
+if (!(Test-Path $ServerScript)) {
+    Write-Host "[ERROR] 脚本不存在: $ServerScript" -ForegroundColor Red
+    exit 1
+}
+
+# 释放端口
+$conn = Test-Port -Port $Port
+if ($conn) {
+    try {
+        $proc = Get-Process -Id $conn.OwningProcess -ErrorAction Stop
+        Write-Host "[WARN] 端口 $Port 被占用 (PID $($proc.Id)), 释放中..." -ForegroundColor Yellow
+        Stop-Process -Id $proc.Id -Force -ErrorAction Stop
+        Start-Sleep -Seconds 2
+    } catch {
+        Write-Host "[INFO] 无法自动释放端口, 尝试启动..." -ForegroundColor DarkGray
+    }
+}
+
+Write-Host "[INFO] 启动中: http://localhost:$Port/" -ForegroundColor Cyan
+Write-Host ""
+
+# ★ 使用 ShellExecute 方式启动，日志直接输出到控制台
+Push-Location $PSScriptRoot
+try {
+    node $ServerScript
+} finally {
+    Pop-Location
+}
+
+Write-Host ""
+Write-Host "服务已停止。重新启动请运行 start-local.bat" -ForegroundColor DarkGray
