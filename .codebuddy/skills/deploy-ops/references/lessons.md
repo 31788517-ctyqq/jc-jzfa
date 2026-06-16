@@ -58,3 +58,33 @@
 |------|------|
 | V9.2 | `new Date().toISOString()` UTC 时区导致 00:00~07:59 算成前一天 |
 | V9.2 | `周日009` 等竞彩编号跨周重复，回填必须带 date 维度 |
+
+## V12 CSS 变量替换污染
+
+| 日期 | 教训 |
+|------|------|
+| V12 | `6px;` `10px;` 被盲目替换为 `var(--jczj-radius-*)` → 污染了 `font-size`/`gap`/`padding`/`margin` → 全站按钮挤压变形 |
+| V12 | CSS Token 替换必须**只替换颜色值的 hex**，禁止替换数值属性 |
+| V12 | 前端改动必须先 Playwright 截图验证，不能直接部署 |
+
+## V12 文件编码
+
+| 日期 | 教训 |
+|------|------|
+| V12 | `deploy.py` 为 UTF-16 LE 编码 → Python 无法解析 → 部署卡住 |
+| V12 | Windows 创建的 `.py` 文件默认为 UTF-16 LE (BOM)，需转换 UTF-8 |
+| V12 | 部署前必须检查 deploy.py 编码（已加入 pre-deploy-check.cjs） |
+
+## V12 部署确认协议违规
+
+| 日期 | 教训 |
+|------|------|
+| V12 | CSS 热修复 (`--files-only`) 未询问确认就执行 → 违反部署协议 |
+| V12 | 协议明确：`--files-only` 也是部署，没有例外 |
+
+## Pre-commit 首次实战
+
+| 日期 | 教训 |
+|------|------|
+| V12 | `pre-commit-check.cjs` 首次拦截 16 个临时脚本 → 证明自动化门禁有效 |
+| V12 | 自学习协议需执行 (L1 memory + L2 lessons.md + L3 pre-commit)，AI 必须主动执行 |
