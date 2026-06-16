@@ -1,7 +1,7 @@
-{
+﻿{
   "config": {
-    "configFile": "e:\\JC-ZJFA\\playwright.config.js",
-    "rootDir": "e:/JC-ZJFA/preview/tests/e2e",
+    "configFile": "E:\\JC-ZJFA\\playwright.config.js",
+    "rootDir": "E:/JC-ZJFA/preview/tests/e2e",
     "forbidOnly": false,
     "fullyParallel": true,
     "globalSetup": null,
@@ -16,7 +16,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "e:/JC-ZJFA/test-results",
+        "outputDir": "E:/JC-ZJFA/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -24,7 +24,7 @@
         },
         "id": "chromium",
         "name": "chromium",
-        "testDir": "e:/JC-ZJFA/preview/tests/e2e",
+        "testDir": "E:/JC-ZJFA/preview/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -49,7 +49,7 @@
     "version": "1.60.0",
     "workers": 1,
     "webServer": {
-      "command": "node server/index.js",
+      "command": "node -e \"process.env.E2E_TEST='1'; require('./server/index.js')\"",
       "url": "http://127.0.0.1:3000",
       "reuseExistingServer": true,
       "timeout": 30000,
@@ -86,12 +86,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1611,
+                      "duration": 885,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:11.400Z",
+                      "startTime": "2026-06-15T19:56:52.959Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -106,17 +106,12 @@
             },
             {
               "title": "路由 home 切换耗时不超过预算",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
-                  "annotations": [
-                    {
-                      "type": "perf",
-                      "description": "home: 30ms"
-                    }
-                  ],
+                  "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
@@ -124,23 +119,53 @@
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1625,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 15858,
+                      "error": {
+                        "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23",
+                        "location": {
+                          "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                          "column": 14,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate((r) \u001b[33m=>\u001b[39m window\u001b[33m.\u001b[39mswitchTab(r)\u001b[33m,\u001b[39m route)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForFunction(\n \u001b[90m    |\u001b[39m              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m     (r) \u001b[33m=>\u001b[39m {\n \u001b[90m 32 |\u001b[39m       \u001b[36mconst\u001b[39m el \u001b[33m=\u001b[39m document\u001b[33m.\u001b[39mgetElementById(\u001b[32m'page-'\u001b[39m \u001b[33m+\u001b[39m r)\u001b[33m;\u001b[39m\n \u001b[90m 33 |\u001b[39m       \u001b[36mreturn\u001b[39m \u001b[33m!\u001b[39m\u001b[33m!\u001b[39mel \u001b[33m&&\u001b[39m el\u001b[33m.\u001b[39mclassList\u001b[33m.\u001b[39mcontains(\u001b[32m'active'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                            "column": 14,
+                            "line": 30
+                          },
+                          "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n\n  28 |   await page.evaluate((r) => window.switchTab(r), route);\n  29 |\n> 30 |   await page.waitForFunction(\n     |              ^\n  31 |     (r) => {\n  32 |       const el = document.getElementById('page-' + r);\n  33 |       return !!el && el.classList.contains('active');\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:13.285Z",
-                      "annotations": [
+                      "startTime": "2026-06-15T19:56:54.135Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "perf",
-                          "description": "home: 30ms"
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-home-切换耗时不超过预算-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-home-切换耗时不超过预算-chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                        "column": 14,
+                        "line": 30
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "c86230f81962dc538e6c-2c0b3eb4d106f162fb15",
@@ -150,41 +175,66 @@
             },
             {
               "title": "路由 match 切换耗时不超过预算",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
-                  "annotations": [
-                    {
-                      "type": "perf",
-                      "description": "match: 61ms"
-                    }
-                  ],
+                  "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 1,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1677,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 16139,
+                      "error": {
+                        "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23",
+                        "location": {
+                          "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                          "column": 14,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate((r) \u001b[33m=>\u001b[39m window\u001b[33m.\u001b[39mswitchTab(r)\u001b[33m,\u001b[39m route)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForFunction(\n \u001b[90m    |\u001b[39m              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m     (r) \u001b[33m=>\u001b[39m {\n \u001b[90m 32 |\u001b[39m       \u001b[36mconst\u001b[39m el \u001b[33m=\u001b[39m document\u001b[33m.\u001b[39mgetElementById(\u001b[32m'page-'\u001b[39m \u001b[33m+\u001b[39m r)\u001b[33m;\u001b[39m\n \u001b[90m 33 |\u001b[39m       \u001b[36mreturn\u001b[39m \u001b[33m!\u001b[39m\u001b[33m!\u001b[39mel \u001b[33m&&\u001b[39m el\u001b[33m.\u001b[39mclassList\u001b[33m.\u001b[39mcontains(\u001b[32m'active'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                            "column": 14,
+                            "line": 30
+                          },
+                          "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n\n  28 |   await page.evaluate((r) => window.switchTab(r), route);\n  29 |\n> 30 |   await page.waitForFunction(\n     |              ^\n  31 |     (r) => {\n  32 |       const el = document.getElementById('page-' + r);\n  33 |       return !!el && el.classList.contains('active');\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:14.918Z",
-                      "annotations": [
+                      "startTime": "2026-06-15T19:57:10.694Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "perf",
-                          "description": "match: 61ms"
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-match-切换耗时不超过预算-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-match-切换耗时不超过预算-chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                        "column": 14,
+                        "line": 30
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "c86230f81962dc538e6c-dec50053d2b8eb3c4faf",
@@ -194,41 +244,66 @@
             },
             {
               "title": "路由 rank 切换耗时不超过预算",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
-                  "annotations": [
-                    {
-                      "type": "perf",
-                      "description": "rank: 33ms"
-                    }
-                  ],
+                  "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 2,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1556,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 15993,
+                      "error": {
+                        "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23",
+                        "location": {
+                          "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                          "column": 14,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate((r) \u001b[33m=>\u001b[39m window\u001b[33m.\u001b[39mswitchTab(r)\u001b[33m,\u001b[39m route)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForFunction(\n \u001b[90m    |\u001b[39m              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m     (r) \u001b[33m=>\u001b[39m {\n \u001b[90m 32 |\u001b[39m       \u001b[36mconst\u001b[39m el \u001b[33m=\u001b[39m document\u001b[33m.\u001b[39mgetElementById(\u001b[32m'page-'\u001b[39m \u001b[33m+\u001b[39m r)\u001b[33m;\u001b[39m\n \u001b[90m 33 |\u001b[39m       \u001b[36mreturn\u001b[39m \u001b[33m!\u001b[39m\u001b[33m!\u001b[39mel \u001b[33m&&\u001b[39m el\u001b[33m.\u001b[39mclassList\u001b[33m.\u001b[39mcontains(\u001b[32m'active'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                            "column": 14,
+                            "line": 30
+                          },
+                          "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n\n  28 |   await page.evaluate((r) => window.switchTab(r), route);\n  29 |\n> 30 |   await page.waitForFunction(\n     |              ^\n  31 |     (r) => {\n  32 |       const el = document.getElementById('page-' + r);\n  33 |       return !!el && el.classList.contains('active');\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:16.603Z",
-                      "annotations": [
+                      "startTime": "2026-06-15T19:57:28.050Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "perf",
-                          "description": "rank: 33ms"
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-rank-切换耗时不超过预算-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-rank-切换耗时不超过预算-chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                        "column": 14,
+                        "line": 30
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "c86230f81962dc538e6c-00d28d005b4623368023",
@@ -238,41 +313,66 @@
             },
             {
               "title": "路由 hit 切换耗时不超过预算",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
-                  "annotations": [
-                    {
-                      "type": "perf",
-                      "description": "hit: 25ms"
-                    }
-                  ],
+                  "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 3,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1860,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 16119,
+                      "error": {
+                        "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23",
+                        "location": {
+                          "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                          "column": 14,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate((r) \u001b[33m=>\u001b[39m window\u001b[33m.\u001b[39mswitchTab(r)\u001b[33m,\u001b[39m route)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForFunction(\n \u001b[90m    |\u001b[39m              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m     (r) \u001b[33m=>\u001b[39m {\n \u001b[90m 32 |\u001b[39m       \u001b[36mconst\u001b[39m el \u001b[33m=\u001b[39m document\u001b[33m.\u001b[39mgetElementById(\u001b[32m'page-'\u001b[39m \u001b[33m+\u001b[39m r)\u001b[33m;\u001b[39m\n \u001b[90m 33 |\u001b[39m       \u001b[36mreturn\u001b[39m \u001b[33m!\u001b[39m\u001b[33m!\u001b[39mel \u001b[33m&&\u001b[39m el\u001b[33m.\u001b[39mclassList\u001b[33m.\u001b[39mcontains(\u001b[32m'active'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                            "column": 14,
+                            "line": 30
+                          },
+                          "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n\n  28 |   await page.evaluate((r) => window.switchTab(r), route);\n  29 |\n> 30 |   await page.waitForFunction(\n     |              ^\n  31 |     (r) => {\n  32 |       const el = document.getElementById('page-' + r);\n  33 |       return !!el && el.classList.contains('active');\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:18.171Z",
-                      "annotations": [
+                      "startTime": "2026-06-15T19:57:44.991Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "perf",
-                          "description": "hit: 25ms"
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-hit-切换耗时不超过预算-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-hit-切换耗时不超过预算-chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                        "column": 14,
+                        "line": 30
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "c86230f81962dc538e6c-bafc212b5ef427bdd903",
@@ -282,41 +382,66 @@
             },
             {
               "title": "路由 plan 切换耗时不超过预算",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
-                  "annotations": [
-                    {
-                      "type": "perf",
-                      "description": "plan: 32ms"
-                    }
-                  ],
+                  "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 4,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1606,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 16114,
+                      "error": {
+                        "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23",
+                        "location": {
+                          "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                          "column": 14,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate((r) \u001b[33m=>\u001b[39m window\u001b[33m.\u001b[39mswitchTab(r)\u001b[33m,\u001b[39m route)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForFunction(\n \u001b[90m    |\u001b[39m              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m     (r) \u001b[33m=>\u001b[39m {\n \u001b[90m 32 |\u001b[39m       \u001b[36mconst\u001b[39m el \u001b[33m=\u001b[39m document\u001b[33m.\u001b[39mgetElementById(\u001b[32m'page-'\u001b[39m \u001b[33m+\u001b[39m r)\u001b[33m;\u001b[39m\n \u001b[90m 33 |\u001b[39m       \u001b[36mreturn\u001b[39m \u001b[33m!\u001b[39m\u001b[33m!\u001b[39mel \u001b[33m&&\u001b[39m el\u001b[33m.\u001b[39mclassList\u001b[33m.\u001b[39mcontains(\u001b[32m'active'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                            "column": 14,
+                            "line": 30
+                          },
+                          "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n\n  28 |   await page.evaluate((r) => window.switchTab(r), route);\n  29 |\n> 30 |   await page.waitForFunction(\n     |              ^\n  31 |     (r) => {\n  32 |       const el = document.getElementById('page-' + r);\n  33 |       return !!el && el.classList.contains('active');\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:20.038Z",
-                      "annotations": [
+                      "startTime": "2026-06-15T19:58:02.172Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "perf",
-                          "description": "plan: 32ms"
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-plan-切换耗时不超过预算-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-plan-切换耗时不超过预算-chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                        "column": 14,
+                        "line": 30
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "c86230f81962dc538e6c-cb35cd63c4f928903747",
@@ -326,41 +451,66 @@
             },
             {
               "title": "路由 income 切换耗时不超过预算",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
-                  "annotations": [
-                    {
-                      "type": "perf",
-                      "description": "income: 37ms"
-                    }
-                  ],
+                  "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 5,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1634,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 15913,
+                      "error": {
+                        "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23",
+                        "location": {
+                          "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                          "column": 14,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate((r) \u001b[33m=>\u001b[39m window\u001b[33m.\u001b[39mswitchTab(r)\u001b[33m,\u001b[39m route)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForFunction(\n \u001b[90m    |\u001b[39m              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m     (r) \u001b[33m=>\u001b[39m {\n \u001b[90m 32 |\u001b[39m       \u001b[36mconst\u001b[39m el \u001b[33m=\u001b[39m document\u001b[33m.\u001b[39mgetElementById(\u001b[32m'page-'\u001b[39m \u001b[33m+\u001b[39m r)\u001b[33m;\u001b[39m\n \u001b[90m 33 |\u001b[39m       \u001b[36mreturn\u001b[39m \u001b[33m!\u001b[39m\u001b[33m!\u001b[39mel \u001b[33m&&\u001b[39m el\u001b[33m.\u001b[39mclassList\u001b[33m.\u001b[39mcontains(\u001b[32m'active'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                            "column": 14,
+                            "line": 30
+                          },
+                          "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n\n  28 |   await page.evaluate((r) => window.switchTab(r), route);\n  29 |\n> 30 |   await page.waitForFunction(\n     |              ^\n  31 |     (r) => {\n  32 |       const el = document.getElementById('page-' + r);\n  33 |       return !!el && el.classList.contains('active');\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:21.651Z",
-                      "annotations": [
+                      "startTime": "2026-06-15T19:58:19.293Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "perf",
-                          "description": "income: 37ms"
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-income-切换耗时不超过预算-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-income-切换耗时不超过预算-chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                        "column": 14,
+                        "line": 30
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "c86230f81962dc538e6c-4349e9b1633d3b083d99",
@@ -370,41 +520,66 @@
             },
             {
               "title": "路由 quant-rank 切换耗时不超过预算",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
-                  "annotations": [
-                    {
-                      "type": "perf",
-                      "description": "quant-rank: 31ms"
-                    }
-                  ],
+                  "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 6,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1836,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 15912,
+                      "error": {
+                        "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23",
+                        "location": {
+                          "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                          "column": 14,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate((r) \u001b[33m=>\u001b[39m window\u001b[33m.\u001b[39mswitchTab(r)\u001b[33m,\u001b[39m route)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForFunction(\n \u001b[90m    |\u001b[39m              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m     (r) \u001b[33m=>\u001b[39m {\n \u001b[90m 32 |\u001b[39m       \u001b[36mconst\u001b[39m el \u001b[33m=\u001b[39m document\u001b[33m.\u001b[39mgetElementById(\u001b[32m'page-'\u001b[39m \u001b[33m+\u001b[39m r)\u001b[33m;\u001b[39m\n \u001b[90m 33 |\u001b[39m       \u001b[36mreturn\u001b[39m \u001b[33m!\u001b[39m\u001b[33m!\u001b[39mel \u001b[33m&&\u001b[39m el\u001b[33m.\u001b[39mclassList\u001b[33m.\u001b[39mcontains(\u001b[32m'active'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                            "column": 14,
+                            "line": 30
+                          },
+                          "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n\n  28 |   await page.evaluate((r) => window.switchTab(r), route);\n  29 |\n> 30 |   await page.waitForFunction(\n     |              ^\n  31 |     (r) => {\n  32 |       const el = document.getElementById('page-' + r);\n  33 |       return !!el && el.classList.contains('active');\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:23.292Z",
-                      "annotations": [
+                      "startTime": "2026-06-15T19:58:36.104Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "perf",
-                          "description": "quant-rank: 31ms"
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-quant-rank-切换耗时不超过预算-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-quant-rank-切换耗时不超过预算-chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                        "column": 14,
+                        "line": 30
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "c86230f81962dc538e6c-4d595db7c093c60ad54e",
@@ -414,41 +589,66 @@
             },
             {
               "title": "路由 filter 切换耗时不超过预算",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
-                  "annotations": [
-                    {
-                      "type": "perf",
-                      "description": "filter: 49ms"
-                    }
-                  ],
+                  "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 7,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2387,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 15922,
+                      "error": {
+                        "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23",
+                        "location": {
+                          "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                          "column": 14,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate((r) \u001b[33m=>\u001b[39m window\u001b[33m.\u001b[39mswitchTab(r)\u001b[33m,\u001b[39m route)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForFunction(\n \u001b[90m    |\u001b[39m              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m     (r) \u001b[33m=>\u001b[39m {\n \u001b[90m 32 |\u001b[39m       \u001b[36mconst\u001b[39m el \u001b[33m=\u001b[39m document\u001b[33m.\u001b[39mgetElementById(\u001b[32m'page-'\u001b[39m \u001b[33m+\u001b[39m r)\u001b[33m;\u001b[39m\n \u001b[90m 33 |\u001b[39m       \u001b[36mreturn\u001b[39m \u001b[33m!\u001b[39m\u001b[33m!\u001b[39mel \u001b[33m&&\u001b[39m el\u001b[33m.\u001b[39mclassList\u001b[33m.\u001b[39mcontains(\u001b[32m'active'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                            "column": 14,
+                            "line": 30
+                          },
+                          "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n\n  28 |   await page.evaluate((r) => window.switchTab(r), route);\n  29 |\n> 30 |   await page.waitForFunction(\n     |              ^\n  31 |     (r) => {\n  32 |       const el = document.getElementById('page-' + r);\n  33 |       return !!el && el.classList.contains('active');\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:25.136Z",
-                      "annotations": [
+                      "startTime": "2026-06-15T19:58:52.871Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "perf",
-                          "description": "filter: 49ms"
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-filter-切换耗时不超过预算-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-filter-切换耗时不超过预算-chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                        "column": 14,
+                        "line": 30
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "c86230f81962dc538e6c-8942609a34cd6e28ed20",
@@ -458,41 +658,66 @@
             },
             {
               "title": "路由 backtest 切换耗时不超过预算",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
-                  "annotations": [
-                    {
-                      "type": "perf",
-                      "description": "backtest: 43ms"
-                    }
-                  ],
+                  "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 8,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2370,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 15911,
+                      "error": {
+                        "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23",
+                        "location": {
+                          "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                          "column": 14,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate((r) \u001b[33m=>\u001b[39m window\u001b[33m.\u001b[39mswitchTab(r)\u001b[33m,\u001b[39m route)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForFunction(\n \u001b[90m    |\u001b[39m              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m     (r) \u001b[33m=>\u001b[39m {\n \u001b[90m 32 |\u001b[39m       \u001b[36mconst\u001b[39m el \u001b[33m=\u001b[39m document\u001b[33m.\u001b[39mgetElementById(\u001b[32m'page-'\u001b[39m \u001b[33m+\u001b[39m r)\u001b[33m;\u001b[39m\n \u001b[90m 33 |\u001b[39m       \u001b[36mreturn\u001b[39m \u001b[33m!\u001b[39m\u001b[33m!\u001b[39mel \u001b[33m&&\u001b[39m el\u001b[33m.\u001b[39mclassList\u001b[33m.\u001b[39mcontains(\u001b[32m'active'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                            "column": 14,
+                            "line": 30
+                          },
+                          "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n\n  28 |   await page.evaluate((r) => window.switchTab(r), route);\n  29 |\n> 30 |   await page.waitForFunction(\n     |              ^\n  31 |     (r) => {\n  32 |       const el = document.getElementById('page-' + r);\n  33 |       return !!el && el.classList.contains('active');\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:27.531Z",
-                      "annotations": [
+                      "startTime": "2026-06-15T19:59:09.667Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "perf",
-                          "description": "backtest: 43ms"
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-backtest-切换耗时不超过预算-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-backtest-切换耗时不超过预算-chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                        "column": 14,
+                        "line": 30
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "c86230f81962dc538e6c-823dd453d4e682d27f98",
@@ -502,41 +727,66 @@
             },
             {
               "title": "路由 scheme 切换耗时不超过预算",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
-                  "annotations": [
-                    {
-                      "type": "perf",
-                      "description": "scheme: 36ms"
-                    }
-                  ],
+                  "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 9,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2315,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 15866,
+                      "error": {
+                        "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23",
+                        "location": {
+                          "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                          "column": 14,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate((r) \u001b[33m=>\u001b[39m window\u001b[33m.\u001b[39mswitchTab(r)\u001b[33m,\u001b[39m route)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForFunction(\n \u001b[90m    |\u001b[39m              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m     (r) \u001b[33m=>\u001b[39m {\n \u001b[90m 32 |\u001b[39m       \u001b[36mconst\u001b[39m el \u001b[33m=\u001b[39m document\u001b[33m.\u001b[39mgetElementById(\u001b[32m'page-'\u001b[39m \u001b[33m+\u001b[39m r)\u001b[33m;\u001b[39m\n \u001b[90m 33 |\u001b[39m       \u001b[36mreturn\u001b[39m \u001b[33m!\u001b[39m\u001b[33m!\u001b[39mel \u001b[33m&&\u001b[39m el\u001b[33m.\u001b[39mclassList\u001b[33m.\u001b[39mcontains(\u001b[32m'active'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                            "column": 14,
+                            "line": 30
+                          },
+                          "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n\n  28 |   await page.evaluate((r) => window.switchTab(r), route);\n  29 |\n> 30 |   await page.waitForFunction(\n     |              ^\n  31 |     (r) => {\n  32 |       const el = document.getElementById('page-' + r);\n  33 |       return !!el && el.classList.contains('active');\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:29.909Z",
-                      "annotations": [
+                      "startTime": "2026-06-15T19:59:26.466Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "perf",
-                          "description": "scheme: 36ms"
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-scheme-切换耗时不超过预算-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-scheme-切换耗时不超过预算-chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                        "column": 14,
+                        "line": 30
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "c86230f81962dc538e6c-295564e8a7174d841586",
@@ -546,41 +796,66 @@
             },
             {
               "title": "路由 model-dashboard 切换耗时不超过预算",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
-                  "annotations": [
-                    {
-                      "type": "perf",
-                      "description": "model-dashboard: 34ms"
-                    }
-                  ],
+                  "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 10,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2318,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 15851,
+                      "error": {
+                        "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23",
+                        "location": {
+                          "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                          "column": 14,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate((r) \u001b[33m=>\u001b[39m window\u001b[33m.\u001b[39mswitchTab(r)\u001b[33m,\u001b[39m route)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForFunction(\n \u001b[90m    |\u001b[39m              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m     (r) \u001b[33m=>\u001b[39m {\n \u001b[90m 32 |\u001b[39m       \u001b[36mconst\u001b[39m el \u001b[33m=\u001b[39m document\u001b[33m.\u001b[39mgetElementById(\u001b[32m'page-'\u001b[39m \u001b[33m+\u001b[39m r)\u001b[33m;\u001b[39m\n \u001b[90m 33 |\u001b[39m       \u001b[36mreturn\u001b[39m \u001b[33m!\u001b[39m\u001b[33m!\u001b[39mel \u001b[33m&&\u001b[39m el\u001b[33m.\u001b[39mclassList\u001b[33m.\u001b[39mcontains(\u001b[32m'active'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                            "column": 14,
+                            "line": 30
+                          },
+                          "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n\n  28 |   await page.evaluate((r) => window.switchTab(r), route);\n  29 |\n> 30 |   await page.waitForFunction(\n     |              ^\n  31 |     (r) => {\n  32 |       const el = document.getElementById('page-' + r);\n  33 |       return !!el && el.classList.contains('active');\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:32.234Z",
-                      "annotations": [
+                      "startTime": "2026-06-15T19:59:43.148Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "perf",
-                          "description": "model-dashboard: 34ms"
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-model-dashboard-切换耗时不超过预算-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-model-dashboard-切换耗时不超过预算-chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                        "column": 14,
+                        "line": 30
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "c86230f81962dc538e6c-38f000f7bcfd52b11d0a",
@@ -590,41 +865,66 @@
             },
             {
               "title": "路由 data-health 切换耗时不超过预算",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
-                  "annotations": [
-                    {
-                      "type": "perf",
-                      "description": "data-health: 71ms"
-                    }
-                  ],
+                  "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 11,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2366,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 15978,
+                      "error": {
+                        "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23",
+                        "location": {
+                          "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                          "column": 14,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate((r) \u001b[33m=>\u001b[39m window\u001b[33m.\u001b[39mswitchTab(r)\u001b[33m,\u001b[39m route)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForFunction(\n \u001b[90m    |\u001b[39m              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m     (r) \u001b[33m=>\u001b[39m {\n \u001b[90m 32 |\u001b[39m       \u001b[36mconst\u001b[39m el \u001b[33m=\u001b[39m document\u001b[33m.\u001b[39mgetElementById(\u001b[32m'page-'\u001b[39m \u001b[33m+\u001b[39m r)\u001b[33m;\u001b[39m\n \u001b[90m 33 |\u001b[39m       \u001b[36mreturn\u001b[39m \u001b[33m!\u001b[39m\u001b[33m!\u001b[39mel \u001b[33m&&\u001b[39m el\u001b[33m.\u001b[39mclassList\u001b[33m.\u001b[39mcontains(\u001b[32m'active'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                            "column": 14,
+                            "line": 30
+                          },
+                          "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n\n  28 |   await page.evaluate((r) => window.switchTab(r), route);\n  29 |\n> 30 |   await page.waitForFunction(\n     |              ^\n  31 |     (r) => {\n  32 |       const el = document.getElementById('page-' + r);\n  33 |       return !!el && el.classList.contains('active');\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:34.559Z",
-                      "annotations": [
+                      "startTime": "2026-06-15T19:59:59.823Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "perf",
-                          "description": "data-health: 71ms"
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-data-health-切换耗时不超过预算-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-data-health-切换耗时不超过预算-chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                        "column": 14,
+                        "line": 30
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "c86230f81962dc538e6c-4faf6a04671485f37736",
@@ -634,41 +934,66 @@
             },
             {
               "title": "路由 confirm-scheme 切换耗时不超过预算",
-              "ok": true,
+              "ok": false,
               "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
-                  "annotations": [
-                    {
-                      "type": "perf",
-                      "description": "confirm-scheme: 30ms"
-                    }
-                  ],
+                  "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 12,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2307,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 16778,
+                      "error": {
+                        "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23",
+                        "location": {
+                          "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                          "column": 14,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate((r) \u001b[33m=>\u001b[39m window\u001b[33m.\u001b[39mswitchTab(r)\u001b[33m,\u001b[39m route)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForFunction(\n \u001b[90m    |\u001b[39m              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m     (r) \u001b[33m=>\u001b[39m {\n \u001b[90m 32 |\u001b[39m       \u001b[36mconst\u001b[39m el \u001b[33m=\u001b[39m document\u001b[33m.\u001b[39mgetElementById(\u001b[32m'page-'\u001b[39m \u001b[33m+\u001b[39m r)\u001b[33m;\u001b[39m\n \u001b[90m 33 |\u001b[39m       \u001b[36mreturn\u001b[39m \u001b[33m!\u001b[39m\u001b[33m!\u001b[39mel \u001b[33m&&\u001b[39m el\u001b[33m.\u001b[39mclassList\u001b[33m.\u001b[39mcontains(\u001b[32m'active'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                            "column": 14,
+                            "line": 30
+                          },
+                          "message": "TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.\n\n  28 |   await page.evaluate((r) => window.switchTab(r), route);\n  29 |\n> 30 |   await page.waitForFunction(\n     |              ^\n  31 |     (r) => {\n  32 |       const el = document.getElementById('page-' + r);\n  33 |       return !!el && el.classList.contains('active');\n    at switchAndMeasure (E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:30:14)\n    at E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js:70:23"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-10T01:18:36.934Z",
-                      "annotations": [
+                      "startTime": "2026-06-15T20:00:16.806Z",
+                      "annotations": [],
+                      "attachments": [
                         {
-                          "type": "perf",
-                          "description": "confirm-scheme: 30ms"
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-confirm-scheme-切换耗时不超过预算-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "E:\\JC-ZJFA\\test-results\\perf-pages-E2E-性能预算-—-首页与路由切换-路由-confirm-scheme-切换耗时不超过预算-chromium\\error-context.md"
                         }
                       ],
-                      "attachments": []
+                      "errorLocation": {
+                        "file": "E:\\JC-ZJFA\\preview\\tests\\e2e\\perf-pages.spec.js",
+                        "column": 14,
+                        "line": 30
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
               "id": "c86230f81962dc538e6c-45a7298a97f0618718ee",
@@ -683,11 +1008,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-06-10T01:18:09.967Z",
-    "duration": 29844.875,
-    "expected": 14,
+    "startTime": "2026-06-15T19:56:52.490Z",
+    "duration": 221569.845,
+    "expected": 1,
     "skipped": 0,
-    "unexpected": 0,
+    "unexpected": 13,
     "flaky": 0
   }
 }

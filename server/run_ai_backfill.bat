@@ -8,5 +8,5 @@ echo  956 场 ~4小时 ~$1-2
 echo  日志输出到 ai_backfill_log.txt
 echo ========================================
 
-node backfill_full_models.js --phase=2 > ai_backfill_log.txt 2>&1
+node backfill\backfill_full_models.js --phase=2 > ai_backfill_log.txt 2>&1
 echo 完成时间: %date% %time% >> ai_backfill_log.txt
