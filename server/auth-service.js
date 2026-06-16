@@ -128,6 +128,7 @@ const ACTION_PERMISSION_MAP = {
 };
 
 const PUBLIC_ACTIONS = new Set([
+  'alerts',  // ★ V12: 运维告警 API（公开读）
   'auth-login',
   'auth-register',
   'auth-session',

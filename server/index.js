@@ -7251,6 +7251,31 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           }
         }
 
+        // ★ V12: 运维告警 API — 前端轮询 + 标记已读
+        case 'alerts': {
+          try {
+            const monitor = require('./core/alert-monitor');
+            const subAction = data.subAction || 'list';
+            const username = data.username || 'anonymous';
+
+            if (subAction === 'summary') {
+              return res.json({ code: 1, data: monitor.getAlertSummary() });
+            }
+            if (subAction === 'read') {
+              const ok = monitor.markRead(data.alertId, username);
+              return res.json({ code: ok ? 1 : 0, msg: ok ? '已标记已读' : '未找到告警' });
+            }
+            if (subAction === 'readAll') {
+              const n = monitor.markAllRead(username);
+              return res.json({ code: 1, data: { cleared: n } });
+            }
+            // 默认: 返回未读列表
+            return res.json({ code: 1, data: monitor.getUnreadAlerts(username) });
+          } catch (e) {
+            return res.json({ code: 0, msg: e.message });
+          }
+        }
+
         // ★ 蓝图 P2: 数据健康监控 API
         case 'data-health': {
           try {

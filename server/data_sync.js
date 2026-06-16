@@ -2560,6 +2560,21 @@ async function start() {
     try {
       await syncRecommends();
 
+      // ★ V12: 推荐数据停滞检测
+      try {
+        var alertMon = require('./core/alert-monitor');
+        var dataJson = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+        var recsPerMatch = {};
+        Object.keys(dataJson.m || {}).forEach(function (k) {
+          var m = dataJson.m[k];
+          if (m && (m.date || '').slice(0, 10) === currentDate) {
+            var raw = (dataJson.r || {})['m_' + m.matchId] || [];
+            recsPerMatch[m.matchId] = raw.reduce(function (s, r) { return s + (r.num || 0); }, 0);
+          }
+        });
+        alertMon.checkRecSyncStagnant(currentDate, recsPerMatch);
+      } catch (e) {}
+
       // ★ P1-1: 每次推荐同步后自动推断比赛状态
       autoInferStatus(currentDate);
 
@@ -2574,6 +2589,12 @@ async function start() {
       }
     } catch (e) {
       log('[loop] 推荐同步异常: ' + e.message);
+      // ★ V12: 登录失败告警
+      try {
+        if (e.message && e.message.includes('登录')) {
+          require('./core/alert-monitor').checkLoginFailed(e.message);
+        }
+      } catch (e2) {}
     }
     recommendRunning = false;
     setTimeout(recommendLoop, 20 * 60 * 1000);
@@ -2672,6 +2693,8 @@ async function start() {
           var plans = PG.generateExpertPlans(mList, matchDataMap, currentDate);
           PG.savePlanSnapshot(currentDate, plans, new Date(_planEarliestKickoff).toISOString());
           log('[plan-refresh] 方案快照已保存: ' + plans.length + ' 个方案');
+          // ★ V12: 方案为空告警
+          try { require('./core/alert-monitor').checkEmptyPlans(currentDate, plans.length); } catch (e) {}
         } catch (e2) {
           log('[plan-refresh] 快照保存失败: ' + e2.message);
         }
@@ -2994,6 +3017,23 @@ async function start() {
         backfillResults(yd).catch((e) => log('[health] 昨天回填失败: ' + e.message));
       }
     }
+    // ★ V12: 每分钟告警监控（PM2 状态、健康检查）
+    try {
+      var alertMon = require('./core/alert-monitor');
+      // PM2 状态检测（通过 exec pm2 jlist 获取进程列表）
+      try {
+        var cp = require('child_process');
+        var pm2Out = cp.execSync('pm2 jlist 2>/dev/null', { timeout: 5000, encoding: 'utf8' });
+        var pm2List = JSON.parse(pm2Out);
+        var pm2Summary = {};
+        pm2List.forEach(function (p) {
+          if (p.name === 'jc-sync') pm2Summary.jcSync = { status: p.pm2_env.status, pid: p.pid, restarts: p.pm2_env.restart_time || 0 };
+          if (p.name === 'jc-zjfa') pm2Summary.jcZjfa = { status: p.pm2_env.status };
+        });
+        alertMon.checkPM2Status(pm2Summary);
+      } catch (e) { /* PM2 检测失败不阻断 */ }
+    } catch (e) { /* alert-monitor 加载失败不阻断 */ }
+
     // 整点输出健康状态 + 记录每日统计
     if (new Date().getMinutes() === 0) {
       const yd = fmtLocal(new Date(Date.now() - 86400000));

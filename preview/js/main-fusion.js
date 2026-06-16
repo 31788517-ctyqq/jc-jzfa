@@ -1782,3 +1782,47 @@ document.addEventListener('subscription:required', function (e) {
       .catch(function () {});
   }, 5000);
 })();
+
+// V12: 运维告警横幅轮询（仅 ctyqq 可见）
+(function(){
+  var POLL_MS = 30 * 1000;
+  var lastCount = 0;
+  function checkAlerts(){
+    fetch("/api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"alerts",data:{username:"ctyqq"}})})
+    .then(function(r){return r.json()})
+    .then(function(d){
+      var alerts = d.data || [];
+      var unread = alerts.filter(function(a){return !a.readAt});
+      var bar = document.getElementById("alertBanner");
+      if(!bar) return;
+      if(unread.length === 0){bar.style.display="none";lastCount=0;return;}
+      if(unread.length !== lastCount){
+        var a = unread[0];
+        var bg = a.level==="P0"?"#e53e3e":a.level==="P0.5"?"#d69e2e":"#38a169";
+        var icon = a.level==="P0"?"\u{1F534}":a.level==="P0.5"?"\u{1F7E1}":"\u{1F7E2}";
+        bar.style.background = bg;
+        var txt = icon + " [" + a.level + "] " + a.title;
+        if(a.detail) txt += " | " + a.detail;
+        if(a.action) txt += " | " + a.action;
+        document.getElementById("alertBannerText").textContent = txt;
+        bar.style.display = "block";
+      }
+      lastCount = unread.length;
+    });
+  }
+  checkAlerts();
+  setInterval(checkAlerts, POLL_MS);
+  document.getElementById("alertBannerRead").addEventListener("click",function(e){
+    e.stopPropagation();
+    document.getElementById("alertBanner").style.display="none";
+    fetch("/api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"alerts",data:{subAction:"readAll",username:"ctyqq"}})});
+  });
+  document.getElementById("alertBannerClose").addEventListener("click",function(e){
+    e.stopPropagation();
+    document.getElementById("alertBanner").style.display="none";
+  });
+  document.getElementById("alertBanner").addEventListener("click",function(){
+    document.getElementById("alertBanner").style.display="none";
+    fetch("/api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"alerts",data:{subAction:"readAll",username:"ctyqq"}})});
+  });
+})();

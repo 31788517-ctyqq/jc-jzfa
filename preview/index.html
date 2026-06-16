@@ -81,6 +81,12 @@
   </head>
 
   <body>
+    <!-- ★ V12: 运维告警横幅（仅 ctyqq 可见） -->
+    <div id="alertBanner" style="display:none;background:#e53e3e;color:#fff;padding:8px 12px;font-size:12px;text-align:center;cursor:pointer;position:sticky;top:0;z-index:9999;line-height:1.5;">
+      <span id="alertBannerText"></span>
+      <button id="alertBannerClose" style="margin-left:10px;background:none;border:1px solid #fff;color:#fff;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">✕ 忽略</button>
+      <button id="alertBannerRead" style="margin-left:4px;background:#fff;border:none;color:#e53e3e;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">已读</button>
+    </div>
     <!-- 导航栏 -->
     <div class="navbar home-mode" id="navbar">
       <span class="nav-logo"
