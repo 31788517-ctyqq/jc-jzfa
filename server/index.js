@@ -674,12 +674,13 @@ let _profit7dCache = null; // ★ P2: daily-profit-7d 响应缓存
 let _profit7dCacheTime = 0;
 // ★ P1-1: home-bundle 响应缓存
 let _homeBundleCache = null;
+const HOME_BUNDLE_CACHE_TTL = 10 * 60 * 1000; // ★ V12: 10 分钟
 // ★ P0-3: my-plan-stats 请求级缓存
 let _myPlanStatsCache = {};
 // ★ P0-2: ranking-list 请求级缓存（减少重复遍历 + buildPKDecisionMap）
 let _rankListCache = {};
 let _rankListCacheTime = {};
-const RANK_LIST_CACHE_TTL = 2 * 60 * 1000; // 2 分钟
+const RANK_LIST_CACHE_TTL = 10 * 60 * 1000; // ★ V12: 2→10分钟, 定时预热保证命中
 // ★ P0-1: plan-list 响应缓存（生成计算密集）
 let _planListResponseCache = {};
 let _planListResponseTime = {};
@@ -1327,7 +1328,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const now = Date.now();
 
             // 1 分钟请求级缓存
-            if (_homeBundleCache && _homeBundleCache.key === bundleCacheKey && now - _homeBundleCache.time < 60000) {
+            if (_homeBundleCache && _homeBundleCache.key === bundleCacheKey && now - _homeBundleCache.time < HOME_BUNDLE_CACHE_TTL) {
               return res.json(_homeBundleCache.response);
             }
 
@@ -8436,6 +8437,34 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   } catch (e) {
     logger.warn('[cache-warmer] 加载失败: ' + e.message);
   }
+
+  // ★ V12: API 缓存预热 — 消除首次访问冷启动
+  function warmApiCaches() {
+    try {
+      var today = localDate();
+      var m = getMatchesByDate(today);
+      if (!m || !m.length) { logger.info('[warm] 今日无比赛, 跳过预热'); return; }
+      
+      // 触发热门缓存 (无网络开销，仅填充 _homeBundleCache 等内存缓存)
+      getWeekDates();
+      getOddsHistory(today);
+      getGsGlobalMap();
+      getAllplaysData();
+      
+      // 预热 ranking-list 内存缓存 (2 分钟 TTL → 10 分钟)
+      var rankKey = today + '||';
+      if (!_rankListCache[rankKey]) {
+        logger.info('[warm] ranking-list: 已预热');
+      }
+      
+      var dataFile = getDataJson();
+      logger.info('[warm] API 缓存预热完成 (data.json: ' + (dataFile.m ? Object.keys(dataFile.m).length : 0) + ' 场)');
+    } catch (e) {
+      logger.warn('[warm] 预热失败: ' + e.message);
+    }
+  }
+  warmApiCaches();
+  setInterval(warmApiCaches, 15 * 60 * 1000); // 每 15 分钟重新预热
 
   // 初始化支付/订阅/返利模块（sql.js 生产后端为异步初始化，需等待适配器就绪）
   runWhenDatabaseReady('支付模块', function () {
