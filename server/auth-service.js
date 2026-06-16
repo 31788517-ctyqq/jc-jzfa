@@ -653,9 +653,11 @@ async function loginWithPassword(username, password, meta = {}) {
   // ★ V12: PM2 cluster 修复 — 强制 WAL checkpoint + 同步等待确保跨 worker 可读
   try { adp.execDDL('PRAGMA wal_checkpoint(RESTART)'); } catch (_) {}
   flushCriticalWrites(adp);
-  // POSIX: RESTART 模式阻塞直到 checkpoint 完成，无需额外等待
-  // 但仍需确保 SQLite 连接已刷新到磁盘
   try { adp.execDDL('PRAGMA wal_checkpoint(PASSIVE)'); } catch (_) {}
+
+  // DEBUG: verify write
+  var verifyRow = adp.execOne('SELECT COUNT(*) as cnt FROM auth_sessions WHERE session_token_hash = ?', tokenHash);
+  try { require('./logger').info('[auth] login session written: tokenHash=' + tokenHash.substring(0,8) + '... verify=' + (verifyRow ? verifyRow.cnt : 'NULL')); } catch(_) {}
   return {
     ok: true,
     token,
@@ -820,7 +822,11 @@ function validateSession(token, touch = true) {
       tokenHash,
     );
   }
-  if (!row) return null;
+  if (!row) {
+    // ★ V12 DEBUG: 记录失败原因
+    try { require('./logger').warn('[auth] validateSession DB miss: tokenHash=' + tokenHash.substring(0,8) + '... adapter=' + (adp ? 'OK' : 'NULL')); } catch(_) {}
+    return null;
+  }
   if (row.revoked_at) return null;
   if (row.status !== 'active') return null;
   if (new Date(row.expires_at).getTime() <= Date.now()) return null;
