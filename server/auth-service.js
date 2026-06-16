@@ -137,6 +137,7 @@ const PUBLIC_ACTIONS = new Set([
   'ranking-list',
   'daily-profit-7d',
   'week-dates',
+  'home-bundle',
 
   // 方案查看（未登录可浏览）
   'plan-list',

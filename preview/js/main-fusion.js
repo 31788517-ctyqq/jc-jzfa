@@ -1392,16 +1392,21 @@ window.onIncDirChange = function () {
     return;
   }
 
-  api('auth-session', {}, 0)
-    .then(function (session) {
-      setAuthSession(session || {});
-      startAuthedPage();
-    })
-    .catch(function () {
-      clearAuthAll();
-      state.setCurrentPage('login');
-      switchTabLoad('login');
-    });
+  // ★ P0-4: 已登录 — 立即渲染首页，auth-session 后台异步执行（不再阻塞 FCP）
+  startAuthedPage();
+  setTimeout(function () {
+    if (!hasAuthToken()) return;
+    api('auth-session', {}, 0)
+      .then(function (session) {
+        setAuthSession(session || {});
+        try {
+          if (typeof window._refreshAuthUI === 'function') window._refreshAuthUI(session);
+        } catch (e) {}
+      })
+      .catch(function () {
+        // 静默失败，可能是网络抖动，不清除 token
+      });
+  }, 100);
 })();
 
 // ★ P1: 异步预取数据（提前填充 sessionStorage 缓存）

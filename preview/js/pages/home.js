@@ -1,5 +1,6 @@
 import { api } from '../api.js';
 import { formatDate, setCache, getCache } from '../utils.js';
+import { setWeekDates } from '../vendor.js';
 
 function getMatchLabel(item) {
   return String((item && (item.num || item.matchNum || item.matchId || item.dataId)) || '').trim();
@@ -133,11 +134,7 @@ function _renderHomeReconcilePanel(data, errorMsg) {
   var hasDrift = !!(drift.matchCount || drift.maxRecommend || drift.hottestMatch);
   var driftText = hasDrift
     ? '⚠ 发现口径漂移：' +
-      [
-        drift.matchCount ? '场次' : '',
-        drift.maxRecommend ? '最多推荐' : '',
-        drift.hottestMatch ? '最热场次' : '',
-      ]
+      [drift.matchCount ? '场次' : '', drift.maxRecommend ? '最多推荐' : '', drift.hottestMatch ? '最热场次' : '']
         .filter(Boolean)
         .join(' / ')
     : '✅ 当前原始值与聚合值一致';
@@ -345,16 +342,22 @@ function loadWorldCupSection(matchP) {
       var cacheKey = 'wc-plan:' + dt;
       var cachedPlans = getCache(cacheKey);
       if (cachedPlans) return Promise.resolve(cachedPlans);
-      return api('plan-list', { date: dt }).catch(function () { return {}; }).then(function (res) {
-        // 仅缓存已全部结算的结果（isPlanWon/isPlanLose 明确的）
-        if (res && res.plans && res.plans.length > 0) {
-          var settledCount = res.plans.filter(function (p) { return p.isPlanWon === true || p.isPlanLose === true; }).length;
-          if (settledCount >= res.plans.length) {
-            setCache(cacheKey, res);
+      return api('plan-list', { date: dt })
+        .catch(function () {
+          return {};
+        })
+        .then(function (res) {
+          // 仅缓存已全部结算的结果（isPlanWon/isPlanLose 明确的）
+          if (res && res.plans && res.plans.length > 0) {
+            var settledCount = res.plans.filter(function (p) {
+              return p.isPlanWon === true || p.isPlanLose === true;
+            }).length;
+            if (settledCount >= res.plans.length) {
+              setCache(cacheKey, res);
+            }
           }
-        }
-        return res;
-      });
+          return res;
+        });
     });
 
     Promise.all(planPromises).then(function (planResults) {
@@ -406,41 +409,75 @@ export function loadHome() {
 
   _renderHomeReconcileToggle();
 
-  // ★ P0-1 + P0-3: 发起所有 API 调用并共享结果
   var today = formatDate(new Date());
+
+  // ★ P1-1: 优先使用 home-bundle（一次请求替代 3 次独立 API）
+  //     失败或超时时自动回退到原有 3 次独立请求
+  var bundlePromise = api('home-bundle', { date: today }).catch(function () {
+    return null;
+  });
+
+  bundlePromise.then(function (bundle) {
+    if (bundle && bundle.code === 1 && bundle.data) {
+      var d = bundle.data;
+      // 注入 weekDates 到全局 state
+      if (d.weekDates && d.weekDates.length) {
+        try {
+          setWeekDates(d.weekDates);
+        } catch (e) {}
+        setCache('week-dates', d.weekDates);
+      }
+      if (d.matches) setCache('match-list:' + today, d.matches);
+      if (d.ranking) setCache('ranking-list:home', d.ranking);
+      _renderHomeStats(d.matches || [], d.ranking || {});
+      loadWorldCupSection(Promise.resolve(d.matches || []));
+      return; // bundle 成功，跳过原有独立请求
+    }
+    // 回退：原有 3 次独立请求
+    _fallbackLoadHome(today);
+  });
+}
+
+// ★ 回退路径：home-bundle 失败时使用原有 3 次独立 API 调用
+function _fallbackLoadHome(today) {
   var cachedMatches = getCache('match-list:' + today) || getCache('match-list:' + today.slice(5));
   var cachedRank = getCache('ranking-list:home');
   if (cachedMatches) {
     _renderHomeStats(cachedMatches, cachedRank || {});
   }
 
-  var rankP = api('ranking-list', {}).catch(function () { return {}; });
-  var matchP = api('match-list', {}).catch(function () { return []; });
+  var rankP = api('ranking-list', {}).catch(function () {
+    return {};
+  });
+  var matchP = api('match-list', {}).catch(function () {
+    return [];
+  });
 
-  // ★ P0-1: WC Section 复用 matchP，不再单独请求
   loadWorldCupSection(matchP);
 
   Promise.all([rankP, matchP]).then(function (r) {
-    var rankData = r[0], matches = r[1];
+    var rankData = r[0],
+      matches = r[1];
     setCache('ranking-list:home', rankData);
     _renderHomeStats(matches, rankData);
   });
 
-  // ★ P0-3: 统一的盈利数据获取，供图表和通知引擎共享
-  var profitP = api('daily-profit-7d', { days: 7 }).catch(function () { return null; });
+  var profitP = api('daily-profit-7d', { days: 7 }).catch(function () {
+    return null;
+  });
 
-  // 图表渲染
   profitP.then(function (data) {
     if (!data || !data.dates || !data.profits || data.dates.length === 0) return;
     var dates = data.dates.slice(0, 7),
-      profits = data.profits.slice(0, 7).map(function (v) { return v === null ? 0 : v; });
+      profits = data.profits.slice(0, 7).map(function (v) {
+        return v === null ? 0 : v;
+      });
     if (dates.length < 2) return;
     renderProfitChartNative(dates, profits);
     var section = document.getElementById('homeProfitChartSection');
     if (section) section.style.display = 'block';
   });
 
-  // ★ P0-3: 消息引擎复用同一份盈利数据
   NotiEngine.run(profitP);
 }
 

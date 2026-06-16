@@ -44,6 +44,8 @@ const payments = require('./payments/index'); // ★ V9.1: 支付/订阅/返利�
 const localDate = cacheModule.localDate;
 const latestDataDate = cacheModule.latestDataDate;
 const getDataJson = cacheModule.getDataJson;
+const getMatchesByDate = cacheModule.getMatchesByDate;
+const getAllMatchDates = cacheModule.getAllMatchDates;
 const getTrendsJson = cacheModule.getTrendsJson;
 const getOddsHistory = cacheModule.getOddsHistory;
 const getHitRateCache = cacheModule.getHitRateCache;
@@ -670,6 +672,10 @@ let _quantHotCacheTime = 0;
 let _quantPlanCache = {};
 let _profit7dCache = null; // ★ P2: daily-profit-7d 响应缓存
 let _profit7dCacheTime = 0;
+// ★ P1-1: home-bundle 响应缓存
+let _homeBundleCache = null;
+// ★ P0-3: my-plan-stats 请求级缓存
+let _myPlanStatsCache = {};
 // ★ P0-2: ranking-list 请求级缓存（减少重复遍历 + buildPKDecisionMap）
 let _rankListCache = {};
 let _rankListCacheTime = {};
@@ -1312,6 +1318,111 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           return res.json({ code: 1, data: result });
         }
 
+        // ★ P1-1: 首页数据批量返回（一次请求替代 3 次独立 API 调用）
+        case 'home-bundle': {
+          try {
+            const today = localDate();
+            const dateStr = data.date || today;
+            const bundleCacheKey = dateStr;
+            const now = Date.now();
+
+            // 1 分钟请求级缓存
+            if (_homeBundleCache && _homeBundleCache.key === bundleCacheKey && now - _homeBundleCache.time < 60000) {
+              return res.json(_homeBundleCache.response);
+            }
+
+            const dataFile = getDataJson();
+
+            // ── 子模块1: week-dates ──
+            const weekDates = getWeekDates();
+
+            // ── 子模块2: match-list (当天比赛) ──
+            const dayMatches = getMatchesByDate(dateStr);
+            const oddsMap = getOddsHistory(dateStr) || {};
+            const gsCacheMap = getGsGlobalMap();
+            const rMap = dataFile.r || {};
+            const matches = dayMatches.map(function (m) {
+              var fiveOdds = oddsMap[m.num || ''];
+              var apDay = getAllplaysData()[dateStr] || {};
+              var apEntry = apDay[m.num] || (m.num ? apDay['num_' + m.num] : null) || null;
+              var isSingle =
+                !!(fiveOdds && fiveOdds.isSingleGame) || m.isSingleGame === true || !!(apEntry && apEntry.isSingleGame);
+              var concede =
+                fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null ? fiveOdds.rqspf.handicap : null;
+              var rawRecs = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
+              var recNum = Math.max(
+                rawRecs.reduce(function (s, r) {
+                  return s + Number(r.n || r.num || 0);
+                }, 0),
+                Number(m.recommNum || 0),
+              );
+              var cachedGS = gsCacheMap['m_' + m.matchId] || gsCacheMap[String(m.matchId)] || gsCacheMap[String(m.num)];
+              var hasGS = !!(cachedGS && cachedGS.attackPattern);
+              return Object.assign({}, m, {
+                isSingleGame: isSingle,
+                hasGongshoudao: hasGS,
+                concede: concede,
+                recommNum: recNum,
+              });
+            });
+            matches.sort(function (a, b) {
+              return (a.num || '').localeCompare(b.num || '');
+            });
+
+            // ── 子模块3: ranking-list (简化版：仅当天综合排名，不含 PK 决策) ──
+            var ranking = [];
+            try {
+              var pkDecisionMap = buildPKDecisionMapForMatches(dayMatches);
+              for (var ri = 0; ri < dayMatches.length; ri++) {
+                var rm = dayMatches[ri];
+                if (!rm || !rm.matchId) continue;
+                var raw = rMap['m_' + rm.matchId] || rMap[String(rm.matchId)] || [];
+                var recs = raw.map(function (x) {
+                  var rv = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
+                  return { type: x.t || x.type, num: x.n || x.num, result: rv === 0 || rv === 1 ? rv : null };
+                });
+                var totalExperts = recs.reduce(function (s, r) {
+                  return s + Number(r.num || 0);
+                }, 0);
+                if (totalExperts === 0) continue;
+                ranking.push({
+                  matchId: rm.matchId,
+                  matchNum: rm.num || '',
+                  homeName: rm.homeName || '',
+                  visitName: rm.visitName || '',
+                  league: rm.league || '',
+                  expertCount: totalExperts,
+                  topDirection: recs.length > 0 ? recs[0].type : '',
+                  topNum: recs.length > 0 ? recs[0].num : 0,
+                  recommNum: totalExperts,
+                  pkDecision: pkDecisionMap && pkDecisionMap[rm.matchId] ? pkDecisionMap[rm.matchId] : null,
+                  score: totalExperts,
+                });
+              }
+              ranking.sort(function (a, b) {
+                return (b.score || 0) - (a.score || 0);
+              });
+            } catch (e2) {
+              /* ranking 非关键 */
+            }
+
+            var bundleResponse = {
+              code: 1,
+              data: {
+                weekDates: weekDates,
+                matches: matches,
+                ranking: ranking,
+                date: dateStr,
+              },
+            };
+            _homeBundleCache = { key: bundleCacheKey, time: now, response: bundleResponse };
+            return res.json(bundleResponse);
+          } catch (e) {
+            logger.error('[home-bundle] ' + e.message);
+            return res.json({ code: 0, msg: '数据获取失败: ' + e.message });
+          }
+        }
+
         case 'week-dates': {
           // ★ P1-4: 使用预计算缓存，避免每次请求都遍历 data.json
           return res.json({ code: 1, data: getWeekDates() });
@@ -1337,7 +1448,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             }
 
             const dataFile = getDataJson();
-            const mMap = dataFile.m || {};
             const rMap = dataFile.r || {}; // ★ 用于实时计算 recommNum
 
             // 读取 500.com 赔率数据获取单关标识（缓存内置自动降级）
@@ -1350,21 +1460,21 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             let gsNeedCompute = false;
             const shouldCheckGsCompute = dateStr === localDate() || dateStr === latestDataDate();
 
+            // ★ P1-2: O(1) 日期索引查找，不再遍历全部 mMap
+            const dayMatches = getMatchesByDate(dateStr);
+
             // 构建比赛列表的同时检测是否需要计算，避免两次大循环
             const list = [];
-            const mMapEntries = Object.entries(mMap);
-            for (let i = 0; i < mMapEntries.length; i++) {
-              const [k, m] = mMapEntries[i];
+            for (let i = 0; i < dayMatches.length; i++) {
+              const m = dayMatches[i];
               if (!m) continue;
-              const md = (m.date || '').slice(0, 10);
-              if (md !== dateStr) continue;
 
               // ★ hideFinished: 方案设计/投注页仅显示未开赛比赛
               if (hideFinished && m.matchStatus !== 0) continue;
 
               // 检查功守道数据是否可用
-              const cachedGS =
-                gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
+              const matchKey = m.matchId ? 'm_' + m.matchId : '';
+              const cachedGS = gsCacheMap[matchKey] || gsCacheMap[String(m.matchId)] || gsCacheMap[String(m.num)];
               const hasGS = !!(cachedGS && cachedGS.attackPattern);
 
               if (shouldCheckGsCompute && !hasGS) {
@@ -2815,12 +2925,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         }
 
         case 'daily-profit-7d': {
-          // ★ V9: 近7日专家博热方案盈利统计（调用共享方案生成模块）
+          // ★ P0-2: 近7日盈利预计算 + mtime 感知持久化缓存
           try {
             const days = parseInt(data.days) || 7;
 
-            // ★ P2: 响应级缓存（10 分钟），避免重复同步计算阻塞事件循环
-            const profitCacheKey = 'd' + days;
+            // ★ P0-2: 用 data.json mtime 作为缓存 key，数据变更自动失效
+            let dataMtime = 0;
+            try {
+              dataMtime = fs.statSync(DATA_JSON_PATH).mtimeMs;
+            } catch (e) {}
+            const profitCacheKey = 'd' + days + '_m' + dataMtime;
+
             const profitNow = Date.now();
             if (
               _profit7dCache &&
@@ -2830,27 +2945,30 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               return res.json(_profit7dCache.response);
             }
 
-            const fs = require('fs');
-            const path = require('path');
+            // ★ 尝试从文件缓存加载（跨 PM2 重启持久化）
+            const profitCacheFile = path.join(__dirname, 'profit_7d_cache.json');
+            try {
+              if (fs.existsSync(profitCacheFile)) {
+                const fileCache = JSON.parse(fs.readFileSync(profitCacheFile, 'utf8'));
+                if (fileCache.key === profitCacheKey && profitNow - fileCache.time < PROFIT_7D_CACHE_TTL) {
+                  _profit7dCache = fileCache;
+                  _profit7dCacheTime = profitNow;
+                  return res.json(fileCache.response);
+                }
+              }
+            } catch (e) {}
+
             const dataFile = getDataJson();
-            const mMap = dataFile.m || {};
             const rMap = dataFile.r || {};
 
-            // ★ 从数据中提取最近N个有比赛的日期（与收入方案页实际显示对齐）
-            const allDates = new Set();
-            Object.keys(mMap).forEach((k) => {
-              const m = mMap[k];
-              const d = ((m && m.date) || '').slice(0, 10);
-              if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) allDates.add(d);
-            });
-            const sortedDates = Array.from(allDates).sort().reverse(); // 降序
-            // ★ 多取2天作为缓冲：如果最新日期比赛未完成（所有方案isPlanWon=null），跳过后再取最新的 days 条
+            // ★ P1-2: O(1) 获取所有日期，不再遍历 mMap
+            const sortedDates = getAllMatchDates().sort().reverse();
             const fetchDays = Math.min(days + 2, sortedDates.length);
-            const dates = sortedDates.slice(0, fetchDays).reverse(); // 取最近fetchDays天，再升序
+            const dates = sortedDates.slice(0, fetchDays).reverse();
 
             const dateLabels = [];
             const dateProfits = [];
-            const AMOUNT = 1000; // 每方案1000分（10元）
+            const AMOUNT = 1000;
 
             function findRecommends(matchId) {
               const raw = rMap['m_' + matchId] || rMap[String(matchId)] || [];
@@ -2863,24 +2981,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             const PG = require('./core/plan-generator');
 
-            // ★ 从最新日期向最旧日期遍历，确保展示的是"最近N天"而非"最早N天"
             for (let di = dates.length - 1; di >= 0; di--) {
               const ds = dates[di];
-              const mList = [];
-              Object.keys(mMap).forEach((k) => {
-                const m = mMap[k];
-                if (!m || (m.date || '').slice(0, 10) !== ds) return;
-                mList.push(m);
-              });
+              // ★ P1-2: O(1) 获取当天比赛
+              const mList = getMatchesByDate(ds);
 
-              // 当天没有比赛 → 利润为0，但日期仍然显示（保证7天连续）
               if (mList.length === 0) {
                 dateLabels.push(ds.slice(5));
                 dateProfits.push(0);
                 continue;
               }
 
-              // 构建 matchDataMap（与 income-stats 完全一致）
               const histOdds = getOddsHistory(ds);
               const matchDataMap = {};
               for (const m of mList) {
@@ -2902,34 +3013,37 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 };
               }
 
-              // 生成专家博热方案 & 计算日盈利
               const plans = PG.generateExpertPlans(mList, matchDataMap, ds);
               let dayProfit = 0;
-              let hasResolvedPlan = false; // ★ 标记当天是否有方案已完成
+              let hasResolvedPlan = false;
               plans.forEach((pp) => {
                 if (pp.isPlanWon === null && pp.isPlanLose === null) return;
-                hasResolvedPlan = true; // ★ 有方案已出结果
+                hasResolvedPlan = true;
                 if (pp.isPlanWon === true) dayProfit += (pp.winningPrize || 0) - AMOUNT;
                 else if (pp.isPlanLose === true) dayProfit -= AMOUNT;
               });
 
-              // ★ 跳过"有比赛、有方案、但全部未完成"的日期（比赛未结束）
               if (mList.length > 0 && plans.length > 0 && !hasResolvedPlan) continue;
 
               dateLabels.push(ds.slice(5));
               dateProfits.push(Math.round(dayProfit));
 
-              // ★ 收集够 days 条有效数据就提前退出
               if (dateLabels.length >= days) break;
             }
 
-            // ★ 反转回时间升序（从新到旧收集后，恢复正序供前端图表使用）
             dateLabels.reverse();
             dateProfits.reverse();
 
             const profitResponse = { code: 1, data: { dates: dateLabels, profits: dateProfits } };
-            _profit7dCache = { key: profitCacheKey, response: profitResponse };
+            const cacheEntry = { key: profitCacheKey, time: profitNow, response: profitResponse };
+            _profit7dCache = cacheEntry;
             _profit7dCacheTime = profitNow;
+
+            // ★ P0-2: 持久化到文件缓存（跨 PM2 重启复用）
+            try {
+              fs.writeFileSync(profitCacheFile, JSON.stringify(cacheEntry), 'utf8');
+            } catch (e) {}
+
             return res.json(profitResponse);
           } catch (e) {
             logger.error('[daily-profit-7d] ' + e.message);
@@ -6698,16 +6812,46 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         }
 
         case 'my-plan-stats': {
+          // ★ P0-3: 增量缓存 — 仅重算未结算方案，预建索引共享
           try {
             const deviceId = req.headers['x-device-id'] || data.deviceId;
             if (!deviceId) return res.json({ code: 1, data: { count: 0, income: 0, hitRate: 0 } });
+
+            // ★ P0-3: 1 分钟请求级缓存（同一 deviceId 短时间内不重复计算）
+            const statsCacheKey = deviceId;
+            const statsNow = Date.now();
+            if (_myPlanStatsCache[statsCacheKey] && statsNow - _myPlanStatsCache[statsCacheKey].time < 60000) {
+              return res.json(_myPlanStatsCache[statsCacheKey].response);
+            }
+
             var plans = readUserPlans(deviceId);
-            // ★ 重新计算方案开奖状态
+
+            // ★ P0-3: 预建 matchNum 索引一次，所有方案共享
+            var dataFile = getDataJson();
+            var mMap = dataFile.m || {};
+            var _mByNum = {};
+            var _mByDateNum = {};
+            var mMapKeys = Object.keys(mMap);
+            for (var ki = 0; ki < mMapKeys.length; ki++) {
+              var entry = mMap[mMapKeys[ki]];
+              if (entry && entry.num) {
+                var en = String(entry.num);
+                var ed = String(entry.date || '').slice(0, 10);
+                _mByNum[en] = entry;
+                if (ed) _mByDateNum[ed + '|' + en] = entry;
+              }
+            }
+
+            // ★ P0-3: 仅重算未结算方案（已有结果的跳过）
             plans = plans.map(function (p) {
-              return recalcPlanResult(p);
+              if (p.isWon === true || p.isWon === false) return p; // 已结算，跳过
+              return recalcPlanResultWithIndex(p, _mByNum, _mByDateNum);
             });
+
             var stats = computeUserPlanStats(plans);
-            return res.json({ code: 1, data: stats });
+            var statsResponse = { code: 1, data: stats };
+            _myPlanStatsCache[statsCacheKey] = { time: statsNow, response: statsResponse };
+            return res.json(statsResponse);
           } catch (e) {
             logger.error('[my-plan-stats] ' + e.message);
             return res.json({ code: 0, msg: '获取统计失败: ' + e.message });
@@ -7853,6 +7997,161 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         updated.resultIncome = 0;
       }
       // 附加中奖详情
+      updated._winDetail = { wonCount: wonCount, totalWinCombs: totalWinCombs, passTypes: passTypes };
+      return updated;
+    }
+    return plan;
+  }
+
+  // ★ P0-3: 复用预建索引的 recalcPlanResult（避免每个方案重复遍历 mMap）
+  function recalcPlanResultWithIndex(plan, _mByNum, _mByDateNum) {
+    var matches = plan.matches || [];
+    if (matches.length === 0) return plan;
+    if (plan.isWon === true || plan.isWon === false) return plan;
+
+    // 加载 live_scores.json（使用与 recalcPlanResult 相同的缓存）
+    var now = Date.now();
+    if (!_recalcLiveScoresCache || now - _recalcLiveScoresCacheTime > 60000) {
+      _recalcLiveScoresCache = { byId: {}, byDateNum: {}, byNum: {} };
+      try {
+        var lsPath = path.join(__dirname, 'live_scores.json');
+        if (fs.existsSync(lsPath)) {
+          var lsData = JSON.parse(fs.readFileSync(lsPath, 'utf8'));
+          (lsData.matches || []).forEach(function (ls) {
+            var lsId = ls && ls.matchId != null ? String(ls.matchId) : '';
+            var lsNum = ls && ls.num ? String(ls.num) : '';
+            var lsDate = ls && ls.date ? String(ls.date).slice(0, 10) : '';
+            if (lsId) _recalcLiveScoresCache.byId[lsId] = ls;
+            if (lsNum && lsDate) _recalcLiveScoresCache.byDateNum[lsDate + '|' + lsNum] = ls;
+            if (lsNum && !lsDate) _recalcLiveScoresCache.byNum[lsNum] = ls;
+          });
+        }
+      } catch (e) {}
+      _recalcLiveScoresCacheTime = now;
+    }
+    var liveScores = _recalcLiveScoresCache;
+
+    for (var i = 0; i < matches.length; i++) {
+      var mm = matches[i];
+      var matchNum = mm.matchNum || '';
+      var playType = mm.playType || '';
+      var direction = mm.direction || '';
+      var matchDate = String(mm.matchDate || mm.date || plan.matchDate || '').slice(0, 10);
+
+      var matchData = (matchDate && _mByDateNum[matchDate + '|' + matchNum]) || _mByNum[matchNum] || null;
+
+      if (!matchData || !matchData.score) {
+        var ls =
+          (liveScores.byId && liveScores.byId[String(mm.matchId)]) ||
+          (liveScores.byDateNum && matchDate && matchNum ? liveScores.byDateNum[matchDate + '|' + matchNum] : null) ||
+          (liveScores.byNum && matchNum ? liveScores.byNum[matchNum] : null);
+        if (ls && ls.date && matchDate && String(ls.date).slice(0, 10) !== matchDate) ls = null;
+        if (ls && ls.score && ls.matchStatus >= 1) matchData = { score: ls.score, date: ls.date };
+      }
+
+      var hasScore = !!(matchData && matchData.score);
+      var handicap = null;
+      if (playType === 'rqspf' && hasScore) {
+        var md = (matchData.date || '').slice(0, 10);
+        if (md) {
+          var odMap = getOddsHistory(md);
+          if (odMap && odMap[matchNum] && odMap[matchNum].rqspf) handicap = odMap[matchNum].rqspf.handicap;
+        } else {
+          var recentFiles = [];
+          try {
+            var ohDir = path.join(__dirname, 'odds_history');
+            if (fs.existsSync(ohDir))
+              recentFiles = fs
+                .readdirSync(ohDir)
+                .filter(function (f) {
+                  return f.match(/^\d{4}-\d{2}-\d{2}\.json$/);
+                })
+                .sort()
+                .reverse();
+          } catch (e2) {}
+          for (var fi = 0; fi < recentFiles.length; fi++) {
+            var odMap2 = getOddsHistory(recentFiles[fi].replace('.json', ''));
+            if (odMap2 && odMap2[matchNum] && odMap2[matchNum].rqspf) {
+              handicap = odMap2[matchNum].rqspf.handicap;
+              break;
+            }
+          }
+        }
+      }
+
+      var scoreStr = '';
+      if (hasScore) {
+        var rawScore = matchData.score;
+        if (typeof rawScore === 'object' && rawScore !== null)
+          scoreStr = (rawScore.home || rawScore.h || '') + ':' + (rawScore.away || rawScore.a || '');
+        else scoreStr = String(rawScore || '');
+      }
+
+      var effectiveDirection = direction;
+      if (playType === 'rqspf') {
+        if (direction === '胜') effectiveDirection = '让胜';
+        else if (direction === '平') effectiveDirection = '让平';
+        else if (direction === '负') effectiveDirection = '让负';
+      }
+
+      if (!hasScore) {
+        mm.isMatchWon = undefined;
+        mm.isMatchLose = undefined;
+        continue;
+      }
+      var result = _judgeByScore(effectiveDirection, scoreStr, handicap);
+      if (result === true) {
+        mm.isMatchWon = true;
+        mm.isMatchLose = false;
+      } else if (result === false) {
+        mm.isMatchWon = false;
+        mm.isMatchLose = true;
+      } else {
+        mm.isMatchWon = undefined;
+        mm.isMatchLose = undefined;
+      }
+    }
+
+    // 组合过关中奖判定（与 recalcPlanResult 一致）
+    var matchWinStatus = {};
+    for (var i3 = 0; i3 < matches.length; i3++) {
+      var m3 = matches[i3];
+      var mid3 = m3.matchId || m3.matchNum || '';
+      if (m3.isMatchWon === true) matchWinStatus[mid3] = true;
+      else if (matchWinStatus[mid3] !== true && m3.isMatchLose === true) matchWinStatus[mid3] = false;
+    }
+    var wonIds = Object.keys(matchWinStatus).filter(function (k) {
+      return matchWinStatus[k] === true;
+    });
+    var judgedIds = Object.keys(matchWinStatus);
+    var wonCount = wonIds.length;
+    var totalUnique = new Set(
+      matches.map(function (m) {
+        return m.matchId || m.matchNum || '';
+      }),
+    ).size;
+    var passTypes = plan.passTypes && plan.passTypes.length > 0 ? plan.passTypes : totalUnique === 1 ? [1] : [2];
+    var totalWinCombs = 0;
+    for (var pi = 0; pi < passTypes.length; pi++) {
+      if (wonCount >= passTypes[pi]) totalWinCombs += combinations(wonCount, passTypes[pi]);
+    }
+    var isPlanWon = totalWinCombs > 0;
+    var hasPending = judgedIds.length < totalUnique;
+
+    if (!hasPending || isPlanWon) {
+      var updated = Object.assign({}, plan);
+      if (isPlanWon) {
+        updated.isWon = true;
+        var totalBets = plan.betCount || Math.max(1, totalWinCombs);
+        var winRatio = Math.min(1, totalWinCombs / totalBets);
+        updated.resultIncome = Math.round((plan.amount || 0) * (plan.totalOdds || 1) * winRatio);
+      } else if (hasPending) {
+        updated.isWon = null;
+        updated.resultIncome = null;
+      } else {
+        updated.isWon = false;
+        updated.resultIncome = 0;
+      }
       updated._winDetail = { wonCount: wonCount, totalWinCombs: totalWinCombs, passTypes: passTypes };
       return updated;
     }

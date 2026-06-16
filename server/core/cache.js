@@ -26,10 +26,24 @@ function localDate(d) {
 }
 
 // ═══ data.json 内存缓存（60秒刷新，通过 mtime 检测变更） ═══
+// ★ P0-1: 增加日期索引 _mMapByDate，match-list 等 O(1) 查找，避免每次遍历全量
 let _dataJsonCache = null;
 let _dataJsonCacheTime = 0;
 let _dataJsonCacheMtime = 0;
-const _dataJsonLoading = null; // 防并发重复读取
+let _mMapByDate = null; // { "2026-06-15": [match1, match2, ...] }
+
+function _buildDateIndex(dataJson) {
+  const idx = {};
+  const mMap = (dataJson && dataJson.m) || {};
+  Object.keys(mMap).forEach(function (k) {
+    const m = mMap[k];
+    if (!m || !m.date) return;
+    const md = m.date.slice(0, 10);
+    if (!idx[md]) idx[md] = [];
+    idx[md].push(m);
+  });
+  return idx;
+}
 
 function getDataJson(forceRefresh) {
   const now = Date.now();
@@ -46,11 +60,35 @@ function getDataJson(forceRefresh) {
     _dataJsonCache = JSON.parse(fs.readFileSync(DATA_JSON_PATH, 'utf8'));
     _dataJsonCacheTime = now;
     _dataJsonCacheMtime = stat.mtimeMs;
+    // ★ P1-2: 重建日期索引
+    _mMapByDate = _buildDateIndex(_dataJsonCache);
     return _dataJsonCache;
   } catch (e) {
     logger.error('读取 data.json 失败: ' + e.message);
     return _dataJsonCache || { m: {}, r: {} };
   }
+}
+
+/** ★ P1-2: O(1) 按日期获取比赛列表，不再遍历全量 mMap */
+function getMatchesByDate(dateStr) {
+  // 确保缓存已初始化
+  if (!_dataJsonCache) getDataJson();
+  if (!_mMapByDate) _mMapByDate = _buildDateIndex(_dataJsonCache || {});
+  return _mMapByDate[dateStr] || [];
+}
+
+/** 强制刷新日期索引（data.json 更新后调用） */
+function refreshDateIndex() {
+  if (_dataJsonCache) {
+    _mMapByDate = _buildDateIndex(_dataJsonCache);
+  }
+}
+
+/** ★ P0-2: 获取所有有比赛数据的日期（排序），供 daily-profit-7d / income 等使用 */
+function getAllMatchDates() {
+  if (!_dataJsonCache) getDataJson();
+  if (!_mMapByDate) _mMapByDate = _buildDateIndex(_dataJsonCache || {});
+  return Object.keys(_mMapByDate).sort();
 }
 
 /** 获取 data.json 中最新的有数据日期 */
@@ -182,6 +220,7 @@ function invalidateDataJson() {
   _dataJsonCache = null;
   _dataJsonCacheTime = 0;
   _dataJsonCacheMtime = 0;
+  _mMapByDate = null;
 }
 
 function invalidateTrends() {
@@ -198,6 +237,9 @@ module.exports = {
   latestDataDate,
   getDataJson,
   invalidateDataJson,
+  getMatchesByDate,
+  getAllMatchDates,
+  refreshDateIndex,
   getTrendsJson,
   invalidateTrends,
   getOddsHistory,
