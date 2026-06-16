@@ -234,7 +234,9 @@ DEPLOY_MAP = [
     ('server/core/health.js',             'both'),
     ('server/core/ingestion-guard.js',    'both'),  # ★ V9: 实时比分摄入门禁（data_sync/sync_live_500 依赖）
     ('server/core/score-corrector.js',    'both'),  # ★ V12: 多源赛果校正（sporttery+500.com 交叉对账）
-    ('server/core/match-data-pack.js',    'both'),  # ★ V9: data_sync 依赖，缺失会导致 jc-sync 启动失败
+    ('server/core/match-data-pack.js',    'both'),  # ★ V9: data_sync 依赖，缺失会导致 jc-sync 启动失败
+    ('server/core/alert-monitor.js',     'both'),  # ★ V12: 运维告警监控
+    ('server/core/email-alerter.js',     'both'),  # ★ V12: 运维告警邮件
     ('server/database.js',                'both'),
     ('server/deepseek.js',                'both'),
     ('server/doubao.js',                  'both'),
