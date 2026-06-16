@@ -6,7 +6,16 @@ var fs = require('fs');
 var path = require('path');
 var ROOT = path.resolve(__dirname, '..');
 
-var deployPy = fs.readFileSync(path.join(ROOT, 'deploy.py'), 'utf16le');
+// deploy.py 可能为 UTF-8 或 UTF-16 LE，自动检测
+var raw = fs.readFileSync(path.join(ROOT, 'deploy.py'));
+var deployPy;
+if (raw[0] === 0xFF && raw[1] === 0xFE) {
+  deployPy = raw.toString('utf16le');  // UTF-16 LE BOM
+} else if (raw[0] === 0xFE && raw[1] === 0xFF) {
+  deployPy = raw.toString('utf16be');  // UTF-16 BE BOM
+} else {
+  deployPy = raw.toString('utf8');     // UTF-8
+}
 var lines = deployPy.split(/\r?\n/);
 var files = [];
 var inMap = false;
