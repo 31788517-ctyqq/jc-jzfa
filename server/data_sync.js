@@ -1087,8 +1087,16 @@ async function backfillResults(dateStr) {
           const old = data.m[rk] || data.m[mid];
           if (old && old.matchStatus < 2 && (m.matchStatus || 0) >= 2) {
             old.matchStatus = m.matchStatus;
-            old.score = m.score || old.score;
-            old.halfScore = m.halfScore || old.halfScore;
+            // ★ V12: 半场比分保护 — midou API 可能返回半场比分，不应覆盖终场比分
+            var newScore = m.score || '';
+            var newHalf = m.halfScore || '';
+            if (newScore && old.halfScore && newScore === old.halfScore && old.score && old.score !== newScore) {
+              // 新比分=旧半场比分 → 半场误判，保留终场比分
+              // 但仍更新 halfScore 和 duration
+            } else {
+              old.score = newScore || old.score;
+            }
+            old.halfScore = newHalf || old.halfScore;
             old.duration = m.duration || old.duration;
             statusFixed++;
           }
