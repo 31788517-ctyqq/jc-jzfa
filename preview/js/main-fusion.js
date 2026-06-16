@@ -17,14 +17,21 @@ import { loadHome } from './pages/home.js';
 import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js';
 
 // ═══ 模块懒加载：import.meta.glob 静态分析所有页面模块 → 每个独立 chunk ═══
-// ★ Phase2 (Vite): import.meta.glob 在构建时展开为静态映射，Rollup 自动 Code-Split
-//     每个页面模块成为独立 chunk，Tree-Shaking 移除未用导出
+// ★ P0-2 (Vite): import.meta.glob 在构建时展开为静态映射
+//     Vite/Rollup 自动 Code-Split + Tree-Shaking，每个页面独立 chunk
+var pageModules = import.meta.glob('./pages/*.js');
 function _mod(name) {
-  return import('./pages/' + name + '.js').catch(function (e) {
+  var key = './pages/' + name + '.js';
+  var loader = pageModules[key];
+  if (!loader) {
+    console.error('[JS] unknown module: ' + name);
+    return Promise.reject(new Error('Unknown module: ' + name));
+  }
+  return loader().catch(function (e) {
     console.error('[JS] load fail: ' + name + ' - ' + (e && e.message));
     return new Promise(function (resolve, reject) {
       setTimeout(function () {
-        import('./pages/' + name + '.js').then(resolve).catch(function (e2) {
+        loader().then(resolve).catch(function (e2) {
           console.error('[JS] retry fail: ' + name + ' - ' + (e2 && e2.message));
           reject(e2);
         });

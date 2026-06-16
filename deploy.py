@@ -1574,11 +1574,28 @@ def main():
 
         print(c('C', '[Phase 2.5] Nginx 缓存清除与重载'))
 
-        # ★ 清理 Vite dist 残留文件（防止 Nginx 服务旧版本）
+        # ★ P0-2: 注入 Nginx /dist/ location（Vite 构建产物路径映射）
 
-        for dist_dir in ['/var/www/zj.100qiu.com/dist', '/var/www/zj.100qiu.com/preview/dist', '/root/preview/dist']:
+        def inject_nginx_dist_location(ssh):
+            conf = '/etc/nginx/conf.d/zj.100qiu.com.conf'
+            check, _ = ssh_cmd(ssh, f'grep -c "location /dist/" {conf} 2>/dev/null || echo 0', 10)
+            if check.strip() == '0':
+                insert_cmd = (
+                    f"sed -i '/^[[:space:]]*location[[:space:]]\\/[[:space:]]*{{/i\\"
+                    f"    # P0-2: Vite build output\\n"
+                    f"    location /dist/ {{\\n"
+                    f"        alias {NGINX_ROOT}/preview/dist/;\\n"
+                    f"        expires 30d;\\n"
+                    f"        add_header Cache-Control \\\"public, immutable\\\";\\n"
+                    f"        add_header Vary \\\"Accept-Encoding\\\";\\n"
+                    f"    }}\\n' {conf}"
+                )
+                ssh_cmd(ssh, insert_cmd, 10)
+                print(c('G', '  ✓ Nginx /dist/ location 已注入'))
+            else:
+                print(c('D', '  Nginx /dist/ location 已存在'))
 
-            ssh_cmd(ssh, f'rm -rf {dist_dir} 2>/dev/null && echo "  cleaned {dist_dir}" || echo "  skip {dist_dir}"', 3)
+        inject_nginx_dist_location(ssh)
 
         nginx_reload(ssh)
 

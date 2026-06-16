@@ -22,10 +22,21 @@ const checks = [
     if (sw.includes('PAGE_SHELL') || sw.includes("pathname === '/'"))
       throw new Error('SW 包含页面壳缓存');
   }, fatal: true },
-  { name: 'Index 无 Vite', run: () => {
+  { name: 'Index 无 Vite dist 污染', run: () => {
     const html = fs.readFileSync('preview/index.html', 'utf8');
-    if (html.includes('/dist/js/index'))
-      throw new Error('index.html 被 Vite dist 路径污染');
+    if (html.includes('/dist/js/index') || html.includes('/dist/assets/'))
+      throw new Error('preview/index.html 被 Vite dist 路径污染，应保持源路径');
+  }, fatal: true },
+  { name: 'Vite dist 构建就绪', run: () => {
+    // ★ P0-2: 如果 dist/ 存在，验证其完整性
+    if (!fs.existsSync('preview/dist/index.html')) return; // 未使用 Vite，跳过
+    const distHtml = fs.readFileSync('preview/dist/index.html', 'utf8');
+    if (!distHtml.includes('/dist/assets/'))
+      throw new Error('dist/index.html 缺少 /dist/assets/ 引用，可能构建失败');
+    if (distHtml.includes('/js/main-fusion.js') || distHtml.includes('/css/app.css'))
+      throw new Error('dist/index.html 包含源路径引用，postbuild 可能失败');
+    if (!distHtml.includes('critical-home'))
+      console.warn('  ⚠️ dist/index.html 缺少关键 CSS 内联');
   }, fatal: true },
   { name: 'CSS Tokens', run: () => {
     const css = fs.readFileSync('preview/css/app.css', 'utf8');
