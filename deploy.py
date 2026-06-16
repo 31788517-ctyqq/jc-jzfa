@@ -820,23 +820,29 @@ def main():
         recheck_ok = 0
         recheck_fail = []
 
-        for lp, rp in recheck_list:
-            local_md5 = get_local_md5(lp)
-            if local_md5 is None:
-                recheck_fail.append((os.path.basename(rp), '-', 'LOCAL_ERROR'))
-                continue
-            # v3: 单个文件独立查询 md5（加引号保护路径）
-            out, _ = ssh_cmd(ssh, "md5sum '{}' 2>/dev/null || echo 'MISSING'".format(rp), 5)
-            remote_md5 = out.strip().split()[0] if out else 'MISSING'
-            if remote_md5 == 'MISSING':
-                remote_md5 = ''
-            if remote_md5.lower() == local_md5.lower():
-                recheck_ok += 1
-            else:
-                short_name = rp.replace(NGINX_ROOT + '/preview/', '').replace(NGINX_ROOT + '/', '').replace(PM2_ROOT + '/', '')
-                recheck_fail.append((short_name, local_md5[:8],
-                                     remote_md5[:8] if remote_md5 else 'MISSING'))
-
+        # V12: batched MD5 - single SSH command for all files
+        if recheck_list:
+            remote_paths = ' '.join("'{}'".format(rp) for _, rp in recheck_list)
+            out, _ = ssh_cmd(ssh, "md5sum {}".format(remote_paths), 60)
+            remote_map = {}
+            for line in out.strip().split('\n'):
+                parts = line.strip().split()
+                if len(parts) >= 2:
+                    remote_map[parts[1]] = parts[0]
+            for lp, rp in recheck_list:
+                local_md5 = get_local_md5(lp)
+                if local_md5 is None:
+                    recheck_fail.append((os.path.basename(rp), '-', 'LOCAL_ERROR'))
+                    continue
+                remote_md5 = remote_map.get(rp, 'MISSING')
+                if remote_md5 == 'MISSING':
+                    remote_md5 = ''
+                if remote_md5.lower() == local_md5.lower():
+                    recheck_ok += 1
+                else:
+                    short_name = rp.replace(NGINX_ROOT + '/preview/', '').replace(NGINX_ROOT + '/', '').replace(PM2_ROOT + '/', '')
+                    recheck_fail.append((short_name, local_md5[:8],
+                                         remote_md5[:8] if remote_md5 else 'MISSING'))
         if recheck_fail:
             print(c('R', '  ✗ 复验失败 — {} 个文件不一致:'.format(len(recheck_fail))))
             for fname, lm, rm in recheck_fail:
