@@ -75,6 +75,15 @@
 | V12 | Windows 创建的 `.py` 文件默认为 UTF-16 LE (BOM)，需转换 UTF-8 |
 | V12 | 部署前必须检查 deploy.py 编码（已加入 pre-deploy-check.cjs） |
 
+## V12 data.json 保护
+
+| 日期 | 教训 |
+|------|------|
+| V12 | `data.json` 在 `PROTECTED_FILES` 列表中，**从不部署**（防止本地覆盖生产数据） |
+| V12 | 修复生产 data.json 必须 SSH 直接操作 + PM2 restart（60s 缓存 TTL） |
+| V12 | `live.500.com` 对历史日期仅返回**半场比分**，不能作为赛果验证来源 |
+| V12 | `trade.500.com/jczq/` 是 SPA，无法服务端 HTML 解析 |
+
 ## V12 部署确认协议违规
 
 | 日期 | 教训 |
