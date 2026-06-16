@@ -713,7 +713,7 @@ function setCachedResponse(action, cacheKey, response) {
 }
 const CACHE_TTL_5MIN = 5 * 60 * 1000;
 const CACHE_TTL_10MIN = 10 * 60 * 1000; // ★ P2: 用于 quant-plan-list（计算最密集）
-const MATCH_LIST_CACHE_TTL = 5 * 60 * 1000; // 5 分钟（原 1 分钟，P1 延长减少磁盘 I/O）
+const MATCH_LIST_CACHE_TTL = 30 * 1000; // V12: 30 秒（5 分钟过长导致赛果修正不可见）
 const MATCH_LIST_CACHE_MAX_KEYS = 30; // ★ P2: 最多缓存 30 个日期
 const PROFIT_7D_CACHE_TTL = 10 * 60 * 1000; // 10 分钟（计算密集，命中后复用）
 
