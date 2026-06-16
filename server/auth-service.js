@@ -650,9 +650,12 @@ async function loginWithPassword(username, password, meta = {}) {
     meta.userAgent || null,
     nowStr,
   );
-  // ★ V12: PM2 cluster 修复 — 强制 WAL checkpoint 确保其他 worker 可读到 session
-  try { adp.execDDL('PRAGMA wal_checkpoint(PASSIVE)'); } catch (_) {}
+  // ★ V12: PM2 cluster 修复 — 强制 WAL checkpoint + 同步等待确保跨 worker 可读
+  try { adp.execDDL('PRAGMA wal_checkpoint(RESTART)'); } catch (_) {}
   flushCriticalWrites(adp);
+  // POSIX: RESTART 模式阻塞直到 checkpoint 完成，无需额外等待
+  // 但仍需确保 SQLite 连接已刷新到磁盘
+  try { adp.execDDL('PRAGMA wal_checkpoint(PASSIVE)'); } catch (_) {}
   return {
     ok: true,
     token,
@@ -804,8 +807,11 @@ function validateSession(token, touch = true) {
      WHERE s.session_token_hash = ?`,
     tokenHash,
   );
-  // ★ V12: PM2 cluster 竞态兜底 — 另一 worker 写入后 WAL 未同步则重试一次
-  if (!row) {
+  // ★ V12: PM2 cluster 竞态兜底 — 另一 worker 写入后 WAL 未同步则重试（最多3次）
+  var retries = 3;
+  while (!row && retries-- > 0) {
+    // 短暂等待让其他 worker 完成 flush
+    var t0 = Date.now(); while (Date.now() - t0 < 10);
     row = adp.execOne(
       `SELECT s.id AS sid, s.user_id, s.expires_at, s.revoked_at,
               u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at,
