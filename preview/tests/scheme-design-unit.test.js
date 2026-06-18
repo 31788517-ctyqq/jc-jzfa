@@ -80,17 +80,17 @@ describe('odds-provider — findOddsEntryByMatchNum', function () {
     expect(oddsProvider.findOddsEntryByMatchNum(oddsMap, '周一013')).toEqual({ spf: { home: 1.5 } });
   });
 
-  it('去星期前缀匹配', function () {
-    var oddsMap = { '周日011': { spf: { home: 3.15 } } };
-    var result = oddsProvider.findOddsEntryByMatchNum(oddsMap, '周一011');
+  it('date|num 联合键匹配', function () {
+    var oddsMap = { '2026-06-15|周一011': { spf: { home: 3.15 } } };
+    var result = oddsProvider.findOddsEntryByMatchNum(oddsMap, '周一011', '2026-06-15');
     expect(result).not.toBeNull();
     expect(result.spf.home).toBe(3.15);
   });
 
-  it('跨周匹配 — 数字部分一致即命中', function () {
+  it('跨周仅编号一致不应命中', function () {
     var oddsMap = { '周六013': { spf: { home: 2.0 }, rqspf: { home: 1.8 } } };
-    var result = oddsProvider.findOddsEntryByMatchNum(oddsMap, '周一013');
-    expect(result.spf.home).toBe(2.0);
+    var result = oddsProvider.findOddsEntryByMatchNum(oddsMap, '周一013', '2026-06-15');
+    expect(result).toBeNull();
   });
 
   it('无匹配返回 null', function () {

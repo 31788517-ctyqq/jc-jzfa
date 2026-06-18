@@ -7,15 +7,15 @@ const database = require('../database');
 
 const BACKFILL_DIR = __dirname;
 const KNOWN_BACKFILL = new Map([
-  ['outcomes',    path.join(BACKFILL_DIR, 'bulk_outcome.js')],
-  ['models',      path.join(BACKFILL_DIR, 'backfill_full_models.js')],
-  ['consensus',   path.join(BACKFILL_DIR, 'backfill_consensus.js')],
+  ['outcomes', path.join(BACKFILL_DIR, 'bulk_outcome.js')],
+  ['models', path.join(BACKFILL_DIR, 'backfill_full_models.js')],
+  ['consensus', path.join(BACKFILL_DIR, 'backfill_consensus.js')],
   ['predictions', path.join(BACKFILL_DIR, 'backfill_prediction_logs.js')],
-  ['phase1',      path.join(BACKFILL_DIR, 'backfill_phase1_matches.js')],
-  ['phase2',      path.join(BACKFILL_DIR, 'backfill_phase2_predict.js')],
-  ['phase3',      path.join(BACKFILL_DIR, 'backfill_phase3_outcomes.js')],
-  ['pk',          path.join(BACKFILL_DIR, 'backfill_pk_from_gs.js')],
-  ['expert',      path.join(BACKFILL_DIR, 'backfill_expert_consensus.js')],
+  ['phase1', path.join(BACKFILL_DIR, 'backfill_phase1_matches.js')],
+  ['phase2', path.join(BACKFILL_DIR, 'backfill_phase2_predict.js')],
+  ['phase3', path.join(BACKFILL_DIR, 'backfill_phase3_outcomes.js')],
+  ['pk', path.join(BACKFILL_DIR, 'backfill_pk_from_gs.js')],
+  ['expert', path.join(BACKFILL_DIR, 'backfill_expert_consensus.js')],
 ]);
 
 /**
@@ -30,7 +30,7 @@ async function run(name, opts = {}) {
 
   console.log(`[backfill] Running: ${name} (${scriptPath})`);
   const task = require(scriptPath);
-  
+
   // 如果导出函数，调用它；否则直接 require 执行
   if (typeof task === 'function') {
     return await task(opts);

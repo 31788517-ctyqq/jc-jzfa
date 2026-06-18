@@ -1,0 +1,104 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.710Z",
+  "earliestKickoff": null,
+  "date": "2026-05-27",
+  "plans": [
+    {
+      "planId": "plan_2026-05-27_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039998",
+          "direction": "胜",
+          "homeName": "科林蒂安",
+          "visitName": "普拉滕斯",
+          "matchNum": "周三007"
+        },
+        {
+          "matchId": "2039995",
+          "direction": "让负",
+          "homeName": "玻利瓦尔",
+          "visitName": "里瓦达维亚独立",
+          "matchNum": "周三004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-27_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039994",
+          "direction": "总进球-2、3球",
+          "homeName": "亚松森自由",
+          "visitName": "委内瑞拉中央大学",
+          "matchNum": "周三003"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-27_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039994",
+          "direction": "总进球-1、2、3球",
+          "homeName": "亚松森自由",
+          "visitName": "委内瑞拉中央大学",
+          "matchNum": "周三003"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-27_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039993",
+          "direction": "总进球-3、4、5球",
+          "homeName": "德尔瓦耶独立",
+          "visitName": "罗萨里奥中央",
+          "matchNum": "周三002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-27_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039995",
+          "direction": "总进球-3、4、5球",
+          "homeName": "玻利瓦尔",
+          "visitName": "里瓦达维亚独立",
+          "matchNum": "周三004"
+        }
+      ]
+    }
+  ]
+}

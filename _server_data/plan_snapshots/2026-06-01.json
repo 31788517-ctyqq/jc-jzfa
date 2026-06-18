@@ -1,0 +1,125 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.146Z",
+  "earliestKickoff": null,
+  "date": "2026-06-01",
+  "plans": [
+    {
+      "planId": "plan_2026-06-01_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040066",
+          "direction": "平、让平",
+          "homeName": "挪威",
+          "visitName": "瑞典",
+          "matchNum": "周一002"
+        },
+        {
+          "matchId": "2040067",
+          "direction": "让负",
+          "homeName": "土耳其",
+          "visitName": "北马其顿",
+          "matchNum": "周一003"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-01_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040070",
+          "direction": "总进球-2、3球",
+          "homeName": "加拿大",
+          "visitName": "乌兹别克斯坦",
+          "matchNum": "周一006"
+        },
+        {
+          "matchId": "2040066",
+          "direction": "让负",
+          "homeName": "挪威",
+          "visitName": "瑞典",
+          "matchNum": "周一002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-01_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040068",
+          "direction": "胜",
+          "homeName": "奥地利",
+          "visitName": "突尼斯",
+          "matchNum": "周一004"
+        },
+        {
+          "matchId": "2040066",
+          "direction": "让负",
+          "homeName": "挪威",
+          "visitName": "瑞典",
+          "matchNum": "周一002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-01_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040067",
+          "direction": "总进球-2、3球",
+          "homeName": "土耳其",
+          "visitName": "北马其顿",
+          "matchNum": "周一003"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-01_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040066",
+          "direction": "平、让平",
+          "homeName": "挪威",
+          "visitName": "瑞典",
+          "matchNum": "周一002"
+        },
+        {
+          "matchId": "2040068",
+          "direction": "胜",
+          "homeName": "奥地利",
+          "visitName": "突尼斯",
+          "matchNum": "周一004"
+        }
+      ]
+    }
+  ]
+}

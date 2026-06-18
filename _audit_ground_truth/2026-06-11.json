@@ -1,0 +1,43 @@
+{
+  "lockedAt": "2026-06-18T08:39:52.016Z",
+  "earliestKickoff": null,
+  "date": "2026-06-11",
+  "plans": [
+    {
+      "planId": "plan_2026-06-11_6a",
+      "name": "plan_6a",
+      "planName": "世界杯06",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040162",
+          "direction": "总进球-2、3球",
+          "homeName": "墨西哥",
+          "visitName": "南非",
+          "matchNum": "周四001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-11_wc7",
+      "name": "plan_wc7",
+      "planName": "世界杯07",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040163",
+          "direction": "胜平",
+          "homeName": "韩国",
+          "visitName": "捷克",
+          "matchNum": "周四002"
+        }
+      ]
+    }
+  ]
+}

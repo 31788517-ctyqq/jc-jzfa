@@ -1,0 +1,97 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.548Z",
+  "earliestKickoff": null,
+  "date": "2026-05-20",
+  "plans": [
+    {
+      "planId": "plan_2026-05-20_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039849",
+          "direction": "总进球-2、3球",
+          "homeName": "斯达",
+          "visitName": "博德闪耀",
+          "matchNum": "周三002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-20_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039853",
+          "direction": "总进球-1、2、3球",
+          "homeName": "赛哈特海湾",
+          "visitName": "吉达国民",
+          "matchNum": "周三006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-20_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039849",
+          "direction": "总进球-1、2、3球",
+          "homeName": "斯达",
+          "visitName": "博德闪耀",
+          "matchNum": "周三002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-20_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039855",
+          "direction": "总进球-3、4、5球",
+          "homeName": "弗赖堡",
+          "visitName": "阿斯顿维拉",
+          "matchNum": "周三008"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-20_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039855",
+          "direction": "总进球-3、4、5球",
+          "homeName": "弗赖堡",
+          "visitName": "阿斯顿维拉",
+          "matchNum": "周三008"
+        }
+      ]
+    }
+  ]
+}

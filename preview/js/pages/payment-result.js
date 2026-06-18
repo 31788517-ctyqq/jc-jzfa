@@ -22,17 +22,25 @@ function wait(ms) {
 }
 
 async function pollOrder(orderNo) {
-  var last = null;
-  for (var i = 0; i < 4; i++) {
-    if (i > 0) await wait(i === 1 ? 1000 : 1500);
+  let last = null;
+  // 第一轮用 payment-query-alipay 主动查支付宝，后续用本地查
+  for (let i = 0; i < 6; i++) {
+    if (i > 0) await wait(i <= 2 ? 2000 : 3000);
     try {
-      last = await api('payment-query-order', { order_no: orderNo }, 0);
+      // 第 1、4 轮用主动查询（直接查支付宝），其余轮查本地
+      const action = i === 0 || i === 3 ? 'payment-query-alipay' : 'payment-query-order';
+      last = await api(action, { order_no: orderNo }, 0);
       if (!last || !last.pay_status) continue;
-      if (last.pay_status === 'paid' || last.pay_status === 'failed' || last.pay_status === 'expired') {
+      if (
+        last.pay_status === 'paid' ||
+        last.pay_status === 'failed' ||
+        last.pay_status === 'expired' ||
+        last.pay_status === 'closed'
+      ) {
         return last;
       }
     } catch (e) {
-      if (i === 3) throw e;
+      if (i === 5) throw e;
     }
   }
   return last || { order_no: orderNo, pay_status: 'pending' };
@@ -55,8 +63,8 @@ function renderInvalid(container) {
 }
 
 export async function loadPaymentResult(container, data) {
-  var urlParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
-  var orderNo = urlParams.get('orderNo') || (data && data.order_no) || '';
+  const urlParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
+  const orderNo = urlParams.get('orderNo') || (data && data.order_no) || '';
 
   if (!orderNo) {
     renderInvalid(container);
@@ -66,16 +74,17 @@ export async function loadPaymentResult(container, data) {
   container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>查询支付结果...</div>';
 
   try {
-    var orderData = await pollOrder(orderNo);
-    var payStatus = (orderData && orderData.pay_status) || 'pending';
-    var planName = PLAN_NAME_MAP[orderData && orderData.plan_code] || '会员套餐';
-    var paidAt = orderData && orderData.paid_at ? new Date(orderData.paid_at).toLocaleString() : '--';
-    var expireAt = orderData && orderData.expired_at ? new Date(orderData.expired_at).toLocaleString() : '--';
+    const orderData = await pollOrder(orderNo);
+    const payStatus = (orderData && orderData.pay_status) || 'pending';
+    const planName = PLAN_NAME_MAP[orderData && orderData.plan_code] || '会员套餐';
+    const paidAt = orderData && orderData.paid_at ? new Date(orderData.paid_at).toLocaleString() : '--';
+    const expireAt = orderData && orderData.expired_at ? new Date(orderData.expired_at).toLocaleString() : '--';
 
-    var heroClass =
+    const heroClass =
       payStatus === 'paid' ? 'result-success' : payStatus === 'pending' ? 'result-waiting' : 'result-failed';
-    var heroIcon = payStatus === 'paid' ? '✅' : payStatus === 'pending' ? '⏳' : payStatus === 'expired' ? '⏰' : '❌';
-    var heroTitle =
+    const heroIcon =
+      payStatus === 'paid' ? '✅' : payStatus === 'pending' ? '⏳' : payStatus === 'expired' ? '⏰' : '❌';
+    const heroTitle =
       payStatus === 'paid'
         ? '支付成功，会员已开通'
         : payStatus === 'pending'
@@ -83,7 +92,7 @@ export async function loadPaymentResult(container, data) {
           : payStatus === 'expired'
             ? '订单已过期'
             : '支付失败';
-    var heroDesc =
+    const heroDesc =
       payStatus === 'paid'
         ? hasReferralAccess()
           ? '系统已为你激活订阅，可继续查看订阅状态或邀请好友返利。'
@@ -94,7 +103,7 @@ export async function loadPaymentResult(container, data) {
             ? '当前订单已超过支付时限，请重新选择套餐后下单。'
             : '本次支付未成功，可重新下单继续开通。';
 
-    var html =
+    const html =
       '' +
       '<div class="member-shell member-shell-result">' +
       '<div class="member-page result-container">' +

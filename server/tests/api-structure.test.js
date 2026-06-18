@@ -10,16 +10,16 @@ const apiSource = fs.readFileSync(INDEX_JS, 'utf8');
 
 // 从 index.js 提取所有注册的 action handler
 function extractActions(source) {
-  var actions = [];
-  var re = /case\s+['"]([^'"]+)['"]\s*:/g;
-  var m;
+  const actions = [];
+  const re = /case\s+['"]([^'"]+)['"]\s*:/g;
+  let m;
   while ((m = re.exec(source)) !== null) {
     if (actions.indexOf(m[1]) === -1) actions.push(m[1]);
   }
   return actions.sort();
 }
 
-var actions = extractActions(apiSource);
+const actions = extractActions(apiSource);
 
 describe('API 路由结构合同 (无服务器)', () => {
   it('index.js 应存在', () => {
@@ -31,7 +31,7 @@ describe('API 路由结构合同 (无服务器)', () => {
   });
 
   // 核心只读 API（实际注册的 action 名）
-  var actual = [
+  const actual = [
     'match-list',
     'match-detail',
     'match-odds',
@@ -44,7 +44,7 @@ describe('API 路由结构合同 (无服务器)', () => {
   ];
 
   it('核心只读 API 已注册', () => {
-    var found = actual.filter(function (a) {
+    const found = actual.filter(function (a) {
       return actions.indexOf(a) >= 0;
     });
     expect(found.length).toBeGreaterThanOrEqual(6);
@@ -52,7 +52,7 @@ describe('API 路由结构合同 (无服务器)', () => {
 
   // 方案相关 API
   it('方案相关 API 已注册', () => {
-    var planFound = ['plan-list', 'plan-save', 'plan-confirm', 'plan-share'].filter(function (a) {
+    const planFound = ['plan-list', 'plan-save', 'plan-confirm', 'plan-share'].filter(function (a) {
       return actions.indexOf(a) >= 0;
     });
     expect(planFound.length).toBeGreaterThanOrEqual(1);
@@ -65,7 +65,7 @@ describe('API 路由结构合同 (无服务器)', () => {
 
   // 认证 API
   it('认证 API 已注册', () => {
-    var authFound = ['auth-login', 'auth-register', 'auth-logout', 'auth-session', 'auth-change-password'].filter(
+    const authFound = ['auth-login', 'auth-register', 'auth-logout', 'auth-session', 'auth-change-password'].filter(
       function (a) {
         return actions.indexOf(a) >= 0;
       },

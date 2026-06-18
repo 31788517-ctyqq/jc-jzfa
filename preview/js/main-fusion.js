@@ -20,15 +20,15 @@ import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/matc
 // ★ P0-2 (Vite build): import.meta.glob → Vite 构建时展开为静态映射，每个页面独立 chunk
 // ★ Browser (raw ES module): 动态 import() → HTTP/2 并行加载源文件
 //   try-catch 兜底保证两套路径（旧 /js/ + 新 /dist/）同时可用
-var pageModules;
+let pageModules;
 try {
   pageModules = import.meta.glob('./pages/*.js');
 } catch (e) {
   pageModules = {};
 }
 function _mod(name) {
-  var key = './pages/' + name + '.js';
-  var loader = pageModules[key];
+  const key = './pages/' + name + '.js';
+  const loader = pageModules[key];
   // Vite build path: 静态注册的 chunk
   if (loader) {
     return loader().catch(function (e) {
@@ -58,14 +58,11 @@ function _mod(name) {
 }
 
 // 预加载常用模块（在首次渲染后异步加载，不阻塞首页）
+// ★ V17 P0优化: 只预加载方案页(底部第5tab最高频)，其余按需懒加载，节省~200KB
 function _preloadMods() {
   setTimeout(function () {
-    _mod('ranking'); // 排行榜 → tab-rank
-    _mod('plans'); // ★ P0: 方案页（底部第5 tab）
-    _mod('hit-rate'); // ★ P0: 命中率（底部第4 tab）
-    _mod('match-detail'); // 比赛详情
-    _mod('match-pk-fusion'); // PK弹窗
-  }, 800);
+    _mod('plans'); // ★ 方案页（底部第5 tab，最高频入口）
+  }, 2000);
 }
 
 // ═══ 懒加载 window 代理 ═══
@@ -80,7 +77,7 @@ window.goDetail = function (id) {
     });
 };
 window.openAI = function () {
-  var args = arguments;
+  const args = arguments;
   _mod('match-detail')
     .then(function (m) {
       m.showAIPrediction.apply(null, args);
@@ -100,7 +97,7 @@ window.closeAI = function () {
     });
 };
 window.showAIPrediction = function () {
-  var args = arguments;
+  const args = arguments;
   _mod('match-detail')
     .then(function (m) {
       m.showAIPrediction.apply(null, args);
@@ -111,7 +108,7 @@ window.showAIPrediction = function () {
     });
 };
 window.showGongshoudao = function () {
-  var args = arguments;
+  const args = arguments;
   _mod('gongshoudao')
     .then(function (m) {
       m.showGongshoudao.apply(null, args);
@@ -122,7 +119,7 @@ window.showGongshoudao = function () {
     });
 };
 window.openPK = function () {
-  var args = arguments;
+  const args = arguments;
   _mod('match-pk-fusion')
     .then(function (m) {
       m.openPK.apply(null, args);
@@ -141,7 +138,7 @@ window.closePK = function () {
     });
 };
 window.openPKMulti = function () {
-  var args = arguments;
+  const args = arguments;
   _mod('match-pk-fusion')
     .then(function (m) {
       m.openPKMulti.apply(null, args);
@@ -151,7 +148,7 @@ window.openPKMulti = function () {
     });
 };
 window.toggleDD = function () {
-  var args = arguments;
+  const args = arguments;
   _mod('filter')
     .then(function (m) {
       m.toggleDD.apply(null, args);
@@ -161,7 +158,7 @@ window.toggleDD = function () {
     });
 };
 window.selectDD = function () {
-  var args = arguments;
+  const args = arguments;
   _mod('filter')
     .then(function (m) {
       m.selectDD.apply(null, args);
@@ -171,7 +168,7 @@ window.selectDD = function () {
     });
 };
 window.getDDVal = function (id) {
-  var el = document.getElementById(id);
+  const el = document.getElementById(id);
   return el ? el.getAttribute('data-val') || '' : '';
 };
 window.onDDTypeChange = function () {
@@ -211,7 +208,7 @@ window.loadIncome = function (f) {
     });
 };
 window.onIncDirChange = function () {
-  var args = arguments;
+  const args = arguments;
   _mod('income')
     .then(function (m) {
       if (m.onIncDirChange) m.onIncDirChange.apply(null, args);
@@ -379,12 +376,12 @@ window.goRankToday = function () {
 
 // ── 日期切换 ──
 export function updateDateBar() {
-  var el = document.getElementById('dateCurrent');
+  const el = document.getElementById('dateCurrent');
   if (!el) return;
-  var w = state.weekDates[state.selectedWeekIdx];
+  const w = state.weekDates[state.selectedWeekIdx];
   if (w) {
-    var today = formatDate(new Date()).slice(5);
-    var prefix = w.matchDate === today ? '今天 ' : '';
+    const today = formatDate(new Date()).slice(5);
+    const prefix = w.matchDate === today ? '今天 ' : '';
     el.textContent = prefix + w.matchDate.replace('-', '/') + ' ' + w.weekNum;
   } else {
     el.textContent = '加载中...';
@@ -393,7 +390,7 @@ export function updateDateBar() {
 
 function readPendingMatchFocus() {
   try {
-    var raw = sessionStorage.getItem('pendingMatchFocus');
+    const raw = sessionStorage.getItem('pendingMatchFocus');
     return raw ? JSON.parse(raw) : null;
   } catch (e) {
     return null;
@@ -401,9 +398,9 @@ function readPendingMatchFocus() {
 }
 
 function applyPendingMatchWeek() {
-  var pending = readPendingMatchFocus();
+  const pending = readPendingMatchFocus();
   if (!pending || !pending.matchDate || !Array.isArray(state.weekDates) || state.weekDates.length === 0) return false;
-  for (var i = 0; i < state.weekDates.length; i++) {
+  for (let i = 0; i < state.weekDates.length; i++) {
     if (state.weekDates[i] && state.weekDates[i].matchDate === pending.matchDate) {
       state.setSelectedWeekIdx(i);
       return true;
@@ -413,7 +410,7 @@ function applyPendingMatchWeek() {
 }
 
 export function shiftWeek(delta) {
-  var newIdx = state.selectedWeekIdx + delta;
+  const newIdx = state.selectedWeekIdx + delta;
   if (newIdx < 0 || newIdx >= state.weekDates.length) return;
   state.setSelectedWeekIdx(newIdx);
   updateDateBar();
@@ -422,9 +419,9 @@ export function shiftWeek(delta) {
 
 // ── 日历选择器 ──
 export function toggleDatePicker() {
-  var el = document.getElementById('datePicker');
+  const el = document.getElementById('datePicker');
   if (!el) return;
-  var isOpen = el.style.display !== 'none';
+  const isOpen = el.style.display !== 'none';
   if (isOpen) {
     el.style.display = 'none';
     return;
@@ -436,49 +433,49 @@ export function toggleDatePicker() {
 let pickerYear, pickerMonth;
 
 function renderDatePicker() {
-  var grid = document.getElementById('datePickerGrid');
-  var monthEl = document.getElementById('datePickerMonth');
+  const grid = document.getElementById('datePickerGrid');
+  const monthEl = document.getElementById('datePickerMonth');
   if (!grid || !monthEl) return;
 
-  var weeks = state.weekDates || [];
-  var available = {};
+  const weeks = state.weekDates || [];
+  const available = {};
   weeks.forEach(function (w) {
     available[w.matchDate] = true;
   });
 
-  var today = formatDate(new Date()).slice(5);
-  var current = weeks[state.selectedWeekIdx] ? weeks[state.selectedWeekIdx].matchDate : '';
+  const today = formatDate(new Date()).slice(5);
+  const current = weeks[state.selectedWeekIdx] ? weeks[state.selectedWeekIdx].matchDate : '';
 
   if (!pickerYear) {
-    var d = new Date();
+    const d = new Date();
     pickerYear = d.getFullYear();
     pickerMonth = d.getMonth() + 1;
     if (current) pickerMonth = parseInt(current.slice(0, 2), 10);
   }
   window.datePickerYear = pickerYear;
 
-  var CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
+  const CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
   monthEl.textContent = CN[pickerMonth - 1] + '月 ' + pickerYear;
 
-  var firstDay = new Date(pickerYear, pickerMonth - 1, 1);
-  var lastDay = new Date(pickerYear, pickerMonth, 0);
-  var daysInMonth = lastDay.getDate();
-  var startDow = firstDay.getDay();
+  const firstDay = new Date(pickerYear, pickerMonth - 1, 1);
+  const lastDay = new Date(pickerYear, pickerMonth, 0);
+  const daysInMonth = lastDay.getDate();
+  const startDow = firstDay.getDay();
 
-  var html = '';
-  for (var i = 0; i < startDow; i++) html += '<div class="date-picker-cell other-month"></div>';
-  for (var day = 1; day <= daysInMonth; day++) {
-    var mm = String(pickerMonth).padStart(2, '0');
-    var dd = String(day).padStart(2, '0');
-    var md = mm + '-' + dd;
-    var hasMatch = !!available[md];
-    var isActive = md === current;
-    var isToday = md === today;
-    var cls = 'date-picker-cell';
+  let html = '';
+  for (let i = 0; i < startDow; i++) html += '<div class="date-picker-cell other-month"></div>';
+  for (let day = 1; day <= daysInMonth; day++) {
+    const mm = String(pickerMonth).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    const md = mm + '-' + dd;
+    const hasMatch = !!available[md];
+    const isActive = md === current;
+    const isToday = md === today;
+    let cls = 'date-picker-cell';
     if (hasMatch) cls += ' has-match';
     if (isActive) cls += ' active';
     if (isToday) cls += ' today';
-    var onclick = ' onclick="selectDateFromPicker(\'' + md + '\')"';
+    const onclick = ' onclick="selectDateFromPicker(\'' + md + '\')"';
     html += '<div class="' + cls + '"' + onclick + '>' + day + '</div>';
   }
   grid.innerHTML = html;
@@ -504,9 +501,9 @@ function renderDatePicker() {
 }
 
 export function selectDateFromPicker(matchDate) {
-  var weeks = state.weekDates || [];
+  const weeks = state.weekDates || [];
   if (matchDate === 'today') {
-    var today = formatDate(new Date()).slice(5);
+    const today = formatDate(new Date()).slice(5);
     for (var i = 0; i < weeks.length; i++) {
       if (weeks[i].matchDate === today) {
         state.setSelectedWeekIdx(i);
@@ -523,52 +520,52 @@ export function selectDateFromPicker(matchDate) {
   }
   updateDateBar();
   loadMatchList();
-  var el = document.getElementById('datePicker');
+  const el = document.getElementById('datePicker');
   if (el) el.style.display = 'none';
 }
 
 // ── 通用日历渲染 ──
 function dobj(dateStr) {
-  var p = dateStr.split('-');
+  const p = dateStr.split('-');
   return { y: parseInt(p[0], 10), m: parseInt(p[1], 10), d: parseInt(p[2], 10) };
 }
 
 function renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onSelect) {
-  var grid = document.getElementById(prefix + 'Grid');
-  var monthEl = document.getElementById(prefix + 'Month');
+  const grid = document.getElementById(prefix + 'Grid');
+  const monthEl = document.getElementById(prefix + 'Month');
   if (!grid || !monthEl) return;
 
-  var yearKey = prefix + 'Year',
+  const yearKey = prefix + 'Year',
     monthKey = prefix + 'MonthIdx';
   if (typeof window[yearKey] === 'undefined') {
-    var d = new Date();
+    const d = new Date();
     window[yearKey] = d.getFullYear();
     window[monthKey] = d.getMonth() + 1;
     if (currentDate) window[monthKey] = parseInt(currentDate.slice(0, 2), 10);
   }
 
-  var CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
+  const CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
   monthEl.textContent = CN[window[monthKey] - 1] + '月 ' + window[yearKey];
 
-  var firstDay = new Date(window[yearKey], window[monthKey] - 1, 1);
-  var lastDay = new Date(window[yearKey], window[monthKey], 0);
-  var startDow = firstDay.getDay();
+  const firstDay = new Date(window[yearKey], window[monthKey] - 1, 1);
+  const lastDay = new Date(window[yearKey], window[monthKey], 0);
+  const startDow = firstDay.getDay();
 
-  var html = '';
-  for (var i = 0; i < startDow; i++) html += '<div class="date-picker-cell other-month"></div>';
-  for (var day = 1; day <= lastDay.getDate(); day++) {
-    var mm = String(window[monthKey]).padStart(2, '0');
-    var dd = String(day).padStart(2, '0');
-    var md = mm + '-' + dd;
-    var hasMatch = availableDates.indexOf(md) >= 0;
-    var isActive = md === currentDate;
-    var isToday = md === todayDate;
-    var cls = 'date-picker-cell';
+  let html = '';
+  for (let i = 0; i < startDow; i++) html += '<div class="date-picker-cell other-month"></div>';
+  for (let day = 1; day <= lastDay.getDate(); day++) {
+    const mm = String(window[monthKey]).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    const md = mm + '-' + dd;
+    const hasMatch = availableDates.indexOf(md) >= 0;
+    const isActive = md === currentDate;
+    const isToday = md === todayDate;
+    let cls = 'date-picker-cell';
     if (hasMatch) cls += ' has-match';
     if (isActive) cls += ' active';
     if (isToday) cls += ' today';
     // 所有日期均可点击，无数据的日期由后端返回空列表+页面提示"暂无方案"
-    var onclick = ' onclick="' + onSelect + "('" + md + '\')"';
+    const onclick = ' onclick="' + onSelect + "('" + md + '\')"';
     html += '<div class="' + cls + '"' + onclick + '>' + day + '</div>';
   }
   grid.innerHTML = html;
@@ -593,46 +590,46 @@ function renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onS
 
 // ── 今日方案日历 ──
 export function togglePlanDatePicker() {
-  var el = document.getElementById('planDatePicker');
+  const el = document.getElementById('planDatePicker');
   if (!el) return;
   if (el.style.display !== 'none') {
     el.style.display = 'none';
     return;
   }
-  var weeks = state.weekDates || [];
-  var available = weeks.map(function (w) {
+  const weeks = state.weekDates || [];
+  const available = weeks.map(function (w) {
     return w.matchDate;
   });
-  var today = formatDate(new Date()).slice(5);
+  const today = formatDate(new Date()).slice(5);
   // 从实际 planDate 提取 MM-DD
-  var current = state.planDate ? state.planDate.slice(5) : today;
+  const current = state.planDate ? state.planDate.slice(5) : today;
   renderMonthCalendar('planDate', available, current, today, 'selectPlanDateFromPicker');
   el.style.display = 'block';
 }
 export function selectPlanDateFromPicker(md) {
   // 使用日历控件当前年份，而非 planDate 的年份（修复跨年导航bug）
-  var year = window.planDateYear || new Date().getFullYear();
-  var parts = md.split('-');
-  var month = parseInt(parts[0], 10),
+  const year = window.planDateYear || new Date().getFullYear();
+  const parts = md.split('-');
+  const month = parseInt(parts[0], 10),
     day = parseInt(parts[1], 10);
-  var fullDate = year + '-' + md;
+  const fullDate = year + '-' + md;
   state.setPlanDate(fullDate);
   // 标记为日历直接选日，不污染 planDateOffset（避免影响左右箭头切换）
   state.setPlanDateExplicit(true);
   // 直接更新DOM，不调updatePlanDateBar避免重置
-  var el = document.getElementById('planDateCurrent');
+  const el = document.getElementById('planDateCurrent');
   if (el) {
-    var mmdd = md.replace('-', '/');
-    var week = WEEK_NAMES[new Date(year, month - 1, day).getDay()];
+    const mmdd = md.replace('-', '/');
+    const week = WEEK_NAMES[new Date(year, month - 1, day).getDay()];
     el.textContent = mmdd + ' ' + week;
   }
   _mod('plans').then(function (m) {
     if (state.planTab === 'my') m.loadMyPlanList();
     else if (state.planTab === 'ai_tg') m.loadAIPlanList();
-    else if (state.planTab === 'wc') m.loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
+    else if (state.planTab === 'wc') m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
     else {
       state.setPlanTab('expert');
-      m.loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+      m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
     }
   });
   document.getElementById('planDatePicker').style.display = 'none';
@@ -640,29 +637,29 @@ export function selectPlanDateFromPicker(md) {
 
 // ── 排行榜日历 ──
 export function toggleRankDatePicker() {
-  var el = document.getElementById('rankDatePicker');
+  const el = document.getElementById('rankDatePicker');
   if (!el) return;
   if (el.style.display !== 'none') {
     el.style.display = 'none';
     return;
   }
-  var weeks = state.weekDates || [];
-  var available = weeks.map(function (w) {
+  const weeks = state.weekDates || [];
+  const available = weeks.map(function (w) {
     return w.matchDate;
   });
-  var today = formatDate(new Date()).slice(5);
-  var current = state.rankDate ? state.rankDate.slice(5) : today;
+  const today = formatDate(new Date()).slice(5);
+  const current = state.rankDate ? state.rankDate.slice(5) : today;
   renderMonthCalendar('rankDate', available, current, today, 'selectRankDateFromPicker');
   el.style.display = 'block';
 }
 export function selectRankDateFromPicker(md) {
   // 使用日历控件当前年份，而非 rankDate 的年份（修复跨年导航bug）
-  var year = window.rankDateYear || new Date().getFullYear();
+  const year = window.rankDateYear || new Date().getFullYear();
   state.setRankDate(year + '-' + md);
-  var el = document.getElementById('rankDateCurrent');
+  const el = document.getElementById('rankDateCurrent');
   if (el) {
-    var mmdd = md.replace('-', '/');
-    var week = WEEK_NAMES[new Date(year, parseInt(md.slice(0, 2), 10) - 1, parseInt(md.slice(3), 10)).getDay()];
+    const mmdd = md.replace('-', '/');
+    const week = WEEK_NAMES[new Date(year, parseInt(md.slice(0, 2), 10) - 1, parseInt(md.slice(3), 10)).getDay()];
     el.textContent = mmdd + ' ' + week;
   }
   _mod('ranking').then(function (m) {
@@ -672,10 +669,10 @@ export function selectRankDateFromPicker(md) {
 }
 
 export function goToday() {
-  var today = formatDate(new Date()).slice(5);
-  var now = new Date();
-  var todayWeek = WEEK_NAMES[now.getDay()];
-  var best = 0;
+  const today = formatDate(new Date()).slice(5);
+  const now = new Date();
+  const todayWeek = WEEK_NAMES[now.getDay()];
+  let best = 0;
   state.weekDates.forEach(function (w, i) {
     if (w.matchDate === today && w.weekNum === todayWeek) best = i;
   });
@@ -692,7 +689,7 @@ export function goToday() {
 }
 
 function _setBestWeekIndex() {
-  var today = formatDate(new Date()).slice(5);
+  const today = formatDate(new Date()).slice(5);
   state.setSelectedWeekIdx(0);
   state.weekDates.forEach(function (w, i) {
     if (w.matchDate <= today) state.setSelectedWeekIdx(i);
@@ -701,9 +698,9 @@ function _setBestWeekIndex() {
 
 function _cacheMatchListForDates(matches, fallbackDate) {
   if (!Array.isArray(matches) || matches.length === 0) return;
-  var raw = matches[0].date || matches[0].matchDate || matches[0].startTime || fallbackDate || '';
-  var full = String(raw).match(/\d{4}-\d{2}-\d{2}/);
-  var short = String(raw).match(/\d{2}-\d{2}/);
+  const raw = matches[0].date || matches[0].matchDate || matches[0].startTime || fallbackDate || '';
+  const full = String(raw).match(/\d{4}-\d{2}-\d{2}/);
+  const short = String(raw).match(/\d{2}-\d{2}/);
   if (full) {
     setCache('match-list:' + full[0], matches);
     setCache('match-list:' + full[0].slice(5), matches);
@@ -713,14 +710,14 @@ function _cacheMatchListForDates(matches, fallbackDate) {
 }
 
 export function initWeekDates() {
-  var cachedDates = getCache('week-dates');
+  const cachedDates = getCache('week-dates');
   if (Array.isArray(cachedDates) && cachedDates.length) {
     state.setWeekDates(cachedDates);
     _setBestWeekIndex();
     applyPendingMatchWeek();
     updateDateBar();
-    var selected = state.weekDates[state.selectedWeekIdx];
-    var cachedMatches = selected ? getCache('match-list:' + selected.matchDate) : null;
+    const selected = state.weekDates[state.selectedWeekIdx];
+    const cachedMatches = selected ? getCache('match-list:' + selected.matchDate) : null;
     if (cachedMatches) {
       loadMatchListFromData(cachedMatches);
       return;
@@ -729,7 +726,7 @@ export function initWeekDates() {
     return;
   }
 
-  var todayFull = formatDate(new Date());
+  const todayFull = formatDate(new Date());
   api('week-dates', {})
     .then(function (list) {
       list = list || [];
@@ -742,8 +739,8 @@ export function initWeekDates() {
       }
       applyPendingMatchWeek();
       updateDateBar();
-      var selected = state.weekDates[state.selectedWeekIdx];
-      var cachedMatches = selected ? getCache('match-list:' + selected.matchDate) : null;
+      const selected = state.weekDates[state.selectedWeekIdx];
+      const cachedMatches = selected ? getCache('match-list:' + selected.matchDate) : null;
       if (cachedMatches) {
         loadMatchListFromData(cachedMatches);
         return;
@@ -760,7 +757,7 @@ export function initWeekDates() {
 
 // ── 页面容器按需创建 ──
 function _ensurePage(id) {
-  var el = document.getElementById('page-' + id);
+  let el = document.getElementById('page-' + id);
   if (!el) {
     el = document.createElement('div');
     el.className = 'page';
@@ -772,7 +769,7 @@ function _ensurePage(id) {
         '<div class="date-bar" id="dateBar"><span class="date-arrow" onclick="shiftWeek(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="dateCurrent" onclick="toggleDatePicker()"></span><span class="date-arrow" onclick="shiftWeek(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="datePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="datePickerPrev">&lt;</button><span class="date-picker-month" id="datePickerMonth"></span><button class="date-picker-nav" id="datePickerNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="datePickerGrid"></div><div class="date-picker-footer"><button class="date-picker-today" onclick="selectDateFromPicker(\'today\')">今天</button><button class="date-picker-close" onclick="toggleDatePicker()">✕</button></div></div><div id="matchList"></div><div class="quant-pk-bar" id="matchPkBar" style="display:none"><button class="pk-bar-btn" id="mpkBarBtn" onclick="startMatchPK()">场次PK（已选 <b id="mpkBarCount">0</b> 场）</button></div>';
     else if (id === 'plan')
       el.innerHTML =
-        '<div class="filter-row" id="planTabBar" style="justify-content:flex-start;gap:6px"><div class="filter-tag" data-tab="wc" onclick="switchPlanTab(\'wc\')">世界杯</div><div class="filter-tag active" data-tab="expert" onclick="switchPlanTab(\'expert\')">专家博热方案</div><div class="filter-tag" data-tab="ai_tg" onclick="switchPlanTab(\'ai_tg\')">总进球三向</div><div class="filter-tag" data-tab="my" onclick="switchPlanTab(\'my\')">我的方案</div></div><div class="date-bar" id="planDateBar"><span class="date-arrow" onclick="shiftPlanDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="planDateCurrent" onclick="togglePlanDatePicker()"></span><span class="date-arrow" onclick="shiftPlanDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="planDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="planDatePrev">&lt;</button><span class="date-picker-month" id="planDateMonth"></span><button class="date-picker-nav" id="planDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="planDateGrid"></div></div><div id="planList"></div>';
+        '<div class="filter-row" id="planTabBar" style="justify-content:flex-start;gap:6px"><div class="filter-tag" data-tab="wc" onclick="switchPlanTab(\'wc\')" class="filter-tag active">世界杯</div><div class="filter-tag" data-tab="expert" onclick="switchPlanTab(\'expert\')">专家博热方案</div><div class="filter-tag" data-tab="ai_tg" onclick="switchPlanTab(\'ai_tg\')">总进球三向</div><div class="filter-tag" data-tab="my" onclick="switchPlanTab(\'my\')">我的方案</div></div><div class="date-bar" id="planDateBar"><span class="date-arrow" onclick="shiftPlanDate(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="date-current" id="planDateCurrent" onclick="togglePlanDatePicker()"></span><span class="date-arrow" onclick="shiftPlanDate(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></div><div class="date-picker" id="planDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="planDatePrev">&lt;</button><span class="date-picker-month" id="planDateMonth"></span><button class="date-picker-nav" id="planDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="planDateGrid"></div></div><div id="planList"></div>';
     else if (id === 'detail')
       el.innerHTML =
         '<div class="page-skeleton" id="detailContent"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div>';
@@ -904,7 +901,7 @@ export function switchTab(tab) {
     return;
   }
 
-  var publicTabs = new Set(['login', 'register', 'contact-invite', 'pricing', 'profile']);
+  const publicTabs = new Set(['login', 'register', 'contact-invite', 'pricing', 'profile']);
 
   if (!publicTabs.has(tab) && !hasAuthToken()) {
     try {
@@ -920,13 +917,13 @@ export function switchTab(tab) {
     sessionStorage.setItem('lastPage', tab);
   } catch (e) {}
   document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
-  var pageEl = _ensurePage(tab === 'detail' ? 'detail' : tab);
+  const pageEl = _ensurePage(tab === 'detail' ? 'detail' : tab);
   pageEl.classList.add('active');
   document.querySelectorAll('.tab-item').forEach((t) => t.classList.remove('active'));
-  var tabEl = document.getElementById('tab-' + (tab === 'detail' ? 'rank' : tab));
+  const tabEl = document.getElementById('tab-' + (tab === 'detail' ? 'rank' : tab));
   if (tabEl) tabEl.classList.add('active');
 
-  var titles = {
+  const titles = {
     home: '竞彩推荐监控',
     match: '今日比赛',
     plan: '今日方案',
@@ -956,10 +953,10 @@ export function switchTab(tab) {
     'admin-referrals': '返利管理',
     admin: '管理后台',
   };
-  var titleEl = document.getElementById('navTitle');
+  const titleEl = document.getElementById('navTitle');
   if (titleEl)
     titleEl.textContent = (tab === 'referral' && !hasReferralAccess() ? '邀请中心' : titles[tab]) || '竞彩推荐监控';
-  var backEl = document.getElementById('navBack');
+  const backEl = document.getElementById('navBack');
   // 登录页与首页隐藏返回键
   if (backEl)
     backEl.style.display =
@@ -975,8 +972,8 @@ export function switchTab(tab) {
         : 'none';
 
   // navMyBtn (green)
-  var nmb = document.getElementById('navMyBtn');
-  var sm = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
+  const nmb = document.getElementById('navMyBtn');
+  const sm = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
   if (nmb) {
     nmb.style.display = sm ? 'flex' : 'none';
     nmb.style.marginLeft = sm ? 'auto' : '0';
@@ -985,7 +982,7 @@ export function switchTab(tab) {
     backEl.style.marginLeft = sm ? '8px' : 'auto';
   }
 
-  var navbarEl = document.getElementById('navbar');
+  const navbarEl = document.getElementById('navbar');
   if (navbarEl) {
     navbarEl.classList.toggle('home-mode', tab === 'home');
     navbarEl.style.display =
@@ -1004,7 +1001,7 @@ export function switchTab(tab) {
         : 'flex';
   }
 
-  var tabbarEl = document.querySelector('.tabbar');
+  const tabbarEl = document.querySelector('.tabbar');
   if (tabbarEl)
     tabbarEl.style.display =
       tab === 'login' ||
@@ -1052,7 +1049,7 @@ export function switchTab(tab) {
   }
 
   if (tab === 'home') {
-    var cameBack = state.savedScrollY > 0;
+    const cameBack = state.savedScrollY > 0;
     if (!cameBack) loadHome();
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
@@ -1070,7 +1067,7 @@ export function switchTab(tab) {
   }
   if (tab === 'plan') {
     // 如果从"保存方案"跳转过来，强制切到"我的方案"
-    var pendingTab;
+    let pendingTab;
     try {
       pendingTab = sessionStorage.getItem('pendingPlanTab');
       sessionStorage.removeItem('pendingPlanTab');
@@ -1082,7 +1079,7 @@ export function switchTab(tab) {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === 'my');
       });
       // ★ 自动滚动使「我的方案」标签完整可见，但保持标签栏靠左
-      var myTag = document.querySelector('#planTabBar .filter-tag[data-tab="my"]');
+      const myTag = document.querySelector('#planTabBar .filter-tag[data-tab="my"]');
       if (myTag) myTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }
     _mod('plans').then(function (m) {
@@ -1090,10 +1087,10 @@ export function switchTab(tab) {
       m.updatePlanDateBar();
       if (state.planTab === 'my') m.loadMyPlanList();
       else if (state.planTab === 'ai_tg') m.loadAIPlanList();
-      else if (state.planTab === 'wc') m.loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
+      else if (state.planTab === 'wc') m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
       else {
         state.setPlanTab('expert');
-        m.loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+        m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
       }
     });
   }
@@ -1137,7 +1134,7 @@ export function switchTab(tab) {
     });
   }
   if (tab === 'confirm-scheme') {
-    var backEl2 = document.getElementById('navBack');
+    const backEl2 = document.getElementById('navBack');
     if (backEl2) backEl2.style.display = 'flex';
     _mod('confirm-scheme').then(function (m) {
       m.loadConfirmScheme();
@@ -1203,7 +1200,7 @@ export function switchTab(tab) {
   // ★ P1: 首页后异步预取相邻 Tab 数据（方案+命中率），切页直接渲染
   if (tab === 'home') {
     setTimeout(function () {
-      var today = formatDate(new Date());
+      const today = formatDate(new Date());
       api('plan-list', { date: today }).catch(function () {});
       api('hit-rate-stats', {}).catch(function () {});
     }, 1200);
@@ -1213,12 +1210,12 @@ export function switchTab(tab) {
 // ★ Phase3: API 数据预取 — 与模块加载并行，api() 去重保证零额外请求
 //     注：此函数在 switchTab 和 switchTabLoad 两处共用（只定义一次）
 function _prefetchTabData(tab) {
-  var today = formatDate(new Date());
+  const today = formatDate(new Date());
   if (tab === 'plan') {
-    var pd = state.planDate || today;
+    const pd = state.planDate || today;
     api('plan-list', { date: pd }).catch(function () {});
   } else if (tab === 'match') {
-    var sel = state.weekDates[state.selectedWeekIdx];
+    const sel = state.weekDates[state.selectedWeekIdx];
     if (sel && sel.matchDate) {
       api('match-list', { date: sel.matchDate }).catch(function () {});
     }
@@ -1260,7 +1257,7 @@ window.goBack = goBack;
 window._stReal = switchTab;
 window._gbReal = goBack;
 if (window._stQ && window._stQ.length) {
-  var _q = window._stQ;
+  const _q = window._stQ;
   window._stQ = [];
   _q.forEach(function (_t) {
     if (_t === '__goBack__') goBack();
@@ -1286,7 +1283,7 @@ window.selectRankDateFromPicker = selectRankDateFromPicker;
 
 // ── hash 路由监听（支持浏览器前进/后退 + 手动改 hash） ──
 window.addEventListener('hashchange', function () {
-  var h = (window.location.hash || '').replace('#', '').split('?')[0].replace(/^\/+/, '').trim();
+  const h = (window.location.hash || '').replace('#', '').split('?')[0].replace(/^\/+/, '').trim();
   if (h && h !== state.currentPage) switchTab(h);
 });
 
@@ -1294,8 +1291,8 @@ window.addEventListener('hashchange', function () {
 window.addEventListener(
   'scroll',
   () => {
-    var navbar = document.getElementById('navbar');
-    var currentScroll = window.scrollY;
+    const navbar = document.getElementById('navbar');
+    const currentScroll = window.scrollY;
     if (currentScroll > 80 && currentScroll > state.lastScrollY_nav) {
       if (navbar) navbar.classList.add('hidden');
     } else {
@@ -1321,14 +1318,14 @@ window.addEventListener('auth:unauthorized', function () {
 
 // ── 方案收入方向切换：动态更新 dd-incPlan 下拉菜单 ──
 window.onIncDirChange = function (dir) {
-  var incDir = dir || (window.getDDVal ? window.getDDVal('dd-incDir') : 'expert');
+  let incDir = dir || (window.getDDVal ? window.getDDVal('dd-incDir') : 'expert');
   if (incDir !== 'all' && incDir !== 'expert' && incDir !== 'my' && incDir !== 'ai_tg') {
     selectDD('dd-incDir', 'expert', '专家博热方案');
     incDir = 'expert';
   }
-  var ddPlan = document.getElementById('dd-incPlan');
+  const ddPlan = document.getElementById('dd-incPlan');
   if (!ddPlan) return;
-  var menu = ddPlan.querySelector('.filter-dd-menu');
+  const menu = ddPlan.querySelector('.filter-dd-menu');
   if (!menu) return;
 
   // 重置为"全部"选中
@@ -1368,19 +1365,19 @@ window.onIncDirChange = function (dir) {
 // ── 启动：恢复上次页面 ──
 (function initPage() {
   // ★ 读取 hash 目标页（如 #admin），优先级高于 sessionStorage
-  var hashTab = '';
+  let hashTab = '';
   try {
-    var h = window.location.hash.replace('#', '').split('?')[0].replace(/^\/+/, '').trim();
+    const h = window.location.hash.replace('#', '').split('?')[0].replace(/^\/+/, '').trim();
     if (h && h !== 'home' && h !== 'detail') hashTab = h;
   } catch (e) {}
 
   function startAuthedPage() {
-    var last = null;
+    let last = null;
     try {
       last = sessionStorage.getItem('lastPage');
     } catch (e) {}
     // hash 目标页优先
-    var target = hashTab || last;
+    const target = hashTab || last;
     if (target && target !== 'home' && target !== 'detail' && target !== 'login') {
       state.setCurrentPage(target);
       switchTabLoad(target);
@@ -1423,9 +1420,9 @@ window.onIncDirChange = function (dir) {
     state.setCurrentPage('home');
     loadHome();
     // 显示底部导航
-    var tabbarEl2 = document.querySelector('.tabbar');
+    const tabbarEl2 = document.querySelector('.tabbar');
     if (tabbarEl2) tabbarEl2.style.display = 'flex';
-    var navbarEl2 = document.getElementById('navbar');
+    const navbarEl2 = document.getElementById('navbar');
     if (navbarEl2) {
       navbarEl2.style.display = 'flex';
       navbarEl2.classList.add('home-mode');
@@ -1453,7 +1450,7 @@ window.onIncDirChange = function (dir) {
 
 // ★ P1: 异步预取数据（提前填充 sessionStorage 缓存）
 function _preloadData(current) {
-  var preloadMap = {
+  const preloadMap = {
     match: ['plan', 'quant-rank'],
     plan: ['match', 'quant-rank'],
     'quant-rank': ['match', 'plan'],
@@ -1463,7 +1460,7 @@ function _preloadData(current) {
     income: ['match'],
     home: ['match', 'plan'],
   };
-  var tabs = preloadMap[current] || [];
+  const tabs = preloadMap[current] || [];
   tabs.forEach(function (tab) {
     if (tab === 'match') {
       if (!getCache('week-dates')) {
@@ -1477,9 +1474,9 @@ function _preloadData(current) {
       _mod('plans')
         .then(function (m) {
           if (!m.loadPlanList) return;
-          if (state.planTab === 'wc') m.loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
+          if (state.planTab === 'wc') m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
           else if (state.planTab === 'ai_tg') m.loadAIPlanList();
-          else m.loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+          else m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
         })
         .catch(function () {});
     } else if (tab === 'quant-rank') {
@@ -1495,7 +1492,7 @@ function _preloadData(current) {
 // 只加载内容，不切换 DOM（用于初始化）
 function switchTabLoad(tab) {
   // 确保页面容器存在（页面刷新后 DOM 被销毁）
-  var pageEl = _ensurePage(tab);
+  const pageEl = _ensurePage(tab);
 
   // ★ P0 修复：激活页面 DOM（刷新后页面不可见的原因）
   document.querySelectorAll('.page').forEach(function (p) {
@@ -1504,7 +1501,7 @@ function switchTabLoad(tab) {
   if (pageEl) pageEl.classList.add('active');
 
   // 更新导航标题
-  var titles = {
+  const titles = {
     home: '竞彩推荐监控',
     match: '今日比赛',
     plan: '今日方案',
@@ -1534,7 +1531,7 @@ function switchTabLoad(tab) {
     'admin-referrals': '返利管理',
     admin: '管理后台',
   };
-  var titleEl = document.getElementById('navTitle');
+  const titleEl = document.getElementById('navTitle');
   if (titleEl)
     titleEl.textContent = (tab === 'referral' && !hasReferralAccess() ? '邀请中心' : titles[tab]) || '竞彩推荐监控';
 
@@ -1542,11 +1539,11 @@ function switchTabLoad(tab) {
   document.querySelectorAll('.tab-item').forEach(function (t) {
     t.classList.remove('active');
   });
-  var tabEl = document.getElementById('tab-' + (tab === 'detail' ? 'rank' : tab));
+  const tabEl = document.getElementById('tab-' + (tab === 'detail' ? 'rank' : tab));
   if (tabEl) tabEl.classList.add('active');
 
   // 设置返回按钮显示
-  var backEl = document.getElementById('navBack');
+  const backEl = document.getElementById('navBack');
   if (backEl)
     backEl.style.display =
       tab !== 'home' &&
@@ -1561,8 +1558,8 @@ function switchTabLoad(tab) {
         : 'none';
 
   // navMyBtn (green)
-  var nmb = document.getElementById('navMyBtn');
-  var sm = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
+  const nmb = document.getElementById('navMyBtn');
+  const sm = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
   if (nmb) {
     nmb.style.display = sm ? 'flex' : 'none';
     nmb.style.marginLeft = sm ? 'auto' : '0';
@@ -1571,7 +1568,7 @@ function switchTabLoad(tab) {
     backEl.style.marginLeft = sm ? '8px' : 'auto';
   }
 
-  var navbarEl = document.getElementById('navbar');
+  const navbarEl = document.getElementById('navbar');
   if (navbarEl)
     navbarEl.style.display =
       tab === 'login' ||
@@ -1588,7 +1585,7 @@ function switchTabLoad(tab) {
         ? 'none'
         : 'flex';
 
-  var tabbarEl = document.querySelector('.tabbar');
+  const tabbarEl = document.querySelector('.tabbar');
   if (tabbarEl)
     tabbarEl.style.display =
       tab === 'login' ||
@@ -1644,7 +1641,7 @@ function switchTabLoad(tab) {
   }
   if (tab === 'plan') {
     // 如果从"保存方案"跳转过来，强制切到"我的方案"
-    var pendingTab;
+    let pendingTab;
     try {
       pendingTab = sessionStorage.getItem('pendingPlanTab');
       sessionStorage.removeItem('pendingPlanTab');
@@ -1656,7 +1653,7 @@ function switchTabLoad(tab) {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === 'my');
       });
       // ★ 自动滚动使「我的方案」标签完整可见，但保持标签栏靠左
-      var myTag = document.querySelector('#planTabBar .filter-tag[data-tab="my"]');
+      const myTag = document.querySelector('#planTabBar .filter-tag[data-tab="my"]');
       if (myTag) myTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }
     _mod('plans').then(function (m) {
@@ -1664,10 +1661,10 @@ function switchTabLoad(tab) {
       m.updatePlanDateBar();
       if (state.planTab === 'my') m.loadMyPlanList();
       else if (state.planTab === 'ai_tg') m.loadAIPlanList();
-      else if (state.planTab === 'wc') m.loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
+      else if (state.planTab === 'wc') m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
       else {
         state.setPlanTab('expert');
-        m.loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+        m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
       }
     });
   }
@@ -1711,7 +1708,7 @@ function switchTabLoad(tab) {
     });
   }
   if (tab === 'confirm-scheme') {
-    var backEl2 = document.getElementById('navBack');
+    const backEl2 = document.getElementById('navBack');
     if (backEl2) backEl2.style.display = 'flex';
     _mod('confirm-scheme').then(function (m) {
       m.loadConfirmScheme();
@@ -1777,7 +1774,7 @@ function switchTabLoad(tab) {
   // ★ P1: 首页后异步预取相邻 Tab 数据（方案+命中率），切页直接渲染
   if (tab === 'home') {
     setTimeout(function () {
-      var today = formatDate(new Date());
+      const today = formatDate(new Date());
       api('plan-list', { date: today }).catch(function () {});
       api('hit-rate-stats', {}).catch(function () {});
     }, 1200);
@@ -1795,10 +1792,10 @@ document.addEventListener('retryHitRate', function () {
 
 // ★ Phase 4: 订阅付费引导弹窗
 document.addEventListener('subscription:required', function (e) {
-  var detail = e.detail || {};
-  var redirect = detail.redirect || 'pricing';
-  var msg = detail.msg || '此功能需要订阅会员';
-  var ok = confirm(msg + '\n\n是否查看套餐？');
+  const detail = e.detail || {};
+  const redirect = detail.redirect || 'pricing';
+  const msg = detail.msg || '此功能需要订阅会员';
+  const ok = confirm(msg + '\n\n是否查看套餐？');
   if (ok && typeof switchTab === 'function') {
     switchTab(redirect);
   }
@@ -1806,7 +1803,7 @@ document.addEventListener('subscription:required', function (e) {
 
 // P0-1: 首页加载完成后 3 秒静默预加载注册页 JS（加速首次打开）
 (function () {
-  var _registerPreloaded = false;
+  let _registerPreloaded = false;
   document.addEventListener('home:ready', function () {
     if (_registerPreloaded) return;
     _registerPreloaded = true;
@@ -1832,26 +1829,26 @@ document.addEventListener('subscription:required', function (e) {
 
 // V12: 运维告警横幅轮询（仅 ctyqq 可见）
 (function(){
-  var POLL_MS = 30 * 1000;
-  var lastCount = 0;
+  const POLL_MS = 30 * 1000;
+  let lastCount = 0;
   function checkAlerts(){
     fetch("/api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"alerts",data:{username:"ctyqq"}})})
     .then(function(r){return r.json()})
     .then(function(d){
-      var alerts = d.data || [];
-      var unread = alerts.filter(function(a){return !a.readAt});
-      var bar = document.getElementById("alertBanner");
+      const alerts = d.data || [];
+      const unread = alerts.filter(function(a){return !a.readAt});
+      const bar = document.getElementById("alertBanner");
       if(!bar) return;
       if(unread.length === 0){bar.style.display="none";lastCount=0;return;}
       if(unread.length !== lastCount){
-        var a = unread[0];
-        var bg = a.level==="P0"?"#e53e3e":a.level==="P0.5"?"#d69e2e":"#38a169";
-        var icon = a.level==="P0"?"\u{1F534}":a.level==="P0.5"?"\u{1F7E1}":"\u{1F7E2}";
+        const a = unread[0];
+        const bg = a.level==="P0"?"#e53e3e":a.level==="P0.5"?"#d69e2e":"#38a169";
+        const icon = a.level==="P0"?"\u{1F534}":a.level==="P0.5"?"\u{1F7E1}":"\u{1F7E2}";
         bar.style.background = bg;
-        var txt = icon + " [" + a.level + "] " + a.title;
+        let txt = icon + " [" + a.level + "] " + a.title;
         if(a.detail) txt += " | " + a.detail;
         if(a.action) txt += " | " + a.action;
-        var abt = document.getElementById("alertBannerText");
+        const abt = document.getElementById("alertBannerText");
         if(abt) abt.textContent = txt;
         bar.style.display = "block";
       }
@@ -1860,9 +1857,9 @@ document.addEventListener('subscription:required', function (e) {
   }
   checkAlerts();
   setInterval(checkAlerts, POLL_MS);
-  var abr = document.getElementById("alertBannerRead");
-  var abc = document.getElementById("alertBannerClose");
-  var ab = document.getElementById("alertBanner");
+  const abr = document.getElementById("alertBannerRead");
+  const abc = document.getElementById("alertBannerClose");
+  const ab = document.getElementById("alertBanner");
   if (abr) abr.addEventListener("click",function(e){
     e.stopPropagation();
     if (ab) ab.style.display="none";

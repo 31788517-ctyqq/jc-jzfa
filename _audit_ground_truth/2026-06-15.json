@@ -1,0 +1,57 @@
+{
+  "lockedAt": "2026-06-18T08:39:52.131Z",
+  "earliestKickoff": null,
+  "date": "2026-06-15",
+  "plans": [
+    {
+      "planId": "plan_2026-06-15_wc1",
+      "name": "plan_wc1",
+      "planName": "世界杯01",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040176",
+          "direction": "平、让平",
+          "homeName": "沙特阿拉伯",
+          "visitName": "乌拉圭",
+          "matchNum": "周一015"
+        },
+        {
+          "matchId": "2040177",
+          "direction": "让负",
+          "homeName": "伊朗",
+          "visitName": "新西兰",
+          "matchNum": "周一016"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-15_wc2",
+      "name": "plan_wc2",
+      "planName": "世界杯02",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040175",
+          "direction": "总进球-2、3球",
+          "homeName": "比利时",
+          "visitName": "埃及",
+          "matchNum": "周一014"
+        },
+        {
+          "matchId": "2040176",
+          "direction": "让负",
+          "homeName": "沙特阿拉伯",
+          "visitName": "乌拉圭",
+          "matchNum": "周一015"
+        }
+      ]
+    }
+  ]
+}

@@ -138,7 +138,7 @@ function ensureTables(db) {
  */
 function ensureVirtualAccount(db, opts) {
   opts = opts || {};
-  var account = null;
+  let account = null;
 
   // 按 account_id 查找
   if (opts.accountId) {
@@ -486,7 +486,7 @@ function getRunningMax(db, accountId) {
  * 获取账户收入摘要
  */
 function getIncomeSummary(db, accountId) {
-  var records = [];
+  const records = [];
 
   try {
     const stmt = db.prepare('SELECT * FROM shadow_income_records WHERE account_id = ? ORDER BY created_at ASC');
@@ -563,7 +563,7 @@ function getIncomeSummary(db, accountId) {
  */
 function getEquityCurve(db, accountId, days) {
   days = days || 90;
-  var records = [];
+  const records = [];
 
   try {
     const stmt = db.prepare(

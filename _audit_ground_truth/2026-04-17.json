@@ -1,0 +1,97 @@
+{
+  "lockedAt": "2026-06-18T08:39:50.795Z",
+  "earliestKickoff": null,
+  "date": "2026-04-17",
+  "plans": [
+    {
+      "planId": "plan_2026-04-17_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039135",
+          "direction": "总进球-2、3球",
+          "homeName": "墨尔本胜利",
+          "visitName": "纽卡斯尔喷气机",
+          "matchNum": "周五001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-17_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039135",
+          "direction": "总进球-1、2、3球",
+          "homeName": "墨尔本胜利",
+          "visitName": "纽卡斯尔喷气机",
+          "matchNum": "周五001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-17_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039136",
+          "direction": "总进球-1、2、3球",
+          "homeName": "埃尔沃斯堡",
+          "visitName": "卡尔斯鲁厄",
+          "matchNum": "周五002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-17_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039138",
+          "direction": "总进球-3、4、5球",
+          "homeName": "佐加顿斯",
+          "visitName": "马尔默",
+          "matchNum": "周五004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-17_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039137",
+          "direction": "总进球-3、4、5球",
+          "homeName": "萨索洛",
+          "visitName": "科莫",
+          "matchNum": "周五003"
+        }
+      ]
+    }
+  ]
+}

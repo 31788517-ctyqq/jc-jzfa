@@ -1,0 +1,97 @@
+{
+  "lockedAt": "2026-06-18T08:39:50.772Z",
+  "earliestKickoff": null,
+  "date": "2026-04-16",
+  "plans": [
+    {
+      "planId": "plan_2026-04-16_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039123",
+          "direction": "总进球-2、3球",
+          "homeName": "帕尔梅拉斯",
+          "visitName": "水晶体育",
+          "matchNum": "周四008"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-16_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039122",
+          "direction": "总进球-1、2、3球",
+          "homeName": "斯特拉斯堡",
+          "visitName": "美因茨",
+          "matchNum": "周四007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-16_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039123",
+          "direction": "总进球-1、2、3球",
+          "homeName": "帕尔梅拉斯",
+          "visitName": "水晶体育",
+          "matchNum": "周四008"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-16_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039117",
+          "direction": "总进球-3、4、5球",
+          "homeName": "诺丁汉森林",
+          "visitName": "波尔图",
+          "matchNum": "周四002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-16_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039118",
+          "direction": "总进球-3、4、5球",
+          "homeName": "皇家贝蒂斯",
+          "visitName": "布拉加",
+          "matchNum": "周四003"
+        }
+      ]
+    }
+  ]
+}

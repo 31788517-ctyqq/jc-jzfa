@@ -1,0 +1,25 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.906Z",
+  "earliestKickoff": null,
+  "date": "2026-06-05",
+  "plans": [
+    {
+      "planId": "plan_2026-06-05_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040114",
+          "direction": "总进球-2、3球",
+          "homeName": "新加坡",
+          "visitName": "中国",
+          "matchNum": "周五201"
+        }
+      ]
+    }
+  ]
+}

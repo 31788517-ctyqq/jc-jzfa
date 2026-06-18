@@ -81,7 +81,7 @@ describe('支付宝证书模式集成', () => {
     expect(config.gateway).toContain('openapi-sandbox');
   });
 
-  test('桌面端生成 alipay.trade.page.pay 证书模式支付链接', async () => {
+  test('桌面端默认生成 alipay.trade.wap.pay 证书模式支付链接', async () => {
     setSandboxEnv();
     const { createPaymentUrl } = require('../payments/alipay');
     const result = await createPaymentUrl({
@@ -93,14 +93,14 @@ describe('支付宝证书模式集成', () => {
     });
 
     expect(result.mode).toBe('alipay_sandbox_cert');
-    expect(result.method).toBe('alipay.trade.page.pay');
+    expect(result.method).toBe('alipay.trade.wap.pay');
     expect(result.paymentUrl).toContain('ZJ202606130001');
     expect(capturedConfig.appId).toBe('2021006161653361');
     expect(capturedConfig.appCertPath).toContain('appCertPublicKey_2021006161653361.crt');
     expect(capturedPage.httpMethod).toBe('GET');
     expect(capturedPage.params.notifyUrl).toBe('https://zj.100qiu.com/api/payments/notify');
     expect(capturedPage.params.returnUrl).toContain('orderNo=ZJ202606130001');
-    expect(capturedPage.params.bizContent.productCode).toBe('FAST_INSTANT_TRADE_PAY');
+    expect(capturedPage.params.bizContent.productCode).toBe('QUICK_WAP_WAY');
     expect(capturedPage.params.bizContent.totalAmount).toBe('98.00');
   });
 

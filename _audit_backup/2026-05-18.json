@@ -1,0 +1,57 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.122Z",
+  "earliestKickoff": null,
+  "date": "2026-05-18",
+  "plans": [
+    {
+      "planId": "plan_2026-05-18_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039818",
+          "direction": "平、让平",
+          "homeName": "厄尔格里特",
+          "visitName": "IFK哥德堡",
+          "matchNum": "周一003"
+        },
+        {
+          "matchId": "2039816",
+          "direction": "让负",
+          "homeName": "拉赫蒂",
+          "visitName": "瓦萨",
+          "matchNum": "周一001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-18_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039816",
+          "direction": "总进球-2、3球",
+          "homeName": "拉赫蒂",
+          "visitName": "瓦萨",
+          "matchNum": "周一001"
+        },
+        {
+          "matchId": "2039817",
+          "direction": "让负",
+          "homeName": "佐加顿斯",
+          "visitName": "天狼星",
+          "matchNum": "周一002"
+        }
+      ]
+    }
+  ]
+}

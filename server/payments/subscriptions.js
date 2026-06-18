@@ -17,6 +17,7 @@ function getPayload(req) {
 
 const VIP_GIFT_ACTIVITY_END_DATE = String(process.env.VIP_GIFT_ACTIVITY_END_DATE || '2026-07-12').slice(0, 10);
 const VIP_GIFT_DURATION_DAYS = Math.max(1, parseInt(process.env.VIP_GIFT_DURATION_DAYS || '15', 10) || 15);
+const MAX_SUBSCRIPTION_MONTHS = 36;
 
 function toLocalDateString(dateLike) {
   const d = dateLike ? new Date(dateLike) : new Date();
@@ -38,6 +39,15 @@ function isDateExpired(expiresAt) {
   const exp = String(expiresAt || '').slice(0, 10);
   if (!exp) return false;
   return toLocalDateString() > exp;
+}
+
+function clampEndDateByMaxMonths(baseDate, targetDate, maxMonths) {
+  const base = new Date(baseDate);
+  const target = new Date(targetDate);
+  if (Number.isNaN(base.getTime()) || Number.isNaN(target.getTime())) return targetDate;
+  const cap = new Date(base);
+  cap.setMonth(cap.getMonth() + Number(maxMonths || MAX_SUBSCRIPTION_MONTHS));
+  return target.getTime() > cap.getTime() ? cap : target;
 }
 
 function normalizeUserSubscriptionStatus(adp, userId) {
@@ -274,6 +284,7 @@ async function adminGrantSubscription(req, res) {
     const startDate = new Date().toISOString().slice(0, 10);
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + plan.duration_months);
+    const clampedEndDate = clampEndDateByMaxMonths(new Date(), endDate, MAX_SUBSCRIPTION_MONTHS);
 
     const amount = custom_amount || plan.price;
 
@@ -281,7 +292,7 @@ async function adminGrantSubscription(req, res) {
       `INSERT INTO user_subscriptions 
        (user_id, plan_code, period, status, start_date, end_date, source, amount, original_amount)
        VALUES (?, ?, ?, 'active', ?, ?, 'admin_grant', ?, ?)`,
-      [user_id, plan_code, plan.period, startDate, endDate.toISOString().slice(0, 10), amount, plan.price],
+      [user_id, plan_code, plan.period, startDate, clampedEndDate.toISOString().slice(0, 10), amount, plan.price],
     );
 
     const subId = adp.execOne(`SELECT last_insert_rowid() as id FROM user_subscriptions LIMIT 1`);
@@ -291,12 +302,12 @@ async function adminGrantSubscription(req, res) {
       `UPDATE users SET subscription_status = 'active', 
        subscription_expires_at = ?, current_subscription_id = ?
        WHERE id = ?`,
-      [endDate.toISOString().slice(0, 10), subId?.id, user_id],
+      [clampedEndDate.toISOString().slice(0, 10), subId?.id, user_id],
     );
 
     return res.json({
       code: 1,
-      data: { message: '套餐已开通', end_date: endDate.toISOString().slice(0, 10) },
+      data: { message: '套餐已开通', end_date: clampedEndDate.toISOString().slice(0, 10) },
     });
   } catch (e) {
     console.error('[subscriptions] 管理员赠送失败:', e.message);

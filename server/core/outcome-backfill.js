@@ -7,6 +7,7 @@
  */
 
 const database = require('../database');
+const { todayCN } = require('./datetime');
 
 const INTERNAL_MODEL_NAMES = ['data_fusion', 'market_signal'];
 
@@ -33,17 +34,19 @@ class OutcomeBackfill {
     if (!db) return { backfilled: 0, skipped: 0, errors: ['db unavailable'] };
 
     const results = { backfilled: 0, skipped: 0, errors: [] };
-    const date = options.date || new Date().toISOString().slice(0, 10);
+    const date = options.date || todayCN();
 
     try {
       // 1. 查找已完成比赛（去除LIMIT确保覆盖全部历史，已有去重机制防止重复写入）
       const limit = options.limit || 0; // 0=不限制, >0=最多N场
-      const finishedMatches = db.execAll(
+      const matchSql =
         `SELECT m.matchId, m.num, m.date, m.homeName, m.visitName, m.score, m.halfScore
          FROM matches m
-         WHERE m.matchStatus >= 2
-         ORDER BY m.date DESC` + (limit > 0 ? ` LIMIT ${limit}` : ''),
-      );
+         WHERE m.matchStatus >= 2` +
+        (date ? ' AND m.date = ?' : '') +
+        ` ORDER BY m.date DESC` +
+        (limit > 0 ? ` LIMIT ${limit}` : '');
+      const finishedMatches = date ? db.execAll(matchSql, date) : db.execAll(matchSql);
 
       // 2. 对每场已完成比赛，查找对应的 unified_predictions
       for (const match of finishedMatches) {

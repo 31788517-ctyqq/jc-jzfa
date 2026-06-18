@@ -27,7 +27,7 @@ async function warmUp(options) {
   async function step(name, fn) {
     // 显式出让 CPU，确保不长时间阻塞 Event Loop
     await new Promise((resolve) => {
-      var timer = setImmediate(resolve);
+      const timer = setImmediate(resolve);
       if (timer && timer.unref) timer.unref();
     });
     try {

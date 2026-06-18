@@ -13,16 +13,16 @@ import { getAuthSession } from '../auth-client.js';
 // 工具函数
 // ═══════════════════════════════════════════════════════
 
-var _currentTab = 'users';
-var _container = null;
-var ADMIN_ASSET_VERSION = '202606122040';
+let _currentTab = 'users';
+let _container = null;
+const ADMIN_ASSET_VERSION = '202606122040';
 
 function _adminHomeIcon() {
   return '<svg class="adm-home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4.5v-5.5h3V21H18a1 1 0 0 0 1-1V9.5"/></svg>';
 }
 
 function _admIcon(name) {
-  var icons = {
+  const icons = {
     users:
       '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Z"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/><path d="M18.5 9.5a3 3 0 0 1 0 6"/><path d="M20 19a5 5 0 0 0-3-4"/></svg>',
     payments:
@@ -48,39 +48,39 @@ function _admIcon(name) {
 }
 
 function _ensureAdminCss() {
-  var href = '/css/admin-v2.css?v=' + ADMIN_ASSET_VERSION;
-  var links = document.querySelectorAll('link[rel="stylesheet"]');
-  for (var i = 0; i < links.length; i++) {
+  const href = '/css/admin-v2.css?v=' + ADMIN_ASSET_VERSION;
+  const links = document.querySelectorAll('link[rel="stylesheet"]');
+  for (let i = 0; i < links.length; i++) {
     if ((links[i].getAttribute('href') || '').indexOf('/css/admin-v2.css') >= 0) {
       if (links[i].getAttribute('href') !== href) links[i].setAttribute('href', href);
       return;
     }
   }
-  var link = document.createElement('link');
+  const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = href;
   document.head.appendChild(link);
 }
 
 function _hasPerm(code) {
-  var s = getAuthSession();
+  const s = getAuthSession();
   if (!s) return false;
-  var roles = s.roles || [];
+  const roles = s.roles || [];
   if (roles.indexOf('super_admin') >= 0) return true;
-  var perms = s.permissions || [];
+  const perms = s.permissions || [];
   return perms.indexOf(code) >= 0 || perms.indexOf('*') >= 0;
 }
 
 function _isAdmin() {
-  var s = getAuthSession();
-  var roles = (s && s.roles) || [];
+  const s = getAuthSession();
+  const roles = (s && s.roles) || [];
   return roles.indexOf('super_admin') >= 0 || roles.indexOf('ops_admin') >= 0;
 }
 
 function _toast(msg, ms) {
-  var old = document.querySelector('.adm-toast');
+  const old = document.querySelector('.adm-toast');
   if (old) old.remove();
-  var el = document.createElement('div');
+  const el = document.createElement('div');
   el.className = 'adm-toast';
   el.textContent = msg;
   document.body.appendChild(el);
@@ -91,7 +91,7 @@ function _toast(msg, ms) {
 
 function _showSheet(title, bodyHtml) {
   _closeSheet();
-  var overlay = document.createElement('div');
+  const overlay = document.createElement('div');
   overlay.className = 'adm-overlay';
   overlay.id = 'admOverlay';
   overlay.innerHTML =
@@ -112,7 +112,7 @@ function _showSheet(title, bodyHtml) {
 }
 
 function _closeSheet() {
-  var el = document.getElementById('admOverlay');
+  const el = document.getElementById('admOverlay');
   if (el) el.remove();
 }
 
@@ -122,8 +122,8 @@ function _fmtDate(iso) {
 }
 
 function _cnErrorLine(line) {
-  var text = String(line || '');
-  var rules = [
+  let text = String(line || '');
+  const rules = [
     [/error/gi, '错误'],
     [/failed/gi, '失败'],
     [/timeout/gi, '超时'],
@@ -142,13 +142,13 @@ function _cnErrorLine(line) {
     [/warning/gi, '警告'],
     [/exception/gi, '异常'],
   ];
-  for (var i = 0; i < rules.length; i++) {
+  for (let i = 0; i < rules.length; i++) {
     text = text.replace(rules[i][0], rules[i][1]);
   }
   return text;
 }
 
-var _statusCN = {
+const _statusCN = {
   active: '正常',
   disabled: '禁用',
   locked: '锁定',
@@ -163,37 +163,37 @@ var _statusCN = {
   cancelled: '已取消',
 };
 
-var _roleCN = {
+const _roleCN = {
   super_admin: '超级管理员',
   ops_admin: '运维管理员',
   analyst: '分析员',
   viewer: '访客',
 };
 
-var _planCN = {
+const _planCN = {
   monthly: '月度套餐',
   quarterly: '季度套餐',
   yearly: '年度套餐',
 };
 
-var _sourceCN = {
+const _sourceCN = {
   manual: '手动开通',
   system: '系统发放',
   wechat_pay: '微信支付',
 };
 
-var _withdrawMethodCN = {
+const _withdrawMethodCN = {
   bank_card: '银行卡',
   wechat: '微信',
 };
 
 function _statusHtml(status) {
-  var text = _statusCN[status] || (status ? '未知状态' : '--');
+  const text = _statusCN[status] || (status ? '未知状态' : '--');
   return '<span class="adm-status adm-status-' + status + '">' + text + '</span>';
 }
 
 function _roleHtml(role) {
-  var text = _roleCN[role] || (role ? '未知角色' : '--');
+  const text = _roleCN[role] || (role ? '未知角色' : '--');
   return '<span class="adm-role adm-role-' + role + '">' + text + '</span>';
 }
 
@@ -210,9 +210,9 @@ export function loadAdmin(container) {
     return;
   }
 
-  var tab = 'users';
+  let tab = 'users';
   try {
-    var pending = sessionStorage.getItem('pendingAdminTab');
+    const pending = sessionStorage.getItem('pendingAdminTab');
     if (pending) {
       tab = pending;
       sessionStorage.removeItem('pendingAdminTab');
@@ -221,9 +221,9 @@ export function loadAdmin(container) {
     /* ignore */
   }
 
-  var s = getAuthSession() || {};
-  var roles = s.roles || [];
-  var roleCode =
+  const s = getAuthSession() || {};
+  const roles = s.roles || [];
+  const roleCode =
     roles.indexOf('super_admin') >= 0
       ? 'super_admin'
       : roles.indexOf('ops_admin') >= 0
@@ -251,16 +251,16 @@ export function loadAdmin(container) {
 }
 
 function _renderTabs(active) {
-  var tabs = [
+  const tabs = [
     { key: 'users', icon: _admIcon('users'), label: '用户' },
     { key: 'payments', icon: _admIcon('payments'), label: '订阅' },
     { key: 'referrals', icon: _admIcon('referrals'), label: '返利' },
     { key: 'system', icon: _admIcon('system'), label: '系统' },
   ];
 
-  var html = '';
-  for (var i = 0; i < tabs.length; i++) {
-    var t = tabs[i];
+  let html = '';
+  for (let i = 0; i < tabs.length; i++) {
+    const t = tabs[i];
     html +=
       '<div class="adm-tab' +
       (t.key === active ? ' active' : '') +
@@ -272,11 +272,11 @@ function _renderTabs(active) {
       t.label +
       '</span></div>';
   }
-  var el = document.getElementById('admTabs');
+  const el = document.getElementById('admTabs');
   if (el) {
     el.innerHTML = html;
     el.addEventListener('click', function (e) {
-      var tab = e.target.closest('.adm-tab');
+      const tab = e.target.closest('.adm-tab');
       if (tab && tab.dataset.tab) _switchTab(tab.dataset.tab);
     });
   }
@@ -287,7 +287,7 @@ function _switchTab(tab) {
   document.querySelectorAll('.adm-tab').forEach(function (el) {
     el.classList.toggle('active', el.dataset.tab === tab);
   });
-  var panel = document.getElementById('admPanel');
+  const panel = document.getElementById('admPanel');
   if (!panel) return;
   panel.innerHTML = '<div class="adm-loading">加载中...</div>';
 
@@ -313,7 +313,7 @@ function _switchTab(tab) {
 // Tab 1: 用户管理
 // ═══════════════════════════════════════════════════════
 
-var _allUsers = [];
+let _allUsers = [];
 
 async function _renderUsersTab(panel) {
   try {
@@ -323,16 +323,16 @@ async function _renderUsersTab(panel) {
     return;
   }
 
-  var total = _allUsers.length;
-  var disabled = _allUsers.filter(function (u) {
+  const total = _allUsers.length;
+  const disabled = _allUsers.filter(function (u) {
     return u.status === 'disabled';
   }).length;
-  var today = new Date().toISOString().slice(0, 10);
-  var todayNew = _allUsers.filter(function (u) {
+  const today = new Date().toISOString().slice(0, 10);
+  const todayNew = _allUsers.filter(function (u) {
     return (u.createdAt || '').slice(0, 10) === today;
   }).length;
 
-  var canWrite = _hasPerm('user:create');
+  const canWrite = _hasPerm('user:create');
 
   panel.innerHTML =
     '<div class="adm-stats">' +
@@ -369,9 +369,9 @@ async function _renderUsersTab(panel) {
 
   _filterUsers();
 
-  var searchEl = document.getElementById('admUserSearch');
-  var filterEl = document.getElementById('admUserFilter');
-  var debounceTimer;
+  const searchEl = document.getElementById('admUserSearch');
+  const filterEl = document.getElementById('admUserFilter');
+  let debounceTimer;
   if (searchEl)
     searchEl.addEventListener('input', function () {
       clearTimeout(debounceTimer);
@@ -379,32 +379,32 @@ async function _renderUsersTab(panel) {
     });
   if (filterEl) filterEl.addEventListener('change', _filterUsers);
 
-  var createBtn = document.getElementById('admCreateUser');
+  const createBtn = document.getElementById('admCreateUser');
   if (createBtn) createBtn.addEventListener('click', _showCreateUser);
-  var roleBtn = document.getElementById('admRoleMgmt');
+  const roleBtn = document.getElementById('admRoleMgmt');
   if (roleBtn) roleBtn.addEventListener('click', _showRoleMgmt);
 }
 
 function _filterUsers() {
-  var q = (document.getElementById('admUserSearch') || {}).value || '';
+  let q = (document.getElementById('admUserSearch') || {}).value || '';
   q = q.trim().toLowerCase();
-  var status = (document.getElementById('admUserFilter') || {}).value || '';
-  var canWrite = _hasPerm('user:disable');
-  var canRole = _hasPerm('role:assign');
-  var canReferral = _hasPerm('referral:admin');
+  const status = (document.getElementById('admUserFilter') || {}).value || '';
+  const canWrite = _hasPerm('user:disable');
+  const canRole = _hasPerm('role:assign');
+  const canReferral = _hasPerm('referral:admin');
 
-  var filtered = _allUsers.filter(function (u) {
+  const filtered = _allUsers.filter(function (u) {
     if (status && u.status !== status) return false;
     if (q && u.username.toLowerCase().indexOf(q) < 0 && String(u.id).indexOf(q) < 0) return false;
     return true;
   });
 
-  var html = '';
-  for (var i = 0; i < filtered.length; i++) {
-    var u = filtered[i];
-    var rolesHtml = (u.roles || []).map(_roleHtml).join(' ') || _roleHtml('viewer');
+  let html = '';
+  for (let i = 0; i < filtered.length; i++) {
+    const u = filtered[i];
+    const rolesHtml = (u.roles || []).map(_roleHtml).join(' ') || _roleHtml('viewer');
 
-    var actions = '';
+    let actions = '';
     if (canRole)
       actions +=
         '<button class="adm-btn adm-btn-ghost adm-btn-sm" data-action="editRole" data-uid="' +
@@ -483,7 +483,7 @@ function _filterUsers() {
       '</div>';
   }
 
-  var list = document.getElementById('admUserList');
+  const list = document.getElementById('admUserList');
   if (list) {
     list.innerHTML = html || '<div class="adm-loading">无匹配用户</div>';
     list.addEventListener('click', _handleUserAction);
@@ -491,11 +491,11 @@ function _filterUsers() {
 }
 
 function _handleUserAction(e) {
-  var btn = e.target.closest('[data-action]');
+  const btn = e.target.closest('[data-action]');
   if (!btn) return;
-  var uid = Number(btn.dataset.uid);
-  var action = btn.dataset.action;
-  var user = _allUsers.find(function (u) {
+  const uid = Number(btn.dataset.uid);
+  const action = btn.dataset.action;
+  const user = _allUsers.find(function (u) {
     return u.id === uid;
   });
 
@@ -505,7 +505,7 @@ function _handleUserAction(e) {
   else if (action === 'enable') _setUserStatus(uid, 'active');
   else if (action === 'unlock') _unlockUser(uid);
   else if (action === 'toggleReferral') {
-    var enabled = btn.dataset.enabled === '1';
+    const enabled = btn.dataset.enabled === '1';
     _toggleReferral(uid, !enabled);
   }
 }
@@ -542,7 +542,7 @@ async function _toggleReferral(uid, enabled) {
 
 function _showUserDetail(user) {
   if (!user) return;
-  var rolesHtml = (user.roles || []).map(_roleHtml).join(' ');
+  const rolesHtml = (user.roles || []).map(_roleHtml).join(' ');
   _showSheet(
     '用户详情 #' + user.id,
     '<div class="adm-form-group"><span class="adm-label">用户名</span><div>' +
@@ -571,12 +571,12 @@ function _showUserDetail(user) {
 
 function _showEditRole(user) {
   if (!user) return;
-  var allRoles = ['super_admin', 'ops_admin', 'analyst', 'viewer'];
-  var current = user.roles || [];
-  var rows = '';
-  for (var i = 0; i < allRoles.length; i++) {
-    var r = allRoles[i];
-    var checked = current.indexOf(r) >= 0 ? ' checked' : '';
+  const allRoles = ['super_admin', 'ops_admin', 'analyst', 'viewer'];
+  const current = user.roles || [];
+  let rows = '';
+  for (let i = 0; i < allRoles.length; i++) {
+    const r = allRoles[i];
+    const checked = current.indexOf(r) >= 0 ? ' checked' : '';
     rows +=
       '<label class="adm-checkbox-row"><input type="checkbox" value="' +
       r +
@@ -592,8 +592,8 @@ function _showEditRole(user) {
       '<div style="margin-top:16px"><button class="adm-btn adm-btn-primary" id="admSaveRole" style="width:100%">保存</button></div>',
   );
   document.getElementById('admSaveRole').addEventListener('click', async function () {
-    var checks = document.querySelectorAll('#admSheetBody input[type=checkbox]');
-    var codes = [];
+    const checks = document.querySelectorAll('#admSheetBody input[type=checkbox]');
+    const codes = [];
     checks.forEach(function (c) {
       if (c.checked) codes.push(c.value);
     });
@@ -622,14 +622,14 @@ function _showCreateUser() {
       '<div class="adm-msg" id="admCreateMsg"></div>',
   );
   document.getElementById('admDoCreate').addEventListener('click', async function () {
-    var username = (document.getElementById('admNewUsername') || {}).value || '';
-    var roleCode = (document.getElementById('admNewRole') || {}).value || 'viewer';
+    const username = (document.getElementById('admNewUsername') || {}).value || '';
+    const roleCode = (document.getElementById('admNewRole') || {}).value || 'viewer';
     if (!username.trim()) {
       _toast('请输入用户名');
       return;
     }
     try {
-      var result = await api('user-create', { username: username.trim(), roleCode: roleCode });
+      const result = await api('user-create', { username: username.trim(), roleCode: roleCode });
       _closeSheet();
       _showSheet(
         '用户创建成功',
@@ -652,7 +652,7 @@ function _showCreateUser() {
   });
 }
 
-var _permCN = {
+const _permCN = {
   'auth:login': '登录',
   'auth:logout': '登出',
   'auth:change_password': '修改密码',
@@ -688,7 +688,7 @@ var _permCN = {
 };
 
 async function _showRoleMgmt() {
-  var roles;
+  let roles;
   try {
     roles = await api('role-list', {});
   } catch (e) {
@@ -696,10 +696,10 @@ async function _showRoleMgmt() {
     return;
   }
 
-  var html = '';
-  var list = Array.isArray(roles) ? roles : roles.roles || [];
-  for (var i = 0; i < list.length; i++) {
-    var r = list[i];
+  let html = '';
+  const list = Array.isArray(roles) ? roles : roles.roles || [];
+  for (let i = 0; i < list.length; i++) {
+    const r = list[i];
     var perms;
     if (r.code === 'super_admin') {
       perms = '* (全部权限)';
@@ -733,13 +733,13 @@ async function _renderPaymentsTab(panel) {
   panel.innerHTML = '<div class="adm-loading">加载中...</div>';
 
   try {
-    var listData = await api('admin-subscription-list', { status: '', pageSize: 200 });
-    var list = listData.list || listData || [];
-    var total = listData.total || list.length;
+    const listData = await api('admin-subscription-list', { status: '', pageSize: 200 });
+    const list = listData.list || listData || [];
+    const total = listData.total || list.length;
 
-    var active = 0,
+    let active = 0,
       expiring = 0;
-    for (var i = 0; i < list.length; i++) {
+    for (let i = 0; i < list.length; i++) {
       if (list[i].status === 'active') active++;
       if (list[i].status === 'expiring_soon') expiring++;
     }
@@ -775,8 +775,8 @@ async function _renderPaymentsTab(panel) {
     _renderSubList(list, '');
 
     document.getElementById('admSubFilter').addEventListener('change', function () {
-      var st = this.value;
-      var filtered = st
+      const st = this.value;
+      const filtered = st
         ? list.filter(function (s) {
             return s.status === st;
           })
@@ -791,15 +791,15 @@ async function _renderPaymentsTab(panel) {
 }
 
 function _renderSubList(list, status) {
-  var el = document.getElementById('admSubList');
+  const el = document.getElementById('admSubList');
   if (!el) return;
   if (!list.length) {
     el.innerHTML = '<div class="adm-loading">暂无数据</div>';
     return;
   }
-  var html = '';
-  for (var i = 0; i < list.length; i++) {
-    var s = list[i];
+  let html = '';
+  for (let i = 0; i < list.length; i++) {
+    const s = list[i];
     html +=
       '<div class="adm-card">' +
       '<div class="adm-card-header"><span class="adm-card-name">' +
@@ -824,15 +824,15 @@ function _renderSubList(list, status) {
 }
 
 async function _doGrant() {
-  var uid = parseInt((document.getElementById('admGrantUid') || {}).value);
-  var plan = (document.getElementById('admGrantPlan') || {}).value || 'monthly';
-  var msgEl = document.getElementById('admGrantMsg');
+  const uid = parseInt((document.getElementById('admGrantUid') || {}).value);
+  const plan = (document.getElementById('admGrantPlan') || {}).value || 'monthly';
+  const msgEl = document.getElementById('admGrantMsg');
   if (!uid) {
     _toast('请输入用户ID');
     return;
   }
   try {
-    var result = await api('admin-grant-subscription', { user_id: uid, plan_code: plan });
+    const result = await api('admin-grant-subscription', { user_id: uid, plan_code: plan });
     if (msgEl) {
       msgEl.className = 'adm-msg adm-msg-ok';
       msgEl.textContent = '已开通，到期 ' + (result.end_date || '--');
@@ -858,14 +858,14 @@ async function _renderReferralsTab(panel) {
   panel.innerHTML = '<div class="adm-loading">加载中...</div>';
 
   try {
-    var commData = await api('admin-referral-commissions', { status: '', pageSize: 200 });
-    var commList = commData.list || commData || [];
-    var commTotal = commData.total || commList.length;
+    const commData = await api('admin-referral-commissions', { status: '', pageSize: 200 });
+    const commList = commData.list || commData || [];
+    const commTotal = commData.total || commList.length;
 
-    var wData = await api('admin-referral-withdraw-list', { status: 'submitted', pageSize: 100 });
-    var wList = wData.list || wData || [];
-    var wCount = wData.total || wList.length;
-    var wAmount = 0;
+    const wData = await api('admin-referral-withdraw-list', { status: 'submitted', pageSize: 100 });
+    const wList = wData.list || wData || [];
+    const wCount = wData.total || wList.length;
+    let wAmount = 0;
     wList.forEach(function (w) {
       wAmount += Number(w.amount || 0);
     });
@@ -899,7 +899,7 @@ async function _renderReferralsTab(panel) {
     document.getElementById('admRefFilter').addEventListener('change', function () {
       _refFilterApply(commList);
     });
-    var refDebounce;
+    let refDebounce;
     document.getElementById('admRefSearch').addEventListener('input', function () {
       clearTimeout(refDebounce);
       refDebounce = setTimeout(function () {
@@ -912,9 +912,9 @@ async function _renderReferralsTab(panel) {
 }
 
 function _refFilterApply(commList) {
-  var st = (document.getElementById('admRefFilter') || {}).value || '';
-  var q = ((document.getElementById('admRefSearch') || {}).value || '').trim().toLowerCase();
-  var filtered = commList.filter(function (c) {
+  const st = (document.getElementById('admRefFilter') || {}).value || '';
+  const q = ((document.getElementById('admRefSearch') || {}).value || '').trim().toLowerCase();
+  const filtered = commList.filter(function (c) {
     if (st && c.status !== st) return false;
     if (q && (c.inviter_name || '').toLowerCase().indexOf(q) < 0) return false;
     return true;
@@ -923,15 +923,15 @@ function _refFilterApply(commList) {
 }
 
 function _renderRefList(list) {
-  var el = document.getElementById('admRefList');
+  const el = document.getElementById('admRefList');
   if (!el) return;
   if (!list.length) {
     el.innerHTML = '<div class="adm-loading">暂无数据</div>';
     return;
   }
-  var html = '';
-  for (var i = 0; i < list.length; i++) {
-    var c = list[i];
+  let html = '';
+  for (let i = 0; i < list.length; i++) {
+    const c = list[i];
     html +=
       '<div class="adm-card">' +
       '<div class="adm-card-sub">' +
@@ -955,15 +955,15 @@ function _renderRefList(list) {
 }
 
 function _renderWithdrawList(list) {
-  var el = document.getElementById('admWithdrawList');
+  const el = document.getElementById('admWithdrawList');
   if (!el) return;
   if (!list.length) {
     el.innerHTML = '<div class="adm-card-sub">暂无待审核提现</div>';
     return;
   }
-  var html = '';
-  for (var i = 0; i < list.length; i++) {
-    var w = list[i];
+  let html = '';
+  for (let i = 0; i < list.length; i++) {
+    const w = list[i];
     html +=
       '<div class="adm-card" style="margin-top:8px">' +
       '<div class="adm-card-sub">' +
@@ -989,14 +989,14 @@ function _renderWithdrawList(list) {
   }
   el.innerHTML = html;
   el.addEventListener('click', function (e) {
-    var btn = e.target.closest('[data-wact]');
+    const btn = e.target.closest('[data-wact]');
     if (!btn) return;
     _processWithdraw(Number(btn.dataset.wid), btn.dataset.wact);
   });
 }
 
 async function _processWithdraw(wid, newStatus) {
-  var remark = newStatus === 'rejected' ? prompt('驳回原因:') : '已打款';
+  const remark = newStatus === 'rejected' ? prompt('驳回原因:') : '已打款';
   if (newStatus === 'rejected' && !remark) return;
   try {
     await api('admin-referral-withdraw-process', { withdrawalId: wid, newStatus: newStatus, remark: remark || '' });
@@ -1014,13 +1014,13 @@ async function _processWithdraw(wid, newStatus) {
 async function _renderSystemTab(panel) {
   panel.innerHTML = '<div class="adm-loading">加载中...</div>';
 
-  var healthHtml = '',
+  let healthHtml = '',
     cacheHtml = '',
     pipeHtml = '',
     errHtml = '';
 
   try {
-    var [dhData, cacheData, errData] = await Promise.all([
+    const [dhData, cacheData, errData] = await Promise.all([
       api('data-health', { days: 1 }).catch(function () {
         return null;
       }),
@@ -1033,13 +1033,13 @@ async function _renderSystemTab(panel) {
     ]);
 
     // 服务状态概览
-    var fetchRate = '--',
+    let fetchRate = '--',
       cacheRate = '--',
       aiRate = '--';
     if (dhData && dhData.fetchSources) {
       var sources = dhData.fetchSources;
-      var keys = Object.keys(sources);
-      var sum = 0;
+      const keys = Object.keys(sources);
+      let sum = 0;
       keys.forEach(function (k) {
         sum += sources[k].successRate || 0;
       });
@@ -1074,9 +1074,9 @@ async function _renderSystemTab(panel) {
         '<div class="adm-card" style="margin-top:12px"><div class="adm-card-header"><span class="adm-card-name">管线健康</span></div>';
       var sources = dhData.fetchSources;
       Object.keys(sources).forEach(function (k) {
-        var s = sources[k];
-        var rate = s.successRate || 0;
-        var cls = rate >= 95 ? 'adm-health-ok' : rate >= 80 ? 'adm-health-warn' : 'adm-health-err';
+        const s = sources[k];
+        const rate = s.successRate || 0;
+        const cls = rate >= 95 ? 'adm-health-ok' : rate >= 80 ? 'adm-health-warn' : 'adm-health-err';
         pipeHtml +=
           '<div class="adm-health-row"><span class="adm-health-name">' +
           k +
@@ -1094,7 +1094,7 @@ async function _renderSystemTab(panel) {
     }
 
     // 最近错误
-    var errors = (errData && errData.errors) || [];
+    const errors = (errData && errData.errors) || [];
     if (errors.length) {
       errHtml =
         '<div class="adm-card" style="margin-top:12px"><div class="adm-card-header"><span class="adm-card-name">最近错误</span>' +
@@ -1103,7 +1103,7 @@ async function _renderSystemTab(panel) {
         ' 条</span></div>';
 
       errors.forEach(function (line) {
-        var safeLine = _cnErrorLine(line).replace(/</g, '&lt;');
+        const safeLine = _cnErrorLine(line).replace(/</g, '&lt;');
         errHtml += '<div class="adm-log-item">' + safeLine + '</div>';
       });
 
@@ -1114,8 +1114,8 @@ async function _renderSystemTab(panel) {
   }
 
   // 运维操作按钮
-  var canOps = _hasPerm('ops:sync_match_date');
-  var opsHtml = '';
+  const canOps = _hasPerm('ops:sync_match_date');
+  let opsHtml = '';
   if (canOps) {
     opsHtml =
       '<div class="adm-card" style="margin-top:12px"><div class="adm-card-header"><span class="adm-card-name">运维操作</span></div>' +
@@ -1132,7 +1132,7 @@ async function _renderSystemTab(panel) {
 
   if (canOps) {
     panel.addEventListener('click', function (e) {
-      var btn = e.target.closest('[data-ops]');
+      const btn = e.target.closest('[data-ops]');
       if (!btn) return;
       _execOps(btn.dataset.ops);
     });
@@ -1140,14 +1140,14 @@ async function _renderSystemTab(panel) {
 }
 
 async function _execOps(action) {
-  var msgEl = document.getElementById('admOpsMsg');
+  const msgEl = document.getElementById('admOpsMsg');
   if (msgEl) {
     msgEl.className = 'adm-msg';
     msgEl.textContent = '执行中...';
   }
   try {
-    var result = await api(action, {});
-    var hint = (result && result.hint) || '操作完成';
+    const result = await api(action, {});
+    const hint = (result && result.hint) || '操作完成';
     if (msgEl) {
       msgEl.className = 'adm-msg adm-msg-ok';
       msgEl.textContent = hint;

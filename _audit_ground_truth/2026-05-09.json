@@ -1,0 +1,97 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.299Z",
+  "earliestKickoff": null,
+  "date": "2026-05-09",
+  "plans": [
+    {
+      "planId": "plan_2026-05-09_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039610",
+          "direction": "总进球-2、3球",
+          "homeName": "莱比锡红牛",
+          "visitName": "圣保利",
+          "matchNum": "周六017"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-09_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039612",
+          "direction": "总进球-1、2、3球",
+          "homeName": "富勒姆",
+          "visitName": "伯恩茅斯",
+          "matchNum": "周六019"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-09_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039615",
+          "direction": "总进球-1、2、3球",
+          "homeName": "拉齐奥",
+          "visitName": "国际米兰",
+          "matchNum": "周六022"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-09_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039613",
+          "direction": "总进球-3、4、5球",
+          "homeName": "塞维利亚",
+          "visitName": "西班牙人",
+          "matchNum": "周六020"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-09_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039604",
+          "direction": "总进球-3、4、5球",
+          "homeName": "卡利亚里",
+          "visitName": "乌迪内斯",
+          "matchNum": "周六011"
+        }
+      ]
+    }
+  ]
+}

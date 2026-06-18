@@ -358,12 +358,16 @@ function _createSqlJsAdapter(sqlDb) {
       // 写入后校验完整性
       const written = fs.readFileSync(tmpFile);
       if (written.length !== buffer.length) {
-        throw new Error('写入字节数不匹配(' + written.length + '≠' + buffer.length + ')');
+        const err = new Error('写入字节数不匹配(' + written.length + '\u2260' + buffer.length + ')');
+        if (_dbMetrics) _dbMetrics.recordError(err.message);
+        throw err;
       }
       // 原子替换
       fs.renameSync(tmpFile, DB_FILE);
+      if (_dbMetrics) _dbMetrics.recordWrite();
     } catch (e) {
       console.error('[db] 保存数据库失败: ' + e.message);
+      if (_dbMetrics && e.message.indexOf('写入字节数不匹配') === -1) _dbMetrics.recordError(e.message);
       // 清理残留 .tmp 文件
       try {
         fs.unlinkSync(DB_FILE + '.tmp');
@@ -427,15 +431,21 @@ function _createSqlJsAdapter(sqlDb) {
     }
   }
 
+  // ★ V17: DB 写入指标追踪
+  let _dbMetrics = null;
+  try { _dbMetrics = require('./core/db-metrics'); } catch (_) {}
+
   // execRun: 执行 INSERT/UPDATE/DELETE
   function execRun(sql, ...args) {
     const params = _normalizeParams(args);
     try {
       dbInstance.run(sql, params);
       _scheduleSave(); // ★ P1-3: 防抖写入，延迟到响应用 setImmediate 合并保存
+      if (_dbMetrics) _dbMetrics.recordWrite();
       return { changes: dbInstance.getRowsModified() };
     } catch (e) {
       console.error('[db] execRun error:', e.message, sql.slice(0, 80));
+      if (_dbMetrics) _dbMetrics.recordError(e.message);
       return { changes: 0 };
     }
   }
@@ -445,8 +455,10 @@ function _createSqlJsAdapter(sqlDb) {
     try {
       dbInstance.run(sql);
       _scheduleSave(); // ★ P1-3: 防抖写入
+      if (_dbMetrics) _dbMetrics.recordWrite();
     } catch (e) {
       console.error('[db] execDDL error:', e.message);
+      if (_dbMetrics) _dbMetrics.recordError(e.message);
     }
   }
 
@@ -491,8 +503,8 @@ function _createSqlJsAdapter(sqlDb) {
   function reload() {
     if (!fs.existsSync(DB_FILE)) return false;
     try {
-      var fileBuf = fs.readFileSync(DB_FILE);
-      var newDb = new sqlDb.Database(fileBuf);
+      const fileBuf = fs.readFileSync(DB_FILE);
+      const newDb = new sqlDb.Database(fileBuf);
       dbInstance.close();
       dbInstance = newDb;
       _dirty = false;
@@ -1431,7 +1443,7 @@ function _initSqlJs() {
 // 选择后端
 // ═══════════════════════════════════════════════════════
 
-var _backendSelected = false;
+let _backendSelected = false;
 
 // 尝试 Tier 1: better-sqlite3
 if (!_backendSelected) {

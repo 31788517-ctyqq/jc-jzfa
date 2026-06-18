@@ -1,0 +1,150 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.069Z",
+  "earliestKickoff": null,
+  "date": "2026-04-23",
+  "plans": [
+    {
+      "planId": "plan_2026-04-23_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039270",
+          "direction": "平、让平",
+          "homeName": "巴列卡诺",
+          "visitName": "西班牙人",
+          "matchNum": "周四005"
+        },
+        {
+          "matchId": "2039269",
+          "direction": "让负",
+          "homeName": "马尔默",
+          "visitName": "天狼星",
+          "matchNum": "周四004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-23_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039270",
+          "direction": "总进球-2、3球",
+          "homeName": "巴列卡诺",
+          "visitName": "西班牙人",
+          "matchNum": "周四005"
+        },
+        {
+          "matchId": "2039269",
+          "direction": "让负",
+          "homeName": "马尔默",
+          "visitName": "天狼星",
+          "matchNum": "周四004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-23_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039269",
+          "direction": "胜",
+          "homeName": "马尔默",
+          "visitName": "天狼星",
+          "matchNum": "周四004"
+        },
+        {
+          "matchId": "2039270",
+          "direction": "让负",
+          "homeName": "巴列卡诺",
+          "visitName": "西班牙人",
+          "matchNum": "周四005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-23_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039266",
+          "direction": "总进球-2、3球",
+          "homeName": "欧奈宰纳伊马",
+          "visitName": "布赖代合作",
+          "matchNum": "周四001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-23_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039270",
+          "direction": "平、让平",
+          "homeName": "巴列卡诺",
+          "visitName": "西班牙人",
+          "matchNum": "周四005"
+        },
+        {
+          "matchId": "2039269",
+          "direction": "胜",
+          "homeName": "马尔默",
+          "visitName": "天狼星",
+          "matchNum": "周四004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-23_5",
+      "name": "plan_5",
+      "planName": "方案五",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039270",
+          "direction": "平、让平",
+          "homeName": "巴列卡诺",
+          "visitName": "西班牙人",
+          "matchNum": "周四005"
+        },
+        {
+          "matchId": "2039269",
+          "direction": "总进球-2、3球",
+          "homeName": "马尔默",
+          "visitName": "天狼星",
+          "matchNum": "周四004"
+        }
+      ]
+    }
+  ]
+}

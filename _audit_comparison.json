@@ -1,0 +1,72 @@
+{
+  "serverDataJson": {
+    "rMap": 1084,
+    "mMap": 8218
+  },
+  "localDataJson": {
+    "rMap": 1079,
+    "mMap": 8213
+  },
+  "groundTruth": {
+    "days": 90,
+    "plans": 425,
+    "hitRate": 33.7,
+    "roi": -28.3
+  },
+  "serverSnapshots": {
+    "files": 90,
+    "dates": 90
+  },
+  "comparison": {
+    "commonDates": 88,
+    "diffPlanCountDays": 4,
+    "totalPlanDiff": 10,
+    "diffDetails": [
+      {
+        "date": "2026-04-13",
+        "gt": 4,
+        "server": 0,
+        "diff": 4
+      },
+      {
+        "date": "2026-06-08",
+        "gt": 0,
+        "server": 2,
+        "diff": -2
+      },
+      {
+        "date": "2026-06-09",
+        "gt": 0,
+        "server": 2,
+        "diff": -2
+      },
+      {
+        "date": "2026-06-10",
+        "gt": 0,
+        "server": 2,
+        "diff": -2
+      }
+    ],
+    "onlyGroundTruth": [
+      "2026-03-29",
+      "2026-06-17"
+    ],
+    "onlyServer": [
+      "2026-06-06",
+      "2026-06-18"
+    ],
+    "nameMismatchSameCount": [
+      [
+        "2026-06-11",
+        [
+          "plan_6a",
+          "plan_wc7"
+        ],
+        [
+          "plan_6a",
+          "plan_a345_01"
+        ]
+      ]
+    ]
+  }
+}

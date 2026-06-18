@@ -1,0 +1,172 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.114Z",
+  "earliestKickoff": null,
+  "date": "2026-05-01",
+  "plans": [
+    {
+      "planId": "plan_2026-05-01_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039441",
+          "direction": "平、让平",
+          "homeName": "赫罗纳",
+          "visitName": "马洛卡",
+          "matchNum": "周五005"
+        },
+        {
+          "matchId": "2039438",
+          "direction": "让负",
+          "homeName": "瓦尔韦克",
+          "visitName": "罗达JC",
+          "matchNum": "周五002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-01_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039441",
+          "direction": "总进球-2、3球",
+          "homeName": "赫罗纳",
+          "visitName": "马洛卡",
+          "matchNum": "周五005"
+        },
+        {
+          "matchId": "2039438",
+          "direction": "让负",
+          "homeName": "瓦尔韦克",
+          "visitName": "罗达JC",
+          "matchNum": "周五002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-01_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039440",
+          "direction": "胜",
+          "homeName": "利兹联",
+          "visitName": "伯恩利",
+          "matchNum": "周五004"
+        },
+        {
+          "matchId": "2039441",
+          "direction": "让负",
+          "homeName": "赫罗纳",
+          "visitName": "马洛卡",
+          "matchNum": "周五005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-01_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039437",
+          "direction": "总进球-2、3球",
+          "homeName": "维京",
+          "visitName": "罗森博格",
+          "matchNum": "周五001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-01_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039438",
+          "direction": "总进球-1、2、3球",
+          "homeName": "瓦尔韦克",
+          "visitName": "罗达JC",
+          "matchNum": "周五002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-01_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039440",
+          "direction": "总进球-1、2、3球",
+          "homeName": "利兹联",
+          "visitName": "伯恩利",
+          "matchNum": "周五004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-01_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039441",
+          "direction": "总进球-3、4、5球",
+          "homeName": "赫罗纳",
+          "visitName": "马洛卡",
+          "matchNum": "周五005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-01_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039438",
+          "direction": "总进球-3、4、5球",
+          "homeName": "瓦尔韦克",
+          "visitName": "罗达JC",
+          "matchNum": "周五002"
+        }
+      ]
+    }
+  ]
+}

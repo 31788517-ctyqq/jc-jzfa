@@ -1,0 +1,16 @@
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-15-
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-16-			"tradeNO" : "${request.tradeNO}"
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-17-
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-18-		};
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-19-
+/data/wwwroot/quncai_wap/alipay_recharge.jsp:20:		AlipayJSBridge.call('tradePay', options, function(result) {
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-21-
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-22-			if (result.resultCode == '9000') {
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-23-
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-24-				//location.href = "/alipay_success.shtml";//支付成功后跳转处理
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-25-
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-26-			}
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-27-
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-28-		});
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-29-	</script>
+/data/wwwroot/quncai_wap/alipay_recharge.jsp-30-</body>

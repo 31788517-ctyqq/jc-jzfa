@@ -1,0 +1,57 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.148Z",
+  "earliestKickoff": null,
+  "date": "2026-06-02",
+  "plans": [
+    {
+      "planId": "plan_2026-06-02_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040085",
+          "direction": "平、让平",
+          "homeName": "克罗地亚",
+          "visitName": "比利时",
+          "matchNum": "周二201"
+        },
+        {
+          "matchId": "2040086",
+          "direction": "让负",
+          "homeName": "格鲁吉亚",
+          "visitName": "罗马尼亚",
+          "matchNum": "周二202"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-02_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040086",
+          "direction": "总进球-2、3球",
+          "homeName": "格鲁吉亚",
+          "visitName": "罗马尼亚",
+          "matchNum": "周二202"
+        },
+        {
+          "matchId": "2040085",
+          "direction": "让负",
+          "homeName": "克罗地亚",
+          "visitName": "比利时",
+          "matchNum": "周二201"
+        }
+      ]
+    }
+  ]
+}

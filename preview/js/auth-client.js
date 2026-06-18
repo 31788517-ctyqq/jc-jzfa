@@ -54,7 +54,7 @@ export function clearAuthAll() {
 /** ★ 检查当前登录用户是否开启了返利功能（白名单） */
 export function hasReferralAccess() {
   try {
-    var session = getAuthSession();
+    const session = getAuthSession();
     return !!(session && session.referralEnabled);
   } catch (e) {
     return false;

@@ -7,8 +7,8 @@
  * 投票规则: ≥2 票 → 采纳，1 票 → 采纳但标记低置信度
  */
 
-var fs = require('fs');
-var path = require('path');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * 归一化场次匹配键
@@ -17,10 +17,10 @@ var path = require('path');
  */
 function normalizeMatchKey(match) {
   if (!match) return null;
-  var num = (match.num || match.matchNum || '').trim();
-  var home = (match.homeName || match.home || '').trim();
-  var visit = (match.visitName || match.visit || match.awayName || '').trim();
-  var dt = '';
+  const num = (match.num || match.matchNum || '').trim();
+  const home = (match.homeName || match.home || '').trim();
+  const visit = (match.visitName || match.visit || match.awayName || '').trim();
+  let dt = '';
   if (match.date) {
     dt = String(match.date).slice(0, 10);
   } else if (match.kickoffTime) {
@@ -35,11 +35,11 @@ function normalizeMatchKey(match) {
       .trim();
   }
 
-  var homeClean = cleanTeamName(home);
-  var visitClean = cleanTeamName(visit);
+  const homeClean = cleanTeamName(home);
+  const visitClean = cleanTeamName(visit);
 
   // 生成唯一匹配键
-  var matchKey = [num, homeClean, visitClean, dt].join('_').toLowerCase();
+  const matchKey = [num, homeClean, visitClean, dt].join('_').toLowerCase();
 
   return {
     num: num,
@@ -58,10 +58,15 @@ function normalizeMatchKey(match) {
 function tokenize(name) {
   if (!name) return [];
   // 常见后缀/前缀
-  var clean = name.replace(/队$/g, '').replace(/城$/g, '').replace(/联$/g, '').replace(/斯$/g, '').replace(/亚$/g, '');
+  const clean = name
+    .replace(/队$/g, '')
+    .replace(/城$/g, '')
+    .replace(/联$/g, '')
+    .replace(/斯$/g, '')
+    .replace(/亚$/g, '');
   // 2-gram 分词
-  var tokens = [];
-  for (var i = 0; i < clean.length - 1; i++) {
+  const tokens = [];
+  for (let i = 0; i < clean.length - 1; i++) {
     tokens.push(clean.substring(i, i + 2));
   }
   tokens.push(clean);
@@ -74,8 +79,8 @@ function tokenize(name) {
  */
 function matchTeams(name1, name2) {
   if (!name1 || !name2) return 0;
-  var n1 = name1.toLowerCase().trim();
-  var n2 = name2.toLowerCase().trim();
+  const n1 = name1.toLowerCase().trim();
+  const n2 = name2.toLowerCase().trim();
 
   // 精确匹配
   if (n1 === n2) return 1.0;
@@ -84,18 +89,18 @@ function matchTeams(name1, name2) {
   if (n1.indexOf(n2) >= 0 || n2.indexOf(n1) >= 0) return 0.95;
 
   // Token 匹配
-  var t1 = tokenize(n1);
-  var t2 = tokenize(n2);
-  var matched = 0;
-  for (var i = 0; i < t1.length; i++) {
-    for (var j = 0; j < t2.length; j++) {
+  const t1 = tokenize(n1);
+  const t2 = tokenize(n2);
+  let matched = 0;
+  for (let i = 0; i < t1.length; i++) {
+    for (let j = 0; j < t2.length; j++) {
       if (t1[i] === t2[j]) {
         matched++;
         break;
       }
     }
   }
-  var maxLen = Math.max(t1.length, t2.length);
+  const maxLen = Math.max(t1.length, t2.length);
   return maxLen > 0 ? matched / maxLen : 0;
 }
 
@@ -106,9 +111,9 @@ function matchTeams(name1, name2) {
  */
 function crossMatch(sources) {
   // 1. 归一化
-  var normalized = [];
+  const normalized = [];
   sources.forEach(function (s) {
-    var key = normalizeMatchKey(s.match);
+    const key = normalizeMatchKey(s.match);
     if (!key || !key.num || !key.date) return;
     key._source = s.source;
     key._raw = s.match;
@@ -116,34 +121,34 @@ function crossMatch(sources) {
   });
 
   // 2. 按精确 matchKey 分组
-  var groups = {};
+  const groups = {};
   normalized.forEach(function (n) {
-    var mk = n.matchKey;
+    const mk = n.matchKey;
     if (!groups[mk]) groups[mk] = [];
     groups[mk].push(n);
   });
 
   // 3. 模糊匹配合并 — 将相似但 key 不同的组合并
-  var keys = Object.keys(groups);
-  var merged = [];
-  var used = {};
+  const keys = Object.keys(groups);
+  const merged = [];
+  const used = {};
 
-  for (var i = 0; i < keys.length; i++) {
+  for (let i = 0; i < keys.length; i++) {
     if (used[keys[i]]) continue;
-    var group = groups[keys[i]].slice();
-    var anchor = groups[keys[i]][0];
+    let group = groups[keys[i]].slice();
+    const anchor = groups[keys[i]][0];
     used[keys[i]] = true;
 
-    for (var j = i + 1; j < keys.length; j++) {
+    for (let j = i + 1; j < keys.length; j++) {
       if (used[keys[j]]) continue;
-      var other = groups[keys[j]][0];
+      const other = groups[keys[j]][0];
       // 日期必须相同
       if (anchor.date !== other.date) continue;
       // 编号相同 OR 对阵相似
-      var numMatch = anchor.num === other.num;
-      var homeSim = matchTeams(anchor.homeName, other.homeName);
-      var visitSim = matchTeams(anchor.visitName, other.visitName);
-      var teamSim = (homeSim + visitSim) / 2;
+      const numMatch = anchor.num === other.num;
+      const homeSim = matchTeams(anchor.homeName, other.homeName);
+      const visitSim = matchTeams(anchor.visitName, other.visitName);
+      const teamSim = (homeSim + visitSim) / 2;
 
       if (numMatch || teamSim >= 0.7) {
         group = group.concat(groups[keys[j]]);
@@ -170,7 +175,7 @@ function voteScore(entries) {
   if (entries.length === 0) return null;
   if (entries.length === 1) {
     // 单源：采纳但标记低置信
-    var e = entries[0]._raw || entries[0];
+    const e = entries[0]._raw || entries[0];
     return {
       score: e.score || '',
       halfScore: e.halfScore || '',
@@ -184,19 +189,19 @@ function voteScore(entries) {
   }
 
   // 多源投票
-  var scores = {}; // { '1-1': [source1, source2], '0-1': [source1] }
-  var halves = {};
-  var statuses = {};
-  var sourceSet = {};
+  const scores = {}; // { '1-1': [source1, source2], '0-1': [source1] }
+  const halves = {};
+  const statuses = {};
+  const sourceSet = {};
 
   entries.forEach(function (entry) {
-    var src = entry._source || 'unknown';
+    const src = entry._source || 'unknown';
     sourceSet[src] = true;
-    var raw = entry._raw || entry;
+    const raw = entry._raw || entry;
 
-    var sc = raw.score || '';
-    var hs = raw.halfScore || raw.half_score || '';
-    var st = raw.matchStatus != null ? raw.matchStatus : raw.matchStatus !== undefined ? raw.matchStatus : 0;
+    const sc = raw.score || '';
+    const hs = raw.halfScore || raw.half_score || '';
+    const st = raw.matchStatus != null ? raw.matchStatus : raw.matchStatus !== undefined ? raw.matchStatus : 0;
 
     if (sc) {
       if (!scores[sc]) scores[sc] = [];
@@ -207,14 +212,14 @@ function voteScore(entries) {
       halves[hs].push(src);
     }
     if (st >= 0) {
-      var stKey = st >= 2 ? 'finished' : st === 1 ? 'live' : 'pending';
+      const stKey = st >= 2 ? 'finished' : st === 1 ? 'live' : 'pending';
       if (!statuses[stKey]) statuses[stKey] = [];
       statuses[stKey].push(src);
     }
   });
 
   function pickWinner(votesMap) {
-    var best = '',
+    let best = '',
       bestCount = 0;
     Object.keys(votesMap).forEach(function (k) {
       if (votesMap[k].length > bestCount) {
@@ -225,13 +230,13 @@ function voteScore(entries) {
     return { value: best, count: bestCount, total: entries.length };
   }
 
-  var scoreWinner = pickWinner(scores);
-  var halfWinner = pickWinner(halves);
-  var statusWinner = pickWinner(statuses);
-  var totalSources = Object.keys(sourceSet).length;
-  var confidence = Math.min(1, scoreWinner.count / 2); // ≥2票 → 1.0, 1票 → 0.5
+  const scoreWinner = pickWinner(scores);
+  const halfWinner = pickWinner(halves);
+  const statusWinner = pickWinner(statuses);
+  const totalSources = Object.keys(sourceSet).length;
+  const confidence = Math.min(1, scoreWinner.count / 2); // ≥2票 → 1.0, 1票 → 0.5
 
-  var winner = {
+  const winner = {
     score: scoreWinner.value,
     halfScore: halfWinner.value,
     status: statusWinner.value === 'finished' ? 2 : statusWinner.value === 'live' ? 1 : 0,
@@ -253,11 +258,11 @@ function voteScore(entries) {
  * 从 midou data.json 提取完赛比赛作为数据源
  */
 function extractMidouSource(dataJson, dateStr) {
-  var entries = [];
-  var mMap = dataJson.m || {};
+  const entries = [];
+  const mMap = dataJson.m || {};
   Object.keys(mMap).forEach(function (k) {
-    var x = mMap[k];
-    var dt = (x.date || '').slice(0, 10);
+    const x = mMap[k];
+    const dt = (x.date || '').slice(0, 10);
     if (dt !== dateStr) return;
     if (x.matchStatus < 2) return; // 只要完赛的
     entries.push({
@@ -278,12 +283,12 @@ function extractMidouSource(dataJson, dateStr) {
 }
 
 function _extractMatchNum(raw) {
-  var m = String(raw || '').match(/(周[一二三四五六日]\d{3})/);
+  const m = String(raw || '').match(/(周[一二三四五六日]\d{3})/);
   return m ? m[1] : '';
 }
 
 function _extractDate(raw) {
-  var m = String(raw || '').match(/(\d{4}-\d{2}-\d{2})/);
+  const m = String(raw || '').match(/(\d{4}-\d{2}-\d{2})/);
   return m ? m[1] : '';
 }
 
@@ -297,23 +302,23 @@ function _normalizeScore(raw) {
  */
 function extractSportterySource(dateStr, opts) {
   opts = opts || {};
-  var oddsDir = opts.oddsDir || path.join(__dirname, '..', 'sporttery_odds');
-  var entries = [];
+  const oddsDir = opts.oddsDir || path.join(__dirname, '..', 'sporttery_odds');
+  const entries = [];
   if (!fs.existsSync(oddsDir)) return entries;
 
-  var files = fs.readdirSync(oddsDir).filter(function (f) {
+  const files = fs.readdirSync(oddsDir).filter(function (f) {
     return f.endsWith('.json');
   });
 
   files.forEach(function (f) {
     try {
-      var data = JSON.parse(fs.readFileSync(path.join(oddsDir, f), 'utf8'));
-      var dt = _extractDate(data.matchInfo);
+      const data = JSON.parse(fs.readFileSync(path.join(oddsDir, f), 'utf8'));
+      const dt = _extractDate(data.matchInfo);
       if (dt !== dateStr) return;
 
-      var lottery = data.lotteryResult || {};
-      var scoreRaw = lottery['比分'] && lottery['比分'].outcome ? lottery['比分'].outcome : data.score;
-      var score = _normalizeScore(scoreRaw);
+      const lottery = data.lotteryResult || {};
+      const scoreRaw = lottery['比分'] && lottery['比分'].outcome ? lottery['比分'].outcome : data.score;
+      const score = _normalizeScore(scoreRaw);
       if (!score || score === '-:-') return;
 
       entries.push({
@@ -342,17 +347,17 @@ function extractSportterySource(dateStr, opts) {
  */
 function extractLive500Source(dateStr, opts) {
   opts = opts || {};
-  var liveFile = opts.liveFile || path.join(__dirname, '..', 'live_scores.json');
-  var entries = [];
+  const liveFile = opts.liveFile || path.join(__dirname, '..', 'live_scores.json');
+  const entries = [];
   if (!fs.existsSync(liveFile)) return entries;
 
   try {
-    var live = JSON.parse(fs.readFileSync(liveFile, 'utf8'));
+    const live = JSON.parse(fs.readFileSync(liveFile, 'utf8'));
     (live.matches || []).forEach(function (m) {
-      var dt = (m.date || '').slice(0, 10);
+      const dt = (m.date || '').slice(0, 10);
       if (dt !== dateStr) return;
       if (!(m.matchStatus >= 2)) return;
-      var score = _normalizeScore(m.score);
+      const score = _normalizeScore(m.score);
       if (!score || score === '-:-') return;
       entries.push({
         source: 'live500',
@@ -383,17 +388,17 @@ function extractLive500Source(dateStr, opts) {
  */
 function verifyDate(dateStr, opts) {
   opts = opts || {};
-  var allSources = [];
+  let allSources = [];
 
   // 1. midou 数据源
-  var midouData = opts.midouDataJson;
+  let midouData = opts.midouDataJson;
   if (!midouData) {
     try {
       midouData = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data.json'), 'utf8'));
     } catch (e) {}
   }
   if (midouData) {
-    var midouEntries = extractMidouSource(midouData, dateStr);
+    const midouEntries = extractMidouSource(midouData, dateStr);
     allSources = allSources.concat(midouEntries);
   }
 
@@ -405,12 +410,12 @@ function verifyDate(dateStr, opts) {
   if (allSources.length === 0) return { date: dateStr, results: [] };
 
   // 3. 跨源匹配分组
-  var groups = crossMatch(allSources);
+  const groups = crossMatch(allSources);
 
   // 4. 逐组投票
-  var results = [];
+  const results = [];
   groups.forEach(function (g) {
-    var voted = voteScore(g.entries);
+    const voted = voteScore(g.entries);
     if (voted) {
       results.push({
         anchorName: g.anchorName,

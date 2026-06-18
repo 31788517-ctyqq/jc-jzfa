@@ -13,20 +13,20 @@
  *   node server/backfill_phase2_predict.js [--dry] [--phase=gs|pk|all]
  */
 
-var fs = require('fs');
-var path = require('path');
+const fs = require('fs');
+const path = require('path');
 
-var START_DATE = '2024-01-01';
-var END_DATE = '2026-03-18';
-var DATA_FILE = path.join(__dirname, 'data.json');
-var GS_CACHE_FILE = path.join(__dirname, 'gongshoudao', 'cache.json');
+const START_DATE = '2024-01-01';
+const END_DATE = '2026-03-18';
+const DATA_FILE = path.join(__dirname, 'data.json');
+const GS_CACHE_FILE = path.join(__dirname, 'gongshoudao', 'cache.json');
 
-var dryRun = process.argv.includes('--dry');
-var phaseArg = process.argv.find(function (a) {
+const dryRun = process.argv.includes('--dry');
+const phaseArg = process.argv.find(function (a) {
   return a.startsWith('--phase=');
 });
-var runGS = !phaseArg || phaseArg.includes('gs') || phaseArg.includes('all');
-var runPK = !phaseArg || phaseArg.includes('pk') || phaseArg.includes('all');
+const runGS = !phaseArg || phaseArg.includes('gs') || phaseArg.includes('all');
+const runPK = !phaseArg || phaseArg.includes('pk') || phaseArg.includes('all');
 
 async function main() {
   console.log('╔══════════════════════════════════════╗');
@@ -39,15 +39,15 @@ async function main() {
     console.error('错误: data.json 不存在，请先运行 Phase 1');
     process.exit(1);
   }
-  var data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-  var mMap = data.m || {};
-  var allMatches = [];
+  const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  const mMap = data.m || {};
+  const allMatches = [];
   Object.values(mMap).forEach(function (m) {
     if (m && m.matchId && m.date >= START_DATE && m.date <= END_DATE) allMatches.push(m);
   });
   console.log('data.json 中目标时间段比赛: ' + allMatches.length + ' 场');
 
-  var withScore = allMatches.filter(function (m) {
+  const withScore = allMatches.filter(function (m) {
     return m.score && m.score.trim() && m.score !== '-';
   });
   console.log('  有比分: ' + withScore.length + ' 场, 无比分: ' + (allMatches.length - withScore.length) + ' 场');
@@ -56,29 +56,29 @@ async function main() {
   if (runGS) {
     console.log('\n━━━ Phase 2A: GS 功守道 fallback ━━━\n');
 
-    var gsMod = require('./gongshoudao/index');
-    var computeFallbackMatch = gsMod.computeFallbackMatch;
-    var readCache = gsMod.readCache;
-    var writeCache = gsMod.writeCache;
+    const gsMod = require('./gongshoudao/index');
+    const computeFallbackMatch = gsMod.computeFallbackMatch;
+    const readCache = gsMod.readCache;
+    const writeCache = gsMod.writeCache;
 
-    var predLog = require('./prediction_log');
+    const predLog = require('./prediction_log');
     predLog.autoEnsure();
 
-    var cache = readCache();
-    var existingGS = cache._global || {};
-    var startExisting = Object.keys(existingGS).length;
+    const cache = readCache();
+    const existingGS = cache._global || {};
+    const startExisting = Object.keys(existingGS).length;
     console.log('现有 GS 缓存: ' + startExisting + ' keys');
 
-    var newGS = 0,
+    let newGS = 0,
       skippedGS = 0,
       errorsGS = 0;
-    var batchSize = 100;
+    const batchSize = 100;
 
-    for (var i = 0; i < allMatches.length; i++) {
-      var m = allMatches[i];
-      var mid = String(m.matchId);
+    for (let i = 0; i < allMatches.length; i++) {
+      const m = allMatches[i];
+      const mid = String(m.matchId);
 
-      var existing = existingGS[mid] || existingGS['m_' + mid];
+      const existing = existingGS[mid] || existingGS['m_' + mid];
       if (existing && !existing._fallback) {
         skippedGS++;
         if (skippedGS % 200 === 0) process.stdout.write('\r  跳过 ' + skippedGS + ' ...');
@@ -86,7 +86,7 @@ async function main() {
       }
 
       try {
-        var gs = computeFallbackMatch(m);
+        const gs = computeFallbackMatch(m);
         if (!dryRun) {
           existingGS[mid] = gs;
           existingGS['m_' + mid] = gs;
@@ -135,14 +135,14 @@ async function main() {
   if (runPK) {
     console.log('\n━━━ Phase 2B: PK 评分回填 ━━━\n');
 
-    var pk = require('./pk_scorer');
-    var predLog2 = require('./prediction_log');
+    const pk = require('./pk_scorer');
+    const predLog2 = require('./prediction_log');
     predLog2.autoEnsure();
     await new Promise(function (r) {
       setTimeout(r, 500);
     });
 
-    var dates = [
+    const dates = [
       ...new Set(
         allMatches.map(function (m) {
           return (m.date || '').slice(0, 10);
@@ -159,12 +159,12 @@ async function main() {
       if (dates.length > 10) console.log('  ... 共 ' + dates.length + ' 天');
       console.log('Phase 2B DRY 完成');
     } else {
-      var totalOk = 0,
+      let totalOk = 0,
         totalErrors = 0;
-      for (var j = 0; j < dates.length; j++) {
-        var d = dates[j];
+      for (let j = 0; j < dates.length; j++) {
+        const d = dates[j];
         try {
-          var result = await pk.computeAndSave(d);
+          const result = await pk.computeAndSave(d);
           if (result && result.ok) totalOk += result.ok;
           if (j % 10 === 0 || j === dates.length - 1) {
             console.log(

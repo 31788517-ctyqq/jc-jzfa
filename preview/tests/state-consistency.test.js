@@ -41,8 +41,8 @@ describe('P2: state-consistency — 状态一致性', () => {
       expect(st).toContain('planDateOffset');
     });
 
-    it('1.4 planTab 状态存在，默认 expert', () => {
-      expect(st).toContain("planTab = 'expert'");
+    it('1.4 planTab 状态存在，默认 wc', () => {
+      expect(st).toContain("planTab = 'wc'");
     });
 
     it('1.5 planDateExplicit 状态存在', () => {

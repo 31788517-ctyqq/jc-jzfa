@@ -8,19 +8,19 @@ let _currentMatch = null,
   _selectedBets = [],
   _oddsData = {};
 let _activePlayType = 'mixed'; // ★ 玩法上下文
-var _topDirections = []; // ★ 推荐排行榜 Top5 方向
+let _topDirections = []; // ★ 推荐排行榜 Top5 方向
 
-var ALL_SCORES = (function () {
-  var home = ['1:0', '2:0', '2:1', '3:0', '3:1', '3:2', '4:0', '4:1', '4:2', '5:0', '5:1', '5:2', '胜其它'];
-  var draw = ['0:0', '1:1', '2:2', '3:3', '平其它'];
-  var away = ['0:1', '0:2', '1:2', '0:3', '1:3', '2:3', '0:4', '1:4', '2:4', '0:5', '1:5', '2:5', '负其它'];
+const ALL_SCORES = (function () {
+  const home = ['1:0', '2:0', '2:1', '3:0', '3:1', '3:2', '4:0', '4:1', '4:2', '5:0', '5:1', '5:2', '胜其它'];
+  const draw = ['0:0', '1:1', '2:2', '3:3', '平其它'];
+  const away = ['0:1', '0:2', '1:2', '0:3', '1:3', '2:3', '0:4', '1:4', '2:4', '0:5', '1:5', '2:5', '负其它'];
   return home.concat(draw, away);
 })();
-var FIXED_JQS = ['0', '1', '2', '3', '4', '5', '6', '7+'];
-var FIXED_BQC = ['胜胜', '胜平', '胜负', '平胜', '平平', '平负', '负胜', '负平', '负负'];
+const FIXED_JQS = ['0', '1', '2', '3', '4', '5', '6', '7+'];
+const FIXED_BQC = ['胜胜', '胜平', '胜负', '平胜', '平平', '平负', '负胜', '负平', '负负'];
 // ★ 竞彩规则：木桶原则上限
-var PLAY_LIMITS = { spf: 8, rqspf: 8, jqs: 6, bf: 4, bqc: 4 };
-var PLAY_NAMES = { spf: '胜平负', rqspf: '让球胜平负', bf: '比分', jqs: '总进球', bqc: '半全场' };
+const PLAY_LIMITS = { spf: 8, rqspf: 8, jqs: 6, bf: 4, bqc: 4 };
+const PLAY_NAMES = { spf: '胜平负', rqspf: '让球胜平负', bf: '比分', jqs: '总进球', bqc: '半全场' };
 
 export function openBetting(matchId, matchData, activePlayType) {
   if (!matchId || !matchData) return;
@@ -30,10 +30,10 @@ export function openBetting(matchId, matchData, activePlayType) {
   _activePlayType = activePlayType || 'mixed'; // ★ 接收玩法上下文
 
   // ★ 始终销毁旧 overlay 重建，避免复用脏状态
-  var oldOverlay = document.getElementById('betOverlay');
+  const oldOverlay = document.getElementById('betOverlay');
   if (oldOverlay) oldOverlay.remove();
 
-  var overlay = document.createElement('div');
+  const overlay = document.createElement('div');
   overlay.id = 'betOverlay';
   overlay.className = 'ai-overlay';
   overlay.onclick = function (e) {
@@ -61,7 +61,7 @@ export function openBetting(matchId, matchData, activePlayType) {
 }
 
 export function closeBetting() {
-  var o = document.getElementById('betOverlay');
+  const o = document.getElementById('betOverlay');
   if (o) {
     o.classList.remove('active');
     o.innerHTML = ''; // ★ 清理 DOM，避免残留内容
@@ -82,11 +82,11 @@ window._betClose = closeBetting;
 
 async function loadOddsData(matchId) {
   try {
-    var r = await api('match-odds', { matchId: matchId });
+    const r = await api('match-odds', { matchId: matchId });
     if (r && r.spf) {
       _oddsData = r;
       // ★ 确定本场的让球数（优先 batch-match-odds 已缓存数据）
-      var targetHcp = null;
+      let targetHcp = null;
       if (_currentMatch && _currentMatch._odds && _currentMatch._odds.handicap != null) {
         targetHcp = Number(_currentMatch._odds.handicap);
       } else if (_currentMatch && _currentMatch.concede != null) {
@@ -95,9 +95,9 @@ async function loadOddsData(matchId) {
       if (targetHcp === null) targetHcp = 0;
 
       // 从 match-odds 返回的 rqspfList 中找到匹配让球数的条目
-      var matchedRq = null;
+      let matchedRq = null;
       if (r.rqspfList && Array.isArray(r.rqspfList) && r.rqspfList.length > 0) {
-        for (var i = 0; i < r.rqspfList.length; i++) {
+        for (let i = 0; i < r.rqspfList.length; i++) {
           if (Number(r.rqspfList[i].handicap) === targetHcp) {
             matchedRq = r.rqspfList[i];
             break;
@@ -116,8 +116,8 @@ async function loadOddsData(matchId) {
       }
       // ★ 获取赔率变动趋势 + BF/JQS/BQC 完整赔率
       try {
-        var batchRes = await api('batch-match-odds', { matchIds: [matchId] });
-        var batchData = batchRes && batchRes[matchId];
+        const batchRes = await api('batch-match-odds', { matchIds: [matchId] });
+        const batchData = batchRes && batchRes[matchId];
         if (batchData && batchData.oddsDelta) {
           _oddsData.oddsDelta = batchData.oddsDelta;
           // ★ 同时存储按玩法分组的 Delta
@@ -137,7 +137,7 @@ async function loadOddsData(matchId) {
           // ★ 关键修复：补充 RQSPF 赔率（match-odds 的 rqspfList 可能为空，
           //   但 batch-match-odds 有 sporttery_odds_snapshot 兜底，rqspf 字段更可靠）
           if (batchData.rqspf && !_oddsData.rqspf) {
-            var bRq = batchData.rqspf;
+            const bRq = batchData.rqspf;
             // rqspf 可能是 {home, draw, away} 或 {胜, 平, 负} 格式
             _oddsData.rqspf = {
               home: bRq.home || bRq['胜'] || null,
@@ -150,9 +150,9 @@ async function loadOddsData(matchId) {
             }
           } else if (batchData.rqspf && _oddsData.rqspf) {
             // 已有 rqspf 但可能值为空（rqspfList 匹配失败），用 batch 覆盖
-            var existing = _oddsData.rqspf;
+            const existing = _oddsData.rqspf;
             if (!existing.home && !existing.draw && !existing.away) {
-              var bRq2 = batchData.rqspf;
+              const bRq2 = batchData.rqspf;
               _oddsData.rqspf = {
                 home: bRq2.home || bRq2['胜'] || null,
                 draw: bRq2.draw || bRq2['平'] || null,
@@ -166,7 +166,7 @@ async function loadOddsData(matchId) {
       }
 
       // ★ 二级兜底：从 scheme-design 预加载的 _currentMatch._odds 补充（batch-match-odds 也可能没有）
-      var cachedOdds = (_currentMatch && _currentMatch._odds) || {};
+      const cachedOdds = (_currentMatch && _currentMatch._odds) || {};
       if ((!_oddsData.bf || _oddsData.bf.length === 0) && cachedOdds.bf && cachedOdds.bf.length > 0) {
         _oddsData.bf = cachedOdds.bf;
         if (!_oddsData.bfDelta || Object.keys(_oddsData.bfDelta).length === 0)
@@ -183,10 +183,10 @@ async function loadOddsData(matchId) {
           _oddsData.bqcDelta = cachedOdds.bqcDelta || {};
       }
       // ★ 二级兜底 RQSPF：从 scheme-design 预加载的 _currentMatch._odds 补充
-      var currentRq = _oddsData.rqspf;
-      var rqEmpty = !currentRq || (!currentRq.home && !currentRq.draw && !currentRq.away);
+      const currentRq = _oddsData.rqspf;
+      const rqEmpty = !currentRq || (!currentRq.home && !currentRq.draw && !currentRq.away);
       if (rqEmpty && cachedOdds.rqspf) {
-        var cRq = cachedOdds.rqspf;
+        const cRq = cachedOdds.rqspf;
         _oddsData.rqspf = {
           home: cRq.home || cRq['胜'] || null,
           draw: cRq.draw || cRq['平'] || null,
@@ -196,7 +196,7 @@ async function loadOddsData(matchId) {
     } else {
       _oddsData = {};
       // ★ match-odds 完全失败时，尝试直接用 _currentMatch._odds 作为兜底
-      var fallbackOdds = (_currentMatch && _currentMatch._odds) || {};
+      const fallbackOdds = (_currentMatch && _currentMatch._odds) || {};
       if (fallbackOdds.spf) _oddsData.spf = fallbackOdds.spf;
       if (fallbackOdds.rqspf) _oddsData.rqspf = fallbackOdds.rqspf;
       if (fallbackOdds.handicap != null) _oddsData.handicap = fallbackOdds.handicap;
@@ -213,7 +213,7 @@ async function loadOddsData(matchId) {
 /* ═══ 推荐排行榜 Top5 方向 ═══ */
 async function loadTopDirections(matchId) {
   try {
-    var r = await api('match-top-directions', { matchId: matchId });
+    const r = await api('match-top-directions', { matchId: matchId });
     if (r && r.directions) {
       _topDirections = r.directions;
     } else {
@@ -231,15 +231,15 @@ async function loadTopDirections(matchId) {
  */
 function parseDirectionCards(dir) {
   if (!dir) return [];
-  var s = String(dir).trim();
-  var results = [];
+  const s = String(dir).trim();
+  const results = [];
 
   // 1) 总进球方向: "总进球-2、3球" / "总进球-3"
   if (s.indexOf('总进球') === 0) {
     var after = s.replace(/^总进球-/, '');
-    var goals = after.split(/[、,]/);
+    const goals = after.split(/[、,]/);
     goals.forEach(function (g) {
-      var clean = g.trim().replace('球', '');
+      const clean = g.trim().replace('球', '');
       if (clean) results.push({ playType: 'jqs', label: clean });
     });
     return results;
@@ -248,9 +248,9 @@ function parseDirectionCards(dir) {
   // 2) 半全场方向: "半全场-胜胜、平胜"
   if (s.indexOf('半全场') === 0) {
     var after = s.replace(/^半全场-/, '');
-    var halves = after.split(/[、,]/);
+    const halves = after.split(/[、,]/);
     halves.forEach(function (h) {
-      var clean = h.trim();
+      const clean = h.trim();
       if (clean) results.push({ playType: 'bqc', label: clean });
     });
     return results;
@@ -259,18 +259,18 @@ function parseDirectionCards(dir) {
   // 3) 比分方向: "比分-1:0" / "比分-2:1、3:1"
   if (s.indexOf('比分') === 0) {
     var after = s.replace(/^比分-/, '');
-    var scores = after.split(/[、,]/);
+    const scores = after.split(/[、,]/);
     scores.forEach(function (sc) {
-      var clean = sc.trim();
+      const clean = sc.trim();
       if (clean) results.push({ playType: 'bf', label: clean });
     });
     return results;
   }
 
   // 4) 胜平负 / 让球方向（含双选）
-  var parts = s.split(/[、,]/);
+  const parts = s.split(/[、,]/);
   parts.forEach(function (p) {
-    var clean = p.trim();
+    const clean = p.trim();
     if (clean === '让胜' || clean === '让平' || clean === '让负') {
       results.push({ playType: 'rqspf', label: clean });
     } else if (clean === '平' || clean === '胜' || clean === '负') {
@@ -283,11 +283,11 @@ function parseDirectionCards(dir) {
 
 /** 构建方向→排名映射，O(1) 查找 */
 function buildRankMap() {
-  var map = {};
+  const map = {};
   _topDirections.forEach(function (item) {
-    var cards = parseDirectionCards(item.direction);
+    const cards = parseDirectionCards(item.direction);
     cards.forEach(function (card) {
-      var key = card.playType + '|' + card.label;
+      const key = card.playType + '|' + card.label;
       if (map[key] == null || item.rank < map[key]) {
         map[key] = item.rank;
       }
@@ -298,22 +298,22 @@ function buildRankMap() {
 
 /** 给对应卡片添加黄色底色 + 排名数字 badge */
 function applyDirectionHighlights() {
-  var overlay = document.getElementById('betOverlay');
+  const overlay = document.getElementById('betOverlay');
   if (!overlay) return;
-  var rankMap = buildRankMap();
+  const rankMap = buildRankMap();
   if (Object.keys(rankMap).length === 0) return;
 
-  var allCards = overlay.querySelectorAll('.bet-cell, .bet-score-item, .bet-goal-item');
+  const allCards = overlay.querySelectorAll('.bet-cell, .bet-score-item, .bet-goal-item');
   allCards.forEach(function (card) {
-    var cardKey = getCardKey(card);
+    const cardKey = getCardKey(card);
     if (!cardKey) return;
 
-    var rank = rankMap[cardKey];
+    const rank = rankMap[cardKey];
     if (rank != null) {
       card.classList.add('rank-highlight');
 
       // 添加排名数字 badge
-      var badge = document.createElement('span');
+      const badge = document.createElement('span');
       badge.className = 'rank-badge-num';
       badge.textContent = rank;
       card.appendChild(badge);
@@ -323,26 +323,27 @@ function applyDirectionHighlights() {
 
 /** 从 DOM 节点读取 data-* 属性获取 playType|label key */
 function getCardKey(card) {
-  var pt = card.getAttribute('data-play-type');
-  var lb = card.getAttribute('data-label');
+  const pt = card.getAttribute('data-play-type');
+  const lb = card.getAttribute('data-label');
   if (pt && lb) return pt + '|' + lb;
   return null;
 }
 
 /* ═══ 全量渲染 ═══ */
 function render() {
-  var overlay = document.getElementById('betOverlay');
+  const overlay = document.getElementById('betOverlay');
   if (!overlay || !_currentMatch) return;
 
-  var m = _currentMatch;
+  const m = _currentMatch;
 
   // ★ 玩法上下文提示标题
-  var playTitle = _activePlayType !== 'mixed' ? '竞彩·' + (PLAY_NAMES[_activePlayType] || '混合过关') : '竞彩·混合过关';
+  const playTitle =
+    _activePlayType !== 'mixed' ? '竞彩·' + (PLAY_NAMES[_activePlayType] || '混合过关') : '竞彩·混合过关';
 
   // ★ 玩法提示（对齐群彩：跨场可混合不同玩法，同场自动替换）
-  var playHint = '';
+  let playHint = '';
   if (_activePlayType !== 'mixed') {
-    var limit = PLAY_LIMITS[_activePlayType] || 8;
+    const limit = PLAY_LIMITS[_activePlayType] || 8;
     playHint =
       '<div class="bet-play-hint">当前玩法：<b>' +
       PLAY_NAMES[_activePlayType] +
@@ -410,13 +411,13 @@ function render() {
 
 /* ─── 走势信号迷你行 ─── */
 function renderTrendRow() {
-  var trend = (_oddsData && _oddsData.deltaTrend) || {};
-  var spfTrend = trend.spfTrend || '';
-  var rqspfTrend = trend.rqspfTrend || '';
+  const trend = (_oddsData && _oddsData.deltaTrend) || {};
+  const spfTrend = trend.spfTrend || '';
+  const rqspfTrend = trend.rqspfTrend || '';
 
   if (!spfTrend && !rqspfTrend) return '';
 
-  var html = '<div class="bet-trend-row">';
+  let html = '<div class="bet-trend-row">';
   if (spfTrend) {
     html += '<span class="bet-trend-label">SPF走势</span>';
     html += '<span class="bet-trend-chars">' + escHtml(spfTrend) + '</span>';
@@ -431,20 +432,20 @@ function renderTrendRow() {
 
 /* ─── 赛事信息 — 功守道 gs-modal-head 风格 ─── */
 function renderMatchSection(m) {
-  var timeStr = formatTimeString(m.startTime);
-  var num = m.num || '';
-  var league = m.leagueName || '';
+  const timeStr = formatTimeString(m.startTime);
+  const num = m.num || '';
+  const league = m.leagueName || '';
 
-  var dateStr = '',
+  let dateStr = '',
     clockStr = '';
   if (timeStr) {
-    var parts = timeStr.split(' ');
+    const parts = timeStr.split(' ');
     dateStr = parts[0] || '';
     clockStr = parts[1] || '';
   }
 
-  var homeRank = m.homeRank != null ? '[' + m.homeRank + ']' : '';
-  var awayRank = m.awayRank != null ? '[' + m.awayRank + ']' : '';
+  const homeRank = m.homeRank != null ? '[' + m.homeRank + ']' : '';
+  const awayRank = m.awayRank != null ? '[' + m.awayRank + ']' : '';
 
   return (
     '<div class="bet-match-section">' +
@@ -470,10 +471,10 @@ function renderMatchSection(m) {
 
 /* ─── SPF + RQSPF 合并 ─── */
 function renderSPFGrid() {
-  var spf = (_oddsData && _oddsData.spf) || {};
-  var rq = (_oddsData && _oddsData.rqspf) || {};
+  const spf = (_oddsData && _oddsData.spf) || {};
+  const rq = (_oddsData && _oddsData.rqspf) || {};
   // ★ 让球数优先级：_oddsData.handicap > _currentMatch._odds.handicap > _currentMatch.concede > 0
-  var hcp =
+  const hcp =
     _oddsData && _oddsData.handicap != null
       ? Number(_oddsData.handicap)
       : _currentMatch && _currentMatch._odds && _currentMatch._odds.handicap != null
@@ -481,9 +482,9 @@ function renderSPFGrid() {
         : _currentMatch && _currentMatch.concede != null
           ? Number(_currentMatch.concede)
           : 0;
-  var delta = (_oddsData && _oddsData.oddsDelta) || {};
+  const delta = (_oddsData && _oddsData.oddsDelta) || {};
 
-  var html = '<div class="bet-spf-grid">';
+  let html = '<div class="bet-spf-grid">';
 
   // 行 1: [0] 胜 平 负
   html += '<div class="bet-cell handicap">0</div>';
@@ -492,7 +493,7 @@ function renderSPFGrid() {
   html += renderSPFCell('负', spf.away, 'spf', null, true, delta['spf.away']);
 
   // 行 2: [handicap] 让胜 让平 让负
-  var hcpLabel = formatHandicapLabel(hcp);
+  const hcpLabel = formatHandicapLabel(hcp);
   html += '<div class="bet-cell handicap rq">' + hcpLabel + '</div>';
   html += renderSPFCell('让胜', rq.home, 'rqspf', hcp, false, delta['rqspf.home']);
   html += renderSPFCell('让平', rq.draw, 'rqspf', hcp, false, delta['rqspf.draw']);
@@ -503,20 +504,20 @@ function renderSPFGrid() {
 }
 
 function renderSPFCell(label, odds, playType, handicap, isLose, deltaDir) {
-  var oddsVal = odds != null ? Number(odds) : null;
-  var oddsStr = oddsVal != null ? oddsVal.toFixed(2) : '-';
-  var noOdd = oddsVal == null;
-  var sel = hasSelection(playType, label, handicap);
+  const oddsVal = odds != null ? Number(odds) : null;
+  const oddsStr = oddsVal != null ? oddsVal.toFixed(2) : '-';
+  const noOdd = oddsVal == null;
+  const sel = hasSelection(playType, label, handicap);
 
   // ★ 赔率变动箭头
-  var arrowHtml = '';
+  let arrowHtml = '';
   if (deltaDir === 'up') {
     arrowHtml = '<span class="bet-arrow-up">&#9650;</span>';
   } else if (deltaDir === 'down') {
     arrowHtml = '<span class="bet-arrow-down">&#9660;</span>';
   }
 
-  var cls = 'bet-cell';
+  let cls = 'bet-cell';
   if (isLose) cls += ' lose';
   if (sel) cls += ' selected';
   if (noOdd) cls += ' no-odds';
@@ -555,31 +556,31 @@ function renderSPFCell(label, odds, playType, handicap, isLose, deltaDir) {
 
 /* ─── 比分 7列 ─── */
 function renderScoreGrid() {
-  var bf = (_oddsData && _oddsData.bf) || [];
-  var map = {};
+  const bf = (_oddsData && _oddsData.bf) || [];
+  const map = {};
   bf.forEach(function (s) {
     map[s.score] = s.odds;
   });
-  var bfDelta = (_oddsData && _oddsData.bfDelta) || {};
+  const bfDelta = (_oddsData && _oddsData.bfDelta) || {};
 
-  var html = '<div class="bet-score-grid">';
+  let html = '<div class="bet-score-grid">';
   ALL_SCORES.forEach(function (score) {
-    var v = map[score];
-    var oddsVal = v != null ? Number(v) : null;
-    var oddsStr = oddsVal != null ? oddsVal.toFixed(2) : '-';
-    var noOdd = oddsVal == null;
-    var sel = hasSelection('bf', score, null);
-    var deltaDir = bfDelta[score] || null;
+    const v = map[score];
+    const oddsVal = v != null ? Number(v) : null;
+    const oddsStr = oddsVal != null ? oddsVal.toFixed(2) : '-';
+    const noOdd = oddsVal == null;
+    const sel = hasSelection('bf', score, null);
+    const deltaDir = bfDelta[score] || null;
 
     // ★ 赔率变动箭头
-    var arrowHtml = '';
+    let arrowHtml = '';
     if (deltaDir === 'up') {
       arrowHtml = '<span class="bet-arrow-up">&#9650;</span>';
     } else if (deltaDir === 'down') {
       arrowHtml = '<span class="bet-arrow-down">&#9660;</span>';
     }
 
-    var cls = 'bet-score-item';
+    let cls = 'bet-score-item';
     if (sel) cls += ' selected';
     if (noOdd) cls += ' no-odds';
 
@@ -606,31 +607,31 @@ function renderScoreGrid() {
 
 /* ─── 总进球 4列 ─── */
 function renderGoalGrid() {
-  var jqs = (_oddsData && _oddsData.jqs) || [];
-  var map = {};
+  const jqs = (_oddsData && _oddsData.jqs) || [];
+  const map = {};
   jqs.forEach(function (j) {
     map[j.goals] = j.odds;
   });
-  var jqsDelta = (_oddsData && _oddsData.jqsDelta) || {};
+  const jqsDelta = (_oddsData && _oddsData.jqsDelta) || {};
 
-  var html = '<div class="bet-goal-grid">';
+  let html = '<div class="bet-goal-grid">';
   FIXED_JQS.forEach(function (g) {
-    var v = map[g];
-    var oddsVal = v != null ? Number(v) : null;
-    var oddsStr = oddsVal != null ? oddsVal.toFixed(2) : '-';
-    var noOdd = oddsVal == null;
-    var sel = hasSelection('jqs', g, null);
-    var deltaDir = jqsDelta[g] || null;
+    const v = map[g];
+    const oddsVal = v != null ? Number(v) : null;
+    const oddsStr = oddsVal != null ? oddsVal.toFixed(2) : '-';
+    const noOdd = oddsVal == null;
+    const sel = hasSelection('jqs', g, null);
+    const deltaDir = jqsDelta[g] || null;
 
     // ★ 赔率变动箭头
-    var arrowHtml = '';
+    let arrowHtml = '';
     if (deltaDir === 'up') {
       arrowHtml = '<span class="bet-arrow-up">&#9650;</span>';
     } else if (deltaDir === 'down') {
       arrowHtml = '<span class="bet-arrow-down">&#9660;</span>';
     }
 
-    var cls = 'bet-goal-item';
+    let cls = 'bet-goal-item';
     if (sel) cls += ' selected';
     if (noOdd) cls += ' no-odds';
 
@@ -655,10 +656,10 @@ function renderGoalGrid() {
 
 /* ─── 半全场 3列 ─── */
 function renderHalfGrid() {
-  var bqc = (_oddsData && _oddsData.bqc) || [];
+  const bqc = (_oddsData && _oddsData.bqc) || [];
 
   // ★ BQC key 映射：后端兜底可能返回 hh/hd/ha...，弹窗统一转为中文标签
-  var BQC_DELTA_MAP = {
+  const BQC_DELTA_MAP = {
     hh: '胜胜',
     hd: '胜平',
     ha: '胜负',
@@ -670,27 +671,27 @@ function renderHalfGrid() {
     aa: '负负',
   };
 
-  var map = {};
+  const map = {};
   bqc.forEach(function (b) {
-    var key = b.combo || b.label || b.key || '';
-    var label = BQC_DELTA_MAP[key] || key;
+    const key = b.combo || b.label || b.key || '';
+    const label = BQC_DELTA_MAP[key] || key;
     if (label) map[label] = b.odds;
   });
-  var bqcDelta = (_oddsData && _oddsData.bqcDelta) || {};
+  const bqcDelta = (_oddsData && _oddsData.bqcDelta) || {};
 
-  var html = '<div class="bet-half-grid">';
+  let html = '<div class="bet-half-grid">';
   FIXED_BQC.forEach(function (c) {
-    var v = map[c];
-    var oddsVal = v != null ? Number(v) : null;
-    var oddsStr = oddsVal != null ? oddsVal.toFixed(2) : '-';
-    var noOdd = oddsVal == null;
-    var sel = hasSelection('bqc', c, null);
+    const v = map[c];
+    const oddsVal = v != null ? Number(v) : null;
+    const oddsStr = oddsVal != null ? oddsVal.toFixed(2) : '-';
+    const noOdd = oddsVal == null;
+    const sel = hasSelection('bqc', c, null);
 
     // ★ 查找 delta 方向（先直接匹配，再通过缩写字映射）
-    var deltaDir = bqcDelta[c] || null;
+    let deltaDir = bqcDelta[c] || null;
     if (!deltaDir) {
       // 反向映射：中文标签 → 缩写
-      for (var abbr in BQC_DELTA_MAP) {
+      for (const abbr in BQC_DELTA_MAP) {
         if (BQC_DELTA_MAP[abbr] === c) {
           deltaDir = bqcDelta[abbr] || null;
           break;
@@ -699,14 +700,14 @@ function renderHalfGrid() {
     }
 
     // ★ 赔率变动箭头
-    var arrowHtml = '';
+    let arrowHtml = '';
     if (deltaDir === 'up') {
       arrowHtml = '<span class="bet-arrow-up">&#9650;</span>';
     } else if (deltaDir === 'down') {
       arrowHtml = '<span class="bet-arrow-down">&#9660;</span>';
     }
 
-    var cls = 'bet-goal-item';
+    let cls = 'bet-goal-item';
     if (sel) cls += ' selected';
     if (noOdd) cls += ' no-odds';
 
@@ -731,9 +732,9 @@ function renderHalfGrid() {
 
 /* ═══ 选择交互 - 多选 ═══ */
 function _betSelect(playType, label, odds, handicap) {
-  var key = playType + '|' + label + (handicap !== null ? '|' + handicap : '');
-  var existingIdx = -1;
-  for (var i = 0; i < _selectedBets.length; i++) {
+  const key = playType + '|' + label + (handicap !== null ? '|' + handicap : '');
+  let existingIdx = -1;
+  for (let i = 0; i < _selectedBets.length; i++) {
     if (_selectedBets[i].key === key) {
       existingIdx = i;
       break;
@@ -745,9 +746,9 @@ function _betSelect(playType, label, odds, handicap) {
     _selectedBets.push({ key: key, playType: playType, label: label, odds: odds, handicap: handicap });
   }
   // ★ 不全量 render()，仅切换 DOM class + 更新按钮状态，避免页面跳动
-  var overlay = document.getElementById('betOverlay');
+  const overlay = document.getElementById('betOverlay');
   if (overlay) {
-    var card = overlay.querySelector('[data-play-type="' + playType + '"][data-label="' + label + '"]');
+    const card = overlay.querySelector('[data-play-type="' + playType + '"][data-label="' + label + '"]');
     if (card) {
       if (existingIdx >= 0) {
         card.classList.remove('selected');
@@ -756,7 +757,7 @@ function _betSelect(playType, label, odds, handicap) {
       }
     }
     // 更新确定按钮 disabled 状态
-    var btn = document.getElementById('betConfirmBtn');
+    const btn = document.getElementById('betConfirmBtn');
     if (btn) btn.disabled = _selectedBets.length === 0;
   }
   applyDirectionHighlights();
@@ -764,8 +765,8 @@ function _betSelect(playType, label, odds, handicap) {
 window._betSelect = _betSelect;
 
 function hasSelection(playType, label, handicap) {
-  for (var i = 0; i < _selectedBets.length; i++) {
-    var s = _selectedBets[i];
+  for (let i = 0; i < _selectedBets.length; i++) {
+    const s = _selectedBets[i];
     if (s.playType === playType && s.label === label && (handicap === null || s.handicap === handicap)) return true;
   }
   return false;
@@ -773,7 +774,7 @@ function hasSelection(playType, label, handicap) {
 
 function _betConfirm() {
   if (_selectedBets.length === 0) return;
-  var m = _currentMatch;
+  const m = _currentMatch;
   window.dispatchEvent(
     new CustomEvent('betting-confirm', {
       detail: {
@@ -795,7 +796,7 @@ window._betConfirm = _betConfirm;
 /* ═══ 工具函数 ═══ */
 function formatTimeString(startTime) {
   if (!startTime) return '';
-  var p = String(startTime).match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+  const p = String(startTime).match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
   return p ? p[1] + '-' + p[2] + ' ' + p[3] + ':' + p[4] : startTime;
 }
 function formatHandicapLabel(h) {

@@ -6,17 +6,20 @@
 import { api } from '../api.js';
 import { loadECharts } from '../charts.js?v=202606080308';
 
-var _btPage = 1,
+let _btPage = 1,
   _btPageSize = 20,
   _btLeagues = [],
   _btTab = 'gs',
   _btStats = null,
   _btItems = [],
+  _btSampleMode = 'ab_only',
+  _btQualitySplit = null,
+  _btDegradeImpact = null,
   _btChartInst = {}; // 三Tab各一个ECharts实例
 
 export function loadBacktest() {
   try {
-    var el = document.getElementById('page-backtest');
+    const el = document.getElementById('page-backtest');
     if (!el) {
       console.error('[BT] #page-backtest not found');
       return;
@@ -25,11 +28,14 @@ export function loadBacktest() {
     injectStyles();
     _btTab = 'gs';
     _btPage = 1;
+    _btSampleMode = 'ab_only';
+    _btQualitySplit = null;
+    _btDegradeImpact = null;
     _btChartInst = {};
     fetchData();
   } catch (e) {
     console.error('[BT] loadBacktest error:', e);
-    var el2 = document.getElementById('page-backtest');
+    const el2 = document.getElementById('page-backtest');
     if (el2) el2.innerHTML = '<div style="color:red;padding:20px;">回测页面加载失败: ' + e.message + '</div>';
   }
 }
@@ -37,7 +43,7 @@ export function loadBacktest() {
 /* ═══════════════════════ CSS ═══════════════════════ */
 function injectStyles() {
   if (document.getElementById('bt-inline-css')) return;
-  var s = document.createElement('style');
+  const s = document.createElement('style');
   s.id = 'bt-inline-css';
   s.textContent = [
     // Tab bar
@@ -74,16 +80,29 @@ function injectStyles() {
     '.bt-pager-nav { min-width:28px; }',
     '.bt-pager-info { font-size:12px; color:var(--text3); margin:0 8px; white-space:nowrap; }',
 
-    // Prediction highlight — 与 filter-detail-table 颜色统一
-    '.bt-pred-item { font-size:10px; line-height:1.5; white-space:nowrap; }',
-    '.bt-pred-item .pred-label { color:var(--text3); margin-right:2px; }',
-    '.bt-pred-item .pred-val { font-weight:600; }',
+    // Prediction + table layout（回测页专用）
+    '.backtest-list .filter-detail-table { table-layout:fixed; }',
+    '.backtest-list .filter-detail-table th, .backtest-list .filter-detail-table td { vertical-align:top; }',
+    '.backtest-list .filter-detail-table td { font-size:12px; }',
+    '.backtest-list .fdt-date { width:62px; text-align:center; }',
+    '.backtest-list .fdt-match { width:74px; text-align:center; }',
+    '.backtest-list .fdt-teams { width:96px; text-align:left; line-height:1.35; }',
+    '.backtest-list .fdt-dir { min-width:0; }',
+    '.bt-date-main { font-weight:700; letter-spacing:.2px; font-size:12px; }',
+    '.bt-match-week { display:block; font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; }',
+    '.bt-match-num { display:block; font-size:12px; font-weight:800; line-height:1.2; white-space:nowrap; }',
+    '.bt-match-league { display:block; font-size:12px; color:var(--text3); line-height:1.25; margin-top:2px; }',
+    '.bt-team-home, .bt-team-away { display:block; font-weight:600; line-height:1.35; font-size:12px; }',
+    '.bt-team-score { display:flex; align-items:center; gap:4px; margin:2px 0; font-weight:800; color:var(--cyan); line-height:1.35; font-size:12px; }',
+    '.bt-handicap { font-size:12px; color:var(--amber); font-weight:500; }',
+    '.bt-pred-stack { display:flex; flex-direction:column; gap:5px; }',
+    '.bt-pred-item { font-size:12px; line-height:1.4; display:flex; align-items:flex-start; gap:6px; }',
+    '.bt-pred-item .pred-label { flex:0 0 24px; color:var(--text3); font-weight:700; letter-spacing:.2px; font-size:12px; }',
+    '.bt-pred-item .pred-val { flex:1; min-width:0; font-weight:700; word-break:break-word; font-size:12px; }',
     '.bt-pred-item .pred-hit { color:var(--red) !important; }',
     '.bt-pred-item .pred-miss { color:var(--green) !important; }',
-    // ★ 非当前 Tab 的预测条目降暗
-    '.bt-pred-dim { opacity:0.35; }',
-    // ★ 对阵比分列样式
-    '.fdt-teams { text-align:left; line-height:1.4; }',
+    '.bt-pred-empty { color:var(--text3); font-size:12px; }',
+    '.bt-pred-dim { opacity:0.45; }',
     '.chart-box .fdt-teams { white-space:normal; }',
     '.bt-summary-bar { display:flex; justify-content:flex-start; align-items:center; padding:4px 4px 8px; color:var(--text3); font-size:12px; }',
     '.bt-pk-judge-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:8px 0 10px; }',
@@ -91,11 +110,20 @@ function injectStyles() {
     '.bt-pk-judge-card b { display:block; color:var(--text2); font-size:12px; }',
     '.bt-pk-judge-card span { color:var(--cyan); font-size:15px; font-weight:800; }',
     '.bt-pk-judge-card em { display:block; color:var(--text3); font-size:10px; font-style:normal; margin-top:2px; }',
-    '.bt-pk-snapshot { margin-top:6px; padding:6px 8px; border-radius:10px; background:rgba(126,166,189,.07); color:var(--text3); font-size:10px; line-height:1.5; }',
+    '.bt-pk-row td { padding:0 8px 10px !important; border-top:none !important; }',
+    '.bt-pk-snapshot { margin-top:0; width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(47,159,154,.15); background:linear-gradient(160deg, rgba(126,166,189,.1), rgba(255,255,255,.72)); color:var(--text2); font-size:12px; line-height:1.45; display:flex; flex-direction:column; gap:6px; box-sizing:border-box; }',
+    '.bt-pk-topline { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }',
+    '.bt-pk-meta { display:flex; align-items:center; justify-content:space-between; gap:4px; padding:4px 8px; border-radius:8px; background:rgba(15,23,42,.06); color:var(--text3); font-size:12px; font-weight:600; }',
+    '.bt-pk-meta strong { color:#0f766e; font-weight:700; white-space:nowrap; font-size:12px; }',
+    '.bt-pk-narrative { padding:7px 8px; border-radius:8px; background:rgba(255,255,255,.62); color:var(--text2); font-size:12px; line-height:1.45; }',
+    '.bt-pk-chip-row { display:flex; flex-wrap:wrap; gap:6px; }',
+    '.bt-pk-kv { display:flex; align-items:flex-start; gap:8px; }',
+    '.bt-pk-kv-k { min-width:64px; color:var(--text3); font-size:12px; font-weight:600; }',
+    '.bt-pk-kv-v { flex:1; color:var(--text2); font-size:12px; line-height:1.45; }',
     '.bt-pk-snapshot b { color:var(--text2); }',
-    '.bt-pk-chip { display:inline-block; margin:2px 3px 0 0; padding:2px 6px; border-radius:999px; background:rgba(184,112,112,.12); color:#b87070; font-size:9px; }',
-    '.bt-pk-chip.ok { background:rgba(122,170,150,.11); color:#7aaa96; }',
-    '.bt-pk-chip.attr { background:rgba(167,139,250,.12); color:#a78bfa; }',
+    '.bt-pk-chip { display:inline-block; margin:0; padding:2px 8px; border-radius:999px; background:rgba(184,112,112,.12); color:#b87070; font-size:12px; line-height:1.35; }',
+    '.bt-pk-chip.ok { background:rgba(122,170,150,.14); color:#5f9a83; }',
+    '.bt-pk-chip.attr { background:rgba(167,139,250,.16); color:#8b5cf6; }',
     '.bt-pk-sample-note { color:#b89a60; font-size:10px; margin-top:6px; }',
   ].join('\n');
   document.head.appendChild(s);
@@ -139,7 +167,13 @@ function renderPage() {
     '</div>',
 
     // List + pager
-    '<div class="bt-summary-bar" id="btSummary" style="display:none;"><span style="color:var(--text3);">AI预测结果仅供参考</span></div>',
+    '<div class="bt-summary-bar" id="btSummary" style="display:none;justify-content:space-between;gap:8px;flex-wrap:wrap;">' +
+      '<span id="btSummaryText" style="color:var(--text3);">AI预测结果仅供参考</span>' +
+      '<span style="display:flex;gap:6px;">' +
+      '<button class="bt-chart-toggle-btn active" id="btModeAB" onclick="btSetSampleMode(\'ab_only\')">仅A/B</button>' +
+      '<button class="bt-chart-toggle-btn" id="btModeAll" onclick="btSetSampleMode(\'all\')">含C/D</button>' +
+      '</span>' +
+      '</div>',
     '<div class="backtest-list" id="btList"></div>',
     '<div class="backtest-pager" id="btPager"></div>',
   ].join('');
@@ -215,7 +249,7 @@ function renderFilterCard() {
 }
 
 function filterDD(id, label, opts) {
-  var items = '';
+  let items = '';
   opts.forEach(function (o, i) {
     items +=
       '<li data-val="' +
@@ -307,13 +341,13 @@ window.btSwitchTab = function (tab) {
   document.querySelectorAll('.bt-tab-stats').forEach(function (s) {
     s.classList.remove('active');
   });
-  var statsEl = document.getElementById('btStats' + tab.toUpperCase());
+  const statsEl = document.getElementById('btStats' + tab.toUpperCase());
   if (statsEl) statsEl.classList.add('active');
   // Charts
   document.querySelectorAll('.bt-chart-wrap').forEach(function (c) {
     c.classList.remove('active');
   });
-  var chartEl = document.getElementById('btChart' + tab.toUpperCase());
+  const chartEl = document.getElementById('btChart' + tab.toUpperCase());
   if (chartEl) chartEl.classList.add('active');
   // Rerender list with tab highlight & render chart
   if (tab !== 'experiment') {
@@ -326,7 +360,7 @@ window.btSwitchTab = function (tab) {
 
 /* ═══════════════════════ Chart Type Toggle ═══════════════════════ */
 window.btChartType = function (tab, ctype) {
-  var toggleEl = document.getElementById('btChartToggle' + tab.toUpperCase());
+  const toggleEl = document.getElementById('btChartToggle' + tab.toUpperCase());
   if (toggleEl) {
     toggleEl.querySelectorAll('.bt-chart-toggle-btn').forEach(function (b) {
       b.classList.toggle('active', b.getAttribute('data-ctype') === ctype);
@@ -338,6 +372,16 @@ window.btChartType = function (tab, ctype) {
 /* ═══════════════════════ Data Fetch ═══════════════════════ */
 window.doBTQuery = function () {
   _btPage = 1;
+  fetchData();
+};
+
+window.btSetSampleMode = function (mode) {
+  _btSampleMode = mode === 'all' ? 'all' : 'ab_only';
+  _btPage = 1;
+  const abBtn = document.getElementById('btModeAB');
+  const allBtn = document.getElementById('btModeAll');
+  if (abBtn) abBtn.classList.toggle('active', _btSampleMode === 'ab_only');
+  if (allBtn) allBtn.classList.toggle('active', _btSampleMode === 'all');
   fetchData();
 };
 
@@ -365,9 +409,9 @@ function getBTFilters() {
 function populateLeagues(leagues) {
   if (!leagues || !leagues.length) return;
   _btLeagues = leagues;
-  var menu = document.getElementById('dd-btLeague-menu');
+  const menu = document.getElementById('dd-btLeague-menu');
   if (!menu) return;
-  var html =
+  let html =
     '<li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-btLeague\',\'all\',\'全部\')">全部</li>';
   leagues.forEach(function (lg) {
     html +=
@@ -386,12 +430,12 @@ function populateLeagues(leagues) {
 
 function populateModels(models) {
   if (!models || !models.length) return;
-  var menu = document.getElementById('dd-btModel-menu');
+  const menu = document.getElementById('dd-btModel-menu');
   if (!menu) return;
-  var html =
+  let html =
     '<li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-btModel\',\'all\',\'全部\')">全部</li>';
   models.forEach(function (m) {
-    var label = m;
+    let label = m;
     if (m === 'expert_consensus') label = '专家共识';
     else if (m === 'DeepSeek') label = 'DeepSeek AI';
     else if (m === 'doubao') label = '豆包 AI';
@@ -412,12 +456,12 @@ function populateModels(models) {
 }
 
 function fetchData() {
-  var el = document.getElementById('btList');
+  const el = document.getElementById('btList');
   if (el)
     el.innerHTML =
       '<div class="plan-notice" style="text-align:center;padding:40px 0;color:var(--text2);">加载中...</div>';
 
-  var f = getBTFilters();
+  const f = getBTFilters();
   api('prediction-backtest', {
     type: f.type,
     dateRange: f.dateRange,
@@ -432,6 +476,7 @@ function fetchData() {
     evRange: f.evRange,
     conflictType: f.conflictType,
     attributionTag: f.attributionTag,
+    sampleMode: _btSampleMode,
     page: _btPage,
     pageSize: _btPageSize,
   })
@@ -440,16 +485,39 @@ function fetchData() {
       if (res.models) populateModels(res.models);
       _btStats = res.stats;
       _btItems = res.items || [];
+      _btQualitySplit = res.qualitySplit || null;
+      _btDegradeImpact = res.degradeImpact || null;
       updateAllStats(res.stats);
       renderList(res.items);
       renderPager(res);
       renderChart(_btTab, 'calibration');
-      var s = document.getElementById('btSummary');
-      if (s) s.style.display = (res.total || 0) > 0 ? 'flex' : 'none';
+      const s = document.getElementById('btSummary');
+      const st = document.getElementById('btSummaryText');
+      const abBtn = document.getElementById('btModeAB');
+      const allBtn = document.getElementById('btModeAll');
+      if (abBtn) abBtn.classList.toggle('active', _btSampleMode === 'ab_only');
+      if (allBtn) allBtn.classList.toggle('active', _btSampleMode === 'all');
+      if (st && _btQualitySplit) {
+        const ratio =
+          _btDegradeImpact && _btDegradeImpact.fallbackPlanRatio != null
+            ? Math.round(_btDegradeImpact.fallbackPlanRatio * 100)
+            : 0;
+        st.textContent =
+          '样本口径：' +
+          (_btSampleMode === 'ab_only' ? '仅A/B' : '含C/D') +
+          ' ｜ AB样本 ' +
+          ((_btQualitySplit.ab && _btQualitySplit.ab.sampleSize) || 0) +
+          ' ｜ C/D样本 ' +
+          ((_btQualitySplit.cd && _btQualitySplit.cd.sampleSize) || 0) +
+          ' ｜ 降级占比 ' +
+          ratio +
+          '%';
+      }
+      if (s) s.style.display = (res.total || 0) > 0 || !!_btQualitySplit ? 'flex' : 'none';
     })
     .catch(function (e) {
       console.error('backtest fetch error:', e);
-      var el2 = document.getElementById('btList');
+      const el2 = document.getElementById('btList');
       if (el2)
         el2.innerHTML =
           '<div class="plan-notice" style="text-align:center;padding:40px 0;color:var(--red);">数据加载失败: ' +
@@ -462,7 +530,7 @@ function fetchData() {
 function updateAllStats(stats) {
   if (!stats) return;
   // GS
-  var gs = stats.gs || {};
+  const gs = stats.gs || {};
   setText('gsTotal', (gs.total || 0).toLocaleString());
   setText('gsScoreHit', fmtPct(gs.score_hit_rate));
   setText('gsSpfHit', fmtPct(gs.spf_hit_rate));
@@ -472,17 +540,17 @@ function updateAllStats(stats) {
     setText('gsMeltHit', fmtPct(gs.byConsensus.meltdown ? gs.byConsensus.meltdown.rate : 0));
   }
   // AI
-  var ai = stats.ai || {};
+  const ai = stats.ai || {};
   setText('aiTotal', (ai.total || 0).toLocaleString());
   setText('aiSpfAcc', fmtPct(ai.spf_accuracy));
   setText('aiOuAcc', fmtPct(ai.ou_accuracy) + ' (' + (ai.ou_total || 0) + ')');
   setText('aiScAcc', fmtPct(ai.score_accuracy) + ' (' + (ai.score_total || 0) + ')');
   if (ai.byConfidence) {
-    var hi =
+    const hi =
       ai.byConfidence.find(function (b) {
         return b.label === '90-100' || b.label === '80-89';
       }) || {};
-    var mid =
+    const mid =
       ai.byConfidence.find(function (b) {
         return b.label === '70-79' || b.label === '60-69';
       }) || {};
@@ -490,9 +558,9 @@ function updateAllStats(stats) {
     setText('aiMidConf', fmtPct(mid.rate || 0));
   }
   // PK
-  var pk = stats.pk || {};
-  var judge = pk.judge || {};
-  var mainPick = findDecisionStat(judge, 'main_pick');
+  const pk = stats.pk || {};
+  const judge = pk.judge || {};
+  const mainPick = findDecisionStat(judge, 'main_pick');
   setText('pkTotal', (judge.validSamples || pk.total || 0).toLocaleString());
   setText('pkDirAcc', fmtPct(pk.direction_accuracy));
   setText('pkMainROI', fmtROI(mainPick.roi));
@@ -502,7 +570,7 @@ function updateAllStats(stats) {
 }
 
 function findDecisionStat(judge, code) {
-  var rows = (judge && judge.byDecisionLevel) || [];
+  const rows = (judge && judge.byDecisionLevel) || [];
   return (
     rows.find(function (x) {
       return x.code === code;
@@ -511,7 +579,7 @@ function findDecisionStat(judge, code) {
 }
 
 function setText(id, text) {
-  var el = document.getElementById(id);
+  const el = document.getElementById(id);
   if (el) el.textContent = text;
 }
 
@@ -522,13 +590,40 @@ function fmtPct(v) {
 
 function fmtROI(v) {
   if (v === undefined || v === null || isNaN(v)) return '-';
-  var n = Number(v) * 100;
+  const n = Number(v) * 100;
   return (n > 0 ? '+' : '') + Math.round(n) + '%';
+}
+
+function displayDecisionLevel(v) {
+  const k = String(v || '').toLowerCase();
+  if (!k) return '观望';
+  if (k === 'main_pick') return '主推';
+  if (k === 'playable') return '可做';
+  if (k === 'cautious') return '谨慎';
+  if (k === 'watch') return '观望';
+  return String(v);
+}
+
+function displayRiskLevel(v) {
+  const k = String(v || '').toLowerCase();
+  if (!k || k === '-') return '-';
+  if (k === 'green') return '低';
+  if (k === 'yellow') return '中';
+  if (k === 'red') return '高';
+  return String(v);
+}
+
+function displaySnapshotStatus(v) {
+  const k = String(v || '').toLowerCase();
+  if (!k || k === '-') return '-';
+  if (k === 'missing_snapshot') return '缺失';
+  if (k === 'ok') return '正常';
+  return String(v).replace(/_/g, '');
 }
 
 /* ═══════════════════════ ECharts Rendering ═══════════════════════ */
 function renderChart(tab, ctype) {
-  var innerEl = document.getElementById('btChartInner' + tab.toUpperCase());
+  const innerEl = document.getElementById('btChartInner' + tab.toUpperCase());
   if (!innerEl) return;
   loadECharts().then(function () {
     if (typeof echarts === 'undefined') {
@@ -541,11 +636,11 @@ function renderChart(tab, ctype) {
       _btChartInst[tab] = null;
     }
     innerEl.innerHTML = '';
-    var inst = echarts.init(innerEl);
+    const inst = echarts.init(innerEl);
     _btChartInst[tab] = inst;
 
     // 所有图表统一暗色背景
-    var baseOpt = {
+    const baseOpt = {
       backgroundColor: 'transparent',
       textStyle: { color: '#94A3B8', fontSize: 11 },
       legend: { textStyle: { color: '#94A3B8' } },
@@ -577,19 +672,19 @@ function renderChart(tab, ctype) {
 
 /* ── GS 校准曲线：预测概率 vs 实际命中率 ── */
 function gsCalibrationOption(stats) {
-  var data = (stats && stats.gs && stats.gs.calibration) || [];
+  const data = (stats && stats.gs && stats.gs.calibration) || [];
   if (!data.length)
     return { title: { text: '暂无足够数据', left: 'center', top: 'center', textStyle: { color: '#64748B' } } };
-  var labels = data.map(function (d) {
+  const labels = data.map(function (d) {
     return d.label;
   });
-  var actualRates = data.map(function (d) {
+  const actualRates = data.map(function (d) {
     return d.actualRate * 100;
   });
-  var predictProbs = data.map(function (d) {
+  const predictProbs = data.map(function (d) {
     return parseFloat(d.predictProb) * 100;
   });
-  var totals = data.map(function (d) {
+  const totals = data.map(function (d) {
     return d.total;
   });
 
@@ -597,7 +692,7 @@ function gsCalibrationOption(stats) {
     tooltip: {
       trigger: 'axis',
       formatter: function (p) {
-        var d = data[p[0].dataIndex];
+        const d = data[p[0].dataIndex];
         return (
           d.label +
           '<br/>预测概率: ' +
@@ -655,14 +750,14 @@ function gsCalibrationOption(stats) {
 
 /* ── GS 柱状图：共识分级命中率 ── */
 function gsBarOption(stats) {
-  var cs = (stats && stats.gs && stats.gs.byConsensus) || {};
-  var items = [
+  const cs = (stats && stats.gs && stats.gs.byConsensus) || {};
+  const items = [
     { name: '强一致', total: (cs.strong && cs.strong.total) || 0, rate: (cs.strong && cs.strong.rate) || 0 },
     { name: '弱一致', total: (cs.weak && cs.weak.total) || 0, rate: (cs.weak && cs.weak.rate) || 0 },
     { name: '熔断', total: (cs.meltdown && cs.meltdown.total) || 0, rate: (cs.meltdown && cs.meltdown.rate) || 0 },
   ];
   // ★ 全零数据兜底：DB 无 pk_fusion_consensus 字段时显示提示
-  var allZero = items.every(function (d) {
+  const allZero = items.every(function (d) {
     return d.total === 0;
   });
   if (allZero) {
@@ -677,10 +772,10 @@ function gsBarOption(stats) {
       },
     };
   }
-  var labels = items.map(function (d) {
+  const labels = items.map(function (d) {
     return d.name + '(' + d.total + '场)';
   });
-  var rates = items.map(function (d) {
+  const rates = items.map(function (d) {
     return (d.rate * 100).toFixed(1);
   });
   return {
@@ -708,16 +803,16 @@ function gsBarOption(stats) {
 
 /* ── AI 校准曲线：置信度 vs 实际命中率 ── */
 function aiCalibrationOption(stats) {
-  var data = (stats && stats.ai && stats.ai.calibration) || [];
+  const data = (stats && stats.ai && stats.ai.calibration) || [];
   if (!data.length)
     return { title: { text: '暂无足够数据', left: 'center', top: 'center', textStyle: { color: '#64748B' } } };
-  var labels = data.map(function (d) {
+  const labels = data.map(function (d) {
     return d.label;
   });
-  var actualRates = data.map(function (d) {
+  const actualRates = data.map(function (d) {
     return d.actualRate * 100;
   });
-  var mids = data.map(function (d) {
+  const mids = data.map(function (d) {
     return parseFloat(d.predictProb);
   });
 
@@ -725,7 +820,7 @@ function aiCalibrationOption(stats) {
     tooltip: {
       trigger: 'axis',
       formatter: function (p) {
-        var d = data[p[0].dataIndex];
+        const d = data[p[0].dataIndex];
         return (
           '置信区间: ' +
           d.label +
@@ -784,17 +879,17 @@ function aiCalibrationOption(stats) {
 
 /* ── AI 柱状图：联赛分组 ── */
 function aiBarOption(stats) {
-  var leagues = (stats && stats.ai && stats.ai.byLeague) || [];
+  let leagues = (stats && stats.ai && stats.ai.byLeague) || [];
   if (!leagues.length)
     return { title: { text: '暂无联赛数据', left: 'center', top: 'center', textStyle: { color: '#64748B' } } };
   leagues.sort(function (a, b) {
     return (b.accuracy || 0) - (a.accuracy || 0);
   });
   leagues = leagues.slice(0, 12);
-  var labels = leagues.map(function (l) {
+  const labels = leagues.map(function (l) {
     return l.league;
   });
-  var rates = leagues.map(function (l) {
+  const rates = leagues.map(function (l) {
     return ((l.accuracy || 0) * 100).toFixed(1);
   });
   return {
@@ -826,13 +921,13 @@ function aiBarOption(stats) {
 
 /* ── PK 校准曲线：综合信心分 vs 命中率 ── */
 function pkCalibrationOption(stats) {
-  var data = (stats && stats.pk && stats.pk.calibration) || [];
+  const data = (stats && stats.pk && stats.pk.calibration) || [];
   if (!data.length)
     return { title: { text: '暂无足够数据', left: 'center', top: 'center', textStyle: { color: '#64748B' } } };
-  var labels = data.map(function (d) {
+  const labels = data.map(function (d) {
     return d.label;
   });
-  var actualRates = data.map(function (d) {
+  const actualRates = data.map(function (d) {
     return d.actualRate * 100;
   });
 
@@ -840,7 +935,7 @@ function pkCalibrationOption(stats) {
     tooltip: {
       trigger: 'axis',
       formatter: function (p) {
-        var d = data[p[0].dataIndex];
+        const d = data[p[0].dataIndex];
         return (
           '信心分区间: ' +
           d.label +
@@ -889,24 +984,24 @@ function pkCalibrationOption(stats) {
 
 /* ── PK 裁判验证：决策等级命中率 + ROI ── */
 function pkDecisionOption(stats) {
-  var rows = (stats && stats.pk && stats.pk.judge && stats.pk.judge.byDecisionLevel) || [];
+  const rows = (stats && stats.pk && stats.pk.judge && stats.pk.judge.byDecisionLevel) || [];
   if (!rows.length)
     return { title: { text: '暂无决策等级数据', left: 'center', top: 'center', textStyle: { color: '#64748B' } } };
-  var labels = rows.map(function (r) {
+  const labels = rows.map(function (r) {
     return r.label + '(' + r.total + '场)';
   });
-  var hitRates = rows.map(function (r) {
+  const hitRates = rows.map(function (r) {
     return ((r.hitRate || 0) * 100).toFixed(1);
   });
-  var rois = rows.map(function (r) {
+  const rois = rows.map(function (r) {
     return ((r.roi || 0) * 100).toFixed(1);
   });
   return {
     tooltip: {
       trigger: 'axis',
       formatter: function (params) {
-        var idx = params && params[0] ? params[0].dataIndex : 0;
-        var r = rows[idx] || {};
+        const idx = params && params[0] ? params[0].dataIndex : 0;
+        const r = rows[idx] || {};
         return (
           r.label +
           '<br/>样本: ' +
@@ -938,13 +1033,13 @@ function pkDecisionOption(stats) {
 
 /* ── PK 柱状图：星级命中率 ── */
 function pkStarsOption(stats) {
-  var stars = (stats && stats.pk && stats.pk.byStars) || [];
+  const stars = (stats && stats.pk && stats.pk.byStars) || [];
   if (!stars.length)
     return { title: { text: '暂无星级数据', left: 'center', top: 'center', textStyle: { color: '#64748B' } } };
-  var labels = stars.map(function (s) {
+  const labels = stars.map(function (s) {
     return s.stars + '★(' + s.total + '场)';
   });
-  var rates = stars.map(function (s) {
+  const rates = stars.map(function (s) {
     return (s.rate * 100).toFixed(1);
   });
   return {
@@ -958,7 +1053,7 @@ function pkStarsOption(stats) {
         data: rates,
         itemStyle: {
           color: function (p) {
-            var colors = ['#64748B', '#94A3B8', '#FBBF24', '#34D399', '#18E0E0']; // 1-5★
+            const colors = ['#64748B', '#94A3B8', '#FBBF24', '#34D399', '#18E0E0']; // 1-5★
             return colors[p.dataIndex] || '#18E0E0';
           },
           borderRadius: [6, 6, 0, 0],
@@ -972,7 +1067,7 @@ function pkStarsOption(stats) {
 
 /* ═══════════════════════ Detail List ═══════════════════════ */
 function renderList(list) {
-  var el = document.getElementById('btList');
+  const el = document.getElementById('btList');
   if (!el) return;
   if (!list || list.length === 0) {
     el.innerHTML =
@@ -982,7 +1077,7 @@ function renderList(list) {
     return;
   }
 
-  var html =
+  let html =
     (_btTab === 'pk' ? renderPKJudgeOverview(_btStats) : '') +
     '<div class="chart-box" style="margin-top:16px">' +
     '<div class="chart-header"><span class="chart-title">回测明细</span></div>' +
@@ -994,46 +1089,52 @@ function renderList(list) {
     '</tr></thead><tbody>';
 
   list.forEach(function (row) {
-    var dateDisplay = esc((row.date || '').slice(5));
-    var hcp = '';
+    const dateDisplay = esc((row.date || '').slice(5));
+    let hcp = '';
     if (row.handicap && row.handicap !== 0) {
-      var sign = row.handicap > 0 ? '+' : '';
-      hcp =
-        '<span style="font-size:9px;color:var(--amber);font-weight:400;margin-left:2px;">' +
-        sign +
-        row.handicap +
-        '</span>';
+      const sign = row.handicap > 0 ? '+' : '';
+      hcp = '<span class="bt-handicap">' + sign + row.handicap + '</span>';
     }
-    var scoreText = esc(row.actual_score || '-');
-    var predParts = buildPredictionItems(row);
+    const scoreText = esc(row.actual_score || '-');
+    const predParts = buildPredictionItems(row);
+    const rawMatchNum = String(row.matchNum || '');
+    const m = rawMatchNum.match(/(周[一二三四五六日天])\s*(\d{1,3})/);
+    const matchWeek = m ? m[1] : '';
+    const matchNo = m ? m[2] : rawMatchNum;
+
+    const hasPKBlock = _btTab === 'pk' && (row.pk_direction || row.pk_final_direction || row.pk_decision_level);
 
     html +=
       '<tr>' +
-      '<td class="fdt-date">' +
+      '<td class="fdt-date"><span class="bt-date-main">' +
       dateDisplay +
-      '</td>' +
+      '</span></td>' +
       '<td class="fdt-match">' +
-      '<span style="font-weight:700;">' +
-      esc(row.matchNum || '') +
+      (matchWeek ? '<span class="bt-match-week">' + esc(matchWeek) + '</span>' : '') +
+      '<span class="bt-match-num">' +
+      esc(matchNo || '-') +
       '</span>' +
-      '<span style="font-size:9px;color:var(--text3);display:block;line-height:1.3;">' +
+      '<span class="bt-match-league">' +
       esc(row.leagueName || '') +
       '</span></td>' +
       '<td class="fdt-teams">' +
-      '<span style="font-weight:500;display:block;line-height:1.4;">' +
+      '<span class="bt-team-home">' +
       esc(row.homeName || '-') +
       '</span>' +
-      '<span style="font-weight:700;color:var(--cyan);display:block;line-height:1.4;">' +
+      '<span class="bt-team-score">' +
       scoreText +
       hcp +
       '</span>' +
-      '<span style="font-weight:500;color:var(--text2);display:block;line-height:1.4;">' +
+      '<span class="bt-team-away">' +
       esc(row.visitName || '-') +
       '</span></td>' +
       '<td class="fdt-dir">' +
-      (predParts.length ? predParts.join('') : '<span style="color:var(--text3);">-</span>') +
+      '<div class="bt-pred-stack">' +
+      (predParts.length ? predParts.join('') : '<span class="bt-pred-empty">-</span>') +
+      '</div>' +
       '</td>' +
-      '</tr>';
+      '</tr>' +
+      (hasPKBlock ? '<tr class="bt-pk-row"><td colspan="4">' + renderPKSnapshot(row) + '</td></tr>' : '');
   });
 
   html += '</tbody></table></div>';
@@ -1041,13 +1142,13 @@ function renderList(list) {
 }
 
 function renderPKJudgeOverview(stats) {
-  var judge = stats && stats.pk && stats.pk.judge ? stats.pk.judge : {};
-  var mainPick = findDecisionStat(judge, 'main_pick');
-  var playable = findDecisionStat(judge, 'playable');
-  var cautious = findDecisionStat(judge, 'cautious');
-  var positiveEV = judge.positiveEV || {};
-  var watch = judge.watchAvoidance || {};
-  var note =
+  const judge = stats && stats.pk && stats.pk.judge ? stats.pk.judge : {};
+  const mainPick = findDecisionStat(judge, 'main_pick');
+  const playable = findDecisionStat(judge, 'playable');
+  const cautious = findDecisionStat(judge, 'cautious');
+  const positiveEV = judge.positiveEV || {};
+  const watch = judge.watchAvoidance || {};
+  const note =
     mainPick.sampleNote || positiveEV.sampleNote || watch.sampleNote
       ? '<div class="bt-pk-sample-note">样本不足时结论仅供观察，未结算样本不计入统计。</div>'
       : '';
@@ -1088,14 +1189,14 @@ function renderPKJudgeOverview(stats) {
 }
 
 function buildPredictionItems(row) {
-  var parts = [];
-  var isGS = _btTab === 'gs';
-  var isAI = _btTab === 'ai';
-  var isPK = _btTab === 'pk';
+  const parts = [];
+  const isGS = _btTab === 'gs';
+  const isAI = _btTab === 'ai';
+  const isPK = _btTab === 'pk';
 
   // GS prediction
   if (row.gs_top_score) {
-    var dimClass = isGS ? '' : ' bt-pred-dim';
+    const dimClass = isGS ? '' : ' bt-pred-dim';
     parts.push(
       '<div class="bt-pred-item' +
         dimClass +
@@ -1113,7 +1214,7 @@ function buildPredictionItems(row) {
 
   // AI prediction
   if (row.ai_spf) {
-    var dimClass2 = isAI ? '' : ' bt-pred-dim';
+    const dimClass2 = isAI ? '' : ' bt-pred-dim';
     parts.push(
       '<div class="bt-pred-item' +
         dimClass2 +
@@ -1131,9 +1232,9 @@ function buildPredictionItems(row) {
 
   // PK prediction
   if (row.pk_direction || row.pk_final_direction || row.pk_decision_level) {
-    var dimClass3 = isPK ? '' : ' bt-pred-dim';
-    var finalDir = row.pk_final_direction === 'watch' ? '观望' : row.pk_final_direction || row.pk_direction || '观望';
-    var extra = '';
+    const dimClass3 = isPK ? '' : ' bt-pred-dim';
+    const finalDir = row.pk_final_direction === 'watch' ? '观望' : row.pk_final_direction || row.pk_direction || '观望';
+    let extra = '';
     if (isPK && row.pk_direction_stars) extra = ' ' + '★'.repeat(row.pk_direction_stars);
     if (isPK && row.pk_composite_score) extra += ' ' + Math.round(row.pk_composite_score) + '分';
     parts.push(
@@ -1149,17 +1250,16 @@ function buildPredictionItems(row) {
         (row.pk_final_direction === 'watch' ? ' ⏸' : row.pk_judge_hit ? ' ✓' : ' ✕') +
         '</span></div>',
     );
-    if (isPK) parts.push(renderPKSnapshot(row));
   }
 
   return parts;
 }
 
 function renderPKSnapshot(row) {
-  var tags = Array.isArray(row.pk_risk_tags) ? row.pk_risk_tags : [];
-  var reasons = Array.isArray(row.pk_degrade_reasons) ? row.pk_degrade_reasons : [];
-  var attrs = Array.isArray(row.pk_attribution_tags) ? row.pk_attribution_tags : [];
-  var chips = tags.length
+  const tags = Array.isArray(row.pk_risk_tags) ? row.pk_risk_tags : [];
+  const reasons = Array.isArray(row.pk_degrade_reasons) ? row.pk_degrade_reasons : [];
+  const attrs = Array.isArray(row.pk_attribution_tags) ? row.pk_attribution_tags : [];
+  const chips = tags.length
     ? tags
         .slice(0, 3)
         .map(function (t) {
@@ -1167,8 +1267,8 @@ function renderPKSnapshot(row) {
         })
         .join('')
     : '<span class="bt-pk-chip ok">低风险</span>';
-  var reasonText = reasons.length ? reasons.join('、') : '无强制降级原因';
-  var attrChips = attrs.length
+  const reasonText = reasons.length ? reasons.join('、') : '无强制降级原因';
+  const attrChips = attrs.length
     ? attrs
         .slice(0, 4)
         .map(function (t) {
@@ -1178,53 +1278,64 @@ function renderPKSnapshot(row) {
     : '<span class="bt-pk-chip ok">归因待积累</span>';
   return (
     '<div class="bt-pk-snapshot">' +
-    '<div><b>赛前裁判</b>：' +
-    esc(row.pk_decision_level || '观望') +
-    '｜风险 ' +
-    esc(row.pk_risk_level || '-') +
-    '｜EV ' +
-    (row.pk_selected_ev == null ? '-' : Number(row.pk_selected_ev).toFixed(3)) +
-    '｜ROI ' +
+    '<div class="bt-pk-topline">' +
+    '<span class="bt-pk-meta">裁判<strong>' +
+    esc(displayDecisionLevel(row.pk_decision_level || '观望')) +
+    '</strong></span>' +
+    '<span class="bt-pk-meta">风险<strong>' +
+    esc(displayRiskLevel(row.pk_risk_level || '-')) +
+    '</strong></span>' +
+    '<span class="bt-pk-meta">EV<strong>' +
+    (row.pk_selected_ev == null ? '-' : Number(row.pk_selected_ev).toFixed(2)) +
+    '</strong></span>' +
+    '<span class="bt-pk-meta">ROI<strong>' +
     fmtROI(row.pk_unit_roi) +
-    '｜快照 ' +
-    esc(row.pk_snapshot_status || '-') +
+    '</strong></span>' +
     '</div>' +
-    '<div>' +
+    '<div class="bt-pk-narrative">' +
     esc(row.pk_decision_narrative || 'PK裁判：暂无复盘说明') +
     '</div>' +
-    '<div>' +
+    '<div class="bt-pk-kv"><span class="bt-pk-kv-k">赛前裁判</span><span class="bt-pk-kv-v">' +
+    esc(displayDecisionLevel(row.pk_decision_level || '观望')) +
+    '｜' +
+    esc(row.pk_final_direction || row.pk_direction || 'watch') +
+    '</span></div>' +
+    '<div class="bt-pk-chip-row">' +
     chips +
     '</div>' +
-    '<div><b>降级原因</b>：' +
+    '<div class="bt-pk-kv"><span class="bt-pk-kv-k">降级原因</span><span class="bt-pk-kv-v">' +
     esc(reasonText) +
-    '</div>' +
-    '<div><b>归因标签</b>：' +
+    '</span></div>' +
+    '<div class="bt-pk-kv"><span class="bt-pk-kv-k">归因标签</span><span class="bt-pk-kv-v">' +
     attrChips +
-    '</div>' +
-    '<div><b>分歧类型</b>：' +
+    '</span></div>' +
+    '<div class="bt-pk-kv"><span class="bt-pk-kv-k">分歧类型</span><span class="bt-pk-kv-v">' +
     esc(row.pk_conflict_type || '-') +
-    '</div>' +
-    '<div><b>赛后结果</b>：' +
+    '</span></div>' +
+    '<div class="bt-pk-kv"><span class="bt-pk-kv-k">快照状态</span><span class="bt-pk-kv-v">' +
+    esc(displaySnapshotStatus(row.pk_snapshot_status || '-')) +
+    '</span></div>' +
+    '<div class="bt-pk-kv"><span class="bt-pk-kv-k">赛后结果</span><span class="bt-pk-kv-v">' +
     esc(row.actual_spf || '-') +
     ' / ' +
     esc(row.actual_score || '-') +
-    '</div>' +
+    '</span></div>' +
     '</div>'
   );
 }
 
 /* ═══════════════════════ Pagination ═══════════════════════ */
 function renderPager(data) {
-  var el = document.getElementById('btPager');
+  const el = document.getElementById('btPager');
   if (!el) return;
-  var totalPages = Math.ceil((data.total || 0) / (data.pageSize || 20));
+  const totalPages = Math.ceil((data.total || 0) / (data.pageSize || 20));
   if (totalPages <= 1) {
     el.innerHTML = '';
     return;
   }
-  var cur = data.page || 1;
-  var pages = buildPageRange(cur, totalPages);
-  var html = '<div class="bt-pager-wrap">';
+  const cur = data.page || 1;
+  const pages = buildPageRange(cur, totalPages);
+  let html = '<div class="bt-pager-wrap">';
   html +=
     '<button class="bt-pager-btn bt-pager-nav" onclick="btGoPage(1)"' + (cur === 1 ? ' disabled' : '') + '>«</button>';
   html +=
@@ -1233,8 +1344,8 @@ function renderPager(data) {
     ')"' +
     (cur === 1 ? ' disabled' : '') +
     '>‹</button>';
-  for (var i = 0; i < pages.length; i++) {
-    var p = pages[i];
+  for (let i = 0; i < pages.length; i++) {
+    const p = pages[i];
     if (p === '...') html += '<span class="bt-pager-ellipsis">…</span>';
     else
       html +=
@@ -1264,12 +1375,12 @@ function renderPager(data) {
 
 function buildPageRange(cur, total) {
   if (total <= 7) {
-    var arr = [];
+    const arr = [];
     for (var i = 1; i <= total; i++) arr.push(i);
     return arr;
   }
-  var pages = [1];
-  var left = Math.max(2, cur - 2),
+  const pages = [1];
+  const left = Math.max(2, cur - 2),
     right = Math.min(total - 1, cur + 2);
   if (left > 2) pages.push('...');
   for (var i = left; i <= right; i++) pages.push(i);
@@ -1296,12 +1407,12 @@ function esc(s) {
 // * 蓝图：实验对比 tab
 // =============================================================
 async function loadExperimentCompare() {
-  var el = document.getElementById('btExperimentContent');
+  const el = document.getElementById('btExperimentContent');
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载实验数据...</div>';
 
   try {
-    var data = await api('experiment-compare');
+    const data = await api('experiment-compare');
     if (!data || Object.keys(data).length === 0) {
       el.innerHTML = '<div class="empty-state">暂无实验对比数据，请等待prediction_logs积累数据后查看</div>';
       return;
@@ -1313,13 +1424,13 @@ async function loadExperimentCompare() {
 }
 
 function buildExperimentHTML(data) {
-  var html = '';
+  let html = '';
   Object.keys(data).forEach(function (type) {
-    var rows = data[type];
+    const rows = data[type];
     if (!rows || rows.length === 0) return;
-    var typeLabel =
+    const typeLabel =
       type === 'deepseek' ? 'DeepSeek AI' : type === 'doubao' ? '豆包 AI' : type === 'outcomes' ? '模型回测' : type;
-    var hasConfidence = rows.some(function (r) {
+    const hasConfidence = rows.some(function (r) {
       return r.avgConfidence != null;
     });
     html +=
@@ -1331,7 +1442,7 @@ function buildExperimentHTML(data) {
       (hasConfidence ? '<th>置信度</th>' : '') +
       '</tr></thead><tbody>';
     rows.forEach(function (r) {
-      var rateColor = r.hitRate >= 60 ? 'var(--green)' : r.hitRate >= 50 ? 'var(--amber)' : 'var(--red)';
+      const rateColor = r.hitRate >= 60 ? 'var(--green)' : r.hitRate >= 50 ? 'var(--amber)' : 'var(--red)';
       html +=
         '<tr style="border-top:1px solid rgba(255,255,255,0.04)"><td style="padding:6px;color:var(--text)">' +
         r.version +

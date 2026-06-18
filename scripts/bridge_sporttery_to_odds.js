@@ -17,21 +17,21 @@ const path = require('path');
 
 // 兼容本地(scripts/../server/sporttery_odds)和服务器(scripts/../sporttery_odds)两种目录结构
 const ODDS_DIR = (function () {
-  var serverPath = path.join(__dirname, '..', 'server', 'sporttery_odds');
-  var directPath = path.join(__dirname, '..', 'sporttery_odds');
+  const serverPath = path.join(__dirname, '..', 'server', 'sporttery_odds');
+  const directPath = path.join(__dirname, '..', 'sporttery_odds');
   if (fs.existsSync(directPath)) return directPath;
   return serverPath;
 })();
 const PREVIEW_DIR = (function () {
-  var serverPath = path.join(__dirname, '..', 'server', 'sporttery_preview');
-  var directPath = path.join(__dirname, '..', 'sporttery_preview');
+  const serverPath = path.join(__dirname, '..', 'server', 'sporttery_preview');
+  const directPath = path.join(__dirname, '..', 'sporttery_preview');
   if (fs.existsSync(directPath)) return directPath;
   return serverPath;
 })();
 const DRY_RUN = process.argv.includes('--dry');
 const SINGLE_MATCH = process.argv.includes('--match') ? process.argv[process.argv.indexOf('--match') + 1] || '' : '';
 // 兼容本地(scripts/)和服务器(/root/server/scripts/)两种路径
-var database;
+let database;
 try {
   database = require('../server/database');
 } catch (e) {
@@ -47,7 +47,7 @@ function initDb() {
       return;
     }
     // sql.js 异步初始化
-    var attempts = 0;
+    let attempts = 0;
     var timer = setInterval(function () {
       attempts++;
       if (database.isAvailable()) {
@@ -97,9 +97,9 @@ const PLAY_TABLE_MAP = [
 function extractHandicap(headerRow) {
   // 从表头提取让球数，如 "让球\n\n-2\n\n彩果:" → -2
   if (!headerRow || !Array.isArray(headerRow)) return null;
-  for (var i = 0; i < headerRow.length; i++) {
-    var cell = String(headerRow[i] || '');
-    var m = cell.match(/([+-]?\d+)/);
+  for (let i = 0; i < headerRow.length; i++) {
+    const cell = String(headerRow[i] || '');
+    const m = cell.match(/([+-]?\d+)/);
     if (m) return parseInt(m[1], 10);
   }
   return null;
@@ -171,7 +171,7 @@ function parseOddsSnapshots(matchId, matchNum, date, home, away, league, data) {
       if (Object.keys(oddsData).length > 0) {
         // ★ 提取让球数 (rqspf 玩法)
         if (cfg.playType === 'rqspf') {
-          var hcp = extractHandicap(header);
+          const hcp = extractHandicap(header);
           if (hcp !== null) oddsData._handicap = hcp;
         }
         results.push({

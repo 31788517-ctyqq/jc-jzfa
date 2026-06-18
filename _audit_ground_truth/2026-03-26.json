@@ -1,0 +1,172 @@
+{
+  "lockedAt": "2026-06-18T08:39:50.304Z",
+  "earliestKickoff": null,
+  "date": "2026-03-26",
+  "plans": [
+    {
+      "planId": "plan_2026-03-26_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038601",
+          "direction": "总进球-2、3球",
+          "homeName": "威尔士",
+          "visitName": "波黑",
+          "matchNum": "周四004"
+        },
+        {
+          "matchId": "2038606",
+          "direction": "让负",
+          "homeName": "哥伦比亚",
+          "visitName": "克罗地亚",
+          "matchNum": "周四010"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-26_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038602",
+          "direction": "胜",
+          "homeName": "波兰",
+          "visitName": "阿尔巴尼亚",
+          "matchNum": "周四005"
+        },
+        {
+          "matchId": "2038606",
+          "direction": "让负",
+          "homeName": "哥伦比亚",
+          "visitName": "克罗地亚",
+          "matchNum": "周四010"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-26_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038607",
+          "direction": "总进球-2、3球",
+          "homeName": "玻利维亚",
+          "visitName": "苏里南",
+          "matchNum": "周四009"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-26_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038609",
+          "direction": "总进球-1、2、3球",
+          "homeName": "新喀里多尼亚",
+          "visitName": "牙买加",
+          "matchNum": "周四011"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-26_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038604",
+          "direction": "总进球-1、2、3球",
+          "homeName": "丹麦",
+          "visitName": "北马其顿",
+          "matchNum": "周四007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-26_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038607",
+          "direction": "总进球-3、4、5球",
+          "homeName": "玻利维亚",
+          "visitName": "苏里南",
+          "matchNum": "周四009"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-26_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038602",
+          "direction": "总进球-3、4、5球",
+          "homeName": "波兰",
+          "visitName": "阿尔巴尼亚",
+          "matchNum": "周四005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-26_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038602",
+          "direction": "平、让平",
+          "homeName": "波兰",
+          "visitName": "阿尔巴尼亚",
+          "matchNum": "周四005"
+        },
+        {
+          "matchId": "2038601",
+          "direction": "胜",
+          "homeName": "威尔士",
+          "visitName": "波黑",
+          "matchNum": "周四004"
+        }
+      ]
+    }
+  ]
+}

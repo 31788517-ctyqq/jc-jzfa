@@ -255,7 +255,7 @@ function cleanupRawEntries(bank) {
  * 写入匹配结果（按批次存储，带TTL）
  */
 function writeMatchCache(dt, matchData) {
-  let bank = readJSON(STATS_BANK_PATH);
+  const bank = readJSON(STATS_BANK_PATH);
 
   bank[dt] = {
     data: matchData,
@@ -407,7 +407,7 @@ function purgeExpired() {
  * 兼容 fetch.js 的 saveRawCache
  */
 function saveRawCacheLegacy(dt, rawData) {
-  let bank = readJSON(STATS_BANK_PATH);
+  const bank = readJSON(STATS_BANK_PATH);
   bank['_raw_' + dt] = rawData; // 旧格式：直接存数组
   writeJSON(STATS_BANK_PATH, bank);
 }
@@ -424,7 +424,7 @@ function loadRawCacheLegacy(dt) {
  * 兼容 fetch.js 的 saveStatsCache
  */
 function saveStatsCacheLegacy(dt, data) {
-  let bank = readJSON(STATS_BANK_PATH);
+  const bank = readJSON(STATS_BANK_PATH);
   bank[dt] = data;
   writeJSON(STATS_BANK_PATH, bank);
 }

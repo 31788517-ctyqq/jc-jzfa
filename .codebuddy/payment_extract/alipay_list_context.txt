@@ -1,0 +1,9 @@
+/data/wwwroot/quncai_wap/station/charge.jsp-55-            <span class="time">拿现金让站点负责人代充值；</span><i class="symbol"></i>
+/data/wwwroot/quncai_wap/station/charge.jsp-56-            </li>
+/data/wwwroot/quncai_wap/station/charge.jsp-57-            <li>
+/data/wwwroot/quncai_wap/station/charge.jsp:58:            	<s:iterator value="alipayList" var="v" status="s">
+/data/wwwroot/quncai_wap/station/charge.jsp-59-		    		<span class="state">支付宝</span>
+/data/wwwroot/quncai_wap/station/charge.jsp-60-		            <span class="time">支付宝账号：<s:property value="bankcard"/> <br>收款人：<s:property value="realName"/></span>
+/data/wwwroot/quncai_wap/station/charge.jsp-61-	            	<i class="symbol"></i><br>
+/data/wwwroot/quncai_wap/station/charge.jsp-62-            	</s:iterator>
+/data/wwwroot/quncai_wap/station/charge.jsp-63-            </li>

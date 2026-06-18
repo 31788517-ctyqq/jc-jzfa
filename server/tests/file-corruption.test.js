@@ -7,7 +7,18 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const TEST_DIR = path.join(os.tmpdir(), `jczjfa-corruption-${Date.now()}`);
+var _uid = Math.random().toString(36).slice(2, 8);
+var TEST_DIR = path.join(os.tmpdir(), 'jczjfa-corruption-' + Date.now() + '-' + _uid);
+
+// 防 Windows NTFS rename 竞态：重试 3 次
+function safeRename(src, dst) {
+  for (var i = 0; i < 3; i++) {
+    try { fs.renameSync(src, dst); return; } catch (e) {
+      if (i === 2) throw e;
+      var t = Date.now() + 5; while (Date.now() < t) {}
+    }
+  }
+}
 
 describe('P2: file-corruption — 文件损坏恢复', () => {
   beforeEach(() => {
@@ -115,7 +126,7 @@ describe('P2: file-corruption — 文件损坏恢复', () => {
       const realFile = path.join(TEST_DIR, 'db.json');
 
       fs.writeFileSync(tmpFile, 'valid data');
-      fs.renameSync(tmpFile, realFile);
+      safeRename(tmpFile, realFile);
 
       expect(fs.existsSync(tmpFile)).toBe(false);
       expect(fs.existsSync(realFile)).toBe(true);
@@ -204,7 +215,7 @@ describe('P2: file-corruption — 文件损坏恢复', () => {
 
       // 模拟：写入 .tmp 成功，rename 成功
       fs.writeFileSync(tmpFile, JSON.stringify({ v: 42 }));
-      fs.renameSync(tmpFile, realFile);
+      safeRename(tmpFile, realFile);
 
       // 验证
       const data = JSON.parse(fs.readFileSync(realFile, 'utf8'));
@@ -228,7 +239,7 @@ describe('P2: file-corruption — 文件损坏恢复', () => {
 
       // 重试完整写入
       fs.writeFileSync(tmpFile, JSON.stringify({ v: 99 }));
-      fs.renameSync(tmpFile, realFile);
+      safeRename(tmpFile, realFile);
 
       const data = JSON.parse(fs.readFileSync(realFile, 'utf8'));
       expect(data.v).toBe(99);

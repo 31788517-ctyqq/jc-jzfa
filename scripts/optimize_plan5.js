@@ -242,7 +242,7 @@ function* cartesian(grid) {
   yield* recurse(0, {});
 }
 
-let total = 5 * 4 * 4 * 4 * 5; // 1600 combos
+const total = 5 * 4 * 4 * 4 * 5; // 1600 combos
 let done = 0;
 const startTime = Date.now();
 

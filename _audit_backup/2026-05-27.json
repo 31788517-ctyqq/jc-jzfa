@@ -1,0 +1,143 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.139Z",
+  "earliestKickoff": null,
+  "date": "2026-05-27",
+  "plans": [
+    {
+      "planId": "plan_2026-05-27_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039992",
+          "direction": "平、让平",
+          "homeName": "水晶宫",
+          "visitName": "巴列卡诺",
+          "matchNum": "周三001"
+        },
+        {
+          "matchId": "2039995",
+          "direction": "让负",
+          "homeName": "玻利瓦尔",
+          "visitName": "里瓦达维亚独立",
+          "matchNum": "周三004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-27_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039997",
+          "direction": "总进球-2、3球",
+          "homeName": "佩纳罗尔",
+          "visitName": "圣菲独立",
+          "matchNum": "周三006"
+        },
+        {
+          "matchId": "2039995",
+          "direction": "让负",
+          "homeName": "玻利瓦尔",
+          "visitName": "里瓦达维亚独立",
+          "matchNum": "周三004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-27_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039998",
+          "direction": "胜",
+          "homeName": "科林蒂安",
+          "visitName": "普拉滕斯",
+          "matchNum": "周三007"
+        },
+        {
+          "matchId": "2039995",
+          "direction": "让负",
+          "homeName": "玻利瓦尔",
+          "visitName": "里瓦达维亚独立",
+          "matchNum": "周三004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-27_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039994",
+          "direction": "总进球-2、3球",
+          "homeName": "亚松森自由",
+          "visitName": "委内瑞拉中央大学",
+          "matchNum": "周三003"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-27_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039992",
+          "direction": "平、让平",
+          "homeName": "水晶宫",
+          "visitName": "巴列卡诺",
+          "matchNum": "周三001"
+        },
+        {
+          "matchId": "2039998",
+          "direction": "胜",
+          "homeName": "科林蒂安",
+          "visitName": "普拉滕斯",
+          "matchNum": "周三007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-27_7",
+      "name": "plan_7",
+      "planName": "方案七",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039992",
+          "direction": "胜平",
+          "homeName": "水晶宫",
+          "visitName": "巴列卡诺",
+          "matchNum": "周三001"
+        }
+      ]
+    }
+  ]
+}

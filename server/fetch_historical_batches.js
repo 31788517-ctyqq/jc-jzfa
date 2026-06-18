@@ -132,7 +132,7 @@ function isAlreadyCached(dt) {
 function saveRawCache(dt, rawData) {
   if (DRY_RUN) return;
 
-  let bank = readJSON(STATS_BANK_PATH);
+  const bank = readJSON(STATS_BANK_PATH);
   const now = Date.now();
   bank['_raw_' + dt] = {
     data: rawData,
@@ -148,7 +148,7 @@ function saveRawCache(dt, rawData) {
 function updateBatchIndex(dt, rawData) {
   if (DRY_RUN) return;
 
-  let index = readJSON(BATCH_INDEX_PATH);
+  const index = readJSON(BATCH_INDEX_PATH);
   const now = Date.now();
   const matchCount = Array.isArray(rawData) ? rawData.length : rawData && rawData.data ? rawData.data.length : 0;
   index[dt] = {
@@ -254,7 +254,7 @@ async function main() {
           saveRawCache(dt, []);
           updateBatchIndex(dt, []);
           // 标记为无效
-          let index = readJSON(BATCH_INDEX_PATH);
+          const index = readJSON(BATCH_INDEX_PATH);
           if (index[dt]) {
             index[dt].valid = false;
             index[dt].matchCount = 0;
@@ -283,7 +283,7 @@ async function main() {
 
   // 清理无效的过期标记（由 FORCE 模式造成的缓存可能需要单独修复）
   if (!DRY_RUN) {
-    let index = readJSON(BATCH_INDEX_PATH);
+    const index = readJSON(BATCH_INDEX_PATH);
     results.empty.forEach(({ dt }) => {
       if (index[dt]) {
         index[dt].valid = false;
@@ -336,7 +336,7 @@ function printSummary(allBatches) {
   let totalRawEntries = 0;
   let totalMatchCount = 0;
   const byMonth = {};
-  let lastMonth = 0;
+  const lastMonth = 0;
 
   Object.keys(bank).forEach((k) => {
     if (!k.startsWith('_raw_')) return;

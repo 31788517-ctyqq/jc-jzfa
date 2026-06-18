@@ -129,7 +129,7 @@ function parseAnalysisPage(html, matchNum, shujuId) {
   }
 
   // Map 4 instances → homeAll, awayAll, homeLeague, awayLeague
-  let stats = { homeAll: {}, awayAll: {}, homeLeague: {}, awayLeague: {} };
+  const stats = { homeAll: {}, awayAll: {}, homeLeague: {}, awayLeague: {} };
   const statKeys = ['homeAll', 'awayAll', 'homeLeague', 'awayLeague'];
   rec10Results.forEach(function (r, idx) {
     if (idx < 4) stats[statKeys[idx]] = r;

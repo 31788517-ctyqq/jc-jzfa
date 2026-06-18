@@ -8,6 +8,10 @@
  *   - 比分+红黄牌: 500.com (每2分钟)
  *   - 推荐/命中: midou310 (保持不变, 每20分钟)
  *
+ * V16+ 赛后比分修正：
+ *   - 完赛场次 score===halfScore → 请求 detail.php 获取红色全场比分
+ *   - 去重：已修正过的 fid 不会重复请求
+ *
  * 用法: node server/sync_live_500.js [date]
  *       默认: 今天
  */
@@ -18,8 +22,12 @@ const fs = require('fs');
 const path = require('path');
 
 const LIVE_URL = 'https://live.500.com/?e=';
+const DETAIL_URL = 'https://live.500.com/detail.php?fid=';
 const LIVE_FILE = path.join(__dirname, 'live_scores.json');
 const DATA_FILE = path.join(__dirname, 'data.json');
+
+// ★ V16: 已修正 fid 去重集合（避免每个周期重复请求）
+const _correctedFids = new Set();
 
 // ═══ 工具 ═══
 function httpGet(url) {
@@ -120,7 +128,7 @@ function parse500Live(html) {
 
     // ═══ 提取各列 ═══
     // 第4列 (index 4): 状态 (完/中/推迟/取消)
-    let statusStr = tds[4] ? tds[4].replace(/<[^>]+>/g, '').trim() : '';
+    const statusStr = tds[4] ? tds[4].replace(/<[^>]+>/g, '').trim() : '';
     let matchStatus = 0;
     if (statusStr === '中' || statusStr === '进行' || statusStr === '1') matchStatus = 1;
     else if (statusStr === '完' || statusStr === '结束' || statusStr === '2') matchStatus = 2;
@@ -244,6 +252,11 @@ function parse500Live(html) {
       }
     }
 
+    // ★ V16: 提取详情页 fid（用于赛后比分修正）
+    let fid = '';
+    const fidMatch = trContent.match(/detail\.php\?fid=(\d+)/);
+    if (fidMatch) fid = fidMatch[1];
+
     matches.push({
       matchNum,
       homeName,
@@ -258,6 +271,7 @@ function parse500Live(html) {
       yellow: homeYellow || awayYellow ? `${homeYellow || '0'}/${awayYellow || '0'}` : '',
       red: homeRed || awayRed ? `${homeRed || '0'}/${awayRed || '0'}` : '',
       scoreSource,
+      fid, // ★ V16: 详情页 fid
     });
   }
 
@@ -305,8 +319,8 @@ function syncToDataJson(liveMatches, dateStr) {
 
   let updated = 0;
   for (const lm of liveMatches) {
-    let key = numIndexByMatchDate[lm.matchNum] || numIndexByKickoffDate[lm.matchNum];
-    let old = key ? data.m[key] : null;
+    const key = numIndexByMatchDate[lm.matchNum] || numIndexByKickoffDate[lm.matchNum];
+    const old = key ? data.m[key] : null;
     if (!old) continue;
 
     let changed = false;
@@ -334,10 +348,16 @@ function syncToDataJson(liveMatches, dateStr) {
     // 逐字段比对并更新
     var hasChange = false;
     Object.keys(mergedFields).forEach(function (field) {
-      var val = mergedFields[field];
+      const val = mergedFields[field];
       if (val !== undefined && val !== null && String(old[field]) !== String(val)) {
         // ★ V12: 半场比分保护 — 新比分=旧半场比分 → 跳过
-        if (field === 'score' && old.halfScore && String(val).replace(/[:：]/, '-') === String(old.halfScore).replace(/[:：]/, '-') && old.score && old.score !== val) {
+        if (
+          field === 'score' &&
+          old.halfScore &&
+          String(val).replace(/[:：]/, '-') === String(old.halfScore).replace(/[:：]/, '-') &&
+          old.score &&
+          old.score !== val
+        ) {
           return; // skip this field update
         }
         old[field] = val;
@@ -367,6 +387,146 @@ function syncToDataJson(liveMatches, dateStr) {
   return updated;
 }
 
+// ═══ V16+: 赛后比分修正 — 从 detail.php 获取红色全场比分 ═══
+
+/** 从 500.com 详情页提取全场比分 */
+function fetchDetailScore(fid) {
+  if (!fid) return Promise.resolve(null);
+  const url = DETAIL_URL + fid;
+  return new Promise((resolve) => {
+    https
+      .get(
+        url,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept-Language': 'zh-CN,zh;q=0.9',
+            Referer: 'https://live.500.com/',
+          },
+          timeout: 8000,
+          rejectUnauthorized: false,
+        },
+        (res) => {
+          const chunks = [];
+          res.on('data', (c) => chunks.push(c));
+          res.on('end', () => {
+            try {
+              const html = iconv.decode(Buffer.concat(chunks), 'gbk');
+              // 提取红色全场比分：<span class="score" style="color:red">X - Y</span>
+              const m = html.match(/<span class="score"[^>]*>\s*(\d+)\s*[-:：]\s*(\d+)\s*<\/span>/);
+              if (m) {
+                resolve({ score: m[1] + '-' + m[2], home: parseInt(m[1], 10), away: parseInt(m[2], 10) });
+              } else {
+                resolve(null);
+              }
+            } catch (e) {
+              resolve(null);
+            }
+          });
+        },
+      )
+      .on('error', () => resolve(null));
+  });
+}
+
+/**
+ * 赛后比分修正 — 对完赛场次 score===halfScore 或 score 为空时，用 detail.php 修正
+ * @param {Array}  matches  - parse500Live 返回的原始比赛数组（含 fid）
+ * @param {String} dateStr  - 日期
+ * @returns {Number} 修正的场次数
+ */
+async function correctPostMatchScores(matches, dateStr) {
+  // 收集需要修正的场次
+  const pending = [];
+  matches.forEach((m) => {
+    if (m.matchStatus < 2) return; // 未完赛
+    if (!m.fid) return; // 无详情页链接
+    if (_correctedFids.has(m.fid)) return; // 已修正过
+
+    const scNorm = String(m.score || '')
+      .replace(/[:：]/g, '-')
+      .trim();
+    const hfNorm = String(m.halfScore || '')
+      .replace(/[:：]/g, '-')
+      .trim();
+
+    // 触发条件：score 为空 或 score===halfScore（非 0-0）
+    const needFix = !scNorm || (hfNorm && scNorm === hfNorm && scNorm !== '0-0');
+    if (needFix) {
+      pending.push(m);
+    }
+  });
+
+  if (pending.length === 0) return 0;
+
+  // 并发请求详情页（并发数 2，避免被限流）
+  const CONCURRENCY = 2;
+  let corrected = 0;
+
+  for (let i = 0; i < pending.length; i += CONCURRENCY) {
+    const batch = pending.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(
+      batch.map((m) => fetchDetailScore(m.fid).then((detail) => ({ match: m, detail }))),
+    );
+
+    for (const { match, detail } of results) {
+      _correctedFids.add(match.fid); // 标记为已处理
+      if (!detail) continue;
+
+      const newScore = detail.score;
+      const oldNorm = String(match.score || '')
+        .replace(/[:：]/g, '-')
+        .trim();
+      const newNorm = newScore.replace(/[:：]/g, '-');
+
+      if (newNorm === oldNorm) continue; // 没变化，跳过
+
+      // 写入 data.json
+      try {
+        const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+        if (!data.m) data.m = {};
+
+        // 用 date+num 联合查找（避免跨周覆写）
+        const y = String(dateStr).slice(0, 4);
+        let found;
+        Object.entries(data.m).forEach(([k, m]) => {
+          if (!m || !m.num) return;
+          if (m.num !== match.matchNum) return;
+          const md = String(m.date || '').slice(0, 10);
+          if (md === dateStr) {
+            found = { key: k, match: m };
+            return;
+          }
+          const sm = String(m.startTime || '').match(/^(\d{2})-(\d{2})\s+\d{2}:\d{2}$/);
+          if (sm) {
+            const kd = `${y}-${sm[1]}-${sm[2]}`;
+            if (kd === dateStr) {
+              found = { key: k, match: m };
+            }
+          }
+        });
+
+        if (found) {
+          const oldScore = found.match.score;
+          found.match.score = newScore;
+          const tmpFile = DATA_FILE + '.tmp';
+          fs.writeFileSync(tmpFile, JSON.stringify(data));
+          fs.renameSync(tmpFile, DATA_FILE);
+          corrected++;
+          console.log(
+            `[500live:detail] 修正 ${match.matchNum} ${match.homeName} vs ${match.visitName}: ${oldScore || '(空)'} → ${newScore}` +
+              (match.halfScore ? ` (half=${match.halfScore})` : ''),
+          );
+        }
+      } catch (e) {
+        console.warn(`[500live:detail] 写入失败: ${match.matchNum} ${e.message}`);
+      }
+    }
+  }
+
+  return corrected;
+}
+
 // ═══ 主函数 ═══
 async function fetchLive500(dateStr) {
   if (!dateStr) {
@@ -394,6 +554,33 @@ async function fetchLive500(dateStr) {
       return { success: true, matches: 0 };
     }
 
+    // ★ V16: 写入 live_scores.json 前过滤半场误判（纵深防御，配合 API 层保护）
+    // 500.com 对已完赛比赛可能只返回半场比分（score === halfScore 且 duration < 60）
+    matches.forEach((m) => {
+      const durNum = parseInt(m.duration || '0', 10);
+      const scNorm = String(m.score || '').replace(/[:：]/g, '-');
+      const hfNorm = String(m.halfScore || '').replace(/[:：]/g, '-');
+      // 完赛场次 duration 不完整 + 比分=半场比分(非0:0) → 疑似半场误判，清除比分
+      // 保留 matchStatus/duration，让出数据链路处理
+      if (m.matchStatus >= 2 && durNum < 60 && scNorm && hfNorm && scNorm === hfNorm && scNorm !== '0-0') {
+        console.warn(
+          '[500live] 半场误判已拦截: ' +
+            m.matchNum +
+            ' ' +
+            m.homeName +
+            ' ' +
+            scNorm +
+            ' (dur=' +
+            (m.duration || '') +
+            ')',
+        );
+        m.score = '';
+        m.homeGoals = -1;
+        m.visitGoals = -1;
+        m.scoreSource = (m.scoreSource || '') + '(half-filtered)';
+      }
+    });
+
     // 写入 live_scores.json
     const liveData = {
       date: dateStr,
@@ -420,6 +607,12 @@ async function fetchLive500(dateStr) {
     const updated = syncToDataJson(matches, dateStr);
     console.log(`[500live] data.json 更新: ${updated} 场`);
 
+    // ★ V16+: 赛后比分修正 — 用 detail.php 修正半场误判
+    const corrected = await correctPostMatchScores(matches, dateStr);
+    if (corrected > 0) {
+      console.log(`[500live:detail] 赛后比分修正: ${corrected} 场`);
+    }
+
     // 摘要
     const liveCount = matches.filter((m) => m.matchStatus === 1).length;
     const finishedCount = matches.filter((m) => m.matchStatus >= 2).length;
@@ -432,7 +625,7 @@ async function fetchLive500(dateStr) {
   }
 }
 
-module.exports = { fetchLive500, parse500Live, syncToDataJson, httpGet };
+module.exports = { fetchLive500, parse500Live, syncToDataJson, correctPostMatchScores, fetchDetailScore, httpGet };
 
 if (require.main === module) {
   const dateArg = process.argv[2] || null;

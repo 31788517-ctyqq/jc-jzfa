@@ -90,13 +90,21 @@ jest.mock('../database', () => {
 const database = require('../database');
 const { initPaymentSchema } = require('../payments/schema');
 const { planCatalog } = require('../payments/plans');
-const { createOrder, queryOrder, generateOrderNo, getPlanInfo, validateCoupon } = require('../payments/orders');
+const {
+  createOrder,
+  queryOrder,
+  queryAlipayStatus,
+  generateOrderNo,
+  getPlanInfo,
+  validateCoupon,
+} = require('../payments/orders');
 const {
   subscriptionStatus,
   cancelAutoRenew,
   enableAutoRenew,
   adminGrantSubscription,
 } = require('../payments/subscriptions');
+const { handleAction } = require('../payments');
 const { computeCommission, onPaymentRefunded } = require('../payments/referral-compute');
 const { antiFraudCheck } = require('../payments/referral-anti-fraud');
 const { referralAccount, withdrawSubmit, adminWithdrawProcess } = require('../payments/referral-account');
@@ -104,7 +112,7 @@ const { referralAccount, withdrawSubmit, adminWithdrawProcess } = require('../pa
 // 测试辅助
 function mockReq(body = {}, auth = null) {
   if (auth === null) return { body };
-  var session = { userId: auth.userId || 1, role: auth.role || 'viewer', referralEnabled: true, ...auth };
+  const session = { userId: auth.userId || 1, role: auth.role || 'viewer', referralEnabled: true, ...auth };
   return { body, authSession: session };
 }
 function mockRes() {
@@ -200,6 +208,97 @@ describe('Phase 4 支付体系', () => {
       const result = res.json.mock.calls[0][0];
       expect(result.code).toBe(1);
       expect(result.data.order_no).toBe(orderNo);
+    });
+  });
+
+  // ========== 订单边缘场景 ==========
+  describe('4.2.2 订单边缘场景', () => {
+    test('金额为 0/负数应拒绝创建订单', async () => {
+      const res0 = mockRes();
+      await createOrder(mockReq({ plan_code: 'monthly', amount: 0 }, { userId: 1 }), res0);
+      expect(res0.json.mock.calls[0][0]).toMatchObject({ code: 400, msg: 'INVALID_AMOUNT' });
+
+      const resNeg = mockRes();
+      await createOrder(mockReq({ plan_code: 'monthly', amount: -100 }, { userId: 1 }), resNeg);
+      expect(resNeg.json.mock.calls[0][0]).toMatchObject({ code: 400, msg: 'INVALID_AMOUNT' });
+    });
+
+    test('跨用户查询订单应返回 ORDER_NOT_FOUND', async () => {
+      const createRes = mockRes();
+      await createOrder(mockReq({ plan_code: 'monthly' }, { userId: 1 }), createRes);
+      const orderNo = createRes.json.mock.calls[0][0].data.order_no;
+
+      const queryRes = mockRes();
+      await queryOrder(mockReq({ order_no: orderNo }, { userId: 2 }), queryRes);
+      expect(queryRes.json.mock.calls[0][0]).toMatchObject({ code: 404, msg: 'ORDER_NOT_FOUND' });
+    });
+
+    test('queryAlipayStatus 缺少订单号应返回 MISSING_ORDER_NO', async () => {
+      const res = mockRes();
+      await queryAlipayStatus(mockReq({}, { userId: 1 }), res);
+      expect(res.json.mock.calls[0][0]).toMatchObject({ code: 400, msg: 'MISSING_ORDER_NO' });
+    });
+  });
+
+  // ========== 优惠码边缘场景 ==========
+  describe('4.2.3 优惠码边缘场景 (validateCoupon)', () => {
+    test('优惠码不可用场景应返回准确错误码', () => {
+      const adp = database.getAdapter();
+      adp.execRun(`INSERT INTO coupons (code, discount_type, discount_value, min_amount, applicable_plans, max_uses, used_count, valid_from, valid_until, is_active)
+        VALUES ('EDGE_MIN', 'fixed', 300, 10000, 'monthly', 0, 0, '2020-01-01', '2099-12-31', 1)`);
+      adp.execRun(`INSERT INTO coupons (code, discount_type, discount_value, min_amount, applicable_plans, max_uses, used_count, valid_from, valid_until, is_active)
+        VALUES ('EDGE_EXHAUST', 'fixed', 100, 0, '*', 1, 1, '2020-01-01', '2099-12-31', 1)`);
+      adp.execRun(`INSERT INTO coupons (code, discount_type, discount_value, min_amount, applicable_plans, max_uses, used_count, valid_from, valid_until, is_active)
+        VALUES ('EDGE_EXPIRED', 'fixed', 100, 0, '*', 0, 0, '2020-01-01', '2020-01-02', 1)`);
+
+      expect(validateCoupon(adp, 'NOT_EXISTS', 'monthly', 9800)).toMatchObject({
+        valid: false,
+        reason: 'COUPON_NOT_FOUND',
+      });
+      expect(validateCoupon(adp, 'EDGE_MIN', 'monthly', 9800)).toMatchObject({
+        valid: false,
+        reason: 'MIN_AMOUNT_NOT_MET',
+      });
+      expect(validateCoupon(adp, 'EDGE_MIN', 'yearly', 88800)).toMatchObject({
+        valid: false,
+        reason: 'COUPON_NOT_APPLICABLE',
+      });
+      expect(validateCoupon(adp, 'EDGE_EXHAUST', 'monthly', 9800)).toMatchObject({
+        valid: false,
+        reason: 'COUPON_EXHAUSTED',
+      });
+      expect(validateCoupon(adp, 'EDGE_EXPIRED', 'monthly', 9800)).toMatchObject({
+        valid: false,
+        reason: 'COUPON_EXPIRED',
+      });
+    });
+
+    test('百分比优惠不应超过订单金额', () => {
+      const adp = database.getAdapter();
+      adp.execRun(`INSERT INTO coupons (code, discount_type, discount_value, min_amount, applicable_plans, max_uses, used_count, valid_from, valid_until, is_active)
+        VALUES ('EDGE_CAP', 'percent', 999, 0, '*', 0, 0, '2020-01-01', '2099-12-31', 1)`);
+      const result = validateCoupon(adp, 'EDGE_CAP', 'monthly', 9800);
+      expect(result.valid).toBe(true);
+      expect(result.discount).toBe(9800);
+    });
+  });
+
+  // ========== 路由权限边缘场景 ==========
+  describe('4.2.4 支付路由权限层 (handleAction)', () => {
+    test('管理员动作在 viewer 角色下应拒绝', async () => {
+      const res = mockRes();
+      await handleAction('admin-subscription-list', mockReq({}, { userId: 1, roles: ['viewer'] }), res);
+      expect(res.json.mock.calls[0][0]).toMatchObject({ code: 403, msg: 'ADMIN_REQUIRED' });
+    });
+
+    test('未知 action 应返回 false', async () => {
+      const res = mockRes();
+      const handled = await handleAction(
+        'payment-unknown-edge-action',
+        mockReq({}, { userId: 1, roles: ['viewer'] }),
+        res,
+      );
+      expect(handled).toBe(false);
     });
   });
 

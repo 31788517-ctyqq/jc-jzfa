@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
+<beans>
+	<!-- 通联支付配置 -->
+	<bean id="tongLianPayConfig" class="com.quncai.tonglian.config.TongLianPayConfig">
+		<!-- 商户号 -->
+		<property name="merchantId">
+			<value>008500179950009</value>
+		</property>
+		<!-- MD5密钥，密钥是在通联支付网关会员服务网站上设置 -->
+		<property name="key">
+			<value>quncai888</value>
+		</property>
+		<!-- 证书地址 -->
+		<property name="certPath">
+			<!-- 测试环境 -->
+			<!-- <value>/www/appwap/cert/TLCert.cer</value> -->
+			<!-- 生产环境 -->
+			<value>/opt/conf/TLCert.cer</value>
+		</property>
+		<!-- 用户注册请求地址 -->
+		<property name="userIdUrl">
+			<!-- 测试环境 -->
+			<!-- <value>https://cashier.allinpay.com/usercenter/merchant/UserInfo/reg.do</value> -->
+			<!-- 生产环境 -->
+			<value>https://cashier.allinpay.com/usercenter/merchant/UserInfo/reg.do</value>
+		</property>
+		<!-- 网关地址 -->
+		<property name="requestUrl">
+			<!-- 测试环境 -->
+			<!-- <value>https://cashier.allinpay.com/mobilepayment/mobile/SaveMchtOrderServlet.action</value> -->
+			<!-- 生产环境(生产地址请在测试环境下通过后从业务人员获取) -->
+			<value>https://cashier.allinpay.com/mobilepayment/mobile/SaveMchtOrderServlet.action</value>
+		</property>
+		<!-- 页面通知(同步通知)地址 -->
+		<property name="pickupUrl">
+			<!-- 测试环境 -->
+			<!-- <value>http://c.m.quncai.tk:8888/member/tonglianpay_rechargeSuccess.php</value> -->
+			<!-- 生产环境 -->
+			<value>http://c.m.quncai.com/member/tonglianpay_rechargeSuccess.php</value>
+		</property>
+		<!-- 后台通知(异步通知)地址 -->
+		<property name="receiveUrl">
+			<!-- 测试环境 -->
+			<!-- <value>http://www.quncai.tk:8081/member/chargeNotifyTonglianpay.php</value> -->
+			<!-- 生产环境 -->
+			<value>http://www.quncai.com/member/chargeNotifyTonglianpay.php</value>
+		</property>
+		<!-- 费率(目前合同上由群彩承担，不扣用户钱，故为0.00) -->
+		<property name="rate">
+			<value>0.00</value>
+		</property>
+	</bean>
+
+
+	<!-- 通联扫码支付配置 -->
+	<bean id="tongLianQRCodePayConfig" class="com.quncai.tonglian.config.TongLianQRCodePayConfig">
+		<!-- 商户号 -->
+		<property name="merchantId">
+			<!-- 测试环境 -->
+			<!-- <value>990581007426001</value> -->
+			<!-- 生产环境 -->
+			<value>265690079951300</value>
+		</property>
+		<!-- APPID(扫码支付专用) -->
+		<property name="appId">
+			<!-- 测试环境 -->
+			<!-- <value>00000051</value> -->
+			<!-- 生产环境 -->
+			<value>00008255</value>
+		</property>
+		<!-- MD5密钥，密钥是在通联支付网关会员服务网站上设置 -->
+		<property name="key">
+			<!-- 测试环境 -->
+			<!-- <value>allinpay888</value> -->
+			<!-- 生产环境 -->
+			<value>quncai888</value>
+		</property>
+		<!-- 网关地址 -->
+		<property name="requestUrl">
+			<!-- 测试环境 -->
+			<!-- <value>http://113.108.182.3:10080/apiweb/unitorder</value> -->
+			<!-- 生产环境(生产地址请在测试环境下通过后从业务人员获取) -->
+			<value>https://vsp.allinpay.com/apiweb/unitorder</value>
+		</property>
+		<!-- 后台通知(异步通知)地址 -->
+		<property name="receiveUrl">
+			<!-- 测试环境 -->
+			<!-- <value>http://www.quncai.tk:8888/member/chargeNotifyWXZFBTonglianpay.php</value> -->
+			<!-- 生产环境 -->
+			<value>http://www.quncai.com/member/chargeNotifyWXZFBTonglianpay.php</value>
+		</property>
+		<!-- 费率(目前合同上由群彩承担，不扣用户钱，故为0.00) -->
+		<property name="rate">
+			<value>0.00</value>
+		</property>
+	</bean>
+	
+	<bean id="sybPayService" class="com.quncai.tonglianpay.util.allinpay.syb.lib.SybPayService">
+		<property name="tongLianQRCodePayConfig" ref="tongLianQRCodePayConfig"></property>
+	</bean>
+
+</beans>

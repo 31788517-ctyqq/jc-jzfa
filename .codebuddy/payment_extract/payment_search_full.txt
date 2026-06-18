@@ -1,0 +1,663 @@
+/data/wwwroot/quncai_wap/plan/detail/dcDetail.jsp:379:<script type="text/javascript" src="/js/plan/pay.js"></script>
+/data/wwwroot/quncai_wap/plan/detail/jqcDetail.jsp:407:<script type="text/javascript" src="/js/plan/pay.js"></script>
+/data/wwwroot/quncai_wap/plan/detail/jzDetail.jsp:340:<script type="text/javascript" src="/js/plan/pay.js"></script>
+/data/wwwroot/quncai_wap/plan/detail/jlDetail.jsp:338:<script type="text/javascript" src="/js/plan/pay.js"></script>
+/data/wwwroot/quncai_wap/plan/detail/sfcDetail.jsp:332:<script type="text/javascript" src="/js/plan/pay.js"></script>
+/data/wwwroot/quncai_wap/lottery/jcfb/xd.jsp:223:			<span class="br-btn bet-sub" onClick="paySubmit(0);">去支付</span>
+/data/wwwroot/quncai_wap/lottery/jcfb/index--.jsp:232:						<span class="br-btn bet-sub large-show" onclick="paySubmit(1)">立即支付</span> 
+/data/wwwroot/quncai_wap/lottery/jcfb/index.jsp:240:						<span class="br-btn bet-sub large-show" onclick="paySubmit(1)">立即支付</span>
+/data/wwwroot/quncai_wap/lottery/dc/xd.jsp:213:			<span class="br-btn bet-sub" onClick="paySubmit('dg');">去支付</span>
+/data/wwwroot/quncai_wap/station/charge.jsp:58:            	<s:iterator value="alipayList" var="v" status="s">
+/data/wwwroot/quncai_wap/hm/show.jsp:183:<div class="bet-sure"><span class="br-btn bet-sub" onclick="paySubmit('hm')">立即支付</span>
+/data/wwwroot/quncai_wap/hm/showJczq.jsp:223:<div class="bet-sure"><span class="br-btn bet-sub" onclick="paySubmit('hm')">立即支付</span>
+/data/wwwroot/quncai_wap/hm/js/hmShow.js:56:function paySubmit(buyTypeStr){
+/data/wwwroot/quncai_wap/hm/hmListIndex.jsp:107:	<span class="br-btn bet-sub" onClick="paySubmit('fq')">立即支付</span>
+/data/wwwroot/quncai_wap/alipay_recharge.jsp:20:		AlipayJSBridge.call('tradePay', options, function(result) {
+/data/wwwroot/quncai_wap/alipay_recharge.jsp:24:				//location.href = "/alipay_success.shtml";//支付成功后跳转处理
+/data/wwwroot/quncai_wap/s_d.jsp:52:	.weixin-app-download-mask {background-color:#000;height:100%;opacity:0.6;position:fixed;width:100%;z-index:10;top:0;}
+/data/wwwroot/quncai_wap/s_d.jsp:63:  <div id="weixin-app-download-mask" class="weixin-app-download-mask hide"></div>
+/data/wwwroot/quncai_wap/s_d.jsp:64:  <article class="popup weixin-popup hide" onclick="javascript:closeCover();">
+/data/wwwroot/quncai_wap/s_d.jsp:65:    <img src="http://img.quncai.com/images/wap/weixin.png" alt="微信提示">
+/data/wwwroot/quncai_wap/s_d.jsp:97:        removeClass(document.querySelector('.weixin-app-download-mask'),'show');
+/data/wwwroot/quncai_wap/s_d.jsp:98:        addClass(document.querySelector('.weixin-app-download-mask'),'hide');
+/data/wwwroot/quncai_wap/s_d.jsp:145:                    removeClass(document.querySelector('.weixin-app-download-mask'),'hide');
+/data/wwwroot/quncai_wap/s_d.jsp:146:                    addClass(document.querySelector('.weixin-app-download-mask'),'show');
+/data/wwwroot/quncai_wap/js/plan/pay.js:37:	var payCMD="/kaka//?&native=CMD_JUMP_ORDERPAY&orderno="+orderno+"&title="+title+"&term="+term+"&multiple="+multiple+"&count="+count+"&amount="+amount;
+/data/wwwroot/quncai_wap/js/plan/pay.js:38:	window.location.href = payCMD;
+/data/wwwroot/quncai_wap/js/lottery.js:270:		$("#payBtn").attr("onclick","paySubmit('zh')");
+/data/wwwroot/quncai_wap/js/lottery.js:272:		$("#payBtn").text("追号投注");
+/data/wwwroot/quncai_wap/js/lottery.js:283:		$("#payBtn").attr("onclick","paySubmit('dg')");
+/data/wwwroot/quncai_wap/js/lottery.js:285:		$("#payBtn").text("立即支付");
+/data/wwwroot/quncai_wap/js/trade/k3/xd.js:145:		payBtn : "payBtn",
+/data/wwwroot/quncai_wap/js/trade/k3/xd.js:177:		payBtn :function(){
+/data/wwwroot/quncai_wap/js/trade/k3/xd.js:204:			$("#payBtn").attr("onclick","paySubmit('zh')");
+/data/wwwroot/quncai_wap/js/trade/k3/xd.js:206:			$("#payBtn").text("追号投注");
+/data/wwwroot/quncai_wap/js/trade/k3/xd.js:221:			$("#payBtn").attr("onclick","paySubmit('dg')");
+/data/wwwroot/quncai_wap/js/trade/k3/xd.js:223:			$("#payBtn").text("立即支付");
+/data/wwwroot/quncai_wap/js/trade/k3/xd.js:576:		paySubmit = function(buyTypeStr){
+/data/wwwroot/quncai_wap/js/trade/k3/xd.js:579:				setTimeout("paySubmit("+buyTypeStr+")",1000);
+/data/wwwroot/quncai_wap/js/trade/fbsfc/tradexd.js:109:function paySubmit(buyType){
+/data/wwwroot/quncai_wap/js/trade/jqc/tradexd.js:491:function paySubmit(buyType) {
+/data/wwwroot/quncai_wap/js/trade/kl8/publicoperation.js:510:function paySubmit(buyTypeStr){
+/data/wwwroot/quncai_wap/js/trade/kl8/publicoperation.js:513:	// 	setTimeout("paySubmit("+buyTypeStr+")",1000);
+/data/wwwroot/quncai_wap/js/trade/dcsf/tradexd.js:582:function paySubmit(buyTypeStr){
+/data/wwwroot/quncai_wap/js/trade/fbr9/tradexd.js:369:function paySubmit(buyType) {
+/data/wwwroot/quncai_wap/js/trade/ahk3/xd.js:145:		payBtn : "payBtn",
+/data/wwwroot/quncai_wap/js/trade/ahk3/xd.js:177:		payBtn :function(){
+/data/wwwroot/quncai_wap/js/trade/ahk3/xd.js:204:			$("#payBtn").attr("onclick","paySubmit('zh')");
+/data/wwwroot/quncai_wap/js/trade/ahk3/xd.js:206:			$("#payBtn").text("追号投注");
+/data/wwwroot/quncai_wap/js/trade/ahk3/xd.js:221:			$("#payBtn").attr("onclick","paySubmit('dg')");
+/data/wwwroot/quncai_wap/js/trade/ahk3/xd.js:223:			$("#payBtn").text("立即支付");
+/data/wwwroot/quncai_wap/js/trade/ahk3/xd.js:575:		paySubmit = function(buyTypeStr){
+/data/wwwroot/quncai_wap/js/trade/ahk3/xd.js:578:				setTimeout("paySubmit("+buyTypeStr+")",1000);
+/data/wwwroot/quncai_wap/js/trade/jlk3/xd.js:145:		payBtn : "payBtn",
+/data/wwwroot/quncai_wap/js/trade/jlk3/xd.js:177:		payBtn :function(){
+/data/wwwroot/quncai_wap/js/trade/jlk3/xd.js:204:			$("#payBtn").attr("onclick","paySubmit('zh')");
+/data/wwwroot/quncai_wap/js/trade/jlk3/xd.js:206:			$("#payBtn").text("追号投注");
+/data/wwwroot/quncai_wap/js/trade/jlk3/xd.js:221:			$("#payBtn").attr("onclick","paySubmit('dg')");
+/data/wwwroot/quncai_wap/js/trade/jlk3/xd.js:223:			$("#payBtn").text("立即支付");
+/data/wwwroot/quncai_wap/js/trade/jlk3/xd.js:576:		paySubmit = function(buyTypeStr){
+/data/wwwroot/quncai_wap/js/trade/jlk3/xd.js:579:				setTimeout("paySubmit("+buyTypeStr+")",1000);
+/data/wwwroot/quncai_wap/js/trade/dc/tradexd.js:588:function paySubmit(buyTypeStr){
+/data/wwwroot/quncai_wap/js/trade/dc/dc.js:382:			f.action="/lottery/pay.php";
+/data/wwwroot/quncai_wap/js/trade/dc/dc.js:385:			//var f = $("<form name='buyForm' action='/lottery/jcfb/pay_xd.php' method='post'></from> ");
+/data/wwwroot/quncai_wap/js/trade/dc/dc.js:932:function paySubmit(fromPage){
+/data/wwwroot/quncai_wap/js/football/order.js:365:		paySubmit(JSON.stringify(params));
+/data/wwwroot/quncai_wap/js/football/order.js:409:function paySubmit() {
+/data/wwwroot/quncai_wap/js/football/hmOrder.js:89:function paySubmit() {
+/data/wwwroot/quncai_wap/js/mobile-common.js:40:            weixin: u.toLowerCase().match(/MicroMessenger/i) == "micromessenger", //微信
+/data/wwwroot/quncai_wap/js/mobile-common.js:41:            alipay: u.toLowerCase().match(/Alipay/i) == "alipay", // 支付宝
+/data/wwwroot/quncai_wap/js/mobile-common.js:111:                    // } else if (browser.versions.weixin || browser.versions.alipay) {
+/data/wwwroot/quncai_wap/js/mobile-common.js:840:    //      browser.versions.weixin // 微信
+/data/wwwroot/quncai_wap/js/mobile-common.js:841:    //     || browser.versions.alipay // 支付宝
+/data/wwwroot/quncai_wap/js/mobile-common.js:867:        || browser.versions.weixin // 微信
+/data/wwwroot/quncai_wap/js/mobile-common.js:868:        || browser.versions.alipay // 支付宝
+/data/wwwroot/quncai_wap/js/publicoperation.js:444:function paySubmit(buyTypeStr){
+/data/wwwroot/quncai_wap/js/publicoperation.js:447:		setTimeout("paySubmit("+buyTypeStr+")",1000);
+/data/wwwroot/quncai_wap/js/share/share.js:106://	$.getJSON("/share/weixinShare.php?url="+location.href+"&e="+new Date().getTime(),function(data) {
+/data/wwwroot/quncai_wap/js/basketball/jclqOrder.js:679:function paySubmit(fromPage) {
+/data/wwwroot/quncai_wap/js/basketball/order.js:397:			paySubmit(JSON.stringify(params));
+/data/wwwroot/quncai_wap/js/basketball/order.js:444:function paySubmit() {
+/data/wwwroot/quncai_wap/js/basketball/jclqHm.js:100:function paySubmit(buyTypeStr){
+/data/wwwroot/quncai_wap/js/basketball/hmOrder.js:89:function paySubmit() {
+/data/wwwroot/quncai_wap/js/jcfb.js:383:			f.action="/lottery/jcfb/pay_xd.php";
+/data/wwwroot/quncai_wap/js/jcfb.js:386:			//var f = $("<form name='buyForm' action='/lottery/jcfb/pay_xd.php' method='post'></from> ");
+/data/wwwroot/quncai_wap/js/jcfb.js:542:function paySubmit(fromPage) {
+/data/wwwroot/quncai_wap/js/member/dorecharge.js:58:									+ "<div class='station_tip'>支持转账方式: <img src='/imgs/wechat.png' /><img src='/imgs/alipay.png' /><img src='/imgs/dnapay_03.jpg' /></div>"
+/data/wwwroot/quncai_wap/js/member/personal_data.js:415:									window.location.href="/member/payeco_input.php?source=5";
+/data/wwwroot/quncai_wap/js/member/personal_data.js:567:		var alipayAccount = $.trim($("#alipayAccount").val());
+/data/wwwroot/quncai_wap/js/member/personal_data.js:568:		if (alipayAccount == "") {
+/data/wwwroot/quncai_wap/js/member/personal_data.js:571:			$("#alipayAccount").addClass("error");
+/data/wwwroot/quncai_wap/js/member/personal_data.js:574:		data = {alipayAccount : alipayAccount, drawingType : type, source : source};
+/data/wwwroot/quncai_wap/js/member/personal_data.js:587:					window.location.href="/member/payeco_input.php?source=5";
+/data/wwwroot/quncai_wap/js/member/dorechargeNew.js:56:									+ "<div class='station_tip'>支持转账方式: <img src='/imgs/wechat.png' /><img src='/imgs/alipay.png' /><img src='/imgs/dnapay_03.jpg' /></div>"
+/data/wwwroot/quncai_wap/js/util/share.js:2:var isweixin = /MicroMessenger/gi.test(window.navigator.userAgent);
+/data/wwwroot/quncai_wap/js/util/pay.js:353:			payBtn : "payBtn",
+/data/wwwroot/quncai_wap/js/util/pay.js:698:				$.idElem(vari.payBtn).attr("onclick","paySubmit('zh')");
+/data/wwwroot/quncai_wap/js/util/pay.js:895:			$.idElem(vari.payBtn).attr("onclick","paySubmit('zz')");
+/data/wwwroot/quncai_wap/js/zhtc/zhtc.js:476:function paySubmit(buyTypeStr){
+/data/wwwroot/quncai_wap/js/zhtc/zhtc.js:479:		setTimeout("paySubmit("+buyTypeStr+")",1000);
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:293:			classpath:alipay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:294:			classpath:yeepay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:295:			classpath:lianlianpay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:296:			classpath:weixinpay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:297:			classpath:weifutongpay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:298:			classpath:huijupay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:299:			classpath:hengfutongpay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:300:			classpath:tongfupay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:301:			classpath:xianzaipay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:302:			classpath:tonglianpay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:303:			classpath:ziweixingpay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:304:			classpath:jingdongpay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:305:			classpath:helibaopay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:306:			classpath:evenpay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:307:			classpath:fuyoupay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:308:			classpath:quanminpay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:309:			classpath:yifupay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:310:			classpath:haodianpay.xml
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:311:			classpath:xingyebankpay.xml
+/data/wwwroot/quncai_wap/WEB-INF/classes/evenpay.xml:12:			<value>/opt/conf/evenpay.cer</value>		
+/data/wwwroot/quncai_wap/WEB-INF/classes/evenpay.xml:16:			<value>/opt/conf/evenpay.pfx</value>		
+/data/wwwroot/quncai_wap/WEB-INF/classes/evenpay.xml:23:		<property name="payUrl">
+/data/wwwroot/quncai_wap/WEB-INF/classes/evenpay.xml:24:			<value>https://payment.chinapay.com/CTITS/service/rest/page/nref/000000000017/0/0/0/0/0</value>	
+/data/wwwroot/quncai_wap/WEB-INF/classes/evenpay.xml:28:			<value>http://c.m.quncai.com/member/evenpay_rechargeSuccess.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/evenpay.xml:32:		    <value>http://www.quncai.com/member/chargeNotifyEVENpay.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/hengfutongpay.xml:46:			<!-- <value>http://c.m.quncai.tk:8888/member/hengfutongpay_rechargeSuccess.php</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/hengfutongpay.xml:48:			<value>http://c.m.quncai.com/member/hengfutongpay_rechargeSuccess.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/hengfutongpay.xml:53:			<!-- <value>http://c.m.quncai.tk:8888/member/hengfutongpay_rechargeSuccess.php</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/hengfutongpay.xml:55:			<value>http://c.m.quncai.com/member/hengfutongpay_rechargeSuccess.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/xianzaipay.xml:23:			<!-- <value>http://posp.ipaynow.cn:10808/cpgatetest/frontnotify</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/xianzaipay.xml:25:			<value>http://c.m.quncai.com/member/xianzaipay_rechargeSuccess.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/xianzaipay.xml:30:			<!-- <value>http://posp.ipaynow.cn:10808/cpgatetest/notify</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/ziweixingpay.xml:5:	<bean id="ziWeiXingConfig" class="com.quncai.ziweixing.config.ZiWeiXingConfig">
+/data/wwwroot/quncai_wap/WEB-INF/classes/ziweixingpay.xml:16:			<value>https://api.ulopay.com/pay/unifiedorder</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/ziweixingpay.xml:21:			<!-- <value>http://192.168.0.160:8082/member/ziweixing_rechargeSuccess.php</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/ziweixingpay.xml:23:			<value>http://c.m.quncai.com/member/ziweixing_rechargeSuccess.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/fuyoupay.xml:5:	<bean id="fuYouPayConfig" class="com.quncai.fuyoupay.config.FuYouPayConfig">
+/data/wwwroot/quncai_wap/WEB-INF/classes/fuyoupay.xml:24:			<value>https://mpay.fuiou.com/newpropay/bindMsg.pay</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/fuyoupay.xml:28:			<value>https://mpay.fuiou.com/newpropay/bindCommit.pay</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/fuyoupay.xml:32:			<value>https://mpay.fuiou.com/newpropay/order.pay</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/fuyoupay.xml:36:			<value>https://mpay.fuiou.com/newpropay/commit.pay</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/fuyoupay.xml:40:			<value>https://mpay.fuiou.com/newpropay/sendMsg.pay</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/fuyoupay.xml:44:			<value>https://mpay.fuiou.com/newpropay/bindQuery.pay</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/fuyoupay.xml:48:			<value>https://mpay.fuiou.com/newpropay/unbind.pay</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/fuyoupay.xml:52:		    <value>http://www.quncai.com/member/chargeNotifyFYpay.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/yifupay.xml:16:			<value>http://120.79.219.170:44192/alipay/transferJson</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/yifupay.xml:20:		    <value>http://www.quncai.com/member/chargeNotifyYFpay.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/xingyebankpay.xml:17:			<value>pay.alipay.native</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/xingyebankpay.xml:21:			<value>https://pay.swiftpass.cn/pay/gateway</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/haodianpay.xml:24:		    <value>http://c.m.quncai.com/member/haodianpay_rechargeSuccess.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/haodianpay.xml:28:		    <value>http://www.quncai.com/member/chargeNotifyHDpay.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:25:				<entry key="1011" value-ref="alipayChargeByWapExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:26:				<entry key="1008" value-ref="alipayChargeExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:33:	   			<entry key="5017" value-ref="chargeAlipayExecutor"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:35:				<entry key="6000" value-ref="lLpayChargeExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:242:				<entry key="9002" value-ref="alipayAuthToSdkExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:244:				<entry key="9003" value-ref="alipayLoginToSdkExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:273:				<entry key="10001" value-ref="weixinLoginToSdkExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:24:			<!-- <value>https://cashier.allinpay.com/usercenter/merchant/UserInfo/reg.do</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:26:			<value>https://cashier.allinpay.com/usercenter/merchant/UserInfo/reg.do</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:31:			<!-- <value>https://cashier.allinpay.com/mobilepayment/mobile/SaveMchtOrderServlet.action</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:33:			<value>https://cashier.allinpay.com/mobilepayment/mobile/SaveMchtOrderServlet.action</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:38:			<!-- <value>http://c.m.quncai.tk:8888/member/tonglianpay_rechargeSuccess.php</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:40:			<value>http://c.m.quncai.com/member/tonglianpay_rechargeSuccess.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:45:			<!-- <value>http://www.quncai.tk:8081/member/chargeNotifyTonglianpay.php</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:47:			<value>http://www.quncai.com/member/chargeNotifyTonglianpay.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:75:			<!-- <value>allinpay888</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:84:			<value>https://vsp.allinpay.com/apiweb/unitorder</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:89:			<!-- <value>http://www.quncai.tk:8888/member/chargeNotifyWXZFBTonglianpay.php</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:91:			<value>http://www.quncai.com/member/chargeNotifyWXZFBTonglianpay.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:99:	<bean id="sybPayService" class="com.quncai.tonglianpay.util.allinpay.syb.lib.SybPayService">
+/data/wwwroot/quncai_wap/WEB-INF/classes/quanminpay.xml:16:			<value>http://128.1.136.18/pay/multifunctionPayment.do</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/quanminpay.xml:20:			<value>http://c.m.quncai/member/quanminpay_rechargeSuccess.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/quanminpay.xml:24:		    <value>http://www.quncai.com/member/chargeNotifyQMpay.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:18:            <result name="appSuccess">/member/apppay/appPaySuccess.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:54:            <result name="appSuccess">/member/apppay/appPaySuccess.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:60:            <result name="appSuccess">/member/apppay/appPaySuccess.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:66:            <result name="appSuccess">/member/apppay/appPaySuccess.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:73:            <result name="success">/member/apppay/appPaySuccess.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:81:            <result name="appSuccess">/member/apppay/appPaySuccess.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:88:            <!-- <result name="success">/member/apppay/appPayConfirm.jsp</result> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:89:            <result name="success">/member/apppay/orderPayConfirm.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:95:            <!-- <result name="success">/member/apppay/appPayConfirm.jsp</result> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:96:            <result name="success">/member/apppay/fundOrderPayConfirm.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:100:        <action name="pay" class="confirmPaymentAction" method="pay">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:194:            <result name="appSuccess">/member/apppay/appPaySuccess.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:246:        <action name="appWapPay" class="appWapPayAction" method="pay">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:249:            <result name="success">/member/apppay/appPayConfirm.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:273:            <result name="success">/member/apppay/coupon.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:276:            <result name="success">/member/apppay/mycoupon.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:312:            <result name="weixinPay">/member/recharge/weixinpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:313:            <result name="cjkPay">/member/recharge/cjkpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:377:        <action name="payeco_charge" class="chargePayecoAction" method="index">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:381:        <action name="payeco_orderQuery" class="chargePayecoAction" method="orderQuery"></action>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:382:        <action name="payeco_orderRefund" class="chargePayecoAction" method="orderRefund"></action>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:383:        <action name="payeco_orderResult" class="chargePayecoAction" method="orderResult"></action>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:384:        <action name="payeco_input" class="chargePayecoAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:385:            <result name="input">/member/recharge/payeco.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:388:        <action name="recharge_syn_by_payeco" class="payecoSynAction">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:391:        <action name="recharge_asyn_by_payeco" class="payecoAsynAction">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:396:        <action name="alipay_input" class="chargeAlipayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:400:        <action name="transfer_input" class="chargeAlipayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:404:        <action name="alipay_charge" class="chargeAlipayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:411:        <action name="mer_input" class="chargeMerpayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:415:        <action name="mer_charge" class="chargeMerpayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:422:        <action name="yeepay_input" class="chargeYeepay" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:423:            <result name="input">/member/recharge/yeepay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:426:        <action name="yeepay_charge" class="chargeYeepay" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:430:        <action name="umpay_input" class="umPayChargeAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:431:            <result name="input">/member/recharge/umpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:434:        <action name="umpay_charge" class="umPayChargeAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:438:        <action name="umpayChargeNotify" class="umPayNotifyAction">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:443:        <action name="lianlianpay_input" class="chargeLianlianpayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:444:            <result name="input">/member/recharge/lianlianpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:447:        <action name="lianlianpay_charge" class="chargeLianlianpayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:448:            <result name="input">/member/recharge/lianlianpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:449:            <result name="redirect">/member/recharge/lianlianpayRedirect.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:451:        <action name="lianlianpay_back" class="chargeLianlianpayAction" method="toHome">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:452:            <result name="redirect">/member/recharge/lianlianpayBack.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:458:            <result name="input">/member/recharge/weifutongpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:470:            <result name="input">/member/recharge/huijupay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:482:            <result name="input">/member/recharge/xingyebankpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:485:            <result name="alipay">/member/recharge/xingyebankAlipay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:487:        <action name="xingyebank_alipayConfirm" class="chargeXingYeBankPayAction" method="alipayConfirm">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:488:            <result name="alipayConfirm">/member/recharge/xingyebankAlipayConfirm.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:498:        <action name="tonglianpay_input" class="chargeTongLianPayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:499:            <result name="input">/member/recharge/tonglianpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:502:        <action name="tonglianpay_charge" class="chargeTongLianPayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:504:            <result name="success">/member/recharge/tonglianpayRedirect.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:505:            <result name="weixin">/member/recharge/tonglianpayWeixinQrCode.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:507:        <action name="tonglianpay_weixin" class="chargeTongLianPayAction" method="weixin">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:508:            <result name="weixin">/member/recharge/tonglianpayWeixinQrCode.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:510:        <action name="tonglianpay_weixinSuccess" class="chargeTongLianPayAction" method="weixinSuccess">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:513:        <action name="tonglianpay_rechargeSuccess" class="chargeTongLianPayAction" method="rechargeSuccess">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:516:        <action name="tonglianpay_checkPayStatus" class="chargeTongLianPayAction" method="checkPayStatus">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:522:        <action name="jingdongpay_input" class="chargeJingDongPayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:523:            <result name="input">/member/recharge/jingdongpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:526:        <action name="jingdongpay_authcode" class="chargeJingDongPayAction" method="toAuthcode">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:527:            <result name="success">/member/recharge/jingdongpayauthcode.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:529:        <action name="jingdongpay_charge" class="chargeJingDongPayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:535:        <action name="helibaopay_input" class="chargeHeLiBaoPayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:536:            <result name="input">/member/recharge/helibaopay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:538:        <action name="helibaopay_charge" class="chargeHeLiBaoPayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:540:            <result name="success">/member/recharge/helibaopaySubmit.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:542:        <action name="helibaopay_rechargeSuccess" class="chargeHeLiBaoPayAction" method="rechargeSuccess">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:548:        <action name="fuyoupay_input" class="chargeFuYouPayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:549:            <result name="input">/member/recharge/fuyoupay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:550:            <result name="bind">/member/recharge/fuyoupaybind.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:551:            <result name="unbind">/member/recharge/fuyoupayunbind.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:553:        <action name="fuyoupay_authcode" class="chargeFuYouPayAction" method="toAuthcode">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:554:            <result name="success">/member/recharge/fuyoupayauthcode.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:556:        <action name="fuyoupay_bind" class="chargeFuYouPayAction" method="toBind">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:557:            <result name="success">/member/recharge/fuyoupay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:559:        <action name="fuyoupay_charge" class="chargeFuYouPayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:562:        <action name="fuyoupay_unbind" class="chargeFuYouPayAction" method="toUnBind">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:563:            <result name="unbind">/member/recharge/fuyoupayunbind.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:568:        <action name="quanminpay_input" class="chargeQuanMinPayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:569:            <result name="input">/member/recharge/quanminpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:571:        <action name="quanminpay_charge" class="chargeQuanMinPayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:572:            <result name="success">/member/recharge/quanminpaySubmit.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:575:        <action name="quanminpay_rechargeSuccess" class="chargeQuanMinPayAction" method="rechargeSuccess">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:581:        <action name="yifupay_input" class="chargeYiFuPayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:582:            <result name="input">/member/recharge/yifupay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:584:        <action name="yifupay_charge" class="chargeYiFuPayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:587:        <action name="yifupay_rechargeSuccess" class="chargeYiFuPayAction" method="rechargeSuccess">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:593:        <action name="haodianpay_input" class="chargeHaoDianPayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:594:            <result name="bankcard">/member/recharge/haodianbankcardpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:595:            <result name="input">/member/recharge/haodianpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:597:        <action name="haodianpay_charge" class="chargeHaoDianPayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:602:        <action name="haodianpay_rechargeSuccess" class="chargeHaoDianPayAction" method="rechargeSuccess">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:608:        <action name="evenpay_input" class="chargeEvenPayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:609:            <result name="bankcard">/member/recharge/evenpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:610:            <result name="input">/member/recharge/evenpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:612:        <action name="evenpay_charge" class="chargeEvenPayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:614:            <result name="success">/member/recharge/evenpaySubmit.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:616:        <action name="evenpay_rechargeSuccess" class="chargeEvenPayAction" method="rechargeSuccess">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:622:        <action name="tongfuZFBpay_input" class="chargeTongfuPayAction" method="toZFBInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:623:            <result name="input">/member/recharge/tongfuZFBpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:625:        <action name="tongfuZFBpay_charge" class="chargeTongfuPayAction" method="toZFBCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:627:            <result name="success">/member/recharge/tongfuZFBpaySubmit.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:629:        <action name="tongfuZFBpay_iphoneRecharge" class="chargeTongfuPayAction" method="iphoneRecharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:630:            <result name="success">/member/recharge/tongfuZFBpaySubmit.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:632:        <action name="tongfuZFBpay_rechargeSuccess" class="chargeTongfuPayAction" method="rechargeSuccess">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:638:        <action name="xianzaipay_input" class="chargeXianZaiPayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:639:            <result name="input">/member/recharge/xianzaipay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:641:        <action name="xianzaipay_charge" class="chargeXianZaiPayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:643:            <result name="success">/member/recharge/xianzaipaySubmit.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:645:        <action name="xianzaipay_rechargeSuccess" class="chargeXianZaiPayAction" method="rechargeSuccess">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:651:        <action name="hengfutongpay_input" class="chargeHengFuTongPayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:652:            <result name="input">/member/recharge/hengfutongpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:654:        <action name="hengfutongpay_charge" class="chargeHengFuTongPayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:655:            <result name="success">/member/recharge/hengfutongpaySubmit.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:658:        <action name="hengfutongpay_rechargeSuccess" class="chargeHengFuTongPayAction" method="rechargeSuccess">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:664:        <action name="ziweixing_input" class="chargeZiWeiXingPayAction" method="toInput">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:665:            <result name="input">/member/recharge/ziweixingpay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:667:        <action name="ziweixing_charge" class="chargeZiWeiXingPayAction" method="toCharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:671:        <action name="ziweixing_rechargeSuccess" class="chargeZiWeiXingPayAction" method="rechargeSuccess">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:713:        <action name="pay" class="dcHomeActionApp" method="pay">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:828:            <result name="appSuccess">/member/apppay/appPaySuccess.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:894:            <result name="appSuccess">/member/apppay/appPaySuccess.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:900:            <result name="appSuccess">/member/apppay/appPaySuccess.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:959:            <result name="success">/member/apppay/orderFollowPayConfirm.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:961:        <action name="followpay" class="followLaunchPlanAction" method="pay">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:967:            <result name="success">/member/apppay/followcoupon.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1304:    <package name="weixin" extends="app-default" namespace="/api/weixin">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1305:        <action name="auth" class="weixinLoginAction" method="auth">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1315:            <result name="ajaxjson">/ajaxjson_pay.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1338:    <package name="paynotify" extends="app-default" namespace="/paynotify">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1339:        <action name="weixin" class="weixinNotifyAction" method="index">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1342:            <result name="success">/weixin_success.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1343:            <result name="error">/weixin_error.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1357:        <action name="merpayNotify" class="merpayNotifyAction" method="index">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1374:    <package name="alipayrecharge" extends="app-default" namespace="/recharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1375:        <action name="alipay" class="zfbRechargeAuthAction" method="recharge">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1378:            <result name="success">/alipay_recharge.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1514:        <action name="weixin" class="weixinUnionLoginAction" method="login">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1625:            <result name="index">/member/apppay/followPayConfirm.jsp</result>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1627:        <action name="followPay" class="showFollowPlanAction" method="pay">
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-struts.xml:1660:        <action name="pay" class="recommendAction" method="pay">
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:5:	<bean id="weiXinPayConfig" class="com.quncai.weixin.config.WeiXinPayConfig">
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:15:		<property name="paySignKey">
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:38:			<value>https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:41:		<property name="genPrepayURL">
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:42:			<value>https://api.mch.weixin.qq.com/pay/unifiedorder</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:47:	<bean id="sdkWeiXinRequest" class="com.quncai.weixin.request.SDKWeiXinRequestImpl">
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:52:	<bean id="weixinLoginBuilder" class="com.quncai.weixin.request.WeixinLoginBuilder">
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:71:			<value>https://open.weixin.qq.com/connect/qrconnect</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:75:			<value>https://api.weixin.qq.com/sns/oauth2/access_token</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:79:			<value>https://api.weixin.qq.com/sns/userinfo</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:83:            <value>http%3a%2f%2fm.quncai.com%2fthirdpart_weixinLogin.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/helibaopay.xml:20:			<value>https://quickpay.trx.helipay.com/trx/quickPayH5/interface.action</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/helibaopay.xml:25:		    <value>http://c.m.quncai.com/member/helibaopay_rechargeSuccess.php</value> 
+/data/wwwroot/quncai_wap/WEB-INF/classes/helibaopay.xml:30:		    <value>http://www.quncai.com/member/chargeNotifyHLBpay.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/weifutongpay.xml:16:			<value>https://pay.swiftpass.cn/pay/gateway</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/weifutongpay.xml:41:			<value>https://open.weixin.qq.com/connect/oauth2/authorize</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/weifutongpay.xml:49:			<value>https://api.weixin.qq.com/sns/oauth2/access_token</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/weifutongpay.xml:53:			<value>https://pay.swiftpass.cn/pay/jspay</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerBeans.xml:22:	<bean id="alipayChargeExecutor" class="com.quncai.webservice.executor.member.AlipayChargeExecutor" autowire="byName" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerBeans.xml:25:	<bean id="alipayChargeByWapExecutor" class="com.quncai.webservice.executor.member.AlipayChargeByWapExecutor" autowire="byName" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerBeans.xml:174:	   <bean id="chargeAlipayExecutor" class="com.quncai.webservice.executor.caibizhong.lottery.ChargeAlipayExecutor" autowire="byName"/>	
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerBeans.xml:214:	   <bean id="lLpayChargeExecutor" class="com.quncai.webservice.executor.member.LianLianPayChargeExecutor" autowire="byName"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerBeans.xml:230:       <bean id="alipayAuthToSdkExecutor" class="com.quncai.webservice.executor.member.AlipayAuthToSdkExecutor" autowire="byName"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerBeans.xml:232:	   <bean id="alipayLoginToSdkExecutor" class="com.quncai.webservice.executor.member.AlipayLoginToSdkExecutor" autowire="byName">
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerBeans.xml:291:	  <bean id="weixinLoginToSdkExecutor" class="com.quncai.webservice.executor.member.WeixinLoginToSdkExecutor" autowire="byName"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/lianlianpay.xml:5:	<bean id="lianLianPayConfig" class="com.quncai.lottery.lianlianpay.LianLianPayConfig">
+/data/wwwroot/quncai_wap/WEB-INF/classes/lianlianpay.xml:35:			<value>https://yintong.com.cn/llpayh5/payment.htm</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/lianlianpay.xml:40:			<!-- <value>http://192.168.0.127:9075/member/lianlianpay_back.php</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/SignVerProp.properties:2:plat.url=http://pay.soopay.net
+/data/wwwroot/quncai_wap/WEB-INF/classes/SignVerProp.properties:4:6268.mer.prikey.path=/var/umpay/6268_QC.key.p8
+/data/wwwroot/quncai_wap/WEB-INF/classes/SignVerProp.properties:5:plat.cert.path=/var/umpay/cert_2d59.crt
+/data/wwwroot/quncai_wap/WEB-INF/classes/SignVerProp.properties:8:plat.pay.product.name=spay
+/data/wwwroot/quncai_wap/WEB-INF/classes/SignVerProp.properties:9:plat.micropay.product.name=micropay
+/data/wwwroot/quncai_wap/WEB-INF/classes/SignVerProp.properties:10:plat.wap.pay.product.name=pluginpay
+/data/wwwroot/quncai_wap/WEB-INF/classes/tongfupay.xml:5:	<bean id="tongFuPayConfig" class="com.quncai.tongfupay.config.TongFuPayConfig">
+/data/wwwroot/quncai_wap/WEB-INF/classes/tongfupay.xml:15:		<property name="payURL">
+/data/wwwroot/quncai_wap/WEB-INF/classes/tongfupay.xml:16:			<value>http://pay.8tongfu.com/api/pay</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/tongfupay.xml:21:			<!-- <value>objc://2value//http://c.m.quncai.tk:8888/member/tongfuZFBpay_iphoneRecharge.php</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/tongfupay.xml:23:			<value>objc://2value//http://c.m.quncai.com/member/tongfuZFBpay_iphoneRecharge.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/tongfupay.xml:28:			<!-- <value>http://c.m.quncai.tk:8888/member/tongfuZFBpay_rechargeSuccess.php</value> --> 
+/data/wwwroot/quncai_wap/WEB-INF/classes/tongfupay.xml:30:			<value>http://c.m.quncai.com/member/tongfuZFBpay_rechargeSuccess.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/tongfupay.xml:35:			<!-- <value>http://www.quncai.tk:8888/member/chargeNotifyTongfupay.php</value> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/tongfupay.xml:37:			<value>http://www.quncai.com/member/chargeNotifyTongfupay.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/tongfupay.xml:46:	<bean id="wapTongFuPayRequest" class="com.quncai.tongfupay.request.WapTongFuPayRequestImpl">
+/data/wwwroot/quncai_wap/WEB-INF/classes/huijupay.xml:16:			<value>https://api.yunzhikj.cn/pay/unifiedorder</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:126:	 <bean id="weixinShare" class="com.quncai.thirdParty.weixing.WeixinShare">
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:127:		<property name="accessTokenURL" value="https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:128:		<property name="jsapiTicketURL" value="https://api.weixin.qq.com/cgi-bin/ticket/getticket?" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:91:		class="com.quncai.lottery.mobile.action.payeco.ChargePayecoAction" scope="prototype"
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:94:	<bean id="payecoSynAction"
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:95:		class="com.quncai.lottery.mobile.action.payeco.PayecoSynAction" scope="prototype"
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:98:	<bean id="payecoAsynAction"
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:99:		class="com.quncai.lottery.mobile.action.payeco.PayecoAsynAction" scope="prototype"
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:102:	<bean id="chargeAlipayAction"
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:103:		class="com.quncai.lottery.mobile.action.alipay.ChargeAlipayAction" scope="prototype"
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:105:	<bean id="chargeYeepay"
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:106:		class="com.quncai.lottery.mobile.action.charge.yeepay.ChargeYeepayAction" scope="prototype"
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:109:	<bean id="chargeLianlianpayAction"
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:110:		class="com.quncai.lottery.mobile.action.lianlianpay.ChargeLianlianpayAction" scope="prototype"
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:243:		class="com.quncai.lottery.mobile.action.ziweixing.ChargeZiWeiXingPayAction" scope="prototype"
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:258:	<bean id="myCouponsAction" class="com.quncai.lottery.mobile.action.merpay.ChargeCouponAction" scope="prototype" autowire="byName"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:262:	<bean id="umPayChargeAction" class="com.quncai.lottery.mobile.action.umpay.UmPayChargeAction" autowire="byName" scope="prototype"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:304:	<bean id="couponService" class="com.cailele.lottery.service.pay.impl.CouponServiceImpl" scope="prototype"  autowire="byName" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:365:	<bean id="weixinLoginAction" class="com.quncai.lottery.mobile.action.login.WeixinLoginAction" scope="prototype" autowire="byName"></bean>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:369:	<bean id="weixinNotifyAction" class="com.quncai.lottery.mobile.recharge.notify.WeixinNotifyAction" scope="prototype" autowire="byName"></bean>
+/data/wwwroot/quncai_wap/WEB-INF/classes/wap-actionServlet.xml:374:	<bean id="merpayNotifyAction" class="com.quncai.lottery.mobile.recharge.notify.MerpayNotifyAction" scope="prototype" autowire="byName"></bean>
+/data/wwwroot/quncai_wap/WEB-INF/classes/jingdongpay.xml:36:			<value>https://tmapi.jdpay.com/express.htm</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/jingdongpay.xml:40:			<value>http://www.quncai.com/member/chargeNotifyJDpay.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/jingdongpay.xml:81:			<value>https://tmapi.jdpay.com/express.htm</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/jingdongpay.xml:85:			<value>http://www.quncai.tk:8081/member/chargeNotifyJDpay.php</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/yeepay.xml:6:	<bean id="qcYeepayConfig" class="com.quncai.yeepay.YeePayConfig">
+/data/wwwroot/quncai_wap/WEB-INF/classes/yeepay.xml:15:	<bean id="yeePayWapRequestBuilder" class="com.quncai.yeepay.request.WapPayRequestBuilderImpl">
+/data/wwwroot/quncai_wap/WEB-INF/classes/yeepay.xml:18:		<!-- <property name="notifyUrl"><value>http://www.quncai.tk:8888/member/chargeNotifyYeepay.php</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/yeepay.xml:21:		<property name="notifyUrl"><value>http://www.quncai.com/member/chargeNotifyYeepay.php</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/yeepay.xml:23:		<property name="createOrderUrl"><value>https://o2o.yeepay.com/zgt-api/api/pay</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/yeepay.xml:24:		<property name="yeePayConfig" ref="qcYeepayConfig"></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/yeepay.xml:26:	<bean id="yeepayWapNotifyVerify" class="com.quncai.yeepay.notify.WapNotifyVerifyImpl">
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:5:	<bean id="alipayConfig" class="com.cailele.lottery.alipay.AlipayConfig">
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:15:	<bean id="alipayConfigLogin" class="com.cailele.lottery.alipay.AlipayConfig">
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:26:	<bean id="alipayConfigPoint" class="com.cailele.lottery.alipay.AlipayConfig">
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:32:	<bean id="qcAlipayConfig" class="com.quncai.alipay.AlipayConfig">
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:36:	<bean id="rsaRequestBuilder" class="com.quncai.alipay.request.SDKPayRequestBuilderImpl">
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:41:		<property name="alipayConfig" ref="qcAlipayConfig"></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:43:	<bean id="authRequestBuilder" class="com.quncai.alipay.auth.SDKAuthRequestBuilderImpl">
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:45:		<property name="alipayConfig" ref="qcAlipayConfig"></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:47:	<bean id="rsaNotifyVeryfy" class="com.quncai.alipay.notify.RSANotifyVeryfyImpl">
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:48:		<property name="alipayPublicKey"><value>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnxj/9qwVfgoUh/y2W89L6BkRAFljhNhgPdyPuBV64bfQNN1PjbCzkIM6qRdKBoLPXmKKMiFYnkd6rAoprih3/PrQEB/VsW8OoM8fxn67UDYuyBTqA23MML9q1+ilIZwBC2AQ2UBVOrFXfFl75p6/B5KsiNG9zpgmLCUYuLkxpLQIDAQAB</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:51:	<bean id="wapRequestBuilder" class="com.quncai.alipay.request.WapPayRequestBuilderImpl">
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:56:		<property name="reqCreateUrl"><value>http://wappaygw.alipay.com/service/rest.htm</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:57:		<property name="reqTradeUrl"><value>objc://2value://http://wappaygw.alipay.com/service/rest.htm</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:58:		<property name="alipayConfig" ref="qcAlipayConfig"></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:62:	<bean id="wapMerRequestBuilder" class="com.quncai.merpay.request.MerPayRequestBuilderImpl">
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:65:		<property name="notifyUrl"><value>https://m.quncai.com/paynotify/merpayNotify.php</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:67:		<property name="reqTradeUrl"><value>https://www.xdpay.cn/mpay/merpay.phpx</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:72:	<bean id="appForwardWapRequestBuilder" class="com.quncai.alipay.request.WapPayRequestBuilderImpl">
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:77:		<property name="reqCreateUrl"><value>http://wappaygw.alipay.com/service/rest.htm</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:78:		<property name="reqTradeUrl"><value>http://wappaygw.alipay.com/service/rest.htm</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:79:		<property name="alipayConfig" ref="qcAlipayConfig"></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:82:	<bean id="wapNotifyVeryfy" class="com.quncai.alipay.notify.WapNotifyVerifyImpl">
+/data/wwwroot/quncai_wap/WEB-INF/classes/umpay.properties:8:notify_url           = http://www.quncai.com/user/umpayChargeNotify.php
+/data/wwwroot/quncai_wap/WEB-INF/classes/umpay.properties:12:#\u652F\u4ED8\u7C7B\u578B\u53C2\u6570\u540D\uFF1Apay_type
+/data/wwwroot/quncai_wap/WEB-INF/classes/umpay.properties:17:direct_server        = pay_req_split_direct
+/data/wwwroot/quncai_wap/WEB-INF/classes/umpay.properties:22:credit_server        = pay_req_shortcut_front
+/data/wwwroot/quncai_wap/WEB-INF/classes/umpay.properties:26:sdk_order_server     = pay_req_shortcut
+/data/wwwroot/quncai_wap/WEB-INF/classes/umpay.properties:34:html5_order_url      = https://m.soopay.net/q/html5/index.do?
+/data/wwwroot/quncai_wap/WEB-INF/classes/umpay.properties:38:wap_order_url        = https://m.soopay.net/q/xhtml/index.do?
+/data/wwwroot/quncai_wap/niuren/recommend_show.jsp:430:                                            url: "/recommend/pay.php",
+/data/wwwroot/quncai_wap/member/boundSuccess.jsp:224:			background: url(imgs/dnapay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/boundSuccess.jsp:228:		.alipay {
+/data/wwwroot/quncai_wap/member/boundSuccess.jsp:229:			background-image: url(imgs/dnapay.png);
+/data/wwwroot/quncai_wap/member/boundSuccess.jsp:234:		.tenpay {
+/data/wwwroot/quncai_wap/member/boundSuccess.jsp:235:			background: url(imgs/dnapay.png) no-repeat;
+/data/wwwroot/quncai_wap/member/boundSuccess.jsp:239:		.dnapay {
+/data/wwwroot/quncai_wap/member/boundSuccess.jsp:240:			background: url(imgs/dnapay.png) no-repeat;
+/data/wwwroot/quncai_wap/member/boundSuccess.jsp:245:			background: url(imgs/dnapay.png) no-repeat;
+/data/wwwroot/quncai_wap/member/confirm_payment.jsp:26:				<a href="javascript:pay('${token}');">进行支付</a>
+/data/wwwroot/quncai_wap/member/confirm_payment.jsp:43:	function pay(token){
+/data/wwwroot/quncai_wap/member/confirm_payment.jsp:44:		var url = "/trade/pay.php?token=" + token;
+/data/wwwroot/quncai_wap/member/boundMobileIndex.jsp:202:		.alipay {
+/data/wwwroot/quncai_wap/member/boundMobileIndex.jsp:203:			background: url(../images/alipay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/boundMobileIndex.jsp:206:		.tenpay {
+/data/wwwroot/quncai_wap/member/boundMobileIndex.jsp:207:			background: url(../images/tenpay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/boundMobileIndex.jsp:210:		.dnapay {
+/data/wwwroot/quncai_wap/member/boundMobileIndex.jsp:211:			background: url(../images/dnapay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/writerechargeNewList.jsp:37:	.recharge-list ul li .alipay{background-position:center 0.1rem;background-size:4.0rem auto;}
+/data/wwwroot/quncai_wap/member/writerechargeNewList.jsp:47:	/*.alipay {background:url(/imgs/rechargeSprite.png) no-repeat 20px 50%;background-size: 55px 195px;background-position: 10px 0px;}*/
+/data/wwwroot/quncai_wap/member/writerechargeNewList.jsp:49:	/*.weixin {background:url(/imgs/rechargeSprite.png) no-repeat 20px 50%;background-size: 55px 195px;background-position: 10px -90px;}*/
+/data/wwwroot/quncai_wap/member/writerechargeNewList.jsp:123:					<div class="recharge-logo alipay"></div>
+/data/wwwroot/quncai_wap/member/writerechargeNewList.jsp:133:					<div class="recharge-logo alipay"></div>
+/data/wwwroot/quncai_wap/member/writerechargeNewList.jsp:143:					<div class="recharge-logo alipay"></div>
+/data/wwwroot/quncai_wap/member/writerechargeNewList.jsp:156:							<div class="recharge-logo alipay"></div>
+/data/wwwroot/quncai_wap/member/writerechargeNewList.jsp:169:								<div class="recharge-logo alipay"></div>
+/data/wwwroot/quncai_wap/member/boundEmailIndex.jsp:202:		.alipay {
+/data/wwwroot/quncai_wap/member/boundEmailIndex.jsp:203:			background: url(../images/alipay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/boundEmailIndex.jsp:206:		.tenpay {
+/data/wwwroot/quncai_wap/member/boundEmailIndex.jsp:207:			background: url(../images/tenpay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/boundEmailIndex.jsp:210:		.dnapay {
+/data/wwwroot/quncai_wap/member/boundEmailIndex.jsp:211:			background: url(../images/dnapay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/apppay/orderFollowPayConfirm.jsp:84:      <div class="footer-fix-l">实付: <b>${payMoun} </b>元</div>
+/data/wwwroot/quncai_wap/member/apppay/orderFollowPayConfirm.jsp:88:      			<a href="javascript:void(0);" id="payBtn" class="btn2" onclick="pay('${token}');">立即支付</a>
+/data/wwwroot/quncai_wap/member/apppay/orderFollowPayConfirm.jsp:93:						<a href="javascript:void(0);" onclick="checkToHome();" id="payBtn" class="btn2 btn2-off">订单错误,点击返回</a>
+/data/wwwroot/quncai_wap/member/apppay/orderFollowPayConfirm.jsp:96:						<a href="javascript:void(0);" onclick="checkToRecharge();" id="payBtn" class="btn2 btn2-off">余额不足,返回充值</a>
+/data/wwwroot/quncai_wap/member/apppay/orderFollowPayConfirm.jsp:142:	function pay(token, password) {
+/data/wwwroot/quncai_wap/member/apppay/orderFollowPayConfirm.jsp:156:	    var url = "/plan/followpay.php?token=" + token;
+/data/wwwroot/quncai_wap/member/apppay/orderFollowPayConfirm.jsp:191:                    showBalancePasswordDialog("支付${lotteryPlan.lotteryType.name}方案", "${payMoun}", function (password) {
+/data/wwwroot/quncai_wap/member/apppay/orderFollowPayConfirm.jsp:192:                        pay(token, password);
+/data/wwwroot/quncai_wap/member/apppay/fundOrderPayConfirm.jsp:107:      			<a href="javascript:void();" id="payBtn" class="btn2" onclick="pay('${token}');">立即付款</a>
+/data/wwwroot/quncai_wap/member/apppay/fundOrderPayConfirm.jsp:112:						<a href="javascript:void();" onclick="window.location.href='com.app.quncai://'" id="payBtn" class="btn2" style="opacity:0.65;color:#404141">订单错误,点击返回</a>
+/data/wwwroot/quncai_wap/member/apppay/fundOrderPayConfirm.jsp:115:						<a href="javascript:void();" onclick="window.location.href='com.app.quncai://'" id="payBtn" class="btn2" style="opacity:0.65;color:#404141">余额不足,返回充值</a>
+/data/wwwroot/quncai_wap/member/apppay/fundOrderPayConfirm.jsp:158:	function pay(token){
+/data/wwwroot/quncai_wap/member/apppay/orderPayConfirm.jsp:109:      <div class="footer-fix-l">实付: <b>${payMoun} </b>元</div>
+/data/wwwroot/quncai_wap/member/apppay/orderPayConfirm.jsp:113:				<%-- <span id="payBtn" class="br-btn bet-sub" onclick="pay('${token}');">立即支付</span> --%>
+/data/wwwroot/quncai_wap/member/apppay/orderPayConfirm.jsp:114:      			<a href="javascript:void(0);" id="payBtn" class="btn2" onclick="pay('${token}');">立即支付</a>
+/data/wwwroot/quncai_wap/member/apppay/orderPayConfirm.jsp:119:						<a href="javascript:void(0);" onclick="checkToHome();" id="payBtn" class="btn2 btn2-off">订单错误,点击返回</a>
+/data/wwwroot/quncai_wap/member/apppay/orderPayConfirm.jsp:122:						<a href="javascript:void(0);" onclick="checkToRecharge();" id="payBtn" class="btn2 btn2-off">余额不足,返回充值</a>
+/data/wwwroot/quncai_wap/member/apppay/orderPayConfirm.jsp:169:	function pay(token, password) {
+/data/wwwroot/quncai_wap/member/apppay/orderPayConfirm.jsp:183:	    var url = "/trade/pay.php?token=" + token;
+/data/wwwroot/quncai_wap/member/apppay/orderPayConfirm.jsp:216:                    showBalancePasswordDialog("支付${lotteryPlan.lotteryType.name}方案", "${payMoun}", function (password) {
+/data/wwwroot/quncai_wap/member/apppay/orderPayConfirm.jsp:217:                        pay(token, password);
+/data/wwwroot/quncai_wap/member/apppay/followPayConfirm.jsp:97:                                <a href="javascript:void(0);" id="payBtn" class="btn2" onclick="pay();">立即支付</a>
+/data/wwwroot/quncai_wap/member/apppay/followPayConfirm.jsp:102:                                        <a href="javascript:void(0);" onclick="checkToBack();" id="payBtn" class="btn2 btn2-off">订单错误,点击返回</a>
+/data/wwwroot/quncai_wap/member/apppay/followPayConfirm.jsp:105:                                        <a href="javascript:void(0);" onclick="checkToRecharge();" id="payBtn" class="btn2 btn2-off">余额不足,返回充值</a>
+/data/wwwroot/quncai_wap/member/apppay/followPayConfirm.jsp:161:                function pay(password) {
+/data/wwwroot/quncai_wap/member/apppay/followPayConfirm.jsp:205:                                        pay(password);
+/data/wwwroot/quncai_wap/member/apppay/appPaySuccess.jsp:16:<script type="text/javascript" src="/js/util/pay.js"></script>
+/data/wwwroot/quncai_wap/member/apppay/appPaySuccess.jsp:59:				<span id="payBtn" class="br-btn bet-sub" onclick="window.location.href='com.app.lan.quncai://';window.close();">确定</span>
+/data/wwwroot/quncai_wap/member/apppay/appPayConfirm.jsp:37:	<form id="paymentForm" name="paymentForm" method="post">
+/data/wwwroot/quncai_wap/member/apppay/appPayConfirm.jsp:78:				<span id="payBtn" class="bl-btn bet-sub" onclick="window.location.href='com.app.quncai://';window.close();">返回</span>
+/data/wwwroot/quncai_wap/member/apppay/appPayConfirm.jsp:81:						<span id="payBtn" class="br-btn bet-sub" onclick="pay('${token}');">立即支付</span>
+/data/wwwroot/quncai_wap/member/apppay/appPayConfirm.jsp:84:						<span id="payBtn" class="br-btn bet-sub" style="opacity:0.65;color:#404141">立即支付</span>
+/data/wwwroot/quncai_wap/member/apppay/appPayConfirm.jsp:106:	function pay(token){
+/data/wwwroot/quncai_wap/member/apppay/appPayConfirm.jsp:107:		var url = "/trade/pay.php?token=" + token;
+/data/wwwroot/quncai_wap/member/tikuanflow.jsp:81:		<s:if test="#request.alipayRemitStatus.value >= 0">
+/data/wwwroot/quncai_wap/member/recharge/umpay.jsp:46:	.bt-dnapay {
+/data/wwwroot/quncai_wap/member/recharge/umpay.jsp:51:	.bt-dnapay .area-item {
+/data/wwwroot/quncai_wap/member/recharge/umpay.jsp:55:	.bt-dnapay .area-item:last-child {
+/data/wwwroot/quncai_wap/member/recharge/umpay.jsp:70:				<form class="area-info2" onsubmit="return checkAmount();" action="/member/umpay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/yifupay.jsp:36:					action="/member/yifupay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/xianzaipaySubmit.jsp:10:	<form action="https://pay.ipaynow.cn" method="post" id="xianzaiForm" name="xianzaiForm">
+/data/wwwroot/quncai_wap/member/recharge/xianzaipaySubmit.jsp:27:            <input type="hidden" name="payChannelType"  value="${payChannelType}"> 
+/data/wwwroot/quncai_wap/member/recharge/indexNew.jsp:174:										<img src="../images/alipay.png" alt="" class="bank-logo">
+/data/wwwroot/quncai_wap/member/recharge/indexNew.jsp:188:											<img src="../images/alipay.png" alt="" class="bank-logo">
+/data/wwwroot/quncai_wap/member/recharge/hengfutongpay.jsp:17:		<c:when test="${param['payType']==1 }">
+/data/wwwroot/quncai_wap/member/recharge/hengfutongpay.jsp:26:		<c:when test="${param['payType']==2 }">
+/data/wwwroot/quncai_wap/member/recharge/hengfutongpay.jsp:53:			   <c:when test="${0==payType}">
+/data/wwwroot/quncai_wap/member/recharge/hengfutongpay.jsp:56:			   <c:when test="${1==payType}">
+/data/wwwroot/quncai_wap/member/recharge/hengfutongpay.jsp:70:					action="/member/hengfutongpay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/hengfutongpay.jsp:72:					<input type="hidden" value="${payType}" name="payType" id="payType">
+/data/wwwroot/quncai_wap/member/recharge/hengfutongpay.jsp:80:								   <c:when test="${0==payType}">
+/data/wwwroot/quncai_wap/member/recharge/hengfutongpay.jsp:83:								   <c:when test="${1==payType}">
+/data/wwwroot/quncai_wap/member/recharge/helibaopay.jsp:83:		<form  onsubmit="return checkPayForm()" id="helibao_charge_form" action="/member/helibaopay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/lianlianpay.jsp:13:.bankcard {background:url(/imgs/dnapay.png) no-repeat 20px 50%;
+/data/wwwroot/quncai_wap/member/recharge/lianlianpay.jsp:32:				<form class="area-info2" onsubmit="return checkPayForm()" id="lianlian_charge_form" action="/member/lianlianpay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/zfbpay.jsp:146:									<img src="../images/alipay.png" alt="" class="bank-logo">
+/data/wwwroot/quncai_wap/member/recharge/zfbpay.jsp:160:										<img src="../images/alipay.png" alt="" class="bank-logo">
+/data/wwwroot/quncai_wap/member/recharge/payeco.jsp:36:				<form class="area-info2" onsubmit="return checkYL();" action="/member/payeco_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/transfer.jsp:78:          <div class="btn-box"><a style="background: #d42038;" href="${message['method'] }https://ds.alipay.com/?scheme=alipays://platformapi/startapp?appId=09999988">打开支付宝转账</a></div>
+/data/wwwroot/quncai_wap/member/recharge/zfb.jsp:22:				<form class="area-info2" onsubmit="return checkPayForm()" action="/member/alipay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/hengfutongpaySubmit.jsp:10:	<form action="https://mypay.hengfupay.com/gateway/Order.aspx" method="post" id="hengfutongForm" name="hengfutongForm">
+/data/wwwroot/quncai_wap/member/recharge/yeepay.jsp:13:.bankcard {background:url(/imgs/dnapay.png) no-repeat 20px 50%;
+/data/wwwroot/quncai_wap/member/recharge/yeepay.jsp:32:				<form class="area-info2" onsubmit="return checkPayForm()" id="lianlian_charge_form" action="/member/yeepay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/lianlianpayRedirect.jsp:58:		<form id="lianlianpayForm" action="https://yintong.com.cn/llpayh5/payment.htm" method="post">
+/data/wwwroot/quncai_wap/member/recharge/lianlianpayRedirect.jsp:66:	    $("#lianlianpayForm").submit();
+/data/wwwroot/quncai_wap/member/recharge/haodianpay.jsp:17:		<c:when test="${param['payType']==1 }">
+/data/wwwroot/quncai_wap/member/recharge/haodianpay.jsp:26:		<c:when test="${param['payType']==2 }">
+/data/wwwroot/quncai_wap/member/recharge/haodianpay.jsp:53:			   <c:when test="${1==payType}">
+/data/wwwroot/quncai_wap/member/recharge/haodianpay.jsp:56:			   <c:when test="${1==payType}">
+/data/wwwroot/quncai_wap/member/recharge/haodianpay.jsp:70:					action="/member/haodianpay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/haodianpay.jsp:72:					<input type="hidden" value="${payType}" name="payType" id="payType">
+/data/wwwroot/quncai_wap/member/recharge/haodianpay.jsp:80:								   <c:when test="${1==payType}">
+/data/wwwroot/quncai_wap/member/recharge/haodianpay.jsp:83:								   <c:when test="${2==payType}">
+/data/wwwroot/quncai_wap/member/recharge/xingyebankAlipayConfirm.jsp:14: .alipay {position: absolute;
+/data/wwwroot/quncai_wap/member/recharge/xingyebankAlipayConfirm.jsp:35:						<div class="alipay"></div>
+/data/wwwroot/quncai_wap/member/recharge/xingyebankAlipayConfirm.jsp:49:						<input id="payed-btn" class="btn-1 w-full h-36" type="button" onclick="checkPayStatus()" value="我已经付款成功">
+/data/wwwroot/quncai_wap/member/recharge/xingyebankAlipayConfirm.jsp:59:	    	 $("#payed-btn").attr("disabled", "disabled");
+/data/wwwroot/quncai_wap/member/recharge/xingyebankAlipayConfirm.jsp:60:			 $("#payed-btn").addClass("disable");
+/data/wwwroot/quncai_wap/member/recharge/xingyebankAlipayConfirm.jsp:72:							$("#payed-btn").removeAttr("disabled");
+/data/wwwroot/quncai_wap/member/recharge/xingyebankAlipayConfirm.jsp:73:							$("#payed-btn").removeClass("disable");
+/data/wwwroot/quncai_wap/member/recharge/xingyebankAlipayConfirm.jsp:79:						$("#payed-btn").removeAttr("disabled");
+/data/wwwroot/quncai_wap/member/recharge/xingyebankAlipayConfirm.jsp:80:						$("#payed-btn").removeClass("disable");
+/data/wwwroot/quncai_wap/member/recharge/weifutongpay.jsp:25:						<h5> <img src="http://img.quncai.com/images/wap/wxpay.png" width="55px" height="40px"> </h5>
+/data/wwwroot/quncai_wap/member/recharge/haodianbankcardpay.jsp:83:		<form  onsubmit="return checkPayForm()" id="haodian_charge_form" action="/member/haodianpay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/quanminpay.jsp:17:		<c:when test="${param['payType']==1 }">
+/data/wwwroot/quncai_wap/member/recharge/quanminpay.jsp:26:		<c:when test="${param['payType']==2 }">
+/data/wwwroot/quncai_wap/member/recharge/quanminpay.jsp:44:			   <c:when test="${1==payType}">
+/data/wwwroot/quncai_wap/member/recharge/quanminpay.jsp:58:					action="/member/quanminpay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/quanminpay.jsp:60:					<input type="hidden" value="${payType}" name="payType" id="payType">
+/data/wwwroot/quncai_wap/member/recharge/quanminpay.jsp:68:								   <c:when test="${1==payType}">
+/data/wwwroot/quncai_wap/member/recharge/xianzaipay.jsp:16:.bankcard {background:url(/imgs/dnapay.png) no-repeat 20px 50%;
+/data/wwwroot/quncai_wap/member/recharge/xianzaipay.jsp:36:					action="/member/xianzaipay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/xianzaipay.jsp:38:					<input type="hidden" value="${payType}" name="payType" id="payType">
+/data/wwwroot/quncai_wap/member/recharge/evenpay.jsp:36:					action="/member/evenpay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/fuyoupayauthcode.jsp:33:				<form class="area-info2" onsubmit="return checkAuthCode()" id="fuyoupay_bind_form" action="/member/fuyoupay_bind.php">
+/data/wwwroot/quncai_wap/member/recharge/fuyoupay.jsp:53:		<form  onsubmit="return checkPayForm()" id="fuyou_charge_form" action="/member/fuyoupay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/fuyoupay.jsp:210:		$("#confirmBtn").attr("href","/member/fuyoupay_unbind.php");
+/data/wwwroot/quncai_wap/member/recharge/tongfuZFBpay.jsp:13:.bankcard {background:url(/imgs/dnapay.png) no-repeat 20px 50%;
+/data/wwwroot/quncai_wap/member/recharge/tongfuZFBpay.jsp:32:				<form class="area-info2" onsubmit="return checkPayForm()" id="tongfu_charge_form" action="/member/tongfuZFBpay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayWeixinQrCode.jsp:65:		.pay-info{
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayWeixinQrCode.jsp:69:		.pay-info .pay-btn{
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayWeixinQrCode.jsp:78:		.pay-info .attention{
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayWeixinQrCode.jsp:97:		.pay-info .pay-info-pic{
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayWeixinQrCode.jsp:113:	<div class="pay-info">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayWeixinQrCode.jsp:114:		<div class="pay-btn"><a href="#" onclick="checkPayStatus()" >已经扫码付款</a></div>
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayWeixinQrCode.jsp:118:		<img src="/imgs/pay-pic.png" alt="" class="pay-info-pic">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayWeixinQrCode.jsp:126:					url:"/member/tonglianpay_checkPayStatus.php",
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayWeixinQrCode.jsp:135:							window.location.href = "/member/tonglianpay_weixinSuccess.php";
+/data/wwwroot/quncai_wap/member/recharge/xingyebankAlipay.jsp:35:				location.href="xingyebank_alipayConfirm.php?amount=${request.amount}&account=${request.account}&outTradeNo=${request.outTradeNo}";
+/data/wwwroot/quncai_wap/member/recharge/xingyebankAlipay.jsp:39:				location.href="xingyebank_alipayConfirm.php?amount=${request.amount}&account=${request.account}&outTradeNo=${request.outTradeNo}";
+/data/wwwroot/quncai_wap/member/recharge/ziweixingpay.jsp:22:				<form class="area-info2" onsubmit="return checkPayForm()" action="/member/ziweixing_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/ziweixingpay.jsp:25:						<h5> <img src="http://img.quncai.com/images/wap/wxpay.png" width="55px" height="40px"> </h5>
+/data/wwwroot/quncai_wap/member/recharge/haodianbankcardAndroidSubmit.jsp:44:		<a class="back" href="/member/haodianpay_input.php">返回</a
+/data/wwwroot/quncai_wap/member/recharge/jingdongpay.jsp:83:		<form  onsubmit="return getAuthCode()" id="jingdong_charge_form" action="/member/jingdongpay_authcode.php">
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccess.jsp:226:	background: url(imgs/dnapay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccess.jsp:230:.alipay {
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccess.jsp:231:	background-image: url(imgs/dnapay.png);
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccess.jsp:236:.tenpay {
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccess.jsp:237:	background: url(imgs/dnapay.png) no-repeat;
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccess.jsp:241:.dnapay {
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccess.jsp:242:	background: url(imgs/dnapay.png) no-repeat;
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccess.jsp:247:	background: url(imgs/dnapay.png) no-repeat;
+/data/wwwroot/quncai_wap/member/recharge/huijupay.jsp:25:						<h5> <img src="http://img.quncai.com/images/wap/wxpay.png" width="55px" height="40px"> </h5>
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccessBackToApp.jsp:226:	background: url(imgs/dnapay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccessBackToApp.jsp:230:.alipay {
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccessBackToApp.jsp:231:	background-image: url(imgs/dnapay.png);
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccessBackToApp.jsp:236:.tenpay {
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccessBackToApp.jsp:237:	background: url(imgs/dnapay.png) no-repeat;
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccessBackToApp.jsp:241:.dnapay {
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccessBackToApp.jsp:242:	background: url(imgs/dnapay.png) no-repeat;
+/data/wwwroot/quncai_wap/member/recharge/rechargeSuccessBackToApp.jsp:247:	background: url(imgs/dnapay.png) no-repeat;
+/data/wwwroot/quncai_wap/member/recharge/jingdongpayauthcode.jsp:33:				<form class="area-info2" onsubmit="return checkAuthCode()" id="jingdong_charge_form" action="/member/jingdongpay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/haodianbankcardSubmit.jsp:51:		<a class="back" href="/member/haodianpay_input.php">返回</a>
+/data/wwwroot/quncai_wap/member/recharge/haodianbankcardSubmit.jsp:58:		<form id="haodianpayForm" action="${ autoSubmit }" method="post"></form>
+/data/wwwroot/quncai_wap/member/recharge/haodianbankcardSubmit.jsp:62:	    $("#haodianpayForm").submit();
+/data/wwwroot/quncai_wap/member/recharge/tonglianpay.jsp:29: .alipay {position: absolute;
+/data/wwwroot/quncai_wap/member/recharge/tonglianpay.jsp:45:			   <c:when test="${0==payType}">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpay.jsp:48:			   <c:when test="${1==payType}">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpay.jsp:61:				<form class="area-info2" onsubmit="return checkPayForm()" id="tonglian_charge_form" action="/member/tonglianpay_charge.php">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpay.jsp:64:					<input type="hidden" value="${payType}" name="payType" id="payType">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpay.jsp:69:						   <c:when test="${0==payType}">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpay.jsp:72:						   <c:when test="${1==payType}">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpay.jsp:75:						   <c:when test="${2==payType}">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpay.jsp:76:						      <div class="alipay"></div>
+/data/wwwroot/quncai_wap/member/recharge/tonglianpay.jsp:84:								   <c:when test="${0==payType}">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpay.jsp:87:								   <c:when test="${1==payType}">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpay.jsp:90:								   <c:when test="${2==payType}">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpay.jsp:117:					<c:if test="${0==payType}">
+/data/wwwroot/quncai_wap/member/recharge/tongfuZFBpaySubmit.jsp:10:	<form action="http://pay.8tongfu.com/api/pay" method="post" id="tongfuForm" name="tongfuForm">
+/data/wwwroot/quncai_wap/member/recharge/fuyoupaybind.jsp:56:		<form  onsubmit="return checkPayForm()" id="fuyou_charge_form" action="/member/fuyoupay_authcode.php">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayRedirect.jsp:57:		<form id="tonglianpayForm" action="${requestUrl}" method="post">
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayRedirect.jsp:66:		<input type="hidden" name="payerName" value="${payerName}"/>
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayRedirect.jsp:67:		<input type="hidden" name="payerEmail" value="${payerEmail}" />
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayRedirect.jsp:68:		<input type="hidden" name="payerTelephone" value="${payerTelephone }" />
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayRedirect.jsp:69:		<input type="hidden" name="payerIDCard" value="${payerIDCard }" />
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayRedirect.jsp:83:		<input type="hidden" name="payType" value="${payType}" />
+/data/wwwroot/quncai_wap/member/recharge/tonglianpayRedirect.jsp:92:	    $("#tonglianpayForm").submit();
+/data/wwwroot/quncai_wap/member/recharge/helibaopaySubmit.jsp:44:		<a class="back" href="/member/helibaopay_input.php">返回</a
+/data/wwwroot/quncai_wap/member/recharge/chargePayeco.jsp:52:				$.post("/member/payeco_orderQuery.php", data, function(data){
+/data/wwwroot/quncai_wap/member/recharge/chargePayeco.jsp:61:					window.location.href="/member/payeco_orderResult.php?chargeNo=${chargeNo}";
+/data/wwwroot/quncai_wap/member/recharge/xingyebankpay.jsp:13: .alipay {position: absolute;
+/data/wwwroot/quncai_wap/member/recharge/xingyebankpay.jsp:34:						<div class="alipay"></div>
+/data/wwwroot/quncai_wap/member/rechargeList.jsp:9:	.weixin {background:url(/imgs/rechargeSprite.png) no-repeat 20px 50%;background-size: 55px 195px;background-position: 10px -90px;}
+/data/wwwroot/quncai_wap/member/rechargeList.jsp:10:	.alipay {background:url(/imgs/rechargeSprite.png) no-repeat 20px 50%;background-size: 55px 195px;background-position: 10px 0px;}
+/data/wwwroot/quncai_wap/member/writerechargeList.jsp:37:	.recharge-list ul li .alipay{background-position:center 0.1rem;background-size:4.0rem auto;}
+/data/wwwroot/quncai_wap/member/writerechargeList.jsp:47:	/*.alipay {background:url(/imgs/rechargeSprite.png) no-repeat 20px 50%;background-size: 55px 195px;background-position: 10px 0px;}*/
+/data/wwwroot/quncai_wap/member/writerechargeList.jsp:49:	/*.weixin {background:url(/imgs/rechargeSprite.png) no-repeat 20px 50%;background-size: 55px 195px;background-position: 10px -90px;}*/
+/data/wwwroot/quncai_wap/member/writerechargeList.jsp:122:					<div class="recharge-logo alipay"></div>
+/data/wwwroot/quncai_wap/member/writerechargeList.jsp:132:					<div class="recharge-logo alipay"></div>
+/data/wwwroot/quncai_wap/member/writerechargeList.jsp:142:					<div class="recharge-logo alipay"></div>
+/data/wwwroot/quncai_wap/member/writerechargeList.jsp:155:							<div class="recharge-logo alipay"></div>
+/data/wwwroot/quncai_wap/member/writerechargeList.jsp:168:								<div class="recharge-logo alipay"></div>
+/data/wwwroot/quncai_wap/member/zhifu.jsp:178:										<img src="../images/alipay.png" alt="" class="bank-logo">
+/data/wwwroot/quncai_wap/member/zhifu.jsp:192:												<img src="../images/alipay.png" alt="" class="bank-logo">
+/data/wwwroot/quncai_wap/member/findpwd/checkMobile.jsp:243:.alipay {
+/data/wwwroot/quncai_wap/member/findpwd/checkMobile.jsp:244:	background: url(../imgs/alipay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/findpwd/checkMobile.jsp:248:.tenpay {
+/data/wwwroot/quncai_wap/member/findpwd/checkMobile.jsp:249:	background: url(../imgs/tenpay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/findpwd/checkMobile.jsp:253:.dnapay {
+/data/wwwroot/quncai_wap/member/findpwd/checkMobile.jsp:254:	background: url(../imgs/dnapay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/findpwd/resetPwd.jsp:209:.alipay {
+/data/wwwroot/quncai_wap/member/findpwd/resetPwd.jsp:210:	background: url(../images/alipay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/findpwd/resetPwd.jsp:213:.tenpay {
+/data/wwwroot/quncai_wap/member/findpwd/resetPwd.jsp:214:	background: url(../images/tenpay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/findpwd/resetPwd.jsp:217:.dnapay {
+/data/wwwroot/quncai_wap/member/findpwd/resetPwd.jsp:218:	background: url(../images/dnapay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/findpwd/service.jsp:201:.alipay {
+/data/wwwroot/quncai_wap/member/findpwd/service.jsp:202:	background: url(../imgs/alipay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/findpwd/service.jsp:205:.tenpay {
+/data/wwwroot/quncai_wap/member/findpwd/service.jsp:206:	background: url(../imgs/tenpay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/findpwd/service.jsp:209:.dnapay {
+/data/wwwroot/quncai_wap/member/findpwd/service.jsp:210:	background: url(../imgs/dnapay.png) no-repeat 8px 50%;
+/data/wwwroot/quncai_wap/member/bankcardAdd.jsp:29:			<c:if test="${source == 5}"><a class="back" href="/member/payeco_input.php">返回</a></c:if>
+/data/wwwroot/quncai_wap/member/bankcardAdd.jsp:53:						<input type="radio" name="drawingType" id="alipayType" value="1" checked="checked"/>
+/data/wwwroot/quncai_wap/member/bankcardAdd.jsp:54:						<label for="alipayType">支付宝</label>
+/data/wwwroot/quncai_wap/member/bankcardAdd.jsp:185:					<div id="alipayArea" style="display: none;">
+/data/wwwroot/quncai_wap/member/bankcardAdd.jsp:189:								<input id="alipayAccount" value="" name="alipayAccount" class="txt" type="text" onFocus="defaultInput2();" maxlength="30" />
+/data/wwwroot/quncai_wap/member/bankcardAdd.jsp:215:				$("#alipayArea").hide();
+/data/wwwroot/quncai_wap/member/bankcardAdd.jsp:219:				$("#alipayArea").show();
+/data/wwwroot/quncai_wap/member/bankcardAdd.jsp:225:			$("#alipayType").attr("checked","checked");
+/data/wwwroot/quncai_wap/member/bankcardAdd.jsp:227:			$("#alipayAccount").val("${memberInfo.bankCard}");
+/data/wwwroot/quncai_wap/member/bankcardAdd.jsp:229:			$("#alipayArea").show();
+/data/wwwroot/quncai_wap/member/bankcardAdd.jsp:232:			$("#alipayType").removeAttr("checked");
+/data/wwwroot/quncai_wap/member/bankcardAdd.jsp:234:			$("#alipayArea").hide();
+/data/wwwroot/quncai_wap/member/boundIndex.jsp:56:		.alipay{background: url(../images/alipay.png) no-repeat 8px 50%;background-size: 48px 20px;}
+/data/wwwroot/quncai_wap/member/boundIndex.jsp:57:		.tenpay{background: url(../images/tenpay.png) no-repeat 8px 50%;background-size: 48px 20px;}
+/data/wwwroot/quncai_wap/member/boundIndex.jsp:58:		.dnapay{background: url(../images/dnapay.png) no-repeat 8px 50%;background-size: 48px 22px;}

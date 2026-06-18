@@ -1,6 +1,6 @@
 function getInviteContactConfig() {
-  var cfg = window.__inviteContactConfig || {};
-  var contacts =
+  const cfg = window.__inviteContactConfig || {};
+  const contacts =
     Array.isArray(cfg.contacts) && cfg.contacts.length
       ? cfg.contacts
       : [
@@ -24,7 +24,7 @@ function getInviteContactConfig() {
           },
         ];
 
-  var hasRealContact = contacts.some(function (item) {
+  const hasRealContact = contacts.some(function (item) {
     return item && item.value && item.value !== '待补充';
   });
 
@@ -43,12 +43,12 @@ function getInviteContactConfig() {
 function renderContactItems(contacts) {
   return contacts
     .map(function (item, index) {
-      var value = item && item.value ? item.value : '待补充';
-      var copyBtn =
+      const value = item && item.value ? item.value : '待补充';
+      const copyBtn =
         item && item.copyable && value !== '待补充'
           ? '<button class="invite-contact-copy" type="button" onclick="copyInviteContact(' + index + ')">复制</button>'
           : '';
-      var statusClass = value === '待补充' ? ' is-pending' : '';
+      const statusClass = value === '待补充' ? ' is-pending' : '';
       return (
         '<div class="invite-contact-item">' +
         '<div class="invite-contact-head">' +
@@ -75,8 +75,8 @@ function renderContactItems(contacts) {
 }
 
 window.copyInviteContact = function (index) {
-  var cfg = getInviteContactConfig();
-  var item = cfg.contacts[index];
+  const cfg = getInviteContactConfig();
+  const item = cfg.contacts[index];
   if (!item || !item.value || item.value === '待补充') {
     alert('当前暂无可复制的客服信息');
     return;
@@ -92,10 +92,10 @@ window.copyInviteContact = function (index) {
 };
 
 export function loadContactInvite() {
-  var root = document.getElementById('contactInviteContent');
+  const root = document.getElementById('contactInviteContent');
   if (!root) return;
 
-  var cfg = getInviteContactConfig();
+  const cfg = getInviteContactConfig();
   root.innerHTML =
     '<div class="auth-shell auth-shell-login auth-shell-contact">' +
     '<button class="auth-home-corner" type="button" onclick="switchTab(\'login\')" aria-label="返回登录" title="返回登录">' +

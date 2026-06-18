@@ -96,7 +96,7 @@ function callDoubao(messages, options) {
  * @returns {Promise<Object>} 生成的分析结果 { content, rawResponse, tokenUsage }
  */
 function generateAnalysis(matchInfo, options) {
-  var opts = options || {};
+  const opts = options || {};
   const messages = [
     { role: 'system', content: buildSystemPrompt() },
     { role: 'user', content: buildUserPrompt(matchInfo) },
@@ -106,13 +106,13 @@ function generateAnalysis(matchInfo, options) {
   const startTime = Date.now();
 
   // P2-2: 指数退避重试（最多2次）
-  var attempt = 0;
-  var maxRetries = opts.maxRetries || 0;
+  let attempt = 0;
+  const maxRetries = opts.maxRetries || 0;
   function tryCall() {
     return callDoubao(messages, opts).catch(function (e) {
       if (attempt < maxRetries) {
         attempt++;
-        var delay = Math.min(2000 * Math.pow(2, attempt), 15000);
+        const delay = Math.min(2000 * Math.pow(2, attempt), 15000);
         console.log('[doubao] 重试 ' + attempt + '/' + maxRetries + ', 等待 ' + delay + 'ms');
         return new Promise(function (r) {
           setTimeout(r, delay);

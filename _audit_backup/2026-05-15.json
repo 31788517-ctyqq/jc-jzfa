@@ -1,0 +1,118 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.116Z",
+  "earliestKickoff": null,
+  "date": "2026-05-15",
+  "plans": [
+    {
+      "planId": "plan_2026-05-15_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039745",
+          "direction": "平、让平",
+          "homeName": "阿斯顿维拉",
+          "visitName": "利物浦",
+          "matchNum": "周五005"
+        },
+        {
+          "matchId": "2039742",
+          "direction": "让负",
+          "homeName": "达马克",
+          "visitName": "迈季迈阿宽广",
+          "matchNum": "周五002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-15_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039742",
+          "direction": "总进球-2、3球",
+          "homeName": "达马克",
+          "visitName": "迈季迈阿宽广",
+          "matchNum": "周五002"
+        },
+        {
+          "matchId": "2039744",
+          "direction": "让负",
+          "homeName": "圣埃蒂安",
+          "visitName": "罗德兹",
+          "matchNum": "周五004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-15_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039743",
+          "direction": "胜",
+          "homeName": "布赖代合作",
+          "visitName": "利雅得",
+          "matchNum": "周五003"
+        },
+        {
+          "matchId": "2039742",
+          "direction": "让负",
+          "homeName": "达马克",
+          "visitName": "迈季迈阿宽广",
+          "matchNum": "周五002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-15_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039743",
+          "direction": "总进球-2、3球",
+          "homeName": "布赖代合作",
+          "visitName": "利雅得",
+          "matchNum": "周五003"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-15_7",
+      "name": "plan_7",
+      "planName": "方案七",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039745",
+          "direction": "平负",
+          "homeName": "阿斯顿维拉",
+          "visitName": "利物浦",
+          "matchNum": "周五005"
+        }
+      ]
+    }
+  ]
+}

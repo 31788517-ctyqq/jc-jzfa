@@ -29,7 +29,7 @@ export const wsEvents = {
 };
 
 // 缓存最近的比分数据，避免重复更新
-let _scoreCache = {};
+const _scoreCache = {};
 
 /**
  * 初始化 WebSocket 连接
@@ -77,7 +77,7 @@ function connect() {
 
   ws.onmessage = function (e) {
     try {
-      var msg = JSON.parse(e.data);
+      const msg = JSON.parse(e.data);
 
       switch (msg.type) {
         case 'connected':
@@ -132,7 +132,7 @@ function connect() {
 function scheduleReconnect() {
   if (reconnectTimer) clearTimeout(reconnectTimer);
 
-  var delay = Math.min(1000 * Math.pow(2, reconnectAttempts), MAX_RECONNECT_DELAY);
+  const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), MAX_RECONNECT_DELAY);
   reconnectAttempts++;
 
   console.log('[WS] ' + delay / 1000 + 's 后重连 (第' + reconnectAttempts + '次)');
@@ -164,11 +164,11 @@ export function disconnectWS() {
 function handleScoreUpdate(scores) {
   if (!scores) return;
 
-  var changed = false;
-  for (var mid in scores) {
+  let changed = false;
+  for (const mid in scores) {
     if (!scores.hasOwnProperty(mid)) continue;
-    var newData = scores[mid];
-    var cached = _scoreCache[mid];
+    const newData = scores[mid];
+    const cached = _scoreCache[mid];
 
     // 检查是否有变化
     if (
@@ -188,23 +188,23 @@ function handleScoreUpdate(scores) {
     if (!card) continue;
 
     // 更新比分
-    var scoreEl = card.querySelector('.match-score');
+    const scoreEl = card.querySelector('.match-score');
     if (scoreEl && newData.score) {
-      var parts = newData.score.replace('-', ':').split(':');
+      const parts = newData.score.replace('-', ':').split(':');
       if (parts.length === 2) {
         scoreEl.innerHTML = parts[0] + ' : ' + parts[1];
       }
     }
 
     // 更新时间/进行中标识
-    var durEl = card.querySelector('.match-dur');
+    const durEl = card.querySelector('.match-dur');
     if (newData.matchStatus === 1 && durEl && newData.duration) {
       durEl.textContent = newData.duration;
       card.classList.add('live');
     }
 
     // 更新半场比分
-    var halfEl = card.querySelector('.match-half');
+    const halfEl = card.querySelector('.match-half');
     if (halfEl && newData.halfScore) {
       halfEl.textContent = '(半 ' + newData.halfScore + ')';
     }
@@ -237,7 +237,7 @@ function handleRecommendUpdate(recs) {
   }
 
   // 显示轻量通知（比赛结束 + 有命中结果）
-  var updatedIds = Object.keys(recs);
+  const updatedIds = Object.keys(recs);
   if (updatedIds.length <= 3) {
     // 少量更新 → 逐个通知
     updatedIds.forEach(function (mid) {
@@ -264,7 +264,7 @@ function handleAIAnalysisUpdate(analyses) {
 
 // ═══ 轻量 Toast 通知 ═══
 function showUpdateToast(mid, recs, batchCount) {
-  var toast = document.getElementById('ws-toast');
+  let toast = document.getElementById('ws-toast');
   if (!toast) {
     toast = document.createElement('div');
     toast.id = 'ws-toast';
@@ -276,11 +276,11 @@ function showUpdateToast(mid, recs, batchCount) {
     document.body.appendChild(toast);
   }
 
-  var msg = '';
+  let msg = '';
   if (batchCount) {
     msg = '[WS] ' + batchCount + ' 场比赛推荐命中结果已更新';
   } else if (mid && recs) {
-    var hitCount = recs.filter(function (r) {
+    const hitCount = recs.filter(function (r) {
       return r.result === 1;
     }).length;
     msg = '[WS] 比赛 ' + mid + ' ' + (hitCount > 0 ? hitCount + '个方向命中！' : '结果已更新');

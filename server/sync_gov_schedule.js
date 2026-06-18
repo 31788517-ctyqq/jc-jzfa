@@ -53,7 +53,7 @@ function parseSchedule(html) {
   const tableRegex = /<tr[^>]*>[\s\S]*?<\/tr>/gi;
   const cellRegex = /<t[dh][^>]*>(.*?)<\/t[dh]>/gi;
 
-  let matchLines = [];
+  const matchLines = [];
 
   // 先尝试解析 table 行
   const rows = html.match(/<tr[^>]*>[\s\S]*?<\/tr>/gi) || [];

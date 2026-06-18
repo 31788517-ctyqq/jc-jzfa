@@ -21,15 +21,19 @@ const ALERT_RETENTION_H = 24; // 告警保留 24 小时
 // ═══ 状态追踪（防止重复告警） ═══
 const _state = {
   // PM2 进程状态
-  lastCrashLoopCheck: 0, crashLoopCount: 0,
+  lastCrashLoopCheck: 0,
+  crashLoopCount: 0,
   // 健康检查
-  healthFailStreak: 0, lastHealthFail: 0,
+  healthFailStreak: 0,
+  lastHealthFail: 0,
   // 登录失败
-  loginFailStreak: 0, lastLoginFail: 0,
+  loginFailStreak: 0,
+  lastLoginFail: 0,
   // 推荐同步
   lastRecSyncTime: 0,
   // 方案生成
-  lastPlanCheck: 0, emptyPlanStreak: 0,
+  lastPlanCheck: 0,
+  emptyPlanStreak: 0,
   // 回填
   backfillFailStreak: 0,
   // 赛果校验
@@ -138,7 +142,8 @@ function checkPM2Status(pm2Summary) {
       const newCrashes = pm2Summary.jcSync.restarts - _state.crashLoopCount;
       if (newCrashes >= 5) {
         pushAlert(
-          'P0', 'jc-sync 崩溃循环',
+          'P0',
+          'jc-sync 崩溃循环',
           '10 分钟内重启 ' + newCrashes + ' 次 (总计 ' + pm2Summary.jcSync.restarts + ')',
           '查看日志: pm2 logs jc-sync --lines 50',
           { force: true },
@@ -155,7 +160,12 @@ function checkHealth(healthy) {
     _state.healthFailStreak++;
     _state.lastHealthFail = Date.now();
     if (_state.healthFailStreak >= 3) {
-      pushAlert('P0', 'API 健康检查失败', '连续 ' + _state.healthFailStreak + ' 次失败', '检查服务器状态: pm2 list && curl localhost:3000/api/health');
+      pushAlert(
+        'P0',
+        'API 健康检查失败',
+        '连续 ' + _state.healthFailStreak + ' 次失败',
+        '检查服务器状态: pm2 list && curl localhost:3000/api/health',
+      );
     }
   } else {
     _state.healthFailStreak = 0;
@@ -167,7 +177,12 @@ function checkLoginFailed(reason) {
   _state.loginFailStreak++;
   _state.lastLoginFail = Date.now();
   if (_state.loginFailStreak >= 3) {
-    pushAlert('P0', 'midou API 登录连续失败', '连续 ' + _state.loginFailStreak + ' 次失败: ' + (reason || '未知'), '检查账户余额/密码是否有效');
+    pushAlert(
+      'P0',
+      'midou API 登录连续失败',
+      '连续 ' + _state.loginFailStreak + ' 次失败: ' + (reason || '未知'),
+      '检查账户余额/密码是否有效',
+    );
   }
 }
 
@@ -182,12 +197,17 @@ function checkLoginSuccess() {
 function checkRecSyncStagnant(dateStr, recsPerMatch) {
   _state.lastRecSyncTime = Date.now();
   // recsPerMatch: { matchId: recsTotal } — 各场比赛的推荐总数
-  var hasData = false;
+  let hasData = false;
   Object.keys(recsPerMatch || {}).forEach(function (k) {
     if (recsPerMatch[k] > 0) hasData = true;
   });
   if (!hasData) {
-    pushAlert('P0.5', '今日推荐数据为空', dateStr + ' 所有比赛 recs_total=0', '手动触发: python deploy.py --fast (重启 jc-sync)');
+    pushAlert(
+      'P0.5',
+      '今日推荐数据为空',
+      dateStr + ' 所有比赛 recs_total=0',
+      '手动触发: python deploy.py --fast (重启 jc-sync)',
+    );
   }
 }
 
@@ -196,7 +216,12 @@ function checkEmptyPlans(dateStr, planCount) {
   if (planCount === 0) {
     _state.emptyPlanStreak++;
     if (_state.emptyPlanStreak >= 1) {
-      pushAlert('P0.5', '今日方案为空', dateStr + ' 未生成任何方案 (第' + _state.emptyPlanStreak + '次检测)', '检查推荐数据: recommNum 和 recs 是否匹配');
+      pushAlert(
+        'P0.5',
+        '今日方案为空',
+        dateStr + ' 未生成任何方案 (第' + _state.emptyPlanStreak + '次检测)',
+        '检查推荐数据: recommNum 和 recs 是否匹配',
+      );
     }
   } else {
     _state.emptyPlanStreak = 0;
@@ -209,7 +234,12 @@ function checkBackfillFailed(dateStr, backfilled, total) {
   if (backfilled === 0 && total > 0) {
     _state.backfillFailStreak++;
     if (_state.backfillFailStreak >= 3) {
-      pushAlert('P0.5', '赛果回填连续失败', dateStr + ' ' + total + ' 场已完赛但回填=0 (第' + _state.backfillFailStreak + '次)', '检查 midou API token 和 footballDataList');
+      pushAlert(
+        'P0.5',
+        '赛果回填连续失败',
+        dateStr + ' ' + total + ' 场已完赛但回填=0 (第' + _state.backfillFailStreak + '次)',
+        '检查 midou API token 和 footballDataList',
+      );
     }
   } else {
     _state.backfillFailStreak = 0;
@@ -219,7 +249,12 @@ function checkBackfillFailed(dateStr, backfilled, total) {
 /** 检测赛果校验异常 */
 function checkScoreVerify(dateStr, totalMatches, mismatchCount) {
   if (mismatchCount >= Math.max(1, totalMatches * 0.5)) {
-    pushAlert('P0.5', '赛果校验异常', dateStr + ': ' + mismatchCount + '/' + totalMatches + ' 场比分不一致', '执行 score-corrector 手动修正');
+    pushAlert(
+      'P0.5',
+      '赛果校验异常',
+      dateStr + ': ' + mismatchCount + '/' + totalMatches + ' 场比分不一致',
+      '执行 score-corrector 手动修正',
+    );
   }
 }
 
@@ -227,7 +262,12 @@ function checkScoreVerify(dateStr, totalMatches, mismatchCount) {
 function checkDBWriteFail(errorMsg) {
   _state.dbWriteFailCount++;
   if (_state.dbWriteFailCount >= 3) {
-    pushAlert('P0.5', '数据库写入持续失败', '累计 ' + _state.dbWriteFailCount + ' 次: ' + (errorMsg || ''), '检查磁盘空间: df -h');
+    pushAlert(
+      'P0.5',
+      '数据库写入持续失败',
+      '累计 ' + _state.dbWriteFailCount + ' 次: ' + (errorMsg || ''),
+      '检查磁盘空间: df -h',
+    );
   }
 }
 
@@ -258,7 +298,9 @@ function getUnreadAlerts(username) {
 /** 标记已读 */
 function markRead(alertId, username) {
   const alerts = loadAlerts();
-  const found = alerts.find(function (a) { return a.id === alertId; });
+  const found = alerts.find(function (a) {
+    return a.id === alertId;
+  });
   if (found) {
     found.readAt = Date.now();
     found.readBy = username || 'system';
@@ -271,7 +313,7 @@ function markRead(alertId, username) {
 /** 标记全部已读 */
 function markAllRead(username) {
   const alerts = loadAlerts();
-  var count = 0;
+  let count = 0;
   alerts.forEach(function (a) {
     if (!a.readAt) {
       a.readAt = Date.now();
@@ -286,9 +328,15 @@ function markAllRead(username) {
 /** 获取告警统计 */
 function getAlertSummary() {
   const alerts = loadAlerts();
-  const unread = alerts.filter(function (a) { return !a.readAt; });
-  const p0 = unread.filter(function (a) { return a.level === 'P0'; });
-  const p05 = unread.filter(function (a) { return a.level === 'P0.5'; });
+  const unread = alerts.filter(function (a) {
+    return !a.readAt;
+  });
+  const p0 = unread.filter(function (a) {
+    return a.level === 'P0';
+  });
+  const p05 = unread.filter(function (a) {
+    return a.level === 'P0.5';
+  });
   return {
     total: unread.length,
     p0: p0.length,
@@ -299,13 +347,24 @@ function getAlertSummary() {
 
 module.exports = {
   // P0
-  checkPM2Status, checkHealth, checkLoginFailed, checkLoginSuccess,
+  checkPM2Status,
+  checkHealth,
+  checkLoginFailed,
+  checkLoginSuccess,
   // P0.5
-  checkRecSyncStagnant, checkEmptyPlans, checkBackfillFailed, checkScoreVerify, checkDBWriteFail,
+  checkRecSyncStagnant,
+  checkEmptyPlans,
+  checkBackfillFailed,
+  checkScoreVerify,
+  checkDBWriteFail,
   // P1
-  checkApiLatency, checkOddsMissing,
+  checkApiLatency,
+  checkOddsMissing,
   // 查询
-  getUnreadAlerts, markRead, markAllRead, getAlertSummary,
+  getUnreadAlerts,
+  markRead,
+  markAllRead,
+  getAlertSummary,
   // 写告警
   pushAlert,
 };

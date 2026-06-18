@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk');
+const { dateCN } = require('../common/date');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 /**
@@ -14,7 +15,7 @@ exports.main = async (event, context) => {
     switch (action) {
 
       case 'match-list': {
-        const date = data.date || new Date().toISOString().slice(0, 10);
+        const date = data.date || dateCN();
         const res = await db.collection('matches')
           .where({ date })
           .orderBy('num', 'asc')
@@ -72,8 +73,8 @@ exports.main = async (event, context) => {
         const endDate = new Date();
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
-        const startStr = startDate.toISOString().slice(0, 10);
-        const endStr = endDate.toISOString().slice(0, 10);
+        const startStr = dateCN(startDate);
+        const endStr = dateCN(endDate);
 
         const res = await db.collection('hit_rates')
           .where({ _id: _.gte(startStr).and(_.lte(endStr)) })
@@ -122,7 +123,7 @@ exports.main = async (event, context) => {
       }
 
       case 'ranking-list': {
-        const rankingDate = data.date || new Date().toISOString().slice(0, 10);
+        const rankingDate = data.date || dateCN();
         const filterDirection = data.direction || null;
         const filterCategory = data.category || null;
         const matchRes = await db.collection('matches').where({ date: rankingDate }).get();
@@ -267,7 +268,7 @@ exports.main = async (event, context) => {
         if (timeRange !== 'all') {
           const now = new Date();
           now.setDate(now.getDate() - parseInt(timeRange, 10));
-          dateLimit = now.toISOString().slice(0, 10);
+          dateLimit = dateCN(now);
         }
 
         // 获取所有比赛（分页）

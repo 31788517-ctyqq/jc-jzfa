@@ -33,9 +33,9 @@ const skipScores = process.argv.includes('--skip-scores');
 // ═══ 工具函数 ═══
 function parseScore(scoreStr) {
   if (!scoreStr) return null;
-  var parts = String(scoreStr).split(/[-:：]/);
+  const parts = String(scoreStr).split(/[-:：]/);
   if (parts.length < 2) return null;
-  var h = parseInt(parts[0]),
+  const h = parseInt(parts[0]),
     a = parseInt(parts[1]);
   if (isNaN(h) || isNaN(a)) return null;
   return { home: h, away: a };
@@ -49,7 +49,7 @@ function sleep(ms) {
 
 function httpGet(url, params, headers) {
   return new Promise(function (resolve, reject) {
-    var qs = params
+    const qs = params
       ? '?' +
         Object.keys(params)
           .map(function (k) {
@@ -57,8 +57,8 @@ function httpGet(url, params, headers) {
           })
           .join('&')
       : '';
-    var u = new URL(url + qs);
-    var req = https.request(
+    const u = new URL(url + qs);
+    const req = https.request(
       {
         hostname: u.hostname,
         port: 443,
@@ -67,7 +67,7 @@ function httpGet(url, params, headers) {
         rejectUnauthorized: false,
       },
       function (res) {
-        var chunks = [];
+        const chunks = [];
         res.on('data', function (d) {
           chunks.push(d);
         });
@@ -98,8 +98,8 @@ async function main() {
   console.log('╚══════════════════════════════════════╝\n');
 
   // ═══ 初始化数据库 ═══
-  var Database = require('better-sqlite3');
-  var db = new Database(DB_PATH);
+  const Database = require('better-sqlite3');
+  const db = new Database(DB_PATH);
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS matches (
@@ -127,7 +127,7 @@ async function main() {
   // ═══ Step 1: 从 sporttery_odds_snapshot 提取去重比赛 ═══
   console.log('── Step 1: 提取去重比赛 ──');
 
-  var matches = db
+  const matches = db
     .prepare(
       `
     SELECT DISTINCT
@@ -149,9 +149,9 @@ async function main() {
 
   console.log('  distinct matches: ' + matches.length);
 
-  var yearDist = {};
+  const yearDist = {};
   matches.forEach(function (m) {
-    var yr = (m.match_date || '').slice(0, 4);
+    const yr = (m.match_date || '').slice(0, 4);
     yearDist[yr] = (yearDist[yr] || 0) + 1;
   });
   Object.entries(yearDist)
@@ -163,18 +163,18 @@ async function main() {
   // ═══ Step 2: 导入 matches 表 ═══
   console.log('\n── Step 2: 写入 matches 表 ──');
 
-  var insertMatch = db.prepare(`
+  const insertMatch = db.prepare(`
     INSERT OR IGNORE INTO matches
       (matchId, num, homeName, visitName, leagueName, date, matchStatus, createdAt)
     VALUES (?, ?, ?, ?, ?, ?, 0, datetime('now','localtime'))
   `);
 
-  var inserted = 0,
+  let inserted = 0,
     skipped = 0;
   if (!dryRun) {
-    var tx = db.transaction(function () {
+    const tx = db.transaction(function () {
       matches.forEach(function (m) {
-        var result = insertMatch.run(
+        const result = insertMatch.run(
           m.match_id,
           m.match_num || '',
           m.home_team,
@@ -192,7 +192,7 @@ async function main() {
     console.log('  DRY: 将写入 ' + matches.length + ' 场');
   }
 
-  var totalInDb = db
+  const totalInDb = db
     .prepare('SELECT COUNT(*) as cnt FROM matches WHERE date >= ? AND date <= ?')
     .get(START_DATE, END_DATE);
   console.log('  matches 表该时间段总数: ' + totalInDb.cnt);
@@ -200,7 +200,7 @@ async function main() {
   // ═══ Step 3: 构建 data.json ═══
   console.log('\n── Step 3: 构建 data.json ──');
 
-  var existingData = { m: {}, r: {}, _meta: {} };
+  let existingData = { m: {}, r: {}, _meta: {} };
   if (fs.existsSync(DATA_FILE)) {
     try {
       existingData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
@@ -216,12 +216,12 @@ async function main() {
     console.log('  备份: ' + path.basename(DATA_BAK_FILE));
   }
 
-  var newMatches = 0;
+  let newMatches = 0;
   matches.forEach(function (m) {
-    var key = 'm_' + m.match_id;
+    const key = 'm_' + m.match_id;
     if (existingData.m[key] || existingData.m[m.match_id]) return;
 
-    var obj = {
+    const obj = {
       matchId: m.match_id,
       num: m.match_num || '',
       homeName: m.home_team,
@@ -246,7 +246,7 @@ async function main() {
   console.log('  合并后 data.json: ' + Object.keys(existingData.m).length + ' 场');
 
   if (!dryRun) {
-    var tmp = DATA_FILE + '.tmp_phase1';
+    const tmp = DATA_FILE + '.tmp_phase1';
     fs.writeFileSync(tmp, JSON.stringify(existingData));
     fs.renameSync(tmp, DATA_FILE);
     console.log('  data.json 已保存');
@@ -288,17 +288,17 @@ async function main() {
     );
   `);
 
-  var upsertLog = db.prepare(`
+  const upsertLog = db.prepare(`
     INSERT OR IGNORE INTO prediction_logs
       (matchId, date, homeName, visitName, leagueName, matchNum, created_at)
     VALUES (?, ?, ?, ?, ?, ?, datetime('now','localtime'))
   `);
 
-  var logsInserted = 0;
+  let logsInserted = 0;
   if (!dryRun) {
-    var tx2 = db.transaction(function () {
+    const tx2 = db.transaction(function () {
       matches.forEach(function (m) {
-        var r = upsertLog.run(m.match_id, m.match_date, m.home_team, m.away_team, m.league || '', m.match_num || '');
+        const r = upsertLog.run(m.match_id, m.match_date, m.home_team, m.away_team, m.league || '', m.match_num || '');
         if (r.changes > 0) logsInserted++;
       });
     });
@@ -337,17 +337,17 @@ async function main() {
 // 从 midou310 回填比分
 // ═══════════════════════════════════════════════════════════
 async function backfillScoresFromMidou(matches, db, dataJson) {
-  var env = {};
+  const env = {};
   try {
-    var envFile = fs.readFileSync(path.join(__dirname, '.env'), 'utf8');
+    const envFile = fs.readFileSync(path.join(__dirname, '.env'), 'utf8');
     envFile.split('\n').forEach(function (l) {
-      var p = l.trim().split('=');
+      const p = l.trim().split('=');
       if (p.length === 2) env[p[0]] = p[1];
     });
   } catch (e) {}
 
-  var MOBILE = env.MIDOU_MOBILE || process.env.MIDOU_MOBILE;
-  var PASSWORD = env.MIDOU_PASSWORD || process.env.MIDOU_PASSWORD;
+  const MOBILE = env.MIDOU_MOBILE || process.env.MIDOU_MOBILE;
+  const PASSWORD = env.MIDOU_PASSWORD || process.env.MIDOU_PASSWORD;
 
   if (!MOBILE || !PASSWORD) {
     console.log('  ⚠️  缺少 MIDOU_MOBILE/MIDOU_PASSWORD，跳过比分回填');
@@ -356,9 +356,9 @@ async function backfillScoresFromMidou(matches, db, dataJson) {
   }
 
   console.log('  登录 midou310...');
-  var token;
+  let token;
   try {
-    var loginRes = await httpGet('https://midou310.com/mdsj/gduser/login.do', {
+    const loginRes = await httpGet('https://midou310.com/mdsj/gduser/login.do', {
       mobile: MOBILE,
       password: PASSWORD,
     });
@@ -373,7 +373,7 @@ async function backfillScoresFromMidou(matches, db, dataJson) {
     return;
   }
 
-  var dates = [
+  const dates = [
     ...new Set(
       matches.map(function (m) {
         return (m.match_date || '').slice(0, 10);
@@ -382,7 +382,7 @@ async function backfillScoresFromMidou(matches, db, dataJson) {
   ].sort();
   console.log('  需回填 ' + dates.length + ' 天');
 
-  var validDates = dates.filter(function (d) {
+  const validDates = dates.filter(function (d) {
     return d >= '2024-01-01';
   });
   console.log('  有效日期: ' + validDates.length + ' 天');
@@ -396,25 +396,25 @@ async function backfillScoresFromMidou(matches, db, dataJson) {
     return;
   }
 
-  var updateMatch = db.prepare(`
+  const updateMatch = db.prepare(`
     UPDATE matches SET matchStatus=?, score=?, halfScore=?, duration=?, updatedAt=datetime('now','localtime')
     WHERE matchId=?
   `);
-  var updatePL = db.prepare(`
+  const updatePL = db.prepare(`
     UPDATE prediction_logs SET actual_score=?, actual_home_goals=?, actual_away_goals=?,
     actual_spf=?, actual_corrected_at=datetime('now','localtime')
     WHERE matchId=?
   `);
 
-  var scoreUpdated = 0,
+  let scoreUpdated = 0,
     apiErrors = 0;
 
-  for (var i = 0; i < validDates.length; i++) {
-    var d = validDates[i];
-    var pct = Math.round(((i + 1) / validDates.length) * 100);
+  for (let i = 0; i < validDates.length; i++) {
+    const d = validDates[i];
+    const pct = Math.round(((i + 1) / validDates.length) * 100);
     try {
-      var timestamp = new Date(d + 'T00:00:00+08:00').getTime();
-      var res = await httpGet(
+      const timestamp = new Date(d + 'T00:00:00+08:00').getTime();
+      const res = await httpGet(
         'https://midou310.com/mdsj/score/footballDataList.do',
         { time: timestamp, order: 'status desc, start_datetime asc, data_id asc' },
         { Cookie: 'token=' + token },
@@ -423,20 +423,20 @@ async function backfillScoresFromMidou(matches, db, dataJson) {
       if (res.code === 1 && Array.isArray(res.data)) {
         var dayUpdated = 0;
         res.data.forEach(function (apiM) {
-          var mid = String(apiM.matchId || apiM.dataId || '');
+          const mid = String(apiM.matchId || apiM.dataId || '');
           if (!mid) return;
-          var score = apiM.score || '';
-          var halfScore = apiM.halfScore || '';
-          var matchStatus = apiM.matchStatus || 0;
+          const score = apiM.score || '';
+          const halfScore = apiM.halfScore || '';
+          const matchStatus = apiM.matchStatus || 0;
           if (matchStatus < 2 || !score) return;
 
           updateMatch.run(matchStatus, score, halfScore, apiM.duration || '', mid);
 
-          var goals = parseScore(score);
-          var spf = goals ? (goals.home > goals.away ? '主胜' : goals.home < goals.away ? '客胜' : '平') : null;
+          const goals = parseScore(score);
+          const spf = goals ? (goals.home > goals.away ? '主胜' : goals.home < goals.away ? '客胜' : '平') : null;
           updatePL.run(score, goals ? goals.home : null, goals ? goals.away : null, spf, mid);
 
-          var key = 'm_' + mid;
+          const key = 'm_' + mid;
           if (dataJson.m && dataJson.m[key]) {
             dataJson.m[key].matchStatus = matchStatus;
             dataJson.m[key].score = score;

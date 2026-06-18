@@ -188,11 +188,22 @@ function initPaymentSchema(adp) {
   const existingPlans = adp.execOne(`SELECT COUNT(*) as cnt FROM subscription_plans`);
   if (!existingPlans || existingPlans.cnt === 0) {
     adp.execRun(`INSERT INTO subscription_plans (plan_code, plan_name, period, duration_months, price, monthly_equivalent, discount_label, sort_order)
-      VALUES ('monthly', '月度套餐', 'month', 1, 98, 98, '基准价', 1)`);
+      VALUES ('monthly', '月度套餐', 'month', 1, 9800, 9800, '基准价', 1)`);
     adp.execRun(`INSERT INTO subscription_plans (plan_code, plan_name, period, duration_months, price, monthly_equivalent, discount_label, sort_order)
       VALUES ('quarterly', '季度套餐', 'quarter', 3, 25800, 8600, '省36元', 2)`);
     adp.execRun(`INSERT INTO subscription_plans (plan_code, plan_name, period, duration_months, price, monthly_equivalent, discount_label, sort_order)
       VALUES ('yearly', '年度套餐', 'year', 12, 88800, 7400, '省288元', 3)`);
+  }
+
+  // 兼容历史单位：月度套餐若误存为“元”则自动纠正为“分”
+  const monthlyLegacy = adp.execOne(
+    `SELECT price, monthly_equivalent FROM subscription_plans WHERE plan_code = 'monthly' LIMIT 1`,
+  );
+  if (monthlyLegacy && Number(monthlyLegacy.price || 0) > 0 && Number(monthlyLegacy.price || 0) < 1000) {
+    adp.execRun(`UPDATE subscription_plans SET price = ?, monthly_equivalent = ? WHERE plan_code = 'monthly'`, [
+      Number(monthlyLegacy.price || 0) * 100,
+      Number(monthlyLegacy.monthly_equivalent || monthlyLegacy.price || 0) * 100,
+    ]);
   }
 
   console.log('[payments/schema] 支付体系表初始化完成');

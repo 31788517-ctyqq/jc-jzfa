@@ -1,0 +1,97 @@
+{
+  "lockedAt": "2026-06-18T08:39:50.886Z",
+  "earliestKickoff": null,
+  "date": "2026-04-21",
+  "plans": [
+    {
+      "planId": "plan_2026-04-21_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039248",
+          "direction": "总进球-2、3球",
+          "homeName": "皇家马德里",
+          "visitName": "阿拉维斯",
+          "matchNum": "周二009"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-21_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039247",
+          "direction": "总进球-1、2、3球",
+          "homeName": "朗斯",
+          "visitName": "图卢兹",
+          "matchNum": "周二008"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-21_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039248",
+          "direction": "总进球-1、2、3球",
+          "homeName": "皇家马德里",
+          "visitName": "阿拉维斯",
+          "matchNum": "周二009"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-21_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039244",
+          "direction": "总进球-3、4、5球",
+          "homeName": "毕尔巴鄂竞技",
+          "visitName": "奥萨苏纳",
+          "matchNum": "周二005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-21_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039240",
+          "direction": "总进球-3、4、5球",
+          "homeName": "全北现代",
+          "visitName": "仁川联",
+          "matchNum": "周二001"
+        }
+      ]
+    }
+  ]
+}

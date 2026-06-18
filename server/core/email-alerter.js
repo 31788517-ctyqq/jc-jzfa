@@ -10,8 +10,8 @@
  */
 
 // 节流：同一类型 30 分钟只发一封
-var _sent = {};
-var THROTTLE_MS = 30 * 60 * 1000;
+const _sent = {};
+const THROTTLE_MS = 30 * 60 * 1000;
 
 function send(level, title, detail, action) {
   try {
@@ -21,16 +21,22 @@ function send(level, title, detail, action) {
     return;
   }
 
-  var now = Date.now();
-  var key = level + ':' + title;
+  const now = Date.now();
+  const key = level + ':' + title;
   if (_sent[key] && now - _sent[key] < THROTTLE_MS) return; // 节流
   _sent[key] = now;
 
-  var icon = level === 'P0' ? '🔴' : level === 'P0.5' ? '🟡' : '🟢';
-  var subject = icon + ' [JC-ZJFA ' + level + '] ' + title;
+  const icon = level === 'P0' ? '🔴' : level === 'P0.5' ? '🟡' : '🟢';
+  const subject = icon + ' [JC-ZJFA ' + level + '] ' + title;
 
-  var html = [
-    '<h3 style="color:' + (level === 'P0' ? '#e53e3e' : level === 'P0.5' ? '#d69e2e' : '#38a169') + ';">' + icon + ' ' + level + ' 告警</h3>',
+  const html = [
+    '<h3 style="color:' +
+      (level === 'P0' ? '#e53e3e' : level === 'P0.5' ? '#d69e2e' : '#38a169') +
+      ';">' +
+      icon +
+      ' ' +
+      level +
+      ' 告警</h3>',
     '<p><b>故障:</b> ' + title + '</p>',
     detail ? '<p><b>详情:</b> ' + detail + '</p>' : '',
     action ? '<p><b>建议操作:</b> ' + action + '</p>' : '',

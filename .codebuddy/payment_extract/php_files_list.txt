@@ -1,0 +1,2 @@
+/data/wwwroot/quncai_wap/kjgg/index.php
+/data/wwwroot/quncai_wap/index.php

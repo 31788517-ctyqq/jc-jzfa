@@ -1,0 +1,150 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.004Z",
+  "earliestKickoff": null,
+  "date": "2026-03-28",
+  "plans": [
+    {
+      "planId": "plan_2026-03-28_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038678",
+          "direction": "平、让平",
+          "homeName": "墨西哥",
+          "visitName": "葡萄牙",
+          "matchNum": "周六015"
+        },
+        {
+          "matchId": "2038670",
+          "direction": "让负",
+          "homeName": "埃克塞特城",
+          "visitName": "莱顿东方",
+          "matchNum": "周六007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-28_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038668",
+          "direction": "总进球-2、3球",
+          "homeName": "雷丁",
+          "visitName": "维冈竞技",
+          "matchNum": "周六005"
+        },
+        {
+          "matchId": "2038670",
+          "direction": "让负",
+          "homeName": "埃克塞特城",
+          "visitName": "莱顿东方",
+          "matchNum": "周六007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-28_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038669",
+          "direction": "胜",
+          "homeName": "斯托克港",
+          "visitName": "AFC温布尔登",
+          "matchNum": "周六006"
+        },
+        {
+          "matchId": "2038670",
+          "direction": "让负",
+          "homeName": "埃克塞特城",
+          "visitName": "莱顿东方",
+          "matchNum": "周六007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-28_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038669",
+          "direction": "总进球-2、3球",
+          "homeName": "斯托克港",
+          "visitName": "AFC温布尔登",
+          "matchNum": "周六006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-28_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038678",
+          "direction": "平、让平",
+          "homeName": "墨西哥",
+          "visitName": "葡萄牙",
+          "matchNum": "周六015"
+        },
+        {
+          "matchId": "2038669",
+          "direction": "胜",
+          "homeName": "斯托克港",
+          "visitName": "AFC温布尔登",
+          "matchNum": "周六006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-28_5",
+      "name": "plan_5",
+      "planName": "方案五",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038674",
+          "direction": "平、让平",
+          "homeName": "匈牙利",
+          "visitName": "斯洛文尼亚",
+          "matchNum": "周六011"
+        },
+        {
+          "matchId": "2038668",
+          "direction": "总进球-2、3球",
+          "homeName": "雷丁",
+          "visitName": "维冈竞技",
+          "matchNum": "周六005"
+        }
+      ]
+    }
+  ]
+}

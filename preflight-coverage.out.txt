@@ -1,0 +1,3615 @@
+
+> test:coverage
+> jest --config jest.coverage.config.js --coverage --forceExit --no-cache
+
+PASS server/tests/odds-match-handler.test.js
+  match-odds handler — 响应结构
+    周四203 边界场景: SPF=null + RQSPF + 全玩法
+      √ SPF 为空对象（无胜平负赔率） (13 ms)
+      √ RQSPF 返回 2.21/4.20/2.28 (8 ms)
+      √ RQSPF 让球数 = -3（西班牙让3球） (1 ms)
+      √ BF 比分返回 31 项（含胜其他/平其他/负其他） (2 ms)
+      √ JQS 总进球返回 8 项（0~7+） (11 ms)
+      √ BQC 半全场返回 9 项（胜胜~负负） (1 ms)
+      √ 五个维度同时非空（SPF可为空对象） (2 ms)
+    常规场次: SPF + RQSPF + 全玩法
+      √ SPF 返回有效赔率 (1 ms)
+      √ RQSPF 返回有效赔率 (1 ms)
+    num_X 前缀匹配（allplays 兼容）
+      √ 通过 num_ 前缀匹配
+    空 allplays 数据
+      √ 无 allplays 数据时返回空结构 (1 ms)
+      √ 无 dateStr 时也返回空结构
+    key 命名兼容: scores → bf, totalGoals → jqs, halfFull → bqc
+      √ scores 对象正确映射为 bf 数组 (1 ms)
+      √ totalGoals 正确映射为 jqs 数组
+      √ halfFull 对象正确映射为 bqc 数组
+      √ jqs 和 totalGoals 同时存在时优先 jqs (1 ms)
+      √ bqc 和 halfFull 同时存在时优先 bqc
+  batch-match-odds handler — 响应结构
+    √ 周四203 spf=null, rqspf 有效 (1 ms)
+    √ 周四203 BF/JQS/BQC 随 oddsMap 返回 (1 ms)
+    √ 周四201 spf 和 rqspf 均有效 (1 ms)
+    √ 无 odds 数据的场次返回 null 值 (1 ms)
+  match-odds — handicap 边界场景
+    √ handicap = -3 深盘（西班牙让3球） (3 ms)
+    √ handicap = -1 一般让球 (1 ms)
+    √ rqspf 无 handicap 字段时默认 = 0 (1 ms)
+  allplays.json — matchNum 字段为空时的回退匹配
+    √ num 字段为空时仍可通过 key 直接匹配 (3 ms)
+
+PASS server/tests/data-pipeline-e2e.test.js
+  P2: data-pipeline-e2e — 端到端数据管道
+    1. 数据采集 → 存储
+      √ 1.1 比赛数据批量写入 (83 ms)
+      √ 1.2 推荐数据写入 + 唯一约束 (2 ms)
+      √ 1.3 crawl_logs 记录 (2 ms)
+    2. 存储 → 预测计算
+      √ 2.1 特征写入 (3 ms)
+      √ 2.2 预测日志生成 (2 ms)
+    3. 预测 → unified → outcome 出库
+      √ 3.1 完整三阶段 (4 ms)
+      √ 3.2 一场比赛全貌 (2 ms)
+    4. 功守道 7 阶段管道模拟
+      √ 4.1 Phase 1: Parse — 原始数据解析 (2 ms)
+      √ 4.2 Phase 2: Attack — 进攻指标 (2 ms)
+      √ 4.3 Phase 3: Goal — 进球预期 (2 ms)
+      √ 4.4 Phase 4: Diff — 差异分析 (1 ms)
+      √ 4.5 Phase 5: Score — 比分概率 (2 ms)
+      √ 4.6 Phase 6: Market — 市场信号 (2 ms)
+      √ 4.7 Phase 7: Output — 最终输出 (2 ms)
+    5. finalCheck 全链路
+      √ 5.1 赛果回填 → unified同步 → outcome回填 (4 ms)
+
+PASS server/tests/consistency-check.test.js
+  P2: consistency-check — 跨表一致性巡检
+    1. prediction_logs ↔ matches
+      √ 1.1 每条 prediction_log 的 matchId 应在 matches 中存在 (38 ms)
+      √ 1.2 所有 log 都应该有 date 字段 (1 ms)
+      √ 1.3 matchNum 格式检查 — 应有值 (2 ms)
+    2. unified_predictions ↔ outcomes
+      √ 2.1 每条 unified 应有对应 outcome（已完赛） (2 ms)
+      √ 2.2 无 direction 的 unified 不应被统计 (2 ms)
+      √ 2.3 重复 prediction_id 检查 (2 ms)
+    3. 日期连续性
+      √ 3.1 识别缺失日期 (2 ms)
+      √ 3.2 日期范围无越界 (2 ms)
+      √ 3.3 prediction_logs.date 与 data.json.date 对齐检查 (2 ms)
+    4. 模型分布统计
+      √ 4.1 unified_predictions 应按模型均匀分布 (2 ms)
+      √ 4.2 outcome 模型分布应匹配 unified (1 ms)
+    5. 数据质量评分
+      √ 5.1 完整性分数 = 有 outcome 的 unified / 总 unified (1 ms)
+      √ 5.2 命中率有效性 = direction_hit IS NOT NULL (1 ms)
+      √ 5.3 整体数据健康报告 (12 ms)
+
+PASS server/tests/unified-predictions-inflow.test.js
+  P1: unified-predictions-inflow — 数据流入映射
+    1. prediction_id 生成规则
+      √ 1.1 AI prediction_id: ai_{matchId}_{date} (59 ms)
+      √ 1.2 GS prediction_id: gs_{matchId}_{date} (2 ms)
+      √ 1.3 PK prediction_id: pk_{matchId}_{date} (2 ms)
+      √ 1.4 matchId 去除 m_ 前缀 (1 ms)
+    2. 方向映射覆盖
+      √ 2.1 所有已知主胜变体 (3 ms)
+      √ 2.2 所有已知客胜变体 (2 ms)
+      √ 2.3 比分→方向推断所有情况 (2 ms)
+      √ 2.4 大小球映射覆盖 (2 ms)
+    3. 三模型字段映射
+      √ 3.1 AI模型：ai_spf→direction, ai_confidence→direction_confidence, ai_score→predicted_score, ai_overunder→over_under (3 ms)
+      √ 3.2 功守道模型：gs_top_score→direction, gs_top_percent→direction_confidence, gs_scores_json→raw_output_json, pk_fusion_consensus→consensus_tag (2 ms)
+      √ 3.3 PK评分模型：pk_direction→direction, pk_composite_score→direction_confidence, pk子分→raw_output_json (3 ms)
+    4. 边界场景
+      √ 4.1 无方向预测 — 不生成 unified 记录 (1 ms)
+      √ 4.2 无GS数据 — 跳过功守道模型 (1 ms)
+      √ 4.3 无actual_score — 不进入流入管道 (2 ms)
+      √ 4.4 ai_confidence 为 0/null — 使用默认值 50 (2 ms)
+    5. 流入→回填 完整链路
+      √ 5.1 三模型流入 + 回填判定 (4 ms)
+      √ 5.2 方向预测错误时的命中判定 (3 ms)
+    6. GS 天梯方向推断
+      √ 6.1 ladder_level > 0 → 主胜 (2 ms)
+      √ 6.2 ladder_level < 0 → 客胜 (2 ms)
+      √ 6.3 ladder_level = 0 → 平局 (2 ms)
+      √ 6.4 gs_modelA/B/C_total 字段映射 (2 ms)
+
+PASS server/tests/backfill-pipeline.test.js
+  P0: backfill-pipeline — 回填管道回归
+    1. 方向映射正确性
+      √ 1.1 主胜方向映射 (21 ms)
+      √ 1.2 客胜方向映射 (5 ms)
+      √ 1.3 平局方向映射 (1 ms)
+      √ 1.4 模糊/空值映射 (1 ms)
+      √ 1.5 比分→方向推断 (1 ms)
+      √ 1.6 大小球映射 (2 ms)
+    2. prediction_logs → unified_predictions
+      √ 2.1 AI预测流入 (24 ms)
+      √ 2.2 功守道预测流入 (2 ms)
+      √ 2.3 PK评分预测流入 (2 ms)
+      √ 2.4 一条 prediction_log 生成 3 个 unified 记录 (3 ms)
+    3. 幂等性
+      √ 3.1 重复 prediction_id 不产生重复记录 (1 ms)
+      √ 3.2 重复运行 backfill_unified_predictions 不产生重复 (2 ms)
+      √ 3.3 已有 unified 记录不重复创建 outcome (1 ms)
+    4. OutcomeBackfill 命中判定
+      √ 4.1 主胜命中 (1 ms)
+      √ 4.2 方向未命中 (1 ms)
+      √ 4.3 大小球命中 (over)
+      √ 4.4 大小球命中 (under) (1 ms)
+      √ 4.5 比分命中
+      √ 4.6 比分未命中 (1 ms)
+      √ 4.7 实际比分解析正确
+    5. getModelHitRates 统计
+      √ 5.1 3模型命中率统计 (2 ms)
+      √ 5.2 空数据统计不抛异常 (1 ms)
+      √ 5.3 多模型多版本统计 (2 ms)
+    6. finalCheck 链路完整性
+      √ 6.1 prediction_logs → unified_predictions → outcome 全链路 (3 ms)
+      √ 6.2 缺失实际赛果时跳过 (17 ms)
+      √ 6.3 无方向预测时跳过 model (10 ms)
+
+PASS server/tests/database-adapter-real.test.js
+  P0: database-adapter-real — 实际数据库操作
+    1. DDL 建表
+      √ 1.1 核心4表正常创建 (72 ms)
+      √ 1.2 蓝图新增10张表正常创建 (5 ms)
+      √ 1.3 索引正常创建 (3 ms)
+    2. CRUD 操作
+      √ 2.1 INSERT 写入比赛记录 (3 ms)
+      √ 2.2 INSERT OR REPLACE 覆盖写入 (2 ms)
+      √ 2.3 UPDATE 更新比分 (1 ms)
+      √ 2.4 DELETE 删除记录 (2 ms)
+      √ 2.5 按日期查询 (1 ms)
+      √ 2.6 唯一约束冲突 (2 ms)
+    3. 蓝图表完整数据流
+      √ 3.1 prediction_logs 完整 CRUD (3 ms)
+      √ 3.2 unified_predictions + prediction_outcomes 流入 (18 ms)
+      √ 3.3 prediction_outcomes 唯一约束去重 (6 ms)
+    4. 数据完整性
+      √ 4.1 PRAGMA integrity_check (2 ms)
+      √ 4.2 index 数量 = 建表索引数 (4 ms)
+      √ 4.3 大数量批量写入 (7 ms)
+    5. 类型与边界
+      √ 5.1 NULL 字段插入 (1 ms)
+      √ 5.2 空字符串 vs NULL 区别 (1 ms)
+      √ 5.3 INTEGER 类型插入非数字的失败 (1 ms)
+      √ 5.4 超长字符串存储 (1 ms)
+    6. 事务
+      √ 6.1 事务提交 — 全部写入 (2 ms)
+      √ 6.2 事务回滚 — 全部不写入 (2 ms)
+      √ 6.3 事务嵌套回滚 (1 ms)
+    7. jczq_basic_cache
+      √ 7.1 JSON 序列化往返 (2 ms)
+      √ 7.2 日期+编号唯一约束 (2 ms)
+
+PASS server/tests/database.test.js
+  database — 建表语句验证
+    matches 表
+      √ DDL 应包含所有必要字段 (12 ms)
+      √ 索引应覆盖 date 和 matchStatus
+    recommends 表
+      √ 应有唯一约束 (matchId, type, fetchDate) (1 ms)
+    crawl_logs 表
+      √ date 应为主键 (1 ms)
+    ai_predictions 表
+      √ 应包含 confidence 和 tokenUsage 字段 (1 ms)
+    prediction_logs 表
+      √ 应包含 AI/PK/GS 三类预测字段 + actual 回填字段 (5 ms)
+  database — SQL 注入防护
+    √ 查询应使用参数化语句 (?) 而非字符串拼接 (1 ms)
+    √ matchId 作为参数传递而非拼接 (2 ms)
+  database — WAL 模式
+    √ 生产环境应使用 WAL + NORMAL synchronous (2 ms)
+  database — 统计查询
+    getHitRateStats 查询
+      √ 应包含类型分组和结果过滤 (2 ms)
+    getDailyTrend 查询
+      √ 应包含日期升序排列 (1 ms)
+  database — 降级模式
+    √ 无 SQLite 后端时 isAvailable 返回 false (1 ms)
+    √ 降级模式下写操作不抛异常 (1 ms)
+  database — todayMatchSummary 计算
+    √ 应正确计算 finished/unfinished (1 ms)
+    √ 无完赛比赛时 canShowCards 为 false
+  database — Phase 8 WAL 配置
+    √ synchronous 应为 FULL（每事务 fsync） (1 ms)
+    √ wal_autocheckpoint 应配置为 1000 页 (1 ms)
+    √ journal_mode 保持 WAL
+  database — Phase 8 原子写入
+    √ _saveToFile 应使用 .tmp 文件进行原子写入 (1 ms)
+    √ 写入后应校验字节长度 (1 ms)
+    √ 失败时应清理 .tmp 残留 (1 ms)
+  database — Phase 8 完整性校验
+    √ 启动时应执行 PRAGMA integrity_check (1 ms)
+    √ integrity_check 通过时打印信息 (1 ms)
+    √ integrity_check 失败时打印错误 (1 ms)
+    √ better-sqlite3 路径有完整性检查 (1 ms)
+    √ sql.js 路径也有完整性检查 (1 ms)
+
+PASS server/tests/fallback-paths.test.js
+  P1: fallback-paths — 降级路径
+    1. 数据库三层后端降级
+      √ 1.1 Tier 1: better-sqlite3 可用时直接初始化 (71 ms)
+      √ 1.2 Tier 2: sql.js 异步初始化等待 (67 ms)
+      √ 1.3 Tier 3: JSON 降级 — isAvailable 返回 false (16 ms)
+      √ 1.4 数据库初始化超时（10秒）处理 (136 ms)
+    2. auto_heal 数据缺口检测
+      √ 2.1 赛程覆盖率检查 — 无缺口 (1 ms)
+      √ 2.2 赛程覆盖率检查 — 有缺口 (4 ms)
+      √ 2.3 周末缺口标记为 critical (2 ms)
+      √ 2.4 赔率覆盖率检查 — 文件不存在 (1 ms)
+      √ 2.5 赔率覆盖率检查 — 文件太小 (<100B) (4 ms)
+      √ 2.6 genRecentDates 日期生成 (2 ms)
+    3. DataQualityMonitor 质量门禁
+      √ 3.1 抓取成功率 >= 90% 通过 (1 ms)
+      √ 3.2 抓取成功率 < 90% 触发告警 (1 ms)
+      √ 3.3 预期0场时自动通过 (1 ms)
+      √ 3.4 完整性 >= 85% 通过
+      √ 3.5 完整性 < 85% 触发告警 (1 ms)
+      √ 3.6 多源质量汇总 (1 ms)
+    4. 文件缺失/损坏降级
+      √ 4.1 data.json 不存在 → 返回空
+      √ 4.2 odds_history 目录缺失 → 优雅降级 (1 ms)
+      √ 4.3 JSON 解析失败 → 降级处理 (1 ms)
+      √ 4.4 文件读取权限异常 — try/catch 兜底
+    5. auto_heal 修复策略逻辑
+      √ 5.1 修复优先级：SP源 → midou → 告警
+      √ 5.2 仅修复最近3天缺口 (1 ms)
+      √ 5.3 allplays 缺口 → 记录到缺失队列 (1 ms)
+      √ 5.4 全部完整时不触发任何修复
+
+PASS server/tests/atomic-write.test.js
+  P0: atomic-write — 文件系统原子写入
+    1. 正常流程
+      √ 1.1 .tmp→rename 原子流程 (39 ms)
+      √ 1.2 多次写入不残留 .tmp (58 ms)
+      √ 1.3 覆盖已有文件 (6 ms)
+    2. 异常场景
+      √ 2.1 .tmp 孤儿文件清理（启动前存在残留）.tmp (6 ms)
+      √ 2.2 写入 .tmp 后写入不完整的回退 (17 ms)
+      √ 2.3 磁盘满模拟：写入后 rename 失败 (6 ms)
+      √ 2.4 atomicSaveWithCatch 异常后清理 .tmp (4 ms)
+    3. 字节校验
+      √ 3.1 完全匹配 (4 ms)
+      √ 3.2 0 字节文件 (3 ms)
+      √ 3.3 JSON 特殊字符 (4 ms)
+    4. 大文件
+      √ 4.1 10MB 文件原子写入 (49 ms)
+      √ 4.2 data.json 典型大小模拟 (~5MB) (8 ms)
+    5. 并发写入防护
+      √ 5.1 同步串行写入不丢失数据 (165 ms)
+      √ 5.2 快速连续写入无损坏 (67 ms)
+    6. SQLite 持久化
+      √ 6.1 SQLite 文件持久化验证（:memory: → 文件导出） (112 ms)
+
+  console.log
+    [payments/schema] 支付体系表初始化完成
+
+      at log (server/payments/schema.js:207:11)
+
+  console.log
+    [orders] createPaymentUrl took 1ms for ZJ20260619214817B18B
+
+      at log (server/payments/orders.js:242:13)
+
+  console.log
+    [orders] createOrder total 16ms ZJ20260619214817B18B
+
+      at log (server/payments/orders.js:252:13)
+
+  console.log
+    [orders] createPaymentUrl took 0ms for ZJ202606192148174CF6
+
+      at log (server/payments/orders.js:242:13)
+
+  console.log
+    [orders] createOrder total 2ms ZJ202606192148174CF6
+
+      at log (server/payments/orders.js:252:13)
+
+  console.log
+    [orders] createPaymentUrl took 0ms for ZJ2026061921481728D3
+
+      at log (server/payments/orders.js:242:13)
+
+  console.log
+    [orders] createOrder total 2ms ZJ2026061921481728D3
+
+      at log (server/payments/orders.js:252:13)
+
+  console.log
+    [orders] createPaymentUrl took 0ms for ZJ202606192148173CDB
+
+      at log (server/payments/orders.js:242:13)
+
+  console.log
+    [orders] createOrder total 2ms ZJ202606192148173CDB
+
+      at log (server/payments/orders.js:252:13)
+
+  console.log
+    [orders] createPaymentUrl took 0ms for ZJ202606192148173515
+
+      at log (server/payments/orders.js:242:13)
+
+  console.log
+    [orders] createOrder total 2ms ZJ202606192148173515
+
+      at log (server/payments/orders.js:252:13)
+
+  console.warn
+    [anti-fraud] 自邀请检测命中: invitee=2, inviter=1
+
+    [0m [90m 34 |[39m     )[33m;[39m
+     [90m 35 |[39m     [36mif[39m (sameDevice [33m&&[39m sameDevice[33m.[39mcnt [33m>[39m [35m0[39m) {
+    [31m[1m>[22m[39m[90m 36 |[39m       console[33m.[39mwarn([32m`[anti-fraud] 自邀请检测命中: invitee=${order.user_id}, inviter=${order.referred_by}`[39m)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 37 |[39m       [36mreturn[39m { passed[33m:[39m [36mfalse[39m[33m,[39m reason[33m:[39m [32m'same_device_fingerprint'[39m }[33m;[39m
+     [90m 38 |[39m     }
+     [90m 39 |[39m[0m
+
+      at warn (server/payments/referral-anti-fraud.js:36:15)
+      at Object.antiFraudCheck (server/tests/payments.test.js:348:28)
+
+  console.log
+    [payments/schema] 支付体系表初始化完成
+
+      at log (server/payments/schema.js:207:11)
+
+  console.log
+    [referral] 退款已取消返利: order=201
+
+      at log (server/payments/referral-compute.js:170:11)
+
+PASS server/tests/payments.test.js
+  Phase 4 支付体系
+    4.1 套餐查询 (planCatalog)
+      √ 应返回 3 种套餐 (22 ms)
+    4.2 订单创建 (createOrder)
+      √ 应成功创建月度套餐订单 (24 ms)
+      √ 应成功创建年度套餐订单 (11 ms)
+      √ 无效套餐码应返回错误 (1 ms)
+      √ 未登录应返回 AUTH_REQUIRED (1 ms)
+      √ 应兼容 { data } 包装体创建订单 (4 ms)
+    4.2.1 订单查询 (queryOrder)
+      √ 应兼容 { data } 包装体查询订单 (5 ms)
+    4.2.2 订单边缘场景
+      √ 金额为 0/负数应拒绝创建订单 (4 ms)
+      √ 跨用户查询订单应返回 ORDER_NOT_FOUND (4 ms)
+      √ queryAlipayStatus 缺少订单号应返回 MISSING_ORDER_NO (1 ms)
+    4.2.3 优惠码边缘场景 (validateCoupon)
+      √ 优惠码不可用场景应返回准确错误码 (6 ms)
+      √ 百分比优惠不应超过订单金额 (10 ms)
+    4.2.4 支付路由权限层 (handleAction)
+      √ 管理员动作在 viewer 角色下应拒绝 (1 ms)
+      √ 未知 action 应返回 false
+    4.3 订单号生成 (generateOrderNo)
+      √ 应生成 ZJ 前缀含数字的订单号 (1 ms)
+    4.4 订阅状态 (subscriptionStatus)
+      √ 免费用户状态为 free (1 ms)
+      √ adminGrantSubscription 开通成功后状态为 active (2 ms)
+    4.5 返利计算 (computeCommission)
+      √ 第 1 次付费应返回 50%
+      √ 有历史记录后 paymentIndex 应递增 (1 ms)
+      √ 首次付费 月度套餐 ¥98 → 返利 ¥49 (1 ms)
+    4.6 反欺诈检测 (antiFraudCheck)
+      √ 同一设备指纹应被检测 (8 ms)
+    4.7 返利账户 (referralAccount)
+      √ 新用户余额应为 0 (19 ms)
+    4.8 提现管理 (withdrawSubmit)
+      √ 余额不足应拒绝提现 (2 ms)
+      √ 低于最小提现额应拒绝 (1 ms)
+      √ 应兼容 { data } 包装体提交提现 (1 ms)
+    4.9 退款取消返利 (onPaymentRefunded)
+      √ 退款应标记对应返利为 cancelled (5 ms)
+    4.10 管理员接口
+      √ adminGrantSubscription 非管理员应被拦截 (2 ms)
+      √ 管理员处理提现应成功 (1 ms)
+
+PASS server/gongshoudao/tests/score.test.js
+  score — poissonProb 泊松概率
+    √ k=0, lambda=0 返回 1 (19 ms)
+    √ k=0, lambda=1.5 ~0.223 (1 ms)
+    √ k=1, lambda=1.5 ~0.335
+    √ k=2, lambda=1.5 ~0.251
+    √ k=3, lambda=1.5 ~0.126 (1 ms)
+    √ lambda=0 时 k>0 返回 0 (1 ms)
+    √ k>20 返回 0
+    √ lambda 极小值时概率分布合理 (1 ms)
+    √ lambda 较大值时和为接近1的分布 (1 ms)
+  score — dixonColesCorrection 低比分修正
+    √ 0:0 修正 1 - λh*λa*ρ (1 ms)
+    √ 1:0 修正 1 + λh*ρ
+    √ 0:1 修正 1 + λa*ρ
+    √ 1:1 修正 1 - ρ = 1.05 (1 ms)
+    √ 其他比分不修正返回 1.0
+    √ 可自定义 rho 参数
+  score — conditionalGoalAdjust 反扑效应
+    √ 落后2球 → 对方进攻增强 15% (1 ms)
+    √ 落后1球 → 对方进攻增强 8%
+    √ 领先3+球 → 垃圾时间 0.85
+    √ 平局或小差 → 正常 1.0 (1 ms)
+  score — softThreshold Sigmoid 软化
+    √ 默认 slope=10, 范围 [0.3, 1.0] (1 ms)
+    √ x 远大于 threshold → 接近 1.0
+    √ x 远小于 threshold → 接近 0.3
+    √ x≈threshold → ~0.65 (1 ms)
+    √ slope 控制陡峭程度
+  score — totalGoalsLock 总进球范围锁
+    √ 在范围内返回 true (1 ms)
+    √ 低于下限返回 false
+    √ 高于上限返回 false
+  score — singleTeamLock 单队进球锁(硬过滤)
+    √ 常规攻防 → 正常比分通过 (1 ms)
+    √ 极度破甲(penH≥2.0)时 h=0 被过滤 (1 ms)
+    √ 极度哑火(penH≤0.3)时 h≥3 被过滤
+    √ 单队6+球(h>6) → 过滤, h=6可通过 (1 ms)
+    √ 单队5球 → 通过 (1 ms)
+  score — goalDiffLock 净胜球分布锁(硬过滤)
+    √ 极端优势(absLv≥3) → Math.abs(gd) >= -1 始终为true, 不过滤
+    √ 中等优势(absLv≥2) → Math.abs(gd) >= -2 始终true (1 ms)
+    √ 均衡(absLv<2) 允许3球差
+  score — singleTeamPenalty 单队进球惩罚(软化版)
+    √ 常规攻防 → h=1,a=1 惩罚因子接近1 (1 ms)
+    √ 强力破甲(pen≥1.2)时 h=0 严重惩罚 (1 ms)
+    √ 防线哑火(pen≤0.7)时 h=0/低比分=较高惩罚, h=2=较轻惩罚
+    √ 返回值始终在 [0.2, 1.0] 范围内 (21 ms)
+    √ 客队攻防同样影响惩罚
+  score — goalDiffPenalty 净胜球惩罚(软化版)
+    √ 极端优势(正) → 大胜应受提振, 输球应受惩罚 (1 ms)
+    √ 极端劣势(负) → 客胜提振
+    √ 均衡(absLv<1) → 宽区间, 极端净胜球轻微惩罚 (1 ms)
+    √ 微弱优势 → 宽容区间
+    √ 返回值 [0.3, 1.0] 范围内 (10 ms)
+  score — historyCorrection 十字对冲历史修正
+    √ 进球分布匹配提升因子 (1 ms)
+    √ 交锋历史精确匹配2+次 → 强提振 (1 ms)
+    √ 交锋历史匹配1次 → 轻微提振(1.15)
+    √ 无交锋历史 → 仅维度分布修正 (1 ms)
+    √ 修正因子不超过上限 2.5
+    √ JiaoFenExtended 大球率提振大比分 (1 ms)
+  score — powerBoost 实力防御锁
+    √ 极端优势主队 + 净胜2+球 → 1.5倍提振 (1 ms)
+    √ 极端优势客队 + 净负2+球 → 1.25倍提振
+    √ 中等优势 + 净胜1球 → 1.1倍提振
+    √ 冷门削弱: 强主输球 → 0.6 (1 ms)
+    √ 无匹配条件 → 1.0
+  score — marketDirection 市场隐含方向概率
+    √ 有效赔率 → 返回归一化概率 (3 ms)
+    √ 无效赔率(≤1) → valid=false (1 ms)
+    √ 三个概率和为1
+  score — marketCalibration 市场校准因子
+    √ 主胜比分 → 高主胜概率 → 校准因子>1 (1 ms)
+    √ 平局比分 → 高平局概率 → 校准因子>1
+    √ 无效赔率 → 不校准返回1.0 (1 ms)
+  score — generateValidCells 合法格点生成
+    √ 常规参数下生成合理数量的格点
+    √ 所有格点满足锁一(总进球范围) (1 ms)
+    √ 空集边界：极其严格的过滤可能无格点
+  score — round 辅助函数
+    √ 保留 n 位小数 (14 ms)
+    √ 四舍五入 (1 ms)
+  score — analyze 完整集成
+    √ 正常输入 → 返回 TOP8 比分 (12 ms)
+    √ TOP8 按概率降序排列 (1 ms)
+    √ 极端强主 → 高净胜球比分概率更高 (1 ms)
+    √ 极端客优 → 客胜比分概率更高 (2 ms)
+    √ TOP 比分概率之和接近100% (1 ms)
+    √ 空格点 → 返回空数组或仅含fallback项 (1 ms)
+    √ 包含 market calibration 的完整验证 (4 ms)
+
+PASS server/tests/shadow-account.test.js
+  shadow-account — 工具函数
+    √ centsFromAmount: 正常金额 → 分 (19 ms)
+    √ centsFromAmount: 非法值 → 0 (1 ms)
+    √ amountFromCents: 分 → 元 (3 ms)
+    √ amountFromCents: 0 → 0 (1 ms)
+  shadow-account — 虚拟账户创建/查询 (Mock DB)
+    √ ensureTables → 创建所有表不报错 (3 ms)
+    √ ensureVirtualAccount: 创建新账户 (8 ms)
+    √ ensureVirtualAccount: 重复调用不重复创建 (2 ms)
+    √ ensureVirtualAccount: 无参数时使用默认账户码 (1 ms)
+    √ getAccount: 按 ID 查询 (3 ms)
+    √ getAccount: 不存在的 ID → null (1 ms)
+    √ getAccountByCode: 按 code 查询 (1 ms)
+    √ getAccountByCode: 不存在 → null (1 ms)
+  shadow-account — 资金冻结/释放/结算 (Mock DB)
+    √ freezeStake: 冻结资金 → available减少 frozen增加 (4 ms)
+    √ freezeStake: 金额<=0 → 抛出异常 (62 ms)
+    √ releaseStake: 释放冻结 → available恢复 frozen减少 (3 ms)
+    √ settleTicket: 盈利/亏损结算 → 返回 journal (1 ms)
+    √ settleTicket: 创建 hold → getHold 可查询 (1 ms)
+    √ getHold: 不存在的 hold → null (1 ms)
+  shadow-account — 收入统计 (Mock DB)
+    √ getIncomeSummary: 空账户 → 全零摘要 (1 ms)
+    √ getEquityCurve: 空账户 → 空数组 (1 ms)
+    √ getRiskLimits: 返回限额结构 (2 ms)
+    √ getRiskLimits: 不存在的账户 → null
+
+PASS server/tests/market-overlay.test.js
+  market-overlay — 常量
+    √ OVERLAY_SCORE_FIELDS 有15个字段 (1 ms)
+    √ FIELD_LABELS 映射15个中文标签 (1 ms)
+    √ FIELD_CATEGORIES 有5个分类 (1 ms)
+    √ getCategoryLabel 返回中文标签
+  market-overlay — buildEvidenceRow 证据行构建
+    √ source 为空 → 返回 null (1 ms)
+    √ 正常参数 → 构建完整证据行 (1 ms)
+    √ value 超过160字符 → 截断 (1 ms)
+    √ 默认值填充
+  market-overlay — parseScoreExplain 解析评分解释
+    √ 字符串 JSON → 解析成功 (2 ms)
+    √ 对象输入 → 直接解析 (1 ms)
+    √ 非法 JSON → 空对象
+    √ null 输入 → 空对象 (1 ms)
+    √ 非对象输入 → 空对象
+  market-overlay — ensureScoreFields 确保15维字段
+    √ 空输入 → 补齐15个字段 (34 ms)
+    √ 部分字段已有值 → 保留 (1 ms)
+  market-overlay — hasOffFieldEvidence
+    √ 无证据 → false
+    √ 有 offfield 证据 → true (1 ms)
+    √ 非 offfield 证据 → false
+    √ offfield 证据但 value 为 "-" → false (1 ms)
+  market-overlay — inferOverlayScores 评分推断
+    √ 空输入 → 返回默认评分 (3 ms)
+    √ strong 共识 → 教练能力=75
+    √ weak 共识 → 教练能力=50 (1 ms)
+    √ 高 heatIndex → 陷阱风险较高
+    √ pwScore 影响对阵面评分 (1 ms)
+  market-overlay — aggregateScores 综合评估
+    √ 所有50 → total=50 (3 ms)
+    √ 高基础面评分 → basic 分类高 (3 ms)
+    √ 返回 fieldScores (1 ms)
+    √ 返回 overlayVersion
+  market-overlay — compareOverlayScore 主客对比
+    √ 主客相同 → overallAdvantage=neutral (2 ms)
+    √ 主队优势 (diff>5) → overallAdvantage=home (1 ms)
+    √ 客队优势 (diff<-5) → overallAdvantage=away (1 ms)
+    √ 返回逐字段对比 (2 ms)
+    √ 包含聚合对象 (1 ms)
+
+  console.log
+    本地 allplays 未包含 scores 数据
+
+      at Object.log (server/tests/odds-data-integrity.test.js:87:17)
+
+  console.log
+    scores 数据未就绪
+
+      at Object.log (server/tests/odds-data-integrity.test.js:132:19)
+
+PASS server/tests/odds-data-integrity.test.js
+  allplays.json — 2026-06-04 数据完整性
+    √ 2026-06-04 日期键存在 (5 ms)
+    √ 包含至少 5 个场次（并包含周四203） (1 ms)
+    周四203 — 特殊边界场景
+      √ 存在并含有所有玩法 key (1 ms)
+      √ SPF 为空/null（无胜平负赔率） (1 ms)
+      √ RQSPF 为 {home:2.21, draw:4.20, away:2.28} (1 ms)
+      √ 让球数 = -3
+      √ scores 包含 31 个比分（含胜其他/平其他/负其他） (6 ms)
+      √ totalGoals 包含 8 个进球档位（0~7+） (1 ms)
+      √ halfFull 包含 9 个半全场组合 (1 ms)
+    所有场次 — 玩法维度完整性
+      √ 周四203 有 scores（比分） (1 ms)
+      √ 周四203 有 totalGoals（总进球） (1 ms)
+      √ 周四203 有 halfFull（半全场）
+      ○ skipped 周四201 数据不存在（跳过）
+      ○ skipped 周四202 数据不存在（跳过）
+      ○ skipped 周四204 数据不存在（跳过）
+      ○ skipped 周四205 数据不存在（跳过）
+    赔率值合法性
+      √ 周四203 scores 所有赔率 > 1.0
+      √ 周四203 totalGoals 所有赔率 > 1.0 (1 ms)
+      √ 周四203 halfFull 所有赔率 > 1.0 (1 ms)
+      ○ skipped 周四201 数据不存在（跳过）
+      ○ skipped 周四202 数据不存在（跳过）
+      ○ skipped 周四204 数据不存在（跳过）
+      ○ skipped 周四205 数据不存在（跳过）
+  odds_history/2026-06-04.json — 数据完整性
+    √ 文件存在并可解析 (1 ms)
+    √ odds 对象包含至少 5 个场次 (1 ms)
+    √ 周四203 spf=null, rqspf={2.21,4.20,2.28} (32 ms)
+    √ 所有场次的 odds 条目结构一致 (1 ms)
+  allplays.json — 全局结构
+    √ 包含 29+ 个日期（历史数据）
+    √ 最新日期应为有效日期且不早于 2026-06-04 (1 ms)
+
+PASS server/gongshoudao/tests/fusion.test.js
+  fusion — calcModelA 射门还原法
+    √ 返回 total/home/away 三个字段 (3 ms)
+    √ total ≈ home + away (12 ms)
+    √ home/away ≥ 0.1 (1 ms)
+    √ 攻防效率差异影响主客分配
+    √ 客强主弱 → away > home
+    √ 总进球在合理范围 [0.2, 8.0]
+    √ 极端弱攻防 → 仍返回有限值 (1 ms)
+  fusion — calcModelC 交锋预测法
+    √ 返回 total/g6/g2 字段 (1 ms)
+    √ 有交锋数据时 total = 0.3*g6 + 0.7*g2 (1 ms)
+    √ 无交锋数据 → g6从desc提取, g2默认2.5
+    √ 完全无交锋数据 → 使用默认值
+    √ jiaoFenDesc 无法匹配 → g6默认为2.5 (1 ms)
+  fusion — fuse 四重一致性验证
+    √ 返回完整结构 (2 ms)
+    √ 主客按 B2 比例拆分 (1 ms)
+    √ 极端不平衡 → 主客至少 0.1 (1 ms)
+    √ 三模型一致(nConsistent=3) → 强一致三模型平均
+    √ 恰好两对一致 → 弱一致剔除分歧值 (1 ms)
+    √ 三模型分歧 → 熔断保留模型加权结果 (1 ms)
+    √ pAsia 为 undefined → 默认 2.5
+    √ pair 差值均为数值 (1 ms)
+
+PASS server/tests/bet-scheme-filters.test.js
+  bet-scheme-filters — 工具函数
+    √ safeFloat: 正常数字 → 返回数字 (26 ms)
+    √ safeFloat: null/空字符串/非数字 → null (2 ms)
+    √ safeInt: 正常整数 → 返回整数
+    √ safeInt: 非法值 → null (1 ms)
+    √ safeBool: true/1/yes/on → true (1 ms)
+    √ safeBool: 其他值 → false (1 ms)
+    √ listTokenSet: 数组输入 → Set (1 ms)
+    √ listTokenSet: 逗号分隔字符串 → Set (1 ms)
+    √ listTokenSet: 空值 → 空 Set (1 ms)
+    √ normalizeSelectionCode: home/draw/away → 对应值 (2 ms)
+    √ normalizeSelectionCode: 非法值 → 空字符串 (1 ms)
+    √ selectionScore: 返回 [recommended, confidence, edge, odds] (1 ms)
+  bet-scheme-filters — matchesBaseFilters 基础阈值筛选
+    √ 所有条件通过 → 返回空数组 (16 ms)
+    √ confidence 低于门槛 → confidence_below_min (2 ms)
+    √ edge 低于门槛 → edge_below_min (1 ms)
+    √ odds 低于最小赔率 → odds_below_min
+    √ odds 高于最大赔率 → odds_above_max (1 ms)
+    √ 联赛白名单不匹配 → league_not_allowed
+    √ 联赛黑名单匹配 → league_blocked (1 ms)
+    √ 排除回退结果 (excludeFallback + fallback=true) → fallback_selection
+    √ 仅AI推荐 (onlyAiRecommended + recommended=false) → not_ai_recommended
+    √ 多个条件同时失败 → 返回多个原因
+  bet-scheme-filters — matchesValueGate 价值门控
+    √ mode=off → 返回空数组 (1 ms)
+    √ edge_only: edge 通过 → 返回空数组 (1 ms)
+    √ edge_only: edge 不通过 → edge_below_min
+    √ ev_only: EV 通过 → 返回空数组 (1 ms)
+    √ ev_only: EV 不通过 → ev_below_min
+    √ edge_or_ev: 任一通过 → 返回空数组 (1 ms)
+    √ edge_and_ev: 两者都通过 → 返回空数组
+    √ edge_and_ev: edge 失败 → edge_below_min
+  bet-scheme-filters — matchesCalibratedConfidence 校准置信度
+    √ threshold 为 null → 返回空数组
+    √ 校准值 >= 门槛 → 返回空数组 (1 ms)
+    √ 校准值 < 门槛 → confidence_calibrated_below_min
+    √ 校准值缺失 strategy=keep → 返回空数组
+    √ 校准值缺失 strategy=drop → confidence_calibrated_missing
+    √ 校准值缺失 strategy=fallback_confidence → 使用 selection.confidence
+  bet-scheme-filters — matchesOddsRelation 首赔关系
+    √ 无 _matchOddsMeta → odds_relation_context_missing (1 ms)
+    √ relation=first_only, rank=1 → 通过 (1 ms)
+    √ relation=first_only, rank!=1 → odds_rank_not_first
+    √ relation=exclude_last, rank=totalCount → odds_rank_is_last (1 ms)
+    √ 首赔和为/积范围检查 (1 ms)
+  bet-scheme-filters — groupSelections 分组
+    √ 按 matchId 分组 (1 ms)
+    √ 忽略无 matchId 或无合法 selectionCode 的项 (1 ms)
+  bet-scheme-filters — estimateScheme 方案估算
+    √ 单场比赛 单关 → ticketCount=1 (1 ms)
+    √ 3场 3x1 → 正确计算 (1 ms)
+  bet-scheme-filters — applySchemeFilters 主入口
+    √ 无筛选条件 → 保持所有选择 (5 ms)
+    √ confidenceMin 过滤 → 丢弃低信度 (3 ms)
+    √ leagueWhitelist 过滤 → 仅保留指定联赛 (3 ms)
+    √ maxSelectionPerMatch 限制 → 每场最多N选 (13 ms)
+    √ maxTicketCount 限制 → 预算裁减 (3 ms)
+    √ maxAmount 限制 → 金额控制 (2 ms)
+    √ value_gate 模式 → edge_only (1 ms)
+    √ 返回完整的筛选报告结构 (3 ms)
+    √ 未知筛选字段 → 记录到 unknownFilters (1 ms)
+
+PASS preview/tests/scheme-design-unit.test.js
+  scheme-design — 比赛过滤逻辑
+    √ matchStatus≠0 的比赛被过滤 (3 ms)
+    √ 已过开赛时间的比赛被过滤 (1 ms)
+    √ 按开赛时间升序排列 (29 ms)
+    √ matchIds 提取正确 (1 ms)
+  odds-provider — findOddsEntryByMatchNum
+    √ 精确key匹配 (1 ms)
+    √ 去星期前缀匹配 (1 ms)
+    √ 跨周匹配 — 数字部分一致即命中
+    √ 无匹配返回 null (1 ms)
+    √ 空 oddsMap 返回 null
+    √ 空 matchNum 返回 null (1 ms)
+  odds-provider — toArrayByType
+    √ bf: 对象→数组 [{score, odds}] (1 ms)
+    √ jqs: 对象→数组 [{goals, odds}] (1 ms)
+    √ bqc: 对象→数组 [{combo, odds}]
+    √ 空输入返回 null (1 ms)
+  odds-provider — getSportteryFallback
+    √ 无 database → 返回 empty (1 ms)
+    √ 无 matchNum → 返回 empty
+    √ adapter 返回空行 → 返回 empty (1 ms)
+    √ spf 数据 → 正确解析 (1 ms)
+    √ 多玩法混合 → 全部解析 (1 ms)
+    √ rawDb fallback — 适配器未就绪时走 raw db 路径 (5 ms)
+
+PASS server/tests/match-context-collector.test.js
+  match-context-collector — parsePlayer
+    √ 正常球员解析 (2 ms)
+    √ 空输入 → null
+    √ 没有 player_name → null
+    √ 别名键兼容: playerName/name/player (1 ms)
+    √ importance 限制在 [0, 1.5] (1 ms)
+    √ 默认 status 为 available, starter 为 false
+  match-context-collector — parsePlayers
+    √ 批量解析球员列表 (1 ms)
+    √ 非数组 → 空数组 (1 ms)
+    √ 包含非法项的列表 → 过滤掉
+  match-context-collector — parseLineup / lineupHasValues
+    √ 空输入 → {} (1 ms)
+    √ 正常阵容解析
+    √ continuity_from_prev 限制在 [0, 1] (1 ms)
+    √ lineupHasValues: 有首发 → true
+    √ lineupHasValues: 空对象 → false (1 ms)
+    √ lineupHasValues: 仅有 formation → true
+  match-context-collector — calcInjuryScore
+    √ 空伤病 → 0 (1 ms)
+    √ 核心球员 out → 高影响
+    √ questionable 球员 → 中等影响 (1 ms)
+    √ probable 球员 → 较低影响 (1 ms)
+    √ 上限为 6.0 (1 ms)
+    √ injuryHasValues: 有伤病 → true
+    √ injuryHasValues: 空 → false
+  match-context-collector — parseSchedule / scheduleHasValues
+    √ 正常赛程解析 (1 ms)
+    √ 空输入 → {} (1 ms)
+    √ scheduleHasValues: 有数据 → true
+    √ scheduleHasValues: 空 → false (1 ms)
+  match-context-collector — mergeContext
+    √ 空合并 → 返回默认上下文 (1 ms)
+    √ partial 覆盖 existing (1 ms)
+    √ notes 上限 20
+  match-context-collector — contextHas 检查
+    √ contextHasLineup: 空 → false
+    √ contextHasInjury: 空 → false
+    √ contextHasSchedule: 空 → false
+  match-context-collector — toAIPrompt AI 提示文本
+    √ null → 空字符串
+    √ 空上下文 → 空字符串
+    √ 有阵容 → 包含"阵容信息" (1 ms)
+    √ 有伤病 → 包含"伤病情报" (1 ms)
+    √ 有赛程 → 包含"赛程上下文" (1 ms)
+  match-context-collector — 常量
+    √ SOURCE_IDS 包含 lineup/injury/schedule (1 ms)
+    √ SOURCE_LABELS 有中文标签
+
+PASS server/tests/file-corruption.test.js
+  P2: file-corruption — 文件损坏恢复
+    1. data.json 损坏
+      √ 1.1 JSON 语法错误 — 截断 (5 ms)
+      √ 1.2 JSON 意外结尾 (21 ms)
+      √ 1.3 空文件 (4 ms)
+      √ 1.4 只读文件 (13 ms)
+    2. .tmp 孤儿文件处理
+      √ 2.1 启动时清理残留 .tmp (4 ms)
+      √ 2.2 多 .tmp 并发清理 (7 ms)
+      √ 2.3 .tmp 写完后未 rename → rename 后消失 (4 ms)
+    3. odds_history 文件截断
+      √ 3.1 文件截断 → 空对象回退 (4 ms)
+      √ 3.2 文件大小异常检查 (3 ms)
+    4. SQLite 损坏检测
+      √ 4.1 正常数据库 integrity_check 通过 (15 ms)
+      √ 4.2 WAL checkpoint 执行 (2 ms)
+      √ 4.3 数据库文件恢复尝试 (33 ms)
+    5. 恢复后一致性
+      √ 5.1 原子写入恢复 → 文件完整 (15 ms)
+      √ 5.2 写入中断再重试 → 最终正确 (7 ms)
+
+PASS server/tests/sp_data_adapter.test.js
+  sp_data_adapter
+    getMatch
+      √ should return null for empty data (2 ms)
+      √ should match by num and date (1 ms)
+      √ should return null for non-match (1 ms)
+    getOdds
+      √ should return null with empty odds dirs (2 ms)
+    getPreview
+      √ should return null for null/empty matchId
+      √ should parse preview when file exists
+    getFullSPData
+      √ should return structured result (1 ms)
+    findMatchIdByNum
+      √ should return null for no match (1 ms)
+      √ should find matchId from data
+    getRankings
+      √ should not throw
+    getLotteryResult
+      √ should return null without odds (2 ms)
+    getDailySPData
+      √ should return empty for no data (9 ms)
+      √ should return matches by date (3 ms)
+    clearCache
+      √ should not throw
+    edge cases
+      √ should handle undefined gracefully (1 ms)
+      √ should handle empty data gracefully (1 ms)
+    getOdds deep
+      √ should search SP odds files when available (1 ms)
+      √ should fallback to odds_history
+    getLotteryResult deep
+      √ should handle empty lottery result
+    getFullSPData with match
+      √ should include preview if matchId exists (1 ms)
+    findMatchIdByNum from odds
+      √ should search odds files if not in data.json (1 ms)
+    cache behavior
+      √ should reload after clearCache (8 ms)
+
+PASS server/gongshoudao/tests/attack.test.js
+  gongshoudao/attack — analyze
+    √ 应返回完整分析结果结构 (31 ms)
+    √ 强主弱客场景：totalAdvantageRaw 应为正 (1 ms)
+    √ 势均力敌场景：totalAdvantageRaw 应接近 0 (1 ms)
+  gongshoudao/attack — calcAttackAdvantage
+    √ 应返回复合值和子维度 (1 ms)
+    √ 强主进攻优势应为正且大于 0 (1 ms)
+    √ 三个子维度应在合理范围 [-2, +2] (1 ms)
+  gongshoudao/attack — calcDefenseAdvantage
+    √ 应返回防守复合值和子维度 (1 ms)
+    √ 均衡场景防守优势应接近 0
+  gongshoudao/attack — calcStrengthLadder
+    √ S=0.35 应映射为 "👑 主队绝对大优势" (level 3) (1 ms)
+    √ S=0.2 应映射为 "⚔️ 主队中等优势" (level 2)
+    √ S=0.1 应映射为 "🔍 主队微弱优势" (level 1)
+    √ S=0.02 应映射为 "⚖️ 双方实力接近" (level 0) (1 ms)
+    √ S=-0.1 应映射为 "🔍 客队微弱优势" (level -1)
+    √ S=-0.2 应映射为 "⚔️ 客队中等优势" (level -2) (1 ms)
+    √ S=-0.35 应映射为 "👑 客队绝对大优势" (level -3)
+    √ 应包含 boundLock 字段 (1 ms)
+    √ level=0 时 boundLock 应为 0
+    √ level=±3 时 boundLock 应为 1.5
+  gongshoudao/attack — calcCrossDistribution
+    √ 不让球组三值之和应接近 1
+    √ 让球数为0时 handicap 应与 spf 相同 (1 ms)
+    √ 应包含原始场次统计 (1 ms)
+  gongshoudao/attack — calcADDiff
+    √ 强主场景 AD_Diff 应为正 (1 ms)
+    √ 均衡场景 AD_Diff 应接近 0 (2 ms)
+    √ AD_Diff 应在 [-1, 1] 范围内 (1 ms)
+    √ 两队全0时不除以0崩溃 (2 ms)
+
+PASS server/tests/odds-movement.test.js
+  odds-movement — analyzeMovement 盘口位移检测
+    √ 无效赔率 (≤1.0) → 返回默认结果 (盘口稳定) (2 ms)
+    √ 参数为 null → 返回默认结果 (1 ms)
+    √ 参数为 undefined → 返回默认结果
+    √ 盘口稳定 (probShift < 0.02) → direction=盘口稳定 (1 ms)
+    √ 主胜微降水 (0.02 < probShift ≤ 0.05, pwScore≥0) → 无penalty
+    √ 主胜微降水 + 模型看客胜 (pwScore < -0.08) → penalty=8
+    √ 主胜降水 (probShift > 0.05, pwScore≥0) → direction标记市场看好 (1 ms)
+    √ 主胜降水 + 模型看客胜 (pwScore < -0.1) → penalty=15, severity=significant
+    √ 主胜升水 (probShift < -0.05, pwScore≤0) → 市场看衰主队 (1 ms)
+    √ 主胜升水 + 模型看主胜 (pwScore > 0.1) → penalty=15
+    √ 主胜微升水 (probShift < -0.02, pwScore≤0) → 无penalty (2 ms)
+    √ 主胜微升水 + pwScore > 0.08 → penalty=8 (32 ms)
+    √ 返回隐含概率和位移值 (1 ms)
+    √ 大幅变化 → severity=significant (4 ms)
+  odds-movement — checkEuroAsiaConsistency 欧亚一致性
+    √ 无效赔率 → 返回默认 (consistent=true) (1 ms)
+    √ home赔率≤1.0 → 返回默认
+    √ 欧亚一致 (欧赔看好主队 + 亚盘主让) → consistent=true (1 ms)
+    √ 欧亚不一致 (欧赔看好主队 + 亚盘客让) → consistent=false, penalty=12 (2 ms)
+    √ 欧亚不一致 (欧赔看好客队 + 亚盘主让) → consistent=false
+    √ 欧亚一致 + 模型方向与市场不一致 (pwScore>0.1, 市场看客队) → penalty=10 (1 ms)
+    √ 平手盘 (rq=0) → 亚盘无方向，欧赔方向决定 (1 ms)
+    √ 极端赔率边界 → 不崩溃 (1 ms)
+
+PASS server/gongshoudao/tests/parser.test.js
+  gongshoudao/parser — parse 完整字段映射
+    √ 应成功解析完整输入 (36 ms)
+    √ 比分差分布应精确映射 (2 ms)
+    √ 平局场次应从 SPF 文本提取 (1 ms)
+    √ 进球分布应精确映射 (1 ms)
+    √ 场均得失球应从描述提取 (1 ms)
+    √ 攻防效率应提取绝对值 (1 ms)
+    √ 攻防效率原始符号应保留
+    √ 效率方向标记应正确 (1 ms)
+    √ 大球率应转换为小数
+    √ 实力值/赢盘率/赔率/让球数应正确
+    √ 交锋数据应解析比分 (1 ms)
+  gongshoudao/parser — 缺失字段容错
+    √ 空对象应返回有效结构 (1 ms)
+    √ null 应返回 null
+    √ undefined 应返回 null (1 ms)
+    √ 类型错误应返回 null
+    √ 部分缺失字段应使用默认值 (1 ms)
+    √ 异常格式描述不崩溃
+    √ SPF 文本无平局时不崩溃 (1 ms)
+  gongshoudao/parser — extractJiaoFenExtended
+    √ 标准格式应完整解析 (1 ms)
+    √ 空字符串应返回默认值
+    √ 变体格式（含空格）应解析 (1 ms)
+    √ 部分字段缺失不影响其他字段 (1 ms)
+  gongshoudao/parser — 净胜球序列
+    √ 应正确构建序列 (2 ms)
+  gongshoudao/parser — 边界条件
+    √ 超大数值不应溢出 (1 ms)
+    √ 负数赔率不应崩溃
+
+PASS server/tests/blueprint-prediction-adapter.test.js
+  PredictionModelAdapter — 基类
+    √ 默认 modelName 为空字符串 (2 ms)
+    √ 默认 modelVersion 为空字符串 (1 ms)
+    √ 默认 dimensions 为空数组 (2 ms)
+    √ 基类 predict() 应抛出未实现错误 (72 ms)
+    √ _id() 生成幂等 prediction_id (3 ms)
+    √ _buildPrediction() 构建标准 Prediction 对象 (3 ms)
+  GongshoudaoAdapter
+    √ modelName 应为 gongshoudao/功守道 (V9.1) (1 ms)
+    √ 无 gsCache 时返回 null (1 ms)
+    √ ★ V9.1: 使用 crossSpf/totalGoalsExpect/scores 字段提取预测 (2 ms)
+    √ ★ V9.1: SPF平局最高 → direction=draw (1 ms)
+    √ ★ V9.1: 无 scores 时预测正常返回 (19 ms)
+  ExpertConsensusAdapter
+    √ modelName 应为 expert_consensus/专家共识
+    √ 无推荐数据时返回 null (2 ms)
+    √ 主胜占优时正确判定方向 (4 ms)
+  MarketSignalAdapter
+    √ modelName 应为 market_signal (1 ms)
+    √ 无赔率数据时返回 null (454 ms)
+    √ 主胜赔率最低时判定为主胜 (1 ms)
+  DeepseekAdapter
+    √ modelName 应为 deepseek
+    √ 无 AI 预测时返回 null (110 ms)
+    √ ★ V9.1: JavaScript对象content → 方向解析 (2 ms)
+    √ ★ V9.1: 降级关键词匹配 (无JSON) (1 ms)
+  DataFusionAdapter (V9.1 新增)
+    √ modelName 应为 data_fusion
+    √ 无 date/num 时返回 null (1 ms)
+  PredictionModelAdapter — _parseAIOutput (V9.1 T-02)
+    √ JSON解析: 提取主胜方向
+    √ 降级关键词: 提取客胜 (1 ms)
+    √ 空内容返回 null
+
+  console.log
+    [model-weights] 样本不足(0场)，使用等权
+
+      at log (server/gongshoudao/model-weights.js:51:13)
+
+  console.log
+    [model-weights] 样本不足(0场)，使用等权
+
+      at log (server/gongshoudao/model-weights.js:51:13)
+
+  console.log
+    [model-weights] 样本不足(10场)，使用等权
+
+      at log (server/gongshoudao/model-weights.js:51:13)
+
+  console.warn
+    [model-weights] prediction_log 不可用，使用等权: DB error
+
+    [0m [90m 44 |[39m     }
+     [90m 45 |[39m   } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 46 |[39m     console[33m.[39mwarn([32m'[model-weights] prediction_log 不可用，使用等权:'[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 47 |[39m     [36mreturn[39m { wA[33m:[39m [33mDEFAULT_WEIGHTS[39m[33m.[39mwA[33m,[39m wB[33m:[39m [33mDEFAULT_WEIGHTS[39m[33m.[39mwB[33m,[39m wC[33m:[39m [33mDEFAULT_WEIGHTS[39m[33m.[39mwC[33m,[39m stats[33m:[39m [36mnull[39m[33m,[39m source[33m:[39m [32m'fallback'[39m }[33m;[39m
+     [90m 48 |[39m   }
+     [90m 49 |[39m[0m
+
+      at warn (server/gongshoudao/model-weights.js:46:13)
+      at Object.computeDynamicWeights (server/gongshoudao/tests/model-weights.test.js:79:20)
+
+  console.log
+    [model-weights] V3.0 30天真实模型命中 → A=70.0%(30场) B=70.0%(30场) C=70.0%(30场) → 权重 wA=0.3333 wB=0.3333 wC=0.3333
+
+      at log (server/gongshoudao/model-weights.js:128:11)
+
+  console.log
+    [model-weights] V3.0 30天真实模型命中 → A=70.0%(30场) B=70.0%(30场) C=70.0%(30场) → 权重 wA=0.3333 wB=0.3333 wC=0.3333
+
+      at log (server/gongshoudao/model-weights.js:128:11)
+
+  console.log
+    [model-weights] V3.0 30天真实模型命中 → A=30.0%(30场) B=70.0%(30场) C=70.0%(30场) → 权重 wA=0.1834 wB=0.4083 wC=0.4083
+
+      at log (server/gongshoudao/model-weights.js:128:11)
+
+  console.log
+    [model-weights] V3.0 30天真实模型命中 → A=30.0%(30场) B=30.0%(30场) C=30.0%(30场) → 权重 wA=0.3333 wB=0.3333 wC=0.3333
+
+      at log (server/gongshoudao/model-weights.js:128:11)
+
+  console.log
+    [model-weights] V3.0 30天真实模型命中 → A=70.0%(25场) B=70.0%(25场) C=70.0%(25场) → 权重 wA=0.3333 wB=0.3333 wC=0.3333
+
+      at log (server/gongshoudao/model-weights.js:128:11)
+
+  console.log
+    [model-weights] 某模型样本不足(A=0 B=0 C=0)，使用等权
+
+      at log (server/gongshoudao/model-weights.js:96:13)
+
+  console.log
+    [model-weights] 样本不足(2场)，使用等权
+
+      at log (server/gongshoudao/model-weights.js:51:13)
+
+PASS server/tests/scheduler_v2.test.js
+  scheduler_v2
+    getState / getQueue 导出
+      √ 应导出 getState 和 getQueue 函数 (1428 ms)
+      √ 应导出 executeTask 和 enqueueTask 函数 (7 ms)
+    分布式锁 — acquireLock
+      √ 锁文件不存在时应成功获取锁 (7 ms)
+      √ 锁未过期且非当前实例时应拒绝 (17 ms)
+      √ 锁过期时应强制接管 (11 ms)
+    重试队列 — enqueueTask
+      √ enqueueTask 应添加任务到队列 (13 ms)
+      √ 重复任务应更新重试次数而非添加新条目 (7 ms)
+      √ 超过最大重试次数(5次)应放弃 (40 ms)
+      √ 指数退避延迟应递增 (7 ms)
+    任务分发 — executeTask
+      √ 已知任务名应分发到对应处理 (7 ms)
+      √ 未知任务名应返回 false (7 ms)
+    状态管理 — loadState / saveState
+      √ 状态文件不存在时应返回默认状态 (9 ms)
+      √ taskStats 应正确累积运行统计 (37 ms)
+    定时调度 — schedule
+      √ 12:00 定时任务应正确计算延迟 (8 ms)
+      √ sleep 工具函数 (7 ms)
+    优雅停机 — shutdown
+      √ 应保存状态后退出 (9 ms)
+
+  console.log
+    [model-weights] 样本不足(0场)，使用等权
+
+      at log (server/gongshoudao/model-weights.js:51:13)
+
+  console.warn
+    [model-weights] prediction_log 不可用，使用等权: boom
+
+    [0m [90m 44 |[39m     }
+     [90m 45 |[39m   } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 46 |[39m     console[33m.[39mwarn([32m'[model-weights] prediction_log 不可用，使用等权:'[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 47 |[39m     [36mreturn[39m { wA[33m:[39m [33mDEFAULT_WEIGHTS[39m[33m.[39mwA[33m,[39m wB[33m:[39m [33mDEFAULT_WEIGHTS[39m[33m.[39mwB[33m,[39m wC[33m:[39m [33mDEFAULT_WEIGHTS[39m[33m.[39mwC[33m,[39m stats[33m:[39m [36mnull[39m[33m,[39m source[33m:[39m [32m'fallback'[39m }[33m;[39m
+     [90m 48 |[39m   }
+     [90m 49 |[39m[0m
+
+      at warn (server/gongshoudao/model-weights.js:46:13)
+      at computeDynamicWeights (server/gongshoudao/model-weights.js:177:22)
+      at Object.getWeights (server/gongshoudao/tests/model-weights.test.js:222:20)
+
+PASS server/gongshoudao/tests/model-weights.test.js
+  model-weights — DEFAULT_WEIGHTS 默认等权
+    √ 等权占比为 1/3 (2 ms)
+    √ 三权重之和为 1 (1 ms)
+  model-weights — computeDynamicWeights 动态权重计算
+    √ predLog 为 null → 回退等权 (rows为空→insufficient) (115 ms)
+    √ predLog 无 queryBacktest 方法 → 回退等权 (4 ms)
+    √ 样本不足20场 → 回退等权 (3 ms)
+    √ queryBacktest 抛出异常 → 回退等权 (11 ms)
+    √ 足够样本 (≥20) → 计算动态权重, source=dynamic_v3 (5 ms)
+    √ 权重在 [0, 1] 范围内 (6 ms)
+    √ 命中率被缩尾在 [0.3, 0.7] 之间 (B/C命中→0.7, A不命中→0.3) (10 ms)
+    √ 全未命中 → accuracy 缩尾到 0.3 (2 ms)
+    √ 返回 stats 统计数据 (4 ms)
+    √ 无 actual_home_goals 的行被跳过统计 (2 ms)
+    √ 自定义 days 参数 (3 ms)
+  model-weights — getWeights 缓存权重获取
+    √ forceRefresh=true → 重新计算 (4 ms)
+    √ predLog 抛出异常 → 回退 default 权重 (29 ms)
+
+PASS server/tests/data_sync_live_infer.test.js
+  autoInferStatus — 时间推演
+    √ 开赛15分钟后 status=0 → 自动标记为进行中(status=1) (2 ms)
+    √ 开赛前不触发状态变更 (1 ms)
+    √ 开赛5分钟不触发（需>10分钟） (1 ms)
+    √ 有比分格式(如3-1) → 标记已结束(status=2)
+    √ 比分: 冒号格式(2:1)也支持 (1 ms)
+    √ 时间+120min已过 + 比分有值 → 标记已结束
+    √ 仅处理指定 dateStr 的比赛 (1 ms)
+    √ matchStatus>=2 的比赛跳过
+  liveScoreLoop — 跨日回查
+    √ hasYesterdayMatches: 存在昨天日期 → true
+    √ hasYesterdayMatches: 无昨天日期 → false
+    √ hasYesterdayMatches: 部分date字段缺失 → 安全跳过
+    √ date字段截取: 仅比前10位
+
+PASS server/tests/cloudfunctions.test.js
+  Cloud Functions — 响应格式规范
+    通用响应规范
+      √ 成功响应应为 { code: 1, data: ... } (2 ms)
+      √ 失败响应应为 { code: 0, msg: "..." } (1 ms)
+      √ 异常捕获应返回失败格式 (1 ms)
+  fetch-match-list
+    入参校验
+      √ date 缺失时默认今天 (1 ms)
+      √ date 传入时使用传入值
+    数据映射
+      √ matchId 应为字符串 (1 ms)
+      √ 缺失字段应使用默认值
+    startDatetime 格式
+      √ 应包含日期和时间 (1 ms)
+  fetch-recommend
+    √ 推荐数据应包含 type/num/result (1 ms)
+    √ type 应为合法值
+    √ 双推荐合并时应去重
+  calc-daily-hit-rate
+    √ 应正确计算胜平负命中率 (1 ms)
+    √ 空列表命中率为 0 而非 NaN (1 ms)
+  login-midou
+    √ 登录成功应返回 token
+    √ 登录失败应返回 code:0
+  scheduled-crawl
+    √ 定时爬取应调用各子函数并返回汇总 (6 ms)
+
+PASS preview/tests/scheme-flow.test.js
+  方案设计全流程测试
+    1. scheme-design.js 玩法选择
+      √ 1.1 PLAY_LIMITS 木桶原则定义 (2 ms)
+      √ 1.2 PLAY_NAMES 玩法名称映射 (1 ms)
+      √ 1.3 _activePlayType 初始值为 mixed
+      √ 1.4 _passTypes 默认 2关
+      √ 1.5 _multiplier 默认 2 倍
+      √ 1.6 _selections 数据模型定义 (1 ms)
+      √ 1.7 parseDirectionCards 方向解析
+      √ 1.8 RECOMM_TO_BTN 推荐方向映射 (1 ms)
+      √ 1.9 玩法切换 playType 函数存在
+      √ 1.10 比赛勾选逻辑存在 (1 ms)
+      √ 1.11 赔率按钮渲染 selectOdds 逻辑
+      √ 1.12 过关类型多选支持 (1 ms)
+      √ 1.13 木桶原则上限计算
+      √ 1.14 推荐排行 Top5 渲染 (1 ms)
+    2. confirm-scheme.js 确认方案
+      √ 2.1 从 sessionStorage 恢复方案数据 (1 ms)
+      √ 2.2 _passTypes 从方案数据恢复 (1 ms)
+      √ 2.3 _multiplier 可配置 2-99 倍 (1 ms)
+      √ 2.4 buildGroupedSelections 按 matchId 分组 (1 ms)
+      √ 2.5 calcBets 注数计算 (1 ms)
+      √ 2.6 calcMaxWin 最大奖金计算 (1 ms)
+      √ 2.7 奖金优化按钮 showBonusOptimize (1 ms)
+      √ 2.8 方案金额/预计奖金/状态三列 (1 ms)
+      √ 2.9 资金分配 allocation 字段 (7 ms)
+      √ 2.10 Delta 涨跌箭头渲染 (1 ms)
+      √ 2.11 BQC 半全场缩写映射 (1 ms)
+      √ 2.12 confirm-scheme 文件存在且有效 (2 ms)
+    3. 方案提交验证
+      √ 3.1 确认方案有提交 api 调用 (1 ms)
+      √ 3.2 提交后有结果回调处理 (2 ms)
+      √ 3.3 投注页有提交逻辑 (1 ms)
+      √ 3.4 竞彩规则：2-99 倍限制 (2 ms)
+      √ 3.5 单关标记 isSingleGame (1 ms)
+    4. bet-scheme-filters.js 服务端筛选
+      √ 4.1 价值门控模式配置 valueGateMode
+      √ 4.2 AI 置信度门槛 confidenceMin (1 ms)
+      √ 4.3 Edge 值门槛 edgeMin
+      √ 4.4 赔率区间 oddsMin/oddsMax (1 ms)
+      √ 4.5 联赛黑白名单
+      √ 4.6 单票最大金额 maxAmount (1 ms)
+      √ 4.7 异常数据排除 excludeFallback
+      √ 4.8 每场最大选数 maxSelectionPerMatch
+      √ 4.9 组合结构约束 streakMax/breakpoint
+      √ 4.10 组配额/隔离 groupQuota
+    5. shadow-account.js 虚拟资金
+      √ 5.1 虚拟账户代码 DEFAULT_VIRTUAL_ACCOUNT_CODE (1 ms)
+      √ 5.2 单票比率 DEFAULT_SINGLE_TICKET_RATIO
+      √ 5.3 每日容量比率 DEFAULT_DAILY_CAPACITY_RATIO (1 ms)
+      √ 5.4 shadow_account_holds 冻结表存在
+      √ 5.5 hold 状态管理 released/settled (1 ms)
+      √ 5.6 投注金额单位 cent (分)
+    6. CSS 样式合同
+      √ 6.1 plan-card 方案卡片样式存在
+      √ 6.2 方案金额/奖金展示样式
+      √ 6.3 确认按钮区域存在 (1 ms)
+
+PASS preview/tests/modals-render-contract.test.js
+  P0: modals-render-contract — 弹窗渲染合同
+    1. AI 深度解析弹窗
+      √ 1.1 showAIPrediction 函数存在 (1 ms)
+      √ 1.2 渲染 ai-modal-header（标题+关闭按钮） (2 ms)
+      √ 1.3 AI弹窗渲染了比分/方向预测
+      √ 1.4 渲染 "我要做方案" 按钮
+      √ 1.5 加载中状态有 loading spinner (1 ms)
+      √ 1.6 加载失败时有错误提示 + 重试按钮
+    2. 功守道量化弹窗
+      √ 2.1 showGongshoudao 函数存在
+      √ 2.2 overlay 打开逻辑：classList.add("active") (1 ms)
+      √ 2.3 渲染 7 个分析模块
+      √ 2.4 实力阶梯标签渲染 (1 ms)
+      √ 2.5 胜平负交叉渲染
+      √ 2.6 总进球期望渲染 (1 ms)
+      √ 2.7 关闭按钮 + overlay 点击关闭
+      √ 2.8 数据时效标签渲染
+    3. 确认方案弹窗
+      √ 3.1 loadConfirmScheme 函数存在 (1 ms)
+      √ 3.2 从 sessionStorage 读取 pendingConfirmPlan
+      √ 3.3 无数据时显示空状态提示 (25 ms)
+      √ 3.4 渲染方案预览卡片 (1 ms)
+      √ 3.5 渲染过关类型标签
+      √ 3.6 渲染倍数选择器 (1 ms)
+      √ 3.7 渲染底部操作栏 (1 ms)
+      √ 3.8 渲染比赛列表表格 (1 ms)
+    4. 方案分享弹窗
+      √ 4.1 _showShareModal 函数存在
+      √ 4.2 html2canvas 调用 (1 ms)
+      √ 4.3 sharePlanCard 全局函数存在
+      √ 4.4 _buildShareCard 函数存在
+      √ 4.5 分享弹窗有保存/转发按钮 (1 ms)
+    5. 投注弹窗
+      √ 5.1 投注弹窗有 overlay 入口 (1 ms)
+      √ 5.2 投注弹窗有 betting 相关渲染 (1 ms)
+    6. Overlay 通用结构
+      √ 6.1 #aiOverlay 存在（AI/功守道/PK 共用）
+      √ 6.2 #aiModal 容器存在 (1 ms)
+      √ 6.3 overlay 点击背景关闭 (1 ms)
+      √ 6.4 overlay 有 z-index 层级定义 (1 ms)
+    7. CSS 样式合同
+      √ 7.1 ai-overlay 有 display: none
+      √ 7.2 ai-overlay.active 有 display: flex
+      √ 7.3 ai-modal 有 border-radius
+      √ 7.4 ai-modal-close 有样式定义
+      √ 7.5 功守道模块有 CSS 定义 (1 ms)
+      √ 7.6 scheme-design 弹窗层有确认/取消按钮 (2 ms)
+
+PASS preview/tests/odds-score-status.test.js
+  赔率/比分/比赛状态全方位测试
+    1. match-list.js 比赛状态
+      √ 1.1 状态映射 0=未开始 1=进行中 2=已结束 3=取消 (2 ms)
+      √ 1.2 matchStatus 文本映射逻辑 (1 ms)
+      √ 1.3 isLive 状态判断 (1 或 2)
+    2. 比分渲染
+      √ 2.1 match-list 有比分 display (1 ms)
+      √ 2.2 match-list 有半场比分 (17 ms)
+      √ 2.3 match-list 有比赛时长 durText (1 ms)
+      √ 2.4 match-list 有黄牌/红牌 (1 ms)
+      √ 2.5 match-list 有让球 handicap 标签 (1 ms)
+      √ 2.6 match-detail 有赔率趋势渲染 (1 ms)
+      √ 2.7 match-detail 有 SPF 赔率 (1 ms)
+      √ 2.8 match-detail 有 RQSPF 让球赔率 (1 ms)
+      √ 2.9 match-detail 有 Dutch 合并逻辑 (1 ms)
+      √ 2.10 match-detail 有总进球解析 _parseJqs (1 ms)
+      √ 2.11 match-detail 有半全场解析 _parseBqc (1 ms)
+      √ 2.12 match-detail 有比分解析 _parseBf (1 ms)
+    3. 赔率显示
+      √ 3.1 match-detail 有 Dutch 赔率合并 (1 ms)
+      √ 3.2 功守道有胜平负交叉渲染 (1 ms)
+      √ 3.3 功守道有让球交叉 (1 ms)
+      √ 3.4 match-list 有专家推荐数 recommNum (1 ms)
+      √ 3.5 match-odds API handler 存在（服务端） (1 ms)
+    4. WebSocket 实时比分
+      √ 4.1 onScoreUpdate 比分回调 (1 ms)
+      √ 4.2 比分缓存 _scoreCache 去重 (1 ms)
+      √ 4.3 比分数据字段 status/score/halfScore/duration
+      √ 4.4 WS 断线重连指数退避 (1 ms)
+    5. match-list.js 卡片结构
+      √ 5.1 match-card 卡片容器 (1 ms)
+      √ 5.2 match-header 头部布局 (1 ms)
+      √ 5.3 match-teams 对阵区 (2 ms)
+      √ 5.4 match-info 底部信息栏 (1 ms)
+      √ 5.5 PK 多选 checkbox mc-chk (1 ms)
+      √ 5.6 loadMatchList 函数存在 (1 ms)
+      √ 5.7 单关标记 match-single-badge
+      √ 5.8 展示 vs 或比分替换 (1 ms)
+    6. live_scores.json 服务端
+      √ 6.1 .gitignore 排除 live_scores.json (1 ms)
+      √ 6.2 API 层有 match-list action (3 ms)
+    7. CSS 样式合同
+      √ 7.1 比分样式 match-score 存在 (5 ms)
+      √ 7.2 对阵样式 match-teams 存在 (3 ms)
+      √ 7.3 让球标签 handicap-tag 样式 (4 ms)
+      √ 7.4 专家推荐数样式 (2 ms)
+
+  console.log
+    [db] better-sqlite3 初始化成功: E:\JC-ZJFA\server\midou_data.db
+
+      at Object.log [as initDatabase] (server/database.js:586:13)
+
+  console.log
+    [scraper-registry test] scraper_registry.json 尚未创建，仅执行 schema 验证
+
+      at Object.log (server/tests/scraper-registry.test.js:22:28)
+
+PASS server/tests/scraper-registry.test.js
+  scraper-registry — schema 验证
+    √ 注册表应为有效 JSON 对象 (1 ms)
+    √ 每个爬虫条目应有必需字段
+    √ type 应为已知值 (1 ms)
+    √ category 应为已知值
+  scraper-registry — cron 合法性
+    √ schedule.cron 应为 5 字段标准格式
+    √ cron 字段值应在合法范围内
+  scraper-registry — 脚本存在性
+    √ 每个注册的脚本文件应存在
+  scraper-registry — timeout 和 retry 配置
+    √ timeout_sec 应为正数
+    √ retry.max 应在合理范围 (1-10)
+    √ quality_check.min_records 应为正数
+  scraper-registry — pipelines DAG
+    √ pipeline steps 中的 scraper 应在 scrapers 中注册
+    √ depends_on 不应形成循环依赖 (1 ms)
+
+  console.log
+    [PredictionFusion] 初始化完成，已注册 7 个模型
+
+      at PredictionFusionEngine.log [as init] (server/core/prediction-fusion.js:45:13)
+
+  console.log
+    [PredictionFusion] 初始化完成，已注册 7 个模型
+
+      at PredictionFusionEngine.log [as init] (server/core/prediction-fusion.js:45:13)
+
+  console.log
+    [PredictionFusion] 初始化完成，已注册 7 个模型
+
+      at PredictionFusionEngine.log [as init] (server/core/prediction-fusion.js:45:13)
+
+  console.log
+    [PredictionFusion] 初始化完成，已注册 7 个模型
+
+      at PredictionFusionEngine.log [as init] (server/core/prediction-fusion.js:45:13)
+
+  console.log
+    [PredictionFusion] 初始化完成，已注册 7 个模型
+
+      at PredictionFusionEngine.log [as init] (server/core/prediction-fusion.js:45:13)
+
+  console.log
+    [PredictionFusion] 初始化完成，已注册 7 个模型
+
+      at PredictionFusionEngine.log [as init] (server/core/prediction-fusion.js:45:13)
+
+PASS preview/tests/login-auth.test.js
+  用户登录全方位测试
+    1. login.js 登录界面
+      √ 1.1 登录页有用户名输入框 #loginUser (28 ms)
+      √ 1.2 登录页有密码输入框 #loginPass (1 ms)
+      √ 1.3 登录页有登录按钮 #loginBtn (1 ms)
+      √ 1.4 登录页有消息提示区 #loginMsg (2 ms)
+      √ 1.5 登录页有用户协议勾选 #loginAgree (2 ms)
+      √ 1.6 密码可见性切换按钮 #togglePassBtn (1 ms)
+      √ 1.7 setPassVisible 密码可见性切换函数
+      √ 1.8 Enter 键触发登录（onkeydown 监听） (1 ms)
+      √ 1.9 空账号/密码校验 (5 ms)
+      √ 1.10 用户协议未勾选校验
+      √ 1.11 normalizeBasicInput 输入标准化 (1 ms)
+      √ 1.12 normalizePasswordInput 密码标准化
+      √ 1.13 登录中按钮禁用状态 (1 ms)
+      √ 1.14 登录成功 msg 变绿
+      √ 1.15 登录页有邀请制说明与条件式邀请码提示
+      √ 1.16 登录页占位文案与按钮文案和线上一致 (1 ms)
+    2. auth-client.js Token/Session
+      √ 2.1 getAuthToken 从 localStorage 读取
+      √ 2.2 hasAuthToken 判断 token 是否存在 (1 ms)
+      √ 2.3 setAuthToken 设置 token
+      √ 2.4 clearAuthToken 清除 token
+      √ 2.5 setAuthSession 保存 session
+      √ 2.6 getAuthSession 读取 session
+      √ 2.7 clearAuthSession 清除 session
+      √ 2.8 clearAuthAll 一键清除
+      √ 2.9 localStorage 异常 try/catch 包裹 (1 ms)
+    3. auth-service.js 服务端认证
+      √ 3.1 SESSION_TTL 默认 24 小时
+      √ 3.2 登录失败锁定 LOCK_MINUTES 默认 15 分钟
+      √ 3.3 最大登录失败次数 MAX_LOGIN_FAILS 默认 5
+      √ 3.4 4 种角色定义 super_admin/ops_admin/analyst/viewer
+      √ 3.5 权限列表 PERMISSIONS 包含完整粒度 (1 ms)
+      √ 3.6 ROLE_PERMISSION_MATRIX 角色-权限矩阵
+      √ 3.7 super_admin 权限为 * (1 ms)
+      √ 3.8 ops_admin 有完整运维权限
+      √ 3.9 用户表 users 包含 must_change_password 字段
+      √ 3.10 用户表 users 包含 failed_login_count/ locked_until (1 ms)
+      √ 3.11 auth_sessions 表有 issued_at/expires_at/revoked_at
+      √ 3.12 有 auth_sessions 和审计机制 (1 ms)
+    4. API 层认证注入
+      √ 4.1 API 层认证 token 注入 (1 ms)
+      √ 4.2 401 响应触发 auth:unauthorized 事件 (2 ms)
+      √ 4.3 每次请求携带 X-Device-Id (1 ms)
+      √ 4.4 main-fusion 有 auth:unauthorized 监听 (2 ms)
+    5. account-security.js 账户安全
+      √ 5.1 文件存在且可读取 (1 ms)
+      √ 5.2 有修改密码相关逻辑 (1 ms)
+    6. 登录后数据加载
+      √ 6.1 登录成功 → switchTab("home") (1 ms)
+      √ 6.2 mustChangePassword → switchTab("account-security") (2 ms)
+      √ 6.3 登录成功保存 user/roles/permissions 到 session (2 ms)
+      √ 6.4 main-fusion 有首页数据预加载 (1 ms)
+      √ 6.5 本地开发环境回退登录 isLocalEnv (1 ms)
+    7. CSS 样式合同
+      √ 7.1 登录壳 .auth-shell 存在 (2 ms)
+      √ 7.2 登录卡片 .auth-login-card (7 ms)
+      √ 7.3 密码切换按钮 .auth-pass-toggle (2 ms)
+      √ 7.4 登录按钮后邀请说明样式存在 (4 ms)
+      √ 7.5 登录控件尺寸与按钮风格有独立样式合同 (4 ms)
+
+PASS server/tests/blueprint-fusion-engine.test.js
+  PredictionFusionEngine
+    init — 模型注册
+      √ ★ V9.1: init 后注册 7 个模型 (含 DataFusionAdapter) (95 ms)
+      √ getModels 返回模型列表 (7 ms)
+    _assessConsensus — 共识判定
+      √ 7/7 一致 → strong (2 ms)
+      √ 5/7 一致 → weak (≥60%)
+      √ ★ V9.1: 高度分散 → meltdown (加权后 ≤ 40%) (1 ms)
+      √ ★ V9.1: 加权一致性 — 高置信度少数压倒低置信度多数 (4 ms)
+      √ 无方向预测 → unknown (1 ms)
+      √ 返回分歧模型列表 (1 ms)
+    _fuseDimension — 维度融合
+      √ 等权方向投票 (2 ms)
+      √ ★ V9.1: confidence加权 — 高置信度方向胜出
+      √ 大小球投票
+      √ 总进球加权平均 (2 ms)
+      √ 比分取众数 (1 ms)
+    _getDynamicWeights
+      √ ★ V9.1: 无 db 时返回等权 (7个模型) (5 ms)
+    register — 模型注册
+      √ 注册新模型 (34 ms)
+
+  console.log
+    [PredictionFusion] 初始化完成，已注册 8 个模型
+
+      at PredictionFusionEngine.log [as init] (server/core/prediction-fusion.js:45:13)
+
+  console.error
+    [PredictionFusion] _savePrediction 失败: single_model Cannot read properties of null (reading 'prepare')
+
+    [0m [90m 355 |[39m       )[33m;[39m
+     [90m 356 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 357 |[39m       console[33m.[39merror([32m`[PredictionFusion] _savePrediction 失败: ${prediction.modelName}`[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 358 |[39m     }
+     [90m 359 |[39m   }
+     [90m 360 |[39m[0m
+
+      at PredictionFusionEngine.error [as _savePrediction] (server/core/prediction-fusion.js:357:15)
+      at _savePrediction (server/core/prediction-fusion.js:86:18)
+          at async Promise.all (index 0)
+      at PredictionFusionEngine.fuseForMatch (server/core/prediction-fusion.js:93:5)
+      at Object.<anonymous> (server/tests/prediction-fusion.test.js:94:17)
+
+  console.error
+    [OutcomeBackfill] getModelHitRates 失败: Cannot read properties of null (reading 'prepare')
+
+    [0m [90m 281 |[39m       }))[33m;[39m
+     [90m 282 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 283 |[39m       console[33m.[39merror([32m'[OutcomeBackfill] getModelHitRates 失败:'[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 284 |[39m       [36mreturn[39m [][33m;[39m
+     [90m 285 |[39m     }
+     [90m 286 |[39m   }[0m
+
+      at OutcomeBackfill.error [as getModelHitRates] (server/core/outcome-backfill.js:283:15)
+      at OutcomeBackfill.getModelHitRates [as computeDynamicWeights] (server/core/outcome-backfill.js:290:27)
+      at PredictionFusionEngine.computeDynamicWeights [as _getDynamicWeights] (server/core/prediction-fusion.js:299:35)
+      at PredictionFusionEngine._getDynamicWeights [as fuseForMatch] (server/core/prediction-fusion.js:100:26)
+      at Object.<anonymous> (server/tests/prediction-fusion.test.js:94:17)
+
+  console.log
+    [PredictionFusion] 初始化完成，已注册 10 个模型
+
+      at PredictionFusionEngine.log [as init] (server/core/prediction-fusion.js:45:13)
+
+  console.error
+    [PredictionFusion] _savePrediction 失败: model_a Cannot read properties of null (reading 'prepare')
+
+    [0m [90m 355 |[39m       )[33m;[39m
+     [90m 356 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 357 |[39m       console[33m.[39merror([32m`[PredictionFusion] _savePrediction 失败: ${prediction.modelName}`[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 358 |[39m     }
+     [90m 359 |[39m   }
+     [90m 360 |[39m[0m
+
+      at PredictionFusionEngine.error [as _savePrediction] (server/core/prediction-fusion.js:357:15)
+      at _savePrediction (server/core/prediction-fusion.js:86:18)
+          at async Promise.all (index 0)
+      at PredictionFusionEngine.fuseForMatch (server/core/prediction-fusion.js:93:5)
+      at Object.<anonymous> (server/tests/prediction-fusion.test.js:104:17)
+
+  console.error
+    [PredictionFusion] _savePrediction 失败: model_b Cannot read properties of null (reading 'prepare')
+
+    [0m [90m 355 |[39m       )[33m;[39m
+     [90m 356 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 357 |[39m       console[33m.[39merror([32m`[PredictionFusion] _savePrediction 失败: ${prediction.modelName}`[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 358 |[39m     }
+     [90m 359 |[39m   }
+     [90m 360 |[39m[0m
+
+      at PredictionFusionEngine.error [as _savePrediction] (server/core/prediction-fusion.js:357:15)
+      at _savePrediction (server/core/prediction-fusion.js:86:18)
+          at async Promise.all (index 1)
+      at PredictionFusionEngine.fuseForMatch (server/core/prediction-fusion.js:93:5)
+      at Object.<anonymous> (server/tests/prediction-fusion.test.js:104:17)
+
+  console.error
+    [PredictionFusion] _savePrediction 失败: model_c Cannot read properties of null (reading 'prepare')
+
+    [0m [90m 355 |[39m       )[33m;[39m
+     [90m 356 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 357 |[39m       console[33m.[39merror([32m`[PredictionFusion] _savePrediction 失败: ${prediction.modelName}`[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 358 |[39m     }
+     [90m 359 |[39m   }
+     [90m 360 |[39m[0m
+
+      at PredictionFusionEngine.error [as _savePrediction] (server/core/prediction-fusion.js:357:15)
+      at _savePrediction (server/core/prediction-fusion.js:86:18)
+          at async Promise.all (index 2)
+      at PredictionFusionEngine.fuseForMatch (server/core/prediction-fusion.js:93:5)
+      at Object.<anonymous> (server/tests/prediction-fusion.test.js:104:17)
+
+  console.error
+    [OutcomeBackfill] getModelHitRates 失败: Cannot read properties of null (reading 'prepare')
+
+    [0m [90m 281 |[39m       }))[33m;[39m
+     [90m 282 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 283 |[39m       console[33m.[39merror([32m'[OutcomeBackfill] getModelHitRates 失败:'[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 284 |[39m       [36mreturn[39m [][33m;[39m
+     [90m 285 |[39m     }
+     [90m 286 |[39m   }[0m
+
+      at OutcomeBackfill.error [as getModelHitRates] (server/core/outcome-backfill.js:283:15)
+      at OutcomeBackfill.getModelHitRates [as computeDynamicWeights] (server/core/outcome-backfill.js:290:27)
+      at PredictionFusionEngine.computeDynamicWeights [as _getDynamicWeights] (server/core/prediction-fusion.js:299:35)
+      at PredictionFusionEngine._getDynamicWeights [as fuseForMatch] (server/core/prediction-fusion.js:100:26)
+      at Object.<anonymous> (server/tests/prediction-fusion.test.js:104:17)
+
+  console.log
+    [PredictionFusion] 初始化完成，已注册 7 个模型
+
+      at PredictionFusionEngine.log [as init] (server/core/prediction-fusion.js:45:13)
+
+  console.log
+    [PredictionFusion] 初始化完成，已注册 8 个模型
+
+      at PredictionFusionEngine.log [as init] (server/core/prediction-fusion.js:45:13)
+
+  console.error
+    [PredictionFusion] _savePrediction 失败: m1 Cannot read properties of null (reading 'prepare')
+
+    [0m [90m 355 |[39m       )[33m;[39m
+     [90m 356 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 357 |[39m       console[33m.[39merror([32m`[PredictionFusion] _savePrediction 失败: ${prediction.modelName}`[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 358 |[39m     }
+     [90m 359 |[39m   }
+     [90m 360 |[39m[0m
+
+      at PredictionFusionEngine.error [as _savePrediction] (server/core/prediction-fusion.js:357:15)
+      at _savePrediction (server/core/prediction-fusion.js:86:18)
+          at async Promise.all (index 0)
+      at PredictionFusionEngine.fuseForMatch (server/core/prediction-fusion.js:93:5)
+      at PredictionFusionEngine.fuseBatch (server/core/prediction-fusion.js:126:22)
+      at Object.<anonymous> (server/tests/prediction-fusion.test.js:121:23)
+
+  console.error
+    [OutcomeBackfill] getModelHitRates 失败: Cannot read properties of null (reading 'prepare')
+
+    [0m [90m 281 |[39m       }))[33m;[39m
+     [90m 282 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 283 |[39m       console[33m.[39merror([32m'[OutcomeBackfill] getModelHitRates 失败:'[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 284 |[39m       [36mreturn[39m [][33m;[39m
+     [90m 285 |[39m     }
+     [90m 286 |[39m   }[0m
+
+      at OutcomeBackfill.error [as getModelHitRates] (server/core/outcome-backfill.js:283:15)
+      at OutcomeBackfill.getModelHitRates [as computeDynamicWeights] (server/core/outcome-backfill.js:290:27)
+      at PredictionFusionEngine.computeDynamicWeights [as _getDynamicWeights] (server/core/prediction-fusion.js:299:35)
+      at PredictionFusionEngine._getDynamicWeights [as fuseForMatch] (server/core/prediction-fusion.js:100:26)
+      at PredictionFusionEngine.fuseBatch (server/core/prediction-fusion.js:126:22)
+      at Object.<anonymous> (server/tests/prediction-fusion.test.js:121:23)
+
+  console.error
+    [PredictionFusion] _savePrediction 失败: m1 Cannot read properties of null (reading 'prepare')
+
+    [0m [90m 355 |[39m       )[33m;[39m
+     [90m 356 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 357 |[39m       console[33m.[39merror([32m`[PredictionFusion] _savePrediction 失败: ${prediction.modelName}`[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 358 |[39m     }
+     [90m 359 |[39m   }
+     [90m 360 |[39m[0m
+
+      at PredictionFusionEngine.error [as _savePrediction] (server/core/prediction-fusion.js:357:15)
+      at _savePrediction (server/core/prediction-fusion.js:86:18)
+          at async Promise.all (index 0)
+      at PredictionFusionEngine.fuseForMatch (server/core/prediction-fusion.js:93:5)
+      at PredictionFusionEngine.fuseBatch (server/core/prediction-fusion.js:126:22)
+      at Object.<anonymous> (server/tests/prediction-fusion.test.js:121:23)
+
+  console.error
+    [OutcomeBackfill] getModelHitRates 失败: Cannot read properties of null (reading 'prepare')
+
+    [0m [90m 281 |[39m       }))[33m;[39m
+     [90m 282 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 283 |[39m       console[33m.[39merror([32m'[OutcomeBackfill] getModelHitRates 失败:'[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 284 |[39m       [36mreturn[39m [][33m;[39m
+     [90m 285 |[39m     }
+     [90m 286 |[39m   }[0m
+
+      at OutcomeBackfill.error [as getModelHitRates] (server/core/outcome-backfill.js:283:15)
+      at OutcomeBackfill.getModelHitRates [as computeDynamicWeights] (server/core/outcome-backfill.js:290:27)
+      at PredictionFusionEngine.computeDynamicWeights [as _getDynamicWeights] (server/core/prediction-fusion.js:299:35)
+      at PredictionFusionEngine._getDynamicWeights [as fuseForMatch] (server/core/prediction-fusion.js:100:26)
+      at PredictionFusionEngine.fuseBatch (server/core/prediction-fusion.js:126:22)
+      at Object.<anonymous> (server/tests/prediction-fusion.test.js:121:23)
+
+  console.error
+    [PredictionFusion] _savePrediction 失败: m1 Cannot read properties of null (reading 'prepare')
+
+    [0m [90m 355 |[39m       )[33m;[39m
+     [90m 356 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 357 |[39m       console[33m.[39merror([32m`[PredictionFusion] _savePrediction 失败: ${prediction.modelName}`[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 358 |[39m     }
+     [90m 359 |[39m   }
+     [90m 360 |[39m[0m
+
+      at PredictionFusionEngine.error [as _savePrediction] (server/core/prediction-fusion.js:357:15)
+      at _savePrediction (server/core/prediction-fusion.js:86:18)
+          at async Promise.all (index 0)
+      at PredictionFusionEngine.fuseForMatch (server/core/prediction-fusion.js:93:5)
+      at PredictionFusionEngine.fuseBatch (server/core/prediction-fusion.js:126:22)
+      at Object.<anonymous> (server/tests/prediction-fusion.test.js:121:23)
+
+  console.error
+    [OutcomeBackfill] getModelHitRates 失败: Cannot read properties of null (reading 'prepare')
+
+    [0m [90m 281 |[39m       }))[33m;[39m
+     [90m 282 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 283 |[39m       console[33m.[39merror([32m'[OutcomeBackfill] getModelHitRates 失败:'[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 284 |[39m       [36mreturn[39m [][33m;[39m
+     [90m 285 |[39m     }
+     [90m 286 |[39m   }[0m
+
+      at OutcomeBackfill.error [as getModelHitRates] (server/core/outcome-backfill.js:283:15)
+      at OutcomeBackfill.getModelHitRates [as computeDynamicWeights] (server/core/outcome-backfill.js:290:27)
+      at PredictionFusionEngine.computeDynamicWeights [as _getDynamicWeights] (server/core/prediction-fusion.js:299:35)
+      at PredictionFusionEngine._getDynamicWeights [as fuseForMatch] (server/core/prediction-fusion.js:100:26)
+      at PredictionFusionEngine.fuseBatch (server/core/prediction-fusion.js:126:22)
+      at Object.<anonymous> (server/tests/prediction-fusion.test.js:121:23)
+
+PASS server/tests/file-tracker.test.js
+  file-tracker
+    FILES_LIST
+      √ should contain known files (2 ms)
+      √ each entry should have key/tag/label (6 ms)
+    getFileList
+      √ should return simplified list (6 ms)
+    snapshot
+      √ should return structured snapshot (2 ms)
+      √ should report healthy when all files ok (5 ms)
+    check
+      √ should detect missing file (1 ms)
+      √ should check absolute path (1 ms)
+      √ should handle directory type (2 ms)
+      √ should report stale for old files (10 ms)
+    checkDbIntegrity
+      √ should not throw (180 ms)
+      √ should return an object with status (1 ms)
+    integration
+      √ snapshot should contain all FILES_LIST keys (3 ms)
+      √ summary counts should add up (2 ms)
+
+PASS server/tests/blueprint-outcome-backfill.test.js
+  OutcomeBackfill — 命中判定
+    _judgeOutcome — 胜平负
+      √ 主胜预测命中 (3 ms)
+      √ 主胜预测未命中 (3 ms)
+      √ 平局预测命中 (1 ms)
+      √ 比分预测命中
+      √ 比分预测未命中 (1 ms)
+    _judgeOutcome — 大小球
+      √ over 预测命中 (总进球 3 > 2.5)
+      √ under 预测命中 (总进球 1 < 2.5) (1 ms)
+      √ over 预测未命中 (总进球 2 < 2.5)
+    _judgeOutcome — 边界情况
+      √ 无方向预测时不报错
+      √ 无比分时 result=pending (1 ms)
+      √ 比分格式兼容 "-" 分隔
+    getModelHitRates — 模型展示过滤
+      √ 默认隐藏系统模型，但 includeInternal=true 时保留 (3 ms)
+    computeDynamicWeights — Softmax
+      √ 无数据时返回空数组 (1 ms)
+      √ db 为 null 时返回空数组
+  OutcomeBackfill — 状态管理
+    √ 初始化时 lastBackfillDate 为 null (1 ms)
+
+PASS server/tests/prediction-fusion.test.js
+  PredictionFusionEngine
+    constructor / init
+      √ should create instance with _initialized=false (1 ms)
+      √ init should register 7 adapters (127 ms)
+      √ init should be idempotent (2 ms)
+    register / getModels
+      √ should register a mock adapter (1 ms)
+      √ should return model list (1 ms)
+    fuseForMatch
+      √ should return unknown consensus with no adapters (434 ms)
+      √ should fuse single adapter result (48 ms)
+      √ should fuse multiple adapters with consensus (38 ms)
+      √ should handle empty matchInfo (4 ms)
+    fuseBatch
+      √ should process multiple matches (38 ms)
+      √ should handle empty batch (1 ms)
+    _fuseDimension
+      √ should return nulls with no predictions
+      √ should fuse single prediction (1 ms)
+      √ should resolve majority direction
+    _assessConsensus
+      √ should return unknown with no predictions
+      √ should return strong with unanimous agreement (1 ms)
+      √ should detect meltdown with strong disagreement
+      √ should handle predictions without direction (1 ms)
+    _getDynamicWeights
+      √ should return equal weights with null db
+      √ should return equal weights with no adapters (1 ms)
+    getPredictionsForMatch
+      √ should return empty with null db (1 ms)
+
+  console.log
+    [db] 完整性校验通过
+
+      at Object.log [as initDatabase] (server/database.js:591:17)
+
+PASS server/tests/odds-tracker.test.js
+  odds-tracker — detectChanges 变化检测
+    √ 完全相同的赔率 → 返回 null (2 ms)
+    √ SPF 赔率变化 → 返回变化记录 (2 ms)
+    √ totalGoals 变化 → 检测到 (1 ms)
+    √ halfFull 比分赔率变化 → 检测到
+    √ scores 比分变化 → 检测到
+    √ oldOdds 为 null → 返回 null (1 ms)
+    √ 变化值记录格式为 "旧值→新值" (1 ms)
+  odds-tracker — appendDeltaLog / getDeltaHistory
+    √ appendDeltaLog → 写入 JSONL 文件 (1 ms)
+    √ appendDeltaLog → 多次追加 (45 ms)
+    √ getDeltaHistory → 不存在的文件 → 空数组 (1 ms)
+    √ getDeltaHistory → 仅返回匹配的 matchNum
+    √ getAllDeltaLogs → 返回所有记录
+  odds-tracker — cleanupOldDeltas 清理过期日志
+    √ 无 delta 文件 → 返回 0 (1 ms)
+    √ 新文件 → 不清理 (1 ms)
+
+PASS preview/tests/charts-render-contract.test.js
+  P1: charts-render-contract — 图表渲染合同
+    1. charts.js ECharts 加载机制
+      √ 1.1 echartsReady 状态变量存在 (2 ms)
+      √ 1.2 echartsLoading 状态变量存在 (1 ms)
+      √ 1.3 CHART_THEME 主题配置 (1 ms)
+      √ 1.4 normalizeChartOption 函数存在
+      √ 1.5 normalizeAxis 函数存在 (1 ms)
+      √ 1.6 normalizeSeries 函数存在
+      √ 1.7 图表背景透明配置 (1 ms)
+      √ 1.8 等待队列 echartsWaiters 存在
+    2. backtest.js 回测图表
+      √ 2.1 loadECharts 导入 (1 ms)
+      √ 2.2 图表容器存在 (btChartInnerGS/AI/PK) (1 ms)
+      √ 2.3 图表容器有 .bt-chart-inner CSS 类
+      √ 2.4 图表类型切换按钮存在 (btChartType) (1 ms)
+      √ 2.5 校准曲线按钮存在
+      √ 2.6 星级校准按钮存在 (PK tab) (1 ms)
+      √ 2.7 图表示例缓存 _btChartInst (1 ms)
+      √ 2.8 有校准或统计函数 (1 ms)
+    3. model-dashboard.js 模型仪表盘
+      √ 3.1 导入 loadECharts
+      √ 3.2 模型排名柱状图渲染 (1 ms)
+      √ 3.3 榜单数据 rankings 渲染 (1 ms)
+      √ 3.4 趋势折线图 trendData
+      √ 3.5 联赛热力图 leagueHeatmap
+      √ 3.6 内部模型过滤 isInternalModelName
+    4. hit-rate.js 命中率页面布局
+      √ 4.1 渲染前应移除 page-skeleton，避免卡片宽度被骨架屏内边距压窄
+      √ 4.2 命中率页面卡片应显式占满页面内容宽度 (1 ms)
+    5. match-detail.js 比赛详情图表
+      √ 4.1 导入 loadECharts (1 ms)
+      √ 4.2 赔率趋势图渲染 (5 ms)
+    6. 图表生命周期管理
+      √ 5.1 backtest 有 echarts.init 逻辑 (1 ms)
+      √ 5.2 图表容器有固定 height (260px) (1 ms)
+      √ 5.3 图表初始激活 tab 有 active 类 (1 ms)
+      √ 5.4 window resize 监听不存在已知泄漏 (1 ms)
+
+  console.log
+    [alipay] bizContent: {"outTradeNo":"ZJ202606130001","totalAmount":"98.00","subject":"JC-ZJFA 月度套餐","body":"JC-ZJFA 月度套餐 | 竞彩足球专家推荐趋势监控","productCode":"QUICK_WAP_WAY"}
+
+      at log (server/payments/alipay.js:299:11)
+
+  console.log
+    [alipay] createPaymentUrl timing: sdk_init=1ms page_sign=137ms total=138ms order=ZJ202606130001
+
+      at log (server/payments/alipay.js:312:13)
+
+  console.log
+    [alipay] bizContent: {"outTradeNo":"ZJ202606130002","totalAmount":"258.00","subject":"JC-ZJFA 季度套餐","body":"JC-ZJFA 季度套餐 | 竞彩足球专家推荐趋势监控","productCode":"QUICK_WAP_WAY"}
+
+      at log (server/payments/alipay.js:299:11)
+
+  console.log
+    [alipay] createPaymentUrl timing: sdk_init=1ms page_sign=2ms total=3ms order=ZJ202606130002
+
+      at log (server/payments/alipay.js:312:13)
+
+PASS server/tests/data_sync.test.js
+  data_sync
+    atomicWrite
+      √ 应先写入 .tmp 再 rename 到目标文件 (15 ms)
+      √ 应保持数据完整性
+    fmtLocal
+      √ 日期格式应为 YYYY-MM-DD
+      √ 单数字月日应补零 (1 ms)
+    data.json 重载检测
+      √ mtimeMs 变化时应触发重载
+      √ mtimeMs 未变化时不应重载
+    backfillResults — prediction_logs 同步
+      √ 应回填赛果到 prediction_logs 表 (1775 ms)
+      √ backfillResult 应处理完整的比分字段 (1 ms)
+      √ 应设置 actual_corrected_at 时间戳 (1 ms)
+      √ retryQueue 重试队列结构 (1 ms)
+    文件保护 — PROTECTED_FILES
+      √ data.json 应在受保护列表中 (1 ms)
+    midou 反封策略 — jitter
+      √ jitter 应在范围内 (32 ms)
+
+PASS preview/tests/filter-interaction.test.js
+  P2: filter-interaction — 筛选控件交互
+    1. filter.js Dropdown 机制
+      √ 1.1 toggleDD 函数存在 (2 ms)
+      √ 1.2 selectDD 函数存在
+      √ 1.3 getDDVal 函数存在
+      √ 1.4 closeAllDD 函数存在
+      √ 1.5 Dropdown 打开时添加 .open 类 (1 ms)
+      √ 1.6 选项选择后添加 .selected 类
+      √ 1.7 Portal 机制存在（脱离父级 stacking context） (1 ms)
+      √ 1.8 Portal z-index = 2147483647
+      √ 1.9 窗口边缘适配（left 不超出视口）
+      √ 1.10 handleDocClose 全局点击关闭
+      √ 1.11 filterDirMap 方向映射配置存在
+      √ 1.12 Portal 关闭时正确清理 (1 ms)
+    2. backtest.js 筛选器
+      √ 2.1 renderFilterCard 函数存在
+      √ 2.2 时间范围 dropdown (dd-btRange)
+      √ 2.3 联赛 dropdown (dd-btLeague)
+      √ 2.4 模型 dropdown (dd-btModel) (1 ms)
+      √ 2.5 查询按钮 doBTQuery
+      √ 2.6 filterDD 辅助函数存在
+      √ 2.7 btSwitchTab 切换函数存在
+      √ 2.8 4 个 Tab (gs/ai/pk/experiment) (1 ms)
+      √ 2.9 Tab 切换用 filter-tag 样式 (1 ms)
+    3. plans.js 日期选择器
+      √ 3.1 shiftPlanDate 函数存在
+      √ 3.2 goPlanToday 函数存在 (13 ms)
+      √ 3.3 switchPlanTab 函数存在
+      √ 3.4 前向限制（不超今天）
+      √ 3.5 后向限制（不早于最早日期）
+      √ 3.6 今天标记逻辑
+      √ 3.7 _autoSetBestDate 智能日期停靠
+
+PASS server/tests/alipay-cert.test.js
+  支付宝证书模式集成
+    √ 读取沙箱证书模式配置 (132 ms)
+    √ 桌面端默认生成 alipay.trade.wap.pay 证书模式支付链接 (159 ms)
+    √ 移动端生成 alipay.trade.wap.pay 支付链接 (19 ms)
+    √ 未启用支付宝时回退模拟支付链接 (17 ms)
+    √ 证书配置缺失时拒绝生成真实支付链接 (44 ms)
+    √ 支付宝通知身份校验必须通过验签、APPID 与 seller_id (163 ms)
+
+PASS preview/tests/dynamic-load-states.test.js
+  P2: dynamic-load-states — 动态加载状态
+    1. main-fusion.js 模块懒加载
+      √ 1.1 _mod 懒加载函数存在 (2 ms)
+      √ 1.2 ES 模块原生缓存 + 加载失败重试延迟 (1 ms)
+      √ 1.3 动态导入 import() 用法
+      √ 1.4 加载失败重试机制 (1 ms)
+      √ 1.5 预加载模块 _preloadMods
+      √ 1.6 goDetail 懒加载代理
+      √ 1.7 closeAI 懒加载代理 (1 ms)
+      √ 1.8 showGongshoudao 懒加载代理
+      √ 1.9 switchTab 函数存在 (1 ms)
+    2. api.js API 层
+      √ 2.1 api 函数使用 POST + JSON
+      √ 2.2 认证 token 注入 (X-Auth-Token)
+      √ 2.3 设备 ID 注入 (X-Device-Id)
+      √ 2.4 30s 超时 AbortController (5 ms)
+      √ 2.5 重试逻辑 retries (1 ms)
+      √ 2.6 code=401 时触发 auth:unauthorized (3 ms)
+      √ 2.7 pending 响应透传 (3 ms)
+    3. ws-client.js WebSocket
+      √ 3.1 initWS 初始化函数
+      √ 3.2 WebSocket 连接 URL 构建 (1 ms)
+      √ 3.3 断线重连逻辑 scheduleReconnect
+      √ 3.4 指数退避重连 MAX_RECONNECT_DELAY (1 ms)
+      √ 3.5 事件回调 onScoreUpdate (1 ms)
+      √ 3.6 事件回调 onRecommendUpdate
+      √ 3.7 事件回调 onStatusChange (1 ms)
+      √ 3.8 ping/pong 心跳机制
+      √ 3.9 比分缓存 _scoreCache 去重
+    4. charts.js ECharts 懒加载
+      √ 4.1 echartsReady 未就绪时等待
+      √ 4.2 等待队列 echartsWaiters
+      √ 4.3 加载成功后 resolve 等待队列 (1 ms)
+    5. 缓存策略
+      √ 5.1 main-fusion 有缓存机制 (1 ms)
+      √ 5.2 api.js 有 token 缓存 (2 ms)
+      √ 5.3 plans 方案列表有缓存策略 (4 ms)
+
+PASS preview/tests/modal-loading-states.test.js
+  P0: modal-loading-states — 弹窗加载状态
+    1. Loading 加载中状态
+      √ 1.1 AI弹窗有 loading spinner (2 ms)
+      √ 1.2 功守道弹窗有骨架屏 loading (2 ms)
+      √ 1.3 方案列表有 loading spinner (2 ms)
+      √ 1.4 回测页有 loading 占位 (1 ms)
+      √ 1.5 模型仪表盘有 loading spinner (1 ms)
+      √ 1.6 确认方案页无数据时显示空状态（非 loading） (1 ms)
+    2. Error 错误状态
+      √ 2.1 AI弹窗有 catch 错误处理 (1 ms)
+      √ 2.2 API 失败时有重试/刷新按钮 (2 ms)
+      √ 2.3 功守道 API 有 catch 处理 (1 ms)
+      √ 2.4 方案列表加载失败有处理 (25 ms)
+      √ 2.5 confirm-scheme 解析失败有错误提示 (1 ms)
+    3. Empty 空状态
+      √ 3.1 方案列表空态有占位文案 (2 ms)
+      √ 3.2 回测无数据时应有空态 (1 ms)
+      √ 3.3 confirm-scheme 空态有引导文案 (1 ms)
+    4. Timeout 超时处理
+      √ 4.1 api.js 有超时配置 (1 ms)
+      √ 4.2 api.js 有请求超时提示 (1 ms)
+      √ 4.3 api.js 有重试逻辑
+    5. 加载→渲染过渡
+      √ 5.1 AI弹窗有 showAIPrediction 入口 (2 ms)
+      √ 5.2 功守道先显示 loading 再 api 请求 (1 ms)
+      √ 5.3 骨架屏渲染在内容之前 (1 ms)
+
+PASS server/tests/ai_daemon.test.js
+  AI Engine — Module Exports
+    deepseek 模块
+      √ 应为可加载模块 (1 ms)
+      √ 应导出 generateAnalysis 或 callDeepSeek 函数 (1 ms)
+    doubao 模块
+      √ 应为可加载模块
+    ai_merger 模块
+      √ 应为可加载模块 (1 ms)
+      √ 应导出 mergeAnalyses 函数
+  AI Prediction Format
+    √ 有效预测应无错误 (1 ms)
+    √ 无效预测应返回错误
+    √ confidence 边界值 (1 ms)
+    √ spf 合法值
+    √ overunder 合法值
+  AI Cache
+    √ 缓存结构应包含 matchId 索引 (1 ms)
+    √ 过期缓存应标识过期时间
+    √ 有效缓存应在 TTL 内
+  ai_merger merge logic
+    √ 两个 AI 结果合并时分歧应降级置信度
+  AI 定时刷新触发条件
+    √ 8:00-20:00 时间段内每小时触发 AI 刷新
+
+PASS server/tests/scheduler_v2.branches.test.js
+  scheduler_v2 分支覆盖
+    √ acquireLock 在其他实例持有未过期锁时返回 false (9 ms)
+    √ acquireLock / renewLock / releaseLock 能完整维护当前实例锁 (43 ms)
+    √ executeTask 失败时会进入重试队列 (53 ms)
+    √ 连续失败达到退避阈值时 executeTask 不执行任务而改为延迟入队 (7 ms)
+    √ 连续失败达到熔断阈值后会打开熔断器并告警 (32 ms)
+    √ processQueue 会执行到期任务并清空原队列项 (10 ms)
+
+PASS server/tests/api-contract.test.js
+  API action contract
+    √ server/index.js 中的 action 不应重复定义 (3 ms)
+    √ action 分类矩阵应完整覆盖当前 switch-case (2 ms)
+    √ readOnly smoke 候选 action 必须全部来自只读分组 (3 ms)
+    √ 关键回归 action 必须持续保留在 API 合同中
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+PASS server/tests/blueprint-api.test.js
+  蓝图 API — 响应结构规范
+    model-dashboard API
+      √ 响应应包含 rankings 数组 (4 ms)
+      √ 无数据时 code=0 (2 ms)
+      √ 普通模型仪表盘不应展示系统派生模型 (3 ms)
+    data-health API
+      √ 响应应包含门禁状态字段 (1 ms)
+    batch-consensus API
+      √ 响应 data 应为 matchId→consensus 映射 (1 ms)
+    experiment-compare API
+      √ 响应应为 type→rows 映射
+      √ 无数据时 code=1 返回空对象
+    prediction-fusion API
+      √ 有效 matchId 返回多模型预测 (1 ms)
+      √ matchId 不存在时返回 code=0
+    match-detail API (增强后)
+      √ 新字段响应结构 (1 ms)
+
+PASS server/tests/jczq_change.test.js
+  jczq_change — computeHeatIndex 冷热指数
+    √ cd 为 null → unknown (2 ms)
+    √ 主队受让一球 (rq=-1): R=winPct/lastWinRate (1 ms)
+    √ 主队让一球 (rq=1): R=losePct/lastLoseRate (1 ms)
+    √ 深盘让两球 (rq=2): R=rqWinPct/100
+    √ 深盘受让两球 (rq=-2): R=rqLosePct/100
+    √ 平手盘 (rq=0): 使用主胜投注/主胜概率 (1 ms)
+    √ 热 (value>1.2) → level=hot, label 含 🔥
+    √ 冷 (value<0.8) → level=cold, label 含 🧊 (1 ms)
+    √ rq 字符串 → parseInt 处理
+  jczq_change — computeFeature 特征文字
+    √ cd 为 null → -
+    √ 主队概率稳定 (delta<0.5) → "概率xx%→稳定"
+    √ 主队概率上升 → ↑
+    √ 主队概率下降 → ↓ (1 ms)
+    √ 客队稳定 (3 ms)
+    √ 客队下降
+    √ 无百分比字段 → - (1 ms)
+  jczq_change — computeStaticDiff 静态实力差
+    √ 均衡 (50/50) → 0 (1 ms)
+    √ 主强 (60/40) → 0.2
+    √ 客强 (40/60) → -0.2 (1 ms)
+    √ 极端优势 (90/10) → 0.8
+    √ 实力和为零 → 0
+    √ 字符串参数 → parseInt 处理 (1 ms)
+    √ 空参数 → 默认 50
+
+PASS preview/tests/tables-render-contract.test.js
+  P1: tables-render-contract — 表格渲染合同
+    1. backtest.js 回测明细表
+      √ 1.1 renderList 函数存在 (1 ms)
+      √ 1.2 分页组件 btPager 存在
+      √ 1.3 分页按钮样式 bt-pager-btn
+      √ 1.4 分页激活态 .active (1 ms)
+      √ 1.5 分页导航箭头 bt-pager-nav
+      √ 1.6 列表容器 btList 存在 (1 ms)
+      √ 1.7 _btPage/_btPageSize 分页状态变量
+      √ 1.8 对阵比分列 .fdt-teams
+      √ 1.9 预测命中/未命中标记 .pred-hit/.pred-miss (1 ms)
+      √ 1.10 汇总栏 bt-summary-bar
+    2. plans.js 方案卡片列表
+      √ 2.1 loadPlanList 函数存在 (1 ms)
+      √ 2.2 方案卡片 plan-card 样式
+      √ 2.3 方案日期栏 planDateBar
+      √ 2.4 日期前后切换 shiftPlanDate (1 ms)
+      √ 2.5 有分享按钮
+      √ 2.6 有方案操作按钮 (1 ms)
+      √ 2.7 loadMyPlanList 我的方案入口
+    3. quant-rank.js 量化排行榜
+      √ 3.1 文件存在且大小正常
+      √ 3.2 源码包含渲染函数或 innerHTML (1 ms)
+      √ 3.3 quant-rank-fusion 文件存在且大小正常 (1 ms)
+    4. income.js 方案收入表
+      √ 4.1 有收入列表渲染 (1 ms)
+      √ 4.2 有日期筛选或汇总 (1 ms)
+    5. 表格通用渲染规范
+      √ 5.1 backtest 列表使用 innerHTML 渲染
+      √ 5.2 plans 列表使用 innerHTML 渲染 (1 ms)
+      √ 5.3 列表有空状态处理 (1 ms)
+      √ 5.4 分页有总数显示 (1 ms)
+
+PASS server/tests/file-utils.test.js
+  file-utils — atomicWrite
+    √ 正常写入字符串并返回 true (5 ms)
+    √ 写入后内容完整可读回 (4 ms)
+    √ 写入空对象 (3 ms)
+    √ 写入空字符串 (3 ms)
+    √ 连续两次写入，最后一次生效 (21 ms)
+    √ 原子替换：旧文件存在时正常覆盖 (5 ms)
+  file-utils — atomicWriteJson
+    √ 写入 JSON 对象 (4 ms)
+    √ 写入含特殊字符的对象 (3 ms)
+    √ 写入大对象 (100KB) (7 ms)
+  file-utils — 异常处理
+    √ 路径不存在应返回 false (1 ms)
+    √ 写入失败后不残留 tmp 文件 (1 ms)
+    √ 并发写入同一文件应保证文件一致 (69 ms)
+
+PASS server/tests/pk_scorer.test.js (7.707 s)
+  pk_scorer — computeAllScores 完整评分
+    √ 返回与输入相同的数组长度 (17 ms)
+    √ 每个元素包含所有评分维度 (6 ms)
+    √ M2: computeAllScores 保持评分输出，不直接依赖外部信号 (2 ms)
+    √ 评分在 0~100 范围内 (4 ms)
+    √ strong 共识 → healthScore=100 (1 ms)
+    √ weak 共识 → healthScore=70
+    √ meltdown → healthScore=20 (V2.0 降级保留最低基础分) (1 ms)
+    √ stars = Math.round(compositeScore / 20) (1 ms)
+    √ 多个项目 → 不同 compositeScore (1 ms)
+    √ 强队 → 高 powerScore (1 ms)
+    √ dataAge>120 → compositeScore 扣减 (1 ms)
+    √ verificationDetails 数组非空 (1 ms)
+    √ ★ V9.1: discreteWarning 不影响评分 (mock返回none) (2 ms)
+    √ ★ V9.1: openHomeAward/openAwayAward 触发盘口位移分析 (1 ms)
+  pk_scorer — getDirectionAdvice 方向推荐
+    √ meltdown 无明确方向 → 观望/避开 (V2.0) (2 ms)
+    √ meltdown 有明确方向 → 2星参考 (V2.0 降级)
+    √ 绝对主胜优势 (pw≥0.25, hi<1.4)
+    √ 绝对客胜优势 (pw≤-0.25, hi<1.4) (4 ms)
+    √ 过热预警 (pw≥0.08, hi≥1.4)
+    √ 实力均衡 → 双选
+    √ 返回 goalDir 和 goalStars (1 ms)
+    √ M2: 输出 PK 裁判标准字段 (3 ms)
+    √ M2: meltdown 强制产生风险与降级原因 (1 ms)
+    √ M2: 负期望不得保持主推 (2 ms)
+    √ hcpDir 基于 crossHcpWin/CrossHcpLose (1 ms)
+    √ V2.0 EV: 有赔率时输出 ev 字段 (1 ms)
+    √ V2.0 EV: 无赔率时 ev 为 null (1 ms)
+    √ V2.0 EV: 负期望值价值标签 (1 ms)
+    √ V2.0 heatZ: 英超 HI=1.6 触发过热 (阈值 1.52) (1 ms)
+
+PASS server/tests/backup.test.js
+  backup — 配置验证
+    √ KEEP_DAILY 应为 7 天 (1 ms)
+    √ KEEP_WEEKLY 应为 4 周
+    √ BACKUP_DIR 应在 /root/backups (1 ms)
+    √ BACKUP_FILES 至少包含 3 个核心文件 (1 ms)
+  backup — 清理策略
+    √ Daily 保留策略：7天内不清理
+    √ 周日快照应跨周保留 (1 ms)
+  backup — 旧格式清理
+    √ 应清理 /tmp/deploy_backup_* 目录
+    √ 应清理 /tmp/db_backup_* 目录 (1 ms)
+    √ 应清理 .corrupted_* 残留文件
+  backup — SQLite 备份方式
+    √ 应优先使用 sqlite3 .backup API (1 ms)
+    √ .backup 失败时应降级为 cp
+  backup — 元信息
+    √ 备份目录应包含 backup_info.json (9 ms)
+  backup — 触发点
+    √ 应支持 daily 自动备份
+    √ 应支持 pre_deploy 备份
+    √ 应支持 API 手动备份
+
+PASS server/tests/odds-scan-fallback.test.js
+  batch-match-odds — 30天跨周扫描
+    √ 当天无赔率，2天前的文件命中 (2 ms)
+    √ 跨周匹配 — 周五013的数据匹配周一013 (2 ms)
+    √ 30天内无匹配 → 返回 null (2 ms)
+    √ 多天有数据时，返回最近的一天
+    √ dateKey 为空 → 返回 null (1 ms)
+  batch-match-odds — 数据完整性
+    √ 赔率对象应包含 spf/rqspf/handicap 字段 (1 ms)
+    √ 赔率字段缺失时返回安全的 null
+    √ handicap 四级降级链 (1 ms)
+
+PASS server/tests/league-heat-profile.test.js
+  league-heat-profile — LEAGUE_HEAT_BASELINE 基准表
+    √ 包含 default 配置 (2 ms)
+    √ 包含常见联赛: 英超/西甲/德甲/日职/欧冠 (1 ms)
+    √ 每项包含 mean/std/overheatZ (14 ms)
+    √ 热门联赛 mean > 冷门联赛 mean (1 ms)
+  league-heat-profile — getProfile 模糊匹配
+    √ 精确匹配: 英超 (1 ms)
+    √ 模糊匹配: 英超联赛 → 匹配英超
+    √ 未知联赛 → 返回 default
+    √ 空字符串 → default
+    √ 包含子串匹配: 2026英超赛季
+  league-heat-profile — getOverheatThreshold 过热阈值
+    √ 英超 → 1.25 + 1.5*0.18 = 1.52 (1 ms)
+    √ 挪超 → 0.92 + 1.5*0.12 = 1.10 (1 ms)
+    √ 欧冠 → 1.30 + 1.5*0.20 = 1.60
+    √ 未知联赛 → 1.05 + 1.5*0.15 = 1.275 ≈ 1.28
+  league-heat-profile — getColdThreshold 过冷阈值
+    √ 英超 → 1.25 - 1.5*0.18 = 0.98 (1 ms)
+    √ 挪超 → 0.92 - 1.5*0.12 = 0.74 (1 ms)
+  league-heat-profile — computeHeatZScore Z分数计算
+    √ 英超 HI=1.6 → isOverheat=true (1 ms)
+    √ 英超 HI=1.0 → 正常 (1 ms)
+    √ 挪超 HI=0.6 → isCold=true (1 ms)
+    √ HI=0 → 不判定为过冷 (hi=0 无数据) (1 ms)
+    √ 返回 leagueMean 和 leagueStd
+    √ 极低 std 联赛 → 回退到固定阈值 1.4 (1 ms)
+
+  console.log
+    [db] better-sqlite3 初始化成功: E:\JC-ZJFA\server\midou_data.db
+
+      at Object.log [as initDatabase] (server/database.js:586:13)
+
+PASS server/gongshoudao/tests/cache_manager.test.js
+  cache_manager — 批次索引 (L0)
+    √ getBatchIndex: 空文件 → 返回空对象 (2 ms)
+    √ updateBatchIndex: 写入批次 (2 ms)
+    √ invalidateBatch: 标记无效 (1 ms)
+    √ getValidBatches: 仅返回有效批次 (1 ms)
+  cache_manager — 原始API缓存 (L1)
+    √ writeRawCache → readRawCache 往返 (2 ms)
+    √ readRawCache: 不存在的批次 → null
+  cache_manager — 匹配结果缓存 (L2)
+    √ writeMatchCache → readMatchCache 往返 (1 ms)
+    √ readMatchCache: 不存在 → null (1 ms)
+  cache_manager — 计算结果缓存 (L3)
+    √ writeComputedCache → readComputedCache 往返 (1 ms)
+    √ readComputedCache: 不存在 → null (1 ms)
+  cache_manager — getCacheStats 统计
+    √ 空缓存 → 返回零条目统计 (1 ms)
+  cache_manager — purgeExpired 全量清理
+    √ 空缓存 → purgeExpired 返回 0 (1 ms)
+  cache_manager — compressCache 压缩归档
+    √ 空缓存 → archived=0 (1 ms)
+  cache_manager — TTL 配置
+    √ raw TTL = 14天
+    √ batch TTL = 30天 (1 ms)
+    √ match TTL = 7天
+
+PASS preview/tests/state.test.js
+  state — 默认值
+    √ currentPage 默认 home (1 ms)
+    √ detailMatchId 默认 null
+    √ selectedWeekIdx 默认 0 (1 ms)
+    √ planTab 默认 expert
+    √ incomeLoaded 默认 false
+    √ planDateExplicit 默认 false
+    √ rankDateOffset 默认 0 (1 ms)
+    √ planDateOffset 默认 0
+    √ savedScrollY 默认 0
+  state — Setters
+    √ setCurrentPage 更新 currentPage (1 ms)
+    √ setDetailMatchId 更新 detailMatchId
+    √ setLastPage 更新 lastPage
+    √ setSavedScrollY 更新 savedScrollY
+    √ setWeekDates 更新 weekDates (1 ms)
+    √ setSelectedWeekIdx 更新 selectedWeekIdx
+    √ setSelectedCategory 更新 selectedCategory
+    √ setSelectedDirection 更新 selectedDirection
+    √ setRankDate 更新 rankDate
+    √ setRankDateOffset 更新 rankDateOffset
+    √ setPlanDate 更新 planDate (1 ms)
+    √ setPlanDateOffset 更新 planDateOffset (8 ms)
+    √ setPlanDateExplicit 更新 planDateExplicit (1 ms)
+    √ setPlanTab 更新 planTab
+    √ setIncomeLoaded 更新 incomeLoaded (1 ms)
+    √ setLastScrollYNav 更新 lastScrollY_nav (2 ms)
+
+PASS preview/tests/confirm-scheme-unit.test.js
+  confirm-scheme 奖金优化核心逻辑
+    √ 金额变化会线性影响预计最高奖金 (4 ms)
+    √ 返回对象包含分层赔率与最优关级 (1 ms)
+    √ 计划购买金额会被约束为偶数（2元粒度） (3 ms)
+
+PASS preview/tests/match-detail-status.test.js
+  match-detail statusText — 状态标签
+    √ 未开始+hasResults=true → 仍显示"未开始" (2 ms)
+    √ 未开始+hasResults=false → 显示"未开始"
+    √ 进行中 → 显示"进行中" (1 ms)
+    √ 已结束 → 显示"已结束"
+    √ 脏数据防御：status=0+有推荐result → 不显示已结束 (1 ms)
+    √ 已结束+无推荐 → 仍显示"已结束"
+    √ 徽章样式：status=0 → cyan 色
+    √ 徽章样式：status=2 → green 色 (1 ms)
+    √ roundText: match.num 优先
+    √ roundText: 无 num 用 matchNum
+    √ roundText: 全无则兜底"竞彩" (1 ms)
+
+PASS server/tests/feature-engine.test.js
+  FeatureEngine — 实例化
+    √ 创建 FeatureEngine 实例 (5 ms)
+    √ featureVersion 应为 v1.0
+  FeatureEngine — _parseRecentResults 近期战绩解析
+    √ 空数组 → 返回全 null (1 ms)
+    √ 非数组 → 返回全 null
+    √ 正常 6 场战绩 (3W2D1L) (1 ms)
+    √ 超过 6 场只取最近 6 场 (1 ms)
+    √ 全败战绩
+    √ W/L/D 简写兼容
+  FeatureEngine — _calcEntropy 推荐熵计算
+    √ 总数为 0 → null (1 ms)
+    √ 完全一致 → 熵为 0
+    √ 均匀分布 → 熵接近 log2(3) = 1.585
+    √ 不均衡分布 → 熵 < 均匀分布
+  FeatureEngine — _daysBetween 日期差计算
+    √ 正常 7 天差 (1 ms)
+    √ 同日 → 0
+    √ 非法日期 → NaN (Invalid Date)
+  FeatureEngine — getFeatures DB 未就绪
+    √ db 为 null → 返回 {} (1 ms)
+    √ db 为 undefined → 返回 {}
+
+PASS preview/tests/plans-render-contract.test.js
+  今日方案页分享渲染合同
+    √ 专家 / 我的 / 比分 / 量化 方案分支都应渲染分享按钮 (2 ms)
+    √ plans.js 中的分享能力主链路函数不应缺失 (1 ms)
+    √ 独立我的方案页仍应保留 shareUserPlan 能力 (1 ms)
+    √ 分享弹窗与按钮样式依赖不应被误删 (1 ms)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+PASS server/tests/error-codes.test.js
+  error-codes — 错误码定义
+    √ 定义所有必需的错误码 (2 ms)
+    √ OK 应为 0（正常） (1 ms)
+    √ NO_DATA 应为正数（正常业务-无数据）
+    √ 系统错误码应为负数 (1 ms)
+    √ 错误码值不重复
+  error-codes — 分类逻辑
+    √ 正数/零 = 正常响应 (1 ms)
+    √ 负数 = 需前端展示错误 (1 ms)
+    √ code:1 表示无数据（正常业务，非错误）
+    √ DB_CORRUPT(-4) 应有特殊处理提示 (1 ms)
+  error-codes — API 响应格式
+    √ 标准响应应含 code + data/msg (1 ms)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+PASS server/gongshoudao/tests/fetch.test.js
+  gongshoudao fetch
+    √ makeDateTime 和 parseDateTime 能互相对应 (791 ms)
+    √ recordFetchStats 和 getFetchStats 会累计成功率与最近错误 (7 ms)
+    √ recordFetchStats 会按加权移动平均更新成功延迟 (13 ms)
+    √ recordFetchStats 会在最近错误中只保留最后三条 (7 ms)
+    √ recordFetchStats 在 20 次成功率低于 90% 时触发告警 (8 ms)
+    √ getBatchDiscoveryReport 会返回固定策略信息 (8 ms)
+    √ 注入 fake fs 后可稳定测试原始缓存读写与过期清理 (19 ms)
+    √ 注入 fake https 后 httpGetJSON 能走通网络解析分支 (22 ms)
+
+PASS server/tests/data-fusion.test.js
+  data-fusion
+    √ fundamentalFusion 在 basic 缺失时返回默认结构 (2 ms)
+    √ fundamentalFusion 会融合赢盘率并计算实力相关性 (1 ms)
+    √ crossValidateXg 会区分背离等级 (39 ms)
+    √ calibrateScoreProb 在无外部比分分布时保持原始概率 (2 ms)
+    √ calibrateScoreProb 会按外部比分分布做加权校准
+    √ spImpliedProb 会把 SP 转成隐含概率
+    √ discreteWarning 会输出离散度风险等级 (1 ms)
+    √ asiaWaterChange 会组合盘口和水位信号 (1 ms)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+PASS server/tests/cache.test.js
+  cache — localDate
+    √ 返回 YYYY-MM-DD 格式 (2 ms)
+    √ 无参数返回当前日期
+    √ 月份和日期补零
+  cache — latestDataDate
+    √ 无 mMap → 返回今天日期
+  cache — invalidate 清除缓存
+    √ invalidateDataJson 不抛异常 (1 ms)
+    √ invalidateTrends 不抛异常 (1 ms)
+    √ 连续调用 invalidateDataJson 不抛异常
+    √ 先 invalidate 后读取不抛异常
+  cache — 路径常量
+    √ DATA_JSON_PATH 指向 data.json (1 ms)
+    √ TRENDS_PATH 指向 trends.json
+    √ ODDS_DIR 指向 odds_history
+    √ GS_CACHE_PATH 指向 gongshoudao/cache.json (1 ms)
+    √ 所有路径是绝对路径或包含 server 目录
+  cache — getDataJson 冒烟测试
+    √ 读取不抛异常 (降级到空对象) (80 ms)
+    √ forceRefresh=true 不抛异常 (78 ms)
+  cache — getTrendsJson 冒烟测试
+    √ 读取不抛异常 (20 ms)
+  cache — getOddsHistory 冒烟测试
+    √ 读取不存在日期 → null (不抛异常) (166 ms)
+  cache — getGongShouDaoCache 冒烟测试
+    √ 读取不抛异常 (1408 ms)
+  cache — Phase 1 getOddsHistory SQLite 回退
+    √ getOddsHistory 日期降级最多 7 天 (2 ms)
+    √ getNearestOddsDate 空日期返回 null (1 ms)
+    √ getOddsHistory 不存在的日期不抛异常 (1 ms)
+  cache — Phase 1 odds 三层回退设计
+    √ 回退顺序: allplays.json → odds_history_v2 SQLite → odds_history JSON
+    √ JSON 回退空时应用 SQLite 兜底 (1 ms)
+    √ SQLite 回退查询应包含 play_type=spf/rqspf/halfFull/totalGoals/scores (1 ms)
+
+  console.warn
+    [数据质量] 500.com 抓取成功率 89.0% < 90% 门禁 (89/100)
+
+    [0m [90m 51 |[39m       alert [33m=[39m [32m`[数据质量] ${source} 抓取成功率 ${(rate * 100).toFixed(1)}% < ${(THRESHOLDS.FETCH_SUCCESS_RATE * 100).toFixed(0)}% 门禁 (${success}/${total})`[39m[33m;[39m
+     [90m 52 |[39m       [36mthis[39m[33m.[39malerts[33m.[39mpush({ time[33m:[39m [36mnew[39m [33mDate[39m()[33m.[39mtoISOString()[33m,[39m level[33m:[39m [32m'P1'[39m[33m,[39m source[33m,[39m message[33m:[39m alert })[33m;[39m
+    [31m[1m>[22m[39m[90m 53 |[39m       console[33m.[39mwarn(alert)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 54 |[39m     }
+     [90m 55 |[39m
+     [90m 56 |[39m     [36mreturn[39m { pass[33m,[39m rate[33m,[39m alert }[33m;[39m[0m
+
+      at DataQualityMonitor.warn [as checkFetchQuality] (server/core/data-quality.js:53:15)
+      at Object.checkFetchQuality (server/tests/blueprint-data-quality.test.js:27:30)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+  console.warn
+    [数据完整性] 2026-06-03 实际抓取 84/100 场 (84.0%) < 85%
+
+    [0m [90m 76 |[39m       [36mconst[39m alert [33m=[39m [32m`[数据完整性] ${date} 实际抓取 ${actualCount}/${expectedCount} 场 (${(rate * 100).toFixed(1)}%) < ${(THRESHOLDS.COMPLETENESS_RATE * 100).toFixed(0)}%`[39m[33m;[39m
+     [90m 77 |[39m       [36mthis[39m[33m.[39malerts[33m.[39mpush({ time[33m:[39m [36mnew[39m [33mDate[39m()[33m.[39mtoISOString()[33m,[39m level[33m:[39m [32m'P1'[39m[33m,[39m source[33m:[39m [32m'completeness'[39m[33m,[39m message[33m:[39m alert })[33m;[39m
+    [31m[1m>[22m[39m[90m 78 |[39m       console[33m.[39mwarn(alert)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 79 |[39m     }
+     [90m 80 |[39m
+     [90m 81 |[39m     [36mreturn[39m { pass[33m,[39m rate }[33m;[39m[0m
+
+      at DataQualityMonitor.warn [as checkCompleteness] (server/core/data-quality.js:78:15)
+      at Object.checkCompleteness (server/tests/blueprint-data-quality.test.js:46:30)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+  console.warn
+    [赔率异常] 001 赔率 2 → 2.7 (35.0%)
+
+    [0m [90m 107 |[39m       [36mconst[39m msg [33m=[39m [32m`[赔率异常] ${matchNum} 赔率 ${oldOdds} → ${newOdds} (${entry.changeRate})`[39m[33m;[39m
+     [90m 108 |[39m       [36mthis[39m[33m.[39malerts[33m.[39mpush({ time[33m:[39m [36mnew[39m [33mDate[39m()[33m.[39mtoISOString()[33m,[39m level[33m:[39m [32m'P2'[39m[33m,[39m source[33m:[39m [32m'odds_anomaly'[39m[33m,[39m message[33m:[39m msg })[33m;[39m
+    [31m[1m>[22m[39m[90m 109 |[39m       console[33m.[39mwarn(msg)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 110 |[39m     }
+     [90m 111 |[39m
+     [90m 112 |[39m     [36mreturn[39m { anomaly[33m,[39m changeRate }[33m;[39m[0m
+
+      at DataQualityMonitor.warn [as checkOddsAnomaly] (server/core/data-quality.js:109:15)
+      at Object.checkOddsAnomaly (server/tests/blueprint-data-quality.test.js:63:30)
+
+  console.warn
+    [数据质量] test 抓取成功率 80.0% < 90% 门禁 (8/10)
+
+    [0m [90m 51 |[39m       alert [33m=[39m [32m`[数据质量] ${source} 抓取成功率 ${(rate * 100).toFixed(1)}% < ${(THRESHOLDS.FETCH_SUCCESS_RATE * 100).toFixed(0)}% 门禁 (${success}/${total})`[39m[33m;[39m
+     [90m 52 |[39m       [36mthis[39m[33m.[39malerts[33m.[39mpush({ time[33m:[39m [36mnew[39m [33mDate[39m()[33m.[39mtoISOString()[33m,[39m level[33m:[39m [32m'P1'[39m[33m,[39m source[33m,[39m message[33m:[39m alert })[33m;[39m
+    [31m[1m>[22m[39m[90m 53 |[39m       console[33m.[39mwarn(alert)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 54 |[39m     }
+     [90m 55 |[39m
+     [90m 56 |[39m     [36mreturn[39m { pass[33m,[39m rate[33m,[39m alert }[33m;[39m[0m
+
+      at DataQualityMonitor.warn [as checkFetchQuality] (server/core/data-quality.js:53:15)
+      at Object.checkFetchQuality (server/tests/blueprint-data-quality.test.js:76:15)
+
+  console.warn
+    [数据完整性] 2026-06-03 实际抓取 7/10 场 (70.0%) < 85%
+
+    [0m [90m 76 |[39m       [36mconst[39m alert [33m=[39m [32m`[数据完整性] ${date} 实际抓取 ${actualCount}/${expectedCount} 场 (${(rate * 100).toFixed(1)}%) < ${(THRESHOLDS.COMPLETENESS_RATE * 100).toFixed(0)}%`[39m[33m;[39m
+     [90m 77 |[39m       [36mthis[39m[33m.[39malerts[33m.[39mpush({ time[33m:[39m [36mnew[39m [33mDate[39m()[33m.[39mtoISOString()[33m,[39m level[33m:[39m [32m'P1'[39m[33m,[39m source[33m:[39m [32m'completeness'[39m[33m,[39m message[33m:[39m alert })[33m;[39m
+    [31m[1m>[22m[39m[90m 78 |[39m       console[33m.[39mwarn(alert)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 79 |[39m     }
+     [90m 80 |[39m
+     [90m 81 |[39m     [36mreturn[39m { pass[33m,[39m rate }[33m;[39m[0m
+
+      at DataQualityMonitor.warn [as checkCompleteness] (server/core/data-quality.js:78:15)
+      at Object.checkCompleteness (server/tests/blueprint-data-quality.test.js:77:15)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+PASS preview/tests/main-fusion-routes.test.js
+  main-fusion 页面路由合同
+    √ 新增页面模块文件必须存在 (2 ms)
+    √ confirm-scheme 必须在 _ensurePage 中创建页面容器 (1 ms)
+    √ model-dashboard 必须在 _ensurePage 中创建页面容器
+    √ data-health 必须在 _ensurePage 中创建页面容器 (1 ms)
+    √ confirm-scheme 必须在 switchTab 中注册模块加载逻辑
+    √ model-dashboard 必须在 switchTab 中注册模块加载逻辑 (1 ms)
+    √ data-health 必须在 switchTab 中注册模块加载逻辑
+    √ confirm-scheme 必须在 switchTabLoad 中注册恢复逻辑 (1 ms)
+    √ model-dashboard 必须在 switchTabLoad 中注册恢复逻辑
+    √ data-health 必须在 switchTabLoad 中注册恢复逻辑 (1 ms)
+
+PASS server/tests/blueprint-data-quality.test.js
+  DataQualityMonitor
+    checkFetchQuality — 抓取成功率
+      √ 100% 成功率应 pass (2 ms)
+      √ 91% 成功率应 pass (>=90%)
+      √ 89% 成功率应 fail (<90%) (25 ms)
+      √ 0 场时应 pass (1 ms)
+    checkCompleteness — 完整性
+      √ 100% 完整应 pass
+      √ 84% 完整应 fail (<85%) (19 ms)
+      √ 0 场时应 pass
+    checkOddsAnomaly — 赔率异常
+      √ 变化 10% 不应异常 (1 ms)
+      √ 变化 35% 应异常 (≥30%) (43 ms)
+      √ 赔率为 0 时不报错
+    告警累积
+      √ 触发阈值后累积告警 (9 ms)
+      √ 无告警时返回空数组 (1 ms)
+    getReport — 质量报告
+      √ 返回完整报告结构 (1 ms)
+    THRESHOLDS 常量
+      √ 抓取成功率门禁为 0.90
+      √ 完整度门禁为 0.85
+      √ 赔率异常阈值为 0.30 (1 ms)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+PASS preview/tests/blueprint-pages.test.js
+  frontend modules — 蓝图验证
+    √ model-dashboard 模块可被静态加载 (441 ms)
+    √ data-health 模块可被静态加载 (59 ms)
+    √ profile 模块可被静态加载 (94 ms)
+    √ profile 会员卡保留新版横向会员状态结构 (4 ms)
+    √ pricing 页面保留个人中心同款头部并移除顶部三枚标签 (5 ms)
+    √ subscription/referral/admin 页面顶部入口符合当前设计 (18 ms)
+
+PASS server/gongshoudao/tests/market.test.js
+  market — inferMarketXg 市场xG反推
+    √ 无 totalGoals 数据 → valid=false (2 ms)
+    √ 有效 totalGoals → valid=true, 返回市场xG (1 ms)
+    √ 让球影响主客分配 (主让→主队占比高)
+    √ 赔率最低的进球数决定 overUnderLine (1 ms)
+  market — loadMatchOdds 赔率加载
+    √ 不存在的日期文件 → 返回 null (1 ms)
+    √ 参数 null → 返回 null (1 ms)
+  market — analyze 综合分析入口
+    √ 无赔率数据时返回默认 marketScore=50 (185 ms)
+    √ 返回完整结构 (15 ms)
+
+PASS server/tests/websocket.test.js
+  websocket — getClientCount 初始状态
+    √ 初始应为0 (1 ms)
+  websocket — generateAcceptKey (通过集成验证)
+    √ 生成 base64 编码的 SHA1 结果 (1 ms)
+  websocket — createTextFrame (手工验证)
+    √ 小 payload (<126 bytes) 帧格式
+    √ payload 126~65535 使用扩展长度16位
+    √ ping 帧 opcode=0x89 (1 ms)
+    √ pong 帧 opcode=0x8a
+    √ close 帧 opcode=0x88
+  websocket — broadcast 广播
+    √ 传入 channel 和 data 不抛异常 (1 ms)
+
+PASS server/tests/prediction_log.test.js
+  prediction_log
+    模块导出完整性
+      √ 应导出所有 API 函数 (2526 ms)
+      √ mock 数据库就绪后 isReady 返回 true (14 ms)
+      √ DB 不可用时 isReady 应在异步初始化完成前返回 false (45 ms)
+      √ isReady 检查所有条件（DB+BizReady+Adapter） (11 ms)
+    函数签名验证 — DB 未就绪时安全返回
+      √ upsert 无 matchId 时应安全返回 (17 ms)
+      √ upsertAI 不 crash (15 ms)
+      √ upsertPK 支持客胜/平方向 (13 ms)
+      √ upsertGS 不 crash (15 ms)
+      √ backfillResult 不 crash (31 ms)
+      √ getLeagues 返回数组 (13 ms)
+      √ getTotalCount 返回数字 (12 ms)
+    queryBacktest — DB 未就绪时安全返回
+      √ 应返回空结果不 crash (17 ms)
+      √ 所有筛选参数组合不 crash (15 ms)
+      √ stats 字段存在时值在合法范围 (V9 三层结构) (23 ms)
+
+PASS server/tests/pk-snapshot-attribution.test.js
+  M7 赛前快照与赛后归因合同
+    √ prediction_logs 自动补齐 M7 快照与归因列 (3 ms)
+    √ upsertPK 写入赛前快照和分歧/EV 字段 (2 ms)
+    √ backfillResult 计算赛后命中、ROI 和归因标签 (1 ms)
+    √ PK scorer 持久化传入 featureSnapshotId / conflictType / valueEdge / expectedValue (1 ms)
+    √ prediction-backtest 支持分歧类型和归因标签查询 (1 ms)
+
+  console.log
+    [db] 完整性校验通过
+
+      at Object.log [as initDatabase] (server/database.js:591:17)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+PASS preview/tests/utils.test.js
+  utils — 常量
+    √ API 指向 /api (1 ms)
+    √ DIR_COLORS 包含胜平负颜色
+    √ CAT_NAMES 包含6个分类 (1 ms)
+    √ WEEK_NAMES 包含7天
+    √ MIN_PLAN_DATE 是固定日期
+  utils — formatDate
+    √ 格式化日期为 YYYY-MM-DD
+    √ 月份和日期补零 (1 ms)
+    √ 年末日期正确
+  utils — formatDateCN
+    √ 格式化为 MM月DD日 周X (1 ms)
+    √ 返回值包含月份和日期
+  utils — getWeekDay
+    √ 周日返回 "周日" (1 ms)
+    √ 周一返回 "周一"
+    √ 周六返回 "周六"
+    √ 所有日期返回合法的星期名称
+
+  console.log
+    [cache] Schema v2 已激活, 清理 0 条旧缓存
+
+      at log (preview/js/utils.js:64:13)
+
+  console.log
+    [model-weights] V3.0 30天真实模型命中 → A=30.0%(17场) B=41.2%(17场) C=35.3%(17场) → 权重 wA=0.2974 wB=0.3719 wC=0.3306
+
+      at log (server/gongshoudao/model-weights.js:128:11)
+
+PASS server/tests/midou-extra.test.js
+  midou — 补充测试
+    CONFIG
+      √ should have MIDOU_BASE (2 ms)
+      √ should have MOBILE/PASSWORD fields (1 ms)
+      √ should have backup credentials (1 ms)
+    safeApiCall
+      √ should be a function
+      √ should wrap function for retry (1 ms)
+    exports
+      √ should export all known functions (14 ms)
+    clearCache
+      √ should not throw on multiple calls (1 ms)
+    invalidateToken
+      √ should not throw (1 ms)
+    login
+      √ should be a function (1 ms)
+    additional function existence
+      √ should export CONFIG
+      √ should export login (1 ms)
+      √ should export fetchMatches
+      √ should export fetchRecommends
+      √ should export ensureData (1 ms)
+      √ should export ensureRecommends
+      √ should export safeApiCall
+      √ should export clearCache
+      √ should export invalidateToken
+    CONFIG values
+      √ MIDOU_BASE should be a string URL (1 ms)
+      √ backup fields should exist
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+PASS server/tests/pk-decision-fields.test.js
+  prediction_log — M2 PK 裁判标准字段持久化
+    √ upsertPK 写入 finalDirection/decisionLevel/risk/degrade/narrative 字段 (34 ms)
+
+PASS preview/tests/quant-rank-opportunity.test.js
+  M4 量化排行榜机会分层合同
+    √ fusion 与 legacy 都支持机会分层切换 (2 ms)
+    √ 排行榜透出 PK 裁判标准字段 (1 ms)
+    √ 每行展示决策徽章和风险标签 (1 ms)
+    √ 主入口注册 switchQuantOpportunity (1 ms)
+    √ 样式覆盖 app.css 与 modals.css，机会摘要不是深灰禁用态 (1 ms)
+
+  console.warn
+    [API] retry-action 请求失败，重试中 (2/3): 网络错误
+
+    [0m [90m 65 |[39m       [36mconst[39m canRetry [33m=[39m retries [33m>[39m [35m0[39m [33m&&[39m [33m![39merr[33m.[39mnonRetryable[33m;[39m
+     [90m 66 |[39m       [36mif[39m (canRetry) {
+    [31m[1m>[22m[39m[90m 67 |[39m         console[33m.[39mwarn([32m`[API] ${action} 请求失败，重试中 (${4 - retries}/3):`[39m[33m,[39m err[33m.[39mmessage)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 68 |[39m         [36mreturn[39m [36mnew[39m [33mPromise[39m((resolve) [33m=>[39m setTimeout(resolve[33m,[39m [35m2000[39m))[33m.[39mthen(() [33m=>[39m api(action[33m,[39m data[33m,[39m retries [33m-[39m [35m1[39m))[33m;[39m
+     [90m 69 |[39m       }
+     [90m 70 |[39m       [36mthrow[39m err[33m;[39m[0m
+
+      at warn (preview/js/api.js:67:17)
+
+  console.log
+    [cache-warmer] 开始异步预热...
+
+      at log (server/core/cache-warmer.js:23:15)
+
+PASS server/tests/api-structure.test.js
+  API 路由结构合同 (无服务器)
+    √ index.js 应存在 (1 ms)
+    √ 至少注册了 15 个 action handler (1 ms)
+    √ 核心只读 API 已注册
+    √ 方案相关 API 已注册 (1 ms)
+    √ 功守道 API: gongshoudao
+    √ 认证 API 已注册
+    √ 模型仪表盘 API: model-dashboard (1 ms)
+
+PASS preview/tests/model-dashboard-reliability.test.js
+  M6 模型仪表盘可靠性页面合同
+    √ 页面包含可靠性摘要、可靠性排行、玩法矩阵和只读权重建议 (2 ms)
+    √ 排行展示样本、ROI、稳定性和校准状态 (1 ms)
+    √ 玩法矩阵包含 SPF、让球、大小球、比分 (1 ms)
+    √ 样本不足和只读建议有明确文案
+    √ 新增样式存在且可靠性摘要不能使用深灰禁用态底色 (1 ms)
+
+PASS server/tests/feature-engine-extra.test.js
+  feature-engine 补充测试
+    constructor
+      √ creates with featureVersion (2 ms)
+      √ creates independent instances (1 ms)
+    computeFeatures (no DB)
+      √ empty when db null (2 ms)
+      √ handles null match (1 ms)
+      √ handles empty match (1 ms)
+    _calcEntropy
+      √ null for total 0
+      √ uniform distribution ~1.585 (1 ms)
+      √ zero entropy for single outcome
+    _getRecentForm
+      √ returns object with empty context (8 ms)
+    _getH2HFeatures
+      √ returns object with null db
+    _getStandingsFeatures
+      √ returns object with null db (1 ms)
+    _getOddsFeatures
+      √ returns empty with no context (1 ms)
+    _getRecommendFeatures
+      √ returns object with empty context
+    _getContextFeatures
+      √ returns empty with null db
+    _daysBetween
+      √ computes day diff (1 ms)
+      √ returns NaN for bad dates
+
+  console.log
+    [cache-warmer] data.json OK (70ms)
+
+      at log (server/core/cache-warmer.js:23:15)
+
+PASS server/gongshoudao/tests/diff.test.js
+  gongshoudao/diff — analyze
+    √ 应导出 analyze 函数 (7 ms)
+    √ 应返回核心让球分析字段 (3111 ms)
+    homeWinExpect
+      √ 应为字符串格式 (带符号) (3 ms)
+    totalAdvantage2 (战力百分比)
+      √ 应为带符号百分比字符串 (3 ms)
+      √ 应有数字值版本 (2 ms)
+    anchor
+      √ 应有结构 (3 ms)
+    sevenMatch (7场验证)
+      √ 应包含 dimension1 和 dimension2 (2 ms)
+      √ 应有 verifyResult 描述 (2 ms)
+    resonance (共振裁决)
+      √ 应有结构 (2 ms)
+    strengthGoal (实力进球)
+      √ 应为数字 (2 ms)
+    均衡场景
+      √ totalAdvantage2Raw 应接近0 (3 ms)
+    边界条件
+      √ 极端 xG 值不崩溃 (2 ms)
+      √ 缺失 VARS 不崩溃 (1 ms)
+
+PASS preview/tests/state-consistency.test.js
+  P2: state-consistency — 状态一致性
+    1. state.js 全局状态
+      √ 1.1 currentPage 状态存在 (1 ms)
+      √ 1.2 detailMatchId 状态存在 (1 ms)
+      √ 1.3 planDate/planDateOffset 状态存在 (1 ms)
+      √ 1.4 planTab 状态存在，默认 expert
+      √ 1.5 planDateExplicit 状态存在 (1 ms)
+      √ 1.6 setPlanDate 函数存在
+      √ 1.7 setPlanTab 函数存在
+      √ 1.8 setCurrentPage 函数存在 (1 ms)
+      √ 1.9 selectedMatchDate / weekDates 存在
+      √ 1.10 rankDate/rankDateOffset 存在
+    2. 页面切换状态
+      √ 2.1 main-fusion 有 switchTab 函数 (1 ms)
+      √ 2.2 main-fusion 有 _ensurePage 保证 DOM 存在 (1 ms)
+      √ 2.3 返回按钮 goBack 存在 (2 ms)
+      √ 2.4 Tab 激活态通过 .active 类管理 (1 ms)
+    3. 日期选择联动
+      √ 3.1 planDate 变更触发 loadPlanList (1 ms)
+      √ 3.2 shiftPlanDate 修改 offset 后刷新 (2 ms)
+      √ 3.3 updatePlanDateBar 更新日期栏 (1 ms)
+    4. 筛选条件联动
+      √ 4.1 filter.js 有方向类型切换 onDDTypeChange (40 ms)
+      √ 4.2 filter.js 有 resetFilterResult 重置 (1 ms)
+      √ 4.3 filter.js 有 loadFilterLeagues 加载联赛 (1 ms)
+    5. 状态污染防护
+      √ 5.1 planTab 有 setter 封装
+      √ 5.2 每个 setter 明确设置单个状态
+      √ 5.3 plans.js 有 _normalizeVisiblePlanTab 规范 tab 值 (2 ms)
+
+PASS preview/tests/pk-modal-explanation.test.js
+  M3 PK 弹窗解释区合同
+    √ PK 弹窗应包含裁判解释区和模型对比渲染函数 (2 ms)
+    √ 方向建议应输出 M2/M3 标准字段兜底 (1 ms)
+    √ 弹窗应展示外部信号缺失不阻断的说明 (1 ms)
+    √ M3 样式应同时存在于 app.css 与 modals.css，裁判卡不是深灰禁用态 (2 ms)
+
+PASS server/tests/http-utils.test.js
+  http-utils — 模块导出验证
+    √ 导出 jitter (2 ms)
+    √ 导出 sleep
+    √ 导出 get
+    √ 导出 getWithUA
+    √ 导出 getWithRetry
+    √ 导出所有关键函数(jitter/sleep/get/getWithUA/getWithRetry)
+  http-utils — jitter
+    √ 返回数值 (1 ms)
+    √ 在 50%~150% 范围内 (18 ms)
+    √ baseMs=0 返回0
+  http-utils — sleep
+    √ 返回 Promise (6 ms)
+    √ 延时50ms完成 (23 ms)
+
+PASS server/tests/backtest-pk-judge.test.js
+  M5 prediction-backtest PK 裁判验证合同
+    √ queryBacktest 支持决策等级、风险等级、EV 筛选 (10 ms)
+    √ 回测行补齐 PK 裁判复盘字段 (3 ms)
+    √ stats.pk.judge 包含决策等级、正 EV、观望避坑、降级规则 (1 ms)
+    √ prediction-backtest 缓存 key 包含新增筛选项 (1 ms)
+
+PASS preview/tests/home-minimal-summary.test.js
+  首页最小增强方案 B 合同
+    √ 首页包含顶部轻量摘要且不出现老鹰智选字样 (1 ms)
+    √ 最多推荐和最热场次模块保持原结构与点击逻辑 (1 ms)
+    √ 首页摘要由 home.js 渲染今日场次、机会数和条件风险数 (6 ms)
+    √ 首页摘要样式为轻量单行样式，不替换原统计卡样式，且不是深灰禁用态 (1 ms)
+
+PASS server/tests/scraper.test.js
+  scraper — generateDateRange 日期范围生成
+    √ 单天范围 → 1天 (2 ms)
+    √ 5天范围 (1 ms)
+    √ 跨月范围 (1 ms)
+    √ 跨年范围
+    √ 日期已排序递增 (1 ms)
+    √ 30天范围 → 30天 (1 ms)
+    √ reverse 范围 (end < start) → 返回空数组
+
+PASS preview/tests/backtest-pk-judge.test.js
+  M5 回测页 PK 裁判验证合同
+    √ PK 页签升级为 PK 裁判验证 (1 ms)
+    √ 筛选项包含决策等级、风险等级、EV 区间 (1 ms)
+    √ PK 统计包含主推 ROI、正 EV 和观望避坑，且卡片不是深灰禁用态 (2 ms)
+    √ PK 明细展示赛前裁判快照和赛后结果 (1 ms)
+    √ 图表包含决策等级命中率和 ROI (1 ms)
+
+PASS server/tests/model-dashboard-reliability.test.js
+  M6 model-dashboard 可靠性排行合同
+    √ 服务端构建可靠性排行而不是单一命中率排行 (2 ms)
+    √ model-dashboard 响应包含玩法矩阵、可靠性摘要和只读权重建议 (2 ms)
+    √ 样本不足模型必须明确标记 (1 ms)
+    √ 权重建议必须为只读，不自动覆盖生产规则 (1 ms)
+
+  console.warn
+    [main-fusion test] module import failed: Cannot use 'import.meta' outside a module
+
+    [0m [90m 33 |[39m     } [36mcatch[39m (e) {
+     [90m 34 |[39m       [90m// 如果导入失败（API 调用问题），跳过测试[39m
+    [31m[1m>[22m[39m[90m 35 |[39m       console[33m.[39mwarn([32m'[main-fusion test] module import failed:'[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 36 |[39m     }
+     [90m 37 |[39m     [36mtry[39m {
+     [90m 38 |[39m       [36mconst[39m s [33m=[39m [36mawait[39m [36mimport[39m([32m'../js/state.js'[39m)[33m;[39m[0m
+
+      at Object.warn (preview/tests/main-fusion.test.js:35:15)
+
+PASS preview/tests/main-fusion.test.js
+  main-fusion — 日期函数 (Node 模拟)
+    √ updateDateBar 函数存在 (1 ms)
+    √ 无 weekDates → dateCurrent 显示加载中
+  main-fusion — sessionStorage 持久化
+    √ switchTab 应可通过 window 访问 (1 ms)
+    √ goBack 应可通过 window 访问 (12 ms)
+    √ goToday 应可通过 window 访问
+    √ shiftWeek 应可通过 window 访问 (1 ms)
+
+PASS server/tests/ai-timing.test.js
+  ai-timing — getEstimatedWaitTime
+    √ 文件不存在 → 返回默认 45秒 (2 ms)
+    √ 返回数字类型 (17 ms)
+  ai-timing — updateTimingStats
+    √ 首次调用不抛异常 (3 ms)
+    √ 多次调用连续更新不抛异常 (2 ms)
+    √ 更新后 getEstimatedWaitTime 返回合理值 (2 ms)
+    √ 极端零值不抛异常 (2 ms)
+    √ 极大值不抛异常 (1 ms)
+
+PASS server/tests/midou.test.js
+  midou — CONFIG 配置
+    √ MIDOU_BASE 指向米斗 (1 ms)
+    √ MOBILE 和 PASSWORD 从环境变量读取 (1 ms)
+    √ BACKUP_MOBILE 和 BACKUP_PASSWORD 备选存在
+  midou — 缓存管理
+    √ clearCache 不抛异常 (3 ms)
+    √ invalidateToken 不抛异常 (1 ms)
+  midou — safeApiCall
+    √ 正常函数 → 返回结果
+    √ 函数失败 → 降级到 fallback (1 ms)
+    √ 函数失败 + 无fallback → 抛出异常 (50 ms)
+    √ 同步函数也支持 (1 ms)
+
+PASS server/tests/ranking-list-pk-fields.test.js
+  M4 ranking-list PK 标准字段合同
+    √ ranking-list 构建并合并 PK 裁判字段 (1 ms)
+    √ ranking-list 响应包含 M2 标准字段 (2 ms)
+    √ PK GS 字段加载兼容 m_ 前缀与裸 matchId
+
+PASS server/gongshoudao/tests/fetch-extra.test.js
+  fetch — 补充覆盖率
+    exports
+      √ should export known functions (1 ms)
+    normalizeTeamName
+      √ should return empty for falsy (1 ms)
+      √ should remove spaces and parentheses (1 ms)
+      √ should lowercase output (1 ms)
+    levenshteinDistance
+      √ should compute identical strings (1 ms)
+      √ should handle empty first string (4 ms)
+      √ should handle empty second string
+      √ should compute kitten→sitting
+    metrics functions
+      √ should have fetch stats or metrics if exported
+
+PASS preview/tests/backtest-attribution.test.js
+  M7 回测页赛后归因合同
+    √ 回测筛选包含分歧类型和归因标签 (2 ms)
+    √ PK 快照展示快照状态、分歧类型和归因标签 (1 ms)
+    √ 归因标签样式存在 (1 ms)
+
+  console.log
+    [token_manager] .env 文件加载成功
+
+      at Object.log (server/token_manager.js:27:11)
+
+  console.log
+    [token_manager] 主账户凭据已配置: MIDOU_MOBILE=13570060818
+
+      at Object.log (server/token_manager.js:40:11)
+
+  console.warn
+    [token_manager] ⚠️ 主账户密码看起来是 MD5 哈希值(32位hex)，请确认 API 是否接受 MD5 格式
+
+    [0m [90m 41 |[39m }
+     [90m 42 |[39m [36mif[39m ([35m/^[a-f0-9]{32}$/i[39m[33m.[39mtest([33mCONFIG[39m[33m.[39m[33mMIDOU_PASSWORD[39m)) {
+    [31m[1m>[22m[39m[90m 43 |[39m   console[33m.[39mwarn([32m'[token_manager] ⚠️ 主账户密码看起来是 MD5 哈希值(32位hex)，请确认 API 是否接受 MD5 格式'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 44 |[39m }
+     [90m 45 |[39m [36mif[39m ([33m![39menvFileLoaded) {
+     [90m 46 |[39m   console[33m.[39mwarn([32m'[token_manager] ⚠️ 未检测到 .env 文件，当前使用 process.env 中的凭据'[39m)[33m;[39m[0m
+
+      at Object.warn (server/token_manager.js:43:11)
+      at Object.require (server/tests/token_manager.test.js:7:36)
+
+  console.log
+    [token_manager] 登录 midou310.com...
+
+      at log (server/token_manager.js:166:15)
+
+PASS server/tests/plan-generator.test.js (10.176 s)
+  plan-generator — qualifyMatch 比分方案筛选
+    √ 无gs数据 → 返回 false (16 ms)
+    √ fusionConsensus=meltdown → 返回 false (1 ms)
+    √ 大球率不足 → 返回 false (1 ms)
+    √ 攻防符号相同 → 返回 false (1 ms)
+    √ 攻防符号相反(attRaw*defRaw<=0) → 返回 false
+    √ 攻防强度不足 → 返回 false
+    √ xg差不足0.6 → 返回 false (1 ms)
+    √ weak共识 + stability<55 → 返回 false (2 ms)
+    √ 弱侧xg>1.5 → 返回 false (3 ms)
+    √ 正常强一致数据 → 通过筛选 (5 ms)
+    √ 客队优势 → strongIsHome=false (3 ms)
+  plan-generator — buildScorePercentMap
+    √ 正常scores → 构建映射 (4 ms)
+    √ 空scores → 返回 null (1 ms)
+    √ null gs → 返回 null (1 ms)
+  plan-generator — dutchCombinations 荷兰式组合
+    √ 返回2~4个比分的组合 (4 ms)
+    √ 每个组合有 scores/baseExpectedReturn/comboLength/coverage (20 ms)
+    √ prefer 3组合 (1 ms)
+    √ 不足2个candidates → 返回空 (1 ms)
+    √ 空oddsMap → 返回空
+  plan-generator — computeScoreQuality 质量评分
+    √ 返回 0~100 分数 (1 ms)
+    √ strong 共识得分高于 weak (1 ms)
+    √ 大球率越高分数越高 (6 ms)
+    √ xg差越大分数越高 (1 ms)
+    √ 联赛场均进球>2.85 → 额外加分 (1 ms)
+  plan-generator — getMatchOdds
+    √ 按 num 匹配 (3655 ms)
+    √ 按 num_X 匹配(allplays) (23 ms)
+    √ 按 matchId 匹配 (43 ms)
+    √ 无匹配 → null (27 ms)
+  plan-generator — getColdDirection 冷门方向
+    √ 返回方向对象含 dir/odds/signal/finalScore (2 ms)
+    √ 均衡实力+弱共识 → 平局方向信号增强
+    √ 熔断共识 → 信号轻微增强
+  plan-generator — computeColdScore 冷门评分
+    √ 返回 0~100 分数 (1 ms)
+    √ 实力均衡 → 高分
+    √ weak共识比strong共识得分高 (1 ms)
+    √ heatIndex 低于 0.85 → 更高冷门评分
+  plan-generator — parseKickoffTime
+    √ 正常ISO时间 → 返回时间戳 (2 ms)
+    √ null/空 → 返回 null
+    √ 无效时间 → 返回 null
+  plan-generator — checkCorrelation 组合相关性
+    √ 完全不同 → low 风险 (1 ms)
+    √ 同联赛 → medium (1 ms)
+    √ 时间接近(<90min) → medium
+    √ 同球队 → medium (1 ms)
+    √ 同联赛+时间接近 → high
+  plan-generator — checkMatchResult 单场结果判定
+    √ 精确匹配方向 → 返回结果 (2 ms)
+    √ 方向失败 → isLose=true (1 ms)
+    √ result=null(未知) → isWon/isLose 均为 null (2 ms)
+    √ 双选方向 → 任一命中即可
+    √ 无匹配 → null (1 ms)
+
+PASS server/tests/token_manager.test.js
+  token_manager — 模块导出
+    √ 导出 getToken 函数 (1 ms)
+    √ 导出 refreshToken 函数 (1 ms)
+    √ getToken 返回 Promise (69 ms)
+    √ refreshToken 返回 Promise (1 ms)
+  token_manager — 重复调用行为
+    √ 连续调用 getToken 不抛异常
+
+  console.log
+    [db] better-sqlite3 初始化成功: E:\JC-ZJFA\server\midou_data.db
+
+      at Object.log [as initDatabase] (server/database.js:586:13)
+
+  console.log
+    [cache-warmer] cache.json OK (1032ms)
+
+      at log (server/core/cache-warmer.js:23:15)
+
+  console.log
+    [cache-warmer] allplays.json OK (16ms)
+
+      at log (server/core/cache-warmer.js:23:15)
+
+  console.log
+    [cache-warmer] odds_history (2026-06-19) OK (1ms)
+
+      at log (server/core/cache-warmer.js:23:15)
+
+  console.log
+    [cache-warmer] jczq_change_cache.json OK (1ms)
+
+      at log (server/core/cache-warmer.js:23:15)
+
+  console.log
+    [cache-warmer] ai_cache.json OK (103ms)
+
+      at log (server/core/cache-warmer.js:23:15)
+
+  console.log
+    [cache-warmer] 预热完成: 6 成功 / 0 失败
+
+      at log (server/core/cache-warmer.js:23:15)
+
+PASS server/tests/cache-warmer.test.js
+  cache-warmer — warmUp 基础流程
+    √ warmUp 返回统计对象 (1348 ms)
+    ○ skipped warmUp 尝试 6 步预热（可能有文件不存在的错误）
+    ○ skipped 自定义 log 函数被调用
+    ○ skipped files 对象包含 6 个缓存文件
+    ○ skipped 每个文件结果有 ok 状态
+    ○ skipped 连续调用不抛异常
+    ○ skipped 无参数调用使用默认 log
+
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From server/tests/token_manager.test.js.
+
+    [0m [90m 86 |[39m           [36mlet[39m text[33m;[39m
+     [90m 87 |[39m           [36mtry[39m {
+    [31m[1m>[22m[39m[90m 88 |[39m             text [33m=[39m iconv[33m.[39mdecode(buffer[33m,[39m [32m'utf-8'[39m)[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 89 |[39m             [33mJSON[39m[33m.[39mparse(text)[33m;[39m
+     [90m 90 |[39m           } [36mcatch[39m (e) {
+     [90m 91 |[39m             [36mtry[39m {[0m
+
+      at Object.getCodec (server/node_modules/iconv-lite/lib/index.js:65:15)
+      at Object.getDecoder (server/node_modules/iconv-lite/lib/index.js:128:30)
+      at Object.decode (server/node_modules/iconv-lite/lib/index.js:39:32)
+      at IncomingMessage.decode (server/token_manager.js:88:26)
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "[token_manager] [主账户] 登录成功".
+
+    [0m [90m 124 |[39m   [36mconst[39m res [33m=[39m [36mawait[39m [36mget[39m([32m'https://midou310.com/mdsj/gduser/login.do'[39m[33m,[39m { mobile[33m,[39m password })[33m;[39m
+     [90m 125 |[39m   [36mif[39m (res[33m.[39mcode [33m===[39m [35m1[39m) {
+    [31m[1m>[22m[39m[90m 126 |[39m     console[33m.[39mlog([32m`[token_manager] [${label}] 登录成功`[39m)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 127 |[39m     [36mreturn[39m res[33m.[39mdata[33m.[39mtoken[33m;[39m
+     [90m 128 |[39m   }
+     [90m 129 |[39m   console[33m.[39mwarn([0m
+
+      at console.log (node_modules/@jest/console/build/CustomConsole.js:141:10)
+      at log (server/token_manager.js:126:13)
+      at doLogin (server/token_manager.js:138:15)
+      at server/token_manager.js:167:15
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "[token_manager] 登录成功, Token 有效期至 2026-06-19T14:38:24.864Z".
+
+    [0m [90m 167 |[39m       token [33m=[39m [36mawait[39m doLogin()[33m;[39m
+     [90m 168 |[39m       expireAt [33m=[39m [33mDate[39m[33m.[39mnow() [33m+[39m [33mTOKEN_TTL[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 169 |[39m       console[33m.[39mlog([32m'[token_manager] 登录成功, Token 有效期至'[39m[33m,[39m [36mnew[39m [33mDate[39m(expireAt)[33m.[39mtoISOString())[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 170 |[39m       [36mreturn[39m token[33m;[39m
+     [90m 171 |[39m     } [36mcatch[39m (e) {
+     [90m 172 |[39m       console[33m.[39merror([32m'[token_manager] 登录失败:'[39m[33m,[39m e[33m.[39mmessage)[33m;[39m[0m
+
+      at console.log (node_modules/@jest/console/build/CustomConsole.js:141:10)
+      at log (server/token_manager.js:169:15)
+
+  console.log
+    [db] 完整性校验通过
+
+      at Object.log [as initDatabase] (server/database.js:591:17)
+
+  console.log
+    [model-weights] V3.0 30天真实模型命中 → A=30.0%(17场) B=41.2%(17场) C=35.3%(17场) → 权重 wA=0.2974 wB=0.3719 wC=0.3306
+
+      at log (server/gongshoudao/model-weights.js:128:11)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+  console.log
+    [doubao] 开始生成分析: 主队 vs 客队
+
+      at Object.log [as generateAnalysis] (server/doubao.js:105:11)
+
+PASS server/gongshoudao/tests/goal.test.js
+  gongshoudao/goal — analyze
+    √ 应导出 analyze 函数 (1 ms)
+    √ 应返回核心大小球分析字段 (2397 ms)
+    totalGoalsExpect
+      √ 应为数字字符串格式 (1 ms)
+    xgHome / xgAway
+      √ xgHome 应为正数 (1 ms)
+      √ xgAway 应为正数
+    goalRange
+      √ 应包含 lower/upper/range (1 ms)
+      √ lower <= upper (2 ms)
+    fieldIntensity
+      √ 应为正数
+    fusion (四重熔断) 字段
+      √ 应包含 fusionConsensus 和 fusionFinalTotal
+    内部权重 _weights
+      √ 应包含 home/away (2 ms)
+      √ S>0 时 wHome > 0.5 (1 ms)
+      √ S<0 时 wHome < 0.5 (1 ms)
+    攻防进球 attDefGoal
+      √ 应为正数 (1 ms)
+    进球分布稳定性
+      √ 应包含稳定性字段 (2 ms)
+    边界条件
+      √ 极端 S 值不崩溃 (1 ms)
+      √ 缺失数据不崩溃 (1 ms)
+      √ 负数进球不应崩溃 (1 ms)
+
+PASS server/tests/doubao.test.js
+  doubao — 模块导出
+    √ 导出 callDoubao (1 ms)
+    √ 导出 generateAnalysis
+    √ 导出 batchGenerate
+  doubao — generateAnalysis 参数验证
+    √ 调用 generateAnalysis 返回 Promise (855 ms)
+    √ batchGenerate 返回 Promise (31 ms)
+
+PASS server/tests/plan-generator-extra.test.js
+  plan-generator 补充测试
+    exports
+      √ should export module (1 ms)
+      √ should have known keys (1 ms)
+    generatePlans (if exported)
+      √ should handle empty match list without throw
+      √ should handle single match with budget
+      √ should handle match with full odds
+    filterPlansByBudget (if exported)
+      √ should filter plans (1 ms)
+    edge cases
+      √ should handle null gracefully
+      √ should handle undefined gracefully
+
+E:\JC-ZJFA\server\doubao.js:53
+          return reject(new Error('豆包 API error ' + res.statusCode + ': ' + body.slice(0, 200)));
+                        ^
+
+Error: 豆包 API error 401: {"error":{"code":"AuthenticationError","message":"The API key format is incorrect. Request id: 021781876905241ed36e414884cda3f1f4a934ca6621dbb4d9e3b","param":"","type":"Unauthorized"}}
+    at IncomingMessage.<anonymous> (E:\JC-ZJFA\server\doubao.js:53:25)
+    at IncomingMessage.emit (node:events:520:35)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+  console.warn
+    [API] retry-action 请求失败，重试中 (3/3): 网络错误
+
+    [0m [90m 65 |[39m       [36mconst[39m canRetry [33m=[39m retries [33m>[39m [35m0[39m [33m&&[39m [33m![39merr[33m.[39mnonRetryable[33m;[39m
+     [90m 66 |[39m       [36mif[39m (canRetry) {
+    [31m[1m>[22m[39m[90m 67 |[39m         console[33m.[39mwarn([32m`[API] ${action} 请求失败，重试中 (${4 - retries}/3):`[39m[33m,[39m err[33m.[39mmessage)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 68 |[39m         [36mreturn[39m [36mnew[39m [33mPromise[39m((resolve) [33m=>[39m setTimeout(resolve[33m,[39m [35m2000[39m))[33m.[39mthen(() [33m=>[39m api(action[33m,[39m data[33m,[39m retries [33m-[39m [35m1[39m))[33m;[39m
+     [90m 69 |[39m       }
+     [90m 70 |[39m       [36mthrow[39m err[33m;[39m[0m
+
+      at warn (preview/js/api.js:67:17)
+
+  console.log
+    [gs] === 全量计算（增量模式） ===
+
+      at log (server/gongshoudao/index.js:855:11)
+
+PASS server/tests/index_api.test.js (6.572 s)
+  API Action Route Logic
+    action dispatch — known actions
+      √ action "income-stats" 应为已知路由 (2 ms)
+      √ action "income-rank" 应为已知路由
+      √ action "filter-stats" 应为已知路由
+      √ action "filter-leagues" 应为已知路由
+      √ action "hit-rate" 应为已知路由
+      √ action "match-list" 应为已知路由 (1 ms)
+      √ action "match-detail" 应为已知路由
+      √ action "recommend-trend" 应为已知路由
+      √ action "score-plan-list" 应为已知路由 (32 ms)
+      √ action "quant-plan-list" 应为已知路由 (2 ms)
+      √ action "prediction-backtest" 应为已知路由 (1 ms)
+      √ action "gongshoudao-all" 应为已知路由 (1 ms)
+      √ action "gongshoudao-compute" 应为已知路由
+      √ action "gongshoudao-single" 应为已知路由 (1 ms)
+    API 响应格式规范
+      √ 成功响应应包含 code:1 (1 ms)
+      √ 失败响应应包含 code:0 和 message
+      √ 未知 action 应返回 code:0 (1 ms)
+    参数验证规则
+      √ date 格式应为 YYYY-MM-DD (1 ms)
+      √ matchId 应为非空字符串
+      √ page 应为正整数
+      √ pageSize 应有上限 (1 ms)
+    quant-plan-list action
+      √ plan-generator 应导出核心函数 (2689 ms)
+      √ 量化方案应包含 isMatchWon/isMatchLose 字段
+    prediction-backtest action
+      √ prediction_log 应导出 queryBacktest (2028 ms)
+      √ 应支持 type 参数(spf/overunder/score) (1 ms)
+    gongshoudao-related actions
+      √ gongshoudao index 应导出 refreshCache 和 computeAll (1621 ms)
+    match-detail action
+      √ match-detail 应需要 matchId 参数 (1 ms)
+
+  console.log
+    [gs] 已有缓存 16206 场，增量更新...
+
+      at log (server/gongshoudao/index.js:864:13)
+
+  console.log
+    [gs] 缓存仍在 TTL 内，直接返回缓存结果
+
+      at log (server/gongshoudao/index.js:868:13)
+
+PASS server/tests/health.test.js
+  health — deepCheck 冒烟测试
+    √ deepCheck 返回完整结构 (1097 ms)
+    √ checks 包含 memory 检查 (327 ms)
+    √ checks 包含 dataJson 检查 (263 ms)
+    √ check 状态为已知值 (252 ms)
+    √ dataJson error → 综合状态 degraded (282 ms)
+    √ 连续调用不抛异常 (482 ms)
+
+  console.log
+    [db] better-sqlite3 初始化成功: E:\JC-ZJFA\server\midou_data.db
+
+      at Object.log [as initDatabase] (server/database.js:586:13)
+
+  console.log
+    [db] 完整性校验通过
+
+      at Object.log [as initDatabase] (server/database.js:591:17)
+
+  console.log
+    [model-weights] V3.0 30天真实模型命中 → A=30.0%(17场) B=41.2%(17场) C=35.3%(17场) → 权重 wA=0.2974 wB=0.3719 wC=0.3306
+
+      at log (server/gongshoudao/model-weights.js:128:11)
+
+  console.log
+    [prediction_log] table initialized
+
+      at log (server/prediction_log.js:166:13)
+
+PASS server/gongshoudao/tests/index.test.js
+  gongshoudao/index — 模块加载
+    √ 成功加载 index 模块 (1 ms)
+    √ 导出 refreshCache
+    √ 导出 computeAll (1 ms)
+    √ 导出 readCache
+    √ 导出 computeSingleMatch
+    √ 导出 writeCache
+    √ 导出 getMatchResult
+    √ 导出 crossMatchAll (1 ms)
+  gongshoudao/index — refreshCache
+    √ refreshCache 返回 Promise (490 ms)
+  gongshoudao/index — readCache
+    √ readCache 返回对象（缓存文件存在则读、不存在则空对象）
+  gongshoudao/index — computeSingleMatch
+    √ 空 rawStats (null) → 返回 null (1 ms)
+    √ 空 rawStats (undefined) → 返回 null
+    √ 缺必要字段的 rawStats → 不抛异常 (1139 ms)
+
+  console.warn
+    [API] fail-action 请求失败，重试中 (3/3): 持续失败
+
+    [0m [90m 65 |[39m       [36mconst[39m canRetry [33m=[39m retries [33m>[39m [35m0[39m [33m&&[39m [33m![39merr[33m.[39mnonRetryable[33m;[39m
+     [90m 66 |[39m       [36mif[39m (canRetry) {
+    [31m[1m>[22m[39m[90m 67 |[39m         console[33m.[39mwarn([32m`[API] ${action} 请求失败，重试中 (${4 - retries}/3):`[39m[33m,[39m err[33m.[39mmessage)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 68 |[39m         [36mreturn[39m [36mnew[39m [33mPromise[39m((resolve) [33m=>[39m setTimeout(resolve[33m,[39m [35m2000[39m))[33m.[39mthen(() [33m=>[39m api(action[33m,[39m data[33m,[39m retries [33m-[39m [35m1[39m))[33m;[39m
+     [90m 69 |[39m       }
+     [90m 70 |[39m       [36mthrow[39m err[33m;[39m[0m
+
+      at warn (preview/js/api.js:67:17)
+
+FAIL server/tests/e2e-smoke-ci.test.js (7.642 s)
+  E2E Smoke — 主链路冒烟
+    √ GET /api/health → 200 ok (8 ms)
+    × match-list → code=1 + 含 matchId (2070 ms)
+    × week-dates → code=1 (34 ms)
+    × ranking-list → code=1 + 含 ranking 字段 (1032 ms)
+    × plan-list → code=1 (12 ms)
+    √ match-odds → code=1 或无数据 (13 ms)
+    √ batch-match-odds → code=1 (13 ms)
+    × ai-health-check → code=1 (38 ms)
+    √ cache-stats → code=1 (1829 ms)
+    √ income-stats → code=1 (1985 ms)
+    √ hit-rate-stats → code=1 (24 ms)
+    √ prediction-fusion → code=1 (3 ms)
+    √ gongshoudao-all → code=1 (9 ms)
+
+  ● E2E Smoke — 主链路冒烟 › match-list → code=1 + 含 matchId
+
+    TypeError: Cannot read properties of null (reading 'status')
+
+    [0m [90m 39 |[39m   [36mreturn[39m [36mfunction[39m () {
+     [90m 40 |[39m     [36mvar[39m r [33m=[39m result[33m;[39m
+    [31m[1m>[22m[39m[90m 41 |[39m     [36mif[39m (r[33m.[39mstatus [33m===[39m [35m502[39m) [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m': 502 Bad Gateway (PM2 restarting?)'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 42 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mcode [33m===[39m [35m1[39m) [36mreturn[39m r[33m;[39m
+     [90m 43 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mpending) [36mreturn[39m r[33m;[39m [90m// AI pending is OK[39m
+     [90m 44 |[39m     [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m' code='[39m [33m+[39m r[33m.[39mbody[33m.[39mcode [33m+[39m [32m' msg='[39m [33m+[39m (r[33m.[39mbody[33m.[39mmsg [33m||[39m [32m''[39m))[33m;[39m[0m
+
+      at status (server/tests/e2e-smoke-ci.test.js:41:11)
+
+  ● E2E Smoke — 主链路冒烟 › week-dates → code=1
+
+    TypeError: Cannot read properties of null (reading 'status')
+
+    [0m [90m 39 |[39m   [36mreturn[39m [36mfunction[39m () {
+     [90m 40 |[39m     [36mvar[39m r [33m=[39m result[33m;[39m
+    [31m[1m>[22m[39m[90m 41 |[39m     [36mif[39m (r[33m.[39mstatus [33m===[39m [35m502[39m) [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m': 502 Bad Gateway (PM2 restarting?)'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 42 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mcode [33m===[39m [35m1[39m) [36mreturn[39m r[33m;[39m
+     [90m 43 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mpending) [36mreturn[39m r[33m;[39m [90m// AI pending is OK[39m
+     [90m 44 |[39m     [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m' code='[39m [33m+[39m r[33m.[39mbody[33m.[39mcode [33m+[39m [32m' msg='[39m [33m+[39m (r[33m.[39mbody[33m.[39mmsg [33m||[39m [32m''[39m))[33m;[39m[0m
+
+      at status (server/tests/e2e-smoke-ci.test.js:41:11)
+
+  ● E2E Smoke — 主链路冒烟 › ranking-list → code=1 + 含 ranking 字段
+
+    TypeError: Cannot read properties of null (reading 'status')
+
+    [0m [90m 39 |[39m   [36mreturn[39m [36mfunction[39m () {
+     [90m 40 |[39m     [36mvar[39m r [33m=[39m result[33m;[39m
+    [31m[1m>[22m[39m[90m 41 |[39m     [36mif[39m (r[33m.[39mstatus [33m===[39m [35m502[39m) [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m': 502 Bad Gateway (PM2 restarting?)'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 42 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mcode [33m===[39m [35m1[39m) [36mreturn[39m r[33m;[39m
+     [90m 43 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mpending) [36mreturn[39m r[33m;[39m [90m// AI pending is OK[39m
+     [90m 44 |[39m     [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m' code='[39m [33m+[39m r[33m.[39mbody[33m.[39mcode [33m+[39m [32m' msg='[39m [33m+[39m (r[33m.[39mbody[33m.[39mmsg [33m||[39m [32m''[39m))[33m;[39m[0m
+
+      at status (server/tests/e2e-smoke-ci.test.js:41:11)
+
+  ● E2E Smoke — 主链路冒烟 › plan-list → code=1
+
+    TypeError: Cannot read properties of null (reading 'status')
+
+    [0m [90m 39 |[39m   [36mreturn[39m [36mfunction[39m () {
+     [90m 40 |[39m     [36mvar[39m r [33m=[39m result[33m;[39m
+    [31m[1m>[22m[39m[90m 41 |[39m     [36mif[39m (r[33m.[39mstatus [33m===[39m [35m502[39m) [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m': 502 Bad Gateway (PM2 restarting?)'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 42 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mcode [33m===[39m [35m1[39m) [36mreturn[39m r[33m;[39m
+     [90m 43 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mpending) [36mreturn[39m r[33m;[39m [90m// AI pending is OK[39m
+     [90m 44 |[39m     [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m' code='[39m [33m+[39m r[33m.[39mbody[33m.[39mcode [33m+[39m [32m' msg='[39m [33m+[39m (r[33m.[39mbody[33m.[39mmsg [33m||[39m [32m''[39m))[33m;[39m[0m
+
+      at status (server/tests/e2e-smoke-ci.test.js:41:11)
+
+  ● E2E Smoke — 主链路冒烟 › ai-health-check → code=1
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 1
+    Received: 0
+
+    [0m [90m 145 |[39m     [36mif[39m (skipIfDown()) [36mreturn[39m[33m;[39m
+     [90m 146 |[39m     [36mreturn[39m api([32m'ai-health-check'[39m[33m,[39m {})[33m.[39mthen([36mfunction[39m (r) {
+    [31m[1m>[22m[39m[90m 147 |[39m       expect(r[33m.[39mbody[33m.[39mcode)[33m.[39mtoBe([35m1[39m)[33m;[39m
+     [90m     |[39m                           [31m[1m^[22m[39m
+     [90m 148 |[39m       expect(r[33m.[39mbody[33m.[39mdata)[33m.[39mtoBeDefined()[33m;[39m
+     [90m 149 |[39m     })[33m;[39m
+     [90m 150 |[39m   })[33m;[39m[0m
+
+      at toBe (server/tests/e2e-smoke-ci.test.js:147:27)
+
+PASS preview/tests/api.test.js (6.331 s)
+  api — 前端 API 封装
+    √ api 是函数 (1 ms)
+    √ 发送 POST 请求到 API 端点 (5 ms)
+    √ code=0 或非 1 → 抛出错误 (13 ms)
+    √ pending 响应 → 返回原始对象 (1 ms)
+    √ 网络错误 → 重试 (最多2次) (4025 ms)
+    √ 全部重试失败 → 抛出最后错误 (2021 ms)
+
+-----------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+File                         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                                                                                                                                                                                                                                          
+-----------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+All files                    |    51.5 |    43.38 |   61.73 |    54.8 |                                                                                                                                                                                                                                                                                                                                            
+ server                      |   47.84 |    48.88 |   56.03 |   50.93 |                                                                                                                                                                                                                                                                                                                                            
+  prediction_log.js          |   64.38 |    57.18 |   74.82 |   71.77 | 26-28,31-32,47,60-61,72-73,84-85,97,212,223-233,305-314,335-341,344-350,353-359,446,448-456,490-508,551-560,585,588,605,609,636-650,656-668,752,764,802-805,815-817,821-823,872,887-890,898-901,906,909-910,918-919,922-923,926-927,931-932,935-936,972,991,996-1000,1067,1108-1109,1222,1349-1351,1367,1430,1444-1618,1626-1640,1646-1661 
+  scheduler_v2.js            |   23.63 |    20.63 |   23.52 |    24.5 | 49,67-68,83-84,98-100,120,135,167,170-171,202-207,259-262,307-483,535-753,769-807,827-1241,1248-1250                                                                                                                                                                                                                                       
+ server/core                 |    49.2 |    38.98 |   63.02 |   53.36 |                                                                                                                                                                                                                                                                                                                                            
+  ai-timing.js               |   95.83 |       50 |     100 |   95.83 | 20                                                                                                                                                                                                                                                                                                                                         
+  bet-scheme-filters.js      |   58.61 |    53.51 |   67.14 |   61.48 | 129-131,202,204,206,225-226,280,308-441,512-515,539-540,657,672,694,724-750,769-798,824-844,876,912                                                                                                                                                                                                                                        
+  cache-warmer.js            |   83.92 |     62.5 |     100 |   83.63 | 45-47,59,69,78,86,97,106                                                                                                                                                                                                                                                                                                                   
+  cache.js                   |   51.81 |    30.46 |   57.14 |   57.92 | 57-60,69-70,79-115,128-129,149-165,178-186,195-199,213,239,248-270                                                                                                                                                                                                                                                                         
+  data-fusion.js             |   86.66 |    66.48 |    92.3 |   93.03 | 38,52,109-110,304-305,404-410                                                                                                                                                                                                                                                                                                              
+  data-quality.js            |   48.31 |     32.6 |   58.33 |   46.42 | 122-217,240-241                                                                                                                                                                                                                                                                                                                            
+  feature-engine.js          |   33.57 |    23.52 |   88.88 |   35.84 | 32-56,136,146-180,190-220,231-250,265-290,305-322,337-442,449-463                                                                                                                                                                                                                                                                          
+  file-tracker.js            |   77.38 |       50 |     100 |   78.48 | 64,80,103,115-116,133,160-165,178-189                                                                                                                                                                                                                                                                                                      
+  file-utils.js              |      75 |    66.66 |     100 |   73.68 | 32,37-41                                                                                                                                                                                                                                                                                                                                   
+  health.js                  |   73.17 |    47.91 |      80 |   72.36 | 55,62-66,77,92-93,102,123-129,134,147,164-167,174,181-182                                                                                                                                                                                                                                                                                  
+  league-heat-profile.js     |      95 |     87.5 |     100 |   94.44 | 101                                                                                                                                                                                                                                                                                                                                        
+  market-overlay.js          |   95.39 |    82.72 |    91.3 |   97.85 | 199,213-224                                                                                                                                                                                                                                                                                                                                
+  match-context-collector.js |   68.52 |    63.71 |   69.23 |   69.56 | 33-35,53-59,120-121,134,256-318,389-421,466-472                                                                                                                                                                                                                                                                                            
+  match-data-pack.js         |    8.66 |        0 |       0 |   10.67 | 27-267                                                                                                                                                                                                                                                                                                                                     
+  midou.js                   |   25.58 |    12.64 |   30.76 |   26.58 | 26,33,44-161                                                                                                                                                                                                                                                                                                                               
+  odds-movement.js           |   97.36 |    83.33 |     100 |   97.05 | 134-135                                                                                                                                                                                                                                                                                                                                    
+  odds-provider.js           |   94.11 |    83.75 |     100 |   94.33 | 50,97,114                                                                                                                                                                                                                                                                                                                                  
+  odds-tracker.js            |   79.31 |       72 |     100 |   81.48 | 133,143,163-168,185-190                                                                                                                                                                                                                                                                                                                    
+  outcome-backfill.js        |    53.7 |     57.5 |   57.14 |    55.2 | 33-118,173-210,295-300                                                                                                                                                                                                                                                                                                                     
+  plan-generator.js          |   20.33 |    18.65 |    30.1 |      23 | 28,108,110,139,207,229,336-337,352,385-451,472-545,571-574,590-592,601-603,626-627,635-638,657-1625,1635-1984                                                                                                                                                                                                                              
+  prediction-adapter.js      |   60.28 |    49.86 |   84.61 |   60.57 | 137-138,196,235-236,261-266,272-279,329-338,355-398,431-443,452-453,456-457,469-470,499-541,574-579,593-594,631-687                                                                                                                                                                                                                        
+  prediction-fusion.js       |   92.12 |    84.04 |     100 |   92.61 | 90,308-319,364                                                                                                                                                                                                                                                                                                                             
+  shadow-account.js          |   65.51 |    45.23 |   65.71 |   68.81 | 129,145-146,247,367-411,431-480,497,512-549,580,584,624-627                                                                                                                                                                                                                                                                                
+  sp_data_adapter.js         |   53.69 |     37.7 |   54.54 |   60.48 | 40,83-170,239-245,257,268-269                                                                                                                                                                                                                                                                                                              
+ server/gongshoudao          |   59.25 |    50.74 |    64.7 |   60.37 |                                                                                                                                                                                                                                                                                                                                            
+  attack.js                  |   96.89 |    93.93 |     100 |   97.41 | 367-369                                                                                                                                                                                                                                                                                                                                    
+  cache_manager.js           |   58.66 |    41.79 |    65.9 |   60.09 | 57-71,85-89,104-105,115,167,178-179,183,218,223-226,242-243,248,284,289-292,305-306,310,353-358,383-387,392-393,410-437,462-479,485-508                                                                                                                                                                                                    
+  diff.js                    |   78.51 |    63.97 |     100 |   84.74 | 125-126,128-129,161,169,214,222,279-282,288-291,296-299,302-305                                                                                                                                                                                                                                                                            
+  fetch.js                   |   19.03 |        9 |   33.33 |    20.8 | 30,52,154-168,187,200-213,258-456,478-485,565-940,1010-1086                                                                                                                                                                                                                                                                                
+  fusion.js                  |   89.15 |     87.5 |      75 |   89.15 | 156-167                                                                                                                                                                                                                                                                                                                                    
+  goal.js                    |   81.56 |    77.65 |   66.66 |   82.85 | 65-68,78-79,89,146-156,340-346,362,388-391,400-403                                                                                                                                                                                                                                                                                         
+  index.js                   |   30.15 |    26.11 |   41.37 |   31.81 | 63-64,98-130,137-142,154-208,241-243,267,279,289,431-732,812-844,873-1022                                                                                                                                                                                                                                                                  
+  market.js                  |   50.28 |    31.78 |   83.33 |   49.09 | 38-78,207-223,233-235,254-291,302-319,325-326,331-343,352,354,357-360,365-366,368-369                                                                                                                                                                                                                                                      
+  model-weights.js           |   95.77 |    88.88 |     100 |   95.52 | 180-182                                                                                                                                                                                                                                                                                                                                    
+  parser.js                  |   94.54 |    88.96 |   88.88 |   96.32 | 111-112,194-196                                                                                                                                                                                                                                                                                                                            
+  score.js                   |   93.92 |       90 |   95.65 |   93.42 | 434-446,463-465,511                                                                                                                                                                                                                                                                                                                        
+-----------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Summary of all failing tests
+FAIL server/tests/e2e-smoke-ci.test.js (7.642 s)
+  ● E2E Smoke — 主链路冒烟 › match-list → code=1 + 含 matchId
+
+    TypeError: Cannot read properties of null (reading 'status')
+
+    [0m [90m 39 |[39m   [36mreturn[39m [36mfunction[39m () {
+     [90m 40 |[39m     [36mvar[39m r [33m=[39m result[33m;[39m
+    [31m[1m>[22m[39m[90m 41 |[39m     [36mif[39m (r[33m.[39mstatus [33m===[39m [35m502[39m) [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m': 502 Bad Gateway (PM2 restarting?)'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 42 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mcode [33m===[39m [35m1[39m) [36mreturn[39m r[33m;[39m
+     [90m 43 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mpending) [36mreturn[39m r[33m;[39m [90m// AI pending is OK[39m
+     [90m 44 |[39m     [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m' code='[39m [33m+[39m r[33m.[39mbody[33m.[39mcode [33m+[39m [32m' msg='[39m [33m+[39m (r[33m.[39mbody[33m.[39mmsg [33m||[39m [32m''[39m))[33m;[39m[0m
+
+      at status (server/tests/e2e-smoke-ci.test.js:41:11)
+
+  ● E2E Smoke — 主链路冒烟 › week-dates → code=1
+
+    TypeError: Cannot read properties of null (reading 'status')
+
+    [0m [90m 39 |[39m   [36mreturn[39m [36mfunction[39m () {
+     [90m 40 |[39m     [36mvar[39m r [33m=[39m result[33m;[39m
+    [31m[1m>[22m[39m[90m 41 |[39m     [36mif[39m (r[33m.[39mstatus [33m===[39m [35m502[39m) [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m': 502 Bad Gateway (PM2 restarting?)'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 42 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mcode [33m===[39m [35m1[39m) [36mreturn[39m r[33m;[39m
+     [90m 43 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mpending) [36mreturn[39m r[33m;[39m [90m// AI pending is OK[39m
+     [90m 44 |[39m     [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m' code='[39m [33m+[39m r[33m.[39mbody[33m.[39mcode [33m+[39m [32m' msg='[39m [33m+[39m (r[33m.[39mbody[33m.[39mmsg [33m||[39m [32m''[39m))[33m;[39m[0m
+
+      at status (server/tests/e2e-smoke-ci.test.js:41:11)
+
+  ● E2E Smoke — 主链路冒烟 › ranking-list → code=1 + 含 ranking 字段
+
+    TypeError: Cannot read properties of null (reading 'status')
+
+    [0m [90m 39 |[39m   [36mreturn[39m [36mfunction[39m () {
+     [90m 40 |[39m     [36mvar[39m r [33m=[39m result[33m;[39m
+    [31m[1m>[22m[39m[90m 41 |[39m     [36mif[39m (r[33m.[39mstatus [33m===[39m [35m502[39m) [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m': 502 Bad Gateway (PM2 restarting?)'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 42 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mcode [33m===[39m [35m1[39m) [36mreturn[39m r[33m;[39m
+     [90m 43 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mpending) [36mreturn[39m r[33m;[39m [90m// AI pending is OK[39m
+     [90m 44 |[39m     [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m' code='[39m [33m+[39m r[33m.[39mbody[33m.[39mcode [33m+[39m [32m' msg='[39m [33m+[39m (r[33m.[39mbody[33m.[39mmsg [33m||[39m [32m''[39m))[33m;[39m[0m
+
+      at status (server/tests/e2e-smoke-ci.test.js:41:11)
+
+  ● E2E Smoke — 主链路冒烟 › plan-list → code=1
+
+    TypeError: Cannot read properties of null (reading 'status')
+
+    [0m [90m 39 |[39m   [36mreturn[39m [36mfunction[39m () {
+     [90m 40 |[39m     [36mvar[39m r [33m=[39m result[33m;[39m
+    [31m[1m>[22m[39m[90m 41 |[39m     [36mif[39m (r[33m.[39mstatus [33m===[39m [35m502[39m) [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m': 502 Bad Gateway (PM2 restarting?)'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 42 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mcode [33m===[39m [35m1[39m) [36mreturn[39m r[33m;[39m
+     [90m 43 |[39m     [36mif[39m (r[33m.[39mbody[33m.[39mpending) [36mreturn[39m r[33m;[39m [90m// AI pending is OK[39m
+     [90m 44 |[39m     [36mthrow[39m [36mnew[39m [33mError[39m(label [33m+[39m [32m' code='[39m [33m+[39m r[33m.[39mbody[33m.[39mcode [33m+[39m [32m' msg='[39m [33m+[39m (r[33m.[39mbody[33m.[39mmsg [33m||[39m [32m''[39m))[33m;[39m[0m
+
+      at status (server/tests/e2e-smoke-ci.test.js:41:11)
+
+  ● E2E Smoke — 主链路冒烟 › ai-health-check → code=1
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 1
+    Received: 0
+
+    [0m [90m 145 |[39m     [36mif[39m (skipIfDown()) [36mreturn[39m[33m;[39m
+     [90m 146 |[39m     [36mreturn[39m api([32m'ai-health-check'[39m[33m,[39m {})[33m.[39mthen([36mfunction[39m (r) {
+    [31m[1m>[22m[39m[90m 147 |[39m       expect(r[33m.[39mbody[33m.[39mcode)[33m.[39mtoBe([35m1[39m)[33m;[39m
+     [90m     |[39m                           [31m[1m^[22m[39m
+     [90m 148 |[39m       expect(r[33m.[39mbody[33m.[39mdata)[33m.[39mtoBeDefined()[33m;[39m
+     [90m 149 |[39m     })[33m;[39m
+     [90m 150 |[39m   })[33m;[39m[0m
+
+      at toBe (server/tests/e2e-smoke-ci.test.js:147:27)
+
+
+Test Suites: 1 failed, 104 passed, 105 total
+Tests:       5 failed, 14 skipped, 1777 passed, 1796 total
+Snapshots:   0 total
+Time:        16.512 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

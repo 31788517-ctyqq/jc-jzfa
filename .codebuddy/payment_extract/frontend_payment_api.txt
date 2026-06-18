@@ -1,0 +1,1 @@
+/data/wwwroot/quncai_wap/alipay_recharge.jsp:20:		AlipayJSBridge.call('tradePay', options, function(result) {

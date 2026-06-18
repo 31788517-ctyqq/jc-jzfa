@@ -8,21 +8,28 @@ function logErr(errs) { return expect(errs.length).toBeLessThanOrEqual(1); }
 
 async function setupMockedLogin(page, opts = {}) {
   const sub = opts.subscription_status || 'active', roles = opts.roles || ['viewer'];
+  const referralEnabled = opts.referralEnabled !== undefined ? !!opts.referralEnabled : true;
   await page.route('**/api**', (route) => {
     const raw = route.request().postData() || '{}';
     let p = {}; try { p = JSON.parse(raw); } catch (_) {}
     if (p.action === 'auth-session') {
-      return route.fulfill({ status:200, body:JSON.stringify({ code:1, data:{ user:{ id:1, username:'e2e' }, roles, permissions:['*'], subscription_status:sub, subscription_expires_at:'2099-01-01' }}) });
+      return route.fulfill({ status:200, body:JSON.stringify({ code:1, data:{ user:{ id:1, username:'e2e' }, roles, permissions:['*'], subscription_status:sub, subscription_expires_at:'2099-01-01', referralEnabled }}) });
+    }
+    if (p.action === 'referral-withdraw-history') {
+      return F0(route, { list: [] });
+    }
+    if (p.action === 'referral-info') {
+      return F0(route, { referralCode: 'A3F7C02B', shareUrl: 'https://zj.100qiu.com/#register?ref=A3F7C02B' });
     }
     if (opts.onApi && opts.onApi(p, route)) return;
     route.continue();
   });
   await page.goto('/preview/index.html'); await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(500);
-  await page.evaluate(({ sub, roles }) => {
+  await page.evaluate(({ sub, roles, referralEnabled }) => {
     localStorage.setItem('auth_token','e2e-tok');
-    localStorage.setItem('auth_session', JSON.stringify({ user:{ id:1, username:'e2e' }, roles, permissions:['*'], subscription_status:sub, subscription_expires_at:'2099-01-01' }));
-  }, { sub, roles });
+    localStorage.setItem('auth_session', JSON.stringify({ user:{ id:1, username:'e2e' }, roles, permissions:['*'], subscription_status:sub, subscription_expires_at:'2099-01-01', referralEnabled }));
+  }, { sub, roles, referralEnabled });
   await page.reload(); await page.waitForLoadState('networkidle'); await page.waitForTimeout(300);
 }
 
@@ -134,7 +141,7 @@ test.describe('P4-16~18', () => {
     const e = rt(page);
     await setupMockedLogin(page, { subscription_status:'active', onApi(p,r){ if(p.action==='referral-account') return F0(r,{totalEarned:44400,balance:44400,totalCommissions:1,recentCommissions:[{invitee:'u1',plan:'年度',amount:88800,rate:50,commission:44400,paymentIndex:1,status:'cancelled',createdAt:'2026-06-11'}]}); }});
     await navTo(page, 'referral'); await page.waitForTimeout(500);
-    expect(await page.textContent('body')).toContain('cancelled'); logErr(e);
+    expect(await page.textContent('body')).toContain('已取消'); logErr(e);
   });
   test('P4-17 提现弹窗', async ({ page }) => {
     const e = rt(page);

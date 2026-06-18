@@ -1,9 +1,9 @@
 // 颜色常量、工具函数
-var _LOCAL_API_HOSTS = ['localhost', '127.0.0.1', '::1'];
-var _isLocalPreview = false;
+const _LOCAL_API_HOSTS = ['localhost', '127.0.0.1', '::1'];
+let _isLocalPreview = false;
 try {
   if (typeof window !== 'undefined' && window.location) {
-    var hostname = (window.location.hostname || '').toLowerCase();
+    const hostname = (window.location.hostname || '').toLowerCase();
     _isLocalPreview = window.location.protocol === 'file:' || _LOCAL_API_HOSTS.indexOf(hostname) >= 0;
   }
 } catch (e) {}
@@ -29,32 +29,32 @@ export function getWeekDay(dateStr) {
 }
 
 export function formatDate(d) {
-  var y = d.getFullYear(),
+  const y = d.getFullYear(),
     m = (d.getMonth() + 1).toString().padStart(2, '0'),
     day = d.getDate().toString().padStart(2, '0');
   return y + '-' + m + '-' + day;
 }
 
 export function formatDateCN(d) {
-  var m = (d.getMonth() + 1).toString().padStart(2, '0'),
+  const m = (d.getMonth() + 1).toString().padStart(2, '0'),
     day = d.getDate().toString().padStart(2, '0');
   return m + '月' + day + '日 ' + WEEK_NAMES[d.getDay()];
 }
 
 // ═══ sessionStorage 缓存层 ═══
 // ★ P3-4: Schema 版本号（数据结构变更时递增，自动淘汰旧缓存）
-var _CACHE_SCHEMA_VERSION = 2;
-var _CACHE_VERSION_KEY = '_cache:schema_version';
+const _CACHE_SCHEMA_VERSION = 2;
+const _CACHE_VERSION_KEY = '_cache:schema_version';
 
 // 检查并清理版本不匹配的缓存
 function checkSchemaVersion() {
   try {
-    var stored = sessionStorage.getItem(_CACHE_VERSION_KEY);
+    const stored = sessionStorage.getItem(_CACHE_VERSION_KEY);
     if (stored && parseInt(stored) === _CACHE_SCHEMA_VERSION) return;
     // 版本不匹配或首次，清除所有缓存
-    var keysToRemove = [];
-    for (var i = 0; i < sessionStorage.length; i++) {
-      var k = sessionStorage.key(i);
+    const keysToRemove = [];
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const k = sessionStorage.key(i);
       if (k && k.indexOf('_cache:') === 0) keysToRemove.push(k);
     }
     keysToRemove.forEach(function (k) {
@@ -68,7 +68,7 @@ function checkSchemaVersion() {
 checkSchemaVersion();
 
 // TTL 映射（毫秒）：不同数据类型的缓存过期时间
-var _CACHE_TTL = {
+const _CACHE_TTL = {
   'match-list': 120000, // 2 分钟
   'plan-list': 300000, // 5 分钟
   'score-plan-list': 300000, // 5 分钟
@@ -84,10 +84,10 @@ var _CACHE_TTL = {
  */
 export function getCache(key) {
   try {
-    var raw = sessionStorage.getItem('_cache:' + key);
+    const raw = sessionStorage.getItem('_cache:' + key);
     if (!raw) return null;
-    var entry = JSON.parse(raw);
-    var ttl = _CACHE_TTL[key.split(':')[0]] || _CACHE_TTL['default'];
+    const entry = JSON.parse(raw);
+    const ttl = _CACHE_TTL[key.split(':')[0]] || _CACHE_TTL['default'];
     if (Date.now() - entry.t < ttl) {
       return entry.d;
     }
@@ -109,7 +109,7 @@ export function setCache(key, data) {
 }
 
 // ═══ 匿名用户标识（Device ID） ═══
-var _deviceId = null;
+let _deviceId = null;
 export function getDeviceId() {
   if (_deviceId) return _deviceId;
   try {
@@ -117,8 +117,8 @@ export function getDeviceId() {
     if (!_deviceId) {
       // 生成 UUID v4
       _deviceId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = (Math.random() * 16) | 0;
-        var v = c === 'x' ? r : (r & 0x3) | 0x8;
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
         return v.toString(16);
       });
       localStorage.setItem('_dvid', _deviceId);
@@ -141,7 +141,7 @@ export function getDeviceId() {
 export function swrFetch(cacheKey, fetcher, renderer, ttl) {
   ttl = ttl || 120000;
   // 1) 尝试从缓存立即渲染
-  var cached = getCache(cacheKey);
+  const cached = getCache(cacheKey);
   if (cached !== null) {
     renderer(cached, true); // isStale=true（可能过期）
   }
@@ -206,7 +206,7 @@ export function renderState(el, state, opts) {
 if (typeof document !== 'undefined') {
   (function injectSpinnerCSS() {
     if (document.getElementById('utils-spinner-css')) return;
-    var style = document.createElement('style');
+    const style = document.createElement('style');
     style.id = 'utils-spinner-css';
     style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
     document.head.appendChild(style);

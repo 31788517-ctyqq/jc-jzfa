@@ -4,18 +4,18 @@ import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
 
 console.log('[V5.0-FUSION] quant-rank-fusion.js loaded — cross-tab selection enabled');
 
-var quantDate = '';
-var quantDateOffset = 0;
-var currentTab = 'power';
-var opportunityFilter = 'all';
-var allData = [];
-var pickedIds = {};
-var sortKey = 'rank';
-var sortAsc = true;
+let quantDate = '';
+let quantDateOffset = 0;
+let currentTab = 'power';
+let opportunityFilter = 'all';
+let allData = [];
+let pickedIds = {};
+let sortKey = 'rank';
+let sortAsc = true;
 
 /** 归一化 fusionConsensus 中文→英文 */
 function normalizeConsensus(raw) {
-  var c = String(raw || '');
+  const c = String(raw || '');
   if (c.indexOf('强一致') !== -1) return 'strong';
   if (c.indexOf('弱一致') !== -1) return 'weak';
   if (c.indexOf('熔断') !== -1) return 'meltdown';
@@ -23,15 +23,15 @@ function normalizeConsensus(raw) {
 }
 
 export function updateQuantDateBar() {
-  var d = new Date();
+  const d = new Date();
   d.setDate(d.getDate() + quantDateOffset);
   quantDate =
     d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  var el = document.getElementById('quantDateCurrent');
+  const el = document.getElementById('quantDateCurrent');
   if (!el) return;
-  var weekNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-  var mmdd = String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
-  var today = new Date().toDateString() === d.toDateString();
+  const weekNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  const mmdd = String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
+  const today = new Date().toDateString() === d.toDateString();
   el.textContent = (today ? '今天 ' : '') + mmdd + ' ' + weekNames[d.getDay()];
 }
 
@@ -47,7 +47,7 @@ export function goQuantToday() {
 }
 
 export function toggleQuantDatePicker() {
-  var el = document.getElementById('quantDatePicker');
+  const el = document.getElementById('quantDatePicker');
   if (!el) return;
   el.style.display = el.style.display !== 'none' ? 'none' : 'block';
 }
@@ -72,7 +72,7 @@ export function switchQuantTab(tab) {
   document.querySelectorAll('#quantFilterBar .filter-tag').forEach(function (t) {
     t.classList.remove('active');
   });
-  var t = document.querySelector('#quantFilterBar .filter-tag[data-tab="' + tab + '"]');
+  const t = document.querySelector('#quantFilterBar .filter-tag[data-tab="' + tab + '"]');
   if (t) t.classList.add('active');
   renderTable();
 }
@@ -83,7 +83,7 @@ export function togglePick(ev, matchId) {
   if (pickedIds[matchId]) delete pickedIds[matchId];
   else pickedIds[matchId] = true;
   updatePkBar();
-  var row = document.getElementById('qr-' + matchId);
+  const row = document.getElementById('qr-' + matchId);
   if (row) {
     if (pickedIds[matchId]) row.classList.add('picked');
     else row.classList.remove('picked');
@@ -91,7 +91,7 @@ export function togglePick(ev, matchId) {
 }
 
 export function startPK() {
-  var picked = allData.filter(function (item) {
+  const picked = allData.filter(function (item) {
     return pickedIds[item.matchId];
   });
   if (picked.length < 2) return;
@@ -113,10 +113,10 @@ function clearPicks() {
 }
 
 function updatePkBar() {
-  var count = Object.keys(pickedIds).length;
-  var bar = document.getElementById('quantPkBar');
-  var cntEl = document.getElementById('pkBarCount');
-  var btn = document.getElementById('pkBarBtn');
+  const count = Object.keys(pickedIds).length;
+  const bar = document.getElementById('quantPkBar');
+  const cntEl = document.getElementById('pkBarCount');
+  const btn = document.getElementById('pkBarBtn');
   if (bar) bar.style.display = count > 0 ? 'flex' : 'none';
   if (cntEl) cntEl.textContent = count;
   if (btn) btn.disabled = count < 2;
@@ -141,7 +141,7 @@ function safeArrayField(value) {
   if (!value) return [];
   if (typeof value === 'string') {
     try {
-      var parsed = JSON.parse(value);
+      const parsed = JSON.parse(value);
       if (Array.isArray(parsed)) return parsed;
     } catch (e) {}
     return value
@@ -155,9 +155,9 @@ function safeArrayField(value) {
 }
 
 function decisionCodeOf(item) {
-  var code = String(item.finalDecision || '').trim();
+  const code = String(item.finalDecision || '').trim();
   if (code) return code;
-  var level = String(item.decisionLevel || '').trim();
+  const level = String(item.decisionLevel || '').trim();
   if (level === '主推') return 'main_pick';
   if (level === '可做') return 'playable';
   if (level === '谨慎') return 'cautious';
@@ -165,10 +165,10 @@ function decisionCodeOf(item) {
 }
 
 function normalizeOpportunityFields(item) {
-  var riskTags = safeArrayField(item.riskTags);
-  var degradeReasons = safeArrayField(item.degradeReasons);
-  var stars = Math.max(0, Math.min(5, parseInt(item.stars || item.directionStars || 0, 10) || 0));
-  var level = item.decisionLevel || '';
+  const riskTags = safeArrayField(item.riskTags);
+  const degradeReasons = safeArrayField(item.degradeReasons);
+  const stars = Math.max(0, Math.min(5, parseInt(item.stars || item.directionStars || 0, 10) || 0));
+  let level = item.decisionLevel || '';
   if (!level) {
     if (item.finalDecision === 'main_pick') level = '主推';
     else if (item.finalDecision === 'playable') level = '可做';
@@ -178,8 +178,8 @@ function normalizeOpportunityFields(item) {
     else if (stars >= 2) level = '谨慎';
     else level = '观望';
   }
-  var finalDirection = item.finalDirection || item.direction || 'watch';
-  var riskLevel = item.riskLevel || (riskTags.length > 0 || level === '观望' ? 'yellow' : 'green');
+  const finalDirection = item.finalDirection || item.direction || 'watch';
+  let riskLevel = item.riskLevel || (riskTags.length > 0 || level === '观望' ? 'yellow' : 'green');
   if (item.fusionConsensus === 'meltdown') riskLevel = 'red';
   return Object.assign({}, item, {
     playType: item.playType || 'spf',
@@ -198,15 +198,15 @@ function normalizeOpportunityFields(item) {
 export function loadQuantRank() {
   pickedIds = {}; // 切换日期时清空复选框状态
   updatePkBar();
-  var wrap = document.getElementById('quantTableWrap');
+  const wrap = document.getElementById('quantTableWrap');
   if (!wrap) return;
   wrap.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载数据中...</div>';
-  var params = {};
+  const params = {};
   if (quantDate) params.date = quantDate;
 
   // ★ P1: sessionStorage 缓存命中（与 quant-rank.js 一致）
-  var cacheKey = 'quant-rank-fusion:' + (quantDate || 'latest');
-  var cachedData = getCache(cacheKey);
+  const cacheKey = 'quant-rank-fusion:' + (quantDate || 'latest');
+  const cachedData = getCache(cacheKey);
   if (cachedData) {
     allData = (Array.isArray(cachedData) ? cachedData : []).map(normalizeOpportunityFields);
     sortKey = 'rank';
@@ -228,23 +228,23 @@ export function loadQuantRank() {
     }),
   ])
     .then(function (results) {
-      var rankData = results[0] || {};
-      var gsAllData = results[1] || {};
-      var hotData = results[2] || {};
-      var ranking = rankData.ranking || [];
+      const rankData = results[0] || {};
+      const gsAllData = results[1] || {};
+      const hotData = results[2] || {};
+      const ranking = rankData.ranking || [];
       if (ranking.length === 0) {
         // 当天无数据 → 自动回退到前一天（和今日比赛页面规则一致）
-        var now = new Date();
-        var todayStr =
+        const now = new Date();
+        const todayStr =
           now.getFullYear() +
           '-' +
           String(now.getMonth() + 1).padStart(2, '0') +
           '-' +
           String(now.getDate()).padStart(2, '0');
         if (quantDateOffset === 0 && (quantDate === '' || quantDate === todayStr)) {
-          var prev = new Date();
+          const prev = new Date();
           prev.setDate(prev.getDate() - 1);
-          var prevStr =
+          const prevStr =
             prev.getFullYear() +
             '-' +
             String(prev.getMonth() + 1).padStart(2, '0') +
@@ -261,15 +261,15 @@ export function loadQuantRank() {
         return;
       }
       // ⭐ 并行结果已就绪，直接合并数据
-      var gsAllMap = gsAllData.gsData || {};
-      var hotMap = hotData && hotData.hotData ? hotData.hotData : {};
-      var gsResults = ranking.map(function (item) {
+      const gsAllMap = gsAllData.gsData || {};
+      const hotMap = hotData && hotData.hotData ? hotData.hotData : {};
+      const gsResults = ranking.map(function (item) {
         return gsAllMap[item.matchId] || {};
       });
       allData = ranking.map(function (item, i) {
-        var merged = mergeItem(item, gsResults[i] || {});
+        const merged = mergeItem(item, gsResults[i] || {});
         // ⭐ 注入热度数据
-        var hd = hotMap[item.matchId] || {};
+        const hd = hotMap[item.matchId] || {};
         if (hd.staticDiff !== undefined && hd.staticDiff !== null) merged.staticDiff = hd.staticDiff;
         if (hd.heatIndex !== null && hd.heatIndex !== undefined) merged.heatIndex = hd.heatLabel || hd.heatIndex;
         if (hd.homeFeature) merged.homeFeature = hd.homeFeature;
@@ -281,7 +281,7 @@ export function loadQuantRank() {
         merged.hasChange = hd.heatIndex != null && hd.heatIndex !== undefined;
         merged.hasYz = hd.hotFocusNum != null && hd.hotFocusNum !== undefined;
         // 计算整体完整度：0=全缺失，1=仅GS，2=GS+热度部分，3=全部就绪
-        var score = 0;
+        let score = 0;
         if (merged.hasGS) score += 1;
         if (merged.hasChange) score += 1;
         if (merged.hasYz) score += 1;
@@ -299,60 +299,60 @@ export function loadQuantRank() {
 }
 
 function mergeItem(item, gs) {
-  var cw = gs.crossWin !== undefined ? gs.crossWin : '-';
-  var cd = gs.crossDraw !== undefined ? gs.crossDraw : '-';
-  var cl = gs.crossLose !== undefined ? gs.crossLose : '-';
+  const cw = gs.crossWin !== undefined ? gs.crossWin : '-';
+  const cd = gs.crossDraw !== undefined ? gs.crossDraw : '-';
+  const cl = gs.crossLose !== undefined ? gs.crossLose : '-';
 
   // ── 进球预测维度 ──
 
   // 综合大球比例 = (主队大球比例 + 客队大球比例 + 交锋大球比例) / 3 × 100
-  var bigBall = gs.bigBallRatio != null ? gs.bigBallRatio : '-';
+  const bigBall = gs.bigBallRatio != null ? gs.bigBallRatio : '-';
 
   // 攻防进球 = xgHome + xgAway（射门还原法 M3_A）
-  var attDefGoal = gs.attDefGoal != null ? gs.attDefGoal : '-';
+  const attDefGoal = gs.attDefGoal != null ? gs.attDefGoal : '-';
 
   // 实力进球 = 0.5 × (主队静态进球能力 + 客队静态进球能力) × (1 + 0.2 × Total_战)
-  var strengthGoal = gs.strengthGoal != null ? gs.strengthGoal : '-';
+  const strengthGoal = gs.strengthGoal != null ? gs.strengthGoal : '-';
 
   // 交锋进球 = H2H场均总进球（最近3-6次交锋）
-  var headToHeadGoal = gs.h2hGoalAvg != null ? gs.h2hGoalAvg : '-';
+  const headToHeadGoal = gs.h2hGoalAvg != null ? gs.h2hGoalAvg : '-';
 
   // 破甲和 = 主队进攻次数/(客队被射次数+0.5) + 客队进攻次数/(主队被射次数+0.5)
-  var breakArmor = gs.breakArmorSum != null ? gs.breakArmorSum : '-';
+  const breakArmor = gs.breakArmorSum != null ? gs.breakArmorSum : '-';
 
   // ── 实力PK四维指标（PK.md 2.1-2.2） ──
 
   // ① 净胜球量化 = GD_q = ExpG_h - ExpG_a（后端按四维呼吸权重公式计算）
-  var gdScore = gs.gdQ != null ? gs.gdQ : '-';
-  var gdNum = gdScore === '-' ? 0 : gdScore;
+  const gdScore = gs.gdQ != null ? gs.gdQ : '-';
+  const gdNum = gdScore === '-' ? 0 : gdScore;
 
   // ② 胜平负交叉 = (H_wins + A_losses) - (H_losses + A_wins)
   // 数据映射：hWins→主队胜场, aLosses→客队负场, hLosses→主队负场, aWins→客队胜场
-  var crossValue;
+  let crossValue;
   if (gs.hWins != null && gs.aLosses != null && gs.hLosses != null && gs.aWins != null) {
     crossValue = gs.hWins + gs.aLosses - (gs.hLosses + gs.aWins);
   } else {
     crossValue = '-';
   }
-  var cvNum = crossValue === '-' ? 0 : crossValue;
+  const cvNum = crossValue === '-' ? 0 : crossValue;
 
   // ③ 综合实力 = Total_战 = 0.7×Static + 0.3×Dyn（V6.4 双轨实力量化）
-  var pwScore = gs.totalStrength != null ? parseFloat(gs.totalStrength.toFixed(4)) : '-';
-  var pwNum = pwScore === '-' ? 0 : pwScore;
+  const pwScore = gs.totalStrength != null ? parseFloat(gs.totalStrength.toFixed(4)) : '-';
+  const pwNum = pwScore === '-' ? 0 : pwScore;
 
   // ④ 攻守实力 = 进球分布计分法 V6.4（WinQiu_2×2 + WinQiu_1×1 + LoseQiu_0×2 + LoseQiu_1×1）
-  var adCombined = gs.adWeightedComposite != null ? parseFloat(gs.adWeightedComposite.toFixed(4)) : '-';
-  var adNum = adCombined === '-' ? 0 : adCombined;
+  const adCombined = gs.adWeightedComposite != null ? parseFloat(gs.adWeightedComposite.toFixed(4)) : '-';
+  const adNum = adCombined === '-' ? 0 : adCombined;
 
   // 总排序 = 0.25 × 净胜球 + 0.25 × 胜平负交叉 + 0.25 × 综合实力 + 0.25 × 攻守实力
-  var totalScore = parseFloat(((gdNum + cvNum + pwNum + adNum) / 4).toFixed(4));
+  const totalScore = parseFloat(((gdNum + cvNum + pwNum + adNum) / 4).toFixed(4));
 
   function goalTotalSum() {
-    var b = bigBall === '-' ? 0 : Math.abs(bigBall);
-    var a = attDefGoal === '-' ? 0 : Math.abs(attDefGoal);
-    var s = strengthGoal === '-' ? 0 : Math.abs(strengthGoal);
-    var h = headToHeadGoal === '-' ? 0 : Math.abs(headToHeadGoal);
-    var r = breakArmor === '-' ? 0 : Math.abs(breakArmor);
+    const b = bigBall === '-' ? 0 : Math.abs(bigBall);
+    const a = attDefGoal === '-' ? 0 : Math.abs(attDefGoal);
+    const s = strengthGoal === '-' ? 0 : Math.abs(strengthGoal);
+    const h = headToHeadGoal === '-' ? 0 : Math.abs(headToHeadGoal);
+    const r = breakArmor === '-' ? 0 : Math.abs(breakArmor);
     return parseFloat((b + a + s + h + r).toFixed(4));
   }
 
@@ -427,10 +427,10 @@ function mergeItem(item, gs) {
 }
 
 function countByDecision(items) {
-  var counts = { all: 0, main_pick: 0, playable: 0, cautious: 0, watch: 0 };
+  const counts = { all: 0, main_pick: 0, playable: 0, cautious: 0, watch: 0 };
   (Array.isArray(items) ? items : []).forEach(function (item) {
     counts.all += 1;
-    var code = decisionCodeOf(item);
+    const code = decisionCodeOf(item);
     if (counts[code] === undefined) counts.watch += 1;
     else counts[code] += 1;
   });
@@ -438,15 +438,15 @@ function countByDecision(items) {
 }
 
 function renderOpportunitySummary(items) {
-  var counts = countByDecision(items);
-  var configs = [
+  const counts = countByDecision(items);
+  const configs = [
     ['all', '全部', counts.all],
     ['main_pick', '主推', counts.main_pick],
     ['playable', '可做', counts.playable],
     ['cautious', '谨慎', counts.cautious],
     ['watch', '观望', counts.watch],
   ];
-  var h = '<div class="q-opportunity-summary" id="quantOpportunitySummary">';
+  let h = '<div class="q-opportunity-summary" id="quantOpportunitySummary">';
   h += '<div class="q-opportunity-title"><b>机会分层</b><span>按 PK 裁判字段识别，风险场次不标稳胆</span></div>';
   h += '<div class="q-opportunity-tabs">';
   configs.forEach(function (cfg) {
@@ -466,8 +466,8 @@ function renderOpportunitySummary(items) {
 }
 
 function renderDecisionBadge(item) {
-  var code = decisionCodeOf(item);
-  var dir = item.finalDirection === 'watch' ? '观望' : item.finalDirection || '观望';
+  const code = decisionCodeOf(item);
+  const dir = item.finalDirection === 'watch' ? '观望' : item.finalDirection || '观望';
   return (
     '<span class="q-decision-badge q-decision-' +
     code +
@@ -484,7 +484,7 @@ function renderDecisionBadge(item) {
 }
 
 function renderRiskChips(item) {
-  var tags = safeArrayField(item.riskTags).slice(0, 2);
+  const tags = safeArrayField(item.riskTags).slice(0, 2);
   if (!tags.length) return '<span class="q-risk-chips"><i class="q-risk-empty">低风险</i></span>';
   return (
     '<span class="q-risk-chips">' +
@@ -499,20 +499,20 @@ function renderRiskChips(item) {
 
 // ═══ 渲染 — flex 卡片表格 ═══
 function renderTable() {
-  var wrap = document.getElementById('quantTableWrap');
+  const wrap = document.getElementById('quantTableWrap');
   if (!wrap) return;
 
-  var displayData = allData.filter(function (item) {
+  const displayData = allData.filter(function (item) {
     return opportunityFilter === 'all' || decisionCodeOf(item) === opportunityFilter;
   });
 
   // 排序
-  var sorted;
+  let sorted;
   if (currentTab === 'power') {
     sorted = displayData.slice();
   } else {
     sorted = displayData.slice().sort(function (a, b) {
-      var va = getSortVal(a, sortKey),
+      const va = getSortVal(a, sortKey),
         vb = getSortVal(b, sortKey);
       if (va < vb) return sortAsc ? -1 : 1;
       if (va > vb) return sortAsc ? 1 : -1;
@@ -521,7 +521,7 @@ function renderTable() {
   }
 
   // 列定义 — key, label, sortable, colCls
-  var cols, renderRow;
+  let cols, renderRow;
   if (currentTab === 'power') {
     cols = [
       { key: 'match', label: '对阵', sortable: false, colCls: 'q-col-match', hdCls: 'q-match-hd' },
@@ -570,7 +570,7 @@ function renderTable() {
   }
 
   // 构建机会分层摘要 + 卡片表格
-  var h = renderOpportunitySummary(allData);
+  let h = renderOpportunitySummary(allData);
   if (sorted.length === 0) {
     wrap.innerHTML = h + '<div style="text-align:center;padding:42px 20px;color:var(--text3)">当前分层暂无比赛</div>';
     updatePkBar();
@@ -582,8 +582,8 @@ function renderTable() {
   h += '<div class="quant-card-header">';
   h += '<span class="q-col-chk"></span>';
   cols.forEach(function (c) {
-    var isActive = sortKey === c.key;
-    var sortCls = '';
+    const isActive = sortKey === c.key;
+    let sortCls = '';
     if (isActive && c.sortable) {
       sortCls = sortAsc ? ' q-sort-asc' : ' q-sort-desc';
     }
@@ -602,7 +602,7 @@ function renderTable() {
 
   // 数据行
   sorted.forEach(function (item) {
-    var p = !!pickedIds[item.matchId];
+    const p = !!pickedIds[item.matchId];
     h += '<div id="qr-' + item.matchId + '" class="quant-card-row' + (p ? ' picked' : '') + '">';
     h +=
       '<span class="q-col-chk"><input type="checkbox" class="q-chk" ' +
@@ -620,7 +620,7 @@ function renderTable() {
   updatePkBar();
 
   // P2-6: 显示视图切换按钮
-  var toggle = document.getElementById('quantViewToggle');
+  const toggle = document.getElementById('quantViewToggle');
   if (toggle && allData.length > 0) {
     toggle.style.display = 'flex';
   }
@@ -633,7 +633,7 @@ function shortTeam(name) {
 }
 
 function renderMatch(item) {
-  var tagsHtml = renderTags(item);
+  const tagsHtml = renderTags(item);
   return (
     '<span class="q-col-match q-match-cell">' +
     '<div class="q-match-teams" title="' +
@@ -658,8 +658,8 @@ function renderMatch(item) {
 function renderRank(totalScore) {
   if (totalScore === undefined || totalScore === null || isNaN(totalScore))
     return '<span class="q-col-rk"><span class="q-cell-num">-</span></span>';
-  var n = parseFloat(totalScore);
-  var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
+  const n = parseFloat(totalScore);
+  const cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
   return (
     '<span class="q-col-rk"><span class="q-cell-num ' +
     cls +
@@ -672,12 +672,12 @@ function renderRank(totalScore) {
 
 // ── 净胜球量化（保留2位小数） ──
 function renderGoalDiff(item) {
-  var v = item.gdScore !== undefined ? item.gdScore : item.goalDiff;
+  const v = item.gdScore !== undefined ? item.gdScore : item.goalDiff;
   if (v === '-' || v === '?' || v === undefined || v === null)
     return '<span class="q-col-gd"><span class="q-cell-num">-</span></span>';
-  var n = parseFloat(v);
+  const n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-gd"><span class="q-cell-num">' + v + '</span></span>';
-  var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
+  const cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
   return (
     '<span class="q-col-gd"><span class="q-cell-num ' +
     cls +
@@ -689,11 +689,11 @@ function renderGoalDiff(item) {
 }
 // ── 综合实力（Total_战，百分比化显示） ──
 function renderPower(item) {
-  var pv = item.pwScore;
+  const pv = item.pwScore;
   if (pv === '-' || pv === undefined || pv === null)
     return '<span class="q-col-power"><span class="q-cell-num" style="color:var(--text4)">-</span></span>';
-  var pct = pv * 100;
-  var cls = pv > 0 ? 'pos' : pv < 0 ? 'neg' : '';
+  const pct = pv * 100;
+  const cls = pv > 0 ? 'pos' : pv < 0 ? 'neg' : '';
   return (
     '<span class="q-col-power"><span class="q-cell-num ' +
     cls +
@@ -706,23 +706,23 @@ function renderPower(item) {
 
 // ── 胜平负交叉（只展示RC值） ──
 function renderCrossValue(item) {
-  var v = item.crossValue;
+  const v = item.crossValue;
   if (v === '-' || v === undefined || v === null) {
     return '<span class="q-col-cross"><span class="q-cell-num" style="color:var(--text4)">-</span></span>';
   }
-  var n = v;
+  const n = v;
   if (typeof n !== 'number' || isNaN(n))
     return '<span class="q-col-cross"><span class="q-cell-num">' + v + '</span></span>';
-  var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
+  const cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
   return '<span class="q-col-cross"><span class="q-cell-num ' + cls + '">' + (n >= 0 ? '+' : '') + n + '</span></span>';
 }
 
 // ── 攻守实力（保留2位小数，含格局徽章 P1-2） ──
 function renderAdCombined(item) {
-  var v = item.adCombined;
-  var patternBadge = '';
+  const v = item.adCombined;
+  let patternBadge = '';
   if (item.attackPattern) {
-    var pc = item.attackPattern === '对攻为主' ? 'atk' : item.attackPattern === '防守为主' ? 'def' : 'bal';
+    const pc = item.attackPattern === '对攻为主' ? 'atk' : item.attackPattern === '防守为主' ? 'def' : 'bal';
     patternBadge =
       '<span class="pattern-badge ' +
       pc +
@@ -740,9 +740,9 @@ function renderAdCombined(item) {
     return (
       '<span class="q-col-ad"><span class="q-cell-num" style="color:var(--text4)">-</span>' + patternBadge + '</span>'
     );
-  var n = parseFloat(v);
+  const n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-ad"><span class="q-cell-num">' + v + '</span>' + patternBadge + '</span>';
-  var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
+  const cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
   return (
     '<span class="q-col-ad"><span class="q-cell-num ' +
     cls +
@@ -757,28 +757,28 @@ function renderAdCombined(item) {
 
 // ── 进球 tab 单元格 (统一 toFixed(1)) ──
 function renderGoalCell(item, key) {
-  var v = item[key];
+  const v = item[key];
   if (v === '-' || v === undefined || v === null) {
     return (
       '<span class="q-col-' + keyToCls(key) + '"><span class="q-cell-num" style="color:var(--text4)">-</span></span>'
     );
   }
-  var n = parseFloat(v);
+  const n = parseFloat(v);
   if (isNaN(n)) return '<span class="q-col-' + keyToCls(key) + '"><span class="q-cell-num">' + v + '</span></span>';
-  var formatted;
+  let formatted;
   if (key === 'bigBallRatio') {
     formatted = n.toFixed(1) + '%';
   } else {
     formatted = (n >= 0 ? '+' : '') + n.toFixed(1);
   }
-  var cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
+  const cls = n > 0 ? 'pos' : n < 0 ? 'neg' : '';
   return (
     '<span class="q-col-' + keyToCls(key) + '"><span class="q-cell-num ' + cls + '">' + formatted + '</span></span>'
   );
 }
 
 function keyToCls(key) {
-  var m = {
+  const m = {
     totalSum: 'sum',
     bigBallRatio: 'big',
     attDefGoal: 'ag',
@@ -791,14 +791,14 @@ function keyToCls(key) {
 
 // ── M3.7 四重验证单元格 (P1-1) ──
 function renderFusionCell(item) {
-  var consensus = item.fusionConsensus;
+  const consensus = item.fusionConsensus;
   if (!consensus)
     return '<span class="q-col-fusion"><span class="q-cell-num" style="color:var(--text4)">-</span></span>';
-  var cls = 'fusion-' + consensus;
-  var label =
+  const cls = 'fusion-' + consensus;
+  const label =
     consensus === 'strong' ? '强一致' : consensus === 'weak' ? '弱一致' : consensus === 'meltdown' ? '⚠️熔断' : '';
-  var h = item.fusionFinalHome != null ? item.fusionFinalHome.toFixed(2) : '-';
-  var a = item.fusionFinalAway != null ? item.fusionFinalAway.toFixed(2) : '-';
+  const h = item.fusionFinalHome != null ? item.fusionFinalHome.toFixed(2) : '-';
+  const a = item.fusionFinalAway != null ? item.fusionFinalAway.toFixed(2) : '-';
   return (
     '<span class="q-col-fusion">' +
     '<span class="fusion-badge ' +
@@ -821,7 +821,7 @@ function renderFusionCell(item) {
 
 // ── 热点 tab 单元格 (去图标) ──
 function renderHotCell(item, key) {
-  var v = item[key];
+  const v = item[key];
   if (v === '-' || v === undefined || v === null) {
     return '<span class="q-col-' + hotKeyToCls(key) + '"><span class="q-cell-num">-</span></span>';
   }
@@ -849,7 +849,7 @@ function renderHotCell(item, key) {
   if (key === 'hotFocusNum') {
     var n = parseFloat(v);
     if (isNaN(n)) return '<span class="q-col-hot"><span class="q-cell-num">' + v + '</span></span>';
-    var fmt = (n / 10000).toFixed(1);
+    const fmt = (n / 10000).toFixed(1);
     return '<span class="q-col-hot"><span class="q-cell-num pos">' + fmt + '</span></span>';
   }
   // rq, homeFeature, guestFeature, oddsLive
@@ -864,7 +864,7 @@ function renderHotCell(item, key) {
 }
 
 function hotKeyToCls(key) {
-  var m = {
+  const m = {
     rq: 'rq',
     hotFocusNum: 'hot',
     heatIndex: 'heat',
@@ -915,8 +915,8 @@ function getSortVal(item, key) {
 
 // ═══ P0-1: 智能标签系统 ═══
 function computeTags(item) {
-  var tags = [];
-  var pwScore = parseFloat(item.pwScore) || 0;
+  const tags = [];
+  const pwScore = parseFloat(item.pwScore) || 0;
   // 1. 绝对优势: pwScore >= 0.25
   if (pwScore >= 0.25) tags.push({ e: '🔥', t: '绝对优势', c: 'tag-dominance' });
   // 2. 模型打架: 熔断
@@ -924,7 +924,7 @@ function computeTags(item) {
   // 3. 实力均衡: -0.08 ~ +0.08
   if (pwScore >= -0.08 && pwScore <= 0.08) tags.push({ e: '🎯', t: '实力均衡', c: 'tag-balanced' });
   // 4. 过热风险: heatIndex >= 1.40
-  var heatIdx = parseFloat(item.heatIndex);
+  const heatIdx = parseFloat(item.heatIndex);
   if (!isNaN(heatIdx) && heatIdx >= 1.4) {
     tags.push({ e: '💰', t: '过热风险 (' + heatIdx.toFixed(2) + ')', c: 'tag-overheat' });
   }
@@ -933,8 +933,8 @@ function computeTags(item) {
     tags.push({ e: '🧊', t: '冷门潜质 (' + heatIdx.toFixed(2) + ')', c: 'tag-cold' });
   }
   // 6. 防守大战: adCombined > 0.15 且总进球期望<2.0
-  var ad = parseFloat(item.adCombined) || 0;
-  var totalGoals = item.strengthGoal !== undefined ? parseFloat(item.strengthGoal) : 0;
+  const ad = parseFloat(item.adCombined) || 0;
+  const totalGoals = item.strengthGoal !== undefined ? parseFloat(item.strengthGoal) : 0;
   if (ad > 0.15 && totalGoals > 0 && totalGoals < 2.0) tags.push({ e: '🛡️', t: '防守大战', c: 'tag-defense' });
   // 7. 对攻大战: adCombined > 0.15 且总进球期望>3.0
   if (ad > 0.15 && totalGoals > 3.0) tags.push({ e: '⚡', t: '对攻大战', c: 'tag-attack' });
@@ -942,7 +942,7 @@ function computeTags(item) {
 }
 
 function renderTags(item) {
-  var tags = computeTags(item);
+  const tags = computeTags(item);
   if (!tags.length) return '';
   return (
     '<span class="q-match-tags">' +
@@ -957,15 +957,15 @@ function renderTags(item) {
 
 // ═══ P2-5/P2-6: ECharts 图表视图 + 响应式切换 ═══
 var currentView = 'table';
-var chartInstance = null;
-var chartResizeHandler = null;
+let chartInstance = null;
+let chartResizeHandler = null;
 
 export function switchQuantView(view) {
   currentView = view;
-  var tableWrap = document.getElementById('quantTableWrap');
-  var chartWrap = document.getElementById('quantChartWrap');
-  var toggle = document.getElementById('quantViewToggle');
-  var btns = toggle ? toggle.querySelectorAll('.qt-view-btn') : [];
+  const tableWrap = document.getElementById('quantTableWrap');
+  const chartWrap = document.getElementById('quantChartWrap');
+  const toggle = document.getElementById('quantViewToggle');
+  const btns = toggle ? toggle.querySelectorAll('.qt-view-btn') : [];
 
   btns.forEach(function (b) {
     b.classList.toggle('active', b.dataset.view === view);
@@ -984,7 +984,7 @@ export function switchQuantView(view) {
 }
 
 function renderChart() {
-  var container = document.getElementById('quantChart');
+  const container = document.getElementById('quantChart');
   if (!container) return;
 
   // 懒加载 ECharts
@@ -1029,7 +1029,7 @@ function buildQuantBarColor(palette) {
 }
 
 function _doRenderChart(container) {
-  var filtered = allData.filter(function (item) {
+  const filtered = allData.filter(function (item) {
     return (
       currentTab === 'power' ||
       currentTab === 'goal' ||
@@ -1042,15 +1042,15 @@ function _doRenderChart(container) {
     return;
   }
 
-  var n = filtered.length;
+  const n = filtered.length;
 
   // 短队名（三行：主队 / vs / 客队）
-  var names = filtered.map(function (item) {
+  const names = filtered.map(function (item) {
     return shortTeam(item.homeName) + '\nvs\n' + shortTeam(item.visitName);
   });
 
   // ═══ 根据 tab 定义指标组 + 配色 ═══
-  var seriesDefs, palettes;
+  let seriesDefs, palettes;
   if (currentTab === 'power') {
     seriesDefs = [
       { name: '综合实力', key: 'pwScore', fmt: 4, unit: '' },
@@ -1076,11 +1076,11 @@ function _doRenderChart(container) {
   }
 
   // ═══ 提取原始值 + 带padding的min-max归一化（防止极端值贴0%/100%） ═══
-  var metricsData = seriesDefs.map(function (def) {
-    var rawVals = filtered.map(function (item) {
-      var raw;
+  const metricsData = seriesDefs.map(function (def) {
+    const rawVals = filtered.map(function (item) {
+      let raw;
       if (def.key === 'heatIndex') {
-        var c = String(item.heatIndex || '').replace(/[^\d.-]/g, '');
+        const c = String(item.heatIndex || '').replace(/[^\d.-]/g, '');
         raw = parseFloat(c);
       } else {
         raw = parseFloat(item[def.key]);
@@ -1089,20 +1089,20 @@ function _doRenderChart(container) {
       if (def.divide) raw = raw / def.divide;
       return raw;
     });
-    var valid = rawVals.filter(function (v) {
+    const valid = rawVals.filter(function (v) {
       return v !== null;
     });
-    var min = valid.length ? Math.min.apply(null, valid) : 0;
-    var max = valid.length ? Math.max.apply(null, valid) : 1;
-    var range = max - min || 1;
+    const min = valid.length ? Math.min.apply(null, valid) : 0;
+    const max = valid.length ? Math.max.apply(null, valid) : 1;
+    const range = max - min || 1;
     // 给范围加 10% 双向 padding，避免极端值贴边
-    var pad = range * 0.1;
-    var paddedMin = min - pad;
-    var paddedMax = max + pad;
-    var paddedRange = paddedMax - paddedMin;
-    var normVals = rawVals.map(function (v) {
+    const pad = range * 0.1;
+    const paddedMin = min - pad;
+    const paddedMax = max + pad;
+    const paddedRange = paddedMax - paddedMin;
+    const normVals = rawVals.map(function (v) {
       if (v === null) return null;
-      var norm = ((v - paddedMin) / paddedRange) * 100;
+      let norm = ((v - paddedMin) / paddedRange) * 100;
       norm = Math.max(0, Math.min(100, norm));
       return parseFloat(norm.toFixed(1));
     });
@@ -1110,30 +1110,30 @@ function _doRenderChart(container) {
   });
 
   // ═══ 构建统一单图 series（分组柱状图） ═══
-  var chartColors = palettes.map(function (palette) {
+  const chartColors = palettes.map(function (palette) {
     return buildQuantBarColor(palette);
   });
 
-  var allSeries = seriesDefs.map(function (def, i) {
-    var md = metricsData[i];
-    var palette = palettes[i] || palettes[palettes.length - 1];
-    var baseColor = chartColors[i];
-    var shadowColor = palette && palette.shadow ? palette.shadow : 'rgba(91, 212, 200, 0.18)';
+  const allSeries = seriesDefs.map(function (def, i) {
+    const md = metricsData[i];
+    const palette = palettes[i] || palettes[palettes.length - 1];
+    const baseColor = chartColors[i];
+    const shadowColor = palette && palette.shadow ? palette.shadow : 'rgba(91, 212, 200, 0.18)';
 
-    var data = filtered.map(function (item, j) {
-      var raw = md.rawVals[j];
-      var norm = md.normVals[j];
+    const data = filtered.map(function (item, j) {
+      const raw = md.rawVals[j];
+      const norm = md.normVals[j];
       if (raw === null || norm === null) return null;
 
-      var tags = computeTags(item);
-      var tagStr = tags
+      const tags = computeTags(item);
+      const tagStr = tags
         .map(function (t) {
           return t.e + t.t;
         })
         .join(' ');
 
       // 格式化原始值（tooltip 用）
-      var rawStr;
+      let rawStr;
       if (def.key === 'hotFocusNum') {
         rawStr = raw.toFixed(def.fmt) + '万';
       } else if (def.key === 'bigBallRatio') {
@@ -1195,8 +1195,8 @@ function _doRenderChart(container) {
   });
 
   // ═══ 动态高度 ═══
-  var rowH = 52; // 三行对阵名需要更高行高
-  var headerH = 60;
+  const rowH = 52; // 三行对阵名需要更高行高
+  const headerH = 60;
   container.style.height = Math.max(400, headerH + n * rowH + 40) + 'px';
 
   // ═══ 销毁旧实例 ═══
@@ -1216,13 +1216,13 @@ function _doRenderChart(container) {
       textStyle: { color: '#E2E8F0', fontSize: 12 },
       formatter: function (params) {
         if (!params || !params.length) return '';
-        var first = params[0];
-        var html =
+        const first = params[0];
+        let html =
           '<b style="font-size:13px">' + (first.data && first.data._name ? first.data._name : first.name) + '</b>';
         params.forEach(function (p) {
           if (!p.data || p.data._raw == null) return;
-          var raw = p.data._raw;
-          var signClr = raw >= 0 ? '#22c55e' : '#ef4444';
+          const raw = p.data._raw;
+          const signClr = raw >= 0 ? '#22c55e' : '#ef4444';
           html +=
             '<br/>' +
             p.marker +
@@ -1237,7 +1237,7 @@ function _doRenderChart(container) {
             p.data._norm +
             '%)</span>';
         });
-        var tags =
+        const tags =
           first.data && first.data._tags
             ? '<br/><span style="color:#94A3B8;font-size:10px">' + first.data._tags + '</span>'
             : '';

@@ -81,7 +81,7 @@ for (const dt of dates) {
 
   for (const mn of dbMatchNums) {
     const dbEntry = dayData[mn];
-    let target = odds[mn];
+    const target = odds[mn];
 
     // Case 1: Match doesn't exist in odds_history → create from DB
     if (!target || !existingNums.includes(mn)) {

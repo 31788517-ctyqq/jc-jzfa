@@ -1,0 +1,43 @@
+{
+  "lockedAt": "2026-06-18T08:39:50.391Z",
+  "earliestKickoff": null,
+  "date": "2026-03-30",
+  "plans": [
+    {
+      "planId": "plan_2026-03-30_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038681",
+          "direction": "总进球-2、3球",
+          "homeName": "德国",
+          "visitName": "加纳",
+          "matchNum": "周一002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-30_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038681",
+          "direction": "总进球-1、2、3球",
+          "homeName": "德国",
+          "visitName": "加纳",
+          "matchNum": "周一002"
+        }
+      ]
+    }
+  ]
+}

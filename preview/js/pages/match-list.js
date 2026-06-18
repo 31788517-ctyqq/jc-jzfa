@@ -4,7 +4,7 @@ import * as state from '../vendor.js';
 
 // ═══ PK 选择状态（全局存储，避免模块加载时序问题） ═══
 window.__ms = window.__ms || {};
-var allMatchesData = [];
+let allMatchesData = [];
 
 /** 清空所有选择 */
 export function clearMatchPicks() {
@@ -15,16 +15,16 @@ export function clearMatchPicks() {
   document.querySelectorAll('.mc-chk:checked').forEach(function (c) {
     c.checked = false;
   });
-  var bar = document.getElementById('matchPkBar');
+  const bar = document.getElementById('matchPkBar');
   if (bar) bar.style.display = 'none';
-  var cntEl = document.getElementById('mpkBarCount');
+  const cntEl = document.getElementById('mpkBarCount');
   if (cntEl) cntEl.textContent = '0';
 }
 
 /** 打开 PK 弹窗 */
 export function startMatchPK() {
-  var sm = window.__ms || {};
-  var picked = allMatchesData.filter(function (item) {
+  const sm = window.__ms || {};
+  const picked = allMatchesData.filter(function (item) {
     return sm[item.matchId];
   });
   if (picked.length < 2) return;
@@ -37,7 +37,7 @@ window.startMatchPK = startMatchPK;
 
 function readPendingMatchFocus() {
   try {
-    var raw = sessionStorage.getItem('pendingMatchFocus');
+    const raw = sessionStorage.getItem('pendingMatchFocus');
     return raw ? JSON.parse(raw) : null;
   } catch (e) {
     return null;
@@ -51,16 +51,16 @@ function clearPendingMatchFocus() {
 }
 
 function focusPendingMatch(matches) {
-  var pending = readPendingMatchFocus();
+  const pending = readPendingMatchFocus();
   if (!pending) return;
-  var currentWeek = state.weekDates[state.selectedWeekIdx] || null;
-  var targetId = String(pending.matchId || '').trim();
-  var card = targetId ? document.getElementById('mc-' + targetId) : null;
+  const currentWeek = state.weekDates[state.selectedWeekIdx] || null;
+  const targetId = String(pending.matchId || '').trim();
+  let card = targetId ? document.getElementById('mc-' + targetId) : null;
   if (!card) {
-    var targetNum = String(pending.matchNum || '').trim();
-    var matched = (Array.isArray(matches) ? matches : []).find(function (m) {
-      var matchId = String(m.matchId || m.dataId || '').trim();
-      var matchNum = String(m.num || m.matchNum || m.matchId || m.dataId || '').trim();
+    const targetNum = String(pending.matchNum || '').trim();
+    const matched = (Array.isArray(matches) ? matches : []).find(function (m) {
+      const matchId = String(m.matchId || m.dataId || '').trim();
+      const matchNum = String(m.num || m.matchNum || m.matchId || m.dataId || '').trim();
       return (targetId && matchId === targetId) || (targetNum && matchNum === targetNum);
     });
     if (matched) card = document.getElementById('mc-' + matched.matchId);
@@ -85,9 +85,9 @@ function focusPendingMatch(matches) {
 function renderMatchHTML(matches) {
   allMatchesData = matches;
   window.__ms = {};
-  var bar = document.getElementById('matchPkBar');
+  const bar = document.getElementById('matchPkBar');
   if (bar) bar.style.display = 'none';
-  var pkHint =
+  const pkHint =
     matches.length > 0
       ? '<div class="pk-hint"><span class="pk-hint-icon">💡</span><span class="pk-hint-text">选择两场以上进行PK，自动生成PK方案建议</span></div>'
       : '';
@@ -113,10 +113,10 @@ function renderMatchHTML(matches) {
             : concedeNum < 0
               ? '<span class="match-handicap-tag rq-neg">' + concedeNum + '</span>'
               : '';
-        var scoreDisplay = '';
-        var extraInfo = '';
+        let scoreDisplay = '';
+        let extraInfo = '';
         if (isLive && scoreText) {
-          var parts = scoreText.replace('-', ':').split(':');
+          const parts = scoreText.replace('-', ':').split(':');
           if (parts.length === 2) scoreDisplay = '<span class="match-score">' + parts[0] + ' : ' + parts[1] + '</span>';
         }
         if (m.matchStatus === 1 && durText && durText !== '未') {
@@ -173,9 +173,9 @@ function renderMatchHTML(matches) {
 
 // 接收预取数据直接渲染（跳过 API 调用）
 export function loadMatchListFromData(matches) {
-  var el = document.getElementById('matchList');
+  const el = document.getElementById('matchList');
   if (!el) return;
-  var list = matches || [];
+  const list = matches || [];
   el.innerHTML = renderMatchHTML(list);
   focusPendingMatch(list);
 }
@@ -185,18 +185,18 @@ export function loadMatchList() {
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
 
-  var w = state.weekDates[state.selectedWeekIdx];
-  var cacheKey = 'match-list:' + (w ? w.matchDate : formatDate(new Date()));
+  const w = state.weekDates[state.selectedWeekIdx];
+  const cacheKey = 'match-list:' + (w ? w.matchDate : formatDate(new Date()));
 
   // ★ P1: sessionStorage 缓存命中
-  var cached = getCache(cacheKey);
+  const cached = getCache(cacheKey);
   if (cached) {
     el.innerHTML = renderMatchHTML(cached);
     focusPendingMatch(cached);
     return;
   }
 
-  var params = { _t: Date.now() };
+  const params = { _t: Date.now() };
   if (w) {
     params.weekNum = w.weekNum;
     params.matchDate = w.matchDate;

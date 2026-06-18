@@ -128,7 +128,7 @@ const ACTION_PERMISSION_MAP = {
 };
 
 const PUBLIC_ACTIONS = new Set([
-  'alerts',  // ★ V12: 运维告警 API（公开读）
+  'alerts', // ★ V12: 运维告警 API（公开读）
   'auth-login',
   'auth-register',
   'auth-session',
@@ -407,15 +407,15 @@ function hasPermission(session, permissionCode) {
 // ★ P1-3 优化：内存 session 缓存，覆盖 DB 防抖写入前的竞态窗口
 //    loginWithPassword 生成 token 后立即存入内存，setImmediate 异步刷新到 DB
 //    validateSession 优先查内存，未命中再查 DB
-var _sessionCache = new Map(); // tokenHash → sessionObj
-var _sessionCacheCleanTimer = null;
+const _sessionCache = new Map(); // tokenHash → sessionObj
+let _sessionCacheCleanTimer = null;
 function _cacheSession(tokenHash, sessionObj) {
   _sessionCache.set(tokenHash, sessionObj);
   // 定期清理过期缓存（每 5 分钟）
   if (!_sessionCacheCleanTimer) {
     _sessionCacheCleanTimer = setInterval(
       function () {
-        var now = new Date().toISOString();
+        const now = new Date().toISOString();
         _sessionCache.forEach(function (s, k) {
           if (s.expiresAt && s.expiresAt < now) _sessionCache.delete(k);
         });
@@ -429,7 +429,7 @@ function _cacheSession(tokenHash, sessionObj) {
   }
 }
 function _getCachedSession(tokenHash) {
-  var s = _sessionCache.get(tokenHash);
+  const s = _sessionCache.get(tokenHash);
   if (!s) return null;
   // 检查是否过期
   if (s.expiresAt && s.expiresAt < new Date().toISOString()) {
@@ -439,7 +439,7 @@ function _getCachedSession(tokenHash) {
   return s;
 }
 
-var _bootstrapped = false;
+let _bootstrapped = false;
 function ensureBootstrapped() {
   if (_bootstrapped) return;
   const adp = getAdapter();
@@ -521,9 +521,9 @@ function ensureBootstrapped() {
 /** P0-2 优化：将角色+权限查询合并到用户查询的 JOIN 中，从 3 次 SQL → 1 次 */
 function buildRolesAndPermsFromJoinedRows(rows) {
   if (!rows || rows.length === 0) return { roles: [], permissions: [] };
-  var roleSet = new Set();
-  var permSet = new Set();
-  for (var i = 0; i < rows.length; i++) {
+  const roleSet = new Set();
+  const permSet = new Set();
+  for (let i = 0; i < rows.length; i++) {
     if (rows[i].role_code) roleSet.add(rows[i].role_code);
     if (rows[i].permission_code) permSet.add(rows[i].permission_code);
   }
@@ -547,7 +547,7 @@ function buildSessionInfoByUserId(userId) {
     userId,
   );
   if (!rows || rows.length === 0) return null;
-  var rp = buildRolesAndPermsFromJoinedRows(rows);
+  const rp = buildRolesAndPermsFromJoinedRows(rows);
   return {
     user: sanitizeUser(rows[0]),
     roles: rp.roles,
@@ -576,7 +576,12 @@ async function loginWithPassword(username, password, meta = {}) {
   const now = new Date();
   const nowStr = now.toISOString();
 
-  const user = adp.execOne('SELECT * FROM users WHERE username = ?', username);
+  let user = adp.execOne('SELECT * FROM users WHERE username = ?', username);
+  // ★ V12: sql.js 跨 worker 共享 — 未命中时从磁盘重载再查（修复注册后立登失败）
+  if (!user && typeof adp.reload === 'function') {
+    adp.reload();
+    user = adp.execOne('SELECT * FROM users WHERE username = ?', username);
+  }
   if (!user) return { ok: false, code: 0, msg: '账号或密码错误' };
   if (user.status === 'disabled') return { ok: false, code: 0, msg: '账号已禁用' };
 
@@ -622,7 +627,7 @@ async function loginWithPassword(username, password, meta = {}) {
   const expiresAt = new Date(now.getTime() + SESSION_TTL_HOURS * 3600 * 1000).toISOString();
 
   // ★ P1-3 优化：先查询 session 信息并存入内存缓存，确保防抖写入窗口内可立即验证
-  var sessionInfo = buildSessionInfoByUserId(user.id);
+  const sessionInfo = buildSessionInfoByUserId(user.id);
   if (sessionInfo) {
     _cacheSession(tokenHash, {
       sid: tokenHash,
@@ -760,7 +765,7 @@ function validateSession(token, touch = true) {
   const now = nowIso();
 
   // ★ P1-3 优化：优先查内存缓存（防抖写入窗口内 session 尚未持久化到磁盘）
-  var cached = _getCachedSession(tokenHash);
+  const cached = _getCachedSession(tokenHash);
   if (cached) {
     if (cached.user && cached.user.status !== 'active') return null;
     if (new Date(cached.expiresAt).getTime() <= Date.now()) {
@@ -772,7 +777,7 @@ function validateSession(token, touch = true) {
       // 异步 touch 到 DB（不影响响应速度）
       setImmediate(function () {
         try {
-          var tNow = new Date().toISOString();
+          const tNow = new Date().toISOString();
           adp.execRun('UPDATE auth_sessions SET last_seen_at = ? WHERE session_token_hash = ?', tNow, tokenHash);
         } catch (_) {}
       });
@@ -793,7 +798,7 @@ function validateSession(token, touch = true) {
   }
 
   // 内存未命中 → 查 DB
-  var row = adp.execOne(
+  let row = adp.execOne(
     `SELECT s.id AS sid, s.user_id, s.expires_at, s.revoked_at,
             u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at,
             u.subscription_status, u.subscription_expires_at, u.vip_gift_claimed_at, u.vip_gift_expires_at,
@@ -822,7 +827,7 @@ function validateSession(token, touch = true) {
   if (row.status !== 'active') return null;
   if (new Date(row.expires_at).getTime() <= Date.now()) return null;
 
-  var normalizedSub = normalizeUserSubscriptionStatus(adp, row.user_id);
+  const normalizedSub = normalizeUserSubscriptionStatus(adp, row.user_id);
   if (normalizedSub) {
     row.subscription_status = normalizedSub.subscription_status || row.subscription_status;
     row.subscription_expires_at = normalizedSub.subscription_expires_at || row.subscription_expires_at;
@@ -835,7 +840,7 @@ function validateSession(token, touch = true) {
   }
 
   // ★ P0-2 优化：合并角色+权限查询为单次 JOIN
-  var rpRows = adp.execAll(
+  const rpRows = adp.execAll(
     `SELECT r.code as role_code, p.code as permission_code
      FROM user_roles ur
      JOIN roles r ON ur.role_id = r.id
@@ -844,7 +849,7 @@ function validateSession(token, touch = true) {
      WHERE ur.user_id = ?`,
     row.user_id,
   );
-  var rp = buildRolesAndPermsFromJoinedRows(rpRows);
+  const rp = buildRolesAndPermsFromJoinedRows(rpRows);
   return {
     sid: row.sid,
     userId: row.user_id,
@@ -1017,6 +1022,7 @@ function updateRolePermissions(roleCode, permissionCodes) {
       code,
     );
   });
+  flushCriticalWrites(adp);
   return { ok: true };
 }
 
@@ -1033,6 +1039,8 @@ function updateUserRoles(userId, roleCodes) {
       roleCode,
     );
   });
+  // ★ 立即持久化到磁盘，防止跨 Worker 角色丢失
+  flushCriticalWrites(adp);
   return { ok: true };
 }
 

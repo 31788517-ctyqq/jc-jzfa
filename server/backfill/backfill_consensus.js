@@ -53,7 +53,7 @@ initSqlJs().then((SQL) => {
 
     // 用 matchId 查 GS 缓存 (兼容 m_ 前缀)
     const mid = String(matchId || '').replace(/^m_/, '');
-    let gs = gsGlobal[mid] || gsGlobal['m_' + mid] || gsGlobal[matchId];
+    const gs = gsGlobal[mid] || gsGlobal['m_' + mid] || gsGlobal[matchId];
     if (!gs) {
       noGS++;
       continue;

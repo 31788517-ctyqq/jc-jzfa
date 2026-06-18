@@ -1,0 +1,150 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.059Z",
+  "earliestKickoff": null,
+  "date": "2026-04-19",
+  "plans": [
+    {
+      "planId": "plan_2026-04-19_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039197",
+          "direction": "平、让平",
+          "homeName": "曼彻斯特城",
+          "visitName": "阿森纳",
+          "matchNum": "周日019"
+        },
+        {
+          "matchId": "2039201",
+          "direction": "让负",
+          "homeName": "里斯本竞技",
+          "visitName": "本菲卡",
+          "matchNum": "周日023"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-19_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039201",
+          "direction": "总进球-2、3球",
+          "homeName": "里斯本竞技",
+          "visitName": "本菲卡",
+          "matchNum": "周日023"
+        },
+        {
+          "matchId": "2039196",
+          "direction": "让负",
+          "homeName": "斯特拉斯堡",
+          "visitName": "雷恩",
+          "matchNum": "周日018"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-19_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039198",
+          "direction": "胜",
+          "homeName": "拜仁慕尼黑",
+          "visitName": "斯图加特",
+          "matchNum": "周日020"
+        },
+        {
+          "matchId": "2039201",
+          "direction": "让负",
+          "homeName": "里斯本竞技",
+          "visitName": "本菲卡",
+          "matchNum": "周日023"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-19_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039196",
+          "direction": "总进球-2、3球",
+          "homeName": "斯特拉斯堡",
+          "visitName": "雷恩",
+          "matchNum": "周日018"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-19_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039197",
+          "direction": "平、让平",
+          "homeName": "曼彻斯特城",
+          "visitName": "阿森纳",
+          "matchNum": "周日019"
+        },
+        {
+          "matchId": "2039198",
+          "direction": "胜",
+          "homeName": "拜仁慕尼黑",
+          "visitName": "斯图加特",
+          "matchNum": "周日020"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-19_5",
+      "name": "plan_5",
+      "planName": "方案五",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039201",
+          "direction": "平、让平",
+          "homeName": "里斯本竞技",
+          "visitName": "本菲卡",
+          "matchNum": "周日023"
+        },
+        {
+          "matchId": "2039205",
+          "direction": "总进球-2、3球",
+          "homeName": "布拉加",
+          "visitName": "法马利康",
+          "matchNum": "周日027"
+        }
+      ]
+    }
+  ]
+}

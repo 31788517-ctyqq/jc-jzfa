@@ -1,0 +1,41 @@
+{
+  "collectedAt": "2026-06-16T20:05:24.259Z",
+  "host": "119.23.51.159",
+  "mode": "remote",
+  "apiLatency": {
+    "match-list": {
+      "ms": 142,
+      "resultPreview": "SSH_ERROR: Command failed: ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i \"C:\\Users\\11581\\.ssh\\id_rsa_jczjfa\" root@119.23.51.159 \"curl -s -X POST http://localhost:3000/api -H 'Content-Type: a"
+    },
+    "daily-profit-7d": {
+      "ms": 118,
+      "resultPreview": "SSH_ERROR: Command failed: ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i \"C:\\Users\\11581\\.ssh\\id_rsa_jczjfa\" root@119.23.51.159 \"curl -s -X POST http://localhost:3000/api -H 'Content-Type: a"
+    },
+    "ranking-list": {
+      "ms": 132,
+      "resultPreview": "SSH_ERROR: Command failed: ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i \"C:\\Users\\11581\\.ssh\\id_rsa_jczjfa\" root@119.23.51.159 \"curl -s -X POST http://localhost:3000/api -H 'Content-Type: a"
+    },
+    "plan-list": {
+      "ms": 101,
+      "resultPreview": "SSH_ERROR: Command failed: ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i \"C:\\Users\\11581\\.ssh\\id_rsa_jczjfa\" root@119.23.51.159 \"curl -s -X POST http://localhost:3000/api -H 'Content-Type: a"
+    },
+    "my-plan-stats": {
+      "ms": 113,
+      "resultPreview": "SSH_ERROR: Command failed: ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i \"C:\\Users\\11581\\.ssh\\id_rsa_jczjfa\" root@119.23.51.159 \"curl -s -X POST http://localhost:3000/api -H 'Content-Type: a"
+    },
+    "week-dates": {
+      "ms": 106,
+      "resultPreview": "SSH_ERROR: Command failed: ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i \"C:\\Users\\11581\\.ssh\\id_rsa_jczjfa\" root@119.23.51.159 \"curl -s -X POST http://localhost:3000/api -H 'Content-Type: a"
+    }
+  },
+  "resources": {
+    "dataJsonSizeKB": "SSH_ERROR: Command failed: ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i \"C:\\Users\\11581\\.ssh\\id_rsa_jczjfa\" root@119.23.51.159 \"test -f /root/server/data.json && ls -l /root/server/data.json | awk '{p",
+    "dbSizeMB": "SSH_ERROR: Command failed: ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i \"C:\\Users\\11581\\.ssh\\id_rsa_jczjfa\" root@119.23.51.159 \"test -f /root/server/midou_data.db && ls -l /root/server/midou_data.db |",
+    "oddsHistoryFiles": "SSH_ERROR: Command failed: ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i \"C:\\Users\\11581\\.ssh\\id_rsa_jczjfa\" root@119.23.51.159 \"ls /root/server/odds_history/*.json 2>/dev/null | wc -l\" 2>&1",
+    "shujuDataFiles": "SSH_ERROR: Command failed: ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i \"C:\\Users\\11581\\.ssh\\id_rsa_jczjfa\" root@119.23.51.159 \"ls /root/server/shuju_data/*.json 2>/dev/null | wc -l\" 2>&1",
+    "aiCacheSizeKB": "SSH_ERROR: Command failed: ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i \"C:\\Users\\11581\\.ssh\\id_rsa_jczjfa\" root@119.23.51.159 \"test -f /root/server/ai_cache.json && ls -l /root/server/ai_cache.json |"
+  },
+  "aiHitrate": "SSH_ERROR: Unable to negotiate with 119.23.51.159 port 22: no matching host key type found. Their offer: ssh-rsa,ssh-dss\r\n",
+  "pm2Status": "SSH_ERROR: Unable to negotiate with 119.23.51.159 port 22: no matching host key type found. Their offer: ssh-rsa,ssh-dss\r\n",
+  "dataJsonStats": "SSH_ERROR: Unable to negotiate with 119.23.51.159 port 22: no matching host key type found. Their offer: ssh-rsa,ssh-dss\r\n"
+}

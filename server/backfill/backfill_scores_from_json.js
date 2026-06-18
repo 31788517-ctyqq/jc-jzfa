@@ -3,26 +3,26 @@
  * 使用 database.js 适配器（避免 better-sqlite3 兼容问题）
  * 用法: node server/backfill_scores_from_json.js [--dry]
  */
-var fs = require('fs');
-var path = require('path');
-var database = require('./database');
+const fs = require('fs');
+const path = require('path');
+const database = require('./database');
 
-var ODDS_DIR = path.join(__dirname, 'sporttery_odds');
-var dryRun = process.argv.includes('--dry');
+const ODDS_DIR = path.join(__dirname, 'sporttery_odds');
+const dryRun = process.argv.includes('--dry');
 
 console.log('=== JSON 比分回填 ===');
 console.log(dryRun ? 'DRY RUN' : '正式执行');
 
-var files = fs.readdirSync(ODDS_DIR).filter(function (f) {
+const files = fs.readdirSync(ODDS_DIR).filter(function (f) {
   return f.endsWith('.json');
 });
 console.log('文件数: ' + files.length);
 
 function parseScore(s) {
   if (!s) return null;
-  var parts = String(s).split(/[-:：]/);
+  const parts = String(s).split(/[-:：]/);
   if (parts.length < 2) return null;
-  var h = parseInt(parts[0]),
+  const h = parseInt(parts[0]),
     a = parseInt(parts[1]);
   if (isNaN(h) || isNaN(a)) return null;
   return { home: h, away: a };
@@ -37,7 +37,7 @@ function spfText(o) {
 
 // Init DB
 database.initDatabase();
-var adp = database.getAdapter();
+const adp = database.getAdapter();
 if (!adp) {
   console.error('数据库不可用');
   process.exit(1);
@@ -45,25 +45,25 @@ if (!adp) {
 
 // Step 1: 从 JSON 提取比分
 console.log('Step 1: 解析 JSON...');
-var scoreMap = {};
-var noResult = 0,
+const scoreMap = {};
+let noResult = 0,
   errors = 0;
 
 files.forEach(function (f, i) {
-  var mid = f.replace('.json', '');
+  const mid = f.replace('.json', '');
   try {
-    var d = JSON.parse(fs.readFileSync(path.join(ODDS_DIR, f), 'utf8'));
-    var lr = d.lotteryResult;
+    const d = JSON.parse(fs.readFileSync(path.join(ODDS_DIR, f), 'utf8'));
+    const lr = d.lotteryResult;
     if (!lr || Object.keys(lr).length === 0) {
       noResult++;
       return;
     }
-    var score = d.score || '';
+    const score = d.score || '';
     if (!score || score === ':') {
       noResult++;
       return;
     }
-    var g = parseScore(score);
+    const g = parseScore(score);
     if (!g) {
       noResult++;
       return;
@@ -89,15 +89,15 @@ if (dryRun) {
 
 // Step 2: 更新 prediction_logs
 console.log('\nStep 2: 更新 prediction_logs...');
-var mids = Object.keys(scoreMap);
-var plDone = 0,
+const mids = Object.keys(scoreMap);
+let plDone = 0,
   plSkip = 0;
 
 mids.forEach(function (mid) {
-  var s = scoreMap[mid];
+  const s = scoreMap[mid];
   try {
     // Check if already has score
-    var existing = adp.execOne('SELECT actual_score FROM prediction_logs WHERE matchId=?', mid);
+    const existing = adp.execOne('SELECT actual_score FROM prediction_logs WHERE matchId=?', mid);
     if (existing && existing.actual_score && existing.actual_score.trim()) {
       plSkip++;
       return;
@@ -120,13 +120,13 @@ console.log('  prediction_logs: ' + plDone + ' 更新, ' + plSkip + ' 已有');
 
 // Step 3: 更新 matches
 console.log('\nStep 3: 更新 matches...');
-var mDone = 0,
+let mDone = 0,
   mSkip = 0;
 
 mids.forEach(function (mid) {
-  var s = scoreMap[mid];
+  const s = scoreMap[mid];
   try {
-    var cur = adp.execOne('SELECT score FROM matches WHERE matchId=?', mid);
+    const cur = adp.execOne('SELECT score FROM matches WHERE matchId=?', mid);
     if (cur && cur.score && cur.score.trim() && cur.score !== '-') {
       mSkip++;
       return;
@@ -144,20 +144,20 @@ console.log('  matches: ' + mDone + ' 更新, ' + mSkip + ' 已有');
 // Step 4: 更新 data.json
 console.log('\nStep 4: 更新 data.json...');
 try {
-  var dataFile = path.join(__dirname, 'data.json');
-  var data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
-  var mMap = data.m || {};
-  var dUpdated = 0;
+  const dataFile = path.join(__dirname, 'data.json');
+  const data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+  const mMap = data.m || {};
+  let dUpdated = 0;
   mids.forEach(function (mid) {
-    var s = scoreMap[mid];
-    var key = 'm_' + mid;
+    const s = scoreMap[mid];
+    const key = 'm_' + mid;
     if (mMap[key]) {
       mMap[key].score = s.score;
       mMap[key].matchStatus = 2;
       dUpdated++;
     }
   });
-  var tmp = dataFile + '.tmp_scores2';
+  const tmp = dataFile + '.tmp_scores2';
   fs.writeFileSync(tmp, JSON.stringify(data));
   fs.renameSync(tmp, dataFile);
   console.log('  data.json: ' + dUpdated + ' 场比分更新');
@@ -166,7 +166,7 @@ try {
 }
 
 // Verify
-var r = adp.execOne(
+let r = adp.execOne(
   "SELECT COUNT(*) as c FROM prediction_logs WHERE date>='2024-01-01' AND date<='2026-03-18' AND actual_score IS NOT NULL AND actual_score!=''",
 );
 console.log('\n=== 验证 ===');

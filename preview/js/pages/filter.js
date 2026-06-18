@@ -21,26 +21,26 @@ export function toggleDD(id, evt) {
     evt.stopPropagation();
     evt.preventDefault();
   }
-  var dd = document.getElementById(id);
+  const dd = document.getElementById(id);
   if (!dd) return;
-  var wasOpen = dd.classList.contains('open');
+  const wasOpen = dd.classList.contains('open');
   closeAllDD();
   if (!wasOpen) {
     dd.classList.add('open');
-    var menu = dd.querySelector('.filter-dd-menu');
-    var trigger = dd.querySelector('.filter-dd-trigger');
+    const menu = dd.querySelector('.filter-dd-menu');
+    const trigger = dd.querySelector('.filter-dd-trigger');
     if (!menu || !trigger) return;
-    var rect = trigger.getBoundingClientRect();
-    var vw = window.innerWidth || document.documentElement.clientWidth || 0;
-    var vh = window.innerHeight || document.documentElement.clientHeight || 0;
-    var menuW = Math.max(rect.width, 156);
-    var menuH = Math.min(menu.scrollHeight || 240, Math.max(180, vh - 36));
-    var spaceBelow = vh - rect.bottom - 8;
-    var spaceAbove = rect.top - 8;
-    var left = Math.max(10, Math.min(rect.left, vw - menuW - 10));
+    const rect = trigger.getBoundingClientRect();
+    const vw = window.innerWidth || document.documentElement.clientWidth || 0;
+    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+    const menuW = Math.max(rect.width, 156);
+    const menuH = Math.min(menu.scrollHeight || 240, Math.max(180, vh - 36));
+    const spaceBelow = vh - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+    const left = Math.max(10, Math.min(rect.left, vw - menuW - 10));
 
     // Portal 到 body，彻底脱离卡片/页面/动画产生的 stacking context 和 overflow 裁剪。
-    var portal = menu.cloneNode(true);
+    const portal = menu.cloneNode(true);
     portal.classList.add('filter-dd-portal');
     portal.setAttribute('data-owner-dd', id);
     portal.style.display = 'block';
@@ -67,10 +67,10 @@ export function toggleDD(id, evt) {
 }
 
 export function selectDD(id, val, text) {
-  var dd = document.getElementById(id);
+  const dd = document.getElementById(id);
   if (!dd) return;
   dd.setAttribute('data-val', val);
-  var textEl = dd.querySelector('.filter-dd-text');
+  const textEl = dd.querySelector('.filter-dd-text');
   if (textEl) textEl.textContent = text;
   dd.querySelectorAll('.filter-dd-option').forEach(function (o) {
     o.classList.toggle('selected', o.getAttribute('data-val') === val);
@@ -79,7 +79,7 @@ export function selectDD(id, val, text) {
 }
 
 export function getDDVal(id) {
-  var el = document.getElementById(id);
+  const el = document.getElementById(id);
   return el ? el.getAttribute('data-val') || '' : '';
 }
 
@@ -98,29 +98,29 @@ export function closeAllDD() {
 
 export function handleDocClose(e) {
   if (!e.target) return;
-  var inDD = e.target.closest('.filter-dd');
-  var inPortal = e.target.closest('.filter-dd-portal');
+  const inDD = e.target.closest('.filter-dd');
+  const inPortal = e.target.closest('.filter-dd-portal');
   if (!inDD && !inPortal) closeAllDD();
 }
 
 export function resetFilterResult() {
-  var el = document.getElementById('filterResult');
+  const el = document.getElementById('filterResult');
   if (el) el.innerHTML = '<div class="hint-box">选择筛选条件后点击"查询"按钮</div>';
 }
 
 export function loadFilterLeagues() {
   return api('filter-stats', {})
     .then(function (stats) {
-      var sm = document.getElementById('statMatches');
-      var sl = document.getElementById('statLeagues');
-      var sd = document.getElementById('statDirs');
+      const sm = document.getElementById('statMatches');
+      const sl = document.getElementById('statLeagues');
+      const sd = document.getElementById('statDirs');
       if (sm) sm.textContent = stats.matchCount || 0;
       if (sl) sl.textContent = stats.leagueCount || 0;
       if (sd) sd.textContent = stats.directionCount || 0;
-      var ddLeague = document.getElementById('dd-league');
+      const ddLeague = document.getElementById('dd-league');
       if (ddLeague) {
-        var menu = ddLeague.querySelector('.filter-dd-menu');
-        var html =
+        const menu = ddLeague.querySelector('.filter-dd-menu');
+        let html =
           '<li data-val="" class="filter-dd-option selected" onclick="selectDD(\'dd-league\',\'\',\'全部\')">全部</li>';
         (stats.leagues || []).forEach(function (l) {
           html +=
@@ -137,8 +137,8 @@ export function loadFilterLeagues() {
         if (menu) menu.innerHTML = html;
       }
       // 待回填提示（仅统计全部推荐结果缺失的比赛，不包括部分缺失）
-      var fr = document.getElementById('filterResult');
-      var hintHtml = '';
+      const fr = document.getElementById('filterResult');
+      let hintHtml = '';
       if (stats.staleCount > 0) {
         hintHtml +=
           '<div class="hint-box" style="color:var(--amber);font-size:12px;padding:20px 0;">' +
@@ -165,9 +165,9 @@ export function loadFilterLeagues() {
       }
     })
     .catch(function () {
-      var sm2 = document.getElementById('statMatches');
-      var sl2 = document.getElementById('statLeagues');
-      var sd2 = document.getElementById('statDirs');
+      const sm2 = document.getElementById('statMatches');
+      const sl2 = document.getElementById('statLeagues');
+      const sd2 = document.getElementById('statDirs');
       if (sm2) sm2.textContent = '-';
       if (sl2) sl2.textContent = '-';
       if (sd2) sd2.textContent = '-';
@@ -175,16 +175,16 @@ export function loadFilterLeagues() {
 }
 
 export function onDDTypeChange() {
-  var type = getDDVal('dd-dirType');
-  var ddDir = document.getElementById('dd-dir');
+  const type = getDDVal('dd-dirType');
+  const ddDir = document.getElementById('dd-dir');
   if (!type || type === '综合排名') {
     if (ddDir) ddDir.style.display = 'none';
     return;
   }
-  var options = filterDirMap[type] || [];
+  const options = filterDirMap[type] || [];
   if (!ddDir) return;
-  var menu = ddDir.querySelector('.filter-dd-menu');
-  var html = '<li data-val="" class="filter-dd-option selected" onclick="selectDD(\'dd-dir\',\'\',\'全部\')">全部</li>';
+  const menu = ddDir.querySelector('.filter-dd-menu');
+  let html = '<li data-val="" class="filter-dd-option selected" onclick="selectDD(\'dd-dir\',\'\',\'全部\')">全部</li>';
   options.forEach(function (d) {
     html +=
       '<li data-val="' +
@@ -199,14 +199,14 @@ export function onDDTypeChange() {
   });
   if (menu) menu.innerHTML = html;
   ddDir.setAttribute('data-val', '');
-  var textEl = ddDir.querySelector('.filter-dd-text');
+  const textEl = ddDir.querySelector('.filter-dd-text');
   if (textEl) textEl.textContent = '全部';
   ddDir.style.display = 'block';
 }
 
 export function onRankTypeChange() {
-  var type = getDDVal('dd-rankType');
-  var ddRank = document.getElementById('dd-rank');
+  const type = getDDVal('dd-rankType');
+  const ddRank = document.getElementById('dd-rank');
   if (type === '全部') {
     if (ddRank) ddRank.style.display = 'none';
     return;
@@ -215,7 +215,7 @@ export function onRankTypeChange() {
     ddRank.style.display = 'block';
     // 默认选中"第一名"（rankTop=1），避免用户选了"每天"但 rankTop=0 过滤不生效
     ddRank.setAttribute('data-val', '1');
-    var textEl = ddRank.querySelector('.filter-dd-text');
+    const textEl = ddRank.querySelector('.filter-dd-text');
     if (textEl) textEl.textContent = '第一名';
     // 同步更新下拉菜单选中状态
     ddRank.querySelectorAll('.filter-dd-option').forEach(function (o) {
@@ -225,19 +225,19 @@ export function onRankTypeChange() {
 }
 
 export function doFilterQuery() {
-  var league = getDDVal('dd-league');
-  var timeRange = getDDVal('dd-time');
-  var directionType = getDDVal('dd-dirType');
-  var ddDir = document.getElementById('dd-dir');
-  var direction = ddDir && ddDir.style.display !== 'none' ? getDDVal('dd-dir') : '';
+  const league = getDDVal('dd-league');
+  const timeRange = getDDVal('dd-time');
+  const directionType = getDDVal('dd-dirType');
+  const ddDir = document.getElementById('dd-dir');
+  let direction = ddDir && ddDir.style.display !== 'none' ? getDDVal('dd-dir') : '';
   if (direction === '全部') direction = '';
-  var rankType = getDDVal('dd-rankType') || '全部';
-  var rankTop = 0;
+  const rankType = getDDVal('dd-rankType') || '全部';
+  let rankTop = 0;
   if (rankType !== '全部') {
     rankTop = parseInt(getDDVal('dd-rank')) || 0;
   }
 
-  var resultEl = document.getElementById('filterResult');
+  const resultEl = document.getElementById('filterResult');
   if (!resultEl) return;
   resultEl.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
 
@@ -255,19 +255,19 @@ export function doFilterQuery() {
         return;
       }
 
-      var html = '';
+      let html = '';
       if (data.totalCount === 0) {
         html += '<div class="loading" style="padding:20px;color:var(--text2)">暂无符合条件的数据</div>';
       } else {
-        var rateVal = parseFloat(data.hitRate) || 0;
-        var ringColor = rateVal >= 50 ? '#34D399' : rateVal >= 40 ? '#FBBF24' : '#EF4444';
-        var r = 36,
+        const rateVal = parseFloat(data.hitRate) || 0;
+        const ringColor = rateVal >= 50 ? '#34D399' : rateVal >= 40 ? '#FBBF24' : '#EF4444';
+        const r = 36,
           c = 2 * Math.PI * r;
-        var dashLen = (c * rateVal) / 100;
+        const dashLen = (c * rateVal) / 100;
 
-        var condTags = data.conditionSummary.split(' | ');
-        var condHtml = '<div class="filter-cond-tags">';
-        for (var i = 0; i < condTags.length; i++) {
+        const condTags = data.conditionSummary.split(' | ');
+        let condHtml = '<div class="filter-cond-tags">';
+        for (let i = 0; i < condTags.length; i++) {
           if (i > 0) condHtml += '<span class="filter-cond-pipe">|</span>';
           condHtml += '<span>' + condTags[i] + '</span>';
         }
@@ -319,7 +319,7 @@ export function doFilterQuery() {
           '<th class="fdt-res">命中率</th>' +
           '</tr></thead><tbody>';
         data.dailyResults.forEach(function (d) {
-          var dr = parseFloat(d.hitRate) || 0;
+          const dr = parseFloat(d.hitRate) || 0;
           html +=
             '<tr>' +
             '<td class="fdt-date">' +
@@ -342,12 +342,12 @@ export function doFilterQuery() {
       // 明细表格：每场比赛 × 方向命中详情
       if (data.detailList && data.detailList.length > 0) {
         // 按日期分组排序
-        var sortedItems = data.detailList.slice().sort(function (a, b) {
+        const sortedItems = data.detailList.slice().sort(function (a, b) {
           if (a.date !== b.date) return b.date.localeCompare(a.date);
           return a.matchId.localeCompare(b.matchId);
         });
         // 仅展示前 200 条，避免DOM过大
-        var displayItems = sortedItems.slice(0, 200);
+        const displayItems = sortedItems.slice(0, 200);
         html += '<div class="filter-detail-card">';
         html +=
           '<div class="filter-detail-head">命中明细' +
@@ -365,9 +365,9 @@ export function doFilterQuery() {
           '<th class="fdt-res">结果</th>' +
           '</tr></thead><tbody>';
         displayItems.forEach(function (item) {
-          var isFinished = (item.matchStatus || 0) >= 2;
-          var resClass = '';
-          var resText = '-';
+          const isFinished = (item.matchStatus || 0) >= 2;
+          let resClass = '';
+          let resText = '-';
           if (isFinished) {
             if (item.result == 1) {
               resClass = 'fdt-hit';

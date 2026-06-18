@@ -1,0 +1,240 @@
+{
+  "generatedAt": "2026-06-19T07:12:44.402Z",
+  "sourceDates": 90,
+  "summary": {
+    "scannedDates": 90,
+    "scannedMatches": 1096,
+    "apiErrors": 0,
+    "missingLocalMatch": 0,
+    "scoreMismatch": 0,
+    "halfAsFullSuspected": 0,
+    "halfMismatch": 0,
+    "oddsCheckedMatches": 911,
+    "oddsMismatchSpf": 6,
+    "oddsMismatchRqspf": 6,
+    "handicapMismatch": 3
+  },
+  "details": {
+    "scoreMismatch": [],
+    "halfAsFullSuspected": [],
+    "halfMismatch": [],
+    "oddsMismatchSpf": [
+      {
+        "date": "2026-04-13",
+        "num": "周一001",
+        "matchId": "2039062",
+        "prod": {
+          "home": 1.65,
+          "draw": 3.75,
+          "away": 3.9
+        },
+        "local": {
+          "home": 3,
+          "draw": 3.4,
+          "away": 2
+        }
+      },
+      {
+        "date": "2026-04-13",
+        "num": "周一002",
+        "matchId": "2039063",
+        "prod": {
+          "home": 2.88,
+          "draw": 3.4,
+          "away": 2.05
+        },
+        "local": {
+          "home": 3.95,
+          "draw": 3.6,
+          "away": 1.67
+        }
+      },
+      {
+        "date": "2026-04-13",
+        "num": "周一004",
+        "matchId": "2039065",
+        "prod": {
+          "home": 3.3,
+          "draw": 3.75,
+          "away": 1.79
+        },
+        "local": {
+          "home": 3.37,
+          "draw": 3.36,
+          "away": 1.87
+        }
+      },
+      {
+        "date": "2026-04-13",
+        "num": "周一005",
+        "matchId": "2039066",
+        "prod": {
+          "home": 2.59,
+          "draw": 3.3,
+          "away": 2.27
+        },
+        "local": {
+          "home": 1.43,
+          "draw": 4,
+          "away": 5.55
+        }
+      },
+      {
+        "date": "2026-04-13",
+        "num": "周一006",
+        "matchId": "2039067",
+        "prod": {
+          "home": 2.02,
+          "draw": 2.98,
+          "away": 3.35
+        },
+        "local": {
+          "home": 2.54,
+          "draw": 2.72,
+          "away": 2.72
+        }
+      },
+      {
+        "date": "2026-04-13",
+        "num": "周一007",
+        "matchId": "2039068",
+        "prod": {
+          "home": 1.99,
+          "draw": 3.25,
+          "away": 3.13
+        },
+        "local": {
+          "home": 4,
+          "draw": 3.18,
+          "away": 1.77
+        }
+      }
+    ],
+    "oddsMismatchRqspf": [
+      {
+        "date": "2026-04-13",
+        "num": "周一001",
+        "matchId": "2039062",
+        "prod": {
+          "home": 3,
+          "draw": 3.55,
+          "away": 1.95,
+          "handicap": -1
+        },
+        "local": {
+          "home": 1.61,
+          "draw": 3.85,
+          "away": 4.02,
+          "handicap": 1
+        }
+      },
+      {
+        "date": "2026-04-13",
+        "num": "周一002",
+        "matchId": "2039063",
+        "prod": {
+          "home": 1.6,
+          "draw": 3.7,
+          "away": 4.3,
+          "handicap": 1
+        },
+        "local": {
+          "home": 1.93,
+          "draw": 3.25,
+          "away": 3.3,
+          "handicap": 1
+        }
+      },
+      {
+        "date": "2026-04-13",
+        "num": "周一004",
+        "matchId": "2039065",
+        "prod": {
+          "home": 1.8,
+          "draw": 3.65,
+          "away": 3.35,
+          "handicap": 1
+        },
+        "local": {
+          "home": 1.73,
+          "draw": 3.56,
+          "away": 3.7,
+          "handicap": 1
+        }
+      },
+      {
+        "date": "2026-04-13",
+        "num": "周一005",
+        "matchId": "2039066",
+        "prod": {
+          "home": 1.47,
+          "draw": 4.15,
+          "away": 4.8,
+          "handicap": 1
+        },
+        "local": {
+          "home": 2.48,
+          "draw": 3.18,
+          "away": 2.43,
+          "handicap": -1
+        }
+      },
+      {
+        "date": "2026-04-13",
+        "num": "周一006",
+        "matchId": "2039067",
+        "prod": {
+          "home": 4.7,
+          "draw": 3.4,
+          "away": 1.61
+        },
+        "local": {
+          "home": 6.5,
+          "draw": 3.9,
+          "away": 1.39,
+          "handicap": -1
+        }
+      },
+      {
+        "date": "2026-04-13",
+        "num": "周一007",
+        "matchId": "2039068",
+        "prod": {
+          "home": 4.15,
+          "draw": 3.7,
+          "away": 1.62
+        },
+        "local": {
+          "home": 1.8,
+          "draw": 3.16,
+          "away": 3.88,
+          "handicap": 1
+        }
+      }
+    ],
+    "handicapMismatch": [
+      {
+        "date": "2026-04-13",
+        "num": "周一001",
+        "matchId": "2039062",
+        "prodHandicap": -1,
+        "localHandicap": 1
+      },
+      {
+        "date": "2026-04-13",
+        "num": "周一005",
+        "matchId": "2039066",
+        "prodHandicap": 1,
+        "localHandicap": -1
+      },
+      {
+        "date": "2026-04-13",
+        "num": "周一007",
+        "matchId": "2039068",
+        "prodHandicap": -1,
+        "localHandicap": 1
+      }
+    ],
+    "apiErrors": []
+  }
+}

@@ -13,14 +13,14 @@ function normalizeName(value) {
 }
 
 function shouldShowVipGiftPopup(username) {
-  var uname = normalizeName(username);
+  const uname = normalizeName(username);
   if (!uname) return false;
   try {
-    var force = sessionStorage.getItem(VIP_POPUP_FORCE_KEY) === '1';
+    const force = sessionStorage.getItem(VIP_POPUP_FORCE_KEY) === '1';
     if (force && isLocalDebugHost() && uname === 'ctyqq') return true;
-    var pendingUser = normalizeName(sessionStorage.getItem(VIP_POPUP_PENDING_USER_KEY) || '');
+    const pendingUser = normalizeName(sessionStorage.getItem(VIP_POPUP_PENDING_USER_KEY) || '');
     if (!pendingUser || pendingUser !== uname) return false;
-    var shown = localStorage.getItem(VIP_POPUP_SHOWN_PREFIX + uname);
+    const shown = localStorage.getItem(VIP_POPUP_SHOWN_PREFIX + uname);
     return shown !== '1';
   } catch (e) {
     return false;
@@ -28,7 +28,7 @@ function shouldShowVipGiftPopup(username) {
 }
 
 function finalizeVipGiftPopupMark(username) {
-  var uname = normalizeName(username);
+  const uname = normalizeName(username);
   if (!uname) return;
   try {
     localStorage.setItem(VIP_POPUP_SHOWN_PREFIX + uname, '1');
@@ -38,7 +38,7 @@ function finalizeVipGiftPopupMark(username) {
 }
 
 function showVipGiftPopup(username, onClaim, onLater) {
-  var overlay = document.createElement('div');
+  const overlay = document.createElement('div');
   overlay.className = 'vip-welcome-overlay';
   overlay.innerHTML =
     '' +
@@ -69,7 +69,7 @@ function showVipGiftPopup(username, onClaim, onLater) {
   }
 
   function doClaim() {
-    var claimBtn = overlay.querySelector('.vip-welcome-claim');
+    const claimBtn = overlay.querySelector('.vip-welcome-claim');
     if (claimBtn) {
       claimBtn.disabled = true;
       claimBtn.textContent = '领取中...';
@@ -90,7 +90,7 @@ function showVipGiftPopup(username, onClaim, onLater) {
           claimBtn.disabled = false;
           claimBtn.textContent = '立即领取';
         }
-        var msg = (e && e.message) || '领取失败，请稍后重试';
+        const msg = (e && e.message) || '领取失败，请稍后重试';
         window.alert(msg);
       });
   }
@@ -99,13 +99,13 @@ function showVipGiftPopup(username, onClaim, onLater) {
     if (e.target === overlay) doLater();
   });
 
-  var closeBtn = overlay.querySelector('.vip-welcome-close');
+  const closeBtn = overlay.querySelector('.vip-welcome-close');
   if (closeBtn) closeBtn.addEventListener('click', doLater);
 
-  var laterBtn = overlay.querySelector('.vip-welcome-later');
+  const laterBtn = overlay.querySelector('.vip-welcome-later');
   if (laterBtn) laterBtn.addEventListener('click', doLater);
 
-  var claimBtn = overlay.querySelector('.vip-welcome-claim');
+  const claimBtn = overlay.querySelector('.vip-welcome-claim');
   if (claimBtn) claimBtn.addEventListener('click', doClaim);
 
   document.body.appendChild(overlay);
@@ -113,7 +113,7 @@ function showVipGiftPopup(username, onClaim, onLater) {
 
 function isLocalDebugHost() {
   try {
-    var host = (window.location && window.location.hostname) || '';
+    const host = (window.location && window.location.hostname) || '';
     return host === '127.0.0.1' || host === 'localhost';
   } catch (e) {
     return false;
@@ -125,7 +125,7 @@ function installVipGiftPreviewHelpers() {
   window.__vipGiftPreviewHelpersInstalled = true;
 
   window.previewVipGiftPopup = function (username) {
-    var uname = normalizeName(username || 'ctyqq');
+    const uname = normalizeName(username || 'ctyqq');
     if (!uname) return false;
     try {
       sessionStorage.setItem(VIP_POPUP_PENDING_USER_KEY, uname);
@@ -145,8 +145,8 @@ function installVipGiftPreviewHelpers() {
 
 function parseLoginParams() {
   try {
-    var hash = window.location.hash || '';
-    var qIndex = hash.indexOf('?');
+    const hash = window.location.hash || '';
+    const qIndex = hash.indexOf('?');
     return {
       hashParams: new URLSearchParams(qIndex >= 0 ? hash.slice(qIndex + 1) : ''),
       searchParams: new URLSearchParams((window.location && window.location.search) || ''),
@@ -160,8 +160,8 @@ function parseLoginParams() {
 }
 
 function getInviteEntryCode() {
-  var parsed = parseLoginParams();
-  var code =
+  const parsed = parseLoginParams();
+  const code =
     parsed.hashParams.get('ref') ||
     parsed.hashParams.get('invite') ||
     parsed.searchParams.get('ref') ||
@@ -245,13 +245,13 @@ function normalizeBasicInput(v) {
 }
 
 function normalizePasswordInput(v) {
-  var p = normalizeBasicInput(v);
+  let p = normalizeBasicInput(v);
   if (/^\d+[;；，,。.]$/.test(p)) p = p.slice(0, -1);
   return p;
 }
 
 function consumeRegisterHint() {
-  var hint = { username: '', message: '' };
+  const hint = { username: '', message: '' };
   try {
     hint.username = sessionStorage.getItem('registerSuccessUser') || '';
     hint.message = sessionStorage.getItem('registerSuccessMsg') || '';
@@ -263,7 +263,7 @@ function consumeRegisterHint() {
 
 function getPendingSelectedPlan() {
   try {
-    var raw = sessionStorage.getItem('pendingSelectedPlan') || '';
+    const raw = sessionStorage.getItem('pendingSelectedPlan') || '';
     return raw ? JSON.parse(raw) : null;
   } catch (e) {
     return null;
@@ -301,11 +301,11 @@ function bindLoginAction() {
     };
   }
 
-  var registerHint = consumeRegisterHint();
+  const registerHint = consumeRegisterHint();
   if (registerHint.username && !userEl.value) userEl.value = registerHint.username;
 
   function isLocalEnv() {
-    var host = (window.location && window.location.hostname) || '';
+    const host = (window.location && window.location.hostname) || '';
     return host === '127.0.0.1' || host === 'localhost';
   }
 
@@ -320,8 +320,8 @@ function bindLoginAction() {
     setMsg(msg, '登录成功，正在进入系统...', true);
 
     function continueAfterLogin() {
-      var pending = '';
-      var pendingPlan = getPendingSelectedPlan();
+      let pending = '';
+      const pendingPlan = getPendingSelectedPlan();
       try {
         pending = sessionStorage.getItem('pendingAfterLogin') || '';
       } catch (e) {}
@@ -342,7 +342,7 @@ function bindLoginAction() {
       if (typeof window.switchTab === 'function') window.switchTab('home');
     }
 
-    var username =
+    const username =
       (res && res.user && (res.user.username || res.user.user_name || res.user.account)) || inputUsername || '';
 
     if (shouldShowVipGiftPopup(username)) {
@@ -391,7 +391,7 @@ function bindLoginAction() {
 
     api('auth-login', { username, password }, 0)
       .catch(function (e) {
-        var canFallback =
+        const canFallback =
           isLocalEnv() && username === 'ctyqq' && e && /账号或密码错误|登录失败/.test(String(e.message || ''));
         if (!canFallback) throw e;
         return api('auth-login', { username: 'ctyqq', password: '31788517' }, 0);

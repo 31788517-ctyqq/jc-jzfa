@@ -4,14 +4,14 @@ import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
 import * as state from '../vendor.js';
 
 // AI 深度解析缓存：{ matchId: { content: ..., hash: ... } }
-var predictionCache = {};
-var _aiModalMatchId = null; // ★ 缓存的 matchId，供"我要做方案"按钮使用
+const predictionCache = {};
+let _aiModalMatchId = null; // ★ 缓存的 matchId，供"我要做方案"按钮使用
 (function restoreCache() {
   try {
-    var saved = sessionStorage.getItem('__ai_prediction_cache');
+    const saved = sessionStorage.getItem('__ai_prediction_cache');
     if (saved) {
-      var parsed = JSON.parse(saved);
-      var today = formatDate(new Date());
+      const parsed = JSON.parse(saved);
+      const today = formatDate(new Date());
       Object.keys(parsed).forEach(function (k) {
         if (parsed[k] && parsed[k]._date === today) predictionCache[k] = parsed[k];
       });
@@ -20,10 +20,10 @@ var _aiModalMatchId = null; // ★ 缓存的 matchId，供"我要做方案"按�
 })();
 function persistPredictionCache() {
   try {
-    var toSave = {};
-    var today = formatDate(new Date());
+    const toSave = {};
+    const today = formatDate(new Date());
     Object.keys(predictionCache).forEach(function (k) {
-      var v = predictionCache[k];
+      const v = predictionCache[k];
       if (v) toSave[k] = { content: v.content, hash: v.hash, _date: today };
     });
     sessionStorage.setItem('__ai_prediction_cache', JSON.stringify(toSave));
@@ -47,11 +47,11 @@ function _rqspfKey(dir) {
 }
 function _singleOdds(odds, dir) {
   if (!odds) return null;
-  var spfK = _spfKey(dir);
+  const spfK = _spfKey(dir);
   if (spfK && odds.spf) return odds.spf[spfK] || null;
-  var rqK = _rqspfKey(dir);
+  const rqK = _rqspfKey(dir);
   if (rqK && odds.rqspfList && odds.rqspfList.length > 0) {
-    var rq = odds.rqspfList.find(function (r) {
+    let rq = odds.rqspfList.find(function (r) {
       return Number(r.handicap) === 0;
     });
     if (!rq) rq = odds.rqspfList[0];
@@ -64,7 +64,7 @@ function _singleOdds(odds, dir) {
 function _dutchOdds(arr) {
   if (!arr || arr.length === 0) return null;
   if (arr.length === 1) return arr[0];
-  var invSum = 0;
+  let invSum = 0;
   arr.forEach(function (o) {
     invSum += 1 / o;
   });
@@ -75,8 +75,8 @@ function _dutchOdds(arr) {
 function _parseJqs(dir) {
   if (!dir || dir.indexOf('总进球') !== 0) return null;
   // 去掉 "总进球-" 前缀，再按分隔符拆分
-  var body = dir.replace(/^总进球-?/, '').replace(/球$/, '');
-  var subs = body.split(/[、,]/).filter(function (s) {
+  const body = dir.replace(/^总进球-?/, '').replace(/球$/, '');
+  const subs = body.split(/[、,]/).filter(function (s) {
     return s && s.trim();
   });
   if (subs.length === 0) return null;
@@ -87,14 +87,14 @@ function _parseJqs(dir) {
 function _jqsOdds(odds, goals) {
   if (!odds || !odds.jqs || odds.jqs.length === 0) return null;
   if (goals.length === 1) {
-    var found = odds.jqs.find(function (r) {
+    const found = odds.jqs.find(function (r) {
       return String(r.goals) === String(goals[0]);
     });
     return found ? found.odds : null;
   }
-  var vals = [];
+  const vals = [];
   goals.forEach(function (g) {
-    var f = odds.jqs.find(function (r) {
+    const f = odds.jqs.find(function (r) {
       return String(r.goals) === String(g);
     });
     if (f) vals.push(f.odds);
@@ -105,8 +105,8 @@ function _jqsOdds(odds, goals) {
 // ── 半全场解析 ("半全场-胜胜" → ["胜胜"]) ──
 function _parseBqc(dir) {
   if (!dir || dir.indexOf('半全场') !== 0) return null;
-  var body = dir.replace(/^半全场-?/, '');
-  var subs = body.split(/[、,]/).filter(function (s) {
+  const body = dir.replace(/^半全场-?/, '');
+  const subs = body.split(/[、,]/).filter(function (s) {
     return s && s.trim();
   });
   if (subs.length === 0) return null;
@@ -117,14 +117,14 @@ function _parseBqc(dir) {
 function _bqcOdds(odds, combos) {
   if (!odds || !odds.bqc || odds.bqc.length === 0) return null;
   if (combos.length === 1) {
-    var found = odds.bqc.find(function (r) {
+    const found = odds.bqc.find(function (r) {
       return r.combo === combos[0];
     });
     return found ? found.odds : null;
   }
-  var vals = [];
+  const vals = [];
   combos.forEach(function (c) {
-    var f = odds.bqc.find(function (r) {
+    const f = odds.bqc.find(function (r) {
       return r.combo === c;
     });
     if (f) vals.push(f.odds);
@@ -135,8 +135,8 @@ function _bqcOdds(odds, combos) {
 // ── 比分解析 ("比分-1:0" → ["1:0"]) ──
 function _parseBf(dir) {
   if (!dir || dir.indexOf('比分') !== 0) return null;
-  var body = dir.replace(/^比分-?/, '');
-  var subs = body.split(/[、,]/).filter(function (s) {
+  const body = dir.replace(/^比分-?/, '');
+  const subs = body.split(/[、,]/).filter(function (s) {
     return s && s.trim();
   });
   if (subs.length === 0) return null;
@@ -147,14 +147,14 @@ function _parseBf(dir) {
 function _bfOdds(odds, scores) {
   if (!odds || !odds.bf || odds.bf.length === 0) return null;
   if (scores.length === 1) {
-    var found = odds.bf.find(function (r) {
+    const found = odds.bf.find(function (r) {
       return r.score === scores[0];
     });
     return found ? found.odds : null;
   }
-  var vals = [];
+  const vals = [];
   scores.forEach(function (s) {
-    var f = odds.bf.find(function (r) {
+    const f = odds.bf.find(function (r) {
       return r.score === s;
     });
     if (f) vals.push(f.odds);
@@ -168,23 +168,23 @@ function _dirOdds(odds, direction) {
   if (!direction) return null;
 
   // 1) SPF/RQSPF 单方向
-  var single = _singleOdds(odds, direction);
+  const single = _singleOdds(odds, direction);
   if (single !== null) return single;
 
   // 2) JQS 总进球
-  var jqsParts = _parseJqs(direction);
+  const jqsParts = _parseJqs(direction);
   if (jqsParts) return _jqsOdds(odds, jqsParts);
 
   // 3) BQC 半全场
-  var bqcParts = _parseBqc(direction);
+  const bqcParts = _parseBqc(direction);
   if (bqcParts) return _bqcOdds(odds, bqcParts);
 
   // 4) BF 比分
-  var bfParts = _parseBf(direction);
+  const bfParts = _parseBf(direction);
   if (bfParts) return _bfOdds(odds, bfParts);
 
   // 5) SPF/RQSPF 组合方向（带分隔符如"胜、平"，或连写如"胜平"）
-  var parts = direction.split(/[、,]/).filter(function (s) {
+  let parts = direction.split(/[、,]/).filter(function (s) {
     return s && s.trim();
   });
   if (parts.length === 1 && parts[0] === direction) {
@@ -194,9 +194,9 @@ function _dirOdds(odds, direction) {
   }
   if (parts.length <= 1) return null;
 
-  var vals = [];
+  const vals = [];
   parts.forEach(function (d) {
-    var v = _singleOdds(odds, d);
+    const v = _singleOdds(odds, d);
     if (v !== null) vals.push(v);
   });
   return vals.length > 0 ? _dutchOdds(vals) : null;
@@ -224,8 +224,7 @@ export function goDetail(matchId) {
     const hasResults = recommends.some(function (r) {
       return r.result !== null;
     });
-    const statusText =
-      match.matchStatus === 2 ? '已结束' : match.matchStatus === 1 ? '进行中' : '未开始';
+    const statusText = match.matchStatus === 2 ? '已结束' : match.matchStatus === 1 ? '进行中' : '未开始';
     const roundText = match.num || match.matchNum || '竞彩';
     const isLive = match.matchStatus === 1 || match.matchStatus === 2;
     const scoreText = match.score || '';
@@ -233,10 +232,10 @@ export function goDetail(matchId) {
     const durText = match.duration || '';
     const yellowText = match.yellow || '';
     const redText = match.red || '';
-    var scoreDisplay = '';
-    var extraText = '';
+    let scoreDisplay = '';
+    let extraText = '';
     if (isLive && scoreText) {
-      var parts = scoreText.replace('-', ':').split(':');
+      const parts = scoreText.replace('-', ':').split(':');
       if (parts.length === 2) scoreDisplay = '<span class="match-score">' + parts[0] + ' : ' + parts[1] + '</span>';
     }
     if (match.matchStatus === 1 && durText && durText !== '未') {
@@ -307,7 +306,7 @@ export function goDetail(matchId) {
         <div class="dir-list" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.05);">
     `;
 
-    var hitMap = {};
+    const hitMap = {};
     recommends.forEach(function (r) {
       if (r.result === 1) hitMap[r.type] = true;
     });
@@ -321,7 +320,7 @@ export function goDetail(matchId) {
       });
       dirItems = Object.keys(typeMap).map((t) => ({ type: t, num: typeMap[t] }));
     }
-    var isFinished =
+    const isFinished =
       match.matchStatus === 2 ||
       recommends.some(function (r) {
         return r.result !== null;
@@ -329,11 +328,11 @@ export function goDetail(matchId) {
     dirItems
       .sort((a, b) => (b.num || 0) - (a.num || 0))
       .forEach((r) => {
-        var isHit = isFinished && hitMap[r.type];
-        var hitFlag = isHit ? '<img src="/assets/worldcup/flag-hit.png" class="hit-flag" alt="">' : '';
-        var hitClass = isHit ? ' hit' : '';
-        var oddsText = '';
-        var ov = _dirOdds(oddsData, r.type);
+        const isHit = isFinished && hitMap[r.type];
+        const hitFlag = isHit ? '<img src="/assets/worldcup/flag-hit.png" class="hit-flag" alt="">' : '';
+        const hitClass = isHit ? ' hit' : '';
+        let oddsText = '';
+        const ov = _dirOdds(oddsData, r.type);
         if (ov !== null) {
           oddsText = ' <span style="color:#60A5FA;font-size:13px;font-weight:500;">(' + ov.toFixed(1) + ')</span>';
         }
@@ -350,11 +349,11 @@ export function goDetail(matchId) {
     el.classList.remove('page-skeleton'); // 移除骨架屏 padding，卡片宽度对齐今日比赛
 
     // AI 核心看点卡片隐藏逻辑：比赛日期早于今天则隐藏
-    var matchDate = (match.date || '').slice(0, 10);
-    var todayStr = formatDate(new Date());
-    var isPastMatch = matchDate && matchDate < todayStr;
+    const matchDate = (match.date || '').slice(0, 10);
+    const todayStr = formatDate(new Date());
+    const isPastMatch = matchDate && matchDate < todayStr;
     if (isPastMatch) {
-      var aiCard = el.querySelector('.ai-card');
+      const aiCard = el.querySelector('.ai-card');
       if (aiCard) aiCard.style.display = 'none';
     }
 
@@ -373,16 +372,16 @@ export function goDetail(matchId) {
       }
 
       // 单点快照标记：仅1个数据点时用柱状图（折线图需≥2点才有意义）
-      var isSingleShot = trend.timeLabels.length === 1;
+      const isSingleShot = trend.timeLabels.length === 1;
 
       loadECharts().then(function () {
         if (!echartsReady) return;
-        var existInstance = echarts.getInstanceByDom(chartEl);
+        const existInstance = echarts.getInstanceByDom(chartEl);
         if (existInstance) existInstance.dispose();
         const chart = echarts.init(chartEl);
         // ★ 5 色语义渐变体系 — 每个方向独立色相，保留渐变质感
         // 配色策略：高饱和主色 → 渐淡底部，视觉区分 + 统一风格
-        var DIR_PALETTE = [
+        const DIR_PALETTE = [
           { r: 99, g: 102, b: 241 }, // 0: 靛蓝 #6366F1
           { r: 236, g: 72, b: 153 }, // 1: 玫红 #EC4899
           { r: 34, g: 197, b: 94 }, // 2: 翠绿 #22C55E
@@ -390,8 +389,8 @@ export function goDetail(matchId) {
           { r: 126, g: 166, b: 189 }, // 4: 青 #7EA6BD
         ];
         function buildBarColor(index, value, maxVal) {
-          var c = DIR_PALETTE[index % DIR_PALETTE.length];
-          var ratio = maxVal > 0 ? Math.min(value / maxVal, 1) : 0;
+          const c = DIR_PALETTE[index % DIR_PALETTE.length];
+          const ratio = maxVal > 0 ? Math.min(value / maxVal, 1) : 0;
           return {
             type: 'linear',
             x: 0,
@@ -405,15 +404,15 @@ export function goDetail(matchId) {
           };
         }
         function barBorderColor(cIndex) {
-          var c = DIR_PALETTE[cIndex % DIR_PALETTE.length];
+          const c = DIR_PALETTE[cIndex % DIR_PALETTE.length];
           return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',0.28)';
         }
         function barShadowColor(cIndex) {
-          var c = DIR_PALETTE[cIndex % DIR_PALETTE.length];
+          const c = DIR_PALETTE[cIndex % DIR_PALETTE.length];
           return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',0.14)';
         }
         function hexFromPalette(i) {
-          var c = DIR_PALETTE[i % DIR_PALETTE.length];
+          const c = DIR_PALETTE[i % DIR_PALETTE.length];
           return (
             '#' +
             ('0' + c.r.toString(16)).slice(-2) +
@@ -421,30 +420,30 @@ export function goDetail(matchId) {
             ('0' + c.b.toString(16)).slice(-2)
           );
         }
-        var colors = DIR_PALETTE.map(function (_, i) {
+        const colors = DIR_PALETTE.map(function (_, i) {
           return hexFromPalette(i);
         });
 
-        var matchedSeries = trend.series.filter(function (s) {
+        let matchedSeries = trend.series.filter(function (s) {
           return top5.some(function (t) {
             return t.type === s.name;
           });
         });
         if (matchedSeries.length === 0) matchedSeries = trend.series.slice(0, 5);
-        var activeSeries = matchedSeries.slice(0, 5);
+        const activeSeries = matchedSeries.slice(0, 5);
 
         // 计算最大值用于颜色映射
-        var allVals = [];
+        const allVals = [];
         activeSeries.forEach(function (s) {
           s.data.forEach(function (v) {
             if (v != null) allVals.push(v);
           });
         });
-        var maxVal = Math.max.apply(null, allVals.length ? allVals : [1]);
+        const maxVal = Math.max.apply(null, allVals.length ? allVals : [1]);
 
         const series = activeSeries.map(function (s, i) {
           if (isSingleShot) {
-            var val = s.data[0] || 0;
+            const val = s.data[0] || 0;
             return {
               name: s.name,
               type: 'bar',
@@ -508,7 +507,7 @@ export function goDetail(matchId) {
           };
         });
 
-        var option = {
+        const option = {
           color: colors,
           tooltip: {
             trigger: 'axis',
@@ -520,7 +519,7 @@ export function goDetail(matchId) {
             textStyle: { color: '#E2E0DC', fontSize: 12 },
             extraCssText: 'box-shadow: 0 6px 20px rgba(0,0,0,0.25);',
             formatter: function (params) {
-              var h =
+              let h =
                 '<div style="font-weight:700;margin-bottom:6px;font-size:13px;">' +
                 (params[0] ? params[0].axisValue : '') +
                 '</div>';
@@ -607,7 +606,7 @@ export function goDetail(matchId) {
 }
 
 export function closeAI() {
-  var overlay = document.getElementById('aiOverlay');
+  const overlay = document.getElementById('aiOverlay');
   if (overlay) overlay.classList.remove('active');
   document.body.style.overflow = '';
 }
@@ -626,17 +625,17 @@ window.goFromAIToScheme = function () {
 export function showAIPrediction(matchId, homeTeam, awayTeam) {
   _aiModalMatchId = matchId; // ★ 缓存 matchId
   if (!homeTeam || !awayTeam) {
-    var teams = document.querySelectorAll('#detailContent .team-name');
+    const teams = document.querySelectorAll('#detailContent .team-name');
     homeTeam = (teams[0] ? teams[0].textContent : null) || homeTeam || '主队';
     awayTeam = (teams[1] ? teams[1].textContent : null) || awayTeam || '客队';
   }
 
-  var modalEl = document.getElementById('aiModal');
-  var overlayEl = document.getElementById('aiOverlay');
+  const modalEl = document.getElementById('aiModal');
+  const overlayEl = document.getElementById('aiOverlay');
 
   // ═══ 缓存命中：直接渲染 + 后台静默检查是否有更新 ═══
   if (predictionCache[matchId]) {
-    var cached = predictionCache[matchId];
+    const cached = predictionCache[matchId];
     // 立即展示缓存内容，跳过加载动画
     renderCachedContent(cached.content, homeTeam, awayTeam, cached.content, matchId);
     if (overlayEl) overlayEl.classList.add('active');
@@ -644,7 +643,7 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
 
     // 后台静默校验：有变化时无声更新
     api('ai-predict', { matchId: matchId }, 2).then(function (d) {
-      var newHash = JSON.stringify(d.content || '');
+      const newHash = JSON.stringify(d.content || '');
       if (newHash !== cached.hash && d.content) {
         // 内容有变化，静默更新缓存和 DOM
         predictionCache[matchId] = { content: d, hash: newHash };
@@ -662,19 +661,19 @@ export function showAIPrediction(matchId, homeTeam, awayTeam) {
 
 function renderCachedContent(content, homeTeam, awayTeam, newData, matchId) {
   // 直接用缓存内容渲染，跳过加载动画
-  var resultData = newData || content;
+  const resultData = newData || content;
   if (resultData && resultData.content) {
     if (resultData.dualModel && resultData.merged) {
       renderAIContent(resultData.content, homeTeam, awayTeam);
     } else if (resultData.singleModel && resultData.failedSource) {
-      var failBadge =
+      const failBadge =
         (resultData.failedSource === 'deepseek' ? 'DeepSeek' : '豆包') +
         ' 分析未成功，仅展示 ' +
         (resultData.readySource === 'deepseek' ? 'DeepSeek' : '豆包') +
         ' 结果';
       renderAIContentWithBadge(resultData.content, homeTeam, awayTeam, failBadge);
     } else if (resultData.singleModel || resultData.pendingMerge) {
-      var badge = (resultData.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 已完成，另一模型分析中...';
+      const badge = (resultData.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 已完成，另一模型分析中...';
       renderAIContentWithBadge(resultData.content, homeTeam, awayTeam, badge);
     } else {
       renderAIContent(resultData.content, homeTeam, awayTeam);
@@ -682,15 +681,18 @@ function renderCachedContent(content, homeTeam, awayTeam, newData, matchId) {
     if (resultData.shujuMissing) {
       showShujuMissingNotice();
     }
+    showDataGateNotice(resultData.dataGate);
   } else if (resultData && resultData.notReady) {
-    var ac = document.getElementById('aiModal');
+    const ac = document.getElementById('aiModal');
     if (ac) {
-      var inr = ac.querySelector('.ai-content');
+      const inr = ac.querySelector('.ai-content');
       if (inr)
         inr.innerHTML =
           '<div style="text-align:center;padding:40px 20px;color:var(--cyan);"><div style="font-size:48px;margin-bottom:16px;">📋</div><div style="font-size:16px;font-weight:600;">分析生成中</div><div style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.6;">' +
           (resultData.msg || 'AI 深度解析由定时任务（11:30 / 16:30）统一生成<br>到时间后刷新页面即可查看') +
-          '</div><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;margin-right:8px;" onclick="closeAI();showAIPrediction(\'' +
+          '</div>' +
+          _renderDataGateNoticeHtml(resultData.dataGate) +
+          '<button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;margin-right:8px;" onclick="closeAI();showAIPrediction(\'' +
           (matchId || '') +
           "','" +
           (homeTeam || '').replace(/'/g, "\\'") +
@@ -703,7 +705,7 @@ function renderCachedContent(content, homeTeam, awayTeam, newData, matchId) {
 
 function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloadedData) {
   // 显示加载态
-  var html =
+  let html =
     '<div class="ai-modal-header"><span class="ai-modal-title">AI深度解析</span><button class="ai-modal-close" onclick="closeAI()">&times;</button></div>';
   html +=
     '<div class="ai-content"><div style="text-align:center;padding:60px 20px;color:var(--cyan);"><div style="font-size:40px;margin-bottom:16px;">⏳</div><div style="font-size:16px;font-weight:600;">正在交叉分析中...</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">DeepSeek + 豆包 双模型交叉验证</div></div></div>';
@@ -712,23 +714,23 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
   document.body.style.overflow = 'hidden';
 
   // ═══ 假进度条：模拟实时 AI 运算耗时（3-5s） ═══
-  var fakeDurationSec = Math.floor(Math.random() * 3) + 3; // 3-5 秒
-  var fakeStartTime = Date.now();
-  var pendingResult = preloadedData; // 可能已有预加载数据
-  var apiDone = !!preloadedData; // 如果预加载了数据则标记已完成
-  var apiError = null; // API 异常暂存
-  var pollTimer = null;
-  var rendered = false; // 防止重复渲染
+  const fakeDurationSec = Math.floor(Math.random() * 3) + 3; // 3-5 秒
+  const fakeStartTime = Date.now();
+  let pendingResult = preloadedData; // 可能已有预加载数据
+  let apiDone = !!preloadedData; // 如果预加载了数据则标记已完成
+  let apiError = null; // API 异常暂存
+  let pollTimer = null;
+  let rendered = false; // 防止重复渲染
 
   function updateFakeProgress() {
-    var elapsed = (Date.now() - fakeStartTime) / 1000;
-    var progress = Math.min(99, Math.floor((elapsed / fakeDurationSec) * 100));
-    var remaining = Math.max(0, Math.ceil(fakeDurationSec - elapsed));
+    const elapsed = (Date.now() - fakeStartTime) / 1000;
+    const progress = Math.min(99, Math.floor((elapsed / fakeDurationSec) * 100));
+    const remaining = Math.max(0, Math.ceil(fakeDurationSec - elapsed));
 
-    var inner = modalEl ? modalEl.querySelector('.ai-content') : null;
+    const inner = modalEl ? modalEl.querySelector('.ai-content') : null;
     if (!inner || rendered) return;
 
-    var descText = 'DeepSeek + 豆包 双模型并行，先到先得';
+    let descText = 'DeepSeek + 豆包 双模型并行，先到先得';
     if (apiDone && pendingResult) {
       descText = '双模型分析完成，正在融合结果...';
     } else if (apiError) {
@@ -768,15 +770,15 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
   }, 200);
 
   // ★ P1-2: 后台静默请求（如果还没有预加载数据）
-  var minAnimMs = 3000; // 最少展示 3 秒加载动画
-  var animStart = Date.now();
-  var resolveTimer = null;
+  const minAnimMs = 3000; // 最少展示 3 秒加载动画
+  const animStart = Date.now();
+  let resolveTimer = null;
 
   // 统一结果渲染函数（两个条件同时满足：API 完成 + 动画至少跑了 minAnimMs）
   function tryRenderResult() {
     if (rendered) return;
-    var apiReady = pendingResult || apiError;
-    var animDone = Date.now() - animStart >= minAnimMs;
+    const apiReady = pendingResult || apiError;
+    const animDone = Date.now() - animStart >= minAnimMs;
     if (!apiReady || !animDone) return;
 
     rendered = true;
@@ -791,14 +793,16 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
 
     // notReady → 带重试按钮
     if (pendingResult && pendingResult.notReady) {
-      var ac = document.getElementById('aiModal');
+      const ac = document.getElementById('aiModal');
       if (ac) {
-        var inr = ac.querySelector('.ai-content');
+        const inr = ac.querySelector('.ai-content');
         if (inr)
           inr.innerHTML =
             '<div style="text-align:center;padding:40px 20px;color:var(--cyan);"><div style="font-size:48px;margin-bottom:16px;">📋</div><div style="font-size:16px;font-weight:600;">分析生成中</div><div style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.6;">' +
             (pendingResult.msg || 'AI 分析正在后台生成，请稍后重试') +
-            '</div><button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;margin-right:8px;" onclick="closeAI();showAIPrediction(\'' +
+            '</div>' +
+            _renderDataGateNoticeHtml(pendingResult.dataGate) +
+            '<button style="margin-top:16px;padding:10px 28px;border-radius:24px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:600;margin-right:8px;" onclick="closeAI();showAIPrediction(\'' +
             matchId +
             "','" +
             homeTeam.replace(/'/g, "\\'") +
@@ -814,14 +818,14 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
       if (pendingResult.dualModel && pendingResult.merged) {
         renderAIContent(pendingResult.content, homeTeam, awayTeam);
       } else if (pendingResult.singleModel && pendingResult.failedSource) {
-        var failBadge =
+        const failBadge =
           (pendingResult.failedSource === 'deepseek' ? 'DeepSeek' : '豆包') +
           ' 分析未成功，仅展示 ' +
           (pendingResult.readySource === 'deepseek' ? 'DeepSeek' : '豆包') +
           ' 结果';
         renderAIContentWithBadge(pendingResult.content, homeTeam, awayTeam, failBadge);
       } else if (pendingResult.singleModel || pendingResult.pendingMerge) {
-        var badge = (pendingResult.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 已完成，另一模型分析中...';
+        const badge = (pendingResult.readySource === 'deepseek' ? 'DeepSeek' : '豆包') + ' 已完成，另一模型分析中...';
         renderAIContentWithBadge(pendingResult.content, homeTeam, awayTeam, badge);
         pollForMerge(matchId, homeTeam, awayTeam, 0);
       } else {
@@ -830,14 +834,16 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
       if (pendingResult.shujuMissing) {
         showShujuMissingNotice();
       }
+      showDataGateNotice(pendingResult.dataGate);
+
       return;
     }
 
     // API 异常（重试按钮 + 关闭按钮）
-    var ac2 = document.getElementById('aiModal');
+    const ac2 = document.getElementById('aiModal');
     if (ac2) {
-      var inr2 = ac2.querySelector('.ai-content');
-      var msg = apiError || '分析服务暂时不可用';
+      const inr2 = ac2.querySelector('.ai-content');
+      const msg = apiError || '分析服务暂时不可用';
       if (inr2)
         inr2.innerHTML =
           '<div style="text-align:center;padding:60px 20px;color:var(--amber);"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="font-size:16px;font-weight:600;">请求失败</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">' +
@@ -857,7 +863,7 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
     if (d) {
       pendingResult = d;
       apiDone = true;
-      var contentHash = JSON.stringify(d.content || '');
+      const contentHash = JSON.stringify(d.content || '');
       predictionCache[matchId] = { content: d, hash: contentHash };
       persistPredictionCache();
     } else if (errMsg) {
@@ -889,12 +895,13 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
   function pollForMerge(matchId, homeTeam, awayTeam, retries) {
     retries = retries || 0;
     if (retries >= 15) return;
-    var delay = Math.min(1000 * Math.pow(2, retries), 30000);
+    const delay = Math.min(1000 * Math.pow(2, retries), 30000);
     setTimeout(function () {
       api('ai-predict', { matchId: matchId }, 2)
         .then(function (rd) {
           if (rd.content && !rd.pendingMerge && (rd.dualModel || rd.merged)) {
             renderAIContent(rd.content, homeTeam, awayTeam);
+            showDataGateNotice(rd.dataGate);
           } else if (rd.content && rd.singleModel && rd.failedSource) {
             // 已确认失败，无需再更新
           } else if (rd.content && !rd.pendingMerge && rd.singleModel) {
@@ -912,9 +919,9 @@ function doFakeLoading(matchId, homeTeam, awayTeam, modalEl, overlayEl, preloade
 
 /** 在弹窗底部插入 500.com 数据缺失提示 */
 function showShujuMissingNotice() {
-  var modal = document.getElementById('aiModal');
+  const modal = document.getElementById('aiModal');
   if (!modal) return;
-  var dis = modal.querySelector('.ai-disclaimer');
+  const dis = modal.querySelector('.ai-disclaimer');
   if (dis) {
     dis.insertAdjacentHTML(
       'afterend',
@@ -925,26 +932,93 @@ function showShujuMissingNotice() {
   }
 }
 
+function _escapeGateText(s) {
+  const str = s == null ? '' : String(s);
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function _renderDataGateNoticeHtml(gate) {
+  if (!gate) return '';
+  let ready = (gate.readyItems || []).map(function (x) {
+    return x && x.label ? x.label : '';
+  });
+  let missing = (gate.missingItems || []).map(function (x) {
+    return x && x.label ? x.label : '';
+  });
+  let pendingOptional = (gate.optionalItems || [])
+    .filter(function (x) {
+      return x && x.ready === false;
+    })
+    .map(function (x) {
+      return x.label || '';
+    });
+
+  ready = ready.filter(Boolean);
+  missing = missing.filter(Boolean);
+  pendingOptional = pendingOptional.filter(Boolean);
+
+  const passed = !!gate.passed;
+  const title = passed ? '✅ 生成前关键数据已就绪' : '⚠️ 生成前关键数据缺失';
+  const bg = passed ? 'rgba(34,197,94,0.08)' : 'rgba(251,191,36,0.08)';
+  const border = passed ? 'rgba(34,197,94,0.25)' : 'rgba(251,191,36,0.24)';
+  const color = passed ? '#4ADE80' : '#FBBF24';
+
+  let detail =
+    '已具备：' +
+    _escapeGateText(ready.length ? ready.join('、') : '无') +
+    '<br>缺失：' +
+    _escapeGateText(missing.length ? missing.join('、') : '无');
+  if (pendingOptional.length > 0) {
+    detail += '<br>待补充：' + _escapeGateText(pendingOptional.join('、'));
+  }
+
+  return (
+    '<div class="ai-gate-notice" style="margin:12px 20px;padding:10px 14px;border-radius:8px;background:' +
+    bg +
+    ';border:1px solid ' +
+    border +
+    ';font-size:12px;color:' +
+    color +
+    ';line-height:1.65;text-align:left;">' +
+    '<div style="font-weight:600;margin-bottom:4px;">' +
+    title +
+    '</div><div style="color:#E5E7EB;">' +
+    detail +
+    '</div></div>'
+  );
+}
+
+function showDataGateNotice(gate) {
+  if (!gate) return;
+  const modal = document.getElementById('aiModal');
+  if (!modal) return;
+  const dis = modal.querySelector('.ai-disclaimer');
+  if (!dis) return;
+  const old = modal.querySelector('.ai-gate-notice');
+  if (old && old.parentNode) old.parentNode.removeChild(old);
+  dis.insertAdjacentHTML('beforebegin', _renderDataGateNoticeHtml(gate));
+}
+
 export function renderAIContent(content, homeTeam, awayTeam) {
-  var c = content || {};
-  var conf = typeof c.confidence === 'number' ? c.confidence : 70;
-  var preds = c['预测建议'] || [];
-  var baseStr = c['基础面'] || {};
-  var stateStr = c['状态面'] || {};
-  var motiStr = c['动机面'] || {};
-  var posStr = c['对位面'] || {};
-  var mktStr = c['市场面'] || {};
-  var highlight = c['核心看点'] || {};
-  var baseTable = baseStr['攻防全景数据'];
+  const c = content || {};
+  const conf = typeof c.confidence === 'number' ? c.confidence : 70;
+  const preds = c['预测建议'] || [];
+  const baseStr = c['基础面'] || {};
+  const stateStr = c['状态面'] || {};
+  const motiStr = c['动机面'] || {};
+  const posStr = c['对位面'] || {};
+  const mktStr = c['市场面'] || {};
+  const highlight = c['核心看点'] || {};
+  const baseTable = baseStr['攻防全景数据'];
 
   function esc(s) {
-    var str = s == null ? '' : String(s);
+    const str = s == null ? '' : String(s);
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
   function clip(s, max) {
-    var str = s == null ? '' : String(s);
+    const str = s == null ? '' : String(s);
     if (str.length <= max) return str;
-    var idx = str.lastIndexOf('。', max);
+    let idx = str.lastIndexOf('。', max);
     if (idx > max * 0.5) return str.substring(0, idx + 1);
     idx = str.lastIndexOf('，', max);
     if (idx > max * 0.5) return str.substring(0, idx) + '...';
@@ -954,7 +1028,7 @@ export function renderAIContent(content, homeTeam, awayTeam) {
     return s && (typeof s === 'string' ? s.trim().length > 0 : true);
   }
 
-  var html = '';
+  let html = '';
   html +=
     '<div class="ai-modal-header"><span class="ai-modal-title">AI深度解析</span><button class="ai-modal-close" onclick="closeAI()">&times;</button></div>';
   html += '<div class="ai-content">';
@@ -970,9 +1044,9 @@ export function renderAIContent(content, homeTeam, awayTeam) {
     esc(awayTeam) +
     '</div></div></div>';
 
-  var coreView = esc(highlight['核心看点'] || c['核心观点'] || '');
-  var varRemind = esc(highlight['变数提醒'] || c['变数提醒'] || '');
-  var icons = ['🏆', '⚽', '📊'];
+  const coreView = esc(highlight['核心看点'] || c['核心观点'] || '');
+  const varRemind = esc(highlight['变数提醒'] || c['变数提醒'] || '');
+  const icons = ['🏆', '⚽', '📊'];
   html += '<div class="ai-core-view">';
   html +=
     '<div class="ai-core-header"><span class="ai-core-icon">💡</span><span class="ai-core-title">AI核心观点</span></div>';
@@ -980,7 +1054,7 @@ export function renderAIContent(content, homeTeam, awayTeam) {
   if (varRemind) html += '<div class="ai-core-desc">' + clip(varRemind, 80) + '</div>';
   html += '<div class="ai-predict-row">';
   preds.forEach(function (p, i) {
-    var val = esc(p['建议方向'] || '');
+    const val = esc(p['建议方向'] || '');
     html += '<div class="ai-predict-card">';
     html +=
       '<div class="ai-predict-head"><span class="ai-predict-icon">' +
@@ -996,19 +1070,19 @@ export function renderAIContent(content, homeTeam, awayTeam) {
   html += '</div></div>';
 
   // 01 基础面
-  var bRank = baseStr['积分排名'] || '';
-  var bHasRank = bRank.length > 5;
-  var bHasTable = baseTable && baseTable.rows && baseTable.rows.length >= 3;
-  var bHasBaseCon = has(baseStr['核心结论']);
+  const bRank = baseStr['积分排名'] || '';
+  const bHasRank = bRank.length > 5;
+  const bHasTable = baseTable && baseTable.rows && baseTable.rows.length >= 3;
+  const bHasBaseCon = has(baseStr['核心结论']);
   if (bHasRank || bHasTable || bHasBaseCon) {
     html +=
       '<div id="ai-sec-01" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">01</span><span class="ai-sec-name">基础面</span>';
     if (baseStr['概括']) html += '<span class="ai-sec-desc">' + clip(esc(baseStr['概括']), 20) + '</span>';
     html += '</div>';
     if (bHasRank) {
-      var rankHome = '',
+      let rankHome = '',
         rankAway = '';
-      var idxH = -1,
+      let idxH = -1,
         idxA = -1;
       idxH = bRank.indexOf(homeTeam);
       idxA = bRank.indexOf(awayTeam);
@@ -1017,16 +1091,16 @@ export function renderAIContent(content, homeTeam, awayTeam) {
       if (idxH < 0) idxH = bRank.indexOf(homeTeam[0]);
       if (idxA < 0) idxA = bRank.indexOf(awayTeam[0]);
       if (idxH >= 0 && idxA < 0) {
-        var dots = [];
-        for (var di = idxH + 1; di < bRank.length; di++) {
+        const dots = [];
+        for (let di = idxH + 1; di < bRank.length; di++) {
           if (bRank[di] === '。' || bRank[di] === '；') dots.push(di);
         }
         if (dots.length > 0 && dots[0] > idxH && dots[0] < bRank.length - 3) {
           idxA = dots[0] + 1;
         }
       } else if (idxA >= 0 && idxH < 0) {
-        var dots2 = [];
-        for (var di2 = idxA + 1; di2 < bRank.length; di2++) {
+        const dots2 = [];
+        for (let di2 = idxA + 1; di2 < bRank.length; di2++) {
           if (bRank[di2] === '。' || bRank[di2] === '；') dots2.push(di2);
         }
         if (dots2.length > 0 && dots2[0] > idxA && dots2[0] < bRank.length - 3) {
@@ -1058,14 +1132,14 @@ export function renderAIContent(content, homeTeam, awayTeam) {
       }
     }
     if (bHasTable) {
-      var adCheck = baseStr['_attackDefenseCheck'];
-      var hasAdConflict = adCheck && adCheck.detected;
+      const adCheck = baseStr['_attackDefenseCheck'];
+      const hasAdConflict = adCheck && adCheck.detected;
       html += '<div class="ai-data-compare"><div class="ai-data-title">攻防数据对比';
       if (hasAdConflict) html += ' <span style="font-size:10px;color:var(--amber);">⚠️ 双模型数据不一致</span>';
       html += '</div>';
 
       // 构建冲突快速索引
-      var adConflictMap = {};
+      const adConflictMap = {};
       if (adCheck && adCheck.conflicts) {
         adCheck.conflicts.forEach(function (c) {
           adConflictMap[c.label] = c;
@@ -1074,12 +1148,12 @@ export function renderAIContent(content, homeTeam, awayTeam) {
 
       baseTable.rows.forEach(function (row) {
         if (row.length < 3) return;
-        var label = row[0],
+        const label = row[0],
           hv = row[1],
           av = row[2];
-        var isShooter = label.indexOf('射手') >= 0;
-        var rowConflict = adConflictMap[label];
-        var isConflict = rowConflict && rowConflict.conflict;
+        const isShooter = label.indexOf('射手') >= 0;
+        const rowConflict = adConflictMap[label];
+        const isConflict = rowConflict && rowConflict.conflict;
 
         if (isShooter) {
           html +=
@@ -1096,9 +1170,9 @@ export function renderAIContent(content, homeTeam, awayTeam) {
             html += '</div>';
           }
         } else {
-          var hn = parseFloat(hv),
+          const hn = parseFloat(hv),
             an = parseFloat(av);
-          var hp = isNaN(hn) || isNaN(an) ? 50 : Math.round((hn / (hn + an)) * 100);
+          const hp = isNaN(hn) || isNaN(an) ? 50 : Math.round((hn / (hn + an)) * 100);
           html += '<div class="ai-data-row' + (isConflict ? '' : '') + '">';
           html += '<span class="ai-data-label">' + esc(label);
           if (isConflict) html += ' <span style="font-size:9px;color:var(--amber);">⚠</span>';
@@ -1110,9 +1184,9 @@ export function renderAIContent(content, homeTeam, awayTeam) {
 
           // 豆包对比行（仅冲突时显示）
           if (isConflict && rowConflict.dbHome && rowConflict.dbAway) {
-            var dbHn = parseFloat(rowConflict.dbHome),
+            const dbHn = parseFloat(rowConflict.dbHome),
               dbAn = parseFloat(rowConflict.dbAway);
-            var dbHp = isNaN(dbHn) || isNaN(dbAn) ? 50 : Math.round((dbHn / (dbHn + dbAn)) * 100);
+            const dbHp = isNaN(dbHn) || isNaN(dbAn) ? 50 : Math.round((dbHn / (dbHn + dbAn)) * 100);
             html += '<div class="ai-data-row" style="opacity:0.6;padding:2px 0 6px 0;font-size:11px;">';
             html += '<span class="ai-data-label" style="font-size:10px;color:#a855f7;">豆包</span>';
             html +=
@@ -1138,13 +1212,13 @@ export function renderAIContent(content, homeTeam, awayTeam) {
   }
 
   // 02 状态面
-  var hf = (stateStr['主队近况'] || '').match(/(\d+)胜(\d+)平(\d+)负/),
+  const hf = (stateStr['主队近况'] || '').match(/(\d+)胜(\d+)平(\d+)负/),
     af = (stateStr['客队近况'] || '').match(/(\d+)胜(\d+)平(\d+)负/);
-  var hasHistory = has(stateStr['历史对阵']);
-  var injTable = stateStr['伤病影响'];
-  var hasInj = injTable && injTable.rows && injTable.rows.length;
-  var hasStateCon = has(stateStr['核心结论']);
-  var rfc = stateStr['_recentFormCheck']; // 近期战绩交叉验证数据
+  const hasHistory = has(stateStr['历史对阵']);
+  const injTable = stateStr['伤病影响'];
+  const hasInj = injTable && injTable.rows && injTable.rows.length;
+  const hasStateCon = has(stateStr['核心结论']);
+  const rfc = stateStr['_recentFormCheck']; // 近期战绩交叉验证数据
   if (hf || af || hasHistory || hasInj || hasStateCon) {
     html +=
       '<div id="ai-sec-02" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">02</span><span class="ai-sec-name">状态面</span></div>';
@@ -1154,7 +1228,7 @@ export function renderAIContent(content, homeTeam, awayTeam) {
 
     // 辅助函数：渲染 W/D/L 小圆点
     function renderFormDots(w, d, l) {
-      var dots = '';
+      let dots = '';
       for (var di = 0; di < w; di++) dots += '<span class="ai-form-dot w">W</span>';
       for (var di = 0; di < d; di++) dots += '<span class="ai-form-dot d">D</span>';
       for (var di = 0; di < l; di++) dots += '<span class="ai-form-dot l">L</span>';
@@ -1163,8 +1237,8 @@ export function renderAIContent(content, homeTeam, awayTeam) {
 
     // 渲染主队近期战绩
     if (rfc && rfc.conflicts && rfc.conflicts.home && rfc.conflicts.home.conflict) {
-      var hc = rfc.conflicts.home;
-      var dsH = hc.deepseek,
+      const hc = rfc.conflicts.home;
+      const dsH = hc.deepseek,
         dbH = hc.doubao;
       html += '<div class="ai-form-row" style="flex-wrap:wrap;gap:6px;padding:8px 10px;">';
       html +=
@@ -1210,8 +1284,8 @@ export function renderAIContent(content, homeTeam, awayTeam) {
 
     // 渲染客队近期战绩
     if (rfc && rfc.conflicts && rfc.conflicts.away && rfc.conflicts.away.conflict) {
-      var ac = rfc.conflicts.away;
-      var dsA = ac.deepseek,
+      const ac = rfc.conflicts.away;
+      const dsA = ac.deepseek,
         dbA = ac.doubao;
       html += '<div class="ai-form-row" style="flex-wrap:wrap;gap:6px;padding:8px 10px;">';
       html +=
@@ -1264,9 +1338,9 @@ export function renderAIContent(content, homeTeam, awayTeam) {
       html += '<div class="ai-injury-title">伤停对比</div>';
       injTable.rows.forEach(function (row) {
         if (row.length < 3) return;
-        var isHome = row[0].indexOf('主') >= 0 || row[0].indexOf(homeTeam) >= 0;
-        var tag = isHome ? esc(homeTeam[0]) : esc(awayTeam[0]);
-        var tagClass = isHome ? 'home' : 'away';
+        const isHome = row[0].indexOf('主') >= 0 || row[0].indexOf(homeTeam) >= 0;
+        const tag = isHome ? esc(homeTeam[0]) : esc(awayTeam[0]);
+        const tagClass = isHome ? 'home' : 'away';
         html +=
           '<div class="ai-injury-row"><div class="ai-injury-head"><span class="ai-injury-badge ' +
           tagClass +
@@ -1288,7 +1362,7 @@ export function renderAIContent(content, homeTeam, awayTeam) {
   }
 
   // 03 动机面
-  var hasWill = has(motiStr['战意强度']);
+  const hasWill = has(motiStr['战意强度']);
   html +=
     '<div id="ai-sec-03" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">03</span><span class="ai-sec-name">动机面</span></div>';
   if (hasWill)
@@ -1299,9 +1373,9 @@ export function renderAIContent(content, homeTeam, awayTeam) {
   html += '</div>';
 
   // 04 对位面
-  var posGood = has(posStr['攻防博弈']) || has(posStr['节奏控制']);
-  var posBad = has(posStr['主场氛围']) || has(posStr['战术与教练风格']);
-  var hasPosCon = has(posStr['核心结论']);
+  const posGood = has(posStr['攻防博弈']) || has(posStr['节奏控制']);
+  const posBad = has(posStr['主场氛围']) || has(posStr['战术与教练风格']);
+  const hasPosCon = has(posStr['核心结论']);
   if (posGood || posBad || hasPosCon) {
     html +=
       '<div id="ai-sec-04" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">04</span><span class="ai-sec-name">对位面</span></div>';
@@ -1329,8 +1403,8 @@ export function renderAIContent(content, homeTeam, awayTeam) {
   }
 
   // 05 市场面
-  var hasOdds = has(mktStr['盘口与赔率']) || has(mktStr['大小球']);
-  var hasMktCon = has(mktStr['核心结论']);
+  const hasOdds = has(mktStr['盘口与赔率']) || has(mktStr['大小球']);
+  const hasMktCon = has(mktStr['核心结论']);
   if (hasOdds || hasMktCon) {
     html +=
       '<div id="ai-sec-05" class="ai-section-content"><div class="ai-sec-title"><span class="ai-sec-num">05</span><span class="ai-sec-name">市场面</span></div>';
@@ -1373,15 +1447,15 @@ export function renderAIContent(content, homeTeam, awayTeam) {
   html += '</div>';
 
   // ★ P2-1: 空内容兜底 — 如果所有主要 section 都无有效内容，显示提示
-  var hasAnyContent = false;
+  let hasAnyContent = false;
   ['基础面', '状态面', '动机面', '对位面', '市场面', '核心看点'].forEach(function (sec) {
-    var s = c[sec];
+    const s = c[sec];
     if (!s) return;
-    var keys = Object.keys(s).filter(function (k) {
+    const keys = Object.keys(s).filter(function (k) {
       return k[0] !== '_';
     });
     keys.forEach(function (k) {
-      var v = s[k];
+      const v = s[k];
       if (v !== undefined && v !== null && v !== '' && (!Array.isArray(v) || v.length > 0)) {
         hasAnyContent = true;
       }
@@ -1396,7 +1470,7 @@ export function renderAIContent(content, homeTeam, awayTeam) {
       '</div>' +
       '<div class="ai-disclaimer">本分析为AI生成，仅供参考，请理性对待</div>' +
       '</div>';
-    var modalEl3 = document.getElementById('aiModal');
+    const modalEl3 = document.getElementById('aiModal');
     if (modalEl3) modalEl3.innerHTML = html;
     return;
   }
@@ -1404,7 +1478,7 @@ export function renderAIContent(content, homeTeam, awayTeam) {
   html += '<div class="ai-disclaimer">本分析为AI生成，仅供参考，请理性对待</div>';
   html += '</div>';
 
-  var modalEl2 = document.getElementById('aiModal');
+  const modalEl2 = document.getElementById('aiModal');
   if (modalEl2) modalEl2.innerHTML = html;
 }
 
@@ -1412,9 +1486,9 @@ export function renderAIContent(content, homeTeam, awayTeam) {
 export function renderAIContentWithBadge(content, homeTeam, awayTeam, badgeText) {
   renderAIContent(content, homeTeam, awayTeam);
   // 在 disclaimer 前插入合并等待提示
-  var modal = document.getElementById('aiModal');
+  const modal = document.getElementById('aiModal');
   if (!modal) return;
-  var dis = modal.querySelector('.ai-disclaimer');
+  const dis = modal.querySelector('.ai-disclaimer');
   if (dis) {
     dis.insertAdjacentHTML(
       'beforebegin',
@@ -1432,7 +1506,7 @@ export function renderAIContentWithBadge(content, homeTeam, awayTeam, badgeText)
 
 function renderConsensusBar(consensus) {
   if (!consensus || !consensus.models || consensus.models.length === 0) return '';
-  var badgeClass =
+  const badgeClass =
     consensus.consensus === 'strong'
       ? 'strong'
       : consensus.consensus === 'weak'
@@ -1440,7 +1514,7 @@ function renderConsensusBar(consensus) {
         : consensus.consensus === 'meltdown'
           ? 'melt'
           : 'neutral';
-  var badgeText =
+  const badgeText =
     consensus.consensus === 'strong'
       ? 'STRONG'
       : consensus.consensus === 'weak'
@@ -1448,10 +1522,11 @@ function renderConsensusBar(consensus) {
         : consensus.consensus === 'meltdown'
           ? 'MELT'
           : 'NEUTRAL';
-  var cells = consensus.models
+  const cells = consensus.models
     .map(function (m) {
-      var dirLabel = m.direction === 'home' ? '\u4e3b\u80dc' : m.direction === 'draw' ? '\u5e73\u5c40' : '\u5ba2\u80dc';
-      var cls = m.direction === consensus.mainDirection ? 'agree' : 'dissent';
+      const dirLabel =
+        m.direction === 'home' ? '\u4e3b\u80dc' : m.direction === 'draw' ? '\u5e73\u5c40' : '\u5ba2\u80dc';
+      const cls = m.direction === consensus.mainDirection ? 'agree' : 'dissent';
       return (
         '<div class="consensus-cell ' +
         cls +
@@ -1465,7 +1540,7 @@ function renderConsensusBar(consensus) {
       );
     })
     .join('');
-  var mainLabel =
+  const mainLabel =
     consensus.mainDirection === 'home'
       ? '\u4e3b\u80dc'
       : consensus.mainDirection === 'draw'
@@ -1490,7 +1565,7 @@ function renderConsensusBar(consensus) {
 
 function renderGsSummary(gsData) {
   if (!gsData) return '';
-  var parts = [];
+  const parts = [];
   if (gsData.homePower !== undefined && gsData.guestPower !== undefined)
     parts.push('\u5b9e\u529b: ' + gsData.homePower + ' vs ' + gsData.guestPower);
   if (gsData.goalLine !== undefined) parts.push('\u5927\u5c0f\u7403: ' + gsData.goalLine.toFixed(1));
@@ -1513,15 +1588,15 @@ function hasRecentForm(features) {
 }
 
 function renderRecentForm(match, features) {
-  var homeName = match.homeName || '\u4e3b\u961f';
-  var awayName = match.visitName || '\u5ba2\u961f';
+  const homeName = match.homeName || '\u4e3b\u961f';
+  const awayName = match.visitName || '\u5ba2\u961f';
   function makeDots(prefix) {
-    var wr = features[prefix + '_win_pct_6'];
+    const wr = features[prefix + '_win_pct_6'];
     if (wr === undefined) return '<span style="color:var(--text3);font-size:var(--fs-sm)">\u65e0\u6570\u636e</span>';
-    var wins = Math.round(wr * 6);
-    var dots = '';
-    for (var i = 0; i < 6; i++) {
-      var cls = i < wins ? 'w' : 'l';
+    const wins = Math.round(wr * 6);
+    let dots = '';
+    for (let i = 0; i < 6; i++) {
+      const cls = i < wins ? 'w' : 'l';
       dots += '<span class="ai-form-dot ' + cls + '">' + (cls === 'w' ? 'W' : 'L') + '</span>';
     }
     return dots;
@@ -1552,15 +1627,15 @@ function renderRecentForm(match, features) {
 
 function renderStandingsContext(match, standings) {
   if (!standings || (!standings.home && !standings.away)) return '';
-  var home = standings.home;
-  var away = standings.away;
-  var homeTxt = home
+  const home = standings.home;
+  const away = standings.away;
+  const homeTxt = home
     ? (match.homeName || '\u4e3b\u961f') + ' \u7b2c' + home.rank + '\u4f4d (' + (home.points || '?') + '\u5206)'
     : '--';
-  var awayTxt = away
+  const awayTxt = away
     ? (match.visitName || '\u5ba2\u961f') + ' \u7b2c' + away.rank + '\u4f4d (' + (away.points || '?') + '\u5206)'
     : '--';
-  var diffTxt = '';
+  let diffTxt = '';
   if (standings.rankDiff !== null && standings.rankDiff !== undefined) {
     diffTxt = ' \u6392\u540d\u5dee: ' + Math.abs(standings.rankDiff);
     if (Math.abs(standings.rankDiff) <= 2) diffTxt += ' | \ud83d\udd25 \u5173\u952e\u6218';
@@ -1579,10 +1654,10 @@ function renderStandingsContext(match, standings) {
 
 function renderH2HSummary(match, h2h) {
   if (!h2h || h2h.length === 0) return '';
-  var last5 = h2h.slice(0, 5);
-  var homeName = match.homeName || '';
-  var awayName = match.visitName || '';
-  var homeWins = 0,
+  const last5 = h2h.slice(0, 5);
+  const homeName = match.homeName || '';
+  const awayName = match.visitName || '';
+  let homeWins = 0,
     awayWins = 0,
     draws = 0,
     totalGoals = 0;
@@ -1594,9 +1669,9 @@ function renderH2HSummary(match, h2h) {
     else draws++;
     totalGoals += (r.home_score || 0) + (r.away_score || 0);
   });
-  var avgGoals = last5.length > 0 ? (totalGoals / last5.length).toFixed(1) : '--';
-  var lastMatch = h2h[0];
-  var lastTxt = lastMatch
+  const avgGoals = last5.length > 0 ? (totalGoals / last5.length).toFixed(1) : '--';
+  const lastMatch = h2h[0];
+  const lastTxt = lastMatch
     ? lastMatch.match_date +
       ' ' +
       lastMatch.home_team +

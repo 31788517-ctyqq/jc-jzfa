@@ -8,7 +8,7 @@
 import { api } from '../api.js';
 import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
 
-var INTERNAL_MODEL_NAMES = ['data_fusion', 'market_signal'];
+const INTERNAL_MODEL_NAMES = ['data_fusion', 'market_signal'];
 
 function isInternalModelName(name) {
   return INTERNAL_MODEL_NAMES.indexOf(String(name || '')) >= 0;
@@ -16,23 +16,23 @@ function isInternalModelName(name) {
 
 function filterDashboardData(data) {
   if (!data) return data;
-  var rankings = (data.rankings || []).filter(function (r) {
+  const rankings = (data.rankings || []).filter(function (r) {
     return !isInternalModelName(r.modelName || r.model_name);
   });
-  var models = (data.models || []).filter(function (name) {
+  const models = (data.models || []).filter(function (name) {
     return !isInternalModelName(name);
   });
-  var heatmap = {};
+  const heatmap = {};
   Object.keys(data.leagueHeatmap || {}).forEach(function (name) {
     if (!isInternalModelName(name)) heatmap[name] = data.leagueHeatmap[name];
   });
-  var trendData = (data.trendData || []).filter(function (item) {
+  const trendData = (data.trendData || []).filter(function (item) {
     return !isInternalModelName(item.modelName || item.model_name);
   });
-  var playMatrix = (data.playMatrix || []).filter(function (item) {
+  const playMatrix = (data.playMatrix || []).filter(function (item) {
     return !isInternalModelName(item.modelName || item.model_name);
   });
-  var weightSuggestions = (data.weightSuggestions || []).filter(function (item) {
+  const weightSuggestions = (data.weightSuggestions || []).filter(function (item) {
     return !isInternalModelName(item.modelName || item.model_name);
   });
   return Object.assign({}, data, {
@@ -60,9 +60,9 @@ export async function loadDashboard(force) {
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载模型数据...</div>';
 
   try {
-    var timeVal = window.getDDVal ? window.getDDVal('dd-mdTime') : '30';
-    var days = timeVal === 'all' ? 0 : parseInt(timeVal) || 30;
-    var metric = window.getDDVal ? window.getDDVal('dd-mdMetric') || 'direction' : 'direction';
+    const timeVal = window.getDDVal ? window.getDDVal('dd-mdTime') : '30';
+    const days = timeVal === 'all' ? 0 : parseInt(timeVal) || 30;
+    const metric = window.getDDVal ? window.getDDVal('dd-mdMetric') || 'direction' : 'direction';
 
     const data = filterDashboardData(await api('model-dashboard', { days: days, metric: metric }));
     if (!data) {
@@ -85,9 +85,9 @@ export async function loadDashboard(force) {
 // ═══════════════════════════════════════════════════════
 
 function updateStatsCard(data) {
-  var elModels = document.getElementById('mdStatModels');
-  var elTotal = document.getElementById('mdStatTotal');
-  var elBest = document.getElementById('mdStatBest');
+  const elModels = document.getElementById('mdStatModels');
+  const elTotal = document.getElementById('mdStatTotal');
+  const elBest = document.getElementById('mdStatBest');
   if (elModels)
     elModels.textContent = data
       ? data.reliabilitySummary
@@ -195,20 +195,20 @@ function buildRankingTable(rankings) {
     return '<div class="hint-box">暂无排名数据，请等待回填积累≥2周数据</div>';
   }
 
-  var html = '<div class="income-list md-rank-list">';
+  let html = '<div class="income-list md-rank-list">';
   // 表头
   html +=
     '<div class="income-header-row"><span class="md-rank-col-rank">排名</span><span class="md-rank-col-model">模型</span><span class="md-rank-col-rate">可靠性</span><span class="md-rank-col-trend">ROI</span><span class="md-rank-col-count">样本</span></div>';
 
-  var medals = ['🥇', '🥈', '🥉'];
+  const medals = ['🥇', '🥈', '🥉'];
   rankings.slice(0, 10).forEach(function (r, i) {
-    var reliability = r.reliabilityScore || 0;
-    var roi = r.roi || 0;
-    var trend = r.trend || 0;
-    var trendIcon = trend > 0 ? '↗' : trend < 0 ? '↘' : '→';
-    var rateColor = reliability >= 70 ? 'var(--green)' : reliability >= 55 ? 'var(--cyan)' : 'var(--text2)';
-    var roiColor = roi > 0 ? 'var(--green)' : roi < 0 ? 'var(--red)' : 'var(--text3)';
-    var sampleNote = r.sampleStatus || (r.total < 10 ? '样本不足，仅供观察' : '样本充足');
+    const reliability = r.reliabilityScore || 0;
+    const roi = r.roi || 0;
+    const trend = r.trend || 0;
+    const trendIcon = trend > 0 ? '↗' : trend < 0 ? '↘' : '→';
+    const rateColor = reliability >= 70 ? 'var(--green)' : reliability >= 55 ? 'var(--cyan)' : 'var(--text2)';
+    const roiColor = roi > 0 ? 'var(--green)' : roi < 0 ? 'var(--red)' : 'var(--text3)';
+    const sampleNote = r.sampleStatus || (r.total < 10 ? '样本不足，仅供观察' : '样本充足');
 
     html +=
       '<div class="income-row md-rank-row">' +
@@ -248,7 +248,7 @@ function buildRankingTable(rankings) {
 
 function fmtROI(v) {
   if (v === undefined || v === null || isNaN(v)) return '-';
-  var n = Number(v) * 100;
+  const n = Number(v) * 100;
   return (n > 0 ? '+' : '') + Math.round(n) + '%';
 }
 
@@ -259,13 +259,13 @@ function fmtRate(v) {
 
 function buildPlayMatrix(playMatrix) {
   if (!playMatrix || playMatrix.length === 0) return '<div class="hint-box">暂无玩法矩阵数据</div>';
-  var plays = [
+  const plays = [
     ['spf', 'SPF'],
     ['handicap', '让球'],
     ['overUnder', '大小球'],
     ['score', '比分'],
   ];
-  var html = '<div class="md-play-matrix">';
+  let html = '<div class="md-play-matrix">';
   html +=
     '<div class="md-play-row md-play-head"><span>模型</span>' +
     plays
@@ -277,7 +277,7 @@ function buildPlayMatrix(playMatrix) {
   playMatrix.slice(0, 8).forEach(function (m) {
     html += '<div class="md-play-row"><span class="md-play-model">' + esc(m.modelName || '-') + '</span>';
     plays.forEach(function (p) {
-      var d = m[p[0]] || {};
+      const d = m[p[0]] || {};
       html +=
         '<span class="md-play-cell"><b>' +
         fmtRate(d.hitRate) +
@@ -330,10 +330,10 @@ function buildHeatmapHTML(heatmap, models) {
     return '<div class="hint-box">暂无分联赛数据</div>';
   }
 
-  var modelNames = models.length > 0 ? models : Object.keys(heatmap);
-  var leagues = new Set();
-  for (var model of Object.keys(heatmap)) {
-    for (var league of Object.keys(heatmap[model] || {})) {
+  const modelNames = models.length > 0 ? models : Object.keys(heatmap);
+  const leagues = new Set();
+  for (const model of Object.keys(heatmap)) {
+    for (const league of Object.keys(heatmap[model] || {})) {
       leagues.add(league);
     }
   }
@@ -342,8 +342,8 @@ function buildHeatmapHTML(heatmap, models) {
     return '<div class="hint-box">暂无分联赛数据</div>';
   }
 
-  var leagueList = Array.from(leagues);
-  var getColor = function (rate) {
+  const leagueList = Array.from(leagues);
+  const getColor = function (rate) {
     if (rate === null || rate === undefined) return 'rgba(255,255,255,0.02)';
     if (rate >= 65) return 'rgba(52,211,153,0.25)';
     if (rate >= 55) return 'rgba(52,211,153,0.12)';
@@ -368,7 +368,7 @@ function buildHeatmapHTML(heatmap, models) {
           '</td>' +
           leagueList
             .map(function (l) {
-              var rate = heatmap[m] && heatmap[m][l] ? heatmap[m][l] : null;
+              const rate = heatmap[m] && heatmap[m][l] ? heatmap[m][l] : null;
               return (
                 '<td style="padding:6px;background:' +
                 getColor(rate) +
@@ -400,8 +400,8 @@ function bindEvents(data) {
 
   // 走势图（等待 ECharts 加载后再渲染）
   if (data.trendData && data.trendData.length > 0) {
-    var tryRender = function () {
-      var el = document.getElementById('md-trend-chart');
+    const tryRender = function () {
+      const el = document.getElementById('md-trend-chart');
       if (!el || el.offsetHeight === 0) {
         // DOM 尚未就绪，延迟重试
         setTimeout(tryRender, 200);
@@ -416,7 +416,7 @@ function bindEvents(data) {
 }
 
 function renderTrendChart(trendData) {
-  var el = document.getElementById('md-trend-chart');
+  const el = document.getElementById('md-trend-chart');
   if (!el || typeof echarts === 'undefined') return;
 
   // 销毁旧实例（DOM 被替换时避免泄漏）
@@ -425,10 +425,10 @@ function renderTrendChart(trendData) {
     el._echartInstance = null;
   }
   el._echartInstance = echarts.init(el);
-  var chart = el._echartInstance;
+  const chart = el._echartInstance;
 
-  var colors = ['#A78BFA', '#06B6D4', '#F59E0B', '#EF4444'];
-  var series = trendData.map(function (s, i) {
+  const colors = ['#A78BFA', '#06B6D4', '#F59E0B', '#EF4444'];
+  const series = trendData.map(function (s, i) {
     return {
       name: s.modelName,
       type: 'line',
@@ -442,21 +442,21 @@ function renderTrendChart(trendData) {
   });
 
   // 动态 Y 轴范围
-  var allVals = [];
+  let allVals = [];
   trendData.forEach(function (s) {
     allVals = allVals.concat(s.values || []);
   });
   allVals = allVals.filter(function (v) {
     return v != null;
   });
-  var yMin = allVals.length > 0 ? Math.max(0, Math.floor(Math.min.apply(null, allVals) / 5) * 5 - 5) : 0;
-  var yMax = allVals.length > 0 ? Math.ceil(Math.max.apply(null, allVals) / 5) * 5 + 5 : 100;
+  const yMin = allVals.length > 0 ? Math.max(0, Math.floor(Math.min.apply(null, allVals) / 5) * 5 - 5) : 0;
+  const yMax = allVals.length > 0 ? Math.ceil(Math.max.apply(null, allVals) / 5) * 5 + 5 : 100;
 
   chart.setOption({
     tooltip: {
       trigger: 'axis',
       formatter: function (params) {
-        var s = params[0].axisValue + '<br/>';
+        let s = params[0].axisValue + '<br/>';
         params.forEach(function (p) {
           s +=
             '<span style=\"display:inline-block;width:8px;height:8px;border-radius:50%;background:' +

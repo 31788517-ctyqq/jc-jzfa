@@ -178,12 +178,12 @@ function buildSystemPrompt() {
  * 构建用户 Prompt（P0-2: 精简版，减少 30% token 消耗）
  */
 function buildUserPrompt(matchInfo) {
-  var shujuData = loadShujuData(matchInfo);
-  var shujuText = shujuData ? formatShujuStats(shujuData) : '';
-  var adTable = shujuData ? buildAttackDefenseTable(shujuData) : null;
-  var formWDL = shujuData ? buildRecentFormWDL(shujuData) : null;
+  const shujuData = loadShujuData(matchInfo);
+  const shujuText = shujuData ? formatShujuStats(shujuData) : '';
+  const adTable = shujuData ? buildAttackDefenseTable(shujuData) : null;
+  const formWDL = shujuData ? buildRecentFormWDL(shujuData) : null;
 
-  var prompt =
+  let prompt =
     '分析比赛：' +
     (matchInfo.leagueName || '') +
     ' ' +
@@ -195,7 +195,7 @@ function buildUserPrompt(matchInfo) {
     '\n\n';
 
   // V9.1: 系统预计算数据
-  var sysData = buildSystemDataSection(matchInfo);
+  const sysData = buildSystemDataSection(matchInfo);
   if (sysData) prompt += sysData + '\n\n';
 
   if (shujuData && adTable && formWDL) {
@@ -499,7 +499,7 @@ function callDeepSeek(messages, options) {
  * @returns {Promise<Object>} 生成的分析结果
  */
 function generateAnalysis(matchInfo, options) {
-  var opts = options || {};
+  const opts = options || {};
   const messages = [
     { role: 'system', content: buildSystemPrompt() },
     { role: 'user', content: buildUserPrompt(matchInfo) },
@@ -509,13 +509,13 @@ function generateAnalysis(matchInfo, options) {
   const startTime = Date.now();
 
   // P2-2: 指数退避重试（最多2次）
-  var attempt = 0;
-  var maxRetries = opts.maxRetries || 0;
+  let attempt = 0;
+  const maxRetries = opts.maxRetries || 0;
   function tryCall() {
     return callDeepSeek(messages, opts).catch(function (e) {
       if (attempt < maxRetries) {
         attempt++;
-        var delay = Math.min(2000 * Math.pow(2, attempt), 15000);
+        const delay = Math.min(2000 * Math.pow(2, attempt), 15000);
         console.log('[deepseek] 重试 ' + attempt + '/' + maxRetries + ', 等待 ' + delay + 'ms');
         return new Promise(function (r) {
           setTimeout(r, delay);

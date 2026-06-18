@@ -2,8 +2,23 @@ import { api } from '../api.js';
 import { formatDate } from '../utils.js';
 import { getAuthSession, clearAuthAll, hasAuthToken, hasReferralAccess } from '../auth-client.js';
 
-var _profilePlanFilter = 'today';
-var _allPlans = [];
+let _profilePlanFilter = 'today';
+let _allPlans = [];
+const PROFILE_FILTER_STORAGE_KEY = 'profile_plan_filter_v1';
+
+function getSavedProfilePlanFilter() {
+  try {
+    const saved = window.sessionStorage.getItem(PROFILE_FILTER_STORAGE_KEY);
+    if (saved && ['yesterday', 'today', 'all'].indexOf(saved) >= 0) return saved;
+  } catch (_) {}
+  return 'today';
+}
+
+function saveProfilePlanFilter(filter) {
+  try {
+    window.sessionStorage.setItem(PROFILE_FILTER_STORAGE_KEY, filter);
+  } catch (_) {}
+}
 
 function escapeHtml(text) {
   return String(text == null ? '' : text)
@@ -15,35 +30,49 @@ function escapeHtml(text) {
 }
 
 function getDateByOffset(offset) {
-  var d = new Date();
+  const d = new Date();
   d.setDate(d.getDate() + offset);
   return formatDate(d);
 }
 
-function getPlanDateValue(plan) {
-  if (!plan) return '';
-  if (plan.date) return plan.date;
-  if (!plan.createdAt) return '';
-  var dt = new Date(plan.createdAt);
+function _toDateKey(v) {
+  if (!v) return '';
+  if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  const dt = new Date(v);
   if (Number.isNaN(dt.getTime())) return '';
   return (
     dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0')
   );
 }
 
+function getPlanDateCandidates(plan) {
+  if (!plan) return [];
+  const list = [];
+  const createdKey = _toDateKey(plan.createdAt);
+  const planKey = _toDateKey(plan.date);
+  if (createdKey) list.push(createdKey);
+  if (planKey && list.indexOf(planKey) < 0) list.push(planKey);
+  return list;
+}
+
+function getPlanDateValue(plan) {
+  const dates = getPlanDateCandidates(plan);
+  return dates[0] || '';
+}
+
 function formatProfileMoney(value) {
-  var num = Number(value);
+  let num = Number(value);
   if (!Number.isFinite(num)) num = 0;
-  var sign = num < 0 ? '-' : '';
-  var abs = Math.round(Math.abs(num) * 100) / 100;
-  var text = String(abs)
+  const sign = num < 0 ? '-' : '';
+  const abs = Math.round(Math.abs(num) * 100) / 100;
+  const text = String(abs)
     .replace(/\.0+$/, '')
     .replace(/(\.\d*[1-9])0+$/, '$1');
   return sign + '¥' + text;
 }
 
 function formatProfileRate(value) {
-  var num = Number(value);
+  let num = Number(value);
   if (!Number.isFinite(num)) num = 0;
   return (Math.round(num * 10) / 10).toString().replace(/\.0$/, '') + '%';
 }
@@ -118,8 +147,8 @@ function buildProfileMembershipActions(primaryTab, primaryText) {
 }
 
 function hasAdminRole() {
-  var session = getAuthSession() || {};
-  var roles = session.roles || [];
+  const session = getAuthSession() || {};
+  const roles = session.roles || [];
   return roles.indexOf('super_admin') >= 0 || roles.indexOf('ops_admin') >= 0 || roles.indexOf('admin') >= 0;
 }
 
@@ -129,26 +158,54 @@ function renderAdminShortcut() {
 }
 
 function updateProfilePlanFilterTabs() {
-  var tabs = document.querySelectorAll('.profile-filter-btn');
-  for (var i = 0; i < tabs.length; i++) {
-    var isActive = tabs[i].getAttribute('data-filter') === _profilePlanFilter;
-    tabs[i].classList.toggle('is-active', isActive);
+  const tabs = document.querySelectorAll('.profile-filter-btn');
+  for (let i = 0; i < tabs.length; i++) {
+    const tab = tabs[i];
+    const isActive = tab.getAttribute('data-filter') === _profilePlanFilter;
+    tab.classList.toggle('is-active', isActive);
+    tab.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    // 兜底：即使本地命中旧 CSS/缓存，也保证点击后可见高亮
+    if (isActive) {
+      tab.style.background = 'linear-gradient(180deg, #1f7a68 0%, #165a4d 100%)';
+      tab.style.color = '#ffffff';
+      tab.style.boxShadow = '0 10px 20px rgba(31, 122, 104, 0.22)';
+    } else {
+      tab.style.background = '';
+      tab.style.color = '';
+      tab.style.boxShadow = '';
+    }
   }
 }
 
 window.switchProfilePlanFilter = function (filter) {
   if (['yesterday', 'today', 'all'].indexOf(filter) < 0) return;
   _profilePlanFilter = filter;
+  saveProfilePlanFilter(filter);
   updateProfilePlanFilterTabs();
   renderProfilePlans();
 };
 
+window.scrollProfileHistory = function () {
+  const node = document.querySelector('.profile-history-section');
+  if (!node) return;
+  try {
+    node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (_) {
+    node.scrollIntoView();
+  }
+};
+
+window.openProfileDataTab = function (tabId) {
+  if (!tabId || typeof window.switchTab !== 'function') return;
+  window.switchTab(tabId);
+};
+
 export function loadProfile() {
-  var root = document.getElementById('profileContent');
+  const root = document.getElementById('profileContent');
   if (!root) return;
 
-  var session = getAuthSession() || {};
-  var userName = (session.user && session.user.username) || '-';
+  const session = getAuthSession() || {};
+  const userName = (session.user && session.user.username) || '-';
 
   // ★ 修复：未登录显示引导，避免空白页（token 存在 localStorage.auth_token，不在 session 对象中）
   if (!session || !session.user || !hasAuthToken()) {
@@ -162,7 +219,7 @@ export function loadProfile() {
     return;
   }
 
-  _profilePlanFilter = 'today';
+  _profilePlanFilter = getSavedProfilePlanFilter();
   _allPlans = [];
 
   renderLayout(root, userName);
@@ -210,26 +267,32 @@ function renderLayout(root, userName) {
     '<div class="profile-stats-panel" id="profileStats">' +
     '<div class="profile-stat-item">' +
     '<div class="profile-stat-label">历史方案</div>' +
-    '<div class="profile-stat-value" id="profStatPlans">0</div>' +
+    '<div class="profile-stat-value" id="profStatPlans">--</div>' +
     '</div>' +
     '<div class="profile-stat-item profile-stat-item-income">' +
     '<div class="profile-stat-label">方案收入</div>' +
-    '<div class="profile-stat-value" id="profStatIncome">¥0</div>' +
+    '<div class="profile-stat-value" id="profStatIncome">--</div>' +
     '</div>' +
     '<div class="profile-stat-item profile-stat-item-hit">' +
     '<div class="profile-stat-label">命中率</div>' +
-    '<div class="profile-stat-value" id="profStatHit">0%</div>' +
+    '<div class="profile-stat-value" id="profStatHit">--</div>' +
     '</div>' +
+    '</div>' +
+    '<div class="profile-quick-panel">' +
+    '<button class="profile-quick-btn" type="button" onclick="scrollProfileHistory()">📜 历史方案</button>' +
+    '<button class="profile-quick-btn" type="button" onclick="openProfileDataTab(\'income\')">💰 收益统计</button>' +
+    '<button class="profile-quick-btn" type="button" onclick="openProfileDataTab(\'hit\')">🎯 命中分析</button>' +
     '</div>' +
     '<div class="profile-history-section">' +
     '<div class="profile-plan-head">' +
     '<div class="profile-plan-title">我的历史方案</div>' +
     '</div>' +
     '<div class="profile-filter-bar">' +
-    '<button class="profile-filter-btn" type="button" data-filter="yesterday" onclick="switchProfilePlanFilter(\'yesterday\')">昨天</button>' +
-    '<button class="profile-filter-btn" type="button" data-filter="today" onclick="switchProfilePlanFilter(\'today\')">今天</button>' +
+    '<button class="profile-filter-btn" type="button" data-filter="yesterday" onclick="switchProfilePlanFilter(\'yesterday\')">昨日</button>' +
+    '<button class="profile-filter-btn" type="button" data-filter="today" onclick="switchProfilePlanFilter(\'today\')">今日</button>' +
     '<button class="profile-filter-btn" type="button" data-filter="all" onclick="switchProfilePlanFilter(\'all\')">全部</button>' +
     '</div>' +
+    '<div class="profile-filter-hint" id="profileFilterHint"></div>' +
     '<div id="profilePlanList" class="profile-plan-list"></div>' +
     '</div>' +
     '<div class="profile-setting-list">' +
@@ -257,9 +320,9 @@ function renderLayout(root, userName) {
 function loadProfileSubscription() {
   api('subscription-status', {}, 0)
     .then(function (data) {
-      var cardEl = document.getElementById('profileSubCard');
-      var textEl = document.getElementById('profSubText');
-      var actionsEl = document.getElementById('profSubActions');
+      const cardEl = document.getElementById('profileSubCard');
+      const textEl = document.getElementById('profSubText');
+      const actionsEl = document.getElementById('profSubActions');
       if (!textEl || !actionsEl) return;
 
       if (cardEl) {
@@ -285,9 +348,9 @@ function loadProfileSubscription() {
       }
     })
     .catch(function () {
-      var cardEl = document.getElementById('profileSubCard');
-      var textEl = document.getElementById('profSubText');
-      var actionsEl = document.getElementById('profSubActions');
+      const cardEl = document.getElementById('profileSubCard');
+      const textEl = document.getElementById('profSubText');
+      const actionsEl = document.getElementById('profSubActions');
       if (cardEl) {
         cardEl.classList.remove('status-active', 'status-expiring', 'status-expired');
         cardEl.classList.add('status-free');
@@ -297,15 +360,34 @@ function loadProfileSubscription() {
     });
 }
 
+function renderProfilePlanSkeleton() {
+  const el = document.getElementById('profilePlanList');
+  if (!el) return;
+  el.innerHTML =
+    '' +
+    '<div class="profile-plan-skeleton">' +
+    '<div class="profile-skel-row w40"></div>' +
+    '<div class="profile-skel-row"></div>' +
+    '<div class="profile-skel-row"></div>' +
+    '<div class="profile-skel-row w60"></div>' +
+    '</div>';
+}
+
 function loadProfileData() {
+  renderProfilePlanSkeleton();
+
+  const statPlans = document.getElementById('profStatPlans');
+  const statIncome = document.getElementById('profStatIncome');
+  const statHit = document.getElementById('profStatHit');
+  if (statPlans) statPlans.textContent = '--';
+  if (statIncome) statIncome.textContent = '--';
+  if (statHit) statHit.textContent = '--';
+
   api('my-plan-list', {}, 0)
     .then(function (data) {
       _allPlans = (data && data.plans) || [];
-      var stats = (data && data.stats) || {};
+      const stats = (data && data.stats) || {};
 
-      var statPlans = document.getElementById('profStatPlans');
-      var statIncome = document.getElementById('profStatIncome');
-      var statHit = document.getElementById('profStatHit');
       if (statPlans)
         statPlans.textContent = String(stats.totalPlans != null ? stats.totalPlans : _allPlans.length || 0);
       if (statIncome) statIncome.textContent = formatProfileMoney(stats.totalIncome);
@@ -314,27 +396,33 @@ function loadProfileData() {
       renderProfilePlans();
     })
     .catch(function (e) {
-      var el = document.getElementById('profilePlanList');
+      const el = document.getElementById('profilePlanList');
       if (el) el.innerHTML = '<div class="hint-box">加载失败: ' + escapeHtml((e && e.message) || '未知错误') + '</div>';
     });
 }
 
 function renderProfilePlans() {
-  var el = document.getElementById('profilePlanList');
+  const el = document.getElementById('profilePlanList');
   if (!el) return;
 
-  var today = getDateByOffset(0);
-  var yesterday = getDateByOffset(-1);
-  var filtered = _allPlans.filter(function (p) {
-    var planDate = getPlanDateValue(p);
-    if (_profilePlanFilter === 'today') return planDate === today;
-    if (_profilePlanFilter === 'yesterday') return planDate === yesterday;
+  const today = getDateByOffset(0);
+  const yesterday = getDateByOffset(-1);
+  const filtered = _allPlans.filter(function (p) {
+    const dateKeys = getPlanDateCandidates(p);
+    if (_profilePlanFilter === 'today') return dateKeys.indexOf(today) >= 0;
+    if (_profilePlanFilter === 'yesterday') return dateKeys.indexOf(yesterday) >= 0;
     return true;
   });
 
+  const hintEl = document.getElementById('profileFilterHint');
+  if (hintEl) {
+    const label = _profilePlanFilter === 'today' ? '今日' : _profilePlanFilter === 'yesterday' ? '昨日' : '全部';
+    hintEl.textContent = '当前筛选：' + label + '（' + filtered.length + '条）';
+  }
+
   filtered.sort(function (a, b) {
-    var ad = (a.createdAt || a.date || '').toString();
-    var bd = (b.createdAt || b.date || '').toString();
+    const ad = (a.createdAt || a.date || '').toString();
+    const bd = (b.createdAt || b.date || '').toString();
     return bd.localeCompare(ad);
   });
 
@@ -346,11 +434,13 @@ function renderProfilePlans() {
       getProfileIcon('effort') +
       '</div>' +
       '<div class="profile-history-empty-title">大家都等着你的方案呢</div>' +
+      '<div class="profile-history-empty-sub">先去今日方案看看，再回来复盘命中率</div>' +
       '</div>';
+
     return;
   }
 
-  var cnNums = [
+  const cnNums = [
     '',
     '一',
     '二',
@@ -374,64 +464,72 @@ function renderProfilePlans() {
     '二十',
   ];
 
-  var html = '';
+  let html = '';
   filtered.forEach(function (p, idx) {
-    var matches = p.matches || [];
-    var isWon = p.isWon === true;
-    var isLose = p.isWon === false;
-    var amountNum = Number(p.amount || 200);
-    var amountVal = Math.round(amountNum);
-    var totalOdds =
+    const matches = p.matches || [];
+    const isWon = p.isWon === true;
+    const isLose = p.isWon === false;
+    const amountNum = Number(p.amount || 200);
+    const amountVal = Math.round(amountNum);
+    const totalOdds =
       p.totalOdds ||
       matches
         .reduce(function (pr, m) {
           return pr * (Number(m.odds) || 1);
         }, 1)
         .toFixed(2);
-    var prizeVal = isWon
+    const prizeVal = isWon
       ? p.resultIncome != null
         ? formatProfileMoney(p.resultIncome)
         : '--'
       : isLose
         ? '¥0'
         : (function () {
-            var to = Number(totalOdds) || 0;
-            var amt = Number(p.amount) || 0;
+            const to = Number(totalOdds) || 0;
+            const amt = Number(p.amount) || 0;
             return to > 0 && amt > 0 ? formatProfileMoney(Math.round(to * amt * 100) / 100) : '--';
           })();
-    var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
-    var statusCls = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
-    var planDate = getPlanDateValue(p);
-    var dateStr = planDate ? planDate.slice(5).replace('-', '/') : '--/--';
-    var createdAt = p.createdAt ? p.createdAt.slice(0, 16).replace('T', ' ') : '';
-    var seqNum = idx + 1;
-    var cnNum = seqNum <= 20 ? cnNums[seqNum] : String(seqNum);
-    var planName = '方案' + cnNum;
+    const statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
+    const statusCls = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
+    const planDate = getPlanDateValue(p);
+    const dateStr = planDate ? planDate.slice(5).replace('-', '/') : '--/--';
+    const createdAt = p.createdAt ? p.createdAt.slice(0, 16).replace('T', ' ') : '';
+    const seqNum = idx + 1;
+    const cnNum = seqNum <= 20 ? cnNums[seqNum] : String(seqNum);
+    const planName = '方案' + cnNum;
 
-    var matchRows = '';
-    for (var mi = 0; mi < matches.length; mi++) {
-      var m = matches[mi];
-      var oddsStr = m.odds != null ? Number(m.odds).toFixed(2) : '--';
-      var dirDisplay = m.direction || m.oddsName || '';
+    let matchRows = '';
+    for (let mi = 0; mi < matches.length; mi++) {
+      const m = matches[mi];
+      const oddsStr = m.odds != null ? Number(m.odds).toFixed(2) : '--';
+      let dirDisplay = m.direction || m.oddsName || '';
       if (m.playType === 'rqspf') dirDisplay = '让' + dirDisplay;
       // ★ V17: 单关双选方向展开 + 多方向拆行
       if (dirDisplay === '胜平') dirDisplay = '胜、平';
       else if (dirDisplay === '平负') dirDisplay = '平、负';
-      var dirParts = dirDisplay ? dirDisplay.split(/[、，,]/) : [dirDisplay];
-      var subResults = m.subResults || [];
-      for (var di = 0; di < dirParts.length; di++) {
-        var subDir = (dirParts[di] || '').trim();
+      const dirParts = dirDisplay ? dirDisplay.split(/[、，,]/) : [dirDisplay];
+      const subResults = m.subResults || [];
+      for (let di = 0; di < dirParts.length; di++) {
+        const subDir = (dirParts[di] || '').trim();
         if (!subDir) continue;
         // ★ V17: 逐方向颜色 — 命中红 / 未中绿 / 未开队名色
-        var subR = null;
-        for (var si = 0; si < subResults.length; si++) {
-          if (subResults[si].direction === subDir) { subR = subResults[si]; break; }
+        let subR = null;
+        for (let si = 0; si < subResults.length; si++) {
+          if (subResults[si].direction === subDir) {
+            subR = subResults[si];
+            break;
+          }
         }
-        var dirCls = '';
+        let dirCls = '';
         if (subR && subR.result !== null && subR.result !== undefined) {
-          dirCls = subR.result === 1 ? ' plan-direction-hit' : subR.result === -1 ? ' plan-direction-undetermined' : ' plan-direction-miss';
+          dirCls =
+            subR.result === 1
+              ? ' plan-direction-hit'
+              : subR.result === -1
+                ? ' plan-direction-undetermined'
+                : ' plan-direction-miss';
         }
-        var fullDir = escapeHtml(subDir) + '(' + oddsStr + ')';
+        const fullDir = escapeHtml(subDir) + '(' + oddsStr + ')';
         if (di === 0) {
           matchRows +=
             '<tr>' +
@@ -443,20 +541,28 @@ function renderProfilePlans() {
             '</span><span class="plan-team-vs">vs</span><span class="plan-team-away">' +
             escapeHtml(m.visitName || '') +
             '</span></td>' +
-            '<td class="odds-col' + dirCls + '">' + fullDir + '</td>' +
+            '<td class="odds-col' +
+            dirCls +
+            '">' +
+            fullDir +
+            '</td>' +
             '</tr>';
         } else {
           matchRows +=
             '<tr>' +
             '<td class="match-info-col"></td>' +
             '<td class="team-col"></td>' +
-            '<td class="odds-col' + dirCls + '">' + fullDir + '</td>' +
+            '<td class="odds-col' +
+            dirCls +
+            '">' +
+            fullDir +
+            '</td>' +
             '</tr>';
         }
       }
     }
 
-    var stampHtml = '';
+    let stampHtml = '';
     if (isWon) {
       stampHtml =
         '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>';
@@ -513,7 +619,7 @@ function renderProfilePlans() {
 }
 
 function _confirmDelete(planId, planName, onSuccess) {
-  var overlay = document.createElement('div');
+  const overlay = document.createElement('div');
   overlay.className = 'del-overlay active';
   overlay.innerHTML =
     '' +
@@ -526,7 +632,7 @@ function _confirmDelete(planId, planName, onSuccess) {
     '</div>';
   document.body.appendChild(overlay);
 
-  var close = function () {
+  const close = function () {
     overlay.classList.remove('active');
     setTimeout(function () {
       overlay.remove();
@@ -537,7 +643,7 @@ function _confirmDelete(planId, planName, onSuccess) {
     if (e.target === overlay) close();
   });
 
-  var confirmBtn = overlay.querySelector('.del-btn-confirm');
+  const confirmBtn = overlay.querySelector('.del-btn-confirm');
   confirmBtn.onclick = function () {
     confirmBtn.disabled = true;
     confirmBtn.textContent = '删除中...';
@@ -547,8 +653,8 @@ function _confirmDelete(planId, planName, onSuccess) {
         onSuccess();
       })
       .catch(function (e) {
-        var body = overlay.querySelector('.del-modal-body');
-        var errEl = body.querySelector('.del-err');
+        const body = overlay.querySelector('.del-modal-body');
+        let errEl = body.querySelector('.del-err');
         if (!errEl) {
           errEl = document.createElement('p');
           errEl.className = 'del-err';
@@ -564,9 +670,9 @@ function _confirmDelete(planId, planName, onSuccess) {
 }
 
 window.deleteProfilePlan = function (planId) {
-  var card = document.getElementById('upcard-' + planId);
-  var nameEl = card ? card.querySelector('.plan-name') : null;
-  var planName = nameEl ? nameEl.textContent.trim() : '';
+  const card = document.getElementById('upcard-' + planId);
+  const nameEl = card ? card.querySelector('.plan-name') : null;
+  const planName = nameEl ? nameEl.textContent.trim() : '';
   _confirmDelete(planId, planName, function () {
     _allPlans = _allPlans.filter(function (p) {
       return p.id !== planId;
@@ -576,6 +682,8 @@ window.deleteProfilePlan = function (planId) {
 };
 
 window.handleProfileLogout = function () {
+  const ok = window.confirm('确认退出登录吗？');
+  if (!ok) return;
   api('auth-logout', {}, 0).catch(function () {});
   clearAuthAll();
   if (typeof window.switchTab === 'function') window.switchTab('login');

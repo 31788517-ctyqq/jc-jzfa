@@ -7,7 +7,7 @@ export let savedScrollY = 0;
 // 比赛列表
 export let weekDates = [];
 export let selectedWeekIdx = 0;
-export let selectedMatchDate = '';
+export const selectedMatchDate = '';
 
 // 排行榜
 export let selectedCategory = '';
@@ -19,7 +19,7 @@ export let rankDateOffset = 0;
 export let planDate = '';
 export let planDateOffset = 0;
 export let planDateExplicit = false; // 标记日历直接选日，loadPlanList应直接发送该日期
-export let planTab = 'expert'; // 'wc' | 'expert' | 'ai_tg' | 'my'
+export let planTab = 'wc'; // 'wc' | 'expert' | 'ai_tg' | 'my'
 
 // 方案收入缓存
 export let incomeLoaded = false;

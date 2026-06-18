@@ -244,7 +244,7 @@ function analyze(vars, matchInfo, gsContext) {
 
   // 4. 综合市场信号评分
   let signalScore = 50;
-  let signalFlags = [];
+  const signalFlags = [];
 
   // ★ V9.0 离散度预警（从 JczqBasic 加载）
   try {

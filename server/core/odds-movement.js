@@ -17,7 +17,7 @@
  *             openHomeWinProb: number, liveHomeWinProb: number, probShift: number }}
  */
 function analyzeMovement(openOdds, liveOdds, pwScore) {
-  var result = {
+  const result = {
     direction: '盘口稳定',
     severity: 'none',
     penalty: 0,
@@ -29,18 +29,18 @@ function analyzeMovement(openOdds, liveOdds, pwScore) {
 
   // 参数验证
   if (!openOdds || !liveOdds) return result;
-  var oHome = parseFloat(openOdds.home) || 0;
-  var oDraw = parseFloat(openOdds.draw) || 0;
-  var oAway = parseFloat(openOdds.away) || 0;
-  var lHome = parseFloat(liveOdds.home) || 0;
-  var lDraw = parseFloat(liveOdds.draw) || 0;
-  var lAway = parseFloat(liveOdds.away) || 0;
+  const oHome = parseFloat(openOdds.home) || 0;
+  const oDraw = parseFloat(openOdds.draw) || 0;
+  const oAway = parseFloat(openOdds.away) || 0;
+  const lHome = parseFloat(liveOdds.home) || 0;
+  const lDraw = parseFloat(liveOdds.draw) || 0;
+  const lAway = parseFloat(liveOdds.away) || 0;
 
   if (oHome <= 1.0 || lHome <= 1.0) return result; // 无效赔率
 
   // 隐含概率（市场抽水去偏）
   function impliedProb(h, d, a) {
-    var invSum = 1 / h + 1 / d + 1 / a;
+    const invSum = 1 / h + 1 / d + 1 / a;
     return {
       home: +(1 / h / invSum).toFixed(4),
       draw: +(1 / d / invSum).toFixed(4),
@@ -48,15 +48,15 @@ function analyzeMovement(openOdds, liveOdds, pwScore) {
     };
   }
 
-  var oProbs = impliedProb(oHome, oDraw, oAway);
-  var lProbs = impliedProb(lHome, lDraw, lAway);
+  const oProbs = impliedProb(oHome, oDraw, oAway);
+  const lProbs = impliedProb(lHome, lDraw, lAway);
 
   result.openHomeWinProb = oProbs.home;
   result.liveHomeWinProb = lProbs.home;
   result.probShift = +(lProbs.home - oProbs.home).toFixed(4);
 
   // 1. 盘口方向判定
-  var absShift = Math.abs(result.probShift);
+  const absShift = Math.abs(result.probShift);
   if (absShift < 0.02) {
     result.direction = '盘口稳定';
     result.waterChange = 0;
@@ -104,17 +104,17 @@ function analyzeMovement(openOdds, liveOdds, pwScore) {
  * @returns {{ consistent: boolean, detail: string, penalty: number }}
  */
 function checkEuroAsiaConsistency(openOdds, asianHandicap, pwScore) {
-  var result = { consistent: true, detail: '', penalty: 0 };
+  const result = { consistent: true, detail: '', penalty: 0 };
   if (!openOdds || openOdds.home <= 1.0) return result;
 
-  var h = parseFloat(openOdds.home) || 2.0;
-  var a = parseFloat(openOdds.away) || 2.0;
-  var rq = parseFloat(asianHandicap) || 0;
+  const h = parseFloat(openOdds.home) || 2.0;
+  const a = parseFloat(openOdds.away) || 2.0;
+  const rq = parseFloat(asianHandicap) || 0;
 
   // 欧赔方向：赔率低=看好
-  var euroFavorsHome = h < a;
+  const euroFavorsHome = h < a;
   // 亚盘方向：让球方=看好
-  var asianFavorsHome = rq > 0;
+  const asianFavorsHome = rq > 0;
 
   if (euroFavorsHome !== asianFavorsHome) {
     result.consistent = false;
@@ -126,7 +126,7 @@ function checkEuroAsiaConsistency(openOdds, asianHandicap, pwScore) {
     result.penalty = 12;
   } else {
     // 一致，进一步检测与模型方向是否一致
-    var marketFavorsHome = euroFavorsHome;
+    const marketFavorsHome = euroFavorsHome;
     if (pwScore > 0.1 && !marketFavorsHome) {
       result.penalty = 10;
       result.detail = '市场方向与模型方向不一致';

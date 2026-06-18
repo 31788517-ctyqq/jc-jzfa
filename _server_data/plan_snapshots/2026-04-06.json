@@ -1,0 +1,150 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.025Z",
+  "earliestKickoff": null,
+  "date": "2026-04-06",
+  "plans": [
+    {
+      "planId": "plan_2026-04-06_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038873",
+          "direction": "平、让平",
+          "homeName": "那不勒斯",
+          "visitName": "AC米兰",
+          "matchNum": "周一012"
+        },
+        {
+          "matchId": "2038866",
+          "direction": "让负",
+          "homeName": "埃尔夫斯堡",
+          "visitName": "IFK哥德堡",
+          "matchNum": "周一005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-06_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038869",
+          "direction": "总进球-2、3球",
+          "homeName": "伊普斯维奇",
+          "visitName": "伯明翰",
+          "matchNum": "周一008"
+        },
+        {
+          "matchId": "2038873",
+          "direction": "让负",
+          "homeName": "那不勒斯",
+          "visitName": "AC米兰",
+          "matchNum": "周一012"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-06_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038869",
+          "direction": "胜",
+          "homeName": "伊普斯维奇",
+          "visitName": "伯明翰",
+          "matchNum": "周一008"
+        },
+        {
+          "matchId": "2038873",
+          "direction": "让负",
+          "homeName": "那不勒斯",
+          "visitName": "AC米兰",
+          "matchNum": "周一012"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-06_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038875",
+          "direction": "总进球-2、3球",
+          "homeName": "赫尔城",
+          "visitName": "考文垂",
+          "matchNum": "周一014"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-06_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038873",
+          "direction": "平、让平",
+          "homeName": "那不勒斯",
+          "visitName": "AC米兰",
+          "matchNum": "周一012"
+        },
+        {
+          "matchId": "2038869",
+          "direction": "胜",
+          "homeName": "伊普斯维奇",
+          "visitName": "伯明翰",
+          "matchNum": "周一008"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-06_5",
+      "name": "plan_5",
+      "planName": "方案五",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038873",
+          "direction": "平、让平",
+          "homeName": "那不勒斯",
+          "visitName": "AC米兰",
+          "matchNum": "周一012"
+        },
+        {
+          "matchId": "2038869",
+          "direction": "总进球-2、3球",
+          "homeName": "伊普斯维奇",
+          "visitName": "伯明翰",
+          "matchNum": "周一008"
+        }
+      ]
+    }
+  ]
+}

@@ -343,13 +343,13 @@ function dailyBatchCore(isLight, skipCache) {
   }
 
   // 预处理: 统计熔断 + 缓存命中数
-  var meltdownCount = 0;
-  var cacheHitCount = 0;
+  let meltdownCount = 0;
+  let cacheHitCount = 0;
   matches.forEach(function (m) {
     if (isMeltdown(m.matchId)) meltdownCount++;
     else if (!skipCache && isMatchCached(m.matchId)) cacheHitCount++;
   });
-  var willProcess = matches.length - meltdownCount - cacheHitCount;
+  const willProcess = matches.length - meltdownCount - cacheHitCount;
   log('熔断跳过: ' + meltdownCount + ' 场, 缓存命中: ' + cacheHitCount + ' 场, 实际需处理: ' + willProcess + ' 场');
 
   // 串行处理，每场间隔 2 秒
@@ -359,8 +359,8 @@ function dailyBatchCore(isLight, skipCache) {
       isRunning = false;
       return Promise.resolve(); // 返回 Promise 供上层 await
     }
-    var match = matches[index];
-    var processor = isLight
+    const match = matches[index];
+    const processor = isLight
       ? processMatchLight
       : function (m) {
           return processMatch(m, { skipCache: skipCache });
@@ -400,32 +400,36 @@ function start() {
   dailyBatch();
 
   // 设置每天 11:30 定时（双模型 + 模型闭环）
-  var delay1130 = getDelayToTarget(11, 30);
+  const delay1130 = getDelayToTarget(11, 30);
   log('首次 11:30(双模型+闭环) 将在 ' + Math.round(delay1130 / 3600000) + ' 小时后触发');
   dailyTimer1130 = setTimeout(function run1130() {
     dailyBatch().then(function () {
       // AI 完成后触发模型补算闭环（GS→PK）
       try {
-        var ds = require('./data_sync');
+        const ds = require('./data_sync');
         if (ds && ds.runModelClosure) {
           return ds.runModelClosure(new Date().toISOString().slice(0, 10), { reason: 'ai_1130' });
         }
-      } catch (e) { log('[1130] 模型闭环触发失败: ' + e.message); }
+      } catch (e) {
+        log('[1130] 模型闭环触发失败: ' + e.message);
+      }
     });
     dailyTimer1130 = setTimeout(run1130, 24 * 3600000);
   }, delay1130);
 
   // 设置每天 16:30 定时（双模型 + 模型闭环 + 缓存检查）
-  var delay1630 = getDelayToTarget(16, 30);
+  const delay1630 = getDelayToTarget(16, 30);
   log('首次 16:30(双模型+闭环) 将在 ' + Math.round(delay1630 / 3600000) + ' 小时后触发');
   dailyTimer1630 = setTimeout(function run1630() {
     dailyBatch().then(function () {
       try {
-        var ds = require('./data_sync');
+        const ds = require('./data_sync');
         if (ds && ds.runModelClosure) {
           return ds.runModelClosure(new Date().toISOString().slice(0, 10), { reason: 'ai_1630' });
         }
-      } catch (e) { log('[1630] 模型闭环触发失败: ' + e.message); }
+      } catch (e) {
+        log('[1630] 模型闭环触发失败: ' + e.message);
+      }
     });
     dailyTimer1630 = setTimeout(run1630, 24 * 3600000);
   }, delay1630);
@@ -481,15 +485,28 @@ function cleanAiCache(maxAgeMs) {
       // 归档到冷层
       const archiveDir = path.join(__dirname, 'ai_archive');
       if (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true });
-      const archiveFile = path.join(archiveDir, 'ai_archive_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.json');
+      const archiveFile = path.join(
+        archiveDir,
+        'ai_archive_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.json',
+      );
       let existing = {};
       if (fs.existsSync(archiveFile)) {
-        try { existing = JSON.parse(fs.readFileSync(archiveFile, 'utf8')); } catch (e) {}
+        try {
+          existing = JSON.parse(fs.readFileSync(archiveFile, 'utf8'));
+        } catch (e) {}
       }
       Object.assign(existing, archived);
       fs.writeFileSync(archiveFile, JSON.stringify(existing));
 
-      log('cleanAiCache: 分层归档 ' + archivedCount + ' 条 → ' + archiveFile + ' (热层剩余 ' + Object.keys(cleaned).length + ' 条)');
+      log(
+        'cleanAiCache: 分层归档 ' +
+          archivedCount +
+          ' 条 → ' +
+          archiveFile +
+          ' (热层剩余 ' +
+          Object.keys(cleaned).length +
+          ' 条)',
+      );
     }
     return archivedCount;
   } catch (e) {

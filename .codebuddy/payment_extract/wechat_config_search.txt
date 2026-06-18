@@ -1,0 +1,636 @@
+/data/wwwroot/quncai_wap/WEB-INF/web.xml:83:            <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerModel.xml:16:				<entry key="20000" value-ref="superModelListExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerModel.xml:17:				<entry key="20001" value-ref="superModelDetailExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerModel.xml:18:				<entry key="20002" value-ref="mySuperModelListExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerModel.xml:19:				<entry key="20003" value-ref="mySuperModelDetailExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerModel.xml:20:				<entry key="20004" value-ref="superModelDoCustomExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/ziweixingpay.xml:11:		<property name="key">
+/data/wwwroot/quncai_wap/WEB-INF/classes/fuyoupay.xml:10:		<!-- 32位密钥key -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/fuyoupay.xml:11:		<property name="key">
+/data/wwwroot/quncai_wap/WEB-INF/classes/yifupay.xml:11:		<property name="key">
+/data/wwwroot/quncai_wap/WEB-INF/classes/xingyebankpay.xml:12:		<property name="key">
+/data/wwwroot/quncai_wap/WEB-INF/classes/haodianpay.xml:15:		<property name="secret">
+/data/wwwroot/quncai_wap/WEB-INF/classes/hao-xuan-data.xml:8:		<property name="key" value="z1x3c4v7" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/hao-xuan-data.xml:10:		<property name="key" value="7u8i9o0p1q" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-webservice.xml:15:		<property name="keyMap">
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-webservice.xml:18:				<entry key="1001" value="687d9185991f622eb4fd089a1a3a3ada" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-webservice.xml:20:				<entry key="1002" value="8acd017b75705d8d24caa9376030cbb2" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-webservice.xml:22:				<entry key="1003" value="3fa899b5038821e1625cc5aa7fadc234" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-webservice.xml:42:				<entry key="agent:1003,version:1\..*,action:5017|5021|5023|5033|5035|5036|5037|5039|5042|5046|6000" value-ref="stopServiceFilter" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:16:				<entry key="1000" value-ref="systemDateExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:17:				<entry key="1001" value-ref="regExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:18:				<entry key="1002" value-ref="loginExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:19:				<entry key="1003" value-ref="updatePwdExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:20:				<entry key="1004" value-ref="planListExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:21:				<entry key="1005" value-ref="walletLinesExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:22:				<entry key="1006" value-ref="logoutExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:23:				<entry key="1007" value-ref="queryMemberInfoExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:24:				<entry key="1010" value-ref="cancelChaseExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:25:				<entry key="1011" value-ref="alipayChargeByWapExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:26:				<entry key="1008" value-ref="alipayChargeExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:27:				<entry key="1012" value-ref="couponListExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:29:				<entry key="4030" value-ref="wapPaySignatureExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:31:				<entry key="4032" value-ref="weiXinPayChargeExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:33:	   			<entry key="5017" value-ref="chargeAlipayExecutor"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:35:				<entry key="6000" value-ref="lLpayChargeExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:37:				<entry key="2001" value-ref="bjdcMatchExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:38:				<entry key="2002" value-ref="jczqMatchExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:39:				<entry key="3002" value-ref="jczqMatchSimpleExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:40:				<entry key="2003" value-ref="termInfoExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:41:				<entry key="2004" value-ref="hmPlanListExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:43:				<entry key="2005" value-ref="planDetailListExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:44:				<entry key="2006" value-ref="openResultExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:45:				<entry key="2007" value-ref="openResultDetailExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:46:				<entry key="2008" value-ref="chaseTermListExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:47:				<entry key="2009" value-ref="newTermInfoExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:49:				<entry key="4001" value-ref="singleBuyExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:50:				<entry key="4002" value-ref="publishPlanExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:51:				<entry key="4003" value-ref="joinPlanExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:52:				<entry key="4004" value-ref="uploadSingleBuyExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:53:				<entry key="4005" value-ref="uploadPublishPlanExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:54:				<entry key="4006" value-ref="uploadPlanContentExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:55:				<entry key="4041" value-ref="orderSingleBuyExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:56:				<entry key="4042" value-ref="confirmPaymentExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:57:				<entry key="4043" value-ref="orderUploadSingleBuyExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:58:				<entry key="4044" value-ref="ordeySingleBetExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:60:				<entry key="4007" value-ref="chaseExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:61:				<entry key="4008" value-ref="lotteryChaseListExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:62:				<entry key="4009" value-ref="lotteryChaseDetailExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:63:				<entry key="4010" value-ref="lotteryChaseCancelExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:66:				<entry key="4011" value-ref="bindCertNoExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:68:				<entry key="4012" value-ref="emailValidatedExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:70:				<entry key="4013" value-ref="bindMobileExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:72:				<entry key="4014" value-ref="posterImageExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:74:				<entry key="4015" value-ref="bindCardExecutor"/> 
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:76:				<entry key="4016" value-ref="bindAllExecutor"/> 
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:78:				<entry key="4017" value-ref="sendAuthCodeExecutor"/> 									
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:80:				 <entry key="4018" value-ref="memberAwardExecutor"/> 				
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:83:				<entry key="4019" value-ref="fundPlanListExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:85:				<entry key="4099" value-ref="fundPlanListNewExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:87:				<entry key="4020" value-ref="fundJoinExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:89:				<entry key="4021" value-ref="fundInfoExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:91:				<entry key="4121" value-ref="fundInfoNewExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:93:				<entry key="4321" value-ref="memberFundListExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:95:				<entry key="4322" value-ref="memberFundInfoExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:97:				<entry key="4022" value-ref="betExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:99:				<entry key="4023" value-ref="lotteryAwardSettingExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:101:				<entry key="4024" value-ref="clearanceExecutor"/>	
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:103:				<entry key="4025" value-ref="footballBetExecutor"/>	
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:107:				<entry key="4026" value-ref="xinShuiPlanExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:109:				<entry key="4027" value-ref="buyXinShuiPlanExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:111:				<entry key="4028" value-ref="xinShuiPlanDetailExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:113:				<entry key="4029" value-ref="myXinShuiPlanExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:115:				<!-- <entry key="4031" value-ref="footballBetSignatureExecutor" /> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:118:				<entry key="4033" value-ref="appHomePageExecutor" />	
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:120:				<entry key="4034" value-ref="modifyCardExecutor"/> 	
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:122:				<entry key="4035" value-ref="bindAllInfoExecutor"/> 
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:124:				<entry key="4037" value-ref="weiFuTongPayChargeExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:127:				<entry key="4038" value-ref="balancePasswordExecutor" />		
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:130:				<entry key="7000" value-ref="beijingDanchangExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:132:				<entry key="7001" value-ref="jingcaiZuqiuExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:134:				<entry key="7002" value-ref="footBallMatchExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:136:				<entry key="7003" value-ref="hmHongrenListExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:140:				<entry key="5001" value-ref="registerExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:142:				<entry key="5002" value-ref="memberLoginExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:144:				<entry key="5003" value-ref="memberLogoutExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:146:				<entry key="5004" value-ref="memberUpdatePwdExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:148:				<entry key="5005" value-ref="memberBindCardExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:150:				<entry key="5006" value-ref="memberBindCertNoExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:152:				<entry key="5007" value-ref="memberBindEmailExecutor"/>   
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:154:				<entry key="5008" value-ref="memberBindMobileExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:156:				<entry key="5009" value-ref="transactionTypeExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:158:				<entry key="5010" value-ref="winningStatusExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:160:				<entry key="5011" value-ref="lotterySchemaExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:162:				<entry key="5012" value-ref="lotteryTypeExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:164:				<entry key="5013" value-ref="memberQueryMemberInfoExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:166:				<entry key="5014" value-ref="bindIdMobileEmailExecutor"/>   
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:168:	   			<entry key="5015" value-ref="caibizhongMemberAwardExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:170:	   			<entry key="5016" value-ref="bankExecutor"/>	   			
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:173:				<entry key="5018" value-ref="caibizhongPlanDetailExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:175:				<entry key="5020" value-ref="caibizhongMemberSuggestExecutor" /> 
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:177:				<entry key="5021" value-ref="lotteryBetExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:179:			    <entry key="5022" value-ref="cbzhmPlanListExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:181:				<entry key="5023" value-ref="lotteryPublishPlanExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:183:				<entry key="5024" value-ref="lotteryJoinPlanExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:185:				<entry key="5025" value-ref="cbzClearanceExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:187:				<entry key="5026" value-ref="generateAuthCodeExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:189:				<entry key="5027" value-ref="getWaysOfResetPwdExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:191:				<entry key="5028" value-ref="confirmWayOfResetPwdExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:193:				<entry key="5029" value-ref="checkWayOfResetPwdExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:195:				<entry key="5030" value-ref="checkSmsAuthCodeExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:197:				<entry key="5031" value-ref="resetPwdExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:199:	  			<entry key="5032" value-ref="moneyDetailExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:201:				<entry key="5033" value-ref="autoBillingExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:203:				<entry key="5035" value-ref="pickUpBillingExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:205:				<entry key="5036" value-ref="updateBillingExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:207:				<entry key="5037" value-ref="updateBillingBatchExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:209:				<entry key="5038" value-ref="cbzPlanListExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:211:				<entry key="5039" value-ref="cbzBetPlanExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:213:				<entry key="5040" value-ref="systemTimeExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:215:				<entry key="5041" value-ref="queryBetPlanExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:217:				<entry key="5042" value-ref="uploadBetPlanExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:219:				<entry key="5043" value-ref="downBetPlanExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:221:				<entry key="5044" value-ref="cancelHmExecuter" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:223:				<entry key="5045" value-ref="jclqTrendExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:225:				<entry key="5046" value-ref="umPayChargeExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:227:				<entry key="5047" value-ref="ticketDetailExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:230:				<entry key="5034" value-ref="analysisDataAdpter"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:232:				<entry key="8000" value-ref="analysisOpenPrizeDataAdpter"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:235:				<!-- <entry key="6001" value-ref="llPayCarbinExecutor"/> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:237:				<entry key="9000" value-ref="basketBallMatchExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:239:				<entry key="9001" value-ref="singleBetExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:242:				<entry key="9002" value-ref="alipayAuthToSdkExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:244:				<entry key="9003" value-ref="alipayLoginToSdkExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:246:				<entry key="9004" value-ref="generateQiniuTokenExecutor"/>				
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:248:				<entry key="9005" value-ref="queryMemberRightExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:250:				<entry key="9006" value-ref="getTokenOfPlanNosExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:254:				<entry key="7101" value-ref="uploadLotteryStationLicenceExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:256:				<entry key="7102" value-ref="applyLotteryStationExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:258:				<entry key="7103" value-ref="lotteryStationListExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:260:				<entry key="7104" value-ref="getLotteryStationListExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:262:				<entry key="7105" value-ref="getOpenedLotteryStationListExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:264:				<entry key="8001" value-ref="homeTogetherExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:266:				<entry key="8002" value-ref="newAppHomePageExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:268:				<entry key="8104" value-ref="uploadPhotoExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:271:				<entry key="10000" value-ref="thirdPartyLoginSendAuthCodeExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:273:				<entry key="10001" value-ref="weixinLoginToSdkExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:275:				<entry key="10002" value-ref="qqLoginToSdkExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:277:				<entry key="10003" value-ref="thirdPartyLoginToSdkBindMobileExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:281:				<entry key="12001" value-ref="registerSendAuthCodeExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:283:				<entry key="12002" value-ref="registerWithMobileExecutor"/>	
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:285:				<entry key="12003" value-ref="addNicknameExecutor"/>					
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:287:				<entry key="12004" value-ref="commenderCountExecutor"/>	 
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerLottery.xml:291:				<entry key="12012" value-ref="signInExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:11:		<property name="key">
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:73:		<property name="key">
+/data/wwwroot/quncai_wap/WEB-INF/classes/quanminpay.xml:10:		<!-- keyValue -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/quanminpay.xml:11:		<property name="keyValue">
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:35:		<!-- appid：第三方用户唯一凭证 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:36:		<!-- secret：第三方用户唯一凭证密钥，即appsecret -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/weifutongpay.xml:11:		<property name="key">
+/data/wwwroot/quncai_wap/WEB-INF/classes/qiniu.cfg.xml:16:    		<property name="secretKey" value="ahwATM7afL7L14NtJ-umtdfbc7o1gQ9dDxMM5WeA" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:17:				<entry key="1" value-ref="szcContentAnalysis"/><!-- 大乐透 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:18:				<entry key="100" value-ref="szcContentAnalysis"/><!-- 双色球 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:19:				<entry key="102" value-ref="szcContentAnalysis"/><!-- 3D -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:21:				<entry key="50" value-ref="szcContentAnalysis"/><!-- 11运夺金 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:22:				<entry key="53" value-ref="szcContentAnalysis"/><!-- 广东11选5 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:23:				<entry key="150" value-ref="szcContentAnalysis"/><!-- 重庆时时彩 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:24:				<entry key="152" value-ref="szcContentAnalysis"/><!-- 广东快乐十分 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:25:				<entry key="153" value-ref="szcContentAnalysis"/><!-- 江西时时彩 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:26:				<entry key="157" value-ref="szcContentAnalysis"/><!-- 江苏快3 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:27:				<entry key="158" value-ref="szcContentAnalysis"/><!-- 重庆快乐十分 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:28:				<entry key="159" value-ref="szcContentAnalysis"/><!-- 吉林快3 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:30:				<entry key="34" value-ref="jczqContentAnalysis"/><!-- 让球胜平负 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:31:				<entry key="41" value-ref="jczqContentAnalysis"/><!-- 胜平负 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:32:				<entry key="42" value-ref="jczqContentAnalysis"/><!-- 混投 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:33:				<entry key="35" value-ref="jczqContentAnalysis"/><!-- 比分 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:34:				<entry key="36" value-ref="jczqContentAnalysis"/><!-- 进球 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:35:				<entry key="37" value-ref="jczqContentAnalysis"/><!-- 半全场 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:37:				<entry key="20" value-ref="dczqContentAnalysis"/><!-- 胜平负 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:38:				<entry key="21" value-ref="dczqContentAnalysis"/><!-- 上下单双 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:39:				<entry key="22" value-ref="dczqContentAnalysis"/><!-- 进球 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:40:				<entry key="23" value-ref="dczqContentAnalysis"/><!-- 比分 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:41:				<entry key="24" value-ref="dczqContentAnalysis"/><!-- 半全场 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:43:				<entry key="5" value-ref="ctzqContentAnalysis"/><!-- 胜负彩14场 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:44:				<entry key="6" value-ref="ctzqContentAnalysis"/><!-- 任9 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:46:				<entry key="29" value-ref="jclqContentAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:47:				<entry key="30" value-ref="jclqContentAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:48:				<entry key="31" value-ref="jclqContentAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:49:				<entry key="32" value-ref="jclqContentAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:50:				<entry key="33" value-ref="jclqContentAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:69:				<entry key="1" value-ref="szcResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:70:				<entry key="100" value-ref="szcResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:71:				<entry key="102" value-ref="szcResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:73:				<entry key="50" value-ref="szcResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:74:				<entry key="53" value-ref="szcResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:75:				<entry key="150" value-ref="szcResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:76:				<entry key="152" value-ref="szcResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:77:				<entry key="153" value-ref="szcResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:78:				<entry key="157" value-ref="szcResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:79:				<entry key="158" value-ref="szcResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:80:				<entry key="159" value-ref="szcResultAnalysis"/>			
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:82:				<entry key="5" value-ref="ctzqResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:83:				<entry key="6" value-ref="ctzqResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:87:				<entry key="34" value-ref="jczqesultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:89:				<entry key="35" value-ref="jczqesultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:91:				<entry key="36" value-ref="jczqesultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:93:				<entry key="37" value-ref="jczqesultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:95:				<entry key="41" value-ref="jczqesultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:97:				<entry key="42" value-ref="jczqesultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:100:				<entry key="20" value-ref="dczqesultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:102:				<entry key="21" value-ref="dczqesultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:104:				<entry key="22" value-ref="dczqesultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:106:				<entry key="23" value-ref="dczqesultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:108:				<entry key="24" value-ref="dczqesultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:110:				<entry key="29" value-ref="jclqResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:111:				<entry key="30" value-ref="jclqResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:112:				<entry key="31" value-ref="jclqResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:113:				<entry key="32" value-ref="jclqResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:114:				<entry key="33" value-ref="jclqResultAnalysis"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:132:			<map key-type="java.lang.Integer">
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:133:				<entry key="39" value-ref="jclqTicketResultAnalysis" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:134:				<entry key="38" value-ref="jczqTicketResultAnalysis" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:142:			<map key-type="java.lang.Integer">
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:143:				<entry key="39" value-ref="jclqTicketResultForWapAnalysis" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:144:				<entry key="38" value-ref="jczqTicketResultAnalysis" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:189:				<entry key="38" value-ref="jczqPlanContentPaser" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:190:				<entry key="39" value-ref="jclqPlanContentPaser" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:191:				<entry key="40" value-ref="bjdcPlanContentPaser" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:192:				<entry key="5" value-ref="ctzqPlanContentPaser" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:193:				<entry key="6" value-ref="ctzqPlanContentPaser" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:194:				<entry key="7" value-ref="jqcPlanContentPaser" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:195:				<entry key="25" value-ref="bjdcSfPlanContentPaser" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:204:				<entry key="38" value-ref="jczqUploadPlanContentPaser" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:205:				<entry key="39" value-ref="jclqUploadPlanContentPaser" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:206:				<entry key="40" value-ref="bjdcUploadPlanContentPaser" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:207:				<entry key="5" value-ref="ctzqUploadPlanContentParser" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/factorys-lottery.xml:208:				<entry key="6" value-ref="ctzqUploadPlanContentParser" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/SignVerProp.properties:4:6268.mer.prikey.path=/var/umpay/6268_QC.key.p8
+/data/wwwroot/quncai_wap/WEB-INF/classes/SignVerProp.properties:6:#prikey.expand.name=.p8
+/data/wwwroot/quncai_wap/WEB-INF/classes/tongfupay.xml:10:		<!-- hash key -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/huijupay.xml:11:		<property name="key">
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:39:				<entry key="balanceAlert" value="13828471716" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:40:				<entry key="hm" value="13828471716,13416356105" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:41:				<entry key="chupiao"	value="13828471716,13416356105" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:42:				<entry key="termError"	value="13828471716,13416356105" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:43:				<entry key="zhuihao" value="13828471716,13416356105" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:44:				<entry key="returnPrize" value="13828471716,13416356105" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:45:				<entry key="anaBuilder" value="13828471716,13416356105" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:100:                <prop key="mail.smtp.auth">true</prop>
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:101:                <prop key="mail.smtp.timeout">60000</prop>
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:102:                <prop key="mail.smtp.starttls.enable">true</prop>
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:103:                <prop key="mail.transport.protocol">smtp</prop>
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:104:                <prop key="mail.smtp.socketFactory.port">465</prop>
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:105:                <prop key="mail.smtp.socketFactory.class">javax.net.ssl.SSLSocketFactory</prop>
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:106:                <prop key="mail.smtp.socketFactory.fallback">false</prop>
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:129:		<property name="appid" value="wx809116cc12c2c36b" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:130:		<property name="secret" value="947bbe8ce100caa8880aefaa46d41abf" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/jingdongpay.xml:31:		<property name="keystorePath">
+/data/wwwroot/quncai_wap/WEB-INF/classes/jingdongpay.xml:32:		    <value>/opt/conf/quick.keystore</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/jingdongpay.xml:75:		<property name="keystorePath">
+/data/wwwroot/quncai_wap/WEB-INF/classes/jingdongpay.xml:76:		    <value>/www/cert/quick.keystore</value>
+/data/wwwroot/quncai_wap/WEB-INF/classes/jingdongpay.xml:77:		    <value>D:\\key\\quick.keystore</value> 
+/data/wwwroot/quncai_wap/WEB-INF/classes/yeepay.xml:9:		<property name="key"><value>jj3Q1h0H86FZ7CD46Z5Nr35p67L199WdkgETx85920n128vi2125T9KY2hzv</value></property> -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/yeepay.xml:12:		<property name="key"><value>oHij98v9c6pe10L46CD7F85970b53960LL3o943049baMM857U434070v1E8</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:15:				<entry key="1000" value="/api/v1/cloud/match/forecast/" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:17:				<entry key="1001" value="/api/v1/cloud/makePlan/" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:19:				<entry key="1002" value="/api/v1/cloud/plan/" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:21:				<entry key="1003" value="/api/v1/cloud/plan/bingo/list/" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:23:				<entry key="1004" value="/api/v1/cloud/plan/bingo/detail/" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:25:				<entry key="1005" value="/api/v1/cloud/plan/mark/" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:27:				<entry key="1006" value="/api/v1/cloud/plan/optimize/" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:29:				<entry key="1007" value="/caibifa/filter/code/" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:31:				<entry key="1008" value="/caibifa/filter/data/" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:33:				<entry key="2005" value="/api/v1/home/team/search/" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:35:				<entry key="2006" value="/api/v1/home/team/hotTeam/" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:37:				<entry key="3001" value="/api/v1/model/chase/list/" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:39:				<entry key="3002" value="/api/v1/model/chase/detail" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:41:				<entry key="3003" value="/api/v1/model/chase/person/detail" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:43:				<entry key="3004" value="/api/v2/model/chase/term" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:45:				<entry key="3005" value="/api/v1/model/chase/round" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:47:				<entry key="3006" value="/api/v2/model/chase/detail" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:49:				<entry key="3007" value="/api/v1/model/super/list" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/data-webservice.xml:51:				<entry key="3008" value="/api/v1/model/super/detail" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:7:		<property name="key"><value>9kydim4p6xubhr2rul6pua5f95ovgvi3</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:17:		<property name="key"><value></value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:28:		<property name="key"><value></value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:59:		<property name="key"><value>9kydim4p6xubhr2rul6pua5f95ovgvi3</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:80:		<property name="key"><value>9kydim4p6xubhr2rul6pua5f95ovgvi3</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:83:		<property name="key"><value>9kydim4p6xubhr2rul6pua5f95ovgvi3</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:17:				<entry key="8003" value-ref="filterCodeExecutor"/>				
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:19:				<entry key="8004" value-ref="scoreLiveExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:21:				<entry key="8005" value-ref="sportteryTermExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:23:				<entry key="8006" value-ref="makePlanExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:25:				<entry key="8007" value-ref="planDetailExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:27:				<entry key="8008" value-ref="bingoPlanExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:29:				<entry key="8009" value-ref="bingoPlanDetailExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:31:				<entry key="8010" value-ref="planMarkExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:33:				<entry key="8011" value-ref="planOptimizeExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:35:				<entry key="8012" value-ref="cbzFilterCodeExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:37:				<entry key="8013" value-ref="cbzFilterDataExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:39:				<entry key="8101" value-ref="footballTeamInfoExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:41:				<entry key="8102" value-ref="footballHotTeamInfoExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:43:				<entry key="8103" value-ref="recommendMatchExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:45:				<entry key="8104" value-ref="modelCalculatExecutor" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:47:				<entry key="11001" value-ref="subscribeModelExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:48:				<entry key="11002" value-ref="unsubscribeModelExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:49:				<entry key="11003" value-ref="mySubscribeChaseExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:50:				<entry key="11004" value-ref="modelListExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:51:				<entry key="11005" value-ref="modelDetailExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:52:				<entry key="11006" value-ref="myChaseDetailExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:53:				<entry key="11007" value-ref="chaseRoundExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:54:				<entry key="11008" value-ref="modelDetailNewExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:55:				<entry key="11009" value-ref="chaseRoundNewExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/applicationContext-executerData.xml:56:				<entry key="11010" value-ref="chaseTermExecutor"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:17:				<entry key="urlList">
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:49:				<entry key="localSavePathList">
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:80:				<entry key="filePath">
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:104:				<entry key="filePath">
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:217:		        <entry key="dlt" value="1"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:218:		        <entry key="qxc" value="2"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:219:		        <entry key="pl3" value="3"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:220:		        <entry key="pl5" value="4"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:221:		        <entry key="ssq" value="100"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:222:		        <entry key="qlc" value="101"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:223:		        <entry key="fc3d" value="102"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:225:		        <entry key="sfc" value="5"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:226:		        <entry key="sfr9" value="6"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:227:		        <entry key="jqc" value="7"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:228:		        <entry key="bqc" value="8"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:230:		        <entry key="11yun" value="50"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:231:		        <entry key="jxdlc" value="52"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:232:		        <entry key="cqssc" value="150"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:233:		        <entry key="jxssc" value="153"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:234:		        <entry key="gd11x5" value="53"/>  
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:235:		        <entry key="jsk3" value="157"/>   
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:236:		        <entry key="jlk3" value="159"/>   
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:255:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.SSQ"/></key>		<!-- 彩种 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:258:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>	<!-- 玩法 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:260:								<entry key="caption" value="1-33(6)#1-16(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:261:								<entry key="path" value="static/ssq/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:267:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.FC3D"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:270:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:272:								<entry key="caption" value="0-9(1)#0-9(1)#0-9(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:273:								<entry key="path" value="static/3d/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:277:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ZXHZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:279:								<entry key="caption" value="0-27(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:280:								<entry key="path" value="static/3d/zxhzMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:284:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.Z3HZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:286:								<entry key="caption" value="1-26(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:287:								<entry key="path" value="static/3d/zshzMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:291:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.Z6HZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:293:								<entry key="caption" value="3-24(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:294:								<entry key="path" value="static/3d/zlhzMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:298:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.BH"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:300:								<entry key="caption" value="0-9(3)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:301:								<entry key="path" value="static/3d/bhMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:305:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ZXKD"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:307:								<entry key="caption" value="0-9(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:308:								<entry key="path" value="static/3d/zxkdMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:312:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.Z3KD"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:314:								<entry key="caption" value="0-9(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:315:								<entry key="path" value="static/3d/z3kdMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:319:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.Z6KD"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:321:								<entry key="caption" value="0-9(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:322:								<entry key="path" value="static/3d/z6kdMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:328:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.QLC"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:331:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:333:								<entry key="caption" value="1-30(7)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:334:								<entry key="path" value="static/qlc/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:340:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.DLT"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:343:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:345:								<entry key="caption" value="1-35(5)#1-12(2)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:346:								<entry key="path" value="static/dlt/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:352:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.PL3"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:355:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:357:								<entry key="caption" value="0-9(1)#0-9(1)#0-9(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:358:								<entry key="path" value="static/ps/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:362:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ZXHZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:364:								<entry key="caption" value="0-27(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:365:								<entry key="path" value="static/ps/zxhzMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:369:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.Z3HZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:371:								<entry key="caption" value="1-26(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:372:								<entry key="path" value="static/ps/zshzMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:376:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.Z6HZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:378:								<entry key="caption" value="3-24(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:379:								<entry key="path" value="static/ps/zlhzMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:383:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.BH"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:385:								<entry key="caption" value="0-9(3)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:386:								<entry key="path" value="static/ps/bhMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:390:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ZXKD"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:392:								<entry key="caption" value="0-9(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:393:								<entry key="path" value="static/ps/zxkdMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:397:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.Z3KD"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:399:								<entry key="caption" value="0-9(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:400:								<entry key="path" value="static/ps/z3kdMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:404:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.Z6KD"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:406:								<entry key="caption" value="0-9(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:407:								<entry key="path" value="static/ps/z6kdMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:413:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.PL5"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:416:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:418:								<entry key="caption" value="0-9(1)#0-9(1)#0-9(1)#0-9(1)#0-9(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:419:								<entry key="path" value="static/pw/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:425:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.QXC"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:428:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:430:								<entry key="caption" value="0-9(1)#0-9(1)#0-9(1)#0-9(1)#0-9(1)#0-9(1)#0-9(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:431:								<entry key="path" value="static/qxc/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:437:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.SSC"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:440:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:442:								<entry key="caption" value="0-9(1)#0-9(1)#0-9(1)#0-9(1)#0-9(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:443:								<entry key="path" value="static/ssc/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:444:								<entry key="tuijian">
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:447:											<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.YXDS"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:449:												<entry key="condition" value="16-21-26-31(1)[4]"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:450:												<entry key="newsTypeId" value="10000153"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:451:												<entry key="velocityVm" value="hotTui"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:452:												<entry key="liLunMiss" value="10"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:460:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.EXBHDS"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:462:								<entry key="caption" value="^#^#^#0-9(2)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:463:								<entry key="path" value="static/ssc/exBhMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:467:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.EXHZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:469:								<entry key="caption" value="^#^#^#0-18(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:470:								<entry key="path" value="static/ssc/exHzMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:474:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.Z3BH"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:476:								<entry key="caption" value="^#^#0-9(3)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:477:								<entry key="path" value="static/ssc/zsBhMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:481:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.Z6BH"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:483:								<entry key="caption" value="^#^#0-9(3)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:484:								<entry key="path" value="static/ssc/zlBhMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:488:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.DSDXDS"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:490:								<entry key="caption" value="^#^#^#0-3(2)#0-3(2)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:491:								<entry key="path" value="static/ssc/dxdsMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:492:								<entry key="tuijian">
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:495:											<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.DSDXDS"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:497:												<entry key="condition" value="8-12-16(2)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:498:												<entry key="newsTypeId" value="10000153"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:499:												<entry key="velocityVm" value="dxds"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:500:												<entry key="liLunMiss" value="4"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:510:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.HC1"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:513:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:515:								<entry key="caption" value="1-36(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:516:								<entry key="path" value="static/hc1/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:522:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.GD11X5"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:525:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:527:								<entry key="caption" value="1-11(5)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:528:								<entry key="path" value="static/gd11x5/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:529:								<entry key="tuijian">
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:532:											<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.R1_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:534:												<entry key="condition" value="8-12-16(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:535:												<entry key="newsTypeId" value="10000156"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:536:												<entry key="velocityVm" value="hotTui"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:537:												<entry key="liLunMiss" value="11"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:541:											<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.R2_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:543:												<entry key="condition" value="11-16-21-26-31(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:544:												<entry key="newsTypeId" value="10000156"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:545:												<entry key="velocityVm" value="hotTui"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:546:												<entry key="liLunMiss" value="11"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:554:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QS_ZX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:556:								<entry key="caption" value="1-11(1)#1-11(1)#1-11(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:557:								<entry key="path" value="static/gd11x5/qsZhixMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:561:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QE_ZX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:563:								<entry key="caption" value="1-11(1)#1-11(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:564:								<entry key="path" value="static/gd11x5/qeZhixMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:568:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QS_ZHUX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:570:								<entry key="caption" value="1-11(3)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:571:								<entry key="path" value="static/gd11x5/qsZhuxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:575:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QE_ZHUX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:577:								<entry key="caption" value="1-11(2)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:578:								<entry key="path" value="static/gd11x5/qeZhuxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:584:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.SYYDJ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:587:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:589:								<entry key="caption" value="1-11(5)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:590:								<entry key="path" value="static/11yun/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:591:								<entry key="tuijian">
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:594:											<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.R1_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:596:												<entry key="condition" value="15(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:597:												<entry key="newsTypeId" value="10000157"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:598:												<entry key="velocityVm" value="hotTui"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:599:												<entry key="liLunMiss" value="11"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:603:											<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.R2_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:605:												<entry key="condition" value="11-16-21-26-31(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:606:												<entry key="newsTypeId" value="10000157"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:607:												<entry key="velocityVm" value="hotTui"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:608:												<entry key="liLunMiss" value="11"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:616:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QS_ZX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:618:								<entry key="caption" value="1-11(1)#1-11(1)#1-11(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:619:								<entry key="path" value="static/11yun/qsZhixMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:623:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QE_ZX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:625:								<entry key="caption" value="1-11(1)#1-11(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:626:								<entry key="path" value="static/11yun/qeZhixMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:630:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QS_ZHUX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:632:								<entry key="caption" value="1-11(3)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:633:								<entry key="path" value="static/11yun/qsZhuxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:637:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QE_ZHUX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:639:								<entry key="caption" value="1-11(2)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:640:								<entry key="path" value="static/11yun/qeZhuxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:646:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.JXDLC"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:649:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:651:								<entry key="caption" value="1-11(5)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:652:								<entry key="path" value="static/jxdlc/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:653:								<entry key="tuijian">
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:656:											<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.R1_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:658:												<entry key="condition" value="8-12-16(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:659:												<entry key="newsTypeId" value="10000155"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:660:												<entry key="velocityVm" value="hotTui"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:661:												<entry key="liLunMiss" value="11"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:665:											<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.R2_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:667:												<entry key="condition" value="11-16-21-26-31(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:668:												<entry key="newsTypeId" value="10000155"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:669:												<entry key="velocityVm" value="hotTui"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:670:												<entry key="liLunMiss" value="11"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:678:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QS_ZX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:680:								<entry key="caption" value="1-11(1)#1-11(1)#1-11(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:681:								<entry key="path" value="static/jxdlc/qsZhixMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:685:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QE_ZX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:687:								<entry key="caption" value="1-11(1)#1-11(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:688:								<entry key="path" value="static/jxdlc/qeZhixMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:692:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QS_ZHUX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:694:								<entry key="caption" value="1-11(3)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:695:								<entry key="path" value="static/jxdlc/qsZhuxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:699:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QE_ZHUX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:701:								<entry key="caption" value="1-11(2)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:702:								<entry key="path" value="static/jxdlc/qeZhuxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:711:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.KLSF"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:714:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:716:								<entry key="caption" value="1-20(8)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:717:								<entry key="path" value="static/klsf/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:721:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.KLSF_Q1ST_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:723:								<entry key="caption" value="1-18(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:724:								<entry key="path" value="static/klsf/qystMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:728:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.KLSF_X2LZH_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:730:								<entry key="caption" value="1-20(1)#1-20(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:731:								<entry key="path" value="static/klsf/x2zxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:735:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.KLSF_X3QZH_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:737:								<entry key="caption" value="1-20(1)#1-20(1)#1-20(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:738:								<entry key="path" value="static/klsf/x3zxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:742:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.KLSF_X2LZ_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:744:								<entry key="caption" value="1-20(2)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:745:								<entry key="path" value="static/klsf/x2zuxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:749:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.KLSF_X3QZ_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:751:								<entry key="caption" value="1-20(3)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:752:								<entry key="path" value="static/klsf/x3zuxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:758:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.K3"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:761:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:763:								<entry key="caption" value="1-6(3)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:764:								<entry key="path" value="static/k3/bzMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:768:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.K3_STHTX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:770:								<entry key="caption" value="777,789"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:771:								<entry key="path" value="static/k3/txMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:775:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.K3_STHDX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:777:								<entry key="caption" value="111,222,333,444,555,666"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:778:								<entry key="path" value="static/k3/sthDxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:782:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.K3_ETHDX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:784:								<entry key="caption" value="11,22,33,44,55,66#1-6(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:785:								<entry key="path" value="static/k3/ethDxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:789:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.K3_HZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:791:								<entry key="caption" value="3-18(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:792:								<entry key="path" value="static/k3/hzMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:799:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.KLSF"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:802:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:804:								<entry key="caption" value="1-20(8)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:805:								<entry key="path" value="static/klsf/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:809:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.KLSF_Q1ST_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:811:								<entry key="caption" value="1-18(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:812:								<entry key="path" value="static/klsf/qystMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:816:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.KLSF_Q1HT_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:818:								<entry key="caption" value="1-18(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:819:								<entry key="path" value="static/klsf/qyhtMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:823:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.KLSF_X2LZH_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:825:								<entry key="caption" value="1-20(1)#1-20(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:826:								<entry key="path" value="static/klsf/x2zxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:830:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.KLSF_X3QZH_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:832:								<entry key="caption" value="1-20(1)#1-20(1)#1-20(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:833:								<entry key="path" value="static/klsf/x3zxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:837:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.KLSF_X2LZ_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:839:								<entry key="caption" value="1-20(2)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:840:								<entry key="path" value="static/klsf/x2zuxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:844:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.KLSF_X3QZ_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:846:								<entry key="caption" value="1-20(3)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:847:								<entry key="path" value="static/klsf/x3zuxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:853:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.JL_K3"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:856:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:858:								<entry key="caption" value="1-6(3)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:859:								<entry key="path" value="static/jlk3/bzMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:863:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.K3_STHTX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:865:								<entry key="caption" value="777,789"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:866:								<entry key="path" value="static/jlk3/txMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:870:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.K3_STHDX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:872:								<entry key="caption" value="111,222,333,444,555,666"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:873:								<entry key="path" value="static/jlk3/sthDxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:877:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.K3_ETHDX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:879:								<entry key="caption" value="11,22,33,44,55,66#1-6(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:880:								<entry key="path" value="static/jlk3/ethDxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:884:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.K3_HZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:886:								<entry key="caption" value="3-18(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:887:								<entry key="path" value="static/jlk3/hzMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:893:					<key><util:constant static-field="com.cailele.lottery.entity.lottery.LotteryType.HB11X5"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:896:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.ALL"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:898:								<entry key="caption" value="1-11(5)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:899:								<entry key="path" value="static/hb11x5/miss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:900:								<entry key="tuijian">
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:903:											<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.R1_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:905:												<entry key="condition" value="8-12-16(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:906:												<entry key="newsTypeId" value="10000156"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:907:												<entry key="velocityVm" value="hotTui"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:908:												<entry key="liLunMiss" value="11"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:912:											<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.R2_BZ"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:914:												<entry key="condition" value="11-16-21-26-31(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:915:												<entry key="newsTypeId" value="10000156"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:916:												<entry key="velocityVm" value="hotTui"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:917:												<entry key="liLunMiss" value="11"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:925:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QS_ZX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:927:								<entry key="caption" value="1-11(1)#1-11(1)#1-11(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:928:								<entry key="path" value="static/hb11x5/qsZhixMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:932:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QE_ZX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:934:								<entry key="caption" value="1-11(1)#1-11(1)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:935:								<entry key="path" value="static/hb11x5/qeZhixMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:939:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QS_ZHUX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:941:								<entry key="caption" value="1-11(3)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:942:								<entry key="path" value="static/hb11x5/qsZhuxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:946:							<key><util:constant static-field="com.cailele.lottery.entity.lottery.PlayType.QE_ZHUX"/></key>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:948:								<entry key="caption" value="1-11(2)"/>
+/data/wwwroot/quncai_wap/WEB-INF/classes/taskContext.xml:949:								<entry key="path" value="static/hb11x5/qeZhuxMiss.xml"/>
+/data/wwwroot/quncai_wap/WEB-INF/urlrewrite.xml:2:<!DOCTYPE urlrewrite PUBLIC "-//tuckey.org//DTD UrlRewrite 3.2//EN"
+/data/wwwroot/quncai_wap/WEB-INF/urlrewrite.xml:3:        "http://tuckey.org/res/dtds/urlrewrite3.2.dtd">
+/data/wwwroot/quncai_wap/WEB-INF/urlrewrite.xml:8:    http://tuckey.org/urlrewrite/
+/data/wwwroot/quncai_wap/WEB-INF/urlrewrite.xml:52:            <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>

@@ -1,0 +1,100 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.062Z",
+  "earliestKickoff": null,
+  "date": "2026-04-20",
+  "plans": [
+    {
+      "planId": "plan_2026-04-20_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039209",
+          "direction": "平、让平",
+          "homeName": "水晶宫",
+          "visitName": "西汉姆联",
+          "matchNum": "周一003"
+        },
+        {
+          "matchId": "2039208",
+          "direction": "让负",
+          "homeName": "敦刻尔克",
+          "visitName": "拉瓦勒",
+          "matchNum": "周一002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-20_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039208",
+          "direction": "总进球-2、3球",
+          "homeName": "敦刻尔克",
+          "visitName": "拉瓦勒",
+          "matchNum": "周一002"
+        },
+        {
+          "matchId": "2039209",
+          "direction": "让负",
+          "homeName": "水晶宫",
+          "visitName": "西汉姆联",
+          "matchNum": "周一003"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-20_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039208",
+          "direction": "胜",
+          "homeName": "敦刻尔克",
+          "visitName": "拉瓦勒",
+          "matchNum": "周一002"
+        },
+        {
+          "matchId": "2039209",
+          "direction": "让负",
+          "homeName": "水晶宫",
+          "visitName": "西汉姆联",
+          "matchNum": "周一003"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-20_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039239",
+          "direction": "总进球-2、3球",
+          "homeName": "神户胜利船",
+          "visitName": "吉达国民",
+          "matchNum": "周一005"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "lockedAt": "2026-06-17T17:29:05.985Z",
+  "earliestKickoff": null,
+  "date": "2026-03-22",
+  "plans": [
+    {
+      "planId": "plan_2026-03-22_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038555",
+          "direction": "平、让平",
+          "homeName": "佛罗伦萨",
+          "visitName": "国际米兰",
+          "matchNum": "周日026"
+        },
+        {
+          "matchId": "2038550",
+          "direction": "让负",
+          "homeName": "圣保利",
+          "visitName": "弗赖堡",
+          "matchNum": "周日021"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-22_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038545",
+          "direction": "总进球-2、3球",
+          "homeName": "维戈塞尔塔",
+          "visitName": "阿拉维斯",
+          "matchNum": "周日016"
+        },
+        {
+          "matchId": "2038550",
+          "direction": "让负",
+          "homeName": "圣保利",
+          "visitName": "弗赖堡",
+          "matchNum": "周日021"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-22_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038545",
+          "direction": "胜",
+          "homeName": "维戈塞尔塔",
+          "visitName": "阿拉维斯",
+          "matchNum": "周日016"
+        },
+        {
+          "matchId": "2038550",
+          "direction": "让负",
+          "homeName": "圣保利",
+          "visitName": "弗赖堡",
+          "matchNum": "周日021"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-22_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038542",
+          "direction": "总进球-2、3球",
+          "homeName": "阿斯顿维拉",
+          "visitName": "西汉姆联",
+          "matchNum": "周日013"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-22_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038555",
+          "direction": "平、让平",
+          "homeName": "佛罗伦萨",
+          "visitName": "国际米兰",
+          "matchNum": "周日026"
+        },
+        {
+          "matchId": "2038545",
+          "direction": "胜",
+          "homeName": "维戈塞尔塔",
+          "visitName": "阿拉维斯",
+          "matchNum": "周日016"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-22_5",
+      "name": "plan_5",
+      "planName": "方案五",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038545",
+          "direction": "平、让平",
+          "homeName": "维戈塞尔塔",
+          "visitName": "阿拉维斯",
+          "matchNum": "周日016"
+        },
+        {
+          "matchId": "2038553",
+          "direction": "总进球-2、3球",
+          "homeName": "毕尔巴鄂竞技",
+          "visitName": "皇家贝蒂斯",
+          "matchNum": "周日024"
+        }
+      ]
+    }
+  ]
+}

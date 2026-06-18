@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
+<beans>
+	<!-- 微信支付配置 -->
+	<bean id="weiXinPayConfig" class="com.quncai.weixin.config.WeiXinPayConfig">
+		<!-- 第三方用户唯一凭证 -->
+		<property name="appId">
+			<value>wxc28ebdd6fd0c6239</value>
+		</property>
+		<!-- 第三方用户唯一凭证密钥 -->
+		<property name="appSecret">
+			<value>a75613c578451ad0519abd6bcfab36fa</value>
+		</property>
+		<!-- 支付请求中用于加密的密钥Key，可验证商户唯一身份，PaySignKey对应于支付场景中的appKey值 -->
+		<property name="paySignKey">
+			<value>VXnRFaShcsq4qlv7HeCWcO3GaIXCm2NXCJleEk7f4MB3GE9l40O8JohEHQpAiYfvTOoc2qRJpKtIwVBXM31nwamFNeHMxQE3TzRSBanVZG3PZfeiHlLE9fdfY4aJPq9G</value>
+		</property>
+		<!-- 财付通商户身份的标识 -->
+		<property name="partnerId">
+			<value>1224655601</value>
+		</property>
+		<!-- 财付通商户权限密钥Key -->
+		<property name="partnerKey">
+			<value>gzqc3830362244010507210245288888</value>
+		</property>
+		<!-- 服务器异步通知地址 -->
+		<property name="notifyURL">
+			<!-- 测试环境 -->
+			<!-- <value>http://quncai.tk:8088/member/chargeNotifyWeiXinZF.php</value> -->
+			<!-- 生产环境 -->
+			<value>http://www.quncai.com/member/chargeNotifyWeiXinZF.php</value>
+		</property>
+		<!-- 获取access_token的请求地址 -->
+		<!-- 请求参数含义：grant_type：获取access_token，此处填写client_credential -->
+		<!-- appid：第三方用户唯一凭证 -->
+		<!-- secret：第三方用户唯一凭证密钥，即appsecret -->
+		<property name="accessTokenURL">
+			<value>https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential</value>
+		</property>
+		<!-- 生成预支付单的请求地址 -->
+		<property name="genPrepayURL">
+			<value>https://api.mch.weixin.qq.com/pay/unifiedorder</value>
+		</property>
+	</bean>
+	
+	<!-- 微信支付配置 -->
+	<bean id="sdkWeiXinRequest" class="com.quncai.weixin.request.SDKWeiXinRequestImpl">
+		<property name="weiXinPayConfig" ref="weiXinPayConfig"></property>
+	</bean>
+	
+	<!-- 微信登录配置 -->
+	<bean id="weixinLoginBuilder" class="com.quncai.weixin.request.WeixinLoginBuilder">
+		<!-- WEB应用第三方用户唯一凭证 -->
+		<property name="webAppId">
+			<value>wxbc815772a2a733e4</value>
+		</property>
+		<!-- WEB应用第三方用户唯一凭证密钥 -->
+		<property name="webAppSecret">
+			<value>824a9b72a3abb537095a1b90e7b0f950</value>
+		</property>
+		<!-- APPB应用第三方用户唯一凭证 -->
+		<property name="appAppId">
+			<value>wxc28ebdd6fd0c6239</value>
+		</property>
+		<!-- APP应用第三方用户唯一凭证密钥 -->
+		<property name="appAppSecret">
+			<value>a75613c578451ad0519abd6bcfab36fa</value>
+		</property>
+		<!-- 请求CODE地址 -->
+		<property name="codeURL">
+			<value>https://open.weixin.qq.com/connect/qrconnect</value>
+		</property>
+		<!-- 请求ACCESS_TOKEN地址 -->
+		<property name="accessTokenURL">
+			<value>https://api.weixin.qq.com/sns/oauth2/access_token</value>
+		</property>
+		<!-- 请求微信用户信息授权接口-->
+		<property name="userInfoURL">
+			<value>https://api.weixin.qq.com/sns/userinfo</value>
+		</property>
+		<!-- 请求CODE成功后重定向URI -->
+		<property name="redirectURI">
+            <value>http%3a%2f%2fm.quncai.com%2fthirdpart_weixinLogin.php</value>
+		</property>
+		
+	</bean>
+</beans>

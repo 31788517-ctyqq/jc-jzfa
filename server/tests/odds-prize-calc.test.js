@@ -92,6 +92,22 @@ describe('odds-prize: 赔率与奖金计算', () => {
       expect(p.betCount).toBe(1);
     });
 
+    it.skip('A1b. 保存后应返回统一口径字段', async () => {
+      const r = await savePlan([{ matchId: 'a1b', playType: 'spf', direction: '胜', odds: 2.0, isSingleGame: true }], {
+        bets: 1,
+        amount: 20,
+        passTypes: [1],
+        multiplier: 2,
+      });
+      expect(r.code).toBe(1);
+      savedIds.push(r.data.id);
+      const list = await api('my-plan-list', {});
+      const p = list.data.plans.find((x) => x.id === r.data.id);
+      expect(p).toBeDefined();
+      expect(typeof p.passOdds).toBe('object');
+      expect(p).toHaveProperty('expectedMaxPrize');
+    });
+
     it('A2. 1场3方向(BF)=3注', async () => {
       const r = await savePlan(
         [

@@ -7,24 +7,24 @@ function getMatchLabel(item) {
 }
 
 function extractMatchDate(value) {
-  var text = String(value || '').trim();
-  var fullDate = text.match(/^\d{4}-(\d{2}-\d{2})/);
+  const text = String(value || '').trim();
+  const fullDate = text.match(/^\d{4}-(\d{2}-\d{2})/);
   if (fullDate) return fullDate[1];
-  var matched = text.match(/(\d{2}-\d{2})/);
+  const matched = text.match(/(\d{2}-\d{2})/);
   return matched ? matched[1] : '';
 }
 
 function resolveHottestTarget(hottest, matches) {
   if (!hottest) return null;
-  var hottestId = String(hottest.matchId || hottest.dataId || '').trim();
-  var hottestNum = getMatchLabel(hottest);
-  var matched = (Array.isArray(matches) ? matches : []).find(function (m) {
-    var matchId = String(m.matchId || m.dataId || '').trim();
-    var matchNum = getMatchLabel(m);
+  const hottestId = String(hottest.matchId || hottest.dataId || '').trim();
+  const hottestNum = getMatchLabel(hottest);
+  const matched = (Array.isArray(matches) ? matches : []).find(function (m) {
+    const matchId = String(m.matchId || m.dataId || '').trim();
+    const matchNum = getMatchLabel(m);
     return (hottestId && matchId === hottestId) || (hottestNum && matchNum === hottestNum);
   });
-  var target = matched || hottest;
-  var rawMatchDate =
+  const target = matched || hottest;
+  const rawMatchDate =
     (target && (target.matchDate || target.date || target.match_day)) ||
     hottest.matchDate ||
     hottest.date ||
@@ -43,7 +43,7 @@ function resolveHottestTarget(hottest, matches) {
 
 function isOpportunityRankItem(item) {
   if (!item) return false;
-  var level = String(
+  const level = String(
     item.decisionLevel || item.finalDecision || item.finalLevel || item.recommendLevel || '',
   ).toLowerCase();
   if (!level) return false;
@@ -52,7 +52,7 @@ function isOpportunityRankItem(item) {
 
 function countHomeOpportunities(ranking) {
   if (!Array.isArray(ranking) || ranking.length === 0) return 0;
-  var hasDecisionLevel = ranking.some(function (item) {
+  const hasDecisionLevel = ranking.some(function (item) {
     return !!(item && (item.decisionLevel || item.finalDecision || item.finalLevel || item.recommendLevel));
   });
   if (!hasDecisionLevel) return ranking.length;
@@ -61,7 +61,7 @@ function countHomeOpportunities(ranking) {
 
 function isExplicitRiskRankItem(item) {
   if (!item) return false;
-  var riskLevel = String(item.riskLevel || item.risk || '').toLowerCase();
+  const riskLevel = String(item.riskLevel || item.risk || '').toLowerCase();
   if (/red|high|高/.test(riskLevel)) return true;
   if (String(item.fusionConsensus || '').toLowerCase() === 'meltdown') return true;
   if (Array.isArray(item.riskTags) && item.riskTags.length > 0) return true;
@@ -70,12 +70,12 @@ function isExplicitRiskRankItem(item) {
 }
 
 function updateHomeTodayBrief(matchCount, ranking) {
-  var el = document.getElementById('homeTodayBrief');
+  const el = document.getElementById('homeTodayBrief');
   if (!el) return;
-  var safeMatchCount = Number.isFinite(Number(matchCount)) ? Number(matchCount) : 0;
-  var opportunityCount = countHomeOpportunities(ranking);
-  var riskCount = Array.isArray(ranking) ? ranking.filter(isExplicitRiskRankItem).length : 0;
-  var text = '今日 ' + safeMatchCount + ' 场｜机会 ' + opportunityCount;
+  const safeMatchCount = Number.isFinite(Number(matchCount)) ? Number(matchCount) : 0;
+  const opportunityCount = countHomeOpportunities(ranking);
+  const riskCount = Array.isArray(ranking) ? ranking.filter(isExplicitRiskRankItem).length : 0;
+  let text = '今日 ' + safeMatchCount + ' 场｜机会 ' + opportunityCount;
   if (riskCount > 0) text += '｜风险 ' + riskCount;
   el.textContent = text;
 }
@@ -95,22 +95,22 @@ function _setHomeReconcileEnabled(enabled) {
 }
 
 function _setHomeReconcilePanelVisible(visible) {
-  var panel = document.getElementById('homeReconcilePanel');
+  const panel = document.getElementById('homeReconcilePanel');
   if (!panel) return;
   panel.style.display = visible ? 'block' : 'none';
 }
 
 function _renderHomeReconcileToggle() {
-  var el = document.getElementById('homeReconcileToggle');
+  const el = document.getElementById('homeReconcileToggle');
   if (!el) return;
-  var on = _isHomeReconcileEnabled();
+  const on = _isHomeReconcileEnabled();
   el.textContent = on ? '🔎 对账开关：开' : '🔎 对账开关：关';
   if (on) el.classList.add('on');
   else el.classList.remove('on');
 }
 
 function _renderHomeReconcilePanel(data, errorMsg) {
-  var panel = document.getElementById('homeReconcilePanel');
+  const panel = document.getElementById('homeReconcilePanel');
   if (!panel) return;
   if (errorMsg) {
     panel.innerHTML = '<div class="home-reconcile-drift-warn">对账失败：' + errorMsg + '</div>';
@@ -125,14 +125,14 @@ function _renderHomeReconcilePanel(data, errorMsg) {
 
   function fmtEntry(entry) {
     if (!entry) return '-';
-    var num = entry.num || '-';
-    var val = Number(entry.value || 0);
+    const num = entry.num || '-';
+    const val = Number(entry.value || 0);
     return num + '（' + val + '）';
   }
 
-  var drift = data.drift || {};
-  var hasDrift = !!(drift.matchCount || drift.maxRecommend || drift.hottestMatch);
-  var driftText = hasDrift
+  const drift = data.drift || {};
+  const hasDrift = !!(drift.matchCount || drift.maxRecommend || drift.hottestMatch);
+  const driftText = hasDrift
     ? '⚠ 发现口径漂移：' +
       [drift.matchCount ? '场次' : '', drift.maxRecommend ? '最多推荐' : '', drift.hottestMatch ? '最热场次' : '']
         .filter(Boolean)
@@ -180,7 +180,7 @@ function _loadHomeReconcilePanel() {
   }
   _renderHomeReconcilePanel(null, null);
   _setHomeReconcilePanelVisible(true);
-  var panel = document.getElementById('homeReconcilePanel');
+  const panel = document.getElementById('homeReconcilePanel');
   if (panel) panel.innerHTML = '<div class="home-reconcile-row"><span>对账中...</span><strong>请稍候</strong></div>';
   api('home-reconcile-stats', {})
     .then(function (d) {
@@ -192,14 +192,14 @@ function _loadHomeReconcilePanel() {
 }
 
 window.toggleHomeReconcile = function () {
-  var next = !_isHomeReconcileEnabled();
+  const next = !_isHomeReconcileEnabled();
   _setHomeReconcileEnabled(next);
   _renderHomeReconcileToggle();
   _loadHomeReconcilePanel();
 };
 
 window.goHomeHottestMatch = function () {
-  var target = window.__homeHottestTarget || null;
+  const target = window.__homeHottestTarget || null;
   try {
     if (target) sessionStorage.setItem('pendingMatchFocus', JSON.stringify(target));
     else sessionStorage.removeItem('pendingMatchFocus');
@@ -209,9 +209,9 @@ window.goHomeHottestMatch = function () {
 
 function cacheHomeMatches(matches) {
   if (!Array.isArray(matches) || matches.length === 0) return;
-  var raw = matches[0].date || matches[0].matchDate || matches[0].startTime || formatDate(new Date());
-  var full = String(raw).match(/\d{4}-\d{2}-\d{2}/);
-  var short = String(raw).match(/\d{2}-\d{2}/);
+  const raw = matches[0].date || matches[0].matchDate || matches[0].startTime || formatDate(new Date());
+  const full = String(raw).match(/\d{4}-\d{2}-\d{2}/);
+  const short = String(raw).match(/\d{2}-\d{2}/);
   if (full) {
     setCache('match-list:' + full[0], matches);
     setCache('match-list:' + full[0].slice(5), matches);
@@ -220,18 +220,69 @@ function cacheHomeMatches(matches) {
   }
 }
 
+function _normalizeHomeRanking(rankData) {
+  if (Array.isArray(rankData)) return rankData;
+  if (rankData && Array.isArray(rankData.ranking)) return rankData.ranking;
+  return [];
+}
+
+function _renderHomeRankCards(rankData, matches) {
+  const ranking = _normalizeHomeRanking(rankData);
+
+  // 最多推荐（综合排行第一的场次标签 + 方向）
+  const topRank = ranking.length > 0 ? ranking[0] : null;
+  const fallbackTopCount = topRank
+    ? Number(topRank.topNum || topRank.expertCount || topRank.totalExpertCount || topRank.recommNum || 0)
+    : 0;
+  const topExpertCount =
+    rankData && !Array.isArray(rankData) && rankData.topExpertCount !== undefined
+      ? Number(rankData.topExpertCount || 0)
+      : fallbackTopCount;
+
+  const mrEl = document.getElementById('homeMaxRank');
+  if (mrEl) mrEl.textContent = String(topExpertCount || 0);
+
+  const maxRankMetaEl = document.getElementById('homeMaxRankMeta');
+  if (maxRankMetaEl) {
+    const topLabel = topRank ? topRank.num || topRank.matchNum || topRank.matchId || '' : '';
+    const topDirection = topRank ? topRank.direction || topRank.topDirection || '' : '';
+    maxRankMetaEl.textContent = topLabel && topDirection ? topLabel + '@' + topDirection : topLabel || '-';
+  }
+
+  // 最热场次（按该场比赛所有方向推荐专家总数排序，取总数最多的）
+  const hottest = ranking.reduce(function (best, item) {
+    const bestTotal = best ? best.totalExpertCount || best.expertCount || best.recommNum || 0 : 0;
+    const itemTotal = item.totalExpertCount || item.expertCount || item.recommNum || 0;
+    if (!best || itemTotal > bestTotal) return item;
+    return best;
+  }, null);
+
+  const hmEl = document.getElementById('homeHottest');
+  if (hmEl)
+    hmEl.textContent = hottest ? hottest.totalExpertCount || hottest.expertCount || hottest.recommNum || 0 : '0';
+  const hottestMetaEl = document.getElementById('homeHottestMeta');
+  if (hottestMetaEl) {
+    hottestMetaEl.textContent = hottest ? hottest.num || hottest.matchNum || hottest.matchId || '-' : '-';
+  }
+  window.__homeHottestTarget = resolveHottestTarget(hottest, matches);
+}
+
 /** V12 Strategy B: 轻量首屏 — 仅更新比赛数+元数据，延迟完整渲染 */
 function _renderHomeStatsBrief(matches, rankData) {
-  var matchCount = Array.isArray(matches) ? matches.length : 0;
-  var mcEl = document.getElementById('homeMatchCount');
+  const ranking = _normalizeHomeRanking(rankData);
+  const matchCount = Array.isArray(matches) ? matches.length : 0;
+  const mcEl = document.getElementById('homeMatchCount');
   if (mcEl) mcEl.textContent = String(matchCount);
-  var liveCount = Array.isArray(matches)
+  const liveCount = Array.isArray(matches)
     ? matches.filter(function (m) {
-        var status = String(m.matchStatus || m.status || m.state || '').toLowerCase();
+        const status = String(m.matchStatus || m.status || m.state || '').toLowerCase();
         return /进行|上半|下半|中场|live|playing|in_progress/.test(status);
-      }).length : 0;
-  var metaEl = document.getElementById('homeMatchMeta');
+      }).length
+    : 0;
+  const metaEl = document.getElementById('homeMatchMeta');
   if (metaEl) metaEl.textContent = '进行中 ' + liveCount + ' 场';
+  updateHomeTodayBrief(matchCount, ranking);
+  _renderHomeRankCards(rankData, matches);
   cacheHomeMatches(matches);
 }
 
@@ -239,90 +290,52 @@ function _renderHomeStatsBrief(matches, rankData) {
 function _renderHomeStats(matches, rankData) {
   cacheHomeMatches(matches);
 
-  var ranking = Array.isArray(rankData.ranking) ? rankData.ranking : [];
+  const ranking = _normalizeHomeRanking(rankData);
 
   // 今日比赛
-  var matchCount = Array.isArray(matches) ? matches.length : 0;
+  const matchCount = Array.isArray(matches) ? matches.length : 0;
   updateHomeTodayBrief(matchCount, ranking);
-  var mcEl = document.getElementById('homeMatchCount');
+  const mcEl = document.getElementById('homeMatchCount');
   if (mcEl) mcEl.textContent = String(matchCount);
-  var liveCount = Array.isArray(matches)
+  const liveCount = Array.isArray(matches)
     ? matches.filter(function (m) {
-        var status = String(m.matchStatus || m.status || m.state || '').toLowerCase();
+        const status = String(m.matchStatus || m.status || m.state || '').toLowerCase();
         return /进行|上半|下半|中场|live|playing|in_progress/.test(status);
       }).length
     : 0;
-  var metaEl = document.getElementById('homeMatchMeta');
+  const metaEl = document.getElementById('homeMatchMeta');
   if (metaEl) metaEl.textContent = '进行中 ' + liveCount + ' 场';
 
-  // 最多推荐（综合排行第一的场次标签 + 方向）
-  var mrEl = document.getElementById('homeMaxRank');
-  var topExpertCount = rankData.topExpertCount || 0;
-  if (mrEl) mrEl.textContent = topExpertCount;
-  var topRank = ranking.length > 0 ? ranking[0] : null;
-  var maxRankMetaEl = document.getElementById('homeMaxRankMeta');
-  if (maxRankMetaEl) {
-    var topLabel = topRank ? topRank.num || topRank.matchNum || topRank.matchId || '' : '';
-    var topDirection = topRank ? topRank.direction || '' : '';
-    maxRankMetaEl.textContent = topLabel && topDirection ? topLabel + '@' + topDirection : topLabel || '-';
-  }
-
-  // 最热场次（按该场比赛所有方向推荐专家总数排序，取总数最多的）
-  var hottest = ranking.reduce(function (best, item) {
-    var bestTotal = best ? best.totalExpertCount || best.expertCount || 0 : 0;
-    var itemTotal = item.totalExpertCount || item.expertCount || 0;
-    if (!best || itemTotal > bestTotal) return item;
-    return best;
-  }, null);
-  var hmEl = document.getElementById('homeHottest');
-  if (hmEl) hmEl.textContent = hottest ? hottest.totalExpertCount || hottest.expertCount || 0 : '0';
-  var hottestMetaEl = document.getElementById('homeHottestMeta');
-  if (hottestMetaEl) {
-    hottestMetaEl.textContent = hottest ? hottest.num || hottest.matchNum || hottest.matchId || '-' : '-';
-  }
-  window.__homeHottestTarget = resolveHottestTarget(hottest, matches);
+  _renderHomeRankCards(rankData, matches);
 }
 
 // ═══ 世界杯区块 ═══
-function loadWorldCupSection(matchP) {
-  var section = document.getElementById('wcSection');
+function loadWorldCupSection(matchP, weekDates) {
+  const section = document.getElementById('wcSection');
   if (!section) return;
   section.style.display = 'none'; // 默认隐藏，有数据再显示
 
-  var today = formatDate(new Date());
+  const today = formatDate(new Date());
 
-  // ★ P0-1: 复用 loadHome() 传入的 matchP，避免重复 API 调用
-  if (!matchP) {
-    matchP = api('match-list', {}).catch(function () {
-      return [];
-    });
+  function _toFullDate(v) {
+    if (!v) return '';
+    if (typeof v === 'string') {
+      const s = v.trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      if (/^\d{2}-\d{2}$/.test(s)) return today.slice(0, 4) + '-' + s;
+      return '';
+    }
+    if (typeof v === 'object' && v.matchDate) {
+      return _toFullDate(v.matchDate);
+    }
+    return '';
   }
 
-  // 获取最近有数据的日期列表
-  var datesP = api('week-dates', {}).catch(function () {
-    return [];
-  });
-
-  Promise.all([matchP, datesP]).then(function (r) {
-    var matches = r[0] || [];
-    var dateList = r[1] && r[1].dates ? r[1].dates : [];
-
-    // 卡片3：今日 — 仅统计世界杯联赛标签的比赛
-    var wcMatches = (Array.isArray(matches) ? matches : []).filter(function (m) {
-      return (m.leagueName || '').indexOf('世界杯') >= 0;
-    });
-    var todayCount = wcMatches.length;
-    var todayMM = today.slice(5).replace('-', '/');
-    var tag3 = document.getElementById('wcTag3');
-    var date3 = document.getElementById('wcDate3');
-    if (tag3) tag3.textContent = todayCount + '场';
-    if (date3) date3.textContent = todayMM;
-
-    // 找到今天之前的两个有效日期
-    var pastDates = [];
+  function _pickPastDates(dateList) {
+    let pastDates = [];
     if (Array.isArray(dateList)) {
-      for (var di = dateList.length - 1; di >= 0; di--) {
-        var dd = dateList[di];
+      for (let di = dateList.length - 1; di >= 0; di--) {
+        const dd = _toFullDate(dateList[di]);
         if (dd && dd < today) {
           pastDates.push(dd);
           if (pastDates.length >= 2) break;
@@ -332,10 +345,10 @@ function loadWorldCupSection(matchP) {
 
     // 如果没有 dateList，尝试最近的 2 天
     if (pastDates.length < 2) {
-      var d = new Date();
+      const d = new Date();
       d.setDate(d.getDate() - 1);
-      for (var ri = 0; ri < 3; ri++) {
-        var dd2 = formatDate(d);
+      for (let ri = 0; ri < 3; ri++) {
+        const dd2 = formatDate(d);
         if (dd2 < today) {
           pastDates.push(dd2);
           if (pastDates.length >= 2) break;
@@ -344,27 +357,77 @@ function loadWorldCupSection(matchP) {
       }
     }
 
-    if (pastDates.length === 0) {
-      section.style.display = 'block';
-      return;
+    pastDates = pastDates.filter(Boolean).sort();
+    return pastDates.slice(0, 2);
+  }
+
+  // ★ P0-1: 复用 loadHome() 传入的 matchP，避免重复 API 调用
+  if (!matchP) {
+    matchP = api('match-list', {}).catch(function () {
+      return [];
+    });
+  }
+
+  const dateListP = Promise.resolve().then(function () {
+    if (Array.isArray(weekDates) && weekDates.length > 0) return weekDates;
+    const cached = getCache('week-dates');
+    if (Array.isArray(cached) && cached.length > 0) return cached;
+    return api('week-dates', {})
+      .then(function (d) {
+        if (d && Array.isArray(d.dates)) return d.dates;
+        return [];
+      })
+      .catch(function () {
+        return [];
+      });
+  });
+
+  Promise.all([matchP, dateListP]).then(function (r) {
+    const matches = r[0] || [];
+    const dateList = r[1] || [];
+
+    // 卡片3：今日 — 仅统计世界杯联赛标签的比赛
+    const wcMatches = (Array.isArray(matches) ? matches : []).filter(function (m) {
+      return (m.leagueName || '').indexOf('世界杯') >= 0;
+    });
+    const todayCount = wcMatches.length;
+    const todayMM = today.slice(5).replace('-', '/');
+    const tag3 = document.getElementById('wcTag3');
+    const date3 = document.getElementById('wcDate3');
+    if (tag3) tag3.textContent = todayCount + '场';
+    if (date3) date3.textContent = todayMM;
+
+    // 今天卡片先展示，再异步补前两天数据
+    section.style.display = 'block';
+
+    const pastDates = _pickPastDates(dateList);
+    if (pastDates.length === 0) return;
+
+    for (let ci = 0; ci < Math.min(pastDates.length, 2); ci++) {
+      const card = ci + 1;
+      const dtTxt = pastDates[ci].slice(5).replace('-', '/');
+      const tEl = document.getElementById('wcTag' + card);
+      const dEl = document.getElementById('wcDate' + card);
+      if (dEl) dEl.textContent = dtTxt;
+      if (tEl && (!tEl.textContent || tEl.textContent === '-')) {
+        tEl.textContent = '加载中';
+        tEl.className = 'wc-tag green';
+      }
     }
 
-    // 按日期升序排列（卡片1最早 → 卡片2中间 → 卡片3今天）
-    pastDates.sort();
-
     // 批量获取前两天的专家方案数据（P1-1: sessionStorage 缓存，历史已结算数据不会变）
-    var planPromises = pastDates.map(function (dt) {
-      var cacheKey = 'wc-plan:' + dt;
-      var cachedPlans = getCache(cacheKey);
+    const planPromises = pastDates.map(function (dt) {
+      const cacheKey = 'wc-plan:' + dt;
+      const cachedPlans = getCache(cacheKey);
       if (cachedPlans) return Promise.resolve(cachedPlans);
-      return api('plan-list', { date: dt })
+      return api('plan-list', { date: dt, qualityMode: 'all', includeReasons: 0 })
         .catch(function () {
           return {};
         })
         .then(function (res) {
           // 仅缓存已全部结算的结果（isPlanWon/isPlanLose 明确的）
           if (res && res.plans && res.plans.length > 0) {
-            var settledCount = res.plans.filter(function (p) {
+            const settledCount = res.plans.filter(function (p) {
               return p.isPlanWon === true || p.isPlanLose === true;
             }).length;
             if (settledCount >= res.plans.length) {
@@ -376,12 +439,15 @@ function loadWorldCupSection(matchP) {
     });
 
     Promise.all(planPromises).then(function (planResults) {
-      for (var pi = 0; pi < Math.min(planResults.length, 2); pi++) {
-        var cardIdx = pi + 1;
-        var planData = planResults[pi] || {};
-        var plans = planData.plans || [];
-        var dt = pastDates[pi] || '';
-        var ddText = dt.slice(5).replace('-', '/');
+      for (let pi = 0; pi < Math.min(planResults.length, 2); pi++) {
+        const cardIdx = pi + 1;
+        const planData = planResults[pi] || {};
+        const allPlans = (planData.plans || []).concat(planData.wcPlans || []);
+        const plans = allPlans.filter(function (p) {
+          return String((p && p.planName) || '').indexOf('世界杯') === 0;
+        });
+        const dt = pastDates[pi] || '';
+        const ddText = dt.slice(5).replace('-', '/');
 
         // 统计中奖方案数
         var wonCount = 0,
@@ -395,9 +461,9 @@ function loadWorldCupSection(matchP) {
           }
         });
 
-        var allSettled = settledCount >= plans.length && plans.length > 0;
-        var tagEl = document.getElementById('wcTag' + cardIdx);
-        var dateEl = document.getElementById('wcDate' + cardIdx);
+        const allSettled = settledCount >= plans.length && plans.length > 0;
+        const tagEl = document.getElementById('wcTag' + cardIdx);
+        const dateEl = document.getElementById('wcDate' + cardIdx);
 
         if (tagEl) {
           if (plans.length === 0) {
@@ -413,31 +479,32 @@ function loadWorldCupSection(matchP) {
         }
         if (dateEl) dateEl.textContent = ddText;
       }
-      section.style.display = 'block';
     });
   });
 }
 
 export function loadHome() {
-  var initialMatchCountEl = document.getElementById('homeMatchCount');
+  const initialMatchCountEl = document.getElementById('homeMatchCount');
   if (initialMatchCountEl && initialMatchCountEl.textContent === '-') initialMatchCountEl.textContent = '0';
 
   _renderHomeReconcileToggle();
 
-  var today = formatDate(new Date());
+  const today = formatDate(new Date());
 
   // ★ P1-1: 优先使用 home-bundle（一次请求替代 3 次独立 API）
   // ★ V12 Strategy D: limit=8 仅处理前8场PK决策, 首屏更快
-  var bundlePromise = api('home-bundle', { date: today, limit: 8 }).catch(function () {
+  const bundlePromise = api('home-bundle', { date: today, limit: 8 }).catch(function () {
     return null;
   });
 
   bundlePromise.then(function (bundle) {
     if (bundle && bundle.code === 1 && bundle.data) {
-      var d = bundle.data;
+      const d = bundle.data;
       // 注入 weekDates 到全局 state
       if (d.weekDates && d.weekDates.length) {
-        try { setWeekDates(d.weekDates); } catch (e) {}
+        try {
+          setWeekDates(d.weekDates);
+        } catch (e) {}
         setCache('week-dates', d.weekDates);
       }
       if (d.matches) setCache('match-list:' + today, d.matches);
@@ -445,7 +512,7 @@ export function loadHome() {
 
       // ★ V12 Strategy B: 渐进式渲染 — 先显示骨架+比赛数, 排名延后一帧渲染
       _renderHomeStatsBrief(d.matches || [], d.ranking || []);
-      loadWorldCupSection(Promise.resolve(d.matches || []));
+      loadWorldCupSection(Promise.resolve(d.matches || []), d.weekDates || []);
       // 排名渲染较慢(大量DOM), 延迟到下一帧让页面先可交互
       requestAnimationFrame(function () {
         _renderHomeStats(d.matches || [], d.ranking || []);
@@ -459,41 +526,41 @@ export function loadHome() {
 
 // ★ 回退路径：home-bundle 失败时使用原有 3 次独立 API 调用
 function _fallbackLoadHome(today) {
-  var cachedMatches = getCache('match-list:' + today) || getCache('match-list:' + today.slice(5));
-  var cachedRank = getCache('ranking-list:home');
+  const cachedMatches = getCache('match-list:' + today) || getCache('match-list:' + today.slice(5));
+  const cachedRank = getCache('ranking-list:home');
   if (cachedMatches) {
     _renderHomeStats(cachedMatches, cachedRank || {});
   }
 
-  var rankP = api('ranking-list', {}).catch(function () {
+  const rankP = api('ranking-list', {}).catch(function () {
     return {};
   });
-  var matchP = api('match-list', {}).catch(function () {
+  const matchP = api('match-list', {}).catch(function () {
     return [];
   });
 
-  loadWorldCupSection(matchP);
+  loadWorldCupSection(matchP, getCache('week-dates') || []);
 
   Promise.all([rankP, matchP]).then(function (r) {
-    var rankData = r[0],
+    const rankData = r[0],
       matches = r[1];
     setCache('ranking-list:home', rankData);
     _renderHomeStats(matches, rankData);
   });
 
-  var profitP = api('daily-profit-7d', { days: 7 }).catch(function () {
+  const profitP = api('daily-profit-7d', { days: 7 }).catch(function () {
     return null;
   });
 
   profitP.then(function (data) {
     if (!data || !data.dates || !data.profits || data.dates.length === 0) return;
-    var dates = data.dates.slice(0, 7),
+    const dates = data.dates.slice(0, 7),
       profits = data.profits.slice(0, 7).map(function (v) {
         return v === null ? 0 : v;
       });
     if (dates.length < 2) return;
     renderProfitChartNative(dates, profits);
-    var section = document.getElementById('homeProfitChartSection');
+    const section = document.getElementById('homeProfitChartSection');
     if (section) section.style.display = 'block';
   });
 
@@ -506,7 +573,7 @@ function loadHomeProfitChart() {
   api('daily-profit-7d', { days: 7 })
     .then(function (data) {
       if (!data || !data.dates || !data.profits || data.dates.length === 0) return;
-      var dates = data.dates.slice(0, 7),
+      const dates = data.dates.slice(0, 7),
         profits = data.profits.slice(0, 7).map(function (v) {
           return v === null ? 0 : v;
         });
@@ -515,28 +582,28 @@ function loadHomeProfitChart() {
       if (dates.length < 2) return;
 
       renderProfitChartNative(dates, profits);
-      var section = document.getElementById('homeProfitChartSection');
+      const section = document.getElementById('homeProfitChartSection');
       if (section) section.style.display = 'block';
     })
     .catch(function () {});
 }
 
 function renderProfitChartNative(dates, profits) {
-  var n = profits.length;
+  const n = profits.length;
   if (n === 0) return;
 
-  var svgW = 320,
+  const svgW = 320,
     svgH = 232;
-  var padX = 10,
+  const padX = 10,
     chartW = svgW - padX * 2;
 
   // ── 1. Y 轴范围（非对称：正负按实际数据比例） ──
-  var maxVal = Math.max.apply(null, profits.concat([0]));
-  var minVal = Math.min.apply(null, profits.concat([0]));
-  var posMax = maxVal > 0 ? Math.ceil((maxVal * 1.12) / 500) * 500 : 500;
-  var negMax = minVal < 0 ? Math.ceil((Math.abs(minVal) * 1.12) / 500) * 500 : 0;
-  var yMin = -negMax;
-  var yMax = posMax;
+  const maxVal = Math.max.apply(null, profits.concat([0]));
+  const minVal = Math.min.apply(null, profits.concat([0]));
+  const posMax = maxVal > 0 ? Math.ceil((maxVal * 1.12) / 500) * 500 : 500;
+  const negMax = minVal < 0 ? Math.ceil((Math.abs(minVal) * 1.12) / 500) * 500 : 0;
+  let yMin = -negMax;
+  let yMax = posMax;
   if (negMax === 0) yMin = 0;
   if (posMax === 0) yMax = 0;
   if (yMax === yMin) {
@@ -546,17 +613,17 @@ function renderProfitChartNative(dates, profits) {
   function toY(v) {
     return svgH * (1 - (v - yMin) / (yMax - yMin));
   }
-  var baseY = toY(0);
+  const baseY = toY(0);
 
   // ── 2. X 轴 ──
-  var xs = [];
+  const xs = [];
   for (var i = 0; i < n; i++) xs.push(padX + (chartW / Math.max(n - 1, 1)) * i);
 
   // ── 3. 分段折线 ──
-  var segs = [],
+  let segs = [],
     cur = null;
   function add(i) {
-    var x = xs[i],
+    const x = xs[i],
       y = toY(profits[i]),
       p = x.toFixed(1) + ',' + y.toFixed(1),
       up = profits[i] >= 0;
@@ -568,7 +635,7 @@ function renderProfitChartNative(dates, profits) {
       }
       cur = { up: up, path: 'M' + p, pts: [[x, y]], lx: x, ly: y };
     } else {
-      var px = cur.pts[cur.pts.length - 1][0],
+      const px = cur.pts[cur.pts.length - 1][0],
         py = cur.pts[cur.pts.length - 1][1],
         d = (x - px) / 3;
       cur.path +=
@@ -582,8 +649,8 @@ function renderProfitChartNative(dates, profits) {
   if (cur) segs.push(cur);
 
   // ── 4. 构建 SVG ──
-  var defsEl = document.getElementById('profitDefs');
-  var pathsEl = document.getElementById('profitPaths');
+  const defsEl = document.getElementById('profitDefs');
+  const pathsEl = document.getElementById('profitPaths');
   if (defsEl) {
     defsEl.innerHTML =
       '<linearGradient id="profitG" x1="0" y1="0" x2="0" y2="1">' +
@@ -596,7 +663,7 @@ function renderProfitChartNative(dates, profits) {
       '</linearGradient>';
   }
   if (pathsEl) {
-    var pathHtml = '';
+    let pathHtml = '';
     // 零线
     pathHtml +=
       '<line x1="0" y1="' +
@@ -608,13 +675,13 @@ function renderProfitChartNative(dates, profits) {
       '" stroke="#dce2e5" stroke-width="1" stroke-dasharray="4,3"/>';
 
     // ★ 构建一条连续路径（贯穿所有点，用于描边连线）
-    var continuousPath = 'M' + xs[0].toFixed(1) + ',' + toY(profits[0]).toFixed(1);
-    for (var ci = 1; ci < n; ci++) {
-      var px = xs[ci - 1],
+    let continuousPath = 'M' + xs[0].toFixed(1) + ',' + toY(profits[0]).toFixed(1);
+    for (let ci = 1; ci < n; ci++) {
+      const px = xs[ci - 1],
         py = toY(profits[ci - 1]);
-      var cx_ = xs[ci],
+      const cx_ = xs[ci],
         cy_ = toY(profits[ci]);
-      var d_ = (cx_ - px) / 3;
+      const d_ = (cx_ - px) / 3;
       continuousPath +=
         ' C' +
         (px + d_).toFixed(1) +
@@ -639,8 +706,8 @@ function renderProfitChartNative(dates, profits) {
 
     // 分段填充区域（按正负着色）
     segs.forEach(function (s) {
-      var grad = s.up ? 'url(#profitG)' : 'url(#lossG)';
-      var fillD =
+      const grad = s.up ? 'url(#profitG)' : 'url(#lossG)';
+      const fillD =
         s.path +
         ' L' +
         s.lx.toFixed(1) +
@@ -655,17 +722,17 @@ function renderProfitChartNative(dates, profits) {
     });
     // 数据点空心圆
     for (var i = 0; i < n; i++) {
-      var cx = xs[i].toFixed(1),
+      const cx = xs[i].toFixed(1),
         cy = toY(profits[i]).toFixed(1);
-      var cs = profits[i] >= 0 ? '#ff5858' : '#22c878';
+      const cs = profits[i] >= 0 ? '#ff5858' : '#22c878';
       pathHtml += '<circle cx="' + cx + '" cy="' + cy + '" r="4.5" fill="#fff" stroke="' + cs + '" stroke-width="2"/>';
     }
     pathsEl.innerHTML = pathHtml;
 
     // ★ 动画：计算连续描边路径的实际长度，设置精确的 dasharray（总时长 1.6s，延迟 0.4s 后开始）
-    var allStrokes = pathsEl.querySelectorAll('.profit-stroke');
+    const allStrokes = pathsEl.querySelectorAll('.profit-stroke');
     allStrokes.forEach(function (sp) {
-      var len = sp.getTotalLength();
+      const len = sp.getTotalLength();
       sp.style.strokeDasharray = len;
       sp.style.strokeDashoffset = len;
       requestAnimationFrame(function () {
@@ -677,7 +744,7 @@ function renderProfitChartNative(dates, profits) {
     });
 
     // ★ 填充区域延迟淡入（线条画完后 0.3s 开始，即 t≈2.3s）
-    var areaPaths = pathsEl.querySelectorAll('.profit-area');
+    const areaPaths = pathsEl.querySelectorAll('.profit-area');
     areaPaths.forEach(function (ap) {
       ap.style.opacity = '0';
       ap.style.transition = 'none';
@@ -689,33 +756,33 @@ function renderProfitChartNative(dates, profits) {
   }
 
   // ── 5. Y 轴标签 ──
-  var yaxisEl = document.getElementById('profitYaxis');
+  const yaxisEl = document.getElementById('profitYaxis');
   if (yaxisEl) {
-    var yHtml = '';
-    var step = (yMax - yMin) / 5;
-    for (var j = 0; j <= 5; j++) {
-      var v = yMax - step * j;
-      var iv = Math.round(v);
+    let yHtml = '';
+    const step = (yMax - yMin) / 5;
+    for (let j = 0; j <= 5; j++) {
+      const v = yMax - step * j;
+      const iv = Math.round(v);
       yHtml += '<span>' + (iv >= 0 ? '+' + iv : '' + iv) + '</span>';
     }
     yaxisEl.innerHTML = yHtml;
   }
 
   // ── 6. 数据标签（跳过 0 值，智能避让） ──
-  var tagsEl = document.getElementById('profitTags');
+  const tagsEl = document.getElementById('profitTags');
   if (tagsEl) {
     // 预计算：标记哪些索引需要显示标签
-    var tagIdx = [];
+    const tagIdx = [];
     for (var i = 0; i < n; i++) {
       if (profits[i] !== 0) tagIdx.push(i);
     }
     // 为连续同向标签分配交错高度，避免水平重叠
-    var yOffs = {};
-    var runDir = 0,
+    const yOffs = {};
+    let runDir = 0,
       runCnt = 0;
     for (var k = 0; k < tagIdx.length; k++) {
       var i = tagIdx[k];
-      var dir = profits[i] >= 0 ? 1 : -1;
+      const dir = profits[i] >= 0 ? 1 : -1;
       if (dir !== runDir) {
         runDir = dir;
         runCnt = 0;
@@ -723,23 +790,23 @@ function renderProfitChartNative(dates, profits) {
       yOffs[i] = dir > 0 ? -(24 + (runCnt % 3) * 16) : 28 + (runCnt % 3) * 16;
       runCnt++;
     }
-    var tHtml = '';
+    let tHtml = '';
     for (var k = 0; k < tagIdx.length; k++) {
       var i = tagIdx[k];
-      var vy = toY(profits[i]),
+      const vy = toY(profits[i]),
         vx = xs[i];
-      var xP = ((vx / svgW) * 100).toFixed(2);
-      var yOff = yOffs[i];
+      const xP = ((vx / svgW) * 100).toFixed(2);
+      let yOff = yOffs[i];
       // 边界感知：标签靠近上下边界时反转偏移方向
-      var rawTop = ((vy + yOff) / svgH) * 100;
+      const rawTop = ((vy + yOff) / svgH) * 100;
       if (rawTop < 4) {
         yOff = Math.abs(yOff);
       } else if (rawTop > 92) {
         yOff = -Math.abs(yOff);
       }
-      var yP = ((vy + yOff) / svgH) * 100;
+      let yP = ((vy + yOff) / svgH) * 100;
       yP = Math.max(3, Math.min(94, yP)).toFixed(2);
-      var c = profits[i] >= 0 ? 'win' : 'loss';
+      const c = profits[i] >= 0 ? 'win' : 'loss';
       tHtml +=
         '<div class="profit-tag ' +
         c +
@@ -756,10 +823,10 @@ function renderProfitChartNative(dates, profits) {
   }
 
   // ── 7. X 轴日期（n>5 时隔一个显示，避免拥挤） ──
-  var xEl = document.getElementById('profitXaxis');
+  const xEl = document.getElementById('profitXaxis');
   if (xEl) {
-    var dHtml = '';
-    var showStep = n > 5 ? 2 : 1;
+    let dHtml = '';
+    const showStep = n > 5 ? 2 : 1;
     for (var i = 0; i < n; i += showStep) {
       dHtml += '<span>' + (dates[i] || '') + '</span>';
     }
@@ -771,7 +838,7 @@ function renderProfitChartNative(dates, profits) {
   }
 
   // ── 8. 统计卡片 ──
-  var total = 0,
+  let total = 0,
     maxV = -Infinity,
     maxI = -1;
   for (var i = 0; i < n; i++) {
@@ -784,20 +851,20 @@ function renderProfitChartNative(dates, profits) {
   function fmt(n) {
     return (n >= 0 ? '+' : '') + n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
-  var tc = total >= 0 ? 'positive' : 'negative';
+  const tc = total >= 0 ? 'positive' : 'negative';
 
   function set(id, v) {
-    var e = document.getElementById(id);
+    const e = document.getElementById(id);
     if (e) e.textContent = v;
   }
   function setClass(id, cls) {
-    var e = document.getElementById(id);
+    const e = document.getElementById(id);
     if (e) e.className = cls;
   }
   set('statsTotal', fmt(total));
   setClass('statsTotal', total >= 0 ? 'positive' : 'negative');
 
-  var growth = null;
+  let growth = null;
   if (profits[0] !== 0 && isFinite(total / Math.abs(profits[0]))) {
     growth = (total / Math.abs(profits[0])) * 100;
   }
@@ -806,7 +873,7 @@ function renderProfitChartNative(dates, profits) {
 
   set('statsMax', fmt(maxV));
   setClass('statsMax', 'positive');
-  var mdEl = document.getElementById('statsMaxDate');
+  const mdEl = document.getElementById('statsMaxDate');
   if (mdEl) mdEl.textContent = maxI >= 0 ? dates[maxI] : '--';
 }
 
@@ -815,7 +882,7 @@ function renderProfitChartNative(dates, profits) {
 // 核心原则：不打扰用户，每天最多推送一条消息
 // ═══════════════════════════════════════════════════════════
 
-var APP_VERSION = '20260610';
+const APP_VERSION = '20260610';
 
 var NotiEngine = {
   _candidates: [],
@@ -827,9 +894,9 @@ var NotiEngine = {
     this._collect(profitP)
       .then(
         function (msgs) {
-          var filtered = NotiEngine._dedupeAndExpire(msgs);
-          var sorted = NotiEngine._prioritize(filtered);
-          var result = NotiEngine._dailyGuard(sorted);
+          const filtered = NotiEngine._dedupeAndExpire(msgs);
+          const sorted = NotiEngine._prioritize(filtered);
+          const result = NotiEngine._dailyGuard(sorted);
           NotiEngine._updateBadge(result);
         }.bind(this),
       )
@@ -839,8 +906,8 @@ var NotiEngine = {
   /** 收集所有满足触发条件的消息
    *  @param {Promise} profitP - 可复用的盈利数据 promise */
   _collect: function (profitP) {
-    var msgs = [];
-    var self = this;
+    const msgs = [];
+    const self = this;
 
     // 1. 首次欢迎消息 (P0)
     if (!localStorage.getItem('noti:welcome_seen')) {
@@ -848,20 +915,20 @@ var NotiEngine = {
     }
 
     // ★ P0-3: 复用外部传入的 profitP，避免重复 API 调用
-    var profitPromise = profitP || api('daily-profit-7d', { days: 7 });
+    const profitPromise = profitP || api('daily-profit-7d', { days: 7 });
     return profitPromise
       .then(function (data) {
         // 2. 专家博热5连红 (P1) - 基于多日数据聚合
         if (data && data.profits && Array.isArray(data.profits)) {
-          var streakResult = self._checkStreak(data.profits);
+          const streakResult = self._checkStreak(data.profits);
           if (streakResult && !self._isRead('streak', streakResult.startDate)) {
             msgs.push(self._buildStreak(streakResult));
           }
 
           // 3. 7日盈利突破 (P1)
-          var total = data.total || 0;
+          const total = data.total || 0;
           if (total >= 1000) {
-            var todayStr = formatDate(new Date());
+            const todayStr = formatDate(new Date());
             if (!self._isRead('profit', todayStr)) {
               msgs.push(self._buildProfitBreakthrough(data));
             }
@@ -869,7 +936,7 @@ var NotiEngine = {
         }
 
         // 4. 系统版本更新 (P2)
-        var seenVer = localStorage.getItem('noti:version_seen');
+        const seenVer = localStorage.getItem('noti:version_seen');
         if (seenVer !== APP_VERSION) {
           msgs.push(self._buildVersionUpdate());
         }
@@ -878,7 +945,7 @@ var NotiEngine = {
       })
       .catch(function () {
         // API 失败时返回仅本地类型的消息（欢迎 + 版本）
-        var seenVer = localStorage.getItem('noti:version_seen');
+        const seenVer = localStorage.getItem('noti:version_seen');
         if (seenVer !== APP_VERSION) {
           msgs.push(self._buildVersionUpdate());
         }
@@ -889,20 +956,20 @@ var NotiEngine = {
   /** 检查连续盈利天数（5天） */
   _checkStreak: function (profits) {
     if (!Array.isArray(profits)) return null;
-    var streak = 0;
-    var startDate = null;
-    for (var i = profits.length - 1; i >= 0; i--) {
+    let streak = 0;
+    let startDate = null;
+    for (let i = profits.length - 1; i >= 0; i--) {
       if ((profits[i] || 0) > 0) {
         streak++;
         startDate = this._dateOffset(i - profits.length + 1);
       } else break;
     }
     if (streak >= 5) {
-      var days = [];
-      var dayTotal = 0;
-      for (var j = 0; j < Math.min(streak, 5); j++) {
-        var idx = profits.length - streak + j;
-        var val = profits[idx] || 0;
+      const days = [];
+      let dayTotal = 0;
+      for (let j = 0; j < Math.min(streak, 5); j++) {
+        const idx = profits.length - streak + j;
+        const val = profits[idx] || 0;
         dayTotal += val;
         days.push({ date: this._dateOffset(idx - profits.length + 1), profit: val });
       }
@@ -913,7 +980,7 @@ var NotiEngine = {
 
   /** 计算日期偏移字符串 */
   _dateOffset: function (offsetDays) {
-    var d = new Date();
+    const d = new Date();
     d.setDate(d.getDate() + offsetDays);
     return d.toISOString().slice(5, 10); // MM-DD
   },
@@ -944,7 +1011,7 @@ var NotiEngine = {
 
   /** 构建连红消息 */
   _buildStreak: function (data) {
-    var lines = data.days
+    const lines = data.days
       .map(function (d) {
         return '\u2022 ' + d.date + ' 日盈利 +' + d.profit.toFixed(0) + ' 元 \u2705';
       })
@@ -972,12 +1039,12 @@ var NotiEngine = {
 
   /** 构建盈利突破消息 */
   _buildProfitBreakthrough: function (data) {
-    var total = data.total || 0;
-    var maxDayProfit = 0,
+    const total = data.total || 0;
+    let maxDayProfit = 0,
       maxDate = '';
-    var winDays = 0;
+    let winDays = 0;
     if (data.profits && Array.isArray(data.profits)) {
-      for (var i = 0; i < data.profits.length; i++) {
+      for (let i = 0; i < data.profits.length; i++) {
         if (data.profits[i] > maxDayProfit) {
           maxDayProfit = data.profits[i];
           maxDate = data.dates ? data.dates[i] || '' : '';
@@ -985,9 +1052,9 @@ var NotiEngine = {
         if ((data.profits[i] || 0) > 0) winDays++;
       }
     }
-    var yieldRate = total > 0 ? ((total / 7000) * 100).toFixed(1) : '0';
+    const yieldRate = total > 0 ? ((total / 7000) * 100).toFixed(1) : '0';
 
-    var todayStr = formatDate(new Date());
+    const todayStr = formatDate(new Date());
     return {
       id: 'profit_' + todayStr,
       type: 'profit',
@@ -1041,14 +1108,14 @@ var NotiEngine = {
 
   /** 检查某条消息是否已读 */
   _isRead: function (type, key) {
-    var lsKey = 'noti:' + type + '_' + (key || '');
+    const lsKey = 'noti:' + type + '_' + (key || '');
     return !!localStorage.getItem(lsKey);
   },
 
   /** 去重 + 过期清理 */
   _dedupeAndExpire: function (msgs) {
-    var now = Date.now();
-    var self = this;
+    const now = Date.now();
+    const self = this;
     return msgs.filter(function (msg) {
       // 已消费的过滤
       if (msg.consumed) return false;
@@ -1065,10 +1132,10 @@ var NotiEngine = {
 
   /** 优先级排序 P0 > P1 > P2 */
   _prioritize: function (msgs) {
-    var order = { P0: 0, P1: 1, P2: 2 };
+    const order = { P0: 0, P1: 1, P2: 2 };
     return msgs.sort(function (a, b) {
-      var pa = order[a.priority] !== undefined ? order[a.priority] : 99;
-      var pb = order[b.priority] !== undefined ? order[b.priority] : 99;
+      const pa = order[a.priority] !== undefined ? order[a.priority] : 99;
+      const pb = order[b.priority] !== undefined ? order[b.priority] : 99;
       if (pa !== pb) return pa - pb;
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
@@ -1080,12 +1147,12 @@ var NotiEngine = {
    * @returns {{ pushed: Object|null, waiting: Array }}
    */
   _dailyGuard: function (sortedMessages) {
-    var markerStr = localStorage.getItem('noti:daily_push_marker');
-    var marker = null;
+    const markerStr = localStorage.getItem('noti:daily_push_marker');
+    let marker = null;
     try {
       marker = markerStr ? JSON.parse(markerStr) : null;
     } catch (e) {}
-    var today = formatDate(new Date());
+    const today = formatDate(new Date());
 
     // 今天已经推送过 → 全部降级为静候
     if (marker && marker.date === today) {
@@ -1094,8 +1161,8 @@ var NotiEngine = {
     }
 
     // 今天还没推送 → 取第一名
-    var pushed = sortedMessages.length > 0 ? sortedMessages[0] : null;
-    var waiting = sortedMessages.slice(1);
+    const pushed = sortedMessages.length > 0 ? sortedMessages[0] : null;
+    const waiting = sortedMessages.slice(1);
 
     if (pushed) {
       localStorage.setItem(
@@ -1117,8 +1184,8 @@ var NotiEngine = {
    * 不自动弹出弹窗！
    */
   _updateBadge: function (result) {
-    var totalCount = (result.pushed ? 1 : 0) + (result.waiting ? result.waiting.length : 0);
-    var badgeEl = document.getElementById('notiBadge');
+    const totalCount = (result.pushed ? 1 : 0) + (result.waiting ? result.waiting.length : 0);
+    const badgeEl = document.getElementById('notiBadge');
     if (!badgeEl) return;
 
     if (totalCount <= 0) {
@@ -1135,10 +1202,10 @@ var NotiEngine = {
   // ── UI 渲染方法（由 App.showNotifications 调用） ──
 
   showNotifications: function () {
-    var overlay = document.getElementById('notiOverlay');
-    var body = document.getElementById('notiBody');
-    var countEl = document.getElementById('notiCount');
-    var modal = document.getElementById('notiModal');
+    const overlay = document.getElementById('notiOverlay');
+    const body = document.getElementById('notiBody');
+    const countEl = document.getElementById('notiCount');
+    const modal = document.getElementById('notiModal');
 
     if (!overlay || !body || !modal) return;
 
@@ -1149,10 +1216,10 @@ var NotiEngine = {
     }
 
     // 顶部对齐首页统计卡片，上限防止弹窗被推到底部
-    var homeStats = document.querySelector('#page-home .home-stats');
-    var notiTop = 80; // fallback
+    const homeStats = document.querySelector('#page-home .home-stats');
+    let notiTop = 80; // fallback
     if (homeStats) {
-      var statsTop = Math.round(homeStats.getBoundingClientRect().top);
+      const statsTop = Math.round(homeStats.getBoundingClientRect().top);
       notiTop = Math.max(16, statsTop);
     }
     notiTop = Math.max(16, Math.min(notiTop, window.innerHeight - 380));
@@ -1181,16 +1248,16 @@ var NotiEngine = {
       'border-radius:16px;' +
       'box-shadow:0 -18px 42px rgba(48,72,78,0.2),inset 0 1px 0 rgba(255,255,255,0.74);';
 
-    var hasCandidates = this._candidates && this._candidates.length > 0;
+    const hasCandidates = this._candidates && this._candidates.length > 0;
 
     // 更新计数
     countEl.textContent = hasCandidates ? this._candidates.length : 0;
 
     // 渲染卡片或空状态
-    var html = '';
+    let html = '';
     if (hasCandidates) {
-      for (var i = 0; i < this._candidates.length; i++) {
-        var msg = this._candidates[i];
+      for (let i = 0; i < this._candidates.length; i++) {
+        const msg = this._candidates[i];
         html +=
           '<div class="noti-card" data-id="' +
           msg.id +
@@ -1224,9 +1291,9 @@ var NotiEngine = {
   },
 
   closeNotifications: function () {
-    var overlay = document.getElementById('notiOverlay');
+    const overlay = document.getElementById('notiOverlay');
     if (overlay) overlay.classList.remove('active');
-    var modal = document.getElementById('notiModal');
+    const modal = document.getElementById('notiModal');
     if (modal) modal.style.cssText = '';
     // 将 modal 移回 overlay 内，保证 HTML 结构完整
     if (modal && overlay && modal.parentElement === document.body) {
@@ -1235,8 +1302,8 @@ var NotiEngine = {
   },
 
   consumeNoti: function (msgId, action) {
-    var idx = -1;
-    for (var i = 0; i < this._candidates.length; i++) {
+    let idx = -1;
+    for (let i = 0; i < this._candidates.length; i++) {
       if (this._candidates[i].id === msgId) {
         idx = i;
         break;
@@ -1244,7 +1311,7 @@ var NotiEngine = {
     }
     if (idx < 0) return;
 
-    var msg = this._candidates[idx];
+    const msg = this._candidates[idx];
 
     // 标记已读
     if (msg.storageKey) {
@@ -1268,8 +1335,8 @@ var NotiEngine = {
   },
 
   markAllRead: function () {
-    for (var i = 0; i < this._candidates.length; i++) {
-      var msg = this._candidates[i];
+    for (let i = 0; i < this._candidates.length; i++) {
+      const msg = this._candidates[i];
       if (msg.storageKey) {
         if (msg.extraData) {
           localStorage.setItem(msg.storageKey, msg.extraData);
@@ -1284,11 +1351,11 @@ var NotiEngine = {
   },
 
   _refreshModal: function () {
-    var body = document.getElementById('notiBody');
-    var countEl = document.getElementById('notiCount');
+    const body = document.getElementById('notiBody');
+    const countEl = document.getElementById('notiCount');
     if (!body) return;
 
-    var hasCandidates = this._candidates && this._candidates.length > 0;
+    const hasCandidates = this._candidates && this._candidates.length > 0;
 
     countEl.textContent = hasCandidates ? this._candidates.length : 0;
 
@@ -1302,9 +1369,9 @@ var NotiEngine = {
       return;
     }
 
-    var html = '';
-    for (var i = 0; i < this._candidates.length; i++) {
-      var msg = this._candidates[i];
+    let html = '';
+    for (let i = 0; i < this._candidates.length; i++) {
+      const msg = this._candidates[i];
       html +=
         '<div class="noti-card" data-id="' +
         msg.id +
@@ -1344,7 +1411,7 @@ var NotiEngine = {
   },
 
   _escapeHtml: function (s) {
-    var div = document.createElement('div');
+    const div = document.createElement('div');
     div.appendChild(document.createTextNode(s));
     return div.innerHTML;
   },

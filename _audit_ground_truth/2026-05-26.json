@@ -1,0 +1,147 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.689Z",
+  "earliestKickoff": null,
+  "date": "2026-05-26",
+  "plans": [
+    {
+      "planId": "plan_2026-05-26_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039990",
+          "direction": "总进球-2、3球",
+          "homeName": "蒙得维的亚国民",
+          "visitName": "科金博联",
+          "matchNum": "周二006"
+        },
+        {
+          "matchId": "2039986",
+          "direction": "让负",
+          "homeName": "圣埃蒂安",
+          "visitName": "尼斯",
+          "matchNum": "周二002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-26_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039988",
+          "direction": "胜",
+          "homeName": "基多体育大学",
+          "visitName": "时刻准备",
+          "matchNum": "周二004"
+        },
+        {
+          "matchId": "2039986",
+          "direction": "让负",
+          "homeName": "圣埃蒂安",
+          "visitName": "尼斯",
+          "matchNum": "周二002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-26_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039988",
+          "direction": "总进球-2、3球",
+          "homeName": "基多体育大学",
+          "visitName": "时刻准备",
+          "matchNum": "周二004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-26_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039988",
+          "direction": "总进球-1、2、3球",
+          "homeName": "基多体育大学",
+          "visitName": "时刻准备",
+          "matchNum": "周二004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-26_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039986",
+          "direction": "总进球-1、2、3球",
+          "homeName": "圣埃蒂安",
+          "visitName": "尼斯",
+          "matchNum": "周二002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-26_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039991",
+          "direction": "总进球-3、4、5球",
+          "homeName": "大学生体育",
+          "visitName": "托利马体育",
+          "matchNum": "周二007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-26_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039987",
+          "direction": "总进球-3、4、5球",
+          "homeName": "拉努斯",
+          "visitName": "米拉索尔",
+          "matchNum": "周二003"
+        }
+      ]
+    }
+  ]
+}

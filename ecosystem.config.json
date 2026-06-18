@@ -4,7 +4,7 @@
       "name": "jc-zjfa",
       "script": "index.js",
       "cwd": "/root/server",
-      "instances": 4,
+      "instances": 1,
       "exec_mode": "cluster",
       "env": {
         "NODE_ENV": "production",
@@ -24,7 +24,7 @@
         "FEATURE_RICH_PROMPT": "0",
         "DATA_JSON_AGGRESSIVE_CACHE": "1"
       },
-      "max_memory_restart": "768M",
+      "max_memory_restart": "1800M",
       "min_uptime": "10000",
       "max_restarts": 5,
       "log_date_format": "YYYY-MM-DD HH:mm:ss",
@@ -58,7 +58,7 @@
         "FEATURE_RICH_PROMPT": "0",
         "DATA_JSON_AGGRESSIVE_CACHE": "0"
       },
-      "max_memory_restart": "768M",
+      "max_memory_restart": "1800M",
       "min_uptime": "10000",
       "max_restarts": 5,
       "log_date_format": "YYYY-MM-DD HH:mm:ss",

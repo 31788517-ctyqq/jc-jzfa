@@ -1,0 +1,147 @@
+{
+  "lockedAt": "2026-06-18T08:39:50.479Z",
+  "earliestKickoff": null,
+  "date": "2026-04-03",
+  "plans": [
+    {
+      "planId": "plan_2026-04-03_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038792",
+          "direction": "总进球-2、3球",
+          "homeName": "考文垂",
+          "visitName": "德比郡",
+          "matchNum": "周五011"
+        },
+        {
+          "matchId": "2038787",
+          "direction": "让负",
+          "homeName": "西布罗姆维奇",
+          "visitName": "雷克斯汉姆",
+          "matchNum": "周五006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-03_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038792",
+          "direction": "胜",
+          "homeName": "考文垂",
+          "visitName": "德比郡",
+          "matchNum": "周五011"
+        },
+        {
+          "matchId": "2038787",
+          "direction": "让负",
+          "homeName": "西布罗姆维奇",
+          "visitName": "雷克斯汉姆",
+          "matchNum": "周五006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-03_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038782",
+          "direction": "总进球-2、3球",
+          "homeName": "阿德莱德联",
+          "visitName": "奥克兰FC",
+          "matchNum": "周五001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-03_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038791",
+          "direction": "总进球-1、2、3球",
+          "homeName": "巴黎圣日尔曼",
+          "visitName": "图卢兹",
+          "matchNum": "周五010"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-03_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038788",
+          "direction": "总进球-1、2、3球",
+          "homeName": "吉达联合",
+          "visitName": "拉斯决心",
+          "matchNum": "周五007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-03_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038787",
+          "direction": "总进球-3、4、5球",
+          "homeName": "西布罗姆维奇",
+          "visitName": "雷克斯汉姆",
+          "matchNum": "周五006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-03_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038786",
+          "direction": "总进球-3、4、5球",
+          "homeName": "诺维奇",
+          "visitName": "朴次茅斯",
+          "matchNum": "周五005"
+        }
+      ]
+    }
+  ]
+}

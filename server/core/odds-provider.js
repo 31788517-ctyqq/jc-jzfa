@@ -5,7 +5,7 @@
 
 function toArrayByType(type, source) {
   if (!source || typeof source !== 'object') return null;
-  var arr = [];
+  const arr = [];
   Object.keys(source).forEach(function (k) {
     if (String(k).startsWith('_')) return;
     if (type === 'bf') arr.push({ score: k, odds: source[k] });
@@ -15,21 +15,19 @@ function toArrayByType(type, source) {
   return arr.length ? arr : null;
 }
 
-function findOddsEntryByMatchNum(oddsMap, matchNum) {
+function findOddsEntryByMatchNum(oddsMap, matchNum, dateStr) {
   if (!oddsMap || !matchNum) return null;
   if (oddsMap[matchNum]) return oddsMap[matchNum];
-  var numOnly = String(matchNum).replace(/^[周一二三四五六日]+/, '');
-  var keys = Object.keys(oddsMap);
-  for (var i = 0; i < keys.length; i++) {
-    if (String(keys[i]).replace(/^[周一二三四五六日]+/, '') === numOnly) {
-      return oddsMap[keys[i]];
-    }
+  // 严禁纯编号跨周/跨日回退，最多允许 date|num 联合键
+  if (dateStr) {
+    const dk = String(dateStr).slice(0, 10) + '|' + String(matchNum);
+    if (oddsMap[dk]) return oddsMap[dk];
   }
   return null;
 }
 
-function getSportteryFallback(database, matchNum) {
-  var empty = {
+function getSportteryFallback(database, matchNum, dateStr) {
+  const empty = {
     spf: null,
     rqspf: null,
     handicap: null,
@@ -41,35 +39,46 @@ function getSportteryFallback(database, matchNum) {
   if (!database || !matchNum) return empty;
 
   try {
-    var rows = null;
+    let rows = null;
 
     // 优先通过适配器查询
-    var adp = database.getAdapter && database.getAdapter();
+    const adp = database.getAdapter && database.getAdapter();
     if (adp) {
-      rows = adp.execAll(
-        'SELECT play_type, odds_json FROM sporttery_odds_snapshot WHERE match_num = ? ORDER BY snapshot_time DESC LIMIT 60',
-        matchNum,
-      );
+      if (dateStr) {
+        rows = adp.execAll(
+          'SELECT play_type, odds_json FROM sporttery_odds_snapshot WHERE match_num = ? AND date = ? ORDER BY snapshot_time DESC LIMIT 60',
+          [matchNum, dateStr],
+        );
+      } else {
+        rows = adp.execAll(
+          'SELECT play_type, odds_json FROM sporttery_odds_snapshot WHERE match_num = ? ORDER BY snapshot_time DESC LIMIT 60',
+          [matchNum],
+        );
+      }
     } else {
       // ★ A: 适配器未就绪(sql.js异步初始化)→用raw db直接查询(只读，安全)
-      var rawDb = database.getDatabase && database.getDatabase();
+      const rawDb = database.getDatabase && database.getDatabase();
       if (rawDb) {
         try {
-          var stmt = rawDb.prepare(
-            'SELECT play_type, odds_json FROM sporttery_odds_snapshot WHERE match_num = ? ORDER BY snapshot_time DESC LIMIT 60',
+          const stmt = rawDb.prepare(
+            dateStr
+              ? 'SELECT play_type, odds_json FROM sporttery_odds_snapshot WHERE match_num = ? AND date = ? ORDER BY snapshot_time DESC LIMIT 60'
+              : 'SELECT play_type, odds_json FROM sporttery_odds_snapshot WHERE match_num = ? ORDER BY snapshot_time DESC LIMIT 60',
           );
-          stmt.bind([matchNum]);
+          stmt.bind(dateStr ? [matchNum, dateStr] : [matchNum]);
           rows = [];
           while (stmt.step()) {
             rows.push(stmt.getAsObject());
           }
           stmt.free();
-        } catch (e) { /* raw db fallback failed */ }
+        } catch (e) {
+          /* raw db fallback failed */
+        }
       }
     }
     if (!rows || !rows.length) return empty;
 
-    var out = {
+    const out = {
       spf: null,
       rqspf: null,
       handicap: null,
@@ -79,9 +88,9 @@ function getSportteryFallback(database, matchNum) {
       source: 'sporttery_fallback',
     };
 
-    for (var i = 0; i < rows.length; i++) {
-      var r = rows[i];
-      var odds = {};
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      let odds = {};
       try {
         odds = JSON.parse(r.odds_json || '{}');
       } catch (e) {

@@ -1,14 +1,14 @@
-var fs = require('fs');
-var bank = JSON.parse(fs.readFileSync(__dirname + '/stats_bank.json', 'utf8'));
-var validBatches = [];
+const fs = require('fs');
+const bank = JSON.parse(fs.readFileSync(__dirname + '/stats_bank.json', 'utf8'));
+const validBatches = [];
 
 Object.keys(bank).forEach(function (k) {
   if (!k.startsWith('_raw_')) return;
-  var entry = bank[k];
-  var data = entry && entry.data ? entry.data : Array.isArray(entry) ? entry : [];
+  const entry = bank[k];
+  const data = entry && entry.data ? entry.data : Array.isArray(entry) ? entry : [];
   if (!Array.isArray(data) || data.length === 0) return;
 
-  var dates = data
+  const dates = data
     .map(function (d) {
       return d.matchTimeStr || d.matchDate || '';
     })
@@ -32,10 +32,10 @@ validBatches.forEach(function (b) {
 });
 
 // 按月份汇总
-var byMonth = {};
+const byMonth = {};
 validBatches.forEach(function (b) {
-  var s = b.dt;
-  var m = parseInt(s[3]);
+  const s = b.dt;
+  const m = parseInt(s[3]);
   if (!byMonth[m]) byMonth[m] = { batches: 0, matches: 0, minDate: b.firstDate, maxDate: b.firstDate };
   byMonth[m].batches++;
   byMonth[m].matches += b.count;
@@ -45,18 +45,18 @@ validBatches.forEach(function (b) {
 
 console.log('');
 console.log('按月份汇总:');
-var months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 Object.keys(byMonth)
   .sort()
   .forEach(function (m) {
-    var info = byMonth[m];
-    var name = months[parseInt(m)] || m + '月';
+    const info = byMonth[m];
+    const name = months[parseInt(m)] || m + '月';
     console.log(
       '  ' + name + ': ' + info.batches + ' 批次, ' + info.matches + ' 场, ' + info.minDate + ' ~ ' + info.maxDate,
     );
   });
 
-var total = validBatches.reduce(function (s, b) {
+const total = validBatches.reduce(function (s, b) {
   return s + b.count;
 }, 0);
 console.log('');

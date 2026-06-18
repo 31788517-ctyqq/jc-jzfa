@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>转账充值</title>
+  <link rel="stylesheet" type="text/css" href="/css/style.css?tag=20160107">
+  <style type="text/css">
+  <!--
+	.tipBar {text-align:center;font-size:12px;line-height:20px;}
+	.recharge-list a {padding-top:0; background-position:100% 30%;margin-top:-8px;}
+	.bankcard {background:url(/imgs/rechargeSprite.png) no-repeat 20px 50%;background-size: 60px 250px;background-position: 10px -65px;}
+	.saoma {background:url(/imgs/rechargeSprite.png) no-repeat 20px 50%;background-size: 55px 195px;background-position: 10px -145px;}
+	.weixin {background:url(/imgs/rechargeSprite.png) no-repeat 20px 50%;background-size: 55px 195px;background-position: 10px -90px;}
+	.alipay {background:url(/imgs/rechargeSprite.png) no-repeat 20px 50%;background-size: 55px 195px;background-position: 10px 0px;}
+  	.jingdong {background:url(/imgs/jingdong.png) no-repeat;background-size: 52px 46px;background-position:10px 0px;}
+  	.tagBox {position: relative;}
+  	.tagZengsong {width: 45px;height: 45px;position: absolute;top: -13px;right: -1px;display: block;background-image: url(/imgs/donate.png);background-repeat: no-repeat;background-size: 45px;}
+  	.tagTuijian {width: 45px;height: 45px;position: absolute;top: -13px;right: -1px;display: block;background-image: url(/imgs/recommend.png);background-repeat: no-repeat;background-size: 45px;}
+  	.tagNewest {width: 45px;height: 45px;position: absolute;top: -13px;right: -1px;display: block;background-image: url(/imgs/newest.png);background-repeat: no-repeat;background-size: 45px;}
+  	.step{
+  		padding: 0 10px;
+  	}
+  	.step span{
+  		display: block;
+  		color: #333;
+  	}
+  	.station-list{
+  		padding: 10px;
+  	}
+  	.station-list .station span{
+  		display: block;
+  		color: #333;
+  		line-height: 25px;
+  	}
+  	.station-list .station{
+  		background: #f7f7f7;
+	    border-radius: 3px;
+	    padding: 5px;
+	    margin-top: 5px;
+  	}
+  	.station-list .station .name{
+  		font-size: 1.1rem;
+  	}
+  	.station-list .station .wxname{
+  		color: #6d6d6d;
+  		font-size: 0.9rem;
+  	}
+  	.station-list .station .wxaccount{
+  		color: #6d6d6d;
+  		font-size: 0.9rem;
+  	}
+  	.icon{
+  	    vertical-align: middle;
+  	}
+  	.station-list .station a{
+  	    display: block;
+  	}
+  -->
+  </style>
+<script type="text/javascript">
+	function copy(value){
+		var url = '';
+		var UA = window.navigator.userAgent;
+		var isIos = UA.indexOf("iPhone") > -1 || UA.indexOf("iPad") > -1;
+		if(isIos){
+			url = "objc://6value://"+value;
+		}else{
+			url = "objc://6"+value;
+		}
+		window.location.href = url;
+	}
+</script>
+  <!--[if lt IE 9]>
+      <link rel="stylesheet" href="css/ie.css?v=20140416" />
+  <![endif]-->
+</head>
+<body>
+    <!--wap头部文件begin-->
+    <div class="top">
+      <div class="wap-topbar">
+        <div class="headernav">
+          <div class="headernavL">
+            <a href="javascript:window.history.back(-1);" class="home-icon-wrap"><i class="home-icon home-icon-m"></i>返回</a>
+          </div>
+          <div id="headernavCenter" class="headernav-center">
+            微信支付充值 <!--<i class="arrow-icon"></i>-->
+          </div>
+          <div class="headernavR">
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--wap头部文件end-->
+<div style="font-size: 15px;">
+	<div class="step">
+		<span style="margin-bottom: 5px;color:#000;">操作步骤</span>
+		<span>1.添加站长微信</span>
+		<span>2.告知咔咔账号并转账</span>
+		<span>3.站长入账充值</span>
+	</div>
+	<div class="station-list">
+		<span style="color:#000;">
+			站主微信
+			<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg t="1538281144436" class="icon" style="" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1985" xmlns:xlink="http://www.w3.org/1999/xlink" width="30" height="30"><defs><style type="text/css"></style></defs><path d="M670.6 367.9c10.3 0 20.4 0.8 30.5 1.9-27.4-127.8-164-222.7-320-222.7C206.8 147.1 64 265.9 64 416.8c0 87.1 47.5 158.6 126.9 214.1l-31.7 95.4L270 670.7c39.7 7.9 71.5 15.9 111.1 15.9 9.9 0 19.8-0.5 29.6-1.3-6.2-21.2-9.8-43.4-9.8-66.4 0.1-138.6 119-251 269.7-251z m-170.5-86c23.9 0 39.7 15.7 39.7 39.6 0 23.8-15.8 39.7-39.7 39.7-23.8 0-47.6-15.9-47.6-39.7-0.1-23.9 23.8-39.6 47.6-39.6z m-222 79.3c-23.8 0-47.8-15.9-47.8-39.7 0-23.9 24-39.6 47.8-39.6 23.8 0 39.6 15.7 39.6 39.6 0 23.8-15.8 39.7-39.6 39.7z" fill="#39af08" p-id="1986"></path><path d="M960 615.1C960 488.3 833.1 385 690.6 385c-150.9 0-269.7 103.3-269.7 230.1 0 127 118.8 230.1 269.7 230.1 31.6 0 63.5-8 95.2-15.9l87 47.6-23.8-79.2c63.6-47.8 111-111.1 111-182.6z m-356.8-39.7c-15.8 0-31.7-15.7-31.7-31.7 0-15.8 15.9-31.7 31.7-31.7 24 0 39.7 15.9 39.7 31.7 0 16-15.7 31.7-39.7 31.7z m174.4 0c-15.7 0-31.5-15.7-31.5-31.7 0-15.8 15.8-31.7 31.5-31.7 23.8 0 39.7 15.9 39.7 31.7 0 16-15.9 31.7-39.7 31.7z" fill="#39af08" p-id="1987"></path></svg>
+			<font color="#bdbdbd">(点击复制站主微信号)</font>
+		</span>
+		<div class="station">
+			<a href="javascript:void(0);" onclick="copy('w92ylin')">
+				<span class="name">肥肥购买站</span>
+				<span class="wxname">负责人：肥肥</span>
+				<span class="wxaccount">微信号：w92ylin</span>
+			</a>
+		</div>
+		<div class="station">
+			<a href="javascript:void(0);" onclick="copy('fgh07love')">
+				<span class="name">小灰灰购买站</span>
+				<span class="wxname">负责人：小灰灰</span>
+				<span class="wxaccount">微信号：fgh07love</span>
+			</a>
+		</div>
+		<div class="station">
+			<a href="javascript:void(0);" onclick="copy('danchang88888')">
+				<span class="name">小二哥购买站</span>
+				<span class="wxname">负责人：小二哥</span>
+				<span class="wxaccount">微信号：danchang88888</span>
+			</a>
+		</div>
+		<div class="station">
+			<a href="javascript:void(0);" onclick="copy('zeng318925')">
+				<span class="name">兵仔cat购买站</span>
+				<span class="wxname">负责人：兵仔cat</span>
+				<span class="wxaccount">微信号：zeng318925</span>
+			</a>
+		</div>
+	</div>
+</div>
+</body>
+</html>

@@ -1,23 +1,23 @@
 // 快速探测 data.json 的 m/r 结构
-var fs = require('fs');
-var d = JSON.parse(fs.readFileSync('server/data.json', 'utf8'));
+const fs = require('fs');
+const d = JSON.parse(fs.readFileSync('server/data.json', 'utf8'));
 
 // m 结构
-var mKeys = Object.keys(d.m || {});
+const mKeys = Object.keys(d.m || {});
 console.log('=== m 结构 ===');
 console.log('m count:', mKeys.length);
 if (mKeys.length > 0) {
-  var m = d.m[mKeys[0]];
+  const m = d.m[mKeys[0]];
   console.log('m key:', mKeys[0]);
   console.log('m keys:', Object.keys(m));
   console.log('m sample:', JSON.stringify(m).substring(0, 500));
 }
 
 // r 结构
-var rKeys = Object.keys(d.r || {});
+const rKeys = Object.keys(d.r || {});
 console.log('\n=== r 结构 ===');
 console.log('r count:', rKeys.length);
-var rk = rKeys[0];
+const rk = rKeys[0];
 console.log('r sample key:', rk);
 if (Array.isArray(d.r[rk])) {
   console.log('r is array, len:', d.r[rk].length);
@@ -35,9 +35,9 @@ console.log('\nr keys sample (first 10):', JSON.stringify(rKeys.slice(0, 10)));
 
 // 看看 m 的 matchId 和 num 字段
 console.log('\n=== m 字段抽样 (前3条) ===');
-var mSample = mKeys.slice(0, 3);
-for (var i = 0; i < mSample.length; i++) {
-  var mi = d.m[mSample[i]];
+const mSample = mKeys.slice(0, 3);
+for (let i = 0; i < mSample.length; i++) {
+  const mi = d.m[mSample[i]];
   console.log(
     'm[' + i + '] matchId:',
     mi.matchId,

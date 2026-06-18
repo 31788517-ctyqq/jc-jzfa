@@ -4,16 +4,16 @@
  */
 import { api } from '../api.js';
 
-var _gsCache = {};
+const _gsCache = {};
 
 export function showGongshoudao(matchId, leagueName, homeName, visitName, matchNum, startTime) {
   // 打开弹窗 overlay
-  var overlay = document.getElementById('aiOverlay');
+  const overlay = document.getElementById('aiOverlay');
   if (!overlay) return;
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
 
-  var modal = document.getElementById('aiModal');
+  const modal = document.getElementById('aiModal');
   if (!modal) return;
 
   // 显示骨架屏（模拟功守道内容结构，视觉过渡更平滑）
@@ -51,9 +51,9 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
     '</div>';
 
   // P1-1: 5分钟缓存（命中时直接渲染，跳过API请求）
-  var cached = _gsCache[matchId];
+  const cached = _gsCache[matchId];
   if (cached && Date.now() - cached.time < 300000) {
-    var gs = cached.data;
+    const gs = cached.data;
     _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum, matchId);
     return;
   }
@@ -74,18 +74,18 @@ export function showGongshoudao(matchId, leagueName, homeName, visitName, matchN
 
 // P1-1: 缓存渲染函数（从 showGongshoudao 提取，避免代码重复）
 function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum, matchId) {
-  var modal = document.getElementById('aiModal');
+  const modal = document.getElementById('aiModal');
   if (!modal) return;
   // 格式化时间
-  var timeFormatted = '';
+  let timeFormatted = '';
   if (startTime) {
-    var parts = startTime.split(' ');
+    const parts = startTime.split(' ');
     if (parts.length >= 2) {
       timeFormatted = parts[0].slice(5).replace('-', '/') + ' ' + parts[1].slice(0, 5);
     }
   }
 
-  var html = '';
+  let html = '';
   html +=
     '<div class="ai-modal-header"><span class="ai-modal-title">功守道量化</span><button class="ai-modal-close" onclick="closeAI()">&times;</button></div>';
   html += '<div class="ai-content">';
@@ -100,9 +100,9 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
   if (timeFormatted) html += '<div class="gs-modal-time">' + timeFormatted + '</div>';
   // ★ 数据时效标签
   if (gs.computedAt) {
-    var dataAge = Math.floor((Date.now() - gs.computedAt) / 3600000);
-    var ageLabel = '';
-    var ageClass = '';
+    const dataAge = Math.floor((Date.now() - gs.computedAt) / 3600000);
+    let ageLabel = '';
+    let ageClass = '';
     if (dataAge < 1) {
       ageLabel =
         '数据更新于 ' + new Date(gs.computedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
@@ -143,10 +143,10 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
   html += gsRow('综合攻守优势', renderBar(gs.totalAdvantage || '+50%', gs.totalAdvantageValue || 75));
   html += gsRow('实力阶梯', '<span class="gs-val-text">' + (gs.ladderLabel || '⚖️ 双方实力接近') + '</span>');
   // 胜平负交叉（不让球 + 让球 双组）
-  var spfStr =
+  const spfStr =
     '胜' + fmtCross(gs.crossSpfWin) + ' 平' + fmtCross(gs.crossSpfDraw) + ' 负' + fmtCross(gs.crossSpfLose) + '（让0）';
-  var rqVal = gs.crossRq || 0;
-  var hcpStr = '';
+  const rqVal = gs.crossRq || 0;
+  let hcpStr = '';
   if (rqVal !== 0) {
     hcpStr =
       ' + 让胜' +
@@ -202,9 +202,9 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
       '</span><span class="gs-note">E_a</span></span>',
   );
   // 四重熔断
-  var consensusLabel = gs.fusionConsensus || '';
+  const consensusLabel = gs.fusionConsensus || '';
   if (consensusLabel) {
-    var consensusVal = gs.fusionFused
+    const consensusVal = gs.fusionFused
       ? (gs.fusionFinalHome || 0).toFixed(2) + '/' + (gs.fusionFinalAway || 0).toFixed(2)
       : '--';
     html += gsRow(
@@ -224,7 +224,7 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
 
   // ====== V7.0 市场情报交叉验证 ======
   if (gs.marketScore !== undefined) {
-    var mktRiskClass = '';
+    let mktRiskClass = '';
     if (gs.marketRiskLevel === 'danger') mktRiskClass = 'gs-risk-danger';
     else if (gs.marketRiskLevel === 'warning') mktRiskClass = 'gs-risk-warning';
     else if (gs.marketRiskLevel === 'caution') mktRiskClass = 'gs-risk-caution';
@@ -245,9 +245,9 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
 
     // 盘口位移
     if (gs.marketMovement && gs.marketMovement.direction) {
-      var movDir = gs.marketMovement.direction;
-      var movIcon = movDir.indexOf('降水') >= 0 ? '📉' : movDir.indexOf('升水') >= 0 ? '📈' : '➡️';
-      var movClass = gs.marketMovement.severity === 'significant' ? 'gs-risk-warning' : '';
+      const movDir = gs.marketMovement.direction;
+      const movIcon = movDir.indexOf('降水') >= 0 ? '📉' : movDir.indexOf('升水') >= 0 ? '📈' : '➡️';
+      const movClass = gs.marketMovement.severity === 'significant' ? 'gs-risk-warning' : '';
       html += gsRow(
         '盘口位移',
         '<span class="gs-val-text ' +
@@ -268,7 +268,7 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
 
     // 欧亚一致性
     if (gs.marketEuroAsia && gs.marketEuroAsia.detail) {
-      var eaClass = gs.marketEuroAsia.consistent ? '' : 'gs-risk-danger';
+      const eaClass = gs.marketEuroAsia.consistent ? '' : 'gs-risk-danger';
       html += gsRow('欧亚一致性', '<span class="gs-val-text ' + eaClass + '">' + gs.marketEuroAsia.detail + '</span>');
     }
 
@@ -294,9 +294,9 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
 
     // 信号标签
     if (gs.marketSignalFlags && gs.marketSignalFlags.length > 0) {
-      var flagsHtml = gs.marketSignalFlags
+      const flagsHtml = gs.marketSignalFlags
         .map(function (f) {
-          var fc = 'gs-signal-tag';
+          let fc = 'gs-signal-tag';
           if (f.indexOf('⚠️') >= 0 || f.indexOf('背离') >= 0) fc += ' gs-signal-danger';
           else if (f.indexOf('支撑') >= 0 || f.indexOf('一致') >= 0) fc += ' gs-signal-good';
           return '<span class="' + fc + '">' + f + '</span>';
@@ -362,31 +362,31 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
     matchId +
     '\')" style="float:right;cursor:pointer;">我要做方案</span></div>';
 
-  var scores = gs.scores || [
+  const scores = gs.scores || [
     { score: '1-1', percent: '50%' },
     { score: '2-1', percent: '30%' },
     { score: '0-1', percent: '20%' },
   ];
-  var scoreOdds = gs.scoreOdds || {}; // { "1-0": 8.25, ... }
+  const scoreOdds = gs.scoreOdds || {}; // { "1-0": 8.25, ... }
 
   // 智能分类：正兵/奇兵/伏兵
   // 规则：
   //   正兵 — 概率 > 8% 且净胜球方向与实力阶梯一致，或概率 > 12%
   //   奇兵 — 概率 3-8% 或方向不一致但有支撑，或概率 8-12% 但方向异常
   //   伏兵 — 概率 < 5% 但历史上有出现
-  var ladderLevel = gs.ladderLevel || 0; // 正=主队优, 负=客队优
-  var zhengBing = [],
+  const ladderLevel = gs.ladderLevel || 0; // 正=主队优, 负=客队优
+  let zhengBing = [],
     qiBing = [],
     fuBing = [];
 
   scores.forEach(function (s) {
-    var pct = parseFloat(s.percent) || 0;
-    var parts = s.score.split('-');
-    var hVal = parseInt(parts[0]) || 0;
-    var aVal = parseInt(parts[1]) || 0;
-    var gd = hVal - aVal;
-    var directionMatch = (ladderLevel > 0 && gd > 0) || (ladderLevel < 0 && gd < 0) || ladderLevel === 0;
-    var homeWin = gd > 0,
+    const pct = parseFloat(s.percent) || 0;
+    const parts = s.score.split('-');
+    const hVal = parseInt(parts[0]) || 0;
+    const aVal = parseInt(parts[1]) || 0;
+    const gd = hVal - aVal;
+    const directionMatch = (ladderLevel > 0 && gd > 0) || (ladderLevel < 0 && gd < 0) || ladderLevel === 0;
+    const homeWin = gd > 0,
       draw = gd === 0,
       awayWin = gd < 0;
 
@@ -412,17 +412,17 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
 
   function getScoreOddsFromPercent(pctStr) {
     if (!pctStr) return null;
-    var p = parseFloat(pctStr);
+    const p = parseFloat(pctStr);
     if (isNaN(p) || p <= 0) return null;
     return 1 / (p / 100);
   }
 
   function renderScoreCard(s, riskClass) {
-    var odds = scoreOdds[s.score] !== undefined ? scoreOdds[s.score] : getScoreOddsFromPercent(s.percent);
-    var oddsAttr = ' data-odds="' + (odds !== null ? odds : '--') + '"';
-    var hasOdds = odds !== null;
-    var riskLabel = riskClass || '';
-    var riskDisplay = '';
+    const odds = scoreOdds[s.score] !== undefined ? scoreOdds[s.score] : getScoreOddsFromPercent(s.percent);
+    const oddsAttr = ' data-odds="' + (odds !== null ? odds : '--') + '"';
+    const hasOdds = odds !== null;
+    const riskLabel = riskClass || '';
+    let riskDisplay = '';
     if (riskLabel === 'high') riskDisplay = '<div class="gs-score-risk gs-risk-high">高风险</div>';
     else if (riskLabel === 'cold') riskDisplay = '<div class="gs-score-risk gs-risk-cold">冷门</div>';
     return (
@@ -483,10 +483,10 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
   modal.innerHTML = html;
 
   // ━━━ 绑定比分卡片点击事件 ━━━
-  var selectedScores = []; // [{ score, odds }]
+  const selectedScores = []; // [{ score, odds }]
 
   function renderBetTable() {
-    var wrap = document.getElementById('gsBetTableWrap');
+    const wrap = document.getElementById('gsBetTableWrap');
     if (!wrap) return;
     if (selectedScores.length === 0) {
       wrap.style.display = 'none';
@@ -494,14 +494,14 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
     }
     wrap.style.display = 'block';
 
-    var totalCapital = 1000;
-    var tableHtml =
+    const totalCapital = 1000;
+    let tableHtml =
       '<table class="gs-score-bet-table"><thead><tr><th>选项</th><th>赔率</th><th>资金分配</th><th>预期奖金</th></tr></thead><tbody>';
 
     if (selectedScores.length === 1) {
       // 单选：全部投入
-      var item = selectedScores[0];
-      var payout = totalCapital * item.odds;
+      const item = selectedScores[0];
+      const payout = totalCapital * item.odds;
       tableHtml += '<tr>';
       tableHtml += '<td>' + item.score + '</td>';
       tableHtml += '<td class="gs-bet-odds">' + item.odds.toFixed(2) + '</td>';
@@ -518,15 +518,15 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
         '</td></tr>';
     } else {
       // 多选：荷兰式均分（奖金相等）
-      var sumInv = 0;
+      let sumInv = 0;
       selectedScores.forEach(function (it) {
         sumInv += 1 / it.odds;
       });
-      var expectedIncome = totalCapital / sumInv;
+      const expectedIncome = totalCapital / sumInv;
 
       selectedScores.forEach(function (it) {
-        var alloc = (totalCapital * (1 / it.odds)) / sumInv;
-        var payout = alloc * it.odds;
+        const alloc = (totalCapital * (1 / it.odds)) / sumInv;
+        const payout = alloc * it.odds;
         tableHtml += '<tr>';
         tableHtml += '<td>' + it.score + '</td>';
         tableHtml += '<td class="gs-bet-odds">' + it.odds.toFixed(2) + '</td>';
@@ -549,15 +549,15 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
   }
 
   // 事件委托：父容器监听
-  var scoreSection = document.getElementById('gsScoreSection');
+  const scoreSection = document.getElementById('gsScoreSection');
   if (scoreSection) {
     // closest() polyfill
-    var closestEl = Element.prototype.closest
+    const closestEl = Element.prototype.closest
       ? function (el, sel) {
           return el.closest(sel);
         }
       : function (el, sel) {
-          var e = el;
+          let e = el;
           while (e && e.nodeType === 1) {
             if (e.matches && e.matches(sel)) return e;
             e = e.parentNode;
@@ -566,19 +566,19 @@ function _renderGSBody(gs, startTime, leagueName, homeName, visitName, matchNum,
         };
 
     scoreSection.addEventListener('click', function (e) {
-      var card = closestEl(e.target, '.gs-score-card');
+      const card = closestEl(e.target, '.gs-score-card');
       if (!card) return;
-      var score = card.getAttribute('data-score');
-      var oddsAttr = card.getAttribute('data-odds');
+      const score = card.getAttribute('data-score');
+      const oddsAttr = card.getAttribute('data-odds');
       if (!score) return;
       // oddsAttr 可能为 '--'（无有效赔率/概率），跳过
       if (!oddsAttr || oddsAttr === '--') return;
-      var odds = parseFloat(oddsAttr);
+      const odds = parseFloat(oddsAttr);
       if (isNaN(odds) || odds <= 0) return;
 
       // 切换选中
-      var idx = -1;
-      for (var i = 0; i < selectedScores.length; i++) {
+      let idx = -1;
+      for (let i = 0; i < selectedScores.length; i++) {
         if (selectedScores[i].score === score) {
           idx = i;
           break;
@@ -611,10 +611,10 @@ function gsRow(label, content) {
 
 // 进度条
 function renderBar(value, percent, negative) {
-  var p = parseInt(percent) || 0;
-  var valStr = String(value);
-  var isNeg = negative || valStr.startsWith('-');
-  var display = valStr.startsWith('-') || valStr.startsWith('+') ? valStr : '+' + valStr;
+  const p = parseInt(percent) || 0;
+  const valStr = String(value);
+  const isNeg = negative || valStr.startsWith('-');
+  const display = valStr.startsWith('-') || valStr.startsWith('+') ? valStr : '+' + valStr;
   return (
     '<div class="gs-bar-wrap"><div class="gs-bar-bg"><div class="gs-bar-fill' +
     (isNeg ? ' neg' : '') +
@@ -631,7 +631,7 @@ function renderBar(value, percent, negative) {
 // 格式化交叉分布值：归一化值（0~1）→ 百分比显示
 function fmtCross(v) {
   if (v === undefined || v === null) return '--';
-  var n = Number(v);
+  const n = Number(v);
   // 如果原始值范围已经 > 1（旧版计数），保持原样
   if (Math.abs(n) > 1.5) return Math.round(n) + '场';
   return Math.round(n * 100) + '%';
@@ -645,13 +645,13 @@ window.goFromGSToScheme = function (matchId) {
     } catch (e) {}
   }
   // 关闭功守道弹窗
-  var o = document.getElementById('gongshoudaoOverlay');
+  const o = document.getElementById('gongshoudaoOverlay');
   if (o) o.classList.remove('active');
   document.body.style.overflow = '';
   window.switchTab('scheme');
 };
 
 function esc(s) {
-  var str = s == null ? '' : String(s);
+  const str = s == null ? '' : String(s);
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

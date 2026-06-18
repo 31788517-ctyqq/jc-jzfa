@@ -1,15 +1,17 @@
 /**
- * server/core/health.js — V2 深度健康检查
+ * server/core/health.js — V3 深度健康检查
  *
- * 检查项 (8 项):
+ * 检查项 (10 项):
  *   1. 内存         — heapUsed / rss
  *   2. data.json    — 文件大小、比赛数、新鲜度
- *   3. SQLite 数据库 — 记录数 + PRAGMA integrity_check
+ *   3. SQLite 数据库 — 记录数
  *   4. 外部 API     — midou310 可达性
  *   5. 磁盘         — 可用空间
- *   6. 文件追踪 🆕   — 关键文件状态快照
- *   7. 赔率覆盖 🆕   — odds_history 文件数 + 最近日期
- *   8. DB 完整性 🆕  — PRAGMA integrity_check 结果
+ *   6. 文件追踪     — 关键文件状态快照
+ *   7. 赔率覆盖     — odds_history 文件数 + 最近日期
+ *   8. DB 完整性    — PRAGMA integrity_check 结果
+ *   9. DB 写入指标 🆕 — 写入成功率 / 连续错误数
+ *   10. 进程存活 🆕  — PM2 进程状态检查
  */
 const fs = require('fs');
 const path = require('path');
@@ -167,11 +169,75 @@ async function deepCheck() {
     result.checks.oddsCoverage = { status: 'error', message: e.message };
   }
 
-  // ── 8. DB 完整性 🆕 ──
+  // ── 8. DB 完整性 ──
   try {
     result.checks.dbIntegrity = require('./file-tracker').checkDbIntegrity();
   } catch (e) {
     result.checks.dbIntegrity = { status: 'error', message: e.message };
+  }
+
+  // ── 9. DB 写入指标 🆕 ──
+  try {
+    const metrics = require('./db-metrics');
+    const snap = metrics.snapshot();
+    result.checks.dbWriteMetrics = {
+      status: snap.status,
+      writeSuccessRate: snap.writeSuccessRate,
+      totalWrites: snap.totalWrites,
+      successWrites: snap.successWrites,
+      errorWrites: snap.errorWrites,
+      consecutiveErrors: snap.consecutiveErrors,
+      lastError: snap.lastError,
+      lastErrorTime: snap.lastErrorTime,
+      startedAt: snap.startedAt,
+      uptimeMinutes: snap.uptimeMinutes,
+      message:
+        '成功率 ' +
+        snap.writeSuccessRate +
+        ' (' +
+        snap.successWrites +
+        '/' +
+        snap.totalWrites +
+        ' 写), 连续错误 ' +
+        snap.consecutiveErrors +
+        ' 次',
+    };
+  } catch (e) {
+    result.checks.dbWriteMetrics = { status: 'info', message: 'DB 写入指标不可用: ' + e.message };
+  }
+
+  // ── 10. 进程存活 🆕 — 使用 ps 检测 node 进程数 ──
+  try {
+    const cp = require('child_process');
+    const expectedProcesses = ['jc-zjfa', 'jc-sync', 'jc-scheduler'];
+    let processesOk = true;
+    let nodeCount = 0;
+    let message = '';
+
+    try {
+      const psOut = cp.execSync(
+        "ps aux | grep 'node ' | grep -v grep | grep -v PM2",
+        { timeout: 5000, encoding: 'utf8' }
+      );
+      const lines = psOut.trim().split('\n').filter(Boolean);
+      nodeCount = lines.length;
+      // 正常情况：jc-zjfa (cluster master) + jc-zjfa worker + jc-sync + jc-scheduler = 4
+      if (nodeCount < 2) processesOk = false;
+      message = 'ps 检测到 ' + nodeCount + ' 个 node 进程';
+    } catch (e2) {
+      processesOk = false;
+      message = '进程检测异常: ' + e2.message;
+      nodeCount = 0;
+    }
+
+    result.checks.processLiveness = {
+      status: processesOk ? 'ok' : 'warn',
+      expected: expectedProcesses,
+      nodeCount: nodeCount,
+      message: message,
+    };
+  } catch (e) {
+    result.checks.processLiveness = { status: 'warn', message: '进程检查失败: ' + e.message, nodeCount: 0 };
   }
 
   // ── 综合状态 ──

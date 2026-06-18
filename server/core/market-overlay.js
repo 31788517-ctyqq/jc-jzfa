@@ -79,7 +79,7 @@ function nowISO() {
 }
 
 function cleanText(v) {
-  var text = String(v || '');
+  let text = String(v || '');
   text = text.replace(/https?:\/\/\S+/g, ' ');
   text = text.replace(/\[[^\]]+\]|\([^)]+\)/g, ' ');
   text = text.replace(/[`*_#~]+/g, ' ');
@@ -146,7 +146,7 @@ function parseScoreExplain(raw) {
     const updatedBy = String(entry.updated_by || entry.updatedBy || '').trim() || null;
     const updatedAt = String(entry.updated_at || entry.updatedAt || '').trim() || null;
 
-    var evidenceRows = [];
+    let evidenceRows = [];
     const rawEvidence = entry.evidence;
     if (Array.isArray(rawEvidence)) {
       rawEvidence.forEach(function (item) {

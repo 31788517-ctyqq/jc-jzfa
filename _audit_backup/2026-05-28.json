@@ -1,0 +1,100 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.140Z",
+  "earliestKickoff": null,
+  "date": "2026-05-28",
+  "plans": [
+    {
+      "planId": "plan_2026-05-28_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040001",
+          "direction": "平、让平",
+          "homeName": "波特诺山丘",
+          "visitName": "水晶体育",
+          "matchNum": "周四003"
+        },
+        {
+          "matchId": "2040000",
+          "direction": "让负",
+          "homeName": "卡萨皮亚",
+          "visitName": "托林斯",
+          "matchNum": "周四002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-28_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040003",
+          "direction": "总进球-2、3球",
+          "homeName": "博卡青年",
+          "visitName": "天主大学",
+          "matchNum": "周四005"
+        },
+        {
+          "matchId": "2040000",
+          "direction": "让负",
+          "homeName": "卡萨皮亚",
+          "visitName": "托林斯",
+          "matchNum": "周四002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-28_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039999",
+          "direction": "胜",
+          "homeName": "爱尔兰",
+          "visitName": "卡塔尔",
+          "matchNum": "周四001"
+        },
+        {
+          "matchId": "2040000",
+          "direction": "让负",
+          "homeName": "卡萨皮亚",
+          "visitName": "托林斯",
+          "matchNum": "周四002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-28_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040000",
+          "direction": "总进球-2、3球",
+          "homeName": "卡萨皮亚",
+          "visitName": "托林斯",
+          "matchNum": "周四002"
+        }
+      ]
+    }
+  ]
+}

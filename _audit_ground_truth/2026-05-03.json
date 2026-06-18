@@ -1,0 +1,122 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.160Z",
+  "earliestKickoff": null,
+  "date": "2026-05-03",
+  "plans": [
+    {
+      "planId": "plan_2026-05-03_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039497",
+          "direction": "胜",
+          "homeName": "皇家贝蒂斯",
+          "visitName": "皇家奥维耶多",
+          "matchNum": "周日021"
+        },
+        {
+          "matchId": "2039499",
+          "direction": "让负",
+          "homeName": "弗赖堡",
+          "visitName": "沃尔夫斯堡",
+          "matchNum": "周日023"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-03_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039481",
+          "direction": "总进球-2、3球",
+          "homeName": "马格德堡",
+          "visitName": "柏林赫塔",
+          "matchNum": "周日005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-03_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039485",
+          "direction": "总进球-1、2、3球",
+          "homeName": "福图纳锡塔德",
+          "visitName": "费耶诺德",
+          "matchNum": "周日009"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-03_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039500",
+          "direction": "总进球-1、2、3球",
+          "homeName": "胡巴尔卡德西亚",
+          "visitName": "利雅得胜利",
+          "matchNum": "周日024"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-03_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039478",
+          "direction": "总进球-3、4、5球",
+          "homeName": "鹿岛鹿角",
+          "visitName": "町田泽维亚",
+          "matchNum": "周日002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-03_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039480",
+          "direction": "总进球-3、4、5球",
+          "homeName": "博洛尼亚",
+          "visitName": "卡利亚里",
+          "matchNum": "周日004"
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk');
+const { dateCN } = require('../common/date');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 /**
@@ -20,7 +21,7 @@ exports.main = async (event, context) => {
   for (let i = 0; i < 30; i++) {
     const day = new Date(today);
     day.setDate(day.getDate() - i);
-    const dateStr = day.toISOString().slice(0, 10);
+    const dateStr = dateCN(day);
 
     try {
       const matchRes = await db.collection('matches')

@@ -1,0 +1,150 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.145Z",
+  "earliestKickoff": null,
+  "date": "2026-05-31",
+  "plans": [
+    {
+      "planId": "plan_2026-05-31_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040071",
+          "direction": "平、让平",
+          "homeName": "捷克",
+          "visitName": "科索沃",
+          "matchNum": "周日009"
+        },
+        {
+          "matchId": "2040057",
+          "direction": "让负",
+          "homeName": "韦斯特罗斯",
+          "visitName": "IFK哥德堡",
+          "matchNum": "周日004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-31_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040071",
+          "direction": "总进球-2、3球",
+          "homeName": "捷克",
+          "visitName": "科索沃",
+          "matchNum": "周日009"
+        },
+        {
+          "matchId": "2040057",
+          "direction": "让负",
+          "homeName": "韦斯特罗斯",
+          "visitName": "IFK哥德堡",
+          "matchNum": "周日004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-31_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040071",
+          "direction": "胜",
+          "homeName": "捷克",
+          "visitName": "科索沃",
+          "matchNum": "周日009"
+        },
+        {
+          "matchId": "2040057",
+          "direction": "让负",
+          "homeName": "韦斯特罗斯",
+          "visitName": "IFK哥德堡",
+          "matchNum": "周日004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-31_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040058",
+          "direction": "总进球-2、3球",
+          "homeName": "赫根",
+          "visitName": "哈马比",
+          "matchNum": "周日005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-31_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040071",
+          "direction": "平、让平",
+          "homeName": "捷克",
+          "visitName": "科索沃",
+          "matchNum": "周日009"
+        },
+        {
+          "matchId": "2040061",
+          "direction": "胜",
+          "homeName": "AC奥卢",
+          "visitName": "雅罗",
+          "matchNum": "周日008"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-31_5",
+      "name": "plan_5",
+      "planName": "方案五",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040063",
+          "direction": "平、让平",
+          "homeName": "美国",
+          "visitName": "塞内加尔",
+          "matchNum": "周日011"
+        },
+        {
+          "matchId": "2040071",
+          "direction": "总进球-2、3球",
+          "homeName": "捷克",
+          "visitName": "科索沃",
+          "matchNum": "周日009"
+        }
+      ]
+    }
+  ]
+}

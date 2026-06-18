@@ -36,10 +36,10 @@ function computeDynamicWeights(predLog, days) {
   const HIT_THRESHOLD = 0.5;
 
   // ★ 从 prediction_log 读取有赛果且含模型预测值的记录
-  var rows = [];
+  let rows = [];
   try {
     if (predLog && typeof predLog.queryBacktest === 'function') {
-      var result = predLog.queryBacktest({ dateRange: days + 'd', type: 'all' });
+      const result = predLog.queryBacktest({ dateRange: days + 'd', type: 'all' });
       rows = result && result.items ? result.items : [];
     }
   } catch (e) {
@@ -59,31 +59,31 @@ function computeDynamicWeights(predLog, days) {
   }
 
   // ═══ V3.0: 使用真实模型预测值统计命中率 ═══
-  var stats = { modelA: { total: 0, hits: 0 }, modelB: { total: 0, hits: 0 }, modelC: { total: 0, hits: 0 } };
+  const stats = { modelA: { total: 0, hits: 0 }, modelB: { total: 0, hits: 0 }, modelC: { total: 0, hits: 0 } };
 
   rows.forEach(function (row) {
     // 计算实际总进球
-    var actHome = row.actual_home_goals;
-    var actAway = row.actual_away_goals;
+    const actHome = row.actual_home_goals;
+    const actAway = row.actual_away_goals;
     if (actHome == null || actAway == null || isNaN(actHome) || isNaN(actAway)) return;
-    var actTotal = actHome + actAway;
+    const actTotal = actHome + actAway;
 
     // ModelA: 射门还原法预测总进球
-    var modelATotal = row.gs_modelA_total;
+    const modelATotal = row.gs_modelA_total;
     if (modelATotal != null && !isNaN(modelATotal)) {
       stats.modelA.total++;
       if (Math.abs(modelATotal - actTotal) <= HIT_THRESHOLD) stats.modelA.hits++;
     }
 
     // ModelB: 攻守权重法预测总进球
-    var modelBTotal = row.gs_modelB_total;
+    const modelBTotal = row.gs_modelB_total;
     if (modelBTotal != null && !isNaN(modelBTotal)) {
       stats.modelB.total++;
       if (Math.abs(modelBTotal - actTotal) <= HIT_THRESHOLD) stats.modelB.hits++;
     }
 
     // ModelC: 交锋预测法预测总进球
-    var modelCTotal = row.gs_modelC_total;
+    const modelCTotal = row.gs_modelC_total;
     if (modelCTotal != null && !isNaN(modelCTotal)) {
       stats.modelC.total++;
       if (Math.abs(modelCTotal - actTotal) <= HIT_THRESHOLD) stats.modelC.hits++;
@@ -91,7 +91,7 @@ function computeDynamicWeights(predLog, days) {
   });
 
   // 确保最少样本数，避免除零
-  var minSamples = 10;
+  const minSamples = 10;
   if (stats.modelA.total < minSamples || stats.modelB.total < minSamples || stats.modelC.total < minSamples) {
     console.log(
       '[model-weights] 某模型样本不足(A=' +
@@ -106,24 +106,24 @@ function computeDynamicWeights(predLog, days) {
   }
 
   // Softmax 计算权重
-  var accA = stats.modelA.total > 0 ? stats.modelA.hits / stats.modelA.total : 0.5;
-  var accB = stats.modelB.total > 0 ? stats.modelB.hits / stats.modelB.total : 0.5;
-  var accC = stats.modelC.total > 0 ? stats.modelC.hits / stats.modelC.total : 0.5;
+  let accA = stats.modelA.total > 0 ? stats.modelA.hits / stats.modelA.total : 0.5;
+  let accB = stats.modelB.total > 0 ? stats.modelB.hits / stats.modelB.total : 0.5;
+  let accC = stats.modelC.total > 0 ? stats.modelC.hits / stats.modelC.total : 0.5;
 
   // 缩尾：命中率控制在 [0.3, 0.7]，避免极端权重
   accA = Math.max(0.3, Math.min(0.7, accA));
   accB = Math.max(0.3, Math.min(0.7, accB));
   accC = Math.max(0.3, Math.min(0.7, accC));
 
-  var T = TEMPERATURE;
-  var sA = Math.exp(accA / T);
-  var sB = Math.exp(accB / T);
-  var sC = Math.exp(accC / T);
-  var sum = sA + sB + sC;
+  const T = TEMPERATURE;
+  const sA = Math.exp(accA / T);
+  const sB = Math.exp(accB / T);
+  const sC = Math.exp(accC / T);
+  const sum = sA + sB + sC;
 
-  var wA = +(sA / sum).toFixed(4);
-  var wB = +(sB / sum).toFixed(4);
-  var wC = +(sC / sum).toFixed(4);
+  const wA = +(sA / sum).toFixed(4);
+  const wB = +(sB / sum).toFixed(4);
+  const wC = +(sC / sum).toFixed(4);
 
   console.log(
     '[model-weights] V3.0 ' +
@@ -164,12 +164,12 @@ function computeDynamicWeights(predLog, days) {
 /**
  * 带缓存的权重获取（避免每次计算都查数据库）
  */
-var _cachedWeights = null;
-var _cacheTime = 0;
-var CACHE_TTL_MS = 10 * 60 * 1000; // 10分钟
+let _cachedWeights = null;
+let _cacheTime = 0;
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10分钟
 
 function getWeights(predLog, forceRefresh) {
-  var now = Date.now();
+  const now = Date.now();
   if (!forceRefresh && _cachedWeights && now - _cacheTime < CACHE_TTL_MS) {
     return _cachedWeights;
   }

@@ -1,0 +1,99 @@
+{
+  "collectedAt": "2026-06-17T04:06:06.207288",
+  "host": "119.23.51.159",
+  "mode": "remote_paramiko",
+  "apiLatency": {
+    "match-list": {
+      "ms": 1216,
+      "resultPreview": "{\"code\":1,\"data\":[{\"matchId\":\"2040182\",\"num\":\"周三021\",\"homeName\":\"葡萄牙\",\"visitName\":\"刚果(金)\",\"leagueName\":\"世界杯\",\"startTime\":\"06-18 01:00\",\"matchStatus\":0,\"score\":\"\",\"halfScore\":\"\",\"duration\":\"\",\"yellow\":"
+    },
+    "daily-profit-7d": {
+      "ms": 272,
+      "resultPreview": "{\"code\":1,\"data\":{\"dates\":[\"06-10\",\"06-11\",\"06-12\",\"06-13\",\"06-14\",\"06-15\",\"06-17\"],\"profits\":[-2000,941,1330,-1000,856,-352,0]}}"
+    },
+    "ranking-list": {
+      "ms": 506,
+      "resultPreview": "{\"code\":1,\"data\":{\"date\":\"2026-06-17\",\"dataTime\":\"2026-06-16T20:06:06.290Z\",\"filterCategory\":null,\"filterDirection\":null,\"totalMatches\":1,\"topExpertCount\":1,\"ranking\":[{\"rank\":1,\"matchId\":\"2040184\",\"h"
+    },
+    "plan-list": {
+      "ms": 226,
+      "resultPreview": "{\"code\":1,\"data\":{\"date\":\"2026-06-17\",\"plans\":[],\"notice\":\"今日方案预计 16:00 后陆续更新\",\"waitUntil\":\"16:00\"}}"
+    },
+    "my-plan-stats": {
+      "ms": 246,
+      "resultPreview": "{\"code\":401,\"msg\":\"UNAUTHORIZED\"}"
+    },
+    "week-dates": {
+      "ms": 234,
+      "resultPreview": "{\"code\":1,\"data\":[{\"weekNum\":\"周一\",\"matchDate\":\"01-01\"},{\"weekNum\":\"周二\",\"matchDate\":\"01-02\"},{\"weekNum\":\"周三\",\"matchDate\":\"01-03\"},{\"weekNum\":\"周四\",\"matchDate\":\"01-04\"},{\"weekNum\":\"周五\",\"matchDate\":\"01-05"
+    }
+  },
+  "resources": {
+    "dataJsonBytes": 3234926,
+    "dbBytes": 163508224,
+    "oddsHistoryFiles": 633,
+    "shujuDataFiles": 66,
+    "aiCacheBytes": 2736523,
+    "dataJsonKB": 3159,
+    "dbSizeMB": 155.9,
+    "aiCacheKB": 2672
+  },
+  "aiHitrate": "DB_UNAVAILABLE",
+  "pm2Status": [
+    {
+      "name": "jc-sync",
+      "pid": 27514,
+      "status": "online",
+      "memMB": 255,
+      "cpu": 0,
+      "restarts": 5610,
+      "uptimeH": 0.0
+    },
+    {
+      "name": "jc-scheduler",
+      "pid": 26084,
+      "status": "online",
+      "memMB": 34,
+      "cpu": 0.2,
+      "restarts": 851,
+      "uptimeH": 0.1
+    },
+    {
+      "name": "jc-zjfa",
+      "pid": 21026,
+      "status": "online",
+      "memMB": 317,
+      "cpu": 9.2,
+      "restarts": 46,
+      "uptimeH": 0.3
+    },
+    {
+      "name": "jc-zjfa",
+      "pid": 21027,
+      "status": "online",
+      "memMB": 295,
+      "cpu": 8.3,
+      "restarts": 48,
+      "uptimeH": 0.3
+    },
+    {
+      "name": "jc-zjfa",
+      "pid": 21065,
+      "status": "online",
+      "memMB": 451,
+      "cpu": 19.3,
+      "restarts": 44,
+      "uptimeH": 0.3
+    },
+    {
+      "name": "jc-zjfa",
+      "pid": 21074,
+      "status": "online",
+      "memMB": 309,
+      "cpu": 9.2,
+      "restarts": 44,
+      "uptimeH": 0.3
+    }
+  ],
+  "dataJsonStats": "matches=8227 recommends=1103 uniqueDates=632"
+}

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no">
+  <title>转账充值</title>
+  <link type="text/css" rel="stylesheet" href="/css/style.css" />
+  <style type="text/css">
+  <!--
+	body {background:#f1f1f1 url(http://img.quncai.com/images/uc/bg01.png);}
+	.tipBox {font-size:12px;color:#666;padding:10px;}
+	.tipBox ol {padding-left:25px;}
+	.tipBox ol li {list-style-type:decimal;list-style-position:outside;padding-top:5px;font:12px/1.2 '';color:#565656;}
+	.charge-con {padding:10px 15px 10px;}
+	.charge-flow li {position:relative;padding:6px 0 6px 15px;border-bottom:1px solid #ededed;background:#fff;}
+	.charge-flow li:last-child {border-bottom:none;}
+	.charge-flow .cur {color:#f40;}
+	.charge-con .state {display:block;overflow:hidden;word-wrap:break-word;font-size:16px;}
+	.charge-con .time {color:#999;}
+	.charge-flow .symbol {background-color:#bdbdbd;position:absolute;top:22px;left:-6px;width:11px;height:11px;border-radius:6px;overflow:hidden;}
+	.charge-flow .cur .symbol {background-color:#ff6600;}
+  -->
+  </style>
+</head>
+<body>
+  <!--PC头部文件begin-->
+  <div class="pctop">
+    <div class="pc-topbar">
+        <div class="pc-nav">
+            <div class="logo-gohome"><a href="javascript:;" title="回首页">网站首页</a></div>
+            <dl>
+              <dd class="h1">转账充值</dd>
+            </dl>
+        </div>
+    </div>
+  </div>
+  <!--PC头部文件end-->
+  <div id="box">
+    <!--wap头部文件begin-->
+    <div id="siftingnav" class="">
+      <div class="top hide">
+        <div class="wap-topbar">
+          <div class="headernav">
+            <div class="headernavL">
+              <a href="javascript:window.history.back(-1);" class="home-icon-wrap"><i class="home-icon home-icon-m"></i>返回</a>
+            </div>
+            <div id="headernavCenter" class="headernav-center">
+              转账充值 <!--<i class="arrow-icon"></i>-->
+            </div>
+            <div class="headernavR">
+              <a href="/help/tzzhan.shtml" class="headernav-btn"><i class="topHelp"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--wap头部文件end-->
+      <dl class="responsive siftingnav">
+        <dd class="cur">支付宝</dd>
+        <dd class="">微信</dd>
+        <dd class="">银行卡</dd>
+      </dl>
+    </div>
+    <div class="wrapper main-pb-s">
+      <!--支付宝begin-->
+      <section class="hide" style="display:block;">
+        <div class="charge-con">
+          <ul class="charge-flow mt10">
+            <li><span class="state">第一步：支付宝转账到购买站</span><span class="time">支付宝账号：<span class="red">18126716369</span><br>收款人：曾建斌</span><i class="symbol"></i></li>
+            <li><span class="state">第二步：告知购买站负责人入账</span><span class="time">负责人手机：<a href="tel:18126716369">18126716369</a><br>联系人：曾先生</span><i class="symbol"></i></li>
+            <li><span class="state">第三步：购买站负责人确认</span><span class="time">经购买站确认资金入账后即充值成功</span><i class="symbol"></i></li>
+          </ul> 
+        </div>    
+      </section>
+      <!--微信begin-->
+      <section class="hide">
+        <div class="charge-con">
+          <ul class="charge-flow mt10">
+            <li><span class="state">第一步：微信加购买站负责人为好友</span><span class="time">微信账号：<span class="red">zeng318925</span></span><i class="symbol"></i></li>
+            <li><span class="state">第二步：告知购买站负责人入账</span><span class="time">微信转账后即刻告知购买站负责人入账</span><i class="symbol"></i></li>
+            <li><span class="state">第三步：购买站负责人确认</span><span class="time">经购买站确认资金入账后即充值成功</span><i class="symbol"></i></li>
+          </ul> 
+        </div>    
+      </section>
+      <!--银行卡begin-->
+      <section class="hide">
+        <div class="charge-con">
+          <ul class="charge-flow mt10">
+            <li><span class="state">第一步：银行转账到购买站</span><span class="time">转账银行：建设银行 广州江南大道中支行<br>银行账号：<span class="red">6217003320014943115</span><br>收款人：曾建斌</span><i class="symbol"></i></li>
+            <li><span class="state">第二步：告知购买站负责人入账</span><span class="time">负责人手机：<a href="tel:18126716369">18126716369</a><br>联系人：曾先生</span><i class="symbol"></i></li>
+            <li><span class="state">第三步：购买站负责人确认</span><span class="time">经购买站确认资金入账后即充值成功</span><i class="symbol"></i></li>
+          </ul> 
+        </div>    
+      </section>
+      <!--银行卡end-->
+      <!--说明begin-->
+      <div class="tipBox">
+        <strong>温馨提示</strong>
+        <ol type="1">
+          <li style="color:#f40;">转账成功后，必须通知购买站负责人充值的金额和购买账号，以便核实及办理资金入账；</li>
+          <li>处理时间：每天08:00-23:59</li>
+          <li>群彩作为第三方数据服务商，100%保证用户信息和资金安全。</li>
+        </ol>
+      </div>
+      <!--说明end-->
+    </div>
+  </div>
+</body>
+<script type="text/javascript">
+  window.onload=function(){
+  var oBox =document.getElementById('box');
+  var oLi =oBox.getElementsByTagName('dl')[0].getElementsByTagName('dd');
+  var oDiv =oBox.getElementsByTagName('section');
+  for(var i=0;i < oLi.length;i++){
+	oLi[i].index=i;
+	oLi[i].onclick=function(){
+	  for(var i=0;i < oLi.length;i++){
+		  oLi[i].className=''
+		  oDiv[i].style.display=''
+		  }
+	  this.className='cur'
+	  
+	  oDiv[this.index].style.display='block'
+	  }
+  }
+ function adsorption(){
+  var headerWrap=document.getElementById('siftingnav');
+  var scrollTop=0;
+  window.onscroll=function(){
+   scrollTop=document.body.scrollTop||document.documentElement.scrollTop;
+   if(scrollTop>20){
+	headerWrap.className='fixed';
+   }else{
+	headerWrap.className='';
+   }
+  }
+ }
+ adsorption();
+}
+</script>
+</html>

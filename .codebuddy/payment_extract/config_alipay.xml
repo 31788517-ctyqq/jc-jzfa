@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
+<beans>
+	<!-- 支付宝 -->
+	<bean id="alipayConfig" class="com.cailele.lottery.alipay.AlipayConfig">
+		<property name="partnerID"><value>2088011858967984</value></property>
+		<property name="key"><value>9kydim4p6xubhr2rul6pua5f95ovgvi3</value></property>
+		<property name="sellerEmail"><value>quncai888@163.com</value></property>
+		<property name="body"><value>群彩帐户充值</value></property>
+		<property name="returnUrl"><value>http://www.quncai.com/member/chargeResponseZFB.php</value></property>
+		<property name="notifyUrl"><value>http://www.quncai.com/member/chargeNotifyZFB.php</value></property>
+		<property name="loginReturnUrl"><value>http://www.quncai.com/member/loginZFB.php</value></property>
+		<property name="loginDjzReturnUrl"><value>http://localhost/member/loginZFBDJZ.php</value></property>
+	</bean>
+	<bean id="alipayConfigLogin" class="com.cailele.lottery.alipay.AlipayConfig">
+		<property name="partnerID"><value></value></property>
+		<property name="key"><value></value></property>
+		<property name="sellerEmail"><value>quncai@163.com</value></property>
+		<property name="returnUrl"><value>http://www.quecai.com/member/chargeResponseZFB.php</value></property>
+		<property name="notifyUrl"><value>http://www.quecai.com/member/chargeNotifyZFB.php</value></property>
+		<property name="loginReturnUrl"><value>http://127.0.0.1/member/loginZFB.php</value></property>
+		<property name="loginDjzReturnUrl"><value>http://localhost/member/loginZFBDJZ.php</value></property>
+		<property name="loginAddressReturnUrl"><value>http://127.0.0.1/member/loginZFBAddress.php</value></property>
+	</bean>	
+	<!-- 积分派发-->
+	<bean id="alipayConfigPoint" class="com.cailele.lottery.alipay.AlipayConfig">
+		<property name="partnerID"><value></value></property>
+		<property name="key"><value></value></property>
+		<property name="sellerEmail"><value></value></property>
+	</bean>
+	<!-- 支付宝 -->
+	<bean id="qcAlipayConfig" class="com.quncai.alipay.AlipayConfig">
+		<property name="partner"><value>2088011858967984</value></property>
+		<property name="sellerEmail"><value>quncai888@163.com</value></property>
+	</bean>
+	<bean id="rsaRequestBuilder" class="com.quncai.alipay.request.SDKPayRequestBuilderImpl">
+		<property name="body"><value>群彩帐户充值</value></property>
+		<property name="subject"><value>群彩帐户充值</value></property>
+		<property name="notifyUrl"><value>http://www.quncai.com/user/chargeNotifyZFBSDK.php</value></property>
+		<property name="qcPrivateKey"><value>MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBANBsV3mciT+U9ERWi8rB/C8ANOZU9zjQbEribzxtwaJGjRKBFSH1HgV2UC7eoS/+BLAY+RiitAWQfXujMO2u9+0AWduu5S0ArHZia5pusOsSFyDNc9XHhLGjNyScxm4s0vNzCuOKoAMgtG103y8/RRB+EICVUlOzHZwOM/z8sO6zAgMBAAECgYAiDqIYoCiZOCjWBeJf5mTj9T+vp5CiOwSHFAsjL7glYSvqKyed3eTi9ZtSnVRveC2h7OK/UM7j3eFzU45KOH4Qc4ILGYfsZYWFNwgHYqIsgIE0kcDPDrk3LBQNsMlKFW+ejAPOJiqkSajtGGoSVJ1WnH49F+abe/hTQ04r06cPuQJBAPfJkXOc6LDrL6DzQsswket861ExVAyS2/2Kw1atTWAszcWqbQzt/uNdsRfJl+RHBbCmtiXZA7wKGC0kFilcAMUCQQDXVMaMZE8tgDyhdI4sobdwtxvDtANIhzheSYmtZIcq8Bwr+E3mmJg0g0DEFmj8q68Cv8mST5CXPsEDbWQ2TTkXAkAV5hqUvSlTeXWcI+OjUYeT6FZjtphXBCOtJLZe0rIj7dHBxm4c1mvQbFdaYtapth0qn5E5hxRtafb5BldvEFKBAkAvLAY2+T6TNDWUFSmUQ3UhPyvY6pWRjPXfSfLcRlqKIIG7bDD8pE8rqdlFW7dyKtYzHvq0j7OYPoogCxXaA37PAkEAmtnN+Ck1lN9M7pHefHTMHKPwylTYPFWBZFZ9rGdCb9GZp5baHW9iPQ09vY9T4Awj4dtqBPiQLfqj4QfhxXBwRw==</value></property>
+		<property name="alipayConfig" ref="qcAlipayConfig"></property>
+	</bean>
+	<bean id="authRequestBuilder" class="com.quncai.alipay.auth.SDKAuthRequestBuilderImpl">
+		<property name="qcPrivateKey"><value>MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBANBsV3mciT+U9ERWi8rB/C8ANOZU9zjQbEribzxtwaJGjRKBFSH1HgV2UC7eoS/+BLAY+RiitAWQfXujMO2u9+0AWduu5S0ArHZia5pusOsSFyDNc9XHhLGjNyScxm4s0vNzCuOKoAMgtG103y8/RRB+EICVUlOzHZwOM/z8sO6zAgMBAAECgYAiDqIYoCiZOCjWBeJf5mTj9T+vp5CiOwSHFAsjL7glYSvqKyed3eTi9ZtSnVRveC2h7OK/UM7j3eFzU45KOH4Qc4ILGYfsZYWFNwgHYqIsgIE0kcDPDrk3LBQNsMlKFW+ejAPOJiqkSajtGGoSVJ1WnH49F+abe/hTQ04r06cPuQJBAPfJkXOc6LDrL6DzQsswket861ExVAyS2/2Kw1atTWAszcWqbQzt/uNdsRfJl+RHBbCmtiXZA7wKGC0kFilcAMUCQQDXVMaMZE8tgDyhdI4sobdwtxvDtANIhzheSYmtZIcq8Bwr+E3mmJg0g0DEFmj8q68Cv8mST5CXPsEDbWQ2TTkXAkAV5hqUvSlTeXWcI+OjUYeT6FZjtphXBCOtJLZe0rIj7dHBxm4c1mvQbFdaYtapth0qn5E5hxRtafb5BldvEFKBAkAvLAY2+T6TNDWUFSmUQ3UhPyvY6pWRjPXfSfLcRlqKIIG7bDD8pE8rqdlFW7dyKtYzHvq0j7OYPoogCxXaA37PAkEAmtnN+Ck1lN9M7pHefHTMHKPwylTYPFWBZFZ9rGdCb9GZp5baHW9iPQ09vY9T4Awj4dtqBPiQLfqj4QfhxXBwRw==</value></property>
+		<property name="alipayConfig" ref="qcAlipayConfig"></property>
+	</bean>
+	<bean id="rsaNotifyVeryfy" class="com.quncai.alipay.notify.RSANotifyVeryfyImpl">
+		<property name="alipayPublicKey"><value>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnxj/9qwVfgoUh/y2W89L6BkRAFljhNhgPdyPuBV64bfQNN1PjbCzkIM6qRdKBoLPXmKKMiFYnkd6rAoprih3/PrQEB/VsW8OoM8fxn67UDYuyBTqA23MML9q1+ilIZwBC2AQ2UBVOrFXfFl75p6/B5KsiNG9zpgmLCUYuLkxpLQIDAQAB</value></property>
+	</bean>
+	<!-- wap支付 -->
+	<bean id="wapRequestBuilder" class="com.quncai.alipay.request.WapPayRequestBuilderImpl">
+		<property name="subject"><value>群彩帐户充值</value></property>
+		<property name="callBackUrl"><value>com.app.quncai://</value></property>
+		<property name="notifyUrl"><value>http://www.quncai.com/user/chargeNotifyZFBWap.php</value></property>
+		<property name="merchantUrl"><value>com.app.quncai://</value></property>
+		<property name="reqCreateUrl"><value>http://wappaygw.alipay.com/service/rest.htm</value></property>
+		<property name="reqTradeUrl"><value>objc://2value://http://wappaygw.alipay.com/service/rest.htm</value></property>
+		<property name="alipayConfig" ref="qcAlipayConfig"></property>
+		<property name="key"><value>9kydim4p6xubhr2rul6pua5f95ovgvi3</value></property>
+	</bean>
+	<!-- 投注站wap支付 -->
+	<bean id="wapMerRequestBuilder" class="com.quncai.merpay.request.MerPayRequestBuilderImpl">
+		<property name="subject"><value>群彩帐户充值</value></property>
+		<property name="callBackUrl"><value>https://m.quncai.com/recharge_success.html</value></property>
+		<property name="notifyUrl"><value>https://m.quncai.com/paynotify/merpayNotify.php</value></property>
+		<property name="merchantUrl"><value>http://www.quncai.com</value></property>
+		<property name="reqTradeUrl"><value>https://www.xdpay.cn/mpay/merpay.phpx</value></property>
+		<property name="publicKey"><value>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxiETJZ6TcKr7OD/f42l8YTRjaiY8/kBFETCp+c+PGcIt7IgayU6qPOlJUu4+3pFENWqzEq70+bQMseycq18+UgMKowvuFuKEDUzSF29mndT0M9bxVVmrgw9Zkg8/FFhtPaHVQWFCRPdPnkR0+ZEXd6LWZCgr+sLb8hI28IxHjDvU737dHYmtyxnYoZs33uZGw027uHm0A6S4yd4oxUel1HL1ZAfWqEFa0B/fDjUtNXIN0bIksXPPcuKn8Ah0ghhvpmDfFpCv2NU0xA/X6yFp7w5/7OZOTdZ1WOh/5jkZSs4t3WtrbMsCmfDoQgzedqLSpEX9ZWCT1ZH3+be3P3NKFwIDAQAB</value></property>
+		<property name="privateKey"><value>MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1QzgrOCJWykV76k+rpIv5DQj0m3g522WPKqE0mcvSpcG92n2WeQgwrnU9nv9JYk69/PrWmmrdFqln+8499XyEcrqh2RtoC0DZD6T3pM5/9d/MhASPHRyzjpZQCJNceZb4FsMtmElecFhf31lTsv/0Sv6Gpj0eziGCxJFZ5AkYmKG6yYOrHkrY9THX8FQocdDcHCkCFfZQbdiuB4CmeeVbOfjafRIxPcXCOWJfyPNy/JanTz2d+o/af85YCAn9PO9AAVvRz4va3orB4epDbuXT2603CH9XUmITgbEZFR9+up4tR+xAV4VvodniS9RF42lhLRlmTvmw7G5W8+NtRdPhAgMBAAECggEAZ4bf8tdZzYYzj2WxYVBW3cUTI1oUnb7wT4fCkN9yaXpgoIXFCwdPpTZPIgXIuuoaHSr7PUzu0h2aXhiUoBCwsJkyfTQaEh+zRwZHa2XGx5Dv5MhWLkMrXGaI9Wcge0W68zFVApqi9PxnjUJsq4Bl7epTWyZhbFHBFAYfGl9CzrePviWltMlnTgTZQShN+G6VLc8jwvU2VvF5GDRc2KNgdI0JeL5BaAGWLlRK4eJ9qTHKGfOQQlQhtPvR7ONqFP6L+c4MXf5tqaDVxOBYWNl/4LndioFA8o3fXRppjUrv1UE8PfUaziBBGbIBk2ePmdCJ41Nfr8E7Yzx+a9aMEsetTQKBgQDlmMH7Lvvc8dAw0nRpBVQWaQtyEUO6mbyPRAisETX/WwRyPguKfmdHqegUA2GFvbLtVdk5lIetgzycu+cINM3tPkWGz4l4esjggr7QHiT/t+33nXBs2ZtvIyiTkBZpNBBwQquNr9O5o+4vuUsVAJjwIKRl+PxLktHUHbq0PSp1UwKBgQDKG4XLJqSiZCo9sT9+K1AG3lt2tm9Jq+bGu1oe0PhpuawqiSidpNoFNHi4IPYnNFghmFTkT3Ph5wGZYkJ8PKfSWvVbF5RTbm4SxBrkvJLuJMfBrPGUzPZXseMCvbAkU7nvADhxVjB1UFBs4K8J4KL/AFwInanRbOnVhj9K2bcXewKBgFI9hIZnzvnWeD90sxQHP5aDbAEg5ATMGrmqofyYcaIVRSNyzAmAu5f06Vd52o3gZF4VGSlB5dOmJajyuY+78mNfoeHnJxPLz3Zz/stncNNUW94NO/8Rd1a43kj1HMH0T0sW5oJrD8j4SlI36ggM3bttxdVs+VpMrfJv77euDS5XAoGBAJeiQqWCnq6/2/lhTLPKp0Yf+ht9EM4DTSf5VMoeGuKnzYY0VebA0lppXdE32bbcTOsXsUmCWv04JjkAQcWYdIkceU0Yyc424hruSwcmfE50BfNHYBE2HfT5n8pkqwz2TGAGmFJgSgcadNzbTjho86HCkUpdkBVyU5ZCHKZ55iaVAoGBAMUaqUfwKxPnmLChBZtikgtj6v3waiVak5QgWh6FxLY5kH4o20cxtL+VSy6jFAFPYwQDUcoTWsIFjkbWtt0u1boFRh3VxhGPQCE4nN9B53Dq13mf45uqJDJVUR7vgw12ErTTW8O8XxBB0TyaH4CcssyRAMaE7PUF8RfwuhO7pxgC</value></property>
+	</bean>
+	<!-- app跳转wap支付 -->
+	<bean id="appForwardWapRequestBuilder" class="com.quncai.alipay.request.WapPayRequestBuilderImpl">
+		<property name="subject"><value>群彩帐户充值</value></property>
+		<property name="callBackUrl"><value>com.app.lan.quncai://</value></property>
+		<property name="notifyUrl"><value>http://www.quncai.com/user/chargeNotifyZFBWap.php</value></property>
+		<property name="merchantUrl"><value>com.app.lan.quncai://</value></property>
+		<property name="reqCreateUrl"><value>http://wappaygw.alipay.com/service/rest.htm</value></property>
+		<property name="reqTradeUrl"><value>http://wappaygw.alipay.com/service/rest.htm</value></property>
+		<property name="alipayConfig" ref="qcAlipayConfig"></property>
+		<property name="key"><value>9kydim4p6xubhr2rul6pua5f95ovgvi3</value></property>
+	</bean>
+	<bean id="wapNotifyVeryfy" class="com.quncai.alipay.notify.WapNotifyVerifyImpl">
+		<property name="key"><value>9kydim4p6xubhr2rul6pua5f95ovgvi3</value></property>
+	</bean>
+</beans>

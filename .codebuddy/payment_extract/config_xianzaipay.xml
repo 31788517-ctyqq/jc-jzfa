@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
+<beans>
+	<!-- 现在支付配置 -->
+	<bean id="xianZaiPayConfig" class="com.quncai.xianzai.config.XianZaiPayConfig">
+		<!-- 商户应用唯一标识 -->
+		<property name="appId">
+			<!-- 测试环境 -->
+			<!-- <value>147868777472129</value> -->
+			<!-- 生产环境 -->
+			<value>150208701830142</value>
+		</property>
+		<!-- 支付密钥 -->
+		<property name="appKey">
+			<!-- 测试环境 -->
+			<!-- <value>1FZMAlAplOTamX6OARDVV8hrswhbGEVg</value> -->
+			<!-- 生产环境 -->
+			<value>IbQpwDH2dsAdGvXxTSM8M21uNzqp5iF0</value>
+		</property>
+		<!-- 商户前台通知URL -->
+		<property name="frontNotifyUrl">
+			<!-- 测试环境 -->
+			<!-- <value>http://posp.ipaynow.cn:10808/cpgatetest/frontnotify</value> -->
+			<!-- 生产环境 -->
+			<value>http://c.m.quncai.com/member/xianzaipay_rechargeSuccess.php</value>
+		</property>
+		<!-- 商户后台通知URL -->
+		<property name="notifyUrl">
+			<!-- 测试环境 -->
+			<!-- <value>http://posp.ipaynow.cn:10808/cpgatetest/notify</value> -->
+			<!-- 生产环境 -->
+			<value>http://www.quncai.com/member/chargeNotifyXZPay.php</value>
+		</property>
+		<!-- 费率(目前合同上由群彩承担，不扣用户钱，故为0.00) -->
+		<property name="rate">
+			<value>0.00</value>
+		</property>
+	</bean>
+
+</beans>

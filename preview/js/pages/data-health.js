@@ -13,15 +13,15 @@ import { api } from '../api.js';
 // ═══════════════════════════════════════════════════════
 
 export async function loadDataHealth(force) {
-  var el = document.getElementById('data-health-content');
+  const el = document.getElementById('data-health-content');
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载健康数据...</div>';
 
   try {
-    var timeVal = window.getDDVal ? window.getDDVal('dd-dhTime') : '1';
-    var days = timeVal === 'all' ? 0 : parseInt(timeVal) || 1;
+    const timeVal = window.getDDVal ? window.getDDVal('dd-dhTime') : '1';
+    const days = timeVal === 'all' ? 0 : parseInt(timeVal) || 1;
 
-    var data = await api('data-health', { days: days });
+    const data = await api('data-health', { days: days });
     if (!data) {
       el.innerHTML = '<div class="hint-box">数据加载失败</div>';
       updateStatsCard(null);
@@ -41,19 +41,19 @@ export async function loadDataHealth(force) {
 // ═══════════════════════════════════════════════════════
 
 function updateStatsCard(data) {
-  var elSources = document.getElementById('dhStatSources');
-  var elAvgRate = document.getElementById('dhStatAvgRate');
-  var elAlerts = document.getElementById('dhStatAlerts');
+  const elSources = document.getElementById('dhStatSources');
+  const elAvgRate = document.getElementById('dhStatAvgRate');
+  const elAlerts = document.getElementById('dhStatAlerts');
   if (elSources) elSources.textContent = data ? Object.keys(data.fetchSources || {}).length : '--';
   if (elAlerts) elAlerts.textContent = data ? (data.recentAlerts || []).length : '--';
 
   if (elAvgRate) {
-    var sources = data ? data.fetchSources : null;
+    const sources = data ? data.fetchSources : null;
     if (sources && Object.keys(sources).length > 0) {
-      var rates = Object.values(sources).map(function (s) {
+      const rates = Object.values(sources).map(function (s) {
         return s.rate || 0;
       });
-      var avg = (
+      const avg = (
         (rates.reduce(function (a, b) {
           return a + b;
         }, 0) /
@@ -75,10 +75,10 @@ function updateStatsCard(data) {
 // ═══════════════════════════════════════════════════════
 
 function buildHealthHTML(data) {
-  var fetchSources = data.fetchSources || {};
-  var recentAlerts = data.recentAlerts || [];
-  var dbSize = data.dbSize || {};
-  var mismatchDetails = data.mismatchDetails || [];
+  const fetchSources = data.fetchSources || {};
+  const recentAlerts = data.recentAlerts || [];
+  const dbSize = data.dbSize || {};
+  const mismatchDetails = data.mismatchDetails || [];
 
   return [
     /* 数据源抓取成功率 — income-list 风格表格 */
@@ -116,7 +116,7 @@ function buildFetchTable(sources) {
     return '<div class="hint-box">暂无数据源统计数据</div>';
   }
 
-  var html =
+  let html =
     '<table class="filter-detail-table"><thead><tr>' +
     '<th class="fdt-date">状态</th>' +
     '<th>数据源</th>' +
@@ -125,12 +125,12 @@ function buildFetchTable(sources) {
     '</tr></thead><tbody>';
 
   Object.entries(sources).forEach(function (entry) {
-    var name = entry[0];
-    var info = entry[1];
-    var rate = (info.rate || 0) * 100;
-    var barColor = rate >= 90 ? 'var(--green)' : rate >= 80 ? 'var(--amber)' : 'var(--red)';
-    var status = rate >= 90 ? '✅' : rate >= 80 ? '⚠️' : '🔴';
-    var detail = (info.success || 0) + '/' + (info.total || 0);
+    const name = entry[0];
+    const info = entry[1];
+    const rate = (info.rate || 0) * 100;
+    const barColor = rate >= 90 ? 'var(--green)' : rate >= 80 ? 'var(--amber)' : 'var(--red)';
+    const status = rate >= 90 ? '✅' : rate >= 80 ? '⚠️' : '🔴';
+    const detail = (info.success || 0) + '/' + (info.total || 0);
 
     html +=
       '<tr>' +
@@ -167,9 +167,9 @@ window._dhRefresh = function () {
 // ═══════════════════════════════════════════════════════
 
 function buildCompletenessBlock(data) {
-  var parts = [];
-  var completeness = data.completeness || 0;
-  var compColor =
+  const parts = [];
+  const completeness = data.completeness || 0;
+  const compColor =
     completeness >= 85
       ? 'var(--green)'
       : completeness >= 70
@@ -177,15 +177,15 @@ function buildCompletenessBlock(data) {
         : completeness > 0
           ? 'var(--red)'
           : 'var(--text3)';
-  var compLabel = completeness > 0 ? completeness + '%' : '待同步';
+  const compLabel = completeness > 0 ? completeness + '%' : '待同步';
 
   // 使用后端返回的日期标签
-  var dateLabel = data.dateLabel || data.date || '';
+  const dateLabel = data.dateLabel || data.date || '';
 
   // 数据库实际大小（从服务端获取，3MB 约）
-  var dbSize = data.dbSize || {};
-  var dbMB = dbSize.sizeMB || dbSize.size_mb || 0;
-  var dbText = dbMB > 0 ? dbMB.toFixed(1) : '--';
+  const dbSize = data.dbSize || {};
+  const dbMB = dbSize.sizeMB || dbSize.size_mb || 0;
+  const dbText = dbMB > 0 ? dbMB.toFixed(1) : '--';
 
   parts.push('<div class="filter-stats-row" style="flex-wrap:wrap;gap:4px 8px">');
   parts.push(
@@ -228,7 +228,7 @@ function buildAlertsTable(alerts) {
     return '<div class="hint-box" style="color:var(--green);padding:40px 0">✅ 无告警，系统运行正常</div>';
   }
 
-  var html =
+  let html =
     '<table class="filter-detail-table"><thead><tr>' +
     '<th style="width:50px">级别</th>' +
     '<th>告警信息</th>' +
@@ -236,8 +236,8 @@ function buildAlertsTable(alerts) {
     '</tr></thead><tbody>';
 
   alerts.slice(0, 15).forEach(function (a) {
-    var levelColor = a.level === 'P0' ? 'var(--red)' : a.level === 'P1' ? 'var(--amber)' : 'var(--text2)';
-    var timeStr = (a.time || '').slice(5, 16).replace('T', ' ');
+    const levelColor = a.level === 'P0' ? 'var(--red)' : a.level === 'P1' ? 'var(--amber)' : 'var(--text2)';
+    const timeStr = (a.time || '').slice(5, 16).replace('T', ' ');
 
     html +=
       '<tr>' +
@@ -272,13 +272,13 @@ window._dhRefresh = function () {
 // ═══════════════════════════════════════════════════════
 
 function buildGateList(sources) {
-  var gates = [
+  const gates = [
     { icon: '📊', name: '赔率数据', key: '赔率数据' },
     { icon: '📈', name: '推荐数据', key: '推荐数据' },
     { icon: '🛡️', name: '功守道API', key: '功守道API' },
   ];
 
-  var html =
+  let html =
     '<table class="filter-detail-table"><thead><tr>' +
     '<th class="fdt-date"></th>' +
     '<th>门禁项</th>' +
@@ -287,13 +287,13 @@ function buildGateList(sources) {
     '</tr></thead><tbody>';
 
   gates.forEach(function (g) {
-    var info = sources[g.key];
+    const info = sources[g.key];
     if (!info) return;
-    var rate = info.rate || 0;
-    var ratePct = (rate * 100).toFixed(1);
-    var passed = rate >= 0.9;
-    var color = passed ? 'var(--green)' : 'var(--red)';
-    var status = passed ? '✅ 通过' : '⚠️ 未达标';
+    const rate = info.rate || 0;
+    const ratePct = (rate * 100).toFixed(1);
+    const passed = rate >= 0.9;
+    const color = passed ? 'var(--green)' : 'var(--red)';
+    const status = passed ? '✅ 通过' : '⚠️ 未达标';
 
     html +=
       '<tr>' +

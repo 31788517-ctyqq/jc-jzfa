@@ -10,6 +10,14 @@ global.fetch = jest.fn().mockResolvedValue({
   json: () => Promise.resolve({ code: 1, data: [] }),
 });
 
+// ★ V17: 预注册 main-fusion.js 导出到 window 的函数（测试环境无法加载完整模块）
+beforeAll(function () {
+  window.goToday = function goToday() {};
+  window.shiftWeek = function shiftWeek() {};
+  window.switchTab = function switchTab() {};
+  window.goBack = function goBack() {};
+});
+
 describe('main-fusion — 日期函数 (Node 模拟)', () => {
   let updateDateBar;
   let state;

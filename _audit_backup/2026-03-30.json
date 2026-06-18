@@ -1,0 +1,32 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.008Z",
+  "earliestKickoff": null,
+  "date": "2026-03-30",
+  "plans": [
+    {
+      "planId": "plan_2026-03-30_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038680",
+          "direction": "平、让平",
+          "homeName": "新西兰",
+          "visitName": "智利",
+          "matchNum": "周一001"
+        },
+        {
+          "matchId": "2038681",
+          "direction": "让负",
+          "homeName": "德国",
+          "visitName": "加纳",
+          "matchNum": "周一002"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.480Z",
+  "earliestKickoff": null,
+  "date": "2026-05-17",
+  "plans": [
+    {
+      "planId": "plan_2026-05-17_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039794",
+          "direction": "总进球-2、3球",
+          "homeName": "达姆施塔特",
+          "visitName": "帕德博恩",
+          "matchNum": "周日013"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-17_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039813",
+          "direction": "总进球-1、2、3球",
+          "homeName": "马赛",
+          "visitName": "雷恩",
+          "matchNum": "周日032"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-17_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039811",
+          "direction": "总进球-1、2、3球",
+          "homeName": "里昂",
+          "visitName": "朗斯",
+          "matchNum": "周日030"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-17_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039785",
+          "direction": "总进球-3、4、5球",
+          "homeName": "富川FC",
+          "visitName": "浦项制铁",
+          "matchNum": "周日004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-17_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039806",
+          "direction": "总进球-3、4、5球",
+          "homeName": "埃尔切",
+          "visitName": "赫塔费",
+          "matchNum": "周日025"
+        }
+      ]
+    }
+  ]
+}

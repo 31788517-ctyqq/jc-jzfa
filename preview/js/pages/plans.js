@@ -3,7 +3,7 @@ import { WEEK_NAMES, MIN_PLAN_DATE, formatDate, getCache, setCache } from '../ut
 import * as state from '../vendor.js';
 
 function getMatchHandicapValue(m, selection) {
-  var candidates = [
+  const candidates = [
     m && m.odds && m.odds.rqspf ? m.odds.rqspf.handicap : undefined,
     m && m.odds ? m.odds.handicap : undefined,
     m ? m.handicap : undefined,
@@ -11,10 +11,10 @@ function getMatchHandicapValue(m, selection) {
     m ? m.concede : undefined,
     selection ? selection.handicap : undefined,
   ];
-  for (var i = 0; i < candidates.length; i++) {
-    var raw = candidates[i];
+  for (let i = 0; i < candidates.length; i++) {
+    const raw = candidates[i];
     if (raw === null || raw === undefined || raw === '') continue;
-    var num = Number(raw);
+    const num = Number(raw);
     if (!isNaN(num)) return num;
   }
   return null;
@@ -22,7 +22,7 @@ function getMatchHandicapValue(m, selection) {
 
 function formatHandicapText(handicap) {
   if (handicap === null || handicap === undefined || handicap === '') return '--';
-  var num = Number(handicap);
+  const num = Number(handicap);
   if (isNaN(num)) return '--';
   if (num > 0) return '+' + num;
   if (num < 0) return String(num);
@@ -33,14 +33,14 @@ function formatHandicapText(handicap) {
  * 渲染对阵文本：有比分显示比分，无比分显示 VS；每场都展示让球数
  */
 function renderMatchTeams(m, selection) {
-  var hasResult =
+  const hasResult =
     (m.isMatchWon !== null && m.isMatchWon !== undefined) ||
     (m.isMatchLose !== null && m.isMatchLose !== undefined) ||
     (m.isScoreWon !== null && m.isScoreWon !== undefined) ||
     (m.isScoreLose !== null && m.isScoreLose !== undefined);
-  var score = m.actualScore || '';
-  var handicapText = formatHandicapText(getMatchHandicapValue(m, selection));
-  var middle =
+  const score = m.actualScore || '';
+  const handicapText = formatHandicapText(getMatchHandicapValue(m, selection));
+  const middle =
     hasResult && score ? '<span class="plan-score-blue">' + score + '</span>' : '<span class="plan-team-vs">vs</span>';
   return (
     '<span class="plan-team-home">' +
@@ -78,28 +78,28 @@ function guardPlanData(plans) {
 }
 
 export function updatePlanDateBar() {
-  var d = new Date();
+  const d = new Date();
   d.setDate(d.getDate() + state.planDateOffset);
   state.setPlanDate(
     d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'),
   );
-  var el = document.getElementById('planDateCurrent');
+  const el = document.getElementById('planDateCurrent');
   if (!el) return;
-  var today = new Date();
-  var todayStr =
+  const today = new Date();
+  const todayStr =
     today.getFullYear() +
     '-' +
     String(today.getMonth() + 1).padStart(2, '0') +
     '-' +
     String(today.getDate()).padStart(2, '0');
-  var prefix = state.planDate === todayStr ? '今天 ' : '';
-  var mmdd = state.planDate.slice(5).replace('-', '/');
-  var week = WEEK_NAMES[new Date(state.planDate).getDay()];
+  const prefix = state.planDate === todayStr ? '今天 ' : '';
+  const mmdd = state.planDate.slice(5).replace('-', '/');
+  const week = WEEK_NAMES[new Date(state.planDate).getDay()];
   el.textContent = prefix + mmdd + ' ' + week;
 
   // 日期导航智能停靠：到达最早/最晚日期时箭头视觉禁用
-  var arrows = document.querySelectorAll('#planDateBar .date-arrow');
-  var bar = document.getElementById('planDateBar');
+  const arrows = document.querySelectorAll('#planDateBar .date-arrow');
+  const bar = document.getElementById('planDateBar');
   if (bar && arrows.length >= 2) {
     arrows[0].className = arrows[0].className.replace(/\s*(arrow-disabled|arrow-active)/g,'') +
       (state.planDate <= MIN_PLAN_DATE ? ' arrow-disabled' : ' arrow-active');
@@ -116,32 +116,32 @@ function _normalizeVisiblePlanTab(tab) {
 }
 
 function _syncPlanTabBarLayout() {
-  var bar = document.getElementById('planTabBar');
+  const bar = document.getElementById('planTabBar');
   if (!bar) return;
   bar.style.justifyContent = 'flex-start';
   bar.style.gap = '6px';
 }
 
 function _loadActivePlanTab() {
-  var visibleTab = _normalizeVisiblePlanTab(state.planTab);
+  const visibleTab = _normalizeVisiblePlanTab(state.planTab);
   _syncPlanTabBarLayout();
   if (visibleTab !== state.planTab) state.setPlanTab(visibleTab);
   if (visibleTab === 'my') loadMyPlanList();
   else if (visibleTab === 'ai_tg') loadAIPlanList();
-  else if (visibleTab === 'wc') loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
-  else loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+  else if (visibleTab === 'wc') loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
+  else loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
 }
 
 export function shiftPlanDate(delta) {
   state.setPlanDateExplicit(false);
-  var newOffset = state.planDateOffset + delta;
-  var d = new Date();
+  const newOffset = state.planDateOffset + delta;
+  const d = new Date();
   d.setDate(d.getDate() + newOffset);
-  var newDate =
+  const newDate =
     d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   if (newDate < MIN_PLAN_DATE) return;
   // 前向限制：不能超过今天
-  var todayStr = formatDate(new Date());
+  const todayStr = formatDate(new Date());
   if (newDate > todayStr) return;
   state.setPlanDateOffset(newOffset);
   updatePlanDateBar();
@@ -156,15 +156,15 @@ export function goPlanToday() {
 }
 
 // ★ 手动刷新方案（带冷却）
-var _lastPlanRefreshMs = 0;
+let _lastPlanRefreshMs = 0;
 export function refreshPlanList() {
-  var now = Date.now();
+  const now = Date.now();
   if (now - _lastPlanRefreshMs < 180000) {
     console.log('[plans] 刷新冷却中，3分钟内仅允许一次');
     return;
   }
   _lastPlanRefreshMs = now;
-  var el = document.getElementById('planList');
+  const el = document.getElementById('planList');
   if (el) el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>刷新方案中...</div>';
   api('plan-refresh', { date: state.planDate })
     .then(function () {
@@ -179,24 +179,24 @@ if (typeof window !== 'undefined') window._refreshPlanList = refreshPlanList;
 
 // 智能日期停靠：页面加载时定位到 weekDates 中 <= 今天的最近日期
 export function _autoSetBestDate() {
-  var weekDates = state.weekDates || [];
+  const weekDates = state.weekDates || [];
   if (weekDates.length === 0) return;
-  var today = formatDate(new Date());
-  var todayMD = today.slice(5);
-  var dates = weekDates.map(function (w) {
+  const today = formatDate(new Date());
+  const todayMD = today.slice(5);
+  const dates = weekDates.map(function (w) {
     return w.matchDate;
   });
   // 如果今天有比赛数据，直接待在今天
   if (dates.indexOf(todayMD) >= 0) return;
   // 否则找到 <= 今天的最新日期
-  var latestMD = '';
+  let latestMD = '';
   dates.forEach(function (md) {
     if (md <= todayMD && md > latestMD) latestMD = md;
   });
   if (latestMD) {
-    var d = new Date();
-    var latestDate = new Date(d.getFullYear(), parseInt(latestMD.slice(0, 2), 10) - 1, parseInt(latestMD.slice(3), 10));
-    var diffDays = Math.ceil((d.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
+    const d = new Date();
+    const latestDate = new Date(d.getFullYear(), parseInt(latestMD.slice(0, 2), 10) - 1, parseInt(latestMD.slice(3), 10));
+    const diffDays = Math.ceil((d.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
     if (diffDays > 0) {
       state.setPlanDateOffset(-diffDays);
       updatePlanDateBar();
@@ -205,7 +205,7 @@ export function _autoSetBestDate() {
 }
 
 export function switchPlanTab(tab) {
-  var visibleTab = _normalizeVisiblePlanTab(tab);
+  const visibleTab = _normalizeVisiblePlanTab(tab);
   _syncPlanTabBarLayout();
   state.setPlanTab(visibleTab);
 
@@ -213,24 +213,24 @@ export function switchPlanTab(tab) {
     btn.classList.toggle('active', btn.getAttribute('data-tab') === visibleTab);
   });
   // ★ 自动滚动使激活标签完整可见，但不再把整个标签栏推向右侧
-  var activeTag = document.querySelector('#planTabBar .filter-tag[data-tab="' + visibleTab + '"]');
+  const activeTag = document.querySelector('#planTabBar .filter-tag[data-tab="' + visibleTab + '"]');
   if (activeTag) {
     activeTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
   }
 
   if (visibleTab === 'my') loadMyPlanList();
   else if (visibleTab === 'ai_tg') loadAIPlanList();
-  else if (visibleTab === 'wc') loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
-  else loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+  else if (visibleTab === 'wc') loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
+  else loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
 }
 
 // ★ 总进球三向标签页：仅显示方案A01/A02/A03（AI驱动）
 export function loadAIPlanList() {
-  var el = document.getElementById('planList');
+  const el = document.getElementById('planList');
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载方案中...</div>';
 
-  var params = { date: state.planDate };
+  const params = { date: state.planDate };
 
   api('plan-list', params)
     .then(function (data) {
@@ -238,9 +238,9 @@ export function loadAIPlanList() {
         state.setPlanDate(data.date);
       }
 
-      var allPlans = (data.plans || []).concat(data.wcPlans || []);
-      var aiPlans = allPlans.filter(function (p) {
-        var pn = p.planName || p.name || '';
+      const allPlans = (data.plans || []).concat(data.wcPlans || []);
+      const aiPlans = allPlans.filter(function (p) {
+        const pn = p.planName || p.name || '';
         return pn.indexOf('方案A') === 0;
       });
 
@@ -250,7 +250,7 @@ export function loadAIPlanList() {
       }
 
       // 改造成数组让 loadPlanList 渲染逻辑能处理
-      var mockData = JSON.parse(JSON.stringify(data));
+      const mockData = JSON.parse(JSON.stringify(data));
       mockData.plans = aiPlans;
       mockData.wcPlans = [];
 
@@ -264,18 +264,18 @@ export function loadAIPlanList() {
 
 // 精简版渲染：仅用于 AI 三向方案
 function _renderPlanListFromData(el, data, params) {
-  var plans = (data.plans || []).map(function (p, i) {
-    var matches = p.matches || [];
-    var allWon = matches.length > 0, anyLose = false;
-    for (var mj = 0; mj < matches.length; mj++) {
+  const plans = (data.plans || []).map(function (p, i) {
+    const matches = p.matches || [];
+    let allWon = matches.length > 0, anyLose = false;
+    for (let mj = 0; mj < matches.length; mj++) {
       if (matches[mj].isMatchWon !== true) allWon = false;
       if (matches[mj].isMatchLose === true) anyLose = true;
     }
-    var isWon = allWon;
-    var isLose = !isWon && anyLose;
-    var planName = p.planName || '方案A';
-    var prizeNum = isWon ? (p.winningPrize || 0) : isLose ? 0 : (p.maxPrize || 0);
-    var statusBadge = isWon ? '<span style="color:#22c55e;font-weight:600;">✓ 已中奖</span>' : isLose ? '<span style="color:#ef4444;font-weight:600;">✗ 未中奖</span>' : '<span style="color:#fbbf24;">⏳ 待开</span>';
+    const isWon = allWon;
+    const isLose = !isWon && anyLose;
+    const planName = p.planName || '方案A';
+    const prizeNum = isWon ? (p.winningPrize || 0) : isLose ? 0 : (p.maxPrize || 0);
+    const statusBadge = isWon ? '<span style="color:#22c55e;font-weight:600;">✓ 已中奖</span>' : isLose ? '<span style="color:#ef4444;font-weight:600;">✗ 未中奖</span>' : '<span style="color:#fbbf24;">⏳ 待开</span>';
     return {
       plan: p, i: i, planName: planName, isWon: isWon, isLose: isLose,
       prizeNum: prizeNum, statusBadge: statusBadge,
@@ -283,14 +283,14 @@ function _renderPlanListFromData(el, data, params) {
     };
   });
 
-  var noticeHtml = data.notice ? '<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#fbbf24;text-align:center;">⚠ ' + data.notice + '</div>' : '';
+  const noticeHtml = data.notice ? '<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#fbbf24;text-align:center;">⚠ ' + data.notice + '</div>' : '';
 
   if (plans.length === 0) {
     el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">暂无总进球三向方案</div>';
     return;
   }
 
-  var html = noticeHtml;
+  let html = noticeHtml;
   html += '<div style="margin-bottom:8px;color:var(--text2);font-size:11px;text-align:center;">AI 总进球三向预测 · ' + plans.length + ' 个方案</div>';
   plans.forEach(function (pi) {
     html += _buildAIPlanCard(pi);
@@ -300,40 +300,40 @@ function _renderPlanListFromData(el, data, params) {
 
 function _buildAIPlanCard(pi) {
   // ★ 总进球三向卡片 — 对齐专家卡8层结构，暖珊瑚色主题
-  var CORAL = '#FF6B6B';
-  var CORAL_LIGHT = 'rgba(255,107,107,0.12)';
-  var p = pi.plan;
-  var matches = p.matches || [];
-  var isWon = pi.isWon;
-  var isLose = pi.isLose;
+  const CORAL = '#FF6B6B';
+  const CORAL_LIGHT = 'rgba(255,107,107,0.12)';
+  const p = pi.plan;
+  const matches = p.matches || [];
+  const isWon = pi.isWon;
+  const isLose = pi.isLose;
 
   // ── 1. 截止时间 ──
-  var cutoffDisplay = '';
+  let cutoffDisplay = '';
   if (matches.length > 0 && matches[0].startTime) {
-    var stParts = matches[0].startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+    const stParts = matches[0].startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
     if (stParts) {
       cutoffDisplay = '<span style="font-size:11px;color:var(--text3);">截 ' + stParts[1] + '/' + stParts[2] + ' ' + stParts[3] + ':' + stParts[4] + '</span>';
     }
   }
 
   // ── 2. 状态文本+徽章 ──
-  var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
-  var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
-  var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
-  var prizeVal = isWon ? (p.winningPrize || 0) : isLose ? 0 : (p.maxPrize || 0);
-  var prizeStr = prizeVal > 0 ? prizeVal.toFixed(0) : isWon ? '--' : '0';
+  const statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
+  const statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
+  const prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
+  const prizeVal = isWon ? (p.winningPrize || 0) : isLose ? 0 : (p.maxPrize || 0);
+  const prizeStr = prizeVal > 0 ? prizeVal.toFixed(0) : isWon ? '--' : '0';
 
   // ── 3. 方向赔率解析 ──
-  var matchDir = matches.length > 0 ? (matches[0].direction || '') : '';
-  var oddsObj = matches.length > 0 ? (matches[0].odds || {}) : {};
-  var dirParts = matchDir ? matchDir.split(/[、，,]/) : [];
-  var subResults = matches.length > 0 ? (matches[0].subResults || []) : [];
-  var commonPrefix = '';
+  const matchDir = matches.length > 0 ? (matches[0].direction || '') : '';
+  const oddsObj = matches.length > 0 ? (matches[0].odds || {}) : {};
+  const dirParts = matchDir ? matchDir.split(/[、，,]/) : [];
+  const subResults = matches.length > 0 ? (matches[0].subResults || []) : [];
+  let commonPrefix = '';
   if (dirParts.length > 1 && dirParts[0].length > 1) {
-    for (var cl = 1; cl <= dirParts[0].length; cl++) {
-      var cand = dirParts[0].substring(0, cl);
-      var ok = true;
-      for (var pi2 = 1; pi2 < dirParts.length; pi2++) {
+    for (let cl = 1; cl <= dirParts[0].length; cl++) {
+      const cand = dirParts[0].substring(0, cl);
+      let ok = true;
+      for (let pi2 = 1; pi2 < dirParts.length; pi2++) {
         if (dirParts[pi2].indexOf(cand) !== 0) { ok = false; break; }
       }
       if (!ok) break;
@@ -342,31 +342,31 @@ function _buildAIPlanCard(pi) {
   }
   // ★ V17: 数字型尾部提取公共前缀
   if (!commonPrefix && dirParts.length > 1) {
-    var mPrefix = dirParts[0].match(/^(.+?)\d+\+?$/);
+    const mPrefix = dirParts[0].match(/^(.+?)\d+\+?$/);
     if (mPrefix) commonPrefix = mPrefix[1];
   }
-  var oddsSpans = [];
+  const oddsSpans = [];
   dirParts.forEach(function (pt) {
-    var label = pt.trim();
-    var ft = commonPrefix ? commonPrefix + label.replace(commonPrefix, '') : label;
-    var val = null;
+    const label = pt.trim();
+    const ft = commonPrefix ? commonPrefix + label.replace(commonPrefix, '') : label;
+    let val = null;
     if (ft.indexOf('总进球') >= 0 && oddsObj.totalGoals) {
-      var gm = ft.match(/(\d+\+?)/);
+      const gm = ft.match(/(\d+\+?)/);
       if (gm) val = oddsObj.totalGoals[gm[1]];
     }
     if (!val && ft.indexOf('球') >= 0 && oddsObj.totalGoals) {
-      var gm2 = ft.match(/(\d+\+?)/);
+      const gm2 = ft.match(/(\d+\+?)/);
       if (gm2) val = oddsObj.totalGoals[gm2[1]];
     }
-    var subR = null;
-    for (var si = 0; si < subResults.length; si++) {
+    let subR = null;
+    for (let si = 0; si < subResults.length; si++) {
       if (subResults[si].direction === label) { subR = subResults[si]; break; }
     }
-    var subCls = '';
+    let subCls = '';
     if (subR && subR.result !== null && subR.result !== undefined) {
       subCls = subR.result === 1 ? ' plan-direction-hit' : subR.result === -1 ? ' plan-direction-undetermined' : ' plan-direction-miss';
     }
-    var displayLabel = label;
+    let displayLabel = label;
     if (displayLabel.indexOf('总进球-') === 0) displayLabel = displayLabel.replace('总进球-', '') + '球';
     // ★ V17: 裸数字加球后缀
     if (commonPrefix && commonPrefix.indexOf('总进球') >= 0 && /^\d+$/.test(displayLabel) && displayLabel.indexOf('球') < 0) {
@@ -377,18 +377,18 @@ function _buildAIPlanCard(pi) {
   });
 
   // ── 4. 对阵行（V17: 多方向拆行）──
-  var m = matches[0] || {};
-  var numText = m.matchNum || '';
-  var matchDateShort = '', matchTime = '';
+  const m = matches[0] || {};
+  const numText = m.matchNum || '';
+  let matchDateShort = '', matchTime = '';
   if (m.startTime) {
-    var tm2 = m.startTime.match(/(\d{2}):(\d{2})/);
+    const tm2 = m.startTime.match(/(\d{2}):(\d{2})/);
     if (tm2) matchTime = tm2[1] + ':' + tm2[2];
-    var dm2 = m.startTime.match(/(\d{2})\/(\d{2})/) || m.startTime.match(/(\d{2})-(\d{2})/);
+    const dm2 = m.startTime.match(/(\d{2})\/(\d{2})/) || m.startTime.match(/(\d{2})-(\d{2})/);
     if (dm2) matchDateShort = dm2[1] + '/' + dm2[2];
   }
-  var timeDisp = matchDateShort || matchTime ? (matchDateShort + ' ' + matchTime).trim() : '';
-  var matchRow = '';
-  for (var _di = 0; _di < oddsSpans.length; _di++) {
+  const timeDisp = matchDateShort || matchTime ? (matchDateShort + ' ' + matchTime).trim() : '';
+  let matchRow = '';
+  for (let _di = 0; _di < oddsSpans.length; _di++) {
     if (_di === 0) {
       matchRow +=
         '<tr>' +
@@ -408,12 +408,12 @@ function _buildAIPlanCard(pi) {
   }
 
   // ── 5. 组装完整卡片 ──
-  var cardClass = 'plan-card';
+  let cardClass = 'plan-card';
   if (isWon) cardClass += ' plan-card-won';
   else if (isLose) cardClass += ' plan-card-lost';
   else cardClass += ' plan-card-ai';
 
-  var cardId = 'ai-' + pi.planName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5-]/g, '');
+  const cardId = 'ai-' + pi.planName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5-]/g, '');
   return (
     '<div class="' + cardClass + '" id="upcard-' + cardId + '" style="border-left:3px solid ' + CORAL + ';">' +
     // ── head ──
@@ -467,12 +467,12 @@ function _buildAIPlanCard(pi) {
 }
 
 export function loadPlanList(optFilterFn) {
-  var el = document.getElementById('planList');
+  const el = document.getElementById('planList');
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载方案中...</div>';
 
   // 日历直接选日时强制发送日期；offset=0且非显式选日则不传日期让服务器选最新
-  var params;
+  let params;
   if (state.planDateExplicit) {
     params = { date: state.planDate };
   } else if (state.planDateOffset === 0) {
@@ -482,8 +482,8 @@ export function loadPlanList(optFilterFn) {
   }
 
   // ★ P1-2: sessionStorage 缓存命中 — 乐观渲染，消除白屏
-  var cacheKey = 'plan-list:scorefix-v3:' + state.planTab + ':' + state.planDate;
-  var cached = getCache(cacheKey);
+  const cacheKey = 'plan-list:scorefix-v3:' + state.planTab + ':' + state.planDate;
+  const cached = getCache(cacheKey);
   if (cached) {
     el.innerHTML = cached;
     // 缓存 5 分钟内直接使用，过期后下次自动走网络刷新
@@ -491,7 +491,7 @@ export function loadPlanList(optFilterFn) {
   }
 
   // ★ 蓝图：并行获取共识数据
-  var consensusPromise = api('batch-consensus', { date: state.planDate }).catch(function () {
+  const consensusPromise = api('batch-consensus', { date: state.planDate }).catch(function () {
     return null;
   });
 
@@ -502,32 +502,32 @@ export function loadPlanList(optFilterFn) {
       });
     })
     .then(function (ctx) {
-      var data = ctx.data;
-      var consensusMap = ctx.consensusMap;
+      const data = ctx.data;
+      const consensusMap = ctx.consensusMap;
       // 用服务器返回的实际日期更新显示（日历显式选日时不过度覆盖）
       if (data.date && data.date !== state.planDate && !state.planDateExplicit) {
         state.setPlanDate(data.date);
-        var planEl = document.getElementById('planDateCurrent');
+        const planEl = document.getElementById('planDateCurrent');
         if (planEl) {
-          var mmdd = data.date.slice(5).replace('-', '/');
-          var week = WEEK_NAMES[new Date(data.date).getDay()];
+          const mmdd = data.date.slice(5).replace('-', '/');
+          const week = WEEK_NAMES[new Date(data.date).getDay()];
           planEl.textContent = mmdd + ' ' + week;
         }
       }
-      var plans = guardPlanData(data.plans || []);
+      let plans = guardPlanData(data.plans || []);
       // ★ V17: 按标签筛选方案（世界杯 / 专家博热）
       if (typeof optFilterFn === 'function') {
         plans = plans.filter(optFilterFn);
       }
       // ★ notice 提示条（有方案时嵌入顶部）
-      var noticeHtml = data.notice
+      const noticeHtml = data.notice
         ? '<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#fbbf24;text-align:center;">⚠ ' +
           data.notice +
           '</div>'
         : '';
       if (plans.length === 0) {
         var now = new Date();
-        var todayStr =
+        const todayStr =
           now.getFullYear() +
           '-' +
           String(now.getMonth() + 1).padStart(2, '0') +
@@ -535,9 +535,9 @@ export function loadPlanList(optFilterFn) {
           String(now.getDate()).padStart(2, '0');
         // 今天的方案为空 → 自动回退到最近有数据的一天
         if (state.planDate === todayStr) {
-          var d2 = new Date();
+          const d2 = new Date();
           d2.setDate(d2.getDate() + state.planDateOffset - 1);
-          var prevDateStr =
+          const prevDateStr =
             d2.getFullYear() +
             '-' +
             String(d2.getMonth() + 1).padStart(2, '0') +
@@ -553,7 +553,7 @@ export function loadPlanList(optFilterFn) {
               });
             }
             updatePlanDateBar();
-            loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+            loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
             return;
           }
         }
@@ -566,8 +566,8 @@ export function loadPlanList(optFilterFn) {
         } else {
           // ★ L4: 今日13:00前显示"方案生成中"
           var now = new Date();
-          var isToday = state.planDate === now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-          var msg = (isToday && now.getHours() < 13)
+          const isToday = state.planDate === now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+          const msg = (isToday && now.getHours() < 13)
             ? '方案生成中，预计 12:00 后可用'
             : '当日暂无竞彩方案';
           el.innerHTML =
@@ -577,67 +577,67 @@ export function loadPlanList(optFilterFn) {
       }
 
       // ★ 共识过滤版块已隐藏
-      var filterBar = '';
-      var displayPlans = plans;
+      const filterBar = '';
+      const displayPlans = plans;
 
       // ★ 方案刷新按钮
-      var refreshBtn =
+      const refreshBtn =
         '<div style="text-align:center;margin-top:16px;">' +
         '<span class="filter-tag" onclick="window._refreshPlanList()" style="cursor:pointer;">🔄 刷新方案</span>' +
         '</div>';
 
-      var html = displayPlans
+      const html = displayPlans
         .map(function (p, i) {
-          var matches = p.matches || [];
-          var isWon = false,
+          const matches = p.matches || [];
+          let isWon = false,
             isLose = false;
-          var allWon = matches.length > 0;
-          var anyLose = false;
-          for (var mi2 = 0; mi2 < matches.length; mi2++) {
+          let allWon = matches.length > 0;
+          let anyLose = false;
+          for (let mi2 = 0; mi2 < matches.length; mi2++) {
             if (matches[mi2].isMatchWon !== true) allWon = false;
             if (matches[mi2].isMatchLose === true) anyLose = true;
           }
           isWon = allWon;
           isLose = !isWon && anyLose;
 
-          var planName = p.planName || '专家博热方案 ' + (i + 1);
-          var amountVal = (p.amount || 1000).toFixed(0);
+          const planName = p.planName || '专家博热方案 ' + (i + 1);
+          const amountVal = (p.amount || 1000).toFixed(0);
           // ★ 不要覆盖上面从 matches[].isMatchWon/isMatchLose 计算出的 isWon/isLose
-          var prizeNum = isWon ? p.winningPrize || 0 : isLose ? 0 : p.maxPrize || 0;
-          var prizeVal = prizeNum > 0 ? prizeNum.toFixed(0) : isWon ? '--' : '0';
-          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
-          var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
+          const prizeNum = isWon ? p.winningPrize || 0 : isLose ? 0 : p.maxPrize || 0;
+          const prizeVal = prizeNum > 0 ? prizeNum.toFixed(0) : isWon ? '--' : '0';
+          const prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
+          const statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
           var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
           var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
 
-          var cutoffDisplay = '';
+          let cutoffDisplay = '';
           if (matches.length > 0 && matches[0].startTime) {
-            var stParts = matches[0].startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+            const stParts = matches[0].startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
             if (stParts) {
-              var stMonth = parseInt(stParts[1]) - 1,
+              const stMonth = parseInt(stParts[1]) - 1,
                 stDay = parseInt(stParts[2]),
                 stHour = parseInt(stParts[3]),
                 stMin = parseInt(stParts[4]);
-              var pYear = parseInt(state.planDate.slice(0, 4));
-              var kickoff = new Date(pYear, stMonth, stDay, stHour, stMin);
+              const pYear = parseInt(state.planDate.slice(0, 4));
+              const kickoff = new Date(pYear, stMonth, stDay, stHour, stMin);
               if (!isNaN(kickoff.getTime())) {
-                var mp = state.planDate.split('-');
-                var matchDateOnly = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]));
-                var kickoffDateOnly = new Date(kickoff.getFullYear(), kickoff.getMonth(), kickoff.getDate());
-                var isCrossMidnight = kickoffDateOnly > matchDateOnly;
-                var cutoff;
+                const mp = state.planDate.split('-');
+                const matchDateOnly = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]));
+                const kickoffDateOnly = new Date(kickoff.getFullYear(), kickoff.getMonth(), kickoff.getDate());
+                const isCrossMidnight = kickoffDateOnly > matchDateOnly;
+                let cutoff;
                 if (isCrossMidnight) {
-                  var matchDow = matchDateOnly.getDay();
+                  const matchDow = matchDateOnly.getDay();
                   if (matchDow >= 1 && matchDow <= 5)
                     cutoff = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]), 21, 30);
                   else cutoff = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]), 22, 30);
                 } else {
                   cutoff = new Date(kickoff.getTime() - 30 * 60 * 1000);
-                  var dow = kickoff.getDay();
+                  const dow = kickoff.getDay();
                   if (dow >= 1 && dow <= 5 && stHour >= 22) cutoff = new Date(pYear, stMonth, stDay, 21, 30);
                   else if ((dow === 0 || dow === 6) && stHour >= 23) cutoff = new Date(pYear, stMonth, stDay, 22, 30);
                 }
-                var pad2 = function (n) {
+                const pad2 = function (n) {
                   return String(n).padStart(2, '0');
                 };
                 cutoffDisplay =
@@ -654,20 +654,20 @@ export function loadPlanList(optFilterFn) {
           }
 
           function resolveMatchOddsHtml(match, planIdx) {
-            var dir = match.direction || '';
+            let dir = match.direction || '';
             // 单关双选方向展开：胜平→胜、平，平负→平、负
             if (dir === '胜平') dir = '胜、平';
             else if (dir === '平负') dir = '平、负';
-            var oddsObj = match.odds || {};
-            var parts = dir ? dir.split(/[、，,]/) : [];
-            var subResults = match.subResults || [];
-            var resolved = [];
-            var commonPrefix = '';
+            const oddsObj = match.odds || {};
+            const parts = dir ? dir.split(/[、，,]/) : [];
+            const subResults = match.subResults || [];
+            const resolved = [];
+            let commonPrefix = '';
             if (parts.length > 1 && parts[0].length > 1) {
-              for (var cl = 1; cl <= parts[0].length; cl++) {
-                var cand = parts[0].substring(0, cl);
-                var ok = true;
-                for (var pi = 1; pi < parts.length; pi++) {
+              for (let cl = 1; cl <= parts[0].length; cl++) {
+                const cand = parts[0].substring(0, cl);
+                let ok = true;
+                for (let pi = 1; pi < parts.length; pi++) {
                   if (parts[pi].indexOf(cand) !== 0) {
                     ok = false;
                     break;
@@ -679,14 +679,14 @@ export function loadPlanList(optFilterFn) {
             }
             // ★ V17: 数字型尾部提取公共前缀（总进球-3、4、5球 → 总进球-）
             if (!commonPrefix && parts.length > 1) {
-              var mPrefix = parts[0].match(/^(.+?)\d+\+?$/);
+              const mPrefix = parts[0].match(/^(.+?)\d+\+?$/);
               if (mPrefix) commonPrefix = mPrefix[1];
             }
             parts.forEach(function (pt) {
-              var label = pt.trim();
-              var ft = commonPrefix ? commonPrefix + label.replace(commonPrefix, '') : label.trim();
-              var val = null;
-              var isRQ = false;
+              const label = pt.trim();
+              const ft = commonPrefix ? commonPrefix + label.replace(commonPrefix, '') : label.trim();
+              let val = null;
+              let isRQ = false;
               if (ft === '让胜' || ft.indexOf('让胜') >= 0) {
                 val = oddsObj.rqspf && oddsObj.rqspf.home;
                 isRQ = true;
@@ -697,18 +697,18 @@ export function loadPlanList(optFilterFn) {
                 val = oddsObj.rqspf && oddsObj.rqspf.away;
                 isRQ = true;
               } else if (ft.indexOf('总进球') >= 0 && oddsObj.totalGoals) {
-                var gm = ft.match(/(\d+\+?)/);
+                const gm = ft.match(/(\d+\+?)/);
                 if (gm) val = oddsObj.totalGoals[gm[1]];
               }
               if (!val && ft.indexOf('球') >= 0 && oddsObj.totalGoals) {
-                var gm2 = ft.match(/(\d+\+?)/);
+                const gm2 = ft.match(/(\d+\+?)/);
                 if (gm2) val = oddsObj.totalGoals[gm2[1]];
               }
               // 半全场方向（半全场-胜胜、半全场-平胜 等）
-              var isHalfFull = ft.indexOf('半全场-') === 0;
+              const isHalfFull = ft.indexOf('半全场-') === 0;
               if (!val && isHalfFull && oddsObj.halfFull) {
-                var hfName = ft.replace('半全场-', '');
-                var hfMap = {
+                const hfName = ft.replace('半全场-', '');
+                const hfMap = {
                   胜胜: 'ss',
                   平胜: 'ps',
                   胜负: 'sf',
@@ -719,7 +719,7 @@ export function loadPlanList(optFilterFn) {
                   负平: 'fp',
                   负负: 'ff',
                 };
-                var hfKey = hfMap[hfName];
+                const hfKey = hfMap[hfName];
                 if (hfKey) val = oddsObj.halfFull[hfKey];
               }
               // ★ 半全场无赔率数据时不回退到SPF（SPF赔率与半全场差异太大）
@@ -729,18 +729,18 @@ export function loadPlanList(optFilterFn) {
                 else if (ft.indexOf('负') >= 0 && ft.length <= 2) val = oddsObj.spf && oddsObj.spf.away;
               }
               if (!val && !isRQ && oddsObj.spf) val = oddsObj.spf.home || oddsObj.spf.draw || oddsObj.spf.away;
-              var subR = null;
-              for (var si = 0; si < subResults.length; si++) {
+              let subR = null;
+              for (let si = 0; si < subResults.length; si++) {
                 if (subResults[si].direction === label) {
                   subR = subResults[si];
                   break;
                 }
               }
-              var subCls = '';
+              let subCls = '';
               if (subR && subR.result !== null && subR.result !== undefined) {
                 subCls = subR.result === 1 ? ' plan-direction-hit' : subR.result === -1 ? ' plan-direction-undetermined' : ' plan-direction-miss';
               }
-              var displayLabel = label;
+              let displayLabel = label;
               if (displayLabel.indexOf('总进球-') === 0) {
                 displayLabel = displayLabel.replace('总进球-', '');
                 if (displayLabel.indexOf('球') < 0) displayLabel += '球';
@@ -761,24 +761,24 @@ export function loadPlanList(optFilterFn) {
             return resolved;
           }
 
-          var matchRows = '';
-          for (var mi4 = 0; mi4 < matches.length; mi4++) {
-            var m = matches[mi4];
-            var isMw = m.isMatchWon === true;
-            var isMl = m.isMatchLose === true;
-            var matchOddsArr = resolveMatchOddsHtml(m, i);
-            var numText = m.matchNum || '';
-            var matchDateShort = '',
+          let matchRows = '';
+          for (let mi4 = 0; mi4 < matches.length; mi4++) {
+            const m = matches[mi4];
+            const isMw = m.isMatchWon === true;
+            const isMl = m.isMatchLose === true;
+            const matchOddsArr = resolveMatchOddsHtml(m, i);
+            const numText = m.matchNum || '';
+            let matchDateShort = '',
               matchTime = '';
             if (m.startTime) {
-              var tm = m.startTime.match(/(\d{2}:\d{2})/);
+              const tm = m.startTime.match(/(\d{2}:\d{2})/);
               if (tm) matchTime = tm[1];
-              var dm = m.startTime.match(/(\d{2})\/(\d{2})/) || m.startTime.match(/(\d{2})-(\d{2})/);
+              const dm = m.startTime.match(/(\d{2})\/(\d{2})/) || m.startTime.match(/(\d{2})-(\d{2})/);
               if (dm) matchDateShort = dm[1] + '/' + dm[2];
             }
-            var timeDisp = matchDateShort || matchTime ? (matchDateShort + ' ' + matchTime).trim() : '';
+            const timeDisp = matchDateShort || matchTime ? (matchDateShort + ' ' + matchTime).trim() : '';
             // ★ V17: 多方向拆行 — 每个子方向一行
-            for (var di = 0; di < matchOddsArr.length; di++) {
+            for (let di = 0; di < matchOddsArr.length; di++) {
               if (di === 0) {
                 matchRows +=
                   '<tr>' +
@@ -808,7 +808,7 @@ export function loadPlanList(optFilterFn) {
             }
           }
 
-          var cardId = 'expert-' + i;
+          const cardId = 'expert-' + i;
           return (
             '<div class="plan-card" id="upcard-' +
             cardId +
@@ -825,12 +825,12 @@ export function loadPlanList(optFilterFn) {
             '</span>' +
             (function () {
               /* eslint-disable no-undef */
-              var matchIds = matches.map(function (m) {
+              const matchIds = matches.map(function (m) {
                 return m.matchId;
               });
-              var best = null;
+              let best = null;
               matchIds.forEach(function (id) {
-                var c = consensusMap[id];
+                const c = consensusMap[id];
                 if (
                   c &&
                   (!best ||
@@ -840,8 +840,8 @@ export function loadPlanList(optFilterFn) {
                   best = c;
               });
               if (!best) return '';
-              var cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
-              var txt =
+              const cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
+              const txt =
                 best.consensus === 'strong'
                   ? '共识' + best.agreeCount + '/' + best.totalCount
                   : best.consensus === 'weak'
@@ -853,12 +853,12 @@ export function loadPlanList(optFilterFn) {
             })() +
             (function () {
               /* eslint-disable no-undef */
-              var matchIds = matches.map(function (m) {
+              const matchIds = matches.map(function (m) {
                 return m.matchId;
               });
-              var best = null;
+              let best = null;
               matchIds.forEach(function (id) {
-                var c = consensusMap[id];
+                const c = consensusMap[id];
                 if (
                   c &&
                   (!best ||
@@ -869,8 +869,8 @@ export function loadPlanList(optFilterFn) {
               });
               /* eslint-enable no-undef */
               if (!best) return '';
-              var cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
-              var txt =
+              const cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
+              const txt =
                 best.consensus === 'strong'
                   ? '共识' + best.agreeCount + '/' + best.totalCount
                   : best.consensus === 'weak'
@@ -959,25 +959,25 @@ export function loadPlanList(optFilterFn) {
 
 // ========== 我的方案 ==========
 export function loadMyPlanList() {
-  var el = document.getElementById('planList');
+  const el = document.getElementById('planList');
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载我的方案中...</div>';
 
   api('my-plan-list', {})
     .then(function (data) {
-      var plans = guardPlanData((data && data.plans) || []);
+      let plans = guardPlanData((data && data.plans) || []);
 
       // ★ 按当前选择的日期过滤方案
-      var curDate = state.planDate || '';
+      const curDate = state.planDate || '';
       if (curDate && plans.length > 0) {
         plans = plans.filter(function (p) {
           // 方案日期优先从 createdAt 提取
-          var planDate = '';
+          let planDate = '';
           if (p.date) planDate = p.date;
           else if (p.createdAt) planDate = p.createdAt.slice(0, 10);
           // 兜底：从比赛列表中提取日期
           if (!planDate && p.matches && p.matches.length > 0) {
-            var firstMatch = p.matches[0];
+            const firstMatch = p.matches[0];
             if (firstMatch._date) planDate = firstMatch._date;
           }
           return planDate === curDate;
@@ -990,26 +990,26 @@ export function loadMyPlanList() {
         return;
       }
 
-      var html = plans
+      const html = plans
         .map(function (p, idx) {
-          var matches = p.matches || [];
-          var isWon = p.isWon === true;
-          var isLose = p.isWon === false;
-          var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
-          var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
-          var amountVal = (p.amount || 200).toFixed(0);
-          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
+          const matches = p.matches || [];
+          const isWon = p.isWon === true;
+          const isLose = p.isWon === false;
+          const statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
+          const statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
+          const amountVal = (p.amount || 200).toFixed(0);
+          const prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
           // ★ 修复奖金计算公式：
           // totalOdds = maxWin / amount，所以预计最高奖金 = amount * totalOdds
           // 之前多除了 /p.multiplier 导致奖金被低估
-          var prizeVal;
+          let prizeVal;
           if (isWon) {
             prizeVal = p.resultIncome != null ? '+' + p.resultIncome : '--';
           } else if (isLose) {
             prizeVal = '0';
           } else {
-            var totalOdds = Number(p.totalOdds) || 0;
-            var amount = Number(p.amount) || 0;
+            const totalOdds = Number(p.totalOdds) || 0;
+            const amount = Number(p.amount) || 0;
             if (totalOdds > 0 && amount > 0) {
               prizeVal = Math.round(totalOdds * amount * 100) / 100;
             } else {
@@ -1017,7 +1017,7 @@ export function loadMyPlanList() {
             }
           }
           // 按创建顺序编号：方案一、方案二、方案三...
-          var _cnNums = [
+          const _cnNums = [
             '',
             '一',
             '二',
@@ -1050,26 +1050,26 @@ export function loadMyPlanList() {
             '二十九',
             '三十',
           ];
-          var seqNum = idx + 1;
-          var cnNum = seqNum <= 30 ? _cnNums[seqNum] : String(seqNum);
-          var planName = p.planName || p.note || '方案' + cnNum;
-          var dateStr = p.date
+          const seqNum = idx + 1;
+          const cnNum = seqNum <= 30 ? _cnNums[seqNum] : String(seqNum);
+          const planName = p.planName || p.note || '方案' + cnNum;
+          const dateStr = p.date
             ? p.date.slice(5).replace('-', '/')
             : p.createdAt
               ? p.createdAt.slice(0, 10).slice(5)
               : '';
 
-          var matchRows = '';
-          for (var mi = 0; mi < matches.length; mi++) {
-            var m = matches[mi];
-            var oddsStr = m.odds != null ? Number(m.odds).toFixed(2) : '--';
-            var dirDisplay = m.direction || m.oddsName || '';
+          let matchRows = '';
+          for (let mi = 0; mi < matches.length; mi++) {
+            const m = matches[mi];
+            const oddsStr = m.odds != null ? Number(m.odds).toFixed(2) : '--';
+            let dirDisplay = m.direction || m.oddsName || '';
             if (m.playType === 'rqspf') {
-              var hText = formatHandicapText(getMatchHandicapValue(m, m));
+              const hText = formatHandicapText(getMatchHandicapValue(m, m));
               dirDisplay = '让' + dirDisplay + '(' + hText + ')';
             }
             // 赔率颜色：命中红/未命中绿/未开奖原色
-            var oddsStyle = '';
+            let oddsStyle = '';
             if (m.isMatchWon === true) oddsStyle = 'color:#EF4444;';
             else if (m.isMatchLose === true) oddsStyle = 'color:#34D399;';
             matchRows +=
@@ -1093,7 +1093,7 @@ export function loadMyPlanList() {
               '</tr>';
           }
 
-          var stampHtml = '';
+          let stampHtml = '';
           if (isWon) {
             stampHtml =
               '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>';
@@ -1178,7 +1178,7 @@ export function loadMyPlanList() {
 
 // ═══ 自定义确认弹窗工厂 ═══
 function _confirmDelete(planId, planName, onSuccess) {
-  var overlay = document.createElement('div');
+  const overlay = document.createElement('div');
   overlay.className = 'del-overlay active';
   overlay.innerHTML =
     '<div class="del-modal">' +
@@ -1199,7 +1199,7 @@ function _confirmDelete(planId, planName, onSuccess) {
     '</div>';
   document.body.appendChild(overlay);
 
-  var close = function () {
+  const close = function () {
     overlay.classList.remove('active');
     setTimeout(function () {
       overlay.remove();
@@ -1210,7 +1210,7 @@ function _confirmDelete(planId, planName, onSuccess) {
     if (e.target === overlay) close();
   });
 
-  var confirmBtn = overlay.querySelector('.del-btn-confirm');
+  const confirmBtn = overlay.querySelector('.del-btn-confirm');
   confirmBtn.onclick = function () {
     confirmBtn.disabled = true;
     confirmBtn.textContent = '删除中...';
@@ -1220,8 +1220,8 @@ function _confirmDelete(planId, planName, onSuccess) {
         onSuccess();
       })
       .catch(function (e) {
-        var body = overlay.querySelector('.del-modal-body');
-        var errEl = body.querySelector('.del-err');
+        const body = overlay.querySelector('.del-modal-body');
+        let errEl = body.querySelector('.del-err');
         if (!errEl) {
           errEl = document.createElement('p');
           errEl.className = 'del-err';
@@ -1241,10 +1241,10 @@ function refreshMyPlanDelta(plans) {
   if (!plans || plans.length === 0) return;
 
   // 收集所有未开赛方案的 matchIds
-  var pendingMatchIds = [];
+  const pendingMatchIds = [];
   plans.forEach(function (p) {
     if (p.isWon === true || p.isWon === false) return; // 已开奖跳过
-    var matches = p.matches || [];
+    const matches = p.matches || [];
     matches.forEach(function (m) {
       if (m.matchId && pendingMatchIds.indexOf(m.matchId) === -1) {
         pendingMatchIds.push(m.matchId);
@@ -1259,26 +1259,26 @@ function refreshMyPlanDelta(plans) {
       if (!oddsMap) return;
       // 更新每张方案卡片中对应比赛的 odds-col 显示
       plans.forEach(function (p) {
-        var card = document.getElementById('upcard-' + p.id);
+        const card = document.getElementById('upcard-' + p.id);
         if (!card) return;
-        var matches = p.matches || [];
-        var rows = card.querySelectorAll('.plan-match-table tbody tr');
+        const matches = p.matches || [];
+        const rows = card.querySelectorAll('.plan-match-table tbody tr');
         matches.forEach(function (m, idx) {
-          var oData = oddsMap[m.matchId];
+          const oData = oddsMap[m.matchId];
           if (!oData || !oData.oddsDelta) return;
-          var deltaArrow = '';
-          var dirKey = (m.playType || 'spf') + '.' + (m.direction || m.oddsName || '');
+          let deltaArrow = '';
+          const dirKey = (m.playType || 'spf') + '.' + (m.direction || m.oddsName || '');
           // RQSPF direction mapping
-          var fieldName = m.direction || m.oddsName || '';
+          let fieldName = m.direction || m.oddsName || '';
           if (m.playType === 'rqspf' && fieldName.indexOf('让') === 0) fieldName = fieldName.replace('让', '');
-          var groupedKey = m.playType + 'Delta';
-          var grouped = oData[groupedKey] || {};
-          var deltaDir = grouped[fieldName] || null;
+          const groupedKey = m.playType + 'Delta';
+          const grouped = oData[groupedKey] || {};
+          let deltaDir = grouped[fieldName] || null;
           if (!deltaDir) deltaDir = (oData.oddsDelta || {})[dirKey] || null;
           if (deltaDir === 'up') deltaArrow = ' <span style="color:#FF5B55;font-size:9px;">▲</span>';
           else if (deltaDir === 'down') deltaArrow = ' <span style="color:#34D399;font-size:9px;">▼</span>';
           if (deltaArrow && rows[idx]) {
-            var oddsCell = rows[idx].querySelector('.odds-col');
+            const oddsCell = rows[idx].querySelector('.odds-col');
             if (oddsCell && oddsCell.innerHTML.indexOf('▲') === -1 && oddsCell.innerHTML.indexOf('▼') === -1) {
               oddsCell.innerHTML += deltaArrow;
             }
@@ -1293,9 +1293,9 @@ function refreshMyPlanDelta(plans) {
 
 // ═══ 我的方案 — 删除 ═══
 window.deletePlanCard = function (planId) {
-  var card = document.getElementById('upcard-' + planId);
-  var nameEl = card ? card.querySelector('.plan-name') : null;
-  var planName = nameEl ? nameEl.textContent.trim() : '';
+  const card = document.getElementById('upcard-' + planId);
+  const nameEl = card ? card.querySelector('.plan-name') : null;
+  const planName = nameEl ? nameEl.textContent.trim() : '';
   _confirmDelete(planId, planName, function () {
     loadMyPlanList();
   });
@@ -1303,16 +1303,16 @@ window.deletePlanCard = function (planId) {
 
 // ═══ 我的方案 — 分享截图 ═══
 window.sharePlanCard = function (planId) {
-  var card = document.getElementById('upcard-' + planId);
+  const card = document.getElementById('upcard-' + planId);
   if (!card) {
     _toast('方案卡片未找到', 'err');
     return;
   }
 
-  var loadHtml2Canvas = window.html2canvas
+  const loadHtml2Canvas = window.html2canvas
     ? Promise.resolve(window.html2canvas)
     : new Promise(function (resolve, reject) {
-        var script = document.createElement('script');
+        const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
         script.onload = function () {
           resolve(window.html2canvas);
@@ -1327,7 +1327,7 @@ window.sharePlanCard = function (planId) {
 
   loadHtml2Canvas
     .then(function (html2canvas) {
-      var shareEl = _buildShareCard(card);
+      const shareEl = _buildShareCard(card);
       document.body.appendChild(shareEl);
 
       // 等待图片加载后截图
@@ -1356,7 +1356,7 @@ window.sharePlanCard = function (planId) {
 // ═══ 构建 440px 新版分享海报（按分享参考图还原） ═══
 function _buildShareCard(cardEl) {
   function pickText(root, selector) {
-    var el = root.querySelector(selector);
+    const el = root.querySelector(selector);
     return el ? el.textContent.trim().replace(/\s+/g, ' ') : '';
   }
 
@@ -1370,41 +1370,41 @@ function _buildShareCard(cardEl) {
   }
 
   function splitNumberUnit(value, defaultUnit) {
-    var text = String(value || '').replace(/\s+/g, '');
-    var match = text.match(/^([+\-]?[\d.]+)(.*)$/);
+    const text = String(value || '').replace(/\s+/g, '');
+    const match = text.match(/^([+\-]?[\d.]+)(.*)$/);
     if (!match) return { num: text || '--', unit: '' };
     return { num: match[1], unit: match[2] || defaultUnit || '' };
   }
 
   function normalizeDate(value) {
-    var text = String(value || '');
-    var m = text.match(/(\d{1,2})[\/\-](\d{1,2})/);
+    const text = String(value || '');
+    const m = text.match(/(\d{1,2})[\/\-](\d{1,2})/);
     if (!m) return '';
     return String(m[1]).padStart(2, '0') + '-' + String(m[2]).padStart(2, '0');
   }
 
   function formatLastOrderTime(value) {
-    var text = String(value || '').trim();
-    var full = text.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[ T](\d{2}:\d{2})/);
+    const text = String(value || '').trim();
+    const full = text.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[ T](\d{2}:\d{2})/);
     if (full)
       return '最后下单 ' + String(full[2]).padStart(2, '0') + '-' + String(full[3]).padStart(2, '0') + ' ' + full[4];
-    var short = text.match(/(\d{1,2})[\/\-](\d{1,2})\s+(\d{2}:\d{2})/);
+    const short = text.match(/(\d{1,2})[\/\-](\d{1,2})\s+(\d{2}:\d{2})/);
     if (short)
       return '最后下单 ' + String(short[1]).padStart(2, '0') + '-' + String(short[2]).padStart(2, '0') + ' ' + short[3];
-    var timeOnly = text.match(/(\d{2}:\d{2})/);
-    var day = normalizeDate(text);
+    const timeOnly = text.match(/(\d{2}:\d{2})/);
+    const day = normalizeDate(text);
     if (timeOnly && day) return '最后下单 ' + day + ' ' + timeOnly[1];
     return '';
   }
 
   function parseBet(rawValue) {
-    var raw = String(rawValue || '')
+    const raw = String(rawValue || '')
       .replace(/[▲▼]/g, '')
       .replace(/\s+/g, ' ')
       .trim();
-    var label = '胜平负：';
-    var value = raw;
-    var colon = raw.match(/^([^：:]{2,10})[：:]\s*(.+)$/);
+    let label = '胜平负：';
+    let value = raw;
+    const colon = raw.match(/^([^：:]{2,10})[：:]\s*(.+)$/);
     if (colon) {
       label = colon[1] + '：';
       value = colon[2];
@@ -1433,46 +1433,46 @@ function _buildShareCard(cardEl) {
     return { label: label, value: value || '--' };
   }
 
-  var name = pickText(cardEl, '.plan-name') || '方案一';
-  var rawDate = pickText(cardEl, '.plan-pub-time');
-  var amountCols = cardEl.querySelectorAll('.plan-amount-col');
+  const name = pickText(cardEl, '.plan-name') || '方案一';
+  const rawDate = pickText(cardEl, '.plan-pub-time');
+  const amountCols = cardEl.querySelectorAll('.plan-amount-col');
 
-  var amountLabel = amountCols[0] ? pickText(amountCols[0], '.plan-amount-label') : '方案金额';
-  var amountValue = amountCols[0] ? pickText(amountCols[0], '.plan-amount-value') : '--元';
-  var prizeLabel = amountCols[1] ? pickText(amountCols[1], '.plan-amount-label') : '预计最高中奖金额';
-  var prizeValue = amountCols[1] ? pickText(amountCols[1], '.plan-amount-value') : '--元';
-  var statusLabel = amountCols[2] ? pickText(amountCols[2], '.plan-amount-label') : '方案状态';
-  var statusValue = amountCols[2] ? pickText(amountCols[2], '.plan-amount-value') : '未开奖';
-  var statusText = statusValue || '未开奖';
+  const amountLabel = amountCols[0] ? pickText(amountCols[0], '.plan-amount-label') : '方案金额';
+  const amountValue = amountCols[0] ? pickText(amountCols[0], '.plan-amount-value') : '--元';
+  const prizeLabel = amountCols[1] ? pickText(amountCols[1], '.plan-amount-label') : '预计最高中奖金额';
+  const prizeValue = amountCols[1] ? pickText(amountCols[1], '.plan-amount-value') : '--元';
+  const statusLabel = amountCols[2] ? pickText(amountCols[2], '.plan-amount-label') : '方案状态';
+  const statusValue = amountCols[2] ? pickText(amountCols[2], '.plan-amount-value') : '未开奖';
+  let statusText = statusValue || '未开奖';
   if (statusLabel.indexOf('状态') < 0) {
     statusText = statusValue.indexOf('+') === 0 ? '已中奖' : statusValue === '0' ? '未中奖' : '未开奖';
   }
 
-  var infoRights = cardEl.querySelectorAll('.plan-info-right > div');
-  var playType = infoRights[0] ? infoRights[0].textContent.trim().replace(/\s+/g, ' ') : '混合投注';
-  var passType = infoRights[1] ? infoRights[1].textContent.trim().replace(/\s+/g, ' ') : '';
-  var betCount = infoRights[2] ? infoRights[2].textContent.trim().replace(/\s+/g, ' ') : '';
+  const infoRights = cardEl.querySelectorAll('.plan-info-right > div');
+  const playType = infoRights[0] ? infoRights[0].textContent.trim().replace(/\s+/g, ' ') : '混合投注';
+  let passType = infoRights[1] ? infoRights[1].textContent.trim().replace(/\s+/g, ' ') : '';
+  let betCount = infoRights[2] ? infoRights[2].textContent.trim().replace(/\s+/g, ' ') : '';
 
-  var matchRowsData = [];
-  var last = { num: '', time: '', home: '', away: '', score: '', handicap: '' };
+  const matchRowsData = [];
+  const last = { num: '', time: '', home: '', away: '', score: '', handicap: '' };
   cardEl.querySelectorAll('.plan-match-table tbody tr').forEach(function (row) {
-    var cells = row.querySelectorAll('td');
+    const cells = row.querySelectorAll('td');
     if (cells.length < 3) return;
-    var num = pickText(cells[0], '.match-num-text') || last.num;
-    var time = pickText(cells[0], '.match-time-sub') || last.time;
-    var home = pickText(cells[1], '.plan-team-home') || last.home;
-    var away = pickText(cells[1], '.plan-team-away') || last.away;
-    var score = pickText(cells[1], '.plan-score-blue') || '';
-    var handicap = pickText(cells[1], '.plan-handicap-badge') || '';
+    const num = pickText(cells[0], '.match-num-text') || last.num;
+    const time = pickText(cells[0], '.match-time-sub') || last.time;
+    let home = pickText(cells[1], '.plan-team-home') || last.home;
+    let away = pickText(cells[1], '.plan-team-away') || last.away;
+    const score = pickText(cells[1], '.plan-score-blue') || '';
+    const handicap = pickText(cells[1], '.plan-handicap-badge') || '';
     if ((!home || !away) && cells[1]) {
-      var teamText = cells[1].textContent.trim().replace(/\s+/g, ' ');
-      var teamParts = teamText.split(/\s*(?:vs|VS)\s*/);
+      const teamText = cells[1].textContent.trim().replace(/\s+/g, ' ');
+      const teamParts = teamText.split(/\s*(?:vs|VS)\s*/);
       if (!home && teamParts[0]) home = teamParts[0];
       if (!away && teamParts[1]) away = teamParts[1];
     }
-    var bet = parseBet(cells[2].textContent);
-    var betColor = '';
-    var coloredBet = cells[2].querySelector('span[style*="color"]');
+    const bet = parseBet(cells[2].textContent);
+    let betColor = '';
+    const coloredBet = cells[2].querySelector('span[style*="color"]');
     if (coloredBet && coloredBet.style && coloredBet.style.color) betColor = coloredBet.style.color;
     if (num) last.num = num;
     if (time) last.time = time;
@@ -1495,31 +1495,31 @@ function _buildShareCard(cardEl) {
   if (!passType) passType = (matchRowsData.length || 1) + '场';
   if (!betCount) betCount = '--';
 
-  var shareDate = normalizeDate(rawDate) || (matchRowsData[0] ? normalizeDate(matchRowsData[0].time) : '');
-  var lastOrderTime = formatLastOrderTime(rawDate) || shareDate;
+  const shareDate = normalizeDate(rawDate) || (matchRowsData[0] ? normalizeDate(matchRowsData[0].time) : '');
+  const lastOrderTime = formatLastOrderTime(rawDate) || shareDate;
   function formatMatchTime(value) {
-    var text = String(value || '').trim();
-    var m = text.match(/(\d{1,2})[\/\-](\d{1,2})\s+(\d{2}:\d{2})/);
+    const text = String(value || '').trim();
+    const m = text.match(/(\d{1,2})[\/\-](\d{1,2})\s+(\d{2}:\d{2})/);
     if (m) return String(m[1]).padStart(2, '0') + '-' + String(m[2]).padStart(2, '0') + ' ' + m[3];
     if (/^\d{2}:\d{2}$/.test(text) && shareDate) return shareDate + ' ' + text;
     return text.replace(/\//g, '-');
   }
 
-  var amountParts = splitNumberUnit(amountValue, '元');
-  var prizeParts = splitNumberUnit(prizeValue, '元');
-  var statusCls = statusText.indexOf('未中奖') >= 0 ? 'lost' : statusText.indexOf('已中奖') >= 0 ? 'won' : 'pending';
-  var statusColor = statusCls === 'won' ? '#EF4444' : statusCls === 'lost' ? '#9CA3AF' : '#34D399';
+  const amountParts = splitNumberUnit(amountValue, '元');
+  const prizeParts = splitNumberUnit(prizeValue, '元');
+  const statusCls = statusText.indexOf('未中奖') >= 0 ? 'lost' : statusText.indexOf('已中奖') >= 0 ? 'won' : 'pending';
+  const statusColor = statusCls === 'won' ? '#EF4444' : statusCls === 'lost' ? '#9CA3AF' : '#34D399';
 
-  var targetIcon =
+  const targetIcon =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.6"></circle><path d="M19 5l-4 4M18.5 4.5h-3.5v3.5"></path></svg>';
-  var ticketIcon =
+  const ticketIcon =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"></rect><path d="M9 5v14M15 5v14M5 10h14M5 15h14"></path><circle cx="12" cy="12" r="1.5"></circle></svg>';
-  var coinIcon =
+  const coinIcon =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="7" rx="6" ry="3"></ellipse><path d="M6 7v6c0 1.7 2.7 3 6 3s6-1.3 6-3V7"></path><path d="M6 13c0 1.7 2.7 3 6 3s6-1.3 6-3"></path></svg>';
-  var calendarIcon =
+  const calendarIcon =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="5.5" width="15" height="14" rx="2"></rect><path d="M8 3.8v4M16 3.8v4M4.5 10h15M9 14l2 2 4-4"></path></svg>';
 
-  var matchRowsHtml = matchRowsData.length
+  const matchRowsHtml = matchRowsData.length
     ? matchRowsData
         .map(function (item) {
           return (
@@ -1553,7 +1553,7 @@ function _buildShareCard(cardEl) {
         .join('')
     : '<div class="sp-empty-row">暂无赛事详情</div>';
 
-  var css = [
+  const css = [
     '*{margin:0;padding:0;box-sizing:border-box;}',
     '.sp-page{width:440px;min-height:780px;padding:30px 24px 40px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% -10%,#ffffff 0%,#effcfc 38%,#f7ffff 70%,#ffffff 100%);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#152235;}',
     '.sp-page:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(30,176,172,.08),transparent 28%,rgba(30,176,172,.05) 72%,transparent);pointer-events:none;}',
@@ -1603,7 +1603,7 @@ function _buildShareCard(cardEl) {
     '.sp-footer-ball{position:absolute;left:-20px;bottom:-23px;width:112px;height:112px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:94px;opacity:.08;filter:grayscale(.1);transform:rotate(-16deg);}',
   ].join('');
 
-  var wrapper = document.createElement('div');
+  const wrapper = document.createElement('div');
   wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;width:440px;background:transparent;';
   wrapper.innerHTML =
     '<style>' +
@@ -1661,65 +1661,65 @@ function _buildShareCard(cardEl) {
 // ═══ 旧版 750px 分享卡片 DOM（保留兼容回退） ═══
 function _buildLegacyShareCard(cardEl) {
   // ── 提取数据 ──
-  var name = '';
-  var nameEl = cardEl.querySelector('.plan-name');
+  let name = '';
+  const nameEl = cardEl.querySelector('.plan-name');
   if (nameEl) name = nameEl.textContent.trim();
 
-  var date = '';
-  var dateEl = cardEl.querySelector('.plan-pub-time');
+  let date = '';
+  const dateEl = cardEl.querySelector('.plan-pub-time');
   if (dateEl) {
     date = dateEl.textContent.trim();
     // 尝试提取 MM/DD
-    var dm = date.match(/(\d{2}\/\d{2})/);
+    const dm = date.match(/(\d{2}\/\d{2})/);
     if (dm) date = dm[1];
   }
 
   // 金额行
-  var amountCols = cardEl.querySelectorAll('.plan-amount-col');
-  var amountLabel = '',
+  const amountCols = cardEl.querySelectorAll('.plan-amount-col');
+  let amountLabel = '',
     amountValue = '';
-  var prizeLabel = '',
+  let prizeLabel = '',
     prizeValue = '';
-  var statusText = '未开奖';
+  let statusText = '未开奖';
 
   if (amountCols.length >= 1) {
-    var al = amountCols[0].querySelector('.plan-amount-label');
-    var av = amountCols[0].querySelector('.plan-amount-value');
+    const al = amountCols[0].querySelector('.plan-amount-label');
+    const av = amountCols[0].querySelector('.plan-amount-value');
     amountLabel = al ? al.textContent.trim() : '';
     amountValue = av ? av.textContent.trim().replace(/\s+/g, '') : '';
   }
   if (amountCols.length >= 2) {
-    var pl = amountCols[1].querySelector('.plan-amount-label');
-    var pv = amountCols[1].querySelector('.plan-amount-value');
+    const pl = amountCols[1].querySelector('.plan-amount-label');
+    const pv = amountCols[1].querySelector('.plan-amount-value');
     prizeLabel = pl ? pl.textContent.trim() : '';
     prizeValue = pv ? pv.textContent.trim().replace(/\s+/g, '') : '';
   }
   if (amountCols.length >= 3) {
-    var sv = amountCols[2].querySelector('.plan-amount-value');
+    const sv = amountCols[2].querySelector('.plan-amount-value');
     if (sv) statusText = sv.textContent.trim();
   }
 
   // 信息行
-  var infoRights = cardEl.querySelectorAll('.plan-info-right > div');
-  var playType = infoRights[0] ? infoRights[0].textContent.trim() : '混合投注';
-  var passType = infoRights[1] ? infoRights[1].textContent.trim() : '--';
-  var betCount = infoRights[2] ? infoRights[2].textContent.trim() : '--';
+  const infoRights = cardEl.querySelectorAll('.plan-info-right > div');
+  const playType = infoRights[0] ? infoRights[0].textContent.trim() : '混合投注';
+  const passType = infoRights[1] ? infoRights[1].textContent.trim() : '--';
+  const betCount = infoRights[2] ? infoRights[2].textContent.trim() : '--';
 
   // 比赛行
-  var matchRowsEl = cardEl.querySelectorAll('.plan-match-table tbody tr');
-  var matchRows = '';
+  const matchRowsEl = cardEl.querySelectorAll('.plan-match-table tbody tr');
+  let matchRows = '';
   matchRowsEl.forEach(function (row) {
-    var cells = row.querySelectorAll('td');
+    const cells = row.querySelectorAll('td');
     if (cells.length < 3) return;
-    var numEl = cells[0].querySelector('.match-num-text');
-    var timeEl = cells[0].querySelector('.match-time-sub');
-    var num = numEl ? numEl.textContent.trim() : '';
-    var matchTime = timeEl ? timeEl.textContent.trim() : '';
-    var homeEl = cells[1].querySelector('.plan-team-home');
-    var awayEl = cells[1].querySelector('.plan-team-away');
-    var home = homeEl ? homeEl.textContent.trim() : '';
-    var away = awayEl ? awayEl.textContent.trim() : '';
-    var odds = cells[2].textContent.trim().replace(/\s+/g, ' ').substring(0, 48);
+    const numEl = cells[0].querySelector('.match-num-text');
+    const timeEl = cells[0].querySelector('.match-time-sub');
+    const num = numEl ? numEl.textContent.trim() : '';
+    const matchTime = timeEl ? timeEl.textContent.trim() : '';
+    const homeEl = cells[1].querySelector('.plan-team-home');
+    const awayEl = cells[1].querySelector('.plan-team-away');
+    const home = homeEl ? homeEl.textContent.trim() : '';
+    const away = awayEl ? awayEl.textContent.trim() : '';
+    const odds = cells[2].textContent.trim().replace(/\s+/g, ' ').substring(0, 48);
     matchRows +=
       '<div class="table-row">' +
       '<div class="issue"><div class="issue-num">' +
@@ -1739,28 +1739,28 @@ function _buildLegacyShareCard(cardEl) {
   });
 
   // 金额值分离数字和单位
-  var amtNum = amountValue,
+  let amtNum = amountValue,
     amtUnit = '元';
-  var amtMatch = amountValue.match(/^([\d.]+)(.*)/);
+  const amtMatch = amountValue.match(/^([\d.]+)(.*)/);
   if (amtMatch) {
     amtNum = amtMatch[1];
     amtUnit = amtMatch[2] || '元';
   }
 
-  var pNum = prizeValue,
+  let pNum = prizeValue,
     pUnit = '元';
-  var pMatch = prizeValue.match(/^([+\-]?[\d.]+)(.*)/);
+  const pMatch = prizeValue.match(/^([+\-]?[\d.]+)(.*)/);
   if (pMatch) {
     pNum = pMatch[1];
     pUnit = pMatch[2] || '元';
   }
 
-  var shareDate = String(date || '').replace(/\//g, '-');
-  var statusCls = 'status-pending';
+  const shareDate = String(date || '').replace(/\//g, '-');
+  let statusCls = 'status-pending';
   if (statusText.indexOf('未中奖') !== -1) statusCls = 'status-lost';
   else if (statusText.indexOf('已中奖') !== -1) statusCls = 'status-won';
 
-  var wrapper = document.createElement('div');
+  const wrapper = document.createElement('div');
 
   wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;width:750px;';
   wrapper.innerHTML =
@@ -1883,12 +1883,12 @@ function _buildLegacyShareCard(cardEl) {
 
 // ═══ 分享预览弹窗（通用） ═══
 function _showShareModal(planId, canvas, cardEl) {
-  var overlay = document.createElement('div');
+  const overlay = document.createElement('div');
   overlay.className = 'share-overlay active';
-  var imgSrc = canvas.toDataURL('image/png');
+  const imgSrc = canvas.toDataURL('image/png');
 
   // 提取方案文字信息
-  var infoLines = _extractPlanInfo(cardEl);
+  const infoLines = _extractPlanInfo(cardEl);
 
   overlay.innerHTML =
     '<div class="share-modal">' +
@@ -1911,7 +1911,7 @@ function _showShareModal(planId, canvas, cardEl) {
     '</div>';
   document.body.appendChild(overlay);
 
-  var close = function () {
+  const close = function () {
     overlay.classList.remove('active');
     setTimeout(function () {
       overlay.remove();
@@ -1927,7 +1927,7 @@ function _showShareModal(planId, canvas, cardEl) {
     navigator.clipboard
       .writeText(infoLines)
       .then(function () {
-        var btn = overlay.querySelector('.share-btn-copy');
+        const btn = overlay.querySelector('.share-btn-copy');
         btn.textContent = '\u2714 已复制';
         btn.classList.add('copied');
         setTimeout(function () {
@@ -1936,7 +1936,7 @@ function _showShareModal(planId, canvas, cardEl) {
         }, 2000);
       })
       .catch(function () {
-        var ta = document.createElement('textarea');
+        const ta = document.createElement('textarea');
         ta.value = infoLines;
         ta.style.position = 'fixed';
         ta.style.opacity = '0';
@@ -1944,7 +1944,7 @@ function _showShareModal(planId, canvas, cardEl) {
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        var btn = overlay.querySelector('.share-btn-copy');
+        const btn = overlay.querySelector('.share-btn-copy');
         btn.textContent = '\u2714 已复制';
         btn.classList.add('copied');
         setTimeout(function () {
@@ -1956,7 +1956,7 @@ function _showShareModal(planId, canvas, cardEl) {
 
   // 保存图片
   overlay.querySelector('.share-btn-save').onclick = function () {
-    var link = document.createElement('a');
+    const link = document.createElement('a');
     link.download = 'plan-' + planId + '.png';
     link.href = canvas.toDataURL('image/png');
     document.body.appendChild(link);
@@ -1968,30 +1968,30 @@ function _showShareModal(planId, canvas, cardEl) {
 
 // ═══ 从方案卡片 DOM 提取文字信息 ═══
 function _extractPlanInfo(cardEl) {
-  var lines = [];
-  var nameEl = cardEl.querySelector('.plan-name');
+  const lines = [];
+  const nameEl = cardEl.querySelector('.plan-name');
   if (nameEl) lines.push(nameEl.textContent.trim());
   lines.push('');
 
   // 比赛信息
-  var rows = cardEl.querySelectorAll('.plan-match-table tbody tr');
+  const rows = cardEl.querySelectorAll('.plan-match-table tbody tr');
   rows.forEach(function (row) {
-    var cells = row.querySelectorAll('td');
+    const cells = row.querySelectorAll('td');
     if (cells.length >= 3) {
-      var num = cells[0].textContent.trim().replace(/\s+/g, ' ');
-      var teams = cells[1].textContent.trim().replace(/\s+/g, ' ');
-      var odds = cells[2].textContent.trim().replace(/\s+/g, ' ');
+      const num = cells[0].textContent.trim().replace(/\s+/g, ' ');
+      const teams = cells[1].textContent.trim().replace(/\s+/g, ' ');
+      const odds = cells[2].textContent.trim().replace(/\s+/g, ' ');
       if (num || teams) lines.push((num || '') + '  ' + teams + '  ' + (odds || ''));
     }
   });
 
   // 方案金额和奖金
-  var amountCols = cardEl.querySelectorAll('.plan-amount-col');
+  const amountCols = cardEl.querySelectorAll('.plan-amount-col');
   if (amountCols.length >= 2) {
-    var amtLabel = amountCols[0].querySelector('.plan-amount-label');
-    var amtVal = amountCols[0].querySelector('.plan-amount-value');
-    var prizeLabel = amountCols[1].querySelector('.plan-amount-label');
-    var prizeVal = amountCols[1].querySelector('.plan-amount-value');
+    const amtLabel = amountCols[0].querySelector('.plan-amount-label');
+    const amtVal = amountCols[0].querySelector('.plan-amount-value');
+    const prizeLabel = amountCols[1].querySelector('.plan-amount-label');
+    const prizeVal = amountCols[1].querySelector('.plan-amount-value');
     lines.push('');
     if (amtLabel && amtVal)
       lines.push((amtLabel.textContent.trim() + ': ' + amtVal.textContent.trim()).replace(/\s+/g, ' '));
@@ -2004,7 +2004,7 @@ function _extractPlanInfo(cardEl) {
 
 // ═══ Toast 轻提示 ═══
 function _toast(msg, type) {
-  var el = document.getElementById('shareToast');
+  let el = document.getElementById('shareToast');
   if (!el) {
     el = document.createElement('div');
     el.id = 'shareToast';
@@ -2029,11 +2029,11 @@ function _toast(msg, type) {
 
 // ========== 比分方案 ==========
 export function loadScorePlanList() {
-  var el = document.getElementById('planList');
+  const el = document.getElementById('planList');
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载单关比分方案中...</div>';
 
-  var params;
+  let params;
   if (state.planDateExplicit) {
     params = { date: state.planDate };
   } else if (state.planDateOffset === 0) {
@@ -2043,8 +2043,8 @@ export function loadScorePlanList() {
   }
 
   // ★ P1: sessionStorage 缓存命中
-  var cacheKey = 'score-plan-list:scorefix-v2:' + state.planDate;
-  var cached = getCache(cacheKey);
+  const cacheKey = 'score-plan-list:scorefix-v2:' + state.planDate;
+  const cached = getCache(cacheKey);
   if (cached) {
     el.innerHTML = cached;
     return;
@@ -2054,17 +2054,17 @@ export function loadScorePlanList() {
     .then(function (data) {
       if (data.date && data.date !== state.planDate && !state.planDateExplicit) {
         state.setPlanDate(data.date);
-        var planEl = document.getElementById('planDateCurrent');
+        const planEl = document.getElementById('planDateCurrent');
         if (planEl) {
-          var mmdd = data.date.slice(5).replace('-', '/');
+          const mmdd = data.date.slice(5).replace('-', '/');
           planEl.textContent = mmdd + ' ' + WEEK_NAMES[new Date(data.date).getDay()];
         }
       }
-      var plans = guardPlanData(data.plans || []);
-      var notice = data.notice || '';
+      const plans = guardPlanData(data.plans || []);
+      const notice = data.notice || '';
       if (plans.length === 0) {
-        var now = new Date();
-        var todayStr =
+        const now = new Date();
+        const todayStr =
           now.getFullYear() +
           '-' +
           String(now.getMonth() + 1).padStart(2, '0') +
@@ -2072,9 +2072,9 @@ export function loadScorePlanList() {
           String(now.getDate()).padStart(2, '0');
         // 今天的方案为空 → 回退并切到专家标签
         if (state.planDate === todayStr) {
-          var d2 = new Date();
+          const d2 = new Date();
           d2.setDate(d2.getDate() + state.planDateOffset - 1);
-          var prevDateStr =
+          const prevDateStr =
             d2.getFullYear() +
             '-' +
             String(d2.getMonth() + 1).padStart(2, '0') +
@@ -2087,7 +2087,7 @@ export function loadScorePlanList() {
               btn.classList.toggle('active', btn.getAttribute('data-tab') === 'expert');
             });
             updatePlanDateBar();
-            loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+            loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
             return;
           }
         }
@@ -2103,39 +2103,39 @@ export function loadScorePlanList() {
         return;
       }
 
-      var html = plans
+      const html = plans
         .map(function (p, i) {
-          var scores = p.selectedScores || [];
+          const scores = p.selectedScores || [];
           var isWon = p.isScoreWon || false;
           var isLose = p.isScoreLose || false;
-          var cutoffDisplay = '';
+          let cutoffDisplay = '';
           if (p.startTime) {
-            var stParts = p.startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+            const stParts = p.startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
             if (stParts) {
-              var stMonth = parseInt(stParts[1]) - 1,
+              const stMonth = parseInt(stParts[1]) - 1,
                 stDay = parseInt(stParts[2]),
                 stHour = parseInt(stParts[3]),
                 stMin = parseInt(stParts[4]);
-              var pYear = parseInt(state.planDate.slice(0, 4));
-              var kickoff = new Date(pYear, stMonth, stDay, stHour, stMin);
+              const pYear = parseInt(state.planDate.slice(0, 4));
+              const kickoff = new Date(pYear, stMonth, stDay, stHour, stMin);
               if (!isNaN(kickoff.getTime())) {
-                var mp = state.planDate.split('-');
-                var matchDateOnly = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]));
-                var kickoffDateOnly = new Date(kickoff.getFullYear(), kickoff.getMonth(), kickoff.getDate());
-                var isCrossMidnight = kickoffDateOnly > matchDateOnly;
-                var cutoff;
+                const mp = state.planDate.split('-');
+                const matchDateOnly = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]));
+                const kickoffDateOnly = new Date(kickoff.getFullYear(), kickoff.getMonth(), kickoff.getDate());
+                const isCrossMidnight = kickoffDateOnly > matchDateOnly;
+                let cutoff;
                 if (isCrossMidnight) {
-                  var matchDow = matchDateOnly.getDay();
+                  const matchDow = matchDateOnly.getDay();
                   if (matchDow >= 1 && matchDow <= 5)
                     cutoff = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]), 21, 30);
                   else cutoff = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]), 22, 30);
                 } else {
                   cutoff = new Date(kickoff.getTime() - 30 * 60 * 1000);
-                  var dow = kickoff.getDay();
+                  const dow = kickoff.getDay();
                   if (dow >= 1 && dow <= 5 && stHour >= 22) cutoff = new Date(pYear, stMonth, stDay, 21, 30);
                   else if ((dow === 0 || dow === 6) && stHour >= 23) cutoff = new Date(pYear, stMonth, stDay, 22, 30);
                 }
-                var pad2 = function (n) {
+                const pad2 = function (n) {
                   return String(n).padStart(2, '0');
                 };
                 cutoffDisplay =
@@ -2151,25 +2151,25 @@ export function loadScorePlanList() {
             }
           }
 
-          var amountVal = (p.amount || 1000).toFixed(0);
+          const amountVal = (p.amount || 1000).toFixed(0);
           var isWon = p.isScoreWon || false;
           var isLose = p.isScoreLose || false;
-          var prizeNum2 = isWon ? p.winningPrize || 0 : isLose ? 0 : p.maxPrize || 0;
-          var prizeVal = prizeNum2 > 0 ? prizeNum2.toFixed(0) : isWon ? '--' : '0';
-          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
-          var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
-          var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
+          const prizeNum2 = isWon ? p.winningPrize || 0 : isLose ? 0 : p.maxPrize || 0;
+          const prizeVal = prizeNum2 > 0 ? prizeNum2.toFixed(0) : isWon ? '--' : '0';
+          const prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
+          const statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
+          const statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
 
           // 构建比分标签 + 资金分配（按行显示）
-          var scoreRows = '';
-          var matchTimeShort = '';
+          let scoreRows = '';
+          let matchTimeShort = '';
           if (p.startTime) {
-            var tm = p.startTime.match(/(\d{2}:\d{2})/);
+            const tm = p.startTime.match(/(\d{2}:\d{2})/);
             if (tm) matchTimeShort = tm[1];
           }
-          for (var si = 0; si < scores.length; si++) {
-            var s = scores[si];
-            var scoreDirStyle = '';
+          for (let si = 0; si < scores.length; si++) {
+            const s = scores[si];
+            let scoreDirStyle = '';
             if (p.actualScore) {
               scoreDirStyle = s.score === p.actualScore ? ' style="color:#EF4444;"' : ' style="color:#34D399;"';
             }
@@ -2201,7 +2201,7 @@ export function loadScorePlanList() {
               '</tr>';
           }
 
-          var scoreCardId = 'score-' + i;
+          const scoreCardId = 'score-' + i;
           return (
             '<div class="plan-card score-plan" id="upcard-' +
             scoreCardId +
@@ -2218,12 +2218,12 @@ export function loadScorePlanList() {
             '</span>' +
             (function () {
               /* eslint-disable no-undef */
-              var matchIds = matches.map(function (m) {
+              const matchIds = matches.map(function (m) {
                 return m.matchId;
               });
-              var best = null;
+              let best = null;
               matchIds.forEach(function (id) {
-                var c = consensusMap[id];
+                const c = consensusMap[id];
                 if (
                   c &&
                   (!best ||
@@ -2234,8 +2234,8 @@ export function loadScorePlanList() {
               });
               /* eslint-enable no-undef */
               if (!best) return '';
-              var cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
-              var txt =
+              const cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
+              const txt =
                 best.consensus === 'strong'
                   ? '共识' + best.agreeCount + '/' + best.totalCount
                   : best.consensus === 'weak'
@@ -2339,11 +2339,11 @@ export function loadScorePlanList() {
 
 // ========== 量化方案 ==========
 export function loadQuantPlanList() {
-  var el = document.getElementById('planList');
+  const el = document.getElementById('planList');
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载量化博冷方案中...</div>';
 
-  var params;
+  let params;
   if (state.planDateExplicit) {
     params = { date: state.planDate };
   } else if (state.planDateOffset === 0) {
@@ -2353,8 +2353,8 @@ export function loadQuantPlanList() {
   }
 
   // ★ P1: sessionStorage 缓存命中
-  var cacheKey = 'quant-plan-list:scorefix-v2:' + state.planDate;
-  var cached = getCache(cacheKey);
+  const cacheKey = 'quant-plan-list:scorefix-v2:' + state.planDate;
+  const cached = getCache(cacheKey);
   if (cached) {
     el.innerHTML = cached;
     return;
@@ -2364,17 +2364,17 @@ export function loadQuantPlanList() {
     .then(function (data) {
       if (data.date && data.date !== state.planDate && !state.planDateExplicit) {
         state.setPlanDate(data.date);
-        var planEl = document.getElementById('planDateCurrent');
+        const planEl = document.getElementById('planDateCurrent');
         if (planEl) {
-          var mmdd = data.date.slice(5).replace('-', '/');
+          const mmdd = data.date.slice(5).replace('-', '/');
           planEl.textContent = mmdd + ' ' + WEEK_NAMES[new Date(data.date).getDay()];
         }
       }
-      var plans = guardPlanData(data.plans || []);
-      var notice = data.notice || '';
+      const plans = guardPlanData(data.plans || []);
+      const notice = data.notice || '';
       if (plans.length === 0) {
-        var now = new Date();
-        var todayStr =
+        const now = new Date();
+        const todayStr =
           now.getFullYear() +
           '-' +
           String(now.getMonth() + 1).padStart(2, '0') +
@@ -2382,9 +2382,9 @@ export function loadQuantPlanList() {
           String(now.getDate()).padStart(2, '0');
         // 今天的方案为空 → 回退并切到专家标签
         if (state.planDate === todayStr) {
-          var d2 = new Date();
+          const d2 = new Date();
           d2.setDate(d2.getDate() + state.planDateOffset - 1);
-          var prevDateStr =
+          const prevDateStr =
             d2.getFullYear() +
             '-' +
             String(d2.getMonth() + 1).padStart(2, '0') +
@@ -2397,7 +2397,7 @@ export function loadQuantPlanList() {
               btn.classList.toggle('active', btn.getAttribute('data-tab') === 'expert');
             });
             updatePlanDateBar();
-            loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+            loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
             return;
           }
         }
@@ -2413,15 +2413,15 @@ export function loadQuantPlanList() {
         return;
       }
 
-      var html = plans
+      const html = plans
         .map(function (p, i) {
-          var matches = p.matches || [];
+          const matches = p.matches || [];
           // ★ 中奖判定逻辑（复用专家方案规则）
-          var isWon = false,
+          let isWon = false,
             isLose = false;
-          var allWon = matches.length > 0;
-          var anyLose = false;
-          for (var mi2 = 0; mi2 < matches.length; mi2++) {
+          let allWon = matches.length > 0;
+          let anyLose = false;
+          for (let mi2 = 0; mi2 < matches.length; mi2++) {
             if (matches[mi2].isMatchWon !== true) allWon = false;
             if (matches[mi2].isMatchLose === true) anyLose = true;
           }
@@ -2429,34 +2429,34 @@ export function loadQuantPlanList() {
           isLose = !isWon && anyLose;
 
           // 截单时间计算（复用 expert plan 逻辑）
-          var cutoffDisplay = '';
+          let cutoffDisplay = '';
           if (matches.length > 0 && matches[0].startTime) {
-            var stParts = matches[0].startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+            const stParts = matches[0].startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
             if (stParts) {
-              var stMonth = parseInt(stParts[1]) - 1,
+              const stMonth = parseInt(stParts[1]) - 1,
                 stDay = parseInt(stParts[2]),
                 stHour = parseInt(stParts[3]),
                 stMin = parseInt(stParts[4]);
-              var pYear = parseInt(state.planDate.slice(0, 4));
-              var kickoff = new Date(pYear, stMonth, stDay, stHour, stMin);
+              const pYear = parseInt(state.planDate.slice(0, 4));
+              const kickoff = new Date(pYear, stMonth, stDay, stHour, stMin);
               if (!isNaN(kickoff.getTime())) {
-                var mp = state.planDate.split('-');
-                var matchDateOnly = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]));
-                var kickoffDateOnly = new Date(kickoff.getFullYear(), kickoff.getMonth(), kickoff.getDate());
-                var isCrossMidnight = kickoffDateOnly > matchDateOnly;
-                var cutoff;
+                const mp = state.planDate.split('-');
+                const matchDateOnly = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]));
+                const kickoffDateOnly = new Date(kickoff.getFullYear(), kickoff.getMonth(), kickoff.getDate());
+                const isCrossMidnight = kickoffDateOnly > matchDateOnly;
+                let cutoff;
                 if (isCrossMidnight) {
-                  var matchDow = matchDateOnly.getDay();
+                  const matchDow = matchDateOnly.getDay();
                   if (matchDow >= 1 && matchDow <= 5)
                     cutoff = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]), 21, 30);
                   else cutoff = new Date(parseInt(mp[0]), parseInt(mp[1]) - 1, parseInt(mp[2]), 22, 30);
                 } else {
                   cutoff = new Date(kickoff.getTime() - 30 * 60 * 1000);
-                  var dow = kickoff.getDay();
+                  const dow = kickoff.getDay();
                   if (dow >= 1 && dow <= 5 && stHour >= 22) cutoff = new Date(pYear, stMonth, stDay, 21, 30);
                   else if ((dow === 0 || dow === 6) && stHour >= 23) cutoff = new Date(pYear, stMonth, stDay, 22, 30);
                 }
-                var pad2 = function (n) {
+                const pad2 = function (n) {
                   return String(n).padStart(2, '0');
                 };
                 cutoffDisplay =
@@ -2472,40 +2472,40 @@ export function loadQuantPlanList() {
             }
           }
 
-          var planName = p.planName || '量化博冷方案 ' + (i + 1);
-          var amountVal = (p.amount || 1000).toFixed(0);
+          const planName = p.planName || '量化博冷方案 ' + (i + 1);
+          const amountVal = (p.amount || 1000).toFixed(0);
           // ★ 不覆盖 isWon/isLose — 上面已从 matches[].isMatchWon/isMatchLose 正确计算
-          var prizeNum3 = isWon ? p.winningPrize || p.maxPrize || 0 : isLose ? 0 : p.maxPrize || 0;
-          var prizeVal = prizeNum3 > 0 ? prizeNum3.toFixed(0) : isWon || isLose ? '0' : '0';
-          var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
-          var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
-          var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
+          const prizeNum3 = isWon ? p.winningPrize || p.maxPrize || 0 : isLose ? 0 : p.maxPrize || 0;
+          const prizeVal = prizeNum3 > 0 ? prizeNum3.toFixed(0) : isWon || isLose ? '0' : '0';
+          const prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
+          const statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
+          const statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
 
           // 构建比赛表格行
-          var matchRows = '';
-          for (var mi = 0; mi < matches.length; mi++) {
-            var m = matches[mi];
-            var numText = m.matchNum || '';
-            var matchDateShort = '',
+          let matchRows = '';
+          for (let mi = 0; mi < matches.length; mi++) {
+            const m = matches[mi];
+            const numText = m.matchNum || '';
+            let matchDateShort = '',
               matchTime = '';
             if (m.startTime) {
-              var tm = m.startTime.match(/(\d{2}:\d{2})/);
+              const tm = m.startTime.match(/(\d{2}:\d{2})/);
               if (tm) matchTime = tm[1];
-              var dm = m.startTime.match(/(\d{2})\/(\d{2})/) || m.startTime.match(/(\d{2})-(\d{2})/);
+              const dm = m.startTime.match(/(\d{2})\/(\d{2})/) || m.startTime.match(/(\d{2})-(\d{2})/);
               if (dm) matchDateShort = dm[1] + '/' + dm[2];
             }
-            var timeDisp = matchDateShort || matchTime ? (matchDateShort + ' ' + matchTime).trim() : '';
+            const timeDisp = matchDateShort || matchTime ? (matchDateShort + ' ' + matchTime).trim() : '';
 
             // 方向+赔率展示（带命中颜色标记）
-            var dir = m.direction || '';
-            var oddsObj = m.odds || {};
-            var oddsVal = '';
-            var dirDisplay = dir;
+            const dir = m.direction || '';
+            const oddsObj = m.odds || {};
+            let oddsVal = '';
+            let dirDisplay = dir;
             if (dir.indexOf('让') === 0) {
               dirDisplay = dir + '(' + formatHandicapText(getMatchHandicapValue(m, m)) + ')';
             }
             if (oddsObj.spf) {
-              var dLower = dir.toLowerCase();
+              const dLower = dir.toLowerCase();
               if (dLower === '胜' || dLower.indexOf('胜') === 0) oddsVal = oddsObj.spf.home;
               else if (dLower === '平' || dLower.indexOf('平') === 0) oddsVal = oddsObj.spf.draw;
               else if (dLower === '负' || dLower.indexOf('负') === 0) oddsVal = oddsObj.spf.away;
@@ -2514,19 +2514,19 @@ export function loadQuantPlanList() {
               else if (dLower === '让负') oddsVal = oddsObj.rqspf ? oddsObj.rqspf.away : '';
             }
             // 根据 subResults 判定命中颜色
-            var subR = null;
-            var subResults = m.subResults || [];
-            for (var sii = 0; sii < subResults.length; sii++) {
+            let subR = null;
+            const subResults = m.subResults || [];
+            for (let sii = 0; sii < subResults.length; sii++) {
               if (subResults[sii].direction === dir) {
                 subR = subResults[sii];
                 break;
               }
             }
-            var matchColor = '';
+            let matchColor = '';
             if (subR && subR.result !== null && subR.result !== undefined) {
               matchColor = subR.result === 1 ? '#EF4444' : '#34D399';
             }
-            var oddsDisplay = oddsVal
+            const oddsDisplay = oddsVal
               ? '<span' +
                 (matchColor ? ' style="color:' + matchColor + '"' : '') +
                 '>' +
@@ -2553,7 +2553,7 @@ export function loadQuantPlanList() {
               '</tr>';
           }
 
-          var quantCardId = 'quant-' + i;
+          const quantCardId = 'quant-' + i;
           return (
             '<div class="plan-card quant-plan" id="upcard-' +
             quantCardId +
@@ -2570,12 +2570,12 @@ export function loadQuantPlanList() {
             '</span>' +
             (function () {
               /* eslint-disable no-undef */
-              var matchIds = matches.map(function (m) {
+              const matchIds = matches.map(function (m) {
                 return m.matchId;
               });
-              var best = null;
+              let best = null;
               matchIds.forEach(function (id) {
-                var c = consensusMap[id];
+                const c = consensusMap[id];
                 if (
                   c &&
                   (!best ||
@@ -2586,8 +2586,8 @@ export function loadQuantPlanList() {
               });
               /* eslint-enable no-undef */
               if (!best) return '';
-              var cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
-              var txt =
+              const cls = best.consensus === 'strong' ? 'strong' : best.consensus === 'weak' ? 'weak' : 'neutral';
+              const txt =
                 best.consensus === 'strong'
                   ? '共识' + best.agreeCount + '/' + best.totalCount
                   : best.consensus === 'weak'
@@ -2690,12 +2690,12 @@ export function loadQuantPlanList() {
 // * 蓝图：共识过滤控件 + 状态  (方案收入筛选项风格)
 // =============================================================
 function buildConsensusFilterBar(consensusCount, active) {
-  var items = [
+  const items = [
     { id: 'all', label: '全部' },
     { id: 'strong', label: '强共识' },
     { id: 'weak', label: '弱共识' },
   ];
-  var html = '<div class="filter-section-card" style="margin-bottom:14px;padding:16px 18px">';
+  let html = '<div class="filter-section-card" style="margin-bottom:14px;padding:16px 18px">';
   html += '<div class="filter-head" style="margin-bottom:12px;font-size:var(--fs-md)">共识过滤';
   if (consensusCount > 0) {
     html +=
@@ -2706,8 +2706,8 @@ function buildConsensusFilterBar(consensusCount, active) {
   html += '</div>';
   html += '<div style="display:flex;gap:8px">';
   items.forEach(function (t) {
-    var isActive = active === t.id;
-    var btnStyle = isActive
+    const isActive = active === t.id;
+    const btnStyle = isActive
       ? 'background:var(--cyan);color:#001018;font-weight:600;box-shadow:0 0 10px rgba(24,224,224,0.25)'
       : 'background:rgba(24,224,224,0.08);color:var(--text2)';
     html +=
@@ -2730,5 +2730,5 @@ function buildConsensusFilterBar(consensusCount, active) {
 if (!window._planConsensusFilter) window._planConsensusFilter = 'all';
 window.switchConsensusFilter = function (level) {
   window._planConsensusFilter = level;
-  state.planTab === 'wc' ? loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('世界杯') === 0; }) : state.planTab === 'ai_tg' ? loadAIPlanList() : loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+  state.planTab === 'wc' ? loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; }) : state.planTab === 'ai_tg' ? loadAIPlanList() : loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
 };

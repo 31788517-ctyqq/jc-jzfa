@@ -1,0 +1,122 @@
+{
+  "lockedAt": "2026-06-18T08:39:50.840Z",
+  "earliestKickoff": null,
+  "date": "2026-04-19",
+  "plans": [
+    {
+      "planId": "plan_2026-04-19_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039198",
+          "direction": "胜",
+          "homeName": "拜仁慕尼黑",
+          "visitName": "斯图加特",
+          "matchNum": "周日020"
+        },
+        {
+          "matchId": "2039201",
+          "direction": "让负",
+          "homeName": "里斯本竞技",
+          "visitName": "本菲卡",
+          "matchNum": "周日023"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-19_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039198",
+          "direction": "总进球-2、3球",
+          "homeName": "拜仁慕尼黑",
+          "visitName": "斯图加特",
+          "matchNum": "周日020"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-19_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039180",
+          "direction": "总进球-1、2、3球",
+          "homeName": "阿德莱德联",
+          "visitName": "麦克阿瑟FC",
+          "matchNum": "周日002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-19_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039188",
+          "direction": "总进球-1、2、3球",
+          "homeName": "瓦勒伦加",
+          "visitName": "利勒斯特罗姆",
+          "matchNum": "周日010"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-19_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039183",
+          "direction": "总进球-3、4、5球",
+          "homeName": "浦项制铁",
+          "visitName": "安养FC",
+          "matchNum": "周日005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-19_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039205",
+          "direction": "总进球-3、4、5球",
+          "homeName": "布拉加",
+          "visitName": "法马利康",
+          "matchNum": "周日027"
+        }
+      ]
+    }
+  ]
+}

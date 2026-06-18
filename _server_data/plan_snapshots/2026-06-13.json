@@ -1,0 +1,175 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.163Z",
+  "earliestKickoff": null,
+  "date": "2026-06-13",
+  "plans": [
+    {
+      "planId": "plan_2026-06-13_wc1",
+      "name": "plan_wc1",
+      "planName": "世界杯01",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040167",
+          "direction": "平、让平",
+          "homeName": "巴西",
+          "visitName": "摩洛哥",
+          "matchNum": "周六006"
+        },
+        {
+          "matchId": "2040168",
+          "direction": "让负",
+          "homeName": "海地",
+          "visitName": "苏格兰",
+          "matchNum": "周六007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-13_wc2",
+      "name": "plan_wc2",
+      "planName": "世界杯02",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040167",
+          "direction": "总进球-2、3球",
+          "homeName": "巴西",
+          "visitName": "摩洛哥",
+          "matchNum": "周六006"
+        },
+        {
+          "matchId": "2040168",
+          "direction": "让负",
+          "homeName": "海地",
+          "visitName": "苏格兰",
+          "matchNum": "周六007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-13_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040215",
+          "direction": "平、让平",
+          "homeName": "拉赫蒂",
+          "visitName": "塞伊奈约基",
+          "matchNum": "周六206"
+        },
+        {
+          "matchId": "2040210",
+          "direction": "让负",
+          "homeName": "坦佩雷山猫",
+          "visitName": "TPS图尔库",
+          "matchNum": "周六201"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-13_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040214",
+          "direction": "总进球-2、3球",
+          "homeName": "玛丽港",
+          "visitName": "赫尔辛基火花",
+          "matchNum": "周六205"
+        },
+        {
+          "matchId": "2040215",
+          "direction": "让负",
+          "homeName": "拉赫蒂",
+          "visitName": "塞伊奈约基",
+          "matchNum": "周六206"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-13_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040211",
+          "direction": "胜",
+          "homeName": "国际图尔库",
+          "visitName": "AC奥卢",
+          "matchNum": "周六202"
+        },
+        {
+          "matchId": "2040215",
+          "direction": "让负",
+          "homeName": "拉赫蒂",
+          "visitName": "塞伊奈约基",
+          "matchNum": "周六206"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-13_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040215",
+          "direction": "总进球-2、3球",
+          "homeName": "拉赫蒂",
+          "visitName": "塞伊奈约基",
+          "matchNum": "周六206"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-13_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040215",
+          "direction": "平、让平",
+          "homeName": "拉赫蒂",
+          "visitName": "塞伊奈约基",
+          "matchNum": "周六206"
+        },
+        {
+          "matchId": "2040211",
+          "direction": "胜",
+          "homeName": "国际图尔库",
+          "visitName": "AC奥卢",
+          "matchNum": "周六202"
+        }
+      ]
+    }
+  ]
+}

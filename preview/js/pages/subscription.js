@@ -1,4 +1,5 @@
 import { api } from '../api.js';
+import { getCache, setCache } from '../utils.js';
 import { getAuthSession, hasAuthToken, hasReferralAccess } from '../auth-client.js';
 
 const MEMBER_RIGHTS = [
@@ -73,15 +74,21 @@ export async function loadSubscription(container) {
   }
 
   try {
-    var sub = await api('subscription-status', {}, 0);
-    var meta = statusMeta(sub || {});
-    var planName = (sub && sub.plan_name) || '免费用户';
-    var expiresText =
+    const cacheKey = 'subscription-status:v1';
+    let sub = getCache(cacheKey);
+    if (!sub) {
+      sub = await api('subscription-status', {}, 0);
+      setCache(cacheKey, sub || {});
+    }
+
+    const meta = statusMeta(sub || {});
+    const planName = (sub && sub.plan_name) || '免费用户';
+    const expiresText =
       sub && sub.expires_at
         ? '到期时间：' + sub.expires_at + ' · 剩余 ' + Number(sub.remaining_days || 0) + ' 天'
         : '当前尚未开通会员，可先选择合适套餐。';
 
-    var actions = '';
+    let actions = '';
     if (sub.status === 'free') {
       actions =
         '<button class="sub-btn sub-btn-primary" type="button" onclick="window.navigateTo(\'pricing\')">立即开通会员</button>';
@@ -178,9 +185,10 @@ export async function loadSubscription(container) {
 }
 
 window.toggleAutoRenew = async function (enable) {
-  var action = enable ? 'subscription-enable-auto-renew' : 'subscription-cancel-auto-renew';
+  const action = enable ? 'subscription-enable-auto-renew' : 'subscription-cancel-auto-renew';
   try {
     await api(action, {}, 0);
+    setCache('subscription-status:v1', null);
     if (typeof window.switchTab === 'function') window.switchTab('subscription');
   } catch (e) {
     alert((e && e.message) || '操作失败，请稍后重试');

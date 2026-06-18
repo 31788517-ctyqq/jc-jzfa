@@ -1,0 +1,15 @@
+total 72
+drwxrwxrwx  3 root root 4096 Aug 11  2019 .
+drwxrwxrwx 41 root root 4096 Aug 27  2024 ..
+-rwxrwxrwx  1 root root 3365 Jan  3  2020 chargeLL.shtml
+-rwxrwxrwx  1 root root 6620 Jun  3  2022 chargeQC.shtml
+-rwxrwxrwx  1 root root 2524 Jun  3  2022 dl_tzzhan.shtml
+-rwxrwxrwx  1 root root 3105 Jun  3  2022 drawing.shtml
+-rwxrwxrwx  1 root root 4443 Jun  3  2022 idauth.shtml
+-rwxrwxrwx  1 root root 1885 Jun  3  2022 idok-qcp.shtml
+-rwxrwxrwx  1 root root 2076 Jun  3  2022 idok.shtml
+-rwxrwxrwx  1 root root 7565 Jun  3  2022 index.shtml
+-rwxrwxrwx  1 root root 4648 Jan  3  2020 login.shtml
+-rwxrwxrwx  1 root root 3706 Jun  3  2022 tikuanflow.shtml
+-rwxrwxrwx  1 root root 3259 Jun  3  2022 tikuan.shtml
+drwxrwxrwx  2 root root 4096 Aug 11  2019 zhgl

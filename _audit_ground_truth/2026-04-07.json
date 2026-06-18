@@ -1,0 +1,97 @@
+{
+  "lockedAt": "2026-06-18T08:39:50.569Z",
+  "earliestKickoff": null,
+  "date": "2026-04-07",
+  "plans": [
+    {
+      "planId": "plan_2026-04-07_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038916",
+          "direction": "总进球-2、3球",
+          "homeName": "皇家马德里",
+          "visitName": "拜仁慕尼黑",
+          "matchNum": "周二004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-07_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038913",
+          "direction": "总进球-1、2、3球",
+          "homeName": "墨尔本城",
+          "visitName": "中央海岸水手",
+          "matchNum": "周二001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-07_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038916",
+          "direction": "总进球-1、2、3球",
+          "homeName": "皇家马德里",
+          "visitName": "拜仁慕尼黑",
+          "matchNum": "周二004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-07_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038918",
+          "direction": "总进球-3、4、5球",
+          "homeName": "拉瓜伊拉",
+          "visitName": "弗鲁米嫩塞",
+          "matchNum": "周二006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-07_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038917",
+          "direction": "总进球-3、4、5球",
+          "homeName": "雷克斯汉姆",
+          "visitName": "南安普敦",
+          "matchNum": "周二005"
+        }
+      ]
+    }
+  ]
+}

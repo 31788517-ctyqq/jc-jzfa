@@ -1,0 +1,57 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.082Z",
+  "earliestKickoff": null,
+  "date": "2026-04-29",
+  "plans": [
+    {
+      "planId": "plan_2026-04-29_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039407",
+          "direction": "平、让平",
+          "homeName": "京都不死鸟",
+          "visitName": "大阪钢巴",
+          "matchNum": "周三002"
+        },
+        {
+          "matchId": "2039410",
+          "direction": "让负",
+          "homeName": "柏太阳神",
+          "visitName": "东京FC",
+          "matchNum": "周三005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-29_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039407",
+          "direction": "平、让平",
+          "homeName": "京都不死鸟",
+          "visitName": "大阪钢巴",
+          "matchNum": "周三002"
+        },
+        {
+          "matchId": "2039410",
+          "direction": "胜",
+          "homeName": "柏太阳神",
+          "visitName": "东京FC",
+          "matchNum": "周三005"
+        }
+      ]
+    }
+  ]
+}

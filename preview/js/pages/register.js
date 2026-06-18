@@ -3,8 +3,8 @@ import { getDeviceId } from '../utils.js';
 
 function parseInviteParams() {
   try {
-    var hash = window.location.hash || '';
-    var qIndex = hash.indexOf('?');
+    const hash = window.location.hash || '';
+    const qIndex = hash.indexOf('?');
     return {
       hashParams: new URLSearchParams(qIndex >= 0 ? hash.slice(qIndex + 1) : ''),
       searchParams: new URLSearchParams((window.location && window.location.search) || ''),
@@ -18,8 +18,8 @@ function parseInviteParams() {
 }
 
 function parseReferralCode() {
-  var parsed = parseInviteParams();
-  var code =
+  const parsed = parseInviteParams();
+  const code =
     parsed.hashParams.get('ref') ||
     parsed.hashParams.get('invite') ||
     parsed.searchParams.get('ref') ||
@@ -42,7 +42,7 @@ function normalizeBasicInput(v) {
 }
 
 function normalizePasswordInput(v) {
-  var p = normalizeBasicInput(v);
+  let p = normalizeBasicInput(v);
   if (/^\d+[;；，,。.]$/.test(p)) p = p.slice(0, -1);
   return p;
 }
@@ -54,7 +54,7 @@ function setMsg(msgEl, text, ok) {
 }
 
 function ensureRegisterRoot() {
-  var root = document.getElementById('registerContent');
+  const root = document.getElementById('registerContent');
   if (!root) return null;
   root.innerHTML =
     '<div class="auth-shell auth-shell-login auth-shell-register">' +
@@ -70,7 +70,7 @@ function ensureRegisterRoot() {
     '<img class="login-eagle" src="/assets/login-eagle.png?v=202606101155" alt="" loading="eager" decoding="async" />' +
     '</div>' +
     '<div id="registerForm" class="auth-card auth-login-card auth-register-card">' +
-    '<div class="auth-note-card">若你是通过好友邀请进入，邀请码会自动带入；也可以手动填写客服提供的邀请码。</div>' +
+    '' +
     '<div class="auth-field auth-field-icon">' +
     '<div class="auth-input-wrap auth-icon-wrap">' +
     '<span class="auth-input-icon" aria-hidden="true">' +
@@ -116,7 +116,6 @@ function ensureRegisterRoot() {
     '<button id="registerBtn" class="filter-submit-btn auth-submit">完成注册</button>' +
     '<div class="auth-secondary-actions">' +
     '<button id="registerToLoginBtn" class="auth-secondary-btn is-ghost" type="button">已有账号，去登录</button>' +
-    '<button id="registerNeedInviteBtn" class="auth-secondary-btn" type="button">没有邀请码，联系客服</button>' +
     '</div>' +
     '</div>' +
     '</div>';
@@ -124,19 +123,18 @@ function ensureRegisterRoot() {
 }
 
 function bindRegisterAction() {
-  var btn = document.getElementById('registerBtn');
-  var userEl = document.getElementById('registerUser');
-  var passEl = document.getElementById('registerPass');
-  var pass2El = document.getElementById('registerPass2');
-  var refEl = document.getElementById('registerReferralCode');
-  var agreeEl = document.getElementById('registerAgree');
-  var msgEl = document.getElementById('registerMsg');
-  var goLoginBtn = document.getElementById('registerToLoginBtn');
-  var needInviteBtn = document.getElementById('registerNeedInviteBtn');
-  var badgeEl = document.getElementById('registerInviteBadge');
+  const btn = document.getElementById('registerBtn');
+  const userEl = document.getElementById('registerUser');
+  const passEl = document.getElementById('registerPass');
+  const pass2El = document.getElementById('registerPass2');
+  const refEl = document.getElementById('registerReferralCode');
+  const agreeEl = document.getElementById('registerAgree');
+  const msgEl = document.getElementById('registerMsg');
+  const goLoginBtn = document.getElementById('registerToLoginBtn');
+  const badgeEl = document.getElementById('registerInviteBadge');
   if (!btn || !userEl || !passEl || !pass2El || !refEl || !msgEl) return;
 
-  var presetRef = parseReferralCode();
+  const presetRef = parseReferralCode();
   if (presetRef) {
     refEl.value = presetRef;
     if (badgeEl) {
@@ -154,17 +152,11 @@ function bindRegisterAction() {
     };
   }
 
-  if (needInviteBtn) {
-    needInviteBtn.onclick = function () {
-      if (typeof window.switchTab === 'function') window.switchTab('contact-invite');
-    };
-  }
-
   function doRegister() {
-    var username = normalizeBasicInput(userEl.value);
-    var password = normalizePasswordInput(passEl.value);
-    var confirmPassword = normalizePasswordInput(pass2El.value);
-    var referralCode = normalizeBasicInput(refEl.value).toUpperCase();
+    const username = normalizeBasicInput(userEl.value);
+    const password = normalizePasswordInput(passEl.value);
+    const confirmPassword = normalizePasswordInput(pass2El.value);
+    const referralCode = normalizeBasicInput(refEl.value).toUpperCase();
 
     if (!username || username.length < 3) {
       setMsg(msgEl, '账号至少 3 位', false);
@@ -179,7 +171,7 @@ function bindRegisterAction() {
       return;
     }
     if (!referralCode) {
-      setMsg(msgEl, '当前注册需邀请码，请先联系客服获取', false);
+      setMsg(msgEl, '请填写邀请码', false);
       return;
     }
     if (!/^[A-Z0-9]{6,16}$/.test(referralCode)) {
@@ -206,7 +198,7 @@ function bindRegisterAction() {
     )
       .then(function () {
         try {
-          var hasPendingPlan = !!sessionStorage.getItem('pendingSelectedPlan');
+          const hasPendingPlan = !!sessionStorage.getItem('pendingSelectedPlan');
           sessionStorage.setItem('registerSuccessUser', username);
           sessionStorage.setItem(
             'registerSuccessMsg',
@@ -250,7 +242,7 @@ function bindRegisterAction() {
 }
 
 export function loadRegister() {
-  var root = ensureRegisterRoot();
+  const root = ensureRegisterRoot();
   if (!root) return;
   bindRegisterAction();
 }

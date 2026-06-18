@@ -1,0 +1,50 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.840Z",
+  "earliestKickoff": null,
+  "date": "2026-06-02",
+  "plans": [
+    {
+      "planId": "plan_2026-06-02_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040087",
+          "direction": "胜",
+          "homeName": "威尔士",
+          "visitName": "加纳",
+          "matchNum": "周二203"
+        },
+        {
+          "matchId": "2040085",
+          "direction": "让负",
+          "homeName": "克罗地亚",
+          "visitName": "比利时",
+          "matchNum": "周二201"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-02_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040085",
+          "direction": "总进球-2、3球",
+          "homeName": "克罗地亚",
+          "visitName": "比利时",
+          "matchNum": "周二201"
+        }
+      ]
+    }
+  ]
+}

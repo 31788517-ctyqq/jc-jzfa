@@ -1,0 +1,93 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.114Z",
+  "earliestKickoff": null,
+  "date": "2026-05-14",
+  "plans": [
+    {
+      "planId": "plan_2026-05-14_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039715",
+          "direction": "平、让平",
+          "homeName": "赫罗纳",
+          "visitName": "皇家社会",
+          "matchNum": "周四004"
+        },
+        {
+          "matchId": "2039712",
+          "direction": "让负",
+          "homeName": "巴伦西亚",
+          "visitName": "巴列卡诺",
+          "matchNum": "周四001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-14_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039712",
+          "direction": "总进球-2、3球",
+          "homeName": "巴伦西亚",
+          "visitName": "巴列卡诺",
+          "matchNum": "周四001"
+        },
+        {
+          "matchId": "2039715",
+          "direction": "让负",
+          "homeName": "赫罗纳",
+          "visitName": "皇家社会",
+          "matchNum": "周四004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-14_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039716",
+          "direction": "总进球-2、3球",
+          "homeName": "皇家马德里",
+          "visitName": "皇家奥维耶多",
+          "matchNum": "周四005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-14_7",
+      "name": "plan_7",
+      "planName": "方案七",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039715",
+          "direction": "平负",
+          "homeName": "赫罗纳",
+          "visitName": "皇家社会",
+          "matchNum": "周四004"
+        }
+      ]
+    }
+  ]
+}

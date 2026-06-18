@@ -1,0 +1,17 @@
+/* admin.css - 管理页样式补齐（供蓝图合同与页面引用） */
+
+.adm-profile-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  color: var(--text2, #e5e7eb);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+}
+
+.adm-profile-back:hover {
+  background: rgba(255, 255, 255, 0.14);
+}

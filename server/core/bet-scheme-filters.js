@@ -319,7 +319,7 @@ function _structureMetrics(rows) {
     const top = items.slice().sort(function (a, b) {
       const sa = selectionScore(a),
         sb = selectionScore(b);
-      for (var i = 0; i < sa.length; i++) {
+      for (let i = 0; i < sa.length; i++) {
         if (sa[i] !== sb[i]) return sb[i] - sa[i];
       }
       return 0;
@@ -352,7 +352,7 @@ function _structureMetrics(rows) {
     oddEven = 0,
     streakMax = 1,
     currentStreak = 1;
-  for (var i = 1; i < seq.length; i++) {
+  for (let i = 1; i < seq.length; i++) {
     if (seq[i] !== seq[i - 1]) {
       breakpoints++;
       currentStreak = 1;
@@ -364,8 +364,8 @@ function _structureMetrics(rows) {
   }
 
   const diffSet = new Set();
-  for (var l = 0; l < seq.length; l++) {
-    for (var r = l + 1; r < seq.length; r++) {
+  for (let l = 0; l < seq.length; l++) {
+    for (let r = l + 1; r < seq.length; r++) {
       const d = Math.abs(seq[r] - seq[l]);
       if (d > 0) diffSet.add(d);
     }
@@ -428,7 +428,7 @@ function _resolveGroupKey(row, groupField) {
     const kt = String(row.kickoffAt || row.startTime || '');
     if (kt) {
       try {
-        var h = new Date(kt.replace('T', ' ')).getHours();
+        const h = new Date(kt.replace('T', ' ')).getHours();
         return 'slot:' + Math.floor(h / 6);
       } catch (e) {}
     }
@@ -511,7 +511,7 @@ function groupSelections(selections) {
 function allowedPassways(matchCount) {
   const result = [];
   if (matchCount >= 1) result.push('single');
-  for (var s = 2; s <= Math.min(8, matchCount); s++) result.push(s + 'x1');
+  for (let s = 2; s <= Math.min(8, matchCount); s++) result.push(s + 'x1');
   return result;
 }
 
@@ -678,7 +678,7 @@ function applySchemeFilters(selections, passways, filters, multiplier) {
     const before = estimateScheme(currentRows, passways, multiplier);
     const byMatch = {};
     currentRows.forEach(function (row) {
-      var mid = String(row.matchId || '');
+      const mid = String(row.matchId || '');
       if (!byMatch[mid]) byMatch[mid] = [];
       byMatch[mid].push(row);
     });
@@ -686,9 +686,9 @@ function applySchemeFilters(selections, passways, filters, multiplier) {
       dropped = [];
     Object.values(byMatch).forEach(function (rows) {
       rows.sort(function (a, b) {
-        var sa = selectionScore(a),
+        const sa = selectionScore(a),
           sb = selectionScore(b);
-        for (var i = 0; i < sa.length; i++) {
+        for (let i = 0; i < sa.length; i++) {
           if (sa[i] !== sb[i]) return sb[i] - sa[i];
         }
         return 0;
@@ -724,7 +724,7 @@ function applySchemeFilters(selections, passways, filters, multiplier) {
     const before = estimateScheme(currentRows, passways, multiplier);
     const byGroup = {};
     currentRows.forEach(function (row) {
-      var gk = _resolveGroupKey(row, gpField);
+      const gk = _resolveGroupKey(row, gpField);
       if (!byGroup[gk]) byGroup[gk] = [];
       byGroup[gk].push(row);
     });
@@ -732,9 +732,9 @@ function applySchemeFilters(selections, passways, filters, multiplier) {
       dropped = [];
     Object.values(byGroup).forEach(function (rows) {
       rows.sort(function (a, b) {
-        var sa = selectionScore(a),
+        const sa = selectionScore(a),
           sb = selectionScore(b);
-        for (var i = 0; i < sa.length; i++) {
+        for (let i = 0; i < sa.length; i++) {
           if (sa[i] !== sb[i]) return sb[i] - sa[i];
         }
         return 0;
@@ -772,7 +772,7 @@ function applySchemeFilters(selections, passways, filters, multiplier) {
     const before = estimateScheme(currentRows, passways, multiplier);
     const byGroup = {};
     currentRows.forEach(function (row) {
-      var gk = _resolveGroupKey(row, isoField);
+      const gk = _resolveGroupKey(row, isoField);
       if (!byGroup[gk]) byGroup[gk] = [];
       byGroup[gk].push(row);
     });
@@ -780,9 +780,9 @@ function applySchemeFilters(selections, passways, filters, multiplier) {
       dropped = [];
     Object.values(byGroup).forEach(function (rows) {
       rows.sort(function (a, b) {
-        var sa = selectionScore(a),
+        const sa = selectionScore(a),
           sb = selectionScore(b);
-        for (var i = 0; i < sa.length; i++) {
+        for (let i = 0; i < sa.length; i++) {
           if (sa[i] !== sb[i]) return sb[i] - sa[i];
         }
         return 0;
@@ -823,13 +823,13 @@ function applySchemeFilters(selections, passways, filters, multiplier) {
   if (structEnabled) {
     const before = estimateScheme(currentRows, passways, multiplier);
     const dropped = [];
-    var mutableRows = currentRows.slice();
-    var fail = structureReasons(mutableRows, normalized);
+    const mutableRows = currentRows.slice();
+    let fail = structureReasons(mutableRows, normalized);
     while (mutableRows.length > 0 && fail.reasons.length > 0) {
       mutableRows.sort(function (a, b) {
-        var sa = selectionScore(a),
+        const sa = selectionScore(a),
           sb = selectionScore(b);
-        for (var i = 0; i < sa.length; i++) {
+        for (let i = 0; i < sa.length; i++) {
           if (sa[i] !== sb[i]) return sa[i] - sb[i];
         }
         return 0;
@@ -855,7 +855,7 @@ function applySchemeFilters(selections, passways, filters, multiplier) {
   }
 
   // 预算裁减
-  var afterSummary = estimateScheme(currentRows, passways, multiplier);
+  let afterSummary = estimateScheme(currentRows, passways, multiplier);
   const maxTickets = safeInt(normalized.maxTicketCount);
   const maxAmt = safeFloat(normalized.maxAmount);
   const budgetEnabled = (maxTickets != null && maxTickets > 0) || (maxAmt != null && maxAmt >= 0);
@@ -868,9 +868,9 @@ function applySchemeFilters(selections, passways, filters, multiplier) {
         (maxAmt != null && afterSummary.amount > maxAmt))
     ) {
       currentRows.sort(function (a, b) {
-        var sa = selectionScore(a),
+        const sa = selectionScore(a),
           sb = selectionScore(b);
-        for (var i = 0; i < sa.length; i++) {
+        for (let i = 0; i < sa.length; i++) {
           if (sa[i] !== sb[i]) return sa[i] - sb[i];
         }
         return 0;

@@ -1,0 +1,43 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.664Z",
+  "earliestKickoff": null,
+  "date": "2026-05-25",
+  "plans": [
+    {
+      "planId": "plan_2026-05-25_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039956",
+          "direction": "总进球-2、3球",
+          "homeName": "萨尔普斯堡",
+          "visitName": "莫尔德",
+          "matchNum": "周一005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-25_7",
+      "name": "plan_7",
+      "planName": "方案七",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039960",
+          "direction": "平负",
+          "homeName": "帕德博恩",
+          "visitName": "沃尔夫斯堡",
+          "matchNum": "周一009"
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import { api } from '../api.js';
 
-var _pkMatchIds = []; // ★ 缓存 PK 弹窗 matchId 列表，供"我要做方案"按钮使用
+let _pkMatchIds = []; // ★ 缓存 PK 弹窗 matchId 列表，供"我要做方案"按钮使用
 
 function esc(str) {
   return String(str || '')
@@ -15,7 +15,7 @@ function shortTeam(name) {
 
 /** 归一化 fusionConsensus 中文→英文（服务端返回中文，前端统一用英文比较） */
 function normalizeConsensus(raw) {
-  var c = String(raw || '');
+  const c = String(raw || '');
   if (c.indexOf('强一致') !== -1) return 'strong';
   if (c.indexOf('弱一致') !== -1) return 'weak';
   if (c.indexOf('熔断') !== -1) return 'meltdown';
@@ -31,18 +31,18 @@ export function openPKMulti(pickedList) {
   _pkMatchIds = pickedList.map(function (item) {
     return item.matchId;
   }); // ★ 缓存 matchIds
-  var overlay = document.getElementById('pkOverlay');
+  const overlay = document.getElementById('pkOverlay');
   if (!overlay || pickedList.length < 2) return;
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
 
-  var modal = document.getElementById('pkModal');
+  const modal = document.getElementById('pkModal');
   if (!modal) return;
   modal.innerHTML =
     '<div style="text-align:center;padding:80px 20px;color:var(--cyan)"><div style="font-size:36px;margin-bottom:12px">⚔️</div><div style="font-size:14px;font-weight:600">三维度融合分析中...</div></div>';
 
   // 为每场补全 GS 数据（带 5 秒超时保护）
-  var promises = pickedList.map(function (item) {
+  const promises = pickedList.map(function (item) {
     if (item.hasGS && item.pwScore !== undefined) return Promise.resolve(item);
     return Promise.race([
       api('gongshoudao', { matchId: item.matchId }).then(function (gs) {
@@ -58,7 +58,7 @@ export function openPKMulti(pickedList) {
     });
   });
 
-  var totalTimeout = new Promise(function (resolve) {
+  const totalTimeout = new Promise(function (resolve) {
     setTimeout(function () {
       resolve(null);
     }, 8000);
@@ -81,22 +81,22 @@ export function openPKMulti(pickedList) {
 function buildGSFields(gs) {
   gs = gs || {};
   // attDefGoal 已在后端限制 ≤6.5，此处兜底再限一次
-  var attDefGoalVal = parseFloat(gs.attDefGoal) || 0;
+  let attDefGoalVal = parseFloat(gs.attDefGoal) || 0;
   if (attDefGoalVal > 7.0) attDefGoalVal = 0; // 异常值丢弃
 
   // totalSum: 进球维度综合指标（V25修正：只累加合理范围内的进球相关值）
-  var totalSumVal = (function () {
-    var bbr = Math.min(100, Math.max(0, Math.abs(gs.bigBallRatio || 0))); // 0-100
-    var adg = Math.min(6.5, Math.abs(attDefGoalVal)); // 0-6.5
-    var h2h = Math.min(5.0, Math.abs(gs.h2hGoalAvg || 0)); // 0-5
-    var ba = Math.min(8.0, Math.abs(gs.breakArmorSum || 0)); // 0-8
+  const totalSumVal = (function () {
+    const bbr = Math.min(100, Math.max(0, Math.abs(gs.bigBallRatio || 0))); // 0-100
+    const adg = Math.min(6.5, Math.abs(attDefGoalVal)); // 0-6.5
+    const h2h = Math.min(5.0, Math.abs(gs.h2hGoalAvg || 0)); // 0-5
+    const ba = Math.min(8.0, Math.abs(gs.breakArmorSum || 0)); // 0-8
     return parseFloat((bbr + adg * 10 + h2h * 8 + ba * 3).toFixed(1));
   })();
 
   // 熔断后融合总进球（作为备用指标）
-  var fusionTotal = 0;
-  var fHome = parseFloat(gs.fusionFinalHome);
-  var fAway = parseFloat(gs.fusionFinalAway);
+  let fusionTotal = 0;
+  const fHome = parseFloat(gs.fusionFinalHome);
+  const fAway = parseFloat(gs.fusionFinalAway);
   if (!isNaN(fHome) && !isNaN(fAway)) {
     fusionTotal = parseFloat((fHome + fAway).toFixed(2));
   }
@@ -170,33 +170,33 @@ function normalize(val, min, max) {
 /** 计算实力评分 0-100（按指定权重） */
 function calcPowerScores(list) {
   // 净胜球量化×30% + 胜平负交叉×20% + 综合实力×30% + 攻守实力×20%
-  var gds = list.map(function (x) {
+  const gds = list.map(function (x) {
     return parseFloat(x.gdScore) || 0;
   });
-  var cvs = list.map(function (x) {
+  const cvs = list.map(function (x) {
     return parseFloat(x.crossValue) || 0;
   });
-  var pws = list.map(function (x) {
+  const pws = list.map(function (x) {
     return parseFloat(x.pwScore) || 0;
   });
-  var ads = list.map(function (x) {
+  const ads = list.map(function (x) {
     return parseFloat(x.adCombined) || 0;
   });
 
-  var gdMin = Math.min.apply(null, gds),
+  const gdMin = Math.min.apply(null, gds),
     gdMax = Math.max.apply(null, gds);
-  var cvMin = Math.min.apply(null, cvs),
+  const cvMin = Math.min.apply(null, cvs),
     cvMax = Math.max.apply(null, cvs);
-  var pwMin = Math.min.apply(null, pws),
+  const pwMin = Math.min.apply(null, pws),
     pwMax = Math.max.apply(null, pws);
-  var adMin = Math.min.apply(null, ads),
+  const adMin = Math.min.apply(null, ads),
     adMax = Math.max.apply(null, ads);
 
   return list.map(function (item, i) {
-    var sgd = normalize(gds[i], gdMin, gdMax);
-    var scv = normalize(cvs[i], cvMin, cvMax);
-    var spw = normalize(pws[i], pwMin, pwMax);
-    var sad = normalize(ads[i], adMin, adMax);
+    const sgd = normalize(gds[i], gdMin, gdMax);
+    const scv = normalize(cvs[i], cvMin, cvMax);
+    const spw = normalize(pws[i], pwMin, pwMax);
+    const sad = normalize(ads[i], adMin, adMax);
     return parseFloat((sgd * 0.3 + scv * 0.2 + spw * 0.3 + sad * 0.2).toFixed(1));
   });
 }
@@ -204,33 +204,33 @@ function calcPowerScores(list) {
 /** 计算进球评分 0-100（按指定权重） */
 function calcGoalScores(list) {
   // 综合大球比例×30% + 攻防进球×30% + 交锋进球×20% + 破甲和×20%
-  var bbrs = list.map(function (x) {
+  const bbrs = list.map(function (x) {
     return parseFloat(x.bigBallRatio) || (x.bigBallRatio === '-' ? 0 : 50);
   });
-  var atts = list.map(function (x) {
+  const atts = list.map(function (x) {
     return parseFloat(x.attDefGoal) || (x.attDefGoal === '-' ? 0 : 0);
   });
-  var h2hs = list.map(function (x) {
+  const h2hs = list.map(function (x) {
     return parseFloat(x.headToHeadGoal) || (x.headToHeadGoal === '-' ? 0 : 2.5);
   });
-  var bkas = list.map(function (x) {
+  const bkas = list.map(function (x) {
     return parseFloat(x.breakArmor) || (x.breakArmor === '-' ? 0 : 0);
   });
 
-  var bbMin = Math.min.apply(null, bbrs),
+  const bbMin = Math.min.apply(null, bbrs),
     bbMax = Math.max.apply(null, bbrs);
-  var atMin = Math.min.apply(null, atts),
+  const atMin = Math.min.apply(null, atts),
     atMax = Math.max.apply(null, atts);
-  var h2Min = Math.min.apply(null, h2hs),
+  const h2Min = Math.min.apply(null, h2hs),
     h2Max = Math.max.apply(null, h2hs);
-  var bkMin = Math.min.apply(null, bkas),
+  const bkMin = Math.min.apply(null, bkas),
     bkMax = Math.max.apply(null, bkas);
 
   return list.map(function (item, i) {
-    var sbb = normalize(bbrs[i], bbMin, bbMax);
-    var sat = normalize(atts[i], atMin, atMax);
-    var sh2 = normalize(h2hs[i], h2Min, h2Max);
-    var sbk = normalize(bkas[i], bkMin, bkMax);
+    const sbb = normalize(bbrs[i], bbMin, bbMax);
+    const sat = normalize(atts[i], atMin, atMax);
+    const sh2 = normalize(h2hs[i], h2Min, h2Max);
+    const sbk = normalize(bkas[i], bkMin, bkMax);
     return parseFloat((sbb * 0.3 + sat * 0.3 + sh2 * 0.2 + sbk * 0.2).toFixed(1));
   });
 }
@@ -238,10 +238,10 @@ function calcGoalScores(list) {
 /** 计算热度评分 0-100（1.0 最优，非对称惩罚：过热比过冷更危险） */
 function calcHeatScores(list) {
   return list.map(function (item) {
-    var hi = parseFloat(item.heatIndex);
+    const hi = parseFloat(item.heatIndex);
     if (isNaN(hi) || hi <= 0) return 50;
-    var delta = Math.abs(1.0 - hi);
-    var score = 100 - 100 * Math.pow(delta, 1.5);
+    const delta = Math.abs(1.0 - hi);
+    const score = 100 - 100 * Math.pow(delta, 1.5);
     return parseFloat(Math.max(0, Math.min(100, score)).toFixed(1));
   });
 }
@@ -249,7 +249,7 @@ function calcHeatScores(list) {
 /** 计算健康评分 0-100 */
 function calcHealthScores(list) {
   return list.map(function (item) {
-    var c = item.fusionConsensus;
+    const c = item.fusionConsensus;
     if (c === 'strong') return 100;
     if (c === 'weak') return 70;
     // V2.0: 熔断不再给0分，保留最低基础分20
@@ -261,7 +261,7 @@ function calcHealthScores(list) {
 /** V27 新增: 计算稳定性评分 0-100 */
 function calcStabilityScores(list) {
   return list.map(function (item) {
-    var s = parseFloat(item.stabilityOverall);
+    const s = parseFloat(item.stabilityOverall);
     return isNaN(s) ? 50 : parseFloat(Math.max(0, Math.min(100, s)).toFixed(1));
   });
 }
@@ -269,13 +269,13 @@ function calcStabilityScores(list) {
 /** V27 新增: 计算多维交叉验证评分 0-100（初始100分，每个分歧扣N分） */
 function calcVerificationScores(list) {
   return list.map(function (item) {
-    var score = 100;
-    var details = [];
+    let score = 100;
+    const details = [];
 
     // 交叉验证1: ladderLevel vs 赔率方向
-    var ll = item.ladderLevel || 0;
-    var hAward = parseFloat(item.homeWinAward) || 0;
-    var aAward = parseFloat(item.awayWinAward) || 0;
+    const ll = item.ladderLevel || 0;
+    const hAward = parseFloat(item.homeWinAward) || 0;
+    const aAward = parseFloat(item.awayWinAward) || 0;
     if (ll >= 2 && hAward > 0 && aAward > 0 && hAward > aAward * 1.3) {
       score -= 15;
       details.push('赔率与实力阶梯矛盾(主强但赔率高)');
@@ -285,9 +285,9 @@ function calcVerificationScores(list) {
     }
 
     // 交叉验证2: 赢盘率 vs 实力方向
-    var winPan = parseFloat(item.homeWinPan) || 0;
-    var awayWinPan = parseFloat(item.awayWinPan) || 0;
-    var pw = parseFloat(item.pwScore) || 0;
+    const winPan = parseFloat(item.homeWinPan) || 0;
+    const awayWinPan = parseFloat(item.awayWinPan) || 0;
+    const pw = parseFloat(item.pwScore) || 0;
     if (pw > 0.1 && awayWinPan > winPan + 15) {
       score -= 10;
       details.push('赢盘率与实力方向矛盾');
@@ -297,16 +297,16 @@ function calcVerificationScores(list) {
     }
 
     // 交叉验证3: strengthGoal vs attDefGoal 差异>1球
-    var sg = parseFloat(item.strengthGoal) || 0;
-    var adg = parseFloat(item.attDefGoal) || 0;
+    const sg = parseFloat(item.strengthGoal) || 0;
+    const adg = parseFloat(item.attDefGoal) || 0;
     if (sg > 0 && adg > 0 && Math.abs(sg - adg) > 1.0) {
       score -= 15;
       details.push('实力进球与攻防进球背离(' + sg.toFixed(1) + ' vs ' + adg.toFixed(1) + ')');
     }
 
     // 交叉验证4: bigBallRatio高但联赛大球率低 → 异常
-    var bbr = parseFloat(item.bigBallRatio) || 50;
-    var lob = item.leagueOverBaseline || 55;
+    const bbr = parseFloat(item.bigBallRatio) || 50;
+    const lob = item.leagueOverBaseline || 55;
     if (bbr > 70 && lob < 50) {
       score -= 10;
       details.push('大球率偏高但与联赛特性不符');
@@ -322,8 +322,8 @@ function calcVerificationScores(list) {
 /** V27 重构: 按维度时效衰减（替换一刀切惩罚） */
 function calcAgeWeight(dataAge, dataType) {
   if (dataAge < 0) return 1.0;
-  var halfLife = { odds: 15, heat: 30, ai: 60, stats: 360 };
-  var h = halfLife[dataType] || 120;
+  const halfLife = { odds: 15, heat: 30, ai: 60, stats: 360 };
+  const h = halfLife[dataType] || 120;
   return Math.pow(0.5, dataAge / h);
 }
 
@@ -334,35 +334,35 @@ function calcCompositeScore(pwr, goal, heat, health, stab, verif) {
 
 /** V27重构: 为 pickedList 每个元素附加评分对象（含稳定性+验证+时效衰减） */
 function computeAllScores(list) {
-  var powerScores = calcPowerScores(list);
-  var goalScores = calcGoalScores(list);
-  var heatScores = calcHeatScores(list);
-  var healthScores = calcHealthScores(list);
-  var stabilityScores = calcStabilityScores(list);
-  var verificationResults = calcVerificationScores(list);
-  var verificationScores = verificationResults.map(function (v) {
+  const powerScores = calcPowerScores(list);
+  const goalScores = calcGoalScores(list);
+  const heatScores = calcHeatScores(list);
+  const healthScores = calcHealthScores(list);
+  const stabilityScores = calcStabilityScores(list);
+  const verificationResults = calcVerificationScores(list);
+  const verificationScores = verificationResults.map(function (v) {
     return v.score;
   });
 
   return list.map(function (item, i) {
-    var pwr = powerScores[i];
-    var goal = goalScores[i];
-    var heat = heatScores[i];
-    var health = healthScores[i];
-    var stab = stabilityScores[i];
-    var verif = verificationScores[i];
+    const pwr = powerScores[i];
+    const goal = goalScores[i];
+    const heat = heatScores[i];
+    const health = healthScores[i];
+    const stab = stabilityScores[i];
+    const verif = verificationScores[i];
 
     // V27 时效衰减: 按维度分别衰减
-    var da = item.dataAge;
-    var ageW_heat = calcAgeWeight(da, 'heat');
-    var ageW_stats = calcAgeWeight(da, 'stats');
+    const da = item.dataAge;
+    const ageW_heat = calcAgeWeight(da, 'heat');
+    const ageW_stats = calcAgeWeight(da, 'stats');
 
     // 分维度时效衰减
-    var heatAdj = heat * ageW_heat;
-    var stabAdj = stab * ageW_stats;
+    const heatAdj = heat * ageW_heat;
+    const stabAdj = stab * ageW_stats;
 
     // V27: 综合信心分 = 30%实力 + 15%进球 + 10%热度(衰减) + 15%健康 + 15%稳定性(衰减) + 15%验证
-    var comp = calcCompositeScore(pwr, goal, heatAdj, health, stabAdj, verif);
+    let comp = calcCompositeScore(pwr, goal, heatAdj, health, stabAdj, verif);
 
     // 数据陈旧度兜底惩罚（>240分钟扣5分，>120分钟扣3分，已由分维度衰减分担大部分）
     if (da > 240) comp = Math.max(0, comp - 5);
@@ -388,14 +388,14 @@ function computeAllScores(list) {
 // ═══════════════════════════════════════════
 
 function normalizeFinalDirection(dir) {
-  var text = String(dir || '').trim();
+  const text = String(dir || '').trim();
   if (!text || /观望|避开|数据不足/.test(text)) return 'watch';
   return text;
 }
 
 function resolveExpectedValue(advice) {
   if (!advice || !advice.ev) return null;
-  var dir = String(advice.dir || '');
+  const dir = String(advice.dir || '');
   if (dir.indexOf('主胜') === 0) return advice.ev.evHome;
   if (dir.indexOf('客胜') === 0) return advice.ev.evAway;
   if (dir.indexOf('平') === 0) return advice.ev.evDraw;
@@ -403,21 +403,21 @@ function resolveExpectedValue(advice) {
 }
 
 function buildDecisionNarrative(advice, decisionLevel, riskLevel, degradeReasons) {
-  var dirText = normalizeFinalDirection(advice && advice.dir) === 'watch' ? '观望' : advice.dir;
-  var riskText = riskLevel === 'red' ? '高' : riskLevel === 'yellow' ? '中' : '低';
-  var reason = (advice && advice.desc) || '基于 PK 综合评分输出';
-  var text = 'PK裁判：' + dirText + '，评级' + decisionLevel + '，风险' + riskText + '。理由：' + reason;
+  const dirText = normalizeFinalDirection(advice && advice.dir) === 'watch' ? '观望' : advice.dir;
+  const riskText = riskLevel === 'red' ? '高' : riskLevel === 'yellow' ? '中' : '低';
+  const reason = (advice && advice.desc) || '基于 PK 综合评分输出';
+  let text = 'PK裁判：' + dirText + '，评级' + decisionLevel + '，风险' + riskText + '。理由：' + reason;
   if (Array.isArray(degradeReasons) && degradeReasons.length > 0) text += '；降级原因：' + degradeReasons.join('、');
   return text;
 }
 
 function applyStandardDecisionFields(scored, advice) {
-  var item = (scored && scored.item) || {};
-  var riskTags = [];
-  var degradeReasons = [];
-  var expectedValue = resolveExpectedValue(advice);
-  var stars = Math.max(0, Math.min(5, parseInt((advice && advice.stars) || 0, 10) || 0));
-  var finalDirection = normalizeFinalDirection(advice && advice.dir);
+  const item = (scored && scored.item) || {};
+  const riskTags = [];
+  const degradeReasons = [];
+  const expectedValue = resolveExpectedValue(advice);
+  const stars = Math.max(0, Math.min(5, parseInt((advice && advice.stars) || 0, 10) || 0));
+  const finalDirection = normalizeFinalDirection(advice && advice.dir);
 
   if (item.fusionConsensus === 'meltdown') {
     riskTags.push('模型熔断');
@@ -452,11 +452,11 @@ function applyStandardDecisionFields(scored, advice) {
   }
   if (finalDirection === 'watch') riskTags.push('建议观望');
 
-  var riskLevel = 'green';
+  let riskLevel = 'green';
   if (item.fusionConsensus === 'meltdown' || finalDirection === 'watch' || riskTags.length >= 3) riskLevel = 'red';
   else if (riskTags.length > 0 || stars <= 2) riskLevel = 'yellow';
 
-  var decisionLevel = '观望';
+  let decisionLevel = '观望';
   if (finalDirection !== 'watch') {
     if (stars >= 5) decisionLevel = '主推';
     else if (stars >= 3) decisionLevel = '可做';
@@ -500,13 +500,13 @@ function renderDecisionTags(items, cls) {
 
 /** P0-①/② + P2-⑥/⑦/⑧ + P1-④: 增强方向推荐 */
 function getDirectionAdvice(scored, ranked) {
-  var item = scored && scored.item ? scored.item : {};
-  var pw = parseFloat(item.pwScore) || 0;
-  var hi = parseFloat(item.heatIndex);
-  var meltdown = item.fusionConsensus === 'meltdown';
-  var isWeak = item.fusionConsensus === 'weak';
-  var isNaNHi = isNaN(hi) || hi <= 0;
-  var result;
+  const item = scored && scored.item ? scored.item : {};
+  const pw = parseFloat(item.pwScore) || 0;
+  const hi = parseFloat(item.heatIndex);
+  const meltdown = item.fusionConsensus === 'meltdown';
+  const isWeak = item.fusionConsensus === 'weak';
+  const isNaNHi = isNaN(hi) || hi <= 0;
+  let result;
 
   // ── 熔断 — V2.0: 降级而非完全放弃 ──
   if (meltdown) {
@@ -578,14 +578,14 @@ function getDirectionAdvice(scored, ranked) {
 
   // P2-⑥: 相对排名补偿（集合内 |pwScore| Top 25% 且 |pw| ≥ 0.03）
   if (ranked && ranked.length >= 3 && !meltdown) {
-    var absPwList = ranked.map(function (s) {
+    const absPwList = ranked.map(function (s) {
       return Math.abs(parseFloat(s.item.pwScore) || 0);
     });
     absPwList.sort(function (a, b) {
       return b - a;
     });
-    var top25Idx = Math.max(0, Math.ceil(ranked.length * 0.25) - 1);
-    var top25Pw = absPwList[top25Idx] || 0;
+    const top25Idx = Math.max(0, Math.ceil(ranked.length * 0.25) - 1);
+    const top25Pw = absPwList[top25Idx] || 0;
     if (Math.abs(pw) >= Math.max(0.03, top25Pw) && result.stars < 5 && Math.abs(pw) >= 0.03) {
       result.stars = Math.min(5, result.stars + 1);
       result.desc = (result.desc ? result.desc + '；' : '') + '相对排名补偿';
@@ -593,10 +593,10 @@ function getDirectionAdvice(scored, ranked) {
   }
 
   // P2-⑧: 交叉验证（SPF/让球盘一致性）
-  var crossSpfWin = parseFloat(item.crossSpfWin);
-  var crossSpfLose = parseFloat(item.crossSpfLose);
-  var crossHcpWin = parseFloat(item.crossHcpWin);
-  var crossHcpLose = parseFloat(item.crossHcpLose);
+  const crossSpfWin = parseFloat(item.crossSpfWin);
+  const crossSpfLose = parseFloat(item.crossSpfLose);
+  const crossHcpWin = parseFloat(item.crossHcpWin);
+  const crossHcpLose = parseFloat(item.crossHcpLose);
   result.crossOk = true;
   result.crossDetail = '';
   if (!isNaN(crossSpfWin) && !isNaN(crossSpfLose)) {
@@ -624,9 +624,9 @@ function getDirectionAdvice(scored, ranked) {
   }
 
   // P1-④: xg一致性检查
-  var xgHome = parseFloat(item.xgHome) || 0;
-  var xgAway = parseFloat(item.xgAway) || 0;
-  var xgDiff = xgHome - xgAway;
+  const xgHome = parseFloat(item.xgHome) || 0;
+  const xgAway = parseFloat(item.xgAway) || 0;
+  const xgDiff = xgHome - xgAway;
   result.xgOk = true;
   result.xgDetail = '';
   if (xgHome > 0 || xgAway > 0) {
@@ -642,15 +642,15 @@ function getDirectionAdvice(scored, ranked) {
   }
 
   // V27: 赔率隐含概率校准
-  var hAward = parseFloat(item.homeWinAward) || 0;
-  var aAward = parseFloat(item.awayWinAward) || 0;
-  var dAward = parseFloat(item.drawAward) || 0;
+  const hAward = parseFloat(item.homeWinAward) || 0;
+  const aAward = parseFloat(item.awayWinAward) || 0;
+  const dAward = parseFloat(item.drawAward) || 0;
   result.marketConsistent = true;
   result.marketDetail = '';
   if (hAward > 0 && aAward > 0 && dAward > 0) {
-    var invSum = 1 / hAward + 1 / dAward + 1 / aAward;
-    var pMarketHome = 1 / hAward / invSum;
-    var pMarketAway = 1 / aAward / invSum;
+    const invSum = 1 / hAward + 1 / dAward + 1 / aAward;
+    const pMarketHome = 1 / hAward / invSum;
+    const pMarketAway = 1 / aAward / invSum;
     if (result.dir.indexOf('主胜') === 0 && pMarketAway > pMarketHome + 0.1) {
       result.marketConsistent = false;
       result.marketDetail = '市场不看好主胜(赔率:' + hAward.toFixed(2) + '/' + aAward.toFixed(2) + ')';
@@ -667,16 +667,16 @@ function getDirectionAdvice(scored, ranked) {
   result.ev = null;
   result.valueTag = '';
   if (hAward > 1.0 && aAward > 1.0 && dAward > 1.0) {
-    var sigmoid = function (x) {
+    const sigmoid = function (x) {
       return 1 / (1 + Math.exp(-x * 6));
     };
-    var pWinEv = sigmoid(pw);
-    var pDrawEv = Math.max(0.18, Math.min(0.32, 0.25 - Math.abs(pw) * 0.3));
-    var pLoseEv = 1 - pWinEv - pDrawEv;
+    const pWinEv = sigmoid(pw);
+    const pDrawEv = Math.max(0.18, Math.min(0.32, 0.25 - Math.abs(pw) * 0.3));
+    const pLoseEv = 1 - pWinEv - pDrawEv;
 
-    var evHome = +(pWinEv * hAward - 1).toFixed(3);
-    var evDraw = +(pDrawEv * dAward - 1).toFixed(3);
-    var evAway = +(pLoseEv * aAward - 1).toFixed(3);
+    const evHome = +(pWinEv * hAward - 1).toFixed(3);
+    const evDraw = +(pDrawEv * dAward - 1).toFixed(3);
+    const evAway = +(pLoseEv * aAward - 1).toFixed(3);
 
     result.ev = {
       evHome: evHome,
@@ -706,18 +706,18 @@ function getDirectionAdvice(scored, ranked) {
 /** P4-⑪: 进球方向+方向推荐联动，|pw|>0.25时大球信心增强 */
 function getGoalDirection(scored, dirAdvice) {
   if (!scored || !scored.item) return { dir: '数据不全', stars: 0, tips: [] };
-  var item = scored.item;
-  var bbr = parseFloat(item.bigBallRatio) || 50;
+  const item = scored.item;
+  const bbr = parseFloat(item.bigBallRatio) || 50;
 
   // 总进球期望（V25修正：attDefGoal 已由后端保障 ≤6.5，作为主指标）
   // 备选：headToHeadGoal 作为交锋进球参考，fusionFinalHome + fusionFinalAway 作为熔断后修正
-  var totalGoals = parseFloat(item.attDefGoal);
+  let totalGoals = parseFloat(item.attDefGoal);
   if (isNaN(totalGoals) || totalGoals <= 0) {
     totalGoals = parseFloat(item.headToHeadGoal) || 0;
   }
 
   // 熔断后融合值作为兜底（更保守的估计）
-  var fusionTotal = 0;
+  let fusionTotal = 0;
   if (!isNaN(parseFloat(item.fusionFinalHome)) && !isNaN(parseFloat(item.fusionFinalAway))) {
     fusionTotal = parseFloat(item.fusionFinalHome) + parseFloat(item.fusionFinalAway);
   }
@@ -730,7 +730,7 @@ function getGoalDirection(scored, dirAdvice) {
   // 默认进球参考值（数据库平均值）
   if (totalGoals <= 0) totalGoals = 2.5;
 
-  var pattern = item.attackPattern;
+  const pattern = item.attackPattern;
 
   // ── ⚠️ V26 矛盾检测（优先）：历史大球率与实际预期球严重背离时，以实际预期为准 ──
   if (bbr >= 65 && totalGoals > 0 && totalGoals < 2.0) {
@@ -791,7 +791,7 @@ function getGoalDirection(scored, dirAdvice) {
 /** P4-⑪ 辅助: 实力碾压（|pw|>0.25）+ 推荐大球 → +1星加成 */
 function applyDirLink(goalResult, scored) {
   if (!scored || !scored.item) return goalResult;
-  var pwAbs = Math.abs(parseFloat((scored.item && scored.item.pwScore) || 0));
+  const pwAbs = Math.abs(parseFloat((scored.item && scored.item.pwScore) || 0));
   if (pwAbs > 0.25 && goalResult.dir.indexOf('大球') !== -1 && goalResult.stars < 5) {
     goalResult.stars = Math.min(5, goalResult.stars + 1);
     goalResult.desc = (goalResult.desc ? goalResult.desc + '；' : '') + '实力碾压利好大球';
@@ -809,14 +809,14 @@ function starStr(n) {
 // ═══════════════════════════════════════════
 
 function renderFusionPK(modal, list) {
-  var n = list.length;
-  var scoredList = computeAllScores(list);
+  const n = list.length;
+  const scoredList = computeAllScores(list);
   // 按综合分降序排列
-  var ranked = scoredList.slice().sort(function (a, b) {
+  const ranked = scoredList.slice().sort(function (a, b) {
     return b.compositeScore - a.compositeScore;
   });
 
-  var html = '';
+  let html = '';
   html +=
     '<div class="pk3-header">' +
     '<span class="pk3-title">三维度融合 PK 分析（' +
@@ -826,7 +826,7 @@ function renderFusionPK(modal, list) {
     '</div>';
 
   // ★ 异步加载盘口变化数据
-  var matchIds = list
+  const matchIds = list
     .map(function (x) {
       return x.matchId;
     })
@@ -836,7 +836,7 @@ function renderFusionPK(modal, list) {
       .then(function (oddsMap) {
         if (!oddsMap) return;
         list.forEach(function (item) {
-          var oData = oddsMap[item.matchId];
+          const oData = oddsMap[item.matchId];
           if (oData) {
             item._odds = oData;
             item._spfDelta = oData.spfDelta || {};
@@ -854,7 +854,7 @@ function renderFusionPK(modal, list) {
   }
 
   // ── 全局熔断预警横幅（P2）──
-  var meltCount = ranked.filter(function (s) {
+  const meltCount = ranked.filter(function (s) {
     return s && s.item && s.item.fusionConsensus === 'meltdown';
   }).length;
   if (meltCount > 0) {
@@ -913,55 +913,55 @@ function renderScoreCard(scored, rank, ranked) {
     console.warn('[renderScoreCard] scored.item missing');
     return '';
   }
-  var item = scored.item;
-  var pwr = scored.powerScore;
-  var goal = scored.goalScore;
-  var heat = scored.heatScore;
-  var comp = scored.compositeScore;
+  const item = scored.item;
+  const pwr = scored.powerScore;
+  const goal = scored.goalScore;
+  const heat = scored.heatScore;
+  const comp = scored.compositeScore;
 
-  var pwrBar = barHtml(pwr, pwr >= 50 ? 'bar-cyan' : 'bar-red');
-  var goalBar = barHtml(goal, goal >= 50 ? 'bar-green' : 'bar-red');
-  var heatBar = barHtml(heat, heat >= 60 ? 'bar-blue' : 'bar-amber');
+  const pwrBar = barHtml(pwr, pwr >= 50 ? 'bar-cyan' : 'bar-red');
+  const goalBar = barHtml(goal, goal >= 50 ? 'bar-green' : 'bar-red');
+  const heatBar = barHtml(heat, heat >= 60 ? 'bar-blue' : 'bar-amber');
 
   // 标签
-  var pw = parseFloat(item.pwScore) || 0;
-  var tags = [];
+  const pw = parseFloat(item.pwScore) || 0;
+  const tags = [];
   if (pw >= 0.25) tags.push('<span class="pk3-tag-t">🔥绝对优势</span>');
   if (item.fusionConsensus === 'meltdown') tags.push('<span class="pk3-tag-t tag-red">⚠️模型打架</span>');
   if (pw >= -0.08 && pw <= 0.08) tags.push('<span class="pk3-tag-t tag-green">🎯实力均衡</span>');
-  var hi = parseFloat(item.heatIndex);
+  const hi = parseFloat(item.heatIndex);
   // V2.0: 固定阈值保留作为快速标签（详细 Z-Score 在投注建议中展示）
   if (!isNaN(hi) && hi >= 1.4) tags.push('<span class="pk3-tag-t tag-amber">🔥过热风险</span>');
   if (!isNaN(hi) && hi > 0 && hi <= 0.85) tags.push('<span class="pk3-tag-t tag-blue">🧊冷门潜质</span>');
   if (item.attackPattern === '对攻为主') tags.push('<span class="pk3-tag-t tag-orange">⚡对攻大战</span>');
   if (item.attackPattern === '防守为主') tags.push('<span class="pk3-tag-t tag-indigo">🛡️防守大战</span>');
 
-  var dirAdvice = getDirectionAdvice(scored, ranked);
-  var goalAdvice = getGoalDirection(scored, dirAdvice);
+  const dirAdvice = getDirectionAdvice(scored, ranked);
+  const goalAdvice = getGoalDirection(scored, dirAdvice);
 
   // 预期进球显示：优先攻防进球(attDefGoal)，其次交锋进球(headToHeadGoal)，兜底熔断融合值
-  var totalGoalsExpect = parseFloat(item.attDefGoal);
+  let totalGoalsExpect = parseFloat(item.attDefGoal);
   if (isNaN(totalGoalsExpect) || totalGoalsExpect <= 0) {
     totalGoalsExpect = parseFloat(item.headToHeadGoal) || 0;
   }
   // 异常值保护（>6.5球视为数据异常，使用熔断融合值替代）
   if (totalGoalsExpect > 6.5) {
-    var ft = parseFloat(item.fusionFinalTotal) || 0;
+    const ft = parseFloat(item.fusionFinalTotal) || 0;
     if (ft > 0) totalGoalsExpect = ft;
     else totalGoalsExpect = parseFloat(item.headToHeadGoal) || 2.5;
   }
   // 兜底默认值
   if (totalGoalsExpect <= 0) totalGoalsExpect = 2.5;
-  var goalLabel = '（预期 ' + totalGoalsExpect.toFixed(1) + '球）';
+  const goalLabel = '（预期 ' + totalGoalsExpect.toFixed(1) + '球）';
 
-  var fusionBadge = '';
-  var consensus = item.fusionConsensus;
+  let fusionBadge = '';
+  const consensus = item.fusionConsensus;
   if (consensus === 'strong') fusionBadge = '<span class="pk3-fusion-tag fusion-ok">✅强一致</span>';
   else if (consensus === 'weak') fusionBadge = '<span class="pk3-fusion-tag fusion-warn">⚠️弱一致</span>';
   // V2.0: 熔断标签改为"模型分歧"（不再完全放弃）
   else if (consensus === 'meltdown') fusionBadge = '<span class="pk3-fusion-tag fusion-bad">⚠️模型分歧</span>';
 
-  var rankBadge = rank <= 3 ? '<span class="pk3-rank-badge r' + rank + '">🥇</span>' : '';
+  const rankBadge = rank <= 3 ? '<span class="pk3-rank-badge r' + rank + '">🥇</span>' : '';
 
   return (
     '<div class="pk3-score-card">' +
@@ -1029,8 +1029,8 @@ function renderScoreCard(scored, rank, ranked) {
     (fusionBadge ? '<div class="pk3-sc-fusion">' + fusionBadge + '</div>' : '') +
     // V27: 联赛归一化标签
     (function () {
-      var lc = parseFloat(item.leagueCalibration) || 1.0;
-      var la = item.leagueAvgGoals || 2.65;
+      const lc = parseFloat(item.leagueCalibration) || 1.0;
+      const la = item.leagueAvgGoals || 2.65;
       if (lc > 1.08)
         return (
           '<div class="pk3-sc-fusion"><span class="pk3-fusion-tag pk3-tag-league">🏟️ 高进球联赛(场均' +
@@ -1060,12 +1060,12 @@ function barHtml(score, colorCls) {
 
 function renderFocusMatch(ranked) {
   // 筛选条件: 综合分最高 + 无熔断/弱一致 + HI 0.85~1.30 + dataAge≤120min
-  var focusMatch = null;
-  for (var i = 0; i < ranked.length; i++) {
-    var s = ranked[i];
+  let focusMatch = null;
+  for (let i = 0; i < ranked.length; i++) {
+    const s = ranked[i];
     var hi = parseFloat(s.item.heatIndex);
-    var da = s.item.dataAge || -1;
-    var consensus = s.item.fusionConsensus;
+    const da = s.item.dataAge || -1;
+    const consensus = s.item.fusionConsensus;
     if (
       consensus !== 'meltdown' &&
       consensus !== 'weak' &&
@@ -1080,11 +1080,11 @@ function renderFocusMatch(ranked) {
   }
   if (!focusMatch) return '';
 
-  var item = focusMatch.item;
-  var dirAdvice = getDirectionAdvice(focusMatch, ranked);
-  var goalAdvice = getGoalDirection(focusMatch, dirAdvice);
+  const item = focusMatch.item;
+  const dirAdvice = getDirectionAdvice(focusMatch, ranked);
+  const goalAdvice = getGoalDirection(focusMatch, dirAdvice);
   var hi = parseFloat(item.heatIndex);
-  var hiLabel = isNaN(hi) ? '-' : hi.toFixed(2);
+  const hiLabel = isNaN(hi) ? '-' : hi.toFixed(2);
 
   return (
     '<div class="pk3-section-label">⭐ 今日焦点战</div>' +
@@ -1165,8 +1165,8 @@ function renderFocusMatch(ranked) {
 // ═══════════════════════════════════════════
 
 function renderSourceComparisonRows(scored, dirAdvice) {
-  var item = scored.item || {};
-  var consensus =
+  const item = scored.item || {};
+  const consensus =
     item.fusionConsensus === 'strong'
       ? '强一致'
       : item.fusionConsensus === 'weak'
@@ -1174,9 +1174,9 @@ function renderSourceComparisonRows(scored, dirAdvice) {
         : item.fusionConsensus === 'meltdown'
           ? '熔断'
           : '暂缺';
-  var gsDir = item.fusionConsensus === 'meltdown' ? '观望' : dirAdvice.dir || '暂缺';
-  var marketText = dirAdvice.marketDetail || '市场数据待补充';
-  var marketRisk = dirAdvice.marketConsistent === false ? '分歧' : dirAdvice.marketDetail ? '支持' : '暂缺';
+  const gsDir = item.fusionConsensus === 'meltdown' ? '观望' : dirAdvice.dir || '暂缺';
+  const marketText = dirAdvice.marketDetail || '市场数据待补充';
+  const marketRisk = dirAdvice.marketConsistent === false ? '分歧' : dirAdvice.marketDetail ? '支持' : '暂缺';
   return (
     '<div class="pk3-model-row"><span>专家共识</span><b>暂缺</b><em>外部专家数据未接入本弹窗，不阻断 PK 结论</em></div>' +
     '<div class="pk3-model-row"><span>功守道</span><b>' +
@@ -1203,12 +1203,12 @@ function renderSourceComparisonRows(scored, dirAdvice) {
 }
 
 function renderDecisionExplanationPanel(ranked) {
-  var html = '<div class="pk3-decision-panel">';
+  let html = '<div class="pk3-decision-panel">';
   ranked.forEach(function (scored) {
     if (!scored || !scored.item) return;
-    var item = scored.item;
-    var dirAdvice = getDirectionAdvice(scored, ranked);
-    var finalText = dirAdvice.finalDirection === 'watch' ? '观望' : dirAdvice.finalDirection;
+    const item = scored.item;
+    const dirAdvice = getDirectionAdvice(scored, ranked);
+    const finalText = dirAdvice.finalDirection === 'watch' ? '观望' : dirAdvice.finalDirection;
     html +=
       '<div class="pk3-decision-card risk-' +
       esc(dirAdvice.riskLevel) +
@@ -1246,25 +1246,25 @@ function renderDecisionExplanationPanel(ranked) {
 }
 
 function renderComparisonTable(ranked) {
-  var html =
+  let html =
     '<div class="pk3-table-wrap"><table class="pk3-compare-table"><thead><tr>' +
     '<th>排名</th><th>对阵</th><th>实力</th><th>进球</th><th>热度</th><th>综合</th><th>方向推荐</th><th>进球预期</th>' +
     '</tr></thead><tbody>';
 
   ranked.forEach(function (scored, i) {
     if (!scored || !scored.item) return;
-    var item = scored.item;
-    var dirAdvice = getDirectionAdvice(scored, ranked);
-    var goalAdvice = getGoalDirection(scored, dirAdvice);
+    const item = scored.item;
+    const dirAdvice = getDirectionAdvice(scored, ranked);
+    const goalAdvice = getGoalDirection(scored, dirAdvice);
     // 预期进球（与评分卡保持一致）
-    var totalGoals = parseFloat(item.attDefGoal);
+    let totalGoals = parseFloat(item.attDefGoal);
     if (isNaN(totalGoals) || totalGoals <= 0) totalGoals = parseFloat(item.headToHeadGoal) || 0;
     if (totalGoals > 6.5 && parseFloat(item.fusionFinalTotal) > 0) totalGoals = parseFloat(item.fusionFinalTotal);
     if (totalGoals <= 0) totalGoals = 2.5;
 
-    var rankEmoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1;
-    var rowCls = scored.compositeScore >= 65 ? 'row-high' : scored.compositeScore >= 45 ? 'row-mid' : 'row-low';
-    var heatCls = scored.heatScore >= 70 ? 'val-good' : scored.heatScore >= 50 ? 'val-warn' : 'val-bad';
+    const rankEmoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1;
+    const rowCls = scored.compositeScore >= 65 ? 'row-high' : scored.compositeScore >= 45 ? 'row-mid' : 'row-low';
+    const heatCls = scored.heatScore >= 70 ? 'val-good' : scored.heatScore >= 50 ? 'val-warn' : 'val-bad';
 
     html +=
       '<tr class="' +
@@ -1322,24 +1322,24 @@ function renderComparisonTable(ranked) {
 // ═══════════════════════════════════════════
 
 function renderBettingAdviceList(ranked) {
-  var html = '<div class="pk3-advice-list">';
+  let html = '<div class="pk3-advice-list">';
   ranked.forEach(function (scored, i) {
     if (!scored || !scored.item) return;
-    var item = scored.item;
-    var dirAdvice = getDirectionAdvice(scored, ranked);
-    var goalAdvice = getGoalDirection(scored, dirAdvice);
-    var pw = parseFloat(item.pwScore) || 0;
-    var hi = parseFloat(item.heatIndex);
-    var heatLabel = isNaN(hi) ? '-' : hi.toFixed(2);
-    var meltdown = item.fusionConsensus === 'meltdown';
-    var isWeak = item.fusionConsensus === 'weak';
-    var da = item.dataAge;
-    var daLabel = da >= 0 ? (da > 180 ? '⚠️ ' + da + '分钟未刷新' : da > 60 ? '🕐 ' + da + '分钟前' : '') : '';
-    var daWarn = da > 180;
-    var daInfo = da > 60 && da <= 180;
+    const item = scored.item;
+    const dirAdvice = getDirectionAdvice(scored, ranked);
+    const goalAdvice = getGoalDirection(scored, dirAdvice);
+    const pw = parseFloat(item.pwScore) || 0;
+    const hi = parseFloat(item.heatIndex);
+    const heatLabel = isNaN(hi) ? '-' : hi.toFixed(2);
+    const meltdown = item.fusionConsensus === 'meltdown';
+    const isWeak = item.fusionConsensus === 'weak';
+    const da = item.dataAge;
+    const daLabel = da >= 0 ? (da > 180 ? '⚠️ ' + da + '分钟未刷新' : da > 60 ? '🕐 ' + da + '分钟前' : '') : '';
+    const daWarn = da > 180;
+    const daInfo = da > 60 && da <= 180;
 
     // P2-⑦: HI 精细化标签
-    var hiInfo = '';
+    let hiInfo = '';
     if (!isNaN(hi) && hi > 0) {
       if (hi < 0.85)
         hiInfo =
@@ -1352,13 +1352,13 @@ function renderBettingAdviceList(ranked) {
     }
 
     // P2-⑧: 交叉验证
-    var crossWarn = '';
+    let crossWarn = '';
     if (!dirAdvice.crossOk && dirAdvice.crossDetail) {
       crossWarn = '<div class="pk3-adv-row pk3-adv-warn">⚠️ ' + dirAdvice.crossDetail + '</div>';
     }
 
     // P1-④: xg一致性
-    var xgRow = '';
+    let xgRow = '';
     if (dirAdvice.xgDetail) {
       xgRow =
         '<div class="pk3-adv-row ' +
@@ -1370,27 +1370,27 @@ function renderBettingAdviceList(ranked) {
     }
 
     // P1-⑤: dataAge 时效
-    var ageRow = '';
+    let ageRow = '';
     if (daWarn) ageRow = '<div class="pk3-adv-row pk3-adv-warn">⚠️ 数据时效：' + daLabel + '</div>';
     else if (daInfo) ageRow = '<div class="pk3-adv-row pk3-adv-info">🕐 数据时效：' + daLabel + '</div>';
 
     // P1-③: 弱一致警告
-    var weakWarn =
+    const weakWarn =
       isWeak && !meltdown
         ? '<div class="pk3-adv-row pk3-adv-warn">⚠️ 模型弱一致 — 参考价值打折，建议降低注码</div>'
         : '';
 
     // V27: 赔率市场一致性
-    var marketRow = !dirAdvice.marketConsistent
+    const marketRow = !dirAdvice.marketConsistent
       ? '<div class="pk3-adv-row pk3-adv-warn">⚠️ ' + (dirAdvice.marketDetail || '市场分歧') + '</div>'
       : dirAdvice.marketDetail
         ? '<div class="pk3-adv-row pk3-adv-info">📊 ' + dirAdvice.marketDetail + '</div>'
         : '';
 
     // V2.0: EV 价值信息
-    var evRow = '';
+    let evRow = '';
     if (dirAdvice.ev) {
-      var ev = dirAdvice.ev;
+      const ev = dirAdvice.ev;
       evRow =
         '<div class="pk3-adv-row pk3-adv-info">💹 EV: 主' +
         ev.evHome.toFixed(3) +
@@ -1404,7 +1404,7 @@ function renderBettingAdviceList(ranked) {
     }
 
     // V27: 稳定性低预警
-    var stabRow = '';
+    let stabRow = '';
     if (scored.stabilityScore < 35) {
       stabRow =
         '<div class="pk3-adv-row pk3-adv-warn">⚠️ 进球分布不稳定(' +
@@ -1413,8 +1413,8 @@ function renderBettingAdviceList(ranked) {
     }
 
     // V27: 多维验证分歧
-    var verifDetails = scored.verificationDetails || [];
-    var verifRow = '';
+    const verifDetails = scored.verificationDetails || [];
+    let verifRow = '';
     if (verifDetails.length > 0) {
       verifRow = '<div class="pk3-adv-row pk3-adv-warn">🔍 ' + verifDetails.join('；') + '</div>';
     }
@@ -1484,21 +1484,21 @@ function renderBettingAdviceList(ranked) {
 // ═══════════════════════════════════════════
 
 function renderComboRecommendations(ranked) {
-  var n = ranked.length;
+  const n = ranked.length;
   if (n < 2) return '';
 
   /** 计算组合置信度：取topN的最小综合分（木桶原理） */
   function calcComboConf(items, N) {
-    var comps = items
+    const comps = items
       .map(function (x) {
         return x.comp;
       })
       .sort(function (a, b) {
         return b - a;
       });
-    var topN = comps.slice(0, N);
-    var minComp = Math.min.apply(null, topN);
-    var avgComp = Math.round(
+    const topN = comps.slice(0, N);
+    const minComp = Math.min.apply(null, topN);
+    const avgComp = Math.round(
       topN.reduce(function (s, v) {
         return s + v;
       }, 0) / N,
@@ -1507,16 +1507,16 @@ function renderComboRecommendations(ranked) {
   }
 
   // 为每场准备辅助信息
-  var withInfo = ranked.map(function (scored) {
+  const withInfo = ranked.map(function (scored) {
     if (!scored || !scored.item) return null;
-    var item = scored.item;
-    var pw = parseFloat(item.pwScore) || 0;
-    var hi = parseFloat(item.heatIndex);
-    var meltdown = item.fusionConsensus === 'meltdown';
-    var isWeak = item.fusionConsensus === 'weak';
-    var isOverheat = !isNaN(hi) && hi >= 1.4;
-    var name = esc(shortTeam(item.homeName));
-    var dirAdvice = getDirectionAdvice(scored, ranked);
+    const item = scored.item;
+    const pw = parseFloat(item.pwScore) || 0;
+    const hi = parseFloat(item.heatIndex);
+    const meltdown = item.fusionConsensus === 'meltdown';
+    const isWeak = item.fusionConsensus === 'weak';
+    const isOverheat = !isNaN(hi) && hi >= 1.4;
+    const name = esc(shortTeam(item.homeName));
+    const dirAdvice = getDirectionAdvice(scored, ranked);
     return {
       scored: scored,
       pw: pw,
@@ -1532,7 +1532,7 @@ function renderComboRecommendations(ranked) {
   });
 
   // ── P1: 正路：综合分≥55，无熔断/弱一致，HI<1.4 ──
-  var positive = withInfo
+  let positive = withInfo
     .filter(function (x) {
       return !x.meltdown && !x.weak && x.hi < 1.4 && x.comp >= 55;
     })
@@ -1551,7 +1551,7 @@ function renderComboRecommendations(ranked) {
   }
 
   // ── P1: 博冷：HI<0.85，无熔断 ──
-  var cold = withInfo
+  let cold = withInfo
     .filter(function (x) {
       return !x.meltdown && x.hi > 0 && x.hi < 0.85;
     })
@@ -1569,7 +1569,7 @@ function renderComboRecommendations(ranked) {
   }
 
   // ── P1+P2: 稳健：无熔断/过热，实力均衡 ──
-  var steady = withInfo
+  let steady = withInfo
     .filter(function (x) {
       return !x.meltdown && !x.overheat && x.balanced;
     })
@@ -1588,26 +1588,26 @@ function renderComboRecommendations(ranked) {
   }
 
   // ── P2: 三向互斥去重（优先级：正路 > 博冷 > 稳健）──
-  var usedNames = [];
+  const usedNames = [];
   function pickTop2(source, count, item) {
     item = item || {};
-    var result = [];
-    for (var i = 0; i < source.length && result.length < count; i++) {
+    const result = [];
+    for (let i = 0; i < source.length && result.length < count; i++) {
       if (usedNames.indexOf(source[i].name) === -1) {
         result.push(source[i]);
         usedNames.push(source[i].name);
       }
     }
     // V27: 赔率隐含概率校准
-    var hAward = parseFloat(item.homeWinAward) || 0;
-    var aAward = parseFloat(item.awayWinAward) || 0;
-    var dAward = parseFloat(item.drawAward) || 0;
+    const hAward = parseFloat(item.homeWinAward) || 0;
+    const aAward = parseFloat(item.awayWinAward) || 0;
+    const dAward = parseFloat(item.drawAward) || 0;
     result.marketConsistent = true;
     result.marketDetail = '';
     if (hAward > 0 && aAward > 0 && dAward > 0) {
-      var invSum = 1 / hAward + 1 / dAward + 1 / aAward;
-      var pMarketHome = 1 / hAward / invSum;
-      var pMarketAway = 1 / aAward / invSum;
+      const invSum = 1 / hAward + 1 / dAward + 1 / aAward;
+      const pMarketHome = 1 / hAward / invSum;
+      const pMarketAway = 1 / aAward / invSum;
       if (result.dir.indexOf('主胜') === 0 && pMarketAway > pMarketHome + 0.1) {
         result.marketConsistent = false;
         result.marketDetail = '市场不看好主胜(赔率:' + hAward.toFixed(2) + '/' + aAward.toFixed(2) + ')';
@@ -1623,17 +1623,17 @@ function renderComboRecommendations(ranked) {
     return result;
   }
 
-  var posPick = pickTop2(positive, 2);
-  var coldPick = pickTop2(cold, 2);
-  var steadyPick = pickTop2(steady, 2);
+  const posPick = pickTop2(positive, 2);
+  const coldPick = pickTop2(cold, 2);
+  const steadyPick = pickTop2(steady, 2);
 
-  var hasAny = posPick.length >= 2 || coldPick.length >= 2 || steadyPick.length >= 2;
+  const hasAny = posPick.length >= 2 || coldPick.length >= 2 || steadyPick.length >= 2;
   if (!hasAny) return '';
 
   // ── P3: 组合置信度辅助函数 ──
   function comboBadge(items, N, label) {
     if (items.length < N) return '';
-    var conf = calcComboConf(items, N);
+    const conf = calcComboConf(items, N);
     return (
       '<span class="pk3-combo-score">' +
       label +
@@ -1647,7 +1647,7 @@ function renderComboRecommendations(ranked) {
     );
   }
 
-  var html = '<div class="pk3-section-label">🤝 串关推荐</div><div class="pk3-combo-wrap">';
+  let html = '<div class="pk3-section-label">🤝 串关推荐</div><div class="pk3-combo-wrap">';
 
   if (posPick.length >= 2) {
     html +=
@@ -1696,7 +1696,7 @@ function renderComboRecommendations(ranked) {
   }
 
   if (steadyPick.length >= 2) {
-    var steadyRisk = steadyPick.some(function (x) {
+    const steadyRisk = steadyPick.some(function (x) {
       return x.overheat;
     })
       ? '注意'
@@ -1726,12 +1726,12 @@ function renderComboRecommendations(ranked) {
 // ═══════════════════════════════════════════
 
 function renderRiskPanel(ranked) {
-  var risks = [];
+  const risks = [];
   ranked.forEach(function (scored) {
     if (!scored || !scored.item) return;
-    var item = scored.item;
-    var name = esc(shortTeam(item.homeName));
-    var hi = parseFloat(item.heatIndex);
+    const item = scored.item;
+    const name = esc(shortTeam(item.homeName));
+    const hi = parseFloat(item.heatIndex);
 
     if (item.fusionConsensus === 'meltdown') {
       // V2.0: 风险级别从 danger 降至 warn（保留模型预测）
@@ -1765,7 +1765,7 @@ function renderRiskPanel(ranked) {
     }
 
     // attDefGoal 异常丢弃告警
-    var adg = parseFloat(item.attDefGoal);
+    const adg = parseFloat(item.attDefGoal);
     if (item._rawAttDefGoal !== undefined && item._rawAttDefGoal > 7.0 && !isNaN(adg) && adg === 0) {
       risks.push({ level: 'warn', text: '🟠 ' + name + ': 攻防进球异常（原始 >7.0 已丢弃）', severity: 3 });
     }
@@ -1779,15 +1779,15 @@ function renderRiskPanel(ranked) {
       });
     }
     // V27: 验证分歧风险
-    var vd = scored.verificationDetails || [];
+    const vd = scored.verificationDetails || [];
     if (vd.length >= 2) {
       risks.push({ level: 'warn', text: '🟠 ' + name + ': 多维交叉验证出现' + vd.length + '处分歧', severity: 4 });
     }
   });
 
   // ── 交叉风险检测（P4：熔断+过热双杀）──
-  var doubleKill = ranked.filter(function (s) {
-    var hi = parseFloat(s.item.heatIndex);
+  const doubleKill = ranked.filter(function (s) {
+    const hi = parseFloat(s.item.heatIndex);
     return s.item.fusionConsensus === 'meltdown' && !isNaN(hi) && hi >= 1.4;
   });
   if (doubleKill.length > 0) {
@@ -1806,29 +1806,29 @@ function renderRiskPanel(ranked) {
   }
 
   // ── 整体健康度 ──
-  var meltCount = ranked.filter(function (s) {
+  const meltCount = ranked.filter(function (s) {
     return s && s.item && s.item.fusionConsensus === 'meltdown';
   }).length;
-  var weakCount = ranked.filter(function (s) {
+  const weakCount = ranked.filter(function (s) {
     return s.item.fusionConsensus === 'weak';
   }).length;
-  var healthPct = ranked.length > 0 ? Math.round((1 - (meltCount + weakCount * 0.5) / ranked.length) * 100) : 100;
+  const healthPct = ranked.length > 0 ? Math.round((1 - (meltCount + weakCount * 0.5) / ranked.length) * 100) : 100;
 
   // ── 风险总分（P3：风险严重度打分体系）──
-  var overheatCount = ranked.filter(function (s) {
-    var h = parseFloat(s.item.heatIndex);
+  const overheatCount = ranked.filter(function (s) {
+    const h = parseFloat(s.item.heatIndex);
     return !isNaN(h) && h >= 1.4;
   }).length;
-  var coldCount = ranked.filter(function (s) {
-    var h = parseFloat(s.item.heatIndex);
+  const coldCount = ranked.filter(function (s) {
+    const h = parseFloat(s.item.heatIndex);
     return !isNaN(h) && h > 0 && h <= 0.85;
   }).length;
-  var totalRisk = meltCount * 5 + overheatCount * 3 + weakCount * 2 + coldCount * 2;
-  var maxRisk = ranked.length * 5;
-  var riskPct = Math.round((totalRisk / Math.max(1, maxRisk)) * 100);
-  var riskLabel = riskPct >= 50 ? '🔴 高风险，建议谨慎投注' : riskPct >= 25 ? '🟡 中风险，注意控制仓位' : '🟢 低风险';
+  const totalRisk = meltCount * 5 + overheatCount * 3 + weakCount * 2 + coldCount * 2;
+  const maxRisk = ranked.length * 5;
+  const riskPct = Math.round((totalRisk / Math.max(1, maxRisk)) * 100);
+  const riskLabel = riskPct >= 50 ? '🔴 高风险，建议谨慎投注' : riskPct >= 25 ? '🟡 中风险，注意控制仓位' : '🟢 低风险';
 
-  var html = '<div class="pk3-section-label">⚠️ 风险预警</div>';
+  let html = '<div class="pk3-section-label">⚠️ 风险预警</div>';
   html += '<div class="pk3-risk-panel">';
 
   if (risks.length > 0) {
@@ -1874,17 +1874,17 @@ function renderRiskPanel(ranked) {
 // ═══════════════════════════════════════════
 
 function renderFusionSummary(ranked) {
-  var n = ranked.length;
+  const n = ranked.length;
   if (n === 0) return '';
 
-  var avgComp = parseFloat(
+  const avgComp = parseFloat(
     (
       ranked.reduce(function (s, x) {
         return s + x.compositeScore;
       }, 0) / n
     ).toFixed(1),
   );
-  var avgPwr = parseFloat(
+  const avgPwr = parseFloat(
     (
       ranked.reduce(function (s, x) {
         return s + x.powerScore;
@@ -1892,19 +1892,19 @@ function renderFusionSummary(ranked) {
     ).toFixed(1),
   );
 
-  var homeAdvCount = ranked.filter(function (s) {
-    var pw = parseFloat(s.item.pwScore) || 0;
+  const homeAdvCount = ranked.filter(function (s) {
+    const pw = parseFloat(s.item.pwScore) || 0;
     return pw > 0;
   }).length;
-  var homeRatio = Math.round((homeAdvCount / n) * 100);
+  const homeRatio = Math.round((homeAdvCount / n) * 100);
 
-  var meltdownCount = ranked.filter(function (s) {
+  const meltdownCount = ranked.filter(function (s) {
     return s.item.fusionConsensus === 'meltdown';
   }).length;
-  var healthScore = Math.round((1 - meltdownCount / n) * 100);
+  const healthScore = Math.round((1 - meltdownCount / n) * 100);
 
-  var heatDevCount = ranked.filter(function (s) {
-    var hi = parseFloat(s.item.heatIndex);
+  const heatDevCount = ranked.filter(function (s) {
+    const hi = parseFloat(s.item.heatIndex);
     return !isNaN(hi) && (hi > 1.2 || (hi > 0 && hi < 0.8));
   }).length;
 
@@ -1975,7 +1975,7 @@ window.goFromPKToScheme = function () {
 };
 
 export function closePK() {
-  var overlay = document.getElementById('pkOverlay');
+  const overlay = document.getElementById('pkOverlay');
   if (overlay) overlay.classList.remove('active');
   document.body.style.overflow = '';
 }
@@ -1987,27 +1987,27 @@ export function openPK() {}
 // ═══════════════════════════════════════════
 function updatePKMovementIndicators(list) {
   list.forEach(function (item) {
-    var mid = item.matchId;
-    var el = document.querySelector('.pk3-sc-movement[data-mid="' + mid + '"]');
+    const mid = item.matchId;
+    const el = document.querySelector('.pk3-sc-movement[data-mid="' + mid + '"]');
     if (!el) return;
 
-    var spfSummary = item._spfDeltaSummary || {};
-    var rqspfSummary = item._rqspfDeltaSummary || {};
-    var upTotal = (spfSummary.up || 0) + (rqspfSummary.up || 0);
-    var downTotal = (spfSummary.down || 0) + (rqspfSummary.down || 0);
+    const spfSummary = item._spfDeltaSummary || {};
+    const rqspfSummary = item._rqspfDeltaSummary || {};
+    const upTotal = (spfSummary.up || 0) + (rqspfSummary.up || 0);
+    const downTotal = (spfSummary.down || 0) + (rqspfSummary.down || 0);
 
     if (upTotal === 0 && downTotal === 0) {
       el.innerHTML = '';
       return;
     }
 
-    var parts = [];
+    const parts = [];
     if (upTotal > 0) parts.push('<span style="color:#FF5B55;font-size:10px;">▲' + upTotal + '</span>');
     if (downTotal > 0) parts.push('<span style="color:#34D399;font-size:10px;">▼' + downTotal + '</span>');
 
     // 判断整体方向：升赔>降赔 = 看衰，降赔>升赔 = 看好
-    var trendLabel = '';
-    var trendColor = '#8899aa';
+    let trendLabel = '';
+    let trendColor = '#8899aa';
     if (downTotal > upTotal + 1) {
       trendLabel = ' 水位下降（看好）';
       trendColor = '#34D399';

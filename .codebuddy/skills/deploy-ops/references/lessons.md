@@ -97,3 +97,31 @@
 |------|------|
 | V12 | `pre-commit-check.cjs` 首次拦截 16 个临时脚本 → 证明自动化门禁有效 |
 | V12 | 自学习协议需执行 (L1 memory + L2 lessons.md + L3 pre-commit)，AI 必须主动执行 |
+
+## V17 sql.js 多进程竞态 + zombie 进程事故（2026-06-20）
+
+### 故障链
+
+| 环节 | 根因 |
+|------|------|
+| ① instances:4 cluster | 4 个 worker + jc-sync + jc-scheduler 共 **6 进程同时写** midou_data.db |
+| ② DB 损坏 | sql.js 序列化时竞态 → 写入字节数不匹配 → DB 文件无法被系统 sqlite3 打开 |
+| ③ `pm2 delete` 杀不干净 | worker 在执行 `fs.writeFileSync(284MB)` 阻塞 → PM2 kill 超时 → 标记已停但 OS 进程残存 |
+| ④ zombie 进程持续写入 | PID 18285 运行 3 天，1.9GB 内存 → 与新 worker 继续竞态 → DB 反复损坏 → 全站 502 |
+
+### 修复
+
+| 操作 | 结果 |
+|------|------|
+| instances: 4 → 1 | ecosystem.config.json 单 worker |
+| kill -9 zombie PID | 物理清除残留 |
+| sql.js 恢复 DB | export → 验证 30 表 1118 比赛完整 → 替换 |
+
+### 铁律
+
+```
+1. sql.js/SQLite 单文件 DB 严禁多进程并发写入
+2. pm2 delete/restart 后必须 ps aux 验证无残留
+3. 修复 DB 完整性必须用 sql.js（系统 sqlite3 3.6.20 不兼容新格式）
+4. DB 修复后立即 cp backup，保留 corrupted 副本
+```

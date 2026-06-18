@@ -50,7 +50,7 @@ function nowISO() {
 }
 
 function normalizeToken(v) {
-  var text = String(v || '')
+  let text = String(v || '')
     .trim()
     .toLowerCase();
   if (!text) return '';
@@ -61,7 +61,7 @@ function normalizeToken(v) {
 
 function takeFirst(obj, ...keys) {
   if (!obj || typeof obj !== 'object') return null;
-  for (var i = 0; i < keys.length; i++) {
+  for (let i = 0; i < keys.length; i++) {
     if (obj[keys[i]] != null) return obj[keys[i]];
   }
   return null;
@@ -109,8 +109,8 @@ function parseLineup(item) {
   const confirmed = safeBool(takeFirst(item, 'confirmed', 'is_confirmed', 'isConfirmed'), false);
   const formation = String(takeFirst(item, 'formation', 'shape') || '').trim() || null;
 
-  var starters, predicted, bench;
-  var hasStarters, startersValue, hasPredicted, predictedValue, hasBench, benchValue;
+  let starters, predicted, bench;
+  let hasStarters, startersValue, hasPredicted, predictedValue, hasBench, benchValue;
 
   if ('confirmed_starters' in item || 'confirmedStarters' in item || 'starters' in item || 'starting_xi' in item) {
     startersValue = takeFirst(item, 'confirmed_starters', 'confirmedStarters', 'starters', 'starting_xi');
@@ -263,7 +263,7 @@ function extractPartialContext(record, kind) {
     notes: [],
   };
 
-  var rawNotes = takeFirst(record, 'notes', 'note');
+  const rawNotes = takeFirst(record, 'notes', 'note');
   if (Array.isArray(rawNotes)) {
     payload.notes = rawNotes
       .map(function (n) {
@@ -274,7 +274,7 @@ function extractPartialContext(record, kind) {
     payload.notes = [String(rawNotes).trim()];
   }
 
-  var hasPayload = false;
+  let hasPayload = false;
 
   // 阵容
   if (kind === 'lineup' || kind === 'combined' || kind === 'all') {
@@ -410,7 +410,7 @@ function loadContextFromFile(matchId, baseDir) {
  */
 function mergeAllSources(sourceContexts, opts) {
   opts = opts || {};
-  var merged = null;
+  let merged = null;
 
   SOURCE_IDS.forEach(function (sourceId) {
     const partial = sourceContexts[sourceId];
@@ -438,7 +438,7 @@ function mergeAllSources(sourceContexts, opts) {
 function toAIPrompt(context) {
   if (!context) return '';
 
-  var parts = [];
+  const parts = [];
 
   // 阵容
   if (contextHasLineup(context)) {
@@ -488,7 +488,7 @@ function toAIPrompt(context) {
       parts.push('- ' + side + '伤病影响: ' + score.toFixed(1) + '/6.0');
       injuries.forEach(function (inj) {
         if (!inj) return;
-        var line = '  - ' + inj.player_name;
+        let line = '  - ' + inj.player_name;
         if (inj.role) line += ' (' + inj.role + ')';
         line += ': ' + inj.status;
         if (inj.importance != null) line += ' [重要度:' + inj.importance + ']';
@@ -504,7 +504,7 @@ function toAIPrompt(context) {
       const schedule = context[key];
       if (!schedule || !scheduleHasValues(schedule)) return;
       const side = idx === 0 ? '主队' : '客队';
-      var items = [];
+      const items = [];
       if (schedule.rest_days_override != null) items.push('休息天数: ' + schedule.rest_days_override);
       if (schedule.travel_distance_km != null) items.push('旅行距离: ' + schedule.travel_distance_km + 'km');
       if (schedule.recent_matches_3d != null) items.push('近3天比赛: ' + schedule.recent_matches_3d);

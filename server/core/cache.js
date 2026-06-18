@@ -21,6 +21,26 @@ const TRENDS_PATH = path.join(__dirname, '..', 'trends.json');
 const ODDS_DIR = path.join(__dirname, '..', 'odds_history');
 const GS_CACHE_PATH = path.join(__dirname, '..', 'gongshoudao', 'cache.json');
 
+function _markOddsMeta(oddsMap, meta) {
+  if (!oddsMap || typeof oddsMap !== 'object') return oddsMap;
+  try {
+    Object.defineProperty(oddsMap, '__meta', {
+      value: meta || {},
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    });
+  } catch (e) {
+    oddsMap.__meta = meta || {};
+  }
+  return oddsMap;
+}
+
+function getOddsMeta(oddsMap) {
+  if (!oddsMap || typeof oddsMap !== 'object') return { stale: false, sourceDate: '', requestedDate: '' };
+  return oddsMap.__meta || { stale: false, sourceDate: '', requestedDate: '' };
+}
+
 // ═══ 本地日期辅助 ═══
 function localDate(d) {
   d = d || new Date();
@@ -60,7 +80,9 @@ function getDataJson(forceRefresh) {
         return _dataJsonCache;
       }
       // mtime 已变化 → 降级到重载
-    } catch (e) { /* stat 失败也降级 */ }
+    } catch (e) {
+      /* stat 失败也降级 */
+    }
   }
   // 使用同步读取以保持 API 兼容（Node.js 文件缓存使 sync 性能可接受）
   try {
@@ -137,14 +159,54 @@ const _oddsCache = {};
 const _oddsCacheKeys = [];
 const MAX_ODDS_CACHE = 10;
 
+/** P2: 从 sporttery_odds_snapshot SQLite 表加载赔率 */
+function _loadFromSportteryDB(dateStr) {
+  try {
+    const db = require('../database').getAdapter();
+    if (!db || !db.execAll) return null;
+    const rows = db.execAll('SELECT match_num, play_type, odds_json FROM sporttery_odds_snapshot WHERE date = ?', [
+      dateStr,
+    ]);
+    if (!rows || rows.length === 0) return null;
+    const oddsMap = {};
+    rows.forEach(function (row) {
+      const num = row.match_num || '';
+      if (!num) return;
+      if (!oddsMap[num]) oddsMap[num] = {};
+      const pt = row.play_type || '';
+      let oj = {};
+      try {
+        oj = JSON.parse(row.odds_json || '{}');
+      } catch (e) {}
+      // Map sporttery play_type → odds_history field
+      if (pt === 'spf') oddsMap[num].spf = oj;
+      else if (pt === 'rqspf') {
+        oddsMap[num].rqspf = oj;
+        oddsMap[num].rqspf.handicap = oj.handicap;
+      } else if (pt === 'jqs') oddsMap[num].totalGoals = oj;
+      else if (pt === 'bqc') oddsMap[num].halfFull = oj;
+      else if (pt === 'bf') oddsMap[num].score = oj;
+    });
+    return Object.keys(oddsMap).length > 0 ? oddsMap : null;
+  } catch (e) {
+    logger.warn('[odds-cache] sporttery_odds_snapshot 查询失败: ' + e.message);
+    return null;
+  }
+}
+
 function getOddsHistory(dateStr) {
   if (_oddsCache[dateStr]) return _oddsCache[dateStr];
   // 尝试读取并缓存
-  var load = function (ds, fbFrom) {
-    var f = path.join(ODDS_DIR, ds + '.json');
+  const load = function (ds, fbFrom) {
+    const f = path.join(ODDS_DIR, ds + '.json');
     if (!fs.existsSync(f)) return null;
-    var raw = JSON.parse(fs.readFileSync(f, 'utf8'));
-    var data = raw.odds || {};
+    const raw = JSON.parse(fs.readFileSync(f, 'utf8'));
+    const data = _markOddsMeta(raw.odds || {}, {
+      stale: !!fbFrom,
+      source: fbFrom ? 'history_fallback' : 'odds_file',
+      requestedDate: dateStr,
+      sourceDate: ds,
+    });
     _oddsCache[dateStr] = data; // 始终用请求日期缓存（避免重复查找）
     _oddsCacheKeys.push(dateStr);
     if (_oddsCacheKeys.length > MAX_ODDS_CACHE) {
@@ -154,14 +216,31 @@ function getOddsHistory(dateStr) {
     return data;
   };
   try {
-    var result = load(dateStr);
-    if (result) return result;
+    let result = load(dateStr);
+    if (result && Object.keys(result).length > 0) return result;
+
+    // ★ P2: sporttery_odds_snapshot SQLite 兜底
+    let sqliteResult = _loadFromSportteryDB(dateStr);
+    if (sqliteResult && Object.keys(sqliteResult).length > 0) {
+      sqliteResult = _markOddsMeta(sqliteResult, {
+        stale: false,
+        source: 'sporttery_snapshot',
+        requestedDate: dateStr,
+        sourceDate: dateStr,
+      });
+      _oddsCache[dateStr] = sqliteResult;
+      _oddsCacheKeys.push(dateStr);
+      if (_oddsCacheKeys.length > MAX_ODDS_CACHE) delete _oddsCache[_oddsCacheKeys.shift()];
+      logger.info('[odds-cache] ' + dateStr + ' 从 sporttery_odds_snapshot 兜底加载');
+      return sqliteResult;
+    }
+
     // Auto-fallback: 向前查找最近可用日期（最多 7 天）
-    var parts = dateStr.split('-');
-    var d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
-    for (var i = 1; i <= 7; i++) {
+    const parts = dateStr.split('-');
+    const d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+    for (let i = 1; i <= 7; i++) {
       d.setDate(d.getDate() - 1);
-      var fbDate = localDate(d);
+      const fbDate = localDate(d);
       result = load(fbDate, fbDate);
       if (result) return result;
     }
@@ -175,11 +254,11 @@ function getOddsHistory(dateStr) {
 function getNearestOddsDate(dateStr, maxDays) {
   maxDays = maxDays || 7;
   if (!dateStr) return null;
-  var parts = dateStr.split('-');
-  var d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
-  for (var i = 0; i < maxDays; i++) {
-    var checkDate = localDate(d);
-    var f = path.join(ODDS_DIR, checkDate + '.json');
+  const parts = dateStr.split('-');
+  const d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+  for (let i = 0; i < maxDays; i++) {
+    const checkDate = localDate(d);
+    const f = path.join(ODDS_DIR, checkDate + '.json');
     if (fs.existsSync(f)) return checkDate;
     d.setDate(d.getDate() - 1);
   }
@@ -255,6 +334,7 @@ module.exports = {
   getTrendsJson,
   invalidateTrends,
   getOddsHistory,
+  getOddsMeta,
   getNearestOddsDate,
   getGongShouDaoCache,
   getHitRateCache,

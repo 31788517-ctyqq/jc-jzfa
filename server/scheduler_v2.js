@@ -364,7 +364,10 @@ async function executeTask(taskName, params, retryCount) {
       }
       case 'feature_engine_compute': {
         // ★ J-03: FeatureEngine 调度激活
-        if (!FEATURE_ENGINE_ENABLED) { logger.info('[task] FeatureEngine 未启用(FEATURE_ENGINE_ENABLED=0), 跳过'); return true; }
+        if (!FEATURE_ENGINE_ENABLED) {
+          logger.info('[task] FeatureEngine 未启用(FEATURE_ENGINE_ENABLED=0), 跳过');
+          return true;
+        }
         try {
           const { engine: featureEngine } = require('./core/feature-engine');
           const date = (params && params.date) || new Date().toISOString().slice(0, 10);
@@ -391,6 +394,41 @@ async function executeTask(taskName, params, retryCount) {
           }
         } catch (e) {
           logger.warn('[task] FeatureEngine 计算失败: ' + e.message);
+        }
+        break;
+      }
+      case 'sp_early_sync': {
+        // ★ L1: 06:00/09:00 SP赛程+赔率轻量预拉（降低12:00单点依赖）
+        try {
+          const date = (params && params.date) || fmtLocal(new Date());
+          logger.info('[sp-early] L1预拉 SP赛程+赔率: ' + date);
+          const { main: spFullSync } = require('./sync_sp_full');
+          await spFullSync({ mode: 'schedule', date: date, forceSnapshot: true });
+          await sleep(5000);
+          await spFullSync({ mode: 'odds', date: date, forceSnapshot: true });
+          const { bridgeSpToOdds } = require('./bridge_sporttery_local');
+          try {
+            await bridgeSpToOdds(date);
+          } catch (e) {}
+          logger.info('[sp-early] L1完成: ' + date);
+        } catch (e) {
+          logger.warn('[sp-early] L1失败: ' + e.message);
+          enqueueTask('sp_early_sync', params, 0, 30); // 30分钟后重试
+        }
+        break;
+      }
+      case 'sp_tomorrow_sync': {
+        // ★ L0: 22:00 预拉明天SP赛程（第二天0点起就有数据）
+        try {
+          const now2 = new Date();
+          now2.setDate(now2.getDate() + 1);
+          const tomorrow = fmtLocal(now2);
+          logger.info('[sp-tomorrow] L0预拉明天SP赛程: ' + tomorrow);
+          const { main: spFullSync2 } = require('./sync_sp_full');
+          await spFullSync2({ mode: 'schedule', date: tomorrow, forceSnapshot: false });
+          logger.info('[sp-tomorrow] L0完成: ' + tomorrow);
+        } catch (e) {
+          logger.warn('[sp-tomorrow] L0失败 (明天赛程可能未出): ' + e.message);
         }
         break;
       }
@@ -426,15 +464,23 @@ async function executeTask(taskName, params, retryCount) {
             const url = '/api?action=' + action + '&date=' + date;
             const req = http.get({ hostname: '127.0.0.1', port: 3000, path: url, timeout: 30000 }, (res) => {
               let body = '';
-              res.on('data', (chunk) => { body += chunk; });
+              res.on('data', (chunk) => {
+                body += chunk;
+              });
               res.on('end', () => {
                 const brief = body.slice(0, 200).replace(/\s+/g, ' ');
                 logger.info('[warm] ' + action + ' → ' + res.statusCode + ' (' + brief.length + 'B)');
                 resolve(true);
               });
             });
-            req.on('error', (e) => { logger.warn('[warm] ' + action + ' 失败: ' + e.message); resolve(false); });
-            req.on('timeout', () => { req.destroy(); resolve(false); });
+            req.on('error', (e) => {
+              logger.warn('[warm] ' + action + ' 失败: ' + e.message);
+              resolve(false);
+            });
+            req.on('timeout', () => {
+              req.destroy();
+              resolve(false);
+            });
           });
         };
         await warmEndpoint('home-bundle');
@@ -1123,6 +1169,83 @@ async function start() {
     alert.crawlFailed(err.message, 'scheduler_v2 致命错误');
     setTimeout(() => process.exit(1), 5000);
   });
+
+  // ═══ L0: 每天 22:00 预拉明天 SP 赛程 ═══
+  (function scheduleTomorrowPreload() {
+    const now2 = new Date();
+    const target = new Date(now2);
+    target.setHours(22, 0, 0, 0);
+    if (target <= now2) target.setDate(target.getDate() + 1);
+    const ms = target.getTime() - now2.getTime();
+    logger.info('[L0] 明天预拉: ' + Math.round(ms / 3600000) + ' 小时后 (22:00)');
+    const tid = setTimeout(async () => {
+      if (!running) return;
+      try {
+        await executeTask('sp_tomorrow_sync', {});
+      } catch (e) {
+        logger.warn('[L0] 异常: ' + e.message);
+      }
+      scheduleTomorrowPreload();
+    }, ms);
+    timers.push(tid);
+  })();
+
+  // ═══ L1: 每天 06:00 + 09:00 SP 预拉补漏 ═══
+  (function scheduleEarlySync() {
+    const now3 = new Date();
+    const targets = [6, 9].map(function (h) {
+      const t = new Date(now3);
+      t.setHours(h, 0, 0, 0);
+      if (t <= now3) t.setDate(t.getDate() + 1);
+      return t;
+    });
+    const next = targets[0] < targets[1] ? targets[0] : targets[1];
+    const ms2 = next.getTime() - now3.getTime();
+    logger.info('[L1] 下次预拉: ' + next.getHours() + ':00 (' + Math.round(ms2 / 3600000) + ' 小时后)');
+    const tid2 = setTimeout(async () => {
+      if (!running) return;
+      try {
+        await executeTask('sp_early_sync', {});
+      } catch (e) {
+        logger.warn('[L1] 异常: ' + e.message);
+      }
+      scheduleEarlySync();
+    }, ms2);
+    timers.push(tid2);
+  })();
+
+  // ═══ L2: 启动智能补漏 — 有比赛但无SP数据 → 立即触发预拉 ═══
+  try {
+    const today2 = fmtLocal(new Date());
+    const fs2 = require('fs');
+    const path2 = require('path');
+    const scheduleDir = path2.join(__dirname, 'sporttery_schedule');
+    const hasSchedule =
+      fs2.existsSync(scheduleDir) &&
+      fs2.readdirSync(scheduleDir).some(function (f) {
+        return f.endsWith('.json') && f.includes(today2.replace(/-/g, '') || today2);
+      });
+    const dataFile = path2.join(__dirname, 'data.json');
+    const hasMatches = fs2.existsSync(dataFile) && (JSON.parse(fs2.readFileSync(dataFile, 'utf8')).m || {});
+    let todayMatchCount = 0;
+    if (hasMatches) {
+      Object.values(hasMatches).forEach(function (m) {
+        if (m && m.date && m.date.slice(0, 10) === today2) todayMatchCount++;
+      });
+    }
+    if (todayMatchCount > 0 && !hasSchedule) {
+      logger.info('[L2] 启动智能补漏: 有' + todayMatchCount + '场比赛但无SP赛程，触发预拉');
+      setTimeout(async () => {
+        try {
+          await executeTask('sp_early_sync', {});
+        } catch (e) {
+          logger.warn('[L2] 补漏异常: ' + e.message);
+        }
+      }, 30 * 1000); // 延迟30秒等初始化完成
+    }
+  } catch (e2) {
+    /* 静默 */
+  }
 
   logger.info('[init] 调度器已启动, 监控 ' + timers.length + ' 个定时任务');
 }

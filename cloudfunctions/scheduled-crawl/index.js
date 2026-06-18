@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk');
+const { dateCN } = require('../common/date');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 /**
@@ -13,7 +14,7 @@ exports.main = async (event, context) => {
   const startTime = Date.now();
   const db = cloud.database();
   const _ = db.command;
-  const dateStr = new Date().toISOString().slice(0, 10);
+  const dateStr = dateCN();
 
   try {
     console.log(`[scheduled-crawl] 开始执行, 日期: ${dateStr}`);

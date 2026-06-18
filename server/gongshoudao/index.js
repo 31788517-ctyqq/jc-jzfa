@@ -53,12 +53,12 @@ const LEAGUE_BASELINE = {
   希腊超: 2.32,
   丹麦超: 2.78,
 };
-var _leagueKeys = Object.keys(LEAGUE_BASELINE);
+const _leagueKeys = Object.keys(LEAGUE_BASELINE);
 
 function lookupLeagueStat(matchInfo, defaultVal) {
-  var ln = (matchInfo.leagueName || '').trim();
-  var found = defaultVal;
-  for (var ki = 0; ki < _leagueKeys.length; ki++) {
+  const ln = (matchInfo.leagueName || '').trim();
+  let found = defaultVal;
+  for (let ki = 0; ki < _leagueKeys.length; ki++) {
     if (ln.indexOf(_leagueKeys[ki]) !== -1) {
       found = LEAGUE_BASELINE[_leagueKeys[ki]];
       break;
@@ -76,7 +76,7 @@ let _cacheData = null;
 let _cacheMtime = 0;
 let _cacheTime = 0;
 // P0-1: L1 快速内存缓存（1秒TTL，适用于高频API查询）
-let _l1Cache = { data: null, time: 0 };
+const _l1Cache = { data: null, time: 0 };
 
 function readCache() {
   if (!fs.existsSync(CACHE_PATH)) return {};
@@ -116,15 +116,15 @@ function writeCache(data) {
 
 // P0-1: L1 内存极速查询（1s TTL，命中时免磁盘IO+JSON.parse）
 function getMatchFromCache(matchId) {
-  var mid = String(matchId).replace(/^m_/, '');
-  var now = Date.now();
+  const mid = String(matchId).replace(/^m_/, '');
+  const now = Date.now();
   // L1: 1秒内存缓存
   if (_l1Cache.data && now - _l1Cache.time < 1000) {
     return _l1Cache.data[mid] || _l1Cache.data['m_' + mid] || null;
   }
   // L2: 回退到 readCache
-  var cache = readCache();
-  var global = cache && cache._global ? cache._global : {};
+  const cache = readCache();
+  const global = cache && cache._global ? cache._global : {};
   _l1Cache.data = global;
   _l1Cache.time = now;
   return global[mid] || global['m_' + mid] || null;
@@ -385,7 +385,7 @@ function computeSingleMatch(rawStats, matchInfo) {
     leagueCalibration: calcLeagueCalibration(matchInfo),
     leagueAvgGoals: lookupLeagueStat(matchInfo, 2.65),
     leagueOverBaseline: (function () {
-      var v = lookupLeagueStat(matchInfo, 2.65);
+      const v = lookupLeagueStat(matchInfo, 2.65);
       return v >= 2.85 ? 68 : v >= 2.65 ? 55 : 42;
     })(),
 
@@ -897,7 +897,7 @@ async function computeAll(options) {
     const m = mMap[mid] || {};
     const mDate = (m.date || '').slice(0, 10);
     if (mDate && mDate < todayStr) {
-      var daysAgo = Math.floor((Date.now() - new Date(mDate).getTime()) / 86400000);
+      const daysAgo = Math.floor((Date.now() - new Date(mDate).getTime()) / 86400000);
       if (daysAgo > 3) return; // 跳过3天前的旧比赛
     }
     toCompute.push([mid, rawStats]);

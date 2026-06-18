@@ -1,6 +1,6 @@
-# JC-ZJFA AGENTS Guide v15
+# JC-ZJFA AGENTS Guide v17
 
-> 精简版：核心禁手 + Skill 强制路由 + AI 参数约束 + 关键配置。每会话自动加载。
+> 精简版：核心禁手(12条) + Skill 强制路由 + AI 参数约束 + 关键配置。每会话自动加载。
 
 ---
 
@@ -18,6 +18,8 @@
 | 8 | `postbuild` 覆盖源文件 | 构建产物与源码严格分离 |
 | 9 | Windows 原生 scp/ssh | `python deploy.py --fast`（paramiko） |
 | 10 | 临时脚本永久留在仓库 | 用完即删，或归档 `scripts/perf/` |
+| 11 | sql.js/SQLite 多进程并发写同一文件 | 单文件 DB 必须 `instances:1`，且同一文件中最多一个写入者 |
+| 12 | PM2 变更后不验证残留进程 | `pm2 delete/restart` 后必须 `ps aux \| grep node` 确认无 zombie |
 
 ---
 
@@ -57,6 +59,7 @@
 □ 检查是否有未归档的临时脚本（git status Untracked）
 □ 检查是否有 pending 的修复未写入 Skill lessons
 □ 确认当前分支（git branch）和目标环境
+□ 检查生产环境是否有 zombie node 进程（ps aux | grep node）
 ```
 
 ---
@@ -66,7 +69,7 @@
 | 项目 | 值 |
 |------|-----|
 | 服务器 IP | 119.23.51.159 |
-| PM2 进程 | jc-sync, jc-zjfa (cluster:2) |
+| PM2 进程 | jc-zjfa (cluster:1)，jc-sync (fork:1)，jc-scheduler (fork:1) |
 | 部署路径 | `/root/server/` + `/var/www/zj.100qiu.com/` |
 | Nginx `/assets/` | → `miniprogram/images/`（不是 `preview/assets/`！）|
 | 部署方式 | `python deploy.py --fast` |
@@ -141,6 +144,7 @@ python _verify_api.py                  # 部署后验证
 | 回测模式 | `.codebuddy/skills/backtesting-frameworks/references/patterns.md` |
 | 实验追踪实现 | `.codebuddy/skills/experiment-tracking/references/tracker-code.md` |
 | Skill 索引 | `.codebuddy/skills/SKILLS_INDEX.md` |
+| DB事故复盘(V17) | 见 memory #44905246 + deploy-ops lessons |
 
 ---
 

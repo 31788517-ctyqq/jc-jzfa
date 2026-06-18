@@ -2,9 +2,9 @@
 export var echartsReady = false;
 export var echartsLoading = false;
 
-var echartsWaiters = [];
+const echartsWaiters = [];
 
-var CHART_THEME = {
+const CHART_THEME = {
   main: '#243238',
   sub: '#4f646a',
   muted: '#6f8086',
@@ -128,11 +128,11 @@ function normalizeChartOption(option) {
 
 function patchEChartsTheme() {
   if (typeof echarts === 'undefined' || echarts.__alpineMintPatched) return;
-  var rawInit = echarts.init;
+  const rawInit = echarts.init;
   echarts.init = function () {
-    var inst = rawInit.apply(echarts, arguments);
+    const inst = rawInit.apply(echarts, arguments);
     if (inst && !inst.__alpineMintPatched) {
-      var rawSetOption = inst.setOption;
+      const rawSetOption = inst.setOption;
       inst.setOption = function (option) {
         if (option) normalizeChartOption(option);
         return rawSetOption.apply(inst, arguments);
@@ -156,7 +156,7 @@ export function loadECharts() {
       return;
     }
     echartsLoading = true;
-    var script = document.createElement('script');
+    const script = document.createElement('script');
     script.src = '/assets/echarts.min.js?v=1';
     script.onload = function () {
       echartsReady = true;
@@ -177,7 +177,7 @@ export function loadECharts() {
 }
 
 // ═══ ECharts 实例注册管理（防止内存泄漏） ═══
-var _chartInstances = {};
+const _chartInstances = {};
 
 /**
  * 创建并注册 ECharts 实例（页面切换时统一 dispose）
@@ -188,14 +188,14 @@ var _chartInstances = {};
 export function createChart(id, namespace) {
   if (typeof echarts === 'undefined') return null;
   patchEChartsTheme();
-  var el = document.getElementById(id);
+  const el = document.getElementById(id);
   if (!el) return null;
   // 清理旧实例
-  var key = namespace + ':' + id;
+  const key = namespace + ':' + id;
   if (_chartInstances[key]) {
     _chartInstances[key].dispose();
   }
-  var instance = echarts.init(el);
+  const instance = echarts.init(el);
   _chartInstances[key] = instance;
   return instance;
 }

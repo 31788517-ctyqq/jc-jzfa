@@ -84,6 +84,8 @@ const ACTION_MATRIX = {
     'vip-gift-claim',
     'user-toggle-referral',
     'plan-refresh',
+    'alerts',
+    'admin-update-plan-price',
   ],
   heavyOrAsync: [
     'crawl-history',
@@ -194,7 +196,7 @@ describe('API action contract', () => {
       'data-health',
       'experiment-compare',
       'batch-consensus',
-    'home-bundle',
+      'home-bundle',
     ].forEach(function (action) {
       expect(extractedActions).toContain(action);
     });

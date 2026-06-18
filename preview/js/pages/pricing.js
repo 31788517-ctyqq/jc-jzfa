@@ -1,4 +1,5 @@
 import { api } from '../api.js';
+import { getCache, setCache } from '../utils.js';
 import { getAuthSession, hasAuthToken, hasReferralAccess } from '../auth-client.js';
 
 const PLAN_META = {
@@ -51,7 +52,7 @@ function formatMoney(value) {
 
 function getStoredPlan() {
   try {
-    var raw = sessionStorage.getItem('pendingSelectedPlan') || '';
+    const raw = sessionStorage.getItem('pendingSelectedPlan') || '';
     return raw ? JSON.parse(raw) : null;
   } catch (e) {
     return null;
@@ -60,7 +61,7 @@ function getStoredPlan() {
 
 function consumeVipClaimNotice() {
   try {
-    var raw = sessionStorage.getItem('vipGiftClaimNotice') || '';
+    const raw = sessionStorage.getItem('vipGiftClaimNotice') || '';
     if (!raw) return null;
     sessionStorage.removeItem('vipGiftClaimNotice');
     if (raw === '1') return { gift_expires_at: null, claim_date: null };
@@ -71,7 +72,7 @@ function consumeVipClaimNotice() {
 }
 
 function formatDateCn(dateStr) {
-  var s = String(dateStr || '').slice(0, 10);
+  const s = String(dateStr || '').slice(0, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return '';
   return s.slice(5, 7).replace(/^0/, '') + '月' + s.slice(8, 10).replace(/^0/, '') + '日';
 }
@@ -96,13 +97,13 @@ function pickRecommendedCode(plans) {
 }
 
 function renderPlanCard(plan, recommendedCode, authed) {
-  var code = plan.plan_code || '';
-  var meta = PLAN_META[code] || {};
-  var isRecommended = code === recommendedCode;
-  var accent = meta.accent || 'mint';
-  var buttonText = authed ? '立即开通' : '注册并开通';
-  var monthly = Number(plan.monthly_equivalent || 0);
-  var discount = plan.discount_label || (monthly > 0 && Number(plan.price || 0) > monthly ? '长期订阅更划算' : '');
+  const code = plan.plan_code || '';
+  const meta = PLAN_META[code] || {};
+  const isRecommended = code === recommendedCode;
+  const accent = meta.accent || 'mint';
+  const buttonText = authed ? '立即开通' : '注册并开通';
+  const monthly = Number(plan.monthly_equivalent || 0);
+  const discount = plan.discount_label || (monthly > 0 && Number(plan.price || 0) > monthly ? '长期订阅更划算' : '');
   return (
     '' +
     '<div class="pricing-card' +
@@ -156,8 +157,8 @@ function renderPlanCard(plan, recommendedCode, authed) {
 }
 
 function renderVipClaimCard(notice) {
-  var expiresAt = (notice && notice.gift_expires_at) || '';
-  var deadlineText = formatDateCn(expiresAt);
+  const expiresAt = (notice && notice.gift_expires_at) || '';
+  const deadlineText = formatDateCn(expiresAt);
   return (
     '' +
     '<div class="pricing-card pricing-card-mint vip-claim-card" role="status">' +
@@ -202,33 +203,54 @@ export async function loadPricing(container) {
   container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载套餐中...</div>';
 
   try {
-    var session = getAuthSession() || {};
-    var authed = hasAuthToken();
-    var userName = (session.user && session.user.username) || '';
-    var res = await api('plan-catalog', {}, 0);
-    var plans = Array.isArray(res && res.plans) ? res.plans : [];
+    const session = getAuthSession() || {};
+    const authed = hasAuthToken();
+    const userName = (session.user && session.user.username) || '';
+    const cacheKey = 'plan-catalog:v1';
+    let res = getCache(cacheKey);
+    if (!res) {
+      res = await api('plan-catalog', {}, 0);
+      setCache(cacheKey, res || {});
+    }
+
+    const plans = Array.isArray(res && res.plans)
+      ? res.plans.map(function (plan) {
+          const copy = Object.assign({}, plan || {});
+          if (copy.plan_code === 'monthly' && Number(copy.price || 0) > 0 && Number(copy.price || 0) < 1000) {
+            copy.price = Number(copy.price || 0) * 100;
+          }
+          if (
+            copy.plan_code === 'monthly' &&
+            Number(copy.monthly_equivalent || 0) > 0 &&
+            Number(copy.monthly_equivalent || 0) < 1000
+          ) {
+            copy.monthly_equivalent = Number(copy.monthly_equivalent || 0) * 100;
+          }
+          return copy;
+        })
+      : [];
 
     if (!plans.length) {
       container.innerHTML = renderEmptyState(authed);
       return;
     }
 
-    var recommendedCode = pickRecommendedCode(plans);
-    var pendingPlan = getStoredPlan();
-    var vipClaimNotice = consumeVipClaimNotice();
-    var hasVipClaimCard = !!vipClaimNotice;
-    var planCardsHtml = plans.map(function (plan) {
+    const recommendedCode = pickRecommendedCode(plans);
+    const pendingPlan = getStoredPlan();
+    const vipClaimNotice = consumeVipClaimNotice();
+    const hasVipClaimCard = !!vipClaimNotice;
+    const planCardsHtml = plans.map(function (plan) {
       return renderPlanCard(plan, recommendedCode, authed);
     });
 
     if (vipClaimNotice) {
-      var monthlyIndex = plans.findIndex(function (plan) {
+      const monthlyIndex = plans.findIndex(function (plan) {
         return String((plan && plan.plan_code) || '') === 'monthly';
       });
       planCardsHtml.splice(monthlyIndex >= 0 ? monthlyIndex : 0, 0, renderVipClaimCard(vipClaimNotice));
     }
 
-    var html =
+    const html =
       '' +
       '<div class="member-shell member-shell-pricing">' +
       '<div class="member-page pricing-container">' +
@@ -286,13 +308,13 @@ export async function loadPricing(container) {
       '</div>' +
       '<div class="member-cta-row">' +
       (authed
-        ? '<button class="member-secondary-btn" type="button" onclick="switchTab(\'subscription\')">查看订阅中心</button>'
+        ? '<button class="member-secondary-btn" type="button" onclick="switchTab(\'profile\')">返回个人中心</button>'
         : '<button class="member-secondary-btn" type="button" onclick="switchTab(\'login\')">已有账号，去登录</button>') +
-      (authed && hasReferralAccess()
-        ? '<button class="member-primary-btn" type="button" onclick="switchTab(\'referral\')">查看邀请返利</button>'
-        : authed
-          ? ''
-          : '<button class="member-primary-btn" type="button" onclick="switchTab(\'contact-invite\')">联系客服获邀</button>') +
+      (authed
+        ? hasReferralAccess()
+          ? '<button class="member-primary-btn" type="button" onclick="switchTab(\'referral\')">查看邀请返利</button>'
+          : '<button class="member-primary-btn" type="button" onclick="switchTab(\'subscription\')">查看订阅中心</button>'
+        : '<button class="member-primary-btn" type="button" onclick="switchTab(\'contact-invite\')">联系客服获邀</button>') +
       '</div>' +
       '</div>' +
       '</div>';
@@ -325,8 +347,8 @@ export async function loadPricing(container) {
 }
 
 window.selectPricingPlan = function (planCode, price, planName) {
-  var planNameMap = { monthly: '月度套餐', quarterly: '季度套餐', yearly: '年度套餐' };
-  var plan = {
+  const planNameMap = { monthly: '月度套餐', quarterly: '季度套餐', yearly: '年度套餐' };
+  const plan = {
     plan_code: planCode,
     plan_name: planName || planNameMap[planCode] || planCode,
     price: Number(price) || 0,

@@ -1,0 +1,97 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.275Z",
+  "earliestKickoff": null,
+  "date": "2026-05-08",
+  "plans": [
+    {
+      "planId": "plan_2026-05-08_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039580",
+          "direction": "总进球-2、3球",
+          "homeName": "多特蒙德",
+          "visitName": "法兰克福",
+          "matchNum": "周五008"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-08_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039575",
+          "direction": "总进球-1、2、3球",
+          "homeName": "帕德博恩",
+          "visitName": "卡尔斯鲁厄",
+          "matchNum": "周五003"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-08_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039582",
+          "direction": "总进球-1、2、3球",
+          "homeName": "朗斯",
+          "visitName": "南特",
+          "matchNum": "周五010"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-08_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039583",
+          "direction": "总进球-3、4、5球",
+          "homeName": "赫尔城",
+          "visitName": "米尔沃尔",
+          "matchNum": "周五011"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-08_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039577",
+          "direction": "总进球-3、4、5球",
+          "homeName": "埃尔夫斯堡",
+          "visitName": "布鲁马波卡纳",
+          "matchNum": "周五005"
+        }
+      ]
+    }
+  ]
+}

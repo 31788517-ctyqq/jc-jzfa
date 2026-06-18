@@ -1,0 +1,57 @@
+{
+  "lockedAt": "2026-06-17T17:29:05.993Z",
+  "earliestKickoff": null,
+  "date": "2026-03-24",
+  "plans": [
+    {
+      "planId": "plan_2026-03-24_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038597",
+          "direction": "平、让平",
+          "homeName": "唐卡斯特",
+          "visitName": "维尔港",
+          "matchNum": "周二002"
+        },
+        {
+          "matchId": "2038596",
+          "direction": "让负",
+          "homeName": "埃门",
+          "visitName": "坎布尔",
+          "matchNum": "周二001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-24_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038597",
+          "direction": "胜",
+          "homeName": "唐卡斯特",
+          "visitName": "维尔港",
+          "matchNum": "周二002"
+        },
+        {
+          "matchId": "2038596",
+          "direction": "让负",
+          "homeName": "埃门",
+          "visitName": "坎布尔",
+          "matchNum": "周二001"
+        }
+      ]
+    }
+  ]
+}

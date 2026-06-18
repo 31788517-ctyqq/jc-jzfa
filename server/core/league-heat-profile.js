@@ -58,9 +58,9 @@ const LEAGUE_HEAT_BASELINE = {
  * @returns {{ mean: number, std: number, overheatZ: number }}
  */
 function getProfile(leagueName) {
-  var ln = (leagueName || '').trim();
-  var keys = Object.keys(LEAGUE_HEAT_BASELINE);
-  for (var i = 0; i < keys.length; i++) {
+  const ln = (leagueName || '').trim();
+  const keys = Object.keys(LEAGUE_HEAT_BASELINE);
+  for (let i = 0; i < keys.length; i++) {
     if (ln.indexOf(keys[i]) !== -1) return LEAGUE_HEAT_BASELINE[keys[i]];
   }
   return LEAGUE_HEAT_BASELINE['default'];
@@ -72,7 +72,7 @@ function getProfile(leagueName) {
  * @returns {number}
  */
 function getOverheatThreshold(leagueName) {
-  var profile = getProfile(leagueName);
+  const profile = getProfile(leagueName);
   return +(profile.mean + profile.overheatZ * profile.std).toFixed(2);
 }
 
@@ -82,7 +82,7 @@ function getOverheatThreshold(leagueName) {
  * @returns {number}
  */
 function getColdThreshold(leagueName) {
-  var profile = getProfile(leagueName);
+  const profile = getProfile(leagueName);
   return +(profile.mean - profile.overheatZ * profile.std).toFixed(2);
 }
 
@@ -93,15 +93,15 @@ function getColdThreshold(leagueName) {
  * @returns {{ zScore: number, isOverheat: boolean, isCold: boolean, threshold: number }}
  */
 function computeHeatZScore(hi, leagueName) {
-  var profile = getProfile(leagueName);
-  var overheatThreshold = +(profile.mean + profile.overheatZ * profile.std).toFixed(2);
-  var coldThreshold = +(profile.mean - profile.overheatZ * profile.std).toFixed(2);
+  const profile = getProfile(leagueName);
+  const overheatThreshold = +(profile.mean + profile.overheatZ * profile.std).toFixed(2);
+  const coldThreshold = +(profile.mean - profile.overheatZ * profile.std).toFixed(2);
 
   if (profile.std < 0.01) {
     return { zScore: 0, isOverheat: hi >= 1.4, isCold: hi <= 0.85, threshold: 1.4 };
   }
 
-  var zScore = +((hi - profile.mean) / profile.std).toFixed(2);
+  const zScore = +((hi - profile.mean) / profile.std).toFixed(2);
   return {
     zScore: zScore,
     isOverheat: hi >= overheatThreshold,

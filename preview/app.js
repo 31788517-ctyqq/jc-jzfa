@@ -570,8 +570,7 @@ function goDetail(matchId) {
     const hasResults = recommends.some(function (r) {
       return r.result !== null;
     });
-    const statusText =
-      match.matchStatus === 2 ? '已结束' : match.matchStatus === 1 ? '进行中' : '未开始';
+    const statusText = match.matchStatus === 2 ? '已结束' : match.matchStatus === 1 ? '进行中' : '未开始';
     const roundText = match.num || match.matchNum || '竞彩';
     const isLive = match.matchStatus === 1 || match.matchStatus === 2;
     const scoreText = match.score || '';
@@ -2038,8 +2037,8 @@ function loadPlanList() {
 
           // 金额
           const amountVal = (p.amount || 1000).toFixed(0);
-          let prizeVal = (p.maxPrize || 0).toFixed(0);
-          let prizeLabel = isWon ? '中奖金额' : isLose ? '预计奖金' : '预计最高奖金';
+          const prizeVal = (p.maxPrize || 0).toFixed(0);
+          const prizeLabel = isWon ? '中奖金额' : isLose ? '预计奖金' : '预计最高奖金';
 
           // 截单时间：基于第一场比赛开赛时间，提前30分钟；周一至五22:00之后截单21:30；周六日23:00之后截单22:30
           let cutoffDisplay = '';
@@ -2171,7 +2170,12 @@ function loadPlanList() {
               }
               let subCls = '';
               if (subR && subR.result !== null && subR.result !== undefined) {
-                subCls = subR.result === 1 ? ' plan-direction-hit' : subR.result === -1 ? ' plan-direction-undetermined' : ' plan-direction-miss';
+                subCls =
+                  subR.result === 1
+                    ? ' plan-direction-hit'
+                    : subR.result === -1
+                      ? ' plan-direction-undetermined'
+                      : ' plan-direction-miss';
               }
 
               let displayLabel = label;
@@ -2187,7 +2191,7 @@ function loadPlanList() {
 
           // 构建比赛表格行
           let matchRows = '';
-          for (var mi = 0; mi < matches.length; mi++) {
+          for (let mi = 0; mi < matches.length; mi++) {
             const m = matches[mi];
             const isMw = m.isMatchWon === true;
             const isMl = m.isMatchLose === true;

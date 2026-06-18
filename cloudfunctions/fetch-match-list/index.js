@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk');
+const { dateCN } = require('../common/date');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const axios = require('axios');
 
@@ -8,7 +9,7 @@ const axios = require('axios');
  */
 exports.main = async (event, context) => {
   const { date } = event;
-  const targetDate = date || new Date().toISOString().slice(0, 10);
+  const targetDate = date || dateCN();
 
   const ctx = cloud.getWXContext();
   console.log(`[fetch-match-list] 抓取日期: ${targetDate}, 调用者: ${ctx.FUNCTION_NAME}`);

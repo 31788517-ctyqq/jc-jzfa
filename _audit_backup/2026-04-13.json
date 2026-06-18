@@ -1,0 +1,100 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.043Z",
+  "earliestKickoff": null,
+  "date": "2026-04-13",
+  "plans": [
+    {
+      "planId": "plan_2026-04-13_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039068",
+          "direction": "平、让平",
+          "homeName": "通德拉",
+          "visitName": "吉维森特",
+          "matchNum": "周一007"
+        },
+        {
+          "matchId": "2039067",
+          "direction": "让负",
+          "homeName": "莱万特",
+          "visitName": "赫塔费",
+          "matchNum": "周一006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-13_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039065",
+          "direction": "总进球-2、3球",
+          "homeName": "罗德兹",
+          "visitName": "特鲁瓦",
+          "matchNum": "周一004"
+        },
+        {
+          "matchId": "2039067",
+          "direction": "让负",
+          "homeName": "莱万特",
+          "visitName": "赫塔费",
+          "matchNum": "周一006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-13_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039062",
+          "direction": "总进球-2、3球",
+          "homeName": "天狼星",
+          "visitName": "哈马比",
+          "matchNum": "周一001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-13_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039068",
+          "direction": "平、让平",
+          "homeName": "通德拉",
+          "visitName": "吉维森特",
+          "matchNum": "周一007"
+        },
+        {
+          "matchId": "2039066",
+          "direction": "胜",
+          "homeName": "曼彻斯特联",
+          "visitName": "利兹联",
+          "matchNum": "周一005"
+        }
+      ]
+    }
+  ]
+}

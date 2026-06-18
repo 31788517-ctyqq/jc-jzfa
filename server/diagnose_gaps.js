@@ -507,8 +507,8 @@ function printFullReport() {
 function bar(covered, total) {
   const pct = total > 0 ? Math.round((covered / total) * 100) : 0;
   const n = Math.round(pct / 10);
-  var bar = '';
-  for (var i = 0; i < 10; i++) bar += i < n ? '█' : '░';
+  let bar = '';
+  for (let i = 0; i < 10; i++) bar += i < n ? '█' : '░';
   return bar + ' ' + padR(String(pct) + '%', 5) + ' (' + padR(String(covered) + '/' + String(total), 8) + ')';
 }
 

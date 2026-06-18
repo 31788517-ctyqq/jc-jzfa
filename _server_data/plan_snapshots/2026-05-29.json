@@ -1,0 +1,168 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.142Z",
+  "earliestKickoff": null,
+  "date": "2026-05-29",
+  "plans": [
+    {
+      "planId": "plan_2026-05-29_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040025",
+          "direction": "平、让平",
+          "homeName": "尼斯",
+          "visitName": "圣埃蒂安",
+          "matchNum": "周五009"
+        },
+        {
+          "matchId": "2040020",
+          "direction": "让负",
+          "homeName": "奥勒松",
+          "visitName": "汉坎",
+          "matchNum": "周五004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-29_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040018",
+          "direction": "总进球-2、3球",
+          "homeName": "奥斯陆KFUM",
+          "visitName": "特罗姆瑟",
+          "matchNum": "周五002"
+        },
+        {
+          "matchId": "2040020",
+          "direction": "让负",
+          "homeName": "奥勒松",
+          "visitName": "汉坎",
+          "matchNum": "周五004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-29_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040021",
+          "direction": "胜",
+          "homeName": "瓦勒伦加",
+          "visitName": "克里斯蒂安松",
+          "matchNum": "周五005"
+        },
+        {
+          "matchId": "2040020",
+          "direction": "让负",
+          "homeName": "奥勒松",
+          "visitName": "汉坎",
+          "matchNum": "周五004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-29_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040022",
+          "direction": "总进球-2、3球",
+          "homeName": "罗森博格",
+          "visitName": "博德闪耀",
+          "matchNum": "周五006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-29_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040025",
+          "direction": "平、让平",
+          "homeName": "尼斯",
+          "visitName": "圣埃蒂安",
+          "matchNum": "周五009"
+        },
+        {
+          "matchId": "2040021",
+          "direction": "胜",
+          "homeName": "瓦勒伦加",
+          "visitName": "克里斯蒂安松",
+          "matchNum": "周五005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-29_5",
+      "name": "plan_5",
+      "planName": "方案五",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040025",
+          "direction": "平、让平",
+          "homeName": "尼斯",
+          "visitName": "圣埃蒂安",
+          "matchNum": "周五009"
+        },
+        {
+          "matchId": "2040018",
+          "direction": "总进球-2、3球",
+          "homeName": "奥斯陆KFUM",
+          "visitName": "特罗姆瑟",
+          "matchNum": "周五002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-29_7",
+      "name": "plan_7",
+      "planName": "方案七",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040025",
+          "direction": "胜平",
+          "homeName": "尼斯",
+          "visitName": "圣埃蒂安",
+          "matchNum": "周五009"
+        }
+      ]
+    }
+  ]
+}

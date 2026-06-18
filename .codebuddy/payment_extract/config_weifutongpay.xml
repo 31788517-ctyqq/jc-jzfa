@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
+<beans>
+	<!-- 威富通(微信代理)WAP和APP(中信银行代收)支付配置 -->
+	<bean id="weiFuTongZXBankConfig" class="com.quncai.weifutong.config.WeiFuTongConfig">
+		<!-- 群彩商户号 -->
+		<property name="mchId">
+			<value>403520052259</value>
+		</property>
+		<!-- 支付密钥 -->
+		<property name="key">
+			<value>5648538dc34e829ac13069de4221c11c</value>
+		</property>
+		<!-- 威富通请求url -->
+		<property name="reqURL">
+			<value>https://pay.swiftpass.cn/pay/gateway</value>
+		</property>
+		<!-- 支付成功后返回url -->
+		<property name="callbackURL">
+			<!-- <value>http://192.168.0.127:9080/member/weifutong_rechargeSuccess.php</value> -->
+			<value>http://c.m.quncai.com/member/weifutong_rechargeSuccess.php</value>
+		</property>
+		<!-- 通知url -->
+		<property name="notifyURL">
+			<value>http://www.quncai.com/member/chargeNotifyWeiFuTongZF.php</value>
+		</property>
+		<!-- 威富通费率(目前合同上的0.011由群彩承担，不扣用户钱，故为0.00) -->
+		<property name="rate">
+			<value>0.00</value>
+		</property>		
+		<!--  群彩科技公众号appId -->
+		<property name="mpAppId">
+			<value>wx809116cc12c2c36b</value>
+		</property>	
+		<!--  群彩科技公众号appSecret -->
+		<property name="mpAppSecret">
+			<value>947bbe8ce100caa8880aefaa46d41abf</value>
+		</property>	
+		<!--  公众号或PC扫码支付时获取用户资料时请求CODE地址 -->
+		<property name="mpCodeURL">
+			<value>https://open.weixin.qq.com/connect/oauth2/authorize</value>
+		</property>
+		<!-- 公众号或PC扫码支付时获取用户资料时请求CODE成功后重定向URI -->
+		<property name="mpCodeRedirectURI">
+		    <value>http%3a%2f%2fm.quncai.com%2fmember%2fweifutong_mpCharge.php</value>
+		</property>
+		<!-- 公众号或PC扫码支付时获取用户资料时请求ACCESS_TOKEN地址 -->
+		<property name="mpAccessTokenURL">
+			<value>https://api.weixin.qq.com/sns/oauth2/access_token</value>
+		</property>
+		<!-- 公众号或PC扫码支付后的请求URL -->
+		<property name="mpJsPayURL">
+			<value>https://pay.swiftpass.cn/pay/jspay</value>
+		</property>
+	</bean>
+
+	<!-- 威富通支付 -->
+	<bean id="sdkWeiFuTongRequest" class="com.quncai.weifutong.request.SDKWeiFuTongRequestImpl">
+		<property name="weiFuTongConfig" ref="weiFuTongZXBankConfig"></property>
+	</bean>
+</beans>

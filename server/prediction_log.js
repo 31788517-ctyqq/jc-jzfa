@@ -536,22 +536,22 @@ function _checkDirectionHit(direction, actSpf, row) {
   if (!direction) return false;
 
   // 提前解析比分数据（供后续所有分支使用）
-  var hg = row.actual_home_goals;
-  var ag = row.actual_away_goals;
-  var totalGoals = hg != null && ag != null && !isNaN(hg) && !isNaN(ag) ? hg + ag : null;
+  const hg = row.actual_home_goals;
+  const ag = row.actual_away_goals;
+  const totalGoals = hg != null && ag != null && !isNaN(hg) && !isNaN(ag) ? hg + ag : null;
 
   // ── 无分隔符双选 "胜平" / "平负" ──
   if (direction === '胜平' && actSpf) return actSpf === '主胜' || actSpf === '平';
   if (direction === '平负' && actSpf) return actSpf === '平' || actSpf === '客胜';
 
   // ── 半全场方向（"半全场-平负、平胜、平平"） ──
-  var hfResult = _getHalfFullResult(row.actual_half_score, hg, ag);
+  const hfResult = _getHalfFullResult(row.actual_half_score, hg, ag);
   if (direction.indexOf('半全场-') === 0) {
     // 复合半全场（如 "半全场-平负、平胜、平平"）
     if (direction.indexOf('、') >= 0 || direction.indexOf(',') >= 0) {
-      var hfParts = direction.split(/[、,]/);
-      for (var hfi = 0; hfi < hfParts.length; hfi++) {
-        var hfSub = hfParts[hfi].trim();
+      const hfParts = direction.split(/[、,]/);
+      for (let hfi = 0; hfi < hfParts.length; hfi++) {
+        const hfSub = hfParts[hfi].trim();
         if (_matchHalfFullPattern(hfSub, hfResult)) return true;
       }
       return false;
@@ -570,8 +570,8 @@ function _checkDirectionHit(direction, actSpf, row) {
         })
         .filter(Boolean)
     : [direction];
-  for (var si = 0; si < subParts.length; si++) {
-    var sub = subParts[si];
+  for (let si = 0; si < subParts.length; si++) {
+    const sub = subParts[si];
     if (!sub) continue;
     // ── SPF 方向 ──
     if (actSpf) {
@@ -589,9 +589,9 @@ function _checkDirectionHit(direction, actSpf, row) {
       }
       // 让球方向（让平/让胜/让负）：用让球数计算有效比分
       if (sub === '让平' || sub === '让胜' || sub === '让负') {
-        var hcp = row.handicap != null ? parseFloat(row.handicap) || 0 : 0;
+        const hcp = row.handicap != null ? parseFloat(row.handicap) || 0 : 0;
         if (hg != null && ag != null && !isNaN(hg) && !isNaN(ag)) {
-          var effective = hg + hcp;
+          const effective = hg + hcp;
           if (sub === '让平' && effective === ag) return true;
           if (sub === '让胜' && effective > ag) return true;
           if (sub === '让负' && effective < ag) return true;
@@ -600,11 +600,11 @@ function _checkDirectionHit(direction, actSpf, row) {
     }
     // ── 总进球方向（"总进球-2" / "3球"） ──
     if (totalGoals != null) {
-      var gm = sub.match(/^总进球-(\d+)/);
+      const gm = sub.match(/^总进球-(\d+)/);
       if (gm) {
         if (totalGoals === parseInt(gm[1])) return true;
       }
-      var sgm = sub.match(/^(\d+)球$/);
+      const sgm = sub.match(/^(\d+)球$/);
       if (sgm) {
         if (totalGoals === parseInt(sgm[1])) return true;
       }
@@ -615,16 +615,16 @@ function _checkDirectionHit(direction, actSpf, row) {
 
 // ★ 辅: 解析半场比分得到半全场结果（主胜/平/客胜）
 function _getHalfFullResult(halfScore, hg, ag) {
-  var halfResult = null;
+  let halfResult = null;
   if (halfScore && halfScore.trim()) {
-    var hp = String(halfScore).replace(/[-:]/g, ':').split(':');
-    var hh = parseInt(hp[0]),
+    const hp = String(halfScore).replace(/[-:]/g, ':').split(':');
+    const hh = parseInt(hp[0]),
       ha = parseInt(hp[1]);
     if (!isNaN(hh) && !isNaN(ha)) {
       halfResult = hh > ha ? '主胜' : hh < ha ? '客胜' : '平';
     }
   }
-  var fullResult = null;
+  let fullResult = null;
   if (hg != null && ag != null && !isNaN(hg) && !isNaN(ag)) {
     fullResult = hg > ag ? '主胜' : hg < ag ? '客胜' : '平';
   }
@@ -633,17 +633,17 @@ function _getHalfFullResult(halfScore, hg, ag) {
 
 // ★ 辅: 匹配半全场模式（如 "半全场-平负" → 半场平+全场客胜）
 function _matchHalfFullPattern(direction, hfResult) {
-  var pm = direction.match(/^半全场-(.+)$/);
+  const pm = direction.match(/^半全场-(.+)$/);
   if (!pm || !hfResult.half || !hfResult.full) return false;
-  var pat = pm[1]; // 如 "平负"、"平平"、"平胜"
+  const pat = pm[1]; // 如 "平负"、"平平"、"平胜"
   if (pat.length < 2) return false;
-  var halfChar = pat[0]; // 第一个字=半场
-  var fullChar = pat[1]; // 第二个字=全场
-  var halfOk =
+  const halfChar = pat[0]; // 第一个字=半场
+  const fullChar = pat[1]; // 第二个字=全场
+  const halfOk =
     (halfChar === '胜' && hfResult.half === '主胜') ||
     (halfChar === '平' && hfResult.half === '平') ||
     (halfChar === '负' && hfResult.half === '客胜');
-  var fullOk =
+  const fullOk =
     (fullChar === '胜' && hfResult.full === '主胜') ||
     (fullChar === '平' && hfResult.full === '平') ||
     (fullChar === '负' && hfResult.full === '客胜');
@@ -786,6 +786,72 @@ function _buildPKJudgeStats(list) {
       hitRate: _pct(degradeRows.length, degradeHits),
       roi: _roi(degradeRows),
     },
+  };
+}
+
+function _buildBacktestDataQuality(row) {
+  const reasons = [];
+  const tags = [];
+  let grade = 'A';
+  let source = 'primary';
+
+  const degradeReasons = _safeJsonArray(row.pk_degrade_reasons_json);
+  const riskTags = _safeJsonArray(row.pk_risk_tags_json);
+
+  if (degradeReasons.length > 0) {
+    reasons.push('QUALITY_REJECTED');
+    tags.push.apply(tags, degradeReasons);
+    grade = 'C';
+    source = 'score_judge';
+  }
+
+  if (row.pk_snapshot_status === 'missing_snapshot') {
+    if (reasons.indexOf('NO_RECS') < 0) reasons.push('NO_RECS');
+    if (grade === 'A') grade = 'B';
+    source = source === 'primary' ? 'retained_old_recs' : source;
+  }
+
+  if (riskTags.indexOf('fallback_data_present') >= 0 || riskTags.indexOf('fallback_selection') >= 0) {
+    if (reasons.indexOf('NO_ODDS') < 0) reasons.push('NO_ODDS');
+    if (grade === 'A') grade = 'B';
+    source = source === 'primary' ? 'sporttery_fallback' : source;
+  }
+
+  if (!row.actual_score || !row.actual_spf) {
+    grade = 'D';
+    source = 'empty_placeholder';
+    if (reasons.indexOf('NO_MATCH') < 0) reasons.push('NO_MATCH');
+  }
+
+  const dedupTags = Array.from(new Set(tags.concat(riskTags))).filter(Boolean);
+  const dedupReasons = Array.from(new Set(reasons));
+  return {
+    grade: grade,
+    source: source,
+    tags: dedupTags,
+    reasons: dedupReasons,
+    updatedAt: row.updated_at || row.date || '',
+    staleMinutes: dedupReasons.indexOf('NO_RECS') >= 0 ? 30 : 0,
+    blockPredict: grade === 'C' || grade === 'D',
+  };
+}
+
+function _calcBacktestMetric(rows) {
+  const list = rows || [];
+  const sampleSize = list.length;
+  if (sampleSize === 0) return { sampleSize: 0, hitRate: 0, roi: 0 };
+  let hits = 0;
+  let roiSum = 0;
+  list.forEach(function (r) {
+    const hit = r.pk_judge_hit || r.pk_hit || r.ai_hit;
+    if (hit) hits++;
+    const rv = r.pk_unit_roi != null ? Number(r.pk_unit_roi) : hit ? 1 : -1;
+    roiSum += isNaN(rv) ? 0 : rv;
+  });
+  return {
+    sampleSize: sampleSize,
+    hitRate: parseFloat((hits / sampleSize).toFixed(4)),
+    roi: parseFloat((roiSum / sampleSize).toFixed(4)),
   };
 }
 
@@ -935,17 +1001,62 @@ function queryBacktest(filters) {
     });
   }
 
+  list.forEach(function (row) {
+    row.dataQuality = _buildBacktestDataQuality(row);
+  });
+
+  const allRows = list.slice();
+  const abRows = allRows.filter(function (r) {
+    const g = (r.dataQuality && r.dataQuality.grade) || 'D';
+    return g === 'A' || g === 'B';
+  });
+  const cdRows = allRows.filter(function (r) {
+    const g = (r.dataQuality && r.dataQuality.grade) || 'D';
+    return g === 'C' || g === 'D';
+  });
+
+  const sampleMode = String(filters.sampleMode || 'ab_only').toLowerCase();
+  const filteredRows = sampleMode === 'all' ? allRows : abRows;
+
   // 统计
-  const stats = computeStats(list, type);
+  const stats = computeStats(filteredRows, type);
+
+  const qualitySplit = {
+    ab: _calcBacktestMetric(abRows),
+    cd: _calcBacktestMetric(cdRows),
+    all: _calcBacktestMetric(allRows),
+  };
+  const fallbackPlanRatio = allRows.length > 0 ? parseFloat((cdRows.length / allRows.length).toFixed(4)) : 0;
+  const degradeImpact = {
+    fallbackPlanRatio: fallbackPlanRatio,
+    metricDeltaVsAB: {
+      hitRate: parseFloat((qualitySplit.all.hitRate - qualitySplit.ab.hitRate).toFixed(4)),
+      roi: parseFloat((qualitySplit.all.roi - qualitySplit.ab.roi).toFixed(4)),
+    },
+  };
+
+  const riskFlags = [];
+  if (fallbackPlanRatio >= 0.5) riskFlags.push('fallback_data_present');
+  if (qualitySplit.ab.sampleSize === 0 && qualitySplit.all.sampleSize > 0) riskFlags.push('QUALITY_REJECTED');
 
   // 分页
   const page = filters.page || 1;
   const pageSize = filters.pageSize || 20;
-  const total = list.length;
+  const total = filteredRows.length;
   const start = (page - 1) * pageSize;
-  const paged = list.slice(start, start + pageSize);
+  const paged = filteredRows.slice(start, start + pageSize);
 
-  return { items: paged, stats: stats, page: page, pageSize: pageSize, total: total };
+  return {
+    items: paged,
+    stats: stats,
+    page: page,
+    pageSize: pageSize,
+    total: total,
+    sampleMode: sampleMode,
+    qualitySplit: qualitySplit,
+    degradeImpact: degradeImpact,
+    riskFlags: riskFlags,
+  };
 }
 
 function computeStats(list, type) {
@@ -986,9 +1097,9 @@ function computeStats(list, type) {
     ),
     // 共识分级
     byConsensus: (function () {
-      var map = { strong: { t: 0, h: 0 }, weak: { t: 0, h: 0 }, meltdown: { t: 0, h: 0 } };
+      const map = { strong: { t: 0, h: 0 }, weak: { t: 0, h: 0 }, meltdown: { t: 0, h: 0 } };
       gsList.forEach(function (r) {
-        var c = (r.pk_fusion_consensus || r.fusionConsensus || '').toLowerCase();
+        let c = (r.pk_fusion_consensus || r.fusionConsensus || '').toLowerCase();
         if (c === 'strong' || c === '强一致') c = 'strong';
         else if (c === 'weak' || c === '弱一致') c = 'weak';
         else if (c === 'meltdown' || c === '熔断') c = 'meltdown';
@@ -1028,7 +1139,7 @@ function computeStats(list, type) {
       }).length,
     ),
     ou_accuracy: (function () {
-      var ouList = aiList.filter(function (r) {
+      const ouList = aiList.filter(function (r) {
         return r.ai_overunder;
       });
       return pct(
@@ -1042,7 +1153,7 @@ function computeStats(list, type) {
       return r.ai_overunder;
     }).length,
     score_accuracy: (function () {
-      var scList = aiList.filter(function (r) {
+      const scList = aiList.filter(function (r) {
         return r.ai_score;
       });
       return pct(
@@ -1057,7 +1168,7 @@ function computeStats(list, type) {
     }).length,
     // 置信度分级
     byConfidence: (function () {
-      var buckets = [
+      const buckets = [
         { label: '90-100', min: 90, max: 101, t: 0, h: 0 },
         { label: '80-89', min: 80, max: 90, t: 0, h: 0 },
         { label: '70-79', min: 70, max: 80, t: 0, h: 0 },
@@ -1065,8 +1176,8 @@ function computeStats(list, type) {
         { label: '0-59', min: 0, max: 60, t: 0, h: 0 },
       ];
       aiList.forEach(function (r) {
-        var conf = parseFloat(r.ai_confidence) || 0;
-        for (var i = 0; i < buckets.length; i++) {
+        const conf = parseFloat(r.ai_confidence) || 0;
+        for (let i = 0; i < buckets.length; i++) {
           if (conf >= buckets[i].min && conf < buckets[i].max) {
             buckets[i].t++;
             if (r.ai_hit) buckets[i].h++;
@@ -1102,7 +1213,7 @@ function computeStats(list, type) {
       }).length,
     ),
     hcp_accuracy: (function () {
-      var hcpList = pkList.filter(function (r) {
+      const hcpList = pkList.filter(function (r) {
         return r.pk_hcp_direction;
       });
       return pct(
@@ -1116,7 +1227,7 @@ function computeStats(list, type) {
       return r.pk_hcp_direction;
     }).length,
     goal_accuracy: (function () {
-      var gList = pkList.filter(function (r) {
+      const gList = pkList.filter(function (r) {
         return r.pk_goal_direction;
       });
       return pct(
@@ -1131,31 +1242,31 @@ function computeStats(list, type) {
     }).length,
     // 星级校准
     byStars: (function () {
-      var stars = {};
+      const stars = {};
       pkList.forEach(function (r) {
-        var s = r.pk_direction_stars;
+        const s = r.pk_direction_stars;
         if (s === undefined || s === null || s === 0) return;
         if (!stars[s]) stars[s] = { t: 0, h: 0 };
         stars[s].t++;
         if (r.pk_hit) stars[s].h++;
       });
-      var result = [];
-      for (var i = 5; i >= 1; i--) {
-        var d = stars[i] || { t: 0, h: 0 };
+      const result = [];
+      for (let i = 5; i >= 1; i--) {
+        const d = stars[i] || { t: 0, h: 0 };
         result.push({ stars: i, total: d.t, hit: d.h, rate: pct(d.t, d.h) });
       }
       return result;
     })(),
     // EV价值标签分组
     byValueTag: (function () {
-      var map = {};
+      const map = {};
       pkList.forEach(function (r) {
-        var tag = r.pk_value_tag || '未知';
+        const tag = r.pk_value_tag || '未知';
         if (!map[tag]) map[tag] = { t: 0, h: 0 };
         map[tag].t++;
         if (r.pk_hit) map[tag].h++;
       });
-      var result = [];
+      const result = [];
       Object.keys(map).forEach(function (k) {
         result.push({ tag: k, total: map[k].t, hit: map[k].h, rate: pct(map[k].t, map[k].h) });
       });
@@ -1224,18 +1335,18 @@ function computeStats(list, type) {
 function buildCalibration(list, scoreFn, hitFn) {
   if (!list || list.length === 0) return [];
   // 自动判断是 0-1 概率还是 0-100 信心分
-  var maxScore = 0;
+  let maxScore = 0;
   list.forEach(function (r) {
-    var s = scoreFn(r);
+    const s = scoreFn(r);
     if (s > maxScore) maxScore = s;
   });
-  var isProb = maxScore <= 1 && maxScore > 0; // 概率(0-1)
-  var isPct = maxScore > 1; // 信心分(0-100)
+  const isProb = maxScore <= 1 && maxScore > 0; // 概率(0-1)
+  const isPct = maxScore > 1; // 信心分(0-100)
 
-  var buckets = [];
+  const buckets = [];
   if (isProb) {
     // 0-1 概率分 5 档
-    var cuts = [0, 0.05, 0.1, 0.15, 0.2, 0.3, 1.01];
+    const cuts = [0, 0.05, 0.1, 0.15, 0.2, 0.3, 1.01];
     for (var i = 0; i < cuts.length - 1; i++) {
       buckets.push({
         min: cuts[i],
@@ -1247,9 +1358,9 @@ function buildCalibration(list, scoreFn, hitFn) {
     }
   } else if (isPct) {
     // 0-100 信心分分 6 档
-    var cuts2 = [0, 20, 35, 50, 65, 80, 101];
+    const cuts2 = [0, 20, 35, 50, 65, 80, 101];
     for (var i = 0; i < cuts2.length - 1; i++) {
-      var lmax = cuts2[i + 1] - 1;
+      const lmax = cuts2[i + 1] - 1;
       buckets.push({ min: cuts2[i], max: cuts2[i + 1], label: cuts2[i] + '-' + lmax, t: 0, h: 0 });
     }
   } else {
@@ -1257,9 +1368,9 @@ function buildCalibration(list, scoreFn, hitFn) {
   }
 
   list.forEach(function (r) {
-    var s = scoreFn(r);
+    const s = scoreFn(r);
     if (s === undefined || s === null || isNaN(s)) return;
-    for (var i = 0; i < buckets.length; i++) {
+    for (let i = 0; i < buckets.length; i++) {
       if (s >= buckets[i].min && s < buckets[i].max) {
         buckets[i].t++;
         if (hitFn(r)) buckets[i].h++;
@@ -1273,9 +1384,9 @@ function buildCalibration(list, scoreFn, hitFn) {
       return b.t >= 3;
     }) // 至少3个样本
     .map(function (b) {
-      var midpoint = (b.min + b.max) / 2;
+      const midpoint = (b.min + b.max) / 2;
       // 归一化为 0-1 概率（兼容百分比输入）
-      var prob = isPct ? midpoint / 100 : midpoint;
+      const prob = isPct ? midpoint / 100 : midpoint;
       return {
         label: b.label,
         total: b.t,
@@ -1288,9 +1399,9 @@ function buildCalibration(list, scoreFn, hitFn) {
 
 // ═══ 按联赛分组统计 ═══
 function groupByLeague(subList, hitField, typeField) {
-  var map = {};
+  const map = {};
   subList.forEach(function (r) {
-    var lg = r.leagueName || '未知';
+    const lg = r.leagueName || '未知';
     if (!map[lg]) map[lg] = { league: lg, total: 0, hits: 0 };
     map[lg].total++;
     if (r[hitField]) map[lg].hits++;
@@ -1481,12 +1592,12 @@ function queryPKVersionCompare(filters) {
   });
 
   // 版本间差异分析
-  var diffData = null;
+  let diffData = null;
   if (comparison.length >= 2) {
     diffData = {};
-    for (var ci = 1; ci < comparison.length; ci++) {
-      var prev = comparison[ci - 1].stats;
-      var curr = comparison[ci].stats;
+    for (let ci = 1; ci < comparison.length; ci++) {
+      const prev = comparison[ci - 1].stats;
+      const curr = comparison[ci].stats;
       diffData[comparison[ci].version + '_vs_' + comparison[ci - 1].version] = {
         hitRateDiff: parseFloat(((curr.hitRate - prev.hitRate) * 100).toFixed(2)) + '%',
         goalHitRateDiff: parseFloat(((curr.goalHitRate - prev.goalHitRate) * 100).toFixed(2)) + '%',

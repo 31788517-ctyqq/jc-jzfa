@@ -29,7 +29,7 @@ const SOURCE_CN = {
 export async function loadAdminPayments(container, data) {
   container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
 
-  let html = `<div class="admin-container">
+  const html = `<div class="admin-container">
     <div class="admin-header"><h2>支付与订阅管理</h2></div>
 
     <!-- 概览卡片 -->
@@ -97,7 +97,7 @@ window.loadAdminSubPage = async function () {
       return;
     }
 
-    let rows = list
+    const rows = list
       .map(
         (s) => `<tr>
     <td>${s.id}</td><td>${s.username || '--'}</td><td>${s.plan_name || PLAN_CN[s.plan_code] || s.plan_code || '--'}</td>
@@ -140,7 +140,7 @@ window.grantSubscription = async function () {
       el.style.color = '#dc2626';
     }
   } catch (e) {
-    var el = document.getElementById('grantMsg');
+    const el = document.getElementById('grantMsg');
     el.textContent = '请求失败，请重试';
     el.style.color = '#dc2626';
     console.error('[admin-payments]', e.message);

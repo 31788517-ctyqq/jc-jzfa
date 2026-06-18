@@ -1,0 +1,143 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.105Z",
+  "earliestKickoff": null,
+  "date": "2026-05-09",
+  "plans": [
+    {
+      "planId": "plan_2026-05-09_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039622",
+          "direction": "平、让平",
+          "homeName": "莱切",
+          "visitName": "尤文图斯",
+          "matchNum": "周六029"
+        },
+        {
+          "matchId": "2039623",
+          "direction": "让负",
+          "homeName": "皇家社会",
+          "visitName": "皇家贝蒂斯",
+          "matchNum": "周六030"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-09_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039622",
+          "direction": "总进球-2、3球",
+          "homeName": "莱切",
+          "visitName": "尤文图斯",
+          "matchNum": "周六029"
+        },
+        {
+          "matchId": "2039623",
+          "direction": "让负",
+          "homeName": "皇家社会",
+          "visitName": "皇家贝蒂斯",
+          "matchNum": "周六030"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-09_6",
+      "name": "plan_6",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039611",
+          "direction": "总进球-2、3球",
+          "homeName": "桑德兰",
+          "visitName": "曼彻斯特联",
+          "matchNum": "周六018"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-09_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039622",
+          "direction": "平、让平",
+          "homeName": "莱切",
+          "visitName": "尤文图斯",
+          "matchNum": "周六029"
+        },
+        {
+          "matchId": "2039616",
+          "direction": "胜",
+          "homeName": "曼彻斯特城",
+          "visitName": "布伦特福德",
+          "matchNum": "周六023"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-09_5",
+      "name": "plan_5",
+      "planName": "方案五",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039613",
+          "direction": "平、让平",
+          "homeName": "塞维利亚",
+          "visitName": "西班牙人",
+          "matchNum": "周六020"
+        },
+        {
+          "matchId": "2039622",
+          "direction": "总进球-2、3球",
+          "homeName": "莱切",
+          "visitName": "尤文图斯",
+          "matchNum": "周六029"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-09_7",
+      "name": "plan_7",
+      "planName": "方案七",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039599",
+          "direction": "胜平",
+          "homeName": "利物浦",
+          "visitName": "切尔西",
+          "matchNum": "周六006"
+        }
+      ]
+    }
+  ]
+}

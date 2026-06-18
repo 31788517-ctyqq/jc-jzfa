@@ -3,21 +3,21 @@
  * 匹配 ExpertConsensusAdapter 逻辑：胜→home 平→draw 负→away
  * 用法: node server/backfill_expert_consensus.js [--dry]
  */
-var fs = require('fs'),
+const fs = require('fs'),
   path = require('path'),
   database = require('./database');
-var DATA_FILE = path.join(__dirname, 'data.json');
-var dryRun = process.argv.includes('--dry');
+const DATA_FILE = path.join(__dirname, 'data.json');
+const dryRun = process.argv.includes('--dry');
 
 console.log('╔══════════════════════════════════════╗');
 console.log('║  专家共识回填                        ║');
 console.log('║  ' + (dryRun ? 'DRY RUN' : '正式执行') + '                  ║');
 console.log('╚══════════════════════════════════════╝\n');
 
-var data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-var rMap = data.r || {},
+const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+const rMap = data.r || {},
   mMap = data.m || {};
-var keys = Object.keys(rMap).filter(function (k) {
+const keys = Object.keys(rMap).filter(function (k) {
   return Array.isArray(rMap[k]) && rMap[k].length > 0;
 });
 console.log('有推荐数据的比赛: ' + keys.length);
@@ -29,7 +29,7 @@ function waitForDb(cb) {
     cb(database.getAdapter());
     return;
   }
-  var start = Date.now();
+  const start = Date.now();
   function check() {
     if (database.isAvailable()) {
       cb(database.getAdapter());
@@ -54,10 +54,10 @@ waitForDb(function (adp) {
   // 聚合推荐 → 专家共识
   // ★ V9: 增加 RQSPF 类型匹配（让胜/让平/让负），midou310主力推荐类型
   function computeConsensus(recs) {
-    var dirs = { home: 0, draw: 0, away: 0 },
+    let dirs = { home: 0, draw: 0, away: 0 },
       total = 0;
     recs.forEach(function (r) {
-      var type = r.type || '',
+      const type = r.type || '',
         num = Number(r.num) || 1;
       total += num;
       // SPF: 胜/主胜→home, 平/平局→draw, 负/客胜→away
@@ -81,7 +81,7 @@ waitForDb(function (adp) {
     });
     if (total <= 0) return null;
 
-    var top = 'home',
+    let top = 'home',
       topCount = dirs.home;
     if (dirs.draw > topCount) {
       top = 'draw';
@@ -92,7 +92,7 @@ waitForDb(function (adp) {
       topCount = dirs.away;
     }
 
-    var conf = topCount / total;
+    const conf = topCount / total;
     return {
       direction: top,
       confidence: Math.min(conf, 1),
@@ -104,27 +104,27 @@ waitForDb(function (adp) {
     };
   }
 
-  var stats = { new: 0, skipped: 0, noSPF: 0, errors: 0 };
+  const stats = { new: 0, skipped: 0, noSPF: 0, errors: 0 };
 
   keys.forEach(function (k) {
     try {
-      var recs = rMap[k] || [];
-      var m = mMap[k] || {};
-      var mid = (m.matchId || '').replace(/^m_/, '');
-      var date = (m.date || '').substring(0, 10);
-      var num = m.num || '';
+      const recs = rMap[k] || [];
+      const m = mMap[k] || {};
+      const mid = (m.matchId || '').replace(/^m_/, '');
+      const date = (m.date || '').substring(0, 10);
+      const num = m.num || '';
 
-      var cons = computeConsensus(recs);
+      const cons = computeConsensus(recs);
       if (!cons) {
         stats.noSPF++;
         return;
       }
 
       // Skip if direction is neutral and no majority
-      var predId = 'expert_consensus_v1.0_' + mid + '_' + date;
+      const predId = 'expert_consensus_v1.0_' + mid + '_' + date;
 
       // Check existing
-      var existing = adp.execOne('SELECT id FROM unified_predictions WHERE prediction_id=?', predId);
+      const existing = adp.execOne('SELECT id FROM unified_predictions WHERE prediction_id=?', predId);
       if (existing) {
         stats.skipped++;
         return;
@@ -194,13 +194,13 @@ waitForDb(function (adp) {
 
   // Outcome backfill
   console.log('\n── Outcome回填 ──');
-  var { backfiller } = require('./core/outcome-backfill');
+  const { backfiller } = require('./core/outcome-backfill');
   backfiller.backfill(adp, { dryRun: false }).then(function (r) {
     console.log('OutcomeBackfill:' + JSON.stringify(r));
     // Stats
-    var ro = adp.execOne("SELECT COUNT(*) as c FROM prediction_outcomes WHERE model_name='专家共识'");
+    const ro = adp.execOne("SELECT COUNT(*) as c FROM prediction_outcomes WHERE model_name='专家共识'");
     console.log('prediction_outcomes(专家共识):' + ro.c);
-    var rh = adp.execAll(
+    const rh = adp.execAll(
       "SELECT model_name,COUNT(*) as total,SUM(direction_hit) as hits FROM prediction_outcomes WHERE model_name='专家共识' GROUP BY model_name",
     );
     rh.forEach(function (x) {

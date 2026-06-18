@@ -1,0 +1,172 @@
+{
+  "lockedAt": "2026-06-18T08:39:50.911Z",
+  "earliestKickoff": null,
+  "date": "2026-04-22",
+  "plans": [
+    {
+      "planId": "plan_2026-04-22_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039258",
+          "direction": "总进球-2、3球",
+          "homeName": "查尔顿",
+          "visitName": "伊普斯维奇",
+          "matchNum": "周三009"
+        },
+        {
+          "matchId": "2039256",
+          "direction": "让负",
+          "homeName": "皇家社会",
+          "visitName": "赫塔费",
+          "matchNum": "周三007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-22_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039263",
+          "direction": "胜",
+          "homeName": "斯特拉斯堡",
+          "visitName": "尼斯",
+          "matchNum": "周三014"
+        },
+        {
+          "matchId": "2039256",
+          "direction": "让负",
+          "homeName": "皇家社会",
+          "visitName": "赫塔费",
+          "matchNum": "周三007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-22_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039264",
+          "direction": "总进球-2、3球",
+          "homeName": "巴塞罗那",
+          "visitName": "维戈塞尔塔",
+          "matchNum": "周三015"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-22_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039264",
+          "direction": "总进球-1、2、3球",
+          "homeName": "巴塞罗那",
+          "visitName": "维戈塞尔塔",
+          "matchNum": "周三015"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-22_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039259",
+          "direction": "总进球-1、2、3球",
+          "homeName": "勒沃库森",
+          "visitName": "拜仁慕尼黑",
+          "matchNum": "周三010"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-22_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039256",
+          "direction": "总进球-3、4、5球",
+          "homeName": "皇家社会",
+          "visitName": "赫塔费",
+          "matchNum": "周三007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-22_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039251",
+          "direction": "总进球-3、4、5球",
+          "homeName": "浦项制铁",
+          "visitName": "光州FC",
+          "matchNum": "周三002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-22_4",
+      "name": "plan_4",
+      "planName": "方案四",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039258",
+          "direction": "平、让平",
+          "homeName": "查尔顿",
+          "visitName": "伊普斯维奇",
+          "matchNum": "周三009"
+        },
+        {
+          "matchId": "2039263",
+          "direction": "胜",
+          "homeName": "斯特拉斯堡",
+          "visitName": "尼斯",
+          "matchNum": "周三014"
+        }
+      ]
+    }
+  ]
+}

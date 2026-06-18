@@ -17,14 +17,14 @@
  */
 function validateLiveMatch(old, lm, opts) {
   opts = opts || {};
-  var flags = {};
-  var fields = {};
+  const flags = {};
+  const fields = {};
 
   // ── 1. 基础字段提取 ──
-  var liveStatus = lm.matchStatus;
-  var liveScore = lm.score || '';
-  var liveDur = lm.duration || '';
-  var durNum = parseInt(liveDur) || 0;
+  const liveStatus = lm.matchStatus;
+  const liveScore = lm.score || '';
+  const liveDur = lm.duration || '';
+  const durNum = parseInt(liveDur) || 0;
 
   fields.matchStatus = liveStatus;
   fields.score = liveScore;
@@ -67,10 +67,10 @@ function validateLiveMatch(old, lm, opts) {
 
   // ── 4. 比分单调性检查 ──
   if (old && old.score && liveScore && old.score !== liveScore) {
-    var oldParts = old.score.replace(/[-:]/, ':').split(':').map(Number);
-    var newParts = liveScore.replace(/[-:]/, ':').split(':').map(Number);
-    var oldTotal = (oldParts[0] || 0) + (oldParts[1] || 0);
-    var newTotal = (newParts[0] || 0) + (newParts[1] || 0);
+    const oldParts = old.score.replace(/[-:]/, ':').split(':').map(Number);
+    const newParts = liveScore.replace(/[-:]/, ':').split(':').map(Number);
+    const oldTotal = (oldParts[0] || 0) + (oldParts[1] || 0);
+    const newTotal = (newParts[0] || 0) + (newParts[1] || 0);
     if (newTotal < oldTotal && liveStatus === 0) {
       // 新比分总进球更少 + 状态未开始 → 可能是旧轮次数据
       flags.scoreStale = true;
@@ -86,19 +86,21 @@ function validateLiveMatch(old, lm, opts) {
  * @returns {{ passed, flagged, skipped }}
  */
 function batchGuard(oldMap, liveMatches) {
-  var result = { passed: 0, flagged: [], skipped: 0 };
+  const result = { passed: 0, flagged: [], skipped: 0 };
 
   liveMatches.forEach(function (lm) {
-    var key = lm.matchId ? 'm_' + lm.matchId : null;
-    if (!key && lm.num) {
-      // 按 num 反向查找 matchId
-      var found = Object.keys(oldMap || {}).find(function (k) {
-        return oldMap[k].num === lm.num;
+    let key = lm.matchId ? 'm_' + lm.matchId : null;
+    if (!key && lm.num && lm.date) {
+      // 仅允许 date|num 联合回查，禁止纯 num 跨日匹配
+      const lmDate = String(lm.date).slice(0, 10);
+      const found = Object.keys(oldMap || {}).find(function (k) {
+        const old = oldMap[k] || {};
+        return old.num === lm.num && String(old.date || '').slice(0, 10) === lmDate;
       });
       if (found) key = found;
     }
-    var old = key ? oldMap[key] : null;
-    var v = validateLiveMatch(old, lm);
+    const old = key ? oldMap[key] : null;
+    const v = validateLiveMatch(old, lm);
 
     if (v.fields === null) {
       result.skipped++;
@@ -117,7 +119,7 @@ function batchGuard(oldMap, liveMatches) {
  * 赛后一致性校验 — 确认已经完赛的比赛数据完整
  */
 function postMatchAudit(match) {
-  var issues = [];
+  const issues = [];
   if (!match || !match.matchStatus || match.matchStatus < 2) return issues;
 
   if (!match.score || match.score === '-') {
@@ -135,7 +137,7 @@ function postMatchAudit(match) {
       score: match.score,
       halfScore: match.halfScore,
       date: match.date ? match.date.slice(0, 10) : '',
-      severity: 'P1',  // 需要多源复核修正
+      severity: 'P1', // 需要多源复核修正
     });
   }
 

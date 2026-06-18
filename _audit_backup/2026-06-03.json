@@ -1,0 +1,57 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.149Z",
+  "earliestKickoff": null,
+  "date": "2026-06-03",
+  "plans": [
+    {
+      "planId": "plan_2026-06-03_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040089",
+          "direction": "平、让平",
+          "homeName": "波兰",
+          "visitName": "尼日利亚",
+          "matchNum": "周三203"
+        },
+        {
+          "matchId": "2040090",
+          "direction": "让负",
+          "homeName": "卢森堡",
+          "visitName": "意大利",
+          "matchNum": "周三204"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-03_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040089",
+          "direction": "总进球-2、3球",
+          "homeName": "波兰",
+          "visitName": "尼日利亚",
+          "matchNum": "周三203"
+        },
+        {
+          "matchId": "2040090",
+          "direction": "让负",
+          "homeName": "卢森堡",
+          "visitName": "意大利",
+          "matchNum": "周三204"
+        }
+      ]
+    }
+  ]
+}

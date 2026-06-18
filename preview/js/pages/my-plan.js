@@ -2,11 +2,11 @@
 import { api } from '../api.js';
 import { WEEK_NAMES, formatDateCN, getCache, setCache } from '../utils.js';
 
-var _plans = [];
-var _stats = {};
-var _reconcileEnabled = false;
-var _reconcileLoading = false;
-var _reconcileMap = {};
+let _plans = [];
+let _stats = {};
+let _reconcileEnabled = false;
+let _reconcileLoading = false;
+let _reconcileMap = {};
 
 try {
   _reconcileEnabled = localStorage.getItem('my_plan_reconcile_enabled') === '1';
@@ -15,7 +15,7 @@ try {
 }
 
 function getMatchHandicapValue(m, selection) {
-  var candidates = [
+  const candidates = [
     m && m.odds && m.odds.rqspf ? m.odds.rqspf.handicap : undefined,
     m && m.odds ? m.odds.handicap : undefined,
     m ? m.handicap : undefined,
@@ -23,10 +23,10 @@ function getMatchHandicapValue(m, selection) {
     m ? m.concede : undefined,
     selection ? selection.handicap : undefined,
   ];
-  for (var i = 0; i < candidates.length; i++) {
-    var raw = candidates[i];
+  for (let i = 0; i < candidates.length; i++) {
+    const raw = candidates[i];
     if (raw === null || raw === undefined || raw === '') continue;
-    var num = Number(raw);
+    const num = Number(raw);
     if (!isNaN(num)) return num;
   }
   return null;
@@ -34,7 +34,7 @@ function getMatchHandicapValue(m, selection) {
 
 function formatHandicapText(handicap) {
   if (handicap === null || handicap === undefined || handicap === '') return '--';
-  var num = Number(handicap);
+  const num = Number(handicap);
   if (isNaN(num)) return '--';
   if (num > 0) return '+' + num;
   if (num < 0) return String(num);
@@ -42,9 +42,9 @@ function formatHandicapText(handicap) {
 }
 
 function renderMatchTeams(m, selection) {
-  var score = m.actualScore || '';
-  var middle = score ? '<span class="plan-score-blue">' + score + '</span>' : '<span class="plan-team-vs">vs</span>';
-  var handicapText = formatHandicapText(getMatchHandicapValue(m, selection));
+  const score = m.actualScore || '';
+  const middle = score ? '<span class="plan-score-blue">' + score + '</span>' : '<span class="plan-team-vs">vs</span>';
+  const handicapText = formatHandicapText(getMatchHandicapValue(m, selection));
   return (
     '<span class="plan-team-home">' +
     (m.homeName || '') +
@@ -61,15 +61,15 @@ function renderMatchTeams(m, selection) {
 
 // ═══ 页面入口 ═══
 export function loadMyPlan() {
-  var el = document.getElementById('myPlanContent');
+  const el = document.getElementById('myPlanContent');
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载方案中...</div>';
   _reconcileMap = {};
   _reconcileLoading = false;
 
   // ★ P1: sessionStorage 缓存命中
-  var cacheKey = 'my-plan-list:html';
-  var cached = getCache(cacheKey);
+  const cacheKey = 'my-plan-list:html';
+  const cached = getCache(cacheKey);
   if (cached) {
     el.innerHTML = cached;
     return;
@@ -96,10 +96,10 @@ export function refreshMyPlan() {
 
 // ═══ 渲染方案列表（复用 plan-card 样式） ═══
 function renderMyPlanList() {
-  var el = document.getElementById('myPlanContent');
+  const el = document.getElementById('myPlanContent');
   if (!el) return;
 
-  var html = renderReconcileToolbar();
+  let html = renderReconcileToolbar();
 
   if (_plans.length === 0) {
     el.innerHTML =
@@ -107,31 +107,84 @@ function renderMyPlanList() {
     return;
   }
   _plans.forEach(function (p, idx) {
-    var matches = p.matches || [];
-    var isWon = p.isWon === true;
-    var isLose = p.isWon === false;
-    var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
-    var statusCls = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
-    var amountVal = (p.amount || 200).toFixed(0);
-    var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
-    var prizeVal = isWon
-      ? p.resultIncome != null
-        ? p.resultIncome
-        : '--'
+    const matches = p.matches || [];
+    const isWon = p.isWon === true;
+    const isLose = p.isWon === false;
+    const statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
+    const statusCls = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
+    const amountVal = (p.amount || 200).toFixed(0);
+    const prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
+    const prizeVal = isWon
+      ? p.settledPrize != null
+        ? p.settledPrize
+        : p.resultIncome != null
+          ? p.resultIncome
+          : '--'
       : isLose
         ? '0'
         : (function () {
-            var totalOdds = Number(p.totalOdds) || 0;
-            var amt = Number(p.amount) || 0;
+            const expected = Number(p.expectedMaxPrize) || 0;
+            if (expected > 0) return expected;
+            const passOdds = p.passOdds || {};
+            const passKeys = Object.keys(passOdds);
+            let maxFromPass = 0;
+            for (let pk = 0; pk < passKeys.length; pk++) {
+              const pv = passOdds[passKeys[pk]];
+              let passWin = Number(pv && pv.maxWinPerNote != null ? pv.maxWinPerNote : 0);
+              if (!(passWin > 0)) {
+                const bestProduct = Number(pv && pv.bestProduct != null ? pv.bestProduct : pv);
+                const multi = Number(p.multiplier) || 1;
+                if (bestProduct > 0) passWin = Math.round(2 * multi * bestProduct * 100) / 100;
+              }
+              if (passWin > maxFromPass) maxFromPass = passWin;
+            }
+            if (maxFromPass > 0) return maxFromPass;
+            const totalOdds = Number(p.totalOdds) || 0;
+            const amt = Number(p.amount) || 0;
             if (totalOdds > 0 && amt > 0) return Math.round(totalOdds * amt * 100) / 100;
             return '--';
           })();
 
-    var passTypeText =
+    const passTypeText =
       (p.passTypes || [2]).length > 1 ? (p.passTypes || [2]).join('~') + '关' : ((p.passTypes || [2])[0] || 2) + '关';
-    var dateStr = (p.date || '').slice(5).replace('-', '/');
-    var createdAt = p.createdAt ? p.createdAt.slice(0, 16).replace('T', ' ') : '';
-    var planName = p.planName || p.note || '我的方案 #' + (idx + 1);
+    const dateStr = (p.date || '').slice(5).replace('-', '/');
+    const createdAt = p.createdAt ? p.createdAt.slice(0, 16).replace('T', ' ') : '';
+    const _cnNums = [
+      '',
+      '一',
+      '二',
+      '三',
+      '四',
+      '五',
+      '六',
+      '七',
+      '八',
+      '九',
+      '十',
+      '十一',
+      '十二',
+      '十三',
+      '十四',
+      '十五',
+      '十六',
+      '十七',
+      '十八',
+      '十九',
+      '二十',
+      '二十一',
+      '二十二',
+      '二十三',
+      '二十四',
+      '二十五',
+      '二十六',
+      '二十七',
+      '二十八',
+      '二十九',
+      '三十',
+    ];
+    const seqNum = idx + 1;
+    const cnNum = seqNum <= 30 ? _cnNums[seqNum] : String(seqNum);
+    const planName = '方案' + cnNum;
 
     html +=
       '<div class="plan-card user-plan-card" id="upcard-' +
@@ -202,8 +255,8 @@ function renderMyPlanList() {
 }
 
 function renderReconcileToolbar() {
-  var checked = _reconcileEnabled ? ' checked' : '';
-  var loading = _reconcileEnabled && _reconcileLoading ? '<span class="mp-rec-loading">对账中...</span>' : '';
+  const checked = _reconcileEnabled ? ' checked' : '';
+  const loading = _reconcileEnabled && _reconcileLoading ? '<span class="mp-rec-loading">对账中...</span>' : '';
   return (
     '<div class="mp-rec-toolbar">' +
     '<label class="mp-rec-switch"><input type="checkbox" ' +
@@ -217,7 +270,7 @@ function renderReconcileToolbar() {
 
 function _fmtMoney(v) {
   if (v === null || v === undefined || v === '') return '--';
-  var n = Number(v);
+  const n = Number(v);
   if (isNaN(n)) return '--';
   return Math.round(n * 100) / 100;
 }
@@ -230,13 +283,13 @@ function _statusCN(st) {
 
 function _fmtPassOddsMap(map) {
   if (!map) return '--';
-  var keys = Object.keys(map).sort(function (a, b) {
+  const keys = Object.keys(map).sort(function (a, b) {
     return Number(a) - Number(b);
   });
   if (!keys.length) return '--';
   return keys
     .map(function (k) {
-      var v = Number(map[k]);
+      const v = Number(map[k]);
       return k + '关:' + (isNaN(v) ? '--' : Math.round(v * 100) / 100);
     })
     .join(' / ');
@@ -244,7 +297,7 @@ function _fmtPassOddsMap(map) {
 
 function renderPlanReconcileBlock(plan) {
   if (!_reconcileEnabled) return '';
-  var rec = _reconcileMap[plan.id];
+  const rec = _reconcileMap[plan.id];
   if (_reconcileLoading && !rec) {
     return '<div class="mp-rec-box"><div class="mp-rec-row">⏳ 正在拉取对账数据...</div></div>';
   }
@@ -255,16 +308,16 @@ function renderPlanReconcileBlock(plan) {
     return '<div class="mp-rec-box"><div class="mp-rec-row">⚠️ 对账失败：' + rec.error + '</div></div>';
   }
 
-  var score = rec.score || {};
-  var bonus = rec.bonus || {};
-  var odds = rec.odds || {};
-  var scoreCls = score.driftCount > 0 ? ' drift' : '';
-  var bonusCls = bonus.drift ? ' drift' : '';
-  var oddsCls = odds.drift ? ' drift' : '';
+  const score = rec.score || {};
+  const bonus = rec.bonus || {};
+  const odds = rec.odds || {};
+  const scoreCls = score.driftCount > 0 ? ' drift' : '';
+  const bonusCls = bonus.drift ? ' drift' : '';
+  const oddsCls = odds.drift ? ' drift' : '';
 
-  var scoreSample = '';
+  let scoreSample = '';
   if (score.items && score.items.length) {
-    var top = score.items.slice(0, 2);
+    const top = score.items.slice(0, 2);
     scoreSample = top
       .map(function (it) {
         return (it.matchNum || '--') + ' ' + (it.rawScore || '--') + ' / ' + (it.aggScore || '--');
@@ -317,7 +370,7 @@ function _loadPlanReconcile() {
   if (!_plans || !_plans.length) return Promise.resolve();
   _reconcileLoading = true;
   renderMyPlanList();
-  var ids = _plans
+  const ids = _plans
     .map(function (p) {
       return p.id;
     })
@@ -353,61 +406,84 @@ window.togglePlanReconcile = function (enabled) {
 // ═══ 方案比赛表格（复用 plan-match-table 样式） ═══
 function renderPlanMatchesTable(matches) {
   if (!matches || matches.length === 0) return '';
-  var allRows = [];
+  const allRows = [];
   matches.forEach(function (m) {
-    var oddsStr = m.odds != null ? Number(m.odds).toFixed(2) : '--';
-    var dirDisplay = m.direction || m.oddsName || '';
+    const oddsStr = m.odds != null ? Number(m.odds).toFixed(2) : '--';
+    let dirDisplay = m.direction || m.oddsName || '';
     if (m.playType === 'rqspf') {
       dirDisplay = '让' + dirDisplay + '(' + formatHandicapText(getMatchHandicapValue(m, m)) + ')';
     }
-    var playTypeMap = { spf: '胜平负', rqspf: '让球', jqs: '总进球', bqc: '半全场', bf: '比分' };
-    var playLabel = playTypeMap[m.playType] || m.playType || '--';
+    const playTypeMap = { spf: '胜平负', rqspf: '让球', jqs: '总进球', bqc: '半全场', bf: '比分' };
+    const playLabel = playTypeMap[m.playType] || m.playType || '--';
     // ★ V17: 单关双选方向展开 + 多方向拆行
     if (dirDisplay === '胜平') dirDisplay = '胜、平';
     else if (dirDisplay === '平负') dirDisplay = '平、负';
-    var dirParts = dirDisplay ? dirDisplay.split(/[、，,]/) : [dirDisplay];
-    var subResults = m.subResults || [];
-    for (var di = 0; di < dirParts.length; di++) {
-      var subDir = (dirParts[di] || '').trim();
+    const dirParts = dirDisplay ? dirDisplay.split(/[、，,]/) : [dirDisplay];
+    const subResults = m.subResults || [];
+    for (let di = 0; di < dirParts.length; di++) {
+      const subDir = (dirParts[di] || '').trim();
       if (!subDir) continue;
       // ★ V17: 逐方向颜色 — 命中红 / 未中绿 / 未开队名色
-      var subR = null;
-      for (var si = 0; si < subResults.length; si++) {
-        if (subResults[si].direction === subDir) { subR = subResults[si]; break; }
+      let subR = null;
+      for (let si = 0; si < subResults.length; si++) {
+        if (subResults[si].direction === subDir) {
+          subR = subResults[si];
+          break;
+        }
       }
-      var dirCls = '';
+      let dirCls = '';
       if (subR && subR.result !== null && subR.result !== undefined) {
-        dirCls = subR.result === 1 ? ' plan-direction-hit' : subR.result === -1 ? ' plan-direction-undetermined' : ' plan-direction-miss';
+        dirCls =
+          subR.result === 1
+            ? ' plan-direction-hit'
+            : subR.result === -1
+              ? ' plan-direction-undetermined'
+              : ' plan-direction-miss';
       }
-      var fullDir = (di === 0 ? playLabel + ' ' : '') + subDir + '(' + oddsStr + ')';
+      const fullDir = (di === 0 ? playLabel + ' ' : '') + subDir + '(' + oddsStr + ')';
       if (di === 0) {
         allRows.push(
           '<tr>' +
-          '<td class="match-info-col"><span class="match-num-text">' + (m.matchNum || '') + '</span></td>' +
-          '<td class="team-col">' + renderMatchTeams(m, m) + '</td>' +
-          '<td class="odds-col' + dirCls + '">' + fullDir + '</td>' +
-          '</tr>'
+            '<td class="match-info-col"><span class="match-num-text">' +
+            (m.matchNum || '') +
+            '</span></td>' +
+            '<td class="team-col">' +
+            renderMatchTeams(m, m) +
+            '</td>' +
+            '<td class="odds-col' +
+            dirCls +
+            '">' +
+            fullDir +
+            '</td>' +
+            '</tr>',
         );
       } else {
         allRows.push(
           '<tr>' +
-          '<td class="match-info-col"></td>' +
-          '<td class="team-col"></td>' +
-          '<td class="odds-col' + dirCls + '">' + fullDir + '</td>' +
-          '</tr>'
+            '<td class="match-info-col"></td>' +
+            '<td class="team-col"></td>' +
+            '<td class="odds-col' +
+            dirCls +
+            '">' +
+            fullDir +
+            '</td>' +
+            '</tr>',
         );
       }
     }
   });
 
   return (
-    '<div class="plan-match-section">' + '<table class="plan-match-table"><tbody>' + allRows.join('') + '</tbody></table></div>'
+    '<div class="plan-match-section">' +
+    '<table class="plan-match-table"><tbody>' +
+    allRows.join('') +
+    '</tbody></table></div>'
   );
 }
 
 // ═══ 自定义确认弹窗工厂 ═══
 function _confirmDelete(planId, planName, onSuccess) {
-  var overlay = document.createElement('div');
+  const overlay = document.createElement('div');
   overlay.className = 'del-overlay active';
   overlay.innerHTML =
     '<div class="del-modal">' +
@@ -428,7 +504,7 @@ function _confirmDelete(planId, planName, onSuccess) {
     '</div>';
   document.body.appendChild(overlay);
 
-  var close = function () {
+  const close = function () {
     overlay.classList.remove('active');
     setTimeout(function () {
       overlay.remove();
@@ -439,7 +515,7 @@ function _confirmDelete(planId, planName, onSuccess) {
     if (e.target === overlay) close();
   });
 
-  var confirmBtn = overlay.querySelector('.del-btn-confirm');
+  const confirmBtn = overlay.querySelector('.del-btn-confirm');
   confirmBtn.onclick = function () {
     confirmBtn.disabled = true;
     confirmBtn.textContent = '删除中...';
@@ -449,8 +525,8 @@ function _confirmDelete(planId, planName, onSuccess) {
         onSuccess();
       })
       .catch(function (e) {
-        var body = overlay.querySelector('.del-modal-body');
-        var errEl = body.querySelector('.del-err');
+        const body = overlay.querySelector('.del-modal-body');
+        let errEl = body.querySelector('.del-err');
         if (!errEl) {
           errEl = document.createElement('p');
           errEl.className = 'del-err';
@@ -467,9 +543,9 @@ function _confirmDelete(planId, planName, onSuccess) {
 
 // ═══ 删除方案 ═══
 window.deleteUserPlan = function (planId) {
-  var card = document.getElementById('upcard-' + planId);
-  var nameEl = card ? card.querySelector('.plan-name') : null;
-  var planName = nameEl ? nameEl.textContent.trim() : '';
+  const card = document.getElementById('upcard-' + planId);
+  const nameEl = card ? card.querySelector('.plan-name') : null;
+  const planName = nameEl ? nameEl.textContent.trim() : '';
   _confirmDelete(planId, planName, function () {
     loadMyPlan();
   });
@@ -477,17 +553,17 @@ window.deleteUserPlan = function (planId) {
 
 // ═══ 分享方案（截图） ═══
 window.shareUserPlan = function (planId) {
-  var card = document.getElementById('upcard-' + planId);
+  const card = document.getElementById('upcard-' + planId);
   if (!card) {
     _toast('方案卡片未找到', 'err');
     return;
   }
 
-  var loadHtml2Canvas = window.html2canvas
+  const loadHtml2Canvas = window.html2canvas
     ? Promise.resolve(window.html2canvas)
     : new Promise(function (resolve, reject) {
-        var script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+        const script = document.createElement('script');
+        script.src = '/preview/lib/html2canvas.min.js';
         script.onload = function () {
           resolve(window.html2canvas);
         };
@@ -501,7 +577,7 @@ window.shareUserPlan = function (planId) {
 
   loadHtml2Canvas
     .then(function (html2canvas) {
-      var shareEl = _buildShareCard(card);
+      const shareEl = _buildShareCard(card);
       document.body.appendChild(shareEl);
 
       setTimeout(function () {
@@ -529,7 +605,7 @@ window.shareUserPlan = function (planId) {
 // ═══ 构建 440px 新版分享海报（按分享参考图还原） ═══
 function _buildShareCard(cardEl) {
   function pickText(root, selector) {
-    var el = root.querySelector(selector);
+    const el = root.querySelector(selector);
     return el ? el.textContent.trim().replace(/\s+/g, ' ') : '';
   }
 
@@ -543,41 +619,41 @@ function _buildShareCard(cardEl) {
   }
 
   function splitNumberUnit(value, defaultUnit) {
-    var text = String(value || '').replace(/\s+/g, '');
-    var match = text.match(/^([+\-]?[\d.]+)(.*)$/);
+    const text = String(value || '').replace(/\s+/g, '');
+    const match = text.match(/^([+\-]?[\d.]+)(.*)$/);
     if (!match) return { num: text || '--', unit: '' };
     return { num: match[1], unit: match[2] || defaultUnit || '' };
   }
 
   function normalizeDate(value) {
-    var text = String(value || '');
-    var m = text.match(/(\d{1,2})[\/\-](\d{1,2})/);
+    const text = String(value || '');
+    const m = text.match(/(\d{1,2})[\/\-](\d{1,2})/);
     if (!m) return '';
     return String(m[1]).padStart(2, '0') + '-' + String(m[2]).padStart(2, '0');
   }
 
   function formatLastOrderTime(value) {
-    var text = String(value || '').trim();
-    var full = text.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[ T](\d{2}:\d{2})/);
+    const text = String(value || '').trim();
+    const full = text.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[ T](\d{2}:\d{2})/);
     if (full)
       return '最后下单 ' + String(full[2]).padStart(2, '0') + '-' + String(full[3]).padStart(2, '0') + ' ' + full[4];
-    var short = text.match(/(\d{1,2})[\/\-](\d{1,2})\s+(\d{2}:\d{2})/);
+    const short = text.match(/(\d{1,2})[\/\-](\d{1,2})\s+(\d{2}:\d{2})/);
     if (short)
       return '最后下单 ' + String(short[1]).padStart(2, '0') + '-' + String(short[2]).padStart(2, '0') + ' ' + short[3];
-    var timeOnly = text.match(/(\d{2}:\d{2})/);
-    var day = normalizeDate(text);
+    const timeOnly = text.match(/(\d{2}:\d{2})/);
+    const day = normalizeDate(text);
     if (timeOnly && day) return '最后下单 ' + day + ' ' + timeOnly[1];
     return '';
   }
 
   function parseBet(rawValue) {
-    var raw = String(rawValue || '')
+    const raw = String(rawValue || '')
       .replace(/[▲▼]/g, '')
       .replace(/\s+/g, ' ')
       .trim();
-    var label = '胜平负：';
-    var value = raw;
-    var colon = raw.match(/^([^：:]{2,10})[：:]\s*(.+)$/);
+    let label = '胜平负：';
+    let value = raw;
+    const colon = raw.match(/^([^：:]{2,10})[：:]\s*(.+)$/);
     if (colon) {
       label = colon[1] + '：';
       value = colon[2];
@@ -606,46 +682,46 @@ function _buildShareCard(cardEl) {
     return { label: label, value: value || '--' };
   }
 
-  var name = pickText(cardEl, '.plan-name') || '方案一';
-  var rawDate = pickText(cardEl, '.plan-pub-time');
-  var amountCols = cardEl.querySelectorAll('.plan-amount-col');
+  const name = pickText(cardEl, '.plan-name') || '方案一';
+  const rawDate = pickText(cardEl, '.plan-pub-time');
+  const amountCols = cardEl.querySelectorAll('.plan-amount-col');
 
-  var amountLabel = amountCols[0] ? pickText(amountCols[0], '.plan-amount-label') : '方案金额';
-  var amountValue = amountCols[0] ? pickText(amountCols[0], '.plan-amount-value') : '--元';
-  var prizeLabel = amountCols[1] ? pickText(amountCols[1], '.plan-amount-label') : '预计最高中奖金额';
-  var prizeValue = amountCols[1] ? pickText(amountCols[1], '.plan-amount-value') : '--元';
-  var statusLabel = amountCols[2] ? pickText(amountCols[2], '.plan-amount-label') : '方案状态';
-  var statusValue = amountCols[2] ? pickText(amountCols[2], '.plan-amount-value') : '未开奖';
-  var statusText = statusValue || '未开奖';
+  const amountLabel = amountCols[0] ? pickText(amountCols[0], '.plan-amount-label') : '方案金额';
+  const amountValue = amountCols[0] ? pickText(amountCols[0], '.plan-amount-value') : '--元';
+  const prizeLabel = amountCols[1] ? pickText(amountCols[1], '.plan-amount-label') : '预计最高中奖金额';
+  const prizeValue = amountCols[1] ? pickText(amountCols[1], '.plan-amount-value') : '--元';
+  const statusLabel = amountCols[2] ? pickText(amountCols[2], '.plan-amount-label') : '方案状态';
+  const statusValue = amountCols[2] ? pickText(amountCols[2], '.plan-amount-value') : '未开奖';
+  let statusText = statusValue || '未开奖';
   if (statusLabel.indexOf('状态') < 0) {
     statusText = statusValue.indexOf('+') === 0 ? '已中奖' : statusValue === '0' ? '未中奖' : '未开奖';
   }
 
-  var infoRights = cardEl.querySelectorAll('.plan-info-right > div');
-  var playType = infoRights[0] ? infoRights[0].textContent.trim().replace(/\s+/g, ' ') : '混合投注';
-  var passType = infoRights[1] ? infoRights[1].textContent.trim().replace(/\s+/g, ' ') : '';
-  var betCount = infoRights[2] ? infoRights[2].textContent.trim().replace(/\s+/g, ' ') : '';
+  const infoRights = cardEl.querySelectorAll('.plan-info-right > div');
+  const playType = infoRights[0] ? infoRights[0].textContent.trim().replace(/\s+/g, ' ') : '混合投注';
+  let passType = infoRights[1] ? infoRights[1].textContent.trim().replace(/\s+/g, ' ') : '';
+  let betCount = infoRights[2] ? infoRights[2].textContent.trim().replace(/\s+/g, ' ') : '';
 
-  var matchRowsData = [];
-  var last = { num: '', time: '', home: '', away: '', score: '', handicap: '' };
+  const matchRowsData = [];
+  const last = { num: '', time: '', home: '', away: '', score: '', handicap: '' };
   cardEl.querySelectorAll('.plan-match-table tbody tr').forEach(function (row) {
-    var cells = row.querySelectorAll('td');
+    const cells = row.querySelectorAll('td');
     if (cells.length < 3) return;
-    var num = pickText(cells[0], '.match-num-text') || last.num;
-    var time = pickText(cells[0], '.match-time-sub') || last.time;
-    var home = pickText(cells[1], '.plan-team-home') || last.home;
-    var away = pickText(cells[1], '.plan-team-away') || last.away;
-    var score = pickText(cells[1], '.plan-score-blue') || '';
-    var handicap = pickText(cells[1], '.plan-handicap-badge') || '';
+    const num = pickText(cells[0], '.match-num-text') || last.num;
+    const time = pickText(cells[0], '.match-time-sub') || last.time;
+    let home = pickText(cells[1], '.plan-team-home') || last.home;
+    let away = pickText(cells[1], '.plan-team-away') || last.away;
+    const score = pickText(cells[1], '.plan-score-blue') || '';
+    const handicap = pickText(cells[1], '.plan-handicap-badge') || '';
     if ((!home || !away) && cells[1]) {
-      var teamText = cells[1].textContent.trim().replace(/\s+/g, ' ');
-      var teamParts = teamText.split(/\s*(?:vs|VS)\s*/);
+      const teamText = cells[1].textContent.trim().replace(/\s+/g, ' ');
+      const teamParts = teamText.split(/\s*(?:vs|VS)\s*/);
       if (!home && teamParts[0]) home = teamParts[0];
       if (!away && teamParts[1]) away = teamParts[1];
     }
-    var bet = parseBet(cells[2].textContent);
-    var betColor = '';
-    var coloredBet = cells[2].querySelector('span[style*="color"]');
+    const bet = parseBet(cells[2].textContent);
+    let betColor = '';
+    const coloredBet = cells[2].querySelector('span[style*="color"]');
     if (coloredBet && coloredBet.style && coloredBet.style.color) betColor = coloredBet.style.color;
     if (num) last.num = num;
     if (time) last.time = time;
@@ -668,31 +744,31 @@ function _buildShareCard(cardEl) {
   if (!passType) passType = (matchRowsData.length || 1) + '场';
   if (!betCount) betCount = '--';
 
-  var shareDate = normalizeDate(rawDate) || (matchRowsData[0] ? normalizeDate(matchRowsData[0].time) : '');
-  var lastOrderTime = formatLastOrderTime(rawDate) || shareDate;
+  const shareDate = normalizeDate(rawDate) || (matchRowsData[0] ? normalizeDate(matchRowsData[0].time) : '');
+  const lastOrderTime = formatLastOrderTime(rawDate) || shareDate;
   function formatMatchTime(value) {
-    var text = String(value || '').trim();
-    var m = text.match(/(\d{1,2})[\/\-](\d{1,2})\s+(\d{2}:\d{2})/);
+    const text = String(value || '').trim();
+    const m = text.match(/(\d{1,2})[\/\-](\d{1,2})\s+(\d{2}:\d{2})/);
     if (m) return String(m[1]).padStart(2, '0') + '-' + String(m[2]).padStart(2, '0') + ' ' + m[3];
     if (/^\d{2}:\d{2}$/.test(text) && shareDate) return shareDate + ' ' + text;
     return text.replace(/\//g, '-');
   }
 
-  var amountParts = splitNumberUnit(amountValue, '元');
-  var prizeParts = splitNumberUnit(prizeValue, '元');
-  var statusCls = statusText.indexOf('未中奖') >= 0 ? 'lost' : statusText.indexOf('已中奖') >= 0 ? 'won' : 'pending';
-  var statusColor = statusCls === 'won' ? '#EF4444' : statusCls === 'lost' ? '#9CA3AF' : '#34D399';
+  const amountParts = splitNumberUnit(amountValue, '元');
+  const prizeParts = splitNumberUnit(prizeValue, '元');
+  const statusCls = statusText.indexOf('未中奖') >= 0 ? 'lost' : statusText.indexOf('已中奖') >= 0 ? 'won' : 'pending';
+  const statusColor = statusCls === 'won' ? '#EF4444' : statusCls === 'lost' ? '#9CA3AF' : '#34D399';
 
-  var targetIcon =
+  const targetIcon =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2.6"></circle><path d="M19 5l-4 4M18.5 4.5h-3.5v3.5"></path></svg>';
-  var ticketIcon =
+  const ticketIcon =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"></rect><path d="M9 5v14M15 5v14M5 10h14M5 15h14"></path><circle cx="12" cy="12" r="1.5"></circle></svg>';
-  var coinIcon =
+  const coinIcon =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="7" rx="6" ry="3"></ellipse><path d="M6 7v6c0 1.7 2.7 3 6 3s6-1.3 6-3V7"></path><path d="M6 13c0 1.7 2.7 3 6 3s6-1.3 6-3"></path></svg>';
-  var calendarIcon =
+  const calendarIcon =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="5.5" width="15" height="14" rx="2"></rect><path d="M8 3.8v4M16 3.8v4M4.5 10h15M9 14l2 2 4-4"></path></svg>';
 
-  var matchRowsHtml = matchRowsData.length
+  const matchRowsHtml = matchRowsData.length
     ? matchRowsData
         .map(function (item) {
           return (
@@ -726,11 +802,11 @@ function _buildShareCard(cardEl) {
         .join('')
     : '<div class="sp-empty-row">暂无赛事详情</div>';
 
-  var css = [
+  const css = [
     '*{margin:0;padding:0;box-sizing:border-box;}',
-    '.sp-page{width:440px;min-height:780px;padding:30px 24px 40px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% -10%,#ffffff 0%,#effcfc 38%,#f7ffff 70%,#ffffff 100%);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#152235;}',
-    '.sp-page:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(30,176,172,.08),transparent 28%,rgba(30,176,172,.05) 72%,transparent);pointer-events:none;}',
-    '.sp-card{position:relative;background:rgba(255,255,255,.93);border:1px solid rgba(255,255,255,.9);border-radius:18px;box-shadow:0 10px 30px rgba(36,128,138,.10),0 1px 0 rgba(255,255,255,.95) inset;overflow:hidden;}',
+    '.sp-page{width:440px;min-height:780px;padding:30px 24px 40px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% -10%,#ffffff 0%,#fff4ee 38%,#fff9f6 70%,#ffffff 100%);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#152235;}',
+    '.sp-page:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,127,80,.10),transparent 28%,rgba(255,127,80,.06) 72%,transparent);pointer-events:none;}',
+    '.sp-card{position:relative;background:rgba(255,255,255,.93);border:1px solid rgba(255,255,255,.9);border-radius:18px;box-shadow:0 10px 30px rgba(231,111,81,.12),0 1px 0 rgba(255,255,255,.95) inset;overflow:hidden;}',
     '.sp-top{padding:16px 14px 12px;}',
     '.sp-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}',
     '.sp-title-wrap{display:flex;align-items:center;gap:12px;}',
@@ -747,23 +823,23 @@ function _buildShareCard(cardEl) {
     '.sp-status{font-size:23px;line-height:1;font-weight:700;white-space:nowrap;}',
     '.sp-status.pending{color:#34D399;}.sp-status.won{color:#EF4444;}.sp-status.lost{color:#9CA3AF;}',
     '.sp-info{height:140px;border-radius:15px;border:1px solid #e8eff3;background:rgba(255,255,255,.78);position:relative;overflow:hidden;box-shadow:none;}',
-    '.sp-info:before{content:"";position:absolute;right:34px;bottom:31px;width:148px;height:44px;background:linear-gradient(100deg,transparent 0%,rgba(14,145,139,.10) 34%,rgba(14,145,139,.06) 54%,transparent 78%);transform:skewX(-18deg) rotate(-10deg);opacity:.42;}',
-    '.sp-info:after{content:"";position:absolute;right:82px;bottom:32px;width:88px;height:2px;background:linear-gradient(90deg,transparent,rgba(14,145,139,.13),transparent);box-shadow:18px 12px 0 rgba(14,145,139,.09),-10px 24px 0 rgba(14,145,139,.06);transform:rotate(-13deg);}',
+    '.sp-info:before{content:"";position:absolute;right:34px;bottom:31px;width:148px;height:44px;background:linear-gradient(100deg,transparent 0%,rgba(255,127,80,.14) 34%,rgba(255,127,80,.09) 54%,transparent 78%);transform:skewX(-18deg) rotate(-10deg);opacity:.42;}',
+    '.sp-info:after{content:"";position:absolute;right:82px;bottom:32px;width:88px;height:2px;background:linear-gradient(90deg,transparent,rgba(255,127,80,.17),transparent);box-shadow:18px 12px 0 rgba(255,127,80,.12),-10px 24px 0 rgba(255,127,80,.09);transform:rotate(-13deg);}',
     '.sp-info-ball{position:absolute;right:15px;bottom:8px;width:80px;height:80px;border-radius:50%;opacity:.08;display:flex;align-items:center;justify-content:center;font-size:70px;filter:grayscale(.15);transform:rotate(-18deg);}',
     '.sp-info-row{height:46.66px;display:flex;align-items:center;padding:0 18px;position:relative;z-index:1;background:transparent;}',
     '.sp-info-row+.sp-info-row{border-top:1px solid #edf2f5;}',
-    '.sp-i{width:28px;height:28px;border-radius:9px;background:rgba(33,189,180,.10);display:flex;align-items:center;justify-content:center;margin-right:13px;}',
-    '.sp-i svg{width:18px;height:18px;fill:none;stroke:#0e918b;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}',
+    '.sp-i{width:28px;height:28px;border-radius:9px;background:rgba(255,127,80,.14);display:flex;align-items:center;justify-content:center;margin-right:13px;}',
+    '.sp-i svg{width:18px;height:18px;fill:none;stroke:#E76F51;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}',
     '.sp-info-label{width:84px;color:#48596c;font-size:13px;font-weight:500;}',
-    '.sp-info-value{font-size:14px;color:#0e918b;font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+    '.sp-info-value{font-size:14px;color:#E76F51;font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
     '.sp-section{height:40px;display:flex;align-items:center;justify-content:center;gap:12px;margin:16px 0 0;color:#142235;font-size:16px;font-weight:700;letter-spacing:.3px;}',
-    '.sp-section:before,.sp-section:after{content:"";width:36px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#0e918b 45%,#0e918b 70%,transparent);}',
-    '.sp-matches{position:relative;border-radius:19px;background:rgba(255,255,255,.94);box-shadow:0 10px 30px rgba(36,128,138,.10),0 1px 0 rgba(255,255,255,.95) inset;overflow:hidden;border:1px solid rgba(255,255,255,.9);}',
+    '.sp-section:before,.sp-section:after{content:"";width:36px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#E76F51 45%,#E76F51 70%,transparent);}',
+    '.sp-matches{position:relative;border-radius:19px;background:rgba(255,255,255,.94);box-shadow:0 10px 30px rgba(231,111,81,.12),0 1px 0 rgba(255,255,255,.95) inset;overflow:hidden;border:1px solid rgba(255,255,255,.9);}',
     '.sp-match-row{min-height:78px;display:grid;grid-template-columns:112px 1fr 120px;align-items:center;padding:0 12px;border-bottom:1px solid #edf2f5;background:transparent;}',
     '.sp-match-row:last-child{border-bottom:0;}',
     '.sp-issue{height:56px;display:flex;align-items:center;gap:9px;min-width:0;}',
-    '.sp-cal{width:28px;height:28px;border-radius:9px;background:rgba(33,189,180,.09);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}',
-    '.sp-cal svg{width:18px;height:18px;fill:none;stroke:#0e918b;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}',
+    '.sp-cal{width:28px;height:28px;border-radius:9px;background:rgba(255,127,80,.12);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}',
+    '.sp-cal svg{width:18px;height:18px;fill:none;stroke:#E76F51;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}',
     '.sp-issue-num{font-size:13px;font-weight:600;color:#26374b;white-space:nowrap;}',
     '.sp-issue-time{font-size:11px;color:#748299;margin-top:5px;white-space:nowrap;}',
     '.sp-teams{min-height:56px;border-left:1px solid #e3ebf0;border-right:1px solid #e3ebf0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 8px;}',
@@ -771,12 +847,12 @@ function _buildShareCard(cardEl) {
     '.sp-teams span{font-size:11px;line-height:1.5;color:#56677c;font-weight:500;}',
     '.sp-handicap{margin-top:2px;font-size:10px;color:#4b5e74;font-weight:600;}',
     '.sp-bet{padding-left:16px;font-size:13px;line-height:1.6;font-weight:600;color:#142235;}',
-    '.sp-bet-label{white-space:nowrap;}.sp-bet-value{color:#0e918b;word-break:break-word;}',
+    '.sp-bet-label{white-space:nowrap;}.sp-bet-value{color:#E76F51;word-break:break-word;}',
     '.sp-empty-row{height:92px;display:flex;align-items:center;justify-content:center;color:#748299;font-size:13px;}',
     '.sp-footer-ball{position:absolute;left:-20px;bottom:-23px;width:112px;height:112px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:94px;opacity:.08;filter:grayscale(.1);transform:rotate(-16deg);}',
   ].join('');
 
-  var wrapper = document.createElement('div');
+  const wrapper = document.createElement('div');
   wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;width:440px;background:transparent;';
   wrapper.innerHTML =
     '<style>' +
@@ -833,59 +909,59 @@ function _buildShareCard(cardEl) {
 
 // ═══ 旧版 750px 分享卡片 DOM（保留兼容回退） ═══
 function _buildLegacyShareCard(cardEl) {
-  var name = '';
-  var nameEl = cardEl.querySelector('.plan-name');
+  let name = '';
+  const nameEl = cardEl.querySelector('.plan-name');
   if (nameEl) name = nameEl.textContent.trim();
 
-  var date = '';
-  var dateEl = cardEl.querySelector('.plan-pub-time');
+  let date = '';
+  const dateEl = cardEl.querySelector('.plan-pub-time');
   if (dateEl) {
     date = dateEl.textContent.trim();
-    var dm = date.match(/(\d{2}\/\d{2})/);
+    const dm = date.match(/(\d{2}\/\d{2})/);
     if (dm) date = dm[1];
   }
 
-  var amountCols = cardEl.querySelectorAll('.plan-amount-col');
-  var amountLabel = '',
+  const amountCols = cardEl.querySelectorAll('.plan-amount-col');
+  let amountLabel = '',
     amountValue = '';
-  var prizeLabel = '',
+  let prizeLabel = '',
     prizeValue = '';
-  var statusText = '未开奖';
+  let statusText = '未开奖';
 
   if (amountCols.length >= 1) {
-    var al = amountCols[0].querySelector('.plan-amount-label');
-    var av = amountCols[0].querySelector('.plan-amount-value');
+    const al = amountCols[0].querySelector('.plan-amount-label');
+    const av = amountCols[0].querySelector('.plan-amount-value');
     amountLabel = al ? al.textContent.trim() : '';
     amountValue = av ? av.textContent.trim().replace(/\s+/g, '') : '';
   }
   if (amountCols.length >= 2) {
-    var pl = amountCols[1].querySelector('.plan-amount-label');
-    var pv = amountCols[1].querySelector('.plan-amount-value');
+    const pl = amountCols[1].querySelector('.plan-amount-label');
+    const pv = amountCols[1].querySelector('.plan-amount-value');
     prizeLabel = pl ? pl.textContent.trim() : '';
     prizeValue = pv ? pv.textContent.trim().replace(/\s+/g, '') : '';
   }
   if (amountCols.length >= 3) {
-    var sv = amountCols[2].querySelector('.plan-amount-value');
+    const sv = amountCols[2].querySelector('.plan-amount-value');
     if (sv) statusText = sv.textContent.trim();
   }
 
   // my-plan 的 info 布局与 plans 不同（info-left / info-right）
-  var infoLefts = cardEl.querySelectorAll('.plan-info-left > div');
-  var infoRights = cardEl.querySelectorAll('.plan-info-right > div');
-  var playType = '',
+  const infoLefts = cardEl.querySelectorAll('.plan-info-left > div');
+  const infoRights = cardEl.querySelectorAll('.plan-info-right > div');
+  let playType = '',
     passType = '',
     betCount = '';
   if (infoLefts.length >= 3 && infoRights.length >= 3) {
-    var leftTexts = [];
+    const leftTexts = [];
     infoLefts.forEach(function (d) {
       leftTexts.push(d.textContent.trim());
     });
-    var rightTexts = [];
+    const rightTexts = [];
     infoRights.forEach(function (d) {
       rightTexts.push(d.textContent.trim());
     });
     // 匹配标签到值
-    for (var i = 0; i < leftTexts.length; i++) {
+    for (let i = 0; i < leftTexts.length; i++) {
       if (leftTexts[i].indexOf('玩法') >= 0 || leftTexts[i].indexOf('混合') >= 0) {
         playType = rightTexts[i] || rightTexts[0] || '混合投注';
       }
@@ -901,20 +977,20 @@ function _buildLegacyShareCard(cardEl) {
     if (!betCount && rightTexts[2]) betCount = rightTexts[2];
   }
 
-  var matchRowsEl = cardEl.querySelectorAll('.plan-match-table tbody tr');
-  var matchRows = '';
+  const matchRowsEl = cardEl.querySelectorAll('.plan-match-table tbody tr');
+  let matchRows = '';
   matchRowsEl.forEach(function (row) {
-    var cells = row.querySelectorAll('td');
+    const cells = row.querySelectorAll('td');
     if (cells.length < 3) return;
-    var numEl = cells[0].querySelector('.match-num-text');
-    var timeEl = cells[0].querySelector('.match-time-sub');
-    var num = numEl ? numEl.textContent.trim() : '';
-    var matchTime = timeEl ? timeEl.textContent.trim() : '';
-    var homeEl = cells[1].querySelector('.plan-team-home');
-    var awayEl = cells[1].querySelector('.plan-team-away');
-    var home = homeEl ? homeEl.textContent.trim() : '';
-    var away = awayEl ? awayEl.textContent.trim() : '';
-    var odds = cells[2].textContent.trim().replace(/\s+/g, ' ').substring(0, 48);
+    const numEl = cells[0].querySelector('.match-num-text');
+    const timeEl = cells[0].querySelector('.match-time-sub');
+    const num = numEl ? numEl.textContent.trim() : '';
+    const matchTime = timeEl ? timeEl.textContent.trim() : '';
+    const homeEl = cells[1].querySelector('.plan-team-home');
+    const awayEl = cells[1].querySelector('.plan-team-away');
+    const home = homeEl ? homeEl.textContent.trim() : '';
+    const away = awayEl ? awayEl.textContent.trim() : '';
+    const odds = cells[2].textContent.trim().replace(/\s+/g, ' ').substring(0, 48);
     matchRows +=
       '<div class="table-row">' +
       '<div class="issue"><div class="issue-num">' +
@@ -933,28 +1009,28 @@ function _buildLegacyShareCard(cardEl) {
       '</div>';
   });
 
-  var amtNum = amountValue,
+  let amtNum = amountValue,
     amtUnit = '分';
-  var amtMatch = amountValue.match(/^([\d.]+)(.*)/);
+  const amtMatch = amountValue.match(/^([\d.]+)(.*)/);
   if (amtMatch) {
     amtNum = amtMatch[1];
     amtUnit = amtMatch[2] || '分';
   }
 
-  var pNum = prizeValue,
+  let pNum = prizeValue,
     pUnit = '分';
-  var pMatch = prizeValue.match(/^([+\-]?[\d.]+)(.*)/);
+  const pMatch = prizeValue.match(/^([+\-]?[\d.]+)(.*)/);
   if (pMatch) {
     pNum = pMatch[1];
     pUnit = pMatch[2] || '分';
   }
 
-  var shareDate = String(date || '').replace(/\//g, '-');
-  var statusCls = 'status-pending';
+  const shareDate = String(date || '').replace(/\//g, '-');
+  let statusCls = 'status-pending';
   if (statusText.indexOf('未中奖') !== -1) statusCls = 'status-lost';
   else if (statusText.indexOf('已中奖') !== -1) statusCls = 'status-won';
 
-  var wrapper = document.createElement('div');
+  const wrapper = document.createElement('div');
 
   wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;width:750px;';
   wrapper.innerHTML =
@@ -966,18 +1042,18 @@ function _buildLegacyShareCard(cardEl) {
     '}' +
     '.main-card{background:#fff;border-radius:24px;padding:32px 28px 26px;box-shadow:0 4px 24px rgba(15,23,42,.06),0 1px 4px rgba(15,23,42,.04);position:relative;overflow:hidden;}' +
     '.main-card::after{content:"";position:absolute;right:-20px;top:50%;transform:translateY(-50%);width:200px;height:200px;pointer-events:none;opacity:.07;' +
-    "background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='none' stroke='%230d9488' stroke-width='2.5'/%3E%3Cpath d='M50 4 L61 22 L82 22 L66 35 L72 55 L50 43 L28 55 L34 35 L18 22 L39 22 Z' fill='none' stroke='%230d9488' stroke-width='1.8'/%3E%3Cpath d='M18 22 L28 55 M82 22 L72 55 M39 22 L50 43 L61 22 M34 35 L66 35 M50 4 L50 43 M18 22 L82 22 M28 55 L72 55' stroke='%230d9488' stroke-width='1.2' opacity='.6'/%3E%3C/svg%3E\");" +
+    "background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='none' stroke='%23E76F51' stroke-width='2.5'/%3E%3Cpath d='M50 4 L61 22 L82 22 L66 35 L72 55 L50 43 L28 55 L34 35 L18 22 L39 22 Z' fill='none' stroke='%23E76F51' stroke-width='1.8'/%3E%3Cpath d='M18 22 L28 55 M82 22 L72 55 M39 22 L50 43 L61 22 M34 35 L66 35 M50 4 L50 43 M18 22 L82 22 M28 55 L72 55' stroke='%23E76F51' stroke-width='1.2' opacity='.6'/%3E%3C/svg%3E\");" +
     'background-size:contain;background-repeat:no-repeat;}' +
     '.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}' +
     '.header-left{display:flex;align-items:center;gap:14px;}' +
     '.football-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;' +
-    'background:linear-gradient(135deg,#10b981 0%,#34d399 50%,#6ee7b7 100%);box-shadow:0 2px 10px rgba(16,185,129,.25);font-size:28px;color:#fff;}' +
+    'background:linear-gradient(135deg,#FF9F80 0%,#FF7F50 50%,#FFB29B 100%);box-shadow:0 2px 10px rgba(255,127,80,.28);font-size:28px;color:#fff;}' +
     '.scheme-title{font-size:30px;font-weight:800;color:#0f172a;letter-spacing:.5px;line-height:1.2;}' +
     '.scheme-date{font-size:24px;font-weight:600;color:#94a3b8;letter-spacing:.5px;}' +
     '.stat-panel{display:flex;padding:20px 0;border-top:1px solid #eef2f6;border-bottom:1px solid #eef2f6;margin-bottom:0;}' +
     '.stat-item{flex:1;text-align:center;padding:0 8px;}' +
     '.stat-label{font-size:22px;color:#94a3b8;font-weight:500;line-height:1.2;}' +
-    '.stat-value{margin-top:10px;font-size:44px;font-weight:800;color:#0d9488;letter-spacing:-.5px;line-height:1.1;}' +
+    '.stat-value{margin-top:10px;font-size:44px;font-weight:800;color:#E76F51;letter-spacing:-.5px;line-height:1.1;}' +
     '.stat-value span{font-size:22px;color:#94a3b8;font-weight:500;margin-left:2px;}' +
     '.stat-status{margin-top:10px;font-size:42px;font-weight:800;letter-spacing:-.5px;}' +
     '.stat-status.status-pending{color:#34D399;}' +
@@ -989,9 +1065,9 @@ function _buildLegacyShareCard(cardEl) {
     '}' +
     '.info-row:last-child{border-bottom:none;}' +
     '.info-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;' +
-    'background:linear-gradient(135deg,#ecfdf5,#d1fae5);color:#059669;font-size:20px;margin-right:14px;flex-shrink:0;}' +
+    'background:linear-gradient(135deg,#FFF0EA,#FFD9CC);color:#E76F51;font-size:20px;margin-right:14px;flex-shrink:0;}' +
     '.label{color:#64748b;font-size:24px;width:120px;flex-shrink:0;font-weight:500;}' +
-    '.value{color:#0d9488;font-size:26px;font-weight:700;flex:1;}' +
+    '.value{color:#E76F51;font-size:26px;font-weight:700;flex:1;}' +
     '.section-header{margin:28px 0 18px;display:flex;align-items:center;justify-content:center;gap:14px;}' +
     '.section-line{width:80px;height:1px;background:repeating-linear-gradient(90deg,#cbd5e1 0,#cbd5e1 4px,transparent 4px,transparent 8px);}' +
     '.section-text{font-size:26px;color:#475569;font-weight:700;letter-spacing:2px;}' +
@@ -1001,13 +1077,13 @@ function _buildLegacyShareCard(cardEl) {
     '.table-row:last-child{border-bottom:none;}' +
     '.issue,.vs,.bet{display:flex;align-items:center;min-width:0;}' +
     '.issue{flex-direction:column;gap:6px;padding:14px 8px 14px 0;}' +
-    '.issue-num{color:#334155;font-size:22px;font-weight:700;}' +
+    '.issue-num{color:#334155;font-size:22px;font-weight:400;}' +
     '.issue-time{color:#94a3b8;font-size:18px;font-weight:400;}' +
     '.vs{flex-direction:column;gap:6px;padding:14px 10px;}' +
-    '.vs-team{color:#1e293b;font-size:24px;font-weight:700;line-height:1.3;text-align:center;}' +
-    '.vs-mid{color:#94a3b8;font-size:18px;font-weight:600;letter-spacing:1px;}' +
+    '.vs-team{color:#1e293b;font-size:24px;font-weight:400;line-height:1.3;text-align:center;}' +
+    '.vs-mid{color:#94a3b8;font-size:18px;font-weight:400;letter-spacing:1px;}' +
     '.bet{padding:14px 8px 14px 0;justify-content:flex-end;}' +
-    '.bet strong{color:#0d9488;font-size:24px;font-weight:700;}' +
+    '.bet strong{color:#E76F51;font-size:24px;font-weight:400;}' +
     '</style>' +
     '<div class="share-card">' +
     '<div class="main-card">' +
@@ -1066,11 +1142,11 @@ function _buildLegacyShareCard(cardEl) {
 
 // ═══ 分享预览弹窗（通用） ═══
 function _showShareModal(planId, canvas, cardEl) {
-  var overlay = document.createElement('div');
+  const overlay = document.createElement('div');
   overlay.className = 'share-overlay active';
-  var imgSrc = canvas.toDataURL('image/png');
+  const imgSrc = canvas.toDataURL('image/png');
 
-  var infoLines = _extractPlanInfo(cardEl);
+  const infoLines = _extractPlanInfo(cardEl);
 
   overlay.innerHTML =
     '<div class="share-modal">' +
@@ -1093,7 +1169,7 @@ function _showShareModal(planId, canvas, cardEl) {
     '</div>';
   document.body.appendChild(overlay);
 
-  var close = function () {
+  const close = function () {
     overlay.classList.remove('active');
     setTimeout(function () {
       overlay.remove();
@@ -1108,7 +1184,7 @@ function _showShareModal(planId, canvas, cardEl) {
     navigator.clipboard
       .writeText(infoLines)
       .then(function () {
-        var btn = overlay.querySelector('.share-btn-copy');
+        const btn = overlay.querySelector('.share-btn-copy');
         btn.textContent = '\u2714 已复制';
         btn.classList.add('copied');
         setTimeout(function () {
@@ -1117,7 +1193,7 @@ function _showShareModal(planId, canvas, cardEl) {
         }, 2000);
       })
       .catch(function () {
-        var ta = document.createElement('textarea');
+        const ta = document.createElement('textarea');
         ta.value = infoLines;
         ta.style.position = 'fixed';
         ta.style.opacity = '0';
@@ -1125,7 +1201,7 @@ function _showShareModal(planId, canvas, cardEl) {
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        var btn = overlay.querySelector('.share-btn-copy');
+        const btn = overlay.querySelector('.share-btn-copy');
         btn.textContent = '\u2714 已复制';
         btn.classList.add('copied');
         setTimeout(function () {
@@ -1136,7 +1212,7 @@ function _showShareModal(planId, canvas, cardEl) {
   };
 
   overlay.querySelector('.share-btn-save').onclick = function () {
-    var link = document.createElement('a');
+    const link = document.createElement('a');
     link.download = 'plan-' + planId + '.png';
     link.href = canvas.toDataURL('image/png');
     document.body.appendChild(link);
@@ -1148,28 +1224,28 @@ function _showShareModal(planId, canvas, cardEl) {
 
 // ═══ 从方案卡片 DOM 提取文字信息 ═══
 function _extractPlanInfo(cardEl) {
-  var lines = [];
-  var nameEl = cardEl.querySelector('.plan-name');
+  const lines = [];
+  const nameEl = cardEl.querySelector('.plan-name');
   if (nameEl) lines.push(nameEl.textContent.trim());
   lines.push('');
 
-  var rows = cardEl.querySelectorAll('.plan-match-table tbody tr');
+  const rows = cardEl.querySelectorAll('.plan-match-table tbody tr');
   rows.forEach(function (row) {
-    var cells = row.querySelectorAll('td');
+    const cells = row.querySelectorAll('td');
     if (cells.length >= 3) {
-      var num = cells[0].textContent.trim().replace(/\s+/g, ' ');
-      var teams = cells[1].textContent.trim().replace(/\s+/g, ' ');
-      var odds = cells[2].textContent.trim().replace(/\s+/g, ' ');
+      const num = cells[0].textContent.trim().replace(/\s+/g, ' ');
+      const teams = cells[1].textContent.trim().replace(/\s+/g, ' ');
+      const odds = cells[2].textContent.trim().replace(/\s+/g, ' ');
       if (num || teams) lines.push((num || '') + '  ' + teams + '  ' + (odds || ''));
     }
   });
 
-  var amountCols = cardEl.querySelectorAll('.plan-amount-col');
+  const amountCols = cardEl.querySelectorAll('.plan-amount-col');
   if (amountCols.length >= 2) {
-    var amtLabel = amountCols[0].querySelector('.plan-amount-label');
-    var amtVal = amountCols[0].querySelector('.plan-amount-value');
-    var prizeLabel = amountCols[1].querySelector('.plan-amount-label');
-    var prizeVal = amountCols[1].querySelector('.plan-amount-value');
+    const amtLabel = amountCols[0].querySelector('.plan-amount-label');
+    const amtVal = amountCols[0].querySelector('.plan-amount-value');
+    const prizeLabel = amountCols[1].querySelector('.plan-amount-label');
+    const prizeVal = amountCols[1].querySelector('.plan-amount-value');
     lines.push('');
     if (amtLabel && amtVal)
       lines.push((amtLabel.textContent.trim() + ': ' + amtVal.textContent.trim()).replace(/\s+/g, ' '));
@@ -1182,7 +1258,7 @@ function _extractPlanInfo(cardEl) {
 
 // ═══ Toast 轻提示 ═══
 function _toast(msg, type) {
-  var el = document.getElementById('shareToast');
+  let el = document.getElementById('shareToast');
   if (!el) {
     el = document.createElement('div');
     el.id = 'shareToast';

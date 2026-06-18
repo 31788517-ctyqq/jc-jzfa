@@ -344,14 +344,14 @@ function computeAllScores(list) {
 // ═══════════════════════════════════════
 
 function normalizeFinalDirection(dir) {
-  var text = String(dir || '').trim();
+  const text = String(dir || '').trim();
   if (!text || /观望|避开|数据不足/.test(text)) return 'watch';
   return text;
 }
 
 function resolveExpectedValue(advice) {
   if (!advice || !advice.ev) return null;
-  var dir = String(advice.dir || '');
+  const dir = String(advice.dir || '');
   if (dir.indexOf('主胜') === 0) return advice.ev.evHome;
   if (dir.indexOf('客胜') === 0) return advice.ev.evAway;
   if (dir.indexOf('平') === 0) return advice.ev.evDraw;
@@ -359,21 +359,21 @@ function resolveExpectedValue(advice) {
 }
 
 function buildDecisionNarrative(advice, decisionLevel, riskLevel, degradeReasons) {
-  var dirText = normalizeFinalDirection(advice && advice.dir) === 'watch' ? '观望' : advice.dir;
-  var riskText = riskLevel === 'red' ? '高' : riskLevel === 'yellow' ? '中' : '低';
-  var reason = (advice && advice.desc) || '基于 PK 综合评分输出';
-  var text = 'PK裁判：' + dirText + '，评级' + decisionLevel + '，风险' + riskText + '。理由：' + reason;
+  const dirText = normalizeFinalDirection(advice && advice.dir) === 'watch' ? '观望' : advice.dir;
+  const riskText = riskLevel === 'red' ? '高' : riskLevel === 'yellow' ? '中' : '低';
+  const reason = (advice && advice.desc) || '基于 PK 综合评分输出';
+  let text = 'PK裁判：' + dirText + '，评级' + decisionLevel + '，风险' + riskText + '。理由：' + reason;
   if (Array.isArray(degradeReasons) && degradeReasons.length > 0) text += '；降级原因：' + degradeReasons.join('、');
   return text;
 }
 
 function applyStandardDecisionFields(scored, advice) {
-  var item = (scored && scored.item) || {};
-  var riskTags = [];
-  var degradeReasons = [];
-  var expectedValue = resolveExpectedValue(advice);
-  var stars = Math.max(0, Math.min(5, parseInt((advice && advice.stars) || 0, 10) || 0));
-  var finalDirection = normalizeFinalDirection(advice && advice.dir);
+  const item = (scored && scored.item) || {};
+  const riskTags = [];
+  const degradeReasons = [];
+  const expectedValue = resolveExpectedValue(advice);
+  const stars = Math.max(0, Math.min(5, parseInt((advice && advice.stars) || 0, 10) || 0));
+  const finalDirection = normalizeFinalDirection(advice && advice.dir);
 
   if (item.fusionConsensus === 'meltdown') {
     riskTags.push('模型熔断');
@@ -402,11 +402,11 @@ function applyStandardDecisionFields(scored, advice) {
     riskTags.push('建议观望');
   }
 
-  var riskLevel = 'green';
+  let riskLevel = 'green';
   if (item.fusionConsensus === 'meltdown' || finalDirection === 'watch' || riskTags.length >= 3) riskLevel = 'red';
   else if (riskTags.length > 0 || stars <= 2) riskLevel = 'yellow';
 
-  var decisionLevel = '观望';
+  let decisionLevel = '观望';
   if (finalDirection !== 'watch') {
     if (stars >= 5) decisionLevel = '主推';
     else if (stars >= 3) decisionLevel = '可做';

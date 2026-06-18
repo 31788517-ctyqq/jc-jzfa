@@ -65,7 +65,10 @@ if (!fs.existsSync(ODDS_DIR)) fs.mkdirSync(ODDS_DIR, { recursive: true });
 
 // ═══ 工具函数 ═══
 const { fmtLocal, getCurrentPeriod, atomicWrite, notifyReload } = require('./sync/utils');
-if (!logger.info) logger.info = function (msg) { logger.log('info', msg); };
+if (!logger.info)
+  logger.info = function (msg) {
+    logger.log('info', msg);
+  };
 
 function log(msg) {
   logger.info(msg);
@@ -166,13 +169,20 @@ async function sync500Odds(dateStr) {
             try {
               adp.execRun(
                 'INSERT OR REPLACE INTO odds_history_v2 (match_num, date, fetch_date, fetch_time, play_type, odds_json, home_name, visit_name, handicap) VALUES (?,?,?,?,?,?,?,?,?)',
-                num, dateStr, dateStr, fetchTime, pt,
+                num,
+                dateStr,
+                dateStr,
+                fetchTime,
+                pt,
                 JSON.stringify(entry[pt]),
-                entry.homeName || null, entry.visitName || null,
-                entry.handicap != null ? entry.handicap : null
+                entry.homeName || null,
+                entry.visitName || null,
+                entry.handicap != null ? entry.handicap : null,
               );
               dbCount++;
-            } catch (e2) { /* skip single insert failure */ }
+            } catch (e2) {
+              /* skip single insert failure */
+            }
           });
         });
         if (dbCount > 0) log('[500odds] SQLite 双写: ' + dbCount + ' 条→odds_history_v2');
@@ -810,6 +820,22 @@ async function syncLiveScores() {
       };
     });
 
+    // ★ V16: 写入 live_scores.json 前过滤半场误判（纵深防御，配合 API 层保护）
+    matches.forEach((m) => {
+      const durNum = parseInt(m.duration || '0', 10);
+      const scNorm = String(m.score || '').replace(/[:：]/g, '-');
+      const hfNorm = String(m.halfScore || '').replace(/[:：]/g, '-');
+      // 完赛场次 + duration 不完整 + 比分=半场比分(非0:0) → 疑似半场误判，清除比分
+      if (m.matchStatus >= 2 && durNum < 60 && scNorm && hfNorm && scNorm === hfNorm && scNorm !== '0-0') {
+        logger.warn(
+          '[guard] 半场误判已拦截(live_scores): ' + (m.num || '') + ' ' + scNorm + ' (dur=' + (m.duration || '') + ')',
+        );
+        m.score = '';
+        m.homeScore = -1;
+        m.visitScore = -1;
+      }
+    });
+
     // 写入 live_scores.json
     atomicWrite(LIVE_FILE, { date: today, matches, updated: new Date().toISOString() });
 
@@ -857,7 +883,7 @@ function syncLiveToData(liveMatches) {
       }
       // ★ P0 Layer 1: 统一摄入门禁（替代分散过滤规则）
       const guard = require('./core/ingestion-guard');
-      var v = guard.validateLiveMatch(old, lm);
+      const v = guard.validateLiveMatch(old, lm);
       if (v.fields === null) {
         // 门禁裁定：跳过覆盖（保留旧数据）
         if (v.flags && v.flags.suspectHalftime) {
@@ -866,18 +892,41 @@ function syncLiveToData(liveMatches) {
           );
         }
       } else {
-        var mergedFields = v.fields;
-        if (
-          old.matchStatus !== mergedFields.matchStatus ||
-          old.score !== mergedFields.score ||
-          old.duration !== mergedFields.duration ||
-          old.yellow !== mergedFields.yellow ||
-          old.red !== mergedFields.red ||
-          old.halfScore !== mergedFields.halfScore ||
-          old.recommNum !== mergedFields.recommNum
-        ) {
+        const mergedFields = v.fields;
+        let hasChange = false;
+        // ★ V16: 逐字段比对 + 半场比分保护（与 syncToDataJson 一致）
+        Object.keys(mergedFields).forEach(function (field) {
+          const val = mergedFields[field];
+          if (val !== undefined && val !== null && String(old[field] || '') !== String(val || '')) {
+            // 半场比分保护：新比分=旧半场比分 且 旧已有不同比分 → 跳过
+            if (
+              field === 'score' &&
+              old.halfScore &&
+              String(val).replace(/[:：]/g, '-') === String(old.halfScore).replace(/[:：]/g, '-') &&
+              old.score &&
+              String(old.score).replace(/[:：]/g, '-') !== String(val).replace(/[:：]/g, '-')
+            ) {
+              if (v.flags && v.flags.suspectHalftime) {
+                logger.warn(
+                  '[guard] 半场比分已拦截(midou): ' +
+                    (lm.num || '') +
+                    ' ' +
+                    (lm.homeName || '') +
+                    ' ' +
+                    val +
+                    ' (half=' +
+                    old.halfScore +
+                    ')',
+                );
+              }
+              return; // skip this field
+            }
+            old[field] = val;
+            hasChange = true;
+          }
+        });
+        if (hasChange) {
           updated++;
-          data.m[key] = Object.assign({}, old, mergedFields);
           if (v.flags && v.flags.suspectHalftime) {
             logger.warn(
               '[guard] 半场误判已修正: ' + (lm.num || '') + ' ' + (lm.homeName || '') + ' vs ' + (lm.visitName || ''),
@@ -1095,8 +1144,8 @@ async function backfillResults(dateStr) {
           if (old && old.matchStatus < 2 && (m.matchStatus || 0) >= 2) {
             old.matchStatus = m.matchStatus;
             // ★ V12: 半场比分保护 — midou API 可能返回半场比分，不应覆盖终场比分
-            var newScore = m.score || '';
-            var newHalf = m.halfScore || '';
+            const newScore = m.score || '';
+            const newHalf = m.halfScore || '';
             if (newScore && old.halfScore && newScore === old.halfScore && old.score && old.score !== newScore) {
               // 新比分=旧半场比分 → 半场误判，保留终场比分
               // 但仍更新 halfScore 和 duration
@@ -1260,13 +1309,18 @@ async function backfillResults(dateStr) {
       const adp = database.getAdapter();
       if (adp) {
         Object.keys(data.m).forEach(function (rk) {
-          var m = data.m[rk];
+          const m = data.m[rk];
           if (!m || !m.matchId || !m.date || m.date.slice(0, 10) !== dateStr) return;
           if (m.matchStatus < 2) return;
           if (m.score || m.halfScore || m.duration || m.yellow || m.red) {
             adp.execRun(
               `UPDATE matches SET score=?, halfScore=?, duration=?, yellow=?, red=?, matchStatus=2 WHERE matchId=?`,
-              m.score || '', m.halfScore || '', m.duration || '', m.yellow || '', m.red || '', m.matchId,
+              m.score || '',
+              m.halfScore || '',
+              m.duration || '',
+              m.yellow || '',
+              m.red || '',
+              m.matchId,
             );
             scoreSyncCount++;
           }
@@ -1282,13 +1336,23 @@ async function backfillResults(dateStr) {
 
     // ★ V12: 多源赛果校正 — sporttery + 500.com 结果页交叉对账
     try {
-      var corrector = require('./core/score-corrector');
+      const corrector = require('./core/score-corrector');
       var cr = await corrector.correctDate(dateStr, data.m);
       if (cr && cr.corrected > 0) {
-        log('[backfill] 多源校正: ' + cr.corrected + ' 场 (sporttery:' + (cr.sourceCounts.sporttery||0) + ' 500res:' + (cr.sourceCounts['500results']||0) + ')');
+        log(
+          '[backfill] 多源校正: ' +
+            cr.corrected +
+            ' 场 (sporttery:' +
+            (cr.sourceCounts.sporttery || 0) +
+            ' 500res:' +
+            (cr.sourceCounts['500results'] || 0) +
+            ')',
+        );
         corrector.applyCorrections(cr);
         // 重载 data.json 以同步 corrector 的修改
-        try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch(e) {}
+        try {
+          data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+        } catch (e) {}
       }
     } catch (e) {
       log('[backfill] 多源校正异常(不阻断): ' + e.message);
@@ -1297,7 +1361,9 @@ async function backfillResults(dateStr) {
     if (updated > 0 || (cr && cr.corrected > 0)) {
       atomicWrite(DATA_FILE, data);
       notifyReload();
-      log('[backfill] 完成, 更新了 ' + updated + ' 场比赛' + (cr && cr.corrected ? ', 校正' + cr.corrected + '场' : ''));
+      log(
+        '[backfill] 完成, 更新了 ' + updated + ' 场比赛' + (cr && cr.corrected ? ', 校正' + cr.corrected + '场' : ''),
+      );
     } else {
       log('[backfill] 无新增命中');
     }
@@ -1565,14 +1631,14 @@ async function refreshTodayAI(options) {
       const mid = m.matchId;
 
       // P1-2: 增量更新 — 6小时内有效缓存直接跳过
-      var cachedEntry = null;
+      let cachedEntry = null;
       try {
-        var rawCache = fs.readFileSync(cacheFile, 'utf8');
-        var cacheObj = JSON.parse(rawCache);
+        const rawCache = fs.readFileSync(cacheFile, 'utf8');
+        const cacheObj = JSON.parse(rawCache);
         cachedEntry = cacheObj[mid];
       } catch (e) {}
       if (cachedEntry && cachedEntry.updatedAt) {
-        var cacheAge = Date.now() - new Date(cachedEntry.updatedAt).getTime();
+        const cacheAge = Date.now() - new Date(cachedEntry.updatedAt).getTime();
         if (cacheAge < 6 * 3600 * 1000 && cachedEntry.merged) {
           log('[ai_refresh] ' + mid + ' 6h内有效缓存，跳过');
           done++;
@@ -1581,8 +1647,8 @@ async function refreshTodayAI(options) {
       }
 
       // P1-1: 按推荐数分级 A/B/C
-      var recNum = Number(m.recommNum || 0);
-      var level = recNum >= 100 ? 'A' : recNum >= 30 ? 'B' : 'C';
+      const recNum = Number(m.recommNum || 0);
+      const level = recNum >= 100 ? 'A' : recNum >= 30 ? 'B' : 'C';
       log('[ai_refresh] ' + mid + ' 级别=' + level + ' (推荐数=' + recNum + ')');
 
       const pack = matchDataPack.getMatchDataPack({ match: m, date: targetDate }) || null;
@@ -1601,9 +1667,9 @@ async function refreshTodayAI(options) {
       let hasAny = false;
 
       // P2-1: A级双模型+C重试, B级单模型, C级仅豆包
-      var aiOpts = { maxRetries: 1 }; // P2-2: 1次重试
-      var dsPromise = null;
-      var dbPromise = null;
+      const aiOpts = { maxRetries: 1 }; // P2-2: 1次重试
+      let dsPromise = null;
+      let dbPromise = null;
 
       if (level === 'A' || level === 'B') {
         dsPromise = deepseek.generateAnalysis(matchInfo, aiOpts).catch(function (e) {
@@ -1616,15 +1682,15 @@ async function refreshTodayAI(options) {
         return null;
       });
 
-      var promises = [dsPromise, dbPromise].filter(Boolean);
-      var results = await Promise.all(promises);
+      const promises = [dsPromise, dbPromise].filter(Boolean);
+      const results = await Promise.all(promises);
 
       // 处理 DS 结果
       if (dsPromise) {
-        var dsIdx = 0;
-        var dsR = results[dsIdx];
+        const dsIdx = 0;
+        const dsR = results[dsIdx];
         if (dsR) {
-          var dsC = dsR.content || dsR;
+          const dsC = dsR.content || dsR;
           if (dsC) {
             saveAICache(mid, 'deepseek', dsC, dsC.confidence || 70);
             hasAny = true;
@@ -1632,10 +1698,10 @@ async function refreshTodayAI(options) {
         }
       }
       // 处理 DB 结果
-      var dbIdx = dsPromise ? 1 : 0;
-      var dbR = results[dbIdx];
+      const dbIdx = dsPromise ? 1 : 0;
+      const dbR = results[dbIdx];
       if (dbR) {
-        var dbC = dbR.content || dbR;
+        const dbC = dbR.content || dbR;
         if (dbC) {
           saveAICache(mid, 'doubao', dbC, dbC.confidence || 70);
           hasAny = true;
@@ -1827,7 +1893,7 @@ async function incrementalSyncToUnified(adp, dateStr) {
        ORDER BY date, matchNum`,
       dateStr,
     );
-    if (!rows || rows.length === 0) return { added: 0, skipped: 0 };
+    if (!rows || rows.length === 0) return { added: 0, updated: 0, skipped: 0 };
 
     const mapDirection = (cn) => {
       if (!cn) return null;
@@ -1867,6 +1933,7 @@ async function incrementalSyncToUnified(adp, dateStr) {
     };
 
     let added = 0,
+      updated = 0,
       skipped = 0;
     for (const row of rows) {
       const mid = (row.matchId || '').replace(/^m_/, '');
@@ -1901,7 +1968,24 @@ async function incrementalSyncToUnified(adp, dateStr) {
           );
           added++;
         } else {
-          skipped++;
+          adp.execRun(
+            `UPDATE unified_predictions
+             SET match_num = ?, match_date = ?, match_id = ?, direction = ?, direction_confidence = ?,
+                 over_under = ?, predicted_score = ?, raw_output_json = ?, consensus_tag = ?, computed_at = ?
+             WHERE prediction_id = ?`,
+            num,
+            date,
+            mid,
+            aiDir,
+            row.ai_confidence || 50,
+            mapOverUnder(row.ai_overunder),
+            row.ai_score || '',
+            row.ai_content || null,
+            null,
+            row.created_at || date,
+            predId,
+          );
+          updated++;
         }
       }
 
@@ -1940,7 +2024,24 @@ async function incrementalSyncToUnified(adp, dateStr) {
             );
             added++;
           } else {
-            skipped++;
+            adp.execRun(
+              `UPDATE unified_predictions
+               SET match_num = ?, match_date = ?, match_id = ?, direction = ?, direction_confidence = ?,
+                   over_under = ?, predicted_score = ?, raw_output_json = ?, consensus_tag = ?, computed_at = ?
+               WHERE prediction_id = ?`,
+              num,
+              date,
+              mid,
+              gsDir,
+              row.gs_top_percent || 50,
+              null,
+              null,
+              row.gs_scores_json || null,
+              row.pk_fusion_consensus || null,
+              row.created_at || date,
+              predId,
+            );
+            updated++;
           }
         }
       }
@@ -1984,15 +2085,45 @@ async function incrementalSyncToUnified(adp, dateStr) {
           );
           added++;
         } else {
-          skipped++;
+          adp.execRun(
+            `UPDATE unified_predictions
+             SET match_num = ?, match_date = ?, match_id = ?, direction = ?, direction_confidence = ?,
+                 over_under = ?, predicted_score = ?, raw_output_json = ?, consensus_tag = ?, computed_at = ?
+             WHERE prediction_id = ?`,
+            num,
+            date,
+            mid,
+            pkDir,
+            row.pk_composite_score || 50,
+            mapOverUnder(row.pk_goal_direction),
+            null,
+            JSON.stringify({
+              composite: row.pk_composite_score,
+              power: row.pk_power_score,
+              goal: row.pk_goal_score,
+              heat: row.pk_heat_score,
+              stability: row.pk_stability_score,
+              hcp: row.pk_hcp_direction,
+              value: row.pk_value_score,
+              ev_home: row.pk_ev_home,
+              ev_draw: row.pk_ev_draw,
+              ev_away: row.pk_ev_away,
+            }),
+            row.pk_fusion_consensus || null,
+            row.created_at || date,
+            predId,
+          );
+          updated++;
         }
       }
     }
-    if (added > 0) log('[sync-unified] 写入 ' + added + ' 条 (跳过 ' + skipped + ')');
-    return { added, skipped };
+    if (added > 0 || updated > 0 || skipped > 0) {
+      log('[sync-unified] 新增 ' + added + ' 条, 更新 ' + updated + ' 条 (跳过 ' + skipped + ')');
+    }
+    return { added, updated, skipped };
   } catch (e) {
     log('[sync-unified] 异常: ' + e.message);
-    return { added: 0, skipped: 0 };
+    return { added: 0, updated: 0, skipped: 0 };
   }
 }
 
@@ -2008,7 +2139,9 @@ async function finalCheck(dateStr) {
     const adp = database.getAdapter();
     if (adp) {
       const syncRes = await incrementalSyncToUnified(adp, dateStr);
-      if (syncRes.added > 0) log('[final] unified_predictions 增量同步: +' + syncRes.added + ' 条');
+      if (syncRes.added > 0 || syncRes.updated > 0) {
+        log('[final] unified_predictions 同步: 新增 ' + syncRes.added + ' 条, 更新 ' + syncRes.updated + ' 条');
+      }
     }
   } catch (e) {
     log('[final] unified_predictions 同步跳过: ' + e.message);
@@ -2230,19 +2363,19 @@ function autoInferStatus(dateStr) {
       if (!m || m.matchStatus >= 2) return; // 已结束，跳过
 
       // ★ P4: 跨日比赛推断 — 不仅匹配 date===dateStr，也匹配开赛时间在今天的跨日比赛
-      var matchDateStr = m.date ? m.date.slice(0, 10) : '';
-      var isTodayMatch = matchDateStr === dateStr;
+      const matchDateStr = m.date ? m.date.slice(0, 10) : '';
+      let isTodayMatch = matchDateStr === dateStr;
 
       // 检查开赛时间是否在今天（处理 date=昨天, startTime=今天的跨日比赛）
       if (!isTodayMatch && m.startTime) {
         try {
-          var raw2 = m.startTime.replace(/\//g, '-');
-          var clean2 = raw2.replace(/\s+/g, '');
-          var kickoffDt = new Date(
+          const raw2 = m.startTime.replace(/\//g, '-');
+          const clean2 = raw2.replace(/\s+/g, '');
+          const kickoffDt = new Date(
             year + '-' + clean2.slice(0, 2) + '-' + clean2.slice(3, 5) + 'T' + clean2.slice(5, 10) + ':00+08:00',
           );
           if (!isNaN(kickoffDt.getTime())) {
-            var kickoffDateStr =
+            const kickoffDateStr =
               kickoffDt.getFullYear() +
               '-' +
               String(kickoffDt.getMonth() + 1).padStart(2, '0') +
@@ -2255,13 +2388,13 @@ function autoInferStatus(dateStr) {
       if (!isTodayMatch) return;
 
       // ★ P4: 先检测比分（优先级高于时间推演）— 有比分=比赛已结束
-      var hasValidScore = m.score && /\d+[:\-]\d+/.test(String(m.score.trim()));
+      const hasValidScore = m.score && /\d+[:\-]\d+/.test(String(m.score.trim()));
       if (hasValidScore) {
         // ★ P4-C: 过滤疑似日期字段污染的比分（如 "6-15" → 实际是 06-15 日期）
-        var scoreParts = String(m.score.trim()).split(/[:\-]/);
-        var s1 = parseInt(scoreParts[0]) || 0;
-        var s2 = parseInt(scoreParts[1]) || 0;
-        var isSuspiciousDate = s1 >= 1 && s1 <= 12 && s2 >= 1 && s2 <= 31 && s1 + s2 > 12;
+        const scoreParts = String(m.score.trim()).split(/[:\-]/);
+        const s1 = parseInt(scoreParts[0]) || 0;
+        const s2 = parseInt(scoreParts[1]) || 0;
+        const isSuspiciousDate = s1 >= 1 && s1 <= 12 && s2 >= 1 && s2 <= 31 && s1 + s2 > 12;
         if (!isSuspiciousDate) {
           m.matchStatus = 2;
           fixed++;
@@ -2501,7 +2634,7 @@ async function start() {
   } catch (e) {}
 
   // ★ C: 启动时检查今日赔率文件，缺失则提前抓取（避免 noon 前无赔率可用）
-  var oddsFile = path.join(ODDS_DIR, currentDate + '.json');
+  const oddsFile = path.join(ODDS_DIR, currentDate + '.json');
   if (!fs.existsSync(oddsFile) || (fs.existsSync(oddsFile) && fs.statSync(oddsFile).size < 100)) {
     log('[init] 今日赔率文件缺失/过小，提前触达 500.com 赔率抓取...');
     sync500Odds(currentDate).catch(function (e) {
@@ -2538,13 +2671,13 @@ async function start() {
 
       // ★ 修复: 跨日比赛回查 — 竞彩编号归属昨日但实际今日开赛的比赛
       // 彩票编号如"周日009"在500.com归类于归属日（昨天），不抓昨天页面则比分永久丢失
-      var yesterday = new Date();
+      const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
-      var yesterdayStr = fmtLocal(yesterday);
+      const yesterdayStr = fmtLocal(yesterday);
       try {
-        var rawData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-        var hasYesterdayMatches = Object.keys(rawData.m || {}).some(function (k) {
-          var m = rawData.m[k];
+        const rawData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+        const hasYesterdayMatches = Object.keys(rawData.m || {}).some(function (k) {
+          const m = rawData.m[k];
           return m && (m.date || '').slice(0, 10) === yesterdayStr;
         });
         if (hasYesterdayMatches) {
@@ -2569,14 +2702,16 @@ async function start() {
 
       // ★ V12: 推荐数据停滞检测
       try {
-        var alertMon = require('./core/alert-monitor');
-        var dataJson = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-        var recsPerMatch = {};
+        const alertMon = require('./core/alert-monitor');
+        const dataJson = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+        const recsPerMatch = {};
         Object.keys(dataJson.m || {}).forEach(function (k) {
-          var m = dataJson.m[k];
+          const m = dataJson.m[k];
           if (m && (m.date || '').slice(0, 10) === currentDate) {
-            var raw = (dataJson.r || {})['m_' + m.matchId] || [];
-            recsPerMatch[m.matchId] = raw.reduce(function (s, r) { return s + (r.num || 0); }, 0);
+            const raw = (dataJson.r || {})['m_' + m.matchId] || [];
+            recsPerMatch[m.matchId] = raw.reduce(function (s, r) {
+              return s + (r.num || 0);
+            }, 0);
           }
         });
         alertMon.checkRecSyncStagnant(currentDate, recsPerMatch);
@@ -2608,27 +2743,27 @@ async function start() {
   }
 
   // ═══ 方案自动刷新（每30分钟，至锁定时间） ═══
-  var _planRefreshTimer = null;
-  var _planLocked = false;
-  var _planLockTime = 0;
-  var _planEarliestKickoff = 0;
+  let _planRefreshTimer = null;
+  let _planLocked = false;
+  let _planLockTime = 0;
+  let _planEarliestKickoff = 0;
 
   function computeLockTime(dateStr) {
     try {
-      var data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-      var mMap = data.m || {};
-      var year = new Date().getFullYear();
-      var earliestUnstarted = Infinity;
+      const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+      const mMap = data.m || {};
+      const year = new Date().getFullYear();
+      let earliestUnstarted = Infinity;
 
       Object.keys(mMap).forEach(function (k) {
-        var m = mMap[k];
+        const m = mMap[k];
         if (!m || !m.date || m.date.slice(0, 10) !== dateStr) return;
         if (m.matchStatus >= 1) return; // 已开赛或已结束，跳过
         if (!m.startTime) return;
         try {
-          var raw = m.startTime.replace(/\//g, '-');
-          var clean = raw.replace(/\s+/g, '');
-          var dt = new Date(
+          const raw = m.startTime.replace(/\//g, '-');
+          const clean = raw.replace(/\s+/g, '');
+          const dt = new Date(
             year + '-' + clean.slice(0, 2) + '-' + clean.slice(3, 5) + 'T' + clean.slice(5, 10) + ':00+08:00',
           );
           if (!isNaN(dt.getTime()) && dt.getTime() < earliestUnstarted) {
@@ -2641,7 +2776,7 @@ async function start() {
         return { lockTime: Date.now(), earliestKickoff: 0, locked: true, reason: 'all_started' };
       }
 
-      var lockTime = earliestUnstarted - 20 * 60 * 1000; // 首场开赛前20分钟
+      const lockTime = earliestUnstarted - 20 * 60 * 1000; // 首场开赛前20分钟
       if (lockTime <= Date.now()) {
         return { lockTime: Date.now(), earliestKickoff: earliestUnstarted, locked: true, reason: 'past_lock' };
       }
@@ -2656,7 +2791,7 @@ async function start() {
     log('[plan-refresh] 开始刷新方案缓存...');
 
     // 计算锁定时间
-    var lockInfo = computeLockTime(currentDate);
+    const lockInfo = computeLockTime(currentDate);
     _planLockTime = lockInfo.lockTime;
     _planEarliestKickoff = lockInfo.earliestKickoff;
 
@@ -2666,27 +2801,27 @@ async function start() {
         log('[plan-refresh] 方案已锁定 (reason=' + lockInfo.reason + ')，保存快照');
         // 锁定时刻：保存快照
         try {
-          var PG = require('./core/plan-generator');
-          var data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-          var mMap = data.m || {};
-          var rMap = data.r || {};
-          var mList = [];
+          const PG = require('./core/plan-generator');
+          const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+          const mMap = data.m || {};
+          const rMap = data.r || {};
+          const mList = [];
           Object.keys(mMap).forEach(function (k) {
-            var m = mMap[k];
+            const m = mMap[k];
             if (m && (m.date || '').slice(0, 10) === currentDate) mList.push(m);
           });
-          var matchDataMap = {};
+          const matchDataMap = {};
           mList.forEach(function (mm) {
-            var raw = rMap['m_' + mm.matchId] || rMap[String(mm.matchId)] || [];
-            var recs = (raw || []).map(function (x) {
-              var r = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
+            const raw = rMap['m_' + mm.matchId] || rMap[String(mm.matchId)] || [];
+            const recs = (raw || []).map(function (x) {
+              const r = x.result !== undefined ? x.result : x.rs !== undefined ? x.rs : null;
               return { type: x.t || x.type, num: x.n || x.num, result: r === 0 || r === 1 ? r : null };
             });
-            var oddsEntry = getOddsHistory(currentDate);
-            var num = mm.num || '';
-            var oddsObj = null;
+            const oddsEntry = getOddsHistory(currentDate);
+            const num = mm.num || '';
+            let oddsObj = null;
             if (oddsEntry && oddsEntry[num]) {
-              var od = oddsEntry[num];
+              const od = oddsEntry[num];
               oddsObj = {
                 spf: od.spf || null,
                 rqspf: od.rqspf || null,
@@ -2697,11 +2832,13 @@ async function start() {
             }
             matchDataMap[mm.matchId] = { match: mm, recs: recs, odds: oddsObj };
           });
-          var plans = PG.generateExpertPlans(mList, matchDataMap, currentDate);
+          const plans = PG.generateExpertPlans(mList, matchDataMap, currentDate);
           PG.savePlanSnapshot(currentDate, plans, new Date(_planEarliestKickoff).toISOString());
           log('[plan-refresh] 方案快照已保存: ' + plans.length + ' 个方案');
           // ★ V12: 方案为空告警
-          try { require('./core/alert-monitor').checkEmptyPlans(currentDate, plans.length); } catch (e) {}
+          try {
+            require('./core/alert-monitor').checkEmptyPlans(currentDate, plans.length);
+          } catch (e) {}
         } catch (e2) {
           log('[plan-refresh] 快照保存失败: ' + e2.message);
         }
@@ -2710,7 +2847,7 @@ async function start() {
         log('[plan-refresh] 方案已锁定 (全部已开赛)');
       }
     } else {
-      var minUntilLock = Math.round((_planLockTime - Date.now()) / 60000);
+      const minUntilLock = Math.round((_planLockTime - Date.now()) / 60000);
       log('[plan-refresh] 缓存已刷新，距锁定还有 ' + minUntilLock + ' 分钟');
     }
 
@@ -2729,15 +2866,15 @@ async function start() {
 
   function schedulePlanAutoRefresh() {
     clearPlanRefreshTimer();
-    var now = Date.now();
-    var nowDate = fmtLocal(new Date());
+    const now = Date.now();
+    const nowDate = fmtLocal(new Date());
 
     // 当前不是"今天"，则等明天16:30
     if (nowDate !== currentDate) {
-      var next1630 = new Date();
+      const next1630 = new Date();
       next1630.setHours(16, 30, 0, 0);
       if (next1630.getTime() <= now) next1630.setDate(next1630.getDate() + 1);
-      var delay = next1630.getTime() - now;
+      const delay = next1630.getTime() - now;
       log('[plan-refresh] 非当日，下次方案刷新在 ' + Math.round(delay / 3600000) + ' 小时后');
       _planRefreshTimer = setTimeout(function () {
         startPlanAutoRefresh();
@@ -2749,12 +2886,12 @@ async function start() {
     if (_planLocked) return;
 
     // 如果在16:30之前，等到16:30
-    var h = new Date().getHours();
-    var m = new Date().getMinutes();
+    const h = new Date().getHours();
+    const m = new Date().getMinutes();
     if (h < 16 || (h === 16 && m < 30)) {
-      var to1630 = new Date();
+      const to1630 = new Date();
       to1630.setHours(16, 30, 0, 0);
-      var d1630 = to1630.getTime() - now;
+      const d1630 = to1630.getTime() - now;
       log('[plan-refresh] 等待首次刷新(16:30)，' + Math.round(d1630 / 60000) + ' 分钟后');
       _planRefreshTimer = setTimeout(function () {
         startPlanAutoRefresh();
@@ -2763,7 +2900,7 @@ async function start() {
     }
 
     // 计算锁定时间
-    var lockInfo = computeLockTime(currentDate);
+    const lockInfo = computeLockTime(currentDate);
     _planLockTime = lockInfo.lockTime;
     _planEarliestKickoff = lockInfo.earliestKickoff;
     _planLocked = lockInfo.locked;
@@ -2778,7 +2915,7 @@ async function start() {
     refreshPlanCache();
 
     // 30分钟后再次刷新（如果未锁定）
-    var nextMs = now + 30 * 60 * 1000;
+    let nextMs = now + 30 * 60 * 1000;
     if (nextMs >= _planLockTime) {
       // 下次刷新会在锁定时间之后 → 调整为锁定时间
       nextMs = _planLockTime;
@@ -2917,27 +3054,27 @@ async function start() {
 
   // ★ P1 Layer 2: 多源赛果核实 — 每日定时触发，缓存到 verified_results.json
   async function verifyYesterdayResults() {
-    var yd = fmtLocal(new Date(Date.now() - 86400000));
+    const yd = fmtLocal(new Date(Date.now() - 86400000));
     log('[verifier] 开始核实昨天 ' + yd + ' 赛果...');
     try {
-      var verifier = require('./core/result-verifier');
-      var dataJson = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-      var spSources = verifier.extractSportterySource(yd);
-      var live500Sources = verifier.extractLive500Source(yd);
-      var vr = verifier.verifyDate(yd, {
+      const verifier = require('./core/result-verifier');
+      const dataJson = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+      const spSources = verifier.extractSportterySource(yd);
+      const live500Sources = verifier.extractLive500Source(yd);
+      const vr = verifier.verifyDate(yd, {
         midouDataJson: dataJson,
         extraSources: [].concat(spSources || [], live500Sources || []),
       });
 
       // 读取现有缓存，合并
-      var cache = {};
+      let cache = {};
       try {
         if (fs.existsSync(VERIFIED_RESULTS_FILE)) {
           cache = JSON.parse(fs.readFileSync(VERIFIED_RESULTS_FILE, 'utf8'));
         }
       } catch (e) {}
 
-      var pendingSpVerify = 0;
+      let pendingSpVerify = 0;
       cache[yd] = {
         time: new Date().toISOString(),
         totalMatches: vr.results.length,
@@ -2946,10 +3083,10 @@ async function start() {
           live500: (live500Sources || []).length,
         },
         results: vr.results.map(function (r) {
-          var sources = (r.verified && r.verified.sourceVotes) || [];
-          var hasSp = sources.indexOf('sporttery') >= 0;
-          var has500 = sources.indexOf('live500') >= 0;
-          var pending = !hasSp && has500;
+          const sources = (r.verified && r.verified.sourceVotes) || [];
+          const hasSp = sources.indexOf('sporttery') >= 0;
+          const has500 = sources.indexOf('live500') >= 0;
+          const pending = !hasSp && has500;
           if (pending) pendingSpVerify++;
           return {
             anchor: r.anchorName,
@@ -2966,13 +3103,13 @@ async function start() {
 
       // ★ V12: 核实后自动纠正半场误判（halfScore===score 且非0-0）
       try {
-        var guard = require('./core/ingestion-guard');
-        var suspiciousMatches = [];
+        const guard = require('./core/ingestion-guard');
+        const suspiciousMatches = [];
         Object.keys(dataJson.m || {}).forEach(function (rk) {
-          var m = dataJson.m[rk];
+          const m = dataJson.m[rk];
           if (!m || !m.date || m.date.slice(0, 10) !== yd) return;
           if (m.matchStatus < 2 || !m.score) return;
-          var audit = guard.postMatchAudit(m);
+          const audit = guard.postMatchAudit(m);
           audit.forEach(function (issue) {
             if (issue.type === 'half_equals_final_non_zero') {
               suspiciousMatches.push(m);
@@ -2981,8 +3118,8 @@ async function start() {
         });
         if (suspiciousMatches.length > 0) {
           log('[verifier] 发现 ' + suspiciousMatches.length + ' 场半场误判，触发多源校正...');
-          var corrector = require('./core/score-corrector');
-          var cr = await corrector.correctDate(yd, dataJson.m);
+          const corrector = require('./core/score-corrector');
+          const cr = await corrector.correctDate(yd, dataJson.m);
           if (cr && cr.corrected > 0) {
             corrector.applyCorrections(cr);
             log('[verifier] 半场误判已修正: ' + cr.corrected + ' 场');
@@ -3026,20 +3163,25 @@ async function start() {
     }
     // ★ V12: 每分钟告警监控（PM2 状态、健康检查）
     try {
-      var alertMon = require('./core/alert-monitor');
+      const alertMon = require('./core/alert-monitor');
       // PM2 状态检测（通过 exec pm2 jlist 获取进程列表）
       try {
-        var cp = require('child_process');
-        var pm2Out = cp.execSync('pm2 jlist 2>/dev/null', { timeout: 5000, encoding: 'utf8' });
-        var pm2List = JSON.parse(pm2Out);
-        var pm2Summary = {};
+        const cp = require('child_process');
+        const pm2Out = cp.execSync('pm2 jlist 2>/dev/null', { timeout: 5000, encoding: 'utf8' });
+        const pm2List = JSON.parse(pm2Out);
+        const pm2Summary = {};
         pm2List.forEach(function (p) {
-          if (p.name === 'jc-sync') pm2Summary.jcSync = { status: p.pm2_env.status, pid: p.pid, restarts: p.pm2_env.restart_time || 0 };
+          if (p.name === 'jc-sync')
+            pm2Summary.jcSync = { status: p.pm2_env.status, pid: p.pid, restarts: p.pm2_env.restart_time || 0 };
           if (p.name === 'jc-zjfa') pm2Summary.jcZjfa = { status: p.pm2_env.status };
         });
         alertMon.checkPM2Status(pm2Summary);
-      } catch (e) { /* PM2 检测失败不阻断 */ }
-    } catch (e) { /* alert-monitor 加载失败不阻断 */ }
+      } catch (e) {
+        /* PM2 检测失败不阻断 */
+      }
+    } catch (e) {
+      /* alert-monitor 加载失败不阻断 */
+    }
 
     // 整点输出健康状态 + 记录每日统计
     if (new Date().getMinutes() === 0) {

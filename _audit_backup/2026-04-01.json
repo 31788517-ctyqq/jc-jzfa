@@ -1,0 +1,57 @@
+{
+  "lockedAt": "2026-06-17T17:29:06.013Z",
+  "earliestKickoff": null,
+  "date": "2026-04-01",
+  "plans": [
+    {
+      "planId": "plan_2026-04-01_1",
+      "name": "plan_1",
+      "planName": "方案一",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038743",
+          "direction": "平、让平",
+          "homeName": "町田泽维亚",
+          "visitName": "东京FC",
+          "matchNum": "周三002"
+        },
+        {
+          "matchId": "2038742",
+          "direction": "让负",
+          "homeName": "神户胜利船",
+          "visitName": "清水鼓动",
+          "matchNum": "周三001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-01_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038742",
+          "direction": "总进球-2、3球",
+          "homeName": "神户胜利船",
+          "visitName": "清水鼓动",
+          "matchNum": "周三001"
+        },
+        {
+          "matchId": "2038743",
+          "direction": "让负",
+          "homeName": "町田泽维亚",
+          "visitName": "东京FC",
+          "matchNum": "周三002"
+        }
+      ]
+    }
+  ]
+}

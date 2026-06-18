@@ -15,14 +15,14 @@ const END = '2026-06-10';
 
 function normalizeRecs(raw) {
   return (raw || []).map(function (x) {
-    var r = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
+    const r = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
     return { type: x.t || x.type, num: x.n || x.num, result: r === 0 || r === 1 ? r : null };
   });
 }
 
 function loadOdds(ds) {
   try {
-    var p = path.join(__dirname, '..', 'server', 'odds_history', ds + '.json');
+    const p = path.join(__dirname, '..', 'server', 'odds_history', ds + '.json');
     if (!fs.existsSync(p)) return null;
     return JSON.parse(fs.readFileSync(p, 'utf8'));
   } catch (e) {
@@ -30,29 +30,29 @@ function loadOdds(ds) {
   }
 }
 
-var dates = new Set();
+const dates = new Set();
 Object.keys(mMap).forEach(function (k) {
-  var m = mMap[k];
+  const m = mMap[k];
   if (m && m.date) {
-    var d = m.date.slice(0, 10);
+    const d = m.date.slice(0, 10);
     if (d >= START && d <= END) dates.add(d);
   }
 });
-var sortedDates = Array.from(dates).sort();
+const sortedDates = Array.from(dates).sort();
 
-var AMOUNT = 1000;
-var totalPlans = 0,
+const AMOUNT = 1000;
+let totalPlans = 0,
   totalWon = 0,
   totalProfit = 0;
-var planTypeStats = {};
+const planTypeStats = {};
 
 console.log('日期\t\t场数\t方案\t日盈\t累计');
 console.log('─'.repeat(65));
 
 sortedDates.forEach(function (ds) {
-  var mList = [];
+  const mList = [];
   Object.keys(mMap).forEach(function (k) {
-    var m = mMap[k];
+    const m = mMap[k];
     if (m && (m.date || '').slice(0, 10) === ds) {
       // 深拷贝避免污染 data.json 原始数据
       mList.push(Object.assign({}, m));
@@ -63,13 +63,13 @@ sortedDates.forEach(function (ds) {
   // ★ 强制触发世界杯规则：注入虚拟世界杯标签
   if (mList.length > 0) mList[0].leagueName = (mList[0].leagueName || '') + '_世界杯';
 
-  var odds = loadOdds(ds);
-  var mdm = {};
+  const odds = loadOdds(ds);
+  const mdm = {};
   mList.forEach(function (m) {
-    var raw = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
-    var num = m.num || '';
-    var od = odds && odds[num] ? odds[num] : null;
-    var oddsObj = od
+    const raw = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
+    const num = m.num || '';
+    const od = odds && odds[num] ? odds[num] : null;
+    const oddsObj = od
       ? {
           spf: od.spf || null,
           rqspf: od.rqspf || null,
@@ -81,8 +81,8 @@ sortedDates.forEach(function (ds) {
     mdm[m.matchId] = { match: m, recs: normalizeRecs(raw), odds: oddsObj };
   });
 
-  var plans = PG.generateExpertPlans(mList, mdm, ds);
-  var dayProfit = 0;
+  const plans = PG.generateExpertPlans(mList, mdm, ds);
+  let dayProfit = 0;
 
   plans.forEach(function (p) {
     if (p.isPlanWon === null && p.isPlanLose === null) return;
@@ -93,7 +93,7 @@ sortedDates.forEach(function (ds) {
     if (p.isPlanWon === true) {
       totalWon++;
       planTypeStats[p.name].won++;
-      var profit = (p.winningPrize || 0) - AMOUNT;
+      const profit = (p.winningPrize || 0) - AMOUNT;
       dayProfit += profit;
       planTypeStats[p.name].profit += profit;
     } else if (p.isPlanLose === true) {
@@ -119,7 +119,7 @@ console.log('投入:', totalPlans * AMOUNT, '分 (', ((totalPlans * AMOUNT) / 10
 console.log('ROI:', totalPlans > 0 ? ((totalProfit / (totalPlans * AMOUNT)) * 100).toFixed(1) + '%' : 'N/A');
 
 console.log('\n── 按方案类型 ──');
-var planNames = {
+const planNames = {
   plan_1: '方案一',
   plan_2: '方案二',
   plan_3: '方案三',
@@ -132,7 +132,7 @@ var planNames = {
 Object.keys(planTypeStats)
   .sort()
   .forEach(function (k) {
-    var s = planTypeStats[k];
+    const s = planTypeStats[k];
     console.log(
       planNames[k] || k,
       '\t总数=' + s.total,

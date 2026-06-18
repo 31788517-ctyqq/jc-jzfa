@@ -148,7 +148,7 @@ function waitForDb() {
 
     // ── 模型2: PK评分 ──
     if (row.pk_composite_score !== null && row.pk_composite_score !== undefined && row.pk_direction) {
-      let pkDir = mapDirection(row.pk_direction);
+      const pkDir = mapDirection(row.pk_direction);
       if (pkDir) {
         const predId = `pk_${mid}_${date}`;
         const existing = adp.execOne('SELECT id FROM unified_predictions WHERE prediction_id = ?', predId);

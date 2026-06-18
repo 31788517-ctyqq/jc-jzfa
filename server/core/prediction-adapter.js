@@ -299,7 +299,7 @@ class DeepseekAdapter extends PredictionModelAdapter {
         const adp = database.getAdapter();
         if (adp) {
           aiPrediction = adp.execOne(
-            'SELECT * FROM ai_predictions WHERE matchId = ? ORDER BY updatedAt DESC LIMIT 1',
+            'SELECT * FROM ai_predictions WHERE matchId = ? ORDER BY id DESC LIMIT 1',
             matchInfo.matchId,
           );
         }

@@ -17,7 +17,7 @@
 const database = require('../database');
 const { initPaymentSchema } = require('./schema');
 const { planCatalog } = require('./plans');
-const { createOrder, queryOrder } = require('./orders');
+const { createOrder, queryOrder, queryAlipayStatus } = require('./orders');
 const {
   subscriptionStatus,
   subscriptionRenew,
@@ -67,6 +67,16 @@ function initPayments() {
     } else {
       console.warn('[payments] 数据库适配器不可用，跳过初始化');
     }
+
+    // 预热支付宝证书配置（首次支付前验证密钥+证书可达）
+    try {
+      const { assertCertConfig } = require('./alipay');
+      const t0 = Date.now();
+      assertCertConfig();
+      console.log(`[payments] 支付宝证书预热完成 (${Date.now() - t0}ms)`);
+    } catch (e) {
+      console.warn('[payments] 支付宝预热跳过: ' + e.message);
+    }
   } catch (e) {
     console.error('[payments] 初始化失败:', e.message);
   }
@@ -99,6 +109,8 @@ async function handleAction(action, req, res) {
       return createOrder(req, res);
     case 'payment-query-order':
       return queryOrder(req, res);
+    case 'payment-query-alipay':
+      return queryAlipayStatus(req, res);
 
     // ===== 订阅 =====
     case 'subscription-status':
@@ -154,8 +166,11 @@ async function handleAction(action, req, res) {
           const body = req.body?.data || req.body || {};
           const { plan_code, price, monthly_equivalent } = body;
           if (!plan_code || price == null) return res.json({ code: 400, msg: 'MISSING_PARAMS' });
-          adp.execRun('UPDATE subscription_plans SET price=?, monthly_equivalent=? WHERE plan_code=?',
-            [Number(price), monthly_equivalent != null ? Number(monthly_equivalent) : Number(price), plan_code]);
+          adp.execRun('UPDATE subscription_plans SET price=?, monthly_equivalent=? WHERE plan_code=?', [
+            Number(price),
+            monthly_equivalent != null ? Number(monthly_equivalent) : Number(price),
+            plan_code,
+          ]);
           const updated = adp.execOne('SELECT * FROM subscription_plans WHERE plan_code=?', [plan_code]);
           return res.json({ code: 1, data: updated });
         } catch (e) {

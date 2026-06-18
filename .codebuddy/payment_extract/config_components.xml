@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  - Application context definition for JPetStore's business layer.
+  - Contains bean references to the transaction manager and to the DAOs in
+  - dataAccessContext-local/jta.xml (see web.xml's "contextConfigLocation").
+  -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	     xmlns:aop="http://www.springframework.org/schema/aop"
+	     xmlns:tx="http://www.springframework.org/schema/tx"
+	     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd">
+
+	<bean id="ipSeeker" class="com.cailele.lottery.tools.ip.IpSeeker" autowire="byName"/>
+	
+	<bean id="InitServlet" class="com.cailele.lottery.servlet.InitServlet" init-method="initPath">
+		<property name="webSiteName"><value>cll</value></property>
+		<property name="corporation"><value>广州群彩网络技术有限公司</value></property>
+		<property name="withdrawalsAccount"><value>quncai888@163.com</value></property>
+		<property name="webUrl"><value>http://m.quncai.com</value></property>
+	</bean>
+	
+	<bean id="quncaiNotify" class="com.cailele.lottery.tools.QuncaiNotify" >
+		<property name="zstRefreshUrl"><value>http://localhost/interface/refreshZst</value></property>
+	</bean>
+
+	<!-- 短信配置 start -->
+	<bean id="smsNotifyCllService" class="com.cailele.lottery.service.impl.sms.SmsNotifyCllServiceImpl">
+		<property name="url"><value>http://211.155.25.162:8080/</value></property>
+		<property name="balanceUrl"><value>http://211.155.25.162:8080/</value></property>
+		<property name="copId"><value>QC888</value></property>
+		<property name="userName"><value></value></property>
+		<property name="password"><value></value></property>
+		<property name="companyName"><value>广州群彩网络技术有限公司</value></property>
+		<property name="map">
+			<map>
+				<entry key="balanceAlert" value="13828471716" />
+				<entry key="hm" value="13828471716,13416356105" />
+				<entry key="chupiao"	value="13828471716,13416356105" />
+				<entry key="termError"	value="13828471716,13416356105" />
+				<entry key="zhuihao" value="13828471716,13416356105" />
+				<entry key="returnPrize" value="13828471716,13416356105" />
+				<entry key="anaBuilder" value="13828471716,13416356105" />
+			</map>
+		</property>
+	</bean>
+	
+	<!-- 旧的短信平台，发送速度慢，故废弃 -->
+	<bean id="oldsmsNotifyQcService" class="com.cailele.lottery.service.impl.sms.SmsNotifyQcServiceImpl">
+		<property name="url"><value>http://124.172.234.157:8180/service.asmx/SendMessage</value></property>
+		<property name="id"><value>300</value></property>
+		<property name="name"><value>quncai</value></property>
+		<property name="psw"><value>qun888cai</value></property>
+		<property name="threadPool"><ref bean="threadPool"/></property>
+	</bean>
+	
+	<!-- 新的短信平台 -->
+	<bean id="smsNotifyQcService" class="com.cailele.lottery.service.impl.sms.SmsNotifyQcServiceImpl">
+	    <!-- 漫道短信平台URL -->
+		<property name="newURL"><value>http://sdk.entinfo.cn:8061/webservice.asmx/mdsmssend</value></property>
+		<!-- 漫道短信平台群发URL -->
+		<property name="batchSendURL"><value>http://sdk.entinfo.cn:8061/mdsmssend.ashx</value></property>
+		<!-- 软件序列号 -->
+		<property name="sn"><value>SDK-BBX-010-21566</value></property>
+		<!-- 经过MD5加密的密码:md5(sn+password) 32位大写密文,可以登录http://md5jiami.51240.com/进行MD5生成-->             
+		<property name="pwdOfMD5"><value>225B4602B60A231DB32407C7C0B00E00</value></property>
+		<!-- 群彩签名 -->
+		<property name="sign"><value>【群彩网】</value></property>
+		<!-- 线程池 -->
+		<property name="threadPool"><ref bean="threadPool"/></property>
+	</bean>
+	
+	<bean id="smsNotify" class="com.cailele.lottery.tools.SmsNotify" >
+		<property name="smsNotifyService">
+			<ref bean="smsNotifyQcService" />
+		</property>
+		<property name="smsSenderManager">
+			<ref bean="smsSenderManager" />
+		</property>
+	</bean>
+	<!-- 短信配置 end -->
+	
+	<bean id="emailService" class="com.quncai.thirdParty.email.EmailService">
+		<property name="mailSender" ref="mailSender" />
+		<!-- 相关功能对应的模板设置 -->
+		<property name="findPasswordTemplate"><value>forgetPwd</value></property>
+		<property name="updateMemberTemplate"><value>resetMember</value></property>
+	</bean>
+	
+	<!-- 邮件发送器 -->
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="smtp.exmail.qq.com" />
+        <property name="username" value="kf01@quncai.com" />
+        <property name="password" value="Quncai01" />
+        <property name="port" value="465" />
+        <property name="javaMailProperties">
+            <props>
+                <prop key="mail.smtp.auth">true</prop>
+                <prop key="mail.smtp.timeout">60000</prop>
+                <prop key="mail.smtp.starttls.enable">true</prop>
+                <prop key="mail.transport.protocol">smtp</prop>
+                <prop key="mail.smtp.socketFactory.port">465</prop>
+                <prop key="mail.smtp.socketFactory.class">javax.net.ssl.SSLSocketFactory</prop>
+                <prop key="mail.smtp.socketFactory.fallback">false</prop>
+            </props>
+        </property>
+    </bean>
+	
+	<bean id="emailNotify" class="com.cailele.lottery.tools.email.EmailNotify" >
+		<property name="emailService">
+			<ref bean="emailService" />
+		</property>
+	</bean>
+	<!-- 邮件配置 end -->
+	
+	<bean id="threadPool"
+		  class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		  <property name="corePoolSize" value="5" />
+		  <property name="maxPoolSize" value="30" />
+		  <property name="queueCapacity" value="25" />
+	 </bean>
+	 
+	 <!-- 微信分享配置 -->
+	 <bean id="weixinShare" class="com.quncai.thirdParty.weixing.WeixinShare">
+		<property name="accessTokenURL" value="https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential" />
+		<property name="jsapiTicketURL" value="https://api.weixin.qq.com/cgi-bin/ticket/getticket?" />
+		<property name="appid" value="wx809116cc12c2c36b" />
+		<property name="secret" value="947bbe8ce100caa8880aefaa46d41abf" />
+	</bean>
+	
+	<!-- 邮件通知服务(简单发送邮件) -->
+	<bean id="emailNotifyService" class="com.cailele.lottery.service.impl.email.EmailNotifyServiceImpl">
+		<!-- 特定协议的邮件服务器 -->
+		<property name="mailServerURL"><value>smtp.exmail.qq.com</value></property>
+		<!-- 特定协议的邮件服务器 端口号 -->
+		<property name="mailServerPort"><value>25</value></property>
+		<!-- 发送者邮箱地址 -->
+		<property name="senderMail"><value>kf01@quncai.com</value></property>
+		<!-- 发送者邮箱密码-->
+		<property name="senderPassword"><value>Quncai01</value></property>
+	</bean>	 
+	 
+</beans>

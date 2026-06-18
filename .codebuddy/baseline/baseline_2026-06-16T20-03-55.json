@@ -1,0 +1,40 @@
+{
+  "collectedAt": "2026-06-16T20:03:55.677Z",
+  "host": "119.23.51.159",
+  "mode": "local",
+  "apiLatency": {
+    "match-list": {
+      "ms": 128,
+      "resultPreview": "{\"code\":-1,\"msg\":\"Invalid JSON: Unexpected token ''', \\\"'{action:m\\\"... is not valid JSON\"}"
+    },
+    "daily-profit-7d": {
+      "ms": 70,
+      "resultPreview": "{\"code\":-1,\"msg\":\"Invalid JSON: Unexpected token ''', \\\"'{action:d\\\"... is not valid JSON\"}"
+    },
+    "ranking-list": {
+      "ms": 49,
+      "resultPreview": "{\"code\":-1,\"msg\":\"Invalid JSON: Unexpected token ''', \\\"'{action:r\\\"... is not valid JSON\"}"
+    },
+    "plan-list": {
+      "ms": 58,
+      "resultPreview": "{\"code\":-1,\"msg\":\"Invalid JSON: Unexpected token ''', \\\"'{action:p\\\"... is not valid JSON\"}"
+    },
+    "my-plan-stats": {
+      "ms": 49,
+      "resultPreview": "{\"code\":-1,\"msg\":\"Invalid JSON: Unexpected token ''', \\\"'{action:m\\\"... is not valid JSON\"}"
+    },
+    "week-dates": {
+      "ms": 51,
+      "resultPreview": "{\"code\":-1,\"msg\":\"Invalid JSON: Unexpected token ''', \\\"'{action:w\\\"... is not valid JSON\"}"
+    }
+  },
+  "resources": {
+    "dataJsonSizeKB": 3085,
+    "dbSizeMB": 27,
+    "oddsHistoryFiles": 94,
+    "shujuDataFiles": 76
+  },
+  "aiHitrate": "(local mode — cannot read production DB)",
+  "pm2Status": "(local mode)",
+  "dataJsonStats": "matches=8200 recommends=1048 uniqueDates=629"
+}

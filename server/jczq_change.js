@@ -19,7 +19,7 @@ const BATCH_DELAY = 200; // 批次间延迟 ms（原500ms）
 const CACHE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // ★ P1-3: 缓存有效期 30 天
 
 // ★ DB 持久化统计（用于监控）
-let _basicStoreStats = { attempts: 0, stored: 0, skipped: 0, errors: 0 };
+const _basicStoreStats = { attempts: 0, stored: 0, skipped: 0, errors: 0 };
 
 // ── 缓存 ──
 

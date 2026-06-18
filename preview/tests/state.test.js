@@ -28,8 +28,8 @@ describe('state — 默认值', () => {
     expect(selectedWeekIdx).toBe(0);
   });
 
-  it('planTab 默认 expert', () => {
-    expect(planTab).toBe('expert');
+  it('planTab 默认 wc', () => {
+    expect(planTab).toBe('wc');
   });
 
   it('incomeLoaded 默认 false', () => {

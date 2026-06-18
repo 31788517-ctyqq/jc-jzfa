@@ -199,7 +199,7 @@ function extractExpertsFromHtml(html) {
   const namedRegex = /<a[^>]*href="\/member\/(\d+)\/"[\s\S]*?>\s*(\d+\s+)?([^<\n]{2,30}?)\s*(?:近|每|Ta|<\s*\/a)/g;
   while ((m = namedRegex.exec(html))) {
     const id = m[1];
-    let name = (m[3] || '').replace(/[\s\n\r\t]+/g, ' ').trim();
+    const name = (m[3] || '').replace(/[\s\n\r\t]+/g, ' ').trim();
     if (name && name.length >= 2 && name.length < 20) {
       // 更新已有记录的名字
       const existing = experts.find((e) => e.id === id);

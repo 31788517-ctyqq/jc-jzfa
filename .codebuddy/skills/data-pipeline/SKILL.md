@@ -11,6 +11,7 @@
 □ 2. 回填脚本幂等？     → 重复运行不产生脏数据（WHERE 条件保护）
 □ 3. incrementalSyncToUnified？ → data_sync.js finalCheck() 已自动触发
 □ 4. outcome-backfill？  → 增量同步后自动回填，无需手动
+□ 5. DB 写入竞态？      → sql.js 单文件 DB 严禁多进程并发写入（instances 必须=1）
 ```
 
 ---
@@ -22,6 +23,8 @@
 | 主抓取 | `scripts/fetch_500_main.cjs` | 500.com 主数据源 |
 | 赔率 | `scripts/scrape_odds_500.cjs` | odds 数据 |
 | 同步 | `server/core/data_sync.js` | 统一同步入口（含自愈管道） |
+
+> ⚠️ **sql.js 铁律**：midou_data.db 是单文件内存数据库，**任何时刻只能有一个进程写入**。jc-zjfa cluster instances 必须 = 1。jc-sync/jc-scheduler 如需写入，必须先确认 jc-zjfa 未并行写。
 
 ---
 

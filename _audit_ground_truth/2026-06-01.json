@@ -1,0 +1,147 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.819Z",
+  "earliestKickoff": null,
+  "date": "2026-06-01",
+  "plans": [
+    {
+      "planId": "plan_2026-06-01_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040070",
+          "direction": "总进球-2、3球",
+          "homeName": "加拿大",
+          "visitName": "乌兹别克斯坦",
+          "matchNum": "周一006"
+        },
+        {
+          "matchId": "2040066",
+          "direction": "让负",
+          "homeName": "挪威",
+          "visitName": "瑞典",
+          "matchNum": "周一002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-01_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040068",
+          "direction": "胜",
+          "homeName": "奥地利",
+          "visitName": "突尼斯",
+          "matchNum": "周一004"
+        },
+        {
+          "matchId": "2040066",
+          "direction": "让负",
+          "homeName": "挪威",
+          "visitName": "瑞典",
+          "matchNum": "周一002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-01_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040069",
+          "direction": "总进球-2、3球",
+          "homeName": "哥伦比亚",
+          "visitName": "哥斯达黎加",
+          "matchNum": "周一005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-01_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040069",
+          "direction": "总进球-1、2、3球",
+          "homeName": "哥伦比亚",
+          "visitName": "哥斯达黎加",
+          "matchNum": "周一005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-01_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040067",
+          "direction": "总进球-1、2、3球",
+          "homeName": "土耳其",
+          "visitName": "北马其顿",
+          "matchNum": "周一003"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-01_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040070",
+          "direction": "总进球-3、4、5球",
+          "homeName": "加拿大",
+          "visitName": "乌兹别克斯坦",
+          "matchNum": "周一006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-01_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040068",
+          "direction": "总进球-3、4、5球",
+          "homeName": "奥地利",
+          "visitName": "突尼斯",
+          "matchNum": "周一004"
+        }
+      ]
+    }
+  ]
+}

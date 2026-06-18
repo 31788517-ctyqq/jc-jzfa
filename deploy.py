@@ -74,7 +74,8 @@ v3 核心改进:
 
 """
 
-import paramiko, sys, os, io, hashlib, re, time, json
+import paramiko, sys, os, io, hashlib, re, time, json, subprocess
+
 
 from datetime import datetime, timedelta
 
@@ -86,19 +87,11 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='repla
 
 
 
-# ★ V12: 自动版本戳 — 消灭手动改版本号
-
-try:
-
-    GIT_HASH = subprocess.check_output(['git', 'rev-parse', '--short=7', 'HEAD'], cwd=LOCAL_ROOT).decode().strip()
-
-except:
-
-    GIT_HASH = 'unknown'
-
-
+# ★ V12: 自动版本戳（V1.0）
+# 说明：版本值在读取 LOCAL_ROOT 后再解析，避免未定义变量导致回落 unknown。
 
 # ══════════════════════════════════════════
+
 
 # 配置
 
@@ -111,8 +104,72 @@ USER = os.environ.get('DEPLOY_SSH_USER', 'root')
 LOCAL_ROOT = os.environ.get('DEPLOY_LOCAL_ROOT', 'E:/JC-ZJFA')
 
 
+def resolve_version_info(local_root):
+
+    """三级降级版本戳：git_clean → git_dirty → build_time（禁止 unknown）。"""
+
+    build_time = datetime.now().strftime('%Y%m%d_%H%M%S')
+
+    info = {
+
+        'versionStamp': build_time,
+
+        'versionSource': 'build_time',
+
+        'buildTime': build_time,
+
+        'isDirty': False,
+
+    }
+
+    try:
+
+        git_hash = subprocess.check_output(
+
+            ['git', 'rev-parse', '--short=8', 'HEAD'],
+
+            cwd=local_root,
+
+            stderr=subprocess.DEVNULL,
+
+        ).decode('utf-8', errors='replace').strip()
+
+        if git_hash:
+
+            dirty_text = subprocess.check_output(
+
+                ['git', 'status', '--porcelain'],
+
+                cwd=local_root,
+
+                stderr=subprocess.DEVNULL,
+
+            ).decode('utf-8', errors='replace').strip()
+
+            is_dirty = bool(dirty_text)
+
+            info['isDirty'] = is_dirty
+
+            info['versionSource'] = 'git_dirty' if is_dirty else 'git_clean'
+
+            info['versionStamp'] = '{}-dirty'.format(git_hash) if is_dirty else git_hash
+
+    except Exception:
+
+        # 保持 build_time 兜底，禁止 unknown
+
+        pass
+
+    return info
+
+
+VERSION_INFO = resolve_version_info(LOCAL_ROOT)
+VERSION_STAMP = VERSION_INFO.get('versionStamp') or VERSION_INFO.get('buildTime')
+VERSION_SOURCE = VERSION_INFO.get('versionSource') or 'build_time'
+
 
 # SSH 密码仅从环境变量获取，禁止硬编码
+
 
 PASS = os.environ.get('DEPLOY_SSH_PASS')
 
@@ -185,7 +242,6 @@ PROTECTED_FILES = [
     'server/ai_timing.json',
 
     'server/midou_data.db',
-
     'server/.env',
 
 ]
@@ -325,6 +381,9 @@ DEPLOY_MAP = [
     ('preview/css/admin-v2.css',           'both'),  # ★ 管理后台样式（admin.css 已删除,V12）
 
     ('preview/js/charts.js',              'both'),
+    ('preview/lib/html2canvas.min.js',     'nginx'),  # ★ 本地化 html2canvas，消除 CDN Tracking Prevention 警告
+
+
 
 
 
@@ -446,6 +505,12 @@ DEPLOY_MAP = [
 
     ('server/payments/referral-anti-fraud.js','both'),
 
+    # ★ 支付宝证书模式密钥文件（AppID: 2021006161653361）
+    ('server/keys/alipay/alipay_app_private_key.pem',    'both'),
+    ('server/keys/alipay/appCertPublicKey_2021006161653361.crt', 'both'),
+    ('server/keys/alipay/alipayCertPublicKey_RSA2.crt',  'both'),
+    ('server/keys/alipay/alipayRootCert.crt',            'both'),
+
     # ★ Phase 3: 路由拆分
 
     ('server/routes/auth.js',             'both'),
@@ -456,6 +521,7 @@ DEPLOY_MAP = [
 
     ('server/core/plan-cache.js',         'both'),  # ★ 方案缓存共享模块
     ('scripts/backtest_wc_config.cjs',    'pm2'),   # ★ 世界杯方案回测脚本
+    ('scripts/watchdog.cjs',              'pm2'),   # ★ V17: PM2 进程存活监控 + 自动恢复
     ('scripts/regen_wc_plans.cjs',    'pm2'),   # ★ 世界杯方案重生成
 
     ('server/core/sp_data_adapter.js',      'both'),  # ★ V9: SP官方数据统一访问层
@@ -469,6 +535,8 @@ DEPLOY_MAP = [
     ('server/core/ai-timing.js',          'both'),
 
     ('server/core/health.js',             'both'),
+
+    ('server/core/db-metrics.js',         'both'),  # ★ V17: DB 写入成功率监控
 
     ('server/core/ingestion-guard.js',    'both'),  # ★ V9: 实时比分摄入门禁（data_sync/sync_live_500 依赖）
     ('server/core/score-corrector.js',    'both'),  # ★ V12: 多源赛果校正（sporttery+500.com 交叉对账）
@@ -1079,7 +1147,7 @@ def _get_flag_int(flag, default_value):
 
 
 
-def _api_post_json(ssh, payload, timeout=40):
+def _api_post_json(ssh, payload, timeout=40, auth_token=''):
 
     """在远端调用本机 API，返回 (json_obj, raw_text, err_text)。"""
 
@@ -1087,7 +1155,17 @@ def _api_post_json(ssh, payload, timeout=40):
 
         body = json.dumps(payload, ensure_ascii=False)
 
-        cmd = "curl -s -X POST http://localhost:3000/api -H \"Content-Type: application/json\" -d '{}' 2>&1".format(body)
+        body_escaped = body.replace("'", "'\"'\"'")
+
+        headers = '-H "Content-Type: application/json"'
+
+        if auth_token:
+
+            token_safe = str(auth_token).replace('"', '\\"')
+
+            headers += ' -H "X-Auth-Token: {}"'.format(token_safe)
+
+        cmd = "curl -s -X POST http://localhost:3000/api {} -d '{}' 2>&1".format(headers, body_escaped)
 
         out, err = ssh_cmd(ssh, cmd, timeout)
 
@@ -1109,6 +1187,125 @@ def _api_post_json(ssh, payload, timeout=40):
 
         return None, '', str(e)
 
+
+
+def _read_remote_server_env(ssh):
+
+    """读取 /root/server/.env 关键键值（仅用于部署后 API 鉴权）。"""
+
+    kv = {}
+
+    try:
+
+        out, _ = ssh_cmd(ssh, 'bash -lc "[ -f /root/server/.env ] && cat /root/server/.env || true"', 10)
+
+        for raw in (out or '').splitlines():
+
+            line = (raw or '').strip()
+
+            if not line or line.startswith('#') or '=' not in line:
+
+                continue
+
+            k, v = line.split('=', 1)
+
+            k = k.strip()
+
+            if not k:
+
+                continue
+
+            v = v.strip().strip('"').strip("'")
+
+            kv[k] = v
+
+    except Exception:
+
+        return {}
+
+    return kv
+
+
+
+def _resolve_api_login_credentials(ssh):
+
+    """优先使用本地环境变量，其次回退远端 /root/server/.env 的 AUTH_INIT_*。"""
+
+    user = (os.environ.get('DEPLOY_API_USER') or '').strip()
+
+    passwd = (os.environ.get('DEPLOY_API_PASS') or '').strip()
+
+    if user and passwd:
+
+        return user, passwd
+
+    env_map = _read_remote_server_env(ssh)
+
+    if not user:
+
+        user = (env_map.get('AUTH_INIT_USER') or '').strip()
+
+    if not passwd:
+
+        passwd = (env_map.get('AUTH_INIT_PASS') or '').strip()
+
+    return user, passwd
+
+
+
+def _fetch_api_auth_token(ssh):
+
+    """登录 /api 获取会话 token，供部署后补算闭环调用受保护 action。"""
+
+    user, passwd = _resolve_api_login_credentials(ssh)
+
+    if not user or not passwd:
+
+        return '', 'MISSING_LOGIN_CREDENTIALS'
+
+    resp, raw, err = _api_post_json(
+
+        ssh,
+
+        {'action': 'auth-login', 'username': user, 'password': passwd},
+
+        timeout=20,
+
+    )
+
+    if not (resp and resp.get('code') == 1):
+
+        detail = (raw or err or 'auth-login failed')[:200]
+
+        return '', detail
+
+    token = (((resp.get('data') or {}).get('token')) or '').strip()
+
+    if not token:
+
+        return '', 'EMPTY_TOKEN_FROM_AUTH_LOGIN'
+
+    return token, ''
+
+
+
+def _validate_api_auth_token(ssh, auth_token):
+
+    """用 auth-session 验证 token 是否可用（可访问受保护链路前置探活）。"""
+
+    if not auth_token:
+
+        return False, 'EMPTY_TOKEN'
+
+    resp, raw, err = _api_post_json(ssh, {'action': 'auth-session'}, timeout=20, auth_token=auth_token)
+
+    if resp and resp.get('code') == 1:
+
+        return True, ''
+
+    detail = (raw or err or 'auth-session failed')[:200]
+
+    return False, detail
 
 
 
@@ -1133,13 +1330,51 @@ def run_post_deploy_catchup(ssh, catchup_days=2):
 
     warn_count = 0
 
+    auth_token, token_err = _fetch_api_auth_token(ssh)
+
+    if not auth_token:
+
+        warn_count += 1
+
+        print('  {} 自动补算鉴权 token 缺失：{}'.format(c('R', '✗'), (token_err or 'UNKNOWN')[:200]))
+
+        print('  {} 已跳过自动补算闭环，避免无鉴权调用导致 401'.format(c('Y', '⚠')))
+
+        print('  {} 修复方式：补齐 DEPLOY_API_USER/DEPLOY_API_PASS 或远端 /root/server/.env 的 AUTH_INIT_USER/AUTH_INIT_PASS'.format(c('D', '→')))
+
+        print(c('Y', '  自动补算未执行（不阻断部署）'))
+
+        print()
+
+        return
+
+    ok, verify_err = _validate_api_auth_token(ssh, auth_token)
+
+    if not ok:
+
+        warn_count += 1
+
+        print('  {} 自动补算鉴权 token 验活失败：{}'.format(c('R', '✗'), (verify_err or 'UNKNOWN')[:200]))
+
+        print('  {} 已跳过自动补算闭环，避免使用失效 token 触发 401'.format(c('Y', '⚠')))
+
+        print(c('Y', '  自动补算未执行（不阻断部署）'))
+
+        print()
+
+        return
+
+    print('  {} 已注入补算鉴权 token（验活通过）'.format(c('G', '✓')))
+
 
 
     # 1) 指定日期同步（后台异步执行）
 
+
     for ds in target_dates:
 
-        resp, raw, err = _api_post_json(ssh, {'action': 'sync-match-date', 'date': ds}, timeout=20)
+        resp, raw, err = _api_post_json(ssh, {'action': 'sync-match-date', 'date': ds}, timeout=20, auth_token=auth_token)
+
 
         if resp and resp.get('code') == 1:
 
@@ -1159,7 +1394,7 @@ def run_post_deploy_catchup(ssh, catchup_days=2):
 
     today_str = today.strftime('%Y-%m-%d')
 
-    resp, raw, err = _api_post_json(ssh, {'action': 'gongshoudao-all', 'date': today_str}, timeout=30)
+    resp, raw, err = _api_post_json(ssh, {'action': 'gongshoudao-all', 'date': today_str}, timeout=30, auth_token=auth_token)
 
     if resp and resp.get('code') == 1:
 
@@ -1175,7 +1410,7 @@ def run_post_deploy_catchup(ssh, catchup_days=2):
 
     # 3) 触发赛果回填任务
 
-    resp, raw, err = _api_post_json(ssh, {'action': 'backfill-results'}, timeout=20)
+    resp, raw, err = _api_post_json(ssh, {'action': 'backfill-results'}, timeout=20, auth_token=auth_token)
 
     if resp and resp.get('code') == 1:
 
@@ -1193,7 +1428,7 @@ def run_post_deploy_catchup(ssh, catchup_days=2):
 
     time.sleep(2)
 
-    ready_resp, ready_raw, ready_err = _api_post_json(ssh, {'action': 'data-readiness', 'date': today_str}, timeout=20)
+    ready_resp, ready_raw, ready_err = _api_post_json(ssh, {'action': 'data-readiness', 'date': today_str}, timeout=20, auth_token=auth_token)
 
     if ready_resp and ready_resp.get('code') == 1:
 
@@ -1480,7 +1715,13 @@ def main():
     print(c('D', '═' * 54))
 
     print(c('C', '[Phase 2] 批量上传代码文件 (v3 逐文件独立验证)'))
-    print(c('Y', '  ★ V12: 自动版本戳 ?v={}'.format(GIT_HASH)))
+    print(c('Y', '  ★ V12: 自动版本戳 ?v={} (source={}, buildTime={}, dirty={})'.format(
+        VERSION_STAMP,
+        VERSION_SOURCE,
+        VERSION_INFO.get('buildTime', '-'),
+        'yes' if VERSION_INFO.get('isDirty') else 'no',
+    )))
+
 
 
 

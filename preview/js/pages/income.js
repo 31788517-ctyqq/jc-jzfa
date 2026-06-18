@@ -18,55 +18,142 @@ function _setIncomeColor(el, val) {
 }
 
 function _normalizeIncomeDirection(direction) {
-  if (direction === 'all' || direction === 'expert' || direction === 'my' || direction === 'ai_tg' || direction === 'wc') return direction;
+  if (
+    direction === 'all' ||
+    direction === 'expert' ||
+    direction === 'my' ||
+    direction === 'ai_tg' ||
+    direction === 'wc'
+  )
+    return direction;
   return 'expert';
+}
+
+function _toPlanCnByFilter(planFilter) {
+  const map = {
+    plan_1: '方案一',
+    plan_2: '方案二',
+    plan_3: '方案三',
+    plan_4: '方案四',
+    plan_5: '方案五',
+    plan_6: '方案六',
+    plan_7: '方案七',
+  };
+  return map[planFilter] || '';
+}
+
+function _isWorldCupPlanName(planName) {
+  const pn = String(planName || '').trim();
+  return pn.indexOf('世界杯') === 0;
+}
+
+function _isAiTotalGoalsPlanName(planName) {
+  const pn = String(planName || '').trim();
+  return pn.indexOf('方案A') === 0;
+}
+
+function _matchDetailByDirectionAndPlan(detail, direction, planFilter) {
+  const pn = String((detail && detail.plan) || '').trim();
+
+  if (direction === 'wc' && !_isWorldCupPlanName(pn)) return false;
+  if (direction === 'ai_tg' && !_isAiTotalGoalsPlanName(pn)) return false;
+  if (direction === 'expert' && (_isWorldCupPlanName(pn) || _isAiTotalGoalsPlanName(pn))) return false;
+
+  if (planFilter && planFilter !== 'all') {
+    const pf = String(planFilter);
+
+    if (pf.indexOf('worldcup_') === 0) {
+      const wcIdx = pf.replace('worldcup_', '');
+      return pn === '世界杯' + wcIdx;
+    }
+
+    if (pf === 'A123') return pn.indexOf('方案A123') === 0;
+    if (pf === 'A345') return pn.indexOf('方案A345') === 0;
+
+    const expName = _toPlanCnByFilter(pf);
+    if (expName) return pn === expName;
+
+    // 我的方案/全部：按方案名兜底包含匹配
+    return pn.indexOf(pf) >= 0;
+  }
+
+  return true;
 }
 
 export function loadIncome(force) {
   if (state.incomeLoaded && !force) return;
   state.setIncomeLoaded(true);
-  var resultEl = document.getElementById('incomeResult');
+  const resultEl = document.getElementById('incomeResult');
   if (!resultEl) return;
   resultEl.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
 
-  var timeVal = window.getDDVal ? window.getDDVal('dd-incTime') : 'all';
-  var days = timeVal === 'all' ? 0 : parseInt(timeVal) || 0;
-  var plan = window.getDDVal ? window.getDDVal('dd-incPlan') || 'all' : 'all';
-  var rawDirection = window.getDDVal ? window.getDDVal('dd-incDir') || 'all' : 'all';
-  var direction = _normalizeIncomeDirection(rawDirection);
+  const timeVal = window.getDDVal ? window.getDDVal('dd-incTime') : 'all';
+  const days = timeVal === 'all' ? 0 : parseInt(timeVal) || 0;
+  const plan = window.getDDVal ? window.getDDVal('dd-incPlan') || 'all' : 'all';
+  const rawDirection = window.getDDVal ? window.getDDVal('dd-incDir') || 'all' : 'all';
+  const direction = _normalizeIncomeDirection(rawDirection);
 
   if (direction !== rawDirection && window.selectDD) {
-    var directionText = direction === 'all' ? '全部' : direction === 'my' ? '我的方案' : direction === 'ai_tg' ? '总进球三向' : direction === 'wc' ? '世界杯' : '专家博热方案';
+    const directionText =
+      direction === 'all'
+        ? '全部'
+        : direction === 'my'
+          ? '我的方案'
+          : direction === 'ai_tg'
+            ? '总进球三向'
+            : direction === 'wc'
+              ? '世界杯'
+              : '专家博热方案';
     window.selectDD('dd-incDir', direction, directionText);
   }
 
   // ★ P1: sessionStorage 缓存命中（含筛选参数）
-  var cacheKey = 'income-stats:' + days + ':' + plan + ':' + direction;
-  var cached = getCache(cacheKey);
+  const cacheKey = 'income-stats:v2:' + days + ':' + plan + ':' + direction;
+  const cached = !force ? getCache(cacheKey) : null;
   if (cached) {
-    resultEl.innerHTML = cached;
+    // 兼容旧缓存结构（仅 html 字符串）
+    if (typeof cached === 'string') {
+      resultEl.innerHTML = cached;
+      return;
+    }
+
+    const cachedSummary = (cached && cached.summary) || {};
+    const ctp = document.getElementById('incTotalPlans');
+    const cwr = document.getElementById('incWinRate');
+    const cIncomeEl = document.getElementById('incTotalIncome');
+    const cIncome = cachedSummary.totalIncome || 0;
+    if (ctp) ctp.textContent = cachedSummary.totalPlans || 0;
+    if (cwr) cwr.textContent = (cachedSummary.winRate || 0) + '%';
+    if (cIncomeEl) {
+      cIncomeEl.textContent = _fmtIncome(cIncome);
+      _setIncomeColor(cIncomeEl, cIncome);
+    }
+
+    resultEl.innerHTML = cached.html || '';
     return;
   }
 
   api('income-stats', { days: days, plan: plan, direction: direction })
     .then(function (data) {
-      var s = data.summary || {};
-      var itp = document.getElementById('incTotalPlans');
-      var iwr = document.getElementById('incWinRate');
+      const s = data.summary || {};
+      const itp = document.getElementById('incTotalPlans');
+      const iwr = document.getElementById('incWinRate');
       if (itp) itp.textContent = s.totalPlans || 0;
       if (iwr) iwr.textContent = (s.winRate || 0) + '%';
 
-      var incomeEl = document.getElementById('incTotalIncome');
-      var income = s.totalIncome || 0;
+      const incomeEl = document.getElementById('incTotalIncome');
+      const income = s.totalIncome || 0;
       if (incomeEl) {
         incomeEl.textContent = _fmtIncome(income);
         _setIncomeColor(incomeEl, income);
       }
 
-      var records = data.records || [];
-      var details = data.details || [];
+      const records = data.records || [];
+      const details = (data.details || []).filter(function (d) {
+        return _matchDetailByDirectionAndPlan(d, direction, plan);
+      });
 
-      var html = '';
+      let html = '';
       if (records.length === 0) {
         resultEl.innerHTML = '<div class="hint-box">暂无方案收入数据</div>';
         return;
@@ -78,8 +165,8 @@ export function loadIncome(force) {
         '<div class="income-header-row"><span>时间</span><span class="inc-col-hit">命中数</span><span class="inc-col-rate">命中率</span><span class="inc-col-income">盈利(元)</span></div>';
 
       records.forEach(function (r) {
-        var incColor = _getIncomeColor(r.income);
-        var dateShort = r.date.slice(5).replace('-', '/');
+        const incColor = _getIncomeColor(r.income);
+        const dateShort = r.date.slice(5).replace('-', '/');
 
         html +=
           '<div class="income-row">' +
@@ -121,8 +208,8 @@ export function loadIncome(force) {
           return (b.date || '').localeCompare(a.date || '');
         });
         details.forEach(function (d) {
-          var incColor = _getIncomeColor(d.income);
-          var dateShort = d.date.slice(5).replace('-', '/');
+          const incColor = _getIncomeColor(d.income);
+          const dateShort = d.date.slice(5).replace('-', '/');
 
           html +=
             '<tr>' +
@@ -151,7 +238,14 @@ export function loadIncome(force) {
       }
 
       resultEl.innerHTML = html;
-      setCache(cacheKey, html);
+      setCache(cacheKey, {
+        summary: {
+          totalPlans: s.totalPlans || 0,
+          winRate: s.winRate || 0,
+          totalIncome: s.totalIncome || 0,
+        },
+        html: html,
+      });
     })
     .catch(function (e) {
       resultEl.innerHTML = '<div class="loading">' + e.message + '</div>';
@@ -162,14 +256,14 @@ export function loadIncome(force) {
 // 方向切换回调（下拉选择时触发，仅更新 UI 标记，不自动查询）
 // ★ 接收方向参数避免异步 selectDD 导致的 DOM 读取竞态
 export function onIncDirChange(dir) {
-  var incDir = dir || (window.getDDVal ? window.getDDVal('dd-incDir') : 'expert');
+  let incDir = dir || (window.getDDVal ? window.getDDVal('dd-incDir') : 'expert');
   if (incDir !== 'all' && incDir !== 'expert' && incDir !== 'my' && incDir !== 'ai_tg' && incDir !== 'wc') {
     if (window.selectDD) window.selectDD('dd-incDir', 'expert', '专家博热方案');
     incDir = 'expert';
   }
-  var ddPlan = document.getElementById('dd-incPlan');
+  const ddPlan = document.getElementById('dd-incPlan');
   if (!ddPlan) return;
-  var menu = ddPlan.querySelector('.filter-dd-menu');
+  const menu = ddPlan.querySelector('.filter-dd-menu');
   if (!menu) return;
 
   // 重置为"全部"选中

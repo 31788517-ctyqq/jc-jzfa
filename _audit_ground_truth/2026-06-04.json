@@ -1,0 +1,61 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.885Z",
+  "earliestKickoff": null,
+  "date": "2026-06-04",
+  "plans": [
+    {
+      "planId": "plan_2026-06-04_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040093",
+          "direction": "总进球-2、3球",
+          "homeName": "西班牙",
+          "visitName": "伊拉克",
+          "matchNum": "周四203"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-04_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040093",
+          "direction": "总进球-1、2、3球",
+          "homeName": "西班牙",
+          "visitName": "伊拉克",
+          "matchNum": "周四203"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-04_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040093",
+          "direction": "总进球-3、4、5球",
+          "homeName": "西班牙",
+          "visitName": "伊拉克",
+          "matchNum": "周四203"
+        }
+      ]
+    }
+  ]
+}

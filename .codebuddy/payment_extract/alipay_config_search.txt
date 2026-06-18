@@ -1,0 +1,14 @@
+/data/wwwroot/quncai_wap/WEB-INF/classes/xianzaipay.xml:7:		<property name="appId">
+/data/wwwroot/quncai_wap/WEB-INF/classes/tonglianpay.xml:66:		<property name="appId">
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:7:		<property name="appId">
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:19:		<property name="partnerId">
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:23:		<property name="partnerKey">
+/data/wwwroot/quncai_wap/WEB-INF/classes/weixinpay.xml:35:		<!-- appid：第三方用户唯一凭证 -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/weifutongpay.xml:31:		<!--  群彩科技公众号appId -->
+/data/wwwroot/quncai_wap/WEB-INF/classes/components.xml:129:		<property name="appid" value="wx809116cc12c2c36b" />
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:6:		<property name="partnerID"><value>2088011858967984</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:16:		<property name="partnerID"><value></value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:27:		<property name="partnerID"><value></value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/alipay.xml:33:		<property name="partner"><value>2088011858967984</value></property>
+/data/wwwroot/quncai_wap/WEB-INF/classes/umpay.properties:2:sign_type            = RSA
+/data/wwwroot/quncai_wap/WEB-INF/classes/umpay.properties:8:notify_url           = http://www.quncai.com/user/umpayChargeNotify.php

@@ -1,0 +1,75 @@
+{
+  "lockedAt": "2026-06-18T08:39:51.594Z",
+  "earliestKickoff": null,
+  "date": "2026-05-22",
+  "plans": [
+    {
+      "planId": "plan_2026-05-22_2",
+      "name": "plan_2",
+      "planName": "方案二",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039885",
+          "direction": "总进球-2、3球",
+          "homeName": "朗斯",
+          "visitName": "尼斯",
+          "matchNum": "周五006"
+        },
+        {
+          "matchId": "2039881",
+          "direction": "让负",
+          "homeName": "町田泽维亚",
+          "visitName": "浦和红钻",
+          "matchNum": "周五001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-22_3",
+      "name": "plan_3",
+      "planName": "方案三",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039883",
+          "direction": "胜",
+          "homeName": "佐加顿斯",
+          "visitName": "布鲁马波卡纳",
+          "matchNum": "周五003"
+        },
+        {
+          "matchId": "2039881",
+          "direction": "让负",
+          "homeName": "町田泽维亚",
+          "visitName": "浦和红钻",
+          "matchNum": "周五001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-22_6a",
+      "name": "plan_6a",
+      "planName": "方案六",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039883",
+          "direction": "总进球-2、3球",
+          "homeName": "佐加顿斯",
+          "visitName": "布鲁马波卡纳",
+          "matchNum": "周五003"
+        }
+      ]
+    }
+  ]
+}

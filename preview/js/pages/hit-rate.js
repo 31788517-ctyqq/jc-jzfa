@@ -106,7 +106,7 @@ function getHitRateBarStyle(rate) {
 }
 
 function renderHitRate(el, data) {
-  const top3Rate = data.top3HitRate !== undefined ? data.top3HitRate : 0;
+  const top10AvgRate = data.top10AvgHitRate !== undefined ? data.top10AvgHitRate : 0;
 
   let html = `
     <div class="stats-header" style="animation: fadeUp 0.3s ease;">
@@ -117,8 +117,8 @@ function renderHitRate(el, data) {
           <div class="stat-big-label">方向数</div>
         </div>
         <div class="stat-big">
-          <div class="stat-big-value" style="color:#FF7F50">${top3Rate}%</div>
-          <div class="stat-big-label">每日≥3场命中率</div>
+          <div class="stat-big-value" style="color:#FF8C69 !important">${top10AvgRate}%</div>
+          <div class="stat-big-label">推荐前10命中率</div>
         </div>
       </div>
     </div>
@@ -189,11 +189,11 @@ function renderHitRate(el, data) {
     html += '<th>模型</th><th>总预测</th><th>命中</th><th>命中率</th>';
     html += '</tr></thead><tbody>';
     data.modelStats.forEach(function (m) {
-      var label = m.modelName;
+      let label = m.modelName;
       if (label === 'expert_consensus') label = '专家共识';
       else if (label === 'DeepSeek') label = 'DeepSeek AI';
       else if (label === 'doubao') label = '豆包 AI';
-      var color =
+      const color =
         m.hitRate >= 60
           ? 'var(--green)'
           : m.hitRate >= 50
@@ -218,15 +218,15 @@ function renderHitRate(el, data) {
     html += '<div class="daily-trend-wrap">';
     // 表头
     html += '<table class="daily-trend-table"><thead><tr><th>日期</th>';
-    var trendDates = data.dailyTrend.slice(-14); // 取最近14天
+    const trendDates = data.dailyTrend.slice(-14); // 取最近14天
     // 收集所有方向名
-    var allDirs = {};
+    const allDirs = {};
     trendDates.forEach(function (day) {
       (day.directions || []).forEach(function (dir) {
         if (dir.direction) allDirs[dir.direction] = true;
       });
     });
-    var dirNames = Object.keys(allDirs).slice(0, 6); // 最多展示6个方向
+    const dirNames = Object.keys(allDirs).slice(0, 6); // 最多展示6个方向
     dirNames.forEach(function (dir) {
       html += '<th class="dtt-dir">' + dir + '</th>';
     });
@@ -234,11 +234,11 @@ function renderHitRate(el, data) {
     trendDates.forEach(function (day) {
       html += '<tr><td class="dtt-date">' + day.date.slice(5) + '</td>';
       dirNames.forEach(function (dir) {
-        var found = (day.directions || []).find(function (d) {
+        const found = (day.directions || []).find(function (d) {
           return d.direction === dir;
         });
-        var rate = found ? found.hitRate : null;
-        var cls = rate !== null ? (rate >= 60 ? 'dtt-high' : rate >= 45 ? 'dtt-mid' : 'dtt-low') : '';
+        const rate = found ? found.hitRate : null;
+        const cls = rate !== null ? (rate >= 60 ? 'dtt-high' : rate >= 45 ? 'dtt-mid' : 'dtt-low') : '';
         html += '<td class="' + cls + '">' + (rate !== null ? rate + '%' : '-') + '</td>';
       });
       html += '</tr>';

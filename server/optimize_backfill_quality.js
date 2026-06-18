@@ -2,12 +2,12 @@
  * 回填数据质量优化 P1+P2 — 含 handicap 补全
  * 用法: node server/optimize_backfill_quality.js [--dry]
  */
-var fs = require('fs'),
+const fs = require('fs'),
   path = require('path'),
   db = require('better-sqlite3');
-var DB_PATH = path.join(__dirname, 'midou_data.db');
-var dryRun = process.argv.includes('--dry');
-var from = '2024-01-01',
+const DB_PATH = path.join(__dirname, 'midou_data.db');
+const dryRun = process.argv.includes('--dry');
+const from = '2024-01-01',
   to = '2026-03-18';
 
 console.log('╔══════════════════════════════════════╗');
@@ -15,10 +15,10 @@ console.log('║  回填数据质量优化 P1+P2              ║');
 console.log('║  ' + (dryRun ? 'DRY RUN' : '正式执行') + '                  ║');
 console.log('╚══════════════════════════════════════╝\n');
 
-var dbo = db(DB_PATH);
+const dbo = db(DB_PATH);
 
 // ── 联赛基线 ──
-var LG = {
+const LG = {
   英超: 2.72,
   西甲: 2.63,
   意甲: 2.56,
@@ -54,7 +54,7 @@ var LG = {
   丹麦超: 2.78,
   英甲: 2.42,
 };
-var LH = {
+const LH = {
   英超: 85,
   西甲: 80,
   意甲: 75,
@@ -84,13 +84,13 @@ var LH = {
 };
 
 function lgAvg(ln) {
-  for (var k in LG) {
+  for (const k in LG) {
     if ((ln || '').indexOf(k) >= 0) return LG[k];
   }
   return 2.65;
 }
 function lHeat(ln) {
-  for (var k in LH) {
+  for (const k in LH) {
     if ((ln || '').indexOf(k) >= 0) return LH[k];
   }
   return 50;
@@ -99,7 +99,7 @@ function lHeat(ln) {
 function getLadder(hdc, pk) {
   hdc = Number(hdc) || 0;
   pk = Number(pk) || 50;
-  var s = hdc * 12 + (pk - 50) * 0.25;
+  let s = hdc * 12 + (pk - 50) * 0.25;
   s = Math.max(-0.5, Math.min(0.5, s / 100));
   if (s >= 0.3) return { label: '👑 主队绝对大优势', level: 3 };
   if (s >= 0.15) return { label: '⚔️ 主队中等优势', level: 2 };
@@ -113,11 +113,11 @@ function getLadder(hdc, pk) {
 function simModels(hdc, pk, ln, mid) {
   hdc = Number(hdc) || 0;
   pk = Number(pk) || 50;
-  var base = lgAvg(ln);
-  var seed = Math.abs(((parseInt((mid || '0').replace(/\D/g, '').slice(-4)) || 0) + pk * 7) % 100) / 100;
-  var a = base + (hdc > 0 ? 0.15 : -0.15) + (seed - 0.5) * 0.3;
-  var b = base + (hdc > 0 ? 0.4 : -0.25) + (seed - 0.5) * 0.5;
-  var c = base + (pk > 55 ? 0.35 : -0.15) + (seed - 0.5) * 0.7;
+  const base = lgAvg(ln);
+  const seed = Math.abs(((parseInt((mid || '0').replace(/\D/g, '').slice(-4)) || 0) + pk * 7) % 100) / 100;
+  const a = base + (hdc > 0 ? 0.15 : -0.15) + (seed - 0.5) * 0.3;
+  const b = base + (hdc > 0 ? 0.4 : -0.25) + (seed - 0.5) * 0.5;
+  const c = base + (pk > 55 ? 0.35 : -0.15) + (seed - 0.5) * 0.7;
   return {
     a: Math.round(Math.max(1.5, Math.min(4.5, a)) * 100) / 100,
     b: Math.round(Math.max(1.5, Math.min(4.5, b)) * 100) / 100,
@@ -127,33 +127,33 @@ function simModels(hdc, pk, ln, mid) {
 
 // ── Step 0: 补全 handicap ──
 console.log('[Step 0] 补全 handicap...');
-var hcpMap = {};
-var hcpRows = dbo
+const hcpMap = {};
+const hcpRows = dbo
   .prepare("SELECT match_id,odds_json FROM sporttery_odds_snapshot WHERE odds_json LIKE '%_handicap%'")
   .all();
 hcpRows.forEach(function (r) {
   try {
-    var j = JSON.parse(r.odds_json);
+    const j = JSON.parse(r.odds_json);
     if (j._handicap !== undefined) hcpMap[r.match_id] = Number(j._handicap);
   } catch (e) {}
 });
 console.log('  sporttery handicap: ' + Object.keys(hcpMap).length + ' 个 matchId');
 
 // 第二步: 用matches表中的handicap/rq补
-var mHcp = dbo.prepare('SELECT matchId,num,homeName,visitName FROM matches WHERE date>=? AND date<=?').all(from, to);
+const mHcp = dbo.prepare('SELECT matchId,num,homeName,visitName FROM matches WHERE date>=? AND date<=?').all(from, to);
 // 用 match_num 中的让球信息
 
 if (!dryRun) {
-  var updHcp = dbo.prepare(
+  const updHcp = dbo.prepare(
     "UPDATE prediction_logs SET handicap=?,updated_at=datetime('now','localtime') WHERE matchId=?",
   );
-  var hcpDone = 0;
+  let hcpDone = 0;
   dbo.transaction(function () {
-    var rows2 = dbo
+    const rows2 = dbo
       .prepare('SELECT matchId FROM prediction_logs WHERE date>=? AND date<=? AND (handicap IS NULL OR handicap=0)')
       .all(from, to);
     rows2.forEach(function (r) {
-      var h = hcpMap[r.matchId];
+      const h = hcpMap[r.matchId];
       if (h !== undefined) {
         updHcp.run(h, r.matchId);
         hcpDone++;
@@ -164,7 +164,7 @@ if (!dryRun) {
 }
 
 // ── 主流程 ──
-var rows = dbo
+const rows = dbo
   .prepare(
     "SELECT matchId,date,homeName,visitName,leagueName,handicap,pk_composite_score FROM prediction_logs WHERE date>=? AND date<=? AND gs_scores_json IS NOT NULL AND gs_scores_json!=''",
   )
@@ -172,9 +172,9 @@ var rows = dbo
 console.log('\n[P1+P2] 优化目标: ' + rows.length + ' 条\n');
 
 if (dryRun) {
-  var lDist = {};
+  const lDist = {};
   rows.forEach(function (r) {
-    var ld = getLadder(r.handicap || 0, r.pk_composite_score);
+    const ld = getLadder(r.handicap || 0, r.pk_composite_score);
     lDist[ld.label] = (lDist[ld.label] || 0) + 1;
   });
   console.log('DRY - Ladder分布:');
@@ -187,7 +187,7 @@ if (dryRun) {
     });
   console.log('\nDRY - Model ABC 样例:');
   rows.slice(0, 5).forEach(function (r) {
-    var m = simModels(r.handicap || 0, r.pk_composite_score, r.leagueName, r.matchId);
+    const m = simModels(r.handicap || 0, r.pk_composite_score, r.leagueName, r.matchId);
     console.log(
       '  ' + r.homeName + ' vs ' + r.visitName + ' hdc=' + (r.handicap || 0) + ' A:' + m.a + ' B:' + m.b + ' C:' + m.c,
     );
@@ -198,21 +198,21 @@ if (dryRun) {
 }
 
 // 正式执行
-var updL = dbo.prepare(
+const updL = dbo.prepare(
   "UPDATE prediction_logs SET gs_ladder_label=?,gs_ladder_level=?,updated_at=datetime('now','localtime') WHERE matchId=?",
 );
-var updM = dbo.prepare(
+const updM = dbo.prepare(
   "UPDATE prediction_logs SET gs_modelA_total=?,gs_modelB_total=?,gs_modelC_total=?,updated_at=datetime('now','localtime') WHERE matchId=?",
 );
-var updH = dbo.prepare(
+const updH = dbo.prepare(
   "UPDATE prediction_logs SET pk_heat_score=?,updated_at=datetime('now','localtime') WHERE matchId=?",
 );
-var tx = dbo.transaction(function () {
+const tx = dbo.transaction(function () {
   rows.forEach(function (r, i) {
-    var hdc = r.handicap || 0;
-    var ld = getLadder(hdc, r.pk_composite_score);
+    const hdc = r.handicap || 0;
+    const ld = getLadder(hdc, r.pk_composite_score);
     updL.run(ld.label, ld.level, r.matchId);
-    var m = simModels(hdc, r.pk_composite_score, r.leagueName, r.matchId);
+    const m = simModels(hdc, r.pk_composite_score, r.leagueName, r.matchId);
     updM.run(m.a, m.b, m.c, r.matchId);
     updH.run(lHeat(r.leagueName), r.matchId);
     if (i % 2000 === 0) process.stdout.write('\r  ' + Math.round((i / rows.length) * 100) + '% ...');
@@ -220,7 +220,7 @@ var tx = dbo.transaction(function () {
 });
 tx();
 
-var vr = dbo
+const vr = dbo
   .prepare(
     "UPDATE prediction_logs SET model_version='fallback-v1.0',feature_version='backfill',updated_at=datetime('now','localtime') WHERE date>=? AND date<=?",
   )
@@ -229,7 +229,7 @@ console.log('\r  100% 完成');
 
 // 验证
 console.log('\n── 验证 ──');
-var r = dbo
+let r = dbo
   .prepare(
     'SELECT gs_ladder_label,COUNT(*) as cnt FROM prediction_logs WHERE date>=? AND date<=? AND gs_ladder_label IS NOT NULL GROUP BY gs_ladder_label ORDER BY cnt DESC',
   )

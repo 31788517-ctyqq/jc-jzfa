@@ -284,7 +284,7 @@ describe('P2: data-pipeline-e2e — 端到端数据管道', () => {
         const ah = parseInt(score[0]),
           aa = parseInt(score[1]);
         const total = ah + aa;
-        let actualResult = ah > aa ? 'home' : ah < aa ? 'away' : 'draw';
+        const actualResult = ah > aa ? 'home' : ah < aa ? 'away' : 'draw';
 
         db.prepare(
           `INSERT OR REPLACE INTO prediction_outcomes (prediction_id,match_num,match_date,model_name,model_version,actual_home_score,actual_away_score,actual_result,actual_total_goals,direction_hit,over_under_hit,score_hit)

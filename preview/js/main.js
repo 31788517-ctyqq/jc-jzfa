@@ -46,12 +46,12 @@ import { openPK, closePK, openPKMulti } from './pages/match-pk-fusion.js?v=85';
 
 // ── 日期切换 ──
 export function updateDateBar() {
-  var el = document.getElementById('dateCurrent');
+  const el = document.getElementById('dateCurrent');
   if (!el) return;
-  var w = state.weekDates[state.selectedWeekIdx];
+  const w = state.weekDates[state.selectedWeekIdx];
   if (w) {
-    var today = formatDate(new Date()).slice(5);
-    var prefix = w.matchDate === today ? '今天 ' : '';
+    const today = formatDate(new Date()).slice(5);
+    const prefix = w.matchDate === today ? '今天 ' : '';
     el.textContent = prefix + w.matchDate.replace('-', '/') + ' ' + w.weekNum;
   } else {
     el.textContent = '加载中...';
@@ -59,7 +59,7 @@ export function updateDateBar() {
 }
 
 export function shiftWeek(delta) {
-  var newIdx = state.selectedWeekIdx + delta;
+  const newIdx = state.selectedWeekIdx + delta;
   if (newIdx < 0 || newIdx >= state.weekDates.length) return;
   state.setSelectedWeekIdx(newIdx);
   updateDateBar();
@@ -68,9 +68,9 @@ export function shiftWeek(delta) {
 
 // ── 日历选择器 ──
 export function toggleDatePicker() {
-  var el = document.getElementById('datePicker');
+  const el = document.getElementById('datePicker');
   if (!el) return;
-  var isOpen = el.style.display !== 'none';
+  const isOpen = el.style.display !== 'none';
   if (isOpen) {
     el.style.display = 'none';
     return;
@@ -82,49 +82,49 @@ export function toggleDatePicker() {
 let pickerYear, pickerMonth;
 
 function renderDatePicker() {
-  var grid = document.getElementById('datePickerGrid');
-  var monthEl = document.getElementById('datePickerMonth');
+  const grid = document.getElementById('datePickerGrid');
+  const monthEl = document.getElementById('datePickerMonth');
   if (!grid || !monthEl) return;
 
-  var weeks = state.weekDates || [];
-  var available = {};
+  const weeks = state.weekDates || [];
+  const available = {};
   weeks.forEach(function (w) {
     available[w.matchDate] = true;
   });
 
-  var today = formatDate(new Date()).slice(5);
-  var current = weeks[state.selectedWeekIdx] ? weeks[state.selectedWeekIdx].matchDate : '';
+  const today = formatDate(new Date()).slice(5);
+  const current = weeks[state.selectedWeekIdx] ? weeks[state.selectedWeekIdx].matchDate : '';
 
   if (!pickerYear) {
-    var d = new Date();
+    const d = new Date();
     pickerYear = d.getFullYear();
     pickerMonth = d.getMonth() + 1;
     if (current) pickerMonth = parseInt(current.slice(0, 2), 10);
   }
   window.datePickerYear = pickerYear;
 
-  var CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
+  const CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
   monthEl.textContent = CN[pickerMonth - 1] + '月 ' + pickerYear;
 
-  var firstDay = new Date(pickerYear, pickerMonth - 1, 1);
-  var lastDay = new Date(pickerYear, pickerMonth, 0);
-  var daysInMonth = lastDay.getDate();
-  var startDow = firstDay.getDay();
+  const firstDay = new Date(pickerYear, pickerMonth - 1, 1);
+  const lastDay = new Date(pickerYear, pickerMonth, 0);
+  const daysInMonth = lastDay.getDate();
+  const startDow = firstDay.getDay();
 
-  var html = '';
-  for (var i = 0; i < startDow; i++) html += '<div class="date-picker-cell other-month"></div>';
-  for (var day = 1; day <= daysInMonth; day++) {
-    var mm = String(pickerMonth).padStart(2, '0');
-    var dd = String(day).padStart(2, '0');
-    var md = mm + '-' + dd;
-    var hasMatch = !!available[md];
-    var isActive = md === current;
-    var isToday = md === today;
-    var cls = 'date-picker-cell';
+  let html = '';
+  for (let i = 0; i < startDow; i++) html += '<div class="date-picker-cell other-month"></div>';
+  for (let day = 1; day <= daysInMonth; day++) {
+    const mm = String(pickerMonth).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    const md = mm + '-' + dd;
+    const hasMatch = !!available[md];
+    const isActive = md === current;
+    const isToday = md === today;
+    let cls = 'date-picker-cell';
     if (hasMatch) cls += ' has-match';
     if (isActive) cls += ' active';
     if (isToday) cls += ' today';
-    var onclick = ' onclick="selectDateFromPicker(\'' + md + '\')"';
+    const onclick = ' onclick="selectDateFromPicker(\'' + md + '\')"';
     html += '<div class="' + cls + '"' + onclick + '>' + day + '</div>';
   }
   grid.innerHTML = html;
@@ -150,9 +150,9 @@ function renderDatePicker() {
 }
 
 export function selectDateFromPicker(matchDate) {
-  var weeks = state.weekDates || [];
+  const weeks = state.weekDates || [];
   if (matchDate === 'today') {
-    var today = formatDate(new Date()).slice(5);
+    const today = formatDate(new Date()).slice(5);
     for (var i = 0; i < weeks.length; i++) {
       if (weeks[i].matchDate === today) {
         state.setSelectedWeekIdx(i);
@@ -169,52 +169,52 @@ export function selectDateFromPicker(matchDate) {
   }
   updateDateBar();
   loadMatchList();
-  var el = document.getElementById('datePicker');
+  const el = document.getElementById('datePicker');
   if (el) el.style.display = 'none';
 }
 
 // ── 通用日历渲染 ──
 function dobj(dateStr) {
-  var p = dateStr.split('-');
+  const p = dateStr.split('-');
   return { y: parseInt(p[0], 10), m: parseInt(p[1], 10), d: parseInt(p[2], 10) };
 }
 
 function renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onSelect) {
-  var grid = document.getElementById(prefix + 'Grid');
-  var monthEl = document.getElementById(prefix + 'Month');
+  const grid = document.getElementById(prefix + 'Grid');
+  const monthEl = document.getElementById(prefix + 'Month');
   if (!grid || !monthEl) return;
 
-  var yearKey = prefix + 'Year',
+  const yearKey = prefix + 'Year',
     monthKey = prefix + 'MonthIdx';
   if (typeof window[yearKey] === 'undefined') {
-    var d = new Date();
+    const d = new Date();
     window[yearKey] = d.getFullYear();
     window[monthKey] = d.getMonth() + 1;
     if (currentDate) window[monthKey] = parseInt(currentDate.slice(0, 2), 10);
   }
 
-  var CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
+  const CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
   monthEl.textContent = CN[window[monthKey] - 1] + '月 ' + window[yearKey];
 
-  var firstDay = new Date(window[yearKey], window[monthKey] - 1, 1);
-  var lastDay = new Date(window[yearKey], window[monthKey], 0);
-  var startDow = firstDay.getDay();
+  const firstDay = new Date(window[yearKey], window[monthKey] - 1, 1);
+  const lastDay = new Date(window[yearKey], window[monthKey], 0);
+  const startDow = firstDay.getDay();
 
-  var html = '';
-  for (var i = 0; i < startDow; i++) html += '<div class="date-picker-cell other-month"></div>';
-  for (var day = 1; day <= lastDay.getDate(); day++) {
-    var mm = String(window[monthKey]).padStart(2, '0');
-    var dd = String(day).padStart(2, '0');
-    var md = mm + '-' + dd;
-    var hasMatch = availableDates.indexOf(md) >= 0;
-    var isActive = md === currentDate;
-    var isToday = md === todayDate;
-    var cls = 'date-picker-cell';
+  let html = '';
+  for (let i = 0; i < startDow; i++) html += '<div class="date-picker-cell other-month"></div>';
+  for (let day = 1; day <= lastDay.getDate(); day++) {
+    const mm = String(window[monthKey]).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    const md = mm + '-' + dd;
+    const hasMatch = availableDates.indexOf(md) >= 0;
+    const isActive = md === currentDate;
+    const isToday = md === todayDate;
+    let cls = 'date-picker-cell';
     if (hasMatch) cls += ' has-match';
     if (isActive) cls += ' active';
     if (isToday) cls += ' today';
     // 所有日期均可点击，无数据的日期由后端返回空列表+页面提示"暂无方案"
-    var onclick = ' onclick="' + onSelect + "('" + md + '\')"';
+    const onclick = ' onclick="' + onSelect + "('" + md + '\')"';
     html += '<div class="' + cls + '"' + onclick + '>' + day + '</div>';
   }
   grid.innerHTML = html;
@@ -239,37 +239,37 @@ function renderMonthCalendar(prefix, availableDates, currentDate, todayDate, onS
 
 // ── 今日方案日历 ──
 export function togglePlanDatePicker() {
-  var el = document.getElementById('planDatePicker');
+  const el = document.getElementById('planDatePicker');
   if (!el) return;
   if (el.style.display !== 'none') {
     el.style.display = 'none';
     return;
   }
-  var weeks = state.weekDates || [];
-  var available = weeks.map(function (w) {
+  const weeks = state.weekDates || [];
+  const available = weeks.map(function (w) {
     return w.matchDate;
   });
-  var today = formatDate(new Date()).slice(5);
+  const today = formatDate(new Date()).slice(5);
   // 从实际 planDate 提取 MM-DD
-  var current = state.planDate ? state.planDate.slice(5) : today;
+  const current = state.planDate ? state.planDate.slice(5) : today;
   renderMonthCalendar('planDate', available, current, today, 'selectPlanDateFromPicker');
   el.style.display = 'block';
 }
 export function selectPlanDateFromPicker(md) {
   // 使用日历控件当前年份，而非 planDate 的年份（修复跨年导航bug）
-  var year = window.planDateYear || new Date().getFullYear();
-  var parts = md.split('-');
-  var month = parseInt(parts[0], 10),
+  const year = window.planDateYear || new Date().getFullYear();
+  const parts = md.split('-');
+  const month = parseInt(parts[0], 10),
     day = parseInt(parts[1], 10);
-  var fullDate = year + '-' + md;
+  const fullDate = year + '-' + md;
   state.setPlanDate(fullDate);
   // 标记为日历直接选日，不污染 planDateOffset（避免影响左右箭头切换）
   state.setPlanDateExplicit(true);
   // 直接更新DOM，不调updatePlanDateBar避免重置
-  var el = document.getElementById('planDateCurrent');
+  const el = document.getElementById('planDateCurrent');
   if (el) {
-    var mmdd = md.replace('-', '/');
-    var week = WEEK_NAMES[new Date(year, month - 1, day).getDay()];
+    const mmdd = md.replace('-', '/');
+    const week = WEEK_NAMES[new Date(year, month - 1, day).getDay()];
     el.textContent = mmdd + ' ' + week;
   }
   loadPlanList();
@@ -278,29 +278,29 @@ export function selectPlanDateFromPicker(md) {
 
 // ── 排行榜日历 ──
 export function toggleRankDatePicker() {
-  var el = document.getElementById('rankDatePicker');
+  const el = document.getElementById('rankDatePicker');
   if (!el) return;
   if (el.style.display !== 'none') {
     el.style.display = 'none';
     return;
   }
-  var weeks = state.weekDates || [];
-  var available = weeks.map(function (w) {
+  const weeks = state.weekDates || [];
+  const available = weeks.map(function (w) {
     return w.matchDate;
   });
-  var today = formatDate(new Date()).slice(5);
-  var current = state.rankDate ? state.rankDate.slice(5) : today;
+  const today = formatDate(new Date()).slice(5);
+  const current = state.rankDate ? state.rankDate.slice(5) : today;
   renderMonthCalendar('rankDate', available, current, today, 'selectRankDateFromPicker');
   el.style.display = 'block';
 }
 export function selectRankDateFromPicker(md) {
   // 使用日历控件当前年份，而非 rankDate 的年份（修复跨年导航bug）
-  var year = window.rankDateYear || new Date().getFullYear();
+  const year = window.rankDateYear || new Date().getFullYear();
   state.setRankDate(year + '-' + md);
-  var el = document.getElementById('rankDateCurrent');
+  const el = document.getElementById('rankDateCurrent');
   if (el) {
-    var mmdd = md.replace('-', '/');
-    var week = WEEK_NAMES[new Date(year, parseInt(md.slice(0, 2), 10) - 1, parseInt(md.slice(3), 10)).getDay()];
+    const mmdd = md.replace('-', '/');
+    const week = WEEK_NAMES[new Date(year, parseInt(md.slice(0, 2), 10) - 1, parseInt(md.slice(3), 10)).getDay()];
     el.textContent = mmdd + ' ' + week;
   }
   loadRanking();
@@ -308,10 +308,10 @@ export function selectRankDateFromPicker(md) {
 }
 
 export function goToday() {
-  var today = formatDate(new Date()).slice(5);
-  var now = new Date();
-  var todayWeek = WEEK_NAMES[now.getDay()];
-  var best = 0;
+  const today = formatDate(new Date()).slice(5);
+  const now = new Date();
+  const todayWeek = WEEK_NAMES[now.getDay()];
+  let best = 0;
   state.weekDates.forEach(function (w, i) {
     if (w.matchDate === today && w.weekNum === todayWeek) best = i;
   });
@@ -332,7 +332,7 @@ export function initWeekDates() {
     .then(function (list) {
       state.setWeekDates(list || []);
       if (state.weekDates.length) {
-        var today = formatDate(new Date()).slice(5);
+        const today = formatDate(new Date()).slice(5);
         state.setSelectedWeekIdx(0);
         state.weekDates.forEach(function (w, i) {
           if (w.matchDate <= today) state.setSelectedWeekIdx(i);
@@ -360,13 +360,13 @@ export function switchTab(tab) {
     sessionStorage.setItem('lastPage', tab);
   } catch (e) {}
   document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
-  var pageEl = document.getElementById('page-' + (tab === 'detail' ? 'detail' : tab));
+  const pageEl = document.getElementById('page-' + (tab === 'detail' ? 'detail' : tab));
   if (pageEl) pageEl.classList.add('active');
   document.querySelectorAll('.tab-item').forEach((t) => t.classList.remove('active'));
-  var tabEl = document.getElementById('tab-' + (tab === 'detail' ? 'rank' : tab));
+  const tabEl = document.getElementById('tab-' + (tab === 'detail' ? 'rank' : tab));
   if (tabEl) tabEl.classList.add('active');
 
-  var titles = {
+  const titles = {
     home: '竞彩推荐监控',
     match: '今日比赛',
     plan: '今日方案',
@@ -377,13 +377,13 @@ export function switchTab(tab) {
     filter: '命中率筛选',
     income: '方案收入',
   };
-  var titleEl = document.getElementById('navTitle');
+  const titleEl = document.getElementById('navTitle');
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
-  var backEl = document.getElementById('navBack');
+  const backEl = document.getElementById('navBack');
   if (backEl) backEl.style.display = tab === 'detail' || tab === 'filter' ? 'flex' : 'none';
 
   if (tab === 'home') {
-    var cameBack = state.savedScrollY > 0;
+    const cameBack = state.savedScrollY > 0;
     if (!cameBack) loadHome();
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
@@ -398,7 +398,7 @@ export function switchTab(tab) {
       loadMatchList();
     } else initWeekDates();
     setTimeout(function () {
-      var listEl = document.getElementById('matchList');
+      const listEl = document.getElementById('matchList');
       if (listEl && (!listEl.children.length || listEl.children[0].classList.contains('loading-spinner'))) {
         loadMatchList();
       }
@@ -482,8 +482,8 @@ window.openPKMulti = openPKMulti;
 window.addEventListener(
   'scroll',
   () => {
-    var navbar = document.getElementById('navbar');
-    var currentScroll = window.scrollY;
+    const navbar = document.getElementById('navbar');
+    const currentScroll = window.scrollY;
     if (currentScroll > 80 && currentScroll > state.lastScrollY_nav) {
       if (navbar) navbar.classList.add('hidden');
     } else {
@@ -504,7 +504,7 @@ document.addEventListener('touchend', function (e) {
 
 // ── 启动：恢复上次页面（DOM 已由阻塞脚本预设 active，此处只加载数据）───
 (function initPage() {
-  var last = null;
+  let last = null;
   try {
     last = sessionStorage.getItem('lastPage');
   } catch (e) {}
