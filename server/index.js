@@ -1597,7 +1597,15 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                       if (m.matchStatus === 1 && !m.duration) {
                         m.duration = '进行中';
                       }
-                      m.score = ls.score || m.score || '';
+                      // ★ V16: 半场比分保护 — live_scores.json 可能含 500.com 半场误判
+                      // 若 live score 与 data.json 的 halfScore 相同且已有不同终场比分 → 跳过覆盖
+                      var lsScoreNorm = ls.score ? String(ls.score).replace(/[:：]/g, '-') : '';
+                      var mHalfNorm = m.halfScore ? String(m.halfScore).replace(/[:：]/g, '-') : '';
+                      var suspectHalf = (lsScoreNorm && mHalfNorm && lsScoreNorm === mHalfNorm &&
+                                         m.score && String(m.score).replace(/[:：]/g, '-') !== lsScoreNorm);
+                      if (!suspectHalf) {
+                        m.score = ls.score || m.score || '';
+                      }
                       m.halfScore = ls.halfScore || m.halfScore || '';
                       m.homeScore = ls.homeScore !== undefined ? ls.homeScore : m.homeScore;
                       m.visitScore = ls.visitScore !== undefined ? ls.visitScore : m.visitScore;
@@ -2412,7 +2420,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             function normalizeRecs(recs) {
               return (recs || []).map(function (x) {
-                const raw = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
+                const raw = x.result !== undefined ? x.result : x.rs !== undefined ? x.rs : null;
                 const r = raw === 0 || raw === 1 ? raw : null;
                 return { type: x.t || x.type, num: x.n || x.num, result: r };
               });
@@ -2530,6 +2538,12 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             }
             const top3HitRate = participatingDays > 0 ? Math.round((qualifiedDays / participatingDays) * 1000) / 10 : 0;
 
+            // 推荐前10方向的命中率取平局值
+            const topDirections = directionStats.slice(0, 10);
+            const top10AvgHitRate = topDirections.length > 0
+              ? Math.round(topDirections.reduce(function (sum, d) { return sum + d.hitRate; }, 0) / topDirections.length * 10) / 10
+              : 0;
+
             // dailyTrend 裁剪到最近30天（减少响应体积）
             const sortedDates = Object.keys(dateDirMap).sort();
             const recentDates = sortedDates.slice(-30);
@@ -2550,6 +2564,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               directionStats: directionStats,
               dailyTrend: dailyTrend,
               top3HitRate: top3HitRate,
+              top10AvgHitRate: top10AvgHitRate,
             };
 
             // ★ 模型维度命中率（from prediction_outcomes）
@@ -2986,7 +3001,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             function findRecommends(matchId) {
               const raw = rMap['m_' + matchId] || rMap[String(matchId)] || [];
               return (raw || []).map((x) => {
-                const rawVal = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
+                const rawVal = x.result !== undefined ? x.result : x.rs !== undefined ? x.rs : null;
                 const r = rawVal === 0 || rawVal === 1 ? rawVal : null;
                 return { type: x.t || x.type, num: x.n || x.num, result: r };
               });
@@ -3946,7 +3961,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // 2) 工具函数
             function normalizeRecs(recs) {
               return (recs || []).map(function (x) {
-                const raw = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
+                const raw = x.result !== undefined ? x.result : x.rs !== undefined ? x.rs : null;
                 const r = raw === 0 || raw === 1 ? raw : null;
                 return { type: x.t || x.type, num: x.n || x.num, result: r };
               });
@@ -3973,25 +3988,22 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const PG = require('./core/plan-generator');
             var plans;
 
-            // ★ 方案快照模式：锁定后从快照加载（含结果回填）
-            var snap = null;
-            if (dateStr === today) {
-              snap = PG.loadPlanSnapshot(dateStr);
-            }
+            // ★ 方案快照模式：优先从快照加载（含结果回填），无快照则实时生成
+            //   所有日期都检查快照（不再限于今天），确保3/19开始的全量方案可展示
+            var snap = PG.loadPlanSnapshot(dateStr);
             if (snap && snap.plans && snap.plans.length > 0) {
-              // 锁定后：快照身份 + 当前结果回填
+              // 快照回填：快照身份 + 当前结果回填（兼容历史赔率缺失，使用无赔率 hydrate）
               var histOdds = getOddsHistory(dateStr);
               plans = PG.hydrateSnapshotWithResults(snap, mMap, rMap, histOdds);
             } else {
-              // 未锁定或无快照：实时生成
+              // 无快照：实时生成
               plans = PG.generateExpertPlans(mList, matchDataMap, dateStr);
-              // 检查是否需要保存快照（锁定时间已过）
+              // 检查是否需要保存快照（今天且全部已开赛）
               if (dateStr === today) {
                 var unstartedList = mList.filter(function (m) {
                   return (m.matchStatus || 0) < 1;
                 });
                 if (unstartedList.length === 0) {
-                  // 全部已开赛，保存快照
                   PG.savePlanSnapshot(dateStr, plans, new Date().toISOString());
                 }
               }
@@ -4658,7 +4670,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // ★ 辅助：计算比赛命中/未命中结果（复用专家方案逻辑）
             function normalizeRecs(recs) {
               return (recs || []).map(function (x) {
-                const raw = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
+                const raw = x.result !== undefined ? x.result : x.rs !== undefined ? x.rs : null;
                 const r = raw === 0 || raw === 1 ? raw : null;
                 return { type: x.t || x.type, num: x.n || x.num, result: r };
               });
@@ -4747,7 +4759,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   const ag = parseInt(scoreParts[1]);
                   if (!isNaN(hg) && !isNaN(ag)) {
                     const moddsForFallback = getMatchOdds(mForScore);
-                    const hcp = moddsForFallback && moddsForFallback.rqspf ? moddsForFallback.rqspf.handicap : null;
+                    const hcp = (moddsForFallback && moddsForFallback.rqspf && moddsForFallback.rqspf.handicap != null) ? moddsForFallback.rqspf.handicap : (mForScore.concede != null ? mForScore.concede : null);
                     // 内联比分判定
                     function judgeScore(d, s, h) {
                       // ★ 复合方向（含、号，如"平、让平"）：分开判定，任一命中即可
@@ -4768,7 +4780,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                       if (d === '胜平') return hh > aa || hh === aa;
                       if (d === '平负') return hh === aa || hh < aa;
                       if (d === '让胜' || d === '让平' || d === '让负') {
-                        var ec = hh + (h != null ? parseFloat(h) || 0 : 0);
+                        if (h == null) return null; // ★ 无让球数据 → 无法判定
+                        var ec = hh + parseFloat(h);
                         if (d === '让胜') return ec > aa;
                         if (d === '让平') return ec === aa;
                         if (d === '让负') return ec < aa;
@@ -5016,6 +5029,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               // ===== P0-方案一：冷门方向验证 =====
               const coldDirResult = getColdDirectionWithValidation(modds, gs);
               const coldDir = coldDirResult;
+              if (!coldDir) continue; // 无有效冷门方向，跳过此比赛
               // 保留原始赔率排名供展示
               const rawDirections = [
                 { dir: '胜', odds: parseFloat(spf.home) },
@@ -5058,8 +5072,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
                 // 冷门方向（高赔率方）的公平概率
                 var coldFair = fairDraw;
-                if (coldDir.dir === '胜') coldFair = fairHome;
-                if (coldDir.dir === '负') coldFair = fairAway;
+                if (coldDir && coldDir.dir === '胜') coldFair = fairHome;
+                if (coldDir && coldDir.dir === '负') coldFair = fairAway;
 
                 // 过滤：冷门方向公平概率 < 12% 太不可能
                 if (coldFair < 0.12) continue;
@@ -5425,7 +5439,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             function normalizeRecs(recs) {
               return (recs || []).map(function (x) {
-                const raw = x.rs !== undefined ? x.rs : x.result !== undefined ? x.result : null;
+                const raw = x.result !== undefined ? x.result : x.rs !== undefined ? x.rs : null;
                 const r = raw === 0 || raw === 1 ? raw : null;
                 return { type: x.t || x.type, num: x.n || x.num, result: r };
               });
@@ -5470,44 +5484,51 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 const m = mMap[k];
                 if (m && (m.date || '').slice(0, 10) === ds) mList.push(m);
               });
-              if (mList.length === 0) continue;
 
-              const histOdds = getOddsHistory(ds);
-
-              // 预计算：一次获取所有比赛的 recs 和 odds
-              const matchDataMap = {};
-              for (const mm of mList) {
-                const num = mm.num || '';
-                let oddsObj = null;
-                if (histOdds && histOdds[num]) {
-                  const od = histOdds[num];
-                  oddsObj = {
-                    spf: od.spf || null,
-                    rqspf: od.rqspf || null,
-                    totalGoals: od.totalGoals || null,
-                    isSingleGame: od.isSingleGame || false,
-                  };
-                }
-                matchDataMap[mm.matchId] = {
-                  match: mm,
-                  recs: findRecommends(mm.matchId),
-                  odds: oddsObj,
-                };
-              }
-
-              // ★ 收入统计：优先用快照（锁定版方案身份），fallback 实时生成
+              // ★ 快照优先：优先从快照加载（含完整结果），无快照才实时生成
+              var snap = PG.loadPlanSnapshot(ds);
               var plans;
-              var snap2 = PG.loadPlanSnapshot(ds);
-              if (snap2 && snap2.plans && snap2.plans.length > 0) {
-                plans = PG.hydrateSnapshotWithResults(snap2, mMap, rMap, histOdds);
-              } else {
+              if (snap && snap.plans && snap.plans.length > 0) {
+                const histOdds = getOddsHistory(ds);
+                plans = PG.hydrateSnapshotWithResults(snap, mMap, rMap, histOdds);
+              } else if (mList.length > 0) {
+                // 无快照：实时生成（保持原逻辑）
+                const histOdds = getOddsHistory(ds);
+                const matchDataMap = {};
+                for (const mm of mList) {
+                  const num = mm.num || '';
+                  let oddsObj = null;
+                  if (histOdds && histOdds[num]) {
+                    const od = histOdds[num];
+                    oddsObj = {
+                      spf: od.spf || null, rqspf: od.rqspf || null,
+                      totalGoals: od.totalGoals || null, isSingleGame: od.isSingleGame || false,
+                    };
+                  }
+                  matchDataMap[mm.matchId] = { match: mm, recs: findRecommends(mm.matchId), odds: oddsObj };
+                }
                 plans = PG.generateExpertPlans(mList, matchDataMap, ds);
+              } else {
+                continue;
               }
 
               // ===== 专家博热方案 =====
               if (directionFilter === 'all' || directionFilter === 'expert') {
                 plans.forEach((pp) => {
-                  if (planFilter !== 'all' && pp.name !== planFilter) return;
+                  // ★ V17: 专家博热排除世界杯和AI方案
+                  var _pnExpert = pp.planName || '';
+                  if (_pnExpert.indexOf('世界杯') === 0 || _pnExpert.indexOf('方案A') === 0) return;
+                  // ★ V17: planFilter 增强匹配（expert 方案名可能为 plan_6a 等不稳定后缀）
+                  if (planFilter !== 'all') {
+                    if (pp.name === planFilter) { /* 精确匹配 */ }
+                    else if (/^plan_\d+$/.test(planFilter)) {
+                      var _idx = planFilter.replace('plan_', '');
+                      var _numMap = { '1': '一', '2': '二', '3': '三', '4': '四', '5': '五', '6': '六', '7': '七' };
+                      if (_pnExpert !== '方案' + (_numMap[_idx] || '')) return;
+                    }
+                    else if (/^A\d+$/.test(planFilter) && _pnExpert.indexOf('方案' + planFilter) !== 0) return;
+                    else if (pp.name !== planFilter) return;
+                  }
 
                   // 结果未确定 → 跳过
                   if (pp.isPlanWon === null && pp.isPlanLose === null) return;
@@ -5542,6 +5563,60 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                     prize: isWon ? pp.winningPrize : 0,
                     income: dayIncome,
                   });
+                });
+              }
+
+              // ===== 世界杯方案 =====
+              if (directionFilter === 'all' || directionFilter === 'wc') {
+                plans.forEach((pp) => {
+                  var _pnWC = pp.planName || '';
+                  // ★ 只统计世界杯方案
+                  if (_pnWC.indexOf('世界杯') !== 0) return;
+                  // planFilter 映射：worldcup_01 → 世界杯01
+                  if (planFilter !== 'all') {
+                    var _wcIdx = planFilter.replace('worldcup_', '');
+                    if (_pnWC !== '世界杯' + _wcIdx) return;
+                  }
+
+                  if (pp.isPlanWon === null && pp.isPlanLose === null) return;
+
+                  var isWonWC = pp.isPlanWon === true;
+                  var isLoseWC = pp.isPlanLose === true;
+                  var dayIncomeWC = 0, statusWC = 'unknown';
+                  if (isWonWC) { dayIncomeWC = pp.winningPrize - AMOUNT; statusWC = 'won'; totalWon++; }
+                  else if (isLoseWC) { dayIncomeWC = -AMOUNT; statusWC = 'lose'; }
+                  totalPlans++;
+                  totalIncome += dayIncomeWC;
+                  results.push({
+                    date: ds, plan: pp.planName, status: statusWC,
+                    matches: pp.matches.map((mm) => ({
+                      matchNum: mm.matchNum, home: mm.homeName, visit: mm.visitName,
+                      direction: mm.direction, isWon: mm.isMatchWon, isLose: mm.isMatchLose,
+                    })),
+                    prize: isWonWC ? pp.winningPrize : 0, income: dayIncomeWC,
+                  });
+                });
+              }
+
+              // ===== 总进球三向（AI驱动）=====
+              if (directionFilter === 'all' || directionFilter === 'ai_tg') {
+                plans.forEach((pp) => {
+                  var _pnAI2 = pp.planName || '';
+                  if (_pnAI2.indexOf('方案A') !== 0) return;
+                  if (planFilter !== 'all') {
+                    if (planFilter === 'A123' && _pnAI2.indexOf('方案A123') !== 0) return;
+                    if (planFilter === 'A345' && _pnAI2.indexOf('方案A345') !== 0) return;
+                    if (planFilter !== 'A123' && planFilter !== 'A345') return;
+                  }
+                  if (pp.isPlanWon === null && pp.isPlanLose === null) return;
+                  var isWonAI = pp.isPlanWon === true;
+                  var isLoseAI = pp.isPlanLose === true;
+                  var dayIncomeAI = 0, statusAI = 'unknown';
+                  if (isWonAI) { dayIncomeAI = pp.winningPrize - AMOUNT; statusAI = 'won'; totalWon++; }
+                  else if (isLoseAI) { dayIncomeAI = -AMOUNT; statusAI = 'lose'; }
+                  totalPlans++;
+                  totalIncome += dayIncomeAI;
+                  results.push({ date: ds, plan: pp.planName, status: statusAI, matches: pp.matches.map((mm) => ({ matchNum: mm.matchNum, home: mm.homeName, visit: mm.visitName, direction: mm.direction, isWon: mm.isMatchWon, isLose: mm.isMatchLose })), prize: isWonAI ? pp.winningPrize : 0, income: dayIncomeAI });
                 });
               }
 
@@ -5687,6 +5762,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   if (!_spf || _spf.home == null || _spf.draw == null || _spf.away == null) continue;
 
                   const _coldDir = PG.getColdDirection({ spf: _spf }, _qgs);
+                  if (!_coldDir) continue;
                   const _chgEntry = _chgDay[_qmid];
                   let _hi =
                     _chgEntry && _chgEntry.heatIndex !== null && _chgEntry.heatIndex !== undefined

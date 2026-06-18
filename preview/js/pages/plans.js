@@ -109,7 +109,10 @@ export function updatePlanDateBar() {
 }
 
 function _normalizeVisiblePlanTab(tab) {
-  return tab === 'my' ? 'my' : 'expert';
+  if (tab === 'my') return 'my';
+  if (tab === 'ai_tg') return 'ai_tg';
+  if (tab === 'wc') return 'wc';
+  return 'expert';
 }
 
 function _syncPlanTabBarLayout() {
@@ -124,7 +127,9 @@ function _loadActivePlanTab() {
   _syncPlanTabBarLayout();
   if (visibleTab !== state.planTab) state.setPlanTab(visibleTab);
   if (visibleTab === 'my') loadMyPlanList();
-  else loadPlanList();
+  else if (visibleTab === 'ai_tg') loadAIPlanList();
+  else if (visibleTab === 'wc') loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
+  else loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
 }
 
 export function shiftPlanDate(delta) {
@@ -214,10 +219,254 @@ export function switchPlanTab(tab) {
   }
 
   if (visibleTab === 'my') loadMyPlanList();
-  else loadPlanList();
+  else if (visibleTab === 'ai_tg') loadAIPlanList();
+  else if (visibleTab === 'wc') loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
+  else loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
 }
 
-export function loadPlanList() {
+// ★ 总进球三向标签页：仅显示方案A01/A02/A03（AI驱动）
+export function loadAIPlanList() {
+  var el = document.getElementById('planList');
+  if (!el) return;
+  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载方案中...</div>';
+
+  var params = { date: state.planDate };
+
+  api('plan-list', params)
+    .then(function (data) {
+      if (data.date && data.date !== state.planDate && !state.planDateExplicit) {
+        state.setPlanDate(data.date);
+      }
+
+      var allPlans = (data.plans || []).concat(data.wcPlans || []);
+      var aiPlans = allPlans.filter(function (p) {
+        var pn = p.planName || p.name || '';
+        return pn.indexOf('方案A') === 0;
+      });
+
+      if (aiPlans.length === 0) {
+        el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">暂无总进球三向方案</div>';
+        return;
+      }
+
+      // 改造成数组让 loadPlanList 渲染逻辑能处理
+      var mockData = JSON.parse(JSON.stringify(data));
+      mockData.plans = aiPlans;
+      mockData.wcPlans = [];
+
+      // 调用现有渲染——通过临时替换数据对象
+      _renderPlanListFromData(el, mockData, params);
+    })
+    .catch(function () {
+      el.innerHTML = '<div class="error" style="text-align:center;padding:80px 0;color:#ef4444;">加载失败，请重试</div>';
+    });
+}
+
+// 精简版渲染：仅用于 AI 三向方案
+function _renderPlanListFromData(el, data, params) {
+  var plans = (data.plans || []).map(function (p, i) {
+    var matches = p.matches || [];
+    var allWon = matches.length > 0, anyLose = false;
+    for (var mj = 0; mj < matches.length; mj++) {
+      if (matches[mj].isMatchWon !== true) allWon = false;
+      if (matches[mj].isMatchLose === true) anyLose = true;
+    }
+    var isWon = allWon;
+    var isLose = !isWon && anyLose;
+    var planName = p.planName || '方案A';
+    var prizeNum = isWon ? (p.winningPrize || 0) : isLose ? 0 : (p.maxPrize || 0);
+    var statusBadge = isWon ? '<span style="color:#22c55e;font-weight:600;">✓ 已中奖</span>' : isLose ? '<span style="color:#ef4444;font-weight:600;">✗ 未中奖</span>' : '<span style="color:#fbbf24;">⏳ 待开</span>';
+    return {
+      plan: p, i: i, planName: planName, isWon: isWon, isLose: isLose,
+      prizeNum: prizeNum, statusBadge: statusBadge,
+      amountVal: ((p.amount || 1000)).toFixed(0)
+    };
+  });
+
+  var noticeHtml = data.notice ? '<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#fbbf24;text-align:center;">⚠ ' + data.notice + '</div>' : '';
+
+  if (plans.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">暂无总进球三向方案</div>';
+    return;
+  }
+
+  var html = noticeHtml;
+  html += '<div style="margin-bottom:8px;color:var(--text2);font-size:11px;text-align:center;">AI 总进球三向预测 · ' + plans.length + ' 个方案</div>';
+  plans.forEach(function (pi) {
+    html += _buildAIPlanCard(pi);
+  });
+  el.innerHTML = html;
+}
+
+function _buildAIPlanCard(pi) {
+  // ★ 总进球三向卡片 — 对齐专家卡8层结构，暖珊瑚色主题
+  var CORAL = '#FF6B6B';
+  var CORAL_LIGHT = 'rgba(255,107,107,0.12)';
+  var p = pi.plan;
+  var matches = p.matches || [];
+  var isWon = pi.isWon;
+  var isLose = pi.isLose;
+
+  // ── 1. 截止时间 ──
+  var cutoffDisplay = '';
+  if (matches.length > 0 && matches[0].startTime) {
+    var stParts = matches[0].startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+    if (stParts) {
+      cutoffDisplay = '<span style="font-size:11px;color:var(--text3);">截 ' + stParts[1] + '/' + stParts[2] + ' ' + stParts[3] + ':' + stParts[4] + '</span>';
+    }
+  }
+
+  // ── 2. 状态文本+徽章 ──
+  var statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
+  var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
+  var prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
+  var prizeVal = isWon ? (p.winningPrize || 0) : isLose ? 0 : (p.maxPrize || 0);
+  var prizeStr = prizeVal > 0 ? prizeVal.toFixed(0) : isWon ? '--' : '0';
+
+  // ── 3. 方向赔率解析 ──
+  var matchDir = matches.length > 0 ? (matches[0].direction || '') : '';
+  var oddsObj = matches.length > 0 ? (matches[0].odds || {}) : {};
+  var dirParts = matchDir ? matchDir.split(/[、，,]/) : [];
+  var subResults = matches.length > 0 ? (matches[0].subResults || []) : [];
+  var commonPrefix = '';
+  if (dirParts.length > 1 && dirParts[0].length > 1) {
+    for (var cl = 1; cl <= dirParts[0].length; cl++) {
+      var cand = dirParts[0].substring(0, cl);
+      var ok = true;
+      for (var pi2 = 1; pi2 < dirParts.length; pi2++) {
+        if (dirParts[pi2].indexOf(cand) !== 0) { ok = false; break; }
+      }
+      if (!ok) break;
+      commonPrefix = cand;
+    }
+  }
+  // ★ V17: 数字型尾部提取公共前缀
+  if (!commonPrefix && dirParts.length > 1) {
+    var mPrefix = dirParts[0].match(/^(.+?)\d+\+?$/);
+    if (mPrefix) commonPrefix = mPrefix[1];
+  }
+  var oddsSpans = [];
+  dirParts.forEach(function (pt) {
+    var label = pt.trim();
+    var ft = commonPrefix ? commonPrefix + label.replace(commonPrefix, '') : label;
+    var val = null;
+    if (ft.indexOf('总进球') >= 0 && oddsObj.totalGoals) {
+      var gm = ft.match(/(\d+\+?)/);
+      if (gm) val = oddsObj.totalGoals[gm[1]];
+    }
+    if (!val && ft.indexOf('球') >= 0 && oddsObj.totalGoals) {
+      var gm2 = ft.match(/(\d+\+?)/);
+      if (gm2) val = oddsObj.totalGoals[gm2[1]];
+    }
+    var subR = null;
+    for (var si = 0; si < subResults.length; si++) {
+      if (subResults[si].direction === label) { subR = subResults[si]; break; }
+    }
+    var subCls = '';
+    if (subR && subR.result !== null && subR.result !== undefined) {
+      subCls = subR.result === 1 ? ' plan-direction-hit' : subR.result === -1 ? ' plan-direction-undetermined' : ' plan-direction-miss';
+    }
+    var displayLabel = label;
+    if (displayLabel.indexOf('总进球-') === 0) displayLabel = displayLabel.replace('总进球-', '') + '球';
+    // ★ V17: 裸数字加球后缀
+    if (commonPrefix && commonPrefix.indexOf('总进球') >= 0 && /^\d+$/.test(displayLabel) && displayLabel.indexOf('球') < 0) {
+      displayLabel += '球';
+    }
+    if (val) oddsSpans.push('<span class="' + subCls + '">' + displayLabel + '(' + val + ')</span>');
+    else oddsSpans.push('<span class="' + subCls + '">' + displayLabel + '(-)</span>');
+  });
+
+  // ── 4. 对阵行（V17: 多方向拆行）──
+  var m = matches[0] || {};
+  var numText = m.matchNum || '';
+  var matchDateShort = '', matchTime = '';
+  if (m.startTime) {
+    var tm2 = m.startTime.match(/(\d{2}):(\d{2})/);
+    if (tm2) matchTime = tm2[1] + ':' + tm2[2];
+    var dm2 = m.startTime.match(/(\d{2})\/(\d{2})/) || m.startTime.match(/(\d{2})-(\d{2})/);
+    if (dm2) matchDateShort = dm2[1] + '/' + dm2[2];
+  }
+  var timeDisp = matchDateShort || matchTime ? (matchDateShort + ' ' + matchTime).trim() : '';
+  var matchRow = '';
+  for (var _di = 0; _di < oddsSpans.length; _di++) {
+    if (_di === 0) {
+      matchRow +=
+        '<tr>' +
+        '<td class="match-info-col"><div class="match-num-text">' + numText + '</div>' +
+        (timeDisp ? '<div class="match-time-sub">' + timeDisp + '</div>' : '') + '</td>' +
+        '<td class="team-col">' + renderMatchTeams(m) + '</td>' +
+        '<td class="odds-col">' + oddsSpans[_di] + '</td>' +
+        '</tr>';
+    } else {
+      matchRow +=
+        '<tr>' +
+        '<td class="match-info-col"></td>' +
+        '<td class="team-col"></td>' +
+        '<td class="odds-col">' + oddsSpans[_di] + '</td>' +
+        '</tr>';
+    }
+  }
+
+  // ── 5. 组装完整卡片 ──
+  var cardClass = 'plan-card';
+  if (isWon) cardClass += ' plan-card-won';
+  else if (isLose) cardClass += ' plan-card-lost';
+  else cardClass += ' plan-card-ai';
+
+  var cardId = 'ai-' + pi.planName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5-]/g, '');
+  return (
+    '<div class="' + cardClass + '" id="upcard-' + cardId + '" style="border-left:3px solid ' + CORAL + ';">' +
+    // ── head ──
+    '<div class="plan-card-head">' +
+    '<div class="plan-left">' +
+    '<span class="plan-soccer-icon" style="color:' + CORAL + ';">🤖</span>' +
+    '<span class="plan-name" style="color:' + CORAL + ';">' + pi.planName + '</span>' +
+    '</div>' +
+    '<span class="plan-pub-time">' + cutoffDisplay + '</span>' +
+    '</div>' +
+    // ── amount row ──
+    '<div class="plan-amount-row">' +
+    '<div class="plan-amount-col">' +
+    '<div class="plan-amount-label">方案金额</div>' +
+    '<div class="plan-amount-value plan-money-value">' + pi.amountVal + '<span class="unit">元</span></div>' +
+    '</div>' +
+    '<div class="plan-amount-col">' +
+    '<div class="plan-amount-label">' + prizeLabel + '</div>' +
+    '<div class="plan-amount-value plan-money-value" style="color:' + CORAL + ';">' + prizeStr + '<span class="unit">元</span></div>' +
+    '</div>' +
+    '<div class="plan-amount-col">' +
+    '<div class="plan-amount-label">方案状态</div>' +
+    '<div class="plan-amount-value ' + statusClass + '">' + statusText + '</div>' +
+    '</div>' +
+    '</div>' +
+    // ── divider ──
+    '<div class="plan-divider"></div>' +
+    // ── info grid ──
+    '<div class="plan-info-grid">' +
+    '<div class="plan-info-left"><div>玩法</div><div>场数/过关</div><div>注数/倍</div></div>' +
+    '<div class="plan-info-right"><div>总进球三选</div><div>1场单关</div><div>' + (p.betCount || 250) + '注 ×' + (p.multiplier || 25) + '倍</div></div>' +
+    (isWon
+      ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>'
+      : '') +
+    (isLose
+      ? '<div class="plan-lose-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#9AA6B2" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="16" font-weight="900" fill="#9AA6B2" transform="rotate(-10,19,19)">未中</text></svg></div>'
+      : '') +
+    '</div>' +
+    // ── match section ──
+    '<div class="plan-match-section">' +
+    '<table class="plan-match-table"><thead><tr><th>场次</th><th>对阵</th><th>方向(赔率)</th></tr></thead><tbody>' +
+    matchRow +
+    '</tbody></table>' +
+    '</div>' +
+    // ── actions ──
+    '<div class="mp-actions">' +
+    '<button class="mp-share-btn" onclick="sharePlanCard(\'' + cardId + '\')">✨ 分享</button>' +
+    '</div>' +
+    '</div>'
+  );
+}
+
+export function loadPlanList(optFilterFn) {
   var el = document.getElementById('planList');
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载方案中...</div>';
@@ -233,7 +482,7 @@ export function loadPlanList() {
   }
 
   // ★ P1-2: sessionStorage 缓存命中 — 乐观渲染，消除白屏
-  var cacheKey = 'plan-list:scorefix-v3:' + state.planDate;
+  var cacheKey = 'plan-list:scorefix-v3:' + state.planTab + ':' + state.planDate;
   var cached = getCache(cacheKey);
   if (cached) {
     el.innerHTML = cached;
@@ -266,6 +515,10 @@ export function loadPlanList() {
         }
       }
       var plans = guardPlanData(data.plans || []);
+      // ★ V17: 按标签筛选方案（世界杯 / 专家博热）
+      if (typeof optFilterFn === 'function') {
+        plans = plans.filter(optFilterFn);
+      }
       // ★ notice 提示条（有方案时嵌入顶部）
       var noticeHtml = data.notice
         ? '<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#fbbf24;text-align:center;">⚠ ' +
@@ -300,7 +553,7 @@ export function loadPlanList() {
               });
             }
             updatePlanDateBar();
-            loadPlanList();
+            loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
             return;
           }
         }
@@ -311,8 +564,14 @@ export function loadPlanList() {
             data.notice +
             '</div>';
         } else {
+          // ★ L4: 今日13:00前显示"方案生成中"
+          var now = new Date();
+          var isToday = state.planDate === now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+          var msg = (isToday && now.getHours() < 13)
+            ? '方案生成中，预计 12:00 后可用'
+            : '当日暂无竞彩方案';
           el.innerHTML =
-            '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">当日暂无竞彩方案</div>';
+            '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">' + msg + '</div>';
         }
         return;
       }
@@ -418,6 +677,11 @@ export function loadPlanList() {
                 commonPrefix = cand;
               }
             }
+            // ★ V17: 数字型尾部提取公共前缀（总进球-3、4、5球 → 总进球-）
+            if (!commonPrefix && parts.length > 1) {
+              var mPrefix = parts[0].match(/^(.+?)\d+\+?$/);
+              if (mPrefix) commonPrefix = mPrefix[1];
+            }
             parts.forEach(function (pt) {
               var label = pt.trim();
               var ft = commonPrefix ? commonPrefix + label.replace(commonPrefix, '') : label.trim();
@@ -445,15 +709,15 @@ export function loadPlanList() {
               if (!val && isHalfFull && oddsObj.halfFull) {
                 var hfName = ft.replace('半全场-', '');
                 var hfMap = {
-                  胜胜: 'hh',
-                  平胜: 'dh',
-                  胜负: 'ha',
-                  胜平: 'hd',
-                  平平: 'dd',
-                  平负: 'da',
-                  负胜: 'ah',
-                  负平: 'ad',
-                  负负: 'aa',
+                  胜胜: 'ss',
+                  平胜: 'ps',
+                  胜负: 'sf',
+                  胜平: 'sp',
+                  平平: 'pp',
+                  平负: 'pf',
+                  负胜: 'fs',
+                  负平: 'fp',
+                  负负: 'ff',
                 };
                 var hfKey = hfMap[hfName];
                 if (hfKey) val = oddsObj.halfFull[hfKey];
@@ -474,7 +738,7 @@ export function loadPlanList() {
               }
               var subCls = '';
               if (subR && subR.result !== null && subR.result !== undefined) {
-                subCls = subR.result === 1 ? ' plan-direction-hit' : ' plan-direction-miss';
+                subCls = subR.result === 1 ? ' plan-direction-hit' : subR.result === -1 ? ' plan-direction-undetermined' : ' plan-direction-miss';
               }
               var displayLabel = label;
               if (displayLabel.indexOf('总进球-') === 0) {
@@ -484,13 +748,17 @@ export function loadPlanList() {
               if (displayLabel.indexOf('半全场-') === 0) {
                 displayLabel = displayLabel.replace('半全场-', '');
               }
+              // ★ V17: 裸数字加球后缀（总进球-3、4、5球中的"4"→"4球"）
+              if (commonPrefix && commonPrefix.indexOf('总进球') >= 0 && /^\d+$/.test(displayLabel) && displayLabel.indexOf('球') < 0) {
+                displayLabel += '球';
+              }
               if (isRQ) {
                 displayLabel += '(' + formatHandicapText(getMatchHandicapValue(match, match)) + ')';
               }
               if (val) resolved.push('<span class="' + subCls + '">' + displayLabel + '(' + val + ')</span>');
               else resolved.push('<span class="' + subCls + '">' + displayLabel + '(-)</span>');
             });
-            return resolved.join('<span class="plan-dir-plus"> + </span>');
+            return resolved;
           }
 
           var matchRows = '';
@@ -498,7 +766,7 @@ export function loadPlanList() {
             var m = matches[mi4];
             var isMw = m.isMatchWon === true;
             var isMl = m.isMatchLose === true;
-            var matchOddsHtml = resolveMatchOddsHtml(m, i);
+            var matchOddsArr = resolveMatchOddsHtml(m, i);
             var numText = m.matchNum || '';
             var matchDateShort = '',
               matchTime = '';
@@ -509,21 +777,35 @@ export function loadPlanList() {
               if (dm) matchDateShort = dm[1] + '/' + dm[2];
             }
             var timeDisp = matchDateShort || matchTime ? (matchDateShort + ' ' + matchTime).trim() : '';
-            matchRows +=
-              '<tr>' +
-              '<td class="match-info-col">' +
-              '<div class="match-num-text">' +
-              numText +
-              '</div>' +
-              (timeDisp ? '<div class="match-time-sub">' + timeDisp + '</div>' : '') +
-              '</td>' +
-              '<td class="team-col">' +
-              renderMatchTeams(m) +
-              '</td>' +
-              '<td class="odds-col">' +
-              matchOddsHtml +
-              '</td>' +
-              '</tr>';
+            // ★ V17: 多方向拆行 — 每个子方向一行
+            for (var di = 0; di < matchOddsArr.length; di++) {
+              if (di === 0) {
+                matchRows +=
+                  '<tr>' +
+                  '<td class="match-info-col">' +
+                  '<div class="match-num-text">' +
+                  numText +
+                  '</div>' +
+                  (timeDisp ? '<div class="match-time-sub">' + timeDisp + '</div>' : '') +
+                  '</td>' +
+                  '<td class="team-col">' +
+                  renderMatchTeams(m) +
+                  '</td>' +
+                  '<td class="odds-col">' +
+                  matchOddsArr[di] +
+                  '</td>' +
+                  '</tr>';
+              } else {
+                matchRows +=
+                  '<tr>' +
+                  '<td class="match-info-col"></td>' +
+                  '<td class="team-col"></td>' +
+                  '<td class="odds-col">' +
+                  matchOddsArr[di] +
+                  '</td>' +
+                  '</tr>';
+              }
+            }
           }
 
           var cardId = 'expert-' + i;
@@ -1805,7 +2087,7 @@ export function loadScorePlanList() {
               btn.classList.toggle('active', btn.getAttribute('data-tab') === 'expert');
             });
             updatePlanDateBar();
-            loadPlanList();
+            loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
             return;
           }
         }
@@ -2115,7 +2397,7 @@ export function loadQuantPlanList() {
               btn.classList.toggle('active', btn.getAttribute('data-tab') === 'expert');
             });
             updatePlanDateBar();
-            loadPlanList();
+            loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
             return;
           }
         }
@@ -2448,5 +2730,5 @@ function buildConsensusFilterBar(consensusCount, active) {
 if (!window._planConsensusFilter) window._planConsensusFilter = 'all';
 window.switchConsensusFilter = function (level) {
   window._planConsensusFilter = level;
-  loadPlanList();
+  state.planTab === 'wc' ? loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('世界杯') === 0; }) : state.planTab === 'ai_tg' ? loadAIPlanList() : loadPlanList(function(p) { var pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
 };

@@ -35,7 +35,7 @@ describe('今日方案页分享渲染合同', () => {
   const appCssSource = readSource(APP_CSS_FILE);
   const modalsCssSource = readSource(MODALS_CSS_FILE);
 
-  const expertSection = sliceBetween(plansSource, 'export function loadPlanList()', '// ========== 我的方案 ==========');
+  const expertSection = sliceBetween(plansSource, 'export function loadPlanList(', '// ========== 我的方案 ==========');
   const mySection = sliceBetween(plansSource, 'export function loadMyPlanList()', '// ═══ 自定义确认弹窗工厂 ═══');
   const scoreSection = sliceBetween(plansSource, 'export function loadScorePlanList()', '// ========== 量化方案 ==========');
   const quantSection = sliceBetween(plansSource, 'export function loadQuantPlanList()', '// =============================================================');

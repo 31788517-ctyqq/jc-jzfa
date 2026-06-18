@@ -19,7 +19,7 @@ export let rankDateOffset = 0;
 export let planDate = '';
 export let planDateOffset = 0;
 export let planDateExplicit = false; // 标记日历直接选日，loadPlanList应直接发送该日期
-export let planTab = 'expert'; // 'expert' | 'score' | 'quant' | 'my'
+export let planTab = 'expert'; // 'wc' | 'expert' | 'ai_tg' | 'my'
 
 // 方案收入缓存
 export let incomeLoaded = false;

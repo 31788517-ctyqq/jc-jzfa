@@ -414,28 +414,46 @@ function renderProfilePlans() {
       var oddsStr = m.odds != null ? Number(m.odds).toFixed(2) : '--';
       var dirDisplay = m.direction || m.oddsName || '';
       if (m.playType === 'rqspf') dirDisplay = '让' + dirDisplay;
-      var oddsCls = '';
-      if (m.isMatchWon === true) oddsCls = ' plan-direction-hit';
-      else if (m.isMatchLose === true) oddsCls = ' plan-direction-miss';
-      matchRows +=
-        '' +
-        '<tr>' +
-        '<td class="match-info-col"><span class="match-num-text">' +
-        escapeHtml(m.matchNum || '') +
-        '</span></td>' +
-        '<td class="team-col"><span class="plan-team-home">' +
-        escapeHtml(m.homeName || '') +
-        '</span><span class="plan-team-vs">vs</span><span class="plan-team-away">' +
-        escapeHtml(m.visitName || '') +
-        '</span></td>' +
-        '<td class="odds-col' +
-        oddsCls +
-        '">' +
-        escapeHtml(dirDisplay) +
-        '(' +
-        oddsStr +
-        ')</td>' +
-        '</tr>';
+      // ★ V17: 单关双选方向展开 + 多方向拆行
+      if (dirDisplay === '胜平') dirDisplay = '胜、平';
+      else if (dirDisplay === '平负') dirDisplay = '平、负';
+      var dirParts = dirDisplay ? dirDisplay.split(/[、，,]/) : [dirDisplay];
+      var subResults = m.subResults || [];
+      for (var di = 0; di < dirParts.length; di++) {
+        var subDir = (dirParts[di] || '').trim();
+        if (!subDir) continue;
+        // ★ V17: 逐方向颜色 — 命中红 / 未中绿 / 未开队名色
+        var subR = null;
+        for (var si = 0; si < subResults.length; si++) {
+          if (subResults[si].direction === subDir) { subR = subResults[si]; break; }
+        }
+        var dirCls = '';
+        if (subR && subR.result !== null && subR.result !== undefined) {
+          dirCls = subR.result === 1 ? ' plan-direction-hit' : subR.result === -1 ? ' plan-direction-undetermined' : ' plan-direction-miss';
+        }
+        var fullDir = escapeHtml(subDir) + '(' + oddsStr + ')';
+        if (di === 0) {
+          matchRows +=
+            '<tr>' +
+            '<td class="match-info-col"><span class="match-num-text">' +
+            escapeHtml(m.matchNum || '') +
+            '</span></td>' +
+            '<td class="team-col"><span class="plan-team-home">' +
+            escapeHtml(m.homeName || '') +
+            '</span><span class="plan-team-vs">vs</span><span class="plan-team-away">' +
+            escapeHtml(m.visitName || '') +
+            '</span></td>' +
+            '<td class="odds-col' + dirCls + '">' + fullDir + '</td>' +
+            '</tr>';
+        } else {
+          matchRows +=
+            '<tr>' +
+            '<td class="match-info-col"></td>' +
+            '<td class="team-col"></td>' +
+            '<td class="odds-col' + dirCls + '">' + fullDir + '</td>' +
+            '</tr>';
+        }
+      }
     }
 
     var stampHtml = '';

@@ -353,44 +353,55 @@ window.togglePlanReconcile = function (enabled) {
 // ═══ 方案比赛表格（复用 plan-match-table 样式） ═══
 function renderPlanMatchesTable(matches) {
   if (!matches || matches.length === 0) return '';
-  var rows = matches
-    .map(function (m) {
-      var oddsStr = m.odds != null ? Number(m.odds).toFixed(2) : '--';
-      var dirDisplay = m.direction || m.oddsName || '';
-      if (m.playType === 'rqspf') {
-        dirDisplay = '让' + dirDisplay + '(' + formatHandicapText(getMatchHandicapValue(m, m)) + ')';
+  var allRows = [];
+  matches.forEach(function (m) {
+    var oddsStr = m.odds != null ? Number(m.odds).toFixed(2) : '--';
+    var dirDisplay = m.direction || m.oddsName || '';
+    if (m.playType === 'rqspf') {
+      dirDisplay = '让' + dirDisplay + '(' + formatHandicapText(getMatchHandicapValue(m, m)) + ')';
+    }
+    var playTypeMap = { spf: '胜平负', rqspf: '让球', jqs: '总进球', bqc: '半全场', bf: '比分' };
+    var playLabel = playTypeMap[m.playType] || m.playType || '--';
+    // ★ V17: 单关双选方向展开 + 多方向拆行
+    if (dirDisplay === '胜平') dirDisplay = '胜、平';
+    else if (dirDisplay === '平负') dirDisplay = '平、负';
+    var dirParts = dirDisplay ? dirDisplay.split(/[、，,]/) : [dirDisplay];
+    var subResults = m.subResults || [];
+    for (var di = 0; di < dirParts.length; di++) {
+      var subDir = (dirParts[di] || '').trim();
+      if (!subDir) continue;
+      // ★ V17: 逐方向颜色 — 命中红 / 未中绿 / 未开队名色
+      var subR = null;
+      for (var si = 0; si < subResults.length; si++) {
+        if (subResults[si].direction === subDir) { subR = subResults[si]; break; }
       }
-      var playTypeMap = { spf: '胜平负', rqspf: '让球', jqs: '总进球', bqc: '半全场', bf: '比分' };
-      var playLabel = playTypeMap[m.playType] || m.playType || '--';
-      // 赔率颜色：命中红 / 未命中绿 / 未开奖原色
-      var oddsStyle = '';
-      if (m.isMatchWon === true) oddsStyle = 'color:#EF4444;';
-      else if (m.isMatchLose === true) oddsStyle = 'color:#34D399;';
-      return (
-        '<tr>' +
-        '<td class="match-info-col"><span class="match-num-text">' +
-        (m.matchNum || '') +
-        '</span></td>' +
-        '<td class="team-col">' +
-        renderMatchTeams(m, m) +
-        '</td>' +
-        '<td class="odds-col"' +
-        (oddsStyle ? ' style="' + oddsStyle + '"' : '') +
-        '>' +
-        playLabel +
-        ' ' +
-        dirDisplay +
-        '(' +
-        oddsStr +
-        ')' +
-        '</td>' +
-        '</tr>'
-      );
-    })
-    .join('');
+      var dirCls = '';
+      if (subR && subR.result !== null && subR.result !== undefined) {
+        dirCls = subR.result === 1 ? ' plan-direction-hit' : subR.result === -1 ? ' plan-direction-undetermined' : ' plan-direction-miss';
+      }
+      var fullDir = (di === 0 ? playLabel + ' ' : '') + subDir + '(' + oddsStr + ')';
+      if (di === 0) {
+        allRows.push(
+          '<tr>' +
+          '<td class="match-info-col"><span class="match-num-text">' + (m.matchNum || '') + '</span></td>' +
+          '<td class="team-col">' + renderMatchTeams(m, m) + '</td>' +
+          '<td class="odds-col' + dirCls + '">' + fullDir + '</td>' +
+          '</tr>'
+        );
+      } else {
+        allRows.push(
+          '<tr>' +
+          '<td class="match-info-col"></td>' +
+          '<td class="team-col"></td>' +
+          '<td class="odds-col' + dirCls + '">' + fullDir + '</td>' +
+          '</tr>'
+        );
+      }
+    }
+  });
 
   return (
-    '<div class="plan-match-section">' + '<table class="plan-match-table"><tbody>' + rows + '</tbody></table></div>'
+    '<div class="plan-match-section">' + '<table class="plan-match-table"><tbody>' + allRows.join('') + '</tbody></table></div>'
   );
 }
 

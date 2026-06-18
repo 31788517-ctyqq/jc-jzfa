@@ -2171,7 +2171,7 @@ function loadPlanList() {
               }
               let subCls = '';
               if (subR && subR.result !== null && subR.result !== undefined) {
-                subCls = subR.result === 1 ? ' plan-direction-hit' : ' plan-direction-miss';
+                subCls = subR.result === 1 ? ' plan-direction-hit' : subR.result === -1 ? ' plan-direction-undetermined' : ' plan-direction-miss';
               }
 
               let displayLabel = label;

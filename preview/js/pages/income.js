@@ -18,7 +18,8 @@ function _setIncomeColor(el, val) {
 }
 
 function _normalizeIncomeDirection(direction) {
-  return direction === 'all' || direction === 'expert' || direction === 'my' ? direction : 'expert';
+  if (direction === 'all' || direction === 'expert' || direction === 'my' || direction === 'ai_tg' || direction === 'wc') return direction;
+  return 'expert';
 }
 
 export function loadIncome(force) {
@@ -35,7 +36,7 @@ export function loadIncome(force) {
   var direction = _normalizeIncomeDirection(rawDirection);
 
   if (direction !== rawDirection && window.selectDD) {
-    var directionText = direction === 'all' ? '全部' : direction === 'my' ? '我的方案' : '专家博热方案';
+    var directionText = direction === 'all' ? '全部' : direction === 'my' ? '我的方案' : direction === 'ai_tg' ? '总进球三向' : direction === 'wc' ? '世界杯' : '专家博热方案';
     window.selectDD('dd-incDir', direction, directionText);
   }
 
@@ -159,4 +160,56 @@ export function loadIncome(force) {
 }
 
 // 方向切换回调（下拉选择时触发，仅更新 UI 标记，不自动查询）
-export function onIncDirChange() {}
+// ★ 接收方向参数避免异步 selectDD 导致的 DOM 读取竞态
+export function onIncDirChange(dir) {
+  var incDir = dir || (window.getDDVal ? window.getDDVal('dd-incDir') : 'expert');
+  if (incDir !== 'all' && incDir !== 'expert' && incDir !== 'my' && incDir !== 'ai_tg' && incDir !== 'wc') {
+    if (window.selectDD) window.selectDD('dd-incDir', 'expert', '专家博热方案');
+    incDir = 'expert';
+  }
+  var ddPlan = document.getElementById('dd-incPlan');
+  if (!ddPlan) return;
+  var menu = ddPlan.querySelector('.filter-dd-menu');
+  if (!menu) return;
+
+  // 重置为"全部"选中
+  if (window.selectDD) window.selectDD('dd-incPlan', 'all', '全部');
+
+  if (incDir === 'wc') {
+    menu.innerHTML =
+      '<li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incPlan\',\'all\',\'全部\')">全部</li>' +
+      '<li data-val="worldcup_01" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'worldcup_01\',\'世界杯01\')">世界杯01</li>' +
+      '<li data-val="worldcup_02" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'worldcup_02\',\'世界杯02\')">世界杯02</li>' +
+      '<li data-val="worldcup_03" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'worldcup_03\',\'世界杯03\')">世界杯03</li>' +
+      '<li data-val="worldcup_04" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'worldcup_04\',\'世界杯04\')">世界杯04</li>' +
+      '<li data-val="worldcup_05" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'worldcup_05\',\'世界杯05\')">世界杯05</li>' +
+      '<li data-val="worldcup_06" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'worldcup_06\',\'世界杯06\')">世界杯06</li>' +
+      '<li data-val="worldcup_07" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'worldcup_07\',\'世界杯07\')">世界杯07</li>' +
+      '<li data-val="worldcup_08" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'worldcup_08\',\'世界杯08\')">世界杯08</li>';
+  } else if (incDir === 'ai_tg') {
+    menu.innerHTML =
+      '<li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incPlan\',\'all\',\'全部\')">全部</li>' +
+      '<li data-val="A123" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'A123\',\'方案A123\')">方案A123（1、2、3球）</li>' +
+      '<li data-val="A345" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'A345\',\'方案A345\')">方案A345（3、4、5球）</li>';
+  } else if (incDir === 'expert' || incDir === 'all') {
+    menu.innerHTML =
+      '<li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incPlan\',\'all\',\'全部\')">全部</li>' +
+      '<li data-val="plan_1" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_1\',\'方案一\')">方案一</li>' +
+      '<li data-val="plan_2" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_2\',\'方案二\')">方案二</li>' +
+      '<li data-val="plan_3" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_3\',\'方案三\')">方案三</li>' +
+      '<li data-val="plan_4" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_4\',\'方案四\')">方案四</li>' +
+      '<li data-val="plan_5" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_5\',\'方案五\')">方案五</li>' +
+      '<li data-val="plan_6" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_6\',\'方案六\')">方案六</li>' +
+      '<li data-val="plan_7" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_7\',\'方案七\')">方案七</li>';
+  } else {
+    menu.innerHTML =
+      '<li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incPlan\',\'all\',\'全部\')">全部</li>' +
+      '<li data-val="plan_1" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_1\',\'方案一\')">方案一</li>' +
+      '<li data-val="plan_2" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_2\',\'方案二\')">方案二</li>' +
+      '<li data-val="plan_3" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_3\',\'方案三\')">方案三</li>' +
+      '<li data-val="plan_4" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_4\',\'方案四\')">方案四</li>' +
+      '<li data-val="plan_5" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_5\',\'方案五\')">方案五</li>' +
+      '<li data-val="plan_6" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_6\',\'方案六\')">方案六</li>' +
+      '<li data-val="plan_7" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_7\',\'方案七\')">方案七</li>';
+  }
+}
