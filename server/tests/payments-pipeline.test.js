@@ -18,17 +18,24 @@ jest.mock('../database', function () {
   return {
     getAdapter: function () {
       return {
-        execOne: function () { return undefined; },
-        execAll: function () { return []; },
-        execRun: function () { return { changes: 1 }; },
+        execOne: function () {
+          return undefined;
+        },
+        execAll: function () {
+          return [];
+        },
+        execRun: function () {
+          return { changes: 1 };
+        },
       };
     },
-    isAvailable: function () { return false; },
+    isAvailable: function () {
+      return false;
+    },
   };
 });
 
 describe('P2: payments-pipeline — 支付管道', function () {
-
   describe('1. 模块加载', function () {
     var payments;
     beforeAll(function () {

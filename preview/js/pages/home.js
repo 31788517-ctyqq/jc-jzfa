@@ -517,6 +517,12 @@ export function loadHome() {
       requestAnimationFrame(function () {
         _renderHomeStats(d.matches || [], d.ranking || []);
       });
+      // ★ P2: 异步预取命中率数据，命中率页秒开
+      setTimeout(function () {
+        api('hit-rate-stats', { days: 60 }).then(function (data) {
+          if (data) try { sessionStorage.setItem('hit-rate-cache', JSON.stringify(data)); } catch (_) {}
+        }).catch(function () {});
+      }, 3000);
       return;
     }
     // 回退：原有 3 次独立请求

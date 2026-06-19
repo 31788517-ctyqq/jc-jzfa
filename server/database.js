@@ -433,7 +433,9 @@ function _createSqlJsAdapter(sqlDb) {
 
   // ★ V17: DB 写入指标追踪
   let _dbMetrics = null;
-  try { _dbMetrics = require('./core/db-metrics'); } catch (_) {}
+  try {
+    _dbMetrics = require('./core/db-metrics');
+  } catch (_) {}
 
   // execRun: 执行 INSERT/UPDATE/DELETE
   function execRun(sql, ...args) {

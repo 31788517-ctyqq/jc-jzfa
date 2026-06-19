@@ -13,17 +13,27 @@ jest.mock('../database', function () {
   return {
     getAdapter: function () {
       return {
-        execOne: function () { return undefined; },
-        execAll: function () { return []; },
+        execOne: function () {
+          return undefined;
+        },
+        execAll: function () {
+          return [];
+        },
       };
     },
-    isAvailable: function () { return false; },
+    isAvailable: function () {
+      return false;
+    },
   };
 });
 
 // Mock sp_data_adapter 避免加载完整 server 目录
-jest.mock('../core/sp_data_adapter', function () { return {}; });
-jest.mock('../core/data-fusion', function () { return {}; });
+jest.mock('../core/sp_data_adapter', function () {
+  return {};
+});
+jest.mock('../core/data-fusion', function () {
+  return {};
+});
 
 describe('P0: match-data-pack — 数据打包', function () {
   var pack;

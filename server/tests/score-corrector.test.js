@@ -9,13 +9,20 @@ var fs = require('fs');
 var path = require('path');
 var os = require('os');
 
-var TEST_DIR = path.join(os.tmpdir(), 'jczjfa-score-corrector-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6));
+var TEST_DIR = path.join(
+  os.tmpdir(),
+  'jczjfa-score-corrector-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+);
 var ODDS_DIR = path.join(TEST_DIR, 'sporttery_odds');
 var DATA_FILE = path.join(TEST_DIR, 'data.json');
 
 // Mock 模块路径
 jest.mock('../core/datetime', function () {
-  return { todayCN: function () { return '2026-06-20'; } };
+  return {
+    todayCN: function () {
+      return '2026-06-20';
+    },
+  };
 });
 
 var scoreCorrector;
@@ -27,7 +34,9 @@ beforeAll(function () {
 });
 
 afterAll(function () {
-  try { fs.rmSync(TEST_DIR, { recursive: true, force: true }); } catch (_) {}
+  try {
+    fs.rmSync(TEST_DIR, { recursive: true, force: true });
+  } catch (_) {}
 });
 
 describe('P0: score-corrector — 赛果校正', function () {
@@ -35,7 +44,7 @@ describe('P0: score-corrector — 赛果校正', function () {
     // 设置测试数据
     var testData = {
       m: {
-        '2040052': {
+        2040052: {
           matchId: '2040052',
           homeName: '测试主队',
           visitName: '测试客队',
@@ -44,7 +53,7 @@ describe('P0: score-corrector — 赛果校正', function () {
           score: '',
           halfScore: '',
         },
-        '2040053': {
+        2040053: {
           matchId: '2040053',
           homeName: '主队B',
           visitName: '客队B',
@@ -62,8 +71,8 @@ describe('P0: score-corrector — 赛果校正', function () {
       score: '2-1',
       halfScore: '1-0',
       lotteryResult: {
-        '比分': { outcome: '2:1' },
-        '半全场': { outcome: '胜胜' },
+        比分: { outcome: '2:1' },
+        半全场: { outcome: '胜胜' },
       },
     };
     fs.writeFileSync(path.join(ODDS_DIR, '2040052.json'), JSON.stringify(oddsData));
@@ -72,7 +81,7 @@ describe('P0: score-corrector — 赛果校正', function () {
     var halfOnly = {
       score: '0-1',
       halfScore: '',
-      lotteryResult: { '比分': { outcome: '0:1' } },
+      lotteryResult: { 比分: { outcome: '0:1' } },
     };
     fs.writeFileSync(path.join(ODDS_DIR, '2040053.json'), JSON.stringify(halfOnly));
 
@@ -147,7 +156,8 @@ describe('P0: score-corrector — 赛果校正', function () {
 
     it('3.2 correctDate 或类似函数已导出', function () {
       if (!scoreCorrector) return;
-      var hasCorrect = typeof scoreCorrector.correctDate === 'function' ||
+      var hasCorrect =
+        typeof scoreCorrector.correctDate === 'function' ||
         typeof scoreCorrector.correct === 'function' ||
         typeof scoreCorrector.verifyYesterdayResults === 'function';
       expect(hasCorrect).toBe(true);

@@ -455,8 +455,8 @@ function judgeByScore(direction, scoreStr, handicap) {
  * @returns {boolean|null} true=命中, false=未中, null=无法判定
  */
 const SP_ODDS_DIR = __dirname + '/../sporttery_odds';
-const _spCache = {};  // matchId → lotteryResult object
-const _spCacheMiss = {};  // matchId → true (file doesn't exist)
+const _spCache = {}; // matchId → lotteryResult object
+const _spCacheMiss = {}; // matchId → true (file doesn't exist)
 function judgeBySporttery(matchId, direction) {
   if (!matchId || !direction) return null;
   try {
@@ -464,7 +464,10 @@ function judgeBySporttery(matchId, direction) {
     if (sp === undefined && !_spCacheMiss[matchId]) {
       const fs = require('fs');
       const spFile = SP_ODDS_DIR + '/' + matchId + '.json';
-      if (!fs.existsSync(spFile)) { _spCacheMiss[matchId] = true; return null; }
+      if (!fs.existsSync(spFile)) {
+        _spCacheMiss[matchId] = true;
+        return null;
+      }
       sp = JSON.parse(fs.readFileSync(spFile, 'utf8'));
       _spCache[matchId] = sp;
     }
@@ -479,7 +482,7 @@ function judgeBySporttery(matchId, direction) {
       // 检测原始方向玩法前缀
       const isHF = direction.indexOf('半全场-') === 0;
       const isTG = direction.indexOf('总进球-') === 0;
-      const subParts = rawParts.map(function(p) {
+      const subParts = rawParts.map(function (p) {
         p = p.trim();
         if (isHF && p.indexOf('半全场-') !== 0) return '半全场-' + p;
         if (isTG && p.indexOf('总进球-') !== 0) {
@@ -812,7 +815,9 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
         entries.push({ matchId: m.matchId, direction: r.type, count: r.num });
       }
     }
-    entries.sort(function (a, b) { return b.count - a.count; });
+    entries.sort(function (a, b) {
+      return b.count - a.count;
+    });
     _wcRankingCache = entries;
     return entries;
   }
@@ -821,7 +826,9 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
     const ranking = getWCRanking();
     const dirs = Array.isArray(directions)
       ? directions
-      : directions.split(/[、,]/).map(function (s) { return s.trim(); });
+      : directions.split(/[、,]/).map(function (s) {
+          return s.trim();
+        });
     let bestCount = 0;
     for (let i = 0; i < ranking.length; i++) {
       if (ranking[i].matchId === matchId && dirs.indexOf(ranking[i].direction) >= 0) {
@@ -841,7 +848,9 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
     if (!md || !md.recs) return 0;
     const dirs = Array.isArray(directions)
       ? directions
-      : directions.split(/[、,]/).map(function (s) { return s.trim(); });
+      : directions.split(/[、,]/).map(function (s) {
+          return s.trim();
+        });
     let total = 0;
     for (let i = 0; i < md.recs.length; i++) {
       if (dirs.indexOf(md.recs[i].type) >= 0) total += md.recs[i].num || 0;
@@ -888,9 +897,15 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
       if (direction.indexOf('半全场-') === 0) {
         const hfParts = direction.split(/[、,]/);
         const hfMap = {
-          胜胜: 'hh', 平胜: 'dh', 胜负: 'ha',
-          胜平: 'hd', 平平: 'dd', 平负: 'da',
-          负胜: 'ah', 负平: 'ad', 负负: 'aa',
+          胜胜: 'hh',
+          平胜: 'dh',
+          胜负: 'ha',
+          胜平: 'hd',
+          平平: 'dd',
+          平负: 'da',
+          负胜: 'ah',
+          负平: 'ad',
+          负负: 'aa',
         };
         hfParts.forEach(function (pd) {
           pd = pd.trim();
@@ -912,8 +927,16 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
       });
       return vals;
     }
-    if (direction === '胜平' && oddsObj.spf) { vals.push(oddsObj.spf.home); vals.push(oddsObj.spf.draw); return vals; }
-    if (direction === '平负' && oddsObj.spf) { vals.push(oddsObj.spf.draw); vals.push(oddsObj.spf.away); return vals; }
+    if (direction === '胜平' && oddsObj.spf) {
+      vals.push(oddsObj.spf.home);
+      vals.push(oddsObj.spf.draw);
+      return vals;
+    }
+    if (direction === '平负' && oddsObj.spf) {
+      vals.push(oddsObj.spf.draw);
+      vals.push(oddsObj.spf.away);
+      return vals;
+    }
     if (direction === '让平' && oddsObj.rqspf) vals.push(oddsObj.rqspf.draw);
     else if (direction === '平' && oddsObj.spf) vals.push(oddsObj.spf.draw);
     else if (direction === '让负' && oddsObj.rqspf) vals.push(oddsObj.rqspf.away);
@@ -924,7 +947,8 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
   }
 
   function findBestMatchForDirection(directions, excludeIds, minCount, poolMode) {
-    let bestMatch = null, bestCount = 0;
+    let bestMatch = null,
+      bestCount = 0;
     for (let mi = 0; mi < mList.length; mi++) {
       const m = mList[mi];
       if (excludeIds && excludeIds.indexOf(m.matchId) >= 0) continue;
@@ -936,7 +960,10 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
         if (directions.indexOf(recs[ri].type) >= 0) total += recs[ri].num || 0;
       }
       // ★ poolMode: 累加模式，多个方向的人数为它们的和（如 胜+平→胜平）
-      if (total > bestCount) { bestCount = total; bestMatch = m; }
+      if (total > bestCount) {
+        bestCount = total;
+        bestMatch = m;
+      }
     }
     if (minCount && bestCount < minCount) return null;
     return bestMatch;
@@ -944,7 +971,9 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
 
   function buildMatchObj(m, direction) {
     const recs = findRecommends(m.matchId);
-    let expertCount = 0, isMatchWon = null, isMatchLose = null;
+    let expertCount = 0,
+      isMatchWon = null,
+      isMatchLose = null;
     let effectiveDir = direction;
     if (direction === '胜平') effectiveDir = '胜、平';
     else if (direction === '平负') effectiveDir = '平、负';
@@ -955,19 +984,36 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
     function recContains(recType, sd) {
       if (recType === sd) return true;
       const parts = recType.split(/[、,]/);
-      return parts.some(function (p) { return p.trim() === sd; });
+      return parts.some(function (p) {
+        return p.trim() === sd;
+      });
     }
 
     subDirs.forEach(function (subDir) {
       const sd = subDir.trim();
       let found = null;
-      for (let i = 0; i < recs.length; i++) { if (recs[i].type === sd) { found = recs[i]; break; } }
+      for (let i = 0; i < recs.length; i++) {
+        if (recs[i].type === sd) {
+          found = recs[i];
+          break;
+        }
+      }
       if (!found) {
-        for (let j = 0; j < recs.length; j++) { if (recContains(recs[j].type, sd)) { found = recs[j]; break; } }
+        for (let j = 0; j < recs.length; j++) {
+          if (recContains(recs[j].type, sd)) {
+            found = recs[j];
+            break;
+          }
+        }
       }
       if (!found && sd.indexOf('球') >= 0) {
         const num = sd.replace(/球/g, '');
-        for (let k = 0; k < recs.length; k++) { if (recs[k].type === '总进球-' + num) { found = recs[k]; break; } }
+        for (let k = 0; k < recs.length; k++) {
+          if (recs[k].type === '总进球-' + num) {
+            found = recs[k];
+            break;
+          }
+        }
       }
       if (found) matchedRecsSet.add(found);
       subResults.push({ direction: sd, result: found ? found.result : null });
@@ -984,8 +1030,11 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
     // 总进球双选：用实际比分拆分子方向命中
     if (direction.indexOf('总进球-') === 0 && direction.indexOf('、') > 0 && subResults.length >= 2) {
       const combinedRes = subResults[0].result;
-      if (combinedRes === 0) { subResults.forEach(function (sr) { sr.result = 0; }); }
-      else if (combinedRes === 1 && m.score) {
+      if (combinedRes === 0) {
+        subResults.forEach(function (sr) {
+          sr.result = 0;
+        });
+      } else if (combinedRes === 1 && m.score) {
         var scoreParts = String(m.score).replace(/[-:]/g, ':').split(':');
         var totalGoals = parseInt(scoreParts[0]) + parseInt(scoreParts[1]);
         if (!isNaN(totalGoals)) {
@@ -999,15 +1048,23 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
     }
 
     const matchedRecs = Array.from(matchedRecsSet);
-    expertCount = matchedRecs.reduce(function (s, r) { return s + (r.num || 0); }, 0);
+    expertCount = matchedRecs.reduce(function (s, r) {
+      return s + (r.num || 0);
+    }, 0);
 
-    let anyWon = false, anyLose = false, anyUnknown = false;
+    let anyWon = false,
+      anyLose = false,
+      anyUnknown = false;
     if (direction.indexOf('总进球-') === 0 && direction.indexOf('、') > 0 && subResults.length >= 2) {
       let hasKnown = false;
       for (let si = 0; si < subResults.length; si++) {
-        if (subResults[si].result === 1) { anyWon = true; hasKnown = true; }
-        else if (subResults[si].result === 0) { anyLose = true; hasKnown = true; }
-        else anyUnknown = true;
+        if (subResults[si].result === 1) {
+          anyWon = true;
+          hasKnown = true;
+        } else if (subResults[si].result === 0) {
+          anyLose = true;
+          hasKnown = true;
+        } else anyUnknown = true;
       }
       if (!hasKnown) anyWon = false;
     } else {
@@ -1017,22 +1074,33 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
         else anyUnknown = true;
       });
     }
-    if (!anyUnknown && matchedRecs.length > 0) { isMatchWon = anyWon; isMatchLose = !anyWon && anyLose; }
+    if (!anyUnknown && matchedRecs.length > 0) {
+      isMatchWon = anyWon;
+      isMatchLose = !anyWon && anyLose;
+    }
 
     // fallback: 推荐数据无 result 时，用比分直判方向对错
     if (isMatchWon === null && isMatchLose === null) {
       if (m && m.matchStatus >= 1 && m.score) {
         const mData = matchDataMap[m.matchId];
         const mOdds = mData ? mData.odds : null;
-        var hcp = (mOdds && mOdds.rqspf && mOdds.rqspf.handicap != null) ? mOdds.rqspf.handicap : (m.concede != null ? m.concede : null);
+        var hcp =
+          mOdds && mOdds.rqspf && mOdds.rqspf.handicap != null
+            ? mOdds.rqspf.handicap
+            : m.concede != null
+              ? m.concede
+              : null;
         function judgeScoreExp(d, s, h) {
           if (d.indexOf('、') >= 0) {
             const parts = d.split(/[、,]/);
-            for (let pi = 0; pi < parts.length; pi++) { if (judgeScoreExp(parts[pi].trim(), s, h)) return true; }
+            for (let pi = 0; pi < parts.length; pi++) {
+              if (judgeScoreExp(parts[pi].trim(), s, h)) return true;
+            }
             return false;
           }
           const p = String(s).replace(/[-:]/g, ':').split(':');
-          const hh = parseInt(p[0]), aa = parseInt(p[1]);
+          const hh = parseInt(p[0]),
+            aa = parseInt(p[1]);
           if (isNaN(hh) || isNaN(aa)) return null;
           if (d === '胜') return hh > aa;
           if (d === '平') return hh === aa;
@@ -1060,7 +1128,8 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
         }
         const scoreResult = judgeScoreExp(direction, m.score, hcp);
         if (scoreResult !== null) {
-          isMatchWon = scoreResult; isMatchLose = !scoreResult;
+          isMatchWon = scoreResult;
+          isMatchLose = !scoreResult;
           for (let sri2 = 0; sri2 < subResults.length; sri2++) {
             const sd2 = subResults[sri2].direction;
             const sr2 = judgeScoreExp(sd2, m.score, hcp);
@@ -1082,7 +1151,7 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
         if (!isNaN(totalGoals)) {
           for (var sri3 = 0; sri3 < subResults.length; sri3++) {
             const goalMatch = subResults[sri3].direction.match(/(\d+)/);
-            subResults[sri3].result = (goalMatch && parseInt(goalMatch[1]) === totalGoals) ? 1 : 0;
+            subResults[sri3].result = goalMatch && parseInt(goalMatch[1]) === totalGoals ? 1 : 0;
           }
         }
       } else {
@@ -1107,11 +1176,20 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
     if (isMatchWon !== null || isMatchLose !== null) actualScore = (m.score || '').replace(/:/g, '-');
 
     return {
-      matchId: m.matchId, homeName: m.homeName, visitName: m.visitName, leagueName: m.leagueName,
-      matchNum: m.num || '', startTime: m.startTime || '', matchStatus: m.matchStatus || 0,
-      direction: direction, expertCount: expertCount,
-      isMatchWon: isMatchWon, isMatchLose: isMatchLose, subResults: subResults,
-      odds: getMatchOdds(m), actualScore: actualScore,
+      matchId: m.matchId,
+      homeName: m.homeName,
+      visitName: m.visitName,
+      leagueName: m.leagueName,
+      matchNum: m.num || '',
+      startTime: m.startTime || '',
+      matchStatus: m.matchStatus || 0,
+      direction: direction,
+      expertCount: expertCount,
+      isMatchWon: isMatchWon,
+      isMatchLose: isMatchLose,
+      subResults: subResults,
+      odds: getMatchOdds(m),
+      actualScore: actualScore,
     };
   }
 
@@ -1126,23 +1204,44 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
       return null;
     }
     if (subOdds.length === 1) return subOdds[0];
-    const invSum = subOdds.reduce(function (a, b) { return a + 1 / b; }, 0);
+    const invSum = subOdds.reduce(function (a, b) {
+      return a + 1 / b;
+    }, 0);
     return invSum > 0 ? 1 / invSum : null;
   }
 
   function computePlanResult(matches) {
-    let allWon = true, anyLose = false, anyUnknown = false;
+    let allWon = true,
+      anyLose = false,
+      anyUnknown = false;
     for (let i = 0; i < matches.length; i++) {
       if (matches[i].isMatchWon === true) continue;
-      if (matches[i].isMatchLose === true) { anyLose = true; allWon = false; }
-      else { anyUnknown = true; allWon = false; }
+      if (matches[i].isMatchLose === true) {
+        anyLose = true;
+        allWon = false;
+      } else {
+        anyUnknown = true;
+        allWon = false;
+      }
     }
     if (anyUnknown) return { isPlanWon: null, isPlanLose: null };
     if (allWon) return { isPlanWon: true, isPlanLose: false };
     return { isPlanWon: false, isPlanLose: true };
   }
 
-  function push2MatchPlan(displaySuffix, localSuffixNum, mA, dirA, mB, dirB, betCount, ticketCount, multiplier, minProductOdds, minProfitPct) {
+  function push2MatchPlan(
+    displaySuffix,
+    localSuffixNum,
+    mA,
+    dirA,
+    mB,
+    dirB,
+    betCount,
+    ticketCount,
+    multiplier,
+    minProductOdds,
+    minProfitPct,
+  ) {
     if (!mA || !mB) return;
     const aObj = buildMatchObj(mA, dirA);
     const bObj = buildMatchObj(mB, dirB);
@@ -1191,7 +1290,7 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
       }
       const _wc1b = findBestMatchForDirection(['让负'], _wc1a ? [_wc1a.matchId] : null, 15);
       if (_wc1a && _wc1b) {
-        push2MatchPlan('01', 1, _wc1a, '平、让平', _wc1b, '让负', 250, 10, 25, 0, 0.10);
+        push2MatchPlan('01', 1, _wc1a, '平、让平', _wc1b, '让负', 250, 10, 25, 0, 0.1);
       }
     }
 
@@ -1205,7 +1304,7 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
       }
       const _wc2b = findBestMatchForDirection(['让负'], _wc2a ? [_wc2a.matchId] : null, 15);
       if (_wc2a && _wc2b) {
-        push2MatchPlan('02', 2, _wc2a, '总进球-2、3球', _wc2b, '让负', 250, 10, 25, 2.0, 0.30);
+        push2MatchPlan('02', 2, _wc2a, '总进球-2、3球', _wc2b, '让负', 250, 10, 25, 2.0, 0.3);
       }
     }
 
@@ -1228,14 +1327,14 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
     const _rg3a = findBestMatchForDirection(['胜'], null, 40);
     const _rg3b = findBestMatchForDirection(['让负'], _rg3a ? [_rg3a.matchId] : null, 20);
 
-    push2MatchPlan('一', 1, _rg1a, '平、让平', _rg1b, '让负', 250, 10, 25, 0, 1.80);
-    push2MatchPlan('二', 2, _rg2a, '总进球-2、3球', _rg2b, '让负', 250, 10, 25, 2.5, 0.50);
-    push2MatchPlan('三', 3, _rg3a, '胜', _rg3b, '让负', 250, 10, 25, 2.0, 0.20);
+    push2MatchPlan('一', 1, _rg1a, '平、让平', _rg1b, '让负', 250, 10, 25, 0, 1.8);
+    push2MatchPlan('二', 2, _rg2a, '总进球-2、3球', _rg2b, '让负', 250, 10, 25, 2.5, 0.5);
+    push2MatchPlan('三', 3, _rg3a, '胜', _rg3b, '让负', 250, 10, 25, 2.0, 0.2);
   }
 
   // ═══ 方案六：总进球-2、3球 单关（专家驱动）═══
   const _tgVariants = [
-    { suffix: '6a',  planName: _planDisplayName(6), dir: '总进球-2、3球', goals: ['2','3'], minProfit: 1100 },
+    { suffix: '6a', planName: _planDisplayName(6), dir: '总进球-2、3球', goals: ['2', '3'], minProfit: 1100 },
   ];
   for (let tvi = 0; tvi < _tgVariants.length; tvi++) {
     const _tv = _tgVariants[tvi];
@@ -1252,7 +1351,10 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
         const _tg6 = _md6.odds.totalGoals;
         let _allGoalsOk = true;
         for (let _gi = 0; _gi < _tv.goals.length; _gi++) {
-          if (_tg6[_tv.goals[_gi]] == null || _tg6[_tv.goals[_gi]] <= 0) { _allGoalsOk = false; break; }
+          if (_tg6[_tv.goals[_gi]] == null || _tg6[_tv.goals[_gi]] <= 0) {
+            _allGoalsOk = false;
+            break;
+          }
         }
         if (!_allGoalsOk) continue;
         // ★ 专家人数：优先用 expertPool 池化，否则用 dir 精确匹配
@@ -1266,13 +1368,17 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
         const _m6Obj = buildMatchObj(_m6, _tv.dir);
         const _subOdds6 = extractSubOdds(_m6Obj.odds, _tv.dir);
         if (_subOdds6.length < 2) continue;
-        const _invSum6 = _subOdds6.reduce(function (s, o) { return s + 1 / o; }, 0);
+        const _invSum6 = _subOdds6.reduce(function (s, o) {
+          return s + 1 / o;
+        }, 0);
         const _maxPrize6 = _invSum6 > 0 ? Math.round(1000 / _invSum6) : 0;
         if (_maxPrize6 < _minProfitTV) continue;
         _candidatesTV.push({ match: _m6, obj: _m6Obj, maxPrize: _maxPrize6, count: total6 });
       }
       if (_candidatesTV.length > 0) {
-        _candidatesTV.sort(function (a, b) { return b.maxPrize - a.maxPrize; });
+        _candidatesTV.sort(function (a, b) {
+          return b.maxPrize - a.maxPrize;
+        });
         const _best = _candidatesTV[0];
         const plan6Result = computePlanResult([_best.obj]);
         plans.push({
@@ -1280,11 +1386,17 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
           name: 'plan_' + _tv.suffix,
           planName: _tv.planName,
           matches: [_best.obj],
-          amount: 1000, playType: '单关', matchCount: 1, passType: '单关',
-          betCount: 250, ticketCount: 10, multiplier: 25,
+          amount: 1000,
+          playType: '单关',
+          matchCount: 1,
+          passType: '单关',
+          betCount: 250,
+          ticketCount: 10,
+          multiplier: 25,
           maxPrize: _best.maxPrize,
           winningPrize: plan6Result.isPlanWon === true ? _best.maxPrize : 0,
-          isPlanWon: plan6Result.isPlanWon, isPlanLose: plan6Result.isPlanLose,
+          isPlanWon: plan6Result.isPlanWon,
+          isPlanLose: plan6Result.isPlanLose,
         });
       }
     }
@@ -1294,13 +1406,15 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
   // 用 AI 比分预测 + 大小球判定，不依赖专家推荐
   // 当日符合条件的全部产出，不限个数。命名：方案A123-01, A123-02, ...
   const _aiVariants = [
-    { goalsCode: '123', dir: '总进球-1、2、3球', goals: ['1','2','3'], minProfit: 1300 },
-    { goalsCode: '345', dir: '总进球-3、4、5球', goals: ['3','4','5'], minProfit: 1300 },
+    { goalsCode: '123', dir: '总进球-1、2、3球', goals: ['1', '2', '3'], minProfit: 1300 },
+    { goalsCode: '345', dir: '总进球-3、4、5球', goals: ['3', '4', '5'], minProfit: 1300 },
   ];
   let _aiCache = null;
   try {
     _aiCache = JSON.parse(require('fs').readFileSync(__dirname + '/../ai_cache.json', 'utf8'));
-  } catch (e) { _aiCache = {}; }
+  } catch (e) {
+    _aiCache = {};
+  }
 
   function _aiGoalCheck(matchId, goalSet) {
     // 返回 overlap 分数（≥1=命中，分数越高=概率越高）
@@ -1315,13 +1429,23 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
         const scores = y['建议方向'].split(/[、,，]/);
         scores.forEach(function (s) {
           const m = s.trim().match(/(\d+)\s*[-:：]\s*(\d+)/);
-          if (m) { const g = parseInt(m[1]) + parseInt(m[2]); if (goals.indexOf(g) < 0) goals.push(g); }
+          if (m) {
+            const g = parseInt(m[1]) + parseInt(m[2]);
+            if (goals.indexOf(g) < 0) goals.push(g);
+          }
         });
       }
       if (y['玩法'] === '大小球' && y['建议方向']) {
         const bs = y['建议方向'].replace('球', '').trim();
-        if (bs === '大') { for (var gi = 3; gi <= 7; gi++) { if (goals.indexOf(gi) < 0) goals.push(gi); } }
-        else if (bs === '小') { for (var gi = 0; gi <= 2; gi++) { if (goals.indexOf(gi) < 0) goals.push(gi); } }
+        if (bs === '大') {
+          for (var gi = 3; gi <= 7; gi++) {
+            if (goals.indexOf(gi) < 0) goals.push(gi);
+          }
+        } else if (bs === '小') {
+          for (var gi = 0; gi <= 2; gi++) {
+            if (goals.indexOf(gi) < 0) goals.push(gi);
+          }
+        }
       }
     });
     // 计算重叠数 = 概率分（比分预测命中权重更高）
@@ -1343,20 +1467,27 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
       const _tg = _md.odds.totalGoals;
       let allOk = true;
       for (let gi = 0; gi < _av.goals.length; gi++) {
-        if (_tg[_av.goals[gi]] == null || _tg[_av.goals[gi]] <= 0) { allOk = false; break; }
+        if (_tg[_av.goals[gi]] == null || _tg[_av.goals[gi]] <= 0) {
+          allOk = false;
+          break;
+        }
       }
       if (!allOk) continue;
       const _aiScore = _aiGoalCheck(_m.matchId, _av.goals);
       if (_aiScore <= 0) continue;
       const _subOdds = extractSubOdds(_md.odds, _av.dir);
       if (_subOdds.length < 2) continue;
-      const _invSum = _subOdds.reduce(function (s, o) { return s + 1 / o; }, 0);
+      const _invSum = _subOdds.reduce(function (s, o) {
+        return s + 1 / o;
+      }, 0);
       const _maxPrize = _invSum > 0 ? Math.round(1000 / _invSum) : 0;
       if (_maxPrize < _av.minProfit) continue;
       _candAI.push({ match: _m, obj: buildMatchObj(_m, _av.dir), maxPrize: _maxPrize, aiScore: _aiScore });
     }
     // ★ 按概率分降序取前2个（每个方向不超过2方案）
-    _candAI.sort(function (a, b) { return b.aiScore - a.aiScore || b.maxPrize - a.maxPrize; });
+    _candAI.sort(function (a, b) {
+      return b.aiScore - a.aiScore || b.maxPrize - a.maxPrize;
+    });
     const _limit = Math.min(2, _candAI.length);
     for (let ci = 0; ci < _limit; ci++) {
       const _aiItem = _candAI[ci];
@@ -1369,11 +1500,17 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
         name: 'plan_' + _suffix,
         planName: _planName,
         matches: [_aiItem.obj],
-        amount: 1000, playType: '单关', matchCount: 1, passType: '单关',
-        betCount: 250, ticketCount: 10, multiplier: 25,
+        amount: 1000,
+        playType: '单关',
+        matchCount: 1,
+        passType: '单关',
+        betCount: 250,
+        ticketCount: 10,
+        multiplier: 25,
         maxPrize: _aiItem.maxPrize,
         winningPrize: _aiResult.isPlanWon === true ? _aiItem.maxPrize : 0,
-        isPlanWon: _aiResult.isPlanWon, isPlanLose: _aiResult.isPlanLose,
+        isPlanWon: _aiResult.isPlanWon,
+        isPlanLose: _aiResult.isPlanLose,
       });
     }
   }
@@ -1407,7 +1544,9 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
           if (_eA5 && _eA5 >= 1.3) _candidatesA.push({ match: _m5a, count: _total5a, obj: _aObj5, odds: _eA5 });
         }
       }
-      _candidatesA.sort(function (a, b) { return b.count - a.count; });
+      _candidatesA.sort(function (a, b) {
+        return b.count - a.count;
+      });
 
       const _candidatesB = [];
       for (let _mj5 = 0; _mj5 < mList.length; _mj5++) {
@@ -1426,13 +1565,16 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
           if (_eB5 && _eB5 > 1.4) _candidatesB.push({ match: _m5b, count: _total5b, obj: _bObj5, odds: _eB5 });
         }
       }
-      _candidatesB.sort(function (a, b) { return b.count - a.count; });
+      _candidatesB.sort(function (a, b) {
+        return b.count - a.count;
+      });
 
       // ★ 选最低合赔（博稳策略），≥1.5
       let _bestPair5 = null;
       for (let _ai5 = 0; _ai5 < _candidatesA.length; _ai5++) {
         for (let _bi5 = 0; _bi5 < _candidatesB.length; _bi5++) {
-          const _ca5 = _candidatesA[_ai5], _cb5 = _candidatesB[_bi5];
+          const _ca5 = _candidatesA[_ai5],
+            _cb5 = _candidatesB[_bi5];
           if (_ca5.match.matchId === _cb5.match.matchId) continue;
           const _prodOdds5 = _ca5.odds * _cb5.odds;
           if (_prodOdds5 < 1.5) continue;
@@ -1450,7 +1592,7 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
     if (matchCount >= 6) {
       const _rg4a = findBestMatchForDirection(['平', '让平'], null, 25);
       const _rg4b = findBestMatchForDirection(['胜'], _rg4a ? [_rg4a.matchId] : null, 25);
-      push2MatchPlan('四', 4, _rg4a, '平、让平', _rg4b, '胜', 250, 10, 25, 0, 1.50);
+      push2MatchPlan('四', 4, _rg4a, '平、让平', _rg4b, '胜', 250, 10, 25, 0, 1.5);
     }
 
     // ★ 方案五新: 胜平 × 平负 (2串1，双选×双选，高胜率组合)
@@ -1458,7 +1600,7 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
     if (matchCount >= 4) {
       const _rg5a = findBestMatchForDirection(['胜平'], null, 15);
       const _rg5b = findBestMatchForDirection(['平负'], _rg5a ? [_rg5a.matchId] : null, 15);
-      push2MatchPlan('五', 5, _rg5a, '胜平', _rg5b, '平负', 250, 10, 25, 3.5, 2.50);
+      push2MatchPlan('五', 5, _rg5a, '胜平', _rg5b, '平负', 250, 10, 25, 3.5, 2.5);
     }
   }
 
@@ -1473,20 +1615,26 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
     if (_smd && _smd.odds && _smd.odds.isSingleGame === true) singleMatches.push(_sm);
   }
   if (singleMatches.length > 0) {
-    let bestM7 = null, bestM7Dir = '', bestM7Count = 0;
+    let bestM7 = null,
+      bestM7Dir = '',
+      bestM7Count = 0;
     for (let si7 = 0; si7 < singleMatches.length; si7++) {
       const _sm7 = singleMatches[si7];
       const _r7 = matchDataMap[_sm7.matchId].recs;
       for (let ri7 = 0; ri7 < _r7.length; ri7++) {
         if ((_r7[ri7].type === '胜平' || _r7[ri7].type === '平负') && _r7[ri7].num > bestM7Count) {
-          bestM7Count = _r7[ri7].num; bestM7 = _sm7; bestM7Dir = _r7[ri7].type;
+          bestM7Count = _r7[ri7].num;
+          bestM7 = _sm7;
+          bestM7Dir = _r7[ri7].type;
         }
       }
     }
     if (bestM7 && bestM7Dir && bestM7Count >= _minCount7) {
       const m7Obj = buildMatchObj(bestM7, bestM7Dir);
       const subOdds7 = extractSubOdds(m7Obj.odds, bestM7Dir);
-      const invSum7 = subOdds7.reduce(function (s, o) { return s + 1 / o; }, 0);
+      const invSum7 = subOdds7.reduce(function (s, o) {
+        return s + 1 / o;
+      }, 0);
       const maxPrize7 = invSum7 > 0 ? Math.round(1000 / invSum7) : 0;
       // ★ 盈≥10%(WC) / 盈≥20%(常规)
       const _minPrize7 = isWC ? 1100 : 1200;
@@ -1497,11 +1645,17 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
           name: 'plan_' + _planSuffix(7),
           planName: _planDisplayName(7),
           matches: [m7Obj],
-          amount: 1000, playType: '单关', matchCount: 1, passType: '单关',
-          betCount: 250, ticketCount: 10, multiplier: 25,
+          amount: 1000,
+          playType: '单关',
+          matchCount: 1,
+          passType: '单关',
+          betCount: 250,
+          ticketCount: 10,
+          multiplier: 25,
           maxPrize: maxPrize7,
           winningPrize: plan7Result.isPlanWon === true ? maxPrize7 : 0,
-          isPlanWon: plan7Result.isPlanWon, isPlanLose: plan7Result.isPlanLose,
+          isPlanWon: plan7Result.isPlanWon,
+          isPlanLose: plan7Result.isPlanLose,
         });
       }
     }
@@ -1516,13 +1670,15 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
       if (_smd8 && _smd8.odds && _smd8.odds.isSingleGame === true) _singleMatches8.push(_sm8c);
     }
     if (_singleMatches8.length > 0) {
-      let _bestM8 = null, _bestCount8 = 0;
+      let _bestM8 = null,
+        _bestCount8 = 0;
       for (let _si8 = 0; _si8 < _singleMatches8.length; _si8++) {
         const _sm8 = _singleMatches8[_si8];
         const _recs8 = matchDataMap[_sm8.matchId].recs;
         for (let _ri8 = 0; _ri8 < _recs8.length; _ri8++) {
           if (_recs8[_ri8].type === '胜' && _recs8[_ri8].num > _bestCount8) {
-            _bestCount8 = _recs8[_ri8].num; _bestM8 = _sm8;
+            _bestCount8 = _recs8[_ri8].num;
+            _bestM8 = _sm8;
           }
         }
       }
@@ -1533,18 +1689,24 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
         const _maxPrize8 = _e8 && _e8 > 0 ? Math.round(1000 * _e8) : 0;
         // ★ 盈≥5%
         if (_maxPrize8 >= 1050) {
-        const _plan8Result = computePlanResult([_m8Obj]);
-        plans.push({
-          planId: 'plan_' + dateStr + '_' + _planSuffix(8),
-          name: 'plan_' + _planSuffix(8),
-          planName: _planDisplayName(8),
-          matches: [_m8Obj],
-          amount: 1000, playType: '单关', matchCount: 1, passType: '单关',
-          betCount: 250, ticketCount: 10, multiplier: 25,
-          maxPrize: _maxPrize8,
-          winningPrize: _plan8Result.isPlanWon === true ? _maxPrize8 : 0,
-          isPlanWon: _plan8Result.isPlanWon, isPlanLose: _plan8Result.isPlanLose,
-        });
+          const _plan8Result = computePlanResult([_m8Obj]);
+          plans.push({
+            planId: 'plan_' + dateStr + '_' + _planSuffix(8),
+            name: 'plan_' + _planSuffix(8),
+            planName: _planDisplayName(8),
+            matches: [_m8Obj],
+            amount: 1000,
+            playType: '单关',
+            matchCount: 1,
+            passType: '单关',
+            betCount: 250,
+            ticketCount: 10,
+            multiplier: 25,
+            maxPrize: _maxPrize8,
+            winningPrize: _plan8Result.isPlanWon === true ? _maxPrize8 : 0,
+            isPlanWon: _plan8Result.isPlanWon,
+            isPlanLose: _plan8Result.isPlanLose,
+          });
         }
       }
     }
@@ -1574,7 +1736,13 @@ function snapshotPlanIdentity(plan) {
     multiplier: plan.multiplier,
     amount: plan.amount,
     matches: (plan.matches || []).map(function (m) {
-      return { matchId: m.matchId, direction: m.direction, homeName: m.homeName, visitName: m.visitName, matchNum: m.matchNum };
+      return {
+        matchId: m.matchId,
+        direction: m.direction,
+        homeName: m.homeName,
+        visitName: m.visitName,
+        matchNum: m.matchNum,
+      };
     }),
   };
 }
@@ -1637,9 +1805,15 @@ function extractSubOdds(oddsObj, direction) {
       const hfParts = direction.split(/[、,]/);
       // ★ V16.1: 对齐 odds_history 中文拼音键名 (ss=胜胜, sp=胜平, ...)
       const hfMap = {
-        胜胜: 'ss', 胜平: 'sp', 胜负: 'sf',
-        平胜: 'ps', 平平: 'pp', 平负: 'pf',
-        负胜: 'fs', 负平: 'fp', 负负: 'ff',
+        胜胜: 'ss',
+        胜平: 'sp',
+        胜负: 'sf',
+        平胜: 'ps',
+        平平: 'pp',
+        平负: 'pf',
+        负胜: 'fs',
+        负平: 'fp',
+        负负: 'ff',
       };
       hfParts.forEach(function (pd) {
         pd = pd.trim();
@@ -1665,16 +1839,30 @@ function extractSubOdds(oddsObj, direction) {
   const singleHF = direction.match(/^半全场-(.+)$/);
   if (singleHF && oddsObj.halfFull) {
     const hfKM = {
-      胜胜: 'ss', 胜平: 'sp', 胜负: 'sf',
-      平胜: 'ps', 平平: 'pp', 平负: 'pf',
-      负胜: 'fs', 负平: 'fp', 负负: 'ff',
+      胜胜: 'ss',
+      胜平: 'sp',
+      胜负: 'sf',
+      平胜: 'ps',
+      平平: 'pp',
+      平负: 'pf',
+      负胜: 'fs',
+      负平: 'fp',
+      负负: 'ff',
     };
     const hfK2 = hfKM[singleHF[1]];
     if (hfK2 && oddsObj.halfFull[hfK2] !== undefined) vals.push(oddsObj.halfFull[hfK2]);
     return vals;
   }
-  if (direction === '胜平' && oddsObj.spf) { vals.push(oddsObj.spf.home); vals.push(oddsObj.spf.draw); return vals; }
-  if (direction === '平负' && oddsObj.spf) { vals.push(oddsObj.spf.draw); vals.push(oddsObj.spf.away); return vals; }
+  if (direction === '胜平' && oddsObj.spf) {
+    vals.push(oddsObj.spf.home);
+    vals.push(oddsObj.spf.draw);
+    return vals;
+  }
+  if (direction === '平负' && oddsObj.spf) {
+    vals.push(oddsObj.spf.draw);
+    vals.push(oddsObj.spf.away);
+    return vals;
+  }
   if (direction === '让平' && oddsObj.rqspf) vals.push(oddsObj.rqspf.draw);
   else if (direction === '平' && oddsObj.spf) vals.push(oddsObj.spf.draw);
   else if (direction === '让负' && oddsObj.rqspf) vals.push(oddsObj.rqspf.away);
@@ -1698,7 +1886,7 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
       let rec = null;
       for (let i = 0; i < raw.length; i++) {
         const rt = raw[i].t || raw[i].type;
-        if (rt === sm.direction || (sm.direction.indexOf(rt) >= 0) || (rt && rt.indexOf(sm.direction) >= 0)) {
+        if (rt === sm.direction || sm.direction.indexOf(rt) >= 0 || (rt && rt.indexOf(sm.direction) >= 0)) {
           rec = raw[i];
           break;
         }
@@ -1710,7 +1898,7 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
         const mr = rec.result !== undefined ? rec.result : null;
         midouResult = mr === 0 || mr === 1 ? mr : null;
       }
-      let result = midouResult;  // 默认用 midou310
+      let result = midouResult; // 默认用 midou310
 
       // 第②层: sporttery lotteryResult (权威，替代旧 rs/比分直判)
       let sportteryResult = null;
@@ -1733,8 +1921,17 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
           // 不一致 → 以 sporttery 为准（更权威），但记录差异
           result = spAsInt;
           if (typeof console !== 'undefined' && console.warn) {
-            console.warn('[cross-check] midou/sporttery 不一致: matchId=' + m.matchId +
-              ' dir=' + sm.direction + ' midou=' + midouResult + ' sporttery=' + spAsInt + ' → 以sporttery为准');
+            console.warn(
+              '[cross-check] midou/sporttery 不一致: matchId=' +
+                m.matchId +
+                ' dir=' +
+                sm.direction +
+                ' midou=' +
+                midouResult +
+                ' sporttery=' +
+                spAsInt +
+                ' → 以sporttery为准',
+            );
           }
         }
       }
@@ -1745,13 +1942,18 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
       let oddsObj = null;
       if (histOdds && histOdds[num]) {
         const od = histOdds[num];
-        oddsObj = { spf: od.spf || null, rqspf: od.rqspf || null, totalGoals: od.totalGoals || null, halfFull: od.halfFull || null };
+        oddsObj = {
+          spf: od.spf || null,
+          rqspf: od.rqspf || null,
+          totalGoals: od.totalGoals || null,
+          halfFull: od.halfFull || null,
+        };
       }
       // ★ V16.1: 复合方向拆分为独立 subResults，前端按子项匹配颜色
       let subResults;
       if (sm.direction.indexOf('、') >= 0 || sm.direction.indexOf(',') >= 0) {
         const subDirs = sm.direction.split(/[、,]/);
-        subResults = subDirs.map(function(sd) {
+        subResults = subDirs.map(function (sd) {
           sd = sd.trim();
           let sdResult = null;
           // 逐个判定子方向结果
@@ -1762,7 +1964,10 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
             let subRec = null;
             for (let sri = 0; sri < raw.length; sri++) {
               const srt = raw[sri].t || raw[sri].type || '';
-              if (srt === sd || srt.indexOf(sd) >= 0 || sd.indexOf(srt) >= 0) { subRec = raw[sri]; break; }
+              if (srt === sd || srt.indexOf(sd) >= 0 || sd.indexOf(srt) >= 0) {
+                subRec = raw[sri];
+                break;
+              }
             }
             if (subRec) {
               const srRaw = subRec.result !== undefined ? subRec.result : null;
@@ -1771,7 +1976,7 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
             // ★ V17: 总进球多选 → 始终用比分判定（midou310 可能把多个子方向都标为 1）
             const isTGMulti = sm.direction.indexOf('总进球-') === 0 && sm.direction.indexOf('、') > 0;
             // ★ V17: 让球/总进球子方向通过比分判定（传入 m.concede 兜底让球数）
-            const hcpFallback = (m && m.concede != null) ? m.concede : null;
+            const hcpFallback = m && m.concede != null ? m.concede : null;
             if (isTGMulti && m && m.score && m.matchStatus >= 1) {
               var sdSf = judgeByScore(sd, m.score, hcpFallback);
               if (sdSf !== null) sdResult = sdSf ? 1 : 0;
@@ -1790,22 +1995,35 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
         subResults = [{ direction: sm.direction, result: result }];
       }
       return {
-        matchId: sm.matchId, homeName: sm.homeName || m.homeName || '', visitName: sm.visitName || m.visitName || '',
-        matchNum: sm.matchNum || m.num || '', direction: sm.direction, isMatchWon: isMatchWon, isMatchLose: isMatchLose,
+        matchId: sm.matchId,
+        homeName: sm.homeName || m.homeName || '',
+        visitName: sm.visitName || m.visitName || '',
+        matchNum: sm.matchNum || m.num || '',
+        direction: sm.direction,
+        isMatchWon: isMatchWon,
+        isMatchLose: isMatchLose,
         subResults: subResults,
-        odds: oddsObj, actualScore: (m.score || '').replace(/:/g, '-'),
+        odds: oddsObj,
+        actualScore: (m.score || '').replace(/:/g, '-'),
       };
     });
 
-    let allWon = true, anyLose = false, anyUnknown = false;
+    let allWon = true,
+      anyLose = false,
+      anyUnknown = false;
     for (let j = 0; j < matches.length; j++) {
       const mm = matches[j];
       if (mm.isMatchWon === true) continue;
-      if (mm.isMatchLose === true) { anyLose = true; allWon = false; }
-      else { anyUnknown = true; allWon = false; }
+      if (mm.isMatchLose === true) {
+        anyLose = true;
+        allWon = false;
+      } else {
+        anyUnknown = true;
+        allWon = false;
+      }
     }
     const isPlanWon = anyUnknown ? null : allWon;
-    const isPlanLose = anyUnknown ? null : (!allWon && anyLose);
+    const isPlanLose = anyUnknown ? null : !allWon && anyLose;
 
     // ★ 对齐 push2MatchPlan 的奖金计算（支持复合方向 + 荷兰式 + 整数舍入）
     let maxPrize = 0;
@@ -1814,16 +2032,24 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
       const isSingleMatch = matches.length === 1;
       for (let k = 0; k < matches.length; k++) {
         const od = matches[k].odds;
-        if (!od) { productOdds = 0; break; }
+        if (!od) {
+          productOdds = 0;
+          break;
+        }
         const dir = matches[k].direction;
         // 使用 extractSubOdds + calcEffectiveOdds 处理复合方向
         const subOdds = extractSubOdds(od, dir);
-        if (subOdds.length === 0) { productOdds = 0; break; }
+        if (subOdds.length === 0) {
+          productOdds = 0;
+          break;
+        }
         if (subOdds.length === 1) {
           productOdds *= subOdds[0];
         } else {
           // 荷兰式均分（双选等）
-          const invSum = subOdds.reduce(function (s, o) { return s + 1 / o; }, 0);
+          const invSum = subOdds.reduce(function (s, o) {
+            return s + 1 / o;
+          }, 0);
           productOdds *= invSum > 0 ? 1 / invSum : 0;
         }
       }
@@ -1832,14 +2058,18 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
           // 单关多选（如 总进球-2、3球）：荷兰式均分
           const subOdds2 = extractSubOdds(matches[0].odds, matches[0].direction);
           if (subOdds2.length >= 2) {
-            const invSum2 = subOdds2.reduce(function (s, o) { return s + 1 / o; }, 0);
+            const invSum2 = subOdds2.reduce(function (s, o) {
+              return s + 1 / o;
+            }, 0);
             maxPrize = invSum2 > 0 ? Math.round(sp.amount / invSum2) : 0;
           }
         } else if (isSingleMatch && (matches[0].direction === '胜平' || matches[0].direction === '平负')) {
           // 单关双选（如 胜平）：荷兰式均分
           const subOdds3 = extractSubOdds(matches[0].odds, matches[0].direction);
           if (subOdds3.length >= 2) {
-            const invSum3 = subOdds3.reduce(function (s, o) { return s + 1 / o; }, 0);
+            const invSum3 = subOdds3.reduce(function (s, o) {
+              return s + 1 / o;
+            }, 0);
             maxPrize = invSum3 > 0 ? Math.round(sp.amount / invSum3) : 0;
           }
         } else {
@@ -1850,12 +2080,19 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
     }
 
     return {
-      planId: sp.planId, name: sp.name, planName: sp.planName,
-      playType: sp.playType, passType: sp.passType,
-      multiplier: sp.multiplier || 25, amount: sp.amount || 1000,
-      matches: matches, matchCount: matches.length,
-      isPlanWon: isPlanWon, isPlanLose: isPlanLose,
-      maxPrize: maxPrize, winningPrize: isPlanWon === true ? maxPrize : 0,
+      planId: sp.planId,
+      name: sp.name,
+      planName: sp.planName,
+      playType: sp.playType,
+      passType: sp.passType,
+      multiplier: sp.multiplier || 25,
+      amount: sp.amount || 1000,
+      matches: matches,
+      matchCount: matches.length,
+      isPlanWon: isPlanWon,
+      isPlanLose: isPlanLose,
+      maxPrize: maxPrize,
+      winningPrize: isPlanWon === true ? maxPrize : 0,
     };
   });
 }

@@ -11,7 +11,6 @@ jest.useFakeTimers();
 var metrics = require('../core/db-metrics');
 
 describe('P0: db-metrics — DB 写入指标', function () {
-
   beforeEach(function () {
     metrics.reset();
     jest.clearAllTimers();

@@ -8,26 +8,43 @@
 // Mock database
 jest.mock('../database', function () {
   var adp = {
-    execOne: function () { return undefined; },
-    execAll: function () { return []; },
-    execRun: function () { return { changes: 0 }; },
-    flush: function () { return true; },
+    execOne: function () {
+      return undefined;
+    },
+    execAll: function () {
+      return [];
+    },
+    execRun: function () {
+      return { changes: 0 };
+    },
+    flush: function () {
+      return true;
+    },
   };
   return {
-    getAdapter: function () { return adp; },
-    isAvailable: function () { return true; },
-    getDatabase: function () { return null; },
+    getAdapter: function () {
+      return adp;
+    },
+    isAvailable: function () {
+      return true;
+    },
+    getDatabase: function () {
+      return null;
+    },
   };
 });
 
 jest.mock('../core/datetime', function () {
-  return { todayCN: function () { return '2026-06-20'; } };
+  return {
+    todayCN: function () {
+      return '2026-06-20';
+    },
+  };
 });
 
 var authService = require('../auth-service');
 
 describe('P0: auth-service — 认证服务', function () {
-
   describe('1. Token 与会话', function () {
     it('1.1 resolveSessionToken 从 headers 提取 token', function () {
       var req = { headers: { 'x-auth-token': 'abc123' } };
@@ -58,7 +75,9 @@ describe('P0: auth-service — 认证服务', function () {
     it('2.1 isActionProtected — 受保护 action 应返回 true', function () {
       // plan-list 可能是公开的，改用明确的受保护 action
       var protectedActions = ['my-plan-list', 'plan-catalog', 'subscription-status', 'referral-info'];
-      var anyProtected = protectedActions.some(function (a) { return authService.isActionProtected(a); });
+      var anyProtected = protectedActions.some(function (a) {
+        return authService.isActionProtected(a);
+      });
       expect(anyProtected).toBe(true);
     });
 
@@ -76,9 +95,16 @@ describe('P0: auth-service — 认证服务', function () {
     it('2.4 hasPermission — 管理员拥有全部权限', function () {
       var session = {
         permissions: [
-          'plan:view', 'plan:save', 'plan:delete', 'plan:share',
-          'user:view', 'user:create', 'auth:login', 'auth:logout',
-          'backtest:view', 'gs:view',
+          'plan:view',
+          'plan:save',
+          'plan:delete',
+          'plan:share',
+          'user:view',
+          'user:create',
+          'auth:login',
+          'auth:logout',
+          'backtest:view',
+          'gs:view',
         ],
       };
       expect(authService.hasPermission(session, 'plan:view')).toBe(true);

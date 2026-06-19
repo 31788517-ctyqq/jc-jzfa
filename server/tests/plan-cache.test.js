@@ -8,7 +8,6 @@
 var planCache = require('../core/plan-cache');
 
 describe('P1: plan-cache — 方案缓存', function () {
-
   beforeEach(function () {
     // 清理缓存状态
     if (typeof planCache.invalidateAll === 'function') planCache.invalidateAll();
@@ -45,7 +44,12 @@ describe('P1: plan-cache — 方案缓存', function () {
 
   describe('2. 失效策略', function () {
     it('2.1 invalidate 后 get 返回 null', function () {
-      if (typeof planCache.set !== 'function' || typeof planCache.invalidate !== 'function' || typeof planCache.get !== 'function') return;
+      if (
+        typeof planCache.set !== 'function' ||
+        typeof planCache.invalidate !== 'function' ||
+        typeof planCache.get !== 'function'
+      )
+        return;
       planCache.set('key-to-invalidate', { x: 1 });
       planCache.invalidate('key-to-invalidate');
       expect(planCache.get('key-to-invalidate')).toBeNull();
@@ -68,8 +72,12 @@ describe('P1: plan-cache — 方案缓存', function () {
   describe('3. 边界情况', function () {
     it('3.1 set null/undefined 应安全处理', function () {
       if (typeof planCache.set !== 'function') return;
-      expect(function () { planCache.set('k1', null); }).not.toThrow();
-      expect(function () { planCache.set('k2', undefined); }).not.toThrow();
+      expect(function () {
+        planCache.set('k1', null);
+      }).not.toThrow();
+      expect(function () {
+        planCache.set('k2', undefined);
+      }).not.toThrow();
     });
 
     it('3.2 空字符串 key', function () {

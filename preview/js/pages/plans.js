@@ -101,9 +101,11 @@ export function updatePlanDateBar() {
   const arrows = document.querySelectorAll('#planDateBar .date-arrow');
   const bar = document.getElementById('planDateBar');
   if (bar && arrows.length >= 2) {
-    arrows[0].className = arrows[0].className.replace(/\s*(arrow-disabled|arrow-active)/g,'') +
+    arrows[0].className =
+      arrows[0].className.replace(/\s*(arrow-disabled|arrow-active)/g, '') +
       (state.planDate <= MIN_PLAN_DATE ? ' arrow-disabled' : ' arrow-active');
-    arrows[1].className = arrows[1].className.replace(/\s*(arrow-disabled|arrow-active)/g,'') +
+    arrows[1].className =
+      arrows[1].className.replace(/\s*(arrow-disabled|arrow-active)/g, '') +
       (state.planDate >= todayStr ? ' arrow-disabled' : ' arrow-active');
   }
 }
@@ -128,8 +130,16 @@ function _loadActivePlanTab() {
   if (visibleTab !== state.planTab) state.setPlanTab(visibleTab);
   if (visibleTab === 'my') loadMyPlanList();
   else if (visibleTab === 'ai_tg') loadAIPlanList();
-  else if (visibleTab === 'wc') loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
-  else loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+  else if (visibleTab === 'wc')
+    loadPlanList(function (p) {
+      const pn = p.planName || '';
+      return pn.indexOf('世界杯') === 0;
+    });
+  else
+    loadPlanList(function (p) {
+      const pn = p.planName || '';
+      return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
+    });
 }
 
 export function shiftPlanDate(delta) {
@@ -195,7 +205,11 @@ export function _autoSetBestDate() {
   });
   if (latestMD) {
     const d = new Date();
-    const latestDate = new Date(d.getFullYear(), parseInt(latestMD.slice(0, 2), 10) - 1, parseInt(latestMD.slice(3), 10));
+    const latestDate = new Date(
+      d.getFullYear(),
+      parseInt(latestMD.slice(0, 2), 10) - 1,
+      parseInt(latestMD.slice(3), 10),
+    );
     const diffDays = Math.ceil((d.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
     if (diffDays > 0) {
       state.setPlanDateOffset(-diffDays);
@@ -220,8 +234,16 @@ export function switchPlanTab(tab) {
 
   if (visibleTab === 'my') loadMyPlanList();
   else if (visibleTab === 'ai_tg') loadAIPlanList();
-  else if (visibleTab === 'wc') loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
-  else loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+  else if (visibleTab === 'wc')
+    loadPlanList(function (p) {
+      const pn = p.planName || '';
+      return pn.indexOf('世界杯') === 0;
+    });
+  else
+    loadPlanList(function (p) {
+      const pn = p.planName || '';
+      return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
+    });
 }
 
 // ★ 总进球三向标签页：仅显示方案A01/A02/A03（AI驱动）
@@ -245,7 +267,8 @@ export function loadAIPlanList() {
       });
 
       if (aiPlans.length === 0) {
-        el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">暂无总进球三向方案</div>';
+        el.innerHTML =
+          '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">暂无总进球三向方案</div>';
         return;
       }
 
@@ -258,7 +281,8 @@ export function loadAIPlanList() {
       _renderPlanListFromData(el, mockData, params);
     })
     .catch(function () {
-      el.innerHTML = '<div class="error" style="text-align:center;padding:80px 0;color:#ef4444;">加载失败，请重试</div>';
+      el.innerHTML =
+        '<div class="error" style="text-align:center;padding:80px 0;color:#ef4444;">加载失败，请重试</div>';
     });
 }
 
@@ -266,7 +290,8 @@ export function loadAIPlanList() {
 function _renderPlanListFromData(el, data, params) {
   const plans = (data.plans || []).map(function (p, i) {
     const matches = p.matches || [];
-    let allWon = matches.length > 0, anyLose = false;
+    let allWon = matches.length > 0,
+      anyLose = false;
     for (let mj = 0; mj < matches.length; mj++) {
       if (matches[mj].isMatchWon !== true) allWon = false;
       if (matches[mj].isMatchLose === true) anyLose = true;
@@ -274,24 +299,41 @@ function _renderPlanListFromData(el, data, params) {
     const isWon = allWon;
     const isLose = !isWon && anyLose;
     const planName = p.planName || '方案A';
-    const prizeNum = isWon ? (p.winningPrize || 0) : isLose ? 0 : (p.maxPrize || 0);
-    const statusBadge = isWon ? '<span style="color:#22c55e;font-weight:600;">✓ 已中奖</span>' : isLose ? '<span style="color:#ef4444;font-weight:600;">✗ 未中奖</span>' : '<span style="color:#fbbf24;">⏳ 待开</span>';
+    const prizeNum = isWon ? p.winningPrize || 0 : isLose ? 0 : p.maxPrize || 0;
+    const statusBadge = isWon
+      ? '<span style="color:#22c55e;font-weight:600;">✓ 已中奖</span>'
+      : isLose
+        ? '<span style="color:#ef4444;font-weight:600;">✗ 未中奖</span>'
+        : '<span style="color:#fbbf24;">⏳ 待开</span>';
     return {
-      plan: p, i: i, planName: planName, isWon: isWon, isLose: isLose,
-      prizeNum: prizeNum, statusBadge: statusBadge,
-      amountVal: ((p.amount || 1000)).toFixed(0)
+      plan: p,
+      i: i,
+      planName: planName,
+      isWon: isWon,
+      isLose: isLose,
+      prizeNum: prizeNum,
+      statusBadge: statusBadge,
+      amountVal: (p.amount || 1000).toFixed(0),
     };
   });
 
-  const noticeHtml = data.notice ? '<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#fbbf24;text-align:center;">⚠ ' + data.notice + '</div>' : '';
+  const noticeHtml = data.notice
+    ? '<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#fbbf24;text-align:center;">⚠ ' +
+      data.notice +
+      '</div>'
+    : '';
 
   if (plans.length === 0) {
-    el.innerHTML = '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">暂无总进球三向方案</div>';
+    el.innerHTML =
+      '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">暂无总进球三向方案</div>';
     return;
   }
 
   let html = noticeHtml;
-  html += '<div style="margin-bottom:8px;color:var(--text2);font-size:11px;text-align:center;">AI 总进球三向预测 · ' + plans.length + ' 个方案</div>';
+  html +=
+    '<div style="margin-bottom:8px;color:var(--text2);font-size:11px;text-align:center;">AI 总进球三向预测 · ' +
+    plans.length +
+    ' 个方案</div>';
   plans.forEach(function (pi) {
     html += _buildAIPlanCard(pi);
   });
@@ -312,7 +354,16 @@ function _buildAIPlanCard(pi) {
   if (matches.length > 0 && matches[0].startTime) {
     const stParts = matches[0].startTime.match(/(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
     if (stParts) {
-      cutoffDisplay = '<span style="font-size:11px;color:var(--text3);">截 ' + stParts[1] + '/' + stParts[2] + ' ' + stParts[3] + ':' + stParts[4] + '</span>';
+      cutoffDisplay =
+        '<span style="font-size:11px;color:var(--text3);">截 ' +
+        stParts[1] +
+        '/' +
+        stParts[2] +
+        ' ' +
+        stParts[3] +
+        ':' +
+        stParts[4] +
+        '</span>';
     }
   }
 
@@ -320,21 +371,24 @@ function _buildAIPlanCard(pi) {
   const statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
   const statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
   const prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
-  const prizeVal = isWon ? (p.winningPrize || 0) : isLose ? 0 : (p.maxPrize || 0);
+  const prizeVal = isWon ? p.winningPrize || 0 : isLose ? 0 : p.maxPrize || 0;
   const prizeStr = prizeVal > 0 ? prizeVal.toFixed(0) : isWon ? '--' : '0';
 
   // ── 3. 方向赔率解析 ──
-  const matchDir = matches.length > 0 ? (matches[0].direction || '') : '';
-  const oddsObj = matches.length > 0 ? (matches[0].odds || {}) : {};
+  const matchDir = matches.length > 0 ? matches[0].direction || '' : '';
+  const oddsObj = matches.length > 0 ? matches[0].odds || {} : {};
   const dirParts = matchDir ? matchDir.split(/[、，,]/) : [];
-  const subResults = matches.length > 0 ? (matches[0].subResults || []) : [];
+  const subResults = matches.length > 0 ? matches[0].subResults || [] : [];
   let commonPrefix = '';
   if (dirParts.length > 1 && dirParts[0].length > 1) {
     for (let cl = 1; cl <= dirParts[0].length; cl++) {
       const cand = dirParts[0].substring(0, cl);
       let ok = true;
       for (let pi2 = 1; pi2 < dirParts.length; pi2++) {
-        if (dirParts[pi2].indexOf(cand) !== 0) { ok = false; break; }
+        if (dirParts[pi2].indexOf(cand) !== 0) {
+          ok = false;
+          break;
+        }
       }
       if (!ok) break;
       commonPrefix = cand;
@@ -360,16 +414,29 @@ function _buildAIPlanCard(pi) {
     }
     let subR = null;
     for (let si = 0; si < subResults.length; si++) {
-      if (subResults[si].direction === label) { subR = subResults[si]; break; }
+      if (subResults[si].direction === label) {
+        subR = subResults[si];
+        break;
+      }
     }
     let subCls = '';
     if (subR && subR.result !== null && subR.result !== undefined) {
-      subCls = subR.result === 1 ? ' plan-direction-hit' : subR.result === -1 ? ' plan-direction-undetermined' : ' plan-direction-miss';
+      subCls =
+        subR.result === 1
+          ? ' plan-direction-hit'
+          : subR.result === -1
+            ? ' plan-direction-undetermined'
+            : ' plan-direction-miss';
     }
     let displayLabel = label;
     if (displayLabel.indexOf('总进球-') === 0) displayLabel = displayLabel.replace('总进球-', '') + '球';
     // ★ V17: 裸数字加球后缀
-    if (commonPrefix && commonPrefix.indexOf('总进球') >= 0 && /^\d+$/.test(displayLabel) && displayLabel.indexOf('球') < 0) {
+    if (
+      commonPrefix &&
+      commonPrefix.indexOf('总进球') >= 0 &&
+      /^\d+$/.test(displayLabel) &&
+      displayLabel.indexOf('球') < 0
+    ) {
       displayLabel += '球';
     }
     if (val) oddsSpans.push('<span class="' + subCls + '">' + displayLabel + '(' + val + ')</span>');
@@ -379,7 +446,8 @@ function _buildAIPlanCard(pi) {
   // ── 4. 对阵行（V17: 多方向拆行）──
   const m = matches[0] || {};
   const numText = m.matchNum || '';
-  let matchDateShort = '', matchTime = '';
+  let matchDateShort = '',
+    matchTime = '';
   if (m.startTime) {
     const tm2 = m.startTime.match(/(\d{2}):(\d{2})/);
     if (tm2) matchTime = tm2[1] + ':' + tm2[2];
@@ -392,17 +460,26 @@ function _buildAIPlanCard(pi) {
     if (_di === 0) {
       matchRow +=
         '<tr>' +
-        '<td class="match-info-col"><div class="match-num-text">' + numText + '</div>' +
-        (timeDisp ? '<div class="match-time-sub">' + timeDisp + '</div>' : '') + '</td>' +
-        '<td class="team-col">' + renderMatchTeams(m) + '</td>' +
-        '<td class="odds-col">' + oddsSpans[_di] + '</td>' +
+        '<td class="match-info-col"><div class="match-num-text">' +
+        numText +
+        '</div>' +
+        (timeDisp ? '<div class="match-time-sub">' + timeDisp + '</div>' : '') +
+        '</td>' +
+        '<td class="team-col">' +
+        renderMatchTeams(m) +
+        '</td>' +
+        '<td class="odds-col">' +
+        oddsSpans[_di] +
+        '</td>' +
         '</tr>';
     } else {
       matchRow +=
         '<tr>' +
         '<td class="match-info-col"></td>' +
         '<td class="team-col"></td>' +
-        '<td class="odds-col">' + oddsSpans[_di] + '</td>' +
+        '<td class="odds-col">' +
+        oddsSpans[_di] +
+        '</td>' +
         '</tr>';
     }
   }
@@ -415,28 +492,54 @@ function _buildAIPlanCard(pi) {
 
   const cardId = 'ai-' + pi.planName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5-]/g, '');
   return (
-    '<div class="' + cardClass + '" id="upcard-' + cardId + '" style="border-left:3px solid ' + CORAL + ';">' +
+    '<div class="' +
+    cardClass +
+    '" id="upcard-' +
+    cardId +
+    '" style="border-left:3px solid ' +
+    CORAL +
+    ';">' +
     // ── head ──
     '<div class="plan-card-head">' +
     '<div class="plan-left">' +
-    '<span class="plan-soccer-icon" style="color:' + CORAL + ';">🤖</span>' +
-    '<span class="plan-name" style="color:' + CORAL + ';">' + pi.planName + '</span>' +
+    '<span class="plan-soccer-icon" style="color:' +
+    CORAL +
+    ';">🤖</span>' +
+    '<span class="plan-name" style="color:' +
+    CORAL +
+    ';">' +
+    pi.planName +
+    '</span>' +
     '</div>' +
-    '<span class="plan-pub-time">' + cutoffDisplay + '</span>' +
+    '<span class="plan-pub-time">' +
+    cutoffDisplay +
+    '</span>' +
     '</div>' +
     // ── amount row ──
     '<div class="plan-amount-row">' +
     '<div class="plan-amount-col">' +
     '<div class="plan-amount-label">方案金额</div>' +
-    '<div class="plan-amount-value plan-money-value">' + pi.amountVal + '<span class="unit">元</span></div>' +
+    '<div class="plan-amount-value plan-money-value">' +
+    pi.amountVal +
+    '<span class="unit">元</span></div>' +
     '</div>' +
     '<div class="plan-amount-col">' +
-    '<div class="plan-amount-label">' + prizeLabel + '</div>' +
-    '<div class="plan-amount-value plan-money-value" style="color:' + CORAL + ';">' + prizeStr + '<span class="unit">元</span></div>' +
+    '<div class="plan-amount-label">' +
+    prizeLabel +
+    '</div>' +
+    '<div class="plan-amount-value plan-money-value" style="color:' +
+    CORAL +
+    ';">' +
+    prizeStr +
+    '<span class="unit">元</span></div>' +
     '</div>' +
     '<div class="plan-amount-col">' +
     '<div class="plan-amount-label">方案状态</div>' +
-    '<div class="plan-amount-value ' + statusClass + '">' + statusText + '</div>' +
+    '<div class="plan-amount-value ' +
+    statusClass +
+    '">' +
+    statusText +
+    '</div>' +
     '</div>' +
     '</div>' +
     // ── divider ──
@@ -444,7 +547,11 @@ function _buildAIPlanCard(pi) {
     // ── info grid ──
     '<div class="plan-info-grid">' +
     '<div class="plan-info-left"><div>玩法</div><div>场数/过关</div><div>注数/倍</div></div>' +
-    '<div class="plan-info-right"><div>总进球三选</div><div>1场单关</div><div>' + (p.betCount || 250) + '注 ×' + (p.multiplier || 25) + '倍</div></div>' +
+    '<div class="plan-info-right"><div>总进球三选</div><div>1场单关</div><div>' +
+    (p.betCount || 250) +
+    '注 ×' +
+    (p.multiplier || 25) +
+    '倍</div></div>' +
     (isWon
       ? '<div class="plan-win-stamp"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="none" stroke="#EF4444" stroke-width="2"/><text x="19" y="25" text-anchor="middle" font-size="18" font-weight="900" fill="#EF4444" transform="rotate(-10,19,19)">中</text></svg></div>'
       : '') +
@@ -460,7 +567,9 @@ function _buildAIPlanCard(pi) {
     '</div>' +
     // ── actions ──
     '<div class="mp-actions">' +
-    '<button class="mp-share-btn" onclick="sharePlanCard(\'' + cardId + '\')">✨ 分享</button>' +
+    '<button class="mp-share-btn" onclick="sharePlanCard(\'' +
+    cardId +
+    '\')">✨ 分享</button>' +
     '</div>' +
     '</div>'
   );
@@ -553,7 +662,10 @@ export function loadPlanList(optFilterFn) {
               });
             }
             updatePlanDateBar();
-            loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+            loadPlanList(function (p) {
+              const pn = p.planName || '';
+              return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
+            });
             return;
           }
         }
@@ -566,10 +678,14 @@ export function loadPlanList(optFilterFn) {
         } else {
           // ★ L4: 今日13:00前显示"方案生成中"
           var now = new Date();
-          const isToday = state.planDate === now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-          const msg = (isToday && now.getHours() < 13)
-            ? '方案生成中，预计 12:00 后可用'
-            : '当日暂无竞彩方案';
+          const isToday =
+            state.planDate ===
+            now.getFullYear() +
+              '-' +
+              String(now.getMonth() + 1).padStart(2, '0') +
+              '-' +
+              String(now.getDate()).padStart(2, '0');
+          const msg = isToday && now.getHours() < 13 ? '方案生成中，预计 12:00 后可用' : '当日暂无竞彩方案';
           el.innerHTML =
             '<div style="text-align:center;padding:80px 0;color:var(--text3);font-size:14px;">' + msg + '</div>';
         }
@@ -738,7 +854,12 @@ export function loadPlanList(optFilterFn) {
               }
               let subCls = '';
               if (subR && subR.result !== null && subR.result !== undefined) {
-                subCls = subR.result === 1 ? ' plan-direction-hit' : subR.result === -1 ? ' plan-direction-undetermined' : ' plan-direction-miss';
+                subCls =
+                  subR.result === 1
+                    ? ' plan-direction-hit'
+                    : subR.result === -1
+                      ? ' plan-direction-undetermined'
+                      : ' plan-direction-miss';
               }
               let displayLabel = label;
               if (displayLabel.indexOf('总进球-') === 0) {
@@ -749,7 +870,12 @@ export function loadPlanList(optFilterFn) {
                 displayLabel = displayLabel.replace('半全场-', '');
               }
               // ★ V17: 裸数字加球后缀（总进球-3、4、5球中的"4"→"4球"）
-              if (commonPrefix && commonPrefix.indexOf('总进球') >= 0 && /^\d+$/.test(displayLabel) && displayLabel.indexOf('球') < 0) {
+              if (
+                commonPrefix &&
+                commonPrefix.indexOf('总进球') >= 0 &&
+                /^\d+$/.test(displayLabel) &&
+                displayLabel.indexOf('球') < 0
+              ) {
                 displayLabel += '球';
               }
               if (isRQ) {
@@ -2087,7 +2213,10 @@ export function loadScorePlanList() {
               btn.classList.toggle('active', btn.getAttribute('data-tab') === 'expert');
             });
             updatePlanDateBar();
-            loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+            loadPlanList(function (p) {
+              const pn = p.planName || '';
+              return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
+            });
             return;
           }
         }
@@ -2397,7 +2526,10 @@ export function loadQuantPlanList() {
               btn.classList.toggle('active', btn.getAttribute('data-tab') === 'expert');
             });
             updatePlanDateBar();
-            loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+            loadPlanList(function (p) {
+              const pn = p.planName || '';
+              return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
+            });
             return;
           }
         }
@@ -2730,5 +2862,15 @@ function buildConsensusFilterBar(consensusCount, active) {
 if (!window._planConsensusFilter) window._planConsensusFilter = 'all';
 window.switchConsensusFilter = function (level) {
   window._planConsensusFilter = level;
-  state.planTab === 'wc' ? loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; }) : state.planTab === 'ai_tg' ? loadAIPlanList() : loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+  state.planTab === 'wc'
+    ? loadPlanList(function (p) {
+        const pn = p.planName || '';
+        return pn.indexOf('世界杯') === 0;
+      })
+    : state.planTab === 'ai_tg'
+      ? loadAIPlanList()
+      : loadPlanList(function (p) {
+          const pn = p.planName || '';
+          return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
+        });
 };

@@ -13,9 +13,13 @@ var TEST_DIR = path.join(os.tmpdir(), 'jczjfa-corruption-' + Date.now() + '-' + 
 // 防 Windows NTFS rename 竞态：重试 3 次
 function safeRename(src, dst) {
   for (var i = 0; i < 3; i++) {
-    try { fs.renameSync(src, dst); return; } catch (e) {
+    try {
+      fs.renameSync(src, dst);
+      return;
+    } catch (e) {
       if (i === 2) throw e;
-      var t = Date.now() + 5; while (Date.now() < t) {}
+      var t = Date.now() + 5;
+      while (Date.now() < t) {}
     }
   }
 }

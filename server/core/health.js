@@ -215,10 +215,10 @@ async function deepCheck() {
     let message = '';
 
     try {
-      const psOut = cp.execSync(
-        "ps aux | grep 'node ' | grep -v grep | grep -v PM2",
-        { timeout: 5000, encoding: 'utf8' }
-      );
+      const psOut = cp.execSync("ps aux | grep 'node ' | grep -v grep | grep -v PM2", {
+        timeout: 5000,
+        encoding: 'utf8',
+      });
       const lines = psOut.trim().split('\n').filter(Boolean);
       nodeCount = lines.length;
       // 正常情况：jc-zjfa (cluster master) + jc-zjfa worker + jc-sync + jc-scheduler = 4

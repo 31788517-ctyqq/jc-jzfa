@@ -8,11 +8,17 @@
 var syncLive500 = require('../sync_live_500');
 
 describe('P1: sync-live-500 — 500.com 即时比分', function () {
-
   describe('1. 模块导出', function () {
     it('1.1 核心函数已导出', function () {
       expect(syncLive500).toBeDefined();
-      var fns = ['fetchLive500', 'parse500Live', 'syncToDataJson', 'correctPostMatchScores', 'fetchDetailScore', 'httpGet'];
+      var fns = [
+        'fetchLive500',
+        'parse500Live',
+        'syncToDataJson',
+        'correctPostMatchScores',
+        'fetchDetailScore',
+        'httpGet',
+      ];
       fns.forEach(function (fn) {
         expect(typeof syncLive500[fn]).toBe('function');
       });

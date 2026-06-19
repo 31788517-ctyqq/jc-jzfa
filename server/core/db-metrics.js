@@ -39,10 +39,7 @@ function recordError(errMsg) {
   // ★ 自动告警：连续错误超过阈值
   if (counters.consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
     console.error(
-      '[db-metrics] ⚠️ 连续写入失败 ' +
-        counters.consecutiveErrors +
-        ' 次！最后错误: ' +
-        counters.lastError
+      '[db-metrics] ⚠️ 连续写入失败 ' + counters.consecutiveErrors + ' 次！最后错误: ' + counters.lastError,
     );
   }
 }

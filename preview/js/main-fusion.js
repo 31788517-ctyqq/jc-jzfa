@@ -35,10 +35,12 @@ function _mod(name) {
       console.error('[JS] chunk load fail: ' + name + ' - ' + (e && e.message));
       return new Promise(function (resolve, reject) {
         setTimeout(function () {
-          loader().then(resolve).catch(function (e2) {
-            console.error('[JS] chunk retry fail: ' + name + ' - ' + (e2 && e2.message));
-            reject(e2);
-          });
+          loader()
+            .then(resolve)
+            .catch(function (e2) {
+              console.error('[JS] chunk retry fail: ' + name + ' - ' + (e2 && e2.message));
+              reject(e2);
+            });
         }, 1000);
       });
     });
@@ -626,10 +628,17 @@ export function selectPlanDateFromPicker(md) {
   _mod('plans').then(function (m) {
     if (state.planTab === 'my') m.loadMyPlanList();
     else if (state.planTab === 'ai_tg') m.loadAIPlanList();
-    else if (state.planTab === 'wc') m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
+    else if (state.planTab === 'wc')
+      m.loadPlanList(function (p) {
+        const pn = p.planName || '';
+        return pn.indexOf('世界杯') === 0;
+      });
     else {
       state.setPlanTab('expert');
-      m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+      m.loadPlanList(function (p) {
+        const pn = p.planName || '';
+        return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
+      });
     }
   });
   document.getElementById('planDatePicker').style.display = 'none';
@@ -1087,10 +1096,17 @@ export function switchTab(tab) {
       m.updatePlanDateBar();
       if (state.planTab === 'my') m.loadMyPlanList();
       else if (state.planTab === 'ai_tg') m.loadAIPlanList();
-      else if (state.planTab === 'wc') m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
+      else if (state.planTab === 'wc')
+        m.loadPlanList(function (p) {
+          const pn = p.planName || '';
+          return pn.indexOf('世界杯') === 0;
+        });
       else {
         state.setPlanTab('expert');
-        m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+        m.loadPlanList(function (p) {
+          const pn = p.planName || '';
+          return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
+        });
       }
     });
   }
@@ -1474,9 +1490,17 @@ function _preloadData(current) {
       _mod('plans')
         .then(function (m) {
           if (!m.loadPlanList) return;
-          if (state.planTab === 'wc') m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
+          if (state.planTab === 'wc')
+            m.loadPlanList(function (p) {
+              const pn = p.planName || '';
+              return pn.indexOf('世界杯') === 0;
+            });
           else if (state.planTab === 'ai_tg') m.loadAIPlanList();
-          else m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+          else
+            m.loadPlanList(function (p) {
+              const pn = p.planName || '';
+              return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
+            });
         })
         .catch(function () {});
     } else if (tab === 'quant-rank') {
@@ -1661,10 +1685,17 @@ function switchTabLoad(tab) {
       m.updatePlanDateBar();
       if (state.planTab === 'my') m.loadMyPlanList();
       else if (state.planTab === 'ai_tg') m.loadAIPlanList();
-      else if (state.planTab === 'wc') m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('世界杯') === 0; });
+      else if (state.planTab === 'wc')
+        m.loadPlanList(function (p) {
+          const pn = p.planName || '';
+          return pn.indexOf('世界杯') === 0;
+        });
       else {
         state.setPlanTab('expert');
-        m.loadPlanList(function(p) { const pn = p.planName || ''; return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0; });
+        m.loadPlanList(function (p) {
+          const pn = p.planName || '';
+          return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
+        });
       }
     });
   }
@@ -1828,49 +1859,72 @@ document.addEventListener('subscription:required', function (e) {
 })();
 
 // V12: 运维告警横幅轮询（仅 ctyqq 可见）
-(function(){
+(function () {
   const POLL_MS = 30 * 1000;
   let lastCount = 0;
-  function checkAlerts(){
-    fetch("/api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"alerts",data:{username:"ctyqq"}})})
-    .then(function(r){return r.json()})
-    .then(function(d){
-      const alerts = d.data || [];
-      const unread = alerts.filter(function(a){return !a.readAt});
-      const bar = document.getElementById("alertBanner");
-      if(!bar) return;
-      if(unread.length === 0){bar.style.display="none";lastCount=0;return;}
-      if(unread.length !== lastCount){
-        const a = unread[0];
-        const bg = a.level==="P0"?"#e53e3e":a.level==="P0.5"?"#d69e2e":"#38a169";
-        const icon = a.level==="P0"?"\u{1F534}":a.level==="P0.5"?"\u{1F7E1}":"\u{1F7E2}";
-        bar.style.background = bg;
-        let txt = icon + " [" + a.level + "] " + a.title;
-        if(a.detail) txt += " | " + a.detail;
-        if(a.action) txt += " | " + a.action;
-        const abt = document.getElementById("alertBannerText");
-        if(abt) abt.textContent = txt;
-        bar.style.display = "block";
-      }
-      lastCount = unread.length;
-    });
+  function checkAlerts() {
+    fetch('/api', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'alerts', data: { username: 'ctyqq' } }),
+    })
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (d) {
+        const alerts = d.data || [];
+        const unread = alerts.filter(function (a) {
+          return !a.readAt;
+        });
+        const bar = document.getElementById('alertBanner');
+        if (!bar) return;
+        if (unread.length === 0) {
+          bar.style.display = 'none';
+          lastCount = 0;
+          return;
+        }
+        if (unread.length !== lastCount) {
+          const a = unread[0];
+          const bg = a.level === 'P0' ? '#e53e3e' : a.level === 'P0.5' ? '#d69e2e' : '#38a169';
+          const icon = a.level === 'P0' ? '\u{1F534}' : a.level === 'P0.5' ? '\u{1F7E1}' : '\u{1F7E2}';
+          bar.style.background = bg;
+          let txt = icon + ' [' + a.level + '] ' + a.title;
+          if (a.detail) txt += ' | ' + a.detail;
+          if (a.action) txt += ' | ' + a.action;
+          const abt = document.getElementById('alertBannerText');
+          if (abt) abt.textContent = txt;
+          bar.style.display = 'block';
+        }
+        lastCount = unread.length;
+      });
   }
   checkAlerts();
   setInterval(checkAlerts, POLL_MS);
-  const abr = document.getElementById("alertBannerRead");
-  const abc = document.getElementById("alertBannerClose");
-  const ab = document.getElementById("alertBanner");
-  if (abr) abr.addEventListener("click",function(e){
-    e.stopPropagation();
-    if (ab) ab.style.display="none";
-    fetch("/api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"alerts",data:{subAction:"readAll",username:"ctyqq"}})});
-  });
-  if (abc) abc.addEventListener("click",function(e){
-    e.stopPropagation();
-    if (ab) ab.style.display="none";
-  });
-  if (ab) ab.addEventListener("click",function(){
-    ab.style.display="none";
-    fetch("/api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"alerts",data:{subAction:"readAll",username:"ctyqq"}})});
-  });
+  const abr = document.getElementById('alertBannerRead');
+  const abc = document.getElementById('alertBannerClose');
+  const ab = document.getElementById('alertBanner');
+  if (abr)
+    abr.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (ab) ab.style.display = 'none';
+      fetch('/api', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'alerts', data: { subAction: 'readAll', username: 'ctyqq' } }),
+      });
+    });
+  if (abc)
+    abc.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (ab) ab.style.display = 'none';
+    });
+  if (ab)
+    ab.addEventListener('click', function () {
+      ab.style.display = 'none';
+      fetch('/api', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'alerts', data: { subAction: 'readAll', username: 'ctyqq' } }),
+      });
+    });
 })();
