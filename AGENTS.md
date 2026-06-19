@@ -1,6 +1,6 @@
-# JC-ZJFA AGENTS Guide v17
+# JC-ZJFA AGENTS Guide v18
 
-> 精简版：核心禁手(12条) + Skill 强制路由 + AI 参数约束 + 关键配置。每会话自动加载。
+> 精简版：核心禁手(13条) + Skill 强制路由 + AI 参数约束 + 关键配置。每会话自动加载。
 
 ---
 
@@ -20,6 +20,7 @@
 | 10 | 临时脚本永久留在仓库 | 用完即删，或归档 `scripts/perf/` |
 | 11 | sql.js/SQLite 多进程并发写同一文件 | 单文件 DB 必须 `instances:1`，且同一文件中最多一个写入者 |
 | 12 | PM2 变更后不验证残留进程 | `pm2 delete/restart` 后必须 `ps aux \| grep node` 确认无 zombie |
+| 13 | jc-scheduler `max_memory_restart` 低于 512M | 最低 2048M（加载 300MB sql.js DB + 功守道计算） |
 
 ---
 
@@ -59,7 +60,7 @@
 □ 检查是否有未归档的临时脚本（git status Untracked）
 □ 检查是否有 pending 的修复未写入 Skill lessons
 □ 确认当前分支（git branch）和目标环境
-□ 检查生产环境是否有 zombie node 进程（ps aux | grep node）
+□ 检查生产环境 PM2 状态（pm2 list）— 3 进程必须全部 online
 ```
 
 ---
@@ -69,12 +70,16 @@
 | 项目 | 值 |
 |------|-----|
 | 服务器 IP | 119.23.51.159 |
-| PM2 进程 | jc-zjfa (cluster:1)，jc-sync (fork:1)，jc-scheduler (fork:1) |
+| PM2 进程 | jc-zjfa (cluster:1, 1800M)，jc-sync (fork:1, 1800M)，jc-scheduler (fork:1, **2048M**) |
 | 部署路径 | `/root/server/` + `/var/www/zj.100qiu.com/` |
 | Nginx `/assets/` | → `miniprogram/images/`（不是 `preview/assets/`！）|
 | 部署方式 | `python deploy.py --fast` |
 | 部署验证 | `python _verify_api.py`（L1-L6）|
 | preflight | `npm run preflight`（7 步） |
+| SW 版本 | `jczjfa-static-v10` |
+| Watchdog cron | `*/5 * * * *` → `scripts/watchdog.cjs` |
+| Vite 构建 | `npx vite build` → `python deploy.py --fast --files-only` |
+| 测试套件 | 115 suites, 1927 tests（全量 `npx jest --forceExit`） |
 | 当前 stable tag | `v11.0-stable` (09d4bb09) |
 
 ---
@@ -106,7 +111,10 @@
 ```powershell
 npm run lint:fix && npm run test:p0   # 开发完成后
 npm run preflight                      # 提交前
+npx jest --forceExit                   # 全量测试
+npx vite build                         # Vite 构建
 python deploy.py --fast                # 部署（需用户确认）
+python deploy.py --fast --files-only   # 仅前端文件
 python _verify_api.py                  # 部署后验证
 ```
 
@@ -130,7 +138,6 @@ python _verify_api.py                  # 部署后验证
 报告问题 → Playwright MCP 模拟用户操作复现 → 定位根因 → 再改代码
 
 ---
-
 ## 🗺️ 知识地图
 
 | 场景 | 文档 |
@@ -144,7 +151,8 @@ python _verify_api.py                  # 部署后验证
 | 回测模式 | `.codebuddy/skills/backtesting-frameworks/references/patterns.md` |
 | 实验追踪实现 | `.codebuddy/skills/experiment-tracking/references/tracker-code.md` |
 | Skill 索引 | `.codebuddy/skills/SKILLS_INDEX.md` |
-| DB事故复盘(V17) | 见 memory #44905246 + deploy-ops lessons |
+| **监控体系 (V17)** | `server/core/db-metrics.js`, `scripts/watchdog.cjs` |
+| **测试覆盖 (V17)** | 115 suites / 1927 tests / 92/183 source files |
 
 ---
 
