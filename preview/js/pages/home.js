@@ -498,8 +498,9 @@ export function loadHome() {
   });
 
   bundlePromise.then(function (bundle) {
-    if (bundle && bundle.code === 1 && bundle.data) {
-      const d = bundle.data;
+    // ★ fix: api() 返回的是 data 本体，不含 code/data 包装层
+    if (bundle && (bundle.weekDates || bundle.matches)) {
+      const d = bundle;
       // 注入 weekDates 到全局 state
       if (d.weekDates && d.weekDates.length) {
         try {
@@ -510,6 +511,18 @@ export function loadHome() {
       if (d.matches) setCache('match-list:' + today, d.matches);
       if (d.ranking) setCache('ranking-list:home', d.ranking);
 
+      // ★ P2: 用 match-list.js / ranking.js 实际查询的 cache key 再存一份，tab切换秒开
+      // match-list.js 用 weekDates[0].matchDate 做 key
+      var firstWeek = d.weekDates && d.weekDates[0];
+      if (d.matches && firstWeek && firstWeek.matchDate && firstWeek.matchDate !== today) {
+        setCache('match-list:' + firstWeek.matchDate, d.matches);
+      }
+      // ranking.js 默认参数用 key = 'ranking-list:||'
+      if (d.ranking) {
+        var rankForCache = Array.isArray(d.ranking) ? { ranking: d.ranking } : d.ranking;
+        setCache('ranking-list:||', rankForCache);
+      }
+
       // ★ V12 Strategy B: 渐进式渲染 — 先显示骨架+比赛数, 排名延后一帧渲染
       _renderHomeStatsBrief(d.matches || [], d.ranking || []);
       loadWorldCupSection(Promise.resolve(d.matches || []), d.weekDates || []);
@@ -519,10 +532,32 @@ export function loadHome() {
       });
       // ★ P2: 异步预取命中率数据，命中率页秒开
       setTimeout(function () {
-        api('hit-rate-stats', { days: 60 }).then(function (data) {
-          if (data) try { sessionStorage.setItem('hit-rate-cache', JSON.stringify(data)); } catch (_) {}
-        }).catch(function () {});
+        api('hit-rate-stats', { days: 60 })
+          .then(function (data) {
+            if (data)
+              try {
+                sessionStorage.setItem('hit-rate-cache', JSON.stringify(data));
+              } catch (_) {}
+          })
+          .catch(function () {});
       }, 3000);
+
+      // ★ FIX: home-bundle 路径缺少盈亏图表加载 — 补充 daily-profit-7d + NotiEngine
+      var profitP = api('daily-profit-7d', { days: 7 }).catch(function () {
+        return null;
+      });
+      profitP.then(function (data) {
+        if (!data || !data.dates || !data.profits || data.dates.length === 0) return;
+        var dates = data.dates.slice(0, 7),
+          profits = data.profits.slice(0, 7).map(function (v) {
+            return v === null ? 0 : v;
+          });
+        if (dates.length < 2) return;
+        renderProfitChartNative(dates, profits);
+        var section = document.getElementById('homeProfitChartSection');
+        if (section) section.style.display = 'block';
+      });
+      NotiEngine.run(profitP);
       return;
     }
     // 回退：原有 3 次独立请求

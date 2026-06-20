@@ -530,7 +530,23 @@ function buildRolesAndPermsFromJoinedRows(rows) {
   return { roles: Array.from(roleSet), permissions: Array.from(permSet) };
 }
 
+// ★ P2: 用户 SessionInfo 缓存（60s），避免每次登录 5 表 JOIN
+const _sessionInfoCache = new Map();
+function getCachedSessionInfo(userId) {
+  const entry = _sessionInfoCache.get(userId);
+  if (entry && Date.now() - entry.time < 60000) return entry.data;
+  _sessionInfoCache.delete(userId);
+  return null;
+}
+function setCachedSessionInfo(userId, data) {
+  _sessionInfoCache.set(userId, { time: Date.now(), data });
+}
+
 function buildSessionInfoByUserId(userId) {
+  // 优先从缓存读取
+  var cached = getCachedSessionInfo(userId);
+  if (cached) return cached;
+
   const adp = getAdapter();
   const rows = adp.execAll(
     `SELECT u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at,
@@ -548,7 +564,7 @@ function buildSessionInfoByUserId(userId) {
   );
   if (!rows || rows.length === 0) return null;
   const rp = buildRolesAndPermsFromJoinedRows(rows);
-  return {
+  const info = {
     user: sanitizeUser(rows[0]),
     roles: rp.roles,
     permissions: rp.permissions,
@@ -558,6 +574,8 @@ function buildSessionInfoByUserId(userId) {
     vip_gift_expires_at: rows[0].vip_gift_expires_at || null,
     referralEnabled: rows[0].referral_enabled === 1,
   };
+  setCachedSessionInfo(userId, info);
+  return info;
 }
 
 async function loginWithPassword(username, password, meta = {}) {
@@ -577,10 +595,12 @@ async function loginWithPassword(username, password, meta = {}) {
   const nowStr = now.toISOString();
 
   let user = adp.execOne('SELECT * FROM users WHERE username = ?', username);
-  // ★ V12: sql.js 跨 worker 共享 — 未命中时从磁盘重载再查（修复注册后立登失败）
-  if (!user && typeof adp.reload === 'function') {
-    adp.reload();
-    user = adp.execOne('SELECT * FROM users WHERE username = ?', username);
+  // ★ C: 增量同步 — 内存未命中时从磁盘直接查（<50ms），不再全量 reload 296MB（2-5s）
+  if (!user && typeof adp.execOneOnDisk === 'function') {
+    user = adp.execOneOnDisk('SELECT * FROM users WHERE username = ?', [username]);
+    if (user && typeof adp.syncUserFromDisk === 'function') {
+      adp.syncUserFromDisk(user); // 同步到内存 DB，下次秒查
+    }
   }
   if (!user) return { ok: false, code: 0, msg: '账号或密码错误' };
   if (user.status === 'disabled') return { ok: false, code: 0, msg: '账号已禁用' };
@@ -620,7 +640,12 @@ async function loginWithPassword(username, password, meta = {}) {
     user.id,
   );
 
-  normalizeUserSubscriptionStatus(adp, user.id);
+  // ★ P2: defer subscription check, not on login critical path
+  setImmediate(() => {
+    try {
+      normalizeUserSubscriptionStatus(adp, user.id);
+    } catch (e) {}
+  });
 
   const token = randomSecret(24);
   const tokenHash = sha256(token);
@@ -748,6 +773,8 @@ function registerUser(username, password, meta = {}) {
   );
 
   flushCriticalWrites(adp);
+  // ★ A: 通知 reload 追踪器 DB 已更新，避免注册后登录触发无效 300MB 重载
+  if (typeof adp.markDirty === 'function') adp.markDirty();
 
   return {
     ok: true,

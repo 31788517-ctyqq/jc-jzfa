@@ -37,15 +37,14 @@
 ### 上传命令参考
 
 ```powershell
-# 上传到 miniprogram/images/（对应 /assets/ URL）
-scp -i "%USERPROFILE%\.ssh\id_rsa_jczjfa" -o StrictHostKeyChecking=no ^
-  miniprogram\images\icon.png ^
-  root@119.23.51.159:/var/www/zj.100qiu.com/miniprogram/images/
+# ❌ 禁止手动 scp（违反部署铁律）—— 必须使用 deploy.py
+# 以下仅为路径参考，实际部署请用: python deploy.py --fast --files-only
 
-# 上传到 preview/（对应 /preview/ URL）
-scp -i "%USERPROFILE%\.ssh\id_rsa_jczjfa" -o StrictHostKeyChecking=no ^
-  preview\js\pages\gongshoudao.js ^
-  root@119.23.51.159:/var/www/zj.100qiu.com/preview/js/pages/
+# miniprogram/images/（对应 /assets/ URL）
+# → deploy.py DEPLOY_MAP 已配置: miniprogram/images/ → /var/www/zj.100qiu.com/miniprogram/images/
+
+# preview/（对应 /preview/ URL）  
+# → deploy.py DEPLOY_MAP 已配置: preview/ → /var/www/zj.100qiu.com/preview/
 ```
 
 ## 部署目录结构总览

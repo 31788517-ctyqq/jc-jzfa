@@ -8,9 +8,12 @@ export function loadHitRate() {
 
   // ★ P2: 优先使用首页预取的缓存数据，命中率页秒开
   var cached = null;
-  try { var raw = sessionStorage.getItem('hit-rate-cache'); if (raw) cached = JSON.parse(raw); } catch (_) {}
-  if (cached && cached.data && cached.data.length) {
-    renderHitRate(cached);
+  try {
+    var raw = sessionStorage.getItem('hit-rate-cache');
+    if (raw) cached = JSON.parse(raw);
+  } catch (_) {}
+  if (cached && cached.directionStats && cached.directionStats.length) {
+    renderHitRate(el, cached);
     return;
   }
 

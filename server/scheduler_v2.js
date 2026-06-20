@@ -653,6 +653,41 @@ function scheduleNoonTask() {
         10 * 60 * 1000,
       );
 
+      // ★ P3: 16:05 专用预热 plan-list（16:00 后才生成方案，必须单独预热）
+      setTimeout(
+        async () => {
+          try {
+            logger.info('[schedule] 🔥 16:05 plan-list 专用缓存预热...');
+            const http = require('http');
+            await new Promise((resolve) => {
+              const today = new Date().toISOString().slice(0, 10);
+              const url = '/api?action=plan-list&date=' + today;
+              const req = http.get({ hostname: '127.0.0.1', port: 3000, path: url, timeout: 60000 }, (res) => {
+                let body = '';
+                res.on('data', (chunk) => {
+                  body += chunk;
+                });
+                res.on('end', () => {
+                  logger.info('[warm] plan-list(16:05) → ' + res.statusCode + ' (' + body.length + 'B)');
+                  resolve(true);
+                });
+              });
+              req.on('error', (e) => {
+                logger.warn('[warm] plan-list(16:05) 失败: ' + e.message);
+                resolve(false);
+              });
+              req.on('timeout', () => {
+                req.destroy();
+                resolve(false);
+              });
+            });
+          } catch (e) {
+            logger.error('[schedule] plan-list 预热失败: ' + e.message);
+          }
+        },
+        4 * 60 * 60 + 5 * 60 * 1000, // 4h5min = 16:05
+      );
+
       logger.info('[schedule] 12:00 任务链已启动');
     } catch (e) {
       logger.error('[schedule] 12:00 任务失败: ' + e.message);

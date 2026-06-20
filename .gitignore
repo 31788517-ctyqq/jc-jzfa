@@ -1,4 +1,8 @@
 node_modules/
+
+# ── 敏感配置（含 API 密钥，禁止提交） ──
+ecosystem.config.json
+!ecosystem.config.example.json
 __pycache__/
 *.pyc
 *.log
@@ -14,16 +18,45 @@ preview/dist/
 *-err.txt
 *-out.json
 *-out.txt
+*.out.txt
 tmp_*.json
 tmp_*.txt
 _*.py
 _*.js
+_*.cjs
 _*.txt
 _*.bat
 !deploy*.bat
 *.b64.txt
 *.pdb
 *.obj
+
+# ── 根目录噪声产物 ──
+_audit_*/**/*
+_audit_*.*
+_audit_server/
+_backup_*/
+_server_data/
+_server_live/
+_snapshots/
+_screenshots/
+_check_*.py
+_check_*.js
+_chk_*.js
+_debug_*.js
+_gen_*.js
+_grep_*.py
+_pull_*.py
+_sync_*.js
+_test_*.js
+_prod_*.*
+_sporttery_*.sql.gz
+bulk_pk.js
+deploy_gs.bat
+start-local.bat
+start_claude_deepseek.ps1
+_crash_*.*
+{*
 
 # ── 敏感配置文件（绝对禁止提交） ──
 .env
@@ -55,6 +88,28 @@ server/shuju_map_*.json
 server/logs/
 server/ttyingqiu_data/
 
+# ── server 备份/调试噪声 ──
+server/*.bak
+server/*.bak_*
+server/*.bak.*
+server/*.bak_local_*
+server/*_bak.*
+server/*_bak
+server/data*.json
+!server/data.json
+!server/data_sync.js
+!server/database*.js
+server/*_log.txt
+server/*_err.txt
+server/scrape_*.txt
+server/tty_plans_*.json
+server/tty_detail_log.txt
+server/batch_index.json.pre_update_*
+server/stats_bank.json.pre_update_*
+server/_check*.js
+server/probe*.js
+server/allplays_missing.json
+
 # ── 测试/覆盖率产物 ──
 coverage/
 test-results/
@@ -71,13 +126,33 @@ test_*.json
 .codebuddy/check_*.py
 .codebuddy/live500_*.html
 .codebuddy/smoke_api_result.json
+.codebuddy/*_probe*
+.codebuddy/*_slow_*
+.codebuddy/*_result*.json
+.codebuddy/deploy_*.out
+.codebuddy/preflight.out
+.codebuddy/verify_api.out
+.codebuddy/baseline_*
+.codebuddy/fix_*.cjs
+.codebuddy/remote_*
+.codebuddy/pre_opt_*.py
+.codebuddy/*_report.json
+.codebuddy/*_report.md
+.codebuddy/*_plan.md
+.codebuddy/playwright-gen/
+.codebuddy/teams/
 _snapshots/JC-ZJFA-remote-latest-worktree/
 
 # 运行期产物
 server/allplays_missing.json
 server/user_plans/*.json
 temp_account_security.js
-{console*
+{*
+detail_debug.html
+run_crawl.sh
+*_log.log
+_preflight*.log
+preflight*.log
 
 # 临时素材（未被业务引用）
 preview/老鹰logo3.png

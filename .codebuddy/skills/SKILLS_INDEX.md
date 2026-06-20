@@ -49,9 +49,11 @@
 
 | 指标 | 值 |
 |------|-----|
-| PM2 进程 | 3/3 online |
-| 测试套件 | 115 suites, 1927 tests |
-| 源文件覆盖 | 92/183 (50%) |
-| SW 版本 | v10 |
-| Watchdog | cron 每 5 分钟 |
-| Scheduler 内存 | 2048M |
+| PM2 进程 | jc-zjfa (cluster:1, 1800M) / jc-sync (fork:1, 1800M) / jc-scheduler (fork:1, 2048M) |
+| 测试套件 | 115 suites / 1927 tests / 92/183 源文件 |
+| SW 版本 | jczjfa-static-v10 |
+| Watchdog | `*/5 * * * *` → `scripts/watchdog.cjs` |
+| 部署方式 | `python deploy.py --fast` (paramiko) |
+| Vite 构建 | `npx vite build` → `python deploy.py --fast --files-only` |
+| 当前分支 | `local/auth-preview` |
+| 仓库清理 | 2026-06-20 完成 P0-P3 噪声大扫除（-340 文件/-210MB） |

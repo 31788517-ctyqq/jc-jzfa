@@ -1,6 +1,6 @@
 // Service Worker — 仅缓存静态资源（JS/CSS），页面壳直通网络
 // v7: 开发模式检测 — localhost 时完全跳过缓存
-const CACHE_NAME = 'jczjfa-static-v10';
+const CACHE_NAME = 'jczjfa-static-v12';
 const STATIC_EXTENSIONS = /\.(js|css|svg|png|webp|woff2?)$/i;
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 

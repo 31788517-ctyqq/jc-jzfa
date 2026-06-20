@@ -502,8 +502,15 @@ function _createSqlJsAdapter(sqlDb) {
   }
 
   // ★ V12: sql.js 跨 worker 共享 — 从磁盘重载数据库
+  var _lastReloadMtime = 0;
   function reload() {
     if (!fs.existsSync(DB_FILE)) return false;
+    // ★ B: 检查文件 mtime，未变化则跳过重载（避免无意义的 300MB 全量读取）
+    try {
+      var stat = fs.statSync(DB_FILE);
+      if (stat.mtimeMs === _lastReloadMtime) return false; // 未变更，跳过
+      _lastReloadMtime = stat.mtimeMs;
+    } catch (e) {}
     try {
       const fileBuf = fs.readFileSync(DB_FILE);
       const newDb = new sqlDb.Database(fileBuf);
@@ -516,7 +523,113 @@ function _createSqlJsAdapter(sqlDb) {
     }
   }
 
-  return { execOne, execAll, execRun, execDDL, transaction, close, flush, reload, backend: 'sqljs', raw: dbInstance };
+  // ★ A: 写入后通知 reload 追踪器（注册等场景，后续登录跳过无效 reload）
+  function markDirty() {
+    try {
+      _lastReloadMtime = fs.statSync(DB_FILE).mtimeMs;
+    } catch (e) {}
+  }
+
+  // ★ C: 增量查询 — 只在磁盘文件上执行 SELECT，不入内存 DB
+  //   缓存窗口 5s：即使 jc-sync 持续写入，5s 内复用同一磁盘连接（<50ms/次）
+  var _diskDB = null;
+  var _diskDBMtime = 0;
+  var _diskDBTime = 0;
+  function execOneOnDisk(sql, params) {
+    try {
+      var stat = fs.statSync(DB_FILE);
+      var mtime = stat.mtimeMs;
+      var now = Date.now();
+      // 30 秒缓存窗口：即使 jc-sync 持续写 DB 也复用（users 表极少变化）
+      var cacheValid = _diskDB && now - _diskDBTime < 30000;
+      if (!cacheValid) {
+        if (_diskDB) _diskDB.close();
+        var t0 = Date.now();
+        var fileBuf = fs.readFileSync(DB_FILE);
+        _diskDB = new sqlDb.Database(fileBuf);
+        _diskDBMtime = mtime;
+        _diskDBTime = now;
+        console.log('[db] diskDB reloaded in ' + (Date.now() - t0) + 'ms');
+      }
+      var stmt = _diskDB.prepare(sql);
+      if (stmt) {
+        stmt.bind(params || []);
+        if (stmt.step()) {
+          var cols = stmt.getColumnNames();
+          var vals = stmt.get();
+          stmt.free();
+          var row = {};
+          for (var i = 0; i < cols.length; i++) row[cols[i]] = vals[i];
+          return row;
+        }
+        stmt.free();
+      }
+    } catch (e) {
+      /* fallback to null */
+    }
+    return null;
+  }
+
+  // 将磁盘 DB 查到的新用户同步到内存 DB
+  function syncUserFromDisk(user) {
+    if (!user || !user.id) return false;
+    try {
+      // 检查内存 DB 是否已有该用户
+      var existing = execOne('SELECT id FROM users WHERE id = ?', user.id);
+      if (existing) return true; // 已存在，无需同步
+      // INSERT OR IGNORE 避免冲突
+      var cols = [
+        'id',
+        'username',
+        'password_hash',
+        'status',
+        'must_change_password',
+        'password_updated_at',
+        'failed_login_count',
+        'locked_until',
+        'last_login_at',
+        'referral_code',
+        'referred_by',
+        'subscription_status',
+        'subscription_expires_at',
+        'vip_gift_claimed_at',
+        'vip_gift_expires_at',
+        'referral_enabled',
+        'device_fingerprint',
+        'registration_ip',
+        'created_at',
+        'updated_at',
+      ];
+      var placeholders = cols
+        .map(function () {
+          return '?';
+        })
+        .join(',');
+      var vals = cols.map(function (c) {
+        return user[c] !== undefined ? user[c] : null;
+      });
+      execRun('INSERT OR IGNORE INTO users(' + cols.join(',') + ') VALUES(' + placeholders + ')', vals);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  return {
+    execOne,
+    execAll,
+    execRun,
+    execDDL,
+    transaction,
+    close,
+    flush,
+    reload,
+    markDirty,
+    execOneOnDisk,
+    syncUserFromDisk,
+    backend: 'sqljs',
+    raw: dbInstance,
+  };
 }
 
 // ═══════════════════════════════════════════════════════

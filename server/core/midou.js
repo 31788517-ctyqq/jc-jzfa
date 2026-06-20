@@ -29,9 +29,7 @@ const CONFIG = {
       `***(${CONFIG.PASSWORD.length}字符)`,
     );
   }
-  if (/^[a-f0-9]{32}$/i.test(CONFIG.PASSWORD)) {
-    logger.warn('[midou] ⚠️ 主账户密码看起来是 MD5 哈希值(32位hex)，请确认 API 是否接受 MD5 格式');
-  }
+  // MIDOU_PASSWORD 使用 MD5 格式存储（API 接受 MD5），无需警告
 })();
 
 // ═══ 运行时缓存 ═══

@@ -1,0 +1,43 @@
+{
+  "lockedAt": "2026-06-18T10:12:53.545Z",
+  "earliestKickoff": null,
+  "date": "2026-06-10",
+  "plans": [
+    {
+      "planId": "plan_2026-06-10_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040190",
+          "direction": "总进球-1、2、3球",
+          "homeName": "英格兰",
+          "visitName": "哥斯达黎加",
+          "matchNum": "周三202"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-10_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040189",
+          "direction": "总进球-1、2、3球",
+          "homeName": "葡萄牙",
+          "visitName": "尼日利亚",
+          "matchNum": "周三201"
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
-# JC-ZJFA AGENTS Guide v18
+# JC-ZJFA AGENTS Guide v18.1
 
-> 精简版：核心禁手(13条) + Skill 强制路由 + AI 参数约束 + 关键配置。每会话自动加载。
+> 精简版：核心禁手(13条) + 代码卫生(8条) + Skill 强制路由 + AI 参数约束 + 关键配置。每会话自动加载。
 
 ---
 
@@ -17,10 +17,32 @@
 | 7 | SW 缓存 HTML（PAGE_SHELL） | SW 只缓存 JS/CSS 静态资源 |
 | 8 | `postbuild` 覆盖源文件 | 构建产物与源码严格分离 |
 | 9 | Windows 原生 scp/ssh | `python deploy.py --fast`（paramiko） |
-| 10 | 临时脚本永久留在仓库 | 用完即删，或归档 `scripts/perf/` |
+| 10 | 临时脚本永久留在仓库 | 用完即归档 `scripts/archive/` 或删除 |
 | 11 | sql.js/SQLite 多进程并发写同一文件 | 单文件 DB 必须 `instances:1`，且同一文件中最多一个写入者 |
 | 12 | PM2 变更后不验证残留进程 | `pm2 delete/restart` 后必须 `ps aux \| grep node` 确认无 zombie |
 | 13 | jc-scheduler `max_memory_restart` 低于 512M | 最低 2048M（加载 300MB sql.js DB + 功守道计算） |
+
+---
+
+## 🧹 代码卫生规范（V18.1 新增）
+
+> 由 2026-06-20 仓库噪声大扫除催生。防止"修复即污染"。
+
+| # | 规则 | 说明 |
+|---|------|------|
+| H1 | **临时脚本必须 `_tmp_*` 前缀** | 根目录禁止直接放调试脚本，创建时放到 `scripts/` 下 |
+| H2 | **修复完成后 1 小时内归档/删除** | 脚本完成使命后 → `scripts/archive/` 或直接 `del` |
+| H3 | **根目录只放 30 个核心文件** | 配置文件 + deploy.py + ecosystem + package.json + 入口 HTML + 目录 |
+| H4 | **备份文件带时间戳** | `*.bak.YYYYMMDD_HHmmss`，禁止 `*.bak` 无时间戳版本 |
+| H5 | **禁止 API dump JSON 散落** | 调试用的 API 响应 dump（r.json, rd18.json 等）用完即删 |
+| H6 | **空数据文件不入库** | 如 `shuju_map_*.json` 全为 `{"empty":true}` 的文件不应存在 |
+| H7 | **日志统一到 `logs/` 或 `server/logs/`** | 禁止根目录 `*_log.txt` / `*_err.txt` 散落 |
+| H8 | **命名链禁止** | `fix → fix2 → final → final2` 式链式命名 = 修复过程不稳定信号，合并为一个最终版本 |
+
+### 自动执行机制
+
+- `pre-commit-check.cjs` 已拦截根目录 `_tmp_*` 文件（V12 实战验证有效）
+- `.gitignore` 已覆盖常见噪声模式（`{*`, `_*.cjs`, `*.out.txt`, `server/*.bak*`, `*_log.log` 等）
 
 ---
 
@@ -57,10 +79,10 @@
 
 ```
 □ 读取本文件（AGENTS.md）已自动完成
-□ 检查是否有未归档的临时脚本（git status Untracked）
+□ 检查是否有未归档的临时脚本（git status --short | findstr "_tmp_"）
 □ 检查是否有 pending 的修复未写入 Skill lessons
-□ 确认当前分支（git branch）和目标环境
-□ 检查生产环境 PM2 状态（pm2 list）— 3 进程必须全部 online
+□ 确认当前分支（git branch --show-current）和目标环境
+□ [仅生产分支] 检查生产环境 PM2 状态 — 3 进程必须全部 online
 ```
 
 ---
@@ -142,17 +164,16 @@ python _verify_api.py                  # 部署后验证
 
 | 场景 | 文档 |
 |------|------|
-| 开发返工分析 | `sucai/开发返工问题全面诊断报告.md` |
-| 本地-生产差异 | `sucai/本地生产环境落差导致返工分析.md` |
-| 被回退的优化 | `sucai/被回退丢失的优化项分析.md` |
-| 优化计划 | `sucai/本地优化与规范建设计划.md` |
-| 部署经验 | `.codebuddy/skills/deploy-ops/references/lessons.md` |
-| ETL 规范 | `.codebuddy/skills/data-pipeline/references/etl-specs.md` |
-| 回测模式 | `.codebuddy/skills/backtesting-frameworks/references/patterns.md` |
-| 实验追踪实现 | `.codebuddy/skills/experiment-tracking/references/tracker-code.md` |
+| 部署/运维/故障 | `.codebuddy/skills/deploy-ops/SKILL.md` + `references/` |
+| 数据管线/ETL | `.codebuddy/skills/data-pipeline/SKILL.md` |
+| 测试/质量门禁 | `.codebuddy/skills/jczjfa-test-orchestrator/SKILL.md` |
+| 回测/调参 | `.codebuddy/skills/backtesting-frameworks/SKILL.md` |
+| AI模型/实验 | `.codebuddy/skills/experiment-tracking/SKILL.md` |
 | Skill 索引 | `.codebuddy/skills/SKILLS_INDEX.md` |
-| **监控体系 (V17)** | `server/core/db-metrics.js`, `scripts/watchdog.cjs` |
-| **测试覆盖 (V17)** | 115 suites / 1927 tests / 92/183 source files |
+| Nginx 路径映射 | `.codebuddy/skills/deploy-ops/references/nginx.md` |
+| 监控体系 | `server/core/db-metrics.js`, `scripts/watchdog.cjs` |
+| 测试覆盖 | 115 suites / 1927 tests / 92/183 source files |
+| 清理规范 | 见下方「代码卫生规范」 |
 
 ---
 

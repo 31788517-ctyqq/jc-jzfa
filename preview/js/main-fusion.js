@@ -97,7 +97,7 @@ function _preloadMods() {
   }, 2000);
   setTimeout(function () {
     // ECharts 延迟加载（避免与模块预加载竞争带宽）
-    import('../charts.js').then(function (c) {
+    import('./charts.js').then(function (c) {
       c.loadECharts().catch(function () {});
     });
   }, 4000);

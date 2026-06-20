@@ -180,37 +180,43 @@ export function loadMatchListFromData(matches) {
   focusPendingMatch(list);
 }
 
-export function loadMatchList() {
-  const el = document.getElementById('matchList');
+export function loadMatchList(prefetchedApi) {
+  var el = document.getElementById('matchList');
   if (!el) return;
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
 
-  const w = state.weekDates[state.selectedWeekIdx];
-  const cacheKey = 'match-list:' + (w ? w.matchDate : formatDate(new Date()));
+  var w = state.weekDates[state.selectedWeekIdx];
+  var cacheKey = 'match-list:' + (w ? w.matchDate : formatDate(new Date()));
 
   // ★ P1: sessionStorage 缓存命中
-  const cached = getCache(cacheKey);
+  var cached = getCache(cacheKey);
   if (cached) {
     el.innerHTML = renderMatchHTML(cached);
     focusPendingMatch(cached);
     return;
   }
 
-  const params = { _t: Date.now() };
+  // ★ P1: 使用预取的 API Promise 或新建请求
+  var apiPromise = prefetchedApi && prefetchedApi.then ? prefetchedApi : api('match-list', _buildMatchParams(w));
+
+  apiPromise
+    .then(function (matches) {
+      setCache(cacheKey, matches);
+      el.innerHTML = renderMatchHTML(matches);
+      focusPendingMatch(matches);
+    })
+    .catch(function (e) {
+      el.innerHTML = '<div class="loading">' + e.message + '</div>';
+    });
+}
+
+function _buildMatchParams(w) {
+  var params = { _t: Date.now() };
   if (w) {
     params.weekNum = w.weekNum;
     params.matchDate = w.matchDate;
   } else {
     params.date = formatDate(new Date());
   }
-
-  api('match-list', params)
-    .then((matches) => {
-      setCache(cacheKey, matches);
-      el.innerHTML = renderMatchHTML(matches);
-      focusPendingMatch(matches);
-    })
-    .catch((e) => {
-      el.innerHTML = '<div class="loading">' + e.message + '</div>';
-    });
+  return params;
 }

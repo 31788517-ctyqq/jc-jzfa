@@ -1,0 +1,43 @@
+{
+  "lockedAt": "2026-06-18T10:12:53.494Z",
+  "earliestKickoff": null,
+  "date": "2026-06-08",
+  "plans": [
+    {
+      "planId": "plan_2026-06-08_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040147",
+          "direction": "总进球-1、2、3球",
+          "homeName": "秘鲁",
+          "visitName": "西班牙",
+          "matchNum": "周一203"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-08_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040146",
+          "direction": "总进球-1、2、3球",
+          "homeName": "法国",
+          "visitName": "北爱尔兰",
+          "matchNum": "周一202"
+        }
+      ]
+    }
+  ]
+}

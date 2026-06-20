@@ -39,9 +39,7 @@ if (!CONFIG.MIDOU_MOBILE || !CONFIG.MIDOU_PASSWORD) {
 } else {
   console.log('[token_manager] 主账户凭据已配置: MIDOU_MOBILE=%s', CONFIG.MIDOU_MOBILE);
 }
-if (/^[a-f0-9]{32}$/i.test(CONFIG.MIDOU_PASSWORD)) {
-  console.warn('[token_manager] ⚠️ 主账户密码看起来是 MD5 哈希值(32位hex)，请确认 API 是否接受 MD5 格式');
-}
+// MIDOU_PASSWORD 使用 MD5 格式存储（API 接受 MD5），无需警告
 if (!envFileLoaded) {
   console.warn('[token_manager] ⚠️ 未检测到 .env 文件，当前使用 process.env 中的凭据');
 }
