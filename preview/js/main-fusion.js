@@ -89,10 +89,18 @@ function _preloadHotModules() {
 
 // 预加载常用模块（在首次渲染后异步加载，不阻塞首页）
 // ★ V17 P0优化: 只预加载方案页(底部第5tab最高频)，其余按需懒加载，节省~200KB
+// ★ P0加速: 新增 match-detail + ECharts 预加载（比赛详情页打开速度优化）
 function _preloadMods() {
   setTimeout(function () {
     _mod('plans'); // ★ 方案页（底部第5 tab，最高频入口）
+    _mod('match-detail'); // ★ 比赛详情页（列表/排行点击高频入口）
   }, 2000);
+  setTimeout(function () {
+    // ECharts 延迟加载（避免与模块预加载竞争带宽）
+    import('../charts.js').then(function (c) {
+      c.loadECharts().catch(function () {});
+    });
+  }, 4000);
 }
 
 // ═══ 懒加载 window 代理 ═══
@@ -1280,7 +1288,7 @@ export function switchTab(tab) {
   if (tab === 'home') {
     setTimeout(function () {
       const today = formatDate(new Date());
-      api('plan-list', { date: today }).catch(function () {});
+      api('plan-list', { date: today, qualityMode: 'all' }).catch(function () {});
       api('hit-rate-stats', {}).catch(function () {});
     }, 1200);
   }
@@ -1292,7 +1300,7 @@ function _prefetchTabData(tab) {
   const today = formatDate(new Date());
   if (tab === 'plan') {
     const pd = state.planDate || today;
-    api('plan-list', { date: pd }).catch(function () {});
+    api('plan-list', { date: pd, qualityMode: 'all' }).catch(function () {});
   } else if (tab === 'match') {
     const sel = state.weekDates[state.selectedWeekIdx];
     if (sel && sel.matchDate) {
@@ -1888,7 +1896,7 @@ function switchTabLoad(tab) {
   if (tab === 'home') {
     setTimeout(function () {
       const today = formatDate(new Date());
-      api('plan-list', { date: today }).catch(function () {});
+      api('plan-list', { date: today, qualityMode: 'all' }).catch(function () {});
       api('hit-rate-stats', {}).catch(function () {});
     }, 1200);
   }
