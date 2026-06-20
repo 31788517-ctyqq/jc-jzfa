@@ -326,18 +326,13 @@
 .profile-shell-v2 {
   position: relative;
   max-width: 500px;
-  padding-bottom: 120px;
+  padding: 0 19px 120px;
 }
 
+/* Phase1: profile-hero — 继承统一全宽基类（见 page-auth.css 顶部） */
 .profile-shell-v2 .profile-hero {
-  position: relative;
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
-  overflow: hidden;
   height: 272px;
-  padding: 86px 28px 0;
-  border-radius: 0 0 36px 36px;
+  padding: 86px 36px 0;
   background:
     radial-gradient(ellipse 140% 90% at 70% 30%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 34%),
     radial-gradient(ellipse 60% 70% at 92% 12%, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0) 28%),
@@ -775,13 +770,8 @@
 }
 
 .profile-shell-v2 .profile-hero {
-  position: relative;
-  width: 100%;
   height: 272px;
-  padding: 86px 28px 0;
-  border-radius: 0;
-  overflow: hidden;
-  isolation: isolate;
+  padding: 86px 36px 0;
   background:
     radial-gradient(ellipse 140% 90% at 70% 30%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 34%),
     radial-gradient(ellipse 60% 70% at 92% 12%, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0) 28%),
@@ -958,13 +948,8 @@
 }
 
 .profile-shell-v2 .profile-hero {
-  position: relative;
-  width: 100%;
   height: 272px;
-  padding: 86px 28px 0;
-  border-radius: 0;
-  overflow: hidden;
-  isolation: isolate;
+  padding: 86px 36px 0;
   background:
     radial-gradient(ellipse 140% 90% at 70% 30%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 34%),
     radial-gradient(ellipse 60% 70% at 92% 12%, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0) 28%),
@@ -1051,4 +1036,124 @@
   color: #1f7a68;
   font-size: 12px;
   font-weight: 700;
+}
+
+
+/* ★ Phase1 fix: plan card styles in profile page (originally in page-plans.css) */
+.profile-shell-v2 .profile-plan-head {
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.profile-shell-v2 .profile-plan-title {
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.profile-shell-v2 .profile-plan-subtitle {
+  margin-top: 6px;
+  color: #8c98a8;
+  font-size: 13px;
+}
+
+.profile-shell-v2 .profile-plan-list {
+  margin-top: 16px;
+}
+
+.profile-shell-v2 .profile-history-section .plan-card {
+  border-radius: 22px;
+  border: 1px solid rgba(220, 224, 230, 0.86);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 251, 253, 0.98));
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.profile-shell-v2 .profile-history-section .plan-card + .plan-card {
+  margin-top: 14px;
+}
+
+.profile-shell-v2 .profile-plan-action {
+  flex: 0 0 auto;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid rgba(31, 122, 104, 0.22);
+  border-radius: 999px;
+  background: rgba(31, 122, 104, 0.08);
+  color: #1f7a68;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profile-shell-v2 .profile-plan-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 6px;
+}
+
+/* ★ Phase1 fix: filter bar + active state (originally in page-hit.css) */
+.profile-shell-v2 .profile-filter-bar {
+  display: flex;
+  gap: 4px;
+  margin-top: 16px;
+  padding: 4px;
+  border-radius: 16px;
+  background: #f2f4f7;
+}
+.profile-shell-v2 .profile-filter-btn {
+  flex: 1;
+  height: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #7b8794;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.profile-shell-v2 .profile-filter-btn.is-active {
+  background: linear-gradient(180deg, #1f7a68 0%, #165a4d 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(31, 122, 104, 0.22);
+}
+.profile-shell-v2 .profile-filter-hint {
+  margin-top: 8px;
+  color: #1f7a68;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ★ Phase1: responsive hero sizing (positioning inherited from unified base) */
+@media (max-width: 420px) {
+  .profile-shell-v2 .profile-hero {
+    height: 232px;
+    padding: 72px 18px 0;
+    border-radius: 0;
+  }
+  .profile-shell-v2 .profile-hero-copy {
+    width: 190px;
+    max-width: 190px;
+  }
+  .profile-shell-v2 .login-hero-title {
+    font-size: 30px;
+  }
+  .profile-shell-v2 .login-hero-subtitle {
+    margin-top: 12px;
+    font-size: 13px;
+  }
+  .profile-shell-v2 .profile-home-corner {
+    top: 14px;
+    right: 14px;
+    width: auto;
+    height: 34px;
+    min-height: 34px;
+    padding: 0 14px;
+    font-size: 12px;
+    line-height: 34px;
+  }
+  .profile-shell-v2 .profile-account-card-v2 {
+    margin-top: -52px;
+  }
 }

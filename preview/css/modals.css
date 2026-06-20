@@ -1193,9 +1193,9 @@
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border: 1.5px solid rgba(15, 23, 42, 0.28);
   border-radius: 3px;
-  background: transparent;
+  background: rgba(15, 23, 42, 0.06);
   cursor: pointer;
   position: relative;
   flex-shrink: 0;
@@ -1435,7 +1435,7 @@
   width: 100%;
   max-width: 420px;
   max-height: 92vh;
-  background: linear-gradient(180deg, #141c2b 0%, #131b24 100%);
+  background: linear-gradient(180deg, #f8fbfb 0%, #edf4f4 100%);
   border-radius: 20px 20px 0 0;
   overflow-y: auto;
   animation: pkSlideUp 0.28s ease;
@@ -2807,13 +2807,7 @@
 .gs-modal,
 .pk2-modal,
 .pk3-modal,
-.quant-modal {
-  background: linear-gradient(180deg, #151e29 0%, #111820 100%);
-  border: 1px solid rgba(126, 166, 189, 0.12);
-  box-shadow:
-    0 -18px 42px rgba(0, 0, 0, 0.42),
-    inset 0 1px 0 rgba(255, 255, 255, 0.035);
-}
+.quant-modal
 .ai-modal-header,
 .share-modal-header,
 .gs-modal-head,

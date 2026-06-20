@@ -175,7 +175,7 @@ export function renderState(el, state, opts) {
     case 'loading':
       el.innerHTML =
         '<div style="text-align:center;padding:60px 20px;color:var(--text3);">' +
-        '<div class="loading-spinner" style="margin:0 auto 16px;width:32px;height:32px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--cyan);border-radius:50%;animation:spin 0.8s linear infinite;"></div>' +
+        '<div class="loading-spinner" style="margin:0 auto 16px;width:32px;height:32px;border:3px solid rgba(15,23,42,0.10);border-top-color:var(--cyan);border-radius:50%;animation:spin 0.8s linear infinite;"></div>' +
         '加载中...</div>';
       break;
     case 'error':

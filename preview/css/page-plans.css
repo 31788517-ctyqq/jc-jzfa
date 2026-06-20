@@ -526,8 +526,8 @@
   border-spacing: 0;
   overflow: hidden;
   border-radius: 14px;
-  border: 1px solid rgba(126, 166, 189, 0.09);
-  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
 }
 
 .data-table th,
@@ -537,11 +537,11 @@
 .quant-card-header,
 .pk3-compare-table thead th {
   padding: 13px 10px;
-  color: #a0adbb;
+  color: #64748b;
   font-weight: 650;
   line-height: 1.35;
-  background: rgba(126, 166, 189, 0.045);
-  border-color: rgba(126, 166, 189, 0.09);
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.08);
 }
 
 .data-table td,
@@ -549,7 +549,8 @@
 .filter-detail-table td {
   padding: 13px 10px;
   line-height: 1.48;
-  border-color: rgba(126, 166, 189, 0.055);
+  border-color: rgba(15, 23, 42, 0.05);
+  color: #334155;
 }
 
 .plan-card {

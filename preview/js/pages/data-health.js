@@ -6,6 +6,9 @@
  * 数据来源: API /api/data-health → data-quality.js monitor
  */
 
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-scheme.css');
+
 import { api } from '../api.js';
 
 // ═══════════════════════════════════════════════════════

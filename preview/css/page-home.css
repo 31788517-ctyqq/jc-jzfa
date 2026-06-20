@@ -114,6 +114,10 @@
   color: #153437 !important;
 }
 
+.nav-my-btn {
+  display: none;
+}
+
 /* ========== 首页改版 V8.1 ========== */
 
 .home-banner {
@@ -908,6 +912,11 @@
   color: var(--alpine-mint-deep);
   text-shadow: none;
 }
+
+/* ★ Phase1: 恢复首页三色数字（暖色调独立定义） */
+#homeMatchCount { color: #ff8c00 !important; text-shadow: 0 0 10px rgba(255, 140, 0, 0.3); }
+#homeMaxRank { color: var(--alpine-coral-deep, #b94739) !important; text-shadow: 0 0 10px rgba(185, 71, 57, 0.3); }
+#homeHottest { color: var(--alpine-coral, #f46f59) !important; text-shadow: 0 0 10px rgba(244, 111, 89, 0.3); }
 
 .home-stat-desc,
 .home-left-desc,

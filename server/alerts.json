@@ -1,5 +1,82 @@
 [
   {
+    "id": "alert_1781984294475_5evw",
+    "level": "info",
+    "title": "bulk-a",
+    "detail": "msg a",
+    "action": "",
+    "time": 1781984294475,
+    "timeStr": "2026-06-20T19:38:14.475Z",
+    "readAt": 1781984294479,
+    "readBy": "system"
+  },
+  {
+    "id": "alert_1781984294462_l8yf",
+    "level": "info",
+    "title": "read-test",
+    "detail": "to be read",
+    "action": "",
+    "time": 1781984294462,
+    "timeStr": "2026-06-20T19:38:14.462Z",
+    "readAt": 1781984294479,
+    "readBy": "system"
+  },
+  {
+    "id": "alert_1781984294451_kqh0",
+    "level": "P0.5",
+    "title": "今日推荐数据为空",
+    "detail": "undefined 所有比赛 recs_total=0",
+    "action": "手动触发: python deploy.py --fast (重启 jc-sync)",
+    "time": 1781984294451,
+    "timeStr": "2026-06-20T19:38:14.451Z",
+    "readAt": 1781984294479,
+    "readBy": "system"
+  },
+  {
+    "id": "alert_1781984294434_d004",
+    "level": "error",
+    "title": "error-test",
+    "detail": "error msg",
+    "action": "",
+    "time": 1781984294434,
+    "timeStr": "2026-06-20T19:38:14.434Z",
+    "readAt": 1781984294479,
+    "readBy": "system"
+  },
+  {
+    "id": "alert_1781984294429_p3fy",
+    "level": "warn",
+    "title": "warn-test",
+    "detail": "warn msg",
+    "action": "",
+    "time": 1781984294429,
+    "timeStr": "2026-06-20T19:38:14.429Z",
+    "readAt": 1781984294479,
+    "readBy": "system"
+  },
+  {
+    "id": "alert_1781984294426_9w5y",
+    "level": "info",
+    "title": "info-test",
+    "detail": "info msg",
+    "action": "",
+    "time": 1781984294426,
+    "timeStr": "2026-06-20T19:38:14.426Z",
+    "readAt": 1781984294479,
+    "readBy": "system"
+  },
+  {
+    "id": "alert_1781984294411_ergp",
+    "level": "test",
+    "title": "test-alert",
+    "detail": "test message",
+    "action": "",
+    "time": 1781984294411,
+    "timeStr": "2026-06-20T19:38:14.411Z",
+    "readAt": 1781984294479,
+    "readBy": "system"
+  },
+  {
     "id": "alert_1781968843565_u9ft",
     "level": "info",
     "title": "bulk-a",
@@ -305,171 +382,6 @@
     "time": 1781898104159,
     "timeStr": "2026-06-19T19:41:44.159Z",
     "readAt": 1781898104186,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897736177_f8lz",
-    "level": "info",
-    "title": "bulk-a",
-    "detail": "msg a",
-    "action": "",
-    "time": 1781897736177,
-    "timeStr": "2026-06-19T19:35:36.177Z",
-    "readAt": 1781897736180,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897736175_d33u",
-    "level": "info",
-    "title": "read-test",
-    "detail": "to be read",
-    "action": "",
-    "time": 1781897736175,
-    "timeStr": "2026-06-19T19:35:36.175Z",
-    "readAt": 1781897736180,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897736171_bmeu",
-    "level": "P0.5",
-    "title": "今日推荐数据为空",
-    "detail": "undefined 所有比赛 recs_total=0",
-    "action": "手动触发: python deploy.py --fast (重启 jc-sync)",
-    "time": 1781897736171,
-    "timeStr": "2026-06-19T19:35:36.171Z",
-    "readAt": 1781897736180,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897736165_8zi4",
-    "level": "error",
-    "title": "error-test",
-    "detail": "error msg",
-    "action": "",
-    "time": 1781897736165,
-    "timeStr": "2026-06-19T19:35:36.165Z",
-    "readAt": 1781897736180,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897736161_88ed",
-    "level": "warn",
-    "title": "warn-test",
-    "detail": "warn msg",
-    "action": "",
-    "time": 1781897736161,
-    "timeStr": "2026-06-19T19:35:36.161Z",
-    "readAt": 1781897736180,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897736159_fvpv",
-    "level": "info",
-    "title": "info-test",
-    "detail": "info msg",
-    "action": "",
-    "time": 1781897736159,
-    "timeStr": "2026-06-19T19:35:36.159Z",
-    "readAt": 1781897736180,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897736153_3vtl",
-    "level": "test",
-    "title": "test-alert",
-    "detail": "test message",
-    "action": "",
-    "time": 1781897736153,
-    "timeStr": "2026-06-19T19:35:36.153Z",
-    "readAt": 1781897736180,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897386744_ovi9",
-    "level": "info",
-    "title": "bulk-b",
-    "detail": "msg b",
-    "action": "",
-    "time": 1781897386744,
-    "timeStr": "2026-06-19T19:29:46.744Z",
-    "readAt": 1781897386746,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897386742_h1em",
-    "level": "info",
-    "title": "bulk-a",
-    "detail": "msg a",
-    "action": "",
-    "time": 1781897386742,
-    "timeStr": "2026-06-19T19:29:46.742Z",
-    "readAt": 1781897386746,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897386740_6zfb",
-    "level": "info",
-    "title": "read-test",
-    "detail": "to be read",
-    "action": "",
-    "time": 1781897386740,
-    "timeStr": "2026-06-19T19:29:46.740Z",
-    "readAt": 1781897386741,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897386738_041b",
-    "level": "P0.5",
-    "title": "今日推荐数据为空",
-    "detail": "undefined 所有比赛 recs_total=0",
-    "action": "手动触发: python deploy.py --fast (重启 jc-sync)",
-    "time": 1781897386738,
-    "timeStr": "2026-06-19T19:29:46.738Z",
-    "readAt": 1781897386746,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897386734_8qaw",
-    "level": "error",
-    "title": "error-test",
-    "detail": "error msg",
-    "action": "",
-    "time": 1781897386734,
-    "timeStr": "2026-06-19T19:29:46.734Z",
-    "readAt": 1781897386746,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897386733_6ymd",
-    "level": "warn",
-    "title": "warn-test",
-    "detail": "warn msg",
-    "action": "",
-    "time": 1781897386733,
-    "timeStr": "2026-06-19T19:29:46.733Z",
-    "readAt": 1781897386746,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897386732_cizc",
-    "level": "info",
-    "title": "info-test",
-    "detail": "info msg",
-    "action": "",
-    "time": 1781897386732,
-    "timeStr": "2026-06-19T19:29:46.732Z",
-    "readAt": 1781897386746,
-    "readBy": "system"
-  },
-  {
-    "id": "alert_1781897386729_4s2r",
-    "level": "test",
-    "title": "test-alert",
-    "detail": "test message",
-    "action": "",
-    "time": 1781897386729,
-    "timeStr": "2026-06-19T19:29:46.729Z",
-    "readAt": 1781897386746,
     "readBy": "system"
   }
 ]

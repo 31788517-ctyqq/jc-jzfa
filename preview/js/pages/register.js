@@ -69,7 +69,7 @@ function ensureRegisterRoot() {
     '<div class="login-hero-subtitle">邀请制注册<br>完成开户注册</div>' +
     '<div id="registerInviteBadge" class="auth-invite-badge">请填写邀请码后注册</div>' +
     '</div>' +
-    '<img class="login-eagle" src="/assets/login-eagle.png?v=202606101155" alt="" loading="eager" decoding="async" />' +
+    '<img class="login-eagle" src="/laoying11.png" alt="" loading="eager" decoding="async" />' +
     '</div>' +
     '<div id="registerForm" class="auth-card auth-login-card auth-register-card">' +
     '' +

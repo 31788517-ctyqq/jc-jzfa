@@ -961,9 +961,9 @@ function _renderDataGateNoticeHtml(gate) {
 
   const passed = !!gate.passed;
   const title = passed ? '✅ 生成前关键数据已就绪' : '⚠️ 生成前关键数据缺失';
-  const bg = passed ? 'rgba(34,197,94,0.08)' : 'rgba(251,191,36,0.08)';
-  const border = passed ? 'rgba(34,197,94,0.25)' : 'rgba(251,191,36,0.24)';
-  const color = passed ? '#4ADE80' : '#FBBF24';
+  const bg = passed ? 'rgba(34,197,94,0.10)' : 'rgba(251,191,36,0.10)';
+  const border = passed ? 'rgba(34,197,94,0.30)' : 'rgba(251,191,36,0.30)';
+  const color = passed ? '#166534' : '#92400e';
 
   let detail =
     '已具备：' +
@@ -984,7 +984,7 @@ function _renderDataGateNoticeHtml(gate) {
     ';line-height:1.65;text-align:left;">' +
     '<div style="font-weight:600;margin-bottom:4px;">' +
     title +
-    '</div><div style="color:#E5E7EB;">' +
+    '</div><div style="color:#475569;">' +
     detail +
     '</div></div>'
   );

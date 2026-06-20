@@ -148,8 +148,8 @@ a:focus-visible,
 body {
   font-family: var(--font);
   font-size: var(--fs-base);
-  background: linear-gradient(180deg, #131b24 0%, var(--bg) 100%);
-  color: var(--text);
+  background: #f5f7fa;
+  color: #1e293b;
   max-width: 440px;
   margin: 0 auto;
   min-height: 100vh;
@@ -1986,9 +1986,9 @@ body {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border: 1.5px solid rgba(15, 23, 42, 0.28);
   border-radius: 3px;
-  background: transparent;
+  background: rgba(15, 23, 42, 0.06);
   cursor: pointer;
   position: relative;
   flex-shrink: 0;
@@ -4411,7 +4411,30 @@ body {
 }
 
 #page-data-health {
+  --card: #ffffff;
+  --card-border: rgba(15, 23, 42, 0.08);
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #94a3b8;
   padding-bottom: 128px;
+}
+/* ★ Phase1: data-health 浅色覆盖 chart-box 硬编码深色 */
+#page-data-health .chart-box {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+#page-data-health .chart-title {
+  color: #1e293b;
+}
+
+#page-backtest {
+  --card: #ffffff;
+  --card-border: rgba(15, 23, 42, 0.08);
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #94a3b8;
+  --bg: #f5f7fa;
 }
 
 /* 顶部导航栏 */
@@ -4766,8 +4789,8 @@ body {
 
 .mc-chk,
 .q-chk {
-  border-color: rgba(130, 158, 164, 0.42);
-  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(15, 23, 42, 0.28);
+  background: rgba(15, 23, 42, 0.06);
 }
 
 .mc-chk:checked,
@@ -5031,9 +5054,9 @@ svg ellipse {
   margin-bottom: 12px;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.06) 25%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.06) 75%
+    rgba(15, 23, 42, 0.08) 25%,
+    rgba(15, 23, 42, 0.18) 50%,
+    rgba(15, 23, 42, 0.08) 75%
   );
   background-size: 200% 100%;
   animation: skShimmer 1.5s ease infinite;
@@ -5199,6 +5222,11 @@ svg ellipse {
 #page-login,
 #page-register,
 #page-contact-invite {
+  --card: #ffffff;
+  --card-border: rgba(15, 23, 42, 0.08);
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #94a3b8;
   padding-top: 0;
   background: linear-gradient(180deg, #dfffee 0%, #f7fff9 44%, #ffffff 68%);
 }
@@ -5320,6 +5348,7 @@ svg ellipse {
 #page-login,
 #page-register,
 #page-contact-invite {
+  padding: 0 !important;
   background:
     radial-gradient(circle at top left, rgba(110, 143, 165, 0.1), transparent 30%),
     radial-gradient(circle at top right, rgba(66, 185, 143, 0.12), transparent 24%),
@@ -5338,6 +5367,11 @@ svg ellipse {
 /* 修改密码页专属（对齐登录页风格） */
 
 #page-account-security {
+  --card: #ffffff;
+  --card-border: rgba(15, 23, 42, 0.08);
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #94a3b8;
   padding-top: 0;
   background: linear-gradient(180deg, #dfffee 0%, #f7fff9 44%, #ffffff 68%);
 }
@@ -6006,6 +6040,11 @@ svg ellipse {
 
 /* ==================== 宣传页例外化包装（V2026-06-12-B） ==================== */
 #page-pricing {
+  --card: #ffffff;
+  --card-border: rgba(15, 23, 42, 0.08);
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #94a3b8;
   background:
     radial-gradient(circle at 12% 0%, rgba(251, 146, 60, 0.16), transparent 32%),
     radial-gradient(circle at 88% 10%, rgba(249, 115, 22, 0.12), transparent 30%),
@@ -6013,6 +6052,11 @@ svg ellipse {
 }
 
 #page-referral {
+  --card: #ffffff;
+  --card-border: rgba(15, 23, 42, 0.08);
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #94a3b8;
   background:
     radial-gradient(circle at 14% 0%, rgba(99, 102, 241, 0.14), transparent 32%),
     radial-gradient(circle at 86% 8%, rgba(236, 72, 153, 0.1), transparent 28%),
@@ -6118,6 +6162,14 @@ svg ellipse {
     radial-gradient(circle at 14% 0%, rgba(31, 122, 104, 0.14), transparent 28%),
     radial-gradient(circle at 86% 8%, rgba(255, 255, 255, 0.72), transparent 22%),
     linear-gradient(180deg, #eaf6f1 0%, #f5fbf8 42%, #ffffff 76%);
+  /* ★ Phase1: 覆盖暗色 CSS 变量→浅色，消除 loadCSS 异步 FOUC */
+  --card: #ffffff;
+  --card-border: rgba(15, 23, 42, 0.08);
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #94a3b8;
+  --bg: #f5f7fa;
+  --bg2: #e8ecf1;
 }
 
 @media (max-width: 420px) {
@@ -6226,6 +6278,13 @@ svg ellipse {
 
 /* 个人中心头部与图标尺寸微调（V2026-06-12-D） */
 #page-profile {
+  --card: #ffffff;
+  --card-border: rgba(15, 23, 42, 0.08);
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #94a3b8;
+  --bg: #f5f7fa;
+  --bg2: #e8ecf1;
   background:
     radial-gradient(circle at 14% 0%, rgba(31, 122, 104, 0.14), transparent 28%),
     radial-gradient(circle at 86% 8%, rgba(255, 255, 255, 0.72), transparent 22%),
@@ -6310,6 +6369,11 @@ svg ellipse {
 
 /* 我的订阅头部同款浅绿色满宽样式（V2026-06-12-E） */
 #page-subscription {
+  --card: #ffffff;
+  --card-border: rgba(15, 23, 42, 0.08);
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #94a3b8;
   background:
     radial-gradient(circle at 14% 0%, rgba(31, 122, 104, 0.12), transparent 32%),
     radial-gradient(circle at 86% 8%, rgba(255, 255, 255, 0.68), transparent 28%),
@@ -6360,15 +6424,21 @@ svg ellipse {
   .member-shell-referral .member-hero-referral-plain,
   .member-shell-subscription .member-hero-subscription-plain {
     width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
     border-radius: 0;
   }
 }
 
 /* 个人中心头部按设计图重排（V2026-06-12-F 容器宽度版） */
 #page-profile {
-  overflow-x: hidden;
+  --card: #ffffff;
+  --card-border: rgba(15, 23, 42, 0.08);
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #94a3b8;
+  --bg: #f5f7fa;
+  --bg2: #e8ecf1;
   background:
     radial-gradient(circle at 15% 0%, rgba(31, 122, 104, 0.14), transparent 28%),
     radial-gradient(circle at 86% 8%, rgba(255, 255, 255, 0.72), transparent 22%),
@@ -6701,7 +6771,7 @@ svg ellipse {
 
 .toast-success { background: rgba(34,197,94,0.9); color: #fff; }
 
-.toast-info    { background: rgba(0,0,0,0.8); color: #fff; }
+.toast-info { background: #fef2f2; color: #b91c1c; border: 1px solid rgba(248, 113, 113, 0.3); box-shadow: 0 4px 16px rgba(248, 113, 113, 0.12); }
 
 /* 进度条 — 通过 CSS 变量控制宽度 */
 .progress-fill  { height: 100%; border-radius: inherit; transition: width 0.4s; }

@@ -1,5 +1,30 @@
 /* page-auth.css — auto-split from app.css */
 
+/* ═══ Phase1: 统一 Hero 全宽基类 — 仅背景色不同 ═══ */
+.login-hero,
+.account-login-hero,
+.member-shell-pricing .pricing-hero,
+.member-shell-referral .member-hero-referral-plain,
+.member-shell-subscription .member-hero-subscription-plain,
+.profile-shell-v2 .profile-hero {
+  width: 100vw !important;
+  margin-left: calc(-50vw + 50%) !important;
+  margin-right: calc(-50vw + 50%) !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+}
+
+/* ★ Phase1: .auth-card 恢复（CSS 拆分时丢失） */
+.auth-card {
+  width: min(100%, 420px);
+  margin: 0 auto;
+  border-radius: 18px;
+  padding: 20px 16px 16px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.06);
+}
+
 .auth-shell {
   min-height: calc(100vh - 24px);
   padding: 20px 14px;
@@ -88,9 +113,7 @@
 }
 
 .login-hero {
-  position: relative;
   z-index: 1;
-  width: 100%;
   height: 320px;
   padding: 118px 0 0 16px; /* left 16px 对齐 auth-card 内边距 */
 }
@@ -493,8 +516,8 @@ input[type='password']::-webkit-credentials-auto-fill-button {
   margin: 0 auto;
   flex-direction: column;
   justify-content: flex-start;
-  padding: 0 0 120px;
-  overflow: hidden;
+  padding: 0 19px 120px;
+  overflow: visible;
   background:
     radial-gradient(circle at top left, rgba(110, 143, 165, 0.14), transparent 30%),
     radial-gradient(circle at top right, rgba(245, 158, 11, 0.1), transparent 24%),
@@ -516,11 +539,9 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .account-login-hero {
-  position: relative;
   z-index: 1;
-  width: 100%;
-  height: 244px;
-  padding: 104px 22px 0;
+  height: 272px;
+  padding: 86px 36px 0;
 }
 
 .auth-shell-account .login-hero-title {
@@ -554,9 +575,9 @@ input[type='password']::-webkit-credentials-auto-fill-button {
   width: auto;
   min-height: calc(100vh - 230px);
   border-radius: 26px;
-  background: linear-gradient(145deg, rgba(24, 34, 48, 0.96), rgba(17, 25, 36, 0.98));
-  border: 1px solid var(--divider);
-  box-shadow: var(--shadow-card);
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.06);
   padding: 24px 18px 26px;
 }
 
@@ -614,16 +635,27 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 /* ==================== 会员 / 支付 / 返利统一体验（V2026-06-12） ==================== */
+/* ★ Phase1: 统一改为浅色 */
 #page-pricing,
 #page-payment,
 #page-payment-result,
 #page-subscription,
 #page-referral {
   padding-top: 0;
-  background:
-    radial-gradient(circle at top left, rgba(86, 195, 255, 0.12), transparent 34%),
-    radial-gradient(circle at top right, rgba(168, 139, 250, 0.12), transparent 28%),
-    linear-gradient(180deg, #0f172a 0%, #111827 42%, #172033 100%);
+}
+
+#page-pricing {
+  background: linear-gradient(180deg, #fff6ea 0%, #ffefdb 40%, #fff7ee 66%, #ffffff 92%);
+}
+#page-subscription {
+  background: linear-gradient(180deg, #eaf6f1 0%, #f2faf6 40%, #f8fcfa 66%, #ffffff 92%);
+}
+#page-payment,
+#page-payment-result {
+  background: linear-gradient(180deg, #f0f7ff 0%, #f5faff 42%, #ffffff 76%);
+}
+#page-referral {
+  background: linear-gradient(180deg, #eef6ff 0%, #f8faff 42%, #ffffff 76%);
 }
 
 .member-page {
@@ -1061,16 +1093,19 @@ input[type='password']::-webkit-credentials-auto-fill-button {
   color: #cbd5e1;
 }
 
-/* 前台新增页面风格收口：会员 / 支付 / 返利 */
-#page-pricing,
+/* 前台新增页面风格收口：会员 / 支付 / 返利 - Phase1 浅色 */
+#page-pricing {
+  background: linear-gradient(180deg, #fff6ea 0%, #ffefdb 40%, #fff7ee 66%, #ffffff 92%);
+}
+#page-subscription {
+  background: linear-gradient(180deg, #eaf6f1 0%, #f2faf6 40%, #f8fcfa 66%, #ffffff 92%);
+}
 #page-payment,
-#page-payment-result,
-#page-subscription,
+#page-payment-result {
+  background: linear-gradient(180deg, #f0f7ff 0%, #f5faff 42%, #ffffff 76%);
+}
 #page-referral {
-  background:
-    radial-gradient(circle at top left, rgba(110, 143, 165, 0.1), transparent 30%),
-    radial-gradient(circle at top right, rgba(245, 158, 11, 0.08), transparent 22%),
-    linear-gradient(180deg, #0d1520 0%, #101923 42%, #121d29 100%);
+  background: linear-gradient(180deg, #eef6ff 0%, #f8faff 42%, #ffffff 76%);
 }
 
 .member-page {
@@ -1171,13 +1206,8 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 
 /* ==================== 前台未发布功能页统一浅色风格（V2026-06-12） ==================== */
 #page-profile,
-#page-account-security,
-#page-pricing,
-#page-payment,
-#page-payment-result,
-#page-subscription,
-#page-referral {
-  padding-top: 0;
+#page-account-security {
+  padding: 0 !important;
   background:
     radial-gradient(circle at top left, rgba(110, 143, 165, 0.12), transparent 30%),
     radial-gradient(circle at top right, rgba(66, 185, 143, 0.1), transparent 24%),
@@ -1200,8 +1230,8 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .account-login-hero {
-  height: 320px;
-  padding: 118px 28px 0;
+  height: 272px;
+  padding: 86px 36px 0;
 }
 
 .auth-shell-account .login-hero-title {
@@ -1475,7 +1505,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 
 .member-hero-eagle {
   position: absolute;
-  z-index: 1;
+  z-index: 0;
   top: 30px;
   right: -10px;
   width: 204px;
@@ -1541,13 +1571,22 @@ input[type='password']::-webkit-credentials-auto-fill-button {
   margin: 0 auto;
 }
 
-.member-shell-pricing .pricing-hero,
-.member-shell-referral .member-hero-referral-plain {
-  width: 100%;
+/* ★ Phase1: pricing-hero — 仅背景色/高度不同 */
+.member-shell-pricing .pricing-hero {
   height: 306px;
-  margin: -40px 0 0;
-  border-radius: 28px;
-  padding: 118px 28px 0;
+  margin-top: -40px;
+  padding: 118px 36px 0;
+
+  background:
+    radial-gradient(circle at 48% 42%, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0) 22%),
+    radial-gradient(circle at 92% 8%, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0) 18%),
+    linear-gradient(135deg, #fff6e8 0%, #ffe4bf 56%, #fff2df 100%);
+}
+
+.member-shell-referral .member-hero-referral-plain {
+  height: 306px;
+  margin-top: -40px;
+  padding: 118px 36px 0;
 
   background:
     radial-gradient(circle at 48% 42%, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0) 22%),
@@ -2081,6 +2120,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 .member-shell-referral .ref-list-section {
   position: relative;
   overflow: hidden;
+  background: #ffffff;
   border-color: rgba(99, 102, 241, 0.14);
   box-shadow: 0 16px 32px rgba(91, 33, 182, 0.08);
 }
@@ -2123,11 +2163,9 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .member-shell-subscription .member-hero-subscription-plain {
-  width: 100%;
   height: 306px;
-  margin: -40px 0 0;
-  padding: 118px 28px 0;
-  border-radius: 28px;
+  margin-top: -40px;
+  padding: 118px 36px 0;
 
   background: linear-gradient(180deg, #eefaf5 0%, #d7f0e5 54%, #f2faf6 100%);
 }
@@ -2228,4 +2266,132 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 
 .member-shell-pricing .pricing-cards .vip-claim-card .pricing-lite-badge {
   width: fit-content;
+}
+
+/* ★ Phase1 fix: pricing-hero & referral-hero full-width for small screens */
+@media (max-width: 420px) {
+  .member-shell-pricing .member-hero:not(.member-hero-profilelike),
+  .member-shell-referral .member-hero-referral:not(.member-hero-profilelike) {
+    padding: 22px 18px;
+    border-radius: 22px;
+  }
+
+  .member-shell-pricing .pricing-hero,
+  .member-shell-referral .member-hero-referral-plain {
+    height: 292px;
+    margin-top: -40px;
+    padding: 110px 28px 0;
+  }
+
+  .member-shell-pricing .pricing-hero .member-hero-copy,
+  .member-shell-referral .member-hero-referral-plain .member-hero-copy {
+    max-width: 210px;
+  }
+
+  .member-shell-pricing .pricing-hero .member-hero-title,
+  .member-shell-referral .member-hero-referral-plain .member-hero-title {
+    font-size: 39px;
+  }
+
+  .member-shell-pricing .pricing-hero .member-hero-subtitle,
+  .member-shell-referral .member-hero-referral-plain .member-hero-subtitle {
+    margin-top: 16px;
+    font-size: 16px;
+  }
+
+  .member-shell-pricing .pricing-hero .member-home-corner,
+  .member-shell-referral .member-hero-referral-plain .member-home-corner {
+    top: 16px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+  }
+
+  .member-shell-pricing .pricing-hero .member-hero-eagle,
+  .member-shell-referral .member-hero-referral-plain .member-hero-eagle {
+    top: 66px;
+    right: -70px;
+    width: 254px;
+  }
+
+  .member-shell-pricing .pricing-hero {
+    height: 320px;
+    overflow: visible;
+  }
+
+  .member-shell-pricing .pricing-hero .member-inline-tip {
+    max-width: calc(100vw - 44px);
+    margin-top: 14px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .member-shell-pricing .pricing-cards {
+    margin-top: -34px;
+  }
+
+  .member-shell-pricing .pricing-card {
+    padding: 22px 18px 18px;
+    border-radius: 24px;
+  }
+}
+
+
+/* ★ Phase1: auth button styles (originally in page-hit.css) */
+.auth-submit.filter-submit-btn,
+.auth-secondary.filter-submit-btn {
+  flex: 1;
+}
+
+.auth-secondary.filter-submit-btn {
+  background: linear-gradient(180deg, #9ca3af, var(--jczj-text-muted));
+}
+
+.auth-shell-login .auth-submit.filter-submit-btn {
+  margin-top: 30px;
+  width: 100%;
+  height: 56px;
+  border: 1px solid rgba(214, 220, 228, 0.96);
+  border-radius: 28px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #425d78;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafb 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    0 4px 10px rgba(15, 23, 42, 0.03);
+}
+
+
+/* ★ Phase1: account-submit / account-logout button styles (originally in page-hit.css) */
+.auth-account-submit.filter-submit-btn,
+.auth-account-logout.filter-submit-btn {
+  flex: 1 1 0;
+  width: calc(50% - 6px);
+  min-width: 0;
+  margin-top: 0;
+  height: 50px;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.auth-account-submit.filter-submit-btn {
+  background: linear-gradient(135deg, var(--jczj-warning) 0%, #ea580c 100%);
+  color: #fff;
+  border: 2px solid rgba(234, 88, 12, 0.4);
+  box-shadow: 0 16px 28px rgba(234, 88, 12, 0.28);
+}
+
+.auth-account-logout.filter-submit-btn {
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  color: #475569;
+  box-shadow: none;
 }

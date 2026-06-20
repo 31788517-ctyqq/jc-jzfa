@@ -1,5 +1,35 @@
 /* page-scheme.css — auto-split from app.css */
 
+/* ★ Phase1: 方案设计 filter-tag（原在 app.css，CSS 拆分后恢复）*/
+.filter-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 0;
+  margin: 0;
+  scrollbar-width: none;
+}
+.filter-row::-webkit-scrollbar {
+  display: none;
+}
+.filter-tag {
+  white-space: nowrap;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+  background: rgba(15, 23, 42, 0.05);
+  color: #475569;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-tag.active {
+  background: var(--cyan);
+  color: #0f172a;
+  font-weight: 600;
+  border-color: var(--cyan);
+}
+
 /* ═══════════════════════════════════════════
    方案设计页 (scheme-design) — 参考设计风格
    主色 #7ea6bd(青蓝)  强调色 #b89a60(金)

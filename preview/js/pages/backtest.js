@@ -49,15 +49,15 @@ function injectStyles() {
   s.id = 'bt-inline-css';
   s.textContent = [
     // Tab bar
-    '.bt-tab-row { display:flex; gap:4px; padding:0 10px 8px; border-bottom:1px solid rgba(255,255,255,0.06); }',
-    '.bt-tab-btn { flex:1; text-align:center; padding:8px 4px; font-size:13px; font-weight:600; color:var(--text3); cursor:pointer; border-radius:10px; transition:all .2s; position:relative; }',
-    '.bt-tab-btn:hover { color:var(--text2); }',
+    '.bt-tab-row { display:flex; gap:4px; padding:0 10px 8px; border-bottom:1px solid rgba(15,23,42,0.06); }',
+    '.bt-tab-btn { flex:1; text-align:center; padding:8px 4px; font-size:13px; font-weight:600; color:#64748b; cursor:pointer; border-radius:10px; transition:all .2s; position:relative; }',
+    '.bt-tab-btn:hover { color:#475569; }',
     '.bt-tab-btn.active { color:var(--cyan); background:rgba(24,224,224,0.08); }',
     '.bt-tab-btn.active::after { content:""; position:absolute; bottom:-4px; left:20%; right:20%; height:2px; background:var(--cyan); border-radius:1px; }',
 
     // Stats sub row (below scheme-stats-card)
     '.bt-tab-stats .scheme-stats-card { flex-wrap: wrap; }',
-    '.bt-stat-sub { width:100%; font-size:10px; color:var(--text3); margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06); display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }',
+    '.bt-stat-sub { width:100%; font-size:10px; color:#64748b; margin-top:10px; padding-top:8px; border-top:1px solid rgba(15,23,42,0.06); display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }',
     '.bt-stat-sub span { white-space:nowrap; }',
 
     // Tab stats container
@@ -69,18 +69,18 @@ function injectStyles() {
     '.bt-chart-wrap.active { display:block; }',
     '.bt-chart-inner { width:100%; height:260px; }',
     '.bt-chart-toggle { display:flex; gap:4px; justify-content:center; margin-bottom:4px; }',
-    '.bt-chart-toggle-btn { font-size:11px; padding:2px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:var(--text3); cursor:pointer; transition:all .15s; }',
+    '.bt-chart-toggle-btn { font-size:11px; padding:2px 10px; border-radius:12px; border:1px solid rgba(15,23,42,0.15); background:rgba(15,23,42,0.04); color:#64748b; cursor:pointer; transition:all .15s; }',
     '.bt-chart-toggle-btn.active { background:rgba(24,224,224,0.12); color:var(--cyan); border-color:var(--cyan); }',
 
     // Pager
     '.bt-pager-wrap { display:flex; justify-content:center; align-items:center; gap:6px; padding:16px 0; flex-wrap:wrap; }',
-    '.bt-pager-btn { min-width:32px; height:32px; padding:0 6px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:var(--text2); font-size:13px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:all .15s; }',
-    '.bt-pager-btn:hover { border-color:rgba(255,255,255,0.25); color:#fff; }',
-    '.bt-pager-btn.active { background:var(--cyan); color:var(--bg); border-color:var(--cyan); font-weight:700; }',
+    '.bt-pager-btn { min-width:32px; height:32px; padding:0 6px; border-radius:8px; border:1px solid rgba(15,23,42,0.12); background:rgba(15,23,42,0.04); color:#475569; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:all .15s; }',
+    '.bt-pager-btn:hover { border-color:rgba(15,23,42,0.25); color:#1e293b; }',
+    '.bt-pager-btn.active { background:var(--cyan); color:#0f172a; border-color:var(--cyan); font-weight:700; }',
     '.bt-pager-btn:disabled { opacity:0.3; cursor:default; pointer-events:none; }',
-    '.bt-pager-ellipsis { min-width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; color:var(--text3); font-size:13px; }',
+    '.bt-pager-ellipsis { min-width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; color:#64748b; font-size:13px; }',
     '.bt-pager-nav { min-width:28px; }',
-    '.bt-pager-info { font-size:12px; color:var(--text3); margin:0 8px; white-space:nowrap; }',
+    '.bt-pager-info { font-size:12px; color:#64748b; margin:0 8px; white-space:nowrap; }',
 
     // Prediction + table layout（回测页专用）
     '.backtest-list .filter-detail-table { table-layout:fixed; }',

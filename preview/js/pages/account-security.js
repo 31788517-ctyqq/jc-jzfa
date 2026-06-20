@@ -2,6 +2,7 @@ import { api } from '../api.js';
 import { clearAuthAll, getAuthSession } from '../auth-client.js';
 import { loadCSS } from '../vendor.js';
 loadCSS('../../css/page-profile.css');
+loadCSS('../../css/page-auth.css');
 
 function render() {
   const root = document.getElementById('accountSecurityContent');

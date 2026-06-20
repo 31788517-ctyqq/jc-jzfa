@@ -472,31 +472,29 @@
 
 /* 结果详情卡片 */
 .filter-detail-card {
-  background: rgba(14, 24, 34, 0.72);
-  -webkit-backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(126, 166, 189, 0.12);
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 16px;
   padding: 16px;
   margin-top: 14px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 
 .filter-detail-head {
   font-size: 14px;
   font-weight: 700;
-  color: #fff;
+  color: #1e293b;
   margin-bottom: 10px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .filter-detail-header-row {
   display: flex;
   font-size: 11px;
-  color: var(--text3);
+  color: #64748b;
   padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .filter-detail-header-row span:nth-child(1) {
@@ -519,8 +517,8 @@
   display: flex;
   font-size: 12px;
   padding: 7px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-  color: var(--text2);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  color: #475569;
 }
 
 .filter-detail-row:last-child {
@@ -569,19 +567,19 @@
 }
 
 .filter-detail-table th {
-  color: var(--text3);
+  color: #64748b;
   font-weight: 500;
   padding: 8px 4px;
   text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   white-space: nowrap;
 }
 
 .filter-detail-table td {
   padding: 6px 4px;
   text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-  color: var(--text2);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  color: #334155;
 }
 
 .filter-detail-table tr:last-child td {
