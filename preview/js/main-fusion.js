@@ -662,10 +662,11 @@ export function selectPlanDateFromPicker(md) {
         return pn.indexOf('世界杯') === 0;
       });
     else {
-      state.setPlanTab('expert');
+      // 默认定位到第一个标签（世界杯）
+      state.setPlanTab('wc');
       m.loadPlanList(function (p) {
         const pn = p.planName || '';
-        return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
+        return pn.indexOf('世界杯') === 0;
       });
     }
   });
@@ -1136,12 +1137,8 @@ export function switchTab(tab) {
       const myTag = document.querySelector('#planTabBar .filter-tag[data-tab="my"]');
       if (myTag) myTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     } else {
-      // ★ 恢复上次选择的方案标签（刷新后保持）
-      var savedPlanTab;
-      try {
-        savedPlanTab = sessionStorage.getItem('planTab');
-      } catch (e) {}
-      if (savedPlanTab) state.setPlanTab(savedPlanTab);
+      // 首次打开默认定位到第一个标签（世界杯）
+      state.setPlanTab('wc');
     }
     _mod('plans').then(function (m) {
       m._autoSetBestDate();
@@ -1154,10 +1151,11 @@ export function switchTab(tab) {
           return pn.indexOf('世界杯') === 0;
         });
       else {
-        state.setPlanTab('expert');
+        // 默认定位到第一个标签（世界杯）
+        state.setPlanTab('wc');
         m.loadPlanList(function (p) {
           var pn = p.planName || '';
-          return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
+          return pn.indexOf('世界杯') === 0;
         });
       }
     });
@@ -1741,12 +1739,8 @@ function switchTabLoad(tab) {
       const myTag = document.querySelector('#planTabBar .filter-tag[data-tab="my"]');
       if (myTag) myTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     } else {
-      // ★ 恢复上次选择的方案标签（刷新后保持）
-      var savedPlanTab;
-      try {
-        savedPlanTab = sessionStorage.getItem('planTab');
-      } catch (e) {}
-      if (savedPlanTab) state.setPlanTab(savedPlanTab);
+      // 首次打开默认定位到第一个标签（世界杯）
+      state.setPlanTab('wc');
     }
     _mod('plans').then(function (m) {
       m._autoSetBestDate();
@@ -1759,10 +1753,11 @@ function switchTabLoad(tab) {
           return pn.indexOf('世界杯') === 0;
         });
       else {
-        state.setPlanTab('expert');
+        // 默认定位到第一个标签（世界杯）
+        state.setPlanTab('wc');
         m.loadPlanList(function (p) {
           var pn = p.planName || '';
-          return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
+          return pn.indexOf('世界杯') === 0;
         });
       }
     });
