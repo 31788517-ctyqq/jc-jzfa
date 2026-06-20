@@ -1,6 +1,6 @@
 import { api } from '../api.js';
 import { getDeviceId } from '../utils.js';
-import { loadCSS } from '../vendor.js';
+import { loadCSS, ICONS } from '../vendor.js';
 loadCSS('../../css/page-auth.css');
 
 function parseInviteParams() {
@@ -61,7 +61,7 @@ function ensureRegisterRoot() {
   root.innerHTML =
     '<div class="auth-shell auth-shell-login auth-shell-register">' +
     '<button class="auth-home-corner" type="button" onclick="switchTab(\'login\')" aria-label="返回登录" title="返回登录">' +
-    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>' +
+    ''+ICONS.arrowLeft+'' +
     '</button>' +
     '<div class="login-hero register-hero">' +
     '<div class="login-hero-copy">' +

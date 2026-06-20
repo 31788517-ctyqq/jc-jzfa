@@ -23,6 +23,18 @@ export function loadCSS(path) {
   });
 }
 
+// ══════════════════════════════════════════════
+// §1.5 SVG Icons — 去重内联 SVG
+// ══════════════════════════════════════════════
+export const ICONS = {
+  arrowLeft:
+    '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  arrowRight:
+    '<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  arrowDown:
+    '<svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+};
+
 export function getAuthToken() {
   try {
     return localStorage.getItem(TOKEN_KEY) || '';
