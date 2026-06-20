@@ -11,7 +11,7 @@ const SESSION_KEY = 'auth_session';
 
 // CSS loader — inject <link> at runtime, returns Promise that resolves on load
 export function loadCSS(path) {
-  var href = path.replace(/^(\.\.\/)+css\//, '/css/');
+  var href = path.replace(/^(\.\.\/)+css\//, '/preview/css/');
   if (document.querySelector('link[href="' + href + '"]')) return Promise.resolve();
   return new Promise(function(resolve, reject) {
     var l = document.createElement('link');
