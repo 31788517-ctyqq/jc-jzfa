@@ -29,6 +29,7 @@ const cacheModule = require('./core/cache');
 const midouModule = require('./core/midou');
 const aiTiming = require('./core/ai-timing');
 const health = require('./core/health');
+const apiCache = require('./core/api-cache'); // ★ P0: API 响应持久化缓存
 
 // ── AI/GS 缓存内存加速（避免每次请求同步读大文件） ──
 let _aiCacheData = null;
@@ -607,6 +608,7 @@ function getCoreCacheStats() {
       active: !!_cachedWeekDates,
       entries: _cachedWeekDates ? _cachedWeekDates.length : 0,
     },
+    apiFileCache: apiCache.stats(),
   };
 }
 
@@ -1359,8 +1361,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const dateStr = data.date || today;
             const bundleCacheKey = dateStr;
             const now = Date.now();
+            const fileCacheKey = 'home-bundle_' + dateStr;
 
-            // 1 分钟请求级缓存
+            // ★ P0: L2 文件缓存（重启后秒热）
+            const fileCached = apiCache.get(fileCacheKey, HOME_BUNDLE_CACHE_TTL);
+            if (fileCached) {
+              _homeBundleCache = { key: bundleCacheKey, time: now, response: fileCached };
+              return res.json(fileCached);
+            }
+
+            // L1 内存缓存
             if (
               _homeBundleCache &&
               _homeBundleCache.key === bundleCacheKey &&
@@ -1473,6 +1483,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               },
             };
             _homeBundleCache = { key: bundleCacheKey, time: now, response: bundleResponse };
+            apiCache.set(fileCacheKey, bundleResponse, HOME_BUNDLE_CACHE_TTL * 6); // 磁盘 TTL 1h, 足够覆盖重启
             return res.json(bundleResponse);
           } catch (e) {
             logger.error('[home-bundle] ' + e.message);
@@ -1836,6 +1847,18 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           // ★ P0-2: 请求级缓存 — 相同参数 2 分钟内命中
           const rankCacheKey = (data.date || '') + '|' + (data.category || '') + '|' + (data.direction || '');
           const rankNow = Date.now();
+          const rankFileKey = 'ranking-list_' + (data.date || localDate()) + '_' + (data.category || 'all');
+
+          // ★ P0: L2 文件缓存（仅综合排名缓存到磁盘）
+          if (!data.category && !data.direction) {
+            const fileCached = apiCache.get(rankFileKey, RANK_LIST_CACHE_TTL);
+            if (fileCached) {
+              _rankListCache[rankCacheKey] = fileCached;
+              _rankListCacheTime[rankCacheKey] = rankNow;
+              return res.json(fileCached);
+            }
+          }
+
           if (
             _rankListCache[rankCacheKey] &&
             _rankListCacheTime[rankCacheKey] &&
@@ -2047,6 +2070,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           };
           _rankListCache[rankCacheKey] = rankResponse;
           _rankListCacheTime[rankCacheKey] = Date.now();
+          if (!data.category && !data.direction) {
+            apiCache.set(rankFileKey, rankResponse, RANK_LIST_CACHE_TTL * 6);
+          }
           return res.json(rankResponse);
         }
 
@@ -3763,6 +3789,15 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         case 'gongshoudao-all': {
           // 批量获取所有比赛的功守道数据（一次请求替代 N 次单场 gongshoudao 调用）
           const requestDate = data.date || latestDataDate();
+          const gsFileKey = 'gongshoudao-all_' + requestDate;
+
+          // ★ P0: L2 文件缓存
+          const fileCached = apiCache.get(gsFileKey, CACHE_TTL_5MIN);
+          if (fileCached) {
+            _gsAllCache = { date: requestDate, response: fileCached };
+            _gsAllCacheTime = Date.now();
+            return res.json(fileCached);
+          }
 
           // ★ P1: 5 分钟内存缓存
           const now = Date.now();
@@ -3794,6 +3829,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // ★ P1: 缓存结果（5 分钟）
             _gsAllCache = { date: requestDate, response };
             _gsAllCacheTime = now;
+            apiCache.set(gsFileKey, response, CACHE_TTL_5MIN * 12);
             return res.json(response);
           } catch (e) {
             return res.json({ code: 0, msg: '功守道批量获取失败: ' + e.message });
@@ -4093,9 +4129,22 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             }
 
             // ★ P0-1: 响应缓存命中（10 分钟 TTL，方案刷新/快照变更自动失效）
-            const planCacheKey = dateStr + '|' + String(data.qualityMode || 'all').toLowerCase();
+            const qualityMode = String(data.qualityMode || 'all').toLowerCase();
+            const planCacheKey = dateStr + '|' + qualityMode;
             const planNow = Date.now();
             const planCacheBuster = require('./core/plan-cache').getCacheBuster();
+            const planFileKey = 'plan-list_' + dateStr + '_' + qualityMode;
+
+            // ★ P0: L2 文件缓存（仅绕过 cacheBuster 检查时使用）
+            if (planCacheBuster <= 1) {
+              const fileCached = apiCache.get(planFileKey, PLAN_LIST_CACHE_TTL);
+              if (fileCached) {
+                _planListResponseCache[planCacheKey] = fileCached;
+                _planListResponseTime[planCacheKey] = planNow;
+                return res.json(fileCached);
+              }
+            }
+
             const planCacheEntry = _planListResponseCache[planCacheKey];
             if (
               planCacheEntry &&
@@ -4193,7 +4242,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // ★ P0 Layer 5: 输出门禁 — 响应前校验比分/奖金/中奖状态
             var validatedPlans = validatePlanResponse(plans, dateStr);
 
-            const qualityMode = String(data.qualityMode || 'all').toLowerCase();
             const includeReasons = String(data.includeReasons || '1') !== '0';
             function downgradeGrade(cur, next) {
               const rank = { A: 0, B: 1, C: 2, D: 3 };
@@ -4360,6 +4408,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             };
             _planListResponseCache[planCacheKey] = planResp;
             _planListResponseTime[planCacheKey] = Date.now();
+            apiCache.set(planFileKey, planResp, PLAN_LIST_CACHE_TTL * 3);
             return res.json(planResp);
           } catch (e) {
             return res.json({ code: 0, msg: '获取方案列表失败: ' + e.message });
@@ -4947,6 +4996,14 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           try {
             const dateStr = data.date || latestDataDate();
             const today = localDate();
+            const qpFileKey = 'quant-plan-list_' + dateStr;
+
+            // ★ P0: L2 文件缓存
+            const fileCached = apiCache.get(qpFileKey, CACHE_TTL_10MIN);
+            if (fileCached) {
+              _quantPlanCache[dateStr] = { time: Date.now(), response: fileCached };
+              return res.json(fileCached);
+            }
 
             // ★ P1-1: 10 分钟响应缓存（计算最密集的端点）
             const qpNow = Date.now();
@@ -5729,6 +5786,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             };
             // ★ P1-1: 缓存量化方案结果
             _quantPlanCache[dateStr] = { time: qpNow, response: qpResponse };
+            apiCache.set(qpFileKey, qpResponse, CACHE_TTL_10MIN * 6);
             // ★ P2: LRU 清理（最多缓存 10 个日期）
             const qpKeys = Object.keys(_quantPlanCache);
             if (qpKeys.length > 10) {
@@ -9156,6 +9214,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
       logger.warn('[warm] 预热失败: ' + e.message);
     }
   }
+  // ★ P0: 从磁盘恢复缓存到内存（重启后秒热）
+  const diskWarmed = apiCache.warmFromDisk();
+  logger.info('[api-cache] 磁盘缓存预热: ' + diskWarmed + ' 个键');
+
   warmApiCaches();
   setInterval(warmApiCaches, 15 * 60 * 1000); // 每 15 分钟重新预热
 
