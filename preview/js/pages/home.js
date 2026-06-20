@@ -1,6 +1,7 @@
 import { api } from '../api.js';
 import { formatDate, setCache, getCache } from '../utils.js';
-import { setWeekDates } from '../vendor.js';
+import { loadCSS,  setWeekDates } from '../vendor.js';
+loadCSS('../../css/page-home.css');
 
 function getMatchLabel(item) {
   return String((item && (item.num || item.matchNum || item.matchId || item.dataId)) || '').trim();

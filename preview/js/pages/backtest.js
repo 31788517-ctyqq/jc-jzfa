@@ -1,11 +1,13 @@
 ﻿/**
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-backtest.css');
+
  * preview/js/pages/backtest.js — V9 三Tab回测分析页
  * Tab: GS功守道 | AI深度分析 | PK融合分析
  * 每个Tab独立：统计卡片 + ECharts图表 + 明细列表
  */
 import { api } from '../api.js';
 import { loadECharts } from '../charts.js?v=202606080308';
-
 let _btPage = 1,
   _btPageSize = 20,
   _btLeagues = [],

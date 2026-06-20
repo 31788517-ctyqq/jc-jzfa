@@ -2,8 +2,10 @@
 import { formatDate } from '../utils.js';
 import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
 import * as state from '../vendor.js';
-
 // AI 深度解析缓存：{ matchId: { content: ..., hash: ... } }
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-match.css');
+
 const predictionCache = {};
 let _aiModalMatchId = null; // ★ 缓存的 matchId，供"我要做方案"按钮使用
 (function restoreCache() {

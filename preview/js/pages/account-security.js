@@ -1,5 +1,7 @@
 import { api } from '../api.js';
 import { clearAuthAll, getAuthSession } from '../auth-client.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-profile.css');
 
 function render() {
   const root = document.getElementById('accountSecurityContent');

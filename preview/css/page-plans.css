@@ -1,0 +1,1204 @@
+/* page-plans.css — auto-split from app.css */
+
+/* AI弹窗 — 已移至 modals.css */
+/* 功守道弹窗 — 已移至 modals.css */
+/* PK弹窗 — 已移至 modals.css */
+.plan-card {
+  position: relative;
+  padding: 18px 16px;
+  border-radius: 20px;
+  background: rgba(14, 24, 34, 0.72);
+  border: 1px solid rgba(0, 255, 255, 0.16);
+  margin-bottom: 14px;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.4);
+  overflow: visible;
+}
+
+/* 头部 */
+.plan-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.plan-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.plan-soccer-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plan-soccer-icon img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 4px;
+}
+
+.plan-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.plan-pub-time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* 计划购买 */
+.bo-plan-purchase {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 16px 6px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.bo-plan-label {
+  font-size: 14px;
+  color: #444;
+  font-weight: 500;
+}
+
+.bo-plan-stepper {
+  display: flex;
+  align-items: center;
+  width: 170px;
+  height: 38px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.bo-plan-btn {
+  width: 36px;
+  height: 100%;
+  border: none;
+  background: #f5f5f5;
+  font-size: 18px;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.bo-plan-btn:hover {
+  background: #ebebeb;
+}
+
+.bo-plan-btn:active {
+  background: #e0e0e0;
+}
+
+.bo-plan-input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  border-left: 1px solid #e0e0e0;
+  border-right: 1px solid #e0e0e0;
+  background: #fff;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #222;
+  outline: none;
+  min-width: 0;
+}
+
+.bo-plan-unit {
+  font-size: 14px;
+  color: #444;
+}
+
+.bo-plan-summary {
+  text-align: center;
+  padding: 6px 16px 10px;
+  font-size: 13px;
+  color: #444;
+}
+
+.bo-plan-summary b {
+  color: #c45c5c;
+  font-weight: 700;
+  margin: 0 2px;
+}
+
+.bo-plan-prize {
+  color: #c45c5c;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+/* 数据行 - 内容在两线之间垂直居中 */
+.plan-amount-row {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  margin-top: 14px;
+  min-height: 46px;
+}
+
+.plan-amount-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.plan-amount-col + .plan-amount-col {
+  border-left: 1px solid rgba(0, 255, 255, 0.12);
+}
+
+.plan-amount-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.62);
+  margin-bottom: 2px;
+}
+
+.plan-amount-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--cyan);
+  text-shadow: 0 0 8px rgba(126, 166, 189, 0.2);
+}
+
+.plan-amount-value .unit {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  text-shadow: none;
+  margin-left: 1px;
+}
+
+.plan-win-stamp {
+  width: 38px;
+  height: 38px;
+  margin-left: 6px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plan-win-stamp svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* 分割线 */
+.plan-divider {
+  height: 1px;
+  margin: 12px 0;
+  background: rgba(0, 255, 255, 0.08);
+}
+
+/* 方案信息：左右分栏 */
+.plan-info-grid {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+}
+
+.plan-info-left {
+  width: 64px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.plan-info-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 11px;
+  color: var(--cyan);
+  text-shadow: 0 0 6px rgba(126, 166, 189, 0.15);
+}
+
+/* 中奖/未中图标 - plan-info-grid右侧垂直居中 */
+.plan-info-grid .plan-win-stamp,
+.plan-info-grid .plan-lose-stamp {
+  width: 38px;
+  height: 38px;
+  margin-left: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 比赛表格 */
+.plan-match-section {
+  margin-top: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 255, 255, 0.1);
+}
+
+.plan-match-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.plan-match-table th {
+  height: 34px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(0, 255, 255, 0.04);
+}
+
+.plan-match-table th:first-child {
+  width: 26%;
+}
+
+.plan-match-table th:nth-child(2) {
+  width: 34%;
+}
+
+.plan-match-table th:last-child {
+  width: 40%;
+}
+
+.plan-match-table td {
+  font-size: 11px;
+  padding: 9px 6px;
+  vertical-align: middle;
+  border-top: 1px solid rgba(0, 255, 255, 0.06);
+}
+
+.plan-match-table .match-info-col {
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: center;
+  font-weight: 500;
+  font-size: 11px;
+}
+
+.plan-match-table .match-num-text {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.plan-match-table .match-time-sub {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.plan-match-table .team-col {
+  text-align: center;
+  color: #fff;
+  font-weight: 500;
+  line-height: 1.5;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.plan-team-home,
+.plan-team-away {
+  font-size: 11px;
+  color: #fff;
+}
+
+.plan-team-vs {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.plan-score-blue {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cyan);
+  padding: 0 6px;
+}
+
+.plan-match-table .odds-col {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--plan-dir-pending);
+  white-space: nowrap;
+}
+
+/* ─── 比分方案卡片（amber 色调） ─── */
+.plan-card.score-plan {
+  border-color: rgba(184, 154, 96, 0.18);
+  background: rgba(14, 24, 34, 0.72);
+}
+
+.plan-card.score-plan .plan-divider {
+  background: rgba(184, 154, 96, 0.12);
+}
+
+.plan-card.score-plan .plan-amount-col + .plan-amount-col {
+  border-left-color: rgba(184, 154, 96, 0.12);
+}
+
+.plan-card.score-plan .plan-odds-combo {
+  color: var(--amber);
+}
+
+.plan-card.score-plan .plan-amount-value {
+  color: var(--amber);
+  text-shadow: 0 0 8px rgba(184, 154, 96, 0.2);
+}
+
+.plan-card.score-plan .plan-info-right {
+  color: var(--amber);
+  text-shadow: 0 0 6px rgba(184, 154, 96, 0.15);
+}
+
+.plan-card.score-plan .plan-match-section {
+  border-color: rgba(184, 154, 96, 0.1);
+}
+
+.plan-card.score-plan .plan-match-table th {
+  background: rgba(184, 154, 96, 0.04);
+}
+
+.plan-card.score-plan .plan-match-table td {
+  border-top-color: rgba(184, 154, 96, 0.06);
+}
+
+/* ─── 量化方案卡片（purple 色调） ─── */
+.plan-card.quant-plan {
+  border-color: rgba(134, 166, 196, 0.18);
+  background: rgba(14, 24, 34, 0.72);
+}
+
+.plan-card.quant-plan .plan-divider {
+  background: rgba(134, 166, 196, 0.12);
+}
+
+.plan-card.quant-plan .plan-amount-col + .plan-amount-col {
+  border-left-color: rgba(134, 166, 196, 0.12);
+}
+
+.plan-card.quant-plan .plan-amount-value {
+  color: var(--purple);
+  text-shadow: 0 0 8px rgba(134, 166, 196, 0.2);
+}
+
+.plan-card.quant-plan .plan-info-right {
+  color: var(--purple);
+  text-shadow: 0 0 6px rgba(134, 166, 196, 0.15);
+}
+
+.plan-card.quant-plan .plan-odds-combo {
+  color: var(--purple);
+}
+
+.plan-card.quant-plan .plan-match-section {
+  border-color: rgba(134, 166, 196, 0.1);
+}
+
+.plan-card.quant-plan .plan-match-table th {
+  background: rgba(134, 166, 196, 0.04);
+}
+
+.plan-card.quant-plan .plan-match-table td {
+  border-top-color: rgba(134, 166, 196, 0.06);
+}
+
+.plan-card.quant-plan .plan-score-meta span {
+  background: rgba(134, 166, 196, 0.06);
+}
+
+.plan-score-scores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.plan-score-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  background: rgba(184, 154, 96, 0.08);
+  border: 1px solid rgba(184, 154, 96, 0.2);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--amber);
+}
+
+.score-table .plan-alloc-val {
+  font-size: 13px;
+}
+
+.score-table .plan-alloc-unit {
+  font-size: 10px;
+  color: rgba(184, 154, 96, 0.6);
+  margin-left: 2px;
+}
+
+.plan-score-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.plan-score-meta span {
+  background: rgba(184, 154, 96, 0.06);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.plan-notice {
+  text-align: center;
+  padding: 80px 0;
+  color: var(--text3);
+  font-size: 14px;
+}
+
+.plan-notice .notice-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+/* ═══════════════════════════════════════════
+   我的方案列表页 (my-plan)
+   ═══════════════════════════════════════════ */
+
+/* 用户方案卡片（复用 plan-card 基础样式） */
+.user-plan-card {
+  position: relative;
+}
+
+.user-plan-card .plan-name {
+  font-size: 15px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 方案金额颜色 */
+.plan-win-amount {
+  color: var(--jczj-danger) !important;
+}
+
+.plan-lose-amount {
+  color: var(--jczj-danger) !important;
+}
+
+.plan-amount-value {
+  font-size: 19px;
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 8px rgba(126, 166, 189, 0.16);
+}
+
+.data-table,
+.plan-match-table,
+.filter-detail-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(126, 166, 189, 0.09);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.data-table th,
+.plan-match-table th,
+.filter-detail-table th,
+.income-header-row,
+.quant-card-header,
+.pk3-compare-table thead th {
+  padding: 13px 10px;
+  color: #a0adbb;
+  font-weight: 650;
+  line-height: 1.35;
+  background: rgba(126, 166, 189, 0.045);
+  border-color: rgba(126, 166, 189, 0.09);
+}
+
+.data-table td,
+.plan-match-table td,
+.filter-detail-table td {
+  padding: 13px 10px;
+  line-height: 1.48;
+  border-color: rgba(126, 166, 189, 0.055);
+}
+
+.plan-card {
+  border-color: rgba(126, 166, 189, 0.14);
+  background: linear-gradient(145deg, rgba(24, 34, 48, 0.96), rgba(16, 24, 35, 0.98));
+}
+
+.plan-divider,
+.plan-match-section,
+.plan-match-table th,
+.income-header-row,
+.quant-card-header {
+  border-color: rgba(126, 166, 189, 0.1);
+  background-color: rgba(126, 166, 189, 0.04);
+}
+
+.plan-divider {
+  height: 1px;
+  background: rgba(126, 166, 189, 0.1);
+}
+
+.plan-info-right,
+.plan-amount-value,
+.cfm-opt-odds,
+.smc-league,
+.smc-vs,
+.sodds-val,
+.loading-text {
+  color: var(--cyan);
+  text-shadow: none;
+}
+
+.consensus-summary,
+.confirm-top-bar,
+.plan-match-section,
+.filter-section,
+.income-section {
+  border-color: var(--divider);
+}
+
+.plan-team-home,
+.plan-team-away,
+.plan-match-table .team-col,
+.filter-detail-row span:nth-child(2),
+.ssb-pass-item label,
+.ssb-keyboard button,
+.ssb-input-wrap input {
+  color: var(--alpine-text-main);
+}
+
+.filter-tag,
+.date-current,
+.date-arrow,
+.date-picker,
+.date-picker-nav,
+.filter-dd-trigger,
+.filter-dd-menu,
+.filter-dd-option,
+.income-filter-btn,
+.income-sort-btn,
+.consensus-filter-btn,
+.qt-view-btn,
+.rank-ai-tag,
+.match-gs-tag,
+.match-ai-tag,
+.match-bet-btn,
+.mp-share-btn,
+.plan-share-btn,
+.share-plan-btn,
+.bonus-opt-badge,
+.bonus-opt-badge-sm,
+.cfm-play-tag,
+.cfm-bb-pass,
+.ssb-view-btn,
+.ssb-modal-cancel,
+.ssb-quick-row button,
+.ssb-keyboard button {
+  background: rgba(255, 255, 255, 0.58);
+  border-color: rgba(130, 158, 164, 0.18);
+  color: var(--alpine-text-sub);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
+}
+
+.filter-tag.active,
+.date-picker-cell.active,
+.date-picker-today,
+.filter-submit-btn,
+.income-filter-btn.active,
+.consensus-filter-btn.active,
+.qt-view-btn.active,
+.pk-bar-btn,
+.cfm-save-btn,
+.ssb-modal-confirm,
+.bo-footer .bet-btn-confirm,
+.match-gs-tag:hover,
+.mp-share-btn,
+.plan-share-btn,
+.share-plan-btn {
+  color: #163238;
+  background: linear-gradient(135deg, var(--alpine-mint-soft), var(--alpine-mint));
+  border-color: rgba(47, 159, 154, 0.28);
+  box-shadow: 0 12px 24px rgba(47, 159, 154, 0.22);
+}
+
+.mp-delete-btn,
+.cfm-del,
+.match-bet-btn,
+.plan-lose-amount,
+.q-cell-num.neg,
+.hot-tag,
+.risk-tag {
+  color: var(--alpine-coral-deep) !important;
+  background: rgba(255, 127, 104, 0.14);
+  border-color: rgba(255, 127, 104, 0.28);
+}
+
+.plan-win-amount {
+  color: var(--alpine-mint-deep) !important;
+}
+
+.plan-card.score-plan,
+.plan-card.quant-plan,
+.plan-card {
+  background: var(--alpine-card);
+  border-color: var(--alpine-border);
+}
+
+.plan-card.score-plan .plan-amount-value,
+.plan-card.score-plan .plan-info-right,
+.score-table .allocation-col,
+.plan-score-tag,
+.bonus-opt-badge,
+.bonus-opt-badge-sm,
+.cfm-bb-pass,
+.cfm-bb-arrow,
+.cfm-bb-mval {
+  color: var(--alpine-coral-deep);
+  text-shadow: none;
+}
+
+.plan-card.quant-plan .plan-amount-value,
+.plan-card.quant-plan .plan-info-right,
+.plan-card.quant-plan .plan-odds-combo {
+  color: #286d78;
+  text-shadow: none;
+}
+
+.plan-divider,
+.plan-amount-col + .plan-amount-col,
+.mp-actions,
+.confirm-top-bar,
+.cfm-card-top,
+.consensus-summary,
+.ssb-modal-footer {
+  border-color: rgba(130, 158, 164, 0.16);
+  background: transparent;
+}
+
+.plan-match-section,
+.data-table,
+.plan-match-table,
+.filter-detail-table,
+.daily-trend-table {
+  border-color: rgba(130, 158, 164, 0.14);
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.data-table th,
+.plan-match-table th,
+.filter-detail-table th,
+.daily-trend-table th,
+.income-header-row,
+.quant-card-header {
+  background: rgba(114, 221, 208, 0.1);
+  color: var(--alpine-text-sub);
+  border-color: rgba(130, 158, 164, 0.14);
+}
+
+.data-table td,
+.plan-match-table td,
+.filter-detail-table td,
+.daily-trend-table td,
+.income-row,
+.quant-card-row {
+  color: var(--alpine-text-main);
+  border-color: rgba(130, 158, 164, 0.12);
+}
+
+.q-cell-rank.r1,
+.bt-amber,
+.plan-card.score-plan .plan-odds-combo,
+.plan-card.score-plan .plan-amount-value,
+.plan-card.score-plan .plan-info-right,
+.score-table .allocation-col,
+.bonus-opt-badge,
+.bonus-opt-badge-sm,
+.cfm-bb-pass,
+.cfm-bb-arrow,
+.cfm-bb-mval,
+.match-bet-btn,
+.bet-play-hint b {
+  color: var(--amber) !important;
+}
+
+.match-single-badge,
+.match-handicap-tag.rq-pos,
+.q-cell-num.neg,
+.q-tag.tag-meltdown,
+.q-tag.tag-overheat,
+.plan-lose-amount,
+.cfm-bb-maxwin,
+.hot-tag,
+.risk-tag,
+.mp-delete-btn {
+  color: var(--alpine-coral-deep) !important;
+}
+
+.match-league,
+.match-experts,
+.match-dur,
+.rank-direction,
+.rank-ai-tag,
+.match-gs-tag,
+.match-ai-tag,
+.plan-info-right,
+.plan-amount-value,
+.plan-score-blue,
+.plan-odds-combo,
+.income-rate,
+.filter-result-num,
+.filter-stat-value,
+.stat-big-value,
+.fdt-dir,
+.dtt-dir,
+.md-rank-col-rate,
+.q-cell-num.pos,
+.q-cell-num.cool,
+.sodds-val,
+.smc-league,
+.smc-vs,
+.cfm-opt-odds,
+.cfm-league,
+.bet-score-link,
+.bo-desc-line2,
+.bo-cell-amount {
+  color: var(--alpine-mint-deep) !important;
+  text-shadow: none !important;
+  font-weight: 750;
+}
+
+.bt-amber,
+.q-cell-rank.r1,
+.plan-card.score-plan .plan-amount-value,
+.plan-card.score-plan .plan-info-right,
+.plan-card.score-plan .plan-odds-combo,
+.score-table .allocation-col,
+.plan-score-tag,
+.bonus-opt-badge,
+.bonus-opt-badge-sm,
+.cfm-bb-pass,
+.cfm-bb-mval,
+.cfm-bb-arrow,
+.ssb-amount-val,
+.match-bet-btn,
+.bo-pass-tag,
+.q-tag.tag-dominance,
+.q-tag.tag-attack,
+.q-tag.tag-orange {
+  color: var(--amber) !important;
+  font-weight: 750;
+}
+
+.plan-lose-amount,
+.match-single-badge,
+.match-handicap-tag.rq-pos,
+.q-cell-num.neg,
+.q-tag.tag-meltdown,
+.q-tag.tag-overheat,
+.cfm-bb-maxwin,
+.mp-delete-btn,
+.hot-tag,
+.risk-tag,
+.bo-amount-hot,
+.del-btn-confirm {
+  color: var(--alpine-coral-deep) !important;
+  font-weight: 750;
+}
+
+.plan-win-amount,
+.bt-green,
+.q-tag.tag-balanced,
+.match-handicap-tag.rq-neg,
+.md-rank-col-trend {
+  color: var(--alpine-mint-deep) !important;
+}
+
+.data-table,
+.plan-match-table,
+.filter-detail-table,
+.daily-trend-table,
+.income-list,
+.quant-card-list,
+.gs-score-bet-table,
+.pk2-table,
+.pk3-compare-table,
+.md-heatmap-wrap table {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(130, 158, 164, 0.16) !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+}
+
+.data-table th,
+.plan-match-table th,
+.filter-detail-table th,
+.daily-trend-table th,
+.income-header-row,
+.quant-card-header,
+.gs-score-bet-table th,
+.pk2-table thead th,
+.pk3-compare-table thead th,
+.md-heatmap-wrap tr:first-child td {
+  color: var(--alpine-text-sub) !important;
+  background: rgba(114, 221, 208, 0.12) !important;
+  border-color: rgba(130, 158, 164, 0.14) !important;
+  font-size: var(--fs-xs) !important;
+  font-weight: 800 !important;
+}
+
+.data-table td,
+.plan-match-table td,
+.filter-detail-table td,
+.daily-trend-table td,
+.income-row,
+.quant-card-row,
+.gs-score-bet-table td,
+.pk2-table tbody td,
+.pk3-compare-table tbody td,
+.md-heatmap-wrap td {
+  color: var(--alpine-text-main) !important;
+  border-color: rgba(130, 158, 164, 0.12) !important;
+  font-size: var(--fs-sm) !important;
+  font-weight: 650;
+}
+
+.filter-tag.active,
+.date-picker-cell.active,
+.date-picker-today,
+.filter-submit-btn,
+.income-filter-btn.active,
+.consensus-filter-btn.active,
+.qt-view-btn.active,
+.sodds-btn.active,
+.smc-ai-btn,
+.pk-bar-btn,
+.cfm-save-btn,
+.ssb-modal-confirm,
+.bo-tab.active,
+.bo-footer .bet-btn-confirm,
+.bt-tab-btn.active,
+.bt-chart-toggle-btn.active,
+.bt-pager-btn.active,
+.mp-share-btn,
+.share-plan-btn,
+.plan-share-btn {
+  color: #153437 !important;
+  background: linear-gradient(135deg, var(--alpine-mint-soft), var(--alpine-mint)) !important;
+  border-color: rgba(47, 159, 154, 0.34) !important;
+  box-shadow: 0 10px 22px rgba(47, 159, 154, 0.2) !important;
+  font-weight: 800;
+}
+
+.loading,
+.hint-box,
+.plan-notice,
+.empty-state,
+.no-data,
+[style*='color:#64748B'],
+[style*='color: #64748B'],
+[style*='color:#94A3B8'],
+[style*='color: #94A3B8'] {
+  color: var(--alpine-text-sub) !important;
+}
+
+/* ==================== 方案卡片统一规范（V2026-06-12） ==================== */
+.plan-money-value {
+  color: var(--jczj-danger) !important;
+  text-shadow: none !important;
+}
+
+.plan-status-won {
+  color: var(--jczj-danger) !important;
+}
+
+.plan-status-lost {
+  color: #9ca3af !important;
+}
+
+.plan-status-pending {
+  color: #34d399 !important;
+}
+
+.plan-direction-hit {
+  color: var(--plan-dir-hit) !important;
+}
+
+.plan-direction-miss {
+  color: var(--plan-dir-miss) !important;
+}
+
+.plan-direction-undetermined {
+  color: var(--plan-dir-unknown) !important;
+}
+
+.plan-handicap-badge {
+  display: inline-block;
+  margin-top: 1px;
+  font-size: 10px;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.plan-dir-plus {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.plan-card .plan-amount-col .plan-amount-value.plan-money-value,
+.plan-card.score-plan .plan-amount-col .plan-amount-value.plan-money-value,
+.plan-card.quant-plan .plan-amount-col .plan-amount-value.plan-money-value,
+.cfm-bb-yuan,
+.cfm-bb-maxwin {
+  color: var(--jczj-danger) !important;
+}
+
+.plan-card .plan-amount-col .plan-amount-value.plan-status-won,
+.plan-card .plan-amount-col .plan-amount-value.plan-status-lost,
+.plan-card .plan-amount-col .plan-amount-value.plan-status-pending {
+  text-shadow: none;
+}
+
+.pricing-plan-name {
+  margin-top: 16px;
+  color: #f8fafc;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.payment-plan-row,
+.result-row,
+.ref-item-row,
+.ref-code-row,
+.ref-stat-row,
+.ref-modal-row,
+.profile-actions-bar,
+.sub-actions,
+.payment-actions,
+.ref-btns {
+  display: flex;
+  gap: 12px;
+}
+
+.payment-plan-row {
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.payment-plan-label,
+.result-row span:first-child,
+.ref-item-meta,
+.ref-modal-row label,
+.profile-hub-desc,
+.profile-sub-meta,
+.sub-expires,
+.sub-auto {
+  color: rgba(203, 213, 225, 0.74);
+}
+
+.payment-plan-label {
+  font-size: 13px;
+}
+
+.payment-plan-value {
+  color: #f8fafc;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.profile-plan-head {
+  margin-top: 18px;
+}
+
+.profile-plan-title {
+  color: #f8fafc;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.profile-plan-subtitle {
+  margin-top: 6px;
+  color: rgba(203, 213, 225, 0.74);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.member-hero-title,
+.member-section-title,
+.pricing-plan-name,
+.sub-plan,
+.ref-code {
+  color: #ece8e0;
+}
+
+.member-hero-subtitle,
+.member-note-item,
+.member-faq-a,
+.member-empty-text,
+.member-empty-mini,
+.payment-plan-label,
+.result-row span:first-child,
+.ref-item-meta,
+.ref-link,
+.sub-expires,
+.sub-auto {
+  color: #95a4b6;
+}
+
+.member-hero-title,
+.member-section-title,
+.pricing-plan-name,
+.sub-plan,
+.ref-code,
+.profile-hub-title,
+.profile-plan-title {
+  color: #17242e;
+}
+
+.member-hero-subtitle,
+.member-note-item,
+.member-faq-a,
+.member-empty-text,
+.member-empty-mini,
+.payment-plan-label,
+.result-row span:first-child,
+.result-desc,
+.ref-item-meta,
+.ref-link,
+.sub-expires,
+.sub-auto,
+.profile-hub-desc,
+.profile-sub-meta,
+.profile-plan-subtitle,
+.ref-modal-row label {
+  color: #5f6f7e;
+}
+
+.member-section-title,
+.member-empty-title,
+.payment-plan-value,
+.result-row span:last-child,
+.ref-item-label,
+.profile-sub-status,
+.result-success h2,
+.result-waiting h2,
+.result-failed h2,
+.ref-modal-header h3 {
+  color: #17242e;
+}
+
+.member-shell-pricing .pricing-plan-name,
+.member-shell-pricing .pricing-price,
+.member-shell-pricing .pricing-monthly {
+  color: #ea580c;
+}
+
+.member-shell-payment .member-hero-title,
+.member-shell-payment .member-section-title,
+.member-shell-payment .payment-plan-value,
+.member-shell-payment .payment-price {
+  color: #ea580c;
+}
+
+.member-shell-payment .member-hero-subtitle,
+.member-shell-payment .member-hero-subtitle strong,
+.member-shell-payment .payment-plan-label,
+.member-shell-payment .member-note-item,
+.member-shell-payment .member-empty-text,
+.member-shell-payment .payment-status-box {
+  color: #7c4a20;
+}
+
+.profile-shell-v2 .profile-plan-head {
+  margin-top: 0;
+}
+
+.profile-shell-v2 .profile-plan-title {
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.profile-shell-v2 .profile-plan-subtitle {
+  margin-top: 6px;
+  color: #8c98a8;
+  font-size: 13px;
+}
+
+.profile-shell-v2 .profile-plan-list {
+  margin-top: 16px;
+}
+
+.profile-shell-v2 .profile-history-section .plan-card {
+  border-radius: 22px;
+  border: 1px solid rgba(220, 224, 230, 0.86);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 251, 253, 0.98));
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.profile-shell-v2 .profile-history-section .plan-card + .plan-card {
+  margin-top: 14px;
+}
+
+.profile-shell-v2 .profile-plan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.profile-shell-v2 .profile-plan-action {
+  flex: 0 0 auto;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid rgba(31, 122, 104, 0.22);
+  border-radius: 999px;
+  background: rgba(31, 122, 104, 0.08);
+  color: #1f7a68;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profile-shell-v2 .profile-plan-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 6px;
+}
+
+/* 方案卡片状态色 */
+.plan-profit-up   { color: var(--jczj-success); }
+
+.plan-profit-down { color: var(--jczj-danger); }

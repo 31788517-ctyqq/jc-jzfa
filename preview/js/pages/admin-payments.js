@@ -1,6 +1,8 @@
 // ==================== 管理员后台：支付与订阅 ====================
 /* global loadAdminSubPage, grantSubscription */
 import { api } from '../api.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-auth.css');
 
 const STATUS_CN = {
   active: '活跃',

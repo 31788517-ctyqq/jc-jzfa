@@ -1,4 +1,7 @@
 import { api } from '../api.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-match.css');
+loadCSS('../../css/page-modal.css');
 
 let _pkMatchIds = []; // ★ 缓存 PK 弹窗 matchId 列表，供"我要做方案"按钮使用
 

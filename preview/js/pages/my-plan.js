@@ -1,6 +1,8 @@
 // ==================== 我的方案列表页 ====================
 import { api } from '../api.js';
 import { WEEK_NAMES, formatDateCN, getCache, setCache } from '../utils.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-plans.css');
 
 let _plans = [];
 let _stats = {};

@@ -1,6 +1,8 @@
 import { api } from '../api.js';
 import { WEEK_NAMES, MIN_PLAN_DATE, formatDate, getCache, setCache } from '../utils.js';
 import * as state from '../vendor.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-plans.css');
 
 function getMatchHandicapValue(m, selection) {
   const candidates = [

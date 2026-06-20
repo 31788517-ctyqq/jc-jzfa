@@ -1,5 +1,7 @@
 // ==================== 确认方案页面 ====================
 import { api } from '../api.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-scheme.css');
 
 let _planData = null; // 完整方案数据（包含 matches、金额、过关等）
 let _matches = []; // 已选比赛列表

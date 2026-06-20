@@ -1,4 +1,7 @@
 /**
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-auth.css');
+
  * preview/js/pages/admin.js
  * 统一移动端管理后台 — 4 Tab: 用户 / 订阅 / 返利 / 系统
  *
@@ -8,7 +11,6 @@
 
 import { api } from '../api.js';
 import { getAuthSession } from '../auth-client.js';
-
 // ═══════════════════════════════════════════════════════
 // 工具函数
 // ═══════════════════════════════════════════════════════

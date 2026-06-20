@@ -1,5 +1,7 @@
 import { api } from '../api.js';
 import { getDeviceId } from '../utils.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-auth.css');
 
 function parseInviteParams() {
   try {

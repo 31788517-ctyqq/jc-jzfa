@@ -1,0 +1,90 @@
+/* page-gs.css — auto-split from app.css */
+
+.smc-ai-btn,
+.smc-gs-btn {
+  flex: none;
+  width: auto;
+  padding: 0 18px;
+  height: 30px;
+  border-radius: 20px;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.smc-gs-btn {
+  background: linear-gradient(135deg, rgba(184, 154, 96, 0.15), rgba(229, 168, 0, 0.08));
+  color: #c8981e;
+  border: 1px solid rgba(184, 154, 96, 0.25);
+}
+
+.smc-gs-btn:active {
+  background: rgba(184, 154, 96, 0.25);
+  transform: scale(0.96);
+}
+
+.smc-ai-btn,
+.smc-gs-btn {
+  min-width: 78px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px !important;
+  border: 1px solid rgba(47, 159, 154, 0.26) !important;
+  background: rgba(114, 221, 208, 0.14) !important;
+  color: var(--alpine-mint-deep) !important;
+  box-shadow: none !important;
+}
+
+.smc-ai-btn:active,
+.smc-gs-btn:active {
+  transform: scale(0.96);
+}
+
+/* Scheme action buttons: equal size */
+.smc-footer .smc-ai-btn,
+.smc-footer .smc-gs-btn {
+  flex: 0 0 76px !important;
+  width: 76px !important;
+  min-width: 76px !important;
+  max-width: 76px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 34px !important;
+  font-size: 12px !important;
+  box-sizing: border-box !important;
+}
+
+.smc-ai-btn,
+.smc-gs-btn {
+  min-height: 34px !important;
+  border-radius: 999px !important;
+}
+
+.smc-footer .smc-ai-btn,
+.smc-footer .smc-gs-btn {
+  flex: 0 0 82px !important;
+  width: 82px !important;
+  min-width: 82px !important;
+  max-width: 82px !important;
+  height: 34px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  -webkit-appearance: none;
+  appearance: none;
+  color: #153437 !important;
+  background: linear-gradient(135deg, var(--alpine-mint-soft), var(--alpine-mint)) !important;
+  border: 1px solid rgba(47, 159, 154, 0.34) !important;
+  box-shadow: 0 10px 22px rgba(47, 159, 154, 0.2) !important;
+}

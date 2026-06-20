@@ -1,3 +1,6 @@
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-auth.css');
+
 function getInviteContactConfig() {
   const cfg = window.__inviteContactConfig || {};
   const contacts =

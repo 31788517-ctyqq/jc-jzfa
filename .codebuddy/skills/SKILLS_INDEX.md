@@ -2,7 +2,7 @@
 
 | Skill | 触发词 | 强制？ |
 |-------|--------|:---:|
-| `deploy-ops` | 部署/deploy/服务器/Nginx/PM2/502/缓存/cache/404/静态资源/zombie/僵尸进程/实例数/instances/watchdog/Vite构建 | MUST |
+| `deploy-ops` | 部署/deploy/服务器/Nginx/PM2/502/缓存/cache/404/静态资源/zombie/僵尸进程/实例数/instances/watchdog/Vite构建/性能优化/页面加速/FCP/LCP/Brotli/CDN/资源压缩/CSS拆分 | MUST |
 | `data-pipeline` | 数据/抓取/ETL/同步/修复/回填/缺失/backfill/fetch/爬虫/crawl/DB污染/DB损坏/数据库写入/scheduler | MUST |
 | `jczjfa-test-orchestrator` | 测试/test/单元/E2E/jest/playwright/冒烟/门禁/lint/回归/preflight/覆盖率/coverage | MUST |
 | `backtesting-frameworks` | 回测/backtest/命中率/ROI/参数调优/minExpertA/minOdds/Walk-Forward | MUST |
@@ -51,9 +51,10 @@
 |------|-----|
 | PM2 进程 | jc-zjfa (cluster:1, 1800M) / jc-sync (fork:1, 1800M) / jc-scheduler (fork:1, 2048M) |
 | 测试套件 | 115 suites / 1927 tests / 92/183 源文件 |
-| SW 版本 | jczjfa-static-v10 |
+| SW 版本 | jczjfa-static-v12 |
 | Watchdog | `*/5 * * * *` → `scripts/watchdog.cjs` |
 | 部署方式 | `python deploy.py --fast` (paramiko) |
 | Vite 构建 | `npx vite build` → `python deploy.py --fast --files-only` |
 | 当前分支 | `local/auth-preview` |
-| 仓库清理 | 2026-06-20 完成 P0-P3 噪声大扫除（-340 文件/-210MB） |
+| 性能优化基线 | `AGENTS.md § 性能预算` + `deploy-ops/references/perf-baseline.md` | V19 新增 |
+| 仓库清理 | 2026-06-20 完成 P0-P3 噪声大扫除（25827d54: -200 文件/-282K 行） |

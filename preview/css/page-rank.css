@@ -1,0 +1,358 @@
+/* page-rank.css — auto-split from app.css */
+
+/* 排行榜 */
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rank-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  gap: 14px;
+  -webkit-backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  align-items: center;
+  position: relative;
+}
+
+.rank-ai-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(126, 166, 189, 0.18), rgba(134, 166, 196, 0.18));
+  border: 1px solid rgba(126, 166, 189, 0.35);
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.rank-ai-tag:hover {
+  background: linear-gradient(135deg, rgba(126, 166, 189, 0.3), rgba(134, 166, 196, 0.3));
+  border-color: rgba(126, 166, 189, 0.6);
+  box-shadow: 0 0 10px rgba(126, 166, 189, 0.2);
+}
+
+.rank-hit-stamp {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--red);
+  border: 1.5px solid var(--red);
+  border-radius: 50%;
+  transform: rotate(-10deg);
+  margin-left: auto;
+}
+
+.rank-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-lg);
+  flex-shrink: 0;
+}
+
+.rank-badge.gold {
+  background: linear-gradient(135deg, var(--amber), var(--amber));
+}
+
+.rank-badge.silver {
+  background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+}
+
+.rank-badge.bronze {
+  background: linear-gradient(135deg, #cd7f32, var(--amber));
+}
+
+.rank-badge.normal {
+  background: rgba(255, 255, 255, 0.08);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--text2);
+}
+
+.rank-content {
+  flex: 1;
+}
+
+.rank-teams {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.rank-meta {
+  font-size: var(--fs-xs);
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+
+.rank-direction {
+  font-size: var(--fs-sm);
+  color: var(--cyan);
+  margin-bottom: 8px;
+}
+
+.rank-progress {
+  height: 4px;
+  background: rgba(126, 166, 189, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.rank-progress-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #d7ebee 0%, #7faeb6 100%);
+  border-radius: 999px;
+  transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.hit-rank-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.hit-rank-num {
+  width: 28px;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: #95a4b2;
+  flex-shrink: 0;
+}
+
+.hit-rank-num.top3 {
+  color: #c8981e;
+}
+
+.hit-rank-label {
+  width: 120px;
+  font-size: var(--fs-md);
+  color: var(--text);
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hit-rank-bar-bg {
+  flex: 1;
+  height: 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  box-shadow: 0 0 8px rgba(126, 166, 189, 0.06);
+}
+
+.hit-rank-bar {
+  height: 100%;
+  border-radius: 4px;
+  width: 0;
+  transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.hit-rank-pct {
+  width: 62px;
+  text-align: right;
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.rank-card {
+  background: linear-gradient(135deg, rgba(8, 20, 32, 0.88), rgba(4, 14, 24, 0.92));
+}
+
+/* ========== 模型排行表格列宽 ========== */
+.md-rank-list .income-header-row > * {
+  flex-shrink: 0;
+}
+
+.md-rank-col-rank {
+  width: 42px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.md-rank-col-model {
+  flex: 1;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.md-rank-col-rate {
+  width: 62px;
+  text-align: center;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.md-rank-col-trend {
+  width: 60px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.md-rank-col-count {
+  width: 50px;
+  text-align: center;
+  flex-shrink: 0;
+  color: var(--text3);
+}
+
+.md-rank-row .md-rank-col-model em,
+.md-rank-row .md-rank-col-trend em,
+.md-rank-row .md-rank-col-count em {
+  display: block;
+  margin-top: 2px;
+  color: var(--text3);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pk3-rank-badge {
+  font-size: 16px;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* ★ 推荐排行榜Top5高亮（左侧1/6黄色底色 + 排名数字） */
+.sodds-btn.rank-highlight {
+  position: relative;
+  overflow: hidden;
+}
+
+.sodds-btn.rank-highlight::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 16.666%;
+  height: 100%;
+  background: rgba(184, 154, 96, 0.35);
+  z-index: 0;
+  pointer-events: none;
+  border-top-left-radius: 9px;
+  border-bottom-left-radius: 9px;
+}
+
+.sodds-btn.active.rank-highlight::before {
+  background: rgba(184, 154, 96, 0.45);
+}
+
+.scheme-rank-badge {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16.666%;
+  text-align: center;
+  z-index: 2;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--cyan);
+  line-height: 1;
+  pointer-events: none;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.rank-badge {
+  color: var(--text);
+}
+
+.rank-badge.gold,
+.rank-badge.silver,
+.rank-badge.bronze {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 8px 18px rgba(0, 0, 0, 0.2);
+}
+
+.hit-rank-num {
+  color: #617782 !important;
+  font-weight: 800;
+}
+
+.hit-rank-num.top3 {
+  color: #9a5a1e !important;
+}
+
+.hit-rank-label {
+  color: #2b3b41 !important;
+  font-weight: 700;
+}
+
+.hit-rank-pct {
+  color: #365057 !important;
+  font-weight: 800;
+}
+
+.hit-rank-bar-bg {
+  background: rgba(130, 158, 164, 0.16) !important;
+  box-shadow: none;
+}
+
+.hit-rank-bar {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 2px 8px rgba(8, 116, 111, 0.18);
+}
+
+.hit-rank-row {
+  min-height: 42px;
+  margin-bottom: 0 !important;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(130, 158, 164, 0.12);
+}
+
+.hit-rank-row:last-child {
+  border-bottom: none;
+}
+
+.hit-rank-num {
+  width: 30px;
+  font-size: var(--fs-sm) !important;
+}
+
+.hit-rank-label {
+  width: 112px !important;
+  font-size: var(--fs-sm) !important;
+}
+
+.hit-rank-pct {
+  width: 56px !important;
+  font-size: var(--fs-sm) !important;
+}
+
+.hit-rank-bar-bg {
+  height: 6px !important;
+  border-radius: 999px !important;
+}

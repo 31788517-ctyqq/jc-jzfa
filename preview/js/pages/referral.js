@@ -1,6 +1,8 @@
 import { api } from '../api.js';
 import { getCache, setCache } from '../utils.js';
 import { getAuthSession, hasAuthToken, hasReferralAccess } from '../auth-client.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-auth.css');
 
 function formatMoney(value) {
   return new Intl.NumberFormat('zh-CN', {

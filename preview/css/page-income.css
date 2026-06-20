@@ -1,0 +1,100 @@
+/* page-income.css — auto-split from app.css */
+
+/* ========== 方案收入样式 ========== */
+.income-list {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-top: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.income-header-row {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text3);
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 255, 255, 0.03);
+}
+
+.income-header-row > *:nth-child(1) {
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.income-row {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.income-row:last-child {
+  border-bottom: none;
+}
+
+.income-date {
+  width: 70px;
+  flex-shrink: 0;
+  color: var(--text3);
+  font-size: 13px;
+}
+
+.income-hit {
+  flex: 1;
+  text-align: center;
+  color: var(--text2);
+  font-weight: 600;
+}
+
+.income-rate {
+  width: 70px;
+  text-align: center;
+  flex-shrink: 0;
+  color: var(--cyan);
+  font-weight: 700;
+}
+
+.income-value {
+  width: 90px;
+  text-align: right;
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* ========== 数据健康页列表列宽 ========== */
+.dh-source-list .income-header-row > * {
+  flex-shrink: 0;
+}
+
+.dh-alert-list .income-header-row > * {
+  flex-shrink: 0;
+}
+
+.dh-gate-list .income-header-row > * {
+  flex-shrink: 0;
+}
+
+/* ========== 方案收入明细列表列宽 ========== */
+.dh-inc-detail .income-header-row > * {
+  flex-shrink: 0;
+}
+
+/* ========== 回测分析列表列宽 ========== */
+.bt-detail-list .income-header-row > * {
+  flex-shrink: 0;
+}
+
+.md-heatmap-wrap tr:first-child td,
+.chart-box th,
+.chart-box .income-header-row {
+  color: var(--alpine-text-sub) !important;
+  font-size: var(--fs-xs) !important;
+  font-weight: 700;
+}

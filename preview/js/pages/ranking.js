@@ -1,6 +1,8 @@
 import { api } from '../api.js';
 import { CAT_NAMES, MIN_PLAN_DATE, formatDate } from '../utils.js';
 import * as state from '../vendor.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-rank.css');
 
 let _rankReqSeq = 0;
 

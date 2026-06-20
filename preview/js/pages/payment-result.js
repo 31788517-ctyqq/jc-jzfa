@@ -1,5 +1,7 @@
 import { api } from '../api.js';
 import { hasReferralAccess } from '../auth-client.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-auth.css');
 
 const PLAN_NAME_MAP = {
   monthly: '月度套餐',

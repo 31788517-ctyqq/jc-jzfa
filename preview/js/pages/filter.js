@@ -1,4 +1,6 @@
 import { api } from '../api.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-hit.css');
 
 export const filterDirMap = {
   胜平负: ['全部', '胜', '平', '负'],

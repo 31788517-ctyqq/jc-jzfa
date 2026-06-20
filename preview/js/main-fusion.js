@@ -15,7 +15,8 @@ import {
 import * as state from './vendor.js';
 import { loadHome } from './pages/home.js';
 import { loadMatchList, loadMatchListFromData, startMatchPK } from './pages/match-list.js';
-
+import { loadCSS } from './vendor.js';
+loadCSS('../css/page-modal.css');
 // ═══ 模块懒加载 · 双模式兼容 ═══
 // ★ P0-2 (Vite build): import.meta.glob → Vite 构建时展开为静态映射，每个页面独立 chunk
 // ★ Browser (raw ES module): 动态 import() → HTTP/2 并行加载源文件

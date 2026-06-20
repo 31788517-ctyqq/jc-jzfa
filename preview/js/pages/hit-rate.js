@@ -1,4 +1,6 @@
 import { API } from '../utils.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-hit.css');
 
 export function loadHitRate() {
   const el = document.getElementById('hitContent');

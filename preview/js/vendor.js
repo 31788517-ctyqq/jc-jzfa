@@ -9,6 +9,20 @@
 const TOKEN_KEY = 'auth_token';
 const SESSION_KEY = 'auth_session';
 
+// CSS loader — inject <link> at runtime, returns Promise that resolves on load
+export function loadCSS(path) {
+  var href = path.replace(/^(\.\.\/)+css\//, '/css/');
+  if (document.querySelector('link[href="' + href + '"]')) return Promise.resolve();
+  return new Promise(function(resolve, reject) {
+    var l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = href;
+    l.onload = function() { resolve(); };
+    l.onerror = function() { reject(new Error('CSS load failed: ' + href)); };
+    document.head.appendChild(l);
+  });
+}
+
 export function getAuthToken() {
   try {
     return localStorage.getItem(TOKEN_KEY) || '';

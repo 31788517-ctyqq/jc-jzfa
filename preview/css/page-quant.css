@@ -1,0 +1,147 @@
+/* page-quant.css — auto-split from app.css */
+
+.quant-table-wrap {
+  margin: 0;
+  padding-bottom: 20px;
+}
+
+/* ═══ P2-5: ECharts 图表视图 ═══ */
+.quant-chart-wrap {
+  margin: 0;
+  padding: 8px 0 20px;
+}
+
+.quant-chart-inner {
+  width: 100%;
+  min-height: 360px;
+}
+
+/* ═══ P2-6: 视图切换按钮 ═══ */
+.quant-view-toggle {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px 12px;
+  justify-content: center;
+}
+
+.quant-card-list {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* 表头行 */
+.quant-card-header {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text2);
+  font-weight: 600;
+  padding: 11px 16px;
+  gap: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 255, 255, 0.04);
+  min-height: 38px;
+}
+
+.quant-card-header span {
+  white-space: normal;
+  word-break: keep-all;
+  line-height: 1.3;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quant-card-header span.q-sortable {
+  cursor: pointer;
+  -webkit-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.quant-card-header span.q-sort-asc {
+  color: var(--cyan);
+}
+
+.quant-card-header span.q-sort-desc {
+  color: var(--cyan);
+}
+
+/* 数据行 */
+.quant-card-row {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  min-height: 42px;
+  padding: 10px 16px;
+  gap: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s;
+}
+
+.quant-card-row:last-child {
+  border-bottom: none;
+}
+
+.quant-card-row.picked {
+  background: rgba(126, 166, 189, 0.06);
+}
+
+/* 单元格内文本居中 */
+.quant-card-row span[class*=\"q-col-\"] > .q-cell-num {
+  white-space: normal;
+  word-break: break-all;
+  line-height: 1.3;
+  text-align: center;
+  display: inline-block;
+  width: 100%;
+  font-size: 12px;
+}
+
+/* 底部PK栏 — 紧跟表格 */
+.quant-pk-bar {
+  margin: 8px 12px 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+}
+
+/* Chart/table typography consistency */
+.chart-box,
+.md-heatmap-wrap,
+.quant-chart-wrap,
+.bt-chart-wrap {
+  color: var(--alpine-text-main);
+}
+
+.md-heatmap-wrap table,
+.chart-box table,
+.quant-chart-wrap table,
+.bt-chart-wrap table {
+  font-size: var(--fs-sm) !important;
+  color: var(--alpine-text-main) !important;
+  line-height: 1.45;
+}
+
+.md-heatmap-wrap td,
+.md-heatmap-wrap th,
+.chart-box td,
+.chart-box th,
+.quant-chart-wrap td,
+.quant-chart-wrap th,
+.bt-chart-wrap td,
+.bt-chart-wrap th {
+  color: var(--alpine-text-main) !important;
+  font-weight: 600;
+  border-color: rgba(130, 158, 164, 0.14) !important;
+}
+
+.md-chart,
+.quant-chart-inner,
+.bt-chart-inner {
+  color: var(--alpine-text-sub);
+  font-size: 11px;
+}

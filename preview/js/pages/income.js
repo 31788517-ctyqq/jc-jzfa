@@ -1,8 +1,10 @@
 import { api } from '../api.js';
 import { getCache, setCache } from '../utils.js';
 import * as state from '../vendor.js';
-
 // 盈利显示（元，整数，无小数点）
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-income.css');
+
 function _fmtIncome(val) {
   val = Math.round(val || 0);
   return val >= 0 ? '+' + val : String(val);

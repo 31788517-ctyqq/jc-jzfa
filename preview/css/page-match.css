@@ -1,0 +1,517 @@
+/* page-match.css — auto-split from app.css */
+
+/* 比赛卡片 */
+.match-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(20, 40, 60, 0.9) 0%, rgba(10, 20, 35, 0.95) 100%);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.match-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: linear-gradient(180deg, transparent 0%, rgba(126, 166, 189, 0.05) 100%);
+  pointer-events: none;
+}
+
+.match-card.picked {
+  border-color: rgba(126, 166, 189, 0.3);
+  box-shadow: 0 0 12px rgba(126, 166, 189, 0.08);
+}
+
+.match-card.match-focus-target {
+  border-color: rgba(167, 139, 250, 0.52);
+  box-shadow:
+    0 0 0 1px rgba(167, 139, 250, 0.18),
+    0 0 26px rgba(167, 139, 250, 0.18);
+  scroll-margin-top: 108px;
+  animation: match-focus-pulse 1.6s ease-in-out 2;
+}
+
+@keyframes match-focus-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(167, 139, 250, 0.1),
+      0 0 10px rgba(167, 139, 250, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(167, 139, 250, 0.24),
+      0 0 30px rgba(167, 139, 250, 0.24);
+  }
+}
+
+.match-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.match-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.match-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.match-league {
+  font-size: var(--fs-sm);
+  color: var(--cyan);
+  font-weight: 500;
+}
+
+.match-num {
+  font-size: var(--fs-xs);
+  color: var(--text2);
+  background: rgba(126, 166, 189, 0.1);
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.match-single-badge {
+  font-size: 10px;
+  color: var(--red);
+  background: rgba(184, 112, 112, 0.12);
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* ★ 让球标签（比赛列表卡片） */
+.match-handicap-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 4px;
+  vertical-align: middle;
+  line-height: 1.2;
+}
+
+.match-handicap-tag.rq-pos {
+  color: var(--red);
+  background: rgba(184, 112, 112, 0.12);
+}
+
+.match-handicap-tag.rq-neg {
+  color: var(--green);
+  background: rgba(122, 170, 150, 0.12);
+}
+
+.match-teams {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.match-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--fs-sm);
+  margin-bottom: 12px;
+}
+
+.match-experts {
+  color: var(--cyan);
+  font-weight: 500;
+}
+
+.match-time {
+  color: var(--text3);
+}
+
+.match-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  color: var(--text2);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+.match-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.match-score {
+  font-size: var(--fs-xl);
+  font-weight: 900;
+  color: var(--cyan);
+  text-shadow: 0 0 8px rgba(126, 166, 189, 0.4);
+  line-height: 1;
+}
+
+.match-half {
+  font-size: var(--fs-xs);
+  color: var(--text3);
+  margin-left: 4px;
+}
+
+.match-dur {
+  font-size: var(--fs-xs);
+  color: var(--cyan);
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.match-card-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 4px;
+}
+
+.match-card-stat .stat-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.match-card-stat.yellow {
+  background: rgba(184, 154, 96, 0.2);
+  color: var(--amber);
+}
+
+.match-card-stat.yellow .stat-dot {
+  background: var(--amber);
+}
+
+.match-card-stat.red {
+  background: rgba(184, 112, 112, 0.2);
+  color: var(--red);
+}
+
+.match-card-stat.red .stat-dot {
+  background: var(--red);
+}
+
+/* ★ P3-1: WebSocket 实时推送 — 比赛结束闪烁动画 */
+@keyframes match-finished-flash {
+  0%,
+  100% {
+    border-color: var(--card-border);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    border-color: var(--cyan);
+    box-shadow: 0 2px 20px var(--cyan-glow);
+  }
+}
+
+.match-card.match-finished-flash {
+  animation: match-finished-flash 0.6s ease-in-out 3;
+}
+
+.match-card.live {
+  border-color: rgba(126, 166, 189, 0.35);
+}
+
+.match-card {
+  min-height: 150px;
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(8, 20, 32, 0.85), rgba(4, 14, 24, 0.92));
+}
+
+.match-league,
+.match-experts,
+.filter-tag.active,
+.rank-direction {
+  color: var(--cyan);
+}
+
+/* ⚔️ 功守道弹窗 — 已移至 modals.css */
+
+/* 卡片底部功守道标签 */
+.match-gs-wrap {
+  text-align: right;
+  margin-top: 10px;
+}
+
+.match-gs-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(126, 166, 189, 0.1), rgba(134, 166, 196, 0.1));
+  border: 1px solid rgba(126, 166, 189, 0.2);
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.match-gs-tag:hover {
+  background: linear-gradient(135deg, rgba(126, 166, 189, 0.2), rgba(134, 166, 196, 0.2));
+  border-color: rgba(126, 166, 189, 0.45);
+  box-shadow: 0 0 12px rgba(126, 166, 189, 0.15);
+}
+
+/* 🤖 AI分析标签 — 紫色渐变 */
+.match-ai-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(103, 58, 183, 0.1));
+  border: 1px solid rgba(156, 39, 176, 0.2);
+  color: var(--purple);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.match-ai-tag:hover {
+  background: linear-gradient(135deg, rgba(156, 39, 176, 0.2), rgba(103, 58, 183, 0.2));
+  border-color: rgba(156, 39, 176, 0.45);
+  box-shadow: 0 0 12px rgba(156, 39, 176, 0.15);
+}
+
+/* ★ 投注按钮 & 比赛操作行 */
+.match-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.match-bet-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.12), rgba(255, 87, 34, 0.08));
+  border: 1px solid rgba(255, 152, 0, 0.25);
+  color: #c8981e;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.match-bet-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.22), rgba(255, 87, 34, 0.14));
+  border-color: rgba(255, 152, 0, 0.45);
+  box-shadow: 0 0 10px rgba(255, 152, 0, 0.15);
+}
+
+.quant-card-header span.q-match-hd {
+  text-align: center;
+}
+
+/* 对阵列 */
+.q-match-cell {
+  text-align: center;
+  position: relative;
+  line-height: 1.3;
+}
+
+.q-match-teams {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.q-match-vs {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text3);
+  padding: 2px 0;
+  line-height: 1;
+  text-align: center;
+}
+
+.q-match-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: 2px;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* 三行对阵 */
+.pk2-match-line {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.pk2-match-vs {
+  font-size: 10px;
+  color: var(--text3);
+  line-height: 1.35;
+  text-align: center;
+}
+
+/* ═══ 比赛卡片 — 参考设计左右分栏 ═══ */
+.scheme-match-card {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(5, 22, 38, 0.55);
+  border: 1px solid rgba(126, 166, 189, 0.12);
+  -webkit-backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* 比赛卡片列表 */
+.confirm-match-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+/* 单个比赛卡片 */
+.cfm-match-card {
+  background: linear-gradient(135deg, #131b24 0%, #131b24 100%);
+  border: 1px solid rgba(126, 166, 189, 0.12);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.cfm-match-num {
+  font-size: 12px;
+  color: var(--text3);
+  flex-shrink: 0;
+}
+
+.filter-tag,
+.date-arrow,
+.income-filter-btn,
+.income-sort-btn,
+.consensus-filter-btn,
+.bo-tab,
+.bo-pass-tag,
+.rank-ai-tag,
+.match-gs-tag,
+.mp-share-btn,
+.mp-delete-btn,
+.sodds-btn,
+.cfm-play-tag,
+.q-tag {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: var(--pill-radius);
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.cfm-match-list,
+.confirm-match-list {
+  gap: var(--gap-md);
+  padding-left: var(--gap-md);
+  padding-right: var(--gap-md);
+}
+
+.match-card::before {
+  background: linear-gradient(180deg, transparent 0%, rgba(114, 221, 208, 0.1) 100%);
+}
+
+.match-card::after {
+  content: '⚽';
+  position: absolute;
+  right: 8px;
+  bottom: -10px;
+  font-size: clamp(104px, 30vw, 128px);
+  line-height: 1;
+  opacity: 0.084;
+  filter: grayscale(1) saturate(0.5);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.match-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.q-tag,
+.pattern-badge,
+.fusion-badge,
+.consensus-badge,
+.match-card-stat,
+.injury-status,
+.ai-injury-status {
+  color: var(--alpine-text-sub) !important;
+  background: rgba(255, 255, 255, 0.66) !important;
+  border: 1px solid rgba(130, 158, 164, 0.16) !important;
+  font-weight: 800;
+}
+
+.q-tag.tag-meltdown,
+.q-tag.tag-overheat,
+.fusion-badge.fusion-meltdown,
+.consensus-badge.melt,
+.match-card-stat.red {
+  color: var(--alpine-coral-deep) !important;
+  background: rgba(255, 127, 104, 0.14) !important;
+  border-color: rgba(255, 127, 104, 0.28) !important;
+}
+
+.q-tag.tag-balanced,
+.fusion-badge.fusion-strong,
+.consensus-badge.strong,
+.match-card-stat.yellow {
+  color: var(--alpine-mint-deep) !important;
+  background: rgba(114, 221, 208, 0.16) !important;
+  border-color: rgba(47, 159, 154, 0.24) !important;
+}

@@ -1,6 +1,8 @@
 import { api } from '../api.js';
 import { formatDate } from '../utils.js';
 import { getAuthSession, clearAuthAll, hasAuthToken, hasReferralAccess } from '../auth-client.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-profile.css');
 
 let _profilePlanFilter = 'today';
 let _allPlans = [];

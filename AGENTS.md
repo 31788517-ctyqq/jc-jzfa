@@ -96,13 +96,38 @@
 | 部署路径 | `/root/server/` + `/var/www/zj.100qiu.com/` |
 | Nginx `/assets/` | → `miniprogram/images/`（不是 `preview/assets/`！）|
 | 部署方式 | `python deploy.py --fast` |
-| 部署验证 | `python _verify_api.py`（L1-L6）|
+| 部署验证 | `python scripts/archive/_verify_api.py`（L1-L6，已归档）|
 | preflight | `npm run preflight`（7 步） |
-| SW 版本 | `jczjfa-static-v10` |
+| SW 版本 | `jczjfa-static-v12` |
 | Watchdog cron | `*/5 * * * *` → `scripts/watchdog.cjs` |
 | Vite 构建 | `npx vite build` → `python deploy.py --fast --files-only` |
 | 测试套件 | 115 suites, 1927 tests（全量 `npx jest --forceExit`） |
-| 当前 stable tag | `v11.0-stable` (09d4bb09) |
+| 当前 baseline tag | `v19.0-perf-baseline` (25827d54) — 性能优化基线 |
+
+---
+
+## 📊 性能预算（V19 新增）
+
+> **每次前端改动必须对照预算表，不得倒退。**
+
+| 指标 | 当前基线 | 目标 | 测量方式 |
+|------|:---:|:---:|------|
+| **FCP** (首次内容绘制) | ~128ms | ≤150ms | Playwright `page.metrics()` |
+| **LCP** (最大内容绘制) | 未测量 | ≤1.0s | Lighthouse / Playwright |
+| **TTI** (可交互时间) | 未测量 | ≤2.0s | Lighthouse |
+| **首屏 JS gzip** | ~100KB (main-fusion 89KB + vendor 12KB) | ≤120KB | `npx vite build` 输出 |
+| **首屏 CSS gzip** | ~56KB (app.css 单文件) | ≤25KB（拆分后每页） | 同上 |
+| **Tab 切换延迟** | 300-800ms | ≤100ms | Playwright click→DOM ready |
+| **Lighthouse Mobile** | 未测量 | ≥85 | Chrome DevTools |
+
+**优化阶段目标**：
+```
+Phase 1 (CSS 拆分):    FCP ≤150ms / LCP ≤1s / app.css gzip ≤25KB
+Phase 2 (Brotli+CDN):  全站传输量 -30%
+Phase 3 (缓存增强):    二次打开 FCP ≤50ms / Tab 切换 ≤50ms
+```
+
+**回归门禁**：部署前必须 Playwright 截图 + FCP/LCP 对比，任一指标倒退 >10% → 阻断。
 
 ---
 
@@ -137,7 +162,7 @@ npx jest --forceExit                   # 全量测试
 npx vite build                         # Vite 构建
 python deploy.py --fast                # 部署（需用户确认）
 python deploy.py --fast --files-only   # 仅前端文件
-python _verify_api.py                  # 部署后验证
+python scripts/archive/_verify_api.py  # 部署后验证（已归档）
 ```
 
 ---
@@ -173,7 +198,7 @@ python _verify_api.py                  # 部署后验证
 | Nginx 路径映射 | `.codebuddy/skills/deploy-ops/references/nginx.md` |
 | 监控体系 | `server/core/db-metrics.js`, `scripts/watchdog.cjs` |
 | 测试覆盖 | 115 suites / 1927 tests / 92/183 source files |
-| 清理规范 | 见下方「代码卫生规范」 |
+| 性能优化/测量 | `.codebuddy/skills/deploy-ops/references/perf-baseline.md` |
 
 ---
 

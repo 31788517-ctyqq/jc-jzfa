@@ -52,6 +52,17 @@
       "
     />
     <noscript><link rel="stylesheet" href="/css/betting.css" /></noscript>
+    <!-- ★ Phase1: PK弹窗样式提前加载，避免 loadCSS 异步竞态 -->
+    <link
+      rel="stylesheet"
+      href="/css/page-modal.css"
+      media="print"
+      onload="
+        this.media = 'all';
+        this.onload = null;
+      "
+    />
+    <noscript><link rel="stylesheet" href="/css/page-modal.css" /></noscript>
 
     <!-- 管理后台样式（异步加载，仅管理员页面需要） -->
     <link rel="stylesheet" href="/css/admin-v2.css" media="print" onload="this.media='all';this.onload=null" />

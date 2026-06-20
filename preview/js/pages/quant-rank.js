@@ -1,4 +1,6 @@
 // 兼容层：保留 legacy quant-rank.js 供单测/旧入口引用，实际实现统一复用 quant-rank-fusion.js
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-quant.css');
 import {
   loadQuantRank as loadQuantRankFusion,
   updateQuantDateBar,

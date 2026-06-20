@@ -12,7 +12,7 @@
 □ 3. DB 备份？              → cp server/midou_data.db server/midou_data.db.bak
 □ 4. dry-run 通过？         → python deploy.py --dry
 □ 5. 用户已确认？           → 展示变更清单，等用户说"确认/执行/部署"
-□ 6. 部署 + 验证？          → python deploy.py --fast && python _verify_api.py
+□ 6. 部署 + 验证？          → python deploy.py --fast（deploy.py 内置健康检查）
 □ 7. Playwright 截图验证？  → 导航 zj.100qiu.com → 截图 → 无 502/404
 □ 8. 无 zombie 进程？       → pm2 list → 3 进程全部 online
 □ 9. Watchdog 存活？        → crontab -l | grep watchdog
@@ -26,7 +26,7 @@
 python deploy.py --fast              # 全量部署
 python deploy.py --fast --files-only  # 仅前端（热修复）
 python deploy.py --dry                # 试运行
-python _verify_api.py                 # L1-L6 验证
+node -e \"require('https').get({hostname:'zj.100qiu.com',path:'/api/health',rejectUnauthorized:false},r=>{let d='';r.on('data',c=>d+=c);r.on('end',()=>console.log(d))})\"  # 快速健康检查
 npx vite build                        # Vite 构建
 npx jest --forceExit                  # 全量测试
 ```
@@ -40,7 +40,7 @@ npx jest --forceExit                  # 全量测试
 | **禁止 Windows scp/ssh** | 必须用 `deploy.py --fast`（paramiko） |
 | **PROTECTED_FILES** | server/data.json 不会被上传，需 SSH 直改 |
 | **Nginx /assets/** | → miniprogram/images/（不是 preview/assets/） |
-| **SW 版本** | 当前 v10 — 改 sw.js 时 bump CACHE_NAME |
+| **SW 版本** | 当前 v12 — 改 sw.js 时 bump CACHE_NAME |
 | **部署后重启** | 修改 server/ 时需 `pm2 restart all` |
 | **PM2 变更后验证** | `pm2 list` 确认 3 进程 online，scheduler 无频繁重启 |
 | **回滚** | `git checkout <tag> -- <file>` → 重新部署 |
@@ -74,7 +74,7 @@ npx jest --forceExit                  # 全量测试
 |--------|---------|
 | preflight 不通过 | 修复 lint/test 问题 → 重新 preflight |
 | dry-run 不通过 | 检查 deploy.py 语法 + DEPLOY_MAP 映射 |
-| 部署后 _verify_api 失败 | SSH 直连 → `pm2 status` + `tail /var/log/nginx/error.log` |
+| 部署后健康检查失败 | SSH 直连 → `pm2 status` + `tail /var/log/nginx/error.log` |
 | Playwright 截图超时 | 检查服务器连通性 → `curl -H "Host: zj.100qiu.com" http://119.23.51.159/` |
 | Scheduler 频繁重启 (>5次) | 检查 `max_memory_restart` ≥ 2048M，检查 DB 完整性 |
 
@@ -82,4 +82,6 @@ npx jest --forceExit                  # 全量测试
 
 ---
 
-深度文档：`.codebuddy/skills/deploy-ops/references/lessons.md`
+深度文档：
+- `.codebuddy/skills/deploy-ops/references/lessons.md`
+- `.codebuddy/skills/deploy-ops/references/perf-baseline.md` ← 性能优化基线（V19 新增）

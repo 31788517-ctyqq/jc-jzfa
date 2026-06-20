@@ -1,5 +1,7 @@
 import { api } from '../api.js';
 import { getAuthSession, hasAuthToken } from '../auth-client.js';
+import { loadCSS } from '../vendor.js';
+loadCSS('../../css/page-auth.css');
 
 const PLAN_META = {
   monthly: { plan_name: '月度套餐', duration_months: 1, feature: '适合短期体验核心能力', summary: '30 天会员访问权限' },
