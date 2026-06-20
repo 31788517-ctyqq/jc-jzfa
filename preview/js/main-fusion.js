@@ -1139,6 +1139,9 @@ export function switchTab(tab) {
     } else {
       // 首次打开默认定位到第一个标签（世界杯）
       state.setPlanTab('wc');
+      document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === 'wc');
+      });
     }
     _mod('plans').then(function (m) {
       m._autoSetBestDate();
@@ -1153,6 +1156,9 @@ export function switchTab(tab) {
       else {
         // 默认定位到第一个标签（世界杯）
         state.setPlanTab('wc');
+        document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
+          btn.classList.toggle('active', btn.getAttribute('data-tab') === 'wc');
+        });
         m.loadPlanList(function (p) {
           var pn = p.planName || '';
           return pn.indexOf('世界杯') === 0;
@@ -1741,6 +1747,9 @@ function switchTabLoad(tab) {
     } else {
       // 首次打开默认定位到第一个标签（世界杯）
       state.setPlanTab('wc');
+      document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === 'wc');
+      });
     }
     _mod('plans').then(function (m) {
       m._autoSetBestDate();
@@ -1755,6 +1764,9 @@ function switchTabLoad(tab) {
       else {
         // 默认定位到第一个标签（世界杯）
         state.setPlanTab('wc');
+        document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
+          btn.classList.toggle('active', btn.getAttribute('data-tab') === 'wc');
+        });
         m.loadPlanList(function (p) {
           var pn = p.planName || '';
           return pn.indexOf('世界杯') === 0;
