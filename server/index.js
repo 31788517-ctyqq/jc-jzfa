@@ -626,8 +626,7 @@ function getWeekDates() {
     const dataFile = getDataJson();
     const mMap = dataFile.m || {};
 
-    // ★ V9: 按日历日生成连续日期（从最早有数据的日期到今天）
-    // 先找最早日期，再按日历逐日列出，日期标签用日历星期几
+    // ★ V19: 只返回最近30天有比赛的日期，避免跨年数据（2024-2026共634条）撑爆日期轮盘
     const dateSet = new Set();
     Object.keys(mMap).forEach((k) => {
       const m = mMap[k];
@@ -639,9 +638,11 @@ function getWeekDates() {
     const sortedDates = Array.from(dateSet).sort();
     if (sortedDates.length === 0) return [];
 
-    // 从最早有数据的日期到今天的日历范围
+    // 范围限定：最近30天，防止从2024-01-01循环到2026-06-20生成634条目
     const today = localDate();
-    const startDate = sortedDates[0] < today ? new Date(sortedDates[0]) : new Date(today);
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const startDate = thirtyDaysAgo;
     const endDate = new Date(today);
 
     const list = [];
@@ -685,7 +686,7 @@ const RANK_LIST_CACHE_TTL = 10 * 60 * 1000; // ★ V12: 2→10分钟, 定时预�
 // ★ P0-1: plan-list 响应缓存（生成计算密集）
 let _planListResponseCache = {};
 let _planListResponseTime = {};
-const PLAN_LIST_CACHE_TTL = 10 * 60 * 1000; // 10 分钟
+const PLAN_LIST_CACHE_TTL = 30 * 60 * 1000; // 30 分钟（减少冷缓存概率）
 
 // ★ P1-3 优化：通用响应缓存（减少重复计算密集 API 的响应时间）
 const RESPONSE_CACHE_TTL = {
@@ -1029,9 +1030,12 @@ app.use(
         res.setHeader('Cache-Control', 'no-cache, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
-      } else {
+      } else if (process.env.NODE_ENV === 'production') {
         // JS/CSS/图片 强缓存 7 天（文件名带版本号 ?v= 时缓存命中）
         res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+      } else {
+        // 本地开发：不缓存 JS/CSS，确保修改即时生效
+        res.setHeader('Cache-Control', 'no-cache, must-revalidate');
       }
       // MIME 设置
       if (fPath.endsWith('.html')) res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -4053,6 +4057,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   data: {
                     date: dateStr,
                     plans: [],
+                    consensusMap: {},
                     notice: '今日方案预计 16:00 后陆续更新',
                     waitUntil: '16:00',
                     empty: true,
@@ -4110,9 +4115,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 return { type: x.t || x.type, num: x.n || x.num, result: r };
               });
             }
-            function loadOddsFromFile(date, num) {
-              const odds = getOddsHistory(date);
-              return odds ? odds[num] || null : null;
+            // ★ P1-1: 一次读取全天赔率，循环内内存查找替代逐文件 IO
+            const oddsMap = getOddsHistory(dateStr) || {};
+            function loadOddsFromDateOddsMap(date, num) {
+              return oddsMap[num] || null;
             }
 
             // 预计算：一次获取所有比赛的 recs 和 odds，消除 N 次重复查找
@@ -4122,7 +4128,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const num = m.num || '';
               const key = m.matchId;
               const raw = rMap['m_' + key] || rMap[String(key)] || [];
-              const oddsObj = loadOddsFromFile(dateStr, num);
+              const oddsObj = loadOddsFromDateOddsMap(dateStr, num);
               const hasOdds = !!(
                 oddsObj &&
                 oddsObj.spf &&
@@ -4269,6 +4275,67 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               notice = '当前仅有降级样本（C/D），已默认隐藏，切换"查看全部"可见';
             }
 
+            // ★ P0-1: 合并 batch-consensus 到 plan-list 响应，消除额外 HTTP 往返
+            const gsMap = getGsGlobalMap();
+            const consensusMap = {};
+            Object.keys(mMap).forEach(function (k) {
+              const m = mMap[k];
+              if (!m || (m.date || '').slice(0, 10) !== dateStr) return;
+              const matchId = m.matchId || k.replace(/^m_/, '');
+              const key = 'm_' + matchId;
+              const recsRaw = rMap[key] || rMap[String(matchId)] || [];
+              const gs = gsMap[matchId] || gsMap[key] || {};
+              const models = [];
+              if (gs.fusionConsensusType) {
+                models.push({
+                  model: '功守道',
+                  direction: gs.directionAdvantage ? gs.directionAdvantage.direction : null,
+                  confidence: gs.directionAdvantage ? gs.directionAdvantage.confidence : null,
+                });
+              }
+              if (recsRaw.length > 0) {
+                const dirMap = { home: 0, draw: 0, away: 0 };
+                var totalN = 0;
+                recsRaw.forEach(function (r) {
+                  var n2 = r.n || r.num || 1;
+                  totalN += n2;
+                  var t = r.t || r.type || '';
+                  if (['胜', '主胜'].includes(t)) dirMap.home += n2;
+                  else if (['平', '平局'].includes(t)) dirMap.draw += n2;
+                  else if (['负', '客胜'].includes(t)) dirMap.away += n2;
+                });
+                var topEntry = Object.entries(dirMap).sort(function (a, b) {
+                  return b[1] - a[1];
+                })[0];
+                if (topEntry && topEntry[1] > 0)
+                  models.push({
+                    model: '专家',
+                    direction: topEntry[0],
+                    confidence: Math.round((topEntry[1] / totalN) * 100),
+                  });
+              }
+              if (models.length > 0) {
+                var dirMap2 = {};
+                models.forEach(function (md) {
+                  if (md.direction) dirMap2[md.direction] = (dirMap2[md.direction] || 0) + 1;
+                });
+                var mainDir = Object.entries(dirMap2).sort(function (a, b) {
+                  return b[1] - a[1];
+                })[0];
+                if (mainDir) {
+                  var ratio = mainDir[1] / models.length;
+                  consensusMap[matchId] = {
+                    models: models,
+                    direction: mainDir[0],
+                    agreeCount: mainDir[1],
+                    totalCount: models.length,
+                    consensus: ratio >= 0.8 ? 'strong' : ratio >= 0.6 ? 'weak' : 'neutral',
+                    gsConsensus: gs.fusionConsensusType || null,
+                  };
+                }
+              }
+            });
+
             const planResp = {
               code: 1,
               data: {
@@ -4279,6 +4346,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 notice: notice,
                 empty: responsePlans.length === 0,
                 reasons: responsePlans.length === 0 ? ['QUALITY_REJECTED'] : [],
+                consensusMap: consensusMap,
               },
             };
             _planListResponseCache[planCacheKey] = planResp;

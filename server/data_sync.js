@@ -1143,14 +1143,30 @@ async function backfillResults(dateStr) {
           const old = data.m[rk] || data.m[mid];
           if (old && old.matchStatus < 2 && (m.matchStatus || 0) >= 2) {
             old.matchStatus = m.matchStatus;
-            // ★ V12: 半场比分保护 — midou API 可能返回半场比分，不应覆盖终场比分
+            // ★ P1 加固: 半场比分保护 + scoreSource 标记
+            // midou310 API 对历史比赛返回半场比分 → 不应覆盖已有正确比分
             const newScore = m.score || '';
             const newHalf = m.halfScore || '';
-            if (newScore && old.halfScore && newScore === old.halfScore && old.score && old.score !== newScore) {
-              // 新比分=旧半场比分 → 半场误判，保留终场比分
-              // 但仍更新 halfScore 和 duration
-            } else {
-              old.score = newScore || old.score;
+            if (newScore) {
+              const normNew = newScore.replace(/[:：]/g, '-');
+              const normHalf = (old.halfScore || '').replace(/[:：]/g, '-');
+              const normOld = (old.score || '').replace(/[:：]/g, '-');
+
+              if (!normOld) {
+                // Case 1: 旧无比分 → 写入，标记来源
+                old.score = newScore;
+                old.scoreSource = 'midou310';
+              } else if (normNew !== normHalf) {
+                // Case 2: 新比分 != 半场比分 → 可能是全场比分，写入
+                old.score = newScore;
+                old.scoreSource = 'midou310';
+              } else if (normOld === normHalf) {
+                // Case 3: 新旧都是半场比分 → 接受新值
+                old.score = newScore;
+              } else {
+                // Case 4: 新=半场比分 且 旧!=半场比分 → 保护旧值
+                // 仅在旧值已被 crossValidateScoreVsResult 清空时允许覆盖
+              }
             }
             old.halfScore = newHalf || old.halfScore;
             old.duration = m.duration || old.duration;
@@ -1356,6 +1372,49 @@ async function backfillResults(dateStr) {
       }
     } catch (e) {
       log('[backfill] 多源校正异常(不阻断): ' + e.message);
+    }
+
+    // ★ P0: score vs SPF 交叉验证 — 事后检测半场比分污染
+    try {
+      const guard = require('./core/ingestion-guard');
+      const cvResult = guard.tagContaminatedScores(dateStr, data);
+      if (cvResult.cleared > 0) {
+        log(
+          '[backfill:gate] 比分交叉验证: ' +
+            cvResult.checked +
+            ' 场, 发现 ' +
+            cvResult.tagged.length +
+            ' 矛盾, 清空 ' +
+            cvResult.cleared +
+            ' 个半场污染比分',
+        );
+        cvResult.tagged
+          .filter(function (t) {
+            return t.action === 'cleared';
+          })
+          .forEach(function (t) {
+            log(
+              '[backfill:gate] ' +
+                t.num +
+                ' ' +
+                t.homeName +
+                ' vs ' +
+                t.visitName +
+                ' 比分=' +
+                t.oldScore +
+                ' (半场=' +
+                t.halfScore +
+                '), SPF方向=' +
+                (t.resultDir === 'H' ? '主胜' : t.resultDir === 'A' ? '主负' : '平') +
+                ' → 已清空',
+            );
+          });
+      }
+      if (cvResult.tagged.filter(function (t) { return t.action === 'flagged'; }).length > 0) {
+        log('[backfill:gate] ' + cvResult.tagged.filter(function (t) { return t.action === 'flagged'; }).length + ' 场矛盾标记(非半场污染)');
+      }
+    } catch (e) {
+      log('[backfill:gate] 交叉验证异常(不阻断): ' + e.message);
     }
 
     if (updated > 0 || (cr && cr.corrected > 0)) {
