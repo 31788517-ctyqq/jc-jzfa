@@ -297,6 +297,19 @@ DEPLOY_MAP = [
     ('preview/css/modals.css',            'both'),
 
     ('preview/css/betting.css',           'both'),  # ★ 投注弹窗样式
+    ('preview/css/page-auth.css',         'both'),  # Phase1 CSS拆分
+    ('preview/css/page-backtest.css',     'both'),  # Phase1 CSS拆分
+    ('preview/css/page-gs.css',           'both'),  # Phase1 CSS拆分
+    ('preview/css/page-hit.css',          'both'),  # Phase1 CSS拆分
+    ('preview/css/page-home.css',         'both'),  # Phase1 CSS拆分
+    ('preview/css/page-income.css',       'both'),  # Phase1 CSS拆分
+    ('preview/css/page-match.css',        'both'),  # Phase1 CSS拆分
+    ('preview/css/page-modal.css',        'both'),  # Phase1 CSS拆分
+    ('preview/css/page-plans.css',        'both'),  # Phase1 CSS拆分
+    ('preview/css/page-profile.css',      'both'),  # Phase1 CSS拆分
+    ('preview/css/page-quant.css',        'both'),  # Phase1 CSS拆分
+    ('preview/css/page-rank.css',         'both'),  # Phase1 CSS拆分
+    ('preview/css/page-scheme.css',       'both'),  # Phase1 CSS拆分
 
     ('preview/app.js',                    'both'),
 
