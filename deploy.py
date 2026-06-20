@@ -549,6 +549,8 @@ DEPLOY_MAP = [
 
     ('server/core/health.js',             'both'),
 
+    ('server/core/api-cache.js',          'both'),  # ★ P0: API 文件持久化缓存
+
     ('server/core/db-metrics.js',         'both'),  # ★ V17: DB 写入成功率监控
 
     ('server/core/ingestion-guard.js',    'both'),  # ★ V9: 实时比分摄入门禁（data_sync/sync_live_500 依赖）
