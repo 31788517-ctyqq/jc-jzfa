@@ -160,33 +160,36 @@ function _renderRanking(data, options) {
   });
 }
 
-export function loadRanking(cat, dir) {
+export function loadRanking(cat, dir, prefetchedApi) {
   if (cat !== undefined) state.setSelectedCategory(cat);
   if (dir !== undefined) state.setSelectedDirection(dir);
 
-  const el = document.getElementById('rankList');
+  var el = document.getElementById('rankList');
   if (!el) return;
 
-  const params = _buildRankParams();
-  const cacheKey = _rankCacheKey(params);
-  const reqId = ++_rankReqSeq;
+  var params = _buildRankParams();
+  var cacheKey = _rankCacheKey(params);
+  var reqId = ++_rankReqSeq;
 
-  const cached = state.getCache(cacheKey);
+  var cached = state.getCache(cacheKey);
   if (cached) {
     _renderRanking(cached);
+    return;
+  }
+  // 首页 home-bundle 已含轻量 ranking，首开推荐榜可先秒开预览
+  var canUseHomePreview = !params.category && !params.direction;
+  var homePreview = canUseHomePreview ? state.getCache('ranking-list:home') : null;
+  if (Array.isArray(homePreview) && homePreview.length > 0) {
+    _renderRanking(homePreview, { keepCategoryBar: true });
   } else {
-    // 首页 home-bundle 已含轻量 ranking，首开推荐榜可先秒开预览
-    const canUseHomePreview = !params.category && !params.direction;
-    const homePreview = canUseHomePreview ? state.getCache('ranking-list:home') : null;
-    if (Array.isArray(homePreview) && homePreview.length > 0) {
-      _renderRanking(homePreview, { keepCategoryBar: true });
-    } else {
-      el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
-    }
+    el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
   }
 
-  api('ranking-list', params)
-    .then((data) => {
+  // ★ P1: 使用预取的 API Promise 或新建请求
+  var apiPromise = prefetchedApi && prefetchedApi.then ? prefetchedApi : api('ranking-list', params);
+
+  apiPromise
+    .then(function (data) {
       if (reqId !== _rankReqSeq) return;
 
       if ((data.ranking || []).length === 0 && !state.selectedCategory && !state.selectedDirection) {
@@ -233,6 +236,36 @@ export function selectCategory(cat) {
 export function selectDirection(dir) {
   state.setSelectedDirection(dir);
   loadRanking();
+}
+
+// 智能日期停靠：页面加载时定位到 weekDates 中 <= 今天的最近日期
+export function _autoSetRankBestDate() {
+  const weekDates = state.weekDates || [];
+  if (weekDates.length === 0) return;
+  const today = formatDate(new Date());
+  const todayMD = today.slice(5);
+  const dates = weekDates.map(function (w) { return w.matchDate; });
+  // 如果今天有比赛数据，直接待在今天
+  if (dates.indexOf(todayMD) >= 0) return;
+  // 否则找到 <= 今天的最新日期
+  let latestMD = '';
+  dates.forEach(function (md) {
+    if (md <= todayMD && md > latestMD) latestMD = md;
+  });
+  if (latestMD) {
+    const d = new Date();
+    const latestDate = new Date(
+      d.getFullYear(),
+      parseInt(latestMD.slice(0, 2), 10) - 1,
+      parseInt(latestMD.slice(3), 10),
+    );
+    const diffDays = Math.ceil((d.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays > 0) {
+      state.setRankDateOffset(-diffDays);
+      updateRankDateBar();
+      loadRanking();
+    }
+  }
 }
 
 export function updateRankDateBar() {

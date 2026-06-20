@@ -45,18 +45,46 @@ function _mod(name) {
       });
     });
   }
-  // Browser path: 动态 import（兼容旧 /js/ 路径）
-  return import('./pages/' + name + '.js').catch(function (e) {
+  // Browser path: 动态 import（兼容旧 /js/ 路径），v 参数绕过 SW 缓存
+  return import('./pages/' + name + '.js?v=20260620a').catch(function (e) {
     console.error('[JS] load fail: ' + name + ' - ' + (e && e.message));
     return new Promise(function (resolve, reject) {
       setTimeout(function () {
-        import('./pages/' + name + '.js').then(resolve).catch(function (e2) {
+        import('./pages/' + name + '.js?v=20260620a').then(resolve).catch(function (e2) {
           console.error('[JS] retry fail: ' + name + ' - ' + (e2 && e2.message));
           reject(e2);
         });
       }, 1000);
     });
   });
+}
+
+// ★ P0: 后台预加载热门 tab 页面 JS chunk + API 数据，消除切换时延迟
+var _hotModulesPreloaded = false;
+function _preloadHotModules() {
+  if (_hotModulesPreloaded) return;
+  _hotModulesPreloaded = true;
+  var hotModules = ['match-list', 'plans', 'ranking', 'hit-rate', 'filter', 'income'];
+  // 立即预加载 JS 模块（不延迟）
+  hotModules.forEach(function (name) {
+    _mod(name).catch(function () {});
+  });
+  // ★ P2 tier-1: 同时预取 API 数据（与模块加载并行），tab 切换直接命中缓存
+  var today = formatDate(new Date());
+  var todayShort = today.slice(5); // MM-DD
+  // match-list: 缓存双格式 key
+  api('match-list', {})
+    .then(function (data) {
+      setCache('match-list:' + today, data);
+      setCache('match-list:' + todayShort, data);
+    })
+    .catch(function () {});
+  // ranking-list: 默认参数 key
+  api('ranking-list', {})
+    .then(function (data) {
+      setCache('ranking-list:||', data);
+    })
+    .catch(function () {});
 }
 
 // 预加载常用模块（在首次渲染后异步加载，不阻塞首页）
@@ -966,7 +994,7 @@ export function switchTab(tab) {
   if (titleEl)
     titleEl.textContent = (tab === 'referral' && !hasReferralAccess() ? '邀请中心' : titles[tab]) || '竞彩推荐监控';
   const backEl = document.getElementById('navBack');
-  // 登录页与首页隐藏返回键
+  // 底部 Tab 页面隐藏返回键（通过底部 tabbar 导航即可）
   if (backEl)
     backEl.style.display =
       tab !== 'home' &&
@@ -976,7 +1004,11 @@ export function switchTab(tab) {
       tab !== 'account-security' &&
       tab !== 'profile' &&
       tab !== 'pricing' &&
-      tab !== 'payment-result'
+      tab !== 'payment-result' &&
+      tab !== 'match' &&
+      tab !== 'rank' &&
+      tab !== 'hit' &&
+      tab !== 'plan'
         ? 'flex'
         : 'none';
 
@@ -1059,7 +1091,10 @@ export function switchTab(tab) {
 
   if (tab === 'home') {
     const cameBack = state.savedScrollY > 0;
-    if (!cameBack) loadHome();
+    if (!cameBack) {
+      loadHome();
+      _preloadHotModules();
+    }
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         window.scrollTo(0, state.savedScrollY);
@@ -1071,7 +1106,19 @@ export function switchTab(tab) {
     if (state.weekDates.length > 0) {
       applyPendingMatchWeek();
       updateDateBar();
-      loadMatchList();
+      // ★ P1: API 提前发起，与模块加载并行
+      var mw = state.weekDates[state.selectedWeekIdx];
+      var mParams = { _t: Date.now() };
+      if (mw) {
+        mParams.weekNum = mw.weekNum;
+        mParams.matchDate = mw.matchDate;
+      } else {
+        mParams.date = formatDate(new Date());
+      }
+      var matchApiPromise = api('match-list', mParams);
+      _mod('match-list').then(function (m) {
+        m.loadMatchList(matchApiPromise);
+      });
     } else initWeekDates();
   }
   if (tab === 'plan') {
@@ -1083,13 +1130,18 @@ export function switchTab(tab) {
     } catch (e) {}
     if (pendingTab === 'my') {
       state.setPlanTab('my');
-      // 更新 tab 栏高亮
       document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === 'my');
       });
-      // ★ 自动滚动使「我的方案」标签完整可见，但保持标签栏靠左
       const myTag = document.querySelector('#planTabBar .filter-tag[data-tab="my"]');
       if (myTag) myTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    } else {
+      // ★ 恢复上次选择的方案标签（刷新后保持）
+      var savedPlanTab;
+      try {
+        savedPlanTab = sessionStorage.getItem('planTab');
+      } catch (e) {}
+      if (savedPlanTab) state.setPlanTab(savedPlanTab);
     }
     _mod('plans').then(function (m) {
       m._autoSetBestDate();
@@ -1098,13 +1150,13 @@ export function switchTab(tab) {
       else if (state.planTab === 'ai_tg') m.loadAIPlanList();
       else if (state.planTab === 'wc')
         m.loadPlanList(function (p) {
-          const pn = p.planName || '';
+          var pn = p.planName || '';
           return pn.indexOf('世界杯') === 0;
         });
       else {
         state.setPlanTab('expert');
         m.loadPlanList(function (p) {
-          const pn = p.planName || '';
+          var pn = p.planName || '';
           return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
         });
       }
@@ -1117,9 +1169,16 @@ export function switchTab(tab) {
     });
   }
   if (tab === 'rank') {
+    // ★ P1: API 提前发起（与模块加载并行）
+    var rParams = {};
+    if (state.selectedCategory) rParams.category = state.selectedCategory;
+    if (state.selectedDirection) rParams.direction = state.selectedDirection;
+    if (state.rankDate) rParams.date = state.rankDate;
+    var rankApiPromise = api('ranking-list', rParams);
     _mod('ranking').then(function (m) {
+      m._autoSetRankBestDate();
       m.updateRankDateBar();
-      m.loadRanking();
+      m.loadRanking(undefined, undefined, rankApiPromise);
     });
   }
   if (tab === 'hit') {
@@ -1566,7 +1625,7 @@ function switchTabLoad(tab) {
   const tabEl = document.getElementById('tab-' + (tab === 'detail' ? 'rank' : tab));
   if (tabEl) tabEl.classList.add('active');
 
-  // 设置返回按钮显示
+  // 底部 Tab 页面隐藏返回键
   const backEl = document.getElementById('navBack');
   if (backEl)
     backEl.style.display =
@@ -1577,7 +1636,11 @@ function switchTabLoad(tab) {
       tab !== 'account-security' &&
       tab !== 'profile' &&
       tab !== 'pricing' &&
-      tab !== 'payment-result'
+      tab !== 'payment-result' &&
+      tab !== 'match' &&
+      tab !== 'rank' &&
+      tab !== 'hit' &&
+      tab !== 'plan'
         ? 'flex'
         : 'none';
 
@@ -1672,13 +1735,18 @@ function switchTabLoad(tab) {
     } catch (e) {}
     if (pendingTab === 'my') {
       state.setPlanTab('my');
-      // 更新 tab 栏高亮
       document.querySelectorAll('#planTabBar .filter-tag').forEach(function (btn) {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === 'my');
       });
-      // ★ 自动滚动使「我的方案」标签完整可见，但保持标签栏靠左
       const myTag = document.querySelector('#planTabBar .filter-tag[data-tab="my"]');
       if (myTag) myTag.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    } else {
+      // ★ 恢复上次选择的方案标签（刷新后保持）
+      var savedPlanTab;
+      try {
+        savedPlanTab = sessionStorage.getItem('planTab');
+      } catch (e) {}
+      if (savedPlanTab) state.setPlanTab(savedPlanTab);
     }
     _mod('plans').then(function (m) {
       m._autoSetBestDate();
@@ -1687,13 +1755,13 @@ function switchTabLoad(tab) {
       else if (state.planTab === 'ai_tg') m.loadAIPlanList();
       else if (state.planTab === 'wc')
         m.loadPlanList(function (p) {
-          const pn = p.planName || '';
+          var pn = p.planName || '';
           return pn.indexOf('世界杯') === 0;
         });
       else {
         state.setPlanTab('expert');
         m.loadPlanList(function (p) {
-          const pn = p.planName || '';
+          var pn = p.planName || '';
           return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
         });
       }
@@ -1706,9 +1774,16 @@ function switchTabLoad(tab) {
     });
   }
   if (tab === 'rank') {
+    // ★ P1: API 提前发起（与模块加载并行）
+    var rParams = {};
+    if (state.selectedCategory) rParams.category = state.selectedCategory;
+    if (state.selectedDirection) rParams.direction = state.selectedDirection;
+    if (state.rankDate) rParams.date = state.rankDate;
+    var rankApiPromise = api('ranking-list', rParams);
     _mod('ranking').then(function (m) {
+      m._autoSetRankBestDate();
       m.updateRankDateBar();
-      m.loadRanking();
+      m.loadRanking(undefined, undefined, rankApiPromise);
     });
   }
   if (tab === 'hit') {
