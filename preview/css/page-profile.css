@@ -1105,18 +1105,9 @@
   border-radius: 16px;
   background: #f2f4f7;
 }
-.profile-shell-v2 .profile-filter-btn {
-  flex: 1;
-  height: 40px;
-  border: 0;
-  border-radius: 12px;
-  background: transparent;
-  color: #7b8794;
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-}
-/* .is-active 由 app.css 中 .profile-filter-btn.bonus-opt-badge.is-active 统一管理 */
+/* base rule 已在上方定义，此处不再重复 */
+/* .is-active 由 app.css + inline style 管理 */
+/* bonus-opt-badge override 已在上方定义 */
 .profile-shell-v2 .profile-filter-hint {
   margin-top: 8px;
   color: #1f7a68;
