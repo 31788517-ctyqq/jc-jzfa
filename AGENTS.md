@@ -1,223 +1,102 @@
-# JC-ZJFA AGENTS Guide v18.1
+# JC-ZJFA AGENTS Guide v19
 
-> 精简版：核心禁手(13条) + 代码卫生(8条) + Skill 强制路由 + AI 参数约束 + 关键配置。每会话自动加载。
+> 核心禁手(14) + 代码卫生(8) + Skill 路由 + 关键配置。每会话自动加载。
 
----
-
-## 🔒 核心禁手（触犯即阻断）
+## 🔒 核心禁手
 
 | # | 禁止 | 替代 |
 |---|------|------|
 | 1 | `new Date().toISOString().slice(0,10)` | `require('./server/core/datetime').todayCN()` |
 | 2 | 绕过 `database.getAdapter()` 直接写 raw SQL | `adp.execRun/execAll/execOne` |
-| 3 | 新增 PNG/SVG 图标文件 | 用 emoji 内联字符 |
-| 4 | 模糊 commit（`chore: 同步` 等） | 一个功能一个 commit |
-| 5 | 在生产 master 上试验新技术栈 | 新分支 → 本地验证 → 合并 |
+| 3 | 新增 PNG/SVG 图标 | emoji 内联 |
+| 4 | 模糊 commit | 一个功能一个 commit |
+| 5 | 生产 master 试验新技术 | 新分支→本地→合并 |
 | 6 | 不跑 `npm run preflight` 就提交 | preflight 全绿才能 commit |
-| 7 | SW 缓存 HTML（PAGE_SHELL） | SW 只缓存 JS/CSS 静态资源 |
-| 8 | `postbuild` 覆盖源文件 | 构建产物与源码严格分离 |
-| 9 | Windows 原生 scp/ssh | `python deploy.py --fast`（paramiko） |
-| 10 | 临时脚本永久留在仓库 | 用完即归档 `scripts/archive/` 或删除 |
-| 11 | sql.js/SQLite 多进程并发写同一文件 | 单文件 DB 必须 `instances:1`，且同一文件中最多一个写入者 |
-| 12 | PM2 变更后不验证残留进程 | `pm2 delete/restart` 后必须 `ps aux \| grep node` 确认无 zombie |
-| 13 | jc-scheduler `max_memory_restart` 低于 512M | 最低 2048M（加载 300MB sql.js DB + 功守道计算） |
+| 7 | SW 缓存 HTML | SW 只缓存 JS/CSS |
+| 8 | `postbuild` 覆盖源文件 | 产物与源码分离 |
+| 9 | Windows scp/ssh | `python deploy.py --fast` |
+| 10 | 临时脚本永久留仓库 | 用完归档 `scripts/archive/` |
+| 11 | sql.js 多进程并发写 | instances:1，单写入者 |
+| 12 | PM2 变更后不验证残留 | `ps aux | grep node` |
+| 13 | jc-scheduler `max_memory_restart` < 2048M | 最低 2048M |
+| 14 | 新增 `server/core/` 模块不同步 DEPLOY_MAP | pre-deploy-check 自动阻断 |
 
----
+## 🧹 代码卫生
 
-## 🧹 代码卫生规范（V18.1 新增）
+| # | 规则 |
+|---|------|
+| H1 | 临时脚本 `_tmp_*` 前缀，放 `scripts/` |
+| H2 | 修复后 1h 内归档/删除 |
+| H3 | 根目录 ≤30 核心文件 |
+| H4 | 备份带时间戳：`*.bak.YYYYMMDD_HHmmss` |
+| H5 | 禁止 API dump JSON 散落 |
+| H6 | 空数据文件不入库 |
+| H7 | 日志统一到 `logs/` |
+| H8 | 禁止命名链 `fix→fix2→final` |
 
-> 由 2026-06-20 仓库噪声大扫除催生。防止"修复即污染"。
+## ⚡ Skill 路由 + 触发词
 
-| # | 规则 | 说明 |
-|---|------|------|
-| H1 | **临时脚本必须 `_tmp_*` 前缀** | 根目录禁止直接放调试脚本，创建时放到 `scripts/` 下 |
-| H2 | **修复完成后 1 小时内归档/删除** | 脚本完成使命后 → `scripts/archive/` 或直接 `del` |
-| H3 | **根目录只放 30 个核心文件** | 配置文件 + deploy.py + ecosystem + package.json + 入口 HTML + 目录 |
-| H4 | **备份文件带时间戳** | `*.bak.YYYYMMDD_HHmmss`，禁止 `*.bak` 无时间戳版本 |
-| H5 | **禁止 API dump JSON 散落** | 调试用的 API 响应 dump（r.json, rd18.json 等）用完即删 |
-| H6 | **空数据文件不入库** | 如 `shuju_map_*.json` 全为 `{"empty":true}` 的文件不应存在 |
-| H7 | **日志统一到 `logs/` 或 `server/logs/`** | 禁止根目录 `*_log.txt` / `*_err.txt` 散落 |
-| H8 | **命名链禁止** | `fix → fix2 → final → final2` 式链式命名 = 修复过程不稳定信号，合并为一个最终版本 |
+| Skill | 触发词 | 强制 |
+|-------|--------|:---:|
+| `deploy-ops` | 部署/Nginx/PM2/502/404/cache/Vite/zombie/Redis/高并发/cluster/记住我 | MUST |
+| `data-pipeline` | 数据/抓取/ETL/回填/核查/audit/半场比分/scheduler/alerts | MUST |
+| `jczjfa-test-orchestrator` | 测试/jest/playwright/lint/preflight/覆盖率 | MUST |
+| `backtesting-frameworks` + `experiment-tracking` | 回测/ROI/调参/prompt/AI模型/DeepSeek/豆包/temperature | 双加载 |
 
-### 自动执行机制
+**排除**：纯文档/纯样式/只读查询 → 跳过 Skill 加载。
 
-- `pre-commit-check.cjs` 已拦截根目录 `_tmp_*` 文件（V12 实战验证有效）
-- `.gitignore` 已覆盖常见噪声模式（`{*`, `_*.cjs`, `*.out.txt`, `server/*.bak*`, `*_log.log` 等）
-
----
-
-## ⚡ Skill 强制加载规则（MUST）
-
-> **AI 必须在分析用户任务后立即判断是否需要加载 Skill，不得跳过。**
-
-```
-1. 涉及 部署/服务器/Nginx/PM2/502/缓存/404/资源路径？
-   → MUST use_skill deploy-ops
-
-2. 涉及 数据/抓取/ETL/同步/修复/回填/缺失？
-   → MUST use_skill data-pipeline
-
-3. 涉及 测试/质量门禁/覆盖率/E2E/lint？
-   → MUST use_skill jczjfa-test-orchestrator
-
-4. 涉及 回测/方案参数/AI模型/prompt/命中率/ROI/调参？
-   → MUST use_skill backtesting-frameworks + experiment-tracking （双加载，缺一不可）
-
-5. 涉及 CSS/颜色/样式/布局？
-   → 先检查 preview/css/app.css 顶部 Design Tokens（--jczj-* 变量）
-   → 改动后 MUST Playwright 截图验证
-
-6. 涉及 新增模块/文件？
-   → 检查 deploy.py DEPLOY_MAP 确保部署时不会丢失
-```
-
----
-
-## 🧠 每日自检（新会话自动执行）
-
-> **每新会话开始，AI 在分析用户任务前必须先执行以下检查：**
-
-```
-□ 读取本文件（AGENTS.md）已自动完成
-□ 检查是否有未归档的临时脚本（git status --short | findstr "_tmp_"）
-□ 检查是否有 pending 的修复未写入 Skill lessons
-□ 确认当前分支（git branch --show-current）和目标环境
-□ [仅生产分支] 检查生产环境 PM2 状态 — 3 进程必须全部 online
-```
-
----
-
-## ⚙️ 关键配置速查
+## ⚙️ 关键配置
 
 | 项目 | 值 |
 |------|-----|
-| 服务器 IP | 119.23.51.159 |
-| PM2 进程 | jc-zjfa (cluster:1, 1800M)，jc-sync (fork:1, 1800M)，jc-scheduler (fork:1, **2048M**) |
+| 服务器 | 119.23.51.159 |
+| PM2 | jc-zjfa(cluster:1,1800M) / jc-sync(fork,1800M) / jc-scheduler(fork,**2048M**) [Redis就绪可切cluster:3] |
 | 部署路径 | `/root/server/` + `/var/www/zj.100qiu.com/` |
-| Nginx `/assets/` | → `miniprogram/images/`（不是 `preview/assets/`！）|
-| 部署方式 | `python deploy.py --fast` |
-| 部署验证 | `python scripts/archive/_verify_api.py`（L1-L6，已归档）|
-| preflight | `npm run preflight`（7 步） |
-| SW 版本 | `jczjfa-static-v12` |
-| Watchdog cron | `*/5 * * * *` → `scripts/watchdog.cjs` |
-| Vite 构建 | `npx vite build` → `python deploy.py --fast --files-only` |
-| 测试套件 | 115 suites, 1927 tests（全量 `npx jest --forceExit`） |
-| 当前 baseline tag | `v19.0-perf-baseline` (25827d54) — 性能优化基线 |
+| Nginx `/assets/` | → `miniprogram/images/`（非 preview/assets/） |
+| 部署 | `python deploy.py --fast` / `--files-only` |
+| Vite | `npx vite build` → `--files-only` 部署（修改前端 JS 后必须重建dist） |
+| Redis | 轻量 RESP，不可用自动降级内存 Map |
+| 数据核查 | `data-auditor.js` 每日 3:00（6类18项） |
+| SW | `jczjfa-static-v12` |
+| 分支 | `local/auth-preview` |
 
----
+## 📋 常用命令
 
-## 📊 性能预算（V19 新增）
-
-> **每次前端改动必须对照预算表，不得倒退。**
-
-| 指标 | 当前基线 | 目标 | 测量方式 |
-|------|:---:|:---:|------|
-| **FCP** (首次内容绘制) | ~128ms | ≤150ms | Playwright `page.metrics()` |
-| **LCP** (最大内容绘制) | 未测量 | ≤1.0s | Lighthouse / Playwright |
-| **TTI** (可交互时间) | 未测量 | ≤2.0s | Lighthouse |
-| **首屏 JS gzip** | ~100KB (main-fusion 89KB + vendor 12KB) | ≤120KB | `npx vite build` 输出 |
-| **首屏 CSS gzip** | ~56KB (app.css 单文件) | ≤25KB（拆分后每页） | 同上 |
-| **Tab 切换延迟** | 300-800ms | ≤100ms | Playwright click→DOM ready |
-| **Lighthouse Mobile** | 未测量 | ≥85 | Chrome DevTools |
-
-**优化阶段目标**：
 ```
-Phase 1 (CSS 拆分):    FCP ≤150ms / LCP ≤1s / app.css gzip ≤25KB
-Phase 2 (Brotli+CDN):  全站传输量 -30%
-Phase 3 (缓存增强):    二次打开 FCP ≤50ms / Tab 切换 ≤50ms
+npm run lint:fix && npm run test:p0
+npm run preflight
+npx jest --forceExit
+npx vite build
+python deploy.py --fast                # 需用户确认
+python deploy.py --fast --files-only
 ```
 
-**回归门禁**：部署前必须 Playwright 截图 + FCP/LCP 对比，任一指标倒退 >10% → 阻断。
+## 🚨 部署铁律
 
----
+**AI 绝对禁止自行部署**：展示变更清单 → 等用户确认 → 部署 → Playwright 截图验证。修改 CSS/前端 JS → 本地截图后才能请求部署。
 
-## 🤖 AI 模型调用规范（防降智）
-
-> **每次 AI 模型调用（DeepSeek/豆包/其他）必须遵守以下参数约束。**
-
-| 参数 | 约束 | 原因 |
-|------|------|------|
-| **Temperature** | 代码生成 ≤0.3 / 创意生成 ≤0.7 | 低温度减少随机性，避免模型"跑偏" |
-| **输出格式** | 优先结构化输出（JSON/代码块） | 减少自然语言闲聊，降低 Token 消耗 |
-| **降级策略** | API 失败 → 降级模型 → 精简 Prompt | 禁止无限重试同一模型 |
-| **Token 预算** | 单次任务 ≤16K context | 避免上下文膨胀导致指令遗忘 |
-| **兜底机制** | 保留 `fallbackToLLM` 原始调用路径 | 缓存失效/规则不匹配时自动回退 |
-
-**Temperature 场景速查**：
-
-| 场景 | Temperature | 模型偏好 |
-|------|:---:|------|
-| 生成方案/预测 | 0.3 | DeepSeek + 豆包双模型 |
-| 数据分析/ETL | 0.1 | 豆包（稳定优先） |
-| 用户交互/NLP | 0.5 | DeepSeek |
-| 降级兜底（16:30后） | 0.3 | 仅豆包 + 精简 Prompt |
-
----
-## 📋 日常命令
-
-```powershell
-npm run lint:fix && npm run test:p0   # 开发完成后
-npm run preflight                      # 提交前
-npx jest --forceExit                   # 全量测试
-npx vite build                         # Vite 构建
-python deploy.py --fast                # 部署（需用户确认）
-python deploy.py --fast --files-only   # 仅前端文件
-python scripts/archive/_verify_api.py  # 部署后验证（已归档）
-```
-
----
-
-## 🚨 风险操作协议
-
-### 🔒 部署铁律
-
-**AI 绝对禁止自行部署**，必须：
-1. 展示变更清单 + dry-run 结果
-2. 等用户明确回复"确认"/"执行"/"部署"
-3. 部署后 Playwright 截图验证
-
-### 🖥️ 前端改动
-
-修改 CSS/HTML/前端 JS → 必须本地 Playwright 截图验证 → 才能请求部署
-
-### 🐛 Bug 排查
-
-报告问题 → Playwright MCP 模拟用户操作复现 → 定位根因 → 再改代码
-
----
 ## 🗺️ 知识地图
 
 | 场景 | 文档 |
 |------|------|
-| 部署/运维/故障 | `.codebuddy/skills/deploy-ops/SKILL.md` + `references/` |
-| 数据管线/ETL | `.codebuddy/skills/data-pipeline/SKILL.md` |
-| 测试/质量门禁 | `.codebuddy/skills/jczjfa-test-orchestrator/SKILL.md` |
-| 回测/调参 | `.codebuddy/skills/backtesting-frameworks/SKILL.md` |
-| AI模型/实验 | `.codebuddy/skills/experiment-tracking/SKILL.md` |
-| Skill 索引 | `.codebuddy/skills/SKILLS_INDEX.md` |
-| Nginx 路径映射 | `.codebuddy/skills/deploy-ops/references/nginx.md` |
-| 监控体系 | `server/core/db-metrics.js`, `scripts/watchdog.cjs` |
-| 测试覆盖 | 115 suites / 1927 tests / 92/183 source files |
-| 性能优化/测量 | `.codebuddy/skills/deploy-ops/references/perf-baseline.md` |
+| 部署/运维 | `deploy-ops/SKILL.md` + `references/` |
+| 数据/ETL | `data-pipeline/SKILL.md` |
+| 测试/门禁 | `jczjfa-test-orchestrator/SKILL.md` |
+| 回测/调参 | `backtesting-frameworks/SKILL.md` |
+| AI模型 | `experiment-tracking/SKILL.md` |
+| Nginx | `deploy-ops/references/nginx.md` |
+| 监控 | `db-metrics.js` `alert-monitor.js` `watchdog.cjs` |
+| 性能 | `deploy-ops/references/perf-baseline.md` |
 
----
+## 🔧 缓存排查（改动不生效时）
 
-## 🧠 自学习协议（修复后立即执行）
-
-修复/返工完成后，**同一轮回复中**：
-- P0（阻断）→ 追加到 `scripts/pre-commit-check.cjs`
-- P1（返工 ≥1 次）→ 追加到对应 Skill `references/lessons.md`
-- P2（新认知）→ `update_memory` 记录
-
----
-
-## 🔧 三层缓存排查（改动不生效时）
-
-| 改了什么 | 需要重启Node | Ctrl+Shift+R | SW Unregister |
+| 改了什么 | 重启Node | Ctrl+Shift+R | SW Unregister |
 |---------|:---:|:---:|:---:|
 | 前端 JS/CSS | — | ✅ | — |
 | HTML | — | ✅ | — |
 | 后端 JS | ✅ | — | — |
 | sw.js | — | ✅ | ✅ |
 
-清除：`F12 → Application → Service Workers → Unregister → Clear site data → Ctrl+Shift+R`
+## 🧠 自学习
+
+修复后同一轮回复：P0→pre-commit-check / P1→Skill lessons.md / P2→update_memory

@@ -212,7 +212,7 @@ export function _autoSetBestDate() {
       parseInt(latestMD.slice(0, 2), 10) - 1,
       parseInt(latestMD.slice(3), 10),
     );
-    const diffDays = Math.ceil((d.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor((d.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
     if (diffDays > 0) {
       state.setPlanDateOffset(-diffDays);
       updatePlanDateBar();
@@ -1138,7 +1138,10 @@ export function loadMyPlanList() {
 
       if (plans.length === 0) {
         el.innerHTML =
-          '<div class="plan-notice">' + '<span class="notice-icon">&#x1F375;</span>' + '稍稍等，马上就来' + '</div>';
+          '<div class="plan-notice">' +
+          '<span class="notice-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32"><path d="M13 2L4.5 14h5l-1 8 9.5-12H13l1-8z"/></svg></span>' +
+          '大家都等着你的方案呢' +
+          '</div>';
         return;
       }
 

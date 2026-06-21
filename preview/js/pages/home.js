@@ -499,36 +499,81 @@ export function loadHome() {
   bundlePromise.then(function (bundle) {
     // ★ fix: api() 返回的是 data 本体，不含 code/data 包装层
     if (bundle && (bundle.weekDates || bundle.matches)) {
-      const d = bundle;
+      var d = bundle;
+      var matches = d.matches || [];
+      var ranking = d.ranking || [];
+      var weekDatesList = d.weekDates || [];
+
       // 注入 weekDates 到全局 state
-      if (d.weekDates && d.weekDates.length) {
+      if (weekDatesList.length) {
         try {
-          setWeekDates(d.weekDates);
+          setWeekDates(weekDatesList);
         } catch (e) {}
-        setCache('week-dates', d.weekDates);
-      }
-      if (d.matches) setCache('match-list:' + today, d.matches);
-      if (d.ranking) setCache('ranking-list:home', d.ranking);
-
-      // ★ P2: 用 match-list.js / ranking.js 实际查询的 cache key 再存一份，tab切换秒开
-      // match-list.js 用 weekDates[0].matchDate 做 key
-      var firstWeek = d.weekDates && d.weekDates[0];
-      if (d.matches && firstWeek && firstWeek.matchDate && firstWeek.matchDate !== today) {
-        setCache('match-list:' + firstWeek.matchDate, d.matches);
-      }
-      // ranking.js 默认参数用 key = 'ranking-list:||'
-      if (d.ranking) {
-        var rankForCache = Array.isArray(d.ranking) ? { ranking: d.ranking } : d.ranking;
-        setCache('ranking-list:||', rankForCache);
+        setCache('week-dates', weekDatesList);
       }
 
-      // ★ V12 Strategy B: 渐进式渲染 — 先显示骨架+比赛数, 排名延后一帧渲染
-      _renderHomeStatsBrief(d.matches || [], d.ranking || []);
-      loadWorldCupSection(Promise.resolve(d.matches || []), d.weekDates || []);
-      // 排名渲染较慢(大量DOM), 延迟到下一帧让页面先可交互
-      requestAnimationFrame(function () {
-        _renderHomeStats(d.matches || [], d.ranking || []);
-      });
+      // ★ 今天无比赛数据 → 找到最近可用日期重试 home-bundle
+      if (matches.length === 0 && weekDatesList.length > 0) {
+        var todayMD = today.slice(5);
+        var bestMD = '';
+        weekDatesList.forEach(function (w) {
+          if (w.matchDate < todayMD && w.matchDate > bestMD) bestMD = w.matchDate;
+        });
+        if (bestMD) {
+          var bestDate = today.slice(0, 4) + '-' + bestMD;
+          api('home-bundle', { date: bestDate, limit: 8 })
+            .then(function (bundle2) {
+              if (bundle2 && (bundle2.matches || bundle2.ranking)) {
+                var dd = bundle2;
+                var ddMatches = Array.isArray(dd.matches) ? dd.matches : [];
+                var ddRank = dd.ranking || [];
+                if (ddMatches.length) {
+                  setCache('match-list:' + bestDate, ddMatches);
+                  var firstWeek = weekDatesList[0];
+                  if (firstWeek && firstWeek.matchDate && firstWeek.matchDate !== bestDate) {
+                    setCache('match-list:' + firstWeek.matchDate, ddMatches);
+                  }
+                }
+                if (ddRank) {
+                  var rankForCache = Array.isArray(ddRank) ? { ranking: ddRank } : ddRank;
+                  setCache('ranking-list:home', rankForCache);
+                }
+                _renderHomeStatsBrief(ddMatches, ddRank);
+                requestAnimationFrame(function () {
+                  _renderHomeStats(ddMatches, ddRank);
+                });
+                loadWorldCupSection(Promise.resolve(ddMatches), weekDatesList);
+              }
+            })
+            .catch(function () {});
+        }
+        // 重试期间先显示空态
+        _renderHomeStatsBrief(matches, ranking);
+        requestAnimationFrame(function () {
+          _renderHomeStats(matches, ranking);
+        });
+      } else {
+        // 正常有数据路径
+        if (d.matches) setCache('match-list:' + today, d.matches);
+        if (d.ranking) {
+          var rankForCache = Array.isArray(d.ranking) ? { ranking: d.ranking } : d.ranking;
+          setCache('ranking-list:home', rankForCache);
+        }
+
+        // ★ P2: 用 match-list.js / ranking.js 实际查询的 cache key 再存一份，tab切换秒开
+        var firstWeek = weekDatesList[0];
+        if (d.matches && firstWeek && firstWeek.matchDate && firstWeek.matchDate !== today) {
+          setCache('match-list:' + firstWeek.matchDate, d.matches);
+        }
+
+        // ★ V12 Strategy B: 渐进式渲染 — 先显示骨架+比赛数, 排名延后一帧渲染
+        _renderHomeStatsBrief(matches, ranking);
+        loadWorldCupSection(Promise.resolve(matches), weekDatesList);
+        // 排名渲染较慢(大量DOM), 延迟到下一帧让页面先可交互
+        requestAnimationFrame(function () {
+          _renderHomeStats(matches, ranking);
+        });
+      }
       // ★ P2: 异步预取命中率数据，命中率页秒开
       setTimeout(function () {
         api('hit-rate-stats', { days: 60 })

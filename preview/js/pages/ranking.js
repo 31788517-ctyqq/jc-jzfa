@@ -261,7 +261,7 @@ export function _autoSetRankBestDate() {
       parseInt(latestMD.slice(0, 2), 10) - 1,
       parseInt(latestMD.slice(3), 10),
     );
-    const diffDays = Math.ceil((d.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor((d.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
     if (diffDays > 0) {
       state.setRankDateOffset(-diffDays);
       updateRankDateBar();

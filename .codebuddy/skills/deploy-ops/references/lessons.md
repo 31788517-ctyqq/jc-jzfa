@@ -125,3 +125,52 @@
 3. 修复 DB 完整性必须用 sql.js（系统 sqlite3 3.6.20 不兼容新格式）
 4. DB 修复后立即 cp backup，保留 corrupted 副本
 ```
+
+## V18 数据链防漂移瘫痪（2026-06-21）
+
+### 故障链
+
+| 环节 | 根因 |
+|------|------|
+| ① result-verifier.js 缺失 | deploy.py DEPLOY_MAP 遗漏 `server/core/result-verifier.js` → 服务器文件不存在 |
+| ② require 崩溃 | jc-sync 每日 2:00 触发 verifyYesterdayResults → Cannot find module → 进程崩溃 |
+| ③ L1/L2/L3 全失效 | postMatchAudit / correctDate / correctPostMatchScores 3 层防漂移 7 天未执行 |
+| ④ 半场比分污染 | 6/14-6/20 期间 500.com 返回半场比分无法自动修正 |
+
+### 修复
+
+| 操作 | 结果 |
+|------|------|
+| 补传 result-verifier.js | 恢复 L3 层 |
+| pre-deploy-check 新增 DEPLOY_MAP 完整性扫描 | 自动阻断遗漏 |
+| 新增 3 个遗漏模块到 DEPLOY_MAP | pk_scorer.js / token_manager.js / backfill_results.js |
+
+### 铁律
+
+```
+1. 新增 server/core/ 模块后必须同步更新 deploy.py DEPLOY_MAP
+2. pre-deploy-check.cjs 已自动扫描阻断（fatal 级别）
+3. 数据链 L1→L2→L3 三层必须全部可用，任一失效即告警
+```
+
+## V19 5000 并发架构改造（2026-06-21）
+
+| 改造项 | 内容 |
+|--------|------|
+| Redis 客户端 | 轻量 RESP 协议实现，不可用时自动降级内存 Map，10s 重连 |
+| user_plans SQLite 化 | DB 优先读 + 文件降级写，消除 5000 用户文件 I/O 瓶颈 |
+| Session 三级缓存 | 内存 → Redis → DB，支持 cluster:3 共享 session |
+| Nginx 高并发模板 | upstream 3 实例 + keepalive 64 + HTTP/2 + proxy_cache + limit_req |
+| cluster:3 | 就绪但未切换，需先在服务器安装 Redis + 验证 |
+
+## V19 其他关键教训（2026-06-21~22）
+
+| 日期 | 教训 |
+|------|------|
+| 6/21 | **Vite dist 必须重建**：修改前端 JS（如 login.js）后只部署源文件 → 生产页面不更新。根因：Vite 构建后的 dist/ 才是实际加载的文件。铁律：`npx vite build` → `--files-only` 重新部署 dist/ |
+| 6/21 | **Redis AUTH 初始化竞态**：`client.connect()` 后立即 `client.auth()` 失败 → 统计 `\r\n` 数量等待握手完成。轻量 RESP 实现需处理异步握手 |
+| 6/21 | **flushCriticalWrites 残留调用**：之前改为 no-op 但调用处未同步 → 改用 `adp.markDirty()`。重构函数签名后必须搜索所有调用点 |
+| 6/21 | **data-auditor 全局核查**：6 大类 18 项核查覆盖方案/比分/开奖/同步/完整性/一致性。基础项自动修复 + 严重项告警。接入 data_sync 每日 3:00 |
+| 6/21 | **alert-monitor → auto_heal 闭环**：告警不再只报不治——checkRecSyncStagnant / checkEmptyPlans 检测异常后自动触发 auto_heal.checkAndHeal |
+| 6/22 | **记住我 15 天 TTL**：SESSION_TTL_REMEMBER_DAYS=15，checkbox 放在密码框和协议框之间，勾选后 session 有效期从浏览器会话变为 15 天 |
+| 6/22 | **首页 liveCount 正则 Bug**：`String(1).match(/进行/)` 不匹配中文 "进行中" → 改为 `Number(m.matchStatus)===1`。数字状态码不应与字符串正则混用 |

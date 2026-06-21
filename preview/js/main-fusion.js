@@ -753,22 +753,20 @@ function _setBestWeekIndex() {
     }
   }
 
-  // 今天不在列表中：选最近的过去日期（同月优先，避免跨月定位错误）
-  // month 格式为 "MM-DD"，取月份前两位比较
-  var todayMonth = today.slice(0, 2);
+  // 今天不在列表中：选最近的过去日期
+  // 遍历所有日期，始终取 ≤ today 中 matchDate 最大的（最近的日期）
+  // 同月日期因字符串比较自动优先（"06-21" > "05-31"），无需额外锁条件
   for (var j = 0; j < state.weekDates.length; j++) {
     var w2 = state.weekDates[j];
     if (!w2 || !w2.matchDate) continue;
-    // 只考虑同月或上月最后一天（防止定位到5月初）
-    var wMonth = w2.matchDate.slice(0, 2);
     if (w2.matchDate <= today) {
-      if (wMonth === todayMonth || (bestDate === '' && wMonth < todayMonth)) {
+      if (bestDate === '' || w2.matchDate > bestDate) {
         bestIdx = j;
         bestDate = w2.matchDate;
       }
     }
   }
-  // 如果同月无匹配且全部是未来日期，选第一个
+  // 如果所有日期都是未来的（无匹配），选第一个
   if (bestDate === '' && state.weekDates.length > 0) {
     bestIdx = 0;
   }
@@ -1146,6 +1144,7 @@ export function switchTab(tab) {
   }
   if (tab === 'match') {
     if (state.weekDates.length > 0) {
+      _setBestWeekIndex();
       applyPendingMatchWeek();
       updateDateBar();
       // ★ P1: API 提前发起，与模块加载并行
@@ -1766,6 +1765,7 @@ function switchTabLoad(tab) {
 
   if (tab === 'match') {
     if (state.weekDates.length > 0) {
+      _setBestWeekIndex();
       applyPendingMatchWeek();
       updateDateBar();
       loadMatchList();

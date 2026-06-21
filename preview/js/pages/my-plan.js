@@ -105,7 +105,10 @@ function renderMyPlanList() {
 
   if (_plans.length === 0) {
     el.innerHTML =
-      html + '<div class="plan-notice">' + '<span class="notice-icon">&#x1F375;</span>' + '稍稍等，马上就来' + '</div>';
+      html + '<div class="plan-notice">' +
+      '<span class="notice-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32"><path d="M13 2L4.5 14h5l-1 8 9.5-12H13l1-8z"/></svg></span>' +
+      '大家都等着你的方案呢' +
+      '</div>';
     return;
   }
   _plans.forEach(function (p, idx) {
