@@ -1454,7 +1454,7 @@ body {
 }
 
 /* ★ 奖金优化标签 active 态（个人中心历史方案Tab复用） */
-.profile-filter-btn.bonus-opt-badge.is-active {
+.profile-shell-v2 .profile-filter-btn.bonus-opt-badge.is-active {
   color: #ffffff;
   background: linear-gradient(180deg, #1f7a68 0%, #165a4d 100%);
   border-color: transparent;

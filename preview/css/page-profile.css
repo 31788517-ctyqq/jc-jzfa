@@ -1026,11 +1026,7 @@
   font-size: 15px;
   font-weight: 800;
 }
-.profile-shell-v2 .profile-filter-btn.is-active {
-  background: linear-gradient(180deg, #1f7a68 0%, #165a4d 100%);
-  color: #ffffff;
-  box-shadow: 0 10px 20px rgba(31, 122, 104, 0.22);
-}
+/* .is-active 由 app.css 中 .profile-filter-btn.bonus-opt-badge.is-active 统一管理 */
 .profile-shell-v2 .profile-filter-hint {
   margin-top: 8px;
   color: #1f7a68;
@@ -1113,11 +1109,7 @@
   font-weight: 800;
   cursor: pointer;
 }
-.profile-shell-v2 .profile-filter-btn.is-active {
-  background: linear-gradient(180deg, #1f7a68 0%, #165a4d 100%);
-  color: #ffffff;
-  box-shadow: 0 10px 20px rgba(31, 122, 104, 0.22);
-}
+/* .is-active 由 app.css 中 .profile-filter-btn.bonus-opt-badge.is-active 统一管理 */
 .profile-shell-v2 .profile-filter-hint {
   margin-top: 8px;
   color: #1f7a68;
