@@ -39,3 +39,33 @@
   height: 32px;
   background: rgba(15, 23, 42, 0.06);
 }
+
+/* ─── filter-tag 标签按钮（回测Tab切换用） ─── */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 0;
+  margin: 0;
+  scrollbar-width: none;
+}
+.filter-row::-webkit-scrollbar {
+  display: none;
+}
+.filter-tag {
+  white-space: nowrap;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+  background: rgba(15, 23, 42, 0.05);
+  color: #475569;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-tag.active {
+  background: var(--cyan);
+  color: #0f172a;
+  font-weight: 600;
+  border-color: var(--cyan);
+}
