@@ -1479,7 +1479,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             try {
               const pkDecisionMap = buildPKDecisionMapForMatches(rankedMatches);
               for (let ri = 0; ri < rankedMatches.length; ri++) {
-                const rm = dayMatches[ri];
+                const rm = rankedMatches[ri];
                 if (!rm || !rm.matchId) continue;
                 const raw = rMap['m_' + rm.matchId] || rMap[String(rm.matchId)] || [];
                 const recs = raw.map(function (x) {
@@ -1490,6 +1490,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   return s + Number(r.num || 0);
                 }, 0);
                 if (totalExperts === 0) continue;
+                // ★ Bug 修复: topDirection/topNum 必须取专家数最多的方向，而非 recs[0]
+                let topRec = null;
+                recs.forEach(function (r) {
+                  if (!topRec || Number(r.num || 0) > Number(topRec.num || 0)) topRec = r;
+                });
                 ranking.push({
                   matchId: rm.matchId,
                   matchNum: rm.num || '',
@@ -1497,8 +1502,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   visitName: rm.visitName || '',
                   league: rm.league || '',
                   expertCount: totalExperts,
-                  topDirection: recs.length > 0 ? recs[0].type : '',
-                  topNum: recs.length > 0 ? recs[0].num : 0,
+                  topDirection: topRec ? topRec.type : '',
+                  topNum: topRec ? topRec.num : 0,
                   recommNum: totalExperts,
                   pkDecision: pkDecisionMap && pkDecisionMap[rm.matchId] ? pkDecisionMap[rm.matchId] : null,
                   score: totalExperts,
