@@ -469,10 +469,14 @@ function renderOpportunitySummary(items) {
 
 function renderDecisionBadge(item) {
   const code = decisionCodeOf(item);
-  const dir = item.finalDirection === 'watch' ? '观望' : item.finalDirection || '观望';
+  const level = item.decisionLevel || '观望';
+  const dir = item.finalDirection;
   const stars = '★'.repeat(Math.max(0, Math.min(5, item.stars || 0)));
-  const label = esc(item.decisionLevel || '观望') + ' ' + esc(dir) + (stars ? ' ' + stars : '');
-  return '<span class="q-decision-badge q-decision-' + code + '">' + label + '</span>';
+  // ★ 方向为 watch/观望时不重复显示
+  var parts = [esc(level)];
+  if (dir && dir !== 'watch') parts.push(esc(dir));
+  if (stars) parts.push(stars);
+  return '<span class="q-decision-badge q-decision-' + code + '">' + parts.join(' ') + '</span>';
 }
 
 function renderRiskChips(item) {
