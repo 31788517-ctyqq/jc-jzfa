@@ -26,8 +26,8 @@ export function loadBacktest() {
       console.error('[BT] #page-backtest not found');
       return;
     }
+    injectStyles(); // ★ 必须在 renderPage 之前注入，避免 FOUC
     el.innerHTML = renderPage();
-    injectStyles();
     _btTab = 'gs';
     _btPage = 1;
     _btSampleMode = 'ab_only';
@@ -130,6 +130,7 @@ function injectStyles() {
   ].join('\n');
   document.head.appendChild(s);
 }
+injectStyles(); // ★ 模块级立即注入，确保样式在任何渲染之前就绪
 
 /* ═══════════════════════ Page HTML ═══════════════════════ */
 function renderPage() {
