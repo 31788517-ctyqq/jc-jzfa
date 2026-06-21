@@ -1026,6 +1026,13 @@
   font-size: 15px;
   font-weight: 800;
 }
+/* ★ bonus-opt-badge 样式提权：高于基础 profile-filter-btn */
+.profile-shell-v2 .profile-filter-btn.bonus-opt-badge {
+  color: #c8981e;
+  background: rgba(184, 154, 96, 0.1);
+  border: 1px solid rgba(184, 154, 96, 0.2);
+  border-radius: 20px;
+}
 /* .is-active 由 app.css 中 .profile-filter-btn.bonus-opt-badge.is-active 统一管理 */
 .profile-shell-v2 .profile-filter-hint {
   margin-top: 8px;
