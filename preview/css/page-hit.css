@@ -869,6 +869,54 @@
   gap: 6px;
 }
 
+/* ★ Phase1: hit-rank 动画样式（原在 page-rank.css，命中率页也需要） */
+.hit-rank-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.hit-rank-num {
+  width: 28px;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: #64748b;
+  flex-shrink: 0;
+}
+.hit-rank-num.top3 {
+  color: #b45309;
+}
+.hit-rank-label {
+  width: 120px;
+  font-size: var(--fs-md);
+  color: #1e293b;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hit-rank-bar-bg {
+  flex: 1;
+  height: 5px;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  box-shadow: none;
+}
+.hit-rank-bar {
+  height: 100%;
+  border-radius: 4px;
+  width: 0;
+  transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.hit-rank-pct {
+  width: 62px;
+  text-align: right;
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: #334155;
+  flex-shrink: 0;
+}
+
 .hit-ranking-title {
   margin-bottom: 14px;
   font-size: var(--fs-lg);
