@@ -1453,6 +1453,14 @@ body {
   border-color: rgba(184, 154, 96, 0.35);
 }
 
+/* ★ 奖金优化标签 active 态（个人中心历史方案Tab复用） */
+.bonus-opt-badge.is-active {
+  color: #ffffff;
+  background: linear-gradient(180deg, #1f7a68 0%, #165a4d 100%);
+  border-color: transparent;
+  box-shadow: 0 10px 20px rgba(31, 122, 104, 0.22);
+}
+
 .bonus-opt-badge-sm {
   display: inline-block;
   padding: 2px 10px;

@@ -168,15 +168,17 @@ function updateProfilePlanFilterTabs() {
     const isActive = tab.getAttribute('data-filter') === _profilePlanFilter;
     tab.classList.toggle('is-active', isActive);
     tab.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    // 兜底：即使本地命中旧 CSS/缓存，也保证点击后可见高亮
+    // ★ 使用 bonus-opt-badge active 样式
     if (isActive) {
-      tab.style.background = 'linear-gradient(180deg, #1f7a68 0%, #165a4d 100%)';
-      tab.style.color = '#ffffff';
-      tab.style.boxShadow = '0 10px 20px rgba(31, 122, 104, 0.22)';
+      tab.style.background = '';
+      tab.style.color = '';
+      tab.style.boxShadow = '';
+      tab.classList.add('is-active');
     } else {
       tab.style.background = '';
       tab.style.color = '';
       tab.style.boxShadow = '';
+      tab.classList.remove('is-active');
     }
   }
 }
@@ -292,9 +294,9 @@ function renderLayout(root, userName) {
     '<div class="profile-plan-title">我的历史方案</div>' +
     '</div>' +
     '<div class="profile-filter-bar">' +
-    '<button class="profile-filter-btn" type="button" data-filter="yesterday" onclick="switchProfilePlanFilter(\'yesterday\')">昨日</button>' +
-    '<button class="profile-filter-btn" type="button" data-filter="today" onclick="switchProfilePlanFilter(\'today\')">今日</button>' +
-    '<button class="profile-filter-btn" type="button" data-filter="all" onclick="switchProfilePlanFilter(\'all\')">全部</button>' +
+    '<button class="profile-filter-btn bonus-opt-badge" type="button" data-filter="yesterday" onclick="switchProfilePlanFilter(\'yesterday\')">昨日</button>' +
+    '<button class="profile-filter-btn bonus-opt-badge" type="button" data-filter="today" onclick="switchProfilePlanFilter(\'today\')">今日</button>' +
+    '<button class="profile-filter-btn bonus-opt-badge" type="button" data-filter="all" onclick="switchProfilePlanFilter(\'all\')">全部</button>' +
     '</div>' +
     '<div class="profile-filter-hint" id="profileFilterHint"></div>' +
     '<div id="profilePlanList" class="profile-plan-list"></div>' +
