@@ -22,12 +22,14 @@
 
 .home-update-btn {
   height: 30px;
-  padding: 0 10px;
-  border-radius: 15px;
+  min-height: 30px;
+  padding: 0 14px;
+  border-radius: var(--pill-radius);
   background: rgba(255, 255, 255, 0.048);
   border: none;
   color: var(--green);
   font-size: 11px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 4px;
