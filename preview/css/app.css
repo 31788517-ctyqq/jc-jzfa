@@ -197,8 +197,8 @@ body {
 }
 
 .nav-logo {
-  width: 42px;
-  height: 42px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
