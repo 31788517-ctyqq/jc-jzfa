@@ -638,20 +638,16 @@ function renderMatch(item) {
   const tagsHtml = renderTags(item);
   return (
     '<span class="q-col-match q-match-cell">' +
-    '<div class="q-match-teams" title="' +
-    esc(item.homeName) +
-    '">' +
-    esc(shortTeam(item.homeName)) +
+    '<div class="q-match-line">' +
+    '<span class="q-match-teams" title="' + esc(item.homeName) + '">' + esc(shortTeam(item.homeName)) + '</span>' +
+    '<span class="q-match-vs">vs</span>' +
+    '<span class="q-match-teams" title="' + esc(item.visitName) + '">' + esc(shortTeam(item.visitName)) + '</span>' +
     '</div>' +
-    '<div class="q-match-vs">vs</div>' +
-    '<div class="q-match-teams" title="' +
-    esc(item.visitName) +
-    '">' +
-    esc(shortTeam(item.visitName)) +
-    '</div>' +
+    '<div class="q-match-badges">' +
     renderDecisionBadge(item) +
     renderRiskChips(item) +
     (tagsHtml ? tagsHtml : '') +
+    '</div>' +
     '</span>'
   );
 }
