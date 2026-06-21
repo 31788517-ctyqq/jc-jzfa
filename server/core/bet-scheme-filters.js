@@ -517,35 +517,75 @@ function allowedPassways(matchCount) {
 
 function estimateScheme(selections, passways, multiplier) {
   const grouped = groupSelections(selections);
-  const matchCount = Object.keys(grouped).length;
+  const matchIds = Object.keys(grouped);
+  const matchCount = matchIds.length;
   const mult = Math.max(1, parseInt(multiplier) || 1);
+  const pws = passways && passways.length > 0 ? passways : ['single'];
+
+  // ★ 荷兰式有效赔率（与 confirm-scheme.js:calcEffectiveOdds 口径一致）
+  function calcEffectiveOdds(oddsArr) {
+    const arr = (oddsArr || [])
+      .map(function (x) {
+        return Number(x) || 0;
+      })
+      .filter(function (x) {
+        return x > 0;
+      });
+    if (arr.length === 0) return 0;
+    if (arr.length === 1) return Math.round(arr[0] * 100) / 100;
+    let invSum = 0;
+    for (let i = 0; i < arr.length; i++) invSum += 1 / arr[i];
+    return invSum > 0 ? Math.round((1 / invSum) * 100) / 100 : 0;
+  }
+
+  const effectiveOdds = matchIds.map(function (mid) {
+    return calcEffectiveOdds(
+      (grouped[mid] || []).map(function (sel) {
+        return safeFloat(sel.odds) || 0;
+      }),
+    );
+  });
+
+  // 组合数 C(n, k)
+  function combinations(n, k) {
+    if (k > n || k < 1) return 0;
+    if (k === 1) return n;
+    let r = 1;
+    for (let i = 0; i < k; i++) r = (r * (n - i)) / (i + 1);
+    return Math.round(r);
+  }
 
   let ticketCount = 0,
     maxBonus = 0;
-  const matchGroups = Object.values(grouped);
+  pws.forEach(function (pw) {
+    const pn = pw === 'single' ? 1 : parseInt(pw) || 1;
+    if (pn > matchCount) return;
 
-  matchGroups.forEach(function (group) {
-    group.forEach(function (sel) {
-      const odds = safeFloat(sel.odds) || 1.0;
-      if (passways && passways.length > 0) {
-        passways.forEach(function (pw) {
-          const pn = parseInt(pw) || 1;
-          if (pn <= matchGroups.length) {
-            ticketCount += 1;
-            maxBonus += odds * 2 * mult;
-          }
-        });
-      } else {
-        ticketCount += 1;
-        maxBonus += odds * 2 * mult;
-      }
-    });
+    // 注数：单关=每场每选择 1 注；N串1=C(场次数, N) 注
+    if (pn === 1) {
+      ticketCount += matchIds.reduce(function (s, mid) {
+        return s + (grouped[mid] || []).length;
+      }, 0);
+    } else {
+      ticketCount += combinations(matchCount, pn);
+    }
+
+    // ★ 最高奖金：top-K 有效赔率乘积 × 2 × mult（与 _calcPlanOddsRaw 口径一致）
+    const sorted = effectiveOdds
+      .slice()
+      .sort(function (a, b) {
+        return b - a;
+      });
+    let product = 1;
+    for (let i = 0; i < pn; i++) product *= sorted[i] || 0;
+    const win = 2 * mult * product;
+    if (win > maxBonus) maxBonus = win;
   });
 
   return {
     matchCount: matchCount,
     selectionCount: selections.length,
-    passways: passways || ['single'],
+    passways: pws,
     multiplier: mult,
     baseBetCost: BASE_BET_COST,
     ticketCount: ticketCount,

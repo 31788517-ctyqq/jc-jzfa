@@ -379,16 +379,17 @@ function checkCorrelation(ca, cb) {
  * @param {string} direction - 方向（胜/平/负/让胜/让平/让负/胜平/平负/总进球-N等）
  * @param {string} scoreStr  - 比分字符串（如 "5:0" 或 "5-0"）
  * @param {number|string|null} handicap - 让球数（odds.rqspf.handicap），非让球可传 null
+ * @param {string} [halfScoreStr] - 半场比分字符串（如 "2:0"），用于精确判定半全场
  * @returns {boolean|null} true=命中, false=未中, null=无法判定
  */
-function judgeByScore(direction, scoreStr, handicap) {
+function judgeByScore(direction, scoreStr, handicap, halfScoreStr) {
   if (!scoreStr || !direction) return null;
 
   // ★ 复合方向（含、号，如"平、让平"）：分开判定，任一命中即可
   if (direction.indexOf('、') >= 0) {
     const subParts = direction.split(/[、,]/);
     for (let pi = 0; pi < subParts.length; pi++) {
-      const subR = judgeByScore(subParts[pi].trim(), scoreStr, handicap);
+      const subR = judgeByScore(subParts[pi].trim(), scoreStr, handicap, halfScoreStr);
       if (subR === true) return true;
     }
     return false;
@@ -431,17 +432,36 @@ function judgeByScore(direction, scoreStr, handicap) {
   }
 
   // ★ 半全场方向（如 "半全场-平平" → 半场平 + 全场平）
-  // 注意: judgeByScore 没有半场比分数据，仅能从全场比分判定平/胜/负
-  // 半全场组合需要半场比分才能准确判定，此处返回 null 由调用方 fallback
+  // 有 halfScoreStr 时精确判定半场+全场；无则仅判全场部分（近似，由 L2 sporttery 补偿）
   const hfMatch = direction.match(/^半全场-(.+)$/);
   if (hfMatch) {
     const pattern = hfMatch[1]; // 如 "平平", "平负", "平胜", "胜胜" 等
-    // 仅判定全场部分：pattern 第二个字
-    const fullChar = pattern.slice(-1);
-    if (fullChar === '胜') return hg > ag;
-    if (fullChar === '平') return hg === ag;
-    if (fullChar === '负') return hg < ag;
-    return null;
+    const halfChar = pattern.charAt(0); // 半场结果
+    const fullChar = pattern.charAt(1); // 全场结果
+
+    // 全场部分判定
+    let fullResult = null;
+    if (fullChar === '胜') fullResult = hg > ag;
+    else if (fullChar === '平') fullResult = hg === ag;
+    else if (fullChar === '负') fullResult = hg < ag;
+    if (fullResult === null) return null;
+
+    // 有半场比分时精确判定半场部分
+    if (halfScoreStr) {
+      const hParts = String(halfScoreStr).replace(/[-:]/g, ':').split(':');
+      const hHg = parseInt(hParts[0]);
+      const hAg = parseInt(hParts[1]);
+      if (isNaN(hHg) || isNaN(hAg)) return null;
+      let halfResult = null;
+      if (halfChar === '胜') halfResult = hHg > hAg;
+      else if (halfChar === '平') halfResult = hHg === hAg;
+      else if (halfChar === '负') halfResult = hHg < hAg;
+      if (halfResult === null) return null;
+      return halfResult && fullResult;
+    }
+
+    // 无半场比分：仅判全场部分（近似值，可能误判）
+    return fullResult;
   }
 
   return null;
@@ -631,7 +651,7 @@ function checkMatchResult(matchId, direction, rMap, normalizeRecs, mMap) {
     const matchKey = 'm_' + String(matchId);
     const m = mMap ? mMap[matchKey] || mMap[String(matchId)] || null : null;
     if (m && m.matchStatus >= 1 && m.score) {
-      const scoreResult = judgeByScore(direction, m.score, null);
+      const scoreResult = judgeByScore(direction, m.score, null, m.halfScore || '');
       if (scoreResult !== null) {
         isMatchWon = scoreResult;
         isMatchLose = !scoreResult;
@@ -1910,7 +1930,7 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
 
       // 第③层: judgeByScore 比分直判 (最终兜底)
       if (result === null && m && m.score && m.matchStatus >= 1) {
-        const _sf = judgeByScore(sm.direction, m.score, null);
+        const _sf = judgeByScore(sm.direction, m.score, null, m.halfScore || '');
         if (_sf !== null) result = _sf ? 1 : 0;
       }
 
@@ -1978,10 +1998,10 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
             // ★ V17: 让球/总进球子方向通过比分判定（传入 m.concede 兜底让球数）
             const hcpFallback = m && m.concede != null ? m.concede : null;
             if (isTGMulti && m && m.score && m.matchStatus >= 1) {
-              var sdSf = judgeByScore(sd, m.score, hcpFallback);
+              var sdSf = judgeByScore(sd, m.score, hcpFallback, m.halfScore || '');
               if (sdSf !== null) sdResult = sdSf ? 1 : 0;
             } else if (sdResult === null && m && m.score && m.matchStatus >= 1) {
-              var sdSf = judgeByScore(sd, m.score, hcpFallback);
+              var sdSf = judgeByScore(sd, m.score, hcpFallback, m.halfScore || '');
               if (sdSf !== null) sdResult = sdSf ? 1 : 0;
             }
             // ★ V17: 比赛已结束但仍无法判定 → 标记为 -1（区别于 null 的"未开赛"）

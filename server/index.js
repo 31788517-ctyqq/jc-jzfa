@@ -8701,7 +8701,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         const sd = subDirs[sdi].trim();
         let sdResult = null;
         if (hasScore && scoreStr) {
-          sdResult = _judgeByScore(sd, scoreStr, handicap);
+          sdResult = _judgeByScore(sd, scoreStr, handicap, (matchData && matchData.halfScore) || '');
         }
         mm.subResults.push({ direction: sd, result: sdResult === null ? null : sdResult ? 1 : 0 });
       }
@@ -8712,7 +8712,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         continue;
       }
 
-      const result = _judgeByScore(effectiveDirection, scoreStr, handicap);
+      const result = _judgeByScore(effectiveDirection, scoreStr, handicap, (matchData && matchData.halfScore) || '');
       if (result === true) {
         mm.isMatchWon = true;
         mm.isMatchLose = false;
@@ -8886,7 +8886,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         mm.isMatchLose = undefined;
         continue;
       }
-      const result = _judgeByScore(effectiveDirection, scoreStr, handicap);
+      const result = _judgeByScore(effectiveDirection, scoreStr, handicap, (matchData && matchData.halfScore) || '');
       if (result === true) {
         mm.isMatchWon = true;
         mm.isMatchLose = false;
@@ -8959,16 +8959,17 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
    * @param {string} direction - 方向（胜/平/负/让胜/让平/让负/胜平/平负/总进球-N）
    * @param {string} scoreStr  - 比分字符串（如 "2:1"）
    * @param {number|null} handicap - 让球数
+   * @param {string} [halfScoreStr] - 半场比分字符串，用于精确判定半全场
    * @returns {boolean|null} true=命中, false=未中, null=无法判定
    */
-  function _judgeByScore(direction, scoreStr, handicap) {
+  function _judgeByScore(direction, scoreStr, handicap, halfScoreStr) {
     if (!scoreStr || !direction) return null;
 
     // 复合方向（含、号）：分开判定，任一命中即可
     if (direction.indexOf('、') >= 0) {
       const subParts = direction.split(/[、,]/);
       for (let pi = 0; pi < subParts.length; pi++) {
-        const subR = _judgeByScore(subParts[pi].trim(), scoreStr, handicap);
+        const subR = _judgeByScore(subParts[pi].trim(), scoreStr, handicap, halfScoreStr);
         if (subR === true) return true;
       }
       return false;
@@ -9013,11 +9014,27 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     const hfMatch = direction.match(/^半全场-(.+)$/);
     if (hfMatch) {
       const pattern = hfMatch[1];
-      const fullChar = pattern.slice(-1);
-      if (fullChar === '胜') return hg > ag;
-      if (fullChar === '平') return hg === ag;
-      if (fullChar === '负') return hg < ag;
-      return null;
+      const halfChar = pattern.charAt(0);
+      const fullChar = pattern.charAt(1);
+      let fullResult = null;
+      if (fullChar === '胜') fullResult = hg > ag;
+      else if (fullChar === '平') fullResult = hg === ag;
+      else if (fullChar === '负') fullResult = hg < ag;
+      if (fullResult === null) return null;
+      // 有半场比分时精确判定
+      if (halfScoreStr) {
+        const hParts = String(halfScoreStr).replace(/[-:]/g, ':').split(':');
+        const hHg = parseInt(hParts[0]);
+        const hAg = parseInt(hParts[1]);
+        if (isNaN(hHg) || isNaN(hAg)) return null;
+        let halfResult = null;
+        if (halfChar === '胜') halfResult = hHg > hAg;
+        else if (halfChar === '平') halfResult = hHg === hAg;
+        else if (halfChar === '负') halfResult = hHg < hAg;
+        if (halfResult === null) return null;
+        return halfResult && fullResult;
+      }
+      return fullResult;
     }
 
     return null;

@@ -36,12 +36,12 @@ function getOddsHistory(dateStr) {
   return null;
 }
 
-function _judgeByScore(direction, scoreStr, handicap) {
+function _judgeByScore(direction, scoreStr, handicap, halfScoreStr) {
   if (!scoreStr || !direction) return null;
   if (direction.indexOf('、') >= 0) {
     const subParts = direction.split(/[、,]/);
     for (let sp = 0; sp < subParts.length; sp++) {
-      const r = _judgeByScore(subParts[sp].trim(), scoreStr, handicap);
+      const r = _judgeByScore(subParts[sp].trim(), scoreStr, handicap, halfScoreStr);
       if (r === true) return true;
     }
     return false;
@@ -79,7 +79,7 @@ function _judgeByScore(direction, scoreStr, handicap) {
     return hg + ag === threshold;
   }
 
-  // BQC（仅按全场方向末位兜底）
+  // BQC（半全场）
   const bqcMap = {
     胜胜: '3',
     平胜: '3',
@@ -94,6 +94,22 @@ function _judgeByScore(direction, scoreStr, handicap) {
   const fullKey = bqcMap[direction];
   if (fullKey) {
     const full = hg > ag ? '3' : hg === ag ? '1' : '0';
+    // 有半场比分时精确判定半场部分
+    if (halfScoreStr) {
+      const hParts = String(halfScoreStr).replace(/[-:]/g, ':').split(':');
+      const hHg = parseInt(hParts[0], 10);
+      const hAg = parseInt(hParts[1], 10);
+      if (!isNaN(hHg) && !isNaN(hAg)) {
+        const halfChar = direction.charAt(0);
+        let halfResult = null;
+        if (halfChar === '胜') halfResult = hHg > hAg;
+        else if (halfChar === '平') halfResult = hHg === hAg;
+        else if (halfChar === '负') halfResult = hHg < hAg;
+        if (halfResult === null) return null;
+        return halfResult && full === fullKey;
+      }
+    }
+    // 无半场比分：仅判全场部分（近似）
     return full === fullKey;
   }
   return null;
@@ -258,7 +274,7 @@ function recalcPlanResult(plan) {
       const sd = subDirs[sdi].trim();
       let sdResult = null;
       if (hasScore && scoreStr) {
-        sdResult = _judgeByScore(sd, scoreStr, handicap);
+        sdResult = _judgeByScore(sd, scoreStr, handicap, (matchData && matchData.halfScore) || '');
       }
       mm.subResults.push({ direction: sd, result: sdResult === null ? null : sdResult ? 1 : 0 });
     }
@@ -269,7 +285,7 @@ function recalcPlanResult(plan) {
       continue;
     }
 
-    const result = _judgeByScore(effectiveDirection, scoreStr, handicap);
+    const result = _judgeByScore(effectiveDirection, scoreStr, handicap, (matchData && matchData.halfScore) || '');
     if (result === true) {
       mm.isMatchWon = true;
       mm.isMatchLose = false;
