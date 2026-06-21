@@ -1453,7 +1453,7 @@ body {
   border-color: rgba(184, 154, 96, 0.35);
 }
 
-/* ★ 个人中心历史方案Tab（专用类，不与任何 group selector 冲突） */
+/* ★ 个人中心历史方案Tab（专用类，与 ranking page 顶部标签同色） */
 .profile-plan-tab {
   display: inline-flex;
   align-items: center;
@@ -1461,10 +1461,10 @@ body {
   flex: 1;
   height: 40px;
   padding: 4px 14px;
-  border: 1px solid rgba(184, 154, 96, 0.2);
-  border-radius: 20px;
-  background: rgba(184, 154, 96, 0.1);
-  color: #c8981e;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.05);
+  color: #475569;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
