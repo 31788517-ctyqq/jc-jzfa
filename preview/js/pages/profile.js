@@ -168,12 +168,12 @@ function updateProfilePlanFilterTabs() {
     const isActive = tab.getAttribute('data-filter') === _profilePlanFilter;
     tab.classList.toggle('is-active', isActive);
     tab.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    // ★ 选中态：排行标签同款青色
+    // ★ 选中态：亮青色（与排行页filter-tag.active视觉一致）
     if (isActive) {
-      tab.style.background = 'var(--cyan)';
+      tab.style.background = '#18e0e0';
       tab.style.color = '#0f172a';
       tab.style.fontWeight = '600';
-      tab.style.borderColor = 'var(--cyan)';
+      tab.style.borderColor = '#18e0e0';
       tab.classList.add('is-active');
     } else {
       tab.style.background = '';
