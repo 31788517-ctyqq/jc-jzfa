@@ -3110,6 +3110,7 @@ async function start() {
   // ═══ 健康监控：每分钟检查 ═══
   let _lastBackfillCheck = 0;
   let _resultVerifyDoneToday = false; // P1 每日核实防重
+  let _auditDoneToday = false; // 全量数据核查每日防重
 
   // ★ P1 Layer 2: 多源赛果核实 — 每日定时触发，缓存到 verified_results.json
   async function verifyYesterdayResults() {
@@ -3277,6 +3278,25 @@ async function start() {
         });
       }
       if (now.getHours() !== 2) _resultVerifyDoneToday = false;
+      // ★ 全量数据自核查: 每日 3:00 触发（在 verifyYesterdayResults 之后，复核全量）
+      if (now.getHours() === 3 && !_auditDoneToday) {
+        _auditDoneToday = true;
+        log('[auditor] 启动每日全量数据核查...');
+        try {
+          const auditor = require('./core/data-auditor');
+          auditor.runFullAudit({ days: 7 }).then(function (report) {
+            if (report && report.summary) {
+              log('[auditor] 核查完成: ' + report.summary.totalChecks + '项 失败' + report.summary.failed +
+                ' 修复' + report.summary.autoFixed + ' 人工' + report.summary.needManual);
+            }
+          }).catch(function (e) {
+            log('[auditor] 核查失败: ' + e.message);
+          });
+        } catch (e) {
+          log('[auditor] 加载失败: ' + e.message);
+        }
+      }
+      if (now.getHours() !== 3) _auditDoneToday = false;
       // ★ P2-1: 记录每日统计快照
       try {
         const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));

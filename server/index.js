@@ -8098,6 +8098,34 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           }
         }
 
+        // ★ 全量数据核查报告查询（手动触发核查 + 读取最新报告）
+        case 'audit-report': {
+          try {
+            const action = data.action || 'latest';
+            if (action === 'run') {
+              // 手动触发核查（异步执行）
+              const auditor = require('./core/data-auditor');
+              const days = parseInt(data.days) || 7;
+              auditor.runFullAudit({ days }).catch(function (e) {
+                logger.error('[audit-report] run 失败: ' + e.message);
+              });
+              return res.json({ code: 1, msg: '核查已启动，请稍后查看报告' });
+            }
+            // 默认：返回最新核查报告
+            const reportDir = path.join(__dirname, 'logs');
+            const files = fs.existsSync(reportDir)
+              ? fs.readdirSync(reportDir).filter(function (f) { return f.match(/^audit_report_\d{4}-\d{2}-\d{2}\.json$/); }).sort().reverse()
+              : [];
+            if (files.length === 0) return res.json({ code: 1, data: { report: null, msg: '暂无核查报告' } });
+            const reportPath = path.join(reportDir, files[0]);
+            const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+            return res.json({ code: 1, data: { report: report, file: files[0] } });
+          } catch (e) {
+            logger.error('[audit-report] ' + e.message);
+            return res.json({ code: 0, msg: '核查报告查询失败: ' + e.message });
+          }
+        }
+
         // ★ 蓝图：实验对比（Prompt版本A/B对比）
         case 'experiment-compare': {
           try {

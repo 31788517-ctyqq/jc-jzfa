@@ -554,6 +554,7 @@ DEPLOY_MAP = [
     ('server/core/ingestion-guard.js',    'both'),  # ★ V9: 实时比分摄入门禁（data_sync/sync_live_500 依赖）
     ('server/core/score-corrector.js',    'both'),  # ★ V12: 多源赛果校正（sporttery+500.com 交叉对账）
     ('server/core/result-verifier.js',    'both'),  # ★ P0: 多源赛果核实入口（verifyYesterdayResults 依赖，缺失→L1/L2/L3 防漂移全失效）
+    ('server/core/data-auditor.js',       'both'),  # ★ 全量数据自核查（6大类18项，每日3:00定时触发）
 
     ('server/core/match-data-pack.js',    'both'),  # ★ V9: data_sync 依赖，缺失会导致 jc-sync 启动失败
     ('server/core/alert-monitor.js',     'both'),  # ★ V12: 运维告警监控
