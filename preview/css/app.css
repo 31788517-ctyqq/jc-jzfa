@@ -2029,18 +2029,13 @@ body {
   color: var(--cyan);
 }
 
-/* ═══ P0-1: 智能标签 ═══ */
+/* ═══ P0-1: 智能标签（纯文字版本） ═══ */
 .q-decision-badge {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  max-width: 72px;
-  margin: 4px auto 0;
-  padding: 3px 6px;
-  border-radius: 8px;
-  background: rgba(126, 166, 189, 0.08);
-  border: 1px solid rgba(126, 166, 189, 0.12);
+  display: inline;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
 }
 
 .q-decision-badge b {

@@ -470,33 +470,15 @@ function renderOpportunitySummary(items) {
 function renderDecisionBadge(item) {
   const code = decisionCodeOf(item);
   const dir = item.finalDirection === 'watch' ? '观望' : item.finalDirection || '观望';
-  return (
-    '<span class="q-decision-badge q-decision-' +
-    code +
-    '" title="' +
-    esc(item.decisionNarrative || '') +
-    '"><b>' +
-    esc(item.decisionLevel || '观望') +
-    '</b><em>' +
-    esc(dir) +
-    '｜' +
-    '★'.repeat(Math.max(0, Math.min(5, item.stars || 0))) +
-    '</em></span>'
-  );
+  const stars = '★'.repeat(Math.max(0, Math.min(5, item.stars || 0)));
+  const label = esc(item.decisionLevel || '观望') + ' ' + esc(dir) + (stars ? ' ' + stars : '');
+  return '<span class="q-decision-badge q-decision-' + code + '">' + label + '</span>';
 }
 
 function renderRiskChips(item) {
   const tags = safeArrayField(item.riskTags).slice(0, 2);
-  if (!tags.length) return '<span class="q-risk-chips"><i class="q-risk-empty">低风险</i></span>';
-  return (
-    '<span class="q-risk-chips">' +
-    tags
-      .map(function (tag) {
-        return '<i>' + esc(tag) + '</i>';
-      })
-      .join('') +
-    '</span>'
-  );
+  if (!tags.length) return '低风险';
+  return tags.map(function (t) { return esc(t); }).join(' ');
 }
 
 // ═══ 渲染 — flex 卡片表格 ═══
@@ -942,15 +924,7 @@ function computeTags(item) {
 function renderTags(item) {
   const tags = computeTags(item);
   if (!tags.length) return '';
-  return (
-    '<span class="q-match-tags">' +
-    tags
-      .map(function (t) {
-        return '<span class="q-tag ' + t.c + '" title="' + esc(t.t) + '">' + t.e + '</span>';
-      })
-      .join('') +
-    '</span>'
-  );
+  return tags.map(function (t) { return t.e; }).join(' · ');
 }
 
 // ═══ P2-5/P2-6: ECharts 图表视图 + 响应式切换 ═══
