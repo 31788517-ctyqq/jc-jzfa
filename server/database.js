@@ -297,6 +297,17 @@ const AUTH_TABLES_DDL = `
   CREATE INDEX IF NOT EXISTS idx_audit_logs_event_type ON audit_logs(event_type);
   CREATE INDEX IF NOT EXISTS idx_audit_logs_actor_user_id ON audit_logs(actor_user_id);
   CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
+
+  CREATE TABLE IF NOT EXISTS user_plans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    device_id TEXT NOT NULL,
+    plan_id TEXT,
+    plan_data TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_user_plans_device_id ON user_plans(device_id);
+  CREATE INDEX IF NOT EXISTS idx_user_plans_plan_id ON user_plans(plan_id);
 `;
 
 // ═══════════════════════════════════════════════════════

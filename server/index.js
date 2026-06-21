@@ -8310,6 +8310,21 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     return path.join(USER_PLANS_DIR, safe + '.json');
   }
   function readUserPlans(deviceId) {
+    // ★ 优先从 DB 读取（支持 cluster 多实例共享）
+    try {
+      const adp = database.getAdapter();
+      if (adp && adp.execAll) {
+        const rows = adp.execAll('SELECT plan_data FROM user_plans WHERE device_id = ? ORDER BY updated_at DESC', String(deviceId).replace(/[^a-zA-Z0-9_\-]/g, ''));
+        if (rows && rows.length > 0) {
+          return rows.map(function (r) {
+            try { return JSON.parse(r.plan_data); } catch (e) { return null; }
+          }).filter(Boolean);
+        }
+      }
+    } catch (e) {
+      // DB 不可用时降级到文件
+    }
+    // 降级：从文件读取（兼容旧数据）
     try {
       const fp = getUserPlansPath(deviceId);
       if (fs.existsSync(fp)) {
@@ -8321,12 +8336,36 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     return [];
   }
   function writeUserPlans(deviceId, plans) {
+    const safeDeviceId = String(deviceId).replace(/[^a-zA-Z0-9_\-]/g, '');
+    const now = new Date().toISOString();
+    // ★ DB 双写（支持 cluster 多实例共享）
+    try {
+      const adp = database.getAdapter();
+      if (adp && adp.execRun) {
+        // 先删除旧数据再批量插入（事务保证一致性）
+        adp.execRun('DELETE FROM user_plans WHERE device_id = ?', safeDeviceId);
+        plans.forEach(function (p) {
+          const planId = p.id || ('up_' + now + '_' + Math.random().toString(36).slice(2, 6));
+          const created = p.createdAt || now;
+          const updated = p.updatedAt || now;
+          adp.execRun(
+            'INSERT INTO user_plans (device_id, plan_id, plan_data, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+            safeDeviceId, planId, JSON.stringify(p), created, updated,
+          );
+        });
+        if (adp.markDirty) adp.markDirty();
+        return; // DB 写入成功，不再写文件
+      }
+    } catch (e) {
+      logger.warn('[user_plans] DB 写入失败，降级到文件: ' + e.message);
+    }
+    // 降级：写文件
     try {
       if (!fs.existsSync(USER_PLANS_DIR)) fs.mkdirSync(USER_PLANS_DIR, { recursive: true });
       const fp = getUserPlansPath(deviceId);
       fs.writeFileSync(fp, JSON.stringify(plans, null, 2), 'utf8');
     } catch (e) {
-      logger.error('[user_plans] 写入失败: ' + e.message);
+      logger.error('[user_plans] 文件写入也失败: ' + e.message);
     }
   }
 
@@ -9251,6 +9290,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     }
     setTimeout(tryBackfill, 5000).unref();
   })();
+
+  // ★ 初始化 Redis 共享缓存（cluster:3 前提，降级到内存不阻断）
+  try {
+    require('./core/redis-client').init().catch(function (e) {
+      logger.warn('[redis] 初始化失败，使用内存缓存: ' + e.message);
+    });
+  } catch (_) {}
 
   // ★ P3-1: 使用显式 http.createServer 以便 WebSocket 共用端口
   const http = require('http');

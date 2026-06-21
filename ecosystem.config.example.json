@@ -1,5 +1,5 @@
 {
-  "_comment": "复制此文件为 ecosystem.config.json 并填入真实密钥。ecosystem.config.json 已被 .gitignore 排除。",
+  "_comment": "复制此文件为 ecosystem.config.json 并填入真实密钥。ecosystem.config.json 已被 .gitignore 排除。★ cluster:3 需先完成 Redis 部署 + user_plans DB 迁移 + auth session Redis 化，否则 sql.js 多进程并发写会损坏 DB。",
   "apps": [
     {
       "name": "jc-zjfa",
@@ -23,7 +23,10 @@
         "ALERT_SMTP_USER": "<SMTP_USER>",
         "ALERT_SMTP_PASS": "<SMTP_PASS>",
         "FEATURE_RICH_PROMPT": "0",
-        "DATA_JSON_AGGRESSIVE_CACHE": "1"
+        "DATA_JSON_AGGRESSIVE_CACHE": "1",
+        "REDIS_HOST": "127.0.0.1",
+        "REDIS_PORT": "6379",
+        "REDIS_ENABLED": "true"
       },
       "max_memory_restart": "1800M",
       "min_uptime": "10000",

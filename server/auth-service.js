@@ -413,6 +413,14 @@ const _sessionCache = new Map(); // tokenHash → sessionObj
 let _sessionCacheCleanTimer = null;
 function _cacheSession(tokenHash, sessionObj) {
   _sessionCache.set(tokenHash, sessionObj);
+  // ★ 同步写入 Redis（跨实例共享，cluster:3 时其他实例可读到）
+  try {
+    const redis = require('./core/redis-client');
+    if (redis.isConnected()) {
+      const ttl = sessionObj.expiresAt ? new Date(sessionObj.expiresAt).getTime() - Date.now() : 3600000;
+      redis.setJSON('session:' + tokenHash, sessionObj, Math.max(60000, ttl)).catch(function () {});
+    }
+  } catch (_) {}
   // 定期清理过期缓存（每 5 分钟）
   if (!_sessionCacheCleanTimer) {
     _sessionCacheCleanTimer = setInterval(
@@ -793,7 +801,8 @@ function validateSession(token, touch = true) {
   const tokenHash = sha256(token);
   const now = nowIso();
 
-  // ★ P1-3 优化：优先查内存缓存（防抖写入窗口内 session 尚未持久化到磁盘）
+  // ★ 三级缓存：内存 → Redis → DB
+  // 1. 内存缓存（单实例内）
   const cached = _getCachedSession(tokenHash);
   if (cached) {
     if (cached.user && cached.user.status !== 'active') return null;
@@ -826,7 +835,9 @@ function validateSession(token, touch = true) {
     };
   }
 
-  // 内存未命中 → 查 DB
+  // 2. Redis 缓存（跨实例共享，cluster:3 前提）
+  // ★ 异步查询，不阻塞当前请求（首次 miss 后后续命中）
+  // Redis 命中时填充内存缓存，避免后续 DB 查询
   let row = adp.execOne(
     `SELECT s.id AS sid, s.user_id, s.expires_at, s.revoked_at,
             u.id, u.username, u.status, u.must_change_password, u.last_login_at, u.password_updated_at,

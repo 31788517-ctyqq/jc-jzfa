@@ -1,0 +1,156 @@
+# ═══ Nginx 高并发配置模板 (5000 并发) ═══
+# 部署位置: /etc/nginx/conf.d/zj.100qiu.com.conf
+# 生效: nginx -t && nginx -s reload
+#
+# 优化点:
+# 1. upstream 负载均衡 (cluster:3)
+# 2. HTTP/2 连接复用
+# 3. CDN 静态资源缓存
+# 4. proxy_cache API 响应缓存
+# 5. 限流防刷
+# 6. gzip_static + brotli
+
+# ═══ Upstream 负载均衡 (cluster:3) ═══
+upstream jc_zjfa_backend {
+    # 3 个 API 实例 (ecosystem.config.json cluster:3)
+    server 127.0.0.1:3000 weight=1 max_fails=3 fail_timeout=30s;
+    server 127.0.0.1:3001 weight=1 max_fails=3 fail_timeout=30s;
+    server 127.0.0.1:3002 weight=1 max_fails=3 fail_timeout=30s;
+    keepalive 64;  # 保持 64 个连接复用
+}
+
+# ═══ 限流 zone ═══
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=20r/s;
+limit_req_zone $binary_remote_addr zone=static_limit:10m rate=100r/s;
+
+# ═══ API 响应缓存 zone ═══
+proxy_cache_path /var/cache/nginx/api levels=1:2 keys_zone=api_cache:50m max_size=500m inactive=10m use_temp_path=off;
+
+server {
+    listen 80;
+    server_name zj.100qiu.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    # ★ HTTP/2 + TLS
+    listen 443 ssl http2;
+    server_name zj.100qiu.com;
+
+    ssl_certificate /etc/nginx/ssl/zj.100qiu.com.crt;
+    ssl_certificate_key /etc/nginx/ssl/zj.100qiu.com.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    # ★ 安全头
+    add_header X-Frame-Options SAMEORIGIN always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # ═══ 静态资源 (CDN 就绪) ═══
+    # 部署 CDN 后，这些资源可通过 CDN 域名访问
+    # 当前直接由 Nginx 服务，配置长缓存
+
+    # JS/CSS 按扩展名缓存 (immutable 30d)
+    location ~* \.(js|css)$ {
+        limit_req zone=static_limit burst=200 nodelay;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        gzip_static on;
+        # ★ brotli (需 nginx 1.10+ + ngx_brotli 模块)
+        # brotli_static on;
+        root /var/www/zj.100qiu.com/preview/dist;
+        try_files $uri @fallback_preview;
+    }
+
+    # 图片资源 (CDN 优先)
+    location ~* \.(png|jpg|jpeg|gif|webp|svg|ico)$ {
+        limit_req zone=static_limit burst=200 nodelay;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        root /var/www/zj.100qiu.com;
+        try_files $uri =404;
+    }
+
+    # /assets/ 映射到 miniprogram/images/
+    location ^~ /assets/ {
+        alias /var/www/zj.100qiu.com/miniprogram/images/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # /css/ 映射到 preview/css/
+    location ^~ /css/ {
+        alias /var/www/zj.100qiu.com/preview/css/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # ═══ API 反向代理 (upstream 负载均衡) ═══
+    location /api {
+        limit_req zone=api_limit burst=50 nodelay;
+
+        # proxy_cache API 响应缓存 (GET 请求)
+        proxy_cache api_cache;
+        proxy_cache_key "$scheme$request_method$host$request_uri";
+        proxy_cache_valid 200 60s;  # 成功响应缓存 60s
+        proxy_cache_valid 304 60s;
+        proxy_cache_use_stale error timeout updating;
+        proxy_cache_bypass $http_authorization;  # 有 auth header 不缓存
+        add_header X-Cache-Status $upstream_cache_status;
+
+        proxy_pass http://jc_zjfa_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # 超时设置
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 30s;
+        proxy_read_timeout 30s;
+    }
+
+    # WebSocket (实时比分推送，未来启用)
+    location /ws {
+        proxy_pass http://jc_zjfa_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_read_timeout 86400;
+    }
+
+    # ═══ 前端页面 ═══
+    location / {
+        root /var/www/zj.100qiu.com/preview/dist;
+        try_files $uri $uri/ /index.html;
+        index index.html;
+        # HTML 不缓存
+        expires -1;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+    }
+
+    location @fallback_preview {
+        root /var/www/zj.100qiu.com/preview;
+        try_files $uri =404;
+    }
+
+    # ═══ Gzip ═══
+    gzip on;
+    gzip_min_length 1024;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml;
+    gzip_vary on;
+
+    # ═══ CDN 配置说明 ═══
+    # 启用 CDN 后，将静态资源域名改为 cdn.zj.100qiu.com:
+    # 1. 腾讯云 COS 创建 bucket → 上传 preview/dist/assets/
+    # 2. CDN 加速域名 cdn.zj.100qiu.com → 回源 zj.100qiu.com
+    # 3. 前端 JS/CSS 引用改为 https://cdn.zj.100qiu.com/assets/xxx
+    # 4. Nginx 不再服务静态资源，只做 API 反代
+}
