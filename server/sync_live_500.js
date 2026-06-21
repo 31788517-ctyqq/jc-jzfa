@@ -450,8 +450,14 @@ async function correctPostMatchScores(matches, dateStr) {
       .replace(/[:：]/g, '-')
       .trim();
 
-    // 触发条件：score 为空 或 score===halfScore（非 0-0）
-    const needFix = !scNorm || (hfNorm && scNorm === hfNorm && scNorm !== '0-0');
+    // 触发条件：
+    // 1. score 为空
+    // 2. score===halfScore（非 0-0）
+    // 3. ★ 历史日期（非今天）的已完赛比赛：500.com 对历史日期可能返回半场比分作为 score，
+    //    halfScore 为空，无法通过条件 2 检测 → 始终用 detail.php 验证
+    const today = new Date().toISOString().slice(0, 10);
+    const isHistoricalDate = dateStr && dateStr !== today;
+    const needFix = !scNorm || (hfNorm && scNorm === hfNorm && scNorm !== '0-0') || (isHistoricalDate && m.matchStatus >= 2);
     if (needFix) {
       pending.push(m);
     }

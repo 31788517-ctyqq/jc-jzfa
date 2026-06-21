@@ -3160,7 +3160,7 @@ async function start() {
       fs.writeFileSync(VERIFIED_RESULTS_FILE, JSON.stringify(cache, null, 2));
       log('[verifier] ✓ 核实完成: ' + yd + ' ' + vr.results.length + ' 场');
 
-      // ★ V12: 核实后自动纠正半场误判（halfScore===score 且非0-0）
+      // ★ V12+L1: 核实后自动纠正半场误判（halfScore===score 或 halfScore缺失+已完赛）
       try {
         const guard = require('./core/ingestion-guard');
         const suspiciousMatches = [];
@@ -3170,18 +3170,33 @@ async function start() {
           if (m.matchStatus < 2 || !m.score) return;
           const audit = guard.postMatchAudit(m);
           audit.forEach(function (issue) {
-            if (issue.type === 'half_equals_final_non_zero') {
+            // ★ L1: 同时检测 half_equals_final_non_zero 和 missing_halfscore_finished
+            if (issue.type === 'half_equals_final_non_zero' || issue.type === 'missing_halfscore_finished') {
               suspiciousMatches.push(m);
             }
           });
         });
         if (suspiciousMatches.length > 0) {
-          log('[verifier] 发现 ' + suspiciousMatches.length + ' 场半场误判，触发多源校正...');
+          log('[verifier] 发现 ' + suspiciousMatches.length + ' 场疑似半场误判，触发多源校正...');
           const corrector = require('./core/score-corrector');
           const cr = await corrector.correctDate(yd, dataJson.m);
           if (cr && cr.corrected > 0) {
             corrector.applyCorrections(cr);
             log('[verifier] 半场误判已修正: ' + cr.corrected + ' 场');
+          } else {
+            // ★ L2 fallback: sporttery 无文件时，用 sync_live_500 detail.php 修正
+            log('[verifier] sporttery 校正无结果，尝试 detail.php 修正...');
+            try {
+              const { correctPostMatchScores } = require('./sync_live_500');
+              const corrected = await correctPostMatchScores(suspiciousMatches.map(function(m) {
+                return Object.assign({}, m, { fid: m.fid || '' });
+              }), yd);
+              if (corrected > 0) {
+                log('[verifier] detail.php 修正: ' + corrected + ' 场');
+              }
+            } catch (e2) {
+              log('[verifier] detail.php 修正异常(不阻断): ' + e2.message);
+            }
           }
         }
       } catch (e) {

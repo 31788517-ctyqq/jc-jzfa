@@ -141,6 +141,19 @@ function postMatchAudit(match) {
     });
   }
 
+  // ★ L1 修复: halfScore 为空 + 已完赛 + 有比分 → 500.com 历史日期可能返回半场作为 score
+  if (!match.halfScore && match.score && match.matchStatus >= 2 && match.score !== '0:0' && match.score !== '0-0') {
+    issues.push({
+      type: 'missing_halfscore_finished',
+      matchId: match.matchId,
+      num: match.num,
+      score: match.score,
+      halfScore: match.halfScore || '',
+      date: match.date ? match.date.slice(0, 10) : '',
+      severity: 'P1',
+    });
+  }
+
   return issues;
 }
 

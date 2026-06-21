@@ -185,12 +185,110 @@ async function correctDate(dateStr, currentMap) {
     }
   });
 
+  // ★ L2 fallback: sporttery 无文件时，用 detail.php 获取终场比分
+  // 对已完赛但 sporttery 未覆盖的比赛，调用 sync_live_500.fetchDetailScore
+  if (matchedByFile === 0) {
+    try {
+      const syncLive500 = require('../sync_live_500');
+      const { fetchDetailScore, parse500Live } = syncLive500;
+      const https = require('https');
+      const iconv = require('iconv-lite');
+
+      // ★ 辅助：从 500.com live 页面获取 fid 映射（date+num → fid）
+      function fetchLiveHtml(date) {
+        return new Promise((resolve) => {
+          https.get('https://live.500.com/?e=' + date, {
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            rejectUnauthorized: false,
+            timeout: 15000,
+          }, (res) => {
+            const chunks = [];
+            res.on('data', c => chunks.push(c));
+            res.on('end', () => {
+              try { resolve(iconv.decode(Buffer.concat(chunks), 'gbk')); }
+              catch (e) { resolve(''); }
+            });
+          }).on('error', () => resolve(''));
+        });
+      }
+
+      const matchesNeedingFix = [];
+      Object.keys(currentMap).forEach(function (rk) {
+        const m = currentMap[rk];
+        if (!m || !m.num || m.date.slice(0, 10) !== dateStr) return;
+        if (m.matchStatus < 2) return;
+        const currentScore = String(m.score || '').replace(/:/g, '-');
+        const currentHalf = String(m.halfScore || '').replace(/:/g, '-');
+        // 触发条件：halfScore 为空 或 score===halfScore（非 0-0）
+        const needFix = !currentHalf || (currentHalf && currentScore === currentHalf && currentScore !== '0-0');
+        if (needFix) {
+          matchesNeedingFix.push({ key: rk, match: m });
+        }
+      });
+
+      if (matchesNeedingFix.length > 0) {
+        console.log('[corrector] sporttery 无数据，尝试 detail.php 对 ' + matchesNeedingFix.length + ' 场...');
+
+        // ★ 获取 fid 映射（从 500.com live 页面）
+        let fidMap = {};
+        const liveHtml = await fetchLiveHtml(dateStr);
+        if (liveHtml) {
+          const liveMatches = parse500Live(liveHtml, dateStr);
+          liveMatches.forEach(function (lm) {
+            // parse500Live 返回字段名是 matchNum（不是 num）
+            const lmNum = lm.num || lm.matchNum || '';
+            if (lmNum && lm.fid) {
+              fidMap[lmNum] = lm.fid;
+            }
+          });
+          console.log('[corrector] 从 500.com live 获取 ' + Object.keys(fidMap).length + ' 个 fid 映射');
+        }
+
+        // 并发数 2，避免限流
+        for (let i = 0; i < matchesNeedingFix.length; i += 2) {
+          const batch = matchesNeedingFix.slice(i, i + 2);
+          const results = await Promise.all(batch.map(function (item) {
+            // ★ 优先用 data.json 中的 fid，没有则用 fidMap
+            const fid = item.match.fid || fidMap[item.match.num] || '';
+            if (!fid) return Promise.resolve({ item: item, result: null });
+            return fetchDetailScore(fid).then(function (r) {
+              return { item: item, result: r };
+            });
+          }));
+          results.forEach(function (r) {
+            if (r.result && r.result.score) {
+              const m = r.item.match;
+              const currentScore = String(m.score || '').replace(/:/g, '-');
+              if (r.result.score !== currentScore) {
+                corrections[m.num] = {
+                  matchKey: r.item.key,
+                  matchId: m.matchId,
+                  homeName: m.homeName || '',
+                  visitName: m.visitName || '',
+                  oldScore: currentScore,
+                  newScore: r.result.score,
+                  source: 'detail.php',
+                  suspectHalftime: true,
+                };
+              }
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.error('[corrector] detail.php fallback 异常: ' + e.message);
+    }
+  }
+
   return {
     date: dateStr,
     corrected: Object.keys(corrections).length,
     corrections: corrections,
     sourceCounts: {
       sporttery: matchedByFile,
+      detailphp: Object.keys(corrections).filter(function (k) {
+        return corrections[k].source === 'detail.php';
+      }).length,
       total: Object.keys(currentMap).filter(function (k) {
         const m = currentMap[k];
         return m && m.date && m.date.slice(0, 10) === dateStr && m.matchStatus >= 2;
