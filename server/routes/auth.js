@@ -57,19 +57,19 @@ function authRegister(req, res, data) {
 /**
  * auth-session — 获取当前会话
  */
-function authSession(req, res, _data, authSession) {
-  if (!authSession) return res.json({ code: 401, msg: 'UNAUTHORIZED' });
+function getAuthSession(req, res, _data, session) {
+  if (!session) return res.json({ code: 401, msg: 'UNAUTHORIZED' });
   return res.json({
     code: 1,
     data: {
-      user: authSession.user,
-      roles: authSession.roles,
-      permissions: authSession.permissions,
-      subscription_status: authSession.subscription_status || 'free',
-      subscription_expires_at: authSession.subscription_expires_at || null,
-      vip_gift_claimed_at: authSession.vip_gift_claimed_at || null,
-      vip_gift_expires_at: authSession.vip_gift_expires_at || null,
-      expiresAt: authSession.expiresAt,
+      user: session.user,
+      roles: session.roles,
+      permissions: session.permissions,
+      subscription_status: session.subscription_status || 'free',
+      subscription_expires_at: session.subscription_expires_at || null,
+      vip_gift_claimed_at: session.vip_gift_claimed_at || null,
+      vip_gift_expires_at: session.vip_gift_expires_at || null,
+      expiresAt: session.expiresAt,
     },
   });
 }
@@ -105,7 +105,7 @@ async function handleAuth(action, req, res, data, authSession, authToken) {
     case 'auth-register':
       return authRegister(req, res, data);
     case 'auth-session':
-      return authSession(req, res, data, authSession);
+      return getAuthSession(req, res, data, authSession);
     case 'auth-logout':
       return authLogout(req, res, data, authToken);
     case 'auth-change-password':

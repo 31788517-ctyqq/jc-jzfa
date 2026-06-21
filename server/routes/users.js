@@ -54,6 +54,14 @@ function handleUsers(action, req, res, data) {
       return res.json({ code: 1, data: result });
     }
 
+    case 'user-toggle-referral': {
+      const userId = Number(data.userId || 0);
+      const enabled = data.enabled !== false;
+      if (!userId) return res.json({ code: 0, msg: '缺少 userId' });
+      const result = authService.toggleUserReferral(userId, enabled);
+      return res.json({ code: 1, data: result });
+    }
+
     default:
       return false;
   }
