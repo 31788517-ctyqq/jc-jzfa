@@ -9,10 +9,40 @@
 }
 
 /* ══════════════════════════════════════════════
-   Filter-DD 筛选卡片（浅色主题适配）
+   Filter-Tag 标签栏 + Filter-DD 筛选卡片（浅色主题适配）
    ══════════════════════════════════════════════ */
 
-/* ★ filter-section-card — 筛选条件卡片的圆角容器 */
+/* ─── §1 filter-tag 标签按钮（Tab 切换用） ─── */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 0;
+  margin: 0;
+  scrollbar-width: none;
+}
+.filter-row::-webkit-scrollbar {
+  display: none;
+}
+.filter-tag {
+  white-space: nowrap;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+  background: rgba(15, 23, 42, 0.05);
+  color: #475569;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-tag.active {
+  background: var(--cyan);
+  color: #0f172a;
+  font-weight: 600;
+  border-color: var(--cyan);
+}
+
+/* ─── §2 filter-section-card 筛选条件容器 ─── */
 .filter-section-card {
   background: var(--card);
   border: 1px solid var(--card-border);
@@ -22,26 +52,27 @@
   box-shadow: 0 0 14px rgba(15, 23, 42, 0.04);
 }
 
-.filter-head {
-  font-size: var(--fs-xl);
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 14px;
-  padding: 0 2px;
-}
-
-/* ★ filter-row 已在 page-quant/page-rank/page-plans 中定义过一轮,
-   但回测页的 filter-row 更复杂(含 label + dd 布局), 这里重新定义以覆盖宽布局 */
-.filter-row {
+/* ★ 筛选卡片内的 filter-row = 复杂 Label+DD 布局(覆盖 §1 的简单标签栏) */
+.filter-section-card .filter-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   min-height: 56px;
   padding: 4px 4px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  overflow-x: visible;
+  gap: 0;
 }
-.filter-row:last-of-type {
+.filter-section-card .filter-row:last-of-type {
   border-bottom: none;
+}
+
+.filter-head {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 14px;
+  padding: 0 2px;
 }
 
 .filter-label {
