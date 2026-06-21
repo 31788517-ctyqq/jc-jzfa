@@ -654,7 +654,8 @@ function getWeekDates() {
 
     const list = [];
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      const ds = d.toISOString().slice(0, 10);
+      // ★ 用本地日期格式化（非 toISOString，避免 UTC 偏差导致日期错位）
+      const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
       if (!dateSet.has(ds)) continue; // 跳过无比赛日
       const md = ds.slice(5);
       const weekNum = WEEK_DAYS[d.getDay()];

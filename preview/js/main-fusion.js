@@ -738,11 +738,41 @@ export function goToday() {
 }
 
 function _setBestWeekIndex() {
-  const today = formatDate(new Date()).slice(5);
-  state.setSelectedWeekIdx(0);
-  state.weekDates.forEach(function (w, i) {
-    if (w.matchDate <= today) state.setSelectedWeekIdx(i);
-  });
+  var today = formatDate(new Date()).slice(5); // MM-DD
+  var todayFull = formatDate(new Date()); // YYYY-MM-DD
+  var bestIdx = 0;
+  var bestDate = '';
+
+  // 优先选中今天
+  for (var i = 0; i < state.weekDates.length; i++) {
+    var w = state.weekDates[i];
+    if (!w || !w.matchDate) continue;
+    if (w.matchDate === today) {
+      state.setSelectedWeekIdx(i);
+      return;
+    }
+  }
+
+  // 今天不在列表中：选最近的过去日期（同月优先，避免跨月定位错误）
+  // month 格式为 "MM-DD"，取月份前两位比较
+  var todayMonth = today.slice(0, 2);
+  for (var j = 0; j < state.weekDates.length; j++) {
+    var w2 = state.weekDates[j];
+    if (!w2 || !w2.matchDate) continue;
+    // 只考虑同月或上月最后一天（防止定位到5月初）
+    var wMonth = w2.matchDate.slice(0, 2);
+    if (w2.matchDate <= today) {
+      if (wMonth === todayMonth || (bestDate === '' && wMonth < todayMonth)) {
+        bestIdx = j;
+        bestDate = w2.matchDate;
+      }
+    }
+  }
+  // 如果同月无匹配且全部是未来日期，选第一个
+  if (bestDate === '' && state.weekDates.length > 0) {
+    bestIdx = 0;
+  }
+  state.setSelectedWeekIdx(bestIdx);
 }
 
 function _cacheMatchListForDates(matches, fallbackDate) {
