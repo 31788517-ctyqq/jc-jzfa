@@ -722,7 +722,6 @@ export function loadPlanList(optFilterFn) {
         const prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
         const statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
         var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
-        var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
 
         let cutoffDisplay = '';
         if (matches.length > 0 && matches[0].startTime) {

@@ -474,13 +474,30 @@ function renderProfilePlans() {
     const isLose = p.isWon === false;
     const amountNum = Number(p.amount || 200);
     const amountVal = Math.round(amountNum);
+    // ★ 赔率 fallback: 同场多选走荷兰式有效赔率（与 _calcPlanOddsRaw 口径一致）
     const totalOdds =
       p.totalOdds ||
-      matches
-        .reduce(function (pr, m) {
-          return pr * (Number(m.odds) || 1);
-        }, 1)
-        .toFixed(2);
+      (function () {
+        const grouped = {};
+        matches.forEach(function (m) {
+          const mid = m.matchId || m.matchNum || 'unknown';
+          if (!grouped[mid]) grouped[mid] = [];
+          const od = Number(m.odds);
+          if (od > 0) grouped[mid].push(od);
+        });
+        const effectiveOdds = Object.keys(grouped).map(function (mid) {
+          const arr = grouped[mid];
+          if (arr.length === 0) return 0;
+          if (arr.length === 1) return arr[0];
+          let invSum = 0;
+          for (let i = 0; i < arr.length; i++) invSum += 1 / arr[i];
+          return invSum > 0 ? 1 / invSum : 0;
+        });
+        const product = effectiveOdds.reduce(function (pr, o) {
+          return pr * (o || 1);
+        }, 1);
+        return product.toFixed(2);
+      })();
     const prizeVal = isWon
       ? p.resultIncome != null
         ? formatProfileMoney(p.resultIncome)
