@@ -44,7 +44,9 @@ export function loadBacktest() {
 
 /* ═══════════════════════ CSS ═══════════════════════ */
 function injectStyles() {
-  if (document.getElementById('bt-inline-css')) return;
+  // ★ 先移除旧标签再重建，防止 Vite HMR 残留旧样式
+  var old = document.getElementById('bt-inline-css');
+  if (old) old.remove();
   const s = document.createElement('style');
   s.id = 'bt-inline-css';
   s.textContent = [
