@@ -94,6 +94,7 @@ function _preloadHotModules() {
 // ★ P0加速: 新增 match-detail + ECharts 预加载（比赛详情页打开速度优化）
 function _preloadMods() {
   setTimeout(function () {
+    _mod('match-list'); // ★ 比赛列表（默认首页 Tab，消除首次切换白屏）
     _mod('plans'); // ★ 方案页（底部第5 tab，最高频入口）
     _mod('match-detail'); // ★ 比赛详情页（列表/排行点击高频入口）
   }, 2000);

@@ -185,7 +185,11 @@ export function loadMatchListFromData(matches) {
 export function loadMatchList(prefetchedApi) {
   var el = document.getElementById('matchList');
   if (!el) return;
-  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
+  // ★ P0: 保留骨架屏不销毁，仅追加加载态指示（避免白屏闪烁）
+  var skel = el.querySelector('.page-skeleton');
+  if (!skel) {
+    el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
+  }
 
   var w = state.weekDates[state.selectedWeekIdx];
   var cacheKey = 'match-list:' + (w ? w.matchDate : formatDate(new Date()));

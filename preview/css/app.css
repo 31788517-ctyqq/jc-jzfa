@@ -940,7 +940,7 @@ body {
 .loading-spinner {
   width: 32px;
   height: 32px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(15, 23, 42, 0.12);
   border-top-color: var(--cyan);
   border-radius: 50%;
   margin: 0 auto 12px;
@@ -5054,9 +5054,9 @@ svg ellipse {
   margin-bottom: 12px;
   background: linear-gradient(
     90deg,
-    rgba(15, 23, 42, 0.08) 25%,
-    rgba(15, 23, 42, 0.18) 50%,
-    rgba(15, 23, 42, 0.08) 75%
+    rgba(15, 23, 42, 0.15) 25%,
+    rgba(15, 23, 42, 0.28) 50%,
+    rgba(15, 23, 42, 0.15) 75%
   );
   background-size: 200% 100%;
   animation: skShimmer 1.5s ease infinite;
