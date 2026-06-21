@@ -1277,11 +1277,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         case 'auth-login': {
           const username = String(data.username || '').trim();
           const password = String(data.password || '');
+          const rememberMe = data.rememberMe === true || data.rememberMe === 'true';
           if (!username || !password) return res.json({ code: 0, msg: '缺少用户名或密码' });
           // ★ P1-2 优化：await 异步登录（scrypt 不阻塞事件循环）
           const result = await authService.loginWithPassword(username, password, {
             ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || '',
             userAgent: req.headers['user-agent'] || '',
+            rememberMe: rememberMe,
           });
           if (!result.ok) return res.json({ code: 0, msg: result.msg || '登录失败' });
           return res.json({

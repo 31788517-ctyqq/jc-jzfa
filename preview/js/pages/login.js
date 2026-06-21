@@ -208,6 +208,15 @@ function ensureLoginRoot() {
     '</button>' +
     '</div>' +
     '</div>' +
+    '<div class="auth-agreement auth-remember-row">' +
+    '<label class="auth-agreement-label" for="loginRemember">' +
+    '<input id="loginRemember" type="checkbox" />' +
+    '<span class="auth-check-icon" aria-hidden="true">' +
+    '<svg viewBox="0 0 24 24"><path d="M9.2 15.5 5.9 12.2 4.5 13.6l4.7 4.7L19.5 8 18.1 6.6z"/></svg>' +
+    '</span>' +
+    '<span class="auth-agreement-text">记住我</span>' +
+    '</label>' +
+    '</div>' +
     '<div class="auth-agreement">' +
     '<label class="auth-agreement-label" for="loginAgree">' +
     '<input id="loginAgree" type="checkbox" checked />' +
@@ -312,6 +321,17 @@ function bindLoginAction() {
   }
 
   function applyLoginResult(res, inputUsername) {
+    // ★ 记住我：写 localStorage
+    try {
+      var remEl = document.getElementById('loginRemember');
+      if (remEl && remEl.checked) {
+        localStorage.setItem('loginRememberMe', '1');
+      } else {
+        localStorage.removeItem('loginRememberMe');
+      }
+      localStorage.setItem('loginUsername', inputUsername || res.user || '');
+    } catch (_) {}
+
     setAuthToken(res.token || '');
     setAuthSession({
       user: res.user,
@@ -391,7 +411,9 @@ function bindLoginAction() {
     btn.disabled = true;
     setMsg(msg, '登录中...', true);
 
-    api('auth-login', { username, password }, 0)
+    var rememberMe = (document.getElementById('loginRemember') || { checked: false }).checked;
+
+    api('auth-login', { username, password, rememberMe: rememberMe }, 0)
       .catch(function (e) {
         const canFallback =
           isLocalEnv() && username === 'ctyqq' && e && /账号或密码错误|登录失败/.test(String(e.message || ''));
@@ -420,7 +442,57 @@ function bindLoginAction() {
 
 export function loadLogin() {
   installVipGiftPreviewHelpers();
+
+  // ★ 自动登录：rememberMe 标记 + 有效 session → 直接进入首页
+  try {
+    var isRemembered = localStorage.getItem('loginRememberMe') === '1';
+    if (isRemembered) {
+      // 异步验证 session 是否仍然有效
+      api('auth-session', {}, 0).then(function (res) {
+        if (res && res.code === 1 && res.data && res.data.user) {
+          // Session 有效，自动进入系统
+          setAuthToken(res.data.token || '');
+          setAuthSession({
+            user: res.data.user,
+            roles: res.data.roles || [],
+            permissions: res.data.permissions || [],
+            referralEnabled: res.data.referralEnabled || false,
+          });
+          // 回填 rememberMe 复选框状态
+          var remEl = document.getElementById('loginRemember');
+          if (remEl) remEl.checked = true;
+          // 恢复用户名
+          var savedUser = localStorage.getItem('loginUsername') || '';
+          if (savedUser) {
+            var userEl = document.getElementById('loginUser');
+            if (userEl) userEl.value = savedUser;
+          }
+          // 跳转首页
+          if (typeof window.switchTab === 'function') {
+            window.switchTab('home');
+          }
+          return;
+        }
+        // Session 已过期，清除标记，显示登录表单
+        localStorage.removeItem('loginRememberMe');
+      }).catch(function () {
+        // API 失败，降级显示登录表单
+      });
+    }
+  } catch (_) {}
+
   const root = ensureLoginRoot();
   if (!root) return;
   bindLoginAction();
+  // 恢复上次登录用户名
+  try {
+    var savedUser = localStorage.getItem('loginUsername') || '';
+    if (savedUser && !document.getElementById('loginUser').value) {
+      document.getElementById('loginUser').value = savedUser;
+      var remEl = document.getElementById('loginRemember');
+      if (remEl && localStorage.getItem('loginRememberMe') === '1') {
+        remEl.checked = true;
+      }
+    }
+  } catch (_) {}
 }

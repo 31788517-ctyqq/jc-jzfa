@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const database = require('./database');
 
 const SESSION_TTL_HOURS = parseInt(process.env.AUTH_SESSION_TTL_HOURS || '24', 10);
+const SESSION_TTL_REMEMBER_DAYS = parseInt(process.env.AUTH_SESSION_TTL_REMEMBER_DAYS || '15', 10);
 const LOCK_MINUTES = parseInt(process.env.AUTH_LOCK_MINUTES || '15', 10);
 const MAX_LOGIN_FAILS = parseInt(process.env.AUTH_MAX_LOGIN_FAILS || '5', 10);
 
@@ -659,7 +660,9 @@ async function loginWithPassword(username, password, meta = {}) {
 
   const token = randomSecret(24);
   const tokenHash = sha256(token);
-  const expiresAt = new Date(now.getTime() + SESSION_TTL_HOURS * 3600 * 1000).toISOString();
+  const rememberMe = meta && meta.rememberMe;
+  const ttlMs = rememberMe ? SESSION_TTL_REMEMBER_DAYS * 24 * 3600 * 1000 : SESSION_TTL_HOURS * 3600 * 1000;
+  const expiresAt = new Date(now.getTime() + ttlMs).toISOString();
 
   // ★ P1-3 优化：先查询 session 信息并存入内存缓存，确保防抖写入窗口内可立即验证
   const sessionInfo = buildSessionInfoByUserId(user.id);
