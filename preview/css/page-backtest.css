@@ -1,9 +1,41 @@
-/* page-backtest.css — auto-split from app.css */
+/* page-backtest.css — 回测分析页统计卡片+列表 */
 
+/* ─── 回测列表 ─── */
 .backtest-pager {
   margin-top: 12px;
 }
-
 .backtest-row {
   margin-bottom: 8px;
+}
+
+/* ─── scheme-stats-card 统计卡片（原在 app.css，CSS拆分后补回） ─── */
+.scheme-stats-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 22px;
+  padding: 18px 10px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+.scheme-stat-item {
+  flex: 1;
+  text-align: center;
+}
+.scheme-stat-val {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--cyan);
+  line-height: 1.2;
+}
+.scheme-stat-lbl {
+  font-size: var(--fs-xs);
+  color: var(--text3);
+  margin-top: 4px;
+}
+.scheme-stat-div {
+  width: 1px;
+  height: 32px;
+  background: rgba(15, 23, 42, 0.06);
 }
