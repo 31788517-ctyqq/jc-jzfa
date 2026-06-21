@@ -183,11 +183,13 @@ function getAdapter() {
 }
 
 function flushCriticalWrites(adp) {
+  // ★ P1 优化：不再同步 flush（417MB DB 导出阻塞事件循环 4-7s）
+  // execRun 内部的 _scheduleSave() 已用 setImmediate 防抖写入，
+  // 定期 flush 由 database.js 的 5 分钟定时器负责
+  // 仅保留 markDirty 调用通知 reload 追踪器
   try {
-    if (adp && typeof adp.flush === 'function') adp.flush();
-  } catch (e) {
-    console.warn('[auth] flushCriticalWrites failed:', e && e.message ? e.message : e);
-  }
+    if (adp && typeof adp.markDirty === 'function') adp.markDirty();
+  } catch (_) {}
 }
 
 function nowIso() {

@@ -344,34 +344,51 @@ function _createSqlJsAdapter(sqlDb) {
   let _inTransaction = false;
   let _dirty = false;
   let _saveTimer = null;
+  let _saving = false; // ★ P1 异步写入锁，防止并发 export+write
   function _saveToFile() {
     if (_inTransaction) return; // 事务中不保存，等 COMMIT
+    if (_saving) return; // ★ 正在异步写入中，跳过（下次 _scheduleSave 会重试）
+    _saving = true;
     try {
+      // export() 是 WASM 同步操作（~230ms），不阻塞事件循环的 I/O
       const data = dbInstance.export();
       const buffer = Buffer.from(data);
       const tmpFile = DB_FILE + '.tmp';
-      // ★ 写入前清理旧 .tmp，避免重叠写导致读回 0 字节
+      // ★ 写入前清理旧 .tmp
       try {
         fs.unlinkSync(tmpFile);
       } catch (_) {}
-      fs.writeFileSync(tmpFile, buffer);
-      // 写入后校验完整性
-      const written = fs.readFileSync(tmpFile);
-      if (written.length !== buffer.length) {
-        const err = new Error('写入字节数不匹配(' + written.length + '\u2260' + buffer.length + ')');
-        if (_dbMetrics) _dbMetrics.recordError(err.message);
-        throw err;
-      }
-      // 原子替换
-      fs.renameSync(tmpFile, DB_FILE);
-      if (_dbMetrics) _dbMetrics.recordWrite();
+      // ★ P1 优化：writeFile + rename 异步化，消除 3.4s 同步 I/O 阻塞
+      fs.writeFile(tmpFile, buffer, function (writeErr) {
+        if (writeErr) {
+          _saving = false;
+          console.error('[db] 异步写入失败: ' + writeErr.message);
+          if (_dbMetrics) _dbMetrics.recordError(writeErr.message);
+          try { fs.unlinkSync(tmpFile); } catch (_) {}
+          return;
+        }
+        // 异步 rename（~2.9s 同步操作改异步）
+        fs.rename(tmpFile, DB_FILE, function (renameErr) {
+          _saving = false;
+          if (renameErr) {
+            console.error('[db] 异步 rename 失败: ' + renameErr.message);
+            if (_dbMetrics) _dbMetrics.recordError(renameErr.message);
+            try { fs.unlinkSync(tmpFile); } catch (_) {}
+            return;
+          }
+          if (_dbMetrics) _dbMetrics.recordWrite();
+          // ★ 异步写入期间若有新写入，触发再次保存
+          if (_dirty && !_inTransaction) {
+            _dirty = false;
+            _scheduleSave();
+          }
+        });
+      });
     } catch (e) {
-      console.error('[db] 保存数据库失败: ' + e.message);
-      if (_dbMetrics && e.message.indexOf('写入字节数不匹配') === -1) _dbMetrics.recordError(e.message);
-      // 清理残留 .tmp 文件
-      try {
-        fs.unlinkSync(DB_FILE + '.tmp');
-      } catch (_) {}
+      _saving = false;
+      console.error('[db] export 失败: ' + e.message);
+      if (_dbMetrics) _dbMetrics.recordError(e.message);
+      try { fs.unlinkSync(DB_FILE + '.tmp'); } catch (_) {}
     }
   }
 
@@ -486,8 +503,25 @@ function _createSqlJsAdapter(sqlDb) {
     };
   }
 
+  // ★ P1: 同步保存版本（仅用于 close/flush/进程退出等必须同步落盘的场景）
+  function _saveToFileSync() {
+    if (_inTransaction) return;
+    try {
+      const data = dbInstance.export();
+      const buffer = Buffer.from(data);
+      const tmpFile = DB_FILE + '.tmp';
+      try { fs.unlinkSync(tmpFile); } catch (_) {}
+      fs.writeFileSync(tmpFile, buffer);
+      fs.renameSync(tmpFile, DB_FILE);
+      if (_dbMetrics) _dbMetrics.recordWrite();
+    } catch (e) {
+      console.error('[db] 同步保存失败: ' + e.message);
+      try { fs.unlinkSync(DB_FILE + '.tmp'); } catch (_) {}
+    }
+  }
+
   function close() {
-    _saveToFile();
+    _saveToFileSync();
     dbInstance.close();
   }
 
@@ -497,7 +531,7 @@ function _createSqlJsAdapter(sqlDb) {
       _saveTimer = null;
     }
     _dirty = false;
-    _saveToFile();
+    _saveToFileSync(); // ★ flush 用同步版本（进程退出场景）
     return true;
   }
 
@@ -529,6 +563,27 @@ function _createSqlJsAdapter(sqlDb) {
       _lastReloadMtime = fs.statSync(DB_FILE).mtimeMs;
     } catch (e) {}
   }
+
+  // ★ P1 优化：定期 flush 定时器（5分钟），替代 auth-service 的同步 flush
+  // _scheduleSave 的 setImmediate 防抖已处理写入调度，
+  // 但如果进程长时间不退出，需定期落盘防止内存数据丢失
+  var _periodicFlushTimer = setInterval(function () {
+    if (_dirty && !_inTransaction && !_saving) {
+      _dirty = false;
+      _saveToFile(); // 异步版本，不阻塞事件循环
+      console.log('[db] 定期 flush 触发 (5min)');
+    }
+  }, 5 * 60 * 1000);
+  _periodicFlushTimer.unref(); // 不阻止进程退出
+
+  // ★ P1 优化：进程退出时最终 flush（确保数据不丢失，用同步版本）
+  process.on('beforeExit', function () {
+    if (_dirty && !_inTransaction) {
+      _dirty = false;
+      _saveToFileSync();
+      console.log('[db] 退出前同步 flush 完成');
+    }
+  });
 
   // ★ C: 增量查询 — 只在磁盘文件上执行 SELECT，不入内存 DB
   //   缓存窗口 5s：即使 jc-sync 持续写入，5s 内复用同一磁盘连接（<50ms/次）
