@@ -87,7 +87,7 @@ async function renderLiteReferral(container) {
       ((session.user || {}).username || '会员用户') +
       '</strong></div>' +
       '</div>' +
-      '<img class="member-hero-eagle" src="/laoying11.png" alt="" loading="eager" decoding="async" />' +
+      '<img class="member-hero-eagle" src="/assets/laoying11.png" alt="" loading="eager" decoding="async" />' +
       '</div>' +
       '<div class="member-section-card ref-code-card">' +
       '<div class="member-section-title">我的邀请码</div>' +
@@ -224,7 +224,7 @@ function renderReferralMainShell(container, session) {
     ((session.user || {}).username || '会员用户') +
     '</strong></div>' +
     '</div>' +
-    '<img class="member-hero-eagle" src="/laoying11.png" alt="" loading="eager" decoding="async" />' +
+    '<img class="member-hero-eagle" src="/assets/laoying11.png" alt="" loading="eager" decoding="async" />' +
     '</div>' +
     '<div class="ref-balance-card">' +
     '<div class="ref-stat-row">' +

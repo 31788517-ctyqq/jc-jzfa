@@ -248,7 +248,7 @@ function renderLayout(root, userName) {
     escapeHtml(userName) +
     '</div>' +
     '</div>' +
-    '<img class="login-eagle profile-eagle" src="/laoying11.png" alt="" loading="eager" decoding="async" />' +
+    '<img class="login-eagle profile-eagle" src="/assets/laoying11.png" alt="" loading="eager" decoding="async" />' +
     '</div>' +
     '<div class="auth-card auth-login-card auth-account-card profile-account-card profile-account-card-v2">' +
     '<div class="profile-status-card profile-membership-card status-free" id="profileSubCard">' +

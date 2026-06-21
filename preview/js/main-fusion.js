@@ -48,11 +48,11 @@ function _mod(name) {
     });
   }
   // Browser path: 动态 import（兼容旧 /js/ 路径），v 参数绕过 SW 缓存
-  return import('./pages/' + name + '.js?v=20260620a').catch(function (e) {
+  return import('./pages/' + name + '.js?v=20260621a').catch(function (e) {
     console.error('[JS] load fail: ' + name + ' - ' + (e && e.message));
     return new Promise(function (resolve, reject) {
       setTimeout(function () {
-        import('./pages/' + name + '.js?v=20260620a').then(resolve).catch(function (e2) {
+        import('./pages/' + name + '.js?v=20260621a').then(resolve).catch(function (e2) {
           console.error('[JS] retry fail: ' + name + ' - ' + (e2 && e2.message));
           reject(e2);
         });
@@ -1191,8 +1191,8 @@ export function switchTab(tab) {
     if (state.rankDate) rParams.date = state.rankDate;
     var rankApiPromise = api('ranking-list', rParams);
     _mod('ranking').then(function (m) {
-      m._autoSetRankBestDate();
-      m.updateRankDateBar();
+      if (typeof m._autoSetRankBestDate === 'function') m._autoSetRankBestDate();
+      if (typeof m.updateRankDateBar === 'function') m.updateRankDateBar();
       m.loadRanking(undefined, undefined, rankApiPromise);
     });
   }
@@ -1799,8 +1799,8 @@ function switchTabLoad(tab) {
     if (state.rankDate) rParams.date = state.rankDate;
     var rankApiPromise = api('ranking-list', rParams);
     _mod('ranking').then(function (m) {
-      m._autoSetRankBestDate();
-      m.updateRankDateBar();
+      if (typeof m._autoSetRankBestDate === 'function') m._autoSetRankBestDate();
+      if (typeof m.updateRankDateBar === 'function') m.updateRankDateBar();
       m.loadRanking(undefined, undefined, rankApiPromise);
     });
   }

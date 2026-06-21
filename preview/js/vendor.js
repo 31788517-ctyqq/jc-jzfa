@@ -10,6 +10,8 @@ const TOKEN_KEY = 'auth_token';
 const SESSION_KEY = 'auth_session';
 
 // CSS loader — inject <link> at runtime, returns Promise that resolves on load
+// ★ Phase3: CSS 文件不被 Vite 处理（运行时 loadCSS），路径始终用 /css/
+// Nginx 已配置 location ^~ /css/ { alias preview/css/; } 兼容 Vite 和 raw ESM 两种模式
 export function loadCSS(path) {
   var href = path.replace(/^(\.\.\/)+css\//, '/css/');
   if (document.querySelector('link[href="' + href + '"]')) return Promise.resolve();

@@ -110,7 +110,7 @@ export function loadContactInvite() {
     '<div class="login-hero-subtitle">没有邀请码<br>先联系客服</div>' +
     '<div class="auth-invite-badge">邀请制注册入口</div>' +
     '</div>' +
-    '<img class="login-eagle" src="/laoying11.png" alt="" loading="eager" decoding="async" />' +
+    '<img class="login-eagle" src="/assets/laoying11.png" alt="" loading="eager" decoding="async" />' +
     '</div>' +
     '<div class="auth-card auth-login-card auth-contact-card">' +
     '<div class="auth-note-card">' +

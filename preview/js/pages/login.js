@@ -185,7 +185,7 @@ function ensureLoginRoot() {
     '<div class="login-hero-title">Hello!</div>' +
     '<div class="login-hero-subtitle">欢迎来到<br>竞彩推荐监控系统</div>' +
     '</div>' +
-    '<img class="login-eagle" src="/laoying11.png" alt="" loading="eager" decoding="async" />' +
+    '<img class="login-eagle" src="/assets/laoying11.png" alt="" loading="eager" decoding="async" />' +
     '</div>' +
     '<div class="auth-card auth-login-card">' +
     '<div class="auth-field auth-field-icon">' +
