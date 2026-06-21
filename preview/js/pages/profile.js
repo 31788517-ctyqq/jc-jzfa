@@ -288,7 +288,7 @@ function renderLayout(root, userName) {
     '</div>' +
     '</div>' +
     '<div class="profile-quick-panel">' +
-    '<button class="profile-quick-btn" type="button" onclick="scrollProfileHistory()">📜 历史方案</button>' +
+    '<button class="profile-quick-btn" type="button" onclick="switchTab(\'plan\')">📜 历史方案</button>' +
     '<button class="profile-quick-btn" type="button" onclick="openProfileDataTab(\'income\')">💰 收益统计</button>' +
     '<button class="profile-quick-btn" type="button" onclick="openProfileDataTab(\'hit\')">🎯 命中分析</button>' +
     '</div>' +
