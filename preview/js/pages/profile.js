@@ -168,18 +168,12 @@ function updateProfilePlanFilterTabs() {
     const isActive = tab.getAttribute('data-filter') === _profilePlanFilter;
     tab.classList.toggle('is-active', isActive);
     tab.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    // ★ 使用 bonus-opt-badge active 样式
-    if (isActive) {
-      tab.style.background = '';
-      tab.style.color = '';
-      tab.style.boxShadow = '';
-      tab.classList.add('is-active');
-    } else {
-      tab.style.background = '';
-      tab.style.color = '';
-      tab.style.boxShadow = '';
-      tab.classList.remove('is-active');
-    }
+    // ★ 使用 bonus-opt-badge is-active CSS 类
+    tab.classList.toggle('is-active', isActive);
+    // 清除旧 inline 样式（用 removeProperty 彻底移除，避免覆盖 CSS 类）
+    tab.style.removeProperty('background');
+    tab.style.removeProperty('color');
+    tab.style.removeProperty('box-shadow');
   }
 }
 
