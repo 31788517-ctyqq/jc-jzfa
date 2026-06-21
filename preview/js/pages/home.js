@@ -276,8 +276,7 @@ function _renderHomeStatsBrief(matches, rankData) {
   if (mcEl) mcEl.textContent = String(matchCount);
   const liveCount = Array.isArray(matches)
     ? matches.filter(function (m) {
-        const status = String(m.matchStatus || m.status || m.state || '').toLowerCase();
-        return /进行|上半|下半|中场|live|playing|in_progress/.test(status);
+        return Number(m.matchStatus) === 1;
       }).length
     : 0;
   const metaEl = document.getElementById('homeMatchMeta');
@@ -300,8 +299,7 @@ function _renderHomeStats(matches, rankData) {
   if (mcEl) mcEl.textContent = String(matchCount);
   const liveCount = Array.isArray(matches)
     ? matches.filter(function (m) {
-        const status = String(m.matchStatus || m.status || m.state || '').toLowerCase();
-        return /进行|上半|下半|中场|live|playing|in_progress/.test(status);
+        return Number(m.matchStatus) === 1;
       }).length
     : 0;
   const metaEl = document.getElementById('homeMatchMeta');
