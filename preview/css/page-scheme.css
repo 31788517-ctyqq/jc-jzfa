@@ -438,6 +438,47 @@
   transition: background 0.2s;
 }
 
+/* ═══ 方案卡片底部 AI分析 / 功守道 胶囊按钮 ═══ */
+.smc-footer {
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  justify-content: center;
+}
+.smc-ai-btn,
+.smc-gs-btn {
+  flex: 1 1 0;                  /* ★ 等宽 */
+  min-width: 0;
+  height: 32px;
+  padding: 0 18px;
+  border-radius: 20px;          /* ★ 胶囊状 */
+  border: 1px solid transparent;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.smc-ai-btn {
+  background: linear-gradient(135deg, rgba(126, 166, 189, 0.15), rgba(0, 180, 219, 0.08));
+  color: #7ea6bd;
+  border-color: rgba(126, 166, 189, 0.25);
+}
+.smc-ai-btn:active {
+  background: rgba(126, 166, 189, 0.25);
+  transform: scale(0.96);
+}
+.smc-gs-btn {
+  background: linear-gradient(135deg, rgba(184, 154, 96, 0.15), rgba(229, 168, 0, 0.08));
+  color: #c8981e;
+  border-color: rgba(184, 154, 96, 0.25);
+}
+.smc-gs-btn:active {
+  background: rgba(184, 154, 96, 0.25);
+  transform: scale(0.96);
+}
+
 .cfm-save-btn:hover {
   background: var(--red);
 }

@@ -692,7 +692,7 @@ function renderMatchList() {
           '</div>' +
           '</div>' +
           '<div class="smc-footer">' +
-          '<button class="smc-ai-btn" onclick="event.stopPropagation();goDetail(\'' +
+          '<button class="smc-ai-btn" onclick="event.stopPropagation();showAIPrediction(\'' +
           id +
           '\')">AI分析</button>' +
           '<button class="smc-gs-btn" onclick="event.stopPropagation();showGongshoudao(\'' +
