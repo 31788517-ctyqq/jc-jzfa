@@ -127,6 +127,38 @@ function injectStyles() {
     '.bt-pk-chip.ok { background:rgba(122,170,150,.14); color:#5f9a83; }',
     '.bt-pk-chip.attr { background:rgba(167,139,250,.16); color:#8b5cf6; }',
     '.bt-pk-sample-note { color:#b89a60; font-size:10px; margin-top:6px; }',
+
+    // ─── filter-tag 标签按钮 + filter-DD 筛选卡片（浅色主题） ───
+    '.filter-row { display:flex; gap:8px; overflow-x:auto; padding:12px 0; margin:0; scrollbar-width:none; }',
+    '.filter-row::-webkit-scrollbar { display:none; }',
+    '.filter-tag { white-space:nowrap; padding:6px 14px; border-radius:999px; font-size:var(--fs-sm); background:rgba(15,23,42,0.05); color:#475569; border:1px solid rgba(15,23,42,0.1); cursor:pointer; transition:all .2s; }',
+    '.filter-tag.active { background:var(--cyan); color:#0f172a; font-weight:600; border-color:var(--cyan); }',
+    '.filter-section-card { background:var(--card); border:1px solid var(--card-border); border-radius:22px; padding:22px 22px 18px; margin-bottom:16px; box-shadow:0 0 14px rgba(15,23,42,0.04); }',
+    '.filter-head { font-size:var(--fs-xl); font-weight:700; color:#1e293b; margin-bottom:14px; padding:0 2px; }',
+    '.filter-section-card .filter-row { display:flex; align-items:center; justify-content:space-between; min-height:56px; padding:4px 4px; border-bottom:1px solid rgba(15,23,42,0.06); overflow-x:visible; gap:0; }',
+    '.filter-section-card .filter-row:last-of-type { border-bottom:none; }',
+    '.filter-label { font-size:var(--fs-md); color:#64748b; font-weight:600; flex-shrink:0; min-width:44px; margin-right:16px; margin-left:8px; }',
+    '.filter-dd { flex:1; position:relative; -webkit-user-select:none; user-select:none; }',
+    '.filter-dd-trigger { height:44px; padding:0 38px 0 16px; background:rgba(15,23,42,0.04); border:1px solid rgba(15,23,42,0.12); border-radius:12px; font-size:15px; font-weight:500; letter-spacing:.3px; transition:all .25s ease; cursor:pointer; display:flex; align-items:center; position:relative; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }',
+    '.filter-dd.open .filter-dd-trigger { background-color:rgba(24,224,224,0.08); border-color:rgba(24,224,224,0.4); box-shadow:0 0 0 4px rgba(24,224,224,0.05), 0 0 18px rgba(24,224,224,0.1); }',
+    '.filter-dd-text { color:var(--cyan); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
+    '.filter-dd-arrow { position:absolute; right:12px; top:50%; transform:translateY(-50%); width:20px; height:20px; fill:none; stroke:var(--cyan); stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; transition:transform .2s ease; }',
+    '.filter-dd.open .filter-dd-arrow { transform:translateY(-50%) rotate(180deg); }',
+    '.filter-dd-menu { display:none; position:fixed; z-index:9999; background:#fff; border:1px solid rgba(15,23,42,0.15); border-radius:12px; max-height:220px; overflow-y:auto; padding:6px 0; box-shadow:0 8px 30px rgba(15,23,42,0.12), 0 0 12px rgba(15,23,42,0.06); -webkit-overflow-scrolling:touch; transform:translateZ(0); }',
+    '.filter-dd.open .filter-dd-menu { display:block; }',
+    '.filter-dd.open { z-index:999; position:relative; }',
+    '.filter-dd-option { position:relative; padding:12px 40px 12px 18px; font-size:14px; font-weight:500; color:#475569; cursor:pointer; transition:background .15s ease; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }',
+    '.filter-dd-option:hover { background:rgba(15,23,42,0.05); color:#1e293b; }',
+    '.filter-dd-option.selected { color:var(--cyan); font-weight:600; background:rgba(24,224,224,0.08); }',
+    '.filter-dd-option.selected::after { content:\"\\2713\"; position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:15px; font-weight:700; color:var(--cyan); }',
+    '.filter-btn-wrap { margin-top:18px; }',
+
+    // ─── scheme-stats-card 统计卡片 ───
+    '.scheme-stats-card { background:var(--card); border:1px solid var(--card-border); border-radius:22px; padding:18px 10px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-around; }',
+    '.scheme-stat-item { flex:1; text-align:center; }',
+    '.scheme-stat-val { font-size:16px; font-weight:800; color:var(--cyan); line-height:1.2; }',
+    '.scheme-stat-lbl { font-size:var(--fs-xs); color:var(--text3); margin-top:4px; }',
+    '.scheme-stat-div { width:1px; height:32px; background:rgba(15,23,42,0.06); }',
   ].join('\n');
   document.head.appendChild(s);
 }
