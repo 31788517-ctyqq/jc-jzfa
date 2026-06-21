@@ -450,8 +450,6 @@ DEPLOY_MAP = [
 
     ('server/oneshot_sync.js',            'both'),
 
-    ('server/scheduler.js',               'both'),
-
     ('server/scraper.js',                 'both'),
 
     ('server/http-utils.js',              'both'),
@@ -510,8 +508,6 @@ DEPLOY_MAP = [
 
     ('server/payments/alipay-callback.js', 'both'),
 
-    ('server/payments/renewal-scheduler.js','both'),
-
     ('server/payments/referral-compute.js','both'),
 
     ('server/payments/referral-account.js','both'),
@@ -529,6 +525,8 @@ DEPLOY_MAP = [
     ('server/routes/auth.js',             'both'),
 
     ('server/routes/users.js',            'both'),
+
+    ('server/routes/system.js',           'both'),
 
     ('server/core/plan-generator.js',     'both'),
 
@@ -555,6 +553,7 @@ DEPLOY_MAP = [
 
     ('server/core/ingestion-guard.js',    'both'),  # ★ V9: 实时比分摄入门禁（data_sync/sync_live_500 依赖）
     ('server/core/score-corrector.js',    'both'),  # ★ V12: 多源赛果校正（sporttery+500.com 交叉对账）
+    ('server/core/result-verifier.js',    'both'),  # ★ P0: 多源赛果核实入口（verifyYesterdayResults 依赖，缺失→L1/L2/L3 防漂移全失效）
 
     ('server/core/match-data-pack.js',    'both'),  # ★ V9: data_sync 依赖，缺失会导致 jc-sync 启动失败
     ('server/core/alert-monitor.js',     'both'),  # ★ V12: 运维告警监控
@@ -575,6 +574,12 @@ DEPLOY_MAP = [
     ('server/prediction_log.js',          'both'),
 
     ('server/alert.js',                   'both'),
+
+    ('server/token_manager.js',           'both'),  # ★ P0: 米斗 token 管理（data_sync 依赖）
+
+    ('server/pk_scorer.js',               'both'),  # ★ P0: PK 评分核心（index/data_sync/scheduler_v2 依赖）
+
+    ('server/backfill_results.js',        'both'),  # ★ P0: 回填逻辑（index.js 依赖）
 
     # ★ V7.1 新增核心模块（market.js 依赖 + 影子账户 + 赔率追踪）
 
@@ -623,8 +628,6 @@ DEPLOY_MAP = [
     ('server/core/league-heat-profile.js','both'),
 
     ('server/core/match-context-collector.js','both'),
-
-    ('server/core/shadow-account.js',     'both'),
 
     # ★ 蓝图 V8.2 新增核心模块（预测融合 + 特征工程 + 回填 + 质量监控）
 
