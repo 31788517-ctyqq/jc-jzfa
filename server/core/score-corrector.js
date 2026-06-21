@@ -356,7 +356,7 @@ function applyCorrections(correctionResult) {
           );
           dbCnt++;
         });
-        db.flushCriticalWrites(adp);
+        if (adp && typeof adp.markDirty === 'function') adp.markDirty();
         console.log('[corrector] matches 表已同步: ' + dbCnt + ' 场');
       }
     } catch (e) {

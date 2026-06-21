@@ -1342,7 +1342,7 @@ async function backfillResults(dateStr) {
           }
         });
         if (scoreSyncCount > 0) {
-          database.flushCriticalWrites(adp);
+          if (adp && typeof adp.markDirty === 'function') adp.markDirty();
           log('[backfill] matches 表同步完成: ' + scoreSyncCount + ' 场赛果');
         }
       }
@@ -3219,20 +3219,24 @@ async function start() {
       if (!todayHasMatches(today)) {
         startTodayScheduleWatcher();
       }
-      // 日期变更时也检查昨天回填
-      const yd = fmtLocal(new Date(Date.now() - 86400000));
-      if (needBackfillCheck(yd)) {
-        log('[health] 日期变更，触发昨天 ' + yd + ' 回填...');
-        backfillResults(yd).catch((e) => log('[health] 昨天回填失败: ' + e.message));
+      // 日期变更时检查最近3天回填（防止历史遗漏）
+      for (let dayOffset = 1; dayOffset <= 3; dayOffset++) {
+        const yd = fmtLocal(new Date(Date.now() - dayOffset * 86400000));
+        if (needBackfillCheck(yd)) {
+          log('[health] 日期变更，触发 ' + yd + ' 回填...');
+          backfillResults(yd).catch((e) => log('[health] ' + yd + ' 回填失败: ' + e.message));
+        }
       }
     }
-    // 每20分钟检查一次昨天回填
+    // 每20分钟检查一次最近3天回填（扩大范围，防止历史遗漏）
     if (Date.now() - _lastBackfillCheck > 1200000) {
       _lastBackfillCheck = Date.now();
-      const yd = fmtLocal(new Date(Date.now() - 86400000));
-      if (needBackfillCheck(yd)) {
-        log('[health] 定时检查：昨天 ' + yd + ' 存在未回填比赛，触发回填...');
-        backfillResults(yd).catch((e) => log('[health] 昨天回填失败: ' + e.message));
+      for (let dayOffset = 1; dayOffset <= 3; dayOffset++) {
+        const checkDate = fmtLocal(new Date(Date.now() - dayOffset * 86400000));
+        if (needBackfillCheck(checkDate)) {
+          log('[health] 定时检查：' + checkDate + ' 存在未回填比赛，触发回填...');
+          backfillResults(checkDate).catch((e) => log('[health] ' + checkDate + ' 回填失败: ' + e.message));
+        }
       }
     }
     // ★ V12: 每分钟告警监控（PM2 状态、健康检查）
