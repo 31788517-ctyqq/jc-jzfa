@@ -218,10 +218,12 @@ body {
 
 .nav-title {
   font-size: 22px;
+  font-weight: 300;
   letter-spacing: 0.6px;
   text-align: left;
   color: #ffffff;
   text-shadow: 0 2px 14px rgba(255, 255, 255, 0.12);
+  font-family: 'Source Han Sans SC', 'Noto Sans SC', 'Helvetica Neue Light', 'PingFang SC', sans-serif;
 }
 
 .nav-my-btn {
