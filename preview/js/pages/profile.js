@@ -301,7 +301,7 @@ function renderLayout(root, userName) {
     '<button class="profile-plan-tab" type="button" data-filter="today" onclick="switchProfilePlanFilter(\'today\')">今日</button>' +
     '<button class="profile-plan-tab" type="button" data-filter="all" onclick="switchProfilePlanFilter(\'all\')">全部</button>' +
     '</div>' +
-    '<div class="profile-filter-hint" id="profileFilterHint"></div>' +
+    '' +
     '<div id="profilePlanList" class="profile-plan-list"></div>' +
     '</div>' +
     '<div class="profile-setting-list">' +
@@ -422,12 +422,6 @@ function renderProfilePlans() {
     if (_profilePlanFilter === 'yesterday') return dateKeys.indexOf(yesterday) >= 0;
     return true;
   });
-
-  const hintEl = document.getElementById('profileFilterHint');
-  if (hintEl) {
-    const label = _profilePlanFilter === 'today' ? '今日' : _profilePlanFilter === 'yesterday' ? '昨日' : '全部';
-    hintEl.textContent = '当前筛选：' + label + '（' + filtered.length + '条）';
-  }
 
   filtered.sort(function (a, b) {
     const ad = (a.createdAt || a.date || '').toString();
