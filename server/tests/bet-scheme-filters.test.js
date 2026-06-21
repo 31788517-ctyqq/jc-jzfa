@@ -372,7 +372,7 @@ describe('bet-scheme-filters — estimateScheme 方案估算', () => {
   });
 
   it('3场 3x1 → 正确计算', () => {
-    // 3场比赛各1选，3x1过关，每选产生1注，共3注
+    // 3场比赛各1选，3x1过关，C(3,3)=1注
     const sel = [
       { matchId: 'm1', selectionCode: 'home', odds: 1.8 },
       { matchId: 'm2', selectionCode: 'home', odds: 1.9 },
@@ -380,9 +380,11 @@ describe('bet-scheme-filters — estimateScheme 方案估算', () => {
     ];
     const est = estimateScheme(sel, ['3x1'], 2);
     expect(est.matchCount).toBe(3);
-    // estimateScheme: 每个选择×每个passway符合条件的 → 3×1=3 tickets
-    expect(est.ticketCount).toBe(3);
-    expect(est.amount).toBe(12); // 3 tickets × 2元 × 2倍
+    // 3x1 = C(3,3) = 1 注（3场全选组成1注3串1）
+    expect(est.ticketCount).toBe(1);
+    expect(est.amount).toBe(4); // 1 ticket × 2元 × 2倍
+    // maxBonus = 2 × multiplier × bestProduct = 2 × 2 × (1.9×1.8×3.2)
+    expect(est.maxBonus).toBe(Math.round(2 * 2 * 1.9 * 1.8 * 3.2 * 100) / 100);
   });
 });
 
