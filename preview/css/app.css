@@ -1453,12 +1453,23 @@ body {
   border-color: rgba(184, 154, 96, 0.35);
 }
 
-/* ★ 奖金优化标签 active 态（个人中心历史方案Tab复用） */
-.profile-shell-v2 .profile-filter-btn.bonus-opt-badge.is-active {
-  color: #ffffff;
-  background: linear-gradient(180deg, #1f7a68 0%, #165a4d 100%);
-  border-color: transparent;
-  box-shadow: 0 10px 20px rgba(31, 122, 104, 0.22);
+/* ★ 个人中心历史方案Tab（专用类，不与任何 group selector 冲突） */
+.profile-plan-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 40px;
+  padding: 4px 14px;
+  border: 1px solid rgba(184, 154, 96, 0.2);
+  border-radius: 20px;
+  background: rgba(184, 154, 96, 0.1);
+  color: #c8981e;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .bonus-opt-badge-sm {
