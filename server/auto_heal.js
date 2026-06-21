@@ -180,20 +180,33 @@ async function healOddsGap(dateStr) {
   }
 }
 
-// ═══ 修复3: allplays 缺口 → 标记待补 ═══
+// ═══ 修复3: allplays 缺口 → 实际补抓单日 ═══
 async function healAllplaysGap(dateStr) {
-  logger.info('[auto_heal] allplays 缺口记录: ' + dateStr + ' (需 batch_fetch_500all 补抓)');
-  // allplays 需要全量重新 fetch（单日无法独立补），记录到缺失列表
-  const missingFile = path.join(__dirname, 'allplays_missing.json');
-  let missing = [];
+  logger.info('[auto_heal] 尝试补抓 allplays 缺口: ' + dateStr);
   try {
-    if (fs.existsSync(missingFile)) missing = JSON.parse(fs.readFileSync(missingFile, 'utf8'));
-  } catch (e) {}
-  if (!missing.includes(dateStr)) {
-    missing.push(dateStr);
-    fs.writeFileSync(missingFile, JSON.stringify(missing.sort(), null, 2));
+    const { fetchAllOdds } = require('./fetch_500all');
+    const odds = await fetchAllOdds(dateStr);
+    if (odds && Object.keys(odds).length > 0) {
+      // 读取现有 allplays 文件，合并当日数据
+      let allData = {};
+      try {
+        if (fs.existsSync(ALLPLAYS_FILE)) {
+          allData = JSON.parse(fs.readFileSync(ALLPLAYS_FILE, 'utf8'));
+        }
+      } catch (e) {}
+      allData[dateStr] = odds;
+      const tmpFile = ALLPLAYS_FILE + '.tmp';
+      fs.writeFileSync(tmpFile, JSON.stringify(allData));
+      fs.renameSync(tmpFile, ALLPLAYS_FILE);
+      logger.info('[auto_heal] allplays 补抓成功: ' + dateStr + ' (' + Object.keys(odds).length + ' 场)');
+      return { fixed: true, method: 'fetch_500all', date: dateStr, count: Object.keys(odds).length };
+    }
+    logger.warn('[auto_heal] allplays 补抓无数据: ' + dateStr);
+    return { fixed: false, reason: 'no_data', date: dateStr };
+  } catch (e) {
+    logger.error('[auto_heal] allplays 补抓失败: ' + dateStr + ' - ' + e.message);
+    return { fixed: false, error: e.message, date: dateStr };
   }
-  return { fixed: false, method: 'deferred', detail: '已加入补抓队列' };
 }
 
 // ═══ 主入口 ═══

@@ -206,8 +206,23 @@ function checkRecSyncStagnant(dateStr, recsPerMatch) {
       'P0.5',
       '今日推荐数据为空',
       dateStr + ' 所有比赛 recs_total=0',
-      '手动触发: python deploy.py --fast (重启 jc-sync)',
+      'auto_heal 已触发补抓，如持续为空请检查 midou token',
     );
+
+    // ★ 告警→自愈闭环：推荐为空时自动触发数据补抓
+    try {
+      const autoHeal = require('../auto_heal');
+      autoHeal
+        .checkAndHeal({ days: 2 })
+        .then(function (result) {
+          console.log('[alert-monitor] auto_heal 自愈触发完成: ' + JSON.stringify(result.gaps));
+        })
+        .catch(function (e) {
+          console.error('[alert-monitor] auto_heal 自愈失败: ' + e.message);
+        });
+    } catch (e) {
+      console.error('[alert-monitor] auto_heal 加载失败: ' + e.message);
+    }
   }
 }
 
@@ -220,8 +235,23 @@ function checkEmptyPlans(dateStr, planCount) {
         'P0.5',
         '今日方案为空',
         dateStr + ' 未生成任何方案 (第' + _state.emptyPlanStreak + '次检测)',
-        '检查推荐数据: recommNum 和 recs 是否匹配',
+        'auto_heal 已触发，如持续为空请检查推荐数据',
       );
+
+      // ★ 告警→自愈闭环：方案为空时触发推荐数据重新同步
+      if (_state.emptyPlanStreak <= 3) {
+        try {
+          const autoHeal = require('../auto_heal');
+          autoHeal
+            .checkAndHeal({ days: 1 })
+            .then(function (result) {
+              console.log('[alert-monitor] 方案为空→auto_heal 触发: ' + JSON.stringify(result.gaps));
+            })
+            .catch(function (e) {
+              console.error('[alert-monitor] 方案为空→auto_heal 失败: ' + e.message);
+            });
+        } catch (e) {}
+      }
     }
   } else {
     _state.emptyPlanStreak = 0;

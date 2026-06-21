@@ -31,6 +31,11 @@ const aiTiming = require('./core/ai-timing');
 const health = require('./core/health');
 const apiCache = require('./core/api-cache'); // ★ P0: API 响应持久化缓存
 
+// ★ Phase2: 路由模块（从 index.js 抽取，渐进式迁移）
+const { handleAuth } = require('./routes/auth');
+const { handleUsers } = require('./routes/users');
+const { handleSystem } = require('./routes/system');
+
 // ── AI/GS 缓存内存加速（避免每次请求同步读大文件） ──
 let _aiCacheData = null;
 let _aiCacheTime = 0;
@@ -1070,6 +1075,25 @@ app.get('/health', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', api: 'ready', uptime: process.uptime(), time: new Date().toISOString() });
 });
+
+// ★ Phase2: RESTful 端点（与 POST /api + action 并存，渐进式迁移）
+// 认证
+app.post('/api/auth/login', (req, res) => handleAuth('auth-login', req, res, req.body || {}, null, null));
+app.post('/api/auth/register', (req, res) => handleAuth('auth-register', req, res, req.body || {}, null, null));
+app.get('/api/auth/session', (req, res) => {
+  const authToken = authService.resolveSessionToken(req, {});
+  const session = authToken ? authService.validateSession(authToken, true) : null;
+  return handleAuth('auth-session', req, res, {}, session, authToken);
+});
+app.post('/api/auth/logout', (req, res) => {
+  const authToken = authService.resolveSessionToken(req, req.body || {});
+  return handleAuth('auth-logout', req, res, req.body || {}, null, authToken);
+});
+
+// 系统
+app.get('/api/system/alerts', (req, res) => handleSystem('alerts', req, res, { subAction: req.query.subAction || 'list', username: req.query.username || 'anonymous' }));
+app.get('/api/system/alerts/summary', (req, res) => handleSystem('alerts', req, res, { subAction: 'summary' }));
+app.get('/api/system/crawl-status', (req, res) => handleSystem('crawl-status', req, res, {}));
 // WebSocket 状态
 app.get('/health/ws', (req, res) => {
   let wsInfo = { enabled: false, clients: 0 };
@@ -1228,6 +1252,24 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
       function _safeArray(arr) {
         if (!arr || !Array.isArray(arr)) return null;
         return arr.length > 0 ? arr : null;
+      }
+
+      // ★ Phase2: 路由分发层 — 优先调用已抽取的 routes/ 模块
+      // 已处理则直接返回，未处理则继续走下方 switch（内联 case 作为 fallback）
+      const AUTH_ACTIONS = ['auth-login', 'auth-register', 'auth-session', 'auth-logout', 'auth-change-password'];
+      const USER_ACTIONS = ['user-list', 'user-create', 'user-update-status', 'role-list', 'role-permission-update', 'user-role-update', 'user-toggle-referral'];
+      const SYSTEM_ACTIONS = ['crawl-history', 'crawl-status', 'alerts'];
+      if (AUTH_ACTIONS.includes(action)) {
+        const handled = await handleAuth(action, req, res, data, authSession, authToken);
+        if (handled) return;
+      }
+      if (USER_ACTIONS.includes(action)) {
+        const handled = handleUsers(action, req, res, data);
+        if (handled) return;
+      }
+      if (SYSTEM_ACTIONS.includes(action)) {
+        const handled = handleSystem(action, req, res, data);
+        if (handled) return;
       }
 
       switch (action) {
@@ -1796,7 +1838,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             }
           }
 
-          // 从 trends.json 读取真实趋势快照（period_daemon 每20分钟写入，使用内存缓存）
+          // 从 trends.json 读取真实趋势快照（scheduler_v2 每20分钟写入，使用内存缓存）
           let timeLabels = [],
             series = [];
           try {
@@ -2265,7 +2307,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 const adp = database.getAdapter();
                 if (adp) {
                   const aiRow = adp.execOne(
-                    'SELECT * FROM ai_predictions WHERE matchId=? ORDER BY id DESC LIMIT 1',
+                    'SELECT * FROM ai_predictions WHERE matchId=? ORDER BY rowid DESC LIMIT 1',
                     m.matchId,
                   );
                   if (aiRow && aiRow.content) {
@@ -2404,7 +2446,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 const adp = database.getAdapter();
                 if (adp) {
                   aiPrediction = adp.execOne(
-                    'SELECT * FROM ai_predictions WHERE matchId=? ORDER BY id DESC LIMIT 1',
+                    'SELECT * FROM ai_predictions WHERE matchId=? ORDER BY rowid DESC LIMIT 1',
                     matchId,
                   );
                   // 从 prediction_log 获取 PK/标签评分数据
@@ -9257,11 +9299,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
   // 导出供 scheduler 使用（必须在 scheduler require 之前）
   module.exports = { fetchMatches, fetchRecommends, login };
 
-  // 生产环境启动定时爬取
+  // 生产环境：仅启动 AI 守护进程（爬取调度由 jc-sync 独立进程的 data_sync.js 负责，
+  // 旧 scheduler.js 已归档，禁止在 API 进程内启动爬取任务避免阻塞事件循环）
   if (process.env.NODE_ENV === 'production') {
-    const scheduler = require('./scheduler');
-    scheduler.start();
-
     // ★ P0-1: 启动 AI 定时生成守护进程（每日 11:30 / 16:30）
     const aiDaemon = require('./ai_daemon');
     aiDaemon.start();
