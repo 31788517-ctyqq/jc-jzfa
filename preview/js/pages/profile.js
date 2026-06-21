@@ -231,6 +231,7 @@ export function loadProfile() {
   _allPlans = [];
 
   renderLayout(root, userName);
+  updateProfilePlanFilterTabs(); // ★ 初始渲染后立即设置选中态
   loadProfileData();
   loadProfileSubscription();
 }
