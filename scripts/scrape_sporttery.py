@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 从中国竞彩官网 (lottery.gov.cn + sporttery.cn) 抓取 2026 年全量赔率数据
 覆盖: SPF / RQSPF / 比分 / 总进球 / 半全场 (含初盘->终盘变更历史)

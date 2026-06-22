@@ -405,6 +405,12 @@ function switchTab(tab) {
   document.getElementById('navTitle').textContent = titles[tab] || '竞彩推荐监控';
   // 详情页和筛选页显示返回按钮
   document.getElementById('navBack').style.display = tab === 'detail' || tab === 'filter' ? 'flex' : 'none';
+  // navPassBtn (过关) - 排行/比赛/数据/方案页显示
+  const npb = document.getElementById('navPassBtn');
+  if (npb) {
+    const showPass = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
+    npb.style.display = showPass ? 'flex' : 'none';
+  }
 
   if (tab === 'home') {
     const cameBack = savedScrollY > 0;
@@ -1940,7 +1946,10 @@ function shiftPlanDate(delta) {
   d.setDate(d.getDate() + newOffset);
   const newDate =
     d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  if (newDate < MIN_PLAN_DATE) return; // 不早于4月25日
+  if (newDate < MIN_PLAN_DATE) return; // 不早于3月19日
+  // ★ 上限检查：不允许超过今天（未来日期无数据）
+  const todayStr = formatDate(new Date());
+  if (newDate > todayStr) return;
   planDateOffset = newOffset;
   updatePlanDateBar();
   if (planTab === 'expert') loadPlanList();

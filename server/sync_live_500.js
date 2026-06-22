@@ -318,9 +318,35 @@ function syncToDataJson(liveMatches, dateStr) {
   });
 
   let updated = 0;
+  let created = 0;
   for (const lm of liveMatches) {
-    const key = numIndexByMatchDate[lm.matchNum] || numIndexByKickoffDate[lm.matchNum];
-    const old = key ? data.m[key] : null;
+    let key = numIndexByMatchDate[lm.matchNum] || numIndexByKickoffDate[lm.matchNum];
+    let old = key ? data.m[key] : null;
+
+    // ★ 主动创建缺失的比赛条目（修复孤儿matchId问题）
+    if (!old && lm.homeName && lm.visitName) {
+      // 生成唯一 key：优先用 date+num 组合避免跨周冲突
+      const candidateKey = `${dateStr}_${lm.matchNum}`;
+      if (!data.m[candidateKey]) {
+        key = candidateKey;
+        data.m[key] = {
+          matchId: lm.matchId || ('500_' + lm.fid) || '',
+          num: lm.matchNum,
+          homeName: lm.homeName,
+          visitName: lm.visitName,
+          date: dateStr,
+          startTime: lm.startTime || '',
+          matchStatus: lm.matchStatus || 0,
+          score: '',
+          halfScore: '',
+          league: '',
+          leagueName: '',
+        };
+        created++;
+        old = data.m[key];
+        console.log('[sync_500] 创建缺失比赛: ' + key + ' ' + lm.matchNum + ' ' + lm.homeName + ' vs ' + lm.visitName);
+      }
+    }
     if (!old) continue;
 
     let changed = false;
@@ -384,7 +410,7 @@ function syncToDataJson(liveMatches, dateStr) {
   if (updated > 0) {
     atomicWrite(DATA_FILE, data);
   }
-  return updated;
+  return { updated, created };
 }
 
 // ═══ V16+: 赛后比分修正 — 从 detail.php 获取红色全场比分 ═══
@@ -610,8 +636,10 @@ async function fetchLive500(dateStr) {
     atomicWrite(LIVE_FILE, liveData);
 
     // 合并到 data.json
-    const updated = syncToDataJson(matches, dateStr);
-    console.log(`[500live] data.json 更新: ${updated} 场`);
+    const syncResult = syncToDataJson(matches, dateStr);
+    const updated = syncResult && syncResult.updated ? syncResult.updated : syncResult || 0;
+    const created = syncResult && syncResult.created ? syncResult.created : 0;
+    console.log(`[500live] data.json 更新: ${updated} 场, 新建: ${created} 场`);
 
     // ★ V16+: 赛后比分修正 — 用 detail.php 修正半场误判
     const corrected = await correctPostMatchScores(matches, dateStr);

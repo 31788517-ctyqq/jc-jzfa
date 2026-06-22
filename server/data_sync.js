@@ -1559,6 +1559,7 @@ async function backfillResults(dateStr) {
 // ═══ Task 5B: AI 深度解析刷新（改为“赛程就绪触发 + 13:00统一计算”） ═══
 let aiRefreshRunning = false;
 let _aiScheduleTriggeredDate = '';
+let _aiScheduleLastNoMatchDate = ''; // ★ 记录上次因无比赛跳过的日期，比赛到位后允许重试
 let _aiScheduleTriggerRunning = false;
 let _aiDaily13DoneDate = '';
 
@@ -1797,7 +1798,12 @@ async function triggerAiRefreshWhenTodayScheduleReady(dateStr, reason) {
   if (_aiScheduleTriggerRunning) return { ok: 0, skipped: 'running' };
 
   const matches = countTodayMatches(targetDate);
-  if (matches <= 0) return { ok: 0, skipped: 'no_matches' };
+  if (matches <= 0) {
+    _aiScheduleLastNoMatchDate = targetDate; // ★ 记录：今天有触发但无比赛
+    return { ok: 0, skipped: 'no_matches' };
+  }
+  // ★ 比赛到位，清除 no_match 记录
+  if (_aiScheduleLastNoMatchDate === targetDate) _aiScheduleLastNoMatchDate = '';
 
   _aiScheduleTriggerRunning = true;
   log(
@@ -1812,6 +1818,26 @@ async function triggerAiRefreshWhenTodayScheduleReady(dateStr, reason) {
     return { ok: 0, error: e.message, date: targetDate };
   } finally {
     _aiScheduleTriggerRunning = false;
+  }
+}
+
+// ★ 兜底重试: 当天之前因无比赛被跳过，现在比赛到位后重新触发
+async function retryAiIfSkipped(dateStr) {
+  const targetDate = String(dateStr || '').slice(0, 10);
+  if (_aiScheduleLastNoMatchDate !== targetDate) return { rerun: false, reason: 'not_pending' };
+  if (_aiScheduleTriggerRunning) return { rerun: false, reason: 'running' };
+  const matches = countTodayMatches(targetDate);
+  if (matches <= 0) return { rerun: false, reason: 'still_no_matches', matches };
+  // 比赛已到位，重新触发
+  _aiScheduleLastNoMatchDate = '';
+  log('[ai_retry] 午间兜底：' + targetDate + ' 比赛已到位(' + matches + '场)，重新触发AI预测');
+  try {
+    const res = await refreshTodayAI({ force: true, date: targetDate, delayMs: 500 });
+    if (res && res.ok === 1) _aiScheduleTriggeredDate = targetDate;
+    return { rerun: true, result: res || { ok: 0 } };
+  } catch (e) {
+    log('[ai_retry] 重试失败: ' + e.message);
+    return { rerun: true, error: e.message };
   }
 }
 
@@ -3374,6 +3400,7 @@ module.exports = {
   processBackfillQueue,
   getTodayStatusSummary,
   refreshTodayAI,
+  retryAiIfSkipped, // ★ 午间兜底重试
   runModelClosure,
 };
 

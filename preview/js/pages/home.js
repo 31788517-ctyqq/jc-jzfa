@@ -233,7 +233,7 @@ function _renderHomeRankCards(rankData, matches) {
   // 最多推荐（综合排行第一的场次标签 + 方向）
   const topRank = ranking.length > 0 ? ranking[0] : null;
   const fallbackTopCount = topRank
-    ? Number(topRank.topNum || topRank.expertCount || topRank.totalExpertCount || topRank.recommNum || 0)
+    ? Number(topRank.expertCount || topRank.totalExpertCount || topRank.topNum || topRank.recommNum || 0)
     : 0;
   const topExpertCount =
     rankData && !Array.isArray(rankData) && rankData.topExpertCount !== undefined
@@ -647,6 +647,20 @@ function _fallbackLoadHome(today) {
     renderProfitChartNative(dates, profits);
     const section = document.getElementById('homeProfitChartSection');
     if (section) section.style.display = 'block';
+
+    // ★ V16.3: 世界杯盈利图表
+    var wcDates = (data.wcDates || []).slice(0, 7);
+    var wcProfits = (data.wcProfits || []).slice(0, 7);
+    console.log('[WC Chart] wcDates:', wcDates, 'wcProfits:', wcProfits);
+    if (wcDates.length >= 1) {
+      console.log('[WC Chart] rendering...');
+      renderProfitChartWc(wcDates, wcProfits);
+      var wcSec = document.getElementById('homeWcProfitChartSection');
+      console.log('[WC Chart] wcSec element:', wcSec ? 'FOUND' : 'NULL');
+      if (wcSec) wcSec.style.display = 'block';
+    } else {
+      console.log('[WC Chart] no WC data, wcDates length:', wcDates.length, 'data:', JSON.stringify(data).slice(0, 200));
+    }
   });
 
   NotiEngine.run(profitP);
@@ -960,6 +974,88 @@ function renderProfitChartNative(dates, profits) {
   setClass('statsMax', 'positive');
   const mdEl = document.getElementById('statsMaxDate');
   if (mdEl) mdEl.textContent = maxI >= 0 ? dates[maxI] : '--';
+}
+
+// ═══════════════════════════════════════════════════════════
+// ★ 近7日世界杯方案盈利图表 — V16.3
+// ═══════════════════════════════════════════════════════════
+function renderProfitChartWc(wcDates, wcProfits) {
+  console.log('[WC V16.3] renderProfitChartWc called with', wcDates.length, 'dates, profits:', wcProfits);
+  var n = wcProfits.length;
+  if (n === 0) return;
+
+  // Pad dates to fill chart space if < 3 dates
+  var labels = wcDates.slice();
+  var values = wcProfits.slice();
+
+  var svgW = 320, svgH = 232;
+  var padX = 10, chartW = svgW - padX * 2;
+
+  var maxVal = Math.max.apply(null, values.concat([0]));
+  var minVal = Math.min.apply(null, values.concat([0]));
+  var posMax = maxVal > 0 ? Math.ceil((maxVal * 1.12) / 500) * 500 : 500;
+  var negMax = minVal < 0 ? Math.ceil((Math.abs(minVal) * 1.12) / 500) * 500 : 0;
+  var yMin = -negMax || 0;
+  var yMax = posMax || 0;
+  if (yMax === yMin) { yMax += 500; yMin -= 500; }
+
+  function toY(v) { return svgH * (1 - (v - yMin) / (yMax - yMin)); }
+  var baseY = toY(0);
+
+  // X positions
+  var xs = [];
+  for (var i = 0; i < n; i++) {
+    xs.push(padX + (i / Math.max(n - 1, 1)) * chartW);
+  }
+
+  // Build SVG paths
+  var linePath = '', areaPath = '';
+  var dotHtml = '';
+  for (var i = 0; i < n; i++) {
+    var x = xs[i], y = toY(values[i]);
+    if (i === 0) { linePath = 'M' + x + ' ' + y; areaPath = 'M' + x + ' ' + baseY + ' L' + x + ' ' + y; }
+    else { linePath += ' L' + x + ' ' + y; areaPath += ' L' + x + ' ' + y; }
+    var dotColor = values[i] >= 0 ? '#22c55e' : '#ef4444';
+    dotHtml += '<circle cx="' + x + '" cy="' + y + '" r="4" fill="' + dotColor + '" stroke="white" stroke-width="1.5"/>';
+    dotHtml += '<text x="' + x + '" y="' + (y - 8) + '" text-anchor="middle" font-size="9" fill="' + dotColor + '" font-weight="600">' + (values[i] >= 0 ? '+' : '') + values[i] + '</text>';
+  }
+  areaPath += ' L' + xs[n - 1] + ' ' + baseY + ' Z';
+
+  var svg = '<defs><linearGradient id="wcGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3"/><stop offset="100%" stop-color="#f59e0b" stop-opacity="0.02"/></linearGradient></defs>';
+  svg += '<line x1="' + padX + '" y1="' + baseY + '" x2="' + (svgW - padX) + '" y2="' + baseY + '" stroke="#475569" stroke-width="1" stroke-dasharray="4,3"/>';
+  svg += '<path d="' + areaPath + '" fill="url(#wcGrad)"/>';
+  svg += '<path d="' + linePath + '" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round"/>';
+  svg += dotHtml;
+
+  var svgEl = document.getElementById('wcProfitSvg');
+  if (svgEl) { svgEl.innerHTML = svg; svgEl.setAttribute('viewBox', '0 0 ' + svgW + ' ' + svgH); }
+
+  // Y axis labels
+  var yLabels = '';
+  var ySteps = 4;
+  for (var i = 0; i <= ySteps; i++) {
+    var val = Math.round(yMin + (yMax - yMin) * (i / ySteps));
+    yLabels += '<span style="top:' + ((1 - i / ySteps) * 100).toFixed(0) + '%">' + (val >= 0 ? '+' : '') + val + '</span>';
+  }
+  var yAxisEl = document.getElementById('wcProfitYaxis');
+  if (yAxisEl) yAxisEl.innerHTML = yLabels;
+
+  // X axis labels
+  var xLabels = '';
+  var step = Math.max(1, Math.floor(n / 5));
+  for (var i = 0; i < n; i++) {
+    var show = (n <= 5) || (i % step === 0) || (i === n - 1);
+    xLabels += '<span style="left:' + ((xs[i] / svgW) * 100).toFixed(0) + '%">' + (show ? labels[i] : '') + '</span>';
+  }
+  var xAxisEl = document.getElementById('wcProfitXaxis');
+  if (xAxisEl) xAxisEl.innerHTML = xLabels;
+
+  // Stats
+  var total = Math.round(values.reduce(function(a, b) { return a + b; }, 0));
+  var totalEl = document.getElementById('wcStatsTotal');
+  if (totalEl) { totalEl.textContent = (total >= 0 ? '+' : '') + total; totalEl.style.color = total >= 0 ? '#22c55e' : '#ef4444'; }
+  var plansEl = document.getElementById('wcStatsPlans');
+  if (plansEl) plansEl.textContent = n;
 }
 
 // ═══════════════════════════════════════════════════════════

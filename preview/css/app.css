@@ -6809,7 +6809,7 @@ svg ellipse {
 
 /* ★ Touch targets — iOS HIG / WCAG 2.1 最小44px */
 @media (pointer: coarse) {
-  button:not(.home-update-btn):not(.home-my-btn):not(.nav-my-btn):not(.home-bell), [role="button"], .tab-item, .home-tool, .wc-card,
+  button:not(.home-update-btn):not(.home-my-btn):not(.nav-my-btn):not(.nav-pass-btn):not(.home-bell), [role="button"], .tab-item, .home-tool, .wc-card,
   .home-stat-card, .home-left-card, .home-right-card {
     min-height: 44px;
     min-width: 44px;

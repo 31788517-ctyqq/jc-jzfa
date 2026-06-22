@@ -487,13 +487,17 @@ function _reRenderSafe() {
   const st = window.scrollY || document.documentElement.scrollTop;
   const prevOverflow = document.documentElement.style.overflow;
   document.documentElement.style.overflow = 'hidden'; // ★ 锁死滚动
-  renderMatchList();
-  applySchemeHighlights();
-  window.scrollTo(0, st); // 同步恢复位置
-  // 下一帧恢复 overflow，让浏览器在无滚动状态下完成绘制
-  requestAnimationFrame(function () {
-    document.documentElement.style.overflow = prevOverflow || '';
-  });
+  try {
+    renderMatchList();
+    applySchemeHighlights();
+  } finally {
+    // ★ 必须恢复 overflow，即使渲染过程中异常也确保滚动不被锁死
+    window.scrollTo(0, st);
+    requestAnimationFrame(function () {
+      // 强制清回默认值，防止 prevOverflow 已被前一次调用污染为 'hidden'
+      document.documentElement.style.overflow = prevOverflow === 'hidden' ? '' : (prevOverflow || '');
+    });
+  }
 }
 
 // ═══ 玩法切换 ═══

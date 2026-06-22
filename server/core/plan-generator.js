@@ -1301,7 +1301,7 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
   if (isWC) {
     // ── 世界杯方案（无排行约束，靠高人数+盈利门槛替代）──
 
-    // 方案一：平、让平 × 让负（≥3场，各≥15人，平赔率有效，盈≥10%）
+    // 方案一 V16.3: 平、让平 × 让负（≥3场，各≥15人，平赔率有效，盈≥80%）
     if (matchCount >= 3) {
       let _wc1a = findBestMatchForDirection(['平', '让平'], null, 15);
       if (_wc1a) {
@@ -1310,46 +1310,46 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
       }
       const _wc1b = findBestMatchForDirection(['让负'], _wc1a ? [_wc1a.matchId] : null, 15);
       if (_wc1a && _wc1b) {
-        push2MatchPlan('01', 1, _wc1a, '平、让平', _wc1b, '让负', 250, 10, 25, 0, 0.1);
+        push2MatchPlan('01', 1, _wc1a, '平、让平', _wc1b, '让负', 250, 10, 25, 0, 0.8);
       }
     }
 
-    // 方案二：总进球-2、3球 × 让负（≥3场，各≥15人，合赔≥2.0，盈≥30%）
+    // 方案二 V16.3: 总进球-2、3球 × 让负（A≥10/B≥25，盈≥300%）
     if (matchCount >= 3) {
-      let _wc2a = findBestMatchForDirection(['总进球-2、3球'], null, 15);
+      let _wc2a = findBestMatchForDirection(['总进球-2、3球'], null, 10);
       if (_wc2a) {
         const _wc2md = matchDataMap[_wc2a.matchId];
         const _wc2tg = _wc2md && _wc2md.odds && _wc2md.odds.totalGoals;
         if (!_wc2tg || _wc2tg['2'] == null || _wc2tg['2'] <= 0 || _wc2tg['3'] == null || _wc2tg['3'] <= 0) _wc2a = null;
       }
-      const _wc2b = findBestMatchForDirection(['让负'], _wc2a ? [_wc2a.matchId] : null, 15);
+      const _wc2b = findBestMatchForDirection(['让负'], _wc2a ? [_wc2a.matchId] : null, 25);
       if (_wc2a && _wc2b) {
-        push2MatchPlan('02', 2, _wc2a, '总进球-2、3球', _wc2b, '让负', 250, 10, 25, 2.0, 0.3);
+        push2MatchPlan('02', 2, _wc2a, '总进球-2、3球', _wc2b, '让负', 250, 10, 25, 0, 2.0);
       }
     }
 
-    // 方案三：胜 × 让负（胜≥30人，合赔≥2.0，盈≥15%）
-    const _wc3a = findBestMatchForDirection(['胜'], null, 30);
-    const _wc3b = findBestMatchForDirection(['让负'], _wc3a ? [_wc3a.matchId] : null);
+    // 方案三 V16.3: 胜 × 让负（A≥10/B≥20，盈≥300%）
+    const _wc3a = findBestMatchForDirection(['胜'], null, 10);
+    const _wc3b = findBestMatchForDirection(['让负'], _wc3a ? [_wc3a.matchId] : null, 20);
     if (_wc3a && _wc3b) {
-      push2MatchPlan('03', 3, _wc3a, '胜', _wc3b, '让负', 250, 10, 25, 2.0, 0.15);
+      push2MatchPlan('03', 3, _wc3a, '胜', _wc3b, '让负', 250, 10, 25, 0, 2.0);
     }
   } else {
     // ── 常规方案一～三（对齐 专家方案生成条件.md）──
 
-    // ★ V16.2: 适中门禁 — 专家人数门禁+盈利门槛，保障产出+质量
-    const _rg1a = findBestMatchForDirection(['平', '让平'], null, 25);
-    const _rg1b = findBestMatchForDirection(['让负'], _rg1a ? [_rg1a.matchId] : null, 35);
+    // ★ V16.3: 方案一—优化门禁+盈利门槛（回测最优: A≥20/B≥30/盈≥2.2x, 58方案 +13,667 ROI 23.6%）
+    const _rg1a = findBestMatchForDirection(['平', '让平'], null, 20);
+    const _rg1b = findBestMatchForDirection(['让负'], _rg1a ? [_rg1a.matchId] : null, 30);
 
-    const _rg2a = findBestMatchForDirection(['总进球-2、3球'], null, 15);
-    const _rg2b = findBestMatchForDirection(['让负'], _rg2a ? [_rg2a.matchId] : null, 20);
+    const _rg2a = findBestMatchForDirection(['总进球-2、3球'], null, 5);
+    const _rg2b = findBestMatchForDirection(['让负'], _rg2a ? [_rg2a.matchId] : null, 15);
 
-    const _rg3a = findBestMatchForDirection(['胜'], null, 40);
-    const _rg3b = findBestMatchForDirection(['让负'], _rg3a ? [_rg3a.matchId] : null, 20);
+    const _rg3a = findBestMatchForDirection(['胜'], null, 60);
+    const _rg3b = findBestMatchForDirection(['让负'], _rg3a ? [_rg3a.matchId] : null, 50);
 
-    push2MatchPlan('一', 1, _rg1a, '平、让平', _rg1b, '让负', 250, 10, 25, 0, 1.8);
-    push2MatchPlan('二', 2, _rg2a, '总进球-2、3球', _rg2b, '让负', 250, 10, 25, 2.5, 0.5);
-    push2MatchPlan('三', 3, _rg3a, '胜', _rg3b, '让负', 250, 10, 25, 2.0, 0.2);
+    push2MatchPlan('一', 1, _rg1a, '平、让平', _rg1b, '让负', 250, 10, 25, 0, 1.2);
+    push2MatchPlan('二', 2, _rg2a, '总进球-2、3球', _rg2b, '让负', 250, 10, 25, 0, 2.0);
+    push2MatchPlan('三', 3, _rg3a, '胜', _rg3b, '让负', 250, 10, 25, 0, 2.0);
   }
 
   // ═══ 方案六：总进球-2、3球 单关（专家驱动）═══
@@ -1537,12 +1537,12 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
 
   // ── 方案四～五 ──
   if (isWC) {
-    // 世界杯方案四：平、让平 × 胜（≥3场，胜≥30人，盈≥15%）
+    // 世界杯方案四 V16.3: 平、让平 × 胜（A≥15/B≥35，盈≥300%）
     if (matchCount >= 3) {
-      const _wc4a = findBestMatchForDirection(['平', '让平']);
-      const _wc4b = findBestMatchForDirection(['胜'], _wc4a ? [_wc4a.matchId] : null, 30);
+      const _wc4a = findBestMatchForDirection(['平', '让平'], null, 15);
+      const _wc4b = findBestMatchForDirection(['胜'], _wc4a ? [_wc4a.matchId] : null, 35);
       if (_wc4a && _wc4b) {
-        push2MatchPlan('04', 4, _wc4a, '平、让平', _wc4b, '胜', 250, 10, 25, 0, 0.15);
+        push2MatchPlan('04', 4, _wc4a, '平、让平', _wc4b, '胜', 250, 10, 25, 0, 2.0);
       }
     }
 
@@ -1608,26 +1608,24 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
       }
     }
   } else {
-    // ★ 常规方案四: ≥6场 + 平/让平≥25人 + 胜≥25人 + 盈≥150%
+    // ★ 常规方案四 V16.3: ≥6场 + 平/让平≥20人 + 胜≥60人 + 盈≥230%
     if (matchCount >= 6) {
-      const _rg4a = findBestMatchForDirection(['平', '让平'], null, 25);
-      const _rg4b = findBestMatchForDirection(['胜'], _rg4a ? [_rg4a.matchId] : null, 25);
-      push2MatchPlan('四', 4, _rg4a, '平、让平', _rg4b, '胜', 250, 10, 25, 0, 1.5);
+      const _rg4a = findBestMatchForDirection(['平', '让平'], null, 20);
+      const _rg4b = findBestMatchForDirection(['胜'], _rg4a ? [_rg4a.matchId] : null, 60);
+      push2MatchPlan('四', 4, _rg4a, '平、让平', _rg4b, '胜', 250, 10, 25, 0, 1.3);
     }
 
-    // ★ 方案五新: 胜平 × 平负 (2串1，双选×双选，高胜率组合)
-    // midou310有胜平(319)+平负方向, 胜率~52%×~55%=28.6%, 盈亏平衡合赔≈3.5, 盈≥250%
+    // ★ 方案五 V16.3: 胜平 × 平负 (2串1，≥4场，A≥5胜平/B≥1平负，盈≥200%)
     if (matchCount >= 4) {
-      const _rg5a = findBestMatchForDirection(['胜平'], null, 15);
-      const _rg5b = findBestMatchForDirection(['平负'], _rg5a ? [_rg5a.matchId] : null, 15);
-      push2MatchPlan('五', 5, _rg5a, '胜平', _rg5b, '平负', 250, 10, 25, 3.5, 2.5);
+      const _rg5a = findBestMatchForDirection(['胜平'], null, 5);
+      const _rg5b = findBestMatchForDirection(['平负'], _rg5a ? [_rg5a.matchId] : null, 1);
+      push2MatchPlan('五', 5, _rg5a, '胜平', _rg5b, '平负', 250, 10, 25, 0, 1.0);
     }
   }
 
   // ── 方案七：单关双选（胜平/平负）──
-  // WC：推荐人数≥10 + 盈≥10%；常规：无人数下限
-  // ★ 方案七: WC≥10人 + 盈≥10%；常规≥10人 + 盈≥20%
-  const _minCount7 = isWC ? 10 : 10;
+  // ★ 方案七 V16.3: WC≥10人 + 盈≥10%；常规≥5人 + 盈≥50%
+  const _minCount7 = isWC ? 10 : 5;
   const singleMatches = [];
   for (let smi = 0; smi < mList.length; smi++) {
     const _sm = mList[smi];
@@ -1656,8 +1654,8 @@ function generatePlansForGroup(mList, matchDataMap, dateStr, isWC, planPrefix) {
         return s + 1 / o;
       }, 0);
       const maxPrize7 = invSum7 > 0 ? Math.round(1000 / invSum7) : 0;
-      // ★ 盈≥10%(WC) / 盈≥20%(常规)
-      const _minPrize7 = isWC ? 1100 : 1200;
+      // ★ 盈≥10%(WC) / 盈≥50%(常规 V16.3)
+      const _minPrize7 = isWC ? 1100 : 1500;
       if (maxPrize7 >= _minPrize7) {
         const plan7Result = computePlanResult([m7Obj]);
         plans.push({
@@ -1904,11 +1902,17 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
       const m = mMap['m_' + sm.matchId] || mMap[sm.matchId] || {};
       const raw = rMap['m_' + sm.matchId] || rMap[sm.matchId] || [];
       let rec = null;
+      // ★ 两遍扫描：优先精确匹配（如"平、让平"），再接受子串匹配（如"平"）
       for (let i = 0; i < raw.length; i++) {
         const rt = raw[i].t || raw[i].type;
-        if (rt === sm.direction || sm.direction.indexOf(rt) >= 0 || (rt && rt.indexOf(sm.direction) >= 0)) {
-          rec = raw[i];
-          break;
+        if (rt === sm.direction) { rec = raw[i]; break; }
+      }
+      if (!rec) {
+        for (let i = 0; i < raw.length; i++) {
+          const rt = raw[i].t || raw[i].type;
+          if (sm.direction.indexOf(rt) >= 0 || (rt && rt.indexOf(sm.direction) >= 0)) {
+            rec = raw[i]; break;
+          }
         }
       }
       // ★ V16 三层判定：① midou310 result → ② sporttery lotteryResult → ③ judgeByScore 兜底

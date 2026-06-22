@@ -672,14 +672,12 @@ export function selectPlanDateFromPicker(md) {
         const pn = p.planName || '';
         return pn.indexOf('世界杯') === 0;
       });
-    else {
-      // 默认定位到第一个标签（世界杯）
-      state.setPlanTab('wc');
+    else
+      // expert/hot/其他：加载通用方案（与 _loadActivePlanTab 保持一致）
       m.loadPlanList(function (p) {
         const pn = p.planName || '';
-        return pn.indexOf('世界杯') === 0;
+        return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
       });
-    }
   });
   document.getElementById('planDatePicker').style.display = 'none';
 }
@@ -864,7 +862,7 @@ function _ensurePage(id) {
         '<div class="filter-stats-card"><div class="stats-subtitle">数据概览</div><div class="filter-stats-row"><div class="filter-stat-item"><div class="filter-stat-value" id="statMatches">-</div><div class="filter-stat-label">比赛场次</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="statLeagues">-</div><div class="filter-stat-label">联赛数</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="statDirs">-</div><div class="filter-stat-label">方向数</div></div></div></div><div class="filter-section-card"><div class="filter-head">筛选条件</div><div class="filter-row"><span class="filter-label">联赛</span><div class="filter-dd" id="dd-league" data-val=""><div class="filter-dd-trigger" onclick="toggleDD(\'dd-league\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"></ul></div></div><div class="filter-row"><span class="filter-label">时间</span><div class="filter-dd" id="dd-time" data-val="all"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-time\', event)"><span class="filter-dd-text">全部时间</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-time\',\'all\',\'全部时间\')">全部时间</li><li data-val="30" class="filter-dd-option" onclick="selectDD(\'dd-time\',\'30\',\'近30天\')">近30天</li><li data-val="60" class="filter-dd-option" onclick="selectDD(\'dd-time\',\'60\',\'近60天\')">近60天</li><li data-val="90" class="filter-dd-option" onclick="selectDD(\'dd-time\',\'90\',\'近90天\')">近90天</li></ul></div></div><div class="filter-row"><span class="filter-label">方向</span><div class="filter-row-inline"><div class="filter-dd" id="dd-dirType" data-val=""><div class="filter-dd-trigger" onclick="toggleDD(\'dd-dirType\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="" class="filter-dd-option selected" onclick="selectDD(\'dd-dirType\',\'\',\'全部\');onDDTypeChange()">全部</li><li data-val="综合排名" class="filter-dd-option" onclick="selectDD(\'dd-dirType\',\'综合排名\',\'综合排名\');onDDTypeChange()">综合排名</li><li data-val="胜平负" class="filter-dd-option" onclick="selectDD(\'dd-dirType\',\'胜平负\',\'胜平负\');onDDTypeChange()">胜平负</li><li data-val="让球" class="filter-dd-option" onclick="selectDD(\'dd-dirType\',\'让球\',\'让球\');onDDTypeChange()">让球</li><li data-val="进球数" class="filter-dd-option" onclick="selectDD(\'dd-dirType\',\'进球数\',\'进球数\');onDDTypeChange()">进球数</li><li data-val="双选" class="filter-dd-option" onclick="selectDD(\'dd-dirType\',\'双选\',\'双选\');onDDTypeChange()">双选</li><li data-val="半全场" class="filter-dd-option" onclick="selectDD(\'dd-dirType\',\'半全场\',\'半全场\');onDDTypeChange()">半全场</li></ul></div><div class="filter-dd" id="dd-dir" data-val="" style="display:none"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-dir\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"></ul></div></div></div><div class="filter-row"><span class="filter-label">排名</span><div class="filter-row-inline"><div class="filter-dd" id="dd-rankType" data-val="全部"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-rankType\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="全部" class="filter-dd-option selected" onclick="selectDD(\'dd-rankType\',\'全部\',\'全部\');onRankTypeChange()">全部</li><li data-val="每天" class="filter-dd-option" onclick="selectDD(\'dd-rankType\',\'每天\',\'每天\');onRankTypeChange()">每天</li><li data-val="每场" class="filter-dd-option" onclick="selectDD(\'dd-rankType\',\'每场\',\'当天所有场次\');onRankTypeChange()">当天所有场次</li></ul></div><div class="filter-dd" id="dd-rank" data-val="0" style="display:none"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-rank\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="0" class="filter-dd-option selected" onclick="selectDD(\'dd-rank\',\'0\',\'全部\')">全部</li><li data-val="1" class="filter-dd-option" onclick="selectDD(\'dd-rank\',\'1\',\'第一名\')">第一名</li><li data-val="2" class="filter-dd-option" onclick="selectDD(\'dd-rank\',\'2\',\'前二名\')">前二名</li><li data-val="3" class="filter-dd-option" onclick="selectDD(\'dd-rank\',\'3\',\'前三名\')">前三名</li><li data-val="4" class="filter-dd-option" onclick="selectDD(\'dd-rank\',\'4\',\'前四名\')">前四名</li><li data-val="5" class="filter-dd-option" onclick="selectDD(\'dd-rank\',\'5\',\'前五名\')">前五名</li><li data-val="6" class="filter-dd-option" onclick="selectDD(\'dd-rank\',\'6\',\'前六名\')">前六名</li></ul></div></div></div><div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="doFilterQuery()">查询</button></div></div><div id="filterResult"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
     else if (id === 'income')
       el.innerHTML =
-        '<div class="filter-section-card"><div class="filter-head">筛选条件</div><div class="filter-row"><span class="filter-label">方向</span><div class="filter-dd" id="dd-incDir" data-val="expert"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incDir\', event)"><span class="filter-dd-text">专家博热方案</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'all\',\'全部\');onIncDirChange(\'all\')">全部</li><li data-val="expert" class="filter-dd-option selected" onclick="selectDD(\'dd-incDir\',\'expert\',\'专家博热方案\');onIncDirChange(\'expert\')">专家博热方案</li><li data-val="wc" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'wc\',\'世界杯\');onIncDirChange(\'wc\')">世界杯</li><li data-val="ai_tg" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'ai_tg\',\'总进球三向\');onIncDirChange(\'ai_tg\')">总进球三向</li><li data-val="my" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'my\',\'我的方案\');onIncDirChange(\'my\')">我的方案</li></ul></div></div><div class="filter-row"><span class="filter-label">时间</span><div class="filter-dd" id="dd-incTime" data-val="all"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incTime\', event)"><span class="filter-dd-text">全部时间</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incTime\',\'all\',\'全部时间\')">全部时间</li><li data-val="30" class="filter-dd-option" onclick="selectDD(\'dd-incTime\',\'30\',\'近30天\')">近30天</li><li data-val="60" class="filter-dd-option" onclick="selectDD(\'dd-incTime\',\'60\',\'近60天\')">近60天</li></ul></div></div><div class="filter-row"><span class="filter-label">方案</span><div class="filter-dd" id="dd-incPlan" data-val="all"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incPlan\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incPlan\',\'all\',\'全部\')">全部</li><li data-val="plan_1" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_1\',\'方案一\')">方案一</li><li data-val="plan_2" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_2\',\'方案二\')">方案二</li><li data-val="plan_3" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_3\',\'方案三\')">方案三</li><li data-val="plan_4" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_4\',\'方案四\')">方案四</li><li data-val="plan_5" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_5\',\'方案五\')">方案五</li><li data-val="plan_6" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_6\',\'方案六\')">方案六</li><li data-val="plan_7" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_7\',\'方案七\')">方案七</li></ul></div></div><div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="loadIncome(true)">查询</button></div></div><div class="filter-stats-card inc-stats-card" id="incStatsCard"><div class="stats-subtitle">筛选结果</div><div class="filter-stats-row"><div class="filter-stat-item"><div class="filter-stat-value" id="incTotalPlans">-</div><div class="filter-stat-label">执行方案</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="incWinRate">-</div><div class="filter-stat-label">中奖率</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="incTotalIncome">-</div><div class="filter-stat-label">总盈利(元)</div></div></div></div><div id="incomeResult"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+        '<div class="filter-section-card"><div class="filter-head">筛选条件</div><div class="filter-row"><span class="filter-label">方向</span><div class="filter-dd" id="dd-incDir" data-val="expert"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incDir\', event)"><span class="filter-dd-text">专家博热方案</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'all\',\'全部\');onIncDirChange(\'all\')">全部</li><li data-val="expert" class="filter-dd-option selected" onclick="selectDD(\'dd-incDir\',\'expert\',\'专家博热方案\');onIncDirChange(\'expert\')">专家博热方案</li><li data-val="wc" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'wc\',\'世界杯\');onIncDirChange(\'wc\')">世界杯</li><li data-val="ai_tg" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'ai_tg\',\'总进球三向\');onIncDirChange(\'ai_tg\')">总进球三向</li><li data-val="score" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'score\',\'单关比分\');onIncDirChange(\'score\')">单关比分</li><li data-val="quant" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'quant\',\'量化博冷\');onIncDirChange(\'quant\')">量化博冷</li><li data-val="my" class="filter-dd-option" onclick="selectDD(\'dd-incDir\',\'my\',\'我的方案\');onIncDirChange(\'my\')">我的方案</li></ul></div></div><div class="filter-row"><span class="filter-label">时间</span><div class="filter-dd" id="dd-incTime" data-val="all"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incTime\', event)"><span class="filter-dd-text">全部时间</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incTime\',\'all\',\'全部时间\')">全部时间</li><li data-val="30" class="filter-dd-option" onclick="selectDD(\'dd-incTime\',\'30\',\'近30天\')">近30天</li><li data-val="60" class="filter-dd-option" onclick="selectDD(\'dd-incTime\',\'60\',\'近60天\')">近60天</li></ul></div></div><div class="filter-row"><span class="filter-label">方案</span><div class="filter-dd" id="dd-incPlan" data-val="all"><div class="filter-dd-trigger" onclick="toggleDD(\'dd-incPlan\', event)"><span class="filter-dd-text">全部</span><svg class="filter-dd-arrow" viewBox="0 0 24 24"><polyline points="6 10 12 16 18 10"/></svg></div><ul class="filter-dd-menu"><li data-val="all" class="filter-dd-option selected" onclick="selectDD(\'dd-incPlan\',\'all\',\'全部\')">全部</li><li data-val="plan_1" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_1\',\'方案一\')">方案一</li><li data-val="plan_2" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_2\',\'方案二\')">方案二</li><li data-val="plan_3" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_3\',\'方案三\')">方案三</li><li data-val="plan_4" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_4\',\'方案四\')">方案四</li><li data-val="plan_5" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_5\',\'方案五\')">方案五</li><li data-val="plan_6" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_6\',\'方案六\')">方案六</li><li data-val="plan_7" class="filter-dd-option" onclick="selectDD(\'dd-incPlan\',\'plan_7\',\'方案七\')">方案七</li></ul></div></div><div class="filter-btn-wrap"><button class="filter-submit-btn" onclick="loadIncome(true)">查询</button></div></div><div class="filter-stats-card inc-stats-card" id="incStatsCard"><div class="stats-subtitle">筛选结果</div><div class="filter-stats-row"><div class="filter-stat-item"><div class="filter-stat-value" id="incTotalPlans">-</div><div class="filter-stat-label">执行方案</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="incWinRate">-</div><div class="filter-stat-label">中奖率</div></div><div class="filter-stat-divider"></div><div class="filter-stat-item"><div class="filter-stat-value" id="incTotalIncome">-</div><div class="filter-stat-label">总盈利(元)</div></div></div></div><div id="incomeResult"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
     else if (id === 'scheme')
       el.innerHTML =
         '<div class="scheme-stats-card" id="schemeStats"><div class="scheme-stat-item"><div class="scheme-stat-val">0</div><div class="scheme-stat-lbl">历史方案</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val">0</div><div class="scheme-stat-lbl">方案收入(分)</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val">0%</div><div class="scheme-stat-lbl">命中率</div></div></div>' +
@@ -1052,12 +1050,17 @@ export function switchTab(tab) {
         ? 'flex'
         : 'none';
 
-  // navMyBtn (green)
+  // navMyBtn (green) + navPassBtn (过关)
   const nmb = document.getElementById('navMyBtn');
+  const npb = document.getElementById('navPassBtn');
   const sm = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
   if (nmb) {
     nmb.style.display = sm ? 'flex' : 'none';
-    nmb.style.marginLeft = sm ? 'auto' : '0';
+    nmb.style.marginLeft = sm ? '8px' : '0';
+  }
+  if (npb) {
+    npb.style.display = sm ? 'flex' : 'none';
+    npb.style.marginLeft = sm ? 'auto' : '0';
   }
   if (backEl) {
     backEl.style.marginLeft = sm ? '8px' : 'auto';
@@ -1438,7 +1441,8 @@ window.addEventListener('auth:unauthorized', function () {
 // ── 方案收入方向切换：动态更新 dd-incPlan 下拉菜单 ──
 window.onIncDirChange = function (dir) {
   let incDir = dir || (window.getDDVal ? window.getDDVal('dd-incDir') : 'expert');
-  if (incDir !== 'all' && incDir !== 'expert' && incDir !== 'my' && incDir !== 'ai_tg') {
+  var validDirs = {all:1, expert:1, wc:1, ai_tg:1, score:1, quant:1, my:1};
+  if (!validDirs[incDir]) {
     selectDD('dd-incDir', 'expert', '专家博热方案');
     incDir = 'expert';
   }
@@ -1688,15 +1692,20 @@ function switchTabLoad(tab) {
         ? 'flex'
         : 'none';
 
-  // navMyBtn (green)
-  const nmb = document.getElementById('navMyBtn');
-  const sm = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
-  if (nmb) {
-    nmb.style.display = sm ? 'flex' : 'none';
-    nmb.style.marginLeft = sm ? 'auto' : '0';
+  // navMyBtn (green) + navPassBtn (过关)
+  const nmb2 = document.getElementById('navMyBtn');
+  const npb2 = document.getElementById('navPassBtn');
+  const sm2 = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
+  if (nmb2) {
+    nmb2.style.display = sm2 ? 'flex' : 'none';
+    nmb2.style.marginLeft = sm2 ? '8px' : '0';
+  }
+  if (npb2) {
+    npb2.style.display = sm2 ? 'flex' : 'none';
+    npb2.style.marginLeft = sm2 ? 'auto' : '0';
   }
   if (backEl) {
-    backEl.style.marginLeft = sm ? '8px' : 'auto';
+    backEl.style.marginLeft = sm2 ? '8px' : 'auto';
   }
 
   const navbarEl = document.getElementById('navbar');

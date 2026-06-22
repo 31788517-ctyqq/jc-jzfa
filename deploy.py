@@ -532,6 +532,7 @@ DEPLOY_MAP = [
 
     ('server/core/plan-cache.js',         'both'),  # ★ 方案缓存共享模块
     ('scripts/backtest_wc_config.cjs',    'pm2'),   # ★ 世界杯方案回测脚本
+    ('scripts/scrape_sporttery.py',    'pm2'),   # ★ Sporttery 官方赛程/赔率抓取
     ('scripts/watchdog.cjs',              'pm2'),   # ★ V17: PM2 进程存活监控 + 自动恢复
     ('scripts/regen_wc_plans.cjs',    'pm2'),   # ★ 世界杯方案重生成
 

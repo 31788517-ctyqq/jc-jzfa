@@ -145,6 +145,14 @@ function _loadActivePlanTab() {
 }
 
 export function shiftPlanDate(delta) {
+  // ★ 如果此前通过日历直接选了日期，先同步 offset
+  if (state.planDateExplicit && state.planDate) {
+    const todayStr = formatDate(new Date());
+    const picked = new Date(state.planDate);
+    const today = new Date(todayStr);
+    const diffMs = picked.getTime() - today.getTime();
+    state.setPlanDateOffset(Math.round(diffMs / 86400000));
+  }
   state.setPlanDateExplicit(false);
   const newOffset = state.planDateOffset + delta;
   const d = new Date();

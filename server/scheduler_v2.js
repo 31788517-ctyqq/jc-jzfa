@@ -330,6 +330,28 @@ async function executeTask(taskName, params, retryCount) {
         await ds.syncRecommends(params && params.date);
         break;
       }
+      case 'fetch_allplays': {
+        // ★ 500.com 全玩法赔率（比分/总进球/半全场 + SPF/RQSPF）
+        const date = (params && params.date) || new Date().toISOString().slice(0, 10);
+        const { fetchAllOdds } = require('./fetch_500all');
+        const OUT = require('path').join(__dirname, 'ttyingqiu_data');
+        const ALLPLAYS = require('path').join(OUT, 'odds_500_allplays.json');
+        const fs = require('fs');
+        if (!fs.existsSync(OUT)) fs.mkdirSync(OUT, { recursive: true });
+        let allData = {};
+        if (fs.existsSync(ALLPLAYS)) {
+          try { allData = JSON.parse(fs.readFileSync(ALLPLAYS, 'utf8')); } catch (e) {}
+        }
+        const odds = await fetchAllOdds(date);
+        if (odds && Object.keys(odds).length > 0) {
+          allData[date] = odds;
+          fs.writeFileSync(ALLPLAYS, JSON.stringify(allData, null, 2), 'utf8');
+          logger.info('[allplays] ' + date + ' 抓取完成: ' + Object.keys(odds).length + ' 场比赛');
+        } else {
+          logger.warn('[allplays] ' + date + ' 无数据');
+        }
+        break;
+      }
       case 'backfill_results': {
         await ds.backfillResults(params && params.date);
         break;
@@ -612,6 +634,7 @@ function scheduleNoonTask() {
       // 异步并行（不互相阻塞）
       executeTask('sync_500shuju', { date: today }).catch((e) => {});
       executeTask('sync_500shuju_selenium', { date: today }).catch((e) => {});
+      executeTask('fetch_allplays', { date: today }).catch((e) => {}); // ★ 全玩法赔率
 
       // 延后5分钟合并
       setTimeout(
@@ -634,7 +657,7 @@ function scheduleNoonTask() {
         15 * 60 * 1000,
       );
 
-      // ★ V9.1: 延后10分钟执行功守道 + PK + FeatureEngine 计算链
+      // ★ V9.1: 延后10分钟执行功守道 + PK + FeatureEngine 计算链 + AI 预测兜底
       setTimeout(
         async () => {
           try {
@@ -646,6 +669,17 @@ function scheduleNoonTask() {
             await sleep(3000);
             // 3) FeatureEngine 特征计算（依赖 JczqBasic + 功守道）
             await executeTask('feature_engine_compute', { date: today });
+            await sleep(3000);
+            // 4) ★ AI 预测兜底重试 — 修复时序问题：凌晨无比赛被跳过，午间比赛到位后自动触发
+            try {
+              const ds = require('./data_sync');
+              const retryResult = await ds.retryAiIfSkipped(today);
+              if (retryResult && retryResult.rerun) {
+                logger.info('[schedule] AI 预测兜底重试触发: ' + JSON.stringify(retryResult));
+              }
+            } catch (aiErr) {
+              logger.error('[schedule] AI 兜底重试失败: ' + aiErr.message);
+            }
           } catch (e) {
             logger.error('[schedule] 计算链失败: ' + e.message);
           }

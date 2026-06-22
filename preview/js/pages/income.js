@@ -25,7 +25,9 @@ function _normalizeIncomeDirection(direction) {
     direction === 'expert' ||
     direction === 'my' ||
     direction === 'ai_tg' ||
-    direction === 'wc'
+    direction === 'wc' ||
+    direction === 'score' ||
+    direction === 'quant'
   )
     return direction;
   return 'expert';
@@ -59,7 +61,9 @@ function _matchDetailByDirectionAndPlan(detail, direction, planFilter) {
 
   if (direction === 'wc' && !_isWorldCupPlanName(pn)) return false;
   if (direction === 'ai_tg' && !_isAiTotalGoalsPlanName(pn)) return false;
-  if (direction === 'expert' && (_isWorldCupPlanName(pn) || _isAiTotalGoalsPlanName(pn))) return false;
+  if (direction === 'score' && pn.indexOf('单关比分方案') !== 0) return false;
+  if (direction === 'quant' && pn.indexOf('量化博冷方案') !== 0) return false;
+  if (direction === 'expert' && (_isWorldCupPlanName(pn) || _isAiTotalGoalsPlanName(pn) || pn.indexOf('单关比分方案') === 0 || pn.indexOf('量化博冷方案') === 0)) return false;
 
   if (planFilter && planFilter !== 'all') {
     const pf = String(planFilter);

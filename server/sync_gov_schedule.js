@@ -153,6 +153,13 @@ function parseSchedule(html) {
   return { matches, byDate };
 }
 
+// ═══ 日期上限：只保留今天+1天的比赛，避免未来赛程污染 data.json ═══
+function getMaxAllowedDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1); // 允许今天+明天
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
 // ═══ 合并到 data.json ═══
 function mergeToDataJson(matches) {
   let data = {};
@@ -167,10 +174,17 @@ function mergeToDataJson(matches) {
 
   let added = 0,
     updated = 0,
-    skipped = 0;
+    skipped = 0,
+    futureSkipped = 0;
+  const maxDate = getMaxAllowedDate();
   const now = new Date().toISOString();
 
   for (const m of matches) {
+    // ★ 日期上限过滤：跳过超过今天+1天的未来比赛
+    if (m.date > maxDate) {
+      futureSkipped++;
+      continue;
+    }
     const mid = m.matchId;
     const mkey = `m_${mid}`;
 
@@ -229,7 +243,7 @@ function mergeToDataJson(matches) {
   fs.writeFileSync(tmpFile, JSON.stringify(data));
   fs.renameSync(tmpFile, DATA_FILE);
 
-  return { added, updated, skipped, total: Object.keys(data.m).length };
+  return { added, updated, skipped, futureSkipped, maxDate, total: Object.keys(data.m).length };
 }
 
 // ═══ 主函数 ═══
@@ -280,7 +294,7 @@ async function main() {
             console.log(`[Schedule] 从文本解析: ${Object.values(byDate).flat().length} 场比赛`);
             const matches = Object.values(byDate).flat();
             const result = mergeToDataJson(matches);
-            console.log(`合并结果: 新增${result.added} 更新${result.updated} 跳过${result.skipped}`);
+            console.log(`合并结果: 新增${result.added} 更新${result.updated} 跳过${result.skipped} 过滤未来${result.futureSkipped} (上限${result.maxDate})`);
             console.log(`[OK] 同步完成 (from cached schedule)`);
             return { success: true, ...result, method: 'cached_schedule' };
           }
@@ -316,7 +330,7 @@ async function main() {
         if (Object.keys(byDate).length > 0) {
           const matches = Object.values(byDate).flat();
           const result = mergeToDataJson(matches);
-          console.log(`合并结果: 新增${result.added} 更新${result.updated} 跳过${result.skipped}`);
+          console.log(`合并结果: 新增${result.added} 更新${result.updated} 跳过${result.skipped} 过滤未来${result.futureSkipped} (上限${result.maxDate})`);
           return { success: true, ...result, method: 'playwright' };
         }
       }
@@ -347,6 +361,7 @@ async function main() {
   console.log(`  新增: ${result.added} 场`);
   console.log(`  更新: ${result.updated} 场`);
   console.log(`  跳过: ${result.skipped} 场`);
+  console.log(`  过滤未来: ${result.futureSkipped} 场 (日期上限: ${result.maxDate})`);
   console.log(`  总计: ${result.total} 条记录`);
   console.log(`\n[OK] 同步完成`);
 

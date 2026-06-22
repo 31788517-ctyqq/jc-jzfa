@@ -381,6 +381,12 @@ export function switchTab(tab) {
   if (titleEl) titleEl.textContent = titles[tab] || '竞彩推荐监控';
   const backEl = document.getElementById('navBack');
   if (backEl) backEl.style.display = tab === 'detail' || tab === 'filter' ? 'flex' : 'none';
+  // navPassBtn (过关) - 排行/比赛/数据/方案页显示
+  const npb = document.getElementById('navPassBtn');
+  if (npb) {
+    const showPass = tab === 'match' || tab === 'plan' || tab === 'rank' || tab === 'hit';
+    npb.style.display = showPass ? 'flex' : 'none';
+  }
 
   if (tab === 'home') {
     const cameBack = state.savedScrollY > 0;

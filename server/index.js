@@ -1498,33 +1498,37 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 recs.forEach(function (r) {
                   if (!topRec || Number(r.num || 0) > Number(topRec.num || 0)) topRec = r;
                 });
+                const topNum = topRec ? Number(topRec.num || 0) : 0;
                 ranking.push({
                   matchId: rm.matchId,
                   matchNum: rm.num || '',
                   homeName: rm.homeName || '',
                   visitName: rm.visitName || '',
                   league: rm.league || '',
-                  expertCount: totalExperts,
+                  expertCount: topNum,
+                  totalExpertCount: totalExperts,
                   topDirection: topRec ? topRec.type : '',
-                  topNum: topRec ? topRec.num : 0,
+                  topNum: topNum,
                   recommNum: totalExperts,
                   pkDecision: pkDecisionMap && pkDecisionMap[rm.matchId] ? pkDecisionMap[rm.matchId] : null,
-                  score: totalExperts,
+                  score: topNum,
                 });
               }
               ranking.sort(function (a, b) {
-                return (b.score || 0) - (a.score || 0);
+                return (b.expertCount || 0) - (a.expertCount || 0);
               });
             } catch (e2) {
               /* ranking 非关键 */
             }
 
+            const topExpertCount = ranking.length > 0 ? ranking[0].expertCount : 0;
             const bundleResponse = {
               code: 1,
               data: {
                 weekDates: weekDates,
                 matches: matches,
                 ranking: ranking,
+                topExpertCount: topExpertCount,
                 date: dateStr,
                 hasMore: hasMore,
                 totalMatches: dayMatches.length,
@@ -2090,7 +2094,10 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           const ranking = list.map(function (item, i) {
             const mid = String((item && item.matchId) || '').replace(/^m_/, '');
             const pkDecision = pkDecisionMap[mid] || buildFallbackPKDecision('PK标准字段暂缺');
-            return { rank: i + 1, ...item, ...pkDecision };
+            // ★ 原始推荐数不受 PK 覆盖，PK 数据放在 pk 子字段
+            const expertCount = Number(item.expertCount || 0);
+            const totalExpertCount = Number(item.totalExpertCount || 0);
+            return { rank: i + 1, ...item, expertCount, totalExpertCount, pk: pkDecision };
           });
           const topExpertCount = ranking.length > 0 ? ranking[0].expertCount : 0;
 
@@ -2121,7 +2128,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           _rankListCache[rankCacheKey] = rankResponse;
           _rankListCacheTime[rankCacheKey] = Date.now();
           if (!data.category && !data.direction) {
-            apiCache.set(rankFileKey, rankResponse, RANK_LIST_CACHE_TTL * 6);
+            apiCache.set(rankFileKey, rankResponse, RANK_LIST_CACHE_TTL); // ★ 与内存TTL一致，防止磁盘缓存过期滞后
           }
           return res.json(rankResponse);
         }
@@ -3150,6 +3157,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             const dateLabels = [];
             const dateProfits = [];
+            const wcDateLabels = [];   // ★ V16.3: 世界杯独立
+            const wcDateProfits = [];
             const AMOUNT = 1000;
 
             function findRecommends(matchId) {
@@ -3196,19 +3205,30 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
 
               const plans = PG.generateExpertPlans(mList, matchDataMap, ds);
-              let dayProfit = 0;
-              let hasResolvedPlan = false;
+              let dayProfit = 0, dayWcProfit = 0;
+              let hasResolvedPlan = false, hasWcPlan = false;
               plans.forEach((pp) => {
                 if (pp.isPlanWon === null && pp.isPlanLose === null) return;
                 hasResolvedPlan = true;
-                if (pp.isPlanWon === true) dayProfit += (pp.winningPrize || 0) - AMOUNT;
-                else if (pp.isPlanLose === true) dayProfit -= AMOUNT;
+                const pm = pp.isPlanWon === true ? (pp.winningPrize || 0) - AMOUNT : pp.isPlanLose === true ? -AMOUNT : 0;
+                dayProfit += pm;
+                // ★ V16.3: 世界杯方案单独统计
+                const pn = String(pp.planName || '').trim();
+                if (pn.indexOf('世界杯') === 0) {
+                  hasWcPlan = true;
+                  dayWcProfit += pm;
+                }
               });
 
               if (mList.length > 0 && plans.length > 0 && !hasResolvedPlan) continue;
 
               dateLabels.push(ds.slice(5));
               dateProfits.push(Math.round(dayProfit));
+              // ★ 世界杯盈利: 仅在有世界杯方案且有结果的日期记录
+              if (hasWcPlan) {
+                wcDateLabels.push(ds.slice(5));
+                wcDateProfits.push(Math.round(dayWcProfit));
+              }
 
               if (dateLabels.length >= days) break;
             }
@@ -3216,7 +3236,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             dateLabels.reverse();
             dateProfits.reverse();
 
-            const profitResponse = { code: 1, data: { dates: dateLabels, profits: dateProfits } };
+            const profitResponse = { code: 1, data: { dates: dateLabels, profits: dateProfits, wcDates: wcDateLabels, wcProfits: wcDateProfits } };
             const cacheEntry = { key: profitCacheKey, time: profitNow, response: profitResponse };
             _profit7dCache = cacheEntry;
             _profit7dCacheTime = profitNow;
@@ -5967,31 +5987,34 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                 if (m && (m.date || '').slice(0, 10) === ds) mList.push(m);
               });
 
-              // ★ 快照优先：优先从快照加载（含完整结果），无快照才实时生成
-              var snap = PG.loadPlanSnapshot(ds);
+              // ★ V16.3: 历史日期快照优先（data.json.r 仅56条，实时生成无效），今天实时生成享受新规则
               var plans;
-              if (snap && snap.plans && snap.plans.length > 0) {
+              if (mList.length > 0) {
                 const histOdds = getOddsHistory(ds);
-                plans = PG.hydrateSnapshotWithResults(snap, mMap, rMap, histOdds);
-              } else if (mList.length > 0) {
-                // 无快照：实时生成（保持原逻辑）
-                const histOdds = getOddsHistory(ds);
-                const matchDataMap = {};
-                for (const mm of mList) {
-                  const num = mm.num || '';
-                  let oddsObj = null;
-                  if (histOdds && histOdds[num]) {
-                    const od = histOdds[num];
-                    oddsObj = {
-                      spf: od.spf || null,
-                      rqspf: od.rqspf || null,
-                      totalGoals: od.totalGoals || null,
-                      isSingleGame: od.isSingleGame || false,
-                    };
+                const todayStr = fmtDate2(new Date());
+                // 历史日期: 优先用快照（当时 r 数据完整）
+                var snap = ds !== todayStr ? PG.loadPlanSnapshot(ds) : null;
+                if (snap && snap.plans && snap.plans.length > 0) {
+                  plans = PG.hydrateSnapshotWithResults(snap, mMap, rMap, histOdds);
+                } else {
+                  // 今天或无快照: 实时生成
+                  const matchDataMap = {};
+                  for (const mm of mList) {
+                    const num = mm.num || '';
+                    let oddsObj = null;
+                    if (histOdds && histOdds[num]) {
+                      const od = histOdds[num];
+                      oddsObj = {
+                        spf: od.spf || null,
+                        rqspf: od.rqspf || null,
+                        totalGoals: od.totalGoals || null,
+                        isSingleGame: od.isSingleGame || false,
+                      };
+                    }
+                    matchDataMap[mm.matchId] = { match: mm, recs: findRecommends(mm.matchId), odds: oddsObj };
                   }
-                  matchDataMap[mm.matchId] = { match: mm, recs: findRecommends(mm.matchId), odds: oddsObj };
+                  plans = PG.generateExpertPlans(mList, matchDataMap, ds);
                 }
-                plans = PG.generateExpertPlans(mList, matchDataMap, ds);
               } else {
                 continue;
               }

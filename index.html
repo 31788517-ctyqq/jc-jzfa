@@ -105,8 +105,8 @@
       /></span>
       <span class="nav-title" id="navTitle">竞彩推荐监控</span>
       <div class="home-actions" id="homeActions">
-        <button class="home-update-btn" type="button" onclick="switchTab('data-health')" aria-label="打开数据健康监控">
-          <span>监控</span>
+        <button class="home-update-btn" type="button" onclick="switchTab('scheme')" aria-label="过关方案设计">
+          <span>过关</span>
         </button>
         <button class="home-my-btn" type="button" onclick="switchTab('profile')" aria-label="我的账号">
           <span>我的</span>
@@ -119,7 +119,7 @@
           <span id="notiBadge">0</span>
         </button>
       </div>
-      <button class="nav-my-btn" id="navMyBtn" type="button" onclick="switchTab('profile')"><span>我的</span></button><span class="nav-back" id="navBack" onclick="goBack()"
+      <button class="nav-pass-btn" id="navPassBtn" type="button" onclick="switchTab('scheme')" style="display:none"><span>过关</span></button><button class="nav-my-btn" id="navMyBtn" type="button" onclick="switchTab('profile')"><span>我的</span></button><span class="nav-back" id="navBack" onclick="goBack()"
         ><svg width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
             d="M31 36L19 24L31 12"
@@ -373,6 +373,33 @@
               <span id="statsMaxDate">--</span>
             </div>
 
+          </div>
+        </div>
+      </div>
+
+      <!-- 近7日世界杯方案盈利图表 -->
+      <div class="profit-card-wrap" id="homeWcProfitChartSection" style="display:none;margin-top:16px">
+        <div class="profit-card">
+          <div class="profit-header">
+            <h2 class="profit-title">🏆 世界杯方案盈利</h2>
+            <div class="profit-filter">近7日</div>
+          </div>
+          <div class="profit-chart" id="wcProfitChart">
+            <svg id="wcProfitSvg" viewBox="0 0 320 232" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="profit-yaxis" id="wcProfitYaxis"></div>
+            <div class="profit-xaxis" id="wcProfitXaxis"></div>
+          </div>
+          <div class="profit-stats" id="wcProfitStats">
+            <div class="profit-stat">
+              <label>总盈利</label>
+              <strong id="wcStatsTotal">--</strong>
+              <span>元</span>
+            </div>
+            <div class="profit-divider"></div>
+            <div class="profit-stat">
+              <label>方案数</label>
+              <strong id="wcStatsPlans">--</strong>
+            </div>
           </div>
         </div>
       </div>
