@@ -1,5 +1,4 @@
 // ==================== 主入口：路由导航 + 全局状态管理 ====================
-console.log('[V7.0-VITE][Phase2] main-fusion.js loaded');
 import {
   api,
   WEEK_NAMES,
@@ -33,11 +32,21 @@ function _mod(name) {
   const loader = pageModules[key];
   // Vite build path: 静态注册的 chunk
   if (loader) {
-    return loader().catch(function (e) {
+    return loader().then(function (m) {
+      // ★ P0 CSS 就绪锁：模块加载后，await 该页面对应的 CSS 就绪，再返回模块
+      const cssPath = _PAGE_CSS_MAP[name];
+      if (cssPath) return loadCSS(cssPath).then(function () { return m; });
+      return m;
+    }).catch(function (e) {
       console.error('[JS] chunk load fail: ' + name + ' - ' + (e && e.message));
       return new Promise(function (resolve, reject) {
         setTimeout(function () {
           loader()
+            .then(function (m) {
+              const cssPath = _PAGE_CSS_MAP[name];
+              if (cssPath) return loadCSS(cssPath).then(function () { return m; });
+              return m;
+            })
             .then(resolve)
             .catch(function (e2) {
               console.error('[JS] chunk retry fail: ' + name + ' - ' + (e2 && e2.message));
@@ -48,11 +57,19 @@ function _mod(name) {
     });
   }
   // Browser path: 动态 import（兼容旧 /js/ 路径），v 参数绕过 SW 缓存
-  return import('./pages/' + name + '.js?v=20260621a').catch(function (e) {
+  return import('./pages/' + name + '.js?v=20260621a').then(function (m) {
+    const cssPath = _PAGE_CSS_MAP[name];
+    if (cssPath) return loadCSS(cssPath).then(function () { return m; });
+    return m;
+  }).catch(function (e) {
     console.error('[JS] load fail: ' + name + ' - ' + (e && e.message));
     return new Promise(function (resolve, reject) {
       setTimeout(function () {
-        import('./pages/' + name + '.js?v=20260621a').then(resolve).catch(function (e2) {
+        import('./pages/' + name + '.js?v=20260621a').then(function (m) {
+          const cssPath = _PAGE_CSS_MAP[name];
+          if (cssPath) return loadCSS(cssPath).then(function () { return m; });
+          return m;
+        }).then(resolve).catch(function (e2) {
           console.error('[JS] retry fail: ' + name + ' - ' + (e2 && e2.message));
           reject(e2);
         });
@@ -61,19 +78,55 @@ function _mod(name) {
   });
 }
 
+// ★ P0 CSS 就绪锁：页面模块 → 依赖的 CSS 文件映射
+// 集中维护，避免每个页面 JS 顶部裸调 loadCSS 不 await 导致竞态
+const _PAGE_CSS_MAP = {
+  'home': '../../css/page-home.css',
+  'match-list': '../../css/page-match.css',
+  'match-detail': '../../css/page-match.css',
+  'match-pk-fusion': '../../css/page-modal.css',
+  'plans': '../../css/page-plans.css',
+  'my-plan': '../../css/page-plans.css',
+  'ranking': '../../css/page-rank.css',
+  'hit-rate': '../../css/page-hit.css',
+  'filter': '../../css/page-hit.css',
+  'income': '../../css/page-income.css',
+  'backtest': '../../css/page-backtest.css',
+  'scheme-design': '../../css/page-scheme.css',
+  'confirm-scheme': '../../css/page-scheme.css',
+  'quant-rank-fusion': '../../css/page-quant.css',
+  'quant-rank': '../../css/page-quant.css',
+  'login': '../../css/page-auth.css',
+  'register': '../../css/page-auth.css',
+  'contact-invite': '../../css/page-auth.css',
+  'account-security': '../../css/page-profile.css',
+  'profile': '../../css/page-auth.css',
+  'pricing': '../../css/page-auth.css',
+  'payment': '../../css/page-auth.css',
+  'payment-result': '../../css/page-auth.css',
+  'subscription': '../../css/page-auth.css',
+  'referral': '../../css/page-auth.css',
+  'admin': '../../css/page-auth.css',
+  'admin-payments': '../../css/page-auth.css',
+  'admin-referrals': '../../css/page-auth.css',
+  'gongshoudao': '../../css/page-gs.css',
+  'model-dashboard': '../../css/page-scheme.css',
+  'data-health': '../../css/page-scheme.css',
+};
+
 // ★ P0: 后台预加载热门 tab 页面 JS chunk + API 数据，消除切换时延迟
-var _hotModulesPreloaded = false;
+let _hotModulesPreloaded = false;
 function _preloadHotModules() {
   if (_hotModulesPreloaded) return;
   _hotModulesPreloaded = true;
-  var hotModules = ['match-list', 'plans', 'ranking', 'hit-rate', 'filter', 'income'];
+  const hotModules = ['match-list', 'plans', 'ranking', 'hit-rate', 'filter', 'income'];
   // 立即预加载 JS 模块（不延迟）
   hotModules.forEach(function (name) {
     _mod(name).catch(function () {});
   });
   // ★ P2 tier-1: 同时预取 API 数据（与模块加载并行），tab 切换直接命中缓存
-  var today = formatDate(new Date());
-  var todayShort = today.slice(5); // MM-DD
+  const today = formatDate(new Date());
+  const todayShort = today.slice(5); // MM-DD
   // match-list: 缓存双格式 key
   api('match-list', {})
     .then(function (data) {
@@ -736,14 +789,14 @@ export function goToday() {
 }
 
 function _setBestWeekIndex() {
-  var today = formatDate(new Date()).slice(5); // MM-DD
-  var todayFull = formatDate(new Date()); // YYYY-MM-DD
-  var bestIdx = 0;
-  var bestDate = '';
+  const today = formatDate(new Date()).slice(5); // MM-DD
+  const todayFull = formatDate(new Date()); // YYYY-MM-DD
+  let bestIdx = 0;
+  let bestDate = '';
 
   // 优先选中今天
-  for (var i = 0; i < state.weekDates.length; i++) {
-    var w = state.weekDates[i];
+  for (let i = 0; i < state.weekDates.length; i++) {
+    const w = state.weekDates[i];
     if (!w || !w.matchDate) continue;
     if (w.matchDate === today) {
       state.setSelectedWeekIdx(i);
@@ -754,8 +807,8 @@ function _setBestWeekIndex() {
   // 今天不在列表中：选最近的过去日期
   // 遍历所有日期，始终取 ≤ today 中 matchDate 最大的（最近的日期）
   // 同月日期因字符串比较自动优先（"06-21" > "05-31"），无需额外锁条件
-  for (var j = 0; j < state.weekDates.length; j++) {
-    var w2 = state.weekDates[j];
+  for (let j = 0; j < state.weekDates.length; j++) {
+    const w2 = state.weekDates[j];
     if (!w2 || !w2.matchDate) continue;
     if (w2.matchDate <= today) {
       if (bestDate === '' || w2.matchDate > bestDate) {
@@ -793,11 +846,14 @@ export function initWeekDates() {
     updateDateBar();
     const selected = state.weekDates[state.selectedWeekIdx];
     const cachedMatches = selected ? getCache('match-list:' + selected.matchDate) : null;
-    if (cachedMatches) {
-      loadMatchListFromData(cachedMatches);
-      return;
-    }
-    loadMatchList();
+    // ★ P0 CSS 就绪锁：通过 _mod 确保 page-match.css 加载完再渲染
+    _mod('match-list').then(function () {
+      if (cachedMatches) {
+        loadMatchListFromData(cachedMatches);
+      } else {
+        loadMatchList();
+      }
+    });
     return;
   }
 
@@ -816,17 +872,20 @@ export function initWeekDates() {
       updateDateBar();
       const selected = state.weekDates[state.selectedWeekIdx];
       const cachedMatches = selected ? getCache('match-list:' + selected.matchDate) : null;
-      if (cachedMatches) {
-        loadMatchListFromData(cachedMatches);
-        return;
-      }
-      loadMatchList();
+      // ★ P0 CSS 就绪锁：通过 _mod 确保 page-match.css 加载完再渲染
+      _mod('match-list').then(function () {
+        if (cachedMatches) {
+          loadMatchListFromData(cachedMatches);
+        } else {
+          loadMatchList();
+        }
+      });
     })
     .catch(function () {
       state.setWeekDates([{ weekNum: WEEK_NAMES[new Date().getDay()], matchDate: formatDate(new Date()).slice(5) }]);
       state.setSelectedWeekIdx(0);
       updateDateBar();
-      loadMatchList();
+      _mod('match-list').then(function () { loadMatchList(); });
     });
 }
 
@@ -841,19 +900,35 @@ function _ensurePage(id) {
     // 为特定页面初始化子结构
     if (id === 'match')
       el.innerHTML =
-        '<div class="date-bar" id="dateBar"><span class="date-arrow" onclick="shiftWeek(-1)">'+ICONS.arrowLeft+'</span><span class="date-current" id="dateCurrent" onclick="toggleDatePicker()"></span><span class="date-arrow" onclick="shiftWeek(1)">'+ICONS.arrowRight+'</span></div><div class="date-picker" id="datePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="datePickerPrev">&lt;</button><span class="date-picker-month" id="datePickerMonth"></span><button class="date-picker-nav" id="datePickerNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="datePickerGrid"></div><div class="date-picker-footer"><button class="date-picker-today" onclick="selectDateFromPicker(\'today\')">今天</button><button class="date-picker-close" onclick="toggleDatePicker()">✕</button></div></div><div id="matchList"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div></div><div class="quant-pk-bar" id="matchPkBar" style="display:none"><button class="pk-bar-btn" id="mpkBarBtn" onclick="startMatchPK()">场次PK（已选 <b id="mpkBarCount">0</b> 场）</button></div>';
+        '<div class="date-bar" id="dateBar"><span class="date-arrow" onclick="shiftWeek(-1)">' +
+        ICONS.arrowLeft +
+        '</span><span class="date-current" id="dateCurrent" onclick="toggleDatePicker()"></span><span class="date-arrow" onclick="shiftWeek(1)">' +
+        ICONS.arrowRight +
+        '</span></div><div class="date-picker" id="datePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="datePickerPrev">&lt;</button><span class="date-picker-month" id="datePickerMonth"></span><button class="date-picker-nav" id="datePickerNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="datePickerGrid"></div><div class="date-picker-footer"><button class="date-picker-today" onclick="selectDateFromPicker(\'today\')">今天</button><button class="date-picker-close" onclick="toggleDatePicker()">✕</button></div></div><div id="matchList"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div></div><div class="quant-pk-bar" id="matchPkBar" style="display:none"><button class="pk-bar-btn" id="mpkBarBtn" onclick="startMatchPK()">场次PK（已选 <b id="mpkBarCount">0</b> 场）</button></div>';
     else if (id === 'plan')
       el.innerHTML =
-        '<div class="filter-row" id="planTabBar" style="justify-content:flex-start;gap:6px"><div class="filter-tag" data-tab="wc" onclick="switchPlanTab(\'wc\')" class="filter-tag active">世界杯</div><div class="filter-tag" data-tab="expert" onclick="switchPlanTab(\'expert\')">专家博热方案</div><div class="filter-tag" data-tab="ai_tg" onclick="switchPlanTab(\'ai_tg\')">总进球三向</div><div class="filter-tag" data-tab="my" onclick="switchPlanTab(\'my\')">我的方案</div></div><div class="date-bar" id="planDateBar"><span class="date-arrow" onclick="shiftPlanDate(-1)">'+ICONS.arrowLeft+'</span><span class="date-current" id="planDateCurrent" onclick="togglePlanDatePicker()"></span><span class="date-arrow" onclick="shiftPlanDate(1)">'+ICONS.arrowRight+'</span></div><div class="date-picker" id="planDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="planDatePrev">&lt;</button><span class="date-picker-month" id="planDateMonth"></span><button class="date-picker-nav" id="planDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="planDateGrid"></div></div><div id="planList"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div></div>';
+        '<div class="filter-row" id="planTabBar" style="justify-content:flex-start;gap:6px"><div class="filter-tag" data-tab="wc" onclick="switchPlanTab(\'wc\')" class="filter-tag active">世界杯</div><div class="filter-tag" data-tab="expert" onclick="switchPlanTab(\'expert\')">专家博热方案</div><div class="filter-tag" data-tab="ai_tg" onclick="switchPlanTab(\'ai_tg\')">总进球三向</div><div class="filter-tag" data-tab="my" onclick="switchPlanTab(\'my\')">我的方案</div></div><div class="date-bar" id="planDateBar"><span class="date-arrow" onclick="shiftPlanDate(-1)">' +
+        ICONS.arrowLeft +
+        '</span><span class="date-current" id="planDateCurrent" onclick="togglePlanDatePicker()"></span><span class="date-arrow" onclick="shiftPlanDate(1)">' +
+        ICONS.arrowRight +
+        '</span></div><div class="date-picker" id="planDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="planDatePrev">&lt;</button><span class="date-picker-month" id="planDateMonth"></span><button class="date-picker-nav" id="planDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="planDateGrid"></div></div><div id="planList"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div></div>';
     else if (id === 'detail')
       el.innerHTML =
         '<div class="page-skeleton" id="detailContent"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div>';
     else if (id === 'rank')
       el.innerHTML =
-        '<div class="filter-row" id="catFilterBar"></div><div class="filter-row" id="subFilterBar" style="display:none;padding-top:0;justify-content:flex-start;gap:6px"></div><div class="date-bar" id="rankDateBar"><span class="date-arrow" onclick="shiftRankDate(-1)">'+ICONS.arrowLeft+'</span><span class="date-current" id="rankDateCurrent" onclick="toggleRankDatePicker()"></span><span class="date-arrow" onclick="shiftRankDate(1)">'+ICONS.arrowRight+'</span></div><div class="date-picker" id="rankDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="rankDatePrev">&lt;</button><span class="date-picker-month" id="rankDateMonth"></span><button class="date-picker-nav" id="rankDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="rankDateGrid"></div></div><div class="rank-list" id="rankList"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div></div>';
+        '<div class="filter-row" id="catFilterBar"></div><div class="filter-row" id="subFilterBar" style="display:none;padding-top:0;justify-content:flex-start;gap:6px"></div><div class="date-bar" id="rankDateBar"><span class="date-arrow" onclick="shiftRankDate(-1)">' +
+        ICONS.arrowLeft +
+        '</span><span class="date-current" id="rankDateCurrent" onclick="toggleRankDatePicker()"></span><span class="date-arrow" onclick="shiftRankDate(1)">' +
+        ICONS.arrowRight +
+        '</span></div><div class="date-picker" id="rankDatePicker" style="display:none"><div class="date-picker-header"><button class="date-picker-nav" id="rankDatePrev">&lt;</button><span class="date-picker-month" id="rankDateMonth"></span><button class="date-picker-nav" id="rankDateNext">&gt;</button></div><div class="date-picker-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="date-picker-grid" id="rankDateGrid"></div></div><div class="rank-list" id="rankList"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div></div>';
     else if (id === 'quant-rank')
       el.innerHTML =
-        '<div class="filter-row" id="quantFilterBar"><div class="filter-tag active" data-tab="power" onclick="switchQuantTab(\'power\')">实力排行榜</div><div class="filter-tag" data-tab="goal" onclick="switchQuantTab(\'goal\')">进球排行榜</div><div class="filter-tag" data-tab="hot" onclick="switchQuantTab(\'hot\')">热点排行榜</div></div><div class="date-bar" id="quantDateBar"><span class="date-arrow" onclick="shiftQuantDate(-1)">'+ICONS.arrowLeft+'</span><span class="date-current" id="quantDateCurrent" onclick="toggleQuantDatePicker()"></span><span class="date-arrow" onclick="shiftQuantDate(1)">'+ICONS.arrowRight+'</span></div><div class="quant-table-wrap" id="quantTableWrap"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div></div><div class="quant-chart-wrap" id="quantChartWrap" style="display:none"><div class="quant-chart-inner" id="quantChart"></div></div><div class="quant-view-toggle" id="quantViewToggle" style="display:none"><button class="qt-view-btn active" data-view="table" onclick="switchQuantView(\'table\')">📋 表格</button><button class="qt-view-btn" data-view="chart" onclick="switchQuantView(\'chart\')">📊 图表</button></div><div class="quant-pk-bar" id="quantPkBar" style="display:none"><span class="pk-bar-hint" id="pkBarHint" style="display:none">已选 <b id="pkSelectCount">0</b> 场</span><button class="pk-bar-btn" id="pkBarBtn" onclick="startPK()">场次PK（已选 <b id="pkBarCount">0</b> 场）</button></div>';
+        '<div class="filter-row" id="quantFilterBar"><div class="filter-tag active" data-tab="power" onclick="switchQuantTab(\'power\')">实力排行榜</div><div class="filter-tag" data-tab="goal" onclick="switchQuantTab(\'goal\')">进球排行榜</div><div class="filter-tag" data-tab="hot" onclick="switchQuantTab(\'hot\')">热点排行榜</div></div><div class="date-bar" id="quantDateBar"><span class="date-arrow" onclick="shiftQuantDate(-1)">' +
+        ICONS.arrowLeft +
+        '</span><span class="date-current" id="quantDateCurrent" onclick="toggleQuantDatePicker()"></span><span class="date-arrow" onclick="shiftQuantDate(1)">' +
+        ICONS.arrowRight +
+        '</span></div><div class="quant-table-wrap" id="quantTableWrap"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div></div><div class="quant-chart-wrap" id="quantChartWrap" style="display:none"><div class="quant-chart-inner" id="quantChart"></div></div><div class="quant-view-toggle" id="quantViewToggle" style="display:none"><button class="qt-view-btn active" data-view="table" onclick="switchQuantView(\'table\')">📋 表格</button><button class="qt-view-btn" data-view="chart" onclick="switchQuantView(\'chart\')">📊 图表</button></div><div class="quant-pk-bar" id="quantPkBar" style="display:none"><span class="pk-bar-hint" id="pkBarHint" style="display:none">已选 <b id="pkSelectCount">0</b> 场</span><button class="pk-bar-btn" id="pkBarBtn" onclick="startPK()">场次PK（已选 <b id="pkBarCount">0</b> 场）</button></div>';
     else if (id === 'hit')
       el.innerHTML =
         '<div class="page-skeleton" id="hitContent"><div class="skel-bar"></div><div class="skel-bar w60"></div><div class="skel-bar w80"></div><div class="skel-bar w40"></div></div>';
@@ -902,13 +977,21 @@ function _ensurePage(id) {
         '<div class="ssb-modal-footer"><button class="ssb-modal-cancel" onclick="closePassPopup()">取消</button><button class="ssb-modal-confirm" onclick="confirmPassPopup()">确定</button></div>' +
         '</div>' +
         '</div>';
-    else if (id === 'login') el.innerHTML = '<div id="loginContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+    else if (id === 'login')
+      el.innerHTML =
+        '<div id="loginContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
     else if (id === 'register')
       el.innerHTML =
         '<div class="page-skeleton" id="registerContent"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div>';
-    else if (id === 'contact-invite') el.innerHTML = '<div id="contactInviteContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
-    else if (id === 'account-security') el.innerHTML = '<div id="accountSecurityContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
-    else if (id === 'profile') el.innerHTML = '<div id="profileContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div></div>';
+    else if (id === 'contact-invite')
+      el.innerHTML =
+        '<div id="contactInviteContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+    else if (id === 'account-security')
+      el.innerHTML =
+        '<div id="accountSecurityContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+    else if (id === 'profile')
+      el.innerHTML =
+        '<div id="profileContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div><div class="skel-bar w40"></div></div></div>';
     else if (id === 'confirm-scheme')
       el.innerHTML =
         '<div id="confirmContent"><div class="loading"><div class="loading-spinner"></div>加载方案中...</div></div>';
@@ -940,14 +1023,30 @@ function _ensurePage(id) {
         '<div class="scheme-stats-card" id="dhStatsCard"><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatSources">-</div><div class="scheme-stat-lbl">数据源</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatAvgRate">-</div><div class="scheme-stat-lbl">平均成功率</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatAlerts">-</div><div class="scheme-stat-lbl">活跃告警</div></div></div>' +
         '<div id="data-health-content"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
     // ★ Phase 4: 支付体系页面容器
-    else if (id === 'pricing') el.innerHTML = '<div id="pricingContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
-    else if (id === 'payment') el.innerHTML = '<div id="paymentContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
-    else if (id === 'payment-result') el.innerHTML = '<div id="paymentResultContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
-    else if (id === 'subscription') el.innerHTML = '<div id="subscriptionContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
-    else if (id === 'referral') el.innerHTML = '<div id="referralContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
-    else if (id === 'admin-payments') el.innerHTML = '<div id="adminPaymentsContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
-    else if (id === 'admin-referrals') el.innerHTML = '<div id="adminReferralsContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
-    else if (id === 'admin') el.innerHTML = '<div id="adminContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+    else if (id === 'pricing')
+      el.innerHTML =
+        '<div id="pricingContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+    else if (id === 'payment')
+      el.innerHTML =
+        '<div id="paymentContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+    else if (id === 'payment-result')
+      el.innerHTML =
+        '<div id="paymentResultContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+    else if (id === 'subscription')
+      el.innerHTML =
+        '<div id="subscriptionContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+    else if (id === 'referral')
+      el.innerHTML =
+        '<div id="referralContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+    else if (id === 'admin-payments')
+      el.innerHTML =
+        '<div id="adminPaymentsContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+    else if (id === 'admin-referrals')
+      el.innerHTML =
+        '<div id="adminReferralsContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+    else if (id === 'admin')
+      el.innerHTML =
+        '<div id="adminContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
     // P0-2: 回测分析骨架屏（首次加载时显示）
     else if (id === 'backtest')
       el.innerHTML =
@@ -1151,15 +1250,15 @@ export function switchTab(tab) {
       applyPendingMatchWeek();
       updateDateBar();
       // ★ P1: API 提前发起，与模块加载并行
-      var mw = state.weekDates[state.selectedWeekIdx];
-      var mParams = { _t: Date.now() };
+      const mw = state.weekDates[state.selectedWeekIdx];
+      const mParams = { _t: Date.now() };
       if (mw) {
         mParams.weekNum = mw.weekNum;
         mParams.matchDate = mw.matchDate;
       } else {
         mParams.date = formatDate(new Date());
       }
-      var matchApiPromise = api('match-list', mParams);
+      const matchApiPromise = api('match-list', mParams);
       _mod('match-list').then(function (m) {
         m.loadMatchList(matchApiPromise);
       });
@@ -1193,7 +1292,7 @@ export function switchTab(tab) {
       else if (state.planTab === 'ai_tg') m.loadAIPlanList();
       else if (state.planTab === 'wc')
         m.loadPlanList(function (p) {
-          var pn = p.planName || '';
+          const pn = p.planName || '';
           return pn.indexOf('世界杯') === 0;
         });
       else {
@@ -1203,7 +1302,7 @@ export function switchTab(tab) {
           btn.classList.toggle('active', btn.getAttribute('data-tab') === 'wc');
         });
         m.loadPlanList(function (p) {
-          var pn = p.planName || '';
+          const pn = p.planName || '';
           return pn.indexOf('世界杯') === 0;
         });
       }
@@ -1217,11 +1316,11 @@ export function switchTab(tab) {
   }
   if (tab === 'rank') {
     // ★ P1: API 提前发起（与模块加载并行）
-    var rParams = {};
+    const rParams = {};
     if (state.selectedCategory) rParams.category = state.selectedCategory;
     if (state.selectedDirection) rParams.direction = state.selectedDirection;
     if (state.rankDate) rParams.date = state.rankDate;
-    var rankApiPromise = api('ranking-list', rParams);
+    const rankApiPromise = api('ranking-list', rParams);
     _mod('ranking').then(function (m) {
       if (typeof m._autoSetRankBestDate === 'function') m._autoSetRankBestDate();
       if (typeof m.updateRankDateBar === 'function') m.updateRankDateBar();
@@ -1441,7 +1540,7 @@ window.addEventListener('auth:unauthorized', function () {
 // ── 方案收入方向切换：动态更新 dd-incPlan 下拉菜单 ──
 window.onIncDirChange = function (dir) {
   let incDir = dir || (window.getDDVal ? window.getDDVal('dd-incDir') : 'expert');
-  var validDirs = {all:1, expert:1, wc:1, ai_tg:1, score:1, quant:1, my:1};
+  const validDirs = { all: 1, expert: 1, wc: 1, ai_tg: 1, score: 1, quant: 1, my: 1 };
   if (!validDirs[incDir]) {
     selectDD('dd-incDir', 'expert', '专家博热方案');
     incDir = 'expert';
@@ -1777,7 +1876,10 @@ function switchTabLoad(tab) {
       _setBestWeekIndex();
       applyPendingMatchWeek();
       updateDateBar();
-      loadMatchList();
+      // ★ P0 CSS 就绪锁：通过 _mod 确保 page-match.css 加载完再渲染，避免数据先出样式后到
+      _mod('match-list').then(function () {
+        loadMatchList();
+      });
     } else initWeekDates();
   }
   if (tab === 'plan') {
@@ -1808,7 +1910,7 @@ function switchTabLoad(tab) {
       else if (state.planTab === 'ai_tg') m.loadAIPlanList();
       else if (state.planTab === 'wc')
         m.loadPlanList(function (p) {
-          var pn = p.planName || '';
+          const pn = p.planName || '';
           return pn.indexOf('世界杯') === 0;
         });
       else {
@@ -1818,7 +1920,7 @@ function switchTabLoad(tab) {
           btn.classList.toggle('active', btn.getAttribute('data-tab') === 'wc');
         });
         m.loadPlanList(function (p) {
-          var pn = p.planName || '';
+          const pn = p.planName || '';
           return pn.indexOf('世界杯') === 0;
         });
       }
@@ -1832,11 +1934,11 @@ function switchTabLoad(tab) {
   }
   if (tab === 'rank') {
     // ★ P1: API 提前发起（与模块加载并行）
-    var rParams = {};
+    const rParams = {};
     if (state.selectedCategory) rParams.category = state.selectedCategory;
     if (state.selectedDirection) rParams.direction = state.selectedDirection;
     if (state.rankDate) rParams.date = state.rankDate;
-    var rankApiPromise = api('ranking-list', rParams);
+    const rankApiPromise = api('ranking-list', rParams);
     _mod('ranking').then(function (m) {
       if (typeof m._autoSetRankBestDate === 'function') m._autoSetRankBestDate();
       if (typeof m.updateRankDateBar === 'function') m.updateRankDateBar();
@@ -1973,7 +2075,6 @@ document.addEventListener('subscription:required', function (e) {
     setTimeout(function () {
       _mod('register')
         .then(function (m) {
-          console.log('[prefetch] register.js cached');
         })
         .catch(function () {});
     }, 3000);
@@ -1984,7 +2085,6 @@ document.addEventListener('subscription:required', function (e) {
     _registerPreloaded = true;
     _mod('register')
       .then(function (m) {
-        console.log('[prefetch] register.js cached (fallback)');
       })
       .catch(function () {});
   }, 5000);
@@ -2031,7 +2131,16 @@ document.addEventListener('subscription:required', function (e) {
       });
   }
   checkAlerts();
-  setInterval(checkAlerts, POLL_MS);
+  const _alertTimer = setInterval(checkAlerts, POLL_MS);
+  // ★ P2-4: 页面不可见时暂停告警轮询，省电省流量
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      clearInterval(_alertTimer);
+    } else {
+      checkAlerts();
+      setInterval(checkAlerts, POLL_MS);
+    }
+  });
   const abr = document.getElementById('alertBannerRead');
   const abc = document.getElementById('alertBannerClose');
   const ab = document.getElementById('alertBanner');
