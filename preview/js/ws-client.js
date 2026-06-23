@@ -52,7 +52,7 @@ function connect() {
   }
 
   ws.onopen = function () {
-    console.log('[WS] 已连接 ' + WS_URL);
+    console.warn('[WS] 已连接 ' + WS_URL);
     reconnectAttempts = 0;
 
     // 订阅频道
@@ -81,7 +81,7 @@ function connect() {
 
       switch (msg.type) {
         case 'connected':
-          console.log('[WS] 服务端确认连接, clientId=' + msg.clientId);
+          console.warn('[WS] 服务端确认连接, clientId=' + msg.clientId);
           break;
 
         case 'pong':
@@ -110,7 +110,7 @@ function connect() {
   };
 
   ws.onclose = function (event) {
-    console.log('[WS] 连接关闭 (code=' + event.code + ')');
+    console.warn('[WS] 连接关闭 (code=' + event.code + ')');
     clearInterval(pingInterval);
     if (wsEvents.onStatusChange) wsEvents.onStatusChange('disconnected');
 
@@ -135,7 +135,7 @@ function scheduleReconnect() {
   const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), MAX_RECONNECT_DELAY);
   reconnectAttempts++;
 
-  console.log('[WS] ' + delay / 1000 + 's 后重连 (第' + reconnectAttempts + '次)');
+  console.warn('[WS] ' + delay / 1000 + 's 后重连 (第' + reconnectAttempts + '次)');
   if (wsEvents.onStatusChange) wsEvents.onStatusChange('reconnecting');
 
   reconnectTimer = setTimeout(function () {
@@ -192,7 +192,8 @@ function handleScoreUpdate(scores) {
     if (scoreEl && newData.score) {
       const parts = newData.score.replace('-', ':').split(':');
       if (parts.length === 2) {
-        scoreEl.innerHTML = parts[0] + ' : ' + parts[1];
+        // ★ P2-1: 用 textContent 替代 innerHTML，防 XSS（比分是纯文本）
+        scoreEl.textContent = parts[0].trim() + ' : ' + parts[1].trim();
       }
     }
 
@@ -229,7 +230,7 @@ function handleScoreUpdate(scores) {
 function handleRecommendUpdate(recs) {
   if (!recs || Object.keys(recs).length === 0) return;
 
-  console.log('[WS] 推荐命中更新: ' + Object.keys(recs).length + ' 场比赛');
+  console.warn('[WS] 推荐命中更新: ' + Object.keys(recs).length + ' 场比赛');
 
   // 通知外部回调
   if (typeof wsEvents.onRecommendUpdate === 'function') {
@@ -255,7 +256,7 @@ function handleRecommendUpdate(recs) {
 function handleAIAnalysisUpdate(analyses) {
   if (!analyses || Object.keys(analyses).length === 0) return;
 
-  console.log('[WS] AI 分析更新: ' + Object.keys(analyses).length + ' 场比赛');
+  console.warn('[WS] AI 分析更新: ' + Object.keys(analyses).length + ' 场比赛');
 
   if (typeof wsEvents.onAIAnalysisUpdate === 'function') {
     wsEvents.onAIAnalysisUpdate(analyses);

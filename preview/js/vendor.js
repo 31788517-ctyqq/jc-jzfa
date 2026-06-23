@@ -12,17 +12,42 @@ const SESSION_KEY = 'auth_session';
 // CSS loader — inject <link> at runtime, returns Promise that resolves on load
 // ★ Phase3: CSS 文件不被 Vite 处理（运行时 loadCSS），路径始终用 /css/
 // Nginx 已配置 location ^~ /css/ { alias preview/css/; } 兼容 Vite 和 raw ESM 两种模式
+// ★ P0 CSS 就绪锁：_cssPromiseCache 保证相同 href 只加载一次，返回的 Promise 可被渲染函数 await
+const _cssPromiseCache = {};
 export function loadCSS(path) {
-  var href = path.replace(/^(\.\.\/)+css\//, '/css/');
-  if (document.querySelector('link[href="' + href + '"]')) return Promise.resolve();
-  return new Promise(function(resolve, reject) {
-    var l = document.createElement('link');
+  const href = path.replace(/^(\.\.\/)+css\//, '/css/');
+  if (_cssPromiseCache[href]) return _cssPromiseCache[href];
+  if (document.querySelector('link[href="' + href + '"]')) {
+    _cssPromiseCache[href] = Promise.resolve();
+    return _cssPromiseCache[href];
+  }
+  _cssPromiseCache[href] = new Promise(function (resolve, reject) {
+    const l = document.createElement('link');
     l.rel = 'stylesheet';
     l.href = href;
-    l.onload = function() { resolve(); };
-    l.onerror = function() { reject(new Error('CSS load failed: ' + href)); };
+    l.onload = function () {
+      resolve();
+    };
+    l.onerror = function () {
+      delete _cssPromiseCache[href];
+      reject(new Error('CSS load failed: ' + href));
+    };
     document.head.appendChild(l);
   });
+  return _cssPromiseCache[href];
+}
+
+// ══════════════════════════════════════════════
+// §1.6 escapeHtml — 统一 HTML 转义函数（防 XSS）
+// ★ P2-1: 所有拼接外部数据的 innerHTML 必须调用此函数
+// ══════════════════════════════════════════════
+export function escapeHtml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // ══════════════════════════════════════════════
@@ -158,7 +183,7 @@ function checkSchemaVersion() {
       sessionStorage.removeItem(k);
     });
     sessionStorage.setItem(_CACHE_VERSION_KEY, _CACHE_SCHEMA_VERSION);
-    console.log('[cache] Schema v' + _CACHE_SCHEMA_VERSION + ' 已激活, 清理 ' + keysToRemove.length + ' 条旧缓存');
+    console.warn('[cache] Schema v' + _CACHE_SCHEMA_VERSION + ' 已激活, 清理 ' + keysToRemove.length + ' 条旧缓存');
   } catch (e) {}
 }
 checkSchemaVersion();
