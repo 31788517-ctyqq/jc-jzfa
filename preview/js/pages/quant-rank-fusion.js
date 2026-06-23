@@ -4,7 +4,6 @@ import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
 import { loadCSS } from '../vendor.js';
 loadCSS('../../css/page-quant.css');
 
-console.log('[V5.0-FUSION] quant-rank-fusion.js loaded — cross-tab selection enabled');
 
 let quantDate = '';
 let quantDateOffset = 0;
@@ -473,7 +472,7 @@ function renderDecisionBadge(item) {
   const dir = item.finalDirection;
   const stars = '★'.repeat(Math.max(0, Math.min(5, item.stars || 0)));
   // ★ 方向为 watch/观望时不重复显示
-  var parts = [esc(level)];
+  const parts = [esc(level)];
   if (dir && dir !== 'watch') parts.push(esc(dir));
   if (stars) parts.push(stars);
   return '<span class="q-decision-badge q-decision-' + code + '">' + parts.join(' ') + '</span>';
@@ -482,7 +481,11 @@ function renderDecisionBadge(item) {
 function renderRiskChips(item) {
   const tags = safeArrayField(item.riskTags).slice(0, 2);
   if (!tags.length) return '低风险';
-  return tags.map(function (t) { return esc(t); }).join(' ');
+  return tags
+    .map(function (t) {
+      return esc(t);
+    })
+    .join(' ');
 }
 
 // ═══ 渲染 — flex 卡片表格 ═══
@@ -625,9 +628,17 @@ function renderMatch(item) {
   return (
     '<span class="q-col-match q-match-cell">' +
     '<div class="q-match-line">' +
-    '<span class="q-match-teams" title="' + esc(item.homeName) + '">' + esc(shortTeam(item.homeName)) + '</span>' +
+    '<span class="q-match-teams" title="' +
+    esc(item.homeName) +
+    '">' +
+    esc(shortTeam(item.homeName)) +
+    '</span>' +
     '<span class="q-match-vs">vs</span>' +
-    '<span class="q-match-teams" title="' + esc(item.visitName) + '">' + esc(shortTeam(item.visitName)) + '</span>' +
+    '<span class="q-match-teams" title="' +
+    esc(item.visitName) +
+    '">' +
+    esc(shortTeam(item.visitName)) +
+    '</span>' +
     '</div>' +
     '<div class="q-match-badges">' +
     renderDecisionBadge(item) +
@@ -928,7 +939,11 @@ function computeTags(item) {
 function renderTags(item) {
   const tags = computeTags(item);
   if (!tags.length) return '';
-  return tags.map(function (t) { return t.e; }).join(' · ');
+  return tags
+    .map(function (t) {
+      return t.e;
+    })
+    .join(' · ');
 }
 
 // ═══ P2-5/P2-6: ECharts 图表视图 + 响应式切换 ═══

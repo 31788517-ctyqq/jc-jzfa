@@ -180,7 +180,7 @@ let _lastPlanRefreshMs = 0;
 export function refreshPlanList() {
   const now = Date.now();
   if (now - _lastPlanRefreshMs < 180000) {
-    console.log('[plans] 刷新冷却中，3分钟内仅允许一次');
+    console.warn('[plans] 刷新冷却中，3分钟内仅允许一次');
     return;
   }
   _lastPlanRefreshMs = now;
@@ -602,12 +602,12 @@ export function loadPlanList(optFilterFn) {
   }
 
   // ★ P1-2: Stale-While-Revalidate — 缓存命中先展示，>30s后台静默刷新
-  var cacheKey = 'plan-list:scorefix-v3:' + state.planTab + ':' + state.planDate;
-  var cached = getCache(cacheKey);
+  const cacheKey = 'plan-list:scorefix-v3:' + state.planTab + ':' + state.planDate;
+  const cached = getCache(cacheKey);
   if (cached) {
     el.innerHTML = cached;
-    var cacheTimeKey = 'plan-list:time:' + state.planTab + ':' + state.planDate;
-    var cacheTime = 0;
+    const cacheTimeKey = 'plan-list:time:' + state.planTab + ':' + state.planDate;
+    let cacheTime = 0;
     try {
       cacheTime = parseInt(sessionStorage.getItem('_cache:' + cacheTimeKey), 10) || 0;
     } catch (e) {}
@@ -617,7 +617,7 @@ export function loadPlanList(optFilterFn) {
   // ★ P0-1: 单 API（plan-list 响应已内嵌 consensusMap，消除 batch-consensus 额外往返）
   api('plan-list', params)
     .then(function (data) {
-      var consensusMap = data.consensusMap || {};
+      const consensusMap = data.consensusMap || {};
       // 用服务器返回的实际日期更新显示（日历显式选日时不过度覆盖）
       if (data.date && data.date !== state.planDate && !state.planDateExplicit) {
         state.setPlanDate(data.date);
@@ -665,12 +665,12 @@ export function loadPlanList(optFilterFn) {
             else if (state.planTab === 'ai_tg') loadAIPlanList();
             else if (state.planTab === 'wc')
               loadPlanList(function (p) {
-                var pn = p.planName || '';
+                const pn = p.planName || '';
                 return pn.indexOf('世界杯') === 0;
               });
             else
               loadPlanList(function (p) {
-                var pn = p.planName || '';
+                const pn = p.planName || '';
                 return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
               });
             return;
@@ -709,7 +709,7 @@ export function loadPlanList(optFilterFn) {
         '<span class="filter-tag" onclick="window._refreshPlanList()" style="cursor:pointer;">🔄 刷新方案</span>' +
         '</div>';
 
-      var cardHTMLs = displayPlans.map(function (p, i) {
+      const cardHTMLs = displayPlans.map(function (p, i) {
         const matches = p.matches || [];
         let isWon = false,
           isLose = false;
@@ -729,7 +729,7 @@ export function loadPlanList(optFilterFn) {
         const prizeVal = prizeNum > 0 ? prizeNum.toFixed(0) : isWon ? '--' : '0';
         const prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
         const statusText = isWon ? '已中奖' : isLose ? '未中奖' : '未开奖';
-        var statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
+        const statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
 
         let cutoffDisplay = '';
         if (matches.length > 0 && matches[0].startTime) {
@@ -946,7 +946,7 @@ export function loadPlanList(optFilterFn) {
           '">' +
           '<div class="plan-card-head">' +
           '<div class="plan-left">' +
-          '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
+          '<span class="plan-soccer-icon">⚽</span>' +
           '<span class="plan-name">' +
           planName +
           '</span>' +
@@ -1081,19 +1081,19 @@ export function loadPlanList(optFilterFn) {
       });
       // ★ P0-2: 分帧渲染 — 首屏 5 张卡片立即渲染，剩余 rAF 分批追加
       (function () {
-        var CARD_BATCH = 5;
+        const CARD_BATCH = 5;
         function renderSlice(startIdx) {
-          var end = Math.min(startIdx + CARD_BATCH, cardHTMLs.length);
+          const end = Math.min(startIdx + CARD_BATCH, cardHTMLs.length);
           if (startIdx === 0) el.innerHTML = noticeHtml + filterBar;
-          var frag = document.createDocumentFragment();
-          for (var ci = startIdx; ci < end; ci++) {
-            var wrap = document.createElement('div');
+          const frag = document.createDocumentFragment();
+          for (let ci = startIdx; ci < end; ci++) {
+            const wrap = document.createElement('div');
             wrap.innerHTML = cardHTMLs[ci];
             while (wrap.firstChild) frag.appendChild(wrap.firstChild);
           }
           el.appendChild(frag);
           if (end >= cardHTMLs.length) {
-            var refDiv = document.createElement('div');
+            const refDiv = document.createElement('div');
             refDiv.innerHTML = refreshBtn;
             el.appendChild(refDiv.firstElementChild);
             setCache(cacheKey, el.innerHTML);
@@ -1271,7 +1271,7 @@ export function loadMyPlanList() {
             '">' +
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
-            '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
+            '<span class="plan-soccer-icon">⚽</span>' +
             '<span class="plan-name">' +
             planName +
             '</span>' +
@@ -2251,12 +2251,12 @@ export function loadScorePlanList() {
             else if (state.planTab === 'ai_tg') loadAIPlanList();
             else if (state.planTab === 'wc')
               loadPlanList(function (p) {
-                var pn = p.planName || '';
+                const pn = p.planName || '';
                 return pn.indexOf('世界杯') === 0;
               });
             else
               loadPlanList(function (p) {
-                var pn = p.planName || '';
+                const pn = p.planName || '';
                 return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
               });
             return;
@@ -2379,7 +2379,7 @@ export function loadScorePlanList() {
             '">' +
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
-            '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
+            '<span class="plan-soccer-icon">⚽</span>' +
             '<span class="plan-name">' +
             (p.planName || '单关比分方案') +
             '</span>' +
@@ -2569,12 +2569,12 @@ export function loadQuantPlanList() {
             else if (state.planTab === 'ai_tg') loadAIPlanList();
             else if (state.planTab === 'wc')
               loadPlanList(function (p) {
-                var pn = p.planName || '';
+                const pn = p.planName || '';
                 return pn.indexOf('世界杯') === 0;
               });
             else
               loadPlanList(function (p) {
-                var pn = p.planName || '';
+                const pn = p.planName || '';
                 return pn.indexOf('方案') === 0 && pn.indexOf('方案A') !== 0;
               });
             return;
@@ -2739,7 +2739,7 @@ export function loadQuantPlanList() {
             '">' +
             '<div class="plan-card-head">' +
             '<div class="plan-left">' +
-            '<span class="plan-soccer-icon"><img src="/assets/plan_icon.png?v=1" alt="" decoding="async"/></span>' +
+            '<span class="plan-soccer-icon">⚽</span>' +
             '<span class="plan-name">' +
             planName +
             '</span>' +

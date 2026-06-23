@@ -1,6 +1,6 @@
 import { api } from '../api.js';
 import { formatDate, setCache, getCache } from '../utils.js';
-import { loadCSS,  setWeekDates } from '../vendor.js';
+import { loadCSS, setWeekDates } from '../vendor.js';
 loadCSS('../../css/page-home.css');
 
 function getMatchLabel(item) {
@@ -499,10 +499,10 @@ export function loadHome() {
   bundlePromise.then(function (bundle) {
     // ★ fix: api() 返回的是 data 本体，不含 code/data 包装层
     if (bundle && (bundle.weekDates || bundle.matches)) {
-      var d = bundle;
-      var matches = d.matches || [];
-      var ranking = d.ranking || [];
-      var weekDatesList = d.weekDates || [];
+      const d = bundle;
+      const matches = d.matches || [];
+      const ranking = d.ranking || [];
+      const weekDatesList = d.weekDates || [];
 
       // 注入 weekDates 到全局 state
       if (weekDatesList.length) {
@@ -514,28 +514,28 @@ export function loadHome() {
 
       // ★ 今天无比赛数据 → 找到最近可用日期重试 home-bundle
       if (matches.length === 0 && weekDatesList.length > 0) {
-        var todayMD = today.slice(5);
-        var bestMD = '';
+        const todayMD = today.slice(5);
+        let bestMD = '';
         weekDatesList.forEach(function (w) {
           if (w.matchDate < todayMD && w.matchDate > bestMD) bestMD = w.matchDate;
         });
         if (bestMD) {
-          var bestDate = today.slice(0, 4) + '-' + bestMD;
+          const bestDate = today.slice(0, 4) + '-' + bestMD;
           api('home-bundle', { date: bestDate, limit: 8 })
             .then(function (bundle2) {
               if (bundle2 && (bundle2.matches || bundle2.ranking)) {
-                var dd = bundle2;
-                var ddMatches = Array.isArray(dd.matches) ? dd.matches : [];
-                var ddRank = dd.ranking || [];
+                const dd = bundle2;
+                const ddMatches = Array.isArray(dd.matches) ? dd.matches : [];
+                const ddRank = dd.ranking || [];
                 if (ddMatches.length) {
                   setCache('match-list:' + bestDate, ddMatches);
-                  var firstWeek = weekDatesList[0];
+                  const firstWeek = weekDatesList[0];
                   if (firstWeek && firstWeek.matchDate && firstWeek.matchDate !== bestDate) {
                     setCache('match-list:' + firstWeek.matchDate, ddMatches);
                   }
                 }
                 if (ddRank) {
-                  var rankForCache = Array.isArray(ddRank) ? { ranking: ddRank } : ddRank;
+                  const rankForCache = Array.isArray(ddRank) ? { ranking: ddRank } : ddRank;
                   setCache('ranking-list:home', rankForCache);
                 }
                 _renderHomeStatsBrief(ddMatches, ddRank);
@@ -556,12 +556,12 @@ export function loadHome() {
         // 正常有数据路径
         if (d.matches) setCache('match-list:' + today, d.matches);
         if (d.ranking) {
-          var rankForCache = Array.isArray(d.ranking) ? { ranking: d.ranking } : d.ranking;
+          const rankForCache = Array.isArray(d.ranking) ? { ranking: d.ranking } : d.ranking;
           setCache('ranking-list:home', rankForCache);
         }
 
         // ★ P2: 用 match-list.js / ranking.js 实际查询的 cache key 再存一份，tab切换秒开
-        var firstWeek = weekDatesList[0];
+        const firstWeek = weekDatesList[0];
         if (d.matches && firstWeek && firstWeek.matchDate && firstWeek.matchDate !== today) {
           setCache('match-list:' + firstWeek.matchDate, d.matches);
         }
@@ -587,18 +587,18 @@ export function loadHome() {
       }, 3000);
 
       // ★ FIX: home-bundle 路径缺少盈亏图表加载 — 补充 daily-profit-7d + NotiEngine
-      var profitP = api('daily-profit-7d', { days: 7 }).catch(function () {
+      const profitP = api('daily-profit-7d', { days: 7 }).catch(function () {
         return null;
       });
       profitP.then(function (data) {
         if (!data || !data.dates || !data.profits || data.dates.length === 0) return;
-        var dates = data.dates.slice(0, 7),
+        const dates = data.dates.slice(0, 7),
           profits = data.profits.slice(0, 7).map(function (v) {
             return v === null ? 0 : v;
           });
         if (dates.length < 2) return;
         renderProfitChartNative(dates, profits);
-        var section = document.getElementById('homeProfitChartSection');
+        const section = document.getElementById('homeProfitChartSection');
         if (section) section.style.display = 'block';
       });
       NotiEngine.run(profitP);
@@ -649,17 +649,13 @@ function _fallbackLoadHome(today) {
     if (section) section.style.display = 'block';
 
     // ★ V16.3: 世界杯盈利图表
-    var wcDates = (data.wcDates || []).slice(0, 7);
-    var wcProfits = (data.wcProfits || []).slice(0, 7);
-    console.log('[WC Chart] wcDates:', wcDates, 'wcProfits:', wcProfits);
+    const wcDates = (data.wcDates || []).slice(0, 7);
+    const wcProfits = (data.wcProfits || []).slice(0, 7);
     if (wcDates.length >= 1) {
-      console.log('[WC Chart] rendering...');
       renderProfitChartWc(wcDates, wcProfits);
-      var wcSec = document.getElementById('homeWcProfitChartSection');
-      console.log('[WC Chart] wcSec element:', wcSec ? 'FOUND' : 'NULL');
+      const wcSec = document.getElementById('homeWcProfitChartSection');
       if (wcSec) wcSec.style.display = 'block';
     } else {
-      console.log('[WC Chart] no WC data, wcDates length:', wcDates.length, 'data:', JSON.stringify(data).slice(0, 200));
     }
   });
 
@@ -980,81 +976,126 @@ function renderProfitChartNative(dates, profits) {
 // ★ 近7日世界杯方案盈利图表 — V16.3
 // ═══════════════════════════════════════════════════════════
 function renderProfitChartWc(wcDates, wcProfits) {
-  console.log('[WC V16.3] renderProfitChartWc called with', wcDates.length, 'dates, profits:', wcProfits);
-  var n = wcProfits.length;
+  const n = wcProfits.length;
   if (n === 0) return;
 
   // Pad dates to fill chart space if < 3 dates
-  var labels = wcDates.slice();
-  var values = wcProfits.slice();
+  const labels = wcDates.slice();
+  const values = wcProfits.slice();
 
-  var svgW = 320, svgH = 232;
-  var padX = 10, chartW = svgW - padX * 2;
+  const svgW = 320,
+    svgH = 232;
+  const padX = 10,
+    chartW = svgW - padX * 2;
 
-  var maxVal = Math.max.apply(null, values.concat([0]));
-  var minVal = Math.min.apply(null, values.concat([0]));
-  var posMax = maxVal > 0 ? Math.ceil((maxVal * 1.12) / 500) * 500 : 500;
-  var negMax = minVal < 0 ? Math.ceil((Math.abs(minVal) * 1.12) / 500) * 500 : 0;
-  var yMin = -negMax || 0;
-  var yMax = posMax || 0;
-  if (yMax === yMin) { yMax += 500; yMin -= 500; }
+  const maxVal = Math.max.apply(null, values.concat([0]));
+  const minVal = Math.min.apply(null, values.concat([0]));
+  const posMax = maxVal > 0 ? Math.ceil((maxVal * 1.12) / 500) * 500 : 500;
+  const negMax = minVal < 0 ? Math.ceil((Math.abs(minVal) * 1.12) / 500) * 500 : 0;
+  let yMin = -negMax || 0;
+  let yMax = posMax || 0;
+  if (yMax === yMin) {
+    yMax += 500;
+    yMin -= 500;
+  }
 
-  function toY(v) { return svgH * (1 - (v - yMin) / (yMax - yMin)); }
-  var baseY = toY(0);
+  function toY(v) {
+    return svgH * (1 - (v - yMin) / (yMax - yMin));
+  }
+  const baseY = toY(0);
 
   // X positions
-  var xs = [];
+  const xs = [];
   for (var i = 0; i < n; i++) {
     xs.push(padX + (i / Math.max(n - 1, 1)) * chartW);
   }
 
   // Build SVG paths
-  var linePath = '', areaPath = '';
-  var dotHtml = '';
+  let linePath = '',
+    areaPath = '';
+  let dotHtml = '';
   for (var i = 0; i < n; i++) {
-    var x = xs[i], y = toY(values[i]);
-    if (i === 0) { linePath = 'M' + x + ' ' + y; areaPath = 'M' + x + ' ' + baseY + ' L' + x + ' ' + y; }
-    else { linePath += ' L' + x + ' ' + y; areaPath += ' L' + x + ' ' + y; }
-    var dotColor = values[i] >= 0 ? '#22c55e' : '#ef4444';
-    dotHtml += '<circle cx="' + x + '" cy="' + y + '" r="4" fill="' + dotColor + '" stroke="white" stroke-width="1.5"/>';
-    dotHtml += '<text x="' + x + '" y="' + (y - 8) + '" text-anchor="middle" font-size="9" fill="' + dotColor + '" font-weight="600">' + (values[i] >= 0 ? '+' : '') + values[i] + '</text>';
+    const x = xs[i],
+      y = toY(values[i]);
+    if (i === 0) {
+      linePath = 'M' + x + ' ' + y;
+      areaPath = 'M' + x + ' ' + baseY + ' L' + x + ' ' + y;
+    } else {
+      linePath += ' L' + x + ' ' + y;
+      areaPath += ' L' + x + ' ' + y;
+    }
+    const dotColor = values[i] >= 0 ? '#22c55e' : '#ef4444';
+    dotHtml +=
+      '<circle cx="' + x + '" cy="' + y + '" r="4" fill="' + dotColor + '" stroke="white" stroke-width="1.5"/>';
+    dotHtml +=
+      '<text x="' +
+      x +
+      '" y="' +
+      (y - 8) +
+      '" text-anchor="middle" font-size="9" fill="' +
+      dotColor +
+      '" font-weight="600">' +
+      (values[i] >= 0 ? '+' : '') +
+      values[i] +
+      '</text>';
   }
   areaPath += ' L' + xs[n - 1] + ' ' + baseY + ' Z';
 
-  var svg = '<defs><linearGradient id="wcGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3"/><stop offset="100%" stop-color="#f59e0b" stop-opacity="0.02"/></linearGradient></defs>';
-  svg += '<line x1="' + padX + '" y1="' + baseY + '" x2="' + (svgW - padX) + '" y2="' + baseY + '" stroke="#475569" stroke-width="1" stroke-dasharray="4,3"/>';
+  let svg =
+    '<defs><linearGradient id="wcGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3"/><stop offset="100%" stop-color="#f59e0b" stop-opacity="0.02"/></linearGradient></defs>';
+  svg +=
+    '<line x1="' +
+    padX +
+    '" y1="' +
+    baseY +
+    '" x2="' +
+    (svgW - padX) +
+    '" y2="' +
+    baseY +
+    '" stroke="#475569" stroke-width="1" stroke-dasharray="4,3"/>';
   svg += '<path d="' + areaPath + '" fill="url(#wcGrad)"/>';
   svg += '<path d="' + linePath + '" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round"/>';
   svg += dotHtml;
 
-  var svgEl = document.getElementById('wcProfitSvg');
-  if (svgEl) { svgEl.innerHTML = svg; svgEl.setAttribute('viewBox', '0 0 ' + svgW + ' ' + svgH); }
+  const svgEl = document.getElementById('wcProfitSvg');
+  if (svgEl) {
+    svgEl.innerHTML = svg;
+    svgEl.setAttribute('viewBox', '0 0 ' + svgW + ' ' + svgH);
+  }
 
   // Y axis labels
-  var yLabels = '';
-  var ySteps = 4;
+  let yLabels = '';
+  const ySteps = 4;
   for (var i = 0; i <= ySteps; i++) {
-    var val = Math.round(yMin + (yMax - yMin) * (i / ySteps));
-    yLabels += '<span style="top:' + ((1 - i / ySteps) * 100).toFixed(0) + '%">' + (val >= 0 ? '+' : '') + val + '</span>';
+    const val = Math.round(yMin + (yMax - yMin) * (i / ySteps));
+    yLabels +=
+      '<span style="top:' + ((1 - i / ySteps) * 100).toFixed(0) + '%">' + (val >= 0 ? '+' : '') + val + '</span>';
   }
-  var yAxisEl = document.getElementById('wcProfitYaxis');
+  const yAxisEl = document.getElementById('wcProfitYaxis');
   if (yAxisEl) yAxisEl.innerHTML = yLabels;
 
   // X axis labels
-  var xLabels = '';
-  var step = Math.max(1, Math.floor(n / 5));
+  let xLabels = '';
+  const step = Math.max(1, Math.floor(n / 5));
   for (var i = 0; i < n; i++) {
-    var show = (n <= 5) || (i % step === 0) || (i === n - 1);
+    const show = n <= 5 || i % step === 0 || i === n - 1;
     xLabels += '<span style="left:' + ((xs[i] / svgW) * 100).toFixed(0) + '%">' + (show ? labels[i] : '') + '</span>';
   }
-  var xAxisEl = document.getElementById('wcProfitXaxis');
+  const xAxisEl = document.getElementById('wcProfitXaxis');
   if (xAxisEl) xAxisEl.innerHTML = xLabels;
 
   // Stats
-  var total = Math.round(values.reduce(function(a, b) { return a + b; }, 0));
-  var totalEl = document.getElementById('wcStatsTotal');
-  if (totalEl) { totalEl.textContent = (total >= 0 ? '+' : '') + total; totalEl.style.color = total >= 0 ? '#22c55e' : '#ef4444'; }
-  var plansEl = document.getElementById('wcStatsPlans');
+  const total = Math.round(
+    values.reduce(function (a, b) {
+      return a + b;
+    }, 0),
+  );
+  const totalEl = document.getElementById('wcStatsTotal');
+  if (totalEl) {
+    totalEl.textContent = (total >= 0 ? '+' : '') + total;
+    totalEl.style.color = total >= 0 ? '#22c55e' : '#ef4444';
+  }
+  const plansEl = document.getElementById('wcStatsPlans');
   if (plansEl) plansEl.textContent = n;
 }
 

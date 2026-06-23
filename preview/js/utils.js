@@ -61,7 +61,7 @@ function checkSchemaVersion() {
       sessionStorage.removeItem(k);
     });
     sessionStorage.setItem(_CACHE_VERSION_KEY, _CACHE_SCHEMA_VERSION);
-    console.log('[cache] Schema v' + _CACHE_SCHEMA_VERSION + ' 已激活, 清理 ' + keysToRemove.length + ' 条旧缓存');
+    console.warn('[cache] Schema v' + _CACHE_SCHEMA_VERSION + ' 已激活, 清理 ' + keysToRemove.length + ' 条旧缓存');
   } catch (e) {}
 }
 // 页面加载时执行一次

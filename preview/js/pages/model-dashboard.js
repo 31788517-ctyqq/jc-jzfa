@@ -9,6 +9,7 @@ import { api } from '../api.js';
 import { loadECharts, echartsReady } from '../charts.js?v=202606080308';
 
 const INTERNAL_MODEL_NAMES = ['data_fusion', 'market_signal'];
+let _mdResizeHandler = null; // ★ P1-4: 命名 resize handler，避免重复绑定泄漏
 
 function isInternalModelName(name) {
   return INTERNAL_MODEL_NAMES.indexOf(String(name || '')) >= 0;
@@ -494,7 +495,9 @@ function renderTrendChart(trendData) {
     backgroundColor: 'transparent',
   });
 
-  window.addEventListener('resize', function () {
+  if (_mdResizeHandler) window.removeEventListener('resize', _mdResizeHandler);
+  _mdResizeHandler = function () {
     chart.resize();
-  });
+  };
+  window.addEventListener('resize', _mdResizeHandler);
 }

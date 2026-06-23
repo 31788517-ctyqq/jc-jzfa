@@ -18,6 +18,7 @@ let _btPage = 1,
   _btQualitySplit = null,
   _btDegradeImpact = null,
   _btChartInst = {}; // 三Tab各一个ECharts实例
+let _btResizeHandler = null; // ★ P1-4: 命名 resize handler，避免重复绑定泄漏
 
 export function loadBacktest() {
   try {
@@ -45,7 +46,7 @@ export function loadBacktest() {
 /* ═══════════════════════ CSS ═══════════════════════ */
 function injectStyles() {
   // ★ 先移除旧标签再重建，防止 Vite HMR 残留旧样式
-  var old = document.getElementById('bt-inline-css');
+  const old = document.getElementById('bt-inline-css');
   if (old) old.remove();
   const s = document.createElement('style');
   s.id = 'bt-inline-css';
@@ -699,11 +700,13 @@ function renderChart(tab, ctype) {
       }
     }
 
-    window.addEventListener('resize', function () {
+    if (_btResizeHandler) window.removeEventListener('resize', _btResizeHandler);
+    _btResizeHandler = function () {
       try {
         inst.resize();
       } catch (e) {}
-    });
+    };
+    window.addEventListener('resize', _btResizeHandler);
   });
 }
 
