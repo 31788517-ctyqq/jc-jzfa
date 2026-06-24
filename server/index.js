@@ -1587,7 +1587,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           return res.json({ code: 1, data: getWeekDates() });
         }
 
-                        case 'match-list': {
+        case 'match-list': {
           try {
             const dateStr = data.matchDate
               ? new Date().getFullYear() + '-' + data.matchDate
@@ -1608,7 +1608,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const isSingleGame = (fiveOdds && fiveOdds.isSingleGame === true) || m.isSingleGame === true;
               const concede = fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null ? fiveOdds.rqspf.handicap : null;
               const matchKey = m.matchId ? 'm_' + m.matchId : '';
-              const cachedGS = gsCacheMap[matchKey] || gsCacheMap[String(m.matchId)];
+              const cachedGS = gsCacheMap[matchKey] || gsCacheMap[String(m.matchId)] || gsCacheMap[dateStr + '_' + m.num] || gsCacheMap[String(m.num)];
               const hasGS = !!(cachedGS && cachedGS.attackPattern);
               list.push(Object.assign({}, m, {
                 recommNum: Math.max(Number(m.recommNum || 0), recFromMap),
