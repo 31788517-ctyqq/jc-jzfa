@@ -3058,28 +3058,31 @@ case 'recommend-trend': {
               let hasResolvedPlan = false,
                 hasWcPlan = false;
               plans.forEach((pp) => {
+                // ★ 世界杯检测：先于结算判断，确保未结算方案也计入
+                const pn = String(pp.planName || '').trim();
+                if (pn.indexOf('世界杯') === 0) {
+                  hasWcPlan = true;
+                  if (!(pp.isPlanWon === null && pp.isPlanLose === null)) {
+                    dayWcProfit += pp.isPlanWon === true ? (pp.winningPrize || 0) - AMOUNT : pp.isPlanLose === true ? -AMOUNT : 0;
+                  }
+                }
                 if (pp.isPlanWon === null && pp.isPlanLose === null) return;
                 hasResolvedPlan = true;
                 const pm =
                   pp.isPlanWon === true ? (pp.winningPrize || 0) - AMOUNT : pp.isPlanLose === true ? -AMOUNT : 0;
                 dayProfit += pm;
-                // ★ V16.3: 世界杯方案单独统计
-                const pn = String(pp.planName || '').trim();
-                if (pn.indexOf('世界杯') === 0) {
-                  hasWcPlan = true;
-                  dayWcProfit += pm;
-                }
               });
 
-              if (mList.length > 0 && plans.length > 0 && !hasResolvedPlan) continue;
-
-              dateLabels.push(ds.slice(5));
-              dateProfits.push(Math.round(dayProfit));
-              // ★ 世界杯盈利: 仅在有世界杯方案且有结果的日期记录
+              // ★ 世界杯方案：无论是否结算都记录日期
               if (hasWcPlan) {
                 wcDateLabels.push(ds.slice(5));
                 wcDateProfits.push(Math.round(dayWcProfit));
               }
+
+              if (mList.length > 0 && plans.length > 0 && !hasResolvedPlan && !hasWcPlan) continue;
+
+              dateLabels.push(ds.slice(5));
+              dateProfits.push(Math.round(dayProfit));
 
               if (dateLabels.length >= days) break;
             }
