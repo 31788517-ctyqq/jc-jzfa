@@ -1587,7 +1587,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           return res.json({ code: 1, data: getWeekDates() });
         }
 
-                case 'match-list': {
+                        case 'match-list': {
           try {
             const dateStr = data.matchDate
               ? new Date().getFullYear() + '-' + data.matchDate
@@ -1595,6 +1595,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const dayMatches = getMatchesByDate(dateStr);
             const hideFinished = data.hideFinished === true || data.hideFinished === 'true';
             const rMap = (getDataJson() || {}).r || {};
+            const oddsMap = getOddsHistory(dateStr) || {};
+            const gsCacheMap = getGsGlobalMap();
             const list = [];
             for (let i = 0; i < dayMatches.length; i++) {
               const m = dayMatches[i];
@@ -1602,7 +1604,18 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               if (hideFinished && m.matchStatus !== 0) continue;
               const rawRecs = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
               const recFromMap = (rawRecs || []).reduce((s, r) => s + Number(r.n || r.num || 0), 0);
-              list.push(Object.assign({}, m, { recommNum: Math.max(Number(m.recommNum || 0), recFromMap) }));
+              const fiveOdds = oddsMap[m.num || ''] || null;
+              const isSingleGame = (fiveOdds && fiveOdds.isSingleGame === true) || m.isSingleGame === true;
+              const concede = fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null ? fiveOdds.rqspf.handicap : null;
+              const matchKey = m.matchId ? 'm_' + m.matchId : '';
+              const cachedGS = gsCacheMap[matchKey] || gsCacheMap[String(m.matchId)];
+              const hasGS = !!(cachedGS && cachedGS.attackPattern);
+              list.push(Object.assign({}, m, {
+                recommNum: Math.max(Number(m.recommNum || 0), recFromMap),
+                isSingleGame: isSingleGame,
+                hasGongshoudao: hasGS,
+                concede: concede
+              }));
             }
             return res.json({ code: 1, data: list });
           } catch (e) {
