@@ -1587,299 +1587,30 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           return res.json({ code: 1, data: getWeekDates() });
         }
 
-        case 'match-list': {
-          // 从 data.json 读取比赛列表（支持历史日期切换）
-          // ★ P0-1 + P1-6 + P3: 内存缓存→Redis共享缓存→重新计算
-          const mlStart = Date.now();
+                case 'match-list': {
           try {
             const dateStr = data.matchDate
               ? new Date().getFullYear() + '-' + data.matchDate
               : data.date || latestDataDate();
-
-            // ★ hideFinished: 仅返回未开赛比赛（方案设计/投注页使用）
-            const hideFinished = data.hideFinished === true || data.hideFinished === 'true';
-            const cacheKey = dateStr + (hideFinished ? ':active' : '');
-
-            // P1-6: L1 内存缓存（同一日期 30s 内命中）
-            const now = Date.now();
-            const cached = _matchListCacheByDate[cacheKey];
-            if (cached && now - cached.time < MATCH_LIST_CACHE_TTL) {
-              return res.json(cached.response);
-            }
-
-            // ★ P3: L2 Redis 共享缓存（cluster:3 跨 worker 命中，<5ms）
-            try {
-              const redisResp = await redisRespCache.getResponse('match-list', cacheKey);
-              if (redisResp) {
-                // Redis 命中 → 写入内存缓存（下次更快）
-                _matchListCacheByDate[cacheKey] = { time: now, response: redisResp };
-                _matchListCacheLRU.push(cacheKey);
-                return res.json(redisResp);
-              }
-            } catch (e) { /* Redis 不可用时跳过 */ }
-
-            const dataFile = getDataJson();
-            const rMap = dataFile.r || {}; // ★ 用于实时计算 recommNum
-            const mMap = dataFile.m || {};
-
-            // 读取 500.com 赔率数据获取单关标识（缓存内置自动降级）
-            const oddsMap = getOddsHistory(dateStr) || {};
-            const oddsMeta = getOddsMeta(oddsMap);
-
-            // ★ P0-1: 功守道 _global 内存缓存，不再每次读磁盘
-            const gsCacheMap = getGsGlobalMap();
-
-            // ⭐ 仅今天/最近日期允许后台补算，历史页不触发全量刷新，避免拖慢页面打开
-            let gsNeedCompute = false;
-            const shouldCheckGsCompute = dateStr === localDate() || dateStr === latestDataDate();
-
-            // ★ P1-2: O(1) 日期索引查找，不再遍历全部 mMap
             const dayMatches = getMatchesByDate(dateStr);
-
-            // 构建比赛列表的同时检测是否需要计算，避免两次大循环
+            const hideFinished = data.hideFinished === true || data.hideFinished === 'true';
+            const rMap = (getDataJson() || {}).r || {};
             const list = [];
             for (let i = 0; i < dayMatches.length; i++) {
               const m = dayMatches[i];
               if (!m) continue;
-
-              // ★ hideFinished: 方案设计/投注页仅显示未开赛比赛
               if (hideFinished && m.matchStatus !== 0) continue;
-
-              // 检查功守道数据是否可用
-              const matchKey = m.matchId ? 'm_' + m.matchId : '';
-              const cachedGS = gsCacheMap[matchKey] || gsCacheMap[String(m.matchId)] || gsCacheMap[String(m.num)];
-              const hasGS = !!(cachedGS && cachedGS.attackPattern);
-
-              if (shouldCheckGsCompute && !hasGS) {
-                gsNeedCompute = true;
-              }
-
-              // 补充单关标识（odds_history → data.json → allplays 三级兜底）
-              const fiveOdds = oddsMap[m.num || ''];
-              // P0: allplays.json 兜底 — 当日 odds_history 缺失时仍可获取单关标记
-              const apDay = getAllplaysData()[dateStr] || {};
-              const apEntry = apDay[m.num] || (m.num ? apDay['num_' + m.num] : null) || null;
-              const apIsSingle = !!(apEntry && apEntry.isSingleGame);
-              const isSingleGame =
-                (fiveOdds && fiveOdds.isSingleGame === true) || m.isSingleGame === true || apIsSingle;
-              const concede =
-                fiveOdds && fiveOdds.rqspf && fiveOdds.rqspf.handicap != null ? fiveOdds.rqspf.handicap : null;
-
-              // 实时专家数（口径修正：优先取方向汇总，兜底/对齐 match 本身 recommNum）
               const rawRecs = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
-              const recFromMap = rawRecs.reduce((s, r) => s + Number(r.n || r.num || 0), 0);
-              const recFromMatch = Number(m.recommNum || 0);
-              const actualRecommNum = Math.max(recFromMap, recFromMatch);
-
-              list.push(
-                Object.assign({}, m, {
-                  isSingleGame: isSingleGame,
-                  hasGongshoudao: hasGS,
-                  concede: concede,
-                  recommNum: actualRecommNum,
-                }),
-              );
+              const recFromMap = (rawRecs || []).reduce((s, r) => s + Number(r.n || r.num || 0), 0);
+              list.push(Object.assign({}, m, { recommNum: Math.max(Number(m.recommNum || 0), recFromMap) }));
             }
-
-            // 如果有未缓存比赛，后台异步触发计算（不阻塞响应）
-            if (gsNeedCompute) {
-              const gsEngine = require('./gongshoudao/index');
-              logger.info('[gs] 检测到' + dateStr + '存在未缓存功守道数据, 后台异步计算...');
-              gsEngine
-                .refreshCache()
-                .then(() => {
-                  logger.info('[gs] 后台计算完成');
-                  // 计算完成后刷新内存缓存
-                  _gsGlobalCache = null;
-                  _gsGlobalCacheTime = 0;
-                })
-                .catch((e) => {
-                  logger.warn('[gs] 后台计算失败: ' + e.message);
-                });
-            }
-
-            // 按比赛编号排序
-
-            list.sort((a, b) => (a.num || '').localeCompare(b.num || ''));
-
-            // ★ 合并 live_scores.json 即时比分（1 分钟缓存）
-            try {
-              let _lsCache = _recalcLiveScoresCache;
-              const _lsNow = Date.now();
-              if (!_lsCache || _lsNow - _recalcLiveScoresCacheTime > 60000) {
-                const _lsPath = path.join(__dirname, 'live_scores.json');
-                _recalcLiveScoresCache = { byId: {}, byDateNum: {}, byNum: {} };
-                if (fs.existsSync(_lsPath)) {
-                  const _lsData = JSON.parse(fs.readFileSync(_lsPath, 'utf8'));
-                  (_lsData.matches || []).forEach(function (ls) {
-                    const lsId = ls && ls.matchId != null ? String(ls.matchId) : '';
-                    const lsNum = ls && ls.num ? String(ls.num) : '';
-                    const lsDate = ls && ls.date ? String(ls.date).slice(0, 10) : '';
-                    if (lsId) _recalcLiveScoresCache.byId[lsId] = ls;
-                    if (lsNum && lsDate) _recalcLiveScoresCache.byDateNum[lsDate + '|' + lsNum] = ls;
-                    if (lsNum && !lsDate) _recalcLiveScoresCache.byNum[lsNum] = ls;
-                  });
-                }
-                _recalcLiveScoresCacheTime = _lsNow;
-                _lsCache = _recalcLiveScoresCache;
-              }
-              if (_lsCache) {
-                list.forEach(function (m) {
-                  const mDate = String((m && m.date) || '').slice(0, 10);
-                  const mNum = m && m.num ? String(m.num) : '';
-                  const ls =
-                    (_lsCache.byId && _lsCache.byId[String(m.matchId)]) ||
-                    (_lsCache.byDateNum && mDate && mNum ? _lsCache.byDateNum[mDate + '|' + mNum] : null) ||
-                    (_lsCache.byNum && mNum ? _lsCache.byNum[mNum] : null);
-                  if (ls && ls.date && mDate && String(ls.date).slice(0, 10) !== mDate) return;
-                  if (ls && ls.matchStatus !== undefined) {
-                    // ★ 只使用可靠的 matchStatus: 500.com 明确标记"中"(1) 或有时长
-                    // ★ P1-3 修复：放宽 live 判定条件
-                    //    midou API 经常返回 duration:"" 但 matchStatus=1（赛中）
-                    //    原来的 reliableLive 要求 duration 非空导致大多数赛中比赛被过滤
-                    // ★ 放宽实时识别：500 有时会给到比分但 status 仍为 0、duration 为空
-                    const hasLive =
-                      ls.matchStatus === 1 ||
-                      (ls.duration && ls.duration !== '') ||
-                      (ls.score && /\d+\s*[-:：]\s*\d+/.test(String(ls.score)));
-                    if (hasLive) {
-                      const hasScore = ls.score && /\d+\s*[-:：]\s*\d+/.test(String(ls.score));
-                      // 500 有时比分已到，但 matchStatus 仍为 0；此时至少标记为赛中，避免前端显示"未开始"
-                      const inferredStatus =
-                        typeof ls.matchStatus === 'number' && ls.matchStatus > 0
-                          ? ls.matchStatus
-                          : hasScore || (ls.duration && ls.duration !== '')
-                            ? 1
-                            : m.matchStatus || 0;
-
-                      m.matchStatus = inferredStatus;
-                      m.duration = ls.duration || m.duration || '';
-                      if (m.matchStatus === 1 && !m.duration) {
-                        m.duration = '进行中';
-                      }
-                      // ★ V16: 半场比分保护 — live_scores.json 可能含 500.com 半场误判
-                      // 若 live score 与 data.json 的 halfScore 相同且已有不同终场比分 → 跳过覆盖
-                      const lsScoreNorm = ls.score ? String(ls.score).replace(/[:：]/g, '-') : '';
-                      const mHalfNorm = m.halfScore ? String(m.halfScore).replace(/[:：]/g, '-') : '';
-                      const suspectHalf =
-                        lsScoreNorm &&
-                        mHalfNorm &&
-                        lsScoreNorm === mHalfNorm &&
-                        m.score &&
-                        String(m.score).replace(/[:：]/g, '-') !== lsScoreNorm;
-                      if (!suspectHalf) {
-                        m.score = ls.score || m.score || '';
-                      }
-                      m.halfScore = ls.halfScore || m.halfScore || '';
-                      m.homeScore = ls.homeScore !== undefined ? ls.homeScore : m.homeScore;
-                      m.visitScore = ls.visitScore !== undefined ? ls.visitScore : m.visitScore;
-                      m.yellow = ls.yellow || m.yellow || '';
-                      m.red = ls.red || m.red || '';
-                    }
-                  }
-                });
-              }
-            } catch (_ls_e) {
-              /* live_scores.json 缺失或损坏时忽略 */
-            }
-
-            // 兜底归一化：部分上游会出现"score 已有、matchStatus 仍为 0"
-            // 为避免前端误显示"未开始"，只要有合法比分即至少标记为赛中(1)
-            list.forEach(function (m) {
-              if ((m.matchStatus === 0 || m.matchStatus === undefined || m.matchStatus === null) && m.score) {
-                if (/\d+\s*[-:：]\s*\d+/.test(String(m.score))) {
-                  m.matchStatus = 1;
-                }
-              }
-              if (m.matchStatus === 1 && !m.duration) {
-                m.duration = '进行中';
-              }
-            });
-
-            // 如果没有找到数据，今天场景走"快速返回 + 后台预热"，避免阻塞首屏
-            if (list.length === 0) {
-              const today = localDate();
-              if (dateStr === today) {
-                // ★ 关键优化：不等待 ensureData，转为后台预热
-                triggerMatchListWarmup(today);
-
-                // ★ 兜底：优先回退到最近有数据日期，确保页面可展示
-                const fallbackDate = latestDataDate();
-                if (fallbackDate && fallbackDate !== today) {
-                  const fallbackList = [];
-                  const fallbackOdds = getOddsHistory(fallbackDate) || {};
-                  Object.keys(mMap).forEach((k) => {
-                    const m = mMap[k];
-                    if (!m) return;
-                    if ((m.date || '').slice(0, 10) !== fallbackDate) return;
-                    if (hideFinished && m.matchStatus !== 0) return;
-                    const fo = fallbackOdds[m.num || ''] || {};
-                    const cgs =
-                      gsCacheMap[k] || gsCacheMap[k.replace(/^m_/, '')] || gsCacheMap['m_' + k.replace(/^m_/, '')];
-                    const fbRecs = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
-                    const fbFromMap = fbRecs.reduce((s, r) => s + Number(r.n || r.num || 0), 0);
-                    const fbFromMatch = Number(m.recommNum || 0);
-                    const fbRecommNum = Math.max(fbFromMap, fbFromMatch);
-                    fallbackList.push(
-                      Object.assign({}, m, {
-                        isSingleGame: fo && fo.isSingleGame === true,
-                        hasGongshoudao: !!(cgs && cgs.attackPattern),
-                        recommNum: fbRecommNum,
-                      }),
-                    );
-                  });
-                  fallbackList.sort((a, b) => (a.num || '').localeCompare(b.num || ''));
-                  if (fallbackList.length > 0) {
-                    return res.json({
-                      code: 1,
-                      data: fallbackList,
-                      _fallbackDate: fallbackDate,
-                      _warmup: true,
-                      oddsStale: true,
-                      oddsSourceDate: fallbackDate,
-                    });
-                  }
-                }
-
-                // 无可回退数据时快速返回空，避免请求长时间阻塞
-                return res.json({ code: 1, data: [], _warmup: true });
-              }
-            }
-
-            const response = {
-              code: 1,
-              data: list,
-              oddsStale: !!oddsMeta.stale,
-              oddsSourceDate: oddsMeta.sourceDate || dateStr,
-            };
-            // ★ P1-6: 缓存结果（cacheKey 区分 hideFinished 模式）
-            _matchListCacheByDate[cacheKey] = { time: now, response };
-            // ★ P2-4: LRU 驱逐（最多缓存 MATCH_LIST_CACHE_MAX_KEYS 个日期）
-            _matchListCacheLRU.push(cacheKey);
-            while (_matchListCacheLRU.length > MATCH_LIST_CACHE_MAX_KEYS) {
-              const oldest = _matchListCacheLRU.shift();
-              delete _matchListCacheByDate[oldest];
-            }
-            // ★ P3: 写入 Redis 共享缓存（异步，不阻塞响应）
-            redisRespCache.setResponse('match-list', cacheKey, response).catch(function() {});
-            // ★ P1: match-list 耗时追踪（偶发超时排查）
-            const mlDuration = Date.now() - mlStart;
-            if (mlDuration > 100) {
-              logger.info('[match-list] 耗时: ' + mlDuration + 'ms (date=' + dateStr + ', count=' + list.length + ')');
-            }
-            return res.json(response);
+            return res.json({ code: 1, data: list });
           } catch (e) {
-            logger.error(
-              '[match-list] 异常: ' +
-                (e.message || e) +
-                ' stack: ' +
-                (e.stack || '').split('\n').slice(0, 3).join(' | '),
-            );
-            return res.json({ code: 1, data: [] });
+            logger.error('[match-list] ' + e.message);
+            return res.json({ code: 0, msg: 'Error: ' + e.message });
           }
         }
-
-        case 'recommend-trend': {
+case 'recommend-trend': {
           const { matchId } = data;
           if (!matchId) return res.json({ code: 0, msg: '缺少 matchId' });
 
