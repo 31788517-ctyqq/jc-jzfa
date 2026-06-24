@@ -6,7 +6,7 @@
 const https = require('https');
 const http = require('http');
 
-const API_KEY = process.env.DOUBAO_API_KEY || 'DUMMY_PLACEHOLDER';
+const API_KEY = process.env.DOUBAO_API_KEY || 'ark-002bfac0-24c5-4b65-a57f-b52a8fd8d267-53f32';
 const BASE_URL = process.env.DOUBAO_BASE_URL || 'https://ark.cn-beijing.volces.com/api/v3';
 const MODEL = process.env.DOUBAO_MODEL || 'doubao-seed-character-251128';
 const TIMEOUT = 90000; // 90秒超时（复杂分析需更长时间）

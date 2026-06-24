@@ -7,7 +7,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const API_KEY = process.env.DEEPSEEK_API_KEY || 'DUMMY_PLACEHOLDER';
+const API_KEY = process.env.DEEPSEEK_API_KEY || 'sk-e5cdfd6f323a4396a6268b066397814b';
 const BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1';
 const MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
 const TIMEOUT = 90000; // 90秒超时（DeepSeek 分析耗时较长）
