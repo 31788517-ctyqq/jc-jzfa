@@ -155,7 +155,35 @@ function getMatchesByDate(dateStr) {
   // 确保缓存已初始化
   if (!_dataJsonCache) getDataJson();
   if (!_mMapByDate) _mMapByDate = _buildDateIndex(_dataJsonCache || {});
-  return _mMapByDate[dateStr] || [];
+  var raw = _mMapByDate[dateStr] || [];
+  if (!raw.length) return [];
+
+  // ★ 竞彩期号跨天去重：data.json 的 date 是期号（如周三0604），
+  // 同一期号可能覆盖多天比赛。用 num 前缀（周三/周四/周五）按真实比赛日过滤。
+  var dayNames = ['周日','周一','周二','周三','周四','周五','周六'];
+  var d = new Date(dateStr);
+  var dayPrefix = dayNames[d.getDay()];
+
+  // 过滤 + 去重：每个 num 只保留一个（优先保留有 letBall 的版本）
+  var filtered = [];
+  var seen = {};
+  for (var i = 0; i < raw.length; i++) {
+    var m = raw[i];
+    var num = m.num || '';
+    if (!num.startsWith(dayPrefix)) continue;  // 跳过其他星期几的比赛
+    if (seen[num]) {
+      // 如果已存在的没有 letBall 但新的有，替换
+      var existing = seen[num];
+      if (typeof m.letBall !== 'undefined' && typeof existing.letBall === 'undefined') {
+        seen[num] = m;
+        filtered[filtered.indexOf(existing)] = m;
+      }
+      continue;
+    }
+    seen[num] = m;
+    filtered.push(m);
+  }
+  return filtered;
 }
 
 /** 强制刷新日期索引（data.json 更新后调用） */
