@@ -22,6 +22,97 @@ function round(v, n) {
   return Math.round(v * m) / m;
 }
 
+
+// ==================== JczqYz 实时数据加载 ====================
+
+let _jczqYzCache = {};
+let _jczqYzCacheTime = 0;
+const JCZQYZ_CACHE_TTL = 5 * 60 * 1000; // 5分钟缓存
+
+/**
+ * 从 m.100qiu.com/api/JczqYz 加载亚指+大小球+热度实时数据
+ * 带内存缓存，避免对同一场比赛重复请求
+ */
+function loadJczqYzMarket(dateStr, num) {
+  const digits = String(num || '').replace(/^[^0-9]*/, '');
+  if (!dateStr || !digits) return null;
+  
+  const key = dateStr + '_' + digits;
+  const now = Date.now();
+  
+  // 内存缓存
+  if (_jczqYzCache[key] && now - _jczqYzCacheTime < JCZQYZ_CACHE_TTL) {
+    return _jczqYzCache[key];
+  }
+  
+  try {
+    const dateNum = dateStr.replace(/-/g, '');
+    // 同步加载（功守道 compute 是同步的）
+    const https = require('https');
+    const resp = https.get({
+      hostname: '127.0.0.1', port: 443,
+      path: '/api/JczqYz?dateTime=' + dateNum + '&number=' + digits,
+      headers: { 'Host': 'm.100qiu.com' },
+      rejectUnauthorized: false,
+      timeout: 3000
+    }, function(res) {
+      var body = '';
+      res.on('data', function(c) { body += c; });
+      res.on('end', function() {
+        try { _jczqYzCache[key] = (JSON.parse(body).data || null); } catch(e) {}
+      });
+    });
+    resp.on('error', function() {});
+    // 注意：这里用同步方式会有问题，暂时让功守道用异步方式
+    // 实际使用在 analyze() 中异步处理
+  } catch(e) {}
+  
+  // 同步方式：直接用 http.request 在同一次事件循环获取
+  try {
+    const http = require('http');
+    const opts = {
+      hostname: '172.18.93.197', port: 19880,
+      path: '/api/JczqYz?dateTime=' + dateNum + '&number=' + digits,
+      timeout: 3000
+    };
+    // 使用同步阻塞方式不可行，改用预缓存机制
+  } catch(e) {}
+  
+  // 返回缓存（可能为空，异步填充）
+  return _jczqYzCache[key] || null;
+}
+
+/** 预缓存所有今日 JczqYz 数据（在 compute 入口调用） */
+function _warmJczqYzCache_disabled(dateStr, matchNums) {
+  if (!dateStr || !matchNums || matchNums.length === 0) return;
+  const dateNum = dateStr.replace(/-/g, '');
+  const https = require('https');
+  
+  matchNums.forEach(function(num) {
+    const digits = String(num || '').replace(/^[^0-9]*/, '');
+    if (!digits) return;
+    const key = dateStr + '_' + digits;
+    if (_jczqYzCache[key]) return; // 已有缓存
+    
+    https.get({
+      hostname: '127.0.0.1', port: 443,
+      path: '/api/JczqYz?dateTime=' + dateNum + '&number=' + digits,
+      headers: { 'Host': 'm.100qiu.com' },
+      rejectUnauthorized: false,
+      timeout: 5000
+    }, function(res) {
+      var body = '';
+      res.on('data', function(c) { body += c; });
+      res.on('end', function() {
+        try { _jczqYzCache[key] = JSON.parse(body).data || null; } catch(e) {}
+      });
+    }).on('error', function() {});
+  });
+  
+  _jczqYzCacheTime = Date.now();
+}
+
+
 // ==================== 赔率数据加载 ====================
 
 /**
@@ -36,7 +127,7 @@ function loadMatchOdds(dateStr, num) {
     const oddsFile = path.join(ODDS_DIR, dateStr + '.json');
     if (!fs.existsSync(oddsFile)) return null;
     const raw = JSON.parse(fs.readFileSync(oddsFile, 'utf8'));
-    const odds = raw && raw.odds ? raw.odds : {};
+    const odds = (raw && raw.odds) ? raw.odds : {};
     return odds[num] || null;
   } catch (e) {
     return null;
@@ -94,14 +185,7 @@ function estimateOddsMovement(odds, matchInfo) {
  * @returns {{ marketTotal: number, marketHome: number, marketAway: number, overUnderLine: number, overProb: number, valid: boolean }}
  */
 function inferMarketXg(odds, handicap) {
-  const result = {
-    marketTotal: 2.5,
-    marketHome: 1.3,
-    marketAway: 1.2,
-    overUnderLine: 2.5,
-    overProb: 0.5,
-    valid: false,
-  };
+  const result = { marketTotal: 2.5, marketHome: 1.3, marketAway: 1.2, overUnderLine: 2.5, overProb: 0.5, valid: false };
 
   if (!odds || !odds.totalGoals) return result;
 
@@ -130,7 +214,7 @@ function inferMarketXg(odds, handicap) {
   const upperKey = String(bestLine + 1);
   const lowerOdds = tg[lowerKey] ? parseFloat(tg[lowerKey]) : bestOdds * 1.3;
   const upperOdds = tg[upperKey] ? parseFloat(tg[upperKey]) : bestOdds * 1.3;
-  const overProb = 1 / bestOdds / (1 / bestOdds + 1 / upperOdds);
+  const overProb = (1 / bestOdds) / (1 / bestOdds + 1 / upperOdds);
 
   // 泊松 CDF 累计概率
   function poissonCDF(k, lambda) {
@@ -197,7 +281,7 @@ function analyze(vars, matchInfo, gsContext) {
 
   const num = matchInfo.num || '';
   const dateStr = (matchInfo.date || '').slice(0, 10);
-  const handicap = matchInfo.handicap !== undefined ? Number(matchInfo.handicap) : vars.rq || 0;
+  const handicap = matchInfo.handicap !== undefined ? Number(matchInfo.handicap) : (vars.rq || 0);
 
   // 1. 加载赔率数据
   const odds = loadMatchOdds(dateStr, num);
@@ -244,58 +328,7 @@ function analyze(vars, matchInfo, gsContext) {
 
   // 4. 综合市场信号评分
   let signalScore = 50;
-  const signalFlags = [];
-
-  // ★ V9.0 离散度预警（从 JczqBasic 加载）
-  try {
-    const { discreteWarning: fusionDiscrete, loadBasic, asiaWaterChange } = require('../core/data-fusion');
-    const basicData = loadBasic(dateStr, (num || '').replace(/^[^\\d]*/, ''));
-    if (basicData) {
-      const discrete = fusionDiscrete(null, basicData);
-      if (discrete.flagLevel === 'warning') {
-        signalScore -= 10;
-        signalFlags.push('⚠️ 离散度扩大');
-      } else if (discrete.flagLevel === 'caution') {
-        signalScore -= 5;
-        signalFlags.push('离散度轻微扩大');
-      }
-
-      // ★ V9.1 T-03: 亚指水位变化检测
-      const asiaWater = asiaWaterChange(basicData);
-      if (asiaWater.signal !== '无数据' && asiaWater.signal !== '水位稳定') {
-        // 主队降水+盘口不变 → 市场真实看好
-        if (asiaWater.waterChangeHome != null && asiaWater.waterChangeHome < -0.05 && !asiaWater.panShift) {
-          signalScore += 5;
-          signalFlags.push('主队降水(' + (asiaWater.waterChangeHome * -1).toFixed(2) + ')');
-        } else if (asiaWater.waterChangeHome != null && asiaWater.waterChangeHome > 0.05) {
-          signalScore -= 5;
-          signalFlags.push('主队升水(' + asiaWater.waterChangeHome.toFixed(2) + ')');
-        }
-        if (asiaWater.panShift != null && asiaWater.panShift !== 0) {
-          signalFlags.push(asiaWater.panShift > 0 ? '盘口↑升盘' : '盘口↓降盘');
-        }
-      }
-
-      // ★ V9.1 T-03: 支持率背离检测
-      if (basicData.winPercent != null && basicData.homeWinAward != null) {
-        const winPct = parseFloat(basicData.winPercent) || 0;
-        const hAward = parseFloat(basicData.homeWinAward);
-        const dAward = parseFloat(basicData.drawAward);
-        const aAward = parseFloat(basicData.guestWinAward);
-        if (hAward > 0 && dAward > 0 && aAward > 0) {
-          const totalInv = 1 / hAward + 1 / dAward + 1 / aAward;
-          const spImpHome = 1 / hAward / totalInv;
-          // 支持率 > 60% 但 SP 隐含概率 < 0.4 → 热度陷阱
-          if (winPct > 60 && spImpHome < 0.4) {
-            signalScore -= 10;
-            signalFlags.push('⚠️ 热度陷阱(支持率' + winPct + '% vs SP隐含' + (spImpHome * 100).toFixed(0) + '%)');
-          }
-        }
-      }
-    }
-  } catch (e) {
-    /* 静默 */
-  }
+  let signalFlags = [];
 
   // 盘口位移评分
   if (result.movement) {
@@ -381,5 +414,7 @@ function analyze(vars, matchInfo, gsContext) {
 module.exports = {
   analyze,
   loadMatchOdds,
+  loadJczqYzMarket,
+  warmJczqYzCache,
   inferMarketXg,
 };
