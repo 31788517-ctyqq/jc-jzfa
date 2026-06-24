@@ -5,7 +5,7 @@
       "script": "index.js",
       "cwd": "/root/server",
       "instances": 1,
-      "exec_mode": "cluster",
+      "exec_mode": "fork",
       "env": {
         "NODE_ENV": "production",
         "BEHIND_PROXY": "1",
@@ -22,9 +22,14 @@
         "ALERT_SMTP_USER": "31788517@qq.com",
         "ALERT_SMTP_PASS": "rgxxcjrzullycaff",
         "FEATURE_RICH_PROMPT": "0",
-        "DATA_JSON_AGGRESSIVE_CACHE": "1"
+        "DATA_JSON_AGGRESSIVE_CACHE": "1",
+        "DATA_DB_LAZY": "1",
+        "REDIS_ENABLED": "true",
+        "REDIS_HOST": "127.0.0.1",
+        "REDIS_PORT": "6379",
+        "REDIS_PASSWORD": "qcredismaster01"
       },
-      "max_memory_restart": "1800M",
+      "max_memory_restart": "768M",
       "min_uptime": "10000",
       "max_restarts": 5,
       "log_date_format": "YYYY-MM-DD HH:mm:ss",

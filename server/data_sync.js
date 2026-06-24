@@ -392,7 +392,7 @@ async function sync500ShujuStandings(dateStr) {
   log('[500shuju-standings] 积分榜抓取: ' + dateStr);
 
   try {
-    const pythonCmd = 'python';
+    const pythonCmd = '/opt/rh/rh-python36/root/usr/bin/python3';
     const scriptPath = path.join(__dirname, '..', 'scripts', 'fetch_league_standings.py');
     const pyResult = execSync(pythonCmd + ' "' + scriptPath + '" ' + dateStr, {
       cwd: path.join(__dirname, '..'),
@@ -471,10 +471,19 @@ async function syncMatchList(dateStr) {
       return;
     }
 
-    // 按竞彩期号前缀 + 日期双重过滤
+    // ★ 日期上限：只允许 today+1 以内的比赛，防止未来赛程污染 data.json
+    const maxDate = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      return fmtLocal(d);
+    })();
+
+    // 按竞彩期号前缀 + 日期双重过滤 + 日期上限
     const periodMatches = (matchRes.data || []).filter((m) => {
       if (!m.num || m.num.indexOf(targetWeek) !== 0) return false;
       const bd = (m.bDate || '').slice(0, 10);
+      // ★ 日期上限过滤：跳过超过 today+1 的未来比赛
+      if (bd && bd > maxDate) return false;
       if (bd === targetDate) return true;
       if (!bd && m.startTime && m.startTime.length >= 11) {
         const st = m.startTime.replace(/\//g, '-');
@@ -1410,8 +1419,18 @@ async function backfillResults(dateStr) {
             );
           });
       }
-      if (cvResult.tagged.filter(function (t) { return t.action === 'flagged'; }).length > 0) {
-        log('[backfill:gate] ' + cvResult.tagged.filter(function (t) { return t.action === 'flagged'; }).length + ' 场矛盾标记(非半场污染)');
+      if (
+        cvResult.tagged.filter(function (t) {
+          return t.action === 'flagged';
+        }).length > 0
+      ) {
+        log(
+          '[backfill:gate] ' +
+            cvResult.tagged.filter(function (t) {
+              return t.action === 'flagged';
+            }).length +
+            ' 场矛盾标记(非半场污染)',
+        );
       }
     } catch (e) {
       log('[backfill:gate] 交叉验证异常(不阻断): ' + e.message);
@@ -3215,9 +3234,12 @@ async function start() {
             log('[verifier] sporttery 校正无结果，尝试 detail.php 修正...');
             try {
               const { correctPostMatchScores } = require('./sync_live_500');
-              const corrected = await correctPostMatchScores(suspiciousMatches.map(function(m) {
-                return Object.assign({}, m, { fid: m.fid || '' });
-              }), yd);
+              const corrected = await correctPostMatchScores(
+                suspiciousMatches.map(function (m) {
+                  return Object.assign({}, m, { fid: m.fid || '' });
+                }),
+                yd,
+              );
               if (corrected > 0) {
                 log('[verifier] detail.php 修正: ' + corrected + ' 场');
               }
@@ -3310,14 +3332,25 @@ async function start() {
         log('[auditor] 启动每日全量数据核查...');
         try {
           const auditor = require('./core/data-auditor');
-          auditor.runFullAudit({ days: 7 }).then(function (report) {
-            if (report && report.summary) {
-              log('[auditor] 核查完成: ' + report.summary.totalChecks + '项 失败' + report.summary.failed +
-                ' 修复' + report.summary.autoFixed + ' 人工' + report.summary.needManual);
-            }
-          }).catch(function (e) {
-            log('[auditor] 核查失败: ' + e.message);
-          });
+          auditor
+            .runFullAudit({ days: 7 })
+            .then(function (report) {
+              if (report && report.summary) {
+                log(
+                  '[auditor] 核查完成: ' +
+                    report.summary.totalChecks +
+                    '项 失败' +
+                    report.summary.failed +
+                    ' 修复' +
+                    report.summary.autoFixed +
+                    ' 人工' +
+                    report.summary.needManual,
+                );
+              }
+            })
+            .catch(function (e) {
+              log('[auditor] 核查失败: ' + e.message);
+            });
         } catch (e) {
           log('[auditor] 加载失败: ' + e.message);
         }

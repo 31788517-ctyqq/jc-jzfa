@@ -41,8 +41,8 @@ function getSportteryFallback(database, matchNum, dateStr) {
   try {
     let rows = null;
 
-    // 优先通过适配器查询
-    const adp = database.getAdapter && database.getAdapter();
+    // ★ P1: 优先从归档 DB 查询 sporttery 表，降级到主 DB
+    const adp = (database.getArchiveAdapter && database.getArchiveAdapter()) || (database.getAdapter && database.getAdapter());
     if (adp) {
       if (dateStr) {
         rows = adp.execAll(
@@ -56,25 +56,7 @@ function getSportteryFallback(database, matchNum, dateStr) {
         );
       }
     } else {
-      // ★ A: 适配器未就绪(sql.js异步初始化)→用raw db直接查询(只读，安全)
-      const rawDb = database.getDatabase && database.getDatabase();
-      if (rawDb) {
-        try {
-          const stmt = rawDb.prepare(
-            dateStr
-              ? 'SELECT play_type, odds_json FROM sporttery_odds_snapshot WHERE match_num = ? AND date = ? ORDER BY snapshot_time DESC LIMIT 60'
-              : 'SELECT play_type, odds_json FROM sporttery_odds_snapshot WHERE match_num = ? ORDER BY snapshot_time DESC LIMIT 60',
-          );
-          stmt.bind(dateStr ? [matchNum, dateStr] : [matchNum]);
-          rows = [];
-          while (stmt.step()) {
-            rows.push(stmt.getAsObject());
-          }
-          stmt.free();
-        } catch (e) {
-          /* raw db fallback failed */
-        }
-      }
+      // 适配器未就绪(极端情况)→跳过 sporttery 查询，由上层 fallback 处理
     }
     if (!rows || !rows.length) return empty;
 

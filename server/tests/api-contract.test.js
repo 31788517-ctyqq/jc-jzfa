@@ -59,6 +59,7 @@ const ACTION_MATRIX = {
     'my-plan-reconcile',
     'vip-gift-status',
     'ai-health-check',
+    'system-resources',
   ],
   mutatingOrRequiresState: [
     'auth-login',
@@ -100,6 +101,14 @@ const ACTION_MATRIX = {
     'auto-heal',
     'refill-expert-consensus',
     'refresh-predictions',
+    'sync-trigger',
+    'backfill_results',
+    'live_score_sync',
+    'sync_500odds',
+    'sync_500shuju',
+    'sync_match_list',
+    'sync_odds_delta',
+    'sync_recommends',
   ],
 };
 

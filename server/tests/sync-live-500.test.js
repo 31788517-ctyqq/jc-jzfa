@@ -5,13 +5,13 @@
  * @jest-environment node
  */
 
-var syncLive500 = require('../sync_live_500');
+const syncLive500 = require('../sync_live_500');
 
 describe('P1: sync-live-500 — 500.com 即时比分', function () {
   describe('1. 模块导出', function () {
     it('1.1 核心函数已导出', function () {
       expect(syncLive500).toBeDefined();
-      var fns = [
+      const fns = [
         'fetchLive500',
         'parse500Live',
         'syncToDataJson',
@@ -27,7 +27,7 @@ describe('P1: sync-live-500 — 500.com 即时比分', function () {
 
   describe('2. parse500Live — HTML 解析', function () {
     it('2.1 空 HTML 返回空数组', function () {
-      var result = syncLive500.parse500Live('');
+      const result = syncLive500.parse500Live('');
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBe(0);
     });
@@ -39,7 +39,7 @@ describe('P1: sync-live-500 — 500.com 即时比分', function () {
     });
 
     it('2.3 null 输入安全处理', function () {
-      var result = syncLive500.parse500Live(null);
+      const result = syncLive500.parse500Live(null);
       expect(Array.isArray(result)).toBe(true);
     });
   });

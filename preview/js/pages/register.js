@@ -61,7 +61,9 @@ function ensureRegisterRoot() {
   root.innerHTML =
     '<div class="auth-shell auth-shell-login auth-shell-register">' +
     '<button class="auth-home-corner" type="button" onclick="switchTab(\'login\')" aria-label="返回登录" title="返回登录">' +
-    ''+ICONS.arrowLeft+'' +
+    '' +
+    ICONS.arrowLeft +
+    '' +
     '</button>' +
     '<div class="login-hero register-hero">' +
     '<div class="login-hero-copy">' +

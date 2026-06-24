@@ -495,7 +495,7 @@ function _reRenderSafe() {
     window.scrollTo(0, st);
     requestAnimationFrame(function () {
       // 强制清回默认值，防止 prevOverflow 已被前一次调用污染为 'hidden'
-      document.documentElement.style.overflow = prevOverflow === 'hidden' ? '' : (prevOverflow || '');
+      document.documentElement.style.overflow = prevOverflow === 'hidden' ? '' : prevOverflow || '';
     });
   }
 }

@@ -52,6 +52,59 @@ function loadDataSync() {
   return dataSync;
 }
 
+// ★ P1: HTTP 代理模式 — scheduler 通过 HTTP 触发 jc-sync 任务，不加载 300MB DB
+const SCHEDULER_HTTP_MODE = String(process.env.SCHEDULER_HTTP_MODE || '0') === '1';
+const SYNC_API_PORT = parseInt(process.env.SYNC_API_PORT || '3000', 10);
+const SYNC_API_HOST = process.env.SYNC_API_HOST || '127.0.0.1';
+
+async function _httpTrigger(taskName, params) {
+  // ★ 通过 HTTP POST /api 触发 jc-zjfa 进程中的任务
+  // jc-zjfa 进程已加载 DB，scheduler 不需要自己加载
+  const http = require('http');
+  const date = (params && params.date) || fmtLocal(new Date());
+  const postData = JSON.stringify({ action: taskName, date });
+  
+  return new Promise((resolve, reject) => {
+    const req = http.request({
+      hostname: SYNC_API_HOST,
+      port: SYNC_API_PORT,
+      path: '/api',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) },
+      timeout: 120000, // 2 分钟超时（长任务如 sporttery 抓取）
+    }, (res) => {
+      let body = '';
+      res.on('data', (chunk) => { body += chunk; });
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(body);
+          if (result.code === 1) {
+            logger.info('[http-trigger] ' + taskName + ' 成功: ' + (result.msg || 'OK'));
+            resolve(true);
+          } else {
+            logger.warn('[http-trigger] ' + taskName + ' 返回 code=' + result.code + ': ' + (result.msg || '').slice(0, 80));
+            resolve(false);
+          }
+        } catch (e) {
+          logger.warn('[http-trigger] ' + taskName + ' 解析失败: ' + e.message);
+          resolve(false);
+        }
+      });
+    });
+    req.on('error', (e) => {
+      logger.error('[http-trigger] ' + taskName + ' HTTP错误: ' + e.message);
+      reject(e);
+    });
+    req.on('timeout', () => {
+      req.destroy();
+      logger.warn('[http-trigger] ' + taskName + ' 超时(2min)');
+      resolve(false); // 超时不视为失败，任务可能在远端仍在执行
+    });
+    req.write(postData);
+    req.end();
+  });
+}
+
 // ═══ 1. 分布式锁 ═══
 function acquireLock() {
   try {
@@ -291,6 +344,14 @@ async function executeTask(taskName, params, retryCount) {
     return false;
   }
 
+  // ★ P1: HTTP 代理模式下，scheduler 不加载 DB，通过 HTTP 触发 jc-zjfa
+  if (SCHEDULER_HTTP_MODE) {
+    logger.info('[task] HTTP代理模式: ' + taskName);
+    const result = await _httpTrigger(taskName, params);
+    _recordTaskResult(taskName, result);
+    return result;
+  }
+
   const ds = loadDataSync();
   if (!ds) throw new Error('data_sync 模块不可用');
 
@@ -340,7 +401,9 @@ async function executeTask(taskName, params, retryCount) {
         if (!fs.existsSync(OUT)) fs.mkdirSync(OUT, { recursive: true });
         let allData = {};
         if (fs.existsSync(ALLPLAYS)) {
-          try { allData = JSON.parse(fs.readFileSync(ALLPLAYS, 'utf8')); } catch (e) {}
+          try {
+            allData = JSON.parse(fs.readFileSync(ALLPLAYS, 'utf8'));
+          } catch (e) {}
         }
         const odds = await fetchAllOdds(date);
         if (odds && Object.keys(odds).length > 0) {

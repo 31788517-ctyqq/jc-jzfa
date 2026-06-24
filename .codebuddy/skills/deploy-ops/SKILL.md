@@ -1,37 +1,29 @@
-# deploy-ops v19
+# deploy-ops
 
-## 检查清单（逐项打勾）
-```
-□ 1. preflight 全绿？         → npm run preflight
-□ 2. Vite 构建？              → npx vite build（前端改动必须，否则dist不更新）
-□ 3. DB 备份？                → cp server/midou_data.db server/midou_data.db.bak
-□ 4. dry-run 通过？           → python deploy.py --dry
-□ 5. 用户已确认？             → 展示变更清单，等用户说"确认/执行/部署"
-□ 6. 部署验证？               → python deploy.py --fast（内置健康检查）
-□ 7. Playwright 截图？        → 导航 zj.100qiu.com → 无 502/404/白屏
-□ 8. 无 zombie？              → pm2 list → 3 进程全部 online
-□ 9. Redis 正常？             → node -e "require('./server/core/redis-client').ping()"
-```
+## ⚠️ MUST 检查清单
+1. preflight全绿 → `npm run preflight`
+2. 前端改→Vite重建 → `npx vite build`
+3. DB备份 → `cp server/midou_data.db server/midou_data.db.bak`
+4. 用户确认 → 展示变更清单，等确认
+5. 部署 → `python deploy.py --fast`
+6. 截图验证 → zj.100qiu.com 无502/404/白屏
+7. 无zombie → `pm2 list` 3进程online
 
 ## 关键规则
-- 禁止 Windows scp/ssh → 必须 `deploy.py --fast`
-- `PROTECTED_FILES` 含 `server/data.json`，不自动上传
+- deploy.py PROTECTED_FILES含data.json，不自动上传
+- sql.js单文件DB严禁多进程并发写（铁律#13）
 - Nginx `/assets/` → `miniprogram/images/`
-- sql.js 单文件 DB 严禁多进程并发写
-- Scheduler `max_memory_restart: 2048M`
-- 新增文件 → `deploy.py` DEPLOY_MAP 注册
-- 修改前端 JS → `npx vite build` 重建 dist/
+- 新文件→DEPLOY_MAP注册（铁律#16）
+- 修改前端JS→必须vite build重建dist（铁律隐含）
 
-## 关键路径
-`/root/server/` PM2工作目录 | `/var/www/zj.100qiu.com/` Nginx根目录 | `preview/dist/` Vite产物 | `server/midou_data.db` 主库~300MB
+## 路径
+`/root/server/` PM2 | `/var/www/zj.100qiu.com/` Nginx | `preview/dist/` Vite | `server/midou_data.db` 主库~300MB
 
 ## Fallback
 | 失败 | 降级 |
 |------|------|
-| preflight 不通过 | 修复→重新 preflight |
-| dry-run 失败 | 检查 deploy.py 语法+DEPLOY_MAP |
-| 健康检查失败 | SSH→pm2 status + nginx error.log |
+| preflight不过 | 修复→重跑 |
+| 健康检查失败 | SSH→pm2 status+nginx error.log |
 | 截图超时 | `curl -H "Host: zj.100qiu.com" http://119.23.51.159/` |
-| Scheduler 频繁重启 | max_memory_restart≥2048M、DB完整性 |
-| Vite dist 缺失 | `npx vite build`→重新 `--files-only` |
-| Redis 不可用 | 自动降级内存 Map，`systemctl status redis` |
+| Scheduler频重启 | max_memory≥2048M+DB完整性 |
+| Redis不可用 | 自动降级内存Map |

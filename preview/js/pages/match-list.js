@@ -183,19 +183,19 @@ export function loadMatchListFromData(matches) {
 }
 
 export function loadMatchList(prefetchedApi) {
-  var el = document.getElementById('matchList');
+  const el = document.getElementById('matchList');
   if (!el) return;
   // ★ P0: 保留骨架屏不销毁，仅追加加载态指示（避免白屏闪烁）
-  var skel = el.querySelector('.page-skeleton');
+  const skel = el.querySelector('.page-skeleton');
   if (!skel) {
     el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>加载中...</div>';
   }
 
-  var w = state.weekDates[state.selectedWeekIdx];
-  var cacheKey = 'match-list:' + (w ? w.matchDate : formatDate(new Date()));
+  const w = state.weekDates[state.selectedWeekIdx];
+  const cacheKey = 'match-list:' + (w ? w.matchDate : formatDate(new Date()));
 
   // ★ P1: sessionStorage 缓存命中
-  var cached = getCache(cacheKey);
+  const cached = getCache(cacheKey);
   if (cached) {
     el.innerHTML = renderMatchHTML(cached);
     focusPendingMatch(cached);
@@ -203,7 +203,7 @@ export function loadMatchList(prefetchedApi) {
   }
 
   // ★ P1: 使用预取的 API Promise 或新建请求
-  var apiPromise = prefetchedApi && prefetchedApi.then ? prefetchedApi : api('match-list', _buildMatchParams(w));
+  const apiPromise = prefetchedApi && prefetchedApi.then ? prefetchedApi : api('match-list', _buildMatchParams(w));
 
   apiPromise
     .then(function (matches) {
@@ -217,7 +217,7 @@ export function loadMatchList(prefetchedApi) {
 }
 
 function _buildMatchParams(w) {
-  var params = { _t: Date.now() };
+  const params = { _t: Date.now() };
   if (w) {
     params.weekNum = w.weekNum;
     params.matchDate = w.matchDate;

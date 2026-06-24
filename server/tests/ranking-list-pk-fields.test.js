@@ -15,7 +15,7 @@ describe('M4 ranking-list PK 标准字段合同', () => {
   it('ranking-list 构建并合并 PK 裁判字段', () => {
     expect(indexSource).toContain('function buildPKDecisionMapForMatches');
     expect(indexSource).toContain('const pkDecisionMap = buildPKDecisionMapForMatches(matches);');
-    expect(indexSource).toContain('...pkDecision');
+    expect(indexSource).toContain('pk: pkDecision');
   });
 
   it('ranking-list 响应包含 M2 标准字段', () => {

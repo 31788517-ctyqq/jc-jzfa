@@ -168,12 +168,12 @@ function updateProfilePlanFilterTabs() {
     const isActive = tab.getAttribute('data-filter') === _profilePlanFilter;
     tab.classList.toggle('is-active', isActive);
     tab.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    // ★ 选中态：亮青色（与排行页filter-tag.active视觉一致）
+    // ★ 选中态：与排行页 filter-tag.active 统一使用 --cyan
     if (isActive) {
-      tab.style.background = '#18e0e0';
+      tab.style.background = 'var(--cyan)';
       tab.style.color = '#0f172a';
       tab.style.fontWeight = '600';
-      tab.style.borderColor = '#18e0e0';
+      tab.style.borderColor = 'var(--cyan)';
       tab.classList.add('is-active');
     } else {
       tab.style.background = '';
@@ -474,7 +474,7 @@ function renderProfilePlans() {
     const isLose = p.isWon === false;
     const amountNum = Number(p.amount || 200);
     const amountVal = Math.round(amountNum);
-    // ★ 赔率 fallback: 同场多选走荷兰式有效赔率（与 _calcPlanOddsRaw 口径一致）
+    // ★ P0 修复：赔率 fallback 用 MAX 赔率（不是荷兰式，与 index.js 同步）
     const totalOdds =
       p.totalOdds ||
       (function () {
@@ -489,18 +489,18 @@ function renderProfilePlans() {
           const arr = grouped[mid];
           if (arr.length === 0) return 0;
           if (arr.length === 1) return arr[0];
-          let invSum = 0;
-          for (let i = 0; i < arr.length; i++) invSum += 1 / arr[i];
-          return invSum > 0 ? 1 / invSum : 0;
+          // 串关 maxPrize 基于最高赔率方向中奖
+          return Math.max.apply(null, arr);
         });
         const product = effectiveOdds.reduce(function (pr, o) {
           return pr * (o || 1);
         }, 1);
         return product.toFixed(2);
       })();
+    // ★ P0 修复：已中奖用 winningPrize（与 guardPlanData 归一化一致）
     const prizeVal = isWon
-      ? p.resultIncome != null
-        ? formatProfileMoney(p.resultIncome)
+      ? (Number(p.winningPrize) || Number(p.resultIncome) || 0) > 0
+        ? formatProfileMoney(Number(p.winningPrize) || Number(p.resultIncome))
         : '--'
       : isLose
         ? '¥0'

@@ -557,12 +557,15 @@ DEPLOY_MAP = [
     ('server/core/result-verifier.js',    'both'),  # ★ P0: 多源赛果核实入口（verifyYesterdayResults 依赖，缺失→L1/L2/L3 防漂移全失效）
     ('server/core/data-auditor.js',       'both'),  # ★ 全量数据自核查（6大类18项，每日3:00定时触发）
     ('server/core/redis-client.js',       'both'),  # ★ Redis 共享缓存客户端（cluster:3 前提，降级内存不阻断）
+    ('server/core/redis-response-cache.js', 'both'),  # ★ P3: Redis 响应级缓存（cluster:3 共享）
 
     ('server/core/match-data-pack.js',    'both'),  # ★ V9: data_sync 依赖，缺失会导致 jc-sync 启动失败
     ('server/core/alert-monitor.js',     'both'),  # ★ V12: 运维告警监控
     ('server/core/email-alerter.js',     'both'),  # ★ V12: 运维告警邮件
 
     ('server/database.js',                'both'),
+    ('server/core/resource-monitor.js',   'both'),   # ★ P3: 资源监控
+    ('server/migrate_to_auth_db.js',      'both'),   # ★ P0: 认证DB迁移脚本
 
     ('server/deepseek.js',                'both'),
 

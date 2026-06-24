@@ -294,7 +294,9 @@ async function main() {
             console.log(`[Schedule] 从文本解析: ${Object.values(byDate).flat().length} 场比赛`);
             const matches = Object.values(byDate).flat();
             const result = mergeToDataJson(matches);
-            console.log(`合并结果: 新增${result.added} 更新${result.updated} 跳过${result.skipped} 过滤未来${result.futureSkipped} (上限${result.maxDate})`);
+            console.log(
+              `合并结果: 新增${result.added} 更新${result.updated} 跳过${result.skipped} 过滤未来${result.futureSkipped} (上限${result.maxDate})`,
+            );
             console.log(`[OK] 同步完成 (from cached schedule)`);
             return { success: true, ...result, method: 'cached_schedule' };
           }
@@ -330,7 +332,9 @@ async function main() {
         if (Object.keys(byDate).length > 0) {
           const matches = Object.values(byDate).flat();
           const result = mergeToDataJson(matches);
-          console.log(`合并结果: 新增${result.added} 更新${result.updated} 跳过${result.skipped} 过滤未来${result.futureSkipped} (上限${result.maxDate})`);
+          console.log(
+            `合并结果: 新增${result.added} 更新${result.updated} 跳过${result.skipped} 过滤未来${result.futureSkipped} (上限${result.maxDate})`,
+          );
           return { success: true, ...result, method: 'playwright' };
         }
       }

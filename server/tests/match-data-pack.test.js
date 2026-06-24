@@ -36,7 +36,7 @@ jest.mock('../core/data-fusion', function () {
 });
 
 describe('P0: match-data-pack — 数据打包', function () {
-  var pack;
+  let pack;
 
   beforeAll(function () {
     try {
@@ -70,8 +70,8 @@ describe('P0: match-data-pack — 数据打包', function () {
     it('2.1 模块导出 safeReadJson', function () {
       if (!pack) return;
       if (typeof pack.safeReadJson === 'function') {
-        var fs = require('fs');
-        var result = pack.safeReadJson('/nonexistent/path.json', { fallback: true });
+        const fs = require('fs');
+        const result = pack.safeReadJson('/nonexistent/path.json', { fallback: true });
         expect(result).toBeDefined();
         expect(result.fallback).toBe(true);
       }
@@ -81,7 +81,7 @@ describe('P0: match-data-pack — 数据打包', function () {
   describe('3. loadCaches — 缓存加载', function () {
     it('3.1 loadCaches 初始返回空对象（无文件）', function () {
       if (!pack || !pack.loadCaches) return;
-      var cache = pack.loadCaches();
+      const cache = pack.loadCaches();
       expect(cache).toBeDefined();
       expect(cache.dataJson).toBeDefined();
       expect(typeof cache.dataJson).toBe('object');
@@ -89,8 +89,8 @@ describe('P0: match-data-pack — 数据打包', function () {
 
     it('3.2 30s 内返回相同引用（TTL）', function () {
       if (!pack || !pack.loadCaches) return;
-      var c1 = pack.loadCaches();
-      var c2 = pack.loadCaches();
+      const c1 = pack.loadCaches();
+      const c2 = pack.loadCaches();
       expect(c2).toBe(c1);
     });
   });
@@ -98,7 +98,7 @@ describe('P0: match-data-pack — 数据打包', function () {
   describe('4. findMatchFromDataJson — 查找比赛', function () {
     it('4.1 不存在 matchId 返回 null', function () {
       if (!pack || !pack.findMatchFromDataJson) return;
-      var match = pack.findMatchFromDataJson('XYZ999');
+      const match = pack.findMatchFromDataJson('XYZ999');
       expect(match).toBeNull();
     });
   });
@@ -106,7 +106,7 @@ describe('P0: match-data-pack — 数据打包', function () {
   describe('5. 函数导出完整性', function () {
     it('5.1 核心函数已导出', function () {
       if (!pack) return;
-      var fns = ['getMatchDataPack', 'getDailyMatchDataPacks', 'buildCoverageReport'];
+      const fns = ['getMatchDataPack', 'getDailyMatchDataPacks', 'buildCoverageReport'];
       fns.forEach(function (fn) {
         expect(typeof pack[fn]).toBe('function');
       });

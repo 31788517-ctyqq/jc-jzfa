@@ -7,7 +7,7 @@
 
 // Mock database
 jest.mock('../database', function () {
-  var adp = {
+  const adp = {
     execOne: function () {
       return undefined;
     },
@@ -42,31 +42,31 @@ jest.mock('../core/datetime', function () {
   };
 });
 
-var authService = require('../auth-service');
+const authService = require('../auth-service');
 
 describe('P0: auth-service — 认证服务', function () {
   describe('1. Token 与会话', function () {
     it('1.1 resolveSessionToken 从 headers 提取 token', function () {
-      var req = { headers: { 'x-auth-token': 'abc123' } };
-      var token = authService.resolveSessionToken(req, {});
+      const req = { headers: { 'x-auth-token': 'abc123' } };
+      const token = authService.resolveSessionToken(req, {});
       expect(token).toBe('abc123');
     });
 
     it('1.2 resolveSessionToken 从 data 提取 token', function () {
-      var req = { headers: {} };
-      var data = { token: 'xyz789' };
-      var token = authService.resolveSessionToken(req, data);
+      const req = { headers: {} };
+      const data = { token: 'xyz789' };
+      const token = authService.resolveSessionToken(req, data);
       // data.token 被映射，实际 key 可能不同；只要是非空字符串即可
       expect(token).toBeDefined();
     });
 
     it('1.3 resolveSessionToken 无 token 返回空字符串', function () {
-      var token = authService.resolveSessionToken({ headers: {} }, {});
+      const token = authService.resolveSessionToken({ headers: {} }, {});
       expect(token).toBe('');
     });
 
     it('1.4 validateSession 无效 token 返回 null', function () {
-      var session = authService.validateSession('invalid-token-xxx', false);
+      const session = authService.validateSession('invalid-token-xxx', false);
       expect(session).toBeNull();
     });
   });
@@ -74,8 +74,8 @@ describe('P0: auth-service — 认证服务', function () {
   describe('2. 权限检查', function () {
     it('2.1 isActionProtected — 受保护 action 应返回 true', function () {
       // plan-list 可能是公开的，改用明确的受保护 action
-      var protectedActions = ['my-plan-list', 'plan-catalog', 'subscription-status', 'referral-info'];
-      var anyProtected = protectedActions.some(function (a) {
+      const protectedActions = ['my-plan-list', 'plan-catalog', 'subscription-status', 'referral-info'];
+      const anyProtected = protectedActions.some(function (a) {
         return authService.isActionProtected(a);
       });
       expect(anyProtected).toBe(true);
@@ -88,12 +88,12 @@ describe('P0: auth-service — 认证服务', function () {
     });
 
     it('2.3 getRequiredPermission 返回非空值', function () {
-      var perm = authService.getRequiredPermission('plan-list');
+      const perm = authService.getRequiredPermission('plan-list');
       expect(perm).toBeDefined();
     });
 
     it('2.4 hasPermission — 管理员拥有全部权限', function () {
-      var session = {
+      const session = {
         permissions: [
           'plan:view',
           'plan:save',
@@ -111,7 +111,7 @@ describe('P0: auth-service — 认证服务', function () {
     });
 
     it('2.5 hasPermission — 缺少权限返回 false', function () {
-      var session = { permissions: ['plan:view'] };
+      const session = { permissions: ['plan:view'] };
       expect(authService.hasPermission(session, 'user:create')).toBe(false);
     });
 
@@ -122,25 +122,25 @@ describe('P0: auth-service — 认证服务', function () {
 
   describe('3. 注册回退（无 DB 写入时）', function () {
     it('3.1 registerUser — 缺少用户名返回失败', function () {
-      var result = authService.registerUser('', 'pass123', {});
+      const result = authService.registerUser('', 'pass123', {});
       expect(result.ok).toBe(false);
       expect(result.msg).toBeDefined();
     });
 
     it('3.2 registerUser — 缺少密码返回失败', function () {
-      var result = authService.registerUser('user', '', {});
+      const result = authService.registerUser('user', '', {});
       expect(result.ok).toBe(false);
     });
   });
 
   describe('4. 登录回退（无 DB 写入时）', function () {
     it('4.1 loginWithPassword — 缺少用户名', async function () {
-      var result = await authService.loginWithPassword('', 'pwd', {});
+      const result = await authService.loginWithPassword('', 'pwd', {});
       expect(result.ok).toBe(false);
     });
 
     it('4.2 loginWithPassword — 缺少密码', async function () {
-      var result = await authService.loginWithPassword('user', '', {});
+      const result = await authService.loginWithPassword('user', '', {});
       expect(result.ok).toBe(false);
     });
   });

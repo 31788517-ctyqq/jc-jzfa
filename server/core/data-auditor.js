@@ -35,7 +35,9 @@ function genRecentDates(days) {
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
-    dates.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'));
+    dates.push(
+      d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'),
+    );
   }
   return dates;
 }
@@ -132,7 +134,9 @@ async function auditMatchIntegrity(data, dates) {
         c12.addIssue({ date: mDate, num: m.num, matchId: m.matchId, issue: '完赛无比分' });
       } else {
         const scNorm = String(m.score).replace(/[:：]/g, '-').trim();
-        const hfNorm = String(m.halfScore || '').replace(/[:：]/g, '-').trim();
+        const hfNorm = String(m.halfScore || '')
+          .replace(/[:：]/g, '-')
+          .trim();
 
         // 1.1 已完赛未开奖：检查推荐 result
         const recs = rMap['m_' + m.matchId] || rMap[String(m.matchId)] || [];
@@ -155,7 +159,11 @@ async function auditMatchIntegrity(data, dates) {
     }
 
     // 1.5 状态滞后：有比分但 status=0
-    if (m.score && /\d+[:\-]\d+/.test(String(m.score.trim())) && (m.matchStatus === 0 || m.matchStatus === undefined || m.matchStatus === null)) {
+    if (
+      m.score &&
+      /\d+[:\-]\d+/.test(String(m.score.trim())) &&
+      (m.matchStatus === 0 || m.matchStatus === undefined || m.matchStatus === null)
+    ) {
       m.matchStatus = 1;
       c15.addIssue({ date: mDate, num: m.num, matchId: m.matchId, score: m.score, fixed: true });
       c15.markFixed();
@@ -271,7 +279,13 @@ function auditRecConsistency(data, dates) {
 
       // 2.3 result=2 但比赛已完赛
       if (result === 2) {
-        c23.addIssue({ date: mDate, num: m.num, matchId: m.matchId, recType: r.t || r.type, issue: 'result=2(延期)但比赛已完赛' });
+        c23.addIssue({
+          date: mDate,
+          num: m.num,
+          matchId: m.matchId,
+          recType: r.t || r.type,
+          issue: 'result=2(延期)但比赛已完赛',
+        });
         return;
       }
 
@@ -537,7 +551,12 @@ async function auditDBConsistency(data, dates) {
       );
       const upRow = adp.execOne('SELECT COUNT(*) as c FROM unified_predictions WHERE match_date = ?', dateStr);
       if (plRow && upRow && plRow.c > 0 && upRow.c === 0) {
-        c52.addIssue({ date: dateStr, predictionLogs: plRow.c, unifiedPredictions: upRow.c, issue: 'prediction_logs 有赛果但 unified_predictions 为空' });
+        c52.addIssue({
+          date: dateStr,
+          predictionLogs: plRow.c,
+          unifiedPredictions: upRow.c,
+          issue: 'prediction_logs 有赛果但 unified_predictions 为空',
+        });
       }
     }
   } catch (e) {}
@@ -566,7 +585,12 @@ async function auditDBConsistency(data, dates) {
         dateStr,
       );
       if (upRow && poRow && upRow.c > 0 && poRow.c < upRow.c) {
-        c53.addIssue({ date: dateStr, unifiedPredictions: upRow.c, predictionOutcomes: poRow.c, issue: 'unified_predictions 有但 prediction_outcomes 缺失' });
+        c53.addIssue({
+          date: dateStr,
+          unifiedPredictions: upRow.c,
+          predictionOutcomes: poRow.c,
+          issue: 'unified_predictions 有但 prediction_outcomes 缺失',
+        });
       }
     }
   } catch (e) {}
@@ -678,8 +702,17 @@ async function runFullAudit(opts) {
   const days = opts.days || 7;
   const dates = opts.dates || genRecentDates(days);
   const now = new Date();
-  const auditTime = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') +
-    'T' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':00+08:00';
+  const auditTime =
+    now.getFullYear() +
+    '-' +
+    String(now.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(now.getDate()).padStart(2, '0') +
+    'T' +
+    String(now.getHours()).padStart(2, '0') +
+    ':' +
+    String(now.getMinutes()).padStart(2, '0') +
+    ':00+08:00';
 
   console.log('[auditor] ══════ 全量数据核查开始 ══════');
   console.log('[auditor] 核查范围: ' + dates[0] + ' ~ ' + dates[dates.length - 1] + ' (' + dates.length + ' 天)');

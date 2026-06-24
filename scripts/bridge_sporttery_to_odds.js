@@ -39,11 +39,14 @@ try {
 }
 
 // ★ 初始化数据库（better-sqlite3 同步 / sql.js 异步）
+// ★ P1: sporttery 表写入归档 DB，避免与 jc-zjfa 主进程的 SQLITE_BUSY 锁冲突
 function initDb() {
   return new Promise(function (resolve) {
     database.initDatabase();
+    database.initArchiveDatabase(); // ★ P1: 初始化归档 DB
     if (database.isAvailable()) {
-      resolve(database.getAdapter());
+      // ★ P1: sporttery 写入走归档 DB
+      resolve(database.getArchiveAdapter());
       return;
     }
     // sql.js 异步初始化
@@ -52,7 +55,7 @@ function initDb() {
       attempts++;
       if (database.isAvailable()) {
         clearInterval(timer);
-        resolve(database.getAdapter());
+        resolve(database.getArchiveAdapter()); // ★ P1: sporttery 写入走归档 DB
       } else if (attempts > 30) {
         clearInterval(timer);
         resolve(null);

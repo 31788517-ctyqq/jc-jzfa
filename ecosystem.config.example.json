@@ -24,6 +24,7 @@
         "ALERT_SMTP_PASS": "<SMTP_PASS>",
         "FEATURE_RICH_PROMPT": "0",
         "DATA_JSON_AGGRESSIVE_CACHE": "1",
+        "DATA_DB_LAZY": "1",
         "REDIS_HOST": "127.0.0.1",
         "REDIS_PORT": "6379",
         "REDIS_ENABLED": "true"

@@ -330,7 +330,7 @@ function syncToDataJson(liveMatches, dateStr) {
       if (!data.m[candidateKey]) {
         key = candidateKey;
         data.m[key] = {
-          matchId: lm.matchId || ('500_' + lm.fid) || '',
+          matchId: lm.matchId || '500_' + lm.fid || '',
           num: lm.matchNum,
           homeName: lm.homeName,
           visitName: lm.visitName,
@@ -483,7 +483,8 @@ async function correctPostMatchScores(matches, dateStr) {
     //    halfScore 为空，无法通过条件 2 检测 → 始终用 detail.php 验证
     const today = new Date().toISOString().slice(0, 10);
     const isHistoricalDate = dateStr && dateStr !== today;
-    const needFix = !scNorm || (hfNorm && scNorm === hfNorm && scNorm !== '0-0') || (isHistoricalDate && m.matchStatus >= 2);
+    const needFix =
+      !scNorm || (hfNorm && scNorm === hfNorm && scNorm !== '0-0') || (isHistoricalDate && m.matchStatus >= 2);
     if (needFix) {
       pending.push(m);
     }

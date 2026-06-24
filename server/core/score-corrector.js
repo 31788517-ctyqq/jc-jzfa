@@ -197,18 +197,27 @@ async function correctDate(dateStr, currentMap) {
       // ★ 辅助：从 500.com live 页面获取 fid 映射（date+num → fid）
       function fetchLiveHtml(date) {
         return new Promise((resolve) => {
-          https.get('https://live.500.com/?e=' + date, {
-            headers: { 'User-Agent': 'Mozilla/5.0' },
-            rejectUnauthorized: false,
-            timeout: 15000,
-          }, (res) => {
-            const chunks = [];
-            res.on('data', c => chunks.push(c));
-            res.on('end', () => {
-              try { resolve(iconv.decode(Buffer.concat(chunks), 'gbk')); }
-              catch (e) { resolve(''); }
-            });
-          }).on('error', () => resolve(''));
+          https
+            .get(
+              'https://live.500.com/?e=' + date,
+              {
+                headers: { 'User-Agent': 'Mozilla/5.0' },
+                rejectUnauthorized: false,
+                timeout: 15000,
+              },
+              (res) => {
+                const chunks = [];
+                res.on('data', (c) => chunks.push(c));
+                res.on('end', () => {
+                  try {
+                    resolve(iconv.decode(Buffer.concat(chunks), 'gbk'));
+                  } catch (e) {
+                    resolve('');
+                  }
+                });
+              },
+            )
+            .on('error', () => resolve(''));
         });
       }
 
@@ -230,7 +239,7 @@ async function correctDate(dateStr, currentMap) {
         console.log('[corrector] sporttery 无数据，尝试 detail.php 对 ' + matchesNeedingFix.length + ' 场...');
 
         // ★ 获取 fid 映射（从 500.com live 页面）
-        let fidMap = {};
+        const fidMap = {};
         const liveHtml = await fetchLiveHtml(dateStr);
         if (liveHtml) {
           const liveMatches = parse500Live(liveHtml, dateStr);
@@ -247,14 +256,16 @@ async function correctDate(dateStr, currentMap) {
         // 并发数 2，避免限流
         for (let i = 0; i < matchesNeedingFix.length; i += 2) {
           const batch = matchesNeedingFix.slice(i, i + 2);
-          const results = await Promise.all(batch.map(function (item) {
-            // ★ 优先用 data.json 中的 fid，没有则用 fidMap
-            const fid = item.match.fid || fidMap[item.match.num] || '';
-            if (!fid) return Promise.resolve({ item: item, result: null });
-            return fetchDetailScore(fid).then(function (r) {
-              return { item: item, result: r };
-            });
-          }));
+          const results = await Promise.all(
+            batch.map(function (item) {
+              // ★ 优先用 data.json 中的 fid，没有则用 fidMap
+              const fid = item.match.fid || fidMap[item.match.num] || '';
+              if (!fid) return Promise.resolve({ item: item, result: null });
+              return fetchDetailScore(fid).then(function (r) {
+                return { item: item, result: r };
+              });
+            }),
+          );
           results.forEach(function (r) {
             if (r.result && r.result.score) {
               const m = r.item.match;

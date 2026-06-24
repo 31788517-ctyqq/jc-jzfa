@@ -152,12 +152,25 @@ function mergeScheduleToData(matches) {
     if (m && m.num) numIndex[m.num] = k;
   });
 
+  // ★ 日期上限：只允许 today+1 以内的比赛，防止未来赛程污染 data.json
+  const maxDate = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  })();
+
   let added = 0,
     skipped = 0,
-    updated = 0;
+    updated = 0,
+    futureSkipped = 0;
   const now = new Date().toISOString();
 
   for (const sp of matches) {
+    // ★ 日期上限过滤：跳过超过 today+1 的未来比赛
+    if (sp.date && sp.date > maxDate) {
+      futureSkipped++;
+      continue;
+    }
     const existingKey = numIndex[sp.num];
 
     if (existingKey) {
@@ -214,7 +227,7 @@ function mergeScheduleToData(matches) {
   fs.writeFileSync(tmpFile, JSON.stringify(data));
   fs.renameSync(tmpFile, DATA_FILE);
 
-  return { added, updated, skipped };
+  return { added, updated, skipped, futureSkipped, maxDate };
 }
 
 // ═══ 主入口: 检查今天赛程 ═══

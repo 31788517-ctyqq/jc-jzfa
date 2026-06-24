@@ -53,7 +53,14 @@ let isRunning = false;
  */
 function getTodayMatches() {
   if (useDB) {
-    return database.getTodayUnfinishedMatches() || [];
+    // ★ P2 修复: DATA_DB_LAZY 模式下 db 可能未初始化，确保先打开 DB
+    try { database.initDatabase(); } catch (_) {}
+    try {
+      return database.getTodayUnfinishedMatches() || [];
+    } catch (e) {
+      console.log('[ai_daemon] DB查询失败, fallback data.json:', e.message);
+      useDB = false; // 降级到 data.json 模式
+    }
   }
   // data.json fallback
   try {

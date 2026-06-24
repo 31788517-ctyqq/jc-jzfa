@@ -323,7 +323,7 @@ function bindLoginAction() {
   function applyLoginResult(res, inputUsername) {
     // ★ 记住我：写 localStorage
     try {
-      var remEl = document.getElementById('loginRemember');
+      const remEl = document.getElementById('loginRemember');
       if (remEl && remEl.checked) {
         localStorage.setItem('loginRememberMe', '1');
       } else {
@@ -411,7 +411,7 @@ function bindLoginAction() {
     btn.disabled = true;
     setMsg(msg, '登录中...', true);
 
-    var rememberMe = (document.getElementById('loginRemember') || { checked: false }).checked;
+    const rememberMe = (document.getElementById('loginRemember') || { checked: false }).checked;
 
     api('auth-login', { username, password, rememberMe: rememberMe }, 0)
       .catch(function (e) {
@@ -445,39 +445,41 @@ export function loadLogin() {
 
   // ★ 自动登录：rememberMe 标记 + 有效 session → 直接进入首页
   try {
-    var isRemembered = localStorage.getItem('loginRememberMe') === '1';
+    const isRemembered = localStorage.getItem('loginRememberMe') === '1';
     if (isRemembered) {
       // 异步验证 session 是否仍然有效
-      api('auth-session', {}, 0).then(function (res) {
-        if (res && res.code === 1 && res.data && res.data.user) {
-          // Session 有效，自动进入系统
-          setAuthToken(res.data.token || '');
-          setAuthSession({
-            user: res.data.user,
-            roles: res.data.roles || [],
-            permissions: res.data.permissions || [],
-            referralEnabled: res.data.referralEnabled || false,
-          });
-          // 回填 rememberMe 复选框状态
-          var remEl = document.getElementById('loginRemember');
-          if (remEl) remEl.checked = true;
-          // 恢复用户名
-          var savedUser = localStorage.getItem('loginUsername') || '';
-          if (savedUser) {
-            var userEl = document.getElementById('loginUser');
-            if (userEl) userEl.value = savedUser;
+      api('auth-session', {}, 0)
+        .then(function (res) {
+          if (res && res.code === 1 && res.data && res.data.user) {
+            // Session 有效，自动进入系统
+            setAuthToken(res.data.token || '');
+            setAuthSession({
+              user: res.data.user,
+              roles: res.data.roles || [],
+              permissions: res.data.permissions || [],
+              referralEnabled: res.data.referralEnabled || false,
+            });
+            // 回填 rememberMe 复选框状态
+            const remEl = document.getElementById('loginRemember');
+            if (remEl) remEl.checked = true;
+            // 恢复用户名
+            const savedUser = localStorage.getItem('loginUsername') || '';
+            if (savedUser) {
+              const userEl = document.getElementById('loginUser');
+              if (userEl) userEl.value = savedUser;
+            }
+            // 跳转首页
+            if (typeof window.switchTab === 'function') {
+              window.switchTab('home');
+            }
+            return;
           }
-          // 跳转首页
-          if (typeof window.switchTab === 'function') {
-            window.switchTab('home');
-          }
-          return;
-        }
-        // Session 已过期，清除标记，显示登录表单
-        localStorage.removeItem('loginRememberMe');
-      }).catch(function () {
-        // API 失败，降级显示登录表单
-      });
+          // Session 已过期，清除标记，显示登录表单
+          localStorage.removeItem('loginRememberMe');
+        })
+        .catch(function () {
+          // API 失败，降级显示登录表单
+        });
     }
   } catch (_) {}
 
@@ -486,10 +488,10 @@ export function loadLogin() {
   bindLoginAction();
   // 恢复上次登录用户名
   try {
-    var savedUser = localStorage.getItem('loginUsername') || '';
+    const savedUser = localStorage.getItem('loginUsername') || '';
     if (savedUser && !document.getElementById('loginUser').value) {
       document.getElementById('loginUser').value = savedUser;
-      var remEl = document.getElementById('loginRemember');
+      const remEl = document.getElementById('loginRemember');
       if (remEl && localStorage.getItem('loginRememberMe') === '1') {
         remEl.checked = true;
       }

@@ -27,6 +27,8 @@ const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379', 10);
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD || '';
 const REDIS_DB = parseInt(process.env.REDIS_DB || '0', 10);
 const REDIS_ENABLED = process.env.REDIS_ENABLED !== 'false';
+// ★ P2 调试: 打印 REDIS 配置（启动时）
+console.log('[redis] 配置: ENABLED=' + REDIS_ENABLED + ' HOST=' + REDIS_HOST + ':' + REDIS_PORT + ' DB=' + REDIS_DB);
 
 // ═══ 内存降级缓存 ═══
 const _memCache = new Map();
@@ -63,7 +65,7 @@ function _memDel(key) {
 let _socket = null;
 let _connected = false;
 let _connecting = false;
-let _commandQueue = [];
+const _commandQueue = [];
 let _responseBuffer = '';
 let _currentResolver = null;
 let _currentRejecter = null;
@@ -91,23 +93,28 @@ function _parseResponse(buf) {
   const line = buf.slice(1, lineEnd).toString('utf8');
   const consumed = lineEnd + 2;
 
-  if (firstChar === 0x2b) { // + Simple String
+  if (firstChar === 0x2b) {
+    // + Simple String
     return { value: line, consumed };
   }
-  if (firstChar === 0x2d) { // - Error
+  if (firstChar === 0x2d) {
+    // - Error
     return { value: new Error(line), consumed, isError: true };
   }
-  if (firstChar === 0x3a) { // : Integer
+  if (firstChar === 0x3a) {
+    // : Integer
     return { value: parseInt(line, 10), consumed };
   }
-  if (firstChar === 0x24) { // $ Bulk String
+  if (firstChar === 0x24) {
+    // $ Bulk String
     const len = parseInt(line, 10);
     if (len < 0) return { value: null, consumed };
     const dataEnd = consumed + len + 2;
     if (buf.length < dataEnd) return { value: null, consumed: 0, incomplete: true };
     return { value: buf.slice(consumed, consumed + len).toString('utf8'), consumed: dataEnd };
   }
-  if (firstChar === 0x2a) { // * Array
+  if (firstChar === 0x2a) {
+    // * Array
     const count = parseInt(line, 10);
     if (count < 0) return { value: null, consumed };
     let offset = consumed;
@@ -133,58 +140,80 @@ function _connect() {
   return new Promise((resolve) => {
     try {
       _socket = net.createConnection(REDIS_PORT, REDIS_HOST);
-      _socket.setTimeout(3000);
 
       _socket.on('connect', () => {
-        _socket.setTimeout(5000);
+        _socket.setTimeout(10000);
 
-        // ★ 认证 + 选择 DB（同步等待响应）
-        const initCmds = [];
-        if (REDIS_PASSWORD) initCmds.push(_encodeCommand('AUTH', REDIS_PASSWORD));
-        initCmds.push(_encodeCommand('SELECT', REDIS_DB));
-        _socket.write(initCmds.join(''));
+        // ★ 逐条发送 AUTH 和 SELECT，避免合并发送时 AUTH 响应被混淆
+        let _initBuffer = '';
+        let initPhase = REDIS_PASSWORD ? 0 : 1; // 0=等待AUTH响应, 1=等待SELECT响应, 2=完成
+        const onDataInit = (data) => {
+          _initBuffer += data.toString('utf8');
+          const lines = _initBuffer.split('\r\n').filter(l => l.length > 0);
 
-        // 等待 AUTH+SELECT 响应（每条返回 +OK\r\n 或 +<db>\r\n）
-        let initBuffer = '';
-        let initDone = false;
-        const onData = (data) => {
-          initBuffer += data.toString('utf8');
-          // 每条响应以 \r\n 结尾，统计 \r\n 数量 = 已收响应数
-          const crlfCount = (initBuffer.match(/\r\n/g) || []).length;
-          if (crlfCount >= initCmds.length && !initDone) {
-            initDone = true;
-            _socket.removeListener('data', onData);
-            _connecting = false;
-            _connected = true;
-            _degraded = false;
-            _socket.setTimeout(0);
+          for (const line of lines) {
+            if (initPhase === 0) {
+              // AUTH 响应
+              // AUTH 成功，发送 SELECT
+              if (line.startsWith('-')) {
+                console.warn('[redis] AUTH失败: ' + line);
+                _socket.removeListener('data', onDataInit);
+                _connecting = false;
+                _connected = false;
+                _degraded = true;
+                resolve();
+                return;
+              }
+              initPhase = 1;
+              _initBuffer = '';
+              _socket.write(_encodeCommand('SELECT', REDIS_DB));
+              return; // 等待下一个 data 事件
+            } else if (initPhase === 1) {
+              // SELECT 响应
+              // SELECT 成功
+              initPhase = 2;
+              _socket.removeListener('data', onDataInit);
+              _connecting = false;
+              _connected = true;
+              _degraded = false;
+              _socket.setTimeout(0);
 
-            // 切换到正常数据处理模式
-            _socket.on('data', (d) => {
-              _responseBuffer += d.toString('binary');
-              _processBuffer();
-            });
+              // 切换到正常数据处理模式
+              _socket.on('data', (d) => {
+                _responseBuffer += d.toString('binary');
+                _processBuffer();
+              });
 
-            console.log('[redis] 已连接 ' + REDIS_HOST + ':' + REDIS_PORT + ' DB=' + REDIS_DB);
+              console.log('[redis] 已连接 ' + REDIS_HOST + ':' + REDIS_PORT + ' DB=' + REDIS_DB);
 
-            // 执行队列中的命令
-            const queue = _commandQueue.splice(0);
-            queue.forEach(function (item) { _exec(item.cmd, item.resolve, item.reject); });
-            resolve();
+              const queue = _commandQueue.splice(0);
+              queue.forEach(function (item) {
+                _exec(item.cmd, item.resolve, item.reject);
+              });
+              resolve();
+              return;
+            }
           }
         };
-        _socket.on('data', onData);
+        _socket.on('data', onDataInit);
 
-        // 超时保护：5 秒内未完成 init 则降级
+        // 发送第一条命令
+        if (REDIS_PASSWORD) {
+          _socket.write(_encodeCommand('AUTH', REDIS_PASSWORD));
+        } else {
+          _socket.write(_encodeCommand('SELECT', REDIS_DB));
+        }
+
+        // 超时保护
         setTimeout(() => {
           if (!_connected) {
-            try { _socket.removeListener('data', onData); } catch (_) {}
+            try { _socket.removeListener('data', onDataInit); } catch (_) {}
             _connecting = false;
             _degraded = true;
-            console.warn('[redis] AUTH 初始化超时，降级到内存缓存');
+            console.warn('[redis] AUTH初始化超时，降级到内存缓存');
             resolve();
           }
-        }, 5000);
+        }, 10000);
       });
 
       _socket.on('error', (e) => {
@@ -196,7 +225,9 @@ function _connect() {
         }
         // 排空队列，用内存模式执行
         const queue = _commandQueue.splice(0);
-        queue.forEach(function (item) { _execMem(item.cmd, item.resolve, item.reject); });
+        queue.forEach(function (item) {
+          _execMem(item.cmd, item.resolve, item.reject);
+        });
         resolve();
       });
 
@@ -209,15 +240,15 @@ function _connect() {
         }
       });
 
-      _socket.on('data', (data) => {
-        _responseBuffer += data.toString('binary');
-        _processBuffer();
-      });
+      // ★ 不在这里注册 data 监听器，等 init 完成后在 on('connect') 中注册
+      // 防止 init 阶段的 AUTH 响应被当作命令响应处理
 
       _socket.on('timeout', () => {
+        console.warn('[redis] 连接超时，降级到内存缓存');
         _socket.destroy();
         _connecting = false;
         _connected = false;
+        _degraded = true;
         resolve();
       });
     } catch (e) {
@@ -410,7 +441,9 @@ function isConnected() {
  */
 function close() {
   if (_socket) {
-    try { _socket.destroy(); } catch (e) {}
+    try {
+      _socket.destroy();
+    } catch (e) {}
   }
   _connected = false;
 }

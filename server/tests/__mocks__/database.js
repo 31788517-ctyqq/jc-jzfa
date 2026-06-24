@@ -187,9 +187,15 @@ function getAdapter() {
 // ── 完整导出 mock ──
 module.exports = {
   initDatabase,
+  initAuthDatabase: function () { _available = true; return true; }, // ★ P0 mock
+  initArchiveDatabase: function () { return true; }, // ★ P1 mock
   isAvailable,
+  isAuthDbAvailable: function () { return _available; }, // ★ P0 mock
+  isArchiveDbAvailable: function () { return false; }, // ★ P1 mock
   getDatabase,
   getAdapter,
+  getAuthAdapter: getAdapter, // ★ P0 mock: 认证DB适配器 = 主DB适配器
+  getArchiveAdapter: getAdapter, // ★ P1 mock: 归档DB适配器 = 主DB适配器
   closeDatabase,
   // Matches
   upsertMatch: () => {},

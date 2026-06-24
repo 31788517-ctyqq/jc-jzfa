@@ -179,7 +179,7 @@ function stats() {
   const memKeys = Object.keys(_mem);
   let diskCount = 0;
   try {
-    diskCount = fs.readdirSync(CACHE_DIR).filter(f => f.endsWith('.json')).length;
+    diskCount = fs.readdirSync(CACHE_DIR).filter((f) => f.endsWith('.json')).length;
   } catch (_) {}
   return {
     memory: memKeys.length,

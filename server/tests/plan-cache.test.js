@@ -5,7 +5,7 @@
  * @jest-environment node
  */
 
-var planCache = require('../core/plan-cache');
+const planCache = require('../core/plan-cache');
 
 describe('P1: plan-cache — 方案缓存', function () {
   beforeEach(function () {
@@ -22,14 +22,14 @@ describe('P1: plan-cache — 方案缓存', function () {
     it('1.2 set 后 get 返回数据', function () {
       if (typeof planCache.get !== 'function' || typeof planCache.set !== 'function') return;
       planCache.set('test-key-001', { data: [1, 2, 3] });
-      var cached = planCache.get('test-key-001');
+      const cached = planCache.get('test-key-001');
       expect(cached).toBeDefined();
       expect(cached.data).toEqual([1, 2, 3]);
     });
 
     it('1.3 不存在的 key 返回 null', function () {
       if (typeof planCache.get !== 'function') return;
-      var result = planCache.get('nonexistent-key-xyz');
+      const result = planCache.get('nonexistent-key-xyz');
       expect(result).toBeNull();
     });
 
@@ -37,7 +37,7 @@ describe('P1: plan-cache — 方案缓存', function () {
       if (typeof planCache.set !== 'function' || typeof planCache.get !== 'function') return;
       planCache.set('key-override', { v: 1 });
       planCache.set('key-override', { v: 2 });
-      var cached = planCache.get('key-override');
+      const cached = planCache.get('key-override');
       expect(cached.v).toBe(2);
     });
   });
@@ -56,9 +56,9 @@ describe('P1: plan-cache — 方案缓存', function () {
     });
 
     it('2.2 invalidateAll 清空所有缓存', function () {
-      var hasSet = typeof planCache.set === 'function';
-      var hasGet = typeof planCache.get === 'function';
-      var hasClear = typeof planCache.invalidateAll === 'function' || typeof planCache.clear === 'function';
+      const hasSet = typeof planCache.set === 'function';
+      const hasGet = typeof planCache.get === 'function';
+      const hasClear = typeof planCache.invalidateAll === 'function' || typeof planCache.clear === 'function';
       if (!hasSet || !hasGet || !hasClear) return;
       planCache.set('a', 1);
       planCache.set('b', 2);
@@ -82,7 +82,7 @@ describe('P1: plan-cache — 方案缓存', function () {
 
     it('3.2 空字符串 key', function () {
       if (typeof planCache.get !== 'function') return;
-      var result = planCache.get('');
+      const result = planCache.get('');
       expect(result).toBeNull();
     });
   });

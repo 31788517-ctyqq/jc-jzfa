@@ -12,6 +12,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const cp = require('child_process');
 const ROOT = path.join(__dirname, '..');
 const SCHEDULE_DIR = path.join(__dirname, 'sporttery_schedule');
 const ODDS_DIR = path.join(__dirname, 'sporttery_odds');
@@ -38,7 +39,11 @@ function fmtLocal(dd) {
 async function scrapeSchedule() {
   logger.info('[sp:schedule] 赛程由 midou310 提供, 跳过 Sporttery 赛程页');
   // 检查是否已有 schedule 文件
-  const files = fs.readdirSync(SCHEDULE_DIR).filter((f) => f.endsWith('.json')).sort().reverse();
+  const files = fs
+    .readdirSync(SCHEDULE_DIR)
+    .filter((f) => f.endsWith('.json'))
+    .sort()
+    .reverse();
   if (files.length > 0) return { success: true, file: files[0], source: 'cache' };
   return { success: false, reason: 'handled_by_midou' };
 }
@@ -50,11 +55,15 @@ function httpGet(url, referer) {
   return new Promise((resolve, reject) => {
     const opts = { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/140.0.0.0' } };
     if (referer) opts.headers.Referer = referer;
-    https.get(url, opts, (res) => {
-      let data = '';
-      res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => resolve(data));
-    }).on('error', reject);
+    https
+      .get(url, opts, (res) => {
+        let data = '';
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+        res.on('end', () => resolve(data));
+      })
+      .on('error', reject);
   });
 }
 
@@ -128,7 +137,11 @@ function parseOddsHtml(html) {
   result.tables = allTables;
 
   // rawText
-  result.rawText = html.replace(/<[^>]+>/g, ' ').replace(/\s{2,}/g, ' ').trim().substring(0, 3000);
+  result.rawText = html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .substring(0, 3000);
 
   return result;
 }
@@ -138,7 +151,12 @@ async function scrapeDetails(opts) {
   const matchNumsStr = opts.matchNumsStr || '';
   const forceSnapshot = !!opts.forceSnapshot;
   const filterNums = matchNumsStr
-    ? new Set(matchNumsStr.split(',').map((n) => n.trim()).filter(Boolean))
+    ? new Set(
+        matchNumsStr
+          .split(',')
+          .map((n) => n.trim())
+          .filter(Boolean),
+      )
     : null;
 
   logger.info('[sp:details] 抓取详情(赔率+前瞻,纯HTTP)...');
@@ -146,7 +164,9 @@ async function scrapeDetails(opts) {
   try {
     // Step 1: 从 data.json 获取今天需要抓取的比赛，再通过已有映射找到 mid
     let dataJson = {};
-    try { dataJson = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch (e) {}
+    try {
+      dataJson = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    } catch (e) {}
 
     const numToMid = buildNumToMid();
     const today = fmtLocal(new Date());
@@ -202,8 +222,8 @@ async function scrapeDetails(opts) {
 
       // 赔率
       const oddsFile = path.join(ODDS_DIR, mid + '.json');
-      const skipOdds = !forceSnapshot && fs.existsSync(oddsFile) &&
-        (Date.now() - fs.statSync(oddsFile).mtimeMs) < 6 * 3600 * 1000;
+      const skipOdds =
+        !forceSnapshot && fs.existsSync(oddsFile) && Date.now() - fs.statSync(oddsFile).mtimeMs < 6 * 3600 * 1000;
 
       if (!skipOdds) {
         try {
@@ -224,8 +244,10 @@ async function scrapeDetails(opts) {
 
       // 前瞻 (showType=2) — 页面为 JS 渲染 SPA, 纯 HTTP 只能获取框架 HTML
       const previewFile = path.join(PREVIEW_DIR, mid + '.json');
-      const skipPreview = !forceSnapshot && fs.existsSync(previewFile) &&
-        (Date.now() - fs.statSync(previewFile).mtimeMs) < 24 * 3600 * 1000;
+      const skipPreview =
+        !forceSnapshot &&
+        fs.existsSync(previewFile) &&
+        Date.now() - fs.statSync(previewFile).mtimeMs < 24 * 3600 * 1000;
 
       if (!skipPreview) {
         try {
@@ -250,7 +272,12 @@ async function scrapeDetails(opts) {
               }
               if (rows.length > 0) tables.push(rows);
             }
-            const bodyText = html2.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s{2,}/g, ' ').trim().substring(0, 3000);
+            const bodyText = html2
+              .replace(/<script[\s\S]*?<\/script>/gi, '')
+              .replace(/<[^>]+>/g, ' ')
+              .replace(/\s{2,}/g, ' ')
+              .trim()
+              .substring(0, 3000);
             const previewData = {
               match_id: mid,
               _note: 'JS-rendered SPA, tables are page framework',
@@ -269,7 +296,9 @@ async function scrapeDetails(opts) {
       }
 
       if (i % 10 === 0 || i === targets.length - 1) {
-        logger.info('[sp:details] 进度 ' + (i + 1) + '/' + targets.length + ' odds=' + savedOdds + ' preview=' + savedPreview);
+        logger.info(
+          '[sp:details] 进度 ' + (i + 1) + '/' + targets.length + ' odds=' + savedOdds + ' preview=' + savedPreview,
+        );
       }
 
       // Rate limit
@@ -320,7 +349,9 @@ function bridgeScheduleToData() {
   const maxDate = (() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    return (
+      d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+    );
   })();
   let futureSkipped = 0;
   const filteredMatches = matches.filter((sp) => {
@@ -400,7 +431,9 @@ function bridgeScheduleToData() {
   fs.writeFileSync(tmp, JSON.stringify(data));
   fs.renameSync(tmp, DATA_FILE);
 
-  logger.info(`[sp:bridge-sch] ✓ 新增${added} 更新${updated} 过滤未来${futureSkipped} (共${matches.length}场, 写入${filteredMatches.length}场)`);
+  logger.info(
+    `[sp:bridge-sch] ✓ 新增${added} 更新${updated} 过滤未来${futureSkipped} (共${matches.length}场, 写入${filteredMatches.length}场)`,
+  );
   return { success: true, added, updated, futureSkipped, maxDate, total: matches.length };
 }
 
@@ -516,7 +549,7 @@ function bridgeToSQLite(matchId) {
   try {
     const script = path.join(ROOT, 'scripts', 'bridge_sporttery_to_odds.js');
     const matchArg = matchId ? ` --match ${matchId}` : '';
-    runCommand(`node "${script}"${matchArg}`, 5 * 60 * 1000);
+    cp.execSync(`node "${script}"${matchArg}`, { timeout: 5 * 60 * 1000 });
     logger.info('[sp:bridge-db] ✓ 完成');
     return { success: true };
   } catch (e) {

@@ -571,11 +571,9 @@ function estimateScheme(selections, passways, multiplier) {
     }
 
     // ★ 最高奖金：top-K 有效赔率乘积 × 2 × mult（与 _calcPlanOddsRaw 口径一致）
-    const sorted = effectiveOdds
-      .slice()
-      .sort(function (a, b) {
-        return b - a;
-      });
+    const sorted = effectiveOdds.slice().sort(function (a, b) {
+      return b - a;
+    });
     let product = 1;
     for (let i = 0; i < pn; i++) product *= sorted[i] || 0;
     const win = 2 * mult * product;

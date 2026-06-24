@@ -9,13 +9,13 @@ jest.mock('../core/email-alerter', function () {
   return { send: jest.fn().mockResolvedValue(true) };
 });
 
-var alertMonitor = require('../core/alert-monitor');
+const alertMonitor = require('../core/alert-monitor');
 
 describe('P1: alert-monitor — 告警监控', function () {
   describe('1. 模块导出', function () {
     it('1.1 核心函数已导出', function () {
       expect(alertMonitor).toBeDefined();
-      var fns = [
+      const fns = [
         'checkPM2Status',
         'checkHealth',
         'checkLoginFailed',
@@ -51,7 +51,7 @@ describe('P1: alert-monitor — 告警监控', function () {
     });
 
     it('2.3 getAlertSummary 返回结构', function () {
-      var summary = alertMonitor.getAlertSummary();
+      const summary = alertMonitor.getAlertSummary();
       expect(summary).toBeDefined();
       expect(typeof summary.total).toBe('number');
     });

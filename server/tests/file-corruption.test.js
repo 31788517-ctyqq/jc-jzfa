@@ -7,18 +7,18 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-var _uid = Math.random().toString(36).slice(2, 8);
-var TEST_DIR = path.join(os.tmpdir(), 'jczjfa-corruption-' + Date.now() + '-' + _uid);
+const _uid = Math.random().toString(36).slice(2, 8);
+const TEST_DIR = path.join(os.tmpdir(), 'jczjfa-corruption-' + Date.now() + '-' + _uid);
 
 // 防 Windows NTFS rename 竞态：重试 3 次
 function safeRename(src, dst) {
-  for (var i = 0; i < 3; i++) {
+  for (let i = 0; i < 3; i++) {
     try {
       fs.renameSync(src, dst);
       return;
     } catch (e) {
       if (i === 2) throw e;
-      var t = Date.now() + 5;
+      const t = Date.now() + 5;
       while (Date.now() < t) {}
     }
   }

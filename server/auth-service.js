@@ -178,8 +178,14 @@ const PUBLIC_ACTIONS = new Set([
 ]);
 
 function getAdapter() {
-  const adp = database.getAdapter && database.getAdapter();
-  if (!adp || !adp.execOne) throw new Error('数据库适配器不可用');
+  // ★ P0: 认证独立 DB（auth.db ~10MB，API服务器不加载300MB主DB）
+  const adp = database.getAuthAdapter && database.getAuthAdapter();
+  if (!adp || !adp.execOne) {
+    // ★ 降级：认证DB未就绪时使用主DB（确保认证不中断）
+    const fallbackAdp = database.getAdapter && database.getAdapter();
+    if (fallbackAdp && fallbackAdp.execOne) return fallbackAdp;
+    throw new Error('数据库适配器不可用');
+  }
   return adp;
 }
 
@@ -555,7 +561,7 @@ function setCachedSessionInfo(userId, data) {
 
 function buildSessionInfoByUserId(userId) {
   // 优先从缓存读取
-  var cached = getCachedSessionInfo(userId);
+  const cached = getCachedSessionInfo(userId);
   if (cached) return cached;
 
   const adp = getAdapter();

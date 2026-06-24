@@ -119,6 +119,9 @@ a:focus-visible,
   padding: 0;
   box-sizing: border-box;
 }
+html, body {
+  overflow-x: hidden;
+}
 body {
   font-family: var(--font);
   font-size: var(--fs-base);
@@ -3863,13 +3866,14 @@ svg ellipse {
 }
 .contact-guide-item strong {
   display: block;
-  color: #1f2937;
+  color: #0f172a;
   font-size: 15px;
+  font-weight: 700;
 }
 .contact-guide-item span:last-child {
   display: block;
   margin-top: 4px;
-  color: var(--jczj-text-muted);
+  color: #475569;
   font-size: 13px;
   line-height: 1.45;
 }

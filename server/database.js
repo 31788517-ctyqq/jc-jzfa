@@ -14,10 +14,16 @@
 const fs = require('fs');
 const path = require('path');
 const DB_PATH = path.join(__dirname, 'midou_data.db');
+const AUTH_DB_PATH = path.join(__dirname, 'auth.db'); // ★ P0: 认证独立 DB（~10MB vs 300MB）
+const ARCHIVE_DB_PATH = path.join(__dirname, 'sporttery_archive.db'); // ★ P1: sporttery 大表独立 DB（~350MB 冷数据）
 
 let db = null;
+let authDb = null; // ★ P0: 认证 DB 适配器
 let dbAvailable = false;
 let _adapterReady = false; // sql.js 异步初始化完成标志
+let _dataDbLazy = false; // ★ P0: 数据 DB 懒加载标志（DATA_DB_LAZY=1 时为 true）
+let _archiveDbInstance = null; // ★ P1: sporttery 归档 DB（懒加载）
+let _archiveAdp = null;
 
 // ═══════════════════════════════════════════════════════
 // 蓝图新增 7 张表 DDL（两套后端共用）
@@ -176,6 +182,10 @@ const NEW_TABLES_DDL = `
   );
   CREATE INDEX IF NOT EXISTS idx_outcome_model ON prediction_outcomes(model_name, model_version, match_date);
 
+`;
+
+// ★ P1: sporttery 大表归档 DDL（从 NEW_TABLES_DDL 分离到独立 sporttery_archive.db）
+const SPORTTERY_ARCHIVE_DDL = `
   -- 竞彩赛事前瞻（7大模块：特征分析/历史交锋/积分榜/近况/未来赛事/射手/伤停）
   CREATE TABLE IF NOT EXISTS sporttery_preview (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -329,6 +339,44 @@ function _normalizeParams(args) {
 }
 
 /**
+ * ★ P0: sql.js 查询辅助函数（从 _createSqlJsAdapter 内部提取，供 auth DB 复用）
+ */
+function _sqlJsExecOne(dbInst, sql, params) {
+  let stmt;
+  try {
+    stmt = dbInst.prepare(sql);
+    if (params.length > 0) stmt.bind(params);
+    if (stmt.step()) {
+      return stmt.getAsObject();
+    }
+    return undefined;
+  } catch (e) {
+    console.error('[db] execOne error:', e.message, sql.slice(0, 80));
+    return undefined;
+  } finally {
+    if (stmt) stmt.free();
+  }
+}
+
+function _sqlJsExecAll(dbInst, sql, params) {
+  let stmt;
+  try {
+    stmt = dbInst.prepare(sql);
+    if (params.length > 0) stmt.bind(params);
+    const results = [];
+    while (stmt.step()) {
+      results.push(stmt.getAsObject());
+    }
+    return results;
+  } catch (e) {
+    console.error('[db] execAll error:', e.message, sql.slice(0, 80));
+    return [];
+  } finally {
+    if (stmt) stmt.free();
+  }
+}
+
+/**
  * 创建 sql.js 适配器包装层
  * sql.js API: stmt.bind(params), stmt.step(), stmt.getAsObject(), stmt.free()
  *             db.run(sql, params), db.exec(sql)
@@ -375,7 +423,9 @@ function _createSqlJsAdapter(sqlDb) {
           _saving = false;
           console.error('[db] 异步写入失败: ' + writeErr.message);
           if (_dbMetrics) _dbMetrics.recordError(writeErr.message);
-          try { fs.unlinkSync(tmpFile); } catch (_) {}
+          try {
+            fs.unlinkSync(tmpFile);
+          } catch (_) {}
           return;
         }
         // 异步 rename（~2.9s 同步操作改异步）
@@ -384,7 +434,9 @@ function _createSqlJsAdapter(sqlDb) {
           if (renameErr) {
             console.error('[db] 异步 rename 失败: ' + renameErr.message);
             if (_dbMetrics) _dbMetrics.recordError(renameErr.message);
-            try { fs.unlinkSync(tmpFile); } catch (_) {}
+            try {
+              fs.unlinkSync(tmpFile);
+            } catch (_) {}
             return;
           }
           if (_dbMetrics) _dbMetrics.recordWrite();
@@ -399,7 +451,9 @@ function _createSqlJsAdapter(sqlDb) {
       _saving = false;
       console.error('[db] export 失败: ' + e.message);
       if (_dbMetrics) _dbMetrics.recordError(e.message);
-      try { fs.unlinkSync(DB_FILE + '.tmp'); } catch (_) {}
+      try {
+        fs.unlinkSync(DB_FILE + '.tmp');
+      } catch (_) {}
     }
   }
 
@@ -521,13 +575,17 @@ function _createSqlJsAdapter(sqlDb) {
       const data = dbInstance.export();
       const buffer = Buffer.from(data);
       const tmpFile = DB_FILE + '.tmp';
-      try { fs.unlinkSync(tmpFile); } catch (_) {}
+      try {
+        fs.unlinkSync(tmpFile);
+      } catch (_) {}
       fs.writeFileSync(tmpFile, buffer);
       fs.renameSync(tmpFile, DB_FILE);
       if (_dbMetrics) _dbMetrics.recordWrite();
     } catch (e) {
       console.error('[db] 同步保存失败: ' + e.message);
-      try { fs.unlinkSync(DB_FILE + '.tmp'); } catch (_) {}
+      try {
+        fs.unlinkSync(DB_FILE + '.tmp');
+      } catch (_) {}
     }
   }
 
@@ -547,12 +605,12 @@ function _createSqlJsAdapter(sqlDb) {
   }
 
   // ★ V12: sql.js 跨 worker 共享 — 从磁盘重载数据库
-  var _lastReloadMtime = 0;
+  let _lastReloadMtime = 0;
   function reload() {
     if (!fs.existsSync(DB_FILE)) return false;
     // ★ B: 检查文件 mtime，未变化则跳过重载（避免无意义的 300MB 全量读取）
     try {
-      var stat = fs.statSync(DB_FILE);
+      const stat = fs.statSync(DB_FILE);
       if (stat.mtimeMs === _lastReloadMtime) return false; // 未变更，跳过
       _lastReloadMtime = stat.mtimeMs;
     } catch (e) {}
@@ -578,13 +636,16 @@ function _createSqlJsAdapter(sqlDb) {
   // ★ P1 优化：定期 flush 定时器（5分钟），替代 auth-service 的同步 flush
   // _scheduleSave 的 setImmediate 防抖已处理写入调度，
   // 但如果进程长时间不退出，需定期落盘防止内存数据丢失
-  var _periodicFlushTimer = setInterval(function () {
-    if (_dirty && !_inTransaction && !_saving) {
-      _dirty = false;
-      _saveToFile(); // 异步版本，不阻塞事件循环
-      console.log('[db] 定期 flush 触发 (5min)');
-    }
-  }, 5 * 60 * 1000);
+  const _periodicFlushTimer = setInterval(
+    function () {
+      if (_dirty && !_inTransaction && !_saving) {
+        _dirty = false;
+        _saveToFile(); // 异步版本，不阻塞事件循环
+        console.log('[db] 定期 flush 触发 (5min)');
+      }
+    },
+    5 * 60 * 1000,
+  );
   _periodicFlushTimer.unref(); // 不阻止进程退出
 
   // ★ P1 优化：进程退出时最终 flush（确保数据不丢失，用同步版本）
@@ -598,34 +659,34 @@ function _createSqlJsAdapter(sqlDb) {
 
   // ★ C: 增量查询 — 只在磁盘文件上执行 SELECT，不入内存 DB
   //   缓存窗口 5s：即使 jc-sync 持续写入，5s 内复用同一磁盘连接（<50ms/次）
-  var _diskDB = null;
-  var _diskDBMtime = 0;
-  var _diskDBTime = 0;
+  let _diskDB = null;
+  let _diskDBMtime = 0;
+  let _diskDBTime = 0;
   function execOneOnDisk(sql, params) {
     try {
-      var stat = fs.statSync(DB_FILE);
-      var mtime = stat.mtimeMs;
-      var now = Date.now();
+      const stat = fs.statSync(DB_FILE);
+      const mtime = stat.mtimeMs;
+      const now = Date.now();
       // 30 秒缓存窗口：即使 jc-sync 持续写 DB 也复用（users 表极少变化）
-      var cacheValid = _diskDB && now - _diskDBTime < 30000;
+      const cacheValid = _diskDB && now - _diskDBTime < 30000;
       if (!cacheValid) {
         if (_diskDB) _diskDB.close();
-        var t0 = Date.now();
-        var fileBuf = fs.readFileSync(DB_FILE);
+        const t0 = Date.now();
+        const fileBuf = fs.readFileSync(DB_FILE);
         _diskDB = new sqlDb.Database(fileBuf);
         _diskDBMtime = mtime;
         _diskDBTime = now;
         console.log('[db] diskDB reloaded in ' + (Date.now() - t0) + 'ms');
       }
-      var stmt = _diskDB.prepare(sql);
+      const stmt = _diskDB.prepare(sql);
       if (stmt) {
         stmt.bind(params || []);
         if (stmt.step()) {
-          var cols = stmt.getColumnNames();
-          var vals = stmt.get();
+          const cols = stmt.getColumnNames();
+          const vals = stmt.get();
           stmt.free();
-          var row = {};
-          for (var i = 0; i < cols.length; i++) row[cols[i]] = vals[i];
+          const row = {};
+          for (let i = 0; i < cols.length; i++) row[cols[i]] = vals[i];
           return row;
         }
         stmt.free();
@@ -641,10 +702,10 @@ function _createSqlJsAdapter(sqlDb) {
     if (!user || !user.id) return false;
     try {
       // 检查内存 DB 是否已有该用户
-      var existing = execOne('SELECT id FROM users WHERE id = ?', user.id);
+      const existing = execOne('SELECT id FROM users WHERE id = ?', user.id);
       if (existing) return true; // 已存在，无需同步
       // INSERT OR IGNORE 避免冲突
-      var cols = [
+      const cols = [
         'id',
         'username',
         'password_hash',
@@ -666,12 +727,12 @@ function _createSqlJsAdapter(sqlDb) {
         'created_at',
         'updated_at',
       ];
-      var placeholders = cols
+      const placeholders = cols
         .map(function () {
           return '?';
         })
         .join(',');
-      var vals = cols.map(function (c) {
+      const vals = cols.map(function (c) {
         return user[c] !== undefined ? user[c] : null;
       });
       execRun('INSERT OR IGNORE INTO users(' + cols.join(',') + ') VALUES(' + placeholders + ')', vals);
@@ -698,6 +759,98 @@ function _createSqlJsAdapter(sqlDb) {
   };
 }
 
+/**
+ * ★ P0: 创建 sql.js 认证 DB 适配器（与主 DB 相同逻辑，但文件不同）
+ * 只包含 AUTH_TABLES_DDL + 支付表，文件小 (~10MB vs 300MB)
+ */
+function _createSqlJsAuthAdapter(sqlDb) {
+  let authDbInstance;
+  if (fs.existsSync(AUTH_DB_PATH)) {
+    try {
+      const fileBuffer = fs.readFileSync(AUTH_DB_PATH);
+      authDbInstance = new sqlDb.Database(fileBuffer);
+    } catch (e) {
+      console.log('[auth-db] 加载已有认证数据库失败: ' + e.message + '，创建新库');
+      authDbInstance = new sqlDb.Database();
+    }
+  } else {
+    authDbInstance = new sqlDb.Database();
+  }
+
+  // 认证建表
+  try {
+    authDbInstance.exec(AUTH_TABLES_DDL);
+  } catch (e) {
+    console.warn('[auth-db] 建表可能已存在: ' + e.message);
+  }
+
+  // ★ 支付相关表
+  try {
+    const { initPaymentSchema } = require('./payments/schema');
+    initPaymentSchema({
+      execDDL: (sql) => { try { authDbInstance.exec(sql); } catch (_) {} },
+      execOne: (sql, ...a) => {
+        const params = _normalizeParams(a);
+        try { return _sqlJsExecOne(authDbInstance, sql, params); } catch (_) { return null; }
+      },
+      execRun: (sql, ...a) => {
+        const params = _normalizeParams(a);
+        try { authDbInstance.run(sql, params); } catch (_) {}
+      },
+    });
+  } catch (_) {} // 支付模块可能不存在
+
+  // 异步保存（与主 DB 相同逻辑但文件更小）
+  let _authDirty = false;
+  let _authSaving = false;
+  function _authScheduleSave() {
+    _authDirty = true;
+    setImmediate(_authSaveToFile);
+  }
+  function _authSaveToFile() {
+    if (_authSaving || !_authDirty) return;
+    _authSaving = true;
+    _authDirty = false;
+    try {
+      const data = authDbInstance.export();
+      const tmpFile = AUTH_DB_PATH + '.tmp';
+      fs.writeFileSync(tmpFile, data);
+      fs.renameSync(tmpFile, AUTH_DB_PATH);
+    } catch (e) {
+      console.warn('[auth-db] 保存失败: ' + e.message);
+    }
+    _authSaving = false;
+  }
+
+  // 认证 DB 适配器接口
+  return {
+    backend: 'sql.js-auth',
+    execOne: function (sql, ...args) {
+      const params = _normalizeParams(args);
+      return _sqlJsExecOne(authDbInstance, sql, params);
+    },
+    execAll: function (sql, ...args) {
+      const params = _normalizeParams(args);
+      return _sqlJsExecAll(authDbInstance, sql, params);
+    },
+    execRun: function (sql, ...args) {
+      const params = _normalizeParams(args);
+      authDbInstance.run(sql, params);
+      _authScheduleSave();
+    },
+    execDDL: function (sql) {
+      try { authDbInstance.exec(sql); } catch (e) { console.warn('[auth-db] DDL: ' + e.message); }
+    },
+    markDirty: function () {
+      _authDirty = true;
+    },
+    close: function () {
+      try { _authSaveToFile(); authDbInstance.close(); } catch (_) {}
+    },
+    raw: authDbInstance,
+  };
+}
+
 // ═══════════════════════════════════════════════════════
 // Tier 1: better-sqlite3 (本地开发环境)
 // ═══════════════════════════════════════════════════════
@@ -710,7 +863,7 @@ function _initBetterSqlite3() {
     db.pragma('synchronous = FULL'); // ★ NORMAL→FULL，每次提交 fsync
     db.pragma('wal_autocheckpoint = 1000'); // ★ WAL 超 1000 页自动 checkpoint
     db.pragma('cache_size = -8000');
-    db.pragma('busy_timeout = 3000');
+    db.pragma('busy_timeout = 10000'); // ★ 从 3s 增加到 10s，避免 jc-sync 写锁导致 SQLITE_BUSY
 
     db.exec(`
       CREATE TABLE IF NOT EXISTS matches (
@@ -1125,12 +1278,122 @@ function _initBetterSqlite3() {
     };
   }
 
+  // ═══ ★ P0: 认证独立 DB（auth.db ~10MB，API服务器只需加载此文件） ═══
+  let authDbInstance = null;
+  let authAdp = null;
+
+  function initAuthDatabase() {
+    if (authDbInstance) return true;
+    try {
+      authDbInstance = new Database(AUTH_DB_PATH);
+      authDbInstance.pragma('journal_mode = WAL');
+      authDbInstance.pragma('synchronous = NORMAL');
+      authDbInstance.pragma('busy_timeout = 3000');
+      authDbInstance.exec(AUTH_TABLES_DDL);
+      // ★ 支付相关表（auth.db 内）
+      try {
+        const { initPaymentSchema } = require('./payments/schema');
+        initPaymentSchema({
+          execDDL: (sql) => authDbInstance.exec(sql),
+          execOne: (sql, ...a) => authDbInstance.prepare(sql).get(..._normalizeParams(a)),
+          execRun: (sql, ...a) => authDbInstance.prepare(sql).run(..._normalizeParams(a)),
+        });
+      } catch (_) {} // 支付表可能已存在
+      authAdp = {
+        backend: 'better-sqlite3-auth',
+        execOne: function (sql, ...args) {
+          const params = _normalizeParams(args);
+          return authDbInstance.prepare(sql).get(...params);
+        },
+        execAll: function (sql, ...args) {
+          const params = _normalizeParams(args);
+          return authDbInstance.prepare(sql).all(...params);
+        },
+        execRun: function (sql, ...args) {
+          const params = _normalizeParams(args);
+          return authDbInstance.prepare(sql).run(...params);
+        },
+        execDDL: function (sql) { authDbInstance.exec(sql); },
+        markDirty: function () {}, // better-sqlite3 WAL 模式自动持久化
+      };
+      console.log('[auth-db] better-sqlite3 认证DB初始化成功: ' + AUTH_DB_PATH);
+      return true;
+    } catch (e) {
+      console.error('[auth-db] 认证DB初始化失败: ' + e.message);
+      return false;
+    }
+  }
+
+  function getAuthAdapter() {
+    if (!authAdp) initAuthDatabase();
+    return authAdp;
+  }
+
+  function isAuthDbAvailable() {
+    return !!authDbInstance;
+  }
+
+  // ═══ ★ P1: sporttery 归档 DB（懒加载，冷数据独立文件） ═══
+  function initArchiveDatabase() {
+    if (_archiveDbInstance) return true;
+    try {
+      _archiveDbInstance = new Database(ARCHIVE_DB_PATH);
+      _archiveDbInstance.pragma('journal_mode = WAL');
+      _archiveDbInstance.pragma('synchronous = NORMAL');
+      _archiveDbInstance.pragma('busy_timeout = 10000');
+      _archiveDbInstance.pragma('cache_size = -2000'); // ★ 2MB page cache（676MB DB 不需要大缓存）
+      _archiveDbInstance.pragma('wal_autocheckpoint = 1000'); // ★ 每1000页 checkpoint
+      _archiveDbInstance.exec(SPORTTERY_ARCHIVE_DDL);
+      _archiveAdp = {
+        backend: 'better-sqlite3-archive',
+        execOne: function (sql, ...args) {
+          const params = _normalizeParams(args);
+          return _archiveDbInstance.prepare(sql).get(...params);
+        },
+        execAll: function (sql, ...args) {
+          const params = _normalizeParams(args);
+          return _archiveDbInstance.prepare(sql).all(...params);
+        },
+        execRun: function (sql, ...args) {
+          const params = _normalizeParams(args);
+          const info = _archiveDbInstance.prepare(sql).run(...params);
+          return { changes: info.changes };
+        },
+        execDDL: function (sql) { _archiveDbInstance.exec(sql); },
+        flush: function () { return true; },
+        raw: _archiveDbInstance,
+      };
+      console.log('[archive-db] better-sqlite3 归档DB初始化成功: ' + ARCHIVE_DB_PATH);
+      return true;
+    } catch (e) {
+      console.error('[archive-db] 归档DB初始化失败: ' + e.message + '，将降级到主DB');
+      _archiveAdp = null;
+      return false;
+    }
+  }
+
+  function getArchiveAdapter() {
+    // ★ 降级策略: 归档DB不存在时回退到主DB（sporttery表仍在主DB中）
+    if (!_archiveAdp) initArchiveDatabase();
+    return _archiveAdp || getAdapter(); // 降级到主DB
+  }
+
+  function isArchiveDbAvailable() {
+    return !!_archiveDbInstance;
+  }
+
   return (module.exports = {
     initDatabase,
+    initAuthDatabase,
+    initArchiveDatabase,
     getDatabase,
     getAdapter,
+    getAuthAdapter,
+    getArchiveAdapter,
     closeDatabase,
     isAvailable,
+    isAuthDbAvailable,
+    isArchiveDbAvailable,
     upsertMatch,
     batchUpsertMatches,
     getMatchesByDate,
@@ -1231,6 +1494,8 @@ function _initSqlJs() {
     `);
       // ★ 蓝图新增 7 张表
       adp.execDDL(NEW_TABLES_DDL);
+      // ★ P1: sporttery 大表仍保留在 sql.js 主 DB 中（sql.js 不用独立归档 DB）
+      adp.execDDL(SPORTTERY_ARCHIVE_DDL);
       // ★ 登录与权限系统表
       adp.execDDL(AUTH_TABLES_DDL);
       dbAvailable = true;
@@ -1589,12 +1854,62 @@ function _initSqlJs() {
     return adp;
   }
 
+  // ═══ ★ P0: 认证独立 DB（auth.db ~10MB） ═══
+  let authAdp = null;
+
+  function initAuthDatabase() {
+    if (authAdp) return true;
+    // ★ sql.js 版本：使用已加载的 WASM 模块创建新 DB 实例
+    // 因为 sql.js WASM 已在 _initSqlJs 中加载，这里只需用同模块创建新实例
+    try {
+      const initSqlJsModule = require('sql.js');
+      const wasmPath2 = require.resolve('sql.js/dist/sql-wasm.wasm');
+      const wasmBinary2 = fs.readFileSync(wasmPath2);
+      // ★ 如果 WASM 已在内存中，sql.js 会复用；首次加载 ~100ms，远比 midou_data.db 300ms 快
+      initSqlJsModule({ wasmBinary: wasmBinary2 }).then((SQL2) => {
+        authAdp = _createSqlJsAuthAdapter(SQL2);
+        console.log('[auth-db] sql.js 认证DB初始化成功: ' + AUTH_DB_PATH);
+      }).catch((e) => {
+        console.error('[auth-db] 认证DB WASM加载失败: ' + e.message);
+        // ★ 降级：使用主 DB 的 auth 表（兼容旧部署）
+        authAdp = adp;
+      });
+    } catch (e) {
+      console.warn('[auth-db] 认证DB初始化异常，降级到主DB: ' + e.message);
+      authAdp = adp;
+    }
+    return true;
+  }
+
+  function getAuthAdapter() {
+    if (!authAdp) {
+      // ★ 同步降级：认证DB未就绪时使用主DB（确保认证不中断）
+      return adp;
+    }
+    return authAdp;
+  }
+
+  function isAuthDbAvailable() {
+    return !!authAdp && authAdp.backend !== 'sql.js'; // 降级模式下 backend 相同
+  }
+
+  // ★ P1: sql.js 层的 archive adapter — 降级到主适配器（sporttery 表仍在主 DB）
+  function initArchiveDatabase() { return true; } // sql.js 不需要单独归档 DB
+  function getArchiveAdapter() { return adp || getAdapter(); } // 降级到主 DB 适配器
+  function isArchiveDbAvailable() { return false; }
+
   module.exports = {
     initDatabase,
+    initAuthDatabase,
+    initArchiveDatabase,
     getDatabase,
     getAdapter,
+    getAuthAdapter,
+    getArchiveAdapter,
     closeDatabase,
     isAvailable,
+    isAuthDbAvailable,
+    isArchiveDbAvailable,
     upsertMatch,
     batchUpsertMatches,
     getMatchesByDate,
@@ -1670,12 +1985,23 @@ if (!_backendSelected) {
 
   module.exports = {
     initDatabase,
+    initAuthDatabase: function () {
+      console.log('[auth-db] JSON 降级模式，认证DB不可用');
+      return false;
+    },
     getDatabase,
     getAdapter: function () {
       return null;
     },
+    getAuthAdapter: function () {
+      return null;
+    },
+    initArchiveDatabase: function () { return true; },
+    getArchiveAdapter: nullFn,
     closeDatabase,
     isAvailable,
+    isAuthDbAvailable: function () { return false; },
+    isArchiveDbAvailable: function () { return false; },
     upsertMatch: () => {},
     batchUpsertMatches: () => {},
     getMatchesByDate: emptyArr,
@@ -1713,3 +2039,47 @@ if (!_backendSelected) {
     }),
   };
 } // end _backendSelected
+
+// ═══════════════════════════════════════════════════════
+// ★ P0: 数据 DB 懒加载 — DATA_DB_LAZY=1 时，API 服务器不主动加载 midou_data.db
+// 首次调用 getAdapter() 时才触发加载
+// ═══════════════════════════════════════════════════════
+
+// 读取环境变量（只在 module.exports 初始化后生效）
+const DATA_DB_LAZY_FLAG = String(process.env.DATA_DB_LAZY || '0') === '1';
+if (DATA_DB_LAZY_FLAG && !_backendSelected) {
+  // 没有后端被选中时，懒加载标志无效
+  console.log('[P0] DATA_DB_LAZY=1 但无 SQLite 后端，忽略');
+} else if (DATA_DB_LAZY_FLAG && module.exports.initDatabase) {
+  // ★ 标记懒加载：initDatabase() 变为延迟执行
+  _dataDbLazy = true;
+  const _origInitDatabase = module.exports.initDatabase;
+  let _dataDbInitialized = false;
+
+  // ★ 覆盖 initDatabase：标记但不执行（等待首次 getAdapter 调用触发）
+  module.exports.initDatabase = function () {
+    if (_dataDbInitialized) return true;
+    console.log('[P0] 数据DB懒加载模式 — initDatabase() 延迟执行');
+    return true; // 返回 true，不阻塞启动
+  };
+
+  // ★ 覆盖 getAdapter：首次调用时触发真实初始化
+  const _origGetAdapter = module.exports.getAdapter;
+  module.exports.getAdapter = function () {
+    if (!_dataDbInitialized) {
+      _dataDbInitialized = true;
+      console.log('[P0] 数据DB懒加载触发 — 首次 getAdapter() 调用，开始加载 midou_data.db...');
+      _origInitDatabase();
+      // ★ sql.js 异步加载，getAdapter 返回 null 直到就绪
+      // 后续调用会返回真实适配器
+    }
+    return _origGetAdapter();
+  };
+
+  // ★ 覆盖 isAvailable：懒加载时始终返回 false 直到真实初始化完成
+  const _origIsAvailable = module.exports.isAvailable;
+  module.exports.isAvailable = function () {
+    if (!_dataDbInitialized) return false; // 未触发懒加载
+    return _origIsAvailable();
+  };
+}

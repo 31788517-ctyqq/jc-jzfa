@@ -5,16 +5,16 @@
  * @jest-environment node
  */
 
-var fs = require('fs');
-var path = require('path');
-var os = require('os');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
-var TEST_DIR = path.join(
+const TEST_DIR = path.join(
   os.tmpdir(),
   'jczjfa-score-corrector-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
 );
-var ODDS_DIR = path.join(TEST_DIR, 'sporttery_odds');
-var DATA_FILE = path.join(TEST_DIR, 'data.json');
+const ODDS_DIR = path.join(TEST_DIR, 'sporttery_odds');
+const DATA_FILE = path.join(TEST_DIR, 'data.json');
 
 // Mock 模块路径
 jest.mock('../core/datetime', function () {
@@ -25,7 +25,7 @@ jest.mock('../core/datetime', function () {
   };
 });
 
-var scoreCorrector;
+let scoreCorrector;
 
 beforeAll(function () {
   fs.mkdirSync(ODDS_DIR, { recursive: true });
@@ -42,7 +42,7 @@ afterAll(function () {
 describe('P0: score-corrector — 赛果校正', function () {
   beforeAll(function () {
     // 设置测试数据
-    var testData = {
+    const testData = {
       m: {
         2040052: {
           matchId: '2040052',
@@ -67,7 +67,7 @@ describe('P0: score-corrector — 赛果校正', function () {
     };
 
     // 创建测试 odds 文件
-    var oddsData = {
+    const oddsData = {
       score: '2-1',
       halfScore: '1-0',
       lotteryResult: {
@@ -78,7 +78,7 @@ describe('P0: score-corrector — 赛果校正', function () {
     fs.writeFileSync(path.join(ODDS_DIR, '2040052.json'), JSON.stringify(oddsData));
 
     // 半场比分等于终场的误判场景
-    var halfOnly = {
+    const halfOnly = {
       score: '0-1',
       halfScore: '',
       lotteryResult: { 比分: { outcome: '0:1' } },
@@ -98,7 +98,7 @@ describe('P0: score-corrector — 赛果校正', function () {
   describe('1. getSportteryScoreByMatchId — 单场评分', function () {
     it('1.1 存在 odds 文件应返回赛果', function () {
       if (!scoreCorrector) return;
-      var result = scoreCorrector.getSportteryScoreByMatchId('2040052');
+      const result = scoreCorrector.getSportteryScoreByMatchId('2040052');
       expect(result).toBeDefined();
       if (result) {
         expect(result.score).toBeDefined();
@@ -108,7 +108,7 @@ describe('P0: score-corrector — 赛果校正', function () {
 
     it('1.2 不存在 odds 文件返回 null', function () {
       if (!scoreCorrector) return;
-      var result = scoreCorrector.getSportteryScoreByMatchId('9999999');
+      const result = scoreCorrector.getSportteryScoreByMatchId('9999999');
       expect(result).toBeNull();
     });
 
@@ -124,10 +124,10 @@ describe('P0: score-corrector — 赛果校正', function () {
       if (!scoreCorrector) return;
       // 函数存在但可能需要不同参数形式
       if (typeof scoreCorrector.detectHalfEqualsFinal === 'function') {
-        var result = scoreCorrector.detectHalfEqualsFinal('0-1', '0-1');
+        const result = scoreCorrector.detectHalfEqualsFinal('0-1', '0-1');
         expect(result).toBe(true);
       } else if (typeof scoreCorrector.isHalfEqualsFinal === 'function') {
-        var result2 = scoreCorrector.isHalfEqualsFinal('0-1', '0-1');
+        const result2 = scoreCorrector.isHalfEqualsFinal('0-1', '0-1');
         expect(result2).toBe(true);
       }
     });
@@ -156,7 +156,7 @@ describe('P0: score-corrector — 赛果校正', function () {
 
     it('3.2 correctDate 或类似函数已导出', function () {
       if (!scoreCorrector) return;
-      var hasCorrect =
+      const hasCorrect =
         typeof scoreCorrector.correctDate === 'function' ||
         typeof scoreCorrector.correct === 'function' ||
         typeof scoreCorrector.verifyYesterdayResults === 'function';

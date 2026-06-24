@@ -174,30 +174,30 @@ function crossValidateScoreVsResult(match, recs) {
   // 提取比分方向
   function normScore(s) {
     if (!s) return null;
-    var m = s.match(/(\\d+)\\s*[:-]\\s*(\\d+)/);
+    const m = s.match(/(\\d+)\\s*[:-]\\s*(\\d+)/);
     return m ? [parseInt(m[1]), parseInt(m[2])] : null;
   }
-  var ns = normScore(match.score);
+  const ns = normScore(match.score);
   if (!ns) return null;
-  var scoreDir = ns[0] > ns[1] ? 'H' : ns[0] < ns[1] ? 'A' : 'D';
+  const scoreDir = ns[0] > ns[1] ? 'H' : ns[0] < ns[1] ? 'A' : 'D';
 
   // 找 SPF"胜"推荐（代表主胜方向）
-  var spfWin = recs.filter(function (r) {
+  const spfWin = recs.filter(function (r) {
     return (r.t || r.type) === '\\\\u80dc' && r.result !== null && r.result !== 2;
   })[0];
   if (!spfWin) return null;
 
-  var resultDir = spfWin.result === 1 ? 'H' : spfWin.result === 0 ? 'A' : 'D';
+  const resultDir = spfWin.result === 1 ? 'H' : spfWin.result === 0 ? 'A' : 'D';
 
   if (scoreDir === resultDir) return null; // 一致，无矛盾
 
   // 矛盾检测：半场=全场（标注疑似半场比分污染）
   function eqScore(a, b) {
-    var na = normScore(a),
+    const na = normScore(a),
       nb = normScore(b);
     return na && nb && na[0] === nb[0] && na[1] === nb[1];
   }
-  var halfEq = eqScore(match.score, match.halfScore);
+  const halfEq = eqScore(match.score, match.halfScore);
 
   return {
     type: 'score_result_mismatch',
@@ -226,26 +226,26 @@ function crossValidateScoreVsResult(match, recs) {
 function batchCrossValidate(dateStr, dataJson) {
   if (!dataJson) {
     try {
-      var DATA_FILE = require('path').join(__dirname, '..', 'data.json');
+      const DATA_FILE = require('path').join(__dirname, '..', 'data.json');
       dataJson = require(DATA_FILE);
     } catch (e) {
       return { date: dateStr, checked: 0, mismatches: [], error: e.message };
     }
   }
-  var mMap = dataJson.m || {};
-  var rMap = dataJson.r || {};
+  const mMap = dataJson.m || {};
+  const rMap = dataJson.r || {};
 
-  var mismatches = [];
-  var checked = 0;
+  const mismatches = [];
+  let checked = 0;
 
   Object.keys(mMap).forEach(function (k) {
-    var m = mMap[k];
+    const m = mMap[k];
     if (!m || !m.date) return;
     if (dateStr && m.date.slice(0, 10) !== dateStr) return;
     if (!m.matchStatus || m.matchStatus < 2) return;
 
-    var recs = rMap['m_' + m.matchId] || rMap[m.matchId] || [];
-    var result = crossValidateScoreVsResult(m, recs);
+    const recs = rMap['m_' + m.matchId] || rMap[m.matchId] || [];
+    const result = crossValidateScoreVsResult(m, recs);
     checked++;
     if (result) mismatches.push(result);
   });
@@ -265,19 +265,19 @@ function batchCrossValidate(dateStr, dataJson) {
  * @returns {object} { tagged, details }
  */
 function tagContaminatedScores(dateStr, dataJson) {
-  var audit = batchCrossValidate(dateStr, dataJson);
-  var mMap = dataJson.m || {};
-  var tagged = [];
-  var cleared = 0;
+  const audit = batchCrossValidate(dateStr, dataJson);
+  const mMap = dataJson.m || {};
+  const tagged = [];
+  let cleared = 0;
 
   audit.mismatches.forEach(function (mm) {
-    var key = 'm_' + mm.matchId;
-    var m = mMap[key] || mMap[mm.matchId];
+    const key = 'm_' + mm.matchId;
+    const m = mMap[key] || mMap[mm.matchId];
     if (!m) return;
 
     if (mm.halfEq) {
       // 半场=全场 → 高概率污染，清空 score 字段
-      var oldScore = m.score;
+      const oldScore = m.score;
       m.score = '';
       m.homeScore = -1;
       m.visitScore = -1;

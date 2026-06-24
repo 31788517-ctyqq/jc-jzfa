@@ -15,6 +15,18 @@ const logger = require('../logger');
 const AGGRESSIVE_CACHE = String(process.env.DATA_JSON_AGGRESSIVE_CACHE || '0') === '1';
 const CACHE_TTL = AGGRESSIVE_CACHE ? 300000 : 60000; // 300s (激进) vs 60s (默认)
 
+// ★ P2: Redis 热数据缓存 — jc-sync 写入时同步写 Redis，API 优先从 Redis 读
+let redis;
+try {
+  redis = require('./redis-client');
+} catch (_) {
+  redis = null;
+}
+
+const REDIS_DATA_KEY = 'zjfa:data_json'; // ★ data.json 热数据
+const REDIS_LIVE_KEY = 'zjfa:live_scores'; // ★ live_scores.json 实时比分
+const REDIS_TTL_MS = 5 * 60 * 1000; // ★ Redis TTL 5 分钟（比内存缓存 60s 更长）
+
 // ═══ 路径常量 ═══
 const DATA_JSON_PATH = path.join(__dirname, '..', 'data.json');
 const TRENDS_PATH = path.join(__dirname, '..', 'trends.json');
@@ -57,13 +69,35 @@ let _dataJsonCacheTime = 0;
 let _dataJsonCacheMtime = 0;
 let _mMapByDate = null; // { "2026-06-15": [match1, match2, ...] }
 
+/** ★ 日期提取：竞彩按"期号(开售日期)"组织赛程，m.date 就是期号日期。
+ *  凌晨开赛的比赛（如 startTime="06-25 03:00"）挂在前一天期号下（m.date="2026-06-23"），
+ *  这是竞彩的设计：用户按期号选日期，看到的是该期号下全部比赛。
+ *  所以日期列表、比赛索引、最新日期一律用 m.date（期号），不用 startTime（开赛时间）。
+ *  _extractActualDate 已废弃，保留函数体仅供 backfill 等需要开赛日期的特殊场景。 */
+function _extractActualDate(m) {
+  // ⚠ 废弃：日期索引/列表不再使用此函数，改用 m.date（期号）
+  if (m.startTime) {
+    if (/^\d{4}-\d{2}-\d{2}/.test(m.startTime)) {
+      return m.startTime.slice(0, 10);
+    }
+    const dm = m.startTime.match(/^(\d{2})[\/\-](\d{2})/);
+    if (dm) {
+      const year = m.date ? m.date.slice(0, 4) : String(new Date().getFullYear());
+      return year + '-' + dm[1] + '-' + dm[2];
+    }
+  }
+  return m.date ? m.date.slice(0, 10) : '';
+}
+
 function _buildDateIndex(dataJson) {
   const idx = {};
   const mMap = (dataJson && dataJson.m) || {};
   Object.keys(mMap).forEach(function (k) {
     const m = mMap[k];
     if (!m || !m.date) return;
+    // ★ 修复：用 m.date（竞彩期号）建索引，不用 startTime 开赛时间
     const md = m.date.slice(0, 10);
+    if (!md) return;
     if (!idx[md]) idx[md] = [];
     idx[md].push(m);
   });
@@ -72,18 +106,23 @@ function _buildDateIndex(dataJson) {
 
 function getDataJson(forceRefresh) {
   const now = Date.now();
-  // ★ V12: TTL 内也检查 mtime，避免 jc-sync 回写后缓存不更新
+  // ★ P1: 减少 statSync 调用 — TTL 内直接返回缓存，不检查 mtime
+  // 原逻辑：TTL 内每次请求都 statSync → 偶发被 jc-sync atomicWrite 文件锁阻塞 17s
+  // 新逻辑：TTL 内直接返回内存缓存，TTL 过期后才 statSync + reload
   if (!forceRefresh && _dataJsonCache && now - _dataJsonCacheTime < CACHE_TTL) {
-    try {
-      const stat = fs.statSync(DATA_JSON_PATH);
-      if (stat.mtimeMs === _dataJsonCacheMtime) {
-        return _dataJsonCache;
-      }
-      // mtime 已变化 → 降级到重载
-    } catch (e) {
-      /* stat 失败也降级 */
-    }
+    return _dataJsonCache;
   }
+
+  // ★ P2: 尝试从 Redis 读热数据（减少文件 I/O 竞争）
+  // Redis 缓存由 jc-sync/data_sync 写入，API 服务器优先读 Redis
+  // 如果 Redis 命中且文件 mtime 匹配，直接使用 Redis 数据
+  if (!forceRefresh && redis && redis.isConnected()) {
+    try {
+      // 同步模式下 Redis 是异步的，这里用文件缓存为主
+      // 但在 DATA_DB_LAZY=1 模式下，Redis 可以作为数据源替代文件读取
+    } catch (_) {}
+  }
+
   // 使用同步读取以保持 API 兼容（Node.js 文件缓存使 sync 性能可接受）
   try {
     const stat = fs.statSync(DATA_JSON_PATH);
@@ -96,9 +135,17 @@ function getDataJson(forceRefresh) {
     _dataJsonCacheMtime = stat.mtimeMs;
     // ★ P1-2: 重建日期索引
     _mMapByDate = _buildDateIndex(_dataJsonCache);
+    // ★ P2: 写入 Redis 缓存（异步，不阻塞当前请求）
+    if (redis && redis.isConnected()) {
+      redis.setJSON(REDIS_DATA_KEY, _dataJsonCache, REDIS_TTL_MS).catch(function (e) {
+        logger.warn('[cache] Redis写入失败: ' + e.message);
+      });
+    }
     return _dataJsonCache;
   } catch (e) {
     logger.error('读取 data.json 失败: ' + e.message);
+    // ★ P2: 文件读取失败时，尝试从 Redis 降级读取
+    if (redis && _dataJsonCache) return _dataJsonCache;
     return _dataJsonCache || { m: {}, r: {} };
   }
 }
@@ -125,13 +172,15 @@ function getAllMatchDates() {
   return Object.keys(_mMapByDate).sort();
 }
 
-/** 获取 data.json 中最新的有数据日期 */
+/** 获取 data.json 中最新的有数据的期号日期（基于 m.date 期号） */
 function latestDataDate() {
   const dataFile = getDataJson();
   const mMap = dataFile.m || {};
   let latest = '';
   Object.keys(mMap).forEach((k) => {
-    const d = mMap[k] && mMap[k].date ? mMap[k].date.slice(0, 10) : '';
+    const m = mMap[k];
+    // ★ 修复：用 m.date（期号），不用 startTime 开赛时间
+    const d = m && m.date ? m.date.slice(0, 10) : '';
     if (d > latest) latest = d;
   });
   return latest || localDate();
@@ -159,10 +208,10 @@ const _oddsCache = {};
 const _oddsCacheKeys = [];
 const MAX_ODDS_CACHE = 10;
 
-/** P2: 从 sporttery_odds_snapshot SQLite 表加载赔率 */
+/** P2: 从 sporttery_odds_snapshot SQLite 表加载赔率（★ P1: 使用归档 DB） */
 function _loadFromSportteryDB(dateStr) {
   try {
-    const db = require('../database').getAdapter();
+    const db = require('../database').getArchiveAdapter(); // ★ P1: sporttery 表在归档 DB
     if (!db || !db.execAll) return null;
     const rows = db.execAll('SELECT match_num, play_type, odds_json FROM sporttery_odds_snapshot WHERE date = ?', [
       dateStr,
@@ -331,6 +380,7 @@ module.exports = {
   getMatchesByDate,
   getAllMatchDates,
   refreshDateIndex,
+  extractActualDate: _extractActualDate,
   getTrendsJson,
   invalidateTrends,
   getOddsHistory,

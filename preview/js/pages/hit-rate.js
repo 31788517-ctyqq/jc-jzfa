@@ -9,9 +9,9 @@ export function loadHitRate() {
   el.classList.add('hit-content');
 
   // ★ P2: 优先使用首页预取的缓存数据，命中率页秒开
-  var cached = null;
+  let cached = null;
   try {
-    var raw = sessionStorage.getItem('hit-rate-cache');
+    const raw = sessionStorage.getItem('hit-rate-cache');
     if (raw) cached = JSON.parse(raw);
   } catch (_) {}
   if (cached && cached.directionStats && cached.directionStats.length) {

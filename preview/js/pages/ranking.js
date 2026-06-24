@@ -166,21 +166,21 @@ export function loadRanking(cat, dir, prefetchedApi) {
   if (cat !== undefined) state.setSelectedCategory(cat);
   if (dir !== undefined) state.setSelectedDirection(dir);
 
-  var el = document.getElementById('rankList');
+  const el = document.getElementById('rankList');
   if (!el) return;
 
-  var params = _buildRankParams();
-  var cacheKey = _rankCacheKey(params);
-  var reqId = ++_rankReqSeq;
+  const params = _buildRankParams();
+  const cacheKey = _rankCacheKey(params);
+  const reqId = ++_rankReqSeq;
 
-  var cached = state.getCache(cacheKey);
+  const cached = state.getCache(cacheKey);
   if (cached) {
     _renderRanking(cached);
     return;
   }
   // 首页 home-bundle 已含轻量 ranking，首开推荐榜可先秒开预览
-  var canUseHomePreview = !params.category && !params.direction;
-  var homePreview = canUseHomePreview ? state.getCache('ranking-list:home') : null;
+  const canUseHomePreview = !params.category && !params.direction;
+  const homePreview = canUseHomePreview ? state.getCache('ranking-list:home') : null;
   if (Array.isArray(homePreview) && homePreview.length > 0) {
     _renderRanking(homePreview, { keepCategoryBar: true });
   } else {
@@ -188,7 +188,7 @@ export function loadRanking(cat, dir, prefetchedApi) {
   }
 
   // ★ P1: 使用预取的 API Promise 或新建请求
-  var apiPromise = prefetchedApi && prefetchedApi.then ? prefetchedApi : api('ranking-list', params);
+  const apiPromise = prefetchedApi && prefetchedApi.then ? prefetchedApi : api('ranking-list', params);
 
   apiPromise
     .then(function (data) {
@@ -246,7 +246,9 @@ export function _autoSetRankBestDate() {
   if (weekDates.length === 0) return;
   const today = formatDate(new Date());
   const todayMD = today.slice(5);
-  const dates = weekDates.map(function (w) { return w.matchDate; });
+  const dates = weekDates.map(function (w) {
+    return w.matchDate;
+  });
   // 如果今天有比赛数据，直接待在今天
   if (dates.indexOf(todayMD) >= 0) return;
   // 否则找到 <= 今天的最新日期

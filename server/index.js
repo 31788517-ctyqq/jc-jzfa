@@ -30,6 +30,8 @@ const midouModule = require('./core/midou');
 const aiTiming = require('./core/ai-timing');
 const health = require('./core/health');
 const apiCache = require('./core/api-cache'); // ★ P0: API 响应持久化缓存
+const resourceMonitor = require('./core/resource-monitor'); // ★ P3: CPU/内存监控
+const redisRespCache = require('./core/redis-response-cache'); // ★ P3: Redis 响应级缓存（cluster:3 共享）
 
 // ★ Phase2: 路由模块（从 index.js 抽取，渐进式迁移）
 const { handleAuth } = require('./routes/auth');
@@ -630,22 +632,10 @@ function getWeekDates() {
   if (_cachedWeekDates && _cachedWeekDatesMtime === mtime) return _cachedWeekDates;
   // 缓存失效或首次加载，重新计算
   try {
-    const dataFile = getDataJson();
-    const mMap = dataFile.m || {};
-
-    // ★ V19: 只返回最近30天有比赛的日期，避免跨年数据（2024-2026共634条）撑爆日期轮盘
-    const dateSet = new Set();
-    Object.keys(mMap).forEach((k) => {
-      const m = mMap[k];
-      if (!m || !m.date) return;
-      const md = m.date.slice(0, 10);
-      if (md.length === 10) dateSet.add(md);
-    });
-
-    const sortedDates = Array.from(dateSet).sort();
+    const sortedDates = getAllMatchDates(); // 已从 cacheModule 解构导出
     if (sortedDates.length === 0) return [];
 
-    // 范围限定：最近30天，防止从2024-01-01循环到2026-06-20生成634条目
+    // 范围限定：最近30天
     const today = localDate();
     const thirtyDaysAgo = new Date(today);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -654,9 +644,9 @@ function getWeekDates() {
 
     const list = [];
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      // ★ 用本地日期格式化（非 toISOString，避免 UTC 偏差导致日期错位）
-      const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-      if (!dateSet.has(ds)) continue; // 跳过无比赛日
+      const ds =
+        d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      if (!sortedDates.includes(ds)) continue; // 跳过无比赛日（期号）
       const md = ds.slice(5);
       const weekNum = WEEK_DAYS[d.getDay()];
       list.push({ weekNum: weekNum, matchDate: md });
@@ -666,6 +656,7 @@ function getWeekDates() {
     _cachedWeekDatesMtime = mtime;
     return list;
   } catch (e) {
+    logger.error('[week-dates] ' + e.message);
     return [];
   }
 }
@@ -922,6 +913,17 @@ if (!process.env.BEHIND_PROXY) {
   app.use(compression());
 }
 app.use(cors({ origin: true, credentials: true }));
+// ★ P1: 全局请求耗时追踪（检测偶发超时的阻塞点）
+app.use('/api', (req, res, next) => {
+  req._reqStartMs = Date.now();
+  res.on('finish', () => {
+    const dur = Date.now() - req._reqStartMs;
+    if (dur > 100) {
+      logger.info('[req-trace] ' + (req.body && req.body.action || 'unknown') + ' 总耗时: ' + dur + 'ms');
+    }
+  });
+  next();
+});
 // 手动 JSON 解析（绕过 body-parser 版本兼容问题）
 app.use('/api', (req, res, next) => {
   const method = (req.method || 'GET').toUpperCase();
@@ -1092,9 +1094,16 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 // 系统
-app.get('/api/system/alerts', (req, res) => handleSystem('alerts', req, res, { subAction: req.query.subAction || 'list', username: req.query.username || 'anonymous' }));
+app.get('/api/system/alerts', (req, res) =>
+  handleSystem('alerts', req, res, {
+    subAction: req.query.subAction || 'list',
+    username: req.query.username || 'anonymous',
+  }),
+);
 app.get('/api/system/alerts/summary', (req, res) => handleSystem('alerts', req, res, { subAction: 'summary' }));
 app.get('/api/system/crawl-status', (req, res) => handleSystem('crawl-status', req, res, {}));
+// ★ P3: 资源监控 RESTful 端点
+app.get('/api/system/resources', (req, res) => res.json({ code: 1, data: resourceMonitor.getResourceSnapshot() }));
 // WebSocket 状态
 app.get('/health/ws', (req, res) => {
   let wsInfo = { enabled: false, clients: 0 };
@@ -1172,6 +1181,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
   // ==================== API 路由 ====================
 
+  // ★ P3: 资源监控请求跟踪中间件
+  app.use('/api', function (req, res, next) {
+    const _reqStart = Date.now();
+    resourceMonitor.trackRequestStart();
+    res.on('finish', function () {
+      resourceMonitor.trackRequestEnd(Date.now() - _reqStart);
+    });
+    next();
+  });
+
   // ★ P3-2: ETag 中间件（支持 HTTP 304 条件请求，减少重复传输）
   app.post('/api', function (req, res, next) {
     // 为所有 API 响应自动添加 ETag
@@ -1197,7 +1216,6 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
   app.post('/api', async (req, res) => {
     const { action, data: wrappedData = {} } = req.body || {};
-    // 前端传参格式兼容: {action, date, days} 和 {action, data: {date, days}} 都支持
     const data = Object.assign({}, wrappedData, req.body);
     logger.info(`API: ${action} ${JSON.stringify(data).slice(0, 100)}`);
     try {
@@ -1258,7 +1276,15 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
       // ★ Phase2: 路由分发层 — 优先调用已抽取的 routes/ 模块
       // 已处理则直接返回，未处理则继续走下方 switch（内联 case 作为 fallback）
       const AUTH_ACTIONS = ['auth-login', 'auth-register', 'auth-session', 'auth-logout', 'auth-change-password'];
-      const USER_ACTIONS = ['user-list', 'user-create', 'user-update-status', 'role-list', 'role-permission-update', 'user-role-update', 'user-toggle-referral'];
+      const USER_ACTIONS = [
+        'user-list',
+        'user-create',
+        'user-update-status',
+        'role-list',
+        'role-permission-update',
+        'user-role-update',
+        'user-toggle-referral',
+      ];
       const SYSTEM_ACTIONS = ['crawl-history', 'crawl-status', 'alerts'];
       if (AUTH_ACTIONS.includes(action)) {
         const handled = await handleAuth(action, req, res, data, authSession, authToken);
@@ -1424,6 +1450,15 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               return res.json(_homeBundleCache.response);
             }
 
+            // ★ P3: L2 Redis 共享缓存（cluster:3 跨 worker 呏，<5ms）
+            try {
+              const redisResp = await redisRespCache.getResponse('home-bundle', dateStr);
+              if (redisResp) {
+                _homeBundleCache = { key: bundleCacheKey, time: now, response: redisResp };
+                return res.json(redisResp);
+              }
+            } catch (e) { /* Redis 不可用 */ }
+
             const dataFile = getDataJson();
 
             // ── 子模块1: week-dates ──
@@ -1538,6 +1573,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             };
             _homeBundleCache = { key: bundleCacheKey, time: now, response: bundleResponse };
             apiCache.set(fileCacheKey, bundleResponse, HOME_BUNDLE_CACHE_TTL * 6); // 磁盘 TTL 1h, 足够覆盖重启
+            // ★ P3: 写入 Redis 共享缓存（异步，不阻塞）
+            redisRespCache.setResponse('home-bundle', dateStr, bundleResponse).catch(function() {});
             return res.json(bundleResponse);
           } catch (e) {
             logger.error('[home-bundle] ' + e.message);
@@ -1552,7 +1589,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
         case 'match-list': {
           // 从 data.json 读取比赛列表（支持历史日期切换）
-          // ★ P0-1 + P1-6: 使用内存缓存避免每次读磁盘 + 请求级缓存
+          // ★ P0-1 + P1-6 + P3: 内存缓存→Redis共享缓存→重新计算
+          const mlStart = Date.now();
           try {
             const dateStr = data.matchDate
               ? new Date().getFullYear() + '-' + data.matchDate
@@ -1562,12 +1600,23 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             const hideFinished = data.hideFinished === true || data.hideFinished === 'true';
             const cacheKey = dateStr + (hideFinished ? ':active' : '');
 
-            // P1-6: 请求级缓存（同一日期 1 分钟内命中）
+            // P1-6: L1 内存缓存（同一日期 30s 内命中）
             const now = Date.now();
             const cached = _matchListCacheByDate[cacheKey];
             if (cached && now - cached.time < MATCH_LIST_CACHE_TTL) {
               return res.json(cached.response);
             }
+
+            // ★ P3: L2 Redis 共享缓存（cluster:3 跨 worker 命中，<5ms）
+            try {
+              const redisResp = await redisRespCache.getResponse('match-list', cacheKey);
+              if (redisResp) {
+                // Redis 命中 → 写入内存缓存（下次更快）
+                _matchListCacheByDate[cacheKey] = { time: now, response: redisResp };
+                _matchListCacheLRU.push(cacheKey);
+                return res.json(redisResp);
+              }
+            } catch (e) { /* Redis 不可用时跳过 */ }
 
             const dataFile = getDataJson();
             const rMap = dataFile.r || {}; // ★ 用于实时计算 recommNum
@@ -1811,6 +1860,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               const oldest = _matchListCacheLRU.shift();
               delete _matchListCacheByDate[oldest];
             }
+            // ★ P3: 写入 Redis 共享缓存（异步，不阻塞响应）
+            redisRespCache.setResponse('match-list', cacheKey, response).catch(function() {});
+            // ★ P1: match-list 耗时追踪（偶发超时排查）
+            const mlDuration = Date.now() - mlStart;
+            if (mlDuration > 100) {
+              logger.info('[match-list] 耗时: ' + mlDuration + 'ms (date=' + dateStr + ', count=' + list.length + ')');
+            }
             return res.json(response);
           } catch (e) {
             logger.error(
@@ -1920,6 +1976,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           ) {
             return res.json(_rankListCache[rankCacheKey]);
           }
+
+          // ★ P3: L2 Redis 共享缓存（cluster:3 跨 worker 呏）
+          try {
+            const redisResp = await redisRespCache.getResponse('ranking-list', rankCacheKey);
+            if (redisResp) {
+              _rankListCache[rankCacheKey] = redisResp;
+              _rankListCacheTime[rankCacheKey] = rankNow;
+              return res.json(redisResp);
+            }
+          } catch (e) { /* */ }
 
           // 从 data.json 读取比赛（包含历史比赛+推荐结果，确保 isHit 正确）
           let matches = [];
@@ -2130,6 +2196,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           if (!data.category && !data.direction) {
             apiCache.set(rankFileKey, rankResponse, RANK_LIST_CACHE_TTL); // ★ 与内存TTL一致，防止磁盘缓存过期滞后
           }
+          // ★ P3: 写入 Redis 共享缓存（异步）
+          redisRespCache.setResponse('ranking-list', rankCacheKey, rankResponse).catch(function() {});
           return res.json(rankResponse);
         }
 
@@ -2790,6 +2858,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           return res.json({ code: 1, data: stats });
         }
 
+        // ★ P3: 资源监控端点 — 数据驱动决定何时分离服务
+        case 'system-resources': {
+          return res.json({ code: 1, data: resourceMonitor.getResourceSnapshot() });
+        }
+
         case 'hit-rate-filter': {
           const { league, timeRange, directionType, direction, rankType, rankTop } = data;
           try {
@@ -3113,6 +3186,37 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
           }
         }
 
+        // ★ P1: 通用同步触发端点（scheduler HTTP 代理模式使用）
+        case 'sync-trigger': {
+          try {
+            const taskName = data.taskName || action;
+            const taskDate = data.date || localDate();
+            const ds = require('./data_sync');
+            logger.info('[sync-trigger] HTTP代理触发: ' + taskName + ' date=' + taskDate);
+            
+            let taskPromise;
+            switch (taskName) {
+              case 'sync_match_list': taskPromise = ds.syncMatchList(taskDate); break;
+              case 'sync_500odds': taskPromise = ds.sync500Odds(taskDate); break;
+              case 'sync_500shuju': taskPromise = ds.sync500Shuju ? ds.sync500Shuju(taskDate) : Promise.resolve(); break;
+              case 'sync_recommends': taskPromise = ds.syncRecommends(taskDate); break;
+              case 'backfill_results': taskPromise = ds.backfillResults ? ds.backfillResults(taskDate) : Promise.resolve(); break;
+              case 'sync_odds_delta': taskPromise = ds.sync500OddsDelta ? ds.sync500OddsDelta(taskDate) : Promise.resolve(); break;
+              case 'live_score_sync': taskPromise = ds.syncLiveScores ? ds.syncLiveScores() : Promise.resolve(); break;
+              default:
+                return res.json({ code: 0, msg: '不支持的任务: ' + taskName });
+            }
+            
+            // 异步执行，立即返回
+            taskPromise
+              .then(() => logger.info('[sync-trigger] ' + taskName + ' 完成'))
+              .catch((e) => logger.error('[sync-trigger] ' + taskName + ' 失败: ' + e.message));
+            return res.json({ code: 1, msg: '任务已触发: ' + taskName });
+          } catch (e) {
+            return res.json({ code: 0, msg: '同步触发失败: ' + e.message });
+          }
+        }
+
         case 'daily-profit-7d': {
           // ★ P0-2: 近7日盈利预计算 + mtime 感知持久化缓存
           try {
@@ -3157,7 +3261,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             const dateLabels = [];
             const dateProfits = [];
-            const wcDateLabels = [];   // ★ V16.3: 世界杯独立
+            const wcDateLabels = []; // ★ V16.3: 世界杯独立
             const wcDateProfits = [];
             const AMOUNT = 1000;
 
@@ -3205,12 +3309,15 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
 
               const plans = PG.generateExpertPlans(mList, matchDataMap, ds);
-              let dayProfit = 0, dayWcProfit = 0;
-              let hasResolvedPlan = false, hasWcPlan = false;
+              let dayProfit = 0,
+                dayWcProfit = 0;
+              let hasResolvedPlan = false,
+                hasWcPlan = false;
               plans.forEach((pp) => {
                 if (pp.isPlanWon === null && pp.isPlanLose === null) return;
                 hasResolvedPlan = true;
-                const pm = pp.isPlanWon === true ? (pp.winningPrize || 0) - AMOUNT : pp.isPlanLose === true ? -AMOUNT : 0;
+                const pm =
+                  pp.isPlanWon === true ? (pp.winningPrize || 0) - AMOUNT : pp.isPlanLose === true ? -AMOUNT : 0;
                 dayProfit += pm;
                 // ★ V16.3: 世界杯方案单独统计
                 const pn = String(pp.planName || '').trim();
@@ -3235,8 +3342,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
             dateLabels.reverse();
             dateProfits.reverse();
+            wcDateLabels.reverse();
+            wcDateProfits.reverse();
 
-            const profitResponse = { code: 1, data: { dates: dateLabels, profits: dateProfits, wcDates: wcDateLabels, wcProfits: wcDateProfits } };
+            const profitResponse = {
+              code: 1,
+              data: { dates: dateLabels, profits: dateProfits, wcDates: wcDateLabels, wcProfits: wcDateProfits },
+            };
             const cacheEntry = { key: profitCacheKey, time: profitNow, response: profitResponse };
             _profit7dCache = cacheEntry;
             _profit7dCacheTime = profitNow;
@@ -4225,6 +4337,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               return res.json(planCacheEntry);
             }
 
+            // ★ P3: L2 Redis 共享缓存（cluster:3 跨 worker 呏）
+            try {
+              const redisResp = await redisRespCache.getResponse('plan-list', planCacheKey);
+              if (redisResp) {
+                _planListResponseCache[planCacheKey] = redisResp;
+                _planListResponseTime[planCacheKey] = planNow;
+                return res.json(redisResp);
+              }
+            } catch (e) { /* */ }
+
             // 1) 从 data.json 加载比赛和推荐
             const dataFile = getDataJson();
             const mMap = dataFile.m || {};
@@ -4422,16 +4544,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
               }
               if (recsRaw.length > 0) {
                 const dirMap = { home: 0, draw: 0, away: 0 };
-                var totalN = 0;
+                let totalN = 0;
                 recsRaw.forEach(function (r) {
-                  var n2 = r.n || r.num || 1;
+                  const n2 = r.n || r.num || 1;
                   totalN += n2;
-                  var t = r.t || r.type || '';
+                  const t = r.t || r.type || '';
                   if (['胜', '主胜'].includes(t)) dirMap.home += n2;
                   else if (['平', '平局'].includes(t)) dirMap.draw += n2;
                   else if (['负', '客胜'].includes(t)) dirMap.away += n2;
                 });
-                var topEntry = Object.entries(dirMap).sort(function (a, b) {
+                const topEntry = Object.entries(dirMap).sort(function (a, b) {
                   return b[1] - a[1];
                 })[0];
                 if (topEntry && topEntry[1] > 0)
@@ -4442,15 +4564,15 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
                   });
               }
               if (models.length > 0) {
-                var dirMap2 = {};
+                const dirMap2 = {};
                 models.forEach(function (md) {
                   if (md.direction) dirMap2[md.direction] = (dirMap2[md.direction] || 0) + 1;
                 });
-                var mainDir = Object.entries(dirMap2).sort(function (a, b) {
+                const mainDir = Object.entries(dirMap2).sort(function (a, b) {
                   return b[1] - a[1];
                 })[0];
                 if (mainDir) {
-                  var ratio = mainDir[1] / models.length;
+                  const ratio = mainDir[1] / models.length;
                   consensusMap[matchId] = {
                     models: models,
                     direction: mainDir[0],
@@ -4479,6 +4601,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             _planListResponseCache[planCacheKey] = planResp;
             _planListResponseTime[planCacheKey] = Date.now();
             apiCache.set(planFileKey, planResp, PLAN_LIST_CACHE_TTL * 3);
+            // ★ P3: 写入 Redis 共享缓存（异步）
+            redisRespCache.setResponse('plan-list', planCacheKey, planResp).catch(function() {});
             return res.json(planResp);
           } catch (e) {
             return res.json({ code: 0, msg: '获取方案列表失败: ' + e.message });
@@ -8140,7 +8264,13 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
             // 默认：返回最新核查报告
             const reportDir = path.join(__dirname, 'logs');
             const files = fs.existsSync(reportDir)
-              ? fs.readdirSync(reportDir).filter(function (f) { return f.match(/^audit_report_\d{4}-\d{2}-\d{2}\.json$/); }).sort().reverse()
+              ? fs
+                  .readdirSync(reportDir)
+                  .filter(function (f) {
+                    return f.match(/^audit_report_\d{4}-\d{2}-\d{2}\.json$/);
+                  })
+                  .sort()
+                  .reverse()
               : [];
             if (files.length === 0) return res.json({ code: 1, data: { report: null, msg: '暂无核查报告' } });
             const reportPath = path.join(reportDir, files[0]);
@@ -8339,11 +8469,20 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     try {
       const adp = database.getAdapter();
       if (adp && adp.execAll) {
-        const rows = adp.execAll('SELECT plan_data FROM user_plans WHERE device_id = ? ORDER BY updated_at DESC', String(deviceId).replace(/[^a-zA-Z0-9_\-]/g, ''));
+        const rows = adp.execAll(
+          'SELECT plan_data FROM user_plans WHERE device_id = ? ORDER BY updated_at DESC',
+          String(deviceId).replace(/[^a-zA-Z0-9_\-]/g, ''),
+        );
         if (rows && rows.length > 0) {
-          return rows.map(function (r) {
-            try { return JSON.parse(r.plan_data); } catch (e) { return null; }
-          }).filter(Boolean);
+          return rows
+            .map(function (r) {
+              try {
+                return JSON.parse(r.plan_data);
+              } catch (e) {
+                return null;
+              }
+            })
+            .filter(Boolean);
         }
       }
     } catch (e) {
@@ -8370,12 +8509,16 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         // 先删除旧数据再批量插入（事务保证一致性）
         adp.execRun('DELETE FROM user_plans WHERE device_id = ?', safeDeviceId);
         plans.forEach(function (p) {
-          const planId = p.id || ('up_' + now + '_' + Math.random().toString(36).slice(2, 6));
+          const planId = p.id || 'up_' + now + '_' + Math.random().toString(36).slice(2, 6);
           const created = p.createdAt || now;
           const updated = p.updatedAt || now;
           adp.execRun(
             'INSERT INTO user_plans (device_id, plan_id, plan_data, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
-            safeDeviceId, planId, JSON.stringify(p), created, updated,
+            safeDeviceId,
+            planId,
+            JSON.stringify(p),
+            created,
+            updated,
           );
         });
         if (adp.markDirty) adp.markDirty();
@@ -8419,6 +8562,9 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     };
   }
 
+  // ★ P0 修复：maxPrize 用 MAX 赔率（不是荷兰式有效赔率）
+  // 荷兰式把 [1.33, 4.15] 压缩到 1.01，导致 maxPrize 被低估 129 倍
+  // 串关 maxPrize 应取每场最高赔率（假设最高赔率方向中奖）
   function _calcEffectiveOdds(oddsList) {
     const list = Array.isArray(oddsList)
       ? oddsList.filter(function (x) {
@@ -8427,11 +8573,8 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
       : [];
     if (list.length === 0) return 0;
     if (list.length === 1) return _round2(list[0]);
-    let invSum = 0;
-    for (let i = 0; i < list.length; i++) {
-      invSum += 1 / Number(list[i]);
-    }
-    return invSum > 0 ? _round2(1 / invSum) : 0;
+    // 取最大值：串关 maxPrize 基于最高赔率方向中奖
+    return _round2(Math.max.apply(null, list));
   }
 
   function _calcPlanOddsRaw(plan) {
@@ -8525,7 +8668,7 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
         recalcOdds.passOdds && Object.keys(recalcOdds.passOdds).length ? recalcOdds.passOdds : plan.passOdds || {},
       bestProductK: recalcOdds.bestProductK || plan.bestProductK || 0,
       expectedMaxPrize: _round2(resolvedMaxPrize),
-      settledPrize: plan.isWon === true ? _round2(plan.resultIncome || 0) : plan.isWon === false ? 0 : null,
+      settledPrize: plan.isWon === true ? _round2(plan.winningPrize || plan.resultIncome || plan.maxPrize || 0) : plan.isWon === false ? 0 : null,
     });
   }
 
@@ -8852,20 +8995,19 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     const isPlanWon = totalWinCombs > 0;
     const hasPending = judgedIds.length < totalUnique;
 
-    // 全部开奖 或 已有中奖组合 → 确定结果
-    if (!hasPending || isPlanWon) {
+    // 全部开奖 → 确定结果（有未结束比赛则保持待开奖）
+    if (!hasPending) {
       const updated = Object.assign({}, plan);
       const recalcOdds = _calcPlanOddsRaw(plan);
       const resolvedTotalOdds = Number(recalcOdds.totalOdds) || Number(plan.totalOdds) || 0;
       const resolvedMaxPrize = Number(recalcOdds.maxWin) || _round2((Number(plan.amount) || 0) * resolvedTotalOdds);
       if (isPlanWon) {
         updated.isWon = true;
-        const totalBets = plan.betCount || Math.max(1, totalWinCombs);
-        const winRatio = Math.min(1, totalWinCombs / totalBets);
-        updated.resultIncome = _round2(resolvedMaxPrize * winRatio);
-      } else if (hasPending) {
-        updated.isWon = null;
-        updated.resultIncome = null;
+        // ★ P0 修复：resultIncome 用 winningPrize/maxPrize（方案生成时正确计算）
+        // 旧公式 resolvedMaxPrize × winRatio 把奖金低估 129 倍（荷兰式赔率×中奖比例）
+        // winningPrize 在 plan-generator.js 正确设置：isWon → maxPrize, else → 0
+        const storedWinPrize = Number(plan.winningPrize) || Number(plan.maxPrize) || 0;
+        updated.resultIncome = storedWinPrize > 0 ? _round2(storedWinPrize) : _round2(resolvedMaxPrize);
       } else {
         updated.isWon = false;
         updated.resultIncome = 0;
@@ -9018,19 +9160,18 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     const isPlanWon = totalWinCombs > 0;
     const hasPending = judgedIds.length < totalUnique;
 
-    if (!hasPending || isPlanWon) {
+    if (!hasPending) {
       const updated = Object.assign({}, plan);
       const recalcOdds = _calcPlanOddsRaw(plan);
       const resolvedTotalOdds = Number(recalcOdds.totalOdds) || Number(plan.totalOdds) || 0;
       const resolvedMaxPrize = Number(recalcOdds.maxWin) || _round2((Number(plan.amount) || 0) * resolvedTotalOdds);
       if (isPlanWon) {
         updated.isWon = true;
-        const totalBets = plan.betCount || Math.max(1, totalWinCombs);
-        const winRatio = Math.min(1, totalWinCombs / totalBets);
-        updated.resultIncome = _round2(resolvedMaxPrize * winRatio);
-      } else if (hasPending) {
-        updated.isWon = null;
-        updated.resultIncome = null;
+        // ★ P0 修复：resultIncome 用 winningPrize/maxPrize（方案生成时正确计算）
+        // 旧公式 resolvedMaxPrize × winRatio 把奖金低估 129 倍（荷兰式赔率×中奖比例）
+        // winningPrize 在 plan-generator.js 正确设置：isWon → maxPrize, else → 0
+        const storedWinPrize = Number(plan.winningPrize) || Number(plan.maxPrize) || 0;
+        updated.resultIncome = storedWinPrize > 0 ? _round2(storedWinPrize) : _round2(resolvedMaxPrize);
       } else {
         updated.isWon = false;
         updated.resultIncome = 0;
@@ -9264,14 +9405,54 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
     tryRun();
   }
 
-  // 初始化数据库
+  // ★ P0: 数据库初始化策略
+  //   API 服务器优先加载 auth.db (~10MB) — 内存从 1.3GB → ~50MB
+  //   数据 DB (midou_data.db ~300MB) 懒加载 — 仅在数据查询端点被调用时才加载
+  //   设置 DATA_DB_LAZY=1 环境变量启用此模式（生产 API 服务器推荐）
+  const DATA_DB_LAZY = String(process.env.DATA_DB_LAZY || '0') === '1';
+
+  // 1) 认证 DB（必须加载，支撑认证/会话/支付）
   try {
-    database.initDatabase();
-    runWhenDatabaseReady('认证模块', function () {
-      authService.ensureBootstrapped();
-    });
-  } catch (err) {
-    logger.error('数据库初始化失败: ' + err.message);
+    database.initAuthDatabase();
+    logger.info('[P0] 认证DB (auth.db) 初始化完成 — ~10MB');
+  } catch (e) {
+    logger.warn('[P0] 认证DB初始化失败，降级到主DB: ' + e.message);
+  }
+
+  // 2) 数据 DB（根据策略决定是否懒加载）
+  if (DATA_DB_LAZY) {
+    logger.info('[P0] 数据DB (midou_data.db) 懒加载模式 — API服务器内存预计 ~50MB');
+    // 认证模块使用 authAdapter，无需等待主DB就绪
+    try {
+      const authAdp = database.getAuthAdapter();
+      if (authAdp && authAdp.execOne) {
+        authService.ensureBootstrapped();
+        logger.info('[P0] 认证模块使用独立 auth.db 就绪完成');
+      } else {
+        logger.warn('[P0] authAdapter 未就绪，降级等待主DB');
+        // 降级：仍需加载主DB
+        database.initDatabase();
+        runWhenDatabaseReady('认证模块(降级)', function () {
+          authService.ensureBootstrapped();
+        });
+      }
+    } catch (e) {
+      logger.warn('[P0] authAdapter 异常，降级到主DB: ' + e.message);
+      database.initDatabase();
+      runWhenDatabaseReady('认证模块(降级)', function () {
+        authService.ensureBootstrapped();
+      });
+    }
+  } else {
+    // 传统模式：加载完整主DB（兼容本地开发和旧部署）
+    try {
+      database.initDatabase();
+      runWhenDatabaseReady('认证模块', function () {
+        authService.ensureBootstrapped();
+      });
+    } catch (err) {
+      logger.error('数据库初始化失败: ' + err.message);
+    }
   }
 
   // ★ 自动回填预测日志（每次启动检测，防止 jc-sync 覆盖）
@@ -9318,9 +9499,11 @@ if (!CONFIG.MOBILE || !CONFIG.PASSWORD) {
 
   // ★ 初始化 Redis 共享缓存（cluster:3 前提，降级到内存不阻断）
   try {
-    require('./core/redis-client').init().catch(function (e) {
-      logger.warn('[redis] 初始化失败，使用内存缓存: ' + e.message);
-    });
+    require('./core/redis-client')
+      .init()
+      .catch(function (e) {
+        logger.warn('[redis] 初始化失败，使用内存缓存: ' + e.message);
+      });
   } catch (_) {}
 
   // ★ P3-1: 使用显式 http.createServer 以便 WebSocket 共用端口

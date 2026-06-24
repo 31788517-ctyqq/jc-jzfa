@@ -1905,13 +1905,17 @@ function hydrateSnapshotWithResults(snapshot, mMap, rMap, histOdds) {
       // ★ 两遍扫描：优先精确匹配（如"平、让平"），再接受子串匹配（如"平"）
       for (let i = 0; i < raw.length; i++) {
         const rt = raw[i].t || raw[i].type;
-        if (rt === sm.direction) { rec = raw[i]; break; }
+        if (rt === sm.direction) {
+          rec = raw[i];
+          break;
+        }
       }
       if (!rec) {
         for (let i = 0; i < raw.length; i++) {
           const rt = raw[i].t || raw[i].type;
           if (sm.direction.indexOf(rt) >= 0 || (rt && rt.indexOf(sm.direction) >= 0)) {
-            rec = raw[i]; break;
+            rec = raw[i];
+            break;
           }
         }
       }

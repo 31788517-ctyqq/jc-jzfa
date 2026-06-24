@@ -18,11 +18,12 @@ const BACKUP_FILE = DATA_FILE + '.bak.polution_cleanup';
 // ── 工具函数 ──
 function normScore(s) {
   if (!s) return null;
-  var m = s.match(/(\d+)\s*[:-]\s*(\d+)/);
+  const m = s.match(/(\d+)\s*[:-]\s*(\d+)/);
   return m ? [parseInt(m[1]), parseInt(m[2])] : null;
 }
 function eqScore(a, b) {
-  var na = normScore(a), nb = normScore(b);
+  const na = normScore(a),
+    nb = normScore(b);
   return na && nb && na[0] === nb[0] && na[1] === nb[1];
 }
 
@@ -30,8 +31,8 @@ function eqScore(a, b) {
 const args = process.argv.slice(2);
 const doClean = args.includes('--clean');
 const doBackfill = args.includes('--backfill');
-const targetDate = (function() {
-  var di = args.indexOf('--date');
+const targetDate = (function () {
+  const di = args.indexOf('--date');
   return di >= 0 ? args[di + 1] : null;
 })();
 
@@ -48,48 +49,52 @@ try {
   process.exit(1);
 }
 
-var mMap = data.m || {};
-var rMap = data.r || {};
+const mMap = data.m || {};
+const rMap = data.r || {};
 
 // 统计
-var total = 0, scored = 0, checked = 0, mismatches = 0, halfEqMismatches = 0;
-var allMismatches = [];
-var byDate = {};
+let total = 0,
+  scored = 0,
+  checked = 0,
+  mismatches = 0,
+  halfEqMismatches = 0;
+const allMismatches = [];
+const byDate = {};
 
 Object.keys(mMap).forEach(function (k) {
-  var m = mMap[k];
+  const m = mMap[k];
   if (!m || !m.date) return;
   total++;
 
-  var dt = m.date.slice(0, 10);
+  const dt = m.date.slice(0, 10);
   if (targetDate && dt !== targetDate) return;
   if (!m.score || !m.matchStatus || m.matchStatus < 2) return;
 
   scored++;
-  var recs = rMap['m_' + m.matchId] || rMap[m.matchId] || [];
+  const recs = rMap['m_' + m.matchId] || rMap[m.matchId] || [];
   if (recs.length === 0) return;
 
-  var spfWin = recs.filter(function (r) {
+  const spfWin = recs.filter(function (r) {
     return (r.t || r.type) === '\u80dc' && r.result !== null && r.result !== 2;
   })[0];
   if (!spfWin) return;
 
   checked++;
-  var ns = normScore(m.score);
+  const ns = normScore(m.score);
   if (!ns) return;
 
-  var scoreDir = ns[0] > ns[1] ? 'H' : ns[0] < ns[1] ? 'A' : 'D';
-  var resultDir = spfWin.result === 1 ? 'H' : spfWin.result === 0 ? 'A' : 'D';
+  const scoreDir = ns[0] > ns[1] ? 'H' : ns[0] < ns[1] ? 'A' : 'D';
+  const resultDir = spfWin.result === 1 ? 'H' : spfWin.result === 0 ? 'A' : 'D';
 
   if (scoreDir === resultDir) return; // 一致
 
   // 矛盾发现
   mismatches++;
-  var halfEq = eqScore(m.score, m.halfScore);
+  const halfEq = eqScore(m.score, m.halfScore);
   if (halfEq) halfEqMismatches++;
 
   if (!byDate[dt]) byDate[dt] = [];
-  var mm = {
+  const mm = {
     date: dt,
     num: m.num || '',
     matchId: m.matchId,
@@ -126,11 +131,13 @@ console.log('  halfEq (半场污染):', halfEqMismatches);
 console.log('  halfDiff (其他矛盾):', mismatches - halfEqMismatches);
 console.log('');
 
-var sortedDates = Object.keys(byDate).sort();
+const sortedDates = Object.keys(byDate).sort();
 console.log('By date:');
 sortedDates.forEach(function (dt) {
-  var arr = byDate[dt];
-  var he = arr.filter(function (x) { return x.halfEq; }).length;
+  const arr = byDate[dt];
+  const he = arr.filter(function (x) {
+    return x.halfEq;
+  }).length;
   console.log('  ' + dt + ': ' + arr.length + ' contradictions (' + he + ' halfEq, ' + (arr.length - he) + ' other)');
 });
 
@@ -138,11 +145,28 @@ if (allMismatches.length <= 30) {
   console.log('');
   console.log('Details:');
   allMismatches.forEach(function (mm) {
-    console.log('  ' + mm.date + ' ' + mm.num + ' ' + mm.homeName + ' vs ' + mm.visitName +
-      ' | score=' + mm.score + ' half=' + mm.halfScore +
-      ' | halfEq=' + mm.halfEq +
-      ' | scoreDir=' + mm.scoreDir + ' resultDir=' + mm.resultDir +
-      ' | spfN=' + mm.spfExpertCount);
+    console.log(
+      '  ' +
+        mm.date +
+        ' ' +
+        mm.num +
+        ' ' +
+        mm.homeName +
+        ' vs ' +
+        mm.visitName +
+        ' | score=' +
+        mm.score +
+        ' half=' +
+        mm.halfScore +
+        ' | halfEq=' +
+        mm.halfEq +
+        ' | scoreDir=' +
+        mm.scoreDir +
+        ' resultDir=' +
+        mm.resultDir +
+        ' | spfN=' +
+        mm.spfExpertCount,
+    );
   });
 }
 
@@ -165,9 +189,14 @@ if (doClean && halfEqMismatches > 0) {
 
   // 触发缓存刷新
   try {
-    var http = require('http');
-    var req = http.request({ hostname: 'localhost', port: 3000, path: '/api', method: 'POST',
-      headers: { 'Content-Type': 'application/json' } });
+    const http = require('http');
+    const req = http.request({
+      hostname: 'localhost',
+      port: 3000,
+      path: '/api',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
     req.write(JSON.stringify({ action: 'health' }));
     req.end();
   } catch (e) {}
@@ -185,6 +214,12 @@ if (doBackfill && doClean) {
   console.log('Backfill requires midou310 API verification. Skipping for now.');
 
   // 列出需要回填的 matchId
-  var midsToBackfill = allMismatches.filter(function (x) { return x.halfEq; }).map(function (x) { return x.matchId; });
+  const midsToBackfill = allMismatches
+    .filter(function (x) {
+      return x.halfEq;
+    })
+    .map(function (x) {
+      return x.matchId;
+    });
   console.log('MatchIds to backfill (' + midsToBackfill.length + '):', midsToBackfill.slice(0, 20).join(', '));
 }

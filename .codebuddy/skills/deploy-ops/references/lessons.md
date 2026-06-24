@@ -1,6 +1,6 @@
 # 部署经验教训库
 
-> 来源: deploy-ops SKILL.md 历史记录 + AGENTS.md 教训库
+> 来源: deploy-ops SKILL.md + AGENTS.md 铁律。铁律编号引用 AGENTS.md v20(#1-#20)。
 
 ## 依赖追踪
 

@@ -70,9 +70,9 @@ function initPayments() {
 
     // 预热支付宝证书配置（首次支付前验证密钥+证书可达）
     try {
-      const { assertCertConfig } = require('./alipay');
+      const { assertCertConfig, getAlipayConfig } = require('./alipay');
       const t0 = Date.now();
-      assertCertConfig();
+      assertCertConfig(getAlipayConfig());
       console.log(`[payments] 支付宝证书预热完成 (${Date.now() - t0}ms)`);
     } catch (e) {
       console.warn('[payments] 支付宝预热跳过: ' + e.message);

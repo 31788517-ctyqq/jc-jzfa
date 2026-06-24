@@ -130,6 +130,7 @@ function _round2(v) {
   return Math.round((Number(v) || 0) * 100) / 100;
 }
 
+// ★ P0 修复：MAX 赔率（与 index.js 同步）
 function _calcEffectiveOdds(list) {
   const odds = Array.isArray(list)
     ? list
@@ -142,9 +143,8 @@ function _calcEffectiveOdds(list) {
     : [];
   if (odds.length === 0) return 0;
   if (odds.length === 1) return _round2(odds[0]);
-  let invSum = 0;
-  for (let i = 0; i < odds.length; i++) invSum += 1 / odds[i];
-  return invSum > 0 ? _round2(1 / invSum) : 0;
+  // 串关 maxPrize 基于最高赔率方向中奖
+  return _round2(Math.max.apply(null, odds));
 }
 
 function _calcPlanOddsRaw(plan) {
@@ -331,23 +331,20 @@ function recalcPlanResult(plan) {
 
   const isPlanWon = totalWinCombs > 0;
 
-  // Only update if all matches are settled
+  // 全部开奖 → 确定结果（有未结束比赛则保持待开奖）
   const hasPending = judgedIds.length < totalUnique;
   const recalcOdds = _calcPlanOddsRaw(plan);
   const resolvedTotalOdds = Number(recalcOdds.totalOdds) || Number(plan.totalOdds) || 0;
   const resolvedMaxPrize = Number(recalcOdds.maxWin) || _round2((Number(plan.amount) || 0) * resolvedTotalOdds);
 
-  if (!hasPending || isPlanWon) {
+  if (!hasPending) {
     const updated = Object.assign({}, plan);
     if (isPlanWon) {
       updated.isWon = true;
       const totalBets = plan.betCount || Math.max(1, totalWinCombs);
-      const winRatio = Math.min(1, totalWinCombs / totalBets);
-      updated.resultIncome = _round2(resolvedMaxPrize * winRatio);
-    } else if (hasPending) {
-      // 还有未开奖场次，保持 None
-      updated.isWon = null;
-      updated.resultIncome = null;
+      // ★ P0 修复：resultIncome 用 winningPrize/maxPrize（与 index.js 同步）
+      const storedWinPrize = Number(plan.winningPrize) || Number(plan.maxPrize) || 0;
+      updated.resultIncome = storedWinPrize > 0 ? _round2(storedWinPrize) : _round2(resolvedMaxPrize);
     } else {
       updated.isWon = false;
       updated.resultIncome = 0;

@@ -1162,12 +1162,12 @@ export function loadMyPlanList() {
           const statusClass = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
           const amountVal = (p.amount || 200).toFixed(0);
           const prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
-          // ★ 修复奖金计算公式：
-          // totalOdds = maxWin / amount，所以预计最高奖金 = amount * totalOdds
-          // 之前多除了 /p.multiplier 导致奖金被低估
+          // ★ P0 修复：已中奖用 winningPrize（与 guardPlanData 归一化后的值一致）
+          // 不用 resultIncome（曾被荷兰式赔率×winRatio 低估 129 倍）
           let prizeVal;
           if (isWon) {
-            prizeVal = p.resultIncome != null ? '+' + p.resultIncome : '--';
+            const wp = Number(p.winningPrize) || Number(p.resultIncome) || 0;
+            prizeVal = wp > 0 ? '+' + wp.toFixed(2) : '--';
           } else if (isLose) {
             prizeVal = '0';
           } else {
@@ -1176,7 +1176,7 @@ export function loadMyPlanList() {
             if (totalOdds > 0 && amount > 0) {
               prizeVal = Math.round(totalOdds * amount * 100) / 100;
             } else {
-              prizeVal = '--';
+              prizeVal = p.maxPrize || '--';
             }
           }
           // 按创建顺序编号：方案一、方案二、方案三...

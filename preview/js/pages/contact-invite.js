@@ -102,7 +102,9 @@ export function loadContactInvite() {
   root.innerHTML =
     '<div class="auth-shell auth-shell-login auth-shell-contact">' +
     '<button class="auth-home-corner" type="button" onclick="switchTab(\'login\')" aria-label="返回登录" title="返回登录">' +
-    ''+ICONS.arrowLeft+'' +
+    '' +
+    ICONS.arrowLeft +
+    '' +
     '</button>' +
     '<div class="login-hero contact-invite-hero">' +
     '<div class="login-hero-copy">' +

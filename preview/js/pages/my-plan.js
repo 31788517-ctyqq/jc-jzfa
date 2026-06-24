@@ -105,7 +105,8 @@ function renderMyPlanList() {
 
   if (_plans.length === 0) {
     el.innerHTML =
-      html + '<div class="plan-notice">' +
+      html +
+      '<div class="plan-notice">' +
       '<span class="notice-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32"><path d="M13 2L4.5 14h5l-1 8 9.5-12H13l1-8z"/></svg></span>' +
       '大家都等着你的方案呢' +
       '</div>';
@@ -119,12 +120,11 @@ function renderMyPlanList() {
     const statusCls = isWon ? 'plan-status-won' : isLose ? 'plan-status-lost' : 'plan-status-pending';
     const amountVal = (p.amount || 200).toFixed(0);
     const prizeLabel = isWon || isLose ? '中奖金额' : '预计最高中奖金额';
+    // ★ P0 修复：已中奖用 winningPrize/settledPrize（与 guardPlanData 归一化一致）
     const prizeVal = isWon
-      ? p.settledPrize != null
-        ? p.settledPrize
-        : p.resultIncome != null
-          ? p.resultIncome
-          : '--'
+      ? (Number(p.winningPrize) || Number(p.settledPrize) || Number(p.resultIncome) || 0) > 0
+        ? '+' + (Number(p.winningPrize) || Number(p.settledPrize) || Number(p.resultIncome)).toFixed(2)
+        : '--'
       : isLose
         ? '0'
         : (function () {
