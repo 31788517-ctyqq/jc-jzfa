@@ -164,7 +164,8 @@ function getMatchesByDate(dateStr) {
   var d = new Date(dateStr);
   var dayPrefix = dayNames[d.getDay()];
 
-  // 过滤 + 去重：每个 num 只保留一个（优先保留有 letBall 的版本）
+  // 过滤 + 去重：每个 num 只保留一个
+  // 优先顺序：JC的 matchId (纯数字) > 带 letBall > 500_ 格式
   var filtered = [];
   var seen = {};
   for (var i = 0; i < raw.length; i++) {
@@ -172,9 +173,14 @@ function getMatchesByDate(dateStr) {
     var num = m.num || '';
     if (!num.startsWith(dayPrefix)) continue;  // 跳过其他星期几的比赛
     if (seen[num]) {
-      // 如果已存在的没有 letBall 但新的有，替换
       var existing = seen[num];
-      if (typeof m.letBall !== 'undefined' && typeof existing.letBall === 'undefined') {
+      var mIsJc = m.matchId && /^\d+$/.test(String(m.matchId));      // JC格式纯数字
+      var exIsJc = existing.matchId && /^\d+$/.test(String(existing.matchId));
+      var replace = false;
+      if (mIsJc && !exIsJc) replace = true;  // 新的JC格式，旧的不是 → 替换
+      else if (!mIsJc && exIsJc) replace = false;  // 旧的是JC格式 → 不换
+      else if (typeof m.letBall !== 'undefined' && typeof existing.letBall === 'undefined') replace = true;
+      if (replace) {
         seen[num] = m;
         filtered[filtered.indexOf(existing)] = m;
       }
