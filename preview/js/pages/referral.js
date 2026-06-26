@@ -91,7 +91,14 @@ async function renderLiteReferral(container) {
       '</div>' +
       '<div class="member-section-card ref-code-card">' +
       '<div class="member-section-title">我的邀请码</div>' +
-      '<div class="ref-code-row"><span class="ref-code">' +
+      '<div class="ref-code-row"><span class="ref-link" style="flex:1;font-size:13px;color:var(--adm-muted);word-break:break-all;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
+      (shareUrl || '当前暂无可分享链接') +
+      '</span>' +
+      '<button class="ref-code-copy" type="button" onclick="copyReferralLink(\'' +
+      shareUrl +
+      '\')">复制链接</button>' +
+      '</div>' +
+      '<div class="ref-code-row" style="margin-top:10px"><span class="ref-code">' +
       (info.referralCode || '未生成') +
       '</span>' +
       (info.referralCode
@@ -100,13 +107,7 @@ async function renderLiteReferral(container) {
           '\')">复制邀请码</button>'
         : '') +
       '</div>' +
-      '<div class="ref-link">' +
-      (shareUrl || '当前暂无可分享链接') +
-      '</div>' +
       '<div class="member-cta-row member-cta-row-compact">' +
-      '<button class="member-secondary-btn" type="button" onclick="copyReferralLink(\'' +
-      shareUrl +
-      '\')">复制邀请链接</button>' +
       '<button class="member-primary-btn" type="button" onclick="window.navigateTo(\'pricing\')">查看会员套餐</button>' +
       '</div>' +
       '</div>' +
@@ -240,10 +241,11 @@ function renderReferralMainShell(container, session) {
     '</div>' +
     '<div class="member-section-card ref-code-card">' +
     '<div class="member-section-title">我的邀请码</div>' +
-    '<div class="ref-code-row"><span class="ref-code" id="refCodeText">加载中...</span><span id="refCodeCopyWrap"></span></div>' +
-    '<div class="ref-link" id="refLinkText">正在生成邀请链接...</div>' +
+    '<div class="ref-code-row"><span class="ref-link" style="flex:1;font-size:13px;color:var(--adm-muted);word-break:break-all;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="refLinkText">正在生成邀请链接...</span>' +
+    '<button class="ref-code-copy" type="button" onclick="copyReferralLink((document.getElementById(\'referralLinkVal\')||{}).value||\'\')">复制链接</button>' +
+    '</div>' +
+    '<div class="ref-code-row" style="margin-top:10px"><span class="ref-code" id="refCodeText">加载中...</span><span id="refCodeCopyWrap"></span></div>' +
     '<div class="member-cta-row member-cta-row-compact">' +
-    '<button class="member-secondary-btn" type="button" onclick="copyReferralLink((document.getElementById(\'referralLinkVal\')||{}).value||\'\')">复制邀请链接</button>' +
     '<button class="member-primary-btn" type="button" onclick="window.navigateTo(\'pricing\')">查看会员套餐</button>' +
     '</div>' +
     '</div>' +
