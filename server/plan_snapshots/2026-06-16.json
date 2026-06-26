@@ -1,1 +1,57 @@
-{"date":"2026-06-16","plans":[{"planId":"plan_2026-06-16_wc1","name":"plan_wc1","planName":"世界杯01","matches":[{"matchId":"2040178","homeName":"法国","visitName":"塞内加尔","leagueName":"世界杯","matchNum":"周二017","startTime":"","matchStatus":0,"direction":"平、让平","expertCount":35,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"平"},{"direction":"让平"}],"odds":{"spf":{"home":1.32,"draw":4.2,"away":7.45},"rqspf":{"home":2.07,"draw":3.45,"away":2.81,"handicap":-1},"totalGoals":{"0":15,"1":5.7,"2":3.85,"3":3.3,"4":4.7,"5":8.3,"6":15,"7+":20},"halfFull":{"hh":1.87,"hd":17.5,"ha":40,"dh":3.9,"dd":6.75,"da":17,"ah":22,"ad":17.5,"aa":14}},"actualScore":""},{"matchId":"2040179","homeName":"伊拉克","visitName":"挪威","leagueName":"世界杯","matchNum":"周二018","startTime":"","matchStatus":0,"direction":"让负","expertCount":32,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":null,"rqspf":{"home":2.3,"draw":3.88,"away":2.29,"handicap":2},"totalGoals":{"0":21,"1":6.55,"2":4.1,"3":3.5,"4":4.2,"5":7.4,"6":12.5,"7+":14},"halfFull":{"hh":27,"hd":22,"ha":23,"dh":28,"dd":10,"da":4.05,"ah":65,"ad":22,"aa":1.46}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":4338,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-06-16_wc2","name":"plan_wc2","planName":"世界杯02","matches":[{"matchId":"2040180","homeName":"阿根廷","visitName":"阿尔及利亚","leagueName":"世界杯","matchNum":"周二019","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":74,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.29,"draw":4.2,"away":8.6},"rqspf":{"home":2.09,"draw":3.17,"away":2.98,"handicap":-1},"totalGoals":{"0":12,"1":5,"2":3.4,"3":3.4,"4":5.3,"5":9.8,"6":18,"7+":27},"halfFull":{"hh":1.87,"hd":19,"ha":45,"dh":3.75,"dd":6.25,"da":18,"ah":25,"ad":19,"aa":14.5}},"actualScore":""},{"matchId":"2040179","homeName":"伊拉克","visitName":"挪威","leagueName":"世界杯","matchNum":"周二018","startTime":"","matchStatus":0,"direction":"让负","expertCount":32,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":null,"rqspf":{"home":2.3,"draw":3.88,"away":2.29,"handicap":2},"totalGoals":{"0":21,"1":6.55,"2":4.1,"3":3.5,"4":4.2,"5":7.4,"6":12.5,"7+":14},"halfFull":{"hh":27,"hd":22,"ha":23,"dh":28,"dd":10,"da":4.05,"ah":65,"ad":22,"aa":1.46}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":3893,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:38.785Z",
+  "earliestKickoff": null,
+  "date": "2026-06-16",
+  "plans": [
+    {
+      "planId": "plan_2026-06-16_wc1",
+      "name": "plan_wc1",
+      "planName": "世界杯01",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040178",
+          "direction": "平、让平",
+          "homeName": "法国",
+          "visitName": "塞内加尔",
+          "matchNum": "周二017"
+        },
+        {
+          "matchId": "2040179",
+          "direction": "让负",
+          "homeName": "伊拉克",
+          "visitName": "挪威",
+          "matchNum": "周二018"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-16_wc2",
+      "name": "plan_wc2",
+      "planName": "世界杯02",
+      "playType": "混合投注",
+      "passType": "2串1",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040180",
+          "direction": "总进球-2、3球",
+          "homeName": "阿根廷",
+          "visitName": "阿尔及利亚",
+          "matchNum": "周二019"
+        },
+        {
+          "matchId": "2040179",
+          "direction": "让负",
+          "homeName": "伊拉克",
+          "visitName": "挪威",
+          "matchNum": "周二018"
+        }
+      ]
+    }
+  ]
+}

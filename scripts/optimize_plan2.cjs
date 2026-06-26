@@ -1,0 +1,182 @@
+/**
+ * 方案二参数扫描 — 约束版
+ * 方向: 总进球-2、3球 × 让负 (2串1)
+ * 规则: 同赛程日 + 两场不同 + 每天1方案
+ * 目标: 投入×8% + 盈利 → 最大
+ */
+var fs = require('fs');
+var path = require('path');
+var ROOT = path.join(__dirname, '..');
+
+var DATA_FILE = path.join(ROOT, 'server', 'data.json');
+var rawJson = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+var mMap = rawJson.m || {};
+var rMap = rawJson.r || {};
+
+console.log('m=' + Object.keys(mMap).length + ' r=' + Object.keys(rMap).length);
+
+function norm(raw) {
+  return (raw||[]).map(function(x){
+    var r = x.rs!==undefined?x.rs:x.result!==undefined?x.result:null;
+    return {type:x.t||x.type, num:x.n||x.num, result:r===0||r===1?r:null};
+  });
+}
+function loadOdds(ds) {
+  try {
+    var p = path.join(ROOT, 'server', 'odds_history', ds + '.json');
+    if (!fs.existsSync(p)) return null;
+    var j = JSON.parse(fs.readFileSync(p,'utf8'));
+    return (j&&j.odds)?j.odds:j;
+  } catch(e) { return null; }
+}
+
+// Step 1: 预计算
+var precalc = {};
+var dates = [];
+Object.keys(mMap).forEach(function(k){
+  var m = mMap[k];
+  if (m && m.date) {
+    var d = m.date.slice(0,10);
+    if (d>='2026-03-19' && d<='2026-06-21') {
+      if (!precalc[d]) { precalc[d] = []; dates.push(d); }
+      var mid = String(m.matchId);
+      if ((m.leagueName||'').indexOf('世界杯')>=0) return;
+      var raw = rMap['m_'+mid] || rMap[mid] || [];
+      var recs = norm(raw);
+      var countA=0, countB=0;
+      recs.forEach(function(r){ if(r.type==='总进球-2、3球') countA+=r.num||0; if(r.type==='让负') countB+=r.num||0; });
+      precalc[d].push({match:m, countA:countA, countB:countB});
+    }
+  }
+});
+dates.sort();
+
+// 加载赔率 + 预判
+dates.forEach(function(ds) {
+  var odds = loadOdds(ds);
+  precalc[ds].forEach(function(e) {
+    if (odds) {
+      var num = e.match.num || ''; var od = odds[num];
+      if (od) {
+        e.odds = od;
+        e.tg2 = od.totalGoals && od.totalGoals['2'] ? od.totalGoals['2'] : 0;
+        e.tg3 = od.totalGoals && od.totalGoals['3'] ? od.totalGoals['3'] : 0;
+        e.rqspfAway = od.rqspf && od.rqspf.away ? od.rqspf.away : 0;
+        e.rqHcp = od.rqspf && od.rqspf.handicap!=null ? od.rqspf.handicap : 0;
+      }
+    }
+    var m = e.match, recs = norm(rMap['m_'+m.matchId]||rMap[String(m.matchId)]||[]);
+    // 预判 A (总进球-2、3球)
+    e.wonA=null; var hd=false,hnd=false;
+    recs.forEach(function(r){if(r.type==='总进球-2、3球'){if(r.result===1)hd=true;else if(r.result===0)hnd=true}});
+    if(hd)e.wonA=true; else if(hnd)e.wonA=false;
+    if(e.wonA===null&&m.score&&m.matchStatus>=2){
+      var p=String(m.score).replace(/[-:]/g,':').split(':');
+      var h=parseInt(p[0]),a=parseInt(p[1]);
+      if(!isNaN(h)&&!isNaN(a)){var t=h+a; e.wonA=(t===2||t===3)}
+    }
+    // 预判 B (让负)
+    e.wonB=null; var hbw=false,hbl=false;
+    recs.forEach(function(r){if(r.type==='让负'){if(r.result===1)hbw=true;else if(r.result===0)hbl=true}});
+    if(hbw)e.wonB=true; else if(hbl)e.wonB=false;
+    if(e.wonB===null&&m.score&&m.matchStatus>=2){
+      var p2=String(m.score).replace(/[-:]/g,':').split(':');
+      var h2=parseInt(p2[0]),a2=parseInt(p2[1]);
+      if(!isNaN(h2)&&!isNaN(a2)) e.wonB=(h2-a2+(e.rqHcp||0)<0);
+    }
+    // 有效赔率: A=荷兰式(2+3球), B=让负
+    e.effA = e.tg2>0&&e.tg3>0 ? 1/(1/e.tg2+1/e.tg3) : 0;
+    e.effB = e.rqspfAway||0;
+  });
+});
+
+console.log('dates: '+dates.length+' 预计算完成\n');
+
+// Step 2: 参数网格 — 扩展范围
+var aThr=[],bThr=[], cpThr=[];
+for(var a=5;a<=40;a+=5) aThr.push(a);
+for(var b=5;b<=50;b+=5) bThr.push(b);
+for(var cp=0;cp<=3.0;cp+=0.3) cpThr.push(parseFloat(cp.toFixed(1)));
+var mps = [1.1,1.2,1.3,1.5,1.8,2.0,2.2,2.5,2.8,3.0];
+
+var grids=[];
+aThr.forEach(function(a){bThr.forEach(function(b){cpThr.forEach(function(cp){mps.forEach(function(mp){grids.push({a:a,b:b,cp:cp,mp:mp})})})})});
+console.log('参数组合: '+grids.length+'\n');
+
+var results=[], cnt=0;
+grids.forEach(function(g){
+  var tp=0,tw=0,tl=0,profit=0,invest=0;
+  dates.forEach(function(ds){
+    var mList = precalc[ds];
+    if (mList.length < 2) return;
+
+    var ca=[], cb=[];
+    mList.forEach(function(e){
+      if (e.countA >= g.a && e.tg2>0 && e.tg3>0) ca.push(e);
+      if (e.countB >= g.b) cb.push(e);
+    });
+
+    // 每天最优配对: 合赔×专家数
+    var bestPair = null, bestScore = -Infinity;
+    for (var ai=0; ai<ca.length; ai++) {
+      for (var bi=0; bi<cb.length; bi++) {
+        var ea=ca[ai], eb=cb[bi];
+        if (ea.match.matchId === eb.match.matchId) continue;
+        if (ea.effA<=0 || eb.effB<=0) continue;
+        var prod = ea.effA * eb.effB;
+        if (g.cp>0 && prod < g.cp) continue;
+        var mpz = Math.round(1000*prod);
+        if (mpz < 1000*g.mp) continue;
+        if (ea.wonA===null || eb.wonB===null) continue;
+
+        var pairQuality = prod * (ea.countA + eb.countB);
+        if (pairQuality > bestScore) {
+          bestScore = pairQuality;
+          bestPair = {ea:ea, eb:eb, mpz:mpz};
+        }
+      }
+    }
+
+    if (bestPair) {
+      tp++; invest += 1000;
+      if (bestPair.ea.wonA && bestPair.eb.wonB) { tw++; profit += (bestPair.mpz-1000); }
+      else if (bestPair.ea.wonA===false || bestPair.eb.wonB===false) { tl++; profit -= 1000; }
+    }
+  });
+
+  if (tp>0){
+    var score = invest * 0.08 + profit;
+    results.push({a:g.a,b:g.b,cp:g.cp,mp:g.mp,plans:tp,won:tw,lost:tl,invest:invest,profit:profit,score:score,roi:(profit/invest*100).toFixed(1)});
+  }
+  cnt++; if(cnt%500===0) process.stdout.write('.');
+});
+
+results.sort(function(a,b){return b.score-a.score});
+console.log('\n\n══════ TOP 20 ══════');
+console.log('A≥人 B≥人 合赔≥ 盈≥x  方案 命中 亏损   投入     盈利    评分   ROI');
+console.log('─'.repeat(72));
+for(var i=0;i<Math.min(20,results.length);i++){
+  var r=results[i];
+  console.log(p(r.a,3)+' '+p(r.b,3)+' '+p(r.cp,4)+' '+p(r.mp,4)+' '+p(r.plans,4)+' '+p(r.won,3)+' '+p(r.lost,3)+' '+p(r.invest,7)+' '+p(r.profit>=0?'+'+r.profit:r.profit,8)+' '+p(r.score.toFixed(0),7)+' '+r.roi+'%');
+}
+
+var best=results[0];
+console.log('\n══════ 最优 ══════');
+console.log('评分: '+best.score.toFixed(0)+' = '+ (best.invest*0.08).toFixed(0) +' + '+(best.profit>=0?'+':'')+best.profit);
+console.log('A≥'+best.a+'人(总进球23) B≥'+best.b+'人(让负) 合赔≥'+best.cp+' 盈≥'+best.mp+'x');
+console.log('方案'+best.plans+' 命中'+best.won+' 亏损'+best.lost+' 命中率'+(best.won/(best.won+best.lost)*100).toFixed(1)+'%');
+console.log('盈利'+(best.profit>=0?'+':'')+best.profit+' ROI '+best.roi+'%');
+
+// 纯盈利最优
+results.sort(function(a,b){return b.profit-a.profit});
+var bp=results[0];
+console.log('\n══ 纯盈利最优 ══');
+console.log('A≥'+bp.a+' B≥'+bp.b+' 合赔≥'+bp.cp+' 盈≥'+bp.mp+'x | '+bp.plans+'方案 盈利'+(bp.profit>=0?'+':'')+bp.profit+' ROI '+bp.roi+'%');
+
+// 命中率最优
+results.sort(function(a,b){return (b.won/(b.won+b.lost))-(a.won/(a.won+a.lost))});
+var bh=results[0];
+console.log('\n══ 命中率最优 ══');
+console.log('A≥'+bh.a+' B≥'+bh.b+' 合赔≥'+bh.cp+' 盈≥'+bh.mp+'x | '+bh.plans+'方案 '+bh.won+'/'+bh.lost+' 命中率'+(bh.won/(bh.won+bh.lost)*100).toFixed(1)+'%');
+
+function p(v,w){var s=String(v);while(s.length<w)s=' '+s;return s;}

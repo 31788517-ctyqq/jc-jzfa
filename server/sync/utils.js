@@ -32,8 +32,45 @@ function getCurrentPeriod() {
   return { date: fmtLocal(now), week: weekMap[now.getDay()] };
 }
 
+/** ★ 去重 data.json.m 中的 num 重复条目（保留最优 matchId） */
+function dedupDataJson(data) {
+  if (!data || !data.m) return data;
+  var mMap = data.m;
+  var seen = {};  // num → {key, match}
+  var toRemove = [];
+  Object.keys(mMap).forEach(function (k) {
+    var m = mMap[k];
+    if (!m || !m.num) return;
+    var n = m.num;
+    if (seen[n]) {
+      var existing = seen[n];
+      var mIsJc = m.matchId && /^\d+$/.test(String(m.matchId));
+      var exIsJc = existing.match.matchId && /^\d+$/.test(String(existing.match.matchId));
+      if (mIsJc && !exIsJc) {
+        // 新的是 JC 格式 → 替换旧的
+        toRemove.push(existing.key);
+        seen[n] = { key: k, match: m };
+      } else if (!mIsJc && exIsJc) {
+        // 旧的是 JC 格式 → 删除新的
+        toRemove.push(k);
+      } else if (m.letBall !== undefined && existing.match.letBall === undefined) {
+        toRemove.push(existing.key);
+        seen[n] = { key: k, match: m };
+      } else {
+        toRemove.push(k);
+      }
+    } else {
+      seen[n] = { key: k, match: m };
+    }
+  });
+  toRemove.forEach(function (rk) { delete mMap[rk]; });
+  return data;
+}
+
 /** 原子写入：先写 .tmp 再 rename（防写崩溃残留半截文件） */
 function atomicWrite(filePath, data) {
+  // ★ 如果是 data.json，写入前自动去重 num 重复条目
+  if (path.basename(filePath) === 'data.json') dedupDataJson(data);
   const tmpFile = filePath + '.tmp';
   fs.writeFileSync(tmpFile, JSON.stringify(data));
   fs.renameSync(tmpFile, filePath);
@@ -61,4 +98,4 @@ function notifyReload() {
   // data.json 的 Redis 缓存在 atomicWrite 中已更新，此处只做 TTL 延长
 }
 
-module.exports = { fmtLocal, getCurrentPeriod, atomicWrite, notifyReload };
+module.exports = { fmtLocal, getCurrentPeriod, atomicWrite, notifyReload, dedupDataJson };

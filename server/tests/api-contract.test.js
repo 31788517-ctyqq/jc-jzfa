@@ -60,6 +60,8 @@ const ACTION_MATRIX = {
     'vip-gift-status',
     'ai-health-check',
     'system-resources',
+    'pipeline-dashboard',
+    'compute-dashboard',
   ],
   mutatingOrRequiresState: [
     'auth-login',
@@ -88,6 +90,7 @@ const ACTION_MATRIX = {
     'plan-refresh',
     'alerts',
     'admin-update-plan-price',
+    'render-check-report',
   ],
   heavyOrAsync: [
     'crawl-history',

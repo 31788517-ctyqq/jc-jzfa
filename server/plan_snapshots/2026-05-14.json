@@ -1,1 +1,79 @@
-{"date":"2026-05-14","plans":[{"planId":"plan_2026-05-14_2","name":"plan_2","planName":"方案二","matches":[{"matchId":"2039712","homeName":"巴伦西亚","visitName":"巴列卡诺","leagueName":"西甲","matchNum":"周四001","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":78,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":2.21,"draw":2.55,"away":3.52},"rqspf":{"home":4.95,"draw":3.85,"away":1.5,"handicap":-1},"totalGoals":{"0":10.5,"1":4.3,"2":2.8,"3":3.65,"4":6.4,"5":13,"6":26,"7+":42},"halfFull":{"hh":3.75,"hd":13.5,"ha":37,"dh":4.2,"dd":4,"da":8,"ah":32,"ad":13.5,"aa":6}},"actualScore":""},{"matchId":"2039715","homeName":"赫罗纳","visitName":"皇家社会","leagueName":"西甲","matchNum":"周四004","startTime":"","matchStatus":0,"direction":"让负","expertCount":88,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":1.87,"draw":3.25,"away":3.49},"rqspf":{"home":3.92,"draw":3.5,"away":1.7,"handicap":-1},"totalGoals":{"0":15,"1":5.75,"2":3.75,"3":3.15,"4":4.7,"5":9.25,"6":16,"7+":22},"halfFull":{"hh":3,"hd":13.5,"ha":35,"dh":4.4,"dd":5.25,"da":7.75,"ah":26,"ad":13.5,"aa":6.3}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2694,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-14_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2039714","homeName":"胡巴尔卡德西亚","visitName":"拉斯决心","leagueName":"沙特职业联赛","matchNum":"周四003","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.12,"draw":6.6,"away":11.75},"rqspf":{"home":2.36,"draw":3.7,"away":2.3,"handicap":-2},"totalGoals":{"0":30,"1":10,"2":5.75,"3":3.65,"4":3.7,"5":5.75,"6":8.75,"7+":8.75},"halfFull":{"hh":1.45,"hd":24,"ha":80,"dh":4.1,"dd":12.5,"da":25,"ah":18,"ad":24,"aa":20}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2233,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-14_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2039714","homeName":"胡巴尔卡德西亚","visitName":"拉斯决心","leagueName":"沙特职业联赛","matchNum":"周四003","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1","result":null},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":1.12,"draw":6.6,"away":11.75},"rqspf":{"home":2.36,"draw":3.7,"away":2.3,"handicap":-2},"totalGoals":{"0":30,"1":10,"2":5.75,"3":3.65,"4":3.7,"5":5.75,"6":8.75,"7+":8.75},"halfFull":{"hh":1.45,"hd":24,"ha":80,"dh":4.1,"dd":12.5,"da":25,"ah":18,"ad":24,"aa":20}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1825,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-14_a123_02","name":"plan_a123_02","planName":"方案A123-02","matches":[{"matchId":"2039713","homeName":"达曼协定","visitName":"吉达联合","leagueName":"沙特职业联赛","matchNum":"周四002","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":3.14,"draw":3.3,"away":1.97},"rqspf":{"home":1.62,"draw":3.8,"away":4.02,"handicap":1},"totalGoals":{"0":20,"1":7,"2":4.35,"3":3.2,"4":4,"5":7.05,"6":14.5,"7+":17},"halfFull":{"hh":4.8,"hd":13,"ha":20,"dh":8.25,"dd":6.7,"da":5,"ah":31,"ad":13,"aa":2.95}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1459,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-14_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2039712","homeName":"巴伦西亚","visitName":"巴列卡诺","leagueName":"西甲","matchNum":"周四001","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":9,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4","result":null},{"direction":"5球"}],"odds":{"spf":{"home":2.21,"draw":2.55,"away":3.52},"rqspf":{"home":4.95,"draw":3.85,"away":1.5,"handicap":-1},"totalGoals":{"0":10.5,"1":4.3,"2":2.8,"3":3.65,"4":6.4,"5":13,"6":26,"7+":42},"halfFull":{"hh":3.75,"hd":13.5,"ha":37,"dh":4.2,"dd":4,"da":8,"ah":32,"ad":13.5,"aa":6}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1972,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-14_a345_02","name":"plan_a345_02","planName":"方案A345-02","matches":[{"matchId":"2039715","homeName":"赫罗纳","visitName":"皇家社会","leagueName":"西甲","matchNum":"周四004","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":33,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":1.87,"draw":3.25,"away":3.49},"rqspf":{"home":3.92,"draw":3.5,"away":1.7,"handicap":-1},"totalGoals":{"0":15,"1":5.75,"2":3.75,"3":3.15,"4":4.7,"5":9.25,"6":16,"7+":22},"halfFull":{"hh":3,"hd":13.5,"ha":35,"dh":4.4,"dd":5.25,"da":7.75,"ah":26,"ad":13.5,"aa":6.3}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1567,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:38.090Z",
+  "earliestKickoff": null,
+  "date": "2026-05-14",
+  "plans": [
+    {
+      "planId": "plan_2026-05-14_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039714",
+          "direction": "总进球-1、2、3球",
+          "homeName": "胡巴尔卡德西亚",
+          "visitName": "拉斯决心",
+          "matchNum": "周四003"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-14_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039713",
+          "direction": "总进球-1、2、3球",
+          "homeName": "达曼协定",
+          "visitName": "吉达联合",
+          "matchNum": "周四002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-14_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039712",
+          "direction": "总进球-3、4、5球",
+          "homeName": "巴伦西亚",
+          "visitName": "巴列卡诺",
+          "matchNum": "周四001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-14_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039715",
+          "direction": "总进球-3、4、5球",
+          "homeName": "赫罗纳",
+          "visitName": "皇家社会",
+          "matchNum": "周四004"
+        }
+      ]
+    }
+  ]
+}

@@ -1,1 +1,43 @@
-{"date":"2026-06-04","plans":[{"planId":"plan_2026-06-04_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2040093","homeName":"西班牙","visitName":"伊拉克","leagueName":"国际赛","matchNum":"周四203","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":3,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":null,"rqspf":{"home":2.21,"draw":4.2,"away":2.28,"handicap":-3},"totalGoals":{"0":45,"1":11.5,"2":6.3,"3":4.1,"4":4.2,"5":4.8,"6":7.2,"7+":6.4},"halfFull":{"hh":1.16,"hd":40,"ha":150,"dh":4.65,"dd":21,"da":60,"ah":26,"ad":40,"aa":55}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2484,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-06-04_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2040093","homeName":"西班牙","visitName":"伊拉克","leagueName":"国际赛","matchNum":"周四203","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":null,"rqspf":{"home":2.21,"draw":4.2,"away":2.28,"handicap":-3},"totalGoals":{"0":45,"1":11.5,"2":6.3,"3":4.1,"4":4.2,"5":4.8,"6":7.2,"7+":6.4},"halfFull":{"hh":1.16,"hd":40,"ha":150,"dh":4.65,"dd":21,"da":60,"ah":26,"ad":40,"aa":55}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2043,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-06-04_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2040093","homeName":"西班牙","visitName":"伊拉克","leagueName":"国际赛","matchNum":"周四203","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":67,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":null,"rqspf":{"home":2.21,"draw":4.2,"away":2.28,"handicap":-3},"totalGoals":{"0":45,"1":11.5,"2":6.3,"3":4.1,"4":4.2,"5":4.8,"6":7.2,"7+":6.4},"halfFull":{"hh":1.16,"hd":40,"ha":150,"dh":4.65,"dd":21,"da":60,"ah":26,"ad":40,"aa":55}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1449,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:38.532Z",
+  "earliestKickoff": null,
+  "date": "2026-06-04",
+  "plans": [
+    {
+      "planId": "plan_2026-06-04_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040093",
+          "direction": "总进球-1、2、3球",
+          "homeName": "西班牙",
+          "visitName": "伊拉克",
+          "matchNum": "周四203"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-04_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040093",
+          "direction": "总进球-3、4、5球",
+          "homeName": "西班牙",
+          "visitName": "伊拉克",
+          "matchNum": "周四203"
+        }
+      ]
+    }
+  ]
+}

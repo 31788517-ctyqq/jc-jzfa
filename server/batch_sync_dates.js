@@ -27,9 +27,35 @@ function getWeek(dateStr) {
 }
 
 function atomicWrite(filePath, data) {
+  // ★ 写入 data.json 前去重 num 重复条目
+  if (filePath.indexOf('data.json') >= 0 && data && data.m) dedupByNum(data.m);
   const tmp = filePath + '.tmp';
   fs.writeFileSync(tmp, JSON.stringify(data));
   fs.renameSync(tmp, filePath);
+}
+
+/** ★ 按 num 去重 data.json.m */
+function dedupByNum(mMap) {
+  if (!mMap) return;
+  var seen = {};
+  var toRemove = [];
+  Object.keys(mMap).forEach(function (k) {
+    var m = mMap[k];
+    if (!m || !m.num) return;
+    var n = m.num;
+    if (seen[n]) {
+      var existing = seen[n];
+      var mIsJc = m.matchId && /^\d+$/.test(String(m.matchId));
+      var exIsJc = existing.match.matchId && /^\d+$/.test(String(existing.match.matchId));
+      if (mIsJc && !exIsJc) { toRemove.push(existing.key); seen[n] = { key: k, match: m }; }
+      else if (!mIsJc && exIsJc) { toRemove.push(k); }
+      else if (m.letBall !== undefined && existing.match.letBall === undefined) { toRemove.push(existing.key); seen[n] = { key: k, match: m }; }
+      else { toRemove.push(k); }
+    } else {
+      seen[n] = { key: k, match: m };
+    }
+  });
+  toRemove.forEach(function (rk) { delete mMap[rk]; });
 }
 
 async function syncMatchList(dateStr) {

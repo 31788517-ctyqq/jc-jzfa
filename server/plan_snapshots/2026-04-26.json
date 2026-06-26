@@ -1,1 +1,6 @@
-{"date":"2026-04-26","plans":[{"planId":"plan_2026-04-26_3","name":"plan_3","planName":"方案三","matches":[{"matchId":"2039348","homeName":"斯图加特","visitName":"云达不来梅","leagueName":"德甲","matchNum":"周日012","startTime":"","matchStatus":0,"direction":"胜","expertCount":77,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":1.4,"draw":4.3,"away":5.47},"rqspf":{"home":2.18,"draw":3.7,"away":2.5},"totalGoals":null,"halfFull":null},"actualScore":""},{"matchId":"2039350","homeName":"皇家奥维耶多","visitName":"埃尔切","leagueName":"西甲","matchNum":"周日014","startTime":"","matchStatus":0,"direction":"让负","expertCount":34,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":2.18,"draw":3,"away":2.96},"rqspf":{"home":5.05,"draw":3.6,"away":1.53},"totalGoals":null,"halfFull":null},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2142,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:37.715Z",
+  "earliestKickoff": null,
+  "date": "2026-04-26",
+  "plans": []
+}

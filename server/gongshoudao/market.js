@@ -83,7 +83,7 @@ function loadJczqYzMarket(dateStr, num) {
 }
 
 /** 预缓存所有今日 JczqYz 数据（在 compute 入口调用） */
-function _warmJczqYzCache_disabled(dateStr, matchNums) {
+function warmJczqYzCache(dateStr, matchNums) {
   if (!dateStr || !matchNums || matchNums.length === 0) return;
   const dateNum = dateStr.replace(/-/g, '');
   const https = require('https');

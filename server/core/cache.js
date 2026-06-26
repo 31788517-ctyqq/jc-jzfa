@@ -158,38 +158,48 @@ function getMatchesByDate(dateStr) {
   var raw = _mMapByDate[dateStr] || [];
   if (!raw.length) return [];
 
-  // ★ 竞彩期号跨天去重：data.json 的 date 是期号（如周三0604），
-  // 同一期号可能覆盖多天比赛。用 num 前缀（周三/周四/周五）按真实比赛日过滤。
+  // ★ 竞彩期号可能覆盖多天比赛（期号日期与开赛日期跨天）。
+  // 先用 num 前缀（周三/四/五）按真实比赛日过滤。
+  // 如果过滤后无结果，则降级返回全部（兼容历史数据中 num 前缀与期号日期不一致的情况）。
   var dayNames = ['周日','周一','周二','周三','周四','周五','周六'];
   var d = new Date(dateStr);
   var dayPrefix = dayNames[d.getDay()];
 
-  // 过滤 + 去重：每个 num 只保留一个
-  // 优先顺序：JC的 matchId (纯数字) > 带 letBall > 500_ 格式
-  var filtered = [];
-  var seen = {};
+  // 按 num 前缀分组
+  var matching = [];    // num 前缀匹配的
+  var nonMatching = []; // num 前缀不匹配的
+  var seenMatch = {};
+  var seenNon = {};
+
+  function _dedupAndPush(arr, seen, m) {
+    var num = m.num || '';
+    if (seen[num]) {
+      var existing = seen[num];
+      var mIsJc = m.matchId && /^\d+$/.test(String(m.matchId));
+      var exIsJc = existing.matchId && /^\d+$/.test(String(existing.matchId));
+      if (mIsJc && !exIsJc) { seen[num] = m; arr[arr.indexOf(existing)] = m; }
+      else if (exIsJc && !mIsJc) { /* 保留 existing */ }
+      else if (typeof m.letBall !== 'undefined' && typeof existing.letBall === 'undefined') { seen[num] = m; arr[arr.indexOf(existing)] = m; }
+      return;
+    }
+    seen[num] = m;
+    arr.push(m);
+  }
+
   for (var i = 0; i < raw.length; i++) {
     var m = raw[i];
     var num = m.num || '';
-    if (!num.startsWith(dayPrefix)) continue;  // 跳过其他星期几的比赛
-    if (seen[num]) {
-      var existing = seen[num];
-      var mIsJc = m.matchId && /^\d+$/.test(String(m.matchId));      // JC格式纯数字
-      var exIsJc = existing.matchId && /^\d+$/.test(String(existing.matchId));
-      var replace = false;
-      if (mIsJc && !exIsJc) replace = true;  // 新的JC格式，旧的不是 → 替换
-      else if (!mIsJc && exIsJc) replace = false;  // 旧的是JC格式 → 不换
-      else if (typeof m.letBall !== 'undefined' && typeof existing.letBall === 'undefined') replace = true;
-      if (replace) {
-        seen[num] = m;
-        filtered[filtered.indexOf(existing)] = m;
-      }
-      continue;
+    if (num.startsWith(dayPrefix)) {
+      _dedupAndPush(matching, seenMatch, m);
+    } else {
+      _dedupAndPush(nonMatching, seenNon, m);
     }
-    seen[num] = m;
-    filtered.push(m);
   }
-  return filtered;
+
+  // ★ 智能降级：有匹配前缀的 → 用匹配的；全部不匹配 → 降级用全部
+  var result = matching.length > 0 ? matching : nonMatching;
+
+  return result;
 }
 
 /** 强制刷新日期索引（data.json 更新后调用） */

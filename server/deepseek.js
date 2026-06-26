@@ -27,23 +27,144 @@ function loadShujuData(matchInfo) {
   }
 }
 
-/** 格式化500.com统计数据为可读文本 */
+/** ★ 方案A: 加载竞彩官方前瞻数据（sporttery_preview）作为主力数据源 */
+function loadSportteryPreview(matchInfo) {
+  try {
+    var database = require('./database');
+    if (!database.isAvailable || !database.isAvailable()) return null;
+    var adp = database.getArchiveAdapter && database.getArchiveAdapter();
+    if (!adp) return null;
+    var row = adp.execOne('SELECT * FROM sporttery_preview WHERE match_num = ? AND date = ?', matchInfo.num || '', (matchInfo.date || '').slice(0, 10));
+    if (!row && matchInfo.matchId) {
+      row = adp.execOne('SELECT * FROM sporttery_preview WHERE match_id = ?', String(matchInfo.matchId));
+    }
+    if (!row) return null;
+    return {
+      feature_analysis: _spParse(row.feature_analysis),
+      h2h_history: _spParse(row.h2h_history),
+      standings: _spParse(row.standings),
+      recent_form: _spParse(row.recent_form),
+      future_matches: _spParse(row.future_matches),
+      scorers: _spParse(row.scorers),
+      injuries: _spParse(row.injuries),
+    };
+  } catch (e) {
+    return null;
+  }
+}
+function _spParse(str) { try { return JSON.parse(str); } catch (e) { return null; } }
+
+/** ★ 方案A: 格式化竞彩官方前瞻数据为可读文本 */
+function formatSportteryStats(preview) {
+  if (!preview) return '';
+  var parts = [];
+  parts.push('【竞彩官方数据 — 请严格以此为准】');
+
+  var rf = preview.recent_form;
+  if (rf && Array.isArray(rf) && rf.length > 0) {
+    parts.push('');
+    parts.push('一、近10场战绩');
+    for (var ti = 0; ti < rf.length; ti++) {
+      var team = rf[ti];
+      if (team && team.team && team.summary) {
+        parts.push('  ' + team.team + ': ' + team.summary);
+        if (team.matches && Array.isArray(team.matches)) {
+          for (var mi = 0; mi < team.matches.length; mi++) {
+            var m = team.matches[mi];
+            if (m && m.vs) parts.push('    ' + m.date + ' ' + m.vs + ' (' + m.result + ')');
+          }
+        }
+      }
+    }
+  }
+
+  var h2h = preview.h2h_history;
+  if (h2h && h2h.title) {
+    parts.push('');
+    parts.push('二、历史交锋');
+    parts.push('  ' + h2h.title);
+    if (h2h.rows && Array.isArray(h2h.rows)) {
+      for (var ri = 0; ri < h2h.rows.length; ri++) {
+        var r = h2h.rows[ri];
+        if (r && r.teams) parts.push('    ' + r.date + ' ' + r.teams + ' (总' + r.totalGoals + '球)');
+      }
+    }
+  }
+
+  var st = preview.standings;
+  if (st && Array.isArray(st) && st.length > 0) {
+    parts.push('');
+    parts.push('三、积分排名');
+    for (var si = 0; si < st.length; si++) {
+      var t = st[si];
+      if (t && t.team && t.title) {
+        parts.push('  ' + t.team + ': ' + t.title);
+        if (t.rows && Array.isArray(t.rows)) {
+          for (var rri = 0; rri < t.rows.length; rri++) {
+            var rr = t.rows[rri];
+            if (rr && rr.where) parts.push('    ' + rr.where + ': ' + rr.played + '场 ' + rr.wdl + ' 进' + (rr.goals || '') + '球 积' + rr.points + '分 排名' + rr.rank);
+          }
+        }
+      }
+    }
+  }
+
+  var fa = preview.feature_analysis;
+  if (fa && fa.labels && Array.isArray(fa.labels)) {
+    var goalIdx = -1, concededIdx = -1;
+    for (var li = 0; li < fa.labels.length; li++) {
+      if (fa.labels[li] === '场均进球') goalIdx = li;
+      if (fa.labels[li] === '场均失球') concededIdx = li;
+    }
+    if (goalIdx >= 0 && fa.home && fa.home[goalIdx]) {
+      parts.push('');
+      parts.push('四、攻防数据');
+      parts.push('  场均进球: 主队 ' + (fa.home[goalIdx] || '?') + '，客队 ' + ((fa.away && fa.away[goalIdx]) || '?'));
+      parts.push('  场均失球: 主队 ' + (concededIdx >= 0 && fa.home ? (fa.home[concededIdx] || '?') : '?') + '，客队 ' + (concededIdx >= 0 && fa.away ? (fa.away[concededIdx] || '?') : '?'));
+    }
+  }
+
+  var sc = preview.scorers;
+  if (sc && Array.isArray(sc) && sc.length > 0) {
+    parts.push('');
+    parts.push('五、射手榜');
+    for (var sci = 0; sci < sc.length; sci++) {
+      var stt = sc[sci];
+      if (stt && stt.team && stt.players && stt.players.length > 0) {
+        var top3 = stt.players.slice(0, 3);
+        parts.push('  ' + stt.team + ': ' + top3.map(function (p) { return p.player + '(' + p.goals + ')'; }).join('、'));
+      }
+    }
+  }
+
+  var inj = preview.injuries;
+  if (inj && Array.isArray(inj) && inj.length > 0) {
+    parts.push('');
+    parts.push('六、伤停名单');
+    for (var inji = 0; inji < inj.length; inji++) {
+      var tii = inj[inji];
+      if (tii && tii.team && tii.players && tii.players.length > 0) {
+        parts.push('  ' + tii.team + ': ' + tii.players.map(function (p) { return p.player + '(' + (p.status || '伤') + ')'; }).join('、'));
+      }
+    }
+  }
+
+  if (parts.length <= 1) return '';
+  return parts.join('\n');
+}
+
+/** 格式化500.com统计数据为可读文本（方案A降级用） */
 function formatShujuStats(shuju) {
   if (!shuju || !shuju.recentForm) return '';
-
   const rf = shuju.recentForm;
   const parts = [];
-
-  // 近10场（全联赛）
   const h10 = rf.last10 ? rf.last10.home : null;
   const a10 = rf.last10 ? rf.last10.away : null;
   if (h10 && h10.wins !== undefined) {
-    parts.push('【500.com 近10场战绩（所有赛事）——请严格以此数据为准】');
+    parts.push('【500.com 近10场战绩（所有赛事）】');
     parts.push(formatTeamStats('主队', h10));
     parts.push(formatTeamStats('客队', a10));
   }
-
-  // 近10场（同联赛）
   const h10L = rf.last10League ? rf.last10League.home : null;
   const a10L = rf.last10League ? rf.last10League.away : null;
   if (h10L && h10L.wins !== undefined) {
@@ -52,8 +173,6 @@ function formatShujuStats(shuju) {
     parts.push(formatTeamStats('主队', h10L));
     parts.push(formatTeamStats('客队', a10L));
   }
-
-  // 近6场
   const h6 = rf.last6 ? rf.last6.home : null;
   const a6 = rf.last6 ? rf.last6.away : null;
   if (h6 && h6.wins !== undefined) {
@@ -62,7 +181,6 @@ function formatShujuStats(shuju) {
     parts.push(formatTeamStats('主队', h6));
     parts.push(formatTeamStats('客队', a6));
   }
-
   return parts.join('\n');
 }
 
@@ -93,8 +211,6 @@ function calcAvg(total, games) {
 function buildAttackDefenseTable(shujuData) {
   if (!shujuData || !shujuData.recentForm) return null;
   const rf = shujuData.recentForm;
-
-  // 优先近10场同联赛 → fallback 近10场全联赛
   let h10, a10;
   if (rf.last10League && rf.last10League.home && rf.last10League.home.wins !== undefined) {
     h10 = rf.last10League.home;
@@ -105,10 +221,8 @@ function buildAttackDefenseTable(shujuData) {
   } else {
     return null;
   }
-
   const h6 = (rf.last6 || {}).home || {};
   const a6 = (rf.last6 || {}).away || {};
-
   return {
     header: ['数据项', '主队', '客队'],
     rows: [
@@ -131,8 +245,6 @@ function buildAttackDefenseTable(shujuData) {
 function buildRecentFormWDL(shujuData) {
   if (!shujuData || !shujuData.recentForm) return null;
   const rf = shujuData.recentForm;
-
-  // 优先近6场 → fallback 近10场同联赛 → fallback 近10场全联赛
   let homeStats, awayStats;
   const h6 = (rf.last6 || {}).home || {};
   const a6 = (rf.last6 || {}).away || {};
@@ -152,7 +264,6 @@ function buildRecentFormWDL(shujuData) {
       awayStats = a10;
     }
   }
-
   return {
     home: { w: homeStats.wins || 0, d: homeStats.draws || 0, l: homeStats.losses || 0 },
     away: { w: awayStats.wins || 0, d: awayStats.draws || 0, l: awayStats.losses || 0 },
@@ -175,13 +286,19 @@ function buildSystemPrompt() {
 }
 
 /**
- * 构建用户 Prompt（P0-2: 精简版，减少 30% token 消耗）
+ * 构建用户 Prompt（P0-2: 精简版）
+ * ★ 方案A: 竞彩官方数据(sporttery_preview)优先，500.com 降级
  */
 function buildUserPrompt(matchInfo) {
-  const shujuData = loadShujuData(matchInfo);
-  const shujuText = shujuData ? formatShujuStats(shujuData) : '';
-  const adTable = shujuData ? buildAttackDefenseTable(shujuData) : null;
-  const formWDL = shujuData ? buildRecentFormWDL(shujuData) : null;
+  // ★ 方案A: 优先使用竞彩官方数据
+  var spPreview = loadSportteryPreview(matchInfo);
+  var spText = spPreview ? formatSportteryStats(spPreview) : '';
+
+  // 500.com fallback（仅当 SP 无数据时）
+  var shujuData = !spPreview ? loadShujuData(matchInfo) : null;
+  var shujuText = shujuData ? formatShujuStats(shujuData) : '';
+  var adTable = shujuData ? buildAttackDefenseTable(shujuData) : null;
+  var formWDL = shujuData ? buildRecentFormWDL(shujuData) : null;
 
   let prompt =
     '分析比赛：' +
@@ -198,7 +315,16 @@ function buildUserPrompt(matchInfo) {
   const sysData = buildSystemDataSection(matchInfo);
   if (sysData) prompt += sysData + '\n\n';
 
-  if (shujuData && adTable && formWDL) {
+  // ★ 方案A: SP 官方数据优先注入
+  if (spText) {
+    prompt += spText + '\n\n';
+    if (adTable && formWDL) {
+      prompt += '【补充数据（500.com验证）】\n';
+      prompt += JSON.stringify(adTable) + '\n';
+      prompt += '主近6场:' + formWDL.home.w + 'W' + formWDL.home.d + 'D' + formWDL.home.l + 'L  ';
+      prompt += '客近6场:' + formWDL.away.w + 'W' + formWDL.away.d + 'D' + formWDL.away.l + 'L\n';
+    }
+  } else if (adTable && formWDL) {
     prompt += '【锁定数据——必须使用以下数值】\n';
     prompt += JSON.stringify(adTable) + '\n';
     prompt += '主近6场:' + formWDL.home.w + 'W' + formWDL.home.d + 'D' + formWDL.home.l + 'L  ';
@@ -289,7 +415,6 @@ function buildSystemDataSection(matchInfo) {
             parts.push('- 融合共识: ' + gs.fusionConsensusType + ' (strong=强一致/weak=弱一致/meltdown=熔断待定)');
           if (gs.stabilityOverall != null) parts.push('- 进球分布稳定性: ' + gs.stabilityOverall + '/100');
 
-          // 比分 TOP3
           const scores = gs.scores || [];
           const top3 = scores.slice(0, 3).filter(function (s) {
             return s && s.score && s.score !== '--';
@@ -321,7 +446,6 @@ function buildSystemDataSection(matchInfo) {
         if (basic) {
           parts.push('三、市场面（来源：竞彩 JczqBasic + JczqChange 真实数据 — 请基于此数据写市场面分析）');
 
-          // 欧指概率
           if (basic.winRate != null || basic.lastWinRate != null) {
             const wR = basic.winRate ? (basic.winRate * 100).toFixed(1) : '?';
             const dR = basic.drawRate ? (basic.drawRate * 100).toFixed(1) : '?';
@@ -346,7 +470,6 @@ function buildSystemDataSection(matchInfo) {
             );
           }
 
-          // 离散度
           if (basic.initDiscreteDiff != null && basic.lastDiscreteDiff != null) {
             const shift = (basic.lastDiscreteDiff - basic.initDiscreteDiff).toFixed(3);
             const trend = parseFloat(shift) > 0 ? '扩大' : '收窄';
@@ -355,20 +478,17 @@ function buildSystemDataSection(matchInfo) {
             );
           }
 
-          // 亚指盘口
           if (basic.initPan != null && basic.lastPan != null) {
             const shift = (basic.lastPan - basic.initPan).toFixed(2);
             const dir = parseFloat(shift) > 0 ? '升盘' : parseFloat(shift) < 0 ? '降盘' : '不变';
             parts.push('- 亚指盘口: 初盘 ' + basic.initPan + ' → 临盘 ' + basic.lastPan + ' (' + dir + ')');
           }
 
-          // 大小球
           if (basic.dxqLastPan != null) {
             const initText = basic.dxqInitPan != null ? ' (初盘 ' + basic.dxqInitPan + ')' : '';
             parts.push('- 大小球盘口: ' + basic.dxqLastPan + '球' + initText);
           }
 
-          // 支持率
           if (basic.winPercent != null || basic.drawPercent != null || basic.losePercent != null) {
             const wp = basic.winPercent || 0;
             const dp = basic.drawPercent || 0;
@@ -376,7 +496,6 @@ function buildSystemDataSection(matchInfo) {
             parts.push('- 市场支持率: 主 ' + wp + '% / 平 ' + dp + '% / 客 ' + lp + '%');
           }
 
-          // 北单 SP
           if (basic.homeWinAward != null && basic.drawAward != null && basic.guestWinAward != null) {
             const hA = basic.homeWinAward;
             const dA = basic.drawAward;
@@ -402,9 +521,7 @@ function buildSystemDataSection(matchInfo) {
             );
           }
 
-          // 热度
           if (basic.hotFocusNum != null) parts.push('- 市场关注热度: ' + basic.hotFocusNum + ' 人关注');
-
           parts.push('');
         }
       }
@@ -412,7 +529,7 @@ function buildSystemDataSection(matchInfo) {
       /* 静默 */
     }
 
-    if (parts.length <= 2) return null; // 无有效数据
+    if (parts.length <= 2) return null;
     return parts.join('\n');
   } catch (e) {
     return null;
@@ -460,7 +577,6 @@ function callDeepSeek(messages, options) {
           const data = JSON.parse(body);
           const content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
           if (!content) return reject(new Error('DeepSeek 返回为空'));
-          // 提取 JSON（可能被 markdown 代码块包裹）
           const jsonMatch = content.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/) || content.match(/(\{[\s\S]*\})/);
           const jsonStr = jsonMatch ? jsonMatch[1] : content;
           const result = JSON.parse(jsonStr.trim());
@@ -470,7 +586,6 @@ function callDeepSeek(messages, options) {
             tokenUsage: data.usage ? data.usage.total_tokens : 0,
           });
         } catch (e) {
-          // 解析失败时返回原始文本
           resolve({
             content: null,
             rawResponse: body.slice(0, 500),
@@ -508,7 +623,6 @@ function generateAnalysis(matchInfo, options) {
   console.log('[deepseek] 开始生成分析: ' + matchInfo.homeName + ' vs ' + matchInfo.visitName);
   const startTime = Date.now();
 
-  // P2-2: 指数退避重试（最多2次）
   let attempt = 0;
   const maxRetries = opts.maxRetries || 0;
   function tryCall() {
@@ -553,7 +667,6 @@ function batchGenerate(matchList, onProgress) {
           error: result.parseError || null,
         });
         if (onProgress) onProgress(index + 1, matchList.length, results[index]);
-        // 间隔 2 秒避免触发限流
         return new Promise(function (r) {
           setTimeout(r, 2000);
         }).then(function () {
@@ -580,4 +693,6 @@ module.exports = {
   buildRecentFormWDL,
   loadShujuData,
   formatShujuStats,
+  loadSportteryPreview,
+  formatSportteryStats,
 };

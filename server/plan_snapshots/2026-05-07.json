@@ -1,1 +1,61 @@
-{"date":"2026-05-07","plans":[{"planId":"plan_2026-05-07_1","name":"plan_1","planName":"方案一","matches":[{"matchId":"2039558","homeName":"阿斯顿维拉","visitName":"诺丁汉森林","leagueName":"欧罗巴","matchNum":"周四003","startTime":"","matchStatus":0,"direction":"平、让平","expertCount":35,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"平"},{"direction":"让平"}],"odds":{"spf":{"home":1.58,"draw":3.68,"away":4.45},"rqspf":{"home":3,"draw":3.15,"away":2.09,"handicap":-1},"totalGoals":{"0":12.5,"1":5.4,"2":3.35,"3":3.3,"4":4.9,"5":9.75,"6":20,"7+":32},"halfFull":{"hh":2.25,"hd":16.5,"ha":48,"dh":4.15,"dd":6,"da":10.5,"ah":25,"ad":16.5,"aa":8}},"actualScore":""},{"matchId":"2039559","homeName":"斯特拉斯堡","visitName":"巴列卡诺","leagueName":"欧洲协会联赛","matchNum":"周四004","startTime":"","matchStatus":0,"direction":"让负","expertCount":68,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":1.81,"draw":3.35,"away":3.6},"rqspf":{"home":3.6,"draw":3.55,"away":1.76,"handicap":-1},"totalGoals":{"0":12,"1":5,"2":3.3,"3":3.3,"4":5.75,"5":9.75,"6":19,"7+":28},"halfFull":{"hh":2.95,"hd":14.5,"ha":33,"dh":4.35,"dd":5,"da":8.4,"ah":24,"ad":14.5,"aa":6.4}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2987,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-07_2","name":"plan_2","planName":"方案二","matches":[{"matchId":"2039557","homeName":"弗赖堡","visitName":"布拉加","leagueName":"欧罗巴","matchNum":"周四002","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":53,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.53,"draw":3.72,"away":4.85},"rqspf":{"home":3.25,"draw":2.84,"away":2.13,"handicap":-1},"totalGoals":{"0":12,"1":4.85,"2":3.5,"3":3.2,"4":5.05,"5":10,"6":23,"7+":41},"halfFull":{"hh":2.35,"hd":15,"ha":31,"dh":4.2,"dd":5.8,"da":11,"ah":21,"ad":15,"aa":8.8}},"actualScore":""},{"matchId":"2039559","homeName":"斯特拉斯堡","visitName":"巴列卡诺","leagueName":"欧洲协会联赛","matchNum":"周四004","startTime":"","matchStatus":0,"direction":"让负","expertCount":68,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":1.81,"draw":3.35,"away":3.6},"rqspf":{"home":3.6,"draw":3.55,"away":1.76,"handicap":-1},"totalGoals":{"0":12,"1":5,"2":3.3,"3":3.3,"4":5.75,"5":9.75,"6":19,"7+":28},"halfFull":{"hh":2.95,"hd":14.5,"ha":33,"dh":4.35,"dd":5,"da":8.4,"ah":24,"ad":14.5,"aa":6.4}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2942,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-07_3","name":"plan_3","planName":"方案三","matches":[{"matchId":"2039558","homeName":"阿斯顿维拉","visitName":"诺丁汉森林","leagueName":"欧罗巴","matchNum":"周四003","startTime":"","matchStatus":0,"direction":"胜","expertCount":139,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":1.58,"draw":3.68,"away":4.45},"rqspf":{"home":3,"draw":3.15,"away":2.09,"handicap":-1},"totalGoals":{"0":12.5,"1":5.4,"2":3.35,"3":3.3,"4":4.9,"5":9.75,"6":20,"7+":32},"halfFull":{"hh":2.25,"hd":16.5,"ha":48,"dh":4.15,"dd":6,"da":10.5,"ah":25,"ad":16.5,"aa":8}},"actualScore":""},{"matchId":"2039559","homeName":"斯特拉斯堡","visitName":"巴列卡诺","leagueName":"欧洲协会联赛","matchNum":"周四004","startTime":"","matchStatus":0,"direction":"让负","expertCount":68,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":1.81,"draw":3.35,"away":3.6},"rqspf":{"home":3.6,"draw":3.55,"away":1.76,"handicap":-1},"totalGoals":{"0":12,"1":5,"2":3.3,"3":3.3,"4":5.75,"5":9.75,"6":19,"7+":28},"halfFull":{"hh":2.95,"hd":14.5,"ha":33,"dh":4.35,"dd":5,"da":8.4,"ah":24,"ad":14.5,"aa":6.4}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2781,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-07_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2039556","homeName":"利雅得青年","visitName":"利雅得胜利","leagueName":"沙特职业联赛","matchNum":"周四001","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":3,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":8.7,"draw":6,"away":1.18},"rqspf":{"home":1.98,"draw":3.83,"away":2.75,"handicap":2},"totalGoals":{"0":31,"1":9.25,"2":5.5,"3":3.5,"4":3.65,"5":6,"6":9.25,"7+":10.25},"halfFull":{"hh":14.5,"hd":20,"ha":17,"dh":21,"dd":10.5,"da":4.1,"ah":65,"ad":20,"aa":1.6}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2139,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-07_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2039556","homeName":"利雅得青年","visitName":"利雅得胜利","leagueName":"沙特职业联赛","matchNum":"周四001","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2"},{"direction":"3球"}],"odds":{"spf":{"home":8.7,"draw":6,"away":1.18},"rqspf":{"home":1.98,"draw":3.83,"away":2.75,"handicap":2},"totalGoals":{"0":31,"1":9.25,"2":5.5,"3":3.5,"4":3.65,"5":6,"6":9.25,"7+":10.25},"halfFull":{"hh":14.5,"hd":20,"ha":17,"dh":21,"dd":10.5,"da":4.1,"ah":65,"ad":20,"aa":1.6}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1737,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-07_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2039560","homeName":"米拉索尔","visitName":"基多体育大学","leagueName":"解放者杯","matchNum":"周四005","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":4,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":1.4,"draw":3.95,"away":6.2},"rqspf":{"home":2.46,"draw":3.15,"away":2.47,"handicap":-1},"totalGoals":{"0":12,"1":4.6,"2":3.05,"3":3.35,"4":5.95,"5":11.5,"6":22,"7+":37},"halfFull":{"hh":2.05,"hd":18,"ha":45,"dh":3.8,"dd":6.15,"da":13.5,"ah":24,"ad":18,"aa":11}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1807,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-07_a345_02","name":"plan_a345_02","planName":"方案A345-02","matches":[{"matchId":"2039557","homeName":"弗赖堡","visitName":"布拉加","leagueName":"欧罗巴","matchNum":"周四002","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":44,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":1.53,"draw":3.72,"away":4.85},"rqspf":{"home":3.25,"draw":2.84,"away":2.13,"handicap":-1},"totalGoals":{"0":12,"1":4.85,"2":3.5,"3":3.2,"4":5.05,"5":10,"6":23,"7+":41},"halfFull":{"hh":2.35,"hd":15,"ha":31,"dh":4.2,"dd":5.8,"da":11,"ah":21,"ad":15,"aa":8.8}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1638,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:37.944Z",
+  "earliestKickoff": null,
+  "date": "2026-05-07",
+  "plans": [
+    {
+      "planId": "plan_2026-05-07_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039556",
+          "direction": "总进球-1、2、3球",
+          "homeName": "利雅得青年",
+          "visitName": "利雅得胜利",
+          "matchNum": "周四001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-07_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039560",
+          "direction": "总进球-3、4、5球",
+          "homeName": "米拉索尔",
+          "visitName": "基多体育大学",
+          "matchNum": "周四005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-07_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039557",
+          "direction": "总进球-3、4、5球",
+          "homeName": "弗赖堡",
+          "visitName": "布拉加",
+          "matchNum": "周四002"
+        }
+      ]
+    }
+  ]
+}

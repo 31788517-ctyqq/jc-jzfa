@@ -1,1 +1,79 @@
-{"date":"2026-05-20","plans":[{"planId":"plan_2026-05-20_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2039849","homeName":"斯达","visitName":"博德闪耀","leagueName":"挪超","matchNum":"周三002","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":10,"draw":6.25,"away":1.15},"rqspf":{"home":2.12,"draw":4,"away":2.45,"handicap":2},"totalGoals":{"0":35,"1":11,"2":5.5,"3":3.7,"4":3.85,"5":5.5,"6":8.3,"7+":8.3},"halfFull":{"hh":16,"hd":21,"ha":19,"dh":23,"dd":11.5,"da":4.3,"ah":70,"ad":21,"aa":1.5}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2212,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-20_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2039853","homeName":"赛哈特海湾","visitName":"吉达国民","leagueName":"沙特职业联赛","matchNum":"周三006","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":5.75,"draw":4.8,"away":1.34},"rqspf":{"home":2.73,"draw":3.46,"away":2.11,"handicap":1},"totalGoals":{"0":26,"1":7.8,"2":4.5,"3":3.4,"4":4.15,"5":6.6,"6":10.5,"7+":12},"halfFull":{"hh":9.4,"hd":17,"ha":17,"dh":14,"dd":9.75,"da":4.3,"ah":40,"ad":17,"aa":1.85}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1551,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-20_a123_02","name":"plan_a123_02","planName":"方案A123-02","matches":[{"matchId":"2039849","homeName":"斯达","visitName":"博德闪耀","leagueName":"挪超","matchNum":"周三002","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2"},{"direction":"3球"}],"odds":{"spf":{"home":10,"draw":6.25,"away":1.15},"rqspf":{"home":2.12,"draw":4,"away":2.45,"handicap":2},"totalGoals":{"0":35,"1":11,"2":5.5,"3":3.7,"4":3.85,"5":5.5,"6":8.3,"7+":8.3},"halfFull":{"hh":16,"hd":21,"ha":19,"dh":23,"dd":11.5,"da":4.3,"ah":70,"ad":21,"aa":1.5}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1842,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-20_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2039855","homeName":"弗赖堡","visitName":"阿斯顿维拉","leagueName":"欧罗巴","matchNum":"周三008","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":10,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":5.2,"draw":3.65,"away":1.51},"rqspf":{"home":2.21,"draw":3.02,"away":2.89,"handicap":1},"totalGoals":{"0":10.5,"1":4.6,"2":3.4,"3":3.65,"4":5.6,"5":9.75,"6":17.5,"7+":28},"halfFull":{"hh":9.25,"hd":16,"ha":25,"dh":12,"dd":5.45,"da":3.8,"ah":55,"ad":16,"aa":2.31}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1801,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-20_a345_02","name":"plan_a345_02","planName":"方案A345-02","matches":[{"matchId":"2039855","homeName":"弗赖堡","visitName":"阿斯顿维拉","leagueName":"欧罗巴","matchNum":"周三008","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":10,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":5.2,"draw":3.65,"away":1.51},"rqspf":{"home":2.21,"draw":3.02,"away":2.89,"handicap":1},"totalGoals":{"0":10.5,"1":4.6,"2":3.4,"3":3.65,"4":5.6,"5":9.75,"6":17.5,"7+":28},"halfFull":{"hh":9.25,"hd":16,"ha":25,"dh":12,"dd":5.45,"da":3.8,"ah":55,"ad":16,"aa":2.31}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1801,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:38.217Z",
+  "earliestKickoff": null,
+  "date": "2026-05-20",
+  "plans": [
+    {
+      "planId": "plan_2026-05-20_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039853",
+          "direction": "总进球-1、2、3球",
+          "homeName": "赛哈特海湾",
+          "visitName": "吉达国民",
+          "matchNum": "周三006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-20_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039849",
+          "direction": "总进球-1、2、3球",
+          "homeName": "斯达",
+          "visitName": "博德闪耀",
+          "matchNum": "周三002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-20_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039855",
+          "direction": "总进球-3、4、5球",
+          "homeName": "弗赖堡",
+          "visitName": "阿斯顿维拉",
+          "matchNum": "周三008"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-20_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039855",
+          "direction": "总进球-3、4、5球",
+          "homeName": "弗赖堡",
+          "visitName": "阿斯顿维拉",
+          "matchNum": "周三008"
+        }
+      ]
+    }
+  ]
+}

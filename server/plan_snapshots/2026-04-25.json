@@ -1,1 +1,6 @@
-{"date":"2026-04-25","plans":[{"planId":"plan_2026-04-25_3","name":"plan_3","planName":"方案三","matches":[{"matchId":"2039323","homeName":"利物浦","visitName":"水晶宫","leagueName":"英超","matchNum":"周六017","startTime":"","matchStatus":0,"direction":"胜","expertCount":87,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":1.39,"draw":4.3,"away":5.65},"rqspf":{"home":2.16,"draw":3.8,"away":2.48},"totalGoals":null,"halfFull":null},"actualScore":""},{"matchId":"2039320","homeName":"奥格斯堡","visitName":"法兰克福","leagueName":"德甲","matchNum":"周六014","startTime":"","matchStatus":0,"direction":"让负","expertCount":39,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":2.34,"draw":3.35,"away":2.48},"rqspf":{"home":4.9,"draw":4.35,"away":1.44},"totalGoals":null,"halfFull":null},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2002,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:37.695Z",
+  "earliestKickoff": null,
+  "date": "2026-04-25",
+  "plans": []
+}

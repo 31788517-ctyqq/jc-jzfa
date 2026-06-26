@@ -157,17 +157,7 @@ function savePrediction(matchId, matchInfo, mergedResult, dsResult, dbResult) {
  * @returns {boolean}
  */
 function isMatchCached(matchId) {
-  try {
-    const aiFile = path.join(__dirname, 'ai_cache.json');
-    if (!fs.existsSync(aiFile)) return false;
-    const cache = JSON.parse(fs.readFileSync(aiFile, 'utf8'));
-    const entry = cache[matchId];
-    if (!entry || !entry.updatedAt) return false;
-    const age = Date.now() - new Date(entry.updatedAt).getTime();
-    return age < CACHE_FRESH_MS;
-  } catch (e) {
-    return false;
-  }
+  return false; // DISABLED: force regenerate
 }
 
 /**
@@ -176,6 +166,8 @@ function isMatchCached(matchId) {
  * @returns {boolean}
  */
 function isMeltdown(matchId) {
+  return false; // DISABLED: gongshoudao over-meltdown bug, skip for now
+  /*
   try {
     const gsPath = path.join(__dirname, 'gongshoudao', 'cache.json');
     if (!fs.existsSync(gsPath)) return false;
@@ -191,6 +183,7 @@ function isMeltdown(matchId) {
   } catch (e) {
     return false;
   }
+  */
 }
 
 /**

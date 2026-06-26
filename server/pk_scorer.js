@@ -16,7 +16,7 @@ const matchDataPack = require('./core/match-data-pack');
 // ═══════════════════════════════════════
 //  PK Scorer 版本管理 — 每次优化修改此处
 // ═══════════════════════════════════════
-const PK_SCORER_VERSION = 'pk_v2.0'; // ★ 版本号，修改算法时递增
+const PK_SCORER_VERSION = 'pk_v2.1'; // ★ 版本号，修改算法时递增
 const PK_SCORER_HASH = ''; // 可选：算法内容哈希（CI 自动计算）
 const EXPERIMENT_ID = ''; // 实验 ID（空 = 非实验模式）
 const EXPERIMENT_GROUP = ''; // 'control' 或 'treatment'
@@ -129,9 +129,75 @@ function calcWinPanScores(list) {
   return list.map(function (item) {
     const wp = parseFloat(item.homeWinPan);
     if (isNaN(wp)) return 50;
-    // 赢盘率 / 2 × 100（文档: 0最低 2最高）
     return parseFloat(Math.max(0, Math.min(100, (wp / 2) * 100)).toFixed(1));
   });
+}
+
+/** ★ P0: 基于 SP 官方数据（积分排名+场均攻防）的独立评分维度 */
+function calcSpDataScores(list) {
+  var spRanks = [];
+  var spGoals = [];
+  list.forEach(function (item) {
+    var pack = item._dataPack;
+    var preview = pack && pack.stats && pack.stats.preview;
+    var rankScore = 50;
+    var goalScore = 50;
+    if (preview) {
+      // 积分排名：主客队排名差作为评分
+      var standings = preview.standings;
+      if (standings && Array.isArray(standings) && standings.length >= 2) {
+        var hRank = parseInt((standings[0].rows || [])[0] ? standings[0].rows[0].rank : 0);
+        var aRank = parseInt((standings[1].rows || [])[0] ? standings[1].rows[0].rank : 0);
+        rankScore = hRank && aRank ? 100 - Math.min(100, Math.abs(hRank - aRank) * 10) : 50;
+      }
+      // 场均攻防：从 feature_analysis 提取
+      var fa = preview.feature_analysis;
+      if (fa && fa.labels && Array.isArray(fa.labels)) {
+        var goalIdx = fa.labels.indexOf('场均进球');
+        var conIdx = fa.labels.indexOf('场均失球');
+        if (goalIdx >= 0) {
+          var hGoal = parseFloat((fa.home && fa.home[goalIdx]) || 0);
+          var aGoal = parseFloat((fa.away && fa.away[goalIdx]) || 0);
+          goalScore = hGoal > 0 || aGoal > 0 ? Math.min(100, (hGoal / (aGoal || 0.5)) * 50) : 50;
+        }
+      }
+    }
+    spRanks.push(rankScore);
+    spGoals.push(goalScore);
+  });
+  var rankMin = Math.min.apply(null, spRanks), rankMax = Math.max.apply(null, spRanks);
+  var goalMin = Math.min.apply(null, spGoals), goalMax = Math.max.apply(null, spGoals);
+  return list.map(function (item, i) {
+    return parseFloat((normalize(spRanks[i], rankMin, rankMax) * 0.5 + normalize(spGoals[i], goalMin, goalMax) * 0.5).toFixed(1));
+  });
+}
+
+/** ★ P1: 从 SP 官方数据收集风险标签（射手/伤停） */
+function collectSpRiskTags(item) {
+  var tags = [];
+  var pack = item._dataPack;
+  var preview = pack && pack.stats && pack.stats.preview;
+  if (!preview) return tags;
+  var scorers = preview.scorers;
+  if (scorers && Array.isArray(scorers)) {
+    scorers.forEach(function (t) {
+      if (t && t.team && t.players) {
+        t.players.forEach(function (p) {
+          if (p && p.player && p.player.indexOf('伤') >= 0) tags.push(t.team + '射手伤: ' + p.player);
+        });
+      }
+    });
+  }
+  var injuries = preview.injuries;
+  if (injuries && Array.isArray(injuries)) {
+    var injCount = 0;
+    injuries.forEach(function (t) {
+      if (t && t.team && t.players) injCount += t.players.length;
+    });
+    if (injCount >= 3) tags.push('伤停较多(' + injCount + '人)');
+    if (injCount >= 6) tags.push('伤停严重(' + injCount + '人)');
+  }
+  return tags;
 }
 
 function calcStabilityScores(list) {
@@ -274,13 +340,13 @@ function calcAgeWeight(dataAge, dataType) {
 // ═══ V2.0: 按玩法切换评分权重 Profile ═══
 // ★ V9.0: 新增第7维 winPan（赢盘率），各玩法微调权重
 const SCORE_PROFILES = {
-  spf: { power: 0.35, goal: 0.1, heat: 0.1, health: 0.1, stability: 0.1, verify: 0.15, winPan: 0.1 },
-  overUnder: { power: 0.1, goal: 0.3, heat: 0.05, health: 0.2, stability: 0.15, verify: 0.1, winPan: 0.1 },
-  handicap: { power: 0.35, goal: 0.05, heat: 0.05, health: 0.1, stability: 0.1, verify: 0.25, winPan: 0.1 },
-  default: { power: 0.25, goal: 0.15, heat: 0.1, health: 0.15, stability: 0.1, verify: 0.15, winPan: 0.1 },
+  spf: { power: 0.25, spData: 0.1, goal: 0.1, heat: 0.1, health: 0.1, stability: 0.1, verify: 0.15, winPan: 0.1 },
+  overUnder: { power: 0.1, spData: 0.05, goal: 0.3, heat: 0.05, health: 0.15, stability: 0.15, verify: 0.1, winPan: 0.1 },
+  handicap: { power: 0.25, spData: 0.1, goal: 0.05, heat: 0.05, health: 0.1, stability: 0.1, verify: 0.25, winPan: 0.1 },
+  default: { power: 0.2, spData: 0.1, goal: 0.15, heat: 0.08, health: 0.12, stability: 0.1, verify: 0.15, winPan: 0.1 },
 };
 
-function calcCompositeScore(pwr, goal, heat, health, stab, verif, winPan, playType) {
+function calcCompositeScore(pwr, goal, heat, health, stab, verif, winPan, spData, playType) {
   const p = SCORE_PROFILES[playType] || SCORE_PROFILES.default;
   return parseFloat(
     (
@@ -290,7 +356,8 @@ function calcCompositeScore(pwr, goal, heat, health, stab, verif, winPan, playTy
       p.health * health +
       p.stability * stab +
       p.verify * verif +
-      p.winPan * winPan
+      p.winPan * winPan +
+      (p.spData || 0) * (spData || 50)
     ).toFixed(1),
   );
 }
@@ -302,6 +369,7 @@ function computeAllScores(list) {
   const healthScores = calcHealthScores(list);
   const stabilityScores = calcStabilityScores(list);
   const winPanScores = calcWinPanScores(list);
+  const spDataScores = calcSpDataScores(list); // ★ pk_v2.1: SP 官方数据评分
   const verificationResults = calcVerificationScores(list);
   const verificationScores = verificationResults.map(function (v) {
     return v.score;
@@ -315,13 +383,13 @@ function computeAllScores(list) {
     const stab = stabilityScores[i];
     const verif = verificationScores[i];
     const winPan = winPanScores[i];
+    const spData = spDataScores[i];
     const da = item.dataAge;
     const heatAdj = heat * calcAgeWeight(da, 'heat');
     const stabAdj = stab * calcAgeWeight(da, 'stats');
-    let comp = calcCompositeScore(pwr, goal, heatAdj, health, stabAdj, verif, winPan);
+    let comp = calcCompositeScore(pwr, goal, heatAdj, health, stabAdj, verif, winPan, spData);
     if (da > 240) comp = Math.max(0, comp - 5);
     else if (da > 120) comp = Math.max(0, comp - 3);
-    // ★ pk_v2.0: strong 共识 + 验证高分 → 奖励 +3
     if (item.fusionConsensus === 'strong' && verif >= 85 && comp < 95) comp += 3;
     return {
       item: item,
@@ -333,6 +401,7 @@ function computeAllScores(list) {
       verificationScore: verif,
       verificationDetails: verificationResults[i].details,
       winPanScore: winPan,
+      spDataScore: spData, // ★ pk_v2.1
       compositeScore: parseFloat(comp.toFixed(1)),
       stars: Math.round(comp / 20),
     };
@@ -400,6 +469,12 @@ function applyStandardDecisionFields(scored, advice) {
   }
   if (finalDirection === 'watch') {
     riskTags.push('建议观望');
+  }
+
+  // ★ pk_v2.1: SP 官方数据风险标签（射手伤停）
+  var spRiskTags = collectSpRiskTags(item);
+  if (spRiskTags && spRiskTags.length > 0) {
+    spRiskTags.forEach(function (t) { riskTags.push(t); });
   }
 
   let riskLevel = 'green';

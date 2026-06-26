@@ -132,7 +132,8 @@ async function fetchRecommends(matchId) {
   return items.map((item) => ({
     type: item.type,
     num: item.num,
-    result: item.result !== undefined ? item.result : null,
+    // ★ 反向修正：midou API 的 result 值与实际相反 (1=错, 0=对)
+    result: item.result === 1 ? 0 : item.result === 0 ? 1 : item.result !== undefined ? item.result : null,
   }));
 }
 

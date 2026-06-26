@@ -1,1 +1,79 @@
-{"date":"2026-04-24","plans":[{"planId":"plan_2026-04-24_3","name":"plan_3","planName":"方案三","matches":[{"matchId":"2039297","homeName":"莱比锡红牛","visitName":"柏林联合","leagueName":"德甲","matchNum":"周五010","startTime":"","matchStatus":0,"direction":"胜","expertCount":102,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":5.75,"draw":4.25,"away":1.39},"rqspf":{"home":2.48,"draw":3.15,"away":2.45,"handicap":1},"totalGoals":{"0":17,"1":6,"2":3.95,"3":3.3,"4":4.35,"5":8,"6":14,"7+":21.5},"halfFull":{"ss":"","sp":"","sf":"","ps":"4.10","pp":"8.35","pf":"16.00","fs":"21.00","fp":"19.00","ff":"12.00","updateTime":"2026-04-24 14:06:45"}},"actualScore":""},{"matchId":"2039293","homeName":"杜塞尔多夫","visitName":"德累斯顿","leagueName":"德乙","matchNum":"周五006","startTime":"","matchStatus":0,"direction":"让负","expertCount":53,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":2.17,"draw":3.35,"away":2.7},"rqspf":{"home":4.45,"draw":4.05,"away":1.52,"handicap":-1},"totalGoals":{"0":14,"1":5.95,"2":4,"3":3.2,"4":4.15,"5":8.5,"6":18,"7+":26},"halfFull":{"ss":"","sp":"","sf":"","ps":"5.35","pp":"5.90","pf":"6.45","fs":"21.00","fp":"13.00","ff":"4.50","updateTime":"2026-04-23 13:55:14"}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":8740,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-24_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2039294","homeName":"亚眠","visitName":"蒙彼利埃","leagueName":"法乙","matchNum":"周五007","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":32,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":2.7,"draw":3.75,"away":2.04},"rqspf":{"home":1.59,"draw":4.15,"away":3.85,"handicap":1},"totalGoals":{"0":28,"1":8.3,"2":4.8,"3":3.7,"4":3.65,"5":6.2,"6":9.6,"7+":12.5},"halfFull":{"hh":null,"hd":null,"ha":null,"dh":6.8,"dd":7,"da":5.7,"ah":25,"ad":13,"aa":3.1}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2089,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-24_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2039294","homeName":"亚眠","visitName":"蒙彼利埃","leagueName":"法乙","matchNum":"周五007","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":3,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2"},{"direction":"3球"}],"odds":{"spf":{"home":2.7,"draw":3.75,"away":2.04},"rqspf":{"home":1.59,"draw":4.15,"away":3.85,"handicap":1},"totalGoals":{"0":28,"1":8.3,"2":4.8,"3":3.7,"4":3.65,"5":6.2,"6":9.6,"7+":12.5},"halfFull":{"hh":null,"hd":null,"ha":null,"dh":6.8,"dd":7,"da":5.7,"ah":25,"ad":13,"aa":3.1}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1669,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-24_a123_02","name":"plan_a123_02","planName":"方案A123-02","matches":[{"matchId":"2039300","homeName":"桑德兰","visitName":"诺丁汉森林","leagueName":"英超","matchNum":"周五013","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2"},{"direction":"3球"}],"odds":{"spf":{"home":1.52,"draw":4.1,"away":4.4},"rqspf":{"home":2.56,"draw":3.65,"away":2.15,"handicap":-1},"totalGoals":{"0":21,"1":7.1,"2":4.35,"3":3.45,"4":4.3,"5":6.5,"6":11,"7+":14.5},"halfFull":{"ss":"","sp":"","sf":"","ps":"6.00","pp":"4.25","pf":"5.60","fs":"28.00","fp":"15.00","ff":"4.20","updateTime":"2026-04-24 18:54:40"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1514,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-24_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2039302","homeName":"阿尔维卡","visitName":"阿罗卡","leagueName":"葡超","matchNum":"周五015","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4","result":null},{"direction":"5球","result":null}],"odds":{"spf":{"home":2.45,"draw":2.65,"away":2.92},"rqspf":{"home":6.3,"draw":3.9,"away":1.4,"handicap":-1},"totalGoals":{"0":6.5,"1":3.25,"2":3.2,"3":4.05,"4":8,"5":18,"6":30,"7+":50},"halfFull":{"hh":null,"hd":null,"ha":null,"dh":5.5,"dd":3.75,"da":6,"ah":30,"ad":16,"aa":4.7}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2339,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-24_a345_02","name":"plan_a345_02","planName":"方案A345-02","matches":[{"matchId":"2039289","homeName":"柏太阳神","visitName":"鹿岛鹿角","leagueName":"日职","matchNum":"周五002","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":5,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":2.53,"draw":3.25,"away":2.35},"rqspf":{"home":6,"draw":4.2,"away":1.38,"handicap":-1},"totalGoals":{"0":11,"1":4.3,"2":3.15,"3":3.75,"4":6.2,"5":11,"6":17,"7+":28},"halfFull":{"ss":"","sp":"","sf":"","ps":"6.00","pp":"5.10","pf":"5.80","fs":"25.00","fp":"14.00","ff":"4.00","updateTime":"2026-04-24 17:04:55"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1927,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-24_4","name":"plan_4","planName":"方案四","matches":[{"matchId":"2039302","homeName":"阿尔维卡","visitName":"阿罗卡","leagueName":"葡超","matchNum":"周五015","startTime":"","matchStatus":0,"direction":"平、让平","expertCount":28,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"平"},{"direction":"让平"}],"odds":{"spf":{"home":2.45,"draw":2.65,"away":2.92},"rqspf":{"home":6.3,"draw":3.9,"away":1.4,"handicap":-1},"totalGoals":{"0":6.5,"1":3.25,"2":3.2,"3":4.05,"4":8,"5":18,"6":30,"7+":50},"halfFull":{"hh":null,"hd":null,"ha":null,"dh":5.5,"dd":3.75,"da":6,"ah":30,"ad":16,"aa":4.7}},"actualScore":""},{"matchId":"2039297","homeName":"莱比锡红牛","visitName":"柏林联合","leagueName":"德甲","matchNum":"周五010","startTime":"","matchStatus":0,"direction":"胜","expertCount":102,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":5.75,"draw":4.25,"away":1.39},"rqspf":{"home":2.48,"draw":3.15,"away":2.45,"handicap":1},"totalGoals":{"0":17,"1":6,"2":3.95,"3":3.3,"4":4.35,"5":8,"6":14,"7+":21.5},"halfFull":{"ss":"","sp":"","sf":"","ps":"4.10","pp":"8.35","pf":"16.00","fs":"21.00","fp":"19.00","ff":"12.00","updateTime":"2026-04-24 14:06:45"}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":9073,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:37.674Z",
+  "earliestKickoff": null,
+  "date": "2026-04-24",
+  "plans": [
+    {
+      "planId": "plan_2026-04-24_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039294",
+          "direction": "总进球-1、2、3球",
+          "homeName": "亚眠",
+          "visitName": "蒙彼利埃",
+          "matchNum": "周五007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-24_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039300",
+          "direction": "总进球-1、2、3球",
+          "homeName": "桑德兰",
+          "visitName": "诺丁汉森林",
+          "matchNum": "周五013"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-24_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039302",
+          "direction": "总进球-3、4、5球",
+          "homeName": "阿尔维卡",
+          "visitName": "阿罗卡",
+          "matchNum": "周五015"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-24_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039289",
+          "direction": "总进球-3、4、5球",
+          "homeName": "柏太阳神",
+          "visitName": "鹿岛鹿角",
+          "matchNum": "周五002"
+        }
+      ]
+    }
+  ]
+}

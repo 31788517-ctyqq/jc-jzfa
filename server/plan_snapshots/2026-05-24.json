@@ -1,1 +1,79 @@
-{"date":"2026-05-24","plans":[{"planId":"plan_2026-05-24_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2039935","homeName":"曼彻斯特城","visitName":"阿斯顿维拉","leagueName":"英超","matchNum":"周日011","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.3,"draw":4.85,"away":6.5},"rqspf":{"home":3.55,"draw":4.2,"away":1.64,"handicap":-2},"totalGoals":{"0":28,"1":8.2,"2":4.6,"3":3.8,"4":4.1,"5":6.2,"6":9.5,"7+":9.5},"halfFull":{"hh":1.75,"hd":19,"ha":45,"dh":4.25,"dd":8.5,"da":16,"ah":19,"ad":19,"aa":11.5}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2081,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-24_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2039949","homeName":"比利亚雷亚尔","visitName":"马德里竞技","leagueName":"西甲","matchNum":"周日025","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":6,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1","result":null},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":2.37,"draw":3.2,"away":2.53},"rqspf":{"home":4.7,"draw":4.5,"away":1.44,"handicap":-1},"totalGoals":{"0":24,"1":8.1,"2":4.7,"3":3.4,"4":4.1,"5":6.2,"6":10,"7+":13},"halfFull":{"hh":3.75,"hd":12.5,"ha":22,"dh":6,"dd":6.5,"da":6.5,"ah":20,"ad":12.5,"aa":3.9}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1586,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-24_a123_02","name":"plan_a123_02","planName":"方案A123-02","matches":[{"matchId":"2039928","homeName":"哈马比","visitName":"AIK索尔纳","leagueName":"瑞超","matchNum":"周日004","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2","result":null},{"direction":"3球","result":null}],"odds":{"spf":{"home":1.3,"draw":4.7,"away":6.8},"rqspf":{"home":2.02,"draw":3.45,"away":2.9,"handicap":-1},"totalGoals":{"0":18,"1":7.2,"2":4.35,"3":3.5,"4":4.5,"5":7,"6":10,"7+":13},"halfFull":{"hh":1.83,"hd":17,"ha":45,"dh":4.15,"dd":7.65,"da":15.5,"ah":22,"ad":17,"aa":11.5}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1528,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-24_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2039944","homeName":"莱切","visitName":"热那亚","leagueName":"意甲","matchNum":"周日020","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":0,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3","result":null},{"direction":"4","result":null},{"direction":"5球","result":null}],"odds":{"spf":{"home":1.66,"draw":3.3,"away":4.46},"rqspf":{"home":3.7,"draw":2.87,"away":1.96,"handicap":-1},"totalGoals":{"0":8.75,"1":3.7,"2":3.1,"3":3.7,"4":6.8,"5":14,"6":28,"7+":43},"halfFull":{"hh":3,"hd":19,"ha":50,"dh":3.45,"dd":3.9,"da":9.8,"ah":32,"ad":19,"aa":8.6}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2046,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-24_a345_02","name":"plan_a345_02","planName":"方案A345-02","matches":[{"matchId":"2039940","homeName":"托特纳姆热刺","visitName":"埃弗顿","leagueName":"英超","matchNum":"周日016","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":11,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":1.69,"draw":3.4,"away":4.1},"rqspf":{"home":3.45,"draw":3.25,"away":1.88,"handicap":-1},"totalGoals":{"0":11.5,"1":4.9,"2":3.45,"3":3.7,"4":5.25,"5":9.75,"6":15,"7+":23},"halfFull":{"hh":2.9,"hd":14,"ha":29,"dh":4.3,"dd":5,"da":9.5,"ah":20,"ad":14,"aa":6.9}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1775,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:38.303Z",
+  "earliestKickoff": null,
+  "date": "2026-05-24",
+  "plans": [
+    {
+      "planId": "plan_2026-05-24_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039949",
+          "direction": "总进球-1、2、3球",
+          "homeName": "比利亚雷亚尔",
+          "visitName": "马德里竞技",
+          "matchNum": "周日025"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-24_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039928",
+          "direction": "总进球-1、2、3球",
+          "homeName": "哈马比",
+          "visitName": "AIK索尔纳",
+          "matchNum": "周日004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-24_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039944",
+          "direction": "总进球-3、4、5球",
+          "homeName": "莱切",
+          "visitName": "热那亚",
+          "matchNum": "周日020"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-24_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039940",
+          "direction": "总进球-3、4、5球",
+          "homeName": "托特纳姆热刺",
+          "visitName": "埃弗顿",
+          "matchNum": "周日016"
+        }
+      ]
+    }
+  ]
+}

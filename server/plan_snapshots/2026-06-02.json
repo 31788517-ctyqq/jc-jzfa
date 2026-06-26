@@ -1,1 +1,43 @@
-{"date":"2026-06-02","plans":[{"planId":"plan_2026-06-02_3","name":"plan_3","planName":"方案三","matches":[{"matchId":"2040087","homeName":"威尔士","visitName":"加纳","leagueName":"国际赛","matchNum":"周二203","startTime":"","matchStatus":0,"direction":"胜","expertCount":93,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":2.02,"draw":2.94,"away":3.4},"rqspf":{"home":4.45,"draw":3.62,"away":1.59,"handicap":-1},"totalGoals":{"0":9.5,"1":4.2,"2":3.3,"3":3.45,"4":6,"5":12,"6":23,"7+":40},"halfFull":{"hh":3.6,"hd":14.5,"ha":42,"dh":4.1,"dd":4.3,"da":7.5,"ah":34,"ad":14.5,"aa":5.7}},"actualScore":""},{"matchId":"2040085","homeName":"克罗地亚","visitName":"比利时","leagueName":"国际赛","matchNum":"周二201","startTime":"","matchStatus":0,"direction":"让负","expertCount":160,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":2.55,"draw":2.9,"away":2.55},"rqspf":{"home":5.45,"draw":4.45,"away":1.39,"handicap":-1},"totalGoals":{"0":13,"1":4.6,"2":3.8,"3":3.3,"4":5.55,"5":9,"6":16,"7+":25},"halfFull":{"hh":4.4,"hd":13,"ha":30,"dh":5.4,"dd":4.8,"da":5.4,"ah":30,"ad":13,"aa":4.4}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2808,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-06-02_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2040085","homeName":"克罗地亚","visitName":"比利时","leagueName":"国际赛","matchNum":"周二201","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":44,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":2.55,"draw":2.9,"away":2.55},"rqspf":{"home":5.45,"draw":4.45,"away":1.39,"handicap":-1},"totalGoals":{"0":13,"1":4.6,"2":3.8,"3":3.3,"4":5.55,"5":9,"6":16,"7+":25},"halfFull":{"hh":4.4,"hd":13,"ha":30,"dh":5.4,"dd":4.8,"da":5.4,"ah":30,"ad":13,"aa":4.4}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1766,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:38.491Z",
+  "earliestKickoff": null,
+  "date": "2026-06-02",
+  "plans": [
+    {
+      "planId": "plan_2026-06-02_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040086",
+          "direction": "总进球-3、4、5球",
+          "homeName": "格鲁吉亚",
+          "visitName": "罗马尼亚",
+          "matchNum": "周二202"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-06-02_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2040087",
+          "direction": "总进球-3、4、5球",
+          "homeName": "威尔士",
+          "visitName": "加纳",
+          "matchNum": "周二203"
+        }
+      ]
+    }
+  ]
+}

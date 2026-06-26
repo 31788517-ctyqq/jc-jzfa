@@ -703,10 +703,10 @@ export function loadPlanList(optFilterFn) {
       const filterBar = '';
       const displayPlans = plans;
 
-      // ★ 方案刷新按钮
+      // ★ 方案刷新按钮（与方案收入页"查询"按钮同尺寸）
       const refreshBtn =
         '<div style="text-align:center;margin-top:16px;">' +
-        '<span class="filter-tag" onclick="window._refreshPlanList()" style="cursor:pointer;">🔄 刷新方案</span>' +
+        '<button style="height:44px;min-width:160px;border-radius:22px;border:none;background:var(--orange,#FF8C00);color:#fff;font-size:15px;font-weight:600;cursor:pointer;padding:0 24px;" onclick="window._refreshPlanList()">🔄 刷新方案</button>' +
         '</div>';
 
       const cardHTMLs = displayPlans.map(function (p, i) {

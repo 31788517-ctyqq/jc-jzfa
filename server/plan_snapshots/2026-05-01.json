@@ -1,1 +1,79 @@
-{"date":"2026-05-01","plans":[{"planId":"plan_2026-05-01_1","name":"plan_1","planName":"方案一","matches":[{"matchId":"2039441","homeName":"赫罗纳","visitName":"马洛卡","leagueName":"西甲","matchNum":"周五005","startTime":"","matchStatus":0,"direction":"平、让平","expertCount":58,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"平"},{"direction":"让平"}],"odds":{"spf":{"home":1.92,"draw":3.18,"away":3.4},"rqspf":{"home":4.08,"draw":3.55,"away":1.66,"handicap":-1},"totalGoals":{"0":13,"1":5.15,"2":3.25,"3":3.35,"4":5.5,"5":10,"6":18,"7+":25},"halfFull":{"hh":2.95,"hd":14,"ha":30,"dh":4.6,"dd":5.55,"da":8.25,"ah":20,"ad":14,"aa":5.9}},"actualScore":""},{"matchId":"2039438","homeName":"瓦尔韦克","visitName":"罗达JC","leagueName":"荷乙","matchNum":"周五002","startTime":"","matchStatus":0,"direction":"让负","expertCount":81,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":1.79,"draw":3.5,"away":3.52},"rqspf":{"home":3.55,"draw":3.55,"away":1.77,"handicap":-1},"totalGoals":{"0":16,"1":6.25,"2":4,"3":3.3,"4":4.3,"5":8,"6":14.5,"7+":19},"halfFull":{"hh":2.88,"hd":14,"ha":27,"dh":4.65,"dd":6.15,"da":7.8,"ah":20,"ad":14,"aa":5.85}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2969,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-01_2","name":"plan_2","planName":"方案二","matches":[{"matchId":"2039441","homeName":"赫罗纳","visitName":"马洛卡","leagueName":"西甲","matchNum":"周五005","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":97,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.92,"draw":3.18,"away":3.4},"rqspf":{"home":4.08,"draw":3.55,"away":1.66,"handicap":-1},"totalGoals":{"0":13,"1":5.15,"2":3.25,"3":3.35,"4":5.5,"5":10,"6":18,"7+":25},"halfFull":{"hh":2.95,"hd":14,"ha":30,"dh":4.6,"dd":5.55,"da":8.25,"ah":20,"ad":14,"aa":5.9}},"actualScore":""},{"matchId":"2039438","homeName":"瓦尔韦克","visitName":"罗达JC","leagueName":"荷乙","matchNum":"周五002","startTime":"","matchStatus":0,"direction":"让负","expertCount":81,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":1.79,"draw":3.5,"away":3.52},"rqspf":{"home":3.55,"draw":3.55,"away":1.77,"handicap":-1},"totalGoals":{"0":16,"1":6.25,"2":4,"3":3.3,"4":4.3,"5":8,"6":14.5,"7+":19},"halfFull":{"hh":2.88,"hd":14,"ha":27,"dh":4.65,"dd":6.15,"da":7.8,"ah":20,"ad":14,"aa":5.85}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2920,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-01_3","name":"plan_3","planName":"方案三","matches":[{"matchId":"2039440","homeName":"利兹联","visitName":"伯恩利","leagueName":"英超","matchNum":"周五004","startTime":"","matchStatus":0,"direction":"胜","expertCount":166,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":1.25,"draw":4.8,"away":8.25},"rqspf":{"home":1.9,"draw":3.42,"away":3.22,"handicap":-1},"totalGoals":{"0":16,"1":6.2,"2":3.85,"3":3.2,"4":4.4,"5":8,"6":16,"7+":23},"halfFull":{"hh":1.67,"hd":21,"ha":50,"dh":4,"dd":8,"da":18,"ah":23,"ad":21,"aa":15}},"actualScore":""},{"matchId":"2039441","homeName":"赫罗纳","visitName":"马洛卡","leagueName":"西甲","matchNum":"周五005","startTime":"","matchStatus":0,"direction":"让负","expertCount":97,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":1.92,"draw":3.18,"away":3.4},"rqspf":{"home":4.08,"draw":3.55,"away":1.66,"handicap":-1},"totalGoals":{"0":13,"1":5.15,"2":3.25,"3":3.35,"4":5.5,"5":10,"6":18,"7+":25},"halfFull":{"hh":2.95,"hd":14,"ha":30,"dh":4.6,"dd":5.55,"da":8.25,"ah":20,"ad":14,"aa":5.9}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2075,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-01_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2039437","homeName":"维京","visitName":"罗森博格","leagueName":"挪超","matchNum":"周五001","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":4,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.24,"draw":5.25,"away":7.6},"rqspf":{"home":1.76,"draw":3.9,"away":3.28,"handicap":-1},"totalGoals":{"0":27,"1":8.3,"2":4.95,"3":3.35,"4":3.75,"5":6.35,"6":10.5,"7+":13},"halfFull":{"hh":1.65,"hd":19,"ha":55,"dh":4.2,"dd":9.5,"da":18,"ah":21,"ad":19,"aa":13}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1998,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-01_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2039438","homeName":"瓦尔韦克","visitName":"罗达JC","leagueName":"荷乙","matchNum":"周五002","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":28,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":1.79,"draw":3.5,"away":3.52},"rqspf":{"home":3.55,"draw":3.55,"away":1.77,"handicap":-1},"totalGoals":{"0":16,"1":6.25,"2":4,"3":3.3,"4":4.3,"5":8,"6":14.5,"7+":19},"halfFull":{"hh":2.88,"hd":14,"ha":27,"dh":4.65,"dd":6.15,"da":7.8,"ah":20,"ad":14,"aa":5.85}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1402,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-01_a123_02","name":"plan_a123_02","planName":"方案A123-02","matches":[{"matchId":"2039440","homeName":"利兹联","visitName":"伯恩利","leagueName":"英超","matchNum":"周五004","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":1.25,"draw":4.8,"away":8.25},"rqspf":{"home":1.9,"draw":3.42,"away":3.22,"handicap":-1},"totalGoals":{"0":16,"1":6.2,"2":3.85,"3":3.2,"4":4.4,"5":8,"6":16,"7+":23},"halfFull":{"hh":1.67,"hd":21,"ha":50,"dh":4,"dd":8,"da":18,"ah":23,"ad":21,"aa":15}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1363,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-01_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2039441","homeName":"赫罗纳","visitName":"马洛卡","leagueName":"西甲","matchNum":"周五005","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":15,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":1.92,"draw":3.18,"away":3.4},"rqspf":{"home":4.08,"draw":3.55,"away":1.66,"handicap":-1},"totalGoals":{"0":13,"1":5.15,"2":3.25,"3":3.35,"4":5.5,"5":10,"6":18,"7+":25},"halfFull":{"hh":2.95,"hd":14,"ha":30,"dh":4.6,"dd":5.55,"da":8.25,"ah":20,"ad":14,"aa":5.9}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1723,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-01_a345_02","name":"plan_a345_02","planName":"方案A345-02","matches":[{"matchId":"2039438","homeName":"瓦尔韦克","visitName":"罗达JC","leagueName":"荷乙","matchNum":"周五002","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":54,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":1.79,"draw":3.5,"away":3.52},"rqspf":{"home":3.55,"draw":3.55,"away":1.77,"handicap":-1},"totalGoals":{"0":16,"1":6.25,"2":4,"3":3.3,"4":4.3,"5":8,"6":14.5,"7+":19},"halfFull":{"hh":2.88,"hd":14,"ha":27,"dh":4.65,"dd":6.15,"da":7.8,"ah":20,"ad":14,"aa":5.85}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1514,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:37.819Z",
+  "earliestKickoff": null,
+  "date": "2026-05-01",
+  "plans": [
+    {
+      "planId": "plan_2026-05-01_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039438",
+          "direction": "总进球-1、2、3球",
+          "homeName": "瓦尔韦克",
+          "visitName": "罗达JC",
+          "matchNum": "周五002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-01_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039440",
+          "direction": "总进球-1、2、3球",
+          "homeName": "利兹联",
+          "visitName": "伯恩利",
+          "matchNum": "周五004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-01_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039441",
+          "direction": "总进球-3、4、5球",
+          "homeName": "赫罗纳",
+          "visitName": "马洛卡",
+          "matchNum": "周五005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-01_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039438",
+          "direction": "总进球-3、4、5球",
+          "homeName": "瓦尔韦克",
+          "visitName": "罗达JC",
+          "matchNum": "周五002"
+        }
+      ]
+    }
+  ]
+}

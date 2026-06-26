@@ -1,1 +1,79 @@
-{"date":"2026-03-22","plans":[{"planId":"plan_2026-03-22_3","name":"plan_3","planName":"方案三","matches":[{"matchId":"2038545","homeName":"维戈塞尔塔","visitName":"阿拉维斯","leagueName":"西甲","matchNum":"周日016","startTime":"","matchStatus":0,"direction":"胜","expertCount":55,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":1.76,"draw":3.12,"away":4.15},"rqspf":{"home":3.9,"draw":3.15,"away":1.8,"handicap":-1},"totalGoals":{"0":8.5,"1":4.05,"2":3,"3":3.7,"4":6.9,"5":13,"6":26,"7+":38},"halfFull":{"ss":"","sp":"","sf":"","ps":"4.20","pp":"4.40","pf":"8.50","fs":"25.00","fp":"16.00","ff":"7.00","updateTime":"2026-03-22 22:08:07"}},"actualScore":""},{"matchId":"2038550","homeName":"圣保利","visitName":"弗赖堡","leagueName":"德甲","matchNum":"周日021","startTime":"","matchStatus":0,"direction":"让负","expertCount":53,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":2.55,"draw":2.84,"away":2.6},"rqspf":{"home":6.45,"draw":4,"away":1.38,"handicap":-1},"totalGoals":{"0":8,"1":3.8,"2":3.15,"3":3.75,"4":6.5,"5":14,"6":30,"7+":43},"halfFull":{"ss":"","sp":"","sf":"","ps":"5.65","pp":"4.35","pf":"5.75","fs":"24.00","fp":"13.50","ff":"4.60","updateTime":"2026-03-22 22:44:02"}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2429,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-22_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2038534","homeName":"奈梅亨","visitName":"海伦芬","leagueName":"荷甲","matchNum":"周日005","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.5,"draw":4.4,"away":4.25},"rqspf":{"home":2.55,"draw":3.56,"away":2.19,"handicap":-1},"totalGoals":{"0":28,"1":9.6,"2":5,"3":3.8,"4":4.1,"5":5.5,"6":8.5,"7+":9.25},"halfFull":{"ss":"","sp":"","sf":"","ps":"4.75","pp":"8.50","pf":"10.50","fs":"16.00","fp":"14.00","ff":"7.50","updateTime":"2026-03-22 18:57:47"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2159,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-22_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2038542","homeName":"阿斯顿维拉","visitName":"西汉姆联","leagueName":"英超","matchNum":"周日013","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":11,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":1.6,"draw":3.7,"away":4.3},"rqspf":{"home":2.9,"draw":3.45,"away":2.02,"handicap":-1},"totalGoals":{"0":15,"1":5.6,"2":3.65,"3":3.4,"4":4.7,"5":8.15,"6":16,"7+":23},"halfFull":{"ss":"","sp":"","sf":"","ps":"4.00","pp":"6.00","pf":"10.00","fs":"21.00","fp":"15.00","ff":"7.25","updateTime":"2026-03-22 15:53:44"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1339,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-22_a123_02","name":"plan_a123_02","planName":"方案A123-02","matches":[{"matchId":"2038534","homeName":"奈梅亨","visitName":"海伦芬","leagueName":"荷甲","matchNum":"周日005","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1","result":null},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":1.5,"draw":4.4,"away":4.25},"rqspf":{"home":2.55,"draw":3.56,"away":2.19,"handicap":-1},"totalGoals":{"0":28,"1":9.6,"2":5,"3":3.8,"4":4.1,"5":5.5,"6":8.5,"7+":9.25},"halfFull":{"ss":"","sp":"","sf":"","ps":"4.75","pp":"8.50","pf":"10.50","fs":"16.00","fp":"14.00","ff":"7.50","updateTime":"2026-03-22 18:57:47"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1763,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-22_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2038550","homeName":"圣保利","visitName":"弗赖堡","leagueName":"德甲","matchNum":"周日021","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4","result":null},{"direction":"5球","result":null}],"odds":{"spf":{"home":2.55,"draw":2.84,"away":2.6},"rqspf":{"home":6.45,"draw":4,"away":1.38,"handicap":-1},"totalGoals":{"0":8,"1":3.8,"2":3.15,"3":3.75,"4":6.5,"5":14,"6":30,"7+":43},"halfFull":{"ss":"","sp":"","sf":"","ps":"5.65","pp":"4.35","pf":"5.75","fs":"24.00","fp":"13.50","ff":"4.60","updateTime":"2026-03-22 22:44:02"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2033,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-22_a345_02","name":"plan_a345_02","planName":"方案A345-02","matches":[{"matchId":"2038545","homeName":"维戈塞尔塔","visitName":"阿拉维斯","leagueName":"西甲","matchNum":"周日016","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3","result":null},{"direction":"4","result":null},{"direction":"5球"}],"odds":{"spf":{"home":1.76,"draw":3.12,"away":4.15},"rqspf":{"home":3.9,"draw":3.15,"away":1.8,"handicap":-1},"totalGoals":{"0":8.5,"1":4.05,"2":3,"3":3.7,"4":6.9,"5":13,"6":26,"7+":38},"halfFull":{"ss":"","sp":"","sf":"","ps":"4.20","pp":"4.40","pf":"8.50","fs":"25.00","fp":"16.00","ff":"7.00","updateTime":"2026-03-22 22:08:07"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2032,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:36.964Z",
+  "earliestKickoff": null,
+  "date": "2026-03-22",
+  "plans": [
+    {
+      "planId": "plan_2026-03-22_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038542",
+          "direction": "总进球-1、2、3球",
+          "homeName": "阿斯顿维拉",
+          "visitName": "西汉姆联",
+          "matchNum": "周日013"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-22_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038534",
+          "direction": "总进球-1、2、3球",
+          "homeName": "奈梅亨",
+          "visitName": "海伦芬",
+          "matchNum": "周日005"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-22_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038550",
+          "direction": "总进球-3、4、5球",
+          "homeName": "圣保利",
+          "visitName": "弗赖堡",
+          "matchNum": "周日021"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-22_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038545",
+          "direction": "总进球-3、4、5球",
+          "homeName": "维戈塞尔塔",
+          "visitName": "阿拉维斯",
+          "matchNum": "周日016"
+        }
+      ]
+    }
+  ]
+}

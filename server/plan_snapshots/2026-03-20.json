@@ -1,1 +1,79 @@
-{"date":"2026-03-20","plans":[{"planId":"plan_2026-03-20_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2038474","homeName":"西悉尼漫步者","visitName":"阿德莱德联","leagueName":"澳超","matchNum":"周五001","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":4,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.76,"draw":3.95,"away":3.25},"rqspf":{"home":3.15,"draw":3.9,"away":1.8,"handicap":-1},"totalGoals":{"0":26,"1":8.3,"2":4.75,"3":3.75,"4":4.15,"5":5.9,"6":9.25,"7+":10},"halfFull":{"ss":"","sp":"","sf":"","ps":"5.10","pp":"7.75","pf":"8.30","fs":"17.00","fp":"12.00","ff":"5.75","updateTime":"2026-03-20 16:31:11"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2096,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-20_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2038474","homeName":"西悉尼漫步者","visitName":"阿德莱德联","leagueName":"澳超","matchNum":"周五001","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":4,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1","result":null},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":1.76,"draw":3.95,"away":3.25},"rqspf":{"home":3.15,"draw":3.9,"away":1.8,"handicap":-1},"totalGoals":{"0":26,"1":8.3,"2":4.75,"3":3.75,"4":4.15,"5":5.9,"6":9.25,"7+":10},"halfFull":{"ss":"","sp":"","sf":"","ps":"5.10","pp":"7.75","pf":"8.30","fs":"17.00","fp":"12.00","ff":"5.75","updateTime":"2026-03-20 16:31:11"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1673,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-20_a123_02","name":"plan_a123_02","planName":"方案A123-02","matches":[{"matchId":"2038479","homeName":"波城FC","visitName":"蒙彼利埃","leagueName":"法乙","matchNum":"周五006","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":3,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2"},{"direction":"3球"}],"odds":{"spf":{"home":2.72,"draw":3.35,"away":2.16},"rqspf":{"home":6.15,"draw":4.55,"away":1.34,"handicap":-1},"totalGoals":{"0":13,"1":5.55,"2":3.45,"3":3.35,"4":5.1,"5":9,"6":16,"7+":26},"halfFull":{"ss":"","sp":"","sf":"","ps":"6.75","pp":"5.30","pf":"5.40","fs":"29.00","fp":"14.00","ff":"3.50","updateTime":"2026-03-20 21:43:04"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1301,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-20_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2038477","homeName":"卡利亚里","visitName":"那不勒斯","leagueName":"意甲","matchNum":"周五004","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":6,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":5.31,"draw":3.2,"away":1.59},"rqspf":{"home":2.05,"draw":3.15,"away":3.08,"handicap":1},"totalGoals":{"0":7.5,"1":3.85,"2":3,"3":3.95,"4":7,"5":14,"6":28,"7+":40},"halfFull":{"ss":"","sp":"","sf":"","ps":"10.50","pp":"5.00","pf":"3.85","fs":"38.00","fp":"16.00","ff":"2.50","updateTime":"2026-03-20 21:52:48"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2139,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-20_a345_02","name":"plan_a345_02","planName":"方案A345-02","matches":[{"matchId":"2038479","homeName":"波城FC","visitName":"蒙彼利埃","leagueName":"法乙","matchNum":"周五006","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":4,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4","result":null},{"direction":"5球"}],"odds":{"spf":{"home":2.72,"draw":3.35,"away":2.16},"rqspf":{"home":6.15,"draw":4.55,"away":1.34,"handicap":-1},"totalGoals":{"0":13,"1":5.55,"2":3.45,"3":3.35,"4":5.1,"5":9,"6":16,"7+":26},"halfFull":{"ss":"","sp":"","sf":"","ps":"6.75","pp":"5.30","pf":"5.40","fs":"29.00","fp":"14.00","ff":"3.50","updateTime":"2026-03-20 21:43:04"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1651,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:36.916Z",
+  "earliestKickoff": null,
+  "date": "2026-03-20",
+  "plans": [
+    {
+      "planId": "plan_2026-03-20_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038474",
+          "direction": "总进球-1、2、3球",
+          "homeName": "西悉尼漫步者",
+          "visitName": "阿德莱德联",
+          "matchNum": "周五001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-20_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038479",
+          "direction": "总进球-1、2、3球",
+          "homeName": "波城FC",
+          "visitName": "蒙彼利埃",
+          "matchNum": "周五006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-20_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038477",
+          "direction": "总进球-3、4、5球",
+          "homeName": "卡利亚里",
+          "visitName": "那不勒斯",
+          "matchNum": "周五004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-20_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038479",
+          "direction": "总进球-3、4、5球",
+          "homeName": "波城FC",
+          "visitName": "蒙彼利埃",
+          "matchNum": "周五006"
+        }
+      ]
+    }
+  ]
+}

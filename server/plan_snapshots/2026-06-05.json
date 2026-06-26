@@ -1,1 +1,6 @@
-{"date":"2026-06-05","plans":[{"planId":"plan_2026-06-05_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2040114","homeName":"新加坡","visitName":"中国","leagueName":"国际赛","matchNum":"周五201","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":7,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":4.85,"draw":3.9,"away":1.5},"rqspf":{"home":2.25,"draw":3.25,"away":2.65,"handicap":1},"totalGoals":{"0":13,"1":4.8,"2":3.45,"3":3.35,"4":5.25,"5":9.25,"6":20,"7+":31},"halfFull":{"hh":8.75,"hd":17,"ha":23,"dh":11,"dd":6.5,"da":4.05,"ah":50,"ad":17,"aa":2.15}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1700,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:38.552Z",
+  "earliestKickoff": null,
+  "date": "2026-06-05",
+  "plans": []
+}

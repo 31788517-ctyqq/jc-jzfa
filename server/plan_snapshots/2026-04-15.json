@@ -1,1 +1,79 @@
-{"date":"2026-04-15","plans":[{"planId":"plan_2026-04-15_1","name":"plan_1","planName":"方案一","matches":[{"matchId":"2039112","homeName":"阿森纳","visitName":"里斯本竞技","leagueName":"欧冠","matchNum":"周三005","startTime":"","matchStatus":0,"direction":"平、让平","expertCount":31,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"平"},{"direction":"让平"}],"odds":{"spf":{"home":1.4,"draw":4.05,"away":5.95},"rqspf":{"home":2.46,"draw":3.2,"away":2.44,"handicap":-1},"totalGoals":{"0":14,"1":5,"2":3.45,"3":3.4,"4":5.25,"5":8.75,"6":17,"7+":28},"halfFull":{"ss":"","sp":"","sf":"","ps":"3.90","pp":"7.00","pf":"13.00","fs":"24.00","fp":"17.00","ff":"10.00","updateTime":"2026-04-15 13:21:31"}},"actualScore":""},{"matchId":"2039111","homeName":"萨尔普斯堡","visitName":"博德闪耀","leagueName":"挪超","matchNum":"周三004","startTime":"","matchStatus":0,"direction":"让负","expertCount":64,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":5.8,"draw":5.35,"away":1.3},"rqspf":{"home":2.9,"draw":4.15,"away":1.84,"handicap":1},"totalGoals":{"0":38,"1":10,"2":5.6,"3":3.85,"4":3.9,"5":5.35,"6":8.2,"7+":8.2},"halfFull":{"ss":"","sp":"","sf":"","ps":"16.00","pp":"10.50","pf":"4.35","fs":"35.00","fp":"17.00","ff":"1.78","updateTime":"2026-04-15 21:13:55"}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":3289,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-15_2","name":"plan_2","planName":"方案二","matches":[{"matchId":"2039112","homeName":"阿森纳","visitName":"里斯本竞技","leagueName":"欧冠","matchNum":"周三005","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":51,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.4,"draw":4.05,"away":5.95},"rqspf":{"home":2.46,"draw":3.2,"away":2.44,"handicap":-1},"totalGoals":{"0":14,"1":5,"2":3.45,"3":3.4,"4":5.25,"5":8.75,"6":17,"7+":28},"halfFull":{"ss":"","sp":"","sf":"","ps":"3.90","pp":"7.00","pf":"13.00","fs":"24.00","fp":"17.00","ff":"10.00","updateTime":"2026-04-15 13:21:31"}},"actualScore":""},{"matchId":"2039111","homeName":"萨尔普斯堡","visitName":"博德闪耀","leagueName":"挪超","matchNum":"周三004","startTime":"","matchStatus":0,"direction":"让负","expertCount":64,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":5.8,"draw":5.35,"away":1.3},"rqspf":{"home":2.9,"draw":4.15,"away":1.84,"handicap":1},"totalGoals":{"0":38,"1":10,"2":5.6,"3":3.85,"4":3.9,"5":5.35,"6":8.2,"7+":8.2},"halfFull":{"ss":"","sp":"","sf":"","ps":"16.00","pp":"10.50","pf":"4.35","fs":"35.00","fp":"17.00","ff":"1.78","updateTime":"2026-04-15 21:13:55"}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":3151,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-15_3","name":"plan_3","planName":"方案三","matches":[{"matchId":"2039112","homeName":"阿森纳","visitName":"里斯本竞技","leagueName":"欧冠","matchNum":"周三005","startTime":"","matchStatus":0,"direction":"胜","expertCount":171,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":1.4,"draw":4.05,"away":5.95},"rqspf":{"home":2.46,"draw":3.2,"away":2.44,"handicap":-1},"totalGoals":{"0":14,"1":5,"2":3.45,"3":3.4,"4":5.25,"5":8.75,"6":17,"7+":28},"halfFull":{"ss":"","sp":"","sf":"","ps":"3.90","pp":"7.00","pf":"13.00","fs":"24.00","fp":"17.00","ff":"10.00","updateTime":"2026-04-15 13:21:31"}},"actualScore":""},{"matchId":"2039111","homeName":"萨尔普斯堡","visitName":"博德闪耀","leagueName":"挪超","matchNum":"周三004","startTime":"","matchStatus":0,"direction":"让负","expertCount":64,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":5.8,"draw":5.35,"away":1.3},"rqspf":{"home":2.9,"draw":4.15,"away":1.84,"handicap":1},"totalGoals":{"0":38,"1":10,"2":5.6,"3":3.85,"4":3.9,"5":5.35,"6":8.2,"7+":8.2},"halfFull":{"ss":"","sp":"","sf":"","ps":"16.00","pp":"10.50","pf":"4.35","fs":"35.00","fp":"17.00","ff":"1.78","updateTime":"2026-04-15 21:13:55"}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2576,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-15_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2039113","homeName":"拜仁慕尼黑","visitName":"皇家马德里","leagueName":"欧冠","matchNum":"周三006","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":9,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.44,"draw":5.4,"away":4},"rqspf":{"home":2.16,"draw":4.22,"away":2.33,"handicap":-1},"totalGoals":{"0":46,"1":14,"2":6.5,"3":3.95,"4":3.95,"5":4.9,"6":6.8,"7+":6.7},"halfFull":{"ss":"","sp":"","sf":"","ps":"5.00","pp":"10.50","pf":"11.00","fs":"16.00","fp":"14.50","ff":"7.00","updateTime":"2026-04-15 21:22:58"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2457,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-15_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2039111","homeName":"萨尔普斯堡","visitName":"博德闪耀","leagueName":"挪超","matchNum":"周三004","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":5.8,"draw":5.35,"away":1.3},"rqspf":{"home":2.9,"draw":4.15,"away":1.84,"handicap":1},"totalGoals":{"0":38,"1":10,"2":5.6,"3":3.85,"4":3.9,"5":5.35,"6":8.2,"7+":8.2},"halfFull":{"ss":"","sp":"","sf":"","ps":"16.00","pp":"10.50","pf":"4.35","fs":"35.00","fp":"17.00","ff":"1.78","updateTime":"2026-04-15 21:13:55"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1858,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-15_a123_02","name":"plan_a123_02","planName":"方案A123-02","matches":[{"matchId":"2039113","homeName":"拜仁慕尼黑","visitName":"皇家马德里","leagueName":"欧冠","matchNum":"周三006","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":10,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":1.44,"draw":5.4,"away":4},"rqspf":{"home":2.16,"draw":4.22,"away":2.33,"handicap":-1},"totalGoals":{"0":46,"1":14,"2":6.5,"3":3.95,"4":3.95,"5":4.9,"6":6.8,"7+":6.7},"halfFull":{"ss":"","sp":"","sf":"","ps":"5.00","pp":"10.50","pf":"11.00","fs":"16.00","fp":"14.50","ff":"7.00","updateTime":"2026-04-15 21:22:58"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2090,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-15_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2039108","homeName":"蔚山现代","visitName":"首尔FC","leagueName":"韩职","matchNum":"周三001","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":4,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4","result":null},{"direction":"5球","result":null}],"odds":{"spf":{"home":2.45,"draw":2.95,"away":2.62},"rqspf":{"home":1.37,"draw":4.2,"away":6.2,"handicap":1},"totalGoals":{"0":9.5,"1":4.25,"2":3.3,"3":3.8,"4":6,"5":11,"6":20,"7+":25},"halfFull":{"ss":"","sp":"","sf":"","ps":"5.60","pp":"4.80","pf":"6.00","fs":"23.00","fp":"13.00","ff":"4.60","updateTime":"2026-04-15 15:18:38"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1920,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-15_a345_02","name":"plan_a345_02","planName":"方案A345-02","matches":[{"matchId":"2039112","homeName":"阿森纳","visitName":"里斯本竞技","leagueName":"欧冠","matchNum":"周三005","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":24,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":1.4,"draw":4.05,"away":5.95},"rqspf":{"home":2.46,"draw":3.2,"away":2.44,"handicap":-1},"totalGoals":{"0":14,"1":5,"2":3.45,"3":3.4,"4":5.25,"5":8.75,"6":17,"7+":28},"halfFull":{"ss":"","sp":"","sf":"","ps":"3.90","pp":"7.00","pf":"13.00","fs":"24.00","fp":"17.00","ff":"10.00","updateTime":"2026-04-15 13:21:31"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1670,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-04-15_4","name":"plan_4","planName":"方案四","matches":[{"matchId":"2039112","homeName":"阿森纳","visitName":"里斯本竞技","leagueName":"欧冠","matchNum":"周三005","startTime":"","matchStatus":0,"direction":"平、让平","expertCount":31,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"平"},{"direction":"让平"}],"odds":{"spf":{"home":1.4,"draw":4.05,"away":5.95},"rqspf":{"home":2.46,"draw":3.2,"away":2.44,"handicap":-1},"totalGoals":{"0":14,"1":5,"2":3.45,"3":3.4,"4":5.25,"5":8.75,"6":17,"7+":28},"halfFull":{"ss":"","sp":"","sf":"","ps":"3.90","pp":"7.00","pf":"13.00","fs":"24.00","fp":"17.00","ff":"10.00","updateTime":"2026-04-15 13:21:31"}},"actualScore":""},{"matchId":"2039110","homeName":"特罗姆瑟","visitName":"利勒斯特罗姆","leagueName":"挪超","matchNum":"周三003","startTime":"","matchStatus":0,"direction":"胜","expertCount":140,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":1.61,"draw":3.8,"away":4.08},"rqspf":{"home":3.03,"draw":3.35,"away":2,"handicap":-1},"totalGoals":{"0":15,"1":5.6,"2":3.8,"3":3.35,"4":4.7,"5":8,"6":15,"7+":23},"halfFull":{"ss":"","sp":"","sf":"","ps":"4.25","pp":"6.35","pf":"9.75","fs":"20.00","fp":"13.00","ff":"6.80","updateTime":"2026-04-15 21:53:03"}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2878,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:37.481Z",
+  "earliestKickoff": null,
+  "date": "2026-04-15",
+  "plans": [
+    {
+      "planId": "plan_2026-04-15_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039111",
+          "direction": "总进球-1、2、3球",
+          "homeName": "萨尔普斯堡",
+          "visitName": "博德闪耀",
+          "matchNum": "周三004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-15_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039113",
+          "direction": "总进球-1、2、3球",
+          "homeName": "拜仁慕尼黑",
+          "visitName": "皇家马德里",
+          "matchNum": "周三006"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-15_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039108",
+          "direction": "总进球-3、4、5球",
+          "homeName": "蔚山现代",
+          "visitName": "首尔FC",
+          "matchNum": "周三001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-15_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039112",
+          "direction": "总进球-3、4、5球",
+          "homeName": "阿森纳",
+          "visitName": "里斯本竞技",
+          "matchNum": "周三005"
+        }
+      ]
+    }
+  ]
+}

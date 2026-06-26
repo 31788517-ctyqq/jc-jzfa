@@ -1,5 +1,5 @@
 {
-  "lockedAt": "2026-06-18T10:12:53.619Z",
+  "lockedAt": "2026-06-24T13:53:38.825Z",
   "earliestKickoff": null,
   "date": "2026-06-17",
   "plans": [
@@ -29,52 +29,20 @@
       ]
     },
     {
-      "planId": "plan_2026-06-17_wc2",
-      "name": "plan_wc2",
-      "planName": "世界杯02",
-      "playType": "混合投注",
-      "passType": "2串1",
+      "planId": "plan_2026-06-17_6a",
+      "name": "plan_6a",
+      "planName": "世界杯06",
+      "playType": "单关",
+      "passType": "单关",
       "multiplier": 25,
       "amount": 1000,
       "matches": [
         {
-          "matchId": "2040183",
+          "matchId": "2040182",
           "direction": "总进球-2、3球",
-          "homeName": "英格兰",
-          "visitName": "克罗地亚",
-          "matchNum": "周三022"
-        },
-        {
-          "matchId": "2040184",
-          "direction": "让负",
-          "homeName": "加纳",
-          "visitName": "巴拿马",
-          "matchNum": "周三023"
-        }
-      ]
-    },
-    {
-      "planId": "plan_2026-06-17_3",
-      "name": "plan_3",
-      "planName": "方案三",
-      "playType": "混合投注",
-      "passType": "2串1",
-      "multiplier": 25,
-      "amount": 1000,
-      "matches": [
-        {
-          "matchId": "2040229",
-          "direction": "胜",
-          "homeName": "坦佩雷山猫",
-          "visitName": "雅罗",
-          "matchNum": "周三202"
-        },
-        {
-          "matchId": "2040228",
-          "direction": "让负",
-          "homeName": "赫尔辛基",
-          "visitName": "国际图尔库",
-          "matchNum": "周三201"
+          "homeName": "葡萄牙",
+          "visitName": "刚果(金)",
+          "matchNum": "周三021"
         }
       ]
     },

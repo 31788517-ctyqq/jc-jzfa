@@ -1,1 +1,61 @@
-{"date":"2026-04-13","plans":[]}
+{
+  "lockedAt": "2026-06-24T13:53:37.438Z",
+  "earliestKickoff": null,
+  "date": "2026-04-13",
+  "plans": [
+    {
+      "planId": "plan_2026-04-13_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039062",
+          "direction": "总进球-1、2、3球",
+          "homeName": "天狼星",
+          "visitName": "哈马比",
+          "matchNum": "周一001"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-13_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039065",
+          "direction": "总进球-1、2、3球",
+          "homeName": "罗德兹",
+          "visitName": "特鲁瓦",
+          "matchNum": "周一004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-04-13_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039063",
+          "direction": "总进球-3、4、5球",
+          "homeName": "布鲁马波卡纳",
+          "visitName": "AIK索尔纳",
+          "matchNum": "周一002"
+        }
+      ]
+    }
+  ]
+}

@@ -1,1 +1,79 @@
-{"date":"2026-05-08","plans":[{"planId":"plan_2026-05-08_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2039580","homeName":"多特蒙德","visitName":"法兰克福","leagueName":"德甲","matchNum":"周五008","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":9,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.58,"draw":4.05,"away":4},"rqspf":{"home":2.53,"draw":3.95,"away":2.08,"handicap":-1},"totalGoals":{"0":28,"1":9.5,"2":5.15,"3":3.4,"4":3.8,"5":6,"6":10,"7+":10.5},"halfFull":{"hh":2.25,"hd":15,"ha":30,"dh":4.65,"dd":8.2,"da":10,"ah":17,"ad":15,"aa":6.8}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2048,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-08_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2039575","homeName":"帕德博恩","visitName":"卡尔斯鲁厄","leagueName":"德乙","matchNum":"周五003","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2","result":null},{"direction":"3球","result":null}],"odds":{"spf":{"home":1.26,"draw":5.4,"away":6.65},"rqspf":{"home":1.81,"draw":4.06,"away":3.02,"handicap":-1},"totalGoals":{"0":31,"1":9.5,"2":5.1,"3":3.55,"4":3.9,"5":5.75,"6":9,"7+":10.25},"halfFull":{"hh":1.76,"hd":17,"ha":46,"dh":4.4,"dd":10,"da":15,"ah":19,"ad":17,"aa":10}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1715,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-08_a123_02","name":"plan_a123_02","planName":"方案A123-02","matches":[{"matchId":"2039582","homeName":"朗斯","visitName":"南特","leagueName":"法甲","matchNum":"周五010","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":5,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1","result":null},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":1.3,"draw":4.9,"away":6.4},"rqspf":{"home":1.98,"draw":3.65,"away":2.85,"handicap":-1},"totalGoals":{"0":23,"1":7.5,"2":4.55,"3":3.1,"4":3.95,"5":7.25,"6":12.5,"7+":15.5},"halfFull":{"hh":1.8,"hd":17,"ha":40,"dh":4.25,"dd":8.5,"da":16,"ah":20,"ad":17,"aa":11}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1480,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-08_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2039583","homeName":"赫尔城","visitName":"米尔沃尔","leagueName":"英冠","matchNum":"周五011","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4","result":null},{"direction":"5球","result":null}],"odds":{"spf":{"home":2.96,"draw":2.8,"away":2.3},"rqspf":{"home":1.48,"draw":3.85,"away":5.15,"handicap":1},"totalGoals":{"0":10,"1":3.85,"2":3.1,"3":3.5,"4":6.7,"5":13,"6":26,"7+":45},"halfFull":{"hh":4.6,"hd":14,"ha":29,"dh":6,"dd":4.5,"da":5.5,"ah":32,"ad":14,"aa":3.9}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1954,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-08_a345_02","name":"plan_a345_02","planName":"方案A345-02","matches":[{"matchId":"2039577","homeName":"埃尔夫斯堡","visitName":"布鲁马波卡纳","leagueName":"瑞超","matchNum":"周五005","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":18,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":1.67,"draw":3.5,"away":4.1},"rqspf":{"home":3.36,"draw":3.24,"away":1.91,"handicap":-1},"totalGoals":{"0":12,"1":5.05,"2":3.35,"3":3.2,"4":5.6,"5":10.5,"6":19,"7+":28},"halfFull":{"hh":2.75,"hd":15,"ha":38,"dh":4.4,"dd":5.2,"da":9,"ah":24,"ad":15,"aa":6.3}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1706,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:37.963Z",
+  "earliestKickoff": null,
+  "date": "2026-05-08",
+  "plans": [
+    {
+      "planId": "plan_2026-05-08_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039575",
+          "direction": "总进球-1、2、3球",
+          "homeName": "帕德博恩",
+          "visitName": "卡尔斯鲁厄",
+          "matchNum": "周五003"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-08_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039582",
+          "direction": "总进球-1、2、3球",
+          "homeName": "朗斯",
+          "visitName": "南特",
+          "matchNum": "周五010"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-08_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039583",
+          "direction": "总进球-3、4、5球",
+          "homeName": "赫尔城",
+          "visitName": "米尔沃尔",
+          "matchNum": "周五011"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-08_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039577",
+          "direction": "总进球-3、4、5球",
+          "homeName": "埃尔夫斯堡",
+          "visitName": "布鲁马波卡纳",
+          "matchNum": "周五005"
+        }
+      ]
+    }
+  ]
+}

@@ -1,1 +1,79 @@
-{"date":"2026-05-26","plans":[{"planId":"plan_2026-05-26_2","name":"plan_2","planName":"方案二","matches":[{"matchId":"2039990","homeName":"蒙得维的亚国民","visitName":"科金博联","leagueName":"解放者杯","matchNum":"周二006","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":70,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.6,"draw":3.45,"away":4.7},"rqspf":{"home":3.1,"draw":3.2,"away":2.03,"handicap":-1},"totalGoals":{"0":10,"1":4.2,"2":3.2,"3":3.6,"4":5.9,"5":11},"halfFull":{"hh":2.5,"hd":15.5,"ha":50,"dh":3.85,"dd":5.2,"da":10.5,"ah":26,"ad":15.5,"aa":8.5}},"actualScore":""},{"matchId":"2039986","homeName":"圣埃蒂安","visitName":"尼斯","leagueName":"法甲","matchNum":"周二002","startTime":"","matchStatus":0,"direction":"让负","expertCount":130,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":2.04,"draw":3.35,"away":2.94},"rqspf":{"home":4.15,"draw":3.8,"away":1.6,"handicap":-9},"totalGoals":{"0":14,"1":5.4,"2":3.7,"3":3.45,"4":4.9,"5":8.25},"halfFull":{"hh":3.4,"hd":14,"ha":35,"dh":5.25,"dd":5,"da":6.75,"ah":30,"ad":14,"aa":4.6}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2711,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-26_3","name":"plan_3","planName":"方案三","matches":[{"matchId":"2039988","homeName":"基多体育大学","visitName":"时刻准备","leagueName":"解放者杯","matchNum":"周二004","startTime":"","matchStatus":0,"direction":"胜","expertCount":217,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":1.3,"draw":4.65,"away":6.9},"rqspf":{"home":2.02,"draw":3.45,"away":2.9,"handicap":-1},"totalGoals":{"0":18,"1":5.8,"2":3.9,"3":3.4,"4":4.6,"5":7.3},"halfFull":{"hh":1.7,"hd":20,"ha":50,"dh":3.85,"dd":8.5,"da":17,"ah":23,"ad":20,"aa":15}},"actualScore":""},{"matchId":"2039986","homeName":"圣埃蒂安","visitName":"尼斯","leagueName":"法甲","matchNum":"周二002","startTime":"","matchStatus":0,"direction":"让负","expertCount":130,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":2.04,"draw":3.35,"away":2.94},"rqspf":{"home":4.15,"draw":3.8,"away":1.6,"handicap":-9},"totalGoals":{"0":14,"1":5.4,"2":3.7,"3":3.45,"4":4.9,"5":8.25},"halfFull":{"hh":3.4,"hd":14,"ha":35,"dh":5.25,"dd":5,"da":6.75,"ah":30,"ad":14,"aa":4.6}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2080,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-26_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2039988","homeName":"基多体育大学","visitName":"时刻准备","leagueName":"解放者杯","matchNum":"周二004","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":20,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.3,"draw":4.65,"away":6.9},"rqspf":{"home":2.02,"draw":3.45,"away":2.9,"handicap":-1},"totalGoals":{"0":18,"1":5.8,"2":3.9,"3":3.4,"4":4.6,"5":7.3},"halfFull":{"hh":1.7,"hd":20,"ha":50,"dh":3.85,"dd":8.5,"da":17,"ah":23,"ad":20,"aa":15}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1816,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-26_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2039988","homeName":"基多体育大学","visitName":"时刻准备","leagueName":"解放者杯","matchNum":"周二004","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":22,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2"},{"direction":"3球"}],"odds":{"spf":{"home":1.3,"draw":4.65,"away":6.9},"rqspf":{"home":2.02,"draw":3.45,"away":2.9,"handicap":-1},"totalGoals":{"0":18,"1":5.8,"2":3.9,"3":3.4,"4":4.6,"5":7.3},"halfFull":{"hh":1.7,"hd":20,"ha":50,"dh":3.85,"dd":8.5,"da":17,"ah":23,"ad":20,"aa":15}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1383,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-26_a123_02","name":"plan_a123_02","planName":"方案A123-02","matches":[{"matchId":"2039986","homeName":"圣埃蒂安","visitName":"尼斯","leagueName":"法甲","matchNum":"周二002","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2"},{"direction":"3球"}],"odds":{"spf":{"home":2.04,"draw":3.35,"away":2.94},"rqspf":{"home":4.15,"draw":3.8,"away":1.6,"handicap":-9},"totalGoals":{"0":14,"1":5.4,"2":3.7,"3":3.45,"4":4.9,"5":8.25},"halfFull":{"hh":3.4,"hd":14,"ha":35,"dh":5.25,"dd":5,"da":6.75,"ah":30,"ad":14,"aa":4.6}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1342,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-26_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2039991","homeName":"大学生体育","visitName":"托利马体育","leagueName":"解放者杯","matchNum":"周二007","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4","result":null},{"direction":"5球","result":null}],"odds":{"spf":{"home":1.89,"draw":3,"away":3.75},"rqspf":{"home":4.2,"draw":3.3,"away":1.7,"handicap":-1},"totalGoals":{"0":7.5,"1":3.4,"2":3.05,"3":3.95,"4":7.5,"5":16},"halfFull":{"hh":3.95,"hd":17.5,"ha":46,"dh":4,"dd":3.4,"da":7.5,"ah":38,"ad":17.5,"aa":6.2}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2227,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-26_a345_02","name":"plan_a345_02","planName":"方案A345-02","matches":[{"matchId":"2039987","homeName":"拉努斯","visitName":"米拉索尔","leagueName":"解放者杯","matchNum":"周二003","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":4,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":1.68,"draw":3.2,"away":4.55},"rqspf":{"home":3.35,"draw":3.25,"away":1.91,"handicap":-1},"totalGoals":{"0":7.8,"1":3.8,"2":3,"3":3.9,"4":6.7,"5":14},"halfFull":{"hh":2.95,"hd":17,"ha":50,"dh":3.6,"dd":3.85,"da":10,"ah":30,"ad":17,"aa":9.35}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2096,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:38.344Z",
+  "earliestKickoff": null,
+  "date": "2026-05-26",
+  "plans": [
+    {
+      "planId": "plan_2026-05-26_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039988",
+          "direction": "总进球-1、2、3球",
+          "homeName": "基多体育大学",
+          "visitName": "时刻准备",
+          "matchNum": "周二004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-26_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039986",
+          "direction": "总进球-1、2、3球",
+          "homeName": "圣埃蒂安",
+          "visitName": "尼斯",
+          "matchNum": "周二002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-26_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039991",
+          "direction": "总进球-3、4、5球",
+          "homeName": "大学生体育",
+          "visitName": "托利马体育",
+          "matchNum": "周二007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-26_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039987",
+          "direction": "总进球-3、4、5球",
+          "homeName": "拉努斯",
+          "visitName": "米拉索尔",
+          "matchNum": "周二003"
+        }
+      ]
+    }
+  ]
+}

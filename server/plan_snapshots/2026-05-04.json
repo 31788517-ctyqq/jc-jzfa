@@ -1,1 +1,79 @@
-{"date":"2026-05-04","plans":[{"planId":"plan_2026-05-04_1","name":"plan_1","planName":"方案一","matches":[{"matchId":"2039514","homeName":"罗马","visitName":"佛罗伦萨","leagueName":"意甲","matchNum":"周一008","startTime":"","matchStatus":0,"direction":"平、让平","expertCount":32,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"平"},{"direction":"让平"}],"odds":{"spf":{"home":1.42,"draw":3.95,"away":5.8},"rqspf":{"home":2.62,"draw":3.02,"away":2.4,"handicap":-1},"totalGoals":{"0":11,"1":4.9,"2":3.25,"3":3.35,"4":5.75,"5":10.5,"6":20,"7+":30},"halfFull":{"hh":2.07,"hd":17,"ha":50,"dh":4,"dd":6.1,"da":12.5,"ah":25,"ad":17,"aa":10}},"actualScore":""},{"matchId":"2039515","homeName":"埃弗顿","visitName":"曼彻斯特城","leagueName":"英超","matchNum":"周一009","startTime":"","matchStatus":0,"direction":"让负","expertCount":49,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":6.55,"draw":4.58,"away":1.32},"rqspf":{"home":2.74,"draw":3.85,"away":1.98,"handicap":1},"totalGoals":{"0":17,"1":6.2,"2":4,"3":3.4,"4":4.3,"5":7.75,"6":13.5,"7+":19},"halfFull":{"hh":13,"hd":19,"ha":22,"dh":16,"dd":7.2,"da":3.75,"ah":50,"ad":19,"aa":1.86}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":3389,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-04_2","name":"plan_2","planName":"方案二","matches":[{"matchId":"2039514","homeName":"罗马","visitName":"佛罗伦萨","leagueName":"意甲","matchNum":"周一008","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":53,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.42,"draw":3.95,"away":5.8},"rqspf":{"home":2.62,"draw":3.02,"away":2.4,"handicap":-1},"totalGoals":{"0":11,"1":4.9,"2":3.25,"3":3.35,"4":5.75,"5":10.5,"6":20,"7+":30},"halfFull":{"hh":2.07,"hd":17,"ha":50,"dh":4,"dd":6.1,"da":12.5,"ah":25,"ad":17,"aa":10}},"actualScore":""},{"matchId":"2039515","homeName":"埃弗顿","visitName":"曼彻斯特城","leagueName":"英超","matchNum":"周一009","startTime":"","matchStatus":0,"direction":"让负","expertCount":49,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":6.55,"draw":4.58,"away":1.32},"rqspf":{"home":2.74,"draw":3.85,"away":1.98,"handicap":1},"totalGoals":{"0":17,"1":6.2,"2":4,"3":3.4,"4":4.3,"5":7.75,"6":13.5,"7+":19},"halfFull":{"hh":13,"hd":19,"ha":22,"dh":16,"dd":7.2,"da":3.75,"ah":50,"ad":19,"aa":1.86}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":3266,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-04_3","name":"plan_3","planName":"方案三","matches":[{"matchId":"2039514","homeName":"罗马","visitName":"佛罗伦萨","leagueName":"意甲","matchNum":"周一008","startTime":"","matchStatus":0,"direction":"胜","expertCount":142,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":1.42,"draw":3.95,"away":5.8},"rqspf":{"home":2.62,"draw":3.02,"away":2.4,"handicap":-1},"totalGoals":{"0":11,"1":4.9,"2":3.25,"3":3.35,"4":5.75,"5":10.5,"6":20,"7+":30},"halfFull":{"hh":2.07,"hd":17,"ha":50,"dh":4,"dd":6.1,"da":12.5,"ah":25,"ad":17,"aa":10}},"actualScore":""},{"matchId":"2039515","homeName":"埃弗顿","visitName":"曼彻斯特城","leagueName":"英超","matchNum":"周一009","startTime":"","matchStatus":0,"direction":"让负","expertCount":49,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":6.55,"draw":4.58,"away":1.32},"rqspf":{"home":2.74,"draw":3.85,"away":1.98,"handicap":1},"totalGoals":{"0":17,"1":6.2,"2":4,"3":3.4,"4":4.3,"5":7.75,"6":13.5,"7+":19},"halfFull":{"hh":13,"hd":19,"ha":22,"dh":16,"dd":7.2,"da":3.75,"ah":50,"ad":19,"aa":1.86}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2812,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-04_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2039513","homeName":"吉达联合","visitName":"拉斯永恒","leagueName":"沙特职业联赛","matchNum":"周一007","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.34,"draw":4.45,"away":6.35},"rqspf":{"home":2.12,"draw":3.5,"away":2.7,"handicap":-1},"totalGoals":{"0":20,"1":6.9,"2":4.25,"3":3.35,"4":4.3,"5":6.8,"6":12,"7+":16},"halfFull":{"hh":1.97,"hd":17,"ha":40,"dh":3.95,"dd":8,"da":13,"ah":21,"ad":17,"aa":10}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1873,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-04_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2039513","homeName":"吉达联合","visitName":"拉斯永恒","leagueName":"沙特职业联赛","matchNum":"周一007","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":4,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":1.34,"draw":4.45,"away":6.35},"rqspf":{"home":2.12,"draw":3.5,"away":2.7,"handicap":-1},"totalGoals":{"0":20,"1":6.9,"2":4.25,"3":3.35,"4":4.3,"5":6.8,"6":12,"7+":16},"halfFull":{"hh":1.97,"hd":17,"ha":40,"dh":3.95,"dd":8,"da":13,"ah":21,"ad":17,"aa":10}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1473,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-04_a123_02","name":"plan_a123_02","planName":"方案A123-02","matches":[{"matchId":"2039508","homeName":"赫尔辛基","visitName":"拉赫蒂","leagueName":"芬兰超级联赛","matchNum":"周一002","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":5,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2"},{"direction":"3球"}],"odds":{"spf":{"home":1.41,"draw":4.15,"away":5.6},"rqspf":{"home":2.37,"draw":3.3,"away":2.48,"handicap":-1},"totalGoals":{"0":16,"1":5.65,"2":3.85,"3":3.35,"4":4.45,"5":8.05,"6":16,"7+":22},"halfFull":{"hh":2,"hd":16,"ha":45,"dh":4.1,"dd":7.5,"da":13,"ah":22,"ad":16,"aa":9.5}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1360,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-04_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2039509","homeName":"克雷莫纳","visitName":"拉齐奥","leagueName":"意甲","matchNum":"周一003","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3","result":null},{"direction":"4","result":null},{"direction":"5球"}],"odds":{"spf":{"home":3.04,"draw":2.93,"away":2.18},"rqspf":{"home":1.51,"draw":3.8,"away":4.9,"handicap":1},"totalGoals":{"0":8.7,"1":3.7,"2":3.3,"3":3.55,"4":6.5,"5":13.5,"6":28,"7+":47},"halfFull":{"hh":5.45,"hd":15,"ha":28,"dh":6.5,"dd":4,"da":5,"ah":32,"ad":15,"aa":3.75}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1962,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-04_a345_02","name":"plan_a345_02","planName":"方案A345-02","matches":[{"matchId":"2039514","homeName":"罗马","visitName":"佛罗伦萨","leagueName":"意甲","matchNum":"周一008","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":9,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4"},{"direction":"5球"}],"odds":{"spf":{"home":1.42,"draw":3.95,"away":5.8},"rqspf":{"home":2.62,"draw":3.02,"away":2.4,"handicap":-1},"totalGoals":{"0":11,"1":4.9,"2":3.25,"3":3.35,"4":5.75,"5":10.5,"6":20,"7+":30},"halfFull":{"hh":2.07,"hd":17,"ha":50,"dh":4,"dd":6.1,"da":12.5,"ah":25,"ad":17,"aa":10}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1762,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-05-04_4","name":"plan_4","planName":"方案四","matches":[{"matchId":"2039514","homeName":"罗马","visitName":"佛罗伦萨","leagueName":"意甲","matchNum":"周一008","startTime":"","matchStatus":0,"direction":"平、让平","expertCount":32,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"平"},{"direction":"让平"}],"odds":{"spf":{"home":1.42,"draw":3.95,"away":5.8},"rqspf":{"home":2.62,"draw":3.02,"away":2.4,"handicap":-1},"totalGoals":{"0":11,"1":4.9,"2":3.25,"3":3.35,"4":5.75,"5":10.5,"6":20,"7+":30},"halfFull":{"hh":2.07,"hd":17,"ha":50,"dh":4,"dd":6.1,"da":12.5,"ah":25,"ad":17,"aa":10}},"actualScore":""},{"matchId":"2039510","homeName":"佐加顿斯","visitName":"IFK哥德堡","leagueName":"瑞超","matchNum":"周一004","startTime":"","matchStatus":0,"direction":"胜","expertCount":103,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":1.48,"draw":3.85,"away":5.15},"rqspf":{"home":2.8,"draw":3.05,"away":2.25,"handicap":-1},"totalGoals":{"0":13,"1":5.15,"2":3.6,"3":3.35,"4":5,"5":9.55,"6":16.5,"7+":24},"halfFull":{"hh":2.4,"hd":15,"ha":38,"dh":4.05,"dd":5.65,"da":11,"ah":22,"ad":15,"aa":8.5}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2533,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:37.884Z",
+  "earliestKickoff": null,
+  "date": "2026-05-04",
+  "plans": [
+    {
+      "planId": "plan_2026-05-04_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039513",
+          "direction": "总进球-1、2、3球",
+          "homeName": "吉达联合",
+          "visitName": "拉斯永恒",
+          "matchNum": "周一007"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-04_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039508",
+          "direction": "总进球-1、2、3球",
+          "homeName": "赫尔辛基",
+          "visitName": "拉赫蒂",
+          "matchNum": "周一002"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-04_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039509",
+          "direction": "总进球-3、4、5球",
+          "homeName": "克雷莫纳",
+          "visitName": "拉齐奥",
+          "matchNum": "周一003"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-05-04_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2039514",
+          "direction": "总进球-3、4、5球",
+          "homeName": "罗马",
+          "visitName": "佛罗伦萨",
+          "matchNum": "周一008"
+        }
+      ]
+    }
+  ]
+}

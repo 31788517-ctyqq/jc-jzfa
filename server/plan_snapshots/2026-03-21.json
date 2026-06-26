@@ -1,1 +1,79 @@
-{"date":"2026-03-21","plans":[{"planId":"plan_2026-03-21_3","name":"plan_3","planName":"方案三","matches":[{"matchId":"2038514","homeName":"南安普敦","visitName":"牛津联","leagueName":"英冠","matchNum":"周六015","startTime":"","matchStatus":0,"direction":"胜","expertCount":70,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"胜"}],"odds":{"spf":{"home":1.47,"draw":3.8,"away":5.4},"rqspf":{"home":2.52,"draw":3.48,"away":2.25,"handicap":-1},"totalGoals":{"0":12,"1":5.2,"2":3.2,"3":3.35,"4":5.5,"5":10.5,"6":18,"7+":29},"halfFull":{"ss":"","sp":"","sf":"","ps":"4.15","pp":"5.75","pf":"11.50","fs":"23.00","fp":"16.00","ff":"9.30","updateTime":"2026-03-21 22:12:19"}},"actualScore":""},{"matchId":"2038511","homeName":"沃尔夫斯堡","visitName":"云达不来梅","leagueName":"德甲","matchNum":"周六012","startTime":"","matchStatus":0,"direction":"让负","expertCount":30,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"让负"}],"odds":{"spf":{"home":2.27,"draw":3.4,"away":2.53},"rqspf":{"home":4.9,"draw":4.1,"away":1.47,"handicap":-1},"totalGoals":{"0":17,"1":6,"2":3.8,"3":3.5,"4":4.55,"5":7.7,"6":13,"7+":19},"halfFull":{"ss":"","sp":"","sf":"","ps":"5.65","pp":"5.85","pf":"6.00","fs":"21.00","fp":"13.00","ff":"4.25","updateTime":"2026-03-20 09:35:41"}},"actualScore":""}],"amount":1000,"playType":"混合投注","matchCount":2,"passType":"2串1","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2161,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-21_6a","name":"plan_6a","planName":"方案六","matches":[{"matchId":"2038503","homeName":"墨尔本胜利","visitName":"中央海岸水手","leagueName":"澳超","matchNum":"周六004","startTime":"","matchStatus":0,"direction":"总进球-2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-2"},{"direction":"3球"}],"odds":{"spf":{"home":1.39,"draw":4.32,"away":5.6},"rqspf":{"home":2.1,"draw":3.9,"away":2.52,"handicap":-1},"totalGoals":{"0":20.5,"1":7.1,"2":4.45,"3":3.7,"4":4.35,"5":6.6,"6":9.5,"7+":12},"halfFull":{"ss":"","sp":"","sf":"","ps":"4.10","pp":"7.85","pf":"14.00","fs":"22.00","fp":"17.00","ff":"10.50","updateTime":"2026-03-21 14:06:09"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":2020,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-21_a123_01","name":"plan_a123_01","planName":"方案A123-01","matches":[{"matchId":"2038509","homeName":"海登海姆","visitName":"勒沃库森","leagueName":"德甲","matchNum":"周六010","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1"},{"direction":"2","result":null},{"direction":"3球","result":null}],"odds":{"spf":{"home":5.6,"draw":4.65,"away":1.36},"rqspf":{"home":2.6,"draw":3.8,"away":2.08,"handicap":1},"totalGoals":{"0":26,"1":8,"2":4.8,"3":3.75,"4":4.2,"5":6,"6":9.25,"7+":9.75},"halfFull":{"ss":"","sp":"","sf":"","ps":"14.00","pp":"8.50","pf":"4.35","fs":"45.00","fp":"17.00","ff":"1.88","updateTime":"2026-03-21 21:32:10"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1667,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-21_a123_02","name":"plan_a123_02","planName":"方案A123-02","matches":[{"matchId":"2038503","homeName":"墨尔本胜利","visitName":"中央海岸水手","leagueName":"澳超","matchNum":"周六004","startTime":"","matchStatus":0,"direction":"总进球-1、2、3球","expertCount":2,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-1","result":null},{"direction":"2","result":null},{"direction":"3球"}],"odds":{"spf":{"home":1.39,"draw":4.32,"away":5.6},"rqspf":{"home":2.1,"draw":3.9,"away":2.52,"handicap":-1},"totalGoals":{"0":20.5,"1":7.1,"2":4.45,"3":3.7,"4":4.35,"5":6.6,"6":9.5,"7+":12},"halfFull":{"ss":"","sp":"","sf":"","ps":"4.10","pp":"7.85","pf":"14.00","fs":"22.00","fp":"17.00","ff":"10.50","updateTime":"2026-03-21 14:06:09"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1573,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-21_a345_01","name":"plan_a345_01","planName":"方案A345-01","matches":[{"matchId":"2038517","homeName":"图卢兹","visitName":"洛里昂","leagueName":"法甲","matchNum":"周六018","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3"},{"direction":"4","result":null},{"direction":"5球","result":null}],"odds":{"spf":{"home":1.69,"draw":3.2,"away":4.45},"rqspf":{"home":3.6,"draw":3.15,"away":1.88,"handicap":-1},"totalGoals":{"0":8.5,"1":4.3,"2":3.15,"3":3.65,"4":6,"5":12,"6":27,"7+":42},"halfFull":{"ss":"","sp":"","sf":"","ps":"4.25","pp":"5.10","pf":"8.75","fs":"27.00","fp":"15.00","ff":"7.00","updateTime":"2026-03-21 21:39:27"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1908,"winningPrize":0,"isPlanWon":null,"isPlanLose":null},{"planId":"plan_2026-03-21_a345_02","name":"plan_a345_02","planName":"方案A345-02","matches":[{"matchId":"2038502","homeName":"福冈黄蜂","visitName":"大阪钢巴","leagueName":"日职","matchNum":"周六003","startTime":"","matchStatus":0,"direction":"总进球-3、4、5球","expertCount":1,"isMatchWon":null,"isMatchLose":null,"subResults":[{"direction":"总进球-3","result":null},{"direction":"4","result":null},{"direction":"5球"}],"odds":{"spf":{"home":3.8,"draw":3.35,"away":1.76},"rqspf":{"home":1.8,"draw":3.12,"away":3.95,"handicap":1},"totalGoals":{"0":10,"1":4.3,"2":3.4,"3":3.6,"4":5.9,"5":10.5,"6":19,"7+":32},"halfFull":{"ss":"","sp":"","sf":"","ps":"8.20","pp":"5.30","pf":"4.25","fs":"30.00","fp":"14.00","ff":"3.08","updateTime":"2026-03-21 13:27:28"}},"actualScore":""}],"amount":1000,"playType":"单关","matchCount":1,"passType":"单关","betCount":250,"ticketCount":10,"multiplier":25,"maxPrize":1843,"winningPrize":0,"isPlanWon":null,"isPlanLose":null}]}
+{
+  "lockedAt": "2026-06-24T13:53:36.943Z",
+  "earliestKickoff": null,
+  "date": "2026-03-21",
+  "plans": [
+    {
+      "planId": "plan_2026-03-21_a123_01",
+      "name": "plan_a123_01",
+      "planName": "方案A123-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038509",
+          "direction": "总进球-1、2、3球",
+          "homeName": "海登海姆",
+          "visitName": "勒沃库森",
+          "matchNum": "周六010"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-21_a123_02",
+      "name": "plan_a123_02",
+      "planName": "方案A123-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038503",
+          "direction": "总进球-1、2、3球",
+          "homeName": "墨尔本胜利",
+          "visitName": "中央海岸水手",
+          "matchNum": "周六004"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-21_a345_01",
+      "name": "plan_a345_01",
+      "planName": "方案A345-01",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038517",
+          "direction": "总进球-3、4、5球",
+          "homeName": "图卢兹",
+          "visitName": "洛里昂",
+          "matchNum": "周六018"
+        }
+      ]
+    },
+    {
+      "planId": "plan_2026-03-21_a345_02",
+      "name": "plan_a345_02",
+      "planName": "方案A345-02",
+      "playType": "单关",
+      "passType": "单关",
+      "multiplier": 25,
+      "amount": 1000,
+      "matches": [
+        {
+          "matchId": "2038502",
+          "direction": "总进球-3、4、5球",
+          "homeName": "福冈黄蜂",
+          "visitName": "大阪钢巴",
+          "matchNum": "周六003"
+        }
+      ]
+    }
+  ]
+}
