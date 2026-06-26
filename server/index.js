@@ -1827,8 +1827,8 @@ case 'recommend-trend': {
                   '[rank-crosscheck] 命中判定矛盾: ' + (matchObj.num || '') + ' ' + (matchObj.homeName || '') + ' vs ' + (matchObj.visitName || '') +
                   ' dir=' + direction + ' midou310=' + midouHit + ' judgeByScore=' + scoreResult + ' score=' + matchObj.score
                 );
-                // 兜底：midou310 未中但比分判定命中 → 修正为命中
-                if (!midouHit && scoreResult === true) return true;
+                // 兜底：以 judgeByScore 比分判定为准（覆盖 midou310 错误）
+                return scoreResult === true;
               }
             } catch (e) {}
             return midouHit;
