@@ -1022,6 +1022,9 @@ function _ensurePage(id) {
         '</div>' +
         '<div class="scheme-stats-card" id="dhStatsCard"><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatSources">-</div><div class="scheme-stat-lbl">数据源</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatAvgRate">-</div><div class="scheme-stat-lbl">平均成功率</div></div><div class="scheme-stat-div"></div><div class="scheme-stat-item"><div class="scheme-stat-val" id="dhStatAlerts">-</div><div class="scheme-stat-lbl">活跃告警</div></div></div>' +
         '<div id="data-health-content"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+    else if (id === 'data-confidence')
+      el.innerHTML =
+        '<div id="data-confidence-content"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
     // ★ Phase 4: 支付体系页面容器
     else if (id === 'pricing')
       el.innerHTML =
@@ -1075,7 +1078,7 @@ export function switchTab(tab) {
     return;
   }
 
-  const publicTabs = new Set(['login', 'register', 'contact-invite', 'pricing', 'profile']);
+  const publicTabs = new Set(['login', 'register', 'contact-invite', 'pricing', 'profile', 'payment-result']);
 
   if (!publicTabs.has(tab) && !hasAuthToken()) {
     try {
@@ -1118,6 +1121,7 @@ export function switchTab(tab) {
     'confirm-scheme': '确认方案',
     'model-dashboard': '模型表现仪表板',
     'data-health': '数据健康监控',
+    'data-confidence': '数据可信度',
     pricing: '选择套餐',
     payment: '确认支付',
     'payment-result': '支付结果',
@@ -1372,6 +1376,12 @@ export function switchTab(tab) {
       m.loadDataHealth();
     });
   }
+  // ★ 数据可信度页面
+  if (tab === 'data-confidence') {
+    _mod('data-confidence').then(function (m) {
+      m.loadDataConfidence();
+    });
+  }
   // ★ Phase 4 支付体系页面
   if (tab === 'pricing') {
     _mod('pricing').then(function (m) {
@@ -1613,6 +1623,12 @@ window.onIncDirChange = function (dir) {
     state.setCurrentPage('home');
     loadHome();
     _preloadMods();
+    // ★ 数据悬浮面板: 登录后3秒懒加载 (直接 import, 不在 pages/ 目录)
+    if (hasAuthToken()) {
+      setTimeout(function () {
+        import('./data-confidence-tooltip.js').then(function (m) { m.initDataConfidenceTooltip(); }).catch(function () {});
+      }, 3000);
+    }
     setTimeout(function () {
       _preloadData('home');
     }, 500);
@@ -1752,6 +1768,7 @@ function switchTabLoad(tab) {
     'confirm-scheme': '确认方案',
     'model-dashboard': '模型表现仪表板',
     'data-health': '数据健康监控',
+    'data-confidence': '数据可信度',
     pricing: '选择套餐',
     payment: '确认支付',
     'payment-result': '支付结果',
@@ -1988,6 +2005,12 @@ function switchTabLoad(tab) {
   if (tab === 'data-health') {
     _mod('data-health').then(function (m) {
       m.loadDataHealth();
+    });
+  }
+  // ★ 数据可信度页面
+  if (tab === 'data-confidence') {
+    _mod('data-confidence').then(function (m) {
+      m.loadDataConfidence();
     });
   }
   // ★ Phase 4 支付体系页面
