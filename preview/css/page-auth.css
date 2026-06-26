@@ -1423,6 +1423,89 @@ input[type='password']::-webkit-credentials-auto-fill-button {
   color: #52606d;
 }
 
+/* ★ Phase1: 支付结果页亮色主题（覆盖默认深色） */
+.member-shell-result .member-section-card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.06);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.member-shell-result .result-container {
+  padding-top: 40px;
+}
+.member-shell-result .result-success {
+  background: linear-gradient(160deg, #ecfdf5, #f0fdf4 48%, #f7fef9);
+  border: 1px solid rgba(22, 101, 52, 0.14);
+}
+.member-shell-result .result-waiting {
+  background: linear-gradient(160deg, #eff6ff, #f0f7ff 48%, #f8fbff);
+  border: 1px solid rgba(30, 64, 175, 0.12);
+}
+.member-shell-result .result-failed {
+  background: linear-gradient(160deg, #fef2f2, #fff5f5 48%, #fffafa);
+  border: 1px solid rgba(127, 29, 29, 0.12);
+}
+.member-shell-result .result-success h2,
+.member-shell-result .result-waiting h2,
+.member-shell-result .result-failed h2 {
+  color: #111827;
+}
+.member-shell-result .result-desc {
+  color: #475569;
+}
+.member-shell-result .result-row {
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(126, 166, 189, 0.12);
+  color: #334155;
+}
+.member-shell-result .result-row span:last-child {
+  color: #1e293b;
+  font-weight: 700;
+}
+.member-shell-result .result-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+.member-shell-result .result-btn {
+  width: 100%;
+  min-height: 50px;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 800;
+  border: 0;
+  cursor: pointer;
+}
+.member-shell-result .result-btn-sub {
+  background: rgba(15, 23, 42, 0.06);
+  color: #475569;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: none;
+}
+.member-shell-result .member-empty-card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.06);
+}
+.member-shell-result .member-empty-title {
+  color: #111827;
+}
+.member-shell-result .member-empty-text {
+  color: #475569;
+}
+.member-shell-result .member-primary-btn {
+  background: linear-gradient(135deg, var(--jczj-warning) 0%, #ea580c 100%);
+  color: #fff;
+  box-shadow: 0 16px 28px rgba(234, 88, 12, 0.28);
+}
+.member-shell-result .member-secondary-btn {
+  background: rgba(15, 23, 42, 0.06);
+  color: #475569;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
 .member-hero-back {
   position: absolute;
   top: 18px;
@@ -1682,8 +1765,8 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 
 .member-shell-pricing .pricing-hero .member-hero-title {
-  color: #ea580c;
-  text-shadow: 0 4px 12px rgba(234, 88, 12, 0.14);
+  color: #081a45;
+  text-shadow: 0 4px 12px rgba(8, 26, 69, 0.1);
 }
 
 .member-shell-pricing .pricing-hero .member-hero-subtitle {
@@ -2399,4 +2482,48 @@ input[type='password']::-webkit-credentials-auto-fill-button {
   border: 1px solid rgba(15, 23, 42, 0.12);
   color: #475569;
   box-shadow: none;
+}
+
+/* ★ 支付页面移动端订单摘要卡片优化 */
+@media (max-width: 480px) {
+  .member-shell-payment .member-section-card {
+    padding: 16px 14px;
+    border-radius: 20px;
+  }
+  .member-shell-payment .member-section-title {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .payment-plan-row {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 4px;
+    padding: 8px 0;
+  }
+  .payment-plan-label {
+    font-size: 12px;
+  }
+  .payment-plan-value {
+    font-size: 14px;
+    text-align: left;
+  }
+  .member-shell-payment .payment-actions-top {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .member-shell-payment .payment-submit-btn,
+  .member-shell-payment .payment-cancel-btn {
+    height: 48px;
+    font-size: 14px;
+  }
+}
+@media (max-width: 390px) {
+  .member-shell-payment .member-section-card {
+    padding: 14px 12px;
+  }
+  .member-shell-payment .payment-submit-btn,
+  .member-shell-payment .payment-cancel-btn {
+    height: 44px;
+    font-size: 13px;
+  }
 }
