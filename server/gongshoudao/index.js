@@ -565,6 +565,19 @@ function computeFallbackMatch(m) {
   const overRate = avgGoals >= 2.85 ? 70 : avgGoals >= 2.65 ? 55 : 40;
   const bigBallRatio = overRate;
 
+  // ★ V7.0 市场情报：调用 market.analyze() 利用 odds_history 赔率数据
+  const _mr = (function () {
+    try {
+      return market.analyze(
+        { rq: handicap },
+        { num: m.num || '', date: m.date || '', handicap: handicap, matchId: m.matchId || '', leagueName: m.leagueName || '' },
+        { totalAdvantageRaw: hdcStrength, xgHome: xgHome, xgAway: xgAway, fusionConsensusType: 'weak' }
+      );
+    } catch (e) {
+      return null;
+    }
+  })();
+
   return {
     matchId: m.matchId || '',
     homeName: m.homeName || '',
@@ -790,15 +803,14 @@ function computeFallbackMatch(m) {
     goalDiffHome: xgHome.toFixed(1) + '/' + (avgGoals - xgHome).toFixed(1),
     goalDiffAway: xgAway.toFixed(1) + '/' + (avgGoals - xgAway).toFixed(1),
 
-    // ★ V7.0 市场情报（降级模式）
-    marketMovement: null,
-    marketEuroAsia: null,
-    marketXg: null,
-    marketScore: 50,
-    marketSignal: '⚠️ 降级模式（无赔率数据）',
-    marketRiskLevel: 'caution',
-    marketRiskDetail: '数据源缺失，市场情报不可用',
-    marketSignalFlags: ['降级估算'],
+    marketMovement: _mr ? _mr.movement : null,
+    marketEuroAsia: _mr ? _mr.euroAsia : null,
+    marketXg: _mr ? _mr.marketXg : null,
+    marketScore: _mr ? _mr.marketScore : 50,
+    marketSignal: _mr ? _mr.marketSignal : '⚠️ 降级模式（无赔率数据）',
+    marketRiskLevel: _mr ? _mr.riskLevel : 'caution',
+    marketRiskDetail: _mr ? (_mr.riskDetail || '') : '数据源缺失，市场情报不可用',
+    marketSignalFlags: _mr ? (_mr.signalFlags || []) : ['降级估算'],
     fusedXgHome: xgHome,
     fusedXgAway: xgAway,
   };
