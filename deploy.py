@@ -370,6 +370,13 @@ DEPLOY_MAP = [
     ('preview/js/pages/model-dashboard.js','both'), # ★ 模型仪表板
 
     ('preview/js/pages/data-health.js', 'both'),    # ★ 数据健康监控
+    ('preview/js/pages/admin-pipeline.js', 'both'),  # ★ 数据采集看板
+    ('preview/js/pages/admin-compute.js', 'both'),   # ★ 数据计算看板
+    ('preview/js/pages/admin-overview.js', 'both'),  # ★ 质量总览看板
+    ('preview/js/pages/data-confidence.js', 'both'), # ★ 数据可信度页面
+    ('preview/js/data-confidence-tooltip.js', 'both'), # ★ 浮动数据面板
+    ('preview/js/data-snapshot.js', 'both'),         # ★ 渲染快照检测
+    ('preview/css/admin-data-dashboard.css', 'both'), # ★ 看板样式
 
     # ★ Phase 4 支付体系前端页面
 
@@ -604,6 +611,7 @@ DEPLOY_MAP = [
     ('server/core/file-tracker.js',       'both'),
 
     ('server/core/data-quality.js',       'both'),
+    ('server/core/data-pipeline-monitor.js', 'both'), # ★ 全链路管线监控
 
     ('server/core/bet-scheme-filters.js', 'both'),
 
@@ -1247,17 +1255,119 @@ def _read_remote_server_env(ssh):
 
         return {}
 
+
+def _run_vite_build(fast_mode, files_only, dry_run):
+    """Phase 0: 自动执行 Vite 构建（如有 preview/ 源码变更则重建 dist/）"""
+    vite_root = os.path.join(LOCAL_ROOT, 'preview')
+    dist_dir = os.path.join(vite_root, 'dist')
+    package_json = os.path.join(LOCAL_ROOT, 'package.json')
+
+    if files_only:
+        print(c('2', '  --files-only 模式，跳过 Vite 构建'))
+        return
+
+    # 检查 preview/ 目录是否存在（有前端源码才需要构建）
+    if not os.path.isdir(vite_root):
+        print(c('2', '  preview/ 目录不存在，跳过 Vite 构建'))
+        return
+
+    if not os.path.isfile(package_json):
+        print(c('Y', '  package.json 不存在，跳过 Vite 构建'))
+        return
+
+    # 检查 package.json 是否有 build 脚本
+    try:
+        with open(package_json, 'r', encoding='utf-8') as f:
+            pkg = json.load(f)
+            if 'scripts' not in pkg or 'build' not in pkg['scripts']:
+                print(c('Y', '  package.json 无 build 脚本，跳过 Vite 构建'))
+                return
+    except Exception as e:
+        print(c('R', '  读取 package.json 失败: ' + str(e)))
+        return
+
+    if dry_run:
+        print(c('2', '  [dry-run] 将执行: cd {} && npm run build'.format(LOCAL_ROOT)))
+        return
+
+    print(c('C', '  🔨 正在执行 Vite 构建...'))
+    print(c('2', '    命令: npm run build'))
+
+    build_start = time.time()
+    result = subprocess.run(
+        ['npm', 'run', 'build'],
+        cwd=LOCAL_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=120,
+        shell=(sys.platform == 'win32'),
+    )
+    elapsed = time.time() - build_start
+
+    if result.returncode != 0:
+        print(c('R', '  ❌ Vite 构建失败 (exit code=' + str(result.returncode) + ', ' + f'{elapsed:.1f}s)'))
+        for line in (result.stderr or '').split('\n'):
+            line = line.strip()
+            if line:
+                print(c('R', '    ' + line))
+        # fatal: 构建失败则阻断部署
+        sys.exit(1)
+
+    # 检查 dist 是否生成
+    if not os.path.isdir(dist_dir) or not os.listdir(dist_dir):
+        print(c('R', '  ❌ Vite 构建后 dist/ 为空，阻断部署'))
+        sys.exit(1)
+
+    # 统计构建产物
+    dist_files = sum(len(files) for _, _, files in os.walk(dist_dir))
+    dist_size = sum(
+        os.path.getsize(os.path.join(root, f))
+        for root, _, files in os.walk(dist_dir)
+        for f in files
+    )
+    size_str = '{:.1f}MB'.format(dist_size / 1048576) if dist_size > 1048576 else '{:.0f}KB'.format(dist_size / 1024)
+    print(c('G', '  ✅ Vite 构建完成 (' + f'{elapsed:.1f}s, ' + str(dist_files) + ' 个文件, ' + size_str + ')'))
+
+    # 输出构建日志关键行
+    for line in (result.stdout or '').split('\n'):
+        line = line.strip()
+        if line and ('✓' in line or 'built' in line.lower() or 'transformed' in line.lower()):
+            print(c('2', '    ' + line))
+
+
+def _resolve_api_login_credentials(ssh):
+
     return kv
 
 
 
 def _resolve_api_login_credentials(ssh):
 
-    """优先使用本地环境变量，其次回退远端 /root/server/.env 的 AUTH_INIT_*。"""
+    """优先使用本地环境变量，其次 .env.deploy，再回退远端 .env 的 AUTH_INIT_*。"""
 
     user = (os.environ.get('DEPLOY_API_USER') or '').strip()
 
     passwd = (os.environ.get('DEPLOY_API_PASS') or '').strip()
+
+    if not user or not passwd:
+
+        env_deploy = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env.deploy')
+
+        if os.path.exists(env_deploy):
+
+            with open(env_deploy, 'r', encoding='utf-8') as f:
+
+                for line in f:
+
+                    line = line.strip()
+
+                    if not user and line.startswith('DEPLOY_API_USER='):
+
+                        user = line.split('=', 1)[1].strip().strip('"').strip("'")
+
+                    if not passwd and line.startswith('DEPLOY_API_PASS='):
+
+                        passwd = line.split('=', 1)[1].strip().strip('"').strip("'")
 
     if user and passwd:
 
@@ -1693,7 +1803,12 @@ def main():
                         sys.exit(0)
 
     print()
+    
 
+
+    # ── Phase 0: Vite 构建（如有 preview/ 源码变更则重建 dist/） ──
+
+    _run_vite_build(fast_mode, files_only, dry_run)
 
 
     # ── Phase 1: 备份 ──
@@ -2072,6 +2187,17 @@ def main():
         ssh_cmd(ssh, 'pm2 reload jc-sync --kill-timeout 10000 2>&1', 10)
 
         print('  PM2 jc-sync 已重载（10s 优雅关闭）')
+
+        # ★ Fix: 更新 .env 中 ALIPAY_RETURN_URL 路径（Vite 切换后 /preview/ 失效）
+        _, fix_out, _ = ssh.exec_command(
+            "sed -i 's|/preview/index.html#payment-result|/#payment-result|g' /root/server/.env", timeout=10)
+        fix_ec = fix_out.channel.recv_exit_status()
+        if fix_ec == 0:
+            _, verify_out, _ = ssh.exec_command('grep ALIPAY_RETURN_URL /root/server/.env', timeout=5)
+            print('  {} ALIPAY_RETURN_URL 已更新: {}'.format(
+                c('G', '✓'), verify_out.read().decode().strip()))
+        else:
+            print('  {} ALIPAY_RETURN_URL 更新失败（无视，代码默认值已指向 /#payment-result）'.format(c('Y', '⚠')))
 
         print()
 

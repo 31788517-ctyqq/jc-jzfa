@@ -35,7 +35,7 @@ function getMapiConfig() {
     md5Key: process.env.ALIPAY_MD5_KEY || '',
     signType: 'MD5',
     notifyUrl: process.env.ALIPAY_NOTIFY_URL || 'https://zj.100qiu.com/api/payments/notify',
-    returnUrl: process.env.ALIPAY_RETURN_URL || 'https://zj.100qiu.com/preview/index.html#payment-result',
+    returnUrl: process.env.ALIPAY_RETURN_URL || 'https://zj.100qiu.com/#payment-result',
     inputCharset: 'utf-8',
     paymentType: '1',
   };
@@ -124,7 +124,7 @@ function yuanToCents(amount) {
 const MAX_SUBSCRIPTION_MONTHS = 36;
 
 function appendOrderNo(url, orderNo) {
-  const base = String(url || '').trim() || 'https://zj.100qiu.com/preview/index.html#payment-result';
+  const base = String(url || '').trim() || 'https://zj.100qiu.com/#payment-result';
   if (!orderNo || base.includes('orderNo=')) return base;
   return base + (base.includes('?') ? '&' : '?') + 'orderNo=' + encodeURIComponent(orderNo);
 }
@@ -154,7 +154,7 @@ function getAlipayConfig() {
     gateway,
     signType: process.env.ALIPAY_SIGN_TYPE || 'RSA2',
     notifyUrl: process.env.ALIPAY_NOTIFY_URL || 'https://zj.100qiu.com/api/payments/notify',
-    returnUrl: process.env.ALIPAY_RETURN_URL || 'https://zj.100qiu.com/preview/index.html#payment-result',
+    returnUrl: process.env.ALIPAY_RETURN_URL || 'https://zj.100qiu.com/#payment-result',
     appPrivateKeyPath,
     appPrivateKey,
     // cert 模式专用
