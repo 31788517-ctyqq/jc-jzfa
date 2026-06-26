@@ -1820,16 +1820,22 @@ case 'recommend-trend': {
             }
             if (!_pgJudge) return midouHit;
             try {
-              const scoreResult = _pgJudge(direction, matchObj.score, null, matchObj.halfScore || '');
-              if (scoreResult === null) return midouHit; // 无法判定（如 RQSPF 无让球数）
+              // ★ 让球方向需要获取让球数
+              let handicap = null;
+              if (direction.startsWith('让') && matchObj.num) {
+                try {
+                  const sp = spAdapter.getFullSPData(matchObj.num, (matchObj.date || '').slice(0, 10));
+                  handicap = sp && sp.odds && sp.odds.rqspf ? sp.odds.rqspf.handicap : null;
+                } catch (e) {}
+              }
+              const scoreResult = _pgJudge(direction, matchObj.score, handicap, matchObj.halfScore || '');
+              if (scoreResult === null) return midouHit; // 无法判定
               if (midouHit !== scoreResult) {
                 logger.warn(
                   '[rank-crosscheck] 命中判定矛盾: ' + (matchObj.num || '') + ' ' + (matchObj.homeName || '') + ' vs ' + (matchObj.visitName || '') +
-                  ' dir=' + direction + ' midou310=' + midouHit + ' judgeByScore=' + scoreResult + ' score=' + matchObj.score
+                  ' dir=' + direction + ' midou310=' + midouHit + ' judgeByScore=' + scoreResult + ' score=' + matchObj.score + (handicap != null ? ' hcp=' + handicap : '')
                 );
-                // ★ 清除磁盘缓存，保证重算结果生效
                 try { apiCache.del(rankFileKey); } catch (e) {}
-                // 兜底：以 judgeByScore 比分判定为准（覆盖 midou310 错误）
                 return scoreResult === true;
               }
             } catch (e) {}
