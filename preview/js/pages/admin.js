@@ -238,11 +238,8 @@ export function loadAdmin(container) {
     '<button class="adm-profile-back" type="button" onclick="switchTab(\'profile\')" aria-label="返回个人中心" title="返回个人中心">' +
     _adminHomeIcon() +
     '</button>' +
-    '<div class="adm-hero-kicker">管理中枢</div>' +
-    '<div class="adm-hero-head"><div class="adm-hero-title">移动端管理后台</div>' +
-    _roleHtml(roleCode) +
-    '</div>' +
-    '<div class="adm-hero-desc">统一处理用户、订阅、返利与系统运维</div>' +
+    '<div class="adm-hero-head"><div class="adm-hero-title">移动端管理后台</div></div>' +
+    '<div class="adm-role adm-role-' + roleCode + '">' + (_roleCN[roleCode] || roleCode || '--') + '</div>' +
     '</div>' +
     '<div class="adm-tabs" id="admTabs"></div>' +
     '<div id="admPanel"></div>' +
@@ -253,27 +250,38 @@ export function loadAdmin(container) {
 }
 
 function _renderTabs(active) {
-  const tabs = [
+  const row1 = [
     { key: 'users', icon: _admIcon('users'), label: '用户' },
     { key: 'payments', icon: _admIcon('payments'), label: '订阅' },
     { key: 'referrals', icon: _admIcon('referrals'), label: '返利' },
     { key: 'system', icon: _admIcon('system'), label: '系统' },
   ];
+  const row2 = [
+    { key: 'pipeline', icon: '📥', label: '采集' },
+    { key: 'compute', icon: '⚙️', label: '计算' },
+    { key: 'overview', icon: '📊', label: '质量' },
+  ];
 
-  let html = '';
-  for (let i = 0; i < tabs.length; i++) {
-    const t = tabs[i];
-    html +=
-      '<div class="adm-tab' +
+  function _tabHtml(t, active) {
+    return '<div class="adm-tab' +
       (t.key === active ? ' active' : '') +
-      '" data-tab="' +
-      t.key +
-      '"><span class="adm-tab-icon">' +
-      t.icon +
-      '</span><span>' +
-      t.label +
-      '</span></div>';
+      '" data-tab="' + t.key +
+      '"><span class="adm-tab-icon">' + t.icon +
+      '</span><span>' + t.label + '</span></div>';
   }
+
+  let r1Html = '';
+  for (const t of row1) r1Html += _tabHtml(t, active);
+
+  let r2Html = '';
+  for (const t of row2) {
+    if (!_hasPerm('dashboard:data_health_view')) continue;
+    r2Html += _tabHtml(t, active);
+  }
+
+  const html = '<div class="adm-tab-row">' + r1Html + '</div>' +
+    (r2Html ? '<div class="adm-tab-row">' + r2Html + '</div>' : '');
+
   const el = document.getElementById('admTabs');
   if (el) {
     el.innerHTML = html;
@@ -293,6 +301,13 @@ function _switchTab(tab) {
   if (!panel) return;
   panel.innerHTML = '<div class="adm-loading">加载中...</div>';
 
+  // 离开当前 Tab 时清理定时器
+  const cleanupMap = { pipeline: 'destroyPipeline', compute: 'destroyCompute' };
+  const cleaner = cleanupMap[_currentTab];
+  if (cleaner) {
+    try { window[cleaner] && window[cleaner](); } catch (e) {}
+  }
+
   switch (tab) {
     case 'users':
       _renderUsersTab(panel);
@@ -305,6 +320,19 @@ function _switchTab(tab) {
       break;
     case 'system':
       _renderSystemTab(panel);
+      break;
+    // ── 3 个新增数据看板 Tab ──
+    case 'pipeline':
+      panel.innerHTML = '<div id="adminPipelineContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+      import('./admin-pipeline.js').then(function (m) { m.loadAdminPipeline(panel); }).catch(function () { panel.innerHTML = '<div class="adm-loading">看板加载失败</div>'; });
+      break;
+    case 'compute':
+      panel.innerHTML = '<div id="adminComputeContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+      import('./admin-compute.js').then(function (m) { m.loadAdminCompute(panel); }).catch(function () { panel.innerHTML = '<div class="adm-loading">看板加载失败</div>'; });
+      break;
+    case 'overview':
+      panel.innerHTML = '<div id="adminOverviewContent"><div class="page-skeleton"><div class="skel-bar w80"></div><div class="skel-bar w60"></div><div class="skel-bar w100"></div></div></div>';
+      import('./admin-overview.js').then(function (m) { m.loadAdminOverview(panel); }).catch(function () { panel.innerHTML = '<div class="adm-loading">看板加载失败</div>'; });
       break;
     default:
       panel.innerHTML = '<div class="adm-loading">未知页面</div>';
