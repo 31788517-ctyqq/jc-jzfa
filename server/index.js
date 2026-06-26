@@ -1827,6 +1827,8 @@ case 'recommend-trend': {
                   '[rank-crosscheck] 命中判定矛盾: ' + (matchObj.num || '') + ' ' + (matchObj.homeName || '') + ' vs ' + (matchObj.visitName || '') +
                   ' dir=' + direction + ' midou310=' + midouHit + ' judgeByScore=' + scoreResult + ' score=' + matchObj.score
                 );
+                // ★ 清除磁盘缓存，保证重算结果生效
+                try { apiCache.del(rankFileKey); } catch (e) {}
                 // 兜底：以 judgeByScore 比分判定为准（覆盖 midou310 错误）
                 return scoreResult === true;
               }
