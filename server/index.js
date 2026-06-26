@@ -1751,6 +1751,28 @@ case 'recommend-trend': {
           const requestDate = data.date || latestDataDate();
           matches = matches.filter((m) => String((m && m.date) || '').slice(0, 10) === requestDate);
 
+          // ★ 按 num 去重（与 getMatchesByDate 一致）：每个 num 只保留最优 match
+          // 优先顺序：JC 纯数字 matchId > 带 letBall > 500_ 格式
+          (function dedupByNum(arr) {
+            var seen = {};
+            for (var di = arr.length - 1; di >= 0; di--) {
+              var mm = arr[di];
+              var n = mm.num || '';
+              if (!n) continue;
+              if (seen[n]) {
+                var existing = seen[n];
+                var mmIsJc = mm.matchId && /^\d+$/.test(String(mm.matchId));
+                var exIsJc = existing.matchId && /^\d+$/.test(String(existing.matchId));
+                if (mmIsJc && !exIsJc) { seen[n] = mm; continue; }      // JC 格式替换非 JC
+                else if (!mmIsJc && exIsJc) { /* 保留 seen */ }
+                else if (mm.letBall !== undefined && existing.letBall === undefined) { seen[n] = mm; continue; }
+                arr.splice(di, 1);  // 移除重复
+              } else {
+                seen[n] = mm;
+              }
+            }
+          })(matches);
+
           // 获取推荐（优先 live API → 回退 data.json.r）
           async function getRecs(matchId) {
             // ★ 方案B: 优先实时 API（与详情页保持一致），10分钟缓存
@@ -1787,6 +1809,31 @@ case 'recommend-trend': {
           const dirStats = {}; // { type: { totalNum: number, matches: [] } }
           const matchTotalMap = {}; // matchId → 该比赛所有方向专家数之和
 
+          // ★ 比分核验：当 midou310 的判定与比分矛盾时告警并兜底修正
+          let _pgJudge = null;
+          try { _pgJudge = require('./core/plan-generator').judgeByScore; } catch (e) {}
+          function _crossCheckHit(midResult, direction, matchObj) {
+            // 原始 isHit
+            const midouHit = midResult === 1;
+            if (midResult === null || midResult === undefined || midResult === 2 || !matchObj || !matchObj.score || matchObj.matchStatus < 2) {
+              return midouHit; // 未结算或无比分，无法核验
+            }
+            if (!_pgJudge) return midouHit;
+            try {
+              const scoreResult = _pgJudge(direction, matchObj.score, null, matchObj.halfScore || '');
+              if (scoreResult === null) return midouHit; // 无法判定（如 RQSPF 无让球数）
+              if (midouHit !== scoreResult) {
+                logger.warn(
+                  '[rank-crosscheck] 命中判定矛盾: ' + (matchObj.num || '') + ' ' + (matchObj.homeName || '') + ' vs ' + (matchObj.visitName || '') +
+                  ' dir=' + direction + ' midou310=' + midouHit + ' judgeByScore=' + scoreResult + ' score=' + matchObj.score
+                );
+                // 兜底：midou310 未中但比分判定命中 → 修正为命中
+                if (!midouHit && scoreResult === true) return true;
+              }
+            } catch (e) {}
+            return midouHit;
+          }
+
           // ★ 方案B: 并行获取所有比赛的实时推荐（10分钟缓存）
           const recsCache = {};
           await Promise.all(
@@ -1822,7 +1869,7 @@ case 'recommend-trend': {
                 direction: r.type,
                 expertCount: expertNum,
                 totalExpertCount: Number(matchTotalMap[m.matchId] || expertNum),
-                isHit: r.result === 1,
+                isHit: _crossCheckHit(r.result, r.type, m),
               });
             }
           }
@@ -1875,7 +1922,7 @@ case 'recommend-trend': {
                   direction: maxDir.type,
                   expertCount: maxDir.num,
                   totalExpertCount: matchTotalMap[m.matchId] || maxDir.num,
-                  isHit: maxDir.result === 1,
+                  isHit: _crossCheckHit(maxDir.result, maxDir.type, m),
                 });
               }
             }
@@ -1894,7 +1941,7 @@ case 'recommend-trend': {
                   direction: maxDir.type,
                   expertCount: Number(maxDir.num || 0),
                   totalExpertCount: Number(matchTotalMap[m.matchId] || maxDir.num || 0),
-                  isHit: maxDir.result === 1,
+                  isHit: _crossCheckHit(maxDir.result, maxDir.type, m),
                 });
               }
             }
@@ -7998,6 +8045,52 @@ case 'recommend-trend': {
           } catch (e) {
             logger.error('[data-health] ' + e.message);
             return res.json({ code: 0, msg: '数据健康失败: ' + e.message });
+          }
+        }
+
+        // ★ 数据全链路透视看板: 数据采集 (Tab 5)
+        case 'pipeline-dashboard': {
+          try {
+            const pm = require('./core/data-pipeline-monitor');
+            const isAll = data.days === 0 || data.days === '0' || data.days === 'all';
+            const days = isAll ? 365 : parseInt(data.days) || 1;
+            const dashboard = pm.getPipelineDashboard(days);
+            return res.json({ code: 1, data: dashboard });
+          } catch (e) {
+            logger.error('[pipeline-dashboard] ' + e.message);
+            return res.json({ code: 0, msg: '采集看板失败: ' + e.message });
+          }
+        }
+
+        // ★ 数据全链路透视看板: 数据计算 (Tab 6)
+        case 'compute-dashboard': {
+          try {
+            const pm = require('./core/data-pipeline-monitor');
+            const isAll = data.days === 0 || data.days === '0' || data.days === 'all';
+            const days = isAll ? 365 : parseInt(data.days) || 1;
+            const dashboard = pm.getComputeDashboard(days);
+            return res.json({ code: 1, data: dashboard });
+          } catch (e) {
+            logger.error('[compute-dashboard] ' + e.message);
+            return res.json({ code: 0, msg: '计算看板失败: ' + e.message });
+          }
+        }
+
+        // ★ 渲染快照检查上报 (前端 data-snapshot.js)
+        case 'render-check-report': {
+          try {
+            const pm = require('./core/data-pipeline-monitor');
+            pm.recordRenderReport({
+              snapshotId: data.snapshotId,
+              expected: data.expected,
+              actual: data.actual,
+              url: data.url,
+              page: data.url || '',
+            });
+            pm.recordDisplayCheck(data.actual === data.expected);
+            return res.json({ code: 1, data: { ok: true } });
+          } catch (e) {
+            return res.json({ code: 0, msg: e.message });
           }
         }
 
