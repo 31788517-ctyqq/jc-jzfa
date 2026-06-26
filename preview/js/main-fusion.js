@@ -1623,12 +1623,7 @@ window.onIncDirChange = function (dir) {
     state.setCurrentPage('home');
     loadHome();
     _preloadMods();
-    // ★ 数据悬浮面板: 登录后3秒懒加载 (直接 import, 不在 pages/ 目录)
-    if (hasAuthToken()) {
-      setTimeout(function () {
-        import('./data-confidence-tooltip.js').then(function (m) { m.initDataConfidenceTooltip(); }).catch(function () {});
-      }, 3000);
-    }
+    // ★ 数据悬浮面板: 已移除（不再显示浮动按钮）
     setTimeout(function () {
       _preloadData('home');
     }, 500);
