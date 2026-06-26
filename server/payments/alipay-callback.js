@@ -43,7 +43,7 @@ async function handleSimulatePay(req, res) {
       await onPaymentSuccess(result.order_id, result.user_id || null);
     }
 
-    const redirectUrl = returnUrl || `/preview/index.html#payment-result?orderNo=${orderNo}`;
+    const redirectUrl = returnUrl || `/#payment-result?orderNo=${orderNo}`;
     res.redirect(302, redirectUrl);
   } catch (e) {
     console.error('[alipay-callback] 模拟支付失败:', e.message);

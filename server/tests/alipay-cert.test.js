@@ -10,7 +10,7 @@ function setSandboxEnv() {
   process.env.ALIPAY_GATEWAY = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do';
   process.env.ALIPAY_SIGN_TYPE = 'RSA2';
   process.env.ALIPAY_NOTIFY_URL = 'https://zj.100qiu.com/api/payments/notify';
-  process.env.ALIPAY_RETURN_URL = 'https://zj.100qiu.com/preview/index.html#payment-result';
+  process.env.ALIPAY_RETURN_URL = 'https://zj.100qiu.com/#payment-result';
   process.env.ALIPAY_APP_PRIVATE_KEY = PRIVATE_KEY;
   process.env.ALIPAY_APP_CERT_PATH = '/root/server/keys/alipay/appCertPublicKey_2021006161653361.crt';
   process.env.ALIPAY_PUBLIC_CERT_PATH = '/root/server/keys/alipay/alipayCertPublicKey_RSA2.crt';

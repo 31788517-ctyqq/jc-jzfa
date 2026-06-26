@@ -207,7 +207,7 @@ window.submitPayment = async function (planCode, price) {
       '&amount=' +
       (order.amount || price) +
       '&returnUrl=' +
-      encodeURIComponent(location.origin + '/preview/index.html#payment-result?orderNo=' + order.order_no);
+      encodeURIComponent(location.origin + '/#payment-result?orderNo=' + order.order_no);
     window.location.href = order.payment_url || fallbackUrl;
   } catch (e) {
     alert(formatPaymentError(e && e.message));
