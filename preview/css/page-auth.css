@@ -1471,7 +1471,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
 }
 .member-shell-result .result-btn {
   width: 100%;
-  min-height: 50px;
+  min-height: 48px;
   border-radius: 16px;
   font-size: 15px;
   font-weight: 800;
@@ -1479,6 +1479,7 @@ input[type='password']::-webkit-credentials-auto-fill-button {
   cursor: pointer;
 }
 .member-shell-result .result-btn-sub {
+  min-height: 42px;
   background: rgba(15, 23, 42, 0.06);
   color: #475569;
   border: 1px solid rgba(15, 23, 42, 0.12);
