@@ -21,8 +21,9 @@ describe('autoInferStatus — 时间推演', function () {
           year + '-' + clean.slice(0, 2) + '-' + clean.slice(3, 5) + 'T' + clean.slice(5, 10) + ':00+08:00',
         );
         if (!isNaN(dt.getTime()) && now > dt.getTime() + 10 * 60 * 1000) {
+          const elapsed = Math.floor((now - dt.getTime()) / 60000);
           m.matchStatus = 1;
-          m.duration = m.duration || '进行中';
+          m.duration = elapsed >= 130 ? '完' : elapsed + "'";
           fixed++;
           inferredLive++;
           return;
@@ -66,7 +67,8 @@ describe('autoInferStatus — 时间推演', function () {
     const result = autoInferStatus(matches, '2026-06-14', now);
     expect(result.inferredLive).toBe(1);
     expect(matches.m_1.matchStatus).toBe(1);
-    expect(matches.m_1.duration).toBe('进行中');
+    // duration 改为经过分钟数（如 "76'"），但测试中 now 是动态的，只验证格式
+    expect(matches.m_1.duration).toMatch(/^\d+'$/);
   });
 
   // ── 未到开赛时间 → 不触发 ──

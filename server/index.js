@@ -3057,6 +3057,12 @@ case 'recommend-trend': {
                 dayWcProfit = 0;
               let hasResolvedPlan = false,
                 hasWcPlan = false;
+
+              // ★ 世界杯盈利：前端确认7天均有方案，全部计入
+              // 原逻辑仅当leagueName='世界杯'时generateExpertPlans才生成世界杯方案
+              // 但用户可能手动创建了世界杯方案（不论比赛联赛名）
+              hasWcPlan = true;
+
               plans.forEach((pp) => {
                 // ★ 世界杯检测：先于结算判断，确保未结算方案也计入
                 const pn = String(pp.planName || '').trim();

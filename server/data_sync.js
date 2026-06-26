@@ -653,6 +653,20 @@ async function syncMidouCards() {
   }
 }
 
+/**
+ * ★ 反向修正 midou result 倒置：midou API 返回的 result 值与实际结果相反
+ *   midou result=1 → 方向错误；result=0 → 方向正确
+ *   本系统约定：result=1 命中, result=0 未中
+ *   null/2 等特殊值保持不变
+ */
+function _invertMidouResult(recs) {
+  if (!recs || !recs.length) return recs;
+  return recs.map(function (r) {
+    if (!r || r.result === null || r.result === undefined || r.result === 2) return r;
+    return { type: r.type, num: r.num, result: r.result === 1 ? 0 : 1 };
+  });
+}
+
 async function syncRecommends(dateStr) {
   let targetDate;
   if (dateStr) {
@@ -695,7 +709,7 @@ async function syncRecommends(dateStr) {
       const mid = String(m.matchId || '');
 
       try {
-        const recs = await fetchRecommends(mid);
+        const recs = _invertMidouResult(await fetchRecommends(mid));
 
         const rk = 'm_' + mid;
         const oldRecs = data.r[rk] || [];
@@ -1077,9 +1091,10 @@ async function processBackfillQueue() {
           continue;
         }
 
-        const newRecs = recRes.data
+        const mappedRecs = recRes.data
           .filter((x) => x && x.type && x.num > 0)
           .map((x) => ({ type: x.type, num: x.num, result: x.result !== undefined ? x.result : null }));
+        const newRecs = _invertMidouResult(mappedRecs);
 
         const rk2 = 'm_' + mid;
         const oldStale = (data.r[rk2] || []).filter((r) => r.result === null || r.result === 2).length;
@@ -2516,8 +2531,15 @@ function autoInferStatus(dateStr) {
             year + '-' + clean.slice(0, 2) + '-' + clean.slice(3, 5) + 'T' + clean.slice(5, 10) + ':00+08:00',
           );
           if (!isNaN(dt.getTime()) && now > dt.getTime() + 10 * 60 * 1000) {
-            m.matchStatus = 1;
-            m.duration = m.duration || '进行中';
+            // ★ 计算开赛经过分钟数，替代固定"进行中"文字
+            const elapsed = Math.floor((now - dt.getTime()) / 60000);
+            if (elapsed >= 130) {
+              m.matchStatus = 2;
+              m.duration = '完';
+            } else {
+              m.matchStatus = 1;
+              m.duration = (m.duration && /^\d+$/.test(m.duration.replace(/'$/, ''))) ? m.duration : elapsed + "'";
+            }
             fixed++;
             inferredLive++;
             return; // 已更新为进行中

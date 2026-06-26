@@ -2,7 +2,7 @@
  * sync_live_500.js — 500.com 即时比分抓取器
  *
  * 数据源: https://live.500.com/?e=YYYY-MM-DD (无需认证, GBK编码)
- * 字段: 场次 / 状态 / 比分 / 半场 / 黄牌 / 红牌 / FIFA排名
+ * 解析列结构: 场次 | 赛事 | 轮次 | 时间 | 状态+进度 | 主队(含排名+卡) | 盘口(clt1比分 让球文字 clt3比分 含颜色) | 客队(含排名+卡) | (备用) | 半场(class=bf_op) | 让球结果
  *
  * 配合 data_sync.js:
  *   - 比分+红黄牌: 500.com (每2分钟)
@@ -56,9 +56,35 @@ function httpGet(url) {
 }
 
 function atomicWrite(filePath, data) {
+  // ★ 写入 data.json 前去重 num 重复条目
+  if (filePath.indexOf('data.json') >= 0 && data && data.m) dedupByNum(data.m);
   const tmpFile = filePath + '.tmp';
   fs.writeFileSync(tmpFile, JSON.stringify(data));
   fs.renameSync(tmpFile, filePath);
+}
+
+/** ★ 按 num 去重 data.json.m */
+function dedupByNum(mMap) {
+  if (!mMap) return;
+  var seen = {};
+  var toRemove = [];
+  Object.keys(mMap).forEach(function (k) {
+    var m = mMap[k];
+    if (!m || !m.num) return;
+    var n = m.num;
+    if (seen[n]) {
+      var existing = seen[n];
+      var mIsJc = m.matchId && /^\d+$/.test(String(m.matchId));
+      var exIsJc = existing.match.matchId && /^\d+$/.test(String(existing.match.matchId));
+      if (mIsJc && !exIsJc) { toRemove.push(existing.key); seen[n] = { key: k, match: m }; }
+      else if (!mIsJc && exIsJc) { toRemove.push(k); }
+      else if (m.letBall !== undefined && existing.match.letBall === undefined) { toRemove.push(existing.key); seen[n] = { key: k, match: m }; }
+      else { toRemove.push(k); }
+    } else {
+      seen[n] = { key: k, match: m };
+    }
+  });
+  toRemove.forEach(function (rk) { delete mMap[rk]; });
 }
 
 function stripHtmlText(raw) {
@@ -69,34 +95,30 @@ function stripHtmlText(raw) {
     .trim();
 }
 
-function extractScoreFromCell(scoreCellHtml, matchStatus) {
-  const cellHtml = String(scoreCellHtml || '');
-  const plain = stripHtmlText(cellHtml);
-  const m = plain.match(/(\d+)\s*[-:：]\s*(\d+)/);
-  if (!m) return null;
+/**
+ * 从盘口列 td[6] 提取比分和颜色
+ * 500.com 实际比分嵌入在盘口列的让球文字两侧：
+ *   <a class="clt1" [style="color:blue;"]>HOME_SCORE</a>
+ *   ...让球文字（如"平手/半球"）...
+ *   <a class="clt3" [style="color:blue;"]>AWAY_SCORE</a>
+ * 蓝色(有style="color:blue") = 进行中，无style = 已完赛（CSS默认红色）
+ */
+function extractScoreFromOddsCell(oddsTdHtml) {
+  const cellHtml = String(oddsTdHtml || '');
+  if (!cellHtml) return null;
 
-  const h = parseInt(m[1], 10);
-  const a = parseInt(m[2], 10);
-  if (isNaN(h) || isNaN(a)) return null;
+  const homeM = cellHtml.match(/<a[^>]*class\s*=\s*["'][^"']*\bclt1\b[^"']*["'][^>]*>(\d+)<\/a>/i);
+  const awayM = cellHtml.match(/<a[^>]*class\s*=\s*["'][^"']*\bclt3\b[^"']*["'][^>]*>(\d+)<\/a>/i);
+  if (!homeM && !awayM) return null;
 
-  const attrs = cellHtml.toLowerCase();
-  const hasRedMark =
-    /class\s*=\s*["'][^"']*red[^"']*["']/.test(attrs) ||
-    /color\s*:\s*(?:#f00\b|#ff0000\b|#c00\b|#d00\b|red\b)/.test(attrs);
-  const hasBlueMark =
-    /class\s*=\s*["'][^"']*blue[^"']*["']/.test(attrs) ||
-    /color\s*:\s*(?:#00f\b|#0000ff\b|#06c\b|#0099ff\b|blue\b)/.test(attrs);
+  const homeGoals = homeM ? parseInt(homeM[1], 10) : -1;
+  const awayGoals = awayM ? parseInt(awayM[1], 10) : -1;
+  if (isNaN(homeGoals) || isNaN(awayGoals) || homeGoals < 0 || awayGoals < 0) return null;
 
-  // 规则：完赛比分优先来自“完赛状态”；若有颜色标记则按颜色归因
-  const source = hasRedMark ? 'red' : hasBlueMark ? 'blue' : matchStatus >= 2 ? 'status-final' : 'status-live';
+  // 颜色：clt1 有 style="color:blue" = 进行中(蓝)，无style = 已完赛(红)
+  const isLive = /style\s*=\s*["'][^"']*color\s*:\s*blue/i.test(homeM ? homeM[0] : '');
 
-  // 非完赛（蓝色/进行中）只作为过程比分，不提升状态
-  if (matchStatus < 2 && source === 'red') {
-    // 极端情况下出现红字但状态未同步，仍按赛中处理，避免误判终场
-    return { score: h + '-' + a, homeGoals: h, awayGoals: a, source: 'live-red' };
-  }
-
-  return { score: h + '-' + a, homeGoals: h, awayGoals: a, source };
+  return { score: homeGoals + '-' + awayGoals, homeGoals, awayGoals, source: isLive ? 'blue' : 'red' };
 }
 
 // ═══ 解析比赛数据（含红黄牌） ═══
@@ -104,9 +126,10 @@ function parse500Live(html) {
   const matches = [];
 
   // 找到主表格: 包含比赛数据的行
-  // 每行格式: 场次 | 赛事 | 轮次 | 时间 | 状态 | 主队(含排名) | 盘口 | 客队(含排名+卡) | 比分 | ...
+  // 列结构: 场次 | 赛事 | 轮次 | 时间 | 状态+进度 | 主队(含排名+卡) | 盘口(clt1比分 让球文字 clt3比分) | 客队(含排名+卡) | (备用) | 半场(class=bf_op) | 让球结果
   const trRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-  const tdRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+  // ★ 修复: 捕获完整 <td> 外标签（含 class="red"/"blue" 颜色标记），而非仅 innerHTML
+  const tdRegex = /(<td[^>]*>[\s\S]*?<\/td>)/gi;
 
   let trMatch;
   while ((trMatch = trRegex.exec(html)) !== null) {
@@ -115,7 +138,7 @@ function parse500Live(html) {
     let tdMatch;
     tdRegex.lastIndex = 0;
     while ((tdMatch = tdRegex.exec(trContent)) !== null) {
-      tds.push(tdMatch[1]);
+      tds.push(tdMatch[1]); // 完整 <td...>inner</td>
     }
 
     if (tds.length < 8) continue;
@@ -127,12 +150,18 @@ function parse500Live(html) {
     const matchNum = col0;
 
     // ═══ 提取各列 ═══
-    // 第4列 (index 4): 状态 (完/中/推迟/取消)
-    const statusStr = tds[4] ? tds[4].replace(/<[^>]+>/g, '').trim() : '';
+    // 第4列 (index 4): 状态 (完/中/推迟/取消) + 进行时间(如"65'")
+    const statusRaw = tds[4] ? stripHtmlText(tds[4]) : '';
     let matchStatus = 0;
-    if (statusStr === '中' || statusStr === '进行' || statusStr === '1') matchStatus = 1;
-    else if (statusStr === '完' || statusStr === '结束' || statusStr === '2') matchStatus = 2;
-    else if (statusStr === '推迟' || statusStr === '取消' || statusStr === '3') matchStatus = 3;
+    let duration = '';
+    if (statusRaw === '中' || statusRaw === '进行' || statusRaw === '1') matchStatus = 1;
+    else if (statusRaw === '完' || statusRaw === '结束' || statusRaw === '2') matchStatus = 2;
+    else if (statusRaw === '推迟' || statusRaw === '取消' || statusRaw === '3') matchStatus = 3;
+    else if (/^\d+$/.test(statusRaw)) {
+      // 纯数字 = 进行时间（如"65"）
+      matchStatus = 1;
+      duration = statusRaw + "'";
+    }
 
     // ★ 提取红黄牌: 在球队名列中查找 <span class="yellowcard">/<span class="redcard">
     let homeYellow = '',
@@ -180,8 +209,8 @@ function parse500Live(html) {
           .trim()
       : '';
 
-    // 第8列 (index 8): 比分列（避免从盘口列误提取数字）
-    const parsedScore = extractScoreFromCell(tds[8] || '', matchStatus);
+    // ★ 比分+颜色：从 td[6] 盘口列取（clt1=主队 clt3=客队，style=blue=进行中）
+    const parsedScore = extractScoreFromOddsCell(tds[6] || '');
 
     // ═══ 提取球队名 ═══
     // 主队: 从 col5 提取，去掉排名标记和数字
@@ -205,7 +234,7 @@ function parse500Live(html) {
       if (aMatch) visitName = aMatch[1].trim();
     }
 
-    // ═══ 解析比分 ═══
+    // ═══ 解析比分（来源 td[6] 盘口列 clt1/clt3） ═══
     let homeGoals = -1,
       awayGoals = -1,
       score = '',
@@ -214,35 +243,24 @@ function parse500Live(html) {
       homeGoals = parsedScore.homeGoals;
       awayGoals = parsedScore.awayGoals;
       score = parsedScore.score;
-      scoreSource = parsedScore.source || '';
+      scoreSource = parsedScore.source || (matchStatus >= 2 ? 'red' : 'blue');
     }
 
     // 状态以“状态列”为准：
     // - 完赛场次保留终场比分
     // - 未完赛场次可带过程比分，但不会提升为完赛
 
-    // ═══ 半场比分 ═══
+    // ═══ 半场比分（专用列 td[9]，class="bf_op"） ═══
     let halfScore = '';
-    for (let i = 9; i < Math.min(tds.length, 11); i++) {
-      const t = tds[i] ? tds[i].replace(/<[^>]+>/g, '').trim() : '';
-      if (/^\d+\s*[-:：]\s*\d+$/.test(t)) {
-        halfScore = t.replace(/\s+/g, '').replace(/[:：]/, '-');
-        break;
-      }
+    if (tds.length > 9) {
+      const halfText = stripHtmlText(tds[9]);
+      const halfM = halfText.match(/(\d+)\s*[-:：]\s*(\d+)/);
+      if (halfM) halfScore = halfM[1] + '-' + halfM[2];
     }
 
-    // ═══ 比赛进行时间 ═══
-    let duration = '';
-    for (const td of tds) {
-      const t = td.replace(/<[^>]+>/g, '').trim();
-      if (/(\d+)\s*['\u2018\u2019′分]/.test(t)) {
-        const m = t.match(/(\d+)/);
-        if (m) duration = m[1] + "'";
-        break;
-      }
-    }
+    // 注意：duration 已在状态列(td[4])提取，纯数字如"65"→进行时间
 
-    // ═══ 比赛时间 ═══
+    // ═══ 比赛开赛时间 ═══
     let startTime = '';
     for (const td of tds.slice(0, 5)) {
       const t = td.replace(/<[^>]+>/g, '').trim();
