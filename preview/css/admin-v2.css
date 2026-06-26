@@ -161,10 +161,6 @@
   margin-top: auto;
   align-self: flex-start;
 }
-  color: #132033;
-  background: var(--adm-orange);
-  font-size: 10px;
-}
 
 /* Tab 导航 — 胶囊式两排卡片 */
 .adm-tabs {
